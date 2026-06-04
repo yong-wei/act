@@ -659,17 +659,25 @@ function readTerminalValidationPolicy(value: unknown) {
   };
 }
 
-function buildTerminalValidationEvidence(input: PathNodeExecutionInput) {
-  return compactObject({
-    simulation: sanitizeSimulationValidationEvidence(input.simulationRef ?? findEvidenceRef(input.evidenceRefs, ['SimulationRun', 'simulation-run'])),
-    arena: sanitizeArenaValidationEvidence(input.arenaRef ?? findEvidenceRef(input.evidenceRefs, [
+interface TerminalValidationEvidence {
+  simulation?: Record<string, unknown>;
+  arena?: Record<string, unknown>;
+  citedRefs: Array<Record<string, unknown>>;
+}
+
+function buildTerminalValidationEvidence(input: PathNodeExecutionInput): TerminalValidationEvidence {
+  const simulation = sanitizeSimulationValidationEvidence(input.simulationRef ?? findEvidenceRef(input.evidenceRefs, ['SimulationRun', 'simulation-run']));
+  const arena = sanitizeArenaValidationEvidence(input.arenaRef ?? findEvidenceRef(input.evidenceRefs, [
       'ArenaSubmission',
       'arena-submission',
       'ArenaVirtualSimulationRun',
       'arena-preview',
-    ])),
+  ]));
+  return {
+    ...(simulation ? { simulation } : {}),
+    ...(arena ? { arena } : {}),
     citedRefs: sanitizeValidationRefs(input.evidenceRefs),
-  });
+  };
 }
 
 function sanitizeSimulationValidationEvidence(value: unknown): Record<string, unknown> | undefined {

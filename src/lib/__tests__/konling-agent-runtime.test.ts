@@ -36,6 +36,7 @@ import {
   resumeKonlingAgentSession,
   startKonlingToolRun,
   verifyKonlingRuntimeScope,
+  type KonlingCitationContext,
   type KonlingRuntimeScope,
   type KonlingRuntimeContext,
 } from '@/lib/konling-agent-runtime';

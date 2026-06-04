@@ -1026,7 +1026,7 @@ describe('student evidence feature cache service', () => {
       now: new Date('2026-06-04T11:00:00.000Z'),
     });
 
-    expect(entry.features.pathExecution.allTime).toMatchObject({
+    expect((entry.features as any).pathExecution.allTime).toMatchObject({
       terminalValidationCount: 1,
       fallbackCount: 1,
       confidence: expect.objectContaining({

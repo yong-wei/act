@@ -137,6 +137,7 @@ function mockDb() {
   return {
     learningPath: {
       upsert: vi.fn(async ({ create, update }) => ({ id: create.id, ...create, ...update })),
+      update: vi.fn(async ({ data }) => ({ id: 'adaptive-path:student-1:control-correction', ...data })),
       findFirst: vi.fn(async () => ({
         id: 'adaptive-path:student-1:control-correction',
         userId: 'student-1',
@@ -785,5 +786,33 @@ describe('control-correction path rounds', () => {
     expect(updateCall).not.toContain('hiddenTrace');
     expect(updateCall).not.toContain('hiddenScenarioOrder');
     expect(updateCall).not.toContain('private-scenario');
+  });
+
+  it('omits undefined terminal validation evidence keys from JSON payloads', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'arena-task:task-second-order-lead-pid',
+      nodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:task-second-order-lead-pid'],
+      terminalValidation: {
+        nodeId: 'arena-task:task-second-order-lead-pid',
+        resourceType: 'arena_task',
+        state: 'pending',
+      },
+      lastExecutionMetadata: {},
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'completed',
+    });
+
+    const terminalValidation = db.learningPath.update.mock.calls[0][0].data.terminalValidation;
+    expect(Object.prototype.hasOwnProperty.call(terminalValidation.evidence, 'simulation')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(terminalValidation.evidence, 'arena')).toBe(false);
   });
 });
