@@ -289,7 +289,13 @@ export function UNIT_4_1StudentPage({
   }
 
   return (
-    <div className="premium-lesson-shell">
+    <div
+      className="premium-lesson-shell"
+      data-commercial-workspace="interactive-learning"
+      data-task-workspace-archetype="lesson-runtime"
+      data-launch-provenance="course-launched"
+      data-return-target="/interactive-learning/courses/unit-4-1-design-task-expression"
+    >
       <UNIT_4_1CourseHeader
         steps={UNIT_4_1_LESSON_STEPS}
         activeIndex={activeIndex}
@@ -331,7 +337,7 @@ export function UNIT_4_1StudentPage({
 
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
 
-        <div className="premium-lesson-panel-soft mb-4 px-4 py-4">
+        <div className="premium-lesson-panel-soft mb-4 px-4 py-4" data-commercial-workspace-zone="context-strip">
           <div className="premium-lesson-kicker">学生课堂台</div>
           <div className="premium-lesson-title mt-2 text-lg font-semibold">
             {isDemo ? '演示模式已开启' : `已加入课堂 ${sessionId}`}
@@ -341,24 +347,30 @@ export function UNIT_4_1StudentPage({
           </div>
         </div>
 
-        <UNIT_4_1StepContentPanel
-          step={step}
-          manifest={runtimeManifest}
-          revealProgress={revealProgress}
-          allowInlineReveal={allowInlineReveal}
-          role="student"
-          submittedCount={submittedCount}
-          viewedCount={viewedStepIds.length}
-          postTestCompletion={courseState.responses['step-12'] ? 100 : 0}
-          parameterSubmissionCount={parameterSubmissionCount}
-          onWorkspaceParameterChange={handleWorkspaceParameterChange}
-        />
+        <div data-commercial-workspace-zone="instrument-area">
+          <UNIT_4_1StepContentPanel
+            step={step}
+            manifest={runtimeManifest}
+            revealProgress={revealProgress}
+            allowInlineReveal={allowInlineReveal}
+            role="student"
+            submittedCount={submittedCount}
+            viewedCount={viewedStepIds.length}
+            postTestCompletion={courseState.responses['step-12'] ? 100 : 0}
+            parameterSubmissionCount={parameterSubmissionCount}
+            onWorkspaceParameterChange={handleWorkspaceParameterChange}
+          />
+        </div>
 
         {isUNIT_4_1AiPageType(step.pageType) ? (
-          <div className="mt-4">
+          <div className="mt-4" data-commercial-workspace-zone="support-drawer">
             <UNIT_4_1StepAiAssistant step={step} onAiEvent={handleAiEvent} />
           </div>
-        ) : null}
+        ) : (
+          <div className="sr-only" data-commercial-workspace-zone="support-drawer">
+            页面知识卡片、课堂同步和步骤提示由课程运行态提供。
+          </div>
+        )}
 
         <div className="mt-4">
           <UNIT_4_1StudentActivityForm

@@ -6,6 +6,8 @@ import { describe, expect, it } from 'vitest';
 import {
   EXPERIENCE_SHELL_MIGRATION_CONTRACTS,
   EXPERIENCE_SHELL_SLOT_ORDER,
+  TASK_WORKSPACE_ARCHETYPE_CONTRACTS,
+  TASK_WORKSPACE_ROUTE_CONTRACTS,
   buildCourseLaunchExperienceContext,
   buildExperienceStatusPayloads,
   buildWorkbenchExperienceContext,
@@ -29,6 +31,8 @@ describe('simulation arena workbench experience UI contracts', () => {
       'main-stage',
       'side-panels',
       'status-rail',
+      'bottom-tools',
+      'support-drawer',
     ]);
 
     expect(EXPERIENCE_SHELL_MIGRATION_CONTRACTS.map((contract) => contract.surface)).toEqual([
@@ -39,6 +43,37 @@ describe('simulation arena workbench experience UI contracts', () => {
       'control-workbench',
       'course-resource-launch',
     ]);
+  });
+
+  it('declares task workspace archetypes, route bindings, and local/global control boundaries', () => {
+    expect(TASK_WORKSPACE_ARCHETYPE_CONTRACTS.map((contract) => contract.archetype)).toEqual([
+      'immersive-scene',
+      'engineering-analysis',
+      'challenge-task',
+      'lesson-runtime',
+      'learner-data',
+      'operations-analytics',
+      'governance-console',
+    ]);
+    for (const contract of TASK_WORKSPACE_ARCHETYPE_CONTRACTS) {
+      expect(contract.requiredZones).toEqual(expect.arrayContaining(['instrument-area', 'floating-dock-safe-area']));
+      expect(contract.localControls.length).toBeGreaterThan(0);
+      expect(contract.shellControls).toEqual(expect.arrayContaining(['Konling', 'role cockpit']));
+    }
+    expect(TASK_WORKSPACE_ROUTE_CONTRACTS.map((contract) => contract.href)).toEqual([
+      '/simulations/cruise',
+      '/interactive-learning/control-workbench',
+      '/arena/challenges/[taskId]',
+      '/interactive-learning/courses/[lesson]',
+    ]);
+    expect(TASK_WORKSPACE_ROUTE_CONTRACTS.find((contract) => contract.href === '/simulations/cruise')).toMatchObject({
+      archetype: 'immersive-scene',
+      returnTarget: '/simulations',
+      roleScope: ['student', 'teacher', 'admin'],
+    });
+    expect(TASK_WORKSPACE_ROUTE_CONTRACTS.find((contract) => contract.href === '/interactive-learning/control-workbench')).toMatchObject({
+      archetype: 'engineering-analysis',
+    });
   });
 
   it('renders launch provenance distinctly for standalone, course, preview, and official workflows', () => {
@@ -57,6 +92,14 @@ describe('simulation arena workbench experience UI contracts', () => {
     expect(describeExperienceLaunch({ kind: 'official-evaluation', arena: { taskId: 'task-1' } })).toMatchObject({
       label: '官方评价',
       visualBoundary: 'official',
+    });
+    expect(describeExperienceLaunch({ kind: 'teacher-review', roleScope: ['teacher'] })).toMatchObject({
+      label: '教师复核',
+      visualBoundary: 'review',
+    });
+    expect(describeExperienceLaunch({ kind: 'admin-review', roleScope: ['admin'] })).toMatchObject({
+      label: '管理员复核',
+      visualBoundary: 'review',
     });
   });
 
@@ -83,6 +126,26 @@ describe('simulation arena workbench experience UI contracts', () => {
     expect(model.summaryLabel).toContain('中置信');
     expect(model.summaryLabel).toContain('降级可用');
     expect(model.summary).toContain('surrogate');
+  });
+
+  it('preserves teacher and admin review role scope in launch status payloads', () => {
+    const teacherStatuses = buildExperienceStatusPayloads({
+      launch: { kind: 'teacher-review', roleScope: ['teacher'], course: { sessionId: 'session-1' } },
+    });
+    const adminStatuses = buildExperienceStatusPayloads({
+      launch: { kind: 'admin-review', roleScope: ['admin'] },
+    });
+
+    const teacherLaunch = buildPlatformStatusViewModel(teacherStatuses.launch, { role: 'teacher' });
+    const adminLaunch = buildPlatformStatusViewModel(adminStatuses.launch, { role: 'admin' });
+    const adminEvaluation = buildPlatformStatusViewModel(adminStatuses.evaluation, { role: 'admin' });
+
+    expect(teacherLaunch.summary).toContain('教师复核');
+    expect(teacherLaunch.details).toEqual(expect.arrayContaining([
+      expect.objectContaining({ label: '角色范围', value: 'teacher' }),
+    ]));
+    expect(adminLaunch.summary).toContain('管理员复核');
+    expect(adminEvaluation.summaryLabel).toContain('隐藏评价');
   });
 
   it('keeps restricted replay and surrogate model boundaries visible in compact status labels', () => {
@@ -171,5 +234,34 @@ describe('simulation arena workbench experience UI contracts', () => {
       'registry.defaultConfig -> TeachingResource.config -> LessonItem.overrideConfig',
     ]);
     expect(context.renderMode).toBe('embedded');
+  });
+
+  it('binds representative task routes to workspace archetype markers and floating dock safe areas', () => {
+    const cruiseSource = readRepoFile('src/app/simulations/cruise/page.tsx');
+    const workbenchSource = readRepoFile('src/features/control-workbench/shell/control-workbench-shell.tsx');
+    const arenaDetailSource = readRepoFile('src/features/arena/challenge-detail.tsx');
+    const manifestRuntimeSource = readRepoFile('src/features/interactive/shared/manifest-runtime/layout-renderer.tsx');
+    const premiumLessonEntrySource = readRepoFile('src/features/interactive/shared/premium-lesson-entry-page.tsx');
+    const unit41StudentRuntimeSource = readRepoFile('src/features/interactive/unit-4-1-design-task-expression/student-page.tsx');
+    const globalsSource = readRepoFile('src/app/globals.css');
+
+    expect(cruiseSource).toContain('data-task-workspace-archetype="immersive-scene"');
+    expect(cruiseSource).toContain('data-launch-provenance={launchKind}');
+    expect(cruiseSource).toContain('data-return-target="/simulations"');
+    expect(workbenchSource).toContain('data-task-workspace-archetype="engineering-analysis"');
+    expect(workbenchSource).toContain('data-return-target={returnHref}');
+    expect(arenaDetailSource).toContain('data-task-workspace-archetype="challenge-task"');
+    expect(arenaDetailSource).toContain('data-launch-provenance={launchProvenance}');
+    expect(manifestRuntimeSource).not.toContain("'data-task-workspace-archetype': 'lesson-runtime'");
+    expect(manifestRuntimeSource).not.toContain("'data-return-target': '/interactive-learning/courses'");
+    expect(manifestRuntimeSource).toContain("'data-commercial-workspace-zone': 'instrument-area'");
+    expect(manifestRuntimeSource).toContain("'data-commercial-workspace-zone': 'context-strip'");
+    expect(premiumLessonEntrySource).toContain('data-task-workspace-archetype="lesson-runtime"');
+    expect(premiumLessonEntrySource).toContain('data-return-target="/interactive-learning/courses"');
+    expect(unit41StudentRuntimeSource).toContain('data-task-workspace-archetype="lesson-runtime"');
+    expect(unit41StudentRuntimeSource).toContain('data-return-target="/interactive-learning/courses/unit-4-1-design-task-expression"');
+    expect(globalsSource).toContain('[data-task-workspace-archetype]');
+    expect(globalsSource).toContain('--task-workspace-floating-dock-safe-block');
+    expect(globalsSource).not.toContain('--task-workspace-floating-dock-safe-inline');
   });
 });

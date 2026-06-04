@@ -165,6 +165,8 @@ function renderCommercialModuleChrome({
     {
       'data-commercial-module-chrome': module.kind,
       'data-commercial-module-state': module.mustBeVisible ? 'required' : 'available',
+      'data-commercial-workspace-zone': 'instrument-area',
+      'data-task-workspace-zone': 'instrument-area',
       className: 'commercial-module-chrome min-h-[120px]',
     },
     node,
@@ -251,6 +253,8 @@ function renderStepTitleModule({
     'section',
     {
       'data-manifest-step-title': step.id,
+      'data-commercial-workspace': 'interactive-learning',
+      'data-commercial-workspace-zone': 'context-strip',
       className: 'premium-lesson-panel',
     },
     [

@@ -139,8 +139,14 @@ export function PremiumLessonEntryPage({
   };
 
   return (
-    <div className="premium-lesson-shell">
-      <header className="premium-lesson-topbar">
+    <div
+      className="premium-lesson-shell"
+      data-commercial-workspace="interactive-learning"
+      data-task-workspace-archetype="lesson-runtime"
+      data-launch-provenance="course-launched"
+      data-return-target="/interactive-learning/courses"
+    >
+      <header className="premium-lesson-topbar" data-commercial-workspace-zone="context-strip">
         <div className="mx-auto flex max-w-[1180px] items-center justify-between px-4 py-4 sm:px-6">
           <Link
             href="/interactive-learning/courses"
@@ -157,7 +163,7 @@ export function PremiumLessonEntryPage({
       </header>
 
       <main className="premium-lesson-main mx-auto max-w-[1180px] px-3 py-4 sm:px-6 sm:py-8">
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
+        <div className="mt-4 grid gap-4 md:grid-cols-3" data-commercial-workspace-zone="command-bar">
           {showTeacherSection ? (
             <section className="premium-lesson-panel p-5">
               <div className="premium-lesson-title mb-3 inline-flex items-center gap-2 text-sm">
@@ -227,7 +233,7 @@ export function PremiumLessonEntryPage({
 
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mt-4">{error}</div> : null}
 
-        <section className="premium-lesson-panel mt-4 px-5 py-5">
+        <section className="premium-lesson-panel mt-4 px-5 py-5" data-commercial-workspace-zone="instrument-area">
           <div className="premium-lesson-kicker">{config.overviewKicker ?? config.mediaCourseLabel ?? lessonRuntime?.lesson.lesson_id ?? 'Course Entry'}</div>
           <h2 className="premium-lesson-title mt-2 text-3xl font-semibold sm:text-4xl">{config.title}</h2>
           {config.description ? (
@@ -248,10 +254,12 @@ export function PremiumLessonEntryPage({
         </section>
 
         {showMediaHub && lessonRuntime ? (
-          <LessonEntryMediaHub
-            lessonRuntime={lessonRuntime}
-            courseLabel={config.mediaCourseLabel ?? lessonRuntime.lesson.lesson_id}
-          />
+          <section data-commercial-workspace-zone="support-drawer">
+            <LessonEntryMediaHub
+              lessonRuntime={lessonRuntime}
+              courseLabel={config.mediaCourseLabel ?? lessonRuntime.lesson.lesson_id}
+            />
+          </section>
         ) : null}
         {showRuntimeSections && lessonRuntime ? (
           <LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />

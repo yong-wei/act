@@ -73,6 +73,7 @@ export function ChallengeDetail({
   const prerequisiteLabels = task.training.prerequisiteCapabilityTags.map((item) =>
     ARENA_TRAINING_CAPABILITY_LABELS[item],
   );
+  const launchProvenance = publicationId ? 'official-evaluation' : 'arena-preview';
 
   return (
     <ArenaPageShell
@@ -85,8 +86,11 @@ export function ChallengeDetail({
     >
       <ArenaChallengeTelemetry task={task} object={object} hasLeaderboard={submissions.length > 0} />
       <section
-        className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8"
+        className="mx-auto max-w-[1600px] px-4 pb-32 pt-8 sm:px-6 lg:px-8"
         data-commercial-workspace="arena-challenge-detail"
+        data-task-workspace-archetype="challenge-task"
+        data-launch-provenance={launchProvenance}
+        data-return-target="/arena"
       >
         <div className="grid gap-5 xl:grid-cols-[1fr_430px]">
           <div className="space-y-6" data-commercial-workspace-zone="instrument-area">

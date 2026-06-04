@@ -11,6 +11,7 @@ import {
   type ArenaResolvedSubmissionContext,
 } from '@/features/arena/teacher/publication-store';
 import { resolveArenaWorkbenchContext } from '@/features/arena/workbench/context';
+import { describeExperienceLaunch } from '@/features/simulation-arena-workbench/experience-shell-contracts';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { CruiseSimulation } from '../_components/simulation-loaders';
@@ -55,6 +56,18 @@ export default async function CruiseSimulationPage(props: CruiseSimulationPagePr
     }
   }
   const canRenderBlackBoxPanel = Boolean(blackBoxTask) && (!requestedPublicationId || Boolean(publicationContext));
+  const launchKind = blackBoxTask ? (publicationContext ? 'official-evaluation' : 'arena-preview') : 'standalone';
+  const launchDescription = describeExperienceLaunch({
+    kind: launchKind,
+    arena: blackBoxTask
+      ? {
+        taskId: blackBoxTask.id,
+        publicationId: publicationContext?.id,
+        classId: publicationContext?.classId,
+        seasonId: publicationContext?.seasonId,
+      }
+      : undefined,
+  });
   const blackBoxSubmissions = blackBoxTask && canRenderBlackBoxPanel
     ? await prismaArenaSubmissionStore.listSubmissions({
       taskId: blackBoxTask.id,
@@ -92,11 +105,26 @@ export default async function CruiseSimulationPage(props: CruiseSimulationPagePr
       : taskVisibleBlackBoxSubmissions;
 
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100">
+    <div
+      className="relative min-h-screen bg-slate-950 text-slate-100"
+      data-commercial-workspace="simulation-scene"
+      data-task-workspace-archetype="immersive-scene"
+      data-launch-provenance={launchKind}
+      data-return-target="/simulations"
+    >
       <FeaturePageNav title="邮轮仿真" backHref="/simulations" backLabel="返回仿真入口" floating />
-      <CruiseSimulation />
+      <section
+        className="pointer-events-none absolute left-4 top-20 z-20 max-w-[min(28rem,calc(100vw-2rem))] rounded-lg border border-white/15 bg-slate-950/70 px-4 py-3 text-xs text-slate-200 shadow-2xl backdrop-blur md:left-6 md:top-24"
+        data-commercial-workspace-zone="context-strip"
+      >
+        <div className="font-semibold text-white">{launchDescription.label}</div>
+        <div className="mt-1 leading-5 text-slate-300">{launchDescription.summary}</div>
+      </section>
+      <section data-commercial-workspace-zone="instrument-area">
+        <CruiseSimulation />
+      </section>
       {blackBoxTask && canRenderBlackBoxPanel ? (
-        <div className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8" data-commercial-workspace-zone="evidence-rail">
           <ArenaBlackBoxSubmissionPanel
             task={blackBoxTask}
             initialSubmissions={visibleBlackBoxSubmissions}
@@ -105,6 +133,19 @@ export default async function CruiseSimulationPage(props: CruiseSimulationPagePr
           />
         </div>
       ) : null}
+      <section
+        className="pointer-events-none fixed bottom-5 left-4 z-20 max-w-[min(30rem,calc(100vw-2rem))] rounded-lg border border-cyan-300/20 bg-cyan-950/70 px-4 py-2 text-xs leading-5 text-cyan-50 shadow-2xl backdrop-blur md:left-6"
+        data-commercial-workspace-zone="command-bar"
+        data-task-workspace-zone="bottom-tools"
+      >
+        场景相机、参数和任务工具属于仿真局部控制；Konling、角色座舱和账户设置属于全局外层控制。
+      </section>
+      <section className="sr-only" data-commercial-workspace-zone="support-drawer">
+        仿真模型、回放、Arena 预览和官方评价边界由场景与 Arena 域提供。
+      </section>
+      <section className="sr-only" data-commercial-workspace-zone="bottom-tools">
+        相机、视角和场景工具为任务局部控制。
+      </section>
     </div>
   );
 }

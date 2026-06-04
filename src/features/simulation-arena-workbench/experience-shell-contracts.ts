@@ -20,13 +20,37 @@ export type ExperienceShellSlot =
   | 'workflow-navigation'
   | 'main-stage'
   | 'side-panels'
-  | 'status-rail';
+  | 'status-rail'
+  | 'bottom-tools'
+  | 'support-drawer';
+
+export type TaskWorkspaceArchetype =
+  | 'immersive-scene'
+  | 'engineering-analysis'
+  | 'challenge-task'
+  | 'lesson-runtime'
+  | 'learner-data'
+  | 'operations-analytics'
+  | 'governance-console';
+
+export type TaskWorkspaceZone =
+  | 'context-strip'
+  | 'command-bar'
+  | 'instrument-area'
+  | 'evidence-rail'
+  | 'support-drawer'
+  | 'bottom-tools'
+  | 'floating-dock-safe-area';
 
 export type ExperienceLaunchKind =
   | 'standalone'
   | 'course-launched'
   | 'arena-preview'
-  | 'official-evaluation';
+  | 'official-evaluation'
+  | 'teacher-review'
+  | 'admin-review';
+
+export type TaskWorkspaceRoleScope = 'student' | 'teacher' | 'admin';
 
 export type ExperienceReplayState =
   | 'unavailable'
@@ -39,6 +63,7 @@ export type ExperienceModelRegistryStatus = 'registered' | 'preview' | 'missing'
 
 export interface ExperienceLaunchContext {
   kind: ExperienceLaunchKind;
+  roleScope?: readonly TaskWorkspaceRoleScope[];
   course?: {
     sessionId?: string | null;
     lessonItemId?: string | null;
@@ -83,7 +108,7 @@ export interface ExperienceBreadcrumb {
 
 export interface ExperienceLaunchDescription {
   label: string;
-  visualBoundary: 'standalone' | 'course' | 'preview' | 'official';
+  visualBoundary: 'standalone' | 'course' | 'preview' | 'official' | 'review';
   summary: string;
 }
 
@@ -110,12 +135,123 @@ export interface CourseLaunchExperienceContext {
   runtimeContracts: string[];
 }
 
+export interface TaskWorkspaceArchetypeContract {
+  archetype: TaskWorkspaceArchetype;
+  primaryZone: TaskWorkspaceZone;
+  requiredZones: readonly TaskWorkspaceZone[];
+  localControls: readonly string[];
+  shellControls: readonly string[];
+}
+
+export interface TaskWorkspaceRouteContract {
+  href: string;
+  surface: ExperienceShellSurface;
+  archetype: TaskWorkspaceArchetype;
+  launchKind: ExperienceLaunchKind;
+  returnTarget: string;
+  roleScope: readonly TaskWorkspaceRoleScope[];
+  requiredZones: readonly TaskWorkspaceZone[];
+}
+
 export const EXPERIENCE_SHELL_SLOT_ORDER: ExperienceShellSlot[] = [
   'context-header',
   'workflow-navigation',
   'main-stage',
   'side-panels',
   'status-rail',
+  'bottom-tools',
+  'support-drawer',
+];
+
+export const TASK_WORKSPACE_ARCHETYPE_CONTRACTS: TaskWorkspaceArchetypeContract[] = [
+  {
+    archetype: 'immersive-scene',
+    primaryZone: 'instrument-area',
+    requiredZones: ['context-strip', 'instrument-area', 'command-bar', 'evidence-rail', 'bottom-tools', 'support-drawer', 'floating-dock-safe-area'],
+    localControls: ['camera tools', 'scene parameter controls', 'telemetry toggles'],
+    shellControls: ['Konling', 'role cockpit', 'account settings'],
+  },
+  {
+    archetype: 'engineering-analysis',
+    primaryZone: 'instrument-area',
+    requiredZones: ['context-strip', 'command-bar', 'instrument-area', 'evidence-rail', 'support-drawer', 'floating-dock-safe-area'],
+    localControls: ['chart toggles', 'panel configuration', 'parameter controls', 'submission controls'],
+    shellControls: ['Konling', 'role cockpit', 'account settings'],
+  },
+  {
+    archetype: 'challenge-task',
+    primaryZone: 'command-bar',
+    requiredZones: ['context-strip', 'command-bar', 'instrument-area', 'evidence-rail', 'support-drawer', 'floating-dock-safe-area'],
+    localControls: ['workspace launch', 'leaderboard filters', 'challenge inspection'],
+    shellControls: ['Konling', 'role cockpit', 'account settings'],
+  },
+  {
+    archetype: 'lesson-runtime',
+    primaryZone: 'instrument-area',
+    requiredZones: ['context-strip', 'instrument-area', 'support-drawer', 'floating-dock-safe-area'],
+    localControls: ['step navigation', 'activity controls', 'submission controls'],
+    shellControls: ['Konling', 'role cockpit', 'account settings'],
+  },
+  {
+    archetype: 'learner-data',
+    primaryZone: 'instrument-area',
+    requiredZones: ['context-strip', 'command-bar', 'instrument-area', 'evidence-rail', 'support-drawer', 'floating-dock-safe-area'],
+    localControls: ['pathway filters', 'evidence inspection', 'competency drilldown'],
+    shellControls: ['Konling', 'role cockpit', 'account settings'],
+  },
+  {
+    archetype: 'operations-analytics',
+    primaryZone: 'instrument-area',
+    requiredZones: ['context-strip', 'command-bar', 'instrument-area', 'evidence-rail', 'support-drawer', 'floating-dock-safe-area'],
+    localControls: ['cohort filters', 'experiment assignment controls', 'analytics drilldown'],
+    shellControls: ['Konling', 'role cockpit', 'account settings'],
+  },
+  {
+    archetype: 'governance-console',
+    primaryZone: 'evidence-rail',
+    requiredZones: ['context-strip', 'command-bar', 'instrument-area', 'evidence-rail', 'support-drawer', 'floating-dock-safe-area'],
+    localControls: ['policy review filters', 'audit evidence inspection', 'approval controls'],
+    shellControls: ['Konling', 'role cockpit', 'account settings'],
+  },
+];
+
+export const TASK_WORKSPACE_ROUTE_CONTRACTS: TaskWorkspaceRouteContract[] = [
+  {
+    href: '/simulations/cruise',
+    surface: 'simulation-scene',
+    archetype: 'immersive-scene',
+    launchKind: 'standalone',
+    returnTarget: '/simulations',
+    roleScope: ['student', 'teacher', 'admin'],
+    requiredZones: ['context-strip', 'instrument-area', 'command-bar', 'evidence-rail', 'bottom-tools', 'support-drawer', 'floating-dock-safe-area'],
+  },
+  {
+    href: '/interactive-learning/control-workbench',
+    surface: 'control-workbench',
+    archetype: 'engineering-analysis',
+    launchKind: 'standalone',
+    returnTarget: '/interactive-learning/cross-domain-exploration',
+    roleScope: ['student', 'teacher', 'admin'],
+    requiredZones: ['context-strip', 'command-bar', 'instrument-area', 'evidence-rail', 'support-drawer', 'floating-dock-safe-area'],
+  },
+  {
+    href: '/arena/challenges/[taskId]',
+    surface: 'arena-challenge-detail',
+    archetype: 'challenge-task',
+    launchKind: 'arena-preview',
+    returnTarget: '/arena',
+    roleScope: ['student', 'teacher', 'admin'],
+    requiredZones: ['context-strip', 'command-bar', 'instrument-area', 'evidence-rail', 'support-drawer', 'floating-dock-safe-area'],
+  },
+  {
+    href: '/interactive-learning/courses/[lesson]',
+    surface: 'course-resource-launch',
+    archetype: 'lesson-runtime',
+    launchKind: 'course-launched',
+    returnTarget: '/interactive-learning/courses',
+    roleScope: ['student', 'teacher'],
+    requiredZones: ['context-strip', 'instrument-area', 'support-drawer', 'floating-dock-safe-area'],
+  },
 ];
 
 export const EXPERIENCE_SHELL_MIGRATION_CONTRACTS: ExperienceShellMigrationContract[] = [
@@ -172,6 +308,14 @@ const defaultSlotContracts: ExperienceShellSlotContract[] = [
     slot: 'status-rail',
     accepts: 'submission status, replay state, preview/official boundary, and evidence provenance',
   },
+  {
+    slot: 'bottom-tools',
+    accepts: 'camera presets, chart view controls, local reset controls, and task-specific utilities',
+  },
+  {
+    slot: 'support-drawer',
+    accepts: 'explanations, hints, assistant support, teacher-only notes, and operational logs',
+  },
 ];
 
 export function describeExperienceLaunch(launch: ExperienceLaunchContext): ExperienceLaunchDescription {
@@ -196,6 +340,20 @@ export function describeExperienceLaunch(launch: ExperienceLaunchContext): Exper
       summary: '该体验连接官方评价或提交流程，隐藏评价边界必须保持可见。',
     };
   }
+  if (launch.kind === 'teacher-review') {
+    return {
+      label: '教师复核',
+      visualBoundary: 'review',
+      summary: '该体验由教师复核入口打开，保留课堂、学生与教学证据的角色边界。',
+    };
+  }
+  if (launch.kind === 'admin-review') {
+    return {
+      label: '管理员复核',
+      visualBoundary: 'review',
+      summary: '该体验由管理员复核入口打开，保留审计、策略和受限数据的角色边界。',
+    };
+  }
   return {
     label: '独立探索',
     visualBoundary: 'standalone',
@@ -206,6 +364,7 @@ export function describeExperienceLaunch(launch: ExperienceLaunchContext): Exper
 function evaluationStatus(launch: ExperienceLaunchContext): PlatformStatusPayload {
   const official = launch.kind === 'official-evaluation';
   const preview = launch.kind === 'arena-preview';
+  const review = launch.kind === 'teacher-review' || launch.kind === 'admin-review';
   return {
     id: 'experience-evaluation-boundary',
     label: '评价边界',
@@ -214,14 +373,16 @@ function evaluationStatus(launch: ExperienceLaunchContext): PlatformStatusPayloa
       ? '当前体验连接官方评价流程；公开预览结果不得覆盖隐藏官方评价。'
       : preview
         ? '当前体验是 Arena 预览；结果不能作为官方榜单证据。'
-        : '当前体验不产生 Arena 官方评价。',
+        : review
+          ? '当前体验用于教师或管理员复核；复核证据不得替代学生正式提交。'
+          : '当前体验不产生 Arena 官方评价。',
     categories: {
-      confidence: official || preview ? 'high' : 'medium',
-      sourceCoverage: official || preview ? 'complete' : 'partial',
-      privacy: official ? 'restricted' : 'public',
+      confidence: official || preview || review ? 'high' : 'medium',
+      sourceCoverage: official || preview || review ? 'complete' : 'partial',
+      privacy: official || launch.kind === 'admin-review' ? 'restricted' : launch.kind === 'teacher-review' ? 'classroom' : 'public',
       replay: 'missing',
       protocol: preview ? 'preview' : 'current',
-      evaluation: official ? 'official' : preview ? 'preview' : 'not-evaluated',
+      evaluation: official ? 'official' : preview ? 'preview' : review ? 'hidden' : 'not-evaluated',
       readiness: 'ready',
       fallback: 'none',
     },
@@ -293,22 +454,28 @@ function modelRelationStatus(modelRelation: ExperienceModelRelationContext | und
 
 function launchStatus(launch: ExperienceLaunchContext): PlatformStatusPayload {
   const description = describeExperienceLaunch(launch);
+  const review = launch.kind === 'teacher-review' || launch.kind === 'admin-review';
   return {
     id: 'experience-launch-provenance',
     label: '启动来源',
     source: { domain: 'simulation', capability: 'experience-shell' },
     summary: description.summary,
+    details: launch.roleScope?.length
+      ? [{ label: '角色范围', value: launch.roleScope.join(', '), roleScope: launch.kind === 'admin-review' ? 'admin-scoped' : 'teacher-scoped' }]
+      : [],
     categories: {
       confidence: 'high',
       sourceCoverage: 'complete',
-      privacy: launch.kind === 'course-launched' ? 'classroom' : 'public',
+      privacy: launch.kind === 'admin-review' ? 'restricted' : launch.kind === 'course-launched' || launch.kind === 'teacher-review' ? 'classroom' : 'public',
       replay: 'missing',
       protocol: launch.kind === 'arena-preview' ? 'preview' : 'current',
       evaluation: launch.kind === 'official-evaluation'
         ? 'official'
         : launch.kind === 'arena-preview'
           ? 'preview'
-          : 'not-evaluated',
+          : review
+            ? 'hidden'
+            : 'not-evaluated',
       readiness: 'ready',
       fallback: 'none',
     },
