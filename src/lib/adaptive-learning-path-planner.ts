@@ -1040,7 +1040,17 @@ function buildFallbackReasons(input: {
   ) {
     reasons.push('risk-intervention-resource-missing');
   }
+  if (
+    requiresTerminalValidation(input.goal) &&
+    !input.mainPathNodes.some((entry) => entry.node.planningMetadata.terminalConstraints.includes('terminal-validation'))
+  ) {
+    reasons.push('terminal-validation-resource-missing');
+  }
   return unique(reasons);
+}
+
+function requiresTerminalValidation(goal: AdaptiveLearningPathGoal): boolean {
+  return goal.id === 'control-correction';
 }
 
 function buildPlanScore(

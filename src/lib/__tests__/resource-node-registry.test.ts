@@ -1,3 +1,6 @@
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 import {
   RESOURCE_NODE_TYPES,
@@ -5,6 +8,37 @@ import {
   buildResourceNodeRegistry,
   type ResourceNode,
 } from '../resource-node-registry';
+import { getRegisteredResourceMetadata } from '../resource-registry-metadata';
+import {
+  CONTROL_CORRECTION_RESOURCE_GRAPH_VERSION,
+  buildControlCorrectionResourceNodeRegistry,
+} from '../control-correction-resource-seed';
+
+function isResolvableSeedTarget(target: string): boolean {
+  if (/^https?:\/\//.test(target)) return true;
+  const pathOnly = target.split('?')[0];
+  if (pathOnly.startsWith('/interactive-learning/resources/')) {
+    const resourceId = pathOnly.replace('/interactive-learning/resources/', '');
+    return Boolean(getRegisteredResourceMetadata(resourceId)) &&
+      existsSync(path.join(process.cwd(), 'src/app/interactive-learning/resources/[id]/page.tsx'));
+  }
+  if (pathOnly.startsWith('/interactive-learning/courses/')) {
+    const parts = pathOnly.split('/');
+    const courseSlug = parts[3];
+    return Boolean(courseSlug) &&
+      existsSync(path.join(process.cwd(), `src/app/interactive-learning/courses/${courseSlug}/student/[sessionId]/page.tsx`));
+  }
+  if (pathOnly.startsWith('/arena/challenges/')) {
+    return existsSync(path.join(process.cwd(), 'src/app/arena/challenges/[taskId]/page.tsx'));
+  }
+  if (pathOnly.startsWith('/profile/growth')) {
+    return existsSync(path.join(process.cwd(), 'src/app/(main)/profile/growth/page.tsx'));
+  }
+  if (pathOnly.startsWith('/ai/copilot')) {
+    return existsSync(path.join(process.cwd(), 'src/app/ai/copilot/page.tsx'));
+  }
+  return existsSync(path.join(process.cwd(), target.replace(/^\//, '')));
+}
 
 function sampleRegistry() {
   return buildResourceNodeRegistry({
@@ -113,6 +147,99 @@ function sampleRegistry() {
 }
 
 describe('resource node registry', () => {
+  it('loads an audited versioned control-correction seed graph across required resource types', () => {
+    const registry = buildControlCorrectionResourceNodeRegistry();
+    const eligibleNodes = registry.nodes.filter((node) => node.eligibility.pathEligible);
+
+    expect(CONTROL_CORRECTION_RESOURCE_GRAPH_VERSION).toBe('control-correction-resource-graph.v1');
+    expect(new Set(eligibleNodes.map((node) => node.type))).toEqual(new Set([
+      'knowledge_card',
+      'handout',
+      'video',
+      'quiz',
+      'simulation',
+      'arena_task',
+      'reflection',
+      'ai_intervention',
+    ]));
+    expect(eligibleNodes.every((node) => node.launchTarget || node.renderTarget)).toBe(true);
+    expect(eligibleNodes.every((node) => isResolvableSeedTarget(node.launchTarget ?? node.renderTarget ?? '')))
+      .toBe(true);
+    expect(eligibleNodes.every((node) => node.planningMetadata.knowledgeCoverage.length > 0)).toBe(true);
+    expect(eligibleNodes.every((node) => node.planningMetadata.evidenceInstrumentation.length > 0)).toBe(true);
+    expect(eligibleNodes.every((node) => node.planningMetadata.privacyLevel === 'student-visible')).toBe(true);
+    expect(registry.edges).toContainEqual(expect.objectContaining({
+      fromNodeId: 'simulation:control-correction-step-response-lab',
+      toNodeId: 'arena-task:task-second-order-lead-pid',
+      kind: 'prerequisite',
+    }));
+    expect(registry.nodes.find((node) => node.id === 'simulation:control-correction-step-response-lab')?.planningMetadata.terminalConstraints)
+      .toContain('transfer-validation');
+    expect(registry.nodes.find((node) => node.id === 'arena-task:task-second-order-lead-pid')?.planningMetadata.terminalConstraints)
+      .toContain('terminal-validation');
+  });
+
+  it('keeps incomplete control-correction seed fixtures out of path eligibility', () => {
+    const registry = buildControlCorrectionResourceNodeRegistry({
+      includeInvalidFixture: true,
+    });
+
+    expect(registry.audit.ineligibleNodes).toContainEqual(expect.objectContaining({
+      id: 'registry:control-correction-invalid-quiz',
+      reasons: expect.arrayContaining([
+        'missing-render-or-launch-target',
+        'missing-evidence-instrumentation',
+      ]),
+    }));
+    expect(registry.nodes.find((node) => node.id === 'registry:control-correction-invalid-quiz')?.eligibility.pathEligible)
+      .toBe(false);
+  });
+
+  it('can require evidence instrumentation as a blocking audit gate without changing the default registry policy', () => {
+    const defaultRegistry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'missing-evidence-quiz',
+          label: '缺少证据埋点的测验',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/teacher/resources',
+          knowledgeNodeIds: ['kn-bode'],
+          planningOverride: {
+            evidenceInstrumentation: [],
+          },
+        },
+      ],
+    });
+    const strictRegistry = buildResourceNodeRegistry({
+      auditOptions: {
+        strictEvidenceInstrumentation: true,
+      },
+      registeredResources: [
+        {
+          id: 'missing-evidence-quiz',
+          label: '缺少证据埋点的测验',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/teacher/resources',
+          knowledgeNodeIds: ['kn-bode'],
+          planningOverride: {
+            evidenceInstrumentation: [],
+          },
+        },
+      ],
+    });
+
+    expect(defaultRegistry.nodes[0].eligibility.pathEligible).toBe(true);
+    expect(defaultRegistry.nodes[0].eligibility.auditIssues).toContainEqual(expect.objectContaining({
+      code: 'missing-evidence-instrumentation',
+      severity: 'warning',
+    }));
+    expect(strictRegistry.nodes[0].eligibility.pathEligible).toBe(false);
+    expect(strictRegistry.nodes[0].eligibility.auditIssues).toContainEqual(expect.objectContaining({
+      code: 'missing-evidence-instrumentation',
+      severity: 'blocking',
+    }));
+  });
+
   it('registers every supported path-plannable resource type with stable source references', () => {
     const registry = sampleRegistry();
 
