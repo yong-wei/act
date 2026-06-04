@@ -289,6 +289,14 @@ export interface AdaptiveLearnerState {
     activePathCount: number;
     bookmarkedPathCount: number;
     recentPathIds: string[];
+    activeControlCorrectionPath: {
+      state: 'active' | 'none';
+      pathId: string | null;
+      status: string | null;
+      currentNodeId: string | null;
+      terminalValidationState: string | null;
+      lowConfidenceMarkers: string[];
+    };
     statusMarkers: Array<'missing' | 'available'>;
   };
   risks: {
@@ -454,6 +462,7 @@ export async function readAdaptiveLearnerState(
     latestAbility,
     riskFlags,
     paths,
+    activeControlCorrectionPaths,
     controlCorrectionFacts,
     controlCorrectionArenaSubmissions,
   ] = await Promise.all([
@@ -485,8 +494,35 @@ export async function readAdaptiveLearnerState(
     }) ?? Promise.resolve([]),
     db.learningPath?.findMany?.({
       where: { userId: input.userId },
+      select: {
+        id: true,
+        goalId: true,
+        pathStatus: true,
+        currentNodeId: true,
+        terminalValidation: true,
+        lastExecutionMetadata: true,
+        isBookmarked: true,
+      },
       orderBy: { updatedAt: 'desc' },
       take: 10,
+    }) ?? Promise.resolve([]),
+    db.learningPath?.findMany?.({
+      where: {
+        userId: input.userId,
+        goalId: CONTROL_CORRECTION_GOAL_ID,
+        pathStatus: { in: ['active', 'fallback'] },
+      },
+      select: {
+        id: true,
+        goalId: true,
+        pathStatus: true,
+        currentNodeId: true,
+        terminalValidation: true,
+        lastExecutionMetadata: true,
+        isBookmarked: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 1,
     }) ?? Promise.resolve([]),
     input.goal === CONTROL_CORRECTION_GOAL_ID
       ? db.learningFact?.findMany?.({
@@ -556,7 +592,7 @@ export async function readAdaptiveLearnerState(
     knowledgeMastery,
     resourcePreference: buildResourcePreference(facts),
     mediaAbsorption: buildMediaAbsorption(facts),
-    pathContext: buildPathContext(paths),
+    pathContext: buildPathContext(paths, activeControlCorrectionPaths[0] ?? null),
     risks: buildRiskState(profileSummary, riskFlags, input.role),
     assessmentState: {
       latestAbilityEstimate: buildAbilityEstimate(latestAbility),
@@ -827,11 +863,31 @@ function buildMediaAbsorption(facts: Array<Record<string, unknown>>): AdaptiveLe
   };
 }
 
-function buildPathContext(paths: Array<Record<string, unknown>>): AdaptiveLearnerState['pathContext'] {
+function buildPathContext(
+  paths: Array<Record<string, unknown>>,
+  activeControlCorrectionPath: Record<string, unknown> | null,
+): AdaptiveLearnerState['pathContext'] {
   return {
     activePathCount: paths.length,
     bookmarkedPathCount: paths.filter((path) => path.isBookmarked === true).length,
     recentPathIds: paths.map((path) => readString(path.id)).filter((id): id is string => Boolean(id)),
+    activeControlCorrectionPath: activeControlCorrectionPath
+      ? {
+          state: 'active',
+          pathId: readString(activeControlCorrectionPath.id) ?? null,
+          status: readString(activeControlCorrectionPath.pathStatus) ?? null,
+          currentNodeId: readString(activeControlCorrectionPath.currentNodeId) ?? null,
+          terminalValidationState: readString(getObject(activeControlCorrectionPath.terminalValidation).state) ?? null,
+          lowConfidenceMarkers: arrayOfStrings(getObject(activeControlCorrectionPath.lastExecutionMetadata).lowConfidenceMarkers),
+        }
+      : {
+          state: 'none',
+          pathId: null,
+          status: null,
+          currentNodeId: null,
+          terminalValidationState: null,
+          lowConfidenceMarkers: [],
+        },
     statusMarkers: paths.length > 0 ? ['available'] : ['missing'],
   };
 }

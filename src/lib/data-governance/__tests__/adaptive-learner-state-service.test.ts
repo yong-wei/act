@@ -203,6 +203,11 @@ function createDb(overrides: Record<string, unknown> = {}) {
           nodeIds: ['node-a', 'node-b'],
           isAiGenerated: true,
           isBookmarked: true,
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          currentNodeId: 'node-a',
+          terminalValidation: { state: 'pending' },
+          lastExecutionMetadata: { lowConfidenceMarkers: ['arena-preview-only'] },
           updatedAt: new Date('2026-05-19T00:00:00.000Z'),
         },
       ],
@@ -360,6 +365,14 @@ describe('adaptive learner state service', () => {
     expect(state.pathContext).toMatchObject({
       activePathCount: 1,
       bookmarkedPathCount: 1,
+      activeControlCorrectionPath: {
+        state: 'active',
+        pathId: 'path-1',
+        status: 'active',
+        currentNodeId: 'node-a',
+        terminalValidationState: 'pending',
+        lowConfidenceMarkers: ['arena-preview-only'],
+      },
     });
     expect(state.risks).toEqual({
       riskLevel: 'redacted',
@@ -402,6 +415,47 @@ describe('adaptive learner state service', () => {
       'AdaptiveMasteryUpdate',
       'StudentEvidenceFeatureCache',
     ]));
+  });
+
+  it('keeps the active control-correction path even when recent generic paths fill the general window', async () => {
+    const recentGenericPaths = Array.from({ length: 10 }, (_, index) => ({
+      id: `legacy-path-${index}`,
+      goalId: 'legacy',
+      pathStatus: 'legacy',
+      isBookmarked: false,
+      updatedAt: new Date(`2026-05-${19 - index}T00:00:00.000Z`),
+    }));
+    const state = await readAdaptiveLearnerState(createDb({
+      learningPath: {
+        findMany: async (args: any) => {
+          if (args.where?.goalId === 'control-correction') {
+            return [{
+              id: 'active-control-path',
+              goalId: 'control-correction',
+              pathStatus: 'active',
+              currentNodeId: 'control-node',
+              terminalValidation: { state: 'pending' },
+              lastExecutionMetadata: { lowConfidenceMarkers: ['low-source-coverage'] },
+              isBookmarked: false,
+            }];
+          }
+          return recentGenericPaths;
+        },
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+    });
+
+    expect(state.pathContext.recentPathIds).toHaveLength(10);
+    expect(state.pathContext.activeControlCorrectionPath).toMatchObject({
+      state: 'active',
+      pathId: 'active-control-path',
+      currentNodeId: 'control-node',
+      terminalValidationState: 'pending',
+      lowConfidenceMarkers: ['low-source-coverage'],
+    });
   });
 
   it('keeps active risk flags teacher scoped', async () => {

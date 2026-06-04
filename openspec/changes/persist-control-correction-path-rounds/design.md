@@ -39,6 +39,15 @@ Existing surfaces that read `LearningRecommendation` or lightweight path fields 
 - `POST /api/learning-paths/:id/deviations` records skip, timeout, manual jump, resource failure, or abandonment.
 - `POST /api/learning-paths/:id/interventions` records Konling intervention proposals and outcomes.
 
+## Data Ownership, Privacy, and Compatibility
+
+- `LearningPath.userId` remains the ownership boundary for student reads and writes. Teacher access is class-scoped through `LearningPath.classId`; administrators may read or write for operational support.
+- `LearningPath` stores the resumable path object: planner version, current node, status, input snapshot reference, serialized path payload, explanation payload, alternatives, entry node, terminal validation, and last execution metadata.
+- `LearningPathExecution`, `LearningPathDeviation`, and `LearningPathIntervention` are append-only child records. They use path-scoped idempotency keys so client retries do not duplicate execution, deviation, or intervention events.
+- Student-visible state only exposes path ids, status, current node, terminal validation state, and low-confidence markers. Raw execution payloads, raw evidence payloads, and private Konling dialogue remain audit or teacher-scoped data.
+- Migration is additive: legacy `LearningPath` columns are retained, new columns are nullable or defaulted, and child tables cascade on path deletion. Rollback can drop the child tables and new columns without rewriting legacy recommendation rows.
+- Legacy consumers continue to receive lightweight path summaries through the compatibility mapper, and the `CONTROL_CORRECTION_PATH_ROUNDS_ENABLED=false` feature flag keeps existing adaptive practice and recommendation flows on the legacy path.
+
 ## Validation
 
 - Migration tests SHALL verify additive migration and rollback safety.
