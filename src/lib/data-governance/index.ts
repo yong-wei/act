@@ -33,5 +33,8 @@ export * from './course-evidence-specs';
 // Learning evidence RAG corpus
 export * from './learning-evidence-rag-corpus';
 
+// Role-based learning diagnosis
+export * from './role-based-learning-diagnosis';
+
 // Interactive session finalization
 export * from './interactive-session-finalization';

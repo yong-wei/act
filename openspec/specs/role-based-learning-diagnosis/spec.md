@@ -1,5 +1,7 @@
-## ADDED Requirements
+## Purpose
 
+Provide a stable, governed diagnosis layer that materializes student, teacher, and service-facing learning diagnosis views from privacy-safe evidence. The layer standardizes judgments, root causes, confidence limits, next actions, and evidence references for future student profile, teacher consultation, prep-pack, grading, and Konling surfaces.
+## Requirements
 ### Requirement: Diagnosis views are role-specific
 The system SHALL materialize role-specific learning diagnosis views for students, teachers, and service consumers.
 
@@ -15,6 +17,11 @@ The system SHALL materialize role-specific learning diagnosis views for students
 - **WHEN** an authorized teacher opens an individual consultation view
 - **THEN** the diagnosis SHALL include dimension, indicator, evidence, recent change, likely cause, and intervention resources
 - **AND** it SHALL preserve class-scope authorization.
+
+#### Scenario: Teacher student consultation lacks target student
+- **WHEN** a teacher-student diagnosis is requested without an explicit target student
+- **THEN** the diagnosis SHALL expose a missing target student limitation
+- **AND** it SHALL NOT materialize student path details, learner-state dimensions, class-wide learner evidence, or target-scoped next-action links.
 
 ### Requirement: Diagnosis claims are evidence-backed
 Diagnosis output SHALL not present a personalized claim without evidence and confidence metadata.
