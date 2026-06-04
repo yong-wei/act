@@ -1,0 +1,439 @@
+{
+  "generatedAt": "2026-06-04T18:02:16.007Z",
+  "baseURL": "http://127.0.0.1:3001",
+  "outDir": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/public-learning-entry-surfaces/20260604T180215Z",
+  "validationContract": "public learning entry surfaces: HTTP 2xx, zero page errors, route/intent data attributes, launch/scenario/course markers across desktop 1440 and mobile 320 light/dark first viewport",
+  "totals": {
+    "pages": 24,
+    "non200": 0,
+    "pageErrors": 0,
+    "markerMisses": 0,
+    "screenshotCount": 24
+  },
+  "results": [
+    {
+      "route": "/",
+      "viewport": "desktop",
+      "width": 1440,
+      "theme": "light",
+      "status": 200,
+      "screenshot": "home-desktop-light.png",
+      "markerCounts": {
+        "[data-commercial-entry-intent-map=\"homepage\"]": 1,
+        "[data-commercial-student-entry-route=\"/\"]": 1,
+        "[data-commercial-entry-intent=\"experiment\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/login?callbackUrl=%2Fprofile",
+      "viewport": "desktop",
+      "width": 1440,
+      "theme": "light",
+      "status": 200,
+      "screenshot": "login-profile-callback-desktop-light.png",
+      "markerCounts": {
+        "[data-auth-callback-target=\"/profile\"]": 1,
+        "[data-commercial-entry-intent-map=\"account-profile\"]": 1,
+        "[data-commercial-student-entry-route=\"/login\"]": 1,
+        "[data-commercial-entry-intent=\"account-profile\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/interactive-learning",
+      "viewport": "desktop",
+      "width": 1440,
+      "theme": "light",
+      "status": 200,
+      "screenshot": "interactive-learning-desktop-light.png",
+      "markerCounts": {
+        "[data-learning-entry-map=\"student-intent\"]": 1,
+        "[data-commercial-entry-intent-map=\"learn-practice-challenge\"]": 1,
+        "[data-commercial-student-entry-route=\"/interactive-learning\"]": 1,
+        "[data-commercial-entry-intent=\"learn\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/interactive-learning/courses",
+      "viewport": "desktop",
+      "width": 1440,
+      "theme": "light",
+      "status": 200,
+      "screenshot": "course-catalog-desktop-light.png",
+      "markerCounts": {
+        "[data-learning-entry-map=\"course-module-progression\"]": 1,
+        "[data-course-entry-action=\"launch\"]": 27,
+        "[data-commercial-student-entry-route=\"/interactive-learning/courses\"]": 1,
+        "[data-commercial-entry-intent=\"learn\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "viewport": "desktop",
+      "width": 1440,
+      "theme": "light",
+      "status": 200,
+      "screenshot": "unit-4-1-course-desktop-light.png",
+      "markerCounts": {
+        "[data-task-workspace-archetype=\"lesson-runtime\"]": 1,
+        "[data-course-entry-action=\"teacher-launch\"]": 1,
+        "[data-course-entry-action=\"demo-launch\"]": 1,
+        "[data-course-entry-action=\"join-code\"]": 1,
+        "[data-commercial-student-entry-route=\"/interactive-learning/courses/unit-4-1-design-task-expression\"]": 1,
+        "[data-commercial-entry-intent=\"learn\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/simulations",
+      "viewport": "desktop",
+      "width": 1440,
+      "theme": "light",
+      "status": 200,
+      "screenshot": "simulations-desktop-light.png",
+      "markerCounts": {
+        "[data-simulation-entry-map=\"scenario-fleet\"]": 1,
+        "[data-scenario-fleet=\"ship-scenarios\"]": 1,
+        "[data-simulation-scenario-card]": 7,
+        "[data-simulation-scenario-fit]": 7,
+        "[data-simulation-task-status]": 7,
+        "[data-commercial-student-entry-route=\"/simulations\"]": 1,
+        "[data-commercial-entry-intent=\"experiment\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/",
+      "viewport": "desktop",
+      "width": 1440,
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "home-desktop-dark.png",
+      "markerCounts": {
+        "[data-commercial-entry-intent-map=\"homepage\"]": 1,
+        "[data-commercial-student-entry-route=\"/\"]": 1,
+        "[data-commercial-entry-intent=\"experiment\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/login?callbackUrl=%2Fprofile",
+      "viewport": "desktop",
+      "width": 1440,
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "login-profile-callback-desktop-dark.png",
+      "markerCounts": {
+        "[data-auth-callback-target=\"/profile\"]": 1,
+        "[data-commercial-entry-intent-map=\"account-profile\"]": 1,
+        "[data-commercial-student-entry-route=\"/login\"]": 1,
+        "[data-commercial-entry-intent=\"account-profile\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/interactive-learning",
+      "viewport": "desktop",
+      "width": 1440,
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "interactive-learning-desktop-dark.png",
+      "markerCounts": {
+        "[data-learning-entry-map=\"student-intent\"]": 1,
+        "[data-commercial-entry-intent-map=\"learn-practice-challenge\"]": 1,
+        "[data-commercial-student-entry-route=\"/interactive-learning\"]": 1,
+        "[data-commercial-entry-intent=\"learn\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/interactive-learning/courses",
+      "viewport": "desktop",
+      "width": 1440,
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "course-catalog-desktop-dark.png",
+      "markerCounts": {
+        "[data-learning-entry-map=\"course-module-progression\"]": 1,
+        "[data-course-entry-action=\"launch\"]": 27,
+        "[data-commercial-student-entry-route=\"/interactive-learning/courses\"]": 1,
+        "[data-commercial-entry-intent=\"learn\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "viewport": "desktop",
+      "width": 1440,
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "unit-4-1-course-desktop-dark.png",
+      "markerCounts": {
+        "[data-task-workspace-archetype=\"lesson-runtime\"]": 1,
+        "[data-course-entry-action=\"teacher-launch\"]": 1,
+        "[data-course-entry-action=\"demo-launch\"]": 1,
+        "[data-course-entry-action=\"join-code\"]": 1,
+        "[data-commercial-student-entry-route=\"/interactive-learning/courses/unit-4-1-design-task-expression\"]": 1,
+        "[data-commercial-entry-intent=\"learn\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/simulations",
+      "viewport": "desktop",
+      "width": 1440,
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "simulations-desktop-dark.png",
+      "markerCounts": {
+        "[data-simulation-entry-map=\"scenario-fleet\"]": 1,
+        "[data-scenario-fleet=\"ship-scenarios\"]": 1,
+        "[data-simulation-scenario-card]": 7,
+        "[data-simulation-scenario-fit]": 7,
+        "[data-simulation-task-status]": 7,
+        "[data-commercial-student-entry-route=\"/simulations\"]": 1,
+        "[data-commercial-entry-intent=\"experiment\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/",
+      "viewport": "mobile-320",
+      "width": 320,
+      "theme": "light",
+      "status": 200,
+      "screenshot": "home-mobile-320-light.png",
+      "markerCounts": {
+        "[data-commercial-entry-intent-map=\"homepage\"]": 1,
+        "[data-commercial-student-entry-route=\"/\"]": 1,
+        "[data-commercial-entry-intent=\"experiment\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/login?callbackUrl=%2Fprofile",
+      "viewport": "mobile-320",
+      "width": 320,
+      "theme": "light",
+      "status": 200,
+      "screenshot": "login-profile-callback-mobile-320-light.png",
+      "markerCounts": {
+        "[data-auth-callback-target=\"/profile\"]": 1,
+        "[data-commercial-entry-intent-map=\"account-profile\"]": 1,
+        "[data-commercial-student-entry-route=\"/login\"]": 1,
+        "[data-commercial-entry-intent=\"account-profile\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/interactive-learning",
+      "viewport": "mobile-320",
+      "width": 320,
+      "theme": "light",
+      "status": 200,
+      "screenshot": "interactive-learning-mobile-320-light.png",
+      "markerCounts": {
+        "[data-learning-entry-map=\"student-intent\"]": 1,
+        "[data-commercial-entry-intent-map=\"learn-practice-challenge\"]": 1,
+        "[data-commercial-student-entry-route=\"/interactive-learning\"]": 1,
+        "[data-commercial-entry-intent=\"learn\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/interactive-learning/courses",
+      "viewport": "mobile-320",
+      "width": 320,
+      "theme": "light",
+      "status": 200,
+      "screenshot": "course-catalog-mobile-320-light.png",
+      "markerCounts": {
+        "[data-learning-entry-map=\"course-module-progression\"]": 1,
+        "[data-course-entry-action=\"launch\"]": 27,
+        "[data-commercial-student-entry-route=\"/interactive-learning/courses\"]": 1,
+        "[data-commercial-entry-intent=\"learn\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "viewport": "mobile-320",
+      "width": 320,
+      "theme": "light",
+      "status": 200,
+      "screenshot": "unit-4-1-course-mobile-320-light.png",
+      "markerCounts": {
+        "[data-task-workspace-archetype=\"lesson-runtime\"]": 1,
+        "[data-course-entry-action=\"teacher-launch\"]": 1,
+        "[data-course-entry-action=\"demo-launch\"]": 1,
+        "[data-course-entry-action=\"join-code\"]": 1,
+        "[data-commercial-student-entry-route=\"/interactive-learning/courses/unit-4-1-design-task-expression\"]": 1,
+        "[data-commercial-entry-intent=\"learn\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/simulations",
+      "viewport": "mobile-320",
+      "width": 320,
+      "theme": "light",
+      "status": 200,
+      "screenshot": "simulations-mobile-320-light.png",
+      "markerCounts": {
+        "[data-simulation-entry-map=\"scenario-fleet\"]": 1,
+        "[data-scenario-fleet=\"ship-scenarios\"]": 1,
+        "[data-simulation-scenario-card]": 7,
+        "[data-simulation-scenario-fit]": 7,
+        "[data-simulation-task-status]": 7,
+        "[data-commercial-student-entry-route=\"/simulations\"]": 1,
+        "[data-commercial-entry-intent=\"experiment\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/",
+      "viewport": "mobile-320",
+      "width": 320,
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "home-mobile-320-dark.png",
+      "markerCounts": {
+        "[data-commercial-entry-intent-map=\"homepage\"]": 1,
+        "[data-commercial-student-entry-route=\"/\"]": 1,
+        "[data-commercial-entry-intent=\"experiment\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/login?callbackUrl=%2Fprofile",
+      "viewport": "mobile-320",
+      "width": 320,
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "login-profile-callback-mobile-320-dark.png",
+      "markerCounts": {
+        "[data-auth-callback-target=\"/profile\"]": 1,
+        "[data-commercial-entry-intent-map=\"account-profile\"]": 1,
+        "[data-commercial-student-entry-route=\"/login\"]": 1,
+        "[data-commercial-entry-intent=\"account-profile\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/interactive-learning",
+      "viewport": "mobile-320",
+      "width": 320,
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "interactive-learning-mobile-320-dark.png",
+      "markerCounts": {
+        "[data-learning-entry-map=\"student-intent\"]": 1,
+        "[data-commercial-entry-intent-map=\"learn-practice-challenge\"]": 1,
+        "[data-commercial-student-entry-route=\"/interactive-learning\"]": 1,
+        "[data-commercial-entry-intent=\"learn\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/interactive-learning/courses",
+      "viewport": "mobile-320",
+      "width": 320,
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "course-catalog-mobile-320-dark.png",
+      "markerCounts": {
+        "[data-learning-entry-map=\"course-module-progression\"]": 1,
+        "[data-course-entry-action=\"launch\"]": 27,
+        "[data-commercial-student-entry-route=\"/interactive-learning/courses\"]": 1,
+        "[data-commercial-entry-intent=\"learn\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression",
+      "viewport": "mobile-320",
+      "width": 320,
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "unit-4-1-course-mobile-320-dark.png",
+      "markerCounts": {
+        "[data-task-workspace-archetype=\"lesson-runtime\"]": 1,
+        "[data-course-entry-action=\"teacher-launch\"]": 1,
+        "[data-course-entry-action=\"demo-launch\"]": 1,
+        "[data-course-entry-action=\"join-code\"]": 1,
+        "[data-commercial-student-entry-route=\"/interactive-learning/courses/unit-4-1-design-task-expression\"]": 1,
+        "[data-commercial-entry-intent=\"learn\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    },
+    {
+      "route": "/simulations",
+      "viewport": "mobile-320",
+      "width": 320,
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "simulations-mobile-320-dark.png",
+      "markerCounts": {
+        "[data-simulation-entry-map=\"scenario-fleet\"]": 1,
+        "[data-scenario-fleet=\"ship-scenarios\"]": 1,
+        "[data-simulation-scenario-card]": 7,
+        "[data-simulation-scenario-fit]": 7,
+        "[data-simulation-task-status]": 7,
+        "[data-commercial-student-entry-route=\"/simulations\"]": 1,
+        "[data-commercial-entry-intent=\"experiment\"]": 1
+      },
+      "missingMarkers": [],
+      "pageErrors": [],
+      "consoleErrors": []
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import {
@@ -25,6 +25,8 @@ import {
 } from '@/lib/platform-role-navigation';
 
 describe('platform role navigation', () => {
+  const readSource = (relativePath: string) => readFileSync(join(process.cwd(), relativePath), 'utf8');
+
   it('defines stable student core entries in the report order', () => {
     const entries = getStudentCoreNavigationEntries();
 
@@ -260,6 +262,8 @@ describe('platform role navigation', () => {
       '/',
       '/login',
       '/interactive-learning',
+      '/interactive-learning/courses',
+      '/interactive-learning/courses/unit-4-1-design-task-expression',
       '/simulations',
       '/arena',
       '/assessment/adaptive-practice',
@@ -281,6 +285,16 @@ describe('platform role navigation', () => {
       frame: 'auth-entry',
       floatingDock: 'hidden',
       aliases: ['/login?callbackUrl=%2Fprofile'],
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning/courses')).toMatchObject({
+      frame: 'learning-map',
+      navigationLayers: expect.arrayContaining(['global-product', 'contextual-workspace']),
+      floatingDock: 'collapsed',
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning/courses/unit-4-1-design-task-expression')).toMatchObject({
+      frame: 'learning-map',
+      roleScope: ['guest', 'student', 'teacher'],
+      floatingDock: 'collapsed',
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning/control-workbench')).toMatchObject({
       frame: 'immersive-task-workspace',
@@ -324,6 +338,9 @@ describe('platform role navigation', () => {
       ['/login?callbackUrl=%2Fprofile', 'account-profile'],
       ['/dashboard', 'learn'],
       ['/interactive-learning', 'learn'],
+      ['/interactive-learning/courses', 'learn'],
+      ['/interactive-learning/courses/unit-4-1-design-task-expression', 'learn'],
+      ['/simulations', 'experiment'],
       ['/arena', 'challenge'],
       ['/assessment/adaptive-practice', 'practice'],
       ['/profile', 'review'],
@@ -332,5 +349,33 @@ describe('platform role navigation', () => {
     expect(resolveCommercialEntryHref('account-profile', false)).toBe('/login?callbackUrl=%2Fprofile');
     expect(resolveCommercialEntryHref('account-profile', true)).toBe('/profile');
     expect(resolveCommercialEntryHref('review', true)).toBe('/profile');
+  });
+
+  it('binds public learning entry route sources to the premium entry map contract', () => {
+    const homeSource = readSource('src/app/page.tsx');
+    const loginSource = readSource('src/app/(auth)/login/page.tsx');
+    const interactiveSource = readSource('src/app/interactive-learning/page.tsx');
+    const coursesSource = readSource('src/app/interactive-learning/courses/page.tsx');
+    const simulationsSource = readSource('src/app/simulations/page.tsx');
+    const unit41EntrySource = readSource('src/features/interactive/shared/premium-lesson-entry-page.tsx');
+
+    expect(homeSource).toContain('data-commercial-student-entry-route="/"');
+    expect(homeSource).toContain('data-commercial-entry-intent="experiment"');
+    expect(loginSource).toContain('data-auth-callback-target={callbackUrl ??');
+    expect(loginSource).toContain('data-commercial-entry-intent="account-profile"');
+    expect(interactiveSource).toContain('data-learning-entry-map="student-intent"');
+    expect(interactiveSource).toContain('data-commercial-entry-intent-map="learn-practice-challenge"');
+    expect(coursesSource).toContain('data-learning-entry-map="course-module-progression"');
+    expect(coursesSource).toContain('data-course-entry-action="launch"');
+    expect(simulationsSource).toContain('data-simulation-entry-map="scenario-fleet"');
+    expect(simulationsSource).toContain('data-simulation-scenario-card={simulation.id}');
+    expect(simulationsSource).toContain('data-simulation-scenario-fit={simulation.id}');
+    expect(simulationsSource).toContain('data-simulation-task-status={simulation.id}');
+    expect(unit41EntrySource).toContain('data-commercial-student-entry-route={`/interactive-learning/courses/${config.routeSegment}`}');
+    expect(unit41EntrySource).toContain('data-commercial-entry-intent="learn"');
+    expect(unit41EntrySource).toContain('data-task-workspace-archetype="lesson-runtime"');
+    expect(unit41EntrySource).toContain('data-course-entry-action="teacher-launch"');
+    expect(unit41EntrySource).toContain('data-course-entry-action="demo-launch"');
+    expect(unit41EntrySource).toContain('data-course-entry-action="join-code"');
   });
 });

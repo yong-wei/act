@@ -26,6 +26,9 @@ describe('platform entrypoint smoke contracts', () => {
       '/login?callbackUrl=%2Fprofile',
       '/dashboard',
       '/interactive-learning',
+      '/interactive-learning/courses',
+      '/interactive-learning/courses/unit-4-1-design-task-expression',
+      '/simulations',
       '/arena',
       '/assessment/adaptive-practice',
       '/profile',
@@ -85,6 +88,7 @@ describe('platform entrypoint smoke contracts', () => {
     expect(loginSource).toContain('callbackUrl=%2Fprofile');
     expect(loginSource).toContain('保留目标');
     expect(loginSource).toContain('LoginCommercialFallback');
+    expect(loginSource).toContain('data-auth-callback-target="pending-callback"');
     expect(loginFormSource).toContain("setError('账号或密码错误')");
     expect(loginFormSource).toContain('callbackUrl');
     expect(loginFormSource).toContain('resolvePostLoginRedirect');
@@ -96,6 +100,7 @@ describe('platform entrypoint smoke contracts', () => {
       readSource('src/features/arena/arena-hall.tsx'),
       readSource('src/app/assessment/adaptive-practice/page.tsx'),
     ];
+    const courseCatalogSource = readSource('src/app/interactive-learning/courses/page.tsx');
 
     for (const source of routeSources) {
       expect(source).toContain('getCommercialStudentEntryIntentGroups');
@@ -103,5 +108,7 @@ describe('platform entrypoint smoke contracts', () => {
     }
     expect(routeSources[2]).toContain("['practice', 'learn', 'challenge', 'review']");
     expect(routeSources[2]).toContain('返回竞技场');
+    expect(courseCatalogSource).toContain('data-learning-entry-map="course-module-progression"');
+    expect(courseCatalogSource).toContain('data-course-entry-action="launch"');
   });
 });

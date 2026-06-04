@@ -110,6 +110,8 @@ describe('commercial UI governance', () => {
       '/',
       '/login',
       '/interactive-learning',
+      '/interactive-learning/courses',
+      '/interactive-learning/courses/unit-4-1-design-task-expression',
       '/simulations',
       '/interactive-learning/control-workbench',
       '/dashboard',

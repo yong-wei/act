@@ -50,7 +50,16 @@ test('interactive learning should provide three top-level entries and route to d
   await expect(page.getByRole('link', { name: /Ten Drops/i })).toBeVisible();
 
   await page.goto('/interactive-learning/courses', { waitUntil: 'networkidle' });
+  await expect(page.locator('[data-learning-entry-map="course-module-progression"]')).toBeVisible();
+  await expect(page.locator('[data-course-entry-action="launch"]').first()).toBeVisible();
   await expect(page.getByRole('main').getByRole('heading', { name: '互动课程' })).toBeVisible();
+
+  await page.goto('/interactive-learning/courses/unit-4-1-design-task-expression', { waitUntil: 'networkidle' });
+  await expect(page.locator('[data-commercial-student-entry-route="/interactive-learning/courses/unit-4-1-design-task-expression"]')).toBeVisible();
+  await expect(page.locator('[data-commercial-entry-intent="learn"]')).toBeVisible();
+  await expect(page.locator('[data-course-entry-action="teacher-launch"]')).toBeVisible();
+  await expect(page.locator('[data-course-entry-action="demo-launch"]')).toBeVisible();
+  await expect(page.locator('[data-course-entry-action="join-code"]')).toBeVisible();
 
   await page.goto('/interactive-learning/chapter-components', { waitUntil: 'networkidle' });
   await expect(page.getByRole('main').getByRole('heading', { name: '各章节互动组件' })).toBeVisible();

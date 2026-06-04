@@ -276,6 +276,9 @@ export default function HomePage() {
     <div
       className="surface-page"
       data-commercial-workspace="homepage"
+      data-commercial-student-entry-route="/"
+      data-commercial-entry-intent="experiment"
+      data-learning-entry-map="product-intent"
       style={{ fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif' }}
     >
       <div className="relative overflow-hidden">
@@ -435,7 +438,7 @@ export default function HomePage() {
 
           <div className="mx-auto max-w-[1600px] px-6 pb-12">
             <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
-              <div className="surface-card p-6">
+              <div className="surface-card p-6" data-commercial-entry-intent-map="homepage">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-semibold text-foreground">任务序列</div>
                   <div className="text-xs text-subtle">{currentSlide + 1}/{totalSlides}</div>

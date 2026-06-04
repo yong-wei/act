@@ -142,6 +142,8 @@ export function PremiumLessonEntryPage({
     <div
       className="premium-lesson-shell"
       data-commercial-workspace="interactive-learning"
+      data-commercial-student-entry-route={`/interactive-learning/courses/${config.routeSegment}`}
+      data-commercial-entry-intent="learn"
       data-task-workspace-archetype="lesson-runtime"
       data-launch-provenance="course-launched"
       data-return-target="/interactive-learning/courses"
@@ -179,6 +181,7 @@ export function PremiumLessonEntryPage({
                 onClick={() => void createClassroom()}
                 disabled={isCreating}
                 className="premium-lesson-action-primary mt-5 flex w-full"
+                data-course-entry-action="teacher-launch"
               >
                 {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 开始上课（教师）
@@ -194,6 +197,7 @@ export function PremiumLessonEntryPage({
             <Link
               href={`/interactive-learning/courses/${config.routeSegment}/student/demo`}
               className="premium-lesson-action-secondary mt-5 flex w-full"
+              data-course-entry-action="demo-launch"
             >
               进入演示模式
             </Link>
@@ -216,6 +220,7 @@ export function PremiumLessonEntryPage({
                   onChange={(event) => setJoinCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="输入 6 位课堂码"
                   className="premium-lesson-input mt-2 text-base tracking-[0.24em]"
+                  data-course-entry-action="join-code"
                 />
               </label>
               <button
@@ -223,6 +228,7 @@ export function PremiumLessonEntryPage({
                 onClick={() => void joinClassroom()}
                 disabled={isJoining}
                 className="premium-lesson-action-secondary mt-4 flex w-full"
+                data-course-entry-action="join-launch"
               >
                 {isJoining ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
                 加入课堂
