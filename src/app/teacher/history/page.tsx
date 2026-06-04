@@ -154,7 +154,12 @@ export default function TeacherHistoryPage() {
   };
 
   return (
-    <main className="surface-page mx-auto max-w-[1600px] px-6 py-8">
+    <main
+      className="surface-page mx-auto max-w-[1600px] px-6 py-8"
+      data-commercial-operations-workspace="teacher-operations"
+      data-commercial-workspace-zone="instrument-area"
+      data-operations-status-semantics={loading ? 'loading' : sessions.length === 0 ? 'empty' : 'finished'}
+    >
       <Link
         href="/teacher"
         className="mb-6 inline-flex items-center gap-2 text-sm text-subtle transition hover:text-foreground"

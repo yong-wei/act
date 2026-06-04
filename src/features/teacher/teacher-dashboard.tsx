@@ -23,6 +23,10 @@ import {
   type TeacherDashboardPrimaryStat,
   type TeacherDashboardQuickAction,
 } from './teacher-dashboard-config';
+import {
+  TEACHER_OPERATIONS_ANALYTICS_SLOTS,
+  buildOperationsUnavailableSlot,
+} from '@/features/admin/teacher-admin-governance-workspaces';
 
 interface TeacherDashboardProps {
   user: {
@@ -119,7 +123,12 @@ export function TeacherDashboard({
   }, [mode, router]);
 
   return (
-    <main className="surface-page mx-auto max-w-[1600px] px-6 py-8">
+    <main
+      className="surface-page mx-auto max-w-[1600px] px-6 py-8"
+      data-commercial-operations-workspace="teacher-operations"
+      data-commercial-workspace-zone="instrument-area"
+      data-operations-status-semantics={mode}
+    >
       {mode === 'degraded' && (
         <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
           <p className="text-sm font-semibold">教师工作台已切换为降级模式</p>
@@ -147,6 +156,55 @@ export function TeacherDashboard({
           <QuickAction key={item.title} config={item} />
         ))}
       </div>
+
+      <section
+        className="surface-card mb-8 p-6"
+        data-operations-analytics-slot-region="future-analytics"
+        data-operations-status-semantics="feature-flagged"
+      >
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">学习分析槽位</h3>
+            <p className="mt-1 text-sm text-subtle">分析能力未启用时仅展示状态与可执行入口，不生成占位指标。</p>
+          </div>
+          <span className="rounded-full border border-border px-3 py-1 text-xs text-subtle">
+            feature-flagged
+          </span>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          {TEACHER_OPERATIONS_ANALYTICS_SLOTS.map((slot) => {
+            const unavailableSlot = buildOperationsUnavailableSlot(slot);
+            return (
+              <div
+                key={unavailableSlot.id}
+                className="rounded-lg border border-border bg-muted/30 p-4"
+                data-operations-unavailable-slot={unavailableSlot.id}
+                data-operations-unavailable-state={unavailableSlot.state}
+                data-operations-fabricates-metrics={String(unavailableSlot.fabricatesMetrics)}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h4 className="font-medium text-foreground">{unavailableSlot.label}</h4>
+                    <p className="mt-2 text-sm leading-6 text-subtle">
+                      当前为显式未开放状态，可继续使用下方相邻操作。
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-border px-2 py-1 text-xs text-subtle">
+                    {unavailableSlot.state}
+                  </span>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {unavailableSlot.permittedAdjacentActions.map((action) => (
+                    <span key={action} className="rounded-md border border-border px-2 py-1 text-xs text-subtle">
+                      {action}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       <div className="grid gap-8 lg:grid-cols-2">
         {activeSessions.length > 0 && (

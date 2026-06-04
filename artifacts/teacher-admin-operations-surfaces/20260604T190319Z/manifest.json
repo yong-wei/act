@@ -1,0 +1,455 @@
+{
+  "baseURL": "http://localhost:3001",
+  "generatedAt": "2026-06-04T19:03:19.805Z",
+  "loginMethod": "next-auth credentials callback",
+  "accounts": {
+    "teacher": "test_teacher",
+    "admin": "admin"
+  },
+  "results": [
+    {
+      "role": "teacher",
+      "route": "/teacher",
+      "theme": "light",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/teacher",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 2,
+      "marker": {
+        "operationsWorkspace": "teacher-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "ready",
+        "tag": "MAIN"
+      },
+      "unavailableSlots": [
+        {
+          "id": "class-learning-analytics",
+          "state": "feature-flagged",
+          "fabricatesMetrics": "false"
+        },
+        {
+          "id": "student-learning-analytics",
+          "state": "feature-flagged",
+          "fabricatesMetrics": "false"
+        }
+      ],
+      "screenshot": "desktop-light-teacher-teacher.png"
+    },
+    {
+      "role": "teacher",
+      "route": "/teacher/classes",
+      "theme": "light",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/teacher/classes",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "teacher-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "active",
+        "tag": "MAIN"
+      },
+      "unavailableSlots": [],
+      "screenshot": "desktop-light-teacher-teacher__classes.png"
+    },
+    {
+      "role": "teacher",
+      "route": "/teacher/lesson-plans",
+      "theme": "light",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/teacher/lesson-plans",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "teacher-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "updated",
+        "tag": "DIV"
+      },
+      "unavailableSlots": [],
+      "screenshot": "desktop-light-teacher-teacher__lesson-plans.png"
+    },
+    {
+      "role": "teacher",
+      "route": "/teacher/resources",
+      "theme": "light",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/teacher/resources",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "teacher-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "path-eligible",
+        "tag": "DIV"
+      },
+      "unavailableSlots": [],
+      "screenshot": "desktop-light-teacher-teacher__resources.png"
+    },
+    {
+      "role": "teacher",
+      "route": "/teacher/history",
+      "theme": "light",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/teacher/history",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "teacher-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "finished",
+        "tag": "MAIN"
+      },
+      "unavailableSlots": [],
+      "screenshot": "desktop-light-teacher-teacher__history.png"
+    },
+    {
+      "role": "teacher",
+      "route": "/teacher",
+      "theme": "dark",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/teacher",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 2,
+      "marker": {
+        "operationsWorkspace": "teacher-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "ready",
+        "tag": "MAIN"
+      },
+      "unavailableSlots": [
+        {
+          "id": "class-learning-analytics",
+          "state": "feature-flagged",
+          "fabricatesMetrics": "false"
+        },
+        {
+          "id": "student-learning-analytics",
+          "state": "feature-flagged",
+          "fabricatesMetrics": "false"
+        }
+      ],
+      "screenshot": "desktop-dark-teacher-teacher.png"
+    },
+    {
+      "role": "teacher",
+      "route": "/teacher/classes",
+      "theme": "dark",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/teacher/classes",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "teacher-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "active",
+        "tag": "MAIN"
+      },
+      "unavailableSlots": [],
+      "screenshot": "desktop-dark-teacher-teacher__classes.png"
+    },
+    {
+      "role": "teacher",
+      "route": "/teacher/lesson-plans",
+      "theme": "dark",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/teacher/lesson-plans",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "teacher-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "updated",
+        "tag": "DIV"
+      },
+      "unavailableSlots": [],
+      "screenshot": "desktop-dark-teacher-teacher__lesson-plans.png"
+    },
+    {
+      "role": "teacher",
+      "route": "/teacher/resources",
+      "theme": "dark",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/teacher/resources",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "teacher-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "path-eligible",
+        "tag": "DIV"
+      },
+      "unavailableSlots": [],
+      "screenshot": "desktop-dark-teacher-teacher__resources.png"
+    },
+    {
+      "role": "teacher",
+      "route": "/teacher/history",
+      "theme": "dark",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/teacher/history",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "teacher-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "finished",
+        "tag": "MAIN"
+      },
+      "unavailableSlots": [],
+      "screenshot": "desktop-dark-teacher-teacher__history.png"
+    },
+    {
+      "role": "admin",
+      "route": "/admin",
+      "theme": "light",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/admin",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "admin-operations",
+        "zone": "context-strip",
+        "statusSemantics": "ready",
+        "tag": "DIV"
+      },
+      "unavailableSlots": [
+        {
+          "id": "admin-operations-model-management",
+          "state": "feature-flagged",
+          "fabricatesMetrics": "false"
+        }
+      ],
+      "screenshot": "desktop-light-admin-admin.png"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/users",
+      "theme": "light",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/admin/users",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "admin-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "role-filtered",
+        "tag": "DIV"
+      },
+      "unavailableSlots": [],
+      "screenshot": "desktop-light-admin-admin__users.png"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/config",
+      "theme": "light",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/admin/config",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "admin-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "ready",
+        "tag": "DIV"
+      },
+      "unavailableSlots": [],
+      "screenshot": "desktop-light-admin-admin__config.png"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/states",
+      "theme": "light",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/admin/states",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "admin-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "fresh",
+        "tag": "DIV"
+      },
+      "unavailableSlots": [],
+      "screenshot": "desktop-light-admin-admin__states.png"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/data-governance",
+      "theme": "light",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/admin/data-governance",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "admin-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "ready",
+        "tag": "DIV"
+      },
+      "unavailableSlots": [],
+      "screenshot": "desktop-light-admin-admin__data-governance.png"
+    },
+    {
+      "role": "admin",
+      "route": "/admin",
+      "theme": "dark",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/admin",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "admin-operations",
+        "zone": "context-strip",
+        "statusSemantics": "ready",
+        "tag": "DIV"
+      },
+      "unavailableSlots": [
+        {
+          "id": "admin-operations-model-management",
+          "state": "feature-flagged",
+          "fabricatesMetrics": "false"
+        }
+      ],
+      "screenshot": "desktop-dark-admin-admin.png"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/users",
+      "theme": "dark",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/admin/users",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "admin-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "role-filtered",
+        "tag": "DIV"
+      },
+      "unavailableSlots": [],
+      "screenshot": "desktop-dark-admin-admin__users.png"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/config",
+      "theme": "dark",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/admin/config",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "admin-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "ready",
+        "tag": "DIV"
+      },
+      "unavailableSlots": [],
+      "screenshot": "desktop-dark-admin-admin__config.png"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/states",
+      "theme": "dark",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/admin/states",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "admin-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "fresh",
+        "tag": "DIV"
+      },
+      "unavailableSlots": [],
+      "screenshot": "desktop-dark-admin-admin__states.png"
+    },
+    {
+      "role": "admin",
+      "route": "/admin/data-governance",
+      "theme": "dark",
+      "viewportName": "desktop",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/admin/data-governance",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 1,
+      "marker": {
+        "operationsWorkspace": "admin-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "ready",
+        "tag": "DIV"
+      },
+      "unavailableSlots": [],
+      "screenshot": "desktop-dark-admin-admin__data-governance.png"
+    },
+    {
+      "role": "teacher",
+      "route": "/teacher",
+      "theme": "light",
+      "viewportName": "mobile",
+      "pageErrors": [],
+      "finalUrl": "http://localhost:3001/teacher",
+      "title": "AI-OBE船舶控制平台",
+      "loginVisible": 0,
+      "markerCount": 2,
+      "marker": {
+        "operationsWorkspace": "teacher-operations",
+        "zone": "instrument-area",
+        "statusSemantics": "ready",
+        "tag": "MAIN"
+      },
+      "unavailableSlots": [
+        {
+          "id": "class-learning-analytics",
+          "state": "feature-flagged",
+          "fabricatesMetrics": "false"
+        },
+        {
+          "id": "student-learning-analytics",
+          "state": "feature-flagged",
+          "fabricatesMetrics": "false"
+        }
+      ],
+      "screenshot": "mobile-light-teacher-teacher.png"
+    }
+  ]
+}

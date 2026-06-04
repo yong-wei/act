@@ -2,14 +2,22 @@ import Link from 'next/link';
 
 import { AdminConsoleHeader } from './admin-console-header';
 import { ADMIN_CONSOLE_ENTRIES, type AdminConsoleUser } from './admin-console-config';
+import { ADMIN_OPERATIONS_CONSOLE_DOMAINS } from './teacher-admin-governance-workspaces';
 
 type AdminConsoleHomeProps = {
   currentUser: AdminConsoleUser;
 };
 
 export function AdminConsoleHome({ currentUser }: AdminConsoleHomeProps) {
+  const futureDomains = ADMIN_OPERATIONS_CONSOLE_DOMAINS.filter((domain) => domain.state === 'future');
+
   return (
-    <div className="admin-console-shell">
+    <div
+      className="admin-console-shell"
+      data-commercial-operations-workspace="admin-operations"
+      data-commercial-workspace-zone="context-strip"
+      data-operations-status-semantics="ready"
+    >
       <AdminConsoleHeader
         currentUser={currentUser}
         currentHref="/admin"
@@ -44,6 +52,38 @@ export function AdminConsoleHome({ currentUser }: AdminConsoleHomeProps) {
             );
           })}
         </section>
+
+        {futureDomains.length > 0 && (
+          <section className="mt-6 grid gap-5 lg:grid-cols-2" data-admin-operations-future-domains>
+            {futureDomains.map((domain) => (
+              <div
+                key={domain.id}
+                className="admin-console-surface p-5"
+                data-operations-unavailable-slot={domain.id}
+                data-operations-unavailable-state="feature-flagged"
+                data-operations-fabricates-metrics="false"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="admin-console-kicker">未来管理域</p>
+                    <h2 className="admin-console-title mt-2 text-lg font-semibold">{domain.label}</h2>
+                  </div>
+                  <span className="admin-console-chip">feature-flagged</span>
+                </div>
+                <p className="admin-console-muted mt-3 text-sm leading-6">
+                  该管理域尚未开放，仅保留控制台位置和相邻操作，不展示模型或系统健康占位指标。
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {domain.actions.map((action) => (
+                    <span key={action} className="admin-console-chip">
+                      {action}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
       </main>
     </div>
   );

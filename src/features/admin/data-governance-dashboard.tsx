@@ -60,7 +60,12 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
 
   if (loading && !status) {
     return (
-      <div className="admin-console-shell">
+      <div
+        className="admin-console-shell"
+        data-commercial-operations-workspace="admin-operations"
+        data-commercial-workspace-zone="instrument-area"
+        data-operations-status-semantics="loading"
+      >
         <AdminConsoleHeader
           currentUser={currentUser}
           currentHref="/admin/data-governance"
@@ -81,7 +86,12 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
 
   if (error && !status) {
     return (
-      <div className="admin-console-shell">
+      <div
+        className="admin-console-shell"
+        data-commercial-operations-workspace="admin-operations"
+        data-commercial-workspace-zone="instrument-area"
+        data-operations-status-semantics="blocked"
+      >
         <AdminConsoleHeader
           currentUser={currentUser}
           currentHref="/admin/data-governance"
@@ -108,7 +118,12 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
   }
 
   return (
-    <div className="admin-console-shell" data-commercial-operations-workspace="admin-data-governance">
+    <div
+      className="admin-console-shell"
+      data-commercial-operations-workspace="admin-operations"
+      data-commercial-workspace-zone="instrument-area"
+      data-operations-status-semantics={status.status === 'healthy' ? 'ready' : status.status === 'error' ? 'blocked' : 'partial'}
+    >
       <AdminConsoleHeader
         currentUser={currentUser}
         currentHref="/admin/data-governance"

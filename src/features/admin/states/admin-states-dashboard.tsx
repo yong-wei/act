@@ -160,7 +160,12 @@ export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps)
   };
 
   return (
-    <div className="admin-console-shell">
+    <div
+      className="admin-console-shell"
+      data-commercial-operations-workspace="admin-operations"
+      data-commercial-workspace-zone="instrument-area"
+      data-operations-status-semantics={loading ? 'loading' : error ? 'stale' : 'fresh'}
+    >
       <AdminConsoleHeader
         currentUser={currentUser}
         currentHref="/admin/states"
@@ -600,4 +605,3 @@ function BriefCard({
     </div>
   );
 }
-
