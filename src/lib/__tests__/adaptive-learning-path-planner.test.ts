@@ -436,6 +436,34 @@ describe('adaptive learning path planner', () => {
     expect(plan.policyBundle?.diversity.pairwiseTerminalValidationDifference).toHaveLength(6);
   });
 
+  it('compares bundle policies against an explicit primary policy family', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      policyFamily: 'foundation-remediation',
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+      },
+      policyBundle: {
+        families: ['sprint-correction'],
+        overlapThreshold: 0.9,
+      },
+    }));
+
+    expect(plan.policyBundle?.families).toEqual(['foundation-remediation', 'sprint-correction']);
+    expect(plan.policyBundle?.paths.map((path) => path.policyFamily)).toEqual([
+      'foundation-remediation',
+      'sprint-correction',
+    ]);
+    expect(plan.policyBundle?.diversity.pairwiseResourceOverlap).toEqual([
+      expect.objectContaining({
+        left: 'foundation-remediation',
+        right: 'sprint-correction',
+      }),
+    ]);
+  });
+
   it('returns an explicit low-resource fallback when policy paths cannot be distinct', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput({
       registry: buildResourceNodeRegistry({
