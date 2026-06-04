@@ -275,6 +275,12 @@ describe('learning path round API routes', () => {
     expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       idempotencyKey: 'exec-key',
     }));
+    expect(mocks.prisma.learningPath.findUnique).toHaveBeenCalledWith(expect.objectContaining({
+      select: expect.objectContaining({
+        terminalValidation: true,
+        lastExecutionMetadata: true,
+      }),
+    }));
     expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'path-1' },
       data: expect.objectContaining({

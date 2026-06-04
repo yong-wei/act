@@ -36,6 +36,8 @@ export async function readPathForAccess(pathId: string): Promise<any | NextRespo
       pathStatus: true,
       nodeIds: true,
       pathPayload: true,
+      terminalValidation: true,
+      lastExecutionMetadata: true,
     },
   });
   if (!path) {
