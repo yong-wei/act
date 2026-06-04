@@ -690,8 +690,8 @@ function buildFeasiblePath(
   }
 
   return Array.from(state.selected.values()).sort((left, right) => {
-    const leftTerminal = left.node.planningMetadata.terminalConstraints.includes('terminal-node');
-    const rightTerminal = right.node.planningMetadata.terminalConstraints.includes('terminal-node');
+    const leftTerminal = isTerminalNode(left.node);
+    const rightTerminal = isTerminalNode(right.node);
     if (leftTerminal !== rightTerminal) {
       return leftTerminal ? 1 : -1;
     }
@@ -710,8 +710,7 @@ function addCandidateOptionToState(
   if (newEntries.length === 0) {
     return null;
   }
-  if (Array.from(state.selected.values()).some((candidate) => isTerminalNode(candidate.node)) &&
-    newEntries.some((candidate) => isTerminalNode(candidate.node))) {
+  if (Array.from(state.selected.values()).some((candidate) => isTerminalNode(candidate.node))) {
     return null;
   }
   const newEstimatedMinutes = newEntries.reduce(
@@ -855,7 +854,8 @@ function hasCyclicPrerequisites(
 }
 
 function isTerminalNode(node: ResourceNode): boolean {
-  return node.planningMetadata.terminalConstraints.includes('terminal-node');
+  return node.planningMetadata.terminalConstraints.includes('terminal-node') ||
+    node.planningMetadata.terminalConstraints.includes('terminal-validation');
 }
 
 function isRiskInterventionNode(node: ResourceNode): boolean {
