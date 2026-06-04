@@ -4,6 +4,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import {
+  buildLearnerDataRouteShell,
+  buildPracticeEntryRouteNodes,
+} from '@/features/adaptive/adaptive-learning-center-contracts';
 import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 
 interface DiagnosticResponse {
@@ -134,8 +138,24 @@ const DEMO_SCENES: Record<DemoScene, {
   },
 };
 
+const learnerDataShell = buildLearnerDataRouteShell('/assessment/adaptive-practice');
+
 function percentLabel(value: number): string {
   return `${Math.round(value)}%`;
+}
+
+function formatConfidence(value: string): string {
+  if (value === 'high') return '高';
+  if (value === 'medium') return '中';
+  if (value === 'low') return '低';
+  return '未知';
+}
+
+function formatEvidenceLimitation(value: string): string {
+  if (value === 'complete') return '完整';
+  if (value === 'partial') return '部分';
+  if (value === 'missing') return '缺失';
+  return '未知';
 }
 
 function resolveDemoScene(sceneParam: string | null): DemoScene {
@@ -147,6 +167,7 @@ export default function AdaptivePracticePage() {
   const { status: authStatus } = useSession();
   const isDemoMode = searchParams.get('demo') === '1';
   const demoScene = resolveDemoScene(searchParams.get('scene'));
+  const activePracticeFocus = searchParams.get('focus');
   const loginHref = `/login?callbackUrl=${encodeURIComponent('/assessment/adaptive-practice')}`;
   const entryIntents = getCommercialStudentEntryIntentGroups();
 
@@ -159,6 +180,13 @@ export default function AdaptivePracticePage() {
   const [loading, setLoading] = useState(false);
   const [questionStartAt, setQuestionStartAt] = useState<number>(Date.now());
   const [error, setError] = useState<string | null>(null);
+  const practiceRouteNodes = useMemo(() => buildPracticeEntryRouteNodes({
+    recommendedFocus: diagnostic?.recommendedFocus ?? [],
+    weakAreas: diagnostic?.weakAreas ?? [],
+    estimatedAbility: questionState?.estimatedAbility,
+    confidenceInterval: questionState?.confidenceInterval,
+    actionHref: '/assessment/adaptive-practice',
+  }), [diagnostic, questionState]);
 
   const applyDemoScene = useCallback((scene: DemoScene) => {
     const demoData = DEMO_SCENES[scene];
@@ -324,7 +352,11 @@ export default function AdaptivePracticePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100 md:px-8">
+    <div
+      className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100 md:px-8"
+      data-route-family={learnerDataShell.routeFamily}
+      data-route-identity={learnerDataShell.routeIdentity}
+    >
       <div className="mx-auto max-w-6xl space-y-6">
         <header className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
           <p className="text-xs uppercase tracking-[0.28em] text-emerald-400">商业入口 · Practice</p>
@@ -403,13 +435,42 @@ export default function AdaptivePracticePage() {
             </div>
 
             <div>
-              <p className="mb-2 text-xs text-slate-400">推荐训练方向</p>
+              <p className="mb-2 text-xs text-slate-400">当前路径与推荐节点</p>
               <ul className="space-y-2 text-sm text-slate-300">
-                {(diagnostic?.recommendedFocus ?? []).map((item) => (
-                  <li key={item} className="rounded bg-slate-950 px-2 py-1">
-                    {item}
+                {practiceRouteNodes.map((node) => (
+                  <li
+                    key={node.nodeId}
+                    className={`rounded border px-3 py-2 ${
+                      activePracticeFocus === node.nodeId
+                        ? 'border-emerald-400 bg-emerald-500/10'
+                        : 'border-slate-800 bg-slate-950'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium text-slate-100">{node.title}</span>
+                      <span className="rounded bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-200">
+                        {node.state === 'current' ? '当前节点' : '可选节点'}
+                      </span>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-400">
+                      <span>置信度 {formatConfidence(node.confidence)}</span>
+                      <span>证据覆盖 {formatEvidenceLimitation(node.evidenceLimitation)}</span>
+                    </div>
+                    {node.missingEvidence.length > 0 ? (
+                      <p className="mt-2 text-xs text-rose-200/90">
+                        缺失证据 {node.missingEvidence.join('、')}
+                      </p>
+                    ) : null}
+                    <Link href={node.action.href} className="mt-2 inline-flex text-xs text-emerald-300 hover:text-emerald-200">
+                      {node.action.label}
+                    </Link>
                   </li>
                 ))}
+                {practiceRouteNodes.length === 0 ? (
+                  <li className="rounded border border-slate-800 bg-slate-950 px-3 py-2 text-slate-500">
+                    等待诊断结果生成当前路径节点。
+                  </li>
+                ) : null}
               </ul>
             </div>
 

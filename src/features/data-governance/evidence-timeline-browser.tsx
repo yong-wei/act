@@ -23,6 +23,7 @@ interface EvidenceTimelineBrowserPayload {
 interface EvidenceTimelineBrowserProps {
   apiPath: string;
   backHref: string;
+  emptyBackLabel?: string;
   title: string;
   subtitle?: string;
 }
@@ -30,6 +31,7 @@ interface EvidenceTimelineBrowserProps {
 export function EvidenceTimelineBrowser({
   apiPath,
   backHref,
+  emptyBackLabel = '返回成长中心',
   title,
   subtitle,
 }: EvidenceTimelineBrowserProps) {
@@ -197,7 +199,7 @@ export function EvidenceTimelineBrowser({
               className="btn-ghost-themed inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm"
             >
               <RefreshCw className="h-4 w-4" />
-              重置
+              重置筛选条件
             </button>
           </div>
         </aside>
@@ -207,15 +209,42 @@ export function EvidenceTimelineBrowser({
             <div className="surface-card border-red-500/40 p-4 text-sm text-red-500">{error}</div>
           )}
           {!loading && items.length === 0 && !error && (
-            <div className="surface-card p-6 text-sm text-subtle">当前筛选下暂无证据。</div>
+            <div className="surface-card p-6">
+              <p className="text-sm text-subtle">当前筛选下暂无证据。</p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  重置筛选条件
+                </button>
+                <Link
+                  href={backHref}
+                  className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm"
+                >
+                  {emptyBackLabel}
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
           )}
           {items.map((item) => (
-            <article key={item.id} className="surface-card p-5">
+            <article
+              key={item.id}
+              className={`surface-card p-5 ${item.displayPriority === 'deemphasized' ? 'border-dashed opacity-80' : ''}`}
+            >
               <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="font-semibold text-foreground">{formatEvidenceTitle(item)}</h2>
                     <span className={getOutcomeBadgeClass(item.outcome)}>{formatOutcome(item.outcome)}</span>
+                    {item.groupedCount && item.groupedCount > 1 ? (
+                      <span className="rounded bg-slate-500/15 px-2 py-0.5 text-xs text-subtle">
+                        {item.groupLabel ?? `重复证据 ${item.groupedCount} 条`}
+                      </span>
+                    ) : null}
                     {item.quality && (
                       <span className="rounded bg-sky-500/15 px-2 py-0.5 text-xs text-sky-600 dark:text-sky-300">
                         {formatQuality(item.quality)}

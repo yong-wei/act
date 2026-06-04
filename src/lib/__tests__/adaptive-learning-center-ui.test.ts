@@ -6,10 +6,15 @@ import { describe, expect, it } from 'vitest';
 import {
   ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG,
   ADAPTIVE_LEARNING_CENTER_REGIONS,
+  LEARNER_DATA_SHELL_SEMANTICS,
+  buildLearnerDataRouteShell,
+  buildPracticeEntryRouteNodes,
+  buildRecommendedPathNodeView,
   type AdaptiveLearningCompatibilityRoute,
   buildAdaptiveClaimStatus,
   buildAdaptiveLearningCenterState,
   buildAdaptiveLearningCenterView,
+  getLearnerDataSurfaceRoutes,
   getAdaptiveLearningCenterCompatibilityRoutes,
 } from '@/features/adaptive/adaptive-learning-center-contracts';
 import { buildPlatformStatusViewModel } from '@/components/platform/platform-ui-contracts';
@@ -288,6 +293,87 @@ describe('adaptive learning center UI contracts', () => {
     }
   });
 
+  it('defines one learner data shell across dashboard, profile, growth, evidence, and adaptive practice routes', () => {
+    const routes = getLearnerDataSurfaceRoutes();
+
+    expect(routes.map((route) => route.href)).toEqual([
+      '/dashboard',
+      '/profile',
+      '/profile/growth',
+      '/profile/evidence',
+      '/assessment/adaptive-practice',
+    ]);
+    expect(LEARNER_DATA_SHELL_SEMANTICS).toEqual([
+      'ability-profile',
+      'current-path',
+      'evidence-timeline',
+      'recommendations',
+      'practice',
+      'next-action',
+    ]);
+    for (const route of routes) {
+      expect(existsSync(join(repoRoot, route.routeFile))).toBe(true);
+      expect(buildLearnerDataRouteShell(route.href)).toMatchObject({
+        routeFamily: 'learner-data-pathway',
+        routeIdentity: route.routeIdentity,
+        semantics: LEARNER_DATA_SHELL_SEMANTICS,
+      });
+    }
+  });
+
+  it('binds learner data route pages to the shared shell contract', () => {
+    for (const route of getLearnerDataSurfaceRoutes()) {
+      const source = readFileSync(join(repoRoot, route.routeFile), 'utf8');
+
+      expect(source).toContain('buildLearnerDataRouteShell');
+      expect(source).toContain(`buildLearnerDataRouteShell('${route.href}')`);
+      expect(source).toContain('learnerDataShell');
+    }
+  });
+
+  it('binds the evidence browser to grouped timeline metadata and actionable empty states', () => {
+    const source = readFileSync(join(repoRoot, 'src/features/data-governance/evidence-timeline-browser.tsx'), 'utf8');
+    const teacherEvidence = readFileSync(join(repoRoot, 'src/app/(main)/teacher/students/[studentId]/evidence/page.tsx'), 'utf8');
+    const teacherClassEvidence = readFileSync(join(repoRoot, 'src/app/teacher/classes/[classId]/students/[studentId]/evidence/page.tsx'), 'utf8');
+
+    expect(source).toContain('item.groupedCount');
+    expect(source).toContain('item.displayPriority');
+    expect(source).toContain('重置筛选条件');
+    expect(source).toContain('emptyBackLabel');
+    expect(source).toContain('返回成长中心');
+    expect(teacherEvidence).toContain('emptyBackLabel="返回学生诊断"');
+    expect(teacherClassEvidence).toContain('emptyBackLabel="返回学生详情"');
+  });
+
+  it('binds adaptive practice entry states to learner route-node view models', () => {
+    const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(source).toContain('buildPracticeEntryRouteNodes');
+    expect(source).toContain('practiceRouteNodes');
+    expect(source).toContain('证据覆盖');
+    expect(source).toContain('缺失证据');
+  });
+
+  it('binds growth center to grouped learner timeline and stable chart containers', () => {
+    const source = readFileSync(join(repoRoot, 'src/app/(main)/profile/growth/page.tsx'), 'utf8');
+
+    expect(source).toContain('groupGrowthTimelineRecords');
+    expect(source).toContain('groupedGrowthRecords');
+    expect(source).toContain('重复记录');
+    expect(source).toContain('min-h-[320px]');
+    expect(source).toContain('min-w-0');
+    expect(source).toContain('hasCompetencyChartData');
+    expect(source).toContain('开始练习');
+  });
+
+  it('reserves a safe area for learner route floating controls on mobile', () => {
+    const source = readFileSync(join(repoRoot, 'src/app/globals.css'), 'utf8');
+
+    expect(source).toContain('--learner-floating-dock-safe-inline');
+    expect(source).toContain('[data-route-family="learner-data-pathway"]');
+    expect(source).toContain('padding-right: var(--learner-floating-dock-safe-inline)');
+  });
+
   it('builds learner-state and mastery panels from server-owned learner state instead of client profile hints', () => {
     const view = buildAdaptiveLearningCenterView({
       featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
@@ -362,6 +448,86 @@ describe('adaptive learning center UI contracts', () => {
       learnerStateDeficits: [expect.objectContaining({ targetId: 'phase-margin' })],
     });
     expect(view.excludedPolicyFamilies).toEqual(['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid']);
+  });
+
+  it('renders recommended path nodes as staged learner route nodes with action and evidence state', () => {
+    const node = buildRecommendedPathNodeView(pathPlan()).nodes[0];
+
+    expect(node).toMatchObject({
+      stage: 'stage-1-rules-graph',
+      nodeId: 'node-1',
+      title: '相位裕度映射练习',
+      priority: 1,
+      confidence: 'low',
+      evidenceLimitation: 'partial',
+      expectedEffort: '15 分钟',
+      sourceContext: 'runtime_lesson_step:lesson-3-8',
+      action: {
+        href: '/assessment/adaptive-practice',
+        label: '继续当前节点',
+      },
+      state: 'current',
+    });
+  });
+
+  it('keeps next main-path nodes distinct from optional alternatives', () => {
+    const nodes = buildRecommendedPathNodeView(pathPlan({
+      mainPath: [
+        pathPlan().mainPath[0],
+        {
+          ...pathPlan().mainPath[0],
+          nodeId: 'node-2',
+          title: '扰动抑制补强',
+          status: 'next',
+          target: '/assessment/adaptive-practice?node=node-2',
+        },
+      ],
+    })).nodes;
+
+    expect(nodes.map((node) => [node.nodeId, node.state])).toEqual([
+      ['node-1', 'current'],
+      ['node-2', 'next'],
+    ]);
+  });
+
+  it('maps adaptive practice diagnostics into the same route-node status language', () => {
+    const nodes = buildPracticeEntryRouteNodes({
+      recommendedFocus: [
+        '优先练习“相位裕度-超调量”映射题',
+        '补强扰动抑制与鲁棒性分析',
+      ],
+      weakAreas: ['phase-margin', 'disturbance-rejection'],
+      estimatedAbility: 0.54,
+      confidenceInterval: [0.31, 0.77],
+      actionHref: '/assessment/adaptive-practice',
+    });
+
+    expect(nodes).toEqual([
+      {
+        nodeId: 'practice-focus-1',
+        title: '优先练习“相位裕度-超调量”映射题',
+        state: 'current',
+        confidence: 'medium',
+        evidenceLimitation: 'partial',
+        missingEvidence: ['phase-margin', 'disturbance-rejection'],
+        action: {
+          href: '/assessment/adaptive-practice?focus=practice-focus-1',
+          label: '开始当前训练',
+        },
+      },
+      {
+        nodeId: 'practice-focus-2',
+        title: '补强扰动抑制与鲁棒性分析',
+        state: 'optional',
+        confidence: 'medium',
+        evidenceLimitation: 'partial',
+        missingEvidence: ['phase-margin', 'disturbance-rejection'],
+        action: {
+          href: '/assessment/adaptive-practice?focus=practice-focus-2',
+          label: '查看训练节点',
+        },
+      },
+    ]);
   });
 
   it('reports zero path source coverage as missing instead of partial', () => {
