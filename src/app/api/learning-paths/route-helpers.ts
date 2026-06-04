@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { isControlCorrectionPathRoundPersistenceEnabled } from '@/lib/control-correction-path-rounds';
+import { refreshStudentEvidenceFeatureCache } from '@/lib/data-governance/student-evidence-feature-cache';
 
 export type LearningPathRequesterRole = 'student' | 'teacher' | 'admin';
 
@@ -157,6 +158,28 @@ export function assertCanWriteStudentPath(
 ): NextResponse | null {
   if (requester.role === 'admin' || requester.userId === path.userId) return null;
   return NextResponse.json({ error: '无权写入该学习路径' }, { status: 403 });
+}
+
+export function assertCanWritePathIntervention(
+  requester: LearningPathRequester,
+): NextResponse | null {
+  if (requester.role === 'teacher' || requester.role === 'admin') return null;
+  return NextResponse.json({ error: '路径干预只能由教师或管理员写入' }, { status: 403 });
+}
+
+export function requireIdempotencyKey(value: unknown): NextResponse | null {
+  if (typeof value === 'string' && value.trim().length > 0) return null;
+  return NextResponse.json({ error: '路径证据写入必须提供 idempotencyKey' }, { status: 400 });
+}
+
+export async function refreshPathEvidenceFeatureCache(userId: string): Promise<'completed' | 'pending'> {
+  try {
+    await refreshStudentEvidenceFeatureCache(prisma as any, userId);
+    return 'completed';
+  } catch (error) {
+    console.warn('[LearningPathEvidenceCache] Refresh pending after path evidence write:', error);
+    return 'pending';
+  }
 }
 
 export function readPathNodeIds(path: { nodeIds?: unknown; pathPayload?: unknown }): string[] {

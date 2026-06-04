@@ -100,7 +100,9 @@ export type StudentEvidenceSourceWindowKey =
   | 'activity30d'
   | 'activityAll'
   | 'competencyContributions30d'
-  | 'competencyContributionsAll';
+  | 'competencyContributionsAll'
+  | 'pathExecution30d'
+  | 'pathExecutionAll';
 
 export interface StudentSimulationArenaFeatureWindow {
   window: StudentEvidenceWindow;
@@ -132,6 +134,57 @@ export interface StudentSimulationArenaFeatureSummary {
   allTime: StudentSimulationArenaFeatureWindow;
 }
 
+export type StudentPathEvidenceSourceType =
+  | 'LearningPathExecution'
+  | 'LearningPathDeviation'
+  | 'LearningPathIntervention';
+
+export interface StudentPathEvidenceSourceReference {
+  sourceType: StudentPathEvidenceSourceType;
+  sourceId: string;
+  pathId: string;
+  nodeId: string | null;
+  occurredAt: string;
+  privacyLevel: 'student-visible' | 'teacher-scoped';
+  status?: string;
+  resourceType?: string;
+  deviationType?: string;
+  interventionKind?: string;
+  studentOutcome?: string;
+  confidence?: 'low' | 'medium' | 'high' | 'unknown';
+}
+
+export interface StudentPathEvidenceFeatureWindow {
+  window: StudentEvidenceWindow;
+  evidenceCount: number;
+  adoptionCount: number;
+  completionCount: number;
+  deviationCount: number;
+  fallbackCount: number;
+  terminalValidationCount: number;
+  sourceCoverage: Record<
+    'adoption' | 'completion' | 'deviation' | 'fallback' | 'terminalValidation' | 'interventionOutcome',
+    StudentEvidenceCoverageState
+  >;
+  confidence: {
+    level: StudentEvidenceFeaturePayload['confidence']['level'];
+    score: number;
+    lowConfidenceCount: number;
+  };
+  interventionOutcome: {
+    acceptedCount: number;
+    completedCount: number;
+    dismissedCount: number;
+    lowConfidenceCount: number;
+  };
+  sourceReferences: StudentPathEvidenceSourceReference[];
+}
+
+export interface StudentPathEvidenceFeatureSummary {
+  recent30d: StudentPathEvidenceFeatureWindow;
+  allTime: StudentPathEvidenceFeatureWindow;
+}
+
 export interface StudentEvidenceFeaturePayload {
   userId: string;
   payloadVersion: string;
@@ -159,6 +212,7 @@ export interface StudentEvidenceFeaturePayload {
     competencyContributions30d: StudentEvidenceCompetencyContributions;
     competencyContributionsAll: StudentEvidenceCompetencyContributions;
     simulationArena: StudentSimulationArenaFeatureSummary;
+    pathExecution: StudentPathEvidenceFeatureSummary;
     adaptiveLearnerState: StudentEvidenceAdaptiveLearnerStateFeature;
     latestEvidence: {
       factType: string;
@@ -230,6 +284,7 @@ interface StudentProfileSummaryAggregate {
 interface BuildStudentEvidenceFeaturePayloadInput {
   userId: string;
   facts: StudentEvidenceFeatureLearningFact[];
+  pathEvidence?: StudentPathEvidenceInput;
   latestSnapshot?: StudentCompetencySnapshotAggregate | null;
   profileSummary?: StudentProfileSummaryAggregate | null;
   now?: Date;
@@ -255,7 +310,20 @@ interface StudentEvidenceFeatureCacheDb {
     findMany?: (args?: Record<string, unknown>) => Promise<Array<{ userId: string }>>;
     findUnique: (args?: Record<string, unknown>) => Promise<StudentProfileSummaryAggregate | null>;
   };
+  learningPathExecution?: StudentPathEvidenceDelegate;
+  learningPathDeviation?: StudentPathEvidenceDelegate;
+  learningPathIntervention?: StudentPathEvidenceDelegate;
   studentEvidenceFeatureCache: StudentEvidenceFeatureCacheDelegate;
+}
+
+interface StudentPathEvidenceDelegate {
+  findMany: (args?: Record<string, unknown>) => Promise<Array<Record<string, any> | { userId: string }>>;
+}
+
+interface StudentPathEvidenceInput {
+  executions: Array<Record<string, any>>;
+  deviations: Array<Record<string, any>>;
+  interventions: Array<Record<string, any>>;
 }
 
 export interface StudentEvidenceFeatureRefreshOptions {
@@ -298,7 +366,7 @@ export function buildStudentEvidenceFeaturePayload(
   const recentFacts = filterRecentFacts(facts, now, STUDENT_EVIDENCE_FEATURE_RECENT_WINDOW_DAYS);
   const firstFact = facts[0] ?? null;
   const lastFact = facts[facts.length - 1] ?? null;
-  const evidenceWindow = buildEvidenceWindow(firstFact, lastFact);
+  const factEvidenceWindow = buildEvidenceWindow(firstFact, lastFact);
   const activityAll = buildActivitySummary(facts);
   const activity30d = buildActivitySummary(recentFacts);
   const competencyContributionsAll = buildCompetencyContributions(facts);
@@ -309,11 +377,18 @@ export function buildStudentEvidenceFeaturePayload(
     now,
     staleAfterDays,
   });
+  const pathExecution = buildPathEvidenceFeatures({
+    pathEvidence: input.pathEvidence ?? { executions: [], deviations: [], interventions: [] },
+    now,
+  });
+  const evidenceWindow = mergeEvidenceWindows(factEvidenceWindow, pathExecution.allTime.window);
   const sourceWindows = {
     activity30d: buildFactsWindow(recentFacts),
-    activityAll: evidenceWindow,
+    activityAll: factEvidenceWindow,
     competencyContributions30d: buildFactsWindow(filterContributionFacts(recentFacts)),
     competencyContributionsAll: buildFactsWindow(filterContributionFacts(facts)),
+    pathExecution30d: pathExecution.recent30d.window,
+    pathExecutionAll: pathExecution.allTime.window,
   } satisfies StudentEvidenceFeaturePayload['sourceWindows'];
   const byFactType = countByFactType(facts);
   const sourceCoverage = {
@@ -322,9 +397,11 @@ export function buildStudentEvidenceFeaturePayload(
     StudentProfileSummary: input.profileSummary ? 'available' : 'missing',
   } satisfies StudentEvidenceFeaturePayload['sourceCoverage'];
   const confidence = buildConfidence(facts, factsWithSource.length);
+  const combinedConfidence = mergeConfidence(confidence, pathExecution.allTime.evidenceCount);
   const statusMarkers = buildStatusMarkers({
     facts,
-    confidenceLevel: confidence.level,
+    pathEvidenceCount: pathExecution.allTime.evidenceCount,
+    confidenceLevel: combinedConfidence.level,
     sourceCoverage,
     lastFactStartedAt: lastFact?.startedAt ?? null,
     now,
@@ -338,6 +415,7 @@ export function buildStudentEvidenceFeaturePayload(
     confidence,
     statusMarkers,
     simulationArena,
+    pathExecution,
   });
 
   return {
@@ -352,7 +430,7 @@ export function buildStudentEvidenceFeaturePayload(
       byFactType,
     },
     sourceCoverage,
-    confidence,
+    confidence: combinedConfidence,
     statusMarkers,
     features: {
       activity: activityAll,
@@ -362,6 +440,7 @@ export function buildStudentEvidenceFeaturePayload(
       competencyContributions30d,
       competencyContributionsAll,
       simulationArena,
+      pathExecution,
       adaptiveLearnerState,
       latestEvidence: lastFact
         ? {
@@ -434,17 +513,19 @@ export async function refreshStudentEvidenceFeatureCache(
       },
     }) ?? Promise.resolve(null),
   ]);
+  const pathEvidence = await loadStudentPathEvidence(db, userId);
   const payload = buildStudentEvidenceFeaturePayload({
     userId,
     facts,
+    pathEvidence,
     latestSnapshot,
     profileSummary,
     now,
     staleAfterDays: options.staleAfterDays,
   });
   const refreshedAt = now;
-  const lastSourceFactAt = payload.evidenceWindow.lastStartedAt
-    ? new Date(payload.evidenceWindow.lastStartedAt)
+  const lastSourceFactAt = facts.length > 0 && facts[facts.length - 1].startedAt
+    ? new Date(facts[facts.length - 1].startedAt)
     : null;
   const create = {
     userId,
@@ -502,8 +583,28 @@ export async function rebuildStudentEvidenceFeatureCache(
       orderBy: { userId: 'asc' },
     }) ?? Promise.resolve([]),
   ]);
+  const [executionRows, deviationRows, interventionRows] = await Promise.all([
+    db.learningPathExecution?.findMany({
+      select: { userId: true },
+      where: CONTROL_CORRECTION_PATH_EVIDENCE_WHERE,
+      distinct: ['userId'],
+      orderBy: { userId: 'asc' },
+    }) ?? Promise.resolve([]),
+    db.learningPathDeviation?.findMany({
+      select: { userId: true },
+      where: CONTROL_CORRECTION_PATH_EVIDENCE_WHERE,
+      distinct: ['userId'],
+      orderBy: { userId: 'asc' },
+    }) ?? Promise.resolve([]),
+    db.learningPathIntervention?.findMany({
+      select: { userId: true },
+      where: CONTROL_CORRECTION_PATH_EVIDENCE_WHERE,
+      distinct: ['userId'],
+      orderBy: { userId: 'asc' },
+    }) ?? Promise.resolve([]),
+  ]);
   const userIds = uniqueSorted(
-    [...factRows, ...snapshotRows, ...profileRows]
+    [...factRows, ...snapshotRows, ...profileRows, ...executionRows, ...deviationRows, ...interventionRows]
       .map((row) => row.userId)
       .filter(isPresent)
   );
@@ -639,6 +740,28 @@ function buildFactsWindow(facts: StudentEvidenceFeatureLearningFact[]): StudentE
   return buildEvidenceWindow(facts[0] ?? null, facts.at(-1) ?? null);
 }
 
+function mergeEvidenceWindows(...windows: StudentEvidenceWindow[]): StudentEvidenceWindow {
+  const dates = windows.flatMap((window) => [
+    dateValue(window.firstStartedAt),
+    dateValue(window.lastStartedAt),
+  ]).filter((date): date is Date => Boolean(date));
+  if (dates.length === 0) {
+    return {
+      firstStartedAt: null,
+      lastStartedAt: null,
+      daysCovered: 0,
+    };
+  }
+  const sorted = dates.sort((left, right) => left.getTime() - right.getTime());
+  const first = sorted[0];
+  const last = sorted[sorted.length - 1];
+  return {
+    firstStartedAt: first.toISOString(),
+    lastStartedAt: last.toISOString(),
+    daysCovered: Math.ceil((last.getTime() - first.getTime()) / DAY_MS),
+  };
+}
+
 function buildActivitySummary(facts: StudentEvidenceFeatureLearningFact[]): StudentEvidenceActivitySummary {
   const scoredFacts = facts.filter((item) => Number.isFinite(item.score));
 
@@ -654,6 +777,314 @@ function buildActivitySummary(facts: StudentEvidenceFeatureLearningFact[]): Stud
     distinctLessons: uniqueSorted(facts.map((item) => item.lessonId).filter(isPresent)),
     distinctModules: uniqueSorted(facts.map((item) => item.moduleId).filter(isPresent)),
   };
+}
+
+async function loadStudentPathEvidence(
+  db: StudentEvidenceFeatureCacheDb,
+  userId: string,
+): Promise<StudentPathEvidenceInput> {
+  const orderBy = [{ createdAt: 'asc' }, { id: 'asc' }];
+  const [executions, deviations, interventions] = await Promise.all([
+    db.learningPathExecution?.findMany({
+      where: { userId, ...CONTROL_CORRECTION_PATH_EVIDENCE_WHERE },
+      orderBy,
+      select: CONTROL_CORRECTION_PATH_EXECUTION_SELECT,
+    }) ?? Promise.resolve([]),
+    db.learningPathDeviation?.findMany({
+      where: { userId, ...CONTROL_CORRECTION_PATH_EVIDENCE_WHERE },
+      orderBy,
+      select: CONTROL_CORRECTION_PATH_DEVIATION_SELECT,
+    }) ?? Promise.resolve([]),
+    db.learningPathIntervention?.findMany({
+      where: { userId, ...CONTROL_CORRECTION_PATH_EVIDENCE_WHERE },
+      orderBy,
+      select: CONTROL_CORRECTION_PATH_INTERVENTION_SELECT,
+    }) ?? Promise.resolve([]),
+  ]);
+
+  return {
+    executions: (executions as Array<Record<string, any>>).filter(isControlCorrectionPathEvidenceRow),
+    deviations: (deviations as Array<Record<string, any>>).filter(isControlCorrectionPathEvidenceRow),
+    interventions: (interventions as Array<Record<string, any>>).filter(isControlCorrectionPathEvidenceRow),
+  };
+}
+
+function isControlCorrectionPathEvidenceRow(row: Record<string, any>): boolean {
+  const path = isObject(row.path) ? row.path : {};
+  return path.goalId === 'control-correction';
+}
+
+const CONTROL_CORRECTION_PATH_EVIDENCE_WHERE = {
+  path: { goalId: 'control-correction' },
+} as const;
+
+const CONTROL_CORRECTION_PATH_EXECUTION_SELECT = {
+  id: true,
+  pathId: true,
+  userId: true,
+  nodeId: true,
+  resourceType: true,
+  status: true,
+  startedAt: true,
+  completedAt: true,
+  failedAt: true,
+  idempotencyKey: true,
+  createdAt: true,
+  path: { select: { goalId: true, terminalValidation: true } },
+} as const;
+
+const CONTROL_CORRECTION_PATH_DEVIATION_SELECT = {
+  id: true,
+  pathId: true,
+  userId: true,
+  priorNodeId: true,
+  deviationType: true,
+  evidenceConfidence: true,
+  idempotencyKey: true,
+  createdAt: true,
+  path: { select: { goalId: true } },
+} as const;
+
+const CONTROL_CORRECTION_PATH_INTERVENTION_SELECT = {
+  id: true,
+  pathId: true,
+  userId: true,
+  interventionKind: true,
+  studentOutcome: true,
+  idempotencyKey: true,
+  createdAt: true,
+  path: { select: { goalId: true } },
+} as const;
+
+interface PathEvidenceEvent {
+  dedupeKey: string;
+  reference: StudentPathEvidenceSourceReference;
+  adoption: boolean;
+  completion: boolean;
+  deviation: boolean;
+  fallback: boolean;
+  terminalValidation: boolean;
+  interventionAccepted: boolean;
+  interventionCompleted: boolean;
+  interventionDismissed: boolean;
+  lowConfidence: boolean;
+}
+
+function buildPathEvidenceFeatures(input: {
+  pathEvidence: StudentPathEvidenceInput;
+  now: Date;
+}): StudentPathEvidenceFeatureSummary {
+  const events = dedupePathEvidenceEvents([
+    ...input.pathEvidence.executions.map(pathExecutionToEvent).filter(isPathEvidenceEvent),
+    ...input.pathEvidence.deviations.map(pathDeviationToEvent).filter(isPathEvidenceEvent),
+    ...input.pathEvidence.interventions.map(pathInterventionToEvent).filter(isPathEvidenceEvent),
+  ]).sort((left, right) => {
+    const byTime = new Date(left.reference.occurredAt).getTime() - new Date(right.reference.occurredAt).getTime();
+    return byTime || left.reference.sourceId.localeCompare(right.reference.sourceId);
+  });
+  const recentCutoff = new Date(input.now.getTime() - STUDENT_EVIDENCE_FEATURE_RECENT_WINDOW_DAYS * DAY_MS);
+  const recentEvents = events.filter((event) => new Date(event.reference.occurredAt).getTime() >= recentCutoff.getTime());
+
+  return {
+    recent30d: buildPathEvidenceWindow(recentEvents),
+    allTime: buildPathEvidenceWindow(events),
+  };
+}
+
+function isPathEvidenceEvent(value: PathEvidenceEvent | null): value is PathEvidenceEvent {
+  return value !== null;
+}
+
+function pathExecutionToEvent(row: Record<string, any>): PathEvidenceEvent | null {
+  const id = stringValue(row.id);
+  const pathId = stringValue(row.pathId);
+  const occurredAt = dateValue(row.completedAt) ?? dateValue(row.failedAt) ?? dateValue(row.startedAt) ?? dateValue(row.createdAt);
+  if (!id || !pathId || !occurredAt) return null;
+  const status = stringValue(row.status) ?? 'unknown';
+  const resourceType = stringValue(row.resourceType) ?? 'unknown';
+  const nodeId = stringValue(row.nodeId);
+
+  return {
+    dedupeKey: pathDedupeKey('LearningPathExecution', row, id),
+    reference: {
+      sourceType: 'LearningPathExecution',
+      sourceId: id,
+      pathId,
+      nodeId,
+      occurredAt: occurredAt.toISOString(),
+      privacyLevel: 'student-visible',
+      status,
+      resourceType,
+    },
+    adoption: status === 'started',
+    completion: status === 'completed',
+    deviation: false,
+    fallback: false,
+    terminalValidation: status === 'completed' && isTerminalPathExecution(row, nodeId),
+    interventionAccepted: false,
+    interventionCompleted: false,
+    interventionDismissed: false,
+    lowConfidence: false,
+  };
+}
+
+function isTerminalPathExecution(row: Record<string, any>, nodeId: string | null): boolean {
+  if (!nodeId) return false;
+  const path = isObject(row.path) ? row.path : {};
+  const terminalValidation = isObject(path.terminalValidation)
+    ? path.terminalValidation
+    : isObject(row.terminalValidation)
+      ? row.terminalValidation
+      : {};
+  return terminalValidation.nodeId === nodeId;
+}
+
+function pathDeviationToEvent(row: Record<string, any>): PathEvidenceEvent | null {
+  const id = stringValue(row.id);
+  const pathId = stringValue(row.pathId);
+  const occurredAt = dateValue(row.createdAt);
+  if (!id || !pathId || !occurredAt) return null;
+  const deviationType = stringValue(row.deviationType) ?? 'unknown';
+  const confidence = pathConfidence(row.evidenceConfidence);
+
+  return {
+    dedupeKey: pathDedupeKey('LearningPathDeviation', row, id),
+    reference: {
+      sourceType: 'LearningPathDeviation',
+      sourceId: id,
+      pathId,
+      nodeId: stringValue(row.priorNodeId),
+      occurredAt: occurredAt.toISOString(),
+      privacyLevel: 'student-visible',
+      deviationType,
+      confidence,
+    },
+    adoption: false,
+    completion: false,
+    deviation: true,
+    fallback: deviationType === 'resource-failure' || deviationType === 'skip' || deviationType === 'timeout',
+    terminalValidation: false,
+    interventionAccepted: false,
+    interventionCompleted: false,
+    interventionDismissed: false,
+    lowConfidence: confidence === 'low' || confidence === 'unknown',
+  };
+}
+
+function pathInterventionToEvent(row: Record<string, any>): PathEvidenceEvent | null {
+  const id = stringValue(row.id);
+  const pathId = stringValue(row.pathId);
+  const occurredAt = dateValue(row.createdAt);
+  if (!id || !pathId || !occurredAt) return null;
+  const interventionKind = stringValue(row.interventionKind) ?? 'unknown';
+  const studentOutcome = stringValue(row.studentOutcome) ?? 'pending';
+
+  return {
+    dedupeKey: pathDedupeKey('LearningPathIntervention', row, id),
+    reference: {
+      sourceType: 'LearningPathIntervention',
+      sourceId: id,
+      pathId,
+      nodeId: null,
+      occurredAt: occurredAt.toISOString(),
+      privacyLevel: 'teacher-scoped',
+      interventionKind,
+      studentOutcome,
+    },
+    adoption: false,
+    completion: false,
+    deviation: false,
+    fallback: false,
+    terminalValidation: false,
+    interventionAccepted: studentOutcome === 'accepted',
+    interventionCompleted: studentOutcome === 'completed',
+    interventionDismissed: studentOutcome === 'dismissed',
+    lowConfidence: false,
+  };
+}
+
+function buildPathEvidenceWindow(events: PathEvidenceEvent[]): StudentPathEvidenceFeatureWindow {
+  const evidenceCount = events.length;
+  const lowConfidenceCount = events.filter((event) => event.lowConfidence).length;
+  const score = evidenceCount === 0 ? 0 : round((evidenceCount - lowConfidenceCount * 0.5) / evidenceCount, 2);
+
+  return {
+    window: buildPathEventWindow(events),
+    evidenceCount,
+    adoptionCount: events.filter((event) => event.adoption).length,
+    completionCount: events.filter((event) => event.completion).length,
+    deviationCount: events.filter((event) => event.deviation).length,
+    fallbackCount: events.filter((event) => event.fallback).length,
+    terminalValidationCount: events.filter((event) => event.terminalValidation).length,
+    sourceCoverage: {
+      adoption: resolveCoverageCount(events.filter((event) => event.adoption).length),
+      completion: resolveCoverageCount(events.filter((event) => event.completion).length),
+      deviation: resolveCoverageCount(events.filter((event) => event.deviation).length),
+      fallback: resolveCoverageCount(events.filter((event) => event.fallback).length),
+      terminalValidation: resolveCoverageCount(events.filter((event) => event.terminalValidation).length),
+      interventionOutcome: resolveCoverageCount(events.filter((event) => (
+        event.interventionAccepted || event.interventionCompleted || event.interventionDismissed
+      )).length),
+    },
+    confidence: {
+      level: resolvePathConfidenceLevel(evidenceCount, lowConfidenceCount),
+      score,
+      lowConfidenceCount,
+    },
+    interventionOutcome: {
+      acceptedCount: events.filter((event) => event.interventionAccepted).length,
+      completedCount: events.filter((event) => event.interventionCompleted).length,
+      dismissedCount: events.filter((event) => event.interventionDismissed).length,
+      lowConfidenceCount,
+    },
+    sourceReferences: events.map((event) => event.reference),
+  };
+}
+
+function dedupePathEvidenceEvents(events: PathEvidenceEvent[]): PathEvidenceEvent[] {
+  const byKey = new Map<string, PathEvidenceEvent>();
+  for (const event of events) {
+    if (!byKey.has(event.dedupeKey)) {
+      byKey.set(event.dedupeKey, event);
+    }
+  }
+  return [...byKey.values()];
+}
+
+function pathDedupeKey(sourceType: StudentPathEvidenceSourceType, row: Record<string, any>, fallbackId: string): string {
+  const pathId = stringValue(row.pathId) ?? 'unknown-path';
+  const idempotencyKey = stringValue(row.idempotencyKey);
+  return idempotencyKey ? `${sourceType}:${pathId}:${idempotencyKey}` : `${sourceType}:${fallbackId}`;
+}
+
+function buildPathEventWindow(events: PathEvidenceEvent[]): StudentEvidenceWindow {
+  if (events.length === 0) {
+    return {
+      firstStartedAt: null,
+      lastStartedAt: null,
+      daysCovered: 0,
+    };
+  }
+  const first = new Date(events[0].reference.occurredAt);
+  const last = new Date(events[events.length - 1].reference.occurredAt);
+  return {
+    firstStartedAt: first.toISOString(),
+    lastStartedAt: last.toISOString(),
+    daysCovered: Math.ceil((last.getTime() - first.getTime()) / DAY_MS),
+  };
+}
+
+function resolvePathConfidenceLevel(
+  evidenceCount: number,
+  lowConfidenceCount: number,
+): StudentEvidenceFeaturePayload['confidence']['level'] {
+  if (evidenceCount === 0) return 'none';
+  if (evidenceCount >= 3 && lowConfidenceCount <= 1) return 'medium';
+  return lowConfidenceCount > 0 ? 'low' : 'medium';
+}
+
+function pathConfidence(value: unknown): 'low' | 'medium' | 'high' | 'unknown' {
+  return value === 'low' || value === 'medium' || value === 'high' || value === 'unknown' ? value : 'unknown';
 }
 
 function buildCompetencyContributions(
@@ -732,6 +1163,7 @@ function buildAdaptiveLearnerStateFeature(input: {
   confidence: StudentEvidenceFeaturePayload['confidence'];
   statusMarkers: StudentEvidenceStatusMarker[];
   simulationArena: StudentSimulationArenaFeatureSummary;
+  pathExecution: StudentPathEvidenceFeatureSummary;
 }): StudentEvidenceAdaptiveLearnerStateFeature {
   const masteryEvidenceCount = input.facts.filter(hasAdaptiveAssessmentMasteryEvidence).length;
   const mediaEvidenceCount = input.facts.filter((fact) => factTypeToLearnerModality(fact.factType) === 'media').length;
@@ -752,7 +1184,7 @@ function buildAdaptiveLearnerStateFeature(input: {
       knowledgeMastery: resolveCoverageCount(masteryEvidenceCount),
       resourcePreference: resolveCoverageCount(resourceEvidenceCount),
       mediaAbsorption: resolveCoverageCount(mediaEvidenceCount),
-      pathContext: 'missing',
+      pathContext: resolveCoverageCount(input.pathExecution.allTime.evidenceCount),
       simulationArena: resolveCoverageCount(input.simulationArena.allTime.evidenceCount),
     },
     confidence: {
@@ -1202,8 +1634,29 @@ function buildConfidence(
   };
 }
 
+function mergeConfidence(
+  factConfidence: StudentEvidenceFeaturePayload['confidence'],
+  pathEvidenceCount: number,
+): StudentEvidenceFeaturePayload['confidence'] {
+  if (pathEvidenceCount === 0) return factConfidence;
+  if (factConfidence.evidenceCount > 0) {
+    return {
+      ...factConfidence,
+      evidenceCount: factConfidence.evidenceCount + pathEvidenceCount,
+    };
+  }
+  const score = Math.min(pathEvidenceCount / 5, 1) * 0.45;
+  return {
+    level: score >= 0.45 ? 'medium' : 'low',
+    score: round(score, 2),
+    evidenceCount: pathEvidenceCount,
+    sourceCompleteness: 1,
+  };
+}
+
 function buildStatusMarkers(input: {
   facts: StudentEvidenceFeatureLearningFact[];
+  pathEvidenceCount: number;
   confidenceLevel: StudentEvidenceFeaturePayload['confidence']['level'];
   sourceCoverage: StudentEvidenceFeaturePayload['sourceCoverage'];
   lastFactStartedAt: Date | null;
@@ -1212,7 +1665,10 @@ function buildStatusMarkers(input: {
 }): StudentEvidenceStatusMarker[] {
   const markers = new Set<StudentEvidenceStatusMarker>();
 
-  if (!input.lastFactStartedAt || input.now.getTime() - input.lastFactStartedAt.getTime() > input.staleAfterDays * DAY_MS) {
+  if (
+    input.pathEvidenceCount === 0 &&
+    (!input.lastFactStartedAt || input.now.getTime() - input.lastFactStartedAt.getTime() > input.staleAfterDays * DAY_MS)
+  ) {
     markers.add('stale');
   }
   if (input.facts.some((item) => ['partial', 'failure', 'abandoned'].includes(item.outcome))) {
@@ -1267,6 +1723,21 @@ function numberValue(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }
 
+function stringValue(value: unknown): string | null {
+  return readString(value);
+}
+
+function dateValue(value: unknown): Date | null {
+  if (value instanceof Date && Number.isFinite(value.getTime())) {
+    return value;
+  }
+  if (typeof value === 'string' && value.trim().length > 0) {
+    const parsed = new Date(value);
+    return Number.isFinite(parsed.getTime()) ? parsed : null;
+  }
+  return null;
+}
+
 function finiteNumber(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
@@ -1304,9 +1775,12 @@ function hasCurrentFeaturePayloadSchema(cache: Record<string, unknown>): boolean
   }
   const features = isObject(cache.features) ? cache.features : {};
   const simulationArena = isObject(features.simulationArena) ? features.simulationArena : {};
+  const pathExecution = isObject(features.pathExecution) ? features.pathExecution : {};
   const adaptiveLearnerState = isObject(features.adaptiveLearnerState) ? features.adaptiveLearnerState : {};
   return hasSimulationArenaFeatureWindowSchema(simulationArena.recent30d) &&
     hasSimulationArenaFeatureWindowSchema(simulationArena.allTime) &&
+    hasPathEvidenceFeatureWindowSchema(pathExecution.recent30d) &&
+    hasPathEvidenceFeatureWindowSchema(pathExecution.allTime) &&
     hasAdaptiveLearnerStateFeatureSchema(adaptiveLearnerState);
 }
 
@@ -1371,6 +1845,59 @@ function hasSimulationArenaFeatureWindowSchema(value: unknown): boolean {
     hasWeakMetricsSchema(value.weakMetrics) &&
     hasQualityMarkersSchema(value.qualityMarkers) &&
     hasTraceReferencesSchema(value.traceReferences);
+}
+
+function hasPathEvidenceFeatureWindowSchema(value: unknown): boolean {
+  if (!isObject(value)) {
+    return false;
+  }
+  const sourceCoverage = isObject(value.sourceCoverage) ? value.sourceCoverage : {};
+  const confidence = isObject(value.confidence) ? value.confidence : {};
+  const interventionOutcome = isObject(value.interventionOutcome) ? value.interventionOutcome : {};
+
+  return hasEvidenceWindowSchema(value.window) &&
+    hasFiniteNumber(value.evidenceCount) &&
+    hasFiniteNumber(value.adoptionCount) &&
+    hasFiniteNumber(value.completionCount) &&
+    hasFiniteNumber(value.deviationCount) &&
+    hasFiniteNumber(value.fallbackCount) &&
+    hasFiniteNumber(value.terminalValidationCount) &&
+    isCoverageState(sourceCoverage.adoption) &&
+    isCoverageState(sourceCoverage.completion) &&
+    isCoverageState(sourceCoverage.deviation) &&
+    isCoverageState(sourceCoverage.fallback) &&
+    isCoverageState(sourceCoverage.terminalValidation) &&
+    isCoverageState(sourceCoverage.interventionOutcome) &&
+    (
+      confidence.level === 'none' ||
+      confidence.level === 'low' ||
+      confidence.level === 'medium' ||
+      confidence.level === 'high'
+    ) &&
+    hasFiniteNumber(confidence.score) &&
+    hasFiniteNumber(confidence.lowConfidenceCount) &&
+    hasFiniteNumber(interventionOutcome.acceptedCount) &&
+    hasFiniteNumber(interventionOutcome.completedCount) &&
+    hasFiniteNumber(interventionOutcome.dismissedCount) &&
+    hasFiniteNumber(interventionOutcome.lowConfidenceCount) &&
+    Array.isArray(value.sourceReferences) &&
+    value.sourceReferences.every(hasPathEvidenceSourceReferenceSchema);
+}
+
+function hasPathEvidenceSourceReferenceSchema(value: unknown): boolean {
+  if (!isObject(value)) {
+    return false;
+  }
+  return (
+    value.sourceType === 'LearningPathExecution' ||
+    value.sourceType === 'LearningPathDeviation' ||
+    value.sourceType === 'LearningPathIntervention'
+  ) &&
+    typeof value.sourceId === 'string' &&
+    typeof value.pathId === 'string' &&
+    (value.nodeId === null || typeof value.nodeId === 'string') &&
+    typeof value.occurredAt === 'string' &&
+    (value.privacyLevel === 'student-visible' || value.privacyLevel === 'teacher-scoped');
 }
 
 function hasSimulationArenaInterventionOutcomeSchema(value: unknown): boolean {

@@ -5,8 +5,11 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { recordPathIntervention } from '@/lib/control-correction-path-rounds';
 import {
   assertCanReadPath,
+  assertCanWritePathIntervention,
   getLearningPathRequester,
   readPathForAccess,
+  refreshPathEvidenceFeatureCache,
+  requireIdempotencyKey,
 } from '../../route-helpers';
 
 export const dynamic = 'force-dynamic';
@@ -23,8 +26,12 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (path instanceof NextResponse) return path;
     const denied = await assertCanReadPath(requester, path);
     if (denied) return denied;
+    const writeDenied = assertCanWritePathIntervention(requester);
+    if (writeDenied) return writeDenied;
 
     const body = await request.json();
+    const missingIdempotencyKey = requireIdempotencyKey(body.idempotencyKey);
+    if (missingIdempotencyKey) return missingIdempotencyKey;
     if (
       typeof body.interventionKind !== 'string' ||
       !INTERVENTION_KINDS.has(body.interventionKind) ||
@@ -48,12 +55,25 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       studentOutcome: body.studentOutcome ?? 'pending',
       privacySafeSummary: body.privacySafeSummary,
       idempotencyKey: body.idempotencyKey ?? null,
+      actorUserId: requester.userId,
+      actorRole: requester.role,
     });
+    const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
 
-    return NextResponse.json({ intervention });
+    return NextResponse.json({ intervention: toInterventionWriteView(intervention), cacheRefresh });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('[LearningPathIntervention] Error:', error);
     return NextResponse.json({ error: '记录路径干预失败' }, { status: 500 });
   }
+}
+
+function toInterventionWriteView(intervention: any) {
+  return {
+    id: intervention.id,
+    interventionKind: intervention.interventionKind,
+    studentOutcome: intervention.studentOutcome,
+    privacySafeSummary: intervention.privacySafeSummary,
+    createdAt: intervention.createdAt ?? null,
+  };
 }
