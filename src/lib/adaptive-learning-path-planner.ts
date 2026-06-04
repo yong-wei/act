@@ -11,6 +11,7 @@ export type AdaptiveLearningPathPolicyFamily =
   | 'simulation-driven'
   | 'sprint-correction'
   | 'teacher-assigned';
+export type AdaptiveLearningPathPolicyBundleStatus = 'ready' | 'low-resource-fallback';
 export type AdaptiveLearningPathFeedbackType =
   | 'adoption'
   | 'completion'
@@ -79,8 +80,10 @@ export interface AdaptiveLearningPathPlannerInput {
   registry: ResourceNodeRegistry;
   constraints: AdaptiveLearningPathConstraints;
   policyFamily?: AdaptiveLearningPathPolicyFamily;
-  policyBundle?: AdaptiveLearningPathPolicyFamily[];
-  diversityOverlapThreshold?: number;
+  policyBundle?: {
+    families: AdaptiveLearningPathPolicyFamily[];
+    overlapThreshold?: number;
+  };
   now?: Date;
 }
 
@@ -129,34 +132,6 @@ export interface AdaptiveLearningPathScore {
   };
 }
 
-export interface AdaptiveLearningPathPolicyMetadata {
-  id: AdaptiveLearningPathPolicyFamily;
-  label: string;
-  scoringIntent: string;
-  fallbackSemantics: string;
-}
-
-export interface AdaptiveLearningPathDiversityMetrics {
-  overlapRatio: number;
-  modalityMix: Record<string, number>;
-  estimatedEffortMinutes: number;
-  terminalValidationStyle: 'simulation' | 'arena' | 'project' | 'none';
-}
-
-export interface AdaptiveLearningPathPolicyBundle {
-  requestedPolicyFamilies: AdaptiveLearningPathPolicyFamily[];
-  overlapThreshold: number;
-  alternatives: Array<{
-    policyFamily: AdaptiveLearningPathPolicyFamily;
-    status: AdaptiveLearningPathStatus;
-    nodeIds: string[];
-    diversity: AdaptiveLearningPathDiversityMetrics;
-    fallbackReasons: string[];
-  }>;
-  status: 'ready' | 'low-resource-fallback';
-  fallbackReasons: string[];
-}
-
 export interface AdaptiveLearningPathMapPayload {
   mainPathNodeIds: string[];
   branchPaths: Array<{ fromNodeId: string; nodeIds: string[] }>;
@@ -190,6 +165,57 @@ export interface AdaptiveLearningPathVisualization {
   map: AdaptiveLearningPathMapPayload;
   timeline: AdaptiveLearningPathTimelinePayload;
   evidence: AdaptiveLearningPathEvidencePayload;
+}
+
+export interface AdaptiveLearningPathPolicyDefinition {
+  id: AdaptiveLearningPathPolicyFamily;
+  label: string;
+  scoringIntent: string;
+  constraints: string[];
+  fallbackSemantics: string;
+}
+
+export interface AdaptiveLearningPathPolicyBundle {
+  families: AdaptiveLearningPathPolicyFamily[];
+  overlapThreshold: number;
+  status: AdaptiveLearningPathPolicyBundleStatus;
+  paths: Array<{
+    policyFamily: AdaptiveLearningPathPolicyFamily;
+    nodeIds: string[];
+    estimatedMinutes: number;
+    modalityMix: Record<string, number>;
+    terminalValidationNodeIds: string[];
+  }>;
+  diversity: {
+    maxResourceOverlap: number;
+    minModalityDistance: number;
+    minEstimatedEffortDifference: number;
+    minTerminalValidationDifference: number;
+    pairwiseResourceOverlap: Array<{
+      left: AdaptiveLearningPathPolicyFamily;
+      right: AdaptiveLearningPathPolicyFamily;
+      overlap: number;
+    }>;
+    pairwiseModalityDistance: Array<{
+      left: AdaptiveLearningPathPolicyFamily;
+      right: AdaptiveLearningPathPolicyFamily;
+      distance: number;
+    }>;
+    pairwiseEstimatedEffortDifference: Array<{
+      left: AdaptiveLearningPathPolicyFamily;
+      right: AdaptiveLearningPathPolicyFamily;
+      difference: number;
+    }>;
+    pairwiseTerminalValidationDifference: Array<{
+      left: AdaptiveLearningPathPolicyFamily;
+      right: AdaptiveLearningPathPolicyFamily;
+      difference: number;
+    }>;
+    modalityMixByPolicy: Record<string, Record<string, number>>;
+    estimatedEffortByPolicy: Record<string, number>;
+    terminalValidationDifference: number;
+  };
+  fallbackReasons: string[];
 }
 
 export interface AdaptiveLearningPathDeficit {
@@ -231,9 +257,8 @@ export interface AdaptiveLearningPathPlan {
   goal: AdaptiveLearningPathGoal;
   stage: 'stage-1-rules-graph';
   policyFamily: AdaptiveLearningPathPolicyFamily;
-  policyMetadata?: AdaptiveLearningPathPolicyMetadata;
-  diversity?: AdaptiveLearningPathDiversityMetrics;
-  policyBundle?: AdaptiveLearningPathPolicyBundle | null;
+  policyMetadata: AdaptiveLearningPathPolicyDefinition;
+  policyBundle?: AdaptiveLearningPathPolicyBundle;
   excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'];
   status: AdaptiveLearningPathStatus;
   currentNodeId: string | null;
@@ -269,9 +294,8 @@ export interface AdaptiveLearningPathPersistenceRecord {
   payload: {
     status: AdaptiveLearningPathStatus;
     policyFamily: AdaptiveLearningPathPolicyFamily;
-    policyMetadata?: AdaptiveLearningPathPolicyMetadata;
-    diversity?: AdaptiveLearningPathDiversityMetrics;
-    policyBundle?: AdaptiveLearningPathPolicyBundle | null;
+    policyMetadata: AdaptiveLearningPathPolicyDefinition;
+    policyBundle?: AdaptiveLearningPathPolicyBundle;
     currentNodeId: string | null;
     score: AdaptiveLearningPathScore;
     confidence: AdaptiveLearningPathPlan['confidence'];
@@ -318,49 +342,67 @@ const EXCLUDED_POLICY_FAMILIES: AdaptiveLearningPathPlan['excludedPolicyFamilies
   'long-horizon-hybrid',
 ];
 
-const POLICY_METADATA: Record<AdaptiveLearningPathPolicyFamily, AdaptiveLearningPathPolicyMetadata> = {
+export const ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES: Record<
+  AdaptiveLearningPathPolicyFamily,
+  AdaptiveLearningPathPolicyDefinition
+> = {
   'rules-plus-graph-search': {
     id: 'rules-plus-graph-search',
-    label: '兼容规则图谱路径',
-    scoringIntent: 'Preserve the existing rules-plus-graph-search planner behavior.',
-    fallbackSemantics: 'Return the existing fallback reasons when the compatible path cannot satisfy constraints.',
+    label: '规则与图搜索兼容策略',
+    scoringIntent: 'preserve current rules-plus-graph-search scoring compatibility',
+    constraints: ['stage-1-compatible', 'no-bandit-or-rl'],
+    fallbackSemantics: 'use existing low-confidence and resource-mapping fallback reasons',
   },
   'foundation-remediation': {
     id: 'foundation-remediation',
-    label: '基础补救路径',
-    scoringIntent: 'Prioritize prerequisite repair, concept resources, short exercises, and low cognitive load before validation.',
-    fallbackSemantics: 'Fall back when prerequisite and concept repair resources cannot cover the requested goal.',
+    label: '基础补救策略',
+    scoringIntent: 'prioritize prerequisite repair, concept cards, short exercises, and low cognitive-load resources before terminal validation',
+    constraints: ['prerequisite-first', 'low-cognitive-load-first', 'terminal-validation-last'],
+    fallbackSemantics: 'report low-resource fallback when prerequisite repair resources are insufficient',
   },
   'simulation-driven': {
     id: 'simulation-driven',
-    label: '仿真驱动路径',
-    scoringIntent: 'Prioritize simulation, Arena, experiment, and reflection resources while preserving prerequisites.',
-    fallbackSemantics: 'Fall back when simulation or terminal validation resources are unavailable under the current constraints.',
+    label: '仿真驱动策略',
+    scoringIntent: 'prioritize simulation, Arena, experiment, and reflection resources while preserving prerequisites and evidence confidence',
+    constraints: ['simulation-first', 'preserve-prerequisites', 'evidence-confidence-required'],
+    fallbackSemantics: 'fall back to available graph resources when simulation or Arena resources cannot cover the goal',
   },
   'sprint-correction': {
     id: 'sprint-correction',
-    label: '短程校正路径',
-    scoringIntent: 'Prioritize highest-impact weak indicators inside the time budget and expose breadth tradeoffs.',
-    fallbackSemantics: 'Fall back when no compact high-impact path can fit the requested time budget.',
+    label: '冲刺纠偏策略',
+    scoringIntent: 'prioritize highest-impact weak indicators within the time budget and expose the tradeoff against breadth',
+    constraints: ['time-budget-first', 'highest-impact-first', 'breadth-tradeoff-visible'],
+    fallbackSemantics: 'return low-confidence or low-resource fallback when a short corrective path cannot cover the goal',
   },
   'teacher-assigned': {
     id: 'teacher-assigned',
-    label: '教师指定路径',
-    scoringIntent: 'Prioritize teacher-assigned resources without relaxing privacy, blocked, or terminal validation rules.',
-    fallbackSemantics: 'Fall back when teacher-assigned resources are absent or blocked by normal constraints.',
+    label: '教师指定策略',
+    scoringIntent: 'prioritize teacher-assigned resources while enforcing the same privacy, prerequisite, and terminal-validation constraints',
+    constraints: ['teacher-assignment-required', 'preserve-privacy', 'preserve-prerequisites'],
+    fallbackSemantics: 'fall back only to eligible assigned resources and surface insufficient teacher assignment coverage',
   },
 };
 
 export function buildAdaptiveLearningPathPlan(input: AdaptiveLearningPathPlannerInput): AdaptiveLearningPathPlan {
+  return buildAdaptiveLearningPathPlanInternal(input, true);
+}
+
+function buildAdaptiveLearningPathPlanInternal(
+  input: AdaptiveLearningPathPlannerInput,
+  includePolicyBundle: boolean,
+): AdaptiveLearningPathPlan {
   const now = (input.now ?? new Date()).toISOString();
   const policyFamily = input.policyFamily ?? 'rules-plus-graph-search';
+  const policyMetadata = ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES[policyFamily];
   const deficits = inferDeficits(input.goal, input.learnerState);
   const confidence = resolvePlanConfidence(input.learnerState);
   const sourceCoverage = input.learnerState?.evidence?.sourceCoverage ?? {};
   const requestedCompletedNodeIds = input.constraints.completedNodeIds ?? [];
   const { eligible, blocked } = partitionResourceNodes(input.registry.nodes, input.constraints);
-  const eligibleIds = new Set(eligible.map((node) => node.id));
+  const policyEligible = eligible.filter((node) => policyAllowsNode(node, policyFamily, input.constraints));
+  const eligibleIds = new Set(policyEligible.map((node) => node.id));
   const scored = eligible
+    .filter((node) => eligibleIds.has(node.id))
     .filter((node) =>
       nodeMatchesGoal(node, input.goal, deficits) ||
       (input.constraints.requireRiskIntervention && isRiskInterventionNode(node))
@@ -419,9 +461,8 @@ export function buildAdaptiveLearningPathPlan(input: AdaptiveLearningPathPlanner
     goal: input.goal,
     stage: 'stage-1-rules-graph',
     policyFamily,
-    policyMetadata: POLICY_METADATA[policyFamily],
-    diversity: buildDiversityMetrics(mainPath),
-    policyBundle: buildPolicyBundle(input, policyFamily, mainPath, fallbackReasons),
+    policyMetadata,
+    policyBundle: includePolicyBundle ? buildPolicyBundle(input, policyFamily) : undefined,
     excludedPolicyFamilies: EXCLUDED_POLICY_FAMILIES,
     status,
     currentNodeId,
@@ -557,7 +598,6 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
       status: plan.status,
       policyFamily: plan.policyFamily,
       policyMetadata: plan.policyMetadata,
-      diversity: plan.diversity,
       policyBundle: plan.policyBundle,
       currentNodeId: plan.currentNodeId,
       score: plan.score,
@@ -698,7 +738,7 @@ function scoreNode(
     abilityGain > 0 ? 'matches-competency-deficit' : null,
     modalityBoost > 0 ? 'matches-resource-preference' : null,
     riskBoost > 0 ? 'risk-intervention-fit' : null,
-    policyBoost > 0 ? `policy-${policyFamily}` : null,
+    policyBoost > 0 ? policyReasonCode(policyFamily) : null,
   ].filter((item): item is string => Boolean(item));
   return { node, score, reasonCodes };
 }
@@ -708,29 +748,54 @@ function policyScoreBoost(
   policyFamily: AdaptiveLearningPathPolicyFamily,
   constraints: AdaptiveLearningPathConstraints,
 ): number {
-  if (policyFamily === 'rules-plus-graph-search') return 0;
+  const estimatedMinutes = node.planningMetadata.estimatedTimeMinutes ?? 0;
   if (policyFamily === 'foundation-remediation') {
-    const shortResourceBoost = (node.planningMetadata.estimatedTimeMinutes ?? 0) <= 20 ? 0.18 : 0;
-    const conceptBoost = node.type === 'lesson_step' || node.type === 'knowledge_card' || node.type === 'handout' || node.type === 'quiz' ? 0.35 : 0;
-    const prerequisiteBoost = node.planningMetadata.prerequisites.length === 0 ? 0.16 : 0;
-    return conceptBoost + shortResourceBoost + prerequisiteBoost;
+    const conceptBoost = node.type === 'knowledge_card' ||
+      node.type === 'lesson_step' ||
+      node.type === 'quiz' ||
+      node.type === 'handout'
+      ? 1.1
+      : 0;
+    const lowLoadBoost = node.planningMetadata.cognitiveLoad === 'low' ? 0.25 : 0;
+    const prerequisiteBoost = node.planningMetadata.prerequisites.length === 0 ? 0.12 : 0;
+    return conceptBoost + lowLoadBoost + prerequisiteBoost;
   }
   if (policyFamily === 'simulation-driven') {
-    if (node.type === 'simulation') return 0.45;
-    if (node.type === 'arena_task') return 0.42;
-    if (node.type === 'reflection') return 0.22;
+    if (node.type === 'simulation') return 0.65;
+    if (node.type === 'arena_task') return 0.55;
+    if (node.type === 'reflection') return 0.35;
     return 0;
   }
   if (policyFamily === 'sprint-correction') {
-    const minutes = node.planningMetadata.estimatedTimeMinutes ?? 0;
-    const compactBoost = minutes > 0 && minutes <= Math.max(15, constraints.timeBudgetMinutes / 3) ? 0.36 : 0;
-    const impactBoost = Math.max(...Object.values(node.planningMetadata.abilityImpact), 0) >= 0.3 ? 0.22 : 0;
-    return compactBoost + impactBoost;
+    const budgetRatio = estimatedMinutes / Math.max(constraints.timeBudgetMinutes, 1);
+    const shortPathBoost = budgetRatio <= 0.3 ? 0.45 : budgetRatio <= 0.5 ? 0.25 : 0;
+    const highImpactBoost = Math.max(...Object.values(node.planningMetadata.abilityImpact), 0) >= 0.3 ? 0.2 : 0;
+    return shortPathBoost + highImpactBoost;
   }
   if (policyFamily === 'teacher-assigned') {
-    return (constraints.teacherAssignedNodeIds ?? []).includes(node.id) ? 0.7 : 0;
+    return node.planningMetadata.teacherPolicy === 'teacher-assigned' &&
+      (constraints.teacherAssignedNodeIds ?? []).includes(node.id)
+      ? 0.8
+      : 0;
   }
   return 0;
+}
+
+function policyAllowsNode(
+  node: ResourceNode,
+  policyFamily: AdaptiveLearningPathPolicyFamily,
+  constraints: AdaptiveLearningPathConstraints,
+): boolean {
+  if (policyFamily !== 'teacher-assigned') {
+    return true;
+  }
+  return node.planningMetadata.teacherPolicy === 'teacher-assigned' &&
+    (constraints.teacherAssignedNodeIds ?? []).includes(node.id);
+}
+
+function policyReasonCode(policyFamily: AdaptiveLearningPathPolicyFamily): string | null {
+  if (policyFamily === 'rules-plus-graph-search') return null;
+  return `policy-${policyFamily}`;
 }
 
 function buildFeasiblePath(
@@ -1159,35 +1224,16 @@ function buildFallbackReasons(input: {
   ) {
     reasons.push('risk-intervention-resource-missing');
   }
+  if (input.policyFamily === 'teacher-assigned' && input.mainPathNodes.length === 0) {
+    reasons.push('teacher-assignment-resource-missing');
+  }
   if (
     requiresTerminalValidation(input.goal) &&
     !endsWithTerminalValidationNode(input.mainPathNodes)
   ) {
     reasons.push('terminal-validation-resource-missing');
   }
-  reasons.push(...policyFallbackReasons(input.policyFamily, input.mainPathNodes, input.constraints));
   return unique(reasons);
-}
-
-function policyFallbackReasons(
-  policyFamily: AdaptiveLearningPathPolicyFamily,
-  mainPathNodes: ScoredNode[],
-  constraints: AdaptiveLearningPathConstraints,
-): string[] {
-  if (policyFamily === 'simulation-driven') {
-    const hasSimulationResource = mainPathNodes.some((entry) =>
-      entry.node.type === 'simulation' ||
-      entry.node.type === 'arena_task' ||
-      entry.node.type === 'reflection'
-    );
-    return hasSimulationResource ? [] : ['simulation-policy-resource-missing'];
-  }
-  if (policyFamily === 'teacher-assigned') {
-    const assignedIds = new Set(constraints.teacherAssignedNodeIds ?? []);
-    const hasAssignedResource = mainPathNodes.some((entry) => assignedIds.has(entry.node.id));
-    return hasAssignedResource ? [] : ['teacher-assigned-resource-missing'];
-  }
-  return [];
 }
 
 function requiresTerminalValidation(goal: AdaptiveLearningPathGoal): boolean {
@@ -1241,124 +1287,186 @@ function buildPlanScore(
   };
 }
 
-function buildDiversityMetrics(mainPath: AdaptiveLearningPathPlanNode[]): AdaptiveLearningPathDiversityMetrics {
-  const modalityMix = mainPath.reduce<Record<string, number>>((acc, node) => {
-    acc[node.type] = (acc[node.type] ?? 0) + 1;
-    return acc;
-  }, {});
-  const terminalNode = mainPath.find((node) => node.terminalConstraints.length > 0) ?? mainPath.at(-1);
-  return {
-    overlapRatio: 1,
-    modalityMix,
-    estimatedEffortMinutes: remainingEstimatedMinutes(mainPath),
-    terminalValidationStyle: terminalNode ? terminalValidationStyle(terminalNode) : 'none',
-  };
-}
-
-function terminalValidationStyle(node: AdaptiveLearningPathPlanNode): AdaptiveLearningPathDiversityMetrics['terminalValidationStyle'] {
-  if (node.type === 'simulation') return 'simulation';
-  if (node.type === 'arena_task') return 'arena';
-  if (node.type === 'project') return 'project';
-  return 'none';
-}
-
 function buildPolicyBundle(
   input: AdaptiveLearningPathPlannerInput,
-  selectedPolicyFamily: AdaptiveLearningPathPolicyFamily,
-  mainPath: AdaptiveLearningPathPlanNode[],
-  fallbackReasons: string[],
-): AdaptiveLearningPathPolicyBundle | null {
-  const requestedPolicyFamilies = uniquePolicyFamilies(input.policyBundle ?? []);
-  if (requestedPolicyFamilies.length === 0) return null;
-
-  const overlapThreshold = input.diversityOverlapThreshold ?? 0.72;
-  const baseNodeIds = mainPath.map((node) => node.nodeId);
-  const alternatives = requestedPolicyFamilies.map((policyFamily) => {
-    const plan = policyFamily === selectedPolicyFamily
-      ? null
-      : buildAdaptiveLearningPathPlan({
-          ...input,
-          policyFamily,
-          policyBundle: undefined,
-        });
-    const path = plan?.mainPath ?? mainPath;
+  primaryPolicyFamily: AdaptiveLearningPathPolicyFamily,
+): AdaptiveLearningPathPolicyBundle | undefined {
+  const requestedFamilies = input.policyBundle?.families;
+  if (!requestedFamilies || requestedFamilies.length === 0) {
+    return undefined;
+  }
+  const families = unique([primaryPolicyFamily, ...requestedFamilies]);
+  const overlapThreshold = input.policyBundle?.overlapThreshold ?? 0.6;
+  const paths = families.map((policyFamily) => {
+    const plan = buildAdaptiveLearningPathPlanInternal(
+      {
+        ...input,
+        policyFamily,
+        policyBundle: undefined,
+      },
+      false,
+    );
     return {
       policyFamily,
-      status: plan?.status ?? (fallbackReasons.length > 0 ? 'fallback' : 'ready'),
-      nodeIds: path.map((node) => node.nodeId),
-      diversity: {
-        ...buildDiversityMetrics(path),
-        overlapRatio: computeOverlapRatio(baseNodeIds, path.map((node) => node.nodeId)),
-      },
-      fallbackReasons: plan?.explanations.fallbackReasons ?? fallbackReasons,
+      nodeIds: plan.mainPath.map((node) => node.nodeId),
+      estimatedMinutes: remainingEstimatedMinutes(plan.mainPath),
+      modalityMix: buildModalityMix(plan.mainPath),
+      terminalValidationNodeIds: plan.mainPath
+        .filter((node) => node.terminalConstraints.includes('terminal-validation'))
+        .map((node) => node.nodeId),
     };
   });
-  const fallbackPolicyFamilies = alternatives
-    .filter((item) => item.status === 'fallback')
-    .map((item) => `${item.policyFamily}-fallback`);
-  const viableAlternatives = alternatives.filter((item) => item.status !== 'fallback');
-  const insufficientDiversity = pairwiseInsufficientDiversity(viableAlternatives, overlapThreshold);
-  const bundleFallbackReasons = [...fallbackPolicyFamilies, ...insufficientDiversity];
+  const pairwiseResourceOverlap = buildPairwiseResourceOverlap(paths);
+  const pairwiseModalityDistance = buildPairwiseModalityDistance(paths);
+  const pairwiseEstimatedEffortDifference = buildPairwiseEstimatedEffortDifference(paths);
+  const pairwiseTerminalValidationDifference = buildPairwiseTerminalValidationDifference(paths);
+  const maxResourceOverlap = round(
+    pairwiseResourceOverlap.reduce((max, item) => Math.max(max, item.overlap), 0),
+    3,
+  );
+  const minModalityDistance = minPairwiseValue(pairwiseModalityDistance, 'distance');
+  const minEstimatedEffortDifference = minPairwiseValue(pairwiseEstimatedEffortDifference, 'difference');
+  const minTerminalValidationDifference = minPairwiseValue(pairwiseTerminalValidationDifference, 'difference');
+  const modalityMixByPolicy = Object.fromEntries(
+    paths.map((path) => [path.policyFamily, path.modalityMix]),
+  );
+  const estimatedEffortByPolicy = Object.fromEntries(
+    paths.map((path) => [path.policyFamily, path.estimatedMinutes]),
+  );
+  const terminalValidationDifference = minTerminalValidationDifference;
+  const emptyPathCount = paths.filter((path) => path.nodeIds.length === 0).length;
+  const fallbackReasons = unique([
+    emptyPathCount > 0 ? 'policy-path-resource-missing' : null,
+    maxResourceOverlap > overlapThreshold ? 'path-diversity-insufficient' : null,
+    minModalityDistance === 0 ? 'path-modality-diversity-insufficient' : null,
+    minEstimatedEffortDifference === 0 ? 'path-effort-diversity-insufficient' : null,
+    minTerminalValidationDifference === 0 ? 'terminal-validation-diversity-insufficient' : null,
+    new Set(paths.map((path) => path.nodeIds.join('|'))).size < Math.min(paths.length, 2)
+      ? 'policy-paths-identical'
+      : null,
+  ].filter((item): item is string => Boolean(item)));
+
   return {
-    requestedPolicyFamilies,
+    families,
     overlapThreshold,
-    alternatives,
-    status: bundleFallbackReasons.length === 0 ? 'ready' : 'low-resource-fallback',
-    fallbackReasons: bundleFallbackReasons.length === 0
-      ? []
-      : ['policy-bundle-low-resource-diversity', ...bundleFallbackReasons],
+    status: fallbackReasons.length > 0 ? 'low-resource-fallback' : 'ready',
+    paths,
+    diversity: {
+      maxResourceOverlap,
+      minModalityDistance,
+      minEstimatedEffortDifference,
+      minTerminalValidationDifference,
+      pairwiseResourceOverlap,
+      pairwiseModalityDistance,
+      pairwiseEstimatedEffortDifference,
+      pairwiseTerminalValidationDifference,
+      modalityMixByPolicy,
+      estimatedEffortByPolicy,
+      terminalValidationDifference,
+    },
+    fallbackReasons,
   };
 }
 
-function pairwiseInsufficientDiversity(
-  alternatives: AdaptiveLearningPathPolicyBundle['alternatives'],
-  overlapThreshold: number,
-): string[] {
-  const reasons: string[] = [];
-  for (let leftIndex = 0; leftIndex < alternatives.length; leftIndex += 1) {
-    for (let rightIndex = leftIndex + 1; rightIndex < alternatives.length; rightIndex += 1) {
-      const left = alternatives[leftIndex];
-      const right = alternatives[rightIndex];
-      const overlapRatio = computeOverlapRatio(left.nodeIds, right.nodeIds);
-      if (!isMeaningfullyDistinct(
-        { ...right.diversity, overlapRatio },
-        left.diversity,
-        overlapThreshold,
-      )) {
-        reasons.push(`${left.policyFamily}-${right.policyFamily}-insufficient-diversity`);
-      }
+function buildModalityMix(mainPath: AdaptiveLearningPathPlanNode[]): Record<string, number> {
+  return mainPath.reduce<Record<string, number>>((mix, node) => {
+    mix[node.type] = (mix[node.type] ?? 0) + 1;
+    return mix;
+  }, {});
+}
+
+function buildPairwiseResourceOverlap(paths: AdaptiveLearningPathPolicyBundle['paths']): AdaptiveLearningPathPolicyBundle['diversity']['pairwiseResourceOverlap'] {
+  const overlaps: AdaptiveLearningPathPolicyBundle['diversity']['pairwiseResourceOverlap'] = [];
+  for (let leftIndex = 0; leftIndex < paths.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < paths.length; rightIndex += 1) {
+      const left = paths[leftIndex];
+      const right = paths[rightIndex];
+      overlaps.push({
+        left: left.policyFamily,
+        right: right.policyFamily,
+        overlap: resourceOverlap(left.nodeIds, right.nodeIds),
+      });
     }
   }
-  return reasons;
+  return overlaps;
 }
 
-function isMeaningfullyDistinct(
-  candidate: AdaptiveLearningPathDiversityMetrics,
-  baseline: AdaptiveLearningPathDiversityMetrics,
-  overlapThreshold: number,
-): boolean {
-  if (candidate.overlapRatio > overlapThreshold) return false;
-  if (candidate.terminalValidationStyle !== baseline.terminalValidationStyle) return true;
-  if (Math.abs(candidate.estimatedEffortMinutes - baseline.estimatedEffortMinutes) >= 10) return true;
-  return modalitySignature(candidate.modalityMix) !== modalitySignature(baseline.modalityMix);
+function buildPairwiseModalityDistance(paths: AdaptiveLearningPathPolicyBundle['paths']): AdaptiveLearningPathPolicyBundle['diversity']['pairwiseModalityDistance'] {
+  const distances: AdaptiveLearningPathPolicyBundle['diversity']['pairwiseModalityDistance'] = [];
+  for (let leftIndex = 0; leftIndex < paths.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < paths.length; rightIndex += 1) {
+      const left = paths[leftIndex];
+      const right = paths[rightIndex];
+      distances.push({
+        left: left.policyFamily,
+        right: right.policyFamily,
+        distance: setDistance(Object.keys(left.modalityMix), Object.keys(right.modalityMix)),
+      });
+    }
+  }
+  return distances;
 }
 
-function modalitySignature(modalityMix: Record<string, number>): string {
-  return Object.entries(modalityMix)
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([type, count]) => `${type}:${count}`)
-    .join('|');
+function buildPairwiseEstimatedEffortDifference(paths: AdaptiveLearningPathPolicyBundle['paths']): AdaptiveLearningPathPolicyBundle['diversity']['pairwiseEstimatedEffortDifference'] {
+  const differences: AdaptiveLearningPathPolicyBundle['diversity']['pairwiseEstimatedEffortDifference'] = [];
+  for (let leftIndex = 0; leftIndex < paths.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < paths.length; rightIndex += 1) {
+      const left = paths[leftIndex];
+      const right = paths[rightIndex];
+      const denominator = Math.max(left.estimatedMinutes, right.estimatedMinutes, 1);
+      differences.push({
+        left: left.policyFamily,
+        right: right.policyFamily,
+        difference: round(Math.abs(left.estimatedMinutes - right.estimatedMinutes) / denominator, 3),
+      });
+    }
+  }
+  return differences;
 }
 
-function computeOverlapRatio(left: string[], right: string[]): number {
-  if (left.length === 0 && right.length === 0) return 0;
-  const leftSet = new Set(left);
-  const overlap = right.filter((nodeId) => leftSet.has(nodeId)).length;
-  return round(overlap / Math.max(leftSet.size, right.length, 1), 3);
+function buildPairwiseTerminalValidationDifference(paths: AdaptiveLearningPathPolicyBundle['paths']): AdaptiveLearningPathPolicyBundle['diversity']['pairwiseTerminalValidationDifference'] {
+  const differences: AdaptiveLearningPathPolicyBundle['diversity']['pairwiseTerminalValidationDifference'] = [];
+  for (let leftIndex = 0; leftIndex < paths.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < paths.length; rightIndex += 1) {
+      const left = paths[leftIndex];
+      const right = paths[rightIndex];
+      differences.push({
+        left: left.policyFamily,
+        right: right.policyFamily,
+        difference: setDistance(left.terminalValidationNodeIds, right.terminalValidationNodeIds),
+      });
+    }
+  }
+  return differences;
 }
 
-function uniquePolicyFamilies(values: AdaptiveLearningPathPolicyFamily[]): AdaptiveLearningPathPolicyFamily[] {
-  return Array.from(new Set(values));
+function minPairwiseValue<T extends Record<K, number>, K extends string>(items: T[], key: K): number {
+  if (items.length === 0) {
+    return 0;
+  }
+  return round(items.reduce((min, item) => Math.min(min, item[key]), 1), 3);
+}
+
+function resourceOverlap(leftNodeIds: string[], rightNodeIds: string[]): number {
+  const left = new Set(leftNodeIds);
+  const right = new Set(rightNodeIds);
+  const union = new Set([...left, ...right]);
+  if (union.size === 0) {
+    return 1;
+  }
+  const intersection = Array.from(left).filter((nodeId) => right.has(nodeId));
+  return round(intersection.length / union.size, 3);
+}
+
+function setDistance(leftValues: string[], rightValues: string[]): number {
+  const left = new Set(leftValues);
+  const right = new Set(rightValues);
+  const union = new Set([...left, ...right]);
+  if (union.size === 0) {
+    return 0;
+  }
+  const intersection = Array.from(left).filter((value) => right.has(value));
+  return round(1 - intersection.length / union.size, 3);
 }
 
 function buildVisualization(input: {
@@ -1442,8 +1550,8 @@ function remainingEstimatedMinutes(nodes: AdaptiveLearningPathPlanNode[]): numbe
     .reduce((sum, node) => sum + node.estimatedTimeMinutes, 0);
 }
 
-function unique(values: string[]): string[] {
-  return Array.from(new Set(values.filter(Boolean)));
+function unique<T extends string>(values: Array<T | null | undefined>): T[] {
+  return Array.from(new Set(values.filter((value): value is T => Boolean(value))));
 }
 
 function round(value: number, digits = 2): number {
