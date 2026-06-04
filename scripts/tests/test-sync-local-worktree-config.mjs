@@ -696,6 +696,12 @@ fs.writeFileSync(
   `#!/bin/sh\nprintf 'cwd=%s args=%s\\n' "$(pwd)" "$*" >> "$DEP_CALL_LOG"\n`,
 );
 fs.chmodSync(npmPath, 0o755);
+const npxPath = path.join(binDir, 'npx');
+fs.writeFileSync(
+  npxPath,
+  `#!/bin/sh\nprintf 'cwd=%s args=%s\\n' "$(pwd)" "$*" >> "$DEP_CALL_LOG"\n`,
+);
+fs.chmodSync(npxPath, 0o755);
 
 const depsDryRun = run(
   'bash',
@@ -721,6 +727,16 @@ assert.match(
   depsDryRun.stdout,
   /would run npm ci in target: .*target/,
   'dry-run 应说明会在目标工作树运行 npm ci',
+);
+assert.match(
+  depsDryRun.stdout,
+  /would run Prisma Client generation in target: .*target/,
+  'dry-run 应说明会在目标工作树生成 Prisma Client',
+);
+assert.match(
+  depsDryRun.stdout,
+  /would run control-engine Wasm generation in target: .*target/,
+  'dry-run 应说明会在目标工作树生成控制引擎 Wasm 包',
 );
 
 run(
@@ -749,6 +765,16 @@ assert.match(
   depCalls,
   new RegExp(`cwd=${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} args=ci`),
   'install-deps 应在目标工作树执行 npm ci',
+);
+assert.match(
+  depCalls,
+  new RegExp(`cwd=${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} args=prisma generate`),
+  'install-deps 应在目标工作树生成 Prisma Client',
+);
+assert.match(
+  depCalls,
+  new RegExp(`cwd=${target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} args=run wasm:build:control-engine`),
+  'install-deps 应在目标工作树生成控制引擎 Wasm 包',
 );
 
 const bootstrapDryRun = run(

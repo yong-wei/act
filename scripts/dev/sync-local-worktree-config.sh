@@ -45,7 +45,8 @@ Options:
   --replace-existing         When linking, backup and replace existing target paths.
   --init-graphs              Initialize and build codegraph and code-review-graph for target.
   --install-hooks            Install or repair managed Git hooks for codegraph and CRG.
-  --install-deps             Run npm ci in the target worktree.
+  --install-deps             Run npm ci, Prisma Client generation, and local
+                             Wasm package generation in the target worktree.
   --link-openwolf-knowledge  Link long-lived .wolf knowledge files to the source
                              checkout while keeping runtime files local.
   --bootstrap-dev-env        Enable --link-config, --link-env, --install-hooks,
@@ -101,7 +102,7 @@ Never copied by this script:
   .next, node_modules, .cache, .tmp, .logs, .code-review-graph, Rust target,
   .codegraph, .codex/cache, .codex/tmp, .serena/cache, .wolf/hooks/_session.json,
   .wolf/token-ledger.json, .wolf/cron-state.json, .DS_Store, __pycache__, *.pyc.
-Dependencies are not copied or linked; use --install-deps to run npm ci in the target worktree.
+Dependencies are not copied or linked; use --install-deps to run npm ci, Prisma Client generation, and local Wasm package generation in the target worktree.
 USAGE
 }
 
@@ -299,6 +300,8 @@ print_mode() {
   fi
   if [[ "$INSTALL_DEPS" -eq 1 ]]; then
     echo "Dependency install: enabled"
+    echo "Prisma generation: enabled"
+    echo "Wasm generation: enabled"
   fi
   if [[ "$LINK_OPENWOLF_KNOWLEDGE" -eq 1 ]]; then
     echo "OpenWolf knowledge links: enabled"
@@ -1184,12 +1187,18 @@ install_dependencies() {
   echo "Dependency installation:"
   if [[ "$APPLY" -ne 1 ]]; then
     echo "would run npm ci in target: $TARGET"
+    echo "would run Prisma Client generation in target: $TARGET"
+    echo "would run control-engine Wasm generation in target: $TARGET"
     return
   fi
 
   require_command npm
   (cd "$TARGET" && npm ci)
   echo "installed dependencies in target: $TARGET"
+  (cd "$TARGET" && npx prisma generate)
+  echo "generated Prisma Client in target: $TARGET"
+  (cd "$TARGET" && npm run wasm:build:control-engine)
+  echo "generated control-engine Wasm package in target: $TARGET"
 }
 
 echo "Source: $SOURCE"
