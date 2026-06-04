@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 import {
   COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS,
@@ -8,6 +10,7 @@ import {
   PLATFORM_ENTRYPOINT_SMOKE_ROUTES,
   PLATFORM_NAVIGATION_LAYERS,
   PLATFORM_NAVIGATION_FEATURE_FLAGS,
+  PLATFORM_PRIMARY_ROUTE_INVENTORY,
   PLATFORM_PROFILE_AND_COCKPIT_ACTIONS,
   PLATFORM_ROLE_COCKPIT_HREFS,
   STUDENT_LEARNING_INTENT_GROUPS,
@@ -68,11 +71,11 @@ describe('platform role navigation', () => {
       student: '/dashboard',
       teacher: '/teacher',
       admin: '/admin',
-      audit: '/admin/data-governance',
     });
     expect(getPlatformCockpitHref('STUDENT')).toBe('/dashboard');
     expect(getPlatformCockpitHref('TEACHER')).toBe('/teacher');
     expect(getPlatformCockpitHref('ADMIN')).toBe('/admin');
+    expect(getPlatformCockpitHref('AUDIT')).toBe('/dashboard');
     expect(getPlatformCockpitHref(null)).toBe('/dashboard');
   });
 
@@ -140,6 +143,7 @@ describe('platform role navigation', () => {
       'global-product',
       'role-cockpit',
       'contextual-workspace',
+      'local-tool',
     ]);
     expect(PLATFORM_NAVIGATION_LAYERS.find((layer) => layer.id === 'global-product')?.entryGroups).toEqual([
       'public',
@@ -156,6 +160,10 @@ describe('platform role navigation', () => {
     expect(
       PLATFORM_NAVIGATION_LAYERS.find((layer) => layer.id === 'contextual-workspace')?.duplicatesGlobalNavigation,
     ).toBe(false);
+    expect(PLATFORM_NAVIGATION_LAYERS.find((layer) => layer.id === 'local-tool')).toMatchObject({
+      entryGroups: [],
+      duplicatesGlobalNavigation: false,
+    });
   });
 
   it('groups student destinations by learning intent and preserves compatibility aliases', () => {
@@ -245,6 +253,58 @@ describe('platform role navigation', () => {
         }),
       ]),
     );
+  });
+
+  it('maintains the primary route inventory for shell, navigation, and dock decisions', () => {
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => route.href)).toEqual([
+      '/',
+      '/login',
+      '/interactive-learning',
+      '/simulations',
+      '/arena',
+      '/assessment/adaptive-practice',
+      '/interactive-learning/control-workbench',
+      '/dashboard',
+      '/profile',
+      '/data-center',
+      '/teacher',
+      '/admin',
+      '/admin/data-governance',
+      '/knowledge',
+    ]);
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.every((route) => route.routeFile.startsWith('src/app/'))).toBe(true);
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.every((route) => existsSync(join(process.cwd(), route.routeFile)))).toBe(true);
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => route.href)).toEqual(
+      expect.arrayContaining(['/arena', '/assessment/adaptive-practice', '/data-center', '/admin/data-governance']),
+    );
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/login')).toMatchObject({
+      frame: 'auth-entry',
+      floatingDock: 'hidden',
+      aliases: ['/login?callbackUrl=%2Fprofile'],
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning/control-workbench')).toMatchObject({
+      frame: 'immersive-task-workspace',
+      navigationLayers: expect.arrayContaining(['global-product', 'contextual-workspace', 'local-tool']),
+      floatingDock: 'enabled',
+      visualQaProfile: 'immersive',
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/teacher')).toMatchObject({
+      frame: 'teacher-operations',
+      roleScope: ['teacher'],
+      navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/admin')).toMatchObject({
+      frame: 'admin-governance',
+      roleScope: ['admin'],
+      navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+      floatingDock: 'enabled',
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/admin/data-governance')).toMatchObject({
+      frame: 'admin-governance',
+      roleScope: ['admin'],
+      navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+      floatingDock: 'enabled',
+    });
   });
 
   it('defines commercial student entry intents and route acceptance matrix', () => {

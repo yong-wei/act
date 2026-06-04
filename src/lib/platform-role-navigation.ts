@@ -16,7 +16,7 @@ export type PlatformRoleNavigationGroup =
   | 'admin-cockpit'
   | 'future';
 
-export type PlatformNavigationLayerId = 'global-product' | 'role-cockpit' | 'contextual-workspace';
+export type PlatformNavigationLayerId = 'global-product' | 'role-cockpit' | 'contextual-workspace' | 'local-tool';
 export type PlatformWorkspaceMode =
   | 'arena'
   | 'control-workbench'
@@ -24,6 +24,16 @@ export type PlatformWorkspaceMode =
   | 'adaptive-learning'
   | 'teacher'
   | 'admin';
+export type PlatformPrimaryRouteFrame =
+  | 'public-entry'
+  | 'auth-entry'
+  | 'learning-map'
+  | 'immersive-task-workspace'
+  | 'learner-data'
+  | 'teacher-operations'
+  | 'admin-governance'
+  | 'knowledge-graph';
+export type PlatformFloatingDockRouteBehavior = 'enabled' | 'collapsed' | 'hidden';
 export type StudentLearningIntent = 'learn' | 'practice' | 'challenge' | 'experiment' | 'review-profile';
 export type CommercialStudentEntryIntent =
   | 'learn'
@@ -125,6 +135,17 @@ export interface PlatformAuthRouteContract {
   roleCockpitFallbacks?: typeof PLATFORM_ROLE_COCKPIT_HREFS;
 }
 
+export interface PlatformPrimaryRouteInventoryEntry {
+  href: string;
+  routeFile: string;
+  frame: PlatformPrimaryRouteFrame;
+  roleScope: readonly PlatformRoleNavigationAudience[];
+  navigationLayers: readonly PlatformNavigationLayerId[];
+  floatingDock: PlatformFloatingDockRouteBehavior;
+  visualQaProfile: 'representative' | 'auth-callback' | 'immersive';
+  aliases?: readonly string[];
+}
+
 export interface PlatformRoleNavigationOptions {
   enabledFeatureFlags?: readonly string[];
   includeDisabled?: boolean;
@@ -143,7 +164,6 @@ export const PLATFORM_ROLE_COCKPIT_HREFS = {
   student: '/dashboard',
   teacher: '/teacher',
   admin: '/admin',
-  audit: '/admin/data-governance',
 } as const;
 
 export const STUDENT_CORE_ENTRY_IDS = [
@@ -184,6 +204,14 @@ export const PLATFORM_NAVIGATION_LAYERS: PlatformNavigationLayerContract[] = [
     id: 'contextual-workspace',
     label: '上下文工作区导航',
     purpose: 'Expose local breadcrumbs, return targets, and tool actions inside dense workspaces.',
+    entryGroups: [],
+    workspaceModes: ['arena', 'control-workbench', 'interactive-learning', 'adaptive-learning', 'teacher', 'admin'],
+    duplicatesGlobalNavigation: false,
+  },
+  {
+    id: 'local-tool',
+    label: '本地工具导航',
+    purpose: 'Expose route-owned tabs, inspector modes, graph tools, chart tools, and workspace commands without entering global or role navigation.',
     entryGroups: [],
     workspaceModes: ['arena', 'control-workbench', 'interactive-learning', 'adaptive-learning', 'teacher', 'admin'],
     duplicatesGlobalNavigation: false,
@@ -252,13 +280,6 @@ export const PLATFORM_PROFILE_AND_COCKPIT_ACTIONS: PlatformProfileAndCockpitActi
     primaryWorkspaceAction: 'cockpit',
     semantics: 'Admin cockpit is the operational workspace; profile remains an account action.',
   },
-  {
-    audience: 'audit',
-    profileHref: '/profile',
-    cockpitHref: PLATFORM_ROLE_COCKPIT_HREFS.audit,
-    primaryWorkspaceAction: 'cockpit',
-    semantics: 'Audit cockpit is the governed operational workspace; profile remains an account action.',
-  },
 ] as const;
 
 export const PLATFORM_CONTEXTUAL_RETURN_TARGET_RULES: PlatformContextualReturnTargetRule[] = [
@@ -306,6 +327,138 @@ export const PLATFORM_AUTH_ROUTE_CONTRACTS: PlatformAuthRouteContract[] = [
     exposesProfileAction: false,
     exposesCockpitAction: true,
     roleCockpitFallbacks: PLATFORM_ROLE_COCKPIT_HREFS,
+  },
+] as const;
+
+export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntry[] = [
+  {
+    href: '/',
+    routeFile: 'src/app/page.tsx',
+    frame: 'public-entry',
+    roleScope: ['guest', 'student', 'teacher', 'admin'],
+    navigationLayers: ['global-product'],
+    floatingDock: 'collapsed',
+    visualQaProfile: 'representative',
+  },
+  {
+    href: '/login',
+    routeFile: 'src/app/(auth)/login/page.tsx',
+    frame: 'auth-entry',
+    roleScope: ['guest'],
+    navigationLayers: ['global-product'],
+    floatingDock: 'hidden',
+    visualQaProfile: 'auth-callback',
+    aliases: ['/login?callbackUrl=%2Fprofile'],
+  },
+  {
+    href: '/interactive-learning',
+    routeFile: 'src/app/interactive-learning/page.tsx',
+    frame: 'learning-map',
+    roleScope: ['guest', 'student'],
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'collapsed',
+    visualQaProfile: 'representative',
+  },
+  {
+    href: '/simulations',
+    routeFile: 'src/app/simulations/page.tsx',
+    frame: 'immersive-task-workspace',
+    roleScope: ['guest', 'student'],
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'collapsed',
+    visualQaProfile: 'immersive',
+  },
+  {
+    href: '/arena',
+    routeFile: 'src/app/arena/page.tsx',
+    frame: 'immersive-task-workspace',
+    roleScope: ['guest', 'student', 'teacher'],
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'collapsed',
+    visualQaProfile: 'immersive',
+  },
+  {
+    href: '/assessment/adaptive-practice',
+    routeFile: 'src/app/assessment/adaptive-practice/page.tsx',
+    frame: 'learning-map',
+    roleScope: ['guest', 'student'],
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'collapsed',
+    visualQaProfile: 'representative',
+  },
+  {
+    href: '/interactive-learning/control-workbench',
+    routeFile: 'src/app/interactive-learning/control-workbench/page.tsx',
+    frame: 'immersive-task-workspace',
+    roleScope: ['guest', 'student', 'teacher'],
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'immersive',
+    aliases: ['/interactive-learning/control-workbench?mode=explore&preset=classic-four-view'],
+  },
+  {
+    href: '/dashboard',
+    routeFile: 'src/app/(main)/dashboard/page.tsx',
+    frame: 'learning-map',
+    roleScope: ['student'],
+    navigationLayers: ['role-cockpit', 'global-product'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+  },
+  {
+    href: '/profile',
+    routeFile: 'src/app/(main)/profile/page.tsx',
+    frame: 'learner-data',
+    roleScope: ['student', 'teacher', 'admin'],
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    aliases: ['/profile/growth', '/profile/portfolio'],
+  },
+  {
+    href: '/data-center',
+    routeFile: 'src/app/data-center/page.tsx',
+    frame: 'learner-data',
+    roleScope: ['student', 'teacher', 'admin'],
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+  },
+  {
+    href: '/teacher',
+    routeFile: 'src/app/teacher/page.tsx',
+    frame: 'teacher-operations',
+    roleScope: ['teacher'],
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+  },
+  {
+    href: '/admin',
+    routeFile: 'src/app/admin/page.tsx',
+    frame: 'admin-governance',
+    roleScope: ['admin'],
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+  },
+  {
+    href: '/admin/data-governance',
+    routeFile: 'src/app/admin/data-governance/page.tsx',
+    frame: 'admin-governance',
+    roleScope: ['admin'],
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+  },
+  {
+    href: '/knowledge',
+    routeFile: 'src/app/knowledge/page.tsx',
+    frame: 'knowledge-graph',
+    roleScope: ['guest', 'student', 'teacher'],
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'collapsed',
+    visualQaProfile: 'representative',
   },
 ] as const;
 
@@ -845,6 +998,5 @@ export function getPlatformCockpitHref(role?: string | null): string {
   const normalizedRole = role?.toLowerCase();
   if (normalizedRole === 'admin') return PLATFORM_ROLE_COCKPIT_HREFS.admin;
   if (normalizedRole === 'teacher') return PLATFORM_ROLE_COCKPIT_HREFS.teacher;
-  if (normalizedRole === 'audit') return PLATFORM_ROLE_COCKPIT_HREFS.audit;
   return PLATFORM_ROLE_COCKPIT_HREFS.student;
 }
