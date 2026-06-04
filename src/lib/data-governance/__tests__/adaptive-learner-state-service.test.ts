@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import type { CompetencyVector } from '../competency-model';
 import {
   ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS,
+  CONTROL_CORRECTION_GOAL_DIMENSIONS,
   isAdaptiveLearnerStateServiceEnabled,
   readAdaptiveLearnerState,
+  validateControlCorrectionGoalSliceContract,
 } from '../adaptive-learner-state-service';
 
 const snapshotVector: CompetencyVector = {
@@ -13,6 +15,15 @@ const snapshotVector: CompetencyVector = {
   engineeringDecision: { score: 71, trend: 'stable', confidence: 0.7, evidenceCount: 6, lastUpdated: '2026-05-20T00:00:00.000Z' },
   inquiryReflection: { score: 62, trend: 'stable', confidence: 0.6, evidenceCount: 4, lastUpdated: '2026-05-20T00:00:00.000Z' },
   selfDirectedLearning: { score: 67, trend: 'up', confidence: 0.64, evidenceCount: 4, lastUpdated: '2026-05-20T00:00:00.000Z' },
+};
+
+const strongSnapshotVector: CompetencyVector = {
+  controlModeling: { score: 90, trend: 'up', confidence: 0.9, evidenceCount: 12, lastUpdated: '2026-05-20T00:00:00.000Z' },
+  parameterDesign: { score: 88, trend: 'up', confidence: 0.88, evidenceCount: 11, lastUpdated: '2026-05-20T00:00:00.000Z' },
+  crossDomainTransfer: { score: 86, trend: 'up', confidence: 0.86, evidenceCount: 10, lastUpdated: '2026-05-20T00:00:00.000Z' },
+  engineeringDecision: { score: 91, trend: 'up', confidence: 0.91, evidenceCount: 12, lastUpdated: '2026-05-20T00:00:00.000Z' },
+  inquiryReflection: { score: 87, trend: 'up', confidence: 0.87, evidenceCount: 9, lastUpdated: '2026-05-20T00:00:00.000Z' },
+  selfDirectedLearning: { score: 89, trend: 'up', confidence: 0.89, evidenceCount: 9, lastUpdated: '2026-05-20T00:00:00.000Z' },
 };
 
 function createDb(overrides: Record<string, unknown> = {}) {
@@ -43,7 +54,7 @@ function createDb(overrides: Record<string, unknown> = {}) {
     studentEvidenceFeatureCache: {
       findUnique: async () => ({
         userId: 'student-1',
-        payloadVersion: 'student-evidence-features.v3',
+        payloadVersion: 'student-evidence-features.v4',
         refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
         evidenceWindow: {
           firstStartedAt: '2026-05-01T00:00:00.000Z',
@@ -148,6 +159,9 @@ function createDb(overrides: Record<string, unknown> = {}) {
         },
       ],
     },
+    arenaSubmission: {
+      findMany: async () => [],
+    },
     adaptiveMasteryUpdate: {
       findMany: async () => [
         {
@@ -192,6 +206,112 @@ function createDb(overrides: Record<string, unknown> = {}) {
           updatedAt: new Date('2026-05-19T00:00:00.000Z'),
         },
       ],
+    },
+    ...overrides,
+  };
+}
+
+function evidenceWindow() {
+  return {
+    firstStartedAt: '2026-05-01T00:00:00.000Z',
+    lastStartedAt: '2026-05-19T00:00:00.000Z',
+    daysCovered: 18,
+  };
+}
+
+function simulationArenaWindow(overrides: Record<string, unknown> = {}) {
+  return {
+    window: evidenceWindow(),
+    evidenceCount: 3,
+    completedCount: 3,
+    officialCount: 1,
+    previewCount: 1,
+    agentAssistedCount: 0,
+    courseLaunchedCount: 2,
+    standaloneCount: 1,
+    traceReferenceCount: 0,
+    sourceCoverage: {
+      simulation: 'available',
+      arena: 'available',
+      traceReferences: 'available',
+      replayConfidence: 'available',
+    },
+    replayConfidence: {
+      average: 0.82,
+      highConfidenceCount: 2,
+      lowConfidenceCount: 0,
+      missingCount: 0,
+    },
+    interventionOutcome: {
+      reviewedCount: 0,
+      improvedCount: 0,
+      lowConfidenceCount: 0,
+    },
+    weakMetrics: [],
+    qualityMarkers: [],
+    traceReferences: [],
+    ...overrides,
+  };
+}
+
+function controlCorrectionFact(
+  factType: string,
+  startedAt: string,
+  score: number,
+  overrides: Record<string, unknown> = {},
+) {
+  return {
+    factType,
+    startedAt: new Date(startedAt),
+    score,
+    contextJson: { goalId: 'control-correction' },
+    ...overrides,
+  };
+}
+
+function officialArenaSubmission(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'arena-submission-1',
+    userId: 'student-1',
+    taskId: 'task-second-order-lead-pid',
+    method: 'pid',
+    valid: true,
+    submittedAt: new Date('2026-05-19T01:00:00.000Z'),
+    controllerArtifact: {
+      payload: { method: 'pid' },
+    },
+    evaluationRun: {
+      protocolVersion: 'analysis-whitebox-v1',
+    },
+    ...overrides,
+  };
+}
+
+function adaptiveLearnerStateFeature(overrides: Record<string, unknown> = {}) {
+  return {
+    payloadVersion: 'adaptive-learner-state.v1',
+    sourceWindows: {
+      learnerStateRecent30d: evidenceWindow(),
+      learnerStateAllTime: evidenceWindow(),
+    },
+    sourceCounts: {
+      LearningFact: 8,
+      AdaptiveMasteryEvidence: 1,
+    },
+    sourceCoverage: {
+      primaryCompetencies: 'available',
+      knowledgeMastery: 'available',
+      resourcePreference: 'available',
+      mediaAbsorption: 'available',
+      pathContext: 'available',
+      simulationArena: 'available',
+    },
+    confidence: {
+      level: 'high',
+      score: 0.9,
+      evidenceCount: 8,
+      sourceCompleteness: 1,
+      markers: [],
     },
     ...overrides,
   };
@@ -303,5 +423,1117 @@ describe('adaptive learner state service', () => {
         },
       ],
     });
+  });
+
+  it('exposes a governed control-correction goal slice only when requested', async () => {
+    const generalState = await readAdaptiveLearnerState(createDb(), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+    });
+
+    const state = await readAdaptiveLearnerState(createDb(), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    expect(generalState.goalSlices).toBeUndefined();
+    const slice = state.goalSlices?.controlCorrection;
+    expect(slice).toBeDefined();
+    if (!slice) throw new Error('expected control-correction goal slice');
+    expect(slice).toMatchObject({
+      goalId: 'control-correction',
+      payloadVersion: 'control-correction-goal-slice.v1',
+      targetLevels: ['foundation', 'developing', 'proficient', 'advanced'],
+    });
+    expect(slice.dimensions.map((dimension) => dimension.id)).toEqual(
+      CONTROL_CORRECTION_GOAL_DIMENSIONS,
+    );
+    expect(slice.dimensions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'root-locus-reasoning',
+          targetLevel: 'developing',
+          sourceCoverage: expect.objectContaining({
+            assessment: 'missing',
+            simulation: 'missing',
+            arena: 'missing',
+          }),
+          confidence: expect.objectContaining({
+            state: 'none',
+            evidenceCount: 0,
+          }),
+          privacy: expect.objectContaining({
+            score: 'student-visible',
+            sourceCoverage: 'student-visible',
+            auditRefs: 'audit-only',
+            rawPayloads: 'system-internal',
+          }),
+        }),
+        expect.objectContaining({
+          id: 'arena-transfer',
+          fallbackMarkers: expect.arrayContaining(['missing-arena-evidence', 'missing-official-arena-evidence']),
+          freshness: 'missing',
+          confidence: expect.objectContaining({ state: 'none', evidenceCount: 0 }),
+        }),
+      ]),
+    );
+    expect(() => validateControlCorrectionGoalSliceContract(slice)).not.toThrow();
+    expect(JSON.stringify(slice)).not.toContain('rawDialogue');
+    expect(JSON.stringify(slice)).not.toContain('rawAnswerBody');
+    expect(JSON.stringify(slice)).not.toContain('hiddenArenaInternals');
+    expect(JSON.stringify(slice)).not.toContain('rawSimulationTrace');
+  });
+
+  it('queries goal-scoped learning facts separately for control-correction slices', async () => {
+    const learningFactQueries: unknown[] = [];
+    const arenaSubmissionQueries: unknown[] = [];
+    const state = await readAdaptiveLearnerState(createDb({
+      adaptiveMasteryUpdate: { findMany: async () => [] },
+      learningFact: {
+        findMany: async (args: unknown) => {
+          learningFactQueries.push(args);
+          return learningFactQueries.length === 1
+            ? Array.from({ length: 100 }, (_, index) => ({
+                factType: 'question',
+                moduleId: `unrelated-${index}`,
+                startedAt: new Date(`2026-05-${String(19 - (index % 10)).padStart(2, '0')}T00:00:00.000Z`),
+                score: 90,
+                contextJson: {},
+              }))
+            : [
+                controlCorrectionFact('question', '2026-04-01T00:00:00.000Z', 86),
+              ];
+        },
+      },
+      arenaSubmission: {
+        findMany: async (args: unknown) => {
+          arenaSubmissionQueries.push(args);
+          return [
+            officialArenaSubmission(),
+            officialArenaSubmission({
+              id: 'arena-submission-legacy',
+              evaluationRun: { protocolVersion: 'whitebox-v1' },
+            }),
+            officialArenaSubmission({
+              id: 'arena-submission-invalid',
+              valid: false,
+            }),
+          ];
+        },
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    expect(learningFactQueries).toHaveLength(2);
+    expect(learningFactQueries[1]).toMatchObject({
+      where: {
+        userId: 'student-1',
+        OR: expect.arrayContaining([
+          { contextJson: { path: ['goalId'], equals: 'control-correction' } },
+          { courseId: { in: ['3-6', 'unit-3-6-zero-design-workshop', 'unit-3-6-zero-design-workshop-v1'] } },
+          { lessonId: { in: ['3-6', 'unit-3-6-zero-design-workshop', 'unit-3-6-zero-design-workshop-v1'] } },
+          { moduleId: { in: ['3-6', 'unit-3-6-zero-design-workshop', 'unit-3-6-zero-design-workshop-v1'] } },
+          { contextJson: { path: ['adaptiveAssessment', 'courseId'], equals: 'unit-3-6-zero-design-workshop-v1' } },
+          { contextJson: { path: ['arena', 'taskId'], equals: 'task-second-order-lead-pid' } },
+          { contextJson: { path: ['simulation', 'summary', 'sourceId'], equals: 'unit-3-6-zero-design-workshop' } },
+          { contextJson: { path: ['agentTool', 'courseId'], equals: 'unit-3-6-zero-design-workshop-v1' } },
+        ]),
+      },
+      take: 500,
+    });
+    expect(arenaSubmissionQueries).toHaveLength(1);
+    expect(arenaSubmissionQueries[0]).toMatchObject({
+      where: {
+        userId: 'student-1',
+        valid: true,
+        taskId: { in: ['task-second-order-lead-pid'] },
+      },
+    });
+    expect(state.goalSlices?.controlCorrection?.dimensions.find((dimension) => dimension.id === 'time-domain-analysis')).toMatchObject({
+      evidenceCount: 1,
+      confidence: expect.objectContaining({ state: 'high' }),
+    });
+  });
+
+  it('counts existing production-scoped assessment simulation reflection and AI facts', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      learningFact: {
+        findMany: async () => [
+          controlCorrectionFact('question', '2026-05-19T00:00:00.000Z', 92, {
+            contextJson: { adaptiveAssessment: { courseId: 'unit-3-6-zero-design-workshop-v1' } },
+          }),
+          controlCorrectionFact('simulation', '2026-05-18T00:00:00.000Z', 90, {
+            contextJson: { simulation: { summary: { sourceId: 'unit-3-6-zero-design-workshop' } } },
+          }),
+          controlCorrectionFact('reflection', '2026-05-17T00:00:00.000Z', 86, {
+            lessonId: '3-6',
+            contextJson: {},
+          }),
+          controlCorrectionFact('ai_intervention', '2026-05-16T00:00:00.000Z', 84, {
+            contextJson: { agentTool: { courseId: 'unit-3-6-zero-design-workshop-v1' } },
+          }),
+          controlCorrectionFact('prompt_design', '2026-05-15T00:00:00.000Z', 82, {
+            contextJson: { agentTool: { taskId: 'task-second-order-lead-pid' } },
+          }),
+        ],
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const slice = state.goalSlices?.controlCorrection;
+    expect(slice).toBeDefined();
+    if (!slice) throw new Error('expected control-correction goal slice');
+    expect(slice.dimensions.find((dimension) => dimension.id === 'time-domain-analysis')).toMatchObject({
+      evidenceCount: 1,
+      sourceCoverage: expect.objectContaining({ assessment: 'available' }),
+    });
+    expect(slice.dimensions.find((dimension) => dimension.id === 'simulation-validation')).toMatchObject({
+      evidenceCount: 1,
+      sourceCoverage: expect.objectContaining({ simulation: 'available' }),
+    });
+    expect(slice.dimensions.find((dimension) => dimension.id === 'reflection')).toMatchObject({
+      evidenceCount: 1,
+      sourceCoverage: expect.objectContaining({ reflection: 'available' }),
+    });
+    expect(slice.dimensions.find((dimension) => dimension.id === 'ai-collaboration')).toMatchObject({
+      evidenceCount: 2,
+      sourceCoverage: expect.objectContaining({ aiCollaboration: 'available' }),
+      evidenceProvenance: expect.objectContaining({ aiCollaboration: 'governed-ai-collaboration' }),
+    });
+  });
+
+  it('counts Arena-context design facts as preview Arena evidence for control-correction', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      learningFact: {
+        findMany: async () => [
+          controlCorrectionFact('design', '2026-05-19T00:00:00.000Z', 88, {
+            contextJson: { arena: { taskId: 'task-second-order-lead-pid' } },
+          }),
+        ],
+      },
+      arenaSubmission: {
+        findMany: async () => [],
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const arenaTransfer = state.goalSlices?.controlCorrection?.dimensions.find((dimension) => dimension.id === 'arena-transfer');
+    expect(arenaTransfer).toMatchObject({
+      evidenceCount: 1,
+      sourceCoverage: expect.objectContaining({ arena: 'partial' }),
+      evidenceProvenance: expect.objectContaining({ arena: 'preview' }),
+      fallbackMarkers: expect.arrayContaining(['partial-arena-evidence', 'preview-only-arena-evidence']),
+    });
+  });
+
+  it('keeps complete control-correction fixtures current without fallback markers', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      studentCompetencySnapshot: {
+        findFirst: async () => ({
+          snapshotAt: new Date('2026-05-20T00:00:00.000Z'),
+          factCount: 12,
+          calculationVersion: 'competency-v2',
+          competencyVector: strongSnapshotVector,
+          evidenceSummary: {},
+        }),
+      },
+      studentEvidenceFeatureCache: {
+        findUnique: async () => ({
+          userId: 'student-1',
+          payloadVersion: 'student-evidence-features.v4',
+          refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
+          evidenceWindow: {
+            firstStartedAt: '2026-05-01T00:00:00.000Z',
+            lastStartedAt: '2026-05-19T00:00:00.000Z',
+            daysCovered: 18,
+          },
+          sourceCounts: {
+            LearningFact: 8,
+            StudentCompetencySnapshot: 1,
+            StudentProfileSummary: 1,
+            byFactType: { question: 3, simulation: 2, arena: 1, reflection: 1, konling: 1 },
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+            StudentCompetencySnapshot: 'available',
+            StudentProfileSummary: 'available',
+          },
+          confidenceMarkers: {
+            level: 'high',
+            score: 0.9,
+            evidenceCount: 8,
+            sourceCompleteness: 1,
+          },
+          statusMarkers: [],
+          features: {
+            approvedAggregates: {
+              latestSnapshot: {
+                snapshotAt: '2026-05-20T00:00:00.000Z',
+                factCount: 12,
+                calculationVersion: 'competency-v2',
+                competencyVector: strongSnapshotVector,
+              },
+            },
+            adaptiveLearnerState: adaptiveLearnerStateFeature(),
+            simulationArena: {
+              recent30d: simulationArenaWindow(),
+              allTime: simulationArenaWindow(),
+            },
+          },
+        }),
+      },
+      learningFact: {
+        findMany: async () => [
+          controlCorrectionFact('question', '2026-05-19T00:00:00.000Z', 92),
+          controlCorrectionFact('simulation', '2026-05-18T00:00:00.000Z', 90),
+          controlCorrectionFact('arena', '2026-05-17T00:00:00.000Z', 88),
+          controlCorrectionFact('reflection', '2026-05-16T00:00:00.000Z', 86),
+          controlCorrectionFact('konling', '2026-05-15T00:00:00.000Z', 84),
+        ],
+      },
+	      arenaSubmission: {
+	        findMany: async () => [
+	          officialArenaSubmission(),
+	          officialArenaSubmission({
+	            id: 'arena-submission-other-task',
+	            taskId: 'unrelated-arena-task',
+	          }),
+	          officialArenaSubmission({
+	            id: 'arena-submission-legacy',
+	            evaluationRun: { protocolVersion: 'whitebox-v1' },
+	          }),
+          officialArenaSubmission({
+            id: 'arena-submission-invalid',
+            valid: false,
+          }),
+        ],
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const slice = state.goalSlices?.controlCorrection;
+    expect(slice).toBeDefined();
+    if (!slice) throw new Error('expected control-correction goal slice');
+    const dimensions = slice.dimensions;
+    expect(dimensions.find((dimension) => dimension.id === 'time-domain-analysis')).toMatchObject({
+      freshness: 'current',
+      fallbackMarkers: [],
+      confidence: expect.objectContaining({ sourceCompleteness: 1 }),
+    });
+    expect(dimensions.find((dimension) => dimension.id === 'root-locus-reasoning')).toMatchObject({
+      targetLevel: 'advanced',
+      freshness: 'current',
+      fallbackMarkers: [],
+      evidenceProvenance: expect.objectContaining({ arena: 'official' }),
+      confidence: expect.objectContaining({ state: 'high' }),
+    });
+    expect(dimensions.find((dimension) => dimension.id === 'arena-transfer')).toMatchObject({
+      freshness: 'current',
+      evidenceCount: 1,
+      fallbackMarkers: [],
+      evidenceProvenance: expect.objectContaining({ arena: 'official' }),
+      confidence: expect.objectContaining({ state: 'high' }),
+    });
+  });
+
+  it('uses official Arena submissions even when simulation Arena feature coverage is stale or missing', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      studentEvidenceFeatureCache: {
+        findUnique: async () => ({
+          userId: 'student-1',
+          payloadVersion: 'student-evidence-features.v4',
+          refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
+          evidenceWindow: evidenceWindow(),
+          sourceCounts: {
+            LearningFact: 1,
+            StudentCompetencySnapshot: 1,
+            StudentProfileSummary: 1,
+            byFactType: { arena: 1 },
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+            StudentCompetencySnapshot: 'available',
+            StudentProfileSummary: 'available',
+          },
+          confidenceMarkers: {
+            level: 'high',
+            score: 0.9,
+            evidenceCount: 1,
+            sourceCompleteness: 1,
+          },
+          statusMarkers: [],
+          features: {
+            approvedAggregates: {
+              latestSnapshot: {
+                snapshotAt: '2026-05-20T00:00:00.000Z',
+                factCount: 12,
+                calculationVersion: 'competency-v2',
+                competencyVector: strongSnapshotVector,
+              },
+            },
+            adaptiveLearnerState: adaptiveLearnerStateFeature(),
+          },
+        }),
+      },
+      learningFact: {
+        findMany: async () => [],
+      },
+      arenaSubmission: {
+        findMany: async () => [officialArenaSubmission()],
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const arenaTransfer = state.goalSlices?.controlCorrection?.dimensions.find((dimension) => dimension.id === 'arena-transfer');
+    expect(arenaTransfer).toMatchObject({
+      sourceCoverage: expect.objectContaining({ arena: 'available' }),
+      evidenceCount: 1,
+      evidenceProvenance: expect.objectContaining({ arena: 'official' }),
+      confidence: expect.objectContaining({ sourceCompleteness: 1 }),
+    });
+  });
+
+  it('marks control-correction dimensions with missing, stale, partial, and low-confidence fallback states', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      studentCompetencySnapshot: { findFirst: async () => null },
+      studentProfileSummary: { findUnique: async () => null },
+      studentEvidenceFeatureCache: { findUnique: async () => null },
+      learningFact: { findMany: async () => [] },
+      adaptiveMasteryUpdate: { findMany: async () => [] },
+      adaptiveAssessmentAbilityEstimate: { findFirst: async () => null },
+      studentRiskFlag: { findMany: async () => [] },
+      learningPath: { findMany: async () => [] },
+    }), {
+      userId: 'student-2',
+      role: 'system',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const slice = state.goalSlices?.controlCorrection;
+    expect(slice?.dimensions).toHaveLength(CONTROL_CORRECTION_GOAL_DIMENSIONS.length);
+    expect(slice?.dimensions.every((dimension) => dimension.freshness === 'missing')).toBe(true);
+    expect(slice?.dimensions.every((dimension) => dimension.confidence.state === 'none')).toBe(true);
+    expect(slice?.dimensions.every((dimension) => dimension.fallbackMarkers.includes('missing-governed-evidence'))).toBe(true);
+  });
+
+  it('marks missing required sources per dimension even when global evidence markers are clean', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      studentEvidenceFeatureCache: {
+        findUnique: async () => ({
+          userId: 'student-1',
+          payloadVersion: 'student-evidence-features.v4',
+          refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
+          evidenceWindow: {
+            firstStartedAt: '2026-05-01T00:00:00.000Z',
+            lastStartedAt: '2026-05-19T00:00:00.000Z',
+            daysCovered: 18,
+          },
+          sourceCounts: {
+            LearningFact: 1,
+            StudentCompetencySnapshot: 1,
+            StudentProfileSummary: 1,
+            byFactType: { question: 1 },
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+            StudentCompetencySnapshot: 'available',
+            StudentProfileSummary: 'available',
+          },
+          confidenceMarkers: {
+            level: 'high',
+            score: 0.9,
+            evidenceCount: 1,
+            sourceCompleteness: 1,
+          },
+          statusMarkers: [],
+          features: {
+            approvedAggregates: {
+              latestSnapshot: {
+                snapshotAt: '2026-05-20T00:00:00.000Z',
+                factCount: 8,
+                calculationVersion: 'competency-v2',
+                competencyVector: snapshotVector,
+              },
+            },
+            adaptiveLearnerState: adaptiveLearnerStateFeature(),
+            simulationArena: {
+              recent30d: simulationArenaWindow({
+                evidenceCount: 0,
+                completedCount: 0,
+                officialCount: 0,
+                previewCount: 0,
+                agentAssistedCount: 0,
+                courseLaunchedCount: 0,
+                standaloneCount: 0,
+                traceReferenceCount: 0,
+                sourceCoverage: {
+                  simulation: 'missing',
+                  arena: 'missing',
+                  traceReferences: 'missing',
+                  replayConfidence: 'missing',
+                },
+                replayConfidence: {
+                  average: null,
+                  highConfidenceCount: 0,
+                  lowConfidenceCount: 0,
+                  missingCount: 0,
+                },
+              }),
+              allTime: simulationArenaWindow({
+                evidenceCount: 0,
+                completedCount: 0,
+                officialCount: 0,
+                previewCount: 0,
+                agentAssistedCount: 0,
+                courseLaunchedCount: 0,
+                standaloneCount: 0,
+                traceReferenceCount: 0,
+                sourceCoverage: {
+                  simulation: 'missing',
+                  arena: 'missing',
+                  traceReferences: 'missing',
+                  replayConfidence: 'missing',
+                },
+                replayConfidence: {
+                  average: null,
+                  highConfidenceCount: 0,
+                  lowConfidenceCount: 0,
+                  missingCount: 0,
+                },
+              }),
+            },
+          },
+        }),
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const slice = state.goalSlices?.controlCorrection;
+    expect(slice).toBeDefined();
+    if (!slice) throw new Error('expected control-correction goal slice');
+    expect(slice.dimensions.find((dimension) => dimension.id === 'time-domain-analysis')).toMatchObject({
+      freshness: 'missing',
+      confidence: expect.objectContaining({ state: 'none', sourceCompleteness: 0 }),
+    });
+    expect(slice.dimensions.find((dimension) => dimension.id === 'arena-transfer')).toMatchObject({
+      freshness: 'missing',
+      fallbackMarkers: expect.arrayContaining(['missing-arena-evidence', 'missing-official-arena-evidence']),
+      confidence: expect.objectContaining({ state: 'none', sourceCompleteness: 0 }),
+    });
+  });
+
+  it('does not treat unrelated learning facts or snapshot counts as assessment evidence', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      adaptiveMasteryUpdate: { findMany: async () => [] },
+      learningFact: {
+        findMany: async () => [
+          {
+            id: 'fact-media-only',
+            factType: 'media',
+            moduleId: 'unit-3-4',
+            lessonId: 'unit-3-4-root-locus-reading-validation',
+            startedAt: new Date('2026-05-19T00:00:00.000Z'),
+            finishedAt: new Date('2026-05-19T00:10:00.000Z'),
+            outcome: 'success',
+            score: 90,
+            timeSpent: 600,
+            contextJson: { media: { mediaType: 'video', progress: 0.9 } },
+          },
+        ],
+      },
+      studentEvidenceFeatureCache: {
+        findUnique: async () => ({
+          userId: 'student-1',
+          payloadVersion: 'student-evidence-features.v4',
+          refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
+          evidenceWindow: {
+            firstStartedAt: '2026-05-01T00:00:00.000Z',
+            lastStartedAt: '2026-05-19T00:00:00.000Z',
+            daysCovered: 18,
+          },
+          sourceCounts: {
+            LearningFact: 1,
+            StudentCompetencySnapshot: 1,
+            StudentProfileSummary: 1,
+            byFactType: { media: 1 },
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+            StudentCompetencySnapshot: 'available',
+            StudentProfileSummary: 'available',
+          },
+          confidenceMarkers: {
+            level: 'high',
+            score: 0.9,
+            evidenceCount: 1,
+            sourceCompleteness: 1,
+          },
+          statusMarkers: [],
+          features: {
+            approvedAggregates: {
+              latestSnapshot: {
+                snapshotAt: '2026-05-20T00:00:00.000Z',
+                factCount: 8,
+                calculationVersion: 'competency-v2',
+                competencyVector: snapshotVector,
+              },
+            },
+          },
+        }),
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const slice = state.goalSlices?.controlCorrection;
+    expect(slice).toBeDefined();
+    if (!slice) throw new Error('expected control-correction goal slice');
+    expect(slice.dimensions.find((dimension) => dimension.id === 'time-domain-analysis')).toMatchObject({
+      sourceCoverage: expect.objectContaining({ assessment: 'missing' }),
+      evidenceCount: 0,
+      freshness: 'missing',
+      confidence: expect.objectContaining({ state: 'none', sourceCompleteness: 0 }),
+      fallbackMarkers: expect.arrayContaining(['missing-assessment-evidence']),
+    });
+  });
+
+  it('does not count learning facts without control-correction scope as goal evidence', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      studentCompetencySnapshot: {
+        findFirst: async () => ({
+          snapshotAt: new Date('2026-05-20T00:00:00.000Z'),
+          factCount: 20,
+          calculationVersion: 'competency-v2',
+          competencyVector: strongSnapshotVector,
+          evidenceSummary: {},
+        }),
+      },
+      adaptiveMasteryUpdate: { findMany: async () => [] },
+      learningFact: {
+        findMany: async () => [
+          {
+            factType: 'question',
+            moduleId: 'lesson09-correction-precheck',
+            startedAt: new Date('2026-05-19T00:00:00.000Z'),
+            score: 92,
+            contextJson: {},
+          },
+          {
+            factType: 'simulation',
+            moduleId: 'unit-2-3',
+            startedAt: new Date('2026-05-18T00:00:00.000Z'),
+            score: 90,
+            contextJson: { stepId: 'correction_rate' },
+          },
+          {
+            factType: 'arena',
+            moduleId: 'unit-2-4',
+            startedAt: new Date('2026-05-17T00:00:00.000Z'),
+            score: 88,
+            contextJson: { nodeId: '串联无源滞后校正_6_2a52e865' },
+          },
+          { factType: 'reflection', moduleId: 'unit-3-4', startedAt: new Date('2026-05-16T00:00:00.000Z'), score: 86, contextJson: {} },
+          { factType: 'konling', moduleId: 'unit-3-5', startedAt: new Date('2026-05-15T00:00:00.000Z'), score: 84, contextJson: {} },
+        ],
+      },
+      studentEvidenceFeatureCache: {
+        findUnique: async () => ({
+          userId: 'student-1',
+          payloadVersion: 'student-evidence-features.v4',
+          refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
+          evidenceWindow: evidenceWindow(),
+          sourceCounts: {
+            LearningFact: 5,
+            StudentCompetencySnapshot: 1,
+            StudentProfileSummary: 1,
+            byFactType: { question: 1, simulation: 1, arena: 1, reflection: 1, konling: 1 },
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+            StudentCompetencySnapshot: 'available',
+            StudentProfileSummary: 'available',
+          },
+          confidenceMarkers: {
+            level: 'high',
+            score: 0.9,
+            evidenceCount: 5,
+            sourceCompleteness: 1,
+          },
+          statusMarkers: [],
+          features: {
+            approvedAggregates: {
+              latestSnapshot: {
+                snapshotAt: '2026-05-20T00:00:00.000Z',
+                factCount: 20,
+                calculationVersion: 'competency-v2',
+                competencyVector: strongSnapshotVector,
+              },
+            },
+          },
+        }),
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const slice = state.goalSlices?.controlCorrection;
+    expect(slice).toBeDefined();
+    if (!slice) throw new Error('expected control-correction goal slice');
+    expect(slice.dimensions.find((dimension) => dimension.id === 'time-domain-analysis')).toMatchObject({
+      evidenceCount: 0,
+      freshness: 'missing',
+      confidence: expect.objectContaining({ state: 'none' }),
+      fallbackMarkers: expect.arrayContaining(['missing-assessment-evidence']),
+    });
+    expect(slice.dimensions.find((dimension) => dimension.id === 'root-locus-reasoning')).toMatchObject({
+      evidenceCount: 0,
+      confidence: expect.objectContaining({ state: 'none' }),
+      fallbackMarkers: expect.arrayContaining([
+        'missing-assessment-evidence',
+        'missing-simulation-evidence',
+        'missing-arena-evidence',
+      ]),
+    });
+    expect(slice.dimensions.find((dimension) => dimension.id === 'reflection')).toMatchObject({
+      evidenceCount: 0,
+      fallbackMarkers: expect.arrayContaining(['missing-reflection-evidence']),
+    });
+    expect(slice.dimensions.find((dimension) => dimension.id === 'ai-collaboration')).toMatchObject({
+      evidenceCount: 0,
+      fallbackMarkers: expect.arrayContaining(['missing-ai-collaboration-evidence']),
+    });
+  });
+
+  it('marks stale control-correction fixtures without treating them as current evidence', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      studentEvidenceFeatureCache: {
+        findUnique: async () => ({
+          userId: 'student-1',
+          payloadVersion: 'student-evidence-features.v4',
+          refreshedAt: new Date('2026-04-01T02:00:00.000Z'),
+          evidenceWindow: {
+            firstStartedAt: '2026-03-01T00:00:00.000Z',
+            lastStartedAt: '2026-03-19T00:00:00.000Z',
+            daysCovered: 18,
+          },
+          sourceCounts: {
+            LearningFact: 3,
+            StudentCompetencySnapshot: 1,
+            StudentProfileSummary: 1,
+            byFactType: { question: 1, simulation: 1 },
+          },
+          sourceCoverage: {
+            LearningFact: 'partial',
+            StudentCompetencySnapshot: 'available',
+            StudentProfileSummary: 'available',
+          },
+          confidenceMarkers: {
+            level: 'medium',
+            score: 0.6,
+            evidenceCount: 3,
+            sourceCompleteness: 0.67,
+          },
+          statusMarkers: ['stale'],
+          features: {
+            adaptiveLearnerState: adaptiveLearnerStateFeature(),
+            simulationArena: {
+              recent30d: simulationArenaWindow({
+                evidenceCount: 1,
+                completedCount: 1,
+                officialCount: 0,
+                previewCount: 0,
+                sourceCoverage: {
+                  simulation: 'available',
+                  arena: 'missing',
+                  traceReferences: 'available',
+                  replayConfidence: 'partial',
+                },
+              }),
+              allTime: simulationArenaWindow({
+                evidenceCount: 1,
+                completedCount: 1,
+                officialCount: 0,
+                previewCount: 0,
+                sourceCoverage: {
+                  simulation: 'available',
+                  arena: 'missing',
+                  traceReferences: 'available',
+                  replayConfidence: 'partial',
+                },
+              }),
+            },
+          },
+        }),
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const slice = state.goalSlices?.controlCorrection;
+    expect(slice).toBeDefined();
+    if (!slice) throw new Error('expected control-correction goal slice');
+    const dimensions = slice.dimensions;
+    expect(dimensions.find((dimension) => dimension.id === 'time-domain-analysis')).toMatchObject({
+      freshness: 'missing',
+      fallbackMarkers: expect.arrayContaining(['stale']),
+    });
+    expect(dimensions.find((dimension) => dimension.id === 'arena-transfer')).toMatchObject({
+      freshness: 'missing',
+      fallbackMarkers: expect.arrayContaining(['stale', 'missing-official-arena-evidence']),
+    });
+  });
+
+  it('treats stale feature-cache read state as stale even without a stale status marker', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      studentEvidenceFeatureCache: {
+        findUnique: async () => ({
+          userId: 'student-1',
+          payloadVersion: 'student-evidence-features.v4',
+          refreshedAt: new Date('2026-04-01T02:00:00.000Z'),
+          evidenceWindow: {
+            firstStartedAt: '2026-03-01T00:00:00.000Z',
+            lastStartedAt: '2026-03-19T00:00:00.000Z',
+            daysCovered: 18,
+          },
+          sourceCounts: {
+            LearningFact: 8,
+            StudentCompetencySnapshot: 1,
+            StudentProfileSummary: 1,
+            byFactType: { question: 3, simulation: 2, arena: 1, reflection: 1, konling: 1 },
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+            StudentCompetencySnapshot: 'available',
+            StudentProfileSummary: 'available',
+          },
+          confidenceMarkers: {
+            level: 'high',
+            score: 0.9,
+            evidenceCount: 8,
+            sourceCompleteness: 1,
+          },
+          statusMarkers: [],
+          features: {
+            approvedAggregates: {
+              latestSnapshot: {
+                snapshotAt: '2026-03-19T00:00:00.000Z',
+                factCount: 12,
+                calculationVersion: 'competency-v2',
+                competencyVector: strongSnapshotVector,
+              },
+            },
+            adaptiveLearnerState: adaptiveLearnerStateFeature(),
+            simulationArena: {
+              recent30d: simulationArenaWindow(),
+              allTime: simulationArenaWindow(),
+            },
+          },
+        }),
+      },
+      learningFact: {
+        findMany: async () => [
+          controlCorrectionFact('question', '2026-03-19T00:00:00.000Z', 92),
+          controlCorrectionFact('simulation', '2026-03-18T00:00:00.000Z', 90),
+          controlCorrectionFact('arena', '2026-03-17T00:00:00.000Z', 88),
+          controlCorrectionFact('reflection', '2026-03-16T00:00:00.000Z', 86),
+          controlCorrectionFact('konling', '2026-03-15T00:00:00.000Z', 84),
+        ],
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const slice = state.goalSlices?.controlCorrection;
+    expect(slice).toBeDefined();
+    if (!slice) throw new Error('expected control-correction goal slice');
+    expect(state.evidence.readState).toBe('stale');
+    expect(slice.dimensions.find((dimension) => dimension.id === 'time-domain-analysis')).toMatchObject({
+      freshness: 'stale',
+      fallbackMarkers: expect.arrayContaining(['stale']),
+    });
+    expect(slice.dimensions.find((dimension) => dimension.id === 'root-locus-reasoning')).toMatchObject({
+      freshness: 'stale',
+      fallbackMarkers: expect.arrayContaining(['stale']),
+    });
+  });
+
+  it('caps dimension confidence when governed evidence carries a low-confidence marker', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      studentCompetencySnapshot: {
+        findFirst: async () => ({
+          snapshotAt: new Date('2026-05-20T00:00:00.000Z'),
+          factCount: 12,
+          calculationVersion: 'competency-v2',
+          competencyVector: strongSnapshotVector,
+          evidenceSummary: {},
+        }),
+      },
+      studentEvidenceFeatureCache: {
+        findUnique: async () => ({
+          userId: 'student-1',
+          payloadVersion: 'student-evidence-features.v4',
+          refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
+          evidenceWindow: evidenceWindow(),
+          sourceCounts: {
+            LearningFact: 8,
+            StudentCompetencySnapshot: 1,
+            StudentProfileSummary: 1,
+            byFactType: { question: 3, simulation: 2, arena: 1, reflection: 1, konling: 1 },
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+            StudentCompetencySnapshot: 'available',
+            StudentProfileSummary: 'available',
+          },
+          confidenceMarkers: {
+            level: 'low',
+            score: 0.35,
+            evidenceCount: 8,
+            sourceCompleteness: 1,
+          },
+          statusMarkers: ['low-confidence'],
+          features: {
+            approvedAggregates: {
+              latestSnapshot: {
+                snapshotAt: '2026-05-20T00:00:00.000Z',
+                factCount: 12,
+                calculationVersion: 'competency-v2',
+                competencyVector: strongSnapshotVector,
+              },
+            },
+            adaptiveLearnerState: adaptiveLearnerStateFeature({
+              confidence: {
+                level: 'low',
+                score: 0.35,
+                evidenceCount: 8,
+                sourceCompleteness: 1,
+                markers: ['low-confidence'],
+              },
+            }),
+            simulationArena: {
+              recent30d: simulationArenaWindow(),
+              allTime: simulationArenaWindow(),
+            },
+          },
+        }),
+      },
+      learningFact: {
+        findMany: async () => [
+          controlCorrectionFact('question', '2026-05-19T00:00:00.000Z', 92),
+          controlCorrectionFact('simulation', '2026-05-18T00:00:00.000Z', 90),
+          controlCorrectionFact('arena', '2026-05-17T00:00:00.000Z', 88),
+          controlCorrectionFact('reflection', '2026-05-16T00:00:00.000Z', 86),
+          controlCorrectionFact('konling', '2026-05-15T00:00:00.000Z', 84),
+        ],
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const slice = state.goalSlices?.controlCorrection;
+    expect(slice).toBeDefined();
+    if (!slice) throw new Error('expected control-correction goal slice');
+    expect(slice.dimensions.find((dimension) => dimension.id === 'root-locus-reasoning')).toMatchObject({
+      confidence: expect.objectContaining({ state: 'low', sourceCompleteness: 1 }),
+      fallbackMarkers: expect.arrayContaining(['low-confidence']),
+    });
+  });
+
+  it('propagates simulation Arena window quality markers into goal slice freshness and confidence', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      studentCompetencySnapshot: {
+        findFirst: async () => ({
+          snapshotAt: new Date('2026-05-20T00:00:00.000Z'),
+          factCount: 12,
+          calculationVersion: 'competency-v2',
+          competencyVector: strongSnapshotVector,
+          evidenceSummary: {},
+        }),
+      },
+      studentEvidenceFeatureCache: {
+        findUnique: async () => ({
+          userId: 'student-1',
+          payloadVersion: 'student-evidence-features.v4',
+          refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
+          evidenceWindow: evidenceWindow(),
+          sourceCounts: {
+            LearningFact: 8,
+            StudentCompetencySnapshot: 1,
+            StudentProfileSummary: 1,
+            byFactType: { question: 3, simulation: 2, arena: 1, reflection: 1, konling: 1 },
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+            StudentCompetencySnapshot: 'available',
+            StudentProfileSummary: 'available',
+          },
+          confidenceMarkers: {
+            level: 'high',
+            score: 0.9,
+            evidenceCount: 8,
+            sourceCompleteness: 1,
+          },
+          statusMarkers: [],
+          features: {
+            approvedAggregates: {
+              latestSnapshot: {
+                snapshotAt: '2026-05-20T00:00:00.000Z',
+                factCount: 12,
+                calculationVersion: 'competency-v2',
+                competencyVector: strongSnapshotVector,
+              },
+            },
+            adaptiveLearnerState: adaptiveLearnerStateFeature(),
+            simulationArena: {
+              recent30d: simulationArenaWindow(),
+              allTime: simulationArenaWindow({
+                qualityMarkers: ['partial', 'low-confidence', 'preview-only', 'standalone-only'],
+              }),
+            },
+          },
+        }),
+      },
+      learningFact: {
+        findMany: async () => [
+          controlCorrectionFact('question', '2026-05-19T00:00:00.000Z', 92),
+          controlCorrectionFact('simulation', '2026-05-18T00:00:00.000Z', 90),
+          controlCorrectionFact('arena', '2026-05-17T00:00:00.000Z', 88),
+          controlCorrectionFact('reflection', '2026-05-16T00:00:00.000Z', 86),
+          controlCorrectionFact('konling', '2026-05-15T00:00:00.000Z', 84),
+        ],
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const slice = state.goalSlices?.controlCorrection;
+    expect(slice).toBeDefined();
+    if (!slice) throw new Error('expected control-correction goal slice');
+    expect(slice.dimensions.find((dimension) => dimension.id === 'simulation-validation')).toMatchObject({
+      freshness: 'partial',
+      confidence: expect.objectContaining({ state: 'low' }),
+      fallbackMarkers: expect.arrayContaining([
+        'partial-simulation-evidence',
+        'preview-only-simulation-arena-evidence',
+        'standalone-only-simulation-arena-evidence',
+        'low-confidence',
+      ]),
+    });
+    expect(slice.dimensions.find((dimension) => dimension.id === 'root-locus-reasoning')).toMatchObject({
+      freshness: 'partial',
+      confidence: expect.objectContaining({ state: 'low' }),
+      fallbackMarkers: expect.arrayContaining([
+        'partial-simulation-evidence',
+        'partial-arena-evidence',
+        'preview-only-simulation-arena-evidence',
+        'standalone-only-simulation-arena-evidence',
+        'low-confidence',
+      ]),
+    });
+    expect(slice.dimensions.find((dimension) => dimension.id === 'time-domain-analysis')).toMatchObject({
+      freshness: 'current',
+      confidence: expect.objectContaining({ state: 'high' }),
+      fallbackMarkers: [],
+    });
+    expect(slice.dimensions.find((dimension) => dimension.id === 'reflection')).toMatchObject({
+      confidence: expect.objectContaining({ state: 'high' }),
+      fallbackMarkers: [],
+    });
+    expect(slice.dimensions.find((dimension) => dimension.id === 'ai-collaboration')).toMatchObject({
+      confidence: expect.objectContaining({ state: 'high' }),
+      fallbackMarkers: [],
+    });
+  });
+
+  it('rejects control-correction goal slices without privacy or confidence metadata', async () => {
+    const state = await readAdaptiveLearnerState(createDb(), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const slice = state.goalSlices?.controlCorrection;
+    expect(() => validateControlCorrectionGoalSliceContract({
+      ...slice,
+      dimensions: slice?.dimensions.map((dimension, index) => (
+        index === 0 ? { ...dimension, confidence: undefined } : dimension
+      )),
+    })).toThrow('control-correction dimension missing confidence metadata');
+    expect(() => validateControlCorrectionGoalSliceContract({
+      ...slice,
+      dimensions: slice?.dimensions.map((dimension, index) => (
+        index === 0 ? { ...dimension, privacy: undefined } : dimension
+      )),
+    })).toThrow('control-correction dimension missing privacy metadata');
+    expect(() => validateControlCorrectionGoalSliceContract({
+      ...slice,
+      dimensions: slice?.dimensions.map((dimension, index) => (
+        index === 0 ? { ...dimension, confidence: { ...dimension.confidence, score: undefined } } : dimension
+      )),
+    })).toThrow('control-correction dimension missing confidence metadata');
+    expect(() => validateControlCorrectionGoalSliceContract({
+      ...slice,
+      dimensions: slice?.dimensions.map((dimension, index) => (
+        index === 0 ? {
+          ...dimension,
+          privacy: { ...dimension.privacy, rawPayloads: 'student-visible' },
+        } : dimension
+      )),
+    })).toThrow('control-correction dimension missing privacy metadata');
+    expect(() => validateControlCorrectionGoalSliceContract({
+      ...slice,
+      privacyClasses: { student: 'student-visible' },
+    })).toThrow('control-correction goal slice missing privacy classes');
+    expect(() => validateControlCorrectionGoalSliceContract({
+      ...slice,
+      targetLevels: ['foundation'],
+    })).toThrow('control-correction goal slice missing target levels');
   });
 });
