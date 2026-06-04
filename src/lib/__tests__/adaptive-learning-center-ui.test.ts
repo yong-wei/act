@@ -116,6 +116,7 @@ function learnerState(overrides: Partial<AdaptiveLearnerState> = {}): AdaptiveLe
     },
     prerequisiteFeatureGroups: {
       simulationArena: { available: true },
+      pathExecution: null,
     },
     fieldContracts: {} as AdaptiveLearnerState['fieldContracts'],
     missingEvidence: ['knowledgeMastery'],

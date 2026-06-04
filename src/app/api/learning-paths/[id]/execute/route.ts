@@ -11,6 +11,8 @@ import {
   getLearningPathRequester,
   readPathForAccess,
   readPathNodeIds,
+  refreshPathEvidenceFeatureCache,
+  requireIdempotencyKey,
 } from '../../route-helpers';
 
 export const dynamic = 'force-dynamic';
@@ -29,6 +31,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (denied) return denied;
 
     const body = await request.json();
+    const missingIdempotencyKey = requireIdempotencyKey(body.idempotencyKey);
+    if (missingIdempotencyKey) return missingIdempotencyKey;
     const nodeIds = new Set(readPathNodeIds(path));
     if (
       typeof body.nodeId !== 'string' ||
@@ -49,12 +53,12 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       });
       if (existingExecution) {
         const existingStatus = readExecutionStatus(existingExecution.status);
+        let execution = existingExecution;
         if (
-          path.currentNodeId === existingExecution.nodeId &&
           typeof existingExecution.resourceType === 'string' &&
           existingStatus
         ) {
-          await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, {
+          const executionInput = {
             pathId: params.id,
             userId: path.userId,
             nodeId: existingExecution.nodeId,
@@ -68,9 +72,16 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
             simulationRef: toNullableRecord(existingExecution.simulationRef),
             arenaRef: toNullableRecord(existingExecution.arenaRef),
             idempotencyKey: body.idempotencyKey ?? null,
-          });
+            actorUserId: requester.userId,
+            actorRole: requester.role,
+          };
+          execution = await recordPathNodeExecution(prisma as any, executionInput);
+          if (path.currentNodeId === existingExecution.nodeId) {
+            await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, executionInput);
+          }
         }
-        return NextResponse.json({ execution: existingExecution });
+        const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
+        return NextResponse.json({ execution: toExecutionWriteView(execution), cacheRefresh });
       }
     }
     if (path.currentNodeId !== body.nodeId) {
@@ -90,6 +101,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       simulationRef: body.simulationRef ?? null,
       arenaRef: body.arenaRef ?? null,
       idempotencyKey: body.idempotencyKey ?? null,
+      actorUserId: requester.userId,
+      actorRole: requester.role,
     });
     await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, {
       pathId: params.id,
@@ -105,9 +118,12 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       simulationRef: body.simulationRef ?? null,
       arenaRef: body.arenaRef ?? null,
       idempotencyKey: body.idempotencyKey ?? null,
+      actorUserId: requester.userId,
+      actorRole: requester.role,
     });
+    const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
 
-    return NextResponse.json({ execution });
+    return NextResponse.json({ execution: toExecutionWriteView(execution), cacheRefresh });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('[LearningPathExecute] Error:', error);
@@ -127,4 +143,17 @@ function toRecord(value: unknown): Record<string, unknown> {
 
 function toNullableRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+
+function toExecutionWriteView(execution: any) {
+  return {
+    id: execution.id,
+    nodeId: execution.nodeId,
+    resourceType: execution.resourceType,
+    status: execution.status,
+    startedAt: execution.startedAt ?? null,
+    completedAt: execution.completedAt ?? null,
+    failedAt: execution.failedAt ?? null,
+    createdAt: execution.createdAt ?? null,
+  };
 }

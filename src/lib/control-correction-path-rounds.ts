@@ -16,6 +16,9 @@ export interface ControlCorrectionPathRoundDb {
   learningPathExecution: AppendOnlyDelegate;
   learningPathDeviation: AppendOnlyDelegate;
   learningPathIntervention: AppendOnlyDelegate;
+  evidenceOutbox?: {
+    createMany: (args: { data: any[]; skipDuplicates?: boolean }) => Promise<{ count: number }>;
+  };
 }
 
 interface AppendOnlyDelegate {
@@ -44,6 +47,8 @@ export interface PathNodeExecutionInput {
   simulationRef?: Record<string, unknown> | null;
   arenaRef?: Record<string, unknown> | null;
   idempotencyKey?: string | null;
+  actorUserId?: string | null;
+  actorRole?: string | null;
 }
 
 export interface PathDeviationInput {
@@ -55,6 +60,8 @@ export interface PathDeviationInput {
   context?: Record<string, unknown>;
   evidenceConfidence?: 'low' | 'medium' | 'high' | 'unknown';
   idempotencyKey?: string | null;
+  actorUserId?: string | null;
+  actorRole?: string | null;
 }
 
 export interface PathInterventionInput {
@@ -66,6 +73,8 @@ export interface PathInterventionInput {
   studentOutcome?: 'pending' | 'accepted' | 'dismissed' | 'completed';
   privacySafeSummary: string;
   idempotencyKey?: string | null;
+  actorUserId?: string | null;
+  actorRole?: string | null;
 }
 
 export interface LegacyLearningPathSummary {
@@ -224,7 +233,12 @@ export async function recordPathNodeExecution(
   db: ControlCorrectionPathRoundDb,
   input: PathNodeExecutionInput,
 ): Promise<any> {
-  return createAppendOnly(db.learningPathExecution, input, {
+  const existing = await findExistingAppendOnly(db.learningPathExecution, input);
+  if (existing) {
+    await emitPathEvidenceEvent(db, 'execution', existing, input);
+    return existing;
+  }
+  const execution = await createAppendOnly(db.learningPathExecution, input, {
     pathId: input.pathId,
     userId: input.userId,
     nodeId: input.nodeId,
@@ -239,6 +253,8 @@ export async function recordPathNodeExecution(
     arenaRef: input.arenaRef ?? null,
     idempotencyKey: input.idempotencyKey ?? null,
   });
+  await emitPathEvidenceEvent(db, 'execution', execution, input);
+  return execution;
 }
 
 export async function updateControlCorrectionPathRoundAfterExecution(
@@ -290,7 +306,12 @@ export async function recordPathDeviation(
   db: ControlCorrectionPathRoundDb,
   input: PathDeviationInput,
 ): Promise<any> {
-  return createAppendOnly(db.learningPathDeviation, input, {
+  const existing = await findExistingAppendOnly(db.learningPathDeviation, input);
+  if (existing) {
+    await emitPathEvidenceEvent(db, 'deviation', existing, input);
+    return existing;
+  }
+  const deviation = await createAppendOnly(db.learningPathDeviation, input, {
     pathId: input.pathId,
     userId: input.userId,
     deviationType: input.deviationType,
@@ -300,13 +321,20 @@ export async function recordPathDeviation(
     evidenceConfidence: input.evidenceConfidence ?? 'unknown',
     idempotencyKey: input.idempotencyKey ?? null,
   });
+  await emitPathEvidenceEvent(db, 'deviation', deviation, input);
+  return deviation;
 }
 
 export async function recordPathIntervention(
   db: ControlCorrectionPathRoundDb,
   input: PathInterventionInput,
 ): Promise<any> {
-  return createAppendOnly(db.learningPathIntervention, input, {
+  const existing = await findExistingAppendOnly(db.learningPathIntervention, input);
+  if (existing) {
+    await emitPathEvidenceEvent(db, 'intervention', existing, input);
+    return existing;
+  }
+  const intervention = await createAppendOnly(db.learningPathIntervention, input, {
     pathId: input.pathId,
     userId: input.userId,
     interventionKind: input.interventionKind,
@@ -316,6 +344,8 @@ export async function recordPathIntervention(
     privacySafeSummary: input.privacySafeSummary,
     idempotencyKey: input.idempotencyKey ?? null,
   });
+  await emitPathEvidenceEvent(db, 'intervention', intervention, input);
+  return intervention;
 }
 
 export function toLegacyLearningPathSummary(path: LegacyLearningPathSummary) {
@@ -445,6 +475,19 @@ async function createAppendOnly<T extends { pathId: string; idempotencyKey?: str
   }
 }
 
+async function findExistingAppendOnly<T extends { pathId: string; idempotencyKey?: string | null }>(
+  delegate: AppendOnlyDelegate,
+  input: T,
+): Promise<any | null> {
+  if (!input.idempotencyKey) return null;
+  return delegate.findFirst({
+    where: {
+      pathId: input.pathId,
+      idempotencyKey: input.idempotencyKey,
+    },
+  });
+}
+
 function normalizeDate(value?: Date | string | null): Date | null {
   if (!value) return null;
   return value instanceof Date ? value : new Date(value);
@@ -472,6 +515,84 @@ function updateTerminalValidationState(value: unknown, input: PathNodeExecutionI
         ? 'failed'
         : terminalValidation.state ?? 'pending',
   };
+}
+
+type PathEvidenceEventKind = 'execution' | 'deviation' | 'intervention';
+
+async function emitPathEvidenceEvent(
+  db: ControlCorrectionPathRoundDb,
+  kind: PathEvidenceEventKind,
+  row: any,
+  input: { pathId: string; userId: string; idempotencyKey?: string | null; actorUserId?: string | null; actorRole?: string | null },
+): Promise<void> {
+  if (!db.evidenceOutbox?.createMany) return;
+  const rowId = typeof row?.id === 'string' ? row.id : input.idempotencyKey ?? input.pathId;
+  const eventType = `control_correction_path.${kind}_recorded`;
+  const sourceType = kind === 'execution'
+    ? 'LearningPathExecution'
+    : kind === 'deviation'
+      ? 'LearningPathDeviation'
+      : 'LearningPathIntervention';
+  const dedupeKey = `control-correction-path:${kind}:${input.pathId}:${input.idempotencyKey ?? rowId}`;
+  const occurredAt = resolvePathEvidenceOccurredAt(kind, row);
+  const payload = {
+    eventType,
+    actor: {
+      userId: input.actorUserId ?? input.userId,
+      role: input.actorRole ?? 'student',
+    },
+    subject: {
+      userId: input.userId,
+    },
+    sourceCapability: 'connect-path-execution-to-evidence-cache',
+    payloadVersion: 'control-correction-path-evidence.v1',
+    occurredAt,
+    privacyLevel: kind === 'intervention' ? 'teacher-scoped' : 'student-visible',
+    confidence: kind === 'deviation' ? readPathEvidenceConfidence(row?.evidenceConfidence) : 'medium',
+    relatedRefs: compactObject({
+      pathId: input.pathId,
+      sourceType,
+      sourceId: rowId,
+      nodeId: typeof row?.nodeId === 'string' ? row.nodeId : typeof row?.priorNodeId === 'string' ? row.priorNodeId : undefined,
+      targetNodeId: typeof row?.targetNodeId === 'string' ? row.targetNodeId : undefined,
+      resourceType: typeof row?.resourceType === 'string' ? row.resourceType : undefined,
+      status: typeof row?.status === 'string' ? row.status : undefined,
+      deviationType: typeof row?.deviationType === 'string' ? row.deviationType : undefined,
+      interventionKind: typeof row?.interventionKind === 'string' ? row.interventionKind : undefined,
+      studentOutcome: typeof row?.studentOutcome === 'string' ? row.studentOutcome : undefined,
+    }),
+  };
+
+  await db.evidenceOutbox.createMany({
+    data: [{
+      eventType,
+      correlationId: input.pathId,
+      causationId: `${sourceType}:${rowId}`,
+      ownerUserId: input.userId,
+      payload,
+      dedupeKey,
+      createdAt: new Date().toISOString(),
+    }],
+    skipDuplicates: true,
+  });
+}
+
+function resolvePathEvidenceOccurredAt(kind: PathEvidenceEventKind, row: any): string {
+  const value = kind === 'execution'
+    ? row?.completedAt ?? row?.failedAt ?? row?.startedAt ?? row?.createdAt
+    : row?.createdAt;
+  const date = normalizeDate(value);
+  return date?.toISOString() ?? new Date().toISOString();
+}
+
+function readPathEvidenceConfidence(value: unknown): 'low' | 'medium' | 'high' | 'unknown' {
+  return value === 'low' || value === 'medium' || value === 'high' || value === 'unknown'
+    ? value
+    : 'unknown';
+}
+
+function compactObject(value: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined));
 }
 
 function toRecord(value: unknown): Record<string, any> {

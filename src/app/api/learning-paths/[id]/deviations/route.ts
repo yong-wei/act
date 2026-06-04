@@ -8,6 +8,8 @@ import {
   getLearningPathRequester,
   readPathForAccess,
   readPathNodeIds,
+  refreshPathEvidenceFeatureCache,
+  requireIdempotencyKey,
 } from '../../route-helpers';
 
 export const dynamic = 'force-dynamic';
@@ -26,6 +28,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (denied) return denied;
 
     const body = await request.json();
+    const missingIdempotencyKey = requireIdempotencyKey(body.idempotencyKey);
+    if (missingIdempotencyKey) return missingIdempotencyKey;
     const nodeIds = new Set(readPathNodeIds(path));
     if (
       typeof body.deviationType !== 'string' ||
@@ -54,12 +58,26 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       context: body.context ?? {},
       evidenceConfidence: body.evidenceConfidence ?? 'unknown',
       idempotencyKey: body.idempotencyKey ?? null,
+      actorUserId: requester.userId,
+      actorRole: requester.role,
     });
+    const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
 
-    return NextResponse.json({ deviation });
+    return NextResponse.json({ deviation: toDeviationWriteView(deviation), cacheRefresh });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('[LearningPathDeviation] Error:', error);
     return NextResponse.json({ error: '记录路径偏离失败' }, { status: 500 });
   }
+}
+
+function toDeviationWriteView(deviation: any) {
+  return {
+    id: deviation.id,
+    deviationType: deviation.deviationType,
+    priorNodeId: deviation.priorNodeId ?? null,
+    targetNodeId: deviation.targetNodeId ?? null,
+    evidenceConfidence: deviation.evidenceConfidence ?? 'unknown',
+    createdAt: deviation.createdAt ?? null,
+  };
 }

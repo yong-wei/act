@@ -331,6 +331,7 @@ export interface AdaptiveLearnerState {
   };
   prerequisiteFeatureGroups: {
     simulationArena: Record<string, unknown> | null;
+    pathExecution: Record<string, unknown> | null;
   };
   goalSlices?: {
     controlCorrection?: ControlCorrectionGoalSlice;
@@ -453,6 +454,7 @@ export async function readAdaptiveLearnerState(
   const featureCache = asRecord(featureRead.cache);
   const featureSnapshot = getObject(getObject(getObject(featureCache.features).approvedAggregates).latestSnapshot);
   const featureSimulationArena = getObject(getObject(featureCache.features).simulationArena);
+  const featurePathExecution = getObject(getObject(featureCache.features).pathExecution);
 
   const [
     latestSnapshot,
@@ -555,6 +557,9 @@ export async function readAdaptiveLearnerState(
   const prerequisiteFeatureGroups = {
     simulationArena: Object.keys(featureSimulationArena).length > 0
       ? getObject(featureSimulationArena.allTime)
+      : null,
+    pathExecution: Object.keys(featurePathExecution).length > 0
+      ? filterPathExecutionForRole(getObject(featurePathExecution.allTime), input.role)
       : null,
   };
   const missingEvidence = buildMissingEvidence({
@@ -1326,6 +1331,23 @@ function privacyScopesForRole(role: AdaptiveLearnerStateRole): AdaptiveLearnerSt
     return ['student-visible', 'teacher-scoped', 'admin-scoped', 'audit-only', 'system-internal'];
   }
   return ['student-visible'];
+}
+
+function filterPathExecutionForRole(
+  value: Record<string, unknown>,
+  role: AdaptiveLearnerStateRole,
+): Record<string, unknown> {
+  const allowedScopes = new Set(privacyScopesForRole(role));
+  const sourceReferences = Array.isArray(value.sourceReferences)
+    ? value.sourceReferences.filter((entry) => {
+        const reference = getObject(entry);
+        return allowedScopes.has(readString(reference.privacyLevel) as AdaptiveLearnerStatePrivacyScope);
+      })
+    : [];
+  return {
+    ...value,
+    sourceReferences,
+  };
 }
 
 function factTypeToModality(factType: string | null): string | null {

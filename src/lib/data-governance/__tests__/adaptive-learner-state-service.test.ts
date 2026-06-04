@@ -259,6 +259,47 @@ function simulationArenaWindow(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function pathExecutionWindow(overrides: Record<string, unknown> = {}) {
+  return {
+    window: evidenceWindow(),
+    evidenceCount: 0,
+    adoptionCount: 0,
+    completionCount: 0,
+    deviationCount: 0,
+    fallbackCount: 0,
+    terminalValidationCount: 0,
+    sourceCoverage: {
+      adoption: 'missing',
+      completion: 'missing',
+      deviation: 'missing',
+      fallback: 'missing',
+      terminalValidation: 'missing',
+      interventionOutcome: 'missing',
+    },
+    confidence: {
+      level: 'none',
+      score: 0,
+      lowConfidenceCount: 0,
+    },
+    interventionOutcome: {
+      acceptedCount: 0,
+      completedCount: 0,
+      dismissedCount: 0,
+      lowConfidenceCount: 0,
+    },
+    sourceReferences: [],
+    ...overrides,
+  };
+}
+
+function pathExecutionFeature(overrides: Record<string, unknown> = {}) {
+  return {
+    recent30d: pathExecutionWindow(),
+    allTime: pathExecutionWindow(),
+    ...overrides,
+  };
+}
+
 function controlCorrectionFact(
   factType: string,
   startedAt: string,
@@ -748,6 +789,7 @@ describe('adaptive learner state service', () => {
               recent30d: simulationArenaWindow(),
               allTime: simulationArenaWindow(),
             },
+            pathExecution: pathExecutionFeature(),
           },
         }),
       },
@@ -807,6 +849,121 @@ describe('adaptive learner state service', () => {
       evidenceProvenance: expect.objectContaining({ arena: 'official' }),
       confidence: expect.objectContaining({ state: 'high' }),
     });
+  });
+
+  it('exposes governed path execution features through prerequisite feature groups', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      studentEvidenceFeatureCache: {
+        findUnique: async () => ({
+          userId: 'student-1',
+          payloadVersion: 'student-evidence-features.v4',
+          refreshedAt: new Date('2026-05-20T02:00:00.000Z'),
+          evidenceWindow: evidenceWindow(),
+          sourceCounts: {
+            LearningFact: 8,
+            StudentCompetencySnapshot: 1,
+            StudentProfileSummary: 1,
+            byFactType: { question: 3, simulation: 2, arena: 1, reflection: 1, konling: 1 },
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+            StudentCompetencySnapshot: 'available',
+            StudentProfileSummary: 'available',
+          },
+          confidenceMarkers: {
+            level: 'high',
+            score: 0.9,
+            evidenceCount: 8,
+            sourceCompleteness: 1,
+          },
+          statusMarkers: [],
+          features: {
+            approvedAggregates: {
+              latestSnapshot: {
+                snapshotAt: '2026-05-20T00:00:00.000Z',
+                factCount: 12,
+                calculationVersion: 'competency-v2',
+                competencyVector: strongSnapshotVector,
+              },
+            },
+            adaptiveLearnerState: adaptiveLearnerStateFeature(),
+            simulationArena: {
+              recent30d: simulationArenaWindow(),
+              allTime: simulationArenaWindow(),
+            },
+            pathExecution: pathExecutionFeature({
+              allTime: pathExecutionWindow({
+                evidenceCount: 3,
+                adoptionCount: 1,
+                completionCount: 1,
+                terminalValidationCount: 1,
+                sourceCoverage: {
+                  adoption: 'available',
+                  completion: 'available',
+                  deviation: 'missing',
+                  fallback: 'missing',
+                  terminalValidation: 'available',
+                  interventionOutcome: 'available',
+                },
+                confidence: {
+                  level: 'medium',
+                  score: 0.86,
+                  lowConfidenceCount: 0,
+                },
+                interventionOutcome: {
+                  acceptedCount: 1,
+                  completedCount: 0,
+                  dismissedCount: 0,
+                  lowConfidenceCount: 0,
+                },
+                sourceReferences: [
+                  {
+                    sourceType: 'LearningPathExecution',
+                    sourceId: 'exec-1',
+                    pathId: 'path-1',
+                    nodeId: 'terminal-node',
+                    occurredAt: '2026-06-04T10:20:00.000Z',
+                    privacyLevel: 'student-visible',
+                    status: 'completed',
+                    resourceType: 'arena_task',
+                  },
+                  {
+                    sourceType: 'LearningPathIntervention',
+                    sourceId: 'int-1',
+                    pathId: 'path-1',
+                    nodeId: null,
+                    occurredAt: '2026-06-04T10:24:00.000Z',
+                    privacyLevel: 'teacher-scoped',
+                    interventionKind: 'hint',
+                    studentOutcome: 'accepted',
+                  },
+                ],
+              }),
+            }),
+          },
+        }),
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    expect(state.prerequisiteFeatureGroups.pathExecution).toMatchObject({
+      evidenceCount: 3,
+      completionCount: 1,
+      terminalValidationCount: 1,
+      sourceReferences: [
+        expect.objectContaining({
+          sourceType: 'LearningPathExecution',
+          sourceId: 'exec-1',
+        }),
+      ],
+    });
+    expect((state.prerequisiteFeatureGroups.pathExecution as any).sourceReferences).toHaveLength(1);
+    expect(JSON.stringify(state.prerequisiteFeatureGroups.pathExecution)).not.toContain('int-1');
+    expect(state.evidence.readState).toBe('ready');
   });
 
   it('uses official Arena submissions even when simulation Arena feature coverage is stale or missing', async () => {
@@ -1487,6 +1644,7 @@ describe('adaptive learner state service', () => {
                 qualityMarkers: ['partial', 'low-confidence', 'preview-only', 'standalone-only'],
               }),
             },
+            pathExecution: pathExecutionFeature(),
           },
         }),
       },

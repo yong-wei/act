@@ -172,6 +172,9 @@ function mockDb() {
         return row;
       }),
     },
+    evidenceOutbox: {
+      createMany: vi.fn(async ({ data }) => ({ count: data.length })),
+    },
   };
 }
 
@@ -254,6 +257,30 @@ describe('control-correction path rounds', () => {
     expect(executionRetry).toBe(execution);
     expect(deviation).toMatchObject({ deviationType: 'skip', evidenceConfidence: 'unknown' });
     expect(intervention).toMatchObject({ interventionKind: 'hint', studentOutcome: 'pending' });
+    expect(db.evidenceOutbox.createMany).toHaveBeenCalledTimes(4);
+    expect(db.evidenceOutbox.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: [
+        expect.objectContaining({
+          eventType: 'control_correction_path.execution_recorded',
+          ownerUserId: 'student-1',
+          correlationId: 'path-1',
+          causationId: 'LearningPathExecution:exec-created',
+          dedupeKey: 'control-correction-path:execution:path-1:exec-key',
+          payload: expect.objectContaining({
+            eventType: 'control_correction_path.execution_recorded',
+            sourceCapability: 'connect-path-execution-to-evidence-cache',
+            payloadVersion: 'control-correction-path-evidence.v1',
+            privacyLevel: 'student-visible',
+            confidence: 'medium',
+            relatedRefs: expect.objectContaining({
+              pathId: 'path-1',
+              nodeId: 'node-1',
+            }),
+          }),
+        }),
+      ],
+      skipDuplicates: true,
+    }));
   });
 
   it('rejects a client supplied path id when it already belongs to another owner or goal', async () => {
@@ -317,6 +344,41 @@ describe('control-correction path rounds', () => {
 
     expect(execution).toBe(existing);
     expect(db.learningPathExecution.findFirst).toHaveBeenCalledTimes(2);
+  });
+
+  it('repairs missing outbox events on idempotent retry', async () => {
+    const existing = {
+      id: 'exec-existing',
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'exec-key',
+    };
+    const db = mockDb();
+    db.learningPathExecution.findFirst = vi.fn().mockResolvedValue(existing);
+
+    const execution = await recordPathNodeExecution(db, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'exec-key',
+    });
+
+    expect(execution).toBe(existing);
+    expect(db.learningPathExecution.create).not.toHaveBeenCalled();
+    expect(db.evidenceOutbox.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: [
+        expect.objectContaining({
+          dedupeKey: 'control-correction-path:execution:path-1:exec-key',
+          causationId: 'LearningPathExecution:exec-existing',
+        }),
+      ],
+      skipDuplicates: true,
+    }));
   });
 
   it('reads the path round with append-only children and maps legacy summary output', async () => {
