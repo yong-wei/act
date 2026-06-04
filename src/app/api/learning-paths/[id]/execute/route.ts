@@ -11,6 +11,9 @@ import {
 
 export const dynamic = 'force-dynamic';
 
+const EXECUTION_STATUSES = new Set(['started', 'completed', 'failed', 'abandoned']);
+const RESOURCE_TYPES = new Set(['knowledge_card', 'simulation', 'arena_task', 'intervention', 'reflection']);
+
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
     const requester = await getLearningPathRequester();
@@ -22,6 +25,17 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (denied) return denied;
 
     const body = await request.json();
+    const nodeIds = readPathNodeIds(path);
+    if (
+      typeof body.nodeId !== 'string' ||
+      !nodeIds.has(body.nodeId) ||
+      typeof body.resourceType !== 'string' ||
+      !RESOURCE_TYPES.has(body.resourceType) ||
+      typeof body.status !== 'string' ||
+      !EXECUTION_STATUSES.has(body.status)
+    ) {
+      return NextResponse.json({ error: '执行事件不符合路径节点或状态契约' }, { status: 400 });
+    }
     const execution = await recordPathNodeExecution(prisma as any, {
       pathId: params.id,
       userId: path.userId,
@@ -44,4 +58,13 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     console.error('[LearningPathExecute] Error:', error);
     return NextResponse.json({ error: '记录路径执行失败' }, { status: 500 });
   }
+}
+
+function readPathNodeIds(path: { nodeIds?: unknown; pathPayload?: unknown }): Set<string> {
+  const fromNodeIds = Array.isArray(path.nodeIds) ? path.nodeIds : [];
+  const payload = path.pathPayload && typeof path.pathPayload === 'object'
+    ? path.pathPayload as { mainPathNodeIds?: unknown }
+    : {};
+  const fromPayload = Array.isArray(payload.mainPathNodeIds) ? payload.mainPathNodeIds : [];
+  return new Set([...fromNodeIds, ...fromPayload].filter((value): value is string => typeof value === 'string'));
 }

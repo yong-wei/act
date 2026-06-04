@@ -68,6 +68,8 @@ describe('learning path round API routes', () => {
       classId: 'class-1',
       goalId: 'control-correction',
       pathStatus: 'active',
+      nodeIds: ['node-1'],
+      pathPayload: { mainPathNodeIds: ['node-1'] },
     });
     mocks.prisma.studentProfile.findUnique.mockResolvedValue({ userId: 'student-1', classId: 'class-1' });
     mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
@@ -153,6 +155,8 @@ describe('learning path round API routes', () => {
       classId: 'class-2',
       goalId: 'control-correction',
       pathStatus: 'active',
+      nodeIds: ['node-1'],
+      pathPayload: { mainPathNodeIds: ['node-1'] },
     });
 
     const response = await planPath(post('http://localhost/api/learning-paths/plan', {
@@ -271,6 +275,18 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('rejects malformed execution writes before persistence', async () => {
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'outside-node',
+      resourceType: 'simulation',
+      status: 'done',
+      idempotencyKey: 'exec-key',
+    }), params);
+
+    expect(response.status).toBe(400);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
   it('rejects read and writes when the feature flag is disabled', async () => {
     process.env.CONTROL_CORRECTION_PATH_ROUNDS_ENABLED = 'false';
 
@@ -294,6 +310,8 @@ describe('learning path round API routes', () => {
       classId: 'class-1',
       goalId: 'legacy-goal',
       pathStatus: 'legacy',
+      nodeIds: ['node-1'],
+      pathPayload: { mainPathNodeIds: ['node-1'] },
     });
 
     const readResponse = await readPath(new Request('http://localhost/api/learning-paths/path-1'), params);

@@ -462,6 +462,7 @@ export async function readAdaptiveLearnerState(
     latestAbility,
     riskFlags,
     paths,
+    activeControlCorrectionPaths,
     controlCorrectionFacts,
     controlCorrectionArenaSubmissions,
   ] = await Promise.all([
@@ -504,6 +505,24 @@ export async function readAdaptiveLearnerState(
       },
       orderBy: { updatedAt: 'desc' },
       take: 10,
+    }) ?? Promise.resolve([]),
+    db.learningPath?.findMany?.({
+      where: {
+        userId: input.userId,
+        goalId: CONTROL_CORRECTION_GOAL_ID,
+        pathStatus: { in: ['active', 'fallback'] },
+      },
+      select: {
+        id: true,
+        goalId: true,
+        pathStatus: true,
+        currentNodeId: true,
+        terminalValidation: true,
+        lastExecutionMetadata: true,
+        isBookmarked: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 1,
     }) ?? Promise.resolve([]),
     input.goal === CONTROL_CORRECTION_GOAL_ID
       ? db.learningFact?.findMany?.({
@@ -573,7 +592,7 @@ export async function readAdaptiveLearnerState(
     knowledgeMastery,
     resourcePreference: buildResourcePreference(facts),
     mediaAbsorption: buildMediaAbsorption(facts),
-    pathContext: buildPathContext(paths),
+    pathContext: buildPathContext(paths, activeControlCorrectionPaths[0] ?? null),
     risks: buildRiskState(profileSummary, riskFlags, input.role),
     assessmentState: {
       latestAbilityEstimate: buildAbilityEstimate(latestAbility),
@@ -844,11 +863,10 @@ function buildMediaAbsorption(facts: Array<Record<string, unknown>>): AdaptiveLe
   };
 }
 
-function buildPathContext(paths: Array<Record<string, unknown>>): AdaptiveLearnerState['pathContext'] {
-  const activeControlCorrectionPath = paths.find((path) =>
-    readString(path.goalId) === CONTROL_CORRECTION_GOAL_ID &&
-    ['active', 'fallback'].includes(readString(path.pathStatus) ?? '')
-  );
+function buildPathContext(
+  paths: Array<Record<string, unknown>>,
+  activeControlCorrectionPath: Record<string, unknown> | null,
+): AdaptiveLearnerState['pathContext'] {
   return {
     activePathCount: paths.length,
     bookmarkedPathCount: paths.filter((path) => path.isBookmarked === true).length,

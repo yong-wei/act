@@ -417,6 +417,47 @@ describe('adaptive learner state service', () => {
     ]));
   });
 
+  it('keeps the active control-correction path even when recent generic paths fill the general window', async () => {
+    const recentGenericPaths = Array.from({ length: 10 }, (_, index) => ({
+      id: `legacy-path-${index}`,
+      goalId: 'legacy',
+      pathStatus: 'legacy',
+      isBookmarked: false,
+      updatedAt: new Date(`2026-05-${19 - index}T00:00:00.000Z`),
+    }));
+    const state = await readAdaptiveLearnerState(createDb({
+      learningPath: {
+        findMany: async (args: any) => {
+          if (args.where?.goalId === 'control-correction') {
+            return [{
+              id: 'active-control-path',
+              goalId: 'control-correction',
+              pathStatus: 'active',
+              currentNodeId: 'control-node',
+              terminalValidation: { state: 'pending' },
+              lastExecutionMetadata: { lowConfidenceMarkers: ['low-source-coverage'] },
+              isBookmarked: false,
+            }];
+          }
+          return recentGenericPaths;
+        },
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+    });
+
+    expect(state.pathContext.recentPathIds).toHaveLength(10);
+    expect(state.pathContext.activeControlCorrectionPath).toMatchObject({
+      state: 'active',
+      pathId: 'active-control-path',
+      currentNodeId: 'control-node',
+      terminalValidationState: 'pending',
+      lowConfidenceMarkers: ['low-source-coverage'],
+    });
+  });
+
   it('keeps active risk flags teacher scoped', async () => {
     const state = await readAdaptiveLearnerState(createDb(), {
       userId: 'student-1',
