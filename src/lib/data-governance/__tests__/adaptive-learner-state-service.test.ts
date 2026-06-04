@@ -203,6 +203,11 @@ function createDb(overrides: Record<string, unknown> = {}) {
           nodeIds: ['node-a', 'node-b'],
           isAiGenerated: true,
           isBookmarked: true,
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          currentNodeId: 'node-a',
+          terminalValidation: { state: 'pending' },
+          lastExecutionMetadata: { lowConfidenceMarkers: ['arena-preview-only'] },
           updatedAt: new Date('2026-05-19T00:00:00.000Z'),
         },
       ],
@@ -360,6 +365,14 @@ describe('adaptive learner state service', () => {
     expect(state.pathContext).toMatchObject({
       activePathCount: 1,
       bookmarkedPathCount: 1,
+      activeControlCorrectionPath: {
+        state: 'active',
+        pathId: 'path-1',
+        status: 'active',
+        currentNodeId: 'node-a',
+        terminalValidationState: 'pending',
+        lowConfidenceMarkers: ['arena-preview-only'],
+      },
     });
     expect(state.risks).toEqual({
       riskLevel: 'redacted',
