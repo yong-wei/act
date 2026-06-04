@@ -21,6 +21,10 @@ import {
   type AdaptiveLearnerStateRole,
 } from '@/lib/data-governance/adaptive-learner-state-service';
 import { persistSimulationAgentEvidenceMaterialization } from '@/lib/data-governance/simulation-agent-evidence-materialization';
+import {
+  CONTROL_CORRECTION_PATH_ROUND_GOAL_ID,
+  recordPathIntervention,
+} from '@/lib/control-correction-path-rounds';
 import type { PageContext, UserProfile, AbilityVector } from '@/types/ai-context';
 import type { InterventionDecision, StudentState } from '@/features/ai/companion/intervention-engine';
 import { generateIntervention, shouldIntervene } from '@/features/ai/companion/intervention-engine';
@@ -62,7 +66,13 @@ export type KonlingToolName =
   | 'analyze_attempt';
 
 export type KonlingMemoryType = 'working-summary' | 'session-summary' | 'episodic' | 'intervention-outcome';
-export type KonlingInterventionFeedback = 'accepted' | 'dismissed' | 'rated';
+export type KonlingInterventionFeedback =
+  | 'accepted'
+  | 'ignored'
+  | 'rejected'
+  | 'partially-accepted'
+  | 'dismissed'
+  | 'rated';
 export type KonlingAgentSessionStatus =
   | 'draft'
   | 'ready'
@@ -96,6 +106,7 @@ export interface KonlingRuntimeContext {
   learnerState: AdaptiveLearnerState | null;
   planContext: KonlingPlanContext;
   memory: KonlingMemoryView[];
+  citationContext?: KonlingCitationContext;
   permittedTools: KonlingToolName[];
   missingContext: string[];
   featureFlags: {
@@ -112,6 +123,40 @@ export interface KonlingPlanContext {
   recentPathIds: string[];
   completedNodeIds: string[];
   status: 'available' | 'missing';
+}
+
+export interface KonlingCitation {
+  id: string;
+  sourceType: 'content' | 'learner-state' | 'path-execution' | 'simulation' | 'arena' | 'intervention' | 'memory';
+  displayTitle: string;
+  href: string | null;
+  confidence: 'none' | 'low' | 'medium' | 'high';
+  evidenceBasis: string;
+  owner: 'answer' | 'recommendation' | 'intervention' | 'report-explanation';
+}
+
+export interface KonlingCitationContext {
+  required: boolean;
+  contentCitations: KonlingCitation[];
+  evidenceCitations: KonlingCitation[];
+  missingCitationClasses: string[];
+  lowConfidenceReasons: string[];
+  responseProtocol: {
+    requiredOwners: Array<KonlingCitation['owner']>;
+    minimum: {
+      content: number;
+      evidenceWhenAvailable: number;
+    };
+    fallbackWhenMissing: 'low-confidence';
+  };
+}
+
+export interface KonlingCitationGuard {
+  status: 'verified' | 'low-confidence';
+  citations: KonlingCitation[];
+  missingCitationClasses: string[];
+  lowConfidenceReasons: string[];
+  fallbackRequired: boolean;
 }
 
 export interface KonlingMemoryView {
@@ -192,6 +237,7 @@ interface KonlingRuntimeInput {
   resourceId?: string | null;
   pathNodeId?: string | null;
   pageContextHint?: Partial<PageContext> | null;
+  trustedContentContext?: boolean;
   now?: Date;
 }
 
@@ -291,6 +337,10 @@ export interface KonlingRuntimeDb {
   };
   learningPath?: {
     findMany?: (args: any) => Promise<unknown[]>;
+  };
+  learningPathIntervention?: {
+    findFirst: (args: any) => Promise<any | null>;
+    create: (args: any) => Promise<any>;
   };
   konlingMemory?: {
     findMany?: (args: any) => Promise<unknown[]>;
@@ -559,6 +609,14 @@ export async function buildKonlingRuntimeContext(
     }),
   ]);
   const pageContext = buildServerOwnedPageContext(scope, input.pageContextHint);
+  const citationContext = await buildKonlingCitationContext(db, {
+    scope,
+    pageContext,
+    learnerState,
+    planContext,
+    memory,
+    trustedContentContext: input.trustedContentContext === true,
+  });
   const userProfile = buildServerOwnedUserProfile({
     userId: scope.targetUserId,
     name: input.authenticatedUserName || '同学',
@@ -571,8 +629,9 @@ export async function buildKonlingRuntimeContext(
     learnerState,
     planContext,
     memory,
+    citationContext,
     permittedTools: DEFAULT_TOOLS,
-    missingContext: buildMissingContext({ learnerStateEnabled, learnerState, planContext, memory }),
+    missingContext: buildMissingContext({ learnerStateEnabled, learnerState, planContext, memory, citationContext }),
     featureFlags: {
       learnerState: learnerStateEnabled,
       semanticMemory: process.env.KONLING_SEMANTIC_MEMORY_ENABLED === 'true',
@@ -2050,7 +2109,7 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
       description: '记录学生对 Konling 干预的接受、忽略或评分结果；AI 工具路径只创建待审批请求，不替学生直接确认。',
       inputSchema: z.object({
         interventionId: z.string(),
-        feedback: z.enum(['accepted', 'dismissed', 'rated']),
+        feedback: z.enum(['accepted', 'ignored', 'rejected', 'partially-accepted', 'dismissed', 'rated']),
         helpful: z.boolean().optional(),
         studentResponse: z.string().optional(),
         idempotencyKey: KONLING_IDEMPOTENCY_KEY_PARAMETER,
@@ -2311,8 +2370,18 @@ export async function recordKonlingInterventionFeedback(
     studentResponse?: string;
   },
 ) {
+  const existingIntervention = await db.aIIntervention?.findFirst?.({
+    where: {
+      id: input.interventionId,
+      userId: input.scope.targetUserId,
+      classId: input.scope.classId ?? null,
+      resourceId: input.scope.resourceId ?? null,
+      pathNodeId: input.scope.pathNodeId ?? null,
+    },
+  });
   const outcome = {
     feedback: input.feedback,
+    pathOutcome: toPathInterventionOutcome(input.feedback, input.helpful),
     helpful: input.helpful ?? null,
     recordedAt: new Date().toISOString(),
   };
@@ -2347,7 +2416,99 @@ export async function recordKonlingInterventionFeedback(
     summary: `学生对干预 ${input.interventionId} 的反馈：${input.feedback}${input.helpful === undefined ? '' : `，helpful=${input.helpful}`}`,
     evidenceRefs: [{ kind: 'ai-intervention', ref: input.interventionId }],
   });
+  await recordKonlingPathInterventionOutcome(db, input, existingIntervention ?? null);
   return { success: true, outcome };
+}
+
+async function recordKonlingPathInterventionOutcome(
+  db: KonlingRuntimeDb,
+  input: {
+    scope: KonlingRuntimeScope;
+    interventionId: string;
+    feedback: KonlingInterventionFeedback;
+    helpful?: boolean;
+    studentResponse?: string;
+  },
+  intervention: unknown | null,
+) {
+  if (!db.learningPath?.findMany || !db.learningPathIntervention) return;
+  const paths = await db.learningPath.findMany({
+    where: {
+      userId: input.scope.targetUserId,
+      goalId: CONTROL_CORRECTION_PATH_ROUND_GOAL_ID,
+      pathStatus: 'active',
+      ...(input.scope.classId ? { classId: input.scope.classId } : {}),
+    },
+    orderBy: { updatedAt: 'desc' },
+    take: 5,
+  });
+  const path = input.scope.pathNodeId
+    ? paths.find((candidate) => arrayOfStrings(getValue(candidate, 'nodeIds')).includes(input.scope.pathNodeId as string))
+    : paths[0];
+  const pathId = getString(path, 'id');
+  if (!pathId) return;
+  await recordPathIntervention(db as any, {
+    pathId,
+    userId: input.scope.targetUserId,
+    interventionKind: toPathInterventionKind(getString(intervention, 'interventionType')),
+    citedEvidence: buildPathInterventionCitations(input, intervention),
+    suggestedAction: summarizeText(getString(intervention, 'content') || getString(intervention, 'whyNow') || '记录控灵干预反馈。', 220),
+    studentOutcome: toPathInterventionOutcome(input.feedback, input.helpful),
+    privacySafeSummary: buildPrivacySafeInterventionSummary(input, intervention),
+    idempotencyKey: buildKonlingFeedbackIdempotencyKey(input),
+    actorUserId: input.scope.authenticatedUserId,
+    actorRole: input.scope.role,
+  });
+}
+
+function toPathInterventionOutcome(feedback: KonlingInterventionFeedback, helpful?: boolean) {
+  if (feedback === 'accepted') return 'accepted';
+  if (feedback === 'ignored' || feedback === 'dismissed') return 'ignored';
+  if (feedback === 'rejected') return 'rejected';
+  if (feedback === 'partially-accepted') return 'partially-accepted';
+  if (feedback === 'rated') {
+    if (helpful === true) return 'partially-accepted';
+    if (helpful === false) return 'rejected';
+  }
+  return 'pending';
+}
+
+function buildKonlingFeedbackIdempotencyKey(input: { interventionId: string; feedback: KonlingInterventionFeedback; helpful?: boolean }) {
+  if (input.feedback !== 'rated') {
+    return `konling-feedback:${input.interventionId}:${input.feedback}`;
+  }
+  const helpfulState = input.helpful === true ? 'true' : input.helpful === false ? 'false' : 'unknown';
+  return `konling-feedback:${input.interventionId}:rated:helpful:${helpfulState}`;
+}
+
+function toPathInterventionKind(interventionType: string) {
+  if (interventionType === 'failure-analysis') return 'diagnosis';
+  if (interventionType === 'constraint-hint') return 'hint';
+  if (interventionType === 'guidance') return 'reflection-prompt';
+  return 'hint';
+}
+
+function buildPathInterventionCitations(
+  input: { scope: KonlingRuntimeScope; interventionId: string; feedback: KonlingInterventionFeedback; helpful?: boolean },
+  intervention: unknown | null,
+) {
+  return [
+    { kind: 'ai-intervention', ref: input.interventionId },
+    ...(input.scope.pathNodeId ? [{ kind: 'learning-path-node', ref: input.scope.pathNodeId }] : []),
+    ...arrayOfRecords(getValue(intervention, 'evidence')),
+  ];
+}
+
+function buildPrivacySafeInterventionSummary(
+  input: { interventionId: string; feedback: KonlingInterventionFeedback; helpful?: boolean; studentResponse?: string },
+  intervention: unknown | null,
+) {
+  const response = input.studentResponse ? `，学生反馈：${sanitizeMemorySummary(input.studentResponse)}` : '';
+  const whyNow = getString(intervention, 'whyNow') || getString(intervention, 'triggerType') || '控灵干预反馈';
+  return summarizeText(
+    `${whyNow}；结果：${toPathInterventionOutcome(input.feedback, input.helpful)}${input.helpful === undefined ? '' : `，helpful=${input.helpful}`}${response}`,
+    500,
+  );
 }
 
 export function normalizeKonlingRole(role: string | undefined): AdaptiveLearnerStateRole {
@@ -2575,21 +2736,340 @@ async function readPlanContext(db: KonlingRuntimeDb, scope: KonlingRuntimeScope)
     };
   }
   const paths = await db.learningPath?.findMany?.({
-    where: { userId: scope.targetUserId },
+    where: {
+      userId: scope.targetUserId,
+      goalId: CONTROL_CORRECTION_PATH_ROUND_GOAL_ID,
+      pathStatus: 'active',
+      ...(scope.classId ? { classId: scope.classId } : {}),
+    },
     orderBy: { updatedAt: 'desc' },
     take: 5,
   }) ?? [];
   const scopedPaths = paths.filter((path) => arrayOfStrings(getValue(path, 'nodeIds')).includes(scope.pathNodeId as string));
   const current = scopedPaths[0];
   const nodeIds = arrayOfStrings(getValue(current, 'nodeIds'));
+  if (!current) {
+    return {
+      currentPathId: null,
+      activeNodeId: null,
+      nextNodeIds: [],
+      recentPathIds: [],
+      completedNodeIds: [],
+      status: 'missing',
+    };
+  }
   return {
     currentPathId: getString(current, 'id') || null,
-    activeNodeId: scope.pathNodeId || nodeIds[0] || null,
+    activeNodeId: getString(current, 'currentNodeId') || scope.pathNodeId || nodeIds[0] || null,
     nextNodeIds: nodeIds.slice(0, 3),
     recentPathIds: scopedPaths.map((path) => getString(path, 'id')).filter(Boolean),
     completedNodeIds: [],
     status: current ? 'available' : 'missing',
   };
+}
+
+async function buildKonlingCitationContext(
+  db: KonlingRuntimeDb,
+  input: {
+    scope: KonlingRuntimeScope;
+    pageContext: PageContext;
+    learnerState: AdaptiveLearnerState | null;
+    planContext: KonlingPlanContext;
+    memory: KonlingMemoryView[];
+    trustedContentContext: boolean;
+  },
+): Promise<KonlingCitationContext> {
+  const contentCitations = input.trustedContentContext ? buildContentCitations(input.pageContext) : [];
+  const evidenceCitations: KonlingCitation[] = [];
+
+  if (input.learnerState) {
+    evidenceCitations.push({
+      id: `learner-state:${input.scope.targetUserId}`,
+      sourceType: 'learner-state',
+      displayTitle: '服务端学习者状态',
+      href: null,
+      confidence: normalizeCitationConfidence(input.learnerState.evidence?.confidence?.level),
+      evidenceBasis: 'AdaptiveLearnerState',
+      owner: 'recommendation',
+    });
+  }
+  if (input.planContext.currentPathId) {
+    evidenceCitations.push({
+      id: `path:${input.planContext.currentPathId}`,
+      sourceType: 'path-execution',
+      displayTitle: '当前控制校正学习路径',
+      href: null,
+      confidence: 'medium',
+      evidenceBasis: 'LearningPath',
+      owner: 'recommendation',
+    });
+  }
+  for (const memory of input.memory.slice(0, 2)) {
+    evidenceCitations.push({
+      id: `memory:${memory.id}`,
+      sourceType: 'memory',
+      displayTitle: `控灵记忆摘要：${memory.memoryType}`,
+      href: null,
+      confidence: 'medium',
+      evidenceBasis: 'KonlingMemory',
+      owner: 'answer',
+    });
+  }
+
+  const featureCache = await db.studentEvidenceFeatureCache?.findUnique?.({
+    where: { userId: input.scope.targetUserId },
+  });
+  evidenceCitations.push(...buildFeatureCacheCitations(featureCache, input.scope, input.planContext));
+
+  const missingCitationClasses = [
+    contentCitations.length === 0 ? 'content' : null,
+    input.learnerState ? null : 'learner-state',
+    input.planContext.status === 'available' ? null : 'path-execution',
+    evidenceCitations.length > 0 ? null : 'evidence',
+  ].filter((item): item is string => Boolean(item));
+  const lowConfidenceReasons = [
+    ...missingCitationClasses.map((item) => `missing-${item}`),
+    ...evidenceCitations
+      .filter((citation) => citation.confidence === 'none' || citation.confidence === 'low')
+      .map((citation) => `low-confidence-${citation.sourceType}`),
+  ];
+
+  return {
+    required: true,
+    contentCitations,
+    evidenceCitations,
+    missingCitationClasses,
+    lowConfidenceReasons: [...new Set(lowConfidenceReasons)],
+    responseProtocol: {
+      requiredOwners: ['answer', 'recommendation', 'intervention', 'report-explanation'],
+      minimum: {
+        content: 1,
+        evidenceWhenAvailable: 1,
+      },
+      fallbackWhenMissing: 'low-confidence',
+    },
+  };
+}
+
+function buildContentCitations(pageContext: PageContext): KonlingCitation[] {
+  const stepContext = getStepAIContext(pageContext.courseId, pageContext.stepId);
+  if (!stepContext) return [];
+  return [{
+    id: `content:${pageContext.courseId}:${pageContext.stepId}`,
+    sourceType: 'content',
+    displayTitle: pageContext.topic || pageContext.courseTitle || pageContext.stepId,
+    href: null,
+    confidence: 'high',
+    evidenceBasis: 'course-ai-context',
+    owner: 'answer',
+  }];
+}
+
+function buildFeatureCacheCitations(
+  featureCache: unknown,
+  scope: KonlingRuntimeScope,
+  planContext: KonlingPlanContext,
+): KonlingCitation[] {
+  const features = readRecord(getValue(featureCache, 'features'));
+  const pathExecution = readRecord(getValue(features, 'pathExecution'));
+  const simulationArena = readRecord(getValue(features, 'simulationArena'));
+  return [
+    ...buildPathExecutionCitations(pathExecution, scope, planContext),
+    ...buildSimulationArenaCitations(simulationArena),
+  ];
+}
+
+function buildPathExecutionCitations(
+  pathExecution: Record<string, unknown>,
+  scope: KonlingRuntimeScope,
+  planContext: KonlingPlanContext,
+): KonlingCitation[] {
+  const allTime = readRecord(getValue(pathExecution, 'allTime'));
+  return arrayOfRecords(getValue(allTime, 'sourceReferences'))
+    .filter((ref) => isCitationReferenceInScope(ref, scope, planContext))
+    .sort((left, right) => comparePathCitationReferences(left, right, scope))
+    .slice(0, 4)
+    .map((ref) => ({
+      id: `${getString(ref, 'sourceType')}:${getString(ref, 'sourceId')}`,
+      sourceType: getString(ref, 'sourceType') === 'LearningPathIntervention' ? 'intervention' : 'path-execution',
+      displayTitle: buildPathCitationTitle(ref),
+      href: null,
+      confidence: normalizeCitationConfidence(getString(ref, 'confidence') || readRecord(getValue(allTime, 'confidence')).level),
+      evidenceBasis: getString(ref, 'sourceType') || 'LearningPathEvidence',
+      owner: getString(ref, 'sourceType') === 'LearningPathIntervention' ? 'intervention' : 'recommendation',
+    } satisfies KonlingCitation));
+}
+
+function comparePathCitationReferences(
+  left: Record<string, unknown>,
+  right: Record<string, unknown>,
+  scope: KonlingRuntimeScope,
+) {
+  const leftIntervention = getString(left, 'sourceType') === 'LearningPathIntervention' ? 1 : 0;
+  const rightIntervention = getString(right, 'sourceType') === 'LearningPathIntervention' ? 1 : 0;
+  if (leftIntervention !== rightIntervention) return rightIntervention - leftIntervention;
+
+  const leftCurrentNode = scope.pathNodeId && getString(left, 'nodeId') === scope.pathNodeId ? 1 : 0;
+  const rightCurrentNode = scope.pathNodeId && getString(right, 'nodeId') === scope.pathNodeId ? 1 : 0;
+  if (leftCurrentNode !== rightCurrentNode) return rightCurrentNode - leftCurrentNode;
+
+  return readTimestamp(right, 'occurredAt') - readTimestamp(left, 'occurredAt');
+}
+
+function readTimestamp(value: Record<string, unknown>, key: string) {
+  const timestamp = Date.parse(getString(value, key));
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function isCitationReferenceInScope(
+  ref: Record<string, unknown>,
+  scope: KonlingRuntimeScope,
+  planContext: KonlingPlanContext,
+): boolean {
+  const privacyLevel = getString(ref, 'privacyLevel') || 'student-visible';
+  if (!scope.privacyScopes.includes(privacyLevel as AdaptiveLearnerStatePrivacyScope)) return false;
+  const pathId = getString(ref, 'pathId');
+  if (planContext.currentPathId && pathId !== planContext.currentPathId) return false;
+  const nodeId = getString(ref, 'nodeId');
+  if (scope.pathNodeId) {
+    if (getString(ref, 'sourceType') === 'LearningPathIntervention' && !nodeId) return false;
+    if (nodeId && nodeId !== scope.pathNodeId) return false;
+  }
+  return true;
+}
+
+function buildSimulationArenaCitations(simulationArena: Record<string, unknown>): KonlingCitation[] {
+  const allTime = readRecord(getValue(simulationArena, 'allTime'));
+  return arrayOfRecords(getValue(allTime, 'traceReferences')).slice(0, 3).map((ref) => {
+    const source = getString(ref, 'source') === 'arena' ? 'arena' : 'simulation';
+    return {
+      id: `${source}:${getString(ref, 'factId') || getString(ref, 'traceReference')}`,
+      sourceType: source,
+      displayTitle: source === 'arena' ? 'Arena 迁移证据' : '仿真运行证据',
+      href: null,
+      confidence: readRecord(getValue(allTime, 'replayConfidence')).lowConfidenceCount ? 'low' : 'medium',
+      evidenceBasis: getString(ref, 'traceReference') || 'StudentEvidenceFeatureCache',
+      owner: 'recommendation',
+    } satisfies KonlingCitation;
+  });
+}
+
+function buildPathCitationTitle(ref: Record<string, unknown>): string {
+  const sourceType = getString(ref, 'sourceType');
+  if (sourceType === 'LearningPathIntervention') return '控灵路径干预结果';
+  if (sourceType === 'LearningPathDeviation') return '学习路径偏离证据';
+  return '学习路径执行证据';
+}
+
+function normalizeCitationConfidence(value: unknown): KonlingCitation['confidence'] {
+  if (value === 'high' || value === 'medium' || value === 'low') return value;
+  return 'none';
+}
+
+function createMissingCitationContext(): KonlingCitationContext {
+  return {
+    required: true,
+    contentCitations: [],
+    evidenceCitations: [],
+    missingCitationClasses: ['content', 'evidence'],
+    lowConfidenceReasons: ['missing-content', 'missing-evidence'],
+    responseProtocol: {
+      requiredOwners: ['answer', 'recommendation', 'intervention', 'report-explanation'],
+      minimum: {
+        content: 1,
+        evidenceWhenAvailable: 1,
+      },
+      fallbackWhenMissing: 'low-confidence',
+    },
+  };
+}
+
+export function buildKonlingCitationGuard(
+  context: Pick<KonlingRuntimeContext, 'citationContext'>,
+  assistantMessage?: string,
+): KonlingCitationGuard {
+  const citationContext = context.citationContext ?? createMissingCitationContext();
+  const citations = [
+    ...citationContext.contentCitations,
+    ...citationContext.evidenceCitations,
+  ];
+  const missingCitationClasses = [...citationContext.missingCitationClasses];
+  const lowConfidenceReasons = [...citationContext.lowConfidenceReasons];
+  if (assistantMessage !== undefined && citations.length > 0) {
+    const mentionsAnyCitation = assistantMentionsCitation(assistantMessage, citations);
+    if (!mentionsAnyCitation) {
+      lowConfidenceReasons.push('assistant-citations-missing');
+    } else {
+      if (
+        citationContext.responseProtocol.minimum.content > 0 &&
+        citationContext.contentCitations.length > 0 &&
+        !assistantMentionsCitation(assistantMessage, citationContext.contentCitations)
+      ) {
+        lowConfidenceReasons.push('assistant-content-citations-missing');
+      }
+      if (
+        citationContext.responseProtocol.minimum.evidenceWhenAvailable > 0 &&
+        citationContext.evidenceCitations.length > 0 &&
+        !assistantMentionsCitation(assistantMessage, citationContext.evidenceCitations)
+      ) {
+        lowConfidenceReasons.push('assistant-evidence-citations-missing');
+      }
+    }
+  }
+  const uniqueLowConfidenceReasons = [...new Set(lowConfidenceReasons)];
+  const fallbackRequired = missingCitationClasses.length > 0 || uniqueLowConfidenceReasons.length > 0;
+  return {
+    status: fallbackRequired ? 'low-confidence' : 'verified',
+    citations,
+    missingCitationClasses,
+    lowConfidenceReasons: uniqueLowConfidenceReasons,
+    fallbackRequired,
+  };
+}
+
+export function buildKonlingStreamingCitationGuard(
+  context: Pick<KonlingRuntimeContext, 'citationContext'>,
+): KonlingCitationGuard {
+  const base = buildKonlingCitationGuard(context);
+  return {
+    ...base,
+    status: 'low-confidence',
+    lowConfidenceReasons: [...new Set([...base.lowConfidenceReasons, 'assistant-citations-unverified-stream'])],
+    fallbackRequired: true,
+  };
+}
+
+export function applyKonlingCitationFallback(
+  assistantMessage: string,
+  guard: KonlingCitationGuard,
+): string {
+  if (!guard.fallbackRequired) return assistantMessage;
+  const limitation = [
+    ...guard.missingCitationClasses.map((item) => `缺少 ${item} 引用`),
+    ...guard.lowConfidenceReasons,
+  ].join('；');
+  const citations = guard.citations.slice(0, 4)
+    .map((citation) => `${citation.displayTitle} (${citation.sourceType}, ${citation.confidence})`)
+    .join('；');
+  return [
+    assistantMessage.trim(),
+    '',
+    `证据限制：本次回答按低置信处理，原因是 ${limitation || '引用覆盖不足'}。`,
+    citations ? `可用引用：${citations}` : '',
+  ].filter(Boolean).join('\n');
+}
+
+function assistantMentionsCitation(message: string, citations: KonlingCitation[]): boolean {
+  return citations.some((citation) => (
+    message.includes(citation.id) ||
+    (
+      message.includes(citation.sourceType) &&
+      message.includes(citation.displayTitle) &&
+      message.includes(citation.confidence) &&
+      message.includes(citation.evidenceBasis) &&
+      (!citation.href || message.includes(citation.href))
+    )
+  ));
 }
 
 async function searchKonlingMemory(
@@ -2649,22 +3129,40 @@ async function searchKnowledgeGraph(db: KonlingRuntimeDb, query: string, limit: 
 }
 
 function recommendNextAction(context: KonlingRuntimeContext) {
+  const citationSupport = buildRecommendationCitationSupport(context.citationContext ?? createMissingCitationContext());
   if (context.planContext.activeNodeId) {
     return {
       action: 'continue_path_node',
       nodeId: context.planContext.activeNodeId,
       reason: '当前学习路径已有可继续节点。',
+      citationSupport,
     };
   }
   if (context.learnerState?.risks.activeFlags.length) {
     return {
       action: 'request_remedial_intervention',
       reason: '学习状态存在未解决风险，应优先补救。',
+      citationSupport,
     };
   }
   return {
     action: 'ask_clarifying_question',
     reason: '路径上下文不足，先确认学生当前目标。',
+    citationSupport,
+  };
+}
+
+function buildRecommendationCitationSupport(citationContext: KonlingCitationContext) {
+  return {
+    citations: [
+      ...citationContext.contentCitations.slice(0, 2),
+      ...citationContext.evidenceCitations.slice(0, 4),
+    ],
+    missingCitationClasses: citationContext.missingCitationClasses,
+    lowConfidenceReasons: citationContext.lowConfidenceReasons,
+    readiness: citationContext.missingCitationClasses.length > 0 || citationContext.lowConfidenceReasons.length > 0
+      ? 'low-confidence'
+      : 'verified',
   };
 }
 
@@ -2738,12 +3236,15 @@ function buildMissingContext(input: {
   learnerState: AdaptiveLearnerState | null;
   planContext: KonlingPlanContext;
   memory: KonlingMemoryView[];
+  citationContext: KonlingCitationContext;
 }): string[] {
   return [
     !input.learnerStateEnabled ? ADAPTIVE_LEARNER_STATE_FEATURE_FLAG : null,
     input.learnerStateEnabled && !input.learnerState ? 'learner-state-read-failed' : null,
     input.planContext.status === 'missing' ? 'plan-context-missing' : null,
     input.memory.length === 0 ? 'learning-memory-empty' : null,
+    ...input.citationContext.missingCitationClasses.map((item) => `citation-${item}-missing`),
+    ...input.citationContext.lowConfidenceReasons,
   ].filter((item): item is string => Boolean(item));
 }
 

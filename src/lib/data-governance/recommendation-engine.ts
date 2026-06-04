@@ -728,6 +728,9 @@ function normalizePathExecutionInterventionOutcome(
     acceptedCount: numberValue(interventionOutcome.acceptedCount),
     completedCount: numberValue(interventionOutcome.completedCount),
     dismissedCount: numberValue(interventionOutcome.dismissedCount),
+    ignoredCount: numberValue(interventionOutcome.ignoredCount),
+    rejectedCount: numberValue(interventionOutcome.rejectedCount),
+    partiallyAcceptedCount: numberValue(interventionOutcome.partiallyAcceptedCount),
     lowConfidenceCount: numberValue(interventionOutcome.lowConfidenceCount),
   };
 }

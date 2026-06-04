@@ -302,6 +302,27 @@ describe('learning path round API routes', () => {
     expect(mocks.recordPathIntervention).not.toHaveBeenCalled();
   });
 
+  it.each(['ignored', 'rejected', 'partially-accepted'] as const)(
+    'accepts intervention outcome %s used by path evidence counters',
+    async (studentOutcome) => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+
+    const response = await intervenePath(post('http://localhost/api/learning-paths/path-1/interventions', {
+      interventionKind: 'hint',
+      studentOutcome,
+      suggestedAction: 'review-root-locus',
+      privacySafeSummary: `学生反馈路径干预结果：${studentOutcome}。`,
+      idempotencyKey: `int-${studentOutcome}`,
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathIntervention).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      studentOutcome,
+      idempotencyKey: `int-${studentOutcome}`,
+    }));
+    },
+  );
+
   it('rejects a teacher outside the class scope', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-2', role: 'TEACHER' } });
 

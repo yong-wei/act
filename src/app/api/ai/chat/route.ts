@@ -6,7 +6,7 @@
  * 支持控灵上下文感知系统提示词
  */
 
-import { consumeStream, streamText, stepCountIs } from 'ai';
+import { consumeStream, createUIMessageStreamResponse, streamText, stepCountIs } from 'ai';
 import { getConfiguredAIModel, isConfiguredAIServiceAvailable, SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai-client';
 import { toLegacyMessage, toModelMessages, toUIMessage, type IncomingMessage } from '@/lib/ai-message-compat';
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
@@ -15,6 +15,12 @@ import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import { prisma } from '@/lib/prisma';
 import {
+  buildStreamingCitationFallbackNotice,
+  insertStreamingCitationFallbackNotice,
+} from '@/lib/konling-streaming-citation-fallback';
+import {
+  buildKonlingCitationGuard,
+  buildKonlingStreamingCitationGuard,
   buildKonlingRuntimeContext,
   buildKonlingToolRuntime,
   buildScopedKonlingAiTools,
@@ -140,6 +146,7 @@ export async function POST(request: Request) {
     // 构建系统提示词
     let systemPrompt: string;
     let agentSessionResponseHeaders: HeadersInit | undefined;
+    let citationGuardMetadata: ReturnType<typeof buildKonlingCitationGuard> | null = null;
 
     if (session?.user?.id && hasRuntimeContext) {
       const scope = await verifyKonlingRuntimeScope(prisma, {
@@ -170,6 +177,7 @@ export async function POST(request: Request) {
         resourceId,
         pathNodeId,
         pageContextHint: pageContext,
+        trustedContentContext: Boolean(scope.scope.courseId && scope.scope.pageId),
       });
       const aiContext: AIContext = {
         page: runtimeContext.pageContext,
@@ -180,6 +188,7 @@ export async function POST(request: Request) {
         ...aiContext,
         adaptiveRuntime: runtimeContext,
       });
+      citationGuardMetadata = buildKonlingStreamingCitationGuard(runtimeContext);
       const agentSession = await getOrCreateKonlingAgentSession(prisma, {
         scope: scope.scope,
         agentSessionId,
@@ -190,6 +199,7 @@ export async function POST(request: Request) {
       });
       agentSessionResponseHeaders = {
         'X-Konling-Agent-Session-Id': agentSession.id,
+        'X-Konling-Citation-Guard': citationGuardMetadata.status,
       };
       tools = buildScopedKonlingAiTools(buildKonlingToolRuntime({
         db: prisma,
@@ -237,13 +247,38 @@ export async function POST(request: Request) {
       maxOutputTokens: 2000,
     });
 
-    // 返回流式响应
-    return result.toUIMessageStreamResponse({
-      headers: agentSessionResponseHeaders,
+    const uiMessageStream = result.toUIMessageStream({
       originalMessages: uiMessages,
       generateMessageId: () => crypto.randomUUID(),
-      consumeSseStream: consumeStream,
+      messageMetadata: ({ part }) => {
+        if (!citationGuardMetadata || (part.type !== 'start' && part.type !== 'finish')) return undefined;
+        return {
+          konlingCitationGuard: {
+            status: citationGuardMetadata.status,
+            missingCitationClasses: citationGuardMetadata.missingCitationClasses,
+            lowConfidenceReasons: citationGuardMetadata.lowConfidenceReasons,
+            citations: citationGuardMetadata.citations.map((citation) => ({
+              sourceType: citation.sourceType,
+              displayTitle: citation.displayTitle,
+              href: citation.href,
+              confidence: citation.confidence,
+              evidenceBasis: citation.evidenceBasis,
+            })),
+          },
+        };
+      },
       onError: getAIStreamErrorMessage,
+    });
+    const guardedUiMessageStream = insertStreamingCitationFallbackNotice(
+      uiMessageStream,
+      buildStreamingCitationFallbackNotice(citationGuardMetadata),
+    );
+
+    // 返回流式响应
+    return createUIMessageStreamResponse({
+      headers: agentSessionResponseHeaders,
+      stream: guardedUiMessageStream,
+      consumeSseStream: consumeStream,
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);

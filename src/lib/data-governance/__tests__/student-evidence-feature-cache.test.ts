@@ -97,7 +97,10 @@ describe('buildStudentEvidenceFeaturePayload', () => {
             pathId: 'path-1',
             userId: 'student-1',
             interventionKind: 'fallback-path',
-            citedEvidence: [{ kind: 'LearningPathDeviation', id: 'dev-1' }],
+            citedEvidence: [
+              { kind: 'LearningPathDeviation', id: 'dev-1' },
+              { kind: 'learning-path-node', ref: 'node-1' },
+            ],
             suggestedAction: 'raw model instruction should stay out',
             studentOutcome: 'accepted',
             privacySafeSummary: '改走补救路径。',
@@ -150,6 +153,7 @@ describe('buildStudentEvidenceFeaturePayload', () => {
       expect.objectContaining({
         sourceType: 'LearningPathIntervention',
         sourceId: 'int-1',
+        nodeId: 'node-1',
         studentOutcome: 'accepted',
       }),
       expect.objectContaining({
@@ -200,6 +204,7 @@ describe('buildStudentEvidenceFeaturePayload', () => {
             pathId: 'path-1',
             userId: 'student-1',
             interventionKind: 'hint',
+            citedEvidence: [{ kind: 'learning-path-node', ref: 'node-1' }],
             studentOutcome: 'accepted',
             privacySafeSummary: '采用提示。',
             idempotencyKey: 'same-int',
@@ -226,6 +231,67 @@ describe('buildStudentEvidenceFeaturePayload', () => {
         acceptedCount: 1,
       },
     });
+  });
+
+  it('counts cited Konling path intervention outcomes beyond legacy dismissed', () => {
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-06-04T12:00:00.000Z'),
+      facts: [],
+      pathEvidence: {
+        executions: [],
+        deviations: [],
+        interventions: [
+          {
+            id: 'int-ignored',
+            pathId: 'path-1',
+            userId: 'student-1',
+            interventionKind: 'hint',
+            studentOutcome: 'ignored',
+            privacySafeSummary: '学生暂时忽略提示。',
+            idempotencyKey: 'ignored',
+            createdAt: new Date('2026-06-04T10:01:00.000Z'),
+          },
+          {
+            id: 'int-rejected',
+            pathId: 'path-1',
+            userId: 'student-1',
+            interventionKind: 'diagnosis',
+            studentOutcome: 'rejected',
+            privacySafeSummary: '学生拒绝本轮诊断。',
+            idempotencyKey: 'rejected',
+            createdAt: new Date('2026-06-04T10:02:00.000Z'),
+          },
+          {
+            id: 'int-partial',
+            pathId: 'path-1',
+            userId: 'student-1',
+            interventionKind: 'reflection-prompt',
+            studentOutcome: 'partially-accepted',
+            privacySafeSummary: '学生只采纳部分反思建议。',
+            idempotencyKey: 'partial',
+            createdAt: new Date('2026-06-04T10:03:00.000Z'),
+          },
+        ],
+      },
+    } as any);
+
+    expect((payload.features as any).pathExecution.allTime).toMatchObject({
+      evidenceCount: 3,
+      sourceCoverage: {
+        interventionOutcome: 'available',
+      },
+      interventionOutcome: {
+        ignoredCount: 1,
+        rejectedCount: 1,
+        partiallyAcceptedCount: 1,
+      },
+    });
+    expect((payload.features as any).pathExecution.allTime.sourceReferences).toEqual([
+      expect.objectContaining({ sourceId: 'int-ignored', studentOutcome: 'ignored' }),
+      expect.objectContaining({ sourceId: 'int-rejected', studentOutcome: 'rejected' }),
+      expect.objectContaining({ sourceId: 'int-partial', studentOutcome: 'partially-accepted' }),
+    ]);
   });
 
   it('does not count non-terminal simulation completion as terminal validation', () => {

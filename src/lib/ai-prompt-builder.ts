@@ -18,6 +18,23 @@ interface KonlingPromptRuntimeContext {
     memoryType: string;
     summary: string;
   }>;
+  citationContext?: {
+    required?: boolean;
+    contentCitations?: Array<{
+      sourceType: string;
+      displayTitle: string;
+      confidence: string;
+      evidenceBasis: string;
+    }>;
+    evidenceCitations?: Array<{
+      sourceType: string;
+      displayTitle: string;
+      confidence: string;
+      evidenceBasis: string;
+    }>;
+    missingCitationClasses?: string[];
+    lowConfidenceReasons?: string[];
+  };
   permittedTools?: string[];
   missingContext?: string[];
   featureFlags?: Record<string, boolean>;
@@ -70,6 +87,22 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
       lines.push(`  ${index + 1}. [${memory.memoryType}] ${memory.summary}`);
     });
   }
+  if (runtime.citationContext?.required) {
+    lines.push('- 引用协议: 概念解释、个性化建议、仿真/Arena 失败分析、路径纠偏和报告解释必须至少使用 1 个内容引用；有学习者、路径、仿真、Arena 或干预证据时还必须使用 1 个证据引用。');
+    lines.push('- 学生可见引用元数据必须包含 sourceType、displayTitle、href、confidence、evidenceBasis；不得暴露 hiddenEvaluation、原始高频轨迹或私有记忆正文。');
+    if (runtime.citationContext.contentCitations?.length) {
+      lines.push(`- 可用内容引用: ${runtime.citationContext.contentCitations.slice(0, 3).map(formatCitationHint).join('；')}`);
+    }
+    if (runtime.citationContext.evidenceCitations?.length) {
+      lines.push(`- 可用证据引用: ${runtime.citationContext.evidenceCitations.slice(0, 4).map(formatCitationHint).join('；')}`);
+    }
+    if (runtime.citationContext.missingCitationClasses?.length || runtime.citationContext.lowConfidenceReasons?.length) {
+      lines.push(`- 引用限制: ${[
+        ...(runtime.citationContext.missingCitationClasses ?? []).map((item) => `缺少 ${item}`),
+        ...(runtime.citationContext.lowConfidenceReasons ?? []),
+      ].join(', ')}；不能把结论表述为完全验证。`);
+    }
+  }
   if (runtime.missingContext?.length) {
     lines.push(`- 低置信或缺失上下文: ${runtime.missingContext.join(', ')}`);
   }
@@ -78,6 +111,15 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
   }
   lines.push('- 不得采用客户端传入的学生画像覆盖服务端学习状态。');
   return lines.join('\n');
+}
+
+function formatCitationHint(citation: {
+  sourceType: string;
+  displayTitle: string;
+  confidence: string;
+  evidenceBasis: string;
+}): string {
+  return `[${citation.sourceType}] ${citation.displayTitle} (${citation.confidence}, ${citation.evidenceBasis})`;
 }
 
 /**

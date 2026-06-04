@@ -15,6 +15,8 @@ import { getConfiguredAIModel } from '@/lib/ai-client';
 import { toLegacyMessage, toModelMessages } from '@/lib/ai-message-compat';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import {
+  applyKonlingCitationFallback,
+  buildKonlingCitationGuard,
   buildKonlingRuntimeContext,
   buildKonlingToolRuntime,
   buildScopedKonlingAiTools,
@@ -113,6 +115,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       resourceId,
       pathNodeId,
       pageContextHint: pageContext,
+      trustedContentContext: true,
     });
 
     // 构建AI上下文
@@ -158,12 +161,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
     for await (const chunk of result.textStream) {
       assistantContent += chunk;
     }
+    const citationGuard = buildKonlingCitationGuard(runtimeContext, assistantContent);
+    const guardedAssistantContent = applyKonlingCitationFallback(assistantContent, citationGuard);
 
     // 添加助手回复
     const assistantMessage: Message = toLegacyMessage({
       id: (Date.now() + 1).toString(),
       role: 'assistant',
-      content: assistantContent,
+      content: guardedAssistantContent,
     });
 
     const finalMessages = [...updatedMessages, assistantMessage];
@@ -185,7 +190,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       resourceId: scope.scope.resourceId,
       pathNodeId: scope.scope.pathNodeId,
       userMessage: content,
-      assistantMessage: assistantContent,
+      assistantMessage: guardedAssistantContent,
     });
     const refreshedAgentSession = await resumeKonlingAgentSession(prisma, {
       scope: scope.scope,
@@ -196,6 +201,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return NextResponse.json({
       messages: finalMessages,
       assistantMessage,
+      citationGuard,
       agentSessionId: agentSession.id,
       pendingApproval: refreshedAgentSession.pendingApproval,
     });

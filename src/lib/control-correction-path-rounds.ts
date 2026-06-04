@@ -70,7 +70,7 @@ export interface PathInterventionInput {
   interventionKind: 'diagnosis' | 'hint' | 'rollback' | 'fallback-path' | 'reflection-prompt';
   citedEvidence?: unknown[];
   suggestedAction: string;
-  studentOutcome?: 'pending' | 'accepted' | 'dismissed' | 'completed';
+  studentOutcome?: 'pending' | 'accepted' | 'ignored' | 'rejected' | 'partially-accepted' | 'dismissed' | 'completed';
   privacySafeSummary: string;
   idempotencyKey?: string | null;
   actorUserId?: string | null;

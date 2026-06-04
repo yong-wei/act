@@ -19,6 +19,10 @@ const konlingRuntimeSource = readFileSync(
   join(process.cwd(), 'src/lib/konling-agent-runtime.ts'),
   'utf8',
 );
+const streamingCitationFallbackSource = readFileSync(
+  join(process.cwd(), 'src/lib/konling-streaming-citation-fallback.ts'),
+  'utf8',
+);
 
 describe('AI chat route Konling runtime guard', () => {
   it('keeps legacy lessonContext prompt construction when no page runtime context is provided', () => {
@@ -34,7 +38,8 @@ describe('AI chat route Konling runtime guard', () => {
 
   it('uses AI SDK v6 message and stream contracts', () => {
     expect(chatRouteSource).toContain('toModelMessages(uiMessages)');
-    expect(chatRouteSource).toContain('toUIMessageStreamResponse');
+    expect(chatRouteSource).toContain('toUIMessageStream({');
+    expect(chatRouteSource).toContain('createUIMessageStreamResponse');
     expect(chatRouteSource).toContain('const uiMessages = rawMessages.map(toUIMessage)');
     expect(chatRouteSource).toContain('originalMessages: uiMessages');
     expect(chatRouteSource).toContain('generateMessageId: () => crypto.randomUUID()');
@@ -73,6 +78,27 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource.indexOf('const refreshedAgentSession = await resumeKonlingAgentSession'))
       .toBeGreaterThan(sessionMessagesRouteSource.indexOf('await persistKonlingSessionMemories'));
     expect(sessionMessagesRouteSource).toContain('pendingApproval: refreshedAgentSession.pendingApproval');
+  });
+
+  it('exposes server citation guard metadata and downgrades persisted uncited session replies', () => {
+    expect(chatRouteSource).toContain('buildKonlingStreamingCitationGuard(runtimeContext)');
+    expect(chatRouteSource).toContain("'X-Konling-Citation-Guard': citationGuardMetadata.status");
+    expect(chatRouteSource).toContain('messageMetadata: ({ part })');
+    expect(chatRouteSource).toContain('konlingCitationGuard');
+    expect(chatRouteSource).toContain('buildStreamingCitationFallbackNotice(citationGuardMetadata)');
+    expect(chatRouteSource).toContain('insertStreamingCitationFallbackNotice');
+    expect(streamingCitationFallbackSource).toContain('【控灵证据提示】');
+    expect(chatRouteSource).toContain('createUIMessageStreamResponse');
+    expect(chatRouteSource).toContain('trustedContentContext: Boolean(scope.scope.courseId && scope.scope.pageId)');
+    expect(chatRouteSource).not.toContain('trustedContentContext: Boolean(courseId && pageId)');
+    expect(sessionMessagesRouteSource).toContain('const citationGuard = buildKonlingCitationGuard(runtimeContext, assistantContent)');
+    expect(sessionMessagesRouteSource).toContain('const guardedAssistantContent = applyKonlingCitationFallback');
+    expect(sessionMessagesRouteSource).toContain('assistantMessage: guardedAssistantContent');
+    expect(sessionMessagesRouteSource).toContain('citationGuard,');
+    const sessionRuntimeContextIndex = sessionMessagesRouteSource.indexOf('const runtimeContext = await buildKonlingRuntimeContext');
+    const sessionTrustedIndex = sessionMessagesRouteSource.indexOf('trustedContentContext: true', sessionRuntimeContextIndex);
+    expect(sessionRuntimeContextIndex).toBeGreaterThanOrEqual(0);
+    expect(sessionTrustedIndex).toBeGreaterThan(sessionRuntimeContextIndex);
   });
 
   it('does not write Konling runtime simulation state into the legacy global tool store', () => {

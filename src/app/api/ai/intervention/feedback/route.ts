@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     const result = await recordKonlingInterventionFeedback(prisma, {
       scope: scope.scope,
       interventionId: body.interventionId,
-      feedback: body.feedback ?? (body.wasHelpful === false ? 'dismissed' : 'rated'),
+      feedback: body.feedback ?? (body.wasHelpful === false ? 'rejected' : 'rated'),
       helpful: body.wasHelpful,
       studentResponse: body.studentResponse,
     });

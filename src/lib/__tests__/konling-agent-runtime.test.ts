@@ -18,6 +18,9 @@ vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
 
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import {
+  applyKonlingCitationFallback,
+  buildKonlingCitationGuard,
+  buildKonlingStreamingCitationGuard,
   buildScopedKonlingAiTools,
   buildKonlingRuntimeContext,
   buildKonlingToolRuntime,
@@ -108,6 +111,21 @@ function createRuntimeContext(overrides: Partial<KonlingRuntimeContext> = {}): K
       status: 'missing',
     },
     memory: [],
+    citationContext: {
+      required: true,
+      contentCitations: [],
+      evidenceCitations: [],
+      missingCitationClasses: ['content', 'evidence'],
+      lowConfidenceReasons: ['missing-content', 'missing-evidence'],
+      responseProtocol: {
+        requiredOwners: ['answer', 'recommendation', 'intervention', 'report-explanation'],
+        minimum: {
+          content: 1,
+          evidenceWhenAvailable: 1,
+        },
+        fallbackWhenMissing: 'low-confidence',
+      },
+    },
     permittedTools: [
       'get_simulation_context',
       'run_virtual_simulation',
@@ -157,7 +175,7 @@ describe('konling agent runtime', () => {
       authenticatedUserId: 'student-1',
       role: 'STUDENT',
       targetUserId: 'student-2',
-      courseId: 'unit-4-5',
+      courseId: 'unit-4-5-constraint-aware-parameter-optimization-v1',
       pageId: 'step-03',
     })).resolves.toMatchObject({
       ok: false,
@@ -236,10 +254,11 @@ describe('konling agent runtime', () => {
       authenticatedUserName: '张三',
       role: 'STUDENT',
       classId: 'class-1',
-      courseId: 'unit-4-5',
+      courseId: 'unit-4-5-constraint-aware-parameter-optimization-v1',
       pageId: 'step-03',
       resourceId: 'resource-1',
       pathNodeId: 'node-1',
+      trustedContentContext: true,
       pageContextHint: {
         courseId: 'unit-4-5',
         courseTitle: '客户端标题',
@@ -265,6 +284,529 @@ describe('konling agent runtime', () => {
     expect(prompt).toContain('server-owned');
     expect(prompt).toContain('不得采用客户端传入的学生画像覆盖服务端学习状态');
     expect(prompt).toContain('学生在频域裕度迁移上需要脚手架');
+  });
+
+  it('builds citation requirements from server path context and evidence cache', async () => {
+    const db = {
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([
+          { id: 'path-1', nodeIds: ['node-1', 'node-2'], goalId: 'control-correction', pathStatus: 'active' },
+        ]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'mem-1',
+            memoryType: 'working-summary',
+            privacyScope: 'student-visible',
+            summary: '学生最近需要把根轨迹解释和仿真指标联系起来。',
+            evidenceRefs: [],
+            createdAt: new Date('2026-05-28T00:00:00Z'),
+          },
+        ]),
+      },
+      studentEvidenceFeatureCache: {
+        findUnique: vi.fn().mockResolvedValue({
+          features: {
+            pathExecution: {
+              allTime: {
+                confidence: { level: 'medium' },
+                sourceReferences: [
+                  {
+                    sourceType: 'LearningPathIntervention',
+                    sourceId: 'teacher-intv',
+                    pathId: 'path-1',
+                    nodeId: 'node-1',
+                    occurredAt: '2026-05-28T00:00:00Z',
+                    privacyLevel: 'teacher-scoped',
+                    studentOutcome: 'accepted',
+                  },
+                  {
+                    sourceType: 'LearningPathExecution',
+                    sourceId: 'foreign-exec',
+                    pathId: 'foreign-path',
+                    nodeId: 'node-1',
+                    occurredAt: '2026-05-28T00:00:00Z',
+                    privacyLevel: 'student-visible',
+                    status: 'completed',
+                  },
+                  {
+                    sourceType: 'LearningPathExecution',
+                    sourceId: 'exec-1',
+                    pathId: 'path-1',
+                    nodeId: 'node-1',
+                    occurredAt: '2026-05-28T00:00:00Z',
+                    privacyLevel: 'student-visible',
+                    status: 'completed',
+                  },
+                  {
+                    sourceType: 'LearningPathExecution',
+                    sourceId: 'exec-2',
+                    pathId: 'path-1',
+                    nodeId: 'node-1',
+                    occurredAt: '2026-05-28T00:01:00Z',
+                    privacyLevel: 'student-visible',
+                    status: 'completed',
+                  },
+                  {
+                    sourceType: 'LearningPathExecution',
+                    sourceId: 'exec-3',
+                    pathId: 'path-1',
+                    nodeId: 'node-1',
+                    occurredAt: '2026-05-28T00:02:00Z',
+                    privacyLevel: 'student-visible',
+                    status: 'completed',
+                  },
+                  {
+                    sourceType: 'LearningPathExecution',
+                    sourceId: 'exec-4',
+                    pathId: 'path-1',
+                    nodeId: 'node-1',
+                    occurredAt: '2026-05-28T00:07:00Z',
+                    privacyLevel: 'student-visible',
+                    status: 'completed',
+                  },
+                  {
+                    sourceType: 'LearningPathIntervention',
+                    sourceId: 'student-intv-latest',
+                    pathId: 'path-1',
+                    nodeId: 'node-1',
+                    occurredAt: '2026-05-28T00:04:00Z',
+                    privacyLevel: 'student-visible',
+                    studentOutcome: 'rejected',
+                  },
+                  {
+                    sourceType: 'LearningPathIntervention',
+                    sourceId: 'student-intv-other-node',
+                    pathId: 'path-1',
+                    nodeId: 'node-2',
+                    occurredAt: '2026-05-28T00:05:00Z',
+                    privacyLevel: 'student-visible',
+                    studentOutcome: 'accepted',
+                  },
+                  {
+                    sourceType: 'LearningPathIntervention',
+                    sourceId: 'legacy-intv-missing-node',
+                    pathId: 'path-1',
+                    occurredAt: '2026-05-28T00:06:00Z',
+                    privacyLevel: 'student-visible',
+                    studentOutcome: 'accepted',
+                  },
+                ],
+              },
+            },
+            simulationArena: {
+              allTime: {
+                replayConfidence: { lowConfidenceCount: 1 },
+                traceReferences: [
+                  {
+                    source: 'simulation',
+                    traceReference: 'trace:run-1',
+                    factId: 'fact-1',
+                    startedAt: '2026-05-28T00:00:00Z',
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      },
+    };
+
+    const runtime = await buildKonlingRuntimeContext(db, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      classId: 'class-1',
+      courseId: 'unit-4-5-constraint-aware-parameter-optimization-v1',
+      pageId: 'step-03',
+      resourceId: 'resource-1',
+      pathNodeId: 'node-1',
+      trustedContentContext: true,
+    });
+
+    expect(runtime.citationContext?.required).toBe(true);
+    expect(runtime.citationContext?.contentCitations[0]).toMatchObject({
+      sourceType: 'content',
+      evidenceBasis: 'course-ai-context',
+    });
+    expect(runtime.citationContext?.evidenceCitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ sourceType: 'path-execution', evidenceBasis: 'LearningPathExecution' }),
+      expect.objectContaining({ id: 'LearningPathIntervention:student-intv-latest', sourceType: 'intervention' }),
+      expect.objectContaining({ sourceType: 'simulation', confidence: 'low' }),
+    ]));
+    const latestInterventionIndex = runtime.citationContext?.evidenceCitations
+      .findIndex((citation) => citation.id === 'LearningPathIntervention:student-intv-latest') ?? -1;
+    const newerExecutionIndex = runtime.citationContext?.evidenceCitations
+      .findIndex((citation) => citation.id === 'LearningPathExecution:exec-4') ?? -1;
+    expect(latestInterventionIndex).toBeGreaterThanOrEqual(0);
+    expect(newerExecutionIndex).toBeGreaterThan(latestInterventionIndex);
+    expect(runtime.citationContext?.evidenceCitations).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'LearningPathIntervention:teacher-intv' }),
+      expect.objectContaining({ id: 'LearningPathExecution:foreign-exec' }),
+      expect.objectContaining({ id: 'LearningPathExecution:exec-1' }),
+      expect.objectContaining({ id: 'LearningPathIntervention:student-intv-other-node' }),
+      expect.objectContaining({ id: 'LearningPathIntervention:legacy-intv-missing-node' }),
+    ]));
+    expect(db.learningPath.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        userId: 'student-1',
+        goalId: 'control-correction',
+        pathStatus: 'active',
+        classId: 'class-1',
+      }),
+    }));
+
+    const prompt = buildKonlingSystemPrompt({
+      page: runtime.pageContext,
+      user: runtime.userProfile,
+      adaptiveRuntime: runtime,
+    });
+    expect(prompt).toContain('引用协议');
+    expect(prompt).toContain('sourceType、displayTitle、href、confidence、evidenceBasis');
+
+    const toolRuntime = buildKonlingToolRuntime({
+      db,
+      scope: createScope(),
+      context: runtime,
+    });
+    const recommendation = await toolRuntime.recommendNextAction() as Record<string, any>;
+    expect(recommendation.citationSupport.citations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ sourceType: 'content' }),
+      expect.objectContaining({ sourceType: 'path-execution' }),
+    ]));
+    expect(recommendation.citationSupport.readiness).toBe('low-confidence');
+  });
+
+  it('does not turn client-only page hints into high-confidence content citations', async () => {
+    const runtime = await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      classId: 'class-1',
+      courseId: 'unknown-client-course',
+      pageId: 'unknown-client-page',
+      pageContextHint: {
+        courseId: 'unit-4-5-constraint-aware-parameter-optimization-v1',
+        stepId: 'step-03',
+        courseTitle: '客户端伪造标题',
+        topic: '客户端伪造主题',
+      },
+    });
+
+    expect(runtime.pageContext.courseId).toBe('unknown-client-course');
+    expect(runtime.citationContext?.contentCitations).toEqual([]);
+    expect(runtime.citationContext?.missingCitationClasses).toContain('content');
+  });
+
+  it('does not treat unmatched pathNodeId as an active path node', async () => {
+    const runtime = await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      role: 'STUDENT',
+      courseId: 'unit-4-5-constraint-aware-parameter-optimization-v1',
+      pageId: 'step-03',
+      pathNodeId: 'client-node',
+      trustedContentContext: true,
+    });
+
+    expect(runtime.planContext).toMatchObject({
+      currentPathId: null,
+      activeNodeId: null,
+      status: 'missing',
+    });
+    const recommendation = await buildKonlingToolRuntime({
+      db: {},
+      scope: createScope({ pathNodeId: 'client-node' }),
+      context: runtime,
+    }).recommendNextAction() as Record<string, any>;
+    expect(recommendation.action).not.toBe('continue_path_node');
+  });
+
+  it('uses the server currentNodeId ahead of a client pathNodeId inside active paths', async () => {
+    const runtime = await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'path-1',
+            userId: 'student-1',
+            goalId: 'control-correction',
+            classId: 'class-1',
+            pathStatus: 'active',
+            currentNodeId: 'server-node',
+            nodeIds: ['client-node', 'server-node', 'next-node'],
+          },
+        ]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      role: 'STUDENT',
+      classId: 'class-1',
+      courseId: 'unit-4-5-constraint-aware-parameter-optimization-v1',
+      pageId: 'step-03',
+      pathNodeId: 'client-node',
+      trustedContentContext: true,
+    });
+
+    expect(runtime.planContext).toMatchObject({
+      currentPathId: 'path-1',
+      activeNodeId: 'server-node',
+      status: 'available',
+    });
+  });
+
+  it('downgrades assistant text when required citation metadata is absent', () => {
+    const guard = buildKonlingCitationGuard({
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:unit:step',
+          sourceType: 'content',
+          displayTitle: '根轨迹设计',
+          href: null,
+          confidence: 'high',
+          evidenceBasis: 'course-ai-context',
+          owner: 'answer',
+        }],
+        evidenceCitations: [{
+          id: 'path:path-1',
+          sourceType: 'path-execution',
+          displayTitle: '当前控制校正学习路径',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'LearningPath',
+          owner: 'recommendation',
+        }],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer', 'recommendation', 'intervention', 'report-explanation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    }, '下一步建议先回到根轨迹，再做仿真。这里会写“引用”两个字但没有具体来源。');
+
+    expect(guard).toMatchObject({
+      status: 'low-confidence',
+      fallbackRequired: true,
+      lowConfidenceReasons: ['assistant-citations-missing'],
+    });
+    expect(applyKonlingCitationFallback('下一步建议先回到根轨迹。', guard)).toContain('证据限制');
+  });
+
+  it('requires evidence citations when evidence is available even if content is cited', () => {
+    const guard = buildKonlingCitationGuard({
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:unit:step',
+          sourceType: 'content',
+          displayTitle: '根轨迹设计',
+          href: null,
+          confidence: 'high',
+          evidenceBasis: 'course-ai-context',
+          owner: 'answer',
+        }],
+        evidenceCitations: [{
+          id: 'path:path-1',
+          sourceType: 'path-execution',
+          displayTitle: '当前控制校正学习路径',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'LearningPath',
+          owner: 'recommendation',
+        }],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer', 'recommendation', 'intervention', 'report-explanation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    }, '建议先根据 citation(content:unit:step, content, 根轨迹设计, high, course-ai-context) 复习闭环极点迁移，再进入下一步。');
+
+    expect(guard).toMatchObject({
+      status: 'low-confidence',
+      fallbackRequired: true,
+      lowConfidenceReasons: ['assistant-evidence-citations-missing'],
+    });
+  });
+
+  it('requires content citations when content is available even if evidence is cited', () => {
+    const guard = buildKonlingCitationGuard({
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:unit:step',
+          sourceType: 'content',
+          displayTitle: '根轨迹设计',
+          href: null,
+          confidence: 'high',
+          evidenceBasis: 'course-ai-context',
+          owner: 'answer',
+        }],
+        evidenceCitations: [{
+          id: 'path:path-1',
+          sourceType: 'path-execution',
+          displayTitle: '当前控制校正学习路径',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'LearningPath',
+          owner: 'recommendation',
+        }],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer', 'recommendation', 'intervention', 'report-explanation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    }, '建议依据 citation(path:path-1, path-execution, 当前控制校正学习路径, medium, LearningPath) 的节点进度调整下一步，但不引用课程内容。');
+
+    expect(guard).toMatchObject({
+      status: 'low-confidence',
+      fallbackRequired: true,
+      lowConfidenceReasons: ['assistant-content-citations-missing'],
+    });
+  });
+
+  it('does not treat ordinary citation titles or evidence basis text as verified citations', () => {
+    const guard = buildKonlingCitationGuard({
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:unit:step',
+          sourceType: 'content',
+          displayTitle: '根轨迹设计',
+          href: null,
+          confidence: 'high',
+          evidenceBasis: 'course-ai-context',
+          owner: 'answer',
+        }],
+        evidenceCitations: [{
+          id: 'path:path-1',
+          sourceType: 'path-execution',
+          displayTitle: '当前控制校正学习路径',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'LearningPath',
+          owner: 'recommendation',
+        }],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer', 'recommendation', 'intervention', 'report-explanation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    }, '根轨迹设计需要结合当前控制校正学习路径判断，LearningPath 和 course-ai-context 都只是普通说明。');
+
+    expect(guard).toMatchObject({
+      status: 'low-confidence',
+      fallbackRequired: true,
+      lowConfidenceReasons: ['assistant-citations-missing'],
+    });
+  });
+
+  it('requires href when a citation exposes a student-visible link', () => {
+    const citationContext = {
+      required: true,
+      contentCitations: [{
+        id: 'content:unit:step',
+        sourceType: 'content',
+        displayTitle: '根轨迹设计',
+        href: '/interactive-learning/courses/unit-3-3-root-locus-rules',
+        confidence: 'high',
+        evidenceBasis: 'course-ai-context',
+        owner: 'answer',
+      }],
+      evidenceCitations: [],
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      responseProtocol: {
+        requiredOwners: ['answer', 'recommendation', 'intervention', 'report-explanation'],
+        minimum: { content: 1, evidenceWhenAvailable: 1 },
+        fallbackWhenMissing: 'low-confidence',
+      },
+    } satisfies KonlingCitationContext;
+
+    const missingHref = buildKonlingCitationGuard({ citationContext }, '引用 content / 根轨迹设计 / high / course-ai-context。');
+    const withHref = buildKonlingCitationGuard(
+      { citationContext },
+      '引用 content / 根轨迹设计 / high / course-ai-context / /interactive-learning/courses/unit-3-3-root-locus-rules。',
+    );
+
+    expect(missingHref).toMatchObject({
+      status: 'low-confidence',
+      lowConfidenceReasons: ['assistant-citations-missing'],
+    });
+    expect(withHref).toMatchObject({
+      status: 'verified',
+      fallbackRequired: false,
+    });
+  });
+
+  it('marks streaming citation guard as low-confidence until final assistant text is verified', () => {
+    const guard = buildKonlingStreamingCitationGuard({
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:unit:step',
+          sourceType: 'content',
+          displayTitle: '根轨迹设计',
+          href: null,
+          confidence: 'high',
+          evidenceBasis: 'course-ai-context',
+          owner: 'answer',
+        }],
+        evidenceCitations: [],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer', 'recommendation', 'intervention', 'report-explanation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    });
+
+    expect(guard).toMatchObject({
+      status: 'low-confidence',
+      fallbackRequired: true,
+      lowConfidenceReasons: ['assistant-citations-unverified-stream'],
+    });
   });
 
   it('retrieves scoped memory and redacts raw dialogue or answer payload fields', async () => {
@@ -2641,6 +3183,29 @@ describe('konling agent runtime', () => {
           createdAt: new Date('2026-05-28T00:00:00Z'),
         }),
       },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'path-1',
+            userId: 'student-1',
+            goalId: 'control-correction',
+            pathStatus: 'active',
+            currentNodeId: 'node-1',
+            nodeIds: ['node-1', 'node-2'],
+          },
+        ]),
+      },
+      learningPathIntervention: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockImplementation(async ({ data }) => ({
+          id: 'path-intv-1',
+          ...data,
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+        })),
+      },
+      evidenceOutbox: {
+        createMany: vi.fn(),
+      },
     };
 
     const intervention = await createGovernedKonlingIntervention(db, {
@@ -2665,7 +3230,7 @@ describe('konling agent runtime', () => {
     }));
     expect(db.aIIntervention.create).not.toHaveBeenCalled();
 
-    await recordKonlingInterventionFeedback(db, {
+    const feedback = await recordKonlingInterventionFeedback(db, {
       scope,
       interventionId: 'intv-1',
       feedback: 'rated',
@@ -2673,6 +3238,10 @@ describe('konling agent runtime', () => {
       studentResponse: '有帮助，但不要保存 rawDialogue',
     });
 
+    expect(feedback.outcome).toMatchObject({
+      feedback: 'rated',
+      pathOutcome: 'partially-accepted',
+    });
     expect(db.aIIntervention.updateMany).toHaveBeenCalledWith(expect.objectContaining({
       where: {
         id: 'intv-1',
@@ -2691,6 +3260,238 @@ describe('konling agent runtime', () => {
     }));
     expect(JSON.stringify(db.aIIntervention.updateMany.mock.calls)).not.toContain('rawDialogue');
     expect(db.konlingMemory.create).toHaveBeenCalled();
+    expect(db.learningPath.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        userId: 'student-1',
+        goalId: 'control-correction',
+        pathStatus: 'active',
+      }),
+      take: 5,
+    }));
+    expect(db.learningPathIntervention.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        pathId: 'path-1',
+        userId: 'student-1',
+        studentOutcome: 'partially-accepted',
+        idempotencyKey: 'konling-feedback:intv-1:rated:helpful:true',
+        citedEvidence: expect.arrayContaining([
+          expect.objectContaining({ kind: 'ai-intervention', ref: 'intv-1' }),
+          expect.objectContaining({ kind: 'learning-path-node', ref: 'node-1' }),
+        ]),
+      }),
+    }));
+    expect(JSON.stringify(db.learningPathIntervention.create.mock.calls)).not.toContain('rawDialogue');
+    expect(db.evidenceOutbox.createMany).toHaveBeenCalled();
+  });
+
+  it('persists intervention feedback for a recently completed path node after the active node advances', async () => {
+    const scope = createScope({ pathNodeId: 'node-1' });
+    const db = {
+      aIIntervention: {
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'intv-advanced-node',
+          interventionType: 'guidance',
+          content: '请复盘 node-1 的约束判断。',
+          evidence: [{ kind: 'learning-path-node', ref: 'node-1' }],
+          whyNow: '节点已完成后的反馈',
+        }),
+      },
+      konlingMemory: {
+        create: vi.fn(),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'path-1',
+          userId: 'student-1',
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          currentNodeId: 'node-2',
+          nodeIds: ['node-1', 'node-2'],
+        }]),
+      },
+      learningPathIntervention: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockImplementation(async ({ data }) => ({ id: 'path-intv-advanced', ...data })),
+      },
+      evidenceOutbox: {
+        createMany: vi.fn(),
+      },
+    };
+
+    await recordKonlingInterventionFeedback(db, {
+      scope,
+      interventionId: 'intv-advanced-node',
+      feedback: 'accepted',
+      helpful: true,
+    });
+
+    expect(db.learningPath.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.not.objectContaining({
+        currentNodeId: 'node-1',
+      }),
+      take: 5,
+    }));
+    expect(db.learningPathIntervention.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        pathId: 'path-1',
+        studentOutcome: 'accepted',
+      }),
+    }));
+  });
+
+  it('does not attach intervention feedback to an active path that does not contain the intervention node', async () => {
+    const scope = createScope({ pathNodeId: 'node-1' });
+    const db = {
+      aIIntervention: {
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'intv-foreign-path',
+          interventionType: 'guidance',
+          content: '请复盘 node-1 的约束判断。',
+          evidence: [{ kind: 'learning-path-node', ref: 'node-1' }],
+        }),
+      },
+      konlingMemory: {
+        create: vi.fn(),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'path-foreign',
+          userId: 'student-1',
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          currentNodeId: 'node-x',
+          nodeIds: ['node-x'],
+        }]),
+      },
+      learningPathIntervention: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn(),
+      },
+      evidenceOutbox: {
+        createMany: vi.fn(),
+      },
+    };
+
+    await recordKonlingInterventionFeedback(db, {
+      scope,
+      interventionId: 'intv-foreign-path',
+      feedback: 'accepted',
+      helpful: true,
+    });
+
+    expect(db.learningPathIntervention.create).not.toHaveBeenCalled();
+    expect(db.evidenceOutbox.createMany).not.toHaveBeenCalled();
+  });
+
+  it('does not map negative rated feedback to a partially accepted path outcome', async () => {
+    const scope = createScope();
+    const db = {
+      aIIntervention: {
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'intv-negative-rated',
+          interventionType: 'guidance',
+          content: '请回看稳态误差节点。',
+          evidence: [{ kind: 'learning-path-node', ref: 'node-1' }],
+          whyNow: '连续两次误差判断失准',
+        }),
+      },
+      konlingMemory: {
+        create: vi.fn(),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'path-1',
+          userId: 'student-1',
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          currentNodeId: 'node-1',
+          nodeIds: ['node-1'],
+        }]),
+      },
+      learningPathIntervention: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockImplementation(async ({ data }) => ({ id: 'path-intv-negative', ...data })),
+      },
+      evidenceOutbox: {
+        createMany: vi.fn(),
+      },
+    };
+
+    const feedback = await recordKonlingInterventionFeedback(db, {
+      scope,
+      interventionId: 'intv-negative-rated',
+      feedback: 'rated',
+      helpful: false,
+    });
+
+    expect(feedback.outcome).toMatchObject({
+      feedback: 'rated',
+      helpful: false,
+      pathOutcome: 'rejected',
+    });
+    expect(db.learningPathIntervention.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        studentOutcome: 'rejected',
+        idempotencyKey: 'konling-feedback:intv-negative-rated:rated:helpful:false',
+        privacySafeSummary: expect.stringContaining('helpful=false'),
+      }),
+    }));
+  });
+
+  it('does not infer acceptance from rated feedback without helpful evidence', async () => {
+    const scope = createScope();
+    const db = {
+      aIIntervention: {
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'intv-unqualified-rated',
+          interventionType: 'guidance',
+          content: '请回看稳态误差节点。',
+          evidence: [{ kind: 'learning-path-node', ref: 'node-1' }],
+          whyNow: '缺少可判定的 rated 反馈证据',
+        }),
+      },
+      konlingMemory: {
+        create: vi.fn(),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'path-1',
+          userId: 'student-1',
+          goalId: 'control-correction',
+          pathStatus: 'active',
+          currentNodeId: 'node-1',
+          nodeIds: ['node-1'],
+        }]),
+      },
+      learningPathIntervention: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockImplementation(async ({ data }) => ({ id: 'path-intv-pending', ...data })),
+      },
+      evidenceOutbox: {
+        createMany: vi.fn(),
+      },
+    };
+
+    const feedback = await recordKonlingInterventionFeedback(db, {
+      scope,
+      interventionId: 'intv-unqualified-rated',
+      feedback: 'rated',
+    });
+
+    expect(feedback.outcome).toMatchObject({
+      feedback: 'rated',
+      pathOutcome: 'pending',
+    });
+    expect(db.learningPathIntervention.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        studentOutcome: 'pending',
+        idempotencyKey: 'konling-feedback:intv-unqualified-rated:rated:helpful:unknown',
+      }),
+    }));
   });
 
   it('does not let foreign scoped cooldown records block current interventions', async () => {
