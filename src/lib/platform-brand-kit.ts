@@ -64,7 +64,7 @@ export interface PlatformBrandApplicationEvidenceEntry {
   requiredBrandRoles: readonly string[];
 }
 
-export const PLATFORM_BRAND_ASSET_REFERENCES: PlatformBrandAssetReference[] = [
+export const PLATFORM_BRAND_ASSET_REFERENCES: readonly PlatformBrandAssetReference[] = [
   {
     kind: 'app-mark',
     sourcePath: 'public/assets/platform-brand/app-mark.svg',
@@ -155,7 +155,7 @@ export const PLATFORM_BRAND_ASSET_REFERENCES: PlatformBrandAssetReference[] = [
   },
 ] as const;
 
-export const PLATFORM_DUAL_TEMPLATE_TOKEN_ROLES: PlatformDualTemplateTokenRole[] = [
+export const PLATFORM_DUAL_TEMPLATE_TOKEN_ROLES: readonly PlatformDualTemplateTokenRole[] = [
   {
     role: 'canvas',
     cssVariable: 'platform-brand-canvas',
@@ -242,7 +242,7 @@ export const PLATFORM_DUAL_TEMPLATE_TOKEN_ROLES: PlatformDualTemplateTokenRole[]
   },
 ] as const;
 
-export const PLATFORM_BRAND_LEGACY_NAMESPACE_MAPPINGS: PlatformBrandLegacyNamespaceMapping[] = [
+export const PLATFORM_BRAND_LEGACY_NAMESPACE_MAPPINGS: readonly PlatformBrandLegacyNamespaceMapping[] = [
   {
     namespace: 'interactive-course-hub-*',
     disposition: 'map-to-brand-roles',
@@ -287,7 +287,7 @@ export const PLATFORM_BRAND_NUMERIC_TYPOGRAPHY_CONTRACT = {
   textureRule: 'texture is limited to trace grid, matte paper, instrument hairline, and report watermark roles',
 } as const;
 
-export const PLATFORM_BRAND_APPLICATION_EVIDENCE: PlatformBrandApplicationEvidenceEntry[] = [
+export const PLATFORM_BRAND_APPLICATION_EVIDENCE: readonly PlatformBrandApplicationEvidenceEntry[] = [
   {
     surface: 'navigation',
     lightEvidence: 'artifacts/commercial-ui/brand-kit-light-1440.png',
