@@ -1,0 +1,50 @@
+{
+  "change": "create-dual-theme-brand-tokens-and-assets",
+  "capturedAt": "2026-06-06",
+  "evidencePage": "artifacts/commercial-ui/brand-kit-evidence.html",
+  "assetKit": "public/assets/platform-brand/instrument-atlas-brand-kit.svg",
+  "routes": [
+    {
+      "surface": "navigation",
+      "lightEvidence": "artifacts/commercial-ui/brand-kit-light-1440.png",
+      "darkEvidence": "artifacts/commercial-ui/brand-kit-dark-1440.png",
+      "sourceReference": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/home-light-1440.png",
+      "brandRoles": ["route identity", "evidence state", "role cockpit"]
+    },
+    {
+      "surface": "learner-record",
+      "lightEvidence": "artifacts/commercial-ui/brand-kit-light-1440.png",
+      "darkEvidence": "artifacts/commercial-ui/brand-kit-dark-1440.png",
+      "sourceReference": "artifacts/learner-data-shell/20260604T150858Z/evidence-light-desktop.png",
+      "brandRoles": ["route identity", "evidence state", "learner provenance"]
+    },
+    {
+      "surface": "mission-workspace",
+      "lightEvidence": "artifacts/commercial-ui/brand-kit-light-1440.png",
+      "darkEvidence": "artifacts/commercial-ui/brand-kit-dark-1440.png",
+      "sourceReference": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/interactive-learning-control-workbench-light-1440.png",
+      "brandRoles": ["route identity", "evidence state", "local tools"]
+    },
+    {
+      "surface": "knowledge-data-map",
+      "lightEvidence": "artifacts/commercial-ui/brand-kit-light-1440.png",
+      "darkEvidence": "artifacts/commercial-ui/brand-kit-dark-1440.png",
+      "sourceReference": "artifacts/knowledge-graph-relationship-visuals/20260604T214903Z/01-light-structure-default.png",
+      "brandRoles": ["route identity", "evidence state", "relationship trace"]
+    },
+    {
+      "surface": "operations-console",
+      "lightEvidence": "artifacts/commercial-ui/brand-kit-light-1440.png",
+      "darkEvidence": "artifacts/commercial-ui/brand-kit-dark-1440.png",
+      "sourceReference": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/teacher-auth-light-1440.png",
+      "brandRoles": ["route identity", "evidence state", "operator workflow"]
+    },
+    {
+      "surface": "report-ledger",
+      "lightEvidence": "artifacts/commercial-ui/brand-kit-light-1440.png",
+      "darkEvidence": "artifacts/commercial-ui/brand-kit-dark-1440.png",
+      "sourceReference": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-58-56-606Z/admin-data-governance-auth-light-1440.png",
+      "brandRoles": ["route identity", "evidence state", "report watermark"]
+    }
+  ]
+}

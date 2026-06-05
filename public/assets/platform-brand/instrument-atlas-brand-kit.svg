@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Instrument Atlas Brand Kit</title>
+  <desc id="desc">Shared platform brand symbols for app identity, route badges, workbench chrome, evidence snapshots, governance snapshots, and report watermarks.</desc>
+  <defs>
+    <style>
+      .canvas{fill:#07111f}.panel{fill:#102033}.paper{fill:#edf4f1}.ink{fill:#14313a}.trace{stroke:#38bdf8;stroke-width:4;fill:none}.line{stroke:#94a3b8;stroke-width:2;fill:none}.stamp{fill:none;stroke:#0f766e;stroke-width:4}.signal{fill:#22c55e}.warn{fill:#f59e0b}.markText{font:700 26px ui-sans-serif,system-ui;letter-spacing:2px}.smallText{font:600 14px ui-sans-serif,system-ui;letter-spacing:1.6px}
+    </style>
+    <symbol id="app-mark" viewBox="0 0 96 96">
+      <rect class="canvas" x="8" y="8" width="80" height="80" rx="18"/>
+      <path class="trace" d="M24 62 42 34l14 16 16-26"/>
+      <circle class="signal" cx="42" cy="34" r="5"/>
+      <circle class="warn" cx="72" cy="24" r="5"/>
+      <path class="line" d="M24 72h48M24 22h22"/>
+    </symbol>
+    <symbol id="horizontal-lockup" viewBox="0 0 320 96">
+      <use href="#app-mark" width="80" height="80" x="8" y="8"/>
+      <text class="markText" x="104" y="45" fill="#e2f3ff">INSTRUMENT</text>
+      <text class="smallText" x="106" y="68" fill="#94a3b8">ATLAS · CONTROL LEARNING</text>
+    </symbol>
+    <symbol id="compact-mark" viewBox="0 0 64 64">
+      <rect class="canvas" x="6" y="6" width="52" height="52" rx="14"/>
+      <path class="trace" d="M17 41 29 23l9 10 10-16"/>
+      <path class="line" d="M17 48h30"/>
+    </symbol>
+    <symbol id="favicon" viewBox="0 0 32 32">
+      <rect class="canvas" x="2" y="2" width="28" height="28" rx="7"/>
+      <path class="trace" d="M8 21 14 11l5 6 5-9"/>
+    </symbol>
+    <symbol id="route-badge" viewBox="0 0 120 64">
+      <rect class="paper" x="4" y="6" width="112" height="52" rx="14"/>
+      <path class="stamp" d="M22 42 42 22l19 15 34-25"/>
+      <path class="line" d="M20 48h78"/>
+    </symbol>
+    <symbol id="arena-badge" viewBox="0 0 120 64">
+      <rect class="canvas" x="4" y="6" width="112" height="52" rx="14"/>
+      <path class="trace" d="M22 44h20l10-22 12 30 12-20h22"/>
+      <circle class="warn" cx="86" cy="28" r="5"/>
+    </symbol>
+    <symbol id="course-badge" viewBox="0 0 120 64">
+      <rect class="paper" x="4" y="6" width="112" height="52" rx="14"/>
+      <path class="stamp" d="M24 22h72M24 34h46M24 46h58"/>
+      <circle class="signal" cx="94" cy="44" r="6"/>
+    </symbol>
+    <symbol id="workbench-chrome" viewBox="0 0 180 96">
+      <rect class="canvas" x="8" y="10" width="164" height="76" rx="14"/>
+      <path class="line" d="M28 30h124M28 48h124M28 66h76"/>
+      <path class="trace" d="M118 66l16-22 16 12"/>
+    </symbol>
+    <symbol id="data-snapshot" viewBox="0 0 180 96">
+      <rect class="paper" x="8" y="10" width="164" height="76" rx="14"/>
+      <path class="stamp" d="M30 66l28-24 25 14 38-32 28 20"/>
+      <path class="line" d="M30 74h120M30 24v50"/>
+    </symbol>
+    <symbol id="governance-snapshot" viewBox="0 0 180 96">
+      <rect class="canvas" x="8" y="10" width="164" height="76" rx="14"/>
+      <rect class="signal" x="30" y="28" width="24" height="44" rx="5"/>
+      <rect class="warn" x="70" y="42" width="24" height="30" rx="5"/>
+      <rect fill="#ef4444" x="110" y="34" width="24" height="38" rx="5"/>
+      <path class="line" d="M24 74h128"/>
+    </symbol>
+    <symbol id="report-watermark" viewBox="0 0 180 96">
+      <rect class="paper" x="8" y="10" width="164" height="76" rx="14" opacity=".72"/>
+      <use href="#compact-mark" width="42" height="42" x="24" y="27" opacity=".34"/>
+      <path class="stamp" d="M82 34h60M82 50h46M82 66h54" opacity=".5"/>
+    </symbol>
+  </defs>
+  <use href="#horizontal-lockup" width="320" height="96" x="24" y="24"/>
+  <use href="#route-badge" width="120" height="64" x="24" y="150"/>
+  <use href="#arena-badge" width="120" height="64" x="168" y="150"/>
+  <use href="#course-badge" width="120" height="64" x="312" y="150"/>
+  <use href="#workbench-chrome" width="180" height="96" x="24" y="236"/>
+  <use href="#data-snapshot" width="180" height="96" x="228" y="236"/>
+  <use href="#governance-snapshot" width="180" height="96" x="432" y="236"/>
+</svg>

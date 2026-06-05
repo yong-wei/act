@@ -60,6 +60,18 @@
     --platform-chart-4: 42 88% 58%;
     --platform-chart-5: 264 66% 66%;
     --platform-chart-6: 25 95% 53%;
+    --platform-brand-canvas: 220 54% 6%;
+    --platform-brand-surface-1: 220 42% 10%;
+    --platform-brand-surface-2: 219 34% 14%;
+    --platform-brand-elevated: 218 30% 18%;
+    --platform-brand-hairline: 210 18% 32%;
+    --platform-brand-trace-accent: 190 86% 58%;
+    --platform-brand-muted-accent: 208 24% 58%;
+    --platform-brand-danger: 0 74% 58%;
+    --platform-brand-success: 154 66% 46%;
+    --platform-brand-focus-ring: 190 90% 64%;
+    --platform-brand-evidence: 42 88% 58%;
+    --platform-brand-report-output: 262 62% 68%;
   }
 
   .light {
@@ -114,6 +126,18 @@
     --platform-chart-4: 38 88% 45%;
     --platform-chart-5: 262 62% 54%;
     --platform-chart-6: 25 92% 46%;
+    --platform-brand-canvas: 196 45% 96%;
+    --platform-brand-surface-1: 195 38% 99%;
+    --platform-brand-surface-2: 196 42% 94%;
+    --platform-brand-elevated: 190 34% 91%;
+    --platform-brand-hairline: 195 22% 72%;
+    --platform-brand-trace-accent: 194 76% 38%;
+    --platform-brand-muted-accent: 204 20% 46%;
+    --platform-brand-danger: 0 70% 46%;
+    --platform-brand-success: 156 60% 32%;
+    --platform-brand-focus-ring: 194 78% 42%;
+    --platform-brand-evidence: 38 86% 42%;
+    --platform-brand-report-output: 262 48% 42%;
   }
 }
 
