@@ -1,57 +1,41 @@
 /**
- * 全局AI助手浮动按钮
- *
- * 固定在页面右下角，用于呼出全局AI侧边栏
- * 复用KonlingAvatar和getFloatingButtonStyles
+ * 全局 AI 助手入口注册器。
+ * 入口由共享页面工具 Dock 渲染，避免并发固定在右下角的独立按钮。
  */
 
 'use client';
 
 import { useEffect, useState } from 'react';
 import { KonlingAvatar } from './konling-avatar';
-import { getFloatingButtonStyles, getUnreadBadgeStyles } from '@/lib/ai-theme-styles';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { useTheme } from '@/components/providers/theme-provider';
+import { usePageFloatingControls } from '@/components/shared/page-floating-controls';
 
 export function GlobalAIFloatingButton() {
-  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { shouldShowButton, isOpen, toggleSidebar, unreadCount } = useGlobalAI();
+  const { registerControl } = usePageFloatingControls();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const isDark = mounted ? theme !== 'light' : true;
+  useEffect(() => {
+    if (!mounted || !shouldShowButton || isOpen) return undefined;
+    return registerControl({
+      id: 'konling-global-ai',
+      label: '控灵 AI助手',
+      ariaLabel: '呼出控灵 AI助手',
+      priority: 10,
+      icon: <KonlingAvatar size="sm" />,
+      badge: unreadCount > 0
+        ? <span className="rounded-full bg-platform-evidence-unsupported px-1.5 py-0.5 text-[10px] font-bold text-platform-fg-inverse">{unreadCount > 9 ? '9+' : unreadCount}</span>
+        : undefined,
+      onSelect: toggleSidebar,
+    });
+  }, [isOpen, mounted, registerControl, shouldShowButton, toggleSidebar, unreadCount]);
 
-  const buttonStyles = getFloatingButtonStyles(isDark);
-  const badgeStyles = getUnreadBadgeStyles(isDark);
-
-  // 如果页面被排除或SSR时不渲染
-  if (!mounted || !shouldShowButton) {
-    return null;
-  }
-
-  // 如果侧边栏打开，不渲染按钮
-  if (isOpen) {
-    return null;
-  }
-
-  return (
-    <button
-      onClick={toggleSidebar}
-      className={`${buttonStyles} animate-in fade-in zoom-in duration-300`}
-      title="呼出控灵 AI助手"
-      aria-label="呼出控灵 AI助手"
-    >
-      <KonlingAvatar size="md" />
-      {unreadCount > 0 && (
-        <span className={`${badgeStyles} animate-in zoom-in duration-200`}>
-          {unreadCount > 9 ? '9+' : unreadCount}
-        </span>
-      )}
-    </button>
-  );
+  return null;
 }
 
 /**

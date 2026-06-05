@@ -8,6 +8,7 @@ import {
   PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX,
   PLATFORM_COMMERCIAL_WORKSPACE_SHELLS,
   PLATFORM_COMMERCIAL_WORKSPACE_ZONES,
+  PLATFORM_DOCK_CONTROL_DISPOSITION_CONTRACTS,
   PLATFORM_FLOATING_ACTION_DOCK_CONTRACT,
   PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS,
   PLATFORM_LEGACY_SHELL_RETIREMENT_CONTRACTS,
@@ -192,7 +193,7 @@ describe('platform UI contracts', () => {
   it('defines a shared floating action dock for Konling and management controls', () => {
     expect(PLATFORM_FLOATING_ACTION_DOCK_CONTRACT).toMatchObject({
       owner: 'platform-shell',
-      controls: ['konling', 'management', 'settings'],
+      controls: ['konling', 'management', 'settings', 'page-tools', 'issue-badge'],
       visibility: 'role-aware',
       minHitTargetPx: 44,
       zIndexToken: 'platform-floating-dock',
@@ -208,6 +209,8 @@ describe('platform UI contracts', () => {
       'konling',
       'management',
       'settings',
+      'page-tools',
+      'issue-badge',
     ]);
     expect(PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS.find((contract) => contract.control === 'konling')?.payloadBoundary).toContain('private memory');
     expect(PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS.find((contract) => contract.control === 'management')?.roleScope).toEqual([
@@ -215,6 +218,18 @@ describe('platform UI contracts', () => {
       'admin',
     ]);
     expect(PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS.flatMap((contract) => contract.roleScope)).not.toContain('audit');
+    expect(PLATFORM_DOCK_CONTROL_DISPOSITION_CONTRACTS.map((contract) => contract.legacyComponent)).toEqual([
+      'PageFloatingControls',
+      'GlobalAIFloatingButton',
+    ]);
+    for (const contract of PLATFORM_DOCK_CONTROL_DISPOSITION_CONTRACTS) {
+      expect(contract.owner).toBe('platform-shell');
+      expect(contract.disposition).toBe('register-or-retire');
+      expect(contract.removalCondition).toContain('dock');
+      expect(contract.collisionRequirements).toEqual(
+        expect.arrayContaining(['safe-area', 'z-index', 'keyboard reachability', 'primary task control clearance']),
+      );
+    }
   });
 
   it('allows legacy shells to retire when a commercial shell preserves route and role semantics', () => {
@@ -484,11 +499,42 @@ describe('platform UI contracts', () => {
     }
 
     expect(classNameOf(mobileNav)).toContain('lg:hidden');
+    expect(classNameOf(mobileNav)).not.toContain('overflow-x-auto');
     const linkContainer = asElement(mobileNav.props?.children);
+    expect(classNameOf(linkContainer)).toContain('grid');
+    expect(classNameOf(linkContainer)).toContain('sm:flex-wrap');
     expect(childElements(linkContainer.props?.children).map((link) => link.props?.href)).toEqual([
       '/teacher',
       '/teacher/classes',
     ]);
+    expect(collectLinks(mobileNav).find((link) => link.props?.href === '/teacher/classes')?.props?.['aria-current']).toBe('page');
+  });
+
+  it('derives shell navigation from route inventory when navigation is omitted', () => {
+    const shell = asElement(
+      AppShell({
+        role: 'student',
+        title: '知识图谱',
+        activeHref: '/knowledge',
+        children: null,
+      }),
+    );
+    const links = collectLinks(shell).map((link) => link.props?.href);
+
+    expect(links).toEqual(expect.arrayContaining(['/knowledge', '/interactive-learning', '/data-center']));
+  });
+
+  it('keeps global AI registration inside the shared dock instead of rendering a second fixed button', () => {
+    const layoutSource = readSource('src/app/layout.tsx');
+    const globalAiButtonSource = readSource('src/components/ai/global-ai-button.tsx');
+    const pageFloatingControlsSource = readSource('src/components/shared/page-floating-controls.tsx');
+
+    expect(layoutSource).toContain('<PageFloatingControlsProvider>');
+    expect(layoutSource).toContain('<GlobalAIFloatingButton />');
+    expect(globalAiButtonSource).toContain('registerControl');
+    expect(globalAiButtonSource).not.toContain('getFloatingButtonStyles');
+    expect(globalAiButtonSource).not.toContain('fixed bottom-20 right-6');
+    expect(pageFloatingControlsSource).toContain('data-page-floating-controls="true"');
   });
 
   it('lets dense commercial workspaces defer fixed sidebar space until xl', () => {

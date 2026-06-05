@@ -39,6 +39,21 @@ export type PlatformRouteAuthState = 'public' | 'auth-entry' | 'authenticated' |
 export type PlatformShellMigrationDisposition = 'adapted' | 'replace' | 'retained-temporary';
 export type PlatformRouteScreenshotProfile = 'direct-capture' | 'representative-covered' | 'temporary-exception';
 export type PlatformReportSurfaceType = 'primary-route' | 'embedded-component' | 'export-view' | 'temporary-gap';
+export type PlatformLegacyNavigationShell =
+  | 'UnifiedTopBar'
+  | 'ArenaPageShell'
+  | 'TeacherLayout'
+  | 'AdminConsoleHeader'
+  | 'FeaturePageNav';
+export type PlatformLegacyShellDisposition = 'adapted' | 'retained-temporary' | 'scheduled-replacement';
+export type PlatformDockDispositionComponent = 'PageFloatingControls' | 'GlobalAIFloatingButton';
+export type PlatformMobileNavigationBehavior =
+  | 'public-entry-menu'
+  | 'auth-callback-panel'
+  | 'role-route-tabs'
+  | 'workspace-command-surface'
+  | 'drawer'
+  | 'hidden-immersive';
 export type StudentLearningIntent = 'learn' | 'practice' | 'challenge' | 'experiment' | 'review-profile';
 export type CommercialStudentEntryIntent =
   | 'learn'
@@ -148,6 +163,19 @@ export interface PlatformPrimaryRouteException {
   removalCondition: string;
 }
 
+export interface PlatformRouteLegacyShellDisposition {
+  component: PlatformLegacyNavigationShell;
+  disposition: PlatformLegacyShellDisposition;
+  sourceFile: string;
+  removalCondition: string;
+}
+
+export interface PlatformRouteDockDisposition {
+  component: PlatformDockDispositionComponent;
+  disposition: 'registered-shared-dock' | 'retained-temporary';
+  removalCondition: string;
+}
+
 export interface PlatformPrimaryRouteInventoryEntry {
   href: string;
   routeFile: string;
@@ -157,6 +185,7 @@ export interface PlatformPrimaryRouteInventoryEntry {
   roleScope: readonly PlatformRoleNavigationAudience[];
   authState: PlatformRouteAuthState;
   themeSupport: readonly PlatformRouteThemeSupport[];
+  mobileNavigation: PlatformMobileNavigationBehavior;
   navigationLayers: readonly PlatformNavigationLayerId[];
   floatingDock: PlatformFloatingDockRouteBehavior;
   visualQaProfile: 'representative' | 'auth-callback' | 'immersive';
@@ -164,6 +193,8 @@ export interface PlatformPrimaryRouteInventoryEntry {
   owningChange: string;
   shellMigrationDisposition: PlatformShellMigrationDisposition;
   shellRemovalCondition: string;
+  legacyShell?: PlatformRouteLegacyShellDisposition;
+  dockDisposition?: readonly PlatformRouteDockDisposition[];
   exception?: PlatformPrimaryRouteException;
   aliases?: readonly string[];
 }
@@ -186,9 +217,12 @@ export interface PlatformRoleNavigationOptions {
 
 type PrimaryRouteInput = Omit<
   PlatformPrimaryRouteInventoryEntry,
-  'themeSupport' | 'shellMigrationDisposition' | 'shellRemovalCondition' | 'screenshotProfile' | 'exception'
+  'themeSupport' | 'mobileNavigation' | 'shellMigrationDisposition' | 'shellRemovalCondition' | 'screenshotProfile' | 'exception'
 > & Partial<
-  Pick<PlatformPrimaryRouteInventoryEntry, 'themeSupport' | 'shellMigrationDisposition' | 'shellRemovalCondition' | 'screenshotProfile'>
+  Pick<
+    PlatformPrimaryRouteInventoryEntry,
+    'themeSupport' | 'mobileNavigation' | 'shellMigrationDisposition' | 'shellRemovalCondition' | 'screenshotProfile'
+  >
 > & {
   exception?: Omit<PlatformPrimaryRouteException, 'removalCondition'> & Partial<Pick<PlatformPrimaryRouteException, 'removalCondition'>>;
 };
@@ -205,6 +239,17 @@ function primaryRoute(input: PrimaryRouteInput): PlatformPrimaryRouteInventoryEn
   return {
     ...input,
     themeSupport: input.themeSupport ?? ['light', 'dark'],
+    mobileNavigation: input.mobileNavigation ?? (
+      input.frame === 'public-entry'
+        ? 'public-entry-menu'
+        : input.frame === 'auth-entry'
+          ? 'auth-callback-panel'
+          : input.floatingDock === 'hidden'
+            ? 'hidden-immersive'
+            : input.navigationLayers.includes('local-tool')
+              ? 'workspace-command-surface'
+              : 'role-route-tabs'
+    ),
     shellMigrationDisposition: input.shellMigrationDisposition ?? (exception ? 'retained-temporary' : 'adapted'),
     shellRemovalCondition,
     screenshotProfile: input.screenshotProfile ?? (exception ? 'temporary-exception' : 'direct-capture'),
@@ -424,6 +469,12 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'collapsed',
     visualQaProfile: 'representative',
     owningChange: 'redesign-public-student-entry-experience',
+    legacyShell: {
+      component: 'UnifiedTopBar',
+      disposition: 'scheduled-replacement',
+      sourceFile: 'src/app/interactive-learning/page.tsx',
+      removalCondition: 'Interactive Learning entry uses AppShell or an approved workspace shell without a page-local UnifiedTopBar.',
+    },
   }),
   primaryRoute({
     href: '/interactive-learning/courses',
@@ -435,6 +486,12 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'collapsed',
     visualQaProfile: 'representative',
     owningChange: 'redesign-public-student-entry-experience',
+    legacyShell: {
+      component: 'UnifiedTopBar',
+      disposition: 'scheduled-replacement',
+      sourceFile: 'src/app/interactive-learning/courses/page.tsx',
+      removalCondition: 'Interactive course catalog uses AppShell or an approved workspace shell without a page-local UnifiedTopBar.',
+    },
   }),
   primaryRoute({
     href: '/interactive-learning/courses/unit-4-1-design-task-expression',
@@ -458,6 +515,12 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     visualQaProfile: 'immersive',
     screenshotProfile: 'representative-covered',
     owningChange: 'redesign-immersive-learning-workspaces',
+    legacyShell: {
+      component: 'FeaturePageNav',
+      disposition: 'scheduled-replacement',
+      sourceFile: 'src/app/simulations/page.tsx',
+      removalCondition: 'Simulation entry maps local return and title controls into AppShell or the approved immersive workspace shell.',
+    },
   }),
   primaryRoute({
     href: '/arena',
@@ -470,6 +533,12 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     visualQaProfile: 'immersive',
     screenshotProfile: 'representative-covered',
     owningChange: 'redesign-immersive-learning-workspaces',
+    legacyShell: {
+      component: 'ArenaPageShell',
+      disposition: 'retained-temporary',
+      sourceFile: 'src/features/arena/arena-hall.tsx',
+      removalCondition: 'Arena hall moves breadcrumbs and active path into the approved immersive workspace shell.',
+    },
   }),
   primaryRoute({
     href: '/assessment/adaptive-practice',
@@ -515,6 +584,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
+    mobileNavigation: 'role-route-tabs',
     owningChange: 'redesign-learner-data-and-report-surfaces',
     aliases: ['/profile/growth', '/profile/portfolio'],
   }),
@@ -628,6 +698,12 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: 'redesign-operations-and-report-surfaces',
+    legacyShell: {
+      component: 'TeacherLayout',
+      disposition: 'scheduled-replacement',
+      sourceFile: 'src/app/teacher/layout.tsx',
+      removalCondition: 'Teacher layout delegates header, cockpit navigation, and account actions to AppShell.',
+    },
   }),
   primaryRoute({
     href: '/teacher/classes',
@@ -761,6 +837,12 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: 'redesign-operations-and-report-surfaces',
+    legacyShell: {
+      component: 'AdminConsoleHeader',
+      disposition: 'scheduled-replacement',
+      sourceFile: 'src/features/admin/admin-console-home.tsx',
+      removalCondition: 'Admin console home maps status notes and actions into AppShell AppHeader and PlatformSurface slots.',
+    },
   }),
   primaryRoute({
     href: '/admin/users',
@@ -772,6 +854,12 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: 'redesign-operations-and-report-surfaces',
+    legacyShell: {
+      component: 'AdminConsoleHeader',
+      disposition: 'scheduled-replacement',
+      sourceFile: 'src/features/admin/admin-dashboard.tsx',
+      removalCondition: 'Admin user dashboard maps tabs and actions into AppShell AppHeader and PlatformSurface slots.',
+    },
   }),
   primaryRoute({
     href: '/admin/states',
@@ -783,6 +871,12 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: 'redesign-operations-and-report-surfaces',
+    legacyShell: {
+      component: 'AdminConsoleHeader',
+      disposition: 'scheduled-replacement',
+      sourceFile: 'src/features/admin/states/admin-states-dashboard.tsx',
+      removalCondition: 'Admin states dashboard maps metric header controls into AppShell AppHeader and PlatformSurface slots.',
+    },
   }),
   primaryRoute({
     href: '/admin/config',
@@ -794,6 +888,12 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: 'redesign-operations-and-report-surfaces',
+    legacyShell: {
+      component: 'AdminConsoleHeader',
+      disposition: 'scheduled-replacement',
+      sourceFile: 'src/features/admin/system-config-dashboard.tsx',
+      removalCondition: 'Admin config dashboard maps model and system tabs into AppShell AppHeader and PlatformSurface slots.',
+    },
   }),
   primaryRoute({
     href: '/admin/lesson-plans',
@@ -816,6 +916,12 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: 'redesign-operations-and-report-surfaces',
+    legacyShell: {
+      component: 'AdminConsoleHeader',
+      disposition: 'scheduled-replacement',
+      sourceFile: 'src/features/admin/data-governance-dashboard.tsx',
+      removalCondition: 'Data governance dashboard maps governance status and report actions into AppShell AppHeader and PlatformSurface slots.',
+    },
   }),
   primaryRoute({
     href: '/ai',
@@ -828,12 +934,23 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     visualQaProfile: 'representative',
     owningChange: 'rebuild-navigation-frame-system',
     shellRemovalCondition: 'AI landing route is either registered under the platform navigation frame or removed from primary product navigation.',
+    legacyShell: {
+      component: 'FeaturePageNav',
+      disposition: 'retained-temporary',
+      sourceFile: 'src/app/ai/page.tsx',
+      removalCondition: 'AI landing route maps local return and title controls into AppShell or a registered AI workspace shell.',
+    },
     exception: {
       owner: 'rebuild-navigation-frame-system',
       affectedCapability: 'ai-landing-route',
       reason: 'AI route is not part of the commercial UI migration series but remains a primary product route.',
       expiresOn: '2026-08-31',
     },
+    dockDisposition: [{
+      component: 'GlobalAIFloatingButton',
+      disposition: 'registered-shared-dock',
+      removalCondition: 'Konling entry registers through PageFloatingControlsProvider instead of rendering an independent fixed button.',
+    }],
   }),
   primaryRoute({
     href: '/ai/copilot',
@@ -846,12 +963,23 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     visualQaProfile: 'representative',
     owningChange: 'rebuild-navigation-frame-system',
     shellRemovalCondition: 'AI copilot route is either registered under the platform navigation frame or removed from primary product navigation.',
+    legacyShell: {
+      component: 'FeaturePageNav',
+      disposition: 'retained-temporary',
+      sourceFile: 'src/app/ai/copilot/page.tsx',
+      removalCondition: 'AI copilot route maps local return and title controls into AppShell or a registered AI workspace shell.',
+    },
     exception: {
       owner: 'rebuild-navigation-frame-system',
       affectedCapability: 'ai-copilot-route',
       reason: 'Copilot route needs frame ownership before visual migration can claim it.',
       expiresOn: '2026-08-31',
     },
+    dockDisposition: [{
+      component: 'GlobalAIFloatingButton',
+      disposition: 'registered-shared-dock',
+      removalCondition: 'Konling copilot entry registers through PageFloatingControlsProvider instead of rendering an independent fixed button.',
+    }],
   }),
   primaryRoute({
     href: '/knowledge',
@@ -863,6 +991,12 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'collapsed',
     visualQaProfile: 'representative',
     owningChange: 'redesign-knowledge-and-data-surfaces',
+    legacyShell: {
+      component: 'UnifiedTopBar',
+      disposition: 'scheduled-replacement',
+      sourceFile: 'src/app/knowledge/page.tsx',
+      removalCondition: 'Knowledge graph route uses AppShell or approved knowledge workspace shell without a page-local UnifiedTopBar.',
+    },
   }),
 ] as const;
 
@@ -1456,6 +1590,75 @@ export function getPlatformRoleNavigation(
     includeDisabled: options.includeDisabled,
     includeHidden: options.includeHidden,
   }) as PlatformRoleNavigationItem[];
+}
+
+function normalizeInventoryHref(href: string) {
+  const path = href.split(/[?#]/, 1)[0];
+  return path || '/';
+}
+
+function routePatternToRegExp(pattern: string) {
+  const escaped = pattern
+    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    .replace(/\\\[.+?\\\]/g, '[^/]+')
+    .replace(/:[^/]+/g, '[^/]+');
+  return new RegExp(`^${escaped}$`);
+}
+
+export function resolvePlatformRouteInventory(href: string): PlatformPrimaryRouteInventoryEntry | undefined {
+  const path = normalizeInventoryHref(href);
+  const directMatch = PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => {
+    if (normalizeInventoryHref(route.href) === path) return true;
+    if (route.routePattern && routePatternToRegExp(route.routePattern).test(path)) return true;
+    return routePatternToRegExp(route.href).test(path);
+  });
+  if (directMatch) return directMatch;
+  return PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => (
+    route.aliases?.some((alias) => normalizeInventoryHref(alias) === path)
+  ));
+}
+
+export function getPlatformRouteNavigation(
+  href: string,
+  role: PlatformRoleNavigationAudience,
+  options: PlatformRoleNavigationOptions = {},
+): PlatformRoleNavigationItem[] {
+  const route = resolvePlatformRouteInventory(href);
+  const navigation = getPlatformRoleNavigation(role, options);
+  const enabledFeatureFlags = new Set(options.enabledFeatureFlags ?? []);
+  const isAvailable = (entry: PlatformRoleNavigationItem) => {
+    if (entry.availability === 'hidden' && !options.includeHidden) return false;
+    if (entry.availability === 'disabled' && !options.includeDisabled) return false;
+    if (entry.featureFlag && !enabledFeatureFlags.has(entry.featureFlag)) return false;
+    return true;
+  };
+  if (!route) return navigation;
+  if (route.navigationLayers.includes('global-product') && route.navigationLayers.includes('role-cockpit')) {
+    return navigation;
+  }
+  if (route.navigationLayers.includes('role-cockpit')) {
+    return navigation.filter((entry) => entry.group === 'role-cockpit' || entry.group === 'teacher-cockpit' || entry.group === 'admin-cockpit');
+  }
+  if (route.navigationLayers.includes('global-product')) {
+    const globalEntries = PLATFORM_ROLE_NAVIGATION_GROUPS.filter((entry) => (
+      (entry.group === 'public' || entry.group === 'student-core')
+      && (
+        entry.role === role
+        || entry.role === 'all'
+        || (entry.role === 'guest' && (role === 'guest' || entry.href !== '/login'))
+      )
+      && isAvailable(entry as PlatformRoleNavigationItem)
+    )) as PlatformRoleNavigationItem[];
+    const byHref = new Map<string, PlatformRoleNavigationItem>();
+    for (const entry of globalEntries) {
+      const existing = byHref.get(entry.href);
+      if (!existing || (existing.role !== role && entry.role === role)) {
+        byHref.set(entry.href, entry);
+      }
+    }
+    return Array.from(byHref.values());
+  }
+  return [];
 }
 
 export function getStudentCoreNavigationEntries(): PlatformRoleNavigationItem[] {

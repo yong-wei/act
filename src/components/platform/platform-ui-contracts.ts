@@ -54,7 +54,7 @@ export type PlatformPremiumVisualRole =
   | 'low-light-instrument'
   | 'trace-signal'
   | 'warning-success-signal';
-export type PlatformFloatingActionDockControl = 'konling' | 'management' | 'settings';
+export type PlatformFloatingActionDockControl = 'konling' | 'management' | 'settings' | 'page-tools' | 'issue-badge';
 export type PlatformFloatingActionDockVisibility = 'role-aware' | 'feature-flagged' | 'workspace-hidden';
 export type PlatformFloatingActionDockResponsiveMode = 'expanded' | 'collapsed-icons' | 'hidden-by-workspace';
 
@@ -192,6 +192,15 @@ export interface PlatformFloatingActionDockControlContract {
   purpose: string;
   hiddenWhen: readonly string[];
   payloadBoundary: string;
+}
+
+export interface PlatformDockControlDispositionContract {
+  legacyComponent: 'PageFloatingControls' | 'GlobalAIFloatingButton';
+  owner: 'platform-shell';
+  disposition: 'register-or-retire';
+  replacementControl: PlatformFloatingActionDockControl;
+  removalCondition: string;
+  collisionRequirements: readonly string[];
 }
 
 export interface PlatformCommercialWorkspaceShell {
@@ -553,7 +562,7 @@ export const PLATFORM_LEGACY_SHELL_RETIREMENT_CONTRACTS: PlatformLegacyShellReti
 
 export const PLATFORM_FLOATING_ACTION_DOCK_CONTRACT: PlatformFloatingActionDockContract = {
   owner: 'platform-shell',
-  controls: ['konling', 'management', 'settings'],
+  controls: ['konling', 'management', 'settings', 'page-tools', 'issue-badge'],
   visibility: 'role-aware',
   bottomOffset: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)',
   rightOffset: 'calc(env(safe-area-inset-right, 0px) + 1rem)',
@@ -594,6 +603,39 @@ export const PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS: PlatformFloatingAc
     purpose: 'Expose theme, density, account, and workspace preference entry points consistently.',
     hiddenWhen: ['workspace takes over settings in an immersive full-screen mode'],
     payloadBoundary: 'Dock receives account/action metadata only; profile and authorization data stay in auth and route layers.',
+  },
+  {
+    control: 'page-tools',
+    roleScope: ['student', 'teacher', 'admin'],
+    purpose: 'Host route-owned tools, report actions, classroom controls, and workspace support drawers without separate fixed systems.',
+    hiddenWhen: ['route has no page-local tools', 'immersive route declares hidden dock behavior'],
+    payloadBoundary: 'Dock receives registration metadata only; page-owned modules retain command execution and data loading.',
+  },
+  {
+    control: 'issue-badge',
+    roleScope: ['teacher', 'admin'],
+    purpose: 'Expose governance, evidence, or issue count badges without overlapping forms, charts, report labels, or graph canvases.',
+    hiddenWhen: ['route has no issue badge', 'badge is rendered inline in a report table'],
+    payloadBoundary: 'Dock receives count, label, and target href only; issue details remain in feature-owned routes.',
+  },
+] as const;
+
+export const PLATFORM_DOCK_CONTROL_DISPOSITION_CONTRACTS: PlatformDockControlDispositionContract[] = [
+  {
+    legacyComponent: 'PageFloatingControls',
+    owner: 'platform-shell',
+    disposition: 'register-or-retire',
+    replacementControl: 'page-tools',
+    removalCondition: 'PageFloatingControls registrations move into the shared dock or route-local command surfaces retire their fixed bottom-right placement.',
+    collisionRequirements: ['safe-area', 'z-index', 'keyboard reachability', 'primary task control clearance'],
+  },
+  {
+    legacyComponent: 'GlobalAIFloatingButton',
+    owner: 'platform-shell',
+    disposition: 'register-or-retire',
+    replacementControl: 'konling',
+    removalCondition: 'GlobalAIFloatingButton registers through the shared dock and no longer renders as an independent fixed control.',
+    collisionRequirements: ['safe-area', 'z-index', 'keyboard reachability', 'primary task control clearance'],
   },
 ] as const;
 
