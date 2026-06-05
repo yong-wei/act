@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 96" role="img" aria-label="Instrument Atlas workbench chrome">
+  <rect fill="#07111f" x="8" y="10" width="164" height="76" rx="14"/>
+  <path d="M28 30h124M28 48h124M28 66h76" fill="none" stroke="#94a3b8" stroke-width="2"/>
+  <path d="M118 66l16-22 16 12" fill="none" stroke="#38bdf8" stroke-width="4"/>
+</svg>

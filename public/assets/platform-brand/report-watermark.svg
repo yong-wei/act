@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 96" role="img" aria-label="Instrument Atlas report watermark">
+  <rect fill="#edf4f1" x="8" y="10" width="164" height="76" rx="14" opacity=".72"/>
+  <rect fill="#07111f" x="24" y="27" width="42" height="42" rx="10" opacity=".34"/>
+  <path d="M34 54 42 40l7 8 8-13" fill="none" stroke="#38bdf8" stroke-width="3" opacity=".72"/>
+  <path d="M82 34h60M82 50h46M82 66h54" fill="none" stroke="#0f766e" stroke-width="4" opacity=".5"/>
+</svg>
