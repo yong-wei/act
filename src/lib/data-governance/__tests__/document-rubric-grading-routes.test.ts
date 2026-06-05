@@ -1,0 +1,689 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import {
+  approveGradingRun,
+  buildDocumentRubricDraftDedupeKey,
+  convertSubmissionDocument,
+  createDraftRubricGrading,
+  createMarkItDownConversionAdapter,
+  createSubmissionAsset,
+  editCriterionGrade,
+  textFixtureMarkItDownRunner,
+  type ConvertedDocument,
+  type DocumentRubricGradingRun,
+  type DocumentSubmissionAsset,
+  type RubricDefinition,
+} from '../document-rubric-grading-workbench';
+
+const mocks = vi.hoisted(() => ({
+  getServerAuthSession: vi.fn(),
+  prisma: {
+    learningEvidenceDraft: {
+      findFirst: vi.fn(),
+      update: vi.fn(),
+    },
+    class: {
+      findUnique: vi.fn(),
+    },
+    studentProfile: {
+      findFirst: vi.fn(),
+    },
+    learningFact: {
+      createMany: vi.fn(),
+    },
+    studentEvidenceFeatureCache: {
+      deleteMany: vi.fn(),
+    },
+  },
+}));
+
+vi.mock('@/lib/auth', () => ({
+  getServerAuthSession: mocks.getServerAuthSession,
+}));
+
+vi.mock('@/lib/prisma', () => ({
+  prisma: mocks.prisma,
+}));
+
+import { POST } from '@/app/api/teacher/document-grading/approve/route';
+
+const root = process.cwd();
+const now = new Date('2026-06-04T08:00:00.000Z');
+
+function source(path: string) {
+  return readFileSync(join(root, path), 'utf8');
+}
+
+function postJson(body: unknown) {
+  return POST(new Request('http://localhost/api/teacher/document-grading/approve', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }));
+}
+
+function rubric(): RubricDefinition {
+  return {
+    id: 'rubric-control-report',
+    title: '控制设计报告评分量规',
+    version: '2026.06',
+    maxScore: 4,
+    criteria: [
+      {
+        id: 'modeling',
+        label: '模型与指标表达',
+        weight: 0.4,
+        evidenceRequirement: 'damping ratio',
+        goalDimension: 'controlModeling',
+        levels: [
+          { id: 'novice', label: '待改进', score: 1, description: '指标缺失' },
+          { id: 'proficient', label: '达标', score: 3, description: '指标基本完整' },
+          { id: 'advanced', label: '优秀', score: 4, description: '指标和权衡清晰' },
+        ],
+      },
+    ],
+  };
+}
+
+async function gradingDraft() {
+  const asset = createSubmissionAsset({
+    id: 'asset-1',
+    studentId: 'student-1',
+    classId: 'class-1',
+    assignmentId: 'report-1',
+    fileName: 'root-locus-report.pdf',
+    mimeType: 'application/pdf',
+    bytes: 'Root locus design explains damping ratio and settling time.',
+    uploadedAt: now.toISOString(),
+  });
+  const convertedDocument = await convertSubmissionDocument({
+    asset,
+    adapter: createMarkItDownConversionAdapter({
+      now,
+      preserveSpanMapping: true,
+      runner: (submission) => textFixtureMarkItDownRunner(submission, true),
+    }),
+    now,
+  });
+  const draft = createDraftRubricGrading({ convertedDocument, rubric: rubric(), now });
+  const run = editCriterionGrade(draft, {
+    criterionId: 'modeling',
+    levelId: 'advanced',
+    score: 4,
+    comment: '模型、指标和根轨迹解释完整。',
+    reviewerId: 'teacher-1',
+    now,
+  });
+  return persistedDraft({ asset, convertedDocument, run, rubric: rubric() });
+}
+
+function persistedDraft(input: {
+  asset: DocumentSubmissionAsset;
+  convertedDocument: ConvertedDocument;
+  run: DocumentRubricGradingRun;
+  rubric: RubricDefinition;
+}) {
+  return {
+    id: input.run.id,
+    ownerUserId: input.asset.studentId,
+    sourceType: 'document_rubric_grading',
+    sourceRefs: {
+      asset: input.asset,
+      classId: input.asset.classId,
+      assignmentId: input.asset.assignmentId,
+      goalId: 'control-report',
+      targetGoal: 'control-report',
+      learningGoal: 'control-report',
+    },
+    factType: 'document_rubric_grading',
+    summary: {
+      run: input.run,
+      rubric: input.rubric,
+    },
+    evidenceRefs: {
+      convertedDocument: input.convertedDocument,
+    },
+    provenance: {},
+    confidence: 0.9,
+    privacyScope: 'teacher_review',
+    dedupeKey: buildDocumentRubricDraftDedupeKey(input.asset, input.run),
+    reviewerState: 'pending',
+    occurredAt: now,
+    classId: input.asset.classId,
+  };
+}
+
+describe('document rubric grading routes', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 1 });
+    mocks.prisma.studentEvidenceFeatureCache.deleteMany.mockResolvedValue({ count: 1 });
+    mocks.prisma.learningEvidenceDraft.update.mockResolvedValue({});
+  });
+
+  it('protects student document feedback with session and student-role gates', () => {
+    const page = source('src/app/assessment/document-feedback/page.tsx');
+
+    expect(page).toContain('getServerAuthSession');
+    expect(page).toContain("redirect('/login')");
+    expect(page).toContain('UserRole.STUDENT');
+    expect(page).toContain('validateDocumentRubricGradingDraftInvariants');
+    expect(page).toContain('&& valid');
+    expect(page).toContain('createHiddenStudentGradingFeedbackView');
+    expect(page).not.toContain('viewerStudentId: asset.studentId');
+  });
+
+  it('renders evidence capsules, Konling entry points, and a real approval action in UI surfaces', () => {
+    const ui = source('src/features/assessment/document-rubric-grading-ui.tsx');
+    const action = source('src/features/assessment/document-rubric-grading-actions.tsx');
+    const teacherPage = source('src/app/teacher/grading-workbench/page.tsx');
+
+    expect(ui).toContain('view.evidenceCapsules.map');
+    expect(ui).toContain('view.konlingEntryPoint.promptContext');
+    expect(action).toContain('/api/teacher/document-grading/approve');
+    expect(action).toContain('JSON.stringify({ gradingRunId');
+    expect(teacherPage).toContain('validateDocumentRubricGradingDraftInvariants');
+    expect(teacherPage).toContain('if (!invariants.valid)');
+    expect(teacherPage).toContain('prisma.studentProfile.findFirst');
+  });
+
+  it('rejects anonymous, student, and malformed approval requests', async () => {
+    mocks.getServerAuthSession.mockResolvedValueOnce(null);
+    expect((await postJson({ gradingRunId: 'grading-1' })).status).toBe(401);
+
+    mocks.getServerAuthSession.mockResolvedValueOnce({ user: { id: 'student-1', role: 'STUDENT' } });
+    expect((await postJson({ gradingRunId: 'grading-1' })).status).toBe(403);
+
+    mocks.getServerAuthSession.mockResolvedValueOnce({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    expect((await postJson({})).status).toBe(400);
+
+    mocks.getServerAuthSession.mockResolvedValueOnce({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    expect((await postJson({ gradingRunId: 'grading-1', decision: 'publish' })).status).toBe(400);
+  });
+
+  it('rejects teacher approval outside the class scope', async () => {
+    const draft = await gradingDraft();
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-2', role: 'TEACHER' } });
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue(draft);
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+
+    const response = await postJson({ gradingRunId: draft.id });
+
+    expect(response.status).toBe(403);
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
+  });
+
+  it('rejects persisted drafts with forged nested ownership or object references', async () => {
+    const draft = await gradingDraft();
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      id: 'forged-run-id',
+    });
+    const forgedDraftRunResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedDraftRunResponse.status).toBe(422);
+    expect(await forgedDraftRunResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['draft-run-id-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      ownerUserId: 'student-forged',
+    });
+    const forgedOwnerResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedOwnerResponse.status).toBe(422);
+    expect(await forgedOwnerResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['draft-owner-user-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      summary: {
+        ...draft.summary,
+        run: {
+          ...draft.summary.run,
+          assetId: 'asset-forged',
+        },
+      },
+    });
+    const forgedRunResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedRunResponse.status).toBe(422);
+    expect(await forgedRunResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['run-asset-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      sourceRefs: {
+        ...draft.sourceRefs,
+        classId: 'class-forged',
+      },
+    });
+    const forgedClassResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedClassResponse.status).toBe(422);
+    expect(await forgedClassResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['goal-context-class-asset-class-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      sourceRefs: {
+        ...draft.sourceRefs,
+        assignmentId: 'assignment-forged',
+      },
+    });
+    const forgedAssignmentResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedAssignmentResponse.status).toBe(422);
+    expect(await forgedAssignmentResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['goal-context-assignment-asset-assignment-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      sourceRefs: {
+        ...draft.sourceRefs,
+        assignmentId: 'assignment-forged',
+        asset: {
+          ...draft.sourceRefs.asset,
+          assignmentId: 'assignment-forged',
+        },
+      },
+    });
+    const forgedConsistentAssignmentResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedConsistentAssignmentResponse.status).toBe(422);
+    expect(await forgedConsistentAssignmentResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['draft-dedupe-key-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      sourceRefs: {
+        ...draft.sourceRefs,
+        assignmentId: 'report',
+        asset: {
+          ...draft.sourceRefs.asset,
+          assignmentId: 'report',
+        },
+      },
+    });
+    const forgedSubstringAssignmentResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedSubstringAssignmentResponse.status).toBe(422);
+    expect(await forgedSubstringAssignmentResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['draft-dedupe-key-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      evidenceRefs: {
+        ...draft.evidenceRefs,
+        convertedDocument: {
+          ...draft.evidenceRefs.convertedDocument,
+          assetId: 'asset-forged',
+        },
+      },
+    });
+    const forgedConvertedResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedConvertedResponse.status).toBe(422);
+    expect(await forgedConvertedResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['converted-asset-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      evidenceRefs: {
+        ...draft.evidenceRefs,
+        convertedDocument: {
+          ...draft.evidenceRefs.convertedDocument,
+          checksum: 'forged-checksum',
+        },
+      },
+    });
+    const forgedChecksumResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedChecksumResponse.status).toBe(422);
+    expect(await forgedChecksumResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['converted-asset-checksum-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      evidenceRefs: {
+        ...draft.evidenceRefs,
+        convertedDocument: {
+          ...draft.evidenceRefs.convertedDocument,
+          markdown: '- FORGED PREVIEW NOT FROM ASSET',
+          blocks: draft.evidenceRefs.convertedDocument.blocks.map((block) => ({
+            ...block,
+            text: 'FORGED PREVIEW NOT FROM ASSET',
+            markdown: '- FORGED PREVIEW NOT FROM ASSET',
+          })),
+        },
+      },
+      summary: {
+        ...draft.summary,
+        run: {
+          ...draft.summary.run,
+          draftGrades: draft.summary.run.draftGrades.map((grade: DocumentRubricGradingRun['draftGrades'][number]) => ({
+            ...grade,
+            evidenceRefs: grade.evidenceRefs.map((ref) => ({
+              ...ref,
+              excerpt: 'FORGED PREVIEW NOT FROM ASSET',
+            })),
+          })),
+        },
+      },
+    });
+    const forgedConvertedBlockResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedConvertedBlockResponse.status).toBe(422);
+    expect(await forgedConvertedBlockResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['converted-block-source-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      evidenceRefs: {
+        ...draft.evidenceRefs,
+        convertedDocument: {
+          ...draft.evidenceRefs.convertedDocument,
+          markdown: 'FORGED PREVIEW NOT FROM ASSET',
+        },
+      },
+    });
+    const forgedMarkdownOnlyResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedMarkdownOnlyResponse.status).toBe(422);
+    expect(await forgedMarkdownOnlyResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['converted-markdown-blocks-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      summary: {
+        ...draft.summary,
+        run: {
+          ...draft.summary.run,
+          draftGrades: draft.summary.run.draftGrades.map((grade: DocumentRubricGradingRun['draftGrades'][number]) => ({
+            ...grade,
+            evidenceRefs: grade.evidenceRefs.map((ref) => ({
+              ...ref,
+              convertedDocumentId: 'converted-forged',
+            })),
+          })),
+        },
+      },
+    });
+    const forgedEvidenceDocumentResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedEvidenceDocumentResponse.status).toBe(422);
+    expect(await forgedEvidenceDocumentResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['evidence-converted-document-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      summary: {
+        ...draft.summary,
+        run: {
+          ...draft.summary.run,
+          draftGrades: draft.summary.run.draftGrades.map((grade: DocumentRubricGradingRun['draftGrades'][number]) => ({
+            ...grade,
+            evidenceRefs: grade.evidenceRefs.map((ref) => ({
+              ...ref,
+              checksum: 'forged-checksum',
+            })),
+          })),
+        },
+      },
+    });
+    const forgedEvidenceChecksumResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedEvidenceChecksumResponse.status).toBe(422);
+    expect(await forgedEvidenceChecksumResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['evidence-checksum-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      summary: {
+        ...draft.summary,
+        run: {
+          ...draft.summary.run,
+          draftGrades: draft.summary.run.draftGrades.map((grade: DocumentRubricGradingRun['draftGrades'][number]) => ({
+            ...grade,
+            evidenceRefs: grade.evidenceRefs.map((ref) => ({
+              ...ref,
+              blockId: 'forged-block',
+            })),
+          })),
+        },
+      },
+    });
+    const forgedEvidenceResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedEvidenceResponse.status).toBe(422);
+    expect(await forgedEvidenceResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['evidence-block-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      summary: {
+        ...draft.summary,
+        run: {
+          ...draft.summary.run,
+          draftGrades: draft.summary.run.draftGrades.map((grade: DocumentRubricGradingRun['draftGrades'][number]) => ({
+            ...grade,
+            evidenceRefs: grade.evidenceRefs.map((ref) => ({
+              ...ref,
+              excerpt: 'FORGED EVIDENCE TEXT NOT IN BLOCK',
+            })),
+          })),
+        },
+      },
+    });
+    const forgedEvidenceExcerptResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedEvidenceExcerptResponse.status).toBe(422);
+    expect(await forgedEvidenceExcerptResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['evidence-excerpt-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      summary: {
+        ...draft.summary,
+        run: {
+          ...draft.summary.run,
+          draftGrades: draft.summary.run.draftGrades.map((grade: DocumentRubricGradingRun['draftGrades'][number]) => ({
+            ...grade,
+            evidenceRefs: grade.evidenceRefs.map((ref) => ({
+              ...ref,
+              pageNumber: 99,
+            })),
+          })),
+        },
+      },
+    });
+    const forgedEvidencePageResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedEvidencePageResponse.status).toBe(422);
+    expect(await forgedEvidencePageResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['evidence-page-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      summary: {
+        ...draft.summary,
+        run: {
+          ...draft.summary.run,
+          draftGrades: draft.summary.run.draftGrades.map((grade: DocumentRubricGradingRun['draftGrades'][number]) => ({
+            ...grade,
+            evidenceRefs: grade.evidenceRefs.map((ref) => ({
+              ...ref,
+              precision: 'span',
+            })),
+          })),
+        },
+      },
+      evidenceRefs: {
+        ...draft.evidenceRefs,
+        convertedDocument: {
+          ...draft.evidenceRefs.convertedDocument,
+          referencePrecision: 'block',
+          blocks: draft.evidenceRefs.convertedDocument.blocks.map((block) => ({
+            ...block,
+            spanStart: undefined,
+            spanEnd: undefined,
+          })),
+        },
+      },
+    });
+    const forgedEvidencePrecisionResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedEvidencePrecisionResponse.status).toBe(422);
+    expect(await forgedEvidencePrecisionResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['evidence-precision-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      summary: {
+        ...draft.summary,
+        run: {
+          ...draft.summary.run,
+          draftGrades: [
+            ...draft.summary.run.draftGrades,
+            {
+              ...draft.summary.run.draftGrades[0],
+              criterionId: 'forged-criterion',
+              score: 99,
+              profileWritebackCandidate: {
+                goalDimension: 'engineeringDecision',
+                contribution: 10,
+                confidence: 1,
+              },
+            },
+          ],
+        },
+      },
+    });
+    const forgedCriterionResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedCriterionResponse.status).toBe(422);
+    expect(await forgedCriterionResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['grade-criterion-mismatch']),
+    }));
+
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValueOnce({
+      ...draft,
+      summary: {
+        ...draft.summary,
+        run: {
+          ...draft.summary.run,
+          rubricVersion: 'forged-version',
+        },
+      },
+    });
+    const forgedRubricResponse = await postJson({ gradingRunId: draft.id });
+    expect(forgedRubricResponse.status).toBe(422);
+    expect(await forgedRubricResponse.json()).toEqual(expect.objectContaining({
+      reasons: expect.arrayContaining(['run-rubric-mismatch']),
+    }));
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
+  });
+
+  it('approves persisted grading runs and writes governed learning facts', async () => {
+    const draft = await gradingDraft();
+    const expectedRun = approveGradingRun(draft.summary.run, {
+      reviewerId: 'teacher-1',
+      decision: 'approved',
+      now,
+    });
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue(draft);
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const response = await postJson({
+      gradingRunId: draft.id,
+      run: { assetId: 'client-forged-asset' },
+      rubric: { id: 'client-forged-rubric' },
+      studentId: 'client-forged-student',
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toEqual(expect.objectContaining({
+      status: 'approved',
+      gradingRunId: expectedRun.id,
+      createdFacts: 1,
+    }));
+    expect(mocks.prisma.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      skipDuplicates: true,
+      data: expect.arrayContaining([
+        expect.objectContaining({
+          userId: 'student-1',
+          factType: 'document_rubric_grading',
+          competencyContribution: { controlModeling: expect.any(Number) },
+          contextJson: expect.objectContaining({
+            classId: 'class-1',
+            assignmentId: 'report-1',
+            goalId: 'control-report',
+          }),
+        }),
+      ]),
+    }));
+    expect(mocks.prisma.studentEvidenceFeatureCache.deleteMany).toHaveBeenCalledWith({
+      where: { userId: 'student-1' },
+    });
+    expect(mocks.prisma.learningEvidenceDraft.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: draft.id },
+      data: expect.objectContaining({ reviewerState: 'approved' }),
+    }));
+  });
+
+  it('accepts base64 text submissions after decoding before block source validation', async () => {
+    const text = 'Root locus design explains damping ratio and settling time.';
+    const asset = createSubmissionAsset({
+      id: 'asset-base64',
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-base64',
+      fileName: 'base64-report.md',
+      mimeType: 'text/markdown',
+      bytes: Buffer.from(text, 'utf8').toString('base64'),
+      contentEncoding: 'base64',
+      uploadedAt: now.toISOString(),
+    });
+    const convertedDocument = await convertSubmissionDocument({
+      asset,
+      adapter: createMarkItDownConversionAdapter({
+        now,
+        preserveSpanMapping: true,
+        runner: async () => ({
+          markdown: `- ${text}`,
+          referencePrecision: 'span',
+          warnings: [],
+          blocks: [{
+            text,
+            markdown: `- ${text}`,
+            pageNumber: 1,
+            confidence: 0.92,
+            spanStart: 0,
+            spanEnd: text.length,
+          }],
+        }),
+      }),
+      now,
+    });
+    const run = createDraftRubricGrading({ convertedDocument, rubric: rubric(), now });
+    const draft = persistedDraft({ asset, convertedDocument, run, rubric: rubric() });
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue(draft);
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const response = await postJson({ gradingRunId: draft.id });
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningFact.createMany).toHaveBeenCalled();
+  });
+});
