@@ -87,6 +87,94 @@ export type KonlingToolApprovalPolicy = 'none' | 'required';
 export type KonlingToolApprovalState = 'not_required' | 'required' | 'approved' | 'rejected';
 export type KonlingToolRunStatus = 'running' | 'awaiting_approval' | 'succeeded' | 'failed';
 export type KonlingToolIdempotencyPolicy = 'none' | 'reuse' | 'reject';
+export type KonlingTeachingAssistantModeId =
+  | 'generic-chat'
+  | 'diagnosis-explainer'
+  | 'path-advisor'
+  | 'resource-coach'
+  | 'grading-assistant'
+  | 'feedback-explainer'
+  | 'class-summarizer'
+  | 'prep-coauthor';
+export type KonlingTeachingAssistantMountSurface =
+  | 'generic-chat'
+  | 'student-learning-overview'
+  | 'student-path-center'
+  | 'resource-node-launch'
+  | 'teacher-grading-workbench'
+  | 'student-feedback'
+  | 'teacher-class-report'
+  | 'teacher-prep-pack';
+export type KonlingTeachingAssistantContextKey =
+  | 'diagnosis-view'
+  | 'learner-state-summary'
+  | 'evidence-citations'
+  | 'path-execution-context'
+  | 'resource-node'
+  | 'rubric'
+  | 'converted-document'
+  | 'draft-grading-state'
+  | 'teacher-review-state'
+  | 'student-feedback'
+  | 'class-report'
+  | 'prep-pack';
+export type KonlingTeachingAssistantStatus = 'ready' | 'degraded' | 'unavailable';
+
+export interface KonlingTeachingAssistantModeContract {
+  id: KonlingTeachingAssistantModeId;
+  label: string;
+  supportedRoles: AdaptiveLearnerStateRole[];
+  mountingSurfaces: KonlingTeachingAssistantMountSurface[];
+  requiredContext: KonlingTeachingAssistantContextKey[];
+  optionalContext: KonlingTeachingAssistantContextKey[];
+  permittedTools: KonlingToolName[];
+  citationClasses: KonlingCitation['sourceType'][];
+  privacyPolicy: {
+    payload: 'aggregate-and-redacted-only' | 'student-visible-summary' | 'teacher-scoped-summary';
+    forbiddenContent: string[];
+  };
+  unavailableStates: string[];
+  outputContract: {
+    status: 'draft-only' | 'advisory-only' | 'chat';
+    requiredCitationOwners: Array<KonlingCitation['owner']>;
+    forbiddenActions: string[];
+  };
+}
+
+export interface KonlingTeachingAssistantMountContract {
+  surface: KonlingTeachingAssistantMountSurface;
+  modeId: KonlingTeachingAssistantModeId;
+  supportedRoles: AdaptiveLearnerStateRole[];
+  requiredContext: KonlingTeachingAssistantContextKey[];
+  unavailableStates: string[];
+}
+
+export interface KonlingTeachingAssistantRuntimeContract {
+  mode: KonlingTeachingAssistantModeContract;
+  status: KonlingTeachingAssistantStatus;
+  unavailableReasons: string[];
+  degradedReasons: string[];
+  scope: Pick<KonlingRuntimeScope, 'authenticatedUserId' | 'targetUserId' | 'role' | 'classId' | 'courseId' | 'pageId' | 'resourceId' | 'pathNodeId' | 'privacyScopes'>;
+  permittedTools: KonlingToolName[];
+  citationRequirements: {
+    required: boolean;
+    classes: KonlingCitation['sourceType'][];
+    requiredOwners: Array<KonlingCitation['owner']>;
+    missingClasses: string[];
+  };
+  privacyPolicy: KonlingTeachingAssistantModeContract['privacyPolicy'];
+  outputContract: KonlingTeachingAssistantModeContract['outputContract'];
+  clientHintsAccepted: string[];
+  clientHintsRejected: string[];
+}
+
+export type KonlingTeachingAssistantServerModeContext = Partial<Record<KonlingTeachingAssistantContextKey, boolean>>;
+
+export interface KonlingTeachingAssistantEntryPoint {
+  mode: Exclude<KonlingTeachingAssistantModeId, 'generic-chat'>;
+  promptContext: string;
+  serverContext: Record<string, string>;
+}
 
 export interface KonlingRuntimeScope {
   authenticatedUserId: string;
@@ -114,6 +202,324 @@ export interface KonlingRuntimeContext {
     semanticMemory: boolean;
     strategyMemory: boolean;
   };
+}
+
+export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAssistantModeId, KonlingTeachingAssistantModeContract> = {
+  'generic-chat': teachingAssistantMode({
+    id: 'generic-chat',
+    label: '通用控灵对话',
+    supportedRoles: ['student', 'teacher', 'admin'],
+    mountingSurfaces: ['generic-chat'],
+    requiredContext: [],
+    optionalContext: ['learner-state-summary', 'evidence-citations'],
+    permittedTools: [
+      'get_page_context',
+      'get_learner_state',
+      'get_plan_context',
+      'search_learning_memory',
+      'search_knowledge_graph',
+      'recommend_next_action',
+      'get_simulation_status',
+      'set_simulation_params',
+      'analyze_result',
+      'get_simulation_context',
+      'run_virtual_simulation',
+      'analyze_simulation_trace',
+      'compare_simulation_runs',
+      'propose_controller_patch',
+      'apply_controller_patch',
+      'record_intervention_result',
+      'analyze_attempt',
+    ],
+    citationClasses: ['content', 'learner-state', 'path-execution', 'memory'],
+    payload: 'student-visible-summary',
+    outputStatus: 'chat',
+    requiredCitationOwners: ['answer'],
+  }),
+  'diagnosis-explainer': teachingAssistantMode({
+    id: 'diagnosis-explainer',
+    label: '诊断解释器',
+    supportedRoles: ['student', 'teacher'],
+    mountingSurfaces: ['student-learning-overview'],
+    requiredContext: ['diagnosis-view', 'learner-state-summary', 'evidence-citations'],
+    optionalContext: ['path-execution-context'],
+    permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
+    citationClasses: ['learner-state', 'path-execution', 'content'],
+    payload: 'aggregate-and-redacted-only',
+    outputStatus: 'advisory-only',
+    requiredCitationOwners: ['answer', 'recommendation'],
+  }),
+  'path-advisor': teachingAssistantMode({
+    id: 'path-advisor',
+    label: '学习路径顾问',
+    supportedRoles: ['student', 'teacher'],
+    mountingSurfaces: ['student-path-center'],
+    requiredContext: ['path-execution-context', 'learner-state-summary', 'evidence-citations'],
+    optionalContext: ['diagnosis-view', 'resource-node'],
+    permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
+    citationClasses: ['path-execution', 'learner-state', 'content', 'intervention'],
+    payload: 'aggregate-and-redacted-only',
+    outputStatus: 'advisory-only',
+    requiredCitationOwners: ['answer', 'recommendation'],
+  }),
+  'resource-coach': teachingAssistantMode({
+    id: 'resource-coach',
+    label: '资源学习教练',
+    supportedRoles: ['student', 'teacher'],
+    mountingSurfaces: ['resource-node-launch'],
+    requiredContext: ['resource-node', 'path-execution-context', 'evidence-citations'],
+    optionalContext: ['learner-state-summary'],
+    permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action', 'analyze_attempt'],
+    citationClasses: ['content', 'path-execution', 'learner-state'],
+    payload: 'student-visible-summary',
+    outputStatus: 'advisory-only',
+    requiredCitationOwners: ['answer', 'recommendation'],
+  }),
+  'grading-assistant': teachingAssistantMode({
+    id: 'grading-assistant',
+    label: '文档批改助手',
+    supportedRoles: ['teacher'],
+    mountingSurfaces: ['teacher-grading-workbench'],
+    requiredContext: ['rubric', 'converted-document', 'draft-grading-state', 'teacher-review-state', 'evidence-citations'],
+    optionalContext: ['learner-state-summary'],
+    permittedTools: ['get_page_context', 'search_knowledge_graph'],
+    citationClasses: ['content', 'learner-state'],
+    payload: 'teacher-scoped-summary',
+    outputStatus: 'draft-only',
+    requiredCitationOwners: ['answer', 'report-explanation'],
+    forbiddenActions: ['approve-grading', 'write-back-profile'],
+  }),
+  'feedback-explainer': teachingAssistantMode({
+    id: 'feedback-explainer',
+    label: '学生反馈解释器',
+    supportedRoles: ['student'],
+    mountingSurfaces: ['student-feedback'],
+    requiredContext: ['student-feedback', 'evidence-citations'],
+    optionalContext: ['rubric', 'learner-state-summary'],
+    permittedTools: ['get_page_context', 'get_learner_state', 'search_knowledge_graph', 'recommend_next_action'],
+    citationClasses: ['content', 'learner-state'],
+    payload: 'student-visible-summary',
+    outputStatus: 'advisory-only',
+    requiredCitationOwners: ['answer', 'recommendation'],
+  }),
+  'class-summarizer': teachingAssistantMode({
+    id: 'class-summarizer',
+    label: '班级学情总结器',
+    supportedRoles: ['teacher'],
+    mountingSurfaces: ['teacher-class-report'],
+    requiredContext: ['class-report', 'diagnosis-view', 'evidence-citations'],
+    optionalContext: ['path-execution-context'],
+    permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph'],
+    citationClasses: ['learner-state', 'path-execution', 'intervention'],
+    payload: 'teacher-scoped-summary',
+    outputStatus: 'advisory-only',
+    requiredCitationOwners: ['answer', 'report-explanation'],
+  }),
+  'prep-coauthor': teachingAssistantMode({
+    id: 'prep-coauthor',
+    label: '教师备课共创',
+    supportedRoles: ['teacher'],
+    mountingSurfaces: ['teacher-prep-pack'],
+    requiredContext: ['prep-pack', 'diagnosis-view', 'evidence-citations', 'teacher-review-state'],
+    optionalContext: ['class-report', 'resource-node'],
+    permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph'],
+    citationClasses: ['learner-state', 'path-execution', 'content', 'intervention'],
+    payload: 'teacher-scoped-summary',
+    outputStatus: 'draft-only',
+    requiredCitationOwners: ['answer', 'report-explanation'],
+    forbiddenActions: ['publish-prep-item', 'insert-lesson-item'],
+  }),
+};
+
+const KONLING_TEACHING_ASSISTANT_MODE_ALIASES: Record<string, KonlingTeachingAssistantModeId> = {
+  'teacher-grading-assistant': 'grading-assistant',
+  'student-feedback-explainer': 'feedback-explainer',
+};
+
+function normalizeKonlingTeachingAssistantModeId(modeId?: string | null): KonlingTeachingAssistantModeId | null {
+  if (!modeId) return 'generic-chat';
+  if (modeId in KONLING_TEACHING_ASSISTANT_MODE_REGISTRY) return modeId as KonlingTeachingAssistantModeId;
+  return KONLING_TEACHING_ASSISTANT_MODE_ALIASES[modeId] ?? null;
+}
+
+export function resolveKonlingTeachingAssistantMode(
+  modeId?: string | null,
+): KonlingTeachingAssistantModeContract {
+  const normalized = normalizeKonlingTeachingAssistantModeId(modeId);
+  return KONLING_TEACHING_ASSISTANT_MODE_REGISTRY[normalized ?? 'generic-chat'];
+}
+
+export function getKonlingTeachingAssistantMountContracts(): KonlingTeachingAssistantMountContract[] {
+  return Object.values(KONLING_TEACHING_ASSISTANT_MODE_REGISTRY)
+    .flatMap((mode) => mode.mountingSurfaces.map((surface) => ({
+      surface,
+      modeId: mode.id,
+      supportedRoles: mode.supportedRoles,
+      requiredContext: mode.requiredContext,
+      unavailableStates: mode.unavailableStates,
+    })));
+}
+
+export function buildKonlingTeachingAssistantRuntimeContract(input: {
+  modeId?: string | null;
+  runtimeContext: KonlingRuntimeContext;
+  scope: KonlingRuntimeScope;
+  serverModeContext?: KonlingTeachingAssistantServerModeContext | null;
+  clientContextHints?: Record<string, unknown> | null;
+}): KonlingTeachingAssistantRuntimeContract {
+  const normalizedModeId = normalizeKonlingTeachingAssistantModeId(input.modeId);
+  const mode = resolveKonlingTeachingAssistantMode(input.modeId);
+  const clientHintsRejected = Object.keys(input.clientContextHints ?? {});
+  const roleSupported = mode.supportedRoles.includes(input.scope.role);
+  const unknownModeReasons = input.modeId && !normalizedModeId ? [`unknown-mode:${input.modeId}`] : [];
+  const missingRequiredContext = mode.id === 'generic-chat'
+    ? []
+    : mode.requiredContext.flatMap((contextKey) =>
+      isKonlingModeContextAvailable(contextKey, mode, input.runtimeContext, input.scope, input.serverModeContext)
+        ? []
+        : [`missing-context:${contextKey}`]
+    );
+  const missingCitationClasses = mode.id === 'generic-chat'
+    ? []
+    : mode.citationClasses.flatMap((citationClass) =>
+      hasKonlingCitationClass(citationClass, input.runtimeContext.citationContext)
+        ? []
+        : [`missing-citation:${citationClass}`]
+    );
+  const unavailableReasons = [
+    ...unknownModeReasons,
+    ...(roleSupported ? [] : [`unsupported-role:${input.scope.role}`]),
+    ...missingRequiredContext,
+    ...missingCitationClasses,
+  ];
+  const degradedReasons = unavailableReasons.length === 0
+    ? input.runtimeContext.citationContext?.lowConfidenceReasons ?? []
+    : [];
+  const status: KonlingTeachingAssistantStatus = unknownModeReasons.length > 0
+    ? 'unavailable'
+    : mode.id === 'generic-chat'
+    ? 'ready'
+    : unavailableReasons.length > 0
+      ? 'unavailable'
+      : degradedReasons.length > 0
+        ? 'degraded'
+        : 'ready';
+  const permittedTools = mode.id === 'generic-chat'
+    ? input.runtimeContext.permittedTools
+    : mode.permittedTools.filter((toolName) => input.runtimeContext.permittedTools.includes(toolName));
+  const safePermittedTools = status === 'unavailable' ? [] : permittedTools;
+
+  return {
+    mode,
+    status,
+    unavailableReasons,
+    degradedReasons,
+    scope: {
+      authenticatedUserId: input.scope.authenticatedUserId,
+      targetUserId: input.scope.targetUserId,
+      role: input.scope.role,
+      classId: input.scope.classId,
+      courseId: input.scope.courseId,
+      pageId: input.scope.pageId,
+      resourceId: input.scope.resourceId,
+      pathNodeId: input.scope.pathNodeId,
+      privacyScopes: input.scope.privacyScopes,
+    },
+    permittedTools: safePermittedTools,
+    citationRequirements: {
+      required: mode.id !== 'generic-chat' || input.runtimeContext.citationContext?.required === true,
+      classes: mode.citationClasses,
+      requiredOwners: mode.outputContract.requiredCitationOwners,
+      missingClasses: missingCitationClasses.map((reason) => reason.replace('missing-citation:', '')),
+    },
+    privacyPolicy: mode.privacyPolicy,
+    outputContract: mode.outputContract,
+    clientHintsAccepted: [],
+    clientHintsRejected,
+  };
+}
+
+function teachingAssistantMode(input: {
+  id: KonlingTeachingAssistantModeId;
+  label: string;
+  supportedRoles: AdaptiveLearnerStateRole[];
+  mountingSurfaces: KonlingTeachingAssistantMountSurface[];
+  requiredContext: KonlingTeachingAssistantContextKey[];
+  optionalContext: KonlingTeachingAssistantContextKey[];
+  permittedTools: KonlingToolName[];
+  citationClasses: KonlingCitation['sourceType'][];
+  payload: KonlingTeachingAssistantModeContract['privacyPolicy']['payload'];
+  outputStatus: KonlingTeachingAssistantModeContract['outputContract']['status'];
+  requiredCitationOwners: Array<KonlingCitation['owner']>;
+  forbiddenActions?: string[];
+}): KonlingTeachingAssistantModeContract {
+  return {
+    id: input.id,
+    label: input.label,
+    supportedRoles: input.supportedRoles,
+    mountingSurfaces: input.mountingSurfaces,
+    requiredContext: input.requiredContext,
+    optionalContext: input.optionalContext,
+    permittedTools: input.permittedTools,
+    citationClasses: input.citationClasses,
+    privacyPolicy: {
+      payload: input.payload,
+      forbiddenContent: [
+        'raw-answer-body',
+        'private-konling-memory',
+        'hidden-arena-internals',
+        'raw-high-frequency-trace',
+        'secret',
+      ],
+    },
+    unavailableStates: input.requiredContext.map((contextKey) => `missing-context:${contextKey}`),
+    outputContract: {
+      status: input.outputStatus,
+      requiredCitationOwners: input.requiredCitationOwners,
+      forbiddenActions: input.forbiddenActions ?? [],
+    },
+  };
+}
+
+function isKonlingModeContextAvailable(
+  contextKey: KonlingTeachingAssistantContextKey,
+  mode: KonlingTeachingAssistantModeContract,
+  runtimeContext: KonlingRuntimeContext,
+  scope: KonlingRuntimeScope,
+  serverModeContext: KonlingTeachingAssistantServerModeContext | null | undefined,
+): boolean {
+  if (serverModeContext?.[contextKey] === true) return true;
+
+  switch (contextKey) {
+    case 'diagnosis-view':
+    case 'learner-state-summary':
+      return Boolean(runtimeContext.learnerState) && !runtimeContext.missingContext.includes('learner-state');
+    case 'evidence-citations':
+      return mode.citationClasses.every((citationClass) =>
+        hasKonlingCitationClass(citationClass, runtimeContext.citationContext)
+      );
+    case 'path-execution-context':
+      return runtimeContext.planContext.status === 'available';
+    case 'resource-node':
+      return false;
+    case 'rubric':
+    case 'converted-document':
+    case 'draft-grading-state':
+    case 'teacher-review-state':
+    case 'student-feedback':
+    case 'class-report':
+    case 'prep-pack':
+      return false;
+  }
+}
+
+function hasKonlingCitationClass(
+  citationClass: KonlingCitation['sourceType'],
+  citationContext: KonlingCitationContext | undefined,
+): boolean {
+  if (!citationContext) return false;
+  return [...citationContext.contentCitations, ...citationContext.evidenceCitations]
+    .some((citation) => citation.sourceType === citationClass);
 }
 
 export interface KonlingPlanContext {
@@ -2512,9 +2918,10 @@ function buildPrivacySafeInterventionSummary(
 }
 
 export function normalizeKonlingRole(role: string | undefined): AdaptiveLearnerStateRole {
-  if (role === 'ADMIN') return 'admin';
-  if (role === 'TEACHER') return 'teacher';
-  if (role === 'system') return 'system';
+  const normalizedRole = role?.toLowerCase();
+  if (normalizedRole === 'admin') return 'admin';
+  if (normalizedRole === 'teacher') return 'teacher';
+  if (normalizedRole === 'system') return 'system';
   return 'student';
 }
 
@@ -3003,16 +3410,34 @@ function createMissingCitationContext(): KonlingCitationContext {
 }
 
 export function buildKonlingCitationGuard(
-  context: Pick<KonlingRuntimeContext, 'citationContext'>,
+  context: Pick<KonlingRuntimeContext, 'citationContext'> & {
+    teachingAssistantMode?: KonlingTeachingAssistantRuntimeContract;
+  },
   assistantMessage?: string,
 ): KonlingCitationGuard {
   const citationContext = context.citationContext ?? createMissingCitationContext();
+  const modeContract = context.teachingAssistantMode;
   const citations = [
     ...citationContext.contentCitations,
     ...citationContext.evidenceCitations,
   ];
   const missingCitationClasses = [...citationContext.missingCitationClasses];
   const lowConfidenceReasons = [...citationContext.lowConfidenceReasons];
+  if (modeContract) {
+    if (modeContract.status === 'unavailable') {
+      lowConfidenceReasons.push(`assistant-mode-unavailable:${modeContract.mode.id}`);
+    }
+    for (const missingClass of modeContract.citationRequirements.missingClasses) {
+      if (!missingCitationClasses.includes(missingClass)) {
+        missingCitationClasses.push(missingClass);
+      }
+    }
+    for (const requiredOwner of modeContract.outputContract.requiredCitationOwners) {
+      if (!citations.some((citation) => citation.owner === requiredOwner)) {
+        lowConfidenceReasons.push(`assistant-required-citation-owner-missing:${requiredOwner}`);
+      }
+    }
+  }
   if (assistantMessage !== undefined && citations.length > 0) {
     const mentionsAnyCitation = assistantMentionsCitation(assistantMessage, citations);
     if (!mentionsAnyCitation) {
@@ -3034,6 +3459,18 @@ export function buildKonlingCitationGuard(
       }
     }
   }
+  if (assistantMessage !== undefined && modeContract) {
+    const normalizedAssistantMessage = assistantMessage.toLowerCase();
+    const forbiddenOutputTokens = [
+      ...modeContract.outputContract.forbiddenActions,
+      ...modeContract.privacyPolicy.forbiddenContent,
+    ];
+    for (const forbiddenToken of forbiddenOutputTokens) {
+      if (normalizedAssistantMessage.includes(forbiddenToken.toLowerCase())) {
+        lowConfidenceReasons.push(`assistant-mode-contract-violation:${forbiddenToken}`);
+      }
+    }
+  }
   const uniqueLowConfidenceReasons = [...new Set(lowConfidenceReasons)];
   const fallbackRequired = missingCitationClasses.length > 0 || uniqueLowConfidenceReasons.length > 0;
   return {
@@ -3046,7 +3483,9 @@ export function buildKonlingCitationGuard(
 }
 
 export function buildKonlingStreamingCitationGuard(
-  context: Pick<KonlingRuntimeContext, 'citationContext'>,
+  context: Pick<KonlingRuntimeContext, 'citationContext'> & {
+    teachingAssistantMode?: KonlingTeachingAssistantRuntimeContract;
+  },
 ): KonlingCitationGuard {
   const base = buildKonlingCitationGuard(context);
   return {

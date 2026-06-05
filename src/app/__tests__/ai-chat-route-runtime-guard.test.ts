@@ -23,6 +23,22 @@ const streamingCitationFallbackSource = readFileSync(
   join(process.cwd(), 'src/lib/konling-streaming-citation-fallback.ts'),
   'utf8',
 );
+const globalAISidebarSource = readFileSync(
+  join(process.cwd(), 'src/components/ai/global-ai-sidebar.tsx'),
+  'utf8',
+);
+const globalAIProviderSource = readFileSync(
+  join(process.cwd(), 'src/components/providers/global-ai-provider.tsx'),
+  'utf8',
+);
+const documentGradingUiSource = readFileSync(
+  join(process.cwd(), 'src/features/assessment/document-rubric-grading-ui.tsx'),
+  'utf8',
+);
+const resourceRendererSource = readFileSync(
+  join(process.cwd(), 'src/features/lesson-engine/resource-renderer.tsx'),
+  'utf8',
+);
 
 describe('AI chat route Konling runtime guard', () => {
   it('keeps legacy lessonContext prompt construction when no page runtime context is provided', () => {
@@ -68,11 +84,11 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('agentSessionId?: string');
     expect(chatRouteSource).toContain("'X-Konling-Agent-Session-Id': agentSession.id");
     expect(chatRouteSource).toContain('agentSessionId: agentSession.id');
-    expect(chatRouteSource).toContain('permittedTools: agentSession.permittedTools');
+    expect(chatRouteSource).toContain('permittedTools: modeContract.permittedTools');
     expect(sessionMessagesRouteSource).toContain('getOrCreateKonlingAgentSession');
     expect(sessionMessagesRouteSource).toContain('agentSessionId');
     expect(sessionMessagesRouteSource).toContain('agentSessionId: agentSession.id');
-    expect(sessionMessagesRouteSource).toContain('permittedTools: agentSession.permittedTools');
+    expect(sessionMessagesRouteSource).toContain('permittedTools: modeContract.permittedTools');
     expect(sessionMessagesRouteSource).toContain('const refreshedAgentSession = await resumeKonlingAgentSession');
     expect(sessionMessagesRouteSource).toContain("phase: 'konling-chat-tool-runtime'");
     expect(sessionMessagesRouteSource.indexOf('const refreshedAgentSession = await resumeKonlingAgentSession'))
@@ -80,8 +96,76 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource).toContain('pendingApproval: refreshedAgentSession.pendingApproval');
   });
 
+  it('applies Konling teaching-assistant mode contracts before exposing tools', () => {
+    expect(chatRouteSource).toContain('buildKonlingTeachingAssistantRuntimeContract');
+    expect(chatRouteSource).toContain('resolveKonlingTeachingAssistantScopeOverride');
+    expect(chatRouteSource).toContain('resolveKonlingTeachingAssistantServerModeContext');
+    expect(chatRouteSource).toContain('teachingAssistantModeId');
+    expect(chatRouteSource).toContain('if (teachingAssistantModeId && !session?.user?.id)');
+    expect(chatRouteSource.indexOf('if (teachingAssistantModeId && !session?.user?.id)'))
+      .toBeLessThan(chatRouteSource.indexOf('if (!Array.isArray(rawMessages))'));
+    expect(chatRouteSource).toContain("'X-Konling-Assistant-Mode': modeContract.mode.id");
+    expect(chatRouteSource).toContain("'X-Konling-Assistant-Mode-Status': modeContract.status");
+    expect(chatRouteSource).toContain('if (teachingAssistantModeId && !hasRuntimeContext)');
+    expect(chatRouteSource.indexOf('if (teachingAssistantModeId && !hasRuntimeContext)'))
+      .toBeLessThan(chatRouteSource.indexOf('let tools: any = aiTools'));
+    expect(chatRouteSource).toContain("if (modeContract.status === 'unavailable')");
+    expect(chatRouteSource).toContain("error: 'KONLING_MODE_UNAVAILABLE'");
+    expect(chatRouteSource.indexOf("if (modeContract.status === 'unavailable'"))
+      .toBeLessThan(chatRouteSource.indexOf('const agentSession = await getOrCreateKonlingAgentSession'));
+    expect(chatRouteSource).toContain('permittedTools: modeContract.permittedTools');
+    expect(chatRouteSource).toContain('context: { ...runtimeContext, permittedTools: modeContract.permittedTools }');
+    expect(chatRouteSource).toContain('teachingAssistantMode: modeContract');
+    expect(chatRouteSource).toContain('serverModeContext: await resolveKonlingTeachingAssistantServerModeContext');
+    expect(chatRouteSource).toContain('targetUserId: runtimeTargetUserId');
+    expect(chatRouteSource).toContain('classId: runtimeClassId');
+    expect(chatRouteSource.indexOf('const modeScopeOverride = await resolveKonlingTeachingAssistantScopeOverride'))
+      .toBeLessThan(chatRouteSource.indexOf('const scope = await verifyKonlingRuntimeScope'));
+    expect(chatRouteSource).toContain('const modeRuntimeContext = {');
+    expect(sessionMessagesRouteSource).toContain('buildKonlingTeachingAssistantRuntimeContract');
+    expect(sessionMessagesRouteSource).toContain('resolveKonlingTeachingAssistantScopeOverride');
+    expect(sessionMessagesRouteSource).toContain('resolveKonlingTeachingAssistantServerModeContext');
+    expect(sessionMessagesRouteSource).toContain('teachingAssistantModeId');
+    expect(sessionMessagesRouteSource).toContain("if (modeContract.status === 'unavailable')");
+    expect(sessionMessagesRouteSource).toContain("error: 'KONLING_MODE_UNAVAILABLE'");
+    expect(sessionMessagesRouteSource.indexOf("if (modeContract.status === 'unavailable'"))
+      .toBeLessThan(sessionMessagesRouteSource.indexOf('const agentSession = await getOrCreateKonlingAgentSession'));
+    expect(sessionMessagesRouteSource).toContain('permittedTools: modeContract.permittedTools');
+    expect(sessionMessagesRouteSource).toContain('context: { ...runtimeContext, permittedTools: modeContract.permittedTools }');
+    expect(sessionMessagesRouteSource).toContain('teachingAssistantMode: modeContract');
+    expect(sessionMessagesRouteSource).toContain('serverModeContext: await resolveKonlingTeachingAssistantServerModeContext');
+    expect(sessionMessagesRouteSource).toContain('targetUserId: runtimeTargetUserId');
+    expect(sessionMessagesRouteSource).toContain('classId: runtimeClassId');
+    expect(sessionMessagesRouteSource.indexOf('const modeScopeOverride = await resolveKonlingTeachingAssistantScopeOverride'))
+      .toBeLessThan(sessionMessagesRouteSource.indexOf('const scope = await verifyKonlingRuntimeScope'));
+    expect(sessionMessagesRouteSource).toContain('const modeRuntimeContext = {');
+  });
+
+  it('wires production Konling entry points into chat request mode payloads', () => {
+    expect(globalAIProviderSource).toContain('openAssistantEntryPoint');
+    expect(globalAIProviderSource).toContain('assistantEntryPoint: entryPoint');
+    expect(globalAIProviderSource).toContain('assistantEntryPoint: null');
+    expect(globalAISidebarSource).toContain('teachingAssistantModeId: assistantEntryPoint?.mode');
+    expect(globalAISidebarSource).toContain('modeClientContextHints: assistantEntryPoint?.serverContext');
+    expect(globalAISidebarSource).toContain('resourceId: assistantEntryPoint?.serverContext.resourceId');
+    expect(documentGradingUiSource).toContain('KonlingEntryPointButton');
+    expect(documentGradingUiSource).toContain('entryPoint={view.konlingEntryPoint}');
+    expect(resourceRendererSource).toContain("mode: 'resource-coach'");
+    expect(resourceRendererSource).toContain('assistantEntryPoint: {');
+  });
+
+  it('clears explicit assistant entry points when page context changes without a new entry point', () => {
+    expect(globalAIProviderSource).toContain('assistantEntryPoint: context.assistantEntryPoint ?? null');
+    expect(globalAIProviderSource).toContain('assistantEntryPoint: null');
+    expect(globalAIProviderSource).toContain('pageContext: null');
+    expect(globalAIProviderSource).toContain('tools: []');
+    expect(globalAIProviderSource).toContain('quickQuestions: []');
+    expect(globalAIProviderSource.indexOf('const resolved = resolveAIContext(pathname)'))
+      .toBeLessThan(globalAIProviderSource.indexOf('setDynamicContext({'));
+  });
+
   it('exposes server citation guard metadata and downgrades persisted uncited session replies', () => {
-    expect(chatRouteSource).toContain('buildKonlingStreamingCitationGuard(runtimeContext)');
+    expect(chatRouteSource).toContain('buildKonlingStreamingCitationGuard(modeRuntimeContext)');
     expect(chatRouteSource).toContain('let modelRequirements: ModelProviderCapabilityRequirements =');
     expect(chatRouteSource).toContain('tools: true');
     expect(chatRouteSource).toContain('streaming: true');
@@ -100,7 +184,7 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('createUIMessageStreamResponse');
     expect(chatRouteSource).toContain('trustedContentContext: Boolean(scope.scope.courseId && scope.scope.pageId)');
     expect(chatRouteSource).not.toContain('trustedContentContext: Boolean(courseId && pageId)');
-    expect(sessionMessagesRouteSource).toContain('const citationGuard = buildKonlingCitationGuard(runtimeContext, assistantContent)');
+    expect(sessionMessagesRouteSource).toContain('const citationGuard = buildKonlingCitationGuard(modeRuntimeContext, assistantContent)');
     expect(sessionMessagesRouteSource).toContain('const guardedAssistantContent = applyKonlingCitationFallback');
     expect(sessionMessagesRouteSource).toContain('assistantMessage: guardedAssistantContent');
     expect(sessionMessagesRouteSource).toContain('citationGuard,');

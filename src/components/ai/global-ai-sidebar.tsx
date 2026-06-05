@@ -30,6 +30,7 @@ export function GlobalAISidebar() {
     closeSidebar,
     tools,
     systemPromptExtension,
+    assistantEntryPoint,
     quickQuestions,
     clearUnread,
   } = useGlobalAI();
@@ -45,9 +46,13 @@ export function GlobalAISidebar() {
     sessionId,
     courseId: pageContext?.courseId,
     pageId: pageContext?.stepId || pageContext?.courseId,
+    resourceId: assistantEntryPoint?.serverContext.resourceId,
+    pathNodeId: assistantEntryPoint?.serverContext.pathNodeId,
     tools, // 传递可用工具列表，让后端过滤
     systemPromptExtension,
-  }), [pageContext, userProfile, sessionId, tools, systemPromptExtension]);
+    teachingAssistantModeId: assistantEntryPoint?.mode,
+    modeClientContextHints: assistantEntryPoint?.serverContext,
+  }), [pageContext, userProfile, sessionId, tools, systemPromptExtension, assistantEntryPoint]);
 
   const {
     messages,

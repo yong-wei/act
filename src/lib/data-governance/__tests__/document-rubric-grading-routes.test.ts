@@ -17,6 +17,11 @@ import {
   type DocumentSubmissionAsset,
   type RubricDefinition,
 } from '../document-rubric-grading-workbench';
+import {
+  resolveKonlingTeachingAssistantScopeOverride,
+  resolveKonlingTeachingAssistantServerModeContext,
+} from '@/lib/konling-teaching-assistant-server-context';
+import type { KonlingRuntimeContext, KonlingRuntimeScope } from '@/lib/konling-agent-runtime';
 
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
@@ -156,6 +161,75 @@ function persistedDraft(input: {
   };
 }
 
+function runtimeContext(): KonlingRuntimeContext {
+  return {
+    pageContext: {
+      courseId: 'control-report',
+      courseTitle: '控制报告',
+      pageType: 'practice',
+      stepId: 'document-grading',
+      topic: '文档评分',
+      learningObjectives: [],
+      knowledgeType: 'X',
+    },
+    userProfile: {
+      id: 'teacher-1',
+      name: '教师',
+      learningStyle: 'INTERACTIVE',
+      cognitiveLevel: 4,
+      abilityVector: {
+        computational: 0.5,
+        crossDomain: 0.5,
+        design: 0.5,
+        analysis: 0.5,
+        evaluation: 0.5,
+      },
+    },
+    learnerState: null,
+    planContext: {
+      currentPathId: null,
+      activeNodeId: null,
+      nextNodeIds: [],
+      recentPathIds: [],
+      completedNodeIds: [],
+      status: 'missing',
+    },
+    memory: [],
+    citationContext: {
+      required: true,
+      contentCitations: [],
+      evidenceCitations: [],
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      responseProtocol: {
+        requiredOwners: ['answer'],
+        minimum: { content: 1, evidenceWhenAvailable: 1 },
+        fallbackWhenMissing: 'low-confidence',
+      },
+    },
+    permittedTools: ['get_page_context', 'search_knowledge_graph'],
+    missingContext: [],
+    featureFlags: {
+      learnerState: false,
+      semanticMemory: false,
+      strategyMemory: false,
+    },
+  };
+}
+
+function runtimeScope(overrides: Partial<KonlingRuntimeScope> = {}): KonlingRuntimeScope {
+  return {
+    authenticatedUserId: 'teacher-1',
+    targetUserId: 'teacher-1',
+    role: 'teacher',
+    classId: 'class-1',
+    courseId: 'control-report',
+    pageId: 'document-grading',
+    privacyScopes: ['teacher-scoped'],
+    ...overrides,
+  };
+}
+
 describe('document rubric grading routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -174,6 +248,83 @@ describe('document rubric grading routes', () => {
     expect(page).toContain('&& valid');
     expect(page).toContain('createHiddenStudentGradingFeedbackView');
     expect(page).not.toContain('viewerStudentId: asset.studentId');
+  });
+
+  it('resolves document grading assistant server context from an authorized persisted draft', async () => {
+    const draft = await gradingDraft();
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue(draft);
+    mocks.prisma.class.findUnique.mockResolvedValue({ teacherId: 'teacher-1' });
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: mocks.prisma,
+      modeId: 'grading-assistant',
+      runtimeContext: runtimeContext(),
+      scope: runtimeScope({ targetUserId: 'student-1' }),
+      clientContextHints: {
+        gradingRunId: draft.id,
+        rubric: true,
+      },
+    })).resolves.toEqual(expect.objectContaining({
+      rubric: true,
+      'converted-document': true,
+      'draft-grading-state': true,
+      'teacher-review-state': true,
+    }));
+
+    mocks.prisma.class.findUnique.mockResolvedValue({ teacherId: 'teacher-2' });
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: mocks.prisma,
+      modeId: 'grading-assistant',
+      runtimeContext: runtimeContext(),
+      scope: runtimeScope({ targetUserId: 'student-1' }),
+      clientContextHints: {
+        gradingRunId: draft.id,
+      },
+    })).resolves.toEqual({});
+
+    mocks.prisma.class.findUnique.mockResolvedValue({ teacherId: 'teacher-1' });
+    await expect(resolveKonlingTeachingAssistantScopeOverride({
+      db: mocks.prisma,
+      modeId: 'grading-assistant',
+      authenticatedUserId: 'teacher-1',
+      role: 'TEACHER',
+      clientContextHints: {
+        gradingRunId: draft.id,
+      },
+    })).resolves.toEqual({
+      targetUserId: 'student-1',
+      classId: 'class-1',
+    });
+  });
+
+  it('resolves grading assistant runtime scope to the graded student only after teacher authorization', async () => {
+    const draft = await gradingDraft();
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue(draft);
+    mocks.prisma.class.findUnique.mockResolvedValue({ teacherId: 'teacher-1' });
+
+    await expect(resolveKonlingTeachingAssistantScopeOverride({
+      db: mocks.prisma,
+      modeId: 'grading-assistant',
+      authenticatedUserId: 'teacher-1',
+      role: 'TEACHER',
+      clientContextHints: {
+        gradingRunId: draft.id,
+      },
+    })).resolves.toEqual({
+      targetUserId: 'student-1',
+      classId: 'class-1',
+    });
+
+    mocks.prisma.class.findUnique.mockResolvedValue({ teacherId: 'teacher-2' });
+    await expect(resolveKonlingTeachingAssistantScopeOverride({
+      db: mocks.prisma,
+      modeId: 'grading-assistant',
+      authenticatedUserId: 'teacher-1',
+      role: 'TEACHER',
+      clientContextHints: {
+        gradingRunId: draft.id,
+      },
+    })).resolves.toEqual({});
   });
 
   it('renders evidence capsules, Konling entry points, and a real approval action in UI surfaces', () => {

@@ -19,6 +19,7 @@ import {
   applyKonlingCitationFallback,
   buildKonlingCitationGuard,
   buildKonlingRuntimeContext,
+  buildKonlingTeachingAssistantRuntimeContract,
   buildKonlingToolRuntime,
   buildScopedKonlingAiTools,
   getOrCreateKonlingAgentSession,
@@ -27,6 +28,10 @@ import {
   resumeKonlingAgentSession,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
+import {
+  resolveKonlingTeachingAssistantScopeOverride,
+  resolveKonlingTeachingAssistantServerModeContext,
+} from '@/lib/konling-teaching-assistant-server-context';
 import type { AIContext } from '@/types/ai-context';
 import type { Message } from '@/types/ai-message';
 import { redactProviderError, type ModelProviderCapabilityRequirements } from '@/lib/ai/model-provider-compatibility';
@@ -52,7 +57,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     const { id: sessionId } = await context.params;
     const body = await request.json();
-    const { content, pageContext, classId, resourceId, pathNodeId, agentSessionId } = body;
+    const { content, pageContext, classId, resourceId, pathNodeId, agentSessionId, teachingAssistantModeId, modeClientContextHints } = body;
 
     if (!content) {
       return NextResponse.json(
@@ -92,11 +97,21 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     const updatedMessages = [...existingMessages, userMessage];
 
+    const modeScopeOverride = await resolveKonlingTeachingAssistantScopeOverride({
+      db: prisma,
+      modeId: teachingAssistantModeId,
+      authenticatedUserId: session.user.id,
+      role: session.user.role,
+      clientContextHints: modeClientContextHints,
+    });
+    const runtimeTargetUserId = modeScopeOverride.targetUserId ?? session.user.id;
+    const runtimeClassId = modeScopeOverride.classId ?? classId;
+
     const scope = await verifyKonlingRuntimeScope(prisma, {
       authenticatedUserId: session.user.id,
       role: session.user.role,
-      targetUserId: session.user.id,
-      classId,
+      targetUserId: runtimeTargetUserId,
+      classId: runtimeClassId,
       courseId: konlingSession.courseId,
       pageId: konlingSession.pageId,
       resourceId,
@@ -110,8 +125,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
       authenticatedUserId: session.user.id,
       authenticatedUserName: session.user.name,
       role: session.user.role,
-      targetUserId: session.user.id,
-      classId,
+      targetUserId: runtimeTargetUserId,
+      classId: runtimeClassId,
       courseId: scope.scope.courseId,
       pageId: scope.scope.pageId,
       resourceId,
@@ -119,6 +134,39 @@ export async function POST(request: NextRequest, context: RouteContext) {
       pageContextHint: pageContext,
       trustedContentContext: true,
     });
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: teachingAssistantModeId,
+      runtimeContext,
+      scope: scope.scope,
+      serverModeContext: await resolveKonlingTeachingAssistantServerModeContext({
+        db: prisma,
+        modeId: teachingAssistantModeId,
+        runtimeContext,
+        scope: scope.scope,
+        clientContextHints: modeClientContextHints,
+      }),
+      clientContextHints: modeClientContextHints,
+    });
+    if (modeContract.status === 'unavailable') {
+      return NextResponse.json({
+        error: 'KONLING_MODE_UNAVAILABLE',
+        mode: modeContract.mode.id,
+        status: modeContract.status,
+        unavailableReasons: modeContract.unavailableReasons,
+        degradedReasons: modeContract.degradedReasons,
+        clientHintsRejected: modeContract.clientHintsRejected,
+      }, {
+        status: 409,
+        headers: {
+          'X-Konling-Assistant-Mode': modeContract.mode.id,
+          'X-Konling-Assistant-Mode-Status': modeContract.status,
+        },
+      });
+    }
+    const modeRuntimeContext = {
+      ...runtimeContext,
+      teachingAssistantMode: modeContract,
+    };
 
     // 构建AI上下文
     const aiContext: AIContext = {
@@ -130,15 +178,20 @@ export async function POST(request: NextRequest, context: RouteContext) {
     // 生成系统提示词
     const systemPrompt = buildKonlingSystemPrompt({
       ...aiContext,
-      adaptiveRuntime: runtimeContext,
+      adaptiveRuntime: modeRuntimeContext,
     });
     const agentSession = await getOrCreateKonlingAgentSession(prisma, {
       scope: scope.scope,
       agentSessionId,
       phase: 'konling-chat-tool-runtime',
       status: 'running',
-      state: { route: '/api/ai/sessions/[id]/messages', konlingSessionId: sessionId },
-      permittedTools: runtimeContext.permittedTools,
+      state: {
+        route: '/api/ai/sessions/[id]/messages',
+        konlingSessionId: sessionId,
+        teachingAssistantMode: modeContract.mode.id,
+        modeStatus: modeContract.status,
+      },
+      permittedTools: modeContract.permittedTools,
     });
     const modelRequirements: ModelProviderCapabilityRequirements = {
       tools: true,
@@ -154,9 +207,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
       tools: buildScopedKonlingAiTools(buildKonlingToolRuntime({
         db: prisma,
         scope: scope.scope,
-        context: runtimeContext,
+        context: { ...runtimeContext, permittedTools: modeContract.permittedTools },
         agentSessionId: agentSession.id,
-        permittedTools: agentSession.permittedTools,
+        permittedTools: modeContract.permittedTools,
       })),
       stopWhen: stepCountIs(5),
       maxOutputTokens: 1000,
@@ -168,7 +221,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     for await (const chunk of result.textStream) {
       assistantContent += chunk;
     }
-    const citationGuard = buildKonlingCitationGuard(runtimeContext, assistantContent);
+    const citationGuard = buildKonlingCitationGuard(modeRuntimeContext, assistantContent);
     const guardedAssistantContent = applyKonlingCitationFallback(assistantContent, citationGuard);
 
     // 添加助手回复

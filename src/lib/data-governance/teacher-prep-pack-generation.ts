@@ -1,4 +1,6 @@
 import type { ResourceNode } from '@/lib/resource-node-registry';
+import type { KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
+import { createKonlingTeachingAssistantServerContextToken } from '@/lib/konling-teaching-assistant-server-context';
 
 import type {
   ControlCorrectionTeacherReport,
@@ -123,6 +125,7 @@ export interface TeacherPrepPack {
     ordinaryPayload: 'aggregate-and-redacted-only';
     forbiddenContent: string[];
   };
+  konlingEntryPoint: KonlingTeachingAssistantEntryPoint & { mode: 'prep-coauthor' };
 }
 
 export interface TeacherPrepPackInput {
@@ -174,6 +177,16 @@ export interface TeacherPrepPackInsertionPayload {
 
 export function generateTeacherPrepPack(input: TeacherPrepPackInput): TeacherPrepPack {
   const now = input.now ?? new Date();
+  const prepPackId = `prep-pack:${input.classId}:${input.goalId}:${dateKey(now)}`;
+  const modeContextToken = createKonlingTeachingAssistantServerContextToken({
+    mode: 'prep-coauthor',
+    classId: input.classId,
+    context: {
+      'prep-pack': true,
+      'diagnosis-view': true,
+      'teacher-review-state': true,
+    },
+  });
   const candidates = [
     ...candidatesFromDiagnosis(input),
     ...candidatesFromTeacherNotes(input),
@@ -186,7 +199,7 @@ export function generateTeacherPrepPack(input: TeacherPrepPackInput): TeacherPre
 
   return {
     version: TEACHER_PREP_PACK_GENERATION_VERSION,
-    id: `prep-pack:${input.classId}:${input.goalId}:${dateKey(now)}`,
+    id: prepPackId,
     teacherId: input.teacherId,
     classId: input.classId,
     goalId: input.goalId,
@@ -212,6 +225,16 @@ export function generateTeacherPrepPack(input: TeacherPrepPackInput): TeacherPre
         'raw-high-frequency-trace',
         'secret',
       ],
+    },
+    konlingEntryPoint: {
+      mode: 'prep-coauthor',
+      promptContext: `prep-pack:${input.classId}:${input.goalId}:${input.nextLesson.lessonId}`,
+      serverContext: {
+        ...(modeContextToken ? { modeContextToken } : {}),
+        prepPackId,
+        classId: input.classId,
+        goalId: input.goalId,
+      },
     },
   };
 }

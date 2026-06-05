@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import type { ResourceNode } from '@/lib/resource-node-registry';
 import type { ControlCorrectionTeacherReport } from '../control-correction-teacher-report';
@@ -14,6 +14,7 @@ import {
 } from '../teacher-prep-pack-generation';
 
 const now = new Date('2026-06-05T00:00:00.000Z');
+const TEST_CONTEXT_SECRET = 'test-konling-mode-context-secret-for-prep-pack';
 
 function resourceNode(input: Partial<ResourceNode> & { id: string; title: string; type: ResourceNode['type'] }): ResourceNode {
   const base: ResourceNode = {
@@ -135,12 +136,35 @@ function teacherReport(): ControlCorrectionTeacherReport {
     } as ControlCorrectionTeacherReport['metrics'],
     studentDrilldowns: [],
     resourceContribution: [],
+    konlingEntryPoint: {
+      mode: 'class-summarizer',
+      promptContext: 'class-report:class-1:control-correction',
+      serverContext: {
+        classId: 'class-1',
+        classReportId: 'class-1:control-correction',
+      },
+    },
     methodologyNotes: ['aggregate only'],
     redactionPolicyNotes: ['no raw traces'],
   };
 }
 
 describe('teacher prep pack generation', () => {
+  let originalContextSecret: string | undefined;
+
+  beforeEach(() => {
+    originalContextSecret = process.env.KONLING_MODE_CONTEXT_SECRET;
+    process.env.KONLING_MODE_CONTEXT_SECRET = TEST_CONTEXT_SECRET;
+  });
+
+  afterEach(() => {
+    if (originalContextSecret === undefined) {
+      delete process.env.KONLING_MODE_CONTEXT_SECRET;
+      return;
+    }
+    process.env.KONLING_MODE_CONTEXT_SECRET = originalContextSecret;
+  });
+
   it('generates resource-linked candidates from weak diagnosis clusters and report metrics', () => {
     const pack = generateTeacherPrepPack({
       teacherId: 'teacher-1',
@@ -159,6 +183,14 @@ describe('teacher prep pack generation', () => {
 
     expect(pack.status).toBe('draft');
     expect(pack.methodology.teacherReviewRequired).toBe(true);
+    expect(pack.konlingEntryPoint).toEqual(expect.objectContaining({
+      mode: 'prep-coauthor',
+      serverContext: expect.objectContaining({
+        prepPackId: 'prep-pack:class-1:control-correction:2026-06-05',
+        classId: 'class-1',
+        goalId: 'control-correction',
+      }),
+    }));
     expect(pack.candidates.map((item) => item.itemType)).toEqual(expect.arrayContaining([
       'interactive-question',
       'teacher-note',

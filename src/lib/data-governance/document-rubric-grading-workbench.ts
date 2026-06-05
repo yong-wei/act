@@ -9,6 +9,7 @@ import {
   COMPETENCY_DIMENSIONS,
   type CompetencyDimension,
 } from './competency-model';
+import type { KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
 
 const execFileAsync = promisify(execFile);
 
@@ -263,10 +264,7 @@ export interface TeacherGradingWorkbenchView {
     requiresTeacherApproval: boolean;
   };
   actions: Array<'edit-criterion' | 'add-annotation' | 'approve' | 'return-feedback' | 'retry-conversion'>;
-  konlingEntryPoint: {
-    mode: 'teacher-grading-assistant';
-    promptContext: string;
-  };
+  konlingEntryPoint: KonlingTeachingAssistantEntryPoint & { mode: 'grading-assistant' };
 }
 
 export interface StudentGradingFeedbackView {
@@ -295,10 +293,7 @@ export interface StudentGradingFeedbackView {
     contribution: number;
     confidence: number;
   }>;
-  konlingEntryPoint: {
-    mode: 'student-feedback-explainer';
-    promptContext: string;
-  } | null;
+  konlingEntryPoint: (KonlingTeachingAssistantEntryPoint & { mode: 'feedback-explainer' }) | null;
 }
 
 export function createHiddenStudentGradingFeedbackView(input: {
@@ -619,8 +614,13 @@ export function buildTeacherGradingWorkbenchView(input: {
     },
     actions: ['edit-criterion', 'add-annotation', 'approve', 'return-feedback', 'retry-conversion'],
     konlingEntryPoint: {
-      mode: 'teacher-grading-assistant',
+      mode: 'grading-assistant',
       promptContext: `rubric:${input.rubric.id}@${input.rubric.version};asset:${input.asset.id}`,
+      serverContext: {
+        gradingRunId: input.run.id,
+        assetId: input.asset.id,
+        rubricId: input.rubric.id,
+      },
     },
   };
 }
@@ -843,8 +843,12 @@ export function buildStudentGradingFeedbackView(input: {
     })),
     profileImpactSummary: grades.map((grade) => grade.profileWritebackCandidate),
     konlingEntryPoint: {
-      mode: 'student-feedback-explainer',
+      mode: 'feedback-explainer',
       promptContext: `grading:${input.run.id};assignment:${input.asset.assignmentId}`,
+      serverContext: {
+        gradingRunId: input.run.id,
+        assignmentId: input.asset.assignmentId,
+      },
     },
   };
 }
