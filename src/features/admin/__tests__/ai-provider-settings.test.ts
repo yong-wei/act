@@ -481,6 +481,47 @@ describe('AI provider settings', () => {
     expect(config.model).toBe('openai/backup-model');
   });
 
+  it('preserves explicit serviceId selection failures without falling back to backups', async () => {
+    const settings = normalizeAIProviderSettings({
+      activeProvider: 'openai-main',
+      providers: [
+        {
+          id: 'openai-main',
+          name: 'OpenAI Main',
+          providerKind: 'openai-compatible',
+          baseURL: 'https://openai-main.test/v1',
+          secretRef: 'env:OPENAI_MAIN_API_KEY',
+          selectedModel: 'openai/main-model',
+          priority: 10,
+          capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: false },
+          models: [{ id: 'openai-main-model', label: 'OpenAI Main Model', model: 'openai/main-model' }],
+        },
+        {
+          id: 'openai-backup',
+          name: 'OpenAI Backup',
+          providerKind: 'openai-compatible',
+          baseURL: 'https://openai-backup.test/v1',
+          secretRef: 'env:OPENAI_BACKUP_API_KEY',
+          selectedModel: 'openai/backup-model',
+          priority: 20,
+          capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: true },
+          models: [{ id: 'openai-backup-model', label: 'OpenAI Backup Model', model: 'openai/backup-model' }],
+        },
+      ],
+    });
+
+    await expect(resolveConfiguredAIProviderConfig(
+      undefined,
+      undefined,
+      { serviceId: 'openai-main', tools: true, streaming: true, citationNormalization: true },
+      settings,
+      {
+        OPENAI_MAIN_API_KEY: 'sk-openai-main',
+        OPENAI_BACKUP_API_KEY: 'sk-openai-backup',
+      } as unknown as NodeJS.ProcessEnv,
+    )).rejects.toThrow('Provider openai-main lacks required capabilities: citationNormalization.');
+  });
+
   it('uses the configured secretRef even when the provider id matches the env provider', async () => {
     const settings = normalizeAIProviderSettings({
       activeProvider: 'siliconflow',

@@ -462,7 +462,12 @@ export async function resolveConfiguredAIProviderConfig(
   };
   const requestedServiceId = providerId ?? requirements?.serviceId ?? (requirements ? undefined : settings.activeProvider);
   let selection = selectModelProvider(runtimeSettings, { ...(requirements ?? {}), serviceId: requestedServiceId });
-  if (selection.status === 'unavailable' && providerId === undefined && requestedServiceId === settings.activeProvider) {
+  if (
+    selection.status === 'unavailable'
+    && providerId === undefined
+    && requirements?.serviceId === undefined
+    && requestedServiceId === settings.activeProvider
+  ) {
     selection = selectModelProvider(runtimeSettings, requirements ?? {});
   }
   if (selection?.status === 'unavailable') {
