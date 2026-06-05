@@ -82,6 +82,15 @@ describe('AI chat route Konling runtime guard', () => {
 
   it('exposes server citation guard metadata and downgrades persisted uncited session replies', () => {
     expect(chatRouteSource).toContain('buildKonlingStreamingCitationGuard(runtimeContext)');
+    expect(chatRouteSource).toContain('let modelRequirements: ModelProviderCapabilityRequirements =');
+    expect(chatRouteSource).toContain('tools: true');
+    expect(chatRouteSource).toContain('streaming: true');
+    expect(chatRouteSource).toContain('citationNormalization: true');
+    expect(chatRouteSource).toContain('isConfiguredAIServiceAvailable(modelRequirements)');
+    expect(chatRouteSource).toContain('getConfiguredAIModel(undefined, modelRequirements)');
+    expect(sessionMessagesRouteSource).toContain('const modelRequirements: ModelProviderCapabilityRequirements');
+    expect(sessionMessagesRouteSource).toContain('citationNormalization: true');
+    expect(sessionMessagesRouteSource).toContain('getConfiguredAIModel(undefined, modelRequirements)');
     expect(chatRouteSource).toContain("'X-Konling-Citation-Guard': citationGuardMetadata.status");
     expect(chatRouteSource).toContain('messageMetadata: ({ part })');
     expect(chatRouteSource).toContain('konlingCitationGuard');
@@ -113,6 +122,17 @@ describe('AI chat route Konling runtime guard', () => {
     expect(buildIndex).toBeGreaterThan(verifyIndex);
     expect(chatRouteSource).toContain('if (error instanceof KonlingRuntimeScopeError)');
     expect(chatRouteSource).toContain('status: error.status');
+  });
+
+  it('redacts provider errors through the shared model-provider compatibility guard', () => {
+    expect(chatRouteSource).toContain('redactProviderError');
+    expect(chatRouteSource).toContain('AIProviderCapabilityUnavailableError');
+    expect(chatRouteSource).toContain('AI_SERVICE_UNAVAILABLE');
+    expect(chatRouteSource).not.toContain("replace(/Bearer\\s+\\S+/g, 'Bearer ***')");
+    expect(sessionMessagesRouteSource).toContain('redactProviderError');
+    expect(sessionMessagesRouteSource).toContain('AIProviderCapabilityUnavailableError');
+    expect(sessionMessagesRouteSource).toContain('AI_SERVICE_UNAVAILABLE');
+    expect(sessionMessagesRouteSource).not.toContain('console.error(\'AI session message error:\', error)');
   });
 
   it('validates session message scope before building Konling context', () => {
