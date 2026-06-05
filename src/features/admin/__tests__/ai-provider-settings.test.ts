@@ -310,6 +310,50 @@ describe('AI provider settings', () => {
     )).rejects.toThrow('lacks required capabilities');
   });
 
+  it('selects another provider when the active provider lacks required capabilities', async () => {
+    const settings = normalizeAIProviderSettings({
+      activeProvider: 'openai-main',
+      providers: [
+        {
+          id: 'openai-main',
+          name: 'OpenAI Main',
+          providerKind: 'openai-compatible',
+          baseURL: 'https://openai-main.test/v1',
+          secretRef: 'env:OPENAI_MAIN_API_KEY',
+          selectedModel: 'openai/model',
+          priority: 10,
+          capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: false },
+          models: [{ id: 'openai-model', label: 'OpenAI Model', model: 'openai/model' }],
+        },
+        {
+          id: 'openai-cited',
+          name: 'OpenAI Cited',
+          providerKind: 'openai-compatible',
+          baseURL: 'https://openai-cited.test/v1',
+          secretRef: 'env:OPENAI_CITED_API_KEY',
+          selectedModel: 'openai/cited-model',
+          priority: 20,
+          capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: true },
+          models: [{ id: 'openai-cited-model', label: 'OpenAI Cited Model', model: 'openai/cited-model' }],
+        },
+      ],
+    });
+
+    const config = await resolveConfiguredAIProviderConfig(
+      undefined,
+      undefined,
+      { tools: true, streaming: true, citationNormalization: true },
+      settings,
+      {
+        OPENAI_MAIN_API_KEY: 'sk-openai-main',
+        OPENAI_CITED_API_KEY: 'sk-openai-cited',
+      } as unknown as NodeJS.ProcessEnv,
+    );
+
+    expect(config.provider).toBe('openai-cited');
+    expect(config.apiKey).toBe('sk-openai-cited');
+  });
+
   it('uses the configured secretRef even when the provider id matches the env provider', async () => {
     const settings = normalizeAIProviderSettings({
       activeProvider: 'siliconflow',

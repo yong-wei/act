@@ -436,7 +436,7 @@ export async function resolveConfiguredAIProviderConfig(
 ): Promise<AIProviderConfig> {
   const envConfig = resolveAIProviderConfig(env);
   const settings = settingsOverride ?? await getAIProviderSettings();
-  const requestedServiceId = providerId ?? requirements?.serviceId ?? settings.activeProvider;
+  const requestedServiceId = providerId ?? requirements?.serviceId ?? (requirements ? undefined : settings.activeProvider);
   let selection = selectModelProvider(settings, { ...(requirements ?? {}), serviceId: requestedServiceId });
   if (selection.status === 'unavailable' && providerId === undefined && requestedServiceId === settings.activeProvider) {
     selection = selectModelProvider(settings, requirements ?? {});
