@@ -166,3 +166,11 @@ The design system SHALL track whether legacy visual namespaces map to the dual t
 - **WHEN** `interactive-course-hub-*`, `admin-console-*`, `premium-lesson-*`, `surface-card`, or page-local visual classes are touched during redesign
 - **THEN** the change SHALL map them to approved token roles or mark them for retirement
 - **AND** silent long-term coexistence SHALL be rejected.
+
+### Requirement: Shell migration ledger tracks legacy retirement
+The design system SHALL maintain a migration ledger for shell adoption and legacy shell retirement.
+
+#### Scenario: Legacy shell is retained during redesign
+- **WHEN** a route keeps a legacy shell, topbar, sidebar, breadcrumb, or fixed-control system
+- **THEN** the ledger SHALL record whether it is adapted, retained temporarily, or scheduled for replacement
+- **AND** it SHALL name the owning change and removal condition.

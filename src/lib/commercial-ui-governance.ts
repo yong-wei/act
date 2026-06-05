@@ -1,3 +1,5 @@
+import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '@/lib/platform-role-navigation';
+
 export type CommercialUiGovernanceMode = 'advisory' | 'blocking';
 
 export type CommercialUiGovernanceRule =
@@ -185,6 +187,13 @@ export const DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES: CommercialVisualAccept
   { href: '/admin/data-governance', requiredWidths: [1440, 320] },
   { href: '/knowledge', requiredWidths: [1440, 320] },
 ];
+
+export const COMMERCIAL_ROUTE_INVENTORY_VISUAL_ACCEPTANCE_ROUTES: CommercialVisualAcceptanceRoute[] = PLATFORM_PRIMARY_ROUTE_INVENTORY
+  .filter((route) => route.screenshotProfile !== 'temporary-exception')
+  .map((route) => ({
+    href: route.href,
+    requiredWidths: [1440, 320],
+  }));
 
 export const PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX: CommercialPremiumVisualQaRoute[] = [
   {
