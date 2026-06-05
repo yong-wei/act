@@ -499,9 +499,13 @@ export function buildDataMapContextCards({
       : isRestricted
         ? '受限 · 聚合可见'
         : '可用 · 可导出';
-  const actionHref = exportAvailability === '可导出' && role === 'student'
-    ? '/data-center#data-center-export'
-    : '/admin/data-governance';
+  const actionHref = role === 'admin'
+    ? '/admin/data-governance'
+    : role === 'teacher'
+      ? '/teacher'
+      : exportAvailability === '可导出'
+        ? '/data-center#data-center-export'
+        : '/admin/data-governance';
 
   return [
     {

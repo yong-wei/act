@@ -309,6 +309,17 @@ describe('resource node knowledge workspace UI contracts', () => {
       resources: [],
       metadata: { lessonId: 'unit-4-1-design-task-expression' },
     });
+    const resourceObjectLessonLaunch = resolveKnowledgeResourceLaunch({
+      id: 'infograph-node',
+      name: '信息图节点',
+      nodeType: 'THEORY',
+      description: '信息图入口',
+      positionX: 0,
+      positionY: 0,
+      positionZ: 0,
+      resources: [{ type: 'infograph', lessonId: '3-9' }],
+      metadata: {},
+    });
 
     const directLaunch = resolveKnowledgeResourceLaunch({
       id: 'simulation-node',
@@ -342,6 +353,10 @@ describe('resource node knowledge workspace UI contracts', () => {
     expect(lessonLaunch).toMatchObject({
       href: '/interactive-learning/courses/unit-4-1-design-task-expression',
       lessonId: 'unit-4-1-design-task-expression',
+    });
+    expect(resourceObjectLessonLaunch).toMatchObject({
+      href: '/interactive-learning/courses/3-9',
+      lessonId: '3-9',
     });
     expect(directLaunch).toMatchObject({
       href: '/simulations/cruise',

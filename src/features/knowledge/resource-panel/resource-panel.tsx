@@ -70,6 +70,16 @@ function isKnowledgeCardPath(value: unknown): boolean {
     );
 }
 
+function readLessonIdFromResources(resources: unknown[] | undefined): string | null {
+  if (!Array.isArray(resources)) return null;
+  for (const item of resources) {
+    if (!item || typeof item !== 'object') continue;
+    const lessonId = (item as Record<string, unknown>).lessonId;
+    if (typeof lessonId === 'string' && lessonId.trim()) return lessonId.trim();
+  }
+  return null;
+}
+
 export function resolveKnowledgeResourceLaunch(node: KnowledgeNodeData | null) {
   if (!node) {
     return {
@@ -84,7 +94,7 @@ export function resolveKnowledgeResourceLaunch(node: KnowledgeNodeData | null) {
   const metadata = (node.metadata ?? {}) as Record<string, unknown>;
   const lessonId = typeof metadata.lessonId === 'string' && metadata.lessonId.trim()
     ? metadata.lessonId.trim()
-    : null;
+    : readLessonIdFromResources(node.resources);
   const hasKnowledgeCard = (Array.isArray(node.resources) && node.resources.some(isKnowledgeCardPath))
     || isKnowledgeCardPath(metadata.launchTarget)
     || isKnowledgeCardPath(metadata.renderTarget)

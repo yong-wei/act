@@ -85,19 +85,31 @@ describe('PresentationDataCenter commercial workspace layout', () => {
       generatedAt: '2025-09-01',
       role: 'teacher',
     });
+    const adminStaleCards = buildDataMapContextCards({
+      sourceQuality: 'stale',
+      generatedAt: '2025-09-01',
+      role: 'admin',
+    });
     const restrictedCards = buildDataMapContextCards({
       sourceQuality: 'restricted',
       generatedAt: '2026-05-30',
       role: 'student',
+    });
+    const teacherRestrictedCards = buildDataMapContextCards({
+      sourceQuality: 'restricted',
+      generatedAt: '2026-05-30',
+      role: 'teacher',
     });
 
     expect(staleCards.find((card) => card.marker === 'status-legend')?.value).toContain('待复核');
     expect(staleCards.find((card) => card.marker === 'freshness')?.summary).toContain('2025-09-01');
     expect(restrictedCards.find((card) => card.marker === 'privacy-scope')?.value).toContain('受限');
     expect(restrictedCards.find((card) => card.marker === 'status-legend')?.exportAvailability).toBe('受限导出');
-    expect(staleCards.find((card) => card.marker === 'status-legend')?.actionHref).toBe('/admin/data-governance');
+    expect(staleCards.find((card) => card.marker === 'status-legend')?.actionHref).toBe('/teacher');
+    expect(adminStaleCards.find((card) => card.marker === 'status-legend')?.actionHref).toBe('/admin/data-governance');
     expect(restrictedCards.find((card) => card.marker === 'privacy-scope')?.actionHref).toBe('/admin/data-governance');
     expect(restrictedCards.every((card) => card.actionHref === '/admin/data-governance')).toBe(true);
+    expect(teacherRestrictedCards.every((card) => card.actionHref === '/teacher')).toBe(true);
   });
 });
 
