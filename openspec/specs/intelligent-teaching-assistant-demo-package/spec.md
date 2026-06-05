@@ -1,5 +1,8 @@
-## ADDED Requirements
+# intelligent-teaching-assistant-demo-package Specification
 
+## Purpose
+TBD - created by archiving change package-intelligent-teaching-assistant-demo. Update Purpose after archive.
+## Requirements
 ### Requirement: Teaching assistant demo package is reproducible
 The system SHALL provide a reproducible demo package for the intelligent teaching assistant closed loop.
 
@@ -17,7 +20,7 @@ The demo package SHALL verify the report's visible product surfaces.
 
 #### Scenario: Acceptance checks run
 - **WHEN** demo acceptance is executed
-- **THEN** it SHALL verify student diagnosis overview, multi-path selection, resource execution context, document grading workbench, student feedback, teacher report, prep-pack review, Konling modes, citations, and privacy redaction.
+- **THEN** it SHALL verify student diagnosis overview, multi-path selection, resource execution context, document grading workbench, student feedback, teacher report, fixture-backed prep-pack review evidence, Konling modes, citations, and privacy redaction.
 
 ### Requirement: Demo package avoids real private data
 The demo package SHALL avoid real student data and restricted raw payloads.

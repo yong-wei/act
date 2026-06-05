@@ -89,7 +89,13 @@ export default function ClassAnalyticsV2Page() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="teacher-insight-shell flex items-center justify-center">
+      <div
+        className="teacher-insight-shell flex items-center justify-center"
+        data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics"
+        data-commercial-operations-workspace="teacher-operations"
+        data-commercial-workspace-zone="instrument-area"
+        data-operations-status-semantics="loading"
+      >
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-sky-500 border-t-transparent" />
           <p className="text-subtle">加载班级学情总览...</p>
@@ -100,7 +106,13 @@ export default function ClassAnalyticsV2Page() {
 
   if (error || !insights) {
     return (
-      <div className="teacher-insight-shell flex items-center justify-center">
+      <div
+        className="teacher-insight-shell flex items-center justify-center"
+        data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics"
+        data-commercial-operations-workspace="teacher-operations"
+        data-commercial-workspace-zone="instrument-area"
+        data-operations-status-semantics="error"
+      >
         <div className="text-center">
           <p className="text-xl text-red-500">{error || '加载失败'}</p>
           <button onClick={fetchData} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
@@ -116,6 +128,7 @@ export default function ClassAnalyticsV2Page() {
   return (
     <div
       className="teacher-insight-shell"
+      data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics"
       data-commercial-operations-workspace="teacher-operations"
       data-commercial-workspace-zone="instrument-area"
       data-operations-status-semantics="ready"

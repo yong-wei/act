@@ -7,7 +7,7 @@ import { DocumentGradingApprovalButton } from './document-rubric-grading-actions
 
 export function TeacherDocumentGradingWorkbench({ view }: { view: TeacherGradingWorkbenchView }) {
   return (
-    <main className="surface-page">
+    <main className="surface-page" data-intelligent-teaching-assistant-demo-surface="document-grading-workbench">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-8">
         <header className="flex flex-col gap-3 border-b border-border pb-5">
           <p className="text-xs uppercase tracking-[0.18em] text-primary">Document grading</p>
@@ -92,7 +92,7 @@ export function TeacherDocumentGradingWorkbench({ view }: { view: TeacherGrading
 
 export function TeacherDocumentGradingEmptyState() {
   return (
-    <main className="surface-page">
+    <main className="surface-page" data-intelligent-teaching-assistant-demo-surface="document-grading-workbench">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8">
         <header className="border-b border-border pb-5">
           <p className="text-xs uppercase tracking-[0.18em] text-primary">Document grading</p>
@@ -109,7 +109,7 @@ export function TeacherDocumentGradingEmptyState() {
 
 export function StudentDocumentGradingFeedback({ view }: { view: StudentGradingFeedbackView }) {
   return (
-    <main className="surface-page">
+    <main className="surface-page" data-intelligent-teaching-assistant-demo-surface="document-feedback">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
         <header className="border-b border-border pb-5">
           <p className="text-xs uppercase tracking-[0.18em] text-primary">Returned feedback</p>
