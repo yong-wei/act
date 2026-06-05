@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { encode } from 'next-auth/jwt';
 
 const studentEntryLabels = [
   '虚拟仿真',
@@ -64,16 +65,26 @@ test('adaptive practice preserves control-correction goal and intent context', a
   await expect(center.locator('[data-control-correction-state="no-path"]')).toBeVisible();
 });
 
-test('adaptive practice renders ready control-correction path context when APIs return path data', async ({ page }) => {
-  await page.route('**/api/auth/session', async (route) => {
-    await route.fulfill({
-      contentType: 'application/json',
-      body: JSON.stringify({
-        user: { id: 'student-1', role: 'STUDENT' },
-        expires: '2099-01-01T00:00:00.000Z',
-      }),
-    });
+test('adaptive practice renders ready control-correction path context when APIs return path data', async ({ context, page }) => {
+  const sessionToken = await encode({
+    secret: process.env.NEXTAUTH_SECRET ?? 'replace-with-strong-secret',
+    token: {
+      id: 'student-1',
+      email: 'student@example.com',
+      name: '学生一',
+      role: 'STUDENT',
+    },
   });
+  await context.addCookies([{
+    name: 'next-auth.session-token',
+    value: sessionToken,
+    domain: '127.0.0.1',
+    path: '/',
+    httpOnly: true,
+    sameSite: 'Lax',
+    secure: false,
+    expires: Math.floor(Date.now() / 1000) + 60 * 60,
+  }]);
   await page.route('**/api/adaptive/learner-state?goal=control-correction', async (route) => {
     await route.fulfill({
       contentType: 'application/json',
@@ -160,7 +171,6 @@ test('adaptive practice renders ready control-correction path context when APIs 
               reasonCodes: ['low-mastery-target'],
               status: 'current',
             }],
-            alternatives: [],
             explanations: { selectedReasons: ['low-mastery-target'], rejectedAlternatives: [], fallbackReasons: [] },
             executionStatus: { adopted: true, completedNodeIds: [], activeNodeId: 'node-1', updatedAt: '2026-05-28T06:00:00.000Z' },
             deviations: [],
@@ -173,7 +183,14 @@ test('adaptive practice renders ready control-correction path context when APIs 
             },
           },
           explanationPayload: { selectedReasons: ['low-mastery-target'], rejectedAlternatives: [], fallbackReasons: [] },
-          alternativePayload: [],
+          alternativePayload: [{
+            nodeId: 'node-alt',
+            title: '备选补救路径',
+            nodeIds: ['node-alt'],
+            blocked: false,
+            score: 0.62,
+            reasonCodes: ['alternative-remediation'],
+          }],
         },
       }),
     });
@@ -214,6 +231,7 @@ test('adaptive practice renders ready control-correction path context when APIs 
 
   const center = page.locator('[data-control-correction-center="adaptive-practice"]');
   await expect(center).toHaveAttribute('data-control-correction-ready', 'true');
+  await expect(center).toHaveAttribute('data-control-correction-alternative-count', '1');
   await expect(center.getByRole('link', { name: '控制校正知识卡' })).toHaveAttribute(
     'href',
     '/course-runtime/knowledge/cards/nodes/时域指标到目标极点区域_3_36001.md?pathId=path-1&nodeId=node-1&goal=control-correction&intent=path-execution',

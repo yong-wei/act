@@ -9,6 +9,7 @@ import {
   buildControlCorrectionLearningCenterView,
   buildLearnerDataRouteShell,
   buildPracticeEntryRouteNodes,
+  type ControlCorrectionLearningCenterView,
   type ControlCorrectionCenterRouteIntent,
 } from '@/features/adaptive/adaptive-learning-center-contracts';
 import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
@@ -198,7 +199,11 @@ function restoreLearningPathPlan(round: LearningPathRoundResponse['path']): Adap
   if (!round || round.goalId !== 'control-correction') return null;
   const payload = round.pathPayload ?? {};
   const planNodes = Array.isArray(payload.planNodes) ? payload.planNodes : [];
-  const alternatives = Array.isArray(payload.alternatives) ? payload.alternatives : [];
+  const alternatives = Array.isArray(payload.alternatives)
+    ? payload.alternatives
+    : Array.isArray(round.alternativePayload)
+      ? round.alternativePayload
+      : [];
   const explanations = typeof round.explanationPayload === 'object' && round.explanationPayload
     ? round.explanationPayload
     : payload.explanations;
@@ -237,6 +242,13 @@ function restoreLearningPathPlan(round: LearningPathRoundResponse['path']): Adap
     feedbackEvents: payload.feedbackEvents as AdaptiveLearningPathPlan['feedbackEvents'] ?? [],
     visualization: payload.visualization as AdaptiveLearningPathPlan['visualization'],
   };
+}
+
+function controlCorrectionAlternativeCount(view: ControlCorrectionLearningCenterView): number {
+  const currentPath = view.panels.find((panel) => panel.region === 'current-path');
+  const payload = currentPath?.payload;
+  if (!payload || typeof payload !== 'object' || !('alternatives' in payload)) return 0;
+  return Array.isArray(payload.alternatives) ? payload.alternatives.length : 0;
 }
 
 export default function AdaptivePracticePage() {
@@ -357,6 +369,16 @@ export default function AdaptivePracticePage() {
       return;
     }
 
+    if (authStatus === 'loading') {
+      return;
+    }
+
+    if (authStatus === 'unauthenticated') {
+      setControlCorrectionLearnerState(null);
+      setControlCorrectionPathPlan(null);
+      return;
+    }
+
     let cancelled = false;
     async function loadControlCorrectionCenterData() {
       let learnerState: AdaptiveLearnerState | null = null;
@@ -365,9 +387,17 @@ export default function AdaptivePracticePage() {
         if (!cancelled && learnerResponse.ok) {
           learnerState = (await learnerResponse.json()) as AdaptiveLearnerState;
           setControlCorrectionLearnerState(learnerState);
+        } else if (!cancelled) {
+          setControlCorrectionLearnerState(null);
+          setControlCorrectionPathPlan(null);
+          return;
         }
       } catch {
-        if (!cancelled) setControlCorrectionLearnerState(null);
+        if (!cancelled) {
+          setControlCorrectionLearnerState(null);
+          setControlCorrectionPathPlan(null);
+        }
+        return;
       }
 
       const fallbackPathId = learnerState?.pathContext.activeControlCorrectionPath.pathId ?? null;
@@ -382,6 +412,8 @@ export default function AdaptivePracticePage() {
         if (!cancelled && pathResponse.ok) {
           const payload = (await pathResponse.json()) as LearningPathRoundResponse;
           setControlCorrectionPathPlan(restoreLearningPathPlan(payload.path ?? null));
+        } else if (!cancelled) {
+          setControlCorrectionPathPlan(null);
         }
       } catch {
         if (!cancelled) setControlCorrectionPathPlan(null);
@@ -392,7 +424,7 @@ export default function AdaptivePracticePage() {
     return () => {
       cancelled = true;
     };
-  }, [activeGoal, activePathId, isDemoMode]);
+  }, [activeGoal, activePathId, authStatus, isDemoMode]);
 
   useEffect(() => {
     if (isDemoMode) {
@@ -545,6 +577,7 @@ export default function AdaptivePracticePage() {
             data-control-correction-goal={controlCorrectionCenter.goalId}
             data-control-correction-intent={controlCorrectionCenter.entry.routeIntent}
             data-control-correction-ready={String(controlCorrectionCenter.readinessGate.ready)}
+            data-control-correction-alternative-count={controlCorrectionAlternativeCount(controlCorrectionCenter)}
           >
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>

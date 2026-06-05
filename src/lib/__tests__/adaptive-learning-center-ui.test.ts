@@ -660,8 +660,14 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("controlCorrectionQuery.set('nodeId', activeNodeId)");
     expect(source).toContain('data-control-correction-center="adaptive-practice"');
     expect(source).toContain("fetch('/api/adaptive/learner-state?goal=control-correction')");
+    expect(source).toContain("authStatus === 'loading'");
+    expect(source).toContain("authStatus === 'unauthenticated'");
+    expect(source).toContain("setControlCorrectionLearnerState(null)");
+    expect(source).toContain("setControlCorrectionPathPlan(null)");
     expect(source).toContain('learnerState?.pathContext.activeControlCorrectionPath.pathId');
     expect(source).toContain('fetch(`/api/learning-paths/${encodeURIComponent(pathIdToLoad)}`)');
+    expect(source).toContain('Array.isArray(round.alternativePayload)');
+    expect(source).toContain('data-control-correction-alternative-count');
     expect(source).toContain('goalId: activeGoal');
     expect(source).toContain('routeIntent: activeGoal ? routeIntent : null');
   });
