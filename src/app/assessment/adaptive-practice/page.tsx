@@ -5,9 +5,15 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
+  ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG,
+  buildControlCorrectionLearningCenterView,
   buildLearnerDataRouteShell,
   buildPracticeEntryRouteNodes,
+  type ControlCorrectionLearningCenterView,
+  type ControlCorrectionCenterRouteIntent,
 } from '@/features/adaptive/adaptive-learning-center-contracts';
+import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
+import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
 import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 
 interface DiagnosticResponse {
@@ -46,6 +52,21 @@ interface SubmitAnswerResponse {
   explanation: string;
   estimatedAbility: number;
   recommendedFocus: string[];
+}
+
+interface LearningPathRoundResponse {
+  path?: {
+    id: string;
+    userId: string;
+    title: string;
+    goalId: string;
+    plannerVersion?: string | null;
+    pathStatus?: string | null;
+    currentNodeId?: string | null;
+    pathPayload?: Record<string, unknown> | null;
+    explanationPayload?: Record<string, unknown> | null;
+    alternativePayload?: unknown[] | null;
+  } | null;
 }
 
 type DemoScene = 'stable' | 'generate';
@@ -162,13 +183,91 @@ function resolveDemoScene(sceneParam: string | null): DemoScene {
   return sceneParam === 'generate' ? 'generate' : 'stable';
 }
 
+function resolveControlCorrectionIntent(intentParam: string | null): ControlCorrectionCenterRouteIntent {
+  if (
+    intentParam === 'learner-state-review' ||
+    intentParam === 'path-execution' ||
+    intentParam === 'evidence-review' ||
+    intentParam === 'contextual-recommendation'
+  ) {
+    return intentParam;
+  }
+  return 'practice';
+}
+
+function restoreLearningPathPlan(round: LearningPathRoundResponse['path']): AdaptiveLearningPathPlan | null {
+  if (!round || round.goalId !== 'control-correction') return null;
+  const payload = round.pathPayload ?? {};
+  const planNodes = Array.isArray(payload.planNodes) ? payload.planNodes : [];
+  const alternatives = Array.isArray(payload.alternatives)
+    ? payload.alternatives
+    : Array.isArray(round.alternativePayload)
+      ? round.alternativePayload
+      : [];
+  const explanations = typeof round.explanationPayload === 'object' && round.explanationPayload
+    ? round.explanationPayload
+    : payload.explanations;
+
+  return {
+    id: round.id,
+    userId: round.userId,
+    goal: {
+      id: 'control-correction',
+      title: round.title,
+      knowledgeTargets: [],
+    },
+    stage: 'stage-1-rules-graph',
+    policyFamily: typeof payload.policyFamily === 'string' ? payload.policyFamily as AdaptiveLearningPathPlan['policyFamily'] : 'rules-plus-graph-search',
+    policyMetadata: payload.policyMetadata as AdaptiveLearningPathPlan['policyMetadata'],
+    policyBundle: payload.policyBundle as AdaptiveLearningPathPlan['policyBundle'],
+    excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'],
+    status: round.pathStatus === 'active' || round.pathStatus === 'completed' ? 'ready' : 'fallback',
+    currentNodeId: round.currentNodeId ?? null,
+    mainPath: planNodes as AdaptiveLearningPathPlan['mainPath'],
+    alternatives: alternatives as AdaptiveLearningPathPlan['alternatives'],
+    score: payload.score as AdaptiveLearningPathPlan['score'],
+    confidence: payload.confidence as AdaptiveLearningPathPlan['confidence'] ?? {
+      level: 'unknown',
+      score: 0,
+      sourceCoverage: 0,
+    },
+    explanations: (explanations as AdaptiveLearningPathPlan['explanations']) ?? {
+      selectedReasons: [],
+      rejectedAlternatives: [],
+      fallbackReasons: [],
+    },
+    executionStatus: payload.executionStatus as AdaptiveLearningPathPlan['executionStatus'],
+    deviations: payload.deviations as AdaptiveLearningPathPlan['deviations'] ?? [],
+    corrections: payload.corrections as AdaptiveLearningPathPlan['corrections'] ?? [],
+    feedbackEvents: payload.feedbackEvents as AdaptiveLearningPathPlan['feedbackEvents'] ?? [],
+    visualization: payload.visualization as AdaptiveLearningPathPlan['visualization'],
+  };
+}
+
+function controlCorrectionAlternativeCount(view: ControlCorrectionLearningCenterView): number {
+  const currentPath = view.panels.find((panel) => panel.region === 'current-path');
+  const payload = currentPath?.payload;
+  if (!payload || typeof payload !== 'object' || !('alternatives' in payload)) return 0;
+  return Array.isArray(payload.alternatives) ? payload.alternatives.length : 0;
+}
+
 export default function AdaptivePracticePage() {
   const searchParams = useSearchParams();
   const { status: authStatus } = useSession();
   const isDemoMode = searchParams.get('demo') === '1';
   const demoScene = resolveDemoScene(searchParams.get('scene'));
   const activePracticeFocus = searchParams.get('focus');
-  const loginHref = `/login?callbackUrl=${encodeURIComponent('/assessment/adaptive-practice')}`;
+  const activeGoal = searchParams.get('goal') === null || searchParams.get('goal') === 'control-correction'
+    ? 'control-correction'
+    : null;
+  const routeIntent = resolveControlCorrectionIntent(searchParams.get('intent'));
+  const activePathId = searchParams.get('pathId');
+  const activeNodeId = searchParams.get('nodeId');
+  const controlCorrectionQuery = new URLSearchParams({ goal: 'control-correction', intent: routeIntent });
+  if (activePathId) controlCorrectionQuery.set('pathId', activePathId);
+  if (activeNodeId) controlCorrectionQuery.set('nodeId', activeNodeId);
+  const controlCorrectionContextHref = `/assessment/adaptive-practice?${controlCorrectionQuery.toString()}`;
+  const loginHref = `/login?callbackUrl=${encodeURIComponent(activeGoal ? controlCorrectionContextHref : '/assessment/adaptive-practice')}`;
   const entryIntents = getCommercialStudentEntryIntentGroups();
 
   const sessionId = useMemo(() => `practice-${Math.random().toString(36).slice(2, 10)}`, []);
@@ -180,13 +279,26 @@ export default function AdaptivePracticePage() {
   const [loading, setLoading] = useState(false);
   const [questionStartAt, setQuestionStartAt] = useState<number>(Date.now());
   const [error, setError] = useState<string | null>(null);
+  const [controlCorrectionLearnerState, setControlCorrectionLearnerState] = useState<AdaptiveLearnerState | null>(null);
+  const [controlCorrectionPathPlan, setControlCorrectionPathPlan] = useState<AdaptiveLearningPathPlan | null>(null);
   const practiceRouteNodes = useMemo(() => buildPracticeEntryRouteNodes({
     recommendedFocus: diagnostic?.recommendedFocus ?? [],
     weakAreas: diagnostic?.weakAreas ?? [],
     estimatedAbility: questionState?.estimatedAbility,
     confidenceInterval: questionState?.confidenceInterval,
-    actionHref: '/assessment/adaptive-practice',
-  }), [diagnostic, questionState]);
+    actionHref: activeGoal ? controlCorrectionContextHref : '/assessment/adaptive-practice',
+  }), [activeGoal, controlCorrectionContextHref, diagnostic, questionState]);
+  const controlCorrectionCenter = useMemo(() => activeGoal
+    ? buildControlCorrectionLearningCenterView({
+        featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+        learnerState: controlCorrectionLearnerState,
+        pathPlan: controlCorrectionPathPlan,
+        routeIntent,
+        entrySource: routeIntent === 'contextual-recommendation' ? 'contextual-recommendation' : 'adaptive-practice',
+        networkError: Boolean(error) && !controlCorrectionLearnerState && !controlCorrectionPathPlan,
+        questionAvailable: Boolean(questionState),
+      })
+    : null, [activeGoal, controlCorrectionLearnerState, controlCorrectionPathPlan, error, questionState, routeIntent]);
 
   const applyDemoScene = useCallback((scene: DemoScene) => {
     const demoData = DEMO_SCENES[scene];
@@ -218,7 +330,13 @@ export default function AdaptivePracticePage() {
     const response = await fetch('/api/assessment/next-question', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId }),
+      body: JSON.stringify({
+        sessionId,
+        goalId: activeGoal,
+        routeIntent: activeGoal ? routeIntent : null,
+        pathId: activePathId,
+        nodeId: activeNodeId,
+      }),
     });
 
     if (!response.ok) {
@@ -230,7 +348,7 @@ export default function AdaptivePracticePage() {
     setSelectedOption('');
     setFeedback(null);
     setQuestionStartAt(Date.now());
-  }, [applyDemoScene, demoScene, isDemoMode, sessionId]);
+  }, [activeGoal, activeNodeId, activePathId, applyDemoScene, demoScene, isDemoMode, routeIntent, sessionId]);
 
   const bootstrapPractice = useCallback(async () => {
     setLoading(true);
@@ -243,6 +361,70 @@ export default function AdaptivePracticePage() {
       setLoading(false);
     }
   }, [loadDiagnostic, loadNextQuestion]);
+
+  useEffect(() => {
+    if (!activeGoal || isDemoMode) {
+      setControlCorrectionLearnerState(null);
+      setControlCorrectionPathPlan(null);
+      return;
+    }
+
+    if (authStatus === 'loading') {
+      return;
+    }
+
+    if (authStatus === 'unauthenticated') {
+      setControlCorrectionLearnerState(null);
+      setControlCorrectionPathPlan(null);
+      return;
+    }
+
+    let cancelled = false;
+    async function loadControlCorrectionCenterData() {
+      let learnerState: AdaptiveLearnerState | null = null;
+      try {
+        const learnerResponse = await fetch('/api/adaptive/learner-state?goal=control-correction');
+        if (!cancelled && learnerResponse.ok) {
+          learnerState = (await learnerResponse.json()) as AdaptiveLearnerState;
+          setControlCorrectionLearnerState(learnerState);
+        } else if (!cancelled) {
+          setControlCorrectionLearnerState(null);
+          setControlCorrectionPathPlan(null);
+          return;
+        }
+      } catch {
+        if (!cancelled) {
+          setControlCorrectionLearnerState(null);
+          setControlCorrectionPathPlan(null);
+        }
+        return;
+      }
+
+      const fallbackPathId = learnerState?.pathContext.activeControlCorrectionPath.pathId ?? null;
+      const pathIdToLoad = activePathId ?? fallbackPathId;
+      if (!pathIdToLoad) {
+        if (!cancelled) setControlCorrectionPathPlan(null);
+        return;
+      }
+
+      try {
+        const pathResponse = await fetch(`/api/learning-paths/${encodeURIComponent(pathIdToLoad)}`);
+        if (!cancelled && pathResponse.ok) {
+          const payload = (await pathResponse.json()) as LearningPathRoundResponse;
+          setControlCorrectionPathPlan(restoreLearningPathPlan(payload.path ?? null));
+        } else if (!cancelled) {
+          setControlCorrectionPathPlan(null);
+        }
+      } catch {
+        if (!cancelled) setControlCorrectionPathPlan(null);
+      }
+    }
+
+    void loadControlCorrectionCenterData();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeGoal, activePathId, authStatus, isDemoMode]);
 
   useEffect(() => {
     if (isDemoMode) {
@@ -298,6 +480,10 @@ export default function AdaptivePracticePage() {
           questionId: questionState.question.id,
           selectedOption,
           timeSpent: Math.max(1, Math.round((Date.now() - questionStartAt) / 1000)),
+          goalId: activeGoal,
+          routeIntent: activeGoal ? routeIntent : null,
+          pathId: activePathId,
+          nodeId: activeNodeId,
         }),
       });
 
@@ -336,6 +522,10 @@ export default function AdaptivePracticePage() {
           targetKnowledgeTags: diagnostic.weakAreas,
           difficultyTarget: 0.6,
           domains: ['time', 'frequency', 'complex'],
+          goalId: activeGoal,
+          routeIntent: activeGoal ? routeIntent : null,
+          pathId: activePathId,
+          nodeId: activeNodeId,
         }),
       });
 
@@ -354,6 +544,8 @@ export default function AdaptivePracticePage() {
   return (
     <div
       className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100 md:px-8"
+      data-commercial-workspace="adaptive-practice"
+      data-commercial-student-entry-route="/assessment/adaptive-practice"
       data-route-family={learnerDataShell.routeFamily}
       data-route-identity={learnerDataShell.routeIdentity}
     >
@@ -377,6 +569,68 @@ export default function AdaptivePracticePage() {
             ))}
           </div>
         </header>
+
+        {controlCorrectionCenter ? (
+          <section
+            className="surface-card p-5"
+            data-control-correction-center="adaptive-practice"
+            data-control-correction-goal={controlCorrectionCenter.goalId}
+            data-control-correction-intent={controlCorrectionCenter.entry.routeIntent}
+            data-control-correction-ready={String(controlCorrectionCenter.readinessGate.ready)}
+            data-control-correction-alternative-count={controlCorrectionAlternativeCount(controlCorrectionCenter)}
+          >
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.24em] text-primary">Control Correction Center</p>
+                <h2 className="mt-1 text-xl font-semibold text-foreground">{controlCorrectionCenter.competencyHero.title}</h2>
+                <p className="mt-2 text-sm text-subtle">
+                  入口意图：{controlCorrectionCenter.entry.routeIntent} · 状态：
+                  {controlCorrectionCenter.readinessGate.ready ? '路径可继续' : '需要补齐上下文'}
+                </p>
+              </div>
+              <Link
+                href={controlCorrectionCenter.nextAction.href}
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+              >
+                {controlCorrectionCenter.nextAction.title}
+              </Link>
+            </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <div className="surface-card-soft p-3">
+                <p className="text-xs text-subtle">Readiness Gate</p>
+                <p className="mt-1 text-sm text-foreground">
+                  {controlCorrectionCenter.readinessGate.missing.length > 0
+                    ? controlCorrectionCenter.readinessGate.missing.join('、')
+                    : 'ready'}
+                </p>
+              </div>
+              <div className="surface-card-soft p-3">
+                <p className="text-xs text-subtle">{controlCorrectionCenter.citationAccess.title}</p>
+                <p className="mt-1 text-sm text-foreground">{controlCorrectionCenter.citationAccess.status.summary}</p>
+              </div>
+              <div className="surface-card-soft p-3">
+                <p className="text-xs text-subtle">{controlCorrectionCenter.konlingDock.title}</p>
+                <p className="mt-1 text-sm text-foreground">{controlCorrectionCenter.konlingDock.status.summary}</p>
+              </div>
+            </div>
+
+            {controlCorrectionCenter.fallbackStates.length > 0 ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {controlCorrectionCenter.fallbackStates.map((state) => (
+                  <Link
+                    key={state.state}
+                    href={state.actions[0]?.href ?? controlCorrectionContextHref}
+                    className="rounded-full border border-border px-3 py-1 text-xs text-foreground hover:border-primary"
+                    data-control-correction-state={state.state}
+                  >
+                    {state.title}
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+          </section>
+        ) : null}
 
         <section className="grid gap-4 lg:grid-cols-[340px_1fr]">
           <aside className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
