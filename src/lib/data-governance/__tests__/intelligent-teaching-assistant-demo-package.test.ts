@@ -158,14 +158,19 @@ describe('intelligent teaching assistant demo package', () => {
       '/teacher/classes/demo-ita-class/students/demo-ita-student-beta',
     ]));
     expect(pkg.routeChecks.map((check) => check.route)).not.toContain('/teacher/classes/demo-ita-class');
-    expect(pkg.routeChecks.map((check) => check.expectedMarker)).not.toContain('class');
-    expect(pkg.routeChecks.map((check) => check.expectedMarker)).toEqual(expect.arrayContaining([
+    expect(pkg.routeChecks.map((check) => check.readyText)).not.toContain('class');
+    expect(pkg.routeChecks.map((check) => check.readyText)).toEqual(expect.arrayContaining([
       'data-control-correction-center',
-      'data-intelligent-teaching-assistant-demo-surface="document-grading-workbench"',
-      'data-intelligent-teaching-assistant-demo-surface="document-feedback"',
-      'data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics"',
-      'data-intelligent-teaching-assistant-demo-surface="teacher-student-insights"',
+      '报告评分工作台',
+      '报告反馈',
+      '班级学情总览',
+      '证据摘要',
     ]));
+    expect(pkg.routeChecks.filter((check) => check.route.includes('demo-ita-class')).every((check) => (
+      check.requiredStatusSemantics === 'ready'
+      && Array.isArray(check.forbiddenTexts)
+      && check.forbiddenTexts.length > 0
+    ))).toBe(true);
     expect(pkg.routeChecks.map((check) => check.actorRole)).toEqual(expect.arrayContaining(['student', 'teacher']));
     expect(pkg.apiExamples.map((example) => example.actorRole)).toEqual(expect.arrayContaining(['student', 'teacher', 'mode']));
     expect(pkg.apiExamples.find((example) => example.path === '/api/learning-paths/plan')?.actorRole).toBe('teacher');
@@ -424,6 +429,28 @@ describe('intelligent teaching assistant demo package', () => {
       'data: {"type":"text-delta","textDelta":"generic answer without sources"}\n\n',
       'text/event-stream',
     )).toEqual(['AI chat response is missing citation or evidence signal']);
+    expect(validateIntelligentTeachingAssistantDemoApiPayload(
+      '/api/ai/chat',
+      'data: {"type":"text-delta","textDelta":"I cannot provide evidence for this answer."}\n\n',
+      'text/event-stream',
+    )).toEqual(['AI chat response is missing citation or evidence signal']);
+    expect(validateIntelligentTeachingAssistantDemoApiPayload(
+      '/api/ai/chat',
+      JSON.stringify({
+        id: 'chatcmpl-demo',
+        messages: [{ role: 'assistant', content: 'I cannot provide evidence for this answer.' }],
+      }),
+      'application/json',
+    )).toEqual(['AI chat response is missing citation or evidence signal']);
+    expect(validateIntelligentTeachingAssistantDemoApiPayload(
+      '/api/ai/chat',
+      JSON.stringify({
+        id: 'chatcmpl-demo',
+        messages: [{ role: 'assistant', content: 'cited answer' }],
+        citations: [{ id: 'cit-diagnosis-alpha', sourceFamily: 'role-based-learning-diagnosis' }],
+      }),
+      'application/json',
+    )).toEqual([]);
   });
 
   it('restores demo acceptance environment variables without leaving undefined strings', () => {
@@ -523,12 +550,17 @@ describe('intelligent teaching assistant demo package', () => {
     }
   });
 
-  it('rejects legacy route responses without the required stable surface marker', async () => {
+  it('rejects class and student insight routes without ready status semantics', async () => {
     const server = createServer((request, response) => {
       const url = request.url ?? '/';
-      if (url.startsWith('/teacher/grading-workbench')) {
+      if (url.includes('/analytics-v2')) {
         response.setHeader('Content-Type', 'text/html');
-        response.end('<main>报告评分工作台</main>');
+        response.end('<main><h1>班级学情总览</h1></main>');
+        return;
+      }
+      if (url.includes('/students/demo-ita-student-beta')) {
+        response.setHeader('Content-Type', 'text/html');
+        response.end('<main><h2>证据摘要</h2></main>');
         return;
       }
       if (writeSuccessfulDemoAcceptanceResponse(url, response)) return;
@@ -547,7 +579,10 @@ describe('intelligent teaching assistant demo package', () => {
       process.env.INTELLIGENT_TEACHING_ASSISTANT_DEMO_FIXTURES_INSTALLED = 'true';
       const errors = await runIntelligentTeachingAssistantDemoAcceptance(['test', '--require-http']);
 
-      expect(errors).toContain('route check failed: /teacher/grading-workbench?demo=1');
+      expect(errors).toEqual(expect.arrayContaining([
+        expect.stringContaining('route check failed: /teacher/classes/demo-ita-class/analytics-v2 (ready status semantics missing)'),
+        expect.stringContaining('route check failed: /teacher/classes/demo-ita-class/students/demo-ita-student-beta (ready status semantics missing)'),
+      ]));
     } finally {
       restoreDemoAcceptanceEnv(previousEnv);
       await new Promise<void>((resolve, reject) => {
@@ -607,7 +642,7 @@ describe('intelligent teaching assistant demo package', () => {
     }
   });
 
-  it('accepts stable shell route markers when insight backing APIs are healthy', async () => {
+  it('rejects loading shell route responses even when insight backing APIs are healthy', async () => {
     const server = createServer((request, response) => {
       const url = request.url ?? '/';
       response.setHeader('Content-Type', 'application/json');
@@ -705,7 +740,10 @@ describe('intelligent teaching assistant demo package', () => {
       process.env.INTELLIGENT_TEACHING_ASSISTANT_DEMO_FIXTURES_INSTALLED = 'true';
       const errors = await runIntelligentTeachingAssistantDemoAcceptance(['test', '--require-http']);
 
-      expect(errors).toEqual([]);
+      expect(errors).toEqual(expect.arrayContaining([
+        expect.stringContaining('route check failed: /teacher/classes/demo-ita-class/analytics-v2 (加载班级学情总览 shell marker present; ready status semantics missing)'),
+        expect.stringContaining('route check failed: /teacher/classes/demo-ita-class/students/demo-ita-student-beta (加载学生学情 shell marker present; ready status semantics missing)'),
+      ]));
     } finally {
       restoreDemoAcceptanceEnv(previousEnv);
       await new Promise<void>((resolve, reject) => {

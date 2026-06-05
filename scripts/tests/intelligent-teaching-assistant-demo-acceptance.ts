@@ -105,17 +105,59 @@ function readPath(value: unknown, path: string[]): unknown {
   return path.reduce<unknown>((current, key) => readObject(current)[key], value);
 }
 
-function hasCitationSignal(value: string): boolean {
-  return /(?:citation|cit-|evidence|sourceFamily|source-family|source_id|sourceId)/i.test(value);
+const citationSignalKeys = new Set([
+  'citation',
+  'citations',
+  'citationId',
+  'citationIds',
+  'source',
+  'sources',
+  'sourceFamily',
+  'source_family',
+  'sourceId',
+  'source_id',
+  'evidenceSource',
+  'evidenceSources',
+  'evidenceSourceEventId',
+  'evidenceSourceEventIds',
+]);
+
+function hasCitationSignal(value: unknown): boolean {
+  if (Array.isArray(value)) return value.some((item) => hasCitationSignal(item));
+  if (!value || typeof value !== 'object') return false;
+
+  return Object.entries(value as Record<string, unknown>).some(([key, entry]) => (
+    citationSignalKeys.has(key) && (
+      Array.isArray(entry) ? entry.length > 0 : Boolean(entry)
+    )
+  ) || hasCitationSignal(entry));
+}
+
+function parseSseJsonPayloads(body: string): unknown[] {
+  return body
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith('data:'))
+    .map((line) => line.slice('data:'.length).trim())
+    .filter((line) => line && line !== '[DONE]')
+    .map((line) => {
+      try {
+        return JSON.parse(line) as unknown;
+      } catch {
+        return null;
+      }
+    })
+    .filter((payload): payload is unknown => payload !== null);
 }
 
 export function validateIntelligentTeachingAssistantDemoApiPayload(path: string, body: string, contentType = ''): string[] {
   if (path === '/api/ai/chat') {
     if (contentType.includes('text/event-stream')) {
       const hasStreamChunks = body.trim().length > 0 && /(?:^|\n)(?:data:|event:|[0-9]+:)/.test(body);
+      const ssePayloads = parseSseJsonPayloads(body);
       return [
         hasStreamChunks ? null : 'AI chat stream response is missing SSE/UI message chunks',
-        hasCitationSignal(body) ? null : 'AI chat response is missing citation or evidence signal',
+        ssePayloads.some((payload) => hasCitationSignal(payload)) ? null : 'AI chat response is missing citation or evidence signal',
       ].filter((error): error is string => Boolean(error));
     }
     let payload: unknown;
@@ -129,7 +171,7 @@ export function validateIntelligentTeachingAssistantDemoApiPayload(path: string,
       readPath(payload, ['messages']) || readPath(payload, ['id']) || readPath(payload, ['text']) || readPath(payload, ['content'])
         ? null
         : 'AI chat response is missing controlled mode or message payload',
-      hasCitationSignal(JSON.stringify(payload)) ? null : 'AI chat response is missing citation or evidence signal',
+      hasCitationSignal(payload) ? null : 'AI chat response is missing citation or evidence signal',
     ].filter((error): error is string => Boolean(error));
   }
 
@@ -320,12 +362,23 @@ async function runHttpChecks(baseUrl: string, options: { requireProductSurface: 
       requireProductSurface: options.requireProductSurface,
       redirectedToLogin: response.url.includes('/login') || location.includes('/login'),
     });
+    const forbiddenText = (check.forbiddenTexts ?? []).find((text) => body.includes(text));
+    const statusSemanticsOk = !check.requiredStatusSemantics
+      || body.includes(`data-operations-status-semantics="${check.requiredStatusSemantics}"`);
     const ok = authBoundaryOk || (
       isIntelligentTeachingAssistantDemoSuccessfulHttpStatus(response.status) &&
-      body.includes(check.expectedMarker)
+      body.includes(check.readyText) &&
+      statusSemanticsOk &&
+      !forbiddenText
     );
     console.log(`${ok ? 'ok' : 'fail'} http-route:${check.route} status=${response.status}`);
-    if (!ok) errors.push(`route check failed: ${check.route}`);
+    if (!ok) {
+      const details = [
+        forbiddenText ? `${forbiddenText} shell marker present` : null,
+        !statusSemanticsOk ? `${check.requiredStatusSemantics} status semantics missing` : null,
+      ].filter((detail): detail is string => Boolean(detail));
+      errors.push(`route check failed: ${check.route}${details.length ? ` (${details.join('; ')})` : ''}`);
+    }
   }
 
   for (const example of INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE.apiExamples) {

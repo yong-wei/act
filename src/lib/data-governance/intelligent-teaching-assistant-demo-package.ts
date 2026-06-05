@@ -115,8 +115,10 @@ export interface IntelligentTeachingAssistantDemoPackage {
   }>;
   routeChecks: Array<{
     route: string;
-    expectedMarker: string;
+    readyText: string;
     actorRole: AssistantDemoActorRole;
+    requiredStatusSemantics?: 'ready';
+    forbiddenTexts?: string[];
   }>;
   apiExamples: Array<{ method: 'GET' | 'POST'; path: string; asserts: string[]; actorRole: AssistantDemoActorRole | 'mode' }>;
   featureFlags: Array<{ key: string; expected: 'enabled'; rollbackValue: 'disabled' }>;
@@ -232,11 +234,11 @@ export const INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE: IntelligentTeachingAss
     { id: 'konling-generic', modeId: 'generic-chat', actorRole: 'student', contextOwner: 'system', citations: [demoCitations.resource], unavailableStateCovered: true },
   ],
   routeChecks: [
-    { route: '/assessment/adaptive-practice?goal=control-correction', expectedMarker: 'data-control-correction-center', actorRole: 'student' },
-    { route: '/teacher/grading-workbench?demo=1', expectedMarker: 'data-intelligent-teaching-assistant-demo-surface="document-grading-workbench"', actorRole: 'teacher' },
-    { route: '/assessment/document-feedback?demo=1', expectedMarker: 'data-intelligent-teaching-assistant-demo-surface="document-feedback"', actorRole: 'student' },
-    { route: '/teacher/classes/demo-ita-class/analytics-v2', expectedMarker: 'data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics"', actorRole: 'teacher' },
-    { route: '/teacher/classes/demo-ita-class/students/demo-ita-student-beta', expectedMarker: 'data-intelligent-teaching-assistant-demo-surface="teacher-student-insights"', actorRole: 'teacher' },
+    { route: '/assessment/adaptive-practice?goal=control-correction', readyText: 'data-control-correction-center', actorRole: 'student' },
+    { route: '/teacher/grading-workbench?demo=1', readyText: '报告评分工作台', actorRole: 'teacher' },
+    { route: '/assessment/document-feedback?demo=1', readyText: '报告反馈', actorRole: 'student' },
+    { route: '/teacher/classes/demo-ita-class/analytics-v2', readyText: '班级学情总览', actorRole: 'teacher', requiredStatusSemantics: 'ready', forbiddenTexts: ['加载班级学情总览', '加载失败', 'data-operations-status-semantics="loading"', 'data-operations-status-semantics="error"'] },
+    { route: '/teacher/classes/demo-ita-class/students/demo-ita-student-beta', readyText: '证据摘要', actorRole: 'teacher', requiredStatusSemantics: 'ready', forbiddenTexts: ['加载学生学情', '加载失败', 'data-operations-status-semantics="loading"', 'data-operations-status-semantics="error"'] },
   ],
   apiExamples: [
     { method: 'GET', path: '/api/adaptive/learner-state?goal=control-correction', asserts: ['goal slice', 'path context'], actorRole: 'student' },
