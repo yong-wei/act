@@ -17,6 +17,7 @@ import {
   buildResourceRendererLaunchContext,
   resolveInteractiveResourceConfig,
 } from './resource-renderer-config';
+import { useGlobalAI } from '@/components/providers/global-ai-provider';
 
 interface ResourceRendererProps {
   resource?: TeachingResource | null;
@@ -90,6 +91,7 @@ export function ResourceRenderer({
 }: ResourceRendererProps) {
   // Get lesson context for AI integration
   const lessonContext = useLessonContext();
+  const { updatePageContext } = useGlobalAI();
   const knowledgeTracker = useResourceInteractionTracking({
     resourceKey: knowledgeNode ? `knowledge-card:${knowledgeNode.id}` : 'resource-renderer',
     lessonKey: null,
@@ -127,6 +129,30 @@ export function ResourceRenderer({
       targetLabel: knowledgeNode.name,
     });
   }, [knowledgeNode, knowledgeTracker]);
+
+  useEffect(() => {
+    if (!resource || !enableAIPanel) {
+      updatePageContext({ assistantEntryPoint: null });
+      return;
+    }
+    updatePageContext({
+      courseId: lessonPlanId ?? sessionId ?? 'resource-runtime',
+      courseTitle: lessonContext.title || resource.title,
+      pageType: 'practice',
+      stepId: resource.id,
+      topic: resource.displayName || resource.title,
+      learningObjectives: [],
+      knowledgeType: 'X',
+      assistantEntryPoint: {
+        mode: 'resource-coach',
+        promptContext: `resource:${resource.id};registry:${resource.registryId ?? 'none'}`,
+        serverContext: {
+          resourceId: resource.id,
+          registryId: resource.registryId ?? '',
+        },
+      },
+    });
+  }, [enableAIPanel, lessonContext.title, lessonPlanId, resource, sessionId, updatePageContext]);
 
   if (knowledgeNode) {
     const rawResources = knowledgeNode.resources ?? [];

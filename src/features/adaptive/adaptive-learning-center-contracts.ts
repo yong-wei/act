@@ -111,6 +111,11 @@ export interface AdaptiveLearningCenterPanel {
 
 export interface AdaptiveLearningCenterKonlingPayload {
   contextSource: 'none' | 'learner-state' | 'path' | 'learner-state-and-path';
+  teachingAssistantModes: {
+    diagnosisExplainer: 'diagnosis-explainer';
+    pathAdvisor: 'path-advisor';
+    resourceCoach: 'resource-coach';
+  };
   interventionBasis: string | null;
   cooldown: {
     active: boolean;
@@ -1106,6 +1111,15 @@ function konlingPanel(konling: AdaptiveLearningCenterKonlingPayload | null): Ada
           roleScope: 'student-visible',
         },
         {
+          label: '助理模式',
+          value: [
+            konling?.teachingAssistantModes.diagnosisExplainer ?? 'diagnosis-explainer',
+            konling?.teachingAssistantModes.pathAdvisor ?? 'path-advisor',
+            konling?.teachingAssistantModes.resourceCoach ?? 'resource-coach',
+          ].join(', '),
+          roleScope: 'student-visible',
+        },
+        {
           label: '干预依据',
           value: konling?.interventionBasis ?? 'unavailable',
           roleScope: 'student-visible',
@@ -1124,6 +1138,11 @@ function konlingPanel(konling: AdaptiveLearningCenterKonlingPayload | null): Ada
     }),
     payload: konling ?? {
       contextSource: 'none',
+      teachingAssistantModes: {
+        diagnosisExplainer: 'diagnosis-explainer',
+        pathAdvisor: 'path-advisor',
+        resourceCoach: 'resource-coach',
+      },
       interventionBasis: null,
       cooldown: { active: false, until: null },
       feedback: { state: 'unavailable' },

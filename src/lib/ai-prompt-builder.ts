@@ -38,6 +38,30 @@ interface KonlingPromptRuntimeContext {
   permittedTools?: string[];
   missingContext?: string[];
   featureFlags?: Record<string, boolean>;
+  teachingAssistantMode?: {
+    mode: {
+      id: string;
+      label: string;
+    };
+    status: string;
+    unavailableReasons: string[];
+    degradedReasons: string[];
+    privacyPolicy: {
+      payload: string;
+      forbiddenContent: string[];
+    };
+    outputContract: {
+      status: string;
+      requiredCitationOwners: string[];
+      forbiddenActions: string[];
+    };
+    citationRequirements: {
+      required: boolean;
+      classes: string[];
+      requiredOwners: string[];
+      missingClasses: string[];
+    };
+  };
 }
 
 /**
@@ -101,6 +125,26 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
         ...(runtime.citationContext.missingCitationClasses ?? []).map((item) => `缺少 ${item}`),
         ...(runtime.citationContext.lowConfidenceReasons ?? []),
       ].join(', ')}；不能把结论表述为完全验证。`);
+    }
+  }
+  if (runtime.teachingAssistantMode) {
+    const mode = runtime.teachingAssistantMode;
+    lines.push('- 控灵教学助理模式:');
+    lines.push(`  - 模式: ${mode.mode.label} (${mode.mode.id})`);
+    lines.push(`  - 状态: ${mode.status}`);
+    lines.push(`  - 输出合同: ${mode.outputContract.status}`);
+    lines.push(`  - 隐私策略: ${mode.privacyPolicy.payload}`);
+    if (mode.privacyPolicy.forbiddenContent.length) {
+      lines.push(`  - 禁止内容: ${mode.privacyPolicy.forbiddenContent.join(', ')}`);
+    }
+    if (mode.outputContract.forbiddenActions.length) {
+      lines.push(`  - 禁止动作: ${mode.outputContract.forbiddenActions.join(', ')}`);
+    }
+    if (mode.citationRequirements.required) {
+      lines.push(`  - 模式引用要求: ${mode.citationRequirements.classes.join(', ')}；责任归属 ${mode.citationRequirements.requiredOwners.join(', ')}`);
+    }
+    if (mode.unavailableReasons.length || mode.degradedReasons.length) {
+      lines.push(`  - 模式限制: ${[...mode.unavailableReasons, ...mode.degradedReasons].join(', ')}`);
     }
   }
   if (runtime.missingContext?.length) {

@@ -301,13 +301,22 @@ describe('document rubric grading workbench', () => {
     expect(teacherView.conversion.referencePrecision).toBe('block');
     expect(teacherView.rubricTree.map((item) => item.criterionId)).toEqual(['modeling', 'validation']);
     expect(teacherView.actions).toEqual(expect.arrayContaining(['edit-criterion', 'approve', 'retry-conversion']));
-    expect(teacherView.konlingEntryPoint.mode).toBe('teacher-grading-assistant');
+    expect(teacherView.konlingEntryPoint.mode).toBe('grading-assistant');
+    expect(teacherView.konlingEntryPoint.serverContext).toEqual(expect.objectContaining({
+      gradingRunId: draft.id,
+      assetId: submission.id,
+      rubricId: rubric().id,
+    }));
     expect(hiddenStudentView.status).toBe('hidden-unapproved');
     expect(visibleStudentView.status).toBe('visible');
     expect(visibleStudentView.rubricBreakdown).toHaveLength(2);
     expect(visibleStudentView.evidenceCapsules[0].confidence).toBeGreaterThan(0);
     expect(visibleStudentView.profileImpactSummary[0].goalDimension).toBe('controlModeling');
-    expect(visibleStudentView.konlingEntryPoint?.mode).toBe('student-feedback-explainer');
+    expect(visibleStudentView.konlingEntryPoint?.mode).toBe('feedback-explainer');
+    expect(visibleStudentView.konlingEntryPoint?.serverContext).toEqual(expect.objectContaining({
+      gradingRunId: approved.id,
+      assignmentId: submission.assignmentId,
+    }));
     expect(otherStudentView.status).toBe('hidden-unapproved');
     expect(returnedDraftView.status).toBe('hidden-unapproved');
     expect(returnedEditedView.status).toBe('visible');

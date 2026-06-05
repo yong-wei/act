@@ -1,3 +1,6 @@
+import type { KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
+import { createKonlingTeachingAssistantServerContextToken } from '@/lib/konling-teaching-assistant-server-context';
+
 export const CONTROL_CORRECTION_TEACHER_REPORT_VERSION = 'control-correction-teacher-report.v1';
 export const CONTROL_CORRECTION_REPORT_GOAL_ID = 'control-correction';
 
@@ -84,6 +87,7 @@ export interface ControlCorrectionTeacherReport {
     executionCount: number;
     completedCount: number;
   }>;
+  konlingEntryPoint: KonlingTeachingAssistantEntryPoint & { mode: 'class-summarizer' };
   methodologyNotes: string[];
   redactionPolicyNotes: string[];
 }
@@ -104,6 +108,15 @@ export function buildControlCorrectionTeacherReport(
     cachesByUser.get(student.userId) ?? null,
   ));
   const windows = collectWindow(latestPaths);
+  const modeContextToken = createKonlingTeachingAssistantServerContextToken({
+    mode: 'class-summarizer',
+    classId: input.classInfo.id,
+    context: {
+      'class-report': true,
+      'diagnosis-view': true,
+      'learner-state-summary': true,
+    },
+  });
 
   return {
     version: CONTROL_CORRECTION_TEACHER_REPORT_VERSION,
@@ -124,6 +137,15 @@ export function buildControlCorrectionTeacherReport(
     },
     studentDrilldowns: drilldowns,
     resourceContribution: summarizeResourceContribution(latestPaths),
+    konlingEntryPoint: {
+      mode: 'class-summarizer',
+      promptContext: `class-report:${input.classInfo.id}:${CONTROL_CORRECTION_REPORT_GOAL_ID}`,
+      serverContext: {
+        ...(modeContextToken ? { modeContextToken } : {}),
+        classId: input.classInfo.id,
+        classReportId: `${input.classInfo.id}:${CONTROL_CORRECTION_REPORT_GOAL_ID}`,
+      },
+    },
     methodologyNotes: [
       'All denominators are explicit and scoped to the authorized class roster or governed evidence subset.',
       'Stage 1 metrics use governed learning paths, feature cache summaries, learner snapshots, and privacy-safe evidence references.',

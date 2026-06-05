@@ -30,9 +30,13 @@ import {
   completeKonlingToolRun,
   failKonlingToolRun,
   getOrCreateKonlingAgentSession,
+  buildKonlingTeachingAssistantRuntimeContract,
+  getKonlingTeachingAssistantMountContracts,
   KONLING_TOOL_REGISTRY,
+  KONLING_TEACHING_ASSISTANT_MODE_REGISTRY,
   persistKonlingSessionMemories,
   recordKonlingInterventionFeedback,
+  resolveKonlingTeachingAssistantMode,
   resumeKonlingAgentSession,
   startKonlingToolRun,
   verifyKonlingRuntimeScope,
@@ -224,6 +228,381 @@ describe('konling agent runtime', () => {
       status: 403,
     });
     expect(foreignClassDb.studentProfile.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('registers teaching-assistant modes with scoped tools, citations, privacy, and mounts', () => {
+    expect(Object.keys(KONLING_TEACHING_ASSISTANT_MODE_REGISTRY)).toEqual([
+      'generic-chat',
+      'diagnosis-explainer',
+      'path-advisor',
+      'resource-coach',
+      'grading-assistant',
+      'feedback-explainer',
+      'class-summarizer',
+      'prep-coauthor',
+    ]);
+
+    const diagnosis = resolveKonlingTeachingAssistantMode('diagnosis-explainer');
+    expect(diagnosis).toMatchObject({
+      id: 'diagnosis-explainer',
+      supportedRoles: ['student', 'teacher'],
+      mountingSurfaces: expect.arrayContaining(['student-learning-overview']),
+      requiredContext: expect.arrayContaining(['diagnosis-view', 'learner-state-summary', 'evidence-citations']),
+      citationClasses: expect.arrayContaining(['learner-state', 'path-execution']),
+      privacyPolicy: expect.objectContaining({ payload: 'aggregate-and-redacted-only' }),
+    });
+    expect(diagnosis.permittedTools).toEqual(expect.arrayContaining(['get_learner_state', 'search_knowledge_graph']));
+    expect(diagnosis.permittedTools).not.toContain('apply_controller_patch');
+
+    const grading = resolveKonlingTeachingAssistantMode('grading-assistant');
+    expect(grading.permittedTools).not.toContain('record_intervention_result');
+    expect(grading.outputContract.forbiddenActions).toEqual(expect.arrayContaining([
+      'approve-grading',
+      'write-back-profile',
+    ]));
+
+    const mounts = getKonlingTeachingAssistantMountContracts();
+    expect(mounts).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        surface: 'teacher-prep-pack',
+        modeId: 'prep-coauthor',
+        requiredContext: expect.arrayContaining(['prep-pack']),
+      }),
+      expect.objectContaining({
+        surface: 'resource-node-launch',
+        modeId: 'resource-coach',
+        requiredContext: expect.arrayContaining(['resource-node', 'path-execution-context']),
+      }),
+    ]));
+  });
+
+  it('builds explicit mode runtime contracts without allowing client hints to expand scope', () => {
+    const runtime = createRuntimeContext({
+      learnerState: null,
+      planContext: {
+        currentPathId: null,
+        activeNodeId: null,
+        nextNodeIds: [],
+        recentPathIds: [],
+        completedNodeIds: [],
+        status: 'missing',
+      },
+      citationContext: {
+        required: true,
+        contentCitations: [],
+        evidenceCitations: [],
+        missingCitationClasses: ['learner-state', 'path-execution'],
+        lowConfidenceReasons: ['missing-learner-state', 'missing-path-execution'],
+        responseProtocol: {
+          requiredOwners: ['answer', 'recommendation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+      missingContext: ['learner-state', 'plan-context'],
+      permittedTools: ['get_page_context', 'get_learner_state', 'search_knowledge_graph'],
+    });
+
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'path-advisor',
+      runtimeContext: runtime,
+      scope: createScope({ role: 'student', targetUserId: 'student-1', authenticatedUserId: 'student-1' }),
+      clientContextHints: {
+        targetUserId: 'student-2',
+        classId: 'class-2',
+        resourceId: 'foreign-resource',
+        gradingRunId: 'grading-1',
+        prepPackId: 'prep-1',
+      },
+    });
+
+    expect(contract.mode.id).toBe('path-advisor');
+    expect(contract.status).toBe('unavailable');
+    expect(contract.permittedTools).toEqual([]);
+    expect(contract.unavailableReasons).toEqual(expect.arrayContaining([
+      'missing-context:path-execution-context',
+      'missing-citation:path-execution',
+    ]));
+    expect(contract.scope).toEqual(expect.objectContaining({
+      targetUserId: 'student-1',
+      classId: 'class-1',
+      resourceId: 'resource-1',
+    }));
+    expect(contract.clientHintsAccepted).toEqual([]);
+    expect(contract.clientHintsRejected).toEqual(expect.arrayContaining([
+      'targetUserId',
+      'classId',
+      'resourceId',
+      'gradingRunId',
+      'prepPackId',
+    ]));
+    expect(contract.permittedTools).not.toContain('record_intervention_result');
+  });
+
+  it('does not make grading mode unavailable for unrelated citation gaps', () => {
+    const runtime = createRuntimeContext({
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:rubric',
+          sourceType: 'content',
+          displayTitle: '评分量规',
+          href: null,
+          confidence: 'high',
+          evidenceBasis: 'server-rubric',
+          owner: 'answer',
+        }],
+        evidenceCitations: [{
+          id: 'learner-state:student-1',
+          sourceType: 'learner-state',
+          displayTitle: '学生学习状态',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'server-learner-state',
+          owner: 'report-explanation',
+        }],
+        missingCitationClasses: ['path-execution'],
+        lowConfidenceReasons: ['missing-path-execution'],
+        responseProtocol: {
+          requiredOwners: ['answer', 'report-explanation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+      permittedTools: ['get_page_context', 'search_knowledge_graph'],
+    });
+
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'grading-assistant',
+      runtimeContext: runtime,
+      scope: createScope({ role: 'teacher', authenticatedUserId: 'teacher-1', targetUserId: 'student-1' }),
+      serverModeContext: {
+        rubric: true,
+        'converted-document': true,
+        'draft-grading-state': true,
+        'teacher-review-state': true,
+      },
+    });
+
+    expect(contract.status).not.toBe('unavailable');
+    expect(contract.unavailableReasons).not.toContain('missing-context:evidence-citations');
+    expect(contract.citationRequirements.missingClasses).toEqual([]);
+    expect(contract.permittedTools).toEqual(['get_page_context', 'search_knowledge_graph']);
+  });
+
+  it('does not silently widen explicit unknown modes and preserves grading aliases', () => {
+    const runtime = createRuntimeContext({
+      permittedTools: ['get_page_context', 'search_knowledge_graph', 'record_intervention_result'],
+    });
+
+    const invalid = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'unknown-mode',
+      runtimeContext: runtime,
+      scope: createScope(),
+    });
+    expect(invalid.mode.id).toBe('generic-chat');
+    expect(invalid.status).toBe('unavailable');
+    expect(invalid.unavailableReasons).toContain('unknown-mode:unknown-mode');
+    expect(invalid.permittedTools).toEqual([]);
+
+    const teacherGrading = resolveKonlingTeachingAssistantMode('teacher-grading-assistant');
+    expect(teacherGrading.id).toBe('grading-assistant');
+    expect(teacherGrading.outputContract.forbiddenActions).toContain('approve-grading');
+
+    const studentFeedback = resolveKonlingTeachingAssistantMode('student-feedback-explainer');
+    expect(studentFeedback.id).toBe('feedback-explainer');
+    expect(studentFeedback.supportedRoles).toEqual(['student']);
+  });
+
+  it('accepts server-owned mode context without allowing client hints to unlock modes', () => {
+    const runtime = createRuntimeContext({
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'rubric-citation',
+          sourceType: 'content',
+          displayTitle: '评分量规',
+          href: null,
+          confidence: 'high',
+          owner: 'answer',
+          evidenceBasis: 'server-rubric',
+        }],
+        evidenceCitations: [{
+          id: 'learner-state-citation',
+          sourceType: 'learner-state',
+          displayTitle: '学习状态摘要',
+          href: null,
+          confidence: 'medium',
+          owner: 'report-explanation',
+          evidenceBasis: 'server-learner-state',
+        }],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer', 'report-explanation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+      permittedTools: ['get_page_context', 'search_knowledge_graph', 'record_intervention_result'],
+    });
+
+    const withoutServerContext = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'grading-assistant',
+      runtimeContext: runtime,
+      scope: createScope({ role: 'teacher', authenticatedUserId: 'teacher-1', privacyScopes: ['teacher-scoped'] }),
+      clientContextHints: {
+        rubric: true,
+        convertedDocument: true,
+      },
+    });
+    expect(withoutServerContext.status).toBe('unavailable');
+    expect(withoutServerContext.unavailableReasons).toContain('missing-context:rubric');
+    expect(withoutServerContext.clientHintsAccepted).toEqual([]);
+
+    const withServerContext = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'grading-assistant',
+      runtimeContext: runtime,
+      scope: createScope({ role: 'teacher', authenticatedUserId: 'teacher-1', privacyScopes: ['teacher-scoped'] }),
+      serverModeContext: {
+        rubric: true,
+        'converted-document': true,
+        'draft-grading-state': true,
+        'teacher-review-state': true,
+      },
+      clientContextHints: {
+        targetUserId: 'student-2',
+      },
+    });
+
+    expect(withServerContext.status).toBe('ready');
+    expect(withServerContext.permittedTools).toEqual(['get_page_context', 'search_knowledge_graph']);
+    expect(withServerContext.clientHintsRejected).toEqual(['targetUserId']);
+    expect(withServerContext.outputContract.status).toBe('draft-only');
+    expect(withServerContext.outputContract.forbiddenActions).toEqual(expect.arrayContaining([
+      'approve-grading',
+      'write-back-profile',
+    ]));
+  });
+
+  it('requires server-owned resource context before enabling resource coach', () => {
+    const runtime = createRuntimeContext({
+      planContext: {
+        currentPathId: 'path-1',
+        activeNodeId: 'node-1',
+        nextNodeIds: [],
+        recentPathIds: ['path-1'],
+        completedNodeIds: [],
+        status: 'available',
+      },
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:resource',
+          sourceType: 'content',
+          displayTitle: '资源节点',
+          href: null,
+          confidence: 'high',
+          evidenceBasis: 'server-resource',
+          owner: 'answer',
+        }],
+        evidenceCitations: [{
+          id: 'path:path-1',
+          sourceType: 'path-execution',
+          displayTitle: '学习路径',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'LearningPath',
+          owner: 'recommendation',
+        }, {
+          id: 'learner-state:student-1',
+          sourceType: 'learner-state',
+          displayTitle: '学生学习状态',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'AdaptiveLearnerState',
+          owner: 'recommendation',
+        }],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer', 'recommendation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+      permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action', 'analyze_attempt'],
+    });
+
+    const withoutServerContext = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'resource-coach',
+      runtimeContext: runtime,
+      scope: createScope({ resourceId: 'resource-1' }),
+      clientContextHints: { resourceId: 'resource-1' },
+    });
+    expect(withoutServerContext.status).toBe('unavailable');
+    expect(withoutServerContext.unavailableReasons).toContain('missing-context:resource-node');
+
+    const withServerContext = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'resource-coach',
+      runtimeContext: runtime,
+      scope: createScope({ resourceId: 'resource-1' }),
+      serverModeContext: { 'resource-node': true },
+    });
+    expect(withServerContext.status).toBe('ready');
+    expect(withServerContext.permittedTools).toContain('analyze_attempt');
+  });
+
+  it('preserves generic chat behavior when no teaching-assistant mode is requested', () => {
+    const runtime = createRuntimeContext({
+      permittedTools: ['get_page_context', 'get_learner_state', 'recommend_next_action'],
+      citationContext: {
+        required: true,
+        contentCitations: [],
+        evidenceCitations: [],
+        missingCitationClasses: ['content', 'evidence'],
+        lowConfidenceReasons: ['missing-content', 'missing-evidence'],
+        responseProtocol: {
+          requiredOwners: ['answer'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    });
+
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      runtimeContext: runtime,
+      scope: createScope(),
+    });
+
+    expect(contract.mode.id).toBe('generic-chat');
+    expect(contract.status).toBe('ready');
+    expect(contract.permittedTools).toEqual(runtime.permittedTools);
+    expect(contract.unavailableReasons).toEqual([]);
+  });
+
+  it('adds teaching-assistant mode privacy and output constraints to the system prompt', () => {
+    const runtime = createRuntimeContext();
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'teacher-grading-assistant',
+      runtimeContext: runtime,
+      scope: createScope({ role: 'teacher', authenticatedUserId: 'teacher-1', targetUserId: 'student-1', privacyScopes: ['teacher-scoped'] }),
+    });
+    const prompt = buildKonlingSystemPrompt({
+      page: runtime.pageContext,
+      user: runtime.userProfile,
+      adaptiveRuntime: {
+        ...runtime,
+        teachingAssistantMode: modeContract,
+      },
+    });
+
+    expect(prompt).toContain('控灵教学助理模式');
+    expect(prompt).toContain('文档批改助手');
+    expect(prompt).toContain('teacher-scoped-summary');
+    expect(prompt).toContain('raw-answer-body');
+    expect(prompt).toContain('approve-grading');
+    expect(prompt).toContain('write-back-profile');
   });
 
   it('builds prompt context from server learner state and not client profile defaults', async () => {
@@ -641,6 +1020,116 @@ describe('konling agent runtime', () => {
       lowConfidenceReasons: ['assistant-citations-missing'],
     });
     expect(applyKonlingCitationFallback('下一步建议先回到根轨迹。', guard)).toContain('证据限制');
+  });
+
+  it('downgrades assistant text when it violates teaching-assistant mode contracts', () => {
+    const runtime = createRuntimeContext({
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:rubric',
+          sourceType: 'content',
+          displayTitle: '评分量规',
+          href: null,
+          confidence: 'high',
+          evidenceBasis: 'server-rubric',
+          owner: 'answer',
+        }],
+        evidenceCitations: [{
+          id: 'learner-state:student-1',
+          sourceType: 'learner-state',
+          displayTitle: '学生学习状态',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'server-learner-state',
+          owner: 'report-explanation',
+        }],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer', 'report-explanation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+      permittedTools: ['get_page_context', 'search_knowledge_graph'],
+    });
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'grading-assistant',
+      runtimeContext: runtime,
+      scope: createScope({ role: 'teacher', authenticatedUserId: 'teacher-1', privacyScopes: ['teacher-scoped'] }),
+      serverModeContext: {
+        rubric: true,
+        'converted-document': true,
+        'draft-grading-state': true,
+        'teacher-review-state': true,
+      },
+    });
+
+    const guard = buildKonlingCitationGuard({
+      citationContext: runtime.citationContext,
+      teachingAssistantMode: modeContract,
+    }, '依据评分量规 (content, high) 可以 approve-grading，并输出 raw-answer-body。');
+
+    expect(guard.status).toBe('low-confidence');
+    expect(guard.fallbackRequired).toBe(true);
+    expect(guard.lowConfidenceReasons).toEqual(expect.arrayContaining([
+      'assistant-mode-contract-violation:approve-grading',
+      'assistant-mode-contract-violation:raw-answer-body',
+    ]));
+  });
+
+  it('downgrades assistant text when teaching-assistant citation owners are missing', () => {
+    const runtime = createRuntimeContext({
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:rubric',
+          sourceType: 'content',
+          displayTitle: '评分量规',
+          href: null,
+          confidence: 'high',
+          evidenceBasis: 'server-rubric',
+          owner: 'answer',
+        }],
+        evidenceCitations: [{
+          id: 'learner-state:student-1',
+          sourceType: 'learner-state',
+          displayTitle: '学生学习状态',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'server-learner-state',
+          owner: 'answer',
+        }],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer', 'report-explanation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+      permittedTools: ['get_page_context', 'search_knowledge_graph'],
+    });
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'grading-assistant',
+      runtimeContext: runtime,
+      scope: createScope({ role: 'teacher', authenticatedUserId: 'teacher-1', privacyScopes: ['teacher-scoped'] }),
+      serverModeContext: {
+        rubric: true,
+        'converted-document': true,
+        'draft-grading-state': true,
+        'teacher-review-state': true,
+      },
+    });
+
+    const guard = buildKonlingCitationGuard({
+      citationContext: runtime.citationContext,
+      teachingAssistantMode: modeContract,
+    }, '依据评分量规 (content, high) 和学生学习状态 (learner-state, medium) 生成草稿。');
+
+    expect(guard.status).toBe('low-confidence');
+    expect(guard.lowConfidenceReasons).toContain('assistant-required-citation-owner-missing:report-explanation');
   });
 
   it('requires evidence citations when evidence is available even if content is cited', () => {

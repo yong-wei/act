@@ -9,6 +9,7 @@ import useSWR from 'swr';
 import type { Message } from '@/types/ai-message';
 import type { PageContext } from '@/types/ai-context';
 import { toLegacyMessage } from '@/lib/ai-message-compat';
+import type { KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
 
 interface KonlingSession {
   id: string;
@@ -27,6 +28,7 @@ interface UseKonlingSessionOptions {
   pageId: string;
   title?: string;
   pageContext?: PageContext;
+  konlingEntryPoint?: KonlingTeachingAssistantEntryPoint | null;
 }
 
 const fetcher = async (url: string) => {
@@ -40,6 +42,7 @@ export function useKonlingSession({
   pageId,
   title,
   pageContext,
+  konlingEntryPoint,
 }: UseKonlingSessionOptions) {
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -105,7 +108,14 @@ export function useKonlingSession({
       const res = await fetch(`/api/ai/sessions/${sessionId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({
+          content,
+          teachingAssistantModeId: konlingEntryPoint?.mode,
+          modeClientContextHints: konlingEntryPoint?.serverContext,
+          classId: konlingEntryPoint?.serverContext.classId,
+          resourceId: konlingEntryPoint?.serverContext.resourceId,
+          pathNodeId: konlingEntryPoint?.serverContext.pathNodeId,
+        }),
       });
 
       if (!res.ok) throw new Error('Failed to send message');
@@ -125,7 +135,7 @@ export function useKonlingSession({
       setLocalMessages((prev) => prev.filter((m) => m.id !== userMessage.id));
       throw err;
     }
-  }, [sessionId, createSession, mutate]);
+  }, [sessionId, createSession, konlingEntryPoint, mutate]);
 
   // 清空会话
   const clearSession = useCallback(async () => {

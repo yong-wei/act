@@ -2,6 +2,7 @@ import type {
   StudentGradingFeedbackView,
   TeacherGradingWorkbenchView,
 } from '@/lib/data-governance/document-rubric-grading-workbench';
+import { KonlingEntryPointButton } from '@/components/ai/konling-entry-point-button';
 import { DocumentGradingApprovalButton } from './document-rubric-grading-actions';
 
 export function TeacherDocumentGradingWorkbench({ view }: { view: TeacherGradingWorkbenchView }) {
@@ -77,7 +78,10 @@ export function TeacherDocumentGradingWorkbench({ view }: { view: TeacherGrading
                   )
                 ))}
               </div>
-              <p className="mt-4 text-sm text-muted-foreground">{view.konlingEntryPoint.promptContext}</p>
+              <div className="mt-4 flex items-center justify-between gap-3 rounded border border-border bg-background px-3 py-2">
+                <p className="text-sm text-muted-foreground">{view.konlingEntryPoint.promptContext}</p>
+                <KonlingEntryPointButton entryPoint={view.konlingEntryPoint} label="打开批改助手" />
+              </div>
             </section>
           </div>
         </section>
@@ -167,9 +171,12 @@ export function StudentDocumentGradingFeedback({ view }: { view: StudentGradingF
                   ))}
                 </div>
                 {view.konlingEntryPoint ? (
-                  <p className="mt-4 rounded border border-border bg-background px-3 py-2 text-sm text-muted-foreground">
-                    {view.konlingEntryPoint.promptContext}
-                  </p>
+                  <div className="mt-4 flex items-center justify-between gap-3 rounded border border-border bg-background px-3 py-2">
+                    <p className="text-sm text-muted-foreground">
+                      {view.konlingEntryPoint.promptContext}
+                    </p>
+                    <KonlingEntryPointButton entryPoint={view.konlingEntryPoint} label="解释反馈" />
+                  </div>
                 ) : null}
               </section>
             </div>

@@ -546,6 +546,11 @@ describe('adaptive learning center UI contracts', () => {
       }),
       konling: {
         contextSource: 'learner-state-and-path',
+        teachingAssistantModes: {
+          diagnosisExplainer: 'diagnosis-explainer',
+          pathAdvisor: 'path-advisor',
+          resourceCoach: 'resource-coach',
+        },
         interventionBasis: 'control-correction-next-node',
         cooldown: { active: false, until: null },
         feedback: { state: 'pending' },
@@ -798,6 +803,11 @@ describe('adaptive learning center UI contracts', () => {
       learnerState: learnerState(),
       konling: {
         contextSource: 'learner-state-and-path',
+        teachingAssistantModes: {
+          diagnosisExplainer: 'diagnosis-explainer',
+          pathAdvisor: 'path-advisor',
+          resourceCoach: 'resource-coach',
+        },
         interventionBasis: 'low-mastery-target',
         cooldown: { active: true, until: '2026-05-28T07:00:00.000Z' },
         feedback: { state: 'pending' },
@@ -813,6 +823,11 @@ describe('adaptive learning center UI contracts', () => {
       },
       payload: {
         contextSource: 'learner-state-and-path',
+        teachingAssistantModes: {
+          diagnosisExplainer: 'diagnosis-explainer',
+          pathAdvisor: 'path-advisor',
+          resourceCoach: 'resource-coach',
+        },
         interventionBasis: 'low-mastery-target',
         cooldown: { active: true, until: '2026-05-28T07:00:00.000Z' },
         feedback: { state: 'pending' },
@@ -820,6 +835,7 @@ describe('adaptive learning center UI contracts', () => {
     });
     expect(konlingPanel?.status.details).toEqual(
       expect.arrayContaining([
+        expect.objectContaining({ label: '助理模式', value: 'diagnosis-explainer, path-advisor, resource-coach' }),
         expect.objectContaining({ label: '干预依据', value: 'low-mastery-target' }),
         expect.objectContaining({ label: '冷却状态', value: 'active until 2026-05-28T07:00:00.000Z' }),
         expect.objectContaining({ label: '反馈状态', value: 'pending' }),
@@ -833,6 +849,11 @@ describe('adaptive learning center UI contracts', () => {
       learnerState: learnerState(),
       konling: {
         contextSource: 'none',
+        teachingAssistantModes: {
+          diagnosisExplainer: 'diagnosis-explainer',
+          pathAdvisor: 'path-advisor',
+          resourceCoach: 'resource-coach',
+        },
         interventionBasis: null,
         cooldown: { active: false, until: null },
         feedback: { state: 'unavailable' },
