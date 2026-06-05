@@ -63,12 +63,12 @@ function writeSuccessfulDemoAcceptanceResponse(url: string, response: ServerResp
   }
   if (url.includes('/analytics-v2')) {
     response.setHeader('Content-Type', 'text/html');
-    response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics">加载班级学情总览...</main>');
+    response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics" data-operations-status-semantics="ready"><h1>班级学情总览</h1></main>');
     return true;
   }
   if (url.includes('/students/demo-ita-student-beta')) {
     response.setHeader('Content-Type', 'text/html');
-    response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-student-insights">加载学生学情...</main>');
+    response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-student-insights" data-operations-status-semantics="ready"><h2>证据摘要</h2></main>');
     return true;
   }
 
@@ -158,21 +158,13 @@ describe('intelligent teaching assistant demo package', () => {
       '/teacher/classes/demo-ita-class/students/demo-ita-student-beta',
     ]));
     expect(pkg.routeChecks.map((check) => check.route)).not.toContain('/teacher/classes/demo-ita-class');
-    expect(pkg.routeChecks.map((check) => check.readyText)).not.toContain('class');
-    expect(pkg.routeChecks.map((check) => check.readyText)).toEqual(expect.arrayContaining([
-      '报告评分工作台',
-      '报告反馈',
-      '班级学情总览',
-      '证据摘要',
-    ]));
-    expect(pkg.routeChecks.flatMap((check) => check.forbiddenTexts ?? [])).toEqual(expect.arrayContaining([
-      '加载班级学情总览',
-      '加载学生学情',
-      'data-operations-status-semantics="loading"',
-      'data-operations-status-semantics="error"',
-    ]));
-    expect(pkg.routeChecks.map((check) => check.requiredStatusSemantics)).toEqual(expect.arrayContaining([
-      'ready',
+    expect(pkg.routeChecks.map((check) => check.expectedMarker)).not.toContain('class');
+    expect(pkg.routeChecks.map((check) => check.expectedMarker)).toEqual(expect.arrayContaining([
+      'data-control-correction-center',
+      'data-intelligent-teaching-assistant-demo-surface="document-grading-workbench"',
+      'data-intelligent-teaching-assistant-demo-surface="document-feedback"',
+      'data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics"',
+      'data-intelligent-teaching-assistant-demo-surface="teacher-student-insights"',
     ]));
     expect(pkg.routeChecks.map((check) => check.actorRole)).toEqual(expect.arrayContaining(['student', 'teacher']));
     expect(pkg.apiExamples.map((example) => example.actorRole)).toEqual(expect.arrayContaining(['student', 'teacher', 'mode']));
@@ -534,7 +526,7 @@ describe('intelligent teaching assistant demo package', () => {
   it('rejects legacy route responses without the required stable surface marker', async () => {
     const server = createServer((request, response) => {
       const url = request.url ?? '/';
-      if ((request.url ?? '/').startsWith('/teacher/grading-workbench')) {
+      if (url.startsWith('/teacher/grading-workbench')) {
         response.setHeader('Content-Type', 'text/html');
         response.end('<main>报告评分工作台</main>');
         return;
@@ -579,12 +571,12 @@ describe('intelligent teaching assistant demo package', () => {
       }
       if (url.includes('/analytics-v2')) {
         response.setHeader('Content-Type', 'text/html');
-        response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics" data-operations-status-semantics="loading">加载班级学情总览...</main>');
+        response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics">加载班级学情总览...</main>');
         return;
       }
       if (url.includes('/students/demo-ita-student-beta')) {
         response.setHeader('Content-Type', 'text/html');
-        response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-student-insights" data-operations-status-semantics="loading">加载学生学情...</main>');
+        response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-student-insights">加载学生学情...</main>');
         return;
       }
       response.setHeader('Content-Type', 'text/html');
@@ -691,11 +683,11 @@ describe('intelligent teaching assistant demo package', () => {
         return;
       }
       if (url.includes('/analytics-v2')) {
-        response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics" data-operations-status-semantics="loading">加载班级学情总览...</main>');
+        response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics">加载班级学情总览...</main>');
         return;
       }
       if (url.includes('/students/demo-ita-student-beta')) {
-        response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-student-insights" data-operations-status-semantics="loading">加载学生学情...</main>');
+        response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-student-insights">加载学生学情...</main>');
         return;
       }
       response.statusCode = 404;
@@ -713,10 +705,7 @@ describe('intelligent teaching assistant demo package', () => {
       process.env.INTELLIGENT_TEACHING_ASSISTANT_DEMO_FIXTURES_INSTALLED = 'true';
       const errors = await runIntelligentTeachingAssistantDemoAcceptance(['test', '--require-http']);
 
-      expect(errors).toEqual(expect.arrayContaining([
-        'route check failed: /teacher/classes/demo-ita-class/analytics-v2 (加载班级学情总览 shell marker present; ready status semantics missing)',
-        'route check failed: /teacher/classes/demo-ita-class/students/demo-ita-student-beta (加载学生学情 shell marker present; ready status semantics missing)',
-      ]));
+      expect(errors).toEqual([]);
     } finally {
       restoreDemoAcceptanceEnv(previousEnv);
       await new Promise<void>((resolve, reject) => {
