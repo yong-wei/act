@@ -82,7 +82,9 @@ describe('AI chat route Konling runtime guard', () => {
 
   it('exposes server citation guard metadata and downgrades persisted uncited session replies', () => {
     expect(chatRouteSource).toContain('buildKonlingStreamingCitationGuard(runtimeContext)');
-    expect(chatRouteSource).toContain('let modelRequirements: ModelProviderCapabilityRequirements | undefined');
+    expect(chatRouteSource).toContain('let modelRequirements: ModelProviderCapabilityRequirements =');
+    expect(chatRouteSource).toContain('tools: true');
+    expect(chatRouteSource).toContain('streaming: true');
     expect(chatRouteSource).toContain('citationNormalization: true');
     expect(chatRouteSource).toContain('isConfiguredAIServiceAvailable(modelRequirements)');
     expect(chatRouteSource).toContain('getConfiguredAIModel(undefined, modelRequirements)');

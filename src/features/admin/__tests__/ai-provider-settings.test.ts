@@ -272,7 +272,7 @@ describe('AI provider settings', () => {
     expect(config.apiKey).toBe('sk-openai-main');
   });
 
-  it('does not route SiliconFlow secretRef to a custom provider at runtime', async () => {
+  it('does not treat a custom bearer provider as configured from SiliconFlow secrets', async () => {
     const settings = normalizeAIProviderSettings({
       activeProvider: 'custom-openai',
       providers: [{
@@ -288,7 +288,7 @@ describe('AI provider settings', () => {
       }],
     });
 
-    const config = await resolveConfiguredAIProviderConfig(
+    await expect(resolveConfiguredAIProviderConfig(
       undefined,
       undefined,
       undefined,
@@ -301,11 +301,7 @@ describe('AI provider settings', () => {
         SILICONFLOW_API_KEY: 'sk-siliconflow-only',
         AI_MODEL: 'custom/model',
       } as unknown as NodeJS.ProcessEnv,
-    );
-
-    expect(config.provider).toBe('custom-openai');
-    expect(config.secretRef).toBe('env:AI_API_KEY');
-    expect(config.apiKey).toBe('');
+    )).rejects.toThrow('No enabled provider can satisfy the requested capabilities.');
   });
 
   it('rejects downgraded providers for any explicitly required capability', async () => {
@@ -375,6 +371,47 @@ describe('AI provider settings', () => {
 
     expect(config.provider).toBe('openai-cited');
     expect(config.apiKey).toBe('sk-openai-cited');
+  });
+
+  it('skips enabled bearer providers with missing secrets during runtime selection', async () => {
+    const settings = normalizeAIProviderSettings({
+      activeProvider: 'openai-main',
+      providers: [
+        {
+          id: 'openai-main',
+          name: 'OpenAI Main',
+          providerKind: 'openai-compatible',
+          baseURL: 'https://openai-main.test/v1',
+          secretRef: 'env:OPENAI_MAIN_API_KEY',
+          selectedModel: 'openai/model',
+          priority: 10,
+          capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: false },
+          models: [{ id: 'openai-model', label: 'OpenAI Model', model: 'openai/model' }],
+        },
+        {
+          id: 'openai-backup',
+          name: 'OpenAI Backup',
+          providerKind: 'openai-compatible',
+          baseURL: 'https://openai-backup.test/v1',
+          secretRef: 'env:OPENAI_BACKUP_API_KEY',
+          selectedModel: 'openai/backup-model',
+          priority: 20,
+          capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: false },
+          models: [{ id: 'openai-backup-model', label: 'OpenAI Backup Model', model: 'openai/backup-model' }],
+        },
+      ],
+    });
+
+    const config = await resolveConfiguredAIProviderConfig(
+      undefined,
+      undefined,
+      { tools: true, streaming: true },
+      settings,
+      { OPENAI_BACKUP_API_KEY: 'sk-openai-backup' } as unknown as NodeJS.ProcessEnv,
+    );
+
+    expect(config.provider).toBe('openai-backup');
+    expect(config.apiKey).toBe('sk-openai-backup');
   });
 
   it('uses the configured secretRef even when the provider id matches the env provider', async () => {

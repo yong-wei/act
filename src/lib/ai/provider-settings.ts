@@ -214,6 +214,10 @@ export function resolveProviderSecret(secretRef: string, env: NodeJS.ProcessEnv 
   return cleanText(env[envName]);
 }
 
+function hasResolvableProviderSecret(provider: AIProviderSetting, env: NodeJS.ProcessEnv): boolean {
+  return provider.authMode === 'none' || Boolean(resolveProviderSecret(provider.secretRef, env));
+}
+
 export class AIProviderCapabilityUnavailableError extends Error {
   status = 503;
 
@@ -440,10 +444,14 @@ export async function resolveConfiguredAIProviderConfig(
 ): Promise<AIProviderConfig> {
   const envConfig = resolveAIProviderConfig(env);
   const settings = settingsOverride ?? await getAIProviderSettings();
+  const runtimeSettings = {
+    ...settings,
+    providers: settings.providers.filter((provider) => hasResolvableProviderSecret(provider, env)),
+  };
   const requestedServiceId = providerId ?? requirements?.serviceId ?? (requirements ? undefined : settings.activeProvider);
-  let selection = selectModelProvider(settings, { ...(requirements ?? {}), serviceId: requestedServiceId });
+  let selection = selectModelProvider(runtimeSettings, { ...(requirements ?? {}), serviceId: requestedServiceId });
   if (selection.status === 'unavailable' && providerId === undefined && requestedServiceId === settings.activeProvider) {
-    selection = selectModelProvider(settings, requirements ?? {});
+    selection = selectModelProvider(runtimeSettings, requirements ?? {});
   }
   if (selection?.status === 'unavailable') {
     throw new AIProviderCapabilityUnavailableError(selection.reason ?? 'No AI provider is available for the requested capabilities.');

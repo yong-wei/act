@@ -151,7 +151,10 @@ export async function POST(request: Request) {
     let systemPrompt: string;
     let agentSessionResponseHeaders: HeadersInit | undefined;
     let citationGuardMetadata: ReturnType<typeof buildKonlingCitationGuard> | null = null;
-    let modelRequirements: ModelProviderCapabilityRequirements | undefined;
+    let modelRequirements: ModelProviderCapabilityRequirements = {
+      tools: true,
+      streaming: true,
+    };
 
     if (session?.user?.id && hasRuntimeContext) {
       const scope = await verifyKonlingRuntimeScope(prisma, {
@@ -195,6 +198,7 @@ export async function POST(request: Request) {
       });
       citationGuardMetadata = buildKonlingStreamingCitationGuard(runtimeContext);
       modelRequirements = {
+        ...modelRequirements,
         tools: true,
         streaming: true,
         citationNormalization: true,
