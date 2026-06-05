@@ -131,4 +131,48 @@ describe('control workbench design flow shell', () => {
     expect(html).toContain('时域响应证据');
     expect(html).toContain('官方评价以提交后的 Arena 评测为准');
   });
+
+  it('keeps the primary instrument before secondary setup sheets in the mission workspace', () => {
+    const result = resolveControlWorkbenchSession({
+      arenaTask: 'task-second-order-lead-pid',
+      preset: 'classic-four-view',
+    });
+
+    const html = renderToStaticMarkup(createElement(ControlWorkbenchShell, { result }));
+
+    const contextIndex = html.indexOf('data-commercial-workspace-zone="context-strip"');
+    const instrumentIndex = html.indexOf('data-commercial-workspace-zone="instrument-area"');
+    const sheetIndex = html.indexOf('data-workspace-mobile-sheets="secondary-controls"');
+    const commandIndex = html.indexOf('data-commercial-workspace-zone="command-bar"');
+    const evidenceIndex = html.indexOf('data-commercial-workspace-zone="evidence-rail"');
+
+    expect(contextIndex).toBeGreaterThanOrEqual(0);
+    expect(instrumentIndex).toBeGreaterThan(contextIndex);
+    expect(sheetIndex).toBeGreaterThan(instrumentIndex);
+    expect(commandIndex).toBeGreaterThan(sheetIndex);
+    expect(evidenceIndex).toBeGreaterThan(sheetIndex);
+    expect(html).toContain('data-primary-instrument-entry="control-workbench"');
+    expect(html).toContain('data-current-workspace-step="object-analysis"');
+    expect(html).toContain('data-primary-view-entry="control-workbench-instrument"');
+    expect(html).toContain('data-workspace-mobile-sheet="design-flow"');
+    expect(html).toContain('data-workspace-mobile-sheet="panel-setup"');
+    expect(html).toContain('data-workspace-mobile-sheet="evidence-rail"');
+    expect(html).toContain('data-evidence-flow-target="/profile/evidence"');
+    expect(html).toContain('data-task-workspace-zone="floating-dock-safe-area"');
+  });
+
+  it('moves explore object selection into a secondary workspace sheet', () => {
+    const result = resolveControlWorkbenchSession({
+      mode: 'explore',
+      preset: 'classic-four-view',
+      objectId: 'plant-first-order-lag',
+    });
+
+    const html = renderToStaticMarkup(createElement(ControlWorkbenchShell, { result }));
+
+    expect(html).toContain('data-workspace-mobile-sheet="object-selection"');
+    expect(html.indexOf('data-commercial-workspace-zone="instrument-area"')).toBeLessThan(
+      html.indexOf('data-workspace-mobile-sheet="object-selection"'),
+    );
+  });
 });

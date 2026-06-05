@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect } from 'react';
-import type { ReactNode } from 'react';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 
 import { sendArenaCoreEvent } from './telemetry';
 import type { ChallengeObject, ChallengeTask } from './types';
@@ -47,16 +47,18 @@ export function ArenaWorkspaceLink({
   task,
   children,
   className,
+  ...linkProps
 }: {
   href: string;
   task: ChallengeTask;
   children: ReactNode;
   className: string;
-}) {
+} & Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'children' | 'className' | 'onClick'>) {
   return (
     <Link
       href={href}
       className={className}
+      {...linkProps}
       onClick={() => {
         void sendArenaCoreEvent('arena_workspace_start', {
           taskId: task.id,

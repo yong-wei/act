@@ -91,17 +91,28 @@ export function ChallengeDetail({
         data-task-workspace-archetype="challenge-task"
         data-launch-provenance={launchProvenance}
         data-return-target="/arena"
+        data-evidence-flow-target="/profile/evidence"
       >
-        <div className="grid gap-5 xl:grid-cols-[1fr_430px]">
-          <div className="space-y-6" data-commercial-workspace-zone="instrument-area">
-            <div className="surface-card rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="context-strip">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_430px]">
+          <div className="min-w-0 space-y-6" data-commercial-workspace-zone="instrument-area">
+            <div className="surface-card min-w-0 overflow-hidden rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="context-strip">
               <div className="flex flex-wrap items-center gap-2 text-sm font-medium text-primary">
                 <Trophy className="h-5 w-5" />
                 自动控制竞技场
                 <span className="rounded-full bg-primary/10 px-2 py-1 text-xs">{task.difficulty}</span>
               </div>
-              <h1 className="mt-4 text-3xl font-semibold text-foreground md:text-4xl">{task.title}</h1>
+              <h1 className="mt-4 break-words text-3xl font-semibold text-foreground md:text-4xl">{task.title}</h1>
               <p className="mt-3 max-w-3xl text-base leading-7 text-subtle">{task.goal}</p>
+              <ArenaWorkspaceLink
+                href={workspaceHref}
+                task={task}
+                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 xl:hidden"
+                data-primary-instrument-entry="arena-workbench-launch"
+                data-mobile-first-workspace-entry="true"
+              >
+                进入控制工作台
+                <ArrowUpRight className="h-4 w-4" />
+              </ArenaWorkspaceLink>
               <div className="mt-5 grid gap-3 md:grid-cols-4">
                 <DetailItem label="对象来源" value={arenaSourceLabels[object.source]} />
                 <DetailItem label="公开程度" value={arenaVisibilityLabels[object.visibility]} />
@@ -258,6 +269,7 @@ export function ChallengeDetail({
                 href={workspaceHref}
                 task={task}
                 className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+                data-primary-instrument-entry="arena-workbench-launch"
               >
                 进入控制工作台
                 <ArrowUpRight className="h-4 w-4" />
@@ -286,6 +298,9 @@ export function ChallengeDetail({
                 任务上下文、榜单状态和工作台入口来自 Arena 域数据；页面只组织挑战详情的商业工作区层级。
               </p>
             </section>
+            <div className="sr-only" data-task-workspace-zone="floating-dock-safe-area">
+              Arena 挑战入口避让全局浮动控件、榜单筛选和主工作台 CTA。
+            </div>
           </aside>
         </div>
       </section>

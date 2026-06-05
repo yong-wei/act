@@ -95,6 +95,7 @@ export function UNIT_4_1StudentPage({
 
   const step = UNIT_4_1_LESSON_STEPS[activeIndex];
   const runtimeManifest = lessonRuntime.interactiveManifest;
+  const runtimeManifestTruth = runtimeManifest?.lessonId ?? UNIT_4_1_LESSON_KEY;
   const submitCurrentManifestResponse = useCallback(
     (input: {
       response: { stepId: string; submittedAt: number; answers: Record<string, unknown> };
@@ -295,6 +296,9 @@ export function UNIT_4_1StudentPage({
       data-task-workspace-archetype="lesson-runtime"
       data-launch-provenance="course-launched"
       data-return-target="/interactive-learning/courses/unit-4-1-design-task-expression"
+      data-runtime-manifest-truth={runtimeManifestTruth}
+      data-activity-submission-contract="manifest-runtime"
+      data-evidence-flow-target="/profile/evidence"
     >
       <UNIT_4_1CourseHeader
         steps={UNIT_4_1_LESSON_STEPS}
@@ -372,7 +376,17 @@ export function UNIT_4_1StudentPage({
           </div>
         )}
 
-        <div className="mt-4">
+        <section
+          className="premium-lesson-tone-block premium-tone-cyan mt-4 text-sm"
+          data-commercial-workspace-zone="evidence-rail"
+          data-evidence-flow-state={isDemo ? 'preview-unavailable' : 'classroom-record'}
+        >
+          {isDemo
+            ? '演示模式会展示作答流程，但不会写入学习证据。'
+            : '提交后将先写入本课堂学习记录；可纳入画像的证据会在学习档案中呈现。'}
+        </section>
+
+        <div className="mt-4" data-task-workspace-zone="floating-dock-safe-area">
           <UNIT_4_1StudentActivityForm
             step={step}
             manifest={runtimeManifest}

@@ -523,6 +523,28 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     },
   }),
   primaryRoute({
+    href: '/simulations/cruise',
+    routeFile: 'src/app/simulations/cruise/page.tsx',
+    frame: 'immersive-task-workspace',
+    roleScope: ['guest', 'student', 'teacher'],
+    authState: 'mixed',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'hidden',
+    visualQaProfile: 'immersive',
+    screenshotProfile: 'direct-capture',
+    owningChange: 'redesign-immersive-learning-workspaces',
+    aliases: [
+      '/simulations/cruise?arenaTask=:taskId',
+      '/simulations/cruise?arenaTask=:taskId&publicationId=:publicationId',
+    ],
+    legacyShell: {
+      component: 'FeaturePageNav',
+      disposition: 'retained-temporary',
+      sourceFile: 'src/app/simulations/cruise/page.tsx',
+      removalCondition: 'Concrete simulation scenes preserve launch provenance, return target, evidence rail, and local scene controls in the immersive workspace shell.',
+    },
+  }),
+  primaryRoute({
     href: '/arena',
     routeFile: 'src/app/arena/page.tsx',
     frame: 'immersive-task-workspace',
@@ -562,7 +584,11 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     visualQaProfile: 'immersive',
     screenshotProfile: 'direct-capture',
     owningChange: 'redesign-immersive-learning-workspaces',
-    aliases: ['/interactive-learning/control-workbench?mode=explore&preset=classic-four-view'],
+    aliases: [
+      '/interactive-learning/control-workbench?mode=explore&preset=classic-four-view',
+      '/interactive-learning/control-workbench?arenaTask=:taskId',
+      '/interactive-learning/control-workbench?arenaTask=:taskId&publicationId=:publicationId',
+    ],
   }),
   primaryRoute({
     href: '/dashboard',

@@ -268,6 +268,7 @@ describe('platform role navigation', () => {
       '/interactive-learning/courses',
       '/interactive-learning/courses/unit-4-1-design-task-expression',
       '/simulations',
+      '/simulations/cruise',
       '/arena',
       '/assessment/adaptive-practice',
       '/interactive-learning/control-workbench',
@@ -327,6 +328,18 @@ describe('platform role navigation', () => {
       navigationLayers: expect.arrayContaining(['global-product', 'contextual-workspace', 'local-tool']),
       floatingDock: 'enabled',
       visualQaProfile: 'immersive',
+      aliases: expect.arrayContaining([
+        '/interactive-learning/control-workbench?arenaTask=:taskId',
+        '/interactive-learning/control-workbench?arenaTask=:taskId&publicationId=:publicationId',
+      ]),
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/simulations/cruise')).toMatchObject({
+      frame: 'immersive-task-workspace',
+      floatingDock: 'hidden',
+      visualQaProfile: 'immersive',
+      aliases: expect.arrayContaining([
+        '/simulations/cruise?arenaTask=:taskId',
+      ]),
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/teacher')).toMatchObject({
       frame: 'teacher-operations',
@@ -399,6 +412,12 @@ describe('platform role navigation', () => {
     );
     expect(resolvePlatformRouteInventory('/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo-session')?.href).toBe(
       '/interactive-learning/courses/[course]/student/[sessionId]',
+    );
+    expect(resolvePlatformRouteInventory('/simulations/cruise?arenaTask=task-cruise-roll-blackbox-identification')?.href).toBe(
+      '/simulations/cruise',
+    );
+    expect(resolvePlatformRouteInventory('/interactive-learning/control-workbench?arenaTask=task-second-order-lead-pid')?.href).toBe(
+      '/interactive-learning/control-workbench',
     );
 
     const studentKnowledgeNavigation = getPlatformRouteNavigation('/knowledge', 'student').map((entry) => entry.href);

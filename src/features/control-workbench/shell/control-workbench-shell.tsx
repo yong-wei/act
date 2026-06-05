@@ -485,82 +485,31 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
       </section>
 
       <section className="mx-auto grid max-w-[1600px] gap-4 px-4 py-5 sm:px-6 lg:px-8">
-        <WorkbenchDesignFlowSection flow={session.designFlow} />
-
-        <section className="surface-card rounded-lg p-4" data-commercial-workspace-zone="evidence-rail">
-          <h2 className="text-base font-semibold text-foreground">会话状态</h2>
-          <dl className="mt-3 grid gap-3 text-sm md:grid-cols-4">
-            <div>
-              <dt className="text-subtle">允许方法</dt>
-              <dd className="mt-1 text-foreground">{methodText(session.allowedMethods)}</dd>
-            </div>
-            <div>
-              <dt className="text-subtle">指标</dt>
-              <dd className="mt-1 text-foreground">{metricNames}</dd>
-            </div>
-            <div>
-              <dt className="text-subtle">提交状态</dt>
-              <dd className="mt-1 text-foreground">
-                {session.submissionPolicy.officialEvaluationEnabled
-                  ? '可通过预设面板进入官方评价'
-                  : session.submissionPolicy.disabledReason}
-              </dd>
-            </div>
-            {'publicationId' in session ? (
+        <div
+          className="grid min-h-[360px] gap-4"
+          data-commercial-workspace-zone="instrument-area"
+          data-primary-instrument-entry="control-workbench"
+        >
+          <section
+            className="surface-card rounded-lg p-4"
+            data-current-workspace-step={session.designFlow.currentStep.id}
+            data-primary-view-entry="control-workbench-instrument"
+          >
+            <div className="grid gap-3 text-sm sm:grid-cols-3">
               <div>
-                <dt className="text-subtle">作业发布</dt>
-                <dd className="mt-1 text-foreground">{session.publicationId}</dd>
+                <p className="text-subtle">当前步骤</p>
+                <p className="mt-1 font-medium text-foreground">{session.designFlow.currentStep.title}</p>
               </div>
-            ) : null}
-          </dl>
-        </section>
-
-        {showObjectSelector ? (
-          <section className="surface-card rounded-lg p-4">
-            <WorkbenchObjectSelector
-              expanded={objectSelectorExpanded}
-              groups={objectGroups}
-              onSelect={selectObject}
-              onToggle={() => setObjectSelectorExpanded((current) => !current)}
-              selectionError={objectSelectionError}
-            />
+              <div>
+                <p className="text-subtle">下一行动</p>
+                <p className="mt-1 text-foreground">{session.designFlow.nextAction}</p>
+              </div>
+              <div>
+                <p className="text-subtle">主视图</p>
+                <p className="mt-1 text-foreground">下方仪表面板</p>
+              </div>
+            </div>
           </section>
-        ) : null}
-
-        <section className="surface-card rounded-lg p-4" data-commercial-workspace-zone="command-bar">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <h2 className="text-base font-semibold text-foreground">面板布置与添加面板</h2>
-              <p className="mt-1 text-sm text-subtle">可以添加允许的面板；每个面板的配置在对应面板标题区调整。</p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {availablePanelPlugins.map((plugin) => (
-                <button
-                  key={plugin.id}
-                  className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"
-                  type="button"
-                  onClick={() => addPanel(plugin.id)}
-                >
-                  <Plus className="h-4 w-4" />
-                  添加{plugin.title}
-                </button>
-              ))}
-              <button
-                className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"
-                type="button"
-                onClick={resetPanels}
-              >
-                <Settings2 className="h-4 w-4" />
-                重置默认
-              </button>
-            </div>
-          </div>
-          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            {panels.map(renderPanelConfiguration)}
-          </div>
-        </section>
-
-        <div className="grid min-h-[360px] gap-4" data-commercial-workspace-zone="instrument-area">
           {session.mode === 'explore' ? (
             <p className="surface-card rounded-lg p-4 text-sm leading-6 text-subtle">
               自由探索模式可用于本地建模和参数试验，但结果不进入官方评价和竞技场榜单。
@@ -594,12 +543,113 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
             />
           ) : null}
         </div>
-        <section className="surface-card rounded-lg p-4" data-commercial-workspace-zone="support-drawer">
-          <h2 className="text-base font-semibold text-foreground">支持与说明</h2>
-          <p className="mt-2 text-sm leading-6 text-subtle">
-            面板可用性、官方评价、回放与缺失上下文由工作台会话和 Arena 域数据提供；商业工作区只负责呈现层级与稳定区域。
-          </p>
+
+        <section className="grid gap-3" data-workspace-mobile-sheets="secondary-controls">
+          <details className="surface-card rounded-lg p-4" data-workspace-mobile-sheet="design-flow" open>
+            <summary className="cursor-pointer text-base font-semibold text-foreground">设计流程与边界</summary>
+            <div className="mt-4">
+              <WorkbenchDesignFlowSection flow={session.designFlow} />
+            </div>
+          </details>
+
+          {showObjectSelector ? (
+            <details className="surface-card rounded-lg p-4" data-workspace-mobile-sheet="object-selection">
+              <summary className="cursor-pointer text-base font-semibold text-foreground">对象选择</summary>
+              <div className="mt-4">
+                <WorkbenchObjectSelector
+                  expanded={objectSelectorExpanded}
+                  groups={objectGroups}
+                  onSelect={selectObject}
+                  onToggle={() => setObjectSelectorExpanded((current) => !current)}
+                  selectionError={objectSelectionError}
+                />
+              </div>
+            </details>
+          ) : null}
+
+          <details
+            className="surface-card rounded-lg p-4"
+            data-workspace-mobile-sheet="panel-setup"
+            data-commercial-workspace-zone="command-bar"
+          >
+            <summary className="cursor-pointer text-base font-semibold text-foreground">面板布置与添加面板</summary>
+            <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <p className="text-sm text-subtle">可以添加允许的面板；每个面板的配置在对应面板标题区调整。</p>
+              <div className="flex flex-wrap gap-2">
+                {availablePanelPlugins.map((plugin) => (
+                  <button
+                    key={plugin.id}
+                    className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"
+                    type="button"
+                    onClick={() => addPanel(plugin.id)}
+                  >
+                    <Plus className="h-4 w-4" />
+                    添加{plugin.title}
+                  </button>
+                ))}
+                <button
+                  className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"
+                  type="button"
+                  onClick={resetPanels}
+                >
+                  <Settings2 className="h-4 w-4" />
+                  重置默认
+                </button>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+              {panels.map(renderPanelConfiguration)}
+            </div>
+          </details>
+
+          <details
+            className="surface-card rounded-lg p-4"
+            data-workspace-mobile-sheet="evidence-rail"
+            data-commercial-workspace-zone="evidence-rail"
+            data-evidence-flow-target="/profile/evidence"
+            open
+          >
+            <summary className="cursor-pointer text-base font-semibold text-foreground">会话状态与证据流</summary>
+            <dl className="mt-3 grid gap-3 text-sm md:grid-cols-4">
+              <div>
+                <dt className="text-subtle">允许方法</dt>
+                <dd className="mt-1 text-foreground">{methodText(session.allowedMethods)}</dd>
+              </div>
+              <div>
+                <dt className="text-subtle">指标</dt>
+                <dd className="mt-1 text-foreground">{metricNames}</dd>
+              </div>
+              <div>
+                <dt className="text-subtle">提交状态</dt>
+                <dd className="mt-1 text-foreground">
+                  {session.submissionPolicy.officialEvaluationEnabled
+                    ? '提交结果进入 Arena 官方评价；可用证据将回流到学习记录。'
+                    : session.submissionPolicy.disabledReason}
+                </dd>
+              </div>
+              {'publicationId' in session ? (
+                <div>
+                  <dt className="text-subtle">作业发布</dt>
+                  <dd className="mt-1 text-foreground">{session.publicationId}</dd>
+                </div>
+              ) : null}
+            </dl>
+          </details>
+
+          <details
+            className="surface-card rounded-lg p-4"
+            data-workspace-mobile-sheet="support"
+            data-commercial-workspace-zone="support-drawer"
+          >
+            <summary className="cursor-pointer text-base font-semibold text-foreground">支持与说明</summary>
+            <p className="mt-2 text-sm leading-6 text-subtle">
+              面板可用性、官方评价、回放与缺失上下文由工作台会话和 Arena 域数据提供；商业工作区只负责呈现层级与稳定区域。
+            </p>
+          </details>
         </section>
+        <div className="sr-only" data-task-workspace-zone="floating-dock-safe-area">
+          全局浮动控件避让主仪表、提交按钮和本地工具。
+        </div>
       </section>
     </main>
   );

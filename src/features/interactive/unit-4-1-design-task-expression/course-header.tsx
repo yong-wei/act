@@ -57,10 +57,10 @@ export function UNIT_4_1CourseHeader({
             </div>
           </div>
 
-          <div className="ml-auto flex shrink-0 flex-col items-end gap-1">
+          <div className="ml-auto flex min-w-0 max-w-[min(13rem,58vw)] shrink flex-col items-end gap-1 sm:max-w-none sm:shrink-0">
             {rightSlot ? <div className="flex items-center gap-2">{rightSlot}</div> : null}
 
-            <label className="premium-lesson-control inline-flex items-center gap-2">
+            <label className="premium-lesson-control inline-flex max-w-full items-center gap-2">
               <span>环节</span>
               <select
                 id="unit-4-1-step-select"
@@ -73,7 +73,7 @@ export function UNIT_4_1CourseHeader({
                     onIndexChange(nextIndex);
                   }
                 }}
-                className="premium-lesson-select"
+                className="premium-lesson-select min-w-0 max-w-[9.5rem] sm:max-w-none"
               >
                 {steps.map((step, index) => (
                   <option key={step.id} value={step.id}>
