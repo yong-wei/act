@@ -16,10 +16,14 @@ export default function InteractiveCoursesPage() {
       <UnifiedTopBar title="互动课程" backHref="/interactive-learning" backLabel="返回互动学习" subtitle="Interactive Courses" className="pb-2" />
 
       <main className="mx-auto max-w-[1280px] px-6 py-10">
-        <header className="interactive-course-hub-hero" data-entry-current-context="course-catalog">
+        <header
+          className="interactive-course-hub-hero"
+          data-entry-current-context="course-catalog"
+          data-entry-current-work-priority="recommended-course"
+        >
           <h1 className="interactive-course-hub-title text-3xl font-semibold">互动课程</h1>
           <p className="interactive-course-hub-muted mt-2 text-sm">
-            按新课程模块组织互动课程入口，当前仅展示已经建成并可直接进入的单元。
+            优先进入已经建成并可直接学习的课程，再按模块查看完整目录。
           </p>
           <div className="mt-4 grid gap-3 text-xs md:grid-cols-3" data-commercial-entry-intent-map="course-launch">
             <span className="interactive-course-hub-chip">模块进阶</span>
@@ -98,7 +102,12 @@ export default function InteractiveCoursesPage() {
                     <p className="interactive-course-hub-module-desc mt-2 text-sm">{lesson.description}</p>
 
                     {lesson.legacySourceLabel ? (
-                      <p className="interactive-course-hub-module-note mt-3 text-xs">{lesson.legacySourceLabel}</p>
+                      <p
+                        className="interactive-course-hub-module-note mt-3 text-xs"
+                        data-secondary-implementation-links="legacy-source-labels"
+                      >
+                        {lesson.legacySourceLabel}
+                      </p>
                     ) : null}
 
                     <div className="interactive-course-hub-link mt-4 inline-flex items-center text-xs">

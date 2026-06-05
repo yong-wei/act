@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { selectArenaHallPublicationForTask } from '../arena-publication-selection';
+import { selectArenaHallCurrentPublication, selectArenaHallPublicationForTask } from '../arena-publication-selection';
 import type { ArenaPublicationRecord } from '../teacher/publication-store';
 
 function publication(overrides: Partial<ArenaPublicationRecord>): ArenaPublicationRecord {
@@ -46,5 +46,26 @@ describe('arena hall publication selection', () => {
 
     expect(selectArenaHallPublicationForTask([course, assigned], 'task-second-order-lead-pid')?.id)
       .toBe('publication-class-homework');
+  });
+
+  it('selects the current hall publication by assignment priority before deadline order', () => {
+    const earlierCourse = publication({
+      id: 'publication-earlier-course',
+      visibility: 'course',
+      studentVisibility: 'course',
+      taskId: 'task-second-order-lead-pid',
+      deadline: '2026-06-01T15:00:00.000Z',
+    });
+    const laterClassHomework = publication({
+      id: 'publication-later-class-homework',
+      visibility: 'class',
+      studentVisibility: 'class',
+      taskId: 'task-cruise-roll-comfort',
+      homeworkBinding: true,
+      deadline: '2026-06-05T15:00:00.000Z',
+    });
+
+    expect(selectArenaHallCurrentPublication([earlierCourse, laterClassHomework])?.id)
+      .toBe('publication-later-class-homework');
   });
 });

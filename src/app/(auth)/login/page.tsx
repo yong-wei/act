@@ -16,12 +16,26 @@ export default function LoginPage() {
   );
 }
 
+function resolveCallbackTarget(callbackUrl: string | null): string | null {
+  if (!callbackUrl) return null;
+  try {
+    return decodeURIComponent(callbackUrl);
+  } catch {
+    return callbackUrl;
+  }
+}
+
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl');
   const entryIntents = getCommercialStudentEntryIntentGroups();
-  const profileIntent = callbackUrl === '/profile' ? '保留目标：登录后进入个人中心与证据复盘。' : '登录后回到原始学习路径。';
+  const callbackTarget = resolveCallbackTarget(callbackUrl);
+  const profileIntent = callbackTarget === '/profile'
+    ? '保留目标：登录后进入个人中心与证据复盘。'
+    : callbackTarget
+      ? `保留目标：登录后继续原始学习路径。目标路径：${callbackTarget}`
+      : '未指定回调目标，登录后进入角色驾驶舱。';
 
   return (
     <div
@@ -29,7 +43,9 @@ function LoginContent() {
       data-commercial-workspace="auth-entry"
       data-commercial-student-entry-route="/login"
       data-commercial-entry-intent="account-profile"
-      data-auth-callback-target={callbackUrl ?? 'role-cockpit'}
+      data-auth-callback-target={callbackTarget ?? 'role-cockpit'}
+      data-auth-route-trace="callback-to-role-cockpit"
+      data-auth-error-state="destination-preserved"
     >
       <main className="mx-auto grid max-w-[1180px] gap-5 lg:grid-cols-[1fr_380px]">
         <section className="surface-card p-6">
@@ -84,6 +100,8 @@ function LoginCommercialFallback() {
       data-commercial-student-entry-route="/login"
       data-commercial-entry-intent="account-profile"
       data-auth-callback-target="pending-callback"
+      data-auth-route-trace="callback-to-role-cockpit"
+      data-auth-error-state="destination-preserved"
     >
       <main className="mx-auto grid max-w-[1180px] gap-5 lg:grid-cols-[1fr_380px]">
         <section className="surface-card p-6">

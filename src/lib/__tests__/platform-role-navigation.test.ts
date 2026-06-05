@@ -565,6 +565,12 @@ describe('platform role navigation', () => {
       ['/assessment/adaptive-practice', 'practice'],
       ['/profile', 'review'],
     ]);
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/simulations')?.owningChange).toBe(
+      'redesign-immersive-learning-workspaces',
+    );
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/arena')?.owningChange).toBe(
+      'redesign-immersive-learning-workspaces',
+    );
     expect(COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES.every((route) => route.viewportWidths.join(',') === '1440,320')).toBe(true);
     expect(resolveCommercialEntryHref('account-profile', false)).toBe('/login?callbackUrl=%2Fprofile');
     expect(resolveCommercialEntryHref('account-profile', true)).toBe('/profile');
@@ -581,16 +587,30 @@ describe('platform role navigation', () => {
 
     expect(homeSource).toContain('data-commercial-student-entry-route="/"');
     expect(homeSource).toContain('data-commercial-entry-intent="experiment"');
-    expect(loginSource).toContain('data-auth-callback-target={callbackUrl ??');
+    expect(homeSource).toContain('data-entry-primary-action="current-experiment"');
+    expect(homeSource).toContain('data-entry-secondary-action="student-cockpit"');
+    expect(loginSource).toContain('data-auth-callback-target={callbackTarget ??');
+    expect(loginSource).toContain('data-auth-route-trace="callback-to-role-cockpit"');
+    expect(loginSource).toContain('data-auth-error-state="destination-preserved"');
+    expect(loginSource).toContain('decodeURIComponent(callbackUrl)');
+    expect(loginSource).toContain('目标路径：');
     expect(loginSource).toContain('data-commercial-entry-intent="account-profile"');
     expect(interactiveSource).toContain('data-learning-entry-map="student-intent"');
     expect(interactiveSource).toContain('data-commercial-entry-intent-map="learn-practice-challenge"');
+    expect(interactiveSource).toContain('data-entry-current-work-priority="active-learning-context"');
+    expect(interactiveSource).toContain('data-secondary-implementation-links="component-library"');
     expect(coursesSource).toContain('data-learning-entry-map="course-module-progression"');
+    expect(coursesSource).toContain('data-entry-current-work-priority="recommended-course"');
+    expect(coursesSource).toContain('data-secondary-implementation-links="legacy-source-labels"');
     expect(coursesSource).toContain('data-course-entry-action="launch"');
     expect(simulationsSource).toContain('data-simulation-entry-map="scenario-fleet"');
+    expect(simulationsSource).toContain('data-entry-current-work-priority="recommended-experiment"');
     expect(simulationsSource).toContain('data-simulation-scenario-card={simulation.id}');
     expect(simulationsSource).toContain('data-simulation-scenario-fit={simulation.id}');
     expect(simulationsSource).toContain('data-simulation-task-status={simulation.id}');
+    expect(readSource('src/features/arena/arena-hall.tsx')).toContain('data-entry-current-work-priority="active-arena-publication"');
+    expect(readSource('src/app/assessment/adaptive-practice/page.tsx')).toContain('data-commercial-entry-intent="practice"');
+    expect(readSource('src/app/assessment/adaptive-practice/page.tsx')).toContain('data-student-entry-evidence-return="/profile/evidence"');
     expect(unit41EntrySource).toContain('data-commercial-student-entry-route={`/interactive-learning/courses/${config.routeSegment}`}');
     expect(unit41EntrySource).toContain('data-commercial-entry-intent="learn"');
     expect(unit41EntrySource).toContain('data-task-workspace-archetype="lesson-runtime"');
