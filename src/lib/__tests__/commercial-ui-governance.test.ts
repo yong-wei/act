@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 import {
+  COMMERCIAL_ROUTE_INVENTORY_VISUAL_ACCEPTANCE_ROUTES,
   DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES,
   PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX,
   evaluateCommercialUiGovernance,
@@ -14,6 +15,7 @@ import {
 import {
   COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS,
   PLATFORM_PROFILE_AND_COCKPIT_ACTIONS,
+  PLATFORM_PRIMARY_ROUTE_INVENTORY,
   STUDENT_CORE_ENTRY_IDS,
   STUDENT_LEARNING_INTENT_GROUPS,
 } from '@/lib/platform-role-navigation';
@@ -318,6 +320,47 @@ describe('commercial UI governance', () => {
           category: 'visual-acceptance',
           rule: 'visual-acceptance.missing-route-evidence',
           path: '/arena',
+        }),
+      ]),
+    );
+  });
+
+  it('detects drift between primary route inventory and visual QA route inputs', () => {
+    const driftSentinels = ['/arena', '/assessment/adaptive-practice', '/profile', '/data-center'];
+
+    expect(COMMERCIAL_ROUTE_INVENTORY_VISUAL_ACCEPTANCE_ROUTES.map((route) => route.href)).toEqual(
+      expect.arrayContaining(driftSentinels),
+    );
+    expect(DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES.map((route) => route.href)).toEqual(
+      expect.arrayContaining(driftSentinels),
+    );
+    for (const href of driftSentinels) {
+      expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === href)).toMatchObject({
+        screenshotProfile: expect.not.stringContaining('temporary-exception'),
+      });
+    }
+
+    const sentinelRequiredRoutes = COMMERCIAL_ROUTE_INVENTORY_VISUAL_ACCEPTANCE_ROUTES.filter((route) => (
+      driftSentinels.includes(route.href)
+    ));
+    const result = evaluateCommercialUiGovernance(baseInput({
+      requiredVisualRoutes: sentinelRequiredRoutes,
+      visualEvidence: completeVisualEvidence().filter((evidence) => evidence.href !== '/data-center'),
+      accessibilityEvidence: completeAccessibilityEvidence().filter((evidence) => evidence.href !== '/data-center'),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'visual-acceptance',
+          rule: 'visual-acceptance.missing-route-evidence',
+          path: '/data-center',
+        }),
+        expect.objectContaining({
+          category: 'accessibility-text-fit',
+          rule: 'accessibility-text-fit.missing-route-evidence',
+          path: '/data-center',
         }),
       ]),
     );

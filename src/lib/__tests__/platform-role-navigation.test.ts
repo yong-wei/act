@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import {
   COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS,
   COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES,
+  PLATFORM_REPORT_SURFACE_INVENTORY,
   PLATFORM_AUTH_ROUTE_CONTRACTS,
   PLATFORM_CONTEXTUAL_RETURN_TARGET_RULES,
   PLATFORM_ENTRYPOINT_SMOKE_ROUTES,
@@ -270,10 +271,33 @@ describe('platform role navigation', () => {
       '/interactive-learning/control-workbench',
       '/dashboard',
       '/profile',
+      '/profile/growth',
+      '/profile/portfolio',
+      '/profile/evidence',
       '/data-center',
+      '/classroom/student/[sessionId]',
+      '/interactive-learning/courses/[course]/student/[sessionId]',
+      '/playlists/[id]/play',
       '/teacher',
+      '/teacher/classes',
+      '/teacher/classes/[classId]',
+      '/teacher/classes/[classId]/analytics-v2',
+      '/teacher/classes/[classId]/students/[studentId]',
+      '/teacher/classes/[classId]/students/[studentId]/evidence',
+      '/teacher/lesson-plans',
+      '/teacher/preset-lessons',
+      '/teacher/resources',
+      '/teacher/resources/resource-nodes',
+      '/teacher/history',
+      '/teacher/arena',
       '/admin',
+      '/admin/users',
+      '/admin/states',
+      '/admin/config',
+      '/admin/lesson-plans',
       '/admin/data-governance',
+      '/ai',
+      '/ai/copilot',
       '/knowledge',
     ]);
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.every((route) => route.routeFile.startsWith('src/app/'))).toBe(true);
@@ -319,6 +343,86 @@ describe('platform role navigation', () => {
       navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
       floatingDock: 'enabled',
     });
+  });
+
+  it('assigns each primary route to one migration owner with shell retirement metadata', () => {
+    const ownerByHref = new Map<string, string>();
+
+    for (const route of PLATFORM_PRIMARY_ROUTE_INVENTORY) {
+      expect(route.owningChange).toMatch(/^[a-z0-9-]+$/);
+      expect(route.themeSupport).toEqual(expect.arrayContaining(['light', 'dark']));
+      expect(route.authState).toBeTruthy();
+      expect(route.shellMigrationDisposition).toBeTruthy();
+      expect(route.shellRemovalCondition).toBeTruthy();
+      expect(route.screenshotProfile).toBeTruthy();
+
+      const previousOwner = ownerByHref.get(route.href);
+      expect(previousOwner ? `${route.href}:${previousOwner}` : undefined).toBeUndefined();
+      ownerByHref.set(route.href, route.owningChange);
+    }
+
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/data-center')?.owningChange).toBe(
+      'redesign-learner-data-and-report-surfaces',
+    );
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/knowledge')?.owningChange).toBe(
+      'redesign-knowledge-and-data-surfaces',
+    );
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/admin/data-governance')?.owningChange).toBe(
+      'redesign-operations-and-report-surfaces',
+    );
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/teacher/arena')?.owningChange).toBe(
+      'redesign-immersive-learning-workspaces',
+    );
+  });
+
+  it('records explicit temporary exceptions for special teaching and AI routes', () => {
+    const exceptions = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => route.exception);
+    const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+    expect(exceptions.map((route) => route.href)).toEqual([
+      '/classroom/student/[sessionId]',
+      '/interactive-learning/courses/[course]/student/[sessionId]',
+      '/playlists/[id]/play',
+      '/ai',
+      '/ai/copilot',
+    ]);
+    for (const route of exceptions) {
+      expect(route.shellMigrationDisposition).toBe('retained-temporary');
+      expect(route.exception).toMatchObject({
+        owner: route.owningChange,
+        affectedCapability: expect.any(String),
+        reason: expect.any(String),
+        removalCondition: route.shellRemovalCondition,
+      });
+      expect(route.exception?.expiresOn).toMatch(isoDatePattern);
+    }
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning/courses/[course]/student/[sessionId]')).toMatchObject({
+      routePattern: '/interactive-learning/courses/:course/student/:sessionId',
+      coveredRouteGlob: 'src/app/interactive-learning/courses/*/student/[sessionId]/page.tsx',
+    });
+  });
+
+  it('identifies report and snapshot surfaces before report visual migration', () => {
+    expect(PLATFORM_REPORT_SURFACE_INVENTORY.map((surface) => [surface.id, surface.surfaceType, surface.ownerRoute])).toEqual([
+      ['classroom-session-report', 'primary-route', '/classroom/student/[sessionId]'],
+      ['arena-challenge-result', 'embedded-component', '/arena/challenges/[taskId]'],
+      ['arena-publication-report', 'primary-route', '/teacher/arena/publications/[publicationId]'],
+      ['learner-growth-report', 'primary-route', '/profile/growth'],
+      ['learner-evidence-report', 'primary-route', '/profile/evidence'],
+      ['governance-data-quality-snapshot', 'primary-route', '/admin/data-governance'],
+      ['data-center-platform-snapshot', 'primary-route', '/data-center'],
+    ]);
+    expect(PLATFORM_REPORT_SURFACE_INVENTORY.every((surface) => surface.owningChange === 'redesign-report-ledger-and-export-surfaces')).toBe(true);
+    for (const surface of PLATFORM_REPORT_SURFACE_INVENTORY) {
+      expect(existsSync(join(process.cwd(), surface.sourceFile))).toBe(true);
+      const sourceRoute = PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === surface.ownerRoute);
+      if (sourceRoute) {
+        expect(surface.sourceShellOwner).toBe(sourceRoute.owningChange);
+      } else {
+        expect(surface.sourceShellOwner).toBe('redesign-immersive-learning-workspaces');
+      }
+      expect(surface.sourceShellOwner).not.toBe(surface.owningChange);
+    }
   });
 
   it('defines commercial student entry intents and route acceptance matrix', () => {

@@ -34,6 +34,11 @@ export type PlatformPrimaryRouteFrame =
   | 'admin-governance'
   | 'knowledge-graph';
 export type PlatformFloatingDockRouteBehavior = 'enabled' | 'collapsed' | 'hidden';
+export type PlatformRouteThemeSupport = 'light' | 'dark';
+export type PlatformRouteAuthState = 'public' | 'auth-entry' | 'authenticated' | 'protected-redirect' | 'mixed';
+export type PlatformShellMigrationDisposition = 'adapted' | 'replace' | 'retained-temporary';
+export type PlatformRouteScreenshotProfile = 'direct-capture' | 'representative-covered' | 'temporary-exception';
+export type PlatformReportSurfaceType = 'primary-route' | 'embedded-component' | 'export-view' | 'temporary-gap';
 export type StudentLearningIntent = 'learn' | 'practice' | 'challenge' | 'experiment' | 'review-profile';
 export type CommercialStudentEntryIntent =
   | 'learn'
@@ -135,21 +140,76 @@ export interface PlatformAuthRouteContract {
   roleCockpitFallbacks?: typeof PLATFORM_ROLE_COCKPIT_HREFS;
 }
 
+export interface PlatformPrimaryRouteException {
+  owner: string;
+  reason: string;
+  affectedCapability: string;
+  expiresOn: string;
+  removalCondition: string;
+}
+
 export interface PlatformPrimaryRouteInventoryEntry {
   href: string;
   routeFile: string;
+  routePattern?: string;
+  coveredRouteGlob?: string;
   frame: PlatformPrimaryRouteFrame;
   roleScope: readonly PlatformRoleNavigationAudience[];
+  authState: PlatformRouteAuthState;
+  themeSupport: readonly PlatformRouteThemeSupport[];
   navigationLayers: readonly PlatformNavigationLayerId[];
   floatingDock: PlatformFloatingDockRouteBehavior;
   visualQaProfile: 'representative' | 'auth-callback' | 'immersive';
+  screenshotProfile: PlatformRouteScreenshotProfile;
+  owningChange: string;
+  shellMigrationDisposition: PlatformShellMigrationDisposition;
+  shellRemovalCondition: string;
+  exception?: PlatformPrimaryRouteException;
   aliases?: readonly string[];
+}
+
+export interface PlatformReportSurfaceInventoryEntry {
+  id: string;
+  ownerRoute: string;
+  sourceFile: string;
+  surfaceType: PlatformReportSurfaceType;
+  owningChange: string;
+  sourceShellOwner: string;
+  visualQaProfile: PlatformRouteScreenshotProfile;
 }
 
 export interface PlatformRoleNavigationOptions {
   enabledFeatureFlags?: readonly string[];
   includeDisabled?: boolean;
   includeHidden?: boolean;
+}
+
+type PrimaryRouteInput = Omit<
+  PlatformPrimaryRouteInventoryEntry,
+  'themeSupport' | 'shellMigrationDisposition' | 'shellRemovalCondition' | 'screenshotProfile' | 'exception'
+> & Partial<
+  Pick<PlatformPrimaryRouteInventoryEntry, 'themeSupport' | 'shellMigrationDisposition' | 'shellRemovalCondition' | 'screenshotProfile'>
+> & {
+  exception?: Omit<PlatformPrimaryRouteException, 'removalCondition'> & Partial<Pick<PlatformPrimaryRouteException, 'removalCondition'>>;
+};
+
+function primaryRoute(input: PrimaryRouteInput): PlatformPrimaryRouteInventoryEntry {
+  const shellRemovalCondition = input.shellRemovalCondition ?? `Route shell is migrated by ${input.owningChange}.`;
+  const exception = input.exception
+    ? {
+        ...input.exception,
+        removalCondition: input.exception.removalCondition ?? shellRemovalCondition,
+      }
+    : undefined;
+
+  return {
+    ...input,
+    themeSupport: input.themeSupport ?? ['light', 'dark'],
+    shellMigrationDisposition: input.shellMigrationDisposition ?? (exception ? 'retained-temporary' : 'adapted'),
+    shellRemovalCondition,
+    screenshotProfile: input.screenshotProfile ?? (exception ? 'temporary-exception' : 'direct-capture'),
+    exception,
+  };
 }
 
 export const PLATFORM_NAVIGATION_FEATURE_FLAGS = {
@@ -331,152 +391,544 @@ export const PLATFORM_AUTH_ROUTE_CONTRACTS: PlatformAuthRouteContract[] = [
 ] as const;
 
 export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntry[] = [
-  {
+  primaryRoute({
     href: '/',
     routeFile: 'src/app/page.tsx',
     frame: 'public-entry',
     roleScope: ['guest', 'student', 'teacher', 'admin'],
+    authState: 'public',
     navigationLayers: ['global-product'],
     floatingDock: 'collapsed',
     visualQaProfile: 'representative',
-  },
-  {
+    owningChange: 'redesign-public-student-entry-experience',
+  }),
+  primaryRoute({
     href: '/login',
     routeFile: 'src/app/(auth)/login/page.tsx',
     frame: 'auth-entry',
     roleScope: ['guest'],
+    authState: 'auth-entry',
     navigationLayers: ['global-product'],
     floatingDock: 'hidden',
     visualQaProfile: 'auth-callback',
+    owningChange: 'redesign-public-student-entry-experience',
     aliases: ['/login?callbackUrl=%2Fprofile'],
-  },
-  {
+  }),
+  primaryRoute({
     href: '/interactive-learning',
     routeFile: 'src/app/interactive-learning/page.tsx',
     frame: 'learning-map',
     roleScope: ['guest', 'student'],
+    authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'collapsed',
     visualQaProfile: 'representative',
-  },
-  {
+    owningChange: 'redesign-public-student-entry-experience',
+  }),
+  primaryRoute({
     href: '/interactive-learning/courses',
     routeFile: 'src/app/interactive-learning/courses/page.tsx',
     frame: 'learning-map',
     roleScope: ['guest', 'student'],
+    authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'collapsed',
     visualQaProfile: 'representative',
-  },
-  {
+    owningChange: 'redesign-public-student-entry-experience',
+  }),
+  primaryRoute({
     href: '/interactive-learning/courses/unit-4-1-design-task-expression',
     routeFile: 'src/app/interactive-learning/courses/unit-4-1-design-task-expression/page.tsx',
     frame: 'learning-map',
     roleScope: ['guest', 'student', 'teacher'],
+    authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'collapsed',
     visualQaProfile: 'representative',
-  },
-  {
+    owningChange: 'redesign-public-student-entry-experience',
+  }),
+  primaryRoute({
     href: '/simulations',
     routeFile: 'src/app/simulations/page.tsx',
     frame: 'immersive-task-workspace',
     roleScope: ['guest', 'student'],
+    authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'collapsed',
     visualQaProfile: 'immersive',
-  },
-  {
+    screenshotProfile: 'representative-covered',
+    owningChange: 'redesign-immersive-learning-workspaces',
+  }),
+  primaryRoute({
     href: '/arena',
     routeFile: 'src/app/arena/page.tsx',
     frame: 'immersive-task-workspace',
     roleScope: ['guest', 'student', 'teacher'],
+    authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'collapsed',
     visualQaProfile: 'immersive',
-  },
-  {
+    screenshotProfile: 'representative-covered',
+    owningChange: 'redesign-immersive-learning-workspaces',
+  }),
+  primaryRoute({
     href: '/assessment/adaptive-practice',
     routeFile: 'src/app/assessment/adaptive-practice/page.tsx',
     frame: 'learning-map',
     roleScope: ['guest', 'student'],
+    authState: 'mixed',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'collapsed',
     visualQaProfile: 'representative',
-  },
-  {
+    owningChange: 'redesign-public-student-entry-experience',
+  }),
+  primaryRoute({
     href: '/interactive-learning/control-workbench',
     routeFile: 'src/app/interactive-learning/control-workbench/page.tsx',
     frame: 'immersive-task-workspace',
     roleScope: ['guest', 'student', 'teacher'],
+    authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'immersive',
+    screenshotProfile: 'direct-capture',
+    owningChange: 'redesign-immersive-learning-workspaces',
     aliases: ['/interactive-learning/control-workbench?mode=explore&preset=classic-four-view'],
-  },
-  {
+  }),
+  primaryRoute({
     href: '/dashboard',
     routeFile: 'src/app/(main)/dashboard/page.tsx',
     frame: 'learning-map',
     roleScope: ['student'],
+    authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'global-product'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-  },
-  {
+    owningChange: 'redesign-public-student-entry-experience',
+  }),
+  primaryRoute({
     href: '/profile',
     routeFile: 'src/app/(main)/profile/page.tsx',
     frame: 'learner-data',
     roleScope: ['student', 'teacher', 'admin'],
+    authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
+    owningChange: 'redesign-learner-data-and-report-surfaces',
     aliases: ['/profile/growth', '/profile/portfolio'],
-  },
-  {
+  }),
+  primaryRoute({
+    href: '/profile/growth',
+    routeFile: 'src/app/(main)/profile/growth/page.tsx',
+    frame: 'learner-data',
+    roleScope: ['student', 'teacher', 'admin'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'redesign-learner-data-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/profile/portfolio',
+    routeFile: 'src/app/(main)/profile/portfolio/page.tsx',
+    frame: 'learner-data',
+    roleScope: ['student', 'teacher', 'admin'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'redesign-learner-data-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/profile/evidence',
+    routeFile: 'src/app/(main)/profile/evidence/page.tsx',
+    frame: 'learner-data',
+    roleScope: ['student', 'teacher', 'admin'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'redesign-learner-data-and-report-surfaces',
+  }),
+  primaryRoute({
     href: '/data-center',
     routeFile: 'src/app/data-center/page.tsx',
     frame: 'learner-data',
     roleScope: ['student', 'teacher', 'admin'],
+    authState: 'protected-redirect',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-  },
-  {
+    owningChange: 'redesign-learner-data-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/classroom/student/[sessionId]',
+    routeFile: 'src/app/classroom/student/[sessionId]/page.tsx',
+    frame: 'immersive-task-workspace',
+    roleScope: ['student'],
+    authState: 'protected-redirect',
+    navigationLayers: ['contextual-workspace', 'local-tool'],
+    floatingDock: 'hidden',
+    visualQaProfile: 'immersive',
+    owningChange: 'redesign-immersive-learning-workspaces',
+    shellRemovalCondition: 'Classroom student runtime adopts the immersive workspace shell without losing session controls.',
+    exception: {
+      owner: 'redesign-immersive-learning-workspaces',
+      affectedCapability: 'classroom-student-runtime',
+      reason: 'Live classroom session controls remain route-local until the workspace shell migration lands.',
+      expiresOn: '2026-08-31',
+    },
+  }),
+  primaryRoute({
+    href: '/interactive-learning/courses/[course]/student/[sessionId]',
+    routeFile: 'src/app/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]/page.tsx',
+    routePattern: '/interactive-learning/courses/:course/student/:sessionId',
+    coveredRouteGlob: 'src/app/interactive-learning/courses/*/student/[sessionId]/page.tsx',
+    frame: 'immersive-task-workspace',
+    roleScope: ['student'],
+    authState: 'protected-redirect',
+    navigationLayers: ['contextual-workspace', 'local-tool'],
+    floatingDock: 'hidden',
+    visualQaProfile: 'immersive',
+    owningChange: 'redesign-immersive-learning-workspaces',
+    shellRemovalCondition: 'Private course student runtimes adopt the standard lesson runtime shell.',
+    exception: {
+      owner: 'redesign-immersive-learning-workspaces',
+      affectedCapability: 'private-course-student-runtime',
+      reason: 'Concrete course routes share a pattern and will migrate through the shared lesson runtime.',
+      expiresOn: '2026-08-31',
+    },
+  }),
+  primaryRoute({
+    href: '/playlists/[id]/play',
+    routeFile: 'src/app/playlists/[id]/play/page.tsx',
+    frame: 'immersive-task-workspace',
+    roleScope: ['student', 'teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['contextual-workspace', 'local-tool'],
+    floatingDock: 'hidden',
+    visualQaProfile: 'immersive',
+    owningChange: 'redesign-immersive-learning-workspaces',
+    shellRemovalCondition: 'Playlist player adopts the immersive workspace shell or is retired from primary navigation.',
+    exception: {
+      owner: 'redesign-immersive-learning-workspaces',
+      affectedCapability: 'course-private-player',
+      reason: 'Playlist player is a private route and requires runtime-specific migration.',
+      expiresOn: '2026-08-31',
+    },
+  }),
+  primaryRoute({
     href: '/teacher',
     routeFile: 'src/app/teacher/page.tsx',
     frame: 'teacher-operations',
     roleScope: ['teacher'],
+    authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-  },
-  {
+    owningChange: 'redesign-operations-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/teacher/classes',
+    routeFile: 'src/app/teacher/classes/page.tsx',
+    frame: 'teacher-operations',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'redesign-operations-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/teacher/classes/[classId]',
+    routeFile: 'src/app/teacher/classes/[classId]/page.tsx',
+    frame: 'teacher-operations',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'redesign-operations-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/teacher/classes/[classId]/analytics-v2',
+    routeFile: 'src/app/teacher/classes/[classId]/analytics-v2/page.tsx',
+    frame: 'teacher-operations',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'redesign-operations-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/teacher/classes/[classId]/students/[studentId]',
+    routeFile: 'src/app/teacher/classes/[classId]/students/[studentId]/page.tsx',
+    frame: 'teacher-operations',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'redesign-operations-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/teacher/classes/[classId]/students/[studentId]/evidence',
+    routeFile: 'src/app/teacher/classes/[classId]/students/[studentId]/evidence/page.tsx',
+    frame: 'teacher-operations',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'redesign-operations-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/teacher/lesson-plans',
+    routeFile: 'src/app/teacher/lesson-plans/page.tsx',
+    frame: 'teacher-operations',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'redesign-operations-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/teacher/preset-lessons',
+    routeFile: 'src/app/teacher/preset-lessons/page.tsx',
+    frame: 'teacher-operations',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'redesign-operations-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/teacher/resources',
+    routeFile: 'src/app/teacher/resources/page.tsx',
+    frame: 'teacher-operations',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'redesign-operations-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/teacher/resources/resource-nodes',
+    routeFile: 'src/app/teacher/resources/resource-nodes/page.tsx',
+    frame: 'teacher-operations',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'redesign-operations-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/teacher/history',
+    routeFile: 'src/app/teacher/history/page.tsx',
+    frame: 'teacher-operations',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'redesign-operations-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/teacher/arena',
+    routeFile: 'src/app/teacher/arena/page.tsx',
+    frame: 'immersive-task-workspace',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'immersive',
+    screenshotProfile: 'representative-covered',
+    owningChange: 'redesign-immersive-learning-workspaces',
+  }),
+  primaryRoute({
     href: '/admin',
     routeFile: 'src/app/admin/page.tsx',
     frame: 'admin-governance',
     roleScope: ['admin'],
+    authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-  },
-  {
+    owningChange: 'redesign-operations-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/admin/users',
+    routeFile: 'src/app/admin/users/page.tsx',
+    frame: 'admin-governance',
+    roleScope: ['admin'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'redesign-operations-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/admin/states',
+    routeFile: 'src/app/admin/states/page.tsx',
+    frame: 'admin-governance',
+    roleScope: ['admin'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'redesign-operations-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/admin/config',
+    routeFile: 'src/app/admin/config/page.tsx',
+    frame: 'admin-governance',
+    roleScope: ['admin'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'redesign-operations-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/admin/lesson-plans',
+    routeFile: 'src/app/admin/lesson-plans/page.tsx',
+    frame: 'admin-governance',
+    roleScope: ['admin'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: 'redesign-operations-and-report-surfaces',
+  }),
+  primaryRoute({
     href: '/admin/data-governance',
     routeFile: 'src/app/admin/data-governance/page.tsx',
     frame: 'admin-governance',
     roleScope: ['admin'],
+    authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-  },
-  {
+    owningChange: 'redesign-operations-and-report-surfaces',
+  }),
+  primaryRoute({
+    href: '/ai',
+    routeFile: 'src/app/ai/page.tsx',
+    frame: 'knowledge-graph',
+    roleScope: ['student', 'teacher', 'admin'],
+    authState: 'protected-redirect',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'hidden',
+    visualQaProfile: 'representative',
+    owningChange: 'rebuild-navigation-frame-system',
+    shellRemovalCondition: 'AI landing route is either registered under the platform navigation frame or removed from primary product navigation.',
+    exception: {
+      owner: 'rebuild-navigation-frame-system',
+      affectedCapability: 'ai-landing-route',
+      reason: 'AI route is not part of the commercial UI migration series but remains a primary product route.',
+      expiresOn: '2026-08-31',
+    },
+  }),
+  primaryRoute({
+    href: '/ai/copilot',
+    routeFile: 'src/app/ai/copilot/page.tsx',
+    frame: 'knowledge-graph',
+    roleScope: ['student', 'teacher', 'admin'],
+    authState: 'protected-redirect',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'hidden',
+    visualQaProfile: 'representative',
+    owningChange: 'rebuild-navigation-frame-system',
+    shellRemovalCondition: 'AI copilot route is either registered under the platform navigation frame or removed from primary product navigation.',
+    exception: {
+      owner: 'rebuild-navigation-frame-system',
+      affectedCapability: 'ai-copilot-route',
+      reason: 'Copilot route needs frame ownership before visual migration can claim it.',
+      expiresOn: '2026-08-31',
+    },
+  }),
+  primaryRoute({
     href: '/knowledge',
     routeFile: 'src/app/knowledge/page.tsx',
     frame: 'knowledge-graph',
     roleScope: ['guest', 'student', 'teacher'],
+    authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'collapsed',
     visualQaProfile: 'representative',
+    owningChange: 'redesign-knowledge-and-data-surfaces',
+  }),
+] as const;
+
+export const PLATFORM_REPORT_SURFACE_INVENTORY: PlatformReportSurfaceInventoryEntry[] = [
+  {
+    id: 'classroom-session-report',
+    ownerRoute: '/classroom/student/[sessionId]',
+    sourceFile: 'src/app/classroom/student/[sessionId]/page.tsx',
+    surfaceType: 'primary-route',
+    owningChange: 'redesign-report-ledger-and-export-surfaces',
+    sourceShellOwner: 'redesign-immersive-learning-workspaces',
+    visualQaProfile: 'temporary-exception',
+  },
+  {
+    id: 'arena-challenge-result',
+    ownerRoute: '/arena/challenges/[taskId]',
+    sourceFile: 'src/features/arena/challenge-detail.tsx',
+    surfaceType: 'embedded-component',
+    owningChange: 'redesign-report-ledger-and-export-surfaces',
+    sourceShellOwner: 'redesign-immersive-learning-workspaces',
+    visualQaProfile: 'representative-covered',
+  },
+  {
+    id: 'arena-publication-report',
+    ownerRoute: '/teacher/arena/publications/[publicationId]',
+    sourceFile: 'src/app/teacher/arena/publications/[publicationId]/page.tsx',
+    surfaceType: 'primary-route',
+    owningChange: 'redesign-report-ledger-and-export-surfaces',
+    sourceShellOwner: 'redesign-immersive-learning-workspaces',
+    visualQaProfile: 'representative-covered',
+  },
+  {
+    id: 'learner-growth-report',
+    ownerRoute: '/profile/growth',
+    sourceFile: 'src/app/(main)/profile/growth/page.tsx',
+    surfaceType: 'primary-route',
+    owningChange: 'redesign-report-ledger-and-export-surfaces',
+    sourceShellOwner: 'redesign-learner-data-and-report-surfaces',
+    visualQaProfile: 'direct-capture',
+  },
+  {
+    id: 'learner-evidence-report',
+    ownerRoute: '/profile/evidence',
+    sourceFile: 'src/app/(main)/profile/evidence/page.tsx',
+    surfaceType: 'primary-route',
+    owningChange: 'redesign-report-ledger-and-export-surfaces',
+    sourceShellOwner: 'redesign-learner-data-and-report-surfaces',
+    visualQaProfile: 'direct-capture',
+  },
+  {
+    id: 'governance-data-quality-snapshot',
+    ownerRoute: '/admin/data-governance',
+    sourceFile: 'src/app/admin/data-governance/page.tsx',
+    surfaceType: 'primary-route',
+    owningChange: 'redesign-report-ledger-and-export-surfaces',
+    sourceShellOwner: 'redesign-operations-and-report-surfaces',
+    visualQaProfile: 'direct-capture',
+  },
+  {
+    id: 'data-center-platform-snapshot',
+    ownerRoute: '/data-center',
+    sourceFile: 'src/app/data-center/page.tsx',
+    surfaceType: 'primary-route',
+    owningChange: 'redesign-report-ledger-and-export-surfaces',
+    sourceShellOwner: 'redesign-learner-data-and-report-surfaces',
+    visualQaProfile: 'direct-capture',
   },
 ] as const;
 
