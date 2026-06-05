@@ -20,9 +20,11 @@ import {
   resolveCommercialEntryHref,
   getPlatformCockpitHref,
   getPlatformNavigationHref,
+  getPlatformRouteNavigation,
   getPlatformRoleNavigation,
   getStudentLearningIntentNavigationGroups,
   getStudentCoreNavigationEntries,
+  resolvePlatformRouteInventory,
 } from '@/lib/platform-role-navigation';
 
 describe('platform role navigation', () => {
@@ -352,6 +354,7 @@ describe('platform role navigation', () => {
       expect(route.owningChange).toMatch(/^[a-z0-9-]+$/);
       expect(route.themeSupport).toEqual(expect.arrayContaining(['light', 'dark']));
       expect(route.authState).toBeTruthy();
+      expect(route.mobileNavigation).toBeTruthy();
       expect(route.shellMigrationDisposition).toBeTruthy();
       expect(route.shellRemovalCondition).toBeTruthy();
       expect(route.screenshotProfile).toBeTruthy();
@@ -373,6 +376,75 @@ describe('platform role navigation', () => {
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/teacher/arena')?.owningChange).toBe(
       'redesign-immersive-learning-workspaces',
     );
+  });
+
+  it('keeps homepage as the only public-entry navigation variant', () => {
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/')).toMatchObject({
+      frame: 'public-entry',
+      shellMigrationDisposition: 'adapted',
+      mobileNavigation: 'public-entry-menu',
+    });
+    const nonHomeRoutes = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => route.href !== '/');
+    expect(nonHomeRoutes.every((route) => route.frame !== 'public-entry')).toBe(true);
+    expect(nonHomeRoutes.every((route) => route.mobileNavigation !== 'public-entry-menu')).toBe(true);
+    expect(nonHomeRoutes.every((route) => route.shellRemovalCondition.includes(route.owningChange) || route.exception)).toBe(true);
+  });
+
+  it('resolves primary routes and derives route-family navigation from inventory layers', () => {
+    expect(resolvePlatformRouteInventory('/login?callbackUrl=%2Fprofile')?.href).toBe('/login');
+    expect(resolvePlatformRouteInventory('/profile/growth')?.href).toBe('/profile/growth');
+    expect(resolvePlatformRouteInventory('/profile/portfolio')?.href).toBe('/profile/portfolio');
+    expect(resolvePlatformRouteInventory('/teacher/classes/demo-class/students/demo-student')?.href).toBe(
+      '/teacher/classes/[classId]/students/[studentId]',
+    );
+    expect(resolvePlatformRouteInventory('/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo-session')?.href).toBe(
+      '/interactive-learning/courses/[course]/student/[sessionId]',
+    );
+
+    const studentKnowledgeNavigation = getPlatformRouteNavigation('/knowledge', 'student').map((entry) => entry.href);
+    expect(studentKnowledgeNavigation).toEqual(
+      expect.arrayContaining(['/knowledge', '/interactive-learning', '/data-center']),
+    );
+    expect(new Set(studentKnowledgeNavigation).size).toBe(studentKnowledgeNavigation.length);
+    expect(studentKnowledgeNavigation).not.toContain('/login');
+
+    const teacherKnowledgeNavigation = getPlatformRouteNavigation('/knowledge', 'teacher').map((entry) => entry.href);
+    expect(teacherKnowledgeNavigation).toEqual(
+      expect.arrayContaining(['/', '/knowledge', '/arena']),
+    );
+    expect(teacherKnowledgeNavigation).not.toContain('/data-center');
+    expect(teacherKnowledgeNavigation).not.toContain('/login');
+
+    const adminKnowledgeNavigation = getPlatformRouteNavigation('/knowledge', 'admin').map((entry) => entry.href);
+    expect(adminKnowledgeNavigation).toEqual(
+      expect.arrayContaining(['/', '/knowledge', '/arena']),
+    );
+    expect(adminKnowledgeNavigation).not.toContain('/data-center');
+    expect(adminKnowledgeNavigation).not.toContain('/login');
+    expect(getPlatformRouteNavigation('/teacher/classes/demo-class', 'teacher').map((entry) => entry.href)).toEqual(
+      expect.arrayContaining(['/teacher', '/teacher/classes', '/teacher/lesson-plans']),
+    );
+    expect(getPlatformRouteNavigation('/classroom/student/demo-session', 'student')).toEqual([]);
+    expect(getPlatformRouteNavigation('/interactive-learning/courses/unit-4-1-design-task-expression/student/demo-session', 'student')).toEqual([]);
+  });
+
+  it('separates learner record, evidence review, and platform data-center semantics', () => {
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/profile')).toMatchObject({
+      frame: 'learner-data',
+      mobileNavigation: 'role-route-tabs',
+      aliases: expect.arrayContaining(['/profile/growth', '/profile/portfolio']),
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/profile/evidence')).toMatchObject({
+      frame: 'learner-data',
+      owningChange: 'redesign-learner-data-and-report-surfaces',
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/data-center')).toMatchObject({
+      frame: 'learner-data',
+      navigationLayers: expect.arrayContaining(['global-product', 'contextual-workspace']),
+      owningChange: 'redesign-learner-data-and-report-surfaces',
+    });
+    expect(COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.find((group) => group.intent === 'review')?.summary).toContain('数据中心');
+    expect(COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.find((group) => group.intent === 'account-profile')?.summary).toContain('个人中心');
   });
 
   it('records explicit temporary exceptions for special teaching and AI routes', () => {
@@ -400,6 +472,50 @@ describe('platform role navigation', () => {
       routePattern: '/interactive-learning/courses/:course/student/:sessionId',
       coveredRouteGlob: 'src/app/interactive-learning/courses/*/student/[sessionId]/page.tsx',
     });
+  });
+
+  it('records route-level legacy shell and dock dispositions for primary routes that still use adapters', () => {
+    const shellRoutes = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => route.legacyShell);
+    expect(shellRoutes.map((route) => [route.href, route.legacyShell?.component])).toEqual(
+      expect.arrayContaining([
+        ['/interactive-learning', 'UnifiedTopBar'],
+        ['/interactive-learning/courses', 'UnifiedTopBar'],
+        ['/simulations', 'FeaturePageNav'],
+        ['/arena', 'ArenaPageShell'],
+        ['/teacher', 'TeacherLayout'],
+        ['/admin', 'AdminConsoleHeader'],
+        ['/admin/data-governance', 'AdminConsoleHeader'],
+        ['/knowledge', 'UnifiedTopBar'],
+      ]),
+    );
+    for (const route of shellRoutes) {
+      const shell = route.legacyShell;
+      if (!shell) throw new Error(`missing legacy shell for ${route.href}`);
+      expect(existsSync(join(process.cwd(), shell.sourceFile))).toBe(true);
+      expect(readSource(shell.sourceFile)).toContain(shell.component);
+      expect(shell.removalCondition).toMatch(/AppShell|workspace shell|shell/i);
+    }
+
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/ai')?.dockDisposition).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ component: 'GlobalAIFloatingButton', disposition: 'registered-shared-dock' }),
+      ]),
+    );
+  });
+
+  it('fails when inventoried primary routes use known legacy shells without route-level disposition', () => {
+    const legacyShellNames = ['UnifiedTopBar', 'ArenaPageShell', 'TeacherLayout', 'AdminConsoleHeader', 'FeaturePageNav'];
+    for (const route of PLATFORM_PRIMARY_ROUTE_INVENTORY) {
+      const source = readSource(route.legacyShell?.sourceFile ?? route.routeFile);
+      const usedLegacyShell = legacyShellNames.find((name) => source.includes(name));
+      if (!usedLegacyShell) continue;
+
+      expect(route.legacyShell).toMatchObject({
+        component: usedLegacyShell,
+        sourceFile: expect.any(String),
+        removalCondition: expect.any(String),
+      });
+    }
   });
 
   it('identifies report and snapshot surfaces before report visual migration', () => {

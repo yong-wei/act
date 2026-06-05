@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { Moon, Sun } from 'lucide-react';
 
 import { useTheme } from '@/components/providers/theme-provider';
+import { getPlatformRouteNavigation } from '@/lib/platform-role-navigation';
 import { cn } from '@/lib/utils';
 
 import type { PlatformNavigationItem, PlatformRole } from './platform-ui-contracts';
@@ -16,7 +17,7 @@ export interface AppBreadcrumbItem {
 
 export interface AppShellProps {
   role: PlatformRole;
-  navigation: readonly PlatformNavigationItem[];
+  navigation?: readonly PlatformNavigationItem[];
   breadcrumbs?: readonly AppBreadcrumbItem[];
   title?: string;
   subtitle?: string;
@@ -104,10 +105,11 @@ function renderNavigationLink(
     <Link
       key={item.id}
       href={item.href}
+      aria-current={active ? 'page' : undefined}
       className={cn(
         variant === 'sidebar'
           ? 'block rounded-md px-3 py-2 text-sm font-medium transition'
-          : 'inline-flex h-9 shrink-0 items-center rounded-md px-3 text-sm font-medium transition',
+          : 'inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition',
         variant === 'sidebar' && depth > 0 && 'ml-3 border-l border-platform-border pl-3',
         active
           ? 'bg-platform-action-subtle text-platform-action-primary'
@@ -226,7 +228,7 @@ export function AppSidebar({ navigation, activeHref, className }: AppSidebarProp
 
 export function AppShell({
   role,
-  navigation,
+  navigation = [],
   breadcrumbs,
   title = '平台工作台',
   subtitle,
@@ -237,10 +239,12 @@ export function AppShell({
   children,
   className,
 }: AppShellProps) {
-  const renderItems = flattenNavigationItems(navigation);
+  const routeNavigation = activeHref ? getPlatformRouteNavigation(activeHref, role) : [];
+  const effectiveNavigation = navigation.length > 0 ? navigation : routeNavigation;
+  const renderItems = flattenNavigationItems(effectiveNavigation);
   const showSidebar = sidebarMode !== 'hidden' && renderItems.length > 0;
   const sidebarBreakpoint = sidebarMode === 'collapsible' ? 'xl' : 'lg';
-  const activeItemId = getActiveNavigationItemId(navigation, activeHref);
+  const activeItemId = getActiveNavigationItemId(effectiveNavigation, activeHref);
   return (
     <main className={cn('min-h-screen bg-platform-canvas text-platform-fg-primary', className)}>
       <div
@@ -252,7 +256,7 @@ export function AppShell({
       >
         {showSidebar ? (
           <AppSidebar
-            navigation={navigation}
+            navigation={effectiveNavigation}
             activeHref={activeHref}
             className={sidebarBreakpoint === 'lg' ? 'hidden lg:block' : 'hidden xl:block'}
           />
@@ -266,7 +270,7 @@ export function AppShell({
             actions={actions}
             userMenu={userMenu}
           />
-          {showSidebar && navigation.length > 0 ? (
+          {showSidebar && effectiveNavigation.length > 0 ? (
             <nav
               aria-label="平台导航"
               className={cn(
@@ -274,7 +278,7 @@ export function AppShell({
                 sidebarBreakpoint === 'lg' ? 'lg:hidden' : 'xl:hidden',
               )}
             >
-              <div className="flex gap-2 overflow-x-auto">
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                 {renderItems.map(({ item }) => renderNavigationLink(item, activeItemId, 'mobile'))}
               </div>
             </nav>
