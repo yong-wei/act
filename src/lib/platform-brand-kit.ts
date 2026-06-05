@@ -36,6 +36,7 @@ export type PlatformBrandEvidenceSurface =
 export interface PlatformBrandAssetReference {
   kind: PlatformBrandAssetKind;
   sourcePath: string;
+  publicUrl: string;
   usage: string;
   lightBehavior: string;
   darkBehavior: string;
@@ -67,6 +68,7 @@ export const PLATFORM_BRAND_ASSET_REFERENCES: PlatformBrandAssetReference[] = [
   {
     kind: 'app-mark',
     sourcePath: 'public/assets/platform-brand/app-mark.svg',
+    publicUrl: '/assets/platform-brand/app-mark.svg',
     usage: 'primary platform identity in public entry and role cockpit shells',
     lightBehavior: 'paper stamp with printed trace contrast on engineering chart surfaces',
     darkBehavior: 'night instrument mark with low-light trace contrast',
@@ -74,6 +76,7 @@ export const PLATFORM_BRAND_ASSET_REFERENCES: PlatformBrandAssetReference[] = [
   {
     kind: 'horizontal-lockup',
     sourcePath: 'public/assets/platform-brand/horizontal-lockup.svg',
+    publicUrl: '/assets/platform-brand/horizontal-lockup.svg',
     usage: 'wide header and report cover identity where route context is available',
     lightBehavior: 'daylight lockup using matte ink and printed route trace language',
     darkBehavior: 'instrument lockup using night bridge foreground and trace signal',
@@ -81,6 +84,7 @@ export const PLATFORM_BRAND_ASSET_REFERENCES: PlatformBrandAssetReference[] = [
   {
     kind: 'compact-mark',
     sourcePath: 'public/assets/platform-brand/compact-mark.svg',
+    publicUrl: '/assets/platform-brand/compact-mark.svg',
     usage: 'collapsed navigation, mobile shell, and favicon fallback identity',
     lightBehavior: 'paper-scale compact stamp with clear matte edge',
     darkBehavior: 'low-light compact instrument mark with visible hairline edge',
@@ -88,6 +92,7 @@ export const PLATFORM_BRAND_ASSET_REFERENCES: PlatformBrandAssetReference[] = [
   {
     kind: 'favicon',
     sourcePath: 'public/assets/platform-brand/favicon.svg',
+    publicUrl: '/assets/platform-brand/favicon.svg',
     usage: 'browser tab and installed app identity',
     lightBehavior: 'printed app stamp that remains legible on daylight browser chrome',
     darkBehavior: 'night app stamp that remains legible on dark browser chrome',
@@ -95,6 +100,7 @@ export const PLATFORM_BRAND_ASSET_REFERENCES: PlatformBrandAssetReference[] = [
   {
     kind: 'route-badge',
     sourcePath: 'public/assets/platform-brand/route-badge.svg',
+    publicUrl: '/assets/platform-brand/route-badge.svg',
     usage: 'route family identity in navigation traces and migration ledgers',
     lightBehavior: 'paper route badge with matte trace edge',
     darkBehavior: 'instrument route badge with controlled trace illumination',
@@ -102,6 +108,7 @@ export const PLATFORM_BRAND_ASSET_REFERENCES: PlatformBrandAssetReference[] = [
   {
     kind: 'arena-badge',
     sourcePath: 'public/assets/platform-brand/arena-badge.svg',
+    publicUrl: '/assets/platform-brand/arena-badge.svg',
     usage: 'Arena challenge readiness and competition identity',
     lightBehavior: 'daylight challenge stamp with readable signal state',
     darkBehavior: 'night challenge badge with low-light signal edge',
@@ -109,6 +116,7 @@ export const PLATFORM_BRAND_ASSET_REFERENCES: PlatformBrandAssetReference[] = [
   {
     kind: 'course-badge',
     sourcePath: 'public/assets/platform-brand/course-badge.svg',
+    publicUrl: '/assets/platform-brand/course-badge.svg',
     usage: 'course, lesson, and learning path identity',
     lightBehavior: 'paper course stamp aligned with printed path traces',
     darkBehavior: 'instrument course badge aligned with low-light route traces',
@@ -116,6 +124,7 @@ export const PLATFORM_BRAND_ASSET_REFERENCES: PlatformBrandAssetReference[] = [
   {
     kind: 'workbench-chrome',
     sourcePath: 'public/assets/platform-brand/workbench-chrome.svg',
+    publicUrl: '/assets/platform-brand/workbench-chrome.svg',
     usage: 'mission workspace frame, command strips, and local tool chrome',
     lightBehavior: 'matte daylight instrument rail with fine hairline structure',
     darkBehavior: 'night workbench rail with controlled instrument separation',
@@ -123,6 +132,7 @@ export const PLATFORM_BRAND_ASSET_REFERENCES: PlatformBrandAssetReference[] = [
   {
     kind: 'data-snapshot',
     sourcePath: 'public/assets/platform-brand/data-snapshot.svg',
+    publicUrl: '/assets/platform-brand/data-snapshot.svg',
     usage: 'learner record, evidence browser, and knowledge/data map snapshot',
     lightBehavior: 'paper evidence snapshot with printed grid and source stamp',
     darkBehavior: 'night evidence snapshot with trace grid and low-light labels',
@@ -130,6 +140,7 @@ export const PLATFORM_BRAND_ASSET_REFERENCES: PlatformBrandAssetReference[] = [
   {
     kind: 'governance-snapshot',
     sourcePath: 'public/assets/platform-brand/governance-snapshot.svg',
+    publicUrl: '/assets/platform-brand/governance-snapshot.svg',
     usage: 'administrator governance state, audit summary, and data quality snapshot',
     lightBehavior: 'daylight governance stamp with matte status lanes',
     darkBehavior: 'night governance instrument with status signal lanes',
@@ -137,6 +148,7 @@ export const PLATFORM_BRAND_ASSET_REFERENCES: PlatformBrandAssetReference[] = [
   {
     kind: 'report-watermark',
     sourcePath: 'public/assets/platform-brand/report-watermark.svg',
+    publicUrl: '/assets/platform-brand/report-watermark.svg',
     usage: 'exported report and ledger watermark identity',
     lightBehavior: 'paper report watermark with low-ink printed trace opacity',
     darkBehavior: 'night report watermark with restrained low-light opacity',

@@ -38,7 +38,10 @@ describe('platform brand kit contracts', () => {
       expect(asset.usage).not.toContain('decoration');
       expect(asset.lightBehavior).toMatch(/paper|daylight|matte|printed|stamp/i);
       expect(asset.darkBehavior).toMatch(/night|instrument|low-light|trace|watermark/i);
-      expect(existsSync(path.join(rootDir, asset.sourcePath.split('#')[0]))).toBe(true);
+      expect(asset.sourcePath).toMatch(/^public\/assets\/platform-brand\/.+\.svg$/);
+      expect(asset.publicUrl).toMatch(/^\/assets\/platform-brand\/.+\.svg$/);
+      expect(asset.publicUrl).not.toContain('/public/');
+      expect(existsSync(path.join(rootDir, asset.sourcePath))).toBe(true);
     }
   });
 
