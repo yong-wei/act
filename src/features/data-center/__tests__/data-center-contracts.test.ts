@@ -8,6 +8,7 @@ import {
   GOVERNANCE_REGIONS,
   DEFAULT_EXPORT_SNAPSHOT_OPTIONS,
 } from '../shared/data-center-contracts';
+import { buildDataMapContextCards } from '../presentation-data-center';
 import { sanitizeSnapshotMetrics, buildExportSafeSnapshot } from '../shared/export-safe-snapshot';
 import { canAccessDrilldown } from '../shared/drilldown-link';
 import type { SnapshotMetric } from '../shared/export-safe-snapshot';
@@ -38,6 +39,77 @@ describe('PresentationDataCenter commercial workspace layout', () => {
     expect(source).toContain('sidebarMode="collapsible"');
     expect(source).not.toContain('xl:grid-cols-[1.6fr_1fr]');
     expect(source).not.toContain('xl:grid-cols-[1.3fr_1fr]');
+  });
+
+  it('renders governed data-map context instead of disconnected metric cards', () => {
+    const source = readFileSync(
+      join(repoRoot, 'src/features/data-center/presentation-data-center.tsx'),
+      'utf8',
+    );
+
+    expect(source).toContain('data-data-map-semantics="source-quality-freshness-privacy-status"');
+    expect(source).toContain('data-data-map-context={card.marker}');
+    expect(source).toContain("marker: 'source-quality'");
+    expect(source).toContain("marker: 'freshness'");
+    expect(source).toContain("marker: 'privacy-scope'");
+    expect(source).toContain("marker: 'status-legend'");
+    expect(source).toContain('data-governance-action-context="repair-review-export"');
+    expect(source).toContain('下一次复核');
+    expect(source).toContain('导出可用性');
+  });
+
+  it('derives data-map context from every source quality state instead of collapsing to static labels', () => {
+    const states = ['demo', 'real', 'partial', 'stale', 'restricted'] as const;
+
+    for (const quality of states) {
+      const cards = buildDataMapContextCards({
+        sourceQuality: quality,
+        generatedAt: quality === 'stale' ? '2025-09-01' : '2026-05-30',
+        role: 'student',
+      });
+
+      expect(cards.map((card) => card.marker)).toEqual([
+        'source-quality',
+        'freshness',
+        'privacy-scope',
+        'status-legend',
+      ]);
+      expect(cards[0].value).toBe(SOURCE_QUALITY_MARKERS[quality].label);
+      expect(cards[0].summary).toContain(SOURCE_QUALITY_MARKERS[quality].summary);
+      expect(cards.every((card) => card.actionLabel.length > 0)).toBe(true);
+      expect(cards.every((card) => card.actionHref.length > 0)).toBe(true);
+    }
+
+    const staleCards = buildDataMapContextCards({
+      sourceQuality: 'stale',
+      generatedAt: '2025-09-01',
+      role: 'teacher',
+    });
+    const adminStaleCards = buildDataMapContextCards({
+      sourceQuality: 'stale',
+      generatedAt: '2025-09-01',
+      role: 'admin',
+    });
+    const restrictedCards = buildDataMapContextCards({
+      sourceQuality: 'restricted',
+      generatedAt: '2026-05-30',
+      role: 'student',
+    });
+    const teacherRestrictedCards = buildDataMapContextCards({
+      sourceQuality: 'restricted',
+      generatedAt: '2026-05-30',
+      role: 'teacher',
+    });
+
+    expect(staleCards.find((card) => card.marker === 'status-legend')?.value).toContain('待复核');
+    expect(staleCards.find((card) => card.marker === 'freshness')?.summary).toContain('2025-09-01');
+    expect(restrictedCards.find((card) => card.marker === 'privacy-scope')?.value).toContain('受限');
+    expect(restrictedCards.find((card) => card.marker === 'status-legend')?.exportAvailability).toBe('受限导出');
+    expect(staleCards.find((card) => card.marker === 'status-legend')?.actionHref).toBe('/teacher');
+    expect(adminStaleCards.find((card) => card.marker === 'status-legend')?.actionHref).toBe('/admin/data-governance');
+    expect(restrictedCards.find((card) => card.marker === 'privacy-scope')?.actionHref).toBe('/admin/data-governance');
+    expect(restrictedCards.every((card) => card.actionHref === '/admin/data-governance')).toBe(true);
+    expect(teacherRestrictedCards.every((card) => card.actionHref === '/teacher')).toBe(true);
   });
 });
 

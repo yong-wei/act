@@ -378,7 +378,7 @@ describe('platform role navigation', () => {
     }
 
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/data-center')?.owningChange).toBe(
-      'redesign-learner-data-and-report-surfaces',
+      'redesign-knowledge-and-data-surfaces',
     );
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/knowledge')?.owningChange).toBe(
       'redesign-knowledge-and-data-surfaces',
@@ -460,7 +460,7 @@ describe('platform role navigation', () => {
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/data-center')).toMatchObject({
       frame: 'learner-data',
       navigationLayers: expect.arrayContaining(['global-product', 'contextual-workspace']),
-      owningChange: 'redesign-learner-data-and-report-surfaces',
+      owningChange: 'redesign-knowledge-and-data-surfaces',
     });
     expect(COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.find((group) => group.intent === 'review')?.summary).toContain('数据中心');
     expect(COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.find((group) => group.intent === 'account-profile')?.summary).toContain('个人中心');

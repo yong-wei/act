@@ -44,6 +44,17 @@ describe('evidence browser entry points', () => {
     expect(source).toContain('requestId !== requestSequenceRef.current');
   });
 
+  it('initializes the student evidence browser from lessonId query parameters', () => {
+    const pageSource = readSource('src/app/(main)/profile/evidence/page.tsx');
+    const browserSource = readSource('src/features/data-governance/evidence-timeline-browser.tsx');
+
+    expect(pageSource).toContain('searchParams');
+    expect(pageSource).toContain('initialLessonId={initialLessonId}');
+    expect(browserSource).toContain('initialLessonId?: string');
+    expect(browserSource).toContain("useState(initialLessonId ?? '')");
+    expect(browserSource).toContain("setLessonId(initialLessonId ?? '')");
+  });
+
   it('clears stale first-page evidence before refetching while preserving loaded pages on pagination failures', () => {
     const source = readSource('src/features/data-governance/evidence-timeline-browser.tsx');
 

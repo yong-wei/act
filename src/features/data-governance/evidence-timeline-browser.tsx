@@ -24,6 +24,7 @@ interface EvidenceTimelineBrowserProps {
   apiPath: string;
   backHref: string;
   emptyBackLabel?: string;
+  initialLessonId?: string;
   title: string;
   subtitle?: string;
 }
@@ -32,13 +33,14 @@ export function EvidenceTimelineBrowser({
   apiPath,
   backHref,
   emptyBackLabel = '返回成长中心',
+  initialLessonId,
   title,
   subtitle,
 }: EvidenceTimelineBrowserProps) {
   const [items, setItems] = useState<EvidenceTimelineItem[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [dimension, setDimension] = useState('');
-  const [lessonId, setLessonId] = useState('');
+  const [lessonId, setLessonId] = useState(initialLessonId ?? '');
   const [factType, setFactType] = useState('');
   const [outcome, setOutcome] = useState('');
   const [studentLabel, setStudentLabel] = useState<string | null>(null);
@@ -104,6 +106,10 @@ export function EvidenceTimelineBrowser({
   useEffect(() => {
     void loadPage();
   }, [filterKey, loadPage]);
+
+  useEffect(() => {
+    setLessonId(initialLessonId ?? '');
+  }, [initialLessonId]);
 
   const resetFilters = () => {
     setDimension('');
