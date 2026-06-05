@@ -49,6 +49,7 @@
     "test:runtime-log-delta": "node ./scripts/tests/test-runtime-log-delta.mjs",
     "test:commercial-ui-governance": "npx --yes tsx ./scripts/tests/test-commercial-ui-governance.ts",
     "test:control-correction-demo": "npx --yes tsx ./scripts/tests/control-correction-demo-acceptance.ts",
+    "test:intelligent-teaching-assistant-demo": "npx --yes tsx ./scripts/tests/intelligent-teaching-assistant-demo-acceptance.ts",
     "test:admin-states": "npx --yes tsx ./scripts/tests/test-admin-states-mock-data.ts",
     "seed:fixed-passwords": "node ./scripts/db/update-fixed-account-passwords.mjs",
     "seed:semester-usage": "node ./scripts/db/seed-semester-usage-for-test-students.mjs",
