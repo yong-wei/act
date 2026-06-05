@@ -28,6 +28,9 @@ export async function getConfiguredAIModel(modelId?: string, requirements?: Mode
 
 export async function isConfiguredAIServiceAvailable(requirements?: ModelProviderCapabilityRequirements): Promise<boolean> {
   const config = await resolveConfiguredAIProviderConfig(undefined, undefined, requirements);
+  if (config.authMode === 'none') {
+    return true;
+  }
   return config.apiKey.trim().length > 0;
 }
 
