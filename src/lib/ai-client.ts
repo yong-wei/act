@@ -6,7 +6,10 @@
 
 import { createAIProviderFromConfig, getActiveAIProvider } from '@/lib/ai/provider-registry';
 import { resolveAIProviderConfig } from '@/lib/ai/provider-config';
-import { resolveConfiguredAIProviderConfig } from '@/lib/ai/provider-settings';
+import {
+  AIProviderCapabilityUnavailableError,
+  resolveConfiguredAIProviderConfig,
+} from '@/lib/ai/provider-settings';
 import type { ModelProviderCapabilityRequirements } from '@/lib/ai/model-provider-compatibility';
 
 // 默认模型
@@ -27,11 +30,18 @@ export async function getConfiguredAIModel(modelId?: string, requirements?: Mode
 }
 
 export async function isConfiguredAIServiceAvailable(requirements?: ModelProviderCapabilityRequirements): Promise<boolean> {
-  const config = await resolveConfiguredAIProviderConfig(undefined, undefined, requirements);
-  if (config.authMode === 'none') {
-    return true;
+  try {
+    const config = await resolveConfiguredAIProviderConfig(undefined, undefined, requirements);
+    if (config.authMode === 'none') {
+      return true;
+    }
+    return config.apiKey.trim().length > 0;
+  } catch (error) {
+    if (error instanceof AIProviderCapabilityUnavailableError) {
+      return false;
+    }
+    throw error;
   }
-  return config.apiKey.trim().length > 0;
 }
 
 // 系统提示词 - AI-OBE平台智能学习助手「控灵」

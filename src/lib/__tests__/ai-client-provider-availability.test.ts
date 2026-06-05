@@ -4,7 +4,15 @@ const mocks = vi.hoisted(() => ({
   resolveConfiguredAIProviderConfig: vi.fn(),
 }));
 
+class MockAIProviderCapabilityUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AIProviderCapabilityUnavailableError';
+  }
+}
+
 vi.mock('@/lib/ai/provider-settings', () => ({
+  AIProviderCapabilityUnavailableError: MockAIProviderCapabilityUnavailableError,
   resolveConfiguredAIProviderConfig: mocks.resolveConfiguredAIProviderConfig,
 }));
 
@@ -53,5 +61,14 @@ describe('AI client provider availability', () => {
     const { isConfiguredAIServiceAvailable } = await import('@/lib/ai-client');
 
     await expect(isConfiguredAIServiceAvailable()).resolves.toBe(true);
+  });
+
+  it('returns unavailable instead of throwing when no provider can satisfy requirements', async () => {
+    mocks.resolveConfiguredAIProviderConfig.mockRejectedValue(
+      new MockAIProviderCapabilityUnavailableError('No enabled provider can satisfy the requested capabilities.'),
+    );
+    const { isConfiguredAIServiceAvailable } = await import('@/lib/ai-client');
+
+    await expect(isConfiguredAIServiceAvailable({ tools: true })).resolves.toBe(false);
   });
 });

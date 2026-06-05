@@ -5,7 +5,7 @@ import type { AIProviderAdapter } from './types';
 export function createOpenAICompatibleAdapter(config: AIProviderConfig): AIProviderAdapter {
   const provider = createOpenAI({
     baseURL: config.baseURL,
-    apiKey: config.authMode === 'none' ? undefined : config.apiKey,
+    apiKey: config.authMode === 'none' ? '' : config.apiKey,
     name: config.provider,
   });
 
