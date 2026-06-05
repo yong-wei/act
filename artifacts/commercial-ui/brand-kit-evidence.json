@@ -3,6 +3,14 @@
   "capturedAt": "2026-06-06",
   "evidencePage": "artifacts/commercial-ui/brand-kit-evidence.html",
   "assetKit": "public/assets/platform-brand/instrument-atlas-brand-kit.svg",
+  "assetReferences": [
+    "public/assets/platform-brand/horizontal-lockup.svg",
+    "public/assets/platform-brand/route-badge.svg",
+    "public/assets/platform-brand/data-snapshot.svg",
+    "public/assets/platform-brand/workbench-chrome.svg",
+    "public/assets/platform-brand/governance-snapshot.svg",
+    "public/assets/platform-brand/report-watermark.svg"
+  ],
   "routes": [
     {
       "surface": "navigation",

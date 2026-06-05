@@ -123,7 +123,12 @@ describe('platform brand kit contracts', () => {
     expect(existsSync(path.join(rootDir, manifest.assetKit))).toBe(true);
 
     const evidencePage = readSource(manifest.evidencePage);
-    expect(evidencePage).toContain('instrument-atlas-brand-kit.svg');
+    expect(evidencePage).toContain('horizontal-lockup.svg');
+    expect(evidencePage).toContain('route-badge.svg');
+    expect(evidencePage).toContain('data-snapshot.svg');
+    expect(evidencePage).toContain('workbench-chrome.svg');
+    expect(evidencePage).toContain('governance-snapshot.svg');
+    expect(evidencePage).toContain('report-watermark.svg');
     for (const token of PLATFORM_DUAL_TEMPLATE_TOKEN_ROLES) {
       expect(evidencePage).toContain(`var(--${token.cssVariable})`);
     }

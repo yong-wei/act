@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 96" role="img" aria-label="Instrument Atlas governance snapshot">
+  <rect fill="#07111f" x="8" y="10" width="164" height="76" rx="14"/>
+  <rect fill="#22c55e" x="30" y="28" width="24" height="44" rx="5"/>
+  <rect fill="#f59e0b" x="70" y="42" width="24" height="30" rx="5"/>
+  <rect fill="#ef4444" x="110" y="34" width="24" height="38" rx="5"/>
+  <path d="M24 74h128" fill="none" stroke="#94a3b8" stroke-width="2"/>
+</svg>

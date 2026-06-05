@@ -17,16 +17,18 @@ async function main() {
     const assets = await page.locator('[data-brand-asset]').evaluateAll((nodes) => nodes.map((node) => {
       const element = node as HTMLImageElement;
       const rect = element.getBoundingClientRect();
-      return {
-        asset: element.dataset.brandAsset,
-        width: rect.width,
-        height: rect.height,
-        naturalWidth: element.naturalWidth,
+    return {
+      asset: element.dataset.brandAsset,
+      src: element.getAttribute('src'),
+      width: rect.width,
+      height: rect.height,
+      naturalWidth: element.naturalWidth,
         naturalHeight: element.naturalHeight,
       };
     }));
 
     assert.equal(assets.length, 7, 'brand evidence page should render lockup plus six surface assets');
+    assert.ok(new Set(assets.map((asset) => asset.src)).size >= 6, 'brand evidence page should render distinct asset files');
     for (const asset of assets) {
       assert.ok(asset.width > 0, `${asset.asset} should have visible width`);
       assert.ok(asset.height > 0, `${asset.asset} should have visible height`);
