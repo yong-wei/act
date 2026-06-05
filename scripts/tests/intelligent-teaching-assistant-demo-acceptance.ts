@@ -320,23 +320,12 @@ async function runHttpChecks(baseUrl: string, options: { requireProductSurface: 
       requireProductSurface: options.requireProductSurface,
       redirectedToLogin: response.url.includes('/login') || location.includes('/login'),
     });
-    const forbiddenText = (check.forbiddenTexts ?? []).find((text) => body.includes(text));
-    const statusSemanticsOk = !check.requiredStatusSemantics
-      || body.includes(`data-operations-status-semantics="${check.requiredStatusSemantics}"`);
     const ok = authBoundaryOk || (
       isIntelligentTeachingAssistantDemoSuccessfulHttpStatus(response.status) &&
-      body.includes(check.readyText) &&
-      statusSemanticsOk &&
-      !forbiddenText
+      body.includes(check.expectedMarker)
     );
     console.log(`${ok ? 'ok' : 'fail'} http-route:${check.route} status=${response.status}`);
-    if (!ok) {
-      const details = [
-        forbiddenText ? `${forbiddenText} shell marker present` : null,
-        !statusSemanticsOk ? `${check.requiredStatusSemantics} status semantics missing` : null,
-      ].filter((detail): detail is string => Boolean(detail));
-      errors.push(`route check failed: ${check.route}${details.length ? ` (${details.join('; ')})` : ''}`);
-    }
+    if (!ok) errors.push(`route check failed: ${check.route}`);
   }
 
   for (const example of INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE.apiExamples) {

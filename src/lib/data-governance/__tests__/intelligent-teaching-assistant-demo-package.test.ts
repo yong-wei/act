@@ -61,12 +61,12 @@ function writeSuccessfulDemoAcceptanceResponse(url: string, response: ServerResp
     response.end('<main data-intelligent-teaching-assistant-demo-surface="document-feedback">报告反馈</main>');
     return true;
   }
-  if (url.includes('/analytics-v2')) {
+  if (!url.startsWith('/api/') && url.includes('/analytics-v2')) {
     response.setHeader('Content-Type', 'text/html');
     response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics" data-operations-status-semantics="ready"><h1>班级学情总览</h1></main>');
     return true;
   }
-  if (url.includes('/students/demo-ita-student-beta')) {
+  if (!url.startsWith('/api/') && url.includes('/students/demo-ita-student-beta')) {
     response.setHeader('Content-Type', 'text/html');
     response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-student-insights" data-operations-status-semantics="ready"><h2>证据摘要</h2></main>');
     return true;
@@ -571,12 +571,12 @@ describe('intelligent teaching assistant demo package', () => {
       }
       if (url.includes('/analytics-v2')) {
         response.setHeader('Content-Type', 'text/html');
-        response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics">加载班级学情总览...</main>');
+        response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-class-analytics" data-operations-status-semantics="loading">加载班级学情总览...</main>');
         return;
       }
       if (url.includes('/students/demo-ita-student-beta')) {
         response.setHeader('Content-Type', 'text/html');
-        response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-student-insights">加载学生学情...</main>');
+        response.end('<main data-intelligent-teaching-assistant-demo-surface="teacher-student-insights" data-operations-status-semantics="loading">加载学生学情...</main>');
         return;
       }
       response.setHeader('Content-Type', 'text/html');
