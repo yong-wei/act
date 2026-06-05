@@ -39,7 +39,10 @@ import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
 import { getPlatformRoleNavigation } from '@/lib/platform-role-navigation';
 import { DataCenterChartPanel } from './shared/chart-panel';
 import { DataCenterSourceMarker } from './shared/source-marker';
-import type { DataCenterSourceQuality } from './shared/data-center-contracts';
+import {
+  SOURCE_QUALITY_MARKERS,
+  type DataCenterSourceQuality,
+} from './shared/data-center-contracts';
 import { presentationDataCenterMock } from './presentation-mock-data';
 
 const numberFormatter = new Intl.NumberFormat('zh-CN');
@@ -56,6 +59,18 @@ const metricGridClass = 'grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,2
 const operationsPanelGridClass = 'mb-6 grid gap-6 grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))]';
 const compactGridClass = 'grid gap-3 grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))]';
 const chartInitialDimension = { width: 1, height: 1 };
+
+type DataMapContextMarker = 'source-quality' | 'freshness' | 'privacy-scope' | 'status-legend';
+
+export interface DataMapContextCardModel {
+  marker: DataMapContextMarker;
+  label: string;
+  value: string;
+  summary: string;
+  actionLabel: string;
+  actionHref: string;
+  exportAvailability: '可导出' | '受限导出' | '暂缓导出';
+}
 
 interface PresentationDataCenterProps {
   role: PlatformRole;
@@ -102,6 +117,11 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
 
   const sourceQuality = (): DataCenterSourceQuality =>
     (data._meta?.sourceQuality as DataCenterSourceQuality) ?? 'demo';
+  const dataMapContextCards = buildDataMapContextCards({
+    sourceQuality: sourceQuality(),
+    generatedAt: data._meta.generatedAt,
+    role,
+  });
 
   return (
     <AppShell
@@ -121,6 +141,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
         <div
           className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-platform-border bg-platform-surface p-4"
           data-commercial-workspace-zone="context-strip"
+          data-data-map-semantics="source-quality-freshness-privacy-status"
         >
           <div className="flex min-w-0 items-center gap-3">
             <Activity className="h-5 w-5 shrink-0 text-platform-action-primary" />
@@ -133,6 +154,15 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
           </div>
           <DataCenterSourceMarker quality={sourceQuality()} showSummary />
         </div>
+
+        <section
+          className="mb-6 grid gap-3 grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))]"
+          data-governance-action-context="repair-review-export"
+        >
+          {dataMapContextCards.map((card) => (
+            <DataMapContextCard key={card.marker} card={card} />
+          ))}
+        </section>
 
         <div data-commercial-workspace-zone="instrument-area">
           {/* 1. 核心指标 (headline-metrics) */}
@@ -388,7 +418,11 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
       {/* 导出区域 */}
         </div>
 
-      <div className="flex flex-wrap items-center justify-end gap-3 border-t border-platform-border pt-4" data-commercial-workspace-zone="command-bar">
+      <div
+        id="data-center-export"
+        className="flex flex-wrap items-center justify-end gap-3 border-t border-platform-border pt-4"
+        data-commercial-workspace-zone="command-bar"
+      >
         <p className="text-xs text-platform-fg-muted">
           导出快照将自动移除原始学习证据、原始轨迹和私有数据，保留来源标记
         </p>
@@ -405,6 +439,112 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
       </div>
     </AppShell>
   );
+}
+
+function DataMapContextCard({
+  card,
+}: {
+  card: DataMapContextCardModel;
+}) {
+  return (
+    <article
+      className="rounded-lg border border-platform-border bg-platform-surface p-4"
+      data-data-map-context={card.marker}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-platform-fg-muted">{card.label}</p>
+          <p className="mt-2 text-sm font-semibold text-platform-fg-primary">{card.value}</p>
+        </div>
+        <span className="rounded-full border border-platform-border bg-platform-action-subtle p-2 text-platform-action-primary">
+          <Clock className="h-4 w-4" />
+        </span>
+      </div>
+      <p className="mt-3 text-xs leading-relaxed text-platform-fg-secondary">{card.summary}</p>
+      <a href={card.actionHref} className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-platform-action-primary">
+        {card.actionLabel}
+        <ChevronRight className="h-3.5 w-3.5" />
+      </a>
+    </article>
+  );
+}
+
+export function buildDataMapContextCards({
+  sourceQuality,
+  generatedAt,
+  role,
+}: {
+  sourceQuality: DataCenterSourceQuality;
+  generatedAt: string;
+  role: PlatformRole;
+}): DataMapContextCardModel[] {
+  const marker = SOURCE_QUALITY_MARKERS[sourceQuality];
+  const isRestricted = sourceQuality === 'restricted';
+  const isStale = sourceQuality === 'stale';
+  const isPartial = sourceQuality === 'partial';
+  const exportAvailability: DataMapContextCardModel['exportAvailability'] = isRestricted
+    ? '受限导出'
+    : isStale
+      ? '暂缓导出'
+      : '可导出';
+  const privacyValue = isRestricted
+    ? '受限聚合视图'
+    : role === 'student'
+      ? '学生聚合可见'
+      : '治理明细可见';
+  const statusValue = isStale
+    ? '待复核 · 暂缓导出'
+    : isPartial
+      ? '部分覆盖 · 需要补齐'
+      : isRestricted
+        ? '受限 · 聚合可见'
+        : '可用 · 可导出';
+  const actionHref = exportAvailability === '可导出' && role === 'student'
+    ? '/data-center#data-center-export'
+    : '/admin/data-governance';
+
+  return [
+    {
+      marker: 'source-quality',
+      label: '来源质量',
+      value: marker.label,
+      summary: `${marker.summary}；所有图表继续保留来源质量标记。`,
+      actionLabel: sourceQuality === 'real' ? '查看来源口径' : '查看复核口径',
+      actionHref,
+      exportAvailability,
+    },
+    {
+      marker: 'freshness',
+      label: '新鲜度',
+      value: isStale ? '需要复核' : `最近同步：${generatedAt}`,
+      summary: isStale
+        ? `最近同步：${generatedAt}，下一次复核需要确认过期数据是否仍可用于报告。`
+        : `最近同步：${generatedAt}，下一次复核会检查过期、部分覆盖和缺失上下文。`,
+      actionLabel: '下一次复核',
+      actionHref,
+      exportAvailability,
+    },
+    {
+      marker: 'privacy-scope',
+      label: '隐私范围',
+      value: privacyValue,
+      summary: isRestricted
+        ? '当前来源受隐私策略限制，仅展示聚合视图；导出前需要教师或审核角色确认范围。'
+        : '学生侧只展示聚合视图，教师和审核角色可进入治理明细。',
+      actionLabel: role === 'student' ? '查看聚合口径' : '进入治理复核',
+      actionHref,
+      exportAvailability,
+    },
+    {
+      marker: 'status-legend',
+      label: '状态图例',
+      value: statusValue,
+      summary: `导出可用性：${exportAvailability}；修复动作随来源质量、新鲜度和隐私范围变化。`,
+      actionLabel: exportAvailability === '可导出' ? '导出可用性' : '查看修复动作',
+      actionHref,
+      exportAvailability,
+    },
+  ];
 }
 
 function MetricCard({

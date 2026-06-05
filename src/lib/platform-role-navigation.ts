@@ -656,7 +656,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-learner-data-and-report-surfaces',
+    owningChange: 'redesign-knowledge-and-data-surfaces',
   }),
   primaryRoute({
     href: '/classroom/student/[sessionId]',
@@ -1087,7 +1087,7 @@ export const PLATFORM_REPORT_SURFACE_INVENTORY: PlatformReportSurfaceInventoryEn
     sourceFile: 'src/app/data-center/page.tsx',
     surfaceType: 'primary-route',
     owningChange: 'redesign-report-ledger-and-export-surfaces',
-    sourceShellOwner: 'redesign-learner-data-and-report-surfaces',
+    sourceShellOwner: 'redesign-knowledge-and-data-surfaces',
     visualQaProfile: 'direct-capture',
   },
 ] as const;

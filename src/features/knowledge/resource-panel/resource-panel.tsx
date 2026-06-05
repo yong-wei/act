@@ -62,6 +62,81 @@ function resolveInfographSrc(resource: ReturnType<typeof extractInfographResourc
   return resource.path.startsWith('/') ? resource.path : `/${resource.path}`;
 }
 
+function isKnowledgeCardPath(value: unknown): boolean {
+  return typeof value === 'string'
+    && (
+      value.startsWith('content/concepts/')
+      || value.startsWith('course-content/runtime/knowledge/cards/')
+    );
+}
+
+export function resolveKnowledgeResourceLaunch(node: KnowledgeNodeData | null) {
+  if (!node) {
+    return {
+      href: null,
+      label: '等待选择知识节点',
+      reason: '请选择一个知识节点后再启动资源。',
+      lessonId: null,
+      hasKnowledgeCard: false,
+    };
+  }
+
+  const metadata = (node.metadata ?? {}) as Record<string, unknown>;
+  const lessonId = typeof metadata.lessonId === 'string' && metadata.lessonId.trim()
+    ? metadata.lessonId.trim()
+    : null;
+  const hasKnowledgeCard = (Array.isArray(node.resources) && node.resources.some(isKnowledgeCardPath))
+    || isKnowledgeCardPath(metadata.launchTarget)
+    || isKnowledgeCardPath(metadata.renderTarget)
+    || isKnowledgeCardPath(metadata.lessonEntry);
+  const explicitTarget = metadata.launchTarget ?? metadata.renderTarget ?? metadata.lessonEntry;
+  if (typeof explicitTarget === 'string' && explicitTarget.trim() && !isKnowledgeCardPath(explicitTarget)) {
+    return {
+      href: explicitTarget.startsWith('/') ? explicitTarget : `/${explicitTarget}`,
+      label: '启动关联资源',
+      reason: null,
+      lessonId,
+      hasKnowledgeCard,
+    };
+  }
+
+  const resourcePath = Array.isArray(node.resources)
+    ? node.resources.find((item): item is string => typeof item === 'string' && item.trim().length > 0)
+    : null;
+  if (resourcePath && !hasKnowledgeCard) {
+    const href = resourcePath.startsWith('course-content/runtime/knowledge/')
+      ? resourcePath.replace('course-content/runtime/knowledge/', '/course-runtime/knowledge/')
+      : resourcePath.startsWith('/')
+        ? resourcePath
+        : `/${resourcePath}`;
+    return {
+      href,
+      label: resourcePath.includes('/cards/') ? '打开知识卡片资源' : '启动关联资源',
+      reason: null,
+      lessonId,
+      hasKnowledgeCard,
+    };
+  }
+
+  if (lessonId) {
+    return {
+      href: `/interactive-learning/courses/${lessonId}`,
+      label: '进入关联课程',
+      reason: null,
+      lessonId,
+      hasKnowledgeCard,
+    };
+  }
+
+  return {
+    href: null,
+    label: hasKnowledgeCard ? '查看知识卡片' : '暂无可启动资源',
+    reason: hasKnowledgeCard ? '该节点关联知识卡片，请使用上方知识卡片入口查看。' : '该节点尚未关联课程资源、仿真或证据入口。',
+    lessonId,
+    hasKnowledgeCard,
+  };
+}
+
 export function ResourcePanel({
   isOpen,
   selectedNode,
@@ -149,6 +224,11 @@ export function ResourcePanel({
   const bloomLabel = getBloomLabel(displayNode.bloomLevel);
   const knowledgeLabel = getKnowledgeDimLabel(displayNode.knowledgeDim);
   const isVirtualChapter = isChapterNodeId(displayNode.id) || Boolean(metadata.isVirtualChapter);
+  const launchAction = resolveKnowledgeResourceLaunch(displayNode);
+  const returnHref = `/knowledge?node=${encodeURIComponent(displayNode.id)}`;
+  const evidenceHref = launchAction.lessonId
+    ? `/profile/evidence?lessonId=${encodeURIComponent(launchAction.lessonId)}`
+    : '/profile/evidence';
 
   const examples = toStringArray(metadata.examples);
   const keywords = toStringArray(metadata.keywords);
@@ -404,6 +484,54 @@ export function ResourcePanel({
                 ) : (
                   <span className={`text-xs ${panelTheme.muted}`}>未关联</span>
                 )}
+              </div>
+            </section>
+          )}
+
+          {!isVirtualChapter && (
+            <section
+              className="rounded-lg border border-platform-border bg-platform-surface p-3"
+              data-resource-node-launch-contract="launch-return-evidence"
+            >
+              <div className="mb-3 flex items-center gap-2">
+                <ArrowRight className="h-4 w-4 text-platform-action-primary" />
+                <h3 className="text-sm font-medium text-platform-fg-primary">学习路径动作</h3>
+              </div>
+              <div className="grid gap-2">
+                {launchAction.href ? (
+                  <a
+                    href={launchAction.href}
+                    className="inline-flex items-center justify-between rounded-md border border-platform-border bg-platform-action-subtle px-3 py-2 text-xs font-medium text-platform-fg-primary transition-colors hover:bg-platform-action-primary hover:text-platform-fg-inverse"
+                    data-resource-node-action="launch"
+                  >
+                    {launchAction.label}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </a>
+                ) : (
+                  <div
+                    className="rounded-md border border-platform-border bg-platform-action-subtle px-3 py-2 text-xs text-platform-fg-secondary"
+                    data-resource-node-action="launch"
+                    aria-disabled="true"
+                  >
+                    {launchAction.reason}
+                  </div>
+                )}
+                <a
+                  href={returnHref}
+                  className="inline-flex items-center justify-between rounded-md border border-platform-border px-3 py-2 text-xs font-medium text-platform-fg-secondary transition-colors hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                  data-resource-node-action="return-to-learning-path"
+                >
+                  返回当前知识路径
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </a>
+                <a
+                  href={evidenceHref}
+                  className="inline-flex items-center justify-between rounded-md border border-platform-border px-3 py-2 text-xs font-medium text-platform-fg-secondary transition-colors hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                  data-resource-node-action="review-evidence"
+                >
+                  {launchAction.lessonId ? '查看关联课次证据' : '进入证据浏览器'}
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </a>
               </div>
             </section>
           )}

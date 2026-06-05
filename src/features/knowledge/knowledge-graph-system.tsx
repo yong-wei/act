@@ -79,6 +79,7 @@ interface KnowledgeGraphSystemProps {
   // Props can still be passed for initial state or override, but we default to fetching
   initialNodes?: KnowledgeNodeData[];
   initialLinks?: KnowledgeLinkData[];
+  initialSelectedNodeId?: string | null;
 }
 
 interface GraphApiResponse {
@@ -90,6 +91,7 @@ interface GraphApiResponse {
 export function KnowledgeGraphSystem({
   initialNodes = [],
   initialLinks = [],
+  initialSelectedNodeId = null,
 }: KnowledgeGraphSystemProps) {
   const [nodes, setNodes] = useState<KnowledgeNodeData[]>(initialNodes);
   const [links, setLinks] = useState<KnowledgeLinkData[]>(initialLinks);
@@ -363,6 +365,17 @@ export function KnowledgeGraphSystem({
     }
   }, [displayNodes, selectedNode]);
 
+  useEffect(() => {
+    if (selectedNode || nodes.length === 0) return;
+    const requestedNodeId = initialSelectedNodeId
+      ?? new URLSearchParams(window.location.search).get('node');
+    if (!requestedNodeId) return;
+    const node = nodes.find((item) => item.id === requestedNodeId);
+    if (!node) return;
+    setSelectedNode(node);
+    setIsPanelOpen(true);
+  }, [initialSelectedNodeId, nodes, selectedNode]);
+
   const hoveredBloomLabel = hoveredNode?.bloomLevel ? getBloomLabel(hoveredNode.bloomLevel) : '';
   const hoveredKnowledgeDimLabel = hoveredNode?.knowledgeDim
     ? getKnowledgeDimLabel(hoveredNode.knowledgeDim)
@@ -372,26 +385,194 @@ export function KnowledgeGraphSystem({
     : '';
 
   return (
-    <div className="flex h-screen w-full bg-[#020721] text-slate-200">
+    <div
+      className="relative flex h-screen w-full bg-platform-page text-platform-fg-primary"
+      data-knowledge-workspace="canvas-first"
+      data-knowledge-squeeze-down-rejected="permanent-panels-hidden-at-320"
+    >
       {/* 左侧导航侧边栏 */}
-      <KnowledgeSidebar
-        nodes={nodeFilteredByMeta}
-        selectedNodeId={selectedNode?.id}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onNodeSelect={handleNodeClick}
-        onNodeHover={setHoveredNode}
-      />
+      <div className="hidden h-full shrink-0 lg:block" data-knowledge-desktop-panel="chapter-directory">
+        <KnowledgeSidebar
+          nodes={nodeFilteredByMeta}
+          selectedNodeId={selectedNode?.id}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onNodeSelect={handleNodeClick}
+          onNodeHover={setHoveredNode}
+        />
+      </div>
 
       {/* 中央图谱区域 */}
-      <div ref={containerRef} className="relative flex-1 h-full overflow-hidden">
+      <div ref={containerRef} className="relative h-full min-w-0 flex-1 overflow-hidden" data-knowledge-canvas-primary="true">
+        <div className="absolute left-3 right-3 top-3 z-30 grid gap-2 lg:hidden" data-knowledge-mobile-command-surface="drawer-launchers">
+          <div className="flex flex-wrap items-center gap-2">
+            <details
+              className="group rounded-lg border border-platform-border bg-platform-surface/95 px-3 py-2 text-xs text-platform-fg-primary shadow-lg backdrop-blur"
+              data-knowledge-mobile-drawer="chapter-directory"
+            >
+              <summary className="cursor-pointer font-medium">章节目录</summary>
+              <div className="mt-2 max-h-48 min-w-[min(17rem,calc(100vw-2rem))] overflow-y-auto">
+                <KnowledgeSidebar
+                  nodes={nodeFilteredByMeta}
+                  selectedNodeId={selectedNode?.id}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  onNodeSelect={handleNodeClick}
+                  onNodeHover={setHoveredNode}
+                />
+              </div>
+            </details>
+
+            <details
+              className="rounded-lg border border-platform-border bg-platform-surface/95 px-3 py-2 text-xs text-platform-fg-primary shadow-lg backdrop-blur"
+              data-knowledge-mobile-drawer="relation-filters"
+            >
+              <summary className="cursor-pointer font-medium">关系筛选</summary>
+              <div className="mt-2 max-h-56 w-[min(17rem,calc(100vw-2rem))] overflow-y-auto space-y-2">
+                <p className="text-platform-fg-secondary">关系 {displayLinks.length} 条 · 节点 {filteredNodes.length} / {nodes.length}</p>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="关键词搜索"
+                  className="w-full rounded-md border border-platform-border bg-platform-surface px-2 py-1.5 text-xs text-platform-fg-primary outline-none"
+                />
+                <div className="grid grid-cols-3 gap-1 rounded-lg border border-platform-border p-0.5">
+                  {([
+                    ['structure', '结构优先'],
+                    ['focused', '焦点邻域'],
+                    ['all', '全部关系'],
+                  ] as const).map(([mode, label]) => (
+                    <button
+                      key={`mobile-density-${mode}`}
+                      type="button"
+                      aria-pressed={relationDensityMode === mode}
+                      onClick={() => setRelationDensityMode(mode)}
+                      className={`rounded px-2 py-1 text-[10px] transition-colors ${
+                        relationDensityMode === mode
+                          ? 'bg-platform-action-primary text-platform-fg-inverse'
+                          : 'text-platform-fg-muted hover:bg-platform-action-subtle hover:text-platform-fg-primary'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {relationTypeStats.map((item) => {
+                    const selected = selectedRelationTypes.includes(item.type);
+                    return (
+                      <button
+                        type="button"
+                        key={`mobile-relation-${item.type}`}
+                        aria-pressed={selected}
+                        onClick={() => toggleRelationType(item.type)}
+                        className={`rounded-full border px-2 py-1 text-[10px] transition-colors ${
+                          selected
+                            ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary'
+                            : 'border-platform-border text-platform-fg-secondary'
+                        }`}
+                      >
+                        {getRelationLabel(item.type)} · {item.count}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="grid gap-2">
+                  <details className="rounded-md border border-platform-border px-2 py-1.5">
+                    <summary className="cursor-pointer text-[11px] font-medium">category 筛选{selectedCategories.length > 0 ? ` · ${selectedCategories.length}` : ''}</summary>
+                    <div className="mt-2 grid gap-1">
+                      {categoryOptions.map((category) => (
+                        <label key={`mobile-category-${category}`} className="flex items-center gap-2 text-[11px] text-platform-fg-secondary">
+                          <input
+                            type="checkbox"
+                            checked={selectedCategories.includes(category)}
+                            onChange={() => toggleMultiSelectValue(category, setSelectedCategories)}
+                            className="accent-[hsl(var(--platform-action-primary))]"
+                          />
+                          <span>{category}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </details>
+                  <details className="rounded-md border border-platform-border px-2 py-1.5">
+                    <summary className="cursor-pointer text-[11px] font-medium">bloom_level 筛选{selectedBloomLevels.length > 0 ? ` · ${selectedBloomLevels.length}` : ''}</summary>
+                    <div className="mt-2 grid gap-1">
+                      {bloomOptions.map((bloom) => (
+                        <label key={`mobile-bloom-${bloom}`} className="flex items-center gap-2 text-[11px] text-platform-fg-secondary">
+                          <input
+                            type="checkbox"
+                            checked={selectedBloomLevels.includes(bloom)}
+                            onChange={() => toggleMultiSelectValue(bloom, setSelectedBloomLevels)}
+                            className="accent-[hsl(var(--platform-action-primary))]"
+                          />
+                          <span>{getBloomLabel(bloom)}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </details>
+                </div>
+                <label className="grid gap-1 text-[11px] text-platform-fg-secondary">
+                  <span>关系强度阈值：{minRelationStrength.toFixed(1)}</span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.1}
+                    value={minRelationStrength}
+                    onChange={(event) => setMinRelationStrength(Number(event.target.value))}
+                    className="w-full accent-[hsl(var(--platform-action-primary))]"
+                  />
+                </label>
+                <label className="flex items-center gap-2 text-[11px] text-platform-fg-secondary">
+                  <input
+                    type="checkbox"
+                    checked={showOnlyConnectedNodes}
+                    onChange={(event) => setShowOnlyConnectedNodes(event.target.checked)}
+                    className="accent-[hsl(var(--platform-action-primary))]"
+                  />
+                  <span>仅显示存在可见关系的节点</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedChapters([]);
+                    setSelectedCategories([]);
+                    setSelectedBloomLevels([]);
+                    setSearchQuery('');
+                  }}
+                  className="w-full rounded-md border border-platform-border px-2 py-1.5 text-[11px] text-platform-fg-secondary"
+                >
+                  清空节点筛选条件
+                </button>
+              </div>
+            </details>
+
+            <details
+              className="rounded-lg border border-platform-border bg-platform-surface/95 px-3 py-2 text-xs text-platform-fg-primary shadow-lg backdrop-blur"
+              data-knowledge-mobile-drawer="legend"
+            >
+              <summary className="cursor-pointer font-medium">图例</summary>
+              <div className="mt-2 grid w-[min(17rem,calc(100vw-2rem))] gap-1 text-[11px] text-platform-fg-secondary">
+                <span>实线箭头：前置/基础</span>
+                <span>粗实线：章节包含</span>
+                <span>长虚线箭头：后续/引出</span>
+                <span>短虚线箭头：应用</span>
+                <span>短虚线无箭头：对立</span>
+                <span>细虚线：弱关联</span>
+              </div>
+            </details>
+          </div>
+        </div>
+
         {/* 筛选控制区 */}
         <div
-          className={`absolute left-4 top-4 z-20 w-[360px] rounded-xl p-3 backdrop-blur-md ${
+          className={`absolute left-4 top-4 z-20 hidden max-w-[calc(100vw-2rem)] rounded-xl p-3 backdrop-blur-md lg:block lg:w-[22.5rem] ${
             isLightTheme
               ? 'border border-slate-300/90 bg-white/95 text-slate-800 shadow-[0_12px_28px_rgba(15,23,42,0.12)]'
               : 'border border-amber-300/20 bg-[#0b183f]/90 text-slate-200 shadow-[0_8px_30px_rgba(2,8,30,0.45)]'
           }`}
+          data-knowledge-desktop-panel="relation-filters"
         >
           <div className="mb-2 flex items-center justify-between">
             <div className={`text-xs font-semibold tracking-wide ${isLightTheme ? 'text-slate-700' : 'text-amber-200'}`}>
