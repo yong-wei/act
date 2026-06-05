@@ -111,6 +111,7 @@ export default async function CruiseSimulationPage(props: CruiseSimulationPagePr
       data-task-workspace-archetype="immersive-scene"
       data-launch-provenance={launchKind}
       data-return-target="/simulations"
+      data-evidence-flow-target="/profile/evidence"
     >
       <FeaturePageNav title="邮轮仿真" backHref="/simulations" backLabel="返回仿真入口" floating />
       <section
@@ -120,7 +121,7 @@ export default async function CruiseSimulationPage(props: CruiseSimulationPagePr
         <div className="font-semibold text-white">{launchDescription.label}</div>
         <div className="mt-1 leading-5 text-slate-300">{launchDescription.summary}</div>
       </section>
-      <section data-commercial-workspace-zone="instrument-area">
+      <section data-commercial-workspace-zone="instrument-area" data-instrument-nonblank-contract="simulation-scene">
         <CruiseSimulation />
       </section>
       {blackBoxTask && canRenderBlackBoxPanel ? (
@@ -134,17 +135,23 @@ export default async function CruiseSimulationPage(props: CruiseSimulationPagePr
         </div>
       ) : null}
       <section
-        className="pointer-events-none fixed bottom-5 left-4 z-20 max-w-[min(30rem,calc(100vw-2rem))] rounded-lg border border-cyan-300/20 bg-cyan-950/70 px-4 py-2 text-xs leading-5 text-cyan-50 shadow-2xl backdrop-blur md:left-6"
+        className="mx-4 mt-3 max-w-[min(30rem,calc(100vw-2rem))] rounded-lg border border-platform-border-strong bg-platform-action-subtle px-4 py-2 text-xs leading-5 text-platform-fg-primary shadow-2xl backdrop-blur md:pointer-events-none md:fixed md:bottom-5 md:left-6 md:mx-0"
         data-commercial-workspace-zone="command-bar"
         data-task-workspace-zone="bottom-tools"
       >
         场景相机、参数和任务工具属于仿真局部控制；Konling、角色座舱和账户设置属于全局外层控制。
       </section>
-      <section className="sr-only" data-commercial-workspace-zone="support-drawer">
-        仿真模型、回放、Arena 预览和官方评价边界由场景与 Arena 域提供。
-      </section>
+      <details className="mx-4 mt-3 max-w-[min(30rem,calc(100vw-2rem))] rounded-lg border border-platform-border bg-platform-surface-overlay px-4 py-3 text-xs leading-5 text-platform-fg-secondary shadow-xl backdrop-blur" data-commercial-workspace-zone="support-drawer">
+        <summary className="cursor-pointer font-semibold text-platform-fg-primary">支持与证据状态</summary>
+        <p className="mt-2">
+          仿真模型、回放、Arena 预览和官方评价边界由场景与 Arena 域提供；当前无可回放记录时以预览或不可用状态呈现。
+        </p>
+      </details>
       <section className="sr-only" data-commercial-workspace-zone="bottom-tools">
         相机、视角和场景工具为任务局部控制。
+      </section>
+      <section className="sr-only" data-task-workspace-zone="floating-dock-safe-area">
+        移动端底部说明条不固定覆盖场景；桌面浮层避让全局 dock 和场景局部工具。
       </section>
     </div>
   );
