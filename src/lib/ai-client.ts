@@ -4,11 +4,13 @@
  * 业务侧只依赖 getAIModel；供应商和模型由 src/lib/ai/provider-registry 解析。
  */
 
-import { createAIProviderFromConfig, getActiveAIProvider, getAIProviderConfig } from '@/lib/ai/provider-registry';
+import { createAIProviderFromConfig, getActiveAIProvider } from '@/lib/ai/provider-registry';
+import { resolveAIProviderConfig } from '@/lib/ai/provider-config';
 import { resolveConfiguredAIProviderConfig } from '@/lib/ai/provider-settings';
+import type { ModelProviderCapabilityRequirements } from '@/lib/ai/model-provider-compatibility';
 
 // 默认模型
-export const DEFAULT_MODEL = getAIProviderConfig().model;
+export const DEFAULT_MODEL = resolveAIProviderConfig().model;
 
 // 获取 AI 模型实例
 export function getAIModel(modelId?: string) {
@@ -16,16 +18,16 @@ export function getAIModel(modelId?: string) {
 }
 
 export function isAIServiceConfigured(): boolean {
-  return getAIProviderConfig().apiKey.trim().length > 0;
+  return resolveAIProviderConfig().apiKey.trim().length > 0;
 }
 
-export async function getConfiguredAIModel(modelId?: string) {
-  const config = await resolveConfiguredAIProviderConfig(undefined, modelId);
+export async function getConfiguredAIModel(modelId?: string, requirements?: ModelProviderCapabilityRequirements) {
+  const config = await resolveConfiguredAIProviderConfig(undefined, modelId, requirements);
   return createAIProviderFromConfig(config).getModel(modelId || config.model);
 }
 
-export async function isConfiguredAIServiceAvailable(): Promise<boolean> {
-  const config = await resolveConfiguredAIProviderConfig();
+export async function isConfiguredAIServiceAvailable(requirements?: ModelProviderCapabilityRequirements): Promise<boolean> {
+  const config = await resolveConfiguredAIProviderConfig(undefined, undefined, requirements);
   return config.apiKey.trim().length > 0;
 }
 

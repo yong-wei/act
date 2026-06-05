@@ -28,6 +28,8 @@ import {
   KonlingRuntimeScopeError,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
+import { AIProviderCapabilityUnavailableError } from '@/lib/ai/provider-settings';
+import { redactProviderError, type ModelProviderCapabilityRequirements } from '@/lib/ai/model-provider-compatibility';
 import type { AIContext, PageContext, UserProfile } from '@/types/ai-context';
 
 export const runtime = 'nodejs';
@@ -35,11 +37,13 @@ export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
 
 function sanitizeAIErrorMessage(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error);
-  return message.replace(/Bearer\s+\S+/g, 'Bearer ***').slice(0, 500);
+  return redactProviderError(error);
 }
 
 function isExternalAIProviderError(error: unknown) {
+  if (error instanceof AIProviderCapabilityUnavailableError) {
+    return true;
+  }
   if (!(error instanceof Error)) {
     return false;
   }
@@ -147,6 +151,7 @@ export async function POST(request: Request) {
     let systemPrompt: string;
     let agentSessionResponseHeaders: HeadersInit | undefined;
     let citationGuardMetadata: ReturnType<typeof buildKonlingCitationGuard> | null = null;
+    let modelRequirements: ModelProviderCapabilityRequirements | undefined;
 
     if (session?.user?.id && hasRuntimeContext) {
       const scope = await verifyKonlingRuntimeScope(prisma, {
@@ -189,6 +194,11 @@ export async function POST(request: Request) {
         adaptiveRuntime: runtimeContext,
       });
       citationGuardMetadata = buildKonlingStreamingCitationGuard(runtimeContext);
+      modelRequirements = {
+        tools: true,
+        streaming: true,
+        citationNormalization: true,
+      };
       const agentSession = await getOrCreateKonlingAgentSession(prisma, {
         scope: scope.scope,
         agentSessionId,
@@ -222,7 +232,7 @@ export async function POST(request: Request) {
     }
 
     // 检查 API Key 配置
-    if (!(await isConfiguredAIServiceAvailable())) {
+    if (!(await isConfiguredAIServiceAvailable(modelRequirements))) {
       return new Response(
         JSON.stringify({
           error: 'AI 服务未配置',
@@ -237,7 +247,7 @@ export async function POST(request: Request) {
 
     // 使用 Vercel AI SDK 生成流式响应
     const result = await streamText({
-      model: await getConfiguredAIModel(),
+      model: await getConfiguredAIModel(undefined, modelRequirements),
       system: systemPrompt,
       messages: await toModelMessages(uiMessages),
       tools,

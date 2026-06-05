@@ -1,5 +1,7 @@
-## ADDED Requirements
+## Purpose
 
+Define the service-id based AI model provider compatibility matrix for normalized runtime selection, provider semantics, and admin-scoped configuration.
+## Requirements
 ### Requirement: Model providers are registered through a compatibility matrix
 The system SHALL register AI model providers through a service-id based compatibility matrix.
 
@@ -26,10 +28,10 @@ The system SHALL normalize provider-specific requests, responses, streaming even
 - **THEN** the adapter SHALL normalize input, output, streaming events, tool calls, tool results, and citations into the platform contract
 - **AND** provider-specific response shapes SHALL NOT leak into normal Konling, recommendation, or report code.
 
-#### Scenario: Anthropic-compatible provider is used
-- **WHEN** a runtime calls an Anthropic-compatible provider
-- **THEN** the adapter SHALL normalize stateless message loops, `tool_use`, `tool_result`, streaming events, and citations into the platform contract
-- **AND** application code SHALL handle required tool-result turns through the normalized runtime loop.
+#### Scenario: Anthropic-compatible provider metadata is registered before a native adapter exists
+- **WHEN** an Anthropic-compatible provider is present in the compatibility matrix
+- **THEN** the system SHALL normalize Anthropic-compatible response fixtures for `tool_use`, `tool_result`, streaming events, and citations into the platform contract
+- **AND** runtime provider selection SHALL NOT choose that provider until a native runtime adapter marks it as supported.
 
 #### Scenario: Citation capability is missing
 - **WHEN** a provider cannot produce or preserve citation data required by a runtime mode

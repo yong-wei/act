@@ -27,6 +27,10 @@ const providerTypesSource = readFileSync(
   join(process.cwd(), 'src/lib/ai/providers/types.ts'),
   'utf8',
 );
+const providerRegistrySource = readFileSync(
+  join(process.cwd(), 'src/lib/ai/provider-registry.ts'),
+  'utf8',
+);
 
 describe('SiliconFlow AI SDK provider adapter', () => {
   beforeEach(() => {
@@ -39,6 +43,8 @@ describe('SiliconFlow AI SDK provider adapter', () => {
     expect(siliconflowSource).toContain('return siliconflow.chat(modelId || config.model)');
     expect(siliconflowSource).not.toContain('return siliconflow(modelId || config.model)');
     expect(providerTypesSource).toContain("ReturnType<OpenAICompatibleProvider['chat']>");
+    expect(providerRegistrySource).toContain("config.providerKind === 'openai-compatible'");
+    expect(providerRegistrySource).toContain('requires a native adapter before runtime use');
   });
 
   it('sends generic SiliconFlow chat requests without stream_options', async () => {
@@ -50,9 +56,16 @@ describe('SiliconFlow AI SDK provider adapter', () => {
     );
     const config: AIProviderConfig = {
       provider: 'siliconflow',
+      providerKind: 'openai-compatible',
       baseURL: 'https://api.siliconflow.cn/v1',
       apiKey: 'test-key',
+      authMode: 'bearer-api-key',
+      secretRef: 'env:SILICONFLOW_API_KEY',
       model: 'Qwen/Qwen3.6-35B-A3B',
+      enabled: true,
+      priority: 100,
+      health: 'unknown',
+      capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: true },
     };
 
     createSiliconFlowAdapter(config);
@@ -89,9 +102,16 @@ describe('SiliconFlow AI SDK provider adapter', () => {
     );
     const config: AIProviderConfig = {
       provider: 'siliconflow',
+      providerKind: 'openai-compatible',
       baseURL: 'https://api.siliconflow.cn/v1',
       apiKey: 'test-key',
+      authMode: 'bearer-api-key',
+      secretRef: 'env:SILICONFLOW_API_KEY',
       model: 'Vendor/Model',
+      enabled: true,
+      priority: 100,
+      health: 'unknown',
+      capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: true },
     };
 
     createSiliconFlowAdapter(config);

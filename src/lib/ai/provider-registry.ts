@@ -1,5 +1,6 @@
 import { resolveAIProviderConfig } from './provider-config';
 import { createSiliconFlowAdapter } from './providers/siliconflow';
+import { createOpenAICompatibleAdapter } from './providers/openai-compatible';
 import type { AIProviderAdapter } from './providers/types';
 
 let activeProvider: AIProviderAdapter | null = null;
@@ -14,16 +15,23 @@ export function getActiveAIProvider(): AIProviderAdapter {
     activeProvider = createSiliconFlowAdapter(config);
     return activeProvider;
   }
+  if (config.providerKind === 'openai-compatible') {
+    activeProvider = createOpenAICompatibleAdapter(config);
+    return activeProvider;
+  }
 
-  throw new Error(`Unsupported AI provider: ${config.provider}`);
+  throw new Error(`AI provider ${config.provider} is ${config.providerKind} and requires a native adapter before runtime use.`);
 }
 
 export function createAIProviderFromConfig(config = resolveAIProviderConfig()): AIProviderAdapter {
   if (config.provider === 'siliconflow') {
     return createSiliconFlowAdapter(config);
   }
+  if (config.providerKind === 'openai-compatible') {
+    return createOpenAICompatibleAdapter(config);
+  }
 
-  throw new Error(`Unsupported AI provider: ${config.provider}`);
+  throw new Error(`AI provider ${config.provider} is ${config.providerKind} and requires a native adapter before runtime use.`);
 }
 
 export function getAIProviderConfig() {

@@ -25,12 +25,31 @@ interface AIProviderModelSetting {
   description?: string;
 }
 
+type AIProviderKind = 'openai-compatible' | 'anthropic-compatible';
+type AIProviderHealthState = 'unknown' | 'healthy' | 'degraded' | 'unavailable';
+
+interface AIProviderCapabilities {
+  tools: boolean;
+  reasoning: boolean;
+  vision: boolean;
+  jsonSchema: boolean;
+  streaming: boolean;
+  citationNormalization: boolean;
+}
+
 interface AIProviderSetting {
   id: string;
   name: string;
+  providerKind: AIProviderKind;
   baseURL: string;
+  authMode: 'bearer-api-key' | 'none';
+  secretRef: string;
   selectedModel: string;
   models: AIProviderModelSetting[];
+  enabled: boolean;
+  priority: number;
+  health: AIProviderHealthState;
+  capabilities: AIProviderCapabilities;
 }
 
 interface AIProviderSettings {
@@ -65,8 +84,22 @@ const DEFAULT_AI_SETTINGS: AIProviderSettings = {
     {
       id: 'siliconflow',
       name: 'SiliconFlow',
+      providerKind: 'openai-compatible',
       baseURL: 'https://api.siliconflow.cn/v1',
+      authMode: 'bearer-api-key',
+      secretRef: 'env:SILICONFLOW_API_KEY',
       selectedModel: 'Qwen/Qwen3.6-35B-A3B',
+      enabled: true,
+      priority: 100,
+      health: 'unknown',
+      capabilities: {
+        tools: true,
+        reasoning: false,
+        vision: false,
+        jsonSchema: true,
+        streaming: true,
+        citationNormalization: true,
+      },
       models: [
         {
           id: 'qwen-3-6-35b-a3b',
@@ -96,6 +129,10 @@ function makeId(value: string, fallback: string): string {
   return id || fallback;
 }
 
+function defaultSecretRef(providerId: string): string {
+  return `env:${providerId.toUpperCase().replace(/[^A-Z0-9]+/g, '_')}_API_KEY`;
+}
+
 type SystemConfigDashboardProps = {
   currentUser: AdminConsoleUser;
 };
@@ -117,7 +154,13 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [aiSettings, setAiSettings] = useState<AIProviderSettings>(DEFAULT_AI_SETTINGS);
-  const [newProvider, setNewProvider] = useState({ id: '', name: '', baseURL: '' });
+  const [newProvider, setNewProvider] = useState<{
+    id: string;
+    name: string;
+    providerKind: AIProviderKind;
+    baseURL: string;
+    secretRef: string;
+  }>({ id: '', name: '', providerKind: 'openai-compatible', baseURL: '', secretRef: '' });
   const [newModel, setNewModel] = useState({ label: '', model: '', description: '' });
   const [editingModel, setEditingModel] = useState<{
     providerId: string;
@@ -216,6 +259,21 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
     });
   };
 
+  const updateProviderCapability = (
+    providerId: string,
+    capability: keyof AIProviderCapabilities,
+    enabled: boolean,
+  ) => {
+    const provider = aiSettings.providers.find((item) => item.id === providerId);
+    if (!provider) return;
+    updateProvider(providerId, {
+      capabilities: {
+        ...provider.capabilities,
+        [capability]: enabled,
+      },
+    });
+  };
+
   const selectProvider = (providerId: string) => {
     const provider = aiSettings.providers.find((item) => item.id === providerId);
     setAiSettings((prev) => ({ ...prev, activeProvider: providerId }));
@@ -240,15 +298,38 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
     const provider: AIProviderSetting = {
       id,
       name: newProvider.name.trim() || id,
+      providerKind: newProvider.providerKind,
       baseURL: newProvider.baseURL.trim(),
+      authMode: 'bearer-api-key',
+      secretRef: newProvider.secretRef.trim() || defaultSecretRef(id),
       selectedModel: '',
+      enabled: true,
+      priority: 100,
+      health: 'unknown',
+      capabilities: newProvider.providerKind === 'anthropic-compatible'
+        ? {
+            tools: true,
+            reasoning: true,
+            vision: true,
+            jsonSchema: false,
+            streaming: true,
+            citationNormalization: true,
+          }
+        : {
+            tools: true,
+            reasoning: false,
+            vision: false,
+            jsonSchema: true,
+            streaming: true,
+            citationNormalization: false,
+          },
       models: [],
     };
     setAiSettings((prev) => ({
       activeProvider: id,
       providers: [...prev.providers, provider],
     }));
-    setNewProvider({ id: '', name: '', baseURL: '' });
+    setNewProvider({ id: '', name: '', providerKind: 'openai-compatible', baseURL: '', secretRef: '' });
     setConfig((prev) => ({ ...prev, aiProvider: id, aiModelEndpoint: provider.baseURL, aiModelName: '' }));
   };
 
@@ -590,26 +671,101 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
               </div>
 
               {activeProvider && (
-                <div className="space-y-4 rounded-xl border border-slate-800 bg-slate-950/40 p-4">
-                  <div className="grid gap-3 md:grid-cols-[0.8fr_1fr]">
-                    <div>
-                      <label className="mb-2 block text-xs font-medium text-slate-400">供应商名称</label>
-                      <input
+                <div className="admin-console-surface-soft space-y-4">
+                    <div className="grid gap-3 md:grid-cols-[0.8fr_1fr]">
+                      <div>
+                        <label className="mb-2 block text-xs font-medium text-platform-fg-muted">供应商名称</label>
+                        <input
                         type="text"
                         value={activeProvider.name}
                         onChange={(event) => updateProvider(activeProvider.id, { name: event.target.value })}
-                        className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
+                        className="admin-console-input w-full px-3 py-2 text-sm"
                       />
                     </div>
                     <div>
-                      <label className="mb-2 block text-xs font-medium text-slate-400">API 端点</label>
+                      <label className="mb-2 block text-xs font-medium text-platform-fg-muted">API 端点</label>
                       <input
                         type="text"
                         value={activeProvider.baseURL}
                         onChange={(event) => updateProvider(activeProvider.id, { baseURL: event.target.value })}
-                        className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
+                        className="admin-console-input w-full px-3 py-2 text-sm"
                       />
                     </div>
+                    <div>
+                      <label className="mb-2 block text-xs font-medium text-platform-fg-muted">供应商类型</label>
+                      <select
+                        value={activeProvider.providerKind}
+                        onChange={(event) => updateProvider(activeProvider.id, { providerKind: event.target.value as AIProviderKind })}
+                        className="admin-console-input w-full px-3 py-2 text-sm"
+                      >
+                        <option value="openai-compatible">OpenAI Compatible</option>
+                        <option value="anthropic-compatible">Anthropic Compatible</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-xs font-medium text-platform-fg-muted">密钥引用</label>
+                      <input
+                        type="text"
+                        value={activeProvider.secretRef}
+                        onChange={(event) => updateProvider(activeProvider.id, { secretRef: event.target.value })}
+                        placeholder="env:CUSTOM_PROVIDER_API_KEY"
+                        className="admin-console-input w-full px-3 py-2 text-sm"
+                      />
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-3">
+                      <label className="flex items-center justify-between rounded-lg border border-platform-border bg-platform-surface px-3 py-2 text-xs text-platform-fg-secondary">
+                        启用
+                        <input
+                          type="checkbox"
+                          checked={activeProvider.enabled}
+                          onChange={(event) => updateProvider(activeProvider.id, { enabled: event.target.checked })}
+                          className="h-4 w-4 accent-platform-action-primary"
+                        />
+                      </label>
+                      <div>
+                        <label className="mb-2 block text-xs font-medium text-platform-fg-muted">优先级</label>
+                        <input
+                          type="number"
+                          value={activeProvider.priority}
+                          onChange={(event) => updateProvider(activeProvider.id, { priority: Number(event.target.value) })}
+                          className="admin-console-input w-full px-3 py-2 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-xs font-medium text-platform-fg-muted">健康状态</label>
+                        <select
+                          value={activeProvider.health}
+                          onChange={(event) => updateProvider(activeProvider.id, { health: event.target.value as AIProviderHealthState })}
+                          className="admin-console-input w-full px-3 py-2 text-sm"
+                        >
+                          <option value="unknown">unknown</option>
+                          <option value="healthy">healthy</option>
+                          <option value="degraded">degraded</option>
+                          <option value="unavailable">unavailable</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-2 md:grid-cols-3">
+                    {([
+                      ['tools', '工具'],
+                      ['streaming', '流式'],
+                      ['citationNormalization', '引用归一'],
+                      ['jsonSchema', 'JSON Schema'],
+                      ['reasoning', '推理'],
+                      ['vision', '视觉'],
+                    ] as Array<[keyof AIProviderCapabilities, string]>).map(([capability, label]) => (
+                      <label key={capability} className="flex items-center justify-between rounded-lg border border-platform-border bg-platform-surface px-3 py-2 text-xs text-platform-fg-secondary">
+                        {label}
+                        <input
+                          type="checkbox"
+                          checked={activeProvider.capabilities[capability]}
+                          onChange={(event) => updateProviderCapability(activeProvider.id, capability, event.target.checked)}
+                          className="h-4 w-4 accent-platform-action-primary"
+                        />
+                      </label>
+                    ))}
                   </div>
 
                   <div className="space-y-3">
@@ -718,11 +874,16 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                     </button>
                   )}
                 </div>
-                <div className="grid gap-3 md:grid-cols-[0.7fr_0.9fr_1fr_auto]">
-                  <input type="text" value={newProvider.id} onChange={(event) => setNewProvider({ ...newProvider, id: event.target.value })} placeholder="provider-id" className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500" />
-                  <input type="text" value={newProvider.name} onChange={(event) => setNewProvider({ ...newProvider, name: event.target.value })} placeholder="供应商名称" className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500" />
-                  <input type="text" value={newProvider.baseURL} onChange={(event) => setNewProvider({ ...newProvider, baseURL: event.target.value })} placeholder="https://example.com/v1" className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500" />
-                  <button type="button" onClick={addProvider} className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-200 transition hover:border-cyan-500 hover:text-cyan-200">
+	                <div className="grid gap-3 md:grid-cols-[0.7fr_0.9fr_0.9fr_1fr_1fr_auto]">
+                  <input type="text" value={newProvider.id} onChange={(event) => setNewProvider({ ...newProvider, id: event.target.value })} placeholder="provider-id" className="admin-console-input px-3 py-2 text-sm" />
+                  <input type="text" value={newProvider.name} onChange={(event) => setNewProvider({ ...newProvider, name: event.target.value })} placeholder="供应商名称" className="admin-console-input px-3 py-2 text-sm" />
+                  <select value={newProvider.providerKind} onChange={(event) => setNewProvider({ ...newProvider, providerKind: event.target.value as AIProviderKind })} className="admin-console-input px-3 py-2 text-sm">
+                    <option value="openai-compatible">OpenAI Compatible</option>
+                    <option value="anthropic-compatible">Anthropic Compatible</option>
+                  </select>
+                  <input type="text" value={newProvider.baseURL} onChange={(event) => setNewProvider({ ...newProvider, baseURL: event.target.value })} placeholder="https://example.com/v1" className="admin-console-input px-3 py-2 text-sm" />
+                  <input type="text" value={newProvider.secretRef} onChange={(event) => setNewProvider({ ...newProvider, secretRef: event.target.value })} placeholder="env:CUSTOM_API_KEY" className="admin-console-input px-3 py-2 text-sm" />
+                  <button type="button" onClick={addProvider} className="admin-console-button inline-flex items-center justify-center gap-2 px-3 py-2 text-sm">
                     <Plus className="h-4 w-4" />
                     添加供应商
                   </button>

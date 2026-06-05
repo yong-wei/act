@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import { generateText } from 'ai';
 import { requireAdminSession } from '@/lib/admin';
+import { redactProviderError } from '@/lib/ai/model-provider-compatibility';
 import { createAIProviderFromConfig } from '@/lib/ai/provider-registry';
-import { AI_MODEL_TEST_PROMPT, resolveConfiguredAIProviderConfig } from '@/lib/ai/provider-settings';
+import {
+  AI_MODEL_TEST_PROMPT,
+  AIProviderCapabilityUnavailableError,
+  resolveConfiguredAIProviderConfig,
+} from '@/lib/ai/provider-settings';
 
 export const runtime = 'nodejs';
 export const maxDuration = 120;
@@ -53,14 +58,15 @@ export async function POST(request: Request) {
       usage: result.usage,
     });
   } catch (error) {
+    const status = error instanceof AIProviderCapabilityUnavailableError ? error.status : 500;
     return NextResponse.json(
       {
         ok: false,
         providerId,
         model,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: redactProviderError(error),
       },
-      { status: 500 }
+      { status }
     );
   }
 }

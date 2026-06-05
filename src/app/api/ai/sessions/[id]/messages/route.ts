@@ -12,6 +12,7 @@ import { prisma } from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 import { streamText, stepCountIs } from 'ai';
 import { getConfiguredAIModel } from '@/lib/ai-client';
+import { AIProviderCapabilityUnavailableError } from '@/lib/ai/provider-settings';
 import { toLegacyMessage, toModelMessages } from '@/lib/ai-message-compat';
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import {
@@ -28,6 +29,7 @@ import {
 } from '@/lib/konling-agent-runtime';
 import type { AIContext } from '@/types/ai-context';
 import type { Message } from '@/types/ai-message';
+import { redactProviderError, type ModelProviderCapabilityRequirements } from '@/lib/ai/model-provider-compatibility';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -138,10 +140,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
       state: { route: '/api/ai/sessions/[id]/messages', konlingSessionId: sessionId },
       permittedTools: runtimeContext.permittedTools,
     });
+    const modelRequirements: ModelProviderCapabilityRequirements = {
+      tools: true,
+      streaming: true,
+      citationNormalization: true,
+    };
 
     // 调用AI
     const result = await streamText({
-      model: await getConfiguredAIModel(),
+      model: await getConfiguredAIModel(undefined, modelRequirements),
       system: systemPrompt,
       messages: await toModelMessages(updatedMessages),
       tools: buildScopedKonlingAiTools(buildKonlingToolRuntime({
@@ -210,7 +217,23 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (error instanceof KonlingRuntimeScopeError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
-    console.error('Error in POST /api/ai/sessions/[id]/messages:', error);
+    if (error instanceof AIProviderCapabilityUnavailableError) {
+      console.error('Error in POST /api/ai/sessions/[id]/messages:', {
+        name: error.name,
+        message: redactProviderError(error),
+      });
+      return NextResponse.json(
+        {
+          error: 'AI_SERVICE_UNAVAILABLE',
+          message: '智能助手暂时无法连接满足控灵能力要求的模型，请稍后再试。',
+        },
+        { status: 503 }
+      );
+    }
+    console.error('Error in POST /api/ai/sessions/[id]/messages:', {
+      name: error instanceof Error ? error.name : typeof error,
+      message: redactProviderError(error),
+    });
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
