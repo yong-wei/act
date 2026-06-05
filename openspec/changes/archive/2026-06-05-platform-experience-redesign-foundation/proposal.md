@@ -5,7 +5,7 @@ The 2026-06-04 premium UI series unified many surfaces into a dark commercial sh
 ## What Changes
 
 - Define the platform experience thesis as a maritime control-learning operating system rather than a collection of course, simulation, Arena, profile, teacher, and admin pages.
-- Define route archetypes for public entry, learning atlas, mission workspace, knowledge/data map, learner record, operations console, and reports.
+- Define route archetypes for public entry, learning atlas, mission workspace, knowledge/data map, operations console, and report ledger, with learner record handled as a knowledge/data route family.
 - Define light and dark visual templates as equal first-class modes: light as engineering chart paper and daylight instrument surfaces; dark as night bridge, low-light instrument, and trace layers.
 - Define a navigation hierarchy that separates product orientation, role cockpit, contextual route trace, and local tools.
 - Define a three-role journey matrix so student, teacher, and administrator surfaces connect entry, business object, evidence source, next action, and report/governance destination.
