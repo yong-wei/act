@@ -81,6 +81,29 @@ describe('AI provider settings', () => {
     expect(JSON.stringify(settings)).not.toContain('sk-test');
   });
 
+  it('preserves SiliconFlow citation capability when normalizing legacy saved settings', () => {
+    const fallback = getDefaultAIProviderSettings({
+      AI_PROVIDER: 'siliconflow',
+      SILICONFLOW_API_KEY: 'sk-test',
+    } as unknown as NodeJS.ProcessEnv);
+    const settings = normalizeAIProviderSettings({
+      activeProvider: 'siliconflow',
+      providers: [{
+        id: 'siliconflow',
+        name: 'SiliconFlow',
+        baseURL: 'https://api.siliconflow.cn/v1',
+        selectedModel: 'Qwen/Qwen3.6-35B-A3B',
+        models: [],
+      }],
+    }, fallback);
+
+    expect(settings.providers[0]?.capabilities).toMatchObject({
+      tools: true,
+      streaming: true,
+      citationNormalization: true,
+    });
+  });
+
   it('marks Qwen3.6 to disable thinking for normal teaching prompts', () => {
     const settings = getDefaultAIProviderSettings({
       AI_PROVIDER: 'siliconflow',

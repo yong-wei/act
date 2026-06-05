@@ -110,8 +110,12 @@ function capabilityDefaults(kind: AIProviderKind): AIProviderCapabilities {
     : DEFAULT_OPENAI_COMPATIBLE_CAPABILITIES;
 }
 
-function normalizeCapabilities(value: unknown, kind: AIProviderKind): AIProviderCapabilities {
-  const defaults = capabilityDefaults(kind);
+function normalizeCapabilities(
+  value: unknown,
+  kind: AIProviderKind,
+  fallback?: AIProviderCapabilities,
+): AIProviderCapabilities {
+  const defaults = fallback ?? capabilityDefaults(kind);
   const raw = value && typeof value === 'object' ? value as Partial<AIProviderCapabilities> : {};
   return {
     tools: typeof raw.tools === 'boolean' ? raw.tools : defaults.tools,
@@ -305,7 +309,7 @@ export function normalizeAIProviderSettings(
         const id = cleanId(item.id) || `provider-${index + 1}`;
         const fallbackProvider = fallback.providers.find((candidate) => candidate.id === id);
         const providerKind = cleanProviderKind(item.providerKind, fallbackProvider?.providerKind ?? 'openai-compatible');
-        const capabilities = normalizeCapabilities(item.capabilities, providerKind);
+        const capabilities = normalizeCapabilities(item.capabilities, providerKind, fallbackProvider?.capabilities);
         const models = (Array.isArray(item.models) ? item.models : [])
           .map((model, modelIndex) => normalizeModel(model, modelIndex))
           .filter((model): model is AIProviderModelSetting => model !== null);
