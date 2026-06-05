@@ -550,6 +550,10 @@ export default function AdaptivePracticePage() {
       data-student-entry-evidence-return="/profile/evidence"
       data-route-family={learnerDataShell.routeFamily}
       data-route-identity={learnerDataShell.routeIdentity}
+      data-learner-record-surface={learnerDataShell.archetype}
+      data-learner-record-priority="current-path"
+      data-learner-record-evidence-confidence={controlCorrectionCenter?.nextAction.confidence ?? 'unknown'}
+      data-learner-record-missing-source={controlCorrectionCenter?.readinessGate.missing.join(',') || 'complete'}
     >
       <div className="mx-auto max-w-6xl space-y-6">
         <header className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
@@ -596,6 +600,7 @@ export default function AdaptivePracticePage() {
               <Link
                 href={controlCorrectionCenter.nextAction.href}
                 className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+                data-learner-record-next-action="control-correction"
               >
                 {controlCorrectionCenter.nextAction.title}
               </Link>

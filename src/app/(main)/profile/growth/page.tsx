@@ -137,7 +137,13 @@ export default function GrowthPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="surface-page flex items-center justify-center" data-route-family={learnerDataShell.routeFamily} data-route-identity={learnerDataShell.routeIdentity}>
+      <div
+        className="surface-page flex items-center justify-center"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+        data-learner-record-next-action="wait-for-growth"
+      >
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
           <p className="text-subtle">加载成长数据...</p>
@@ -148,7 +154,13 @@ export default function GrowthPage() {
 
   if (status === 'unauthenticated') {
     return (
-      <div className="surface-page flex items-center justify-center" data-route-family={learnerDataShell.routeFamily} data-route-identity={learnerDataShell.routeIdentity}>
+      <div
+        className="surface-page flex items-center justify-center"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+        data-learner-record-next-action="login"
+      >
         <div className="text-center">
           <p className="text-xl text-subtle">请先登录</p>
           <Link href="/login" className="cta-primary mt-4 inline-block rounded-lg px-6 py-2">
@@ -161,7 +173,13 @@ export default function GrowthPage() {
 
   if (error) {
     return (
-      <div className="surface-page flex items-center justify-center" data-route-family={learnerDataShell.routeFamily} data-route-identity={learnerDataShell.routeIdentity}>
+      <div
+        className="surface-page flex items-center justify-center"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+        data-learner-record-next-action="retry-growth"
+      >
         <div className="text-center">
           <p className="text-xl text-red-500">{error}</p>
           <button onClick={fetchData} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
@@ -204,7 +222,12 @@ export default function GrowthPage() {
   const groupedGrowthRecords = groupGrowthTimelineRecords(growthRecords);
 
   return (
-    <div className="surface-page" data-route-family={learnerDataShell.routeFamily} data-route-identity={learnerDataShell.routeIdentity}>
+    <div
+      className="surface-page"
+      data-route-family={learnerDataShell.routeFamily}
+      data-route-identity={learnerDataShell.routeIdentity}
+      data-learner-record-surface={learnerDataShell.archetype}
+    >
       {/* Header */}
       <header className="surface-topbar px-6 py-4">
         <div className="mx-auto flex max-w-[1600px] flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -238,7 +261,12 @@ export default function GrowthPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1600px] px-6 py-8">
+      <main
+        className="mx-auto max-w-[1600px] px-6 py-8"
+        data-learner-record-priority="evidence-timeline"
+        data-learner-record-evidence-confidence={hasCompetencyChartData ? 'medium' : 'low'}
+        data-learner-record-missing-source={hasCompetencyChartData ? 'complete' : 'missing-evidence'}
+      >
         {/* Top Cards */}
         <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {/* Learning Stage Card */}
@@ -380,7 +408,11 @@ export default function GrowthPage() {
             ) : (
               <div className="flex min-h-[320px] min-w-0 flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-muted/30 p-6 text-center">
                 <p className="text-sm text-subtle">暂无足够证据生成能力雷达。</p>
-                <Link href="/assessment/adaptive-practice" className="btn-ghost-themed mt-4 rounded-lg px-4 py-2 text-sm">
+                <Link
+                  href="/assessment/adaptive-practice"
+                  className="btn-ghost-themed mt-4 rounded-lg px-4 py-2 text-sm"
+                  data-learner-record-next-action="adaptive-practice"
+                >
                   开始练习
                 </Link>
               </div>

@@ -143,7 +143,7 @@ export function EvidenceTimelineBrowser({
       </header>
 
       <main className="mx-auto grid max-w-[1600px] gap-6 px-6 py-8 lg:grid-cols-[300px_1fr]">
-        <aside className="surface-card h-fit p-5">
+        <aside className="surface-card h-fit p-5" data-learner-record-surface="evidence-filter">
           <div className="mb-4 flex items-center gap-2">
             <Filter className="h-4 w-4 text-amber-500" />
             <h2 className="font-semibold text-foreground">筛选</h2>
@@ -210,7 +210,7 @@ export function EvidenceTimelineBrowser({
           </div>
         </aside>
 
-        <section className="space-y-3">
+        <section className="space-y-3" data-learner-record-priority="evidence-timeline">
           {error && (
             <div className="surface-card border-red-500/40 p-4 text-sm text-red-500">{error}</div>
           )}
@@ -285,6 +285,29 @@ export function EvidenceTimelineBrowser({
                   ))}
                 </div>
               ) : null}
+
+              {item.learnerRecord ? (
+                <div
+                  className="mt-4 grid gap-3 rounded-lg border border-border/70 bg-card/70 p-3 text-sm md:grid-cols-[1fr_auto]"
+                  data-learner-record-evidence-confidence={item.learnerRecord.confidence}
+                  data-learner-record-missing-source={item.learnerRecord.missingSourceState}
+                >
+                  <div className="grid gap-2 sm:grid-cols-4">
+                    <EvidenceMeta label="来源范围" value={formatLearnerRecordSourceScope(item.learnerRecord.sourceScope)} />
+                    <EvidenceMeta label="新鲜度" value={formatLearnerRecordFreshness(item.learnerRecord.freshness)} />
+                    <EvidenceMeta label="置信度" value={formatLearnerRecordConfidence(item.learnerRecord.confidence)} />
+                    <EvidenceMeta label="缺失来源" value={formatLearnerRecordMissingSource(item.learnerRecord.missingSourceState)} />
+                  </div>
+                  <Link
+                    href={item.learnerRecord.nextAction.href}
+                    className="btn-ghost-themed inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs"
+                    data-learner-record-next-action={item.learnerRecord.sourceScope}
+                  >
+                    {item.learnerRecord.nextAction.label}
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              ) : null}
             </article>
           ))}
 
@@ -303,6 +326,15 @@ export function EvidenceTimelineBrowser({
           )}
         </section>
       </main>
+    </div>
+  );
+}
+
+function EvidenceMeta({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs text-subtle">{label}</p>
+      <p className="mt-1 text-foreground">{value}</p>
     </div>
   );
 }
@@ -330,6 +362,39 @@ function formatQuality(quality: string): string {
   if (quality === 'legacy') return '旧证据';
   if (quality === 'missing') return '缺少证据';
   return quality;
+}
+
+function formatLearnerRecordSourceScope(scope: string): string {
+  if (scope === 'interactive-lesson-submission') return '互动课提交';
+  if (scope === 'arena-official-result') return 'Arena 官方结果';
+  if (scope === 'arena-preview-result') return 'Arena 预览结果';
+  if (scope === 'simulation-workbench-completion') return '仿真/工作台完成';
+  if (scope === 'adaptive-practice-submission') return '自适应练习提交';
+  return scope;
+}
+
+function formatLearnerRecordFreshness(freshness: string): string {
+  if (freshness === 'fresh') return '最新';
+  if (freshness === 'recent') return '近期';
+  if (freshness === 'stale') return '待刷新';
+  return '未知';
+}
+
+function formatLearnerRecordConfidence(confidence: string): string {
+  if (confidence === 'high') return '高';
+  if (confidence === 'medium') return '中';
+  if (confidence === 'low') return '低';
+  return '未知';
+}
+
+function formatLearnerRecordMissingSource(state: string): string {
+  if (state === 'complete') return '来源完整';
+  if (state === 'official-arena-missing') return '缺少官方 Arena 结果';
+  if (state === 'low-confidence') return '证据置信度低';
+  if (state === 'partial') return '来源不完整';
+  if (state === 'restricted') return '受限详情已隐藏';
+  if (state === 'missing-evidence') return '缺少学习证据';
+  return state;
 }
 
 function getOutcomeBadgeClass(outcome: string): string {

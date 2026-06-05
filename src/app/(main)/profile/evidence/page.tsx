@@ -17,7 +17,12 @@ export default async function StudentEvidencePage({ searchParams }: StudentEvide
   const initialLessonId = readSingleSearchParam(params?.lessonId);
 
   return (
-    <div data-route-family={learnerDataShell.routeFamily} data-route-identity={learnerDataShell.routeIdentity}>
+    <div
+      data-route-family={learnerDataShell.routeFamily}
+      data-route-identity={learnerDataShell.routeIdentity}
+      data-learner-record-surface={learnerDataShell.archetype}
+      data-learner-record-next-action="evidence-review"
+    >
       <EvidenceTimelineBrowser
         apiPath="/api/student/evidence"
         backHref="/profile/growth"

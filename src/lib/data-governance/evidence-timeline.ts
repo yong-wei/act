@@ -53,7 +53,29 @@ export interface EvidenceTimelineItem {
   groupLabel?: string;
   groupedCount?: number;
   groupedEvidenceIds?: string[];
+  learnerRecord?: EvidenceTimelineLearnerRecord;
 }
+
+export type EvidenceTimelineLearnerRecordSourceScope =
+  | 'interactive-lesson-submission'
+  | 'arena-official-result'
+  | 'arena-preview-result'
+  | 'simulation-workbench-completion'
+  | 'adaptive-practice-submission';
+
+export interface EvidenceTimelineLearnerRecord {
+  sourceScope: EvidenceTimelineLearnerRecordSourceScope;
+  freshness: 'fresh' | 'recent' | 'stale' | 'unknown';
+  confidence: 'high' | 'medium' | 'low' | 'unknown';
+  missingSourceState: string;
+  privacyScope: 'student-visible' | 'teacher-scoped' | 'governance-scoped' | 'restricted';
+  nextAction: {
+    href: string;
+    label: string;
+  };
+}
+
+export type EvidenceTimelineViewerRole = 'student' | 'teacher' | 'admin';
 
 export interface EvidenceTimelinePage {
   items: EvidenceTimelineItem[];
@@ -98,6 +120,14 @@ export interface EvidenceTimelineDb {
   };
 }
 
+export interface ListEvidenceTimelineInput {
+  db: EvidenceTimelineDb;
+  userId: string;
+  filters?: EvidenceTimelineFilters;
+  viewerRole?: EvidenceTimelineViewerRole;
+  restrictedFallbackAction?: EvidenceTimelineLearnerRecord['nextAction'];
+}
+
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
 const GROUP_LOOKAHEAD = 2;
@@ -128,11 +158,9 @@ export async function listEvidenceTimeline({
   db,
   userId,
   filters = {},
-}: {
-  db: EvidenceTimelineDb;
-  userId: string;
-  filters?: EvidenceTimelineFilters;
-}): Promise<EvidenceTimelinePage> {
+  viewerRole = 'student',
+  restrictedFallbackAction = { href: '/profile/evidence', label: '查看可见证据' },
+}: ListEvidenceTimelineInput): Promise<EvidenceTimelinePage> {
   const normalizedFilters = normalizeFilters(filters);
   const limit = normalizedFilters.limit ?? DEFAULT_LIMIT;
   const groupLookaheadLimit = Math.min(limit + GROUP_LOOKAHEAD, MAX_LIMIT);
@@ -174,7 +202,12 @@ export async function listEvidenceTimeline({
   );
 
   const groupedItems = groupEvidenceTimelineItems(
-    groupableFacts.map((fact) => formatEvidenceTimelineItem(fact, responseBySourceLogId.get(fact.sourceLogId ?? '')))
+    groupableFacts.map((fact) => formatEvidenceTimelineItem(
+      fact,
+      responseBySourceLogId.get(fact.sourceLogId ?? ''),
+      viewerRole,
+      restrictedFallbackAction,
+    ))
   );
   const visibleItems = groupedItems.slice(0, limit);
   const cursorFact = resolveCursorFact(visibleItems, groupableFacts);
@@ -260,12 +293,21 @@ function buildLearningFactWhere(
 
 function formatEvidenceTimelineItem(
   fact: LearningFactTimelineRecord,
-  response?: StudentStepResponseTimelineRecord
+  response?: StudentStepResponseTimelineRecord,
+  viewerRole: EvidenceTimelineViewerRole = 'student',
+  restrictedFallbackAction: EvidenceTimelineLearnerRecord['nextAction'] = { href: '/profile/evidence', label: '查看可见证据' },
 ): EvidenceTimelineItem {
   const responseData = readRecord(response?.responseData);
   const contextJson = readRecord(fact.contextJson);
   const quality = resolveQuality(responseData, contextJson);
   const questionSummaries = readQuestionSummaries(responseData.questionSummaries ?? contextJson.questionSummaries ?? contextJson.cards);
+  const explicitLearnerRecord = readLearnerRecordMetadata(
+    contextJson.learnerRecord,
+    viewerRole,
+    restrictedFallbackAction,
+  );
+  const derivedLearnerRecord = explicitLearnerRecord
+    ?? deriveLearnerRecordMetadata(fact, response, quality?.quality, viewerRole, restrictedFallbackAction);
 
   return compactObject({
     id: fact.id,
@@ -294,7 +336,217 @@ function formatEvidenceTimelineItem(
     qualityReason: quality?.reason,
     sourceState: quality?.sourceState,
     schemaVersion: quality?.schemaVersion,
+    learnerRecord: derivedLearnerRecord,
   });
+}
+
+function deriveLearnerRecordMetadata(
+  fact: LearningFactTimelineRecord,
+  response: StudentStepResponseTimelineRecord | undefined,
+  quality: SubmissionEvidenceQuality | undefined,
+  viewerRole: EvidenceTimelineViewerRole,
+  restrictedFallbackAction: EvidenceTimelineLearnerRecord['nextAction'],
+): EvidenceTimelineLearnerRecord | undefined {
+  const sourceScope = inferLearnerRecordSourceScope(fact, response);
+  if (!sourceScope) {
+    return undefined;
+  }
+
+  return readLearnerRecordMetadata({
+    sourceScope,
+    freshness: inferLearnerRecordFreshness(fact),
+    confidence: inferLearnerRecordConfidence(fact, quality, sourceScope),
+    missingSourceState: inferLearnerRecordMissingSourceState(fact, quality, sourceScope),
+    privacyScope: 'student-visible',
+    nextAction: inferLearnerRecordNextAction(fact, sourceScope, viewerRole, restrictedFallbackAction),
+  }, viewerRole, restrictedFallbackAction);
+}
+
+function readLearnerRecordMetadata(
+  value: unknown,
+  viewerRole: EvidenceTimelineViewerRole,
+  restrictedFallbackAction: EvidenceTimelineLearnerRecord['nextAction'],
+): EvidenceTimelineLearnerRecord | undefined {
+  const record = readRecord(value);
+  const sourceScope = readLearnerRecordSourceScope(record.sourceScope);
+  if (!sourceScope) {
+    return undefined;
+  }
+  const privacyScope = readLearnerRecordPrivacyScope(record.privacyScope);
+
+  const nextAction = readRecord(record.nextAction);
+  const href = readString(nextAction.href);
+  const label = readString(nextAction.label);
+  const canSeeScopedDetails = viewerCanSeeLearnerRecordScope(viewerRole, privacyScope);
+  const shouldUseReviewerFallback = viewerRole !== 'student' && privacyScope === 'student-visible';
+
+  return {
+    sourceScope,
+    freshness: readLearnerRecordFreshness(record.freshness),
+    confidence: readLearnerRecordConfidence(record.confidence),
+    missingSourceState: canSeeScopedDetails
+      ? readString(record.missingSourceState) ?? 'unknown'
+      : 'restricted',
+    privacyScope: canSeeScopedDetails ? privacyScope : 'restricted',
+    nextAction: canSeeScopedDetails && !shouldUseReviewerFallback
+      ? {
+          href: href ?? '/profile/evidence',
+          label: label ?? '查看证据',
+        }
+      : {
+          href: restrictedFallbackAction.href,
+          label: restrictedFallbackAction.label,
+        },
+  };
+}
+
+function readLearnerRecordSourceScope(value: unknown): EvidenceTimelineLearnerRecordSourceScope | undefined {
+  return value === 'interactive-lesson-submission'
+    || value === 'arena-official-result'
+    || value === 'arena-preview-result'
+    || value === 'simulation-workbench-completion'
+    || value === 'adaptive-practice-submission'
+    ? value
+    : undefined;
+}
+
+function readLearnerRecordFreshness(value: unknown): EvidenceTimelineLearnerRecord['freshness'] {
+  return value === 'fresh' || value === 'recent' || value === 'stale' ? value : 'unknown';
+}
+
+function readLearnerRecordConfidence(value: unknown): EvidenceTimelineLearnerRecord['confidence'] {
+  return value === 'high' || value === 'medium' || value === 'low' ? value : 'unknown';
+}
+
+function inferLearnerRecordSourceScope(
+  fact: LearningFactTimelineRecord,
+  response: StudentStepResponseTimelineRecord | undefined,
+): EvidenceTimelineLearnerRecordSourceScope | undefined {
+  const arenaSourceScope = inferArenaLearnerRecordSourceScope(fact);
+  if (arenaSourceScope) {
+    return arenaSourceScope;
+  }
+  if (fact.factType === 'question' && (response || fact.lessonId || fact.moduleId?.startsWith('step-'))) {
+    return 'interactive-lesson-submission';
+  }
+  if (fact.factType === 'simulation' || fact.moduleId?.includes('workbench')) {
+    return 'simulation-workbench-completion';
+  }
+  if (fact.factType === 'adaptive_practice' || fact.moduleId === 'adaptive-practice' || fact.moduleId === 'adaptive-assessment') {
+    return 'adaptive-practice-submission';
+  }
+  return undefined;
+}
+
+function inferArenaLearnerRecordSourceScope(
+  fact: LearningFactTimelineRecord,
+): EvidenceTimelineLearnerRecordSourceScope | undefined {
+  const context = readRecord(fact.contextJson);
+  const arena = readRecord(context.arena);
+  const evidenceGovernance = readRecord(context.evidenceGovernance);
+  const sourceEventId = fact.sourceEventId ?? '';
+
+  if (
+    fact.factType === 'arena_official'
+    || fact.factType === 'arena_submission'
+    || sourceEventId.includes('arena_submit')
+    || sourceEventId.includes('arena_evaluation_complete')
+    || evidenceGovernance.policyReason === 'official_arena_evaluation'
+  ) {
+    return 'arena-official-result';
+  }
+
+  if (
+    fact.factType === 'arena_preview'
+    || fact.moduleId?.startsWith('arena-preview')
+    || sourceEventId.includes('arena_simulation_run')
+    || sourceEventId.includes('arena_virtual_simulation_import')
+    || Object.keys(arena).length > 0
+  ) {
+    return 'arena-preview-result';
+  }
+
+  return undefined;
+}
+
+function inferLearnerRecordFreshness(fact: LearningFactTimelineRecord): EvidenceTimelineLearnerRecord['freshness'] {
+  const ageMs = Date.now() - fact.startedAt.getTime();
+  if (!Number.isFinite(ageMs) || ageMs < 0) return 'unknown';
+  const ageDays = ageMs / 86400000;
+  if (ageDays <= 14) return 'fresh';
+  if (ageDays <= 90) return 'recent';
+  return 'stale';
+}
+
+function inferLearnerRecordConfidence(
+  fact: LearningFactTimelineRecord,
+  quality: SubmissionEvidenceQuality | undefined,
+  sourceScope: EvidenceTimelineLearnerRecordSourceScope,
+): EvidenceTimelineLearnerRecord['confidence'] {
+  if (quality === 'rich') return 'high';
+  if (sourceScope === 'arena-official-result') return 'high';
+  if (quality === 'partial' || quality === 'legacy') return 'medium';
+  if (sourceScope === 'arena-preview-result') return 'medium';
+  if (typeof fact.score === 'number' && fact.score >= 80) return 'medium';
+  return 'low';
+}
+
+function inferLearnerRecordMissingSourceState(
+  fact: LearningFactTimelineRecord,
+  quality: SubmissionEvidenceQuality | undefined,
+  sourceScope: EvidenceTimelineLearnerRecordSourceScope,
+): string {
+  if (sourceScope === 'arena-preview-result') return 'official-arena-missing';
+  if (quality === 'missing' || fact.outcome === 'abandoned') return 'low-confidence';
+  if (quality === 'partial' || quality === 'legacy') return 'partial';
+  return 'complete';
+}
+
+function inferLearnerRecordNextAction(
+  fact: LearningFactTimelineRecord,
+  sourceScope: EvidenceTimelineLearnerRecordSourceScope,
+  viewerRole: EvidenceTimelineViewerRole,
+  reviewerFallbackAction: EvidenceTimelineLearnerRecord['nextAction'],
+): EvidenceTimelineLearnerRecord['nextAction'] {
+  if (viewerRole !== 'student') {
+    return {
+      href: reviewerFallbackAction.href,
+      label: reviewerFallbackAction.label,
+    };
+  }
+  if (sourceScope === 'interactive-lesson-submission') {
+    const lessonSuffix = fact.lessonId ? `?lessonId=${encodeURIComponent(fact.lessonId)}` : '';
+    return { href: `/profile/evidence${lessonSuffix}`, label: '复盘课堂作答' };
+  }
+  if (sourceScope === 'arena-preview-result') {
+    return { href: '/arena', label: '提交官方评测' };
+  }
+  if (sourceScope === 'arena-official-result') {
+    return { href: '/arena', label: '查看 Arena 结果' };
+  }
+  if (sourceScope === 'simulation-workbench-completion') {
+    return { href: '/interactive-learning/control-workbench', label: '继续工作台验证' };
+  }
+  return { href: '/assessment/adaptive-practice', label: '继续自适应练习' };
+}
+
+function readLearnerRecordPrivacyScope(value: unknown): EvidenceTimelineLearnerRecord['privacyScope'] {
+  if (value === undefined || value === null || value === '') {
+    return 'student-visible';
+  }
+  return value === 'teacher-scoped' || value === 'governance-scoped' || value === 'student-visible'
+    ? value
+    : 'restricted';
+}
+
+function viewerCanSeeLearnerRecordScope(
+  viewerRole: EvidenceTimelineViewerRole,
+  privacyScope: EvidenceTimelineLearnerRecord['privacyScope'],
+) {
+  if (privacyScope === 'student-visible') return true;
+  if (privacyScope === 'teacher-scoped') return viewerRole === 'teacher' || viewerRole === 'admin';
+  if (privacyScope === 'governance-scoped') return viewerRole === 'admin';
+  return false;
 }
 
 function groupEvidenceTimelineItems(items: EvidenceTimelineItem[]): EvidenceTimelineItem[] {

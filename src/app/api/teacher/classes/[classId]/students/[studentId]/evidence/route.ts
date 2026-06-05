@@ -56,6 +56,11 @@ export async function GET(
       db: prisma,
       userId: studentId,
       filters: parseEvidenceTimelineFilters(new URL(request.url).searchParams),
+      viewerRole: session.user.role === 'ADMIN' ? 'admin' : 'teacher',
+      restrictedFallbackAction: {
+        href: `/teacher/classes/${encodeURIComponent(classId)}/students/${encodeURIComponent(studentId)}/evidence`,
+        label: '留在学生证据审核',
+      },
     });
 
     return NextResponse.json({

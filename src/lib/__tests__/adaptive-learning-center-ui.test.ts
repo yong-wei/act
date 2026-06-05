@@ -23,6 +23,7 @@ import { buildPlatformStatusViewModel } from '@/components/platform/platform-ui-
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
 import { ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES } from '@/lib/adaptive-learning-path-planner';
 import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
+import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '@/lib/platform-role-navigation';
 
 const repoRoot = process.cwd();
 
@@ -321,6 +322,26 @@ describe('adaptive learning center UI contracts', () => {
         routeFamily: 'learner-data-pathway',
         routeIdentity: route.routeIdentity,
         semantics: LEARNER_DATA_SHELL_SEMANTICS,
+        owningChange: 'redesign-learner-data-and-report-surfaces',
+        archetype: 'learner-record-pathway',
+        mobileBehavior: 'path-evidence-next-action-stack',
+        dockBehavior: route.href === '/dashboard' ? 'learner-action-dock' : 'contextual-review-dock',
+        visualEvidence: {
+          requiredThemes: ['light', 'dark'],
+          requiredWidths: [1440, 320],
+        },
+      });
+    }
+  });
+
+  it('keeps learner data route ledger ownership, navigation layers, and shell metadata aligned', () => {
+    for (const route of getLearnerDataSurfaceRoutes()) {
+      expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((entry) => entry.href === route.href)).toMatchObject({
+        href: route.href,
+        routeFile: route.routeFile,
+        frame: 'learner-data',
+        navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+        owningChange: 'redesign-learner-data-and-report-surfaces',
       });
     }
   });
@@ -332,7 +353,28 @@ describe('adaptive learning center UI contracts', () => {
       expect(source).toContain('buildLearnerDataRouteShell');
       expect(source).toContain(`buildLearnerDataRouteShell('${route.href}')`);
       expect(source).toContain('learnerDataShell');
+      expect(source).toContain('data-learner-record-surface');
+      expect(source).toContain('data-learner-record-next-action');
     }
+  });
+
+  it('prioritizes current path, next action, evidence confidence, and missing source on dashboard and profile', () => {
+    const dashboard = readFileSync(join(repoRoot, 'src/app/(main)/dashboard/page.tsx'), 'utf8');
+    const profile = readFileSync(join(repoRoot, 'src/app/(main)/profile/page.tsx'), 'utf8');
+
+    for (const source of [dashboard, profile]) {
+      expect(source).toContain('data-learner-record-priority="current-path"');
+      expect(source).toContain('data-learner-record-next-action');
+      expect(source).toContain('data-learner-record-evidence-confidence');
+      expect(source).toContain('data-learner-record-missing-source');
+    }
+
+    expect(dashboard.indexOf('data-learner-record-priority="current-path"')).toBeLessThan(
+      dashboard.indexOf('商业入口地图'),
+    );
+    expect(profile.indexOf('data-learner-record-priority="current-path"')).toBeLessThan(
+      profile.indexOf('<h3 className="text-lg font-semibold text-foreground">能力画像</h3>'),
+    );
   });
 
   it('declares control-correction entry routes with preserved goal and route intent', () => {
@@ -361,6 +403,10 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('重置筛选条件');
     expect(source).toContain('emptyBackLabel');
     expect(source).toContain('返回成长中心');
+    expect(source).toContain('缺失来源');
+    expect(source).toContain('formatLearnerRecordMissingSource');
+    expect(source).toContain('缺少官方 Arena 结果');
+    expect(source).toContain('受限详情已隐藏');
     expect(teacherEvidence).toContain('emptyBackLabel="返回学生诊断"');
     expect(teacherClassEvidence).toContain('emptyBackLabel="返回学生详情"');
   });

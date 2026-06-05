@@ -168,7 +168,12 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div className="surface-page" data-route-family={learnerDataShell.routeFamily} data-route-identity={learnerDataShell.routeIdentity}>
+    <div
+      className="surface-page"
+      data-route-family={learnerDataShell.routeFamily}
+      data-route-identity={learnerDataShell.routeIdentity}
+      data-learner-record-surface={learnerDataShell.archetype}
+    >
       {/* 顶部导航栏 */}
       <header className="surface-topbar px-6 py-4">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between">
@@ -192,6 +197,41 @@ export default async function DashboardPage() {
       </header>
 
       <main className="mx-auto max-w-[1600px] px-6 py-8">
+        <section
+          className="surface-card mb-8 p-6"
+          data-learner-record-priority="current-path"
+          data-learner-record-evidence-confidence={profile?.techScore ? 'medium' : 'low'}
+          data-learner-record-missing-source={simulationCount > 0 || completedMissions > 0 ? 'partial' : 'missing-learning-work'}
+        >
+          <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-primary">学习者记录</p>
+              <h2 className="mt-2 text-2xl font-semibold text-foreground">当前路径与下一步</h2>
+              <p className="mt-2 text-sm text-subtle">
+                系统优先依据课堂任务、仿真记录、Arena 结果和自适应练习生成学习路径；缺少来源时先补证据，再推荐下一步。
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <RecordSignal label="当前路径" value={completedMissions > 0 ? '任务推进中' : '等待首个任务'} />
+              <RecordSignal label="证据置信" value={profile?.techScore ? '已形成画像' : '证据不足'} />
+              <RecordSignal label="缺失来源" value="Arena/自适应证据按实际接入显示" />
+              <RecordSignal label="复盘入口" value={`${completedMissions} 个任务`} />
+            </div>
+          </div>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link
+              href="/assessment/adaptive-practice?goal=control-correction&intent=practice"
+              className="cta-primary rounded-lg px-4 py-2 text-sm"
+              data-learner-record-next-action="adaptive-practice"
+            >
+              继续自适应练习
+            </Link>
+            <Link href="/profile/evidence" className="btn-ghost-themed rounded-lg px-4 py-2 text-sm">
+              查看证据时间线
+            </Link>
+          </div>
+        </section>
+
         {/* 欢迎区域 */}
         <div className="surface-card mb-8 bg-gradient-to-br from-card to-accent/75 p-8">
           <div className="mb-6">
@@ -285,6 +325,15 @@ export default async function DashboardPage() {
           </div>
         </div>
       </main>
+    </div>
+  );
+}
+
+function RecordSignal({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="surface-card-soft p-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 font-medium text-foreground">{value}</p>
     </div>
   );
 }

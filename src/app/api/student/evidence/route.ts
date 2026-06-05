@@ -22,6 +22,8 @@ export async function GET(request: NextRequest) {
       db: prisma,
       userId: session.user.id,
       filters: parseEvidenceTimelineFilters(request.nextUrl.searchParams),
+      viewerRole: 'student',
+      restrictedFallbackAction: { href: '/profile/evidence', label: '查看可见证据' },
     });
 
     return NextResponse.json(page);

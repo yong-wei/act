@@ -226,7 +226,7 @@ function buildShellInventory(files: string[]): CommercialShellInventoryEntry[] {
       return {
         path: file,
         route,
-        usesRegisteredShell: /<AppShell\b|data-commercial-(operations-)?workspace=/.test(source),
+        usesRegisteredShell: /<AppShell\b|data-commercial-(operations-)?workspace=|data-route-family=\{?learnerDataShell\.routeFamily\}?|data-route-family="learner-data-pathway"/.test(source),
         shellName: /<([A-Z][A-Za-z0-9]*Shell)\b/.exec(source)?.[1],
       };
     });
