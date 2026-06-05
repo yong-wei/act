@@ -224,6 +224,10 @@ function hasResolvableProviderSecret(
     || (provider.secretRef === envConfig.secretRef && envConfig.apiKey.trim().length > 0);
 }
 
+function hasRuntimeModel(provider: AIProviderSetting, modelId?: string): boolean {
+  return Boolean(cleanText(modelId) || provider.selectedModel);
+}
+
 export class AIProviderCapabilityUnavailableError extends Error {
   status = 503;
 
@@ -452,7 +456,9 @@ export async function resolveConfiguredAIProviderConfig(
   const settings = settingsOverride ?? await getAIProviderSettings();
   const runtimeSettings = {
     ...settings,
-    providers: settings.providers.filter((provider) => hasResolvableProviderSecret(provider, env, envConfig)),
+    providers: settings.providers.filter((provider) => (
+      hasResolvableProviderSecret(provider, env, envConfig) && hasRuntimeModel(provider, modelId)
+    )),
   };
   const requestedServiceId = providerId ?? requirements?.serviceId ?? (requirements ? undefined : settings.activeProvider);
   let selection = selectModelProvider(runtimeSettings, { ...(requirements ?? {}), serviceId: requestedServiceId });
@@ -472,7 +478,10 @@ export async function resolveConfiguredAIProviderConfig(
     throw new Error(`AI provider not found: ${activeProviderId}`);
   }
 
-  const selectedModel = modelId || provider.selectedModel || envConfig.model;
+  const selectedModel = cleanText(modelId) || provider.selectedModel;
+  if (!selectedModel) {
+    throw new AIProviderCapabilityUnavailableError(`Provider ${provider.id} does not have a selected model.`);
+  }
   const apiKeyFromSecretRef = resolveProviderSecret(provider.secretRef, env);
   return {
     provider: provider.id,

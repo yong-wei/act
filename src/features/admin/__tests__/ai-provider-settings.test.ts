@@ -436,6 +436,51 @@ describe('AI provider settings', () => {
     expect(config.apiKey).toBe('sk-legacy-ai-key');
   });
 
+  it('skips providers without a selected model instead of using the global env model', async () => {
+    const settings = normalizeAIProviderSettings({
+      activeProvider: 'custom-empty-model',
+      providers: [
+        {
+          id: 'custom-empty-model',
+          name: 'Custom Empty Model',
+          providerKind: 'openai-compatible',
+          baseURL: 'https://custom-empty.test/v1',
+          secretRef: 'env:CUSTOM_EMPTY_API_KEY',
+          selectedModel: '',
+          priority: 10,
+          capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: false },
+          models: [],
+        },
+        {
+          id: 'openai-backup',
+          name: 'OpenAI Backup',
+          providerKind: 'openai-compatible',
+          baseURL: 'https://openai-backup.test/v1',
+          secretRef: 'env:OPENAI_BACKUP_API_KEY',
+          selectedModel: 'openai/backup-model',
+          priority: 20,
+          capabilities: { tools: true, reasoning: false, vision: false, jsonSchema: true, streaming: true, citationNormalization: false },
+          models: [{ id: 'openai-backup-model', label: 'OpenAI Backup Model', model: 'openai/backup-model' }],
+        },
+      ],
+    });
+
+    const config = await resolveConfiguredAIProviderConfig(
+      undefined,
+      undefined,
+      { tools: true, streaming: true },
+      settings,
+      {
+        CUSTOM_EMPTY_API_KEY: 'sk-custom-empty',
+        OPENAI_BACKUP_API_KEY: 'sk-openai-backup',
+        AI_MODEL: 'Qwen/Qwen3.6-35B-A3B',
+      } as unknown as NodeJS.ProcessEnv,
+    );
+
+    expect(config.provider).toBe('openai-backup');
+    expect(config.model).toBe('openai/backup-model');
+  });
+
   it('uses the configured secretRef even when the provider id matches the env provider', async () => {
     const settings = normalizeAIProviderSettings({
       activeProvider: 'siliconflow',
