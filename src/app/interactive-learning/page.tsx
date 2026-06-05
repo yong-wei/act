@@ -41,18 +41,41 @@ export default function InteractiveLearningPage() {
       <UnifiedTopBar title="互动学习" backHref="/" backLabel="返回首页" subtitle="Interactive Learning" />
 
       <main className="mx-auto max-w-[1200px] px-6 py-12">
-        <header className="surface-card mb-10 p-6" data-entry-current-context="interactive-learning">
+        <header
+          className="surface-card mb-6 p-6"
+          data-entry-current-context="interactive-learning"
+          data-entry-current-work-priority="active-learning-context"
+        >
           <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">商业入口 · 学习</p>
           <h1 className="mb-3 text-3xl font-bold text-foreground md:text-4xl">互动学习</h1>
           <p className="text-base text-subtle">
-            入口已按学习意图拆分为独立路由：先选择学习模式，再进入对应课程与组件。
+            先继续当前学习路径，再进入课程、练习、挑战或实验。组件库保留为次级资料入口。
           </p>
           <div className="mt-4 flex flex-wrap gap-2 text-xs text-subtle">
-            <span className="rounded-full border border-border/60 px-3 py-1">跨域探索</span>
-            <span className="rounded-full border border-border/60 px-3 py-1">互动课程</span>
-            <span className="rounded-full border border-border/60 px-3 py-1">各章节互动组件</span>
+            <span className="rounded-full border border-border/60 px-3 py-1">当前课程</span>
+            <span className="rounded-full border border-border/60 px-3 py-1">下一次练习</span>
+            <span className="rounded-full border border-border/60 px-3 py-1">证据复盘</span>
           </div>
         </header>
+
+        <section className="mb-6 grid gap-4 lg:grid-cols-[1.35fr_0.65fr]" data-current-learning-path="student-control">
+          <Link href="/interactive-learning/courses" className="surface-card group p-5 transition hover:border-primary/40">
+            <span className="text-xs font-medium uppercase tracking-[0.2em] text-primary">当前路径</span>
+            <h2 className="mt-3 text-xl font-semibold text-foreground">继续互动课程</h2>
+            <p className="mt-2 text-sm leading-6 text-subtle">
+              从课程目录进入已开放单元，优先处理当前课堂、当前课次和下一次练习。
+            </p>
+            <span className="mt-4 inline-flex items-center text-sm text-foreground">
+              进入课程
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </span>
+          </Link>
+          <Link href="/profile/evidence" className="surface-card-soft p-5 transition hover:border-primary/40">
+            <span className="text-xs font-medium uppercase tracking-[0.2em] text-primary">学习证据</span>
+            <h2 className="mt-3 text-base font-semibold text-foreground">查看证据复盘</h2>
+            <p className="mt-2 text-sm leading-6 text-subtle">完成课程、练习或挑战后回到证据时间线。</p>
+          </Link>
+        </section>
 
         <section className="mb-6 grid gap-3 md:grid-cols-3" data-commercial-entry-intent-map="learn-practice-challenge">
           {entryIntents.filter((intent) => ['learn', 'practice', 'challenge'].includes(intent.intent)).map((intent) => (
@@ -63,8 +86,8 @@ export default function InteractiveLearningPage() {
           ))}
         </section>
 
-        <section className="grid gap-5 md:grid-cols-3" data-learning-map-surface="module-paths">
-          {ENTRY_ROUTES.map((entry) => (
+        <section className="grid gap-5 md:grid-cols-2" data-learning-map-surface="module-paths">
+          {ENTRY_ROUTES.filter((entry) => entry.href !== '/interactive-learning/chapter-components').map((entry) => (
             <Link
               key={entry.href}
               href={entry.href}
@@ -78,6 +101,18 @@ export default function InteractiveLearningPage() {
                 进入入口
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </div>
+            </Link>
+          ))}
+        </section>
+
+        <section className="mt-6 surface-card-soft p-4" data-secondary-implementation-links="component-library">
+          {ENTRY_ROUTES.filter((entry) => entry.href === '/interactive-learning/chapter-components').map((entry) => (
+            <Link key={entry.href} href={entry.href} className="flex items-center justify-between gap-4 text-sm text-foreground">
+              <span>
+                <span className="block font-medium">{entry.title}</span>
+                <span className="mt-1 block text-xs text-subtle">{entry.description}</span>
+              </span>
+              <ArrowRight className="h-4 w-4 text-primary" />
             </Link>
           ))}
         </section>

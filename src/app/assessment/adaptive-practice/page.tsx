@@ -546,6 +546,8 @@ export default function AdaptivePracticePage() {
       className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100 md:px-8"
       data-commercial-workspace="adaptive-practice"
       data-commercial-student-entry-route="/assessment/adaptive-practice"
+      data-commercial-entry-intent="practice"
+      data-student-entry-evidence-return="/profile/evidence"
       data-route-family={learnerDataShell.routeFamily}
       data-route-identity={learnerDataShell.routeIdentity}
     >
@@ -561,12 +563,15 @@ export default function AdaptivePracticePage() {
               报告演示模式：{demoScene === 'stable' ? '题库稳定性视图' : '差异化生成视图'}
             </div>
           ) : null}
-          <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-300">
+          <div className="mt-4 hidden flex-wrap gap-2 text-xs text-subtle sm:flex">
             {entryIntents.filter((intent) => ['practice', 'learn', 'challenge', 'review'].includes(intent.intent)).map((intent) => (
               <Link key={intent.intent} href={intent.hrefs[0] ?? '/dashboard'} className="rounded-full border border-slate-700 px-3 py-1 hover:border-emerald-400">
                 {intent.label}
               </Link>
             ))}
+            <Link href="/profile/evidence" className="rounded-full border border-border px-3 py-1 text-subtle hover:border-primary">
+              证据复盘
+            </Link>
           </div>
         </header>
 
@@ -599,7 +604,7 @@ export default function AdaptivePracticePage() {
             <div className="mt-4 grid gap-3 md:grid-cols-3">
               <div className="surface-card-soft p-3">
                 <p className="text-xs text-subtle">Readiness Gate</p>
-                <p className="mt-1 text-sm text-foreground">
+                <p className="mt-1 break-words text-sm text-foreground">
                   {controlCorrectionCenter.readinessGate.missing.length > 0
                     ? controlCorrectionCenter.readinessGate.missing.join('、')
                     : 'ready'}
@@ -607,11 +612,11 @@ export default function AdaptivePracticePage() {
               </div>
               <div className="surface-card-soft p-3">
                 <p className="text-xs text-subtle">{controlCorrectionCenter.citationAccess.title}</p>
-                <p className="mt-1 text-sm text-foreground">{controlCorrectionCenter.citationAccess.status.summary}</p>
+                <p className="mt-1 break-words text-sm text-foreground">{controlCorrectionCenter.citationAccess.status.summary}</p>
               </div>
               <div className="surface-card-soft p-3">
                 <p className="text-xs text-subtle">{controlCorrectionCenter.konlingDock.title}</p>
-                <p className="mt-1 text-sm text-foreground">{controlCorrectionCenter.konlingDock.status.summary}</p>
+                <p className="mt-1 break-words text-sm text-foreground">{controlCorrectionCenter.konlingDock.status.summary}</p>
               </div>
             </div>
 

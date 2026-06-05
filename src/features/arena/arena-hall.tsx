@@ -40,7 +40,7 @@ import {
   type ArenaTaskStats,
   type WorkspaceMode,
 } from './types';
-import { selectArenaHallPublicationForTask } from './arena-publication-selection';
+import { selectArenaHallCurrentPublication, selectArenaHallPublicationForTask } from './arena-publication-selection';
 import type { ArenaPublicationRecord } from './teacher/publication-store';
 import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 
@@ -138,6 +138,7 @@ export function ArenaHall({
   const stageGroups = useMemo(() => getArenaTrainingStageGroups(filteredTasks), [filteredTasks]);
   const capabilityGroups = useMemo(() => getArenaTrainingCapabilityGroups(filteredTasks), [filteredTasks]);
   const entryIntents = getCommercialStudentEntryIntentGroups();
+  const activePublication = selectArenaHallCurrentPublication(studentPublications);
 
   return (
     <ArenaPageShell
@@ -149,7 +150,10 @@ export function ArenaHall({
     >
       <section className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
         <div className="grid items-stretch gap-4 lg:grid-cols-2">
-          <div className="surface-card flex min-h-[260px] flex-col justify-between rounded-lg p-5">
+          <div
+            className="surface-card flex min-h-[260px] flex-col justify-between rounded-lg p-5"
+            data-entry-current-work-priority="active-arena-publication"
+          >
             <div>
               <div className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">商业入口 · 挑战</div>
               <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs text-subtle">
@@ -161,6 +165,15 @@ export function ArenaHall({
                 从训练阶段进入控制设计：每个任务标明训练能力、前置能力、预计用时和官方隐藏评测边界。
               </p>
             </div>
+            {activePublication ? (
+              <Link
+                href={`/arena/challenges/${activePublication.taskId}?publicationId=${activePublication.id}`}
+                className="mt-5 inline-flex w-fit rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+                data-entry-primary-action="active-arena-publication"
+              >
+                继续当前挑战
+              </Link>
+            ) : null}
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {entryIntents.filter((intent) => intent.intent === 'challenge' || intent.intent === 'experiment').map((intent) => (
                 <Link key={intent.intent} href={intent.hrefs[0] ?? '/arena'} className="rounded-lg border border-border/60 bg-background/55 p-3 transition hover:border-primary/40">
@@ -169,7 +182,7 @@ export function ArenaHall({
                 </Link>
               ))}
               {phaseItems.map((item) => (
-                <div key={item.label} className="rounded-lg border border-border/60 bg-background/55 p-3">
+                <div key={item.label} className="hidden rounded-lg border border-border/60 bg-background/55 p-3 sm:block">
                   <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary">
                       <item.icon className="h-4 w-4" />

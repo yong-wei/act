@@ -261,12 +261,24 @@ export default function SimulationsPage() {
 
       {/* 简介 */}
       <div className="mx-auto max-w-7xl px-6 py-8">
-        <div className="surface-card p-6" data-entry-current-context="simulation-hub">
+        <div
+          className="surface-card p-6"
+          data-entry-current-context="simulation-hub"
+          data-entry-current-work-priority="recommended-experiment"
+        >
           <h2 className="mb-2 text-lg font-medium text-foreground">船舶控制理论实践平台</h2>
           <p className="text-sm leading-relaxed text-subtle">
             通过7种典型船舶的3D仿真，深入理解自动控制原理在海洋工程中的应用。
             从经典PID到多自由度解耦控制，从单一工况到自适应控制，循序渐进掌握控制系统设计方法。
           </p>
+          <Link
+            href="/simulations/drilling"
+            prefetch={false}
+            className="mt-4 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+            data-entry-primary-action="recommended-experiment"
+          >
+            继续动力定位实验
+          </Link>
           <div className="mt-4 grid gap-2 text-xs text-subtle md:grid-cols-4" data-commercial-entry-intent-map="simulation-scenario">
             <span className="rounded-full border border-border px-3 py-1">场景身份</span>
             <span className="rounded-full border border-border px-3 py-1">控制难度</span>

@@ -324,6 +324,7 @@ export default function HomePage() {
                 <Button
                   onClick={handleEnterCockpit}
                   className="cta-primary"
+                  data-entry-secondary-action="student-cockpit"
                 >
                   进入驾驶舱
                 </Button>
@@ -331,6 +332,7 @@ export default function HomePage() {
                 <Button
                   onClick={() => setShowLoginModal(true)}
                   className="cta-primary"
+                  data-entry-secondary-action="student-cockpit"
                 >
                   进入驾驶舱
                 </Button>
@@ -372,25 +374,21 @@ export default function HomePage() {
               <div className="flex flex-wrap gap-3">
                 {currentScenario.ctaHref ? (
                   <Button asChild className="cta-primary">
-                    <Link href={currentScenario.ctaHref} prefetch={false}>
+                    <Link
+                      href={currentScenario.ctaHref}
+                      prefetch={false}
+                      data-entry-primary-action="current-experiment"
+                    >
                       <Play className="mr-2 h-4 w-4" />
                       {currentScenario.ctaLabel ?? '开启任务链'}
                     </Link>
                   </Button>
                 ) : (
-                  <Button className="cta-primary">
+                  <Button className="cta-primary" data-entry-primary-action="current-experiment">
                     <Play className="mr-2 h-4 w-4" />
                     {currentScenario.ctaLabel ?? '开启任务链'}
                   </Button>
                 )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="btn-ghost-themed border"
-                  onClick={() => setShowCourseDesignDialog(true)}
-                >
-                  了解课程设计
-                </Button>
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 {[
@@ -441,7 +439,13 @@ export default function HomePage() {
               <div className="surface-card p-6" data-commercial-entry-intent-map="homepage">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-semibold text-foreground">任务序列</div>
-                  <div className="text-xs text-subtle">{currentSlide + 1}/{totalSlides}</div>
+                  <button
+                    type="button"
+                    className="text-xs text-subtle transition hover:text-primary"
+                    onClick={() => setShowCourseDesignDialog(true)}
+                  >
+                    课程设计 · {currentSlide + 1}/{totalSlides}
+                  </button>
                 </div>
                 <div className="mt-4 space-y-3">
                   {shipScenarios.map((scenario, index) => (
