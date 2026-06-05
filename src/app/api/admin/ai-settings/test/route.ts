@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
   try {
     const config = await resolveConfiguredAIProviderConfig(providerId, model);
-    if (!config.apiKey.trim()) {
+    if (config.authMode !== 'none' && !config.apiKey.trim()) {
       return NextResponse.json({ error: 'AI API key is not configured' }, { status: 503 });
     }
 

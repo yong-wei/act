@@ -414,6 +414,28 @@ describe('AI provider settings', () => {
     expect(config.apiKey).toBe('sk-openai-backup');
   });
 
+  it('keeps legacy AI_API_KEY-only SiliconFlow deployments selectable', async () => {
+    const settings = getDefaultAIProviderSettings({
+      AI_PROVIDER: 'siliconflow',
+      AI_API_KEY: 'sk-legacy-ai-key',
+    } as unknown as NodeJS.ProcessEnv);
+
+    const config = await resolveConfiguredAIProviderConfig(
+      undefined,
+      undefined,
+      { tools: true, streaming: true, citationNormalization: true },
+      settings,
+      {
+        AI_PROVIDER: 'siliconflow',
+        AI_API_KEY: 'sk-legacy-ai-key',
+      } as unknown as NodeJS.ProcessEnv,
+    );
+
+    expect(config.provider).toBe('siliconflow');
+    expect(config.secretRef).toBe('env:SILICONFLOW_API_KEY');
+    expect(config.apiKey).toBe('sk-legacy-ai-key');
+  });
+
   it('uses the configured secretRef even when the provider id matches the env provider', async () => {
     const settings = normalizeAIProviderSettings({
       activeProvider: 'siliconflow',

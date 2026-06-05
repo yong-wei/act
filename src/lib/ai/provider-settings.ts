@@ -214,8 +214,14 @@ export function resolveProviderSecret(secretRef: string, env: NodeJS.ProcessEnv 
   return cleanText(env[envName]);
 }
 
-function hasResolvableProviderSecret(provider: AIProviderSetting, env: NodeJS.ProcessEnv): boolean {
-  return provider.authMode === 'none' || Boolean(resolveProviderSecret(provider.secretRef, env));
+function hasResolvableProviderSecret(
+  provider: AIProviderSetting,
+  env: NodeJS.ProcessEnv,
+  envConfig: AIProviderConfig,
+): boolean {
+  return provider.authMode === 'none'
+    || Boolean(resolveProviderSecret(provider.secretRef, env))
+    || (provider.secretRef === envConfig.secretRef && envConfig.apiKey.trim().length > 0);
 }
 
 export class AIProviderCapabilityUnavailableError extends Error {
@@ -446,7 +452,7 @@ export async function resolveConfiguredAIProviderConfig(
   const settings = settingsOverride ?? await getAIProviderSettings();
   const runtimeSettings = {
     ...settings,
-    providers: settings.providers.filter((provider) => hasResolvableProviderSecret(provider, env)),
+    providers: settings.providers.filter((provider) => hasResolvableProviderSecret(provider, env, envConfig)),
   };
   const requestedServiceId = providerId ?? requirements?.serviceId ?? (requirements ? undefined : settings.activeProvider);
   let selection = selectModelProvider(runtimeSettings, { ...(requirements ?? {}), serviceId: requestedServiceId });
