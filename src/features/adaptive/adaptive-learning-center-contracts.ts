@@ -96,6 +96,14 @@ export interface LearnerDataSurfaceRoute {
 export interface LearnerDataRouteShell {
   routeFamily: 'learner-data-pathway';
   routeIdentity: LearnerDataRouteIdentity;
+  owningChange: 'redesign-learner-data-and-report-surfaces';
+  archetype: 'learner-record-pathway';
+  mobileBehavior: 'path-evidence-next-action-stack';
+  dockBehavior: 'learner-action-dock' | 'contextual-review-dock';
+  visualEvidence: {
+    requiredThemes: readonly ['light', 'dark'];
+    requiredWidths: readonly [1440, 320];
+  };
   semantics: readonly LearnerDataShellSemantic[];
   statusVocabulary: readonly string[];
   nextActions: readonly string[];
@@ -439,6 +447,14 @@ export function buildLearnerDataRouteShell(href: LearnerDataSurfaceRoute['href']
   return {
     routeFamily: 'learner-data-pathway',
     routeIdentity: route.routeIdentity,
+    owningChange: 'redesign-learner-data-and-report-surfaces',
+    archetype: 'learner-record-pathway',
+    mobileBehavior: 'path-evidence-next-action-stack',
+    dockBehavior: route.href === '/dashboard' ? 'learner-action-dock' : 'contextual-review-dock',
+    visualEvidence: {
+      requiredThemes: ['light', 'dark'],
+      requiredWidths: [1440, 320],
+    },
     semantics: LEARNER_DATA_SHELL_SEMANTICS,
     statusVocabulary: LEARNER_DATA_STATUS_VOCABULARY,
     nextActions: LEARNER_DATA_NEXT_ACTIONS,

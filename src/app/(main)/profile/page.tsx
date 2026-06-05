@@ -149,7 +149,13 @@ export default function ProfilePage() {
 
   if (status === 'unauthenticated') {
     return (
-      <div className="surface-page flex items-center justify-center" data-route-family={learnerDataShell.routeFamily} data-route-identity={learnerDataShell.routeIdentity}>
+      <div
+        className="surface-page flex items-center justify-center"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+        data-learner-record-next-action="login"
+      >
         <div className="text-center">
           <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">商业入口 · 账号与画像</p>
           <p className="text-xl text-subtle">请先登录</p>
@@ -170,7 +176,13 @@ export default function ProfilePage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="surface-page flex items-center justify-center" data-route-family={learnerDataShell.routeFamily} data-route-identity={learnerDataShell.routeIdentity}>
+      <div
+        className="surface-page flex items-center justify-center"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+        data-learner-record-next-action="wait-for-profile"
+      >
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
           <p className="text-subtle">加载中...</p>
@@ -181,7 +193,13 @@ export default function ProfilePage() {
 
   if (error || !profile) {
     return (
-      <div className="surface-page flex items-center justify-center" data-route-family={learnerDataShell.routeFamily} data-route-identity={learnerDataShell.routeIdentity}>
+      <div
+        className="surface-page flex items-center justify-center"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+        data-learner-record-next-action="retry-profile"
+      >
         <div className="text-center">
           <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">商业入口 · 复盘</p>
           <p className="text-xl text-red-400">{error || '加载失败'}</p>
@@ -205,7 +223,12 @@ export default function ProfilePage() {
   const studentCockpitHref = getPlatformCockpitHref('STUDENT');
 
   return (
-    <div className="surface-page" data-route-family={learnerDataShell.routeFamily} data-route-identity={learnerDataShell.routeIdentity}>
+    <div
+      className="surface-page"
+      data-route-family={learnerDataShell.routeFamily}
+      data-route-identity={learnerDataShell.routeIdentity}
+      data-learner-record-surface={learnerDataShell.archetype}
+    >
       <header className="surface-topbar px-6 py-4">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between">
           <div className="flex items-center gap-4">
@@ -222,7 +245,12 @@ export default function ProfilePage() {
       </header>
 
       <main className="mx-auto max-w-[1600px] px-6 py-8">
-        <div className="surface-card mb-8 bg-gradient-to-br from-card via-card to-accent/40 p-6">
+        <div
+          className="surface-card mb-8 p-6"
+          data-learner-record-priority="current-path"
+          data-learner-record-evidence-confidence={profile.evidenceStatus.confidence.level}
+          data-learner-record-missing-source={profile.evidenceStatus.statusMarkers.includes('missing-source') ? 'missing-source' : 'complete'}
+        >
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
               <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-3xl font-bold text-white">
@@ -256,6 +284,18 @@ export default function ProfilePage() {
                 <p className="mt-1">{formatEvidenceStatusSummary(profile.evidenceStatus)}</p>
               </div>
             </div>
+          </div>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link
+              href={profile.personalizedReinforcement.adaptivePractice.actionUrl}
+              className="cta-primary rounded-lg px-4 py-2 text-sm"
+              data-learner-record-next-action="adaptive-practice"
+            >
+              执行下一步练习
+            </Link>
+            <Link href="/profile/evidence" className="btn-ghost-themed rounded-lg px-4 py-2 text-sm">
+              复盘证据来源
+            </Link>
           </div>
         </div>
 

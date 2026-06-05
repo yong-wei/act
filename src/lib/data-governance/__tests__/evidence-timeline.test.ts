@@ -123,6 +123,511 @@ describe('evidence timeline browser', () => {
     expect(page.nextCursor).toBeTruthy();
   });
 
+  it('surfaces core learning work as learner-record evidence with freshness, confidence, source scope, and next action', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([
+          fact({
+            id: 'interactive-submission',
+            factType: 'question',
+            sourceLogId: 'interactive-log',
+            startedAt: new Date('2026-05-21T08:00:00.000Z'),
+            createdAt: new Date('2026-05-21T08:05:01.000Z'),
+            contextJson: {
+              learnerRecord: {
+                sourceScope: 'interactive-lesson-submission',
+                confidence: 'high',
+                freshness: 'fresh',
+                missingSourceState: 'complete',
+                nextAction: { href: '/profile/evidence?lessonId=unit-5-2-phase-plane-disturbance-boundary', label: '复盘课堂作答' },
+              },
+            },
+          }),
+          fact({
+            id: 'arena-preview',
+            factType: 'arena_preview',
+            sourceLogId: 'arena-preview-log',
+            startedAt: new Date('2026-05-21T07:00:00.000Z'),
+            createdAt: new Date('2026-05-21T07:05:01.000Z'),
+            contextJson: {
+              learnerRecord: {
+                sourceScope: 'arena-preview-result',
+                confidence: 'medium',
+                freshness: 'recent',
+                missingSourceState: 'official-arena-missing',
+                nextAction: { href: '/arena', label: '提交官方评测' },
+              },
+            },
+          }),
+          fact({
+            id: 'workbench-completion',
+            factType: 'simulation',
+            sourceLogId: 'workbench-log',
+            startedAt: new Date('2026-05-21T06:00:00.000Z'),
+            createdAt: new Date('2026-05-21T06:05:01.000Z'),
+            contextJson: {
+              learnerRecord: {
+                sourceScope: 'simulation-workbench-completion',
+                confidence: 'medium',
+                freshness: 'recent',
+                missingSourceState: 'partial',
+                nextAction: { href: '/interactive-learning/control-workbench', label: '继续工作台验证' },
+              },
+            },
+          }),
+          fact({
+            id: 'adaptive-practice-submission',
+            factType: 'adaptive_practice',
+            sourceLogId: 'adaptive-log',
+            startedAt: new Date('2026-05-21T05:00:00.000Z'),
+            createdAt: new Date('2026-05-21T05:05:01.000Z'),
+            contextJson: {
+              learnerRecord: {
+                sourceScope: 'adaptive-practice-submission',
+                confidence: 'low',
+                freshness: 'stale',
+                missingSourceState: 'low-confidence',
+                nextAction: { href: '/assessment/adaptive-practice', label: '继续自适应练习' },
+              },
+            },
+          }),
+        ]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([
+          response({ sourceLogId: 'interactive-log' }),
+        ]),
+      },
+    };
+
+    const page = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 10 },
+    });
+
+    expect(page.items.map((item) => item.learnerRecord?.sourceScope)).toEqual([
+      'interactive-lesson-submission',
+      'arena-preview-result',
+      'simulation-workbench-completion',
+      'adaptive-practice-submission',
+    ]);
+    expect(page.items[0].learnerRecord).toMatchObject({
+      freshness: 'fresh',
+      confidence: 'high',
+      missingSourceState: 'complete',
+      nextAction: { href: '/profile/evidence?lessonId=unit-5-2-phase-plane-disturbance-boundary', label: '复盘课堂作答' },
+    });
+    expect(page.items[1].learnerRecord).toMatchObject({
+      confidence: 'medium',
+      missingSourceState: 'official-arena-missing',
+    });
+    expect(page.items[3].learnerRecord).toMatchObject({
+      freshness: 'stale',
+      confidence: 'low',
+      missingSourceState: 'low-confidence',
+    });
+  });
+
+  it('derives learner-record metadata from existing production learning facts when no explicit learnerRecord is written', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([
+          fact({
+            id: 'interactive-submission',
+            factType: 'question',
+            sourceLogId: 'interactive-log',
+            contextJson: {},
+          }),
+          fact({
+            id: 'arena-official',
+            factType: 'design',
+            moduleId: 'task-second-order-lead-pid',
+            sourceEventId: 'arena_evaluation_complete:event-1',
+            sourceLogId: 'arena-official-log',
+            contextJson: {
+              arena: {
+                taskId: 'task-second-order-lead-pid',
+                score: 91,
+                valid: true,
+              },
+              evidenceGovernance: {
+                policyReason: 'official_arena_evaluation',
+              },
+            },
+          }),
+          fact({
+            id: 'arena-preview',
+            factType: 'simulation',
+            moduleId: 'task-second-order-lead-pid',
+            sourceEventId: 'arena_simulation_run:event-preview',
+            sourceLogId: 'arena-preview-log',
+            contextJson: {
+              arena: {
+                taskId: 'task-second-order-lead-pid',
+                valid: false,
+              },
+            },
+          }),
+          fact({
+            id: 'workbench-completion',
+            factType: 'simulation',
+            moduleId: 'control-workbench',
+            sourceLogId: 'workbench-log',
+            contextJson: {},
+          }),
+          fact({
+            id: 'adaptive-practice-submission',
+            factType: 'adaptive_practice',
+            moduleId: 'adaptive-practice',
+            sourceLogId: 'adaptive-log',
+            contextJson: {},
+          }),
+        ]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([
+          response({ sourceLogId: 'interactive-log' }),
+        ]),
+      },
+    };
+
+    const page = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 10 },
+    });
+
+    expect(page.items.map((item) => item.learnerRecord?.sourceScope)).toEqual([
+      'interactive-lesson-submission',
+      'arena-official-result',
+      'arena-preview-result',
+      'simulation-workbench-completion',
+      'adaptive-practice-submission',
+    ]);
+    expect(page.items[0].learnerRecord).toMatchObject({
+      confidence: 'high',
+      missingSourceState: 'complete',
+      nextAction: { href: '/profile/evidence?lessonId=unit-5-2-phase-plane-disturbance-boundary', label: '复盘课堂作答' },
+    });
+    expect(page.items[1].learnerRecord).toMatchObject({
+      confidence: 'high',
+      missingSourceState: 'complete',
+      nextAction: { href: '/arena', label: '查看 Arena 结果' },
+    });
+    expect(page.items[2].learnerRecord).toMatchObject({
+      confidence: 'medium',
+      missingSourceState: 'official-arena-missing',
+      nextAction: { href: '/arena', label: '提交官方评测' },
+    });
+    expect(page.items[3].learnerRecord).toMatchObject({
+      nextAction: { href: '/interactive-learning/control-workbench', label: '继续工作台验证' },
+    });
+    expect(page.items[4].learnerRecord).toMatchObject({
+      nextAction: { href: '/assessment/adaptive-practice', label: '继续自适应练习' },
+    });
+  });
+
+  it('redacts teacher and governance scoped learner-record metadata from student evidence views', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([
+          fact({
+            id: 'restricted-teacher-record',
+            factType: 'question',
+            contextJson: {
+              learnerRecord: {
+                sourceScope: 'interactive-lesson-submission',
+                confidence: 'medium',
+                freshness: 'recent',
+                missingSourceState: 'teacher-intervention-required',
+                privacyScope: 'teacher-scoped',
+                nextAction: { href: '/teacher/classes/class-1/students/student-1', label: '查看教师诊断' },
+              },
+            },
+          }),
+          fact({
+            id: 'restricted-governance-record',
+            factType: 'arena_preview',
+            sourceLogId: 'arena-log',
+            contextJson: {
+              learnerRecord: {
+                sourceScope: 'arena-preview-result',
+                confidence: 'low',
+                freshness: 'stale',
+                missingSourceState: 'governance-review-required',
+                privacyScope: 'governance-scoped',
+                nextAction: { href: '/admin/data-governance', label: '查看治理详情' },
+              },
+            },
+          }),
+        ]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    };
+
+    const page = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 10 },
+      viewerRole: 'student',
+    });
+
+    expect(page.items[0].learnerRecord).toMatchObject({
+      sourceScope: 'interactive-lesson-submission',
+      confidence: 'medium',
+      freshness: 'recent',
+      missingSourceState: 'restricted',
+      privacyScope: 'restricted',
+      nextAction: { href: '/profile/evidence', label: '查看可见证据' },
+    });
+    expect(JSON.stringify(page.items)).not.toContain('/teacher/classes');
+    expect(JSON.stringify(page.items)).not.toContain('/admin/data-governance');
+    expect(JSON.stringify(page.items)).not.toContain('教师诊断');
+    expect(JSON.stringify(page.items)).not.toContain('治理详情');
+    expect(JSON.stringify(page.items)).not.toContain('teacher-scoped');
+    expect(JSON.stringify(page.items)).not.toContain('governance-scoped');
+  });
+
+  it('preserves teacher-scoped learner-record metadata for teacher evidence review', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([
+          fact({
+            id: 'teacher-scoped-record',
+            factType: 'question',
+            contextJson: {
+              learnerRecord: {
+                sourceScope: 'interactive-lesson-submission',
+                confidence: 'medium',
+                freshness: 'recent',
+                missingSourceState: 'teacher-intervention-required',
+                privacyScope: 'teacher-scoped',
+                nextAction: { href: '/teacher/classes/class-1/students/student-1', label: '查看教师诊断' },
+              },
+            },
+          }),
+        ]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    };
+
+    const page = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 10 },
+      viewerRole: 'teacher',
+    });
+
+    expect(page.items[0].learnerRecord).toMatchObject({
+      missingSourceState: 'teacher-intervention-required',
+      privacyScope: 'teacher-scoped',
+      nextAction: { href: '/teacher/classes/class-1/students/student-1', label: '查看教师诊断' },
+    });
+  });
+
+  it('uses reviewer fallback actions for explicit student-visible learner-record metadata in teacher evidence review', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([
+          fact({
+            id: 'student-visible-explicit-record',
+            factType: 'adaptive_practice',
+            contextJson: {
+              learnerRecord: {
+                sourceScope: 'adaptive-practice-submission',
+                confidence: 'medium',
+                freshness: 'fresh',
+                missingSourceState: 'complete',
+                privacyScope: 'student-visible',
+                nextAction: { href: '/assessment/adaptive-practice', label: '继续自适应练习' },
+              },
+            },
+          }),
+        ]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    };
+
+    const page = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 10 },
+      viewerRole: 'teacher',
+      restrictedFallbackAction: {
+        href: '/teacher/classes/class-1/students/student-1/evidence',
+        label: '留在学生证据审核',
+      },
+    });
+
+    expect(page.items[0].learnerRecord).toMatchObject({
+      missingSourceState: 'complete',
+      privacyScope: 'student-visible',
+      nextAction: {
+        href: '/teacher/classes/class-1/students/student-1/evidence',
+        label: '留在学生证据审核',
+      },
+    });
+  });
+
+  it('uses reviewer fallback actions for derived learner-record metadata in teacher evidence review', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([
+          fact({
+            id: 'derived-classroom-submission',
+            factType: 'question',
+            sourceLogId: 'interactive-log',
+            contextJson: {},
+          }),
+          fact({
+            id: 'derived-adaptive-practice',
+            factType: 'adaptive_practice',
+            moduleId: 'adaptive-practice',
+            sourceLogId: 'adaptive-log',
+            contextJson: {},
+          }),
+        ]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([
+          response({ sourceLogId: 'interactive-log' }),
+        ]),
+      },
+    };
+
+    const page = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 10 },
+      viewerRole: 'teacher',
+      restrictedFallbackAction: {
+        href: '/teacher/classes/class-1/students/student-1/evidence',
+        label: '留在学生证据审核',
+      },
+    });
+
+    expect(page.items.map((item) => item.learnerRecord?.sourceScope)).toEqual([
+      'interactive-lesson-submission',
+      'adaptive-practice-submission',
+    ]);
+    expect(page.items.map((item) => item.learnerRecord?.nextAction)).toEqual([
+      {
+        href: '/teacher/classes/class-1/students/student-1/evidence',
+        label: '留在学生证据审核',
+      },
+      {
+        href: '/teacher/classes/class-1/students/student-1/evidence',
+        label: '留在学生证据审核',
+      },
+    ]);
+  });
+
+  it('preserves governance-scoped learner-record metadata only for admin evidence review', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([
+          fact({
+            id: 'governance-scoped-record',
+            factType: 'arena_preview',
+            contextJson: {
+              learnerRecord: {
+                sourceScope: 'arena-preview-result',
+                confidence: 'low',
+                freshness: 'stale',
+                missingSourceState: 'governance-review-required',
+                privacyScope: 'governance-scoped',
+                nextAction: { href: '/admin/data-governance', label: '查看治理详情' },
+              },
+            },
+          }),
+        ]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    };
+
+    const teacherPage = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 10 },
+      viewerRole: 'teacher',
+      restrictedFallbackAction: {
+        href: '/teacher/classes/class-1/students/student-1/evidence',
+        label: '留在学生证据审核',
+      },
+    });
+    const adminPage = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 10 },
+      viewerRole: 'admin',
+    });
+
+    expect(teacherPage.items[0].learnerRecord).toMatchObject({
+      missingSourceState: 'restricted',
+      privacyScope: 'restricted',
+      nextAction: {
+        href: '/teacher/classes/class-1/students/student-1/evidence',
+        label: '留在学生证据审核',
+      },
+    });
+    expect(adminPage.items[0].learnerRecord).toMatchObject({
+      missingSourceState: 'governance-review-required',
+      privacyScope: 'governance-scoped',
+      nextAction: { href: '/admin/data-governance', label: '查看治理详情' },
+    });
+  });
+
+  it('fails closed for unrecognized learner-record privacy scopes', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([
+          fact({
+            id: 'unknown-scope-record',
+            factType: 'arena_preview',
+            contextJson: {
+              learnerRecord: {
+                sourceScope: 'arena-preview-result',
+                confidence: 'low',
+                freshness: 'stale',
+                missingSourceState: 'system-internal-review-required',
+                privacyScope: 'system-internal',
+                nextAction: { href: '/admin/data-governance', label: '内部治理详情' },
+              },
+            },
+          }),
+        ]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    };
+
+    const page = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 10 },
+      viewerRole: 'student',
+    });
+
+    expect(page.items[0].learnerRecord).toMatchObject({
+      missingSourceState: 'restricted',
+      privacyScope: 'restricted',
+      nextAction: { href: '/profile/evidence', label: '查看可见证据' },
+    });
+    expect(JSON.stringify(page.items)).not.toContain('system-internal');
+    expect(JSON.stringify(page.items)).not.toContain('/admin/data-governance');
+    expect(JSON.stringify(page.items)).not.toContain('内部治理详情');
+  });
+
   it('applies field filters, dimension filters, and cursor pagination', async () => {
     const cursor = createEvidenceTimelineCursor({
       startedAt: '2026-05-21T08:00:00.000Z',
