@@ -215,3 +215,11 @@ The platform SHALL define typography and numeric readout rules for premium learn
 - **THEN** typography, weight, spacing, tabular numbers, and label treatments SHALL follow the brand application kit
 - **AND** metrics or labels SHALL NOT appear as generic dashboard card copy disconnected from task, source, confidence, or next action.
 
+### Requirement: Report ledger surfaces use non-obscuring brand marks
+Report and export surfaces SHALL use brand marks and watermarks without reducing readability.
+
+#### Scenario: Report or export surface renders
+- **WHEN** classroom, Arena, learner, governance, or data-center report output is displayed, printed, exported, or screenshotted
+- **THEN** brand marks, watermarks, textures, and route badges SHALL remain low contrast and non-obscuring
+- **AND** metrics, formulas, charts, names, source labels, and privacy labels SHALL remain readable.
+

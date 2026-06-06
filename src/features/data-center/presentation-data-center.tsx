@@ -43,7 +43,8 @@ import {
   SOURCE_QUALITY_MARKERS,
   type DataCenterSourceQuality,
 } from './shared/data-center-contracts';
-import { presentationDataCenterMock } from './presentation-mock-data';
+import { buildExportSafeSnapshot, type SafeSnapshot, type SnapshotMetric } from './shared/export-safe-snapshot';
+import { presentationDataCenterMock, type PresentationDataCenterData } from './presentation-mock-data';
 
 const numberFormatter = new Intl.NumberFormat('zh-CN');
 
@@ -122,6 +123,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
     generatedAt: data._meta.generatedAt,
     role,
   });
+  const exportSnapshot = () => buildPresentationExportSnapshot(data, totals);
 
   return (
     <AppShell
@@ -384,58 +386,78 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
         </DataCenterChartPanel>
       </section>
 
-      {/* 5. Demo 快照 (demo-snapshots) */}
-      <section className="mb-6">
-        <DataCenterChartPanel
-          title="学期简报 · 快照"
-          subtitle="演示快照：教学规模、学习行为密度、仿真实训强度总览"
-          sourceQuality={sourceQuality()}
-          mode="presentation"
-        >
-          <div className={compactGridClass}>
-            <BriefCard
-              icon={<GraduationCap className="h-4 w-4" />}
-              title="教学规模"
-              text={`${data.userScale.teachers} 名教师覆盖 ${numberFormatter.format(data.userScale.students)} 名学生，形成高并发教学组织。`}
-              isDark={isDark}
-            />
-            <BriefCard
-              icon={<BarChart3 className="h-4 w-4" />}
-              title="学习行为密度"
-              text={`学期总访问量 ${numberFormatter.format(totals.monthlyVisitTotal)}，互动总量 ${numberFormatter.format(totals.interactionTotal)}。`}
-              isDark={isDark}
-            />
-            <BriefCard
-              icon={<Ship className="h-4 w-4" />}
-              title="仿真实训强度"
-              text={`7类仿真累计访问 ${numberFormatter.format(totals.simulationVisitTotal)}，Control Odyssey 达到 ${numberFormatter.format(data.controlOdysseyVisits)}。`}
-              isDark={isDark}
-            />
-          </div>
-        </DataCenterChartPanel>
-      </section>
+          {/* 5. Demo 快照 (demo-snapshots) */}
+          <section
+            className="relative mb-6 overflow-hidden rounded-2xl border border-platform-border bg-platform-surface p-4"
+            data-report-ledger-surface="data-center-platform-snapshot"
+            data-report-ledger-watermark="low-contrast-brand"
+            data-report-ledger-privacy-scope="aggregate-only"
+            data-report-ledger-export="available"
+          >
+            <span
+              className="pointer-events-none absolute right-6 top-5 select-none text-5xl font-semibold uppercase tracking-[0.32em] text-platform-fg-muted/10"
+              aria-hidden="true"
+            >
+              ACT
+            </span>
+            <div className="relative">
+              <div className="mb-4 grid gap-2 text-xs text-platform-fg-secondary md:grid-cols-4">
+                <span>来源质量：{SOURCE_QUALITY_MARKERS[sourceQuality()].label}</span>
+                <span>新鲜度：{data._meta.generatedAt}</span>
+                <span>隐私范围：聚合视图</span>
+                <span>状态图例：可导出</span>
+              </div>
+              <DataCenterChartPanel
+                title="学期简报 · 快照"
+                subtitle="演示快照：教学规模、学习行为密度、仿真实训强度总览"
+                sourceQuality={sourceQuality()}
+                mode="presentation"
+              >
+                <div className={compactGridClass}>
+                  <BriefCard
+                    icon={<GraduationCap className="h-4 w-4" />}
+                    title="教学规模"
+                    text={`${data.userScale.teachers} 名教师覆盖 ${numberFormatter.format(data.userScale.students)} 名学生，形成高并发教学组织。`}
+                    isDark={isDark}
+                  />
+                  <BriefCard
+                    icon={<BarChart3 className="h-4 w-4" />}
+                    title="学习行为密度"
+                    text={`学期总访问量 ${numberFormatter.format(totals.monthlyVisitTotal)}，互动总量 ${numberFormatter.format(totals.interactionTotal)}。`}
+                    isDark={isDark}
+                  />
+                  <BriefCard
+                    icon={<Ship className="h-4 w-4" />}
+                    title="仿真实训强度"
+                    text={`7类仿真累计访问 ${numberFormatter.format(totals.simulationVisitTotal)}，Control Odyssey 达到 ${numberFormatter.format(data.controlOdysseyVisits)}。`}
+                    isDark={isDark}
+                  />
+                </div>
+              </DataCenterChartPanel>
+            </div>
+          </section>
 
-      {/* 导出区域 */}
+          {/* 导出区域 */}
         </div>
 
-      <div
-        id="data-center-export"
-        className="flex flex-wrap items-center justify-end gap-3 border-t border-platform-border pt-4"
-        data-commercial-workspace-zone="command-bar"
-      >
-        <p className="text-xs text-platform-fg-muted">
-          导出快照将自动移除原始学习证据、原始轨迹和私有数据，保留来源标记
-        </p>
-        <button
-          className="inline-flex items-center gap-2 rounded-lg border border-platform-border bg-platform-surface px-4 py-2 text-sm font-medium text-platform-fg-primary hover:bg-platform-action-subtle transition-colors"
-          onClick={() => {
-            window.alert('演示环境：导出快照功能将在后续版本中提供');
-          }}
+        <div
+          id="data-center-export"
+          className="flex flex-wrap items-center justify-end gap-3 border-t border-platform-border pt-4"
+          data-commercial-workspace-zone="command-bar"
         >
-          <Download className="h-4 w-4" />
-          导出演示快照
-        </button>
-      </div>
+          <p className="text-xs text-platform-fg-muted">
+            导出快照将自动移除原始学习证据、原始轨迹和私有数据，保留来源标记
+          </p>
+          <button
+            className="inline-flex items-center gap-2 rounded-lg border border-platform-border bg-platform-surface px-4 py-2 text-sm font-medium text-platform-fg-primary transition-colors hover:bg-platform-action-subtle"
+            onClick={() => {
+              downloadExportSafeSnapshot(exportSnapshot(), `data-center-snapshot-${data._meta.semester}.json`);
+            }}
+          >
+            <Download className="h-4 w-4" />
+            导出演示快照
+          </button>
+        </div>
       </div>
     </AppShell>
   );
@@ -549,6 +571,40 @@ export function buildDataMapContextCards({
       exportAvailability,
     },
   ];
+}
+
+export function buildPresentationExportSnapshot(
+  data: PresentationDataCenterData,
+  totals: { interactionTotal: number; simulationVisitTotal: number; monthlyVisitTotal: number },
+) {
+  const sourceQuality = data._meta.sourceQuality;
+  const metrics: SnapshotMetric[] = [
+    { label: '学期', value: data._meta.semester, sourceQuality },
+    { label: '最近同步', value: data._meta.generatedAt, sourceQuality },
+    { label: '隐私范围', value: '聚合视图', sourceQuality },
+    { label: '状态图例', value: '可导出', sourceQuality },
+    { label: '导出安全策略', value: '移除原始证据、原始轨迹、隐藏评价、原始答案和私有记忆', sourceQuality },
+    { label: '学生规模', value: data.userScale.students, sourceQuality },
+    { label: '教师规模', value: data.userScale.teachers, sourceQuality },
+    { label: '学期总访问量', value: totals.monthlyVisitTotal, sourceQuality },
+    { label: '互动总量', value: totals.interactionTotal, sourceQuality },
+    { label: '仿真访问总量', value: totals.simulationVisitTotal, sourceQuality },
+    { label: 'Control Odyssey 访问', value: data.controlOdysseyVisits, sourceQuality },
+  ];
+
+  return buildExportSafeSnapshot(metrics);
+}
+
+export function downloadExportSafeSnapshot(snapshot: SafeSnapshot, filename: string) {
+  const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
 }
 
 function MetricCard({

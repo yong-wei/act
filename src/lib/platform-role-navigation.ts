@@ -5,6 +5,7 @@ import {
   type PlatformNavigationItem,
   type PlatformRole,
 } from '@/components/platform/platform-ui-contracts';
+import type { ReportLedgerSurfaceCategory } from '@/lib/report-ledger-contracts';
 
 export type PlatformRoleNavigationAudience = PlatformRole | 'guest';
 
@@ -203,6 +204,7 @@ export interface PlatformReportSurfaceInventoryEntry {
   id: string;
   ownerRoute: string;
   sourceFile: string;
+  category: ReportLedgerSurfaceCategory;
   surfaceType: PlatformReportSurfaceType;
   owningChange: string;
   sourceShellOwner: string;
@@ -1032,6 +1034,7 @@ export const PLATFORM_REPORT_SURFACE_INVENTORY: PlatformReportSurfaceInventoryEn
     id: 'classroom-session-report',
     ownerRoute: '/classroom/student/[sessionId]',
     sourceFile: 'src/app/classroom/student/[sessionId]/page.tsx',
+    category: 'classroom',
     surfaceType: 'primary-route',
     owningChange: 'redesign-report-ledger-and-export-surfaces',
     sourceShellOwner: 'redesign-immersive-learning-workspaces',
@@ -1041,6 +1044,7 @@ export const PLATFORM_REPORT_SURFACE_INVENTORY: PlatformReportSurfaceInventoryEn
     id: 'arena-challenge-result',
     ownerRoute: '/arena/challenges/[taskId]',
     sourceFile: 'src/features/arena/challenge-detail.tsx',
+    category: 'arena',
     surfaceType: 'embedded-component',
     owningChange: 'redesign-report-ledger-and-export-surfaces',
     sourceShellOwner: 'redesign-immersive-learning-workspaces',
@@ -1050,6 +1054,7 @@ export const PLATFORM_REPORT_SURFACE_INVENTORY: PlatformReportSurfaceInventoryEn
     id: 'arena-publication-report',
     ownerRoute: '/teacher/arena/publications/[publicationId]',
     sourceFile: 'src/app/teacher/arena/publications/[publicationId]/page.tsx',
+    category: 'arena',
     surfaceType: 'primary-route',
     owningChange: 'redesign-report-ledger-and-export-surfaces',
     sourceShellOwner: 'redesign-immersive-learning-workspaces',
@@ -1059,6 +1064,7 @@ export const PLATFORM_REPORT_SURFACE_INVENTORY: PlatformReportSurfaceInventoryEn
     id: 'learner-growth-report',
     ownerRoute: '/profile/growth',
     sourceFile: 'src/app/(main)/profile/growth/page.tsx',
+    category: 'learner',
     surfaceType: 'primary-route',
     owningChange: 'redesign-report-ledger-and-export-surfaces',
     sourceShellOwner: 'redesign-learner-data-and-report-surfaces',
@@ -1068,6 +1074,7 @@ export const PLATFORM_REPORT_SURFACE_INVENTORY: PlatformReportSurfaceInventoryEn
     id: 'learner-evidence-report',
     ownerRoute: '/profile/evidence',
     sourceFile: 'src/app/(main)/profile/evidence/page.tsx',
+    category: 'learner',
     surfaceType: 'primary-route',
     owningChange: 'redesign-report-ledger-and-export-surfaces',
     sourceShellOwner: 'redesign-learner-data-and-report-surfaces',
@@ -1077,6 +1084,7 @@ export const PLATFORM_REPORT_SURFACE_INVENTORY: PlatformReportSurfaceInventoryEn
     id: 'governance-data-quality-snapshot',
     ownerRoute: '/admin/data-governance',
     sourceFile: 'src/app/admin/data-governance/page.tsx',
+    category: 'governance',
     surfaceType: 'primary-route',
     owningChange: 'redesign-report-ledger-and-export-surfaces',
     sourceShellOwner: 'redesign-operations-and-report-surfaces',
@@ -1086,6 +1094,7 @@ export const PLATFORM_REPORT_SURFACE_INVENTORY: PlatformReportSurfaceInventoryEn
     id: 'data-center-platform-snapshot',
     ownerRoute: '/data-center',
     sourceFile: 'src/app/data-center/page.tsx',
+    category: 'data-center',
     surfaceType: 'primary-route',
     owningChange: 'redesign-report-ledger-and-export-surfaces',
     sourceShellOwner: 'redesign-knowledge-and-data-surfaces',
