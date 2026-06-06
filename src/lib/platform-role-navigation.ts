@@ -507,6 +507,17 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     owningChange: 'redesign-public-student-entry-experience',
   }),
   primaryRoute({
+    href: '/interactive-learning/courses/unit-5-4-data-driven-mpc-transition',
+    routeFile: 'src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx',
+    frame: 'learning-map',
+    roleScope: ['guest', 'student', 'teacher'],
+    authState: 'public',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'collapsed',
+    visualQaProfile: 'representative',
+    owningChange: 'harden-premium-ui-visual-governance',
+  }),
+  primaryRoute({
     href: '/simulations',
     routeFile: 'src/app/simulations/page.tsx',
     frame: 'immersive-task-workspace',

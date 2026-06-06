@@ -5,6 +5,7 @@ import path from 'node:path';
 
 import {
   DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES,
+  PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX,
   evaluateCommercialUiGovernance,
   type CommercialAccessibilityTextFitEvidence,
   type CommercialVisualAcceptanceRoute,
@@ -18,6 +19,8 @@ import {
 import {
   COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS,
   PLATFORM_PROFILE_AND_COCKPIT_ACTIONS,
+  PLATFORM_PRIMARY_ROUTE_INVENTORY,
+  PLATFORM_REPORT_SURFACE_INVENTORY,
   STUDENT_CORE_ENTRY_IDS,
   STUDENT_LEARNING_INTENT_GROUPS,
 } from '../../src/lib/platform-role-navigation';
@@ -114,6 +117,17 @@ function diffForFile(file: string) {
     git(['diff', '--cached', '--unified=0', '--', file]),
     hasGitRef('origin/integration') ? git(['diff', '--unified=0', 'origin/integration...HEAD', '--', file]) : '',
     !hasGitRef('origin/integration') && hasGitRef('HEAD^') ? git(['diff', '--unified=0', 'HEAD^', 'HEAD', '--', file]) : '',
+  ].join('\n');
+}
+
+function diffForFileWithContext(file: string, context: number) {
+  return [
+    git(['diff', `--unified=${context}`, '--', file]),
+    git(['diff', '--cached', `--unified=${context}`, '--', file]),
+    hasGitRef('origin/integration') ? git(['diff', `--unified=${context}`, 'origin/integration...HEAD', '--', file]) : '',
+    !hasGitRef('origin/integration') && hasGitRef('HEAD^')
+      ? git(['diff', `--unified=${context}`, 'HEAD^', 'HEAD', '--', file])
+      : '',
   ].join('\n');
 }
 
@@ -304,11 +318,21 @@ function affectedVisualRoutes(files: string[]): CommercialVisualAcceptanceRoute[
   const addDefaultMatrix = () => {
     for (const route of DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES) routes.set(route.href, route);
   };
+  const matchesRouteFile = (file: string, routeFile: string) => file === routeFile || file.startsWith(`${path.dirname(routeFile)}/`);
+  const matchesCoveredGlob = (file: string, coveredRouteGlob?: string) => {
+    if (!coveredRouteGlob) return false;
+    const pattern = new RegExp(`^${coveredRouteGlob
+      .split('*')
+      .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
+      .join('[^/]+')}$`);
+    return pattern.test(file);
+  };
   for (const file of files) {
     if (
       file === 'src/app/globals.css'
       || file === 'src/components/platform/app-shell.tsx'
       || file === 'src/lib/platform-role-navigation.ts'
+      || file === 'artifacts/commercial-ui/evidence.json'
     ) {
       addDefaultMatrix();
     }
@@ -335,8 +359,25 @@ function affectedVisualRoutes(files: string[]): CommercialVisualAcceptanceRoute[
     if (file.includes('src/features/admin/data-governance') || file.includes('src/app/admin/data-governance/')) {
       add('/admin/data-governance');
     }
+    for (const route of PLATFORM_PRIMARY_ROUTE_INVENTORY) {
+      if (matchesRouteFile(file, route.routeFile) || matchesCoveredGlob(file, route.coveredRouteGlob)) add(route.href);
+    }
+    for (const surface of PLATFORM_REPORT_SURFACE_INVENTORY) {
+      if (file === surface.sourceFile) add(surface.ownerRoute);
+    }
   }
   return [...routes.values()];
+}
+
+function appPageRouteHref(file: string) {
+  if (!/^src\/app\/(?:.*\/)?page\.tsx$/.test(file)) return undefined;
+  const route = file
+    .replace(/^src\/app\/?/, '')
+    .replace(/\/page\.tsx$/, '')
+    .split('/')
+    .filter((segment) => segment && !/^\(.+\)$/.test(segment))
+    .join('/');
+  return route ? `/${route}` : '/';
 }
 
 function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
@@ -380,10 +421,76 @@ function readAccessibilityEvidenceManifest(routes: readonly CommercialVisualAcce
 
 const files = changedFiles();
 const requiredVisualRoutes = affectedVisualRoutes(files);
+function changedPrimaryRouteInventoryHrefs() {
+  const hrefs = new Set<string>();
+  let blockChanged = false;
+  let blockHref: string | undefined;
+  let inPrimaryRouteBlock = false;
+
+  const finishBlock = () => {
+    if (blockChanged && blockHref) hrefs.add(blockHref);
+    blockChanged = false;
+    blockHref = undefined;
+    inPrimaryRouteBlock = false;
+  };
+
+  for (const line of diffForFileWithContext('src/lib/platform-role-navigation.ts', 100000).split('\n')) {
+    if (line.startsWith('+++') || line.startsWith('---')) continue;
+    if (!/^[ +-]/.test(line)) {
+      if (inPrimaryRouteBlock) finishBlock();
+      continue;
+    }
+
+    const marker = line[0];
+    const content = line.slice(1);
+    if (content.includes('primaryRoute({')) {
+      if (inPrimaryRouteBlock) finishBlock();
+      inPrimaryRouteBlock = true;
+      blockChanged = marker !== ' ';
+      continue;
+    }
+    if (!inPrimaryRouteBlock) continue;
+    if (marker !== ' ') blockChanged = true;
+    const href = /href:\s*'([^']+)'/.exec(content)?.[1];
+    if (href && marker !== '-') blockHref = href;
+    if (href && !blockHref) blockHref = href;
+    if (/^\s*}\),/.test(content)) finishBlock();
+  }
+  if (inPrimaryRouteBlock) finishBlock();
+  return hrefs;
+}
+const changedPrimaryRouteHrefs = changedPrimaryRouteInventoryHrefs();
+const currentPrimaryRouteHrefs = new Set(PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => route.href));
+const missingChangedPrimaryRouteLedgerViolations: CommercialUiGovernanceViolation[] = [...changedPrimaryRouteHrefs]
+  .filter((href) => !currentPrimaryRouteHrefs.has(href))
+  .map((href) => ({
+    path: href,
+    rule: 'route-ledger.incomplete-primary-route',
+    message: 'Changed primary route inventory href no longer resolves to a current route ledger entry.',
+    evidence: ['missing-current-inventory-entry'],
+  }));
+const missingChangedAppPageLedgerViolations: CommercialUiGovernanceViolation[] = files
+  .map(appPageRouteHref)
+  .filter((href): href is string => Boolean(href))
+  .filter((href) => !currentPrimaryRouteHrefs.has(href))
+  .map((href) => ({
+    path: href,
+    rule: 'route-ledger.incomplete-primary-route',
+    message: 'Changed app page route is missing a primary route ledger entry.',
+    evidence: ['missing-primary-route-inventory-entry'],
+  }));
+const routeInventoryForGate = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => (
+  requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
+  || changedPrimaryRouteHrefs.has(route.href)
+));
 const result = evaluateCommercialUiGovernance({
   mode: 'blocking',
   today,
-  sourceViolations: buildSourceViolations(files),
+  sourceViolations: [
+    ...buildSourceViolations(files),
+    ...missingChangedPrimaryRouteLedgerViolations,
+    ...missingChangedAppPageLedgerViolations,
+  ],
   shellInventory: buildShellInventory(files),
   moduleChromeInventory: buildModuleChromeInventory(files),
   statusInventory: buildStatusInventory(files),
@@ -391,6 +498,13 @@ const result = evaluateCommercialUiGovernance({
   visualEvidence: readVisualEvidenceManifest(),
   accessibilityEvidence: readAccessibilityEvidenceManifest(requiredVisualRoutes),
   requiredVisualRoutes,
+  routeInventory: routeInventoryForGate,
+  premiumVisualQaMatrix: PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.filter((route) => (
+    requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
+  )),
+  reportSurfaceInventory: PLATFORM_REPORT_SURFACE_INVENTORY.filter((surface) => (
+    requiredVisualRoutes.some((visualRoute) => visualRoute.href === surface.ownerRoute)
+  )),
 });
 
 assert.equal(
