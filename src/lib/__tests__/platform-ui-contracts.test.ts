@@ -28,6 +28,11 @@ import {
   PlatformSurface,
   ThemeSwitcher,
 } from '@/components/platform/app-shell';
+import {
+  isTeacherOperationsNavActive,
+  resolveTeacherOperationsNavHref,
+} from '@/features/teacher/teacher-operations-nav';
+import { resolveTeacherOperationsClassHref } from '@/features/teacher/teacher-dashboard';
 
 const rootDir = path.resolve(__dirname, '../../..');
 
@@ -331,6 +336,8 @@ describe('platform UI contracts', () => {
     const unit41StudentRuntimeSource = readSource('src/features/interactive/unit-4-1-design-task-expression/student-page.tsx');
     const cruiseSimulationSource = readSource('src/app/simulations/cruise/page.tsx');
     const teacherAnalyticsSource = readSource('src/app/teacher/classes/[classId]/analytics-v2/page.tsx');
+    const teacherLayoutSource = readSource('src/app/teacher/layout.tsx');
+    const teacherOperationsNavSource = readSource('src/features/teacher/teacher-operations-nav.tsx');
     const teacherDashboardSource = readSource('src/features/teacher/teacher-dashboard.tsx');
     const teacherClassesSource = readSource('src/app/teacher/classes/page.tsx');
     const teacherLessonPlansSource = readSource('src/app/teacher/lesson-plans/page.tsx');
@@ -359,7 +366,18 @@ describe('platform UI contracts', () => {
     expect(unit41StudentRuntimeSource).toContain('data-task-workspace-archetype="lesson-runtime"');
     expect(manifestRuntimeSource).toContain('data-commercial-module-state');
     expect(teacherAnalyticsSource).toContain('data-commercial-operations-workspace="teacher-operations"');
+    expect(teacherLayoutSource).toContain('TeacherOperationsNav');
+    expect(teacherOperationsNavSource).toContain('TEACHER_OPERATIONS_NAVIGATION');
+    expect(teacherOperationsNavSource).toContain('data-teacher-operations-continuous-nav');
+    expect(teacherOperationsNavSource).toContain('data-teacher-operations-current-route');
     expect(teacherDashboardSource).toContain('data-commercial-operations-workspace="teacher-operations"');
+    expect(teacherDashboardSource).toContain('data-operations-first-viewport="teacher-attention"');
+    expect(teacherDashboardSource).toContain('data-teacher-operations-active-work');
+    expect(teacherDashboardSource).toContain('data-teacher-operations-pending-action');
+    expect(teacherDashboardSource).toContain('/teacher/classes');
+    expect(teacherDashboardSource).toContain('/teacher/history');
+    expect(teacherDashboardSource).toContain('resolveTeacherOperationsClassHref(activeSessions, recentClasses)');
+    expect(teacherDashboardSource).toContain("activeClassHref === '/teacher/classes' ? '' : '/analytics-v2'");
     expect(teacherDashboardSource).toContain('TEACHER_OPERATIONS_ANALYTICS_SLOTS');
     expect(teacherDashboardSource).toContain('data-operations-unavailable-slot');
     expect(teacherDashboardSource).toContain('data-operations-fabricates-metrics={String(unavailableSlot.fabricatesMetrics)}');
@@ -370,12 +388,93 @@ describe('platform UI contracts', () => {
     expect(dataCenterSource).toContain('data-commercial-operations-workspace="data-center"');
     expect(dataCenterSource).toContain('repeat(auto-fit,minmax(min(100%,420px),1fr))');
     expect(adminHomeSource).toContain('data-commercial-operations-workspace="admin-operations"');
+    expect(adminHomeSource).toContain('data-operations-first-viewport="admin-risk-actions"');
+    expect(adminHomeSource).toContain('data-admin-operations-risk-queue');
+    expect(adminHomeSource).toContain('data-admin-operations-pending-action');
+    expect(adminHomeSource).toContain('/admin/users');
+    expect(adminHomeSource).toContain('/admin/config');
+    expect(adminHomeSource).toContain('/admin/data-governance');
     expect(adminUsersSource).toContain('data-commercial-operations-workspace="admin-operations"');
     expect(adminConfigSource).toContain('data-commercial-operations-workspace="admin-operations"');
     expect(adminStatesSource).toContain('data-commercial-operations-workspace="admin-operations"');
     expect(adminHomeSource).toContain('ADMIN_OPERATIONS_CONSOLE_DOMAINS');
     expect(adminHomeSource).toContain('data-admin-operations-future-domains');
     expect(adminGovernanceSource).toContain('data-commercial-operations-workspace="admin-operations"');
+  });
+
+  it('keeps teacher operations navigation bound to the current class context', () => {
+    const analyticsTemplate = '/teacher/classes/[classId]/analytics-v2';
+
+    expect(resolveTeacherOperationsNavHref(analyticsTemplate, '/teacher/classes/class-1')).toBe(
+      '/teacher/classes/class-1/analytics-v2',
+    );
+    expect(resolveTeacherOperationsNavHref(analyticsTemplate, '/teacher/classes/class-1/students/student-1/evidence')).toBe(
+      '/teacher/classes/class-1/analytics-v2',
+    );
+    expect(resolveTeacherOperationsNavHref(analyticsTemplate, '/teacher/classes')).toBe('/teacher/classes');
+    expect(resolveTeacherOperationsNavHref(analyticsTemplate, '/teacher/classes/new')).toBe('/teacher/classes');
+
+    expect(isTeacherOperationsNavActive('/teacher/classes/class-1/analytics-v2', analyticsTemplate)).toBe(true);
+    expect(isTeacherOperationsNavActive('/teacher/classes/class-1/analytics-v2', '/teacher/classes')).toBe(false);
+    expect(isTeacherOperationsNavActive('/teacher/classes', analyticsTemplate)).toBe(false);
+    expect(isTeacherOperationsNavActive('/teacher/classes/new', analyticsTemplate)).toBe(false);
+    expect(isTeacherOperationsNavActive('/teacher/classes/class-1/students/student-1/evidence', analyticsTemplate)).toBe(
+      false,
+    );
+  });
+
+  it('prioritizes the active classroom class for teacher operations evidence and analytics entry', () => {
+    expect(
+      resolveTeacherOperationsClassHref(
+        [
+          {
+            id: 'session-1',
+            planTitle: '旧班课堂',
+            joinCode: '123456',
+            studentCount: 30,
+            classId: 'older-active-class',
+          },
+        ],
+        [
+          {
+            id: 'newest-created-class',
+            name: '最新创建班级',
+            code: 'NEW',
+            studentCount: 12,
+            createdAt: '2026-06-06T00:00:00.000Z',
+          },
+        ],
+      ),
+    ).toBe('/teacher/classes/older-active-class');
+    expect(
+      resolveTeacherOperationsClassHref(
+        [
+          {
+            id: 'session-without-class',
+            planTitle: '无班级课堂',
+            joinCode: '111111',
+            studentCount: 5,
+          },
+          {
+            id: 'session-with-class',
+            planTitle: '有班级课堂',
+            joinCode: '222222',
+            studentCount: 28,
+            classId: 'bound-active-class',
+          },
+        ],
+        [
+          {
+            id: 'newest-created-class',
+            name: '最新创建班级',
+            code: 'NEW',
+            studentCount: 12,
+            createdAt: '2026-06-06T00:00:00.000Z',
+          },
+        ],
+      ),
+    ).toBe('/teacher/classes/bound-active-class');
+    expect(resolveTeacherOperationsClassHref([], [])).toBe('/teacher/classes');
   });
 
   it('forwards the active route from AppShell to AppSidebar', () => {
