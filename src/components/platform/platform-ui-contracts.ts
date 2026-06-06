@@ -789,7 +789,7 @@ export const PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX: PlatformCommercialWorks
     href: '/arena/challenges/[taskId]',
     workspace: 'arena',
     density: 'tool',
-    representativeSurface: 'Arena challenge detail',
+    representativeSurface: 'Arena challenge detail with collapsible workspace shell and centralized Arena visual assets',
     expectedZones: commercialWorkspaceZoneIds,
   },
   {

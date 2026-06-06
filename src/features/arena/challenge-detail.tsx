@@ -10,6 +10,7 @@ import { ArenaChallengeTelemetry, ArenaWorkspaceLink } from './arena-telemetry-c
 import { ArenaPageShell } from './arena-page-shell';
 import { ChallengeKnowledgePreview } from './challenge-knowledge-preview';
 import { ChallengeLeaderboardBrowser } from './challenge-leaderboard-browser';
+import { ARENA_VISUAL_ASSETS } from '@/components/platform/visual-world-assets';
 import { getChallengeLeaderboardBrowserData } from './leaderboards/leaderboard-service';
 import { buildArenaLeaderboardHonors, buildArenaShowcaseSummaries } from './leaderboards/honors-showcase';
 import {
@@ -86,7 +87,7 @@ export function ChallengeDetail({
     >
       <ArenaChallengeTelemetry task={task} object={object} hasLeaderboard={submissions.length > 0} />
       <section
-        className="mx-auto max-w-[1600px] px-4 pb-32 pt-8 sm:px-6 lg:px-8"
+        className="w-full px-4 pb-32 pt-8 sm:px-6 lg:px-8"
         data-commercial-workspace="arena-challenge-detail"
         data-task-workspace-archetype="challenge-task"
         data-launch-provenance={launchProvenance}
@@ -95,29 +96,36 @@ export function ChallengeDetail({
       >
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_430px]">
           <div className="min-w-0 space-y-6" data-commercial-workspace-zone="instrument-area">
-            <div className="surface-card min-w-0 overflow-hidden rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="context-strip">
-              <div className="flex flex-wrap items-center gap-2 text-sm font-medium text-primary">
-                <Trophy className="h-5 w-5" />
-                自动控制竞技场
-                <span className="rounded-full bg-primary/10 px-2 py-1 text-xs">{task.difficulty}</span>
-              </div>
-              <h1 className="mt-4 break-words text-3xl font-semibold text-foreground md:text-4xl">{task.title}</h1>
-              <p className="mt-3 max-w-3xl text-base leading-7 text-subtle">{task.goal}</p>
-              <ArenaWorkspaceLink
-                href={workspaceHref}
-                task={task}
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 xl:hidden"
-                data-primary-instrument-entry="arena-workbench-launch"
-                data-mobile-first-workspace-entry="true"
-              >
-                进入控制工作台
-                <ArrowUpRight className="h-4 w-4" />
-              </ArenaWorkspaceLink>
-              <div className="mt-5 grid gap-3 md:grid-cols-4">
-                <DetailItem label="对象来源" value={arenaSourceLabels[object.source]} />
-                <DetailItem label="公开程度" value={arenaVisibilityLabels[object.visibility]} />
-                <DetailItem label="工作台" value={arenaWorkspaceLabels[task.workspaceMode]} />
-                <DetailItem label="榜单规则" value={leaderboardPolicy.name} />
+            <div className="surface-card relative min-w-0 overflow-hidden rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="context-strip">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 right-0 hidden h-full w-[42%] bg-cover bg-center opacity-28 mix-blend-luminosity dark:opacity-22 lg:block"
+                style={{ backgroundImage: `url(${ARENA_VISUAL_ASSETS['control-bench'].src})` }}
+              />
+              <div className="relative z-10 max-w-5xl">
+                <div className="flex flex-wrap items-center gap-2 text-sm font-medium text-primary">
+                  <Trophy className="h-5 w-5" />
+                  自动控制竞技场
+                  <span className="rounded-full bg-primary/10 px-2 py-1 text-xs">{task.difficulty}</span>
+                </div>
+                <h1 className="mt-4 break-words text-3xl font-semibold text-foreground md:text-4xl">{task.title}</h1>
+                <p className="mt-3 max-w-3xl text-base leading-7 text-subtle">{task.goal}</p>
+                <ArenaWorkspaceLink
+                  href={workspaceHref}
+                  task={task}
+                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 xl:hidden"
+                  data-primary-instrument-entry="arena-workbench-launch"
+                  data-mobile-first-workspace-entry="true"
+                >
+                  进入控制工作台
+                  <ArrowUpRight className="h-4 w-4" />
+                </ArenaWorkspaceLink>
+                <div className="mt-5 grid gap-3 md:grid-cols-4">
+                  <DetailItem label="对象来源" value={arenaSourceLabels[object.source]} />
+                  <DetailItem label="公开程度" value={arenaVisibilityLabels[object.visibility]} />
+                  <DetailItem label="工作台" value={arenaWorkspaceLabels[task.workspaceMode]} />
+                  <DetailItem label="榜单规则" value={leaderboardPolicy.name} />
+                </div>
               </div>
             </div>
 
@@ -276,7 +284,12 @@ export function ChallengeDetail({
               </ArenaWorkspaceLink>
             </div>
 
-            <div className="surface-card rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="evidence-rail">
+            <div className="surface-card relative overflow-hidden rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="evidence-rail">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-16 -top-16 h-44 w-72 bg-cover bg-center opacity-18 mix-blend-luminosity dark:opacity-16"
+                style={{ backgroundImage: `url(${ARENA_VISUAL_ASSETS['score-field'].src})` }}
+              />
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-primary" />
                 <h2 className="text-lg font-semibold text-foreground">榜单摘要</h2>
@@ -295,7 +308,7 @@ export function ChallengeDetail({
             <section className="surface-card rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="support-drawer">
               <h2 className="text-lg font-semibold text-foreground">支持与说明</h2>
               <p className="mt-2 text-sm leading-6 text-subtle">
-                任务上下文、榜单状态和工作台入口来自 Arena 域数据；页面只组织挑战详情的商业工作区层级。
+                任务上下文、榜单状态和工作台入口来自 Arena 域数据；页面只组织挑战详情的专业工作区层级。
               </p>
             </section>
             <div className="sr-only" data-task-workspace-zone="floating-dock-safe-area">

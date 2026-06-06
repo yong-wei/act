@@ -567,12 +567,12 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'collapsed',
     visualQaProfile: 'immersive',
     screenshotProfile: 'representative-covered',
-    owningChange: 'redesign-immersive-learning-workspaces',
+    owningChange: 'unify-arena-workspace-shell',
     legacyShell: {
       component: 'ArenaPageShell',
-      disposition: 'retained-temporary',
+      disposition: 'adapted',
       sourceFile: 'src/features/arena/arena-hall.tsx',
-      removalCondition: 'Arena hall moves breadcrumbs and active path into the approved immersive workspace shell.',
+      removalCondition: 'ArenaPageShell remains the Arena-first approved workspace shell prototype with collapsible navigation, drawer navigation, and centralized visual assets.',
     },
   }),
   primaryRoute({
@@ -1058,7 +1058,7 @@ export const PLATFORM_REPORT_SURFACE_INVENTORY: PlatformReportSurfaceInventoryEn
     category: 'arena',
     surfaceType: 'embedded-component',
     owningChange: 'redesign-report-ledger-and-export-surfaces',
-    sourceShellOwner: 'redesign-immersive-learning-workspaces',
+    sourceShellOwner: 'unify-arena-workspace-shell',
     visualQaProfile: 'representative-covered',
   },
   {
