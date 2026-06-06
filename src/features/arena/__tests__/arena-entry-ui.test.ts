@@ -247,6 +247,7 @@ describe('arena student entry UI boundaries', () => {
     expect(detailSource).toContain('BlockMath');
     expect(detailSource).toContain('基础目标');
     expect(detailSource).toContain('硬约束');
+    expect(detailSource).not.toContain('-right-16 -top-16 h-44 w-72');
     expect(detailAndPreviewSource).toContain('KnowledgeCardDialog');
     expect(detailAndPreviewSource).toContain('/api/knowledge/nodes/');
     expect(knowledgePreviewSource).not.toMatch(/bg-white|bg-blue-50|text-slate-|border-slate-|border-blue-/);

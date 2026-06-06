@@ -287,23 +287,25 @@ export function ChallengeDetail({
             <div className="surface-card relative overflow-hidden rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="evidence-rail">
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute -right-16 -top-16 h-44 w-72 bg-cover bg-center opacity-18 mix-blend-luminosity dark:opacity-16"
+                className="pointer-events-none absolute -inset-px bg-cover bg-center opacity-18 mix-blend-luminosity dark:opacity-14"
                 style={{ backgroundImage: `url(${ARENA_VISUAL_ASSETS['score-field'].src})` }}
               />
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-primary" />
-                <h2 className="text-lg font-semibold text-foreground">榜单摘要</h2>
+              <div className="relative z-10">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4 text-primary" />
+                  <h2 className="text-lg font-semibold text-foreground">榜单摘要</h2>
+                </div>
+                <div className="mt-4 grid gap-3 text-sm">
+                  <DetailItem label="当前最高分" value={stats.topScore === null ? '暂无提交' : stats.topScore.toFixed(1)} />
+                  <DetailItem label="参与人数" value={`${stats.participantCount} 人`} />
+                  <DetailItem label="提交次数" value={`${stats.submissionCount} 次`} />
+                  <DetailItem label="榜单类型" value={studentLeaderboardTypes.map(formatArenaLeaderboardType).join(' / ')} />
+                  <DetailItem label="同分决胜" value={leaderboardPolicy.tieBreakers.map(formatArenaTieBreaker).join(' / ')} />
+                  <DetailItem label="荣誉记录" value={honors.length === 0 ? '暂无荣誉' : `${honors.length} 项`} />
+                </div>
+                <ChallengeLeaderboardBrowser browser={leaderboardBrowser} />
+                <ArenaShowcaseList showcase={showcase} />
               </div>
-              <div className="mt-4 grid gap-3 text-sm">
-                <DetailItem label="当前最高分" value={stats.topScore === null ? '暂无提交' : stats.topScore.toFixed(1)} />
-                <DetailItem label="参与人数" value={`${stats.participantCount} 人`} />
-                <DetailItem label="提交次数" value={`${stats.submissionCount} 次`} />
-                <DetailItem label="榜单类型" value={studentLeaderboardTypes.map(formatArenaLeaderboardType).join(' / ')} />
-                <DetailItem label="同分决胜" value={leaderboardPolicy.tieBreakers.map(formatArenaTieBreaker).join(' / ')} />
-                <DetailItem label="荣誉记录" value={honors.length === 0 ? '暂无荣誉' : `${honors.length} 项`} />
-              </div>
-              <ChallengeLeaderboardBrowser browser={leaderboardBrowser} />
-              <ArenaShowcaseList showcase={showcase} />
             </div>
             <section className="surface-card rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="support-drawer">
               <h2 className="text-lg font-semibold text-foreground">支持与说明</h2>
