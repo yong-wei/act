@@ -268,9 +268,9 @@ export function ArenaHall({
             <div className="space-y-5">
               {stageGroups.map((group) => (
                 <section key={group.stage} className="space-y-3">
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                     <h2 className="text-base font-semibold text-foreground">{group.label}</h2>
-                    <span className="rounded-full border border-border/70 px-2 py-1 text-xs text-subtle">{group.tasks.length} 个任务</span>
+                    <span className="text-xs text-subtle">本阶段 {group.tasks.length} 个挑战</span>
                   </div>
                   <div className="grid gap-4 lg:grid-cols-2">
                     {group.tasks.map((challenge) => {

@@ -211,6 +211,8 @@ describe('arena student entry UI boundaries', () => {
 
     expect(html).toContain('能力训练地图');
     expect(html).toContain('训练阶段');
+    expect(html).toContain('本阶段');
+    expect(html).toContain('个挑战');
     expect(html).toContain('训练能力');
     expect(html).toContain('时域整形');
     expect(html).toContain('隐藏场景鲁棒性');
