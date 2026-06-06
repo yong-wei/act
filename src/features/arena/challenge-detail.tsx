@@ -99,7 +99,7 @@ export function ChallengeDetail({
             <div className="surface-card relative min-w-0 overflow-hidden rounded-lg p-6 shadow-sm" data-commercial-workspace-zone="context-strip">
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-y-0 right-0 hidden h-full w-[42%] bg-cover bg-center opacity-28 mix-blend-luminosity dark:opacity-22 lg:block"
+                className="pointer-events-none absolute -inset-px bg-cover bg-center opacity-24 mix-blend-luminosity dark:opacity-20"
                 style={{ backgroundImage: `url(${ARENA_VISUAL_ASSETS['control-bench'].src})` }}
               />
               <div className="relative z-10 max-w-5xl">

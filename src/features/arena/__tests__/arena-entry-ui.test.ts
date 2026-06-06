@@ -249,6 +249,7 @@ describe('arena student entry UI boundaries', () => {
     expect(detailSource).toContain('硬约束');
     expect(detailAndPreviewSource).toContain('KnowledgeCardDialog');
     expect(detailAndPreviewSource).toContain('/api/knowledge/nodes/');
+    expect(knowledgePreviewSource).not.toMatch(/bg-white|bg-blue-50|text-slate-|border-slate-|border-blue-/);
     expect(hallSource).toContain("'main', label: '主榜'");
     expect(hallSource).toContain("'method', label: '方法榜'");
     expect(hallSource).toContain("'metric', label: '指标榜'");
