@@ -1,4 +1,11 @@
-import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '@/lib/platform-role-navigation';
+import {
+  PLATFORM_PRIMARY_ROUTE_INVENTORY,
+  PLATFORM_REPORT_SURFACE_INVENTORY,
+  type PlatformFloatingDockRouteBehavior,
+  type PlatformPrimaryRouteFrame,
+  type PlatformPrimaryRouteInventoryEntry,
+  type PlatformReportSurfaceInventoryEntry,
+} from '@/lib/platform-role-navigation';
 
 export type CommercialUiGovernanceMode = 'advisory' | 'blocking';
 
@@ -17,6 +24,12 @@ export type CommercialUiGovernanceRule =
   | 'visual-acceptance.missing-route-evidence'
   | 'visual-acceptance.incomplete-evidence'
   | 'visual-acceptance.incomplete-premium-theme-evidence'
+  | 'visual-acceptance.incomplete-manifest-metadata'
+  | 'visual-acceptance.route-inventory-drift'
+  | 'route-ledger.incomplete-primary-route'
+  | 'route-ledger.outdated-archetype'
+  | 'mobile-structure.desktop-panel-persistence'
+  | 'report-export.incomplete-visual-evidence'
   | 'accessibility-text-fit.missing-route-evidence'
   | 'accessibility-text-fit.incomplete-evidence'
   | 'allowlist.invalid-entry';
@@ -28,6 +41,9 @@ export type CommercialUiGovernanceCategory =
   | 'status'
   | 'module-chrome'
   | 'visual-acceptance'
+  | 'route-ledger'
+  | 'mobile-structure'
+  | 'report-export'
   | 'accessibility-text-fit'
   | 'allowlist';
 
@@ -45,6 +61,7 @@ export interface CommercialUiGovernanceAllowlistEntry {
   path: string;
   rule: CommercialUiGovernanceRule;
   evidence?: readonly string[];
+  owner?: string;
   owningIssue?: string;
   owningChange?: string;
   expiresOn?: string;
@@ -112,9 +129,14 @@ export interface CommercialViewportVisualEvidence {
   requestedRoute?: string;
   finalUrl?: string;
   authState?: CommercialVisualQaAuthState;
+  routeFile?: string;
+  routeArchetype?: PlatformPrimaryRouteFrame | string;
+  dockState?: CommercialPremiumVisualQaRoute['floatingDock'] | PlatformFloatingDockRouteBehavior;
+  result?: 'passed' | 'failed';
   screenshot?: string;
   artifact?: string;
   firstViewportUseful?: boolean;
+  firstViewportTaskVisible?: boolean;
   navigationReachable?: boolean;
   noTextOverlap?: boolean;
   stablePanelGeometry?: boolean;
@@ -123,11 +145,26 @@ export interface CommercialViewportVisualEvidence {
   dockPlacementChecked?: boolean;
   noDockCollision?: boolean;
   dockFocusReachable?: boolean;
+  mobileCanvasFirst?: boolean;
+  noPersistentMobileSidebar?: boolean;
+  noPersistentMobileFilter?: boolean;
+  noPersistentWorkbenchPanels?: boolean;
+  noPersistentKnowledgeGraphDrawer?: boolean;
+  reportEvidence?: readonly CommercialReportExportVisualEvidence[];
 }
 
 export interface CommercialVisualAcceptanceEvidence {
   href: string;
   viewports: readonly CommercialViewportVisualEvidence[];
+}
+
+export interface CommercialReportExportVisualEvidence {
+  surfaceId: string;
+  watermarkChecked?: boolean;
+  privacyScopeChecked?: boolean;
+  sourceQualityVisible?: boolean;
+  statusLegendReadable?: boolean;
+  exportSafeSnapshotChecked?: boolean;
 }
 
 export interface CommercialViewportAccessibilityEvidence {
@@ -157,6 +194,9 @@ export interface CommercialUiGovernanceInput {
   visualEvidence: readonly CommercialVisualAcceptanceEvidence[];
   accessibilityEvidence: readonly CommercialAccessibilityTextFitEvidence[];
   requiredVisualRoutes?: readonly CommercialVisualAcceptanceRoute[];
+  routeInventory?: readonly PlatformPrimaryRouteInventoryEntry[];
+  premiumVisualQaMatrix?: readonly CommercialPremiumVisualQaRoute[];
+  reportSurfaceInventory?: readonly PlatformReportSurfaceInventoryEntry[];
 }
 
 export interface CommercialUiGovernanceResult {
@@ -247,6 +287,16 @@ export const PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX: CommercialPremiumVisualQaR
     artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
   },
   {
+    href: '/interactive-learning/courses/unit-5-4-data-driven-mpc-transition',
+    routeFile: 'src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'student',
+    floatingDock: 'collapsed',
+    acceptedAuthState: 'public',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
     href: '/simulations',
     routeFile: 'src/app/simulations/page.tsx',
     requiredThemes: ['light', 'dark'],
@@ -264,6 +314,16 @@ export const PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX: CommercialPremiumVisualQaR
     role: 'student',
     floatingDock: 'required',
     acceptedAuthState: 'public',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
+    href: '/assessment/adaptive-practice',
+    routeFile: 'src/app/assessment/adaptive-practice/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'student',
+    floatingDock: 'required',
+    acceptedAuthState: 'authenticated',
     artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
   },
   {
@@ -287,6 +347,26 @@ export const PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX: CommercialPremiumVisualQaR
     artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
   },
   {
+    href: '/profile',
+    routeFile: 'src/app/(main)/profile/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'student',
+    floatingDock: 'required',
+    acceptedAuthState: 'authenticated',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
+    href: '/data-center',
+    routeFile: 'src/app/data-center/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'student',
+    floatingDock: 'required',
+    acceptedAuthState: 'authenticated',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
     href: '/teacher',
     routeFile: 'src/app/teacher/page.tsx',
     requiredThemes: ['light', 'dark'],
@@ -299,6 +379,16 @@ export const PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX: CommercialPremiumVisualQaR
   {
     href: '/teacher',
     routeFile: 'src/app/teacher/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'teacher',
+    floatingDock: 'required',
+    acceptedAuthState: 'authenticated',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
+    href: '/teacher/classes/[classId]/analytics-v2',
+    routeFile: 'src/app/teacher/classes/[classId]/analytics-v2/page.tsx',
     requiredThemes: ['light', 'dark'],
     requiredWidths: [1440, 320],
     role: 'teacher',
@@ -408,8 +498,10 @@ function isValidIsoCalendarDate(raw: string) {
 function allowlistEntryMissingFields(entry: CommercialUiGovernanceAllowlistEntry, today?: string) {
   const missing: string[] = [];
   if (!entry.id) missing.push('missing id');
-  if (!entry.owningIssue && !entry.owningChange) missing.push('missing owningIssue or owningChange');
-  if (!entry.expiresOn && !entry.removalCondition) missing.push('missing expiresOn or removalCondition');
+  if (!entry.owner) missing.push('missing owner');
+  if (!entry.owningChange) missing.push('missing owningChange');
+  if (!entry.expiresOn) missing.push('missing expiresOn');
+  if (!entry.removalCondition) missing.push('missing removalCondition');
   if (entry.expiresOn && !isValidIsoCalendarDate(entry.expiresOn)) missing.push('invalid expiresOn');
   if (entry.expiresOn && today && isValidIsoCalendarDate(entry.expiresOn) && entry.expiresOn < today) {
     missing.push('expired expiresOn');
@@ -603,6 +695,22 @@ function findPremiumViewport(
   ));
 }
 
+function normalizeVisualDockState(
+  dockState?: CommercialViewportVisualEvidence['dockState'],
+): CommercialPremiumVisualQaRoute['floatingDock'] | undefined {
+  if (!dockState) return undefined;
+  return dockState === 'enabled' ? 'required' : dockState;
+}
+
+function isLoginRedirectViewport(viewport: CommercialViewportVisualEvidence) {
+  if (viewport.authState !== 'unauth-redirect-fallback' || !viewport.finalUrl) return false;
+  try {
+    return new URL(viewport.finalUrl).pathname === '/login';
+  } catch {
+    return viewport.finalUrl.endsWith('/login');
+  }
+}
+
 function buildPremiumVisualQaViolations(
   requiredRoutes: readonly CommercialPremiumVisualQaRoute[],
   visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
@@ -627,6 +735,7 @@ function buildPremiumVisualQaViolations(
         !viewport?.finalUrl?.endsWith(expectedFinalUrl) ? `finalUrl=${expectedFinalUrl}` : '',
         viewport?.authState !== route.acceptedAuthState ? `authState=${route.acceptedAuthState}` : '',
         viewport?.role !== route.role ? `role=${route.role}` : '',
+        normalizeVisualDockState(viewport?.dockState) !== route.floatingDock ? `dockState=${route.floatingDock}` : '',
         dockFieldsRequired && !viewport?.dockPlacementChecked ? 'dockPlacementChecked' : '',
         dockFieldsRequired && !viewport?.noDockCollision ? 'noDockCollision' : '',
         dockFieldsRequired && !viewport?.dockFocusReachable ? 'dockFocusReachable' : '',
@@ -641,6 +750,177 @@ function buildPremiumVisualQaViolations(
         : [];
     }));
   });
+}
+
+const ALLOWED_PRIMARY_ROUTE_ARCHETYPES: readonly PlatformPrimaryRouteFrame[] = [
+  'public-entry',
+  'auth-entry',
+  'learning-map',
+  'immersive-task-workspace',
+  'learner-data',
+  'teacher-operations',
+  'admin-governance',
+  'knowledge-graph',
+];
+
+function buildRouteLedgerViolations(routeInventory: readonly PlatformPrimaryRouteInventoryEntry[]) {
+  return routeInventory.flatMap((route) => {
+    const missing = [
+      !route.owningChange ? 'owningChange' : '',
+      !route.routeFile ? 'routeFile' : '',
+      !route.themeSupport.includes('light') ? 'themeSupport=light' : '',
+      !route.themeSupport.includes('dark') ? 'themeSupport=dark' : '',
+      route.navigationLayers.length === 0 ? 'navigationLayers' : '',
+      !route.mobileNavigation ? 'mobileNavigation' : '',
+      !route.shellMigrationDisposition ? 'shellMigrationDisposition' : '',
+      !route.shellRemovalCondition ? 'shellRemovalCondition' : '',
+      route.legacyShell && !route.legacyShell.removalCondition ? 'legacyShell.removalCondition' : '',
+      route.exception && (!route.exception.owner || !route.exception.expiresOn || !route.exception.removalCondition)
+        ? 'exception.owner/expiresOn/removalCondition'
+        : '',
+    ].filter(Boolean);
+    const violations: CommercialUiGovernanceViolation[] = missing.length > 0
+      ? [withCategory({
+          path: route.href,
+          rule: 'route-ledger.incomplete-primary-route',
+          message: 'Primary route inventory entry is missing route ledger metadata required by commercial UI governance.',
+          evidence: missing,
+        })]
+      : [];
+    if (!ALLOWED_PRIMARY_ROUTE_ARCHETYPES.includes(route.frame)) {
+      violations.push(withCategory({
+        path: route.href,
+        rule: 'route-ledger.outdated-archetype',
+        message: 'Primary route inventory entry uses an outdated or unregistered route archetype.',
+        evidence: [String(route.frame)],
+      }));
+    }
+    return violations;
+  });
+}
+
+function buildVisualMatrixDriftViolations(
+  routeInventory: readonly PlatformPrimaryRouteInventoryEntry[],
+  requiredVisualRoutes: readonly CommercialVisualAcceptanceRoute[],
+) {
+  const requiredVisualHrefs = new Set(requiredVisualRoutes.map((route) => route.href));
+  return routeInventory.flatMap((route) => {
+    if (route.screenshotProfile === 'temporary-exception') return [];
+    const missing = [
+      !requiredVisualHrefs.has(route.href) ? 'requiredVisualRoutes' : '',
+    ].filter(Boolean);
+    return missing.length > 0
+      ? [withCategory({
+          path: route.href,
+          rule: 'visual-acceptance.route-inventory-drift',
+          message: 'Primary route inventory and visual QA route matrix drifted apart.',
+          evidence: missing,
+        })]
+      : [];
+  });
+}
+
+function buildVisualManifestMetadataViolations(
+  routeInventory: readonly PlatformPrimaryRouteInventoryEntry[],
+  premiumVisualQaMatrix: readonly CommercialPremiumVisualQaRoute[],
+  visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
+) {
+  return visualEvidence.flatMap((routeEvidence) => {
+    const route = routeInventory.find((entry) => entry.href === routeEvidence.href);
+    return routeEvidence.viewports.flatMap((viewport) => {
+      const premiumScenario = premiumVisualQaMatrix.find((entry) => (
+        entry.href === routeEvidence.href
+        && entry.role === viewport.role
+        && entry.acceptedAuthState === viewport.authState
+        && viewport.theme
+        && entry.requiredThemes.includes(viewport.theme)
+        && entry.requiredWidths.includes(viewport.width as 1440 | 320)
+      ));
+      const expectedDockState = normalizeVisualDockState(
+        premiumScenario?.floatingDock ?? (isLoginRedirectViewport(viewport) ? 'hidden' : route?.floatingDock),
+      );
+      const missing = [
+        viewport.requestedRoute !== routeEvidence.href ? 'requestedRoute' : '',
+        !viewport.routeFile || (route && viewport.routeFile !== route.routeFile) ? 'routeFile' : '',
+        !viewport.routeArchetype || (route && viewport.routeArchetype !== route.frame) ? 'routeArchetype' : '',
+        !viewport.dockState || (expectedDockState && normalizeVisualDockState(viewport.dockState) !== expectedDockState) ? 'dockState' : '',
+        !viewport.theme ? 'theme' : '',
+        !viewport.role ? 'role' : '',
+        !viewport.authState ? 'authState' : '',
+        !viewport.finalUrl ? 'finalUrl' : '',
+        viewport.result !== 'passed' ? 'result=passed' : '',
+        !viewport.firstViewportTaskVisible ? 'firstViewportTaskVisible' : '',
+      ].filter(Boolean);
+      return missing.length > 0
+        ? [withCategory({
+            path: routeEvidence.href,
+            rule: 'visual-acceptance.incomplete-manifest-metadata',
+            message: 'Visual QA artifact manifest is missing structured route metadata.',
+            evidence: [`width=${viewport.width}`, ...missing],
+          })]
+        : [];
+    });
+  });
+}
+
+function buildMobileStructureViolations(visualEvidence: readonly CommercialVisualAcceptanceEvidence[]) {
+  return visualEvidence.flatMap((routeEvidence) => routeEvidence.viewports
+    .filter((viewport) => viewport.width === 320)
+    .flatMap((viewport) => {
+      const missing = [
+        !viewport.mobileCanvasFirst ? 'mobileCanvasFirst' : '',
+        !viewport.noPersistentMobileSidebar ? 'noPersistentMobileSidebar' : '',
+        !viewport.noPersistentMobileFilter ? 'noPersistentMobileFilter' : '',
+        !viewport.noPersistentWorkbenchPanels ? 'noPersistentWorkbenchPanels' : '',
+        !viewport.noPersistentKnowledgeGraphDrawer ? 'noPersistentKnowledgeGraphDrawer' : '',
+      ].filter(Boolean);
+      return missing.length > 0
+        ? [withCategory({
+            path: routeEvidence.href,
+            rule: 'mobile-structure.desktop-panel-persistence',
+            message: 'Mobile evidence must prove desktop sidebars, filters, workbench panels, and graph drawers do not persist as squeezed panels.',
+            evidence: [`width=${viewport.width}`, ...missing],
+          })]
+        : [];
+    }));
+}
+
+function buildReportExportViolations(
+  reportSurfaceInventory: readonly PlatformReportSurfaceInventoryEntry[],
+  visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
+) {
+  return reportSurfaceInventory
+    .filter((surface) => surface.visualQaProfile !== 'temporary-exception')
+    .flatMap((surface) => {
+      const routeEvidence = visualEvidence.find((entry) => entry.href === surface.ownerRoute);
+      if (!routeEvidence) {
+        return [withCategory({
+          path: surface.ownerRoute,
+          rule: 'report-export.incomplete-visual-evidence',
+          message: 'Report-ledger surface is missing visual evidence for watermark, privacy, source, and export readiness.',
+          evidence: [`surface=${surface.id}`, 'routeEvidence'],
+        })];
+      }
+      return routeEvidence.viewports.flatMap((viewport) => {
+        const evidence = viewport.reportEvidence?.find((entry) => entry.surfaceId === surface.id);
+        const missing = [
+          `surface=${surface.id}`,
+          !evidence?.watermarkChecked ? 'watermarkChecked' : '',
+          !evidence?.privacyScopeChecked ? 'privacyScopeChecked' : '',
+          !evidence?.sourceQualityVisible ? 'sourceQualityVisible' : '',
+          !evidence?.statusLegendReadable ? 'statusLegendReadable' : '',
+          surface.surfaceType !== 'temporary-gap' && !evidence?.exportSafeSnapshotChecked ? 'exportSafeSnapshotChecked' : '',
+        ].filter(Boolean);
+        return missing.length > 1
+          ? [withCategory({
+              path: surface.ownerRoute,
+              rule: 'report-export.incomplete-visual-evidence',
+              message: 'Report-ledger visual evidence is missing watermark, privacy, source, readability, or export checks.',
+              evidence: [`width=${viewport.width}`, ...missing],
+            })]
+          : [];
+      });
+    });
 }
 
 function buildAccessibilityViolations(
@@ -682,16 +962,34 @@ function buildAccessibilityViolations(
 export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInput): CommercialUiGovernanceResult {
   const allowlist = input.allowlist ?? [];
   const allowlistViolations = buildAllowlistViolations(allowlist, input.today);
+  const requiredVisualRoutes = input.requiredVisualRoutes ?? DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES;
+  const premiumVisualQaMatrix = input.premiumVisualQaMatrix ?? PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX;
+  const defaultRouteHrefs = new Set([
+    ...requiredVisualRoutes.map((route) => route.href),
+    ...premiumVisualQaMatrix.map((route) => route.href),
+  ]);
+  const routeInventory = input.routeInventory ?? PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => (
+    defaultRouteHrefs.has(route.href)
+  ));
+  const routeInventoryHrefs = new Set(routeInventory.map((route) => route.href));
+  const reportSurfaceInventory = input.reportSurfaceInventory ?? PLATFORM_REPORT_SURFACE_INVENTORY.filter((surface) => (
+    routeInventoryHrefs.has(surface.ownerRoute)
+  ));
   const rawViolations = [
     ...(input.sourceViolations ?? []).map(withCategory),
+    ...buildRouteLedgerViolations(routeInventory),
     ...buildShellViolations(input.shellInventory),
     ...buildModuleChromeViolations(input.moduleChromeInventory),
     ...buildStatusViolations(input.statusInventory),
     ...buildNavigationViolations(input.navigationCoverage),
-    ...buildVisualViolations(input.requiredVisualRoutes ?? DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES, input.visualEvidence),
-    ...buildPremiumVisualQaViolations(PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX, input.visualEvidence),
+    ...buildVisualMatrixDriftViolations(routeInventory, requiredVisualRoutes),
+    ...buildVisualViolations(requiredVisualRoutes, input.visualEvidence),
+    ...buildPremiumVisualQaViolations(premiumVisualQaMatrix, input.visualEvidence),
+    ...buildVisualManifestMetadataViolations(routeInventory, premiumVisualQaMatrix, input.visualEvidence),
+    ...buildMobileStructureViolations(input.visualEvidence),
+    ...buildReportExportViolations(reportSurfaceInventory, input.visualEvidence),
     ...buildAccessibilityViolations(
-      input.requiredVisualRoutes ?? DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES,
+      requiredVisualRoutes,
       input.accessibilityEvidence,
     ),
   ];

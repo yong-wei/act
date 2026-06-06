@@ -17,7 +17,17 @@
           "keyboardReachable": true,
           "reducedMotionChecked": true,
           "buttonTextFits": true,
-          "noMobileTextOverlap": true
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/(auth)/login/page.tsx",
+          "routeArchetype": "auth-entry",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/login?callbackUrl=%2Fprofile",
+          "finalUrl": "http://127.0.0.1:3001/login?callbackUrl=%2Fprofile",
+          "theme": "light",
+          "role": "guest",
+          "authState": "auth-entry"
         },
         {
           "width": 320,
@@ -33,7 +43,22 @@
           "keyboardReachable": true,
           "reducedMotionChecked": true,
           "buttonTextFits": true,
-          "noMobileTextOverlap": true
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/(auth)/login/page.tsx",
+          "routeArchetype": "auth-entry",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true,
+          "requestedRoute": "/login?callbackUrl=%2Fprofile",
+          "finalUrl": "http://127.0.0.1:3001/login?callbackUrl=%2Fprofile",
+          "theme": "light",
+          "role": "guest",
+          "authState": "auth-entry"
         }
       ]
     },
@@ -64,7 +89,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/page.tsx",
+          "routeArchetype": "public-entry",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -90,7 +125,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/page.tsx",
+          "routeArchetype": "public-entry",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         },
         {
           "width": 320,
@@ -116,7 +156,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/page.tsx",
+          "routeArchetype": "public-entry",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -142,7 +192,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/page.tsx",
+          "routeArchetype": "public-entry",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         }
       ]
     },
@@ -173,7 +228,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/(main)/dashboard/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -199,7 +264,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/(main)/dashboard/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         },
         {
           "width": 320,
@@ -225,7 +295,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/(main)/dashboard/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -251,7 +331,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/(main)/dashboard/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         },
         {
           "width": 320,
@@ -277,7 +362,17 @@
           "dockPlacementChecked": false,
           "noDockCollision": false,
           "dockFocusReachable": false,
-          "authOutcome": "redirected-to-login"
+          "authOutcome": "redirected-to-login",
+          "routeFile": "src/app/(main)/dashboard/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -303,7 +398,12 @@
           "dockPlacementChecked": false,
           "noDockCollision": false,
           "dockFocusReachable": false,
-          "authOutcome": "redirected-to-login"
+          "authOutcome": "redirected-to-login",
+          "routeFile": "src/app/(main)/dashboard/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         },
         {
           "width": 320,
@@ -329,7 +429,17 @@
           "dockPlacementChecked": false,
           "noDockCollision": false,
           "dockFocusReachable": false,
-          "authOutcome": "redirected-to-login"
+          "authOutcome": "redirected-to-login",
+          "routeFile": "src/app/(main)/dashboard/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -355,7 +465,12 @@
           "dockPlacementChecked": false,
           "noDockCollision": false,
           "dockFocusReachable": false,
-          "authOutcome": "redirected-to-login"
+          "authOutcome": "redirected-to-login",
+          "routeFile": "src/app/(main)/dashboard/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         }
       ]
     },
@@ -386,7 +501,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -412,7 +537,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         },
         {
           "width": 320,
@@ -438,7 +568,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -464,7 +604,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         }
       ]
     },
@@ -485,7 +630,17 @@
           "keyboardReachable": true,
           "reducedMotionChecked": true,
           "buttonTextFits": true,
-          "noMobileTextOverlap": true
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/arena/page.tsx",
+          "routeArchetype": "immersive-task-workspace",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/arena",
+          "finalUrl": "http://127.0.0.1:3001/arena",
+          "theme": "light",
+          "role": "guest",
+          "authState": "public"
         },
         {
           "width": 320,
@@ -501,7 +656,22 @@
           "keyboardReachable": true,
           "reducedMotionChecked": true,
           "buttonTextFits": true,
-          "noMobileTextOverlap": true
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/arena/page.tsx",
+          "routeArchetype": "immersive-task-workspace",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true,
+          "requestedRoute": "/arena",
+          "finalUrl": "http://127.0.0.1:3001/arena",
+          "theme": "light",
+          "role": "guest",
+          "authState": "public"
         }
       ]
     },
@@ -522,7 +692,49 @@
           "keyboardReachable": true,
           "reducedMotionChecked": true,
           "buttonTextFits": true,
-          "noMobileTextOverlap": true
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/assessment/adaptive-practice/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/assessment/adaptive-practice",
+          "finalUrl": "http://127.0.0.1:3001/assessment/adaptive-practice",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/pr235-acceptance-matrix.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/assessment/adaptive-practice/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/assessment/adaptive-practice",
+          "finalUrl": "http://127.0.0.1:3001/assessment/adaptive-practice",
+          "theme": "dark",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
         },
         {
           "width": 320,
@@ -538,7 +750,59 @@
           "keyboardReachable": true,
           "reducedMotionChecked": true,
           "buttonTextFits": true,
-          "noMobileTextOverlap": true
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/assessment/adaptive-practice/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true,
+          "requestedRoute": "/assessment/adaptive-practice",
+          "finalUrl": "http://127.0.0.1:3001/assessment/adaptive-practice",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
+        },
+        {
+          "width": 320,
+          "artifact": "artifacts/commercial-ui/pr235-acceptance-matrix.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/assessment/adaptive-practice/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true,
+          "requestedRoute": "/assessment/adaptive-practice",
+          "finalUrl": "http://127.0.0.1:3001/assessment/adaptive-practice",
+          "theme": "dark",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
         }
       ]
     },
@@ -559,7 +823,49 @@
           "keyboardReachable": true,
           "reducedMotionChecked": true,
           "buttonTextFits": true,
-          "noMobileTextOverlap": true
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/(main)/profile/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/profile",
+          "finalUrl": "http://127.0.0.1:3001/profile",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/pr235-acceptance-matrix.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/(main)/profile/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/profile",
+          "finalUrl": "http://127.0.0.1:3001/profile",
+          "theme": "dark",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
         },
         {
           "width": 320,
@@ -575,7 +881,59 @@
           "keyboardReachable": true,
           "reducedMotionChecked": true,
           "buttonTextFits": true,
-          "noMobileTextOverlap": true
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/(main)/profile/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true,
+          "requestedRoute": "/profile",
+          "finalUrl": "http://127.0.0.1:3001/profile",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
+        },
+        {
+          "width": 320,
+          "artifact": "artifacts/commercial-ui/pr235-acceptance-matrix.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/(main)/profile/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true,
+          "requestedRoute": "/profile",
+          "finalUrl": "http://127.0.0.1:3001/profile",
+          "theme": "dark",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
         }
       ]
     },
@@ -606,7 +964,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/control-workbench/page.tsx",
+          "routeArchetype": "immersive-task-workspace",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -632,7 +1000,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/control-workbench/page.tsx",
+          "routeArchetype": "immersive-task-workspace",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         },
         {
           "width": 320,
@@ -658,7 +1031,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/control-workbench/page.tsx",
+          "routeArchetype": "immersive-task-workspace",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -684,7 +1067,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/control-workbench/page.tsx",
+          "routeArchetype": "immersive-task-workspace",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         }
       ]
     },
@@ -705,7 +1093,20 @@
           "keyboardReachable": true,
           "reducedMotionChecked": true,
           "buttonTextFits": true,
-          "noMobileTextOverlap": true
+          "noMobileTextOverlap": true,
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+          "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "routeFile": "src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
         },
         {
           "width": 320,
@@ -721,7 +1122,151 @@
           "keyboardReachable": true,
           "reducedMotionChecked": true,
           "buttonTextFits": true,
-          "noMobileTextOverlap": true
+          "noMobileTextOverlap": true,
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true,
+          "requestedRoute": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+          "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "routeFile": "src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/pr235-acceptance-matrix.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+          "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+          "theme": "light",
+          "role": "student",
+          "authState": "public",
+          "routeFile": "src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
+        },
+        {
+          "width": 320,
+          "artifact": "artifacts/commercial-ui/pr235-acceptance-matrix.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true,
+          "requestedRoute": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+          "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+          "theme": "light",
+          "role": "student",
+          "authState": "public",
+          "routeFile": "src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/pr235-acceptance-matrix.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+          "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+          "theme": "dark",
+          "role": "student",
+          "authState": "public",
+          "routeFile": "src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
+        },
+        {
+          "width": 320,
+          "artifact": "artifacts/commercial-ui/pr235-acceptance-matrix.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true,
+          "requestedRoute": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+          "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+          "theme": "dark",
+          "role": "student",
+          "authState": "public",
+          "routeFile": "src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
         }
       ]
     },
@@ -742,7 +1287,49 @@
           "keyboardReachable": true,
           "reducedMotionChecked": true,
           "buttonTextFits": true,
-          "noMobileTextOverlap": true
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/teacher/classes/[classId]/analytics-v2/page.tsx",
+          "routeArchetype": "teacher-operations",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/teacher/classes/[classId]/analytics-v2",
+          "finalUrl": "http://127.0.0.1:3001/teacher/classes/[classId]/analytics-v2",
+          "theme": "light",
+          "role": "teacher",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/pr235-acceptance-matrix.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/teacher/classes/[classId]/analytics-v2/page.tsx",
+          "routeArchetype": "teacher-operations",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/teacher/classes/[classId]/analytics-v2",
+          "finalUrl": "http://127.0.0.1:3001/teacher/classes/[classId]/analytics-v2",
+          "theme": "dark",
+          "role": "teacher",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
         },
         {
           "width": 320,
@@ -758,7 +1345,59 @@
           "keyboardReachable": true,
           "reducedMotionChecked": true,
           "buttonTextFits": true,
-          "noMobileTextOverlap": true
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/teacher/classes/[classId]/analytics-v2/page.tsx",
+          "routeArchetype": "teacher-operations",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true,
+          "requestedRoute": "/teacher/classes/[classId]/analytics-v2",
+          "finalUrl": "http://127.0.0.1:3001/teacher/classes/[classId]/analytics-v2",
+          "theme": "light",
+          "role": "teacher",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
+        },
+        {
+          "width": 320,
+          "artifact": "artifacts/commercial-ui/pr235-acceptance-matrix.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/teacher/classes/[classId]/analytics-v2/page.tsx",
+          "routeArchetype": "teacher-operations",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true,
+          "requestedRoute": "/teacher/classes/[classId]/analytics-v2",
+          "finalUrl": "http://127.0.0.1:3001/teacher/classes/[classId]/analytics-v2",
+          "theme": "dark",
+          "role": "teacher",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
         }
       ]
     },
@@ -789,7 +1428,27 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/admin/data-governance/page.tsx",
+          "routeArchetype": "admin-governance",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "governance-data-quality-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ]
         },
         {
           "width": 1440,
@@ -815,7 +1474,22 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/admin/data-governance/page.tsx",
+          "routeArchetype": "admin-governance",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "governance-data-quality-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ]
         },
         {
           "width": 320,
@@ -841,7 +1515,27 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/admin/data-governance/page.tsx",
+          "routeArchetype": "admin-governance",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "governance-data-quality-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ]
         },
         {
           "width": 1440,
@@ -867,7 +1561,22 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/admin/data-governance/page.tsx",
+          "routeArchetype": "admin-governance",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "governance-data-quality-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ]
         }
       ]
     },
@@ -888,7 +1597,69 @@
           "keyboardReachable": true,
           "reducedMotionChecked": true,
           "buttonTextFits": true,
-          "noMobileTextOverlap": true
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/data-center/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "data-center-platform-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ],
+          "requestedRoute": "/data-center",
+          "finalUrl": "http://127.0.0.1:3001/data-center",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/data-center-responsive-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/data-center/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "data-center-platform-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ],
+          "requestedRoute": "/data-center",
+          "finalUrl": "http://127.0.0.1:3001/data-center",
+          "theme": "dark",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
         },
         {
           "width": 320,
@@ -904,7 +1675,79 @@
           "keyboardReachable": true,
           "reducedMotionChecked": true,
           "buttonTextFits": true,
-          "noMobileTextOverlap": true
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/data-center/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "data-center-platform-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ],
+          "requestedRoute": "/data-center",
+          "finalUrl": "http://127.0.0.1:3001/data-center",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
+        },
+        {
+          "width": 320,
+          "artifact": "artifacts/commercial-ui/data-center-responsive-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/data-center/page.tsx",
+          "routeArchetype": "learner-data",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "data-center-platform-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ],
+          "requestedRoute": "/data-center",
+          "finalUrl": "http://127.0.0.1:3001/data-center",
+          "theme": "dark",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true
         }
       ]
     },
@@ -935,7 +1778,17 @@
           "dockPlacementChecked": false,
           "noDockCollision": false,
           "dockFocusReachable": false,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/(auth)/login/page.tsx",
+          "routeArchetype": "auth-entry",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -961,7 +1814,12 @@
           "dockPlacementChecked": false,
           "noDockCollision": false,
           "dockFocusReachable": false,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/(auth)/login/page.tsx",
+          "routeArchetype": "auth-entry",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         },
         {
           "width": 320,
@@ -987,7 +1845,17 @@
           "dockPlacementChecked": false,
           "noDockCollision": false,
           "dockFocusReachable": false,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/(auth)/login/page.tsx",
+          "routeArchetype": "auth-entry",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -1013,7 +1881,12 @@
           "dockPlacementChecked": false,
           "noDockCollision": false,
           "dockFocusReachable": false,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/(auth)/login/page.tsx",
+          "routeArchetype": "auth-entry",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         }
       ]
     },
@@ -1044,7 +1917,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/simulations/page.tsx",
+          "routeArchetype": "immersive-task-workspace",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -1070,7 +1953,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/simulations/page.tsx",
+          "routeArchetype": "immersive-task-workspace",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         },
         {
           "width": 320,
@@ -1096,7 +1984,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/simulations/page.tsx",
+          "routeArchetype": "immersive-task-workspace",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -1122,7 +2020,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/simulations/page.tsx",
+          "routeArchetype": "immersive-task-workspace",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         }
       ]
     },
@@ -1153,7 +2056,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/teacher/page.tsx",
+          "routeArchetype": "teacher-operations",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -1179,7 +2092,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/teacher/page.tsx",
+          "routeArchetype": "teacher-operations",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         },
         {
           "width": 320,
@@ -1205,7 +2123,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/teacher/page.tsx",
+          "routeArchetype": "teacher-operations",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -1231,7 +2159,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/teacher/page.tsx",
+          "routeArchetype": "teacher-operations",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         },
         {
           "width": 320,
@@ -1257,7 +2190,17 @@
           "dockPlacementChecked": false,
           "noDockCollision": false,
           "dockFocusReachable": false,
-          "authOutcome": "redirected-to-login"
+          "authOutcome": "redirected-to-login",
+          "routeFile": "src/app/teacher/page.tsx",
+          "routeArchetype": "teacher-operations",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -1283,7 +2226,12 @@
           "dockPlacementChecked": false,
           "noDockCollision": false,
           "dockFocusReachable": false,
-          "authOutcome": "redirected-to-login"
+          "authOutcome": "redirected-to-login",
+          "routeFile": "src/app/teacher/page.tsx",
+          "routeArchetype": "teacher-operations",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         },
         {
           "width": 320,
@@ -1309,7 +2257,17 @@
           "dockPlacementChecked": false,
           "noDockCollision": false,
           "dockFocusReachable": false,
-          "authOutcome": "redirected-to-login"
+          "authOutcome": "redirected-to-login",
+          "routeFile": "src/app/teacher/page.tsx",
+          "routeArchetype": "teacher-operations",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -1335,7 +2293,12 @@
           "dockPlacementChecked": false,
           "noDockCollision": false,
           "dockFocusReachable": false,
-          "authOutcome": "redirected-to-login"
+          "authOutcome": "redirected-to-login",
+          "routeFile": "src/app/teacher/page.tsx",
+          "routeArchetype": "teacher-operations",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         }
       ]
     },
@@ -1366,7 +2329,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/admin/page.tsx",
+          "routeArchetype": "admin-governance",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -1392,7 +2365,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/admin/page.tsx",
+          "routeArchetype": "admin-governance",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         },
         {
           "width": 320,
@@ -1418,7 +2396,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/admin/page.tsx",
+          "routeArchetype": "admin-governance",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -1444,7 +2432,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/admin/page.tsx",
+          "routeArchetype": "admin-governance",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         },
         {
           "width": 320,
@@ -1470,7 +2463,17 @@
           "dockPlacementChecked": false,
           "noDockCollision": false,
           "dockFocusReachable": false,
-          "authOutcome": "redirected-to-login"
+          "authOutcome": "redirected-to-login",
+          "routeFile": "src/app/admin/page.tsx",
+          "routeArchetype": "admin-governance",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -1496,7 +2499,12 @@
           "dockPlacementChecked": false,
           "noDockCollision": false,
           "dockFocusReachable": false,
-          "authOutcome": "redirected-to-login"
+          "authOutcome": "redirected-to-login",
+          "routeFile": "src/app/admin/page.tsx",
+          "routeArchetype": "admin-governance",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         },
         {
           "width": 320,
@@ -1522,7 +2530,17 @@
           "dockPlacementChecked": false,
           "noDockCollision": false,
           "dockFocusReachable": false,
-          "authOutcome": "redirected-to-login"
+          "authOutcome": "redirected-to-login",
+          "routeFile": "src/app/admin/page.tsx",
+          "routeArchetype": "admin-governance",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -1548,7 +2566,12 @@
           "dockPlacementChecked": false,
           "noDockCollision": false,
           "dockFocusReachable": false,
-          "authOutcome": "redirected-to-login"
+          "authOutcome": "redirected-to-login",
+          "routeFile": "src/app/admin/page.tsx",
+          "routeArchetype": "admin-governance",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         }
       ]
     },
@@ -1579,7 +2602,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/knowledge/page.tsx",
+          "routeArchetype": "knowledge-graph",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -1605,7 +2638,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/knowledge/page.tsx",
+          "routeArchetype": "knowledge-graph",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         },
         {
           "width": 320,
@@ -1631,7 +2669,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/knowledge/page.tsx",
+          "routeArchetype": "knowledge-graph",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -1657,7 +2705,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/knowledge/page.tsx",
+          "routeArchetype": "knowledge-graph",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         }
       ]
     },
@@ -1688,7 +2741,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/courses/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -1714,7 +2777,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/courses/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         },
         {
           "width": 320,
@@ -1740,7 +2808,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/courses/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -1766,7 +2844,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/courses/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         }
       ]
     },
@@ -1797,7 +2880,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/courses/unit-4-1-design-task-expression/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -1823,7 +2916,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/courses/unit-4-1-design-task-expression/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         },
         {
           "width": 320,
@@ -1849,7 +2947,17 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/courses/unit-4-1-design-task-expression/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
@@ -1875,7 +2983,12 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "authOutcome": "route-rendered"
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/courses/unit-4-1-design-task-expression/page.tsx",
+          "routeArchetype": "learning-map",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true
         }
       ]
     }

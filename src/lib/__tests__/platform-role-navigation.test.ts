@@ -267,6 +267,7 @@ describe('platform role navigation', () => {
       '/interactive-learning',
       '/interactive-learning/courses',
       '/interactive-learning/courses/unit-4-1-design-task-expression',
+      '/interactive-learning/courses/unit-5-4-data-driven-mpc-transition',
       '/simulations',
       '/simulations/cruise',
       '/arena',
