@@ -157,7 +157,7 @@ export function ArenaHall({
           >
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute inset-y-0 right-0 hidden h-full w-1/2 bg-cover bg-center opacity-30 mix-blend-luminosity dark:opacity-24 lg:block"
+              className="pointer-events-none absolute -inset-px bg-cover bg-center opacity-24 mix-blend-luminosity dark:opacity-20"
               style={{ backgroundImage: `url(${ARENA_VISUAL_ASSETS['challenge-map'].src})` }}
             />
             <div className="relative z-10 flex min-h-full w-full flex-col justify-between">
