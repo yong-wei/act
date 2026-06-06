@@ -538,14 +538,14 @@ describe('platform role navigation', () => {
   });
 
   it('identifies report and snapshot surfaces before report visual migration', () => {
-    expect(PLATFORM_REPORT_SURFACE_INVENTORY.map((surface) => [surface.id, surface.surfaceType, surface.ownerRoute])).toEqual([
-      ['classroom-session-report', 'primary-route', '/classroom/student/[sessionId]'],
-      ['arena-challenge-result', 'embedded-component', '/arena/challenges/[taskId]'],
-      ['arena-publication-report', 'primary-route', '/teacher/arena/publications/[publicationId]'],
-      ['learner-growth-report', 'primary-route', '/profile/growth'],
-      ['learner-evidence-report', 'primary-route', '/profile/evidence'],
-      ['governance-data-quality-snapshot', 'primary-route', '/admin/data-governance'],
-      ['data-center-platform-snapshot', 'primary-route', '/data-center'],
+    expect(PLATFORM_REPORT_SURFACE_INVENTORY.map((surface) => [surface.id, surface.category, surface.surfaceType, surface.ownerRoute])).toEqual([
+      ['classroom-session-report', 'classroom', 'primary-route', '/classroom/student/[sessionId]'],
+      ['arena-challenge-result', 'arena', 'embedded-component', '/arena/challenges/[taskId]'],
+      ['arena-publication-report', 'arena', 'primary-route', '/teacher/arena/publications/[publicationId]'],
+      ['learner-growth-report', 'learner', 'primary-route', '/profile/growth'],
+      ['learner-evidence-report', 'learner', 'primary-route', '/profile/evidence'],
+      ['governance-data-quality-snapshot', 'governance', 'primary-route', '/admin/data-governance'],
+      ['data-center-platform-snapshot', 'data-center', 'primary-route', '/data-center'],
     ]);
     expect(PLATFORM_REPORT_SURFACE_INVENTORY.every((surface) => surface.owningChange === 'redesign-report-ledger-and-export-surfaces')).toBe(true);
     for (const surface of PLATFORM_REPORT_SURFACE_INVENTORY) {

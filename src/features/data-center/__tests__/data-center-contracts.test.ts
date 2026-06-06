@@ -8,10 +8,17 @@ import {
   GOVERNANCE_REGIONS,
   DEFAULT_EXPORT_SNAPSHOT_OPTIONS,
 } from '../shared/data-center-contracts';
-import { buildDataMapContextCards } from '../presentation-data-center';
+import { buildDataMapContextCards, buildPresentationExportSnapshot } from '../presentation-data-center';
+import { presentationDataCenterMock } from '../presentation-mock-data';
 import { sanitizeSnapshotMetrics, buildExportSafeSnapshot } from '../shared/export-safe-snapshot';
 import { canAccessDrilldown } from '../shared/drilldown-link';
 import type { SnapshotMetric } from '../shared/export-safe-snapshot';
+import {
+  REPORT_LEDGER_ARCHETYPE_RULES,
+  REPORT_LEDGER_REQUIRED_LABELS,
+  getReportLedgerRule,
+} from '@/lib/report-ledger-contracts';
+import { PLATFORM_REPORT_SURFACE_INVENTORY } from '@/lib/platform-role-navigation';
 
 const repoRoot = process.cwd();
 
@@ -26,6 +33,25 @@ describe('PresentationDataCenter commercial workspace layout', () => {
     expect(source).toContain('data-commercial-workspace-zone="context-strip"');
     expect(source).toContain('data-commercial-workspace-zone="instrument-area"');
     expect(source).toContain('data-commercial-workspace-zone="command-bar"');
+  });
+
+  it('renders data-center snapshots as report-ledger output without taking over the data-center shell', () => {
+    const source = readFileSync(
+      join(repoRoot, 'src/features/data-center/presentation-data-center.tsx'),
+      'utf8',
+    );
+
+    expect(source).toContain('data-report-ledger-surface="data-center-platform-snapshot"');
+    expect(source).toContain('data-report-ledger-watermark="low-contrast-brand"');
+    expect(source).toContain('data-report-ledger-privacy-scope="aggregate-only"');
+    expect(source).toContain('data-report-ledger-export="available"');
+    expect(source).toContain('aria-hidden="true"');
+    expect(source).toContain('pointer-events-none');
+    expect(source).toContain('downloadExportSafeSnapshot(exportSnapshot()');
+    expect(source).not.toContain('导出快照功能将在后续版本中提供');
+    expect(source).toContain('来源质量');
+    expect(source).toContain('隐私范围');
+    expect(source).toContain('状态图例');
   });
 
   it('uses available-width grid tracks instead of defaulting operations panels to narrow xl-only stacks', () => {
@@ -110,6 +136,67 @@ describe('PresentationDataCenter commercial workspace layout', () => {
     expect(restrictedCards.find((card) => card.marker === 'privacy-scope')?.actionHref).toBe('/admin/data-governance');
     expect(restrictedCards.every((card) => card.actionHref === '/admin/data-governance')).toBe(true);
     expect(teacherRestrictedCards.every((card) => card.actionHref === '/teacher')).toBe(true);
+  });
+});
+
+describe('buildPresentationExportSnapshot', () => {
+  it('builds a real export-safe snapshot for the data-center report ledger', () => {
+    const snapshot = buildPresentationExportSnapshot(presentationDataCenterMock, {
+      interactionTotal: 27594,
+      simulationVisitTotal: 70870,
+      monthlyVisitTotal: 261400,
+    });
+
+    expect(snapshot.metrics.map((metric) => metric.label)).toEqual([
+      '学期',
+      '最近同步',
+      '隐私范围',
+      '状态图例',
+      '导出安全策略',
+      '学生规模',
+      '教师规模',
+      '学期总访问量',
+      '互动总量',
+      '仿真访问总量',
+      'Control Odyssey 访问',
+    ]);
+    expect(snapshot.sourceQualitySummary).toEqual(['demo']);
+    expect(snapshot.metrics.every((metric) => metric.rawEvidence === undefined)).toBe(true);
+    expect(snapshot.metrics.every((metric) => metric.rawTraces === undefined)).toBe(true);
+  });
+});
+
+describe('report ledger contracts', () => {
+  it('defines report-ledger rules for classroom, Arena, learner, governance, and data-center outputs', () => {
+    expect(REPORT_LEDGER_ARCHETYPE_RULES.map((rule) => rule.category)).toEqual([
+      'classroom',
+      'arena',
+      'learner',
+      'governance',
+      'data-center',
+    ]);
+    for (const rule of REPORT_LEDGER_ARCHETYPE_RULES) {
+      expect(rule.watermark).toBe('low-contrast-brand');
+      expect(rule.requiredLabels).toEqual(REPORT_LEDGER_REQUIRED_LABELS);
+      expect(rule.readabilityRule).toContain('Watermark');
+    }
+    expect(getReportLedgerRule('data-center')).toMatchObject({
+      exportAvailability: 'available',
+      privacyScope: 'aggregate-only',
+    });
+  });
+
+  it('keeps report-ledger ownership separate from source route shell ownership', () => {
+    const categories = new Set(REPORT_LEDGER_ARCHETYPE_RULES.map((rule) => rule.category));
+
+    expect(PLATFORM_REPORT_SURFACE_INVENTORY.every((surface) => (
+      surface.owningChange === 'redesign-report-ledger-and-export-surfaces'
+    ))).toBe(true);
+    expect(PLATFORM_REPORT_SURFACE_INVENTORY.every((surface) => (
+      surface.sourceShellOwner !== surface.owningChange
+    ))).toBe(true);
+    expect(PLATFORM_REPORT_SURFACE_INVENTORY.every((surface) => Boolean(getReportLedgerRule(surface.category)))).toBe(true);
+    expect(categories).toEqual(new Set(['classroom', 'arena', 'learner', 'governance', 'data-center']));
   });
 });
 
