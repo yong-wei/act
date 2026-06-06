@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SCRIPT_PATH = ROOT / ".codex/skills/lesson/scripts/export_handout_pdf.py"
+SCRIPT_PATH = ROOT / ".agents/skills/lesson/scripts/export_handout_pdf.py"
 
 
 def load_exporter_module():

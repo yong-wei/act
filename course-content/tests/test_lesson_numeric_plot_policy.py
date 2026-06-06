@@ -4,12 +4,12 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-LESSON_SKILL = ROOT / '.codex' / 'skills' / 'lesson' / 'SKILL.md'
-HANDOUT_REF = ROOT / '.codex' / 'skills' / 'lesson' / 'references' / 'step3-handout.md'
-MULTIMEDIA_REF = ROOT / '.codex' / 'skills' / 'lesson' / 'references' / 'step7-multimedia.md'
-CODEGEN_REF = ROOT / '.codex' / 'skills' / 'lesson' / 'references' / 'step7-multimedia-codegen.md'
-OCTAVE_TEMPLATE = ROOT / '.codex' / 'skills' / 'lesson' / 'templates' / 'octave-design-data-template.m.tpl'
-PYTHON_TEMPLATE = ROOT / '.codex' / 'skills' / 'lesson' / 'templates' / 'matplotlib-render-template.py.tpl'
+LESSON_SKILL = ROOT / '.agents' / 'skills' / 'lesson' / 'SKILL.md'
+HANDOUT_REF = ROOT / '.agents' / 'skills' / 'lesson' / 'references' / 'step3-handout.md'
+MULTIMEDIA_REF = ROOT / '.agents' / 'skills' / 'lesson' / 'references' / 'step7-multimedia.md'
+CODEGEN_REF = ROOT / '.agents' / 'skills' / 'lesson' / 'references' / 'step7-multimedia-codegen.md'
+OCTAVE_TEMPLATE = ROOT / '.agents' / 'skills' / 'lesson' / 'templates' / 'octave-design-data-template.m.tpl'
+PYTHON_TEMPLATE = ROOT / '.agents' / 'skills' / 'lesson' / 'templates' / 'matplotlib-render-template.py.tpl'
 
 
 def read(path: Path) -> str:

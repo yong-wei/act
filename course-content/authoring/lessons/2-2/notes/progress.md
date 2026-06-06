@@ -19,7 +19,7 @@
 - 已完成 `interactive-page.md` 与 `sequence.json` 的 `step-01` ~ `step-17` 对齐检查；
 - 已完成 `handout.md`、`interactive-page.md`、`multimedia.md` 的媒体命名一致性检查；
 - 已修正 2 张新增知识卡片中的 heredoc 转义污染（`\frac` / `\to`）；
-- 已执行 `python3 .codex/skills/lesson/scripts/sync_overlays.py 2-2`，并复检通过。
+- 已执行 `python3 .agents/skills/lesson/scripts/sync_overlays.py 2-2`，并复检通过。
 
 ## 本轮新增落地产物
 

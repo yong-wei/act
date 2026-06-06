@@ -144,7 +144,7 @@ Expected: PASS。
 - Modify: `../src/features/interactive/unit-1-3-time-response/workspace.tsx`
 - Modify: `../src/features/interactive/unit-1-3-time-response/student-page.tsx`
 - Modify: `../src/features/interactive/unit-1-3-time-response/teacher-page.tsx`
-- Modify: `/Users/YW/Documents/Site/act.just.edu.cn/.codex/skills/interactive-lesson-implementation/notes/1-3.md`
+- Modify: `/Users/YW/Documents/Site/act.just.edu.cn/.agents/skills/interactive-lesson-implementation/notes/1-3.md`
 
 **Step 1: Write the failing guard tests**
 

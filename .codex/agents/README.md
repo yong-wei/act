@@ -50,7 +50,7 @@
 新增、删除、重命名或调参后运行：
 
 ```bash
-python3 .codex/skills/agent-evolver/scripts/validate_agent_configs.py --root "$(pwd)"
+python3 .agents/skills/agent-evolver/scripts/validate_agent_configs.py --root "$(pwd)"
 ```
 
 重要调整后向 `quality-ledger.jsonl` 追加说明，记录调整原因和预期用途。

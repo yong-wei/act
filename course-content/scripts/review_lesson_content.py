@@ -7,17 +7,20 @@ import os
 import re
 import subprocess
 import sys
-import yaml
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+try:
+    import yaml
+except ModuleNotFoundError:  # pragma: no cover - exercised in lean local Python environments.
+    yaml = None
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 COURSE_ROOT = REPO_ROOT / 'course-content'
 AUTHORING_ROOT = COURSE_ROOT / 'authoring'
 RUNTIME_ROOT = COURSE_ROOT / 'runtime'
-MANIFEST_AUDIT_SCRIPT = REPO_ROOT / '.codex' / 'skills' / 'interactive-design' / 'scripts' / 'audit_interactive_manifest.py'
+MANIFEST_AUDIT_SCRIPT = REPO_ROOT / '.agents' / 'skills' / 'interactive-design' / 'scripts' / 'audit_interactive_manifest.py'
 
 ACCEPTANCE_PASS_STATUSES = {'accepted', 'pass', 'passed'}
 ACCEPTANCE_FAIL_STATUSES = {'blocked', 'fail', 'failed', 'needs_revision', 'rejected'}
@@ -582,6 +585,8 @@ process.stdout.write(JSON.stringify(result));
 def load_interactive_contract(contract_path: Path) -> tuple[dict[str, Any] | None, list[str]]:
     if not contract_path.exists():
         return None, []
+    if yaml is None:
+        return None, ['interactive-contract.yaml 解析需要 PyYAML，请安装 PyYAML 后重试']
 
     try:
         payload = yaml.safe_load(contract_path.read_text(encoding='utf-8'))

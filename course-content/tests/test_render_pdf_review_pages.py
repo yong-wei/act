@@ -7,7 +7,7 @@ from pathlib import Path
 def load_module():
     module_path = (
         Path(__file__).resolve().parents[2]
-        / '.codex'
+        / '.agents'
         / 'skills'
         / 'lesson'
         / 'scripts'

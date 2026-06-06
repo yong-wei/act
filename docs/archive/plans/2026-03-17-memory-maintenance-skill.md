@@ -18,7 +18,7 @@
 保留对 `.codex/` 的默认忽略，但为以下路径加白名单：
 
 - `.codex/memory/**`
-- `.codex/skills/memory-maintenance/**`
+- `.agents/skills/memory-maintenance/**`
 
 建议规则顺序：
 
@@ -26,24 +26,24 @@
 .codex/*
 !.codex/memory/
 !.codex/memory/**
-!.codex/skills/
-!.codex/skills/memory-maintenance/
-!.codex/skills/memory-maintenance/**
+!.agents/skills/
+!.agents/skills/memory-maintenance/
+!.agents/skills/memory-maintenance/**
 ```
 
 并继续忽略其他 `.codex` 子目录。
 
 **Step 2: 验证 ignore 结果**
 
-Run: `git check-ignore -v .codex/memory/00-index.md .codex/skills/memory-maintenance/SKILL.md`
+Run: `git check-ignore -v .codex/memory/00-index.md .agents/skills/memory-maintenance/SKILL.md`
 
 Expected: 两个文件都不再被 ignore。
 
 ### Task 2: 创建专用记忆维护 skill
 
 **Files:**
-- Create: `.codex/skills/memory-maintenance/SKILL.md`
-- Optional Create: `.codex/skills/memory-maintenance/references/memory-file-template.md`
+- Create: `.agents/skills/memory-maintenance/SKILL.md`
+- Optional Create: `.agents/skills/memory-maintenance/references/memory-file-template.md`
 
 **Step 1: 编写 skill 的目标与触发条件**
 
@@ -114,7 +114,7 @@ skill 应明确禁止：
 
 **Files:**
 - Verify: `.gitignore`
-- Verify: `.codex/skills/memory-maintenance/SKILL.md`
+- Verify: `.agents/skills/memory-maintenance/SKILL.md`
 - Verify: `AGENTS.md`
 - Verify: `.codex/memory/README.md`
 
@@ -122,11 +122,11 @@ skill 应明确禁止：
 
 Run: `git status --short`
 
-Expected: 能看到 `.codex/memory/**` 与 `.codex/skills/memory-maintenance/**` 出现在未跟踪或已修改列表中。
+Expected: 能看到 `.codex/memory/**` 与 `.agents/skills/memory-maintenance/**` 出现在未跟踪或已修改列表中。
 
 **Step 2: 抽查 skill 内容**
 
-Run: `sed -n '1,220p' .codex/skills/memory-maintenance/SKILL.md`
+Run: `sed -n '1,220p' .agents/skills/memory-maintenance/SKILL.md`
 
 Expected: 能看到触发条件、分类决策、维护步骤、禁忌事项和校验步骤。
 

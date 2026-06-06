@@ -8,9 +8,8 @@
 - [35-lesson-content-review.md](35-lesson-content-review.md)
 下游: []
 相关:
-- [/.codex/skills/lesson/SKILL.md](../../../.codex/skills/lesson/SKILL.md)
-- [/.codex/skills/lesson/references/root-locus-branch-match.md](../../../.codex/skills/lesson/references/root-locus-branch-match.md)
-- [/.codex/skills/lesson/scripts/root_locus_branch_match.py](../../../.codex/skills/lesson/scripts/root_locus_branch_match.py)
+- [/.agents/skills/lesson/SKILL.md](../../../.agents/skills/lesson/SKILL.md)
+- [/.agents/skills/lesson/scripts/root_locus_branch_match.py](../../../.agents/skills/lesson/scripts/root_locus_branch_match.py)
 
 ## 结论
 
@@ -25,7 +24,7 @@
 3. 调用：
 
 ```bash
-python3 .codex/skills/lesson/scripts/root_locus_branch_match.py \
+python3 .agents/skills/lesson/scripts/root_locus_branch_match.py \
   --samples <raw-samples.csv> \
   --poles <open-loop-poles.csv> \
   --zeros <open-loop-zeros.csv> \

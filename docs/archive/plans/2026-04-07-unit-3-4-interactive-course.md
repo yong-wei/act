@@ -110,7 +110,7 @@ Expected: 仍会失败，但应从“模块缺失”推进到“页面/注册点
 
 **Step 1: 契约对齐校验**
 
-Run: `python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --lesson 3-4`
+Run: `python3 .agents/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --lesson 3-4`
 
 Expected: 14 步契约字段对齐通过。
 

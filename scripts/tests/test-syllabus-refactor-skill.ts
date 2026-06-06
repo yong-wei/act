@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const skillPath = path.join(root, '.codex/skills/syllabus-refactor/SKILL.md');
+const skillPath = path.join(root, '.agents/skills/syllabus-refactor/SKILL.md');
 const skill = fs.readFileSync(skillPath, 'utf8');
 
 assert.equal(

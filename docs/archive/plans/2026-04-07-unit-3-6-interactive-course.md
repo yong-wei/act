@@ -112,7 +112,7 @@ Run: `npx vitest run src/features/interactive/__tests__/unit-3-6-course.test.ts 
 
 **Step 1: 契约与审查验证**
 
-Run: `python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --contract course-content/authoring/lessons/3-6/design/interactive-contract.yaml --implementation src/lib/unit-3-6-course.ts --page-contract-const UNIT_3_6_PAGE_CONTRACTS --step-const UNIT_3_6_LESSON_STEPS`
+Run: `python3 .agents/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --contract course-content/authoring/lessons/3-6/design/interactive-contract.yaml --implementation src/lib/unit-3-6-course.ts --page-contract-const UNIT_3_6_PAGE_CONTRACTS --step-const UNIT_3_6_LESSON_STEPS`
 
 Run: `python3 course-content/scripts/review_lesson_content.py --lesson 3-6 --strict-implementation-contract`
 

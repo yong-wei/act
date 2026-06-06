@@ -133,7 +133,7 @@ manifest-first 课程必须让脚本可明确审计，而不是只靠人工浏�
 - `src/features/interactive/__tests__/interactive-manifest-runtime.test.tsx`
 - 对应课程测试，例如 `src/features/interactive/__tests__/unit-4-6-course.test.ts`、`src/features/interactive/__tests__/unit-4-3-course.test.ts`
 - `python3 course-content/scripts/review_lesson_content.py --lesson <lesson> --skip-export --strict-implementation-contract`
-- manifest-first 模块消费审计运行 `python3 .codex/skills/interactive-design/scripts/audit_interactive_manifest.py --lesson <lesson>`；该脚本归属 `interactive-design` 技能目录，不能迁入全局 `scripts/tests/` 作为技能私有规则的存放点。
+- manifest-first 模块消费审计运行 `python3 .agents/skills/interactive-design/scripts/audit_interactive_manifest.py --lesson <lesson>`；该脚本归属 `interactive-design` 技能目录，不能迁入全局 `scripts/tests/` 作为技能私有规则的存放点。
 - 浏览器至少验证 4-6 回归与被迁移课程关键页面，确认无 `data-manifest-render-error`、无 `data-manifest-missing-field`、无重复题面，教师控制和学生提交仍可用。
 
 ## 七、正反例

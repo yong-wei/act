@@ -7,7 +7,7 @@ import os
 
 
 def load_module():
-    module_path = Path(__file__).resolve().parents[2] / '.codex' / 'skills' / 'lesson' / 'scripts' / 'export_handout_pdf.py'
+    module_path = Path(__file__).resolve().parents[2] / '.agents' / 'skills' / 'lesson' / 'scripts' / 'export_handout_pdf.py'
     spec = importlib.util.spec_from_file_location('export_handout_pdf', module_path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f'Unable to load module from {module_path}')
@@ -147,7 +147,7 @@ def test_rewrite_includegraphics_options_keeps_requested_width_without_textheigh
 
 
 def test_handout_style_template_redefines_blockquote_as_tinted_callout():
-    template_path = Path(__file__).resolve().parents[2] / '.codex' / 'skills' / 'lesson' / 'templates' / 'handout-pdf-style.tex.tpl'
+    template_path = Path(__file__).resolve().parents[2] / '.agents' / 'skills' / 'lesson' / 'templates' / 'handout-pdf-style.tex.tpl'
     template = template_path.read_text(encoding='utf-8')
 
     assert '\\usepackage[most]{tcolorbox}' in template

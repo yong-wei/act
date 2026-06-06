@@ -13,7 +13,7 @@ function exists(relativePath) {
 }
 
 const skillPath = '.agents/skills/interactive-lesson/SKILL.md';
-const designSkillPath = '.codex/skills/interactive-design/SKILL.md';
+const designSkillPath = '.agents/skills/interactive-design/SKILL.md';
 const teacherSpecPath =
   '.agents/skills/interactive-lesson/references/browser-validation-teacher-subagent.md';
 const studentSpecPath =

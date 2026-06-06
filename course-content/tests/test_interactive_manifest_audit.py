@@ -8,7 +8,7 @@ from pathlib import Path
 def load_audit_module():
     module_path = (
         Path(__file__).resolve().parents[2]
-        / '.codex'
+        / '.agents'
         / 'skills'
         / 'interactive-design'
         / 'scripts'

@@ -59,7 +59,7 @@
 **Files:**
 - Modify: `course-content/scripts/review_lesson_content.py`
 - Modify: `course-content/tests/test_review_lesson_content.py`
-- Modify: `.codex/skills/interactive-lesson-implementation/SKILL.md`
+- Modify: `.agents/skills/interactive-lesson-implementation/SKILL.md`
 - Modify: `scripts/tests/test-interactive-lesson-skill.ts` or `scripts/tests/test-interactive-lesson-skill-rules.mjs`
 
 **Step 1: Write minimal implementation**

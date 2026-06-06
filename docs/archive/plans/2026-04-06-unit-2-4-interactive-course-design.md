@@ -106,7 +106,7 @@ Expected: 目录和路由注册相关断言通过。
 
 **Step 1: 运行实现一致性校验**
 
-Run: `python3 .codex/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --lesson 2-4`
+Run: `python3 .agents/skills/interactive-lesson-implementation/scripts/check_contract_alignment.py --lesson 2-4`
 
 Expected: `2-4` 课程的步骤标题、互动类型、模板/区域、教师洞察、telemetry 与学生演示页预览路径全部通过。
 

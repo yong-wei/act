@@ -119,7 +119,7 @@ description: Use when implementing or optimizing this repository's interactive l
 实现 manifest-first 课程时，`content-renderers.tsx` 与 `activity-renderers.tsx` 的职责必须分离：
 - content 模块只进入正文、媒体、公式、图文等 content runtime。
 - activity 模块只进入 activity runtime，activity 模块不进入正文，题面不得在正文区和互动区重复出现。
-- 实现完成后必须执行 manifest audit：`python3 .codex/skills/interactive-design/scripts/audit_interactive_manifest.py --lesson <lesson>`。
+- 实现完成后必须执行 manifest audit：`python3 .agents/skills/interactive-design/scripts/audit_interactive_manifest.py --lesson <lesson>`。
 - 审计失败时先修 manifest 消费链路，不要用隐藏、过滤或空渲染绕过问题。
 
 ### 4. 媒体资源缺失处理

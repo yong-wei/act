@@ -17,7 +17,7 @@ os.environ.setdefault('MPLCONFIGDIR', str(ROOT / '.cache' / 'matplotlib'))
 RAW_DIR = ROOT / 'course-content' / 'authoring' / 'lessons' / '4-2' / 'media' / 'raw'
 DATA_DIR = RAW_DIR / 'generated-data'
 OUT_DIR = ROOT / 'course-content' / 'authoring' / 'lessons' / '4-2' / 'media' / 'processed'
-ROOT_LOCUS_MATCHER = ROOT / '.codex' / 'skills' / 'lesson' / 'scripts' / 'root_locus_branch_match.py'
+ROOT_LOCUS_MATCHER = ROOT / '.agents' / 'skills' / 'lesson' / 'scripts' / 'root_locus_branch_match.py'
 
 matplotlib.rcParams['font.family'] = 'sans-serif'
 matplotlib.rcParams['font.sans-serif'] = ['Hiragino Sans GB', 'STHeiti', 'Arial Unicode MS', 'Arial Unicode', 'DejaVu Sans']

@@ -11,7 +11,7 @@
 ### Task 1: Extend Review Skill
 
 **Files:**
-- Modify: `./.codex/skills/lesson-content-review/SKILL.md`
+- Modify: `./.agents/skills/lesson-content-review/SKILL.md`
 
 **Step 1: Add media integrity checks**
 
@@ -35,7 +35,7 @@
 ### Task 2: Extend Lesson Skill
 
 **Files:**
-- Modify: `./.codex/skills/lesson/SKILL.md`
+- Modify: `./.agents/skills/lesson/SKILL.md`
 
 **Step 1: Add naming convention as a hard constraint**
 
@@ -49,8 +49,8 @@
 ### Task 3: Verify Consistency
 
 **Files:**
-- Inspect: `./.codex/skills/lesson-content-review/SKILL.md`
-- Inspect: `./.codex/skills/lesson/SKILL.md`
+- Inspect: `./.agents/skills/lesson-content-review/SKILL.md`
+- Inspect: `./.agents/skills/lesson/SKILL.md`
 
 **Step 1: Search for stale names**
 

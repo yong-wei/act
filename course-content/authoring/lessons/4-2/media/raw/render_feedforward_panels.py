@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[6]
 os.environ.setdefault('MPLCONFIGDIR', str(ROOT / '.cache' / 'matplotlib'))
-LESSON_SCRIPT_DIR = ROOT / '.codex' / 'skills' / 'lesson' / 'scripts'
+LESSON_SCRIPT_DIR = ROOT / '.agents' / 'skills' / 'lesson' / 'scripts'
 if str(LESSON_SCRIPT_DIR) not in sys.path:
   sys.path.insert(0, str(LESSON_SCRIPT_DIR))
 

@@ -64,7 +64,7 @@ Expected: 新增测试失败，说明当前导出脚本不能正确处理旧 sch
 
 **Files:**
 - Verify: `course-content/tests/test_export_runtime.py`
-- Verify: `.codex/skills/lesson/scripts/sync_runtime_knowledge.py`
+- Verify: `.agents/skills/lesson/scripts/sync_runtime_knowledge.py`
 
 **Step 1: Run focused tests**
 
@@ -80,6 +80,6 @@ Expected: runtime 知识图谱重新生成且无 duplicate `relation_id`
 
 **Step 3: Run sync check**
 
-Run: `python3 .codex/skills/lesson/scripts/sync_runtime_knowledge.py --check`
+Run: `python3 .agents/skills/lesson/scripts/sync_runtime_knowledge.py --check`
 
 Expected: 至少不再出现由 duplicate `relation_id` 导致的 relation 冲突

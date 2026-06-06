@@ -70,7 +70,7 @@ Run:
 ### Task 3: 浏览器验收参考与文档同步
 
 **Files:**
-- Modify: `.codex/skills/interactive-lesson-implementation/references/closed-loop-browser-validation.md`
+- Modify: `.agents/skills/interactive-lesson-implementation/references/closed-loop-browser-validation.md`
 - Modify: `docs/QUICKSTART.md`
 - Modify: `scripts/README.md`
 - Modify: `docs/ProjectDescription.md`

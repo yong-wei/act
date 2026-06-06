@@ -8,8 +8,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 VALIDATOR = (
-    REPO_ROOT
-    / '.codex'
+    Path.home()
+    / '.agents'
     / 'skills'
     / 'memory-maintenance'
     / 'scripts'

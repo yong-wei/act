@@ -4,7 +4,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 
-const reviewSkillPath = path.join(root, '.codex/skills/lesson-content-review/SKILL.md');
+const reviewSkillPath = path.join(root, '.agents/skills/lesson-content-review/SKILL.md');
 const implementationSkillPath = path.join(
   root,
   '.agents/skills/interactive-lesson/SKILL.md',

@@ -4,17 +4,17 @@
 
 **Goal:** 完成 `1-3` 课次在作者态下的知识图谱增量、BOPPPS 教案、互动页面蓝图与多模态资源设计文档。
 
-**Architecture:** 以已完成的 `handout.md` 为唯一内容母本，按照 `.codex/skills/lesson/SKILL.md` 的 Step 4-7 顺序产出派生文档。所有结构字段与目录布局对齐 `1-2` 已有产物，保证后续 runtime 导出与图谱同步链路可复用。
+**Architecture:** 以已完成的 `handout.md` 为唯一内容母本，按照 `.agents/skills/lesson/SKILL.md` 的 Step 4-7 顺序产出派生文档。所有结构字段与目录布局对齐 `1-2` 已有产物，保证后续 runtime 导出与图谱同步链路可复用。
 
 **Tech Stack:** Markdown, JSON, JSONL, Python3 校验脚本, lesson 技能规范。
 
 ### Task 1: 对齐规范与模板
 
 **Files:**
-- Read: `.codex/skills/lesson/references/step4-knowledge-graph.md`
-- Read: `.codex/skills/lesson/references/step5-boppps.md`
-- Read: `.codex/skills/lesson/references/step6-interactive-page.md`
-- Read: `.codex/skills/lesson/references/step7-multimedia.md`
+- Read: `.agents/skills/lesson/references/step4-knowledge-graph.md`
+- Read: `.agents/skills/lesson/references/step5-boppps.md`
+- Read: `.agents/skills/lesson/references/step6-interactive-page.md`
+- Read: `.agents/skills/lesson/references/step7-multimedia.md`
 - Read: `authoring/lessons/legacy/1-2/manifest.json`
 - Read: `authoring/lessons/legacy/1-2/graph/nodes.jsonl`
 - Read: `authoring/lessons/legacy/1-2/graph/relations.jsonl`

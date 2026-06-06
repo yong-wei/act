@@ -77,7 +77,7 @@ Linked with --link-config:
   .claude/skills/
   .codex/agents/
   .codex/environments/
-  .codex/skills/
+  .agents/skills/
   .github/
   .serena/project.yml
   .serena/memories/
@@ -252,7 +252,7 @@ CONFIG_LINKS=(
   ".claude/skills"
   ".codex/agents"
   ".codex/environments"
-  ".codex/skills"
+  ".agents/skills"
   ".github"
   ".serena/project.yml"
   ".serena/memories"

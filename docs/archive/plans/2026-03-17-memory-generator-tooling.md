@@ -4,7 +4,7 @@
 
 **Goal:** 为 `.codex/memory` 增加一个 `memory-maintenance` skill 专用最小模板生成脚本，并把脚本使用方式纳入 `memory-maintenance` skill 与 README 说明。
 
-**Architecture:** 新脚本 `.codex/skills/memory-maintenance/scripts/new_memory_file.py` 只负责按 kind 生成 memory 文件模板，不修改索引、不自动推断分类、不覆盖已有文件。生成后的索引补链和内容细化仍由 `memory-maintenance` skill 负责。测试继续使用 Python 标准库临时目录，覆盖“正确生成”和“拒绝覆盖”两个关键行为。
+**Architecture:** 新脚本 `.agents/skills/memory-maintenance/scripts/new_memory_file.py` 只负责按 kind 生成 memory 文件模板，不修改索引、不自动推断分类、不覆盖已有文件。生成后的索引补链和内容细化仍由 `memory-maintenance` skill 负责。测试继续使用 Python 标准库临时目录，覆盖“正确生成”和“拒绝覆盖”两个关键行为。
 
 **Tech Stack:** Python 3、Markdown、标准库 `argparse`/`pathlib`/`subprocess`/`tempfile`
 
@@ -32,7 +32,7 @@ Expected: 因脚本尚不存在或行为未实现而失败。
 ### Task 2: 实现生成脚本
 
 **Files:**
-- Create: `.codex/skills/memory-maintenance/scripts/new_memory_file.py`
+- Create: `.agents/skills/memory-maintenance/scripts/new_memory_file.py`
 
 **Step 1: 提供最小 CLI**
 
@@ -52,9 +52,9 @@ Expected: 因脚本尚不存在或行为未实现而失败。
 ### Task 3: 更新 skill 和 README
 
 **Files:**
-- Modify: `.codex/skills/memory-maintenance/SKILL.md`
+- Modify: `.agents/skills/memory-maintenance/SKILL.md`
 - Modify: `.codex/memory/README.md`
-- Optional Modify: `.codex/skills/memory-maintenance/references/memory-file-template.md`
+- Optional Modify: `.agents/skills/memory-maintenance/references/memory-file-template.md`
 
 **Step 1: 在 skill 中加入脚本用法**
 

@@ -79,7 +79,7 @@
 ## 4. 媒体设计约束
 
 1. 讲义中的响应曲线、Bode 图、根轨迹、参数比较和客船候选结果必须继续采用 `Octave` 导出数据、`Python/matplotlib` 排版的两段式流程。
-2. 根轨迹数据必须来自 `Octave rlocus()`，并通过 `.codex/skills/lesson/scripts/root_locus_branch_match.py` 生成连续分支和审计报告。
+2. 根轨迹数据必须来自 `Octave rlocus()`，并通过 `.agents/skills/lesson/scripts/root_locus_branch_match.py` 生成连续分支和审计报告。
 3. 前馈结构图属于线框图，继续保留 TikZ 来源，不用位图截图替代。
 4. 封面漫画和信息图属于保留资产，代码直出脚本不得覆盖。
 5. 课程级媒体索引保持 5 个标准资源入口：`4-2-intro-video.mp4`、`4-2-slides.pdf`、`4-2-course.mp4`、`4-2-audio.m4a`、`handout.md`。

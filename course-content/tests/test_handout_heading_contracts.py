@@ -4,9 +4,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-LESSON_SKILL = ROOT / '.codex' / 'skills' / 'lesson' / 'SKILL.md'
-HANDOUT_REF = ROOT / '.codex' / 'skills' / 'lesson' / 'references' / 'step3-handout.md'
-REFINE_SKILL = ROOT / '.codex' / 'skills' / 'refine' / 'SKILL.md'
+LESSON_SKILL = ROOT / '.agents' / 'skills' / 'lesson' / 'SKILL.md'
+HANDOUT_REF = ROOT / '.agents' / 'skills' / 'lesson' / 'references' / 'step3-handout.md'
+REFINE_SKILL = ROOT / '.agents' / 'skills' / 'refine' / 'SKILL.md'
 
 
 def read(path: Path) -> str:

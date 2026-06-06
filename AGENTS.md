@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 <Skill-use>
-以下技能为本项目专用技能，项目通用技能优先放在 `.agents/skills/`，仓库专属且尚未通用化的技能保留在 `.codex/skills/`；使用时需要直接读取技能文件，并按需读取参考文件或调用脚本。
+以下技能为本项目专用技能，统一以 `.agents/skills/` 为项目内唯一真源；`.claude/skills` 仅保留软链接入口以适配 Claude 发现机制。使用时需要直接读取技能文件，并按需读取参考文件或调用脚本。
 - homework：制作课后作业
 - interactive-design：互动课程设计
 - interactive-lesson：互动课程实现

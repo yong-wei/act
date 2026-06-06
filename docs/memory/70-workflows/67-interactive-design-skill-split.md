@@ -7,8 +7,8 @@
 - [00-index.md](00-index.md)
 下游: []
 相关:
-- [../../.codex/skills/lesson/SKILL.md](../../../.codex/skills/lesson/SKILL.md)
-- [../../.codex/skills/interactive-design/SKILL.md](../../../.codex/skills/interactive-design/SKILL.md)
+- [../../.agents/skills/lesson/SKILL.md](../../../.agents/skills/lesson/SKILL.md)
+- [../../.agents/skills/interactive-design/SKILL.md](../../../.agents/skills/interactive-design/SKILL.md)
 - [../../.agents/skills/interactive-lesson/SKILL.md](../../../.agents/skills/interactive-lesson/SKILL.md)
 - [../../AGENTS.md](../../../AGENTS.md)
 
@@ -87,5 +87,5 @@
 
 ## 兼容处理
 
-- `/.codex/skills/lesson/references/step6-interactive-page.md` 已改为迁移提示页，用于兼容历史链接。
+- `/.agents/skills/lesson/references/step6-interactive-page.md` 已改为迁移提示页，用于兼容历史链接。
 - `AGENTS.md` 已把项目专用技能清单更新为 `interactive-design + interactive-lesson + lesson` 的三层结构。

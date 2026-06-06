@@ -12,8 +12,8 @@
 
 **Files:**
 - Create: `docs/plans/2026-03-12-homework-problem-authoring-skill.md`
-- Create: `.codex/skills/homework-problem-authoring/SKILL.md`
-- Create: `.codex/skills/homework-problem-authoring/agents/openai.yaml`
+- Create: `.agents/skills/homework-problem-authoring/SKILL.md`
+- Create: `.agents/skills/homework-problem-authoring/agents/openai.yaml`
 
 **Step 1: Define skill scope and name**
 
@@ -24,9 +24,9 @@ Choose `homework-problem-authoring` as the folder name. Target a trigger descrip
 Run:
 
 ```bash
-python3 /Users/YW/.codex/skills/.system/skill-creator/scripts/init_skill.py \
+python3 /Users/YW/.agents/skills/.system/skill-creator/scripts/init_skill.py \
   homework-problem-authoring \
-  --path .codex/skills \
+  --path .agents/skills \
   --resources scripts,references \
   --interface 'display_name=作业题目生成' \
   --interface 'short_description=按题号从作业框架生成完整习题，并通过多智能体裁判与作答复核稳定性' \
@@ -38,7 +38,7 @@ Expected: new skill directory exists with `SKILL.md`, `agents/openai.yaml`, `scr
 ### Task 2: Add deterministic question extraction support
 
 **Files:**
-- Create: `.codex/skills/homework-problem-authoring/scripts/extract_homework_question.py`
+- Create: `.agents/skills/homework-problem-authoring/scripts/extract_homework_question.py`
 - Create: `scripts/tests/test_extract_homework_question.py`
 
 **Step 1: Write the failing test**
@@ -76,8 +76,8 @@ Expected: pass with no output other than the success marker.
 ### Task 3: Write the skill instructions and reference contract
 
 **Files:**
-- Modify: `.codex/skills/homework-problem-authoring/SKILL.md`
-- Create: `.codex/skills/homework-problem-authoring/references/output-contract.md`
+- Modify: `.agents/skills/homework-problem-authoring/SKILL.md`
+- Create: `.agents/skills/homework-problem-authoring/references/output-contract.md`
 
 **Step 1: Write the trigger description**
 
@@ -113,7 +113,7 @@ Put JSON/Markdown output templates, temp directory layout, and acceptance checkl
 Run:
 
 ```bash
-python3 /Users/YW/.codex/skills/.system/skill-creator/scripts/quick_validate.py .codex/skills/homework-problem-authoring
+python3 /Users/YW/.agents/skills/.system/skill-creator/scripts/quick_validate.py .agents/skills/homework-problem-authoring
 ```
 
 Expected: validation passes.
