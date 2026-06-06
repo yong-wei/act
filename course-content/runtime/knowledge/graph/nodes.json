@@ -13647,7 +13647,8 @@
       },
       "createdAt": null,
       "updatedAt": null,
-      "source": "course-content/runtime/knowledge/graph/nodes.json"
+      "source": "course-content/runtime/knowledge/graph/nodes.json",
+      "knowledge_type": "D"
     },
     "content": {},
     "resources": [
@@ -13972,7 +13973,8 @@
       },
       "createdAt": null,
       "updatedAt": null,
-      "source": "course-content/runtime/knowledge/graph/nodes.json"
+      "source": "course-content/runtime/knowledge/graph/nodes.json",
+      "knowledge_type": "D"
     },
     "content": {},
     "resources": [
@@ -14119,7 +14121,8 @@
       },
       "createdAt": null,
       "updatedAt": null,
-      "source": "course-content/runtime/knowledge/graph/nodes.json"
+      "source": "course-content/runtime/knowledge/graph/nodes.json",
+      "knowledge_type": "D"
     },
     "content": {},
     "resources": [
@@ -14624,7 +14627,8 @@
       },
       "createdAt": null,
       "updatedAt": null,
-      "source": "course-content/runtime/knowledge/graph/nodes.json"
+      "source": "course-content/runtime/knowledge/graph/nodes.json",
+      "knowledge_type": "D"
     },
     "content": {},
     "resources": [
@@ -14851,7 +14855,8 @@
       },
       "createdAt": null,
       "updatedAt": null,
-      "source": "course-content/runtime/knowledge/graph/nodes.json"
+      "source": "course-content/runtime/knowledge/graph/nodes.json",
+      "knowledge_type": "D"
     },
     "content": {},
     "resources": [
@@ -15344,7 +15349,8 @@
       },
       "createdAt": null,
       "updatedAt": null,
-      "source": "course-content/runtime/knowledge/graph/nodes.json"
+      "source": "course-content/runtime/knowledge/graph/nodes.json",
+      "knowledge_type": "D"
     },
     "content": {},
     "resources": [
@@ -15836,7 +15842,8 @@
       },
       "createdAt": null,
       "updatedAt": null,
-      "source": "course-content/runtime/knowledge/graph/nodes.json"
+      "source": "course-content/runtime/knowledge/graph/nodes.json",
+      "knowledge_type": "D"
     },
     "content": {},
     "resources": [
@@ -16319,7 +16326,8 @@
       },
       "createdAt": null,
       "updatedAt": null,
-      "source": "course-content/runtime/knowledge/graph/nodes.json"
+      "source": "course-content/runtime/knowledge/graph/nodes.json",
+      "knowledge_type": "X"
     },
     "content": {},
     "resources": [
@@ -16695,7 +16703,8 @@
       },
       "createdAt": null,
       "updatedAt": null,
-      "source": "course-content/runtime/knowledge/graph/nodes.json"
+      "source": "course-content/runtime/knowledge/graph/nodes.json",
+      "knowledge_type": "D"
     },
     "content": {},
     "resources": [
@@ -16811,7 +16820,8 @@
       },
       "createdAt": null,
       "updatedAt": null,
-      "source": "course-content/runtime/knowledge/graph/nodes.json"
+      "source": "course-content/runtime/knowledge/graph/nodes.json",
+      "knowledge_type": "D"
     },
     "content": {},
     "resources": [
@@ -18250,7 +18260,8 @@
       },
       "createdAt": null,
       "updatedAt": null,
-      "source": "course-content/runtime/knowledge/graph/nodes.json"
+      "source": "course-content/runtime/knowledge/graph/nodes.json",
+      "knowledge_type": "X"
     },
     "content": {},
     "resources": [
@@ -19845,7 +19856,8 @@
       },
       "createdAt": null,
       "updatedAt": null,
-      "source": "course-content/runtime/knowledge/graph/nodes.json"
+      "source": "course-content/runtime/knowledge/graph/nodes.json",
+      "knowledge_type": "D"
     },
     "content": {},
     "resources": [
@@ -20273,7 +20285,8 @@
       },
       "createdAt": null,
       "updatedAt": null,
-      "source": "course-content/runtime/knowledge/graph/nodes.json"
+      "source": "course-content/runtime/knowledge/graph/nodes.json",
+      "knowledge_type": "D"
     },
     "content": {},
     "resources": [

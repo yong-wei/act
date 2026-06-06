@@ -128,8 +128,9 @@ description: 面向"自动控制原理"课程创作讲义、知识图谱节点�
    - 只计入学生实际操作、观察、判断、记录、对比、修正、提交等参与式活动。
 
 3. **范文只借文风，不借内容**
-   - 生成讲义前先读取 `course-content/authoring/lessons/legacy/L-2a/design/L-2a-handout.md`。
-   - 只提炼文风特征，不得照抄其结构、句子、例题或段落顺序。
+   - 生成讲义前先读取 `course-content/authoring/lessons/1-1/design/1-1-handout.md` 作为主文风范本。
+   - 只提炼文风特征（叙述节奏、工程引入方式、概念解释深度、图表与正文配合、小结与过渡收束），不得照抄其结构、句子、例题或段落顺序。
+   - 1-1 是本课程经过多轮精炼后的最高文风标准，代表了当前确定的作者声音和叙事节奏。
 
 4. **公式统一规范**
    - 行内公式一律使用 `$...$`，行间公式一律使用 `$$...$$`。
@@ -204,9 +205,11 @@ description: 面向"自动控制原理"课程创作讲义、知识图谱节点�
       - `handout.md`
     - 若文档已有人工内容，不覆盖，只补缺失节名。
 
-17. **封面漫画与信息图属于保留资产**
-    - `[单元编号]-cover-comic.png` 与 `[单元编号]-info.png` 默认由用户或外部流程回写。
-    - 任何代码直出脚本不得覆盖这些课程级保留资产。
+17. **封面图与信息图在文稿定稿后一次性成图**
+   - `[单元编号]-cover-comic.png` 与 `[单元编号]-info.png` 在 handout.md 文稿定稿后生成，图文合并在同一次生成中完成。
+   - 生成方式：调用 `.agents/skills/imagen` 技能出图。其他代理调用时使用 `codex exec` 方式；Codex 原生环境中直接 invoke imagen 技能。
+   - 生成流程：文稿最终确认 → 构造图像提示词（包含该章的工程场景描述和章节标题/引文文本）→ imagen 一次性生成带文字的完整封面图 → 回写 `media/processed/` → 导出正式 PDF。
+   - 任何代码直出脚本不得覆盖这些课程级保留资产。
 
 ## 课程框架速查
 
@@ -216,8 +219,9 @@ description: 面向"自动控制原理"课程创作讲义、知识图谱节点�
 2. `course-content/syllabus-refactor/unit-design-details.md`
 3. 对应模块的 `course-content/syllabus-refactor/unit-design-details/module<1|2|3|4|5>.md`
 4. `course-content/authoring/shared/lesson-id-map.json`
-5. `course-content/docs/writing-guide.md`（文风正向指南）
-6. `course-content/AGENTS.override.md`（文风负面清单）
+5. `course-content/authoring/lessons/1-1/design/1-1-handout.md`（主文风范本，代表当前确定的作者声音和叙事节奏）
+6. `course-content/docs/writing-guide.md`（文风正向指南）
+7. `course-content/AGENTS.override.md`（文风负面清单）
 
 其中：
 - `module-skeletons.md` 决定课程骨架、课型、学时与内部编号约束。
@@ -228,10 +232,16 @@ description: 面向"自动控制原理"课程创作讲义、知识图谱节点�
 
 ## 制作前前置步骤
 
-1. 先检查作者态内容、运行态导出和知识卡片是否存在明显冲突；可使用 `course-content/scripts/review_lesson_content.py --review-only <lesson>` 与 `course-content/scripts/export-runtime.sh <lesson>` 验证当前课次。
-2. 若存在冲突，立即停止并展示冲突清单。
-3. 若仅有可安全合并项，应先在作者态真源中完成合并，再重新运行 review/export 链路。
-4. 合并完成后，再进入本技能后续流程。
+1. 先运行全量运行时知识同步检查：
+   ```bash
+   python3 .agents/skills/lesson/scripts/sync_runtime_knowledge.py --check
+   ```
+2. 若发现冲突，立即停止并展示冲突清单；不得覆盖作者态真源。
+3. 若仅有可安全合并项，可先运行 `python3 .agents/skills/lesson/scripts/sync_runtime_knowledge.py --apply`，再重新运行 `--check` 确认无冲突。
+4. 再检查当前课次作者态内容、运行态导出和知识卡片是否存在明显冲突；可使用 `course-content/scripts/review_lesson_content.py --review-only <lesson>` 与 `course-content/scripts/export-runtime.sh <lesson>` 验证当前课次。
+5. 若当前课次仍存在冲突，立即停止并展示冲突清单。
+6. 若仅有可安全合并项，应先在作者态真源中完成合并，再重新运行 review/export 链路。
+7. 合并完成后，再进入本技能后续流程。
 
 ## 工作流：8 步
 
@@ -333,6 +343,7 @@ description: 面向"自动控制原理"课程创作讲义、知识图谱节点�
 
 运行：
 ```bash
+python3 .agents/skills/lesson/scripts/sync_runtime_knowledge.py --check
 python3 .agents/skills/lesson/scripts/sync_overlays.py [单元] --check
 ```
 

@@ -291,6 +291,7 @@ def build_runtime_nodes(
                 'chapter': chapter,
                 'chapterName': chapter_name,
                 'category': node.get('category'),
+                'knowledge_type': node.get('knowledge_type'),
                 'bloom_level': node.get('bloom_level'),
                 'definition': node.get('definition'),
                 'examples': node.get('examples') or [],

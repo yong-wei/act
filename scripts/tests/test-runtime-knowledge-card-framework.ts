@@ -9,7 +9,7 @@ const knowledgeCard = fs.readFileSync(
   'utf8',
 );
 const entryRuntimeSections = fs.readFileSync(
-  path.join(root, 'src/features/interactive/l2b-root-locus/entry-runtime-sections.tsx'),
+  path.join(root, 'src/features/interactive/shared/lesson-entry-runtime-sections.tsx'),
   'utf8',
 );
 const stepDrawer = fs.readFileSync(
