@@ -208,17 +208,17 @@ export function ArenaHall({
           <div className="surface-card relative flex min-h-[260px] flex-col overflow-hidden rounded-lg p-5">
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute -right-10 -top-14 hidden h-52 w-80 bg-cover bg-center opacity-20 mix-blend-luminosity dark:opacity-18 xl:block"
+              className="pointer-events-none absolute -inset-px bg-cover bg-center opacity-18 mix-blend-luminosity dark:opacity-16"
               style={{ backgroundImage: `url(${ARENA_VISUAL_ASSETS['score-field'].src})` }}
             />
-            <div className="flex items-start justify-between gap-4">
+            <div className="relative z-10 flex items-start justify-between gap-4">
               <div>
                 <div className="text-sm font-semibold text-foreground">筛选挑战任务</div>
                 <div className="mt-1 text-xs text-subtle">任务优先，不按技术入口分流</div>
               </div>
               <Search className="h-5 w-5 text-primary" />
             </div>
-            <div className="mt-4 grid flex-1 content-start gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <div className="relative z-10 mt-4 grid flex-1 content-start gap-3 md:grid-cols-2 xl:grid-cols-3">
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
