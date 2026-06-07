@@ -1,0 +1,45 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Helvetica Neue}
+\setCJKmainfont{Hiragino Sans GB}
+\usetikzlibrary{arrows.meta,positioning,calc}
+
+\begin{document}
+\begin{tikzpicture}[auto]
+  \tikzset{
+    block/.style={rectangle, draw={rgb,255:red,74;green,144;blue,217}, fill=none, line width=1.2pt,
+      minimum height=0.75cm, minimum width=1.7cm, inner sep=2pt, font=\footnotesize\bfseries, align=center},
+    sum/.style={circle, draw={rgb,255:red,92;green,184;blue,92}, fill=none, line width=1.2pt,
+      minimum size=0.34cm, inner sep=0pt,
+      path picture={
+        \draw[line width=0.8pt] (path picture bounding box.south west) -- (path picture bounding box.north east);
+        \draw[line width=0.8pt] (path picture bounding box.north west) -- (path picture bounding box.south east);
+      }},
+    tap/.style={circle, draw={rgb,255:red,240;green,173;blue,78}, fill=none, line width=1.2pt,
+      minimum size=4pt, inner sep=0pt},
+    signal/.style={-{Latex}, draw={rgb,255:red,51;green,51;blue,51}, line width=1.2pt},
+    feedback/.style={draw={rgb,255:red,51;green,51;blue,51}, line width=1.2pt},
+    siglabel/.style={font=\footnotesize, fill=none, inner sep=1pt, yshift=4pt},
+    negsign/.style={font=\scriptsize, fill=none, inner sep=1pt}
+  }
+
+  \node (r) at (0,0) {$r(t)$};
+  \node[sum] (sum) at (1.55,0) {};
+  \node[block] (controller) at (3.65,0) {控制器\\$C(s)$};
+  \node[block] (actuator) at (6.0,0) {执行机构};
+  \node[block] (plant) at (8.35,0) {被控对象\\$G(s)$};
+  \node[tap] (tap) at (10.05,0) {};
+  \node (y) at (11.3,0) {$y(t)$};
+  \node[block, minimum width=1.35cm] (sensor) at (6.0,-1.55) {传感器\\$H(s)$};
+
+  \draw[signal] (r) -- (sum);
+  \draw[signal] (sum) -- node[siglabel, above] {误差 $e$} (controller);
+  \draw[signal] (controller) -- (actuator);
+  \draw[signal] (actuator) -- (plant);
+  \draw[signal] (plant) -- (tap) -- (y);
+
+  \draw[feedback] (tap) |- (sensor);
+  \draw[signal] (sensor) -| node[negsign, left, very near end] {$-$} (sum.south);
+\end{tikzpicture}
+\end{document}

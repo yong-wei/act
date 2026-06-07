@@ -440,6 +440,12 @@ python3 .agents/skills/lesson/scripts/render_pdf_review_pages.py \
 学生版至少抽查：首页、一页含图片/表格的正文页、一页公式密集页、一页附录代码页。
 教师版至少抽查：首页、一页核心推导页、一页图文混排页、一页板书/课堂组织页。
 
+抽查时还必须确认：
+
+- 标题后的第一段仍有 2 字符首行缩进。
+- MATLAB/Octave 代码块使用专门代码框样式，关键词为 MATLAB 默认蓝色，注释为 MATLAB 默认绿色。
+- 来源为 TikZ 的线框图在 PDF 中由原生 TikZ 源码嵌入，不是 PNG/PDF 位图 `\includegraphics`。
+
 ---
 
 ## 推荐自检问题
