@@ -180,6 +180,25 @@ def block_key(payload: dict[str, Any]) -> str | None:
     return None
 
 
+def compute_panel_entry_present(payload: dict[str, Any]) -> bool:
+    entry_fields = (
+        "panel_id",
+        "panelId",
+        "spec_key",
+        "specKey",
+        "case_id",
+        "caseId",
+        "resolver",
+        "src",
+        "path",
+        "fallback_image",
+        "fallbackImage",
+        "fallback_images",
+        "fallbackImages",
+    )
+    return any(is_non_empty(payload.get(key)) for key in entry_fields)
+
+
 def module_id_candidates(module_id: str) -> list[str]:
     normalized = module_id.replace("-", "_")
     candidates = [
@@ -261,8 +280,16 @@ def resolve_content(step: dict[str, Any], module: dict[str, Any]) -> dict[str, A
     step_modules = modules(step)
 
     direct_fields = [
+        "assets",
+        "body",
         "formula",
         "formulas",
+        "goals",
+        "cards",
+        "stages",
+        "metrics",
+        "capabilityRef",
+        "capability_ref",
         "src",
         "path",
         "runtime_media",
@@ -538,6 +565,7 @@ def audit_manifest(manifest: dict[str, Any]) -> dict[str, Any]:
                 entries.append(entry)
                 continue
 
+            payload = module_payload(module)
             resolved = resolve_content(step, module)
             empty = not is_non_empty(resolved["value"])
             renderer_missing = kind not in content_renderer_kinds
@@ -546,6 +574,8 @@ def audit_manifest(manifest: dict[str, Any]) -> dict[str, Any]:
                 diagnostic = "missing_shared_content_renderer"
             elif empty and required:
                 diagnostic = "empty_required_content_module"
+            elif kind == "compute.panel" and required and not compute_panel_entry_present(payload):
+                diagnostic = "compute_panel_missing_entry_payload"
 
             entry = {
                 "step_id": step_id,

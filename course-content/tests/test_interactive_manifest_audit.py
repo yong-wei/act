@@ -134,6 +134,86 @@ def test_manifest_audit_treats_title_only_payload_as_empty_content():
     assert any(issue['issue'] == 'empty_required_content_module' for issue in result['issues'])
 
 
+def test_manifest_audit_treats_missing_content_block_reference_as_empty_content():
+    manifest = {
+        'lesson_id': 'demo',
+        'steps': {
+            'step-01': {
+                'title': 'demo',
+                'layout': {'template': 'stacked_regions', 'regions': [{'id': 'main', 'width': 'full', 'order': 1}]},
+                'modules': [
+                    {
+                        'id': 'rich-from-block',
+                        'region': 'main',
+                        'kind': 'content.rich',
+                        'must_be_visible': True,
+                        'payload': {'block_key': 'missing_block'},
+                    },
+                    {
+                        'id': 'formula-from-block',
+                        'region': 'main',
+                        'kind': 'content.formula',
+                        'must_be_visible': True,
+                        'payload': {'formula_key': 'missing_formula'},
+                    },
+                    {
+                        'id': 'figure-from-block',
+                        'region': 'main',
+                        'kind': 'content.figure',
+                        'must_be_visible': True,
+                        'payload': {'image_key': 'missing_image'},
+                    },
+                ],
+                'content_blocks': {},
+                'interaction_spec': {'interaction_kind': 'none'},
+            }
+        },
+    }
+
+    result = audit_interactive_manifest.audit_manifest(manifest)
+
+    assert result['status'] == 'fail'
+    empty_content_issues = [
+        issue
+        for issue in result['issues']
+        if issue['issue'] == 'empty_required_content_module'
+    ]
+    assert len(empty_content_issues) == 3
+    assert {issue['resolved_content_source'] for issue in empty_content_issues} == {
+        'content_blocks.missing_block',
+        'content_blocks.missing_formula',
+        'content_blocks.missing_image',
+    }
+
+
+def test_manifest_audit_rejects_compute_panel_without_entry_payload():
+    manifest = {
+        'lesson_id': 'demo',
+        'steps': {
+            'step-01': {
+                'title': 'demo',
+                'layout': {'template': 'stacked_regions', 'regions': [{'id': 'main', 'width': 'full', 'order': 1}]},
+                'modules': [
+                    {
+                        'id': 'empty-compute-panel',
+                        'region': 'main',
+                        'kind': 'compute.panel',
+                        'must_be_visible': True,
+                        'payload': {'capabilityRef': 'interactive-figure'},
+                    }
+                ],
+                'content_blocks': {},
+                'interaction_spec': {'interaction_kind': 'none'},
+            }
+        },
+    }
+
+    result = audit_interactive_manifest.audit_manifest(manifest)
+
+    assert result['status'] == 'fail'
+    assert any(issue['issue'] == 'compute_panel_missing_entry_payload' for issue in result['issues'])
+
+
 def test_review_script_uses_manifest_audit_as_blocking_gate(tmp_path):
     review_module_path = Path(__file__).resolve().parents[1] / 'scripts' / 'review_lesson_content.py'
     spec = importlib.util.spec_from_file_location('review_lesson_content', review_module_path)

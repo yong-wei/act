@@ -56,13 +56,15 @@ manifest 课堂页必须在区域内容前渲染独立页面标题模块，显�
 - 共享模块注册表必须覆盖 contract 中实际出现的 canonical `kind` 集合。
 - 新课和已迁移课程只能使用标准模块类：`content.rich`、`content.cardSet`、`content.formula`、`content.table`、`content.figure`、`content.reveal`、`content.stageMap`、`activity.panel`、`activity.workspace`、`compute.panel`、`analytics.summary`、`layout.support`。
 - 旧内容名、活动名或面板名只能写入 `payload.legacyKind` 作为历史渲染提示，不能继续作为 `modules[].kind`。
+- 不得新增课程私有 `modules[].kind`。若标准组件库不能表达当前页面能力，必须先提出组件库扩展变更；实现阶段不得通过单课 `step-panels.tsx`、课程常量、共享 renderer 特判或 `switch (step.id)` 绕过 module registry gate。
 - 作答卡 `response_kind` 必须使用共享 canonical 响应词表：`choice.single`、`choice.binary`、`choice.multi`、`text.short`、`text.long`、`text.structured`、`parameter.set`、`ordering.sequence`、`matching.pairs`、`table.builder`、`simulation.result`、`training.result`。
 - `single_choice`、`multi_select`、`fill_text`、`drag_match`、`parameter_set` 等旧响应别名只属于迁移工具的输入兼容层，不能进入新课或已迁移 runtime manifest。
 - `interaction_kind` 可以继续表达页面交互形态，例如 `single_choice`、`binary_choice`、`activity_card_set`、`quiz_group`、`parameter_slider`、`table_builder`、`teacher_reveal_only`；不要把它误写为 `response_kind`。
-- Rust/WASM 共享分析模块属于正式覆盖面，包括但不限于：
+- Rust/WASM 共享分析模块属于正式覆盖面。新实现应采用 `compute.panel + capabilityRef`；现有旧面板名对应的兼容能力包括但不限于：
   - `rust-analysis-panel`
   - `rust-time-compare-panel`
   - `rust-bode-compare-panel`
+- 上述旧面板名只能作为迁移兼容或 `payload.legacyKind`，不能作为新课 `modules[].kind`。
 - Rust 链条替换后的缺口应修共享模块或其窄适配器；不要以静态图、旧图表组件或课程私有面板作为默认回退。
 - Rust 驱动面板的 `title` 必须写成学科对象或观察任务，不能写成“Rust 面板”“三标签面板”“对照面板”“原生统一面板”等工程或形式标签；面板标题之外不再追加解释运行时、四面板板式、Rust/WASM 引擎等无关文案。标题字号统一采用课堂模块标题规格 `text-base font-semibold leading-7 tracking-normal`，与“个人课堂表现”“班级整体表现统计”等模块保持一致。
 
@@ -72,7 +74,7 @@ manifest 课堂页必须在区域内容前渲染独立页面标题模块，显�
 
 1. 先补作者态 `interactive-contract.yaml`，再重新 review/export 生成 `interactive-manifest.json`。
 2. 若 payload 已完整但共享层不支持，补 `content-renderers.tsx` 或 `activity-renderers.tsx`。
-3. 只有能力确实课程专属，才在课程适配器中注册窄模块。
+3. 只有能力确实课程专属，且标准组件已通过 `compute.panel`、`activity.workspace` 或 `activity.panel` 表达清楚时，才在课程适配器中注入窄能力；窄适配器不得新增 runtime `kind`，不得替代 manifest payload。
 
 禁止项：
 
@@ -132,6 +134,7 @@ manifest-first 课程必须让脚本可明确审计，而不是只靠人工浏�
 
 - `src/features/interactive/__tests__/interactive-manifest-runtime.test.tsx`
 - 对应课程测试，例如 `src/features/interactive/__tests__/unit-4-6-course.test.ts`、`src/features/interactive/__tests__/unit-4-3-course.test.ts`
+- `npm run test:unit -- src/features/interactive/__tests__/interactive-module-taxonomy.test.ts src/features/interactive/__tests__/interactive-module-registry-gate.test.ts`
 - `python3 course-content/scripts/review_lesson_content.py --lesson <lesson> --skip-export --strict-implementation-contract`
 - manifest-first 模块消费审计运行 `python3 .agents/skills/interactive-design/scripts/audit_interactive_manifest.py --lesson <lesson>`；该脚本归属 `interactive-design` 技能目录，不能迁入全局 `scripts/tests/` 作为技能私有规则的存放点。
 - 浏览器至少验证 4-6 回归与被迁移课程关键页面，确认无 `data-manifest-render-error`、无 `data-manifest-missing-field`、无重复题面，教师控制和学生提交仍可用。
