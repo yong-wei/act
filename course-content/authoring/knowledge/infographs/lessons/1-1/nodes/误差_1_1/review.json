@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-06-07T08:36:40.383151Z",
+  "lesson_id": "1-1",
+  "node_id": "误差_1_1",
+  "requested_node_id": "误差_1_1",
+  "node_name": "误差信号",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查通过：e(t)=r(t)-y_m(t)、比较点、闭环作用和误差曲线表达准确。"
+}

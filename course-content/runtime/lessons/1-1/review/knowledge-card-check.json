@@ -1,0 +1,26 @@
+{
+  "lesson_id": "1-1",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/1-1/sequence.json",
+  "card_order": [
+    "反馈_1_1",
+    "开环控制_1_1",
+    "闭环控制_1_1",
+    "误差_1_1",
+    "传递函数_1_1",
+    "极点_1_1",
+    "时域响应_1_1",
+    "性能指标_1_1",
+    "稳定性_1_1",
+    "根轨迹_1_1",
+    "频域响应_1_1",
+    "Bode图_1_1",
+    "控制器_1_1",
+    "比例控制_1_1",
+    "校正_1_1",
+    "课程总图_1_1",
+    "系统观念_1_1"
+  ],
+  "missing_cards": [],
+  "missing_frontmatter_keys": {},
+  "missing_sections": {}
+}

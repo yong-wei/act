@@ -147,16 +147,20 @@ def build_name_maps(nodes_by_id: dict[str, dict[str, Any]]) -> tuple[dict[str, s
 def resolve_node_id(
     record: dict[str, Any],
     endpoint: str,
+    nodes_by_id: dict[str, dict[str, Any]],
     by_name_chapter: dict[str, str],
     by_name: dict[str, list[str]],
 ) -> str | None:
     node_id = record.get(f'{endpoint}_id')
-    if node_id:
+    if node_id and str(node_id) in nodes_by_id:
         return str(node_id)
 
     name = record.get(endpoint) or record.get(f'{endpoint}_name')
     if not name:
-        return None
+        return str(node_id) if node_id else None
+
+    if str(name) in nodes_by_id:
+        return str(name)
 
     chapter_value = record.get(f'{endpoint}_chapter')
     if isinstance(chapter_value, int):
@@ -181,8 +185,8 @@ def normalize_relation_record(
     by_name_chapter: dict[str, str],
     by_name: dict[str, list[str]],
 ) -> tuple[str, dict[str, Any]] | None:
-    source_id = resolve_node_id(record, 'source', by_name_chapter, by_name)
-    target_id = resolve_node_id(record, 'target', by_name_chapter, by_name)
+    source_id = resolve_node_id(record, 'source', nodes_by_id, by_name_chapter, by_name)
+    target_id = resolve_node_id(record, 'target', nodes_by_id, by_name_chapter, by_name)
     if not source_id or not target_id or source_id == target_id:
         return None
 

@@ -1,0 +1,18 @@
+{
+  "lesson_id": "1-1",
+  "expected_assets": [
+    "1-1-handout.pdf",
+    "1-1-media.md"
+  ],
+  "generated_assets": [
+    "1-1-handout.pdf",
+    "1-1-media.md"
+  ],
+  "missing_assets": [],
+  "executed_scripts": [],
+  "processed_dir": "course-content/authoring/lessons/1-1/media/processed",
+  "media_index_path": "course-content/runtime/lessons/1-1/media/1-1-media.md",
+  "handout_pdf_source": "course-content/authoring/lessons/1-1/design/1-1-handout.pdf",
+  "formula_contract_issues": [],
+  "formula_media": []
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-06-07T08:58:00.797868Z",
+  "lesson_id": "1-1",
+  "node_id": "根轨迹_1_1",
+  "requested_node_id": "根轨迹_1_1",
+  "node_name": "根轨迹",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查通过：根轨迹、开环/闭环极点、K 变化和虚轴边界表达为概念预览；未画右半平面闭环极点。"
+}

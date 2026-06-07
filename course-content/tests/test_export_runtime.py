@@ -60,7 +60,7 @@ def test_build_runtime_relations_normalizes_legacy_relation_schema():
     assert repeated['relation_id'] == relation['relation_id']
 
 
-def test_build_runtime_relations_rejects_duplicate_ids_for_different_relations():
+def test_build_runtime_relations_rewrites_duplicate_ids_for_different_relations():
     nodes_by_id = {
         'A_1': {'id': 'A_1', 'name': 'A', 'chapter': 1},
         'B_1': {'id': 'B_1', 'name': 'B', 'chapter': 1},
@@ -83,9 +83,9 @@ def test_build_runtime_relations_rejects_duplicate_ids_for_different_relations()
         },
     ]
 
-    try:
-        export_runtime.build_runtime_relations(nodes_by_id, conflicting_records)
-    except ValueError as exc:
-        assert 'duplicate relation_id' in str(exc)
-    else:
-        raise AssertionError('expected duplicate relation_id conflict to raise ValueError')
+    relations = export_runtime.build_runtime_relations(nodes_by_id, conflicting_records)
+
+    assert len(relations) == 2
+    relation_ids = {relation['relation_id'] for relation in relations}
+    assert 'rt-1' in relation_ids
+    assert len(relation_ids) == 2

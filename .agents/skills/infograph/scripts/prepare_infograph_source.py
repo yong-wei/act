@@ -53,6 +53,15 @@ def extract_first_display_formula(markdown: str) -> str:
     return re.sub(r'\s+', ' ', match.group(1).strip())
 
 
+def extract_inline_formulas(markdown: str) -> list[str]:
+    formulas: list[str] = []
+    for match in re.finditer(r'(?<!\$)\$([^$\n]+?)\$(?!\$)', markdown):
+        value = re.sub(r'\s+', ' ', match.group(1).strip())
+        if value and not value.startswith('\\text{'):
+            formulas.append(value)
+    return unique_strings(formulas)
+
+
 def unique_strings(items: list[Any]) -> list[str]:
     seen: set[str] = set()
     result: list[str] = []
@@ -73,36 +82,89 @@ def formula_anchors(card_formula: str, node_formulas: list[Any]) -> list[str]:
     return unique_strings(list(node_formulas or []))
 
 
+def formula_anchors_from_card(card_formula: str, card_markdown: str, node_formulas: list[Any]) -> list[str]:
+    anchors: list[str] = []
+    if card_formula:
+        anchors.append(card_formula)
+    anchors.extend(extract_inline_formulas(card_markdown))
+    anchors.extend(str(item) for item in node_formulas or [])
+    return unique_strings(anchors)
+
+
 def relation_mentions_node(relation: dict[str, Any], node_id: str, node_name: str) -> bool:
     return (
-        relation.get('source_id') == node_id
+        relation.get('source') == node_id
+        or relation.get('target') == node_id
+        or relation.get('source_id') == node_id
         or relation.get('target_id') == node_id
-        or relation.get('source') == node_name
-        or relation.get('target') == node_name
-        or relation.get('source_name') == node_name
-        or relation.get('target_name') == node_name
     )
 
 
+def relation_endpoint_id(relation: dict[str, Any], endpoint: str) -> str:
+    explicit_id = relation.get(f'{endpoint}_id')
+    if explicit_id:
+        return str(explicit_id)
+    value = relation.get(endpoint)
+    return str(value) if value else ''
+
+
 def relation_summary(relation: dict[str, Any], node_id: str) -> dict[str, Any]:
+    source_id = relation_endpoint_id(relation, 'source')
+    target_id = relation_endpoint_id(relation, 'target')
     return {
-        'source_id': relation.get('source_id'),
+        'source_id': source_id or None,
         'source': relation.get('source') or relation.get('source_name'),
-        'target_id': relation.get('target_id'),
+        'target_id': target_id or None,
         'target': relation.get('target') or relation.get('target_name'),
         'relation': relation.get('relation') or relation.get('relation_type'),
         'strength': relation.get('strength'),
         'description': relation.get('description'),
         'direction_for_node': (
-            'outgoing' if relation.get('source_id') == node_id else
-            'incoming' if relation.get('target_id') == node_id else
+            'outgoing' if source_id == node_id else
+            'incoming' if target_id == node_id else
             'by_name'
         ),
     }
 
 
-def visual_focus_for_node(node_name: str, groups: list[str]) -> str:
+
+def visual_focus_for_node(node_name: str, groups: list[str], lesson_id: str) -> str:
     text = f'{node_name} {" ".join(groups)}'
+    if lesson_id == '1-1':
+        if node_name == '反馈':
+            return '用船舶航向输出回送到比较端的闭合信息回路表达“观察结果、发现偏差、修正动作”，主图必须包含闭环结构和输出响应小窗。'
+        if node_name == '开环控制':
+            return '用船舶按预设舵角航行但受扰偏航的场景表达“无输出回送、无自动修正”，主图必须明确没有反馈回路。'
+        if node_name == '闭环控制':
+            return '用船舶航向偏差经测量回送后自动修正的闭环结构表达“持续测量、比较、修正”，同时给出开环与闭环轨迹对照小窗。'
+        if node_name == '误差信号':
+            return '用期望航向与测量航向在比较点相减形成 e(t) 的结构图表达误差来源，主视觉应突出 r(t)、y_m(t)、e(t) 三个信号。'
+        if node_name == '传递函数':
+            return '用同一代数对象 G(s)=Y(s)/U(s) 连接电机、船舵或对象方框，表达不同物理对象进入统一分析语言；不要引入未给出的复杂案例。'
+        if node_name == '极点':
+            return '用 s 平面极点坐标表达实部 sigma 关联衰减/发散、虚部 omega 关联振荡，配一个响应模态小窗。'
+        if node_name == '时域响应':
+            return '用输出 y(t) 随时间变化的阶跃响应曲线作为主图，标出上升、收敛和可能的振荡，不要用纯文字卡片。'
+        if node_name == '性能指标':
+            return '用阶跃响应曲线直接标注 M_p、t_s、t_r 三个读数位置，表达工程判断从直觉变成可比较数字。'
+        if node_name == '稳定性':
+            return '用 s 平面左半平面/右半平面边界和响应衰减/发散对照表达极点位置如何判断稳定性。'
+        if node_name == '根轨迹':
+            return '用 s 平面根轨迹曲线表达增益变化时闭环极点迁移，配一个响应变快或振荡增强的小窗。'
+        if node_name == '频域响应':
+            return '用频率轴上的低频、中频、高频响应面板表达幅值变化和相位变化，配一个正弦输入输出小窗。'
+        if node_name == 'Bode图':
+            return '用 Bode 幅频/相频双图作为主视觉，标出对数频率轴、幅值变化、相位变化和穿越读数位置。'
+        if node_name == '控制器':
+            return '用控制器方框接收误差信号并输出控制量的结构图表达“根据目标与测量结果作出决策”。'
+        if node_name == '比例控制':
+            return '用 C(s)=K_p 和误差大小到控制力度的比例关系表达“误差大用力大、误差小用力小”，配闭环响应小窗。'
+        if node_name == '校正设计':
+            return '用诊断、加控制器、重新诊断、比较、调整的循环流程表达校正设计，主图必须包含三域证据小窗。'
+        if node_name == '课程总图':
+            return '用五个模块追问串成课程地图，表达真实问题到统一对象、多种表征、结构机理、约束设计和边界识别的主线。'
+        if node_name == '系统观念':
+            return '用目标、输出、测量、反馈、执行、对象六个关系节点围成系统图，表达同一系统的多角度阅读。'
     stable_platform_boundary = '这里的“稳定平台”指船载/设备稳定控制对象或中频响应控制台，不是海上油气平台、钻井平台或港口设施。'
     if '设计任务表达卡' in text:
         return f'用任务卡主板连接客船航向控制和稳定平台两类本课案例证据，表达“先把对象、目标、约束和证据写清，再进入结构筛选”；不要引入水箱、温控、电机等源材料之外的通用案例。{stable_platform_boundary}'
@@ -233,8 +295,19 @@ def visual_focus_for_node(node_name: str, groups: list[str]) -> str:
     return '用概念核心、证据位置和判断边界三块表达该知识点，不添加源材料之外的对象。'
 
 
-def visual_asset_brief_for_node(node_name: str, groups: list[str]) -> str:
+def visual_asset_brief_for_node(node_name: str, groups: list[str], lesson_id: str) -> str:
     text = f'{node_name} {" ".join(groups)}'
+    if lesson_id == '1-1' and ('1-1' in ' '.join(groups) or node_name in {
+        '反馈', '开环控制', '闭环控制', '误差信号', '传递函数', '极点', '时域响应',
+        '性能指标', '稳定性', '根轨迹', '频域响应', 'Bode图', '控制器', '比例控制',
+        '校正设计', '课程总图', '系统观念'
+    }):
+        return (
+            '主视觉对象：使用 1-1 讲义中的船舶航向控制、控制结构图、响应曲线、s 平面、根轨迹或 Bode 图等事实元素。\n'
+            '工程场景：只围绕本单元“反馈思想到控制全景”的对象、信号和图形展开，不引入测速发电机、水箱、平台、MASS 等其他课程案例。\n'
+            '核心图示：至少一个控制结构、响应曲线、s 平面、根轨迹或 Bode 图技术小窗，服务当前节点语义。\n'
+            '构图方式：主图解释机制，右侧或底部用 2-3 个短标签给边界判断；不做电子卡片截图。'
+        )
     stable_platform_note = '稳定平台只能画成船载/设备稳定控制对象、姿态稳定台或中频响应控制台；不要画成海上油气平台、钻井平台、港口设施或大桥。'
     if '设计任务表达卡' in text:
         return (
@@ -847,6 +920,15 @@ def build_prompt(source: dict[str, Any]) -> str:
         'prerequisite': '前置',
         'related': '相关',
         'opposite': '对照',
+        'derives': '导出',
+        'enables': '支持',
+        'uses': '使用',
+        'determines': '决定',
+        'quantified_by': '量化为',
+        'visualized_by': '图示为',
+        'describes_migration_of': '描述迁移',
+        'informs': '提示',
+        'complements': '互补',
     }
     relation_lines = []
     for item in relations:
@@ -866,8 +948,8 @@ def build_prompt(source: dict[str, Any]) -> str:
         else '本节点没有公式，不要自行添加公式。'
     )
     keywords = [str(item) for item in (node.get('keywords') or [])[:8]]
-    visual_focus = visual_focus_for_node(str(node['name']), groups)
-    visual_asset_brief = visual_asset_brief_for_node(str(node['name']), groups)
+    visual_focus = visual_focus_for_node(str(node['name']), groups, str(lesson['lesson_id']))
+    visual_asset_brief = visual_asset_brief_for_node(str(node['name']), groups, str(lesson['lesson_id']))
     visual_architecture = source.get('visual_architecture') or visual_architecture_for_node(
         str(node['name']),
         groups,
@@ -880,11 +962,8 @@ def build_prompt(source: dict[str, Any]) -> str:
     return f"""请使用 GPT Image 2 / Codex 最新图片生成能力，制作一张横版中文教学信息图。
 
 主题：{node['name']}
-所属课程单元：{lesson['lesson_id']}《{lesson.get('title', '')}》
-所属分组：{'、'.join(groups) if groups else '未分组'}
-知识类型：{node.get('knowledge_type') or node.get('category') or '知识点'}
 
-事实真源如下，禁止添加未出现的事实、公式、术语或工程案例：
+事实边界：本图只服务自动控制原理 {lesson['lesson_id']} 的当前知识点。禁止添加未在下列定义、直觉、公式、关系和视觉骨架中出现的事实、公式、术语或工程案例。
 
 一句话定义：
 {node.get('definition') or source.get('card_overview', '')}
@@ -904,12 +983,13 @@ def build_prompt(source: dict[str, Any]) -> str:
 视觉资产 brief：
 {visual_asset_brief}
 
-结构化视觉架构：
-visual_archetype: {visual_architecture['visual_archetype']['name']}（{visual_architecture['visual_archetype']['description']}）
-layout_contract: {visual_architecture['layout_contract']}
-text_contract: 只允许围绕这些标签组织图面文字：{'、'.join(text_contract['allowed_labels']) if text_contract['allowed_labels'] else node['name']}；全图最多 {text_contract['max_visible_labels']} 个可见标签；不放正文段落。
-technical_insets_contract: {visual_architecture['technical_insets_contract']}
-negative_constraints:
+版式约束：
+- 视觉类型：{visual_architecture['visual_archetype']['name']}。{visual_architecture['visual_archetype']['description']}
+- 画布与布局：{visual_architecture['layout_contract']}
+- 文字范围：只允许围绕这些标签组织图面文字：{'、'.join(text_contract['allowed_labels']) if text_contract['allowed_labels'] else node['name']}；全图最多 {text_contract['max_visible_labels']} 个可见标签；不放正文段落。
+- 技术小窗：{visual_architecture['technical_insets_contract']}
+
+禁止事项：
 {chr(10).join(f"- {item}" for item in visual_architecture['negative_constraints'])}
 
 图像要求：
@@ -917,7 +997,7 @@ negative_constraints:
 - 必须包含一个具体主视觉对象或工程场景，并包含一个数学/工程图示嵌图；不要只画卡片、图标和箭头。
 - 主视觉对象、示意图、公式和短标签要共同解释机制；不要用无关装饰填充画面。
 - 中文为主，不使用英文大标题；英文只允许作为小号副标题。
-- 不要把“课程单元、所属分组、知识类型、事实真源、可用公式、图像要求、visual_archetype、layout_contract、text_contract”等元数据或提示词字段画进图面；公式区域如需标题，只能写“公式”。
+- 不要把“课程单元、所属分组、知识类型、事实边界、可用公式、图像要求、版式约束、文字范围”等提示词说明画进图面；公式区域如需标题，只能写“公式”。
 - 不要整句复刻“一句话定义”；把定义压缩成 3-5 个短标签或短判断。
 - 全图可见中文标签控制在 12 个以内；单个标签尽量不超过 10 个汉字，不放解释段落。
 - 图中的关系标签统一使用中文，不要显示 contains、leads_to、cross_domain 等英文关系类型。
@@ -985,7 +1065,16 @@ def main() -> None:
     card_formula = extract_first_display_formula(overview)
 
     node_name = str(node.get('name') or frontmatter.get('name') or node_id)
-    node_formulas = formula_anchors(card_formula, node.get('formulas') or frontmatter.get('formulas') or [])
+    node_formulas = formula_anchors_from_card(
+        card_formula,
+        '\n\n'.join([
+            overview,
+            detail,
+            str(node.get('definition') or ''),
+            str(frontmatter.get('definition') or ''),
+        ]),
+        node.get('formulas') or frontmatter.get('formulas') or [],
+    )
     if '单结构整定四类复核量' in node_name:
         node_formulas = [r'\text{复核}=(step,disturbance,PM,u_{peak})']
     node_keywords = unique_strings(
@@ -996,10 +1085,15 @@ def main() -> None:
             if str(item).strip() != args.lesson
         ]
     )
+    lesson_node_ids = set(card_order)
     related_relations = [
         relation_summary(relation, node_id)
         for relation in load_authoring_relations(args.lesson)
         if relation_mentions_node(relation, node_id, node_name)
+        and (
+            relation_endpoint_id(relation, 'source') in lesson_node_ids
+            or relation_endpoint_id(relation, 'target') in lesson_node_ids
+        )
     ][:12]
 
     source = {

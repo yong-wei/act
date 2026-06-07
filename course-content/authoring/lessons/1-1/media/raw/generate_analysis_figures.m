@@ -134,12 +134,15 @@ function roots = root_locus_data(sys, max_k)
   endif
 endfunction
 
-function plot_root_locus_with_markers(sys, before_poles, after_poles, max_k)
+function plot_root_locus_with_markers(sys, before_poles, after_poles, max_k, legend_location)
   % 用 rlocus() 获取根轨迹数据，并叠加校正前后极点标记。
   if (nargin < 4)
     roots = root_locus_data(sys);
   else
     roots = root_locus_data(sys, max_k);
+  endif
+  if (nargin < 5)
+    legend_location = "southwest";
   endif
   hold on;
   h_locus = [];
@@ -152,7 +155,7 @@ function plot_root_locus_with_markers(sys, before_poles, after_poles, max_k)
   grid on; box off;
   set(gca, "fontsize", 11);
   xlabel("实轴"); ylabel("虚轴");
-  legend([h_locus(1), h_before(1), h_after(1)], "根轨迹", "开环极点", "校正后极点", "location", "northeast");
+  legend([h_locus(1), h_before(1), h_after(1)], "根轨迹", "开环极点", "校正后极点", "location", legend_location);
   pbaspect([1 1 1]);
 endfunction
 
@@ -213,9 +216,9 @@ endfunction
 % 基础示例：一阶惯性环节；完整示例：积分+惯性对象。
 G_first = tf(1, [0.5 1]);
 G = tf(1, [1 2 0]);
-Gc05 = feedback(0.5 * G, 1);
-Gc2 = feedback(2 * G, 1);
-Gc5 = feedback(5 * G, 1);
+Phi05 = feedback(0.5 * G, 1);
+Phi2 = feedback(2 * G, 1);
+Phi5 = feedback(5 * G, 1);
 
 % 1. First-order step response: G(s)=1/(0.5s+1)
 figure(1); setup_figure(8, 4.6);
@@ -278,9 +281,9 @@ save_figure(fullfile(processed_dir, "1-1-example-bode.png"));
 % 8. Diagnosis/correction triptych for the worked example
 figure(8); setup_figure(10.8, 3.8);
 use_triptych_axis(1);
-plot_step_pair_from_data(G, Gc2, "校正前：开环", "校正后：K_p=2 闭环");
+plot_step_pair_from_data(G, Phi2, "校正前：开环", "校正后：K_p=2 闭环");
 use_triptych_axis(2);
-p0 = pole(G); p2 = pole(Gc2);
+p0 = pole(G); p2 = pole(Phi2);
 plot_root_locus_with_markers(G, p0, p2);
 use_triptych_axis(3);
 plot_bode_magnitude_pair(G, 2 * G, "校正前：G(s)", "校正后：2G(s)");
@@ -288,13 +291,13 @@ pbaspect([1 1 1]);
 save_figure(fullfile(processed_dir, "1-1-example-correction-triptych.png"));
 
 % Save reproducible numeric evidence for the reviewed claims.
-[y2, t2] = step(Gc2, 10);
-[y5, t5] = step(Gc5, 10);
-overshoot_kp2 = (max(y2) - dcgain(Gc2)) / dcgain(Gc2) * 100;
-overshoot_kp5 = (max(y5) - dcgain(Gc5)) / dcgain(Gc5) * 100;
+[y2, t2] = step(Phi2, 10);
+[y5, t5] = step(Phi5, 10);
+overshoot_kp2 = (max(y2) - dcgain(Phi2)) / dcgain(Phi2) * 100;
+overshoot_kp5 = (max(y5) - dcgain(Phi5)) / dcgain(Phi5) * 100;
 open_loop_stable = isstable(G);
-closed_loop_poles_kp2 = pole(Gc2);
-closed_loop_poles_kp5 = pole(Gc5);
+closed_loop_poles_kp2 = pole(Phi2);
+closed_loop_poles_kp5 = pole(Phi5);
 evidence_path = fullfile(data_dir, "1-1-analysis-data.txt");
 fid = fopen(evidence_path, "w");
 fprintf(fid, "overshoot_kp2_percent=%.4f\n", overshoot_kp2);

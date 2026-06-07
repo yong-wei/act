@@ -1,0 +1,16 @@
+{"source": "反馈", "target": "闭环控制", "description": "反馈是闭环控制的核心机制", "source_id": "反馈_1_1", "target_id": "闭环控制_1_1", "relation_type": "enables"}
+{"source": "闭环控制", "target": "误差信号", "description": "闭环控制通过比较期望输出与测量输出形成误差信号，并据此驱动修正", "source_id": "闭环控制_1_1", "target_id": "误差_1_1", "relation_type": "uses"}
+{"source": "闭环控制", "target": "开环控制", "description": "闭环与开环的根本区别在于是否使用输出信息修正动作", "source_id": "闭环控制_1_1", "target_id": "开环控制_1_1", "relation_type": "contrasts_with"}
+{"source": "传递函数", "target": "极点", "description": "极点是传递函数分母的根", "source_id": "传递函数_1_1", "target_id": "极点_1_1", "relation_type": "derives"}
+{"source": "极点", "target": "时域响应", "description": "极点在复平面上的位置决定了时域响应的模态形态", "source_id": "极点_1_1", "target_id": "时域响应_1_1", "relation_type": "determines"}
+{"source": "极点", "target": "稳定性", "description": "极点全部在左半平面则系统稳定", "source_id": "极点_1_1", "target_id": "稳定性_1_1", "relation_type": "determines"}
+{"source": "时域响应", "target": "性能指标", "description": "时域响应的品质由性能指标量化", "source_id": "时域响应_1_1", "target_id": "性能指标_1_1", "relation_type": "quantified_by"}
+{"source": "根轨迹", "target": "极点", "description": "根轨迹描述参数变化时极点的迁移路径", "source_id": "根轨迹_1_1", "target_id": "极点_1_1", "relation_type": "describes_migration_of"}
+{"source": "传递函数", "target": "频域响应", "description": "以 jω 代入传递函数得到频率特性", "source_id": "传递函数_1_1", "target_id": "频域响应_1_1", "relation_type": "enables"}
+{"source": "频域响应", "target": "Bode图", "description": "Bode图是频域响应的图形表示", "source_id": "频域响应_1_1", "target_id": "Bode图_1_1", "relation_type": "visualized_by"}
+{"source": "比例控制", "target": "控制器", "description": "比例控制是最简单的控制器形式", "source_id": "比例控制_1_1", "target_id": "控制器_1_1", "relation_type": "instance_of"}
+{"source": "控制器", "target": "校正设计", "description": "控制器是执行校正设计的工具", "source_id": "控制器_1_1", "target_id": "校正_1_1", "relation_type": "enables"}
+{"source": "反馈", "target": "校正设计", "description": "反馈使得校正成为可能——通过修改回路改变系统行为", "source_id": "反馈_1_1", "target_id": "校正_1_1", "relation_type": "enables"}
+{"source": "课程总图", "target": "系统观念", "description": "课程总图是系统观念的课程化表达", "source_id": "课程总图_1_1", "target_id": "系统观念_1_1", "relation_type": "embodies"}
+{"source": "时域响应", "target": "频域响应", "description": "时域和频域是同一系统的两种互补表征", "source_id": "时域响应_1_1", "target_id": "频域响应_1_1", "relation_type": "complements"}
+{"source": "根轨迹", "target": "稳定性", "description": "根轨迹揭示参数变化时系统何时逼近稳定边界", "source_id": "根轨迹_1_1", "target_id": "稳定性_1_1", "relation_type": "informs"}

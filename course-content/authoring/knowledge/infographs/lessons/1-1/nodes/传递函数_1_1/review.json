@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-06-07T08:39:23.096745Z",
+  "lesson_id": "1-1",
+  "node_id": "传递函数_1_1",
+  "requested_node_id": "传递函数_1_1",
+  "node_name": "传递函数",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查通过：G(s)=Y(s)/U(s)、对象输入输出、极点与频域响应关系准确；标题说明偏长但未引入错误事实。"
+}
