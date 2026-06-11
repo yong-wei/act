@@ -270,15 +270,26 @@ function isRubricDefinition(value: unknown): value is RubricDefinition {
     typeof rubric.title === 'string' &&
     typeof rubric.version === 'string' &&
     typeof rubric.maxScore === 'number' &&
+    Number.isFinite(rubric.maxScore) &&
+    rubric.maxScore > 0 &&
     Array.isArray(rubric.criteria) &&
     rubric.criteria.length > 0 &&
     rubric.criteria.every((criterion) => typeof criterion.id === 'string' &&
       typeof criterion.label === 'string' &&
       typeof criterion.weight === 'number' &&
+      Number.isFinite(criterion.weight) &&
+      criterion.weight >= 0 &&
       typeof criterion.evidenceRequirement === 'string' &&
       typeof criterion.goalDimension === 'string' &&
       Array.isArray(criterion.levels) &&
-      criterion.levels.length > 0);
+      criterion.levels.length > 0 &&
+      criterion.levels.every((level) => typeof level.id === 'string' &&
+        typeof level.label === 'string' &&
+        typeof level.score === 'number' &&
+        Number.isFinite(level.score) &&
+        level.score >= 0 &&
+        level.score <= rubric.maxScore &&
+        typeof level.description === 'string'));
 }
 
 function isTextLikeMimeType(mimeType: string): boolean {
