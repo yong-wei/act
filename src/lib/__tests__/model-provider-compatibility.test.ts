@@ -87,6 +87,11 @@ describe('model provider compatibility matrix', () => {
     expect(JSON.stringify(matrix)).toContain('env:ANTHROPIC_COMPATIBLE_API_KEY');
     expect(JSON.stringify(matrix)).not.toContain('sk-');
     expect(matrix.find((entry) => entry.serviceId === 'anthropic-cited')?.runtimeSupported).toBe(false);
+    expect(matrix.find((entry) => entry.serviceId === 'anthropic-cited')?.runtimeSupport).toMatchObject({
+      status: 'adapter-missing',
+      category: 'runtime-adapter',
+      supported: false,
+    });
     expect(matrix.find((entry) => entry.serviceId === 'openai-cited')?.runtimeSupported).toBe(true);
   });
 
@@ -117,6 +122,7 @@ describe('model provider compatibility matrix', () => {
 
     expect(selection.status).toBe('unavailable');
     expect(selection.provider).toBeNull();
+    expect(selection.reason).toContain('without a runtime adapter');
   });
 
   it('returns an explicit downgraded state when a requested service lacks citations', () => {
@@ -176,6 +182,13 @@ describe('model provider compatibility matrix', () => {
           name: 'get_plan_context',
           input: { pathId: 'path-1' },
         },
+        {
+          type: 'tool_result',
+          id: 'toolr_1',
+          tool_use_id: 'toolu_1',
+          content: [{ type: 'text', text: 'plan context' }],
+          is_error: false,
+        },
       ],
     });
 
@@ -185,6 +198,12 @@ describe('model provider compatibility matrix', () => {
       id: 'toolu_1',
       name: 'get_plan_context',
       input: { pathId: 'path-1' },
+    });
+    expect(normalized.toolResults[0]).toMatchObject({
+      id: 'toolr_1',
+      toolCallId: 'toolu_1',
+      output: [{ type: 'text', text: 'plan context' }],
+      isError: false,
     });
     expect(normalized.citations[0]).toMatchObject({ providerKind: 'anthropic-compatible' });
   });
@@ -198,6 +217,24 @@ describe('model provider compatibility matrix', () => {
     expect(normalizeProviderStreamEvent('openai-compatible', {
       choices: [{ delta: { content: 'world' } }],
     })).toEqual({ type: 'text_delta', textDelta: 'world' });
+
+    expect(normalizeProviderStreamEvent('anthropic-compatible', {
+      type: 'content_block_start',
+      content_block: {
+        type: 'tool_use',
+        id: 'toolu_1',
+        name: 'search_citations',
+        input: { query: 'root locus' },
+      },
+    })).toEqual({
+      type: 'tool_call',
+      toolCall: {
+        id: 'toolu_1',
+        providerCallId: 'toolu_1',
+        name: 'search_citations',
+        input: { query: 'root locus' },
+      },
+    });
   });
 
   it('redacts provider secrets and raw authorization errors', () => {

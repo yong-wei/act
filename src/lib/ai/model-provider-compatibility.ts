@@ -8,6 +8,7 @@ import type { AIProviderSetting, AIProviderSettings } from './provider-settings'
 
 export type ModelProviderSelectionStatus = 'selected' | 'downgraded' | 'unavailable';
 export type NormalizedAIStreamEventType = 'message_start' | 'text_delta' | 'tool_call' | 'tool_result' | 'message_stop';
+export type ModelProviderRuntimeSupportStatus = 'supported' | 'adapter-missing';
 
 export interface ModelProviderCapabilityRequirements extends Partial<AIProviderCapabilities> {
   serviceId?: string;
@@ -24,6 +25,14 @@ export interface ModelProviderCompatibilityEntry {
   secretRef: string;
   capabilities: AIProviderCapabilities;
   runtimeSupported: boolean;
+  runtimeSupport: ModelProviderRuntimeSupport;
+}
+
+export interface ModelProviderRuntimeSupport {
+  status: ModelProviderRuntimeSupportStatus;
+  supported: boolean;
+  category: 'runtime-adapter';
+  reason: string;
 }
 
 export interface ModelProviderSelection {
@@ -32,6 +41,18 @@ export interface ModelProviderSelection {
   missingCapabilities: Array<keyof AIProviderCapabilities>;
   downgradedCapabilities: Array<keyof AIProviderCapabilities>;
   reason: string | null;
+}
+
+export interface AdminModelProviderRuntimeState {
+  serviceId: string;
+  providerKind: AIProviderKind;
+  model: string;
+  enabled: boolean;
+  priority: number;
+  health: AIProviderHealthState;
+  capabilities: AIProviderCapabilities;
+  runtimeSupported: boolean;
+  runtimeSupport: ModelProviderRuntimeSupport;
 }
 
 export interface NormalizedAIToolCall {
@@ -73,6 +94,7 @@ export interface NormalizedAIStreamEvent {
 }
 
 export function providerSettingToCompatibilityEntry(provider: AIProviderSetting): ModelProviderCompatibilityEntry {
+  const runtimeSupport = runtimeSupportForProviderKind(provider.providerKind);
   return {
     serviceId: provider.id,
     providerKind: provider.providerKind,
@@ -83,7 +105,8 @@ export function providerSettingToCompatibilityEntry(provider: AIProviderSetting)
     health: provider.health,
     secretRef: provider.secretRef,
     capabilities: provider.capabilities,
-    runtimeSupported: provider.providerKind === 'openai-compatible',
+    runtimeSupported: runtimeSupport.supported,
+    runtimeSupport,
   };
 }
 
@@ -93,12 +116,30 @@ export function buildModelProviderCompatibilityMatrix(settings: AIProviderSettin
     .sort((left, right) => left.priority - right.priority || left.serviceId.localeCompare(right.serviceId));
 }
 
+export function buildAdminModelProviderRuntimeStates(settings: AIProviderSettings): AdminModelProviderRuntimeState[] {
+  return buildModelProviderCompatibilityMatrix(settings).map((provider) => ({
+    serviceId: provider.serviceId,
+    providerKind: provider.providerKind,
+    model: provider.model,
+    enabled: provider.enabled,
+    priority: provider.priority,
+    health: provider.health,
+    capabilities: provider.capabilities,
+    runtimeSupported: provider.runtimeSupported,
+    runtimeSupport: provider.runtimeSupport,
+  }));
+}
+
 export function selectModelProvider(
   settings: AIProviderSettings,
   requirements: ModelProviderCapabilityRequirements,
 ): ModelProviderSelection {
   const matrix = buildModelProviderCompatibilityMatrix(settings);
-  const candidates = matrix.filter((provider) => provider.enabled && provider.runtimeSupported && provider.health !== 'unavailable');
+  const liveMetadataCandidates = matrix.filter((provider) => provider.enabled && provider.health !== 'unavailable');
+  const candidates = liveMetadataCandidates.filter((provider) => provider.runtimeSupported);
+  const requestedMetadata = requirements.serviceId
+    ? liveMetadataCandidates.filter((provider) => provider.serviceId === requirements.serviceId)
+    : liveMetadataCandidates;
   const requested = requirements.serviceId
     ? candidates.filter((provider) => provider.serviceId === requirements.serviceId)
     : candidates;
@@ -114,6 +155,19 @@ export function selectModelProvider(
         reason: null,
       };
     }
+  }
+
+  const runtimeBlocked = requestedMetadata.filter((provider) => !provider.runtimeSupported);
+  if (requested.length === 0 && runtimeBlocked.length > 0) {
+    return {
+      status: 'unavailable',
+      provider: null,
+      missingCapabilities: requiredCapabilityNames(requirements),
+      downgradedCapabilities: requiredCapabilityNames(requirements),
+      reason: runtimeBlocked
+        .map((provider) => `Provider ${provider.serviceId} ${provider.runtimeSupport.reason}`)
+        .join(' '),
+    };
   }
 
   const partial = requested[0] ?? null;
@@ -165,6 +219,9 @@ export function normalizeAnthropicCompatibleResponse(raw: unknown): NormalizedAI
       id?: string;
       name?: string;
       input?: unknown;
+      tool_use_id?: string;
+      content?: unknown;
+      is_error?: boolean;
       citations?: Array<{ id?: string; title?: string; url?: string }>;
     }>;
   } : {};
@@ -180,7 +237,14 @@ export function normalizeAnthropicCompatibleResponse(raw: unknown): NormalizedAI
         name: part.name ?? 'unknown_tool',
         input: part.input ?? {},
       })),
-    toolResults: [],
+    toolResults: content
+      .filter((part) => part.type === 'tool_result')
+      .map((part, index) => ({
+        id: part.id ?? `tool-result-${index + 1}`,
+        toolCallId: part.tool_use_id ?? `tool-use-${index + 1}`,
+        output: part.content ?? '',
+        isError: part.is_error === true,
+      })),
     citations: content.flatMap((part) => normalizeCitationList(part.citations, 'anthropic-compatible')),
     finishReason: data.stop_reason ?? null,
   };
@@ -195,6 +259,22 @@ export function normalizeProviderResponse(kind: AIProviderKind, raw: unknown): N
 export function normalizeProviderStreamEvent(kind: AIProviderKind, raw: unknown): NormalizedAIStreamEvent | null {
   const data = raw && typeof raw === 'object' ? raw as Record<string, unknown> : {};
   if (kind === 'anthropic-compatible') {
+    if (data.type === 'content_block_start') {
+      const block = data.content_block && typeof data.content_block === 'object'
+        ? data.content_block as { type?: string; id?: string; name?: string; input?: unknown }
+        : {};
+      if (block.type === 'tool_use') {
+        return {
+          type: 'tool_call',
+          toolCall: {
+            id: block.id ?? 'tool-use-1',
+            providerCallId: block.id,
+            name: block.name ?? 'unknown_tool',
+            input: block.input ?? {},
+          },
+        };
+      }
+    }
     if (data.type === 'content_block_delta') {
       const delta = data.delta && typeof data.delta === 'object' ? data.delta as { text?: string } : {};
       return { type: 'text_delta', textDelta: delta.text ?? '' };
@@ -229,6 +309,24 @@ export function runtimeRequiresCitationGuard(config: AIProviderConfig): ModelPro
     tools: true,
     streaming: true,
     citationNormalization: true,
+  };
+}
+
+function runtimeSupportForProviderKind(providerKind: AIProviderKind): ModelProviderRuntimeSupport {
+  if (providerKind === 'openai-compatible') {
+    return {
+      status: 'supported',
+      supported: true,
+      category: 'runtime-adapter',
+      reason: 'has an OpenAI-compatible runtime adapter.',
+    };
+  }
+
+  return {
+    status: 'adapter-missing',
+    supported: false,
+    category: 'runtime-adapter',
+    reason: `uses provider kind ${providerKind} without a runtime adapter.`,
   };
 }
 

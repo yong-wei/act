@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireAdminSession } from '@/lib/admin';
+import { buildAdminModelProviderRuntimeStates } from '@/lib/ai/model-provider-compatibility';
 import {
   getAIProviderSettings,
   normalizeAIProviderSettings,
@@ -17,7 +18,10 @@ export async function GET() {
   }
 
   const settings = await getAIProviderSettings();
-  return NextResponse.json(settings, { headers: { 'Cache-Control': 'no-store' } });
+  return NextResponse.json({
+    ...settings,
+    runtimeStates: buildAdminModelProviderRuntimeStates(settings),
+  }, { headers: { 'Cache-Control': 'no-store' } });
 }
 
 export async function PUT(request: Request) {
