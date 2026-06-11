@@ -200,6 +200,7 @@ export interface DocumentRubricEvidenceWriteback {
       goal: string;
       targetGoal: string;
       learningGoal: string;
+      teacherReview: DocumentRubricGradingRun['teacherReview'];
       evidenceRefs: GradingEvidenceReference[];
       confidence: number;
     };
@@ -736,6 +737,7 @@ function buildApprovedGradingEvidenceFacts(input: {
         goal: input.goalContext.goalId,
         targetGoal: input.goalContext.targetGoal,
         learningGoal: input.goalContext.learningGoal ?? input.goalContext.targetGoal,
+        teacherReview: input.run.teacherReview,
         evidenceRefs: grade.evidenceRefs,
         confidence: Math.min(grade.profileWritebackCandidate.confidence, 0.92),
       },

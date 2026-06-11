@@ -408,12 +408,12 @@ function extractGoalContextFromAssignmentConfig(config: unknown): Omit<ServerSub
 }
 
 function validateSubmissionBody(body: SubmissionBody, role: UserRole): string | null {
-  if (!body.studentId) return '缺少学生标识';
-  if (!body.classId) return '缺少班级标识';
-  if (!body.assignmentId) return '缺少作业标识';
-  if (!body.fileName) return '缺少文件名';
-  if (!body.mimeType) return '缺少文件类型';
-  if (!body.bytes) return '缺少文件内容';
+  if (!isNonEmptyString(body.studentId)) return '缺少学生标识';
+  if (!isNonEmptyString(body.classId)) return '缺少班级标识';
+  if (!isNonEmptyString(body.assignmentId)) return '缺少作业标识';
+  if (!isNonEmptyString(body.fileName)) return '缺少文件名';
+  if (!isNonEmptyString(body.mimeType)) return '缺少文件类型';
+  if (!isNonEmptyString(body.bytes)) return '缺少文件内容';
   if (body.contentEncoding && body.contentEncoding !== 'utf8' && body.contentEncoding !== 'base64') {
     return '文件编码无效';
   }
@@ -424,6 +424,10 @@ function validateSubmissionBody(body: SubmissionBody, role: UserRole): string | 
     return '缺少有效评分量规';
   }
   return null;
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0;
 }
 
 function isSubmissionCreatorRole(role: UserRole): boolean {

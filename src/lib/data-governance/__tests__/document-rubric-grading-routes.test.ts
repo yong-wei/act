@@ -579,6 +579,37 @@ describe('document rubric grading routes', () => {
     expect(mocks.prisma.learningEvidenceDraft.create).not.toHaveBeenCalled();
   });
 
+  it('rejects malformed required submission fields before runtime conversion', async () => {
+    mocks.getServerAuthSession.mockResolvedValueOnce({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    const malformedFileName = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: [],
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio.',
+      rubric: rubric(),
+    });
+
+    mocks.getServerAuthSession.mockResolvedValueOnce({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    const malformedBytes = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: {},
+      rubric: rubric(),
+    });
+
+    expect(malformedFileName.status).toBe(400);
+    await expect(malformedFileName.json()).resolves.toEqual({ error: '缺少文件名' });
+    expect(malformedBytes.status).toBe(400);
+    await expect(malformedBytes.json()).resolves.toEqual({ error: '缺少文件内容' });
+    expect(mocks.prisma.class.findUnique).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.create).not.toHaveBeenCalled();
+  });
+
   it('rejects duplicate rubric criterion and level identifiers before persistence', async () => {
     mocks.getServerAuthSession.mockResolvedValueOnce({ user: { id: 'teacher-1', role: 'TEACHER' } });
     const duplicateCriterionResponse = await postSubmissionJson({

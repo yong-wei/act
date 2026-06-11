@@ -381,6 +381,11 @@ describe('document rubric grading workbench', () => {
       targetGoal: 'control-report',
       learningGoal: 'control-report',
       competencyDimension: 'controlModeling',
+      teacherReview: expect.objectContaining({
+        reviewerId: 'teacher-1',
+        decision: 'approved',
+        reviewedAt: approved.teacherReview.reviewedAt,
+      }),
     }));
     expect(writeback.facts.find((fact) => fact.contextJson.criterionId === 'validation')?.competencyContribution)
       .toEqual({ parameterDesign: 0.6 });
