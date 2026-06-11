@@ -46,12 +46,16 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json() as SubmissionBody;
-    const validationError = validateSubmissionBody(body);
+    if (session.user.role === UserRole.STUDENT && body.rubric) {
+      return NextResponse.json({ error: '学生提交不能指定评分量规' }, { status: 403 });
+    }
+
+    const validationError = validateSubmissionBody(body, session.user.role);
     if (validationError) {
       return NextResponse.json({ error: validationError }, { status: 400 });
     }
     const submission = body as Required<Pick<SubmissionBody,
-      'studentId' | 'classId' | 'assignmentId' | 'fileName' | 'mimeType' | 'bytes' | 'rubric'
+      'studentId' | 'classId' | 'assignmentId' | 'fileName' | 'mimeType' | 'bytes'
     >> & SubmissionBody;
 
     const classData = await prisma.class.findUnique({
@@ -77,6 +81,13 @@ export async function POST(request: Request) {
     });
     if (!studentProfile) {
       return NextResponse.json({ error: '学生不在该班级中' }, { status: 404 });
+    }
+
+    const rubric = session.user.role === UserRole.STUDENT
+      ? await resolveServerRubricForStudentSubmission(submission.assignmentId)
+      : submission.rubric;
+    if (!rubric) {
+      return NextResponse.json({ error: '作业未配置服务端评分量规' }, { status: 422 });
     }
 
     const uploadedAt = new Date();
@@ -114,7 +125,7 @@ export async function POST(request: Request) {
     });
     const run = createDraftRubricGrading({
       convertedDocument,
-      rubric: submission.rubric,
+      rubric,
       now: uploadedAt,
     });
     const dedupeKey = buildDocumentRubricDraftDedupeKey(asset, run);
@@ -170,7 +181,7 @@ export async function POST(request: Request) {
         targetGoal,
         learningGoal,
       }),
-      summary: toPrismaJsonObject({ run, rubric: submission.rubric }),
+      summary: toPrismaJsonObject({ run, rubric }),
       evidenceRefs: toPrismaJsonObject({ convertedDocument }),
       provenance: toPrismaJsonObject({
         createdBy: session.user.id,
@@ -241,7 +252,33 @@ export async function POST(request: Request) {
   }
 }
 
-function validateSubmissionBody(body: SubmissionBody): string | null {
+async function resolveServerRubricForStudentSubmission(assignmentId: string): Promise<RubricDefinition | null> {
+  const resource = await prisma.teachingResource.findFirst({
+    where: {
+      id: assignmentId,
+      teacherOnly: false,
+    },
+    select: {
+      config: true,
+    },
+  });
+  return extractRubricFromAssignmentConfig(resource?.config ?? null);
+}
+
+function extractRubricFromAssignmentConfig(config: unknown): RubricDefinition | null {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) return null;
+  const record = config as Record<string, unknown>;
+  const documentGrading = record.documentGrading;
+  if (documentGrading && typeof documentGrading === 'object' && !Array.isArray(documentGrading)) {
+    const rubric = (documentGrading as Record<string, unknown>).rubric;
+    if (isRubricDefinition(rubric)) return rubric;
+  }
+  if (isRubricDefinition(record.documentRubric)) return record.documentRubric;
+  if (isRubricDefinition(record.rubric)) return record.rubric;
+  return null;
+}
+
+function validateSubmissionBody(body: SubmissionBody, role: UserRole): string | null {
   if (!body.studentId) return '缺少学生标识';
   if (!body.classId) return '缺少班级标识';
   if (!body.assignmentId) return '缺少作业标识';
@@ -254,7 +291,7 @@ function validateSubmissionBody(body: SubmissionBody): string | null {
   if (body.assetId) {
     return '不允许客户端指定资产标识';
   }
-  if (!isRubricDefinition(body.rubric)) {
+  if (role !== UserRole.STUDENT && !isRubricDefinition(body.rubric)) {
     return '缺少有效评分量规';
   }
   return null;
