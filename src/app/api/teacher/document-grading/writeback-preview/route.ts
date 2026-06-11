@@ -1,16 +1,16 @@
-import { Prisma, UserRole } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import { NextResponse } from 'next/server';
 
 import { getServerAuthSession } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
 import {
   approveGradingRun,
   editCriterionGrade,
   parsePersistedDocumentRubricGradingDraft,
+  previewApprovedGradingEvidence,
   validateDocumentRubricGradingDraftInvariants,
-  writeApprovedGradingEvidence,
 } from '@/lib/data-governance/document-rubric-grading-workbench';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,12 +21,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '未授权' }, { status: 401 });
     }
     if (session.user.role !== UserRole.TEACHER && session.user.role !== UserRole.ADMIN) {
-      return NextResponse.json({ error: '无权审批文档评分' }, { status: 403 });
+      return NextResponse.json({ error: '无权预览文档评分写回' }, { status: 403 });
     }
 
     const body = await request.json() as {
       gradingRunId?: string;
-      decision?: unknown;
       edits?: Array<{
         criterionId?: unknown;
         levelId?: unknown;
@@ -37,9 +36,6 @@ export async function POST(request: Request) {
     };
     if (!body.gradingRunId) {
       return NextResponse.json({ error: '缺少评分运行标识' }, { status: 400 });
-    }
-    if (body.decision !== undefined && !isDocumentGradingDecision(body.decision)) {
-      return NextResponse.json({ error: '审批决策无效' }, { status: 400 });
     }
     if (body.edits !== undefined && !isDocumentGradingEditList(body.edits)) {
       return NextResponse.json({ error: '评分编辑无效' }, { status: 400 });
@@ -99,7 +95,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: editValidationError }, { status: 400 });
     }
 
-    const decision = body.decision ?? 'approved';
     const editedRun = (body.edits ?? []).reduce((run, edit) => editCriterionGrade(run, {
       criterionId: edit.criterionId,
       levelId: edit.levelId,
@@ -108,85 +103,34 @@ export async function POST(request: Request) {
       reviewerId: session.user.id,
       rubric: parsed.rubric,
     }), parsed.run);
-    const approved = approveGradingRun(editedRun, {
-      reviewerId: session.user.id,
-      decision,
-      notes: body.notes,
-    });
-    const writeback = decision === 'approved'
-      ? await writeApprovedGradingEvidence({
-          db: {
-            learningFact: {
-              createMany: async (input) => prisma.learningFact.createMany({
-                data: input.data as NonNullable<Parameters<typeof prisma.learningFact.createMany>[0]>['data'],
-                skipDuplicates: input.skipDuplicates,
-              }),
-            },
-            studentEvidenceFeatureCache: {
-              deleteMany: async (input) => prisma.studentEvidenceFeatureCache.deleteMany(input),
-            },
-          },
-          run: approved,
-          rubric: parsed.rubric,
-          studentId: draft.ownerUserId,
-          goalContext: parsed.goalContext,
-        })
-      : {
-          status: 'blocked-unapproved' as const,
-          created: 0,
-          skipped: 0,
-          blocked: approved.draftGrades.length,
-          facts: [],
-        };
-
-    const existingSummary = typeof draft.summary === 'object' && draft.summary !== null && !Array.isArray(draft.summary)
-      ? draft.summary as Record<string, unknown>
-      : {};
-    const existingProvenance = typeof draft.provenance === 'object' && draft.provenance !== null && !Array.isArray(draft.provenance)
-      ? draft.provenance as Record<string, unknown>
-      : {};
-
-    const updatedSummary = toPrismaJsonObject({
-      ...existingSummary,
-      run: approved,
-    });
-    const updatedProvenance = toPrismaJsonObject({
-      ...existingProvenance,
-      reviewerId: session.user.id,
-      reviewedAt: approved.teacherReview.reviewedAt,
-      decision,
-    });
-
-    await prisma.learningEvidenceDraft.update({
-      where: { id: draft.id },
-      data: {
-        reviewerState: decision,
-        summary: updatedSummary,
-        provenance: updatedProvenance,
-      },
+    const previewRun = editedRun.status === 'approved'
+      ? editedRun
+      : approveGradingRun(editedRun, {
+          reviewerId: session.user.id,
+          decision: 'approved',
+          notes: body.notes,
+        });
+    const preview = previewApprovedGradingEvidence({
+      run: previewRun,
+      rubric: parsed.rubric,
+      studentId: draft.ownerUserId,
+      goalContext: parsed.goalContext,
     });
 
     return NextResponse.json({
-      status: decision,
-      gradingRunId: approved.id,
-      createdFacts: writeback.created,
-      skippedFacts: writeback.skipped,
-      blockedFacts: writeback.blocked,
-      evidenceSourceEventIds: writeback.facts.map((fact) => fact.sourceEventId),
+      status: preview.status,
+      gradingRunId: previewRun.id,
+      wouldCreateFacts: preview.facts.length,
+      blockedFacts: preview.blocked,
+      affectedDimensions: preview.affectedDimensions,
+      evidenceSourceEventIds: preview.facts.map((fact) => fact.sourceEventId),
+      dedupeKeys: preview.dedupeKeys,
     });
   } catch (error) {
     rethrowIfNextDynamicError(error);
-    console.error('[DocumentRubricGrading] approve failed', error);
-    return NextResponse.json({ error: '审批文档评分失败' }, { status: 500 });
+    console.error('[DocumentRubricGrading] writeback preview failed', error);
+    return NextResponse.json({ error: '预览文档评分写回失败' }, { status: 500 });
   }
-}
-
-function toPrismaJsonObject(value: Record<string, unknown>): Prisma.InputJsonObject {
-  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonObject;
-}
-
-function isDocumentGradingDecision(value: unknown): value is 'approved' | 'returned' | 'rejected' {
-  return value === 'approved' || value === 'returned' || value === 'rejected';
 }
 
 function isDocumentGradingEditList(value: unknown): value is Array<{

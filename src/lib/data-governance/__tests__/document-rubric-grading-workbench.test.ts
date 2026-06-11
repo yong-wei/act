@@ -3,6 +3,7 @@ import { vi } from 'vitest';
 
 import {
   approveGradingRun,
+  buildDocumentRubricDraftDedupeKey,
   buildStudentGradingFeedbackView,
   buildTeacherGradingWorkbenchView,
   convertSubmissionDocument,
@@ -10,7 +11,10 @@ import {
   createMarkItDownConversionAdapter,
   createSubmissionAsset,
   editCriterionGrade,
+  parsePersistedDocumentRubricGradingDraft,
+  previewApprovedGradingEvidence,
   textFixtureMarkItDownRunner,
+  validateDocumentRubricGradingDraftInvariants,
   writeApprovedGradingEvidence,
   type RubricDefinition,
 } from '../document-rubric-grading-workbench';
@@ -125,7 +129,112 @@ describe('document rubric grading workbench', () => {
     expect(blockFallback.warnings).toContain('layout-span-mapping-unavailable');
     expect(failed.status).toBe('failed');
     expect(failed.referencePrecision).toBe('page');
+    expect(failed.blocks).toEqual([expect.objectContaining({
+      id: 'fallback-block-1',
+      text: expect.stringContaining('Root locus design'),
+      confidence: 0,
+    })]);
     expect(failed.warnings).toEqual(expect.arrayContaining(['markitdown-conversion-failed', 'retry-fallback']));
+  });
+
+  it('keeps failed conversion drafts anchored to an auditable fallback block', async () => {
+    const submission = asset();
+    const failed = await convertSubmissionDocument({
+      asset: submission,
+      adapter: createMarkItDownConversionAdapter({ now, fail: true }),
+      now,
+    });
+    const draft = createDraftRubricGrading({ convertedDocument: failed, rubric: rubric(), now });
+    const parsed = parsePersistedDocumentRubricGradingDraft({
+      id: draft.id,
+      ownerUserId: submission.studentId,
+      dedupeKey: buildDocumentRubricDraftDedupeKey(submission, draft),
+      classId: submission.classId,
+      sourceRefs: {
+        asset: submission,
+        classId: submission.classId,
+        assignmentId: submission.assignmentId,
+      },
+      evidenceRefs: {
+        convertedDocument: failed,
+      },
+      summary: {
+        run: draft,
+        rubric: rubric(),
+      },
+    });
+
+    expect(parsed).not.toBeNull();
+    expect(failed.blocks).toHaveLength(1);
+    expect(draft.draftGrades.every((grade) =>
+      grade.evidenceRefs.every((reference) => reference.blockId === 'fallback-block-1')
+    )).toBe(true);
+    expect(validateDocumentRubricGradingDraftInvariants({
+      draft: {
+        id: draft.id,
+        ownerUserId: submission.studentId,
+        dedupeKey: buildDocumentRubricDraftDedupeKey(submission, draft),
+        classId: submission.classId,
+        sourceRefs: {
+          asset: submission,
+          classId: submission.classId,
+          assignmentId: submission.assignmentId,
+        },
+        evidenceRefs: {
+          convertedDocument: failed,
+        },
+        summary: {
+          run: draft,
+          rubric: rubric(),
+        },
+      },
+      parsed: parsed!,
+    })).toEqual({ valid: true, reasons: [] });
+
+    const approved = approveGradingRun(draft, { reviewerId: 'teacher-1', decision: 'approved', now });
+    const db = mockEvidenceDb();
+    const writeback = await writeApprovedGradingEvidence({
+      db,
+      run: approved,
+      rubric: rubric(),
+      studentId: submission.studentId,
+      goalContext: {
+        classId: submission.classId,
+        assignmentId: submission.assignmentId,
+        goalId: 'control-report',
+        targetGoal: 'control-report',
+      },
+      now,
+    });
+    const preview = previewApprovedGradingEvidence({
+      run: approved,
+      rubric: rubric(),
+      studentId: submission.studentId,
+      goalContext: {
+        classId: submission.classId,
+        assignmentId: submission.assignmentId,
+        goalId: 'control-report',
+        targetGoal: 'control-report',
+      },
+      now,
+    });
+
+    expect(writeback).toEqual({
+      status: 'blocked-unreliable-evidence',
+      created: 0,
+      skipped: 0,
+      blocked: 2,
+      facts: [],
+    });
+    expect(preview).toEqual(expect.objectContaining({
+      status: 'blocked-unreliable-evidence',
+      blocked: 2,
+      facts: [],
+      affectedDimensions: [],
+      dedupeKeys: [],
+    }));
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
+    expect(db.studentEvidenceFeatureCache.deleteMany).not.toHaveBeenCalled();
   });
 
   it('keeps AI draft grading teacher-gated before writeback', async () => {
@@ -165,7 +274,30 @@ describe('document rubric grading workbench', () => {
         targetGoal: 'control-report',
       },
       now,
-    })).resolves.toEqual({ status: 'blocked-unapproved', created: 0, facts: [] });
+    })).resolves.toEqual({
+      status: 'blocked-unapproved',
+      created: 0,
+      skipped: 0,
+      blocked: 2,
+      facts: [],
+    });
+    expect(previewApprovedGradingEvidence({
+      run: draft,
+      rubric: rubric(),
+      studentId: asset().studentId,
+      goalContext: {
+        classId: 'class-1',
+        assignmentId: 'report-1',
+        goalId: 'control-report',
+        targetGoal: 'control-report',
+      },
+      now,
+    })).toEqual(expect.objectContaining({
+      status: 'blocked-unapproved',
+      blocked: 2,
+      facts: [],
+      affectedDimensions: [],
+    }));
   });
 
   it('supports teacher edits, approval, and governed evidence writeback', async () => {
@@ -185,6 +317,7 @@ describe('document rubric grading workbench', () => {
       score: 4,
       comment: '验证过程充分，图表和结论一致。',
       reviewerId: 'teacher-1',
+      rubric: rubric(),
       now,
     });
     const approved = approveGradingRun(edited, {
@@ -207,11 +340,34 @@ describe('document rubric grading workbench', () => {
       },
       now,
     });
+    const preview = previewApprovedGradingEvidence({
+      run: approved,
+      rubric: rubric(),
+      studentId: asset().studentId,
+      goalContext: {
+        classId: 'class-1',
+        assignmentId: 'report-1',
+        goalId: 'control-report',
+        targetGoal: 'control-report',
+      },
+      now,
+    });
 
     expect(approved.status).toBe('approved');
+    expect(preview.status).toBe('preview');
+    expect(preview.created).toBe(0);
+    expect(preview.affectedDimensions).toContainEqual(expect.objectContaining({
+      criterionId: 'validation',
+      competencyDimension: 'parameterDesign',
+      contribution: 0.6,
+      sourceEventId: `${approved.id}:validation:${approved.rubricVersion}`,
+    }));
+    expect(preview.dedupeKeys).toContain(`${approved.id}:validation:${approved.rubricVersion}`);
     expect(approved.approvedGrades.find((grade) => grade.criterionId === 'validation')?.score).toBe(4);
     expect(writeback.status).toBe('written');
     expect(writeback.created).toBe(2);
+    expect(writeback.skipped).toBe(0);
+    expect(writeback.blocked).toBe(0);
     expect(writeback.facts).toContainEqual(expect.objectContaining({
       userId: 'student-1',
       factType: 'document_rubric_grading',
@@ -225,7 +381,14 @@ describe('document rubric grading workbench', () => {
       targetGoal: 'control-report',
       learningGoal: 'control-report',
       competencyDimension: 'controlModeling',
+      teacherReview: expect.objectContaining({
+        reviewerId: 'teacher-1',
+        decision: 'approved',
+        reviewedAt: approved.teacherReview.reviewedAt,
+      }),
     }));
+    expect(writeback.facts.find((fact) => fact.contextJson.criterionId === 'validation')?.competencyContribution)
+      .toEqual({ parameterDesign: 0.6 });
     expect(db.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
       skipDuplicates: true,
       data: expect.arrayContaining([
@@ -237,6 +400,49 @@ describe('document rubric grading workbench', () => {
       ]),
     }));
     expect(db.studentEvidenceFeatureCache.deleteMany).toHaveBeenCalledWith({ where: { userId: 'student-1' } });
+  });
+
+  it('reports idempotent writeback skips when learning facts already exist', async () => {
+    const converted = await convertSubmissionDocument({
+      asset: asset(),
+      adapter: createMarkItDownConversionAdapter({
+        now,
+        preserveSpanMapping: true,
+        runner: (submission) => textFixtureMarkItDownRunner(submission, true),
+      }),
+      now,
+    });
+    const approved = approveGradingRun(
+      createDraftRubricGrading({ convertedDocument: converted, rubric: rubric(), now }),
+      { reviewerId: 'teacher-1', decision: 'approved', now },
+    );
+    const db = mockEvidenceDb();
+    db.learningFact.createMany.mockResolvedValueOnce({ count: 0 });
+
+    const writeback = await writeApprovedGradingEvidence({
+      db,
+      run: approved,
+      rubric: rubric(),
+      studentId: asset().studentId,
+      goalContext: {
+        classId: 'class-1',
+        assignmentId: 'report-1',
+        goalId: 'control-report',
+        targetGoal: 'control-report',
+      },
+      now,
+    });
+
+    expect(writeback).toEqual(expect.objectContaining({
+      status: 'written',
+      created: 0,
+      skipped: 2,
+      blocked: 0,
+    }));
+    expect(writeback.facts.map((fact) => fact.sourceEventId)).toEqual(expect.arrayContaining([
+      `${approved.id}:modeling:${approved.rubricVersion}`,
+      `${approved.id}:validation:${approved.rubricVersion}`,
+    ]));
   });
 
   it('builds teacher workbench and student feedback views with access gating and Konling entry points', async () => {
@@ -306,6 +512,12 @@ describe('document rubric grading workbench', () => {
 
     expect(teacherView.conversion.referencePrecision).toBe('block');
     expect(teacherView.rubricTree.map((item) => item.criterionId)).toEqual(['modeling', 'validation']);
+    expect(teacherView.annotations).toHaveLength(2);
+    expect(teacherView.annotations[0]).toEqual(expect.objectContaining({
+      criterionId: 'modeling',
+      authorRole: 'ai-draft',
+      reference: expect.objectContaining({ precision: 'block' }),
+    }));
     expect(teacherView.actions).toEqual(expect.arrayContaining(['edit-criterion', 'approve', 'retry-conversion']));
     expect(teacherView.konlingEntryPoint.mode).toBe('grading-assistant');
     expect(teacherView.konlingEntryPoint.serverContext).toEqual(expect.objectContaining({
@@ -326,5 +538,77 @@ describe('document rubric grading workbench', () => {
     expect(otherStudentView.status).toBe('hidden-unapproved');
     expect(returnedDraftView.status).toBe('hidden-unapproved');
     expect(returnedEditedView.status).toBe('visible');
+  });
+
+  it('parses persisted grading annotations for real teacher workbench views', async () => {
+    const submission = asset();
+    const converted = await convertSubmissionDocument({
+      asset: submission,
+      adapter: createMarkItDownConversionAdapter({
+        now,
+        preserveSpanMapping: true,
+        runner: (documentAsset) => textFixtureMarkItDownRunner(documentAsset, true),
+      }),
+      now,
+    });
+    const draft = createDraftRubricGrading({ convertedDocument: converted, rubric: rubric(), now });
+    const parsed = parsePersistedDocumentRubricGradingDraft({
+      id: draft.id,
+      ownerUserId: submission.studentId,
+      dedupeKey: buildDocumentRubricDraftDedupeKey(submission, draft),
+      classId: submission.classId,
+      sourceRefs: {
+        asset: submission,
+        classId: submission.classId,
+        assignmentId: submission.assignmentId,
+        goalId: 'control-report',
+        targetGoal: 'control-report',
+      },
+      evidenceRefs: {
+        convertedDocument: converted,
+      },
+      summary: {
+        run: draft,
+        rubric: rubric(),
+      },
+    });
+
+    expect(parsed?.run.annotations).toHaveLength(2);
+    expect(parsed?.run.annotations[0]).toEqual(expect.objectContaining({
+      id: 'annotation:modeling:1',
+      criterionId: 'modeling',
+      authorRole: 'ai-draft',
+      reference: expect.objectContaining({
+        convertedDocumentId: converted.id,
+        precision: 'span',
+      }),
+    }));
+    expect(buildTeacherGradingWorkbenchView({
+      asset: parsed!.asset,
+      convertedDocument: parsed!.convertedDocument,
+      rubric: parsed!.rubric,
+      run: parsed!.run,
+    }).annotations).toHaveLength(2);
+
+    const { annotations: _annotations, ...legacyRun } = draft;
+    const legacyParsed = parsePersistedDocumentRubricGradingDraft({
+      id: draft.id,
+      ownerUserId: submission.studentId,
+      dedupeKey: buildDocumentRubricDraftDedupeKey(submission, draft),
+      classId: submission.classId,
+      sourceRefs: {
+        asset: submission,
+        classId: submission.classId,
+        assignmentId: submission.assignmentId,
+      },
+      evidenceRefs: {
+        convertedDocument: converted,
+      },
+      summary: {
+        run: legacyRun,
+        rubric: rubric(),
+      },
+    });
+    expect(legacyParsed?.run.annotations).toEqual([]);
   });
 });

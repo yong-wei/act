@@ -66,6 +66,26 @@ export function TeacherDocumentGradingWorkbench({ view }: { view: TeacherGrading
             </section>
 
             <section className="rounded border border-border bg-card/75 p-5">
+              <h2 className="text-lg font-medium">注释与锚点</h2>
+              <div className="mt-4 space-y-3">
+                {view.annotations.map((annotation) => (
+                  <article key={annotation.id} className="rounded border border-border p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="font-medium">{annotation.criterionId}</p>
+                      <span className="rounded border border-border px-2 py-1 text-xs text-muted-foreground">
+                        {annotation.authorRole} · {annotation.reference.precision}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm text-muted-foreground">{annotation.comment}</p>
+                    <p className="mt-2 text-xs text-primary">
+                      {annotation.reference.pageNumber ? `P${annotation.reference.pageNumber}` : 'page pending'} · {annotation.reference.blockId}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded border border-border bg-card/75 p-5">
               <h2 className="text-lg font-medium">审批动作</h2>
               <div className="mt-4 flex flex-wrap gap-2">
                 {view.actions.map((action) => (

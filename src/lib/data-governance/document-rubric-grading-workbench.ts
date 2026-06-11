@@ -175,8 +175,10 @@ export interface DocumentRubricGradingRun {
 }
 
 export interface DocumentRubricEvidenceWriteback {
-  status: 'blocked-unapproved' | 'written';
+  status: 'blocked-unapproved' | 'blocked-unreliable-evidence' | 'written';
   created: number;
+  skipped: number;
+  blocked: number;
   facts: Array<{
     userId: string;
     factType: 'document_rubric_grading';
@@ -198,10 +200,27 @@ export interface DocumentRubricEvidenceWriteback {
       goal: string;
       targetGoal: string;
       learningGoal: string;
+      teacherReview: DocumentRubricGradingRun['teacherReview'];
       evidenceRefs: GradingEvidenceReference[];
       confidence: number;
     };
   }>;
+}
+
+export interface DocumentRubricEvidenceWritebackPreview {
+  status: 'blocked-unapproved' | 'blocked-unreliable-evidence' | 'preview';
+  created: 0;
+  blocked: number;
+  facts: DocumentRubricEvidenceWriteback['facts'];
+  affectedDimensions: Array<{
+    criterionId: string;
+    competencyDimension: CompetencyDimension;
+    contribution: number;
+    confidence: number;
+    sourceEventId: string;
+    evidenceRefs: GradingEvidenceReference[];
+  }>;
+  dedupeKeys: string[];
 }
 
 export interface DocumentRubricGradingEvidenceDb {
@@ -259,6 +278,13 @@ export interface TeacherGradingWorkbenchView {
     selectedLevelId: string | null;
     editableScore: number | null;
     evidenceCount: number;
+  }>;
+  annotations: Array<{
+    id: string;
+    criterionId: string;
+    comment: string;
+    authorRole: GradingAnnotation['authorRole'];
+    reference: GradingEvidenceReference;
   }>;
   draftSummary: {
     status: GradingRunStatus;
@@ -452,6 +478,7 @@ export function editCriterionGrade(
     score: number;
     comment: string;
     reviewerId: string;
+    rubric?: RubricDefinition;
     now?: Date;
   },
 ): DocumentRubricGradingRun {
@@ -464,6 +491,7 @@ export function editCriterionGrade(
         confidence: 1,
         profileWritebackCandidate: {
           ...grade.profileWritebackCandidate,
+          contribution: recalculateEditedContribution(grade, edit),
           confidence: 1,
         },
       }
@@ -528,47 +556,79 @@ export async function writeApprovedGradingEvidence(input: {
   now?: Date;
 }): Promise<DocumentRubricEvidenceWriteback> {
   if (input.run.status !== 'approved') {
-    return { status: 'blocked-unapproved', created: 0, facts: [] };
-  }
-  const now = input.now ?? new Date();
-  const facts = input.run.approvedGrades.map((grade) => {
-    const competencyDimension = normalizeDocumentRubricGoalDimension(
-      grade.profileWritebackCandidate.goalDimension,
-    );
     return {
-      userId: input.studentId,
-      factType: 'document_rubric_grading' as const,
-      outcome: grade.score >= input.rubric.maxScore * 0.6 ? 'success' as const : 'partial' as const,
-      score: grade.score,
-      startedAt: new Date(input.run.createdAt),
-      finishedAt: now,
-      competencyContribution: {
-        [competencyDimension]: grade.profileWritebackCandidate.contribution,
-      },
-      sourceEventId: `${input.run.id}:${grade.criterionId}:${input.run.rubricVersion}`,
-      contextJson: {
-        gradingRunId: input.run.id,
-        rubricId: input.rubric.id,
-        rubricVersion: input.rubric.version,
-        criterionId: grade.criterionId,
-        competencyDimension,
-        classId: input.goalContext.classId,
-        assignmentId: input.goalContext.assignmentId,
-        goalId: input.goalContext.goalId,
-        goal: input.goalContext.goalId,
-        targetGoal: input.goalContext.targetGoal,
-        learningGoal: input.goalContext.learningGoal ?? input.goalContext.targetGoal,
-        evidenceRefs: grade.evidenceRefs,
-        confidence: Math.min(grade.profileWritebackCandidate.confidence, 0.92),
-      },
+      status: 'blocked-unapproved',
+      created: 0,
+      skipped: 0,
+      blocked: input.run.draftGrades.length,
+      facts: [],
     };
-  });
+  }
+  const facts = buildApprovedGradingEvidenceFacts(input);
+  const blocked = countUnreliableEvidenceFacts(facts);
+  if (blocked > 0) {
+    return {
+      status: 'blocked-unreliable-evidence',
+      created: 0,
+      skipped: 0,
+      blocked,
+      facts: [],
+    };
+  }
   const result = await input.db.learningFact.createMany({ data: facts, skipDuplicates: true });
   await input.db.studentEvidenceFeatureCache?.deleteMany({ where: { userId: input.studentId } });
   return {
     status: 'written',
     created: result.count,
+    skipped: Math.max(facts.length - result.count, 0),
+    blocked: 0,
     facts,
+  };
+}
+
+export function previewApprovedGradingEvidence(input: {
+  run: DocumentRubricGradingRun;
+  rubric: RubricDefinition;
+  studentId: string;
+  goalContext: DocumentRubricGoalContext;
+  now?: Date;
+}): DocumentRubricEvidenceWritebackPreview {
+  if (input.run.status !== 'approved') {
+    return {
+      status: 'blocked-unapproved',
+      created: 0,
+      blocked: input.run.draftGrades.length,
+      facts: [],
+      affectedDimensions: [],
+      dedupeKeys: [],
+    };
+  }
+  const facts = buildApprovedGradingEvidenceFacts(input);
+  const blocked = countUnreliableEvidenceFacts(facts);
+  if (blocked > 0) {
+    return {
+      status: 'blocked-unreliable-evidence',
+      created: 0,
+      blocked,
+      facts: [],
+      affectedDimensions: [],
+      dedupeKeys: [],
+    };
+  }
+  return {
+    status: 'preview',
+    created: 0,
+    blocked: 0,
+    facts,
+    affectedDimensions: facts.map((fact) => ({
+      criterionId: fact.contextJson.criterionId,
+      competencyDimension: fact.contextJson.competencyDimension,
+      contribution: fact.competencyContribution[fact.contextJson.competencyDimension] ?? 0,
+      confidence: fact.contextJson.confidence,
+      sourceEventId: fact.sourceEventId,
+      evidenceRefs: fact.contextJson.evidenceRefs,
+    })),
+    dedupeKeys: facts.map((fact) => fact.sourceEventId),
   };
 }
 
@@ -609,6 +669,13 @@ export function buildTeacherGradingWorkbenchView(input: {
         evidenceCount: grade?.evidenceRefs.length ?? 0,
       };
     }),
+    annotations: input.run.annotations.map((annotation) => ({
+      id: annotation.id,
+      criterionId: annotation.criterionId,
+      comment: annotation.comment,
+      authorRole: annotation.authorRole,
+      reference: annotation.reference,
+    })),
     draftSummary: {
       status: input.run.status,
       averageConfidence: average(input.run.draftGrades.map((grade) => grade.confidence)),
@@ -633,6 +700,75 @@ export function normalizeDocumentRubricGoalDimension(value: string): CompetencyD
     return mapped;
   }
   throw new Error(`unsupported-document-rubric-goal-dimension:${value}`);
+}
+
+function buildApprovedGradingEvidenceFacts(input: {
+  run: DocumentRubricGradingRun;
+  rubric: RubricDefinition;
+  studentId: string;
+  goalContext: DocumentRubricGoalContext;
+  now?: Date;
+}): DocumentRubricEvidenceWriteback['facts'] {
+  const now = input.now ?? new Date();
+  return input.run.approvedGrades.map((grade) => {
+    const competencyDimension = normalizeDocumentRubricGoalDimension(
+      grade.profileWritebackCandidate.goalDimension,
+    );
+    return {
+      userId: input.studentId,
+      factType: 'document_rubric_grading' as const,
+      outcome: grade.score >= input.rubric.maxScore * 0.6 ? 'success' as const : 'partial' as const,
+      score: grade.score,
+      startedAt: new Date(input.run.createdAt),
+      finishedAt: now,
+      competencyContribution: {
+        [competencyDimension]: grade.profileWritebackCandidate.contribution,
+      },
+      sourceEventId: `${input.run.id}:${grade.criterionId}:${input.run.rubricVersion}`,
+      contextJson: {
+        gradingRunId: input.run.id,
+        rubricId: input.rubric.id,
+        rubricVersion: input.rubric.version,
+        criterionId: grade.criterionId,
+        competencyDimension,
+        classId: input.goalContext.classId,
+        assignmentId: input.goalContext.assignmentId,
+        goalId: input.goalContext.goalId,
+        goal: input.goalContext.goalId,
+        targetGoal: input.goalContext.targetGoal,
+        learningGoal: input.goalContext.learningGoal ?? input.goalContext.targetGoal,
+        teacherReview: input.run.teacherReview,
+        evidenceRefs: grade.evidenceRefs,
+        confidence: Math.min(grade.profileWritebackCandidate.confidence, 0.92),
+      },
+    };
+  });
+}
+
+function countUnreliableEvidenceFacts(facts: DocumentRubricEvidenceWriteback['facts']): number {
+  return facts.filter((fact) => fact.contextJson.evidenceRefs.some(isUnreliableConversionEvidenceRef)).length;
+}
+
+function isUnreliableConversionEvidenceRef(reference: GradingEvidenceReference): boolean {
+  return reference.convertedDocumentId.endsWith(':fallback') || reference.blockId === 'fallback-block-1';
+}
+
+function recalculateEditedContribution(
+  grade: CriterionDraftGrade,
+  edit: {
+    criterionId: string;
+    score: number;
+    rubric?: RubricDefinition;
+  },
+): number {
+  const criterion = edit.rubric?.criteria.find((item) => item.id === edit.criterionId);
+  if (criterion && edit.rubric && edit.rubric.maxScore > 0) {
+    return round((edit.score / edit.rubric.maxScore) * criterion.weight);
+  }
+  if (grade.score > 0) {
+    return round(grade.profileWritebackCandidate.contribution * (edit.score / grade.score));
+  }
+  return grade.profileWritebackCandidate.contribution;
 }
 
 export function parsePersistedDocumentRubricGradingDraft(
@@ -860,19 +996,36 @@ function buildFallbackConvertedDocument(
   now: Date | undefined,
   warnings: string[],
 ): ConvertedDocument {
+  const fallbackText = fallbackConvertedBlockText(asset);
+  const fallbackBlock: ConvertedDocumentBlock = {
+    id: 'fallback-block-1',
+    pageNumber: null,
+    text: fallbackText,
+    markdown: fallbackText,
+    confidence: 0,
+  };
   return {
     id: `converted:${asset.id}:fallback`,
     assetId: asset.id,
     adapter: 'fallback',
     status: 'failed',
-    markdown: '',
-    blocks: [],
+    markdown: fallbackBlock.markdown,
+    blocks: [fallbackBlock],
     checksum: asset.checksum,
     confidence: 0,
     referencePrecision: 'page',
     warnings,
     convertedAt: (now ?? new Date()).toISOString(),
   };
+}
+
+function fallbackConvertedBlockText(asset: DocumentSubmissionAsset): string {
+  const decodedText = decodedSubmissionText(asset);
+  const sourceText = decodedText?.split(/\n+/).map((line) => line.trim()).find(Boolean);
+  if (sourceText) {
+    return sourceText.slice(0, 500);
+  }
+  return `Document conversion failed for ${asset.fileName}.`;
 }
 
 function findEvidenceBlock(document: ConvertedDocument, query: string): ConvertedDocumentBlock {
@@ -1173,8 +1326,13 @@ function asDocumentRubricGradingRun(value: unknown): DocumentRubricGradingRun | 
   const approvedGrades = Array.isArray(record.approvedGrades)
     ? record.approvedGrades.map(asCriterionDraftGrade).filter((grade): grade is CriterionDraftGrade => Boolean(grade))
     : null;
+  const annotations = record.annotations === undefined
+    ? []
+    : Array.isArray(record.annotations)
+      ? record.annotations.map(asGradingAnnotation).filter((annotation): annotation is GradingAnnotation => Boolean(annotation))
+      : null;
   const teacherReview = asRecord(record.teacherReview);
-  if (!id || !assetId || !convertedDocumentId || !rubricId || !rubricVersion || !createdAt || !updatedAt || !draftGrades || !approvedGrades || !teacherReview) {
+  if (!id || !assetId || !convertedDocumentId || !rubricId || !rubricVersion || !createdAt || !updatedAt || !draftGrades || !approvedGrades || !annotations || !teacherReview) {
     return null;
   }
   return {
@@ -1186,7 +1344,7 @@ function asDocumentRubricGradingRun(value: unknown): DocumentRubricGradingRun | 
     status: isGradingRunStatus(record.status) ? record.status : 'draft',
     draftGrades,
     approvedGrades,
-    annotations: [],
+    annotations,
     teacherReview: {
       reviewerId: stringFrom(teacherReview.reviewerId),
       reviewedAt: stringFrom(teacherReview.reviewedAt),
@@ -1195,6 +1353,26 @@ function asDocumentRubricGradingRun(value: unknown): DocumentRubricGradingRun | 
     },
     createdAt,
     updatedAt,
+  };
+}
+
+function asGradingAnnotation(value: unknown): GradingAnnotation | null {
+  const record = asRecord(value);
+  if (!record) return null;
+  const id = stringFrom(record.id);
+  const criterionId = stringFrom(record.criterionId);
+  const reference = asEvidenceReference(record.reference);
+  const comment = stringFrom(record.comment);
+  const authorRole = record.authorRole === 'teacher' ? 'teacher' : record.authorRole === 'ai-draft' ? 'ai-draft' : null;
+  if (!id || !criterionId || !reference || comment === null || !authorRole) {
+    return null;
+  }
+  return {
+    id,
+    criterionId,
+    reference,
+    comment,
+    authorRole,
   };
 }
 
