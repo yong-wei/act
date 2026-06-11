@@ -824,9 +824,22 @@ describe('konling agent runtime', () => {
     expect(runtime.citationContext?.contentCitations[0]).toMatchObject({
       sourceType: 'content',
       evidenceBasis: 'course-ai-context',
+      citationChip: expect.objectContaining({
+        sourceType: 'course-content',
+        authorityLevel: 'canonical',
+        privacyVisibility: 'public',
+      }),
     });
     expect(runtime.citationContext?.evidenceCitations).toEqual(expect.arrayContaining([
-      expect.objectContaining({ sourceType: 'path-execution', evidenceBasis: 'LearningPathExecution' }),
+      expect.objectContaining({
+        sourceType: 'path-execution',
+        evidenceBasis: 'LearningPathExecution',
+        citationChip: expect.objectContaining({
+          sourceType: 'path-summary',
+          authorityLevel: 'learner-evidence',
+          privacyVisibility: 'redacted',
+        }),
+      }),
       expect.objectContaining({
         id: 'LearningPathExecution:exec-terminal-low-confidence',
         sourceType: 'path-execution',

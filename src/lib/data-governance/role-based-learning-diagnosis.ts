@@ -1,6 +1,8 @@
 import {
+  buildLearningEvidenceCitationChips,
   retrieveLearningEvidenceCorpus,
   type LearningEvidenceCitationUseCase,
+  type LearningEvidenceCitationChipPayload,
   type LearningEvidenceConfidence,
   type LearningEvidenceCorpusChunk,
   type LearningEvidenceCorpusPrivacyClass,
@@ -47,6 +49,7 @@ export interface RoleBasedLearningDiagnosisEvidenceRef {
   displayHref: string | null;
   confidence: LearningEvidenceConfidence;
   capsule: string;
+  citationChip: LearningEvidenceCitationChipPayload;
 }
 
 export interface RoleBasedLearningDiagnosisLimitation {
@@ -141,7 +144,7 @@ export function materializeRoleBasedLearningDiagnosis(input: RoleBasedLearningDi
       limit: input.view === 'service' ? 16 : 8,
     })
     : [];
-  const evidenceRefs = evidence.map(toEvidenceRef);
+  const evidenceRefs = evidence.map((chunk) => toEvidenceRef(chunk, evidenceScope));
   const globalLimitations = globalLimitationsFor(input);
   const claims = (dimensions.length > 0 ? dimensions : [fallbackDimension(input.goalId)]).map((dimension) =>
     buildClaim({
@@ -273,7 +276,26 @@ function fallbackDimension(goalId: string) {
   };
 }
 
-function toEvidenceRef(chunk: LearningEvidenceCorpusChunk): RoleBasedLearningDiagnosisEvidenceRef {
+function toEvidenceRef(chunk: LearningEvidenceCorpusChunk, scope: ReturnType<typeof retrievalScopeFor>): RoleBasedLearningDiagnosisEvidenceRef {
+  const citationChip = buildLearningEvidenceCitationChips({
+    status: 'verified',
+    verifiedRefs: [{
+      chunkId: chunk.id,
+      sourceType: chunk.sourceType,
+      displayTitle: chunk.display.title,
+      displayHref: chunk.display.href,
+      confidence: chunk.confidence,
+      capsule: chunk.display.capsule,
+      authorityLevel: chunk.authority.level,
+      freshnessBucket: chunk.authority.freshnessBucket,
+      privacyVisibility: chunk.privacyClass === 'public'
+        ? 'public'
+        : scope.role === 'service' && scope.includePrivateText
+          ? 'privileged'
+          : 'redacted',
+    }],
+    limitations: [],
+  }, scope)[0];
   return {
     chunkId: chunk.id,
     sourceType: chunk.sourceType,
@@ -281,6 +303,7 @@ function toEvidenceRef(chunk: LearningEvidenceCorpusChunk): RoleBasedLearningDia
     displayHref: chunk.display.href,
     confidence: chunk.confidence,
     capsule: chunk.display.capsule,
+    citationChip,
   };
 }
 

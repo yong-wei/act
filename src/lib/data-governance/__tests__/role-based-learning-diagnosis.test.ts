@@ -5,12 +5,12 @@ import {
   validateRoleBasedLearningDiagnosis,
   type RoleBasedLearningDiagnosisInput,
 } from '../role-based-learning-diagnosis';
-import type { LearningEvidenceCorpusChunk } from '../learning-evidence-rag-corpus';
+import type { LearningEvidenceAuthorityMetadata, LearningEvidenceCorpusChunk, LearningEvidenceRetrievalRole } from '../learning-evidence-rag-corpus';
 
 const now = new Date('2026-06-04T10:00:00.000Z');
 
 function evidence(overrides: Partial<LearningEvidenceCorpusChunk> = {}): LearningEvidenceCorpusChunk {
-  return {
+  const base: LearningEvidenceCorpusChunk = {
     id: 'chunk-path-1',
     family: 'path-evidence',
     sourceType: 'path-summary',
@@ -21,8 +21,55 @@ function evidence(overrides: Partial<LearningEvidenceCorpusChunk> = {}): Learnin
     privacyClass: 'student-visible',
     confidence: 'medium',
     freshness: { indexedAt: now.toISOString(), sourceUpdatedAt: now.toISOString(), expiresAt: null, stale: false },
+    authority: {
+      level: 'learner-evidence',
+      knowledgeTags: [],
+      pageAnchor: 'path.execution.allTime',
+      freshnessBucket: 'current',
+      scopeRule: {
+        visibility: 'student-visible',
+        allowedRoles: ['student', 'teacher', 'admin', 'service'],
+        ownerRequired: true,
+        classRequired: true,
+      },
+      conflictGroup: null,
+      conflictSignal: null,
+    },
     retrieval: { tags: ['control-correction', 'terminal-validation'], goals: ['control-correction'], useCases: ['diagnosis', 'konling'] },
     ...overrides,
+  };
+  return {
+    ...base,
+    authority: overrides.authority ?? authorityFor(base),
+  };
+}
+
+function authorityFor(chunk: LearningEvidenceCorpusChunk): LearningEvidenceAuthorityMetadata {
+  const allowedRolesByPrivacy: Record<LearningEvidenceCorpusChunk['privacyClass'], LearningEvidenceRetrievalRole[]> = {
+    public: ['student', 'teacher', 'admin', 'service'],
+    'student-visible': ['student', 'teacher', 'admin', 'service'],
+    'teacher-visible': ['teacher', 'admin', 'service'],
+    'admin-only': ['admin', 'service'],
+    'service-only': ['service'],
+  };
+  const level: LearningEvidenceAuthorityMetadata['level'] =
+    chunk.privacyClass === 'service-only' ? 'service-internal' :
+      chunk.sourceType === 'teacher-report' || chunk.sourceType === 'grading-artifact' ? 'teacher-authored' :
+        'learner-evidence';
+  return {
+    level,
+    knowledgeTags: [],
+    pageAnchor: chunk.spanRef.locator ?? null,
+    freshnessBucket: chunk.freshness.stale ? 'stale' : 'current',
+    scopeRule: {
+      visibility: chunk.privacyClass,
+      allowedRoles: allowedRolesByPrivacy[chunk.privacyClass],
+      ownerRequired: Boolean(chunk.sourceRef.ownerUserId),
+      classRequired: Boolean(chunk.sourceRef.classId),
+      privilegedDiagnostics: chunk.privacyClass === 'service-only' || undefined,
+    },
+    conflictGroup: null,
+    conflictSignal: null,
   };
 }
 
@@ -139,6 +186,14 @@ describe('role-based learning diagnosis materialization', () => {
     expect(diagnosis.claims[0].evidenceRefs).toEqual([
       expect.objectContaining({ chunkId: 'chunk-path-1', sourceType: 'path-summary' }),
     ]);
+    expect(diagnosis.claims[0].evidenceRefs[0].citationChip).toEqual(expect.objectContaining({
+      chunkId: 'chunk-path-1',
+      authorityLevel: 'learner-evidence',
+      freshnessBucket: 'current',
+      privacyVisibility: 'redacted',
+      limitationState: null,
+    }));
+    expect(JSON.stringify(diagnosis.claims[0].evidenceRefs[0].citationChip)).not.toContain('ownerRequired');
     expect(diagnosis.claims[0].nextActions[0]).toMatchObject({
       kind: 'learning-path',
       href: null,
