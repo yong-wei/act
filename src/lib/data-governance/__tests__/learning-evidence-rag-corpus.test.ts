@@ -241,6 +241,7 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-1',
       targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
     }, { tags: ['terminal-validation'] });
@@ -253,6 +254,7 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-2',
       targetUserId: 'student-2',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
     }, { tags: ['terminal-validation'] });
@@ -262,6 +264,7 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-1',
       targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
     }, { tags: ['control-correction'] });
@@ -271,11 +274,21 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-2',
       targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
       includePrivateText: true,
     }, { tags: ['terminal-validation'] });
     expect(forgedTargetResults).toEqual([]);
+
+    const missingClassScopeResults = retrieveLearningEvidenceCorpus(corpus, {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, { tags: ['terminal-validation'] });
+    expect(missingClassScopeResults).toEqual([]);
   });
 
   it('ranks by authority, freshness, scope, use case, and query match before raw confidence', () => {
@@ -473,6 +486,8 @@ describe('learning evidence RAG corpus contract', () => {
 
     const service = retrieveLearningEvidenceCorpus(corpus, {
       role: 'service',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
       includePrivateText: true,
@@ -482,6 +497,8 @@ describe('learning evidence RAG corpus contract', () => {
 
     const admin = retrieveLearningEvidenceCorpus(corpus, {
       role: 'admin',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'grading',
     }, { tags: ['grading'] });
@@ -760,6 +777,7 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-1',
       targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
     });
@@ -769,6 +787,7 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-1',
       targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
     }, [
@@ -829,6 +848,7 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-1',
       targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
     }, { tags: ['konling-memory'] }).map((item) => item.id)).not.toContain('malformed-enums');
@@ -836,6 +856,7 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-1',
       targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
     }, [
@@ -877,6 +898,7 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-1',
       targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
     }, [
       { chunkId: 'chunk-course-1', useCase: 'diagnosis', quoteHash: 'hash-course-1' },
@@ -896,6 +918,8 @@ describe('learning evidence RAG corpus contract', () => {
 
     const konling = verifyLearningEvidenceCitations(corpus, {
       role: 'service',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
     }, [
       { chunkId: 'chunk-service-memory', useCase: 'konling' },

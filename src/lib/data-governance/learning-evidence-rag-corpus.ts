@@ -465,7 +465,7 @@ function matchesAuthorityScopeRule(chunk: LearningEvidenceCorpusChunk, scope: Le
   if (!rule.allowedRoles.includes(scope.role)) return false;
   if (rule.visibility !== chunk.privacyClass) return false;
   if (rule.ownerRequired && !chunk.sourceRef.ownerUserId) return false;
-  if (rule.classRequired && !chunk.sourceRef.classId) return false;
+  if (rule.classRequired && (!chunk.sourceRef.classId || !scope.classIds?.includes(chunk.sourceRef.classId))) return false;
   return true;
 }
 
