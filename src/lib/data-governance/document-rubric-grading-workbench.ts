@@ -475,6 +475,7 @@ export function editCriterionGrade(
     score: number;
     comment: string;
     reviewerId: string;
+    rubric?: RubricDefinition;
     now?: Date;
   },
 ): DocumentRubricGradingRun {
@@ -487,6 +488,7 @@ export function editCriterionGrade(
         confidence: 1,
         profileWritebackCandidate: {
           ...grade.profileWritebackCandidate,
+          contribution: recalculateEditedContribution(grade, edit),
           confidence: 1,
         },
       }
@@ -708,6 +710,24 @@ function buildApprovedGradingEvidenceFacts(input: {
       },
     };
   });
+}
+
+function recalculateEditedContribution(
+  grade: CriterionDraftGrade,
+  edit: {
+    criterionId: string;
+    score: number;
+    rubric?: RubricDefinition;
+  },
+): number {
+  const criterion = edit.rubric?.criteria.find((item) => item.id === edit.criterionId);
+  if (criterion && edit.rubric && edit.rubric.maxScore > 0) {
+    return round((edit.score / edit.rubric.maxScore) * criterion.weight);
+  }
+  if (grade.score > 0) {
+    return round(grade.profileWritebackCandidate.contribution * (edit.score / grade.score));
+  }
+  return grade.profileWritebackCandidate.contribution;
 }
 
 export function parsePersistedDocumentRubricGradingDraft(

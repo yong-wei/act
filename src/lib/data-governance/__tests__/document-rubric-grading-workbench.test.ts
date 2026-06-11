@@ -203,6 +203,7 @@ describe('document rubric grading workbench', () => {
       score: 4,
       comment: '验证过程充分，图表和结论一致。',
       reviewerId: 'teacher-1',
+      rubric: rubric(),
       now,
     });
     const approved = approveGradingRun(edited, {
@@ -244,6 +245,7 @@ describe('document rubric grading workbench', () => {
     expect(preview.affectedDimensions).toContainEqual(expect.objectContaining({
       criterionId: 'validation',
       competencyDimension: 'parameterDesign',
+      contribution: 0.6,
       sourceEventId: `${approved.id}:validation:${approved.rubricVersion}`,
     }));
     expect(preview.dedupeKeys).toContain(`${approved.id}:validation:${approved.rubricVersion}`);
@@ -264,6 +266,8 @@ describe('document rubric grading workbench', () => {
       learningGoal: 'control-report',
       competencyDimension: 'controlModeling',
     }));
+    expect(writeback.facts.find((fact) => fact.contextJson.criterionId === 'validation')?.competencyContribution)
+      .toEqual({ parameterDesign: 0.6 });
     expect(db.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
       skipDuplicates: true,
       data: expect.arrayContaining([

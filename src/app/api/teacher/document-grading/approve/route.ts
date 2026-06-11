@@ -96,6 +96,7 @@ export async function POST(request: Request) {
       score: edit.score,
       comment: edit.comment,
       reviewerId: session.user.id,
+      rubric: parsed.rubric,
     }), parsed.run);
     const approved = approveGradingRun(editedRun, {
       reviewerId: session.user.id,

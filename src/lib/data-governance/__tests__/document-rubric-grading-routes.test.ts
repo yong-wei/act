@@ -923,8 +923,8 @@ describe('document rubric grading routes', () => {
       decision: 'approved',
       edits: [{
         criterionId: 'modeling',
-        levelId: 'proficient',
-        score: 3,
+        levelId: 'novice',
+        score: 1,
         comment: '教师修订：模型表达达标，但需要补充稳定裕度解释。',
       }],
     });
@@ -934,16 +934,20 @@ describe('document rubric grading routes', () => {
     expect(mocks.prisma.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.arrayContaining([
         expect.objectContaining({
-          score: 3,
+          score: 1,
+          competencyContribution: { controlModeling: 0.1 },
           sourceEventId: `${draft.id}:modeling:${draft.summary.run.rubricVersion}`,
         }),
       ]),
     }));
     expect(updateInput.data.summary.run.approvedGrades[0]).toEqual(expect.objectContaining({
       criterionId: 'modeling',
-      levelId: 'proficient',
-      score: 3,
+      levelId: 'novice',
+      score: 1,
       comment: '教师修订：模型表达达标，但需要补充稳定裕度解释。',
+      profileWritebackCandidate: expect.objectContaining({
+        contribution: 0.1,
+      }),
     }));
     expect(updateInput.data.summary.run.annotations).toContainEqual(expect.objectContaining({
       criterionId: 'modeling',
