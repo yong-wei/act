@@ -588,7 +588,20 @@ describe('learning evidence RAG corpus contract', () => {
       { chunkId: 'low-authority-course', reason: 'insufficient-authority' },
       { chunkId: 'learner-evidence', reason: 'missing-learner-evidence' },
       { chunkId: 'root-locus-claim', reason: 'conflicting-source' },
+      { chunkId: 'canonical-support', reason: 'conflicting-source' },
+      { chunkId: 'canonical-contradiction', reason: 'conflicting-source' },
     ]));
+    const chips = buildLearningEvidenceCitationChips(result, {
+      role: 'teacher',
+      userId: 'teacher-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    });
+    expect(chips.filter((chip) => chip.chunkId.startsWith('canonical-')).map((chip) => chip.limitationState)).toEqual([
+      'conflicting-source',
+      'conflicting-source',
+    ]);
   });
 
   it('builds shared CitationChip payloads without leaking privileged scope diagnostics to students', () => {

@@ -398,8 +398,11 @@ export function verifyLearningEvidenceCitations(
     limitations.push({ chunkId: 'learner-evidence', reason: 'missing-learner-evidence' });
   }
   if (policy.detectConflicts) {
-    for (const conflictGroup of conflictingGroups(chunks, verifiedRefs.map((ref) => ref.chunkId))) {
-      limitations.push({ chunkId: conflictGroup, reason: 'conflicting-source' });
+    for (const conflict of conflictingGroups(chunks, verifiedRefs.map((ref) => ref.chunkId))) {
+      limitations.push({ chunkId: conflict.group, reason: 'conflicting-source' });
+      for (const chunkId of conflict.chunkIds) {
+        limitations.push({ chunkId, reason: 'conflicting-source' });
+      }
     }
   }
 
@@ -580,19 +583,23 @@ function rankChunk(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRe
 
 function conflictingGroups(chunks: LearningEvidenceCorpusChunk[], verifiedChunkIds: string[]) {
   const chunkById = new Map(chunks.map((chunk) => [chunk.id, chunk]));
-  const groups = new Map<string, Set<Exclude<LearningEvidenceConflictSignal, null>>>();
+  const groups = new Map<string, {
+    signals: Set<Exclude<LearningEvidenceConflictSignal, null>>;
+    chunkIds: string[];
+  }>();
   for (const chunkId of verifiedChunkIds) {
     const chunk = chunkById.get(chunkId);
     const group = chunk?.authority.conflictGroup;
     const signal = chunk?.authority.conflictSignal;
     if (!group || !signal) continue;
-    const signals = groups.get(group) ?? new Set<Exclude<LearningEvidenceConflictSignal, null>>();
-    signals.add(signal);
-    groups.set(group, signals);
+    const existing = groups.get(group) ?? { signals: new Set<Exclude<LearningEvidenceConflictSignal, null>>(), chunkIds: [] };
+    existing.signals.add(signal);
+    existing.chunkIds.push(chunkId);
+    groups.set(group, existing);
   }
   return [...groups.entries()]
-    .filter(([, signals]) => signals.has('supports') && signals.has('contradicts'))
-    .map(([group]) => group);
+    .filter(([, value]) => value.signals.has('supports') && value.signals.has('contradicts'))
+    .map(([group, value]) => ({ group, chunkIds: value.chunkIds }));
 }
 
 function authorityRank(level: LearningEvidenceAuthorityLevel) {
