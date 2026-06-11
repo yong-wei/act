@@ -427,5 +427,26 @@ describe('document rubric grading workbench', () => {
       rubric: parsed!.rubric,
       run: parsed!.run,
     }).annotations).toHaveLength(2);
+
+    const { annotations: _annotations, ...legacyRun } = draft;
+    const legacyParsed = parsePersistedDocumentRubricGradingDraft({
+      id: draft.id,
+      ownerUserId: submission.studentId,
+      dedupeKey: buildDocumentRubricDraftDedupeKey(submission, draft),
+      classId: submission.classId,
+      sourceRefs: {
+        asset: submission,
+        classId: submission.classId,
+        assignmentId: submission.assignmentId,
+      },
+      evidenceRefs: {
+        convertedDocument: converted,
+      },
+      summary: {
+        run: legacyRun,
+        rubric: rubric(),
+      },
+    });
+    expect(legacyParsed?.run.annotations).toEqual([]);
   });
 });

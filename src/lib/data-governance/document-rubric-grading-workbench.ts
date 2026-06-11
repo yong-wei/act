@@ -1268,9 +1268,11 @@ function asDocumentRubricGradingRun(value: unknown): DocumentRubricGradingRun | 
   const approvedGrades = Array.isArray(record.approvedGrades)
     ? record.approvedGrades.map(asCriterionDraftGrade).filter((grade): grade is CriterionDraftGrade => Boolean(grade))
     : null;
-  const annotations = Array.isArray(record.annotations)
-    ? record.annotations.map(asGradingAnnotation).filter((annotation): annotation is GradingAnnotation => Boolean(annotation))
-    : null;
+  const annotations = record.annotations === undefined
+    ? []
+    : Array.isArray(record.annotations)
+      ? record.annotations.map(asGradingAnnotation).filter((annotation): annotation is GradingAnnotation => Boolean(annotation))
+      : null;
   const teacherReview = asRecord(record.teacherReview);
   if (!id || !assetId || !convertedDocumentId || !rubricId || !rubricVersion || !createdAt || !updatedAt || !draftGrades || !approvedGrades || !annotations || !teacherReview) {
     return null;
