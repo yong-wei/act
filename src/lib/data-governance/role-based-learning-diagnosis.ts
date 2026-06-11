@@ -9,6 +9,13 @@ import {
   type LearningEvidenceCorpusSourceType,
   type LearningEvidenceRetrievalRole,
 } from './learning-evidence-rag-corpus';
+import {
+  CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION,
+  canReadDiagnosisReportSnapshot,
+  diagnosisEvidenceRefToCitationChip,
+  type DiagnosisDimensionSnapshot,
+  type DiagnosisReportSnapshot,
+} from './control-correction-diagnosis-profile';
 
 export const ROLE_BASED_LEARNING_DIAGNOSIS_VERSION = 'role-based-learning-diagnosis.v1';
 
@@ -24,6 +31,7 @@ export type RoleBasedLearningDiagnosisLimitationReason =
   | 'no-active-path'
   | 'path-outcome-unavailable'
   | 'teacher-report-unavailable'
+  | 'missing-snapshot'
   | 'document-grading-workbench-not-present';
 
 export interface RoleBasedLearningDiagnosisInput {
@@ -32,6 +40,7 @@ export interface RoleBasedLearningDiagnosisInput {
   userId?: string | null;
   targetUserId?: string | null;
   classId?: string | null;
+  teacherClassIds?: string[];
   goalSlice?: Record<string, any> | null;
   learnerState?: Record<string, any> | null;
   featureCache?: Record<string, any> | null;
@@ -39,6 +48,7 @@ export interface RoleBasedLearningDiagnosisInput {
   teacherReport?: Record<string, any> | null;
   gradingSummary?: Record<string, any> | null;
   evidenceCorpus?: LearningEvidenceCorpusChunk[];
+  diagnosisReportSnapshot?: DiagnosisReportSnapshot | null;
   now?: Date;
 }
 
@@ -135,8 +145,14 @@ export interface RoleBasedLearningDiagnosis {
 }
 
 export function materializeRoleBasedLearningDiagnosis(input: RoleBasedLearningDiagnosisInput): RoleBasedLearningDiagnosis {
-  const safeInput = sanitizeInputForView(input);
+  let safeInput = sanitizeInputForView(input);
   const generatedAt = (input.now ?? new Date()).toISOString();
+  if (safeInput.diagnosisReportSnapshot && canUseDiagnosisReportSnapshot(safeInput.diagnosisReportSnapshot, safeInput)) {
+    return materializeRoleBasedLearningDiagnosisFromSnapshot(safeInput, generatedAt);
+  }
+  if (safeInput.diagnosisReportSnapshot) {
+    safeInput = { ...safeInput, diagnosisReportSnapshot: null };
+  }
   const dimensions = dimensionsFromGoalSlice(safeInput.goalSlice);
   const evidenceScope = retrievalScopeFor(safeInput);
   const evidence = canRetrieveEvidence(safeInput)
@@ -145,7 +161,7 @@ export function materializeRoleBasedLearningDiagnosis(input: RoleBasedLearningDi
     })
     : [];
   const evidenceRefs = evidence.map((chunk) => toEvidenceRef(chunk, evidenceScope));
-  const globalLimitations = globalLimitationsFor(input);
+  const globalLimitations = globalLimitationsFor(safeInput);
   const claims = (dimensions.length > 0 ? dimensions : [fallbackDimension(input.goalId)]).map((dimension) =>
     buildClaim({
       dimension,
@@ -177,6 +193,151 @@ export function materializeRoleBasedLearningDiagnosis(input: RoleBasedLearningDi
       ordinaryViews: 'redacted-summaries-only',
     },
   };
+}
+
+function materializeRoleBasedLearningDiagnosisFromSnapshot(
+  input: RoleBasedLearningDiagnosisInput,
+  generatedAt: string,
+): RoleBasedLearningDiagnosis {
+  const snapshot = input.diagnosisReportSnapshot as DiagnosisReportSnapshot;
+  const claims = snapshot.dimensions.map((dimension) => claimFromDiagnosisDimensionSnapshot(input, snapshot, dimension, generatedAt));
+  const rootCauseClusters = input.view === 'teacher-class' ? buildTeacherClassClusters(input, claims) : [];
+  const drilldownRefs = input.view === 'teacher-class' ? buildTeacherDrilldownRefs(input) : [];
+  return {
+    version: ROLE_BASED_LEARNING_DIAGNOSIS_VERSION,
+    view: input.view,
+    goalId: input.goalId,
+    generatedAt,
+    materialization: {
+      version: ROLE_BASED_LEARNING_DIAGNOSIS_VERSION,
+      inputs: materializationInputs(input),
+      refresh: 'on-evidence-change-or-request',
+    },
+    claims,
+    limitations: uniqueLimitations([
+      ...snapshot.limitations.map(snapshotLimitationToRoleLimitation),
+      ...claims.flatMap((claim) => claim.limitations),
+    ]),
+    rootCauseClusters,
+    drilldownRefs,
+    auditRefs: [],
+    redactionPolicy: {
+      rawPayloads: input.view === 'service' ? 'service-only' : 'omitted',
+      ordinaryViews: 'redacted-summaries-only',
+    },
+  };
+}
+
+function claimFromDiagnosisDimensionSnapshot(
+  input: RoleBasedLearningDiagnosisInput,
+  snapshot: DiagnosisReportSnapshot,
+  dimension: DiagnosisDimensionSnapshot,
+  generatedAt: string,
+): RoleBasedLearningDiagnosisClaim {
+  const evidenceRefs = dimension.evidenceRefs
+    .filter((ref) => evidenceRefVisibleFor(ref, input.view))
+    .map((ref): RoleBasedLearningDiagnosisEvidenceRef => ({
+    chunkId: ref.chunkId,
+    sourceType: ref.sourceType,
+    displayTitle: ref.title,
+    displayHref: ref.href ?? null,
+    confidence: dimension.confidence,
+    capsule: ref.capsule ?? ref.title,
+    citationChip: diagnosisEvidenceRefToCitationChip(ref, dimension.confidence),
+  }));
+  const limitations = uniqueLimitations([
+    ...dimension.limitations.map(snapshotLimitationToRoleLimitation),
+    ...(dimension.evidenceRefs.length > 0 && evidenceRefs.length === 0
+      ? [limitation('missing-citation', 'No diagnosis snapshot citation is visible in this role scope.')]
+      : []),
+  ]);
+  const explanation = explanationFor(input.view, dimension.dimensionId, dimension.judgment, {
+    score: dimension.score,
+    evidenceCount: evidenceRefs.length,
+  });
+  const activePathId = stringOrNull(input.pathOutcomeSummary?.pathId) ?? stringOrNull(input.goalSlice?.pathContext?.activePathId);
+  return {
+    id: `${input.goalId}:${input.view}:${dimension.dimensionId}:snapshot`,
+    dimensionId: dimension.dimensionId,
+    judgment: dimension.judgment,
+    ...(input.view === 'student' ? { studentExplanation: explanation } : {}),
+    ...(input.view === 'teacher-class' || input.view === 'teacher-student' ? { teacherExplanation: explanation } : {}),
+    ...(input.view === 'service' ? { explanation } : {}),
+    rootCause: dimension.judgment === 'insufficient-evidence'
+      ? '治理指标快照显示该维度证据不足。'
+      : '治理指标快照显示该维度需要按证据状态跟进。',
+    evidenceRefs,
+    sourceCoverage: sourceCoverageFromSnapshot(snapshot, dimension.dimensionId),
+    confidence: {
+      state: dimension.confidence,
+      score: confidenceScore(dimension.confidence),
+      evidenceCount: evidenceRefs.length,
+      sourceCompleteness: sourceCompletenessFromSnapshot(snapshot, dimension.dimensionId),
+    },
+    evidenceWindow: {
+      generatedAt,
+      sourceLastUpdatedAt: latestSnapshotSourceUpdatedAt(snapshot),
+      stale: snapshot.limitations.some((item) => item.reason === 'stale-source'),
+    },
+    limitations,
+    nextActions: nextActionsFor(input, activePathId),
+    privacyClass: privacyClassFor(input.view),
+    materializationVersion: ROLE_BASED_LEARNING_DIAGNOSIS_VERSION,
+  };
+}
+
+function canUseDiagnosisReportSnapshot(snapshot: DiagnosisReportSnapshot, input: RoleBasedLearningDiagnosisInput): boolean {
+  return snapshot.materializerVersion === CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION &&
+    snapshot.goalId === input.goalId && canReadDiagnosisReportSnapshot(snapshot, {
+    view: input.view,
+    userId: input.userId ?? null,
+    targetUserId: input.targetUserId ?? null,
+    classId: input.classId ?? null,
+    teacherClassIds: input.teacherClassIds ?? [],
+    goalId: input.goalId,
+  });
+}
+
+function evidenceRefVisibleFor(ref: DiagnosisReportSnapshot['dimensions'][number]['evidenceRefs'][number], view: RoleBasedLearningDiagnosisView): boolean {
+  const visibility = ref.privacyVisibility ?? 'student-visible';
+  if (view === 'service') return true;
+  if (view === 'student') return visibility === 'student-visible';
+  return visibility === 'student-visible' || visibility === 'teacher-scoped';
+}
+
+function sourceCoverageFromSnapshot(snapshot: DiagnosisReportSnapshot, dimensionId: string): Record<string, string> {
+  const scoped = snapshot.indicators.filter((indicator) => indicator.dimensionId === dimensionId);
+  const coverage: Record<string, string> = {};
+  for (const indicator of scoped) {
+    for (const [family, state] of Object.entries(indicator.sourceCoverage)) {
+      const key = `${indicator.indicatorId}:${family}`;
+      coverage[key] = state;
+    }
+  }
+  return coverage;
+}
+
+function sourceCompletenessFromSnapshot(snapshot: DiagnosisReportSnapshot, dimensionId: string): number {
+  const scoped = snapshot.indicators.filter((indicator) => indicator.dimensionId === dimensionId);
+  if (scoped.length === 0) return 0;
+  return Math.round((scoped.reduce((sum, indicator) => sum + indicator.confidence.sourceCompleteness, 0) / scoped.length) * 1000) / 1000;
+}
+
+function snapshotLimitationToRoleLimitation(item: DiagnosisReportSnapshot['limitations'][number]): RoleBasedLearningDiagnosisLimitation {
+  if (item.reason === 'missing-source') return limitation('missing-dimension-evidence', item.detail);
+  if (item.reason === 'stale-source') return limitation('stale-evidence', item.detail);
+  if (item.reason === 'low-confidence-source' || item.reason === 'partial-source' || item.reason === 'insufficient-cohort' || item.reason === 'cold-start' || item.reason === 'conflicting-source') {
+    return limitation('low-confidence', item.detail);
+  }
+  return limitation('missing-dimension-evidence', item.detail);
+}
+
+function latestSnapshotSourceUpdatedAt(snapshot: DiagnosisReportSnapshot): string | null {
+  return Object.values(snapshot.sourceWindows)
+    .map((item) => item.sourceLastUpdatedAt)
+    .filter((value): value is string => Boolean(value))
+    .sort()
+    .at(-1) ?? null;
 }
 
 export function validateRoleBasedLearningDiagnosis(diagnosis: RoleBasedLearningDiagnosis): string[] {
@@ -254,7 +415,7 @@ function retrievalScopeFor(input: RoleBasedLearningDiagnosisInput) {
     role,
     userId: input.userId ?? null,
     targetUserId,
-    classIds: input.classId ? [input.classId] : [],
+    classIds: readableClassIdsFor(input),
     goalId: input.goalId,
     useCase: 'diagnosis' as LearningEvidenceCitationUseCase,
     includePrivateText: input.view === 'service',
@@ -351,6 +512,9 @@ function limitationsForClaim(
 
 function globalLimitationsFor(input: RoleBasedLearningDiagnosisInput): RoleBasedLearningDiagnosisLimitation[] {
   const limitations: RoleBasedLearningDiagnosisLimitation[] = [];
+  if (!input.diagnosisReportSnapshot) {
+    limitations.push(limitation('missing-snapshot', 'No governed diagnosis report snapshot was supplied.'));
+  }
   if ((input.view === 'teacher-class' || input.view === 'teacher-student') && !input.teacherReport) {
     limitations.push(limitation('teacher-report-unavailable', 'Teacher report metrics were not supplied.'));
   }
@@ -366,6 +530,7 @@ function sanitizeInputForView(input: RoleBasedLearningDiagnosisInput): RoleBased
     userId: input.userId ?? null,
     targetUserId: null,
     classId: input.classId ?? null,
+    teacherClassIds: input.teacherClassIds ?? [],
     goalSlice: null,
     learnerState: null,
     featureCache: null,
@@ -373,12 +538,22 @@ function sanitizeInputForView(input: RoleBasedLearningDiagnosisInput): RoleBased
     teacherReport: null,
     gradingSummary: input.gradingSummary ?? null,
     evidenceCorpus: [],
+    diagnosisReportSnapshot: null,
     now: input.now,
   };
 }
 
 function canRetrieveEvidence(input: RoleBasedLearningDiagnosisInput) {
+  if ((input.view === 'teacher-class' || input.view === 'teacher-student') && readableClassIdsFor(input).length === 0) return false;
   return input.view !== 'teacher-student' || Boolean(input.targetUserId);
+}
+
+function readableClassIdsFor(input: RoleBasedLearningDiagnosisInput): string[] {
+  if (!input.classId) return [];
+  if (input.view === 'teacher-class' || input.view === 'teacher-student') {
+    return input.teacherClassIds?.includes(input.classId) ? [input.classId] : [];
+  }
+  return [input.classId];
 }
 
 function nextActionsFor(input: RoleBasedLearningDiagnosisInput, activePathId: string | null): RoleBasedLearningDiagnosisNextAction[] {
@@ -459,6 +634,7 @@ function buildAuditRefs(chunks: LearningEvidenceCorpusChunk[], input: RoleBasedL
 
 function materializationInputs(input: RoleBasedLearningDiagnosisInput) {
   return [
+    input.diagnosisReportSnapshot ? 'control-correction-diagnosis-report-snapshot' : null,
     input.goalSlice ? 'adaptive-goal-slice' : null,
     input.featureCache ? 'student-evidence-feature-cache' : null,
     input.learnerState ? 'adaptive-learner-state' : null,
