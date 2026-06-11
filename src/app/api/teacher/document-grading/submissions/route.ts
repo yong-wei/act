@@ -102,7 +102,11 @@ export async function POST(request: Request) {
         now: uploadedAt,
         preserveSpanMapping: body.preserveSpanMapping ?? isTextLikeMimeType(submission.mimeType),
         runner: isTextLikeMimeType(submission.mimeType)
-          ? (submission) => textFixtureMarkItDownRunner(submission, true)
+          ? (textSubmission) => textFixtureMarkItDownRunner({
+              ...textSubmission,
+              bytes: decodeSubmissionTextBytes(textSubmission.bytes, textSubmission.contentEncoding),
+              contentEncoding: 'utf8',
+            }, true)
           : undefined,
       }),
       now: uploadedAt,
@@ -116,75 +120,90 @@ export async function POST(request: Request) {
     const goalId = body.goalId ?? submission.assignmentId;
     const targetGoal = body.targetGoal ?? goalId;
     const learningGoal = body.learningGoal ?? targetGoal;
-
-    const persisted = await prisma.learningEvidenceDraft.upsert({
+    const existingDraft = await prisma.learningEvidenceDraft.findUnique({
       where: { dedupeKey },
-      create: {
-        id: run.id,
-        ownerUserId: asset.studentId,
-        sourceType: 'document_rubric_grading',
-        sourceRefs: toPrismaJsonObject({
-          asset,
-          classId: asset.classId,
-          assignmentId: asset.assignmentId,
-          goalId,
-          targetGoal,
-          learningGoal,
-        }),
-        factType: 'document_rubric_grading',
-        summary: toPrismaJsonObject({ run, rubric: submission.rubric }),
-        evidenceRefs: toPrismaJsonObject({ convertedDocument }),
-        provenance: toPrismaJsonObject({
-          createdBy: session.user.id,
-          createdByRole: session.user.role,
-          conversion: {
-            adapter: convertedDocument.adapter,
-            status: convertedDocument.status,
-            referencePrecision: convertedDocument.referencePrecision,
-            warnings: convertedDocument.warnings,
-            confidence: convertedDocument.confidence,
-          },
-        }),
-        confidence: convertedDocument.confidence,
-        privacyScope: 'teacher_review',
-        dedupeKey,
-        reviewerState: 'pending',
-        occurredAt: uploadedAt,
-        classId: asset.classId,
-      },
-      update: {
-        sourceRefs: toPrismaJsonObject({
-          asset,
-          classId: asset.classId,
-          assignmentId: asset.assignmentId,
-          goalId,
-          targetGoal,
-          learningGoal,
-        }),
-        summary: toPrismaJsonObject({ run, rubric: submission.rubric }),
-        evidenceRefs: toPrismaJsonObject({ convertedDocument }),
-        provenance: toPrismaJsonObject({
-          createdBy: session.user.id,
-          createdByRole: session.user.role,
-          conversion: {
-            adapter: convertedDocument.adapter,
-            status: convertedDocument.status,
-            referencePrecision: convertedDocument.referencePrecision,
-            warnings: convertedDocument.warnings,
-            confidence: convertedDocument.confidence,
-          },
-        }),
-        confidence: convertedDocument.confidence,
-        reviewerState: 'pending',
-        occurredAt: uploadedAt,
-        classId: asset.classId,
-      },
       select: {
         id: true,
         dedupeKey: true,
         reviewerState: true,
       },
     });
+    if (existingDraft && existingDraft.reviewerState !== 'pending') {
+      return NextResponse.json({
+        status: existingDraft.reviewerState,
+        gradingRunId: existingDraft.id,
+        dedupeKey: existingDraft.dedupeKey,
+        preservedReviewState: true,
+        asset: {
+          id: asset.id,
+          checksum: asset.checksum,
+          format: asset.format,
+          fileName: asset.fileName,
+        },
+        conversion: {
+          status: convertedDocument.status,
+          adapter: convertedDocument.adapter,
+          referencePrecision: convertedDocument.referencePrecision,
+          warnings: convertedDocument.warnings,
+          confidence: convertedDocument.confidence,
+        },
+        teacherWorkbenchHref: `/teacher/grading-workbench?gradingRunId=${encodeURIComponent(existingDraft.id)}`,
+      });
+    }
+
+    const data = {
+      sourceRefs: toPrismaJsonObject({
+        asset,
+        classId: asset.classId,
+        assignmentId: asset.assignmentId,
+        goalId,
+        targetGoal,
+        learningGoal,
+      }),
+      summary: toPrismaJsonObject({ run, rubric: submission.rubric }),
+      evidenceRefs: toPrismaJsonObject({ convertedDocument }),
+      provenance: toPrismaJsonObject({
+        createdBy: session.user.id,
+        createdByRole: session.user.role,
+        conversion: {
+          adapter: convertedDocument.adapter,
+          status: convertedDocument.status,
+          referencePrecision: convertedDocument.referencePrecision,
+          warnings: convertedDocument.warnings,
+          confidence: convertedDocument.confidence,
+        },
+      }),
+      confidence: convertedDocument.confidence,
+      reviewerState: 'pending',
+      occurredAt: uploadedAt,
+      classId: asset.classId,
+    };
+    const persisted = existingDraft
+      ? await prisma.learningEvidenceDraft.update({
+          where: { id: existingDraft.id },
+          data,
+          select: {
+            id: true,
+            dedupeKey: true,
+            reviewerState: true,
+          },
+        })
+      : await prisma.learningEvidenceDraft.create({
+          data: {
+            id: run.id,
+            ownerUserId: asset.studentId,
+            sourceType: 'document_rubric_grading',
+            factType: 'document_rubric_grading',
+            privacyScope: 'teacher_review',
+            dedupeKey,
+            ...data,
+          },
+          select: {
+            id: true,
+            dedupeKey: true,
+            reviewerState: true,
+          },
+        });
 
     return NextResponse.json({
       status: persisted.reviewerState,
@@ -265,6 +284,13 @@ function buildSubmissionAssetId(input: {
     : input.bytes;
   const digest = createHash('sha256').update(decoded).digest('hex').slice(0, 16);
   return `asset:${input.studentId}:${input.assignmentId}:${digest}`;
+}
+
+function decodeSubmissionTextBytes(bytes: string, contentEncoding: 'utf8' | 'base64'): string {
+  if (contentEncoding === 'base64') {
+    return Buffer.from(bytes.replace(/^data:[^;]+;base64,/, ''), 'base64').toString('utf8');
+  }
+  return bytes;
 }
 
 function toPrismaJsonObject(value: Record<string, unknown>): Prisma.InputJsonObject {

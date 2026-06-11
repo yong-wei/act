@@ -28,7 +28,8 @@ const mocks = vi.hoisted(() => ({
   prisma: {
     learningEvidenceDraft: {
       findFirst: vi.fn(),
-      upsert: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
       update: vi.fn(),
     },
     class: {
@@ -252,14 +253,19 @@ function runtimeScope(overrides: Partial<KonlingRuntimeScope> = {}): KonlingRunt
 describe('document rubric grading routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.prisma.learningEvidenceDraft.upsert.mockImplementation(async (input) => ({
-      id: input.create.id,
-      dedupeKey: input.create.dedupeKey,
-      reviewerState: input.create.reviewerState,
+    mocks.prisma.learningEvidenceDraft.findUnique.mockResolvedValue(null);
+    mocks.prisma.learningEvidenceDraft.create.mockImplementation(async (input) => ({
+      id: input.data.id,
+      dedupeKey: input.data.dedupeKey,
+      reviewerState: input.data.reviewerState,
+    }));
+    mocks.prisma.learningEvidenceDraft.update.mockImplementation(async (input) => ({
+      id: input.where.id,
+      dedupeKey: 'document-rubric:updated',
+      reviewerState: input.data.reviewerState,
     }));
     mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 1 });
     mocks.prisma.studentEvidenceFeatureCache.deleteMany.mockResolvedValue({ count: 1 });
-    mocks.prisma.learningEvidenceDraft.update.mockResolvedValue({});
   });
 
   it('creates persisted document grading submissions with conversion artifacts and draft assessment state', async () => {
@@ -279,7 +285,7 @@ describe('document rubric grading routes', () => {
       targetGoal: 'control-report',
     });
     const payload = await response.json();
-    const upsertInput = mocks.prisma.learningEvidenceDraft.upsert.mock.calls[0][0];
+    const createInput = mocks.prisma.learningEvidenceDraft.create.mock.calls[0][0];
 
     expect(response.status).toBe(201);
     expect(payload).toEqual(expect.objectContaining({
@@ -292,7 +298,7 @@ describe('document rubric grading routes', () => {
         warnings: [],
       }),
     }));
-    expect(upsertInput.create).toEqual(expect.objectContaining({
+    expect(createInput.data).toEqual(expect.objectContaining({
       ownerUserId: 'student-1',
       sourceType: 'document_rubric_grading',
       factType: 'document_rubric_grading',
@@ -300,18 +306,18 @@ describe('document rubric grading routes', () => {
       reviewerState: 'pending',
       classId: 'class-1',
     }));
-    expect(upsertInput.create.sourceRefs.asset).toEqual(expect.objectContaining({
+    expect(createInput.data.sourceRefs.asset).toEqual(expect.objectContaining({
       studentId: 'student-1',
       assignmentId: 'report-1',
       mimeType: 'text/markdown',
       checksum: expect.any(String),
     }));
-    expect(upsertInput.create.evidenceRefs.convertedDocument).toEqual(expect.objectContaining({
-      assetId: upsertInput.create.sourceRefs.asset.id,
+    expect(createInput.data.evidenceRefs.convertedDocument).toEqual(expect.objectContaining({
+      assetId: createInput.data.sourceRefs.asset.id,
       referencePrecision: 'span',
       warnings: [],
     }));
-    expect(upsertInput.create.summary.run.draftGrades[0]).toEqual(expect.objectContaining({
+    expect(createInput.data.summary.run.draftGrades[0]).toEqual(expect.objectContaining({
       criterionId: 'modeling',
       evidenceRefs: expect.arrayContaining([
         expect.objectContaining({
@@ -320,10 +326,76 @@ describe('document rubric grading routes', () => {
         }),
       ]),
     }));
-    expect(upsertInput.create.provenance.conversion).toEqual(expect.objectContaining({
+    expect(createInput.data.provenance.conversion).toEqual(expect.objectContaining({
       status: 'converted',
       referencePrecision: 'span',
     }));
+  });
+
+  it('decodes base64 text submissions before conversion blocks and evidence excerpts are created', async () => {
+    const text = 'Root locus design explains damping ratio and settling time.';
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const response = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: Buffer.from(text, 'utf8').toString('base64'),
+      contentEncoding: 'base64',
+      rubric: rubric(),
+      goalId: 'control-report',
+      targetGoal: 'control-report',
+    });
+    const createInput = mocks.prisma.learningEvidenceDraft.create.mock.calls[0][0];
+
+    expect(response.status).toBe(201);
+    expect(createInput.data.evidenceRefs.convertedDocument.blocks[0]).toEqual(expect.objectContaining({
+      text,
+      markdown: `- ${text}`,
+      spanStart: 0,
+      spanEnd: text.length,
+    }));
+    expect(createInput.data.summary.run.draftGrades[0].evidenceRefs[0]).toEqual(expect.objectContaining({
+      excerpt: text,
+      precision: 'span',
+    }));
+  });
+
+  it('does not reset approved persisted grading drafts on duplicate submission processing', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+    mocks.prisma.learningEvidenceDraft.findUnique.mockResolvedValue({
+      id: 'grading:asset-1:rubric-control-report:2026.06',
+      dedupeKey: 'document-rubric:asset-1:report-1:grading-1',
+      reviewerState: 'approved',
+    });
+
+    const response = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio and settling time.',
+      rubric: rubric(),
+      goalId: 'control-report',
+      targetGoal: 'control-report',
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toEqual(expect.objectContaining({
+      status: 'approved',
+      gradingRunId: 'grading:asset-1:rubric-control-report:2026.06',
+      preservedReviewState: true,
+    }));
+    expect(mocks.prisma.learningEvidenceDraft.create).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();
   });
 
   it('enforces ownership and class scope for submission creation', async () => {
@@ -355,7 +427,8 @@ describe('document rubric grading routes', () => {
       rubric: rubric(),
     });
     expect(wrongTeacherResponse.status).toBe(403);
-    expect(mocks.prisma.learningEvidenceDraft.upsert).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.create).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();
   });
 
   it('protects student document feedback with session and student-role gates', () => {
