@@ -53,9 +53,8 @@
     {
       "group_name": "反馈与开闭环",
       "step_ids": [
-        "step-01",
-        "step-02",
-        "step-03"
+        "step-09",
+        "step-10"
       ],
       "node_ids": [
         "反馈_1_1",
@@ -70,7 +69,8 @@
         "step-04",
         "step-05",
         "step-06",
-        "step-07"
+        "step-07",
+        "step-08"
       ],
       "node_ids": [
         "传递函数_1_1",
@@ -86,9 +86,10 @@
     {
       "group_name": "校正与课程总图",
       "step_ids": [
-        "step-08",
         "step-09",
-        "step-10"
+        "step-10",
+        "step-11",
+        "step-15"
       ],
       "node_ids": [
         "控制器_1_1",

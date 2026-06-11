@@ -1,6 +1,6 @@
 {
   "lesson_id": "1-1",
-  "source_path": null,
+  "source_path": "course-content/authoring/lessons/1-1/design/1-1-interactive-page.md",
   "contract_path": "course-content/authoring/lessons/1-1/design/1-1-interactive-contract.yaml",
   "design_acceptance_path": "course-content/authoring/lessons/1-1/design/1-1-interactive-design-acceptance.json",
   "implementation_acceptance_path": "course-content/authoring/lessons/1-1/notes/interactive-implementation-acceptance.json",
@@ -17,13 +17,48 @@
     "preview_contract",
     "acceptance_checks"
   ],
-  "included_in_primary_sources": false,
+  "included_in_primary_sources": true,
   "mapping_contract_mode": "core_items",
-  "has_core_mapping_section": false,
-  "mapping_columns_present": [],
+  "has_core_mapping_section": true,
+  "mapping_columns_present": [
+    "handout_anchor",
+    "core_item_type",
+    "must_appear_content",
+    "target_step",
+    "page_mode",
+    "interaction_upgrade",
+    "media_or_table_ref",
+    "acceptance_note"
+  ],
   "missing_mapping_columns": [],
-  "invalid_handout_anchors": [],
-  "missing_target_steps": [],
+  "invalid_handout_anchors": [
+    "一、同样的问题，不同的面孔",
+    "二、一条船，八个问题——90分钟遍历控制全貌",
+    "§二·问题一~二",
+    "§二·问题三~四",
+    "§二·问题五~六",
+    "§二·问题七",
+    "三、反馈与校正：从诊断到干预",
+    "四、这门课的地图",
+    "六、示例：从诊断到校正——一个完整的代码走通",
+    "P₃｜Post-assessment 后测",
+    "S｜Summary 总结"
+  ],
+  "missing_target_steps": [
+    "step-01",
+    "step-04",
+    "step-05",
+    "step-06",
+    "step-07",
+    "step-08",
+    "step-09",
+    "step-10",
+    "step-11",
+    "step-12",
+    "step-13",
+    "step-14",
+    "step-15"
+  ],
   "formula_mapping_issues": [],
   "step_static_blocks_missing": [],
   "step_upgrade_blocks_missing": [],
@@ -32,27 +67,37 @@
   "curve_figure_steps_missing_contract": [],
   "missing_contract_fields": [],
   "step_contract_issues": [],
-  "design_acceptance_summary": [],
+  "design_acceptance_summary": [
+    "互动设计接受文件已通过校验。"
+  ],
   "design_acceptance_issues": [],
   "implementation_acceptance_summary": [],
   "implementation_acceptance_issues": [],
   "manifest_audit_summary": [],
   "manifest_audit_issues": [],
   "manifest_audit": null,
+  "reviewed_runtime_artifacts": [],
   "runtime_review_stale_issues": [],
   "hard_gate_issues": [],
   "hard_gate_issue_codes": [],
-  "blocking_issues": [
-    "缺少 design/1-1-interactive-page.md"
-  ],
+  "blocking_issues": [],
   "implementation_contract_summary": [],
   "implementation_contract_issues": [],
-  "summary": [],
-  "warnings": [],
+  "legacy_acceptance_notes": [],
+  "summary": [
+    "已检测到 `1-1` 的 V2 互动契约，步骤字段完整。",
+    "互动设计接受文件已通过校验。"
+  ],
+  "warnings": [
+    "以下 handout_anchor 未在讲义标题中命中：一、同样的问题，不同的面孔, 二、一条船，八个问题——90分钟遍历控制全貌, §二·问题一~二, §二·问题三~四, §二·问题五~六, §二·问题七, 三、反馈与校正：从诊断到干预, 四、这门课的地图, 六、示例：从诊断到校正——一个完整的代码走通, P₃｜Post-assessment 后测, S｜Summary 总结",
+    "以下 target_step 未在步骤正文中命中：step-01, step-04, step-05, step-06, step-07, step-08, step-09, step-10, step-11, step-12, step-13, step-14, step-15"
+  ],
   "missing": [
-    "缺少 design/1-1-interactive-page.md"
+    "以下 handout_anchor 未在讲义标题中命中：一、同样的问题，不同的面孔, 二、一条船，八个问题——90分钟遍历控制全貌, §二·问题一~二, §二·问题三~四, §二·问题五~六, §二·问题七, 三、反馈与校正：从诊断到干预, 四、这门课的地图, 六、示例：从诊断到校正——一个完整的代码走通, P₃｜Post-assessment 后测, S｜Summary 总结",
+    "以下 target_step 未在步骤正文中命中：step-01, step-04, step-05, step-06, step-07, step-08, step-09, step-10, step-11, step-12, step-13, step-14, step-15"
   ],
   "issues": [
-    "缺少 design/1-1-interactive-page.md"
+    "以下 handout_anchor 未在讲义标题中命中：一、同样的问题，不同的面孔, 二、一条船，八个问题——90分钟遍历控制全貌, §二·问题一~二, §二·问题三~四, §二·问题五~六, §二·问题七, 三、反馈与校正：从诊断到干预, 四、这门课的地图, 六、示例：从诊断到校正——一个完整的代码走通, P₃｜Post-assessment 后测, S｜Summary 总结",
+    "以下 target_step 未在步骤正文中命中：step-01, step-04, step-05, step-06, step-07, step-08, step-09, step-10, step-11, step-12, step-13, step-14, step-15"
   ]
 }

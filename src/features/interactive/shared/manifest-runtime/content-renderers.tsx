@@ -765,16 +765,54 @@ function CourseObjectiveList({ items }: { items: string[] }) {
   );
 }
 
-function PathStageMap({ title, lead, items }: { title: string; lead?: string; items: string[] }) {
+type PathStageMapItem = {
+  key: string;
+  label: string;
+  status?: string;
+};
+
+function stageMapItemsFrom(value: unknown): PathStageMapItem[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index): PathStageMapItem | null => {
+      if (typeof item === 'string' && item.trim()) {
+        return { key: item, label: item };
+      }
+      if (item && typeof item === 'object') {
+        const record = item as Record<string, unknown>;
+        const label = typeof record.title === 'string'
+          ? record.title
+          : typeof record.label === 'string'
+            ? record.label
+            : '';
+        if (!label.trim()) return null;
+        const key = typeof record.id === 'string' && record.id.trim()
+          ? record.id
+          : `${label}-${index}`;
+        return {
+          key,
+          label,
+          ...(typeof record.status === 'string' ? { status: record.status } : {}),
+        };
+      }
+      return null;
+    })
+    .filter((item): item is PathStageMapItem => Boolean(item));
+}
+
+function PathStageMap({ title, lead, items }: { title: string; lead?: string; items: PathStageMapItem[] }) {
   return (
     <div className="premium-lesson-panel">
       <ManifestContentTitle>{title}</ManifestContentTitle>
       {items.length ? (
         <div className="mt-3 grid gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-stretch">
           {items.map((item, index) => (
-            <Fragment key={item}>
+            <Fragment key={item.key}>
               <div className="premium-lesson-surface-elevated rounded-2xl px-4 py-3 text-center text-sm font-semibold">
-                {renderInlineContent(item)}
+                {renderInlineContent(item.label)}
+                {item.status === 'current' ? (
+                  <div className="premium-lesson-caption mt-2">当前</div>
+                ) : null}
               </div>
               {index < items.length - 1 ? <div className="hidden items-center text-slate-500 md:flex">→</div> : null}
             </Fragment>
@@ -1041,8 +1079,10 @@ export function createManifestContentModuleRegistry(extra: {
       const intro = asRecord(step.contentBlocks.page_intro);
       const title = typeof intro.title === 'string' ? intro.title : titleFromModule(module);
       const lead = typeof intro.lead === 'string' ? intro.lead : summaryContent(step, module).text;
-      const payloadItems = asStringArray(module.payload.items ?? module.payload.path_items ?? module.payload.pathItems);
-      const items = payloadItems.length ? payloadItems : asStringArray(intro.path_items ?? step.contentBlocks.path_items);
+      const payloadItems = stageMapItemsFrom(
+        module.payload.items ?? module.payload.stages ?? module.payload.path_items ?? module.payload.pathItems,
+      );
+      const items = payloadItems.length ? payloadItems : stageMapItemsFrom(intro.path_items ?? step.contentBlocks.path_items);
       if (items.length) return <PathStageMap title={title} lead={lead} items={items} />;
       const content = summaryContent(step, module);
       return <SummaryCard title={title} text={content.text} bullets={content.bullets} />;
@@ -1062,7 +1102,7 @@ export function createManifestContentModuleRegistry(extra: {
       const intro = asRecord(step.contentBlocks.page_intro);
       const title = typeof intro.title === 'string' ? intro.title : '路径定位';
       const lead = typeof intro.lead === 'string' ? intro.lead : undefined;
-      const items = asStringArray(intro.path_items ?? step.contentBlocks.path_items);
+      const items = stageMapItemsFrom(intro.path_items ?? step.contentBlocks.path_items);
       return <PathStageMap title={title} lead={lead} items={items} />;
     },
     'goal-card-row': ({ step, module }) => {

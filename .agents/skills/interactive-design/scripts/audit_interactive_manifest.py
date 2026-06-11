@@ -495,10 +495,33 @@ def audit_manifest(manifest: dict[str, Any]) -> dict[str, Any]:
     for step_id, step in steps.items():
         step_modules = modules(step)
         blocks = content_blocks(step)
+        layout = as_record(step.get("layout"))
+        regions = as_list(layout.get("regions"))
+        region_ids = {
+            str(region.get("id", "")).strip()
+            for region in regions
+            if isinstance(region, dict) and str(region.get("id", "")).strip()
+        }
+        for index, region in enumerate(regions):
+            if not isinstance(region, dict) or not str(region.get("id", "")).strip():
+                issues.append({
+                    "step_id": step_id,
+                    "region_index": index,
+                    "issue": "layout_region_missing_id",
+                })
+        seen_module_ids: set[str] = set()
         cards = interaction_cards(step)
         submit_fields = interaction_submit_fields(step)
         interaction_spec = as_record(step.get("interaction_spec", step.get("interactionSpec", {})))
         interaction_kind = str(interaction_spec.get("interaction_kind", interaction_spec.get("interactionKind", "none")))
+        has_activity_module = any(module.get("kind") in activity_module_kinds for module in step_modules)
+        has_activity_contract = bool(has_activity_module or cards or submit_fields)
+        if has_activity_contract and interaction_kind in {"", "none", "display", "summary"}:
+            issues.append({
+                "step_id": step_id,
+                "interaction_kind": interaction_kind,
+                "issue": "activity_interaction_kind_missing",
+            })
         if interaction_kind not in {"none", "display", "summary"}:
             if interaction_kind not in student_activity_kinds:
                 issues.append({
@@ -546,6 +569,44 @@ def audit_manifest(manifest: dict[str, Any]) -> dict[str, Any]:
             kind = str(module.get("kind", ""))
             module_id = str(module.get("id", ""))
             required = must_be_visible(module)
+            module_region = str(module.get("region", "")).strip()
+            if not module_id.strip():
+                issues.append({
+                    "step_id": step_id,
+                    "kind": kind,
+                    "issue": "module_missing_id",
+                })
+            elif module_id in seen_module_ids:
+                issues.append({
+                    "step_id": step_id,
+                    "module_id": module_id,
+                    "kind": kind,
+                    "issue": "module_duplicate_id",
+                })
+            else:
+                seen_module_ids.add(module_id)
+            if region_ids and module_region and module_region not in region_ids:
+                issues.append({
+                    "step_id": step_id,
+                    "module_id": module_id,
+                    "kind": kind,
+                    "region": module_region,
+                    "issue": "module_region_not_declared",
+                })
+            if region_ids and required and not module_region:
+                issues.append({
+                    "step_id": step_id,
+                    "module_id": module_id,
+                    "kind": kind,
+                    "issue": "module_region_missing",
+                })
+            if required and not regions:
+                issues.append({
+                    "step_id": step_id,
+                    "module_id": module_id,
+                    "kind": kind,
+                    "issue": "layout_regions_missing",
+                })
             if kind in activity_module_kinds:
                 entry = {
                     "step_id": step_id,

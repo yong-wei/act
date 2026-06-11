@@ -186,6 +186,217 @@ def test_manifest_audit_treats_missing_content_block_reference_as_empty_content(
     }
 
 
+def test_manifest_audit_rejects_layout_region_without_id():
+    manifest = {
+        'lesson_id': 'demo',
+        'steps': {
+            'step-01': {
+                'title': 'demo',
+                'layout': {'template': 'stacked_regions', 'regions': [{'name': 'main', 'width': 'full', 'order': 1}]},
+                'modules': [
+                    {
+                        'id': 'intro',
+                        'region': 'main',
+                        'kind': 'content.rich',
+                        'must_be_visible': True,
+                        'payload': {'text': '区域只有 name 时不能进入标准 manifest。'},
+                    }
+                ],
+                'content_blocks': {},
+                'interaction_spec': {'interaction_kind': 'none'},
+            }
+        },
+    }
+
+    result = audit_interactive_manifest.audit_manifest(manifest)
+
+    assert result['status'] == 'fail'
+    assert any(issue['issue'] == 'layout_region_missing_id' for issue in result['issues'])
+
+
+def test_manifest_audit_rejects_missing_layout_regions_for_visible_module():
+    manifest = {
+        'lesson_id': 'demo',
+        'steps': {
+            'step-01': {
+                'title': 'demo',
+                'layout': {'template': 'stacked_regions'},
+                'modules': [
+                    {
+                        'id': 'intro',
+                        'region': 'main',
+                        'kind': 'content.rich',
+                        'must_be_visible': True,
+                        'payload': {'text': 'layout.regions 缺失时必显模块不会落到页面。'},
+                    }
+                ],
+                'content_blocks': {},
+                'interaction_spec': {'interaction_kind': 'none'},
+            }
+        },
+    }
+
+    result = audit_interactive_manifest.audit_manifest(manifest)
+
+    assert result['status'] == 'fail'
+    assert any(issue['issue'] == 'layout_regions_missing' for issue in result['issues'])
+
+
+def test_manifest_audit_rejects_visible_module_without_id():
+    manifest = {
+        'lesson_id': 'demo',
+        'steps': {
+            'step-01': {
+                'title': 'demo',
+                'layout': {'template': 'stacked_regions', 'regions': [{'id': 'main', 'width': 'full', 'order': 1}]},
+                'modules': [
+                    {
+                        'region': 'main',
+                        'kind': 'content.rich',
+                        'must_be_visible': True,
+                        'payload': {'text': '标准组件也必须有稳定 module id。'},
+                    }
+                ],
+                'content_blocks': {},
+                'interaction_spec': {'interaction_kind': 'none'},
+            }
+        },
+    }
+
+    result = audit_interactive_manifest.audit_manifest(manifest)
+
+    assert result['status'] == 'fail'
+    assert any(issue['issue'] == 'module_missing_id' for issue in result['issues'])
+
+
+def test_manifest_audit_rejects_visible_module_without_region():
+    manifest = {
+        'lesson_id': 'demo',
+        'steps': {
+            'step-01': {
+                'title': 'demo',
+                'layout': {'template': 'stacked_regions', 'regions': [{'id': 'main', 'width': 'full', 'order': 1}]},
+                'modules': [
+                    {
+                        'id': 'intro',
+                        'kind': 'content.rich',
+                        'must_be_visible': True,
+                        'payload': {'text': '缺少 region 的必显模块会在布局渲染时静默不可见。'},
+                    }
+                ],
+                'content_blocks': {},
+                'interaction_spec': {'interaction_kind': 'none'},
+            }
+        },
+    }
+
+    result = audit_interactive_manifest.audit_manifest(manifest)
+
+    assert result['status'] == 'fail'
+    assert any(issue['issue'] == 'module_region_missing' for issue in result['issues'])
+
+
+def test_manifest_audit_rejects_duplicate_module_id():
+    manifest = {
+        'lesson_id': 'demo',
+        'steps': {
+            'step-01': {
+                'title': 'demo',
+                'layout': {'template': 'stacked_regions', 'regions': [{'id': 'main', 'width': 'full', 'order': 1}]},
+                'modules': [
+                    {
+                        'id': 'duplicate',
+                        'region': 'main',
+                        'kind': 'content.rich',
+                        'must_be_visible': True,
+                        'payload': {'text': '第一块。'},
+                    },
+                    {
+                        'id': 'duplicate',
+                        'region': 'main',
+                        'kind': 'content.rich',
+                        'must_be_visible': True,
+                        'payload': {'text': '第二块。'},
+                    },
+                ],
+                'content_blocks': {},
+                'interaction_spec': {'interaction_kind': 'none'},
+            }
+        },
+    }
+
+    result = audit_interactive_manifest.audit_manifest(manifest)
+
+    assert result['status'] == 'fail'
+    assert any(issue['issue'] == 'module_duplicate_id' for issue in result['issues'])
+
+
+def test_manifest_audit_rejects_module_region_not_declared():
+    manifest = {
+        'lesson_id': 'demo',
+        'steps': {
+            'step-01': {
+                'title': 'demo',
+                'layout': {'template': 'stacked_regions', 'regions': [{'id': 'main', 'width': 'full', 'order': 1}]},
+                'modules': [
+                    {
+                        'id': 'intro',
+                        'region': 'sidebar',
+                        'kind': 'content.rich',
+                        'must_be_visible': True,
+                        'payload': {'text': '模块不能挂到 layout 未声明的区域。'},
+                    }
+                ],
+                'content_blocks': {},
+                'interaction_spec': {'interaction_kind': 'none'},
+            }
+        },
+    }
+
+    result = audit_interactive_manifest.audit_manifest(manifest)
+
+    assert result['status'] == 'fail'
+    assert any(issue['issue'] == 'module_region_not_declared' for issue in result['issues'])
+
+
+def test_manifest_audit_rejects_activity_cards_without_activity_interaction_kind():
+    manifest = {
+        'lesson_id': 'demo',
+        'steps': {
+            'step-01': {
+                'title': 'demo',
+                'layout': {'template': 'stacked_regions', 'regions': [{'id': 'activity', 'width': 'full', 'order': 1}]},
+                'modules': [
+                    {
+                        'id': 'quiz',
+                        'region': 'activity',
+                        'kind': 'activity.panel',
+                        'must_be_visible': True,
+                        'payload': {'interaction_key': 'quiz'},
+                    }
+                ],
+                'content_blocks': {},
+                'interaction_spec': {
+                    'activity_cards': [
+                        {
+                            'id': 'q1',
+                            'prompt': '哪一项是输出？',
+                            'response_kind': 'choice.single',
+                            'options': [{'key': 'A', 'text': '输出'}],
+                            'reference_answer': 'A',
+                        }
+                    ]
+                },
+            }
+        },
+    }
+
+    result = audit_interactive_manifest.audit_manifest(manifest)
+
+    assert result['status'] == 'fail'
+    assert any(issue['issue'] == 'activity_interaction_kind_missing' for issue in result['issues'])
+
+
 def test_manifest_audit_rejects_compute_panel_without_entry_payload():
     manifest = {
         'lesson_id': 'demo',

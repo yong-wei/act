@@ -1,0 +1,50 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "1-1",
+  "status": "accepted",
+  "accepted_at": "2026-06-08T13:09:16+08:00",
+  "review_mode": "subagent",
+  "source_files": {
+    "interactive_page": "course-content/authoring/lessons/1-1/design/1-1-interactive-page.md",
+    "interactive_contract": "course-content/authoring/lessons/1-1/design/1-1-interactive-contract.yaml",
+    "handout": "course-content/authoring/lessons/1-1/design/1-1-handout.md",
+    "sequence": "course-content/authoring/knowledge/cards/lessons/1-1/sequence.json"
+  },
+  "checks": {
+    "evidence_complete": "pass",
+    "contract_alignment": "pass",
+    "student_self_contained": "pass",
+    "no_prose_pollution": "pass",
+    "sequence_finalized": "pass",
+    "standard_module_contract": "pass",
+    "runtime_audit": "pass"
+  },
+  "sequence_source": "interactive_design_finalized",
+  "subagent_reviews": [
+    {
+      "agent_id": "019ea599-fa3c-7222-89a5-3b0b80dcb239",
+      "scope": "steps 01-05",
+      "status": "pass",
+      "note": "首三步、新标准新课边界、开环诊断路线、模型迁移与 sequence 卡片顺序通过。"
+    },
+    {
+      "agent_id": "019ea59a-406b-7983-8a0e-0bd88193ecc6",
+      "scope": "steps 06-10 and control semantics",
+      "status": "pass",
+      "note": "step 09 前无实质性反馈、闭环、误差提前引入；06-10 控制语义通过。"
+    },
+    {
+      "agent_id": "019ea59a-e864-77c3-857b-def6121319bb",
+      "scope": "steps 11-15",
+      "status": "pass",
+      "note": "脚本显影、后测解释、总结页信息图与学生/教师统计边界通过。"
+    },
+    {
+      "agent_id": "019ea59b-2db6-7213-876e-29305dfeb1a8",
+      "scope": "contract, audit, tests and gates",
+      "status": "pass",
+      "note": "新课标准模块门禁、layout/activity 审计、stageMap 渲染与测试覆盖通过。"
+    }
+  ],
+  "issues": []
+}

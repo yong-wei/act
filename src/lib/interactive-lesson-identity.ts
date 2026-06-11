@@ -1,4 +1,5 @@
 import { CRUISE_COURSE_TITLE, CRUISE_PRESET_KEY } from '@/lib/cruise-course';
+import { UNIT_1_1_COURSE_TITLE, UNIT_1_1_LESSON_KEY, UNIT_1_1_PRESET_KEY, UNIT_1_1_ROUTE_SEGMENT } from '@/lib/unit-1-1-course';
 import { UNIT_2_1_COURSE_TITLE, UNIT_2_1_PRESET_KEY, UNIT_2_1_ROUTE_SEGMENT } from '@/lib/unit-2-1-course';
 import { UNIT_2_2_COURSE_TITLE, UNIT_2_2_PRESET_KEY, UNIT_2_2_ROUTE_SEGMENT } from '@/lib/unit-2-2-course';
 import { UNIT_2_3_COURSE_TITLE, UNIT_2_3_PRESET_KEY, UNIT_2_3_ROUTE_SEGMENT } from '@/lib/unit-2-3-course';
@@ -111,6 +112,19 @@ export const INTERACTIVE_LESSON_IDENTITY_REGISTRY: readonly InteractiveLessonIde
       '柔性之海——豪华邮轮的舒适度控制',
     ],
     evidenceAliases: ['cruise-comfort-boppps', CRUISE_PRESET_KEY],
+  },
+  {
+    canonicalId: '1-1',
+    routeSegments: [UNIT_1_1_ROUTE_SEGMENT],
+    runtimeLessonDir: '1-1',
+    lessonKeys: [UNIT_1_1_LESSON_KEY, UNIT_1_1_PRESET_KEY],
+    presetKeys: [UNIT_1_1_PRESET_KEY],
+    planTitleAliases: unique([
+      UNIT_1_1_COURSE_TITLE,
+      '1-1：看见整门课：从反馈思想到控制全景',
+      '看见整门课：从反馈思想到控制全景',
+    ]),
+    evidenceAliases: unique(['1-1', UNIT_1_1_ROUTE_SEGMENT, UNIT_1_1_LESSON_KEY, UNIT_1_1_PRESET_KEY]),
   },
   unitRecord('2-1', UNIT_2_1_ROUTE_SEGMENT, UNIT_2_1_PRESET_KEY, UNIT_2_1_COURSE_TITLE, [
     '2-1：建模与变换语言——从真实对象到统一分析对象',

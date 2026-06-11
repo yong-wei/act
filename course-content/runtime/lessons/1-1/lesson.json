@@ -62,9 +62,8 @@
       {
         "group_name": "反馈与开闭环",
         "step_ids": [
-          "step-01",
-          "step-02",
-          "step-03"
+          "step-09",
+          "step-10"
         ],
         "node_ids": [
           "反馈_1_1",
@@ -79,7 +78,8 @@
           "step-04",
           "step-05",
           "step-06",
-          "step-07"
+          "step-07",
+          "step-08"
         ],
         "node_ids": [
           "传递函数_1_1",
@@ -95,9 +95,10 @@
       {
         "group_name": "校正与课程总图",
         "step_ids": [
-          "step-08",
           "step-09",
-          "step-10"
+          "step-10",
+          "step-11",
+          "step-15"
         ],
         "node_ids": [
           "控制器_1_1",
@@ -109,10 +110,6 @@
       }
     ],
     "card_order": [
-      "反馈_1_1",
-      "开环控制_1_1",
-      "闭环控制_1_1",
-      "误差_1_1",
       "传递函数_1_1",
       "极点_1_1",
       "时域响应_1_1",
@@ -121,6 +118,10 @@
       "根轨迹_1_1",
       "频域响应_1_1",
       "Bode图_1_1",
+      "反馈_1_1",
+      "开环控制_1_1",
+      "闭环控制_1_1",
+      "误差_1_1",
       "控制器_1_1",
       "比例控制_1_1",
       "校正_1_1",
@@ -144,5 +145,7 @@
     "interactive_page_check_path": "/course-runtime/lessons/1-1/review/interactive-page-check.json",
     "multimedia_check_path": "/course-runtime/lessons/1-1/review/multimedia-check.json",
     "source_manifest_path": "/course-runtime/lessons/1-1/review/source-manifest.json"
-  }
+  },
+  "interactive_manifest_path": "/course-runtime/lessons/1-1/interactive-manifest.json",
+  "interactive_manifest_source_path": "course-content/runtime/lessons/1-1/interactive-manifest.json"
 }

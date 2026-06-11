@@ -517,6 +517,123 @@ describe('interactive runtime manifest', () => {
     expect(html).not.toContain('data-manifest-render-error');
   });
 
+  it('renders content.stageMap object-array items from module payload', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-stage-map': {
+          title: '阶段图测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'stage-map',
+              region: 'main',
+              kind: 'content.stageMap',
+              must_be_visible: true,
+              payload: {
+                title: '模块路线',
+                text: '当前从总览出发。',
+                items: [
+                  { id: '1-1', title: '看见整门课', status: 'current' },
+                  { id: '1-2', title: '模型与极点', status: 'upcoming' },
+                ],
+              },
+            },
+          ],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'display',
+            activity_cards: [],
+          },
+        },
+      },
+    });
+    const step = manifest!.steps[0]!;
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+
+    const html = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        registry['content.stageMap']?.({
+          manifest: manifest!,
+          step,
+          module: step.modules[0]!,
+          extra: {
+            revealProgress: 0,
+            allowInlineReveal: false,
+          },
+        }),
+      ),
+    );
+
+    expect(html).toContain('看见整门课');
+    expect(html).toContain('模型与极点');
+    expect(html).toContain('当前');
+    expect(html).not.toContain('data-manifest-render-error');
+  });
+
+  it('renders content.stageMap object-array stages from module payload', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-stage-map': {
+          title: '阶段图测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'stage-map',
+              region: 'main',
+              kind: 'content.stageMap',
+              must_be_visible: true,
+              payload: {
+                title: '模块路线',
+                stages: [
+                  { id: 'diagnosis', label: '开环诊断', status: 'current' },
+                  { id: 'correction', label: '反馈校正', status: 'upcoming' },
+                ],
+              },
+            },
+          ],
+          content_blocks: {},
+          interaction_spec: {
+            interaction_kind: 'display',
+            activity_cards: [],
+          },
+        },
+      },
+    });
+    const step = manifest!.steps[0]!;
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+
+    const html = renderToStaticMarkup(
+      createElement(
+        'div',
+        null,
+        registry['content.stageMap']?.({
+          manifest: manifest!,
+          step,
+          module: step.modules[0]!,
+          extra: {
+            revealProgress: 0,
+            allowInlineReveal: false,
+          },
+        }),
+      ),
+    );
+
+    expect(html).toContain('开环诊断');
+    expect(html).toContain('反馈校正');
+    expect(html).toContain('当前');
+    expect(html).not.toContain('data-manifest-render-error');
+  });
+
   it('renders 5-4 step-08 case text inline formulas through KaTeX', async () => {
     const runtime = await loadLessonRuntimeEntry('5-4');
     const manifest = runtime.interactiveManifest!;

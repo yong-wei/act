@@ -9,6 +9,7 @@ import { createManifestContentModuleRegistry } from '@/features/interactive/shar
 import {
   evaluateInteractiveModuleRegistryGate,
   scanRuntimeInteractiveModuleRegistry,
+  STANDARD_MODULE_ENFORCED_LESSON_IDS,
   STANDARD_MODULE_MIGRATED_LESSON_IDS,
 } from '@/features/interactive/shared/manifest-runtime/module-registry-gate';
 import {
@@ -931,7 +932,7 @@ describe('interactive module registry gate', () => {
     }
   });
 
-  it('fails when a runtime-first manifest is missing from the migrated lesson inventory', () => {
+  it('fails when a runtime-first manifest is missing from the standard module lesson inventory', () => {
     const rootDir = mkdtempSync(join(tmpdir(), 'interactive-module-gate-'));
     try {
       const lessonDir = join(rootDir, 'course-content/runtime/lessons/unlisted-runtime-lesson');
@@ -962,14 +963,14 @@ describe('interactive module registry gate', () => {
 
       const result = scanRuntimeInteractiveModuleRegistry({
         rootDir,
-        migratedLessonIds: [],
+        standardModuleLessonIds: [],
       });
 
       expect(result.passed).toBe(false);
       expect(result.violations).toEqual([
         expect.objectContaining({
           lessonId: 'unlisted-runtime-lesson',
-          code: 'lesson-missing-from-migrated-inventory',
+          code: 'lesson-missing-from-standard-module-inventory',
           manifestPath: 'course-content/runtime/lessons/unlisted-runtime-lesson/interactive-manifest.json',
         }),
       ]);
@@ -978,7 +979,7 @@ describe('interactive module registry gate', () => {
     }
   });
 
-  it('passes for the current runtime manifest inventory with migrated lesson enforcement', () => {
+  it('passes for the current runtime manifest inventory with standard module lesson enforcement', () => {
     const result = scanRuntimeInteractiveModuleRegistry();
 
     expect(result.passed).toBe(true);
@@ -986,15 +987,17 @@ describe('interactive module registry gate', () => {
     expect(result.scannedModules).toBeGreaterThan(0);
   });
 
-  it('passes the migrated early lesson group with canonical modules on every step', () => {
-    const migratedLessonIds = [...STANDARD_MODULE_MIGRATED_LESSON_IDS];
-    const result = scanRuntimeInteractiveModuleRegistry({ migratedLessonIds });
+  it('passes the standard module lesson group with canonical modules on every step', () => {
+    const standardModuleLessonIds = [...STANDARD_MODULE_ENFORCED_LESSON_IDS];
+    const result = scanRuntimeInteractiveModuleRegistry({ standardModuleLessonIds });
     const canonicalClasses = new Set<string>(INTERACTIVE_MODULE_CANONICAL_CLASSES);
 
     expect(result.passed).toBe(true);
     expect(result.violations).toEqual([]);
 
-    for (const lessonId of migratedLessonIds) {
+    expect(standardModuleLessonIds).toContain('1-1');
+
+    for (const lessonId of standardModuleLessonIds) {
       const manifest = JSON.parse(
         readFileSync(join(process.cwd(), 'course-content/runtime/lessons', lessonId, 'interactive-manifest.json'), 'utf8'),
       ) as {

@@ -10,6 +10,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
+import { UNIT_1_1_PREMIUM_LESSON_CARD } from '@/lib/unit-1-1-course';
 import { UNIT_2_1_PREMIUM_LESSON_CARD } from '@/lib/unit-2-1-course';
 import { UNIT_2_2_PREMIUM_LESSON_CARD } from '@/lib/unit-2-2-course';
 import { UNIT_2_3_PREMIUM_LESSON_CARD } from '@/lib/unit-2-3-course';
@@ -151,6 +152,7 @@ export const CHAPTER_COMPONENT_CATEGORIES = CATEGORY_ORDER.filter(
 );
 
 export const FEATURED_LESSONS = [
+  UNIT_1_1_PREMIUM_LESSON_CARD,
   UNIT_2_1_PREMIUM_LESSON_CARD,
   UNIT_2_2_PREMIUM_LESSON_CARD,
   UNIT_2_3_PREMIUM_LESSON_CARD,
@@ -188,12 +190,14 @@ export const FEATURED_LESSONS = [
 ] as const;
 
 export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
+  lesson.id === 'unit-1-1-see-the-full-picture' ||
   lesson.id === 'cruise-comfort-boppps'
 );
 
 export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
   (lesson) =>
     lesson.id !== 'cruise-comfort-boppps' &&
+    lesson.id !== 'unit-1-1-see-the-full-picture' &&
     lesson.id !== 'unit-2-1-modeling-language' &&
     lesson.id !== 'unit-2-2-time-domain-response' &&
     lesson.id !== 'unit-2-3-frequency-response-bode-intro' &&
@@ -245,6 +249,15 @@ function createModuleLesson(id: string, unitLabel: string, legacySourceLabel?: s
 }
 
 export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
+  {
+    id: 'module-1',
+    title: '模块1',
+    description: '模块1当前开放 1-1 一个全景导览单元，用一条船为贯穿对象，90分钟闪电遍历自动控制原理全部核心主题——从建模、时域、稳定性、根轨迹、频域到反馈与校正，走通诊断—校正—验证的完整闭环。',
+    chipLabel: '已开放单元',
+    lessons: [
+      createModuleLesson('unit-1-1-see-the-full-picture', '1-1'),
+    ],
+  },
   {
     id: 'module-2',
     title: '模块2',

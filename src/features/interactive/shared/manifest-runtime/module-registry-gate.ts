@@ -29,7 +29,7 @@ export type InteractiveModuleRegistryGateViolationCode =
   | 'compute-missing-capability-ref'
   | 'compute-unregistered-capability-ref'
   | 'invalid-runtime-manifest'
-  | 'lesson-missing-from-migrated-inventory';
+  | 'lesson-missing-from-standard-module-inventory';
 
 export interface InteractiveModuleRegistryGateViolation {
   lessonId: string;
@@ -52,6 +52,7 @@ export interface InteractiveModuleRegistryGateManifestInput {
 
 export interface InteractiveModuleRegistryGateInput {
   manifests: InteractiveModuleRegistryGateManifestInput[];
+  standardModuleLessonIds?: readonly string[];
   migratedLessonIds?: readonly string[];
 }
 
@@ -100,7 +101,8 @@ const STEP_INTERACTIONS_ALLOWING_EMPTY_ACTIVITY_CARDS = new Set([
   'teacher_reveal_only',
 ]);
 
-export const STANDARD_MODULE_MIGRATED_LESSON_IDS = [
+export const STANDARD_MODULE_ENFORCED_LESSON_IDS = [
+  '1-1',
   '2-1',
   '2-2',
   '2-3',
@@ -129,6 +131,8 @@ export const STANDARD_MODULE_MIGRATED_LESSON_IDS = [
   '5-6',
   'cruise-comfort-boppps',
 ] as const;
+
+export const STANDARD_MODULE_MIGRATED_LESSON_IDS = STANDARD_MODULE_ENFORCED_LESSON_IDS;
 
 export function evaluateInteractiveModuleRegistryGate({
   manifests,
@@ -182,11 +186,14 @@ export function evaluateInteractiveModuleRegistryGate({
 
 export function scanRuntimeInteractiveModuleRegistry({
   rootDir = process.cwd(),
-  migratedLessonIds = STANDARD_MODULE_MIGRATED_LESSON_IDS,
+  standardModuleLessonIds,
+  migratedLessonIds,
 }: {
   rootDir?: string;
+  standardModuleLessonIds?: readonly string[];
   migratedLessonIds?: readonly string[];
 } = {}): InteractiveModuleRegistryGateResult {
+  const enforcedLessonIds = standardModuleLessonIds ?? migratedLessonIds ?? STANDARD_MODULE_ENFORCED_LESSON_IDS;
   const lessonRoot = join(rootDir, 'course-content/runtime/lessons');
   const manifests = collectManifestPaths(lessonRoot)
     .map((manifestPath): InteractiveModuleRegistryGateScanItem => {
@@ -235,9 +242,9 @@ export function scanRuntimeInteractiveModuleRegistry({
   }
   const result = evaluateInteractiveModuleRegistryGate({
     manifests: validManifests,
-    migratedLessonIds,
+    standardModuleLessonIds: enforcedLessonIds,
   });
-  const inventoryViolations = missingMigratedInventoryViolations(validManifests, migratedLessonIds);
+  const inventoryViolations = missingStandardModuleInventoryViolations(validManifests, enforcedLessonIds);
 
   return {
     passed: result.violations.length === 0 && invalidViolations.length === 0 && inventoryViolations.length === 0,
@@ -614,23 +621,23 @@ function invalidManifestViolation(
   };
 }
 
-function missingMigratedInventoryViolations(
+function missingStandardModuleInventoryViolations(
   manifests: InteractiveModuleRegistryGateManifestInput[],
-  migratedLessonIds: readonly string[],
+  standardModuleLessonIds: readonly string[],
 ): InteractiveModuleRegistryGateViolation[] {
-  const migratedLessons = new Set(migratedLessonIds);
+  const enforcedLessons = new Set(standardModuleLessonIds);
   const seen = new Set<string>();
   const violations: InteractiveModuleRegistryGateViolation[] = [];
   for (const item of manifests) {
-    if (migratedLessons.has(item.lessonId) || seen.has(item.lessonId)) continue;
+    if (enforcedLessons.has(item.lessonId) || seen.has(item.lessonId)) continue;
     seen.add(item.lessonId);
     violations.push({
       lessonId: item.lessonId,
       stepId: '',
       moduleId: '(lesson)',
       kind: '',
-      code: 'lesson-missing-from-migrated-inventory',
-      message: `${item.lessonId} has a runtime interactive manifest but is missing from the standard module migrated lesson inventory.`,
+      code: 'lesson-missing-from-standard-module-inventory',
+      message: `${item.lessonId} has a runtime interactive manifest but is missing from the standard module lesson inventory.`,
       ...(item.manifestPath ? { manifestPath: item.manifestPath } : {}),
     });
   }
