@@ -79,6 +79,24 @@ export function ArenaPageShell({
   const mobileDrawerDialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const desktopMediaQuery = window.matchMedia('(min-width: 1024px)');
+    if (desktopMediaQuery.matches) {
+      setMobileNavigationOpen(false);
+    }
+
+    const handleDesktopBreakpoint = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        setMobileNavigationOpen(false);
+      }
+    };
+
+    desktopMediaQuery.addEventListener('change', handleDesktopBreakpoint);
+    return () => {
+      desktopMediaQuery.removeEventListener('change', handleDesktopBreakpoint);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!mobileNavigationOpen) return undefined;
 
     const shellContent = shellContentRef.current;
@@ -98,9 +116,9 @@ export function ArenaPageShell({
       shellContent?.removeAttribute('inert');
       shellContent?.removeAttribute('aria-hidden');
       window.requestAnimationFrame(() => {
-        const restoreTarget = previouslyFocusedElement?.isConnected
-          ? previouslyFocusedElement
-          : restoreFallbackElement;
+        const restoreTarget = restoreFallbackElement?.isConnected
+          ? restoreFallbackElement
+          : previouslyFocusedElement?.isConnected ? previouslyFocusedElement : null;
         restoreTarget?.focus();
       });
     };

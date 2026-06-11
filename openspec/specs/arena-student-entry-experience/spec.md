@@ -25,7 +25,8 @@ The system SHALL render the Arena hall and challenge detail pages with a consist
 - **AND** Tab and Shift+Tab navigation SHALL remain within drawer controls until the drawer closes
 - **AND** Escape SHALL close the drawer
 - **AND** the underlying shell content SHALL NOT remain reachable by keyboard navigation while the drawer is open
-- **AND** closing the drawer SHALL restore focus to the drawer opener when it is still available.
+- **AND** closing the drawer SHALL restore focus to the drawer opener when it is still available
+- **AND** entering the desktop navigation breakpoint while the drawer is open SHALL close the mobile drawer before the hidden dialog can keep shell content inert.
 
 ### Requirement: Public entry points remove the review entry
 The system SHALL remove the review entry from public student-facing navigation surfaces while preserving the internal `/review` route and review pages.

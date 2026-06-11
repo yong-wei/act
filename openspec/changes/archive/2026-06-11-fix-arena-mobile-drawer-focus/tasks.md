@@ -5,6 +5,7 @@
 - [x] 1.3 Close the drawer on Escape and restore focus to the opener.
 - [x] 1.4 Hide the underlying shell content from keyboard and assistive navigation while the drawer is open.
 - [x] 1.5 Add regression assertions for the drawer focus lifecycle.
+- [x] 1.6 Close the mobile drawer when the viewport enters the desktop navigation breakpoint.
 
 ## 2. Verification
 
