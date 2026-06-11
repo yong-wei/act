@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" role="img" aria-hidden="true">
+  <defs>
+    <radialGradient id="map-bg" cx=".22" cy=".2" r=".9">
+      <stop offset="0" stop-color="#14b8a6" stop-opacity=".22"/>
+      <stop offset=".48" stop-color="#0ea5e9" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#020617" stop-opacity=".03"/>
+    </radialGradient>
+    <linearGradient id="map-edge" x1="0" x2="1">
+      <stop offset="0" stop-color="#5eead4"/>
+      <stop offset="1" stop-color="#93c5fd"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="420" rx="34" fill="url(#map-bg)"/>
+  <g fill="none" stroke="#94a3b8" stroke-opacity=".22">
+    <path d="M84 328C188 220 292 186 396 226s184 16 240-72"/>
+    <path d="M106 104c88 72 180 84 276 36 92-46 170-42 234 12"/>
+    <path d="M134 360 608 76"/>
+  </g>
+  <g stroke="url(#map-edge)" stroke-width="4" stroke-linecap="round" fill="none">
+    <path d="M132 284 248 212 356 246 474 152 594 180"/>
+    <path d="M174 134 272 168 382 118 520 132"/>
+  </g>
+  <g fill="#0f172a" fill-opacity=".12" stroke="#e2e8f0" stroke-opacity=".62" stroke-width="2">
+    <circle cx="132" cy="284" r="28"/>
+    <circle cx="248" cy="212" r="34"/>
+    <circle cx="356" cy="246" r="26"/>
+    <circle cx="474" cy="152" r="38"/>
+    <circle cx="594" cy="180" r="30"/>
+    <circle cx="174" cy="134" r="23"/>
+    <circle cx="272" cy="168" r="21"/>
+    <circle cx="382" cy="118" r="24"/>
+    <circle cx="520" cy="132" r="22"/>
+  </g>
+  <g fill="#5eead4">
+    <circle cx="248" cy="212" r="7"/>
+    <circle cx="474" cy="152" r="8"/>
+    <circle cx="594" cy="180" r="6"/>
+  </g>
+</svg>

@@ -72,7 +72,7 @@ export function ChallengeKnowledgePreview({ items }: { items: RelatedKnowledgeRe
   const relations = node?.relatedNodes ?? [];
 
   if (items.length === 0) {
-    return <p className="text-sm text-slate-500">暂无关联知识点。</p>;
+    return <p className="text-sm text-subtle">暂无关联知识点。</p>;
   }
 
   return (
@@ -85,8 +85,8 @@ export function ChallengeKnowledgePreview({ items }: { items: RelatedKnowledgeRe
             onClick={() => setSelected(item)}
             className={`rounded-lg border px-3 py-2 text-left text-sm transition ${
               selected?.nodeId === item.nodeId
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:text-blue-700'
+                ? 'border-primary/55 bg-primary/12 text-primary shadow-sm'
+                : 'border-border/70 bg-background/70 text-subtle hover:border-primary/40 hover:text-primary'
             }`}
           >
             {item.label}
@@ -94,32 +94,32 @@ export function ChallengeKnowledgePreview({ items }: { items: RelatedKnowledgeRe
         ))}
       </div>
 
-      <div className="rounded-lg border border-blue-100 bg-blue-50/60 p-4">
+      <div className="rounded-lg border border-border/70 bg-background/60 p-4">
         {loading ? (
-          <div className="flex items-center gap-2 text-sm text-slate-500">
+          <div className="flex items-center gap-2 text-sm text-subtle">
             <Loader2 className="h-4 w-4 animate-spin" />
             正在加载知识预览
           </div>
         ) : node ? (
           <div className="grid gap-4">
             <div>
-              <div className="text-xs font-medium text-blue-700">知识预览</div>
-              <h3 className="mt-1 text-base font-semibold text-slate-950">{node.name}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{node.description}</p>
-              <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
+              <div className="text-xs font-medium text-primary">知识预览</div>
+              <h3 className="mt-1 text-base font-semibold text-foreground">{node.name}</h3>
+              <p className="mt-2 text-sm leading-6 text-subtle">{node.description}</p>
+              <div className="mt-3 flex flex-wrap gap-2 text-xs text-subtle">
                 {node.chapterName || node.chapter ? <span>章节：{node.chapterName ?? node.chapter}</span> : null}
                 {tags.map((tag) => (
-                  <span key={tag} className="rounded-full bg-white px-2 py-1">{tag}</span>
+                  <span key={tag} className="rounded-full border border-border/70 bg-background/70 px-2 py-1">{tag}</span>
                 ))}
               </div>
             </div>
 
             {relations.length > 0 ? (
-              <div className="grid gap-2 text-xs text-slate-500">
-                <div className="font-medium text-slate-700">关联关系</div>
+              <div className="grid gap-2 text-xs text-subtle">
+                <div className="font-medium text-foreground">关联关系</div>
                 <div className="flex flex-wrap gap-2">
                   {relations.slice(0, 6).map((relation) => (
-                    <span key={relation.id} className="rounded-full border border-blue-100 bg-white px-2 py-1">
+                    <span key={relation.id} className="rounded-full border border-border/70 bg-background/70 px-2 py-1">
                       {relation.name}
                     </span>
                   ))}
@@ -128,7 +128,7 @@ export function ChallengeKnowledgePreview({ items }: { items: RelatedKnowledgeRe
             ) : null}
 
             {infographSrc ? (
-              <figure className="overflow-hidden rounded-lg border border-blue-100 bg-white">
+              <figure className="overflow-hidden rounded-lg border border-border/70 bg-background/70">
                 <Image
                   src={infographSrc}
                   alt={`${node.name}信息图`}
@@ -154,7 +154,7 @@ export function ChallengeKnowledgePreview({ items }: { items: RelatedKnowledgeRe
                   href={infographSrc}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50"
+                  className="inline-flex items-center gap-2 rounded-lg border border-border/70 bg-background/70 px-3 py-2 text-sm font-medium text-foreground hover:border-primary/40 hover:text-primary"
                 >
                   <ImageIcon className="h-4 w-4" />
                   查看信息图
@@ -164,7 +164,7 @@ export function ChallengeKnowledgePreview({ items }: { items: RelatedKnowledgeRe
             <KnowledgeCardDialog open={cardOpen} onOpenChange={setCardOpen} node={node} />
           </div>
         ) : selected ? (
-          <div className="text-sm text-slate-500">{selected.label}</div>
+          <div className="text-sm text-subtle">{selected.label}</div>
         ) : null}
       </div>
     </div>

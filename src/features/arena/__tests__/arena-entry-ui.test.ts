@@ -82,6 +82,7 @@ describe('arena student entry UI boundaries', () => {
     const hallSource = readRepoFile('src/features/arena/arena-hall.tsx');
     const detailSource = readRepoFile('src/features/arena/challenge-detail.tsx');
     const shellSource = readRepoFile('src/features/arena/arena-page-shell.tsx');
+    const visualAssetSource = readRepoFile('src/components/platform/visual-world-assets.ts');
     const homeSource = readRepoFile('src/app/page.tsx');
     const authLayoutSource = readRepoFile('src/app/(auth)/layout.tsx');
     const navigationSource = readRepoFile('src/lib/platform-role-navigation.ts');
@@ -109,6 +110,22 @@ describe('arena student entry UI boundaries', () => {
     expect(shellSource).not.toContain("bg-[#061b3c]");
     expect(shellSource).not.toContain("bg-[#f6f9ff]");
     expect(shellSource).toContain('href="/profile"');
+    expect(shellSource).toContain('data-shell-navigation-state');
+    expect(shellSource).toContain('data-mobile-navigation="drawer"');
+    expect(shellSource).toContain('PanelLeftClose');
+    expect(shellSource).toContain('PanelLeftOpen');
+    expect(shellSource).toContain('aria-label="打开竞技场导航"');
+    expect(shellSource).toContain('<span className="min-w-0 truncate">个人中心</span>');
+    expect(visualAssetSource).toContain('/assets/platform/visual-worlds/arena/control-bench.svg');
+    expect(visualAssetSource).toContain('/assets/platform/visual-worlds/arena/challenge-map.svg');
+    expect(visualAssetSource).toContain('/assets/platform/visual-worlds/arena/score-field.svg');
+    expect(visualAssetSource).toContain('/assets/platform/visual-worlds/arena/empty-state.svg');
+    expect(hallSource).toContain("ARENA_VISUAL_ASSETS['challenge-map'].src");
+    expect(hallSource).toContain("ARENA_VISUAL_ASSETS['score-field'].src");
+    expect(detailSource).toContain("ARENA_VISUAL_ASSETS['control-bench'].src");
+    expect(detailSource).toContain("ARENA_VISUAL_ASSETS['score-field'].src");
+    expect(`${hallSource}\n${detailSource}\n${shellSource}`).not.toContain('商业');
+    expect(`${hallSource}\n${detailSource}\n${shellSource}`).not.toMatch(/[\u{1F300}-\u{1FAFF}]/u);
     expect(detailSource).toContain('`/arena/challenges/${task.id}`');
     expect(homeSource).not.toContain('评审入口');
     expect(homeSource).not.toContain("href: '/review'");
@@ -194,6 +211,8 @@ describe('arena student entry UI boundaries', () => {
 
     expect(html).toContain('能力训练地图');
     expect(html).toContain('训练阶段');
+    expect(html).toContain('本阶段');
+    expect(html).toContain('个挑战');
     expect(html).toContain('训练能力');
     expect(html).toContain('时域整形');
     expect(html).toContain('隐藏场景鲁棒性');
@@ -228,8 +247,10 @@ describe('arena student entry UI boundaries', () => {
     expect(detailSource).toContain('BlockMath');
     expect(detailSource).toContain('基础目标');
     expect(detailSource).toContain('硬约束');
+    expect(detailSource).not.toContain('-right-16 -top-16 h-44 w-72');
     expect(detailAndPreviewSource).toContain('KnowledgeCardDialog');
     expect(detailAndPreviewSource).toContain('/api/knowledge/nodes/');
+    expect(knowledgePreviewSource).not.toMatch(/bg-white|bg-blue-50|text-slate-|border-slate-|border-blue-/);
     expect(hallSource).toContain("'main', label: '主榜'");
     expect(hallSource).toContain("'method', label: '方法榜'");
     expect(hallSource).toContain("'metric', label: '指标榜'");
