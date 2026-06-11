@@ -1268,8 +1268,11 @@ function asDocumentRubricGradingRun(value: unknown): DocumentRubricGradingRun | 
   const approvedGrades = Array.isArray(record.approvedGrades)
     ? record.approvedGrades.map(asCriterionDraftGrade).filter((grade): grade is CriterionDraftGrade => Boolean(grade))
     : null;
+  const annotations = Array.isArray(record.annotations)
+    ? record.annotations.map(asGradingAnnotation).filter((annotation): annotation is GradingAnnotation => Boolean(annotation))
+    : null;
   const teacherReview = asRecord(record.teacherReview);
-  if (!id || !assetId || !convertedDocumentId || !rubricId || !rubricVersion || !createdAt || !updatedAt || !draftGrades || !approvedGrades || !teacherReview) {
+  if (!id || !assetId || !convertedDocumentId || !rubricId || !rubricVersion || !createdAt || !updatedAt || !draftGrades || !approvedGrades || !annotations || !teacherReview) {
     return null;
   }
   return {
@@ -1281,7 +1284,7 @@ function asDocumentRubricGradingRun(value: unknown): DocumentRubricGradingRun | 
     status: isGradingRunStatus(record.status) ? record.status : 'draft',
     draftGrades,
     approvedGrades,
-    annotations: [],
+    annotations,
     teacherReview: {
       reviewerId: stringFrom(teacherReview.reviewerId),
       reviewedAt: stringFrom(teacherReview.reviewedAt),
@@ -1290,6 +1293,26 @@ function asDocumentRubricGradingRun(value: unknown): DocumentRubricGradingRun | 
     },
     createdAt,
     updatedAt,
+  };
+}
+
+function asGradingAnnotation(value: unknown): GradingAnnotation | null {
+  const record = asRecord(value);
+  if (!record) return null;
+  const id = stringFrom(record.id);
+  const criterionId = stringFrom(record.criterionId);
+  const reference = asEvidenceReference(record.reference);
+  const comment = stringFrom(record.comment);
+  const authorRole = record.authorRole === 'teacher' ? 'teacher' : record.authorRole === 'ai-draft' ? 'ai-draft' : null;
+  if (!id || !criterionId || !reference || comment === null || !authorRole) {
+    return null;
+  }
+  return {
+    id,
+    criterionId,
+    reference,
+    comment,
+    authorRole,
   };
 }
 

@@ -3,6 +3,7 @@ import { vi } from 'vitest';
 
 import {
   approveGradingRun,
+  buildDocumentRubricDraftDedupeKey,
   buildStudentGradingFeedbackView,
   buildTeacherGradingWorkbenchView,
   convertSubmissionDocument,
@@ -10,6 +11,7 @@ import {
   createMarkItDownConversionAdapter,
   createSubmissionAsset,
   editCriterionGrade,
+  parsePersistedDocumentRubricGradingDraft,
   previewApprovedGradingEvidence,
   textFixtureMarkItDownRunner,
   writeApprovedGradingEvidence,
@@ -374,5 +376,56 @@ describe('document rubric grading workbench', () => {
     expect(otherStudentView.status).toBe('hidden-unapproved');
     expect(returnedDraftView.status).toBe('hidden-unapproved');
     expect(returnedEditedView.status).toBe('visible');
+  });
+
+  it('parses persisted grading annotations for real teacher workbench views', async () => {
+    const submission = asset();
+    const converted = await convertSubmissionDocument({
+      asset: submission,
+      adapter: createMarkItDownConversionAdapter({
+        now,
+        preserveSpanMapping: true,
+        runner: (documentAsset) => textFixtureMarkItDownRunner(documentAsset, true),
+      }),
+      now,
+    });
+    const draft = createDraftRubricGrading({ convertedDocument: converted, rubric: rubric(), now });
+    const parsed = parsePersistedDocumentRubricGradingDraft({
+      id: draft.id,
+      ownerUserId: submission.studentId,
+      dedupeKey: buildDocumentRubricDraftDedupeKey(submission, draft),
+      classId: submission.classId,
+      sourceRefs: {
+        asset: submission,
+        classId: submission.classId,
+        assignmentId: submission.assignmentId,
+        goalId: 'control-report',
+        targetGoal: 'control-report',
+      },
+      evidenceRefs: {
+        convertedDocument: converted,
+      },
+      summary: {
+        run: draft,
+        rubric: rubric(),
+      },
+    });
+
+    expect(parsed?.run.annotations).toHaveLength(2);
+    expect(parsed?.run.annotations[0]).toEqual(expect.objectContaining({
+      id: 'annotation:modeling:1',
+      criterionId: 'modeling',
+      authorRole: 'ai-draft',
+      reference: expect.objectContaining({
+        convertedDocumentId: converted.id,
+        precision: 'span',
+      }),
+    }));
+    expect(buildTeacherGradingWorkbenchView({
+      asset: parsed!.asset,
+      convertedDocument: parsed!.convertedDocument,
+      rubric: parsed!.rubric,
+      run: parsed!.run,
+    }).annotations).toHaveLength(2);
   });
 });
