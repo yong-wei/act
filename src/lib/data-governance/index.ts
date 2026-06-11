@@ -34,6 +34,7 @@ export * from './course-evidence-specs';
 export * from './learning-evidence-rag-corpus';
 
 // Role-based learning diagnosis
+export * from './control-correction-diagnosis-profile';
 export * from './role-based-learning-diagnosis';
 export * from './teacher-prep-pack-generation';
 

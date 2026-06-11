@@ -1794,6 +1794,24 @@ model StudentEvidenceFeatureCache {
   @@index([payloadVersion])
 }
 
+model DiagnosisReportSnapshot {
+  id                  String   @id
+  goalId              String
+  subjectKind         String
+  userId              String?
+  classId             String?
+  generatedAt         DateTime
+  materializerVersion String
+  snapshot            Json
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([goalId, subjectKind, generatedAt])
+  @@index([goalId, userId, generatedAt])
+  @@index([goalId, classId, generatedAt])
+  @@index([materializerVersion, generatedAt])
+}
+
 // Optimized profile summary for AI assistant
 model StudentProfileSummary {
   userId                 String   @id

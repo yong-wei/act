@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  materializeControlCorrectionDiagnosisReport,
+  type DiagnosisReportSnapshot,
+} from '../control-correction-diagnosis-profile';
+import {
   ROLE_BASED_LEARNING_DIAGNOSIS_VERSION,
   materializeRoleBasedLearningDiagnosis,
   validateRoleBasedLearningDiagnosis,
@@ -208,6 +212,7 @@ describe('role-based learning diagnosis materialization', () => {
     const diagnosis = materializeRoleBasedLearningDiagnosis({
       ...baseInput,
       view: 'teacher-class',
+      teacherClassIds: ['class-1'],
       teacherReport: {
         classInfo: { id: 'class-1', name: '自动控制 1 班', studentCount: 32 },
         metrics: {
@@ -298,6 +303,7 @@ describe('role-based learning diagnosis materialization', () => {
       view: 'teacher-student',
       userId: null,
       targetUserId: 'student-1',
+      teacherClassIds: ['class-1'],
       evidenceCorpus: [evidence(), otherStudentEvidence],
     });
 
@@ -324,6 +330,7 @@ describe('role-based learning diagnosis materialization', () => {
       view: 'teacher-class',
       userId: 'teacher-1',
       targetUserId: null,
+      teacherClassIds: ['class-1'],
       teacherReport: {
         classInfo: { id: 'class-1', name: '自动控制 1 班', studentCount: 32 },
         metrics: {},
@@ -333,6 +340,24 @@ describe('role-based learning diagnosis materialization', () => {
 
     expect(diagnosis.claims[0].evidenceRefs.map((ref) => ref.chunkId)).toEqual(['chunk-path-1']);
     expect(diagnosis.claims[0].limitations.map((item) => item.reason)).not.toContain('missing-citation');
+  });
+
+  it('does not let teacher fallback diagnosis read class evidence outside teacherClassIds', () => {
+    const diagnosis = materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      view: 'teacher-class',
+      userId: 'teacher-1',
+      targetUserId: null,
+      teacherClassIds: ['class-2'],
+      teacherReport: {
+        classInfo: { id: 'class-1', name: '自动控制 1 班', studentCount: 32 },
+        metrics: {},
+        studentDrilldowns: [],
+      },
+    });
+
+    expect(diagnosis.claims[0].evidenceRefs).toEqual([]);
+    expect(diagnosis.claims[0].limitations.map((item) => item.reason)).toContain('missing-citation');
   });
 
   it('keeps service audit refs aligned with goal-scoped evidence even without duplicate goal tags', () => {
@@ -416,5 +441,138 @@ describe('role-based learning diagnosis materialization', () => {
     expect(diagnosis.claims[0].evidenceWindow.stale).toBe(true);
     expect(diagnosis.claims[0].limitations.map((item) => item.reason)).toContain('stale-evidence');
     expect(validateRoleBasedLearningDiagnosis(diagnosis)).toEqual([]);
+  });
+
+  it('projects governed report snapshots when available and exposes missing-snapshot fallback otherwise', () => {
+    const reportSnapshot: DiagnosisReportSnapshot = materializeControlCorrectionDiagnosisReport({
+      subject: { kind: 'student', userId: 'student-1', classId: 'class-1' },
+      goalId: 'control-correction',
+      generatedAt: now,
+      evidenceRecords: [{
+        id: 'snapshot-evidence-1',
+        sourceFamily: 'adaptive-assessment',
+        indicatorIds: ['time-response-settling-control'],
+        value: 0.72,
+        confidence: 'high',
+        updatedAt: now.toISOString(),
+        provenance: { classId: 'class-1', userId: 'student-1', goalId: 'control-correction' },
+        evidenceRef: { chunkId: 'chunk-snapshot-1', sourceType: 'diagnosis', title: '治理指标快照' },
+      }],
+      now,
+    });
+    const teacherScopedSnapshot: DiagnosisReportSnapshot = materializeControlCorrectionDiagnosisReport({
+      subject: { kind: 'student', userId: 'student-1', classId: 'class-1' },
+      goalId: 'control-correction',
+      generatedAt: now,
+      evidenceRecords: [{
+        id: 'snapshot-teacher-evidence',
+        sourceFamily: 'grading-fact',
+        indicatorIds: ['reflection-error-correction'],
+        value: 'proficient',
+        confidence: 'high',
+        updatedAt: now.toISOString(),
+        provenance: { classId: 'class-1', userId: 'student-1', goalId: 'control-correction' },
+        evidenceRef: {
+          chunkId: 'teacher-private-ref',
+          sourceType: 'grading-artifact',
+          title: '教师私有批注',
+          href: '/teacher/private-comment',
+          capsule: '仅教师可见',
+          privacyVisibility: 'teacher-scoped',
+        },
+      }],
+      now,
+    });
+
+    const projected = materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      goalSlice: null,
+      evidenceCorpus: [],
+      diagnosisReportSnapshot: reportSnapshot,
+    });
+    const fallback = materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      goalSlice: null,
+      evidenceCorpus: [],
+      diagnosisReportSnapshot: null,
+    });
+
+    expect(projected.materialization.inputs).toContain('control-correction-diagnosis-report-snapshot');
+    expect(projected.claims[0]).toEqual(expect.objectContaining({
+      dimensionId: 'time-domain-analysis',
+      evidenceRefs: [expect.objectContaining({ chunkId: 'chunk-snapshot-1' })],
+    }));
+    expect(projected.limitations.map((item) => item.reason)).not.toContain('missing-snapshot');
+    expect(fallback.limitations.map((item) => item.reason)).toContain('missing-snapshot');
+    expect(fallback.materialization.inputs).not.toContain('control-correction-diagnosis-report-snapshot');
+    expect(materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      goalSlice: null,
+      evidenceCorpus: [],
+      diagnosisReportSnapshot: teacherScopedSnapshot,
+    }).claims.flatMap((claim) => claim.evidenceRefs)).toEqual([]);
+    expect(validateRoleBasedLearningDiagnosis(projected)).toEqual([]);
+    expect(validateRoleBasedLearningDiagnosis(fallback)).toEqual([]);
+  });
+
+  it('does not project snapshots across student or teacher authorization boundaries', () => {
+    const otherStudentSnapshot = materializeControlCorrectionDiagnosisReport({
+      subject: { kind: 'student', userId: 'student-2', classId: 'class-1' },
+      goalId: 'control-correction',
+      generatedAt: now,
+      evidenceRecords: [{
+        id: 'student-2-secret',
+        sourceFamily: 'adaptive-assessment',
+        indicatorIds: ['time-response-settling-control'],
+        value: 0.9,
+        confidence: 'high',
+        updatedAt: now.toISOString(),
+        provenance: { classId: 'class-1', userId: 'student-2', goalId: 'control-correction' },
+        evidenceRef: { chunkId: 'student-2-secret', sourceType: 'diagnosis', title: 'student-2-secret' },
+      }],
+      now,
+    });
+    const classSnapshot = materializeControlCorrectionDiagnosisReport({
+      subject: { kind: 'class', classId: 'class-9' },
+      goalId: 'control-correction',
+      generatedAt: now,
+      evidenceRecords: [{
+        id: 'class-9-secret',
+        sourceFamily: 'adaptive-assessment',
+        indicatorIds: ['time-response-settling-control'],
+        value: 0.9,
+        confidence: 'high',
+        updatedAt: now.toISOString(),
+        provenance: { classId: 'class-9', goalId: 'control-correction' },
+        evidenceRef: { chunkId: 'class-9-secret', sourceType: 'diagnosis', title: 'class-9-secret' },
+      }],
+      now,
+    });
+
+    const student = materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      userId: 'student-1',
+      targetUserId: 'student-2',
+      goalSlice: null,
+      evidenceCorpus: [],
+      diagnosisReportSnapshot: otherStudentSnapshot,
+    });
+    const teacher = materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      view: 'teacher-class',
+      userId: 'teacher-1',
+      classId: 'class-9',
+      teacherClassIds: ['class-1'],
+      goalSlice: null,
+      evidenceCorpus: [],
+      diagnosisReportSnapshot: classSnapshot,
+    });
+
+    expect(JSON.stringify(student)).not.toContain('student-2-secret');
+    expect(student.materialization.inputs).not.toContain('control-correction-diagnosis-report-snapshot');
+    expect(student.limitations.map((item) => item.reason)).toContain('missing-snapshot');
+    expect(JSON.stringify(teacher)).not.toContain('class-9-secret');
+    expect(teacher.materialization.inputs).not.toContain('control-correction-diagnosis-report-snapshot');
+    expect(teacher.limitations.map((item) => item.reason)).toContain('missing-snapshot');
   });
 });
