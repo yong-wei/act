@@ -570,6 +570,27 @@ describe('document rubric grading routes', () => {
     expect(mocks.prisma.learningEvidenceDraft.create).not.toHaveBeenCalled();
   });
 
+  it('prevents students from providing grading goal attribution fields', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+
+    const response = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio.',
+      goalId: 'forged-goal',
+      targetGoal: 'forged-target',
+      learningGoal: 'forged-learning-goal',
+    });
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: '学生提交不能指定学习目标归因' });
+    expect(mocks.prisma.class.findUnique).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.create).not.toHaveBeenCalled();
+  });
+
   it('uses server assignment rubric for student submissions', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
     mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
@@ -658,6 +679,9 @@ describe('document rubric grading routes', () => {
       lessonItems: [{
         overrideConfig: {
           documentGrading: {
+            goalId: 'override-goal',
+            targetGoal: 'override-target',
+            learningGoal: 'override-learning-goal',
             rubric: {
               ...rubric(),
               id: 'override-rubric',
@@ -686,6 +710,11 @@ describe('document rubric grading routes', () => {
     expect(createInput.data.summary.run).toEqual(expect.objectContaining({
       rubricId: 'override-rubric',
       rubricVersion: 'override-v1',
+    }));
+    expect(createInput.data.sourceRefs).toEqual(expect.objectContaining({
+      goalId: 'override-goal',
+      targetGoal: 'override-target',
+      learningGoal: 'override-learning-goal',
     }));
   });
 

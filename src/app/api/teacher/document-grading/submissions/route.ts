@@ -49,6 +49,9 @@ export async function POST(request: Request) {
     if (session.user.role === UserRole.STUDENT && body.rubric) {
       return NextResponse.json({ error: '学生提交不能指定评分量规' }, { status: 403 });
     }
+    if (session.user.role === UserRole.STUDENT && (body.goalId || body.targetGoal || body.learningGoal)) {
+      return NextResponse.json({ error: '学生提交不能指定学习目标归因' }, { status: 403 });
+    }
 
     const validationError = validateSubmissionBody(body, session.user.role);
     if (validationError) {
@@ -83,12 +86,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '学生不在该班级中' }, { status: 404 });
     }
 
-    const rubric = session.user.role === UserRole.STUDENT
-      ? await resolveServerRubricForStudentSubmission({
+    const serverPolicy = session.user.role === UserRole.STUDENT
+      ? await resolveServerSubmissionPolicyForStudent({
           assignmentId: submission.assignmentId,
           classId: submission.classId,
         })
-      : submission.rubric;
+      : null;
+    const rubric = serverPolicy?.rubric ?? submission.rubric;
     if (!rubric) {
       return NextResponse.json({ error: '作业未配置服务端评分量规' }, { status: 422 });
     }
@@ -132,9 +136,9 @@ export async function POST(request: Request) {
       now: uploadedAt,
     });
     const dedupeKey = buildDocumentRubricDraftDedupeKey(asset, run);
-    const goalId = body.goalId ?? submission.assignmentId;
-    const targetGoal = body.targetGoal ?? goalId;
-    const learningGoal = body.learningGoal ?? targetGoal;
+    const goalId = serverPolicy?.goalId ?? body.goalId ?? submission.assignmentId;
+    const targetGoal = serverPolicy?.targetGoal ?? body.targetGoal ?? goalId;
+    const learningGoal = serverPolicy?.learningGoal ?? body.learningGoal ?? targetGoal;
     const existingDraft = await prisma.learningEvidenceDraft.findUnique({
       where: { dedupeKey },
       select: {
@@ -255,10 +259,17 @@ export async function POST(request: Request) {
   }
 }
 
-async function resolveServerRubricForStudentSubmission(input: {
+type ServerSubmissionPolicy = {
+  rubric: RubricDefinition;
+  goalId?: string;
+  targetGoal?: string;
+  learningGoal?: string;
+};
+
+async function resolveServerSubmissionPolicyForStudent(input: {
   assignmentId: string;
   classId: string;
-}): Promise<RubricDefinition | null> {
+}): Promise<ServerSubmissionPolicy | null> {
   const resource = await prisma.teachingResource.findFirst({
     where: {
       id: input.assignmentId,
@@ -294,12 +305,22 @@ async function resolveServerRubricForStudentSubmission(input: {
     },
   });
   for (const item of resource?.lessonItems ?? []) {
-    const overrideRubric = extractRubricFromAssignmentConfig(item.overrideConfig);
-    if (overrideRubric) {
-      return overrideRubric;
+    const overridePolicy = extractSubmissionPolicyFromAssignmentConfig(item.overrideConfig);
+    if (overridePolicy) {
+      return overridePolicy;
     }
   }
-  return extractRubricFromAssignmentConfig(resource?.config ?? null);
+  return extractSubmissionPolicyFromAssignmentConfig(resource?.config ?? null);
+}
+
+function extractSubmissionPolicyFromAssignmentConfig(config: unknown): ServerSubmissionPolicy | null {
+  const rubric = extractRubricFromAssignmentConfig(config);
+  if (!rubric) return null;
+  const goalContext = extractGoalContextFromAssignmentConfig(config);
+  return {
+    rubric,
+    ...goalContext,
+  };
 }
 
 function extractRubricFromAssignmentConfig(config: unknown): RubricDefinition | null {
@@ -313,6 +334,23 @@ function extractRubricFromAssignmentConfig(config: unknown): RubricDefinition | 
   if (isRubricDefinition(record.documentRubric)) return record.documentRubric;
   if (isRubricDefinition(record.rubric)) return record.rubric;
   return null;
+}
+
+function extractGoalContextFromAssignmentConfig(config: unknown): Omit<ServerSubmissionPolicy, 'rubric'> {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) return {};
+  const record = config as Record<string, unknown>;
+  const documentGrading = record.documentGrading;
+  const gradingRecord = documentGrading && typeof documentGrading === 'object' && !Array.isArray(documentGrading)
+    ? documentGrading as Record<string, unknown>
+    : {};
+  const goalId = stringFrom(gradingRecord.goalId) ?? stringFrom(record.goalId);
+  const targetGoal = stringFrom(gradingRecord.targetGoal) ?? stringFrom(record.targetGoal);
+  const learningGoal = stringFrom(gradingRecord.learningGoal) ?? stringFrom(record.learningGoal);
+  return {
+    ...(goalId ? { goalId } : {}),
+    ...(targetGoal ? { targetGoal } : {}),
+    ...(learningGoal ? { learningGoal } : {}),
+  };
 }
 
 function validateSubmissionBody(body: SubmissionBody, role: UserRole): string | null {
@@ -378,6 +416,10 @@ function hasUniqueIds(items: Array<{ id?: unknown }>): boolean {
   const ids = items.map((item) => item.id);
   return ids.every((id) => typeof id === 'string' && id.length > 0) &&
     new Set(ids).size === ids.length;
+}
+
+function stringFrom(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
 function isSupportedRubricGoalDimension(value: string): boolean {
