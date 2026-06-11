@@ -175,7 +175,7 @@ export interface DocumentRubricGradingRun {
 }
 
 export interface DocumentRubricEvidenceWriteback {
-  status: 'blocked-unapproved' | 'written';
+  status: 'blocked-unapproved' | 'blocked-unreliable-evidence' | 'written';
   created: number;
   skipped: number;
   blocked: number;
@@ -207,7 +207,7 @@ export interface DocumentRubricEvidenceWriteback {
 }
 
 export interface DocumentRubricEvidenceWritebackPreview {
-  status: 'blocked-unapproved' | 'preview';
+  status: 'blocked-unapproved' | 'blocked-unreliable-evidence' | 'preview';
   created: 0;
   blocked: number;
   facts: DocumentRubricEvidenceWriteback['facts'];
@@ -564,6 +564,16 @@ export async function writeApprovedGradingEvidence(input: {
     };
   }
   const facts = buildApprovedGradingEvidenceFacts(input);
+  const blocked = countUnreliableEvidenceFacts(facts);
+  if (blocked > 0) {
+    return {
+      status: 'blocked-unreliable-evidence',
+      created: 0,
+      skipped: 0,
+      blocked,
+      facts: [],
+    };
+  }
   const result = await input.db.learningFact.createMany({ data: facts, skipDuplicates: true });
   await input.db.studentEvidenceFeatureCache?.deleteMany({ where: { userId: input.studentId } });
   return {
@@ -593,6 +603,17 @@ export function previewApprovedGradingEvidence(input: {
     };
   }
   const facts = buildApprovedGradingEvidenceFacts(input);
+  const blocked = countUnreliableEvidenceFacts(facts);
+  if (blocked > 0) {
+    return {
+      status: 'blocked-unreliable-evidence',
+      created: 0,
+      blocked,
+      facts: [],
+      affectedDimensions: [],
+      dedupeKeys: [],
+    };
+  }
   return {
     status: 'preview',
     created: 0,
@@ -720,6 +741,14 @@ function buildApprovedGradingEvidenceFacts(input: {
       },
     };
   });
+}
+
+function countUnreliableEvidenceFacts(facts: DocumentRubricEvidenceWriteback['facts']): number {
+  return facts.filter((fact) => fact.contextJson.evidenceRefs.some(isUnreliableConversionEvidenceRef)).length;
+}
+
+function isUnreliableConversionEvidenceRef(reference: GradingEvidenceReference): boolean {
+  return reference.convertedDocumentId.endsWith(':fallback') || reference.blockId === 'fallback-block-1';
 }
 
 function recalculateEditedContribution(

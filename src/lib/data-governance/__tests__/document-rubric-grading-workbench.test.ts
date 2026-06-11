@@ -190,6 +190,51 @@ describe('document rubric grading workbench', () => {
       },
       parsed: parsed!,
     })).toEqual({ valid: true, reasons: [] });
+
+    const approved = approveGradingRun(draft, { reviewerId: 'teacher-1', decision: 'approved', now });
+    const db = mockEvidenceDb();
+    const writeback = await writeApprovedGradingEvidence({
+      db,
+      run: approved,
+      rubric: rubric(),
+      studentId: submission.studentId,
+      goalContext: {
+        classId: submission.classId,
+        assignmentId: submission.assignmentId,
+        goalId: 'control-report',
+        targetGoal: 'control-report',
+      },
+      now,
+    });
+    const preview = previewApprovedGradingEvidence({
+      run: approved,
+      rubric: rubric(),
+      studentId: submission.studentId,
+      goalContext: {
+        classId: submission.classId,
+        assignmentId: submission.assignmentId,
+        goalId: 'control-report',
+        targetGoal: 'control-report',
+      },
+      now,
+    });
+
+    expect(writeback).toEqual({
+      status: 'blocked-unreliable-evidence',
+      created: 0,
+      skipped: 0,
+      blocked: 2,
+      facts: [],
+    });
+    expect(preview).toEqual(expect.objectContaining({
+      status: 'blocked-unreliable-evidence',
+      blocked: 2,
+      facts: [],
+      affectedDimensions: [],
+      dedupeKeys: [],
+    }));
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
+    expect(db.studentEvidenceFeatureCache.deleteMany).not.toHaveBeenCalled();
   });
 
   it('keeps AI draft grading teacher-gated before writeback', async () => {
