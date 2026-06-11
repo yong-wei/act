@@ -42,6 +42,7 @@ import {
   type SimulationParamChangeInput,
   type SimulationStateStore,
 } from '@/lib/ai-tools';
+import type { LearningEvidenceCitationChipPayload } from '@/lib/data-governance/learning-evidence-rag-corpus';
 
 export const KONLING_SEMANTIC_MEMORY_FEATURE_FLAG = 'KONLING_SEMANTIC_MEMORY_ENABLED';
 export const KONLING_STRATEGY_MEMORY_FEATURE_FLAG = 'KONLING_STRATEGY_MEMORY_ENABLED';
@@ -539,6 +540,7 @@ export interface KonlingCitation {
   confidence: 'none' | 'low' | 'medium' | 'high';
   evidenceBasis: string;
   owner: 'answer' | 'recommendation' | 'intervention' | 'report-explanation';
+  citationChip?: LearningEvidenceCitationChipPayload;
 }
 
 export interface KonlingCitationContext {
@@ -3198,6 +3200,13 @@ async function buildKonlingCitationContext(
       confidence: normalizeCitationConfidence(input.learnerState.evidence?.confidence?.level),
       evidenceBasis: 'AdaptiveLearnerState',
       owner: 'recommendation',
+      citationChip: buildKonlingCitationChip({
+        id: `learner-state:${input.scope.targetUserId}`,
+        sourceType: 'learner-state',
+        displayTitle: '服务端学习者状态',
+        href: null,
+        confidence: normalizeCitationConfidence(input.learnerState.evidence?.confidence?.level),
+      }),
     });
   }
   if (input.planContext.currentPathId) {
@@ -3209,17 +3218,33 @@ async function buildKonlingCitationContext(
       confidence: 'medium',
       evidenceBasis: 'LearningPath',
       owner: 'recommendation',
+      citationChip: buildKonlingCitationChip({
+        id: `path:${input.planContext.currentPathId}`,
+        sourceType: 'path-execution',
+        displayTitle: '当前控制校正学习路径',
+        href: null,
+        confidence: 'medium',
+      }),
     });
   }
   for (const memory of input.memory.slice(0, 2)) {
+    const id = `memory:${memory.id}`;
+    const displayTitle = `控灵记忆摘要：${memory.memoryType}`;
     evidenceCitations.push({
-      id: `memory:${memory.id}`,
+      id,
       sourceType: 'memory',
-      displayTitle: `控灵记忆摘要：${memory.memoryType}`,
+      displayTitle,
       href: null,
       confidence: 'medium',
       evidenceBasis: 'KonlingMemory',
       owner: 'answer',
+      citationChip: buildKonlingCitationChip({
+        id,
+        sourceType: 'memory',
+        displayTitle,
+        href: null,
+        confidence: 'medium',
+      }),
     });
   }
 
@@ -3269,6 +3294,13 @@ function buildContentCitations(pageContext: PageContext): KonlingCitation[] {
     confidence: 'high',
     evidenceBasis: 'course-ai-context',
     owner: 'answer',
+    citationChip: buildKonlingCitationChip({
+      id: `content:${pageContext.courseId}:${pageContext.stepId}`,
+      sourceType: 'content',
+      displayTitle: pageContext.topic || pageContext.courseTitle || pageContext.stepId,
+      href: null,
+      confidence: 'high',
+    }),
   }];
 }
 
@@ -3296,15 +3328,28 @@ function buildPathExecutionCitations(
     .filter((ref) => isCitationReferenceInScope(ref, scope, planContext))
     .sort((left, right) => comparePathCitationReferences(left, right, scope))
     .slice(0, 4)
-    .map((ref) => ({
-      id: `${getString(ref, 'sourceType')}:${getString(ref, 'sourceId')}`,
-      sourceType: getString(ref, 'sourceType') === 'LearningPathIntervention' ? 'intervention' : 'path-execution',
-      displayTitle: buildPathCitationTitle(ref),
-      href: null,
-      confidence: buildPathCitationConfidence(ref, allTime),
-      evidenceBasis: buildPathCitationEvidenceBasis(ref),
-      owner: getString(ref, 'sourceType') === 'LearningPathIntervention' ? 'intervention' : 'recommendation',
-    } satisfies KonlingCitation));
+    .map((ref) => {
+      const id = `${getString(ref, 'sourceType')}:${getString(ref, 'sourceId')}`;
+      const sourceType = getString(ref, 'sourceType') === 'LearningPathIntervention' ? 'intervention' : 'path-execution';
+      const displayTitle = buildPathCitationTitle(ref);
+      const confidence = buildPathCitationConfidence(ref, allTime);
+      return {
+        id,
+        sourceType,
+        displayTitle,
+        href: null,
+        confidence,
+        evidenceBasis: buildPathCitationEvidenceBasis(ref),
+        owner: getString(ref, 'sourceType') === 'LearningPathIntervention' ? 'intervention' : 'recommendation',
+        citationChip: buildKonlingCitationChip({
+          id,
+          sourceType,
+          displayTitle,
+          href: null,
+          confidence,
+        }),
+      } satisfies KonlingCitation;
+    });
 }
 
 function comparePathCitationReferences(
@@ -3357,8 +3402,47 @@ function buildSimulationArenaCitations(simulationArena: Record<string, unknown>)
       confidence: readRecord(getValue(allTime, 'replayConfidence')).lowConfidenceCount ? 'low' : 'medium',
       evidenceBasis: getString(ref, 'traceReference') || 'StudentEvidenceFeatureCache',
       owner: 'recommendation',
+      citationChip: buildKonlingCitationChip({
+        id: `${source}:${getString(ref, 'factId') || getString(ref, 'traceReference')}`,
+        sourceType: source,
+        displayTitle: source === 'arena' ? 'Arena 迁移证据' : '仿真运行证据',
+        href: null,
+        confidence: readRecord(getValue(allTime, 'replayConfidence')).lowConfidenceCount ? 'low' : 'medium',
+      }),
     } satisfies KonlingCitation;
   });
+}
+
+function buildKonlingCitationChip(input: Pick<KonlingCitation, 'id' | 'sourceType' | 'displayTitle' | 'href' | 'confidence'>): LearningEvidenceCitationChipPayload {
+  const sourceTypeMap: Record<KonlingCitation['sourceType'], LearningEvidenceCitationChipPayload['sourceType']> = {
+    content: 'course-content',
+    'learner-state': 'diagnosis',
+    'path-execution': 'path-summary',
+    simulation: 'simulation-summary',
+    arena: 'arena-summary',
+    intervention: 'path-summary',
+    memory: 'path-summary',
+  };
+  const authorityMap: Record<KonlingCitation['sourceType'], LearningEvidenceCitationChipPayload['authorityLevel']> = {
+    content: 'canonical',
+    'learner-state': 'learner-evidence',
+    'path-execution': 'learner-evidence',
+    simulation: 'learner-evidence',
+    arena: 'learner-evidence',
+    intervention: 'learner-evidence',
+    memory: 'service-internal',
+  };
+  return {
+    chunkId: input.id,
+    displayTitle: input.displayTitle,
+    displayHref: input.href,
+    sourceType: sourceTypeMap[input.sourceType],
+    authorityLevel: authorityMap[input.sourceType],
+    confidence: input.confidence,
+    freshnessBucket: 'current',
+    privacyVisibility: input.sourceType === 'content' ? 'public' : 'redacted',
+    limitationState: null,
+  };
 }
 
 function buildPathCitationTitle(ref: Record<string, unknown>): string {

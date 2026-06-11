@@ -146,6 +146,12 @@ describe('document rubric grading workbench', () => {
       convertedDocumentId: converted.id,
       precision: 'span',
       checksum: converted.checksum,
+      citationChip: expect.objectContaining({
+        sourceType: 'grading-artifact',
+        authorityLevel: 'teacher-authored',
+        privacyVisibility: 'redacted',
+        limitationState: null,
+      }),
     }));
     await expect(writeApprovedGradingEvidence({
       db: mockEvidenceDb(),

@@ -81,6 +81,17 @@ function diagnosis(): RoleBasedLearningDiagnosis {
         displayHref: null,
         confidence: 'high',
         capsule: '班级层面控制建模需要补强。',
+        citationChip: {
+          chunkId: 'chunk-diagnosis-1',
+          displayTitle: '控制建模诊断',
+          displayHref: null,
+          sourceType: 'diagnosis',
+          authorityLevel: 'teacher-authored',
+          confidence: 'high',
+          freshnessBucket: 'current',
+          privacyVisibility: 'redacted',
+          limitationState: null,
+        },
       }],
       sourceCoverage: { diagnosis: 'ready' },
       confidence: { state: 'high', score: 0.86, evidenceCount: 3, sourceCompleteness: 0.8 },
@@ -204,6 +215,41 @@ describe('teacher prep pack generation', () => {
       confidence: expect.objectContaining({ state: 'high' }),
     }));
     expect(pack.candidates.every((item) => item.evidenceBasis.length > 0)).toBe(true);
+    expect(pack.candidates.every((item) => item.evidenceBasis.every((basis) => basis.citationChip))).toBe(true);
+    expect(pack.candidates[0].evidenceBasis.find((basis) => basis.sourceType === 'role-diagnosis')?.citationChip).toEqual(expect.objectContaining({
+      sourceType: 'diagnosis',
+      authorityLevel: 'verified',
+    }));
+    expect(pack.candidates[0].evidenceBasis[0].citationChip).toEqual(expect.objectContaining({
+      authorityLevel: expect.any(String),
+      freshnessBucket: 'current',
+      limitationState: null,
+    }));
+    expect(validateTeacherPrepPack(pack)).toEqual([]);
+  });
+
+  it('backfills citation chips for legacy diagnosis evidence refs', () => {
+    const legacyDiagnosis = diagnosis();
+    delete (legacyDiagnosis.claims[0].evidenceRefs[0] as { citationChip?: unknown }).citationChip;
+
+    const pack = generateTeacherPrepPack({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      nextLesson: { lessonId: 'lesson-2', title: '根轨迹校正', plannedAt: now.toISOString() },
+      diagnosis: legacyDiagnosis,
+      resourceNodes: [resourceNode({ id: 'quiz-modeling', title: '控制建模互动题', type: 'quiz' })],
+      now,
+    });
+
+    const legacyEvidence = pack.candidates[0].evidenceBasis.find((basis) => basis.sourceId === 'chunk-diagnosis-1');
+    expect(legacyEvidence?.citationChip).toEqual(expect.objectContaining({
+      chunkId: 'chunk-diagnosis-1',
+      displayTitle: '控制建模诊断',
+      sourceType: 'diagnosis',
+      authorityLevel: 'verified',
+      privacyVisibility: 'redacted',
+    }));
     expect(validateTeacherPrepPack(pack)).toEqual([]);
   });
 

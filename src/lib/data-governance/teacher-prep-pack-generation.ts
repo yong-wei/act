@@ -7,6 +7,7 @@ import type {
   ControlCorrectionReportMetric,
 } from './control-correction-teacher-report';
 import type {
+  LearningEvidenceCitationChipPayload,
   LearningEvidenceConfidence,
   LearningEvidenceCorpusChunk,
   LearningEvidenceCorpusSourceType,
@@ -44,6 +45,7 @@ export interface TeacherPrepPackEvidenceBasis {
   capsule: string;
   confidence: LearningEvidenceConfidence;
   privacy: 'aggregate' | 'scoped-summary' | 'stable-reference' | 'redacted-capsule';
+  citationChip: LearningEvidenceCitationChipPayload;
 }
 
 export interface TeacherPrepPackAffectedGroup {
@@ -361,6 +363,7 @@ export function validateTeacherPrepPackItem(item: TeacherPrepPackCandidateItem):
     errors.push('item-invalid-affected-group');
   }
   if (!Array.isArray(item.evidenceBasis) || item.evidenceBasis.length === 0) errors.push('item-missing-evidence');
+  if (item.evidenceBasis?.some((evidence) => !evidence.citationChip)) errors.push('item-missing-citation-chip');
   if (!item.insertionTarget?.type) errors.push('item-missing-insertion-target');
   if (item.estimatedTimeMinutes <= 0) errors.push('item-missing-estimated-time');
   if (!item.confidence?.state) errors.push('item-missing-confidence');
@@ -503,6 +506,14 @@ function candidatesFromPathOutcomes(input: TeacherPrepPackInput): TeacherPrepPac
       capsule: `${deviations.length} 条路径存在偏离。`,
       confidence: 'medium',
       privacy: 'aggregate',
+      citationChip: prepCitationChip({
+        chunkId: 'path-outcome-summary',
+        displayTitle: '路径偏离摘要',
+        sourceType: 'path-summary',
+        authorityLevel: 'learner-evidence',
+        confidence: 'medium',
+        privacyVisibility: 'redacted',
+      }),
     }],
     resource,
     target: targetForResource(resource, input, 'summary'),
@@ -534,6 +545,14 @@ function candidatesFromGradingSummaries(input: TeacherPrepPackInput): TeacherPre
       capsule: stringValue(summary.redactedSummary) ?? '量规项存在待改进表现。',
       confidence: confidenceValue(summary.confidence) ?? 'medium',
       privacy: 'redacted-capsule' as const,
+      citationChip: prepCitationChip({
+        chunkId: stringValue(summary.id) ?? `grading-summary-${index + 1}`,
+        displayTitle: stringValue(summary.title) ?? '文档批改摘要',
+        sourceType: 'grading-artifact',
+        authorityLevel: 'teacher-authored',
+        confidence: confidenceValue(summary.confidence) ?? 'medium',
+        privacyVisibility: 'redacted',
+      }),
     })),
     resource,
     target: targetForResource(resource, input, 'bridge-in'),
@@ -660,6 +679,14 @@ function evidenceFromDiagnosisCluster(cluster: RoleBasedLearningDiagnosisRootCau
     capsule: `${cluster.affectedPopulation}/${cluster.denominator} learners affected; confidence ${cluster.confidence}.`,
     confidence: cluster.confidence,
     privacy: 'aggregate',
+    citationChip: prepCitationChip({
+      chunkId: cluster.id,
+      displayTitle: sanitizeText(cluster.label),
+      sourceType: 'diagnosis',
+      authorityLevel: 'verified',
+      confidence: cluster.confidence,
+      privacyVisibility: 'redacted',
+    }),
   };
 }
 
@@ -671,6 +698,14 @@ function evidenceFromDiagnosisRefs(diagnosis: RoleBasedLearningDiagnosis): Teach
     capsule: sanitizeText(ref.capsule),
     confidence: ref.confidence,
     privacy: 'redacted-capsule' as const,
+    citationChip: ref.citationChip ?? prepCitationChip({
+      chunkId: ref.chunkId,
+      displayTitle: sanitizeText(ref.displayTitle),
+      sourceType: ref.sourceType,
+      authorityLevel: 'verified',
+      confidence: ref.confidence,
+      privacyVisibility: 'redacted',
+    }),
   })));
 }
 
@@ -682,6 +717,14 @@ function evidenceFromMetric(metric: ControlCorrectionReportMetric): TeacherPrepP
     capsule: `${metric.label}: ${metric.value ?? 'n/a'} over ${metric.denominator}; confidence ${metric.confidence}.`,
     confidence: metric.confidence,
     privacy: 'aggregate',
+    citationChip: prepCitationChip({
+      chunkId: metric.id,
+      displayTitle: sanitizeText(metric.label),
+      sourceType: 'teacher-report',
+      authorityLevel: 'teacher-authored',
+      confidence: metric.confidence,
+      privacyVisibility: 'redacted',
+    }),
   };
 }
 
@@ -757,6 +800,31 @@ function sanitizeEvidence(evidence: TeacherPrepPackEvidenceBasis): TeacherPrepPa
     ...evidence,
     displayTitle: sanitizeText(evidence.displayTitle),
     capsule: sanitizeText(evidence.capsule),
+    citationChip: {
+      ...evidence.citationChip,
+      displayTitle: sanitizeText(evidence.citationChip.displayTitle),
+    },
+  };
+}
+
+function prepCitationChip(input: {
+  chunkId: string;
+  displayTitle: string;
+  sourceType: LearningEvidenceCitationChipPayload['sourceType'];
+  authorityLevel: LearningEvidenceCitationChipPayload['authorityLevel'];
+  confidence: LearningEvidenceConfidence;
+  privacyVisibility: LearningEvidenceCitationChipPayload['privacyVisibility'];
+}): LearningEvidenceCitationChipPayload {
+  return {
+    chunkId: input.chunkId,
+    displayTitle: input.displayTitle,
+    displayHref: null,
+    sourceType: input.sourceType,
+    authorityLevel: input.authorityLevel,
+    confidence: input.confidence,
+    freshnessBucket: 'current',
+    privacyVisibility: input.privacyVisibility,
+    limitationState: null,
   };
 }
 

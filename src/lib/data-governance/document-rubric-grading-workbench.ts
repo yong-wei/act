@@ -10,6 +10,7 @@ import {
   type CompetencyDimension,
 } from './competency-model';
 import type { KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
+import type { LearningEvidenceCitationChipPayload } from './learning-evidence-rag-corpus';
 
 const execFileAsync = promisify(execFile);
 
@@ -128,6 +129,7 @@ export interface GradingEvidenceReference {
   precision: DocumentReferencePrecision;
   excerpt: string;
   checksum: string;
+  citationChip: LearningEvidenceCitationChipPayload;
 }
 
 export interface CriterionDraftGrade {
@@ -924,13 +926,25 @@ function sanitizeFileName(fileName: string): string {
 }
 
 function toEvidenceReference(document: ConvertedDocument, block: ConvertedDocumentBlock): GradingEvidenceReference {
+  const excerpt = block.text.slice(0, 180);
   return {
     convertedDocumentId: document.id,
     blockId: block.id,
     pageNumber: block.pageNumber,
     precision: document.referencePrecision,
-    excerpt: block.text.slice(0, 180),
+    excerpt,
     checksum: document.checksum,
+    citationChip: {
+      chunkId: `grading:${document.id}:${block.id}`,
+      displayTitle: block.pageNumber ? `文档评分证据 P${block.pageNumber}` : '文档评分证据',
+      displayHref: null,
+      sourceType: 'grading-artifact',
+      authorityLevel: 'teacher-authored',
+      confidence: block.confidence >= 0.85 ? 'high' : block.confidence >= 0.6 ? 'medium' : 'low',
+      freshnessBucket: 'current',
+      privacyVisibility: 'redacted',
+      limitationState: null,
+    },
   };
 }
 
@@ -1234,7 +1248,42 @@ function asEvidenceReference(value: unknown): GradingEvidenceReference | null {
     precision: isReferencePrecision(record.precision) ? record.precision : 'block',
     excerpt,
     checksum: checksumValue,
+    citationChip: asCitationChip(record.citationChip, {
+      chunkId: `grading:${convertedDocumentId}:${blockId}`,
+      displayTitle: '文档评分证据',
+      displayHref: null,
+      sourceType: 'grading-artifact',
+      authorityLevel: 'teacher-authored',
+      confidence: 'medium',
+      freshnessBucket: 'current',
+      privacyVisibility: 'redacted',
+      limitationState: null,
+    }),
   };
+}
+
+function asCitationChip(value: unknown, fallback: LearningEvidenceCitationChipPayload): LearningEvidenceCitationChipPayload {
+  const record = asRecord(value);
+  if (!record) return fallback;
+  return {
+    chunkId: stringFrom(record.chunkId) ?? fallback.chunkId,
+    displayTitle: stringFrom(record.displayTitle) ?? fallback.displayTitle,
+    displayHref: stringFrom(record.displayHref),
+    sourceType: record.sourceType === 'grading-artifact' ? 'grading-artifact' : fallback.sourceType,
+    authorityLevel: record.authorityLevel === 'teacher-authored' ? 'teacher-authored' : fallback.authorityLevel,
+    confidence: isLearningEvidenceConfidence(record.confidence) ? record.confidence : fallback.confidence,
+    freshnessBucket: record.freshnessBucket === 'current' || record.freshnessBucket === 'recent' || record.freshnessBucket === 'stale' || record.freshnessBucket === 'expired'
+      ? record.freshnessBucket
+      : fallback.freshnessBucket,
+    privacyVisibility: record.privacyVisibility === 'public' || record.privacyVisibility === 'redacted' || record.privacyVisibility === 'privileged'
+      ? record.privacyVisibility
+      : fallback.privacyVisibility,
+    limitationState: typeof record.limitationState === 'string' ? record.limitationState as LearningEvidenceCitationChipPayload['limitationState'] : null,
+  };
+}
+
+function isLearningEvidenceConfidence(value: unknown): value is LearningEvidenceCitationChipPayload['confidence'] {
+  return value === 'none' || value === 'low' || value === 'medium' || value === 'high';
 }
 
 function isConversionStatus(value: unknown): value is ConversionStatus {

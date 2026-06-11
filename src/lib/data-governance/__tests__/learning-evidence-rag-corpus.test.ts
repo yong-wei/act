@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   LEARNING_EVIDENCE_CORPUS_RETENTION_POLICY,
+  buildLearningEvidenceCitationChips,
+  createLearningEvidenceCorpusChunk,
   retrieveLearningEvidenceCorpus,
   validateLearningEvidenceCorpusChunk,
   verifyLearningEvidenceCitations,
@@ -38,6 +40,18 @@ function chunk(overrides: Partial<LearningEvidenceCorpusChunk> = {}): LearningEv
       expiresAt: null,
       stale: false,
     },
+    authority: {
+      level: 'canonical',
+      knowledgeTags: ['control-correction', 'steady-state-error'],
+      pageAnchor: 'handout#p1',
+      freshnessBucket: 'current',
+      scopeRule: {
+        visibility: 'public',
+        allowedRoles: ['student', 'teacher', 'admin', 'service'],
+      },
+      conflictGroup: null,
+      conflictSignal: null,
+    },
     retrieval: {
       tags: ['control-correction', 'steady-state-error'],
       goals: ['control-correction'],
@@ -59,6 +73,20 @@ const corpus: LearningEvidenceCorpusChunk[] = [
     content: { text: 'raw answer body should not be returned', redactedSummary: '终端验证已完成。', hash: 'hash-path-1' },
     privacyClass: 'student-visible',
     confidence: 'medium',
+    authority: {
+      level: 'learner-evidence',
+      knowledgeTags: [],
+      pageAnchor: 'terminalValidation',
+      freshnessBucket: 'current',
+      scopeRule: {
+        visibility: 'student-visible',
+        allowedRoles: ['student', 'teacher', 'admin', 'service'],
+        ownerRequired: true,
+        classRequired: true,
+      },
+      conflictGroup: null,
+      conflictSignal: null,
+    },
     retrieval: { tags: ['terminal-validation'], goals: ['control-correction'], useCases: ['diagnosis', 'konling', 'recommendation'] },
   }),
   chunk({
@@ -71,6 +99,19 @@ const corpus: LearningEvidenceCorpusChunk[] = [
     content: { text: 'teacher report internal detail', redactedSummary: '班级 Arena 有效提交率偏低。', hash: 'hash-report-1' },
     privacyClass: 'teacher-visible',
     confidence: 'medium',
+    authority: {
+      level: 'teacher-authored',
+      knowledgeTags: [],
+      pageAnchor: 'cohort.metrics',
+      freshnessBucket: 'current',
+      scopeRule: {
+        visibility: 'teacher-visible',
+        allowedRoles: ['teacher', 'admin', 'service'],
+        classRequired: true,
+      },
+      conflictGroup: null,
+      conflictSignal: null,
+    },
     retrieval: { tags: ['teacher-report'], goals: ['control-correction'], useCases: ['teacher-report', 'prep-pack', 'recommendation'] },
   }),
   chunk({
@@ -83,6 +124,20 @@ const corpus: LearningEvidenceCorpusChunk[] = [
     content: { text: 'rubric score internals', redactedSummary: '根轨迹设计量规证据。', hash: 'hash-grading-1' },
     privacyClass: 'teacher-visible',
     confidence: 'high',
+    authority: {
+      level: 'teacher-authored',
+      knowledgeTags: [],
+      pageAnchor: 'rubric.block.1',
+      freshnessBucket: 'current',
+      scopeRule: {
+        visibility: 'teacher-visible',
+        allowedRoles: ['teacher', 'admin', 'service'],
+        ownerRequired: true,
+        classRequired: true,
+      },
+      conflictGroup: null,
+      conflictSignal: null,
+    },
     retrieval: { tags: ['grading'], goals: ['control-correction'], useCases: ['grading', 'prep-pack'] },
   }),
   chunk({
@@ -95,6 +150,21 @@ const corpus: LearningEvidenceCorpusChunk[] = [
     content: { text: 'private Konling memory', redactedSummary: '私有记忆稳定引用。', hash: 'hash-memory-1' },
     privacyClass: 'service-only',
     confidence: 'medium',
+    authority: {
+      level: 'service-internal',
+      knowledgeTags: [],
+      pageAnchor: 'konling.memory.private',
+      freshnessBucket: 'current',
+      scopeRule: {
+        visibility: 'service-only',
+        allowedRoles: ['service'],
+        ownerRequired: true,
+        classRequired: true,
+        privilegedDiagnostics: true,
+      },
+      conflictGroup: null,
+      conflictSignal: null,
+    },
     retrieval: { tags: ['konling-memory'], goals: ['control-correction'], useCases: ['konling'] },
   }),
 ];
@@ -111,6 +181,35 @@ describe('learning evidence RAG corpus contract', () => {
       'missing-source-ref',
       'missing-content-hash',
       'missing-retrievable-text',
+    ]));
+    const missingAuthority = chunk({ id: 'missing-authority' });
+    delete (missingAuthority as unknown as { authority?: unknown }).authority;
+    expect(validateLearningEvidenceCorpusChunk(missingAuthority)).toEqual(expect.arrayContaining([
+      'missing-authority-level',
+      'missing-authority-knowledge-tags',
+      'missing-authority-freshness-bucket',
+      'missing-authority-scope-rule',
+    ]));
+    expect(validateLearningEvidenceCorpusChunk(chunk({
+      id: 'bad-authority',
+      sourceType: 'course-content',
+      authority: {
+        level: 'learner-evidence',
+        knowledgeTags: [],
+        pageAnchor: null,
+        freshnessBucket: 'current',
+        scopeRule: {
+          visibility: 'student-visible',
+          allowedRoles: ['student'],
+          ownerRequired: true,
+        },
+        conflictGroup: null,
+        conflictSignal: null,
+      },
+    }))).toEqual(expect.arrayContaining([
+      'authority-source-type-mismatch',
+      'knowledge-source-missing-tags',
+      'scope-privacy-mismatch',
     ]));
     expect(LEARNING_EVIDENCE_CORPUS_RETENTION_POLICY).toMatchObject({
       rebuildTriggers: expect.arrayContaining(['source-updated', 'privacy-scope-changed']),
@@ -142,6 +241,7 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-1',
       targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
     }, { tags: ['terminal-validation'] });
@@ -154,6 +254,7 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-2',
       targetUserId: 'student-2',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
     }, { tags: ['terminal-validation'] });
@@ -163,6 +264,7 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-1',
       targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
     }, { tags: ['control-correction'] });
@@ -172,11 +274,141 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-2',
       targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
       includePrivateText: true,
     }, { tags: ['terminal-validation'] });
     expect(forgedTargetResults).toEqual([]);
+
+    const missingClassScopeResults = retrieveLearningEvidenceCorpus(corpus, {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, { tags: ['terminal-validation'] });
+    expect(missingClassScopeResults).toEqual([]);
+  });
+
+  it('ranks by authority, freshness, scope, use case, and query match before raw confidence', () => {
+    const highConfidenceLearnerEvidence = chunk({
+      id: 'learner-high-confidence',
+      family: 'path-evidence',
+      sourceType: 'path-summary',
+      sourceRef: { id: 'path-high', ownerUserId: 'student-1', classId: 'class-1', goalId: 'control-correction' },
+      display: { title: '学习路径摘要', href: null, capsule: '稳态误差 需要个人复习。' },
+      content: { text: '稳态误差 个人路径证据', redactedSummary: '稳态误差 个人路径证据', hash: 'hash-learner-high' },
+      privacyClass: 'student-visible',
+      confidence: 'high',
+      authority: {
+        level: 'learner-evidence',
+        knowledgeTags: [],
+        pageAnchor: 'path-high',
+        freshnessBucket: 'current',
+        scopeRule: {
+          visibility: 'student-visible',
+          allowedRoles: ['student', 'teacher', 'admin', 'service'],
+          ownerRequired: true,
+          classRequired: true,
+        },
+        conflictGroup: null,
+        conflictSignal: null,
+      },
+      retrieval: { tags: ['steady-state-error'], goals: ['control-correction'], useCases: ['diagnosis', 'konling'] },
+    });
+    const staleCanonical = chunk({
+      id: 'stale-canonical',
+      confidence: 'medium',
+      freshness: { indexedAt: '2026-06-04T00:00:00.000Z', sourceUpdatedAt: '2025-06-04T00:00:00.000Z', expiresAt: null, stale: true },
+      authority: {
+        ...chunk().authority,
+        freshnessBucket: 'stale',
+      },
+    });
+    const currentCanonical = chunk({
+      id: 'current-canonical',
+      confidence: 'medium',
+      display: { title: '稳态误差权威讲义', href: '/unit', capsule: '稳态误差 课程讲义。' },
+      content: { text: '稳态误差 课程讲义标准解释', redactedSummary: '稳态误差标准解释', hash: 'hash-current-canonical' },
+      authority: {
+        ...chunk().authority,
+        pageAnchor: 'handout#steady-state-error',
+      },
+    });
+
+    const results = retrieveLearningEvidenceCorpus([
+      highConfidenceLearnerEvidence,
+      staleCanonical,
+      currentCanonical,
+    ], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, { text: '稳态误差', tags: ['steady-state-error'] });
+
+    expect(results.map((item) => item.id)).toEqual([
+      'current-canonical',
+      'stale-canonical',
+      'learner-high-confidence',
+    ]);
+  });
+
+  it('builds authority metadata for every supported corpus source type', () => {
+    const cases: Array<Pick<LearningEvidenceCorpusChunk, 'family' | 'sourceType' | 'privacyClass'> & { id: string }> = [
+      { id: 'builder-course', family: 'course-content', sourceType: 'course-content', privacyClass: 'public' },
+      { id: 'builder-card', family: 'knowledge-card', sourceType: 'knowledge-card', privacyClass: 'public' },
+      { id: 'builder-handout', family: 'runtime-handout', sourceType: 'runtime-handout', privacyClass: 'public' },
+      { id: 'builder-path', family: 'path-evidence', sourceType: 'path-summary', privacyClass: 'student-visible' },
+      { id: 'builder-diagnosis', family: 'diagnosis', sourceType: 'diagnosis', privacyClass: 'service-only' },
+      { id: 'builder-grading', family: 'grading', sourceType: 'grading-artifact', privacyClass: 'teacher-visible' },
+      { id: 'builder-simulation', family: 'simulation-arena', sourceType: 'simulation-summary', privacyClass: 'student-visible' },
+      { id: 'builder-arena', family: 'simulation-arena', sourceType: 'arena-summary', privacyClass: 'student-visible' },
+      { id: 'builder-report', family: 'report', sourceType: 'teacher-report', privacyClass: 'teacher-visible' },
+    ];
+
+    const built = cases.map((item) => createLearningEvidenceCorpusChunk({
+      ...chunk({
+        id: item.id,
+        family: item.family,
+        sourceType: item.sourceType,
+        privacyClass: item.privacyClass,
+        sourceRef: {
+          id: item.id,
+          ownerUserId: item.privacyClass === 'public' || item.privacyClass === 'teacher-visible' ? null : 'student-1',
+          classId: item.privacyClass === 'public' ? null : 'class-1',
+          goalId: 'control-correction',
+        },
+        retrieval: {
+          tags: ['control-correction'],
+          goals: ['control-correction'],
+          useCases: item.sourceType === 'teacher-report'
+            ? ['teacher-report']
+            : item.sourceType === 'grading-artifact'
+              ? ['grading']
+              : ['diagnosis'],
+        },
+      }),
+      authority: undefined,
+    }));
+
+    expect(built.every((item) => validateLearningEvidenceCorpusChunk(item).length === 0)).toBe(true);
+    expect(built.find((item) => item.sourceType === 'course-content')?.authority).toMatchObject({
+      level: 'canonical',
+      knowledgeTags: expect.arrayContaining(['control-correction']),
+      scopeRule: expect.objectContaining({ visibility: 'public' }),
+    });
+    expect(built.find((item) => item.sourceType === 'teacher-report')?.authority).toMatchObject({
+      level: 'teacher-authored',
+      scopeRule: expect.objectContaining({ visibility: 'teacher-visible', classRequired: true }),
+    });
+    expect(built.find((item) => item.sourceType === 'diagnosis')?.authority).toMatchObject({
+      level: 'service-internal',
+      scopeRule: expect.objectContaining({ visibility: 'service-only', privilegedDiagnostics: true }),
+    });
   });
 
   it('constrains privileged retrieval to the requested learner owner when targetUserId is present', () => {
@@ -254,6 +486,8 @@ describe('learning evidence RAG corpus contract', () => {
 
     const service = retrieveLearningEvidenceCorpus(corpus, {
       role: 'service',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
       includePrivateText: true,
@@ -263,6 +497,8 @@ describe('learning evidence RAG corpus contract', () => {
 
     const admin = retrieveLearningEvidenceCorpus(corpus, {
       role: 'admin',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'grading',
     }, { tags: ['grading'] });
@@ -316,6 +552,178 @@ describe('learning evidence RAG corpus contract', () => {
     ]));
   });
 
+  it('downgrades low-authority citations and reports missing learner evidence or conflicts', () => {
+    const lowAuthorityCourse = chunk({
+      id: 'low-authority-course',
+      confidence: 'high',
+      authority: {
+        ...chunk().authority,
+        level: 'contextual',
+      },
+    });
+    const canonicalSupport = chunk({
+      id: 'canonical-support',
+      content: { text: '根轨迹设计支持该说法。', redactedSummary: '根轨迹设计支持该说法。', hash: 'hash-support' },
+      authority: {
+        ...chunk().authority,
+        conflictGroup: 'root-locus-claim',
+        conflictSignal: 'supports',
+      },
+    });
+    const canonicalContradiction = chunk({
+      id: 'canonical-contradiction',
+      content: { text: '根轨迹设计反驳该说法。', redactedSummary: '根轨迹设计反驳该说法。', hash: 'hash-contradiction' },
+      authority: {
+        ...chunk().authority,
+        conflictGroup: 'root-locus-claim',
+        conflictSignal: 'contradicts',
+      },
+    });
+
+    const result = verifyLearningEvidenceCitations([
+      lowAuthorityCourse,
+      canonicalSupport,
+      canonicalContradiction,
+    ], {
+      role: 'teacher',
+      userId: 'teacher-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    }, [
+      { chunkId: 'low-authority-course', useCase: 'diagnosis' },
+      { chunkId: 'canonical-support', useCase: 'diagnosis' },
+      { chunkId: 'canonical-contradiction', useCase: 'diagnosis' },
+    ], {
+      minimumAuthority: 'canonical',
+      requireLearnerEvidence: true,
+      detectConflicts: true,
+    });
+
+    expect(result.status).toBe('downgraded');
+    expect(result.limitations).toEqual(expect.arrayContaining([
+      { chunkId: 'low-authority-course', reason: 'insufficient-authority' },
+      { chunkId: 'learner-evidence', reason: 'missing-learner-evidence' },
+      { chunkId: 'root-locus-claim', reason: 'conflicting-source' },
+      { chunkId: 'canonical-support', reason: 'conflicting-source' },
+      { chunkId: 'canonical-contradiction', reason: 'conflicting-source' },
+    ]));
+    const chips = buildLearningEvidenceCitationChips(result, {
+      role: 'teacher',
+      userId: 'teacher-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    });
+    expect(chips.filter((chip) => chip.chunkId.startsWith('canonical-')).map((chip) => chip.limitationState)).toEqual([
+      'conflicting-source',
+      'conflicting-source',
+    ]);
+  });
+
+  it('detects conflicts from visible retrieval candidates even when the model cites only one side', () => {
+    const canonicalSupport = chunk({
+      id: 'candidate-support',
+      content: { text: '根轨迹设计支持该说法。', redactedSummary: '根轨迹设计支持该说法。', hash: 'hash-support' },
+      authority: {
+        ...chunk().authority,
+        conflictGroup: 'candidate-conflict',
+        conflictSignal: 'supports',
+      },
+    });
+    const canonicalContradiction = chunk({
+      id: 'candidate-contradiction',
+      content: { text: '根轨迹设计反驳该说法。', redactedSummary: '根轨迹设计反驳该说法。', hash: 'hash-contradiction' },
+      authority: {
+        ...chunk().authority,
+        conflictGroup: 'candidate-conflict',
+        conflictSignal: 'contradicts',
+      },
+    });
+
+    const result = verifyLearningEvidenceCitations([
+      canonicalSupport,
+      canonicalContradiction,
+    ], {
+      role: 'teacher',
+      userId: 'teacher-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    }, [
+      { chunkId: 'candidate-support', useCase: 'diagnosis' },
+    ], {
+      detectConflicts: true,
+    });
+
+    expect(result.status).toBe('downgraded');
+    expect(result.verifiedRefs).toEqual([
+      expect.objectContaining({ chunkId: 'candidate-support' }),
+    ]);
+    expect(result.limitations).toEqual(expect.arrayContaining([
+      { chunkId: 'candidate-conflict', reason: 'conflicting-source' },
+      { chunkId: 'candidate-support', reason: 'conflicting-source' },
+      { chunkId: 'candidate-contradiction', reason: 'conflicting-source' },
+    ]));
+    expect(buildLearningEvidenceCitationChips(result, {
+      role: 'teacher',
+      userId: 'teacher-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    })[0]).toEqual(expect.objectContaining({
+      chunkId: 'candidate-support',
+      limitationState: 'conflicting-source',
+    }));
+  });
+
+  it('builds shared CitationChip payloads without leaking privileged scope diagnostics to students', () => {
+    const verification = verifyLearningEvidenceCitations(corpus, {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    }, [
+      { chunkId: 'chunk-course-1', useCase: 'diagnosis' },
+      { chunkId: 'chunk-student-path', useCase: 'diagnosis' },
+    ]);
+
+    const chips = buildLearningEvidenceCitationChips(verification, {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    });
+
+    expect(chips).toEqual([
+      expect.objectContaining({
+        chunkId: 'chunk-course-1',
+        displayTitle: '控制校正讲义',
+        sourceType: 'course-content',
+        authorityLevel: 'canonical',
+        confidence: 'high',
+        freshnessBucket: 'current',
+        privacyVisibility: 'public',
+        limitationState: null,
+      }),
+      expect.objectContaining({
+        chunkId: 'chunk-student-path',
+        sourceType: 'path-summary',
+        authorityLevel: 'learner-evidence',
+        privacyVisibility: 'redacted',
+        limitationState: null,
+      }),
+    ]);
+    expect(JSON.stringify(chips)).not.toContain('ownerRequired');
+    expect(JSON.stringify(chips)).not.toContain('classRequired');
+    expect(JSON.stringify(chips)).not.toContain('allowedRoles');
+    expect(JSON.stringify(chips)).not.toContain('raw answer body');
+  });
+
   it('rejects citations outside user, goal, class, allowed source, and use-case scope', () => {
     const forgedStudent = verifyLearningEvidenceCitations(corpus, {
       role: 'student',
@@ -346,6 +754,19 @@ describe('learning evidence RAG corpus contract', () => {
       display: { title: '另一个班级报告', href: null, capsule: '跨班报告。' },
       content: { text: 'class 2 raw detail', redactedSummary: '跨班报告。', hash: 'hash-class-2' },
       privacyClass: 'teacher-visible',
+      authority: {
+        level: 'teacher-authored',
+        knowledgeTags: [],
+        pageAnchor: 'cohort.metrics',
+        freshnessBucket: 'current',
+        scopeRule: {
+          visibility: 'teacher-visible',
+          allowedRoles: ['teacher', 'admin', 'service'],
+          classRequired: true,
+        },
+        conflictGroup: null,
+        conflictSignal: null,
+      },
       retrieval: { tags: ['teacher-report'], goals: ['control-correction'], useCases: ['teacher-report'] },
     });
     const scopedService = verifyLearningEvidenceCitations([...corpus, outsideClassChunk], {
@@ -412,6 +833,7 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-1',
       targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
     });
@@ -421,6 +843,7 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-1',
       targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
     }, [
@@ -481,6 +904,7 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-1',
       targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
     }, { tags: ['konling-memory'] }).map((item) => item.id)).not.toContain('malformed-enums');
@@ -488,6 +912,7 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-1',
       targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
       useCase: 'konling',
     }, [
@@ -529,6 +954,7 @@ describe('learning evidence RAG corpus contract', () => {
       role: 'student',
       userId: 'student-1',
       targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
     }, [
       { chunkId: 'chunk-course-1', useCase: 'diagnosis', quoteHash: 'hash-course-1' },
@@ -548,6 +974,8 @@ describe('learning evidence RAG corpus contract', () => {
 
     const konling = verifyLearningEvidenceCitations(corpus, {
       role: 'service',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
       goalId: 'control-correction',
     }, [
       { chunkId: 'chunk-service-memory', useCase: 'konling' },
