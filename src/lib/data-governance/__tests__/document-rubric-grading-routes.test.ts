@@ -468,6 +468,31 @@ describe('document rubric grading routes', () => {
     expect(mocks.prisma.learningEvidenceDraft.create).not.toHaveBeenCalled();
   });
 
+  it('rejects unsupported rubric goal dimensions before draft grading is persisted', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+
+    const response = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio.',
+      rubric: {
+        ...rubric(),
+        criteria: [{
+          ...rubric().criteria[0],
+          goalDimension: 'unsupported-dimension',
+        }],
+      },
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({ error: '缺少有效评分量规' });
+    expect(mocks.prisma.class.findUnique).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.create).not.toHaveBeenCalled();
+  });
+
   it('enforces ownership and class scope for submission creation', async () => {
     mocks.getServerAuthSession.mockResolvedValueOnce(null);
     expect((await postSubmissionJson({})).status).toBe(401);

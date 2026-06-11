@@ -10,6 +10,7 @@ import {
   createDraftRubricGrading,
   createMarkItDownConversionAdapter,
   createSubmissionAsset,
+  normalizeDocumentRubricGoalDimension,
   textFixtureMarkItDownRunner,
   type RubricDefinition,
 } from '@/lib/data-governance/document-rubric-grading-workbench';
@@ -281,6 +282,7 @@ function isRubricDefinition(value: unknown): value is RubricDefinition {
       criterion.weight >= 0 &&
       typeof criterion.evidenceRequirement === 'string' &&
       typeof criterion.goalDimension === 'string' &&
+      isSupportedRubricGoalDimension(criterion.goalDimension) &&
       Array.isArray(criterion.levels) &&
       criterion.levels.length > 0 &&
       criterion.levels.every((level) => typeof level.id === 'string' &&
@@ -290,6 +292,15 @@ function isRubricDefinition(value: unknown): value is RubricDefinition {
         level.score >= 0 &&
         level.score <= rubric.maxScore &&
         typeof level.description === 'string'));
+}
+
+function isSupportedRubricGoalDimension(value: string): boolean {
+  try {
+    normalizeDocumentRubricGoalDimension(value);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function isTextLikeMimeType(mimeType: string): boolean {
