@@ -88,6 +88,9 @@ export async function POST(request: Request) {
     if (!studentProfile) {
       return NextResponse.json({ error: '学生不在该班级中' }, { status: 404 });
     }
+    if (parsed.run.status === 'approved' && (body.edits ?? []).length > 0) {
+      return NextResponse.json({ error: '已批准评分不能直接编辑' }, { status: 409 });
+    }
     const editValidationError = validateDocumentGradingEditsAgainstRubric(
       body.edits ?? [],
       parsed.rubric,

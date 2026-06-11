@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     const uploadedAt = new Date();
     const contentEncoding = body.contentEncoding ?? 'utf8';
     const asset = createSubmissionAsset({
-      id: body.assetId ?? buildSubmissionAssetId({
+      id: buildSubmissionAssetId({
         studentId: submission.studentId,
         assignmentId: submission.assignmentId,
         bytes: submission.bytes,
@@ -125,9 +125,18 @@ export async function POST(request: Request) {
       select: {
         id: true,
         dedupeKey: true,
+        ownerUserId: true,
+        classId: true,
+        sourceType: true,
         reviewerState: true,
       },
     });
+    if (existingDraft &&
+      (existingDraft.sourceType !== 'document_rubric_grading' ||
+        existingDraft.ownerUserId !== asset.studentId ||
+        existingDraft.classId !== asset.classId)) {
+      return NextResponse.json({ error: '重复提交归属不一致' }, { status: 409 });
+    }
     if (existingDraft && existingDraft.reviewerState !== 'pending') {
       return NextResponse.json({
         status: existingDraft.reviewerState,
@@ -240,6 +249,9 @@ function validateSubmissionBody(body: SubmissionBody): string | null {
   if (!body.bytes) return '缺少文件内容';
   if (body.contentEncoding && body.contentEncoding !== 'utf8' && body.contentEncoding !== 'base64') {
     return '文件编码无效';
+  }
+  if (body.assetId) {
+    return '不允许客户端指定资产标识';
   }
   if (!isRubricDefinition(body.rubric)) {
     return '缺少有效评分量规';

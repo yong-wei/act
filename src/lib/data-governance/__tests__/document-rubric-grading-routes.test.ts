@@ -372,6 +372,9 @@ describe('document rubric grading routes', () => {
     mocks.prisma.learningEvidenceDraft.findUnique.mockResolvedValue({
       id: 'grading:asset-1:rubric-control-report:2026.06',
       dedupeKey: 'document-rubric:asset-1:report-1:grading-1',
+      ownerUserId: 'student-1',
+      classId: 'class-1',
+      sourceType: 'document_rubric_grading',
       reviewerState: 'approved',
     });
 
@@ -394,6 +397,48 @@ describe('document rubric grading routes', () => {
       gradingRunId: 'grading:asset-1:rubric-control-report:2026.06',
       preservedReviewState: true,
     }));
+    expect(mocks.prisma.learningEvidenceDraft.create).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects client-provided asset ids and mismatched pending dedupe owners', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const assetIdResponse = await postSubmissionJson({
+      assetId: 'asset:student-2:report-1:colliding',
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio.',
+      rubric: rubric(),
+    });
+    expect(assetIdResponse.status).toBe(400);
+    await expect(assetIdResponse.json()).resolves.toEqual({ error: '不允许客户端指定资产标识' });
+
+    mocks.prisma.learningEvidenceDraft.findUnique.mockResolvedValue({
+      id: 'grading:other',
+      dedupeKey: 'document-rubric:other',
+      ownerUserId: 'student-2',
+      classId: 'class-1',
+      sourceType: 'document_rubric_grading',
+      reviewerState: 'pending',
+    });
+    const mismatchResponse = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio.',
+      rubric: rubric(),
+    });
+
+    expect(mismatchResponse.status).toBe(409);
+    await expect(mismatchResponse.json()).resolves.toEqual({ error: '重复提交归属不一致' });
     expect(mocks.prisma.learningEvidenceDraft.create).not.toHaveBeenCalled();
     expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();
   });
@@ -1049,6 +1094,42 @@ describe('document rubric grading routes', () => {
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toEqual({ error: '评分编辑分数超出量规范围' });
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects edits against already approved grading runs without repeating writeback', async () => {
+    const draft = await gradingDraft();
+    const approved = approveGradingRun(draft.summary.run, {
+      reviewerId: 'teacher-1',
+      decision: 'approved',
+      now,
+    });
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue({
+      ...draft,
+      summary: {
+        ...draft.summary,
+        run: approved,
+      },
+      reviewerState: 'approved',
+    });
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const response = await postJson({
+      gradingRunId: draft.id,
+      decision: 'approved',
+      edits: [{
+        criterionId: 'modeling',
+        levelId: 'advanced',
+        score: 4,
+        comment: '试图在已批准评分上直接修改。',
+      }],
+    });
+
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toEqual({ error: '已批准评分不能直接编辑' });
     expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
     expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();
   });
