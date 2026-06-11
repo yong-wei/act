@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import {
   approveGradingRun,
+  editCriterionGrade,
   parsePersistedDocumentRubricGradingDraft,
   previewApprovedGradingEvidence,
   validateDocumentRubricGradingDraftInvariants,
@@ -23,9 +24,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '无权预览文档评分写回' }, { status: 403 });
     }
 
-    const body = await request.json() as { gradingRunId?: string; notes?: string };
+    const body = await request.json() as {
+      gradingRunId?: string;
+      edits?: Array<{
+        criterionId?: unknown;
+        levelId?: unknown;
+        score?: unknown;
+        comment?: unknown;
+      }>;
+      notes?: string;
+    };
     if (!body.gradingRunId) {
       return NextResponse.json({ error: '缺少评分运行标识' }, { status: 400 });
+    }
+    if (body.edits !== undefined && !isDocumentGradingEditList(body.edits)) {
+      return NextResponse.json({ error: '评分编辑无效' }, { status: 400 });
     }
 
     const draft = await prisma.learningEvidenceDraft.findFirst({
@@ -71,10 +84,28 @@ export async function POST(request: Request) {
     if (!studentProfile) {
       return NextResponse.json({ error: '学生不在该班级中' }, { status: 404 });
     }
+    if (parsed.run.status === 'approved' && (body.edits ?? []).length > 0) {
+      return NextResponse.json({ error: '已批准评分不能直接编辑' }, { status: 409 });
+    }
+    const editValidationError = validateDocumentGradingEditsAgainstRubric(
+      body.edits ?? [],
+      parsed.rubric,
+    );
+    if (editValidationError) {
+      return NextResponse.json({ error: editValidationError }, { status: 400 });
+    }
 
-    const previewRun = parsed.run.status === 'approved'
-      ? parsed.run
-      : approveGradingRun(parsed.run, {
+    const editedRun = (body.edits ?? []).reduce((run, edit) => editCriterionGrade(run, {
+      criterionId: edit.criterionId,
+      levelId: edit.levelId,
+      score: edit.score,
+      comment: edit.comment,
+      reviewerId: session.user.id,
+      rubric: parsed.rubric,
+    }), parsed.run);
+    const previewRun = editedRun.status === 'approved'
+      ? editedRun
+      : approveGradingRun(editedRun, {
           reviewerId: session.user.id,
           decision: 'approved',
           notes: body.notes,
@@ -100,4 +131,51 @@ export async function POST(request: Request) {
     console.error('[DocumentRubricGrading] writeback preview failed', error);
     return NextResponse.json({ error: '预览文档评分写回失败' }, { status: 500 });
   }
+}
+
+function isDocumentGradingEditList(value: unknown): value is Array<{
+  criterionId: string;
+  levelId: string;
+  score: number;
+  comment: string;
+}> {
+  return Array.isArray(value) && value.every((item) => item &&
+    typeof item === 'object' &&
+    !Array.isArray(item) &&
+    typeof item.criterionId === 'string' &&
+    typeof item.levelId === 'string' &&
+    typeof item.score === 'number' &&
+    Number.isFinite(item.score) &&
+    typeof item.comment === 'string');
+}
+
+function validateDocumentGradingEditsAgainstRubric(
+  edits: Array<{
+    criterionId: string;
+    levelId: string;
+    score: number;
+    comment: string;
+  }>,
+  rubric: {
+    maxScore: number;
+    criteria: Array<{
+      id: string;
+      levels: Array<{ id: string; score: number }>;
+    }>;
+  },
+): string | null {
+  for (const edit of edits) {
+    const criterion = rubric.criteria.find((item) => item.id === edit.criterionId);
+    if (!criterion) {
+      return '评分编辑指标不存在';
+    }
+    const level = criterion.levels.find((item) => item.id === edit.levelId);
+    if (!level) {
+      return '评分编辑等级不存在';
+    }
+    if (edit.score < 0 || edit.score > rubric.maxScore) {
+      return '评分编辑分数超出量规范围';
+    }
+  }
+  return null;
 }
