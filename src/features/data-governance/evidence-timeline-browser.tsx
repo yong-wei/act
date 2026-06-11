@@ -277,7 +277,7 @@ export function EvidenceTimelineBrowser({
                     <div key={`${item.id}-${question.questionId ?? index}`} className="rounded-lg border border-border/70 bg-card/70 p-3 text-sm">
                       <p className="font-medium text-foreground">{question.prompt ?? question.questionId ?? '题目'}</p>
                       <p className="mt-1 text-subtle">
-                        作答 {question.studentAnswer ?? '未作答'}
+                        作答 {question.studentAnswerRedacted ? '已脱敏' : question.studentAnswer ?? '未作答'}
                         {question.referenceAnswer ? `，参考 ${question.referenceAnswer}` : ''}
                         {typeof question.isCorrect === 'boolean' ? `，${question.isCorrect ? '正确' : '需修正'}` : ''}
                       </p>

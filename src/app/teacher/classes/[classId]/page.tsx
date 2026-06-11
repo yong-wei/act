@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { AddStudentsModal } from '@/components/teacher/add-students-modal';
 import type { TeacherClassInsightsPayload } from '@/app/api/teacher/classes/[classId]/insights/route';
+import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
 import {
   buildTeacherClassInsightsHref,
   buildTeacherStudentInsightsHref,
@@ -334,7 +335,11 @@ export default function ClassDetailPage() {
 
   if (loading) {
     return (
-      <main className="surface-page mx-auto max-w-[1600px] px-6 py-8">
+      <main
+        className="surface-page mx-auto max-w-[1600px] px-6 py-8"
+        data-commercial-operations-workspace="teacher-operations"
+        data-commercial-workspace-zone="instrument-area"
+      >
         <div className="animate-pulse space-y-4">
           <div className="h-8 w-64 rounded bg-accent" />
           <div className="h-32 rounded-xl bg-accent" />
@@ -345,7 +350,11 @@ export default function ClassDetailPage() {
 
   if (!classData) {
     return (
-      <main className="surface-page mx-auto max-w-[1600px] px-6 py-8">
+      <main
+        className="surface-page mx-auto max-w-[1600px] px-6 py-8"
+        data-commercial-operations-workspace="teacher-operations"
+        data-commercial-workspace-zone="instrument-area"
+      >
         <div className="text-center">
           <p className="text-xl text-subtle">班级不存在</p>
           <Link
@@ -360,7 +369,11 @@ export default function ClassDetailPage() {
   }
 
   return (
-    <main className="surface-page mx-auto max-w-[1600px] px-6 py-8">
+    <main
+      className="surface-page mx-auto max-w-[1600px] px-6 py-8"
+      data-commercial-operations-workspace="teacher-operations"
+      data-commercial-workspace-zone="instrument-area"
+    >
       {/* 返回链接 */}
       <Link
         href="/teacher/classes"
@@ -547,6 +560,17 @@ export default function ClassDetailPage() {
             </p>
           </div>
         </section>
+      )}
+
+      {insights && (
+        <div className="mb-8">
+          <DiagnosisSurfacePanel
+            diagnosis={insights.diagnosis}
+            mode="teacher-class"
+            title="控制校正班级诊断"
+            description="聚合班级诊断快照、弱点聚类、证据覆盖与备课入口状态。"
+          />
+        </div>
       )}
 
       {/* 进行中的课堂 */}

@@ -371,6 +371,7 @@ function affectedVisualRoutes(files: string[]): CommercialVisualAcceptanceRoute[
 
 function appPageRouteHref(file: string) {
   if (!/^src\/app\/(?:.*\/)?page\.tsx$/.test(file)) return undefined;
+  if (REDIRECT_ONLY_APP_PAGE_LEDGER_EXEMPTIONS.has(file)) return undefined;
   const route = file
     .replace(/^src\/app\/?/, '')
     .replace(/\/page\.tsx$/, '')
@@ -461,6 +462,10 @@ function changedPrimaryRouteInventoryHrefs() {
 }
 const changedPrimaryRouteHrefs = changedPrimaryRouteInventoryHrefs();
 const currentPrimaryRouteHrefs = new Set(PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => route.href));
+const REDIRECT_ONLY_APP_PAGE_LEDGER_EXEMPTIONS = new Set([
+  'src/app/(main)/teacher/students/[studentId]/diagnosis/page.tsx',
+  'src/app/(main)/teacher/students/[studentId]/evidence/page.tsx',
+]);
 const missingChangedPrimaryRouteLedgerViolations: CommercialUiGovernanceViolation[] = [...changedPrimaryRouteHrefs]
   .filter((href) => !currentPrimaryRouteHrefs.has(href))
   .map((href) => ({

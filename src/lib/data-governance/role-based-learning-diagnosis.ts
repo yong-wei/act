@@ -14,6 +14,7 @@ import {
   canReadDiagnosisReportSnapshot,
   diagnosisEvidenceRefToCitationChip,
   type DiagnosisDimensionSnapshot,
+  type DiagnosisPercentileSnapshot,
   type DiagnosisReportSnapshot,
 } from './control-correction-diagnosis-profile';
 
@@ -74,6 +75,12 @@ export interface RoleBasedLearningDiagnosisNextAction {
   unavailableReason?: string;
 }
 
+export interface RoleBasedLearningDiagnosisMetrics {
+  score: number | null;
+  percentile: DiagnosisPercentileSnapshot;
+  growthPercentile: DiagnosisPercentileSnapshot;
+}
+
 export interface RoleBasedLearningDiagnosisClaim {
   id: string;
   dimensionId: string;
@@ -84,6 +91,7 @@ export interface RoleBasedLearningDiagnosisClaim {
   rootCause: string;
   evidenceRefs: RoleBasedLearningDiagnosisEvidenceRef[];
   sourceCoverage: Record<string, string>;
+  metrics: RoleBasedLearningDiagnosisMetrics;
   confidence: {
     state: LearningEvidenceConfidence;
     score: number;
@@ -236,15 +244,24 @@ function claimFromDiagnosisDimensionSnapshot(
 ): RoleBasedLearningDiagnosisClaim {
   const evidenceRefs = dimension.evidenceRefs
     .filter((ref) => evidenceRefVisibleFor(ref, input.view))
-    .map((ref): RoleBasedLearningDiagnosisEvidenceRef => ({
-    chunkId: ref.chunkId,
-    sourceType: ref.sourceType,
-    displayTitle: ref.title,
-    displayHref: ref.href ?? null,
-    confidence: dimension.confidence,
-    capsule: ref.capsule ?? ref.title,
-    citationChip: diagnosisEvidenceRefToCitationChip(ref, dimension.confidence),
-  }));
+    .map((ref): RoleBasedLearningDiagnosisEvidenceRef => {
+      const displayTitle = sanitizeDiagnosisEvidenceText(ref.title);
+      const capsule = sanitizeDiagnosisEvidenceText(ref.capsule ?? ref.title);
+      const displayHref = sanitizeDiagnosisEvidenceHref(ref.href);
+      return {
+        chunkId: ref.chunkId,
+        sourceType: ref.sourceType,
+        displayTitle,
+        displayHref,
+        confidence: dimension.confidence,
+        capsule,
+        citationChip: {
+          ...diagnosisEvidenceRefToCitationChip(ref, dimension.confidence),
+          displayTitle,
+          displayHref,
+        },
+      };
+    });
   const limitations = uniqueLimitations([
     ...dimension.limitations.map(snapshotLimitationToRoleLimitation),
     ...(dimension.evidenceRefs.length > 0 && evidenceRefs.length === 0
@@ -268,6 +285,11 @@ function claimFromDiagnosisDimensionSnapshot(
       : '治理指标快照显示该维度需要按证据状态跟进。',
     evidenceRefs,
     sourceCoverage: sourceCoverageFromSnapshot(snapshot, dimension.dimensionId),
+    metrics: {
+      score: dimension.score,
+      percentile: dimension.percentile,
+      growthPercentile: dimension.growthPercentile,
+    },
     confidence: {
       state: dimension.confidence,
       score: confidenceScore(dimension.confidence),
@@ -303,6 +325,21 @@ function evidenceRefVisibleFor(ref: DiagnosisReportSnapshot['dimensions'][number
   if (view === 'service') return true;
   if (view === 'student') return visibility === 'student-visible';
   return visibility === 'student-visible' || visibility === 'teacher-scoped';
+}
+
+function sanitizeDiagnosisEvidenceText(value: string | undefined | null): string {
+  if (!value) return '证据摘要已脱敏';
+  return containsSensitiveEvidenceText(value) ? '证据摘要已脱敏' : value;
+}
+
+function sanitizeDiagnosisEvidenceHref(value: string | undefined | null): string | null {
+  if (!value || containsSensitiveEvidenceText(value)) return null;
+  return value;
+}
+
+function containsSensitiveEvidenceText(value: string): boolean {
+  return /(studentAnswer|raw answer|raw-answer|raw dialogue|private Konling memory|privateKonlingMemory|private-Konling-memory|private memory|hidden Arena internals|raw payload|raw path trace)/i.test(value)
+    || /(?:^|[^A-Za-z])raw(?:[A-Z_=-]|\b|%5B)/.test(value);
 }
 
 function sourceCoverageFromSnapshot(snapshot: DiagnosisReportSnapshot, dimensionId: string): Record<string, string> {
@@ -387,6 +424,7 @@ function buildClaim(input: {
     rootCause: rootCauseFor(input.dimension, input.input),
     evidenceRefs: input.evidenceRefs,
     sourceCoverage: sourceCoverageFor(input.dimension),
+    metrics: metricsForDimension(input.dimension),
     confidence,
     evidenceWindow: {
       generatedAt: input.generatedAt,
@@ -429,7 +467,7 @@ function dimensionsFromGoalSlice(goalSlice: Record<string, any> | null | undefin
 function fallbackDimension(goalId: string) {
   return {
     id: goalId,
-    score: 0,
+    score: null,
     evidenceCount: 0,
     freshness: 'missing',
     confidence: { state: 'none', score: 0, evidenceCount: 0, sourceCompleteness: 0 },
@@ -476,6 +514,47 @@ function sourceCoverageFor(dimension: Record<string, any>) {
       .filter(([, value]) => typeof value === 'string')
       .map(([key, value]) => [key, value as string])
   );
+}
+
+function metricsForDimension(dimension: Record<string, any>): RoleBasedLearningDiagnosisMetrics {
+  const score = finiteNumberOrNull(dimension.score);
+  return {
+    score,
+    percentile: percentileSnapshotFrom(dimension.percentile),
+    growthPercentile: percentileSnapshotFrom(dimension.growthPercentile),
+  };
+}
+
+function percentileSnapshotFrom(value: unknown): DiagnosisPercentileSnapshot {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return unavailablePercentileSnapshot('cold-start');
+  const record = value as Record<string, unknown>;
+  const state = record.state === 'available' ? 'available' : 'unavailable';
+  const percentile = finiteNumberOrNull(record.percentile);
+  const sampleSize = finiteNumberOrNull(record.sampleSize);
+  const fallback = record.fallback === 'none' || record.fallback === 'insufficient-cohort' || record.fallback === 'cold-start'
+    ? record.fallback
+    : state === 'available'
+      ? 'none'
+      : 'cold-start';
+  return {
+    state,
+    percentile: state === 'available' ? percentile : null,
+    sampleSize: sampleSize ?? 0,
+    fallback,
+  };
+}
+
+function unavailablePercentileSnapshot(fallback: DiagnosisPercentileSnapshot['fallback']): DiagnosisPercentileSnapshot {
+  return {
+    state: 'unavailable',
+    percentile: null,
+    sampleSize: 0,
+    fallback,
+  };
+}
+
+function finiteNumberOrNull(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
 
 function confidenceFor(dimension: Record<string, any>, evidence: LearningEvidenceCorpusChunk[]): RoleBasedLearningDiagnosisClaim['confidence'] {

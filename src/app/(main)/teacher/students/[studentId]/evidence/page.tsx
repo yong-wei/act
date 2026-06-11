@@ -1,18 +1,41 @@
-import { EvidenceTimelineBrowser } from '@/features/data-governance/evidence-timeline-browser';
+import { redirect } from 'next/navigation';
 
-export default async function TeacherStudentEvidencePage(
+import { getServerAuthSession } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+
+export default async function LegacyTeacherStudentEvidencePage(
   props: {
     params: Promise<{ studentId: string }>;
   }
 ) {
-  const params = await props.params;
-  return (
-    <EvidenceTimelineBrowser
-      apiPath={`/api/teacher/students/${params.studentId}/evidence`}
-      backHref={`/teacher/students/${params.studentId}/diagnosis`}
-      emptyBackLabel="返回学生诊断"
-      title="学生证据"
-      subtitle="按时间查看该学生的学习事实和作答摘要"
-    />
-  );
+  const session = await getServerAuthSession();
+  if (!session?.user?.id) {
+    redirect('/login');
+  }
+
+  if (session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN') {
+    redirect('/dashboard');
+  }
+
+  const { studentId } = await props.params;
+  const studentProfile = await prisma.studentProfile.findUnique({
+    where: { userId: studentId },
+    select: {
+      classId: true,
+      class: {
+        select: {
+          teacherId: true,
+        },
+      },
+    },
+  });
+
+  if (
+    studentProfile?.classId
+    && (session.user.role === 'ADMIN' || studentProfile.class?.teacherId === session.user.id)
+  ) {
+    redirect(`/teacher/classes/${encodeURIComponent(studentProfile.classId)}/students/${encodeURIComponent(studentId)}/evidence`);
+  }
+
+  redirect('/teacher/classes');
 }

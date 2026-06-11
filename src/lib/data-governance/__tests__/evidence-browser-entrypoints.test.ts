@@ -24,11 +24,20 @@ describe('evidence browser entry points', () => {
     expect(source).toContain('查看完整证据');
   });
 
-  it('links the legacy teacher diagnosis page to a guarded teacher evidence browser', () => {
+  it('redirects the legacy teacher diagnosis page to the class-scoped diagnosis surface', () => {
     const source = readSource('src/app/(main)/teacher/students/[studentId]/diagnosis/page.tsx');
 
-    expect(source).toContain('href={`/teacher/students/${studentId}/evidence`}');
-    expect(source).toContain('查看完整证据');
+    expect(source).toContain('redirect(`/teacher/classes/${encodeURIComponent(studentProfile.classId)}/students/${encodeURIComponent(studentId)}`)');
+    expect(source).not.toContain('/api/student/competency-snapshot');
+    expect(source).not.toContain('studentAnswer');
+  });
+
+  it('redirects the legacy teacher evidence page to the class-scoped evidence browser', () => {
+    const source = readSource('src/app/(main)/teacher/students/[studentId]/evidence/page.tsx');
+
+    expect(source).toContain('redirect(`/teacher/classes/${encodeURIComponent(studentProfile.classId)}/students/${encodeURIComponent(studentId)}/evidence`)');
+    expect(source).not.toContain('EvidenceTimelineBrowser');
+    expect(source).not.toContain('/teacher/students/${params.studentId}/diagnosis');
   });
 
   it('defines browser pages for student, class-scoped teacher, and legacy teacher entry points', () => {
