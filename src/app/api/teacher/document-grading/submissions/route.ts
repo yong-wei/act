@@ -102,6 +102,7 @@ export async function POST(request: Request) {
     const asset = createSubmissionAsset({
       id: buildSubmissionAssetId({
         studentId: submission.studentId,
+        classId: submission.classId,
         assignmentId: submission.assignmentId,
         bytes: submission.bytes,
         contentEncoding,
@@ -437,6 +438,7 @@ function isTextLikeMimeType(mimeType: string): boolean {
 
 function buildSubmissionAssetId(input: {
   studentId: string;
+  classId: string;
   assignmentId: string;
   bytes: string;
   contentEncoding: 'utf8' | 'base64';
@@ -445,7 +447,7 @@ function buildSubmissionAssetId(input: {
     ? Buffer.from(input.bytes.replace(/^data:[^;]+;base64,/, ''), 'base64')
     : input.bytes;
   const digest = createHash('sha256').update(decoded).digest('hex').slice(0, 16);
-  return `asset:${input.studentId}:${input.assignmentId}:${digest}`;
+  return `asset:${input.studentId}:${input.classId}:${input.assignmentId}:${digest}`;
 }
 
 function decodeSubmissionTextBytes(bytes: string, contentEncoding: 'utf8' | 'base64'): string {

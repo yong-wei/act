@@ -295,7 +295,7 @@ describe('document rubric grading routes', () => {
     expect(response.status).toBe(201);
     expect(payload).toEqual(expect.objectContaining({
       status: 'pending',
-      gradingRunId: expect.stringContaining('grading:asset:student-1:report-1:'),
+      gradingRunId: expect.stringContaining('grading:asset:student-1:class-1:report-1:'),
       teacherWorkbenchHref: expect.stringContaining('/teacher/grading-workbench?gradingRunId='),
       conversion: expect.objectContaining({
         adapter: 'markitdown',
@@ -312,7 +312,9 @@ describe('document rubric grading routes', () => {
       classId: 'class-1',
     }));
     expect(createInput.data.sourceRefs.asset).toEqual(expect.objectContaining({
+      id: expect.stringContaining('asset:student-1:class-1:report-1:'),
       studentId: 'student-1',
+      classId: 'class-1',
       assignmentId: 'report-1',
       mimeType: 'text/markdown',
       checksum: expect.any(String),
@@ -334,6 +336,48 @@ describe('document rubric grading routes', () => {
     expect(createInput.data.provenance.conversion).toEqual(expect.objectContaining({
       status: 'converted',
       referencePrecision: 'span',
+    }));
+  });
+
+  it('scopes duplicate document grading submissions by class', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.class.findUnique
+      .mockResolvedValueOnce({ id: 'class-1', teacherId: 'teacher-1' })
+      .mockResolvedValueOnce({ id: 'class-2', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const first = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio and settling time.',
+      rubric: rubric(),
+    });
+    const second = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-2',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio and settling time.',
+      rubric: rubric(),
+    });
+    const firstCreate = mocks.prisma.learningEvidenceDraft.create.mock.calls[0][0];
+    const secondCreate = mocks.prisma.learningEvidenceDraft.create.mock.calls[1][0];
+
+    expect(first.status).toBe(201);
+    expect(second.status).toBe(201);
+    expect(firstCreate.data.sourceRefs.asset.id).toEqual(expect.stringContaining('asset:student-1:class-1:report-1:'));
+    expect(secondCreate.data.sourceRefs.asset.id).toEqual(expect.stringContaining('asset:student-1:class-2:report-1:'));
+    expect(firstCreate.data.dedupeKey).not.toBe(secondCreate.data.dedupeKey);
+    expect(firstCreate.data.summary.run.id).not.toBe(secondCreate.data.summary.run.id);
+    expect(mocks.prisma.learningEvidenceDraft.findUnique).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      where: { dedupeKey: firstCreate.data.dedupeKey },
+    }));
+    expect(mocks.prisma.learningEvidenceDraft.findUnique).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: { dedupeKey: secondCreate.data.dedupeKey },
     }));
   });
 
