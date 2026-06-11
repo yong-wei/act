@@ -84,7 +84,10 @@ export async function POST(request: Request) {
     }
 
     const rubric = session.user.role === UserRole.STUDENT
-      ? await resolveServerRubricForStudentSubmission(submission.assignmentId)
+      ? await resolveServerRubricForStudentSubmission({
+          assignmentId: submission.assignmentId,
+          classId: submission.classId,
+        })
       : submission.rubric;
     if (!rubric) {
       return NextResponse.json({ error: '作业未配置服务端评分量规' }, { status: 422 });
@@ -252,11 +255,25 @@ export async function POST(request: Request) {
   }
 }
 
-async function resolveServerRubricForStudentSubmission(assignmentId: string): Promise<RubricDefinition | null> {
+async function resolveServerRubricForStudentSubmission(input: {
+  assignmentId: string;
+  classId: string;
+}): Promise<RubricDefinition | null> {
   const resource = await prisma.teachingResource.findFirst({
     where: {
-      id: assignmentId,
+      id: input.assignmentId,
       teacherOnly: false,
+      lessonItems: {
+        some: {
+          plan: {
+            sessions: {
+              some: {
+                classId: input.classId,
+              },
+            },
+          },
+        },
+      },
     },
     select: {
       config: true,
@@ -304,15 +321,20 @@ function isSubmissionCreatorRole(role: UserRole): boolean {
 function isRubricDefinition(value: unknown): value is RubricDefinition {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const rubric = value as RubricDefinition;
-  return typeof rubric.id === 'string' &&
+  if (!(typeof rubric.id === 'string' &&
     typeof rubric.title === 'string' &&
     typeof rubric.version === 'string' &&
     typeof rubric.maxScore === 'number' &&
     Number.isFinite(rubric.maxScore) &&
     rubric.maxScore > 0 &&
     Array.isArray(rubric.criteria) &&
-    rubric.criteria.length > 0 &&
-    rubric.criteria.every((criterion) => typeof criterion.id === 'string' &&
+    rubric.criteria.length > 0)) {
+    return false;
+  }
+  if (!hasUniqueIds(rubric.criteria)) {
+    return false;
+  }
+  return rubric.criteria.every((criterion) => typeof criterion.id === 'string' &&
       typeof criterion.label === 'string' &&
       typeof criterion.weight === 'number' &&
       Number.isFinite(criterion.weight) &&
@@ -322,6 +344,7 @@ function isRubricDefinition(value: unknown): value is RubricDefinition {
       isSupportedRubricGoalDimension(criterion.goalDimension) &&
       Array.isArray(criterion.levels) &&
       criterion.levels.length > 0 &&
+      hasUniqueIds(criterion.levels) &&
       criterion.levels.every((level) => typeof level.id === 'string' &&
         typeof level.label === 'string' &&
         typeof level.score === 'number' &&
@@ -329,6 +352,12 @@ function isRubricDefinition(value: unknown): value is RubricDefinition {
         level.score >= 0 &&
         level.score <= rubric.maxScore &&
         typeof level.description === 'string'));
+}
+
+function hasUniqueIds(items: Array<{ id?: unknown }>): boolean {
+  const ids = items.map((item) => item.id);
+  return ids.every((id) => typeof id === 'string' && id.length > 0) &&
+    new Set(ids).size === ids.length;
 }
 
 function isSupportedRubricGoalDimension(value: string): boolean {

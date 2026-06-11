@@ -498,6 +498,56 @@ describe('document rubric grading routes', () => {
     expect(mocks.prisma.learningEvidenceDraft.create).not.toHaveBeenCalled();
   });
 
+  it('rejects duplicate rubric criterion and level identifiers before persistence', async () => {
+    mocks.getServerAuthSession.mockResolvedValueOnce({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    const duplicateCriterionResponse = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio.',
+      rubric: {
+        ...rubric(),
+        criteria: [
+          rubric().criteria[0],
+          {
+            ...rubric().criteria[0],
+            label: '重复指标',
+          },
+        ],
+      },
+    });
+
+    mocks.getServerAuthSession.mockResolvedValueOnce({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    const duplicateLevelResponse = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio.',
+      rubric: {
+        ...rubric(),
+        criteria: [{
+          ...rubric().criteria[0],
+          levels: [
+            rubric().criteria[0].levels[0],
+            {
+              ...rubric().criteria[0].levels[0],
+              label: '重复等级',
+            },
+          ],
+        }],
+      },
+    });
+
+    expect(duplicateCriterionResponse.status).toBe(400);
+    expect(duplicateLevelResponse.status).toBe(400);
+    expect(mocks.prisma.class.findUnique).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.create).not.toHaveBeenCalled();
+  });
+
   it('prevents students from providing or overriding grading rubrics', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
 
@@ -551,6 +601,17 @@ describe('document rubric grading routes', () => {
       where: {
         id: 'report-1',
         teacherOnly: false,
+        lessonItems: {
+          some: {
+            plan: {
+              sessions: {
+                some: {
+                  classId: 'class-1',
+                },
+              },
+            },
+          },
+        },
       },
       select: {
         config: true,
@@ -566,11 +627,76 @@ describe('document rubric grading routes', () => {
     }));
   });
 
+  it('rejects student submissions when the assignment resource is not published to the class', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+    mocks.prisma.teachingResource.findFirst.mockResolvedValue(null);
+
+    const response = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'foreign-resource',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio.',
+    });
+
+    expect(response.status).toBe(422);
+    await expect(response.json()).resolves.toEqual({ error: '作业未配置服务端评分量规' });
+    expect(mocks.prisma.teachingResource.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: 'foreign-resource',
+        teacherOnly: false,
+        lessonItems: expect.any(Object),
+      }),
+    }));
+    expect(mocks.prisma.learningEvidenceDraft.create).not.toHaveBeenCalled();
+  });
+
   it('rejects student submissions when the assignment has no server rubric', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
     mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
     mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
     mocks.prisma.teachingResource.findFirst.mockResolvedValue({ config: {} });
+
+    const response = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio.',
+    });
+
+    expect(response.status).toBe(422);
+    await expect(response.json()).resolves.toEqual({ error: '作业未配置服务端评分量规' });
+    expect(mocks.prisma.learningEvidenceDraft.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects invalid server rubric identifiers for student submissions', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+    mocks.prisma.teachingResource.findFirst.mockResolvedValue({
+      config: {
+        documentGrading: {
+          rubric: {
+            ...rubric(),
+            criteria: [{
+              ...rubric().criteria[0],
+              levels: [
+                rubric().criteria[0].levels[0],
+                {
+                  ...rubric().criteria[0].levels[0],
+                  label: '重复等级',
+                },
+              ],
+            }],
+          },
+        },
+      },
+    });
 
     const response = await postSubmissionJson({
       studentId: 'student-1',
