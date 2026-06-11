@@ -277,8 +277,28 @@ async function resolveServerRubricForStudentSubmission(input: {
     },
     select: {
       config: true,
+      lessonItems: {
+        where: {
+          plan: {
+            sessions: {
+              some: {
+                classId: input.classId,
+              },
+            },
+          },
+        },
+        select: {
+          overrideConfig: true,
+        },
+      },
     },
   });
+  for (const item of resource?.lessonItems ?? []) {
+    const overrideRubric = extractRubricFromAssignmentConfig(item.overrideConfig);
+    if (overrideRubric) {
+      return overrideRubric;
+    }
+  }
   return extractRubricFromAssignmentConfig(resource?.config ?? null);
 }
 

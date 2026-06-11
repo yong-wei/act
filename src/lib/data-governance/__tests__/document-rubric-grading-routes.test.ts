@@ -615,6 +615,20 @@ describe('document rubric grading routes', () => {
       },
       select: {
         config: true,
+        lessonItems: {
+          where: {
+            plan: {
+              sessions: {
+                some: {
+                  classId: 'class-1',
+                },
+              },
+            },
+          },
+          select: {
+            overrideConfig: true,
+          },
+        },
       },
     });
     expect(createInput.data.summary.rubric).toEqual(expect.objectContaining({
@@ -624,6 +638,54 @@ describe('document rubric grading routes', () => {
     expect(createInput.data.summary.run).toEqual(expect.objectContaining({
       rubricId: 'server-rubric',
       rubricVersion: 'server-v1',
+    }));
+  });
+
+  it('prefers class-published lesson item override rubric for student submissions', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+    mocks.prisma.teachingResource.findFirst.mockResolvedValue({
+      config: {
+        documentGrading: {
+          rubric: {
+            ...rubric(),
+            id: 'resource-rubric',
+            version: 'resource-v1',
+          },
+        },
+      },
+      lessonItems: [{
+        overrideConfig: {
+          documentGrading: {
+            rubric: {
+              ...rubric(),
+              id: 'override-rubric',
+              version: 'override-v1',
+            },
+          },
+        },
+      }],
+    });
+
+    const response = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio.',
+    });
+    const createInput = mocks.prisma.learningEvidenceDraft.create.mock.calls[0][0];
+
+    expect(response.status).toBe(201);
+    expect(createInput.data.summary.rubric).toEqual(expect.objectContaining({
+      id: 'override-rubric',
+      version: 'override-v1',
+    }));
+    expect(createInput.data.summary.run).toEqual(expect.objectContaining({
+      rubricId: 'override-rubric',
+      rubricVersion: 'override-v1',
     }));
   });
 
