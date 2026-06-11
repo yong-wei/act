@@ -398,7 +398,7 @@ export function verifyLearningEvidenceCitations(
     limitations.push({ chunkId: 'learner-evidence', reason: 'missing-learner-evidence' });
   }
   if (policy.detectConflicts) {
-    for (const conflict of conflictingGroups(chunks, verifiedRefs.map((ref) => ref.chunkId))) {
+    for (const conflict of conflictingGroups(chunks, verifiedRefs.map((ref) => ref.chunkId), scope)) {
       limitations.push({ chunkId: conflict.group, reason: 'conflicting-source' });
       for (const chunkId of conflict.chunkIds) {
         limitations.push({ chunkId, reason: 'conflicting-source' });
@@ -581,20 +581,32 @@ function rankChunk(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRe
   return AUTHORITY_SCORE[chunk.authority.level] + confidence * 4 + freshness + scopeSpecificity + useCase + queryMatch;
 }
 
-function conflictingGroups(chunks: LearningEvidenceCorpusChunk[], verifiedChunkIds: string[]) {
+function conflictingGroups(
+  chunks: LearningEvidenceCorpusChunk[],
+  verifiedChunkIds: string[],
+  scope: LearningEvidenceRetrievalScope,
+) {
   const chunkById = new Map(chunks.map((chunk) => [chunk.id, chunk]));
+  const candidateGroups = new Set<string>();
+  for (const chunkId of verifiedChunkIds) {
+    const group = chunkById.get(chunkId)?.authority.conflictGroup;
+    if (group) candidateGroups.add(group);
+  }
   const groups = new Map<string, {
     signals: Set<Exclude<LearningEvidenceConflictSignal, null>>;
     chunkIds: string[];
   }>();
-  for (const chunkId of verifiedChunkIds) {
-    const chunk = chunkById.get(chunkId);
-    const group = chunk?.authority.conflictGroup;
-    const signal = chunk?.authority.conflictSignal;
+  for (const chunk of chunks) {
+    const group = chunk.authority.conflictGroup;
+    const signal = chunk.authority.conflictSignal;
     if (!group || !signal) continue;
+    if (!candidateGroups.has(group)) continue;
+    if (validateLearningEvidenceCorpusChunk(chunk).length > 0) continue;
+    if (!isChunkVisible(chunk, scope) || !matchesRetrievalScope(chunk, scope)) continue;
+    if (scope.useCase && !chunk.retrieval.useCases.includes(scope.useCase)) continue;
     const existing = groups.get(group) ?? { signals: new Set<Exclude<LearningEvidenceConflictSignal, null>>(), chunkIds: [] };
     existing.signals.add(signal);
-    existing.chunkIds.push(chunkId);
+    existing.chunkIds.push(chunk.id);
     groups.set(group, existing);
   }
   return [...groups.entries()]

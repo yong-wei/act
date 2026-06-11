@@ -698,7 +698,14 @@ function evidenceFromDiagnosisRefs(diagnosis: RoleBasedLearningDiagnosis): Teach
     capsule: sanitizeText(ref.capsule),
     confidence: ref.confidence,
     privacy: 'redacted-capsule' as const,
-    citationChip: ref.citationChip,
+    citationChip: ref.citationChip ?? prepCitationChip({
+      chunkId: ref.chunkId,
+      displayTitle: sanitizeText(ref.displayTitle),
+      sourceType: ref.sourceType,
+      authorityLevel: 'verified',
+      confidence: ref.confidence,
+      privacyVisibility: 'redacted',
+    }),
   })));
 }
 

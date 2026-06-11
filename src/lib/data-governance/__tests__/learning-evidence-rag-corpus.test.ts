@@ -621,6 +621,62 @@ describe('learning evidence RAG corpus contract', () => {
     ]);
   });
 
+  it('detects conflicts from visible retrieval candidates even when the model cites only one side', () => {
+    const canonicalSupport = chunk({
+      id: 'candidate-support',
+      content: { text: '根轨迹设计支持该说法。', redactedSummary: '根轨迹设计支持该说法。', hash: 'hash-support' },
+      authority: {
+        ...chunk().authority,
+        conflictGroup: 'candidate-conflict',
+        conflictSignal: 'supports',
+      },
+    });
+    const canonicalContradiction = chunk({
+      id: 'candidate-contradiction',
+      content: { text: '根轨迹设计反驳该说法。', redactedSummary: '根轨迹设计反驳该说法。', hash: 'hash-contradiction' },
+      authority: {
+        ...chunk().authority,
+        conflictGroup: 'candidate-conflict',
+        conflictSignal: 'contradicts',
+      },
+    });
+
+    const result = verifyLearningEvidenceCitations([
+      canonicalSupport,
+      canonicalContradiction,
+    ], {
+      role: 'teacher',
+      userId: 'teacher-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    }, [
+      { chunkId: 'candidate-support', useCase: 'diagnosis' },
+    ], {
+      detectConflicts: true,
+    });
+
+    expect(result.status).toBe('downgraded');
+    expect(result.verifiedRefs).toEqual([
+      expect.objectContaining({ chunkId: 'candidate-support' }),
+    ]);
+    expect(result.limitations).toEqual(expect.arrayContaining([
+      { chunkId: 'candidate-conflict', reason: 'conflicting-source' },
+      { chunkId: 'candidate-support', reason: 'conflicting-source' },
+      { chunkId: 'candidate-contradiction', reason: 'conflicting-source' },
+    ]));
+    expect(buildLearningEvidenceCitationChips(result, {
+      role: 'teacher',
+      userId: 'teacher-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    })[0]).toEqual(expect.objectContaining({
+      chunkId: 'candidate-support',
+      limitationState: 'conflicting-source',
+    }));
+  });
+
   it('builds shared CitationChip payloads without leaking privileged scope diagnostics to students', () => {
     const verification = verifyLearningEvidenceCitations(corpus, {
       role: 'student',
