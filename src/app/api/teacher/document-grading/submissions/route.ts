@@ -217,7 +217,8 @@ export async function POST(request: Request) {
             reviewerState: true,
           },
         })
-      : await prisma.learningEvidenceDraft.create({
+      : await createDocumentRubricDraftOrReadDuplicate({
+          dedupeKey,
           data: {
             id: run.id,
             ownerUserId: asset.studentId,
@@ -226,11 +227,6 @@ export async function POST(request: Request) {
             privacyScope: 'teacher_review',
             dedupeKey,
             ...data,
-          },
-          select: {
-            id: true,
-            dedupeKey: true,
-            reviewerState: true,
           },
         });
 
@@ -312,6 +308,45 @@ async function resolveServerSubmissionPolicyForStudent(input: {
     }
   }
   return extractSubmissionPolicyFromAssignmentConfig(resource?.config ?? null);
+}
+
+async function createDocumentRubricDraftOrReadDuplicate(input: {
+  dedupeKey: string;
+  data: NonNullable<Parameters<typeof prisma.learningEvidenceDraft.create>[0]>['data'];
+}) {
+  try {
+    return await prisma.learningEvidenceDraft.create({
+      data: input.data,
+      select: {
+        id: true,
+        dedupeKey: true,
+        reviewerState: true,
+      },
+    });
+  } catch (error) {
+    if (!isPrismaUniqueConstraintError(error)) {
+      throw error;
+    }
+    const existing = await prisma.learningEvidenceDraft.findUnique({
+      where: { dedupeKey: input.dedupeKey },
+      select: {
+        id: true,
+        dedupeKey: true,
+        reviewerState: true,
+      },
+    });
+    if (!existing) {
+      throw error;
+    }
+    return existing;
+  }
+}
+
+function isPrismaUniqueConstraintError(error: unknown): boolean {
+  return Boolean(error &&
+    typeof error === 'object' &&
+    !Array.isArray(error) &&
+    (error as { code?: unknown }).code === 'P2002');
 }
 
 function extractSubmissionPolicyFromAssignmentConfig(config: unknown): ServerSubmissionPolicy | null {

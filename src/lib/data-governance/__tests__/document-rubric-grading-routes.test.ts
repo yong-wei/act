@@ -450,6 +450,43 @@ describe('document rubric grading routes', () => {
     expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();
   });
 
+  it('returns an existing draft when duplicate submission creation races on dedupe key', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+    mocks.prisma.learningEvidenceDraft.findUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        id: 'grading:raced-existing',
+        dedupeKey: 'document-rubric:raced-existing',
+        reviewerState: 'pending',
+      });
+    mocks.prisma.learningEvidenceDraft.create.mockRejectedValueOnce({ code: 'P2002' });
+
+    const response = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio and settling time.',
+      rubric: rubric(),
+      goalId: 'control-report',
+      targetGoal: 'control-report',
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(payload).toEqual(expect.objectContaining({
+      status: 'pending',
+      gradingRunId: 'grading:raced-existing',
+      dedupeKey: 'document-rubric:raced-existing',
+    }));
+    expect(mocks.prisma.learningEvidenceDraft.create).toHaveBeenCalledTimes(1);
+    expect(mocks.prisma.learningEvidenceDraft.findUnique).toHaveBeenCalledTimes(2);
+    expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();
+  });
+
   it('rejects client-provided asset ids and mismatched pending dedupe owners', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
     mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
