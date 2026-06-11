@@ -5,6 +5,7 @@ import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import {
   approveGradingRun,
+  editCriterionGrade,
   parsePersistedDocumentRubricGradingDraft,
   validateDocumentRubricGradingDraftInvariants,
   writeApprovedGradingEvidence,
@@ -26,6 +27,12 @@ export async function POST(request: Request) {
     const body = await request.json() as {
       gradingRunId?: string;
       decision?: unknown;
+      edits?: Array<{
+        criterionId?: unknown;
+        levelId?: unknown;
+        score?: unknown;
+        comment?: unknown;
+      }>;
       notes?: string;
     };
     if (!body.gradingRunId) {
@@ -33,6 +40,9 @@ export async function POST(request: Request) {
     }
     if (body.decision !== undefined && !isDocumentGradingDecision(body.decision)) {
       return NextResponse.json({ error: '审批决策无效' }, { status: 400 });
+    }
+    if (body.edits !== undefined && !isDocumentGradingEditList(body.edits)) {
+      return NextResponse.json({ error: '评分编辑无效' }, { status: 400 });
     }
 
     const draft = await prisma.learningEvidenceDraft.findFirst({
@@ -80,7 +90,14 @@ export async function POST(request: Request) {
     }
 
     const decision = body.decision ?? 'approved';
-    const approved = approveGradingRun(parsed.run, {
+    const editedRun = (body.edits ?? []).reduce((run, edit) => editCriterionGrade(run, {
+      criterionId: edit.criterionId,
+      levelId: edit.levelId,
+      score: edit.score,
+      comment: edit.comment,
+      reviewerId: session.user.id,
+    }), parsed.run);
+    const approved = approveGradingRun(editedRun, {
       reviewerId: session.user.id,
       decision,
       notes: body.notes,
@@ -151,4 +168,20 @@ function toPrismaJsonObject(value: Record<string, unknown>): Prisma.InputJsonObj
 
 function isDocumentGradingDecision(value: unknown): value is 'approved' | 'returned' | 'rejected' {
   return value === 'approved' || value === 'returned' || value === 'rejected';
+}
+
+function isDocumentGradingEditList(value: unknown): value is Array<{
+  criterionId: string;
+  levelId: string;
+  score: number;
+  comment: string;
+}> {
+  return Array.isArray(value) && value.every((item) => item &&
+    typeof item === 'object' &&
+    !Array.isArray(item) &&
+    typeof item.criterionId === 'string' &&
+    typeof item.levelId === 'string' &&
+    typeof item.score === 'number' &&
+    Number.isFinite(item.score) &&
+    typeof item.comment === 'string');
 }

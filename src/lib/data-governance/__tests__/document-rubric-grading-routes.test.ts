@@ -28,6 +28,7 @@ const mocks = vi.hoisted(() => ({
   prisma: {
     learningEvidenceDraft: {
       findFirst: vi.fn(),
+      upsert: vi.fn(),
       update: vi.fn(),
     },
     class: {
@@ -53,7 +54,9 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
 }));
 
-import { POST } from '@/app/api/teacher/document-grading/approve/route';
+import { POST as approvePOST } from '@/app/api/teacher/document-grading/approve/route';
+import { POST as submissionPOST } from '@/app/api/teacher/document-grading/submissions/route';
+import { POST as previewPOST } from '@/app/api/teacher/document-grading/writeback-preview/route';
 
 const root = process.cwd();
 const now = new Date('2026-06-04T08:00:00.000Z');
@@ -63,7 +66,23 @@ function source(path: string) {
 }
 
 function postJson(body: unknown) {
-  return POST(new Request('http://localhost/api/teacher/document-grading/approve', {
+  return approvePOST(new Request('http://localhost/api/teacher/document-grading/approve', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }));
+}
+
+function postSubmissionJson(body: unknown) {
+  return submissionPOST(new Request('http://localhost/api/teacher/document-grading/submissions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  }));
+}
+
+function postPreviewJson(body: unknown) {
+  return previewPOST(new Request('http://localhost/api/teacher/document-grading/writeback-preview', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -233,9 +252,110 @@ function runtimeScope(overrides: Partial<KonlingRuntimeScope> = {}): KonlingRunt
 describe('document rubric grading routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.prisma.learningEvidenceDraft.upsert.mockImplementation(async (input) => ({
+      id: input.create.id,
+      dedupeKey: input.create.dedupeKey,
+      reviewerState: input.create.reviewerState,
+    }));
     mocks.prisma.learningFact.createMany.mockResolvedValue({ count: 1 });
     mocks.prisma.studentEvidenceFeatureCache.deleteMany.mockResolvedValue({ count: 1 });
     mocks.prisma.learningEvidenceDraft.update.mockResolvedValue({});
+  });
+
+  it('creates persisted document grading submissions with conversion artifacts and draft assessment state', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const response = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio and settling time.',
+      rubric: rubric(),
+      goalId: 'control-report',
+      targetGoal: 'control-report',
+    });
+    const payload = await response.json();
+    const upsertInput = mocks.prisma.learningEvidenceDraft.upsert.mock.calls[0][0];
+
+    expect(response.status).toBe(201);
+    expect(payload).toEqual(expect.objectContaining({
+      status: 'pending',
+      gradingRunId: expect.stringContaining('grading:asset:student-1:report-1:'),
+      teacherWorkbenchHref: expect.stringContaining('/teacher/grading-workbench?gradingRunId='),
+      conversion: expect.objectContaining({
+        adapter: 'markitdown',
+        referencePrecision: 'span',
+        warnings: [],
+      }),
+    }));
+    expect(upsertInput.create).toEqual(expect.objectContaining({
+      ownerUserId: 'student-1',
+      sourceType: 'document_rubric_grading',
+      factType: 'document_rubric_grading',
+      privacyScope: 'teacher_review',
+      reviewerState: 'pending',
+      classId: 'class-1',
+    }));
+    expect(upsertInput.create.sourceRefs.asset).toEqual(expect.objectContaining({
+      studentId: 'student-1',
+      assignmentId: 'report-1',
+      mimeType: 'text/markdown',
+      checksum: expect.any(String),
+    }));
+    expect(upsertInput.create.evidenceRefs.convertedDocument).toEqual(expect.objectContaining({
+      assetId: upsertInput.create.sourceRefs.asset.id,
+      referencePrecision: 'span',
+      warnings: [],
+    }));
+    expect(upsertInput.create.summary.run.draftGrades[0]).toEqual(expect.objectContaining({
+      criterionId: 'modeling',
+      evidenceRefs: expect.arrayContaining([
+        expect.objectContaining({
+          blockId: 'block-1',
+          precision: 'span',
+        }),
+      ]),
+    }));
+    expect(upsertInput.create.provenance.conversion).toEqual(expect.objectContaining({
+      status: 'converted',
+      referencePrecision: 'span',
+    }));
+  });
+
+  it('enforces ownership and class scope for submission creation', async () => {
+    mocks.getServerAuthSession.mockResolvedValueOnce(null);
+    expect((await postSubmissionJson({})).status).toBe(401);
+
+    mocks.getServerAuthSession.mockResolvedValueOnce({ user: { id: 'student-2', role: 'STUDENT' } });
+    mocks.prisma.class.findUnique.mockResolvedValueOnce({ id: 'class-1', teacherId: 'teacher-1' });
+    const wrongStudentResponse = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio.',
+      rubric: rubric(),
+    });
+    expect(wrongStudentResponse.status).toBe(403);
+
+    mocks.getServerAuthSession.mockResolvedValueOnce({ user: { id: 'teacher-2', role: 'TEACHER' } });
+    mocks.prisma.class.findUnique.mockResolvedValueOnce({ id: 'class-1', teacherId: 'teacher-1' });
+    const wrongTeacherResponse = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio.',
+      rubric: rubric(),
+    });
+    expect(wrongTeacherResponse.status).toBe(403);
+    expect(mocks.prisma.learningEvidenceDraft.upsert).not.toHaveBeenCalled();
   });
 
   it('protects student document feedback with session and student-role gates', () => {
@@ -789,6 +909,79 @@ describe('document rubric grading routes', () => {
       where: { id: draft.id },
       data: expect.objectContaining({ reviewerState: 'approved' }),
     }));
+  });
+
+  it('applies teacher criterion edits before approval writeback', async () => {
+    const draft = await gradingDraft();
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue(draft);
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const response = await postJson({
+      gradingRunId: draft.id,
+      decision: 'approved',
+      edits: [{
+        criterionId: 'modeling',
+        levelId: 'proficient',
+        score: 3,
+        comment: '教师修订：模型表达达标，但需要补充稳定裕度解释。',
+      }],
+    });
+    const updateInput = mocks.prisma.learningEvidenceDraft.update.mock.calls[0][0];
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.arrayContaining([
+        expect.objectContaining({
+          score: 3,
+          sourceEventId: `${draft.id}:modeling:${draft.summary.run.rubricVersion}`,
+        }),
+      ]),
+    }));
+    expect(updateInput.data.summary.run.approvedGrades[0]).toEqual(expect.objectContaining({
+      criterionId: 'modeling',
+      levelId: 'proficient',
+      score: 3,
+      comment: '教师修订：模型表达达标，但需要补充稳定裕度解释。',
+    }));
+    expect(updateInput.data.summary.run.annotations).toContainEqual(expect.objectContaining({
+      criterionId: 'modeling',
+      authorRole: 'teacher',
+      comment: '教师修订：模型表达达标，但需要补充稳定裕度解释。',
+    }));
+  });
+
+  it('previews approved writeback effects without creating learning facts', async () => {
+    const draft = await gradingDraft();
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue(draft);
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const response = await postPreviewJson({ gradingRunId: draft.id });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toEqual(expect.objectContaining({
+      status: 'preview',
+      gradingRunId: draft.id,
+      wouldCreateFacts: 1,
+      blockedFacts: 0,
+      evidenceSourceEventIds: expect.arrayContaining([
+        `${draft.id}:modeling:${draft.summary.run.rubricVersion}`,
+      ]),
+      dedupeKeys: expect.arrayContaining([
+        `${draft.id}:modeling:${draft.summary.run.rubricVersion}`,
+      ]),
+    }));
+    expect(payload.affectedDimensions[0]).toEqual(expect.objectContaining({
+      criterionId: 'modeling',
+      competencyDimension: 'controlModeling',
+      sourceEventId: `${draft.id}:modeling:${draft.summary.run.rubricVersion}`,
+    }));
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();
   });
 
   it('accepts base64 text submissions after decoding before block source validation', async () => {

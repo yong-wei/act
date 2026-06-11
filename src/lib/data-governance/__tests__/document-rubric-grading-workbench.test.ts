@@ -10,6 +10,7 @@ import {
   createMarkItDownConversionAdapter,
   createSubmissionAsset,
   editCriterionGrade,
+  previewApprovedGradingEvidence,
   textFixtureMarkItDownRunner,
   writeApprovedGradingEvidence,
   type RubricDefinition,
@@ -166,6 +167,23 @@ describe('document rubric grading workbench', () => {
       },
       now,
     })).resolves.toEqual({ status: 'blocked-unapproved', created: 0, facts: [] });
+    expect(previewApprovedGradingEvidence({
+      run: draft,
+      rubric: rubric(),
+      studentId: asset().studentId,
+      goalContext: {
+        classId: 'class-1',
+        assignmentId: 'report-1',
+        goalId: 'control-report',
+        targetGoal: 'control-report',
+      },
+      now,
+    })).toEqual(expect.objectContaining({
+      status: 'blocked-unapproved',
+      blocked: 2,
+      facts: [],
+      affectedDimensions: [],
+    }));
   });
 
   it('supports teacher edits, approval, and governed evidence writeback', async () => {
@@ -207,8 +225,28 @@ describe('document rubric grading workbench', () => {
       },
       now,
     });
+    const preview = previewApprovedGradingEvidence({
+      run: approved,
+      rubric: rubric(),
+      studentId: asset().studentId,
+      goalContext: {
+        classId: 'class-1',
+        assignmentId: 'report-1',
+        goalId: 'control-report',
+        targetGoal: 'control-report',
+      },
+      now,
+    });
 
     expect(approved.status).toBe('approved');
+    expect(preview.status).toBe('preview');
+    expect(preview.created).toBe(0);
+    expect(preview.affectedDimensions).toContainEqual(expect.objectContaining({
+      criterionId: 'validation',
+      competencyDimension: 'parameterDesign',
+      sourceEventId: `${approved.id}:validation:${approved.rubricVersion}`,
+    }));
+    expect(preview.dedupeKeys).toContain(`${approved.id}:validation:${approved.rubricVersion}`);
     expect(approved.approvedGrades.find((grade) => grade.criterionId === 'validation')?.score).toBe(4);
     expect(writeback.status).toBe('written');
     expect(writeback.created).toBe(2);
@@ -306,6 +344,12 @@ describe('document rubric grading workbench', () => {
 
     expect(teacherView.conversion.referencePrecision).toBe('block');
     expect(teacherView.rubricTree.map((item) => item.criterionId)).toEqual(['modeling', 'validation']);
+    expect(teacherView.annotations).toHaveLength(2);
+    expect(teacherView.annotations[0]).toEqual(expect.objectContaining({
+      criterionId: 'modeling',
+      authorRole: 'ai-draft',
+      reference: expect.objectContaining({ precision: 'block' }),
+    }));
     expect(teacherView.actions).toEqual(expect.arrayContaining(['edit-criterion', 'approve', 'retry-conversion']));
     expect(teacherView.konlingEntryPoint.mode).toBe('grading-assistant');
     expect(teacherView.konlingEntryPoint.serverContext).toEqual(expect.objectContaining({
