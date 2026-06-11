@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import shutil
 import subprocess
@@ -19,6 +20,13 @@ MARKDOWN_IMAGE_LINE_RE = re.compile(
     r'^(?P<indent>\s*)!\[(?P<alt>.*?)\]\((?P<src>[^)]+)\)(?P<attrs>\{[^}]*\})?\s*$'
 )
 MANUAL_FIGURE_CAPTION_RE = re.compile(r'^图\s*[0-9０-９]+\s*[.．、]\s*')
+UNIT_MANUAL_CAPTION_RE = re.compile(
+    r'^(?P<kind>[图表])\s*(?P<number>[0-9０-９]+(?:-[0-9０-９]+)+)\s+(?P<title>.+?)\s*$'
+)
+HTML_CENTER_STRONG_RE = re.compile(
+    r'^\s*<p\s+align=["\']center["\']>\s*<strong>(?P<text>.*?)</strong>\s*</p>\s*$',
+    re.IGNORECASE,
+)
 MANUAL_TABLE_CAPTION_RE = re.compile(
     r'^表\s*(?P<number>[0-9０-９]+)\s*[.．、]\s*(?P<title>.*?)(?:\s*(?:\\\{|\{)(?P<attrs>[^}]*)(?:\\\}|\}))?\s*$'
 )
@@ -27,6 +35,8 @@ INLINE_CODE_RE = re.compile(r'`[^`\n]*`')
 INLINE_MATH_RE = re.compile(r'(?<!\\)\$[^$\n]+\$')
 PROTECTED_SEGMENT_TOKEN_RE = re.compile(r'\x00PROTECTED(?P<index>\d+)\x00')
 PDF_TABLE_COLS_COMMENT_RE = re.compile(r'^\s*<!--\s*pdf-table-cols:\s*(?P<cols>[0-9.,\s]+)\s*-->\s*$')
+CODE_FENCE_RE = re.compile(r'^(?P<indent>\s*)(?P<fence>`{3,}|~{3,})(?P<info>.*)$')
+MARKDOWN_LIST_ITEM_RE = re.compile(r'^\s*(?:[-+*]\s+|\d+[.)]\s+)')
 
 
 def strip_lesson_prefix(stem: str, lesson_id: str) -> str:
@@ -45,14 +55,24 @@ def is_course_summary_asset(target: str, alt_text: str = "") -> bool:
 
 def require_binary(name: str) -> str:
     path = shutil.which(name)
-    if not path:
-        raise SystemExit(
-            f"缺少依赖：{name}\n"
-            "请先安装对应工具后再导出 PDF。macOS 推荐：\n"
-            "  brew install pandoc librsvg\n"
-            "并确认 TeX Live / xelatex 已可用。"
-        )
-    return path
+    if path:
+        return path
+
+    for candidate_dir in (
+        Path("/usr/local/texlive/2026/bin/universal-darwin"),
+        Path("/usr/local/texlive/2025/bin/universal-darwin"),
+        Path("/Library/TeX/texbin"),
+    ):
+        candidate = candidate_dir / name
+        if candidate.exists() and candidate.is_file():
+            return candidate.as_posix()
+
+    raise SystemExit(
+        f"缺少依赖：{name}\n"
+        "请先安装对应工具后再导出 PDF。macOS 推荐：\n"
+        "  brew install pandoc librsvg\n"
+        "并确认 TeX Live / xelatex 已可用。"
+    )
 
 
 def derive_lesson_id(markdown_path: Path) -> str:
@@ -89,6 +109,7 @@ def render_style(
     header_left: str,
     header_right: str,
     pdf_title: str,
+    lesson_id: str,
     header_logo_left: str,
     header_logo_right: str,
 ) -> None:
@@ -96,9 +117,14 @@ def render_style(
     content = content.replace("__HEADER_LEFT__", header_left)
     content = content.replace("__HEADER_RIGHT__", header_right)
     content = content.replace("__PDF_TITLE__", pdf_title)
+    content = content.replace("__LESSON_ID__", lesson_id)
     content = content.replace("__HEADER_LOGO_LEFT__", header_logo_left)
     content = content.replace("__HEADER_LOGO_RIGHT__", header_logo_right)
     output_path.write_text(content, encoding="utf-8")
+
+
+def path_relative_to_directory(path: Path, directory: Path) -> str:
+    return os.path.relpath(path.resolve(), directory.resolve()).replace(os.sep, "/")
 
 
 def should_use_full_width_for_image(target: str, alt_text: str = "") -> bool:
@@ -290,6 +316,160 @@ def convert_inline_tex_code_spans_to_math(line: str) -> str:
     return INLINE_CODE_RE.sub(replace, line)
 
 
+def find_matlab_comment_index(line: str) -> int:
+    in_single_quote = False
+    in_double_quote = False
+    index = 0
+    while index < len(line):
+        char = line[index]
+        if char == "'" and not in_double_quote:
+            if in_single_quote and index + 1 < len(line) and line[index + 1] == "'":
+                index += 2
+                continue
+            in_single_quote = not in_single_quote
+        elif char == '"' and not in_single_quote:
+            if in_double_quote and index + 1 < len(line) and line[index + 1] == '"':
+                index += 2
+                continue
+            in_double_quote = not in_double_quote
+        elif char == "%" and not in_single_quote and not in_double_quote:
+            return index
+        index += 1
+    return -1
+
+
+def align_matlab_comment_columns(markdown: str) -> str:
+    lines = markdown.splitlines()
+    rewritten: list[str] = []
+    in_code_block = False
+    active_fence_char: str | None = None
+    active_info = ""
+    block_lines: list[str] = []
+
+    def flush_block() -> None:
+        nonlocal block_lines
+        if active_info.strip().lower() not in {"matlab", "octave"}:
+            rewritten.extend(block_lines)
+            block_lines = []
+            return
+        comment_columns = []
+        for line in block_lines:
+            comment_index = find_matlab_comment_index(line)
+            if comment_index >= 0 and line[:comment_index].strip():
+                comment_columns.append(comment_index)
+        if not comment_columns:
+            rewritten.extend(block_lines)
+            block_lines = []
+            return
+        target_column = max(comment_columns)
+        for line in block_lines:
+            comment_index = find_matlab_comment_index(line)
+            if comment_index < 0 or not line[:comment_index].strip():
+                rewritten.append(line)
+                continue
+            code_part = line[:comment_index].rstrip()
+            padding = max(1, target_column - len(code_part))
+            rewritten.append(code_part + (" " * padding) + line[comment_index:])
+        block_lines = []
+
+    for line in lines:
+        fence_match = CODE_FENCE_RE.match(line)
+        if in_code_block:
+            if fence_match and fence_match.group("fence")[0] == active_fence_char:
+                flush_block()
+                rewritten.append(line)
+                in_code_block = False
+                active_fence_char = None
+                active_info = ""
+            else:
+                block_lines.append(line)
+            continue
+        if fence_match:
+            in_code_block = True
+            active_fence_char = fence_match.group("fence")[0]
+            active_info = fence_match.group("info").strip()
+            rewritten.append(line)
+            continue
+        rewritten.append(line)
+
+    if in_code_block:
+        flush_block()
+    normalized = "\n".join(rewritten)
+    if markdown.endswith("\n"):
+        normalized += "\n"
+    return normalized
+
+
+def normalize_markdown_list_spacing(markdown: str) -> str:
+    lines = markdown.splitlines()
+    rewritten: list[str] = []
+    in_fenced_block = False
+    active_fence: str | None = None
+
+    for index, line in enumerate(lines):
+        fence_match = CODE_FENCE_RE.match(line)
+        if in_fenced_block:
+            rewritten.append(line)
+            if fence_match and fence_match.group("fence")[0] == active_fence:
+                in_fenced_block = False
+                active_fence = None
+            continue
+        if fence_match:
+            in_fenced_block = True
+            active_fence = fence_match.group("fence")[0]
+            rewritten.append(line)
+            continue
+
+        is_list_item = bool(MARKDOWN_LIST_ITEM_RE.match(line))
+        previous = rewritten[-1] if rewritten else ""
+        if is_list_item and previous.strip() and not MARKDOWN_LIST_ITEM_RE.match(previous):
+            rewritten.append("")
+        if (
+            not is_list_item
+            and line.strip()
+            and rewritten
+            and MARKDOWN_LIST_ITEM_RE.match(rewritten[-1])
+        ):
+            rewritten.append("")
+        rewritten.append(line)
+
+    normalized = "\n".join(rewritten)
+    if markdown.endswith("\n"):
+        normalized += "\n"
+    return normalized
+
+
+def extract_manual_caption_text(line: str) -> str | None:
+    stripped = line.strip()
+    html_match = HTML_CENTER_STRONG_RE.match(stripped)
+    if html_match:
+        stripped = html_match.group("text").strip()
+    strong_match = re.fullmatch(r'\*\*(?P<text>.*?)\*\*', stripped)
+    if strong_match:
+        stripped = strong_match.group("text").strip()
+    return stripped or None
+
+
+def split_unit_manual_caption(line: str) -> tuple[str, str] | None:
+    caption_text = extract_manual_caption_text(line)
+    if not caption_text:
+        return None
+    match = UNIT_MANUAL_CAPTION_RE.match(caption_text)
+    if not match:
+        return None
+    return match.group("kind"), match.group("title").strip()
+
+
+def replace_image_alt_text(image_line: str, title: str) -> str:
+    match = MARKDOWN_IMAGE_LINE_RE.match(image_line)
+    if not match:
+        return image_line
+    return (
+        f'{match.group("indent")}![{title}]({match.group("src")})'
+        f'{match.group("attrs") or ""}'
+    )
+
+
 def preprocess_markdown_for_pdf(markdown: str) -> str:
     processed_lines: list[str] = []
     last_nonempty_kind: str | None = None
@@ -307,6 +487,22 @@ def preprocess_markdown_for_pdf(markdown: str) -> str:
 
         line = convert_inline_tex_code_spans_to_math(line)
         stripped = line.strip()
+        unit_caption = split_unit_manual_caption(line)
+        if unit_caption and unit_caption[0] == "图" and last_nonempty_kind == "image":
+            processed_lines[-1] = replace_image_alt_text(processed_lines[-1], unit_caption[1])
+            last_nonempty_kind = "other"
+            continue
+        if unit_caption and unit_caption[0] == "表":
+            title = unit_caption[1]
+            if pending_table_cols:
+                line = f"Table: {title} {{cols={pending_table_cols}}}"
+                pending_table_cols = None
+            else:
+                line = f"Table: {title}"
+            processed_lines.append(line)
+            last_nonempty_kind = "other"
+            continue
+
         image_match = MARKDOWN_IMAGE_LINE_RE.match(line)
         if image_match:
             alt_text = image_match.group("alt")
@@ -357,6 +553,8 @@ def preprocess_markdown_for_pdf(markdown: str) -> str:
     normalized = "\n".join(processed_lines)
     if markdown.endswith("\n"):
         normalized += "\n"
+    normalized = normalize_markdown_list_spacing(normalized)
+    normalized = align_matlab_comment_columns(normalized)
     normalized, odd_quote_lines = normalize_ascii_quotes_for_markdown_prose(normalized)
     if odd_quote_lines:
         joined_lines = ", ".join(str(line_no) for line_no in odd_quote_lines)
@@ -520,6 +718,101 @@ def rewrite_svg_includes_to_pdf(tex_path: Path) -> None:
     tex_path.write_text(content, encoding="utf-8")
 
 
+def extract_tikzpicture(source_path: Path) -> str | None:
+    content = source_path.read_text(encoding="utf-8")
+    match = re.search(
+        r"\\begin\{tikzpicture\}(?P<body>.*?)\\end\{tikzpicture\}",
+        content,
+        flags=re.DOTALL,
+    )
+    if not match:
+        return None
+    return normalize_tikzpicture_for_pdf(
+        "\\begin{tikzpicture}" + match.group("body") + "\\end{tikzpicture}\n"
+    )
+
+
+def normalize_tikzpicture_for_pdf(tikzpicture: str) -> str:
+    replacements = {
+        r"font=\footnotesize\bfseries": r"font=\bfseries",
+        r"font=\small\bfseries": r"font=\bfseries",
+        r"font=\scriptsize\bfseries": r"font=\bfseries",
+    }
+    normalized = tikzpicture
+    for old, new in replacements.items():
+        normalized = normalized.replace(old, new)
+    normalized = re.sub(
+        r",\s*font=\\(?:tiny|scriptsize|footnotesize|small|normalsize|large|Large|LARGE|huge|Huge)",
+        "",
+        normalized,
+    )
+    normalized = re.sub(
+        r"font=\\(?:tiny|scriptsize|footnotesize|small|normalsize|large|Large|LARGE|huge|Huge),\s*",
+        "",
+        normalized,
+    )
+    return normalized
+
+
+def includegraphics_width_option(option_text: str | None) -> str:
+    if not option_text:
+        return r"\linewidth"
+    width_match = re.search(r'width\s*=\s*([^,\]]+)', option_text)
+    if width_match:
+        return width_match.group(1).strip()
+    return r"\linewidth"
+
+
+def rewrite_tikz_png_includes(tex_path: Path) -> Path | None:
+    content = tex_path.read_text(encoding="utf-8")
+    fragment_dir = tex_path.with_name(f".{tex_path.stem}-tikz-fragments")
+    created_fragment_dir = False
+
+    pattern = re.compile(
+        r"\\includegraphics(?P<opts>\[[^\]]*\])?\{(?P<target>[^}]+?/media/processed/(?P<stem>[^}/]+)\.png)\}"
+    )
+
+    def replace(match: re.Match[str]) -> str:
+        nonlocal created_fragment_dir
+        target = match.group("target")
+        source_path = (tex_path.parent / target).resolve()
+        tikz_path = source_path.parents[1] / "raw" / "tikz" / f"{match.group('stem')}.tex"
+        if not tikz_path.exists():
+            return match.group(0)
+        tikzpicture = extract_tikzpicture(tikz_path)
+        if tikzpicture is None:
+            return match.group(0)
+
+        fragment_dir.mkdir(exist_ok=True)
+        created_fragment_dir = True
+        fragment_path = fragment_dir / f"{match.group('stem')}.tikz"
+        fragment_path.write_text(tikzpicture, encoding="utf-8")
+        return rf"\input{{{fragment_dir.name}/{fragment_path.name}}}"
+
+    rewritten = pattern.sub(replace, content)
+    if rewritten != content:
+        tex_path.write_text(rewritten, encoding="utf-8")
+    return fragment_dir if created_fragment_dir else None
+
+
+def rewrite_image_includes_to_vector_pdf_when_available(tex_path: Path) -> None:
+    content = tex_path.read_text(encoding="utf-8")
+    pattern = re.compile(r"\\includegraphics(?P<opts>\[[^\]]*\])?\{(?P<target>[^}]+\.(?:png|jpe?g))\}", re.IGNORECASE)
+
+    def replace(match: re.Match[str]) -> str:
+        target = match.group("target")
+        source_path = (tex_path.parent / target).resolve()
+        vector_path = source_path.with_suffix(".pdf")
+        if not vector_path.exists():
+            return match.group(0)
+        relative_vector_path = path_relative_to_directory(vector_path, tex_path.parent)
+        return rf"\includegraphics{match.group('opts') or ''}{{{relative_vector_path}}}"
+
+    rewritten = pattern.sub(replace, content)
+    if rewritten != content:
+        tex_path.write_text(rewritten, encoding="utf-8")
+
+
 def normalize_includegraphics_options(option_text: str) -> str:
     tokens = [token.strip() for token in option_text.split(",") if token.strip()]
     filtered_tokens = []
@@ -531,6 +824,29 @@ def normalize_includegraphics_options(option_text: str) -> str:
             continue
         filtered_tokens.append(token)
     return ",".join(filtered_tokens)
+
+
+def cap_single_panel_figure_options(option_text: str, target: str) -> str:
+    if not is_single_panel_analysis_figure(target):
+        return option_text
+    if r"width=\textwidth" in option_text:
+        return option_text.replace(r"width=\textwidth", r"width=0.6\textwidth")
+    return re.sub(
+        r"width\s*=\s*(?:0\.\d+|1(?:\.0+)?)\\(?:textwidth|linewidth)",
+        lambda _match: r"width=0.6\textwidth",
+        option_text,
+    )
+
+
+def is_single_panel_analysis_figure(target: str) -> bool:
+    stem = Path(target).stem.lower()
+    multi_panel_tokens = ("triptych", "comparison", "four", "multi", "bode")
+    summary_tokens = ("cover", "info")
+    if any(token in stem for token in multi_panel_tokens + summary_tokens):
+        return False
+    return stem.startswith("1-1-") and not any(
+        token in stem for token in ("block", "loop-block")
+    )
 
 
 def normalize_ascii_quotes_for_latex(tex_content: str) -> str:
@@ -561,6 +877,62 @@ def normalize_ascii_quotes_for_latex(tex_content: str) -> str:
     if tex_content.endswith("\n"):
         normalized += "\n"
     return normalized
+
+
+def remove_course_summary_figure_captions(tex_content: str) -> str:
+    lines = tex_content.splitlines(keepends=True)
+    rewritten: list[str] = []
+    skip_next_caption = False
+
+    for line in lines:
+        if skip_next_caption and line.lstrip().startswith(r"\caption{"):
+            skip_next_caption = False
+            continue
+        rewritten.append(line)
+        if r"\includegraphics" in line and is_course_summary_asset(line):
+            skip_next_caption = True
+        elif line.strip():
+            skip_next_caption = False
+
+    return "".join(rewritten)
+
+
+def number_display_equations(tex_content: str) -> str:
+    verbatim_envs = ("Verbatim", "verbatim", "Highlighting", "lstlisting")
+    begin_verbatim = tuple(rf"\begin{{{name}}}" for name in verbatim_envs)
+    end_verbatim = tuple(rf"\end{{{name}}}" for name in verbatim_envs)
+
+    rewritten_lines: list[str] = []
+    in_verbatim = False
+    for line in tex_content.splitlines(keepends=True):
+        stripped = line.strip()
+        if any(pattern in stripped for pattern in begin_verbatim):
+            in_verbatim = True
+            rewritten_lines.append(line)
+            continue
+        if any(pattern in stripped for pattern in end_verbatim):
+            in_verbatim = False
+            rewritten_lines.append(line)
+            continue
+        if in_verbatim:
+            rewritten_lines.append(line)
+            continue
+        if stripped == r"\[":
+            rewritten_lines.append(r"\begin{equation}" + "\n")
+            continue
+        if stripped == r"\]":
+            rewritten_lines.append(r"\end{equation}" + "\n")
+            continue
+        rewritten_lines.append(line)
+
+    tex_content = "".join(rewritten_lines)
+    tex_content = re.sub(
+        r"\\\[(?P<body>.*?)\\\]",
+        lambda match: "\\begin{equation}" + match.group("body") + "\\end{equation}",
+        tex_content,
+        flags=re.DOTALL,
+    )
+    return tex_content
 
 
 def build_longtable_spec_from_ratios(ratios: list[float]) -> str | None:
@@ -757,6 +1129,8 @@ def rewrite_latex_for_pdf_layout(
     table_ratio_overrides: dict[str, list[float]] | None = None,
 ) -> str:
     tex_content = normalize_ascii_quotes_for_latex(tex_content)
+    tex_content = remove_course_summary_figure_captions(tex_content)
+    tex_content = number_display_equations(tex_content)
     tex_content = rewrite_longtable_preambles(
         tex_content,
         table_ratio_overrides=table_ratio_overrides,
@@ -776,10 +1150,18 @@ def rewrite_latex_for_pdf_layout(
         normalized_options = ""
         if options:
             normalized_options = normalize_includegraphics_options(options[1:-1])
+            normalized_options = cap_single_panel_figure_options(normalized_options, target)
         elif width_overrides:
             normalized_options = width_overrides.get(target, "")
+            normalized_options = cap_single_panel_figure_options(normalized_options, target)
         if not normalized_options and should_use_full_width_for_image(target):
             normalized_options = r"width=\textwidth"
+        if (
+            not match.group("opts")
+            and (not width_overrides or target not in width_overrides)
+            and is_single_panel_analysis_figure(target)
+        ):
+            normalized_options = r"width=0.6\textwidth"
         if not normalized_options:
             normalized_options = r"width=\textwidth"
         if normalized_options:
@@ -861,26 +1243,37 @@ def xelatex_log_has_unresolved_refs(log_text: str) -> bool:
 
 
 def compile_pdf_from_tex(tex_path: Path, output_pdf: Path) -> None:
-    xelatex = require_binary("xelatex")
+    latexmk = require_binary("latexmk")
     cwd = tex_path.parent
     log_path = tex_path.with_suffix(".log")
 
-    for _ in range(3):
-        cmd = [
-            xelatex,
-            "-interaction=nonstopmode",
-            "-halt-on-error",
-            "-shell-escape",
-            tex_path.name,
-        ]
-        try:
-            subprocess.run(cmd, cwd=cwd, check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-        except subprocess.CalledProcessError as exc:
-            log_excerpt = log_path.read_text(encoding="utf-8", errors="ignore")[-4000:] if log_path.exists() else exc.stdout[-4000:]
-            raise SystemExit(f"xelatex 编译失败，日志摘录：\n{log_excerpt}") from exc
-        log_text = log_path.read_text(encoding="utf-8", errors="ignore") if log_path.exists() else ""
-        if not xelatex_log_has_unresolved_refs(log_text):
-            break
+    cmd = [
+        latexmk,
+        "-xelatex",
+        "-interaction=nonstopmode",
+        "-halt-on-error",
+        "-shell-escape",
+        tex_path.name,
+    ]
+    env = os.environ.copy()
+    latexmk_dir = Path(latexmk).parent.as_posix()
+    env["PATH"] = latexmk_dir + os.pathsep + env.get("PATH", "")
+    try:
+        subprocess.run(
+            cmd,
+            cwd=cwd,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            env=env,
+        )
+    except subprocess.CalledProcessError as exc:
+        log_excerpt = log_path.read_text(encoding="utf-8", errors="ignore")[-4000:] if log_path.exists() else exc.stdout[-4000:]
+        raise SystemExit(f"latexmk/xelatex 编译失败，日志摘录：\n{log_excerpt}") from exc
+    log_text = log_path.read_text(encoding="utf-8", errors="ignore") if log_path.exists() else ""
+    if xelatex_log_has_unresolved_refs(log_text):
+        print("提示：LaTeX 日志仍包含引用变化提示，请复核导出的 .log。", file=sys.stderr)
 
     generated_pdf = tex_path.with_suffix(".pdf")
     if not generated_pdf.exists():
@@ -890,7 +1283,7 @@ def compile_pdf_from_tex(tex_path: Path, output_pdf: Path) -> None:
 
 
 def cleanup_latex_artifacts(tex_path: Path, extra_paths: list[Path] | None = None) -> None:
-    for suffix in (".aux", ".log", ".out", ".toc"):
+    for suffix in (".aux", ".log", ".out", ".toc", ".fls", ".fdb_latexmk", ".xdv"):
         artifact = tex_path.with_suffix(suffix)
         if artifact.exists():
             artifact.unlink()
@@ -945,8 +1338,14 @@ def main() -> int:
     style_path = markdown_path.with_name(f"{markdown_path.stem}-pdf-style.tex")
     template_path = Path(__file__).resolve().parent.parent / "templates" / "handout-pdf-style.tex.tpl"
     repo_root = Path(__file__).resolve().parents[4]
-    header_logo_left = (repo_root / "public/images/extracted/校徽校名组合-横版-提取.pdf").as_posix()
-    header_logo_right = (repo_root / "public/images/CAlogo128.png").as_posix()
+    header_logo_left = path_relative_to_directory(
+        repo_root / "public/images/extracted/校徽校名组合-横版-提取.pdf",
+        markdown_path.parent,
+    )
+    header_logo_right = path_relative_to_directory(
+        repo_root / "public/images/CAlogo128.png",
+        markdown_path.parent,
+    )
     tex_path = markdown_path.with_name(f"{markdown_path.stem}-pandoc-export.tex")
     original_markdown = markdown_path.read_text(encoding="utf-8")
     preprocessed_markdown_path, extra_cleanup_paths, used_placeholders = create_preprocessed_markdown(
@@ -967,12 +1366,15 @@ def main() -> int:
             args.header_left,
             header_right,
             pdf_title,
+            lesson_id,
             header_logo_left,
             header_logo_right,
         )
 
     build_latex(markdown_input_path, style_path, tex_path)
     rewrite_svg_includes_to_pdf(tex_path)
+    tikz_fragment_dir = rewrite_tikz_png_includes(tex_path)
+    rewrite_image_includes_to_vector_pdf_when_available(tex_path)
     normalized_asset_dir = normalize_raster_includes(tex_path)
     rewrite_latex_file_for_pdf_layout(
         tex_path,
@@ -988,7 +1390,7 @@ def main() -> int:
             tex_path,
             extra_paths=[
                 path
-                for path in (normalized_asset_dir, preprocessed_markdown_path, *extra_cleanup_paths)
+                for path in (normalized_asset_dir, tikz_fragment_dir, preprocessed_markdown_path, *extra_cleanup_paths)
                 if path is not None
             ] or None,
         )

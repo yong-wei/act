@@ -111,11 +111,29 @@
 
 `interactive-contract.yaml` 的 `modules` 和 `interaction_spec` 是 shared manifest runtime 的直接输入，不只是实现提示。默认要求：
 
-- `modules[].kind` 使用共享 registry 已覆盖的通用 kind；确需新 kind 时，先写清 payload 结构。
+- `modules[].kind` 只能使用现有标准组件库的 canonical kind；确需新能力时，先提出组件库扩展变更，不能在课程设计中发明新 kind。
 - `modules[].payload.title` 或等价标题来源必须明确，不能让实现层按 module id 补标题。
 - 公式、表格、图片、路径图、目标卡、问题卡、显影链、作答锚点等模块，必须能从 payload 或 `content_blocks` 读出实际内容。
 - 选择题、题组、二元判断必须在 `interaction_spec.activity_cards[]` 写明 `prompt`、`options`、`reference_answer` 或等价揭示规则。
 - 不得把 `QUIZ_OPTIONS`、`SINGLE_CHOICE_OPTIONS`、课程 id 映射、module id 映射当作契约缺字段的补救方式。
+- 禁止把旧组件名写入 `modules[].kind`，例如 `image-panel`、`formula-card`、`quiz-card`、`single-choice-card`、`drag-match`、`stage-map`；这些名称最多作为 `payload.legacyKind` 出现。
+
+### 3.7.1 标准组件选择表
+
+| 标准组件 | 适用范围 | 设计时必须写清 |
+| --- | --- | --- |
+| `content.rich` | 正文、问题背景、定义解释、提示语、教师提示 | `text/body/block_key` 与标题；不得只写“说明” |
+| `content.cardSet` | 目标、要点、概念、风险、职责、结论、清单类内容 | `items/goals/cards/text/block_key`；每项必须是可显示文本 |
+| `content.formula` | 公式、公式组、符号说明、公式链 | `formula/formulas/symbols/block_key/formula_key` 与解释句 |
+| `content.table` | 原生表、比较表、参数表、记录表 | `columns/rows`，必要时写单位、边界和读表顺序 |
+| `content.figure` | 图片、SVG、静态图、结构图、曲线图截图、媒体图组 | `src/assets/image_key`、学科对象标题、caption/explanation |
+| `content.reveal` | 推导链、例题步骤、分层判断、逐步显影 | `items/block_key`；每层包含完整文本，必要时含公式 |
+| `content.stageMap` | 课程路径、阶段图、模块地图 | `items/stages/current/block_key` |
+| `activity.panel` | 单选、多选、判断、排序、配对、短答、题组活动 | `interaction_spec.activity_cards[]` 的题面、响应类型、选项、答案、提交粒度 |
+| `activity.workspace` | 结构化记录、参数记录、表单式工作区、案例工作区 | 字段结构、`response_kind`、提交对象与教师查看口径 |
+| `compute.panel` | Rust/WASM 或共享能力驱动的互动图形、根轨迹、Bode、参数扫描、训练面板 | `capabilityRef` 与能力入口字段（如 `panel_id/spec_key/case_id/resolver/src/path`）；调参或提交型页面还必须写控件、默认参数和提交字段 |
+| `analytics.summary` | 学生个人统计、班级统计、目标达成摘要 | 指标来源、学生端/教师端差异、空数据状态 |
+| `layout.support` | 标题、路由辅助、页面支持元素 | 只能辅助布局，不承载正文、作答或统计主内容 |
 
 ## 3.8 payload 解析必须可被脚本审计
 

@@ -155,6 +155,19 @@ def test_handout_style_template_redefines_blockquote_as_tinted_callout():
     assert 'colback=TitleBlue!6!white' in template
 
 
+def test_handout_style_template_uses_unit_prefixed_numbering_and_body_sized_code():
+    template_path = Path(__file__).resolve().parents[2] / '.agents' / 'skills' / 'lesson' / 'templates' / 'handout-pdf-style.tex.tpl'
+    template = template_path.read_text(encoding='utf-8')
+
+    assert r'\renewcommand{\thefigure}{__LESSON_ID__-\arabic{figure}}' in template
+    assert r'\renewcommand{\thetable}{__LESSON_ID__-\arabic{table}}' in template
+    assert r'\renewcommand{\theequation}{__LESSON_ID__-\arabic{equation}}' in template
+    assert r'fontsize=\normalsize' in template
+    assert r'fontsize=\small' not in template
+    assert r'\setlist[itemize]' in template
+    assert 'leftmargin=2.4em' in template
+
+
 def test_build_latex_disables_pandoc_smart_quotes(monkeypatch, tmp_path):
     markdown_path = tmp_path / 'sample.md'
     style_path = tmp_path / 'style.tex'
@@ -274,3 +287,140 @@ def test_rewrite_latex_for_pdf_layout_forces_figures_to_use_H_placement():
 
     assert r'\begin{figure}[H]' in rewritten
     assert r'\begin{figure}[htbp]' not in rewritten
+
+
+def test_number_display_equations_converts_pandoc_display_math_but_skips_code():
+    tex = r"""
+\[
+G(s)=\frac{1}{s+1}
+\]
+\begin{Verbatim}
+\[
+not math
+\]
+\end{Verbatim}
+"""
+
+    rewritten = exporter.number_display_equations(tex)
+
+    assert r'\begin{equation}' in rewritten
+    assert r'\end{equation}' in rewritten
+    assert r'\begin{Verbatim}' in rewritten
+    assert 'not math' in rewritten
+
+
+def test_tikz_rewrite_embeds_source_without_resizebox_and_normalizes_font_size(tmp_path):
+    design_dir = tmp_path / 'lessons' / '1-1' / 'design'
+    processed_dir = tmp_path / 'lessons' / '1-1' / 'media' / 'processed'
+    raw_tikz_dir = tmp_path / 'lessons' / '1-1' / 'media' / 'raw' / 'tikz'
+    design_dir.mkdir(parents=True)
+    processed_dir.mkdir(parents=True)
+    raw_tikz_dir.mkdir(parents=True)
+    (processed_dir / '1-1-block.png').write_bytes(b'placeholder')
+    (raw_tikz_dir / '1-1-block.tex').write_text(
+        r"""
+\documentclass{standalone}
+\begin{document}
+\begin{tikzpicture}[auto]
+\tikzset{
+  block/.style={rectangle, draw, font=\footnotesize\bfseries},
+  label/.style={font=\scriptsize, fill=none}
+}
+\node[block] {控制器};
+\end{tikzpicture}
+\end{document}
+""",
+        encoding='utf-8',
+    )
+    tex_path = design_dir / 'sample.tex'
+    tex_path.write_text(
+        r'\includegraphics[width=0.75\linewidth]{../media/processed/1-1-block.png}',
+        encoding='utf-8',
+    )
+
+    fragment_dir = exporter.rewrite_tikz_png_includes(tex_path)
+    rewritten = tex_path.read_text(encoding='utf-8')
+    fragment = (fragment_dir / '1-1-block.tikz').read_text(encoding='utf-8')
+
+    assert r'\resizebox' not in rewritten
+    assert r'\input{.sample-tikz-fragments/1-1-block.tikz}' in rewritten
+    assert r'font=\footnotesize' not in fragment
+    assert r'font=\scriptsize' not in fragment
+    assert r'font=\bfseries' in fragment
+
+
+def test_rewrite_image_includes_prefers_same_stem_vector_pdf(tmp_path):
+    tex_path = tmp_path / 'sample.tex'
+    image_path = tmp_path / 'media' / 'processed' / 'figure.png'
+    vector_path = tmp_path / 'media' / 'processed' / 'figure.pdf'
+    image_path.parent.mkdir(parents=True)
+    image_path.write_bytes(b'png')
+    vector_path.write_bytes(b'%PDF')
+    tex_path.write_text(
+        r'\includegraphics[width=0.8\linewidth]{media/processed/figure.png}',
+        encoding='utf-8',
+    )
+
+    exporter.rewrite_image_includes_to_vector_pdf_when_available(tex_path)
+
+    assert tex_path.read_text(encoding='utf-8') == (
+        r'\includegraphics[width=0.8\linewidth]{media/processed/figure.pdf}'
+    )
+
+
+def test_handout_style_template_uses_publication_font_stack():
+    template_path = Path(__file__).resolve().parents[2] / '.agents' / 'skills' / 'lesson' / 'templates' / 'handout-pdf-style.tex.tpl'
+    template = template_path.read_text(encoding='utf-8')
+
+    assert r'\usepackage{unicode-math}' in template
+    assert 'texgyretermes-regular.otf' in template
+    assert r'\setmathfont{texgyretermes-math.otf}' in template
+    assert r'\setCJKmainfont{Songti SC}' in template
+    assert r'\setCJKmonofont{Noto Sans CJK SC}[Scale=0.88]' in template
+
+
+def test_align_matlab_comment_columns_in_fenced_blocks():
+    markdown = """```matlab
+G = tf(1, [1 2 0]); % 建立对象
+step(G); % 观察响应
+% section comment stays
+```
+"""
+
+    normalized = exporter.align_matlab_comment_columns(markdown)
+    lines = normalized.splitlines()
+
+    assert lines[1].find('%') == lines[2].find('%')
+    assert lines[3].startswith('% section')
+
+
+def test_align_matlab_comment_columns_ignores_percent_inside_strings():
+    markdown = """```octave
+fprintf("value %.2f%%", ratio);
+G = tf(1, [1 2 0]); % 建立对象
+step(G);             % 观察响应
+```
+"""
+
+    normalized = exporter.align_matlab_comment_columns(markdown)
+    lines = normalized.splitlines()
+
+    assert '%.2f%%' in lines[1]
+    assert lines[2].find('%') == lines[3].find('%')
+
+
+def test_single_panel_analysis_figures_are_capped_to_sixty_percent_width():
+    tex = r'\includegraphics[width=0.8\linewidth,keepaspectratio]{../media/processed/1-1-example-openloop-step.pdf}'
+
+    rewritten = exporter.rewrite_latex_for_pdf_layout(tex)
+
+    assert r'width=0.6\textwidth' in rewritten
+
+
+def test_bode_analysis_figures_keep_full_width_as_two_panel_figures():
+    tex = r'\includegraphics[width=0.8\linewidth,keepaspectratio]{../media/processed/1-1-bode-example.pdf}'
+
+    rewritten = exporter.rewrite_latex_for_pdf_layout(tex)
+
+    assert r'width=0.6\textwidth' not in rewritten
+    assert r'width=0.8\linewidth' in rewritten

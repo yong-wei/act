@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-06-07T10:22:40.982848Z",
+  "lesson": {
+    "lesson_id": "1-1",
+    "title": "看见整门课：从反馈思想到控制全景",
+    "groups": [
+      "模型与三域诊断"
+    ],
+    "card_order_index": 5
+  },
+  "node": {
+    "id": "传递函数_1_1",
+    "name": "传递函数",
+    "name_en": null,
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "理解",
+    "definition": "传递函数是在零初值条件下，输出拉氏变换与输入拉氏变换之比，记为 $G(s)=Y(s)/U(s)$。",
+    "examples": [],
+    "formulas": [
+      "G(s)=Y(s)/U(s)"
+    ],
+    "keywords": [
+      "传递函数",
+      "模型"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/传递函数_1_1.md",
+  "card_frontmatter": {
+    "node_id": "传递函数_1_1",
+    "name": "传递函数",
+    "lesson_units": [
+      "1-1"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "1",
+    "tags": [
+      "传递函数",
+      "模型",
+      "1-1"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/1-1/design/1-1-handout.md"
+    ],
+    "asset_refs": "[]"
+  },
+  "card_overview": "# 传递函数\n\n**一句话定义**：传递函数是在零初值条件下，输出拉氏变换与输入拉氏变换之比，记为 $G(s)=Y(s)/U(s)$。\n\n**核心直觉**：传递函数把不同物理对象放进同一套代数语言中，便于连接、比较和分析。\n\n---",
+  "card_detail": "1-1 中的传递函数只承担全景预览作用。后续课程会从微分方程和拉氏变换出发，正式解释它为什么能够代表线性定常系统的输入输出关系。",
+  "card_plain_excerpt": "## 首页\n\n# 传递函数\n\n**一句话定义**：传递函数是在零初值条件下，输出拉氏变换与输入拉氏变换之比，记为 $G(s)=Y(s)/U(s)$。\n\n**核心直觉**：传递函数把不同物理对象放进同一套代数语言中，便于连接、比较和分析。\n\n---\n\n## 详情\n\n1-1 中的传递函数只承担全景预览作用。后续课程会从微分方程和拉氏变换出发，正式解释它为什么能够代表线性定常系统的输入输出关系。",
+  "core_intuition": "传递函数把不同物理对象放进同一套代数语言中，便于连接、比较和分析。",
+  "relations": [
+    {
+      "source_id": "传递函数_1_1",
+      "source": "传递函数",
+      "target_id": "极点_1_1",
+      "target": "极点",
+      "relation": "derives",
+      "strength": null,
+      "description": "极点是传递函数分母的根",
+      "direction_for_node": "outgoing"
+    },
+    {
+      "source_id": "传递函数_1_1",
+      "source": "传递函数",
+      "target_id": "频域响应_1_1",
+      "target": "频域响应",
+      "relation": "enables",
+      "strength": null,
+      "description": "以 jω 代入传递函数得到频率特性",
+      "direction_for_node": "outgoing"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "传递函数",
+        "传递函数",
+        "模型"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [
+        "G(s)=Y(s)/U(s)"
+      ],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

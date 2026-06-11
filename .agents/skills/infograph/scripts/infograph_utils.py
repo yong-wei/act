@@ -161,6 +161,8 @@ def load_all_authoring_nodes(lesson_id: str) -> dict[str, dict[str, Any]]:
         for node_id, node in dict(payload.get('nodes', {})).items():
             nodes[str(node_id)] = dict(node)
     for node in read_jsonl(lesson_graph_nodes_path(lesson_id)):
+        if not node.get('id'):
+            continue
         nodes[str(node['id'])] = dict(node)
     return nodes
 

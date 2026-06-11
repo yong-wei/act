@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-06-07T09:01:14.418096Z",
+  "lesson_id": "1-1",
+  "node_id": "频域响应_1_1",
+  "requested_node_id": "频域响应_1_1",
+  "node_name": "频域响应",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查通过：正弦输入输出、低中高频、幅值变化和相位变化表达准确。"
+}

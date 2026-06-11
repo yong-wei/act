@@ -129,6 +129,10 @@ import {
   getUnit56StepQuickQuestionsLocal,
   UNIT_5_6_COURSE_META,
 } from './unit-5-6-ai-contexts';
+import {
+  getUnit11StepAIContext as getUnit11StepAIContextLocal,
+  getUnit11StepQuickQuestions as getUnit11StepQuickQuestionsLocal,
+} from './lesson-1-1-ai-contexts';
 
 // 2-1 课程 AI 上下文
 export {
@@ -359,6 +363,16 @@ export {
   getUnit56StepQuickQuestionsLocal,
 } from './unit-5-6-ai-contexts';
 
+// 1-1 课程 AI 上下文
+export {
+  UNIT_1_1_COURSE_META,
+  UNIT_1_1_STEP_AI_CONTEXTS,
+  getUnit11StepAIContext,
+  getUnit11StepQuickQuestions,
+  getUnit11StepAIContext as getUNIT_1_1StepAIContext,
+  getUnit11StepQuickQuestions as getUNIT_1_1StepQuickQuestions,
+} from './lesson-1-1-ai-contexts';
+
 /**
  * 课程AI上下文注册表
  * key: courseId, value: 步骤配置映射
@@ -375,6 +389,27 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
     };
   }
 > = {
+  'unit-1-1': {
+    getStepContext: (stepId: string) => getUnit11StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit11StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: 'unit-1-1',
+      courseTitle: '1-1：看见整门课——从反馈思想到控制全景',
+      courseDescription:
+        '用一条船为贯穿对象，90分钟闪电遍历自动控制原理全部核心主题——从建模、时域响应、稳定性、根轨迹、频域分析到反馈与校正，走完诊断-校正-验证的完整闭环。',
+    },
+  },
+  'unit-1-1-see-the-full-picture-v1': {
+    getStepContext: (stepId: string) => getUnit11StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit11StepQuickQuestionsLocal(stepId),
+    courseMeta: {
+      courseId: 'unit-1-1-see-the-full-picture-v1',
+      courseTitle: '1-1：看见整门课——从反馈思想到控制全景',
+      courseDescription:
+        '用一条船为贯穿对象，90分钟闪电遍历自动控制原理全部核心主题——从建模、时域响应、稳定性、根轨迹、频域分析到反馈与校正，走完诊断-校正-验证的完整闭环。',
+    },
+  },
+
   'unit-2-1-modeling-language-v1': {
     getStepContext: (stepId: string) => getUnit21StepAIContextLocal(stepId),
     getQuickQuestions: (stepId: string) => getUnit21StepQuickQuestionsLocal(stepId),

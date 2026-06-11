@@ -4,6 +4,8 @@
 \usepackage{titlesec}
 \usepackage{fancyhdr}
 \usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{unicode-math}
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
@@ -12,19 +14,35 @@
 \usepackage{float}
 \usepackage{needspace}
 \usepackage{enumitem}
+\usepackage{indentfirst}
 \usepackage{fvextra}
 \usepackage[most]{tcolorbox}
-\usepackage[svgnames]{xcolor}
+\usepackage{xcolor}
 \usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
 
 \geometry{a4paper, top=24mm, bottom=24mm, left=22mm, right=22mm, headsep=8mm, footskip=10mm}
 \raggedbottom
 
-\setmainfont{Times New Roman}
-\setmonofont{Menlo}
-\setCJKmainfont{Hiragino Sans GB}
-\setCJKsansfont{Microsoft YaHei}
-\setCJKmonofont{STSong}
+\setmainfont{texgyretermes-regular.otf}[
+  BoldFont=texgyretermes-bold.otf,
+  ItalicFont=texgyretermes-italic.otf,
+  BoldItalicFont=texgyretermes-bolditalic.otf
+]
+\setsansfont{texgyreheros-regular.otf}[
+  BoldFont=texgyreheros-bold.otf,
+  ItalicFont=texgyreheros-italic.otf,
+  BoldItalicFont=texgyreheros-bolditalic.otf
+]
+\setmonofont{Menlo}[Scale=0.90]
+\setmathfont{texgyretermes-math.otf}
+\setCJKmainfont{Songti SC}[
+  BoldFont=Songti SC Bold,
+  ItalicFont=Kaiti SC
+]
+\setCJKsansfont{Hiragino Sans GB}
+\setCJKmonofont{Noto Sans CJK SC}[Scale=0.88]
 
 \setstretch{1.22}
 \setlength{\parindent}{2em}
@@ -34,20 +52,27 @@
 \setlength{\LTleft}{0pt}
 \setlength{\LTright}{0pt}
 \setlength{\LTcapwidth}{\textwidth}
-\setlist[itemize]{itemsep=0.25em, topsep=0.35em}
-\setlist[enumerate]{itemsep=0.25em, topsep=0.35em}
+\setlist[itemize]{itemsep=0.28em, topsep=0.35em, parsep=0pt, partopsep=0pt, leftmargin=2.4em}
+\setlist[enumerate]{itemsep=0.28em, topsep=0.35em, parsep=0pt, partopsep=0pt, leftmargin=2.4em}
 
 \definecolor{TitleBlue}{HTML}{123A63}
 \definecolor{RuleGray}{HTML}{B8C4D6}
+\definecolor{DarkSlateBlue}{HTML}{483D8B}
+\definecolor{MatlabKeyword}{RGB}{0,0,255}
+\definecolor{MatlabComment}{RGB}{34,139,34}
+\definecolor{MatlabString}{RGB}{160,32,240}
+\definecolor{MatlabNumber}{RGB}{128,0,128}
+\definecolor{MatlabCodeBg}{HTML}{F7FAFC}
+\definecolor{MatlabCodeFrame}{HTML}{C9D7E8}
 
 \titleformat{\section}
-  {\Large\bfseries\color{TitleBlue}}
+  {\fontsize{16pt}{20pt}\selectfont\sffamily\bfseries\color{TitleBlue}}
   {\thesection}{0.6em}{}
 \titleformat{\subsection}
-  {\large\bfseries\color{TitleBlue}}
+  {\fontsize{14pt}{18pt}\selectfont\sffamily\bfseries\color{TitleBlue}}
   {\thesubsection}{0.6em}{}
 \titleformat{\subsubsection}
-  {\normalsize\bfseries\color{TitleBlue}}
+  {\fontsize{12pt}{16pt}\selectfont\sffamily\bfseries\color{TitleBlue}}
   {\thesubsubsection}{0.6em}{}
 
 \titlespacing*{\section}{0pt}{1.2em}{0.5em}
@@ -60,6 +85,9 @@
   labelsep=period,
   justification=centering
 }
+\renewcommand{\thefigure}{__LESSON_ID__-\arabic{figure}}
+\renewcommand{\thetable}{__LESSON_ID__-\arabic{table}}
+\renewcommand{\theequation}{__LESSON_ID__-\arabic{equation}}
 \DeclareCaptionLabelFormat{zhfigure}{图#2}
 \DeclareCaptionLabelFormat{zhtable}{表#2}
 \captionsetup[figure]{labelformat=zhfigure}
@@ -69,12 +97,43 @@
 \fvset{
   breaklines=true,
   breakanywhere=true,
-  fontsize=\small,
-  frame=single,
-  framerule=0.3pt,
-  rulecolor=\color{RuleGray},
-  framesep=4pt
+  fontsize=\normalsize,
+  baselinestretch=1.05,
+  frame=none,
+  commandchars=\\\{\}
 }
+
+\renewenvironment{Shaded}
+  {\begin{tcolorbox}[
+    enhanced,
+    breakable,
+    colback=MatlabCodeBg,
+    colframe=MatlabCodeFrame,
+    boxrule=0.35pt,
+    arc=0.8mm,
+    left=6pt,
+    right=6pt,
+    top=4pt,
+    bottom=4pt,
+    before skip=0.65em,
+    after skip=0.75em
+  ]}
+  {\end{tcolorbox}}
+\renewcommand{\KeywordTok}[1]{\textcolor{MatlabKeyword}{\textbf{#1}}}
+\renewcommand{\ControlFlowTok}[1]{\textcolor{MatlabKeyword}{\textbf{#1}}}
+\renewcommand{\BuiltInTok}[1]{\textcolor{MatlabKeyword}{#1}}
+\renewcommand{\FunctionTok}[1]{\textcolor{MatlabKeyword}{#1}}
+\renewcommand{\CommentTok}[1]{\textcolor{MatlabComment}{#1}}
+\renewcommand{\CommentVarTok}[1]{\textcolor{MatlabComment}{#1}}
+\renewcommand{\StringTok}[1]{\textcolor{MatlabString}{#1}}
+\renewcommand{\VerbatimStringTok}[1]{\textcolor{MatlabString}{#1}}
+\renewcommand{\CharTok}[1]{\textcolor{MatlabString}{#1}}
+\renewcommand{\DecValTok}[1]{\textcolor{MatlabNumber}{#1}}
+\renewcommand{\FloatTok}[1]{\textcolor{MatlabNumber}{#1}}
+\makeatletter
+\let\@afterindentfalse\@afterindenttrue
+\@afterindenttrue
+\makeatother
 
 \newtcolorbox{HandoutQuoteBox}{
   enhanced,
@@ -92,7 +151,7 @@
   after skip=0.8em
 }
 \renewenvironment{quote}
-  {\begin{HandoutQuoteBox}\small\color{TitleBlue}\noindent\ignorespaces}
+  {\begin{HandoutQuoteBox}\sffamily\bfseries\color{TitleBlue}\noindent\ignorespaces}
   {\end{HandoutQuoteBox}}
 
 \pagestyle{fancy}

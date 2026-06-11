@@ -121,7 +121,7 @@
 {详细描述图片内容、视角、风格、关键元素}
 
 【生图提示词（英文）】
-主工具：Midjourney / DALL-E / Stable Diffusion
+主工具：imagen（GPT Image 2 / Codex-native）
 Prompt:
 """
 {英文提示词}
@@ -180,8 +180,8 @@ Prompt:
 |----------|----------|------|
 | 响应曲线、Bode图、根轨迹、参数曲线 | Python + matplotlib | 代码直出，矢量 SVG |
 | 框图、信号流图 | Python + matplotlib / tikzplotlib | 可矢量化 |
-| 工程场景图、设备实物图 | Midjourney / DALL-E | 位图，需提示词 |
-| 原理示意图（复杂） | Stable Diffusion + ControlNet | 可控制构图 |
+| 工程场景图、设备实物图 | `imagen` | 位图，文稿定稿后一次性成图 |
+| 原理示意图（复杂） | `imagen` | 可控制构图 |
 | 动态演示视频 | Sora | 互动课专用 |
 | 实时交互图表 | Recharts / Canvas / D3 | 前端绘制，无媒体文件 |
 

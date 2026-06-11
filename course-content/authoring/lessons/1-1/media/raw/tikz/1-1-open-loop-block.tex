@@ -1,0 +1,26 @@
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Helvetica Neue}
+\setCJKmainfont{Hiragino Sans GB}
+\usetikzlibrary{arrows.meta,positioning}
+
+\begin{document}
+\begin{tikzpicture}[auto]
+  \tikzset{
+    block/.style={rectangle, draw={rgb,255:red,74;green,144;blue,217}, fill=none, line width=1.2pt,
+      minimum height=0.75cm, minimum width=1.65cm, inner sep=2pt, font=\footnotesize\bfseries, align=center},
+    signal/.style={-{Latex}, draw={rgb,255:red,51;green,51;blue,51}, line width=1.2pt},
+    siglabel/.style={font=\footnotesize, fill=none, inner sep=1pt, yshift=4pt}
+  }
+
+  \node (r) at (0,0) {$r(t)$};
+  \node[block] (controller) at (3.1,0) {控制动作};
+  \node[block] (plant) at (6.1,0) {被控对象\\$G(s)$};
+  \node (y) at (8.6,0) {$y(t)$};
+
+  \draw[signal] (r) -- node[siglabel, above] {给定命令} (controller);
+  \draw[signal] (controller) -- (plant);
+  \draw[signal] (plant) -- node[siglabel, above] {输出} (y);
+\end{tikzpicture}
+\end{document}

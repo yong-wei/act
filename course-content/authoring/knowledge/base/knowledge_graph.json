@@ -19211,7 +19211,7 @@
       "name": "单结构与复合结构分流条件",
       "category": "概念性",
       "bloom_level": "分析",
-      "chapter": "4",
+      "chapter": 4,
       "chapter_name": "约束设计层",
       "definition": "根据对象当前最紧矛盾、单结构已暴露的代价和可测通道条件，判断首轮方案应继续单结构，还是进入复合结构或反馈-前馈组合。",
       "examples": [
@@ -19251,7 +19251,7 @@
       "name": "参数方向表达卡",
       "category": "程序性",
       "bloom_level": "应用",
-      "chapter": "4",
+      "chapter": 4,
       "chapter_name": "约束设计层",
       "definition": "把首轮方案写成“先改哪段行为、预期先改善什么、最可能先透支什么”的设计表达，用来替代只报参数大小的经验描述。",
       "examples": [
@@ -19290,7 +19290,7 @@
       "name": "对象分析回收到设计入口",
       "category": "程序性",
       "bloom_level": "分析",
-      "chapter": "4",
+      "chapter": 4,
       "chapter_name": "约束设计层",
       "definition": "把对象模型、任务书、约束边界和首轮观察指标重新压成设计入口，明确当前最紧矛盾、暂缓决策项和第一轮验证重点。",
       "examples": [
@@ -19329,7 +19329,7 @@
       "name": "扰动抑制中的通道重写边界",
       "category": "概念性",
       "bloom_level": "分析",
-      "chapter": "4",
+      "chapter": 4,
       "chapter_name": "约束设计层",
       "definition": "当设计任务从给定跟踪转为扰动抑制时，复合结构可能不再主要来自频段叠加，而是来自对控制通道、扰动通道和物理分量的重新组织。",
       "examples": [
@@ -19368,7 +19368,7 @@
       "name": "问题清单移交表",
       "category": "程序性",
       "bloom_level": "应用",
-      "chapter": "4",
+      "chapter": 4,
       "chapter_name": "约束设计层",
       "definition": "把首轮验证结论压成“已满足目标、已暴露代价、下一轮优先调整项”三类句子，用来把首轮证据正式移交给后续权衡和优化阶段。",
       "examples": [
@@ -19405,7 +19405,7 @@
       "name": "首轮验证最小读数逻辑",
       "category": "程序性",
       "bloom_level": "分析",
-      "chapter": "4",
+      "chapter": 4,
       "chapter_name": "约束设计层",
       "definition": "首轮验证至少同时读取反馈裕度、参考响应、扰动响应、控制量边界和饱和恢复过程，用来判断复合方案是否接住主矛盾并暴露下一轮优化入口。",
       "examples": [
@@ -19476,7 +19476,6 @@
     "优化起点与归一化来源_4_44003": {
       "id": "优化起点与归一化来源_4_44003",
       "name": "优化起点与归一化来源",
-      "name_en": "Optimization Starting Point and Normalization Sources",
       "category": "程序性",
       "knowledge_type": "D",
       "bloom_level": "应用",
@@ -19620,7 +19619,6 @@
     "展示解与Pareto最小取舍_4_44006": {
       "id": "展示解与Pareto最小取舍_4_44006",
       "name": "Pareto前沿与展示解取舍",
-      "name_en": "Pareto Front and Candidate Display Trade-Off",
       "category": "概念性",
       "knowledge_type": "D",
       "bloom_level": "分析",
@@ -19695,7 +19693,6 @@
     "任务通道变化下的自由目标改写_4_44007": {
       "id": "任务通道变化下的自由目标改写_4_44007",
       "name": "任务通道变化下的自由目标改写",
-      "name_en": "Rewriting Free Objectives When the Task Channel Changes",
       "category": "程序性",
       "knowledge_type": "D",
       "bloom_level": "分析",
@@ -19734,7 +19731,6 @@
     "固定结构自由目标项选择_4_44002": {
       "id": "固定结构自由目标项选择_4_44002",
       "name": "固定结构自由目标项选择",
-      "name_en": "Selecting Free Objective Terms in Fixed-Structure Design",
       "category": "程序性",
       "knowledge_type": "D",
       "bloom_level": "分析",
@@ -19774,7 +19770,6 @@
     "无约束加权目标表达_4_44004": {
       "id": "无约束加权目标表达_4_44004",
       "name": "无约束加权目标表达",
-      "name_en": "Unconstrained Weighted Objective Expression",
       "category": "程序性",
       "knowledge_type": "D",
       "bloom_level": "应用",
@@ -19813,7 +19808,6 @@
     "权重偏好与无约束候选解_4_44005": {
       "id": "权重偏好与无约束候选解_4_44005",
       "name": "权重偏好与无约束候选解",
-      "name_en": "Weight Preferences and the Unconstrained Candidate",
       "category": "程序性",
       "knowledge_type": "D",
       "bloom_level": "分析",
@@ -19851,7 +19845,6 @@
     "经典试凑中的多目标拉扯_4_44001": {
       "id": "经典试凑中的多目标拉扯_4_44001",
       "name": "经典试凑中的多目标拉扯",
-      "name_en": "Multi-Objective Tension in Classical Trial-and-Error",
       "category": "概念性",
       "knowledge_type": "X",
       "bloom_level": "分析",

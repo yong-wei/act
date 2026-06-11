@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-06-07T10:22:41.668984Z",
+  "lesson": {
+    "lesson_id": "1-1",
+    "title": "看见整门课：从反馈思想到控制全景",
+    "groups": [
+      "校正与课程总图"
+    ],
+    "card_order_index": 15
+  },
+  "node": {
+    "id": "校正_1_1",
+    "name": "校正设计",
+    "name_en": null,
+    "category": "概念性",
+    "knowledge_type": "X",
+    "bloom_level": "分析",
+    "definition": "校正设计是根据诊断结果在回路中加入控制器，以改写系统行为的过程。",
+    "examples": [],
+    "formulas": [],
+    "keywords": [
+      "校正设计",
+      "控制器"
+    ]
+  },
+  "card_path": "course-content/authoring/knowledge/cards/nodes/校正_1_1.md",
+  "card_frontmatter": {
+    "node_id": "校正_1_1",
+    "name": "校正设计",
+    "lesson_units": [
+      "1-1"
+    ],
+    "category": "概念性",
+    "knowledge_type": "X",
+    "chapter": "1",
+    "tags": [
+      "校正设计",
+      "控制器",
+      "1-1"
+    ],
+    "card_version": "1",
+    "source_docs": [
+      "authoring/lessons/1-1/design/1-1-handout.md"
+    ],
+    "asset_refs": "[]"
+  },
+  "card_overview": "# 校正设计\n\n**一句话定义**：校正设计是根据诊断结果在回路中加入控制器，以改写系统行为的过程。\n\n**核心直觉**：校正不是一次性套公式，而是诊断、修改、再诊断、比较和调整的循环。\n\n---",
+  "card_detail": "校正设计把分析工具转化为设计动作。时域、根轨迹和频域证据共同帮助判断当前控制器是否满足目标，以及下一步该如何调整。",
+  "card_plain_excerpt": "## 首页\n\n# 校正设计\n\n**一句话定义**：校正设计是根据诊断结果在回路中加入控制器，以改写系统行为的过程。\n\n**核心直觉**：校正不是一次性套公式，而是诊断、修改、再诊断、比较和调整的循环。\n\n---\n\n## 详情\n\n校正设计把分析工具转化为设计动作。时域、根轨迹和频域证据共同帮助判断当前控制器是否满足目标，以及下一步该如何调整。",
+  "core_intuition": "校正不是一次性套公式，而是诊断、修改、再诊断、比较和调整的循环。",
+  "relations": [
+    {
+      "source_id": "控制器_1_1",
+      "source": "控制器",
+      "target_id": "校正_1_1",
+      "target": "校正设计",
+      "relation": "enables",
+      "strength": null,
+      "description": "控制器是执行校正设计的工具",
+      "direction_for_node": "incoming"
+    },
+    {
+      "source_id": "反馈_1_1",
+      "source": "反馈",
+      "target_id": "校正_1_1",
+      "target": "校正设计",
+      "relation": "enables",
+      "strength": null,
+      "description": "反馈使得校正成为可能——通过修改回路改变系统行为",
+      "direction_for_node": "incoming"
+    }
+  ],
+  "visual_architecture": {
+    "visual_archetype": {
+      "id": "science_encyclopedia_panel",
+      "name": "科普百科图鉴",
+      "description": "用一个主视觉和若干模块化信息区解释概念、特征、边界和应用语境。"
+    },
+    "layout_contract": "16:9 横版；一个清晰主视觉占画面约一半；其余空间为 3-5 个圆角模块，分别承载特征、机理、边界和公式。",
+    "text_contract": {
+      "allowed_labels": [
+        "校正设计",
+        "校正设计",
+        "控制器"
+      ],
+      "max_visible_labels": 12,
+      "max_label_length": "prefer_under_10_chinese_chars",
+      "formula_anchors": [],
+      "body_text_policy": "no_paragraphs_no_full_definition_copy"
+    },
+    "technical_insets_contract": "1-3 个技术小窗，每个小窗必须承担读图、机理解释或边界判断功能。",
+    "negative_constraints": [
+      "不要生成电子讲义截图或白底多卡片堆叠。",
+      "不要把长定义、长例题或整段说明塞进图面。",
+      "不要用无关装饰替代工程对象、技术曲线或物理隐喻。",
+      "不要渲染 visual_archetype、layout_contract、text_contract 等提示词字段名。"
+    ]
+  },
+  "constraints": {
+    "facts_must_come_from_source": true,
+    "formula_rendering_policy": "render_key_formula_anchors_when_present_then_review_visually",
+    "visual_asset_policy": "combine_concrete_visual_scene_with_technical_insets_not_flat_note_card",
+    "target_use": "interactive lesson entry and global knowledge graph node detail"
+  }
+}

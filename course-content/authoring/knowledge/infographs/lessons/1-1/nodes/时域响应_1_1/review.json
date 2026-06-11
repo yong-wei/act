@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-06-07T08:45:48.412339Z",
+  "lesson_id": "1-1",
+  "node_id": "时域响应_1_1",
+  "requested_node_id": "时域响应_1_1",
+  "node_name": "时域响应",
+  "status": "accepted",
+  "checks": {
+    "source_json_exists": true,
+    "prompt_md_exists": true,
+    "image_exists": true,
+    "no_obvious_text_corruption": true,
+    "no_unsupported_fact_observed": true,
+    "readable_at_entry_card_size": true
+  },
+  "note": "视觉审查通过：仅表达 y(t) 随时间变化、上升/超调/收敛、极点模态和左半平面衰减关系，未引入额外指标。"
+}

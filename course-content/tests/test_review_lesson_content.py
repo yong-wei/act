@@ -18,6 +18,34 @@ def load_review_module():
 review_lesson_content = load_review_module()
 
 
+def test_authoring_lesson_graph_nodes_use_canonical_id_field():
+    lesson_root = Path(__file__).resolve().parents[1] / 'authoring' / 'lessons'
+    offenders: list[str] = []
+    for nodes_path in lesson_root.glob('*/graph/nodes.jsonl'):
+        for line_number, line in enumerate(nodes_path.read_text(encoding='utf-8').splitlines(), start=1):
+            if not line.strip():
+                continue
+            record = json.loads(line)
+            if 'node_id' in record or 'id' not in record:
+                offenders.append(f'{nodes_path.relative_to(lesson_root.parents[1])}:{line_number}')
+
+    assert offenders == []
+
+
+def test_check_knowledge_graph_accepts_current_1_1_graph():
+    check = review_lesson_content.check_knowledge_graph('1-1')
+
+    assert check['node_count'] == 17
+    assert check['relation_count'] == 16
+    assert check['blocking_issues'] == []
+
+
+def test_check_knowledge_graph_relation_names_match_node_ids():
+    check = review_lesson_content.check_knowledge_graph('1-1')
+
+    assert check['relation_issues'] == []
+
+
 def test_extract_expected_code_media_reads_storage_lines():
     multimedia_path = (
         Path(__file__).resolve().parents[1]

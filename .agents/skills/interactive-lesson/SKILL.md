@@ -119,8 +119,25 @@ description: Use when implementing or optimizing this repository's interactive l
 实现 manifest-first 课程时，`content-renderers.tsx` 与 `activity-renderers.tsx` 的职责必须分离：
 - content 模块只进入正文、媒体、公式、图文等 content runtime。
 - activity 模块只进入 activity runtime，activity 模块不进入正文，题面不得在正文区和互动区重复出现。
+- 实现前必须先执行实现前标准组件闸门，确认设计契约没有越过标准组件库。
 - 实现完成后必须执行 manifest audit：`python3 .agents/skills/interactive-design/scripts/audit_interactive_manifest.py --lesson <lesson>`。
 - 审计失败时先修 manifest 消费链路，不要用隐藏、过滤或空渲染绕过问题。
+
+实现前标准组件闸门：
+
+```bash
+python3 course-content/scripts/export_runtime.py <lesson>
+python3 .agents/skills/interactive-design/scripts/audit_interactive_manifest.py --lesson <lesson>
+npm run test:unit -- src/features/interactive/__tests__/interactive-module-taxonomy.test.ts src/features/interactive/__tests__/interactive-module-registry-gate.test.ts
+```
+
+硬约束：
+
+- 不得用课程私有组件绕过标准组件库。新课和已迁移课程的 `modules[].kind` 只能来自标准组件类：`content.rich`、`content.cardSet`、`content.formula`、`content.table`、`content.figure`、`content.reveal`、`content.stageMap`、`activity.panel`、`activity.workspace`、`compute.panel`、`analytics.summary`、`layout.support`。
+- 旧组件名只能作为 `payload.legacyKind` 保留迁移提示，不得重新写入 `modules[].kind`。
+- 若设计需要标准组件库不存在的能力，先停下并提出组件库扩展或 OpenSpec 变更；不得在单课 `step-panels.tsx`、共享 renderer 或课程常量中临时发明新 kind。
+- 若 `audit_interactive_manifest.py` 无法判断模块非空，先修 `interactive-contract.yaml` 的 payload 或 `content_blocks`；只有 payload 已完整但共享 renderer 不支持时，才修改共享 renderer。
+- `compute.panel` 是计算/互动图形能力的标准入口；新实现应采用 `compute.panel + capabilityRef`。`rust-analysis-panel`、`interactive-figure-panel`、`shared-engine-root-locus-panel` 等旧名只能作为迁移兼容或 `payload.legacyKind`。
 
 ### 4. 媒体资源缺失处理
 
@@ -195,6 +212,9 @@ description: Use when implementing or optimizing this repository's interactive l
 实现时遵守以下规则：
 - 优先复用现有课程框架、会话同步、埋点、资源注册、`InteractiveProvider`
 - 非必要不新增接口和新方法；优先改造已有接口进行复用
+- manifest-first 课程以 `interactive-manifest.json` 为 runtime 真源；不得把设计契约缺字段转写成课程私有 JSX 常量、`switch (step.id)` 内容表、题目选项常量或参考答案映射
+- 只有当 `interactive-contract.yaml` 的 payload 已完整且现有共享 renderer 缺能力时，才允许改 `src/features/interactive/shared/manifest-runtime/`；不得在单课目录内平行实现通用模块
+- 新增共享 renderer 或活动能力必须同时补 module taxonomy / registry gate、manifest runtime 测试和对应课程验证；不能只让当前页面可显示
 - 涉及课堂码加入时，必须复用平台统一的课堂会话路由解析，不允许在 `dashboard`、通用加入页或课程入口页硬编码学生/教师跳转路径
 - 精品互动课教师页必须提供"结束课堂"入口；如课程会出现在教师后台的进行中课堂列表中，也必须允许从后台停止课堂
 - 学生页默认与教师页解耦：首次进入对齐教师页，之后若不同步，应亮起"当前页面与教师不同步，点击跳转"提示，而不是强制自动翻页
@@ -264,6 +284,7 @@ description: Use when implementing or optimizing this repository's interactive l
 - 入口页模式与 runtime 媒体索引契约见 [references/runtime-entry-page-pattern.md](references/runtime-entry-page-pattern.md) 与 [references/runtime-media-index-contract.md](references/runtime-media-index-contract.md)
 - 实现完成后必须通过该脚本测试：`python3 .agents/skills/interactive-lesson/scripts/check_contract_alignment.py`
 - 内容导出和作者态契约审查必须运行 `review_lesson_content.py --strict-implementation-contract`，不能忽略作者态契约与本地实现漂移
+- 标准组件库存闸门必须运行 `npm run test:unit -- src/features/interactive/__tests__/interactive-module-taxonomy.test.ts src/features/interactive/__tests__/interactive-module-registry-gate.test.ts`，不能只跑浏览器验收
 - 子代理审查必须发生在严格脚本前；主代理只收集审查结论、修复问题并写入 `notes/interactive-implementation-acceptance.json`，不把长篇浏览器过程塞回主上下文
 - 若子代理审查指出契约漏实现、旧口径回潮、埋点缺失、页内 AI 入口或曲线/示意图静态降级，必须先修复，再写 `notes/interactive-implementation-acceptance.json`，更不得宣称完成
 - 若采用双子代理浏览器验收，主代理只需读取总则，并按角色给子代理分发各自规范文件：

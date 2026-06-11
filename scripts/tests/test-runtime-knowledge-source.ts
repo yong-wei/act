@@ -10,6 +10,7 @@ function read(relativePath: string) {
 
 const knowledgeSource = read('src/lib/knowledge-graph-source.ts');
 const mdxRoute = read('src/app/api/content/mdx/route.ts');
+const runtimeContentPath = read('src/lib/runtime-content-path.ts');
 const knowledgeCard = read('src/features/knowledge/knowledge-card.tsx');
 
 assert.equal(
@@ -33,7 +34,9 @@ assert.equal(
 );
 
 assert.equal(
-  mdxRoute.includes("process.cwd(), 'course-content', 'runtime'"),
+  mdxRoute.includes('resolveReadableContentPath') &&
+    runtimeContentPath.includes("const RUNTIME_PREFIX = 'course-content/runtime/'") &&
+    runtimeContentPath.includes("path.join(PROJECT_ROOT, 'course-content', 'runtime')"),
   true,
   'mdx route 应支持读取 course-content/runtime 下的 Markdown 资源',
 );
