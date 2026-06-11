@@ -683,7 +683,7 @@ function evidenceFromDiagnosisCluster(cluster: RoleBasedLearningDiagnosisRootCau
       chunkId: cluster.id,
       displayTitle: sanitizeText(cluster.label),
       sourceType: 'diagnosis',
-      authorityLevel: 'teacher-authored',
+      authorityLevel: 'verified',
       confidence: cluster.confidence,
       privacyVisibility: 'redacted',
     }),

@@ -216,6 +216,10 @@ describe('teacher prep pack generation', () => {
     }));
     expect(pack.candidates.every((item) => item.evidenceBasis.length > 0)).toBe(true);
     expect(pack.candidates.every((item) => item.evidenceBasis.every((basis) => basis.citationChip))).toBe(true);
+    expect(pack.candidates[0].evidenceBasis.find((basis) => basis.sourceType === 'role-diagnosis')?.citationChip).toEqual(expect.objectContaining({
+      sourceType: 'diagnosis',
+      authorityLevel: 'verified',
+    }));
     expect(pack.candidates[0].evidenceBasis[0].citationChip).toEqual(expect.objectContaining({
       authorityLevel: expect.any(String),
       freshnessBucket: 'current',
