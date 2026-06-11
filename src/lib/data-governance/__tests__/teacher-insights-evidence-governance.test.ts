@@ -16,6 +16,10 @@ const mocks = vi.hoisted(() => {
     generateRecommendations,
     prismaArenaSubmissionStore,
     prisma: {
+      $queryRaw: vi.fn(),
+      diagnosisReportSnapshot: {
+        findMany: vi.fn(),
+      },
       class: {
         findUnique: vi.fn(),
       },
@@ -359,6 +363,8 @@ describe('teacher evidence governance insights', () => {
     });
     mocks.prismaArenaSubmissionStore.listSubmissions.mockResolvedValue([]);
     mocks.generateRecommendations.mockResolvedValue([]);
+    mocks.prisma.$queryRaw.mockResolvedValue([{ exists: false }]);
+    mocks.prisma.diagnosisReportSnapshot.findMany.mockResolvedValue([]);
     mocks.prisma.studentEvidenceFeatureCache.findMany.mockResolvedValue([]);
   });
 
@@ -1048,6 +1054,8 @@ describe('teacher evidence governance insights', () => {
             outcome: 'partial',
             score: 70,
             stepId: 'step-05',
+            studentAnswer: longAnswer,
+            privateKonlingMemory: 'private Konling memory secret',
             questionSummaries: [{
               questionId: 'q-1',
               prompt: '说明相平面边界',
@@ -1289,10 +1297,18 @@ describe('teacher evidence governance insights', () => {
       },
     });
     expect(JSON.stringify(body)).not.toContain(longAnswer);
+    expect(JSON.stringify(body)).not.toContain('private Konling memory secret');
     expect(JSON.stringify(body)).not.toContain('official-secret');
     expect(JSON.stringify(body)).not.toContain('official-run-1');
     expect(JSON.stringify(body)).not.toContain('rawTracePayload');
-    expect(body.evidenceSummary[3].items[0].questionSummaries[0].studentAnswer.length).toBeLessThanOrEqual(120);
+    expect(body.evidenceSummary[3].items[0].questionSummaries[0]).not.toHaveProperty('studentAnswer');
+    expect(body.evidenceSummary[3].items[0].questionSummaries[0]).toEqual(expect.objectContaining({
+      questionId: 'q-1',
+      studentAnswerRedacted: true,
+    }));
+    expect(body.evidenceSummary[3].items[0].questionSummaries[0].referenceAnswer.length).toBeLessThanOrEqual(120);
+    expect(body.evidenceSummary[3].items[0]).not.toHaveProperty('studentAnswer');
+    expect(body.evidenceSummary[3].items[0]).not.toHaveProperty('privateKonlingMemory');
   });
 
   it('denies student insights outside teacher class ownership', async () => {

@@ -33,6 +33,15 @@ import {
   type TeacherStudentEvidenceStatus,
 } from '@/lib/data-governance/teacher-evidence-governance';
 import { STUDENT_EVIDENCE_FEATURE_LEARNING_FACT_SELECT } from '@/lib/data-governance/student-evidence-feature-cache';
+import {
+  createPrismaDiagnosisReportSnapshotStore,
+  hasDiagnosisReportSnapshotPersistenceTable,
+  readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence,
+} from '@/lib/data-governance/control-correction-diagnosis-profile';
+import {
+  materializeRoleBasedLearningDiagnosis,
+  type RoleBasedLearningDiagnosis,
+} from '@/lib/data-governance/role-based-learning-diagnosis';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,6 +104,7 @@ export interface TeacherClassInsightsPayload {
     levelDistribution: LevelDistribution;
   };
   arena: ArenaClassEvidenceSummary;
+  diagnosis: RoleBasedLearningDiagnosis;
   spotlightStudents: TeacherClassInsightStudent[];
   students: TeacherClassInsightStudent[];
 }
@@ -314,6 +324,18 @@ export async function GET(
     });
     const evidenceCoverage = summarizeTeacherEvidenceCoverage(evidenceStatusMap.values());
     const recentSessionQuality = summarizeTeacherSessionQualityReports(recentSessionQualityReports);
+    const diagnosisReportSnapshot = await hasDiagnosisReportSnapshotPersistenceTable(prisma)
+      ? await readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence(
+        createPrismaDiagnosisReportSnapshotStore(prisma.diagnosisReportSnapshot),
+        {
+          view: 'teacher-class',
+          goalId: 'control-correction',
+          userId: session.user.id,
+          classId,
+          teacherClassIds: [classId],
+        }
+      )
+      : null;
 
     const students: TeacherClassInsightStudent[] = classData.students.map((studentProfile) => {
       const snapshot = snapshotMap.get(studentProfile.userId);
@@ -399,6 +421,32 @@ export async function GET(
         },
         createEmptyLevelDistribution()
       );
+    const diagnosis = materializeRoleBasedLearningDiagnosis({
+      view: 'teacher-class',
+      goalId: 'control-correction',
+      userId: session.user.id,
+      classId,
+      teacherClassIds: [classId],
+      teacherReport: {
+        classInfo: {
+          classId,
+          studentCount: totalStudents,
+        },
+        metrics: {
+          evidenceCoverage: {
+            sourceCoverage: {
+              readyStudents: evidenceCoverage.readyStudents,
+              staleStudents: evidenceCoverage.staleStudents,
+              missingStudents: evidenceCoverage.missingStudents,
+              lowConfidenceStudents: evidenceCoverage.lowConfidenceStudents,
+            },
+            denominator: totalStudents,
+          },
+        },
+        studentDrilldowns: students.map((student) => ({ userId: student.id })),
+      },
+      diagnosisReportSnapshot,
+    });
 
     const payload: TeacherClassInsightsPayload = {
       classInfo: {
@@ -447,6 +495,7 @@ export async function GET(
         submissions: arenaSubmissions,
         learningFacts: arenaLearningFacts,
       }),
+      diagnosis,
       spotlightStudents: rankStudentsByAttention(students).slice(0, 5),
       students,
     };

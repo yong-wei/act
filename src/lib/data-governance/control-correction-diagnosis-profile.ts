@@ -232,8 +232,8 @@ export interface DiagnosisReportSnapshotPersistenceRow {
   userId: string | null;
   classId: string | null;
   generatedAt: Date;
-  materializerVersion?: string;
-  snapshot: unknown;
+  materializerVersion: string;
+  snapshot: any;
 }
 
 export interface DiagnosisReportSnapshotPersistenceDelegate {
@@ -258,6 +258,10 @@ export interface DiagnosisReportSnapshotPersistenceDelegate {
 export interface DiagnosisReportSnapshotPersistenceStore {
   list(request: DiagnosisReportReadRequest): Promise<DiagnosisReportSnapshot[]>;
   add(snapshot: DiagnosisReportSnapshot): Promise<void>;
+}
+
+export interface DiagnosisReportSnapshotTableProbeClient {
+  $queryRaw<T = unknown>(query: TemplateStringsArray, ...values: unknown[]): Promise<T>;
 }
 
 export const CONTROL_CORRECTION_DIAGNOSIS_DIMENSIONS: DiagnosisDimensionDefinition[] = [
@@ -429,11 +433,19 @@ export function createPrismaDiagnosisReportSnapshotStore(
       });
     },
     list: async (request) => {
-      const rows = await delegate.findMany({
-        where: persistenceWhereFor(request),
-        orderBy: { generatedAt: 'desc' },
-        take: 25,
-      });
+      let rows: DiagnosisReportSnapshotPersistenceRow[];
+      try {
+        rows = await delegate.findMany({
+          where: persistenceWhereFor(request),
+          orderBy: { generatedAt: 'desc' },
+          take: 25,
+        });
+      } catch (error) {
+        if (isMissingDiagnosisReportSnapshotTableError(error)) {
+          return [];
+        }
+        throw error;
+      }
       return rows
         .map((row) => snapshotFromPersistenceRow(row))
         .filter((snapshot): snapshot is DiagnosisReportSnapshot => Boolean(snapshot))
@@ -443,11 +455,35 @@ export function createPrismaDiagnosisReportSnapshotStore(
   };
 }
 
+function isMissingDiagnosisReportSnapshotTableError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const record = error as Record<string, unknown>;
+  if (record.code === 'P2021') return true;
+  const meta = record.meta;
+  if (!meta || typeof meta !== 'object') return false;
+  return JSON.stringify(meta).includes('TableDoesNotExist');
+}
+
 export async function readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence(
   store: DiagnosisReportSnapshotPersistenceStore,
   request: DiagnosisReportReadRequest,
 ): Promise<DiagnosisReportSnapshot | null> {
   return (await store.list(request))[0] ?? null;
+}
+
+export async function hasDiagnosisReportSnapshotPersistenceTable(
+  client: Partial<DiagnosisReportSnapshotTableProbeClient>,
+): Promise<boolean> {
+  if (typeof client.$queryRaw !== 'function') return false;
+  const rows = await client.$queryRaw<Array<{ exists: boolean }>>`
+    SELECT EXISTS (
+      SELECT 1
+      FROM information_schema.tables
+      WHERE table_schema = 'public'
+        AND table_name = 'DiagnosisReportSnapshot'
+    ) AS "exists"
+  `;
+  return Boolean(rows[0]?.exists);
 }
 
 export function canReadDiagnosisReportSnapshot(snapshot: DiagnosisReportSnapshot, request: DiagnosisReportReadRequest): boolean {

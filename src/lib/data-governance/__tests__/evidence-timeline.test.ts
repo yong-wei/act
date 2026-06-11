@@ -123,6 +123,36 @@ describe('evidence timeline browser', () => {
     expect(page.nextCursor).toBeTruthy();
   });
 
+  it('redacts raw question answers from teacher evidence timeline summaries', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([
+          fact({ id: 'teacher-visible-question' }),
+        ]),
+      },
+      studentStepResponse: {
+        findMany: vi.fn().mockResolvedValue([
+          response({ sourceLogId: 'log-1' }),
+        ]),
+      },
+    };
+
+    const page = await listEvidenceTimeline({
+      db,
+      userId: 'student-1',
+      filters: { limit: 10 },
+      viewerRole: 'teacher',
+    });
+
+    expect(page.items[0].questionSummaries?.[0]).not.toHaveProperty('studentAnswer');
+    expect(page.items[0].questionSummaries?.[0]).toMatchObject({
+      questionId: '5-2-q1',
+      studentAnswerRedacted: true,
+      referenceAnswer: '边界外需要重新判断收敛路径',
+      isCorrect: true,
+    });
+  });
+
   it('surfaces core learning work as learner-record evidence with freshness, confidence, source scope, and next action', async () => {
     const db = {
       learningFact: {

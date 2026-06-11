@@ -27,8 +27,10 @@ import {
 } from 'recharts';
 import { UserMenu } from '@/components/shared/user-menu';
 import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learning-center-contracts';
+import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
 import { getCompetencyLabel, COMPETENCY_DIMENSIONS } from '@/lib/data-governance/competency-model';
 import type { CompetencyVector, TrendVector } from '@/lib/data-governance/competency-model';
+import type { RoleBasedLearningDiagnosis } from '@/lib/data-governance/role-based-learning-diagnosis';
 import type { RiskFlag } from '@/lib/data-governance/risk-detector';
 
 interface EvidenceSummaryItem {
@@ -40,7 +42,7 @@ interface EvidenceSummaryItem {
   questionSummaries?: Array<{
     questionId?: string;
     prompt?: string;
-    studentAnswer?: string | null;
+    studentAnswerRedacted?: boolean;
     referenceAnswer?: string;
     isCorrect?: boolean;
   }>;
@@ -66,6 +68,7 @@ interface GrowthSnapshotData {
     actionUrl?: string;
     priority: number;
   }>;
+  diagnosis: RoleBasedLearningDiagnosis;
 }
 
 interface GrowthRecord {
@@ -353,6 +356,15 @@ export default function GrowthPage() {
                 : '暂无新建议'}
             </p>
           </div>
+        </div>
+
+        <div className="mb-8">
+          <DiagnosisSurfacePanel
+            diagnosis={snapshot?.diagnosis}
+            mode="student"
+            title="控制校正个人诊断"
+            description="把诊断快照转化为学生可理解的维度状态、证据引用和下一步行动。"
+          />
         </div>
 
         {/* Middle Section - Competency Overview */}
@@ -685,7 +697,7 @@ export default function GrowthPage() {
                         )}
                         {item.questionSummaries?.slice(0, 2).map((question, questionIndex) => (
                           <p key={`${question.questionId ?? questionIndex}`} className="mt-2 text-xs text-subtle">
-                            {question.prompt ?? question.questionId ?? '题目'}：作答 {question.studentAnswer ?? '未作答'}
+                            {question.prompt ?? question.questionId ?? '题目'}：{question.studentAnswerRedacted ? '作答已脱敏' : '未记录作答'}
                             {question.referenceAnswer ? `，参考 ${question.referenceAnswer}` : ''}
                             {typeof question.isCorrect === 'boolean' ? `，${question.isCorrect ? '正确' : '需修正'}` : ''}
                           </p>

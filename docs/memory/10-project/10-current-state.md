@@ -1,7 +1,7 @@
 # 当前状态
 
 状态: active
-最后更新: 2026-06-04
+最后更新: 2026-06-11
 摘要: 记录项目当前的重要现状，帮助跨会话快速回答“现在做到哪里了、最近重点在哪”；当前重点是依赖大版本迁移后的平台基线、控制工作台与 Arena 集成、控制校正学习路径、全课程智能助教提案、OpenSpec/Buddy 多工作树协作和数据治理口径。
 上游:
 - [00-overview.md](00-overview.md)
@@ -16,6 +16,7 @@
 
 - 项目当前是 Next.js 16、React 19、Prisma 7、Tailwind CSS 4、Vercel AI SDK 6 的单体应用。依赖链已大版本迁移，后续新增功能必须留意 SSR、R3F、Prisma generate、Tailwind source 边界和测试脚本噪声。
 - 基线分支为 `integration`，发布分支为 `main`。主工作树绑定 `integration`，职责是 OpenSpec 提案、集成验证和协调登记；功能实现默认进入 `act-dev1` 或 `act-dev2`，课程资源制作进入 `act-resource`。
+- 永久工作树本身就是隔离边界。如果当前会话已经在 `act-dev1`、`act-dev2`、`act-resource` 或 Codex 派生出的永久隔离工作树中开发，不要再为同一 change 新建第二层临时 worktree；只有主协调工作树需要保护当前分支，或用户明确要求额外隔离时，才创建临时 worktree。
 - OpenSpec/Buddy 是功能推进主线。进行中能力不应只看代码，还要看 `openspec/changes/`、`openspec/specs/`、GitHub issue 父子关系、blockedBy 依赖和 Project 状态。
 - 互动学习入口已经以控制工作台、互动课程、跨域探索和互动组件为主；首页保留控制工作台入口，并把原个人中心链接调整为互动学习。
 - 综合仿真工作台 `/interactive-learning/control-workbench` 已承载经典四视图、复合校正、预测控制、黑箱辨识等控制设计流，并与 Arena 路由和提交面板衔接。
@@ -50,6 +51,7 @@
 
 - 做 OpenSpec 提案：先查当前 active changes 和 `openspec/specs/`，再生成 proposal/design/tasks/spec delta，最后用 `rtk openspec validate --changes --strict`。
 - 执行 OpenSpec change：先 claim 对应 GitHub issue，确认工作树职责与分支，再按 change 边界实现，不要跨系列顺手改。
+- 在永久隔离工作树执行 OpenSpec change 时，直接使用当前工作树完成开发闭环；不要再创建嵌套临时 worktree。
 - 改控制工作台或 Arena：先读 `src/features/control-workbench/`、`src/features/arena/` 和相关测试；注意官方评测与本地预演边界。
 - 改数据治理或画像：先定位数据层级，明确原始事件、学习事实、特征缓存、快照和页面 DTO 各自职责。
 - 改智能助教：先读 `docs/proposals/2026-06-04-teaching-assistant.md` 和智能助教 OpenSpec 系列，不要把控灵聊天框当作唯一入口。

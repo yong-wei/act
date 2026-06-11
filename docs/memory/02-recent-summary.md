@@ -1,7 +1,7 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-06-04
+最后更新: 2026-06-11
 摘要: 初始化时优先读取的最近上下文入口。当前项目已从早期精品互动课制作阶段，推进到依赖大版本迁移后的控制工作台、Arena、数据治理、控制校正学习路径和全课程智能助教协同建设阶段；主工作树固定用于 OpenSpec 提案与集成验证，功能实现应进入派生工作树。
 上游:
 - [00-index.md](00-index.md)
@@ -19,6 +19,8 @@
 - 2026-06-04 项目依赖链已完成大版本迁移，当前基线是 Next.js 16、React 19、Prisma 7、Tailwind CSS 4、Vercel AI SDK 6、Vitest 4、Playwright 1.60。构建链路需要先构建 `rust/control-engine` WASM，再执行 `prisma generate` 与 Next build。涉及 R3F/Three 的组件不能在 App Router SSR 入口顶层静态导入。
 
 - 2026-06-04 工作树职责已经固定：主工作树绑定 `integration`，用于 OpenSpec 提案、集成验证和协调登记；`act-dev1` 绑定 `dev1`，`act-dev2` 绑定 `dev2`，用于功能实现；`act-resource` 绑定 `resource`，用于课程资源制作。进入任一 act 工作树后，先确认当前分支和职责是否匹配。
+
+- 2026-06-11 如果当前会话已经在 `act-dev1`、`act-dev2`、`act-resource` 或 Codex 派生出的永久隔离工作树中进行开发，不要再为同一 change 新建第二层临时 worktree；这些永久工作树本身就是隔离边界。只有在主协调工作树中需要保护当前分支、或用户明确要求额外隔离时，才创建新的临时 worktree。
 
 - 2026-06-04 OpenSpec/Buddy 已成为功能推进主工作流。当前进行中主线包括控制校正学习路径系列和智能助教系列。Buddy issue 是跨工作树协调记录；一个可执行 change 对应一个 GitHub issue、一个 claim branch、一个 OpenSpec change 和一个 PR。提案批次需要父 issue、子 issue、Project 状态和依赖关系闭环。
 
@@ -41,6 +43,7 @@
 - 本项目基线分支是 `integration`，发布分支是 `main`。只说“提交”默认本地提交；明确“推送”才推送；明确“当前所有变动”才按整棵当前工作树处理。
 - OpenSpec 校验默认使用 `rtk openspec validate --changes --strict`；仓库级 `--all` 可能混入旧债，不作为普通提案或实现的默认门槛。
 - 新建或修复派生工作树时，优先使用 `scripts/dev/sync-local-worktree-config.sh`，并开启依赖安装、Prisma generate、Git hooks、CodeGraph/CRG 和 OpenWolf 知识链接等显式选项。
+- 已经进入永久隔离工作树执行功能开发时，直接在该工作树完成 claim、实现、验证、提交和 PR，不要再嵌套创建临时隔离工作树。
 - Tailwind/Turbopack 扫描边界只应覆盖业务代码与必要 helper，不能把系统环境配置、缓存或工作树运行态带入扫描。
 - 处理控制校正 goal slice 时，目标归属必须来自显式 canonical scope，例如 `goalId`/`goal`/`targetGoal`/`learningGoal` 等于 `control-correction`，不要用中文“校正”或英文 `correction` 关键词猜测。
 - 控制校正路径中的 `terminal-validation` 必须是主路径终点，且资源类型必须是 simulation 或 arena_task，不能只按标签判断。

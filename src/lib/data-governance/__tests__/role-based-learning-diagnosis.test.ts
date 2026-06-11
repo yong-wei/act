@@ -515,6 +515,60 @@ describe('role-based learning diagnosis materialization', () => {
     expect(validateRoleBasedLearningDiagnosis(fallback)).toEqual([]);
   });
 
+  it.each([
+    ['studentAnswer in title', { title: 'studentAnswer hidden answer', href: '/profile/path/safe', capsule: 'safe capsule' }, 'studentAnswer'],
+    ['rawTracePayload in title', { title: 'rawTracePayload secret', href: '/profile/path/safe', capsule: 'safe capsule' }, 'rawTracePayload'],
+    ['rawPayload in capsule', { title: 'safe title', href: '/profile/path/safe', capsule: 'rawPayload secret' }, 'rawPayload'],
+    ['rawDiagnostics in capsule', { title: 'safe title', href: '/profile/path/safe', capsule: 'rawDiagnostics secret' }, 'rawDiagnostics'],
+    ['raw query key in href', { title: 'safe title', href: '/profile/path?raw=true', capsule: 'safe capsule' }, 'raw=true'],
+    ['rawTracePayload query key in href', { title: 'safe title', href: '/profile/path?rawTracePayload=secret', capsule: 'safe capsule' }, 'rawTracePayload'],
+    ['privateKonlingMemory query key in href', { title: 'safe title', href: '/profile/path?privateKonlingMemory=secret', capsule: 'safe capsule' }, 'privateKonlingMemory'],
+    ['private Konling memory in capsule', { title: 'safe title', href: '/profile/path/safe', capsule: 'private Konling memory raw dialogue' }, 'private Konling memory'],
+  ])('redacts sensitive diagnosis snapshot evidence reference display text: %s', (_caseName, evidenceRef, forbiddenText) => {
+    const snapshot = materializeControlCorrectionDiagnosisReport({
+      subject: { kind: 'student', userId: 'student-1', classId: 'class-1' },
+      goalId: 'control-correction',
+      generatedAt: now,
+      evidenceRecords: [{
+        id: 'snapshot-sensitive-evidence',
+        sourceFamily: 'adaptive-assessment',
+        indicatorIds: ['time-response-settling-control'],
+        value: 0.72,
+        confidence: 'high',
+        updatedAt: now.toISOString(),
+        provenance: { classId: 'class-1', userId: 'student-1', goalId: 'control-correction' },
+        evidenceRef: {
+          chunkId: 'chunk-sensitive',
+          sourceType: 'diagnosis',
+          ...evidenceRef,
+        },
+      }],
+      now,
+    });
+
+    const diagnosis = materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      goalSlice: null,
+      evidenceCorpus: [],
+      diagnosisReportSnapshot: snapshot,
+    });
+
+    const evidence = diagnosis.claims[0].evidenceRefs[0];
+    if (evidenceRef.title !== 'safe title') {
+      expect(evidence.displayTitle).toBe('证据摘要已脱敏');
+      expect(evidence.citationChip.displayTitle).toBe('证据摘要已脱敏');
+    }
+    if (evidenceRef.href !== '/profile/path/safe') {
+      expect(evidence.displayHref).toBeNull();
+      expect(evidence.citationChip.displayHref).toBeNull();
+    }
+    if (evidenceRef.capsule !== 'safe capsule') {
+      expect(evidence.capsule).toBe('证据摘要已脱敏');
+    }
+    const serializedRef = JSON.stringify(evidence);
+    expect(serializedRef).not.toContain(forbiddenText);
+  });
+
   it('does not project snapshots across student or teacher authorization boundaries', () => {
     const otherStudentSnapshot = materializeControlCorrectionDiagnosisReport({
       subject: { kind: 'student', userId: 'student-2', classId: 'class-1' },

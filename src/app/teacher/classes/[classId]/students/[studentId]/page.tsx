@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 
 import type { TeacherStudentInsightsPayload } from '@/app/api/teacher/classes/[classId]/students/[studentId]/insights/route';
+import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
 
 export default function TeacherStudentInsightsPage() {
   const router = useRouter();
@@ -196,6 +197,15 @@ export default function TeacherStudentInsightsPage() {
             </div>
           </div>
         </section>
+
+        <div className="mb-8">
+          <DiagnosisSurfacePanel
+            diagnosis={data.diagnosis}
+            mode="teacher-student"
+            title={`${data.student.name} 的控制校正诊断`}
+            description="展示教师可见的个体维度诊断、证据摘要、路径状态和干预入口。"
+          />
+        </div>
 
         <section className="mb-8 grid gap-4 lg:grid-cols-[0.95fr,1.05fr]">
           <div className="surface-card p-6">
@@ -469,7 +479,7 @@ export default function TeacherStudentInsightsPage() {
                         )}
                         {item.questionSummaries?.slice(0, 2).map((question, questionIndex) => (
                           <p key={`${question.questionId ?? questionIndex}`} className="mt-2 text-xs text-subtle">
-                            {question.prompt ?? question.questionId ?? '题目'}：作答 {question.studentAnswer ?? '未作答'}
+                            {question.prompt ?? question.questionId ?? '题目'}：{question.studentAnswerRedacted ? '作答已脱敏' : '未记录作答'}
                             {question.referenceAnswer ? `，参考 ${question.referenceAnswer}` : ''}
                             {typeof question.isCorrect === 'boolean' ? `，${question.isCorrect ? '正确' : '需修正'}` : ''}
                           </p>

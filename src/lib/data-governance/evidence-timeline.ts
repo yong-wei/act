@@ -43,7 +43,7 @@ export interface EvidenceTimelineItem {
   competencyContribution: Record<string, number>;
   evidenceTitle?: string;
   stepId?: string;
-  questionSummaries?: EvidenceQuestionSummary[];
+  questionSummaries?: EvidenceTimelineQuestionSummary[];
   quality?: SubmissionEvidenceQuality;
   qualityReason?: string;
   sourceState?: string;
@@ -54,6 +54,11 @@ export interface EvidenceTimelineItem {
   groupedCount?: number;
   groupedEvidenceIds?: string[];
   learnerRecord?: EvidenceTimelineLearnerRecord;
+}
+
+export interface EvidenceTimelineQuestionSummary extends Omit<EvidenceQuestionSummary, 'studentAnswer'> {
+  studentAnswer?: string | null;
+  studentAnswerRedacted?: boolean;
 }
 
 export type EvidenceTimelineLearnerRecordSourceScope =
@@ -300,7 +305,10 @@ function formatEvidenceTimelineItem(
   const responseData = readRecord(response?.responseData);
   const contextJson = readRecord(fact.contextJson);
   const quality = resolveQuality(responseData, contextJson);
-  const questionSummaries = readQuestionSummaries(responseData.questionSummaries ?? contextJson.questionSummaries ?? contextJson.cards);
+  const questionSummaries = readQuestionSummaries(
+    responseData.questionSummaries ?? contextJson.questionSummaries ?? contextJson.cards,
+    viewerRole !== 'student',
+  );
   const explicitLearnerRecord = readLearnerRecordMetadata(
     contextJson.learnerRecord,
     viewerRole,
@@ -730,16 +738,18 @@ function decodeCursor(cursor?: string): EvidenceTimelineCursor | null {
   return null;
 }
 
-function readQuestionSummaries(value: unknown): EvidenceQuestionSummary[] {
+function readQuestionSummaries(value: unknown, redactAnswers = false): EvidenceTimelineQuestionSummary[] {
   if (!Array.isArray(value)) return [];
 
   return value
     .map((item) => {
       const entry = readRecord(item);
+      const studentAnswer = readAnswer(entry.studentAnswer ?? entry.selectedValue ?? entry.answer ?? entry.value);
       return compactObject({
         questionId: readString(entry.questionId) ?? readString(entry.id),
         prompt: readString(entry.prompt) ?? readString(entry.title),
-        studentAnswer: readAnswer(entry.studentAnswer ?? entry.selectedValue ?? entry.answer ?? entry.value),
+        studentAnswer: redactAnswers ? undefined : studentAnswer,
+        studentAnswerRedacted: redactAnswers && studentAnswer !== undefined && studentAnswer !== null,
         referenceAnswer: readString(entry.referenceAnswer)
           ?? readString(entry.referenceValue)
           ?? readString(entry.correctAnswer),

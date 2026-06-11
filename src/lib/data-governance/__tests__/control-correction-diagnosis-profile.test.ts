@@ -9,6 +9,7 @@ import {
   materializeControlCorrectionDiagnosisReport,
   readLatestControlCorrectionDiagnosisReportSnapshot,
   readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence,
+  type DiagnosisReportSnapshotPersistenceRow,
   validateControlCorrectionDiagnosisProfile,
   validateDiagnosisIndicatorDefinition,
 } from '../control-correction-diagnosis-profile';
@@ -405,7 +406,7 @@ describe('control-correction diagnosis profile', () => {
   });
 
   it('persists and reads latest snapshots through a Prisma-style delegate', async () => {
-    const rows: Array<{ id: string; goalId: string; subjectKind: string; userId: string | null; classId: string | null; generatedAt: Date; snapshot: unknown }> = [];
+    const rows: DiagnosisReportSnapshotPersistenceRow[] = [];
     const findManyCalls: Array<{ where: Record<string, unknown> }> = [];
     const store = createPrismaDiagnosisReportSnapshotStore({
       upsert: async ({ where, create, update }) => {
@@ -446,5 +447,28 @@ describe('control-correction diagnosis profile', () => {
       classId: 'class-1',
       subjectKind: 'student',
     }));
+  });
+
+  it('degrades to an empty snapshot list when the persistence table is not migrated', async () => {
+    const store = createPrismaDiagnosisReportSnapshotStore({
+      upsert: async () => {},
+      findMany: async () => {
+        throw {
+          code: 'P2021',
+          meta: {
+            modelName: 'DiagnosisReportSnapshot',
+            driverAdapterError: { name: 'TableDoesNotExist' },
+          },
+        };
+      },
+    });
+
+    await expect(readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence(store, {
+      view: 'teacher-class',
+      userId: 'teacher-1',
+      classId: 'class-1',
+      teacherClassIds: ['class-1'],
+      goalId: 'control-correction',
+    })).resolves.toBeNull();
   });
 });

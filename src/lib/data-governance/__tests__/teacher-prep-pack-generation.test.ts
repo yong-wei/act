@@ -94,6 +94,11 @@ function diagnosis(): RoleBasedLearningDiagnosis {
         },
       }],
       sourceCoverage: { diagnosis: 'ready' },
+      metrics: {
+        score: 0.58,
+        percentile: { state: 'available', percentile: 42, sampleSize: 30, fallback: 'none' },
+        growthPercentile: { state: 'unavailable', percentile: null, sampleSize: 0, fallback: 'cold-start' },
+      },
       confidence: { state: 'high', score: 0.86, evidenceCount: 3, sourceCompleteness: 0.8 },
       evidenceWindow: { generatedAt: now.toISOString(), sourceLastUpdatedAt: now.toISOString(), stale: false },
       limitations: [],
