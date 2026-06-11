@@ -18,7 +18,7 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
 }));
 
-import { PUT } from '../route';
+import { GET, PUT } from '../route';
 
 function buildPutRequest(payload: unknown) {
   return new Request('http://localhost/api/admin/ai-settings', {
@@ -152,5 +152,62 @@ describe('PUT /api/admin/ai-settings', () => {
     expect(auditCall?.[0].create.value).toMatchObject({
       secretRefSchemes: [{ providerId: 'custom-provider', scheme: 'env', configured: true }],
     });
+  });
+});
+
+describe('GET /api/admin/ai-settings', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.requireAdminSession.mockResolvedValue({
+      user: { id: 'admin-1', role: 'ADMIN' },
+    });
+  });
+
+  it('exposes runtime health and capability state without secret references', async () => {
+    mocks.prisma.platformSetting.findUnique.mockResolvedValue({
+      value: {
+        activeProvider: 'anthropic-cited',
+        providers: [{
+          id: 'anthropic-cited',
+          name: 'Anthropic Compatible',
+          providerKind: 'anthropic-compatible',
+          baseURL: 'https://anthropic-compatible.test/v1',
+          authMode: 'bearer-api-key',
+          secretRef: 'env:ANTHROPIC_COMPATIBLE_API_KEY',
+          selectedModel: 'claude/model',
+          models: [{ id: 'claude-model', label: 'Claude Model', model: 'claude/model' }],
+          enabled: true,
+          priority: 10,
+          health: 'healthy',
+          capabilities: {
+            tools: true,
+            reasoning: true,
+            vision: true,
+            jsonSchema: false,
+            streaming: true,
+            citationNormalization: true,
+          },
+        }],
+      },
+    });
+
+    const response = await GET();
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.runtimeStates).toEqual([
+      expect.objectContaining({
+        serviceId: 'anthropic-cited',
+        providerKind: 'anthropic-compatible',
+        health: 'healthy',
+        runtimeSupported: false,
+        runtimeSupport: expect.objectContaining({
+          status: 'adapter-missing',
+          category: 'runtime-adapter',
+        }),
+      }),
+    ]);
+    expect(JSON.stringify(payload.runtimeStates)).not.toContain('ANTHROPIC_COMPATIBLE_API_KEY');
+    expect(JSON.stringify(payload.runtimeStates)).not.toContain('secretRef');
   });
 });
