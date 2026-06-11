@@ -956,6 +956,30 @@ describe('document rubric grading routes', () => {
     }));
   });
 
+  it('rejects teacher edits with rubric-out-of-range scores before writeback', async () => {
+    const draft = await gradingDraft();
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue(draft);
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const response = await postJson({
+      gradingRunId: draft.id,
+      decision: 'approved',
+      edits: [{
+        criterionId: 'modeling',
+        levelId: 'advanced',
+        score: 99,
+        comment: '非法越界分数。',
+      }],
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({ error: '评分编辑分数超出量规范围' });
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();
+  });
+
   it('previews approved writeback effects without creating learning facts', async () => {
     const draft = await gradingDraft();
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });

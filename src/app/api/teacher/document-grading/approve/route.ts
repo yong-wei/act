@@ -88,6 +88,13 @@ export async function POST(request: Request) {
     if (!studentProfile) {
       return NextResponse.json({ error: '学生不在该班级中' }, { status: 404 });
     }
+    const editValidationError = validateDocumentGradingEditsAgainstRubric(
+      body.edits ?? [],
+      parsed.rubric,
+    );
+    if (editValidationError) {
+      return NextResponse.json({ error: editValidationError }, { status: 400 });
+    }
 
     const decision = body.decision ?? 'approved';
     const editedRun = (body.edits ?? []).reduce((run, edit) => editCriterionGrade(run, {
@@ -185,4 +192,35 @@ function isDocumentGradingEditList(value: unknown): value is Array<{
     typeof item.score === 'number' &&
     Number.isFinite(item.score) &&
     typeof item.comment === 'string');
+}
+
+function validateDocumentGradingEditsAgainstRubric(
+  edits: Array<{
+    criterionId: string;
+    levelId: string;
+    score: number;
+    comment: string;
+  }>,
+  rubric: {
+    maxScore: number;
+    criteria: Array<{
+      id: string;
+      levels: Array<{ id: string; score: number }>;
+    }>;
+  },
+): string | null {
+  for (const edit of edits) {
+    const criterion = rubric.criteria.find((item) => item.id === edit.criterionId);
+    if (!criterion) {
+      return '评分编辑指标不存在';
+    }
+    const level = criterion.levels.find((item) => item.id === edit.levelId);
+    if (!level) {
+      return '评分编辑等级不存在';
+    }
+    if (edit.score < 0 || edit.score > rubric.maxScore) {
+      return '评分编辑分数超出量规范围';
+    }
+  }
+  return null;
 }
