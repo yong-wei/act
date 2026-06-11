@@ -302,7 +302,9 @@ async function resolveServerSubmissionPolicyForStudent(input: {
     },
   });
   for (const item of resource?.lessonItems ?? []) {
-    const overridePolicy = extractSubmissionPolicyFromAssignmentConfig(item.overrideConfig);
+    const overridePolicy = extractSubmissionPolicyFromAssignmentConfig(
+      mergeAssignmentConfigs(resource?.config ?? null, item.overrideConfig),
+    );
     if (overridePolicy) {
       return overridePolicy;
     }
@@ -347,6 +349,22 @@ function isPrismaUniqueConstraintError(error: unknown): boolean {
     typeof error === 'object' &&
     !Array.isArray(error) &&
     (error as { code?: unknown }).code === 'P2002');
+}
+
+function mergeAssignmentConfigs(base: unknown, override: unknown): unknown {
+  if (!isPlainRecord(base)) return override ?? base;
+  if (!isPlainRecord(override)) return override ?? base;
+  const merged: Record<string, unknown> = { ...base };
+  for (const [key, value] of Object.entries(override)) {
+    merged[key] = isPlainRecord(value) && isPlainRecord(merged[key])
+      ? mergeAssignmentConfigs(merged[key], value)
+      : value;
+  }
+  return merged;
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
 function extractSubmissionPolicyFromAssignmentConfig(config: unknown): ServerSubmissionPolicy | null {

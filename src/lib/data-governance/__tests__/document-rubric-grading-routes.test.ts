@@ -799,6 +799,60 @@ describe('document rubric grading routes', () => {
     }));
   });
 
+  it('merges lesson item goal overrides with resource-level student rubric', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+    mocks.prisma.teachingResource.findFirst.mockResolvedValue({
+      config: {
+        documentGrading: {
+          goalId: 'resource-goal',
+          targetGoal: 'resource-target',
+          learningGoal: 'resource-learning-goal',
+          rubric: {
+            ...rubric(),
+            id: 'resource-rubric',
+            version: 'resource-v1',
+          },
+        },
+      },
+      lessonItems: [{
+        overrideConfig: {
+          documentGrading: {
+            goalId: 'override-goal',
+            targetGoal: 'override-target',
+            learningGoal: 'override-learning-goal',
+          },
+        },
+      }],
+    });
+
+    const response = await postSubmissionJson({
+      studentId: 'student-1',
+      classId: 'class-1',
+      assignmentId: 'report-1',
+      fileName: 'root-locus-report.md',
+      mimeType: 'text/markdown',
+      bytes: 'Root locus design explains damping ratio.',
+    });
+    const createInput = mocks.prisma.learningEvidenceDraft.create.mock.calls[0][0];
+
+    expect(response.status).toBe(201);
+    expect(createInput.data.summary.rubric).toEqual(expect.objectContaining({
+      id: 'resource-rubric',
+      version: 'resource-v1',
+    }));
+    expect(createInput.data.summary.run).toEqual(expect.objectContaining({
+      rubricId: 'resource-rubric',
+      rubricVersion: 'resource-v1',
+    }));
+    expect(createInput.data.sourceRefs).toEqual(expect.objectContaining({
+      goalId: 'override-goal',
+      targetGoal: 'override-target',
+      learningGoal: 'override-learning-goal',
+    }));
+  });
+
   it('rejects student submissions when the assignment resource is not published to the class', async () => {
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', role: 'STUDENT' } });
     mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
