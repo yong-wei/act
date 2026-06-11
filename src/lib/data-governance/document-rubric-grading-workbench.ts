@@ -177,6 +177,8 @@ export interface DocumentRubricGradingRun {
 export interface DocumentRubricEvidenceWriteback {
   status: 'blocked-unapproved' | 'written';
   created: number;
+  skipped: number;
+  blocked: number;
   facts: Array<{
     userId: string;
     factType: 'document_rubric_grading';
@@ -553,7 +555,13 @@ export async function writeApprovedGradingEvidence(input: {
   now?: Date;
 }): Promise<DocumentRubricEvidenceWriteback> {
   if (input.run.status !== 'approved') {
-    return { status: 'blocked-unapproved', created: 0, facts: [] };
+    return {
+      status: 'blocked-unapproved',
+      created: 0,
+      skipped: 0,
+      blocked: input.run.draftGrades.length,
+      facts: [],
+    };
   }
   const facts = buildApprovedGradingEvidenceFacts(input);
   const result = await input.db.learningFact.createMany({ data: facts, skipDuplicates: true });
@@ -561,6 +569,8 @@ export async function writeApprovedGradingEvidence(input: {
   return {
     status: 'written',
     created: result.count,
+    skipped: Math.max(facts.length - result.count, 0),
+    blocked: 0,
     facts,
   };
 }

@@ -131,7 +131,13 @@ export async function POST(request: Request) {
           studentId: draft.ownerUserId,
           goalContext: parsed.goalContext,
         })
-      : { status: 'blocked-unapproved' as const, created: 0, facts: [] };
+      : {
+          status: 'blocked-unapproved' as const,
+          created: 0,
+          skipped: 0,
+          blocked: approved.draftGrades.length,
+          facts: [],
+        };
 
     const existingSummary = typeof draft.summary === 'object' && draft.summary !== null && !Array.isArray(draft.summary)
       ? draft.summary as Record<string, unknown>
@@ -164,6 +170,8 @@ export async function POST(request: Request) {
       status: decision,
       gradingRunId: approved.id,
       createdFacts: writeback.created,
+      skippedFacts: writeback.skipped,
+      blockedFacts: writeback.blocked,
       evidenceSourceEventIds: writeback.facts.map((fact) => fact.sourceEventId),
     });
   } catch (error) {

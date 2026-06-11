@@ -229,7 +229,13 @@ describe('document rubric grading workbench', () => {
         targetGoal: 'control-report',
       },
       now,
-    })).resolves.toEqual({ status: 'blocked-unapproved', created: 0, facts: [] });
+    })).resolves.toEqual({
+      status: 'blocked-unapproved',
+      created: 0,
+      skipped: 0,
+      blocked: 2,
+      facts: [],
+    });
     expect(previewApprovedGradingEvidence({
       run: draft,
       rubric: rubric(),
@@ -315,6 +321,8 @@ describe('document rubric grading workbench', () => {
     expect(approved.approvedGrades.find((grade) => grade.criterionId === 'validation')?.score).toBe(4);
     expect(writeback.status).toBe('written');
     expect(writeback.created).toBe(2);
+    expect(writeback.skipped).toBe(0);
+    expect(writeback.blocked).toBe(0);
     expect(writeback.facts).toContainEqual(expect.objectContaining({
       userId: 'student-1',
       factType: 'document_rubric_grading',
@@ -342,6 +350,49 @@ describe('document rubric grading workbench', () => {
       ]),
     }));
     expect(db.studentEvidenceFeatureCache.deleteMany).toHaveBeenCalledWith({ where: { userId: 'student-1' } });
+  });
+
+  it('reports idempotent writeback skips when learning facts already exist', async () => {
+    const converted = await convertSubmissionDocument({
+      asset: asset(),
+      adapter: createMarkItDownConversionAdapter({
+        now,
+        preserveSpanMapping: true,
+        runner: (submission) => textFixtureMarkItDownRunner(submission, true),
+      }),
+      now,
+    });
+    const approved = approveGradingRun(
+      createDraftRubricGrading({ convertedDocument: converted, rubric: rubric(), now }),
+      { reviewerId: 'teacher-1', decision: 'approved', now },
+    );
+    const db = mockEvidenceDb();
+    db.learningFact.createMany.mockResolvedValueOnce({ count: 0 });
+
+    const writeback = await writeApprovedGradingEvidence({
+      db,
+      run: approved,
+      rubric: rubric(),
+      studentId: asset().studentId,
+      goalContext: {
+        classId: 'class-1',
+        assignmentId: 'report-1',
+        goalId: 'control-report',
+        targetGoal: 'control-report',
+      },
+      now,
+    });
+
+    expect(writeback).toEqual(expect.objectContaining({
+      status: 'written',
+      created: 0,
+      skipped: 2,
+      blocked: 0,
+    }));
+    expect(writeback.facts.map((fact) => fact.sourceEventId)).toEqual(expect.arrayContaining([
+      `${approved.id}:modeling:${approved.rubricVersion}`,
+      `${approved.id}:validation:${approved.rubricVersion}`,
+    ]));
   });
 
   it('builds teacher workbench and student feedback views with access gating and Konling entry points', async () => {

@@ -1364,6 +1364,8 @@ describe('document rubric grading routes', () => {
       status: 'approved',
       gradingRunId: expectedRun.id,
       createdFacts: 1,
+      skippedFacts: 0,
+      blockedFacts: 0,
     }));
     expect(mocks.prisma.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
       skipDuplicates: true,
@@ -1386,6 +1388,58 @@ describe('document rubric grading routes', () => {
     expect(mocks.prisma.learningEvidenceDraft.update).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: draft.id },
       data: expect.objectContaining({ reviewerState: 'approved' }),
+    }));
+  });
+
+  it('reports skipped facts for idempotent approval writeback duplicates', async () => {
+    const draft = await gradingDraft();
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue(draft);
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+    mocks.prisma.learningFact.createMany.mockResolvedValueOnce({ count: 0 });
+
+    const response = await postJson({
+      gradingRunId: draft.id,
+      decision: 'approved',
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toEqual(expect.objectContaining({
+      status: 'approved',
+      createdFacts: 0,
+      skippedFacts: 1,
+      blockedFacts: 0,
+      evidenceSourceEventIds: [`${draft.id}:modeling:${draft.summary.run.rubricVersion}`],
+    }));
+  });
+
+  it('reports blocked facts when a grading run is returned without writeback', async () => {
+    const draft = await gradingDraft();
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue(draft);
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const response = await postJson({
+      gradingRunId: draft.id,
+      decision: 'returned',
+      notes: '请补充模型说明。',
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toEqual(expect.objectContaining({
+      status: 'returned',
+      createdFacts: 0,
+      skippedFacts: 0,
+      blockedFacts: 1,
+      evidenceSourceEventIds: [],
+    }));
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({ reviewerState: 'returned' }),
     }));
   });
 
