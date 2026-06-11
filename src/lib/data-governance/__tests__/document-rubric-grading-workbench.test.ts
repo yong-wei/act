@@ -14,6 +14,7 @@ import {
   parsePersistedDocumentRubricGradingDraft,
   previewApprovedGradingEvidence,
   textFixtureMarkItDownRunner,
+  validateDocumentRubricGradingDraftInvariants,
   writeApprovedGradingEvidence,
   type RubricDefinition,
 } from '../document-rubric-grading-workbench';
@@ -128,7 +129,67 @@ describe('document rubric grading workbench', () => {
     expect(blockFallback.warnings).toContain('layout-span-mapping-unavailable');
     expect(failed.status).toBe('failed');
     expect(failed.referencePrecision).toBe('page');
+    expect(failed.blocks).toEqual([expect.objectContaining({
+      id: 'fallback-block-1',
+      text: expect.stringContaining('Root locus design'),
+      confidence: 0,
+    })]);
     expect(failed.warnings).toEqual(expect.arrayContaining(['markitdown-conversion-failed', 'retry-fallback']));
+  });
+
+  it('keeps failed conversion drafts anchored to an auditable fallback block', async () => {
+    const submission = asset();
+    const failed = await convertSubmissionDocument({
+      asset: submission,
+      adapter: createMarkItDownConversionAdapter({ now, fail: true }),
+      now,
+    });
+    const draft = createDraftRubricGrading({ convertedDocument: failed, rubric: rubric(), now });
+    const parsed = parsePersistedDocumentRubricGradingDraft({
+      id: draft.id,
+      ownerUserId: submission.studentId,
+      dedupeKey: buildDocumentRubricDraftDedupeKey(submission, draft),
+      classId: submission.classId,
+      sourceRefs: {
+        asset: submission,
+        classId: submission.classId,
+        assignmentId: submission.assignmentId,
+      },
+      evidenceRefs: {
+        convertedDocument: failed,
+      },
+      summary: {
+        run: draft,
+        rubric: rubric(),
+      },
+    });
+
+    expect(parsed).not.toBeNull();
+    expect(failed.blocks).toHaveLength(1);
+    expect(draft.draftGrades.every((grade) =>
+      grade.evidenceRefs.every((reference) => reference.blockId === 'fallback-block-1')
+    )).toBe(true);
+    expect(validateDocumentRubricGradingDraftInvariants({
+      draft: {
+        id: draft.id,
+        ownerUserId: submission.studentId,
+        dedupeKey: buildDocumentRubricDraftDedupeKey(submission, draft),
+        classId: submission.classId,
+        sourceRefs: {
+          asset: submission,
+          classId: submission.classId,
+          assignmentId: submission.assignmentId,
+        },
+        evidenceRefs: {
+          convertedDocument: failed,
+        },
+        summary: {
+          run: draft,
+          rubric: rubric(),
+        },
+      },
+      parsed: parsed!,
+    })).toEqual({ valid: true, reasons: [] });
   });
 
   it('keeps AI draft grading teacher-gated before writeback', async () => {

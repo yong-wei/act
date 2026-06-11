@@ -955,19 +955,36 @@ function buildFallbackConvertedDocument(
   now: Date | undefined,
   warnings: string[],
 ): ConvertedDocument {
+  const fallbackText = fallbackConvertedBlockText(asset);
+  const fallbackBlock: ConvertedDocumentBlock = {
+    id: 'fallback-block-1',
+    pageNumber: null,
+    text: fallbackText,
+    markdown: fallbackText,
+    confidence: 0,
+  };
   return {
     id: `converted:${asset.id}:fallback`,
     assetId: asset.id,
     adapter: 'fallback',
     status: 'failed',
-    markdown: '',
-    blocks: [],
+    markdown: fallbackBlock.markdown,
+    blocks: [fallbackBlock],
     checksum: asset.checksum,
     confidence: 0,
     referencePrecision: 'page',
     warnings,
     convertedAt: (now ?? new Date()).toISOString(),
   };
+}
+
+function fallbackConvertedBlockText(asset: DocumentSubmissionAsset): string {
+  const decodedText = decodedSubmissionText(asset);
+  const sourceText = decodedText?.split(/\n+/).map((line) => line.trim()).find(Boolean);
+  if (sourceText) {
+    return sourceText.slice(0, 500);
+  }
+  return `Document conversion failed for ${asset.fileName}.`;
 }
 
 function findEvidenceBlock(document: ConvertedDocument, query: string): ConvertedDocumentBlock {
