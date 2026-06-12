@@ -33,3 +33,8 @@ Displayed path bundles SHALL expose why options differ and what tradeoffs they m
 - **WHEN** a student or authorized teacher compares path options
 - **THEN** the response SHALL include overlap, modality mix, estimated effort, expected target lift, terminal validation difference, and evidence limitations
 - **AND** all personalized claims SHALL cite authorized diagnosis, learner-state, path, or resource evidence.
+
+#### Scenario: Diagnosis and Konling consume path option context
+- **WHEN** diagnosis surfaces or the Konling path-advisor read the current control-correction path context
+- **THEN** they SHALL receive sanitized path option summaries and selection history
+- **AND** the context SHALL expose evidence basis and terminal validation references without private raw traces or hidden prompt payloads.

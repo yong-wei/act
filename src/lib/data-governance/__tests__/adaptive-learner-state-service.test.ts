@@ -474,6 +474,126 @@ describe('adaptive learner state service', () => {
     });
   });
 
+  it('uses path choice resource mix as preference evidence without changing mastery', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      learningFact: {
+        findMany: async () => [
+          {
+            id: 'fact-question',
+            factType: 'question',
+            moduleId: 'adaptive-assessment',
+            lessonId: null,
+            startedAt: new Date('2026-05-19T00:00:00.000Z'),
+            finishedAt: new Date('2026-05-19T00:03:00.000Z'),
+            outcome: 'success',
+            score: 86,
+            timeSpent: 180,
+            contextJson: { adaptiveAssessment: { knowledgeTags: ['root-locus'] } },
+          },
+          {
+            id: 'fact-path-choice',
+            factType: 'control_correction_path.selection_recorded',
+            moduleId: 'control-correction-path-advisor',
+            lessonId: null,
+            startedAt: new Date('2026-05-18T00:00:00.000Z'),
+            finishedAt: new Date('2026-05-18T00:02:00.000Z'),
+            outcome: 'success',
+            score: null,
+            timeSpent: 120,
+            contextJson: {
+              preferenceEvidence: {
+                action: 'selection',
+                resourceMix: {
+                  simulation: 3,
+                  arena_task: 2,
+                },
+              },
+            },
+          },
+          {
+            id: 'fact-path-helpfulness',
+            factType: 'control_correction_path.helpfulness_recorded',
+            moduleId: 'control-correction-path-advisor',
+            lessonId: null,
+            startedAt: new Date('2026-05-18T00:04:00.000Z'),
+            finishedAt: new Date('2026-05-18T00:05:00.000Z'),
+            outcome: 'success',
+            score: null,
+            timeSpent: 60,
+            contextJson: {
+              preferenceEvidence: {
+                action: 'helpfulness',
+                helpful: true,
+                resourceMix: {
+                  media: 1,
+                },
+              },
+            },
+          },
+          {
+            id: 'fact-path-rejection',
+            factType: 'control_correction_path.rejection_recorded',
+            moduleId: 'control-correction-path-advisor',
+            lessonId: null,
+            startedAt: new Date('2026-05-18T00:06:00.000Z'),
+            finishedAt: new Date('2026-05-18T00:07:00.000Z'),
+            outcome: 'success',
+            score: null,
+            timeSpent: 60,
+            contextJson: {
+              preferenceEvidence: {
+                action: 'rejection',
+                resourceMix: {
+                  video: 9,
+                },
+              },
+            },
+          },
+          {
+            id: 'fact-path-negative-helpfulness',
+            factType: 'control_correction_path.helpfulness_recorded',
+            moduleId: 'control-correction-path-advisor',
+            lessonId: null,
+            startedAt: new Date('2026-05-18T00:08:00.000Z'),
+            finishedAt: new Date('2026-05-18T00:09:00.000Z'),
+            outcome: 'success',
+            score: null,
+            timeSpent: 60,
+            contextJson: {
+              preferenceEvidence: {
+                action: 'helpfulness',
+                helpful: false,
+                resourceMix: {
+                  worksheet: 8,
+                },
+              },
+            },
+          },
+        ],
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+    });
+
+    expect(state.resourcePreference.sourceCounts).toMatchObject({
+      simulation: 3,
+      arena_task: 2,
+      assessment: 1,
+      media: 1,
+    });
+    expect(state.resourcePreference.sourceCounts).not.toHaveProperty('control_correction_path.helpfulness_recorded');
+    expect(state.resourcePreference.sourceCounts).not.toHaveProperty('video');
+    expect(state.resourcePreference.sourceCounts).not.toHaveProperty('worksheet');
+    expect(state.resourcePreference.preferredModalities.slice(0, 2)).toEqual(['simulation', 'arena_task']);
+    expect(state.knowledgeMastery.tags['root-locus']).toMatchObject({
+      posteriorMastery: 0.76,
+      confidence: 0.82,
+      source: 'adaptive-assessment',
+    });
+  });
+
   it('surfaces missing and low-confidence evidence instead of synthesizing precise state', async () => {
     const state = await readAdaptiveLearnerState(createDb({
       studentCompetencySnapshot: { findFirst: async () => null },

@@ -529,7 +529,39 @@ export interface KonlingPlanContext {
   nextNodeIds: string[];
   recentPathIds: string[];
   completedNodeIds: string[];
+  pathOptions?: KonlingPathOptionContext[];
+  pathOptionFallback?: KonlingPathOptionFallbackContext | null;
+  selectionHistory?: KonlingPathSelectionContext[];
   status: 'available' | 'missing';
+}
+
+export interface KonlingPathOptionContext {
+  styleId: string;
+  policyFamily: string;
+  label: string;
+  nodeIds: string[];
+  evidenceBasis: string[];
+  resourceMix: Record<string, number>;
+  effort: {
+    estimatedMinutes: number;
+    relative: string;
+  };
+  terminalValidationNodeIds: string[];
+  limitations: string[];
+}
+
+export interface KonlingPathSelectionContext {
+  type: string;
+  selectedStyleId: string | null;
+  previousStyleId: string | null;
+  rejectedStyleIds: string[];
+  createdAt: string | null;
+  helpful: boolean | null;
+}
+
+export interface KonlingPathOptionFallbackContext {
+  status: string;
+  fallbackReasons: string[];
 }
 
 export interface KonlingCitation {
@@ -3167,14 +3199,68 @@ async function readPlanContext(db: KonlingRuntimeDb, scope: KonlingRuntimeScope)
       status: 'missing',
     };
   }
+  const pathPayload = readRecord(getValue(current, 'pathPayload'));
   return {
     currentPathId: getString(current, 'id') || null,
     activeNodeId: getString(current, 'currentNodeId') || scope.pathNodeId || nodeIds[0] || null,
     nextNodeIds: nodeIds.slice(0, 3),
     recentPathIds: scopedPaths.map((path) => getString(path, 'id')).filter(Boolean),
     completedNodeIds: [],
+    pathOptions: readPathOptionContext(pathPayload),
+    pathOptionFallback: readPathOptionFallbackContext(pathPayload),
+    selectionHistory: readPathSelectionContext(pathPayload),
     status: current ? 'available' : 'missing',
   };
+}
+
+function readPathOptionContext(pathPayload: Record<string, unknown>): KonlingPathOptionContext[] {
+  const policyBundle = readRecord(getValue(pathPayload, 'policyBundle'));
+  if (getString(policyBundle, 'status') && getString(policyBundle, 'status') !== 'ready') {
+    return [];
+  }
+  const pathOptions = arrayOfRecords(getValue(policyBundle, 'paths')).length > 0
+    ? arrayOfRecords(getValue(policyBundle, 'paths'))
+    : arrayOfRecords(getValue(pathPayload, 'pathOptions'));
+  return pathOptions.map((path) => {
+    const effort = readRecord(getValue(path, 'effort'));
+    return {
+      styleId: getString(path, 'styleId'),
+      policyFamily: getString(path, 'policyFamily'),
+      label: getString(path, 'label'),
+      nodeIds: arrayOfStrings(getValue(path, 'nodeIds')),
+      evidenceBasis: arrayOfStrings(getValue(path, 'evidenceBasis')),
+      resourceMix: readNumberRecord(getValue(path, 'resourceMix')),
+      effort: {
+        estimatedMinutes: getNumber(effort, 'estimatedMinutes'),
+        relative: getString(effort, 'relative') || 'unknown',
+      },
+      terminalValidationNodeIds: arrayOfStrings(getValue(path, 'terminalValidationNodeIds')),
+      limitations: arrayOfStrings(getValue(path, 'limitations')),
+    };
+  }).filter((path) => path.styleId && path.nodeIds.length > 0);
+}
+
+function readPathOptionFallbackContext(pathPayload: Record<string, unknown>): KonlingPathOptionFallbackContext | null {
+  const policyBundle = readRecord(getValue(pathPayload, 'policyBundle'));
+  const status = getString(policyBundle, 'status');
+  if (!status || status === 'ready') {
+    return null;
+  }
+  return {
+    status,
+    fallbackReasons: arrayOfStrings(getValue(policyBundle, 'fallbackReasons')),
+  };
+}
+
+function readPathSelectionContext(pathPayload: Record<string, unknown>): KonlingPathSelectionContext[] {
+  return arrayOfRecords(getValue(pathPayload, 'selectionHistory')).map((entry) => ({
+    type: getString(entry, 'type'),
+    selectedStyleId: getString(entry, 'selectedStyleId') || null,
+    previousStyleId: getString(entry, 'previousStyleId') || null,
+    rejectedStyleIds: arrayOfStrings(getValue(entry, 'rejectedStyleIds')),
+    createdAt: toIsoOrNull(getValue(entry, 'createdAt')),
+    helpful: typeof getValue(entry, 'helpful') === 'boolean' ? getValue(entry, 'helpful') as boolean : null,
+  })).filter((entry) => entry.type);
 }
 
 async function buildKonlingCitationContext(
@@ -3947,6 +4033,14 @@ function readRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? value as Record<string, unknown>
     : {};
+}
+
+function readNumberRecord(value: unknown): Record<string, number> {
+  return Object.fromEntries(
+    Object.entries(readRecord(value)).filter((entry): entry is [string, number] =>
+      typeof entry[1] === 'number' && Number.isFinite(entry[1])
+    ),
+  );
 }
 
 function getValue(value: unknown, key: string): unknown {

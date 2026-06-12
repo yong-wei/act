@@ -9,6 +9,7 @@ import {
   ControlCorrectionPathRoundConflictError,
   ControlCorrectionPathRoundValidationError,
   readControlCorrectionPathRound,
+  recordPathChoiceEvidence,
   recordPathDeviation,
   recordPathIntervention,
   recordPathNodeExecution,
@@ -181,13 +182,76 @@ function mockDb() {
     evidenceOutbox: {
       createMany: vi.fn(async ({ data }) => ({ count: data.length })),
     },
+    learningFact: {
+      createMany: vi.fn(async ({ data }) => ({ count: data.length })),
+    },
   };
 }
 
 describe('control-correction path rounds', () => {
   it('persists a path round with additive planner, payload, explanation, and terminal validation fields', async () => {
     const db = mockDb();
-    const plan = samplePlan();
+    const plan: AdaptiveLearningPathPlan = {
+      ...samplePlan(),
+      policyBundle: {
+        families: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
+        overlapThreshold: 0.6,
+        status: 'ready',
+        paths: [{
+          styleId: 'foundation-remediation',
+          policyFamily: 'foundation-remediation',
+          label: '基础补救',
+          nodeIds: ['knowledge-card:control-correction-time-domain-targets', 'arena-task:task-second-order-lead-pid'],
+          targetDeficits: [{ targetId: 'control-correction:arena-transfer', kind: 'knowledge', value: 0.2, confidence: 0.6, evidenceCount: 1, reasonCode: 'low-mastery-target' }],
+          evidenceBasis: ['adaptive-learner-state', 'LearningFact'],
+          estimatedMinutes: 26,
+          modalityMix: { knowledge_card: 1, arena_task: 1 },
+          resourceMix: { knowledge_card: 1, arena_task: 1 },
+          overlap: { maxWithOtherOptions: 0.4 },
+          effort: { estimatedMinutes: 26, relative: 'short' },
+          expectedTargetLift: 1.2,
+          terminalValidationNodeIds: ['arena-task:task-second-order-lead-pid'],
+          terminalValidationStrategy: {
+            nodeIds: ['arena-task:task-second-order-lead-pid'],
+            summary: 'terminal validation through arena-task:task-second-order-lead-pid',
+          },
+          limitations: ['some-targets-have-no-direct-evidence'],
+        }],
+        diversity: {
+          maxResourceOverlap: 0.4,
+          minModalityDistance: 0.5,
+          minEstimatedEffortDifference: 0.2,
+          minTerminalValidationDifference: 0,
+          pairwiseResourceOverlap: [],
+          pairwiseModalityDistance: [],
+          pairwiseEstimatedEffortDifference: [],
+          pairwiseTerminalValidationDifference: [],
+          modalityMixByPolicy: { 'foundation-remediation': { knowledge_card: 1, arena_task: 1 } },
+          estimatedEffortByPolicy: { 'foundation-remediation': 26 },
+          terminalValidationDifference: 0,
+        },
+        fallbackReasons: [],
+      },
+      feedbackEvents: [{
+        id: 'feedback-selection-1',
+        type: 'selection',
+        nodeId: null,
+        createdAt: '2026-06-04T08:05:00.000Z',
+        context: {
+          selectedStyleId: 'foundation-remediation',
+          rejectedStyleIds: ['arena-simulation-sprint'],
+        },
+      }, {
+        id: 'feedback-helpfulness-1',
+        type: 'helpfulness',
+        nodeId: null,
+        createdAt: '2026-06-04T08:07:00.000Z',
+        helpful: false,
+        context: {
+          selectedStyleId: 'foundation-remediation',
+        },
+      }],
+    };
 
     await persistControlCorrectionPathRound(db, {
       plan,
@@ -218,6 +282,63 @@ describe('control-correction path rounds', () => {
             'knowledge-card:control-correction-time-domain-targets',
             'arena-task:task-second-order-lead-pid',
           ],
+          policyBundle: expect.objectContaining({
+            paths: [
+              expect.objectContaining({
+                styleId: 'foundation-remediation',
+                evidenceBasis: ['adaptive-learner-state', 'LearningFact'],
+              }),
+            ],
+          }),
+          selectionHistory: [
+            expect.objectContaining({
+              id: 'feedback-selection-1',
+              type: 'selection',
+              selectedStyleId: 'foundation-remediation',
+              rejectedStyleIds: ['arena-simulation-sprint'],
+            }),
+            expect.objectContaining({
+              id: 'feedback-helpfulness-1',
+              type: 'helpfulness',
+              selectedStyleId: 'foundation-remediation',
+              helpful: false,
+            }),
+          ],
+        }),
+      }),
+    }));
+  });
+
+  it('persists ai intervention nodes that the planner can include in path options', async () => {
+    const db = mockDb();
+    const plan = samplePlan();
+    plan.mainPath.splice(1, 0, {
+      nodeId: 'ai_intervention:control-correction-path-coach',
+      title: '控灵路径辅导',
+      type: 'ai_intervention',
+      sourceKind: 'ai_intervention',
+      sourceRef: 'control-correction-path-coach',
+      target: '/adaptive-learning/path-advisor',
+      estimatedTimeMinutes: 6,
+      prerequisiteNodeIds: ['knowledge-card:control-correction-time-domain-targets'],
+      knowledgeCoverage: ['control-correction:path-reflection'],
+      teacherPolicy: 'allowed',
+      privacyLevel: 'student-visible',
+      terminalConstraints: [],
+      score: 0.6,
+      reasonCodes: ['matches-resource-preference'],
+      status: 'next',
+    });
+
+    await persistControlCorrectionPathRound(db, { plan });
+
+    expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        pathPayload: expect.objectContaining({
+          mainPathNodeIds: expect.arrayContaining([
+            'ai_intervention:control-correction-path-coach',
+            'arena-task:task-second-order-lead-pid',
+          ]),
         }),
       }),
     }));
@@ -285,6 +406,172 @@ describe('control-correction path rounds', () => {
           }),
         }),
       ],
+      skipDuplicates: true,
+    }));
+  });
+
+  it('records path style selection evidence for preference writeback without raw rationale leakage', async () => {
+    const db = mockDb();
+
+    const result = await recordPathChoiceEvidence(db, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      action: 'selection',
+      selectedStyleId: 'arena-simulation-sprint',
+      selectedPolicyFamily: 'simulation-driven',
+      rejectedStyleIds: ['foundation-remediation', 'preference-matched-route'],
+      diagnosisSnapshotRef: 'diagnosis-snapshot-1',
+      resourceMix: { simulation: 2, arena_task: 1 },
+      rationaleMetadata: {
+        reason: 'want-terminal-validation',
+        rawPrompt: 'do-not-store',
+        secretToken: 'sk-secret',
+      },
+      idempotencyKey: 'choice-key',
+    });
+
+    expect(result).toEqual({
+      emitted: true,
+      dedupeKey: 'control-correction-path:choice:path-1:choice-key',
+    });
+    expect(db.evidenceOutbox.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: [
+        expect.objectContaining({
+          eventType: 'control_correction_path.selection_recorded',
+          ownerUserId: 'student-1',
+          correlationId: 'path-1',
+          dedupeKey: 'control-correction-path:choice:path-1:choice-key',
+          payload: expect.objectContaining({
+            sourceCapability: 'three-style-learning-path-loop',
+            payloadVersion: 'control-correction-path-choice-evidence.v1',
+            relatedRefs: expect.objectContaining({
+              selectedStyleId: 'arena-simulation-sprint',
+              rejectedStyleIds: ['foundation-remediation', 'preference-matched-route'],
+              diagnosisSnapshotRef: 'diagnosis-snapshot-1',
+            }),
+            preferenceEvidence: expect.objectContaining({
+              action: 'selection',
+              resourceMix: { simulation: 2, arena_task: 1 },
+              rationaleMetadata: { reason: 'want-terminal-validation' },
+            }),
+          }),
+        }),
+      ],
+      skipDuplicates: true,
+    }));
+    expect(db.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: [
+        expect.objectContaining({
+          userId: 'student-1',
+          factType: 'control_correction_path.selection_recorded',
+          moduleId: 'control-correction-path-advisor',
+          outcome: 'success',
+          sourceEventId: 'control-correction-path:choice:path-1:choice-key',
+          contextJson: expect.objectContaining({
+            eventType: 'control_correction_path.selection_recorded',
+            sourceCapability: 'three-style-learning-path-loop',
+            preferenceEvidence: expect.objectContaining({
+              action: 'selection',
+              resourceMix: { simulation: 2, arena_task: 1 },
+            }),
+          }),
+        }),
+      ],
+      skipDuplicates: true,
+    }));
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'path-1' },
+      data: expect.objectContaining({
+        pathPayload: expect.objectContaining({
+          selectionHistory: [
+            expect.objectContaining({
+              id: 'control-correction-path:choice:path-1:choice-key',
+              type: 'selection',
+              selectedStyleId: 'arena-simulation-sprint',
+              selectedPolicyFamily: 'simulation-driven',
+              rejectedStyleIds: ['foundation-remediation', 'preference-matched-route'],
+              diagnosisSnapshotRef: 'diagnosis-snapshot-1',
+              helpful: null,
+            }),
+          ],
+        }),
+      }),
+    }));
+    expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('do-not-store');
+    expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('sk-secret');
+    expect(JSON.stringify(db.learningFact.createMany.mock.calls)).not.toContain('do-not-store');
+    expect(JSON.stringify(db.learningFact.createMany.mock.calls)).not.toContain('sk-secret');
+  });
+
+  it('keeps repeated path choice interactions distinct when idempotency is not supplied', async () => {
+    const db = mockDb();
+
+    const first = await recordPathChoiceEvidence(db, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      action: 'helpfulness',
+      selectedStyleId: 'foundation-remediation',
+      helpful: true,
+      eventId: 'helpful-event-1',
+    });
+    const second = await recordPathChoiceEvidence(db, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      action: 'helpfulness',
+      selectedStyleId: 'foundation-remediation',
+      helpful: false,
+      eventId: 'helpful-event-2',
+    });
+
+    expect(first.dedupeKey).toBe('control-correction-path:choice:path-1:helpful-event-1');
+    expect(second.dedupeKey).toBe('control-correction-path:choice:path-1:helpful-event-2');
+    expect(db.evidenceOutbox.createMany).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      data: [expect.objectContaining({
+        dedupeKey: 'control-correction-path:choice:path-1:helpful-event-1',
+        causationId: 'LearningPathChoice:helpful-event-1',
+      })],
+    }));
+    expect(db.evidenceOutbox.createMany).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      data: [expect.objectContaining({
+        dedupeKey: 'control-correction-path:choice:path-1:helpful-event-2',
+        causationId: 'LearningPathChoice:helpful-event-2',
+      })],
+    }));
+  });
+
+  it('does not append duplicate path choice history for idempotent retries', async () => {
+    const db = mockDb();
+    db.learningPath.findFirst = vi.fn(async () => ({
+      id: 'path-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'knowledge-card:control-correction-time-domain-targets',
+      terminalValidation: { nodeId: 'arena-task:task-second-order-lead-pid', type: 'arena_task' },
+      pathPayload: {
+        selectionHistory: [{
+          id: 'control-correction-path:choice:path-1:choice-key',
+          type: 'selection',
+        }],
+      },
+      executions: [],
+      deviations: [],
+      interventions: [],
+    }));
+
+    await recordPathChoiceEvidence(db, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      action: 'selection',
+      selectedStyleId: 'arena-simulation-sprint',
+      idempotencyKey: 'choice-key',
+    });
+
+    expect(db.learningPath.update).not.toHaveBeenCalled();
+    expect(db.evidenceOutbox.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      skipDuplicates: true,
+    }));
+    expect(db.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
       skipDuplicates: true,
     }));
   });
