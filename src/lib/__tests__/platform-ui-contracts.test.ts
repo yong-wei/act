@@ -370,7 +370,7 @@ describe('platform UI contracts', () => {
     const teacherOperationsNavSource = readSource('src/features/teacher/teacher-operations-nav.tsx');
     const teacherDashboardSource = readSource('src/features/teacher/teacher-dashboard.tsx');
     const teacherGradingSource = readSource('src/features/assessment/document-rubric-grading-ui.tsx');
-    const teacherGradingPageSource = readSource('src/app/teacher/grading-workbench/page.tsx');
+    const teacherGradingPageSource = readSource('src/app/(teacher-report-ledger)/teacher/grading-workbench/page.tsx');
     const teacherClassesSource = readSource('src/app/teacher/classes/page.tsx');
     const teacherLessonPlansSource = readSource('src/app/teacher/lesson-plans/page.tsx');
     const teacherResourcesSource = readSource('src/app/teacher/resources/page.tsx');
@@ -422,8 +422,9 @@ describe('platform UI contracts', () => {
     expect(teacherGradingSource).toContain('data-report-ledger-surface="document-grading-workbench-ledger"');
     expect(teacherGradingSource).toContain('data-report-ledger-privacy-scope="teacher-review"');
     expect(teacherGradingSource).toContain('状态图例：草稿需人工审批');
-    expect(teacherGradingPageSource).toContain('session.user.role !== UserRole.TEACHER');
-    expect(teacherGradingPageSource).not.toContain('session.user.role !== UserRole.ADMIN');
+    expect(teacherGradingPageSource).toContain('session.user.role !== UserRole.TEACHER && session.user.role !== UserRole.ADMIN');
+    expect(teacherLayoutSource).toContain("session.user.role !== 'TEACHER'");
+    expect(teacherLayoutSource).not.toContain('adminGradingWorkbenchAccess');
     expect(teacherClassesSource).toContain('data-commercial-operations-workspace="teacher-operations"');
     expect(teacherLessonPlansSource).toContain('data-commercial-operations-workspace="teacher-operations"');
     expect(teacherResourcesSource).toContain('data-commercial-operations-workspace="teacher-operations"');

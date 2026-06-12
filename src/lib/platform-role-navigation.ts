@@ -1019,9 +1019,9 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   }),
   primaryRoute({
     href: '/teacher/grading-workbench',
-    routeFile: 'src/app/teacher/grading-workbench/page.tsx',
+    routeFile: 'src/app/(teacher-report-ledger)/teacher/grading-workbench/page.tsx',
     frame: 'report-ledger',
-    roleScope: ['teacher'],
+    roleScope: ['teacher', 'admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
@@ -1310,7 +1310,7 @@ export const PLATFORM_REPORT_SURFACE_INVENTORY: PlatformReportSurfaceInventoryEn
   },
   {
     id: 'assistant-effect-report-export',
-    ownerRoute: '/teacher/classes/[classId]/analytics-v2',
+    ownerRoute: '/teacher',
     sourceFile: 'src/app/api/teacher/classes/[classId]/assistant-effect-report/route.ts',
     category: 'assistant-effect',
     surfaceType: 'export-view',

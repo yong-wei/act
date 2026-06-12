@@ -384,7 +384,7 @@ describe('platform role navigation', () => {
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/teacher/grading-workbench')).toMatchObject({
       frame: 'report-ledger',
       owningChange: 'migrate-operations-report-ledger-surfaces',
-      roleScope: ['teacher'],
+      roleScope: ['teacher', 'admin'],
       navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
       floatingDock: 'enabled',
       legacyFrameAliases: expect.arrayContaining([expect.objectContaining({ alias: 'teacher-operations' })]),
@@ -706,7 +706,7 @@ describe('platform role navigation', () => {
       ['teacher-class-analytics-report', 'teacher-report', 'primary-route', '/teacher/classes/[classId]/analytics-v2'],
       ['document-grading-workbench-ledger', 'grading', 'primary-route', '/teacher/grading-workbench'],
       ['teacher-prep-pack-review-slot', 'prep-pack', 'embedded-component', '/teacher'],
-      ['assistant-effect-report-export', 'assistant-effect', 'export-view', '/teacher/classes/[classId]/analytics-v2'],
+      ['assistant-effect-report-export', 'assistant-effect', 'export-view', '/teacher'],
       ['governance-data-quality-snapshot', 'governance', 'primary-route', '/admin/data-governance'],
       ['data-center-platform-snapshot', 'data-center', 'primary-route', '/data-center'],
     ]);

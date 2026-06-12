@@ -1094,7 +1094,7 @@ describe('document rubric grading routes', () => {
   it('renders evidence capsules, Konling entry points, and a real approval action in UI surfaces', () => {
     const ui = source('src/features/assessment/document-rubric-grading-ui.tsx');
     const action = source('src/features/assessment/document-rubric-grading-actions.tsx');
-    const teacherPage = source('src/app/teacher/grading-workbench/page.tsx');
+    const teacherPage = source('src/app/(teacher-report-ledger)/teacher/grading-workbench/page.tsx');
 
     expect(ui).toContain('view.evidenceCapsules.map');
     expect(ui).toContain('view.konlingEntryPoint.promptContext');

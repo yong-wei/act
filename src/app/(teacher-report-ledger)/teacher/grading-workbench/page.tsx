@@ -25,7 +25,7 @@ export default async function TeacherGradingWorkbenchPage({
   if (!session?.user?.id) {
     redirect('/login');
   }
-  if (session.user.role !== UserRole.TEACHER) {
+  if (session.user.role !== UserRole.TEACHER && session.user.role !== UserRole.ADMIN) {
     redirect('/dashboard');
   }
 
@@ -61,7 +61,7 @@ export default async function TeacherGradingWorkbenchPage({
     where: { id: parsed.goalContext.classId },
     select: { teacherId: true },
   });
-  if (!classData || classData.teacherId !== session.user.id) {
+  if (!classData || (session.user.role !== UserRole.ADMIN && classData.teacherId !== session.user.id)) {
     redirect('/dashboard');
   }
 
