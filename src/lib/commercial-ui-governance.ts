@@ -2,9 +2,11 @@ import {
   PLATFORM_PRIMARY_ROUTE_INVENTORY,
   PLATFORM_REPORT_SURFACE_INVENTORY,
   type PlatformFloatingDockRouteBehavior,
+  type PlatformMobileNavigationBehavior,
   type PlatformPrimaryRouteFrame,
   type PlatformPrimaryRouteInventoryEntry,
   type PlatformReportSurfaceInventoryEntry,
+  resolvePlatformRouteInventory,
 } from '@/lib/platform-role-navigation';
 
 export type CommercialUiGovernanceMode = 'advisory' | 'blocking';
@@ -25,6 +27,7 @@ export type CommercialUiGovernanceRule =
   | 'visual-acceptance.incomplete-evidence'
   | 'visual-acceptance.incomplete-premium-theme-evidence'
   | 'visual-acceptance.incomplete-manifest-metadata'
+  | 'visual-acceptance.incomplete-navigation-state-evidence'
   | 'visual-acceptance.route-inventory-drift'
   | 'route-ledger.incomplete-primary-route'
   | 'route-ledger.outdated-archetype'
@@ -110,6 +113,37 @@ export interface CommercialVisualAcceptanceRoute {
 export type CommercialVisualQaTheme = 'light' | 'dark';
 export type CommercialVisualQaRole = 'guest' | 'student' | 'teacher' | 'admin';
 export type CommercialVisualQaAuthState = 'public' | 'auth-entry' | 'authenticated' | 'unauth-redirect-fallback';
+export type CommercialVisualQaNavigationState =
+  | 'desktop-expanded'
+  | 'desktop-collapsed'
+  | 'mobile-drawer'
+  | 'mobile-hidden'
+  | 'auth-callback-panel'
+  | 'public-entry-menu'
+  | 'role-route-tabs'
+  | 'workspace-command-surface'
+  | 'hidden-immersive';
+
+const COMMERCIAL_VISUAL_QA_NAVIGATION_STATES: readonly CommercialVisualQaNavigationState[] = [
+  'desktop-expanded',
+  'desktop-collapsed',
+  'mobile-drawer',
+  'mobile-hidden',
+  'auth-callback-panel',
+  'public-entry-menu',
+  'role-route-tabs',
+  'workspace-command-surface',
+  'hidden-immersive',
+];
+
+const MOBILE_NAVIGATION_STATE_BY_BEHAVIOR: Record<PlatformMobileNavigationBehavior, CommercialVisualQaNavigationState> = {
+  'public-entry-menu': 'public-entry-menu',
+  'auth-callback-panel': 'auth-callback-panel',
+  'role-route-tabs': 'role-route-tabs',
+  'workspace-command-surface': 'workspace-command-surface',
+  drawer: 'mobile-drawer',
+  'hidden-immersive': 'hidden-immersive',
+};
 
 export interface CommercialPremiumVisualQaRoute {
   href: string;
@@ -132,6 +166,7 @@ export interface CommercialViewportVisualEvidence {
   routeFile?: string;
   routeArchetype?: PlatformPrimaryRouteFrame | string;
   dockState?: CommercialPremiumVisualQaRoute['floatingDock'] | PlatformFloatingDockRouteBehavior;
+  navigationState?: CommercialVisualQaNavigationState;
   result?: 'passed' | 'failed';
   screenshot?: string;
   artifact?: string;
@@ -833,7 +868,7 @@ function buildVisualManifestMetadataViolations(
   visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
 ) {
   return visualEvidence.flatMap((routeEvidence) => {
-    const route = routeInventory.find((entry) => entry.href === routeEvidence.href);
+    const route = findVisualRouteInventoryEntry(routeInventory, routeEvidence.href);
     return routeEvidence.viewports.flatMap((viewport) => {
       const premiumScenario = premiumVisualQaMatrix.find((entry) => (
         entry.href === routeEvidence.href
@@ -851,6 +886,9 @@ function buildVisualManifestMetadataViolations(
         !viewport.routeFile || (route && viewport.routeFile !== route.routeFile) ? 'routeFile' : '',
         !viewport.routeArchetype || (route && viewport.routeArchetype !== route.frame) ? 'routeArchetype' : '',
         !viewport.dockState || (expectedDockState && normalizeVisualDockState(viewport.dockState) !== expectedDockState) ? 'dockState' : '',
+        !viewport.navigationState || !COMMERCIAL_VISUAL_QA_NAVIGATION_STATES.includes(viewport.navigationState)
+          ? 'navigationState'
+          : '',
         !viewport.theme ? 'theme' : '',
         !viewport.role ? 'role' : '',
         !viewport.authState ? 'authState' : '',
@@ -867,6 +905,78 @@ function buildVisualManifestMetadataViolations(
           })]
         : [];
     });
+  });
+}
+
+function findVisualRouteInventoryEntry(
+  routeInventory: readonly PlatformPrimaryRouteInventoryEntry[],
+  href: string,
+) {
+  const resolvedRoute = resolvePlatformRouteInventory(href);
+  return routeInventory.find((route) => route.href === resolvedRoute?.href)
+    ?? resolvedRoute
+    ?? routeInventory.find((route) => route.href === href || route.aliases?.includes(href));
+}
+
+function visualEvidenceFingerprint(viewport: CommercialViewportVisualEvidence) {
+  return `${viewport.screenshot ?? ''}|${viewport.artifact ?? ''}`;
+}
+
+function comparableDesktopNavigationScenario(
+  a: CommercialViewportVisualEvidence,
+  b: CommercialViewportVisualEvidence,
+) {
+  return (
+    a.width === b.width
+    && a.theme === b.theme
+    && a.role === b.role
+    && a.authState === b.authState
+    && a.requestedRoute === b.requestedRoute
+  );
+}
+
+function buildNavigationStateViolations(
+  routeInventory: readonly PlatformPrimaryRouteInventoryEntry[],
+  visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
+) {
+  return visualEvidence.flatMap((routeEvidence) => {
+    const route = findVisualRouteInventoryEntry(routeInventory, routeEvidence.href);
+    if (!route) return [];
+    const expectedMobileState = MOBILE_NAVIGATION_STATE_BY_BEHAVIOR[route.mobileNavigation];
+    const missing = [
+      !routeEvidence.viewports.some((viewport) => (
+        viewport.width === 1440 && viewport.navigationState === 'desktop-expanded'
+      )) ? 'width=1440:navigationState=desktop-expanded' : '',
+      !routeEvidence.viewports.some((viewport) => (
+        viewport.width === 1440 && viewport.navigationState === 'desktop-collapsed'
+      )) ? 'width=1440:navigationState=desktop-collapsed' : '',
+      !routeEvidence.viewports.some((viewport) => (
+        viewport.width === 320 && viewport.navigationState === expectedMobileState
+      )) ? `width=320:navigationState=${expectedMobileState}` : '',
+    ].filter(Boolean);
+    const expandedViewports = routeEvidence.viewports.filter((viewport) => (
+      viewport.width === 1440 && viewport.navigationState === 'desktop-expanded'
+    ));
+    const reusedCollapsedEvidence = routeEvidence.viewports.some((viewport) => (
+      viewport.width === 1440
+      && viewport.navigationState === 'desktop-collapsed'
+      && visualEvidenceFingerprint(viewport) !== '|'
+      && expandedViewports.some((expanded) => (
+        comparableDesktopNavigationScenario(expanded, viewport)
+        && visualEvidenceFingerprint(expanded) === visualEvidenceFingerprint(viewport)
+      ))
+    ));
+    if (reusedCollapsedEvidence) {
+      missing.push('desktop-collapsed evidence reuses desktop-expanded artifact');
+    }
+    return missing.length > 0
+      ? [withCategory({
+          path: routeEvidence.href,
+          rule: 'visual-acceptance.incomplete-navigation-state-evidence',
+          message: 'Visual QA evidence is missing required desktop or mobile navigation state coverage.',
+          evidence: missing,
+        })]
+      : [];
   });
 }
 
@@ -994,6 +1104,7 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
     ...buildVisualViolations(requiredVisualRoutes, input.visualEvidence),
     ...buildPremiumVisualQaViolations(premiumVisualQaMatrix, input.visualEvidence),
     ...buildVisualManifestMetadataViolations(visualRouteInventory, premiumVisualQaMatrix, input.visualEvidence),
+    ...buildNavigationStateViolations(visualRouteInventory, input.visualEvidence),
     ...buildMobileStructureViolations(input.visualEvidence),
     ...buildReportExportViolations(reportSurfaceInventory, input.visualEvidence),
     ...buildAccessibilityViolations(
