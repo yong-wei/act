@@ -55,16 +55,6 @@ function navigationStatesForWidth(
   inventoryRoute?: (typeof PLATFORM_PRIMARY_ROUTE_INVENTORY)[number],
 ): CommercialVisualQaNavigationState[] {
   if (width === 1440) return ['desktop-expanded', 'desktop-collapsed'];
-  if (
-    inventoryRoute?.frame === 'mission-workspace'
-    && inventoryRoute.floatingDock !== 'hidden'
-    && inventoryRoute.shellMigrationDisposition === 'adapted'
-    && inventoryRoute.legacyShell?.disposition !== 'scheduled-replacement'
-    && inventoryRoute.legacyShell?.disposition !== 'retained-temporary'
-    && !inventoryRoute.exception
-  ) {
-    return ['mobile-drawer'];
-  }
   return [mobileNavigationStateByBehavior[inventoryRoute?.mobileNavigation ?? 'drawer']];
 }
 

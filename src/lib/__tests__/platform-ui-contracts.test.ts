@@ -733,13 +733,14 @@ describe('platform UI contracts', () => {
 
     expect(shell.props?.['data-platform-route-frame']).toBe('mission-workspace');
     expect(shell.props?.['data-platform-route-theme-support']).toBe('light dark');
-    expect(shell.props?.['data-platform-mobile-navigation']).toBe('workspace-command-surface');
+    expect(shell.props?.['data-platform-mobile-navigation']).toBe('drawer');
     expect(header.props?.breadcrumbs).toEqual([
       { label: '竞技场', href: '/arena' },
       { label: 'Arena 任务' },
     ]);
     expect(JSON.stringify(header.props?.breadcrumbs)).not.toContain('Return to');
     expect(shellMarkup).toContain('href="/arena"');
+    expect(shellMarkup).toContain('aria-controls="app-shell-mobile-navigation"');
     expect(shellMarkup).toContain('data-platform-floating-dock-registration="true"');
     expect(shellMarkup).toContain('data-platform-floating-dock-behavior="collapsed"');
     expect(shellMarkup).toContain('data-platform-floating-dock-controls="konling management"');

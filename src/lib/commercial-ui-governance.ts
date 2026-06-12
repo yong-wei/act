@@ -935,17 +935,6 @@ function comparableDesktopNavigationScenario(
   );
 }
 
-function routeRequiresWorkspaceNavigationMatrix(route: PlatformPrimaryRouteInventoryEntry) {
-  return (
-    route.frame === 'mission-workspace'
-    && route.floatingDock !== 'hidden'
-    && route.shellMigrationDisposition === 'adapted'
-    && route.legacyShell?.disposition !== 'scheduled-replacement'
-    && route.legacyShell?.disposition !== 'retained-temporary'
-    && !route.exception
-  );
-}
-
 function buildNavigationStateViolations(
   routeInventory: readonly PlatformPrimaryRouteInventoryEntry[],
   visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
@@ -953,9 +942,7 @@ function buildNavigationStateViolations(
   return visualEvidence.flatMap((routeEvidence) => {
     const route = findVisualRouteInventoryEntry(routeInventory, routeEvidence.href);
     if (!route) return [];
-    const expectedMobileState = routeRequiresWorkspaceNavigationMatrix(route)
-      ? 'mobile-drawer'
-      : MOBILE_NAVIGATION_STATE_BY_BEHAVIOR[route.mobileNavigation];
+    const expectedMobileState = MOBILE_NAVIGATION_STATE_BY_BEHAVIOR[route.mobileNavigation];
     const missing = [
       !routeEvidence.viewports.some((viewport) => (
         viewport.width === 1440 && viewport.navigationState === 'desktop-expanded'
