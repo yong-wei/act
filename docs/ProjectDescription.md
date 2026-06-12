@@ -4,7 +4,7 @@
 
 本文用于帮助维护者、协作代理和外部审阅者快速理解本项目当前的产品形态、架构边界、主要运行链路和近期工程重点。它不是提交日志；具体变更应以 `openspec/changes/`、`openspec/specs/`、专题设计文档和 `docs/memory/` 为准。
 
-当前项目已经从“精品互动课 + 基础画像”的阶段，推进到“控制仿真、Arena、学习路径、智能助教和数据治理共同构成教学闭环”的阶段。后续判断项目现状时，应优先使用本文、`docs/memory/02-recent-summary.md`、`docs/memory/10-project/10-current-state.md` 和当前 OpenSpec 状态，而不是早期课程制作记录。
+当前项目已经从“精品互动课 + 基础画像”的阶段，推进到“统一平台壳层、标准互动课、控制仿真、Arena、学习路径、智能助教和数据治理共同构成教学闭环”的阶段。控制校正与智能助教系列中多项能力已经进入 `openspec/specs/`、Prisma 模型和数据治理实现；当前仍在推进的 OpenSpec 重点主要是 React Doctor 错误清理和统一 UI 治理门禁。后续判断项目现状时，应优先使用本文、`docs/memory/02-recent-summary.md`、`docs/memory/10-project/10-current-state.md`、当前 `openspec list --json` 和已归档 specs，而不是早期课程制作记录。
 
 ## 项目概览
 
@@ -42,6 +42,8 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 - `/classroom/student/[sessionId]` 与课程私有 student 路由：真实课堂学生页，承载教师同步进度、学生提交、答案揭示、知识卡抽屉和 AI 上下文。
 - `/arena` 与 `/arena/challenges/[taskId]`：控制竞技场大厅、挑战详情、官方评测与榜单。
 - `/assessment/adaptive-practice`：自适应题库与诊断入口。
+- `/assessment/document-feedback`：文档作业反馈入口，服务 rubric 批改、教师审核和学生反馈链路。
+- `/data-center`：学生与教师均可进入的数据中心入口，承载学习证据、报告和平台级状态视图。
 - `/profile`、`/profile/growth`：学习活动、能力画像、风险摘要、Arena 概览、成长记录和推荐资源。
 
 学生端状态不只存在于浏览器。课堂提交进入 `StudentState` 和关键步骤持久化记录；资源与课堂事件进入 `InteractionLog`；高价值行为经数据治理进入 `LearningFact`、`StudentCompetencySnapshot`、`StudentProfileSummary` 和推荐链路。
@@ -57,6 +59,7 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 - `/teacher/classes/[classId]/analytics-v2`：班级学情总览。
 - `/teacher/classes/[classId]/students/[studentId]`：学生个体学情与证据视图。
 - `/teacher/arena`：Arena 任务配置、预览、发布管理和发布报告。
+- `/teacher/grading-workbench`：文档 rubric 批改与反馈工作台。
 
 教师创建课堂后，系统生成 `ClassSession`、课堂码、lesson version、manifest hash 和总步骤数。课堂结束后，session report、提交事件和治理摘要进入教师报告链路。班级洞察不应从前端状态重建，而应消费治理后的能力、证据和报告指标。
 
@@ -71,6 +74,14 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 - `/admin/data-governance`：数据治理状态、事实分布、队列健康、风险清单和快照明细。
 
 管理员配置进入 `PlatformSetting` 或 AI 配置相关表；数据治理看板读取 `LearningEventBatch`、`LearningFact`、`StudentCompetencySnapshot`、`ClassCompetencySnapshot`、`StudentRiskFlag` 等治理表。管理员端不承担课程正文编辑职责。
+
+## 平台壳层与 UI 治理
+
+平台 UI 正在从分散页面改为以 `AppShell`、角色导航、证据状态组件和页面族治理为主的统一壳层。核心文件包括 `src/components/platform/app-shell.tsx`、`src/components/platform/platform-ui-contracts.ts`、`src/components/platform/status-and-evidence.tsx`、`src/components/platform/visual-world-assets.ts` 和 `src/lib/platform-role-navigation.ts`。
+
+统一壳层当前覆盖数据中心、教师治理工作台、任务空间、Arena/控制工作台入口和若干课程入口。`AppShell` 在测试中会被纯函数调用，因此顶层不能直接引入会依赖运行时 hook 的逻辑；需要运行态上下文时，应放到子组件或可选上下文边界内。
+
+当前 active OpenSpec 中，`harden-unified-ui-governance-gates` 负责把商业化 UI 契约、页面族导航、状态证据组件和回归门禁继续固化。React Doctor 系列 change 则分别清理 shared、interactive、resource、server 和 aria role 相关错误。
 
 ## 课程内容与 runtime
 
@@ -88,6 +99,8 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 正式页面应读取 runtime，不直接回读 authoring。互动课程实现优先使用 `src/features/interactive/shared/manifest-runtime/`，只有确实无法标准化的控制曲线、可行域、黑箱数据预演或专用工作区才保留课程私有实现。
 
 互动课程正在从“课程私有组件变体”迁移到“标准模块框架”。新课应使用注册过的模块和 manifest 契约；未注册模块、未声明题型或无法治理的提交结构应被测试闸门拦截。
+
+`1-1` 单元当前已经按“系统全貌”定位完成标准互动课首轮实现，入口路由为 `/interactive-learning/courses/unit-1-1-see-the-full-picture`，学生与教师课堂页位于该路由下的私有 `[sessionId]` 子路由。实现文件包括 `src/lib/unit-1-1-course.ts`、`src/lib/lesson-1-1-ai-contexts.ts` 和 `src/features/interactive/unit-1-1-see-the-full-picture/*`。作者态材料、互动契约和 acceptance 已齐备，manifest audit 已达到 15 steps、91 modules、0 issues。当前剩余工程口径是把 `1-1` 纳入严格实现契约注册，避免后续标准课被旧的 migrated-lesson 语义遗漏。
 
 ## 课堂与资源编排
 
@@ -153,10 +166,9 @@ Arena 是统一评测与排行榜层，不是单一控制方法工作台。基�
 
 学生能力模型是六维结构：控制建模与分析、参数设计与调优、跨域迁移与联动、工程决策与约束、探究反思与提示词、自主学习进展。
 
-当前 OpenSpec 正在推进两条相互衔接的智能化主线：
+控制校正学习路径与全课程智能助教已经从提案推进到多项实现和归档 specs。当前稳定能力包括 goal slice 注册、角色化诊断、学习证据 RAG 语料、文档 rubric 批改工作台、教师备课增强包、智能助教 demo 包、控制校正诊断画像、教师报告和评估 demo。近期 Prisma 模型已经包含 `DiagnosisReportSnapshot`、`CourseEnhancementPack` 以及与路径执行、偏差、干预、证据缓存相关的表。
 
-1. 控制校正学习路径：以 `control-correction` 为首个可验证 goal slice，建立资源节点图、路径轮次、证据缓存、专门化自适应中心、控灵路径辅导、终端仿真/Arena 验证、教师报告和评估 demo。
-2. 全课程智能助教：把 goal slice、角色化诊断、多路径策略、学习证据 RAG、文档 rubric 批改、备课增强包、Konling 多模式和演示验收扩展成全课程能力。
+后续继续扩展智能助教时，应把控制校正作为可验证样例，把全课程助教作为泛化平台能力，而不是复制某个目标切片的专用逻辑。
 
 智能助教设计的关键不是单独聊天框，而是同一事实源驱动的闭环：
 
@@ -179,14 +191,21 @@ AI 可以解释、提示、总结和建议，但不能伪造学习事实、不�
 
 ## OpenSpec 与工作树协作
 
-本项目使用 OpenSpec 管理功能开发。已完成变更会归档到 `openspec/specs/`，进行中变更位于 `openspec/changes/`。新功能、治理、UI 重构、依赖迁移和智能助教能力都应先形成 proposal、design、tasks 和 spec delta，再进入实现。
+本项目使用 OpenSpec 管理功能开发。已完成变更会归档到 `openspec/specs/`，进行中变更位于 `openspec/changes/`。新功能、治理、UI 重构、依赖迁移和智能助教能力都应先形成 proposal、design、tasks 和 spec delta，再进入实现。当前 active changes 主要是：
+
+- `eliminate-react-doctor-shared-state-effect-errors`
+- `eliminate-react-doctor-interactive-state-effect-errors`
+- `eliminate-react-doctor-resource-state-effect-errors`
+- `eliminate-react-doctor-server-errors`
+- `eliminate-react-doctor-aria-role-errors`
+- `harden-unified-ui-governance-gates`
 
 当前固定工作树职责：
 
 - 主工作树绑定 `integration`，用于 OpenSpec 提案、集成验证和协调登记。
 - `act-dev1` 绑定 `dev1`，用于功能实现。
 - `act-dev2` 绑定 `dev2`，用于另一条功能实现。
-- `act-resource` 绑定 `resource`，用于课程资源制作。
+- `act-resource` 绑定 `resource`，用于课程资源制作和资源相关开发；该永久工作树跟踪 `origin/integration`，在其中工作时不再创建第二层工作树。
 
 Buddy issue 是跨工作树协调记录。一个可执行 change 对应一个 GitHub issue、一个 claim branch、一个 OpenSpec change 和一个 PR。提案批次应设置父 issue、子 issue、Project 状态和依赖关系；实现批次应在 claim 成功后按 issue 边界执行。
 

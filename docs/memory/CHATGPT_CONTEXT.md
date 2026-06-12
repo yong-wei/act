@@ -1,8 +1,8 @@
 # ChatGPT Project Context Entry
 
 状态: active
-最后更新: 2026-06-04
-摘要: 面向网页版 ChatGPT GitHub 连接器的项目上下文入口，说明递归读取顺序、记忆契约和主干文件树。
+最后更新: 2026-06-12
+摘要: 面向网页版 ChatGPT GitHub 连接器的项目上下文入口，说明递归读取顺序、记忆契约和主干文件树；当前最近摘要已覆盖统一平台壳层、1-1 标准互动课、React Doctor、UI 治理和智能助教实现阶段。
 上游:
 - [00-index.md](00-index.md)
 下游:
