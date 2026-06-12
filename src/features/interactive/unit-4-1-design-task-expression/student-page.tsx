@@ -357,7 +357,7 @@ export function UNIT_4_1StudentPage({
             manifest={runtimeManifest}
             revealProgress={revealProgress}
             allowInlineReveal={allowInlineReveal}
-            role="student"
+            viewerRole="student"
             submittedCount={submittedCount}
             viewedCount={viewedStepIds.length}
             postTestCompletion={courseState.responses['step-12'] ? 100 : 0}

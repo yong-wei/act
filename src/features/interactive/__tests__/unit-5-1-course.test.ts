@@ -174,7 +174,7 @@ describe('unit 5-1 interactive course', () => {
         manifest,
         revealProgress: 0,
         allowInlineReveal: true,
-        role: 'student',
+        viewerRole: 'student',
       }),
     );
 

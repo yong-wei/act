@@ -1173,7 +1173,7 @@ export function UNIT_4_1StepContentPanel({
   manifest,
   revealProgress,
   allowInlineReveal,
-  role,
+  viewerRole,
   submittedCount = 0,
   viewedCount = 0,
   studentCount = 0,
@@ -1188,7 +1188,7 @@ export function UNIT_4_1StepContentPanel({
   manifest?: InteractiveRuntimeManifest | null;
   revealProgress: number;
   allowInlineReveal: boolean;
-  role: 'student' | 'teacher';
+  viewerRole: 'student' | 'teacher';
   submittedCount?: number;
   viewedCount?: number;
   studentCount?: number;
@@ -1199,6 +1199,7 @@ export function UNIT_4_1StepContentPanel({
   onAdvanceReveal?: () => void;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
+  const role = viewerRole;
   const activeManifest = requireUnit41Manifest(manifest);
   const stepManifest = getUNIT_4_1ManifestStepFromManifest(activeManifest, step.id);
   const baseRegistry = createManifestContentModuleRegistry({

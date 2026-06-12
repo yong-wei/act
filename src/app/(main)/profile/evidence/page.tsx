@@ -19,7 +19,7 @@ export default async function StudentEvidencePage({ searchParams }: StudentEvide
 
   return (
     <AppShell
-      role="student"
+      viewerRole="student"
       title="学习证据"
       subtitle="来源质量、时间线与隐私范围"
       activeHref="/profile/evidence"

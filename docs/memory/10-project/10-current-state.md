@@ -16,7 +16,7 @@
 
 - 项目当前是 Next.js 16、React 19、Prisma 7、Tailwind CSS 4、Vercel AI SDK 6 的单体应用。依赖链已大版本迁移，后续新增功能必须留意 SSR、R3F、Prisma generate、Tailwind source 边界和测试脚本噪声。
 - 基线分支为 `integration`，发布分支为 `main`。主工作树绑定 `integration`，`act-dev1` 和 `act-dev2` 用于功能实现，`act-resource` 绑定 `resource` 用于课程资源制作和资源相关开发。永久工作树本身就是隔离边界，不要在其中再为同一任务创建第二层临时 worktree。
-- OpenSpec/Buddy 仍是功能推进主线，但当前 active changes 已经从 6 月初的控制校正和智能助教提案扩展阶段，收束到 React Doctor 错误清理和统一 UI 治理门禁。当前 active changes 是 `eliminate-react-doctor-shared-state-effect-errors`、`eliminate-react-doctor-interactive-state-effect-errors`、`eliminate-react-doctor-resource-state-effect-errors`、`eliminate-react-doctor-server-errors`、`eliminate-react-doctor-aria-role-errors` 和 `harden-unified-ui-governance-gates`。
+- OpenSpec/Buddy 仍是功能推进主线，但当前 active changes 已经从 6 月初的控制校正和智能助教提案扩展阶段，收束到 React Doctor 错误清理和统一 UI 治理门禁。当前 active changes 是 `eliminate-react-doctor-shared-state-effect-errors`、`eliminate-react-doctor-interactive-state-effect-errors`、`eliminate-react-doctor-resource-state-effect-errors` 和 `harden-unified-ui-governance-gates`。
 - 平台 UI 正在以 `AppShell`、角色导航、证据状态组件和页面族治理为统一壳层。`src/lib/platform-role-navigation.ts` 已经把课程、任务空间、数据中心、教师治理、Arena/控制工作台等入口纳入角色导航。`AppShell` 会被测试纯函数调用，顶层不要直接引入 runtime hook。
 - `1-1` 标准互动课已经完成首轮实现，路由为 `/interactive-learning/courses/unit-1-1-see-the-full-picture`。作者态材料、互动契约和 acceptance 已齐备，manifest audit 已达到 15 steps、91 modules、0 issues。当前剩余工程口径是把 `1-1` 纳入严格实现契约注册，避免新标准课被旧 migrated-lesson 语义遗漏。
 - 互动学习入口以控制工作台、互动课程、跨域探索和互动组件为主。综合仿真工作台 `/interactive-learning/control-workbench` 已承载经典四视图、复合校正、预测控制、黑箱辨识等控制设计流，并与 Arena 路由和提交面板衔接。

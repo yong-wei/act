@@ -149,7 +149,7 @@ describe('unit 5-3 interactive course', () => {
         revealProgress: 0,
         allowInlineReveal: true,
         browseEnabled: true,
-        role: 'student',
+        viewerRole: 'student',
       }),
     );
     expect(html).toContain('data-testid="unit-5-3-turning-status-tags"');

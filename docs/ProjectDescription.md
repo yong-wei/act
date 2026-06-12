@@ -196,8 +196,6 @@ AI 可以解释、提示、总结和建议，但不能伪造学习事实、不�
 - `eliminate-react-doctor-shared-state-effect-errors`
 - `eliminate-react-doctor-interactive-state-effect-errors`
 - `eliminate-react-doctor-resource-state-effect-errors`
-- `eliminate-react-doctor-server-errors`
-- `eliminate-react-doctor-aria-role-errors`
 - `harden-unified-ui-governance-gates`
 
 当前固定工作树职责：
