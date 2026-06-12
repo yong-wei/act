@@ -661,7 +661,6 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'collapsed',
-    mobileNavigation: 'drawer',
     visualQaProfile: 'immersive',
     screenshotProfile: 'representative-covered',
     owningChange: 'redesign-immersive-learning-workspaces',

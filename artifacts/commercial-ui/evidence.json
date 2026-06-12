@@ -2501,7 +2501,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "mobile-drawer"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -2570,7 +2570,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "mobile-drawer"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
