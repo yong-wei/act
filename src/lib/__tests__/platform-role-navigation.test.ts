@@ -274,6 +274,7 @@ describe('platform role navigation', () => {
       '/simulations',
       '/simulations/cruise',
       '/arena',
+      '/arena/challenges/[taskId]',
       '/assessment/adaptive-practice',
       '/interactive-learning/control-workbench',
       '/dashboard',
@@ -297,6 +298,7 @@ describe('platform role navigation', () => {
       '/teacher/resources/resource-nodes',
       '/teacher/history',
       '/teacher/arena',
+      '/teacher/arena/publications/[publicationId]',
       '/admin',
       '/admin/users',
       '/admin/states',
@@ -313,22 +315,30 @@ describe('platform role navigation', () => {
       expect.arrayContaining(['/arena', '/assessment/adaptive-practice', '/data-center', '/admin/data-governance']),
     );
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/login')).toMatchObject({
-      frame: 'auth-entry',
+      frame: 'public-entry',
+      authState: 'auth-entry',
+      mobileNavigation: 'auth-callback-panel',
       floatingDock: 'hidden',
       aliases: ['/login?callbackUrl=%2Fprofile'],
+      legacyFrameAliases: expect.arrayContaining([
+        expect.objectContaining({
+          alias: 'auth-entry',
+          owningChange: 'converge-route-ledger-to-canonical-archetypes',
+        }),
+      ]),
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning/courses')).toMatchObject({
-      frame: 'learning-map',
+      frame: 'learning-atlas',
       navigationLayers: expect.arrayContaining(['global-product', 'contextual-workspace']),
       floatingDock: 'collapsed',
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning/courses/unit-4-1-design-task-expression')).toMatchObject({
-      frame: 'learning-map',
+      frame: 'learning-atlas',
       roleScope: ['guest', 'student', 'teacher'],
       floatingDock: 'collapsed',
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning/control-workbench')).toMatchObject({
-      frame: 'immersive-task-workspace',
+      frame: 'mission-workspace',
       navigationLayers: expect.arrayContaining(['global-product', 'contextual-workspace', 'local-tool']),
       floatingDock: 'enabled',
       visualQaProfile: 'immersive',
@@ -338,30 +348,122 @@ describe('platform role navigation', () => {
       ]),
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/simulations/cruise')).toMatchObject({
-      frame: 'immersive-task-workspace',
+      frame: 'mission-workspace',
       floatingDock: 'hidden',
       visualQaProfile: 'immersive',
       aliases: expect.arrayContaining([
         '/simulations/cruise?arenaTask=:taskId',
       ]),
     });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/arena/challenges/[taskId]')).toMatchObject({
+      routePattern: '/arena/challenges/:taskId',
+      routeFile: 'src/app/arena/challenges/[taskId]/page.tsx',
+      frame: 'mission-workspace',
+      owningChange: 'unify-arena-workspace-shell',
+      unifiedUiMigrationOwner: 'migrate-mission-workspaces-to-unified-shell',
+      floatingDock: 'collapsed',
+      visualQaProfile: 'immersive',
+      screenshotProfile: 'representative-covered',
+      legacyShell: expect.objectContaining({
+        component: 'ArenaPageShell',
+        owningChange: 'converge-route-ledger-to-canonical-archetypes',
+      }),
+      contextualReturn: {
+        sourceContext: 'arena-challenge',
+        targetHint: 'Return to the Arena challenge list when leaving a challenge detail.',
+        fallbackHref: '/arena',
+      },
+    });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/teacher')).toMatchObject({
-      frame: 'teacher-operations',
+      frame: 'operations-console',
       roleScope: ['teacher'],
       navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/admin')).toMatchObject({
-      frame: 'admin-governance',
+      frame: 'operations-console',
       roleScope: ['admin'],
       navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
       floatingDock: 'enabled',
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/admin/data-governance')).toMatchObject({
-      frame: 'admin-governance',
+      frame: 'operations-console',
       roleScope: ['admin'],
       navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
       floatingDock: 'enabled',
     });
+  });
+
+  it('uses only canonical route archetypes and records temporary legacy aliases', () => {
+    const canonicalArchetypes = new Set([
+      'public-entry',
+      'learning-atlas',
+      'mission-workspace',
+      'knowledge-data-map',
+      'operations-console',
+      'report-ledger',
+    ]);
+    const invalidFrames = PLATFORM_PRIMARY_ROUTE_INVENTORY
+      .filter((route) => !canonicalArchetypes.has(route.frame))
+      .map((route) => `${route.href}:${route.frame}`);
+    expect(invalidFrames).toEqual([]);
+
+    const missingLegacyAliasRetirement = PLATFORM_PRIMARY_ROUTE_INVENTORY.flatMap((route) => {
+      const problems: string[] = [];
+      for (const alias of route.legacyFrameAliases ?? []) {
+        if (!alias.owningChange) problems.push(`${route.href}:${alias.alias}:owningChange`);
+        if (!alias.retirementCondition) problems.push(`${route.href}:${alias.alias}:retirementCondition`);
+        if (alias.retirementCondition.includes('undefined')) {
+          problems.push(`${route.href}:${alias.alias}:retirementCondition=undefined`);
+        }
+      }
+      return problems;
+    });
+    expect(missingLegacyAliasRetirement).toEqual([]);
+
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning')).toMatchObject({
+      frame: 'learning-atlas',
+      legacyFrameAliases: expect.arrayContaining([expect.objectContaining({ alias: 'learning-map' })]),
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/arena')).toMatchObject({
+      frame: 'mission-workspace',
+      legacyFrameAliases: expect.arrayContaining([expect.objectContaining({ alias: 'immersive-task-workspace' })]),
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/knowledge')).toMatchObject({
+      frame: 'knowledge-data-map',
+      legacyFrameAliases: expect.arrayContaining([expect.objectContaining({ alias: 'knowledge-graph' })]),
+    });
+  });
+
+  it('records route alias retirement metadata and a single unified UI migration owner', () => {
+    const missingAliasRetirements = PLATFORM_PRIMARY_ROUTE_INVENTORY.flatMap((route) => (
+      (route.aliases ?? [])
+        .filter((alias) => !route.aliasRetirements?.some((retirement) => (
+          retirement.alias === alias
+          && retirement.retirementCondition
+          && !retirement.retirementCondition.includes('undefined')
+        )))
+        .map((alias) => `${route.href}:${alias}:aliasRetirements`)
+    ));
+    expect(missingAliasRetirements).toEqual([]);
+
+    const missingUnifiedOwners = PLATFORM_PRIMARY_ROUTE_INVENTORY
+      .filter((route) => !route.unifiedUiMigrationOwner && !route.exception)
+      .map((route) => `${route.href}:unifiedUiMigrationOwner`);
+    expect(missingUnifiedOwners).toEqual([]);
+
+    const duplicateOwnerClaims = PLATFORM_PRIMARY_ROUTE_INVENTORY.flatMap((route) => {
+      const owners = [route.unifiedUiMigrationOwner, route.exception?.owner].filter(Boolean);
+      return owners.length > 1 ? [`${route.href}:${owners.join('|')}`] : [];
+    });
+    expect(duplicateOwnerClaims).toEqual([]);
+
+    const invalidExceptionRetirements = PLATFORM_PRIMARY_ROUTE_INVENTORY.flatMap((route) => {
+      if (!route.exception) return [];
+      return (route.legacyFrameAliases ?? [])
+        .filter((alias) => !alias.retirementCondition.includes(route.exception?.owner ?? ''))
+        .map((alias) => `${route.href}:${alias.alias}:missing-exception-owner`);
+    });
+    expect(invalidExceptionRetirements).toEqual([]);
   });
 
   it('assigns each primary route to one migration owner with shell retirement metadata', () => {
@@ -375,6 +477,7 @@ describe('platform role navigation', () => {
       expect(route.shellMigrationDisposition).toBeTruthy();
       expect(route.shellRemovalCondition).toBeTruthy();
       expect(route.screenshotProfile).toBeTruthy();
+      expect(route.unifiedUiMigrationOwner || route.exception?.owner).toBeTruthy();
 
       const previousOwner = ownerByHref.get(route.href);
       expect(previousOwner ? `${route.href}:${previousOwner}` : undefined).toBeUndefined();
@@ -395,13 +498,45 @@ describe('platform role navigation', () => {
     );
   });
 
-  it('keeps homepage as the only public-entry navigation variant', () => {
+  it('keeps public entry routes limited to homepage and auth entry states', () => {
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/')).toMatchObject({
       frame: 'public-entry',
       shellMigrationDisposition: 'adapted',
       mobileNavigation: 'public-entry-menu',
     });
-    const nonHomeRoutes = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => route.href !== '/');
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/login')).toMatchObject({
+      frame: 'public-entry',
+      authState: 'auth-entry',
+      mobileNavigation: 'auth-callback-panel',
+    });
+    const nonPublicEntryRoutes = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => (
+      route.href !== '/' && route.href !== '/login'
+    ));
+    expect(nonPublicEntryRoutes.every((route) => route.frame !== 'public-entry')).toBe(true);
+    expect(nonPublicEntryRoutes.every((route) => route.mobileNavigation !== 'public-entry-menu')).toBe(true);
+    expect(nonPublicEntryRoutes.every((route) => route.shellRemovalCondition.includes(route.owningChange) || route.exception)).toBe(true);
+  });
+
+  it('resolves auth callback and Arena challenge detail through canonical route metadata', () => {
+    expect(resolvePlatformRouteInventory('/login?callbackUrl=%2Fprofile')).toMatchObject({
+      href: '/login',
+      frame: 'public-entry',
+      authState: 'auth-entry',
+      aliases: expect.arrayContaining(['/login?callbackUrl=%2Fprofile']),
+    });
+    expect(resolvePlatformRouteInventory('/arena/challenges/task-second-order-lead-pid')).toMatchObject({
+      href: '/arena/challenges/[taskId]',
+      routePattern: '/arena/challenges/:taskId',
+      frame: 'mission-workspace',
+      contextualReturn: {
+        sourceContext: 'arena-challenge',
+        fallbackHref: '/arena',
+      },
+    });
+  });
+
+  it('does not let public-entry leak into authenticated workspaces', () => {
+    const nonHomeRoutes = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => route.href !== '/' && route.href !== '/login');
     expect(nonHomeRoutes.every((route) => route.frame !== 'public-entry')).toBe(true);
     expect(nonHomeRoutes.every((route) => route.mobileNavigation !== 'public-entry-menu')).toBe(true);
     expect(nonHomeRoutes.every((route) => route.shellRemovalCondition.includes(route.owningChange) || route.exception)).toBe(true);
@@ -451,18 +586,27 @@ describe('platform role navigation', () => {
     expect(getPlatformRouteNavigation('/interactive-learning/courses/unit-4-1-design-task-expression/student/demo-session', 'student')).toEqual([]);
   });
 
+  it('resolves every declared route alias through the central inventory', () => {
+    const unresolvedAliases = PLATFORM_PRIMARY_ROUTE_INVENTORY.flatMap((route) => (
+      (route.aliases ?? [])
+        .filter((alias) => !resolvePlatformRouteInventory(alias))
+        .map((alias) => `${route.href}:${alias}`)
+    ));
+    expect(unresolvedAliases).toEqual([]);
+  });
+
   it('separates learner record, evidence review, and platform data-center semantics', () => {
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/profile')).toMatchObject({
-      frame: 'learner-data',
+      frame: 'report-ledger',
       mobileNavigation: 'role-route-tabs',
       aliases: expect.arrayContaining(['/profile/growth', '/profile/portfolio']),
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/profile/evidence')).toMatchObject({
-      frame: 'learner-data',
+      frame: 'report-ledger',
       owningChange: 'redesign-learner-data-and-report-surfaces',
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/data-center')).toMatchObject({
-      frame: 'learner-data',
+      frame: 'knowledge-data-map',
       navigationLayers: expect.arrayContaining(['global-product', 'contextual-workspace']),
       owningChange: 'redesign-knowledge-and-data-surfaces',
     });
@@ -564,6 +708,13 @@ describe('platform role navigation', () => {
     }
   });
 
+  it('keeps report surface owner routes resolvable through the primary route inventory', () => {
+    const unresolvedOwnerRoutes = PLATFORM_REPORT_SURFACE_INVENTORY
+      .filter((surface) => !resolvePlatformRouteInventory(surface.ownerRoute))
+      .map((surface) => `${surface.id}:${surface.ownerRoute}`);
+    expect(unresolvedOwnerRoutes).toEqual([]);
+  });
+
   it('defines commercial student entry intents and route acceptance matrix', () => {
     expect(getCommercialStudentEntryIntentGroups().map((group) => group.intent)).toEqual([
       'learn',
@@ -592,7 +743,7 @@ describe('platform role navigation', () => {
       'redesign-immersive-learning-workspaces',
     );
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/arena')?.owningChange).toBe(
-      'redesign-immersive-learning-workspaces',
+      'unify-arena-workspace-shell',
     );
     expect(COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES.every((route) => route.viewportWidths.join(',') === '1440,320')).toBe(true);
     expect(resolveCommercialEntryHref('account-profile', false)).toBe('/login?callbackUrl=%2Fprofile');

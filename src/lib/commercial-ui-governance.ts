@@ -195,6 +195,7 @@ export interface CommercialUiGovernanceInput {
   accessibilityEvidence: readonly CommercialAccessibilityTextFitEvidence[];
   requiredVisualRoutes?: readonly CommercialVisualAcceptanceRoute[];
   routeInventory?: readonly PlatformPrimaryRouteInventoryEntry[];
+  visualRouteInventory?: readonly PlatformPrimaryRouteInventoryEntry[];
   premiumVisualQaMatrix?: readonly CommercialPremiumVisualQaRoute[];
   reportSurfaceInventory?: readonly PlatformReportSurfaceInventoryEntry[];
 }
@@ -754,13 +755,11 @@ function buildPremiumVisualQaViolations(
 
 const ALLOWED_PRIMARY_ROUTE_ARCHETYPES: readonly PlatformPrimaryRouteFrame[] = [
   'public-entry',
-  'auth-entry',
-  'learning-map',
-  'immersive-task-workspace',
-  'learner-data',
-  'teacher-operations',
-  'admin-governance',
-  'knowledge-graph',
+  'learning-atlas',
+  'mission-workspace',
+  'knowledge-data-map',
+  'operations-console',
+  'report-ledger',
 ];
 
 function buildRouteLedgerViolations(routeInventory: readonly PlatformPrimaryRouteInventoryEntry[]) {
@@ -774,10 +773,18 @@ function buildRouteLedgerViolations(routeInventory: readonly PlatformPrimaryRout
       !route.mobileNavigation ? 'mobileNavigation' : '',
       !route.shellMigrationDisposition ? 'shellMigrationDisposition' : '',
       !route.shellRemovalCondition ? 'shellRemovalCondition' : '',
+      !route.unifiedUiMigrationOwner && !route.exception ? 'unifiedUiMigrationOwner' : '',
+      route.unifiedUiMigrationOwner && route.exception ? 'unifiedUiMigrationOwner+exception.owner' : '',
       route.legacyShell && !route.legacyShell.removalCondition ? 'legacyShell.removalCondition' : '',
       route.exception && (!route.exception.owner || !route.exception.expiresOn || !route.exception.removalCondition)
         ? 'exception.owner/expiresOn/removalCondition'
         : '',
+      ...(route.aliases ?? [])
+        .filter((alias) => !route.aliasRetirements?.some((retirement) => retirement.alias === alias))
+        .map((alias) => `aliasRetirements:${alias}`),
+      ...(route.legacyFrameAliases ?? [])
+        .filter((alias) => !alias.owningChange || !alias.retirementCondition)
+        .map((alias) => `legacyFrameAliases:${alias.alias}`),
     ].filter(Boolean);
     const violations: CommercialUiGovernanceViolation[] = missing.length > 0
       ? [withCategory({
@@ -971,7 +978,8 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
   const routeInventory = input.routeInventory ?? PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => (
     defaultRouteHrefs.has(route.href)
   ));
-  const routeInventoryHrefs = new Set(routeInventory.map((route) => route.href));
+  const visualRouteInventory = input.visualRouteInventory ?? routeInventory;
+  const routeInventoryHrefs = new Set(visualRouteInventory.map((route) => route.href));
   const reportSurfaceInventory = input.reportSurfaceInventory ?? PLATFORM_REPORT_SURFACE_INVENTORY.filter((surface) => (
     routeInventoryHrefs.has(surface.ownerRoute)
   ));
@@ -982,10 +990,10 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
     ...buildModuleChromeViolations(input.moduleChromeInventory),
     ...buildStatusViolations(input.statusInventory),
     ...buildNavigationViolations(input.navigationCoverage),
-    ...buildVisualMatrixDriftViolations(routeInventory, requiredVisualRoutes),
+    ...buildVisualMatrixDriftViolations(visualRouteInventory, requiredVisualRoutes),
     ...buildVisualViolations(requiredVisualRoutes, input.visualEvidence),
     ...buildPremiumVisualQaViolations(premiumVisualQaMatrix, input.visualEvidence),
-    ...buildVisualManifestMetadataViolations(routeInventory, premiumVisualQaMatrix, input.visualEvidence),
+    ...buildVisualManifestMetadataViolations(visualRouteInventory, premiumVisualQaMatrix, input.visualEvidence),
     ...buildMobileStructureViolations(input.visualEvidence),
     ...buildReportExportViolations(reportSurfaceInventory, input.visualEvidence),
     ...buildAccessibilityViolations(

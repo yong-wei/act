@@ -462,6 +462,50 @@ describe('commercial UI governance', () => {
     );
   });
 
+  it('fails when route ledger uses a retired real archetype alias', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      routeInventory: PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => (
+        route.href === '/knowledge'
+          ? { ...route, frame: 'knowledge-graph' as never }
+          : route
+      )),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'route-ledger',
+          rule: 'route-ledger.outdated-archetype',
+          path: '/knowledge',
+          evidence: expect.arrayContaining(['knowledge-graph']),
+        }),
+      ]),
+    );
+  });
+
+  it('fails when a route has both unified migration owner and temporary exception owner', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      routeInventory: PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => (
+        route.href === '/ai'
+          ? { ...route, unifiedUiMigrationOwner: 'migrate-learner-knowledge-data-surfaces' }
+          : route
+      )),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'route-ledger',
+          rule: 'route-ledger.incomplete-primary-route',
+          path: '/ai',
+          evidence: expect.arrayContaining(['unifiedUiMigrationOwner+exception.owner']),
+        }),
+      ]),
+    );
+  });
+
   it('fails when structured visual QA manifest omits route metadata or mobile structure evidence', () => {
     const visualEvidence = completeVisualEvidence().map((entry) => {
       if (entry.href !== '/interactive-learning/control-workbench') return entry;

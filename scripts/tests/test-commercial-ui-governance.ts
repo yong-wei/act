@@ -331,7 +331,6 @@ function affectedVisualRoutes(files: string[]): CommercialVisualAcceptanceRoute[
     if (
       file === 'src/app/globals.css'
       || file === 'src/components/platform/app-shell.tsx'
-      || file === 'src/lib/platform-role-navigation.ts'
       || file === 'artifacts/commercial-ui/evidence.json'
     ) {
       addDefaultMatrix();
@@ -488,6 +487,9 @@ const routeInventoryForGate = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) =>
   requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
   || changedPrimaryRouteHrefs.has(route.href)
 ));
+const visualRouteInventoryForGate = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => (
+  requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
+));
 const result = evaluateCommercialUiGovernance({
   mode: 'blocking',
   today,
@@ -504,6 +506,7 @@ const result = evaluateCommercialUiGovernance({
   accessibilityEvidence: readAccessibilityEvidenceManifest(requiredVisualRoutes),
   requiredVisualRoutes,
   routeInventory: routeInventoryForGate,
+  visualRouteInventory: visualRouteInventoryForGate,
   premiumVisualQaMatrix: PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.filter((route) => (
     requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
   )),

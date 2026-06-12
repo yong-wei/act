@@ -27,6 +27,12 @@ export type PlatformWorkspaceMode =
   | 'admin';
 export type PlatformPrimaryRouteFrame =
   | 'public-entry'
+  | 'learning-atlas'
+  | 'mission-workspace'
+  | 'knowledge-data-map'
+  | 'operations-console'
+  | 'report-ledger';
+export type PlatformLegacyPrimaryRouteFrame =
   | 'auth-entry'
   | 'learning-map'
   | 'immersive-task-workspace'
@@ -168,6 +174,7 @@ export interface PlatformRouteLegacyShellDisposition {
   component: PlatformLegacyNavigationShell;
   disposition: PlatformLegacyShellDisposition;
   sourceFile: string;
+  owningChange?: string;
   removalCondition: string;
 }
 
@@ -175,6 +182,18 @@ export interface PlatformRouteDockDisposition {
   component: PlatformDockDispositionComponent;
   disposition: 'registered-shared-dock' | 'retained-temporary';
   removalCondition: string;
+}
+
+export interface PlatformRouteAliasRetirement {
+  alias: string;
+  owningChange: string;
+  retirementCondition: string;
+}
+
+export interface PlatformRouteLegacyFrameAlias {
+  alias: PlatformLegacyPrimaryRouteFrame;
+  owningChange: string;
+  retirementCondition: string;
 }
 
 export interface PlatformPrimaryRouteInventoryEntry {
@@ -194,10 +213,15 @@ export interface PlatformPrimaryRouteInventoryEntry {
   owningChange: string;
   shellMigrationDisposition: PlatformShellMigrationDisposition;
   shellRemovalCondition: string;
+  unifiedUiMigrationOwner?: string;
+  unifiedUiMigrationException?: PlatformPrimaryRouteException;
+  contextualReturn?: Pick<PlatformContextualReturnTargetRule, 'sourceContext' | 'targetHint' | 'fallbackHref'>;
   legacyShell?: PlatformRouteLegacyShellDisposition;
   dockDisposition?: readonly PlatformRouteDockDisposition[];
   exception?: PlatformPrimaryRouteException;
   aliases?: readonly string[];
+  aliasRetirements?: readonly PlatformRouteAliasRetirement[];
+  legacyFrameAliases?: readonly PlatformRouteLegacyFrameAlias[];
 }
 
 export interface PlatformReportSurfaceInventoryEntry {
@@ -219,15 +243,61 @@ export interface PlatformRoleNavigationOptions {
 
 type PrimaryRouteInput = Omit<
   PlatformPrimaryRouteInventoryEntry,
-  'themeSupport' | 'mobileNavigation' | 'shellMigrationDisposition' | 'shellRemovalCondition' | 'screenshotProfile' | 'exception'
+  | 'themeSupport'
+  | 'mobileNavigation'
+  | 'shellMigrationDisposition'
+  | 'shellRemovalCondition'
+  | 'screenshotProfile'
+  | 'exception'
+  | 'unifiedUiMigrationOwner'
+  | 'unifiedUiMigrationException'
+  | 'contextualReturn'
+  | 'aliasRetirements'
+  | 'legacyFrameAliases'
 > & Partial<
   Pick<
     PlatformPrimaryRouteInventoryEntry,
-    'themeSupport' | 'mobileNavigation' | 'shellMigrationDisposition' | 'shellRemovalCondition' | 'screenshotProfile'
+    | 'themeSupport'
+    | 'mobileNavigation'
+    | 'shellMigrationDisposition'
+    | 'shellRemovalCondition'
+    | 'screenshotProfile'
+    | 'unifiedUiMigrationOwner'
+    | 'unifiedUiMigrationException'
+    | 'contextualReturn'
+    | 'aliasRetirements'
+    | 'legacyFrameAliases'
   >
 > & {
   exception?: Omit<PlatformPrimaryRouteException, 'removalCondition'> & Partial<Pick<PlatformPrimaryRouteException, 'removalCondition'>>;
 };
+
+const ROUTE_LEDGER_CONVERGENCE_CHANGE = 'converge-route-ledger-to-canonical-archetypes';
+const APP_SHELL_MIGRATION_CHANGE = 'upgrade-platform-app-shell-to-archetype-shell';
+const MISSION_WORKSPACE_MIGRATION_CHANGE = 'migrate-mission-workspaces-to-unified-shell';
+const LEARNER_KNOWLEDGE_DATA_MIGRATION_CHANGE = 'migrate-learner-knowledge-data-surfaces';
+const OPERATIONS_REPORT_MIGRATION_CHANGE = 'migrate-operations-report-ledger-surfaces';
+
+function inferUnifiedUiMigrationOwner(input: Pick<PlatformPrimaryRouteInventoryEntry, 'href' | 'frame'>) {
+  if (input.frame === 'mission-workspace') return MISSION_WORKSPACE_MIGRATION_CHANGE;
+  if (input.frame === 'operations-console') return OPERATIONS_REPORT_MIGRATION_CHANGE;
+  if (input.frame === 'knowledge-data-map') return LEARNER_KNOWLEDGE_DATA_MIGRATION_CHANGE;
+  if (input.frame === 'report-ledger') return LEARNER_KNOWLEDGE_DATA_MIGRATION_CHANGE;
+  return APP_SHELL_MIGRATION_CHANGE;
+}
+
+function inferLegacyFrameAlias(input: Pick<PlatformPrimaryRouteInventoryEntry, 'href' | 'frame' | 'authState'>): PlatformLegacyPrimaryRouteFrame | undefined {
+  if (input.frame === 'public-entry' && input.authState === 'auth-entry') return 'auth-entry';
+  if (input.frame === 'learning-atlas') return 'learning-map';
+  if (input.frame === 'mission-workspace') return 'immersive-task-workspace';
+  if (input.frame === 'report-ledger') return 'learner-data';
+  if (input.frame === 'operations-console') return input.href.startsWith('/admin') ? 'admin-governance' : 'teacher-operations';
+  if (input.frame === 'knowledge-data-map') {
+    if (input.href === '/knowledge' || input.href.startsWith('/ai')) return 'knowledge-graph';
+    return 'learner-data';
+  }
+  return undefined;
+}
 
 function primaryRoute(input: PrimaryRouteInput): PlatformPrimaryRouteInventoryEntry {
   const shellRemovalCondition = input.shellRemovalCondition ?? `Route shell is migrated by ${input.owningChange}.`;
@@ -237,15 +307,30 @@ function primaryRoute(input: PrimaryRouteInput): PlatformPrimaryRouteInventoryEn
         removalCondition: input.exception.removalCondition ?? shellRemovalCondition,
       }
     : undefined;
+  const unifiedUiMigrationOwner = input.unifiedUiMigrationOwner ?? (exception ? undefined : inferUnifiedUiMigrationOwner(input));
+  const routeMigrationOwner = unifiedUiMigrationOwner ?? exception?.owner ?? input.owningChange;
+  const aliasRetirements = input.aliasRetirements ?? input.aliases?.map((alias) => ({
+    alias,
+    owningChange: ROUTE_LEDGER_CONVERGENCE_CHANGE,
+    retirementCondition: `Route alias ${alias} is either promoted into canonical route metadata or retired by ${routeMigrationOwner}.`,
+  }));
+  const legacyFrameAlias = inferLegacyFrameAlias(input);
+  const legacyFrameAliases = input.legacyFrameAliases ?? (legacyFrameAlias
+    ? [{
+        alias: legacyFrameAlias,
+        owningChange: ROUTE_LEDGER_CONVERGENCE_CHANGE,
+        retirementCondition: `Legacy frame ${legacyFrameAlias} is retained only as compatibility metadata until ${routeMigrationOwner} completes.`,
+      }]
+    : undefined);
 
   return {
     ...input,
     themeSupport: input.themeSupport ?? ['light', 'dark'],
     mobileNavigation: input.mobileNavigation ?? (
       input.frame === 'public-entry'
-        ? 'public-entry-menu'
-        : input.frame === 'auth-entry'
+        ? input.authState === 'auth-entry'
           ? 'auth-callback-panel'
+          : 'public-entry-menu'
           : input.floatingDock === 'hidden'
             ? 'hidden-immersive'
             : input.navigationLayers.includes('local-tool')
@@ -255,6 +340,15 @@ function primaryRoute(input: PrimaryRouteInput): PlatformPrimaryRouteInventoryEn
     shellMigrationDisposition: input.shellMigrationDisposition ?? (exception ? 'retained-temporary' : 'adapted'),
     shellRemovalCondition,
     screenshotProfile: input.screenshotProfile ?? (exception ? 'temporary-exception' : 'direct-capture'),
+    unifiedUiMigrationOwner,
+    aliasRetirements,
+    legacyFrameAliases,
+    legacyShell: input.legacyShell
+      ? {
+          ...input.legacyShell,
+          owningChange: input.legacyShell.owningChange ?? ROUTE_LEDGER_CONVERGENCE_CHANGE,
+        }
+      : undefined,
     exception,
   };
 }
@@ -452,7 +546,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/login',
     routeFile: 'src/app/(auth)/login/page.tsx',
-    frame: 'auth-entry',
+    frame: 'public-entry',
     roleScope: ['guest'],
     authState: 'auth-entry',
     navigationLayers: ['global-product'],
@@ -464,7 +558,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/interactive-learning',
     routeFile: 'src/app/interactive-learning/page.tsx',
-    frame: 'learning-map',
+    frame: 'learning-atlas',
     roleScope: ['guest', 'student'],
     authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
@@ -481,7 +575,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/interactive-learning/courses',
     routeFile: 'src/app/interactive-learning/courses/page.tsx',
-    frame: 'learning-map',
+    frame: 'learning-atlas',
     roleScope: ['guest', 'student'],
     authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
@@ -498,7 +592,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/interactive-learning/courses/unit-4-1-design-task-expression',
     routeFile: 'src/app/interactive-learning/courses/unit-4-1-design-task-expression/page.tsx',
-    frame: 'learning-map',
+    frame: 'learning-atlas',
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
@@ -509,7 +603,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/interactive-learning/courses/unit-1-1-see-the-full-picture',
     routeFile: 'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx',
-    frame: 'learning-map',
+    frame: 'learning-atlas',
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
@@ -520,7 +614,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]',
     routeFile: 'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]/page.tsx',
-    frame: 'learning-map',
+    frame: 'learning-atlas',
     roleScope: ['student'],
     authState: 'mixed',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
@@ -533,7 +627,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]',
     routeFile: 'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]/page.tsx',
-    frame: 'learning-map',
+    frame: 'learning-atlas',
     roleScope: ['teacher'],
     authState: 'mixed',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
@@ -546,7 +640,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/interactive-learning/courses/unit-5-4-data-driven-mpc-transition',
     routeFile: 'src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx',
-    frame: 'learning-map',
+    frame: 'learning-atlas',
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
@@ -557,7 +651,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/simulations',
     routeFile: 'src/app/simulations/page.tsx',
-    frame: 'immersive-task-workspace',
+    frame: 'mission-workspace',
     roleScope: ['guest', 'student'],
     authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
@@ -575,7 +669,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/simulations/cruise',
     routeFile: 'src/app/simulations/cruise/page.tsx',
-    frame: 'immersive-task-workspace',
+    frame: 'mission-workspace',
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'mixed',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
@@ -597,7 +691,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/arena',
     routeFile: 'src/app/arena/page.tsx',
-    frame: 'immersive-task-workspace',
+    frame: 'mission-workspace',
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
@@ -613,9 +707,35 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     },
   }),
   primaryRoute({
+    href: '/arena/challenges/[taskId]',
+    routeFile: 'src/app/arena/challenges/[taskId]/page.tsx',
+    routePattern: '/arena/challenges/:taskId',
+    coveredRouteGlob: 'src/app/arena/challenges/*/page.tsx',
+    frame: 'mission-workspace',
+    roleScope: ['guest', 'student', 'teacher'],
+    authState: 'mixed',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'collapsed',
+    visualQaProfile: 'immersive',
+    screenshotProfile: 'representative-covered',
+    owningChange: 'unify-arena-workspace-shell',
+    unifiedUiMigrationOwner: MISSION_WORKSPACE_MIGRATION_CHANGE,
+    contextualReturn: {
+      sourceContext: 'arena-challenge',
+      targetHint: 'Return to the Arena challenge list when leaving a challenge detail.',
+      fallbackHref: '/arena',
+    },
+    legacyShell: {
+      component: 'ArenaPageShell',
+      disposition: 'adapted',
+      sourceFile: 'src/features/arena/challenge-detail.tsx',
+      removalCondition: 'Arena challenge detail remains in the approved Arena workspace shell while challenge-local commands move into central route metadata.',
+    },
+  }),
+  primaryRoute({
     href: '/assessment/adaptive-practice',
     routeFile: 'src/app/assessment/adaptive-practice/page.tsx',
-    frame: 'learner-data',
+    frame: 'learning-atlas',
     roleScope: ['guest', 'student'],
     authState: 'mixed',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -626,7 +746,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/interactive-learning/control-workbench',
     routeFile: 'src/app/interactive-learning/control-workbench/page.tsx',
-    frame: 'immersive-task-workspace',
+    frame: 'mission-workspace',
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
@@ -643,7 +763,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/dashboard',
     routeFile: 'src/app/(main)/dashboard/page.tsx',
-    frame: 'learner-data',
+    frame: 'learning-atlas',
     roleScope: ['student'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -655,7 +775,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/profile',
     routeFile: 'src/app/(main)/profile/page.tsx',
-    frame: 'learner-data',
+    frame: 'report-ledger',
     roleScope: ['student', 'teacher', 'admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -668,7 +788,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/profile/growth',
     routeFile: 'src/app/(main)/profile/growth/page.tsx',
-    frame: 'learner-data',
+    frame: 'report-ledger',
     roleScope: ['student', 'teacher', 'admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -679,7 +799,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/profile/portfolio',
     routeFile: 'src/app/(main)/profile/portfolio/page.tsx',
-    frame: 'learner-data',
+    frame: 'report-ledger',
     roleScope: ['student', 'teacher', 'admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -690,7 +810,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/profile/evidence',
     routeFile: 'src/app/(main)/profile/evidence/page.tsx',
-    frame: 'learner-data',
+    frame: 'report-ledger',
     roleScope: ['student', 'teacher', 'admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -701,7 +821,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/data-center',
     routeFile: 'src/app/data-center/page.tsx',
-    frame: 'learner-data',
+    frame: 'knowledge-data-map',
     roleScope: ['student', 'teacher', 'admin'],
     authState: 'protected-redirect',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
@@ -712,7 +832,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/classroom/student/[sessionId]',
     routeFile: 'src/app/classroom/student/[sessionId]/page.tsx',
-    frame: 'immersive-task-workspace',
+    frame: 'mission-workspace',
     roleScope: ['student'],
     authState: 'protected-redirect',
     navigationLayers: ['contextual-workspace', 'local-tool'],
@@ -732,7 +852,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     routeFile: 'src/app/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]/page.tsx',
     routePattern: '/interactive-learning/courses/:course/student/:sessionId',
     coveredRouteGlob: 'src/app/interactive-learning/courses/*/student/[sessionId]/page.tsx',
-    frame: 'immersive-task-workspace',
+    frame: 'mission-workspace',
     roleScope: ['student'],
     authState: 'protected-redirect',
     navigationLayers: ['contextual-workspace', 'local-tool'],
@@ -750,7 +870,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/playlists/[id]/play',
     routeFile: 'src/app/playlists/[id]/play/page.tsx',
-    frame: 'immersive-task-workspace',
+    frame: 'mission-workspace',
     roleScope: ['student', 'teacher'],
     authState: 'protected-redirect',
     navigationLayers: ['contextual-workspace', 'local-tool'],
@@ -768,7 +888,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/teacher',
     routeFile: 'src/app/teacher/page.tsx',
-    frame: 'teacher-operations',
+    frame: 'operations-console',
     roleScope: ['teacher'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -785,7 +905,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/teacher/classes',
     routeFile: 'src/app/teacher/classes/page.tsx',
-    frame: 'teacher-operations',
+    frame: 'operations-console',
     roleScope: ['teacher'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -796,7 +916,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/teacher/classes/[classId]',
     routeFile: 'src/app/teacher/classes/[classId]/page.tsx',
-    frame: 'teacher-operations',
+    frame: 'operations-console',
     roleScope: ['teacher'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -807,7 +927,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/teacher/classes/[classId]/analytics-v2',
     routeFile: 'src/app/teacher/classes/[classId]/analytics-v2/page.tsx',
-    frame: 'teacher-operations',
+    frame: 'operations-console',
     roleScope: ['teacher'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -818,7 +938,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/teacher/classes/[classId]/students/[studentId]',
     routeFile: 'src/app/teacher/classes/[classId]/students/[studentId]/page.tsx',
-    frame: 'teacher-operations',
+    frame: 'operations-console',
     roleScope: ['teacher'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -829,7 +949,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/teacher/classes/[classId]/students/[studentId]/evidence',
     routeFile: 'src/app/teacher/classes/[classId]/students/[studentId]/evidence/page.tsx',
-    frame: 'teacher-operations',
+    frame: 'operations-console',
     roleScope: ['teacher'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -840,7 +960,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/teacher/lesson-plans',
     routeFile: 'src/app/teacher/lesson-plans/page.tsx',
-    frame: 'teacher-operations',
+    frame: 'operations-console',
     roleScope: ['teacher'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -851,7 +971,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/teacher/preset-lessons',
     routeFile: 'src/app/teacher/preset-lessons/page.tsx',
-    frame: 'teacher-operations',
+    frame: 'operations-console',
     roleScope: ['teacher'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -862,7 +982,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/teacher/resources',
     routeFile: 'src/app/teacher/resources/page.tsx',
-    frame: 'teacher-operations',
+    frame: 'operations-console',
     roleScope: ['teacher'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -873,7 +993,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/teacher/resources/resource-nodes',
     routeFile: 'src/app/teacher/resources/resource-nodes/page.tsx',
-    frame: 'teacher-operations',
+    frame: 'operations-console',
     roleScope: ['teacher'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -884,7 +1004,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/teacher/history',
     routeFile: 'src/app/teacher/history/page.tsx',
-    frame: 'teacher-operations',
+    frame: 'operations-console',
     roleScope: ['teacher'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -895,7 +1015,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/teacher/arena',
     routeFile: 'src/app/teacher/arena/page.tsx',
-    frame: 'immersive-task-workspace',
+    frame: 'mission-workspace',
     roleScope: ['teacher'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -905,9 +1025,23 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     owningChange: 'redesign-immersive-learning-workspaces',
   }),
   primaryRoute({
+    href: '/teacher/arena/publications/[publicationId]',
+    routeFile: 'src/app/teacher/arena/publications/[publicationId]/page.tsx',
+    routePattern: '/teacher/arena/publications/:publicationId',
+    frame: 'mission-workspace',
+    roleScope: ['teacher', 'admin'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'immersive',
+    screenshotProfile: 'representative-covered',
+    owningChange: 'redesign-immersive-learning-workspaces',
+    unifiedUiMigrationOwner: MISSION_WORKSPACE_MIGRATION_CHANGE,
+  }),
+  primaryRoute({
     href: '/admin',
     routeFile: 'src/app/admin/page.tsx',
-    frame: 'admin-governance',
+    frame: 'operations-console',
     roleScope: ['admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -924,7 +1058,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/admin/users',
     routeFile: 'src/app/admin/users/page.tsx',
-    frame: 'admin-governance',
+    frame: 'operations-console',
     roleScope: ['admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -941,7 +1075,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/admin/states',
     routeFile: 'src/app/admin/states/page.tsx',
-    frame: 'admin-governance',
+    frame: 'operations-console',
     roleScope: ['admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -958,7 +1092,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/admin/config',
     routeFile: 'src/app/admin/config/page.tsx',
-    frame: 'admin-governance',
+    frame: 'operations-console',
     roleScope: ['admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -975,7 +1109,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/admin/lesson-plans',
     routeFile: 'src/app/admin/lesson-plans/page.tsx',
-    frame: 'admin-governance',
+    frame: 'operations-console',
     roleScope: ['admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -986,7 +1120,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/admin/data-governance',
     routeFile: 'src/app/admin/data-governance/page.tsx',
-    frame: 'admin-governance',
+    frame: 'operations-console',
     roleScope: ['admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
@@ -1003,7 +1137,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/ai',
     routeFile: 'src/app/ai/page.tsx',
-    frame: 'knowledge-graph',
+    frame: 'knowledge-data-map',
     roleScope: ['student', 'teacher', 'admin'],
     authState: 'protected-redirect',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
@@ -1032,7 +1166,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/ai/copilot',
     routeFile: 'src/app/ai/copilot/page.tsx',
-    frame: 'knowledge-graph',
+    frame: 'knowledge-data-map',
     roleScope: ['student', 'teacher', 'admin'],
     authState: 'protected-redirect',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
@@ -1061,7 +1195,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
   primaryRoute({
     href: '/knowledge',
     routeFile: 'src/app/knowledge/page.tsx',
-    frame: 'knowledge-graph',
+    frame: 'knowledge-data-map',
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
