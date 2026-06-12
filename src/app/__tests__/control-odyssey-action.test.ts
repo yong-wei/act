@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
-  getServerAuthSession: vi.fn(),
+  getServerSession: vi.fn(),
   bridgeOdysseyRunToArenaSubmission: vi.fn(),
   getArenaTaskForOdysseyLevel: vi.fn(),
   resolveAccessibleArenaPublicationForStudent: vi.fn(),
@@ -18,13 +18,19 @@ const mocks = vi.hoisted(() => ({
     },
     studentProfile: {
       findUnique: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
       upsert: vi.fn(),
     },
   },
 }));
 
+vi.mock('next-auth', () => ({
+  getServerSession: mocks.getServerSession,
+}));
+
 vi.mock('@/lib/auth', () => ({
-  getServerAuthSession: mocks.getServerAuthSession,
+  authOptions: {},
 }));
 
 vi.mock('@/lib/prisma', () => ({
@@ -55,14 +61,15 @@ vi.mock('@/resources/interactive-learning/control-odyssey/engine/official-simula
   computeOfficialOdysseyTelemetry: mocks.computeOfficialOdysseyTelemetry,
 }));
 
-import { submitGameScore } from '../actions/control-odyssey';
+import { getControlProfile, getLevelLeaderboard, submitGameScore } from '../actions/control-odyssey';
 
 describe('submitGameScore Arena publication bridge', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲' } });
+    mocks.getServerSession.mockResolvedValue({ user: { id: 'student-1', name: '学生甲' } });
     mocks.prisma.mission.findUnique.mockResolvedValue({ id: 'level-1' });
     mocks.prisma.simulationLog.findFirst.mockResolvedValue(null);
+    mocks.prisma.simulationLog.findMany.mockResolvedValue([]);
     mocks.prisma.simulationLog.create.mockResolvedValue({
       id: 'log-1',
       createdAt: new Date('2026-05-15T10:00:00.000Z'),
@@ -73,6 +80,8 @@ describe('submitGameScore Arena publication bridge', () => {
       controlOdysseyProgress: {},
       controlControllerLevels: {},
     });
+    mocks.prisma.studentProfile.create.mockResolvedValue({});
+    mocks.prisma.studentProfile.update.mockResolvedValue({});
     mocks.prisma.studentProfile.upsert.mockResolvedValue({});
     mocks.getArenaTaskForOdysseyLevel.mockReturnValue('task-odyssey-level-one-growth');
     mocks.computeOfficialOdysseyTelemetry.mockReturnValue({
@@ -96,6 +105,69 @@ describe('submitGameScore Arena publication bridge', () => {
       gameScorePreserved: true,
       submission: { id: 'submission-1' },
     });
+  });
+
+  it('rejects unauthenticated score submissions before reading or mutating gameplay state', async () => {
+    mocks.getServerSession.mockResolvedValueOnce(null);
+
+    const result = await submitGameScore('level-1', 820, { settlingTime: 2.8 });
+
+    expect(result).toBeNull();
+    expect(mocks.prisma.mission.findUnique).not.toHaveBeenCalled();
+    expect(mocks.prisma.simulationLog.create).not.toHaveBeenCalled();
+  });
+
+  it('creates fresh default controller state for a missing authenticated profile', async () => {
+    mocks.prisma.studentProfile.findUnique.mockResolvedValueOnce(null);
+
+    const profile = await getControlProfile();
+
+    expect(profile).toMatchObject({
+      credits: 0,
+      unlocks: ['P'],
+      controllerLevels: expect.objectContaining({ P: 1, PID: 0 }),
+    });
+    expect(mocks.prisma.studentProfile.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: 'student-1',
+        controlUnlocks: ['P'],
+        controlControllerLevels: expect.objectContaining({ P: 1, PID: 0 }),
+      }),
+    });
+  });
+
+  it('keeps the public leaderboard readable for unauthenticated visitors', async () => {
+    mocks.getServerSession.mockResolvedValueOnce(null);
+    mocks.prisma.simulationLog.findMany.mockResolvedValueOnce([
+      {
+        userId: 'student-1',
+        score: 910,
+        metrics: { maxOvershoot: 5 },
+        inputParams: { tier: 'gold' },
+        createdAt: new Date('2026-06-12T00:00:00.000Z'),
+        user: {
+          name: '学生甲',
+          image: null,
+          email: 'student@example.com',
+        },
+      },
+    ]);
+
+    const leaderboard = await getLevelLeaderboard('level-1');
+
+    expect(leaderboard).toEqual([
+      expect.objectContaining({
+        rank: 1,
+        userName: '学生甲',
+        score: 910,
+        tier: 'gold',
+      }),
+    ]);
+    expect(mocks.prisma.simulationLog.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        OR: expect.any(Array),
+      }),
+    }));
   });
 
   it('resolves publication context before creating an Odyssey Arena bridge submission', async () => {

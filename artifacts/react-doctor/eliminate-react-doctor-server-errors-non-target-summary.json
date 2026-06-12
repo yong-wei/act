@@ -1,0 +1,17 @@
+{
+  "generatedAt": "2026-06-12T15:34:15.097Z",
+  "command": "npx --yes react-doctor@0.5.1 --no-score --no-telemetry --no-warnings --json .",
+  "targetRules": [
+    "nextjs-no-side-effect-in-get-handler",
+    "server-auth-actions",
+    "server-no-mutable-module-state"
+  ],
+  "targetDiagnosticCount": 0,
+  "nonTargetDiagnosticCount": 206,
+  "nonTargetRuleCounts": {
+    "aria-role": 30,
+    "effect-needs-cleanup": 4,
+    "no-adjust-state-on-prop-change": 170,
+    "no-mutable-in-deps": 2
+  }
+}

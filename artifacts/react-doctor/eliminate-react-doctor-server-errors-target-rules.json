@@ -1,0 +1,11 @@
+{
+  "generatedAt": "2026-06-12T15:34:01.419Z",
+  "command": "npx --yes react-doctor@0.5.1 --no-score --no-telemetry --no-warnings --json .",
+  "targetRules": [
+    "nextjs-no-side-effect-in-get-handler",
+    "server-auth-actions",
+    "server-no-mutable-module-state"
+  ],
+  "targetDiagnosticCount": 0,
+  "diagnostics": []
+}
