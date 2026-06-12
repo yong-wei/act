@@ -811,7 +811,7 @@
           "theme": "light",
           "role": "guest",
           "authState": "public",
-          "navigationState": "workspace-command-surface"
+          "navigationState": "mobile-drawer"
         },
         {
           "width": 1440,
@@ -1210,7 +1210,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "workspace-command-surface"
+          "navigationState": "mobile-drawer"
         },
         {
           "width": 1440,
@@ -1279,7 +1279,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "workspace-command-surface"
+          "navigationState": "mobile-drawer"
         },
         {
           "width": 1440,
@@ -4428,7 +4428,7 @@
               "note": "Challenge detail keeps official evaluation context and leaderboard/status evidence visible; local unauthenticated event POST 401 is classified separately in the artifact manifest."
             }
           ],
-          "navigationState": "workspace-command-surface"
+          "navigationState": "mobile-drawer"
         },
         {
           "width": 1440,
@@ -4528,7 +4528,7 @@
               "note": "Challenge detail keeps official evaluation context and leaderboard/status evidence visible; local unauthenticated event POST 401 is classified separately in the artifact manifest."
             }
           ],
-          "navigationState": "workspace-command-surface"
+          "navigationState": "mobile-drawer"
         },
         {
           "width": 1440,

@@ -539,10 +539,21 @@ describe('platform role navigation', () => {
       href: '/arena/challenges/[taskId]',
       routePattern: '/arena/challenges/:taskId',
       frame: 'mission-workspace',
+      mobileNavigation: 'drawer',
       contextualReturn: {
         sourceContext: 'arena-challenge',
         fallbackHref: '/arena',
       },
+    });
+    expect(resolvePlatformRouteInventory('/arena')).toMatchObject({
+      href: '/arena',
+      frame: 'mission-workspace',
+      mobileNavigation: 'drawer',
+    });
+    expect(resolvePlatformRouteInventory('/interactive-learning/control-workbench')).toMatchObject({
+      href: '/interactive-learning/control-workbench',
+      frame: 'mission-workspace',
+      mobileNavigation: 'drawer',
     });
   });
 

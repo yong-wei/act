@@ -640,6 +640,34 @@ describe('commercial UI governance', () => {
     );
   });
 
+  it('requires mobile drawer evidence for adapted mission workspace shells', () => {
+    const visualEvidence = completeVisualEvidence().map((entry) => {
+      if (entry.href !== '/interactive-learning/control-workbench') return entry;
+      return {
+        ...entry,
+        viewports: entry.viewports.map((viewport) => (
+          viewport.width === 320
+            ? { ...viewport, navigationState: 'workspace-command-surface' as const }
+            : viewport
+        )),
+      };
+    });
+
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'visual-acceptance',
+          rule: 'visual-acceptance.incomplete-navigation-state-evidence',
+          path: '/interactive-learning/control-workbench',
+          evidence: expect.arrayContaining(['width=320:navigationState=mobile-drawer']),
+        }),
+      ]),
+    );
+  });
+
   it('uses route aliases when validating mobile navigation state evidence', () => {
     const visualEvidence = completeVisualEvidence().map((entry) => {
       if (entry.href !== '/login?callbackUrl=%2Fprofile') return entry;
