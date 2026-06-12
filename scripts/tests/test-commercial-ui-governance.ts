@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import {
+  DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX,
   DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES,
   PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX,
   evaluateCommercialUiGovernance,
@@ -15,6 +16,7 @@ import {
   type CommercialStatusVocabularyInventoryEntry,
   type CommercialUiGovernanceViolation,
   type CommercialVisualAcceptanceEvidence,
+  type CommercialSecondaryRouteGovernanceEntry,
 } from '../../src/lib/commercial-ui-governance';
 import {
   COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS,
@@ -332,6 +334,7 @@ function affectedVisualRoutes(files: string[]): CommercialVisualAcceptanceRoute[
     if (
       file === 'src/app/globals.css'
       || file === 'src/components/platform/app-shell.tsx'
+      || file === 'src/lib/commercial-ui-governance.ts'
       || file === 'artifacts/commercial-ui/evidence.json'
     ) {
       addDefaultMatrix();
@@ -395,6 +398,16 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
   }));
 }
 
+export function buildSecondaryRouteGovernanceMatrixFromEvidence(
+  visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
+): CommercialSecondaryRouteGovernanceEntry[] {
+  return DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX.flatMap((expected) => {
+    const routeEvidence = visualEvidence.find((entry) => entry.href === expected.href);
+    const manifestEntries = routeEvidence?.secondaryRouteGovernance?.filter((entry) => entry.role === expected.role) ?? [];
+    return manifestEntries;
+  });
+}
+
 function readAccessibilityEvidenceManifest(routes: readonly CommercialVisualAcceptanceRoute[]): CommercialAccessibilityTextFitEvidence[] {
   const visualEvidence = readVisualEvidenceManifest();
   return routes.map((route) => {
@@ -422,6 +435,7 @@ function readAccessibilityEvidenceManifest(routes: readonly CommercialVisualAcce
 
 const files = changedFiles();
 const requiredVisualRoutes = affectedVisualRoutes(files);
+const visualEvidence = readVisualEvidenceManifest();
 function changedPrimaryRouteInventoryHrefs() {
   const hrefs = new Set<string>();
   let blockChanged = false;
@@ -506,11 +520,12 @@ const result = evaluateCommercialUiGovernance({
   moduleChromeInventory: buildModuleChromeInventory(files),
   statusInventory: buildStatusInventory(files),
   navigationCoverage: buildNavigationCoverage(),
-  visualEvidence: readVisualEvidenceManifest(),
+  visualEvidence,
   accessibilityEvidence: readAccessibilityEvidenceManifest(requiredVisualRoutes),
   requiredVisualRoutes,
   routeInventory: routeInventoryForGate,
   visualRouteInventory: visualRouteInventoryForGate,
+  secondaryRouteGovernanceMatrix: buildSecondaryRouteGovernanceMatrixFromEvidence(visualEvidence),
   premiumVisualQaMatrix: PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.filter((route) => (
     requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
   )),

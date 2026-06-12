@@ -4,6 +4,8 @@ import { join } from 'node:path';
 
 import {
   COMMERCIAL_ROUTE_INVENTORY_VISUAL_ACCEPTANCE_ROUTES,
+  DEFAULT_SECONDARY_NAVIGATION_DEPENDENCIES,
+  DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX,
   DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES,
   PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX,
   evaluateCommercialUiGovernance,
@@ -22,6 +24,7 @@ import {
   STUDENT_CORE_ENTRY_IDS,
   STUDENT_LEARNING_INTENT_GROUPS,
 } from '@/lib/platform-role-navigation';
+import { buildSecondaryRouteGovernanceMatrixFromEvidence } from '../../../scripts/tests/test-commercial-ui-governance';
 
 const today = '2026-05-31';
 
@@ -202,6 +205,7 @@ describe('commercial UI governance', () => {
       '/dashboard',
       '/profile',
       '/data-center',
+      '/data-center',
       '/teacher',
       '/teacher',
       '/teacher/classes/[classId]/analytics-v2',
@@ -223,6 +227,7 @@ describe('commercial UI governance', () => {
       '/dashboard',
       '/profile',
       '/data-center',
+      '/data-center',
       '/teacher',
       '/teacher/classes/[classId]/analytics-v2',
       '/admin',
@@ -238,13 +243,81 @@ describe('commercial UI governance', () => {
       '/dashboard',
       '/profile',
       '/data-center',
+      '/data-center',
       '/teacher',
       '/teacher/classes/[classId]/analytics-v2',
       '/admin',
       '/admin/data-governance',
     ]);
+    expect(PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.filter((route) => route.href === '/data-center').map((route) => route.role)).toEqual([
+      'teacher',
+      'admin',
+    ]);
     expect(DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES.map((route) => route.href)).toEqual(
       expect.arrayContaining(PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.map((route) => route.href)),
+    );
+  });
+
+  it('defines a secondary navigation governance matrix for migrated route families and data-center role states', () => {
+    expect(DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX.map((entry) => `${entry.href}::${entry.role}`)).toEqual([
+      '/arena::student',
+      '/arena/challenges/[taskId]::guest',
+      '/interactive-learning/control-workbench::student',
+      '/interactive-learning::student',
+      '/interactive-learning/courses::student',
+      '/interactive-learning/chapter-components::student',
+      '/interactive-learning/cross-domain-exploration::student',
+      '/assessment/adaptive-practice::student',
+      '/knowledge::student',
+      '/data-center::teacher',
+      '/data-center::admin',
+    ]);
+    expect(DEFAULT_SECONDARY_NAVIGATION_DEPENDENCIES.every((dependency) => dependency.status === 'complete')).toBe(true);
+    expect(DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX.find((entry) => entry.href === '/knowledge')?.localPanels).toEqual(
+      expect.arrayContaining([
+        { id: 'chapter-directory', disposition: 'local-tool' },
+        { id: 'graph-filters', disposition: 'local-tool' },
+        { id: 'graph-legend', disposition: 'local-tool' },
+        { id: 'node-resource-panel', disposition: 'local-tool' },
+      ]),
+    );
+    expect(DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX.filter((entry) => entry.role === 'student').every((entry) => (
+      entry.forbiddenEntries?.includes('/data-center')
+    ))).toBe(true);
+  });
+
+  it('does not synthesize secondary governance entries from viewport evidence alone', () => {
+    const matrix = buildSecondaryRouteGovernanceMatrixFromEvidence([{
+      href: '/interactive-learning',
+      viewports: [{
+        width: 1440,
+        role: 'student',
+        requestedRoute: '/interactive-learning',
+        result: 'passed',
+        routeFile: 'src/app/interactive-learning/page.tsx',
+        routeArchetype: 'learning-atlas',
+        theme: 'light',
+        mobileNavigation: 'workspace-command-surface',
+        localPanelEvidence: {
+          workspaceCommandSurface: true,
+        },
+      }],
+    }]);
+
+    expect(matrix).toEqual([]);
+    const result = evaluateCommercialUiGovernance(baseInput({
+      secondaryRouteGovernanceMatrix: matrix,
+    }));
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'secondary-navigation',
+          rule: 'secondary-navigation.incomplete-route-matrix',
+          path: '/interactive-learning',
+          evidence: expect.arrayContaining(['routeRole=/interactive-learning::student']),
+        }),
+      ]),
     );
   });
 
@@ -1027,6 +1100,365 @@ describe('commercial UI governance', () => {
         'navigation.intent-coverage',
         'navigation.core-destination-coverage',
         'navigation.alias-coverage',
+      ]),
+    );
+  });
+
+  it('fails when student navigation or secondary route evidence exposes data center', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      navigationCoverage: {
+        ...fullNavigationCoverage,
+        hrefs: [...fullNavigationCoverage.hrefs, '/data-center'],
+      },
+      secondaryRouteGovernanceMatrix: DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX.map((entry) => (
+        entry.href === '/interactive-learning'
+          ? {
+              ...entry,
+              observedNavigationHrefs: [...(entry.observedNavigationHrefs ?? []), '/data-center'],
+            }
+          : entry
+      )),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'secondary-navigation',
+          rule: 'secondary-navigation.student-data-center-exposure',
+          path: 'src/lib/platform-role-navigation.ts',
+          evidence: expect.arrayContaining(['/data-center']),
+        }),
+        expect.objectContaining({
+          category: 'secondary-navigation',
+          rule: 'secondary-navigation.student-data-center-exposure',
+          path: '/interactive-learning',
+          evidence: expect.arrayContaining(['role=student', '/data-center']),
+        }),
+      ]),
+    );
+  });
+
+  it('fails when the secondary route matrix omits a required route role state', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      secondaryRouteGovernanceMatrix: DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX.filter((entry) => (
+        !(entry.href === '/data-center' && entry.role === 'admin')
+      )),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'secondary-navigation',
+          rule: 'secondary-navigation.incomplete-route-matrix',
+          path: '/data-center',
+          evidence: expect.arrayContaining(['routeRole=/data-center::admin']),
+        }),
+      ]),
+    );
+  });
+
+  it('fails when a migrated first-hop destination falls back to a legacy topbar', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      secondaryRouteGovernanceMatrix: DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX.map((entry) => (
+        entry.href === '/interactive-learning'
+          ? {
+              ...entry,
+              primaryNextAction: {
+                href: '/interactive-learning/chapter-components',
+                shellType: 'legacy-topbar' as const,
+                migrationState: 'migrated' as const,
+                usesLegacyTopbar: true,
+              },
+            }
+          : entry
+      )),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'secondary-navigation',
+          rule: 'secondary-navigation.incomplete-route-matrix',
+          path: '/interactive-learning',
+          evidence: expect.arrayContaining([
+            'role=student',
+            'next=/interactive-learning/chapter-components',
+            'firstHop.exceptionOwner',
+            'firstHop.removalCondition',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails when knowledge graph local panels are registered as platform navigation', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      secondaryRouteGovernanceMatrix: DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX.map((entry) => (
+        entry.href === '/knowledge'
+          ? {
+              ...entry,
+              localPanels: [
+                { id: 'chapter-directory', disposition: 'platform-navigation' as const },
+                { id: 'graph-filters', disposition: 'local-tool' as const },
+                { id: 'graph-legend', disposition: 'local-tool' as const },
+              ],
+            }
+          : entry
+      )),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'secondary-navigation',
+          rule: 'secondary-navigation.local-tool-boundary',
+          path: '/knowledge',
+          evidence: expect.arrayContaining([
+            'role=student',
+            'localTool=node-resource-panel',
+            'chapter-directory:platform-navigation',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('keeps secondary route drift advisory until upstream migration dependencies complete', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      secondaryRouteDependencies: DEFAULT_SECONDARY_NAVIGATION_DEPENDENCIES.map((dependency) => (
+        dependency.change === 'migrate-knowledge-map-to-unified-shell-panels'
+          ? { ...dependency, status: 'active' as const }
+          : dependency
+      )),
+      secondaryRouteGovernanceMatrix: DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX.map((entry) => (
+        entry.href === '/knowledge'
+          ? {
+              ...entry,
+              localPanels: [{ id: 'chapter-directory', disposition: 'platform-navigation' as const }],
+            }
+          : entry
+      )),
+    }));
+
+    expect(result.passed).toBe(true);
+    expect(result.violations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'secondary-navigation',
+          rule: 'secondary-navigation.local-tool-boundary',
+          path: '/knowledge',
+          enforcement: 'advisory',
+        }),
+      ]),
+    );
+    expect(result.blockingViolations).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'secondary-navigation',
+          path: '/knowledge',
+        }),
+      ]),
+    );
+  });
+
+  it('keeps migrated routes blocking when an unrelated upstream dependency is active', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      secondaryRouteDependencies: DEFAULT_SECONDARY_NAVIGATION_DEPENDENCIES.map((dependency) => (
+        dependency.change === 'migrate-knowledge-map-to-unified-shell-panels'
+          ? { ...dependency, status: 'active' as const }
+          : dependency
+      )),
+      secondaryRouteGovernanceMatrix: DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX.map((entry) => (
+        entry.href === '/interactive-learning'
+          ? {
+              ...entry,
+              observedNavigationHrefs: ['/data-center'],
+            }
+          : entry
+      )),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'secondary-navigation',
+          rule: 'secondary-navigation.student-data-center-exposure',
+          path: '/interactive-learning',
+          enforcement: 'blocking',
+        }),
+      ]),
+    );
+  });
+
+  it('keeps missing migrated route role states blocking when an unrelated dependency is active', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      secondaryRouteDependencies: DEFAULT_SECONDARY_NAVIGATION_DEPENDENCIES.map((dependency) => (
+        dependency.change === 'migrate-knowledge-map-to-unified-shell-panels'
+          ? { ...dependency, status: 'active' as const }
+          : dependency
+      )),
+      secondaryRouteGovernanceMatrix: DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX.filter((entry) => (
+        !(entry.href === '/interactive-learning' && entry.role === 'student')
+      )),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'secondary-navigation',
+          rule: 'secondary-navigation.incomplete-route-matrix',
+          path: '/interactive-learning',
+          enforcement: 'blocking',
+          evidence: expect.arrayContaining(['routeRole=/interactive-learning::student']),
+        }),
+      ]),
+    );
+  });
+
+  it('blocks stale blocked-by-upstream routes once their dependencies are complete', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      secondaryRouteGovernanceMatrix: DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX.map((entry) => (
+        entry.href === '/interactive-learning'
+          ? {
+              ...entry,
+              migrationState: 'blocked-by-upstream' as const,
+              observedNavigationHrefs: ['/data-center'],
+            }
+          : entry
+      )),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'secondary-navigation',
+          rule: 'secondary-navigation.student-data-center-exposure',
+          path: '/interactive-learning',
+          enforcement: 'blocking',
+        }),
+      ]),
+    );
+  });
+
+  it('fails active secondary route exceptions without owner, expiry, and removal condition', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      secondaryRouteGovernanceMatrix: DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX.map((entry) => (
+        entry.href === '/interactive-learning'
+          ? {
+              ...entry,
+              migrationState: 'active-exception' as const,
+            }
+          : entry
+      )),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'secondary-navigation',
+          rule: 'secondary-navigation.incomplete-route-matrix',
+          path: '/interactive-learning',
+          evidence: expect.arrayContaining(['exceptionOwner', 'exceptionExpiresOn', 'exceptionRemovalCondition']),
+          enforcement: 'blocking',
+        }),
+      ]),
+    );
+  });
+
+  it('fails expired active secondary route exceptions', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      secondaryRouteGovernanceMatrix: DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX.map((entry) => (
+        entry.href === '/interactive-learning'
+          ? {
+              ...entry,
+              migrationState: 'active-exception' as const,
+              exceptionOwner: 'platform-ui',
+              exceptionExpiresOn: '2020-01-01',
+              exceptionRemovalCondition: 'Interactive Learning returns to unified shell evidence.',
+            }
+          : entry
+      )),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'secondary-navigation',
+          rule: 'secondary-navigation.incomplete-route-matrix',
+          path: '/interactive-learning',
+          evidence: expect.arrayContaining(['exceptionExpiresOn=expired']),
+          enforcement: 'blocking',
+        }),
+      ]),
+    );
+  });
+
+  it('fails legacy first-hop exceptions without a removal condition', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      secondaryRouteGovernanceMatrix: DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX.map((entry) => (
+        entry.href === '/interactive-learning'
+          ? {
+              ...entry,
+              primaryNextAction: {
+                href: '/interactive-learning/chapter-components',
+                shellType: 'legacy-topbar' as const,
+                migrationState: 'migrated' as const,
+                usesLegacyTopbar: true,
+                exceptionOwner: 'platform-ui',
+              },
+            }
+          : entry
+      )),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'secondary-navigation',
+          rule: 'secondary-navigation.incomplete-route-matrix',
+          path: '/interactive-learning',
+          evidence: expect.arrayContaining(['firstHop.removalCondition']),
+          enforcement: 'blocking',
+        }),
+      ]),
+    );
+  });
+
+  it('accepts removal-bound legacy first-hop exceptions', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      secondaryRouteGovernanceMatrix: DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX.map((entry) => (
+        entry.href === '/interactive-learning'
+          ? {
+              ...entry,
+              primaryNextAction: {
+                href: '/interactive-learning/chapter-components',
+                shellType: 'legacy-topbar' as const,
+                migrationState: 'migrated' as const,
+                usesLegacyTopbar: true,
+                exceptionOwner: 'platform-ui',
+                removalCondition: 'Chapter components first-hop enters the unified shell.',
+              },
+            }
+          : entry
+      )),
+    }));
+
+    expect(result.blockingViolations).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'secondary-navigation',
+          path: '/interactive-learning',
+        }),
       ]),
     );
   });
