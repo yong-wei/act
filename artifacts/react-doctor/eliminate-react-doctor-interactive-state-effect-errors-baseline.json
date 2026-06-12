@@ -1,0 +1,13 @@
+{
+  "command": "npm run test:react-doctor:ui-errors",
+  "scope": "src/features/interactive/",
+  "targetRules": [
+    "effect-needs-cleanup",
+    "no-adjust-state-on-prop-change",
+    "no-mutable-in-deps"
+  ],
+  "count": 0,
+  "byRule": {},
+  "diagnostics": [],
+  "totalDiagnostics": 62
+}

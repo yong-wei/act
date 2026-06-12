@@ -1,7 +1,7 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-06-12
+最后更新: 2026-06-13
 摘要: 初始化时优先读取的最近上下文入口。当前项目已经从早期精品互动课制作阶段，推进到统一平台壳层、标准互动课、控制工作台、Arena、数据治理、智能助教和 React Doctor 治理并行建设阶段；`act-resource` 是永久资源工作树，不再为同一任务嵌套创建工作树。
 上游:
 - [00-index.md](00-index.md)
@@ -18,7 +18,7 @@
 
 - 2026-06-12 当前工作树 `act-resource` 绑定本地 `resource` 分支并跟踪 `origin/integration`，用于课程资源制作和资源相关开发。它是永久隔离工作树，在其中工作时不要再为同一任务创建第二层 worktree。
 
-- 2026-06-12 当前 active OpenSpec 已收束为 React Doctor 错误清理和统一 UI 治理门禁：shared state/effect、server errors、aria role errors 已归档，interactive state/effect、resource state/effect 和 `harden-unified-ui-governance-gates` 仍在推进。控制校正与智能助教系列中的多项能力已经进入 specs 和实现。
+- 2026-06-13 当前 active OpenSpec 已收束为 React Doctor 错误清理和统一 UI 治理门禁：server errors、aria role errors、shared state/effect、interactive state/effect 已归档，resource state/effect 和 `harden-unified-ui-governance-gates` 仍在推进。控制校正与智能助教系列中的多项能力已经进入 specs 和实现。
 
 - 2026-06-12 平台 UI 已从分散页面推进到 `AppShell`、角色导航、状态证据组件和页面族治理。`src/lib/platform-role-navigation.ts` 现在覆盖课程、任务空间、数据中心、教师治理、Arena/控制工作台等入口。`AppShell` 在测试中会被纯函数调用，顶层不要直接引入 runtime hook。
 
