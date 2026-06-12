@@ -218,6 +218,27 @@ Commercial UI governance SHALL require structured visual evidence for migrated r
 - **WHEN** a shared shell, mission workspace, learner/knowledge/data surface, operations console, or report ledger is changed
 - **THEN** evidence SHALL cover the applicable light theme, dark theme, desktop expanded navigation, desktop collapsed navigation, mobile drawer, 320px mobile layout, dock non-overlap, and first-viewport task visibility states.
 
+### Requirement: Navigation role boundaries are governed
+Commercial UI governance SHALL verify that role-scoped navigation does not expose operations-only destinations to students.
+
+#### Scenario: Student navigation evidence is checked
+- **WHEN** student navigation, student secondary route evidence, or public-to-student entry evidence is generated
+- **THEN** governance SHALL reject visible Data Center entries and `/data-center` links
+- **AND** learner record, evidence, or profile destinations SHALL be used for student review flows instead of Data Center.
+
+#### Scenario: Interactive Learning journey evidence is checked
+- **WHEN** Interactive Learning entry evidence includes direct links to chapter components or cross-domain exploration
+- **THEN** governance SHALL verify those destinations use the same unified shell family or have a narrow active exception
+- **AND** a migrated entry route SHALL NOT be accepted if its first student action falls back to a legacy page-local topbar.
+
+### Requirement: Local tools do not become platform navigation
+Commercial UI governance SHALL distinguish platform navigation from local workspace tools.
+
+#### Scenario: Knowledge or data workspace evidence is checked
+- **WHEN** knowledge graph, data center, report, or workspace routes expose filters, legends, chapter directories, source selectors, or node panels
+- **THEN** those controls SHALL be marked and tested as local tools or panels
+- **AND** local tools SHALL NOT count as platform navigation or introduce a competing shell style.
+
 ### Requirement: React Doctor error checks remain local
 Commercial UI governance SHALL support local-only React Doctor error-level checks for migrated UI surfaces without requiring GitHub Actions.
 
