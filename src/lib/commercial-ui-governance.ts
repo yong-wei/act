@@ -25,6 +25,7 @@ export type CommercialUiGovernanceRule =
   | 'visual-acceptance.incomplete-evidence'
   | 'visual-acceptance.incomplete-premium-theme-evidence'
   | 'visual-acceptance.incomplete-manifest-metadata'
+  | 'visual-acceptance.incomplete-navigation-state-matrix'
   | 'visual-acceptance.route-inventory-drift'
   | 'route-ledger.incomplete-primary-route'
   | 'route-ledger.outdated-archetype'
@@ -110,6 +111,7 @@ export interface CommercialVisualAcceptanceRoute {
 export type CommercialVisualQaTheme = 'light' | 'dark';
 export type CommercialVisualQaRole = 'guest' | 'student' | 'teacher' | 'admin';
 export type CommercialVisualQaAuthState = 'public' | 'auth-entry' | 'authenticated' | 'unauth-redirect-fallback';
+export type CommercialVisualNavigationState = 'expanded' | 'collapsed' | 'drawer' | 'hidden' | 'not-applicable';
 
 export interface CommercialPremiumVisualQaRoute {
   href: string;
@@ -132,6 +134,9 @@ export interface CommercialViewportVisualEvidence {
   routeFile?: string;
   routeArchetype?: PlatformPrimaryRouteFrame | string;
   dockState?: CommercialPremiumVisualQaRoute['floatingDock'] | PlatformFloatingDockRouteBehavior;
+  navigationState?: CommercialVisualNavigationState;
+  runId?: string;
+  capturedAt?: string;
   result?: 'passed' | 'failed';
   screenshot?: string;
   artifact?: string;
@@ -473,6 +478,52 @@ function withCategory(violation: CommercialUiGovernanceViolation): CommercialUiG
   };
 }
 
+function remediationForRule(rule: CommercialUiGovernanceRule) {
+  if (rule.startsWith('route-ledger.')) {
+    return 'Update src/lib/platform-role-navigation.ts route metadata or declare a temporary exception with owner, expiry, and removal condition.';
+  }
+  if (rule.startsWith('visual-acceptance.')) {
+    return 'Refresh artifacts/commercial-ui/evidence.json with structured route, viewport, theme, auth, navigation, dock, and result evidence.';
+  }
+  if (rule.startsWith('mobile-structure.')) {
+    return 'Capture 320px evidence proving secondary shell panels move into mobile drawer, sheet, tab, or command surfaces.';
+  }
+  if (rule.startsWith('report-export.')) {
+    return 'Capture report-ledger evidence for watermark, privacy scope, source quality, readability, and export readiness.';
+  }
+  if (rule.startsWith('accessibility-text-fit.')) {
+    return 'Refresh accessibility/text-fit evidence for the named route and viewport.';
+  }
+  if (rule.startsWith('shell.')) {
+    return 'Migrate the page to AppShell or register a route-level legacy shell disposition with a removal condition.';
+  }
+  return 'Fix the named governance rule or add a scoped, temporary allowlist entry with owner and removal condition.';
+}
+
+function routeOwnerForViolation(
+  violation: CommercialUiGovernanceViolation,
+  routeInventory: readonly PlatformPrimaryRouteInventoryEntry[],
+) {
+  const route = routeInventory.find((entry) => entry.href === violation.path);
+  return route?.unifiedUiMigrationOwner
+    ?? route?.exception?.owner
+    ?? route?.legacyShell?.owningChange
+    ?? route?.owningChange
+    ?? 'unowned';
+}
+
+function withActionableMessage(
+  violation: CommercialUiGovernanceViolation,
+  routeInventory: readonly PlatformPrimaryRouteInventoryEntry[],
+) {
+  const owner = routeOwnerForViolation(violation, routeInventory);
+  const remediation = remediationForRule(violation.rule);
+  return {
+    ...violation,
+    message: `${violation.message} Route or path: ${violation.path}. Rule: ${violation.rule}. Owner: ${owner}. Remediation: ${remediation}`,
+  };
+}
+
 function allowlistMatches(violation: CommercialUiGovernanceViolation, entry: CommercialUiGovernanceAllowlistEntry) {
   const pathMatches = entry.path === violation.path || violation.path.startsWith(`${entry.path}/`);
   const evidenceMatches = !entry.evidence || (
@@ -494,6 +545,11 @@ function isValidIsoCalendarDate(raw: string) {
     && date.getUTCMonth() === month - 1
     && date.getUTCDate() === day
   );
+}
+
+function isValidIsoTimestamp(raw: string) {
+  const timestamp = Date.parse(raw);
+  return Number.isFinite(timestamp) && raw.includes('T');
 }
 
 function allowlistEntryMissingFields(entry: CommercialUiGovernanceAllowlistEntry, today?: string) {
@@ -854,7 +910,10 @@ function buildVisualManifestMetadataViolations(
         !viewport.theme ? 'theme' : '',
         !viewport.role ? 'role' : '',
         !viewport.authState ? 'authState' : '',
+        !viewport.navigationState ? 'navigationState' : '',
         !viewport.finalUrl ? 'finalUrl' : '',
+        !viewport.runId && !viewport.capturedAt ? 'runId or capturedAt' : '',
+        viewport.capturedAt && !isValidIsoTimestamp(viewport.capturedAt) ? 'capturedAt=ISO timestamp' : '',
         viewport.result !== 'passed' ? 'result=passed' : '',
         !viewport.firstViewportTaskVisible ? 'firstViewportTaskVisible' : '',
       ].filter(Boolean);
@@ -868,6 +927,52 @@ function buildVisualManifestMetadataViolations(
         : [];
     });
   });
+}
+
+function routeRequiresNavigationStateMatrix(route: PlatformPrimaryRouteInventoryEntry) {
+  return (
+    route.frame === 'mission-workspace'
+    && route.floatingDock !== 'hidden'
+    && route.shellMigrationDisposition === 'adapted'
+    && route.legacyShell?.disposition !== 'scheduled-replacement'
+    && route.legacyShell?.disposition !== 'retained-temporary'
+    && !route.exception
+  );
+}
+
+function buildNavigationStateMatrixViolations(
+  routeInventory: readonly PlatformPrimaryRouteInventoryEntry[],
+  visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
+) {
+  return routeInventory
+    .filter(routeRequiresNavigationStateMatrix)
+    .flatMap((route) => {
+      const routeEvidence = visualEvidence.find((entry) => entry.href === route.href);
+      if (!routeEvidence) return [];
+      const expected = route.themeSupport.flatMap((theme) => [
+        { width: 1440, theme, navigationState: 'expanded' as const },
+        { width: 1440, theme, navigationState: 'collapsed' as const },
+        { width: 320, theme, navigationState: 'drawer' as const },
+      ]);
+      const missing = expected
+        .filter((state) => !routeEvidence.viewports.some((viewport) => (
+          viewport.width === state.width
+          && viewport.theme === state.theme
+          && viewport.navigationState === state.navigationState
+          && viewport.result === 'passed'
+          && Boolean(viewport.screenshot || viewport.artifact)
+        )))
+        .map((state) => `${state.theme}:${state.width}:${state.navigationState}`);
+
+      return missing.length > 0
+        ? [withCategory({
+            path: route.href,
+            rule: 'visual-acceptance.incomplete-navigation-state-matrix',
+            message: 'Visual QA evidence is missing required workspace shell navigation states.',
+            evidence: missing,
+          })]
+        : [];
+    });
 }
 
 function buildMobileStructureViolations(visualEvidence: readonly CommercialVisualAcceptanceEvidence[]) {
@@ -994,6 +1099,7 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
     ...buildVisualViolations(requiredVisualRoutes, input.visualEvidence),
     ...buildPremiumVisualQaViolations(premiumVisualQaMatrix, input.visualEvidence),
     ...buildVisualManifestMetadataViolations(visualRouteInventory, premiumVisualQaMatrix, input.visualEvidence),
+    ...buildNavigationStateMatrixViolations(visualRouteInventory, input.visualEvidence),
     ...buildMobileStructureViolations(input.visualEvidence),
     ...buildReportExportViolations(reportSurfaceInventory, input.visualEvidence),
     ...buildAccessibilityViolations(
@@ -1001,7 +1107,8 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
       input.accessibilityEvidence,
     ),
   ];
-  const violations = rawViolations.map((violation) => {
+  const actionableViolations = rawViolations.map((violation) => withActionableMessage(violation, routeInventory));
+  const violations = actionableViolations.map((violation) => {
     const matchedAllowlist = allowlist.find((entry) => allowlistMatches(violation, entry));
     const allowlisted = matchedAllowlist && allowlistEntryMissingFields(matchedAllowlist, input.today).length === 0;
     return allowlisted

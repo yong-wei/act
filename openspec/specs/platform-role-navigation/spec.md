@@ -288,3 +288,11 @@ Canonical archetype migration SHALL preserve existing route access, role routing
 - **THEN** the resolved route metadata SHALL preserve the existing destination intent
 - **AND** no page SHALL require page-local navigation lists to override the central route ledger.
 
+### Requirement: Route ledger exposes governance inputs
+The central route ledger SHALL expose the metadata needed by unified UI governance gates.
+
+#### Scenario: Governance reads the route ledger
+- **WHEN** commercial UI governance evaluates a primary route
+- **THEN** it SHALL be able to read archetype, owning change, temporary exception, legacy alias, legacy shell disposition, theme support, dock behavior, navigation layers, and visual QA profile from central route metadata
+- **AND** governance SHALL not depend on scattered page-local declarations for those fields.
+

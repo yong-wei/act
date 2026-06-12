@@ -32,11 +32,39 @@ const fullNavigationCoverage: CommercialNavigationCoverageInput = {
   cockpitHref: PLATFORM_PROFILE_AND_COCKPIT_ACTIONS.find((action) => action.audience === 'student')?.cockpitHref,
 };
 
+function routeRequiresNavigationStateMatrix(href: string) {
+  const route = PLATFORM_PRIMARY_ROUTE_INVENTORY.find((entry) => entry.href === href);
+  return Boolean(
+    route
+    && route.frame === 'mission-workspace'
+    && route.floatingDock !== 'hidden'
+    && route.shellMigrationDisposition === 'adapted'
+    && route.legacyShell?.disposition !== 'scheduled-replacement'
+    && route.legacyShell?.disposition !== 'retained-temporary'
+    && !route.exception,
+  );
+}
+
+function addCollapsedNavigationEvidence(
+  href: string,
+  viewports: CommercialVisualAcceptanceEvidence['viewports'],
+): CommercialVisualAcceptanceEvidence['viewports'] {
+  if (!routeRequiresNavigationStateMatrix(href)) return viewports;
+  const collapsedViewports = viewports
+    .filter((viewport) => viewport.width === 1440 && viewport.navigationState === 'expanded')
+    .map((viewport) => ({
+      ...viewport,
+      navigationState: 'collapsed' as const,
+      screenshot: String(viewport.screenshot ?? '').replace('-1440.png', '-collapsed-1440.png'),
+    }));
+  return [...viewports, ...collapsedViewports];
+}
+
 function completeVisualEvidence(): CommercialVisualAcceptanceEvidence[] {
-  return DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES.map((route) => ({
-    href: route.href,
-    viewports: (PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.some((entry) => entry.href === route.href)
-      ? PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.filter((entry) => entry.href === route.href).flatMap((premiumRoute) => (
+  return DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES.map((route) => {
+    const premiumRoutes = PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.filter((entry) => entry.href === route.href);
+    const viewports = premiumRoutes.length > 0
+      ? premiumRoutes.flatMap((premiumRoute) => (
           premiumRoute.requiredThemes.flatMap((theme) => premiumRoute.requiredWidths.map((width) => ({
             width,
             theme,
@@ -49,6 +77,11 @@ function completeVisualEvidence(): CommercialVisualAcceptanceEvidence[] {
             routeFile: premiumRoute.routeFile,
             routeArchetype: PLATFORM_PRIMARY_ROUTE_INVENTORY.find((inventoryRoute) => inventoryRoute.href === route.href)?.frame,
             dockState: premiumRoute.floatingDock,
+            navigationState: width === 320
+              ? (premiumRoute.href === '/login' ? 'not-applicable' as const : 'drawer' as const)
+              : premiumRoute.floatingDock === 'hidden' ? 'hidden' as const : 'expanded' as const,
+            runId: 'unit-commercial-governance',
+            capturedAt: '2026-05-31T00:00:00Z',
             result: 'passed' as const,
             screenshot: `artifacts/commercial-ui/${route.href.replace(/[^a-z0-9]+/gi, '-')}-${premiumRoute.acceptedAuthState}-${theme}-${width}.png`,
             firstViewportUseful: true,
@@ -90,6 +123,9 @@ function completeVisualEvidence(): CommercialVisualAcceptanceEvidence[] {
         routeFile: inventoryRoute?.routeFile,
         routeArchetype: inventoryRoute?.frame,
         dockState: inventoryRoute?.floatingDock === 'enabled' ? 'required' as const : inventoryRoute?.floatingDock,
+        navigationState: width === 320 ? 'drawer' as const : 'expanded' as const,
+        runId: 'unit-commercial-governance',
+        capturedAt: '2026-05-31T00:00:00Z',
         result: 'passed' as const,
         screenshot: `artifacts/commercial-ui/${route.href.replace(/[^a-z0-9]+/gi, '-')}-${theme}-${width}.png`,
         firstViewportUseful: true,
@@ -118,8 +154,12 @@ function completeVisualEvidence(): CommercialVisualAcceptanceEvidence[] {
             exportSafeSnapshotChecked: surface.surfaceType !== 'temporary-gap',
           })),
       };
-    }))),
-  }));
+    }));
+    return {
+      href: route.href,
+      viewports: addCollapsedNavigationEvidence(route.href, viewports),
+    };
+  });
 }
 
 function completeAccessibilityEvidence(): CommercialAccessibilityTextFitEvidence[] {
@@ -460,6 +500,15 @@ describe('commercial UI governance', () => {
         }),
       ]),
     );
+    expect(result.blockingViolations.find((violation) => violation.path === '/data-center')?.message).toEqual(
+      expect.stringContaining('Rule: route-ledger.incomplete-primary-route.'),
+    );
+    expect(result.blockingViolations.find((violation) => violation.path === '/data-center')?.message).toEqual(
+      expect.stringContaining('Owner: migrate-learner-knowledge-data-surfaces.'),
+    );
+    expect(result.blockingViolations.find((violation) => violation.path === '/data-center')?.message).toEqual(
+      expect.stringContaining('Remediation: Update src/lib/platform-role-navigation.ts route metadata'),
+    );
   });
 
   it('fails when route ledger uses a retired real archetype alias', () => {
@@ -517,6 +566,9 @@ describe('commercial UI governance', () => {
                 ...viewport,
                 routeFile: undefined,
                 routeArchetype: 'legacy-dashboard',
+                navigationState: undefined,
+                runId: undefined,
+                capturedAt: undefined,
                 result: undefined,
                 firstViewportTaskVisible: false,
                 mobileCanvasFirst: false,
@@ -539,7 +591,14 @@ describe('commercial UI governance', () => {
           category: 'visual-acceptance',
           rule: 'visual-acceptance.incomplete-manifest-metadata',
           path: '/interactive-learning/control-workbench',
-          evidence: expect.arrayContaining(['routeFile', 'routeArchetype', 'result=passed', 'firstViewportTaskVisible']),
+          evidence: expect.arrayContaining([
+            'routeFile',
+            'routeArchetype',
+            'navigationState',
+            'runId or capturedAt',
+            'result=passed',
+            'firstViewportTaskVisible',
+          ]),
         }),
         expect.objectContaining({
           category: 'mobile-structure',
@@ -552,6 +611,105 @@ describe('commercial UI governance', () => {
             'noPersistentWorkbenchPanels',
             'noPersistentKnowledgeGraphDrawer',
           ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails when a mission workspace omits collapsed desktop navigation evidence', () => {
+    const visualEvidence = completeVisualEvidence().map((entry) => {
+      if (entry.href !== '/interactive-learning/control-workbench') return entry;
+      return {
+        ...entry,
+        viewports: entry.viewports.filter((viewport) => viewport.navigationState !== 'collapsed'),
+      };
+    });
+
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'visual-acceptance',
+          rule: 'visual-acceptance.incomplete-navigation-state-matrix',
+          path: '/interactive-learning/control-workbench',
+          evidence: expect.arrayContaining(['light:1440:collapsed', 'dark:1440:collapsed']),
+        }),
+      ]),
+    );
+  });
+
+  it('fails when a mission workspace omits mobile drawer navigation evidence', () => {
+    const visualEvidence = completeVisualEvidence().map((entry) => {
+      if (entry.href !== '/interactive-learning/control-workbench') return entry;
+      return {
+        ...entry,
+        viewports: entry.viewports.filter((viewport) => viewport.navigationState !== 'drawer'),
+      };
+    });
+
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'visual-acceptance',
+          rule: 'visual-acceptance.incomplete-navigation-state-matrix',
+          path: '/interactive-learning/control-workbench',
+          evidence: expect.arrayContaining(['light:320:drawer', 'dark:320:drawer']),
+        }),
+      ]),
+    );
+  });
+
+  it('fails when a matrix-scoped mission workspace has no visual evidence entry', () => {
+    const visualEvidence = completeVisualEvidence()
+      .filter((entry) => entry.href !== '/interactive-learning/control-workbench');
+    const routeInventory = PLATFORM_PRIMARY_ROUTE_INVENTORY
+      .filter((route) => route.href === '/interactive-learning/control-workbench');
+
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence,
+      visualRouteInventory: routeInventory,
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'visual-acceptance',
+          rule: 'visual-acceptance.missing-route-evidence',
+          path: '/interactive-learning/control-workbench',
+          evidence: expect.arrayContaining(['width=1440', 'width=320']),
+        }),
+      ]),
+    );
+  });
+
+  it('fails when structured visual QA manifest uses a non-ISO capture timestamp', () => {
+    const visualEvidence = completeVisualEvidence().map((entry) => {
+      if (entry.href !== '/interactive-learning/control-workbench') return entry;
+      return {
+        ...entry,
+        viewports: entry.viewports.map((viewport) => ({
+          ...viewport,
+          capturedAt: 'June 12 2026',
+        })),
+      };
+    });
+
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'visual-acceptance',
+          rule: 'visual-acceptance.incomplete-manifest-metadata',
+          path: '/interactive-learning/control-workbench',
+          evidence: expect.arrayContaining(['capturedAt=ISO timestamp']),
         }),
       ]),
     );

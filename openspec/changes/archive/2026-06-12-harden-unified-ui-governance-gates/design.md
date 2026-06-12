@@ -37,4 +37,5 @@ Because GitHub Actions quota is constrained, React Doctor should remain a local 
 - Governance tests cover missing route metadata, stale visual evidence, missing navigation states, legacy shell exceptions, and dock collisions.
 - Local visual evidence manifests fail when required route/theme/viewport states are missing.
 - React Doctor local error-only command is documented or wrapped without CI integration.
-- `rtk openspec validate harden-unified-ui-governance-gates --strict` passes.
+- Before archive, `rtk openspec validate harden-unified-ui-governance-gates --strict` passes.
+- After archive, `rtk openspec validate --specs --strict` and `rtk openspec validate --changes --strict` pass.

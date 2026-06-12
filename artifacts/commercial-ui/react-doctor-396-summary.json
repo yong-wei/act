@@ -1,0 +1,68 @@
+{
+  "change": "harden-unified-ui-governance-gates",
+  "command": "RUN_REACT_DOCTOR=1 npm run test:react-doctor:commercial-ui",
+  "reactDoctorVersion": "0.5.1",
+  "exitStatus": 1,
+  "executable": true,
+  "errorCount": 122,
+  "errorsByRule": {
+    "aria-role": 15,
+    "server-auth-actions": 12,
+    "server-no-mutable-module-state": 3,
+    "nextjs-no-side-effect-in-get-handler": 4,
+    "no-adjust-state-on-prop-change": 85,
+    "effect-needs-cleanup": 2,
+    "no-mutable-in-deps": 1
+  },
+  "topErrorAreas": [
+    {
+      "path": "src/resources/interactive-learning",
+      "count": 29
+    },
+    {
+      "path": "src/features/interactive",
+      "count": 22
+    },
+    {
+      "path": "src/app/actions",
+      "count": 15
+    },
+    {
+      "path": "src/resources/simulations",
+      "count": 9
+    },
+    {
+      "path": "src/resources/widgets",
+      "count": 9
+    },
+    {
+      "path": "src/features/arena",
+      "count": 7
+    },
+    {
+      "path": "src/features/knowledge",
+      "count": 7
+    },
+    {
+      "path": "src/features/control-workbench",
+      "count": 5
+    },
+    {
+      "path": "src/app/(main)",
+      "count": 4
+    },
+    {
+      "path": "src/app/api",
+      "count": 4
+    },
+    {
+      "path": "src/hooks/use-mdx-content.ts",
+      "count": 3
+    },
+    {
+      "path": "src/app/assessment",
+      "count": 1
+    }
+  ],
+  "interpretation": "React Doctor local gate is executable; current repository still has pre-existing error categories owned by dedicated React Doctor cleanup changes, so #396 keeps this as a local reporting gate rather than CI/blocking integration."
+}
