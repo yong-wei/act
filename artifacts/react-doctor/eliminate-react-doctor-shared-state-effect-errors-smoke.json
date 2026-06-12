@@ -1,0 +1,59 @@
+{
+  "command": "Playwright smoke against dev1 local server http://localhost:3002",
+  "routes": [
+    {
+      "route": "/arena",
+      "status": 200,
+      "hasBody": true,
+      "expectedTextPresent": true,
+      "expectedText": [
+        "竞技场"
+      ],
+      "firstLine": "收起导航 | 知识资源 | 互动学习",
+      "consoleErrors": [
+        "Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client. Consider using template tag instead (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template)."
+      ]
+    },
+    {
+      "route": "/arena/challenges/task-second-order-lead-pid",
+      "status": 200,
+      "hasBody": true,
+      "expectedTextPresent": true,
+      "expectedText": [
+        "二阶对象快速稳定挑战"
+      ],
+      "firstLine": "收起导航 | 知识资源 | 互动学习",
+      "consoleErrors": [
+        "Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client. Consider using template tag instead (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template).",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+        "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+      ]
+    },
+    {
+      "route": "/knowledge?node=second-order-standard-form",
+      "status": 200,
+      "hasBody": true,
+      "expectedTextPresent": true,
+      "expectedText": [
+        "知识图谱"
+      ],
+      "firstLine": "知识资源 |  | 知识图谱",
+      "consoleErrors": []
+    },
+    {
+      "route": "/admin/config",
+      "status": 200,
+      "hasBody": true,
+      "expectedTextPresent": true,
+      "expectedText": [
+        "AI-OBE船舶智控平台"
+      ],
+      "firstLine": "AI-OBE船舶智控平台 | Mission Control for Maritime Education | 互动学习",
+      "consoleErrors": []
+    }
+  ],
+  "allRoutesHealthy": true,
+  "note": "Arena routes retain existing script-tag warning and unauthenticated challenge API 401 noise; /knowledge and /admin/config have no console errors."
+}

@@ -626,19 +626,20 @@ export function BlackBoxIdentificationPreset({
   session: WorkbenchSessionContext;
   panelInstances?: WorkbenchPanelInstance[];
 }) {
-  const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[] | null>(null);
-  const [viewerUserId, setViewerUserId] = useState<string | undefined>(undefined);
   const task = 'task' in session ? session.task : null;
   const publicationId = 'publicationId' in session ? session.publicationId : undefined;
   const officialTargetHidden = Boolean(session.officialTarget?.hiddenTarget);
+  const requestKey = task ? `${task.id}:${publicationId ?? 'open'}` : null;
+  const [submissionState, setSubmissionState] = useState<{
+    key: string;
+    submissions: ArenaSubmissionRecord[];
+    viewerUserId?: string;
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    setSubmissions(null);
-    setViewerUserId(undefined);
 
-    if (!task) {
-      setSubmissions([]);
+    if (!task || !requestKey) {
       return () => {
         cancelled = true;
       };
@@ -658,21 +659,23 @@ export function BlackBoxIdentificationPreset({
           viewerUserId?: string;
         };
         if (!cancelled) {
-          setSubmissions(response.ok ? payload.submissions ?? [] : []);
-          setViewerUserId(response.ok ? payload.viewerUserId : undefined);
+          setSubmissionState({
+            key: requestKey,
+            submissions: response.ok ? payload.submissions ?? [] : [],
+            viewerUserId: response.ok ? payload.viewerUserId : undefined,
+          });
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setSubmissions([]);
-          setViewerUserId(undefined);
+          setSubmissionState({ key: requestKey, submissions: [] });
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [publicationId, task]);
+  }, [publicationId, requestKey, task]);
 
   const incompatibleMessage = useMemo(() => {
     if (!task) return '黑箱辨识预设需要绑定竞技场任务。';
@@ -690,7 +693,9 @@ export function BlackBoxIdentificationPreset({
     );
   }
 
-  if (!task || submissions === null) {
+  const loadedSubmissionState = submissionState?.key === requestKey ? submissionState : null;
+
+  if (!task || loadedSubmissionState === null) {
     return (
       <section className="rounded-lg border border-white/10 bg-slate-950/40 p-6 text-sm text-slate-300">
         正在加载黑箱工作台数据...
@@ -702,9 +707,9 @@ export function BlackBoxIdentificationPreset({
     <BlackBoxIdentificationPanel
       key={`${task.id}:${publicationId ?? 'open'}`}
       task={task}
-      initialSubmissions={submissions}
+      initialSubmissions={loadedSubmissionState.submissions}
       publicationId={publicationId}
-      viewerUserId={viewerUserId}
+      viewerUserId={loadedSubmissionState.viewerUserId}
       officialTargetHidden={officialTargetHidden}
       panelInstances={panelInstances}
     />

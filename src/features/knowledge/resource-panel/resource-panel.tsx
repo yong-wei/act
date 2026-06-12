@@ -153,9 +153,28 @@ export function ResourcePanel({
   onClose,
   onNodeClick,
 }: ResourcePanelProps) {
-  const [nodeDetail, setNodeDetail] = useState<KnowledgeNodeDetail | null>(null);
+  if (!isOpen || !selectedNode) return null;
+
+  return (
+    <ResourcePanelContent
+      key={selectedNode.id}
+      selectedNode={selectedNode}
+      onClose={onClose}
+      onNodeClick={onNodeClick}
+    />
+  );
+}
+
+function ResourcePanelContent({
+  selectedNode,
+  onClose,
+  onNodeClick,
+}: Omit<ResourcePanelProps, 'isOpen' | 'selectedNode'> & { selectedNode: KnowledgeNodeData }) {
+  const [nodeDetail, setNodeDetail] = useState<KnowledgeNodeDetail | null>(() =>
+    isChapterNodeId(selectedNode.id) ? selectedNode as KnowledgeNodeDetail : null
+  );
   const [isCardOpen, setIsCardOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(() => !isChapterNodeId(selectedNode.id));
   const [isLightTheme, setIsLightTheme] = useState(false);
   const [expandedRelationGroups, setExpandedRelationGroups] = useState<Record<string, boolean>>({});
 
@@ -173,35 +192,34 @@ export function ResourcePanel({
   }, []);
 
   useEffect(() => {
-    if (!selectedNode) return;
-
     if (isChapterNodeId(selectedNode.id)) {
-      setNodeDetail(selectedNode as KnowledgeNodeDetail);
       return;
     }
 
+    let cancelled = false;
     const fetchDetail = async () => {
-      setIsLoading(true);
       try {
         const res = await fetch(`/api/knowledge/nodes/${selectedNode.id}`);
         if (!res.ok) return;
         const data = await res.json();
-        setNodeDetail(data);
+        if (!cancelled) {
+          setNodeDetail(data);
+        }
       } catch (error) {
         console.error('Failed to fetch knowledge node detail:', error);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
-    setNodeDetail(null);
-    setIsCardOpen(false);
     fetchDetail();
-  }, [selectedNode]);
 
-  useEffect(() => {
-    if (!isOpen) setIsCardOpen(false);
-  }, [isOpen]);
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedNode.id]);
 
   const displayNode = (nodeDetail || selectedNode) as KnowledgeNodeDetail | null;
   const metadata = (displayNode?.metadata ?? {}) as Record<string, unknown>;
@@ -213,7 +231,7 @@ export function ResourcePanel({
     nodes: relatedNodes.filter((item) => item.category === category),
   })).filter((group) => group.nodes.length > 0);
 
-  if (!isOpen || !selectedNode || !displayNode) return null;
+  if (!displayNode) return null;
 
   const chapterName = resolveChapterName(
     displayNode.chapter,
@@ -271,9 +289,7 @@ export function ResourcePanel({
 
   return (
     <aside
-      className={`absolute right-0 top-0 z-50 h-full w-[320px] transform overflow-y-auto transition-transform duration-300 ${panelTheme.shell} ${
-        isOpen ? 'translate-x-0' : 'translate-x-full'
-      }`}
+      className={`absolute right-0 top-0 z-50 h-full w-[320px] transform overflow-y-auto transition-transform duration-300 ${panelTheme.shell} translate-x-0`}
     >
       <div className={`sticky top-0 z-10 flex items-center justify-between border-b p-4 ${panelTheme.header}`}>
         <div className="flex min-w-0 items-center gap-2">

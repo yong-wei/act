@@ -81,7 +81,7 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 
 统一壳层当前覆盖数据中心、教师治理工作台、任务空间、Arena/控制工作台入口和若干课程入口。`AppShell` 在测试中会被纯函数调用，因此顶层不能直接引入会依赖运行时 hook 的逻辑；需要运行态上下文时，应放到子组件或可选上下文边界内。
 
-当前 active OpenSpec 中，`harden-unified-ui-governance-gates` 负责把商业化 UI 契约、页面族导航、状态证据组件和回归门禁继续固化。React Doctor 系列 change 则分别清理 shared、interactive、resource、server 和 aria role 相关错误。
+当前 active OpenSpec 中，`harden-unified-ui-governance-gates` 负责把商业化 UI 契约、页面族导航、状态证据组件和回归门禁继续固化。React Doctor 系列中，server、aria role 和 shared state/effect 已归档；interactive 与 resource state/effect 仍按错误族限域推进。
 
 ## 课程内容与 runtime
 
@@ -193,7 +193,6 @@ AI 可以解释、提示、总结和建议，但不能伪造学习事实、不�
 
 本项目使用 OpenSpec 管理功能开发。已完成变更会归档到 `openspec/specs/`，进行中变更位于 `openspec/changes/`。新功能、治理、UI 重构、依赖迁移和智能助教能力都应先形成 proposal、design、tasks 和 spec delta，再进入实现。当前 active changes 主要是：
 
-- `eliminate-react-doctor-shared-state-effect-errors`
 - `eliminate-react-doctor-interactive-state-effect-errors`
 - `eliminate-react-doctor-resource-state-effect-errors`
 - `harden-unified-ui-governance-gates`

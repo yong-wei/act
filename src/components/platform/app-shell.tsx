@@ -386,9 +386,6 @@ function AppMobileNavigation({
 
   useEffect(() => {
     const desktopMediaQuery = window.matchMedia(`(min-width: ${sidebarBreakpoint === 'lg' ? 1024 : 1280}px)`);
-    if (desktopMediaQuery.matches) {
-      setDrawerOpen(false);
-    }
 
     const handleDesktopBreakpoint = (event: MediaQueryListEvent) => {
       if (event.matches) {

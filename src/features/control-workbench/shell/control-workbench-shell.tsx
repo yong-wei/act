@@ -342,11 +342,6 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
   const launchDescription = describeExperienceLaunch(experienceContext.launch);
   const returnHref = getControlWorkbenchReturnHref(session);
 
-  useEffect(() => {
-    setSession(initialSession);
-    setObjectSelectionError(null);
-  }, [initialSession]);
-
   const selectObject = (objectId: string) => {
     const result = selectControlWorkbenchObject(session, objectId);
     setSession(result.session);
@@ -693,5 +688,5 @@ export function ControlWorkbenchShell({ result }: { result: ControlWorkbenchReso
     );
   }
 
-  return <ResolvedControlWorkbenchShell session={result.session} />;
+  return <ResolvedControlWorkbenchShell key={getPanelStorageKey(result.session)} session={result.session} />;
 }
