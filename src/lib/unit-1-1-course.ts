@@ -41,6 +41,12 @@ export interface UNIT_1_1StepDefinition {
   aiContext?: StepAIContext;
 }
 
+export interface UNIT_1_1MediaItem {
+  src: string;
+  caption: string;
+  alt?: string;
+}
+
 export interface UNIT_1_1StepResponse {
   stepId: string;
   submittedAt: number;
@@ -488,20 +494,91 @@ export const UNIT_1_1_PREMIUM_LESSON_CARD = {
   badge: '精品课程',
 } as const;
 
-const UNIT_1_1_MEDIA_BY_STEP_ID: Record<string, string> = {
-  'step-01': '/course-runtime/lessons/1-1/media/1-1-cover-comic.png',
-  'step-05': '/course-runtime/lessons/1-1/media/1-1-block-diagram-basic.png',
-  'step-06': '/course-runtime/lessons/1-1/media/1-1-step-response-first-order.png',
-  'step-07': '/course-runtime/lessons/1-1/media/1-1-root-locus-example.png',
-  'step-08': '/course-runtime/lessons/1-1/media/1-1-bode-example.png',
-  'step-10': '/course-runtime/lessons/1-1/media/1-1-gain-comparison.png',
-  'step-12': '/course-runtime/lessons/1-1/media/1-1-example-openloop-step.png',
-  'step-13': '/course-runtime/lessons/1-1/media/1-1-example-correction-triptych.png',
-  'step-15': '/course-runtime/lessons/1-1/media/1-1-info.png',
+const UNIT_1_1_MEDIA_BY_STEP_ID: Record<string, UNIT_1_1MediaItem[]> = {
+  'step-01': [
+    {
+      src: '/course-runtime/lessons/1-1/media/1-1-cover-comic.png',
+      caption: '封面图提示本课主线：用一条船串联反馈、建模、诊断与校正。',
+    },
+  ],
+  'step-05': [
+    {
+      src: '/course-runtime/lessons/1-1/media/1-1-block-diagram-basic.png',
+      caption: '图示呈现控制系统的五个基本环节：比较、决策、执行、对象与测量。',
+    },
+  ],
+  'step-06': [
+    {
+      src: '/course-runtime/lessons/1-1/media/1-1-step-response-first-order.png',
+      caption: '阶跃响应曲线展示一阶对象从起步到稳态的完整动态过程。',
+    },
+  ],
+  'step-07': [
+    {
+      src: '/course-runtime/lessons/1-1/media/1-1-root-locus-example.png',
+      caption: '根轨迹图展示增益变化时极点沿实轴移动的方向。',
+    },
+  ],
+  'step-08': [
+    {
+      src: '/course-runtime/lessons/1-1/media/1-1-bode-example.png',
+      caption: 'Bode 图把同一对象对不同频率输入的幅值变化和相位滞后放在一起观察。',
+    },
+  ],
+  'step-09': [
+    {
+      src: '/course-runtime/lessons/1-1/media/1-1-open-loop-block.png',
+      caption: '开环结构中，输入指令直接作用于对象，输出信息不会回到比较端。',
+    },
+    {
+      src: '/course-runtime/lessons/1-1/media/1-1-feedback-loop-block.png',
+      caption: '反馈结构把输出测量送回比较端，使系统能够根据偏差修正动作。',
+    },
+    {
+      src: '/course-runtime/lessons/1-1/media/1-1-closed-loop-block.png',
+      caption: '单位负反馈结构展示控制器、对象与反馈通道如何构成闭环。',
+    },
+  ],
+  'step-10': [
+    {
+      src: '/course-runtime/lessons/1-1/media/1-1-gain-comparison.png',
+      caption: '三域对比展示比例反馈同时改变时域响应、极点位置与频域曲线。',
+    },
+  ],
+  'step-12': [
+    {
+      src: '/course-runtime/lessons/1-1/media/1-1-example-openloop-step.png',
+      caption: '开环阶跃响应显示示例对象不能收敛到有限稳态值。',
+    },
+    {
+      src: '/course-runtime/lessons/1-1/media/1-1-example-root-locus.png',
+      caption: '示例对象的根轨迹展示极点从 0 和 -2 出发，并在 -1 附近会合后离开实轴。',
+    },
+    {
+      src: '/course-runtime/lessons/1-1/media/1-1-example-bode.png',
+      caption: '开环 Bode 图展示积分环节与惯性环节共同形成的幅频衰减和相位滞后。',
+    },
+  ],
+  'step-13': [
+    {
+      src: '/course-runtime/lessons/1-1/media/1-1-example-correction-triptych.png',
+      caption: '校正前三域对比说明：加入反馈后，响应收敛、极点迁移，频域裕度随之变化。',
+    },
+  ],
+  'step-15': [
+    {
+      src: '/course-runtime/lessons/1-1/media/1-1-info.png',
+      caption: '信息图把本课的核心工具和后续学习路线收束为一张全景图。',
+    },
+  ],
 };
 
+export function getUNIT_1_1MediaItems(stepId: string): UNIT_1_1MediaItem[] {
+  return UNIT_1_1_MEDIA_BY_STEP_ID[stepId] ?? [];
+}
+
 export function getUNIT_1_1MediaSrc(stepId: string) {
-  return UNIT_1_1_MEDIA_BY_STEP_ID[stepId] ?? null;
+  return UNIT_1_1_MEDIA_BY_STEP_ID[stepId]?.[0]?.src ?? null;
 }
 
 export function isUNIT_1_1StudentState(value: unknown): value is UNIT_1_1StudentCourseState {

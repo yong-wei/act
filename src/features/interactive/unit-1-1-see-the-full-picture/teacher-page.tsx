@@ -13,7 +13,6 @@ import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { buildSessionEndReturnHref } from '@/lib/classroom-session-end';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import {
-  getUNIT_1_1MediaSrc,
   UNIT_1_1_LESSON_STEPS,
   UNIT_1_1_STAGE_MAP,
   UNIT_1_1_SESSION_ADAPTER,
@@ -222,7 +221,7 @@ export function UNIT_1_1TeacherPage({
         <div className="mb-4 grid gap-4 lg:grid-cols-[1fr_320px]">
           <div className="premium-lesson-panel-soft flex flex-wrap items-center justify-between gap-3 px-4 py-4">
             <div>
-              <div className="premium-lesson-kicker">Teacher Console</div>
+              <div className="premium-lesson-kicker">教师推进台</div>
               <div className="premium-lesson-title mt-2 text-lg font-semibold">课堂码：{sessionInfo?.joinCode ?? '------'}</div>
               <div className="premium-lesson-muted mt-1 text-sm">教师可推进步骤、查看学生提交统计，并在需要时释放题目、显示答案。</div>
             </div>
@@ -274,8 +273,7 @@ export function UNIT_1_1TeacherPage({
 
         <UNIT_1_1StepContentPanel
           step={step}
-          mediaSrc={getUNIT_1_1MediaSrc(step.id)}
-          mediaAlt={step.title}
+          manifest={lessonRuntime.interactiveManifest}
         />
 
         <div className="mt-4">

@@ -17,6 +17,14 @@ export const COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY: readonly ManifestSubmis
     minimumResponseSteps: 6,
   },
   {
+    lessonId: '1-1',
+    routeSegment: 'unit-1-1-see-the-full-picture',
+    manifestPath: 'course-content/runtime/lessons/1-1/interactive-manifest.json',
+    studentPagePath: 'src/features/interactive/unit-1-1-see-the-full-picture/student-page.tsx',
+    manifestGetterName: GENERIC_MANIFEST_STEP_HELPER,
+    minimumResponseSteps: 3,
+  },
+  {
     lessonId: '2-1',
     routeSegment: 'unit-2-1-modeling-language',
     manifestPath: 'course-content/runtime/lessons/2-1/interactive-manifest.json',

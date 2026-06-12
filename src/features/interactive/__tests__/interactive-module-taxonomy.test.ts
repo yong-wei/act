@@ -21,6 +21,7 @@ describe('interactive module taxonomy', () => {
       'content.rich',
       'content.cardSet',
       'content.formula',
+      'content.code',
       'content.table',
       'content.figure',
       'content.reveal',

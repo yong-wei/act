@@ -110,6 +110,7 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 | `content.rich` | 正文段落、问题背景、提示语、定义解释、教师提示等非结构化内容 | `title`、`text`、`body`、`block_key` 或可审计 `resolver` |
 | `content.cardSet` | 目标卡、要点组、概念卡组、风险/结论/职责条、步骤清单等重复卡片 | `items`、`goals`、`cards`、`text`、`block_key`；审计必须能判定非空 |
 | `content.formula` | 单条公式、公式组、符号说明、公式链 | `formula`、`formulas`、`symbols`、`block_key`、`formula_key` 或公式型 resolver |
+| `content.code` | MATLAB/Octave 代码示例、函数调用速通、可运行诊断片段 | `language`、`code`、`block_key`，默认使用 MATLAB/Octave 高亮；不得作为普通正文或公式块处理 |
 | `content.table` | 原生表格、比较表、参数表、记录表、公式表 | `columns`、`rows`，必要时补 `title`、`text`、单位/适用边界 |
 | `content.figure` | 图片、静态图、SVG 图、媒体图组、结构图、曲线截图 | `src`、`assets`、`image_key`、`caption`、`explanation`；图题必须是学科对象标题 |
 | `content.reveal` | 推导链、例题步骤、逐步显影解释、分层判断链 | `items` 或 `block_key`，每一层必须有完整文本，必要时含公式 |

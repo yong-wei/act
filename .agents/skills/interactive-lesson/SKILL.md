@@ -133,7 +133,8 @@ npm run test:unit -- src/features/interactive/__tests__/interactive-module-taxon
 
 硬约束：
 
-- 不得用课程私有组件绕过标准组件库。新课和已迁移课程的 `modules[].kind` 只能来自标准组件类：`content.rich`、`content.cardSet`、`content.formula`、`content.table`、`content.figure`、`content.reveal`、`content.stageMap`、`activity.panel`、`activity.workspace`、`compute.panel`、`analytics.summary`、`layout.support`。
+- 不得用课程私有组件绕过标准组件库。新课和已迁移课程的 `modules[].kind` 只能来自标准组件类：`content.rich`、`content.cardSet`、`content.formula`、`content.code`、`content.table`、`content.figure`、`content.reveal`、`content.stageMap`、`activity.panel`、`activity.workspace`、`compute.panel`、`analytics.summary`、`layout.support`。
+- MATLAB/Octave 代码示例必须使用 `content.code` 与标准代码渲染组件，payload/content block 写 `language: matlab` 和 `code`；不得作为 `content.rich`、markdown fenced code 或 `content.formula` 处理。
 - 旧组件名只能作为 `payload.legacyKind` 保留迁移提示，不得重新写入 `modules[].kind`。
 - 若设计需要标准组件库不存在的能力，先停下并提出组件库扩展或 OpenSpec 变更；不得在单课 `step-panels.tsx`、共享 renderer 或课程常量中临时发明新 kind。
 - 若 `audit_interactive_manifest.py` 无法判断模块非空，先修 `interactive-contract.yaml` 的 payload 或 `content_blocks`；只有 payload 已完整但共享 renderer 不支持时，才修改共享 renderer。
