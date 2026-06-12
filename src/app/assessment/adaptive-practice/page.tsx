@@ -548,6 +548,7 @@ export default function AdaptivePracticePage() {
       title="自适应练习"
       subtitle="证据驱动的当前路径与题目推荐"
       activeHref="/assessment/adaptive-practice"
+      sidebarMode="collapsible"
       className="surface-page"
     >
       <section
@@ -758,7 +759,7 @@ export default function AdaptivePracticePage() {
             </button>
           </aside>
 
-          <main className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+          <section className="surface-card space-y-4 p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-lg font-medium">自适应练习区</h2>
               <div className="text-sm text-slate-300">
@@ -894,7 +895,7 @@ export default function AdaptivePracticePage() {
                     ? '提示：可切换 scene=stable / generate 直接导出两类报告配图。'
                     : '提示：答错后会触发跨域解释与后续补强建议。'}
             </div>
-          </main>
+          </section>
         </section>
       </section>
     </AppShell>

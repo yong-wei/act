@@ -266,6 +266,8 @@ describe('platform role navigation', () => {
       '/login',
       '/interactive-learning',
       '/interactive-learning/courses',
+      '/interactive-learning/chapter-components',
+      '/interactive-learning/cross-domain-exploration',
       '/interactive-learning/courses/unit-4-1-design-task-expression',
       '/interactive-learning/courses/unit-1-1-see-the-full-picture',
       '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]',
@@ -683,8 +685,6 @@ describe('platform role navigation', () => {
     const shellRoutes = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => route.legacyShell);
     expect(shellRoutes.map((route) => [route.href, route.legacyShell?.component])).toEqual(
       expect.arrayContaining([
-        ['/interactive-learning', 'UnifiedTopBar'],
-        ['/interactive-learning/courses', 'UnifiedTopBar'],
         ['/simulations', 'FeaturePageNav'],
         ['/arena', 'ArenaPageShell'],
         ['/teacher', 'TeacherLayout'],

@@ -507,6 +507,36 @@ describe('platform UI contracts', () => {
     expect(adaptivePracticeSource).toContain('data-konling-citation-slot="cited-explanation"');
   });
 
+  it('keeps Interactive Learning first-hop surfaces on the unified learning-atlas shell', () => {
+    const interactiveEntrySource = readSource('src/app/interactive-learning/page.tsx');
+    const courseCatalogSource = readSource('src/app/interactive-learning/courses/page.tsx');
+    const chapterComponentsSource = readSource('src/app/interactive-learning/chapter-components/page.tsx');
+    const crossDomainSource = readSource('src/app/interactive-learning/cross-domain-exploration/page.tsx');
+    const shellSource = readSource('src/features/interactive/interactive-learning-shell.tsx');
+
+    for (const source of [
+      interactiveEntrySource,
+      courseCatalogSource,
+      chapterComponentsSource,
+      crossDomainSource,
+    ]) {
+      expect(source).toContain('<InteractiveLearningShell');
+      expect(source).not.toContain('UnifiedTopBar');
+      expect(source).not.toContain('商业入口');
+      expect(source).not.toContain('<main');
+    }
+
+    expect(shellSource).toContain('<AppShell');
+    expect(shellSource).toContain('viewerRole="student"');
+    expect(shellSource).toContain('sidebarMode="collapsible"');
+    expect(shellSource).toContain('data-platform-learning-atlas-shell');
+    expect(interactiveEntrySource).toContain('data-commercial-student-entry-route="/interactive-learning"');
+    expect(courseCatalogSource).toContain('data-commercial-student-entry-route="/interactive-learning/courses"');
+    expect(courseCatalogSource).not.toContain('interactive-course-hub-');
+    expect(chapterComponentsSource).toContain('data-commercial-student-entry-route="/interactive-learning/chapter-components"');
+    expect(crossDomainSource).toContain('data-commercial-student-entry-route="/interactive-learning/cross-domain-exploration"');
+  });
+
   it('does not use student or teacher business identity as a JSX role prop', () => {
     const platformShellFiles = [
       'src/components/platform/app-shell.tsx',
