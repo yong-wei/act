@@ -65,6 +65,10 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
         data-commercial-operations-workspace="admin-operations"
         data-commercial-workspace-zone="instrument-area"
         data-operations-status-semantics="loading"
+        data-report-ledger-surface="governance-data-quality-snapshot"
+        data-report-ledger-watermark="low-contrast-brand"
+        data-report-ledger-privacy-scope="admin-governance"
+        data-report-ledger-export="deferred"
       >
         <AdminConsoleHeader
           currentUser={currentUser}
@@ -91,6 +95,10 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
         data-commercial-operations-workspace="admin-operations"
         data-commercial-workspace-zone="instrument-area"
         data-operations-status-semantics="blocked"
+        data-report-ledger-surface="governance-data-quality-snapshot"
+        data-report-ledger-watermark="low-contrast-brand"
+        data-report-ledger-privacy-scope="admin-governance"
+        data-report-ledger-export="deferred"
       >
         <AdminConsoleHeader
           currentUser={currentUser}
@@ -123,6 +131,10 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
       data-commercial-operations-workspace="admin-operations"
       data-commercial-workspace-zone="instrument-area"
       data-operations-status-semantics={status.status === 'healthy' ? 'ready' : status.status === 'error' ? 'blocked' : 'partial'}
+      data-report-ledger-surface="governance-data-quality-snapshot"
+      data-report-ledger-watermark="low-contrast-brand"
+      data-report-ledger-privacy-scope="admin-governance"
+      data-report-ledger-export="deferred"
     >
       <AdminConsoleHeader
         currentUser={currentUser}

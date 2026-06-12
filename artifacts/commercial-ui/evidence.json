@@ -1300,7 +1300,28 @@
           "authState": "authenticated",
           "dockPlacementChecked": true,
           "noDockCollision": true,
-          "dockFocusReachable": true
+          "dockFocusReachable": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "teacher-class-analytics-report",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Class analytics surface exposes governance coverage, student risk, source freshness, and teacher-review privacy labels."
+            },
+            {
+              "surfaceId": "assistant-effect-report-export",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Assistant effect export is represented as a deterministic report slot with explicit seed/reset readiness semantics."
+            }
+          ],
+          "screenshot": "artifacts/commercial-ui/operations-report-395-teacher-analytics-1440.png"
         },
         {
           "width": 1440,
@@ -1329,7 +1350,28 @@
           "authState": "authenticated",
           "dockPlacementChecked": true,
           "noDockCollision": true,
-          "dockFocusReachable": true
+          "dockFocusReachable": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "teacher-class-analytics-report",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Class analytics surface exposes governance coverage, student risk, source freshness, and teacher-review privacy labels."
+            },
+            {
+              "surfaceId": "assistant-effect-report-export",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Assistant effect export is represented as a deterministic report slot with explicit seed/reset readiness semantics."
+            }
+          ],
+          "screenshot": "artifacts/commercial-ui/operations-report-395-teacher-analytics-1440.png"
         },
         {
           "width": 320,
@@ -1363,7 +1405,28 @@
           "authState": "authenticated",
           "dockPlacementChecked": true,
           "noDockCollision": true,
-          "dockFocusReachable": true
+          "dockFocusReachable": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "teacher-class-analytics-report",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Class analytics surface exposes governance coverage, student risk, source freshness, and teacher-review privacy labels."
+            },
+            {
+              "surfaceId": "assistant-effect-report-export",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Assistant effect export is represented as a deterministic report slot with explicit seed/reset readiness semantics."
+            }
+          ],
+          "screenshot": "artifacts/commercial-ui/operations-report-395-teacher-analytics-320.png"
         },
         {
           "width": 320,
@@ -1397,7 +1460,28 @@
           "authState": "authenticated",
           "dockPlacementChecked": true,
           "noDockCollision": true,
-          "dockFocusReachable": true
+          "dockFocusReachable": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "teacher-class-analytics-report",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Class analytics surface exposes governance coverage, student risk, source freshness, and teacher-review privacy labels."
+            },
+            {
+              "surfaceId": "assistant-effect-report-export",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Assistant effect export is represented as a deterministic report slot with explicit seed/reset readiness semantics."
+            }
+          ],
+          "screenshot": "artifacts/commercial-ui/operations-report-395-teacher-analytics-320.png"
         }
       ]
     },
@@ -1446,7 +1530,8 @@
               "privacyScopeChecked": true,
               "sourceQualityVisible": true,
               "statusLegendReadable": true,
-              "exportSafeSnapshotChecked": true
+              "exportSafeSnapshotChecked": true,
+              "note": "Admin governance surface exposes source coverage, privacy, status legend, and deferred export readiness."
             }
           ]
         },
@@ -1487,7 +1572,8 @@
               "privacyScopeChecked": true,
               "sourceQualityVisible": true,
               "statusLegendReadable": true,
-              "exportSafeSnapshotChecked": true
+              "exportSafeSnapshotChecked": true,
+              "note": "Admin governance surface exposes source coverage, privacy, status legend, and deferred export readiness."
             }
           ]
         },
@@ -1533,7 +1619,8 @@
               "privacyScopeChecked": true,
               "sourceQualityVisible": true,
               "statusLegendReadable": true,
-              "exportSafeSnapshotChecked": true
+              "exportSafeSnapshotChecked": true,
+              "note": "Admin governance surface exposes source coverage, privacy, status legend, and deferred export readiness."
             }
           ]
         },
@@ -1574,7 +1661,8 @@
               "privacyScopeChecked": true,
               "sourceQualityVisible": true,
               "statusLegendReadable": true,
-              "exportSafeSnapshotChecked": true
+              "exportSafeSnapshotChecked": true,
+              "note": "Admin governance surface exposes source coverage, privacy, status legend, and deferred export readiness."
             }
           ]
         }
@@ -2066,7 +2154,27 @@
           "noPersistentMobileSidebar": true,
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
-          "noPersistentKnowledgeGraphDrawer": true
+          "noPersistentKnowledgeGraphDrawer": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "teacher-prep-pack-review-slot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves a prep-pack review ledger slot with checked deferred-export readiness, source, privacy, and rollback semantics."
+            },
+            {
+              "surfaceId": "assistant-effect-report-export",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves assistant effect report export semantics without fabricating unavailable metrics."
+            }
+          ]
         },
         {
           "width": 1440,
@@ -2097,7 +2205,27 @@
           "routeArchetype": "operations-console",
           "dockState": "required",
           "result": "passed",
-          "firstViewportTaskVisible": true
+          "firstViewportTaskVisible": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "teacher-prep-pack-review-slot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves a prep-pack review ledger slot with checked deferred-export readiness, source, privacy, and rollback semantics."
+            },
+            {
+              "surfaceId": "assistant-effect-report-export",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves assistant effect report export semantics without fabricating unavailable metrics."
+            }
+          ]
         },
         {
           "width": 320,
@@ -2133,7 +2261,27 @@
           "noPersistentMobileSidebar": true,
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
-          "noPersistentKnowledgeGraphDrawer": true
+          "noPersistentKnowledgeGraphDrawer": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "teacher-prep-pack-review-slot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves a prep-pack review ledger slot with checked deferred-export readiness, source, privacy, and rollback semantics."
+            },
+            {
+              "surfaceId": "assistant-effect-report-export",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves assistant effect report export semantics without fabricating unavailable metrics."
+            }
+          ]
         },
         {
           "width": 1440,
@@ -2164,7 +2312,27 @@
           "routeArchetype": "operations-console",
           "dockState": "required",
           "result": "passed",
-          "firstViewportTaskVisible": true
+          "firstViewportTaskVisible": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "teacher-prep-pack-review-slot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves a prep-pack review ledger slot with checked deferred-export readiness, source, privacy, and rollback semantics."
+            },
+            {
+              "surfaceId": "assistant-effect-report-export",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves assistant effect report export semantics without fabricating unavailable metrics."
+            }
+          ]
         },
         {
           "width": 320,
@@ -2200,7 +2368,27 @@
           "noPersistentMobileSidebar": true,
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
-          "noPersistentKnowledgeGraphDrawer": true
+          "noPersistentKnowledgeGraphDrawer": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "teacher-prep-pack-review-slot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves a prep-pack review ledger slot with checked deferred-export readiness, source, privacy, and rollback semantics."
+            },
+            {
+              "surfaceId": "assistant-effect-report-export",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves assistant effect report export semantics without fabricating unavailable metrics."
+            }
+          ]
         },
         {
           "width": 1440,
@@ -2231,7 +2419,27 @@
           "routeArchetype": "operations-console",
           "dockState": "hidden",
           "result": "passed",
-          "firstViewportTaskVisible": true
+          "firstViewportTaskVisible": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "teacher-prep-pack-review-slot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves a prep-pack review ledger slot with checked deferred-export readiness, source, privacy, and rollback semantics."
+            },
+            {
+              "surfaceId": "assistant-effect-report-export",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves assistant effect report export semantics without fabricating unavailable metrics."
+            }
+          ]
         },
         {
           "width": 320,
@@ -2267,7 +2475,27 @@
           "noPersistentMobileSidebar": true,
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
-          "noPersistentKnowledgeGraphDrawer": true
+          "noPersistentKnowledgeGraphDrawer": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "teacher-prep-pack-review-slot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves a prep-pack review ledger slot with checked deferred-export readiness, source, privacy, and rollback semantics."
+            },
+            {
+              "surfaceId": "assistant-effect-report-export",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves assistant effect report export semantics without fabricating unavailable metrics."
+            }
+          ]
         },
         {
           "width": 1440,
@@ -2298,7 +2526,27 @@
           "routeArchetype": "operations-console",
           "dockState": "hidden",
           "result": "passed",
-          "firstViewportTaskVisible": true
+          "firstViewportTaskVisible": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "teacher-prep-pack-review-slot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves a prep-pack review ledger slot with checked deferred-export readiness, source, privacy, and rollback semantics."
+            },
+            {
+              "surfaceId": "assistant-effect-report-export",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves assistant effect report export semantics without fabricating unavailable metrics."
+            }
+          ]
         }
       ]
     },
@@ -3822,6 +4070,98 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true
+        }
+      ]
+    },
+    {
+      "href": "/teacher/grading-workbench",
+      "viewports": [
+        {
+          "width": 1440,
+          "theme": "light",
+          "role": "teacher",
+          "requestedRoute": "/teacher/grading-workbench",
+          "finalUrl": "http://127.0.0.1:3001/teacher/grading-workbench?demo=1",
+          "authState": "authenticated",
+          "artifact": "artifacts/commercial-ui/app-shell-392-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "routeFile": "src/app/(teacher-report-ledger)/teacher/grading-workbench/page.tsx",
+          "routeArchetype": "report-ledger",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "document-grading-workbench-ledger",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Document grading workbench shows conversion source quality, teacher-review privacy, draft approval status, and restricted export semantics."
+            }
+          ],
+          "screenshot": "artifacts/commercial-ui/operations-report-395-grading-workbench-1440.png"
+        },
+        {
+          "width": 320,
+          "theme": "light",
+          "role": "teacher",
+          "requestedRoute": "/teacher/grading-workbench",
+          "finalUrl": "http://127.0.0.1:3001/teacher/grading-workbench?demo=1",
+          "authState": "authenticated",
+          "artifact": "artifacts/commercial-ui/app-shell-392-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "routeFile": "src/app/(teacher-report-ledger)/teacher/grading-workbench/page.tsx",
+          "routeArchetype": "report-ledger",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "document-grading-workbench-ledger",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Document grading workbench shows conversion source quality, teacher-review privacy, draft approval status, and restricted export semantics."
+            }
+          ],
+          "screenshot": "artifacts/commercial-ui/operations-report-395-grading-workbench-320.png"
         }
       ]
     }

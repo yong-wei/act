@@ -167,11 +167,15 @@ describe('buildPresentationExportSnapshot', () => {
 });
 
 describe('report ledger contracts', () => {
-  it('defines report-ledger rules for classroom, Arena, learner, governance, and data-center outputs', () => {
+  it('defines report-ledger rules for classroom, Arena, learner, teacher, governance, and data-center outputs', () => {
     expect(REPORT_LEDGER_ARCHETYPE_RULES.map((rule) => rule.category)).toEqual([
       'classroom',
       'arena',
       'learner',
+      'teacher-report',
+      'grading',
+      'prep-pack',
+      'assistant-effect',
       'governance',
       'data-center',
     ]);
@@ -191,12 +195,29 @@ describe('report ledger contracts', () => {
 
     expect(PLATFORM_REPORT_SURFACE_INVENTORY.every((surface) => (
       surface.owningChange === 'redesign-report-ledger-and-export-surfaces'
+      || surface.owningChange === 'migrate-operations-report-ledger-surfaces'
     ))).toBe(true);
-    expect(PLATFORM_REPORT_SURFACE_INVENTORY.every((surface) => (
-      surface.sourceShellOwner !== surface.owningChange
-    ))).toBe(true);
+    expect(PLATFORM_REPORT_SURFACE_INVENTORY.filter((surface) => surface.owningChange === 'migrate-operations-report-ledger-surfaces').map((surface) => surface.id)).toEqual(
+      expect.arrayContaining([
+        'teacher-class-analytics-report',
+        'document-grading-workbench-ledger',
+        'teacher-prep-pack-review-slot',
+        'assistant-effect-report-export',
+        'governance-data-quality-snapshot',
+      ]),
+    );
     expect(PLATFORM_REPORT_SURFACE_INVENTORY.every((surface) => Boolean(getReportLedgerRule(surface.category)))).toBe(true);
-    expect(categories).toEqual(new Set(['classroom', 'arena', 'learner', 'governance', 'data-center']));
+    expect(categories).toEqual(new Set([
+      'classroom',
+      'arena',
+      'learner',
+      'teacher-report',
+      'grading',
+      'prep-pack',
+      'assistant-effect',
+      'governance',
+      'data-center',
+    ]));
   });
 });
 

@@ -297,6 +297,7 @@ describe('platform role navigation', () => {
       '/teacher/resources',
       '/teacher/resources/resource-nodes',
       '/teacher/history',
+      '/teacher/grading-workbench',
       '/teacher/arena',
       '/teacher/arena/publications/[publicationId]',
       '/admin',
@@ -376,11 +377,21 @@ describe('platform role navigation', () => {
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/teacher')).toMatchObject({
       frame: 'operations-console',
+      owningChange: 'migrate-operations-report-ledger-surfaces',
       roleScope: ['teacher'],
       navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/teacher/grading-workbench')).toMatchObject({
+      frame: 'report-ledger',
+      owningChange: 'migrate-operations-report-ledger-surfaces',
+      roleScope: ['teacher', 'admin'],
+      navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+      floatingDock: 'enabled',
+      legacyFrameAliases: expect.arrayContaining([expect.objectContaining({ alias: 'teacher-operations' })]),
+    });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/admin')).toMatchObject({
       frame: 'operations-console',
+      owningChange: 'migrate-operations-report-ledger-surfaces',
       roleScope: ['admin'],
       navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
       floatingDock: 'enabled',
@@ -491,7 +502,7 @@ describe('platform role navigation', () => {
       'redesign-knowledge-and-data-surfaces',
     );
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/admin/data-governance')?.owningChange).toBe(
-      'redesign-operations-and-report-surfaces',
+      'migrate-operations-report-ledger-surfaces',
     );
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/teacher/arena')?.owningChange).toBe(
       'redesign-immersive-learning-workspaces',
@@ -692,10 +703,16 @@ describe('platform role navigation', () => {
       ['arena-publication-report', 'arena', 'primary-route', '/teacher/arena/publications/[publicationId]'],
       ['learner-growth-report', 'learner', 'primary-route', '/profile/growth'],
       ['learner-evidence-report', 'learner', 'primary-route', '/profile/evidence'],
+      ['teacher-class-analytics-report', 'teacher-report', 'primary-route', '/teacher/classes/[classId]/analytics-v2'],
+      ['document-grading-workbench-ledger', 'grading', 'primary-route', '/teacher/grading-workbench'],
+      ['teacher-prep-pack-review-slot', 'prep-pack', 'embedded-component', '/teacher'],
+      ['assistant-effect-report-export', 'assistant-effect', 'export-view', '/teacher'],
       ['governance-data-quality-snapshot', 'governance', 'primary-route', '/admin/data-governance'],
       ['data-center-platform-snapshot', 'data-center', 'primary-route', '/data-center'],
     ]);
-    expect(PLATFORM_REPORT_SURFACE_INVENTORY.every((surface) => surface.owningChange === 'redesign-report-ledger-and-export-surfaces')).toBe(true);
+    expect(PLATFORM_REPORT_SURFACE_INVENTORY.filter((surface) => (
+      ['teacher-report', 'grading', 'prep-pack', 'assistant-effect', 'governance'].includes(surface.category)
+    )).every((surface) => surface.owningChange === 'migrate-operations-report-ledger-surfaces')).toBe(true);
     for (const surface of PLATFORM_REPORT_SURFACE_INVENTORY) {
       expect(existsSync(join(process.cwd(), surface.sourceFile))).toBe(true);
       const sourceRoute = PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === surface.ownerRoute);
@@ -704,7 +721,6 @@ describe('platform role navigation', () => {
       } else {
         expect(surface.sourceShellOwner).toBe('redesign-immersive-learning-workspaces');
       }
-      expect(surface.sourceShellOwner).not.toBe(surface.owningChange);
     }
   });
 

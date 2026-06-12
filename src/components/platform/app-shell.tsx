@@ -422,7 +422,7 @@ function AppShellFloatingDockRegistration({
       },
     }));
     return () => unregister.forEach((cleanup) => cleanup());
-  }, [behavior, controlRegistrationSignature, registerControl]);
+  }, [behavior, controlRegistrationSignature, controls, registerControl]);
 
   if (controls.length === 0) return null;
 

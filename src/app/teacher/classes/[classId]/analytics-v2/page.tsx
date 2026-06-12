@@ -95,6 +95,10 @@ export default function ClassAnalyticsV2Page() {
         data-commercial-operations-workspace="teacher-operations"
         data-commercial-workspace-zone="instrument-area"
         data-operations-status-semantics="loading"
+        data-report-ledger-surface="teacher-class-analytics-report"
+        data-report-ledger-watermark="low-contrast-brand"
+        data-report-ledger-privacy-scope="teacher-review"
+        data-report-ledger-export="restricted"
       >
         <div className="flex flex-col items-center gap-4">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-sky-500 border-t-transparent" />
@@ -112,6 +116,10 @@ export default function ClassAnalyticsV2Page() {
         data-commercial-operations-workspace="teacher-operations"
         data-commercial-workspace-zone="instrument-area"
         data-operations-status-semantics="error"
+        data-report-ledger-surface="teacher-class-analytics-report"
+        data-report-ledger-watermark="low-contrast-brand"
+        data-report-ledger-privacy-scope="teacher-review"
+        data-report-ledger-export="restricted"
       >
         <div className="text-center">
           <p className="text-xl text-red-500">{error || '加载失败'}</p>
@@ -132,6 +140,10 @@ export default function ClassAnalyticsV2Page() {
       data-commercial-operations-workspace="teacher-operations"
       data-commercial-workspace-zone="instrument-area"
       data-operations-status-semantics="ready"
+      data-report-ledger-surface="teacher-class-analytics-report"
+      data-report-ledger-watermark="low-contrast-brand"
+      data-report-ledger-privacy-scope="teacher-review"
+      data-report-ledger-export="restricted"
     >
       <header className="surface-topbar px-6 py-4">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4">

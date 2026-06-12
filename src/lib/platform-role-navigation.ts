@@ -282,6 +282,7 @@ function inferUnifiedUiMigrationOwner(input: Pick<PlatformPrimaryRouteInventoryE
   if (input.frame === 'mission-workspace') return MISSION_WORKSPACE_MIGRATION_CHANGE;
   if (input.frame === 'operations-console') return OPERATIONS_REPORT_MIGRATION_CHANGE;
   if (input.frame === 'knowledge-data-map') return LEARNER_KNOWLEDGE_DATA_MIGRATION_CHANGE;
+  if (input.frame === 'report-ledger' && input.href.startsWith('/teacher')) return OPERATIONS_REPORT_MIGRATION_CHANGE;
   if (input.frame === 'report-ledger') return LEARNER_KNOWLEDGE_DATA_MIGRATION_CHANGE;
   return APP_SHELL_MIGRATION_CHANGE;
 }
@@ -290,7 +291,11 @@ function inferLegacyFrameAlias(input: Pick<PlatformPrimaryRouteInventoryEntry, '
   if (input.frame === 'public-entry' && input.authState === 'auth-entry') return 'auth-entry';
   if (input.frame === 'learning-atlas') return 'learning-map';
   if (input.frame === 'mission-workspace') return 'immersive-task-workspace';
-  if (input.frame === 'report-ledger') return 'learner-data';
+  if (input.frame === 'report-ledger') {
+    if (input.href.startsWith('/teacher')) return 'teacher-operations';
+    if (input.href.startsWith('/admin')) return 'admin-governance';
+    return 'learner-data';
+  }
   if (input.frame === 'operations-console') return input.href.startsWith('/admin') ? 'admin-governance' : 'teacher-operations';
   if (input.frame === 'knowledge-data-map') {
     if (input.href === '/knowledge' || input.href.startsWith('/ai')) return 'knowledge-graph';
@@ -894,7 +899,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
     legacyShell: {
       component: 'TeacherLayout',
       disposition: 'scheduled-replacement',
@@ -911,7 +916,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
   }),
   primaryRoute({
     href: '/teacher/classes/[classId]',
@@ -922,7 +927,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
   }),
   primaryRoute({
     href: '/teacher/classes/[classId]/analytics-v2',
@@ -933,7 +938,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
   }),
   primaryRoute({
     href: '/teacher/classes/[classId]/students/[studentId]',
@@ -944,7 +949,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
   }),
   primaryRoute({
     href: '/teacher/classes/[classId]/students/[studentId]/evidence',
@@ -955,7 +960,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
   }),
   primaryRoute({
     href: '/teacher/lesson-plans',
@@ -966,7 +971,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
   }),
   primaryRoute({
     href: '/teacher/preset-lessons',
@@ -977,7 +982,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
   }),
   primaryRoute({
     href: '/teacher/resources',
@@ -988,7 +993,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
   }),
   primaryRoute({
     href: '/teacher/resources/resource-nodes',
@@ -999,7 +1004,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
   }),
   primaryRoute({
     href: '/teacher/history',
@@ -1010,7 +1015,18 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
+  }),
+  primaryRoute({
+    href: '/teacher/grading-workbench',
+    routeFile: 'src/app/(teacher-report-ledger)/teacher/grading-workbench/page.tsx',
+    frame: 'report-ledger',
+    roleScope: ['teacher', 'admin'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
   }),
   primaryRoute({
     href: '/teacher/arena',
@@ -1047,7 +1063,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
     legacyShell: {
       component: 'AdminConsoleHeader',
       disposition: 'scheduled-replacement',
@@ -1064,7 +1080,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
     legacyShell: {
       component: 'AdminConsoleHeader',
       disposition: 'scheduled-replacement',
@@ -1081,7 +1097,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
     legacyShell: {
       component: 'AdminConsoleHeader',
       disposition: 'scheduled-replacement',
@@ -1098,7 +1114,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
     legacyShell: {
       component: 'AdminConsoleHeader',
       disposition: 'scheduled-replacement',
@@ -1115,7 +1131,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
   }),
   primaryRoute({
     href: '/admin/data-governance',
@@ -1126,7 +1142,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
     legacyShell: {
       component: 'AdminConsoleHeader',
       disposition: 'scheduled-replacement',
@@ -1263,13 +1279,53 @@ export const PLATFORM_REPORT_SURFACE_INVENTORY: PlatformReportSurfaceInventoryEn
     visualQaProfile: 'direct-capture',
   },
   {
+    id: 'teacher-class-analytics-report',
+    ownerRoute: '/teacher/classes/[classId]/analytics-v2',
+    sourceFile: 'src/app/teacher/classes/[classId]/analytics-v2/page.tsx',
+    category: 'teacher-report',
+    surfaceType: 'primary-route',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
+    sourceShellOwner: OPERATIONS_REPORT_MIGRATION_CHANGE,
+    visualQaProfile: 'direct-capture',
+  },
+  {
+    id: 'document-grading-workbench-ledger',
+    ownerRoute: '/teacher/grading-workbench',
+    sourceFile: 'src/features/assessment/document-rubric-grading-ui.tsx',
+    category: 'grading',
+    surfaceType: 'primary-route',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
+    sourceShellOwner: OPERATIONS_REPORT_MIGRATION_CHANGE,
+    visualQaProfile: 'direct-capture',
+  },
+  {
+    id: 'teacher-prep-pack-review-slot',
+    ownerRoute: '/teacher',
+    sourceFile: 'src/features/teacher/teacher-dashboard.tsx',
+    category: 'prep-pack',
+    surfaceType: 'embedded-component',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
+    sourceShellOwner: OPERATIONS_REPORT_MIGRATION_CHANGE,
+    visualQaProfile: 'representative-covered',
+  },
+  {
+    id: 'assistant-effect-report-export',
+    ownerRoute: '/teacher',
+    sourceFile: 'src/app/api/teacher/classes/[classId]/assistant-effect-report/route.ts',
+    category: 'assistant-effect',
+    surfaceType: 'export-view',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
+    sourceShellOwner: OPERATIONS_REPORT_MIGRATION_CHANGE,
+    visualQaProfile: 'representative-covered',
+  },
+  {
     id: 'governance-data-quality-snapshot',
     ownerRoute: '/admin/data-governance',
     sourceFile: 'src/app/admin/data-governance/page.tsx',
     category: 'governance',
     surfaceType: 'primary-route',
-    owningChange: 'redesign-report-ledger-and-export-surfaces',
-    sourceShellOwner: 'redesign-operations-and-report-surfaces',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
+    sourceShellOwner: OPERATIONS_REPORT_MIGRATION_CHANGE,
     visualQaProfile: 'direct-capture',
   },
   {
