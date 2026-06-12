@@ -19,7 +19,8 @@ Course enhancement packs SHALL require teacher activation before affecting stude
 #### Scenario: Pack is activated
 - **WHEN** a teacher activates an enhancement pack
 - **THEN** only approved items with valid insertion targets SHALL be merged into authorized class or session runtime
-- **AND** the merge output SHALL retain pack id, item id, activation metadata, and source evidence references.
+- **AND** student runtime output SHALL retain only opaque pack id, item id, activation metadata, and renderable resource metadata
+- **AND** teacher audit output MAY retain source evidence references when explicitly requested.
 
 #### Scenario: Pack is rolled back
 - **WHEN** a teacher rolls back or archives an enhancement pack

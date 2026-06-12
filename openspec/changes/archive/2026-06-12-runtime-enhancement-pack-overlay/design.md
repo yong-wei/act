@@ -35,9 +35,18 @@ Merged output should include pack id, item id, insertion point, source evidence,
 
 Post-class evidence should link enhancement pack items to subsequent learning facts, path outcomes, grading results, or teacher observations when available.
 
+### Decision 5: Persistence uses an indexed JSON snapshot record
+
+`CourseEnhancementPack` is persisted as a Prisma record keyed by teacher, class,
+goal, lesson, source prep pack, lifecycle status, and optional diagnosis
+snapshot. Source metadata, overlay items, audit log, and teacher feedback remain
+JSON snapshots so later API and reporting changes can consume the same durable
+record without mutating base course manifests.
+
 ## Validation
 
 - Unit tests cover overlay merge, insertion-point validation, activation gating, rollback, and archive.
 - Runtime tests prove base manifests are not modified.
 - Authorization tests prove students only see activated overlays for their class/session.
+- Prisma schema validation and client generation prove the durable pack record is valid.
 - `rtk openspec validate runtime-enhancement-pack-overlay --strict` passes.
