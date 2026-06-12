@@ -86,6 +86,10 @@ export function usePageFloatingControls() {
   return context;
 }
 
+export function useOptionalPageFloatingControls() {
+  return useContext(PageFloatingControlsContext);
+}
+
 function PageFloatingControls({
   registrations,
   behavior,

@@ -1,12 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import type { ReactNode } from 'react';
-import { Moon, Settings, Sun } from 'lucide-react';
+import { Menu, Moon, PanelLeftClose, PanelLeftOpen, Settings, Sun, X } from 'lucide-react';
 
-import { useTheme } from '@/components/providers/theme-provider';
-import { usePageFloatingControls } from '@/components/shared/page-floating-controls';
+import { useOptionalTheme } from '@/components/providers/theme-provider';
+import { useOptionalPageFloatingControls } from '@/components/shared/page-floating-controls';
 import {
   getPlatformRouteNavigation,
   resolvePlatformRouteInventory,
@@ -98,6 +98,7 @@ export interface AppHeaderProps {
 export interface AppSidebarProps {
   navigation: readonly PlatformNavigationItem[];
   activeHref?: string;
+  collapsed?: boolean;
   className?: string;
 }
 
@@ -137,6 +138,14 @@ const contextualReturnBreadcrumbLabels: Record<string, string> = {
   '/interactive-learning': '互动学习',
   '/assessment/adaptive-practice': '自适应练习',
 };
+const mobileDrawerFocusableSelector = [
+  'a[href]',
+  'button:not([disabled])',
+  'textarea:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
 
 interface NavigationRenderItem {
   item: PlatformNavigationItem;
@@ -179,6 +188,8 @@ function renderNavigationLink(
   activeItemId: string | undefined,
   variant: 'sidebar' | 'mobile',
   depth = 0,
+  collapsed = false,
+  onNavigate?: () => void,
 ) {
   const active = item.id === activeItemId;
   return (
@@ -186,17 +197,20 @@ function renderNavigationLink(
       key={item.id}
       href={item.href}
       aria-current={active ? 'page' : undefined}
+      onClick={onNavigate}
       className={cn(
         variant === 'sidebar'
           ? 'block rounded-md px-3 py-2 text-sm font-medium transition'
           : 'inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition',
         variant === 'sidebar' && depth > 0 && 'ml-3 border-l border-platform-border pl-3',
+        variant === 'sidebar' && collapsed && 'text-center',
         active
           ? 'bg-platform-action-subtle text-platform-action-primary'
           : 'text-platform-fg-secondary hover:bg-platform-action-hover hover:text-platform-fg-primary',
       )}
     >
-      {item.label}
+      <span className={cn(collapsed && 'sr-only')}>{item.label}</span>
+      {collapsed ? item.label.slice(0, 1) : null}
     </Link>
   );
 }
@@ -242,7 +256,10 @@ export function AppBreadcrumb({ items = [] }: { items?: readonly AppBreadcrumbIt
 }
 
 export function ThemeSwitcher({ className }: { className?: string }) {
-  const { mounted, theme, toggleTheme } = useTheme();
+  const themeContext = useOptionalTheme();
+  const mounted = themeContext?.mounted ?? false;
+  const theme = themeContext?.theme ?? 'light';
+  const toggleTheme = themeContext?.toggleTheme ?? (() => {});
   const isDark = theme === 'dark';
   return (
     <button
@@ -294,15 +311,237 @@ export function AppHeader({
   );
 }
 
-export function AppSidebar({ navigation, activeHref, className }: AppSidebarProps) {
+export function AppSidebar({ navigation, activeHref, collapsed = false, className }: AppSidebarProps) {
   const activeItemId = getActiveNavigationItemId(navigation, activeHref);
   const renderItems = flattenNavigationItems(navigation);
   return (
-    <aside className={cn('border-r border-platform-border bg-platform-canvas-muted px-3 py-4', className)}>
+    <aside className={cn('border-r border-platform-border bg-platform-canvas-muted px-3 py-4', collapsed && 'px-2', className)}>
       <nav className="space-y-1">
-        {renderItems.map(({ item, depth }) => renderNavigationLink(item, activeItemId, 'sidebar', depth))}
+        {renderItems.map(({ item, depth }) => renderNavigationLink(item, activeItemId, 'sidebar', depth, collapsed))}
       </nav>
     </aside>
+  );
+}
+
+function CollapsibleAppSidebar({
+  navigation,
+  activeHref,
+  className,
+}: {
+  navigation: readonly PlatformNavigationItem[];
+  activeHref?: string;
+  className?: string;
+}) {
+  const [navigationCollapsed, setNavigationCollapsed] = useState(false);
+
+  return (
+    <div
+      className={cn('border-r border-platform-border bg-platform-canvas-muted', className)}
+      data-shell-navigation-state={navigationCollapsed ? 'collapsed' : 'expanded'}
+    >
+      <div className="border-b border-platform-border px-3 py-3">
+        <button
+          type="button"
+          aria-label={navigationCollapsed ? '展开平台导航' : '收起平台导航'}
+          aria-expanded={!navigationCollapsed}
+          onClick={() => setNavigationCollapsed((current) => !current)}
+          className={cn(
+            'inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-platform-border bg-platform-surface text-sm font-medium text-platform-fg-secondary transition hover:border-platform-border-strong hover:text-platform-action-primary',
+            navigationCollapsed && 'w-10',
+          )}
+        >
+          {navigationCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          <span className={cn(navigationCollapsed && 'sr-only')}>
+            {navigationCollapsed ? '展开导航' : '收起导航'}
+          </span>
+        </button>
+      </div>
+      <AppSidebar
+        navigation={navigation}
+        activeHref={activeHref}
+        collapsed={navigationCollapsed}
+      />
+    </div>
+  );
+}
+
+function AppMobileNavigation({
+  navigation,
+  activeItemId,
+  sidebarBreakpoint,
+  behavior,
+}: {
+  navigation: readonly NavigationRenderItem[];
+  activeItemId?: string;
+  sidebarBreakpoint: 'lg' | 'xl';
+  behavior?: PlatformMobileNavigationBehavior;
+}) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const openButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const drawerDialogRef = useRef<HTMLDivElement>(null);
+  const drawerOverlayRef = useRef<HTMLDivElement>(null);
+  const hiddenAtBreakpoint = sidebarBreakpoint === 'lg' ? 'lg:hidden' : 'xl:hidden';
+  const closeDrawer = () => setDrawerOpen(false);
+
+  useEffect(() => {
+    const desktopMediaQuery = window.matchMedia(`(min-width: ${sidebarBreakpoint === 'lg' ? 1024 : 1280}px)`);
+    if (desktopMediaQuery.matches) {
+      setDrawerOpen(false);
+    }
+
+    const handleDesktopBreakpoint = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        setDrawerOpen(false);
+      }
+    };
+
+    desktopMediaQuery.addEventListener('change', handleDesktopBreakpoint);
+    return () => desktopMediaQuery.removeEventListener('change', handleDesktopBreakpoint);
+  }, [sidebarBreakpoint]);
+
+  useEffect(() => {
+    if (!drawerOpen) return undefined;
+
+    const overlay = drawerOverlayRef.current;
+    const parent = overlay?.parentElement;
+    const inertSiblings = Array.from(parent?.children ?? []).filter((element) => element !== overlay);
+    const previouslyFocusedElement = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+
+    inertSiblings.forEach((element) => {
+      element.setAttribute('inert', '');
+      element.setAttribute('aria-hidden', 'true');
+    });
+    const focusFrame = window.requestAnimationFrame(() => closeButtonRef.current?.focus());
+
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      inertSiblings.forEach((element) => {
+        element.removeAttribute('inert');
+        element.removeAttribute('aria-hidden');
+      });
+      window.requestAnimationFrame(() => {
+        const restoreTarget = openButtonRef.current?.isConnected
+          ? openButtonRef.current
+          : previouslyFocusedElement?.isConnected ? previouslyFocusedElement : null;
+        restoreTarget?.focus();
+      });
+    };
+  }, [drawerOpen]);
+
+  const getDrawerFocusableElements = () => (
+    Array.from(drawerDialogRef.current?.querySelectorAll<HTMLElement>(mobileDrawerFocusableSelector) ?? [])
+      .filter((element) => (
+        element.tabIndex >= 0
+        && element.getAttribute('aria-hidden') !== 'true'
+        && element.getClientRects().length > 0
+      ))
+  );
+
+  const handleDrawerKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeDrawer();
+      return;
+    }
+
+    if (event.key !== 'Tab') return;
+
+    const focusableElements = getDrawerFocusableElements();
+    if (focusableElements.length === 0) {
+      event.preventDefault();
+      drawerDialogRef.current?.focus();
+      return;
+    }
+
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+    const activeElement = document.activeElement;
+
+    if (event.shiftKey && (activeElement === firstFocusable || !drawerDialogRef.current?.contains(activeElement))) {
+      event.preventDefault();
+      lastFocusable?.focus();
+      return;
+    }
+
+    if (!event.shiftKey && activeElement === lastFocusable) {
+      event.preventDefault();
+      firstFocusable?.focus();
+    }
+  };
+
+  if (behavior !== 'drawer') {
+    return (
+      <nav
+        aria-label="平台导航"
+        className={cn('border-b border-platform-border bg-platform-surface px-4 py-2', hiddenAtBreakpoint)}
+      >
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+          {navigation.map(({ item }) => renderNavigationLink(item, activeItemId, 'mobile'))}
+        </div>
+      </nav>
+    );
+  }
+
+  return (
+    <>
+      <div className={cn('border-b border-platform-border bg-platform-surface px-4 py-2', hiddenAtBreakpoint)}>
+        <button
+          ref={openButtonRef}
+          type="button"
+          aria-label="打开平台导航"
+          aria-controls="app-shell-mobile-navigation"
+          aria-expanded={drawerOpen}
+          onClick={() => setDrawerOpen(true)}
+          className="inline-flex h-10 items-center gap-2 rounded-md border border-platform-border bg-platform-surface-raised px-3 text-sm font-medium text-platform-fg-primary transition hover:border-platform-border-strong hover:text-platform-action-primary"
+        >
+          <Menu className="h-4 w-4" />
+          导航
+        </button>
+      </div>
+      {drawerOpen ? (
+        <div
+          ref={drawerOverlayRef}
+          className={cn('fixed inset-0 z-50', hiddenAtBreakpoint)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="平台导航"
+          data-app-shell-mobile-drawer="open"
+          tabIndex={-1}
+          onKeyDown={handleDrawerKeyDown}
+        >
+          <button
+            type="button"
+            aria-label="关闭平台导航背景"
+            className="absolute inset-0 bg-platform-canvas/72 backdrop-blur-sm"
+            onClick={closeDrawer}
+          />
+          <aside
+            ref={drawerDialogRef}
+            id="app-shell-mobile-navigation"
+            className="absolute inset-y-0 left-0 flex w-[min(86vw,320px)] flex-col border-r border-platform-border bg-platform-surface-raised shadow-2xl"
+          >
+            <div className="flex min-h-[64px] items-center justify-between border-b border-platform-border px-4">
+              <span className="text-sm font-semibold text-platform-fg-primary">导航</span>
+              <button
+                ref={closeButtonRef}
+                type="button"
+                aria-label="关闭平台导航"
+                onClick={closeDrawer}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-platform-border bg-platform-surface text-platform-fg-secondary transition hover:border-platform-border-strong hover:text-platform-action-primary"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <nav aria-label="平台移动抽屉导航" className="flex-1 space-y-2 overflow-y-auto px-3 py-4">
+              {navigation.map(({ item }) => renderNavigationLink(item, activeItemId, 'mobile', 0, false, closeDrawer))}
+            </nav>
+          </aside>
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -394,7 +633,9 @@ function AppShellFloatingDockRegistration({
   controls?: readonly AppShellDockControl[];
   behavior: PlatformFloatingDockRouteBehavior;
 }) {
-  const { registerControl, setRouteDockBehavior } = usePageFloatingControls();
+  const floatingControls = useOptionalPageFloatingControls();
+  const registerControl = floatingControls?.registerControl;
+  const setRouteDockBehavior = floatingControls?.setRouteDockBehavior;
   const controlRegistrationSignature = controls
     .map((control) => [
       control.id,
@@ -405,9 +646,13 @@ function AppShellFloatingDockRegistration({
     ].join(':'))
     .join('|');
 
-  useEffect(() => setRouteDockBehavior(behavior), [behavior, setRouteDockBehavior]);
+  useEffect(() => {
+    if (!setRouteDockBehavior) return undefined;
+    return setRouteDockBehavior(behavior);
+  }, [behavior, setRouteDockBehavior]);
 
   useEffect(() => {
+    if (!registerControl) return undefined;
     if (behavior === 'hidden') return undefined;
     const unregister = controls.map((control, index) => registerControl({
       id: `app-shell:${control.id}`,
@@ -467,6 +712,7 @@ export function AppShell({
   const renderItems = flattenNavigationItems(effectiveNavigation);
   const showSidebar = sidebarMode !== 'hidden' && renderItems.length > 0;
   const sidebarBreakpoint = sidebarMode === 'collapsible' ? 'xl' : 'lg';
+  const allowSidebarCollapse = sidebarMode === 'collapsible';
   const activeItemId = getActiveNavigationItemId(effectiveNavigation, activeHref);
   return (
     <main
@@ -487,13 +733,20 @@ export function AppShell({
           showSidebar && sidebarBreakpoint === 'lg' && 'lg:grid-cols-[248px_1fr]',
           showSidebar && sidebarBreakpoint === 'xl' && 'xl:grid-cols-[248px_1fr]',
         )}
+        data-app-shell-layout={allowSidebarCollapse ? 'collapsible' : undefined}
       >
-        {showSidebar ? (
-          <AppSidebar
+        {showSidebar ? allowSidebarCollapse ? (
+          <CollapsibleAppSidebar
             navigation={effectiveNavigation}
             activeHref={activeHref}
             className={sidebarBreakpoint === 'lg' ? 'hidden lg:block' : 'hidden xl:block'}
           />
+        ) : (
+            <AppSidebar
+              navigation={effectiveNavigation}
+              activeHref={activeHref}
+              className={sidebarBreakpoint === 'lg' ? 'hidden lg:block' : 'hidden xl:block'}
+            />
         ) : null}
         <div className="min-w-0">
           <AppHeader
@@ -505,17 +758,26 @@ export function AppShell({
             userMenu={userMenu}
           />
           {showSidebar && effectiveNavigation.length > 0 ? (
-            <nav
-              aria-label="平台导航"
-              className={cn(
-                'border-b border-platform-border bg-platform-surface px-4 py-2',
-                sidebarBreakpoint === 'lg' ? 'lg:hidden' : 'xl:hidden',
-              )}
-            >
-              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-                {renderItems.map(({ item }) => renderNavigationLink(item, activeItemId, 'mobile'))}
-              </div>
-            </nav>
+            resolvedRouteMetadata?.mobileNavigation === 'drawer' ? (
+            <AppMobileNavigation
+              navigation={renderItems}
+              activeItemId={activeItemId}
+              sidebarBreakpoint={sidebarBreakpoint}
+              behavior={resolvedRouteMetadata?.mobileNavigation as PlatformMobileNavigationBehavior | undefined}
+            />
+            ) : (
+              <nav
+                aria-label="平台导航"
+                className={cn(
+                  'border-b border-platform-border bg-platform-surface px-4 py-2',
+                  sidebarBreakpoint === 'lg' ? 'lg:hidden' : 'xl:hidden',
+                )}
+              >
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                  {renderItems.map(({ item }) => renderNavigationLink(item, activeItemId, 'mobile'))}
+                </div>
+              </nav>
+            )
           ) : null}
           <div className={cn('px-4 py-5 sm:px-6', resolvedRouteMetadata?.frame && contentFrameClassNames[resolvedRouteMetadata.frame])}>
             {AppShellWorkspace({ slots: workspaceSlots, children })}

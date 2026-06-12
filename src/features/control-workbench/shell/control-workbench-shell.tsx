@@ -6,6 +6,7 @@ import 'katex/dist/katex.min.css';
 import { InlineMath } from 'react-katex';
 import { Plus, Settings2, X } from 'lucide-react';
 
+import { AppShell } from '@/components/platform/app-shell';
 import {
   arenaMethodLabels,
   arenaWorkspaceLabels,
@@ -460,8 +461,28 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
   };
 
   return (
-    <main
-      className="min-h-screen bg-background text-foreground"
+    <AppShell
+      role="student"
+      title="控制工作台"
+      subtitle={taskTitle}
+      activeHref="/interactive-learning/control-workbench"
+      sidebarMode="collapsible"
+      breadcrumbs={[
+        { label: '首页', href: '/' },
+        { label: '竞技场', href: returnHref.startsWith('/arena') ? '/arena' : undefined },
+        { label: '控制工作台' },
+      ].filter((item) => item.href !== undefined || item.label !== '竞技场')}
+      actions={(
+        <Link
+          className="hidden h-9 items-center rounded-md border border-platform-border bg-platform-surface px-3 text-sm font-medium text-platform-fg-primary transition hover:border-platform-border-strong hover:text-platform-action-primary sm:inline-flex"
+          href={returnHref}
+        >
+          {'taskId' in session ? '返回挑战详情' : '返回跨域探索'}
+        </Link>
+      )}
+    >
+    <section
+      className="min-h-screen text-foreground"
       data-commercial-workspace="control-workbench"
       data-task-workspace-archetype="engineering-analysis"
       data-launch-provenance={experienceContext.launch.kind}
@@ -651,7 +672,8 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
           全局浮动控件避让主仪表、提交按钮和本地工具。
         </div>
       </section>
-    </main>
+    </section>
+    </AppShell>
   );
 }
 

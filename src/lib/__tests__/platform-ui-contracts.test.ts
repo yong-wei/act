@@ -729,7 +729,6 @@ describe('platform UI contracts', () => {
     };
     const shell = asElement(AppShell(shellProps));
     const shellMarkup = renderAppShellMarkup(shellProps);
-    const returnLinks = collectLinks(shell).filter((link) => link.props?.href === '/arena');
     const header = collectElementsByType(shell, AppHeader)[0];
 
     expect(shell.props?.['data-platform-route-frame']).toBe('mission-workspace');
@@ -740,7 +739,7 @@ describe('platform UI contracts', () => {
       { label: 'Arena 任务' },
     ]);
     expect(JSON.stringify(header.props?.breadcrumbs)).not.toContain('Return to');
-    expect(returnLinks.length).toBeGreaterThan(0);
+    expect(shellMarkup).toContain('href="/arena"');
     expect(shellMarkup).toContain('data-platform-floating-dock-registration="true"');
     expect(shellMarkup).toContain('data-platform-floating-dock-behavior="collapsed"');
     expect(shellMarkup).toContain('data-platform-floating-dock-controls="konling management"');
@@ -842,7 +841,7 @@ describe('platform UI contracts', () => {
 
     expect(classNameOf(grid)).toContain('xl:grid-cols-[248px_1fr]');
     expect(classNameOf(grid)).not.toContain('lg:grid-cols-[248px_1fr]');
-    expect(sidebar.type).toBe(AppSidebar);
+    expect(typeof sidebar.type === 'function' ? sidebar.type.name : '').toBe('CollapsibleAppSidebar');
     expect(classNameOf(sidebar)).toContain('hidden xl:block');
     expect(classNameOf(mobileNav)).toContain('xl:hidden');
   });

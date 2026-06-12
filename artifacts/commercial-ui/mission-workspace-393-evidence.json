@@ -1,0 +1,67 @@
+{
+  "change": "migrate-mission-workspaces-to-unified-shell",
+  "capturedAt": "2026-06-12T20:14:00+08:00",
+  "evidenceType": "contract-and-route-render",
+  "routes": [
+    {
+      "href": "/arena",
+      "routeFile": "src/app/arena/page.tsx",
+      "routeArchetype": "mission-workspace",
+      "shell": "AppShell via ArenaPageShell adapter",
+      "desktopExpanded": true,
+      "desktopCollapsed": true,
+      "mobileNavigation": "drawer",
+      "themes": ["light", "dark"],
+      "dockState": "collapsed",
+      "result": "passed"
+    },
+    {
+      "href": "/arena/challenges/task-second-order-lead-pid",
+      "routeFile": "src/app/arena/challenges/[taskId]/page.tsx",
+      "routeArchetype": "mission-workspace",
+      "shell": "AppShell via ArenaPageShell adapter",
+      "contextReturnTarget": "/arena",
+      "preservesLeaderboardBoundary": true,
+      "preservesOfficialEvaluationBoundary": true,
+      "desktopExpanded": true,
+      "desktopCollapsed": true,
+      "mobileNavigation": "drawer",
+      "themes": ["light", "dark"],
+      "dockState": "collapsed",
+      "result": "passed"
+    },
+    {
+      "href": "/interactive-learning/control-workbench?arenaTask=task-second-order-lead-pid&preset=classic-four-view",
+      "routeFile": "src/app/interactive-learning/control-workbench/page.tsx",
+      "routeArchetype": "mission-workspace",
+      "shell": "AppShell",
+      "contextReturnTarget": "/arena/challenges/task-second-order-lead-pid",
+      "preservesObjectSelection": true,
+      "preservesPanelStorage": true,
+      "preservesAllowedMethods": true,
+      "desktopExpanded": true,
+      "desktopCollapsed": true,
+      "mobileNavigation": "workspace-command-surface",
+      "themes": ["light", "dark"],
+      "dockState": "enabled",
+      "result": "passed"
+    },
+    {
+      "href": "/simulations/cruise",
+      "routeFile": "src/app/simulations/cruise/page.tsx",
+      "routeArchetype": "mission-workspace",
+      "temporaryException": {
+        "owner": "migrate-mission-workspaces-to-unified-shell",
+        "source": "src/lib/platform-role-navigation.ts",
+        "removalCondition": "Concrete simulation scenes preserve launch provenance, return target, evidence rail, and local scene controls in the immersive workspace shell."
+      },
+      "result": "passed"
+    }
+  ],
+  "verification": [
+    "rtk npx tsc --noEmit --pretty false",
+    "rtk npm run test:unit -- src/features/arena/__tests__/arena-entry-ui.test.ts src/features/control-workbench/__tests__/control-workbench-shell.test.ts src/features/control-workbench/__tests__/control-workbench-design-flow.test.ts src/lib/__tests__/platform-ui-contracts.test.ts src/lib/__tests__/platform-role-navigation.test.ts",
+    "rtk npm run test:commercial-ui-governance",
+    "rtk openspec validate migrate-mission-workspaces-to-unified-shell --strict"
+  ]
+}

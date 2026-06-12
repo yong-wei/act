@@ -1218,12 +1218,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'collapsed',
     visualQaProfile: 'representative',
     owningChange: 'redesign-knowledge-and-data-surfaces',
-    legacyShell: {
-      component: 'UnifiedTopBar',
-      disposition: 'scheduled-replacement',
-      sourceFile: 'src/app/knowledge/page.tsx',
-      removalCondition: 'Knowledge graph route uses AppShell or approved knowledge workspace shell without a page-local UnifiedTopBar.',
-    },
+    unifiedUiMigrationOwner: LEARNER_KNOWLEDGE_DATA_MIGRATION_CHANGE,
   }),
 ] as const;
 

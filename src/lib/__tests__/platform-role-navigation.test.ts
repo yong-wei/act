@@ -663,7 +663,6 @@ describe('platform role navigation', () => {
         ['/teacher', 'TeacherLayout'],
         ['/admin', 'AdminConsoleHeader'],
         ['/admin/data-governance', 'AdminConsoleHeader'],
-        ['/knowledge', 'UnifiedTopBar'],
       ]),
     );
     for (const route of shellRoutes) {

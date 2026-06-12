@@ -78,7 +78,7 @@ export function ChallengeDetail({
 
   return (
     <ArenaPageShell
-      activePath="/arena"
+      activePath={`/arena/challenges/${task.id}`}
       breadcrumbs={[
         { label: '首页', href: '/' },
         { label: '竞技场首页', href: '/arena' },
