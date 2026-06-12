@@ -331,7 +331,6 @@ function affectedVisualRoutes(files: string[]): CommercialVisualAcceptanceRoute[
     if (
       file === 'src/app/globals.css'
       || file === 'src/components/platform/app-shell.tsx'
-      || file === 'src/lib/platform-role-navigation.ts'
       || file === 'artifacts/commercial-ui/evidence.json'
     ) {
       addDefaultMatrix();
@@ -484,9 +483,15 @@ const missingChangedAppPageLedgerViolations: CommercialUiGovernanceViolation[] =
     message: 'Changed app page route is missing a primary route ledger entry.',
     evidence: ['missing-primary-route-inventory-entry'],
   }));
-const routeInventoryForGate = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => (
+const routeLedgerHelperChanged = files.includes('src/lib/platform-role-navigation.ts');
+const routeInventoryForGate = routeLedgerHelperChanged
+  ? PLATFORM_PRIMARY_ROUTE_INVENTORY
+  : PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => (
+    requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
+    || changedPrimaryRouteHrefs.has(route.href)
+  ));
+const visualRouteInventoryForGate = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => (
   requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
-  || changedPrimaryRouteHrefs.has(route.href)
 ));
 const result = evaluateCommercialUiGovernance({
   mode: 'blocking',
@@ -504,6 +509,7 @@ const result = evaluateCommercialUiGovernance({
   accessibilityEvidence: readAccessibilityEvidenceManifest(requiredVisualRoutes),
   requiredVisualRoutes,
   routeInventory: routeInventoryForGate,
+  visualRouteInventory: visualRouteInventoryForGate,
   premiumVisualQaMatrix: PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.filter((route) => (
     requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
   )),
