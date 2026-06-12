@@ -516,8 +516,8 @@ describe('platform UI contracts', () => {
       ...listSourceFiles('src/features'),
       ...listSourceFiles('src/components/platform'),
     ];
-    const invalidLiteralBusinessRole = /\brole=(?:"student"|"teacher"|'student'|'teacher'|\{'student'\}|\{'teacher'\}|\{"student"\}|\{"teacher"\})/;
-    const businessRoleForwardedToDom = /<[a-z][A-Za-z0-9:-]*(?:\s+[^<>]*?)?\srole=\{(?:role|viewerRole|surfaceRole|businessRole|audienceRole)\}/;
+    const invalidLiteralBusinessRole = /\brole\s*=\s*(?:"student"|"teacher"|'student'|'teacher'|\{\s*'student'\s*\}|\{\s*'teacher'\s*\}|\{\s*"student"\s*\}|\{\s*"teacher"\s*\})/;
+    const businessRoleForwardedToDom = /<[a-z][A-Za-z0-9:-]*(?:\s+[^<>]*?)?\srole\s*=\s*\{\s*(?:role|viewerRole|surfaceRole|businessRole|audienceRole)\s*\}/;
 
     for (const relativePath of checkedFiles) {
       const source = readSource(relativePath);
