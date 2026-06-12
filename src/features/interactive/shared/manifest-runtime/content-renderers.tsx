@@ -275,7 +275,7 @@ function tokenizeMatlabLine(line: string): CodeToken[] {
   if (commentIndex >= 0) {
     return [
       ...tokenizeMatlabCodeSegment(line.slice(0, commentIndex)),
-      { value: line.slice(commentIndex), kind: 'comment' },
+      { value: line.slice(commentIndex), kind: 'comment' as const },
     ].filter((token) => token.value.length > 0);
   }
   return tokenizeMatlabCodeSegment(line);

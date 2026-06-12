@@ -1,13 +1,15 @@
 ## Context
 
-The React Doctor `aria-role` findings include 15 unique source locations. Eight are concentrated in interactive course student/teacher pages:
+The React Doctor `aria-role` baseline contains 30 diagnostics across 15 unique source locations. Eight unique locations are concentrated in interactive course student/teacher pages:
 
 - Unit 4-1 student and teacher pages
 - Unit 5-1 student and teacher pages
 - Unit 5-2 student and teacher pages
 - Unit 5-3 student and teacher pages
 
-The remaining seven are platform shell call sites for learner, Arena, control workbench, knowledge, and data-center surfaces that passed business identity into `AppShell role`. The reported values are business roles, not accessibility roles. In several files the value is passed to custom components as a prop named `role`; that is still a problem because it collides with React/ARIA naming and may be forwarded to DOM. ARIA `role` must describe UI semantics such as `region`, `navigation`, `main`, `button`, or `status`; it must not be used as a domain marker.
+The same baseline also includes platform entry points that pass `student` into `AppShell` through a prop named `role`: dashboard, profile, evidence, growth, adaptive practice, Arena, and control workbench surfaces. Knowledge graph and data center presentation surfaces were not part of the React Doctor baseline artifact, but they used the same `AppShell` business-role API and were migrated in the same rename to keep the public shell contract consistent.
+
+The reported values are business roles, not accessibility roles. In several files the value is passed to custom components as a prop named `role`; that is still a problem because it collides with React/ARIA naming and may be forwarded to DOM. ARIA `role` must describe UI semantics such as `region`, `navigation`, `main`, `button`, or `status`; it must not be used as a domain marker.
 
 ## Goals / Non-Goals
 
@@ -15,7 +17,7 @@ The remaining seven are platform shell call sites for learner, Arena, control wo
 
 - Remove every invalid ARIA role reported by React Doctor.
 - Preserve any business-role information needed by tests, analytics, or styling through non-ARIA attributes.
-- Add a lightweight guard so newly authored interactive pages and platform shell entry points do not reintroduce `role="student"` or `role="teacher"`.
+- Add a lightweight guard so newly authored interactive pages and known platform shell call sites do not reintroduce `role="student"` or `role="teacher"`, including variable forwarding from business-role props into intrinsic DOM `role` attributes.
 
 **Non-Goals:**
 
@@ -35,7 +37,7 @@ The remaining seven are platform shell call sites for learner, Arena, control wo
 
 3. **Guard the exact regression.**
 
-   A narrow static test or script is enough for this change: it should fail on JSX `role="student"` or `role="teacher"` in source files and should verify that renamed business props are not forwarded to DOM role attributes. This implementation scans App Router pages, feature TSX files, and platform shell components so both the original interactive-course findings and the platform shell findings remain covered. A broader a11y audit can be proposed separately if needed.
+   A static test should scan App Router pages, feature TSX files, and platform shell components. It should fail on JSX `role="student"` or `role="teacher"` in source files and verify that renamed business props such as `viewerRole` or `surfaceRole` are not forwarded to intrinsic DOM `role` attributes. A broader a11y audit can be proposed separately if needed.
 
 ## Risks / Trade-offs
 

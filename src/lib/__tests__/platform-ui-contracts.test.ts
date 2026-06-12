@@ -479,6 +479,7 @@ describe('platform UI contracts', () => {
       adaptivePracticeSource,
     ]) {
       expect(source).toContain('<AppShell');
+      expect(source).toContain('viewerRole="student"');
       expect(source).not.toMatch(/role=\"(?:student|teacher)\"/);
       expect(source).not.toContain('UnifiedTopBar');
       expect(source).not.toContain('商业入口');
@@ -505,17 +506,23 @@ describe('platform UI contracts', () => {
     expect(adaptivePracticeSource).toContain('data-konling-citation-slot="cited-explanation"');
   });
 
-  it('rejects business identities in JSX role attributes', () => {
-    const files = [
+  it('does not use student or teacher business identity as a JSX role prop', () => {
+    const platformShellFiles = [
+      'src/components/platform/app-shell.tsx',
+    ];
+    const checkedFiles = [
+      ...platformShellFiles,
       ...listSourceFiles('src/app'),
       ...listSourceFiles('src/features'),
       ...listSourceFiles('src/components/platform'),
     ];
+    const invalidLiteralBusinessRole = /\brole\s*=\s*(?:"student"|"teacher"|'student'|'teacher'|\{\s*'student'\s*\}|\{\s*'teacher'\s*\}|\{\s*"student"\s*\}|\{\s*"teacher"\s*\})/;
+    const businessRoleForwardedToDom = /<[a-z][A-Za-z0-9:-]*(?:\s+[^<>]*?)?\srole\s*=\s*\{\s*(?:role|viewerRole|surfaceRole|businessRole|audienceRole)\s*\}/;
 
-    for (const file of files) {
-      const source = readSource(file);
-      expect(source, file).not.toMatch(/\brole\s*=\s*["'](?:student|teacher)["']/);
-      expect(source, file).not.toMatch(/<[a-z][A-Za-z0-9:-]*\b[^<>]*\brole\s*=\s*\{(?:role|viewerRole)\}/);
+    for (const relativePath of checkedFiles) {
+      const source = readSource(relativePath);
+      expect(source, relativePath).not.toMatch(invalidLiteralBusinessRole);
+      expect(source, relativePath).not.toMatch(businessRoleForwardedToDom);
     }
   });
 

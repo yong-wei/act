@@ -233,6 +233,7 @@ npm run test:unit -- src/features/interactive/__tests__/interactive-module-taxon
 - 同时适配深色模式；不要硬编码模块样式，不要把浅色模式写成散落在组件里的固定颜色
 - 明确拒绝硬编码样式：如果某个模块需要单独写死颜色值、十六进制色、`dark:` 分支或浅色块/深色字组合，先补统一主题变量或语义类，再实现模块；不要继续在模块内散写颜色
 - 即使已有历史兼容桥接层，也不允许在新课或新改动里继续新增 `bg-white`、`text-slate-*`、`border-cyan-*`、`dark:` 之类的旧式颜色类；桥接层只用于兜底，不作为继续硬编码的理由
+- 学生/教师业务身份不得写入 JSX 或 DOM 的 `role` 属性；使用 `viewerRole`、领域 prop 或 `data-role` 表达业务身份，DOM `role` 只能使用合法非抽象 ARIA role 或语义 HTML
 - 课程实现后，必须在互动课程总入口页注册精品课程入口；当前注册点以 `src/features/interactive/learning-catalog.ts` 的 `FEATURED_LESSONS` / `PREMIUM_LESSSSONS` 为准，不能只完成路由、预设课和课程页而漏掉入口
 - 前测页面不设置单独的前测内容模块或范围模块；应在标题模块文案中注明考察内容，标题模块后直接进入教师控制、作答题组或其他真实互动模块
 - 逐个页面发放实现任务，必要时使用实现子代理完成页面级实现；实现后由学生视角审查子代理检查页面是否忠实反映契约中的内容和逻辑，并记录 `interactive-implementation-acceptance.json`

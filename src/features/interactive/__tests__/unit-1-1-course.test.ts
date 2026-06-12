@@ -25,6 +25,7 @@ describe('unit 1-1 interactive course', () => {
     const courseModule = await import('@/lib/unit-1-1-course');
     const featureModule = await import('@/features/interactive/unit-1-1-see-the-full-picture/step-panels');
     const step = courseModule.UNIT_1_1_LESSON_STEPS.find((item: { id: string }) => item.id === 'step-13');
+    if (!step) throw new Error('step-13 is missing from the 1-1 course steps');
 
     const html = renderToStaticMarkup(
       createElement(featureModule.UNIT_1_1StepContentPanel, {

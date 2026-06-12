@@ -1,7 +1,7 @@
-# interactive-course-accessibility-semantics Specification
-
 ## Purpose
-TBD - created by archiving change eliminate-react-doctor-aria-role-errors. Update Purpose after archive.
+
+Define accessibility semantics for interactive course student and teacher surfaces so business identities do not conflict with ARIA role semantics.
+
 ## Requirements
 ### Requirement: Interactive course surfaces use valid ARIA roles
 The system SHALL use only valid non-abstract ARIA roles or semantic HTML elements for interactive course student and teacher surfaces.
@@ -24,4 +24,3 @@ The system SHALL provide a local validation guard that rejects interactive cours
 #### Scenario: Developer validates interactive course accessibility semantics
 - **WHEN** a developer runs the relevant local validation or React Doctor 0.5.1 error-only scan
 - **THEN** the report SHALL contain no `aria-role` diagnostics for `student` or `teacher` role values
-

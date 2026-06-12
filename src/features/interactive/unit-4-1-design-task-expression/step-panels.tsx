@@ -1267,7 +1267,7 @@ export function UNIT_4_1StepContentPanel({
     return baseRegistry['native-figure']?.({ manifest: activeManifest, step: stepManifest, module, extra: moduleExtra });
   };
   const renderStatPanel = () => {
-    if (role === 'student') {
+    if (viewerRole === 'student') {
       return (
         <UNIT_4_1StudentSummaryPanel
           submittedCount={submittedCount}
