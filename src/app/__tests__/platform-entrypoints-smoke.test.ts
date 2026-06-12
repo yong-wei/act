@@ -104,7 +104,8 @@ describe('platform entrypoint smoke contracts', () => {
 
     for (const source of routeSources) {
       expect(source).toContain('getCommercialStudentEntryIntentGroups');
-      expect(source).toContain('商业入口');
+      expect(source).toContain('data-commercial-student-entry-route');
+      expect(source).toContain('data-commercial-entry-intent');
     }
     expect(routeSources[2]).toContain("['practice', 'learn', 'challenge', 'review']");
     expect(routeSources[2]).toContain('返回竞技场');

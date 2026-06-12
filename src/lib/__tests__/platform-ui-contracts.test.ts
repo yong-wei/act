@@ -428,6 +428,49 @@ describe('platform UI contracts', () => {
     expect(adminGovernanceSource).toContain('data-commercial-operations-workspace="admin-operations"');
   });
 
+  it('keeps migrated learner, knowledge, and adaptive surfaces on the unified shell contract', () => {
+    const dashboardSource = readSource('src/app/(main)/dashboard/page.tsx');
+    const profileSource = readSource('src/app/(main)/profile/page.tsx');
+    const growthSource = readSource('src/app/(main)/profile/growth/page.tsx');
+    const evidenceSource = readSource('src/app/(main)/profile/evidence/page.tsx');
+    const knowledgeSource = readSource('src/app/knowledge/page.tsx');
+    const adaptivePracticeSource = readSource('src/app/assessment/adaptive-practice/page.tsx');
+    const evidenceBrowserSource = readSource('src/features/data-governance/evidence-timeline-browser.tsx');
+
+    for (const source of [
+      dashboardSource,
+      profileSource,
+      growthSource,
+      evidenceSource,
+      adaptivePracticeSource,
+    ]) {
+      expect(source).toContain('<AppShell');
+      expect(source).toContain('role="student"');
+      expect(source).not.toContain('UnifiedTopBar');
+      expect(source).not.toContain('商业入口');
+    }
+    expect(knowledgeSource).toContain('<AppShell');
+    expect(knowledgeSource).toContain('getServerAuthSession');
+    expect(knowledgeSource).toContain('role={shellRole}');
+    expect(knowledgeSource).toContain('if (!shellRole)');
+    expect(knowledgeSource).not.toContain('UnifiedTopBar');
+    expect(knowledgeSource).not.toContain('商业入口');
+
+    expect(dashboardSource).toContain('data-learner-record');
+    expect(profileSource).toContain('data-learner-record');
+    expect(growthSource).toContain('data-learner-record-evidence-confidence');
+    expect(evidenceSource).toContain('data-knowledge-data-map-surface="evidence-browser"');
+    expect(evidenceSource).toContain('chrome="embedded"');
+    expect(evidenceBrowserSource).toContain("chrome?: 'standalone' | 'embedded'");
+    expect(evidenceBrowserSource).toContain("chrome === 'standalone' ? 'surface-page' : undefined");
+    expect(evidenceBrowserSource).toContain("chrome === 'standalone' ? 'mx-auto grid");
+    expect(knowledgeSource).toContain('data-knowledge-data-map-surface="knowledge-graph"');
+    expect(adaptivePracticeSource).toContain('data-commercial-entry-intent="practice"');
+    expect(adaptivePracticeSource).toContain('data-learning-path-options-slot="three-style"');
+    expect(adaptivePracticeSource).toContain('data-learning-path-history-slot="selection-history"');
+    expect(adaptivePracticeSource).toContain('data-konling-citation-slot="cited-explanation"');
+  });
+
   it('keeps teacher operations navigation bound to the current class context', () => {
     const analyticsTemplate = '/teacher/classes/[classId]/analytics-v2';
 

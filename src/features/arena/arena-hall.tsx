@@ -149,7 +149,11 @@ export function ArenaHall({
         { label: '竞技场首页', href: '/arena' },
       ]}
     >
-      <section className="w-full px-4 py-6 sm:px-6 lg:px-8">
+      <section
+        className="w-full px-4 py-6 sm:px-6 lg:px-8"
+        data-commercial-student-entry-route="/arena"
+        data-commercial-entry-intent="challenge"
+      >
         <div className="grid items-stretch gap-4 lg:grid-cols-2">
           <div
             className="surface-card relative flex min-h-[260px] overflow-hidden rounded-lg p-5"

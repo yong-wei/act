@@ -1,7 +1,21 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Home, Users } from 'lucide-react';
+import {
+  BookOpen,
+  BrainCircuit,
+  Compass,
+  Database,
+  Gauge,
+  GraduationCap,
+  Ship,
+  ShieldCheck,
+  Target,
+  Trophy,
+  UserCircle,
+  Users,
+} from 'lucide-react';
 
+import { AppShell } from '@/components/platform/app-shell';
 import { UserMenu } from '@/components/shared/user-menu';
 import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learning-center-contracts';
 import { getServerAuthSession } from '@/lib/auth';
@@ -52,52 +66,52 @@ const dashboardCommercialEntries = dashboardEntryIntentGroups.flatMap<DashboardC
 
 const dashboardEntryMeta = {
   'student-simulations': {
-    icon: '🚢',
+    icon: <Ship className="h-6 w-6" />,
     badge: '实时仿真',
-    badgeColor: 'bg-blue-500/20 text-blue-400',
-    iconBg: 'bg-blue-500/20 text-blue-400',
+    badgeColor: 'bg-platform-action-subtle text-platform-action-primary',
+    iconBg: 'bg-platform-action-subtle text-platform-action-primary',
   },
   'student-knowledge': {
-    icon: '📚',
+    icon: <BookOpen className="h-6 w-6" />,
     badge: '资源地图',
-    badgeColor: 'bg-cyan-500/20 text-cyan-400',
-    iconBg: 'bg-cyan-500/20 text-cyan-400',
+    badgeColor: 'bg-platform-evidence-eligible/15 text-platform-evidence-eligible',
+    iconBg: 'bg-platform-evidence-eligible/15 text-platform-evidence-eligible',
   },
   'student-arena': {
-    icon: '🏆',
+    icon: <Trophy className="h-6 w-6" />,
     badge: '官方评测',
-    badgeColor: 'bg-amber-500/20 text-amber-400',
-    iconBg: 'bg-amber-500/20 text-amber-400',
+    badgeColor: 'bg-platform-evaluation-official/15 text-platform-evaluation-official',
+    iconBg: 'bg-platform-evaluation-official/15 text-platform-evaluation-official',
   },
   'student-control-workbench': {
-    icon: '🧭',
+    icon: <Compass className="h-6 w-6" />,
     badge: '控制实验',
-    badgeColor: 'bg-violet-500/20 text-violet-400',
-    iconBg: 'bg-violet-500/20 text-violet-400',
+    badgeColor: 'bg-platform-replay-ready/15 text-platform-replay-ready',
+    iconBg: 'bg-platform-replay-ready/15 text-platform-replay-ready',
   },
   'student-adaptive-learning': {
-    icon: '🧠',
+    icon: <BrainCircuit className="h-6 w-6" />,
     badge: '个性化',
-    badgeColor: 'bg-emerald-500/20 text-emerald-400',
-    iconBg: 'bg-emerald-500/20 text-emerald-400',
+    badgeColor: 'bg-platform-evidence-eligible/15 text-platform-evidence-eligible',
+    iconBg: 'bg-platform-evidence-eligible/15 text-platform-evidence-eligible',
   },
   'student-interactive-learning': {
-    icon: '🎓',
+    icon: <GraduationCap className="h-6 w-6" />,
     badge: '互动课程',
-    badgeColor: 'bg-fuchsia-500/20 text-fuchsia-400',
-    iconBg: 'bg-fuchsia-500/20 text-fuchsia-400',
+    badgeColor: 'bg-platform-action-subtle text-platform-action-primary',
+    iconBg: 'bg-platform-action-subtle text-platform-action-primary',
   },
   'platform-data-center': {
-    icon: '📊',
+    icon: <Database className="h-6 w-6" />,
     badge: '数据中心',
-    badgeColor: 'bg-teal-500/20 text-teal-400',
-    iconBg: 'bg-teal-500/20 text-teal-400',
+    badgeColor: 'bg-platform-evidence-context/15 text-platform-evidence-context',
+    iconBg: 'bg-platform-evidence-context/15 text-platform-evidence-context',
   },
   'student-profile': {
-    icon: '👤',
+    icon: <UserCircle className="h-6 w-6" />,
     badge: '能力画像',
-    badgeColor: 'bg-purple-500/20 text-purple-400',
-    iconBg: 'bg-purple-500/20 text-purple-400',
+    badgeColor: 'bg-platform-action-subtle text-platform-action-primary',
+    iconBg: 'bg-platform-action-subtle text-platform-action-primary',
   },
 } as const;
 
@@ -114,10 +128,10 @@ const quickStartEntries = quickStartEntryIds.flatMap((entryId) => {
 
 function getDashboardEntryMeta(entry: PlatformRoleNavigationItem) {
   return dashboardEntryMeta[entry.id as keyof typeof dashboardEntryMeta] ?? {
-    icon: '↗',
+    icon: <Target className="h-6 w-6" />,
     badge: entry.actionLabel ?? '进入',
-    badgeColor: 'bg-primary/15 text-primary',
-    iconBg: 'bg-primary/15 text-primary',
+    badgeColor: 'bg-platform-action-subtle text-platform-action-primary',
+    iconBg: 'bg-platform-action-subtle text-platform-action-primary',
   };
 }
 
@@ -168,35 +182,20 @@ export default async function DashboardPage() {
   });
 
   return (
-    <div
+    <AppShell
+      role="student"
+      title="学习者驾驶舱"
+      subtitle="学习路径、证据状态与下一步行动"
+      activeHref="/dashboard"
+      userMenu={<UserMenu user={session.user} />}
       className="surface-page"
-      data-route-family={learnerDataShell.routeFamily}
-      data-route-identity={learnerDataShell.routeIdentity}
-      data-learner-record-surface={learnerDataShell.archetype}
     >
-      {/* 顶部导航栏 */}
-      <header className="surface-topbar px-6 py-4">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link
-              href="/"
-              className="flex items-center gap-2 text-muted-foreground transition hover:text-foreground"
-            >
-              <Home className="h-5 w-5" />
-              <span className="text-sm">返回首页</span>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">AI-OBE 船舶智控平台</h1>
-              <p className="text-sm text-muted-foreground">成果导向教育 · 智能控制实训</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <UserMenu user={session.user} />
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-[1600px] px-6 py-8">
+      <section
+        className="space-y-8"
+        data-route-family={learnerDataShell.routeFamily}
+        data-route-identity={learnerDataShell.routeIdentity}
+        data-learner-record-surface={learnerDataShell.archetype}
+      >
         <section
           className="surface-card mb-8 p-6"
           data-learner-record-priority="current-path"
@@ -246,28 +245,28 @@ export default async function DashboardPage() {
           {/* 统计卡片 */}
           <div className="grid gap-4 md:grid-cols-4">
             <StatCard
-              icon="🎯"
+              icon={<Target className="h-7 w-7" />}
               label="完成任务"
               value={completedMissions}
-              color="text-emerald-400"
+              color="text-platform-evidence-eligible"
             />
             <StatCard
-              icon="🚢"
+              icon={<Ship className="h-7 w-7" />}
               label="仿真次数"
               value={simulationCount}
-              color="text-blue-400"
+              color="text-platform-action-primary"
             />
             <StatCard
-              icon="⚙️"
+              icon={<Gauge className="h-7 w-7" />}
               label="技术分"
               value={profile?.techScore?.toFixed(1) || '0.0'}
-              color="text-amber-400"
+              color="text-platform-evidence-context"
             />
             <StatCard
-              icon="🛡️"
+              icon={<ShieldCheck className="h-7 w-7" />}
               label="伦理分"
               value={profile?.ethicsScore || 100}
-              color="text-purple-400"
+              color="text-platform-evidence-eligible"
             />
           </div>
         </div>
@@ -286,7 +285,7 @@ export default async function DashboardPage() {
 
         {/* 功能模块网格 */}
         <div className="mb-8">
-          <h3 className="mb-4 text-xl font-semibold text-foreground">商业入口地图</h3>
+          <h3 className="mb-4 text-xl font-semibold text-foreground">学习入口地图</h3>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {dashboardCommercialEntries.map(({ intentGroup, entry, href, key }) => {
               const meta = entry ? getDashboardEntryMeta(entry) : dashboardEntryMeta['student-profile'];
@@ -294,7 +293,7 @@ export default async function DashboardPage() {
                 <FeatureCard
                   key={key}
                   href={href ?? resolveCommercialEntryHref(intentGroup.intent, true)}
-                  icon={<span className="text-3xl">{meta.icon}</span>}
+                  icon={meta.icon}
                   title={`${intentGroup.label} · ${entry?.label ?? '个人中心'}`}
                   description={intentGroup.summary}
                   badge={meta.badge}
@@ -324,8 +323,8 @@ export default async function DashboardPage() {
               })}
           </div>
         </div>
-      </main>
-    </div>
+      </section>
+    </AppShell>
   );
 }
 
@@ -344,7 +343,7 @@ function StatCard({
   value,
   color,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   value: number | string;
   color: string;
@@ -352,7 +351,7 @@ function StatCard({
   return (
     <div className="surface-card-soft p-4">
       <div className="flex items-center gap-3">
-        <span className="text-3xl">{icon}</span>
+        <span className="text-platform-fg-secondary">{icon}</span>
         <div>
           <p className="text-xs text-muted-foreground">{label}</p>
           <p className={`text-2xl font-bold ${color}`}>{value}</p>
@@ -415,7 +414,7 @@ function QuickAction({
   description,
 }: {
   href: string;
-  icon: string;
+  icon: React.ReactNode;
   title: string;
   description: string;
 }) {
@@ -425,7 +424,7 @@ function QuickAction({
       prefetch={href.startsWith('/simulations') ? false : undefined}
       className="surface-card-soft flex items-center gap-4 p-4 transition-colors hover:border-primary/35 hover:bg-accent/70"
     >
-      <span className="text-3xl">{icon}</span>
+      <span className="text-platform-fg-secondary">{icon}</span>
       <div>
         <p className="font-medium text-foreground">{title}</p>
         <p className="text-xs text-muted-foreground">{description}</p>

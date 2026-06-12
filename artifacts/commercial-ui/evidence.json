@@ -3532,6 +3532,96 @@
       ]
     },
     {
+      "href": "/profile/evidence",
+      "viewports": [
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/app-shell-392-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/(main)/profile/evidence/page.tsx",
+          "routeArchetype": "report-ledger",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/profile/evidence",
+          "finalUrl": "http://127.0.0.1:3001/profile/evidence",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "learner-evidence-report",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Evidence browser uses AppShell knowledge-data-map semantics, route-scoped filters, learner record confidence markers, and redacted timeline items without exposing private raw answers."
+            }
+          ]
+        },
+        {
+          "width": 320,
+          "artifact": "artifacts/commercial-ui/app-shell-392-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/(main)/profile/evidence/page.tsx",
+          "routeArchetype": "report-ledger",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true,
+          "requestedRoute": "/profile/evidence",
+          "finalUrl": "http://127.0.0.1:3001/profile/evidence",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "learner-evidence-report",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Evidence browser keeps filters and timeline actions reachable on mobile while preserving privacy, source quality, and text-fit evidence."
+            }
+          ]
+        }
+      ]
+    },
+    {
       "href": "/teacher/classes",
       "viewports": [
         {
