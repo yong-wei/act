@@ -18,7 +18,7 @@ import {
 export const dynamic = 'force-dynamic';
 
 const EXECUTION_STATUSES = new Set(['started', 'completed', 'failed', 'abandoned']);
-const RESOURCE_TYPES = new Set(['knowledge_card', 'simulation', 'arena_task', 'intervention', 'reflection']);
+const RESOURCE_TYPES = new Set(['knowledge_card', 'simulation', 'arena_task', 'intervention', 'ai_intervention', 'reflection']);
 
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
   try {

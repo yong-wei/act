@@ -29,6 +29,9 @@ export interface ControlCorrectionPathRoundDb {
   evidenceOutbox?: {
     createMany: (args: { data: any[]; skipDuplicates?: boolean }) => Promise<{ count: number }>;
   };
+  learningFact?: {
+    createMany: (args: { data: any[]; skipDuplicates?: boolean }) => Promise<{ count: number }>;
+  };
 }
 
 interface AppendOnlyDelegate {
@@ -87,6 +90,26 @@ export interface PathInterventionInput {
   actorRole?: string | null;
 }
 
+export type PathChoiceEvidenceAction = 'selection' | 'rejection' | 'switch' | 'helpfulness';
+
+export interface PathChoiceEvidenceInput {
+  pathId: string;
+  userId: string;
+  action: PathChoiceEvidenceAction;
+  selectedStyleId?: string | null;
+  selectedPolicyFamily?: string | null;
+  rejectedStyleIds?: string[];
+  previousStyleId?: string | null;
+  diagnosisSnapshotRef?: string | null;
+  resourceMix?: Record<string, number>;
+  rationaleMetadata?: Record<string, unknown>;
+  helpful?: boolean | null;
+  eventId?: string | null;
+  idempotencyKey?: string | null;
+  actorUserId?: string | null;
+  actorRole?: string | null;
+}
+
 export interface LegacyLearningPathSummary {
   id: string;
   title: string;
@@ -136,6 +159,9 @@ export async function persistControlCorrectionPathRound(
     planNodes: record.payload.planNodes,
     score: record.payload.score,
     confidence: record.payload.confidence,
+    policyBundle: record.payload.policyBundle ?? null,
+    feedbackEvents: record.payload.feedbackEvents,
+    selectionHistory: buildPathSelectionHistory(record.payload.feedbackEvents),
     visualization: record.payload.visualization,
   };
   const explanationPayload = {
@@ -183,6 +209,28 @@ export async function persistControlCorrectionPathRound(
   });
 }
 
+function buildPathSelectionHistory(
+  feedbackEvents: AdaptiveLearningPathPlan['feedbackEvents'],
+): Array<Record<string, unknown>> {
+  return feedbackEvents
+    .filter((event) => event.type === 'selection' || event.type === 'rejection' || event.type === 'switch' || event.type === 'helpfulness')
+    .map((event) => {
+      const context = toRecord(event.context);
+      return {
+        id: event.id,
+        type: event.type,
+        nodeId: event.nodeId,
+        createdAt: event.createdAt,
+        selectedStyleId: firstString(context.selectedStyleId) ?? null,
+        previousStyleId: firstString(context.previousStyleId) ?? null,
+        rejectedStyleIds: arrayOfStrings(context.rejectedStyleIds),
+        helpful: typeof context.helpful === 'boolean'
+          ? context.helpful
+          : typeof event.helpful === 'boolean' ? event.helpful : null,
+      };
+    });
+}
+
 export function validateControlCorrectionPathPlanForPersistence(plan: AdaptiveLearningPathPlan): void {
   if (
     !plan.id ||
@@ -200,7 +248,7 @@ export function validateControlCorrectionPathPlanForPersistence(plan: AdaptiveLe
     if (
       !node.nodeId ||
       seen.has(node.nodeId) ||
-      !['knowledge_card', 'simulation', 'arena_task', 'intervention', 'reflection'].includes(node.type) ||
+      !['knowledge_card', 'simulation', 'arena_task', 'intervention', 'ai_intervention', 'reflection'].includes(node.type) ||
       node.privacyLevel !== 'student-visible' ||
       node.teacherPolicy !== 'allowed' ||
       typeof node.target !== 'string' ||
@@ -373,6 +421,135 @@ export async function recordPathIntervention(
   });
   await emitPathEvidenceEvent(db, 'intervention', intervention, input);
   return intervention;
+}
+
+export async function recordPathChoiceEvidence(
+  db: ControlCorrectionPathRoundDb,
+  input: PathChoiceEvidenceInput,
+): Promise<{ emitted: boolean; dedupeKey: string }> {
+  const eventKey = input.idempotencyKey ?? input.eventId ?? `${input.action}:${new Date().toISOString()}:${Math.random().toString(36).slice(2)}`;
+  const dedupeKey = `control-correction-path:choice:${input.pathId}:${eventKey}`;
+  const eventType = `control_correction_path.${input.action}_recorded`;
+  const occurredAt = new Date();
+  const occurredAtIso = occurredAt.toISOString();
+  const payload = {
+    eventType,
+    actor: {
+      userId: input.actorUserId ?? input.userId,
+      role: input.actorRole ?? 'student',
+    },
+    subject: {
+      userId: input.userId,
+    },
+    sourceCapability: 'three-style-learning-path-loop',
+    payloadVersion: 'control-correction-path-choice-evidence.v1',
+    occurredAt: occurredAtIso,
+    privacyLevel: 'student-visible',
+    confidence: input.action === 'helpfulness' ? 'low' : 'medium',
+    relatedRefs: compactObject({
+      pathId: input.pathId,
+      selectedStyleId: input.selectedStyleId ?? undefined,
+      selectedPolicyFamily: input.selectedPolicyFamily ?? undefined,
+      previousStyleId: input.previousStyleId ?? undefined,
+      diagnosisSnapshotRef: input.diagnosisSnapshotRef ?? undefined,
+      rejectedStyleIds: input.rejectedStyleIds,
+    }),
+    preferenceEvidence: compactObject({
+      action: input.action,
+      resourceMix: sanitizeResourceMix(input.resourceMix),
+      helpful: input.helpful ?? undefined,
+      rationaleMetadata: sanitizeRationaleMetadata(input.rationaleMetadata),
+    }),
+  };
+
+  const writes: Array<Promise<unknown>> = [];
+  if (db.evidenceOutbox?.createMany) {
+    writes.push(db.evidenceOutbox.createMany({
+      data: [{
+        eventType,
+        correlationId: input.pathId,
+        causationId: `LearningPathChoice:${eventKey}`,
+        ownerUserId: input.userId,
+        payload,
+        dedupeKey,
+        createdAt: occurredAtIso,
+      }],
+      skipDuplicates: true,
+    }));
+  }
+  if (db.learningFact?.createMany) {
+    writes.push(db.learningFact.createMany({
+      data: [{
+        userId: input.userId,
+        factType: eventType,
+        moduleId: 'control-correction-path-advisor',
+        sessionId: null,
+        startedAt: occurredAt,
+        finishedAt: occurredAt,
+        outcome: 'success',
+        score: null,
+        timeSpent: 0,
+        competencyContribution: {},
+        sourceEventId: dedupeKey,
+        sourceLogId: input.eventId ?? input.idempotencyKey ?? null,
+        courseId: null,
+        lessonId: null,
+        contextJson: payload,
+      }],
+      skipDuplicates: true,
+    }));
+  }
+  if (db.learningPath.update) {
+    const path = await db.learningPath.findFirst({
+      where: {
+        id: input.pathId,
+        userId: input.userId,
+      },
+    });
+    if (path) {
+      const pathPayload = toRecord(path.pathPayload);
+      const existingHistory = Array.isArray(pathPayload.selectionHistory)
+        ? pathPayload.selectionHistory
+        : [];
+      const hasHistoryEntry = existingHistory.some((entry) => toRecord(entry).id === dedupeKey);
+      if (!hasHistoryEntry) {
+        writes.push(db.learningPath.update({
+          where: { id: input.pathId },
+          data: {
+            pathPayload: {
+              ...pathPayload,
+              selectionHistory: [
+                ...existingHistory,
+                buildPathChoiceSelectionHistoryEntry(input, payload, dedupeKey),
+              ],
+            },
+          },
+        }));
+      }
+    }
+  }
+  if (writes.length === 0) return { emitted: false, dedupeKey };
+  await Promise.all(writes);
+  return { emitted: true, dedupeKey };
+}
+
+function buildPathChoiceSelectionHistoryEntry(
+  input: PathChoiceEvidenceInput,
+  payload: Record<string, unknown>,
+  dedupeKey: string,
+): Record<string, unknown> {
+  return {
+    id: dedupeKey,
+    type: input.action,
+    nodeId: null,
+    createdAt: firstString(payload.occurredAt) ?? new Date().toISOString(),
+    selectedStyleId: input.selectedStyleId ?? null,
+    selectedPolicyFamily: input.selectedPolicyFamily ?? null,
+    previousStyleId: input.previousStyleId ?? null,
+    rejectedStyleIds: input.rejectedStyleIds ?? [],
+    diagnosisSnapshotRef: input.diagnosisSnapshotRef ?? null,
+    helpful: input.helpful ?? null,
+  };
 }
 
 export function toLegacyLearningPathSummary(path: LegacyLearningPathSummary) {
@@ -878,6 +1055,32 @@ function readPathEvidenceConfidence(value: unknown): 'low' | 'medium' | 'high' |
   return value === 'low' || value === 'medium' || value === 'high' || value === 'unknown'
     ? value
     : 'unknown';
+}
+
+function sanitizeResourceMix(value: Record<string, number> | undefined): Record<string, number> | undefined {
+  if (!value) return undefined;
+  const entries = Object.entries(value)
+    .filter(([key, entry]) => (
+      key.length > 0 &&
+      typeof entry === 'number' &&
+      Number.isFinite(entry) &&
+      entry >= 0
+    ));
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
+function sanitizeRationaleMetadata(value: Record<string, unknown> | undefined): Record<string, unknown> | undefined {
+  if (!value) return undefined;
+  const entries = Object.entries(value)
+    .filter(([key, entry]) => {
+      const lower = key.toLowerCase();
+      return !lower.includes('secret') &&
+        !lower.includes('raw') &&
+        !lower.includes('trace') &&
+        entry !== undefined;
+    })
+    .map(([key, entry]) => [key, typeof entry === 'object' && entry !== null ? '[redacted-object]' : entry]);
+  return entries.length ? Object.fromEntries(entries) : undefined;
 }
 
 function compactObject(value: Record<string, unknown>): Record<string, unknown> {

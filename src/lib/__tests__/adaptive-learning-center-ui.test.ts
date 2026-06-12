@@ -395,7 +395,7 @@ describe('adaptive learning center UI contracts', () => {
 
   it('binds the evidence browser to grouped timeline metadata and actionable empty states', () => {
     const source = readFileSync(join(repoRoot, 'src/features/data-governance/evidence-timeline-browser.tsx'), 'utf8');
-    const teacherEvidence = readFileSync(join(repoRoot, 'src/app/(main)/teacher/students/[studentId]/evidence/page.tsx'), 'utf8');
+    const legacyTeacherEvidence = readFileSync(join(repoRoot, 'src/app/(main)/teacher/students/[studentId]/evidence/page.tsx'), 'utf8');
     const teacherClassEvidence = readFileSync(join(repoRoot, 'src/app/teacher/classes/[classId]/students/[studentId]/evidence/page.tsx'), 'utf8');
 
     expect(source).toContain('item.groupedCount');
@@ -407,7 +407,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('formatLearnerRecordMissingSource');
     expect(source).toContain('缺少官方 Arena 结果');
     expect(source).toContain('受限详情已隐藏');
-    expect(teacherEvidence).toContain('emptyBackLabel="返回学生诊断"');
+    expect(legacyTeacherEvidence).toContain('/teacher/classes');
+    expect(legacyTeacherEvidence).toContain('/students/');
     expect(teacherClassEvidence).toContain('emptyBackLabel="返回学生详情"');
   });
 
@@ -535,6 +536,155 @@ describe('adaptive learning center UI contracts', () => {
         label: '继续当前节点',
       },
       state: 'current',
+    });
+  });
+
+  it('surfaces three-style path options and selection history for diagnosis panels', () => {
+    const view = buildAdaptiveLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState(),
+      pathPlan: pathPlan({
+        policyBundle: {
+          families: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
+          overlapThreshold: 0.6,
+          status: 'ready',
+          paths: [
+            {
+              styleId: 'foundation-remediation',
+              policyFamily: 'foundation-remediation',
+              label: '基础补救',
+              nodeIds: ['knowledge-card:targets', 'arena-task:terminal'],
+              targetDeficits: [{ targetId: 'phase-margin', kind: 'knowledge', value: 0.42, confidence: 0.6, evidenceCount: 3, reasonCode: 'low-mastery-target' }],
+              evidenceBasis: ['adaptive-learner-state', 'LearningFact'],
+              estimatedMinutes: 38,
+              modalityMix: { knowledge_card: 1, arena_task: 1 },
+              resourceMix: { knowledge_card: 1, arena_task: 1 },
+              overlap: { maxWithOtherOptions: 0.4 },
+              effort: { estimatedMinutes: 38, relative: 'medium' },
+              expectedTargetLift: 1.2,
+              terminalValidationNodeIds: ['arena-task:terminal'],
+              terminalValidationStrategy: { nodeIds: ['arena-task:terminal'], summary: 'official Arena validation' },
+              limitations: ['some-targets-have-no-direct-evidence'],
+            },
+          ],
+          diversity: {
+            maxResourceOverlap: 0.4,
+            minModalityDistance: 0.5,
+            minEstimatedEffortDifference: 0.2,
+            minTerminalValidationDifference: 0,
+            pairwiseResourceOverlap: [],
+            pairwiseModalityDistance: [],
+            pairwiseEstimatedEffortDifference: [],
+            pairwiseTerminalValidationDifference: [],
+            modalityMixByPolicy: { 'foundation-remediation': { knowledge_card: 1, arena_task: 1 } },
+            estimatedEffortByPolicy: { 'foundation-remediation': 38 },
+            terminalValidationDifference: 0,
+          },
+          fallbackReasons: [],
+        },
+        feedbackEvents: [
+          {
+            id: 'feedback-selection-1',
+            type: 'selection',
+            nodeId: null,
+            createdAt: '2026-05-28T06:05:00.000Z',
+            context: {
+              selectedStyleId: 'foundation-remediation',
+              rejectedStyleIds: ['arena-simulation-sprint'],
+            },
+          },
+          {
+            id: 'feedback-helpfulness-1',
+            type: 'helpfulness',
+            nodeId: null,
+            createdAt: '2026-05-28T06:07:00.000Z',
+            helpful: true,
+            context: {
+              selectedStyleId: 'foundation-remediation',
+            },
+          },
+        ],
+      }),
+    });
+
+    const currentPath = view.panels.find((panel) => panel.region === 'current-path');
+    expect(currentPath?.payload).toMatchObject({
+      pathOptions: [
+        {
+          styleId: 'foundation-remediation',
+          policyFamily: 'foundation-remediation',
+          evidenceBasis: ['adaptive-learner-state', 'LearningFact'],
+          terminalValidationNodeIds: ['arena-task:terminal'],
+        },
+      ],
+      selectionHistory: [
+        {
+          type: 'selection',
+          selectedStyleId: 'foundation-remediation',
+          rejectedStyleIds: ['arena-simulation-sprint'],
+        },
+        {
+          type: 'helpfulness',
+          selectedStyleId: 'foundation-remediation',
+          helpful: true,
+        },
+      ],
+    });
+  });
+
+  it('does not expose cosmetic path options when the policy bundle is low-resource fallback', () => {
+    const view = buildAdaptiveLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState(),
+      pathPlan: pathPlan({
+        policyBundle: {
+          families: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
+          overlapThreshold: 0.6,
+          status: 'low-resource-fallback',
+          paths: [
+            {
+              styleId: 'foundation-remediation',
+              policyFamily: 'foundation-remediation',
+              label: '基础补救',
+              nodeIds: ['node-1'],
+              targetDeficits: [],
+              evidenceBasis: ['adaptive-learner-state'],
+              estimatedMinutes: 15,
+              modalityMix: { quiz: 1 },
+              resourceMix: { quiz: 1 },
+              overlap: { maxWithOtherOptions: 1 },
+              effort: { estimatedMinutes: 15, relative: 'short' },
+              expectedTargetLift: 0.8,
+              terminalValidationNodeIds: [],
+              terminalValidationStrategy: { nodeIds: [], summary: 'terminal validation unavailable' },
+              limitations: ['terminal-validation-missing'],
+            },
+          ],
+          diversity: {
+            maxResourceOverlap: 1,
+            minModalityDistance: 0,
+            minEstimatedEffortDifference: 0,
+            minTerminalValidationDifference: 0,
+            pairwiseResourceOverlap: [],
+            pairwiseModalityDistance: [],
+            pairwiseEstimatedEffortDifference: [],
+            pairwiseTerminalValidationDifference: [],
+            modalityMixByPolicy: { 'foundation-remediation': { quiz: 1 } },
+            estimatedEffortByPolicy: { 'foundation-remediation': 15 },
+            terminalValidationDifference: 0,
+          },
+          fallbackReasons: ['path-diversity-insufficient', 'terminal-validation-diversity-insufficient'],
+        },
+      }),
+    });
+
+    const currentPath = view.panels.find((panel) => panel.region === 'current-path');
+    expect(currentPath?.payload).toMatchObject({
+      pathOptions: [],
+      pathOptionFallback: {
+        status: 'low-resource-fallback',
+        fallbackReasons: ['path-diversity-insufficient', 'terminal-validation-diversity-insufficient'],
+      },
     });
   });
 

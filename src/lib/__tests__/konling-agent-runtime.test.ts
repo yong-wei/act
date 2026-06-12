@@ -995,6 +995,79 @@ describe('konling agent runtime', () => {
     });
   });
 
+  it('reads three-style path options and selection history for the path advisor context', async () => {
+    const runtime = await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'path-1',
+            userId: 'student-1',
+            goalId: 'control-correction',
+            classId: 'class-1',
+            pathStatus: 'active',
+            currentNodeId: 'node-1',
+            nodeIds: ['node-1', 'arena-task:terminal'],
+            pathPayload: {
+              policyBundle: {
+                paths: [
+                  {
+                    styleId: 'foundation-remediation',
+                    policyFamily: 'foundation-remediation',
+                    label: '基础补救',
+                    nodeIds: ['node-1', 'arena-task:terminal'],
+                    evidenceBasis: ['adaptive-learner-state', 'LearningFact'],
+                    resourceMix: { knowledge_card: 1, arena_task: 1 },
+                    effort: { estimatedMinutes: 38, relative: 'medium' },
+                    terminalValidationNodeIds: ['arena-task:terminal'],
+                    limitations: ['some-targets-have-no-direct-evidence'],
+                  },
+                ],
+              },
+              selectionHistory: [
+                {
+                  type: 'selection',
+                  selectedStyleId: 'foundation-remediation',
+                  rejectedStyleIds: ['arena-simulation-sprint'],
+                  createdAt: '2026-05-28T06:05:00.000Z',
+                },
+              ],
+            },
+          },
+        ]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      role: 'STUDENT',
+      classId: 'class-1',
+      courseId: 'unit-4-5-constraint-aware-parameter-optimization-v1',
+      pageId: 'step-03',
+      pathNodeId: 'node-1',
+      trustedContentContext: true,
+    });
+
+    expect(runtime.planContext.pathOptions).toEqual([
+      expect.objectContaining({
+        styleId: 'foundation-remediation',
+        evidenceBasis: ['adaptive-learner-state', 'LearningFact'],
+        terminalValidationNodeIds: ['arena-task:terminal'],
+      }),
+    ]);
+    expect(runtime.planContext.pathOptionFallback).toBeNull();
+    expect(runtime.planContext.selectionHistory).toEqual([
+      expect.objectContaining({
+        type: 'selection',
+        selectedStyleId: 'foundation-remediation',
+        rejectedStyleIds: ['arena-simulation-sprint'],
+      }),
+    ]);
+  });
+
   it('downgrades assistant text when required citation metadata is absent', () => {
     const guard = buildKonlingCitationGuard({
       citationContext: {

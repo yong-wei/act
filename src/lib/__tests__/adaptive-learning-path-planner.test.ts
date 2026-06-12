@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildAdaptiveLearningPathPlan,
+  buildControlCorrectionThreeStylePathBundle,
   recordLearningPathFeedback,
   serializeLearningPathPlan,
   type AdaptiveLearningPathPlannerInput,
@@ -418,6 +419,12 @@ describe('adaptive learning path planner', () => {
       'sprint-correction',
     ]);
     expect(plan.policyBundle?.paths).toHaveLength(4);
+    expect(plan.policyBundle?.paths.map((path) => [path.policyFamily, path.styleId])).toEqual([
+      ['rules-plus-graph-search', 'rules-graph-search-route'],
+      ['foundation-remediation', 'foundation-remediation'],
+      ['simulation-driven', 'arena-simulation-sprint'],
+      ['sprint-correction', 'sprint-correction-route'],
+    ]);
     expect(plan.policyBundle?.diversity.maxResourceOverlap).toBeGreaterThanOrEqual(0);
     expect(plan.policyBundle?.diversity.modalityMixByPolicy['simulation-driven'].simulation).toBeGreaterThan(0);
     expect(plan.policyBundle?.diversity.estimatedEffortByPolicy['foundation-remediation']).toBeGreaterThan(0);
@@ -495,6 +502,148 @@ describe('adaptive learning path planner', () => {
     expect(plan.policyBundle?.fallbackReasons).toContain('terminal-validation-diversity-insufficient');
     expect(plan.policyBundle?.fallbackReasons).toContain('path-modality-diversity-insufficient');
     expect(plan.policyBundle?.fallbackReasons).toContain('path-effort-diversity-insufficient');
+  });
+
+  it('builds a control-correction three-style bundle with explainable option contracts', () => {
+    const input = plannerInput({
+      registry: buildControlCorrectionResourceNodeRegistry(),
+      goal: {
+        id: 'control-correction',
+        title: '控制系统校正设计',
+        knowledgeTargets: [
+          'control-correction:time-domain-targets',
+          'control-correction:root-locus-design',
+          'control-correction:simulation-validation',
+          'control-correction:arena-transfer',
+        ],
+        competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.3, confidence: 0.7, evidenceCount: 2 },
+            'control-correction:root-locus-design': { posteriorMastery: 0.25, confidence: 0.65, evidenceCount: 2 },
+            'control-correction:simulation-validation': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+            'control-correction:arena-transfer': { posteriorMastery: 0.1, confidence: 0.5, evidenceCount: 0 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            parameterDesign: { score: 0.35, confidence: 0.7, evidenceCount: 4 },
+            engineeringDecision: { score: 0.42, confidence: 0.6, evidenceCount: 3 },
+            crossDomainTransfer: { score: 0.28, confidence: 0.5, evidenceCount: 2 },
+          },
+        },
+        resourcePreference: {
+          preferredModalities: ['video', 'ai_intervention', 'simulation'],
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.68,
+            evidenceCount: 8,
+            sourceCompleteness: 0.7,
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+            ArenaSubmission: 'partial',
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 100,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+      },
+    });
+
+    const bundle = buildControlCorrectionThreeStylePathBundle(input);
+
+    expect(bundle.status).toBe('ready');
+    expect(bundle.paths.map((path) => path.styleId)).toEqual([
+      'foundation-remediation',
+      'arena-simulation-sprint',
+      'preference-matched-route',
+    ]);
+    expect(bundle.paths).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        styleId: 'foundation-remediation',
+        policyFamily: 'foundation-remediation',
+        targetDeficits: expect.arrayContaining([
+          expect.objectContaining({ targetId: 'control-correction:time-domain-targets' }),
+        ]),
+        evidenceBasis: expect.arrayContaining(['adaptive-learner-state', 'LearningFact']),
+        resourceMix: expect.any(Object),
+        terminalValidationStrategy: expect.objectContaining({
+          nodeIds: expect.arrayContaining(['arena-task:task-second-order-lead-pid']),
+        }),
+      }),
+      expect.objectContaining({
+        styleId: 'preference-matched-route',
+        policyFamily: 'preference-matched',
+        effort: expect.objectContaining({ estimatedMinutes: expect.any(Number) }),
+        limitations: expect.any(Array),
+      }),
+    ]));
+    expect(bundle.diversity.pairwiseResourceOverlap.length).toBe(3);
+  });
+
+  it('does not expose ineligible support nodes in control-correction path options', () => {
+    const registry = buildControlCorrectionResourceNodeRegistry();
+    const restrictedRegistry = {
+      ...registry,
+      nodes: registry.nodes.map((node) => node.id === 'knowledge-card:control-correction-time-domain-targets'
+        ? {
+            ...node,
+            planningMetadata: {
+              ...node.planningMetadata,
+              privacyLevel: 'teacher-scoped' as const,
+            },
+          }
+        : node),
+    };
+    const bundle = buildControlCorrectionThreeStylePathBundle(plannerInput({
+      registry: restrictedRegistry,
+      goal: {
+        id: 'control-correction',
+        title: '控制系统校正设计',
+        knowledgeTargets: [
+          'control-correction:time-domain-targets',
+          'control-correction:root-locus-design',
+          'control-correction:simulation-validation',
+          'control-correction:arena-transfer',
+        ],
+        competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.3, confidence: 0.7, evidenceCount: 2 },
+            'control-correction:root-locus-design': { posteriorMastery: 0.25, confidence: 0.65, evidenceCount: 2 },
+            'control-correction:simulation-validation': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+            'control-correction:arena-transfer': { posteriorMastery: 0.1, confidence: 0.5, evidenceCount: 0 },
+          },
+        },
+        resourcePreference: {
+          preferredModalities: ['video', 'ai_intervention', 'simulation'],
+        },
+        evidence: {
+          confidence: { level: 'medium', score: 0.68, evidenceCount: 8, sourceCompleteness: 0.7 },
+          sourceCoverage: { LearningFact: 'available' },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 100,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+      },
+    }));
+
+    expect(bundle.paths.flatMap((path) => path.nodeIds)).not.toContain(
+      'knowledge-card:control-correction-time-domain-targets',
+    );
   });
 
   it('generates a feasible 90-minute control-correction path from audited seed nodes', () => {

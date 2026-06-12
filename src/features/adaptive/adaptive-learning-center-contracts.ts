@@ -995,9 +995,67 @@ function currentPathPanel(pathPlan: AdaptiveLearningPathPlan | null): AdaptiveLe
           currentNodeId: pathPlan.currentNodeId,
           mainPath: pathPlan.mainPath,
           alternatives: pathPlan.alternatives,
+          pathOptions: buildPathOptionSummaries(pathPlan),
+          pathOptionFallback: buildPathOptionFallback(pathPlan),
+          selectionHistory: buildPathSelectionHistory(pathPlan),
         }
       : null,
   };
+}
+
+function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
+  if (pathPlan.policyBundle?.status !== 'ready') {
+    return [];
+  }
+  return pathPlan.policyBundle?.paths.map((path) => ({
+    styleId: path.styleId,
+    policyFamily: path.policyFamily,
+    label: path.label,
+    nodeIds: path.nodeIds,
+    targetDeficits: path.targetDeficits,
+    evidenceBasis: path.evidenceBasis,
+    resourceMix: path.resourceMix,
+    overlap: path.overlap,
+    effort: path.effort,
+    expectedTargetLift: path.expectedTargetLift,
+    terminalValidationNodeIds: path.terminalValidationNodeIds,
+    terminalValidationStrategy: path.terminalValidationStrategy,
+    limitations: path.limitations,
+  })) ?? [];
+}
+
+function buildPathOptionFallback(pathPlan: AdaptiveLearningPathPlan) {
+  if (!pathPlan.policyBundle || pathPlan.policyBundle.status === 'ready') {
+    return null;
+  }
+  return {
+    status: pathPlan.policyBundle.status,
+    fallbackReasons: pathPlan.policyBundle.fallbackReasons,
+    diversity: pathPlan.policyBundle.diversity,
+  };
+}
+
+function buildPathSelectionHistory(pathPlan: AdaptiveLearningPathPlan) {
+  return pathPlan.feedbackEvents
+    .filter((event) => event.type === 'selection' || event.type === 'rejection' || event.type === 'switch' || event.type === 'helpfulness')
+    .map((event) => {
+      const context = event.context && typeof event.context === 'object' && !Array.isArray(event.context)
+        ? event.context as Record<string, unknown>
+        : {};
+      return {
+        type: event.type,
+        nodeId: event.nodeId,
+        createdAt: event.createdAt,
+        selectedStyleId: typeof context.selectedStyleId === 'string' ? context.selectedStyleId : null,
+        previousStyleId: typeof context.previousStyleId === 'string' ? context.previousStyleId : null,
+        rejectedStyleIds: Array.isArray(context.rejectedStyleIds)
+          ? context.rejectedStyleIds.filter((item): item is string => typeof item === 'string')
+          : [],
+        helpful: typeof context.helpful === 'boolean'
+          ? context.helpful
+          : typeof event.helpful === 'boolean' ? event.helpful : null,
+      };
+    });
 }
 
 function pathPanel(

@@ -36,4 +36,5 @@ The bundle must expose overlap, modality mix, estimated effort, and terminal val
 - Planner tests verify the three path styles are distinct and policy-driven.
 - Evidence tests verify selection, rejection, deviation, completion, and helpfulness writeback.
 - Learner-state tests verify preference updates do not inflate mastery scores.
+- Diagnosis and Konling contract tests verify path options and selection history remain visible through governed summaries.
 - `rtk openspec validate three-style-learning-path-loop --strict` passes.

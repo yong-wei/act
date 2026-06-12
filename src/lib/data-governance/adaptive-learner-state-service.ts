@@ -1021,9 +1021,14 @@ function buildKnowledgeMastery(rows: Array<Record<string, unknown>>): AdaptiveLe
 function buildResourcePreference(facts: Array<Record<string, unknown>>): AdaptiveLearnerState['resourcePreference'] {
   const sourceCounts: Record<string, number> = {};
   for (const fact of facts) {
-    const modality = factTypeToModality(readString(fact.factType));
-    if (!modality) continue;
-    sourceCounts[modality] = (sourceCounts[modality] ?? 0) + 1;
+    const factType = readString(fact.factType) ?? '';
+    const modality = factTypeToModality(factType);
+    if (modality && modality !== 'path_choice' && !isControlCorrectionPathChoiceFactType(factType)) {
+      sourceCounts[modality] = (sourceCounts[modality] ?? 0) + 1;
+    }
+    for (const [pathChoiceModality, count] of Object.entries(readPathChoiceResourceMix(fact))) {
+      sourceCounts[pathChoiceModality] = (sourceCounts[pathChoiceModality] ?? 0) + count;
+    }
   }
   const preferredModalities = Object.entries(sourceCounts)
     .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
@@ -1033,6 +1038,30 @@ function buildResourcePreference(facts: Array<Record<string, unknown>>): Adaptiv
     sourceCounts,
     confidence: preferredModalities.length >= 5 ? 'medium' : preferredModalities.length > 0 ? 'low' : 'none',
   };
+}
+
+function readPathChoiceResourceMix(fact: Record<string, unknown>): Record<string, number> {
+  const factType = readString(fact.factType) ?? '';
+  if (factType !== 'path_choice' && !isControlCorrectionPathChoiceFactType(factType)) {
+    return {};
+  }
+  const context = getObject(fact.contextJson);
+  const preferenceEvidence = getObject(context.preferenceEvidence);
+  const action = readString(preferenceEvidence.action ?? context.action);
+  const helpful = typeof preferenceEvidence.helpful === 'boolean'
+    ? preferenceEvidence.helpful
+    : typeof context.helpful === 'boolean' ? context.helpful : null;
+  if (action === 'rejection' || (action === 'helpfulness' && helpful !== true)) {
+    return {};
+  }
+  const resourceMix = getObject(preferenceEvidence.resourceMix ?? context.resourceMix);
+  return Object.fromEntries(Object.entries(resourceMix).filter(([, value]) => (
+    typeof value === 'number' && Number.isFinite(value) && value > 0
+  ))) as Record<string, number>;
+}
+
+function isControlCorrectionPathChoiceFactType(factType: string): boolean {
+  return factType.startsWith('control_correction_path.') && factType.endsWith('_recorded');
 }
 
 function buildMediaAbsorption(facts: Array<Record<string, unknown>>): AdaptiveLearnerState['mediaAbsorption'] {

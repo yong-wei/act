@@ -437,6 +437,22 @@ describe('learning path round API routes', () => {
     });
   });
 
+  it('allows ai intervention path node execution to match planner resource types', async () => {
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'ai_intervention',
+      status: 'completed',
+      idempotencyKey: 'exec-ai-intervention',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      nodeId: 'node-1',
+      resourceType: 'ai_intervention',
+      idempotencyKey: 'exec-ai-intervention',
+    }));
+  });
+
   it('does not let clients forge official terminal Arena evidence', async () => {
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
       nodeId: 'node-1',
