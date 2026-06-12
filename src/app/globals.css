@@ -179,6 +179,12 @@
     padding-bottom: var(--task-workspace-floating-dock-safe-block);
   }
 
+  @media (min-width: 1280px) {
+    [data-app-shell-layout="collapsible"]:has([data-shell-navigation-state="collapsed"]) {
+      grid-template-columns: 76px minmax(0, 1fr);
+    }
+  }
+
   .surface-topbar {
     @apply relative z-20 border-b border-border/70 bg-card/75 backdrop-blur;
   }
