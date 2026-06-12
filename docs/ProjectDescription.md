@@ -4,7 +4,7 @@
 
 本文用于帮助维护者、协作代理和外部审阅者快速理解本项目当前的产品形态、架构边界、主要运行链路和近期工程重点。它不是提交日志；具体变更应以 `openspec/changes/`、`openspec/specs/`、专题设计文档和 `docs/memory/` 为准。
 
-当前项目已经从“精品互动课 + 基础画像”的阶段，推进到“统一平台壳层、标准互动课、控制仿真、Arena、学习路径、智能助教和数据治理共同构成教学闭环”的阶段。控制校正与智能助教系列中多项能力已经进入 `openspec/specs/`、Prisma 模型和数据治理实现；当前仍在推进的 OpenSpec 重点主要是 React Doctor 错误清理和统一 UI 治理门禁。后续判断项目现状时，应优先使用本文、`docs/memory/02-recent-summary.md`、`docs/memory/10-project/10-current-state.md`、当前 `openspec list --json` 和已归档 specs，而不是早期课程制作记录。
+当前项目已经从“精品互动课 + 基础画像”的阶段，推进到“统一平台壳层、标准互动课、控制仿真、Arena、学习路径、智能助教和数据治理共同构成教学闭环”的阶段。控制校正、智能助教和 React Doctor 错误清理系列中多项能力已经进入 `openspec/specs/`、Prisma 模型和数据治理实现；当前仍在推进的 OpenSpec 重点主要是统一 UI 治理门禁和二级导航迁移。后续判断项目现状时，应优先使用本文、`docs/memory/02-recent-summary.md`、`docs/memory/10-project/10-current-state.md`、当前 `openspec list --json` 和已归档 specs，而不是早期课程制作记录。
 
 ## 项目概览
 
@@ -81,7 +81,7 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 
 统一壳层当前覆盖数据中心、教师治理工作台、任务空间、Arena/控制工作台入口和若干课程入口。`AppShell` 在测试中会被纯函数调用，因此顶层不能直接引入会依赖运行时 hook 的逻辑；需要运行态上下文时，应放到子组件或可选上下文边界内。
 
-当前 active OpenSpec 中，`harden-unified-ui-governance-gates` 负责把商业化 UI 契约、页面族导航、状态证据组件和回归门禁继续固化。React Doctor 系列中，server、aria role、shared state/effect 和 interactive state/effect 已归档；resource state/effect 仍按错误族限域推进。
+当前 active OpenSpec 中，`harden-unified-ui-governance-gates` 负责把商业化 UI 契约、页面族导航、状态证据组件和回归门禁继续固化。React Doctor 系列中，server、aria role、shared state/effect、interactive state/effect 和 resource state/effect 已归档到 specs。
 
 ## 课程内容与 runtime
 
@@ -191,10 +191,7 @@ AI 可以解释、提示、总结和建议，但不能伪造学习事实、不�
 
 ## OpenSpec 与工作树协作
 
-本项目使用 OpenSpec 管理功能开发。已完成变更会归档到 `openspec/specs/`，进行中变更位于 `openspec/changes/`。新功能、治理、UI 重构、依赖迁移和智能助教能力都应先形成 proposal、design、tasks 和 spec delta，再进入实现。当前 active changes 主要是：
-
-- `eliminate-react-doctor-resource-state-effect-errors`
-- `harden-unified-ui-governance-gates`
+本项目使用 OpenSpec 管理功能开发。已完成变更会归档到 `openspec/specs/`，进行中变更位于 `openspec/changes/`。新功能、治理、UI 重构、依赖迁移和智能助教能力都应先形成 proposal、design、tasks 和 spec delta，再进入实现。当前 active changes 主要是统一 UI 治理门禁和二级导航迁移系列，包括 `harden-unified-ui-governance-gates` 及其相关页面族迁移变更。
 
 当前固定工作树职责：
 
