@@ -281,7 +281,7 @@ export function UNIT_5_3StudentPage({
           allowInlineReveal={allowInlineReveal}
           browseEnabled={browseEnabled}
           onParameterChange={handleParameterChange}
-          role="student"
+          viewerRole="student"
           submittedCount={submittedCount}
           viewedCount={viewedStepIds.length}
           turningSubmissionCount={turningSubmissionCount}

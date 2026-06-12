@@ -256,7 +256,7 @@ describe('unit 4-1 interactive course', () => {
         manifest,
         revealProgress: 0,
         allowInlineReveal: true,
-        role: 'student',
+        viewerRole: 'student',
       }),
     );
     const step11Html = renderToStaticMarkup(
@@ -265,7 +265,7 @@ describe('unit 4-1 interactive course', () => {
         manifest,
         revealProgress: 0,
         allowInlineReveal: true,
-        role: 'student',
+        viewerRole: 'student',
       }),
     );
     const summaryHtml = renderToStaticMarkup(
@@ -274,7 +274,7 @@ describe('unit 4-1 interactive course', () => {
         manifest,
         revealProgress: 0,
         allowInlineReveal: true,
-        role: 'student',
+        viewerRole: 'student',
         submittedCount: 2,
         viewedCount: 13,
         postTestCompletion: 1,

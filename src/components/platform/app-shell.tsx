@@ -31,7 +31,7 @@ export interface AppBreadcrumbItem {
 }
 
 export interface AppShellProps {
-  role: PlatformRole;
+  viewerRole: PlatformRole;
   navigation?: readonly PlatformNavigationItem[];
   breadcrumbs?: readonly AppBreadcrumbItem[];
   title?: string;
@@ -684,7 +684,7 @@ function AppShellFloatingDockRegistration({
 }
 
 export function AppShell({
-  role,
+  viewerRole,
   navigation,
   breadcrumbs,
   title = '平台工作台',
@@ -699,6 +699,7 @@ export function AppShell({
   children,
   className,
 }: AppShellProps) {
+  const role = viewerRole;
   const resolvedRouteMetadata = routeMetadata ?? (activeHref ? resolvePlatformRouteInventory(activeHref) : undefined);
   const floatingDockBehavior = resolvedRouteMetadata?.floatingDock ?? 'enabled';
   const effectiveBreadcrumbs = breadcrumbs ?? (resolvedRouteMetadata?.contextualReturn ? [

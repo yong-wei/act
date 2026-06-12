@@ -227,7 +227,7 @@ export default function GrowthPage() {
 
   return (
     <AppShell
-      role="student"
+      viewerRole="student"
       title="成长中枢"
       subtitle="能力趋势、证据覆盖与下一步路径"
       activeHref="/profile/growth"

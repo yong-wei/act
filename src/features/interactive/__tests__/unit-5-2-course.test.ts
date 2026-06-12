@@ -86,7 +86,7 @@ describe('unit 5-2 interactive course', () => {
             revealProgress: 6,
             allowInlineReveal: true,
             browseEnabled: true,
-            role: 'student',
+            viewerRole: 'student',
           }),
         ),
       ]),
@@ -218,7 +218,7 @@ describe('unit 5-2 interactive course', () => {
     expect(featureSource).toContain('后测完成率');
     expect(featureSource).toContain('常见误判标签');
     expect(featureSource).toContain('data-role-hidden-module={module.id}');
-    expect(featureSource).toContain("role: 'student' | 'teacher'");
+    expect(featureSource).toContain("viewerRole: 'student' | 'teacher'");
     expect(featureSource).toContain("role_visibility");
   });
 
@@ -275,7 +275,7 @@ describe('unit 5-2 interactive course', () => {
         revealProgress: 0,
         allowInlineReveal: false,
         browseEnabled: false,
-        role: 'student',
+        viewerRole: 'student',
       }),
     );
     expect(studentLockedHtml).toContain('G(s)=\\dfrac{10}{s(s+2)^2}');
@@ -290,7 +290,7 @@ describe('unit 5-2 interactive course', () => {
         revealProgress: 0,
         allowInlineReveal: false,
         browseEnabled: true,
-        role: 'student',
+        viewerRole: 'student',
       }),
     );
     expect(studentOpenHtml).toContain('写出理想继电描述函数。');

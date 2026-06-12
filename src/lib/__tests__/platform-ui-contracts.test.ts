@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 import { createElement, type ComponentType, type ReactNode } from 'react';
@@ -47,6 +47,16 @@ interface ReactElementLike {
 
 function readSource(relativePath: string) {
   return readFileSync(path.join(rootDir, relativePath), 'utf8');
+}
+
+function listSourceFiles(relativeDir: string): string[] {
+  const absoluteDir = path.join(rootDir, relativeDir);
+  return readdirSync(absoluteDir).flatMap((entry) => {
+    const relativePath = path.join(relativeDir, entry);
+    const absolutePath = path.join(rootDir, relativePath);
+    if (statSync(absolutePath).isDirectory()) return listSourceFiles(relativePath);
+    return relativePath.endsWith('.tsx') ? [relativePath] : [];
+  });
 }
 
 function asElement(value: unknown): ReactElementLike {
@@ -469,13 +479,13 @@ describe('platform UI contracts', () => {
       adaptivePracticeSource,
     ]) {
       expect(source).toContain('<AppShell');
-      expect(source).toContain('role="student"');
+      expect(source).not.toMatch(/role=\"(?:student|teacher)\"/);
       expect(source).not.toContain('UnifiedTopBar');
       expect(source).not.toContain('商业入口');
     }
     expect(knowledgeSource).toContain('<AppShell');
     expect(knowledgeSource).toContain('getServerAuthSession');
-    expect(knowledgeSource).toContain('role={shellRole}');
+    expect(knowledgeSource).toContain('viewerRole={shellRole}');
     expect(knowledgeSource).toContain('if (!shellRole)');
     expect(knowledgeSource).not.toContain('UnifiedTopBar');
     expect(knowledgeSource).not.toContain('商业入口');
@@ -493,6 +503,20 @@ describe('platform UI contracts', () => {
     expect(adaptivePracticeSource).toContain('data-learning-path-options-slot="three-style"');
     expect(adaptivePracticeSource).toContain('data-learning-path-history-slot="selection-history"');
     expect(adaptivePracticeSource).toContain('data-konling-citation-slot="cited-explanation"');
+  });
+
+  it('rejects business identities in JSX role attributes', () => {
+    const files = [
+      ...listSourceFiles('src/app'),
+      ...listSourceFiles('src/features'),
+      ...listSourceFiles('src/components/platform'),
+    ];
+
+    for (const file of files) {
+      const source = readSource(file);
+      expect(source, file).not.toMatch(/\brole\s*=\s*["'](?:student|teacher)["']/);
+      expect(source, file).not.toMatch(/<[a-z][A-Za-z0-9:-]*\b[^<>]*\brole\s*=\s*\{(?:role|viewerRole)\}/);
+    }
   });
 
   it('keeps teacher operations navigation bound to the current class context', () => {
@@ -572,7 +596,7 @@ describe('platform UI contracts', () => {
 
   it('forwards the active route from AppShell to AppSidebar', () => {
     const shell = AppShell({
-      role: 'teacher',
+      viewerRole: 'teacher',
       title: '教师工作台',
       activeHref: '/teacher/classes',
       navigation: [
@@ -639,7 +663,7 @@ describe('platform UI contracts', () => {
     const sidebar = asElement(AppSidebar({ activeHref: '/teacher/classes', navigation }));
     const shell = asElement(
       AppShell({
-        role: 'teacher',
+        viewerRole: 'teacher',
         title: '教师工作台',
         activeHref: '/teacher/classes',
         navigation,
@@ -670,7 +694,7 @@ describe('platform UI contracts', () => {
   it('keeps role navigation reachable in the mobile shell', () => {
     const shell = asElement(
       AppShell({
-        role: 'teacher',
+        viewerRole: 'teacher',
         title: '教师工作台',
         activeHref: '/teacher/classes',
         navigation: [
@@ -705,7 +729,7 @@ describe('platform UI contracts', () => {
   it('derives shell navigation from route inventory when navigation is omitted', () => {
     const shell = asElement(
       AppShell({
-        role: 'student',
+        viewerRole: 'student',
         title: '知识图谱',
         activeHref: '/knowledge',
         children: null,
@@ -718,7 +742,7 @@ describe('platform UI contracts', () => {
 
   it('derives AppShell archetype, return target, and dock behavior from the route ledger', () => {
     const shellProps: Parameters<typeof AppShell>[0] = {
-      role: 'student',
+      viewerRole: 'student',
       title: 'Arena 任务',
       activeHref: '/arena/challenges/demo-task',
       children: null,
@@ -749,7 +773,7 @@ describe('platform UI contracts', () => {
   it('renders AppShell workspace zones without forcing feature modules into the shared shell', () => {
     const shell = asElement(
       AppShell({
-        role: 'student',
+        viewerRole: 'student',
         title: '控制工作台',
         activeHref: '/interactive-learning/control-workbench',
         children: 'stage',
@@ -779,7 +803,7 @@ describe('platform UI contracts', () => {
 
   it('hides shell-owned dock controls when the route ledger declares hidden dock behavior', () => {
     const shellProps: Parameters<typeof AppShell>[0] = {
-      role: 'student',
+      viewerRole: 'student',
       title: '登录',
       activeHref: '/login',
       sidebarMode: 'hidden',
@@ -820,7 +844,7 @@ describe('platform UI contracts', () => {
   it('lets dense commercial workspaces defer fixed sidebar space until xl', () => {
     const shell = asElement(
       AppShell({
-        role: 'admin',
+        viewerRole: 'admin',
         title: '数据中心',
         activeHref: '/data-center',
         sidebarMode: 'collapsible',
@@ -850,7 +874,7 @@ describe('platform UI contracts', () => {
   it('does not reserve sidebar layout space when shell navigation is empty', () => {
     const shell = asElement(
       AppShell({
-        role: 'teacher',
+        viewerRole: 'teacher',
         title: '教师工作台',
         activeHref: '/teacher/classes',
         navigation: [],

@@ -46,7 +46,7 @@ export function ArenaPageShell({
 }: ArenaPageShellProps) {
   return (
     <AppShell
-      role="student"
+      viewerRole="student"
       title={title}
       subtitle={subtitle}
       activeHref={activePath}
