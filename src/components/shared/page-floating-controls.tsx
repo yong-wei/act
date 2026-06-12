@@ -18,12 +18,15 @@ export type PageFloatingControlRegistration = {
   onSelect: () => void;
 };
 
+export type PageFloatingDockBehavior = 'enabled' | 'collapsed' | 'hidden';
+
 type PageFloatingControlMenuItem = Omit<PageFloatingControlRegistration, 'onSelect'> & {
   onSelect?: () => void;
 };
 
 type PageFloatingControlsContextValue = {
   registerControl: (control: PageFloatingControlRegistration) => () => void;
+  setRouteDockBehavior: (behavior: PageFloatingDockBehavior) => () => void;
 };
 
 const PageFloatingControlsContext = createContext<PageFloatingControlsContextValue | null>(null);
@@ -47,6 +50,7 @@ export function buildFloatingControlMenu(
 
 export function PageFloatingControlsProvider({ children }: { children: ReactNode }) {
   const [controls, setControls] = useState<Record<string, PageFloatingControlRegistration>>({});
+  const [routeDockBehavior, setRouteDockBehaviorState] = useState<PageFloatingDockBehavior>('enabled');
 
   const registerControl = useCallback((control: PageFloatingControlRegistration) => {
     setControls((prev) => ({ ...prev, [control.id]: control }));
@@ -59,12 +63,17 @@ export function PageFloatingControlsProvider({ children }: { children: ReactNode
     };
   }, []);
 
-  const value = useMemo(() => ({ registerControl }), [registerControl]);
+  const setRouteDockBehavior = useCallback((behavior: PageFloatingDockBehavior) => {
+    setRouteDockBehaviorState(behavior);
+    return () => setRouteDockBehaviorState('enabled');
+  }, []);
+
+  const value = useMemo(() => ({ registerControl, setRouteDockBehavior }), [registerControl, setRouteDockBehavior]);
 
   return (
     <PageFloatingControlsContext.Provider value={value}>
       {children}
-      <PageFloatingControls registrations={Object.values(controls)} />
+      <PageFloatingControls registrations={Object.values(controls)} behavior={routeDockBehavior} />
     </PageFloatingControlsContext.Provider>
   );
 }
@@ -77,7 +86,13 @@ export function usePageFloatingControls() {
   return context;
 }
 
-function PageFloatingControls({ registrations }: { registrations: PageFloatingControlRegistration[] }) {
+function PageFloatingControls({
+  registrations,
+  behavior,
+}: {
+  registrations: PageFloatingControlRegistration[];
+  behavior: PageFloatingDockBehavior;
+}) {
   const menuRef = useRef<HTMLDivElement>(null);
   const { mounted, theme, toggleTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -106,7 +121,7 @@ function PageFloatingControls({ registrations }: { registrations: PageFloatingCo
     };
   }, [isMenuOpen]);
 
-  if (!mounted) {
+  if (!mounted || behavior === 'hidden') {
     return null;
   }
 
@@ -135,6 +150,7 @@ function PageFloatingControls({ registrations }: { registrations: PageFloatingCo
       ref={menuRef}
       className="no-print fixed bottom-4 right-6 z-[120] flex flex-col items-end"
       data-page-floating-controls="true"
+      data-platform-floating-dock={behavior === 'collapsed' ? 'collapsed' : 'enabled'}
     >
       {isMenuOpen ? (
         <div className="mb-3 w-56 rounded-2xl border border-border/70 bg-background/95 p-2 text-sm text-foreground shadow-2xl backdrop-blur">

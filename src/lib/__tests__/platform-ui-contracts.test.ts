@@ -1,8 +1,12 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
+import { ThemeProvider } from '@/components/providers/theme-provider';
+import { PageFloatingControlsProvider } from '@/components/shared/page-floating-controls';
 import {
   FORBIDDEN_SHARED_UI_IMPORT_PREFIXES,
   PLATFORM_COMMERCIAL_WORKSPACE_ROUTE_MATRIX,
@@ -74,6 +78,28 @@ function collectLinks(element: unknown): ReactElementLike[] {
   const current = element as ReactElementLike;
   const currentMatch = typeof current.props?.href === 'string' ? [current] : [];
   return [...currentMatch, ...childElements(current.props?.children).flatMap((child) => collectLinks(child))];
+}
+
+function collectElementsByDataAttribute(element: unknown, attribute: string, value?: string): ReactElementLike[] {
+  if (!element || typeof element !== 'object') return [];
+  const current = element as ReactElementLike;
+  const currentValue = current.props?.[attribute];
+  const currentMatch = typeof currentValue === 'string' && (value === undefined || currentValue === value) ? [current] : [];
+  return [
+    ...currentMatch,
+    ...childElements(current.props?.children).flatMap((child) => collectElementsByDataAttribute(child, attribute, value)),
+  ];
+}
+
+function renderAppShellMarkup(props: Parameters<typeof AppShell>[0]) {
+  return renderToStaticMarkup(
+    createElement(ThemeProvider, {
+      defaultTheme: 'light',
+      children: createElement(PageFloatingControlsProvider, {
+        children: createElement(AppShell, props),
+      }),
+    }),
+  );
 }
 
 describe('platform UI contracts', () => {
@@ -623,16 +649,104 @@ describe('platform UI contracts', () => {
     expect(links).toEqual(expect.arrayContaining(['/knowledge', '/interactive-learning', '/data-center']));
   });
 
+  it('derives AppShell archetype, return target, and dock behavior from the route ledger', () => {
+    const shellProps: Parameters<typeof AppShell>[0] = {
+      role: 'student',
+      title: 'Arena 任务',
+      activeHref: '/arena/challenges/demo-task',
+      children: null,
+      dockControls: [
+        { id: 'konling', label: '控灵', control: 'konling' },
+        { id: 'management', label: '管理', control: 'management' },
+      ],
+    };
+    const shell = asElement(AppShell(shellProps));
+    const shellMarkup = renderAppShellMarkup(shellProps);
+    const returnLinks = collectLinks(shell).filter((link) => link.props?.href === '/arena');
+    const header = collectElementsByType(shell, AppHeader)[0];
+
+    expect(shell.props?.['data-platform-route-frame']).toBe('mission-workspace');
+    expect(shell.props?.['data-platform-route-theme-support']).toBe('light dark');
+    expect(shell.props?.['data-platform-mobile-navigation']).toBe('workspace-command-surface');
+    expect(header.props?.breadcrumbs).toEqual([
+      { label: '竞技场', href: '/arena' },
+      { label: 'Arena 任务' },
+    ]);
+    expect(JSON.stringify(header.props?.breadcrumbs)).not.toContain('Return to');
+    expect(returnLinks.length).toBeGreaterThan(0);
+    expect(shellMarkup).toContain('data-platform-floating-dock-registration="true"');
+    expect(shellMarkup).toContain('data-platform-floating-dock-behavior="collapsed"');
+    expect(shellMarkup).toContain('data-platform-floating-dock-controls="konling management"');
+  });
+
+  it('renders AppShell workspace zones without forcing feature modules into the shared shell', () => {
+    const shell = asElement(
+      AppShell({
+        role: 'student',
+        title: '控制工作台',
+        activeHref: '/interactive-learning/control-workbench',
+        children: 'stage',
+        workspaceSlots: {
+          contextHeader: '对象上下文',
+          commandBar: '命令',
+          instrumentArea: '仪表区',
+          evidenceRail: '证据',
+          supportDrawer: '支持',
+          statusRail: '状态',
+          localTools: '局部工具',
+        },
+      }),
+    );
+
+    expect(collectElementsByDataAttribute(shell, 'data-app-shell-zone').map((zone) => zone.props?.['data-app-shell-zone'])).toEqual([
+      'context-header',
+      'command-bar',
+      'instrument-area',
+      'evidence-rail',
+      'support-drawer',
+      'status-rail',
+      'local-tools',
+    ]);
+    expect(collectElementsByDataAttribute(shell, 'data-platform-floating-dock')).toHaveLength(0);
+  });
+
+  it('hides shell-owned dock controls when the route ledger declares hidden dock behavior', () => {
+    const shellProps: Parameters<typeof AppShell>[0] = {
+      role: 'student',
+      title: '登录',
+      activeHref: '/login',
+      sidebarMode: 'hidden',
+      children: null,
+      dockControls: [
+        { id: 'konling', label: '控灵', control: 'konling' },
+      ],
+    };
+    const shell = asElement(AppShell(shellProps));
+    const shellMarkup = renderAppShellMarkup(shellProps);
+
+    expect(shell.props?.['data-platform-route-frame']).toBe('public-entry');
+    expect(shell.props?.['data-platform-floating-dock-behavior']).toBe('hidden');
+    expect(shellMarkup).toContain('data-platform-floating-dock-registration="true"');
+    expect(shellMarkup).toContain('data-platform-floating-dock-behavior="hidden"');
+  });
+
   it('keeps global AI registration inside the shared dock instead of rendering a second fixed button', () => {
     const layoutSource = readSource('src/app/layout.tsx');
     const globalAiButtonSource = readSource('src/components/ai/global-ai-button.tsx');
     const pageFloatingControlsSource = readSource('src/components/shared/page-floating-controls.tsx');
+    const appShellSource = readSource('src/components/platform/app-shell.tsx');
 
     expect(layoutSource).toContain('<PageFloatingControlsProvider>');
     expect(layoutSource).toContain('<GlobalAIFloatingButton />');
     expect(globalAiButtonSource).toContain('registerControl');
     expect(globalAiButtonSource).not.toContain('getFloatingButtonStyles');
     expect(globalAiButtonSource).not.toContain('fixed bottom-20 right-6');
+    expect(appShellSource).toContain('setRouteDockBehavior(behavior)');
+    expect(appShellSource).toContain('controlRegistrationSignature');
+    expect(appShellSource).not.toContain('[behavior, controls, registerControl]');
+    expect(appShellSource).not.toContain('fixed bottom-4 right-4');
+    expect(pageFloatingControlsSource).toContain("behavior === 'hidden'");
+    expect(pageFloatingControlsSource).toContain('data-platform-floating-dock=');
     expect(pageFloatingControlsSource).toContain('data-page-floating-controls="true"');
   });
 
@@ -671,6 +785,7 @@ describe('platform UI contracts', () => {
       AppShell({
         role: 'teacher',
         title: '教师工作台',
+        activeHref: '/teacher/classes',
         navigation: [],
         children: null,
       }),
