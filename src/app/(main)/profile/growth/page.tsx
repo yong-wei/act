@@ -25,6 +25,7 @@ import {
   Tooltip,
   Cell,
 } from 'recharts';
+import { AppShell } from '@/components/platform/app-shell';
 import { UserMenu } from '@/components/shared/user-menu';
 import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learning-center-contracts';
 import { DiagnosisSurfacePanel } from '@/features/adaptive/diagnosis-surface-panel';
@@ -225,47 +226,37 @@ export default function GrowthPage() {
   const groupedGrowthRecords = groupGrowthTimelineRecords(growthRecords);
 
   return (
-    <div
+    <AppShell
+      role="student"
+      title="成长中枢"
+      subtitle="能力趋势、证据覆盖与下一步路径"
+      activeHref="/profile/growth"
+      actions={(
+        <div className="flex rounded-lg bg-platform-action-subtle p-1">
+          {(['7d', '30d', '90d'] as const).map((range) => (
+            <button
+              key={range}
+              onClick={() => setTimeRange(range)}
+              className={`rounded-md px-3 py-1 text-sm transition ${
+                timeRange === range
+                  ? 'bg-platform-action-primary text-platform-canvas'
+                  : 'text-platform-fg-secondary hover:text-platform-fg-primary'
+              }`}
+            >
+              {range === '7d' ? '近7天' : range === '30d' ? '近30天' : '近90天'}
+            </button>
+          ))}
+        </div>
+      )}
+      userMenu={<UserMenu user={{ name: session?.user?.name, email: session?.user?.email, role: session?.user?.role }} />}
       className="surface-page"
+    >
+      <section
       data-route-family={learnerDataShell.routeFamily}
       data-route-identity={learnerDataShell.routeIdentity}
       data-learner-record-surface={learnerDataShell.archetype}
     >
-      {/* Header */}
-      <header className="surface-topbar px-6 py-4">
-        <div className="mx-auto flex max-w-[1600px] flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-w-0 items-center gap-4">
-            <Link href="/profile" className="text-subtle transition hover:text-foreground">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </Link>
-            <h1 className="min-w-0 text-xl font-bold text-foreground">我的成长中枢</h1>
-          </div>
-          <div className="flex flex-wrap items-center gap-4">
-            {/* Time Range Selector */}
-            <div className="flex rounded-lg bg-accent/50 p-1">
-              {(['7d', '30d', '90d'] as const).map((range) => (
-                <button
-                  key={range}
-                  onClick={() => setTimeRange(range)}
-                  className={`rounded-md px-3 py-1 text-sm transition ${
-                    timeRange === range
-                      ? 'bg-amber-500 text-white'
-                      : 'text-subtle hover:text-foreground'
-                  }`}
-                >
-                  {range === '7d' ? '近7天' : range === '30d' ? '近30天' : '近90天'}
-                </button>
-              ))}
-            </div>
-            <UserMenu user={{ name: session?.user?.name, email: session?.user?.email, role: session?.user?.role }} />
-          </div>
-        </div>
-      </header>
-
-      <main
-        className="mx-auto max-w-[1600px] px-6 py-8"
+      <div
         data-learner-record-priority="evidence-timeline"
         data-learner-record-evidence-confidence={hasCompetencyChartData ? 'medium' : 'low'}
         data-learner-record-missing-source={hasCompetencyChartData ? 'complete' : 'missing-evidence'}
@@ -710,8 +701,9 @@ export default function GrowthPage() {
             </div>
           </div>
         )}
-      </main>
-    </div>
+      </div>
+      </section>
+    </AppShell>
   );
 }
 

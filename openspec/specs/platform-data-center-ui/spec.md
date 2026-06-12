@@ -65,3 +65,11 @@ Report-ledger presentation SHALL remain separate from the operational or knowled
 - **THEN** report-ledger presentation SHALL preserve report/export semantics without replacing the source route's owning shell
 - **AND** any shell ownership transfer SHALL be declared in the route ledger.
 
+### Requirement: Knowledge and data surfaces share evidence map semantics
+Knowledge graph, evidence browser, learner record, and data center surfaces SHALL share source quality, freshness, privacy, confidence, and status semantics when migrated to the knowledge-data-map archetype.
+
+#### Scenario: Evidence-backed data is shown
+- **WHEN** a migrated knowledge or data surface displays evidence, graph, source, freshness, privacy, confidence, or unsupported state information
+- **THEN** the UI SHALL use shared evidence map semantics and platform shell navigation
+- **AND** it SHALL not introduce page-local status vocabularies or unmanaged visual palettes.
+

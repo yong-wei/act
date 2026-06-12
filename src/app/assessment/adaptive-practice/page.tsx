@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { AppShell } from '@/components/platform/app-shell';
 import {
   ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG,
   buildControlCorrectionLearningCenterView,
@@ -542,12 +543,22 @@ export default function AdaptivePracticePage() {
   };
 
   return (
-    <div
-      className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100 md:px-8"
+    <AppShell
+      role="student"
+      title="自适应练习"
+      subtitle="证据驱动的当前路径与题目推荐"
+      activeHref="/assessment/adaptive-practice"
+      className="surface-page"
+    >
+      <section
+      className="space-y-6"
       data-commercial-workspace="adaptive-practice"
       data-commercial-student-entry-route="/assessment/adaptive-practice"
       data-commercial-entry-intent="practice"
       data-student-entry-evidence-return="/profile/evidence"
+      data-learning-path-options-slot="three-style"
+      data-learning-path-history-slot="selection-history"
+      data-konling-citation-slot="cited-explanation"
       data-route-family={learnerDataShell.routeFamily}
       data-route-identity={learnerDataShell.routeIdentity}
       data-learner-record-surface={learnerDataShell.archetype}
@@ -555,11 +566,10 @@ export default function AdaptivePracticePage() {
       data-learner-record-evidence-confidence={controlCorrectionCenter?.nextAction.confidence ?? 'unknown'}
       data-learner-record-missing-source={controlCorrectionCenter?.readinessGate.missing.join(',') || 'complete'}
     >
-      <div className="mx-auto max-w-6xl space-y-6">
-        <header className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-          <p className="text-xs uppercase tracking-[0.28em] text-emerald-400">商业入口 · Practice</p>
+        <header className="surface-card p-5">
+          <p className="text-xs uppercase tracking-[0.28em] text-primary">学习入口 · Practice</p>
           <h1 className="mt-1 text-2xl font-semibold">自适应跨域题库</h1>
-          <p className="mt-2 text-sm text-slate-400">
+          <p className="mt-2 text-sm text-subtle">
             基于答题历史动态估计能力值，针对薄弱知识点推荐下一题，并支持即时生成跨域题目。
           </p>
           {isDemoMode ? (
@@ -569,7 +579,7 @@ export default function AdaptivePracticePage() {
           ) : null}
           <div className="mt-4 hidden flex-wrap gap-2 text-xs text-subtle sm:flex">
             {entryIntents.filter((intent) => ['practice', 'learn', 'challenge', 'review'].includes(intent.intent)).map((intent) => (
-              <Link key={intent.intent} href={intent.hrefs[0] ?? '/dashboard'} className="rounded-full border border-slate-700 px-3 py-1 hover:border-emerald-400">
+              <Link key={intent.intent} href={intent.hrefs[0] ?? '/dashboard'} className="rounded-full border border-border px-3 py-1 hover:border-primary">
                 {intent.label}
               </Link>
             ))}
@@ -886,7 +896,7 @@ export default function AdaptivePracticePage() {
             </div>
           </main>
         </section>
-      </div>
-    </div>
+      </section>
+    </AppShell>
   );
 }

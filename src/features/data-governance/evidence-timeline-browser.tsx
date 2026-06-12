@@ -23,6 +23,7 @@ interface EvidenceTimelineBrowserPayload {
 interface EvidenceTimelineBrowserProps {
   apiPath: string;
   backHref: string;
+  chrome?: 'standalone' | 'embedded';
   emptyBackLabel?: string;
   initialLessonId?: string;
   title: string;
@@ -32,6 +33,7 @@ interface EvidenceTimelineBrowserProps {
 export function EvidenceTimelineBrowser({
   apiPath,
   backHref,
+  chrome = 'standalone',
   emptyBackLabel = '返回成长中心',
   initialLessonId,
   title,
@@ -119,8 +121,9 @@ export function EvidenceTimelineBrowser({
   };
 
   return (
-    <div className="surface-page">
-      <header className="surface-topbar px-6 py-4">
+    <div className={chrome === 'standalone' ? 'surface-page' : undefined}>
+      {chrome === 'standalone' ? (
+        <header className="surface-topbar px-6 py-4">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link href={backHref} className="text-subtle transition hover:text-foreground">
@@ -140,9 +143,10 @@ export function EvidenceTimelineBrowser({
             刷新
           </button>
         </div>
-      </header>
+        </header>
+      ) : null}
 
-      <main className="mx-auto grid max-w-[1600px] gap-6 px-6 py-8 lg:grid-cols-[300px_1fr]">
+      <main className={chrome === 'standalone' ? 'mx-auto grid max-w-[1600px] gap-6 px-6 py-8 lg:grid-cols-[300px_1fr]' : 'grid gap-6 lg:grid-cols-[300px_1fr]'}>
         <aside className="surface-card h-fit p-5" data-learner-record-surface="evidence-filter">
           <div className="mb-4 flex items-center gap-2">
             <Filter className="h-4 w-4 text-amber-500" />
