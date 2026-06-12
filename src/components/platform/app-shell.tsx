@@ -393,7 +393,10 @@ export function AppSidebar({ navigation, activeHref, collapsed = false, classNam
   const activeItemId = getActiveNavigationItemId(navigation, activeHref);
   const renderItems = flattenNavigationItems(navigation);
   return (
-    <aside className={cn('border-r border-platform-border bg-platform-canvas-muted px-3 py-4', collapsed && 'px-2', className)}>
+    <aside
+      data-shell-navigation-state={collapsed ? 'collapsed' : 'expanded'}
+      className={cn('border-r border-platform-border bg-platform-canvas-muted px-3 py-4', collapsed && 'px-2', className)}
+    >
       <nav className="space-y-1">
         {renderItems.map(({ item, depth }) => renderNavigationLink(item, activeItemId, 'sidebar', depth, collapsed))}
       </nav>

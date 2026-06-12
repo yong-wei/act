@@ -652,7 +652,7 @@ describe('platform UI contracts', () => {
       }),
     ).toContain('xl:grid-cols-[72px_minmax(0,1fr)]');
 
-    const collapsedSidebarMarkup = renderToStaticMarkup(
+    const collapsedSidebar = asElement(
       AppSidebar({
         activeHref: '/knowledge',
         collapsed: true,
@@ -668,7 +668,9 @@ describe('platform UI contracts', () => {
         ],
       }),
     );
+    const collapsedSidebarMarkup = renderToStaticMarkup(collapsedSidebar as never);
 
+    expect(collapsedSidebar.props?.['data-shell-navigation-state']).toBe('collapsed');
     expect(collapsedSidebarMarkup).toContain('aria-label="知识资源"');
     expect(collapsedSidebarMarkup).toContain('title="知识资源"');
     expect(collapsedSidebarMarkup).toContain('data-platform-navigation-icon="knowledge"');
