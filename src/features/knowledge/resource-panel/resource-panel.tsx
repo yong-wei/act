@@ -271,25 +271,26 @@ function ResourcePanelContent({
 
   const panelTheme = isLightTheme
     ? {
-        shell: 'border-l border-slate-300 bg-white text-slate-800',
-        header: 'border-slate-200 bg-white/95 text-slate-800',
-        muted: 'text-slate-600',
-        block: 'border-slate-200 bg-slate-50',
-        blockTitle: 'text-slate-700',
-        text: 'text-slate-700',
+        shell: 'border border-platform-border bg-platform-surface text-platform-fg-primary',
+        header: 'border-platform-border bg-platform-surface/95 text-platform-fg-primary',
+        muted: 'text-platform-fg-muted',
+        block: 'border-platform-border bg-platform-canvas-muted',
+        blockTitle: 'text-platform-fg-primary',
+        text: 'text-platform-fg-secondary',
       }
     : {
-        shell: 'border-l border-blue-500/30 bg-[#091540] text-slate-100',
-        header: 'border-blue-500/30 bg-[#091540] text-slate-100',
-        muted: 'text-slate-400',
-        block: 'border-blue-500/20 bg-[#0c1d4f]/50',
-        blockTitle: 'text-blue-400',
-        text: 'text-slate-300',
+        shell: 'border border-platform-border bg-platform-surface text-platform-fg-primary',
+        header: 'border-platform-border bg-platform-surface/95 text-platform-fg-primary',
+        muted: 'text-platform-fg-muted',
+        block: 'border-platform-border bg-platform-canvas-muted',
+        blockTitle: 'text-platform-fg-primary',
+        text: 'text-platform-fg-secondary',
       };
 
   return (
     <aside
-      className={`absolute right-0 top-0 z-50 h-full w-[320px] transform overflow-y-auto transition-transform duration-300 ${panelTheme.shell} translate-x-0`}
+      className={`absolute right-2 top-2 z-50 h-[calc(100%-1rem)] w-[min(22rem,calc(100vw-1rem))] transform overflow-y-auto rounded-lg shadow-lg transition-transform duration-300 ${panelTheme.shell} translate-x-0`}
+      data-knowledge-local-panel="resource-panel"
     >
       <div className={`sticky top-0 z-10 flex items-center justify-between border-b p-4 ${panelTheme.header}`}>
         <div className="flex min-w-0 items-center gap-2">

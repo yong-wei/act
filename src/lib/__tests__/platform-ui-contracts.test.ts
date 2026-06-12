@@ -469,6 +469,9 @@ describe('platform UI contracts', () => {
     const growthSource = readSource('src/app/(main)/profile/growth/page.tsx');
     const evidenceSource = readSource('src/app/(main)/profile/evidence/page.tsx');
     const knowledgeSource = readSource('src/app/knowledge/page.tsx');
+    const knowledgeSystemSource = readSource('src/features/knowledge/knowledge-graph-system.tsx');
+    const knowledgeSidebarSource = readSource('src/features/knowledge/sidebar/knowledge-sidebar.tsx');
+    const knowledgeResourcePanelSource = readSource('src/features/knowledge/resource-panel/resource-panel.tsx');
     const adaptivePracticeSource = readSource('src/app/assessment/adaptive-practice/page.tsx');
     const evidenceBrowserSource = readSource('src/features/data-governance/evidence-timeline-browser.tsx');
 
@@ -488,7 +491,10 @@ describe('platform UI contracts', () => {
     expect(knowledgeSource).toContain('<AppShell');
     expect(knowledgeSource).toContain('getServerAuthSession');
     expect(knowledgeSource).toContain('viewerRole={shellRole}');
-    expect(knowledgeSource).toContain('if (!shellRole)');
+    expect(knowledgeSource).toContain('sidebarMode="collapsible"');
+    expect(knowledgeSource).toContain("?? 'student'");
+    expect(knowledgeSource).not.toContain('if (!shellRole)');
+    expect(knowledgeSource).not.toContain('<main');
     expect(knowledgeSource).not.toContain('UnifiedTopBar');
     expect(knowledgeSource).not.toContain('商业入口');
 
@@ -501,6 +507,18 @@ describe('platform UI contracts', () => {
     expect(evidenceBrowserSource).toContain("chrome === 'standalone' ? 'surface-page' : undefined");
     expect(evidenceBrowserSource).toContain("chrome === 'standalone' ? 'mx-auto grid");
     expect(knowledgeSource).toContain('data-knowledge-data-map-surface="knowledge-graph"');
+    expect(knowledgeSource).toContain('data-commercial-student-entry-route="/knowledge"');
+    expect(knowledgeSidebarSource).toContain('data-knowledge-local-panel="chapter-directory"');
+    expect(knowledgeSidebarSource).not.toContain('w-[240px]');
+    expect(knowledgeSidebarSource).not.toContain('bg-[#091540]');
+    expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="relation-filters"');
+    expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="view-mode-switch"');
+    expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="node-hover-preview"');
+    expect(knowledgeSystemSource).not.toContain('bg-[#091540]');
+    expect(knowledgeSystemSource).not.toContain('bg-[#0c1d4f]');
+    expect(knowledgeResourcePanelSource).toContain('data-knowledge-local-panel="resource-panel"');
+    expect(knowledgeResourcePanelSource).not.toContain('bg-[#091540]');
+    expect(knowledgeResourcePanelSource).not.toContain('bg-[#0c1d4f]');
     expect(adaptivePracticeSource).toContain('data-commercial-entry-intent="practice"');
     expect(adaptivePracticeSource).toContain('data-learning-path-options-slot="three-style"');
     expect(adaptivePracticeSource).toContain('data-learning-path-history-slot="selection-history"');

@@ -276,6 +276,7 @@ const ROUTE_LEDGER_CONVERGENCE_CHANGE = 'converge-route-ledger-to-canonical-arch
 const APP_SHELL_MIGRATION_CHANGE = 'upgrade-platform-app-shell-to-archetype-shell';
 const MISSION_WORKSPACE_MIGRATION_CHANGE = 'migrate-mission-workspaces-to-unified-shell';
 const LEARNER_KNOWLEDGE_DATA_MIGRATION_CHANGE = 'migrate-learner-knowledge-data-surfaces';
+const KNOWLEDGE_MAP_UNIFIED_SHELL_CHANGE = 'migrate-knowledge-map-to-unified-shell-panels';
 const OPERATIONS_REPORT_MIGRATION_CHANGE = 'migrate-operations-report-ledger-surfaces';
 
 function inferUnifiedUiMigrationOwner(input: Pick<PlatformPrimaryRouteInventoryEntry, 'href' | 'frame'>) {
@@ -1232,8 +1233,8 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'collapsed',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-knowledge-and-data-surfaces',
-    unifiedUiMigrationOwner: LEARNER_KNOWLEDGE_DATA_MIGRATION_CHANGE,
+    owningChange: KNOWLEDGE_MAP_UNIFIED_SHELL_CHANGE,
+    unifiedUiMigrationOwner: KNOWLEDGE_MAP_UNIFIED_SHELL_CHANGE,
   }),
 ] as const;
 
