@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 
 /**
  * GET /api/ai/sessions?courseId=X&pageId=Y
- * 获取或创建会话
+ * 获取现有会话
  */
 export async function GET(request: NextRequest) {
   try {
@@ -64,32 +64,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 创建新会话
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + SESSION_EXPIRY_DAYS);
-
-    const newSession = await prisma.konlingSession.create({
-      data: {
-        userId: session.user.id,
-        courseId,
-        pageId,
-        title: `${courseId} - ${pageId}`,
-        messages: [],
-        expiresAt,
-      },
-    });
-
-    return NextResponse.json({
-      id: newSession.id,
-      userId: newSession.userId,
-      courseId: newSession.courseId,
-      pageId: newSession.pageId,
-      title: newSession.title,
-      messages: [],
-      createdAt: newSession.createdAt,
-      updatedAt: newSession.updatedAt,
-      expiresAt: newSession.expiresAt,
-    });
+    return NextResponse.json({ error: 'Session not found' }, { status: 404 });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('Error in GET /api/ai/sessions:', error);
@@ -119,6 +94,34 @@ export async function POST(request: NextRequest) {
         { error: 'Missing courseId or pageId' },
         { status: 400 }
       );
+    }
+
+    const existingSession = await prisma.konlingSession.findFirst({
+      where: {
+        userId: session.user.id,
+        courseId,
+        pageId,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+
+    if (existingSession) {
+      return NextResponse.json({
+        id: existingSession.id,
+        userId: existingSession.userId,
+        courseId: existingSession.courseId,
+        pageId: existingSession.pageId,
+        title: existingSession.title,
+        messages: existingSession.messages as Record<string, unknown>[],
+        createdAt: existingSession.createdAt,
+        updatedAt: existingSession.updatedAt,
+        expiresAt: existingSession.expiresAt,
+      });
     }
 
     const expiresAt = new Date();

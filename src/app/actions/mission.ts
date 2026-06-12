@@ -7,7 +7,8 @@
  */
 
 import { revalidatePath } from 'next/cache';
-import { getServerAuthSession } from '@/lib/auth';
+import { authOptions } from '@/lib/auth';
+import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 
 interface CompleteMissionResult {
@@ -17,6 +18,24 @@ interface CompleteMissionResult {
   unlockedMissions?: string[];
   techScoreAdded?: number;
 }
+type ActionSession = {
+  user?: {
+    id?: string | null;
+    role?: string | null;
+  } | null;
+} | null;
+
+const getAuthenticatedActionUser = (session: ActionSession) => {
+  const user = session?.user;
+  const userId = user?.id;
+  if (!userId) {
+    return null;
+  }
+  return {
+    id: userId,
+    role: user.role ?? 'STUDENT',
+  };
+};
 
 /**
  * 完成任务
@@ -31,13 +50,14 @@ export async function completeMission(
   simulationLogId?: string
 ): Promise<CompleteMissionResult> {
   try {
-    const session = await getServerAuthSession();
+    const session = await getServerSession(authOptions);
+    const actionUser = getAuthenticatedActionUser(session);
 
-    if (!session?.user?.id) {
+    if (!actionUser) {
       return { success: false, message: '未授权' };
     }
 
-    const userId = session.user.id;
+    const userId = actionUser.id;
 
     // 获取任务信息
     const mission = await prisma.mission.findUnique({
@@ -69,6 +89,19 @@ export async function completeMission(
       });
     } else if (!currentProgress || currentProgress.status === 'LOCKED') {
       return { success: false, message: '任务未解锁' };
+    }
+
+    if (simulationLogId) {
+      const ownedSimulationLog = await prisma.simulationLog.findFirst({
+        where: {
+          id: simulationLogId,
+          userId,
+        },
+        select: { id: true },
+      });
+      if (!ownedSimulationLog) {
+        return { success: false, message: '无权关联该仿真记录' };
+      }
     }
 
     // 更新或创建进度记录
@@ -287,9 +320,10 @@ function calculateTechScoreBonus(
  */
 export async function getMissionDetail(missionId: string) {
   try {
-    const session = await getServerAuthSession();
+    const session = await getServerSession(authOptions);
+    const actionUser = getAuthenticatedActionUser(session);
 
-    if (!session?.user?.id) {
+    if (!actionUser) {
       return null;
     }
 
@@ -304,7 +338,7 @@ export async function getMissionDetail(missionId: string) {
     const progress = await prisma.userProgress.findUnique({
       where: {
         userId_missionId: {
-          userId: session.user.id,
+          userId: actionUser.id,
           missionId,
         },
       },
@@ -327,6 +361,12 @@ export async function getMissionDetail(missionId: string) {
  */
 export async function initializeUserProgress(userId: string) {
   try {
+    const session = await getServerSession(authOptions);
+    const actionUser = getAuthenticatedActionUser(session);
+    if (!actionUser || (actionUser.id !== userId && actionUser.role !== 'ADMIN')) {
+      return;
+    }
+
     // 检查是否已有进度记录
     const existingProgress = await prisma.userProgress.findFirst({
       where: { userId },

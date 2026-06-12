@@ -590,12 +590,16 @@ export async function GET(request: NextRequest) {
     const sourceCoverageById = new Map(
       sourceCoverageReport.sources.map((source) => [source.sourceId, source])
     );
-    const exclusionReasonsBySource = sourceCoverageReport.exclusions.reduce((accumulator, exclusion) => {
-      const current = accumulator.get(exclusion.sourceId) ?? [];
-      current.push(exclusion.reason);
-      accumulator.set(exclusion.sourceId, current);
-      return accumulator;
-    }, new Map<string, string[]>());
+    const exclusionReasonsBySource = sourceCoverageReport.exclusions.reduce<Record<string, string[]>>(
+      (accumulator, exclusion) => {
+        accumulator[exclusion.sourceId] = [
+          ...(accumulator[exclusion.sourceId] ?? []),
+          exclusion.reason,
+        ];
+        return accumulator;
+      },
+      {},
+    );
 
     return NextResponse.json({
       status: 'healthy',
@@ -656,7 +660,7 @@ export async function GET(request: NextRequest) {
             affectedUsers: coverage?.affectedUsers ?? 0,
             provenanceCounts: coverage?.provenanceCounts ?? {},
             readinessGapCounts: coverage?.readinessGapCounts ?? {},
-            exclusionReasons: exclusionReasonsBySource.get(source.id) ?? [],
+            exclusionReasons: exclusionReasonsBySource[source.id] ?? [],
           };
         }),
       },

@@ -298,12 +298,16 @@ export async function GET(
     const recommendationMap = new Map(
       recommendationCounts.map((entry) => [entry.userId, entry._count._all])
     );
-    const riskMap = riskFlags.reduce((accumulator, flag) => {
-      const current = accumulator.get(flag.userId) ?? [];
-      current.push(flag);
-      accumulator.set(flag.userId, current);
-      return accumulator;
-    }, new Map<string, typeof riskFlags>());
+    const riskByUserId = riskFlags.reduce<Record<string, typeof riskFlags>>(
+      (accumulator, flag) => {
+        accumulator[flag.userId] = [
+          ...(accumulator[flag.userId] ?? []),
+          flag,
+        ];
+        return accumulator;
+      },
+      {},
+    );
     const cacheHealthByUserId = new Map(
       studentEvidenceFeatureCaches.map((cache) => [cache.userId, cache])
     );
@@ -340,7 +344,7 @@ export async function GET(
     const students: TeacherClassInsightStudent[] = classData.students.map((studentProfile) => {
       const snapshot = snapshotMap.get(studentProfile.userId);
       const summary = summaryMap.get(studentProfile.userId);
-      const studentRiskFlags = riskMap.get(studentProfile.userId) ?? [];
+      const studentRiskFlags = riskByUserId[studentProfile.userId] ?? [];
       const vector = snapshot?.competencyVector as CompetencyVector | undefined;
       const fallbackScore = vector ? calculateOverallScore(vector) : 0;
       const overallScore = Math.round((summary?.overallScore ?? fallbackScore) * 10) / 10;

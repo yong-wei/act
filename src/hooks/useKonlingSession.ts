@@ -4,7 +4,7 @@
  * 管理AI会话的创建、恢复和消息存储
  */
 
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import useSWR from 'swr';
 import type { Message } from '@/types/ai-message';
 import type { PageContext } from '@/types/ai-context';
@@ -33,6 +33,7 @@ interface UseKonlingSessionOptions {
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
+  if (res.status === 404) return null;
   if (!res.ok) throw new Error('Failed to fetch session');
   return res.json();
 };
@@ -46,9 +47,10 @@ export function useKonlingSession({
 }: UseKonlingSessionOptions) {
   const [localMessages, setLocalMessages] = useState<Message[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const createSessionPromiseRef = useRef<Promise<KonlingSession> | null>(null);
 
   // 获取或创建会话
-  const { data: session, error, mutate } = useSWR<KonlingSession>(
+  const { data: session, error, mutate } = useSWR<KonlingSession | null>(
     `/api/ai/sessions?courseId=${courseId}&pageId=${pageId}`,
     fetcher,
     {
@@ -64,36 +66,58 @@ export function useKonlingSession({
 
   // 创建新会话
   const createSession = useCallback(async () => {
+    if (createSessionPromiseRef.current) {
+      return createSessionPromiseRef.current;
+    }
+
+    const createSessionPromise = (async () => {
+      try {
+        const res = await fetch('/api/ai/sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            courseId,
+            pageId,
+            title: title || `${courseId} - ${pageId}`,
+            pageContext,
+          }),
+        });
+
+        if (!res.ok) throw new Error('Failed to create session');
+
+        const data = await res.json();
+        setSessionId(data.id);
+        setLocalMessages([]);
+        await mutate();
+        return data;
+      } catch (err) {
+        console.error('Error creating session:', err);
+        throw err;
+      }
+    })();
+
+    createSessionPromiseRef.current = createSessionPromise;
     try {
-      const res = await fetch('/api/ai/sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          courseId,
-          pageId,
-          title: title || `${courseId} - ${pageId}`,
-          pageContext,
-        }),
-      });
-
-      if (!res.ok) throw new Error('Failed to create session');
-
-      const data = await res.json();
-      setSessionId(data.id);
-      setLocalMessages([]);
-      await mutate();
-      return data;
-    } catch (err) {
-      console.error('Error creating session:', err);
-      throw err;
+      return await createSessionPromise;
+    } finally {
+      createSessionPromiseRef.current = null;
     }
   }, [courseId, pageId, title, pageContext, mutate]);
 
+  useEffect(() => {
+    if (session !== null || sessionId) {
+      return;
+    }
+    void createSession();
+  }, [createSession, session, sessionId]);
+
   // 发送消息
   const sendMessage = useCallback(async (content: string) => {
+    let activeSessionId = sessionId;
     if (!sessionId) {
       // 如果没有会话，先创建
-      await createSession();
+      const createdSession = await createSession();
+      activeSessionId = createdSession.id;
     }
 
     // 乐观更新本地消息
@@ -105,7 +129,7 @@ export function useKonlingSession({
     setLocalMessages((prev) => [...prev, userMessage]);
 
     try {
-      const res = await fetch(`/api/ai/sessions/${sessionId}/messages`, {
+      const res = await fetch(`/api/ai/sessions/${activeSessionId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -175,7 +199,7 @@ export function useKonlingSession({
     session,
     sessionId,
     messages: localMessages.length > 0 ? localMessages : session?.messages || [],
-    isLoading: !error && !session,
+    isLoading: !error && session === undefined,
     error,
     createSession,
     sendMessage,

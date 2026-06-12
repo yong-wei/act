@@ -1,7 +1,8 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { getServerAuthSession } from '@/lib/auth';
+import { authOptions } from '@/lib/auth';
+import { getServerSession } from 'next-auth';
 import { revalidatePath } from 'next/cache';
 import type { Prisma } from '@prisma/client';
 import {
@@ -58,8 +59,6 @@ export interface ControlAiHistory {
   updatedAt: string;
 }
 
-const DEFAULT_UNLOCKS: ControllerId[] = ['P'];
-const TIER_ORDER: LevelTier[] = ['bronze', 'silver', 'gold'];
 const AI_ASSIST_COST = 20;
 
 type ControlTierProgress = Record<string, LevelTier>;
@@ -94,16 +93,28 @@ type ControlConfigLog = {
   inputParams: unknown;
   metrics: unknown;
 };
+type ActionSession = {
+  user?: {
+    id?: string | null;
+    name?: string | null;
+  } | null;
+} | null;
 
-const normalizeUnlocks = (value: unknown): ControllerId[] => {
-  if (!Array.isArray(value)) {
-    return [...DEFAULT_UNLOCKS];
+const getAuthenticatedActionUser = (session: ActionSession) => {
+  const user = session?.user;
+  const userId = user?.id;
+  if (!userId) {
+    return null;
   }
-  const filtered = value.filter((item) => typeof item === 'string') as ControllerId[];
-  return filtered.length ? filtered : [...DEFAULT_UNLOCKS];
+  return {
+    id: userId,
+    name: user.name ?? null,
+  };
 };
 
-const DEFAULT_CONTROLLER_LEVELS: ControlControllerLevels = {
+const defaultUnlocks = (): ControllerId[] => ['P'];
+
+const defaultControllerLevels = (): ControlControllerLevels => ({
   P: 1,
   PI: 0,
   PD: 0,
@@ -111,6 +122,39 @@ const DEFAULT_CONTROLLER_LEVELS: ControlControllerLevels = {
   VFB: 0,
   FF: 0,
   SMITH: 0
+});
+
+const isLevelTier = (value: unknown): value is LevelTier =>
+  value === 'bronze' || value === 'silver' || value === 'gold';
+
+const nextTierAfter = (tier: LevelTier): LevelTier => {
+  switch (tier) {
+    case 'bronze':
+      return 'silver';
+    case 'silver':
+      return 'gold';
+    case 'gold':
+      return 'gold';
+  }
+};
+
+const tierRank = (tier: LevelTier): number => {
+  switch (tier) {
+    case 'bronze':
+      return 0;
+    case 'silver':
+      return 1;
+    case 'gold':
+      return 2;
+  }
+};
+
+const normalizeUnlocks = (value: unknown): ControllerId[] => {
+  if (!Array.isArray(value)) {
+    return defaultUnlocks();
+  }
+  const filtered = value.filter((item) => typeof item === 'string') as ControllerId[];
+  return filtered.length ? filtered : defaultUnlocks();
 };
 
 const getUpgradeRule = (controllerId: ControllerId) =>
@@ -120,7 +164,7 @@ const normalizeControllerLevels = (
   value: unknown,
   unlocks: ControllerId[]
 ): ControlControllerLevels => {
-  const levels: ControlControllerLevels = { ...DEFAULT_CONTROLLER_LEVELS };
+  const levels = defaultControllerLevels();
   if (value && typeof value === 'object' && !Array.isArray(value)) {
     Object.entries(value as Record<string, unknown>).forEach(([key, rawLevel]) => {
       if (!(key in levels)) return;
@@ -144,8 +188,8 @@ const normalizeTierProgress = (value: unknown): ControlTierProgress => {
   }
   const progress: ControlTierProgress = {};
   Object.entries(value as Record<string, unknown>).forEach(([levelId, tier]) => {
-    if (typeof tier === 'string' && TIER_ORDER.includes(tier as LevelTier)) {
-      progress[levelId] = tier as LevelTier;
+    if (isLevelTier(tier)) {
+      progress[levelId] = tier;
     }
   });
   return progress;
@@ -154,12 +198,8 @@ const normalizeTierProgress = (value: unknown): ControlTierProgress => {
 const resolveTierUnlock = (currentTier: LevelTier | undefined, completedTier?: LevelTier) => {
   const current = currentTier ?? 'bronze';
   if (!completedTier) return current;
-  const currentIndex = TIER_ORDER.indexOf(current);
-  const completedIndex = TIER_ORDER.indexOf(completedTier);
-  if (currentIndex < 0 || completedIndex < 0) return current;
-  if (completedIndex < currentIndex) return current;
-  const nextIndex = Math.min(currentIndex + 1, TIER_ORDER.length - 1);
-  return TIER_ORDER[nextIndex] ?? current;
+  if (tierRank(completedTier) < tierRank(current)) return current;
+  return nextTierAfter(current);
 };
 
 const buildBestScores = async (userId: string): Promise<ControlBestScores> => {
@@ -189,7 +229,7 @@ const buildBestScores = async (userId: string): Promise<ControlBestScores> => {
     } else {
       bestScores[levelId].overall = Math.max(bestScores[levelId].overall, score);
     }
-    if (params?.tier && TIER_ORDER.includes(params.tier)) {
+    if (isLevelTier(params?.tier)) {
       const current = bestScores[levelId].tiers[params.tier];
       if (current === undefined || score > current) {
         bestScores[levelId].tiers[params.tier] = score;
@@ -201,13 +241,14 @@ const buildBestScores = async (userId: string): Promise<ControlBestScores> => {
 };
 
 export async function getControlProfile(): Promise<ControlProfileSnapshot | null> {
-  const session = await getServerAuthSession();
-  if (!session?.user?.id) {
+  const session = await getServerSession(authOptions);
+  const actionUser = getAuthenticatedActionUser(session);
+  if (!actionUser) {
     return null;
   }
 
   const profile = await prisma.studentProfile.findUnique({
-    where: { userId: session.user.id },
+    where: { userId: actionUser.id },
     select: {
       controlCredits: true,
       controlUnlocks: true,
@@ -220,12 +261,12 @@ export async function getControlProfile(): Promise<ControlProfileSnapshot | null
   const credits = profile?.controlCredits ?? 0;
   const tierProgress = normalizeTierProgress(profile?.controlOdysseyProgress);
   const controllerLevels = normalizeControllerLevels(profile?.controlControllerLevels, unlocks);
-  const bestScores = await buildBestScores(session.user.id);
+  const bestScores = await buildBestScores(actionUser.id);
 
   if (!profile) {
     await prisma.studentProfile.create({
       data: {
-        userId: session.user.id,
+        userId: actionUser.id,
         controlCredits: credits,
         controlUnlocks: unlocks,
         controlOdysseyProgress: tierProgress,
@@ -234,7 +275,7 @@ export async function getControlProfile(): Promise<ControlProfileSnapshot | null
     });
   } else if (!unlocks.includes('P')) {
     await prisma.studentProfile.update({
-      where: { userId: session.user.id },
+      where: { userId: actionUser.id },
       data: { controlUnlocks: unlocks }
     });
   }
@@ -243,8 +284,9 @@ export async function getControlProfile(): Promise<ControlProfileSnapshot | null
 }
 
 export async function purchaseController(controllerId: ControllerId): Promise<ControlProfileSnapshot | null> {
-  const session = await getServerAuthSession();
-  if (!session?.user?.id) {
+  const session = await getServerSession(authOptions);
+  const actionUser = getAuthenticatedActionUser(session);
+  if (!actionUser) {
     return null;
   }
 
@@ -255,7 +297,7 @@ export async function purchaseController(controllerId: ControllerId): Promise<Co
 
   const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const profile = await tx.studentProfile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: actionUser.id },
       select: {
         controlCredits: true,
         controlUnlocks: true,
@@ -296,14 +338,14 @@ export async function purchaseController(controllerId: ControllerId): Promise<Co
       [controllerId]: Math.max(controllerLevels[controllerId] ?? 0, 1)
     };
     const updated = await tx.studentProfile.upsert({
-      where: { userId: session.user.id },
+      where: { userId: actionUser.id },
       update: {
         controlCredits: { decrement: item.price },
         controlUnlocks: nextUnlocks,
         controlControllerLevels: nextControllerLevels
       },
       create: {
-        userId: session.user.id,
+        userId: actionUser.id,
         controlCredits: credits - item.price,
         controlUnlocks: nextUnlocks,
         controlControllerLevels: nextControllerLevels
@@ -322,8 +364,9 @@ export async function purchaseController(controllerId: ControllerId): Promise<Co
 }
 
 export async function upgradeController(controllerId: ControllerId): Promise<ControlProfileSnapshot | null> {
-  const session = await getServerAuthSession();
-  if (!session?.user?.id) {
+  const session = await getServerSession(authOptions);
+  const actionUser = getAuthenticatedActionUser(session);
+  if (!actionUser) {
     return null;
   }
 
@@ -334,7 +377,7 @@ export async function upgradeController(controllerId: ControllerId): Promise<Con
 
   const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const profile = await tx.studentProfile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: actionUser.id },
       select: {
         controlCredits: true,
         controlUnlocks: true,
@@ -368,13 +411,13 @@ export async function upgradeController(controllerId: ControllerId): Promise<Con
     };
 
     const updated = await tx.studentProfile.upsert({
-      where: { userId: session.user.id },
+      where: { userId: actionUser.id },
       update: {
         controlCredits: { decrement: upgradePrice },
         controlControllerLevels: nextLevels
       },
       create: {
-        userId: session.user.id,
+        userId: actionUser.id,
         controlCredits: credits - upgradePrice,
         controlUnlocks: unlocks,
         controlControllerLevels: nextLevels
@@ -393,14 +436,15 @@ export async function upgradeController(controllerId: ControllerId): Promise<Con
 }
 
 export async function redeemControlAICredits(): Promise<number | null> {
-  const session = await getServerAuthSession();
-  if (!session?.user?.id) {
+  const session = await getServerSession(authOptions);
+  const actionUser = getAuthenticatedActionUser(session);
+  if (!actionUser) {
     return null;
   }
 
   const updatedCredits = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const profile = await tx.studentProfile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: actionUser.id },
       select: {
         controlCredits: true
       }
@@ -412,12 +456,12 @@ export async function redeemControlAICredits(): Promise<number | null> {
     }
 
     const updated = await tx.studentProfile.upsert({
-      where: { userId: session.user.id },
+      where: { userId: actionUser.id },
       update: {
         controlCredits: { decrement: AI_ASSIST_COST }
       },
       create: {
-        userId: session.user.id,
+        userId: actionUser.id,
         controlCredits: credits - AI_ASSIST_COST
       }
     });
@@ -432,6 +476,9 @@ export async function redeemControlAICredits(): Promise<number | null> {
  * 获取指定关卡的排行榜 (Top 50)
  */
 export async function getLevelLeaderboard(levelId: string): Promise<LeaderboardEntry[]> {
+  const session = await getServerSession(authOptions);
+  void session;
+
   try {
     const logs = (await prisma.simulationLog.findMany({
       where: {
@@ -510,9 +557,10 @@ export async function submitGameScore(
     publicationId?: string;
   }
 ) {
-  const session = await getServerAuthSession();
-  
-  if (!session?.user?.id) {
+  const session = await getServerSession(authOptions);
+  const actionUser = getAuthenticatedActionUser(session);
+
+  if (!actionUser) {
     // 未登录用户不记录（或可以记录匿名？）
     // 这里简单处理：仅记录登录用户
     console.log('User not logged in, score not saved.');
@@ -529,7 +577,7 @@ export async function submitGameScore(
     if (runId) {
       const existingLog = await prisma.simulationLog.findFirst({
         where: {
-          userId: session.user.id,
+          userId: actionUser.id,
           inputParams: {
             path: ['runId'],
             equals: runId
@@ -543,7 +591,7 @@ export async function submitGameScore(
 
     const log = await prisma.simulationLog.create({
       data: {
-        userId: session.user.id,
+        userId: actionUser.id,
         missionId: mission?.id ?? null,
         controlMode: 'GAME',
         inputParams: {
@@ -566,7 +614,7 @@ export async function submitGameScore(
     });
 
     const profile = await prisma.studentProfile.findUnique({
-      where: { userId: session.user.id },
+      where: { userId: actionUser.id },
       select: {
         controlCredits: true,
         controlUnlocks: true,
@@ -578,8 +626,8 @@ export async function submitGameScore(
     const credits = profile?.controlCredits ?? 0;
     const tierProgress = normalizeTierProgress(profile?.controlOdysseyProgress);
     const controllerLevels = normalizeControllerLevels(profile?.controlControllerLevels, unlocks);
-    const completedTier = context?.tier && TIER_ORDER.includes(context.tier as LevelTier)
-      ? (context.tier as LevelTier)
+    const completedTier = isLevelTier(context?.tier)
+      ? context.tier
       : undefined;
     const nextTier = resolveTierUnlock(tierProgress[levelId], completedTier);
     const nextProgress = { ...tierProgress, [levelId]: nextTier };
@@ -587,7 +635,7 @@ export async function submitGameScore(
     const creditsEarned = Math.floor(score / 100);
 
     await prisma.studentProfile.upsert({
-      where: { userId: session.user.id },
+      where: { userId: actionUser.id },
       update: {
         controlCredits: { increment: creditsEarned },
         controlUnlocks: nextUnlocks,
@@ -595,7 +643,7 @@ export async function submitGameScore(
         controlControllerLevels: controllerLevels
       },
       create: {
-        userId: session.user.id,
+        userId: actionUser.id,
         controlCredits: credits + creditsEarned,
         controlUnlocks: nextUnlocks,
         controlOdysseyProgress: nextProgress,
@@ -649,7 +697,7 @@ export async function submitGameScore(
         try {
           publicationContext = await resolveAccessibleArenaPublicationForStudent(prisma as any, {
             publicationId: context.publicationId,
-            studentId: session.user.id,
+            studentId: actionUser.id,
             taskId: arenaTaskId,
             now: log.createdAt,
           });
@@ -672,8 +720,8 @@ export async function submitGameScore(
         }
       }
       const bridgeResult = await bridgeOdysseyRunToArenaSubmission({
-        userId: session.user.id,
-        studentLabel: session.user.name ?? '匿名学生',
+        userId: actionUser.id,
+        studentLabel: actionUser.name ?? '匿名学生',
         runId: runId as string,
         levelId,
         tier: context?.tier ?? 'bronze',
@@ -690,7 +738,7 @@ export async function submitGameScore(
           async findByOdysseyRun({ runId: odysseyRunId, taskId, publicationId }) {
             const submissions = await prismaArenaSubmissionStore.listSubmissions({
               taskId,
-              userId: session.user.id,
+              userId: actionUser.id,
               publicationId,
             });
             return submissions.find((submission) =>
@@ -724,8 +772,9 @@ export async function submitGameScore(
 }
 
 export async function getTopControlConfigs(levelId: string): Promise<ControlConfigSnapshot[]> {
-  const session = await getServerAuthSession();
-  if (!session?.user?.id) {
+  const session = await getServerSession(authOptions);
+  const actionUser = getAuthenticatedActionUser(session);
+  if (!actionUser) {
     return [];
   }
 
@@ -735,7 +784,7 @@ export async function getTopControlConfigs(levelId: string): Promise<ControlConf
 
   const logs = (await prisma.simulationLog.findMany({
     where: {
-      userId: session.user.id,
+      userId: actionUser.id,
       score: {
         not: null
       },
@@ -768,7 +817,7 @@ export async function getTopControlConfigs(levelId: string): Promise<ControlConf
       createdAt: log.createdAt.toISOString(),
       metrics: (log.metrics as Record<string, unknown> | null) ?? null,
       config: {
-        tier: params.tier as LevelTier | undefined,
+        tier: isLevelTier(params.tier) ? params.tier : undefined,
         controlMode: params.controlMode,
         controllerId: params.controllerId as ControllerId | undefined,
         pidParams: params.pidParams,
@@ -783,8 +832,9 @@ export async function getTopControlConfigs(levelId: string): Promise<ControlConf
 }
 
 export async function getControlAiHistory(levelId: string): Promise<ControlAiHistory | null> {
-  const session = await getServerAuthSession();
-  if (!session?.user?.id) {
+  const session = await getServerSession(authOptions);
+  const actionUser = getAuthenticatedActionUser(session);
+  if (!actionUser) {
     return null;
   }
   if (!levelId) {
@@ -793,8 +843,8 @@ export async function getControlAiHistory(levelId: string): Promise<ControlAiHis
 
   const history = await prisma.controlOdysseyAiHistory.findUnique({
     where: {
-      userId_levelId: {
-        userId: session.user.id,
+        userId_levelId: {
+        userId: actionUser.id,
         levelId,
       },
     },
@@ -818,8 +868,9 @@ export async function saveControlAiHistory(
   levelId: string,
   content: string
 ): Promise<ControlAiHistory | null> {
-  const session = await getServerAuthSession();
-  if (!session?.user?.id) {
+  const session = await getServerSession(authOptions);
+  const actionUser = getAuthenticatedActionUser(session);
+  if (!actionUser) {
     return null;
   }
   if (!levelId || !content) {
@@ -828,8 +879,8 @@ export async function saveControlAiHistory(
 
   const history = await prisma.controlOdysseyAiHistory.upsert({
     where: {
-      userId_levelId: {
-        userId: session.user.id,
+        userId_levelId: {
+        userId: actionUser.id,
         levelId,
       },
     },
@@ -837,7 +888,7 @@ export async function saveControlAiHistory(
       content,
     },
     create: {
-      userId: session.user.id,
+      userId: actionUser.id,
       levelId,
       content,
     },
