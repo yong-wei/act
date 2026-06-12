@@ -17,7 +17,6 @@ import { useInteractiveTracking } from '@/features/interactive/hooks/useInteract
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import { COURSE_EVENT_TYPES } from '@/lib/classroom-analytics/event-taxonomy';
 import {
-  getUNIT_1_1MediaSrc,
   isUNIT_1_1InteractivePageType,
   UNIT_1_1_LESSON_STEPS,
   UNIT_1_1_SESSION_ADAPTER,
@@ -237,7 +236,7 @@ export function UNIT_1_1StudentPage({
         {error ? <div className="premium-lesson-tone-block premium-tone-rose mb-4">{error}</div> : null}
 
         <div className="premium-lesson-panel-soft mb-4 px-4 py-4">
-          <div className="premium-lesson-kicker">Student Console</div>
+          <div className="premium-lesson-kicker">学生学习台</div>
           <div className="premium-lesson-title mt-2 text-lg font-semibold">
             {isDemo ? '演示模式已开启' : `已加入课堂 ${sessionId}`}
           </div>
@@ -250,8 +249,7 @@ export function UNIT_1_1StudentPage({
 
         <UNIT_1_1StepContentPanel
           step={step}
-          mediaSrc={getUNIT_1_1MediaSrc(step.id)}
-          mediaAlt={step.title}
+          manifest={runtimeManifest}
         />
 
         <div className="mt-4">

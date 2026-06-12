@@ -595,6 +595,7 @@ export function UNIT_5_1StepContentPanel({
   onParameterChange?: (stepId: string, snapshot: Unit51BoundaryParameterSnapshot) => void;
   onAdvanceReveal?: () => void;
 }) {
+  const role = viewerRole;
   if (!manifest) {
     throw new Error('5-1 runtime manifest is required for page rendering.');
   }

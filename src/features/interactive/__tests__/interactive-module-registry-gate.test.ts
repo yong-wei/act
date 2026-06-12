@@ -1,7 +1,8 @@
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { ReactElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 
 import { describe, expect, it } from 'vitest';
 
@@ -61,6 +62,7 @@ describe('interactive module registry gate', () => {
     expect(registry['content.rich']).toBeTypeOf('function');
     expect(registry['content.cardSet']).toBeTypeOf('function');
     expect(registry['content.formula']).toBeTypeOf('function');
+    expect(registry['content.code']).toBeTypeOf('function');
     expect(registry['content.table']).toBeTypeOf('function');
     expect(registry['content.figure']).toBeTypeOf('function');
     expect(registry['content.reveal']).toBeTypeOf('function');
@@ -68,6 +70,41 @@ describe('interactive module registry gate', () => {
     expect(registry['compute.panel']).toBeTypeOf('function');
     expect(registry['analytics.summary']).toBeTypeOf('function');
     expect(registry['layout.support']).toBeTypeOf('function');
+  });
+
+  it('renders MATLAB code with the canonical content.code module renderer', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'matlab-code',
+        kind: 'content.code',
+        mustBeVisible: true,
+        payload: { block_key: 'code_block' },
+      },
+    });
+    const step = manifest.steps[0];
+    step.contentBlocks.code_block = {
+      language: 'matlab',
+      code: 'G = tf(1, [1 2 0]);   % G(s)=1/(s(s+2))\nstep(G);',
+      explanation: '同一对象先看开环阶跃，再进入根轨迹和频域诊断。',
+    };
+    const node = registry['content.code']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 0, allowInlineReveal: false },
+    }) as ReactElement<{ code?: string; language?: string }>;
+
+    expect(node.props.code).toContain('tf(1, [1 2 0])');
+    expect(node.props.language).toBe('matlab');
+
+    const html = renderToStaticMarkup(node);
+    expect(html).toContain('data-module-kind="content.code"');
+    expect(html).toContain('premium-code-token-function');
+    expect(html).toContain('premium-code-token-comment');
   });
 
   it('renders inline payload items for canonical card set modules', () => {
@@ -879,6 +916,124 @@ describe('interactive module registry gate', () => {
     ]);
   });
 
+  it('rejects content.code modules without code text', () => {
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'empty-code',
+              kind: 'content.code',
+              mustBeVisible: true,
+              payload: { language: 'python' },
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.violations).toEqual([
+      expect.objectContaining({
+        lessonId: 'fixture-lesson',
+        stepId: 'step-01',
+        moduleId: 'empty-code',
+        kind: 'content.code',
+        code: 'code-module-missing-source',
+      }),
+    ]);
+  });
+
+  it('allows non-MATLAB code modules while reserving MATLAB highlighting for MATLAB code', () => {
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'python-code',
+              kind: 'content.code',
+              mustBeVisible: true,
+              payload: { language: 'python', code: 'print(\"control example\")' },
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(result.passed).toBe(true);
+    expect(result.violations).toEqual([]);
+  });
+
+  it('rejects code-like examples hidden inside non-code content modules', () => {
+    const manifest = manifestFixture({
+      module: {
+        id: 'hidden-code-reveal',
+        kind: 'content.reveal',
+        mustBeVisible: true,
+        payload: { block_key: 'hidden_code' },
+      },
+    });
+    manifest.steps[0].contentBlocks.hidden_code = {
+      items: [
+        { text: 'G = tf(1, [1 2 0]);   % G(s)=1/(s(s+2))' },
+      ],
+    };
+
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest,
+        },
+      ],
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.violations).toEqual([
+      expect.objectContaining({
+        lessonId: 'fixture-lesson',
+        stepId: 'step-01',
+        moduleId: 'hidden-code-reveal',
+        kind: 'content.reveal',
+        code: 'code-like-content-outside-code-module',
+      }),
+    ]);
+  });
+
+  it('rejects generic interaction status modules on non-interactive pages', () => {
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'status-panel',
+              kind: 'layout.support',
+              mustBeVisible: true,
+              payload: { title: '本页互动状态', text: '无需作答' },
+            },
+            interactionKind: 'none',
+            activityCards: [],
+            submitFields: [],
+          }),
+        },
+      ],
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.violations).toEqual([
+      expect.objectContaining({
+        lessonId: 'fixture-lesson',
+        stepId: 'step-01',
+        moduleId: 'status-panel',
+        kind: 'layout.support',
+        code: 'non-interactive-status-module',
+      }),
+    ]);
+  });
+
   it('reports invalid manifest JSON as a structured gate violation', () => {
     const rootDir = mkdtempSync(join(tmpdir(), 'interactive-module-gate-'));
     try {
@@ -985,6 +1140,15 @@ describe('interactive module registry gate', () => {
     expect(result.passed).toBe(true);
     expect(result.violations).toEqual([]);
     expect(result.scannedModules).toBeGreaterThan(0);
+  });
+
+  it('does not hard-code generic interaction status or runtime media implementation copy in step panel source', () => {
+    const files = collectSourceFiles(join(process.cwd(), 'src/features/interactive'))
+      .filter((filePath) => filePath.endsWith('/step-panels.tsx'));
+    const forbiddenCopy = /本页互动状态|互动状态模块|课程 runtime 配套图示|当前交互实现直接消费|Python 函数|Python 代码|```python|import control/;
+    const offenders = files.filter((filePath) => forbiddenCopy.test(readFileSync(filePath, 'utf8')));
+
+    expect(offenders.map((filePath) => filePath.replace(`${process.cwd()}/`, ''))).toEqual([]);
   });
 
   it('passes the standard module lesson group with canonical modules on every step', () => {
@@ -1171,4 +1335,17 @@ function activityCardFixture({
     layoutSpan: 'full',
     options: [],
   };
+}
+
+function collectSourceFiles(root: string): string[] {
+  const result: string[] = [];
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    const fullPath = join(root, entry.name);
+    if (entry.isDirectory()) {
+      result.push(...collectSourceFiles(fullPath));
+    } else if (entry.isFile()) {
+      result.push(fullPath);
+    }
+  }
+  return result.sort();
 }

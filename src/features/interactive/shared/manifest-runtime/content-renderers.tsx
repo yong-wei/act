@@ -17,6 +17,46 @@ type TableCell = string | { kind: 'math'; value: string };
 type NativeTableData = { columns: string[]; rows: TableCell[][] };
 type RevealItem = { body: string; formula?: string; title?: string };
 type FormulaSymbol = { symbol: string; meaning: string };
+type CodeTokenKind = 'keyword' | 'function' | 'number' | 'string' | 'comment' | 'operator' | 'plain';
+type CodeToken = { value: string; kind: CodeTokenKind };
+
+const MATLAB_KEYWORDS = new Set([
+  'break',
+  'case',
+  'catch',
+  'classdef',
+  'continue',
+  'else',
+  'elseif',
+  'end',
+  'for',
+  'function',
+  'global',
+  'if',
+  'otherwise',
+  'parfor',
+  'persistent',
+  'return',
+  'spmd',
+  'switch',
+  'try',
+  'while',
+]);
+
+const MATLAB_CONTROL_FUNCTIONS = new Set([
+  'bode',
+  'feedback',
+  'figure',
+  'grid',
+  'hold',
+  'isstable',
+  'margin',
+  'rlocus',
+  'step',
+  'stepinfo',
+  'tf',
+  'title',
+]);
 
 function asRecord(value: unknown): ContentRecord {
   return value && typeof value === 'object' && !Array.isArray(value) ? (value as ContentRecord) : {};
@@ -107,6 +147,7 @@ function renderFormulaContent(formula: string) {
 const MODULE_KIND_TITLE: Record<string, string> = {
   'bullet-list-card': '要点',
   'comparison-graphic': '图示',
+  'content.code': '代码',
   'formula-card': '公式',
   'formula-card-row': '公式',
   'goal-card-row': '本次课程目标',
@@ -161,6 +202,14 @@ function blockFor(step: InteractiveRuntimeStepManifest, payload: ContentRecord) 
   return typeof key === 'string' && key ? step.contentBlocks[key] : undefined;
 }
 
+function stringField(source: ContentRecord, keys: string[]) {
+  for (const key of keys) {
+    const value = source[key];
+    if (typeof value === 'string' && value.trim()) return value;
+  }
+  return '';
+}
+
 function blockByKey(step: InteractiveRuntimeStepManifest, key: string) {
   return step.contentBlocks[key];
 }
@@ -197,6 +246,87 @@ function blockByModuleId(step: InteractiveRuntimeStepManifest, module: Interacti
     if (block !== undefined) return block;
   }
   return undefined;
+}
+
+function codePayload(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
+  const payload = module.payload;
+  const block = asRecord(blockFor(step, payload));
+  const moduleBlock = asRecord(blockByModuleId(step, module));
+  const code = stringField(payload, ['code', 'text', 'formula'])
+    || stringField(block, ['code', 'text', 'formula'])
+    || stringField(moduleBlock, ['code', 'text', 'formula']);
+  const language = stringField(payload, ['language', 'lang'])
+    || stringField(block, ['language', 'lang'])
+    || stringField(moduleBlock, ['language', 'lang'])
+    || 'matlab';
+  const note = stringField(payload, ['note', 'explanation'])
+    || stringField(block, ['note', 'explanation'])
+    || stringField(moduleBlock, ['note', 'explanation']);
+
+  return {
+    code,
+    language: language.toLowerCase(),
+    note,
+  };
+}
+
+function tokenizeMatlabLine(line: string): CodeToken[] {
+  const commentIndex = line.indexOf('%');
+  if (commentIndex >= 0) {
+    return [
+      ...tokenizeMatlabCodeSegment(line.slice(0, commentIndex)),
+      { value: line.slice(commentIndex), kind: 'comment' as const },
+    ].filter((token) => token.value.length > 0);
+  }
+  return tokenizeMatlabCodeSegment(line);
+}
+
+function tokenizeMatlabCodeSegment(segment: string): CodeToken[] {
+  const tokens: CodeToken[] = [];
+  const matcher = /('(?:''|[^'])*')|(\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)|(\b[A-Za-z_]\w*\b)|([()[\]{},;=+\-*/^<>:.]+)|(\s+)|([^A-Za-z_\d\s()[\]{},;=+\-*/^<>:.]+)/gi;
+  for (const match of segment.matchAll(matcher)) {
+    const value = match[0];
+    if (match[1]) {
+      tokens.push({ value, kind: 'string' });
+    } else if (match[2]) {
+      tokens.push({ value, kind: 'number' });
+    } else if (match[3]) {
+      const lower = value.toLowerCase();
+      if (MATLAB_KEYWORDS.has(lower)) {
+        tokens.push({ value, kind: 'keyword' });
+      } else if (MATLAB_CONTROL_FUNCTIONS.has(lower)) {
+        tokens.push({ value, kind: 'function' });
+      } else {
+        tokens.push({ value, kind: 'plain' });
+      }
+    } else if (match[4]) {
+      tokens.push({ value, kind: 'operator' });
+    } else {
+      tokens.push({ value, kind: 'plain' });
+    }
+  }
+  return tokens;
+}
+
+function renderHighlightedCode(code: string, language: string) {
+  const lines = code.split('\n');
+  return lines.map((line, lineIndex) => {
+    const tokens = language === 'matlab' || language === 'octave'
+      ? tokenizeMatlabLine(line)
+      : [{ value: line, kind: 'plain' as const }];
+    return (
+      <span key={`${line}-${lineIndex}`} className="premium-code-line">
+        {tokens.map((token, tokenIndex) => (
+          <span
+            key={`${lineIndex}-${tokenIndex}-${token.kind}`}
+            className={`premium-code-token premium-code-token-${token.kind}`}
+          >
+            {token.value}
+          </span>
+        ))}
+      </span>
+    );
+  });
 }
 
 function moduleIndexByKind(
@@ -715,6 +845,35 @@ function FormulaCard({
   );
 }
 
+export function ManifestCodeBlock({
+  title,
+  code,
+  language = 'matlab',
+  note,
+}: {
+  title: string;
+  code: string;
+  language?: string;
+  note?: string;
+}) {
+  if (!code.trim()) return null;
+  const normalizedLanguage = language.toLowerCase();
+  const languageLabel = normalizedLanguage === 'matlab' ? 'MATLAB / Octave' : normalizedLanguage.toUpperCase();
+
+  return (
+    <div className="premium-lesson-panel" data-module-kind="content.code">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <ManifestContentTitle>{title}</ManifestContentTitle>
+        <span className="premium-lesson-chip">{languageLabel}</span>
+      </div>
+      <pre className="premium-code-block mt-3" data-code-language={normalizedLanguage}>
+        <code>{renderHighlightedCode(code, normalizedLanguage)}</code>
+      </pre>
+      {note ? <p className="premium-lesson-muted mt-3 text-sm leading-7">{renderInlineContent(note)}</p> : null}
+    </div>
+  );
+}
+
 function SummaryCard({ title, text, bullets }: { title: string; text?: string; bullets?: string[] }) {
   if (!text && !bullets?.length) return null;
   return (
@@ -1040,6 +1199,17 @@ export function createManifestContentModuleRegistry(extra: {
         symbols={formulaSymbols(step, module)}
       />
     ),
+    'content.code': ({ step, module }) => {
+      const content = codePayload(step, module);
+      return (
+        <ManifestCodeBlock
+          title={titleFromModule(module)}
+          code={content.code}
+          language={content.language}
+          note={content.note}
+        />
+      );
+    },
     'content.table': ({ step, module }) => {
       const table = tableFor(step, module);
       if (table) return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} notes={textFieldsFromPayload(module.payload, ['text', 'note', 'explanation'])} />;

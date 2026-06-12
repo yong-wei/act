@@ -26,10 +26,13 @@ export type InteractiveModuleRegistryGateViolationCode =
   | 'legacy-alias-in-migrated-lesson'
   | 'activity-missing-response-contract'
   | 'activity-unregistered-response-kind'
+  | 'code-like-content-outside-code-module'
+  | 'code-module-missing-source'
   | 'compute-missing-capability-ref'
   | 'compute-unregistered-capability-ref'
   | 'invalid-runtime-manifest'
-  | 'lesson-missing-from-standard-module-inventory';
+  | 'lesson-missing-from-standard-module-inventory'
+  | 'non-interactive-status-module';
 
 export interface InteractiveModuleRegistryGateViolation {
   lessonId: string;
@@ -101,6 +104,15 @@ const STEP_INTERACTIONS_ALLOWING_EMPTY_ACTIVITY_CARDS = new Set([
   'teacher_reveal_only',
 ]);
 
+const NON_INTERACTIVE_STATUS_PATTERNS = [
+  /本页互动状态/,
+  /互动状态模块/,
+  /page interaction status/i,
+  /interaction status module/i,
+];
+
+const CODE_LIKE_CONTENT_PATTERN = /\b(tf|step|rlocus|bode|margin|feedback|isstable|figure|grid|legend)\s*\(|(^|\n)\s*%|;\s*%/i;
+
 export const STANDARD_MODULE_ENFORCED_LESSON_IDS = [
   '1-1',
   '2-1',
@@ -158,6 +170,11 @@ export function evaluateInteractiveModuleRegistryGate({
         }));
       }
       violations.push(...evaluateActivityCardResponseContracts({
+        lessonId: item.lessonId,
+        manifestPath: item.manifestPath,
+        step,
+      }));
+      violations.push(...evaluateNoInteractionStatusModules({
         lessonId: item.lessonId,
         manifestPath: item.manifestPath,
         step,
@@ -367,7 +384,59 @@ function evaluateRuntimeModule({
     }
   }
 
+  if (resolution.canonicalClass === 'content.code') {
+    const source = codeSourceForModule(step, module);
+    if (!source.code) {
+      violations.push(violation({
+        lessonId,
+        manifestPath,
+        step,
+        module,
+        code: 'code-module-missing-source',
+        canonicalClass: resolution.canonicalClass,
+        message: `${lessonId} ${step.id} ${module.id} is content.code without code text.`,
+      }));
+    }
+  } else if (
+    ['content.rich', 'content.formula', 'content.reveal'].includes(resolution.canonicalClass)
+    && hasCodeLikeVisibleContent(step, module)
+  ) {
+    violations.push(violation({
+      lessonId,
+      manifestPath,
+      step,
+      module,
+      code: 'code-like-content-outside-code-module',
+      canonicalClass: resolution.canonicalClass,
+      message: `${lessonId} ${step.id} ${module.id} carries code-like visible content outside content.code.`,
+    }));
+  }
+
   return violations;
+}
+
+function evaluateNoInteractionStatusModules({
+  lessonId,
+  manifestPath,
+  step,
+}: {
+  lessonId: string;
+  manifestPath?: string;
+  step: InteractiveRuntimeStepManifest;
+}): InteractiveModuleRegistryGateViolation[] {
+  if (!isNonInteractiveStep(step)) return [];
+
+  return step.modules
+    .filter((module) => NON_INTERACTIVE_STATUS_PATTERNS.some((pattern) => pattern.test(moduleVisibleText(module))))
+    .map((module) => ({
+      lessonId,
+      stepId: step.id,
+      moduleId: module.id,
+      kind: module.kind,
+      code: 'non-interactive-status-module' as const,
+      message: `${lessonId} ${step.id} ${module.id} exposes a generic interaction status module on a non-interactive page.`,
+      ...(manifestPath ? { manifestPath } : {}),
+    }));
 }
 
 function evaluateStepResponseContracts({
@@ -555,6 +624,77 @@ function capabilityRefForModule(
   return stringValue(module.payload.capabilityRef)
     ?? stringValue(module.payload.capability_ref)
     ?? stringValue(module.payload.capability);
+}
+
+function isNonInteractiveStep(step: InteractiveRuntimeStepManifest) {
+  return STEP_INTERACTIONS_ALLOWING_EMPTY_ACTIVITY_CARDS.has(step.interactionSpec.interactionKind)
+    && !(step.interactionSpec.activityCards?.length)
+    && !(step.interactionSpec.submitFields?.length);
+}
+
+function moduleVisibleText(module: InteractiveRuntimeModuleManifest) {
+  return [
+    module.id,
+    module.kind,
+    module.title ?? '',
+    visibleTextFromUnknown(module.payload),
+  ].join('\n');
+}
+
+function visibleTextFromUnknown(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) return value.map(visibleTextFromUnknown).join('\n');
+  if (typeof value === 'object') {
+    return Object.values(value as Record<string, unknown>).map(visibleTextFromUnknown).join('\n');
+  }
+  return '';
+}
+
+function hasCodeLikeVisibleContent(
+  step: InteractiveRuntimeStepManifest,
+  module: InteractiveRuntimeModuleManifest,
+) {
+  const block = contentBlockForModule(step, module);
+  const visibleText = [
+    visibleTextFromUnknown(module.payload),
+    visibleTextFromUnknown(block),
+  ].join('\n');
+  return CODE_LIKE_CONTENT_PATTERN.test(visibleText);
+}
+
+function codeSourceForModule(
+  step: InteractiveRuntimeStepManifest,
+  module: InteractiveRuntimeModuleManifest,
+) {
+  const block = recordValue(contentBlockForModule(step, module));
+  const code = stringValue(module.payload.code)
+    ?? stringValue(module.payload.text)
+    ?? stringValue(module.payload.formula)
+    ?? stringValue(block.code)
+    ?? stringValue(block.text)
+    ?? stringValue(block.formula)
+    ?? '';
+
+  return { code };
+}
+
+function contentBlockForModule(
+  step: InteractiveRuntimeStepManifest,
+  module: InteractiveRuntimeModuleManifest,
+) {
+  const key = stringValue(module.payload.block_key)
+    ?? stringValue(module.payload.blockKey)
+    ?? stringValue(module.payload.formula_key)
+    ?? stringValue(module.payload.formulaKey)
+    ?? stringValue(module.payload.image_key)
+    ?? stringValue(module.payload.imageKey);
+  return key ? step.contentBlocks[key] : undefined;
+}
+
+function recordValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
 function stringValue(value: unknown): string | undefined {

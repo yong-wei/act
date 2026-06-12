@@ -1,6 +1,6 @@
 ## Context
 
-The React Doctor `aria-role` baseline contains 30 diagnostics across 15 unique source locations. The findings include eight interactive course student/teacher pages:
+The React Doctor `aria-role` baseline contains 30 diagnostics across 15 unique source locations. Eight unique locations are concentrated in interactive course student/teacher pages:
 
 - Unit 4-1 student and teacher pages
 - Unit 5-1 student and teacher pages
@@ -37,7 +37,7 @@ The reported values are business roles, not accessibility roles. In several file
 
 3. **Guard the exact regression.**
 
-   A static test should scan all interactive TSX source files plus the known platform shell call sites. It should fail on JSX `role="student"` or `role="teacher"` in source files and should verify that renamed business props such as `viewerRole` or `surfaceRole` are not forwarded to intrinsic DOM `role` attributes. A broader a11y audit can be proposed separately if needed.
+   A static test should scan App Router pages, feature TSX files, and platform shell components. It should fail on JSX `role="student"` or `role="teacher"` in source files and verify that renamed business props such as `viewerRole` or `surfaceRole` are not forwarded to intrinsic DOM `role` attributes. A broader a11y audit can be proposed separately if needed.
 
 ## Risks / Trade-offs
 

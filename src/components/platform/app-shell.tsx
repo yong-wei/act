@@ -699,6 +699,7 @@ export function AppShell({
   children,
   className,
 }: AppShellProps) {
+  const role = viewerRole;
   const resolvedRouteMetadata = routeMetadata ?? (activeHref ? resolvePlatformRouteInventory(activeHref) : undefined);
   const floatingDockBehavior = resolvedRouteMetadata?.floatingDock ?? 'enabled';
   const effectiveBreadcrumbs = breadcrumbs ?? (resolvedRouteMetadata?.contextualReturn ? [

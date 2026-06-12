@@ -1680,6 +1680,7 @@ export function UNIT_5_2StepContentPanel({
   onParameterChange?: (stepId: string, values: Record<string, string>) => void;
   onAdvanceReveal?: () => void;
 }) {
+  const role = viewerRole;
   const activeManifest = requireUnit52Manifest(manifest);
   const stepManifest = getUNIT_5_2ManifestStepFromManifest(activeManifest, step.id);
   const baseRegistry = createManifestContentModuleRegistry({

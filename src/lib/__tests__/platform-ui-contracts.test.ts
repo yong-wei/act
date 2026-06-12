@@ -49,16 +49,13 @@ function readSource(relativePath: string) {
   return readFileSync(path.join(rootDir, relativePath), 'utf8');
 }
 
-function listSourceFiles(relativeDir: string, extension = '.tsx'): string[] {
+function listSourceFiles(relativeDir: string): string[] {
   const absoluteDir = path.join(rootDir, relativeDir);
   return readdirSync(absoluteDir).flatMap((entry) => {
     const relativePath = path.join(relativeDir, entry);
     const absolutePath = path.join(rootDir, relativePath);
-    const stat = statSync(absolutePath);
-    if (stat.isDirectory()) {
-      return listSourceFiles(relativePath, extension);
-    }
-    return stat.isFile() && relativePath.endsWith(extension) ? [relativePath] : [];
+    if (statSync(absolutePath).isDirectory()) return listSourceFiles(relativePath);
+    return relativePath.endsWith('.tsx') ? [relativePath] : [];
   });
 }
 
@@ -483,6 +480,7 @@ describe('platform UI contracts', () => {
     ]) {
       expect(source).toContain('<AppShell');
       expect(source).toContain('viewerRole="student"');
+      expect(source).not.toMatch(/role=\"(?:student|teacher)\"/);
       expect(source).not.toContain('UnifiedTopBar');
       expect(source).not.toContain('商业入口');
     }
@@ -511,19 +509,15 @@ describe('platform UI contracts', () => {
   it('does not use student or teacher business identity as a JSX role prop', () => {
     const platformShellFiles = [
       'src/components/platform/app-shell.tsx',
-      'src/app/(main)/dashboard/page.tsx',
-      'src/app/(main)/profile/page.tsx',
-      'src/app/(main)/profile/growth/page.tsx',
-      'src/app/(main)/profile/evidence/page.tsx',
-      'src/app/assessment/adaptive-practice/page.tsx',
-      'src/app/knowledge/page.tsx',
-      'src/features/arena/arena-page-shell.tsx',
-      'src/features/control-workbench/shell/control-workbench-shell.tsx',
-      'src/features/data-center/presentation-data-center.tsx',
     ];
-    const checkedFiles = [...platformShellFiles, ...listSourceFiles('src/features/interactive')];
+    const checkedFiles = [
+      ...platformShellFiles,
+      ...listSourceFiles('src/app'),
+      ...listSourceFiles('src/features'),
+      ...listSourceFiles('src/components/platform'),
+    ];
     const invalidLiteralBusinessRole = /\brole=(?:"student"|"teacher"|'student'|'teacher'|\{'student'\}|\{'teacher'\}|\{"student"\}|\{"teacher"\})/;
-    const businessRoleForwardedToDom = /<[a-z][\w.-]*(?:\s+[^<>]*?)?\srole=\{(?:viewerRole|surfaceRole|businessRole|audienceRole)\}/;
+    const businessRoleForwardedToDom = /<[a-z][A-Za-z0-9:-]*(?:\s+[^<>]*?)?\srole=\{(?:role|viewerRole|surfaceRole|businessRole|audienceRole)\}/;
 
     for (const relativePath of checkedFiles) {
       const source = readSource(relativePath);

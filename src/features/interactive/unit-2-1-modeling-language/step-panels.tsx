@@ -1524,12 +1524,7 @@ export function UNIT_2_1StudentActivityForm({
   }, [activity, savedResponse]);
 
   if (activity.kind === 'none') {
-    return (
-      <section className="premium-lesson-panel-soft px-4 py-4">
-        <div className="premium-lesson-title text-sm font-medium">本页互动状态</div>
-        <div className="premium-lesson-muted mt-2 text-sm">{activity.helper}</div>
-      </section>
-    );
+    return null;
   }
 
   if (!released) {

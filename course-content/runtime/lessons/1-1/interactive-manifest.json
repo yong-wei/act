@@ -685,14 +685,14 @@
           "id": "step-05-content-formula-05"
         },
         {
-          "kind": "content.formula",
+          "kind": "content.code",
           "region": "content",
           "order": 6,
           "must_be_visible": true,
           "payload": {
             "block_key": "step5_code"
           },
-          "id": "step-05-content-formula-06"
+          "id": "step-05-content-code-06"
         },
         {
           "kind": "content.figure",
@@ -763,8 +763,8 @@
           ]
         },
         "step5_code": {
-          "formula": "K = 1;  tau = 0.5;\nG = tf(K, [tau 1]);   % G(s)=K/(tau*s+1)",
-          "is_code": true
+          "code": "K = 1;  tau = 0.5;\nG = tf(K, [tau 1]);   % G(s)=K/(tau*s+1)",
+          "language": "matlab"
         },
         "step5_roles": {
           "cards": [
@@ -895,14 +895,14 @@
           "id": "step-06-content-rich-04"
         },
         {
-          "kind": "content.formula",
+          "kind": "content.code",
           "region": "content",
           "order": 5,
           "must_be_visible": true,
           "payload": {
             "block_key": "step6_step_code"
           },
-          "id": "step-06-content-formula-05"
+          "id": "step-06-content-code-05"
         },
         {
           "kind": "content.figure",
@@ -957,8 +957,8 @@
           "text": "σ 和 ω 来自传递函数分母中解出的极点——极点是系统行为最早的暴露者。极点在复平面上的位置，几乎决定了系统的全部主要动态特征。"
         },
         "step6_step_code": {
-          "formula": "step(G);   % 给系统一个单位阶跃输入，观察输出随时间变化",
-          "is_code": true
+          "code": "step(G);   % 给系统一个单位阶跃输入，观察输出随时间变化",
+          "language": "matlab"
         },
         "step6_indicators": {
           "cards": [
@@ -1073,14 +1073,14 @@
           "id": "step-07-content-rich-03"
         },
         {
-          "kind": "content.formula",
+          "kind": "content.code",
           "region": "content",
           "order": 4,
           "must_be_visible": true,
           "payload": {
             "block_key": "step7_isstable"
           },
-          "id": "step-07-content-formula-04"
+          "id": "step-07-content-code-04"
         },
         {
           "kind": "content.rich",
@@ -1103,14 +1103,14 @@
           "id": "step-07-content-rich-05"
         },
         {
-          "kind": "content.formula",
+          "kind": "content.code",
           "region": "content",
           "order": 7,
           "must_be_visible": true,
           "payload": {
             "block_key": "step7_rlocus_code"
           },
-          "id": "step-07-content-formula-06"
+          "id": "step-07-content-code-06"
         },
         {
           "kind": "content.figure",
@@ -1132,15 +1132,15 @@
           "text": "全部极点落在左半平面（σ<0）→ 系统稳定，扰动引起的偏差会逐渐消失。任意极点跑到右半平面（σ>0）→ 对应模态随时间放大，系统失稳。"
         },
         "step7_isstable": {
-          "formula": "isstable(G)   % 判断系统所有极点是否都位于稳定区域",
-          "is_code": true
+          "code": "isstable(G)   % 判断系统所有极点是否都位于稳定区域",
+          "language": "matlab"
         },
         "step7_rlocus_motive": {
           "text": "稳定只是底线。调大增益 K，极点会往哪走？极点移动的方向，直接决定了响应是变快还是更振荡。"
         },
         "step7_rlocus_code": {
-          "formula": "rlocus(G);   % 绘制极点随增益 K 变化的迁移路径",
-          "is_code": true
+          "code": "rlocus(G);   % 绘制极点随增益 K 变化的迁移路径",
+          "language": "matlab"
         },
         "step7_routh_preview": {
           "text": "高阶系统直接求根困难。劳斯判据提供代数捷径——从特征方程的系数直接判断稳定性。先记住这个入口，再用根轨迹观察增益变化时极点如何移动。"
@@ -1232,14 +1232,14 @@
           "id": "step-08-content-rich-02"
         },
         {
-          "kind": "content.formula",
+          "kind": "content.code",
           "region": "content",
           "order": 3,
           "must_be_visible": true,
           "payload": {
             "block_key": "step8_bode_code"
           },
-          "id": "step-08-content-formula-03"
+          "id": "step-08-content-code-03"
         },
         {
           "kind": "content.figure",
@@ -1288,8 +1288,8 @@
           "text": "真实海况中，扰动有节奏——风浪是周期性的，洋流是缓慢变化的。系统对不同频率的输入，态度一样吗？"
         },
         "step8_bode_code": {
-          "formula": "bode(G);    % 绘制幅频与相频曲线\nmargin(G);  % 标出增益裕度和相位裕度",
-          "is_code": true
+          "code": "bode(G);    % 绘制幅频与相频曲线\nmargin(G);  % 标出增益裕度和相位裕度",
+          "language": "matlab"
         },
         "step8_freq_interpret": {
           "text": "慢节奏扰动，系统容易跟上。快节奏扰动，输出幅值削弱，相位滞后。margin 会在 Bode 图上标出增益裕度和相位裕度：裕度越小，增益继续提高或相位继续滞后时越接近失稳边界。频域回答的是“哪些频率的扰动会被放大，哪些会被抑制”，也回答“离振荡风险还有多远”。"
@@ -2048,9 +2048,19 @@
           "id": "step-12-content-formula-02"
         },
         {
-          "kind": "content.rich",
+          "kind": "content.code",
           "region": "content",
           "order": 3,
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "step12_object_code"
+          },
+          "id": "step-12-content-code-03"
+        },
+        {
+          "kind": "content.rich",
+          "region": "content",
+          "order": 4,
           "must_be_visible": true,
           "payload": {
             "block_key": "step12_object_desc"
@@ -2060,7 +2070,7 @@
         {
           "kind": "content.figure",
           "region": "content",
-          "order": 4,
+          "order": 5,
           "must_be_visible": true,
           "payload": {
             "src": "../media/processed/1-1-example-openloop-step.png",
@@ -2071,7 +2081,7 @@
         {
           "kind": "content.rich",
           "region": "content",
-          "order": 5,
+          "order": 6,
           "must_be_visible": true,
           "payload": {
             "block_key": "step12_step_read"
@@ -2079,19 +2089,19 @@
           "id": "step-12-content-rich-05"
         },
         {
-          "kind": "content.formula",
+          "kind": "content.code",
           "region": "content",
-          "order": 6,
+          "order": 7,
           "must_be_visible": true,
           "payload": {
             "block_key": "step12_step_code"
           },
-          "id": "step-12-content-formula-06"
+          "id": "step-12-content-code-06"
         },
         {
           "kind": "content.figure",
           "region": "content",
-          "order": 7,
+          "order": 8,
           "must_be_visible": true,
           "payload": {
             "src": "../media/processed/1-1-example-root-locus.png",
@@ -2102,7 +2112,7 @@
         {
           "kind": "content.rich",
           "region": "content",
-          "order": 8,
+          "order": 9,
           "must_be_visible": true,
           "payload": {
             "block_key": "step12_rlocus_read"
@@ -2110,19 +2120,19 @@
           "id": "step-12-content-rich-08"
         },
         {
-          "kind": "content.formula",
+          "kind": "content.code",
           "region": "content",
-          "order": 9,
+          "order": 10,
           "must_be_visible": true,
           "payload": {
             "block_key": "step12_rlocus_code"
           },
-          "id": "step-12-content-formula-09"
+          "id": "step-12-content-code-09"
         },
         {
           "kind": "content.figure",
           "region": "content",
-          "order": 10,
+          "order": 11,
           "must_be_visible": true,
           "payload": {
             "src": "../media/processed/1-1-example-bode.png",
@@ -2133,7 +2143,7 @@
         {
           "kind": "content.rich",
           "region": "content",
-          "order": 11,
+          "order": 12,
           "must_be_visible": true,
           "payload": {
             "block_key": "step12_bode_read"
@@ -2141,20 +2151,23 @@
           "id": "step-12-content-rich-11"
         },
         {
-          "kind": "content.formula",
+          "kind": "content.code",
           "region": "content",
-          "order": 12,
+          "order": 13,
           "must_be_visible": true,
           "payload": {
             "block_key": "step12_bode_code"
           },
-          "id": "step-12-content-formula-12"
+          "id": "step-12-content-code-12"
         }
       ],
       "content_blocks": {
         "step12_object": {
-          "formula": "G(s)=\\frac{1}{s(s+2)}",
-          "is_code_also": "G = tf(1, [1 2 0]);   % G(s)=1/(s^2+2s)=1/[s(s+2)]"
+          "formula": "G(s)=\\frac{1}{s(s+2)}"
+        },
+        "step12_object_code": {
+          "code": "G = tf(1, [1 2 0]);   % G(s)=1/(s^2+2s)=1/[s(s+2)]",
+          "language": "matlab"
         },
         "step12_object_desc": {
           "text": "一条简化的船舵回路——输入是期望舵角，输出是实际舵角。积分环节使舵角持续积分（舵角是舵速的积分），惯性环节使舵机响应有延迟。"
@@ -2163,22 +2176,22 @@
           "text": "输出持续增长——积分环节的典型特征。实际舵机有机械限位，线性模型在远离限位的范围内准确反映了这个趋势。"
         },
         "step12_step_code": {
-          "formula": "step(G);   % 观察开环阶跃响应是否能收敛到有限稳态值",
-          "is_code": true
+          "code": "step(G);   % 观察开环阶跃响应是否能收敛到有限稳态值",
+          "language": "matlab"
         },
         "step12_rlocus_read": {
           "text": "K 很小时闭环极点落在负实轴上——单调收敛。K 增大后两个极点在 -1 处会合，离开实轴变成共轭复数对——振荡开始出现。"
         },
         "step12_rlocus_code": {
-          "formula": "rlocus(G);   % 查看加入比例增益 K 后，闭环极点如何移动",
-          "is_code": true
+          "code": "rlocus(G);   % 查看加入比例增益 K 后，闭环极点如何移动",
+          "language": "matlab"
         },
         "step12_bode_read": {
           "text": "积分环节贡献低频段的高环路增益，惯性环节使高频衰减加速。相角从 -90° 起步进一步滞后——留给控制的相位余量从一开始就不宽裕。"
         },
         "step12_bode_code": {
-          "formula": "bode(G);    % 查看对象对不同频率输入的响应\nmargin(G);  % 查看当前开环对象可提供的稳定裕度",
-          "is_code": true
+          "code": "bode(G);    % 查看对象对不同频率输入的响应\nmargin(G);  % 查看当前开环对象可提供的稳定裕度",
+          "language": "matlab"
         }
       },
       "teacher_controls": {
@@ -2257,14 +2270,14 @@
           "id": "step-13-layout-support-01"
         },
         {
-          "kind": "content.reveal",
+          "kind": "content.code",
           "region": "content",
           "order": 2,
           "must_be_visible": true,
           "payload": {
             "block_key": "step13_correction_code"
           },
-          "id": "step-13-content-reveal-02"
+          "id": "step-13-content-code-02"
         },
         {
           "kind": "content.figure",
@@ -2288,14 +2301,14 @@
           "id": "step-13-content-rich-04"
         },
         {
-          "kind": "content.reveal",
+          "kind": "content.code",
           "region": "content",
           "order": 5,
           "must_be_visible": true,
           "payload": {
             "block_key": "step13_full_script"
           },
-          "id": "step-13-content-reveal-05"
+          "id": "step-13-content-code-05"
         },
         {
           "kind": "content.rich",
@@ -2311,39 +2324,17 @@
       ],
       "content_blocks": {
         "step13_correction_code": {
-          "items": [
-            {
-              "layer": 1,
-              "text": "Kp2 = 2;  Phi2 = feedback(Kp2*G, 1);   % 构造闭环传递函数"
-            },
-            {
-              "layer": 2,
-              "text": "step(G, Phi2);    % 对比校正前后的时域响应\nrlocus(G);         % 用根轨迹解释闭环极点位置的变化\nbode(G, Kp2*G);    % 对比校正前后环路开环幅频曲线的变化"
-            }
-          ]
+          "code": "Kp2 = 2;  Phi2 = feedback(Kp2*G, 1);   % 构造闭环传递函数\nstep(G, Phi2);    % 对比校正前后的时域响应\nrlocus(G);        % 用根轨迹解释闭环极点位置的变化\nbode(G, Kp2*G);   % 对比校正前后环路开环幅频曲线的变化",
+          "language": "matlab",
+          "explanation": "这段代码把诊断结论用于比例反馈校正，并在三域中重新验证效果。"
         },
         "step13_figure_read": {
           "text": "Kp=2 的比例反馈后，开环对象持续增长的响应被改写为收敛响应，出现约 4% 超调和轻微摆动。根轨迹揭示闭环极点离开实轴，频域图显示环路幅频曲线整体上移，也改变了穿越频率和稳定裕度。"
         },
         "step13_full_script": {
-          "items": [
-            {
-              "layer": 1,
-              "text": "G = tf(1, [1 2 0]);   % G(s)=1/(s(s+2))\nfigure(1); step(G);     % 时域：阶跃响应"
-            },
-            {
-              "layer": 2,
-              "text": "figure(2); rlocus(G);   % 复域：根轨迹\nfigure(3); margin(G);   % 频域：Bode图+稳定裕度"
-            },
-            {
-              "layer": 3,
-              "text": "isstable(G)              % 稳定性检查\nKp2 = 2;  Phi2 = feedback(Kp2*G, 1);\nfigure(4); step(G, Phi2);  % 校正前后时域对比"
-            },
-            {
-              "layer": 4,
-              "text": "% ===== 1-1 闪电速通：完整示例 =====\n% 一条简化船舵回路：舵角指令 -> 舵机惯性 -> 舵角积分 -> 实际舵角\nG = tf(1, [1 2 0]);           % G(s)=1/(s(s+2))\n\n% ---- 开环诊断 ----\nfigure(1); step(G);           % 时域：阶跃响应——看过程\nfigure(2); rlocus(G);         % 复域：根轨迹——看迁移\nfigure(3); margin(G);         % 频域：Bode图+稳定裕度——看节律\n\n% ---- 稳定性检查 ----\nisstable(G)                   % 对开环对象判断稳定\n\n% ---- 闭环校正 ----\nKp2 = 2;                      % 比例增益\nPhi2 = feedback(Kp2*G, 1);    % Kp=2 时的闭环传递函数 Phi(s)\nfigure(4); step(G, Phi2);     % 时域：校正前后\nfigure(5); rlocus(G);         % 根轨迹：极点迁移\nfigure(6); bode(G, Kp2*G);    % 频域：环路增益变化"
-            }
-          ]
+          "code": "% ===== 1-1 闪电速通：完整示例 =====\n% 一条简化船舵回路：舵角指令 -> 舵机惯性 -> 舵角积分 -> 实际舵角\nG = tf(1, [1 2 0]);           % G(s)=1/(s(s+2))\n\n% ---- 开环诊断 ----\nfigure(1); step(G);           % 时域：阶跃响应——看过程\nfigure(2); rlocus(G);         % 复域：根轨迹——看迁移\nfigure(3); margin(G);         % 频域：Bode图+稳定裕度——看节律\n\n% ---- 稳定性检查 ----\nisstable(G)                   % 对开环对象判断稳定\n\n% ---- 闭环校正 ----\nKp2 = 2;                      % 比例增益\nPhi2 = feedback(Kp2*G, 1);    % Kp=2 时的闭环传递函数 Phi(s)\nfigure(4); step(G, Phi2);     % 时域：校正前后\nfigure(5); rlocus(G);         % 根轨迹：极点迁移\nfigure(6); bode(G, Kp2*G);    % 频域：环路增益变化",
+          "language": "matlab",
+          "explanation": "完整脚本覆盖建模、开环诊断、稳定性判断和闭环校正。"
         },
         "step13_milestone": {
           "text": "在过去的 90 分钟里，你走通了一个完整的控制设计闭环：用传递函数描述对象 → 从时域、根轨迹、频域三个角度诊断对象的行为 → 加入反馈和控制器改变系统的表现 → 比较不同参数下的效果。后续三十二章的任务，是把这里的每一行代码背后的原理逐一展开。"

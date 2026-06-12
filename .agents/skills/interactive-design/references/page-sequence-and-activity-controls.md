@@ -125,6 +125,7 @@
 | `content.rich` | 正文、问题背景、定义解释、提示语、教师提示 | `text/body/block_key` 与标题；不得只写“说明” |
 | `content.cardSet` | 目标、要点、概念、风险、职责、结论、清单类内容 | `items/goals/cards/text/block_key`；每项必须是可显示文本 |
 | `content.formula` | 公式、公式组、符号说明、公式链 | `formula/formulas/symbols/block_key/formula_key` 与解释句 |
+| `content.code` | MATLAB/Octave 代码示例、函数调用速通、可运行诊断片段 | `language/code/block_key`；代码块必须走标准高亮组件 |
 | `content.table` | 原生表、比较表、参数表、记录表 | `columns/rows`，必要时写单位、边界和读表顺序 |
 | `content.figure` | 图片、SVG、静态图、结构图、曲线图截图、媒体图组 | `src/assets/image_key`、学科对象标题、caption/explanation |
 | `content.reveal` | 推导链、例题步骤、分层判断、逐步显影 | `items/block_key`；每层包含完整文本，必要时含公式 |

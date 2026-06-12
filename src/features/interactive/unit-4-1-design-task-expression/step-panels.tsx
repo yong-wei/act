@@ -1199,6 +1199,7 @@ export function UNIT_4_1StepContentPanel({
   onAdvanceReveal?: () => void;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
+  const role = viewerRole;
   const activeManifest = requireUnit41Manifest(manifest);
   const stepManifest = getUNIT_4_1ManifestStepFromManifest(activeManifest, step.id);
   const baseRegistry = createManifestContentModuleRegistry({

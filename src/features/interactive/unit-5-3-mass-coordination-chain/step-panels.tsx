@@ -565,6 +565,7 @@ export function UNIT_5_3StepContentPanel({
   onParameterChange?: (stepId: string, values: Record<string, string>) => void;
   onAdvanceReveal?: () => void;
 }) {
+  const role = viewerRole;
   const activeManifest = requireUnit53Manifest(manifest);
   const stepManifest = getUNIT_5_3ManifestStepFromManifest(activeManifest, step.id);
   const baseRegistry = createManifestContentModuleRegistry({

@@ -1163,6 +1163,43 @@
     color: hsl(var(--premium-lesson-foreground));
   }
 
+  .premium-code-block {
+    @apply overflow-x-auto rounded-2xl border px-4 py-3 text-sm leading-7;
+    border-color: hsl(var(--premium-lesson-border-soft) / 0.92);
+    background: hsl(var(--premium-lesson-input-bg) / 0.92);
+    color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .premium-code-line {
+    display: block;
+    min-height: 1.75rem;
+    white-space: pre;
+  }
+
+  .premium-code-token-keyword {
+    color: hsl(var(--premium-tone-violet-text));
+  }
+
+  .premium-code-token-function {
+    color: hsl(var(--premium-tone-cyan-text));
+  }
+
+  .premium-code-token-number {
+    color: hsl(var(--premium-tone-amber-text));
+  }
+
+  .premium-code-token-string {
+    color: hsl(var(--premium-tone-emerald-text));
+  }
+
+  .premium-code-token-comment {
+    color: hsl(var(--premium-lesson-muted));
+  }
+
+  .premium-code-token-operator {
+    color: hsl(var(--premium-lesson-kicker-color));
+  }
+
   .premium-lesson-selectable-card {
     @apply rounded-[24px] border transition;
     border-color: hsl(var(--premium-lesson-border-soft) / 0.92);
@@ -1187,6 +1224,10 @@
   .premium-lesson-main figcaption,
   .premium-lesson-main pre {
     @apply text-lg leading-8;
+  }
+
+  .premium-lesson-main .premium-code-block {
+    @apply text-sm leading-7;
   }
 
   .premium-lesson-tone-block {

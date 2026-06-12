@@ -21,3 +21,9 @@ affected migrated routes or representative route set. Existing error classes
 are owned by the active React Doctor cleanup changes under `openspec/changes/`;
 do not connect this gate to CI or treat unrelated active cleanup findings as a
 commercial UI governance failure.
+
+Business identity must not be encoded through JSX `role` attributes. Student
+or teacher surface identity should use explicit domain props such as
+`viewerRole` or non-ARIA metadata such as `data-role`; `role="student"` and
+`role="teacher"` are invalid ARIA roles and are rejected by local UI contract
+tests.

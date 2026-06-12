@@ -1656,7 +1656,7 @@ export function UNIT_2_2StepContentPanel({
             className="h-auto w-full rounded-2xl border border-border/60 bg-background/60"
           />
           <figcaption className="premium-lesson-muted mt-3 text-xs">
-            课程 runtime 配套图示。当前交互实现直接消费 `course-content/runtime/lessons/2-2/media/*`。
+            图示聚焦本页核心证据：请先观察响应曲线的形状，再判断它对应的系统动态特征。
           </figcaption>
         </figure>
       ) : null}
@@ -1685,12 +1685,7 @@ export function UNIT_2_2StudentActivityForm({
   }, [activity, savedResponse]);
 
   if (activity.kind === 'none') {
-    return (
-      <section className="premium-lesson-panel-soft px-4 py-4">
-        <div className="premium-lesson-title text-sm font-medium">本页互动状态</div>
-        <div className="premium-lesson-muted mt-2 text-sm">{activity.helper}</div>
-      </section>
-    );
+    return null;
   }
 
   if (!released) {

@@ -54,7 +54,8 @@ manifest 课堂页必须在区域内容前渲染独立页面标题模块，显�
 ## 四、模块注册表覆盖
 
 - 共享模块注册表必须覆盖 contract 中实际出现的 canonical `kind` 集合。
-- 新课和已迁移课程只能使用标准模块类：`content.rich`、`content.cardSet`、`content.formula`、`content.table`、`content.figure`、`content.reveal`、`content.stageMap`、`activity.panel`、`activity.workspace`、`compute.panel`、`analytics.summary`、`layout.support`。
+- 新课和已迁移课程只能使用标准模块类：`content.rich`、`content.cardSet`、`content.formula`、`content.code`、`content.table`、`content.figure`、`content.reveal`、`content.stageMap`、`activity.panel`、`activity.workspace`、`compute.panel`、`analytics.summary`、`layout.support`。
+- 代码示例使用 `content.code`，内容块写 `language` 与 `code`；MATLAB/Octave 代码不得降级为公式、正文或 markdown fenced code。
 - 旧内容名、活动名或面板名只能写入 `payload.legacyKind` 作为历史渲染提示，不能继续作为 `modules[].kind`。
 - 不得新增课程私有 `modules[].kind`。若标准组件库不能表达当前页面能力，必须先提出组件库扩展变更；实现阶段不得通过单课 `step-panels.tsx`、课程常量、共享 renderer 特判或 `switch (step.id)` 绕过 module registry gate。
 - 作答卡 `response_kind` 必须使用共享 canonical 响应词表：`choice.single`、`choice.binary`、`choice.multi`、`text.short`、`text.long`、`text.structured`、`parameter.set`、`ordering.sequence`、`matching.pairs`、`table.builder`、`simulation.result`、`training.result`。
