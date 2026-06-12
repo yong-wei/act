@@ -125,6 +125,22 @@ function routeMarker(step: CompetitionBaselineRouteStep): string {
   return step.expectedEvidence.split(' ')[0];
 }
 
+function liveRouteMarker(step: CompetitionBaselineRouteStep): string {
+  if (step.route === '/profile/evidence') return 'data-learner-record-surface';
+  if (step.route.includes('/adaptive-practice')) return 'data-control-correction-center';
+  if (step.route.includes('/document-feedback')) return 'data-intelligent-teaching-assistant-demo-surface="document-feedback"';
+  if (step.route.includes('/grading-workbench')) return 'data-intelligent-teaching-assistant-demo-surface="document-grading-workbench"';
+  if (step.route === '/data-center') return 'data-data-map-semantics';
+  return '';
+}
+
+function requiredBodyMarker(step: CompetitionBaselineRouteStep, mock: boolean): string {
+  if (step.route.startsWith('/api/')) return '';
+  if (mock) return routeMarker(step);
+  if (step.surfaceStatus !== 'implemented') return '';
+  return liveRouteMarker(step);
+}
+
 function writeMockResponse(url: string, role: string, response: ServerResponse): boolean {
   const deny = () => {
     response.statusCode = 403;
@@ -222,11 +238,10 @@ async function validateHttpBaseline(baseUrl: string, mock: boolean): Promise<str
     const payloadErrors = step.route.includes('/assistant-effect-report')
       ? validateIntelligentTeachingAssistantDemoApiPayload(step.route, body, response.headers.get('content-type') ?? '')
       : [];
-    const requiresFixtureMarker = mock && !step.route.startsWith('/api/');
-    const marker = requiresFixtureMarker ? routeMarker(step) : '';
+    const marker = requiredBodyMarker(step, mock);
     const ok = isIntelligentTeachingAssistantDemoSuccessfulHttpStatus(response.status)
       && (payloadErrors.length === 0)
-      && (!requiresFixtureMarker || body.includes(marker));
+      && (!marker || body.includes(marker));
     if (!ok) {
       errors.push(`competition route failed: ${step.route}${payloadErrors.length ? ` (${payloadErrors.join('; ')})` : ''}`);
     }
