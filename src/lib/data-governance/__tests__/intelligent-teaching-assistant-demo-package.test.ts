@@ -13,10 +13,13 @@ import {
 } from '../../../../scripts/tests/intelligent-teaching-assistant-demo-acceptance';
 import {
   INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE,
+  XH_202620_COMPETITION_BASELINE,
+  buildCompetitionBaselineAcceptanceReport,
   buildIntelligentTeachingAssistantDemoAcceptanceReport,
   buildIntelligentTeachingAssistantDemoRollbackReport,
   buildIntelligentTeachingAssistantEffectReportExport,
   installIntelligentTeachingAssistantDemoFixtures,
+  validateCompetitionBaseline,
   validateIntelligentTeachingAssistantDemoPackage,
 } from '../intelligent-teaching-assistant-demo-package';
 
@@ -239,6 +242,96 @@ describe('intelligent teaching assistant demo package', () => {
       payload: { id: 'effect-report-demo-ita-export', redacted: true },
     });
     expect(validateIntelligentTeachingAssistantDemoPackage()).toEqual([]);
+  });
+
+  it('freezes the XH-202620 competition baseline accounts, routes, and data-origin contract', () => {
+    const baseline = XH_202620_COMPETITION_BASELINE;
+
+    expect(baseline.competitionCode).toBe('xh-202620');
+    expect(baseline.accounts.map((account) => account.role)).toEqual(expect.arrayContaining([
+      'teacher',
+      'administrator',
+      'student',
+    ]));
+    expect(baseline.accounts.map((account) => account.id)).toEqual(expect.arrayContaining([
+      'demo-teacher-ita',
+      'demo-admin-ita',
+      'demo-ita-student-alpha',
+    ]));
+    expect(baseline.records.every((record) => (
+      record.dataOrigin === 'synthetic-demo' &&
+      record.sourcePackageId === 'intelligent-teaching-assistant'
+    ))).toBe(true);
+    expect(baseline.routeLedger.map((step) => step.route)).toEqual(expect.arrayContaining([
+      '/teacher/grading-workbench?demo=1',
+      '/assessment/document-feedback?demo=1',
+      '/profile/evidence',
+      '/assessment/adaptive-practice?goal=control-correction',
+      '/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true',
+      '/data-center',
+    ]));
+    expect(baseline.routeLedger.some((step) => step.actorRole === 'student' && step.route === '/data-center')).toBe(false);
+    expect(baseline.routeLedger.find((step) => step.route === '/data-center')?.actorRole).toBe('administrator');
+    expect(baseline.temporarySurfaces.map((surface) => surface.surfaceStatus)).toEqual(expect.arrayContaining([
+      'placeholder',
+      'feature-flagged',
+      'api-only',
+    ]));
+    expect(baseline.routeLedger.every((step) => (
+      baseline.accounts.find((account) => account.role === step.actorRole)?.routeScope.includes(step.route)
+    ))).toBe(true);
+    expect(baseline.acceptanceCommands).toContain('rtk openspec validate competition-demo-baseline --strict');
+    expect(baseline.acceptanceCommands.some((command) => command.includes('freeze-competition-baseline'))).toBe(false);
+    expect(validateCompetitionBaseline(baseline)).toEqual([]);
+  });
+
+  it('rejects competition baseline drift across route, role, data-origin, and temporary-surface boundaries', () => {
+    const broken = structuredClone(XH_202620_COMPETITION_BASELINE);
+
+    broken.accounts = broken.accounts.filter((account) => account.role !== 'administrator');
+    broken.accounts.find((account) => account.role === 'teacher')?.routeScope.splice(0, 1);
+    broken.routeLedger.push({
+      id: 'student-data-center-drift',
+      actorRole: 'student',
+      label: 'Student incorrectly enters operations Data Center',
+      route: '/data-center',
+      expectedEvidence: 'incorrect student operations access',
+      surfaceStatus: 'implemented',
+      dataOrigin: 'synthetic-demo',
+    });
+    broken.records[0] = {
+      ...broken.records[0],
+      dataOrigin: 'real-learner-evidence' as 'synthetic-demo',
+      sourcePackageId: 'unknown',
+    };
+    broken.capabilities[0].proof = ['not-a-real-proof'];
+    broken.acceptanceCommands.push('rtk openspec validate freeze-competition-baseline --strict');
+    broken.temporarySurfaces = broken.temporarySurfaces.filter((surface) => surface.surfaceStatus !== 'feature-flagged');
+
+    expect(validateCompetitionBaseline(broken)).toEqual(expect.arrayContaining([
+      'competition baseline must define student, teacher, and administrator demo accounts',
+      'competition records require explicit synthetic-demo data-origin metadata',
+      'competition route ledger routes must stay within each account role scope',
+      'student competition route ledger must not use Data Center',
+      'competition capability proof ids must resolve to fixture records or ledger routes',
+      'competition baseline must record placeholder, feature-flagged, and API-only surfaces with removal owners',
+      'competition baseline acceptance commands must not reference the archived change id',
+    ]));
+  });
+
+  it('produces a competition baseline acceptance report with route, data-origin, seed, and command checks', () => {
+    const report = buildCompetitionBaselineAcceptanceReport();
+
+    expect(report.ok).toBe(true);
+    expect(report.errors).toEqual([]);
+    expect(report.checks.map((check) => check.id)).toEqual([
+      'competition.accounts',
+      'competition.routes',
+      'competition.data-origin',
+      'competition.seed-reset',
+      'competition.acceptance',
+    ]);
+    expect(report.checks.every((check) => check.ok)).toBe(true);
   });
 
   it('builds a source-backed effect report export with synthetic caveats for every metric', () => {
