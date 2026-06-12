@@ -31,7 +31,7 @@ export interface AppBreadcrumbItem {
 }
 
 export interface AppShellProps {
-  role: PlatformRole;
+  viewerRole: PlatformRole;
   navigation?: readonly PlatformNavigationItem[];
   breadcrumbs?: readonly AppBreadcrumbItem[];
   title?: string;
@@ -86,7 +86,7 @@ export interface AppShellDockControl {
 }
 
 export interface AppHeaderProps {
-  role: PlatformRole;
+  viewerRole: PlatformRole;
   title: string;
   subtitle?: string;
   breadcrumbs?: readonly AppBreadcrumbItem[];
@@ -278,7 +278,7 @@ export function ThemeSwitcher({ className }: { className?: string }) {
 }
 
 export function AppHeader({
-  role,
+  viewerRole,
   title,
   subtitle,
   breadcrumbs,
@@ -293,7 +293,7 @@ export function AppHeader({
           <AppBreadcrumb items={breadcrumbs} />
           <div className="flex min-w-0 items-center gap-3">
             <span className="rounded-md bg-platform-action-subtle px-2 py-1 text-xs font-medium text-platform-action-primary">
-              {roleLabels[role]}
+              {roleLabels[viewerRole]}
             </span>
             <div className="min-w-0">
               <h1 className="truncate text-base font-semibold text-platform-fg-primary">{title}</h1>
@@ -684,7 +684,7 @@ function AppShellFloatingDockRegistration({
 }
 
 export function AppShell({
-  role,
+  viewerRole,
   navigation,
   breadcrumbs,
   title = '平台工作台',
@@ -708,7 +708,7 @@ export function AppShell({
     },
     { label: title },
   ] : undefined);
-  const routeNavigation = navigation === undefined && activeHref ? getPlatformRouteNavigation(activeHref, role) : [];
+  const routeNavigation = navigation === undefined && activeHref ? getPlatformRouteNavigation(activeHref, viewerRole) : [];
   const effectiveNavigation = navigation ?? routeNavigation;
   const renderItems = flattenNavigationItems(effectiveNavigation);
   const showSidebar = sidebarMode !== 'hidden' && renderItems.length > 0;
@@ -751,7 +751,7 @@ export function AppShell({
         ) : null}
         <div className="min-w-0">
           <AppHeader
-            role={role}
+            viewerRole={viewerRole}
             title={title}
             subtitle={subtitle}
             breadcrumbs={effectiveBreadcrumbs}

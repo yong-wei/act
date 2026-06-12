@@ -530,7 +530,7 @@ export function UNIT_5_3StepContentPanel({
   revealProgress,
   allowInlineReveal,
   browseEnabled = true,
-  role,
+  viewerRole,
   submittedCount = 0,
   viewedCount = 0,
   studentCount = 0,
@@ -550,7 +550,7 @@ export function UNIT_5_3StepContentPanel({
   revealProgress: number;
   allowInlineReveal: boolean;
   browseEnabled?: boolean;
-  role: 'student' | 'teacher';
+  viewerRole: 'student' | 'teacher';
   submittedCount?: number;
   viewedCount?: number;
   studentCount?: number;
@@ -588,7 +588,7 @@ export function UNIT_5_3StepContentPanel({
   const renderSummaryCard = (props: Parameters<InteractiveModuleRegistry<ContentRegistryExtra>[string]>[0]) => {
     const manifestModule = props.module as InteractiveRuntimeModuleManifest;
     if (manifestModule.id === 'class-stats') {
-      if (role === 'student') {
+      if (viewerRole === 'student') {
         return (
           <Unit53StudentSummaryStats
             submittedCount={submittedCount}
@@ -630,7 +630,7 @@ export function UNIT_5_3StepContentPanel({
       return baseRegistry['content.cardSet'](props);
     },
   };
-  if (role === 'student' && !browseEnabled && stepManifest.studentAccess.browse_required === true) {
+  if (viewerRole === 'student' && !browseEnabled && stepManifest.studentAccess.browse_required === true) {
     moduleRegistry['content.reveal'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-reveal" />;
     moduleRegistry['content.figure'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-media" />;
   }

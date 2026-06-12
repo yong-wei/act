@@ -544,7 +544,7 @@ export default function AdaptivePracticePage() {
 
   return (
     <AppShell
-      role="student"
+      viewerRole="student"
       title="自适应练习"
       subtitle="证据驱动的当前路径与题目推荐"
       activeHref="/assessment/adaptive-practice"

@@ -272,7 +272,7 @@ export function UNIT_5_1StudentPage({
           manifest={runtimeManifest}
           revealProgress={revealProgress}
           allowInlineReveal={allowInlineReveal}
-          role="student"
+          viewerRole="student"
           submittedCount={submittedCount}
           viewedCount={viewedStepIds.length}
           parameterSubmissionCount={parameterSubmissionCount}

@@ -1,0 +1,187 @@
+{
+  "generatedAt": "2026-06-12T16:03:36.363Z",
+  "rule": "aria-role",
+  "diagnosticCount": 30,
+  "diagnostics": [
+    {
+      "rule": "aria-role",
+      "file": "src/app/(main)/dashboard/page.tsx",
+      "line": 186,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/app/(main)/dashboard/page.tsx",
+      "line": 186,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/app/(main)/profile/evidence/page.tsx",
+      "line": 22,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/app/(main)/profile/evidence/page.tsx",
+      "line": 22,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/app/(main)/profile/growth/page.tsx",
+      "line": 230,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/app/(main)/profile/growth/page.tsx",
+      "line": 230,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/app/(main)/profile/page.tsx",
+      "line": 227,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/app/(main)/profile/page.tsx",
+      "line": 227,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/app/assessment/adaptive-practice/page.tsx",
+      "line": 547,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/app/assessment/adaptive-practice/page.tsx",
+      "line": 547,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/arena/arena-page-shell.tsx",
+      "line": 49,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/arena/arena-page-shell.tsx",
+      "line": 49,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/control-workbench/shell/control-workbench-shell.tsx",
+      "line": 465,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/control-workbench/shell/control-workbench-shell.tsx",
+      "line": 465,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/interactive/unit-4-1-design-task-expression/student-page.tsx",
+      "line": 360,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/interactive/unit-4-1-design-task-expression/student-page.tsx",
+      "line": 360,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/interactive/unit-4-1-design-task-expression/teacher-page.tsx",
+      "line": 324,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `teacher` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/interactive/unit-4-1-design-task-expression/teacher-page.tsx",
+      "line": 324,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `teacher` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/interactive/unit-5-1-linear-backbone-boundaries/student-page.tsx",
+      "line": 275,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/interactive/unit-5-1-linear-backbone-boundaries/student-page.tsx",
+      "line": 275,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/interactive/unit-5-1-linear-backbone-boundaries/teacher-page.tsx",
+      "line": 460,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `teacher` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/interactive/unit-5-1-linear-backbone-boundaries/teacher-page.tsx",
+      "line": 460,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `teacher` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/interactive/unit-5-2-nonlinear-analysis-entry/student-page.tsx",
+      "line": 284,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/interactive/unit-5-2-nonlinear-analysis-entry/student-page.tsx",
+      "line": 284,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/interactive/unit-5-2-nonlinear-analysis-entry/teacher-page.tsx",
+      "line": 446,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `teacher` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/interactive/unit-5-2-nonlinear-analysis-entry/teacher-page.tsx",
+      "line": 446,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `teacher` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/interactive/unit-5-3-mass-coordination-chain/student-page.tsx",
+      "line": 284,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/interactive/unit-5-3-mass-coordination-chain/student-page.tsx",
+      "line": 284,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `student` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/interactive/unit-5-3-mass-coordination-chain/teacher-page.tsx",
+      "line": 448,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `teacher` is not one."
+    },
+    {
+      "rule": "aria-role",
+      "file": "src/features/interactive/unit-5-3-mass-coordination-chain/teacher-page.tsx",
+      "line": 448,
+      "message": "This `role` is not a valid ARIA role, so assistive tech cannot expose it correctly. Use a real, non-abstract role. `teacher` is not one."
+    }
+  ]
+}

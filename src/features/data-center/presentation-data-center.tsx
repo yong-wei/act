@@ -127,7 +127,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
 
   return (
     <AppShell
-      role={role}
+      viewerRole={role}
       navigation={navigation}
       activeHref="/data-center"
       title="平台数据中心"

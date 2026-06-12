@@ -462,7 +462,7 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
 
   return (
     <AppShell
-      role="student"
+      viewerRole="student"
       title="控制工作台"
       subtitle={taskTitle}
       activeHref="/interactive-learning/control-workbench"

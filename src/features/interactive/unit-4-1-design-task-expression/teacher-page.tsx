@@ -321,7 +321,7 @@ export function UNIT_4_1TeacherPage({
           manifest={runtimeManifest}
           revealProgress={teacherRevealProgress[step.id] ?? 0}
           allowInlineReveal
-          role="teacher"
+          viewerRole="teacher"
           studentCount={joinedStudents.length}
           submittedStudents={submittedStudents}
           totalResponses={totalResponses}

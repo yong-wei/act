@@ -1645,7 +1645,7 @@ export function UNIT_5_2StepContentPanel({
   revealProgress,
   allowInlineReveal,
   browseEnabled = true,
-  role,
+  viewerRole,
   submittedCount = 0,
   viewedCount = 0,
   studentCount = 0,
@@ -1665,7 +1665,7 @@ export function UNIT_5_2StepContentPanel({
   revealProgress: number;
   allowInlineReveal: boolean;
   browseEnabled?: boolean;
-  role: 'student' | 'teacher';
+  viewerRole: 'student' | 'teacher';
   submittedCount?: number;
   viewedCount?: number;
   studentCount?: number;
@@ -1698,13 +1698,13 @@ export function UNIT_5_2StepContentPanel({
   );
   const renderStatPanel = ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
     const visibility = String(module.payload.role_visibility ?? '');
-    if (visibility === 'student_only' && role !== 'student') {
+    if (visibility === 'student_only' && viewerRole !== 'student') {
       return <div hidden aria-hidden="true" data-role-hidden-module={module.id} />;
     }
-    if (visibility === 'teacher_only' && role !== 'teacher') {
+    if (visibility === 'teacher_only' && viewerRole !== 'teacher') {
       return <div hidden aria-hidden="true" data-role-hidden-module={module.id} />;
     }
-    if (role === 'student') {
+    if (viewerRole === 'student') {
       return (
         <Unit52StudentSummaryStats
           submittedCount={submittedCount}
@@ -1751,7 +1751,7 @@ export function UNIT_5_2StepContentPanel({
       return baseRegistry['analytics.summary'](props);
     },
   };
-  if (role === 'student' && !browseEnabled && stepManifest.studentAccess.browse_required === true) {
+  if (viewerRole === 'student' && !browseEnabled && stepManifest.studentAccess.browse_required === true) {
     moduleRegistry['content.reveal'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-reveal" />;
     moduleRegistry['content.figure'] = () => <div hidden aria-hidden="true" data-role-hidden-module="browse-required-media" />;
   }

@@ -561,7 +561,7 @@ export function UNIT_5_1StepContentPanel({
   manifest,
   revealProgress,
   allowInlineReveal,
-  role,
+  viewerRole,
   submittedCount = 0,
   viewedCount = 0,
   studentCount = 0,
@@ -580,7 +580,7 @@ export function UNIT_5_1StepContentPanel({
   manifest?: InteractiveRuntimeManifest | null;
   revealProgress: number;
   allowInlineReveal: boolean;
-  role: 'student' | 'teacher';
+  viewerRole: 'student' | 'teacher';
   submittedCount?: number;
   viewedCount?: number;
   studentCount?: number;
@@ -621,13 +621,13 @@ export function UNIT_5_1StepContentPanel({
   );
   const renderStatPanel = ({ module }: { module: InteractiveRuntimeModuleManifest }) => {
     const visibility = String(module.payload.role_visibility ?? '');
-    if (visibility === 'student_only' && role !== 'student') {
+    if (visibility === 'student_only' && viewerRole !== 'student') {
       return <div hidden aria-hidden="true" data-role-hidden-module={module.id} />;
     }
-    if (visibility === 'teacher_only' && role !== 'teacher') {
+    if (visibility === 'teacher_only' && viewerRole !== 'teacher') {
       return <div hidden aria-hidden="true" data-role-hidden-module={module.id} />;
     }
-    if (role === 'student') {
+    if (viewerRole === 'student') {
       return (
         <Unit51StudentSummaryStats
           submittedCount={submittedCount}

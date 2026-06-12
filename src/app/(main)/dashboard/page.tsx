@@ -183,7 +183,7 @@ export default async function DashboardPage() {
 
   return (
     <AppShell
-      role="student"
+      viewerRole="student"
       title="学习者驾驶舱"
       subtitle="学习路径、证据状态与下一步行动"
       activeHref="/dashboard"

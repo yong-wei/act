@@ -1173,7 +1173,7 @@ export function UNIT_4_1StepContentPanel({
   manifest,
   revealProgress,
   allowInlineReveal,
-  role,
+  viewerRole,
   submittedCount = 0,
   viewedCount = 0,
   studentCount = 0,
@@ -1188,7 +1188,7 @@ export function UNIT_4_1StepContentPanel({
   manifest?: InteractiveRuntimeManifest | null;
   revealProgress: number;
   allowInlineReveal: boolean;
-  role: 'student' | 'teacher';
+  viewerRole: 'student' | 'teacher';
   submittedCount?: number;
   viewedCount?: number;
   studentCount?: number;
@@ -1266,7 +1266,7 @@ export function UNIT_4_1StepContentPanel({
     return baseRegistry['native-figure']?.({ manifest: activeManifest, step: stepManifest, module, extra: moduleExtra });
   };
   const renderStatPanel = () => {
-    if (role === 'student') {
+    if (viewerRole === 'student') {
       return (
         <UNIT_4_1StudentSummaryPanel
           submittedCount={submittedCount}

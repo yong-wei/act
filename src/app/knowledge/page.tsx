@@ -46,7 +46,7 @@ export default async function KnowledgePage() {
 
   return (
     <AppShell
-      role={shellRole}
+      viewerRole={shellRole}
       title="知识图谱"
       subtitle="知识关系、证据来源与学习路径入口"
       activeHref="/knowledge"

@@ -224,7 +224,7 @@ export default function ProfilePage() {
 
   return (
     <AppShell
-      role="student"
+      viewerRole="student"
       title="个人中心"
       subtitle="能力画像、成长记录与证据复盘"
       activeHref="/profile"
