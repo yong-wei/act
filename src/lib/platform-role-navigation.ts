@@ -111,7 +111,7 @@ export interface PlatformNavigationLayerContract {
 export interface StudentLearningIntentGroup {
   intent: StudentLearningIntent;
   label: string;
-  entryIds: readonly (typeof STUDENT_CORE_ENTRY_IDS)[number][];
+  entryIds: readonly ((typeof STUDENT_CORE_ENTRY_IDS)[number] | 'student-profile')[];
   compatibilityAliases: readonly string[];
 }
 
@@ -278,6 +278,7 @@ const MISSION_WORKSPACE_MIGRATION_CHANGE = 'migrate-mission-workspaces-to-unifie
 const LEARNER_KNOWLEDGE_DATA_MIGRATION_CHANGE = 'migrate-learner-knowledge-data-surfaces';
 const KNOWLEDGE_MAP_UNIFIED_SHELL_CHANGE = 'migrate-knowledge-map-to-unified-shell-panels';
 const OPERATIONS_REPORT_MIGRATION_CHANGE = 'migrate-operations-report-ledger-surfaces';
+const DATA_CENTER_OPERATIONS_ROLE_CHANGE = 'restrict-data-center-to-operations-roles';
 
 function inferUnifiedUiMigrationOwner(input: Pick<PlatformPrimaryRouteInventoryEntry, 'href' | 'frame'>) {
   if (input.frame === 'mission-workspace') return MISSION_WORKSPACE_MIGRATION_CHANGE;
@@ -380,7 +381,6 @@ export const STUDENT_CORE_ENTRY_IDS = [
   'student-control-workbench',
   'student-adaptive-learning',
   'student-interactive-learning',
-  'platform-data-center',
 ] as const;
 
 export const PLATFORM_ENTRYPOINT_SMOKE_ROUTES = [
@@ -453,8 +453,8 @@ export const STUDENT_LEARNING_INTENT_GROUPS: StudentLearningIntentGroup[] = [
   {
     intent: 'review-profile',
     label: '复盘与画像',
-    entryIds: ['platform-data-center'],
-    compatibilityAliases: ['/profile', '/profile/growth', '/profile/portfolio'],
+    entryIds: ['student-profile'],
+    compatibilityAliases: ['/profile/evidence', '/profile/growth', '/profile/portfolio'],
   },
 ] as const;
 
@@ -843,12 +843,12 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     href: '/data-center',
     routeFile: 'src/app/data-center/page.tsx',
     frame: 'knowledge-data-map',
-    roleScope: ['student', 'teacher', 'admin'],
+    roleScope: ['teacher', 'admin'],
     authState: 'protected-redirect',
-    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
-    owningChange: 'redesign-knowledge-and-data-surfaces',
+    owningChange: DATA_CENTER_OPERATIONS_ROLE_CHANGE,
   }),
   primaryRoute({
     href: '/classroom/student/[sessionId]',
@@ -1346,7 +1346,7 @@ export const PLATFORM_REPORT_SURFACE_INVENTORY: PlatformReportSurfaceInventoryEn
     category: 'data-center',
     surfaceType: 'primary-route',
     owningChange: 'redesign-report-ledger-and-export-surfaces',
-    sourceShellOwner: 'redesign-knowledge-and-data-surfaces',
+    sourceShellOwner: DATA_CENTER_OPERATIONS_ROLE_CHANGE,
     visualQaProfile: 'direct-capture',
   },
 ] as const;
@@ -1383,9 +1383,9 @@ export const COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS: CommercialStudentEntryInten
   {
     intent: 'review',
     label: '复盘',
-    summary: '数据中心、证据轨迹与学习报告。',
-    entryIds: ['platform-data-center'],
-    hrefs: ['/data-center', '/profile'],
+    summary: '个人证据、成长轨迹与学习报告。',
+    entryIds: ['student-profile'],
+    hrefs: ['/profile/evidence', '/profile/growth', '/profile'],
   },
   {
     intent: 'account-profile',
@@ -1617,18 +1617,6 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     actionPriority: 70,
   },
   {
-    id: 'platform-data-center',
-    label: '数据中心',
-    href: '/data-center',
-    role: 'student',
-    order: 155,
-    group: 'student-core',
-    description: '平台教学运行全景视图，展示聚合指标与学习轨迹。',
-    iconKey: 'analytics',
-    actionLabel: '查看数据中心',
-    actionPriority: 65,
-  },
-  {
     id: 'student-profile',
     label: '个人中心',
     href: '/profile',
@@ -1640,6 +1628,30 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
     actionLabel: '查看画像',
     actionPriority: 80,
     aliasHrefs: ['/profile/growth', '/profile/portfolio'],
+  },
+  {
+    id: 'teacher-data-center',
+    label: '数据中心',
+    href: '/data-center',
+    role: 'teacher',
+    order: 155,
+    group: 'teacher-cockpit',
+    description: '查看平台教学运行聚合指标、学习轨迹和来源质量。',
+    iconKey: 'analytics',
+    actionLabel: '查看数据中心',
+    actionPriority: 75,
+  },
+  {
+    id: 'admin-data-center',
+    label: '数据中心',
+    href: '/data-center',
+    role: 'admin',
+    order: 115,
+    group: 'admin-cockpit',
+    description: '查看平台教学运行聚合指标、学习轨迹和来源质量。',
+    iconKey: 'analytics',
+    actionLabel: '查看数据中心',
+    actionPriority: 75,
   },
   {
     id: 'public-simulations',
@@ -1952,7 +1964,7 @@ export function getStudentCoreNavigationEntries(): PlatformRoleNavigationItem[] 
 }
 
 export function getStudentLearningIntentNavigationGroups(): StudentLearningIntentNavigationGroup[] {
-  const entriesById = new Map(getStudentCoreNavigationEntries().map((entry) => [entry.id, entry]));
+  const entriesById = new Map(getPlatformRoleNavigation('student').map((entry) => [entry.id, entry]));
   return STUDENT_LEARNING_INTENT_GROUPS.map((group) => ({
     ...group,
     entries: group.entryIds.flatMap((entryId) => {
@@ -1971,7 +1983,7 @@ export function resolveCommercialEntryHref(intent: CommercialStudentEntryIntent,
     return authenticated ? '/profile' : '/login?callbackUrl=%2Fprofile';
   }
   if (intent === 'review') {
-    return '/profile';
+    return '/profile/evidence';
   }
   return COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.find((group) => group.intent === intent)?.hrefs[0] ?? '/dashboard';
 }

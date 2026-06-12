@@ -806,7 +806,7 @@ describe('platform UI contracts', () => {
 
     expect(shellMarkup).toContain('href="/knowledge"');
     expect(shellMarkup).toContain('href="/interactive-learning"');
-    expect(shellMarkup).toContain('href="/data-center"');
+    expect(shellMarkup).not.toContain('href="/data-center"');
   });
 
   it('derives AppShell archetype, return target, and dock behavior from the route ledger', () => {

@@ -4,7 +4,7 @@
 
 本文用于帮助维护者、协作代理和外部审阅者快速理解本项目当前的产品形态、架构边界、主要运行链路和近期工程重点。它不是提交日志；具体变更应以 `openspec/changes/`、`openspec/specs/`、专题设计文档和 `docs/memory/` 为准。
 
-当前项目已经从“精品互动课 + 基础画像”的阶段，推进到“统一平台壳层、标准互动课、控制仿真、Arena、学习路径、智能助教和数据治理共同构成教学闭环”的阶段。控制校正、智能助教、React Doctor 错误清理、AppShell 折叠导航合同、学生二级路线壳层迁移和知识图谱壳层迁移已经进入 `openspec/specs/`、Prisma 模型、数据治理实现或 UI 治理证据；当前仍在推进的 OpenSpec 重点主要是数据中心角色可见性和二级导航视觉治理。后续判断项目现状时，应优先使用本文、`docs/memory/02-recent-summary.md`、`docs/memory/10-project/10-current-state.md`、当前 `openspec list --json` 和已归档 specs，而不是早期课程制作记录。
+当前项目已经从“精品互动课 + 基础画像”的阶段，推进到“统一平台壳层、标准互动课、控制仿真、Arena、学习路径、智能助教和数据治理共同构成教学闭环”的阶段。控制校正、智能助教、React Doctor 错误清理、AppShell 折叠导航合同、学生二级路线壳层迁移、知识图谱壳层迁移和数据中心角色可见性已经进入 `openspec/specs/`、Prisma 模型、数据治理实现或 UI 治理证据；当前仍在推进的 OpenSpec 重点主要是二级导航视觉治理。后续判断项目现状时，应优先使用本文、`docs/memory/02-recent-summary.md`、`docs/memory/10-project/10-current-state.md`、当前 `openspec list --json` 和已归档 specs，而不是早期课程制作记录。
 
 ## 项目概览
 
@@ -43,8 +43,7 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 - `/arena` 与 `/arena/challenges/[taskId]`：控制竞技场大厅、挑战详情、官方评测与榜单。
 - `/assessment/adaptive-practice`：自适应题库与诊断入口。
 - `/assessment/document-feedback`：文档作业反馈入口，服务 rubric 批改、教师审核和学生反馈链路。
-- `/data-center`：学生与教师均可进入的数据中心入口，承载学习证据、报告和平台级状态视图。
-- `/profile`、`/profile/growth`：学习活动、能力画像、风险摘要、Arena 概览、成长记录和推荐资源。
+- `/profile`、`/profile/evidence`、`/profile/growth`：学习活动、证据复盘、能力画像、风险摘要、Arena 概览、成长记录和推荐资源。
 
 学生端状态不只存在于浏览器。课堂提交进入 `StudentState` 和关键步骤持久化记录；资源与课堂事件进入 `InteractionLog`；高价值行为经数据治理进入 `LearningFact`、`StudentCompetencySnapshot`、`StudentProfileSummary` 和推荐链路。
 
@@ -79,7 +78,7 @@ AI-OBE 船舶智控平台是面向“自动控制原理”和船舶智能控制�
 
 平台 UI 正在从分散页面改为以 `AppShell`、角色导航、证据状态组件和页面族治理为主的统一壳层。核心文件包括 `src/components/platform/app-shell.tsx`、`src/components/platform/platform-ui-contracts.ts`、`src/components/platform/status-and-evidence.tsx`、`src/components/platform/visual-world-assets.ts` 和 `src/lib/platform-role-navigation.ts`。
 
-统一壳层当前覆盖数据中心、教师治理工作台、任务空间、Arena/控制工作台入口和若干课程入口。`AppShell` 在测试中会被纯函数调用，因此顶层不能直接引入会依赖运行时 hook 的逻辑；需要运行态上下文时，应放到子组件或可选上下文边界内。
+统一壳层当前覆盖教师/管理员数据中心、教师治理工作台、任务空间、Arena/控制工作台入口和若干课程入口。`AppShell` 在测试中会被纯函数调用，因此顶层不能直接引入会依赖运行时 hook 的逻辑；需要运行态上下文时，应放到子组件或可选上下文边界内。
 
 AppShell 折叠导航合同已经归档：桌面展开态为 248px 侧栏，收起态为 72px 图标栏，收起链接使用注册图标并保留 aria/title 标签，不显示首字截断文本。`artifacts/commercial-ui/app-shell-collapsed-navigation-413/` 保存 `/arena` 与 `/interactive-learning/control-workbench` 的 light/dark、展开/收起/移动证据，`appShellNavigationContract: collapsed-icon-rail` 由商业 UI 治理门禁校验。
 
@@ -87,7 +86,9 @@ AppShell 折叠导航合同已经归档：桌面展开态为 248px 侧栏，收�
 
 知识图谱壳层迁移已经完成实现：`/knowledge` 使用可收起 `AppShell`，公开态、学生登录态和教师登录态都走中心角色导航；章节目录、关系筛选、图例、2D/3D 切换和资源面板保持知识图谱局部工具语义，不再作为平台导航。`artifacts/commercial-ui/knowledge-map-unified-shell-415/` 保存 light/dark、展开/收起/移动命令面板证据。
 
-当前 active OpenSpec 中，剩余 UI 系列主要负责限制数据中心角色可见性，并固化二级导航视觉治理。React Doctor 系列中，server、aria role、shared state/effect、interactive state/effect 和 resource state/effect 已归档到 specs。
+数据中心角色可见性已经完成实现：`/data-center` 只面向教师和管理员，学生直接访问默认进入 `/profile/evidence`；普通数据中心 UI 的“演示数据”来源标签默认隐藏，由管理员配置控制，管理员审计和治理视图仍保留来源可见性。`artifacts/commercial-ui/data-center-operations-roles-416/` 保存学生重定向、教师标签关闭/开启和管理员审计来源可见证据。
+
+当前 active OpenSpec 中，剩余 UI 系列主要负责固化二级导航视觉治理。React Doctor 系列中，server、aria role、shared state/effect、interactive state/effect 和 resource state/effect 已归档到 specs。
 
 ## 课程内容与 runtime
 
@@ -197,7 +198,7 @@ AI 可以解释、提示、总结和建议，但不能伪造学习事实、不�
 
 ## OpenSpec 与工作树协作
 
-本项目使用 OpenSpec 管理功能开发。已完成变更会归档到 `openspec/specs/`，进行中变更位于 `openspec/changes/`。新功能、治理、UI 重构、依赖迁移和智能助教能力都应先形成 proposal、design、tasks 和 spec delta，再进入实现。当前 active changes 主要是数据中心角色可见性和二级导航视觉治理；AppShell 折叠导航合同、学生二级路线壳层迁移和知识图谱壳层迁移已经完成，不应再作为待实现项重复提案。
+本项目使用 OpenSpec 管理功能开发。已完成变更会归档到 `openspec/specs/`，进行中变更位于 `openspec/changes/`。新功能、治理、UI 重构、依赖迁移和智能助教能力都应先形成 proposal、design、tasks 和 spec delta，再进入实现。当前 active changes 主要是二级导航视觉治理；AppShell 折叠导航合同、学生二级路线壳层迁移、知识图谱壳层迁移和数据中心角色可见性已经完成，不应再作为待实现项重复提案。
 
 当前固定工作树职责：
 
