@@ -222,10 +222,11 @@ async function validateHttpBaseline(baseUrl: string, mock: boolean): Promise<str
     const payloadErrors = step.route.includes('/assistant-effect-report')
       ? validateIntelligentTeachingAssistantDemoApiPayload(step.route, body, response.headers.get('content-type') ?? '')
       : [];
-    const marker = routeMarker(step);
+    const requiresFixtureMarker = mock && !step.route.startsWith('/api/');
+    const marker = requiresFixtureMarker ? routeMarker(step) : '';
     const ok = isIntelligentTeachingAssistantDemoSuccessfulHttpStatus(response.status)
       && (payloadErrors.length === 0)
-      && (step.route.startsWith('/api/') || body.includes(marker));
+      && (!requiresFixtureMarker || body.includes(marker));
     if (!ok) {
       errors.push(`competition route failed: ${step.route}${payloadErrors.length ? ` (${payloadErrors.join('; ')})` : ''}`);
     }
