@@ -87,6 +87,13 @@ function completeVisualEvidence(): CommercialVisualAcceptanceEvidence[] {
             routeArchetype: inventoryRoute?.frame,
             dockState: premiumRoute.floatingDock,
             navigationState,
+            gridTemplateColumns: navigationState === 'desktop-collapsed' ? '72px 1368px' : '248px 1192px',
+            sidebarWidth: navigationState === 'desktop-collapsed' ? 72 : 248,
+            contentWidth: navigationState === 'desktop-collapsed' ? 1368 : 1192,
+            activeLinkAriaLabel: navigationState === 'desktop-collapsed' ? '控制工作台' : null,
+            activeLinkTitle: navigationState === 'desktop-collapsed' ? '控制工作台' : null,
+            activeLinkText: navigationState === 'desktop-collapsed' ? '' : '控制工作台',
+            horizontalOverflow: false,
             result: 'passed' as const,
             screenshot: `artifacts/commercial-ui/${route.href.replace(/[^a-z0-9]+/gi, '-')}-${premiumRoute.acceptedAuthState}-${theme}-${width}-${navigationState}.png`,
             firstViewportUseful: true,
@@ -119,6 +126,13 @@ function completeVisualEvidence(): CommercialVisualAcceptanceEvidence[] {
             routeArchetype: inventoryRoute?.frame,
             dockState: inventoryRoute?.floatingDock === 'enabled' ? 'required' as const : inventoryRoute?.floatingDock,
             navigationState,
+            gridTemplateColumns: navigationState === 'desktop-collapsed' ? '72px 1368px' : '248px 1192px',
+            sidebarWidth: navigationState === 'desktop-collapsed' ? 72 : 248,
+            contentWidth: navigationState === 'desktop-collapsed' ? 1368 : 1192,
+            activeLinkAriaLabel: navigationState === 'desktop-collapsed' ? '控制工作台' : null,
+            activeLinkTitle: navigationState === 'desktop-collapsed' ? '控制工作台' : null,
+            activeLinkText: navigationState === 'desktop-collapsed' ? '' : '控制工作台',
+            horizontalOverflow: false,
             result: 'passed' as const,
             screenshot: `artifacts/commercial-ui/${route.href.replace(/[^a-z0-9]+/gi, '-')}-${theme}-${width}-${navigationState}.png`,
             firstViewportUseful: true,
@@ -601,6 +615,82 @@ describe('commercial UI governance', () => {
           rule: 'visual-acceptance.incomplete-navigation-state-evidence',
           path: '/interactive-learning/control-workbench',
           evidence: expect.arrayContaining(['width=1440:navigationState=desktop-collapsed']),
+        }),
+      ]),
+    );
+  });
+
+  it('fails when shared shell navigation evidence omits a required theme', () => {
+    const visualEvidence = completeVisualEvidence().map((entry) => {
+      if (entry.href !== '/interactive-learning/control-workbench') return entry;
+      return {
+        ...entry,
+        viewports: entry.viewports
+          .map((viewport) => ({ ...viewport, appShellNavigationContract: 'collapsed-icon-rail' as const }))
+          .filter((viewport) => viewport.theme !== 'dark'),
+      };
+    });
+
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'visual-acceptance',
+          rule: 'visual-acceptance.incomplete-navigation-state-evidence',
+          path: '/interactive-learning/control-workbench',
+          evidence: expect.arrayContaining([
+            'theme=dark:width=1440:navigationState=desktop-expanded',
+            'theme=dark:width=1440:navigationState=desktop-collapsed',
+            'theme=dark:width=320:navigationState=mobile-drawer',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails when desktop collapsed shell evidence omits icon rail geometry or labels', () => {
+    const visualEvidence = completeVisualEvidence().map((entry) => {
+      if (entry.href !== '/interactive-learning/control-workbench') return entry;
+      return {
+        ...entry,
+        viewports: entry.viewports.map((viewport) => (
+          viewport.width === 1440
+            && viewport.theme === 'light'
+            && viewport.navigationState === 'desktop-collapsed'
+            ? {
+                ...viewport,
+                appShellNavigationContract: 'collapsed-icon-rail' as const,
+                sidebarWidth: 76,
+                contentWidth: 1000,
+                activeLinkAriaLabel: undefined,
+                activeLinkTitle: undefined,
+                activeLinkText: '控制工作台控',
+                horizontalOverflow: true,
+              }
+            : { ...viewport, appShellNavigationContract: 'collapsed-icon-rail' as const }
+        )),
+      };
+    });
+
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'visual-acceptance',
+          rule: 'visual-acceptance.incomplete-navigation-state-evidence',
+          path: '/interactive-learning/control-workbench',
+          evidence: expect.arrayContaining([
+            'theme=light:desktop-collapsed:sidebarWidth=72',
+            'theme=light:desktop-collapsed:contentWidth>expandedContentWidth',
+            'theme=light:desktop-collapsed:activeLinkAriaLabel',
+            'theme=light:desktop-collapsed:activeLinkTitle',
+            'theme=light:desktop-collapsed:activeLinkText=empty',
+            'theme=light:desktop-collapsed:noHorizontalOverflow',
+          ]),
         }),
       ]),
     );

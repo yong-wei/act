@@ -31,6 +31,7 @@ import {
   AppSidebar,
   PlatformSurface,
   ThemeSwitcher,
+  getAppShellDesktopGridClassName,
 } from '@/components/platform/app-shell';
 import {
   isTeacherOperationsNavActive,
@@ -602,7 +603,7 @@ describe('platform UI contracts', () => {
   });
 
   it('forwards the active route from AppShell to AppSidebar', () => {
-    const shell = AppShell({
+    const shellMarkup = renderAppShellMarkup({
       viewerRole: 'teacher',
       title: '教师工作台',
       activeHref: '/teacher/classes',
@@ -613,11 +614,8 @@ describe('platform UI contracts', () => {
       children: null,
     });
 
-    const grid = shell.props.children;
-    const sidebar = Array.isArray(grid.props.children) ? grid.props.children[0] : null;
-
-    expect(sidebar?.type).toBe(AppSidebar);
-    expect(sidebar?.props.activeHref).toBe('/teacher/classes');
+    expect(shellMarkup).toContain('href="/teacher/classes"');
+    expect(shellMarkup).toContain('aria-current="page"');
   });
 
   it('marks only the deepest matching sidebar route active', () => {
@@ -636,6 +634,46 @@ describe('platform UI contracts', () => {
     expect(links).toHaveLength(2);
     expect(classNameOf(links[0])).not.toContain('bg-platform-action-subtle');
     expect(classNameOf(links[1])).toContain('bg-platform-action-subtle');
+  });
+
+  it('renders collapsed AppShell navigation as an accessible icon rail', () => {
+    expect(
+      getAppShellDesktopGridClassName({
+        showSidebar: true,
+        sidebarBreakpoint: 'xl',
+        navigationCollapsed: false,
+      }),
+    ).toContain('xl:grid-cols-[248px_minmax(0,1fr)]');
+    expect(
+      getAppShellDesktopGridClassName({
+        showSidebar: true,
+        sidebarBreakpoint: 'xl',
+        navigationCollapsed: true,
+      }),
+    ).toContain('xl:grid-cols-[72px_minmax(0,1fr)]');
+
+    const collapsedSidebarMarkup = renderToStaticMarkup(
+      AppSidebar({
+        activeHref: '/knowledge',
+        collapsed: true,
+        navigation: [
+          {
+            id: 'student-knowledge',
+            label: '知识资源',
+            href: '/knowledge',
+            role: 'student',
+            order: 10,
+            iconKey: 'knowledge',
+          },
+        ],
+      }),
+    );
+
+    expect(collapsedSidebarMarkup).toContain('aria-label="知识资源"');
+    expect(collapsedSidebarMarkup).toContain('title="知识资源"');
+    expect(collapsedSidebarMarkup).toContain('data-platform-navigation-icon="knowledge"');
+    expect(collapsedSidebarMarkup).not.toContain('知识资源知');
+    expect(collapsedSidebarMarkup).not.toContain('>知</a>');
   });
 
   it('keeps active route matching stable when the current route has query or hash', () => {
@@ -668,83 +706,57 @@ describe('platform UI contracts', () => {
       },
     ];
     const sidebar = asElement(AppSidebar({ activeHref: '/teacher/classes', navigation }));
-    const shell = asElement(
-      AppShell({
-        viewerRole: 'teacher',
-        title: '教师工作台',
-        activeHref: '/teacher/classes',
-        navigation,
-        children: null,
-      }),
-    );
-    const grid = asElement(shell.props?.children);
-    const content = childElements(grid.props?.children)[1];
-    const mobileNav = childElements(content.props?.children).find(
-      (child) => child.type === 'nav' && child.props?.['aria-label'] === '平台导航',
-    );
-
-    if (!mobileNav) {
-      throw new Error('Expected AppShell to render mobile role navigation.');
-    }
+    const shellMarkup = renderAppShellMarkup({
+      viewerRole: 'teacher',
+      title: '教师工作台',
+      activeHref: '/teacher/classes',
+      navigation,
+      children: null,
+    });
 
     expect(collectLinks(sidebar).map((link) => link.props?.href)).toEqual([
       '/teacher',
       '/teacher/classes',
     ]);
-    expect(collectLinks(mobileNav).map((link) => link.props?.href)).toEqual([
-      '/teacher',
-      '/teacher/classes',
-    ]);
+    expect(shellMarkup).toContain('href="/teacher"');
+    expect(shellMarkup).toContain('href="/teacher/classes"');
+    expect(shellMarkup).toContain('aria-label="平台导航"');
     expect(classNameOf(collectLinks(sidebar)[1])).toContain('bg-platform-action-subtle');
   });
 
   it('keeps role navigation reachable in the mobile shell', () => {
-    const shell = asElement(
-      AppShell({
-        viewerRole: 'teacher',
-        title: '教师工作台',
-        activeHref: '/teacher/classes',
-        navigation: [
-          { id: 'teacher-home', label: '教师首页', href: '/teacher', role: 'teacher', order: 10 },
-          { id: 'teacher-classes', label: '班级', href: '/teacher/classes', role: 'teacher', order: 20 },
-        ],
-        children: null,
-      }),
-    );
-    const grid = asElement(shell.props?.children);
-    const content = childElements(grid.props?.children)[1];
-    const mobileNav = childElements(content.props?.children).find(
-      (child) => child.type === 'nav' && child.props?.['aria-label'] === '平台导航',
-    );
+    const shellMarkup = renderAppShellMarkup({
+      viewerRole: 'teacher',
+      title: '教师工作台',
+      activeHref: '/teacher/classes',
+      navigation: [
+        { id: 'teacher-home', label: '教师首页', href: '/teacher', role: 'teacher', order: 10 },
+        { id: 'teacher-classes', label: '班级', href: '/teacher/classes', role: 'teacher', order: 20 },
+      ],
+      children: null,
+    });
 
-    if (!mobileNav) {
-      throw new Error('Expected AppShell to render mobile role navigation.');
-    }
-
-    expect(classNameOf(mobileNav)).toContain('lg:hidden');
-    expect(classNameOf(mobileNav)).not.toContain('overflow-x-auto');
-    const linkContainer = asElement(mobileNav.props?.children);
-    expect(classNameOf(linkContainer)).toContain('grid');
-    expect(classNameOf(linkContainer)).toContain('sm:flex-wrap');
-    expect(childElements(linkContainer.props?.children).map((link) => link.props?.href)).toEqual([
-      '/teacher',
-      '/teacher/classes',
-    ]);
-    expect(collectLinks(mobileNav).find((link) => link.props?.href === '/teacher/classes')?.props?.['aria-current']).toBe('page');
+    expect(shellMarkup).toContain('aria-label="平台导航"');
+    expect(shellMarkup).toContain('lg:hidden');
+    expect(shellMarkup).not.toContain('overflow-x-auto');
+    expect(shellMarkup).toContain('grid grid-cols-2');
+    expect(shellMarkup).toContain('sm:flex-wrap');
+    expect(shellMarkup).toContain('href="/teacher"');
+    expect(shellMarkup).toContain('href="/teacher/classes"');
+    expect(shellMarkup).toContain('aria-current="page"');
   });
 
   it('derives shell navigation from route inventory when navigation is omitted', () => {
-    const shell = asElement(
-      AppShell({
-        viewerRole: 'student',
-        title: '知识图谱',
-        activeHref: '/knowledge',
-        children: null,
-      }),
-    );
-    const links = collectLinks(shell).map((link) => link.props?.href);
+    const shellMarkup = renderAppShellMarkup({
+      viewerRole: 'student',
+      title: '知识图谱',
+      activeHref: '/knowledge',
+      children: null,
+    });
 
-    expect(links).toEqual(expect.arrayContaining(['/knowledge', '/interactive-learning', '/data-center']));
+    expect(shellMarkup).toContain('href="/knowledge"');
+    expect(shellMarkup).toContain('href="/interactive-learning"');
+    expect(shellMarkup).toContain('href="/data-center"');
   });
 
   it('derives AppShell archetype, return target, and dock behavior from the route ledger', () => {
@@ -760,16 +772,14 @@ describe('platform UI contracts', () => {
     };
     const shell = asElement(AppShell(shellProps));
     const shellMarkup = renderAppShellMarkup(shellProps);
-    const header = collectElementsByType(shell, AppHeader)[0];
 
     expect(shell.props?.['data-platform-route-frame']).toBe('mission-workspace');
     expect(shell.props?.['data-platform-route-theme-support']).toBe('light dark');
     expect(shell.props?.['data-platform-mobile-navigation']).toBe('drawer');
-    expect(header.props?.breadcrumbs).toEqual([
-      { label: '竞技场', href: '/arena' },
-      { label: 'Arena 任务' },
-    ]);
-    expect(JSON.stringify(header.props?.breadcrumbs)).not.toContain('Return to');
+    expect(shellMarkup).toContain('href="/arena"');
+    expect(shellMarkup).toContain('竞技场');
+    expect(shellMarkup).toContain('Arena 任务');
+    expect(shellMarkup).not.toContain('Return to');
     expect(shellMarkup).toContain('href="/arena"');
     expect(shellMarkup).toContain('aria-controls="app-shell-mobile-navigation"');
     expect(shellMarkup).toContain('data-platform-floating-dock-registration="true"');
@@ -778,25 +788,23 @@ describe('platform UI contracts', () => {
   });
 
   it('renders AppShell workspace zones without forcing feature modules into the shared shell', () => {
-    const shell = asElement(
-      AppShell({
-        viewerRole: 'student',
-        title: '控制工作台',
-        activeHref: '/interactive-learning/control-workbench',
-        children: 'stage',
-        workspaceSlots: {
-          contextHeader: '对象上下文',
-          commandBar: '命令',
-          instrumentArea: '仪表区',
-          evidenceRail: '证据',
-          supportDrawer: '支持',
-          statusRail: '状态',
-          localTools: '局部工具',
-        },
-      }),
-    );
+    const shellMarkup = renderAppShellMarkup({
+      viewerRole: 'student',
+      title: '控制工作台',
+      activeHref: '/interactive-learning/control-workbench',
+      children: 'stage',
+      workspaceSlots: {
+        contextHeader: '对象上下文',
+        commandBar: '命令',
+        instrumentArea: '仪表区',
+        evidenceRail: '证据',
+        supportDrawer: '支持',
+        statusRail: '状态',
+        localTools: '局部工具',
+      },
+    });
 
-    expect(collectElementsByDataAttribute(shell, 'data-app-shell-zone').map((zone) => zone.props?.['data-app-shell-zone'])).toEqual([
+    expect(Array.from(shellMarkup.matchAll(/data-app-shell-zone="([^"]+)"/g), (match) => match[1])).toEqual([
       'context-header',
       'command-bar',
       'instrument-area',
@@ -805,7 +813,7 @@ describe('platform UI contracts', () => {
       'status-rail',
       'local-tools',
     ]);
-    expect(collectElementsByDataAttribute(shell, 'data-platform-floating-dock')).toHaveLength(0);
+    expect(shellMarkup).not.toContain('data-platform-floating-dock=');
   });
 
   it('hides shell-owned dock controls when the route ledger declares hidden dock behavior', () => {
@@ -849,54 +857,40 @@ describe('platform UI contracts', () => {
   });
 
   it('lets dense commercial workspaces defer fixed sidebar space until xl', () => {
-    const shell = asElement(
-      AppShell({
-        viewerRole: 'admin',
-        title: '数据中心',
-        activeHref: '/data-center',
-        sidebarMode: 'collapsible',
-        navigation: [
-          { id: 'platform-home', label: '首页', href: '/', role: 'admin', order: 10 },
-          { id: 'platform-data-center', label: '数据中心', href: '/data-center', role: 'admin', order: 20 },
-        ],
-        children: null,
-      }),
-    );
-    const grid = asElement(shell.props?.children);
-    const gridChildren = childElements(grid.props?.children);
-    const sidebar = gridChildren[0];
-    const content = gridChildren[1];
-    const mobileNav = childElements(content.props?.children).find(
-      (child) => child.type === 'nav' && child.props?.['aria-label'] === '平台导航',
-    );
-    if (!mobileNav) throw new Error('expected mobile platform navigation');
+    const shellMarkup = renderAppShellMarkup({
+      viewerRole: 'admin',
+      title: '数据中心',
+      activeHref: '/data-center',
+      sidebarMode: 'collapsible',
+      navigation: [
+        { id: 'platform-home', label: '首页', href: '/', role: 'admin', order: 10 },
+        { id: 'platform-data-center', label: '数据中心', href: '/data-center', role: 'admin', order: 20 },
+      ],
+      children: null,
+    });
 
-    expect(classNameOf(grid)).toContain('xl:grid-cols-[248px_1fr]');
-    expect(classNameOf(grid)).not.toContain('lg:grid-cols-[248px_1fr]');
-    expect(typeof sidebar.type === 'function' ? sidebar.type.name : '').toBe('CollapsibleAppSidebar');
-    expect(classNameOf(sidebar)).toContain('hidden xl:block');
-    expect(classNameOf(mobileNav)).toContain('xl:hidden');
+    expect(getAppShellDesktopGridClassName({
+      showSidebar: true,
+      sidebarBreakpoint: 'xl',
+      navigationCollapsed: false,
+    })).toContain('xl:grid-cols-[248px_minmax(0,1fr)]');
+    expect(shellMarkup).toContain('xl:grid-cols-[248px_minmax(0,1fr)]');
+    expect(shellMarkup).not.toContain('lg:grid-cols-[248px_1fr]');
+    expect(shellMarkup).toContain('hidden xl:block');
+    expect(shellMarkup).toContain('xl:hidden');
   });
 
   it('does not reserve sidebar layout space when shell navigation is empty', () => {
-    const shell = asElement(
-      AppShell({
-        viewerRole: 'teacher',
-        title: '教师工作台',
-        activeHref: '/teacher/classes',
-        navigation: [],
-        children: null,
-      }),
-    );
-    const grid = asElement(shell.props?.children);
-    const gridChildren = childElements(grid.props?.children);
+    const shellMarkup = renderAppShellMarkup({
+      viewerRole: 'teacher',
+      title: '教师工作台',
+      activeHref: '/teacher/classes',
+      navigation: [],
+      children: null,
+    });
 
-    expect(classNameOf(grid)).not.toContain('lg:grid-cols-[248px_1fr]');
-    expect(gridChildren.some((child) => child.type === AppSidebar)).toBe(false);
-    expect(
-      childElements(gridChildren[0].props?.children).some(
-        (child) => child.type === 'nav' && child.props?.['aria-label'] === '平台导航',
-      ),
-    ).toBe(false);
+    expect(shellMarkup).not.toContain('lg:grid-cols-[248px_1fr]');
+    expect(shellMarkup).not.toContain('xl:grid-cols-[248px_minmax(0,1fr)]');
+    expect(shellMarkup).not.toContain('aria-label="平台导航"');
   });
 });

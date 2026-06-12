@@ -18,9 +18,9 @@
 
 - 2026-06-12 当前工作树 `act-resource` 绑定本地 `resource` 分支并跟踪 `origin/integration`，用于课程资源制作和资源相关开发。它是永久隔离工作树，在其中工作时不要再为同一任务创建第二层 worktree。
 
-- 2026-06-13 React Doctor 错误清理系列已归档到 specs，覆盖 server、aria role、shared state/effect、interactive state/effect 和 resource state/effect；当前 active OpenSpec 主要剩余统一 UI 治理门禁与二级导航迁移系列。控制校正与智能助教系列中的多项能力已经进入 specs 和实现。
+- 2026-06-13 React Doctor 错误清理系列已归档到 specs，覆盖 server、aria role、shared state/effect、interactive state/effect 和 resource state/effect；AppShell 折叠导航合同 #413 已归档，桌面收起态为 72px 图标栏，展开态为 248px，light/dark 视觉证据已进入 `artifacts/commercial-ui/app-shell-collapsed-navigation-413/`。当前 active OpenSpec 主要剩余二级页面迁移、知识图谱壳层迁移、数据中心角色可见性和二级导航视觉治理。控制校正与智能助教系列中的多项能力已经进入 specs 和实现。
 
-- 2026-06-12 平台 UI 已从分散页面推进到 `AppShell`、角色导航、状态证据组件和页面族治理。`src/lib/platform-role-navigation.ts` 现在覆盖课程、任务空间、数据中心、教师治理、Arena/控制工作台等入口。`AppShell` 在测试中会被纯函数调用，顶层不要直接引入 runtime hook。
+- 2026-06-12 平台 UI 已从分散页面推进到 `AppShell`、角色导航、状态证据组件和页面族治理。`src/lib/platform-role-navigation.ts` 现在覆盖课程、任务空间、数据中心、教师治理、Arena/控制工作台等入口。`AppShell` 在测试中会被纯函数调用，顶层不要直接引入 runtime hook；桌面折叠导航应使用注册图标、aria/title 标签和 72px 窄栏，不再使用首字截断文本。
 
 - 2026-06-12 `1-1` 标准互动课的当前路由是 `/interactive-learning/courses/unit-1-1-see-the-full-picture`，不再使用旧的 `unit-1-1-laplace-transfer-function` 记忆。作者态材料、互动契约和 acceptance 已齐备，manifest audit 已达到 15 steps、91 modules、0 issues；后续重点是严格实现契约注册和互动课程验收。
 
