@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import type { ResourceNode } from '@/lib/resource-node-registry';
 import type { KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
 import { createKonlingTeachingAssistantServerContextToken } from '@/lib/konling-teaching-assistant-server-context';
@@ -18,6 +19,7 @@ import type {
 } from './role-based-learning-diagnosis';
 
 export const TEACHER_PREP_PACK_GENERATION_VERSION = 'teacher-prep-pack-generation.v1';
+export const COURSE_ENHANCEMENT_PACK_VERSION = 'course-enhancement-pack.v1';
 
 export type TeacherPrepPackCandidateType =
   | 'interactive-question'
@@ -62,6 +64,7 @@ export interface TeacherPrepPackInsertionTarget {
   lessonStage?: 'bridge-in' | 'objective' | 'pre-assessment' | 'participatory-learning' | 'post-assessment' | 'summary';
   lessonStepId?: string;
   resourceNodeId?: string;
+  classSessionId?: string;
   draftRequestReason?: string;
 }
 
@@ -177,9 +180,176 @@ export interface TeacherPrepPackInsertionPayload {
   }>;
 }
 
+export type CourseEnhancementPackStatus = 'review-ready' | 'active' | 'rolled-back' | 'archived';
+
+export interface CourseEnhancementRuntimeContext {
+  lessonId: string;
+  classId: string;
+  stages: Array<{
+    id: string;
+    stage: NonNullable<TeacherPrepPackInsertionTarget['lessonStage']>;
+    stepIds?: string[];
+  }>;
+  lessonStepIds?: string[];
+  resourceNodeIds?: string[];
+  classSessionIds?: string[];
+}
+
+export interface CourseEnhancementImpactEvidenceRef {
+  sourceType: 'learning-fact' | 'path-outcome' | 'grading-result' | 'teacher-observation';
+  sourceId: string;
+  displayTitle: string;
+  collectedAt: string;
+  safeForTeacherReport: boolean;
+}
+
+export interface CourseEnhancementPackItem {
+  id: string;
+  prepPackItemId: string;
+  itemType: TeacherPrepPackCandidateType;
+  title: string;
+  insertionTarget: TeacherPrepPackInsertionTarget;
+  linkedResource: NonNullable<TeacherPrepPackCandidateItem['linkedResource']>;
+  estimatedTimeMinutes: number;
+  evidenceBasis: TeacherPrepPackEvidenceBasis[];
+  methodologyNotes: string[];
+  privacyScope: 'aggregate-and-redacted-only';
+  lifecycle: {
+    state: 'approved';
+    reviewedBy: string;
+    reviewedAt: string;
+  };
+  activation: {
+    activatedBy: string | null;
+    activatedAt: string | null;
+    rolledBackBy: string | null;
+    rolledBackAt: string | null;
+    rollbackReason: string | null;
+  };
+  impactEvidence: CourseEnhancementImpactEvidenceRef[];
+}
+
+export interface CourseEnhancementPack {
+  version: typeof COURSE_ENHANCEMENT_PACK_VERSION;
+  id: string;
+  teacherId: string;
+  classId: string;
+  goalId: string;
+  lessonId: string;
+  source: {
+    prepPackId: string;
+    diagnosisSnapshotId: string | null;
+    sourceEvidenceRefs: string[];
+  };
+  status: CourseEnhancementPackStatus;
+  createdAt: string;
+  updatedAt: string;
+  items: CourseEnhancementPackItem[];
+  auditLog: Array<{
+    action: 'create' | 'activate' | 'rollback' | 'archive' | 'impact-evidence';
+    actorId: string;
+    at: string;
+    detail: string;
+  }>;
+  teacherFeedback: Array<{
+    teacherId: string;
+    note: string;
+    recordedAt: string;
+  }>;
+}
+
+export interface CourseEnhancementPackPersistenceRecord {
+  id: string;
+  teacherId: string;
+  classId: string;
+  goalId: string;
+  lessonId: string;
+  sourcePrepPackId: string;
+  diagnosisSnapshotId: string | null;
+  status: string;
+  source: Prisma.JsonValue;
+  items: Prisma.JsonValue;
+  auditLog: Prisma.JsonValue;
+  teacherFeedback: Prisma.JsonValue;
+  activatedAt: Date | null;
+  rolledBackAt: Date | null;
+  archivedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CourseEnhancementPackPersistenceClient {
+  courseEnhancementPack: {
+    upsert(args: {
+      where: { sourcePrepPackId: string };
+      create: {
+        id: string;
+        teacherId: string;
+        classId: string;
+        goalId: string;
+        lessonId: string;
+        sourcePrepPackId: string;
+        diagnosisSnapshotId: string | null;
+        status: string;
+        source: Prisma.InputJsonValue;
+        items: Prisma.InputJsonValue;
+        auditLog: Prisma.InputJsonValue;
+        teacherFeedback: Prisma.InputJsonValue;
+        activatedAt: Date | null;
+        rolledBackAt: Date | null;
+        archivedAt: Date | null;
+      };
+      update: {
+        status: string;
+        diagnosisSnapshotId: string | null;
+        source: Prisma.InputJsonValue;
+        items: Prisma.InputJsonValue;
+        auditLog: Prisma.InputJsonValue;
+        teacherFeedback: Prisma.InputJsonValue;
+        activatedAt: Date | null;
+        rolledBackAt: Date | null;
+        archivedAt: Date | null;
+      };
+    }): Promise<CourseEnhancementPackPersistenceRecord>;
+    findUnique(args: { where: { id: string } }): Promise<CourseEnhancementPackPersistenceRecord | null>;
+    update(args: {
+      where: { id: string };
+      data: {
+        status: string;
+        diagnosisSnapshotId: string | null;
+        source: Prisma.InputJsonValue;
+        items: Prisma.InputJsonValue;
+        auditLog: Prisma.InputJsonValue;
+        teacherFeedback: Prisma.InputJsonValue;
+        activatedAt: Date | null;
+        rolledBackAt: Date | null;
+        archivedAt: Date | null;
+      };
+    }): Promise<CourseEnhancementPackPersistenceRecord>;
+  };
+}
+
+export interface CourseEnhancementPackPreview {
+  packId: string;
+  publishState: 'preview-only';
+  insertionIssues: Array<{ itemId: string; errors: string[] }>;
+  diff: {
+    addedOverlayItems: Array<{
+      packId: string;
+      itemId: string;
+      title: string;
+      insertionTarget: TeacherPrepPackInsertionTarget;
+      linkedResource: CourseEnhancementPackItem['linkedResource'];
+      evidenceBasis: TeacherPrepPackEvidenceBasis[];
+      estimatedTimeMinutes: number;
+      privacyScope: CourseEnhancementPackItem['privacyScope'];
+    }>;
+  };
+}
+
 export function generateTeacherPrepPack(input: TeacherPrepPackInput): TeacherPrepPack {
   const now = input.now ?? new Date();
-  const prepPackId = `prep-pack:${input.classId}:${input.goalId}:${dateKey(now)}`;
+  const prepPackId = `prep-pack:${input.teacherId}:${input.classId}:${input.goalId}:${input.nextLesson.lessonId}:${dateKey(now)}`;
   const modeContextToken = createKonlingTeachingAssistantServerContextToken({
     mode: 'prep-coauthor',
     classId: input.classId,
@@ -326,6 +496,379 @@ export function buildTeacherPrepPackInsertionPayload(input: {
       estimatedTimeMinutes: item.estimatedTimeMinutes,
     })),
   };
+}
+
+export function createCourseEnhancementPackFromPrepPack(input: {
+  prepPack: TeacherPrepPack;
+  teacherId: string;
+  authorizedReviewerIds?: string[];
+  diagnosisSnapshotId?: string | null;
+  sourceEvidenceRefs?: string[];
+  now?: Date;
+}): CourseEnhancementPack {
+  assertEnhancementPackActor(input.teacherId, input.prepPack.teacherId, 'create');
+  const createdAt = (input.now ?? new Date()).toISOString();
+  const approvedItems = input.prepPack.candidates.filter((item) =>
+    isTeacherPrepPackInsertionEligible(item, input.prepPack, input.authorizedReviewerIds) &&
+    isRuntimeCourseEnhancementTarget(item.insertionTarget)
+  );
+  const evidenceRefs = new Set(input.sourceEvidenceRefs ?? []);
+  for (const item of approvedItems) {
+    for (const evidence of item.evidenceBasis) {
+      evidenceRefs.add(`${evidence.sourceType}:${evidence.sourceId}`);
+    }
+  }
+
+  return {
+    version: COURSE_ENHANCEMENT_PACK_VERSION,
+    id: `course-enhancement-pack:${stableHash([
+      input.teacherId,
+      input.prepPack.id,
+    ].join('|'))}`,
+    teacherId: input.teacherId,
+    classId: input.prepPack.classId,
+    goalId: input.prepPack.goalId,
+    lessonId: input.prepPack.nextLesson.lessonId,
+    source: {
+      prepPackId: input.prepPack.id,
+      diagnosisSnapshotId: input.diagnosisSnapshotId ?? null,
+      sourceEvidenceRefs: Array.from(evidenceRefs),
+    },
+    status: 'review-ready',
+    createdAt,
+    updatedAt: createdAt,
+    items: approvedItems.map((item) => ({
+      id: `${item.id}:overlay`,
+      prepPackItemId: item.id,
+      itemType: item.itemType,
+      title: item.title,
+      insertionTarget: item.insertionTarget,
+      linkedResource: item.linkedResource!,
+      estimatedTimeMinutes: item.estimatedTimeMinutes,
+      evidenceBasis: item.evidenceBasis,
+      methodologyNotes: item.methodologyNotes,
+      privacyScope: 'aggregate-and-redacted-only',
+      lifecycle: {
+        state: 'approved',
+        reviewedBy: item.review.reviewerId!,
+        reviewedAt: item.review.reviewedAt!,
+      },
+      activation: {
+        activatedBy: null,
+        activatedAt: null,
+        rolledBackBy: null,
+        rolledBackAt: null,
+        rollbackReason: null,
+      },
+      impactEvidence: [],
+    })),
+    auditLog: [{
+      action: 'create',
+      actorId: input.teacherId,
+      at: createdAt,
+      detail: `Created from prep pack ${input.prepPack.id}`,
+    }],
+    teacherFeedback: [],
+  };
+}
+
+export function buildCourseEnhancementPackPreview(input: {
+  pack: CourseEnhancementPack;
+  runtimeContext: CourseEnhancementRuntimeContext;
+}): CourseEnhancementPackPreview {
+  const insertionIssues = input.pack.items
+    .map((item) => ({ itemId: item.id, errors: validateCourseEnhancementInsertionTarget(item.insertionTarget, input.runtimeContext) }))
+    .filter((issue) => issue.errors.length > 0);
+
+  return {
+    packId: input.pack.id,
+    publishState: 'preview-only',
+    insertionIssues,
+    diff: {
+      addedOverlayItems: input.pack.items.map((item) => ({
+        packId: input.pack.id,
+        itemId: item.id,
+        title: item.title,
+        insertionTarget: item.insertionTarget,
+        linkedResource: item.linkedResource,
+        evidenceBasis: item.evidenceBasis,
+        estimatedTimeMinutes: item.estimatedTimeMinutes,
+        privacyScope: item.privacyScope,
+      })),
+    },
+  };
+}
+
+export function activateCourseEnhancementPack(input: {
+  pack: CourseEnhancementPack;
+  teacherId: string;
+  runtimeContext: CourseEnhancementRuntimeContext;
+  now?: Date;
+}): CourseEnhancementPack {
+  if (input.teacherId !== input.pack.teacherId) {
+    throw new Error('unauthorized enhancement pack activation');
+  }
+  if (input.runtimeContext.classId !== input.pack.classId) {
+    throw new Error('invalid enhancement pack class context');
+  }
+  if (input.runtimeContext.lessonId !== input.pack.lessonId) {
+    throw new Error('invalid enhancement pack lesson context');
+  }
+  if (input.pack.status === 'archived') {
+    throw new Error('archived enhancement pack cannot be activated');
+  }
+  const invalid = input.pack.items
+    .map((item) => ({ item, errors: validateCourseEnhancementInsertionTarget(item.insertionTarget, input.runtimeContext) }))
+    .filter(({ errors }) => errors.length > 0);
+  if (invalid.length > 0) {
+    throw new Error(`invalid insertion target: ${invalid.map(({ item, errors }) => `${item.id}:${errors.join(',')}`).join(';')}`);
+  }
+  const activatedAt = (input.now ?? new Date()).toISOString();
+  return {
+    ...input.pack,
+    status: 'active',
+    updatedAt: activatedAt,
+    items: input.pack.items.map((item) => ({
+      ...item,
+      activation: {
+        activatedBy: input.teacherId,
+        activatedAt,
+        rolledBackBy: null,
+        rolledBackAt: null,
+        rollbackReason: null,
+      },
+    })),
+    auditLog: [
+      ...input.pack.auditLog,
+      { action: 'activate', actorId: input.teacherId, at: activatedAt, detail: 'Activated runtime overlay' },
+    ],
+  };
+}
+
+export function rollbackCourseEnhancementPack(input: {
+  pack: CourseEnhancementPack;
+  teacherId: string;
+  reason: string;
+  now?: Date;
+}): CourseEnhancementPack {
+  assertEnhancementPackActor(input.teacherId, input.pack.teacherId, 'rollback');
+  if (input.pack.status === 'archived') {
+    throw new Error('archived enhancement pack cannot be rolled back');
+  }
+  const rolledBackAt = (input.now ?? new Date()).toISOString();
+  return {
+    ...input.pack,
+    status: 'rolled-back',
+    updatedAt: rolledBackAt,
+    items: input.pack.items.map((item) => ({
+      ...item,
+      activation: {
+        ...item.activation,
+        rolledBackBy: input.teacherId,
+        rolledBackAt,
+        rollbackReason: input.reason,
+      },
+    })),
+    auditLog: [
+      ...input.pack.auditLog,
+      { action: 'rollback', actorId: input.teacherId, at: rolledBackAt, detail: input.reason },
+    ],
+  };
+}
+
+export function archiveCourseEnhancementPack(input: {
+  pack: CourseEnhancementPack;
+  teacherId: string;
+  reason: string;
+  now?: Date;
+}): CourseEnhancementPack {
+  assertEnhancementPackActor(input.teacherId, input.pack.teacherId, 'archive');
+  const archivedAt = (input.now ?? new Date()).toISOString();
+  return {
+    ...input.pack,
+    status: 'archived',
+    updatedAt: archivedAt,
+    auditLog: [
+      ...input.pack.auditLog,
+      { action: 'archive', actorId: input.teacherId, at: archivedAt, detail: input.reason },
+    ],
+  };
+}
+
+export function recordCourseEnhancementPackImpactEvidence(input: {
+  pack: CourseEnhancementPack;
+  itemId: string;
+  evidenceRef: CourseEnhancementImpactEvidenceRef;
+  teacherFeedback?: { teacherId: string; note: string; recordedAt: string };
+}): CourseEnhancementPack {
+  if (!input.pack.items.some((item) => item.id === input.itemId)) {
+    throw new Error(`unknown enhancement pack item: ${input.itemId}`);
+  }
+  return {
+    ...input.pack,
+    updatedAt: input.evidenceRef.collectedAt,
+    items: input.pack.items.map((item) => item.id === input.itemId ? {
+      ...item,
+      impactEvidence: [...item.impactEvidence, input.evidenceRef],
+    } : item),
+    teacherFeedback: input.teacherFeedback ? [...input.pack.teacherFeedback, input.teacherFeedback] : input.pack.teacherFeedback,
+    auditLog: [
+      ...input.pack.auditLog,
+      {
+        action: 'impact-evidence',
+        actorId: input.teacherFeedback?.teacherId ?? input.pack.teacherId,
+        at: input.evidenceRef.collectedAt,
+        detail: input.evidenceRef.sourceId,
+      },
+    ],
+  };
+}
+
+export function mergeCourseEnhancementPackOverlay<TBaseRuntime extends Record<string, unknown>>(input: {
+  baseRuntime: TBaseRuntime;
+  classId: string;
+  sessionId?: string;
+  includeAuditRefs?: boolean;
+  packs: CourseEnhancementPack[];
+}): TBaseRuntime & { enhancementOverlays: Array<Record<string, unknown>> } {
+  const merged = deepClone(input.baseRuntime) as TBaseRuntime & {
+    lessonId?: string;
+    stages?: Array<Record<string, unknown>>;
+    resources?: Array<Record<string, unknown>>;
+    enhancementOverlays: Array<Record<string, unknown>>;
+  };
+  merged.enhancementOverlays = [];
+  if (Array.isArray(merged.stages)) {
+    merged.stages = merged.stages.map((stage) => ({ ...stage, overlayItems: Array.isArray(stage.overlayItems) ? stage.overlayItems : [] }));
+  }
+  if (Array.isArray(merged.resources)) {
+    merged.resources = merged.resources.map((resource) => ({ ...resource, overlayItems: Array.isArray(resource.overlayItems) ? resource.overlayItems : [] }));
+  }
+
+  for (const pack of input.packs) {
+    if (pack.status !== 'active' || pack.classId !== input.classId) continue;
+    if (typeof merged.lessonId === 'string' && pack.lessonId !== merged.lessonId) continue;
+    for (const item of pack.items) {
+      if (!item.activation.activatedAt || item.activation.rolledBackAt) continue;
+      if (item.insertionTarget.classSessionId && item.insertionTarget.classSessionId !== input.sessionId) continue;
+      if (item.insertionTarget.type === 'class-session' &&
+        !item.insertionTarget.classSessionId &&
+        !item.insertionTarget.lessonStepId &&
+        !item.insertionTarget.resourceNodeId) continue;
+      if (item.insertionTarget.type === 'class-session' && !input.sessionId) continue;
+      const overlayItem = {
+        packId: pack.id,
+        itemId: item.id,
+        title: item.title,
+        insertionTarget: item.insertionTarget,
+        linkedResource: item.linkedResource,
+        activation: {
+          activatedAt: item.activation.activatedAt,
+          activatedBy: item.activation.activatedBy,
+        },
+      };
+      const runtimeOverlayItem = input.includeAuditRefs ? {
+        ...overlayItem,
+        prepPackId: pack.source.prepPackId,
+        prepPackItemId: item.prepPackItemId,
+        sourceEvidenceRefs: pack.source.sourceEvidenceRefs,
+      } : overlayItem;
+      merged.enhancementOverlays.push(runtimeOverlayItem);
+      attachOverlayItem(merged, item.insertionTarget, runtimeOverlayItem);
+    }
+  }
+
+  return merged;
+}
+
+export function validateCourseEnhancementPack(pack: CourseEnhancementPack): string[] {
+  const errors: string[] = [];
+  if (pack.version !== COURSE_ENHANCEMENT_PACK_VERSION) errors.push('invalid-enhancement-version');
+  if (!pack.id) errors.push('missing-pack-id');
+  if (!pack.teacherId) errors.push('missing-teacher-id');
+  if (!pack.classId) errors.push('missing-class-id');
+  if (!pack.goalId) errors.push('missing-goal-id');
+  if (!pack.lessonId) errors.push('missing-lesson-id');
+  if (!pack.source.prepPackId) errors.push('missing-source-prep-pack');
+  if (!Array.isArray(pack.items) || pack.items.length === 0) errors.push('missing-enhancement-items');
+  for (const item of pack.items) {
+    if (!item.id) errors.push('item-missing-id');
+    if (!item.prepPackItemId) errors.push('item-missing-prep-pack-item-id');
+    if (!item.linkedResource?.nodeId) errors.push('item-missing-linked-resource');
+    if (item.lifecycle.state !== 'approved') errors.push('item-not-approved');
+    if (!item.lifecycle.reviewedBy || !item.lifecycle.reviewedAt) errors.push('item-missing-review-audit');
+    if (!Array.isArray(item.evidenceBasis) || item.evidenceBasis.length === 0) errors.push('item-missing-evidence');
+  }
+  return Array.from(new Set(errors));
+}
+
+export async function persistCourseEnhancementPack(
+  client: CourseEnhancementPackPersistenceClient,
+  pack: CourseEnhancementPack,
+): Promise<CourseEnhancementPack> {
+  const data = courseEnhancementPackPersistenceData(pack);
+  const record = await client.courseEnhancementPack.upsert({
+    where: { sourcePrepPackId: pack.source.prepPackId },
+    create: data.create,
+    update: data.update,
+  });
+  return courseEnhancementPackFromPersistenceRecord(record);
+}
+
+export async function loadCourseEnhancementPack(
+  client: CourseEnhancementPackPersistenceClient,
+  packId: string,
+): Promise<CourseEnhancementPack | null> {
+  const record = await client.courseEnhancementPack.findUnique({ where: { id: packId } });
+  return record ? courseEnhancementPackFromPersistenceRecord(record) : null;
+}
+
+export async function activatePersistedCourseEnhancementPack(input: {
+  client: CourseEnhancementPackPersistenceClient;
+  packId: string;
+  teacherId: string;
+  runtimeContext: CourseEnhancementRuntimeContext;
+  now?: Date;
+}): Promise<CourseEnhancementPack> {
+  const pack = await loadRequiredCourseEnhancementPack(input.client, input.packId);
+  return persistCourseEnhancementPack(input.client, activateCourseEnhancementPack({
+    pack,
+    teacherId: input.teacherId,
+    runtimeContext: input.runtimeContext,
+    now: input.now,
+  }));
+}
+
+export async function rollbackPersistedCourseEnhancementPack(input: {
+  client: CourseEnhancementPackPersistenceClient;
+  packId: string;
+  teacherId: string;
+  reason: string;
+  now?: Date;
+}): Promise<CourseEnhancementPack> {
+  const pack = await loadRequiredCourseEnhancementPack(input.client, input.packId);
+  return persistCourseEnhancementPack(input.client, rollbackCourseEnhancementPack({
+    pack,
+    teacherId: input.teacherId,
+    reason: input.reason,
+    now: input.now,
+  }));
+}
+
+export async function archivePersistedCourseEnhancementPack(input: {
+  client: CourseEnhancementPackPersistenceClient;
+  packId: string;
+  teacherId: string;
+  reason: string;
+  now?: Date;
+}): Promise<CourseEnhancementPack> {
+  const pack = await loadRequiredCourseEnhancementPack(input.client, input.packId);
+  return persistCourseEnhancementPack(input.client, archiveCourseEnhancementPack({
+    pack,
+    teacherId: input.teacherId,
+    reason: input.reason,
+    now: input.now,
+  }));
 }
 
 export function isTeacherPrepPackInsertionEligible(
@@ -648,7 +1191,7 @@ function targetForResource(
     lessonId: input.nextLesson.lessonId,
     lessonStage,
     resourceNodeId: resource.id,
-    lessonStepId: resource.type === 'lesson_step' ? resource.sourceRef : undefined,
+    lessonStepId: resource.type === 'lesson_step' ? normalizeLessonStepId(resource.sourceRef) : undefined,
   };
 }
 
@@ -660,6 +1203,13 @@ function affectedGroupFromCluster(cluster: RoleBasedLearningDiagnosisRootCauseCl
     denominator: cluster.denominator,
     dimensionId: cluster.dimensionId,
   };
+}
+
+function isRuntimeCourseEnhancementTarget(target: TeacherPrepPackInsertionTarget): boolean {
+  return target.type === 'lesson-stage' ||
+    target.type === 'lesson-step' ||
+    target.type === 'resource-node' ||
+    target.type === 'class-session';
 }
 
 function affectedGroupFromMetric(metric: ControlCorrectionReportMetric): TeacherPrepPackAffectedGroup {
@@ -847,6 +1397,211 @@ function containsForbiddenPayload(value: unknown): boolean {
     .test(JSON.stringify(value));
 }
 
+function validateCourseEnhancementInsertionTarget(
+  target: TeacherPrepPackInsertionTarget,
+  context: CourseEnhancementRuntimeContext,
+): string[] {
+  const errors: string[] = [];
+  if (target.lessonId && target.lessonId !== context.lessonId) errors.push('lesson-mismatch');
+  if (target.type === 'lesson-stage') {
+    if (!target.lessonStage || !context.stages.some((stage) => normalizeBopppsStage(stage.stage) === target.lessonStage)) {
+      errors.push('missing-lesson-stage');
+    }
+  } else if (target.type === 'lesson-step') {
+    if (!target.lessonStepId || !lessonStepIdExists(target.lessonStepId, context.lessonStepIds ?? [])) {
+      errors.push('missing-lesson-step');
+    }
+  } else if (target.type === 'resource-node') {
+    if (!target.resourceNodeId || !(context.resourceNodeIds ?? []).includes(target.resourceNodeId)) {
+      errors.push('missing-resource-node');
+    }
+  } else if (target.type === 'class-session') {
+    if (target.classSessionId && !(context.classSessionIds ?? []).includes(target.classSessionId)) {
+      errors.push('missing-class-session');
+    }
+    if (target.lessonStepId && !lessonStepIdExists(target.lessonStepId, context.lessonStepIds ?? [])) {
+      errors.push('missing-lesson-step');
+    }
+    if (target.resourceNodeId && !(context.resourceNodeIds ?? []).includes(target.resourceNodeId)) {
+      errors.push('missing-resource-node');
+    }
+    if (!target.classSessionId && !target.lessonStepId && !target.resourceNodeId) {
+      errors.push('missing-class-session-anchor');
+    }
+  } else {
+    errors.push('unsupported-runtime-target');
+  }
+  return errors;
+}
+
+function assertEnhancementPackActor(actorId: string, ownerTeacherId: string, action: 'create' | 'rollback' | 'archive'): void {
+  if (actorId !== ownerTeacherId) {
+    throw new Error(`unauthorized enhancement pack ${action}`);
+  }
+}
+
+async function loadRequiredCourseEnhancementPack(
+  client: CourseEnhancementPackPersistenceClient,
+  packId: string,
+): Promise<CourseEnhancementPack> {
+  const pack = await loadCourseEnhancementPack(client, packId);
+  if (!pack) {
+    throw new Error(`course enhancement pack not found: ${packId}`);
+  }
+  return pack;
+}
+
+function courseEnhancementPackPersistenceData(pack: CourseEnhancementPack): {
+  create: Parameters<CourseEnhancementPackPersistenceClient['courseEnhancementPack']['upsert']>[0]['create'];
+  update: Parameters<CourseEnhancementPackPersistenceClient['courseEnhancementPack']['upsert']>[0]['update'];
+} {
+  const activatedAt = firstDate(pack.items.map((item) => item.activation.activatedAt));
+  const rolledBackAt = firstDate(pack.items.map((item) => item.activation.rolledBackAt));
+  const archivedAt = pack.status === 'archived'
+    ? firstDate(pack.auditLog.filter((entry) => entry.action === 'archive').map((entry) => entry.at))
+    : null;
+  const source = pack.source as unknown as Prisma.InputJsonValue;
+  const items = pack.items as unknown as Prisma.InputJsonValue;
+  const auditLog = pack.auditLog as unknown as Prisma.InputJsonValue;
+  const teacherFeedback = pack.teacherFeedback as unknown as Prisma.InputJsonValue;
+  return {
+    create: {
+      id: pack.id,
+      teacherId: pack.teacherId,
+      classId: pack.classId,
+      goalId: pack.goalId,
+      lessonId: pack.lessonId,
+      sourcePrepPackId: pack.source.prepPackId,
+      diagnosisSnapshotId: pack.source.diagnosisSnapshotId,
+      status: pack.status,
+      source,
+      items,
+      auditLog,
+      teacherFeedback,
+      activatedAt,
+      rolledBackAt,
+      archivedAt,
+    },
+    update: {
+      status: pack.status,
+      diagnosisSnapshotId: pack.source.diagnosisSnapshotId,
+      source,
+      items,
+      auditLog,
+      teacherFeedback,
+      activatedAt,
+      rolledBackAt,
+      archivedAt,
+    },
+  };
+}
+
+function courseEnhancementPackFromPersistenceRecord(record: CourseEnhancementPackPersistenceRecord): CourseEnhancementPack {
+  const source = isObject(record.source) ? record.source as unknown as CourseEnhancementPack['source'] : {
+    prepPackId: record.sourcePrepPackId,
+    diagnosisSnapshotId: record.diagnosisSnapshotId,
+    sourceEvidenceRefs: [],
+  };
+  return {
+    version: COURSE_ENHANCEMENT_PACK_VERSION,
+    id: record.id,
+    teacherId: record.teacherId,
+    classId: record.classId,
+    goalId: record.goalId,
+    lessonId: record.lessonId,
+    source,
+    status: courseEnhancementPackStatus(record.status),
+    createdAt: record.createdAt.toISOString(),
+    updatedAt: record.updatedAt.toISOString(),
+    items: Array.isArray(record.items) ? record.items as unknown as CourseEnhancementPackItem[] : [],
+    auditLog: Array.isArray(record.auditLog) ? record.auditLog as CourseEnhancementPack['auditLog'] : [],
+    teacherFeedback: Array.isArray(record.teacherFeedback) ? record.teacherFeedback as CourseEnhancementPack['teacherFeedback'] : [],
+  };
+}
+
+function courseEnhancementPackStatus(status: string): CourseEnhancementPackStatus {
+  return status === 'review-ready' || status === 'active' || status === 'rolled-back' || status === 'archived'
+    ? status
+    : 'review-ready';
+}
+
+function firstDate(values: Array<string | null>): Date | null {
+  const value = values.find((entry): entry is string => Boolean(entry));
+  return value ? new Date(value) : null;
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function attachOverlayItem(
+  runtime: { stages?: Array<Record<string, unknown>>; resources?: Array<Record<string, unknown>> },
+  target: TeacherPrepPackInsertionTarget,
+  overlayItem: Record<string, unknown>,
+): void {
+  if (target.type === 'lesson-stage') {
+    const stage = runtime.stages?.find((entry) => normalizeBopppsStage(entry.stage) === target.lessonStage);
+    pushOverlay(stage, overlayItem);
+    return;
+  }
+  if (target.type === 'lesson-step') {
+    const lessonStepId = normalizeLessonStepId(target.lessonStepId);
+    const stage = runtime.stages?.find((entry) => Array.isArray(entry.stepIds) && entry.stepIds.includes(lessonStepId));
+    pushOverlay(stage, overlayItem);
+    return;
+  }
+  if (target.type === 'resource-node') {
+    const resource = runtime.resources?.find((entry) => entry.nodeId === target.resourceNodeId);
+    pushOverlay(resource, overlayItem);
+    return;
+  }
+  if (target.type === 'class-session') {
+    if (target.lessonStepId) {
+      const lessonStepId = normalizeLessonStepId(target.lessonStepId);
+      const stage = runtime.stages?.find((entry) => Array.isArray(entry.stepIds) && entry.stepIds.includes(lessonStepId));
+      pushOverlay(stage, overlayItem);
+    }
+    if (target.resourceNodeId) {
+      const resource = runtime.resources?.find((entry) => entry.nodeId === target.resourceNodeId);
+      pushOverlay(resource, overlayItem);
+    }
+  }
+}
+
+function normalizeLessonStepId(value: string | undefined): string | undefined {
+  if (!value) return value;
+  const parts = value.split(':').filter(Boolean);
+  return parts.at(-1) ?? value;
+}
+
+function normalizeBopppsStage(value: unknown): TeacherPrepPackInsertionTarget['lessonStage'] | undefined {
+  if (typeof value !== 'string') return undefined;
+  const normalized = value.toLowerCase().replaceAll('_', '-');
+  if (normalized === 'participatory') return 'participatory-learning';
+  if (normalized === 'pre-assessment') return 'pre-assessment';
+  if (normalized === 'post-assessment') return 'post-assessment';
+  if (normalized === 'bridge-in') return 'bridge-in';
+  if (normalized === 'objective') return 'objective';
+  if (normalized === 'summary') return 'summary';
+  if (normalized === 'participatory-learning') return 'participatory-learning';
+  return undefined;
+}
+
+function lessonStepIdExists(value: string, knownStepIds: string[]): boolean {
+  const normalized = normalizeLessonStepId(value);
+  return Boolean(normalized && knownStepIds.includes(normalized));
+}
+
+function pushOverlay(target: Record<string, unknown> | undefined, overlayItem: Record<string, unknown>): void {
+  if (!target) return;
+  const current = Array.isArray(target.overlayItems) ? target.overlayItems : [];
+  target.overlayItems = [...current, overlayItem];
+}
+
+function deepClone<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
 function numberValue(value: unknown, fallback = 0): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
@@ -861,6 +1616,14 @@ function confidenceValue(value: unknown): LearningEvidenceConfidence | null {
 
 function dateKey(date: Date): string {
   return date.toISOString().slice(0, 10);
+}
+
+function stableHash(value: string): string {
+  let hash = 5381;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = ((hash << 5) + hash) ^ value.charCodeAt(index);
+  }
+  return (hash >>> 0).toString(36);
 }
 
 function round(value: number): number {

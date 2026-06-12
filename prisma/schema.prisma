@@ -736,6 +736,31 @@ model ClassSession {
   @@index([classId])
 }
 
+// 教师审核后的课程运行时增强包
+model CourseEnhancementPack {
+  id                  String   @id
+  teacherId           String
+  classId             String
+  goalId              String
+  lessonId            String
+  sourcePrepPackId    String   @unique
+  diagnosisSnapshotId String?
+  status              String
+  source              Json     @default("{}")
+  items               Json     @default("[]")
+  auditLog            Json     @default("[]")
+  teacherFeedback     Json     @default("[]")
+  activatedAt         DateTime?
+  rolledBackAt        DateTime?
+  archivedAt          DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([teacherId, status, updatedAt])
+  @@index([classId, lessonId, status])
+  @@index([diagnosisSnapshotId])
+}
+
 enum SessionStatus {
   ACTIVE
   PAUSED
