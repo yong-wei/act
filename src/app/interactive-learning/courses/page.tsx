@@ -1,45 +1,47 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
-import { UnifiedTopBar } from '@/components/shared/unified-top-bar';
+import { InteractiveLearningShell } from '@/features/interactive/interactive-learning-shell';
 import { INTERACTIVE_COURSE_MODULES, PREMIUM_LESSONS } from '@/features/interactive/learning-catalog';
 
 export default function InteractiveCoursesPage() {
   return (
-    <div
-      className="interactive-course-hub-shell"
-      data-commercial-workspace="interactive-learning"
-      data-commercial-student-entry-route="/interactive-learning/courses"
-      data-commercial-entry-intent="learn"
-      data-learning-entry-map="course-module-progression"
+    <InteractiveLearningShell
+      activeHref="/interactive-learning/courses"
+      title="互动课程"
+      subtitle="Interactive Courses"
     >
-      <UnifiedTopBar title="互动课程" backHref="/interactive-learning" backLabel="返回互动学习" subtitle="Interactive Courses" className="pb-2" />
-
-      <main className="mx-auto max-w-[1280px] px-6 py-10">
+      <section
+        className="mx-auto max-w-[1280px] px-6 py-10"
+        data-commercial-workspace="interactive-learning"
+        data-commercial-student-entry-route="/interactive-learning/courses"
+        data-commercial-entry-intent="learn"
+        data-learning-entry-map="course-module-progression"
+      >
         <header
-          className="interactive-course-hub-hero"
+          className="surface-card mb-8 p-6"
           data-entry-current-context="course-catalog"
           data-entry-current-work-priority="recommended-course"
         >
-          <h1 className="interactive-course-hub-title text-3xl font-semibold">互动课程</h1>
-          <p className="interactive-course-hub-muted mt-2 text-sm">
+          <h1 className="text-3xl font-semibold text-foreground">互动课程</h1>
+          <p className="mt-2 text-sm text-subtle">
             优先进入已经建成并可直接学习的课程，再按模块查看完整目录。
           </p>
           <div className="mt-4 grid gap-3 text-xs md:grid-cols-3" data-commercial-entry-intent-map="course-launch">
-            <span className="interactive-course-hub-chip">模块进阶</span>
-            <span className="interactive-course-hub-chip">课程类型</span>
-            <span className="interactive-course-hub-chip">启动动作</span>
+            <span className="rounded-full border border-border/70 px-3 py-1 text-primary">模块进阶</span>
+            <span className="rounded-full border border-border/70 px-3 py-1 text-primary">课程类型</span>
+            <span className="rounded-full border border-border/70 px-3 py-1 text-primary">启动动作</span>
           </div>
         </header>
 
         <div className="space-y-8">
-          <section className="interactive-course-hub-module-shell" data-course-progression-section="premium">
+          <section className="surface-card p-5" data-course-progression-section="premium">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="interactive-course-hub-section-title text-xl font-semibold">精品课程</h2>
-                <p className="interactive-course-hub-muted mt-1 text-sm">优先开放完整教师端/学生端链路的精品互动课。</p>
+                <h2 className="text-xl font-semibold text-foreground">精品课程</h2>
+                <p className="mt-1 text-sm text-subtle">优先开放完整教师端/学生端链路的精品互动课。</p>
               </div>
-              <span className="interactive-course-hub-chip">优先推荐</span>
+              <span className="rounded-full border border-border/70 px-3 py-1 text-xs text-primary">优先推荐</span>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -47,22 +49,22 @@ export default function InteractiveCoursesPage() {
                 <Link
                   key={lesson.id}
                   href={lesson.href}
-                  className="interactive-course-hub-module-card"
+                  className="surface-card-soft group rounded-lg p-5 transition hover:border-primary/40"
                   data-course-entry-card={lesson.id}
                   data-course-entry-action="launch"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex flex-wrap items-center gap-2 text-xs">
-                      <span className="interactive-course-hub-unit-badge">精品先导</span>
-                      <span className="interactive-course-hub-module-badge">{lesson.badge}</span>
+                      <span className="rounded-full bg-primary/10 px-2 py-1 text-primary">精品先导</span>
+                      <span className="rounded-full bg-muted px-2 py-1 text-subtle">{lesson.badge}</span>
                     </div>
-                    <span className="interactive-course-hub-module-meta text-xs">{lesson.duration}</span>
+                    <span className="text-xs text-subtle">{lesson.duration}</span>
                   </div>
 
-                  <h2 className="interactive-course-hub-module-title mt-4 text-lg font-semibold">{lesson.title}</h2>
-                  <p className="interactive-course-hub-module-desc mt-2 text-sm">{lesson.description}</p>
+                  <h2 className="mt-4 text-lg font-semibold text-foreground">{lesson.title}</h2>
+                  <p className="mt-2 text-sm text-subtle">{lesson.description}</p>
 
-                  <div className="interactive-course-hub-link mt-4 inline-flex items-center text-xs">
+                  <div className="mt-4 inline-flex items-center text-xs text-primary">
                     进入课程
                     <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                   </div>
@@ -72,13 +74,13 @@ export default function InteractiveCoursesPage() {
           </section>
 
           {INTERACTIVE_COURSE_MODULES.map((module) => (
-            <section key={module.id} className="interactive-course-hub-module-shell" data-course-progression-section={module.id}>
+            <section key={module.id} className="surface-card p-5" data-course-progression-section={module.id}>
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <h2 className="interactive-course-hub-section-title text-xl font-semibold">{module.title}</h2>
-                  <p className="interactive-course-hub-muted mt-1 text-sm">{module.description}</p>
+                  <h2 className="text-xl font-semibold text-foreground">{module.title}</h2>
+                  <p className="mt-1 text-sm text-subtle">{module.description}</p>
                 </div>
-                <span className="interactive-course-hub-chip">{module.chipLabel}</span>
+                <span className="rounded-full border border-border/70 px-3 py-1 text-xs text-primary">{module.chipLabel}</span>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -86,31 +88,31 @@ export default function InteractiveCoursesPage() {
                   <Link
                     key={lesson.id}
                     href={lesson.href}
-                    className="interactive-course-hub-module-card"
+                    className="surface-card-soft group rounded-lg p-5 transition hover:border-primary/40"
                     data-course-entry-card={lesson.id}
                     data-course-entry-action="launch"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <span className="interactive-course-hub-unit-badge">{lesson.unitLabel}</span>
-                        <span className="interactive-course-hub-module-badge">{lesson.badge}</span>
+                        <span className="rounded-full bg-primary/10 px-2 py-1 text-primary">{lesson.unitLabel}</span>
+                        <span className="rounded-full bg-muted px-2 py-1 text-subtle">{lesson.badge}</span>
                       </div>
-                      <span className="interactive-course-hub-module-meta text-xs">{lesson.duration}</span>
+                      <span className="text-xs text-subtle">{lesson.duration}</span>
                     </div>
 
-                    <h2 className="interactive-course-hub-module-title mt-4 text-lg font-semibold">{lesson.title}</h2>
-                    <p className="interactive-course-hub-module-desc mt-2 text-sm">{lesson.description}</p>
+                    <h2 className="mt-4 text-lg font-semibold text-foreground">{lesson.title}</h2>
+                    <p className="mt-2 text-sm text-subtle">{lesson.description}</p>
 
                     {lesson.legacySourceLabel ? (
                       <p
-                        className="interactive-course-hub-module-note mt-3 text-xs"
+                        className="mt-3 text-xs text-subtle"
                         data-secondary-implementation-links="legacy-source-labels"
                       >
                         {lesson.legacySourceLabel}
                       </p>
                     ) : null}
 
-                    <div className="interactive-course-hub-link mt-4 inline-flex items-center text-xs">
+                    <div className="mt-4 inline-flex items-center text-xs text-primary">
                       进入课程
                       <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                     </div>
@@ -120,7 +122,7 @@ export default function InteractiveCoursesPage() {
             </section>
           ))}
         </div>
-      </main>
-    </div>
+      </section>
+    </InteractiveLearningShell>
   );
 }

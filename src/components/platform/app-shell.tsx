@@ -338,7 +338,7 @@ export function ThemeSwitcher({ className }: { className?: string }) {
   const mounted = themeContext?.mounted ?? false;
   const theme = themeContext?.theme ?? 'light';
   const toggleTheme = themeContext?.toggleTheme ?? (() => {});
-  const isDark = theme === 'dark';
+  const isDark = mounted ? theme === 'dark' : true;
   return (
     <button
       type="button"

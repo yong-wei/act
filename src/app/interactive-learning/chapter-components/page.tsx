@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 
-import { UnifiedTopBar } from '@/components/shared/unified-top-bar';
+import { InteractiveLearningShell } from '@/features/interactive/interactive-learning-shell';
 import {
   CATEGORY_CONFIG,
   CHAPTER_COMPONENT_CATEGORIES,
@@ -48,10 +48,18 @@ export default function ChapterComponentsPage() {
   }, [resources]);
 
   return (
-    <div className="surface-page min-h-screen text-foreground">
-      <UnifiedTopBar title="各章节互动组件" backHref="/interactive-learning" backLabel="返回互动学习" subtitle="Chapter Components" className="pb-2" />
-
-      <main className="mx-auto max-w-[1280px] px-6 py-10">
+    <InteractiveLearningShell
+      activeHref="/interactive-learning/chapter-components"
+      title="各章节互动组件"
+      subtitle="Chapter Components"
+    >
+      <section
+        className="mx-auto max-w-[1280px] px-6 py-10"
+        data-commercial-workspace="interactive-learning"
+        data-commercial-student-entry-route="/interactive-learning/chapter-components"
+        data-commercial-entry-intent="learn"
+        data-learning-entry-map="chapter-component-library"
+      >
         <header className="surface-card mb-8 p-6">
           <h1 className="text-3xl font-semibold">各章节互动组件</h1>
           <p className="mt-2 text-sm text-subtle">先选择章节分类，再进入对应组件列表页。</p>
@@ -89,7 +97,7 @@ export default function ChapterComponentsPage() {
             })}
           </section>
         )}
-      </main>
-    </div>
+      </section>
+    </InteractiveLearningShell>
   );
 }
