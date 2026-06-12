@@ -1,4 +1,13 @@
-export type ReportLedgerSurfaceCategory = 'classroom' | 'arena' | 'learner' | 'governance' | 'data-center';
+export type ReportLedgerSurfaceCategory =
+  | 'classroom'
+  | 'arena'
+  | 'learner'
+  | 'teacher-report'
+  | 'grading'
+  | 'prep-pack'
+  | 'assistant-effect'
+  | 'governance'
+  | 'data-center';
 export type ReportLedgerExportAvailability = 'available' | 'restricted' | 'deferred';
 
 export interface ReportLedgerArchetypeRule {
@@ -45,6 +54,42 @@ export const REPORT_LEDGER_ARCHETYPE_RULES: ReportLedgerArchetypeRule[] = [
     requiredLabels: REPORT_LEDGER_REQUIRED_LABELS,
     exportAvailability: 'restricted',
     readabilityRule: 'Watermark must not obscure learner record, confidence, missing-source, or next-action text.',
+  },
+  {
+    category: 'teacher-report',
+    title: '教师学情报告',
+    watermark: 'low-contrast-brand',
+    privacyScope: 'teacher-review',
+    requiredLabels: REPORT_LEDGER_REQUIRED_LABELS,
+    exportAvailability: 'restricted',
+    readabilityRule: 'Watermark must not obscure class insight, governance coverage, student risk, or intervention status text.',
+  },
+  {
+    category: 'grading',
+    title: '报告评分账本',
+    watermark: 'low-contrast-brand',
+    privacyScope: 'teacher-review',
+    requiredLabels: REPORT_LEDGER_REQUIRED_LABELS,
+    exportAvailability: 'restricted',
+    readabilityRule: 'Watermark must not obscure rubric criteria, draft status, citation anchors, or approval actions.',
+  },
+  {
+    category: 'prep-pack',
+    title: '备课包复核账本',
+    watermark: 'low-contrast-brand',
+    privacyScope: 'teacher-review',
+    requiredLabels: REPORT_LEDGER_REQUIRED_LABELS,
+    exportAvailability: 'deferred',
+    readabilityRule: 'Watermark must stay behind prep-pack readiness, review state, source labels, and rollback actions.',
+  },
+  {
+    category: 'assistant-effect',
+    title: '助手效果报告',
+    watermark: 'low-contrast-brand',
+    privacyScope: 'teacher-review',
+    requiredLabels: REPORT_LEDGER_REQUIRED_LABELS,
+    exportAvailability: 'available',
+    readabilityRule: 'Watermark must not obscure deterministic seed, reset status, effect metrics, or export readiness.',
   },
   {
     category: 'governance',

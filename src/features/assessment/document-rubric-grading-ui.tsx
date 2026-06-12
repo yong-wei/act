@@ -7,8 +7,15 @@ import { DocumentGradingApprovalButton } from './document-rubric-grading-actions
 
 export function TeacherDocumentGradingWorkbench({ view }: { view: TeacherGradingWorkbenchView }) {
   return (
-    <main className="surface-page" data-intelligent-teaching-assistant-demo-surface="document-grading-workbench">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-6 py-8">
+    <main
+      className="surface-page"
+      data-intelligent-teaching-assistant-demo-surface="document-grading-workbench"
+      data-report-ledger-surface="document-grading-workbench-ledger"
+      data-report-ledger-watermark="low-contrast-brand"
+      data-report-ledger-privacy-scope="teacher-review"
+      data-report-ledger-export="restricted"
+    >
+      <div className="mx-auto box-border flex w-full max-w-7xl flex-col gap-6 px-6 py-8">
         <header className="flex flex-col gap-3 border-b border-border pb-5">
           <p className="text-xs uppercase tracking-[0.18em] text-primary">Document grading</p>
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -22,26 +29,32 @@ export function TeacherDocumentGradingWorkbench({ view }: { view: TeacherGrading
               {view.conversion.adapter} · {view.conversion.status} · {view.conversion.referencePrecision}
             </div>
           </div>
+          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <span className="rounded border border-border px-2 py-1">来源质量：{view.conversion.status}</span>
+            <span className="rounded border border-border px-2 py-1">隐私范围：教师复核</span>
+            <span className="rounded border border-border px-2 py-1">状态图例：草稿需人工审批</span>
+            <span className="rounded border border-border px-2 py-1">导出：受限脱敏</span>
+          </div>
         </header>
 
-        <section className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="rounded border border-border bg-card/75 p-5">
+        <section className="grid min-w-0 gap-5 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="min-w-0 rounded border border-border bg-card/75 p-5">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-medium">转换预览</h2>
               <span className="text-sm text-muted-foreground">confidence {view.conversion.confidence}</span>
             </div>
-            <pre className="mt-4 max-h-[520px] overflow-auto whitespace-pre-wrap rounded bg-background p-4 text-sm leading-7 text-foreground">
+            <pre className="mt-4 max-h-[520px] overflow-auto whitespace-pre-wrap break-words rounded bg-background p-4 text-sm leading-7 text-foreground">
               {view.preview.markdown}
             </pre>
             {view.conversion.warnings.length > 0 ? (
-              <div className="mt-4 rounded border border-primary/40 bg-primary/10 p-3 text-sm text-primary">
+              <div className="mt-4 break-words rounded border border-primary/40 bg-primary/10 p-3 text-sm text-primary">
                 {view.conversion.warnings.join(' / ')}
               </div>
             ) : null}
           </div>
 
-          <div className="flex flex-col gap-5">
-            <section className="rounded border border-border bg-card/75 p-5">
+          <div className="flex min-w-0 flex-col gap-5">
+            <section className="min-w-0 rounded border border-border bg-card/75 p-5">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-medium">评分量规</h2>
                 <span className="text-sm text-muted-foreground">
@@ -50,9 +63,9 @@ export function TeacherDocumentGradingWorkbench({ view }: { view: TeacherGrading
               </div>
               <div className="mt-4 space-y-3">
                 {view.rubricTree.map((criterion) => (
-                  <article key={criterion.criterionId} className="rounded border border-border p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
+                  <article key={criterion.criterionId} className="min-w-0 rounded border border-border p-4">
+                    <div className="flex min-w-0 items-start justify-between gap-3">
+                      <div className="min-w-0">
                         <h3 className="font-medium">{criterion.label}</h3>
                         <p className="mt-1 text-sm text-muted-foreground">
                           {criterion.selectedLevelId ?? 'pending'} · evidence {criterion.evidenceCount}
@@ -65,18 +78,18 @@ export function TeacherDocumentGradingWorkbench({ view }: { view: TeacherGrading
               </div>
             </section>
 
-            <section className="rounded border border-border bg-card/75 p-5">
+            <section className="min-w-0 rounded border border-border bg-card/75 p-5">
               <h2 className="text-lg font-medium">注释与锚点</h2>
               <div className="mt-4 space-y-3">
                 {view.annotations.map((annotation) => (
-                  <article key={annotation.id} className="rounded border border-border p-4">
+                  <article key={annotation.id} className="min-w-0 rounded border border-border p-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="font-medium">{annotation.criterionId}</p>
                       <span className="rounded border border-border px-2 py-1 text-xs text-muted-foreground">
                         {annotation.authorRole} · {annotation.reference.precision}
                       </span>
                     </div>
-                    <p className="mt-2 text-sm text-muted-foreground">{annotation.comment}</p>
+                    <p className="mt-2 break-words text-sm text-muted-foreground">{annotation.comment}</p>
                     <p className="mt-2 text-xs text-primary">
                       {annotation.reference.pageNumber ? `P${annotation.reference.pageNumber}` : 'page pending'} · {annotation.reference.blockId}
                     </p>
@@ -85,7 +98,7 @@ export function TeacherDocumentGradingWorkbench({ view }: { view: TeacherGrading
               </div>
             </section>
 
-            <section className="rounded border border-border bg-card/75 p-5">
+            <section className="min-w-0 rounded border border-border bg-card/75 p-5">
               <h2 className="text-lg font-medium">审批动作</h2>
               <div className="mt-4 flex flex-wrap gap-2">
                 {view.actions.map((action) => (
@@ -98,8 +111,8 @@ export function TeacherDocumentGradingWorkbench({ view }: { view: TeacherGrading
                   )
                 ))}
               </div>
-              <div className="mt-4 flex items-center justify-between gap-3 rounded border border-border bg-background px-3 py-2">
-                <p className="text-sm text-muted-foreground">{view.konlingEntryPoint.promptContext}</p>
+              <div className="mt-4 flex flex-col gap-3 rounded border border-border bg-background px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="min-w-0 break-words text-sm text-muted-foreground">{view.konlingEntryPoint.promptContext}</p>
                 <KonlingEntryPointButton entryPoint={view.konlingEntryPoint} label="打开批改助手" />
               </div>
             </section>
@@ -112,12 +125,26 @@ export function TeacherDocumentGradingWorkbench({ view }: { view: TeacherGrading
 
 export function TeacherDocumentGradingEmptyState() {
   return (
-    <main className="surface-page" data-intelligent-teaching-assistant-demo-surface="document-grading-workbench">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8">
+    <main
+      className="surface-page"
+      data-intelligent-teaching-assistant-demo-surface="document-grading-workbench"
+      data-report-ledger-surface="document-grading-workbench-ledger"
+      data-report-ledger-watermark="low-contrast-brand"
+      data-report-ledger-privacy-scope="teacher-review"
+      data-report-ledger-export="restricted"
+      data-operations-status-semantics="empty"
+    >
+      <div className="mx-auto box-border flex w-full max-w-5xl flex-col gap-6 px-6 py-8">
         <header className="border-b border-border pb-5">
           <p className="text-xs uppercase tracking-[0.18em] text-primary">Document grading</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">报告评分工作台</h1>
           <p className="mt-2 text-sm text-muted-foreground">当前没有打开的文档评分草稿。</p>
+          <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <span className="rounded border border-border px-2 py-1">来源质量：无打开草稿</span>
+            <span className="rounded border border-border px-2 py-1">隐私范围：教师复核</span>
+            <span className="rounded border border-border px-2 py-1">状态图例：等待选择</span>
+            <span className="rounded border border-border px-2 py-1">导出：受限脱敏</span>
+          </div>
         </header>
         <section className="rounded border border-border bg-card/75 p-6 text-muted-foreground">
           请选择已转换的学生提交，或通过评分草稿标识进入审批工作台。

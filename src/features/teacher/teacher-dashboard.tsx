@@ -255,6 +255,12 @@ export function TeacherDashboard({
         className="surface-card mb-8 p-6"
         data-operations-analytics-slot-region="future-analytics"
         data-operations-status-semantics="feature-flagged"
+        data-report-ledger-surface="teacher-prep-pack-review-slot"
+        data-report-ledger-watermark="low-contrast-brand"
+        data-report-ledger-privacy-scope="teacher-review"
+        data-report-ledger-export="deferred"
+        data-operations-overlay-lifecycle="preview review activate archive rollback"
+        data-operations-mutates-base-manifest="false"
       >
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -297,6 +303,40 @@ export function TeacherDashboard({
               </div>
             );
           })}
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2 text-xs text-subtle">
+          {['预览', '复核', '激活', '归档', '回滚'].map((action) => (
+            <span key={action} className="rounded-md border border-border px-2 py-1">
+              {action}
+            </span>
+          ))}
+          <span className="rounded-md border border-border px-2 py-1">不修改基础 manifest</span>
+        </div>
+      </section>
+
+      <section
+        className="surface-card mb-8 p-6"
+        data-report-ledger-surface="assistant-effect-report-export"
+        data-report-ledger-watermark="low-contrast-brand"
+        data-report-ledger-privacy-scope="teacher-review"
+        data-report-ledger-export="available"
+        data-operations-unavailable-slot="assistant-effect-report"
+        data-operations-unavailable-state="feature-flagged"
+        data-operations-fabricates-metrics="false"
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-sm font-medium text-subtle">助手效果报告槽位</p>
+            <h3 className="mt-2 text-lg font-semibold text-foreground">等待确定性种子、重置和效果指标接入</h3>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-subtle">
+              这里只声明报告账本位置、隐私边界和导出语义；未接入真实闭环数据前不展示节省时间、提分或命中率等效果指标。
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs text-subtle">
+            <span className="rounded-md border border-border px-2 py-1">来源质量：待接入</span>
+            <span className="rounded-md border border-border px-2 py-1">状态图例：feature-flagged</span>
+            <span className="rounded-md border border-border px-2 py-1">导出：仅确定性报告</span>
+          </div>
         </div>
       </section>
 

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-import { createElement } from 'react';
+import { createElement, type ComponentType, type ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
@@ -92,13 +92,17 @@ function collectElementsByDataAttribute(element: unknown, attribute: string, val
 }
 
 function renderAppShellMarkup(props: Parameters<typeof AppShell>[0]) {
+  const OptionalChildrenThemeProvider = ThemeProvider as ComponentType<{
+    children?: ReactNode;
+    defaultTheme?: 'light' | 'dark' | 'system';
+  }>;
+
   return renderToStaticMarkup(
-    createElement(ThemeProvider, {
-      defaultTheme: 'light',
-      children: createElement(PageFloatingControlsProvider, {
-        children: createElement(AppShell, props),
-      }),
-    }),
+    createElement(
+      OptionalChildrenThemeProvider,
+      { defaultTheme: 'light' },
+      createElement(PageFloatingControlsProvider, null, createElement(AppShell, props)),
+    ),
   );
 }
 
@@ -365,6 +369,8 @@ describe('platform UI contracts', () => {
     const teacherLayoutSource = readSource('src/app/teacher/layout.tsx');
     const teacherOperationsNavSource = readSource('src/features/teacher/teacher-operations-nav.tsx');
     const teacherDashboardSource = readSource('src/features/teacher/teacher-dashboard.tsx');
+    const teacherGradingSource = readSource('src/features/assessment/document-rubric-grading-ui.tsx');
+    const teacherGradingPageSource = readSource('src/app/teacher/grading-workbench/page.tsx');
     const teacherClassesSource = readSource('src/app/teacher/classes/page.tsx');
     const teacherLessonPlansSource = readSource('src/app/teacher/lesson-plans/page.tsx');
     const teacherResourcesSource = readSource('src/app/teacher/resources/page.tsx');
@@ -392,6 +398,7 @@ describe('platform UI contracts', () => {
     expect(unit41StudentRuntimeSource).toContain('data-task-workspace-archetype="lesson-runtime"');
     expect(manifestRuntimeSource).toContain('data-commercial-module-state');
     expect(teacherAnalyticsSource).toContain('data-commercial-operations-workspace="teacher-operations"');
+    expect(teacherAnalyticsSource).toContain('data-report-ledger-surface="teacher-class-analytics-report"');
     expect(teacherLayoutSource).toContain('TeacherOperationsNav');
     expect(teacherOperationsNavSource).toContain('TEACHER_OPERATIONS_NAVIGATION');
     expect(teacherOperationsNavSource).toContain('data-teacher-operations-continuous-nav');
@@ -407,6 +414,16 @@ describe('platform UI contracts', () => {
     expect(teacherDashboardSource).toContain('TEACHER_OPERATIONS_ANALYTICS_SLOTS');
     expect(teacherDashboardSource).toContain('data-operations-unavailable-slot');
     expect(teacherDashboardSource).toContain('data-operations-fabricates-metrics={String(unavailableSlot.fabricatesMetrics)}');
+    expect(teacherDashboardSource).toContain('data-report-ledger-surface="teacher-prep-pack-review-slot"');
+    expect(teacherDashboardSource).toContain('data-operations-overlay-lifecycle="preview review activate archive rollback"');
+    expect(teacherDashboardSource).toContain('data-operations-mutates-base-manifest="false"');
+    expect(teacherDashboardSource).toContain('不修改基础 manifest');
+    expect(teacherDashboardSource).toContain('data-report-ledger-surface="assistant-effect-report-export"');
+    expect(teacherGradingSource).toContain('data-report-ledger-surface="document-grading-workbench-ledger"');
+    expect(teacherGradingSource).toContain('data-report-ledger-privacy-scope="teacher-review"');
+    expect(teacherGradingSource).toContain('状态图例：草稿需人工审批');
+    expect(teacherGradingPageSource).toContain('session.user.role !== UserRole.TEACHER');
+    expect(teacherGradingPageSource).not.toContain('session.user.role !== UserRole.ADMIN');
     expect(teacherClassesSource).toContain('data-commercial-operations-workspace="teacher-operations"');
     expect(teacherLessonPlansSource).toContain('data-commercial-operations-workspace="teacher-operations"');
     expect(teacherResourcesSource).toContain('data-commercial-operations-workspace="teacher-operations"');
@@ -426,6 +443,8 @@ describe('platform UI contracts', () => {
     expect(adminHomeSource).toContain('ADMIN_OPERATIONS_CONSOLE_DOMAINS');
     expect(adminHomeSource).toContain('data-admin-operations-future-domains');
     expect(adminGovernanceSource).toContain('data-commercial-operations-workspace="admin-operations"');
+    expect(adminGovernanceSource).toContain('data-report-ledger-surface="governance-data-quality-snapshot"');
+    expect(adminGovernanceSource).toContain('data-report-ledger-privacy-scope="admin-governance"');
   });
 
   it('keeps teacher operations navigation bound to the current class context', () => {
