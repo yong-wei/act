@@ -21,6 +21,31 @@ interface AssistantDemoMethodology {
   sourceCoverage: { covered: number; total: number };
 }
 
+export interface AssistantDemoEffectMetric {
+  id: 'gradingTimeSaved' | 'teacherEditRate' | 'pathAdoption' | 'secondAttemptImprovement' | 'userFeedbackQuality';
+  label: string;
+  value: number;
+  unit: 'minutes' | 'rate' | 'score';
+  definition: string;
+  numerator: string;
+  denominator: string;
+  sourceWindow: string;
+  sourceReferences: string[];
+  exclusions: string[];
+  caveats: string[];
+  synthetic: true;
+}
+
+export interface AssistantDemoEffectReportExport {
+  id: string;
+  classId: string;
+  goalId: string;
+  generatedAt: string;
+  syntheticOnly: true;
+  metrics: AssistantDemoEffectMetric[];
+  export: { id: string; redacted: true; route: string; omits: string[] };
+}
+
 export interface IntelligentTeachingAssistantDemoPackage {
   version: 'intelligent-teaching-assistant-demo-package.v1';
   fixtureScope: {
@@ -90,6 +115,14 @@ export interface IntelligentTeachingAssistantDemoPackage {
     citations: AssistantDemoCitation[];
     redactedExport: true;
   }>;
+  documentWorkflow: {
+    conversions: Array<{ id: string; documentId: string; status: 'converted'; redacted: true; sourceReference: string }>;
+    teacherApprovals: Array<{ id: string; gradingRunId: string; teacherId: string; status: 'approved'; evidenceSourceEventIds: string[] }>;
+    writebackPreviews: Array<{ id: string; gradingRunId: string; target: 'learning-fact-preview'; createsFacts: number; committed: false }>;
+  };
+  diagnosisSnapshots: Array<{ id: string; diagnosisViewId: string; refreshedAt: string; evidenceRefs: string[]; redacted: true }>;
+  pathOptions: Array<{ id: string; pathPlanId: string; optionType: 'selected' | 'alternative'; nodeIds: string[]; evidenceRefs: string[] }>;
+  konlingCitations: Array<{ id: string; sessionId: string; citationId: string; sourceFamily: string; redacted: true }>;
   teacherReports: Array<{
     id: string;
     classId: string;
@@ -104,6 +137,25 @@ export interface IntelligentTeachingAssistantDemoPackage {
     reviewItems: string[];
     citations: AssistantDemoCitation[];
     serverContextSigned: true;
+  }>;
+  prepPackOverlays: Array<{
+    id: string;
+    sourcePrepPackId: string;
+    status: 'active';
+    activatedByTeacherId: string;
+    activatedAt: string;
+    baseManifestMutated: false;
+    evidenceRefs: string[];
+  }>;
+  effectReports: AssistantDemoEffectReportExport[];
+  realEvidenceImports: Array<{
+    id: string;
+    status: 'pending-review' | 'available';
+    sourceFamily: string;
+    consentOrAuthorizationRef: string;
+    privacyReviewRef: string;
+    separatedFromSyntheticFixtures: boolean;
+    importedAt: string;
   }>;
   konlingSessions: Array<{
     id: string;
@@ -210,6 +262,32 @@ export const INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE: IntelligentTeachingAss
     { id: 'grading-alpha-draft', teacherId: 'demo-teacher-ita', studentId: 'demo-ita-student-alpha', documentId: 'doc-alpha-control-report', status: 'draft', rubricVersion: 'rubric-control-report.v1', feedbackVisible: true, citations: [demoCitations.grading], redactedExport: true },
     { id: 'grading-beta-approved', teacherId: 'demo-teacher-ita', studentId: 'demo-ita-student-beta', documentId: 'doc-beta-control-report', status: 'approved', rubricVersion: 'rubric-control-report.v1', feedbackVisible: true, citations: [demoCitations.grading, demoCitations.feedback], redactedExport: true },
   ],
+  documentWorkflow: {
+    conversions: [
+      { id: 'conversion-doc-alpha-control-report', documentId: 'doc-alpha-control-report', status: 'converted', redacted: true, sourceReference: 'submission:doc-alpha-control-report' },
+      { id: 'conversion-doc-beta-control-report', documentId: 'doc-beta-control-report', status: 'converted', redacted: true, sourceReference: 'submission:doc-beta-control-report' },
+    ],
+    teacherApprovals: [
+      { id: 'approval-grading-beta-approved', gradingRunId: 'grading-beta-approved', teacherId: 'demo-teacher-ita', status: 'approved', evidenceSourceEventIds: ['event-grading-beta-approved'] },
+    ],
+    writebackPreviews: [
+      { id: 'writeback-preview-grading-alpha-draft', gradingRunId: 'grading-alpha-draft', target: 'learning-fact-preview', createsFacts: 1, committed: false },
+    ],
+  },
+  diagnosisSnapshots: [
+    { id: 'snapshot-diagnosis-alpha', diagnosisViewId: 'diagnosis-alpha', refreshedAt: '2026-06-05T09:20:00.000Z', evidenceRefs: ['evidence-alpha-path', 'evidence-alpha-simulation'], redacted: true },
+    { id: 'snapshot-diagnosis-class', diagnosisViewId: 'diagnosis-class', refreshedAt: '2026-06-05T09:25:00.000Z', evidenceRefs: ['evidence-class-report'], redacted: true },
+  ],
+  pathOptions: [
+    { id: 'path-option-alpha-selected', pathPlanId: 'path-alpha-main', optionType: 'selected', nodeIds: ['simulation:control-correction-step-response-lab'], evidenceRefs: ['evidence-alpha-simulation'] },
+    { id: 'path-option-alpha-alternative', pathPlanId: 'path-alpha-main', optionType: 'alternative', nodeIds: ['knowledge-card:control-correction-time-domain-targets'], evidenceRefs: ['evidence-alpha-path'] },
+    { id: 'path-option-beta-selected', pathPlanId: 'path-beta-feedback', optionType: 'selected', nodeIds: ['document-feedback:rubric-control-report'], evidenceRefs: ['evidence-beta-feedback'] },
+  ],
+  konlingCitations: [
+    { id: 'konling-citation-diagnosis', sessionId: 'konling-diagnosis', citationId: 'cit-diagnosis-alpha', sourceFamily: 'role-based-learning-diagnosis', redacted: true },
+    { id: 'konling-citation-path', sessionId: 'konling-path', citationId: 'cit-path-alpha', sourceFamily: 'adaptive-learning-path-planning', redacted: true },
+    { id: 'konling-citation-prep', sessionId: 'konling-prep', citationId: 'cit-prep-pack', sourceFamily: 'teacher-prep-pack', redacted: true },
+  ],
   teacherReports: [{
     id: 'teacher-report-demo-ita',
     classId: 'demo-ita-class',
@@ -223,6 +301,25 @@ export const INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE: IntelligentTeachingAss
   prepPacks: [
     { id: 'prep-pack-demo-ita', teacherId: 'demo-teacher-ita', classId: 'demo-ita-class', status: 'review-ready', reviewItems: ['diagnosis-summary', 'path-risk', 'grading-pattern', 'resource-plan'], citations: [demoCitations.prep, demoCitations.report], serverContextSigned: true },
   ],
+  prepPackOverlays: [
+    { id: 'overlay-prep-pack-demo-ita', sourcePrepPackId: 'prep-pack-demo-ita', status: 'active', activatedByTeacherId: 'demo-teacher-ita', activatedAt: '2026-06-05T10:30:00.000Z', baseManifestMutated: false, evidenceRefs: ['cit-prep-pack', 'cit-report-class'] },
+  ],
+  effectReports: [{
+    id: 'effect-report-demo-ita',
+    classId: 'demo-ita-class',
+    goalId: 'control-correction',
+    generatedAt: '2026-06-05T18:00:00.000Z',
+    syntheticOnly: true,
+    metrics: [
+      { id: 'gradingTimeSaved', label: '批改节省时间', value: 18, unit: 'minutes', definition: 'Synthetic minutes saved between manual rubric pass and assistant draft review.', numerator: '36 synthetic manual grading minutes minus 18 assistant-assisted review minutes', denominator: '2 synthetic grading runs', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['grading-alpha-draft', 'grading-beta-approved'], exclusions: ['No real teacher time claim is made.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
+      { id: 'teacherEditRate', label: '教师修改率', value: 0.25, unit: 'rate', definition: 'Share of assistant draft rubric fields edited by the teacher before approval.', numerator: '1 edited rubric field', denominator: '4 reviewed rubric fields', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['approval-grading-beta-approved'], exclusions: ['Drafts without teacher review are excluded.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
+      { id: 'pathAdoption', label: '学习路径采纳率', value: 0.67, unit: 'rate', definition: 'Share of roster learners with a selected assistant path and execution evidence.', numerator: '2 learners with selected path execution context', denominator: '3 synthetic roster learners', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['path-alpha-main', 'path-beta-feedback', 'execution-alpha-resource'], exclusions: ['Students with diagnosis only are excluded from adoption numerator.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
+      { id: 'secondAttemptImprovement', label: '二次尝试提升', value: 0.16, unit: 'score', definition: 'Synthetic Arena/simulation improvement between first and second controlled attempts.', numerator: '0.74 second-attempt score minus 0.58 first-attempt score', denominator: '1 paired synthetic attempt sequence', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['evidence-alpha-simulation'], exclusions: ['Unpaired official evaluation details are excluded.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
+      { id: 'userFeedbackQuality', label: '用户反馈质量', value: 0.8, unit: 'score', definition: 'Synthetic feedback rubric score for usefulness and citation clarity.', numerator: '4 positive rubric points', denominator: '5 possible feedback quality points', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['feedback-grading-beta-approved', 'cit-feedback-alpha'], exclusions: ['Unreviewed free-text comments are excluded.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
+    ],
+    export: { id: 'effect-report-demo-ita-export', redacted: true, route: '/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true', omits: ['raw answer bodies', 'private memory', 'hidden Arena internals', 'raw traces', 'plaintext secrets'] },
+  }],
+  realEvidenceImports: [],
   konlingSessions: [
     { id: 'konling-diagnosis', modeId: 'diagnosis-explainer', actorRole: 'student', contextOwner: 'student', citations: [demoCitations.diagnosis], unavailableStateCovered: true },
     { id: 'konling-path', modeId: 'path-advisor', actorRole: 'student', contextOwner: 'student', citations: [demoCitations.path], unavailableStateCovered: true },
@@ -247,6 +344,7 @@ export const INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE: IntelligentTeachingAss
     { method: 'POST', path: '/api/teacher/document-grading/approve', asserts: ['grading approval response', 'document rubric payload'], actorRole: 'teacher' },
     { method: 'POST', path: '/api/ai/chat', asserts: ['mode runtime contract', 'citation guard'], actorRole: 'mode' },
     { method: 'GET', path: '/api/teacher/classes/demo-ita-class/control-correction-report?export=true', asserts: ['redacted export', 'metric methodology'], actorRole: 'teacher' },
+    { method: 'GET', path: '/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true', asserts: ['effect report metrics', 'synthetic caveats'], actorRole: 'teacher' },
     { method: 'GET', path: '/api/teacher/classes/demo-ita-class/insights', asserts: ['class insights payload', 'student roster evidence'], actorRole: 'teacher' },
     { method: 'GET', path: '/api/teacher/classes/demo-ita-class/heatmap', asserts: ['class heatmap payload', 'competency matrix'], actorRole: 'teacher' },
     { method: 'GET', path: '/api/teacher/classes/demo-ita-class/students/demo-ita-student-beta/insights', asserts: ['student insights payload', 'individual evidence summary'], actorRole: 'teacher' },
@@ -289,6 +387,7 @@ const REQUIRED_APIS = new Set([
   '/api/teacher/document-grading/approve',
   '/api/ai/chat',
   '/api/teacher/classes/demo-ita-class/control-correction-report?export=true',
+  '/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true',
   '/api/teacher/classes/demo-ita-class/insights',
   '/api/teacher/classes/demo-ita-class/heatmap',
   '/api/teacher/classes/demo-ita-class/students/demo-ita-student-beta/insights',
@@ -299,17 +398,27 @@ const REQUIRED_INSTALL_RECORD_TYPES = new Set([
   'citation',
   'class',
   'diagnosis-view',
+  'diagnosis-snapshot',
+  'document-conversion',
   'goal',
+  'effect-report-export',
+  'effect-report-metric',
   'grading-run',
+  'konling-citation',
   'konling-session',
   'learner-state-slice',
   'path-plan',
+  'path-option',
   'prep-pack',
+  'prep-pack-overlay',
   'resource-execution',
   'student',
+  'student-feedback',
   'teacher-report',
   'teacher-report-export',
   'teacher-report-metric',
+  'teacher-approval',
+  'writeback-preview',
 ]);
 const FORBIDDEN_PATTERNS = [
   /(?:^|[\s:"'])sk-[a-z0-9_-]{8,}/i,
@@ -324,7 +433,7 @@ const DEMO_PACKAGE_ID = 'intelligent-teaching-assistant';
 
 function collectPrivacyScanText(value: unknown, path: string[] = []): string[] {
   if (value === null || value === undefined) return [];
-  if (path.length >= 4 && path[0] === 'teacherReports' && path[2] === 'export' && path[3] === 'omits') return [];
+  if (path.length >= 2 && path[path.length - 2] === 'omits' && path.includes('export')) return [];
   if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return [`${path.join('.')}:${String(value)}`];
   if (Array.isArray(value)) return value.flatMap((item, index) => collectPrivacyScanText(item, [...path, String(index)]));
   if (typeof value === 'object') return Object.entries(value as Record<string, unknown>).flatMap(([key, item]) => collectPrivacyScanText(item, [...path, key]));
@@ -345,6 +454,29 @@ function expectedMetricValue(pkg: IntelligentTeachingAssistantDemoPackage, metri
     return [...REQUIRED_MODES].filter((mode) => modes.has(mode)).length / REQUIRED_MODES.size;
   }
   return null;
+}
+
+function isCompleteEffectMetric(metric: AssistantDemoEffectMetric): boolean {
+  return Boolean(
+    metric.definition &&
+    metric.numerator &&
+    metric.denominator &&
+    metric.sourceWindow &&
+    metric.sourceReferences.length > 0 &&
+    metric.exclusions.length > 0 &&
+    metric.caveats.length > 0 &&
+    metric.synthetic,
+  );
+}
+
+export function buildIntelligentTeachingAssistantEffectReportExport(
+  pkg: IntelligentTeachingAssistantDemoPackage = INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE,
+): AssistantDemoEffectReportExport {
+  const report = pkg.effectReports[0];
+  if (!report) {
+    throw new Error('Intelligent teaching assistant demo package does not define an effect report export.');
+  }
+  return report;
 }
 
 export function installIntelligentTeachingAssistantDemoFixtures(
@@ -382,12 +514,23 @@ export function installIntelligentTeachingAssistantDemoFixtures(
       visible: run.feedbackVisible,
       citations: run.citations,
     })),
+    ...pkg.documentWorkflow.conversions.map((conversion) => demoRecord('document-conversion', conversion.id, scope, conversion)),
+    ...pkg.documentWorkflow.teacherApprovals.map((approval) => demoRecord('teacher-approval', approval.id, scope, approval)),
+    ...pkg.documentWorkflow.writebackPreviews.map((preview) => demoRecord('writeback-preview', preview.id, scope, preview)),
+    ...pkg.diagnosisSnapshots.map((snapshot) => demoRecord('diagnosis-snapshot', snapshot.id, scope, snapshot)),
+    ...pkg.pathOptions.map((option) => demoRecord('path-option', option.id, scope, option)),
+    ...pkg.konlingCitations.map((citation) => demoRecord('konling-citation', citation.id, scope, citation)),
     ...pkg.teacherReports.flatMap((report) => [
       demoRecord('teacher-report', report.id, scope, report),
       demoRecord('teacher-report-export', report.export.id, scope, report.export),
       ...report.metrics.map((metric) => demoRecord('teacher-report-metric', metric.id, scope, metric)),
     ]),
     ...pkg.prepPacks.map((pack) => demoRecord('prep-pack', pack.id, scope, pack)),
+    ...pkg.prepPackOverlays.map((overlay) => demoRecord('prep-pack-overlay', overlay.id, scope, overlay)),
+    ...pkg.effectReports.flatMap((report) => [
+      demoRecord('effect-report-export', report.export.id, scope, report.export),
+      ...report.metrics.map((metric) => demoRecord('effect-report-metric', metric.id, scope, metric)),
+    ]),
     ...pkg.konlingSessions.map((session) => demoRecord('konling-session', session.id, scope, session)),
   ].sort((left, right) => left.type.localeCompare(right.type) || left.id.localeCompare(right.id));
   const retained = currentState.records.filter((record) => !isDemoOwnedRecord(record, scope));
@@ -462,12 +605,31 @@ export function validateIntelligentTeachingAssistantDemoPackage(
   add(pkg.citationRecords.length >= Object.keys(demoCitations).length && pkg.citationRecords.every((citation) => REVIEWABLE_HREFS.has(citation.href)), 'independent citation records must point to reviewable demo routes');
   add(pkg.resourceExecutions.every((execution) => execution.konlingMode === 'resource-coach' && execution.evidenceRef), 'resource executions require resource-coach context and evidence refs');
   add(pkg.gradingRuns.every((run) => run.feedbackVisible && run.citations.length > 0 && run.redactedExport), 'grading runs require visible feedback, citations, and redacted exports');
+  add(pkg.documentWorkflow.conversions.every((conversion) => pkg.gradingRuns.some((run) => run.documentId === conversion.documentId) && conversion.redacted), 'document conversions require redacted source submissions');
+  add(pkg.documentWorkflow.teacherApprovals.every((approval) => pkg.gradingRuns.some((run) => run.id === approval.gradingRunId) && approval.status === 'approved' && approval.evidenceSourceEventIds.length > 0), 'teacher approvals require approved grading runs and evidence source events');
+  add(pkg.documentWorkflow.writebackPreviews.every((preview) => pkg.gradingRuns.some((run) => run.id === preview.gradingRunId) && preview.target === 'learning-fact-preview' && preview.createsFacts > 0 && preview.committed === false), 'writeback previews must describe uncommitted learning-fact effects');
+  add(pkg.diagnosisSnapshots.every((snapshot) => pkg.diagnosisViews.some((view) => view.id === snapshot.diagnosisViewId) && snapshot.redacted && snapshot.evidenceRefs.length > 0), 'diagnosis snapshots require refreshed redacted evidence');
+  add(pkg.pathOptions.every((option) => pkg.pathPlans.some((path) => path.id === option.pathPlanId) && option.nodeIds.length > 0 && option.evidenceRefs.length > 0), 'path options require linked path plans, nodes, and evidence refs');
+  add(pkg.konlingCitations.every((citation) => pkg.konlingSessions.some((session) => session.id === citation.sessionId) && pkg.citationRecords.some((record) => record.id === citation.citationId) && citation.redacted), 'Konling citation records must link sessions to redacted reviewable citations');
   add(pkg.teacherReports.every((report) => report.export.redacted && REQUIRED_OMISSIONS.every((omission) => report.export.omits.includes(omission))), 'teacher exports must omit restricted payload classes');
   add(pkg.teacherReports.every((report) => report.metrics.every((metric) => {
     const expected = expectedMetricValue(pkg, metric.id);
     return metric.methodology.numerator && metric.methodology.denominator && metric.methodology.window && metric.methodology.sourceFamily && metric.methodology.sourceCoverage.covered > 0 && (expected === null || Math.abs(metric.value - expected) < 0.000001);
   })), 'teacher report metrics require methodology and recomputable values');
   add(pkg.prepPacks.every((pack) => pack.serverContextSigned && pack.reviewItems.length > 0 && pack.citations.length > 0), 'prep packs require signed server context, review items, and citations');
+  add(pkg.prepPackOverlays.every((overlay) => pkg.prepPacks.some((pack) => pack.id === overlay.sourcePrepPackId) && overlay.status === 'active' && overlay.baseManifestMutated === false && overlay.evidenceRefs.length > 0), 'prep-pack overlays require active activation evidence without base manifest mutation');
+  add(pkg.effectReports.length > 0 && pkg.effectReports.every((report) => (
+    report.syntheticOnly &&
+    report.goalId === 'control-correction' &&
+    report.export.redacted &&
+    REQUIRED_OMISSIONS.every((omission) => report.export.omits.includes(omission)) &&
+    report.metrics.map((metric) => metric.id).join('|') === 'gradingTimeSaved|teacherEditRate|pathAdoption|secondAttemptImprovement|userFeedbackQuality' &&
+    report.metrics.every(isCompleteEffectMetric)
+  )), 'effect report metrics require definitions, source windows, source references, exclusions, caveats, and synthetic labels');
+  add(pkg.realEvidenceImports.every((entry) => (
+    entry.status === 'pending-review' ||
+    (entry.consentOrAuthorizationRef.length > 0 && entry.privacyReviewRef.length > 0 && entry.separatedFromSyntheticFixtures)
+  )), 'real evidence imports require privacy review, authorization, and synthetic separation metadata');
   add([...REQUIRED_MODES].every((mode) => pkg.konlingSessions.some((session) => session.modeId === mode)), 'Konling sessions must cover all required teaching assistant modes');
   add(pkg.konlingSessions.every((session) => session.citations.length > 0 && session.unavailableStateCovered), 'Konling sessions require citations and unavailable-state coverage');
   add(pkg.konlingSessions.every((session) => session.citations.every((citation) => REVIEWABLE_HREFS.has(citation.href))), 'citations must point to reviewable demo routes');
