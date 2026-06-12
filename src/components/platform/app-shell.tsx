@@ -1,14 +1,29 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Settings, Sun } from 'lucide-react';
 
 import { useTheme } from '@/components/providers/theme-provider';
-import { getPlatformRouteNavigation } from '@/lib/platform-role-navigation';
+import { usePageFloatingControls } from '@/components/shared/page-floating-controls';
+import {
+  getPlatformRouteNavigation,
+  resolvePlatformRouteInventory,
+  type PlatformFloatingDockRouteBehavior,
+  type PlatformMobileNavigationBehavior,
+  type PlatformNavigationLayerId,
+  type PlatformPrimaryRouteFrame,
+  type PlatformPrimaryRouteInventoryEntry,
+  type PlatformRouteThemeSupport,
+} from '@/lib/platform-role-navigation';
 import { cn } from '@/lib/utils';
 
-import type { PlatformNavigationItem, PlatformRole } from './platform-ui-contracts';
+import type {
+  PlatformFloatingActionDockControl,
+  PlatformNavigationItem,
+  PlatformRole,
+} from './platform-ui-contracts';
 
 export interface AppBreadcrumbItem {
   label: string;
@@ -25,8 +40,49 @@ export interface AppShellProps {
   userMenu?: ReactNode;
   activeHref?: string;
   sidebarMode?: 'fixed' | 'collapsible' | 'hidden';
+  routeMetadata?: AppShellRouteMetadata;
+  workspaceSlots?: AppShellWorkspaceSlots;
+  dockControls?: readonly AppShellDockControl[];
   children: ReactNode;
   className?: string;
+}
+
+export type AppShellWorkspaceZoneId =
+  | 'context-header'
+  | 'command-bar'
+  | 'instrument-area'
+  | 'evidence-rail'
+  | 'support-drawer'
+  | 'status-rail'
+  | 'local-tools';
+
+export interface AppShellWorkspaceSlots {
+  contextHeader?: ReactNode;
+  commandBar?: ReactNode;
+  instrumentArea?: ReactNode;
+  evidenceRail?: ReactNode;
+  supportDrawer?: ReactNode;
+  statusRail?: ReactNode;
+  localTools?: ReactNode;
+}
+
+export type AppShellRouteMetadata = Pick<
+  PlatformPrimaryRouteInventoryEntry,
+  | 'frame'
+  | 'themeSupport'
+  | 'mobileNavigation'
+  | 'navigationLayers'
+  | 'floatingDock'
+  | 'contextualReturn'
+>;
+
+export interface AppShellDockControl {
+  id: string;
+  label: string;
+  control: PlatformFloatingActionDockControl;
+  href?: string;
+  disabled?: boolean;
+  icon?: ReactNode;
 }
 
 export interface AppHeaderProps {
@@ -56,6 +112,30 @@ const roleLabels: Record<PlatformRole, string> = {
   teacher: '教师',
   admin: '管理',
   audit: '审计',
+};
+
+const frameClassNames: Record<PlatformPrimaryRouteFrame, string> = {
+  'public-entry': 'bg-platform-canvas',
+  'learning-atlas': 'bg-platform-canvas',
+  'mission-workspace': 'bg-platform-canvas text-platform-fg-primary',
+  'knowledge-data-map': 'bg-platform-canvas-muted',
+  'operations-console': 'bg-platform-canvas',
+  'report-ledger': 'bg-platform-canvas-muted',
+};
+
+const contentFrameClassNames: Record<PlatformPrimaryRouteFrame, string> = {
+  'public-entry': 'mx-auto max-w-5xl',
+  'learning-atlas': 'mx-auto max-w-7xl',
+  'mission-workspace': 'mx-auto max-w-[1600px]',
+  'knowledge-data-map': 'mx-auto max-w-[1500px]',
+  'operations-console': 'mx-auto max-w-[1440px]',
+  'report-ledger': 'mx-auto max-w-[1480px]',
+};
+
+const contextualReturnBreadcrumbLabels: Record<string, string> = {
+  '/arena': '竞技场',
+  '/interactive-learning': '互动学习',
+  '/assessment/adaptive-practice': '自适应练习',
 };
 
 interface NavigationRenderItem {
@@ -226,9 +306,140 @@ export function AppSidebar({ navigation, activeHref, className }: AppSidebarProp
   );
 }
 
+function routeDataAttribute(value?: readonly string[]) {
+  return value && value.length > 0 ? value.join(' ') : undefined;
+}
+
+function getContextualReturnBreadcrumbLabel(contextualReturn: NonNullable<AppShellRouteMetadata['contextualReturn']>) {
+  return contextualReturnBreadcrumbLabels[normalizeRoutePath(contextualReturn.fallbackHref)] ?? '返回';
+}
+
+function hasWorkspaceSlots(slots?: AppShellWorkspaceSlots) {
+  return Boolean(slots && Object.values(slots).some(Boolean));
+}
+
+function renderAppShellWorkspaceZone({
+  id,
+  children,
+  className,
+}: {
+  id: AppShellWorkspaceZoneId;
+  children?: ReactNode;
+  className?: string;
+}) {
+  if (!children) return null;
+  return (
+    <section data-app-shell-zone={id} className={cn('min-w-0', className)}>
+      {children}
+    </section>
+  );
+}
+
+function AppShellWorkspace({
+  slots,
+  children,
+}: {
+  slots?: AppShellWorkspaceSlots;
+  children: ReactNode;
+}) {
+  if (!hasWorkspaceSlots(slots)) return <>{children}</>;
+  return (
+    <section data-app-shell-workspace="true" className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="min-w-0 space-y-4">
+        {renderAppShellWorkspaceZone({
+          id: 'context-header',
+          className: 'rounded-lg border border-platform-border bg-platform-surface-raised p-4',
+          children: slots?.contextHeader,
+        })}
+        {renderAppShellWorkspaceZone({
+          id: 'command-bar',
+          className: 'rounded-lg border border-platform-border bg-platform-surface px-4 py-3',
+          children: slots?.commandBar,
+        })}
+        {renderAppShellWorkspaceZone({
+          id: 'instrument-area',
+          children: slots?.instrumentArea ?? children,
+        })}
+      </div>
+      <div className="min-w-0 space-y-4">
+        {renderAppShellWorkspaceZone({
+          id: 'evidence-rail',
+          className: 'rounded-lg border border-platform-border bg-platform-surface p-4',
+          children: slots?.evidenceRail,
+        })}
+        {renderAppShellWorkspaceZone({
+          id: 'support-drawer',
+          className: 'rounded-lg border border-platform-border bg-platform-surface p-4',
+          children: slots?.supportDrawer,
+        })}
+        {renderAppShellWorkspaceZone({
+          id: 'status-rail',
+          className: 'rounded-lg border border-platform-border bg-platform-surface p-4',
+          children: slots?.statusRail,
+        })}
+        {renderAppShellWorkspaceZone({
+          id: 'local-tools',
+          className: 'rounded-lg border border-platform-border bg-platform-canvas-muted p-4',
+          children: slots?.localTools,
+        })}
+      </div>
+    </section>
+  );
+}
+
+function AppShellFloatingDockRegistration({
+  controls = [],
+  behavior,
+}: {
+  controls?: readonly AppShellDockControl[];
+  behavior: PlatformFloatingDockRouteBehavior;
+}) {
+  const { registerControl, setRouteDockBehavior } = usePageFloatingControls();
+  const controlRegistrationSignature = controls
+    .map((control) => [
+      control.id,
+      control.label,
+      control.control,
+      control.href ?? '',
+      control.disabled ? 'disabled' : 'enabled',
+    ].join(':'))
+    .join('|');
+
+  useEffect(() => setRouteDockBehavior(behavior), [behavior, setRouteDockBehavior]);
+
+  useEffect(() => {
+    if (behavior === 'hidden') return undefined;
+    const unregister = controls.map((control, index) => registerControl({
+      id: `app-shell:${control.id}`,
+      label: control.label,
+      ariaLabel: control.label,
+      icon: control.icon ?? <Settings className="h-4 w-4 text-muted-foreground" />,
+      priority: 20 + index,
+      disabled: control.disabled,
+      onSelect: () => {
+        if (control.disabled) return;
+        if (control.href) window.location.assign(control.href);
+      },
+    }));
+    return () => unregister.forEach((cleanup) => cleanup());
+  }, [behavior, controlRegistrationSignature, registerControl]);
+
+  if (controls.length === 0) return null;
+
+  return (
+    <span
+      aria-hidden="true"
+      className="sr-only"
+      data-platform-floating-dock-registration="true"
+      data-platform-floating-dock-behavior={behavior}
+      data-platform-floating-dock-controls={controls.map((control) => control.control).join(' ')}
+    />
+  );
+}
+
 export function AppShell({
   role,
-  navigation = [],
+  navigation,
   breadcrumbs,
   title = '平台工作台',
   subtitle,
@@ -236,17 +447,40 @@ export function AppShell({
   userMenu,
   activeHref,
   sidebarMode = 'fixed',
+  routeMetadata,
+  workspaceSlots,
+  dockControls = [],
   children,
   className,
 }: AppShellProps) {
-  const routeNavigation = activeHref ? getPlatformRouteNavigation(activeHref, role) : [];
-  const effectiveNavigation = navigation.length > 0 ? navigation : routeNavigation;
+  const resolvedRouteMetadata = routeMetadata ?? (activeHref ? resolvePlatformRouteInventory(activeHref) : undefined);
+  const floatingDockBehavior = resolvedRouteMetadata?.floatingDock ?? 'enabled';
+  const effectiveBreadcrumbs = breadcrumbs ?? (resolvedRouteMetadata?.contextualReturn ? [
+    {
+      label: getContextualReturnBreadcrumbLabel(resolvedRouteMetadata.contextualReturn),
+      href: resolvedRouteMetadata.contextualReturn.fallbackHref,
+    },
+    { label: title },
+  ] : undefined);
+  const routeNavigation = navigation === undefined && activeHref ? getPlatformRouteNavigation(activeHref, role) : [];
+  const effectiveNavigation = navigation ?? routeNavigation;
   const renderItems = flattenNavigationItems(effectiveNavigation);
   const showSidebar = sidebarMode !== 'hidden' && renderItems.length > 0;
   const sidebarBreakpoint = sidebarMode === 'collapsible' ? 'xl' : 'lg';
   const activeItemId = getActiveNavigationItemId(effectiveNavigation, activeHref);
   return (
-    <main className={cn('min-h-screen bg-platform-canvas text-platform-fg-primary', className)}>
+    <main
+      data-platform-route-frame={resolvedRouteMetadata?.frame}
+      data-platform-route-theme-support={routeDataAttribute(resolvedRouteMetadata?.themeSupport as readonly PlatformRouteThemeSupport[] | undefined)}
+      data-platform-route-navigation-layers={routeDataAttribute(resolvedRouteMetadata?.navigationLayers as readonly PlatformNavigationLayerId[] | undefined)}
+      data-platform-mobile-navigation={resolvedRouteMetadata?.mobileNavigation as PlatformMobileNavigationBehavior | undefined}
+      data-platform-floating-dock-behavior={floatingDockBehavior}
+      className={cn(
+        'min-h-screen bg-platform-canvas text-platform-fg-primary',
+        resolvedRouteMetadata?.frame && frameClassNames[resolvedRouteMetadata.frame],
+        className,
+      )}
+    >
       <div
         className={cn(
           'grid min-h-screen',
@@ -266,7 +500,7 @@ export function AppShell({
             role={role}
             title={title}
             subtitle={subtitle}
-            breadcrumbs={breadcrumbs}
+            breadcrumbs={effectiveBreadcrumbs}
             actions={actions}
             userMenu={userMenu}
           />
@@ -283,7 +517,13 @@ export function AppShell({
               </div>
             </nav>
           ) : null}
-          <div className="px-4 py-5 sm:px-6">{children}</div>
+          <div className={cn('px-4 py-5 sm:px-6', resolvedRouteMetadata?.frame && contentFrameClassNames[resolvedRouteMetadata.frame])}>
+            {AppShellWorkspace({ slots: workspaceSlots, children })}
+          </div>
+          <AppShellFloatingDockRegistration
+            controls={dockControls}
+            behavior={floatingDockBehavior}
+          />
         </div>
       </div>
     </main>
