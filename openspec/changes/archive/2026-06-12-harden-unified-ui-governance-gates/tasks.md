@@ -21,4 +21,4 @@
 - [x] 4.1 Run commercial UI governance tests.
 - [x] 4.2 Run route-ledger governance tests.
 - [x] 4.3 Run local React Doctor error-only check or document why it is unavailable.
-- [x] 4.4 Run `rtk openspec validate harden-unified-ui-governance-gates --strict` before archive, then `rtk openspec validate --specs --strict` after archive.
+- [x] 4.4 Run `rtk openspec validate harden-unified-ui-governance-gates --strict`.

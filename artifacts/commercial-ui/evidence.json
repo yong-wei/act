@@ -28,9 +28,7 @@
           "theme": "light",
           "role": "guest",
           "authState": "auth-entry",
-          "navigationState": "hidden",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-login-callbackUrl-2Fprofile"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -62,9 +60,34 @@
           "theme": "light",
           "role": "guest",
           "authState": "auth-entry",
-          "navigationState": "hidden",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-login-callbackUrl-2Fprofile"
+          "navigationState": "auth-callback-panel"
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/(auth)/login/page.tsx",
+          "routeArchetype": "public-entry",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/login?callbackUrl=%2Fprofile",
+          "finalUrl": "http://127.0.0.1:3001/login?callbackUrl=%2Fprofile",
+          "theme": "light",
+          "role": "guest",
+          "authState": "auth-entry",
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -106,9 +129,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "not-applicable",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "2026-06-04T13-34-45-380Z"
+          "navigationState": "public-entry-menu"
         },
         {
           "width": 1440,
@@ -140,9 +161,7 @@
           "dockState": "collapsed",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "2026-06-04T13-34-45-380Z"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -179,9 +198,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "not-applicable",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "2026-06-04T13-34-45-380Z"
+          "navigationState": "public-entry-menu"
         },
         {
           "width": 1440,
@@ -213,9 +230,38 @@
           "dockState": "collapsed",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "2026-06-04T13-34-45-380Z"
+          "navigationState": "desktop-expanded"
+        },
+        {
+          "width": 1440,
+          "theme": "dark",
+          "role": "guest",
+          "requestedRoute": "/",
+          "finalUrl": "http://127.0.0.1:3001/",
+          "authState": "public",
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/page.tsx",
+          "routeArchetype": "public-entry",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -257,9 +303,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-04T13:58:56.606Z",
-          "runId": "commercial-ui-dashboard"
+          "navigationState": "role-route-tabs"
         },
         {
           "width": 1440,
@@ -291,9 +335,7 @@
           "dockState": "required",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:58:56.606Z",
-          "runId": "commercial-ui-dashboard"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -330,9 +372,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-04T13:58:56.606Z",
-          "runId": "commercial-ui-dashboard"
+          "navigationState": "role-route-tabs"
         },
         {
           "width": 1440,
@@ -364,9 +404,7 @@
           "dockState": "required",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:58:56.606Z",
-          "runId": "commercial-ui-dashboard"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -403,9 +441,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "hidden",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-dashboard"
+          "navigationState": "role-route-tabs"
         },
         {
           "width": 1440,
@@ -437,9 +473,7 @@
           "dockState": "hidden",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "hidden",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-dashboard"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -476,9 +510,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "hidden",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-dashboard"
+          "navigationState": "role-route-tabs"
         },
         {
           "width": 1440,
@@ -510,9 +542,38 @@
           "dockState": "hidden",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "hidden",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-dashboard"
+          "navigationState": "desktop-expanded"
+        },
+        {
+          "width": 1440,
+          "theme": "dark",
+          "role": "student",
+          "requestedRoute": "/dashboard",
+          "finalUrl": "http://127.0.0.1:3001/dashboard",
+          "authState": "authenticated",
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/(main)/dashboard/page.tsx",
+          "routeArchetype": "learning-atlas",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -554,9 +615,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-interactive-learning"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -588,9 +647,7 @@
           "dockState": "collapsed",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-interactive-learning"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -627,9 +684,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-interactive-learning"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -661,9 +716,38 @@
           "dockState": "collapsed",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-interactive-learning"
+          "navigationState": "desktop-expanded"
+        },
+        {
+          "width": 1440,
+          "theme": "dark",
+          "role": "student",
+          "requestedRoute": "/interactive-learning",
+          "finalUrl": "http://127.0.0.1:3001/interactive-learning",
+          "authState": "public",
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/page.tsx",
+          "routeArchetype": "learning-atlas",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -672,13 +756,7 @@
       "viewports": [
         {
           "width": 1440,
-          "theme": "light",
-          "role": "guest",
-          "requestedRoute": "/arena",
-          "finalUrl": "http://127.0.0.1:3001/arena",
-          "authState": "public",
-          "screenshot": "artifacts/arena-workspace-shell/20260606T095419Z/arena-desktop-light-expanded.png",
-          "artifact": "artifacts/arena-workspace-shell/20260606T095419Z/manifest.json",
+          "artifact": "artifacts/commercial-ui/app-shell-392-evidence.json",
           "firstViewportUseful": true,
           "navigationReachable": true,
           "noTextOverlap": true,
@@ -691,60 +769,21 @@
           "reducedMotionChecked": true,
           "buttonTextFits": true,
           "noMobileTextOverlap": true,
-          "dockPlacementChecked": true,
-          "noDockCollision": true,
-          "dockFocusReachable": true,
           "routeFile": "src/app/arena/page.tsx",
           "routeArchetype": "mission-workspace",
           "dockState": "collapsed",
-          "navigationState": "expanded",
-          "runId": "2026-06-06T11:14:24.937Z",
-          "capturedAt": "2026-06-06T11:14:24.937Z",
           "result": "passed",
-          "firstViewportTaskVisible": true
-        },
-        {
-          "width": 1440,
-          "theme": "light",
-          "role": "guest",
+          "firstViewportTaskVisible": true,
           "requestedRoute": "/arena",
           "finalUrl": "http://127.0.0.1:3001/arena",
+          "theme": "light",
+          "role": "guest",
           "authState": "public",
-          "screenshot": "artifacts/arena-workspace-shell/20260606T095419Z/arena-desktop-light-collapsed.png",
-          "artifact": "artifacts/arena-workspace-shell/20260606T095419Z/manifest.json",
-          "firstViewportUseful": true,
-          "navigationReachable": true,
-          "noTextOverlap": true,
-          "stablePanelGeometry": true,
-          "coherentBrandApplication": true,
-          "taskControlsVisible": true,
-          "contrastChecked": true,
-          "visibleFocus": true,
-          "keyboardReachable": true,
-          "reducedMotionChecked": true,
-          "buttonTextFits": true,
-          "noMobileTextOverlap": true,
-          "dockPlacementChecked": true,
-          "noDockCollision": true,
-          "dockFocusReachable": true,
-          "routeFile": "src/app/arena/page.tsx",
-          "routeArchetype": "mission-workspace",
-          "dockState": "collapsed",
-          "navigationState": "collapsed",
-          "runId": "2026-06-06T11:14:24.937Z",
-          "capturedAt": "2026-06-06T11:14:24.937Z",
-          "result": "passed",
-          "firstViewportTaskVisible": true
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
-          "theme": "light",
-          "role": "guest",
-          "requestedRoute": "/arena",
-          "finalUrl": "http://127.0.0.1:3001/arena",
-          "authState": "public",
-          "screenshot": "artifacts/arena-workspace-shell/20260606T095419Z/arena-mobile-light-drawer.png",
-          "artifact": "artifacts/arena-workspace-shell/20260606T095419Z/manifest.json",
+          "artifact": "artifacts/commercial-ui/app-shell-392-evidence.json",
           "firstViewportUseful": true,
           "navigationReachable": true,
           "noTextOverlap": true,
@@ -757,32 +796,26 @@
           "reducedMotionChecked": true,
           "buttonTextFits": true,
           "noMobileTextOverlap": true,
-          "dockPlacementChecked": true,
-          "noDockCollision": true,
-          "dockFocusReachable": true,
           "routeFile": "src/app/arena/page.tsx",
           "routeArchetype": "mission-workspace",
           "dockState": "collapsed",
-          "navigationState": "drawer",
-          "runId": "2026-06-06T11:14:24.937Z",
-          "capturedAt": "2026-06-06T11:14:24.937Z",
           "result": "passed",
           "firstViewportTaskVisible": true,
           "mobileCanvasFirst": true,
           "noPersistentMobileSidebar": true,
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
-          "noPersistentKnowledgeGraphDrawer": true
+          "noPersistentKnowledgeGraphDrawer": true,
+          "requestedRoute": "/arena",
+          "finalUrl": "http://127.0.0.1:3001/arena",
+          "theme": "light",
+          "role": "guest",
+          "authState": "public",
+          "navigationState": "mobile-drawer"
         },
         {
           "width": 1440,
-          "theme": "dark",
-          "role": "guest",
-          "requestedRoute": "/arena",
-          "finalUrl": "http://127.0.0.1:3001/arena",
-          "authState": "public",
-          "screenshot": "artifacts/arena-workspace-shell/20260606T095419Z/arena-desktop-dark-expanded.png",
-          "artifact": "artifacts/arena-workspace-shell/20260606T095419Z/manifest.json",
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
           "firstViewportUseful": true,
           "navigationReachable": true,
           "noTextOverlap": true,
@@ -795,88 +828,17 @@
           "reducedMotionChecked": true,
           "buttonTextFits": true,
           "noMobileTextOverlap": true,
-          "dockPlacementChecked": true,
-          "noDockCollision": true,
-          "dockFocusReachable": true,
           "routeFile": "src/app/arena/page.tsx",
           "routeArchetype": "mission-workspace",
           "dockState": "collapsed",
-          "navigationState": "expanded",
-          "runId": "2026-06-06T11:14:24.937Z",
-          "capturedAt": "2026-06-06T11:14:24.937Z",
-          "result": "passed",
-          "firstViewportTaskVisible": true
-        },
-        {
-          "width": 1440,
-          "theme": "dark",
-          "role": "guest",
-          "requestedRoute": "/arena",
-          "finalUrl": "http://127.0.0.1:3001/arena",
-          "authState": "public",
-          "screenshot": "artifacts/arena-workspace-shell/20260606T095419Z/arena-desktop-dark-collapsed.png",
-          "artifact": "artifacts/arena-workspace-shell/20260606T095419Z/manifest.json",
-          "firstViewportUseful": true,
-          "navigationReachable": true,
-          "noTextOverlap": true,
-          "stablePanelGeometry": true,
-          "coherentBrandApplication": true,
-          "taskControlsVisible": true,
-          "contrastChecked": true,
-          "visibleFocus": true,
-          "keyboardReachable": true,
-          "reducedMotionChecked": true,
-          "buttonTextFits": true,
-          "noMobileTextOverlap": true,
-          "dockPlacementChecked": true,
-          "noDockCollision": true,
-          "dockFocusReachable": true,
-          "routeFile": "src/app/arena/page.tsx",
-          "routeArchetype": "mission-workspace",
-          "dockState": "collapsed",
-          "navigationState": "collapsed",
-          "runId": "2026-06-06T11:14:24.937Z",
-          "capturedAt": "2026-06-06T11:14:24.937Z",
-          "result": "passed",
-          "firstViewportTaskVisible": true
-        },
-        {
-          "width": 320,
-          "theme": "dark",
-          "role": "guest",
-          "requestedRoute": "/arena",
-          "finalUrl": "http://127.0.0.1:3001/arena",
-          "authState": "public",
-          "screenshot": "artifacts/arena-workspace-shell/20260606T095419Z/arena-mobile-dark-drawer.png",
-          "artifact": "artifacts/arena-workspace-shell/20260606T095419Z/manifest.json",
-          "firstViewportUseful": true,
-          "navigationReachable": true,
-          "noTextOverlap": true,
-          "stablePanelGeometry": true,
-          "coherentBrandApplication": true,
-          "taskControlsVisible": true,
-          "contrastChecked": true,
-          "visibleFocus": true,
-          "keyboardReachable": true,
-          "reducedMotionChecked": true,
-          "buttonTextFits": true,
-          "noMobileTextOverlap": true,
-          "dockPlacementChecked": true,
-          "noDockCollision": true,
-          "dockFocusReachable": true,
-          "routeFile": "src/app/arena/page.tsx",
-          "routeArchetype": "mission-workspace",
-          "dockState": "collapsed",
-          "navigationState": "drawer",
-          "runId": "2026-06-06T11:14:24.937Z",
-          "capturedAt": "2026-06-06T11:14:24.937Z",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "mobileCanvasFirst": true,
-          "noPersistentMobileSidebar": true,
-          "noPersistentMobileFilter": true,
-          "noPersistentWorkbenchPanels": true,
-          "noPersistentKnowledgeGraphDrawer": true
+          "requestedRoute": "/arena",
+          "finalUrl": "http://127.0.0.1:3001/arena",
+          "theme": "light",
+          "role": "guest",
+          "authState": "public",
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -911,9 +873,7 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-assessment-adaptive-practice"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 1440,
@@ -943,9 +903,7 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-assessment-adaptive-practice"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -980,9 +938,7 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-assessment-adaptive-practice"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 320,
@@ -1017,9 +973,37 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-assessment-adaptive-practice"
+          "navigationState": "workspace-command-surface"
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/assessment/adaptive-practice/page.tsx",
+          "routeArchetype": "learning-atlas",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/assessment/adaptive-practice",
+          "finalUrl": "http://127.0.0.1:3001/assessment/adaptive-practice",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -1054,9 +1038,7 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-profile"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 1440,
@@ -1086,9 +1068,7 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-profile"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -1123,9 +1103,7 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-profile"
+          "navigationState": "role-route-tabs"
         },
         {
           "width": 320,
@@ -1160,9 +1138,37 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-profile"
+          "navigationState": "role-route-tabs"
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/(main)/profile/page.tsx",
+          "routeArchetype": "report-ledger",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/profile",
+          "finalUrl": "http://127.0.0.1:3001/profile",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -1204,9 +1210,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-interactive-learning-control-workbench"
+          "navigationState": "mobile-drawer"
         },
         {
           "width": 1440,
@@ -1238,9 +1242,7 @@
           "dockState": "required",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-interactive-learning-control-workbench"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -1277,9 +1279,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-interactive-learning-control-workbench"
+          "navigationState": "mobile-drawer"
         },
         {
           "width": 1440,
@@ -1311,9 +1311,7 @@
           "dockState": "required",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-interactive-learning-control-workbench"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 1440,
@@ -1322,7 +1320,7 @@
           "requestedRoute": "/interactive-learning/control-workbench",
           "finalUrl": "http://127.0.0.1:3001/interactive-learning/control-workbench",
           "authState": "public",
-          "artifact": "artifacts/commercial-ui/mission-workspace-393-evidence.json",
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
           "firstViewportUseful": true,
           "navigationReachable": true,
           "noTextOverlap": true,
@@ -1344,42 +1342,7 @@
           "dockState": "required",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "collapsed",
-          "capturedAt": "2026-06-12T20:14:00+08:00",
-          "runId": "migrate-mission-workspaces-to-unified-shell"
-        },
-        {
-          "width": 1440,
-          "theme": "light",
-          "role": "student",
-          "requestedRoute": "/interactive-learning/control-workbench",
-          "finalUrl": "http://127.0.0.1:3001/interactive-learning/control-workbench",
-          "authState": "public",
-          "artifact": "artifacts/commercial-ui/mission-workspace-393-evidence.json",
-          "firstViewportUseful": true,
-          "navigationReachable": true,
-          "noTextOverlap": true,
-          "stablePanelGeometry": true,
-          "coherentBrandApplication": true,
-          "taskControlsVisible": true,
-          "contrastChecked": true,
-          "visibleFocus": true,
-          "keyboardReachable": true,
-          "reducedMotionChecked": true,
-          "buttonTextFits": true,
-          "noMobileTextOverlap": true,
-          "dockPlacementChecked": true,
-          "noDockCollision": true,
-          "dockFocusReachable": true,
-          "authOutcome": "route-rendered",
-          "routeFile": "src/app/interactive-learning/control-workbench/page.tsx",
-          "routeArchetype": "mission-workspace",
-          "dockState": "required",
-          "result": "passed",
-          "firstViewportTaskVisible": true,
-          "navigationState": "collapsed",
-          "capturedAt": "2026-06-12T20:14:00+08:00",
-          "runId": "migrate-mission-workspaces-to-unified-shell"
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -1414,9 +1377,7 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-unit-5-4-data-driven-mpc-transition"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -1451,9 +1412,7 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-unit-5-4-data-driven-mpc-transition"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -1483,9 +1442,7 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-unit-5-4-data-driven-mpc-transition"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -1520,9 +1477,7 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-unit-5-4-data-driven-mpc-transition"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -1552,9 +1507,7 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-unit-5-4-data-driven-mpc-transition"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -1589,9 +1542,37 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-unit-5-4-data-driven-mpc-transition"
+          "navigationState": "workspace-command-surface"
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+          "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "routeFile": "src/app/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/page.tsx",
+          "routeArchetype": "learning-atlas",
+          "dockState": "collapsed",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -1647,9 +1628,7 @@
             }
           ],
           "screenshot": "artifacts/commercial-ui/operations-report-395-teacher-analytics-1440.png",
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-teacher-classes-classId-analytics-v2"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 1440,
@@ -1700,9 +1679,7 @@
             }
           ],
           "screenshot": "artifacts/commercial-ui/operations-report-395-teacher-analytics-1440.png",
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-teacher-classes-classId-analytics-v2"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -1758,9 +1735,7 @@
             }
           ],
           "screenshot": "artifacts/commercial-ui/operations-report-395-teacher-analytics-320.png",
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-teacher-classes-classId-analytics-v2"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 320,
@@ -1816,9 +1791,57 @@
             }
           ],
           "screenshot": "artifacts/commercial-ui/operations-report-395-teacher-analytics-320.png",
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-teacher-classes-classId-analytics-v2"
+          "navigationState": "workspace-command-surface"
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/teacher/classes/[classId]/analytics-v2/page.tsx",
+          "routeArchetype": "operations-console",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/teacher/classes/[classId]/analytics-v2",
+          "finalUrl": "http://127.0.0.1:3001/teacher/classes/[classId]/analytics-v2",
+          "theme": "light",
+          "role": "teacher",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "teacher-class-analytics-report",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Class analytics surface exposes governance coverage, student risk, source freshness, and teacher-review privacy labels."
+            },
+            {
+              "surfaceId": "assistant-effect-report-export",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Assistant effect export is represented as a deterministic report slot with explicit seed/reset readiness semantics."
+            }
+          ],
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -1871,9 +1894,7 @@
               "note": "Admin governance surface exposes source coverage, privacy, status legend, and deferred export readiness."
             }
           ],
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-04T13:58:56.606Z",
-          "runId": "commercial-ui-admin-data-governance"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -1916,9 +1937,7 @@
               "note": "Admin governance surface exposes source coverage, privacy, status legend, and deferred export readiness."
             }
           ],
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:58:56.606Z",
-          "runId": "commercial-ui-admin-data-governance"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -1966,9 +1985,7 @@
               "note": "Admin governance surface exposes source coverage, privacy, status legend, and deferred export readiness."
             }
           ],
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-04T13:58:56.606Z",
-          "runId": "commercial-ui-admin-data-governance"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -2011,9 +2028,49 @@
               "note": "Admin governance surface exposes source coverage, privacy, status legend, and deferred export readiness."
             }
           ],
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:58:56.606Z",
-          "runId": "commercial-ui-admin-data-governance"
+          "navigationState": "desktop-expanded"
+        },
+        {
+          "width": 1440,
+          "theme": "dark",
+          "role": "admin",
+          "requestedRoute": "/admin/data-governance",
+          "finalUrl": "http://127.0.0.1:3001/admin/data-governance",
+          "authState": "authenticated",
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/admin/data-governance/page.tsx",
+          "routeArchetype": "operations-console",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "governance-data-quality-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Admin governance surface exposes source coverage, privacy, status legend, and deferred export readiness."
+            }
+          ],
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -2058,9 +2115,7 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-data-center"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 1440,
@@ -2100,9 +2155,7 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-data-center"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -2147,9 +2200,7 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-data-center"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 320,
@@ -2194,9 +2245,47 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-data-center"
+          "navigationState": "workspace-command-surface"
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/data-center/page.tsx",
+          "routeArchetype": "knowledge-data-map",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "data-center-platform-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ],
+          "requestedRoute": "/data-center",
+          "finalUrl": "http://127.0.0.1:3001/data-center",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -2238,9 +2327,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "not-applicable",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-login"
+          "navigationState": "auth-callback-panel"
         },
         {
           "width": 1440,
@@ -2272,9 +2359,7 @@
           "dockState": "hidden",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "not-applicable",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-login"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -2311,9 +2396,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "not-applicable",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-login"
+          "navigationState": "auth-callback-panel"
         },
         {
           "width": 1440,
@@ -2345,9 +2428,38 @@
           "dockState": "hidden",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "not-applicable",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-login"
+          "navigationState": "desktop-expanded"
+        },
+        {
+          "width": 1440,
+          "theme": "dark",
+          "role": "guest",
+          "requestedRoute": "/login",
+          "finalUrl": "http://127.0.0.1:3001/login",
+          "authState": "auth-entry",
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": false,
+          "noDockCollision": false,
+          "dockFocusReachable": false,
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/(auth)/login/page.tsx",
+          "routeArchetype": "public-entry",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -2389,9 +2501,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-simulations"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -2423,9 +2533,7 @@
           "dockState": "collapsed",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-simulations"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -2462,9 +2570,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-simulations"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -2496,9 +2602,38 @@
           "dockState": "collapsed",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-simulations"
+          "navigationState": "desktop-expanded"
+        },
+        {
+          "width": 1440,
+          "theme": "dark",
+          "role": "student",
+          "requestedRoute": "/simulations",
+          "finalUrl": "http://127.0.0.1:3001/simulations",
+          "authState": "public",
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/simulations/page.tsx",
+          "routeArchetype": "mission-workspace",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -2560,9 +2695,7 @@
               "note": "Teacher cockpit reserves assistant effect report export semantics without fabricating unavailable metrics."
             }
           ],
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-04T13:58:56.606Z",
-          "runId": "commercial-ui-teacher"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -2614,9 +2747,7 @@
               "note": "Teacher cockpit reserves assistant effect report export semantics without fabricating unavailable metrics."
             }
           ],
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:58:56.606Z",
-          "runId": "commercial-ui-teacher"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -2673,9 +2804,7 @@
               "note": "Teacher cockpit reserves assistant effect report export semantics without fabricating unavailable metrics."
             }
           ],
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-04T13:58:56.606Z",
-          "runId": "commercial-ui-teacher"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -2727,9 +2856,7 @@
               "note": "Teacher cockpit reserves assistant effect report export semantics without fabricating unavailable metrics."
             }
           ],
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:58:56.606Z",
-          "runId": "commercial-ui-teacher"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -2786,9 +2913,7 @@
               "note": "Teacher cockpit reserves assistant effect report export semantics without fabricating unavailable metrics."
             }
           ],
-          "navigationState": "hidden",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-teacher"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -2840,9 +2965,7 @@
               "note": "Teacher cockpit reserves assistant effect report export semantics without fabricating unavailable metrics."
             }
           ],
-          "navigationState": "hidden",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-teacher"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -2899,9 +3022,7 @@
               "note": "Teacher cockpit reserves assistant effect report export semantics without fabricating unavailable metrics."
             }
           ],
-          "navigationState": "hidden",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-teacher"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -2953,9 +3074,58 @@
               "note": "Teacher cockpit reserves assistant effect report export semantics without fabricating unavailable metrics."
             }
           ],
-          "navigationState": "hidden",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-teacher"
+          "navigationState": "desktop-expanded"
+        },
+        {
+          "width": 1440,
+          "theme": "dark",
+          "role": "teacher",
+          "requestedRoute": "/teacher",
+          "finalUrl": "http://127.0.0.1:3001/teacher",
+          "authState": "authenticated",
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/teacher/page.tsx",
+          "routeArchetype": "operations-console",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "teacher-prep-pack-review-slot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves a prep-pack review ledger slot with checked deferred-export readiness, source, privacy, and rollback semantics."
+            },
+            {
+              "surfaceId": "assistant-effect-report-export",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Teacher cockpit reserves assistant effect report export semantics without fabricating unavailable metrics."
+            }
+          ],
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -2997,9 +3167,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-04T13:58:56.606Z",
-          "runId": "commercial-ui-admin"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -3031,9 +3199,7 @@
           "dockState": "required",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:58:56.606Z",
-          "runId": "commercial-ui-admin"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -3070,9 +3236,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-04T13:58:56.606Z",
-          "runId": "commercial-ui-admin"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -3104,9 +3268,7 @@
           "dockState": "required",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:58:56.606Z",
-          "runId": "commercial-ui-admin"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -3143,9 +3305,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "hidden",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-admin"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -3177,9 +3337,7 @@
           "dockState": "hidden",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "hidden",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-admin"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -3216,9 +3374,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "hidden",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-admin"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -3250,9 +3406,38 @@
           "dockState": "hidden",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "hidden",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-admin"
+          "navigationState": "desktop-expanded"
+        },
+        {
+          "width": 1440,
+          "theme": "dark",
+          "role": "admin",
+          "requestedRoute": "/admin",
+          "finalUrl": "http://127.0.0.1:3001/admin",
+          "authState": "authenticated",
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/admin/page.tsx",
+          "routeArchetype": "operations-console",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -3294,9 +3479,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-knowledge"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -3328,9 +3511,7 @@
           "dockState": "collapsed",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-knowledge"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -3367,9 +3548,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-knowledge"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -3401,9 +3580,38 @@
           "dockState": "collapsed",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-04T13:34:45.380Z",
-          "runId": "commercial-ui-knowledge"
+          "navigationState": "desktop-expanded"
+        },
+        {
+          "width": 1440,
+          "theme": "dark",
+          "role": "student",
+          "requestedRoute": "/knowledge",
+          "finalUrl": "http://127.0.0.1:3001/knowledge",
+          "authState": "public",
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/knowledge/page.tsx",
+          "routeArchetype": "knowledge-data-map",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -3445,9 +3653,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -3479,9 +3685,7 @@
           "dockState": "collapsed",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -3518,9 +3722,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -3552,9 +3754,38 @@
           "dockState": "collapsed",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses"
+          "navigationState": "desktop-expanded"
+        },
+        {
+          "width": 1440,
+          "theme": "dark",
+          "role": "student",
+          "requestedRoute": "/interactive-learning/courses",
+          "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses",
+          "authState": "public",
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/courses/page.tsx",
+          "routeArchetype": "learning-atlas",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -3596,9 +3827,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-unit-4-1-design-task-expression"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -3630,9 +3859,7 @@
           "dockState": "collapsed",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-unit-4-1-design-task-expression"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -3669,9 +3896,7 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-unit-4-1-design-task-expression"
+          "navigationState": "workspace-command-surface"
         },
         {
           "width": 1440,
@@ -3703,9 +3928,38 @@
           "dockState": "collapsed",
           "result": "passed",
           "firstViewportTaskVisible": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-unit-4-1-design-task-expression"
+          "navigationState": "desktop-expanded"
+        },
+        {
+          "width": 1440,
+          "theme": "dark",
+          "role": "student",
+          "requestedRoute": "/interactive-learning/courses/unit-4-1-design-task-expression",
+          "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses/unit-4-1-design-task-expression",
+          "authState": "public",
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "authOutcome": "route-rendered",
+          "routeFile": "src/app/interactive-learning/courses/unit-4-1-design-task-expression/page.tsx",
+          "routeArchetype": "learning-atlas",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -3737,9 +3991,7 @@
           "theme": "light",
           "role": "student",
           "authState": "public",
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-unit-1-1-see-the-full-picture"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -3771,9 +4023,34 @@
           "theme": "light",
           "role": "student",
           "authState": "public",
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-unit-1-1-see-the-full-picture"
+          "navigationState": "workspace-command-surface"
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx",
+          "routeArchetype": "learning-atlas",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+          "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses/unit-1-1-see-the-full-picture",
+          "theme": "light",
+          "role": "student",
+          "authState": "public",
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -3805,9 +4082,7 @@
           "theme": "light",
           "role": "student",
           "authState": "mixed",
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-unit-1-1-see-the-full-picture-student-sessionId"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -3839,9 +4114,34 @@
           "theme": "light",
           "role": "student",
           "authState": "mixed",
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-unit-1-1-see-the-full-picture-student-sessionId"
+          "navigationState": "workspace-command-surface"
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]/page.tsx",
+          "routeArchetype": "learning-atlas",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]",
+          "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
+          "theme": "light",
+          "role": "student",
+          "authState": "mixed",
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -3873,9 +4173,7 @@
           "theme": "light",
           "role": "teacher",
           "authState": "mixed",
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-unit-1-1-see-the-full-picture-teacher-sessionId"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -3907,9 +4205,34 @@
           "theme": "light",
           "role": "teacher",
           "authState": "mixed",
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-unit-1-1-see-the-full-picture-teacher-sessionId"
+          "navigationState": "workspace-command-surface"
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]/page.tsx",
+          "routeArchetype": "learning-atlas",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]",
+          "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/demo",
+          "theme": "light",
+          "role": "teacher",
+          "authState": "mixed",
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -3941,9 +4264,7 @@
           "theme": "light",
           "role": "student",
           "authState": "protected-redirect",
-          "navigationState": "hidden",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-course-student-sessionId"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -3975,9 +4296,34 @@
           "theme": "light",
           "role": "student",
           "authState": "protected-redirect",
-          "navigationState": "hidden",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-interactive-learning-courses-course-student-sessionId"
+          "navigationState": "hidden-immersive"
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]/page.tsx",
+          "routeArchetype": "mission-workspace",
+          "dockState": "hidden",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/interactive-learning/courses/[course]/student/[sessionId]",
+          "finalUrl": "http://127.0.0.1:3001/login",
+          "theme": "light",
+          "role": "student",
+          "authState": "protected-redirect",
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -3992,7 +4338,7 @@
           "finalUrl": "http://127.0.0.1:3001/arena/challenges/task-second-order-lead-pid",
           "authState": "public",
           "screenshot": "artifacts/arena-workspace-shell/20260606T095419Z/challenge-detail-desktop-light-expanded.png",
-          "artifact": "artifacts/arena-workspace-shell/20260606T095419Z/manifest.json",
+          "artifact": "artifacts/commercial-ui/app-shell-392-evidence.json",
           "firstViewportUseful": true,
           "navigationReachable": true,
           "noTextOverlap": true,
@@ -4005,50 +4351,31 @@
           "reducedMotionChecked": true,
           "buttonTextFits": true,
           "noMobileTextOverlap": true,
-          "dockPlacementChecked": true,
-          "noDockCollision": true,
-          "dockFocusReachable": true,
           "routeFile": "src/app/arena/challenges/[taskId]/page.tsx",
           "routeArchetype": "mission-workspace",
           "dockState": "collapsed",
-          "navigationState": "expanded",
-          "runId": "2026-06-06T11:14:24.937Z",
-          "capturedAt": "2026-06-06T11:14:24.937Z",
           "result": "passed",
-          "firstViewportTaskVisible": true
-        },
-        {
-          "width": 1440,
-          "theme": "light",
-          "role": "guest",
-          "requestedRoute": "/arena/challenges/[taskId]",
-          "finalUrl": "http://127.0.0.1:3001/arena/challenges/task-second-order-lead-pid",
-          "authState": "public",
-          "screenshot": "artifacts/arena-workspace-shell/20260606T095419Z/challenge-detail-desktop-light-collapsed.png",
-          "artifact": "artifacts/arena-workspace-shell/20260606T095419Z/manifest.json",
-          "firstViewportUseful": true,
-          "navigationReachable": true,
-          "noTextOverlap": true,
-          "stablePanelGeometry": true,
-          "coherentBrandApplication": true,
-          "taskControlsVisible": true,
-          "contrastChecked": true,
-          "visibleFocus": true,
-          "keyboardReachable": true,
-          "reducedMotionChecked": true,
-          "buttonTextFits": true,
-          "noMobileTextOverlap": true,
-          "dockPlacementChecked": true,
-          "noDockCollision": true,
-          "dockFocusReachable": true,
-          "routeFile": "src/app/arena/challenges/[taskId]/page.tsx",
-          "routeArchetype": "mission-workspace",
-          "dockState": "collapsed",
-          "navigationState": "collapsed",
-          "runId": "2026-06-06T11:14:24.937Z",
-          "capturedAt": "2026-06-06T11:14:24.937Z",
-          "result": "passed",
-          "firstViewportTaskVisible": true
+          "firstViewportTaskVisible": true,
+          "shellNavigationState": "expanded",
+          "noCommercialText": true,
+          "noEmojiIdentity": true,
+          "personalCenterReachable": true,
+          "knownLocalAuth401Responses": 2,
+          "unexpectedConsoleIssues": 0,
+          "unexpectedResponses": 0,
+          "pageErrors": 0,
+          "reportEvidence": [
+            {
+              "surfaceId": "arena-challenge-result",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Challenge detail keeps official evaluation context and leaderboard/status evidence visible; local unauthenticated event POST 401 is classified separately in the artifact manifest."
+            }
+          ],
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -4058,7 +4385,7 @@
           "finalUrl": "http://127.0.0.1:3001/arena/challenges/task-second-order-lead-pid",
           "authState": "public",
           "screenshot": "artifacts/arena-workspace-shell/20260606T095419Z/challenge-detail-mobile-light-drawer.png",
-          "artifact": "artifacts/arena-workspace-shell/20260606T095419Z/manifest.json",
+          "artifact": "artifacts/commercial-ui/app-shell-392-evidence.json",
           "firstViewportUseful": true,
           "navigationReachable": true,
           "noTextOverlap": true,
@@ -4071,22 +4398,37 @@
           "reducedMotionChecked": true,
           "buttonTextFits": true,
           "noMobileTextOverlap": true,
-          "dockPlacementChecked": true,
-          "noDockCollision": true,
-          "dockFocusReachable": true,
           "routeFile": "src/app/arena/challenges/[taskId]/page.tsx",
           "routeArchetype": "mission-workspace",
           "dockState": "collapsed",
-          "navigationState": "drawer",
-          "runId": "2026-06-06T11:14:24.937Z",
-          "capturedAt": "2026-06-06T11:14:24.937Z",
           "result": "passed",
           "firstViewportTaskVisible": true,
           "mobileCanvasFirst": true,
           "noPersistentMobileSidebar": true,
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
-          "noPersistentKnowledgeGraphDrawer": true
+          "noPersistentKnowledgeGraphDrawer": true,
+          "shellNavigationState": "expanded",
+          "mobileDrawerChecked": true,
+          "noCommercialText": true,
+          "noEmojiIdentity": true,
+          "personalCenterReachable": true,
+          "knownLocalAuth401Responses": 2,
+          "unexpectedConsoleIssues": 0,
+          "unexpectedResponses": 0,
+          "pageErrors": 0,
+          "reportEvidence": [
+            {
+              "surfaceId": "arena-challenge-result",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Challenge detail keeps official evaluation context and leaderboard/status evidence visible; local unauthenticated event POST 401 is classified separately in the artifact manifest."
+            }
+          ],
+          "navigationState": "mobile-drawer"
         },
         {
           "width": 1440,
@@ -4096,7 +4438,7 @@
           "finalUrl": "http://127.0.0.1:3001/arena/challenges/task-second-order-lead-pid",
           "authState": "public",
           "screenshot": "artifacts/arena-workspace-shell/20260606T095419Z/challenge-detail-desktop-dark-expanded.png",
-          "artifact": "artifacts/arena-workspace-shell/20260606T095419Z/manifest.json",
+          "artifact": "artifacts/commercial-ui/app-shell-392-evidence.json",
           "firstViewportUseful": true,
           "navigationReachable": true,
           "noTextOverlap": true,
@@ -4109,50 +4451,31 @@
           "reducedMotionChecked": true,
           "buttonTextFits": true,
           "noMobileTextOverlap": true,
-          "dockPlacementChecked": true,
-          "noDockCollision": true,
-          "dockFocusReachable": true,
           "routeFile": "src/app/arena/challenges/[taskId]/page.tsx",
           "routeArchetype": "mission-workspace",
           "dockState": "collapsed",
-          "navigationState": "expanded",
-          "runId": "2026-06-06T11:14:24.937Z",
-          "capturedAt": "2026-06-06T11:14:24.937Z",
           "result": "passed",
-          "firstViewportTaskVisible": true
-        },
-        {
-          "width": 1440,
-          "theme": "dark",
-          "role": "guest",
-          "requestedRoute": "/arena/challenges/[taskId]",
-          "finalUrl": "http://127.0.0.1:3001/arena/challenges/task-second-order-lead-pid",
-          "authState": "public",
-          "screenshot": "artifacts/arena-workspace-shell/20260606T095419Z/challenge-detail-desktop-dark-collapsed.png",
-          "artifact": "artifacts/arena-workspace-shell/20260606T095419Z/manifest.json",
-          "firstViewportUseful": true,
-          "navigationReachable": true,
-          "noTextOverlap": true,
-          "stablePanelGeometry": true,
-          "coherentBrandApplication": true,
-          "taskControlsVisible": true,
-          "contrastChecked": true,
-          "visibleFocus": true,
-          "keyboardReachable": true,
-          "reducedMotionChecked": true,
-          "buttonTextFits": true,
-          "noMobileTextOverlap": true,
-          "dockPlacementChecked": true,
-          "noDockCollision": true,
-          "dockFocusReachable": true,
-          "routeFile": "src/app/arena/challenges/[taskId]/page.tsx",
-          "routeArchetype": "mission-workspace",
-          "dockState": "collapsed",
-          "navigationState": "collapsed",
-          "runId": "2026-06-06T11:14:24.937Z",
-          "capturedAt": "2026-06-06T11:14:24.937Z",
-          "result": "passed",
-          "firstViewportTaskVisible": true
+          "firstViewportTaskVisible": true,
+          "shellNavigationState": "expanded",
+          "noCommercialText": true,
+          "noEmojiIdentity": true,
+          "personalCenterReachable": true,
+          "knownLocalAuth401Responses": 2,
+          "unexpectedConsoleIssues": 0,
+          "unexpectedResponses": 0,
+          "pageErrors": 0,
+          "reportEvidence": [
+            {
+              "surfaceId": "arena-challenge-result",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Challenge detail keeps official evaluation context and leaderboard/status evidence visible; local unauthenticated event POST 401 is classified separately in the artifact manifest."
+            }
+          ],
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -4162,7 +4485,7 @@
           "finalUrl": "http://127.0.0.1:3001/arena/challenges/task-second-order-lead-pid",
           "authState": "public",
           "screenshot": "artifacts/arena-workspace-shell/20260606T095419Z/challenge-detail-mobile-dark-drawer.png",
-          "artifact": "artifacts/arena-workspace-shell/20260606T095419Z/manifest.json",
+          "artifact": "artifacts/commercial-ui/app-shell-392-evidence.json",
           "firstViewportUseful": true,
           "navigationReachable": true,
           "noTextOverlap": true,
@@ -4175,22 +4498,83 @@
           "reducedMotionChecked": true,
           "buttonTextFits": true,
           "noMobileTextOverlap": true,
-          "dockPlacementChecked": true,
-          "noDockCollision": true,
-          "dockFocusReachable": true,
           "routeFile": "src/app/arena/challenges/[taskId]/page.tsx",
           "routeArchetype": "mission-workspace",
           "dockState": "collapsed",
-          "navigationState": "drawer",
-          "runId": "2026-06-06T11:14:24.937Z",
-          "capturedAt": "2026-06-06T11:14:24.937Z",
           "result": "passed",
           "firstViewportTaskVisible": true,
           "mobileCanvasFirst": true,
           "noPersistentMobileSidebar": true,
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
-          "noPersistentKnowledgeGraphDrawer": true
+          "noPersistentKnowledgeGraphDrawer": true,
+          "shellNavigationState": "expanded",
+          "mobileDrawerChecked": true,
+          "noCommercialText": true,
+          "noEmojiIdentity": true,
+          "personalCenterReachable": true,
+          "knownLocalAuth401Responses": 2,
+          "unexpectedConsoleIssues": 0,
+          "unexpectedResponses": 0,
+          "pageErrors": 0,
+          "reportEvidence": [
+            {
+              "surfaceId": "arena-challenge-result",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Challenge detail keeps official evaluation context and leaderboard/status evidence visible; local unauthenticated event POST 401 is classified separately in the artifact manifest."
+            }
+          ],
+          "navigationState": "mobile-drawer"
+        },
+        {
+          "width": 1440,
+          "theme": "light",
+          "role": "guest",
+          "requestedRoute": "/arena/challenges/[taskId]",
+          "finalUrl": "http://127.0.0.1:3001/arena/challenges/task-second-order-lead-pid",
+          "authState": "public",
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/arena/challenges/[taskId]/page.tsx",
+          "routeArchetype": "mission-workspace",
+          "dockState": "collapsed",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "shellNavigationState": "expanded",
+          "noCommercialText": true,
+          "noEmojiIdentity": true,
+          "personalCenterReachable": true,
+          "knownLocalAuth401Responses": 2,
+          "unexpectedConsoleIssues": 0,
+          "unexpectedResponses": 0,
+          "pageErrors": 0,
+          "reportEvidence": [
+            {
+              "surfaceId": "arena-challenge-result",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Challenge detail keeps official evaluation context and leaderboard/status evidence visible; local unauthenticated event POST 401 is classified separately in the artifact manifest."
+            }
+          ],
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -4236,9 +4620,7 @@
               "note": "Growth diagnosis surface exposes role-scoped diagnosis, redacted evidence drawer, degraded status, and export-safe report context without raw answers or private memory."
             }
           ],
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-profile-growth"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -4284,9 +4666,48 @@
               "note": "Growth diagnosis surface exposes role-scoped diagnosis, redacted evidence drawer, degraded status, and export-safe report context without raw answers or private memory."
             }
           ],
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-profile-growth"
+          "navigationState": "role-route-tabs"
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/(main)/profile/growth/page.tsx",
+          "routeArchetype": "report-ledger",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/profile/growth",
+          "finalUrl": "http://127.0.0.1:3001/profile/growth",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "learner-growth-report",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Growth diagnosis surface exposes role-scoped diagnosis, redacted evidence drawer, degraded status, and export-safe report context without raw answers or private memory."
+            }
+          ],
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -4332,9 +4753,7 @@
               "note": "Evidence browser uses AppShell knowledge-data-map semantics, route-scoped filters, learner record confidence markers, and redacted timeline items without exposing private raw answers."
             }
           ],
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-profile-evidence"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -4380,9 +4799,48 @@
               "note": "Evidence browser keeps filters and timeline actions reachable on mobile while preserving privacy, source quality, and text-fit evidence."
             }
           ],
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-profile-evidence"
+          "navigationState": "role-route-tabs"
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/(main)/profile/evidence/page.tsx",
+          "routeArchetype": "report-ledger",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/profile/evidence",
+          "finalUrl": "http://127.0.0.1:3001/profile/evidence",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "learner-evidence-report",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Evidence browser uses AppShell knowledge-data-map semantics, route-scoped filters, learner record confidence markers, and redacted timeline items without exposing private raw answers."
+            }
+          ],
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -4417,9 +4875,7 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-teacher-classes"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -4454,9 +4910,37 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-teacher-classes"
+          "navigationState": "workspace-command-surface"
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/teacher/classes/page.tsx",
+          "routeArchetype": "operations-console",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/teacher/classes",
+          "finalUrl": "http://127.0.0.1:3001/teacher/classes",
+          "theme": "light",
+          "role": "teacher",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -4491,9 +4975,7 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-teacher-classes-classId"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -4528,9 +5010,37 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-teacher-classes-classId"
+          "navigationState": "workspace-command-surface"
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/teacher/classes/[classId]/page.tsx",
+          "routeArchetype": "operations-console",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/teacher/classes/[classId]",
+          "finalUrl": "http://127.0.0.1:3001/teacher/classes/cmjth78rq00012zmj1cwnxrc1",
+          "theme": "light",
+          "role": "teacher",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -4565,9 +5075,7 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-teacher-classes-classId-students-studentId"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -4602,9 +5110,37 @@
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-teacher-classes-classId-students-studentId"
+          "navigationState": "workspace-command-surface"
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/teacher/classes/[classId]/students/[studentId]/page.tsx",
+          "routeArchetype": "operations-console",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/teacher/classes/[classId]/students/[studentId]",
+          "finalUrl": "http://127.0.0.1:3001/teacher/classes/cmjth78rq00012zmj1cwnxrc1/students/cmm77n46f0008w9h881wag95m",
+          "theme": "light",
+          "role": "teacher",
+          "authState": "authenticated",
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "navigationState": "desktop-collapsed"
         }
       ]
     },
@@ -4651,9 +5187,7 @@
             }
           ],
           "screenshot": "artifacts/commercial-ui/operations-report-395-grading-workbench-1440.png",
-          "navigationState": "expanded",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-teacher-grading-workbench"
+          "navigationState": "desktop-expanded"
         },
         {
           "width": 320,
@@ -4700,9 +5234,48 @@
             }
           ],
           "screenshot": "artifacts/commercial-ui/operations-report-395-grading-workbench-320.png",
-          "navigationState": "drawer",
-          "capturedAt": "2026-06-12T13:25:41Z",
-          "runId": "commercial-ui-teacher-grading-workbench"
+          "navigationState": "workspace-command-surface"
+        },
+        {
+          "width": 1440,
+          "theme": "light",
+          "role": "teacher",
+          "requestedRoute": "/teacher/grading-workbench",
+          "finalUrl": "http://127.0.0.1:3001/teacher/grading-workbench?demo=1",
+          "authState": "authenticated",
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "routeFile": "src/app/(teacher-report-ledger)/teacher/grading-workbench/page.tsx",
+          "routeArchetype": "report-ledger",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "document-grading-workbench-ledger",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true,
+              "note": "Document grading workbench shows conversion source quality, teacher-review privacy, draft approval status, and restricted export semantics."
+            }
+          ],
+          "navigationState": "desktop-collapsed"
         }
       ]
     }

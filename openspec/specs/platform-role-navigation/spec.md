@@ -286,7 +286,13 @@ Canonical archetype migration SHALL preserve existing route access, role routing
 #### Scenario: Existing navigation paths are exercised
 - **WHEN** a user opens login callbacks, profile/account actions, role cockpit actions, Arena-to-workbench returns, or learning entry routes during ledger convergence
 - **THEN** the resolved route metadata SHALL preserve the existing destination intent
+- **AND** profile sub-routes such as `/profile/growth`, `/profile/portfolio`, and `/profile/evidence` SHALL remain independent report-ledger routes with role-route-tab mobile navigation rather than compatibility aliases of `/profile`
 - **AND** no page SHALL require page-local navigation lists to override the central route ledger.
+
+#### Scenario: Compatibility aliases are reviewed
+- **WHEN** a route declares compatibility aliases for migration or callback behavior
+- **THEN** those aliases SHALL NOT duplicate another current primary route href in the central route ledger
+- **AND** alias conflicts SHALL fail navigation inventory tests before they can affect governance or visual QA evidence resolution.
 
 ### Requirement: Route ledger exposes governance inputs
 The central route ledger SHALL expose the metadata needed by unified UI governance gates.
@@ -295,4 +301,3 @@ The central route ledger SHALL expose the metadata needed by unified UI governan
 - **WHEN** commercial UI governance evaluates a primary route
 - **THEN** it SHALL be able to read archetype, owning change, temporary exception, legacy alias, legacy shell disposition, theme support, dock behavior, navigation layers, and visual QA profile from central route metadata
 - **AND** governance SHALL not depend on scattered page-local declarations for those fields.
-

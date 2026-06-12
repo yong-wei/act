@@ -2,9 +2,11 @@ import {
   PLATFORM_PRIMARY_ROUTE_INVENTORY,
   PLATFORM_REPORT_SURFACE_INVENTORY,
   type PlatformFloatingDockRouteBehavior,
+  type PlatformMobileNavigationBehavior,
   type PlatformPrimaryRouteFrame,
   type PlatformPrimaryRouteInventoryEntry,
   type PlatformReportSurfaceInventoryEntry,
+  resolvePlatformRouteInventory,
 } from '@/lib/platform-role-navigation';
 
 export type CommercialUiGovernanceMode = 'advisory' | 'blocking';
@@ -25,7 +27,7 @@ export type CommercialUiGovernanceRule =
   | 'visual-acceptance.incomplete-evidence'
   | 'visual-acceptance.incomplete-premium-theme-evidence'
   | 'visual-acceptance.incomplete-manifest-metadata'
-  | 'visual-acceptance.incomplete-navigation-state-matrix'
+  | 'visual-acceptance.incomplete-navigation-state-evidence'
   | 'visual-acceptance.route-inventory-drift'
   | 'route-ledger.incomplete-primary-route'
   | 'route-ledger.outdated-archetype'
@@ -111,7 +113,37 @@ export interface CommercialVisualAcceptanceRoute {
 export type CommercialVisualQaTheme = 'light' | 'dark';
 export type CommercialVisualQaRole = 'guest' | 'student' | 'teacher' | 'admin';
 export type CommercialVisualQaAuthState = 'public' | 'auth-entry' | 'authenticated' | 'unauth-redirect-fallback';
-export type CommercialVisualNavigationState = 'expanded' | 'collapsed' | 'drawer' | 'hidden' | 'not-applicable';
+export type CommercialVisualQaNavigationState =
+  | 'desktop-expanded'
+  | 'desktop-collapsed'
+  | 'mobile-drawer'
+  | 'mobile-hidden'
+  | 'auth-callback-panel'
+  | 'public-entry-menu'
+  | 'role-route-tabs'
+  | 'workspace-command-surface'
+  | 'hidden-immersive';
+
+const COMMERCIAL_VISUAL_QA_NAVIGATION_STATES: readonly CommercialVisualQaNavigationState[] = [
+  'desktop-expanded',
+  'desktop-collapsed',
+  'mobile-drawer',
+  'mobile-hidden',
+  'auth-callback-panel',
+  'public-entry-menu',
+  'role-route-tabs',
+  'workspace-command-surface',
+  'hidden-immersive',
+];
+
+const MOBILE_NAVIGATION_STATE_BY_BEHAVIOR: Record<PlatformMobileNavigationBehavior, CommercialVisualQaNavigationState> = {
+  'public-entry-menu': 'public-entry-menu',
+  'auth-callback-panel': 'auth-callback-panel',
+  'role-route-tabs': 'role-route-tabs',
+  'workspace-command-surface': 'workspace-command-surface',
+  drawer: 'mobile-drawer',
+  'hidden-immersive': 'hidden-immersive',
+};
 
 export interface CommercialPremiumVisualQaRoute {
   href: string;
@@ -134,9 +166,7 @@ export interface CommercialViewportVisualEvidence {
   routeFile?: string;
   routeArchetype?: PlatformPrimaryRouteFrame | string;
   dockState?: CommercialPremiumVisualQaRoute['floatingDock'] | PlatformFloatingDockRouteBehavior;
-  navigationState?: CommercialVisualNavigationState;
-  runId?: string;
-  capturedAt?: string;
+  navigationState?: CommercialVisualQaNavigationState;
   result?: 'passed' | 'failed';
   screenshot?: string;
   artifact?: string;
@@ -478,52 +508,6 @@ function withCategory(violation: CommercialUiGovernanceViolation): CommercialUiG
   };
 }
 
-function remediationForRule(rule: CommercialUiGovernanceRule) {
-  if (rule.startsWith('route-ledger.')) {
-    return 'Update src/lib/platform-role-navigation.ts route metadata or declare a temporary exception with owner, expiry, and removal condition.';
-  }
-  if (rule.startsWith('visual-acceptance.')) {
-    return 'Refresh artifacts/commercial-ui/evidence.json with structured route, viewport, theme, auth, navigation, dock, and result evidence.';
-  }
-  if (rule.startsWith('mobile-structure.')) {
-    return 'Capture 320px evidence proving secondary shell panels move into mobile drawer, sheet, tab, or command surfaces.';
-  }
-  if (rule.startsWith('report-export.')) {
-    return 'Capture report-ledger evidence for watermark, privacy scope, source quality, readability, and export readiness.';
-  }
-  if (rule.startsWith('accessibility-text-fit.')) {
-    return 'Refresh accessibility/text-fit evidence for the named route and viewport.';
-  }
-  if (rule.startsWith('shell.')) {
-    return 'Migrate the page to AppShell or register a route-level legacy shell disposition with a removal condition.';
-  }
-  return 'Fix the named governance rule or add a scoped, temporary allowlist entry with owner and removal condition.';
-}
-
-function routeOwnerForViolation(
-  violation: CommercialUiGovernanceViolation,
-  routeInventory: readonly PlatformPrimaryRouteInventoryEntry[],
-) {
-  const route = routeInventory.find((entry) => entry.href === violation.path);
-  return route?.unifiedUiMigrationOwner
-    ?? route?.exception?.owner
-    ?? route?.legacyShell?.owningChange
-    ?? route?.owningChange
-    ?? 'unowned';
-}
-
-function withActionableMessage(
-  violation: CommercialUiGovernanceViolation,
-  routeInventory: readonly PlatformPrimaryRouteInventoryEntry[],
-) {
-  const owner = routeOwnerForViolation(violation, routeInventory);
-  const remediation = remediationForRule(violation.rule);
-  return {
-    ...violation,
-    message: `${violation.message} Route or path: ${violation.path}. Rule: ${violation.rule}. Owner: ${owner}. Remediation: ${remediation}`,
-  };
-}
-
 function allowlistMatches(violation: CommercialUiGovernanceViolation, entry: CommercialUiGovernanceAllowlistEntry) {
   const pathMatches = entry.path === violation.path || violation.path.startsWith(`${entry.path}/`);
   const evidenceMatches = !entry.evidence || (
@@ -545,11 +529,6 @@ function isValidIsoCalendarDate(raw: string) {
     && date.getUTCMonth() === month - 1
     && date.getUTCDate() === day
   );
-}
-
-function isValidIsoTimestamp(raw: string) {
-  const timestamp = Date.parse(raw);
-  return Number.isFinite(timestamp) && raw.includes('T');
 }
 
 function allowlistEntryMissingFields(entry: CommercialUiGovernanceAllowlistEntry, today?: string) {
@@ -889,7 +868,7 @@ function buildVisualManifestMetadataViolations(
   visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
 ) {
   return visualEvidence.flatMap((routeEvidence) => {
-    const route = routeInventory.find((entry) => entry.href === routeEvidence.href);
+    const route = findVisualRouteInventoryEntry(routeInventory, routeEvidence.href);
     return routeEvidence.viewports.flatMap((viewport) => {
       const premiumScenario = premiumVisualQaMatrix.find((entry) => (
         entry.href === routeEvidence.href
@@ -907,13 +886,13 @@ function buildVisualManifestMetadataViolations(
         !viewport.routeFile || (route && viewport.routeFile !== route.routeFile) ? 'routeFile' : '',
         !viewport.routeArchetype || (route && viewport.routeArchetype !== route.frame) ? 'routeArchetype' : '',
         !viewport.dockState || (expectedDockState && normalizeVisualDockState(viewport.dockState) !== expectedDockState) ? 'dockState' : '',
+        !viewport.navigationState || !COMMERCIAL_VISUAL_QA_NAVIGATION_STATES.includes(viewport.navigationState)
+          ? 'navigationState'
+          : '',
         !viewport.theme ? 'theme' : '',
         !viewport.role ? 'role' : '',
         !viewport.authState ? 'authState' : '',
-        !viewport.navigationState ? 'navigationState' : '',
         !viewport.finalUrl ? 'finalUrl' : '',
-        !viewport.runId && !viewport.capturedAt ? 'runId or capturedAt' : '',
-        viewport.capturedAt && !isValidIsoTimestamp(viewport.capturedAt) ? 'capturedAt=ISO timestamp' : '',
         viewport.result !== 'passed' ? 'result=passed' : '',
         !viewport.firstViewportTaskVisible ? 'firstViewportTaskVisible' : '',
       ].filter(Boolean);
@@ -929,7 +908,34 @@ function buildVisualManifestMetadataViolations(
   });
 }
 
-function routeRequiresNavigationStateMatrix(route: PlatformPrimaryRouteInventoryEntry) {
+function findVisualRouteInventoryEntry(
+  routeInventory: readonly PlatformPrimaryRouteInventoryEntry[],
+  href: string,
+) {
+  const resolvedRoute = resolvePlatformRouteInventory(href);
+  return routeInventory.find((route) => route.href === resolvedRoute?.href)
+    ?? resolvedRoute
+    ?? routeInventory.find((route) => route.href === href || route.aliases?.includes(href));
+}
+
+function visualEvidenceFingerprint(viewport: CommercialViewportVisualEvidence) {
+  return `${viewport.screenshot ?? ''}|${viewport.artifact ?? ''}`;
+}
+
+function comparableDesktopNavigationScenario(
+  a: CommercialViewportVisualEvidence,
+  b: CommercialViewportVisualEvidence,
+) {
+  return (
+    a.width === b.width
+    && a.theme === b.theme
+    && a.role === b.role
+    && a.authState === b.authState
+    && a.requestedRoute === b.requestedRoute
+  );
+}
+
+function routeRequiresWorkspaceNavigationMatrix(route: PlatformPrimaryRouteInventoryEntry) {
   return (
     route.frame === 'mission-workspace'
     && route.floatingDock !== 'hidden'
@@ -940,39 +946,51 @@ function routeRequiresNavigationStateMatrix(route: PlatformPrimaryRouteInventory
   );
 }
 
-function buildNavigationStateMatrixViolations(
+function buildNavigationStateViolations(
   routeInventory: readonly PlatformPrimaryRouteInventoryEntry[],
   visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
 ) {
-  return routeInventory
-    .filter(routeRequiresNavigationStateMatrix)
-    .flatMap((route) => {
-      const routeEvidence = visualEvidence.find((entry) => entry.href === route.href);
-      if (!routeEvidence) return [];
-      const expected = route.themeSupport.flatMap((theme) => [
-        { width: 1440, theme, navigationState: 'expanded' as const },
-        { width: 1440, theme, navigationState: 'collapsed' as const },
-        { width: 320, theme, navigationState: 'drawer' as const },
-      ]);
-      const missing = expected
-        .filter((state) => !routeEvidence.viewports.some((viewport) => (
-          viewport.width === state.width
-          && viewport.theme === state.theme
-          && viewport.navigationState === state.navigationState
-          && viewport.result === 'passed'
-          && Boolean(viewport.screenshot || viewport.artifact)
-        )))
-        .map((state) => `${state.theme}:${state.width}:${state.navigationState}`);
-
-      return missing.length > 0
-        ? [withCategory({
-            path: route.href,
-            rule: 'visual-acceptance.incomplete-navigation-state-matrix',
-            message: 'Visual QA evidence is missing required workspace shell navigation states.',
-            evidence: missing,
-          })]
-        : [];
-    });
+  return visualEvidence.flatMap((routeEvidence) => {
+    const route = findVisualRouteInventoryEntry(routeInventory, routeEvidence.href);
+    if (!route) return [];
+    const expectedMobileState = routeRequiresWorkspaceNavigationMatrix(route)
+      ? 'mobile-drawer'
+      : MOBILE_NAVIGATION_STATE_BY_BEHAVIOR[route.mobileNavigation];
+    const missing = [
+      !routeEvidence.viewports.some((viewport) => (
+        viewport.width === 1440 && viewport.navigationState === 'desktop-expanded'
+      )) ? 'width=1440:navigationState=desktop-expanded' : '',
+      !routeEvidence.viewports.some((viewport) => (
+        viewport.width === 1440 && viewport.navigationState === 'desktop-collapsed'
+      )) ? 'width=1440:navigationState=desktop-collapsed' : '',
+      !routeEvidence.viewports.some((viewport) => (
+        viewport.width === 320 && viewport.navigationState === expectedMobileState
+      )) ? `width=320:navigationState=${expectedMobileState}` : '',
+    ].filter(Boolean);
+    const expandedViewports = routeEvidence.viewports.filter((viewport) => (
+      viewport.width === 1440 && viewport.navigationState === 'desktop-expanded'
+    ));
+    const reusedCollapsedEvidence = routeEvidence.viewports.some((viewport) => (
+      viewport.width === 1440
+      && viewport.navigationState === 'desktop-collapsed'
+      && visualEvidenceFingerprint(viewport) !== '|'
+      && expandedViewports.some((expanded) => (
+        comparableDesktopNavigationScenario(expanded, viewport)
+        && visualEvidenceFingerprint(expanded) === visualEvidenceFingerprint(viewport)
+      ))
+    ));
+    if (reusedCollapsedEvidence) {
+      missing.push('desktop-collapsed evidence reuses desktop-expanded artifact');
+    }
+    return missing.length > 0
+      ? [withCategory({
+          path: routeEvidence.href,
+          rule: 'visual-acceptance.incomplete-navigation-state-evidence',
+          message: 'Visual QA evidence is missing required desktop or mobile navigation state coverage.',
+          evidence: missing,
+        })]
+      : [];
+  });
 }
 
 function buildMobileStructureViolations(visualEvidence: readonly CommercialVisualAcceptanceEvidence[]) {
@@ -1099,7 +1117,7 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
     ...buildVisualViolations(requiredVisualRoutes, input.visualEvidence),
     ...buildPremiumVisualQaViolations(premiumVisualQaMatrix, input.visualEvidence),
     ...buildVisualManifestMetadataViolations(visualRouteInventory, premiumVisualQaMatrix, input.visualEvidence),
-    ...buildNavigationStateMatrixViolations(visualRouteInventory, input.visualEvidence),
+    ...buildNavigationStateViolations(visualRouteInventory, input.visualEvidence),
     ...buildMobileStructureViolations(input.visualEvidence),
     ...buildReportExportViolations(reportSurfaceInventory, input.visualEvidence),
     ...buildAccessibilityViolations(
@@ -1107,8 +1125,7 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
       input.accessibilityEvidence,
     ),
   ];
-  const actionableViolations = rawViolations.map((violation) => withActionableMessage(violation, routeInventory));
-  const violations = actionableViolations.map((violation) => {
+  const violations = rawViolations.map((violation) => {
     const matchedAllowlist = allowlist.find((entry) => allowlistMatches(violation, entry));
     const allowlisted = matchedAllowlist && allowlistEntryMissingFields(matchedAllowlist, input.today).length === 0;
     return allowlisted

@@ -48,7 +48,7 @@
     "test:model-render-policy": "npx --yes tsx ./scripts/tests/test-model-render-policy.ts",
     "test:runtime-log-delta": "node ./scripts/tests/test-runtime-log-delta.mjs",
     "test:commercial-ui-governance": "npx --yes tsx ./scripts/tests/test-commercial-ui-governance.ts",
-    "test:react-doctor:commercial-ui": "node ./scripts/tests/test-react-doctor-commercial-ui.mjs",
+    "test:react-doctor:ui-errors": "npx --yes react-doctor@0.5.1 --no-score --no-telemetry --no-warnings --json .",
     "test:control-correction-demo": "npx --yes tsx ./scripts/tests/control-correction-demo-acceptance.ts",
     "test:intelligent-teaching-assistant-demo": "npx --yes tsx ./scripts/tests/intelligent-teaching-assistant-demo-acceptance.ts",
     "test:provider-runtime-smoke": "npx --yes tsx ./scripts/tests/provider-runtime-smoke.ts",

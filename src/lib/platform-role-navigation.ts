@@ -788,7 +788,6 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     visualQaProfile: 'representative',
     mobileNavigation: 'role-route-tabs',
     owningChange: 'redesign-learner-data-and-report-surfaces',
-    aliases: ['/profile/growth', '/profile/portfolio'],
   }),
   primaryRoute({
     href: '/profile/growth',
@@ -799,6 +798,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
+    mobileNavigation: 'role-route-tabs',
     owningChange: 'redesign-learner-data-and-report-surfaces',
   }),
   primaryRoute({
@@ -810,6 +810,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
+    mobileNavigation: 'role-route-tabs',
     owningChange: 'redesign-learner-data-and-report-surfaces',
   }),
   primaryRoute({
@@ -821,6 +822,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
+    mobileNavigation: 'role-route-tabs',
     owningChange: 'redesign-learner-data-and-report-surfaces',
   }),
   primaryRoute({

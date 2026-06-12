@@ -190,13 +190,13 @@ describe('platform role navigation', () => {
       'student-control-workbench',
     ]);
     expect(intentGroups.flatMap((group) => group.compatibilityAliases)).toEqual(
-      expect.arrayContaining(['/profile/growth', '/interactive-learning/control-workbench?mode=explore&preset=classic-four-view']),
+      expect.arrayContaining(['/interactive-learning/control-workbench?mode=explore&preset=classic-four-view']),
     );
     expect(STUDENT_LEARNING_INTENT_GROUPS.flatMap((group) => group.compatibilityAliases)).toEqual(
       expect.arrayContaining(
         getStudentCoreNavigationEntries()
           .flatMap((entry) => entry.aliasHrefs ?? [])
-          .filter((href) => href === '/profile/growth' || href.includes('control-workbench')),
+          .filter((href) => href.includes('control-workbench')),
       ),
     );
   });
@@ -604,16 +604,32 @@ describe('platform role navigation', () => {
         .map((alias) => `${route.href}:${alias}`)
     ));
     expect(unresolvedAliases).toEqual([]);
+
+    const currentPrimaryHrefs = new Set(PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => route.href));
+    const aliasConflicts = PLATFORM_PRIMARY_ROUTE_INVENTORY.flatMap((route) => (
+      (route.aliases ?? [])
+        .filter((alias) => currentPrimaryHrefs.has(alias))
+        .map((alias) => `${route.href}->${alias}`)
+    ));
+    expect(aliasConflicts).toEqual([]);
   });
 
   it('separates learner record, evidence review, and platform data-center semantics', () => {
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/profile')).toMatchObject({
       frame: 'report-ledger',
       mobileNavigation: 'role-route-tabs',
-      aliases: expect.arrayContaining(['/profile/growth', '/profile/portfolio']),
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/profile/growth')).toMatchObject({
+      frame: 'report-ledger',
+      mobileNavigation: 'role-route-tabs',
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/profile/portfolio')).toMatchObject({
+      frame: 'report-ledger',
+      mobileNavigation: 'role-route-tabs',
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/profile/evidence')).toMatchObject({
       frame: 'report-ledger',
+      mobileNavigation: 'role-route-tabs',
       owningChange: 'redesign-learner-data-and-report-surfaces',
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/data-center')).toMatchObject({

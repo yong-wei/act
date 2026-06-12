@@ -1,6 +1,6 @@
 {
   "change": "harden-unified-ui-governance-gates",
-  "command": "RUN_REACT_DOCTOR=1 npm run test:react-doctor:commercial-ui",
+  "command": "npm run test:react-doctor:ui-errors",
   "reactDoctorVersion": "0.5.1",
   "exitStatus": 1,
   "executable": true,
