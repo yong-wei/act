@@ -1,21 +1,26 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
-import { UnifiedTopBar } from '@/components/shared/unified-top-bar';
+import { AppShell } from '@/components/platform/app-shell';
 import { INTERACTIVE_COURSE_MODULES, PREMIUM_LESSONS } from '@/features/interactive/learning-catalog';
 
 export default function InteractiveCoursesPage() {
   return (
-    <div
-      className="interactive-course-hub-shell"
-      data-commercial-workspace="interactive-learning"
-      data-commercial-student-entry-route="/interactive-learning/courses"
-      data-commercial-entry-intent="learn"
-      data-learning-entry-map="course-module-progression"
+    <AppShell
+      viewerRole="student"
+      title="互动课程"
+      subtitle="Interactive Courses"
+      activeHref="/interactive-learning/courses"
+      sidebarMode="collapsible"
+      className="surface-page"
     >
-      <UnifiedTopBar title="互动课程" backHref="/interactive-learning" backLabel="返回互动学习" subtitle="Interactive Courses" className="pb-2" />
-
-      <main className="mx-auto max-w-[1280px] px-6 py-10">
+      <section
+        className="mx-auto max-w-[1280px] px-6 py-10"
+        data-commercial-workspace="interactive-learning"
+        data-commercial-student-entry-route="/interactive-learning/courses"
+        data-commercial-entry-intent="learn"
+        data-learning-entry-map="course-module-progression"
+      >
         <header
           className="interactive-course-hub-hero"
           data-entry-current-context="course-catalog"
@@ -120,7 +125,7 @@ export default function InteractiveCoursesPage() {
             </section>
           ))}
         </div>
-      </main>
-    </div>
+      </section>
+    </AppShell>
   );
 }

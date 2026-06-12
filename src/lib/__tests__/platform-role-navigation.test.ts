@@ -266,6 +266,8 @@ describe('platform role navigation', () => {
       '/login',
       '/interactive-learning',
       '/interactive-learning/courses',
+      '/interactive-learning/chapter-components',
+      '/interactive-learning/cross-domain-exploration',
       '/interactive-learning/courses/unit-4-1-design-task-expression',
       '/interactive-learning/courses/unit-1-1-see-the-full-picture',
       '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]',
@@ -332,6 +334,20 @@ describe('platform role navigation', () => {
       frame: 'learning-atlas',
       navigationLayers: expect.arrayContaining(['global-product', 'contextual-workspace']),
       floatingDock: 'collapsed',
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning/chapter-components')).toMatchObject({
+      frame: 'learning-atlas',
+      navigationLayers: expect.arrayContaining(['global-product', 'contextual-workspace']),
+      floatingDock: 'collapsed',
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning/cross-domain-exploration')).toMatchObject({
+      frame: 'learning-atlas',
+      navigationLayers: expect.arrayContaining(['global-product', 'contextual-workspace']),
+      floatingDock: 'collapsed',
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/assessment/adaptive-practice')).toMatchObject({
+      frame: 'learning-atlas',
+      navigationLayers: expect.arrayContaining(['global-product', 'contextual-workspace']),
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning/courses/unit-4-1-design-task-expression')).toMatchObject({
       frame: 'learning-atlas',
@@ -683,8 +699,6 @@ describe('platform role navigation', () => {
     const shellRoutes = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => route.legacyShell);
     expect(shellRoutes.map((route) => [route.href, route.legacyShell?.component])).toEqual(
       expect.arrayContaining([
-        ['/interactive-learning', 'UnifiedTopBar'],
-        ['/interactive-learning/courses', 'UnifiedTopBar'],
         ['/simulations', 'FeaturePageNav'],
         ['/arena', 'ArenaPageShell'],
         ['/teacher', 'TeacherLayout'],
@@ -798,6 +812,8 @@ describe('platform role navigation', () => {
     const loginSource = readSource('src/app/(auth)/login/page.tsx');
     const interactiveSource = readSource('src/app/interactive-learning/page.tsx');
     const coursesSource = readSource('src/app/interactive-learning/courses/page.tsx');
+    const chapterComponentsSource = readSource('src/app/interactive-learning/chapter-components/page.tsx');
+    const crossDomainSource = readSource('src/app/interactive-learning/cross-domain-exploration/page.tsx');
     const simulationsSource = readSource('src/app/simulations/page.tsx');
     const unit41EntrySource = readSource('src/features/interactive/shared/premium-lesson-entry-page.tsx');
 
@@ -811,6 +827,12 @@ describe('platform role navigation', () => {
     expect(loginSource).toContain('decodeURIComponent(callbackUrl)');
     expect(loginSource).toContain('目标路径：');
     expect(loginSource).toContain('data-commercial-entry-intent="account-profile"');
+    for (const source of [interactiveSource, coursesSource, chapterComponentsSource, crossDomainSource]) {
+      expect(source).toContain('<AppShell');
+      expect(source).toContain('viewerRole="student"');
+      expect(source).toContain('sidebarMode="collapsible"');
+      expect(source).not.toContain('UnifiedTopBar');
+    }
     expect(interactiveSource).toContain('data-learning-entry-map="student-intent"');
     expect(interactiveSource).toContain('data-commercial-entry-intent-map="learn-practice-challenge"');
     expect(interactiveSource).toContain('data-entry-current-work-priority="active-learning-context"');
@@ -819,6 +841,8 @@ describe('platform role navigation', () => {
     expect(coursesSource).toContain('data-entry-current-work-priority="recommended-course"');
     expect(coursesSource).toContain('data-secondary-implementation-links="legacy-source-labels"');
     expect(coursesSource).toContain('data-course-entry-action="launch"');
+    expect(chapterComponentsSource).toContain('data-learning-entry-map="chapter-component-library"');
+    expect(crossDomainSource).toContain('data-learning-entry-map="cross-domain-exploration"');
     expect(simulationsSource).toContain('data-simulation-entry-map="scenario-fleet"');
     expect(simulationsSource).toContain('data-entry-current-work-priority="recommended-experiment"');
     expect(simulationsSource).toContain('data-simulation-scenario-card={simulation.id}');

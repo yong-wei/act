@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight, Compass, Sparkles, Workflow } from 'lucide-react';
-import { UnifiedTopBar } from '@/components/shared/unified-top-bar';
+import { AppShell } from '@/components/platform/app-shell';
 import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 
 const ENTRY_ROUTES = [
@@ -31,22 +31,27 @@ const ENTRY_ROUTES = [
 export default function InteractiveLearningPage() {
   const entryIntents = getCommercialStudentEntryIntentGroups();
   return (
-    <div
+    <AppShell
+      viewerRole="student"
+      title="互动学习"
+      subtitle="Interactive Learning"
+      activeHref="/interactive-learning"
+      sidebarMode="collapsible"
       className="surface-page"
-      data-commercial-workspace="interactive-learning"
-      data-commercial-student-entry-route="/interactive-learning"
-      data-commercial-entry-intent="learn"
-      data-learning-entry-map="student-intent"
     >
-      <UnifiedTopBar title="互动学习" backHref="/" backLabel="返回首页" subtitle="Interactive Learning" />
-
-      <main className="mx-auto max-w-[1200px] px-6 py-12">
+      <section
+        className="mx-auto max-w-[1200px] px-6 py-12"
+        data-commercial-workspace="interactive-learning"
+        data-commercial-student-entry-route="/interactive-learning"
+        data-commercial-entry-intent="learn"
+        data-learning-entry-map="student-intent"
+      >
         <header
           className="surface-card mb-6 p-6"
           data-entry-current-context="interactive-learning"
           data-entry-current-work-priority="active-learning-context"
         >
-          <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">商业入口 · 学习</p>
+          <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">学习地图 · Learn</p>
           <h1 className="mb-3 text-3xl font-bold text-foreground md:text-4xl">互动学习</h1>
           <p className="text-base text-subtle">
             先继续当前学习路径，再进入课程、练习、挑战或实验。组件库保留为次级资料入口。
@@ -140,7 +145,7 @@ export default function InteractiveLearningPage() {
             <p className="mt-2 text-xs text-subtle">章节入口与组件展示分离，路由独立，方便评审与课堂组织。</p>
           </div>
         </section>
-      </main>
-    </div>
+      </section>
+    </AppShell>
   );
 }

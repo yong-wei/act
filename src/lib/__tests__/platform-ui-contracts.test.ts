@@ -470,6 +470,10 @@ describe('platform UI contracts', () => {
     const evidenceSource = readSource('src/app/(main)/profile/evidence/page.tsx');
     const knowledgeSource = readSource('src/app/knowledge/page.tsx');
     const adaptivePracticeSource = readSource('src/app/assessment/adaptive-practice/page.tsx');
+    const interactiveLearningSource = readSource('src/app/interactive-learning/page.tsx');
+    const interactiveCoursesSource = readSource('src/app/interactive-learning/courses/page.tsx');
+    const chapterComponentsSource = readSource('src/app/interactive-learning/chapter-components/page.tsx');
+    const crossDomainSource = readSource('src/app/interactive-learning/cross-domain-exploration/page.tsx');
     const evidenceBrowserSource = readSource('src/features/data-governance/evidence-timeline-browser.tsx');
 
     for (const source of [
@@ -478,12 +482,25 @@ describe('platform UI contracts', () => {
       growthSource,
       evidenceSource,
       adaptivePracticeSource,
+      interactiveLearningSource,
+      interactiveCoursesSource,
+      chapterComponentsSource,
+      crossDomainSource,
     ]) {
       expect(source).toContain('<AppShell');
       expect(source).toContain('viewerRole="student"');
       expect(source).not.toMatch(/role=\"(?:student|teacher)\"/);
       expect(source).not.toContain('UnifiedTopBar');
       expect(source).not.toContain('商业入口');
+    }
+    for (const source of [
+      adaptivePracticeSource,
+      interactiveLearningSource,
+      interactiveCoursesSource,
+      chapterComponentsSource,
+      crossDomainSource,
+    ]) {
+      expect(source).not.toMatch(/<main\b/);
     }
     expect(knowledgeSource).toContain('<AppShell');
     expect(knowledgeSource).toContain('getServerAuthSession');

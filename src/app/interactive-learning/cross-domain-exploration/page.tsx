@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
-import { UnifiedTopBar } from '@/components/shared/unified-top-bar';
+import { AppShell } from '@/components/platform/app-shell';
 import { useResourceInteractionTracking } from '@/features/interactive/hooks/useResourceInteractionTracking';
 import type { InteractiveResource } from '@/features/interactive/learning-catalog';
 
@@ -60,10 +60,21 @@ export default function CrossDomainExplorationPage() {
   }, [resources]);
 
   return (
-    <div className="surface-page min-h-screen text-foreground">
-      <UnifiedTopBar title="跨域探索" backHref="/interactive-learning" backLabel="返回互动学习" subtitle="Cross-Domain Exploration" className="pb-2" />
-
-      <main className="mx-auto max-w-[1280px] px-6 py-10">
+    <AppShell
+      viewerRole="student"
+      title="跨域探索"
+      subtitle="Cross-Domain Exploration"
+      activeHref="/interactive-learning/cross-domain-exploration"
+      sidebarMode="collapsible"
+      className="surface-page"
+    >
+      <section
+        className="mx-auto max-w-[1280px] px-6 py-10"
+        data-commercial-workspace="interactive-learning"
+        data-commercial-student-entry-route="/interactive-learning/cross-domain-exploration"
+        data-commercial-entry-intent="learn"
+        data-learning-entry-map="cross-domain-exploration"
+      >
         <header className="surface-card mb-8 p-6">
           <h1 className="text-3xl font-semibold">跨域探索</h1>
           <p className="mt-2 text-sm text-subtle">聚焦跨表征联动与跨域问题拆解，按资源目录动态展示趣味探索组件。</p>
@@ -113,7 +124,7 @@ export default function CrossDomainExplorationPage() {
             暂无可展示的跨域探索组件。
           </div>
         )}
-      </main>
-    </div>
+      </section>
+    </AppShell>
   );
 }

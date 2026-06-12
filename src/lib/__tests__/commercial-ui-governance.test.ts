@@ -175,6 +175,12 @@ function completeAccessibilityEvidence(): CommercialAccessibilityTextFitEvidence
   }));
 }
 
+function readCommercialEvidenceManifest() {
+  return JSON.parse(readFileSync(join(process.cwd(), 'artifacts/commercial-ui/evidence.json'), 'utf8')) as {
+    routes?: CommercialVisualAcceptanceEvidence[];
+  };
+}
+
 function baseInput(overrides: Partial<CommercialUiGovernanceInput> = {}): CommercialUiGovernanceInput {
   return {
     mode: 'blocking',
@@ -187,6 +193,53 @@ function baseInput(overrides: Partial<CommercialUiGovernanceInput> = {}): Commer
 }
 
 describe('commercial UI governance', () => {
+  it('binds student secondary route visual evidence to the current shell migration artifact', () => {
+    const evidence = readCommercialEvidenceManifest();
+    const manifestPath = 'artifacts/commercial-ui/student-secondary-routes-414/manifest.json';
+    const manifest = JSON.parse(readFileSync(join(process.cwd(), manifestPath), 'utf8')) as {
+      changeId?: string;
+      routes?: CommercialVisualAcceptanceEvidence[];
+    };
+    const requiredStates = [
+      'dark:1440:desktop-collapsed',
+      'dark:1440:desktop-expanded',
+      'dark:320:workspace-command-surface',
+      'light:1440:desktop-collapsed',
+      'light:1440:desktop-expanded',
+      'light:320:workspace-command-surface',
+    ];
+    const targetRoutes = [
+      '/interactive-learning',
+      '/interactive-learning/courses',
+      '/interactive-learning/chapter-components',
+      '/interactive-learning/cross-domain-exploration',
+      '/assessment/adaptive-practice',
+    ];
+
+    expect(manifest.changeId).toBe('migrate-student-secondary-routes-to-unified-shell');
+    for (const href of targetRoutes) {
+      const routeEvidence = evidence.routes?.find((route) => route.href === href);
+      const artifactRoute = manifest.routes?.find((route) => route.href === href);
+      expect(routeEvidence, href).toBeTruthy();
+      expect(artifactRoute, href).toBeTruthy();
+      expect(routeEvidence?.viewports.map((viewport) => `${viewport.theme}:${viewport.width}:${viewport.navigationState}`).sort()).toEqual(
+        requiredStates,
+      );
+      expect(artifactRoute?.viewports.map((viewport) => `${viewport.theme}:${viewport.width}:${viewport.navigationState}`).sort()).toEqual(
+        requiredStates,
+      );
+      expect(routeEvidence?.viewports.every((viewport) => viewport.artifact === manifestPath)).toBe(true);
+      expect(routeEvidence?.viewports.every((viewport) => Boolean(viewport.screenshot && existsSync(join(process.cwd(), viewport.screenshot))))).toBe(
+        true,
+      );
+      expect(routeEvidence?.viewports.every((viewport) => viewport.result === 'passed')).toBe(true);
+      expect(routeEvidence?.viewports.every((viewport) => (viewport as { mainCount?: number }).mainCount === 1)).toBe(true);
+      expect(routeEvidence?.viewports.every((viewport) => (viewport as { noLegacyTopbarText?: boolean }).noLegacyTopbarText === true)).toBe(
+        true,
+      );
+    }
+  });
+
   it('defines premium platform visual QA routes for light, dark, desktop, mobile, and dock placement', () => {
     expect(PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.map((route) => route.href)).toEqual([
       '/',
