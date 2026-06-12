@@ -6,6 +6,7 @@ interface SourceMarkerProps {
   quality: DataCenterSourceQuality;
   className?: string;
   showSummary?: boolean;
+  showDemoLabel?: boolean;
 }
 
 const qualityColorMap: Record<DataCenterSourceQuality, string> = {
@@ -16,8 +17,25 @@ const qualityColorMap: Record<DataCenterSourceQuality, string> = {
   restricted: 'bg-platform-privacy-restricted text-red-400 border-red-500/30',
 };
 
-export function DataCenterSourceMarker({ quality, className, showSummary = false }: SourceMarkerProps) {
+export function DataCenterSourceMarker({
+  quality,
+  className,
+  showSummary = false,
+  showDemoLabel = true,
+}: SourceMarkerProps) {
   const marker = SOURCE_QUALITY_MARKERS[quality];
+
+  if (quality === 'demo' && !showDemoLabel) {
+    return (
+      <span
+        className={cn('sr-only', className)}
+        data-data-center-source-quality={quality}
+        data-data-center-source-label-policy="hidden"
+      >
+        来源标识已按显示策略隐藏
+      </span>
+    );
+  }
 
   return (
     <span className={cn('inline-flex flex-col gap-0.5', className)}>

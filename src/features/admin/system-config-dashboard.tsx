@@ -68,6 +68,7 @@ interface SystemConfig {
   enableNotifications: boolean;
   ethicsAlertThreshold: number;
   homeDynamicModelEnabled: boolean;
+  dataCenterShowDemoSourceLabels: boolean;
 }
 
 interface ModelTestResult {
@@ -149,6 +150,7 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
     enableNotifications: true,
     ethicsAlertThreshold: 3,
     homeDynamicModelEnabled: false,
+    dataCenterShowDemoSourceLabels: false,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -197,13 +199,17 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
         if (!platformResponse.ok) {
           throw new Error('加载配置失败');
         }
-        const payload = await platformResponse.json() as { homeDynamicModelEnabled?: boolean };
+        const payload = await platformResponse.json() as {
+          homeDynamicModelEnabled?: boolean;
+          dataCenterShowDemoSourceLabels?: boolean;
+        };
         const aiPayload = aiResponse.ok ? await aiResponse.json() as AIProviderSettings : DEFAULT_AI_SETTINGS;
         if (controller.signal.aborted) return;
         const activeProvider = aiPayload.providers.find((provider) => provider.id === aiPayload.activeProvider) ?? aiPayload.providers[0];
         setConfig((prev) => ({
           ...prev,
           homeDynamicModelEnabled: payload.homeDynamicModelEnabled === true,
+          dataCenterShowDemoSourceLabels: payload.dataCenterShowDemoSourceLabels === true,
           aiProvider: aiPayload.activeProvider,
           aiModelEndpoint: activeProvider?.baseURL ?? '',
           aiModelName: activeProvider?.selectedModel ?? '',
@@ -241,6 +247,7 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             homeDynamicModelEnabled: config.homeDynamicModelEnabled,
+            dataCenterShowDemoSourceLabels: config.dataCenterShowDemoSourceLabels,
           }),
         }),
         fetch('/api/admin/ai-settings', {
@@ -494,6 +501,7 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
       enableNotifications: true,
       ethicsAlertThreshold: 3,
       homeDynamicModelEnabled: false,
+      dataCenterShowDemoSourceLabels: false,
     });
     setAiSettings(DEFAULT_AI_SETTINGS);
     showNotice('success', '已重置为默认配置');
@@ -650,6 +658,27 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                   <span
                     className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition ${
                       config.homeDynamicModelEnabled ? 'translate-x-5' : ''
+                    }`}
+                  />
+                </button>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border border-platform-border bg-platform-surface px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium text-platform-fg-primary">数据中心演示来源标签</p>
+                  <p className="text-xs text-platform-fg-muted">仅控制普通数据中心可见标签，治理审计来源保持可用</p>
+                </div>
+                <button
+                  onClick={() => setConfig({
+                    ...config,
+                    dataCenterShowDemoSourceLabels: !config.dataCenterShowDemoSourceLabels,
+                  })}
+                  className={`relative h-6 w-11 rounded-full transition ${
+                    config.dataCenterShowDemoSourceLabels ? 'bg-platform-action-primary' : 'bg-platform-border-strong'
+                  }`}
+                >
+                  <span
+                    className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-platform-surface transition ${
+                      config.dataCenterShowDemoSourceLabels ? 'translate-x-5' : ''
                     }`}
                   />
                 </button>

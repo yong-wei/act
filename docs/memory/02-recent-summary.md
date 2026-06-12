@@ -18,7 +18,7 @@
 
 - 2026-06-12 当前工作树 `act-resource` 绑定本地 `resource` 分支并跟踪 `origin/integration`，用于课程资源制作和资源相关开发。它是永久隔离工作树，在其中工作时不要再为同一任务创建第二层 worktree。
 
-- 2026-06-13 React Doctor 错误清理系列已归档到 specs，覆盖 server、aria role、shared state/effect、interactive state/effect 和 resource state/effect；AppShell 折叠导航合同 #413 已归档，桌面收起态为 72px 图标栏，展开态为 248px，light/dark 视觉证据已进入 `artifacts/commercial-ui/app-shell-collapsed-navigation-413/`。学生二级路线壳层迁移 #414 已归档，覆盖互动学习入口、课程目录、章节组件、跨域探索和自适应练习，视觉证据位于 `artifacts/commercial-ui/student-secondary-routes-414/`。知识图谱壳层迁移 #415 已完成实现，`/knowledge` 使用可收起 AppShell，章节目录、关系筛选、图例和资源面板保持图谱局部工具语义，视觉证据位于 `artifacts/commercial-ui/knowledge-map-unified-shell-415/`。当前 active OpenSpec 主要剩余数据中心角色可见性和二级导航视觉治理。控制校正与智能助教系列中的多项能力已经进入 specs 和实现。
+- 2026-06-13 React Doctor 错误清理系列已归档到 specs，覆盖 server、aria role、shared state/effect、interactive state/effect 和 resource state/effect；AppShell 折叠导航合同 #413 已归档，桌面收起态为 72px 图标栏，展开态为 248px，light/dark 视觉证据已进入 `artifacts/commercial-ui/app-shell-collapsed-navigation-413/`。学生二级路线壳层迁移 #414 已归档，覆盖互动学习入口、课程目录、章节组件、跨域探索和自适应练习，视觉证据位于 `artifacts/commercial-ui/student-secondary-routes-414/`。知识图谱壳层迁移 #415 已完成实现，`/knowledge` 使用可收起 AppShell，章节目录、关系筛选、图例和资源面板保持图谱局部工具语义，视觉证据位于 `artifacts/commercial-ui/knowledge-map-unified-shell-415/`。数据中心角色可见性 #416 已完成实现，`/data-center` 只面向教师和管理员，学生复盘入口改为 `/profile/evidence`，演示来源标签默认隐藏且由管理员配置控制，证据位于 `artifacts/commercial-ui/data-center-operations-roles-416/`。当前 active OpenSpec 主要剩余二级导航视觉治理。控制校正与智能助教系列中的多项能力已经进入 specs 和实现。
 
 - 2026-06-12 平台 UI 已从分散页面推进到 `AppShell`、角色导航、状态证据组件和页面族治理。`src/lib/platform-role-navigation.ts` 现在覆盖课程、任务空间、数据中心、教师治理、Arena/控制工作台等入口。`AppShell` 在测试中会被纯函数调用，顶层不要直接引入 runtime hook；桌面折叠导航应使用注册图标、aria/title 标签和 72px 窄栏，不再使用首字截断文本。
 

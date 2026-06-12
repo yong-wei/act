@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/admin'
-import { getHomeDynamicModelEnabled, setHomeDynamicModelEnabled } from '@/lib/platform-settings'
+import {
+  getDataCenterShowDemoSourceLabels,
+  getHomeDynamicModelEnabled,
+  setDataCenterShowDemoSourceLabels,
+  setHomeDynamicModelEnabled,
+} from '@/lib/platform-settings'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,9 +15,12 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const homeDynamicModelEnabled = await getHomeDynamicModelEnabled(false)
+  const [homeDynamicModelEnabled, dataCenterShowDemoSourceLabels] = await Promise.all([
+    getHomeDynamicModelEnabled(false),
+    getDataCenterShowDemoSourceLabels(false),
+  ])
   return NextResponse.json(
-    { homeDynamicModelEnabled },
+    { homeDynamicModelEnabled, dataCenterShowDemoSourceLabels },
     { headers: { 'Cache-Control': 'no-store' } },
   )
 }
@@ -23,13 +31,27 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const payload = await request.json().catch(() => null) as { homeDynamicModelEnabled?: unknown } | null
-  const nextValue = payload?.homeDynamicModelEnabled
+  const payload = await request.json().catch(() => null) as {
+    homeDynamicModelEnabled?: unknown
+    dataCenterShowDemoSourceLabels?: unknown
+  } | null
+  const nextHomeDynamicModelEnabled = payload?.homeDynamicModelEnabled
+  const nextDataCenterShowDemoSourceLabels = payload?.dataCenterShowDemoSourceLabels
 
-  if (typeof nextValue !== 'boolean') {
+  if (
+    typeof nextHomeDynamicModelEnabled !== 'boolean'
+    || typeof nextDataCenterShowDemoSourceLabels !== 'boolean'
+  ) {
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
   }
 
-  await setHomeDynamicModelEnabled(nextValue)
-  return NextResponse.json({ success: true, homeDynamicModelEnabled: nextValue })
+  await Promise.all([
+    setHomeDynamicModelEnabled(nextHomeDynamicModelEnabled),
+    setDataCenterShowDemoSourceLabels(nextDataCenterShowDemoSourceLabels),
+  ])
+  return NextResponse.json({
+    success: true,
+    homeDynamicModelEnabled: nextHomeDynamicModelEnabled,
+    dataCenterShowDemoSourceLabels: nextDataCenterShowDemoSourceLabels,
+  })
 }

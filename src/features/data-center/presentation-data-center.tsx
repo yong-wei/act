@@ -33,7 +33,6 @@ import {
   Legend,
 } from 'recharts';
 import { useTheme } from '@/components/providers/theme-provider';
-import { useMemo } from 'react';
 import { AppShell } from '@/components/platform/app-shell';
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
 import { getPlatformRoleNavigation } from '@/lib/platform-role-navigation';
@@ -75,25 +74,10 @@ export interface DataMapContextCardModel {
 
 interface PresentationDataCenterProps {
   role: PlatformRole;
+  showDemoSourceLabels: boolean;
 }
 
-export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
-  const navigation = useMemo(() => {
-    const base = getPlatformRoleNavigation(role);
-    const hasEntry = base.some((item) => item.href === '/data-center');
-    if (hasEntry) return base;
-    return [
-      ...base,
-      {
-        id: 'platform-data-center',
-        label: '数据中心',
-        href: '/data-center',
-        role,
-        order: 155,
-        description: '平台教学运行全景视图。',
-      },
-    ];
-  }, [role]);
+export function PresentationDataCenter({ role, showDemoSourceLabels }: PresentationDataCenterProps) {
   const { mounted, theme } = useTheme();
   const isDark = mounted ? theme === 'dark' : true;
   const axisColor = isDark ? 'hsl(var(--platform-fg-muted))' : 'hsl(var(--platform-fg-secondary))';
@@ -128,7 +112,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
   return (
     <AppShell
       viewerRole={role}
-      navigation={navigation}
+      navigation={getPlatformRoleNavigation(role)}
       activeHref="/data-center"
       title="平台数据中心"
       subtitle="教学运行全景视图 · 聚合统计指标"
@@ -154,7 +138,11 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
               </p>
             </div>
           </div>
-          <DataCenterSourceMarker quality={sourceQuality()} showSummary />
+          <DataCenterSourceMarker
+            quality={sourceQuality()}
+            showDemoLabel={showDemoSourceLabels}
+            showSummary
+          />
         </div>
 
         <section
@@ -173,6 +161,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
               title="核心平台指标"
               subtitle="用户规模、互动量、仿真访问与 Control Odyssey 访问"
               sourceQuality={sourceQuality()}
+              showDemoSourceLabels={showDemoSourceLabels}
               mode="presentation"
             >
               <div className={metricGridClass}>
@@ -214,6 +203,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
           title="月度访问量变化"
           subtitle="学习轨迹：平台总体访问、互动量、仿真访问趋势"
           sourceQuality={sourceQuality()}
+          showDemoSourceLabels={showDemoSourceLabels}
           mode="presentation"
         >
           <div className="h-[320px] min-w-0 w-full">
@@ -254,6 +244,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
           title="模块访问结构占比"
           subtitle="模块活动：按平台核心模块拆分"
           sourceQuality={sourceQuality()}
+          showDemoSourceLabels={showDemoSourceLabels}
           mode="presentation"
         >
           <div className="h-[320px] min-w-0 w-full">
@@ -290,6 +281,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
           title="互动环节统计"
           subtitle="课堂活动：按互动类型拆分"
           sourceQuality={sourceQuality()}
+          showDemoSourceLabels={showDemoSourceLabels}
           mode="presentation"
         >
           <div className="h-[300px] min-w-0 w-full">
@@ -314,6 +306,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
           title="仿真活动分布"
           subtitle="仿真活动：7类仿真分项访问统计"
           sourceQuality={sourceQuality()}
+          showDemoSourceLabels={showDemoSourceLabels}
           mode="presentation"
         >
           <div className="h-[300px] min-w-0 w-full">
@@ -341,6 +334,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
           title="完整学习周期负载"
           subtitle="学习轨迹：按完整学习口径统计"
           sourceQuality={sourceQuality()}
+          showDemoSourceLabels={showDemoSourceLabels}
           mode="presentation"
         >
           <div className={compactGridClass}>
@@ -358,6 +352,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
           title="学习活跃与完课率"
           subtitle="课堂活动：活跃学生规模与课程完课率联动"
           sourceQuality={sourceQuality()}
+          showDemoSourceLabels={showDemoSourceLabels}
           mode="presentation"
         >
           <div className="h-[260px] min-w-0 w-full">
@@ -411,6 +406,7 @@ export function PresentationDataCenter({ role }: PresentationDataCenterProps) {
                 title="学期简报 · 快照"
                 subtitle="演示快照：教学规模、学习行为密度、仿真实训强度总览"
                 sourceQuality={sourceQuality()}
+                showDemoSourceLabels={showDemoSourceLabels}
                 mode="presentation"
               >
                 <div className={compactGridClass}>

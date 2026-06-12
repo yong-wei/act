@@ -491,7 +491,6 @@ const REQUIRED_STUDENT_CORE_ENTRY_IDS = [
   'student-control-workbench',
   'student-adaptive-learning',
   'student-interactive-learning',
-  'platform-data-center',
 ];
 const REQUIRED_STUDENT_DESTINATION_HREFS = [
   '/simulations',
@@ -500,7 +499,7 @@ const REQUIRED_STUDENT_DESTINATION_HREFS = [
   '/interactive-learning/control-workbench',
   '/assessment/adaptive-practice',
   '/interactive-learning',
-  '/data-center',
+  '/profile/evidence',
 ];
 const REQUIRED_NAVIGATION_ALIASES = ['/interactive-learning/control-workbench?mode=explore&preset=classic-four-view'];
 const REQUIRED_STUDENT_PROFILE_HREF = '/profile';

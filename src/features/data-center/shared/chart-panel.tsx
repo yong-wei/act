@@ -11,6 +11,7 @@ interface DataCenterChartPanelProps {
   children: ReactNode;
   className?: string;
   actions?: ReactNode;
+  showDemoSourceLabels?: boolean;
 }
 
 export function DataCenterChartPanel({
@@ -21,6 +22,7 @@ export function DataCenterChartPanel({
   children,
   className,
   actions,
+  showDemoSourceLabels = true,
 }: DataCenterChartPanelProps) {
   const isGovernance = mode === 'governance';
 
@@ -40,7 +42,7 @@ export function DataCenterChartPanel({
             <p className="mt-1 text-xs text-platform-fg-secondary">{subtitle}</p>
           ) : null}
           <div className="mt-2">
-            <DataCenterSourceMarker quality={sourceQuality} />
+            <DataCenterSourceMarker quality={sourceQuality} showDemoLabel={showDemoSourceLabels} />
           </div>
         </div>
         {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}

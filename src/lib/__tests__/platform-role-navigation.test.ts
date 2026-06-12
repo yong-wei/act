@@ -41,7 +41,6 @@ describe('platform role navigation', () => {
       '/interactive-learning/control-workbench',
       '/assessment/adaptive-practice',
       '/interactive-learning',
-      '/data-center',
     ]);
     expect(entries.every((entry) => entry.group === 'student-core')).toBe(true);
     expect(entries.map((entry) => entry.id)).not.toContain('student-profile');
@@ -51,6 +50,7 @@ describe('platform role navigation', () => {
     expect(getPlatformRoleNavigation('student').map((entry) => entry.href)).toEqual(
       expect.arrayContaining(['/dashboard', '/simulations', '/knowledge', '/arena', '/interactive-learning', '/profile']),
     );
+    expect(getPlatformRoleNavigation('student').map((entry) => entry.href)).not.toContain('/data-center');
     expect(getPlatformRoleNavigation('teacher').map((entry) => entry.href)).toEqual(
       expect.arrayContaining([
         '/teacher',
@@ -61,10 +61,11 @@ describe('platform role navigation', () => {
         '/teacher/resources/resource-nodes',
         '/teacher/history',
         '/teacher/arena',
+        '/data-center',
       ]),
     );
     expect(getPlatformRoleNavigation('admin').map((entry) => entry.href)).toEqual(
-      expect.arrayContaining(['/admin', '/admin/users', '/admin/states', '/admin/data-governance', '/admin/config']),
+      expect.arrayContaining(['/admin', '/admin/users', '/admin/states', '/admin/data-governance', '/admin/config', '/data-center']),
     );
     expect(getPlatformRoleNavigation('guest').map((entry) => entry.href)).toEqual(
       expect.arrayContaining(['/', '/login', '/simulations', '/knowledge', '/arena']),
@@ -498,7 +499,7 @@ describe('platform role navigation', () => {
     }
 
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/data-center')?.owningChange).toBe(
-      'redesign-knowledge-and-data-surfaces',
+      'restrict-data-center-to-operations-roles',
     );
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/knowledge')?.owningChange).toBe(
       'migrate-knowledge-map-to-unified-shell-panels',
@@ -585,8 +586,9 @@ describe('platform role navigation', () => {
 
     const studentKnowledgeNavigation = getPlatformRouteNavigation('/knowledge', 'student').map((entry) => entry.href);
     expect(studentKnowledgeNavigation).toEqual(
-      expect.arrayContaining(['/knowledge', '/interactive-learning', '/data-center']),
+      expect.arrayContaining(['/knowledge', '/interactive-learning']),
     );
+    expect(studentKnowledgeNavigation).not.toContain('/data-center');
     expect(new Set(studentKnowledgeNavigation).size).toBe(studentKnowledgeNavigation.length);
     expect(studentKnowledgeNavigation).not.toContain('/login');
 
@@ -647,10 +649,15 @@ describe('platform role navigation', () => {
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/data-center')).toMatchObject({
       frame: 'knowledge-data-map',
-      navigationLayers: expect.arrayContaining(['global-product', 'contextual-workspace']),
-      owningChange: 'redesign-knowledge-and-data-surfaces',
+      roleScope: ['teacher', 'admin'],
+      navigationLayers: expect.arrayContaining(['role-cockpit', 'contextual-workspace']),
+      owningChange: 'restrict-data-center-to-operations-roles',
     });
-    expect(COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.find((group) => group.intent === 'review')?.summary).toContain('数据中心');
+    expect(COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.find((group) => group.intent === 'review')).toMatchObject({
+      entryIds: ['student-profile'],
+      hrefs: ['/profile/evidence', '/profile/growth', '/profile'],
+    });
+    expect(COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.find((group) => group.intent === 'review')?.summary).not.toContain('数据中心');
     expect(COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.find((group) => group.intent === 'account-profile')?.summary).toContain('个人中心');
   });
 
@@ -790,7 +797,7 @@ describe('platform role navigation', () => {
     expect(COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES.every((route) => route.viewportWidths.join(',') === '1440,320')).toBe(true);
     expect(resolveCommercialEntryHref('account-profile', false)).toBe('/login?callbackUrl=%2Fprofile');
     expect(resolveCommercialEntryHref('account-profile', true)).toBe('/profile');
-    expect(resolveCommercialEntryHref('review', true)).toBe('/profile');
+    expect(resolveCommercialEntryHref('review', true)).toBe('/profile/evidence');
   });
 
   it('binds public learning entry route sources to the premium entry map contract', () => {

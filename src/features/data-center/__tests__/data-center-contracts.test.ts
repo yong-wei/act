@@ -67,6 +67,37 @@ describe('PresentationDataCenter commercial workspace layout', () => {
     expect(source).not.toContain('xl:grid-cols-[1.3fr_1fr]');
   });
 
+  it('does not locally restore data-center navigation when central role navigation omits it', () => {
+    const source = readFileSync(
+      join(repoRoot, 'src/features/data-center/presentation-data-center.tsx'),
+      'utf8',
+    );
+
+    expect(source).toContain('navigation={getPlatformRoleNavigation(role)}');
+    expect(source).not.toContain('const hasEntry = base.some');
+    expect(source).not.toContain("id: 'platform-data-center'");
+  });
+
+  it('keeps visible demo source labels behind an explicit display policy', () => {
+    const presentationSource = readFileSync(
+      join(repoRoot, 'src/features/data-center/presentation-data-center.tsx'),
+      'utf8',
+    );
+    const markerSource = readFileSync(
+      join(repoRoot, 'src/features/data-center/shared/source-marker.tsx'),
+      'utf8',
+    );
+    const panelSource = readFileSync(
+      join(repoRoot, 'src/features/data-center/shared/chart-panel.tsx'),
+      'utf8',
+    );
+
+    expect(presentationSource).toContain('showDemoSourceLabels={showDemoSourceLabels}');
+    expect(markerSource).toContain('showDemoLabel?: boolean');
+    expect(markerSource).toContain("quality === 'demo' && !showDemoLabel");
+    expect(panelSource).toContain('showDemoSourceLabels?: boolean');
+  });
+
   it('renders governed data-map context instead of disconnected metric cards', () => {
     const source = readFileSync(
       join(repoRoot, 'src/features/data-center/presentation-data-center.tsx'),
