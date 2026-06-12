@@ -1,0 +1,142 @@
+{
+  "changeId": "fix-app-shell-collapsed-navigation-contract",
+  "issue": 413,
+  "capturedAt": "2026-06-12T19:04:33.198Z",
+  "baseUrl": "http://localhost:3001",
+  "routes": [
+    {
+      "route": "/arena",
+      "theme": "light",
+      "expanded": {
+        "gridTemplateColumns": "248px 1192px",
+        "navigationState": "expanded",
+        "sidebarWidth": 248,
+        "contentWidth": 1192,
+        "activeLinkAriaLabel": null,
+        "activeLinkTitle": null,
+        "activeLinkText": "竞技场",
+        "horizontalOverflow": false
+      },
+      "collapsed": {
+        "gridTemplateColumns": "72px 1368px",
+        "navigationState": "collapsed",
+        "sidebarWidth": 72,
+        "contentWidth": 1368,
+        "activeLinkAriaLabel": "竞技场",
+        "activeLinkTitle": "竞技场",
+        "activeLinkText": "",
+        "horizontalOverflow": false
+      },
+      "mobile": {
+        "hasPersistentSidebar": false,
+        "hasMobileDrawerButton": true,
+        "hasMobileFallbackNavigation": false,
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "route": "/arena",
+      "theme": "dark",
+      "expanded": {
+        "gridTemplateColumns": "248px 1192px",
+        "navigationState": "expanded",
+        "sidebarWidth": 248,
+        "contentWidth": 1192,
+        "activeLinkAriaLabel": null,
+        "activeLinkTitle": null,
+        "activeLinkText": "竞技场",
+        "horizontalOverflow": false
+      },
+      "collapsed": {
+        "gridTemplateColumns": "72px 1368px",
+        "navigationState": "collapsed",
+        "sidebarWidth": 72,
+        "contentWidth": 1368,
+        "activeLinkAriaLabel": "竞技场",
+        "activeLinkTitle": "竞技场",
+        "activeLinkText": "",
+        "horizontalOverflow": false
+      },
+      "mobile": {
+        "hasPersistentSidebar": false,
+        "hasMobileDrawerButton": true,
+        "hasMobileFallbackNavigation": false,
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "route": "/interactive-learning/control-workbench",
+      "theme": "light",
+      "expanded": {
+        "gridTemplateColumns": "248px 1192px",
+        "navigationState": "expanded",
+        "sidebarWidth": 248,
+        "contentWidth": 1192,
+        "activeLinkAriaLabel": null,
+        "activeLinkTitle": null,
+        "activeLinkText": "控制工作台",
+        "horizontalOverflow": false
+      },
+      "collapsed": {
+        "gridTemplateColumns": "72px 1368px",
+        "navigationState": "collapsed",
+        "sidebarWidth": 72,
+        "contentWidth": 1368,
+        "activeLinkAriaLabel": "控制工作台",
+        "activeLinkTitle": "控制工作台",
+        "activeLinkText": "",
+        "horizontalOverflow": false
+      },
+      "mobile": {
+        "hasPersistentSidebar": false,
+        "hasMobileDrawerButton": true,
+        "hasMobileFallbackNavigation": false,
+        "horizontalOverflow": false
+      }
+    },
+    {
+      "route": "/interactive-learning/control-workbench",
+      "theme": "dark",
+      "expanded": {
+        "gridTemplateColumns": "248px 1192px",
+        "navigationState": "expanded",
+        "sidebarWidth": 248,
+        "contentWidth": 1192,
+        "activeLinkAriaLabel": null,
+        "activeLinkTitle": null,
+        "activeLinkText": "控制工作台",
+        "horizontalOverflow": false
+      },
+      "collapsed": {
+        "gridTemplateColumns": "72px 1368px",
+        "navigationState": "collapsed",
+        "sidebarWidth": 72,
+        "contentWidth": 1368,
+        "activeLinkAriaLabel": "控制工作台",
+        "activeLinkTitle": "控制工作台",
+        "activeLinkText": "",
+        "horizontalOverflow": false
+      },
+      "mobile": {
+        "hasPersistentSidebar": false,
+        "hasMobileDrawerButton": true,
+        "hasMobileFallbackNavigation": false,
+        "horizontalOverflow": false
+      }
+    }
+  ],
+  "screenshots": [
+    "artifacts/commercial-ui/app-shell-collapsed-navigation-413/arena-light-desktop-expanded.png",
+    "artifacts/commercial-ui/app-shell-collapsed-navigation-413/arena-light-desktop-collapsed.png",
+    "artifacts/commercial-ui/app-shell-collapsed-navigation-413/arena-light-mobile.png",
+    "artifacts/commercial-ui/app-shell-collapsed-navigation-413/arena-dark-desktop-expanded.png",
+    "artifacts/commercial-ui/app-shell-collapsed-navigation-413/arena-dark-desktop-collapsed.png",
+    "artifacts/commercial-ui/app-shell-collapsed-navigation-413/arena-dark-mobile.png",
+    "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-light-desktop-expanded.png",
+    "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-light-desktop-collapsed.png",
+    "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-light-mobile.png",
+    "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-dark-desktop-expanded.png",
+    "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-dark-desktop-collapsed.png",
+    "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-dark-mobile.png"
+  ]
+}

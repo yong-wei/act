@@ -111,6 +111,7 @@ export interface CommercialVisualAcceptanceRoute {
 }
 
 export type CommercialVisualQaTheme = 'light' | 'dark';
+const COMMERCIAL_VISUAL_QA_REQUIRED_THEMES: readonly CommercialVisualQaTheme[] = ['light', 'dark'];
 export type CommercialVisualQaRole = 'guest' | 'student' | 'teacher' | 'admin';
 export type CommercialVisualQaAuthState = 'public' | 'auth-entry' | 'authenticated' | 'unauth-redirect-fallback';
 export type CommercialVisualQaNavigationState =
@@ -167,6 +168,7 @@ export interface CommercialViewportVisualEvidence {
   routeArchetype?: PlatformPrimaryRouteFrame | string;
   dockState?: CommercialPremiumVisualQaRoute['floatingDock'] | PlatformFloatingDockRouteBehavior;
   navigationState?: CommercialVisualQaNavigationState;
+  appShellNavigationContract?: 'collapsed-icon-rail';
   result?: 'passed' | 'failed';
   screenshot?: string;
   artifact?: string;
@@ -180,6 +182,13 @@ export interface CommercialViewportVisualEvidence {
   dockPlacementChecked?: boolean;
   noDockCollision?: boolean;
   dockFocusReachable?: boolean;
+  gridTemplateColumns?: string;
+  sidebarWidth?: number;
+  contentWidth?: number;
+  activeLinkAriaLabel?: string | null;
+  activeLinkTitle?: string | null;
+  activeLinkText?: string;
+  horizontalOverflow?: boolean;
   mobileCanvasFirst?: boolean;
   noPersistentMobileSidebar?: boolean;
   noPersistentMobileFilter?: boolean;
@@ -968,6 +977,60 @@ function buildNavigationStateViolations(
     ));
     if (reusedCollapsedEvidence) {
       missing.push('desktop-collapsed evidence reuses desktop-expanded artifact');
+    }
+    const appShellContractViewports = routeEvidence.viewports.filter((viewport) => (
+      viewport.appShellNavigationContract === 'collapsed-icon-rail'
+    ));
+    if (appShellContractViewports.length > 0) {
+      COMMERCIAL_VISUAL_QA_REQUIRED_THEMES.forEach((theme) => {
+        const themedExpanded = appShellContractViewports.find((viewport) => (
+          viewport.theme === theme
+          && viewport.width === 1440
+          && viewport.navigationState === 'desktop-expanded'
+        ));
+        const themedCollapsed = appShellContractViewports.find((viewport) => (
+          viewport.theme === theme
+          && viewport.width === 1440
+          && viewport.navigationState === 'desktop-collapsed'
+        ));
+        const themedMobile = appShellContractViewports.find((viewport) => (
+          viewport.theme === theme
+          && viewport.width === 320
+          && viewport.navigationState === expectedMobileState
+        ));
+        if (!themedExpanded) {
+          missing.push(`theme=${theme}:width=1440:navigationState=desktop-expanded`);
+        }
+        if (!themedCollapsed) {
+          missing.push(`theme=${theme}:width=1440:navigationState=desktop-collapsed`);
+        }
+        if (!themedMobile) {
+          missing.push(`theme=${theme}:width=320:navigationState=${expectedMobileState}`);
+        }
+        if (!themedCollapsed) return;
+        if (themedCollapsed.sidebarWidth !== 72) {
+          missing.push(`theme=${theme}:desktop-collapsed:sidebarWidth=72`);
+        }
+        if (
+          typeof themedCollapsed.contentWidth !== 'number'
+          || typeof themedExpanded?.contentWidth !== 'number'
+          || themedCollapsed.contentWidth <= themedExpanded.contentWidth
+        ) {
+          missing.push(`theme=${theme}:desktop-collapsed:contentWidth>expandedContentWidth`);
+        }
+        if (!themedCollapsed.activeLinkAriaLabel) {
+          missing.push(`theme=${theme}:desktop-collapsed:activeLinkAriaLabel`);
+        }
+        if (!themedCollapsed.activeLinkTitle) {
+          missing.push(`theme=${theme}:desktop-collapsed:activeLinkTitle`);
+        }
+        if (themedCollapsed.activeLinkText !== '') {
+          missing.push(`theme=${theme}:desktop-collapsed:activeLinkText=empty`);
+        }
+        if (themedCollapsed.horizontalOverflow !== false) {
+          missing.push(`theme=${theme}:desktop-collapsed:noHorizontalOverflow`);
+        }
+      });
     }
     return missing.length > 0
       ? [withCategory({
