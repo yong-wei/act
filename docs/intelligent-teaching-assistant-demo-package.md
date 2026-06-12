@@ -14,6 +14,8 @@ Expected reviewer checkpoints:
 - The grading workbench and feedback page use cited document-rubric evidence.
 - Teacher reports expose metric methodology and redacted export policy.
 - Prep packs use server-owned signed context and cite class evidence.
+- Prep-pack overlay activation is represented as an active synthetic overlay that does not mutate base manifests.
+- Effect report export metrics include grading time saved, teacher edit rate, path adoption, second-attempt improvement, and user feedback quality.
 - Konling covers `generic-chat`, diagnosis, path, resource, grading, feedback, class summary, and prep coauthoring modes.
 - Unavailable-state handling is represented for every mode.
 
@@ -35,6 +37,15 @@ rtk npm run test:intelligent-teaching-assistant-demo
 ```
 
 The command runs offline fixture acceptance: deterministic install/reset records, product-surface coverage, citation policy, privacy scan, provider prerequisites, rollback contract, and documentation checks. It does not write production records.
+
+The resettable records cover the final closed loop:
+
+- `document-submission` and `document-conversion` for uploaded report conversion.
+- `grading-run`, `teacher-approval`, and `writeback-preview` for draft grading, teacher review, and uncommitted learning-fact preview.
+- `diagnosis-snapshot`, `path-plan`, `path-option`, and `resource-execution` for diagnosis refresh and path execution evidence.
+- `konling-session` and `konling-citation` for cited assistant explanations.
+- `prep-pack` and `prep-pack-overlay` for teacher-reviewed runtime overlay activation.
+- `effect-report-export` and `effect-report-metric` for source-backed reporting.
 
 For a local or staged deployment, add a base URL so the same command also performs HTTP route and API checks:
 
@@ -121,9 +132,10 @@ The acceptance command sends this request once per required mode: `generic-chat`
 
 ```http
 GET /api/teacher/classes/demo-ita-class/control-correction-report?export=true
+GET /api/teacher/classes/demo-ita-class/assistant-effect-report?export=true
 ```
 
-Expected assertions: export is redacted and metrics include methodology.
+Expected assertions: the control-correction report export is redacted and metrics include methodology; the assistant effect report export returns the five source-backed synthetic metrics (`gradingTimeSaved`, `teacherEditRate`, `pathAdoption`, `secondAttemptImprovement`, and `userFeedbackQuality`) with caveats and exclusions.
 
 ```http
 GET /api/teacher/classes/demo-ita-class/insights
@@ -162,6 +174,46 @@ Expected assertions: the class insights response identifies `demo-ita-class`, ex
 - Confidence: medium.
 - Source coverage: 8 of 8 required modes.
 
+`gradingTimeSaved`
+
+- Numerator: synthetic manual grading minutes minus assistant-assisted review minutes.
+- Denominator: synthetic grading runs.
+- Window: `2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z`.
+- Source references: `grading-alpha-draft`, `grading-beta-approved`.
+- Caveat: synthetic fixture metric for demo readiness; not a measured learning-gain claim.
+
+`teacherEditRate`
+
+- Numerator: edited rubric fields before teacher approval.
+- Denominator: reviewed rubric fields.
+- Window: `2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z`.
+- Source references: `approval-grading-beta-approved`.
+- Caveat: synthetic fixture metric for demo readiness; not a measured learning-gain claim.
+
+`pathAdoption`
+
+- Numerator: learners with selected path execution context.
+- Denominator: synthetic class roster.
+- Window: `2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z`.
+- Source references: `path-alpha-main`, `path-beta-feedback`, `execution-alpha-resource`.
+- Caveat: synthetic fixture metric for demo readiness; not a measured learning-gain claim.
+
+`secondAttemptImprovement`
+
+- Numerator: second-attempt synthetic score minus first-attempt synthetic score.
+- Denominator: paired synthetic Arena/simulation attempt sequence.
+- Window: `2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z`.
+- Source references: `evidence-alpha-simulation`.
+- Caveat: synthetic fixture metric for demo readiness; not a measured learning-gain claim.
+
+`userFeedbackQuality`
+
+- Numerator: positive feedback quality rubric points.
+- Denominator: possible feedback quality points.
+- Window: `2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z`.
+- Source references: `feedback-grading-beta-approved`, `cit-feedback-alpha`.
+- Caveat: synthetic fixture metric for demo readiness; not a measured learning-gain claim.
+
 ## Provider Configuration
 
 Provider examples use secret references only:
@@ -183,6 +235,8 @@ The package rejects:
 - Raw traces.
 
 Every diagnosis view, path plan, grading run, teacher report, prep pack, and Konling session must include reviewable citations. Teacher exports must remain redacted and may include governed summaries, metric methodology, source families, confidence markers, and scoped evidence references.
+
+Real classroom feedback or user evidence is not imported by default. Any real import entry must carry a consent or authorization reference, a privacy review reference, and explicit separation from the synthetic fixture namespace before it can be considered available for effect reports.
 
 ## Deployment And Rollback
 

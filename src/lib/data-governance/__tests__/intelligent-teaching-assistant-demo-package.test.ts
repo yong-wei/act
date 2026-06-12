@@ -15,6 +15,7 @@ import {
   INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE,
   buildIntelligentTeachingAssistantDemoAcceptanceReport,
   buildIntelligentTeachingAssistantDemoRollbackReport,
+  buildIntelligentTeachingAssistantEffectReportExport,
   installIntelligentTeachingAssistantDemoFixtures,
   validateIntelligentTeachingAssistantDemoPackage,
 } from '../intelligent-teaching-assistant-demo-package';
@@ -104,6 +105,10 @@ function writeSuccessfulDemoAcceptanceResponse(url: string, response: ServerResp
   }
   if (url.startsWith('/api/teacher/classes/demo-ita-class/control-correction-report')) {
     response.end(JSON.stringify({ report: { goalId: 'control-correction' }, export: { redacted: true } }));
+    return true;
+  }
+  if (url.startsWith('/api/teacher/classes/demo-ita-class/assistant-effect-report')) {
+    response.end(JSON.stringify({ effectReport: buildIntelligentTeachingAssistantEffectReportExport() }));
     return true;
   }
   if (url === '/api/teacher/classes/demo-ita-class/insights') {
@@ -201,6 +206,84 @@ describe('intelligent teaching assistant demo package', () => {
     expect(new Set(firstInstall.upsertedIds).size).toBe(firstInstall.upsertedIds.length);
     expect(secondInstall.resetDeletedIds.sort()).toEqual(firstInstall.upsertedIds.slice().sort());
     expect(secondInstall.state.records).toEqual(firstInstall.state.records);
+  });
+
+  it('seeds the upgraded closed-loop records required by the final demo package', () => {
+    const install = installIntelligentTeachingAssistantDemoFixtures();
+    const recordTypes = new Set(install.state.records.map((record) => record.type));
+
+    expect([...recordTypes]).toEqual(expect.arrayContaining([
+      'document-submission',
+      'document-conversion',
+      'grading-run',
+      'teacher-approval',
+      'writeback-preview',
+      'diagnosis-snapshot',
+      'path-option',
+      'konling-citation',
+      'prep-pack-overlay',
+      'effect-report-export',
+      'effect-report-metric',
+    ]));
+    expect(INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE.prepPackOverlays).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        sourcePrepPackId: 'prep-pack-demo-ita',
+        status: 'active',
+        activatedByTeacherId: 'demo-teacher-ita',
+        baseManifestMutated: false,
+      }),
+    ]));
+    const effectExportRecord = install.state.records.find((record) => record.type === 'effect-report-export');
+    expect(effectExportRecord).toMatchObject({
+      id: 'effect-report-demo-ita-export',
+      payload: { id: 'effect-report-demo-ita-export', redacted: true },
+    });
+    expect(validateIntelligentTeachingAssistantDemoPackage()).toEqual([]);
+  });
+
+  it('builds a source-backed effect report export with synthetic caveats for every metric', () => {
+    const effectReport = buildIntelligentTeachingAssistantEffectReportExport();
+
+    expect(effectReport.syntheticOnly).toBe(true);
+    expect(effectReport.goalId).toBe('control-correction');
+    expect(effectReport.export.route).toBe('/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true');
+    expect(effectReport.metrics.map((metric) => metric.id)).toEqual([
+      'gradingTimeSaved',
+      'teacherEditRate',
+      'pathAdoption',
+      'secondAttemptImprovement',
+      'userFeedbackQuality',
+    ]);
+    for (const metric of effectReport.metrics) {
+      expect(metric.definition).toBeTruthy();
+      expect(metric.numerator).toBeTruthy();
+      expect(metric.denominator).toBeTruthy();
+      expect(metric.sourceWindow).toMatch(/2026-06-05T00:00:00.000Z/);
+      expect(metric.sourceReferences.length).toBeGreaterThan(0);
+      expect(metric.exclusions.length).toBeGreaterThan(0);
+      expect(metric.caveats).toEqual(expect.arrayContaining([
+        'Synthetic fixture metric for demo readiness; not a measured learning-gain claim.',
+      ]));
+    }
+  });
+
+  it('requires privacy-reviewed metadata before real evidence can be imported into effect reports', () => {
+    const broken = structuredClone(INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE);
+    broken.realEvidenceImports = [{
+      id: 'real-import-without-review',
+      status: 'available',
+      sourceFamily: 'classroom-feedback',
+      consentOrAuthorizationRef: '',
+      privacyReviewRef: '',
+      separatedFromSyntheticFixtures: false,
+      importedAt: '2026-06-05T12:00:00.000Z',
+    }];
+    broken.effectReports[0].metrics[0].sourceReferences = [];
+
+    expect(validateIntelligentTeachingAssistantDemoPackage(broken)).toEqual(expect.arrayContaining([
+      'real evidence imports require privacy review, authorization, and synthetic separation metadata',
+      'effect report metrics require definitions, source windows, source references, exclusions, caveats, and synthetic labels',
+    ]));
   });
 
   it('preserves same-tenant records that are not owned by the demo package', () => {
@@ -451,6 +534,16 @@ describe('intelligent teaching assistant demo package', () => {
       }),
       'application/json',
     )).toEqual([]);
+    expect(validateIntelligentTeachingAssistantDemoApiPayload(
+      '/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true',
+      JSON.stringify({ report: { goalId: 'control-correction' }, export: { redacted: true } }),
+    )).toEqual(expect.arrayContaining([
+      'assistant effect report response is missing effectReport payload',
+    ]));
+    expect(validateIntelligentTeachingAssistantDemoApiPayload(
+      '/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true',
+      JSON.stringify({ effectReport: buildIntelligentTeachingAssistantEffectReportExport() }),
+    )).toEqual([]);
   });
 
   it('restores demo acceptance environment variables without leaving undefined strings', () => {
@@ -679,6 +772,10 @@ describe('intelligent teaching assistant demo package', () => {
         response.end(JSON.stringify({ report: { goalId: 'control-correction' }, export: { redacted: true } }));
         return;
       }
+      if (url.startsWith('/api/teacher/classes/demo-ita-class/assistant-effect-report')) {
+        response.end(JSON.stringify({ effectReport: buildIntelligentTeachingAssistantEffectReportExport() }));
+        return;
+      }
       if (url === '/api/teacher/classes/demo-ita-class/insights') {
         response.end(JSON.stringify({
           classInfo: { id: 'demo-ita-class' },
@@ -800,6 +897,10 @@ describe('intelligent teaching assistant demo package', () => {
       }
       if (url.startsWith('/api/teacher/classes/demo-ita-class/control-correction-report')) {
         response.end(JSON.stringify({ report: { goalId: 'control-correction' }, export: { redacted: true } }));
+        return;
+      }
+      if (url.startsWith('/api/teacher/classes/demo-ita-class/assistant-effect-report')) {
+        response.end(JSON.stringify({ effectReport: buildIntelligentTeachingAssistantEffectReportExport() }));
         return;
       }
       if (url === '/api/teacher/classes/demo-ita-class/insights') {

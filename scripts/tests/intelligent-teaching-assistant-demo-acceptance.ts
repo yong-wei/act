@@ -216,6 +216,33 @@ export function validateIntelligentTeachingAssistantDemoApiPayload(path: string,
     ].filter((error): error is string => Boolean(error));
   }
 
+  if (path.includes('/assistant-effect-report')) {
+    const effectReport = readObject(readPath(payload, ['effectReport']));
+    const metrics = readPath(effectReport, ['metrics']);
+    const metricIds = Array.isArray(metrics)
+      ? metrics.map((metric) => readPath(metric, ['id']))
+      : [];
+    return [
+      Object.keys(effectReport).length > 0 ? null : 'assistant effect report response is missing effectReport payload',
+      readPath(effectReport, ['goalId']) === 'control-correction' ? null : 'assistant effect report response is missing control-correction goalId',
+      readPath(effectReport, ['syntheticOnly']) === true ? null : 'assistant effect report response must be syntheticOnly',
+      ['gradingTimeSaved', 'teacherEditRate', 'pathAdoption', 'secondAttemptImprovement', 'userFeedbackQuality'].every((id) => metricIds.includes(id))
+        ? null
+        : 'assistant effect report response is missing required effect metrics',
+      Array.isArray(metrics) && metrics.every((metric) => (
+        readPath(metric, ['definition']) &&
+        readPath(metric, ['numerator']) &&
+        readPath(metric, ['denominator']) &&
+        readPath(metric, ['sourceWindow']) &&
+        Array.isArray(readPath(metric, ['sourceReferences'])) &&
+        (readPath(metric, ['sourceReferences']) as unknown[]).length > 0 &&
+        Array.isArray(readPath(metric, ['exclusions'])) &&
+        Array.isArray(readPath(metric, ['caveats'])) &&
+        readPath(metric, ['synthetic']) === true
+      )) ? null : 'assistant effect report metrics require source-backed methodology and synthetic caveats',
+    ].filter((error): error is string => Boolean(error));
+  }
+
   if (path === '/api/teacher/classes/demo-ita-class/insights') {
     const students = readPath(payload, ['students']);
     const spotlightStudents = readPath(payload, ['spotlightStudents']);
