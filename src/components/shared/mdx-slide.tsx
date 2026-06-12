@@ -23,23 +23,22 @@ const PPT_HEIGHT = 1080;
 export function MdxSlide({ path, theme = 'dark', size = 'adaptive', className }: MdxSlideProps) {
   const { content, isLoading, error } = useMdxContent(path);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [scale, setScale] = useState(1);
+  const [measuredScale, setMeasuredScale] = useState(1);
 
-  // 仅在 PPT 模式下计算缩放
   useEffect(() => {
-    if (size !== 'ppt' || !containerRef.current) return;
+    if (!containerRef.current) return;
 
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (!entry) return;
       const width = entry.contentRect.width || PPT_WIDTH;
       const nextScale = Math.min(1, width / PPT_WIDTH);
-      setScale(nextScale);
+      setMeasuredScale(nextScale);
     });
 
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, [size]);
+  }, []);
 
   // 根据主题生成 Markdown 组件样式
   const markdownComponents = useMemo<Components>(() => {
@@ -189,6 +188,7 @@ export function MdxSlide({ path, theme = 'dark', size = 'adaptive', className }:
   const isDark = theme === 'dark';
   const containerBg = isDark ? 'bg-slate-900' : 'bg-white';
   const borderStyle = isDark ? 'border-slate-700' : 'border-slate-200';
+  const scale = size === 'ppt' ? measuredScale : 1;
 
   // PPT 模式：固定尺寸缩放
   if (size === 'ppt') {

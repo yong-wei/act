@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Server,
   Bell,
@@ -170,19 +170,36 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
     description: string;
   } | null>(null);
   const [testResults, setTestResults] = useState<Record<string, ModelTestResult>>({});
+  const noticeTimeoutRef = useRef<number | null>(null);
+  const clearNoticeTimer = useCallback(() => {
+    if (noticeTimeoutRef.current) {
+      window.clearTimeout(noticeTimeoutRef.current);
+      noticeTimeoutRef.current = null;
+    }
+  }, []);
+  const scheduleNoticeClear = useCallback(() => {
+    clearNoticeTimer();
+    noticeTimeoutRef.current = window.setTimeout(() => {
+      setNotice(null);
+      noticeTimeoutRef.current = null;
+    }, 3000);
+  }, [clearNoticeTimer]);
 
   useEffect(() => {
+    const controller = new AbortController();
     const loadConfig = async () => {
       try {
         const [platformResponse, aiResponse] = await Promise.all([
-          fetch('/api/admin/platform-settings', { cache: 'no-store' }),
-          fetch('/api/admin/ai-settings', { cache: 'no-store' }),
+          fetch('/api/admin/platform-settings', { cache: 'no-store', signal: controller.signal }),
+          fetch('/api/admin/ai-settings', { cache: 'no-store', signal: controller.signal }),
         ]);
+        if (controller.signal.aborted) return;
         if (!platformResponse.ok) {
           throw new Error('加载配置失败');
         }
         const payload = await platformResponse.json() as { homeDynamicModelEnabled?: boolean };
         const aiPayload = aiResponse.ok ? await aiResponse.json() as AIProviderSettings : DEFAULT_AI_SETTINGS;
+        if (controller.signal.aborted) return;
         const activeProvider = aiPayload.providers.find((provider) => provider.id === aiPayload.activeProvider) ?? aiPayload.providers[0];
         setConfig((prev) => ({
           ...prev,
@@ -192,20 +209,27 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
           aiModelName: activeProvider?.selectedModel ?? '',
         }));
         setAiSettings(aiPayload);
-      } catch {
+      } catch (error) {
+        if ((error as Error).name === 'AbortError') return;
         setNotice({ type: 'error', message: '读取平台配置失败，已使用默认值' });
-        setTimeout(() => setNotice(null), 3000);
+        scheduleNoticeClear();
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
     loadConfig();
-  }, []);
+    return () => {
+      controller.abort();
+      clearNoticeTimer();
+    };
+  }, [clearNoticeTimer, scheduleNoticeClear]);
 
   const showNotice = (type: 'success' | 'error', message: string) => {
     setNotice({ type, message });
-    setTimeout(() => setNotice(null), 3000);
+    scheduleNoticeClear();
   };
 
   const handleSave = async () => {

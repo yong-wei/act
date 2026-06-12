@@ -18,6 +18,12 @@ import {
 import { resolveArenaWorkbenchContext } from './context';
 import { resolveWorkbenchOfficialOnlyMetricIds } from './official-only-metrics';
 
+interface SubmissionLoadState {
+  key: string;
+  submissions: ArenaSubmissionRecord[];
+  viewerUserId?: string;
+}
+
 export function ArenaWorkbenchSubmissionMount({
   workspaceMode,
   className = 'mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8',
@@ -46,15 +52,15 @@ export function ArenaWorkbenchSubmissionMount({
     () => (arenaTaskId ? resolveArenaWorkbenchContext(arenaTaskId) : null),
     [arenaTaskId],
   );
-  const [submissions, setSubmissions] = useState<ArenaSubmissionRecord[] | null>(null);
-  const [viewerUserId, setViewerUserId] = useState<string | undefined>(undefined);
+  const requestKey = arenaContext && arenaContext.recommendedWorkspaceMode === workspaceMode
+    ? `${arenaContext.task.id}:${publicationId ?? 'open'}`
+    : null;
+  const [submissionState, setSubmissionState] = useState<SubmissionLoadState | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    setSubmissions(null);
-    setViewerUserId(undefined);
 
-    if (!arenaContext || arenaContext.recommendedWorkspaceMode !== workspaceMode) {
+    if (!arenaContext || !requestKey) {
       return () => {
         cancelled = true;
       };
@@ -74,21 +80,23 @@ export function ArenaWorkbenchSubmissionMount({
           viewerUserId?: string;
         };
         if (!cancelled) {
-          setSubmissions(response.ok ? payload.submissions ?? [] : []);
-          setViewerUserId(response.ok ? payload.viewerUserId : undefined);
+          setSubmissionState({
+            key: requestKey,
+            submissions: response.ok ? payload.submissions ?? [] : [],
+            viewerUserId: response.ok ? payload.viewerUserId : undefined,
+          });
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setSubmissions([]);
-          setViewerUserId(undefined);
+          setSubmissionState({ key: requestKey, submissions: [] });
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [arenaContext, publicationId, workspaceMode]);
+  }, [arenaContext, publicationId, requestKey]);
 
   if (!arenaContext || arenaContext.recommendedWorkspaceMode !== workspaceMode) {
     return null;
@@ -104,7 +112,9 @@ export function ArenaWorkbenchSubmissionMount({
     explicitMetricIds: officialOnlyMetricIds,
   });
 
-  if (submissions === null) {
+  const loadedSubmissionState = submissionState?.key === requestKey ? submissionState : null;
+
+  if (loadedSubmissionState === null) {
     return (
       <div className={className}>
         <section className="surface-card p-6 text-sm text-subtle">正在加载竞技场提交记录...</section>
@@ -118,9 +128,9 @@ export function ArenaWorkbenchSubmissionMount({
         <ArenaBlackBoxSubmissionPanel
           key={`${arenaContext.task.id}:${publicationId ?? 'open'}`}
           task={arenaContext.task}
-          initialSubmissions={submissions}
+          initialSubmissions={loadedSubmissionState.submissions}
           publicationId={publicationId}
-          viewerUserId={viewerUserId}
+          viewerUserId={loadedSubmissionState.viewerUserId}
         />
       </div>
     );
@@ -131,9 +141,9 @@ export function ArenaWorkbenchSubmissionMount({
       <ArenaSubmissionPanel
         key={`${arenaContext.task.id}:${publicationId ?? 'open'}`}
         task={arenaContext.task}
-        initialSubmissions={submissions}
+        initialSubmissions={loadedSubmissionState.submissions}
         publicationId={publicationId}
-        viewerUserId={viewerUserId}
+        viewerUserId={loadedSubmissionState.viewerUserId}
         compositeDraft={compositeDraft}
         onCompositeDraftChange={onCompositeDraftChange}
         predictiveDraft={predictiveDraft}

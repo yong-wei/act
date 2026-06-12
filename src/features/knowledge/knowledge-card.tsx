@@ -204,12 +204,30 @@ function RuntimeNodeCardSections({
   isLightTheme: boolean;
   onDetailOpen?: () => void;
 }) {
+  return (
+    <RuntimeNodeCardSectionsContent
+      key={path}
+      path={path}
+      title={title}
+      isLightTheme={isLightTheme}
+      onDetailOpen={onDetailOpen}
+    />
+  );
+}
+
+function RuntimeNodeCardSectionsContent({
+  path,
+  title,
+  isLightTheme,
+  onDetailOpen,
+}: {
+  path: string;
+  title: string;
+  isLightTheme: boolean;
+  onDetailOpen?: () => void;
+}) {
   const { content, isLoading, error } = useMdxContent(path);
   const [view, setView] = useState<'overview' | 'detail'>('overview');
-
-  useEffect(() => {
-    setView('overview');
-  }, [path]);
 
   const sections = useMemo(() => {
     const overview = stripLeadingHeading(extractMarkdownSection(content, '首页'));

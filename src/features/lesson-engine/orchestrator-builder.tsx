@@ -95,6 +95,53 @@ interface OrchestratorBuilderProps {
   workbenchReturnUrl?: string;
 }
 
+function createEmptyPlanState(): Record<StageId, LessonItemDraft[]> {
+  return {
+    BRIDGE_IN: [],
+    OBJECTIVE: [],
+    PRE_ASSESSMENT: [],
+    PARTICIPATORY: [],
+    POST_ASSESSMENT: [],
+    SUMMARY: [],
+  };
+}
+
+function createPlanStateFromInitialData(
+  initialData: OrchestratorBuilderProps['initialData'],
+): Record<StageId, LessonItemDraft[]> {
+  const nextState = createEmptyPlanState();
+  if (!initialData?.items) return nextState;
+
+  initialData.items.forEach((item) => {
+    if (!item.stage) return;
+
+    const stage = item.stage as StageId;
+    if (!nextState[stage]) return;
+
+    const inferredType = item.knowledgeNodeId ? LessonItemType.KNOWLEDGE_NODE : LessonItemType.RESOURCE;
+    const itemType = (item.itemType as LessonItemType | undefined) ?? inferredType;
+    const resourceTitle = itemType === LessonItemType.KNOWLEDGE_NODE
+      ? item.knowledgeNode?.name || 'Unknown Knowledge'
+      : item.resource?.title || 'Unknown Resource';
+
+    nextState[stage].push({
+      tempId: item.id,
+      itemType,
+      resourceId: itemType === LessonItemType.RESOURCE ? item.resourceId : null,
+      resourceTitle,
+      resourceType: itemType === LessonItemType.RESOURCE ? item.resource?.type || 'UNKNOWN' : null,
+      knowledgeNodeId: itemType === LessonItemType.KNOWLEDGE_NODE ? item.knowledgeNodeId : null,
+      knowledgeNodeType: itemType === LessonItemType.KNOWLEDGE_NODE
+        ? item.knowledgeNode?.nodeType || 'UNKNOWN'
+        : null,
+      duration: item.duration || 10,
+      overrideConfig: item.overrideConfig || {},
+    });
+  });
+
+  return nextState;
+}
+
 // SortableItem component for drag-and-drop reordering
 interface SortableItemProps {
   item: LessonItemDraft;
@@ -191,20 +238,30 @@ export function OrchestratorBuilder({
   returnPath,
   workbenchReturnUrl,
 }: OrchestratorBuilderProps) {
+  return (
+    <OrchestratorBuilderContent
+      key={initialData?.id ?? 'new'}
+      initialData={initialData}
+      returnPath={returnPath}
+      workbenchReturnUrl={workbenchReturnUrl}
+    />
+  );
+}
+
+function OrchestratorBuilderContent({
+  initialData,
+  returnPath,
+  workbenchReturnUrl,
+}: OrchestratorBuilderProps) {
   const router = useRouter();
   const [resources, setResources] = useState<ExtendedTeachingResource[]>([]);
   const [knowledgeNodes, setKnowledgeNodes] = useState<KnowledgeNodeData[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
-  const [planState, setPlanState] = useState<Record<StageId, LessonItemDraft[]>>({
-    BRIDGE_IN: [],
-    OBJECTIVE: [],
-    PRE_ASSESSMENT: [],
-    PARTICIPATORY: [],
-    POST_ASSESSMENT: [],
-    SUMMARY: []
-  });
+  const [planState, setPlanState] = useState<Record<StageId, LessonItemDraft[]>>(
+    () => createPlanStateFromInitialData(initialData),
+  );
   
   const [title, setTitle] = useState(initialData?.title || '');
   const [isSaving, setIsSaving] = useState(false);
@@ -241,67 +298,48 @@ export function OrchestratorBuilder({
     }
   }, []);
 
-  // Initialize state from initialData
-  useEffect(() => {
-      if (initialData?.items) {
-          const newState = {
-            BRIDGE_IN: [],
-            OBJECTIVE: [],
-            PRE_ASSESSMENT: [],
-            PARTICIPATORY: [],
-            POST_ASSESSMENT: [],
-            SUMMARY: []
-          } as any;
-
-          // Group items by stage
-          initialData.items.forEach(item => {
-              if (item.stage) {
-                  if (!newState[item.stage]) newState[item.stage] = [];
-                  const inferredType = item.knowledgeNodeId ? LessonItemType.KNOWLEDGE_NODE : LessonItemType.RESOURCE;
-                  const itemType = (item.itemType as LessonItemType | undefined) ?? inferredType;
-                  const resourceTitle = itemType === LessonItemType.KNOWLEDGE_NODE
-                    ? item.knowledgeNode?.name || 'Unknown Knowledge'
-                    : item.resource?.title || 'Unknown Resource';
-
-                  newState[item.stage].push({
-                      tempId: item.id, // Use real ID
-                      itemType,
-                      resourceId: itemType === LessonItemType.RESOURCE ? item.resourceId : null,
-                      resourceTitle,
-                      resourceType: itemType === LessonItemType.RESOURCE ? item.resource?.type || 'UNKNOWN' : null,
-                      knowledgeNodeId: itemType === LessonItemType.KNOWLEDGE_NODE ? item.knowledgeNodeId : null,
-                      knowledgeNodeType: itemType === LessonItemType.KNOWLEDGE_NODE
-                        ? item.knowledgeNode?.nodeType || 'UNKNOWN'
-                        : null,
-                      duration: item.duration || 10,
-                      overrideConfig: item.overrideConfig || {}
-                  });
-              }
-          });
-          setPlanState(newState);
-      }
-  }, [initialData]);
-
   // Fetch Resources (include teacher-only for orchestrator)
   useEffect(() => {
+    const controller = new AbortController();
     const fetchResources = async () => {
-       const res = await fetch('/api/resources?includeTeacherOnly=true');
-       if (res.ok) {
-           setResources(await res.json());
-       }
+      try {
+        const res = await fetch('/api/resources?includeTeacherOnly=true', { signal: controller.signal });
+        if (res.ok) {
+          const data = await res.json();
+          if (!controller.signal.aborted) {
+            setResources(data);
+          }
+        }
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Failed to fetch lesson resources:', error);
+        }
+      }
     };
     fetchResources();
+    return () => controller.abort();
   }, []);
 
   // Fetch Knowledge Nodes
   useEffect(() => {
+    const controller = new AbortController();
     const fetchKnowledgeNodes = async () => {
-      const res = await fetch('/api/knowledge/nodes');
-      if (res.ok) {
-        setKnowledgeNodes(await res.json());
+      try {
+        const res = await fetch('/api/knowledge/nodes', { signal: controller.signal });
+        if (res.ok) {
+          const data = await res.json();
+          if (!controller.signal.aborted) {
+            setKnowledgeNodes(data);
+          }
+        }
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Failed to fetch knowledge nodes:', error);
+        }
       }
     };
     fetchKnowledgeNodes();
+    return () => controller.abort();
   }, []);
 
   const handleResourceDragStart = (e: React.DragEvent, resource: TeachingResource) => {

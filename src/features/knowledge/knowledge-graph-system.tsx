@@ -93,13 +93,18 @@ export function KnowledgeGraphSystem({
   initialLinks = [],
   initialSelectedNodeId = null,
 }: KnowledgeGraphSystemProps) {
+  const initialRequestedNodeId = initialSelectedNodeId
+    ?? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('node') : null);
+  const initialSelectedNode = initialRequestedNodeId
+    ? initialNodes.find((node) => node.id === initialRequestedNodeId) ?? null
+    : null;
   const [nodes, setNodes] = useState<KnowledgeNodeData[]>(initialNodes);
   const [links, setLinks] = useState<KnowledgeLinkData[]>(initialLinks);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [selectedNode, setSelectedNode] = useState<KnowledgeNodeData | null>(null);
+  const [selectedNode, setSelectedNode] = useState<KnowledgeNodeData | null>(initialSelectedNode);
   const [hoveredNode, setHoveredNode] = useState<KnowledgeNodeData | null>(null);
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [isPanelOpen, setIsPanelOpen] = useState(Boolean(initialSelectedNode));
   const [searchQuery, setSearchQuery] = useState('');
   const [dataSource, setDataSource] = useState<'file' | 'database'>('database');
   const [minRelationStrength, setMinRelationStrength] = useState(0.8);
@@ -118,6 +123,8 @@ export function KnowledgeGraphSystem({
   // 容器尺寸测量
   const containerRef = useRef<HTMLDivElement>(null);
   const relationTypesInitialized = useRef(false);
+  const initialRequestedNodeIdRef = useRef(initialRequestedNodeId);
+  const initialSelectedNodeResolvedRef = useRef(Boolean(initialSelectedNode));
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
   // 监听容器大小变化
@@ -155,25 +162,44 @@ export function KnowledgeGraphSystem({
 
   // Fetch data from API on mount
   useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
     const fetchGraphData = async () => {
       try {
-        const response = await fetch('/api/knowledge/graph');
+        const response = await fetch('/api/knowledge/graph', { signal: controller.signal });
         if (response.ok) {
           const data = (await response.json()) as GraphApiResponse;
-          setNodes(Array.isArray(data.nodes) ? data.nodes : []);
+          if (cancelled || controller.signal.aborted) return;
+          const fetchedNodes = Array.isArray(data.nodes) ? data.nodes : [];
+          setNodes(fetchedNodes);
           setLinks(Array.isArray(data.links) ? data.links : []);
           setDataSource(data.source === 'file' ? 'file' : 'database');
+          const requestedNodeId = initialRequestedNodeIdRef.current;
+          if (!initialSelectedNodeResolvedRef.current && requestedNodeId) {
+            const requestedNode = fetchedNodes.find((item) => item.id === requestedNodeId);
+            if (requestedNode) {
+              setSelectedNode(requestedNode);
+              setIsPanelOpen(true);
+            }
+          }
         } else {
           console.error('Failed to fetch knowledge graph data');
         }
       } catch (error) {
+        if ((error as Error).name === 'AbortError') return;
         console.error('Error fetching knowledge graph data:', error);
       } finally {
-        setIsLoading(false);
+        if (!cancelled && !controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchGraphData();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, []);
 
   // 节点点击处理
@@ -343,6 +369,10 @@ export function KnowledgeGraphSystem({
 
   const displayNodes = graphWithChapterNodes.nodes;
   const displayLinks = graphWithChapterNodes.links;
+  const visibleSelectedNode = selectedNode && displayNodes.some((node) => node.id === selectedNode.id)
+    ? selectedNode
+    : null;
+  const visiblePanelOpen = isPanelOpen && Boolean(visibleSelectedNode);
 
   const toggleRelationType = useCallback((type: string) => {
     setSelectedRelationTypes((prev) =>
@@ -356,25 +386,6 @@ export function KnowledgeGraphSystem({
     },
     []
   );
-
-  useEffect(() => {
-    if (!selectedNode) return;
-    if (!displayNodes.some((node) => node.id === selectedNode.id)) {
-      setSelectedNode(null);
-      setIsPanelOpen(false);
-    }
-  }, [displayNodes, selectedNode]);
-
-  useEffect(() => {
-    if (selectedNode || nodes.length === 0) return;
-    const requestedNodeId = initialSelectedNodeId
-      ?? new URLSearchParams(window.location.search).get('node');
-    if (!requestedNodeId) return;
-    const node = nodes.find((item) => item.id === requestedNodeId);
-    if (!node) return;
-    setSelectedNode(node);
-    setIsPanelOpen(true);
-  }, [initialSelectedNodeId, nodes, selectedNode]);
 
   const hoveredBloomLabel = hoveredNode?.bloomLevel ? getBloomLabel(hoveredNode.bloomLevel) : '';
   const hoveredKnowledgeDimLabel = hoveredNode?.knowledgeDim
@@ -394,7 +405,7 @@ export function KnowledgeGraphSystem({
       <div className="hidden h-full shrink-0 lg:block" data-knowledge-desktop-panel="chapter-directory">
         <KnowledgeSidebar
           nodes={nodeFilteredByMeta}
-          selectedNodeId={selectedNode?.id}
+          selectedNodeId={visibleSelectedNode?.id}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onNodeSelect={handleNodeClick}
@@ -414,7 +425,7 @@ export function KnowledgeGraphSystem({
               <div className="mt-2 max-h-48 min-w-[min(17rem,calc(100vw-2rem))] overflow-y-auto">
                 <KnowledgeSidebar
                   nodes={nodeFilteredByMeta}
-                  selectedNodeId={selectedNode?.id}
+                  selectedNodeId={visibleSelectedNode?.id}
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
                   onNodeSelect={handleNodeClick}
@@ -876,7 +887,7 @@ export function KnowledgeGraphSystem({
               <KnowledgeGraph2D
                 nodes={displayNodes}
                 links={displayLinks}
-                selectedNode={selectedNode}
+                selectedNode={visibleSelectedNode}
                 hoveredNode={hoveredNode}
                 onNodeClick={handleNodeClick}
                 onNodeHover={handleNodeHover}
@@ -888,7 +899,7 @@ export function KnowledgeGraphSystem({
               <KnowledgeGraphCanvas
                 nodes={displayNodes}
                 links={displayLinks}
-                selectedNode={selectedNode}
+                selectedNode={visibleSelectedNode}
                 hoveredNode={hoveredNode}
                 onNodeClick={handleNodeClick}
                 onNodeHover={handleNodeHover}
@@ -947,8 +958,8 @@ export function KnowledgeGraphSystem({
 
       {/* 右侧资源面板 */}
       <ResourcePanel
-        isOpen={isPanelOpen}
-        selectedNode={selectedNode}
+        isOpen={visiblePanelOpen}
+        selectedNode={visibleSelectedNode}
         onClose={handleClosePanel}
         onNodeClick={handleNodeSelectById}
       />

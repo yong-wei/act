@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   X,
   Search,
@@ -47,6 +47,25 @@ export function AddStudentsModal({
   onClose,
   onSuccess,
 }: AddStudentsModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <AddStudentsModalContent
+      key={classId}
+      classId={classId}
+      className={className}
+      onClose={onClose}
+      onSuccess={onSuccess}
+    />
+  );
+}
+
+function AddStudentsModalContent({
+  classId,
+  className,
+  onClose,
+  onSuccess,
+}: Omit<AddStudentsModalProps, 'isOpen'>) {
   const [activeTab, setActiveTab] = useState<'search' | 'import'>('search');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Student[]>([]);
@@ -59,13 +78,21 @@ export function AddStudentsModal({
   const [isImporting, setIsImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const activeSearchRequestRef = useRef(0);
+  const searchAbortRef = useRef<AbortController | null>(null);
 
   const fetchStudents = useCallback(async (query: string) => {
+    searchAbortRef.current?.abort();
+    const requestId = activeSearchRequestRef.current + 1;
+    activeSearchRequestRef.current = requestId;
+    const controller = new AbortController();
+    searchAbortRef.current = controller;
     const trimmedQuery = query.trim();
 
     if (trimmedQuery.length === 1) {
       setSearchError('请输入至少2个字符');
       setSearchResults([]);
+      setIsSearching(false);
       return;
     }
 
@@ -77,8 +104,11 @@ export function AddStudentsModal({
     setIsSearching(true);
     setSearchError(null);
     try {
-      const res = await fetch(`/api/teacher/students/search?${params.toString()}`);
+      const res = await fetch(`/api/teacher/students/search?${params.toString()}`, {
+        signal: controller.signal,
+      });
       const data = await res.json();
+      if (activeSearchRequestRef.current !== requestId || controller.signal.aborted) return;
 
       if (!res.ok) {
         setSearchError(data.error || '加载学生名单失败');
@@ -88,20 +118,29 @@ export function AddStudentsModal({
 
       setSearchResults(Array.isArray(data) ? data : []);
     } catch (error) {
+      if ((error as Error).name === 'AbortError') return;
+      if (activeSearchRequestRef.current !== requestId || controller.signal.aborted) return;
       console.error('Search error:', error);
       setSearchError('加载学生名单失败，请重试');
       setSearchResults([]);
     } finally {
-      setIsSearching(false);
+      if (activeSearchRequestRef.current === requestId && !controller.signal.aborted) {
+        setIsSearching(false);
+      }
     }
   }, [classId]);
 
   useEffect(() => {
-    if (!isOpen || activeTab !== 'search') return;
+    return () => {
+      searchAbortRef.current?.abort();
+    };
+  }, []);
 
-    setSearchQuery('');
+  useEffect(() => {
+    if (activeTab !== 'search') return;
+
     void fetchStudents('');
-  }, [activeTab, fetchStudents, isOpen]);
+  }, [activeTab, fetchStudents]);
 
   // 搜索学生
   const handleSearch = useCallback(async () => {
@@ -183,8 +222,6 @@ export function AddStudentsModal({
     setSelectedFile(null);
     setImportResult(null);
   };
-
-  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
