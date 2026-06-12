@@ -999,6 +999,58 @@
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true
         }
+      ],
+      "secondaryRouteGovernance": [
+        {
+          "href": "/interactive-learning",
+          "role": "student",
+          "routeFile": "src/app/interactive-learning/page.tsx",
+          "shellType": "app-shell",
+          "routeArchetype": "learning-atlas",
+          "roleScope": [
+            "guest",
+            "student"
+          ],
+          "navigationLayers": [
+            "global-product",
+            "contextual-workspace",
+            "local-tool"
+          ],
+          "collapseBehavior": "collapsible-left-rail",
+          "localPanels": [
+            {
+              "id": "workspace-command-surface",
+              "disposition": "local-tool"
+            }
+          ],
+          "themeSupport": [
+            "light",
+            "dark"
+          ],
+          "mobileBehavior": "workspace-command-surface",
+          "owningMigrationChange": "migrate-student-secondary-routes-to-unified-shell",
+          "migrationState": "migrated",
+          "upstreamDependencies": [
+            "migrate-student-secondary-routes-to-unified-shell"
+          ],
+          "expectedEntries": [
+            "/interactive-learning"
+          ],
+          "forbiddenEntries": [
+            "/data-center"
+          ],
+          "observedNavigationHrefs": [
+            "/interactive-learning",
+            "/knowledge",
+            "/arena",
+            "/assessment/adaptive-practice"
+          ],
+          "primaryNextAction": {
+            "href": "/interactive-learning/chapter-components",
+            "shellType": "app-shell",
+            "migrationState": "migrated"
+          }
+        }
       ]
     },
     {
@@ -1233,6 +1285,54 @@
           "reducedMotionChecked": true,
           "buttonTextFits": true,
           "noMobileTextOverlap": true
+        }
+      ],
+      "secondaryRouteGovernance": [
+        {
+          "href": "/arena",
+          "role": "student",
+          "routeFile": "src/app/arena/page.tsx",
+          "shellType": "approved-workspace-shell",
+          "routeArchetype": "mission-workspace",
+          "roleScope": [
+            "guest",
+            "student",
+            "teacher"
+          ],
+          "navigationLayers": [
+            "global-product",
+            "contextual-workspace",
+            "local-tool"
+          ],
+          "collapseBehavior": "collapsible-left-rail",
+          "localPanels": [
+            {
+              "id": "challenge-filters",
+              "disposition": "local-tool"
+            }
+          ],
+          "themeSupport": [
+            "light",
+            "dark"
+          ],
+          "mobileBehavior": "drawer",
+          "owningMigrationChange": "unify-arena-workspace-shell",
+          "migrationState": "migrated",
+          "upstreamDependencies": [
+            "fix-app-shell-collapsed-navigation-contract"
+          ],
+          "expectedEntries": [
+            "/arena"
+          ],
+          "forbiddenEntries": [
+            "/data-center"
+          ],
+          "observedNavigationHrefs": [
+            "/arena",
+            "/knowledge",
+            "/interactive-learning",
+            "/assessment/adaptive-practice"
+          ]
         }
       ]
     },
@@ -1648,6 +1748,53 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true
+        }
+      ],
+      "secondaryRouteGovernance": [
+        {
+          "href": "/assessment/adaptive-practice",
+          "role": "student",
+          "routeFile": "src/app/assessment/adaptive-practice/page.tsx",
+          "shellType": "app-shell",
+          "routeArchetype": "learning-atlas",
+          "roleScope": [
+            "guest",
+            "student"
+          ],
+          "navigationLayers": [
+            "global-product",
+            "contextual-workspace",
+            "local-tool"
+          ],
+          "collapseBehavior": "collapsible-left-rail",
+          "localPanels": [
+            {
+              "id": "workspace-command-surface",
+              "disposition": "local-tool"
+            }
+          ],
+          "themeSupport": [
+            "light",
+            "dark"
+          ],
+          "mobileBehavior": "workspace-command-surface",
+          "owningMigrationChange": "redesign-learner-data-and-report-surfaces",
+          "migrationState": "migrated",
+          "upstreamDependencies": [
+            "migrate-student-secondary-routes-to-unified-shell"
+          ],
+          "expectedEntries": [
+            "/assessment/adaptive-practice"
+          ],
+          "forbiddenEntries": [
+            "/data-center"
+          ],
+          "observedNavigationHrefs": [
+            "/interactive-learning",
+            "/knowledge",
+            "/arena",
+            "/assessment/adaptive-practice"
+          ]
         }
       ]
     },
@@ -2148,6 +2295,52 @@
           "result": "passed",
           "firstViewportTaskVisible": true,
           "navigationState": "desktop-collapsed"
+        }
+      ],
+      "secondaryRouteGovernance": [
+        {
+          "href": "/interactive-learning/control-workbench",
+          "role": "student",
+          "routeFile": "src/app/interactive-learning/control-workbench/page.tsx",
+          "shellType": "app-shell",
+          "routeArchetype": "mission-workspace",
+          "roleScope": [
+            "guest",
+            "student",
+            "teacher"
+          ],
+          "navigationLayers": [
+            "global-product",
+            "contextual-workspace",
+            "local-tool"
+          ],
+          "collapseBehavior": "collapsible-left-rail",
+          "localPanels": [
+            {
+              "id": "workbench-command-surface",
+              "disposition": "local-tool"
+            }
+          ],
+          "themeSupport": [
+            "light",
+            "dark"
+          ],
+          "mobileBehavior": "drawer",
+          "owningMigrationChange": "redesign-immersive-learning-workspaces",
+          "migrationState": "migrated",
+          "upstreamDependencies": [
+            "fix-app-shell-collapsed-navigation-contract"
+          ],
+          "expectedEntries": [
+            "/interactive-learning/control-workbench"
+          ],
+          "forbiddenEntries": [
+            "/data-center"
+          ],
+          "observedNavigationHrefs": [
+            "/interactive-learning",
+            "/arena"
+          ]
         }
       ]
     },
@@ -2884,8 +3077,20 @@
       "viewports": [
         {
           "width": 1440,
-          "artifact": "artifacts/commercial-ui/app-shell-392-evidence.json",
+          "theme": "light",
+          "role": "teacher",
+          "requestedRoute": "/data-center",
+          "finalUrl": "http://localhost:3001/data-center",
+          "authState": "authenticated",
+          "routeFile": "src/app/data-center/page.tsx",
+          "routeArchetype": "knowledge-data-map",
+          "dockState": "required",
+          "navigationState": "desktop-expanded",
+          "result": "passed",
+          "artifact": "artifacts/commercial-ui/data-center-operations-roles-416/evidence.json",
+          "screenshot": "artifacts/commercial-ui/data-center-operations-roles-416/teacher-data-center-demo-labels-disabled.png",
           "firstViewportUseful": true,
+          "firstViewportTaskVisible": true,
           "navigationReachable": true,
           "noTextOverlap": true,
           "stablePanelGeometry": true,
@@ -2897,11 +3102,9 @@
           "reducedMotionChecked": true,
           "buttonTextFits": true,
           "noMobileTextOverlap": true,
-          "routeFile": "src/app/data-center/page.tsx",
-          "routeArchetype": "knowledge-data-map",
-          "dockState": "required",
-          "result": "passed",
-          "firstViewportTaskVisible": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
           "reportEvidence": [
             {
               "surfaceId": "data-center-platform-snapshot",
@@ -2912,20 +3115,42 @@
               "exportSafeSnapshotChecked": true
             }
           ],
-          "requestedRoute": "/data-center",
-          "finalUrl": "http://127.0.0.1:3001/data-center",
-          "theme": "light",
-          "role": "student",
-          "authState": "authenticated",
-          "dockPlacementChecked": true,
-          "noDockCollision": true,
-          "dockFocusReachable": true,
-          "navigationState": "desktop-expanded"
+          "observedNavigationHrefs": [
+            "/data-center",
+            "/teacher"
+          ],
+          "expectedNavigationEntries": [
+            "/data-center"
+          ],
+          "forbiddenNavigationEntries": [],
+          "localPanelEvidence": {
+            "sourceSelector": true,
+            "reportExport": true
+          },
+          "gridTemplateColumns": "248px 1192px",
+          "sidebarWidth": 248,
+          "contentWidth": 1192,
+          "activeLinkAriaLabel": null,
+          "activeLinkTitle": null,
+          "activeLinkText": "数据中心",
+          "horizontalOverflow": false
         },
         {
           "width": 1440,
-          "artifact": "artifacts/commercial-ui/app-shell-392-evidence.json",
+          "theme": "light",
+          "role": "teacher",
+          "requestedRoute": "/data-center",
+          "finalUrl": "http://localhost:3001/data-center",
+          "authState": "authenticated",
+          "routeFile": "src/app/data-center/page.tsx",
+          "routeArchetype": "knowledge-data-map",
+          "dockState": "required",
+          "navigationState": "desktop-collapsed",
+          "result": "passed",
+          "artifact": "artifacts/commercial-ui/data-center-operations-roles-416/evidence.json",
+          "screenshot": "artifacts/commercial-ui/data-center-operations-roles-416/teacher-data-center-demo-labels-enabled.png",
           "firstViewportUseful": true,
+          "firstViewportTaskVisible": true,
           "navigationReachable": true,
           "noTextOverlap": true,
           "stablePanelGeometry": true,
@@ -2937,11 +3162,9 @@
           "reducedMotionChecked": true,
           "buttonTextFits": true,
           "noMobileTextOverlap": true,
-          "routeFile": "src/app/data-center/page.tsx",
-          "routeArchetype": "knowledge-data-map",
-          "dockState": "required",
-          "result": "passed",
-          "firstViewportTaskVisible": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
           "reportEvidence": [
             {
               "surfaceId": "data-center-platform-snapshot",
@@ -2952,20 +3175,42 @@
               "exportSafeSnapshotChecked": true
             }
           ],
-          "requestedRoute": "/data-center",
-          "finalUrl": "http://127.0.0.1:3001/data-center",
-          "theme": "dark",
-          "role": "student",
-          "authState": "authenticated",
-          "dockPlacementChecked": true,
-          "noDockCollision": true,
-          "dockFocusReachable": true,
-          "navigationState": "desktop-expanded"
+          "observedNavigationHrefs": [
+            "/data-center",
+            "/teacher"
+          ],
+          "expectedNavigationEntries": [
+            "/data-center"
+          ],
+          "forbiddenNavigationEntries": [],
+          "localPanelEvidence": {
+            "sourceSelector": true,
+            "reportExport": true
+          },
+          "gridTemplateColumns": "72px 1368px",
+          "sidebarWidth": 72,
+          "contentWidth": 1368,
+          "activeLinkAriaLabel": "数据中心",
+          "activeLinkTitle": "数据中心",
+          "activeLinkText": "",
+          "horizontalOverflow": false
         },
         {
           "width": 320,
-          "artifact": "artifacts/commercial-ui/app-shell-392-evidence.json",
+          "theme": "light",
+          "role": "teacher",
+          "requestedRoute": "/data-center",
+          "finalUrl": "http://localhost:3001/data-center",
+          "authState": "authenticated",
+          "routeFile": "src/app/data-center/page.tsx",
+          "routeArchetype": "knowledge-data-map",
+          "dockState": "required",
+          "navigationState": "workspace-command-surface",
+          "result": "passed",
+          "artifact": "artifacts/commercial-ui/data-center-operations-roles-416/evidence.json",
+          "screenshot": "artifacts/commercial-ui/data-center-operations-roles-416/teacher-data-center-demo-labels-disabled.png",
           "firstViewportUseful": true,
+          "firstViewportTaskVisible": true,
           "navigationReachable": true,
           "noTextOverlap": true,
           "stablePanelGeometry": true,
@@ -2977,40 +3222,53 @@
           "reducedMotionChecked": true,
           "buttonTextFits": true,
           "noMobileTextOverlap": true,
-          "routeFile": "src/app/data-center/page.tsx",
-          "routeArchetype": "knowledge-data-map",
-          "dockState": "required",
-          "result": "passed",
-          "firstViewportTaskVisible": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "data-center-platform-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ],
+          "observedNavigationHrefs": [
+            "/data-center",
+            "/teacher"
+          ],
+          "expectedNavigationEntries": [
+            "/data-center"
+          ],
+          "forbiddenNavigationEntries": [],
+          "localPanelEvidence": {
+            "sourceSelector": true,
+            "reportExport": true
+          },
           "mobileCanvasFirst": true,
           "noPersistentMobileSidebar": true,
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
-          "noPersistentKnowledgeGraphDrawer": true,
-          "reportEvidence": [
-            {
-              "surfaceId": "data-center-platform-snapshot",
-              "watermarkChecked": true,
-              "privacyScopeChecked": true,
-              "sourceQualityVisible": true,
-              "statusLegendReadable": true,
-              "exportSafeSnapshotChecked": true
-            }
-          ],
-          "requestedRoute": "/data-center",
-          "finalUrl": "http://127.0.0.1:3001/data-center",
-          "theme": "light",
-          "role": "student",
-          "authState": "authenticated",
-          "dockPlacementChecked": true,
-          "noDockCollision": true,
-          "dockFocusReachable": true,
-          "navigationState": "workspace-command-surface"
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
-          "width": 320,
-          "artifact": "artifacts/commercial-ui/app-shell-392-evidence.json",
+          "width": 1440,
+          "theme": "dark",
+          "role": "teacher",
+          "requestedRoute": "/data-center",
+          "finalUrl": "http://localhost:3001/data-center",
+          "authState": "authenticated",
+          "routeFile": "src/app/data-center/page.tsx",
+          "routeArchetype": "knowledge-data-map",
+          "dockState": "required",
+          "navigationState": "desktop-expanded",
+          "result": "passed",
+          "artifact": "artifacts/commercial-ui/data-center-operations-roles-416/evidence.json",
+          "screenshot": "artifacts/commercial-ui/data-center-operations-roles-416/teacher-data-center-demo-labels-disabled.png",
           "firstViewportUseful": true,
+          "firstViewportTaskVisible": true,
           "navigationReachable": true,
           "noTextOverlap": true,
           "stablePanelGeometry": true,
@@ -3022,40 +3280,173 @@
           "reducedMotionChecked": true,
           "buttonTextFits": true,
           "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "data-center-platform-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ],
+          "observedNavigationHrefs": [
+            "/data-center",
+            "/teacher"
+          ],
+          "expectedNavigationEntries": [
+            "/data-center"
+          ],
+          "forbiddenNavigationEntries": [],
+          "localPanelEvidence": {
+            "sourceSelector": true,
+            "reportExport": true
+          },
+          "gridTemplateColumns": "248px 1192px",
+          "sidebarWidth": 248,
+          "contentWidth": 1192,
+          "activeLinkAriaLabel": null,
+          "activeLinkTitle": null,
+          "activeLinkText": "数据中心",
+          "horizontalOverflow": false
+        },
+        {
+          "width": 1440,
+          "theme": "dark",
+          "role": "teacher",
+          "requestedRoute": "/data-center",
+          "finalUrl": "http://localhost:3001/data-center",
+          "authState": "authenticated",
           "routeFile": "src/app/data-center/page.tsx",
           "routeArchetype": "knowledge-data-map",
           "dockState": "required",
+          "navigationState": "desktop-collapsed",
           "result": "passed",
+          "artifact": "artifacts/commercial-ui/data-center-operations-roles-416/evidence.json",
+          "screenshot": "artifacts/commercial-ui/data-center-operations-roles-416/teacher-data-center-demo-labels-enabled.png",
+          "firstViewportUseful": true,
           "firstViewportTaskVisible": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "data-center-platform-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ],
+          "observedNavigationHrefs": [
+            "/data-center",
+            "/teacher"
+          ],
+          "expectedNavigationEntries": [
+            "/data-center"
+          ],
+          "forbiddenNavigationEntries": [],
+          "localPanelEvidence": {
+            "sourceSelector": true,
+            "reportExport": true
+          },
+          "gridTemplateColumns": "72px 1368px",
+          "sidebarWidth": 72,
+          "contentWidth": 1368,
+          "activeLinkAriaLabel": "数据中心",
+          "activeLinkTitle": "数据中心",
+          "activeLinkText": "",
+          "horizontalOverflow": false
+        },
+        {
+          "width": 320,
+          "theme": "dark",
+          "role": "teacher",
+          "requestedRoute": "/data-center",
+          "finalUrl": "http://localhost:3001/data-center",
+          "authState": "authenticated",
+          "routeFile": "src/app/data-center/page.tsx",
+          "routeArchetype": "knowledge-data-map",
+          "dockState": "required",
+          "navigationState": "workspace-command-surface",
+          "result": "passed",
+          "artifact": "artifacts/commercial-ui/data-center-operations-roles-416/evidence.json",
+          "screenshot": "artifacts/commercial-ui/data-center-operations-roles-416/teacher-data-center-demo-labels-disabled.png",
+          "firstViewportUseful": true,
+          "firstViewportTaskVisible": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "data-center-platform-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ],
+          "observedNavigationHrefs": [
+            "/data-center",
+            "/teacher"
+          ],
+          "expectedNavigationEntries": [
+            "/data-center"
+          ],
+          "forbiddenNavigationEntries": [],
+          "localPanelEvidence": {
+            "sourceSelector": true,
+            "reportExport": true
+          },
           "mobileCanvasFirst": true,
           "noPersistentMobileSidebar": true,
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
-          "noPersistentKnowledgeGraphDrawer": true,
-          "reportEvidence": [
-            {
-              "surfaceId": "data-center-platform-snapshot",
-              "watermarkChecked": true,
-              "privacyScopeChecked": true,
-              "sourceQualityVisible": true,
-              "statusLegendReadable": true,
-              "exportSafeSnapshotChecked": true
-            }
-          ],
-          "requestedRoute": "/data-center",
-          "finalUrl": "http://127.0.0.1:3001/data-center",
-          "theme": "dark",
-          "role": "student",
-          "authState": "authenticated",
-          "dockPlacementChecked": true,
-          "noDockCollision": true,
-          "dockFocusReachable": true,
-          "navigationState": "workspace-command-surface"
+          "noPersistentKnowledgeGraphDrawer": true
         },
         {
           "width": 1440,
-          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "theme": "light",
+          "role": "admin",
+          "requestedRoute": "/data-center",
+          "finalUrl": "http://localhost:3001/data-center",
+          "authState": "authenticated",
+          "routeFile": "src/app/data-center/page.tsx",
+          "routeArchetype": "knowledge-data-map",
+          "dockState": "required",
+          "navigationState": "desktop-expanded",
+          "result": "passed",
+          "artifact": "artifacts/commercial-ui/data-center-operations-roles-416/evidence.json",
+          "screenshot": "artifacts/commercial-ui/data-center-operations-roles-416/teacher-data-center-demo-labels-disabled.png",
           "firstViewportUseful": true,
+          "firstViewportTaskVisible": true,
           "navigationReachable": true,
           "noTextOverlap": true,
           "stablePanelGeometry": true,
@@ -3067,11 +3458,9 @@
           "reducedMotionChecked": true,
           "buttonTextFits": true,
           "noMobileTextOverlap": true,
-          "routeFile": "src/app/data-center/page.tsx",
-          "routeArchetype": "knowledge-data-map",
-          "dockState": "required",
-          "result": "passed",
-          "firstViewportTaskVisible": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
           "reportEvidence": [
             {
               "surfaceId": "data-center-platform-snapshot",
@@ -3082,15 +3471,413 @@
               "exportSafeSnapshotChecked": true
             }
           ],
-          "requestedRoute": "/data-center",
-          "finalUrl": "http://127.0.0.1:3001/data-center",
+          "observedNavigationHrefs": [
+            "/data-center",
+            "/admin"
+          ],
+          "expectedNavigationEntries": [
+            "/data-center"
+          ],
+          "forbiddenNavigationEntries": [],
+          "localPanelEvidence": {
+            "sourceSelector": true,
+            "reportExport": true
+          },
+          "gridTemplateColumns": "248px 1192px",
+          "sidebarWidth": 248,
+          "contentWidth": 1192,
+          "activeLinkAriaLabel": null,
+          "activeLinkTitle": null,
+          "activeLinkText": "数据中心",
+          "horizontalOverflow": false
+        },
+        {
+          "width": 1440,
           "theme": "light",
-          "role": "student",
+          "role": "admin",
+          "requestedRoute": "/data-center",
+          "finalUrl": "http://localhost:3001/data-center",
           "authState": "authenticated",
+          "routeFile": "src/app/data-center/page.tsx",
+          "routeArchetype": "knowledge-data-map",
+          "dockState": "required",
+          "navigationState": "desktop-collapsed",
+          "result": "passed",
+          "artifact": "artifacts/commercial-ui/data-center-operations-roles-416/evidence.json",
+          "screenshot": "artifacts/commercial-ui/data-center-operations-roles-416/teacher-data-center-demo-labels-enabled.png",
+          "firstViewportUseful": true,
+          "firstViewportTaskVisible": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
           "dockPlacementChecked": true,
           "noDockCollision": true,
           "dockFocusReachable": true,
-          "navigationState": "desktop-collapsed"
+          "reportEvidence": [
+            {
+              "surfaceId": "data-center-platform-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ],
+          "observedNavigationHrefs": [
+            "/data-center",
+            "/admin"
+          ],
+          "expectedNavigationEntries": [
+            "/data-center"
+          ],
+          "forbiddenNavigationEntries": [],
+          "localPanelEvidence": {
+            "sourceSelector": true,
+            "reportExport": true
+          },
+          "gridTemplateColumns": "72px 1368px",
+          "sidebarWidth": 72,
+          "contentWidth": 1368,
+          "activeLinkAriaLabel": "数据中心",
+          "activeLinkTitle": "数据中心",
+          "activeLinkText": "",
+          "horizontalOverflow": false
+        },
+        {
+          "width": 320,
+          "theme": "light",
+          "role": "admin",
+          "requestedRoute": "/data-center",
+          "finalUrl": "http://localhost:3001/data-center",
+          "authState": "authenticated",
+          "routeFile": "src/app/data-center/page.tsx",
+          "routeArchetype": "knowledge-data-map",
+          "dockState": "required",
+          "navigationState": "workspace-command-surface",
+          "result": "passed",
+          "artifact": "artifacts/commercial-ui/data-center-operations-roles-416/evidence.json",
+          "screenshot": "artifacts/commercial-ui/data-center-operations-roles-416/teacher-data-center-demo-labels-disabled.png",
+          "firstViewportUseful": true,
+          "firstViewportTaskVisible": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "data-center-platform-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ],
+          "observedNavigationHrefs": [
+            "/data-center",
+            "/admin"
+          ],
+          "expectedNavigationEntries": [
+            "/data-center"
+          ],
+          "forbiddenNavigationEntries": [],
+          "localPanelEvidence": {
+            "sourceSelector": true,
+            "reportExport": true
+          },
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
+        },
+        {
+          "width": 1440,
+          "theme": "dark",
+          "role": "admin",
+          "requestedRoute": "/data-center",
+          "finalUrl": "http://localhost:3001/data-center",
+          "authState": "authenticated",
+          "routeFile": "src/app/data-center/page.tsx",
+          "routeArchetype": "knowledge-data-map",
+          "dockState": "required",
+          "navigationState": "desktop-expanded",
+          "result": "passed",
+          "artifact": "artifacts/commercial-ui/data-center-operations-roles-416/evidence.json",
+          "screenshot": "artifacts/commercial-ui/data-center-operations-roles-416/teacher-data-center-demo-labels-disabled.png",
+          "firstViewportUseful": true,
+          "firstViewportTaskVisible": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "data-center-platform-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ],
+          "observedNavigationHrefs": [
+            "/data-center",
+            "/admin"
+          ],
+          "expectedNavigationEntries": [
+            "/data-center"
+          ],
+          "forbiddenNavigationEntries": [],
+          "localPanelEvidence": {
+            "sourceSelector": true,
+            "reportExport": true
+          },
+          "gridTemplateColumns": "248px 1192px",
+          "sidebarWidth": 248,
+          "contentWidth": 1192,
+          "activeLinkAriaLabel": null,
+          "activeLinkTitle": null,
+          "activeLinkText": "数据中心",
+          "horizontalOverflow": false
+        },
+        {
+          "width": 1440,
+          "theme": "dark",
+          "role": "admin",
+          "requestedRoute": "/data-center",
+          "finalUrl": "http://localhost:3001/data-center",
+          "authState": "authenticated",
+          "routeFile": "src/app/data-center/page.tsx",
+          "routeArchetype": "knowledge-data-map",
+          "dockState": "required",
+          "navigationState": "desktop-collapsed",
+          "result": "passed",
+          "artifact": "artifacts/commercial-ui/data-center-operations-roles-416/evidence.json",
+          "screenshot": "artifacts/commercial-ui/data-center-operations-roles-416/teacher-data-center-demo-labels-enabled.png",
+          "firstViewportUseful": true,
+          "firstViewportTaskVisible": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "data-center-platform-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ],
+          "observedNavigationHrefs": [
+            "/data-center",
+            "/admin"
+          ],
+          "expectedNavigationEntries": [
+            "/data-center"
+          ],
+          "forbiddenNavigationEntries": [],
+          "localPanelEvidence": {
+            "sourceSelector": true,
+            "reportExport": true
+          },
+          "gridTemplateColumns": "72px 1368px",
+          "sidebarWidth": 72,
+          "contentWidth": 1368,
+          "activeLinkAriaLabel": "数据中心",
+          "activeLinkTitle": "数据中心",
+          "activeLinkText": "",
+          "horizontalOverflow": false
+        },
+        {
+          "width": 320,
+          "theme": "dark",
+          "role": "admin",
+          "requestedRoute": "/data-center",
+          "finalUrl": "http://localhost:3001/data-center",
+          "authState": "authenticated",
+          "routeFile": "src/app/data-center/page.tsx",
+          "routeArchetype": "knowledge-data-map",
+          "dockState": "required",
+          "navigationState": "workspace-command-surface",
+          "result": "passed",
+          "artifact": "artifacts/commercial-ui/data-center-operations-roles-416/evidence.json",
+          "screenshot": "artifacts/commercial-ui/data-center-operations-roles-416/teacher-data-center-demo-labels-disabled.png",
+          "firstViewportUseful": true,
+          "firstViewportTaskVisible": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "dockPlacementChecked": true,
+          "noDockCollision": true,
+          "dockFocusReachable": true,
+          "reportEvidence": [
+            {
+              "surfaceId": "data-center-platform-snapshot",
+              "watermarkChecked": true,
+              "privacyScopeChecked": true,
+              "sourceQualityVisible": true,
+              "statusLegendReadable": true,
+              "exportSafeSnapshotChecked": true
+            }
+          ],
+          "observedNavigationHrefs": [
+            "/data-center",
+            "/admin"
+          ],
+          "expectedNavigationEntries": [
+            "/data-center"
+          ],
+          "forbiddenNavigationEntries": [],
+          "localPanelEvidence": {
+            "sourceSelector": true,
+            "reportExport": true
+          },
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
+        }
+      ],
+      "secondaryRouteGovernance": [
+        {
+          "href": "/data-center",
+          "role": "teacher",
+          "routeFile": "src/app/data-center/page.tsx",
+          "shellType": "app-shell",
+          "routeArchetype": "knowledge-data-map",
+          "roleScope": [
+            "teacher",
+            "admin"
+          ],
+          "navigationLayers": [
+            "role-cockpit",
+            "contextual-workspace",
+            "local-tool"
+          ],
+          "collapseBehavior": "collapsible-left-rail",
+          "localPanels": [
+            {
+              "id": "source-selector",
+              "disposition": "local-tool"
+            },
+            {
+              "id": "report-export",
+              "disposition": "local-tool"
+            }
+          ],
+          "themeSupport": [
+            "light",
+            "dark"
+          ],
+          "mobileBehavior": "workspace-command-surface",
+          "owningMigrationChange": "restrict-data-center-to-operations-roles",
+          "migrationState": "migrated",
+          "upstreamDependencies": [
+            "restrict-data-center-to-operations-roles"
+          ],
+          "expectedEntries": [
+            "/data-center"
+          ],
+          "forbiddenEntries": [],
+          "observedNavigationHrefs": [
+            "/data-center",
+            "/teacher"
+          ]
+        },
+        {
+          "href": "/data-center",
+          "role": "admin",
+          "routeFile": "src/app/data-center/page.tsx",
+          "shellType": "app-shell",
+          "routeArchetype": "knowledge-data-map",
+          "roleScope": [
+            "teacher",
+            "admin"
+          ],
+          "navigationLayers": [
+            "role-cockpit",
+            "contextual-workspace",
+            "local-tool"
+          ],
+          "collapseBehavior": "collapsible-left-rail",
+          "localPanels": [
+            {
+              "id": "source-selector",
+              "disposition": "local-tool"
+            },
+            {
+              "id": "report-export",
+              "disposition": "local-tool"
+            }
+          ],
+          "themeSupport": [
+            "light",
+            "dark"
+          ],
+          "mobileBehavior": "workspace-command-surface",
+          "owningMigrationChange": "restrict-data-center-to-operations-roles",
+          "migrationState": "migrated",
+          "upstreamDependencies": [
+            "restrict-data-center-to-operations-roles"
+          ],
+          "expectedEntries": [
+            "/data-center"
+          ],
+          "forbiddenEntries": [],
+          "observedNavigationHrefs": [
+            "/data-center",
+            "/admin"
+          ]
         }
       ]
     },
@@ -5089,6 +5876,65 @@
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true
         }
+      ],
+      "secondaryRouteGovernance": [
+        {
+          "href": "/knowledge",
+          "role": "student",
+          "routeFile": "src/app/knowledge/page.tsx",
+          "shellType": "app-shell",
+          "routeArchetype": "knowledge-data-map",
+          "roleScope": [
+            "guest",
+            "student",
+            "teacher"
+          ],
+          "navigationLayers": [
+            "global-product",
+            "contextual-workspace",
+            "local-tool"
+          ],
+          "collapseBehavior": "collapsible-left-rail",
+          "localPanels": [
+            {
+              "id": "chapter-directory",
+              "disposition": "local-tool"
+            },
+            {
+              "id": "graph-filters",
+              "disposition": "local-tool"
+            },
+            {
+              "id": "graph-legend",
+              "disposition": "local-tool"
+            },
+            {
+              "id": "node-resource-panel",
+              "disposition": "local-tool"
+            }
+          ],
+          "themeSupport": [
+            "light",
+            "dark"
+          ],
+          "mobileBehavior": "workspace-command-surface",
+          "owningMigrationChange": "migrate-knowledge-map-to-unified-shell-panels",
+          "migrationState": "migrated",
+          "upstreamDependencies": [
+            "migrate-knowledge-map-to-unified-shell-panels"
+          ],
+          "expectedEntries": [
+            "/knowledge"
+          ],
+          "forbiddenEntries": [
+            "/data-center"
+          ],
+          "observedNavigationHrefs": [
+            "/knowledge",
+            "/interactive-learning",
+            "/arena"
+          ]
+        }
       ]
     },
     {
@@ -5512,6 +6358,58 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true
+        }
+      ],
+      "secondaryRouteGovernance": [
+        {
+          "href": "/interactive-learning/courses",
+          "role": "student",
+          "routeFile": "src/app/interactive-learning/courses/page.tsx",
+          "shellType": "app-shell",
+          "routeArchetype": "learning-atlas",
+          "roleScope": [
+            "guest",
+            "student"
+          ],
+          "navigationLayers": [
+            "global-product",
+            "contextual-workspace",
+            "local-tool"
+          ],
+          "collapseBehavior": "collapsible-left-rail",
+          "localPanels": [
+            {
+              "id": "workspace-command-surface",
+              "disposition": "local-tool"
+            }
+          ],
+          "themeSupport": [
+            "light",
+            "dark"
+          ],
+          "mobileBehavior": "workspace-command-surface",
+          "owningMigrationChange": "migrate-student-secondary-routes-to-unified-shell",
+          "migrationState": "migrated",
+          "upstreamDependencies": [
+            "migrate-student-secondary-routes-to-unified-shell"
+          ],
+          "expectedEntries": [
+            "/interactive-learning/courses"
+          ],
+          "forbiddenEntries": [
+            "/data-center"
+          ],
+          "observedNavigationHrefs": [
+            "/interactive-learning",
+            "/knowledge",
+            "/arena",
+            "/assessment/adaptive-practice"
+          ],
+          "primaryNextAction": {
+            "href": "/interactive-learning/courses/unit-4-1-design-task-expression",
+            "shellType": "app-shell",
+            "migrationState": "migrated"
+          }
         }
       ]
     },
@@ -6301,6 +7199,50 @@
             }
           ],
           "navigationState": "desktop-collapsed"
+        }
+      ],
+      "secondaryRouteGovernance": [
+        {
+          "href": "/arena/challenges/[taskId]",
+          "role": "guest",
+          "routeFile": "src/app/arena/challenges/[taskId]/page.tsx",
+          "shellType": "approved-workspace-shell",
+          "routeArchetype": "mission-workspace",
+          "roleScope": [
+            "guest",
+            "student",
+            "teacher"
+          ],
+          "navigationLayers": [
+            "global-product",
+            "contextual-workspace",
+            "local-tool"
+          ],
+          "collapseBehavior": "collapsible-left-rail",
+          "localPanels": [
+            {
+              "id": "challenge-detail-actions",
+              "disposition": "local-tool"
+            }
+          ],
+          "themeSupport": [
+            "light",
+            "dark"
+          ],
+          "mobileBehavior": "drawer",
+          "owningMigrationChange": "unify-arena-workspace-shell",
+          "migrationState": "migrated",
+          "upstreamDependencies": [
+            "fix-app-shell-collapsed-navigation-contract"
+          ],
+          "expectedEntries": [
+            "/arena"
+          ],
+          "forbiddenEntries": [],
+          "observedNavigationHrefs": [
+            "/arena",
+            "/interactive-learning/control-workbench"
+          ]
         }
       ]
     },
@@ -7258,6 +8200,53 @@
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true
         }
+      ],
+      "secondaryRouteGovernance": [
+        {
+          "href": "/interactive-learning/chapter-components",
+          "role": "student",
+          "routeFile": "src/app/interactive-learning/chapter-components/page.tsx",
+          "shellType": "app-shell",
+          "routeArchetype": "learning-atlas",
+          "roleScope": [
+            "guest",
+            "student"
+          ],
+          "navigationLayers": [
+            "global-product",
+            "contextual-workspace",
+            "local-tool"
+          ],
+          "collapseBehavior": "collapsible-left-rail",
+          "localPanels": [
+            {
+              "id": "workspace-command-surface",
+              "disposition": "local-tool"
+            }
+          ],
+          "themeSupport": [
+            "light",
+            "dark"
+          ],
+          "mobileBehavior": "workspace-command-surface",
+          "owningMigrationChange": "migrate-student-secondary-routes-to-unified-shell",
+          "migrationState": "migrated",
+          "upstreamDependencies": [
+            "migrate-student-secondary-routes-to-unified-shell"
+          ],
+          "expectedEntries": [
+            "/interactive-learning/chapter-components"
+          ],
+          "forbiddenEntries": [
+            "/data-center"
+          ],
+          "observedNavigationHrefs": [
+            "/interactive-learning",
+            "/knowledge",
+            "/arena",
+            "/assessment/adaptive-practice"
+          ]
+        }
       ]
     },
     {
@@ -7512,6 +8501,53 @@
           "noPersistentMobileFilter": true,
           "noPersistentWorkbenchPanels": true,
           "noPersistentKnowledgeGraphDrawer": true
+        }
+      ],
+      "secondaryRouteGovernance": [
+        {
+          "href": "/interactive-learning/cross-domain-exploration",
+          "role": "student",
+          "routeFile": "src/app/interactive-learning/cross-domain-exploration/page.tsx",
+          "shellType": "app-shell",
+          "routeArchetype": "learning-atlas",
+          "roleScope": [
+            "guest",
+            "student"
+          ],
+          "navigationLayers": [
+            "global-product",
+            "contextual-workspace",
+            "local-tool"
+          ],
+          "collapseBehavior": "collapsible-left-rail",
+          "localPanels": [
+            {
+              "id": "workspace-command-surface",
+              "disposition": "local-tool"
+            }
+          ],
+          "themeSupport": [
+            "light",
+            "dark"
+          ],
+          "mobileBehavior": "workspace-command-surface",
+          "owningMigrationChange": "migrate-student-secondary-routes-to-unified-shell",
+          "migrationState": "migrated",
+          "upstreamDependencies": [
+            "migrate-student-secondary-routes-to-unified-shell"
+          ],
+          "expectedEntries": [
+            "/interactive-learning/cross-domain-exploration"
+          ],
+          "forbiddenEntries": [
+            "/data-center"
+          ],
+          "observedNavigationHrefs": [
+            "/interactive-learning",
+            "/knowledge",
+            "/arena",
+            "/assessment/adaptive-practice"
+          ]
         }
       ]
     }

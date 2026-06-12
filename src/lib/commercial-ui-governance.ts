@@ -6,6 +6,7 @@ import {
   type PlatformPrimaryRouteFrame,
   type PlatformPrimaryRouteInventoryEntry,
   type PlatformReportSurfaceInventoryEntry,
+  type PlatformRoleNavigationAudience,
   resolvePlatformRouteInventory,
 } from '@/lib/platform-role-navigation';
 
@@ -31,6 +32,11 @@ export type CommercialUiGovernanceRule =
   | 'visual-acceptance.route-inventory-drift'
   | 'route-ledger.incomplete-primary-route'
   | 'route-ledger.outdated-archetype'
+  | 'secondary-navigation.incomplete-route-matrix'
+  | 'secondary-navigation.legacy-local-navigation'
+  | 'secondary-navigation.student-data-center-exposure'
+  | 'secondary-navigation.legacy-first-hop'
+  | 'secondary-navigation.local-tool-boundary'
   | 'mobile-structure.desktop-panel-persistence'
   | 'report-export.incomplete-visual-evidence'
   | 'accessibility-text-fit.missing-route-evidence'
@@ -45,6 +51,7 @@ export type CommercialUiGovernanceCategory =
   | 'module-chrome'
   | 'visual-acceptance'
   | 'route-ledger'
+  | 'secondary-navigation'
   | 'mobile-structure'
   | 'report-export'
   | 'accessibility-text-fit'
@@ -57,6 +64,7 @@ export interface CommercialUiGovernanceViolation {
   message: string;
   evidence?: readonly string[];
   allowedBy?: string;
+  enforcement?: CommercialUiGovernanceMode;
 }
 
 export interface CommercialUiGovernanceAllowlistEntry {
@@ -168,6 +176,7 @@ export interface CommercialViewportVisualEvidence {
   routeArchetype?: PlatformPrimaryRouteFrame | string;
   dockState?: CommercialPremiumVisualQaRoute['floatingDock'] | PlatformFloatingDockRouteBehavior;
   navigationState?: CommercialVisualQaNavigationState;
+  mobileNavigation?: PlatformMobileNavigationBehavior | string;
   appShellNavigationContract?: 'collapsed-icon-rail';
   result?: 'passed' | 'failed';
   screenshot?: string;
@@ -194,12 +203,68 @@ export interface CommercialViewportVisualEvidence {
   noPersistentMobileFilter?: boolean;
   noPersistentWorkbenchPanels?: boolean;
   noPersistentKnowledgeGraphDrawer?: boolean;
+  observedNavigationHrefs?: readonly string[];
+  expectedNavigationEntries?: readonly string[];
+  forbiddenNavigationEntries?: readonly string[];
+  localPanelEvidence?: Record<string, unknown>;
   reportEvidence?: readonly CommercialReportExportVisualEvidence[];
 }
 
 export interface CommercialVisualAcceptanceEvidence {
   href: string;
   viewports: readonly CommercialViewportVisualEvidence[];
+  secondaryRouteGovernance?: readonly CommercialSecondaryRouteGovernanceEntry[];
+}
+
+export type CommercialSecondaryRouteShellType =
+  | 'app-shell'
+  | 'approved-workspace-shell'
+  | 'legacy-topbar'
+  | 'temporary-adapter';
+export type CommercialSecondaryRouteMigrationState = 'migrated' | 'blocked-by-upstream' | 'active-exception';
+export type CommercialSecondaryLocalToolDisposition = 'local-tool' | 'platform-navigation';
+
+export interface CommercialSecondaryRouteDependency {
+  change: string;
+  status: 'complete' | 'active';
+}
+
+export interface CommercialSecondaryRouteLocalToolEvidence {
+  id: string;
+  disposition: CommercialSecondaryLocalToolDisposition;
+}
+
+export interface CommercialSecondaryRouteNextActionEvidence {
+  href: string;
+  shellType: CommercialSecondaryRouteShellType;
+  migrationState: CommercialSecondaryRouteMigrationState;
+  usesLegacyTopbar?: boolean;
+  exceptionOwner?: string;
+  removalCondition?: string;
+}
+
+export interface CommercialSecondaryRouteGovernanceEntry {
+  href: string;
+  role: Exclude<CommercialVisualQaRole, 'guest'> | 'guest';
+  routeFile?: string;
+  shellType?: CommercialSecondaryRouteShellType;
+  routeArchetype?: PlatformPrimaryRouteFrame | string;
+  roleScope?: readonly PlatformRoleNavigationAudience[];
+  navigationLayers?: readonly string[];
+  collapseBehavior?: string;
+  localPanels?: readonly CommercialSecondaryRouteLocalToolEvidence[];
+  themeSupport?: readonly CommercialVisualQaTheme[];
+  mobileBehavior?: PlatformMobileNavigationBehavior | string;
+  owningMigrationChange?: string;
+  migrationState?: CommercialSecondaryRouteMigrationState;
+  upstreamDependencies?: readonly string[];
+  exceptionOwner?: string;
+  exceptionExpiresOn?: string;
+  exceptionRemovalCondition?: string;
+  expectedEntries?: readonly string[];
+  forbiddenEntries?: readonly string[];
+  observedNavigationHrefs?: readonly string[];
+  primaryNextAction?: CommercialSecondaryRouteNextActionEvidence;
 }
 
 export interface CommercialReportExportVisualEvidence {
@@ -241,6 +306,8 @@ export interface CommercialUiGovernanceInput {
   routeInventory?: readonly PlatformPrimaryRouteInventoryEntry[];
   visualRouteInventory?: readonly PlatformPrimaryRouteInventoryEntry[];
   premiumVisualQaMatrix?: readonly CommercialPremiumVisualQaRoute[];
+  secondaryRouteGovernanceMatrix?: readonly CommercialSecondaryRouteGovernanceEntry[];
+  secondaryRouteDependencies?: readonly CommercialSecondaryRouteDependency[];
   reportSurfaceInventory?: readonly PlatformReportSurfaceInventoryEntry[];
 }
 
@@ -406,7 +473,17 @@ export const PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX: CommercialPremiumVisualQaR
     routeFile: 'src/app/data-center/page.tsx',
     requiredThemes: ['light', 'dark'],
     requiredWidths: [1440, 320],
-    role: 'student',
+    role: 'teacher',
+    floatingDock: 'required',
+    acceptedAuthState: 'authenticated',
+    artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+  {
+    href: '/data-center',
+    routeFile: 'src/app/data-center/page.tsx',
+    requiredThemes: ['light', 'dark'],
+    requiredWidths: [1440, 320],
+    role: 'admin',
     floatingDock: 'required',
     acceptedAuthState: 'authenticated',
     artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
@@ -504,6 +581,77 @@ const REQUIRED_STUDENT_DESTINATION_HREFS = [
 const REQUIRED_NAVIGATION_ALIASES = ['/interactive-learning/control-workbench?mode=explore&preset=classic-four-view'];
 const REQUIRED_STUDENT_PROFILE_HREF = '/profile';
 const REQUIRED_STUDENT_COCKPIT_HREF = '/dashboard';
+const FORBIDDEN_STUDENT_DESTINATION_HREFS = ['/data-center'];
+const SECONDARY_NAVIGATION_DEPENDENCY_CHANGES = [
+  'fix-app-shell-collapsed-navigation-contract',
+  'migrate-student-secondary-routes-to-unified-shell',
+  'migrate-knowledge-map-to-unified-shell-panels',
+  'restrict-data-center-to-operations-roles',
+] as const;
+const KNOWLEDGE_LOCAL_TOOL_IDS = [
+  'chapter-directory',
+  'graph-filters',
+  'graph-legend',
+  'node-resource-panel',
+] as const;
+const DATA_CENTER_LOCAL_TOOL_IDS = ['source-selector', 'report-export'] as const;
+
+export const DEFAULT_SECONDARY_NAVIGATION_DEPENDENCIES: CommercialSecondaryRouteDependency[] =
+  SECONDARY_NAVIGATION_DEPENDENCY_CHANGES.map((change) => ({ change, status: 'complete' }));
+
+export const DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX: CommercialSecondaryRouteGovernanceEntry[] = [
+  secondaryRouteGovernanceEntry('/arena', 'student', {
+    shellType: 'approved-workspace-shell',
+    collapseBehavior: 'collapsible-left-rail',
+    upstreamDependencies: ['fix-app-shell-collapsed-navigation-contract'],
+  }),
+  secondaryRouteGovernanceEntry('/arena/challenges/[taskId]', 'guest', {
+    shellType: 'approved-workspace-shell',
+    collapseBehavior: 'collapsible-left-rail',
+    upstreamDependencies: ['fix-app-shell-collapsed-navigation-contract'],
+  }),
+  secondaryRouteGovernanceEntry('/interactive-learning/control-workbench', 'student', {
+    collapseBehavior: 'collapsible-left-rail',
+    upstreamDependencies: ['fix-app-shell-collapsed-navigation-contract'],
+  }),
+  secondaryRouteGovernanceEntry('/interactive-learning', 'student', {
+    upstreamDependencies: ['migrate-student-secondary-routes-to-unified-shell'],
+    primaryNextAction: {
+      href: '/interactive-learning/chapter-components',
+      shellType: 'app-shell',
+      migrationState: 'migrated',
+    },
+  }),
+  secondaryRouteGovernanceEntry('/interactive-learning/courses', 'student', {
+    upstreamDependencies: ['migrate-student-secondary-routes-to-unified-shell'],
+    primaryNextAction: {
+      href: '/interactive-learning/courses/unit-4-1-design-task-expression',
+      shellType: 'app-shell',
+      migrationState: 'migrated',
+    },
+  }),
+  secondaryRouteGovernanceEntry('/interactive-learning/chapter-components', 'student', {
+    upstreamDependencies: ['migrate-student-secondary-routes-to-unified-shell'],
+  }),
+  secondaryRouteGovernanceEntry('/interactive-learning/cross-domain-exploration', 'student', {
+    upstreamDependencies: ['migrate-student-secondary-routes-to-unified-shell'],
+  }),
+  secondaryRouteGovernanceEntry('/assessment/adaptive-practice', 'student', {
+    upstreamDependencies: ['migrate-student-secondary-routes-to-unified-shell'],
+  }),
+  secondaryRouteGovernanceEntry('/knowledge', 'student', {
+    upstreamDependencies: ['migrate-knowledge-map-to-unified-shell-panels'],
+    localPanels: KNOWLEDGE_LOCAL_TOOL_IDS.map((id) => ({ id, disposition: 'local-tool' })),
+  }),
+  secondaryRouteGovernanceEntry('/data-center', 'teacher', {
+    upstreamDependencies: ['restrict-data-center-to-operations-roles'],
+    localPanels: DATA_CENTER_LOCAL_TOOL_IDS.map((id) => ({ id, disposition: 'local-tool' })),
+  }),
+  secondaryRouteGovernanceEntry('/data-center', 'admin', {
+    upstreamDependencies: ['restrict-data-center-to-operations-roles'],
+    localPanels: DATA_CENTER_LOCAL_TOOL_IDS.map((id) => ({ id, disposition: 'local-tool' })),
+  }),
+];
 
 function categoryFromRule(rule: CommercialUiGovernanceRule): CommercialUiGovernanceCategory {
   return rule.split('.')[0] as CommercialUiGovernanceCategory;
@@ -630,6 +778,7 @@ function buildNavigationViolations(input: CommercialNavigationCoverageInput) {
   const missingCoreEntries = REQUIRED_STUDENT_CORE_ENTRY_IDS.filter((entryId) => !input.coreEntryIds.includes(entryId));
   const missingHrefs = REQUIRED_STUDENT_DESTINATION_HREFS.filter((href) => !input.hrefs.includes(href));
   const missingAliases = REQUIRED_NAVIGATION_ALIASES.filter((href) => !input.aliases.includes(href));
+  const forbiddenHrefs = FORBIDDEN_STUDENT_DESTINATION_HREFS.filter((href) => input.hrefs.includes(href));
   const violations: CommercialUiGovernanceViolation[] = [];
 
   if (missingIntents.length > 0) {
@@ -656,6 +805,14 @@ function buildNavigationViolations(input: CommercialNavigationCoverageInput) {
       evidence: missingAliases,
     }));
   }
+  if (forbiddenHrefs.length > 0) {
+    violations.push(withCategory({
+      path: 'src/lib/platform-role-navigation.ts',
+      rule: 'secondary-navigation.student-data-center-exposure',
+      message: 'Student navigation coverage must not expose operations-only Data Center destinations.',
+      evidence: forbiddenHrefs,
+    }));
+  }
   const profileAndCockpitProblems = [
     !input.profileHref ? 'profileHref' : '',
     !input.cockpitHref ? 'cockpitHref' : '',
@@ -680,6 +837,216 @@ function buildNavigationViolations(input: CommercialNavigationCoverageInput) {
   }
 
   return violations;
+}
+
+function secondaryRouteGovernanceEntry(
+  href: string,
+  role: CommercialSecondaryRouteGovernanceEntry['role'],
+  overrides: Partial<CommercialSecondaryRouteGovernanceEntry> = {},
+): CommercialSecondaryRouteGovernanceEntry {
+  const route = resolvePlatformRouteInventory(href);
+  const shellType = overrides.shellType
+    ?? (route?.legacyShell?.disposition === 'retained-temporary' ? 'temporary-adapter' : 'app-shell');
+  return {
+    href,
+    role,
+    routeFile: route?.routeFile,
+    shellType,
+    routeArchetype: route?.frame,
+    roleScope: route?.roleScope,
+    navigationLayers: route?.navigationLayers,
+    collapseBehavior: route?.floatingDock === 'hidden' ? 'hidden-immersive' : 'collapsible-left-rail',
+    localPanels: [],
+    themeSupport: route?.themeSupport,
+    mobileBehavior: route?.mobileNavigation,
+    owningMigrationChange: route?.unifiedUiMigrationOwner ?? route?.owningChange,
+    migrationState: route?.exception ? 'active-exception' : 'migrated',
+    upstreamDependencies: SECONDARY_NAVIGATION_DEPENDENCY_CHANGES,
+    expectedEntries: [],
+    forbiddenEntries: role === 'student' ? FORBIDDEN_STUDENT_DESTINATION_HREFS : [],
+    observedNavigationHrefs: [],
+    ...overrides,
+  };
+}
+
+function secondaryRouteKey(entry: Pick<CommercialSecondaryRouteGovernanceEntry, 'href' | 'role'>) {
+  return `${entry.href}::${entry.role}`;
+}
+
+function secondaryNavigationBlockingEnabled(dependencies: readonly CommercialSecondaryRouteDependency[]) {
+  return SECONDARY_NAVIGATION_DEPENDENCY_CHANGES.every((change) => (
+    dependencies.some((dependency) => dependency.change === change && dependency.status === 'complete')
+  ));
+}
+
+function secondaryRouteDependenciesComplete(
+  entry: CommercialSecondaryRouteGovernanceEntry,
+  dependencies: readonly CommercialSecondaryRouteDependency[],
+) {
+  const requiredDependencies = entry.upstreamDependencies?.length
+    ? entry.upstreamDependencies
+    : SECONDARY_NAVIGATION_DEPENDENCY_CHANGES;
+  return requiredDependencies.every((change) => (
+    dependencies.some((dependency) => dependency.change === change && dependency.status === 'complete')
+  ));
+}
+
+function activeExceptionProblems(entry: CommercialSecondaryRouteGovernanceEntry, today?: string) {
+  if (entry.migrationState !== 'active-exception') return [];
+  return [
+    !entry.exceptionOwner ? 'exceptionOwner' : '',
+    !entry.exceptionExpiresOn ? 'exceptionExpiresOn' : '',
+    entry.exceptionExpiresOn && !isValidIsoCalendarDate(entry.exceptionExpiresOn) ? 'exceptionExpiresOn=invalid' : '',
+    entry.exceptionExpiresOn && today && isValidIsoCalendarDate(entry.exceptionExpiresOn) && entry.exceptionExpiresOn < today
+      ? 'exceptionExpiresOn=expired'
+      : '',
+    !entry.exceptionRemovalCondition ? 'exceptionRemovalCondition' : '',
+  ].filter(Boolean);
+}
+
+function firstHopExceptionProblems(firstHop: CommercialSecondaryRouteNextActionEvidence) {
+  return [
+    !firstHop.exceptionOwner ? 'firstHop.exceptionOwner' : '',
+    !firstHop.removalCondition ? 'firstHop.removalCondition' : '',
+  ].filter(Boolean);
+}
+
+function secondaryNavigationViolation(
+  violation: CommercialUiGovernanceViolation,
+  dependencies: readonly CommercialSecondaryRouteDependency[],
+  entry?: CommercialSecondaryRouteGovernanceEntry,
+) {
+  const routeBlockingEnabled = !entry || secondaryRouteDependenciesComplete(entry, dependencies);
+  const migrated = !entry
+    || entry.migrationState === 'migrated'
+    || (entry.migrationState === 'blocked-by-upstream' && routeBlockingEnabled);
+  return withCategory({
+    ...violation,
+    enforcement: routeBlockingEnabled && migrated ? 'blocking' : 'advisory',
+  });
+}
+
+function buildSecondaryNavigationGovernanceViolations(
+  matrix: readonly CommercialSecondaryRouteGovernanceEntry[],
+  dependencies: readonly CommercialSecondaryRouteDependency[],
+  today?: string,
+) {
+  const matrixKeys = new Set(matrix.map(secondaryRouteKey));
+  const missingRouteViolations = DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX
+    .filter((expected) => !matrixKeys.has(secondaryRouteKey(expected)))
+    .map((expected) => withCategory({
+      path: expected.href,
+      rule: 'secondary-navigation.incomplete-route-matrix',
+      message: 'Secondary route governance matrix is missing a required route and role state.',
+      evidence: [`routeRole=${secondaryRouteKey(expected)}`],
+      enforcement: secondaryRouteDependenciesComplete(expected, dependencies) ? 'blocking' : 'advisory',
+    }));
+
+  const entryViolations = matrix.flatMap((entry) => {
+    const violations: CommercialUiGovernanceViolation[] = [];
+    const missing = [
+      !entry.routeFile ? 'routeFile' : '',
+      !entry.shellType ? 'shellType' : '',
+      !entry.routeArchetype ? 'routeArchetype' : '',
+      !entry.roleScope?.length ? 'roleScope' : '',
+      !entry.navigationLayers?.length ? 'navigationLayers' : '',
+      !entry.collapseBehavior ? 'collapseBehavior' : '',
+      !entry.themeSupport?.includes('light') ? 'themeSupport=light' : '',
+      !entry.themeSupport?.includes('dark') ? 'themeSupport=dark' : '',
+      !entry.mobileBehavior ? 'mobileBehavior' : '',
+      !entry.owningMigrationChange ? 'owningMigrationChange' : '',
+      !entry.migrationState ? 'migrationState' : '',
+      !entry.upstreamDependencies?.length ? 'upstreamDependencies' : '',
+      entry.role === 'student' && !entry.forbiddenEntries?.includes('/data-center') ? 'forbiddenEntries=/data-center' : '',
+    ].filter(Boolean);
+    const exceptionMissing = activeExceptionProblems(entry, today);
+    if (missing.length > 0) {
+      violations.push(secondaryNavigationViolation({
+        path: entry.href,
+        rule: 'secondary-navigation.incomplete-route-matrix',
+        message: 'Secondary route governance evidence is missing shell, role, navigation, or migration metadata.',
+        evidence: [`role=${entry.role}`, ...missing],
+      }, dependencies, entry));
+    }
+    if (exceptionMissing.length > 0) {
+      violations.push(withCategory({
+        path: entry.href,
+        rule: 'secondary-navigation.incomplete-route-matrix',
+        message: 'Active secondary route exceptions must be narrow, owned, dated, and removal-bound.',
+        evidence: [`role=${entry.role}`, ...exceptionMissing],
+        enforcement: 'blocking',
+      }));
+    }
+
+    if (entry.migrationState === 'migrated' && entry.shellType === 'legacy-topbar') {
+      violations.push(secondaryNavigationViolation({
+        path: entry.href,
+        rule: 'secondary-navigation.legacy-local-navigation',
+        message: 'Migrated secondary routes must not keep unregistered page-local topbar or sidebar shells.',
+        evidence: [`role=${entry.role}`, `shellType=${entry.shellType}`],
+      }, dependencies, entry));
+    }
+
+    const studentNavigationHrefs = [
+      ...(entry.expectedEntries ?? []),
+      ...(entry.observedNavigationHrefs ?? []),
+    ];
+    const exposedForbiddenStudentHrefs = entry.role === 'student'
+      ? FORBIDDEN_STUDENT_DESTINATION_HREFS.filter((href) => studentNavigationHrefs.includes(href))
+      : [];
+    if (exposedForbiddenStudentHrefs.length > 0) {
+      violations.push(secondaryNavigationViolation({
+        path: entry.href,
+        rule: 'secondary-navigation.student-data-center-exposure',
+        message: 'Student secondary route evidence exposes operations-only Data Center navigation.',
+        evidence: [`role=${entry.role}`, ...exposedForbiddenStudentHrefs],
+      }, dependencies, entry));
+    }
+
+    const firstHop = entry.primaryNextAction;
+    if (
+      entry.migrationState === 'migrated'
+      && firstHop
+      && (firstHop.usesLegacyTopbar || firstHop.shellType === 'legacy-topbar')
+    ) {
+      const firstHopMissing = firstHopExceptionProblems(firstHop);
+      if (firstHopMissing.length > 0) {
+        violations.push(withCategory({
+          path: entry.href,
+          rule: 'secondary-navigation.incomplete-route-matrix',
+          message: 'Legacy first-hop exceptions must be owned and removal-bound.',
+          evidence: [`role=${entry.role}`, `next=${firstHop.href}`, ...firstHopMissing],
+          enforcement: 'blocking',
+        }));
+      }
+    }
+
+    const requiredLocalTools = entry.href === '/knowledge'
+      ? KNOWLEDGE_LOCAL_TOOL_IDS
+      : entry.href === '/data-center'
+        ? DATA_CENTER_LOCAL_TOOL_IDS
+        : [];
+    const localToolProblems = [
+      ...requiredLocalTools
+        .filter((id) => !entry.localPanels?.some((panel) => panel.id === id && panel.disposition === 'local-tool'))
+        .map((id) => `localTool=${id}`),
+      ...(entry.localPanels ?? [])
+        .filter((panel) => panel.disposition !== 'local-tool')
+        .map((panel) => `${panel.id}:${panel.disposition}`),
+    ];
+    if (localToolProblems.length > 0) {
+      violations.push(secondaryNavigationViolation({
+        path: entry.href,
+        rule: 'secondary-navigation.local-tool-boundary',
+        message: 'Workspace filters, legends, directories, selectors, and panels must remain local tools, not platform navigation.',
+        evidence: [`role=${entry.role}`, ...localToolProblems],
+      }, dependencies, entry));
+    }
+
+    return violations;
+  });
+
+  return [...missingRouteViolations, ...entryViolations];
 }
 
 function findViewport<TViewport extends { width: number }>(viewports: readonly TViewport[], width: number) {
@@ -1155,6 +1522,10 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
   const reportSurfaceInventory = input.reportSurfaceInventory ?? PLATFORM_REPORT_SURFACE_INVENTORY.filter((surface) => (
     routeInventoryHrefs.has(surface.ownerRoute)
   ));
+  const secondaryRouteGovernanceMatrix = input.secondaryRouteGovernanceMatrix
+    ?? DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX;
+  const secondaryRouteDependencies = input.secondaryRouteDependencies
+    ?? DEFAULT_SECONDARY_NAVIGATION_DEPENDENCIES;
   const rawViolations = [
     ...(input.sourceViolations ?? []).map(withCategory),
     ...buildRouteLedgerViolations(routeInventory),
@@ -1162,6 +1533,11 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
     ...buildModuleChromeViolations(input.moduleChromeInventory),
     ...buildStatusViolations(input.statusInventory),
     ...buildNavigationViolations(input.navigationCoverage),
+    ...buildSecondaryNavigationGovernanceViolations(
+      secondaryRouteGovernanceMatrix,
+      secondaryRouteDependencies,
+      input.today,
+    ),
     ...buildVisualMatrixDriftViolations(visualRouteInventory, requiredVisualRoutes),
     ...buildVisualViolations(requiredVisualRoutes, input.visualEvidence),
     ...buildPremiumVisualQaViolations(premiumVisualQaMatrix, input.visualEvidence),
@@ -1184,7 +1560,11 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
   const allowlistedViolations = violations.filter((violation) => violation.allowedBy);
   const blockingViolations = [
     ...allowlistViolations,
-    ...violations.filter((violation) => input.mode === 'blocking' && !violation.allowedBy),
+    ...violations.filter((violation) => (
+      input.mode === 'blocking'
+      && violation.enforcement !== 'advisory'
+      && !violation.allowedBy
+    )),
   ];
 
   return {
