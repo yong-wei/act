@@ -1,0 +1,39 @@
+{
+  "id": "navigation-state-396-evidence",
+  "capturedAt": "2026-06-12T22:15:00+08:00",
+  "change": "harden-unified-ui-governance-gates",
+  "evidenceKind": "structured-navigation-state-review",
+  "purpose": "Records that commercial visual QA evidence distinguishes desktop expanded, desktop collapsed, and route-ledger mobile navigation states instead of treating navigationState as a free-form manifest field.",
+  "stateCoverage": {
+    "desktop-expanded": {
+      "viewportWidth": 1440,
+      "evidenceRequirement": "A desktop viewport must explicitly record the expanded shell navigation state."
+    },
+    "desktop-collapsed": {
+      "viewportWidth": 1440,
+      "evidenceRequirement": "A desktop viewport must explicitly record the collapsed shell navigation state and must not reuse the same evidence fingerprint as the expanded viewport for the same theme, role, auth state, and requested route."
+    },
+    "mobile": {
+      "viewportWidth": 320,
+      "evidenceRequirement": "A mobile viewport must use the mapped state from PlatformPrimaryRouteInventoryEntry.mobileNavigation."
+    }
+  },
+  "mobileNavigationMapping": {
+    "public-entry-menu": "public-entry-menu",
+    "auth-callback-panel": "auth-callback-panel",
+    "role-route-tabs": "role-route-tabs",
+    "workspace-command-surface": "workspace-command-surface",
+    "drawer": "mobile-drawer",
+    "hidden-immersive": "hidden-immersive"
+  },
+  "reviewedContracts": [
+    "src/lib/platform-role-navigation.ts",
+    "src/lib/commercial-ui-governance.ts",
+    "src/lib/__tests__/commercial-ui-governance.test.ts",
+    "scripts/tests/test-commercial-ui-governance.ts"
+  ],
+  "verification": [
+    "rtk npm run test:unit -- src/lib/__tests__/commercial-ui-governance.test.ts",
+    "rtk npm run test:commercial-ui-governance"
+  ]
+}

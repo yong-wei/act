@@ -21,6 +21,7 @@ import {
   PLATFORM_PROFILE_AND_COCKPIT_ACTIONS,
   PLATFORM_PRIMARY_ROUTE_INVENTORY,
   PLATFORM_REPORT_SURFACE_INVENTORY,
+  resolvePlatformRouteInventory,
   STUDENT_CORE_ENTRY_IDS,
   STUDENT_LEARNING_INTENT_GROUPS,
 } from '../../src/lib/platform-role-navigation';
@@ -491,7 +492,7 @@ const routeInventoryForGate = routeLedgerHelperChanged
     || changedPrimaryRouteHrefs.has(route.href)
   ));
 const visualRouteInventoryForGate = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => (
-  requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
+  requiredVisualRoutes.some((visualRoute) => resolvePlatformRouteInventory(visualRoute.href)?.href === route.href)
 ));
 const result = evaluateCommercialUiGovernance({
   mode: 'blocking',

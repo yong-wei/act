@@ -409,6 +409,7 @@ function AppMobileNavigation({
     const previouslyFocusedElement = document.activeElement instanceof HTMLElement
       ? document.activeElement
       : null;
+    const openButton = openButtonRef.current;
 
     inertSiblings.forEach((element) => {
       element.setAttribute('inert', '');
@@ -423,8 +424,8 @@ function AppMobileNavigation({
         element.removeAttribute('aria-hidden');
       });
       window.requestAnimationFrame(() => {
-        const restoreTarget = openButtonRef.current?.isConnected
-          ? openButtonRef.current
+        const restoreTarget = openButton?.isConnected
+          ? openButton
           : previouslyFocusedElement?.isConnected ? previouslyFocusedElement : null;
         restoreTarget?.focus();
       });
