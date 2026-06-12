@@ -370,6 +370,7 @@ describe('platform UI contracts', () => {
     const teacherOperationsNavSource = readSource('src/features/teacher/teacher-operations-nav.tsx');
     const teacherDashboardSource = readSource('src/features/teacher/teacher-dashboard.tsx');
     const teacherGradingSource = readSource('src/features/assessment/document-rubric-grading-ui.tsx');
+    const teacherReportLedgerLayoutSource = readSource('src/app/(teacher-report-ledger)/teacher/layout.tsx');
     const teacherGradingPageSource = readSource('src/app/(teacher-report-ledger)/teacher/grading-workbench/page.tsx');
     const teacherClassesSource = readSource('src/app/teacher/classes/page.tsx');
     const teacherLessonPlansSource = readSource('src/app/teacher/lesson-plans/page.tsx');
@@ -425,6 +426,9 @@ describe('platform UI contracts', () => {
     expect(teacherGradingPageSource).toContain('session.user.role !== UserRole.TEACHER && session.user.role !== UserRole.ADMIN');
     expect(teacherLayoutSource).toContain("session.user.role !== 'TEACHER'");
     expect(teacherLayoutSource).not.toContain('adminGradingWorkbenchAccess');
+    expect(teacherReportLedgerLayoutSource).toContain("session.user.role !== 'TEACHER' && session.user.role !== 'ADMIN'");
+    expect(teacherReportLedgerLayoutSource).toContain("session.user.role === 'TEACHER' ? <TeacherOperationsNav /> : null");
+    expect(teacherReportLedgerLayoutSource).toContain('data-commercial-operations-workspace="teacher-report-ledger"');
     expect(teacherClassesSource).toContain('data-commercial-operations-workspace="teacher-operations"');
     expect(teacherLessonPlansSource).toContain('data-commercial-operations-workspace="teacher-operations"');
     expect(teacherResourcesSource).toContain('data-commercial-operations-workspace="teacher-operations"');
