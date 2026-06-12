@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import {
   ChevronRight,
@@ -40,6 +40,14 @@ interface ArenaPageShellProps {
 }
 
 const projectEntries = getStudentLearningIntentNavigationGroups().flatMap((group) => group.entries);
+const mobileDrawerFocusableSelector = [
+  'a[href]',
+  'button:not([disabled])',
+  'textarea:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
 
 const projectEntryIcons: Partial<Record<PlatformNavigationIconKey, LucideIcon>> = {
   adaptive: Sparkles,
@@ -65,6 +73,98 @@ export function ArenaPageShell({
 }: ArenaPageShellProps) {
   const [navigationCollapsed, setNavigationCollapsed] = useState(false);
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
+  const shellContentRef = useRef<HTMLDivElement>(null);
+  const mobileOpenButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileCloseButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileDrawerDialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const desktopMediaQuery = window.matchMedia('(min-width: 1024px)');
+    if (desktopMediaQuery.matches) {
+      setMobileNavigationOpen(false);
+    }
+
+    const handleDesktopBreakpoint = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        setMobileNavigationOpen(false);
+      }
+    };
+
+    desktopMediaQuery.addEventListener('change', handleDesktopBreakpoint);
+    return () => {
+      desktopMediaQuery.removeEventListener('change', handleDesktopBreakpoint);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mobileNavigationOpen) return undefined;
+
+    const shellContent = shellContentRef.current;
+    const restoreFallbackElement = mobileOpenButtonRef.current;
+    const previouslyFocusedElement = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+
+    shellContent?.setAttribute('inert', '');
+    shellContent?.setAttribute('aria-hidden', 'true');
+    const focusFrame = window.requestAnimationFrame(() => {
+      mobileCloseButtonRef.current?.focus();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      shellContent?.removeAttribute('inert');
+      shellContent?.removeAttribute('aria-hidden');
+      window.requestAnimationFrame(() => {
+        const restoreTarget = restoreFallbackElement?.isConnected
+          ? restoreFallbackElement
+          : previouslyFocusedElement?.isConnected ? previouslyFocusedElement : null;
+        restoreTarget?.focus();
+      });
+    };
+  }, [mobileNavigationOpen]);
+
+  const getMobileDrawerFocusableElements = () => (
+    Array.from(
+      mobileDrawerDialogRef.current?.querySelectorAll<HTMLElement>(mobileDrawerFocusableSelector) ?? [],
+    ).filter((element) => (
+      element.tabIndex >= 0
+      && element.getAttribute('aria-hidden') !== 'true'
+      && element.getClientRects().length > 0
+    ))
+  );
+
+  const handleMobileDrawerKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      setMobileNavigationOpen(false);
+      return;
+    }
+
+    if (event.key !== 'Tab') return;
+
+    const focusableElements = getMobileDrawerFocusableElements();
+    if (focusableElements.length === 0) {
+      event.preventDefault();
+      mobileDrawerDialogRef.current?.focus();
+      return;
+    }
+
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+    const activeElement = document.activeElement;
+
+    if (event.shiftKey && (activeElement === firstFocusable || !mobileDrawerDialogRef.current?.contains(activeElement))) {
+      event.preventDefault();
+      lastFocusable?.focus();
+      return;
+    }
+
+    if (!event.shiftKey && activeElement === lastFocusable) {
+      event.preventDefault();
+      firstFocusable?.focus();
+    }
+  };
 
   const renderProjectEntries = (variant: 'desktop' | 'mobile') => (
     projectEntries.map((entry) => {
@@ -104,6 +204,7 @@ export function ArenaPageShell({
       data-mobile-navigation="drawer"
     >
       <div
+        ref={shellContentRef}
         className={cn(
           'grid min-h-screen',
           navigationCollapsed
@@ -146,6 +247,7 @@ export function ArenaPageShell({
           <header className="sticky top-0 z-30 border-b border-border/70 bg-card/88 backdrop-blur">
             <div className="flex h-[70px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
               <button
+                ref={mobileOpenButtonRef}
                 type="button"
                 aria-label="打开竞技场导航"
                 aria-controls="arena-mobile-navigation"
@@ -188,10 +290,20 @@ export function ArenaPageShell({
         </div>
       </div>
       {mobileNavigationOpen ? (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="竞技场导航" data-arena-mobile-drawer="open">
+        <div
+          ref={mobileDrawerDialogRef}
+          className="fixed inset-0 z-50 lg:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="竞技场导航"
+          data-arena-mobile-drawer="open"
+          tabIndex={-1}
+          onKeyDown={handleMobileDrawerKeyDown}
+        >
           <button
             type="button"
             aria-label="关闭竞技场导航背景"
+            tabIndex={-1}
             className="absolute inset-0 bg-background/72 backdrop-blur-sm"
             onClick={() => setMobileNavigationOpen(false)}
           />
@@ -210,6 +322,7 @@ export function ArenaPageShell({
                 </div>
               </div>
               <button
+                ref={mobileCloseButtonRef}
                 type="button"
                 aria-label="关闭竞技场导航"
                 onClick={() => setMobileNavigationOpen(false)}

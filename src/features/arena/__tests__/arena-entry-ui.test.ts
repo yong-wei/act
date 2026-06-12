@@ -115,6 +115,14 @@ describe('arena student entry UI boundaries', () => {
     expect(shellSource).toContain('PanelLeftClose');
     expect(shellSource).toContain('PanelLeftOpen');
     expect(shellSource).toContain('aria-label="打开竞技场导航"');
+    expect(shellSource).toContain('mobileDrawerDialogRef');
+    expect(shellSource).toContain("window.matchMedia('(min-width: 1024px)')");
+    expect(shellSource).toContain('handleDesktopBreakpoint');
+    expect(shellSource).toContain("setAttribute('inert', '')");
+    expect(shellSource).toContain("event.key !== 'Tab'");
+    expect(shellSource).toContain("event.key === 'Escape'");
+    expect(shellSource).toContain('previouslyFocusedElement');
+    expect(shellSource).toContain('const restoreTarget = restoreFallbackElement?.isConnected');
     expect(shellSource).toContain('<span className="min-w-0 truncate">个人中心</span>');
     expect(visualAssetSource).toContain('/assets/platform/visual-worlds/arena/control-bench.svg');
     expect(visualAssetSource).toContain('/assets/platform/visual-worlds/arena/challenge-map.svg');
