@@ -38,6 +38,7 @@ import {
   type PlatformNavigationLayerId,
   type PlatformPrimaryRouteFrame,
   type PlatformPrimaryRouteInventoryEntry,
+  type PlatformRoleNavigationAudience,
   type PlatformRouteThemeSupport,
 } from '@/lib/platform-role-navigation';
 import { cn } from '@/lib/utils';
@@ -45,7 +46,6 @@ import { cn } from '@/lib/utils';
 import type {
   PlatformFloatingActionDockControl,
   PlatformNavigationItem,
-  PlatformRole,
 } from './platform-ui-contracts';
 
 export interface AppBreadcrumbItem {
@@ -54,7 +54,7 @@ export interface AppBreadcrumbItem {
 }
 
 export interface AppShellProps {
-  viewerRole: PlatformRole;
+  viewerRole: PlatformRoleNavigationAudience;
   navigation?: readonly PlatformNavigationItem[];
   breadcrumbs?: readonly AppBreadcrumbItem[];
   title?: string;
@@ -109,7 +109,7 @@ export interface AppShellDockControl {
 }
 
 export interface AppHeaderProps {
-  viewerRole: PlatformRole;
+  viewerRole: PlatformRoleNavigationAudience;
   title: string;
   subtitle?: string;
   breadcrumbs?: readonly AppBreadcrumbItem[];
@@ -131,7 +131,8 @@ export interface PlatformSurfaceProps {
   className?: string;
 }
 
-const roleLabels: Record<PlatformRole, string> = {
+const roleLabels: Record<PlatformRoleNavigationAudience, string> = {
+  guest: '访客',
   student: '学生',
   teacher: '教师',
   admin: '管理',
@@ -474,7 +475,7 @@ function AppShellDesktopLayout({
   activeHref?: string;
   activeItemId?: string;
   resolvedRouteMetadata?: AppShellRouteMetadata;
-  viewerRole: PlatformRole;
+  viewerRole: PlatformRoleNavigationAudience;
   title: string;
   subtitle?: string;
   actions?: ReactNode;

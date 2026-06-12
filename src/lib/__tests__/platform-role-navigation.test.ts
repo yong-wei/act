@@ -443,6 +443,7 @@ describe('platform role navigation', () => {
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/knowledge')).toMatchObject({
       frame: 'knowledge-data-map',
+      roleScope: ['guest', 'student', 'teacher', 'admin'],
       legacyFrameAliases: expect.arrayContaining([expect.objectContaining({ alias: 'knowledge-graph' })]),
     });
   });

@@ -101,6 +101,7 @@ export function KnowledgeGraphSystem({
   const [nodes, setNodes] = useState<KnowledgeNodeData[]>(initialNodes);
   const [links, setLinks] = useState<KnowledgeLinkData[]>(initialLinks);
   const [isLoading, setIsLoading] = useState(true);
+  const [graphError, setGraphError] = useState<string | null>(null);
 
   const [selectedNode, setSelectedNode] = useState<KnowledgeNodeData | null>(initialSelectedNode);
   const [hoveredNode, setHoveredNode] = useState<KnowledgeNodeData | null>(null);
@@ -115,7 +116,6 @@ export function KnowledgeGraphSystem({
   const [showOnlyConnectedNodes, setShowOnlyConnectedNodes] = useState(true);
   const [labelMode, setLabelMode] = useState<KnowledgeGraphLabelMode>('focus');
   const [relationDensityMode, setRelationDensityMode] = useState<RelationDensityMode>('structure');
-  const [isLightTheme, setIsLightTheme] = useState(false);
 
   // 视图模式：默认 2D
   const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
@@ -146,26 +146,13 @@ export function KnowledgeGraphSystem({
     return () => window.removeEventListener('resize', updateSize);
   }, []);
 
-  useEffect(() => {
-    const updateTheme = () => {
-      setIsLightTheme(document.documentElement.classList.contains('light'));
-    };
-
-    updateTheme();
-    const observer = new MutationObserver(updateTheme);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class'],
-    });
-    return () => observer.disconnect();
-  }, []);
-
   // Fetch data from API on mount
   useEffect(() => {
     let cancelled = false;
     const controller = new AbortController();
     const fetchGraphData = async () => {
       try {
+        setGraphError(null);
         const response = await fetch('/api/knowledge/graph', { signal: controller.signal });
         if (response.ok) {
           const data = (await response.json()) as GraphApiResponse;
@@ -183,10 +170,12 @@ export function KnowledgeGraphSystem({
             }
           }
         } else {
+          setGraphError('知识图谱数据暂时无法加载，请稍后重试。');
           console.error('Failed to fetch knowledge graph data');
         }
       } catch (error) {
         if ((error as Error).name === 'AbortError') return;
+        setGraphError('知识图谱数据暂时无法加载，请检查网络后重试。');
         console.error('Error fetching knowledge graph data:', error);
       } finally {
         if (!cancelled && !controller.signal.aborted) {
@@ -445,6 +434,7 @@ export function KnowledgeGraphSystem({
                   type="text"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
+                  aria-label="搜索知识图谱节点"
                   placeholder="关键词搜索"
                   className="w-full rounded-md border border-platform-border bg-platform-surface px-2 py-1.5 text-xs text-platform-fg-primary outline-none"
                 />
@@ -578,38 +568,27 @@ export function KnowledgeGraphSystem({
 
         {/* 筛选控制区 */}
         <div
-          className={`absolute left-4 top-4 z-20 hidden max-w-[calc(100vw-2rem)] rounded-xl p-3 backdrop-blur-md lg:block lg:w-[22.5rem] ${
-            isLightTheme
-              ? 'border border-slate-300/90 bg-white/95 text-slate-800 shadow-[0_12px_28px_rgba(15,23,42,0.12)]'
-              : 'border border-amber-300/20 bg-[#0b183f]/90 text-slate-200 shadow-[0_8px_30px_rgba(2,8,30,0.45)]'
-          }`}
+          className="absolute left-4 top-4 z-20 hidden max-w-[calc(100vw-2rem)] rounded-xl border border-platform-border bg-platform-surface/95 p-3 text-platform-fg-primary shadow-lg backdrop-blur-md lg:block lg:w-[22.5rem]"
           data-knowledge-desktop-panel="relation-filters"
+          data-platform-local-tool-panel="relation-filters"
         >
           <div className="mb-2 flex items-center justify-between">
-            <div className={`text-xs font-semibold tracking-wide ${isLightTheme ? 'text-slate-700' : 'text-amber-200'}`}>
+            <div className="text-xs font-semibold tracking-wide text-platform-fg-primary">
               关系筛选
             </div>
-            <span
-              className={`rounded-full px-2 py-0.5 text-[10px] ${
-                dataSource === 'file'
-                  ? (isLightTheme ? 'border border-emerald-300 bg-emerald-100 text-emerald-700' : 'bg-emerald-500/20 text-emerald-300')
-                  : (isLightTheme ? 'border border-sky-300 bg-sky-100 text-sky-700' : 'bg-cyan-500/20 text-cyan-300')
-              }`}
-            >
+            <span className="rounded-full border border-platform-border bg-platform-surface-muted px-2 py-0.5 text-[10px] text-platform-fg-secondary">
               {dataSource === 'file' ? '文件图谱' : '数据库图谱'}
             </span>
           </div>
 
-          <div className={`mb-3 flex items-center justify-between text-[11px] ${isLightTheme ? 'text-slate-600' : 'text-slate-400'}`}>
+          <div className="mb-3 flex items-center justify-between text-[11px] text-platform-fg-secondary">
             <span>当前显示关系 {displayLinks.length} 条</span>
             <span>节点 {filteredNodes.length} / {nodes.length}</span>
           </div>
 
-          <div className={`mb-3 flex items-center justify-between gap-3 rounded-lg border px-2 py-1.5 ${
-            isLightTheme ? 'border-slate-300/80 bg-slate-50' : 'border-slate-700/50 bg-slate-900/35'
-          }`}>
-            <span className={`text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>标签显示</span>
-            <div className="flex rounded-md border border-slate-400/30 p-0.5">
+          <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-platform-border bg-platform-surface-muted px-2 py-1.5">
+            <span className="text-[11px] text-platform-fg-secondary">标签显示</span>
+            <div className="flex rounded-md border border-platform-border p-0.5">
               {([
                 ['focus', '重点标签'],
                 ['all', '全部标签'],
@@ -621,8 +600,8 @@ export function KnowledgeGraphSystem({
                   onClick={() => setLabelMode(mode)}
                   className={`rounded px-2 py-1 text-[10px] transition-colors ${
                     labelMode === mode
-                      ? (isLightTheme ? 'bg-sky-600 text-white' : 'bg-cyan-500/25 text-cyan-100')
-                      : (isLightTheme ? 'text-slate-600 hover:bg-white' : 'text-slate-400 hover:bg-slate-800/70')
+                      ? 'bg-platform-action-primary text-platform-fg-inverse'
+                      : 'text-platform-fg-muted hover:bg-platform-action-subtle hover:text-platform-fg-primary'
                   }`}
                 >
                   {label}
@@ -636,28 +615,25 @@ export function KnowledgeGraphSystem({
               type="text"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
+              aria-label="搜索知识图谱节点"
               placeholder="关键词搜索（名称 / 标签 / 公式 / 示例）"
-              className={`w-full rounded-lg border px-2.5 py-2 text-xs outline-none ${
-                isLightTheme
-                  ? 'border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 focus:border-sky-500'
-                  : 'border-blue-500/30 bg-[#0c1d4f]/45 text-slate-100 placeholder:text-slate-500 focus:border-cyan-400'
-              }`}
+              className="w-full rounded-lg border border-platform-border bg-platform-surface px-2.5 py-2 text-xs text-platform-fg-primary outline-none placeholder:text-platform-fg-muted focus:border-platform-border-strong"
             />
           </div>
 
           <div className="mb-3 space-y-2">
-            <details className={`rounded-lg border px-2 py-1.5 ${isLightTheme ? 'border-slate-300/80 bg-slate-50' : 'border-slate-700/50 bg-slate-900/35'}`}>
-              <summary className={`cursor-pointer text-[11px] font-medium ${isLightTheme ? 'text-slate-700' : 'text-slate-200'}`}>
+            <details className="rounded-lg border border-platform-border bg-platform-surface-muted px-2 py-1.5">
+              <summary className="cursor-pointer text-[11px] font-medium text-platform-fg-primary">
                 章节筛选（多选）{selectedChapters.length > 0 ? ` · ${selectedChapters.length}` : ''}
               </summary>
               <div className="mt-2 max-h-28 space-y-1 overflow-y-auto pr-1">
                 {chapterOptions.map((chapterName) => (
-                  <label key={chapterName} className={`flex cursor-pointer items-center gap-2 text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label key={chapterName} className="flex cursor-pointer items-center gap-2 text-[11px] text-platform-fg-secondary">
                     <input
                       type="checkbox"
                       checked={selectedChapters.includes(chapterName)}
                       onChange={() => toggleMultiSelectValue(chapterName, setSelectedChapters)}
-                      className={isLightTheme ? 'accent-sky-600' : 'accent-cyan-400'}
+                      className="accent-[hsl(var(--platform-action-primary))]"
                     />
                     <span>{chapterName}</span>
                   </label>
@@ -665,18 +641,18 @@ export function KnowledgeGraphSystem({
               </div>
             </details>
 
-            <details className={`rounded-lg border px-2 py-1.5 ${isLightTheme ? 'border-slate-300/80 bg-slate-50' : 'border-slate-700/50 bg-slate-900/35'}`}>
-              <summary className={`cursor-pointer text-[11px] font-medium ${isLightTheme ? 'text-slate-700' : 'text-slate-200'}`}>
+            <details className="rounded-lg border border-platform-border bg-platform-surface-muted px-2 py-1.5">
+              <summary className="cursor-pointer text-[11px] font-medium text-platform-fg-primary">
                 category 筛选{selectedCategories.length > 0 ? ` · ${selectedCategories.length}` : ''}
               </summary>
               <div className="mt-2 max-h-24 space-y-1 overflow-y-auto pr-1">
                 {categoryOptions.map((category) => (
-                  <label key={category} className={`flex cursor-pointer items-center gap-2 text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label key={category} className="flex cursor-pointer items-center gap-2 text-[11px] text-platform-fg-secondary">
                     <input
                       type="checkbox"
                       checked={selectedCategories.includes(category)}
                       onChange={() => toggleMultiSelectValue(category, setSelectedCategories)}
-                      className={isLightTheme ? 'accent-sky-600' : 'accent-cyan-400'}
+                      className="accent-[hsl(var(--platform-action-primary))]"
                     />
                     <span>{category}</span>
                   </label>
@@ -684,18 +660,18 @@ export function KnowledgeGraphSystem({
               </div>
             </details>
 
-            <details className={`rounded-lg border px-2 py-1.5 ${isLightTheme ? 'border-slate-300/80 bg-slate-50' : 'border-slate-700/50 bg-slate-900/35'}`}>
-              <summary className={`cursor-pointer text-[11px] font-medium ${isLightTheme ? 'text-slate-700' : 'text-slate-200'}`}>
+            <details className="rounded-lg border border-platform-border bg-platform-surface-muted px-2 py-1.5">
+              <summary className="cursor-pointer text-[11px] font-medium text-platform-fg-primary">
                 bloom_level 筛选{selectedBloomLevels.length > 0 ? ` · ${selectedBloomLevels.length}` : ''}
               </summary>
               <div className="mt-2 max-h-24 space-y-1 overflow-y-auto pr-1">
                 {bloomOptions.map((bloom) => (
-                  <label key={bloom} className={`flex cursor-pointer items-center gap-2 text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>
+                  <label key={bloom} className="flex cursor-pointer items-center gap-2 text-[11px] text-platform-fg-secondary">
                     <input
                       type="checkbox"
                       checked={selectedBloomLevels.includes(bloom)}
                       onChange={() => toggleMultiSelectValue(bloom, setSelectedBloomLevels)}
-                      className={isLightTheme ? 'accent-sky-600' : 'accent-cyan-400'}
+                      className="accent-[hsl(var(--platform-action-primary))]"
                     />
                     <span>{getBloomLabel(bloom)}</span>
                   </label>
@@ -730,19 +706,19 @@ export function KnowledgeGraphSystem({
               ))}
             </div>
 
-            <div className={`mb-1.5 flex items-center justify-between text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>
+            <div className="mb-1.5 flex items-center justify-between text-[11px] text-platform-fg-secondary">
               <span>关系类型</span>
               <div className="flex gap-2">
                 <button
                   type="button"
-                  className={`text-[10px] ${isLightTheme ? 'text-slate-600 hover:text-slate-800' : 'text-slate-400 hover:text-slate-200'}`}
+                  className="text-[10px] text-platform-fg-muted hover:text-platform-fg-primary"
                   onClick={() => setSelectedRelationTypes(relationTypeStats.map((item) => item.type))}
                 >
                   全选
                 </button>
                 <button
                   type="button"
-                  className={`text-[10px] ${isLightTheme ? 'text-slate-600 hover:text-slate-800' : 'text-slate-400 hover:text-slate-200'}`}
+                  className="text-[10px] text-platform-fg-muted hover:text-platform-fg-primary"
                   onClick={() => setSelectedRelationTypes([])}
                 >
                   清空
@@ -759,12 +735,8 @@ export function KnowledgeGraphSystem({
                     onClick={() => toggleRelationType(item.type)}
                     className={`rounded-full border px-2 py-1 text-[10px] transition-colors ${
                       selected
-                        ? (isLightTheme
-                            ? 'border-sky-300 bg-sky-100 text-sky-700'
-                            : 'border-amber-300/40 bg-amber-400/15 text-amber-200')
-                        : (isLightTheme
-                            ? 'border-slate-300 bg-white text-slate-600 hover:border-slate-400 hover:text-slate-800'
-                            : 'border-slate-600/40 bg-slate-700/30 text-slate-400 hover:border-slate-500/50 hover:text-slate-200')
+                        ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary'
+                        : 'border-platform-border bg-platform-surface text-platform-fg-secondary hover:border-platform-border-strong hover:text-platform-fg-primary'
                     }`}
                   >
                     {getRelationLabel(item.type)} · {item.count}
@@ -787,9 +759,9 @@ export function KnowledgeGraphSystem({
           </div>
 
           <div className="mb-3">
-            <div className={`mb-1.5 flex items-center justify-between text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>
+            <div className="mb-1.5 flex items-center justify-between text-[11px] text-platform-fg-secondary">
               <span>关系强度阈值</span>
-              <span className={isLightTheme ? 'text-sky-700' : 'text-amber-200'}>{minRelationStrength.toFixed(1)}</span>
+              <span className="text-platform-action-primary">{minRelationStrength.toFixed(1)}</span>
             </div>
             <input
               type="range"
@@ -798,7 +770,7 @@ export function KnowledgeGraphSystem({
               step={0.1}
               value={minRelationStrength}
               onChange={(e) => setMinRelationStrength(Number(e.target.value))}
-              className={`w-full ${isLightTheme ? 'accent-sky-600' : 'accent-amber-400'}`}
+              className="w-full accent-[hsl(var(--platform-action-primary))]"
             />
             {relationDensityMode === 'focused' && (
               <p className="mt-1 text-[10px] text-platform-fg-muted">
@@ -807,12 +779,12 @@ export function KnowledgeGraphSystem({
             )}
           </div>
 
-          <label className={`mb-2 flex cursor-pointer items-center gap-2 text-[11px] ${isLightTheme ? 'text-slate-700' : 'text-slate-300'}`}>
+          <label className="mb-2 flex cursor-pointer items-center gap-2 text-[11px] text-platform-fg-secondary">
             <input
               type="checkbox"
               checked={showOnlyConnectedNodes}
               onChange={(e) => setShowOnlyConnectedNodes(e.target.checked)}
-              className={`h-3.5 w-3.5 ${isLightTheme ? 'accent-sky-600' : 'accent-amber-400'}`}
+              className="h-3.5 w-3.5 accent-[hsl(var(--platform-action-primary))]"
             />
             <span>仅显示存在可见关系的节点</span>
           </label>
@@ -825,11 +797,7 @@ export function KnowledgeGraphSystem({
               setSelectedBloomLevels([]);
               setSearchQuery('');
             }}
-            className={`w-full rounded-md border px-2 py-1 text-[11px] ${
-              isLightTheme
-                ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                : 'border-slate-600/60 bg-slate-800/40 text-slate-300 hover:bg-slate-700/40'
-            }`}
+            className="w-full rounded-md border border-platform-border bg-platform-surface px-2 py-1 text-[11px] text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary"
           >
             清空节点筛选条件
           </button>
@@ -837,28 +805,27 @@ export function KnowledgeGraphSystem({
 
         {/* 视图切换按钮 */}
         <div
-          className={`absolute top-4 right-4 z-10 flex rounded-lg border p-1 backdrop-blur-sm shadow-lg ${
-            isLightTheme
-              ? 'border-slate-300 bg-white/95'
-              : 'border-blue-500/30 bg-[#091540]/90'
-          }`}
+          className="absolute right-4 top-4 z-10 flex rounded-lg border border-platform-border bg-platform-surface/95 p-1 text-platform-fg-primary shadow-lg backdrop-blur-sm"
+          data-platform-local-tool-panel="view-mode-switch"
         >
           <button 
             onClick={() => setViewMode('2D')}
+            aria-pressed={viewMode === '2D'}
             className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
               viewMode === '2D' 
-                ? (isLightTheme ? 'bg-sky-600 text-white shadow-sm' : 'bg-blue-600 text-white shadow-sm')
-                : (isLightTheme ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' : 'text-slate-400 hover:text-white hover:bg-white/5')
+                ? 'bg-platform-action-primary text-platform-fg-inverse shadow-sm'
+                : 'text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary'
             }`}
           >
             2D 视图
           </button>
           <button 
             onClick={() => setViewMode('3D')}
+            aria-pressed={viewMode === '3D'}
             className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
               viewMode === '3D' 
-                ? (isLightTheme ? 'bg-sky-600 text-white shadow-sm' : 'bg-blue-600 text-white shadow-sm')
-                : (isLightTheme ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' : 'text-slate-400 hover:text-white hover:bg-white/5')
+                ? 'bg-platform-action-primary text-platform-fg-inverse shadow-sm'
+                : 'text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary'
             }`}
           >
             3D 视图
@@ -868,9 +835,23 @@ export function KnowledgeGraphSystem({
         {isLoading ? (
             <div className="flex h-full w-full items-center justify-center">
               <div className="text-center">
-                <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-blue-500/30 border-t-blue-500" />
-                <div className="text-blue-400">正在从知识库加载数据...</div>
-                <div className="mt-2 text-sm text-slate-500">同步 {nodes.length} 个节点...</div>
+                <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-platform-border border-t-platform-action-primary" />
+                <div className="text-platform-fg-primary">正在从知识库加载数据...</div>
+                <div className="mt-2 text-sm text-platform-fg-secondary">同步 {nodes.length} 个节点...</div>
+              </div>
+            </div>
+        ) : graphError ? (
+            <div className="flex h-full w-full items-center justify-center px-6">
+              <div className="max-w-md rounded-xl border border-platform-border bg-platform-surface/95 p-5 text-center shadow-lg">
+                <div className="text-sm font-medium text-platform-fg-primary">知识图谱暂不可用</div>
+                <p className="mt-2 text-sm text-platform-fg-secondary">{graphError}</p>
+              </div>
+            </div>
+        ) : displayNodes.length === 0 ? (
+            <div className="flex h-full w-full items-center justify-center px-6">
+              <div className="max-w-md rounded-xl border border-platform-border bg-platform-surface/95 p-5 text-center shadow-lg">
+                <div className="text-sm font-medium text-platform-fg-primary">暂无可展示节点</div>
+                <p className="mt-2 text-sm text-platform-fg-secondary">当前筛选条件下没有知识节点，请清空筛选或稍后再试。</p>
               </div>
             </div>
         ) : (
@@ -878,7 +859,7 @@ export function KnowledgeGraphSystem({
             fallback={
                 <div className="flex h-full w-full items-center justify-center">
                 <div className="text-center">
-                    <div className="text-blue-400">渲染视图...</div>
+                    <div className="text-platform-fg-secondary">渲染视图...</div>
                 </div>
                 </div>
             }
@@ -912,23 +893,11 @@ export function KnowledgeGraphSystem({
         {/* 悬停提示 */}
         {hoveredNode && (
           <div
-            className={`pointer-events-none absolute left-1/2 top-4 z-50 -translate-x-1/2 transform rounded-lg p-4 shadow-lg backdrop-blur-md ${
-              isLightTheme
-                ? 'border border-slate-300 bg-white/95'
-                : 'border border-blue-500/50 bg-[#091540]/95'
-            }`}
+            className="pointer-events-none absolute left-1/2 top-4 z-50 -translate-x-1/2 transform rounded-lg border border-platform-border bg-platform-surface/95 p-4 text-platform-fg-primary shadow-lg backdrop-blur-md"
           >
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`font-medium ${isLightTheme ? 'text-slate-900' : 'text-slate-100'}`}>{hoveredNode.name}</span>
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs ${
-                  hoveredNode.nodeType === 'THEORY'
-                    ? (isLightTheme ? 'bg-sky-100 text-sky-700' : 'bg-blue-500/20 text-blue-400')
-                    : hoveredNode.nodeType === 'SCENARIO'
-                      ? (isLightTheme ? 'bg-red-100 text-red-700' : 'bg-red-500/20 text-red-400')
-                      : (isLightTheme ? 'bg-emerald-100 text-emerald-700' : 'bg-green-500/20 text-green-400')
-                }`}
-              >
+              <span className="font-medium text-platform-fg-primary">{hoveredNode.name}</span>
+              <span className="rounded-full border border-platform-border bg-platform-surface-muted px-2 py-0.5 text-xs text-platform-fg-secondary">
                 {hoveredNode.nodeType === 'THEORY'
                   ? '控制理论'
                   : hoveredNode.nodeType === 'SCENARIO'
@@ -936,22 +905,22 @@ export function KnowledgeGraphSystem({
                     : '伦理决策'}
               </span>
               {hoveredBloomLabel && (
-                <span className={`rounded-full border px-2 py-0.5 text-xs ${isLightTheme ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'}`}>
+                <span className="rounded-full border border-platform-border bg-platform-surface-muted px-2 py-0.5 text-xs text-platform-fg-secondary">
                   Bloom：{hoveredBloomLabel}
                 </span>
               )}
               {hoveredKnowledgeDimLabel && (
-                <span className={`rounded-full border px-2 py-0.5 text-xs ${isLightTheme ? 'border-cyan-300 bg-cyan-50 text-cyan-700' : 'border-cyan-500/40 bg-cyan-500/10 text-cyan-300'}`}>
+                <span className="rounded-full border border-platform-border bg-platform-surface-muted px-2 py-0.5 text-xs text-platform-fg-secondary">
                   维度：{hoveredKnowledgeDimLabel}
                 </span>
               )}
               {hoveredChapterName && (
-                <span className={`rounded-full border px-2 py-0.5 text-xs ${isLightTheme ? 'border-slate-300 bg-slate-100 text-slate-700' : 'border-slate-500/40 bg-slate-700/30 text-slate-300'}`}>
+                <span className="rounded-full border border-platform-border bg-platform-surface-muted px-2 py-0.5 text-xs text-platform-fg-secondary">
                   章节：{hoveredChapterName}
                 </span>
               )}
             </div>
-            <p className={`mt-2 text-sm ${isLightTheme ? 'text-slate-700' : 'text-slate-400'}`}>{hoveredNode.description}</p>
+            <p className="mt-2 text-sm text-platform-fg-secondary">{hoveredNode.description}</p>
           </div>
         )}
       </div>

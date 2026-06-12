@@ -1,0 +1,76 @@
+{
+  "route": "/knowledge",
+  "changeId": "migrate-knowledge-map-to-unified-shell-panels",
+  "capturedAt": "2026-06-12T21:46:46.087Z",
+  "tool": "playwright-localhost",
+  "assertions": {
+    "guestDesktop": {
+      "frame": "knowledge-data-map",
+      "roleBadge": "访客",
+      "localPanels": [
+        "chapter-directory",
+        "relation-filters",
+        "view-mode-switch"
+      ],
+      "overflow": false,
+      "sidebarHeading": "章节目录",
+      "hasLocalPanelText": false
+    },
+    "guestMobile": {
+      "frame": "knowledge-data-map",
+      "roleBadge": "访客",
+      "mobileDrawers": 3,
+      "desktopPanelsHidden": true,
+      "overflow": false,
+      "hasLocalPanelText": false
+    },
+    "teacherDesktop": {
+      "frame": "knowledge-data-map",
+      "roleBadge": "教师",
+      "localPanels": [
+        "chapter-directory",
+        "relation-filters",
+        "view-mode-switch"
+      ],
+      "overflow": false,
+      "sidebarHeading": "章节目录",
+      "hasLocalPanelText": false
+    },
+    "teacherMobile": {
+      "frame": "knowledge-data-map",
+      "roleBadge": "教师",
+      "mobileDrawers": 3,
+      "desktopPanelsHidden": true,
+      "overflow": false,
+      "hasLocalPanelText": false
+    },
+    "noImplementationLabelLeak": true,
+    "adminDesktop": {
+      "frame": "knowledge-data-map",
+      "roleBadge": "管理",
+      "localPanels": [
+        "chapter-directory",
+        "relation-filters",
+        "view-mode-switch"
+      ],
+      "overflow": false,
+      "hasLocalPanelText": false
+    },
+    "adminMobile": {
+      "frame": "knowledge-data-map",
+      "roleBadge": "管理",
+      "mobileDrawers": 3,
+      "desktopPanelsHidden": true,
+      "overflow": false,
+      "hasLocalPanelText": false
+    }
+  },
+  "screenshots": [
+    "artifacts/commercial-ui/knowledge-map-shell-415/knowledge-guest-light-desktop-1440.png",
+    "artifacts/commercial-ui/knowledge-map-shell-415/knowledge-guest-light-mobile-320.png",
+    "artifacts/commercial-ui/knowledge-map-shell-415/knowledge-authenticated-teacher-light-desktop-1440.png",
+    "artifacts/commercial-ui/knowledge-map-shell-415/knowledge-authenticated-teacher-light-mobile-320.png",
+    "artifacts/commercial-ui/knowledge-map-shell-415/knowledge-authenticated-admin-light-desktop-1440.png",
+    "artifacts/commercial-ui/knowledge-map-shell-415/knowledge-authenticated-admin-light-mobile-320.png"
+  ]
+}

@@ -487,8 +487,10 @@ describe('platform UI contracts', () => {
     }
     expect(knowledgeSource).toContain('<AppShell');
     expect(knowledgeSource).toContain('getServerAuthSession');
+    expect(knowledgeSource).toContain("return 'guest'");
     expect(knowledgeSource).toContain('viewerRole={shellRole}');
-    expect(knowledgeSource).toContain('if (!shellRole)');
+    expect(knowledgeSource).not.toContain('if (!shellRole)');
+    expect(knowledgeSource).not.toContain('<main className="surface-page">');
     expect(knowledgeSource).not.toContain('UnifiedTopBar');
     expect(knowledgeSource).not.toContain('商业入口');
 

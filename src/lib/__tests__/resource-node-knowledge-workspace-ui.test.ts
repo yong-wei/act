@@ -259,6 +259,9 @@ describe('resource node knowledge workspace UI contracts', () => {
 
   it('keeps the /knowledge workspace canvas-first and rejects 320px squeeze-down panels', () => {
     const source = readRepoFile('src/features/knowledge/knowledge-graph-system.tsx');
+    const sidebarSource = readRepoFile('src/features/knowledge/sidebar/knowledge-sidebar.tsx');
+    const resourcePanelSource = readRepoFile('src/features/knowledge/resource-panel/resource-panel.tsx');
+    const loadingSource = readRepoFile('src/app/knowledge/loading.tsx');
 
     expect(source).toContain('data-knowledge-workspace="canvas-first"');
     expect(source).toContain('data-knowledge-canvas-primary="true"');
@@ -266,6 +269,20 @@ describe('resource node knowledge workspace UI contracts', () => {
     expect(source).toContain('data-knowledge-mobile-drawer="chapter-directory"');
     expect(source).toContain('data-knowledge-mobile-drawer="relation-filters"');
     expect(source).toContain('data-knowledge-mobile-drawer="legend"');
+    expect(source).toContain('data-platform-local-tool-panel="relation-filters"');
+    expect(source).toContain('data-platform-local-tool-panel="view-mode-switch"');
+    expect(source).toContain('graphError');
+    expect(source).toContain('暂无可展示节点');
+    expect(sidebarSource).toContain('data-knowledge-local-panel="chapter-directory"');
+    expect(sidebarSource).toContain('data-platform-local-tool-panel="chapter-directory"');
+    expect(sidebarSource).not.toContain('<nav');
+    expect(sidebarSource).not.toContain('w-[240px]');
+    expect(resourcePanelSource).toContain('data-platform-local-tool-panel="resource-detail"');
+    expect(resourcePanelSource).toContain('detailError');
+    expect(resourcePanelSource).toContain('aria-label="关闭知识节点详情"');
+    for (const migratedSource of [source, sidebarSource, resourcePanelSource, loadingSource]) {
+      expect(migratedSource).not.toMatch(/bg-\[#|#091540|#020721|border-blue|bg-blue|text-blue|border-slate|bg-slate|text-slate|border-sky|bg-sky|text-sky|border-cyan|bg-cyan|text-cyan|border-amber|bg-amber|text-amber/);
+    }
     expect(source).toContain('lg:block');
     expect(source).not.toContain('w-[360px]');
   });

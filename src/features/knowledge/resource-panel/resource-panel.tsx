@@ -175,21 +175,8 @@ function ResourcePanelContent({
   );
   const [isCardOpen, setIsCardOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(() => !isChapterNodeId(selectedNode.id));
-  const [isLightTheme, setIsLightTheme] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
   const [expandedRelationGroups, setExpandedRelationGroups] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    const updateTheme = () => {
-      setIsLightTheme(document.documentElement.classList.contains('light'));
-    };
-    updateTheme();
-    const observer = new MutationObserver(updateTheme);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class'],
-    });
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => {
     if (isChapterNodeId(selectedNode.id)) {
@@ -199,13 +186,20 @@ function ResourcePanelContent({
     let cancelled = false;
     const fetchDetail = async () => {
       try {
+        setDetailError(null);
         const res = await fetch(`/api/knowledge/nodes/${selectedNode.id}`);
-        if (!res.ok) return;
+        if (!res.ok) {
+          setDetailError('节点详情暂时无法加载，已显示图谱中的基础信息。');
+          return;
+        }
         const data = await res.json();
         if (!cancelled) {
           setNodeDetail(data);
         }
       } catch (error) {
+        if (!cancelled) {
+          setDetailError('节点详情暂时无法加载，已显示图谱中的基础信息。');
+        }
         console.error('Failed to fetch knowledge node detail:', error);
       } finally {
         if (!cancelled) {
@@ -269,36 +263,30 @@ function ResourcePanelContent({
         : null;
   const importance = typeof metadata.importance === 'number' ? metadata.importance : null;
 
-  const panelTheme = isLightTheme
-    ? {
-        shell: 'border-l border-slate-300 bg-white text-slate-800',
-        header: 'border-slate-200 bg-white/95 text-slate-800',
-        muted: 'text-slate-600',
-        block: 'border-slate-200 bg-slate-50',
-        blockTitle: 'text-slate-700',
-        text: 'text-slate-700',
-      }
-    : {
-        shell: 'border-l border-blue-500/30 bg-[#091540] text-slate-100',
-        header: 'border-blue-500/30 bg-[#091540] text-slate-100',
-        muted: 'text-slate-400',
-        block: 'border-blue-500/20 bg-[#0c1d4f]/50',
-        blockTitle: 'text-blue-400',
-        text: 'text-slate-300',
-      };
+  const panelTheme = {
+    shell: 'border-l border-platform-border bg-platform-surface/95 text-platform-fg-primary',
+    header: 'border-platform-border bg-platform-surface-raised/95 text-platform-fg-primary',
+    muted: 'text-platform-fg-secondary',
+    block: 'border-platform-border bg-platform-surface-muted',
+    blockTitle: 'text-platform-fg-primary',
+    text: 'text-platform-fg-secondary',
+  };
 
   return (
     <aside
-      className={`absolute right-0 top-0 z-50 h-full w-[320px] transform overflow-y-auto transition-transform duration-300 ${panelTheme.shell} translate-x-0`}
+      className={`absolute right-0 top-0 z-50 h-full w-full max-w-[22rem] transform overflow-y-auto shadow-xl transition-transform duration-300 ${panelTheme.shell} translate-x-0`}
+      data-platform-local-tool-panel="resource-detail"
     >
       <div className={`sticky top-0 z-10 flex items-center justify-between border-b p-4 ${panelTheme.header}`}>
         <div className="flex min-w-0 items-center gap-2">
-          <FileText className="h-4 w-4 shrink-0 text-sky-500" />
+          <FileText className="h-4 w-4 shrink-0 text-platform-action-primary" />
           <span className="truncate text-sm font-medium">{selectedNode.name}</span>
         </div>
         <button
+          type="button"
           onClick={onClose}
-          className={`shrink-0 transition-colors ${isLightTheme ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-slate-200'}`}
+          aria-label="关闭知识节点详情"
+          className="shrink-0 text-platform-fg-secondary transition-colors hover:text-platform-fg-primary"
         >
           <X className="h-4 w-4" />
         </button>
@@ -308,31 +296,37 @@ function ResourcePanelContent({
 
       {!isLoading && (
         <div className="space-y-4 p-4">
+          {detailError && (
+            <div className="rounded-lg border border-platform-border bg-platform-action-subtle px-3 py-2 text-xs text-platform-fg-secondary">
+              {detailError}
+            </div>
+          )}
+
           <section className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center rounded-full bg-sky-600 px-2.5 py-0.5 text-xs font-medium text-white">
+              <span className="inline-flex items-center rounded-full bg-platform-action-primary px-2.5 py-0.5 text-xs font-medium text-platform-fg-inverse">
                 {isVirtualChapter ? '章节节点' : typeLabel}
               </span>
               {bloomLabel && !isVirtualChapter && (
-                <span className={`rounded-full border px-2 py-0.5 text-xs ${isLightTheme ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'}`}>
+                <span className="rounded-full border border-platform-border bg-platform-surface-muted px-2 py-0.5 text-xs text-platform-fg-secondary">
                   {bloomLabel}
                 </span>
               )}
               {knowledgeLabel && !isVirtualChapter && (
-                <span className={`rounded-full border px-2 py-0.5 text-xs ${isLightTheme ? 'border-sky-300 bg-sky-50 text-sky-700' : 'border-blue-500/30 bg-blue-500/10 text-blue-300'}`}>
+                <span className="rounded-full border border-platform-border bg-platform-surface-muted px-2 py-0.5 text-xs text-platform-fg-secondary">
                   {knowledgeLabel}
                 </span>
               )}
-              <span className={`rounded-full border px-2 py-0.5 text-xs ${isLightTheme ? 'border-slate-300 bg-slate-100 text-slate-700' : 'border-slate-500/40 bg-slate-700/30 text-slate-300'}`}>
+              <span className="rounded-full border border-platform-border bg-platform-surface-muted px-2 py-0.5 text-xs text-platform-fg-secondary">
                 章节：{chapterName}
               </span>
               {difficulty !== null && (
-                <span className={`rounded-full border px-2 py-0.5 text-xs ${isLightTheme ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-amber-500/40 bg-amber-500/15 text-amber-300'}`}>
+                <span className="rounded-full border border-platform-border bg-platform-surface-muted px-2 py-0.5 text-xs text-platform-fg-secondary">
                   难度：{difficulty}
                 </span>
               )}
               {importance !== null && (
-                <span className={`rounded-full border px-2 py-0.5 text-xs ${isLightTheme ? 'border-fuchsia-300 bg-fuchsia-50 text-fuchsia-700' : 'border-fuchsia-500/40 bg-fuchsia-500/15 text-fuchsia-300'}`}>
+                <span className="rounded-full border border-platform-border bg-platform-surface-muted px-2 py-0.5 text-xs text-platform-fg-secondary">
                   重要性：{importance}
                 </span>
               )}
@@ -343,8 +337,8 @@ function ResourcePanelContent({
 
           {infographSrc && (
             <section className={`overflow-hidden rounded-lg border ${panelTheme.block}`}>
-              <div className={`flex items-center gap-2 border-b px-3 py-2 text-sm font-medium ${panelTheme.blockTitle} ${isLightTheme ? 'border-slate-200' : 'border-blue-500/20'}`}>
-                <ImageIcon className="h-4 w-4 text-sky-500" />
+              <div className={`flex items-center gap-2 border-b border-platform-border px-3 py-2 text-sm font-medium ${panelTheme.blockTitle}`}>
+                <ImageIcon className="h-4 w-4 text-platform-action-primary" />
                 知识点信息图
               </div>
               <Image
@@ -377,11 +371,7 @@ function ResourcePanelContent({
                 {keywords.map((keyword) => (
                   <span
                     key={`keyword-${keyword}`}
-                    className={`rounded-full border px-2 py-0.5 text-xs ${
-                      isLightTheme
-                        ? 'border-slate-300 bg-white text-slate-700'
-                        : 'border-slate-600 bg-slate-800/70 text-slate-200'
-                    }`}
+                    className="rounded-full border border-platform-border bg-platform-surface px-2 py-0.5 text-xs text-platform-fg-secondary"
                   >
                     {keyword}
                   </span>
@@ -397,13 +387,11 @@ function ResourcePanelContent({
                 {formulas.map((formula, index) => (
                   <div
                     key={`formula-${index}`}
-                    className={`overflow-x-auto rounded-md border px-2 py-1 ${
-                      isLightTheme ? 'border-slate-300 bg-white' : 'border-slate-700 bg-slate-900/40'
-                    }`}
+                    className="overflow-x-auto rounded-md border border-platform-border bg-platform-surface px-2 py-1"
                   >
                     <BlockMath
                       math={formula}
-                      errorColor={isLightTheme ? '#dc2626' : '#f87171'}
+                      errorColor="hsl(var(--platform-brand-danger))"
                       renderError={() => <code className={panelTheme.text}>{formula}</code>}
                     />
                   </div>
@@ -415,7 +403,7 @@ function ResourcePanelContent({
           {!isVirtualChapter && relationGroups.length > 0 && (
             <section className={`rounded-lg border p-3 ${panelTheme.block}`}>
               <div className="mb-3 flex items-center gap-2">
-                <Link2 className="h-4 w-4 text-sky-500" />
+                <Link2 className="h-4 w-4 text-platform-action-primary" />
                 <h3 className={`text-sm font-medium ${panelTheme.blockTitle}`}>关联知识点</h3>
               </div>
               <div className="space-y-2">
@@ -426,9 +414,7 @@ function ResourcePanelContent({
                   return (
                     <div
                       key={`relation-group-${group.category}`}
-                      className={`rounded-md border ${
-                        isLightTheme ? 'border-slate-300 bg-white' : 'border-slate-700 bg-slate-900/35'
-                      }`}
+                      className="rounded-md border border-platform-border bg-platform-surface"
                     >
                       <button
                         type="button"
@@ -438,9 +424,7 @@ function ResourcePanelContent({
                             [group.category]: !isExpanded,
                           }))
                         }
-                        className={`flex w-full items-center justify-between px-2 py-1.5 text-xs font-medium ${
-                          isLightTheme ? 'text-slate-700' : 'text-slate-200'
-                        }`}
+                        className="flex w-full items-center justify-between px-2 py-1.5 text-xs font-medium text-platform-fg-primary"
                       >
                         <span>{group.label}</span>
                         <span className="flex items-center gap-1">
@@ -455,22 +439,12 @@ function ResourcePanelContent({
                             <li key={node.id}>
                               <button
                                 onClick={() => onNodeClick?.(node.id)}
-                                className={`group flex w-full items-center gap-2 rounded-md p-2 text-left transition-colors ${
-                                  isLightTheme ? 'bg-slate-50 hover:bg-slate-100' : 'bg-slate-800/50 hover:bg-slate-700/50'
-                                }`}
+                                className="group flex w-full items-center gap-2 rounded-md bg-platform-surface-muted p-2 text-left transition-colors hover:bg-platform-action-subtle"
                               >
-                                <span
-                                  className={`shrink-0 rounded border px-1.5 py-0.5 text-xs ${
-                                    node.category === 'prerequisite'
-                                      ? (isLightTheme ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-amber-500/30 bg-amber-500/10 text-amber-400')
-                                      : node.category === 'follows'
-                                        ? (isLightTheme ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400')
-                                        : (isLightTheme ? 'border-sky-300 bg-sky-50 text-sky-700' : 'border-blue-500/30 bg-blue-500/10 text-blue-400')
-                                  }`}
-                                >
+                                <span className="shrink-0 rounded border border-platform-border bg-platform-surface px-1.5 py-0.5 text-xs text-platform-fg-secondary">
                                   {getRelationLabel(node.relation)}
                                 </span>
-                                <span className={`flex-1 truncate text-sm ${isLightTheme ? 'text-slate-700 group-hover:text-slate-900' : 'text-slate-200 group-hover:text-white'}`}>
+                                <span className="flex-1 truncate text-sm text-platform-fg-secondary group-hover:text-platform-fg-primary">
                                   {node.name}
                                 </span>
                                 {typeof node.strength === 'number' && (
@@ -493,16 +467,14 @@ function ResourcePanelContent({
             <section className={`rounded-lg border p-3 ${panelTheme.block}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <BookOpen className="h-4 w-4 text-sky-500" />
+                  <BookOpen className="h-4 w-4 text-platform-action-primary" />
                   <h3 className={`text-sm font-medium ${panelTheme.blockTitle}`}>知识卡片</h3>
                 </div>
                 {hasKnowledgeCard ? (
                   <button
                     type="button"
                     onClick={() => setIsCardOpen(true)}
-                    className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium ${
-                      isLightTheme ? 'bg-sky-100 text-sky-700 hover:bg-sky-200' : 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/30'
-                    }`}
+                    className="flex items-center gap-1.5 rounded-md bg-platform-action-subtle px-3 py-1.5 text-xs font-medium text-platform-fg-primary hover:bg-platform-action-primary hover:text-platform-fg-inverse"
                   >
                     <BookOpen className="h-3.5 w-3.5" />
                     查看卡片

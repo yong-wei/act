@@ -1227,7 +1227,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     href: '/knowledge',
     routeFile: 'src/app/knowledge/page.tsx',
     frame: 'knowledge-data-map',
-    roleScope: ['guest', 'student', 'teacher'],
+    roleScope: ['guest', 'student', 'teacher', 'admin'],
     authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'collapsed',
