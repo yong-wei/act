@@ -501,7 +501,7 @@ describe('platform role navigation', () => {
       'redesign-knowledge-and-data-surfaces',
     );
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/knowledge')?.owningChange).toBe(
-      'redesign-knowledge-and-data-surfaces',
+      'migrate-knowledge-map-to-unified-shell-panels',
     );
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/admin/data-governance')?.owningChange).toBe(
       'migrate-operations-report-ledger-surfaces',

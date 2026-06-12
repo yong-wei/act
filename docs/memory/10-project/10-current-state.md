@@ -16,7 +16,7 @@
 
 - 项目当前是 Next.js 16、React 19、Prisma 7、Tailwind CSS 4、Vercel AI SDK 6 的单体应用。依赖链已大版本迁移，后续新增功能必须留意 SSR、R3F、Prisma generate、Tailwind source 边界和测试脚本噪声。
 - 基线分支为 `integration`，发布分支为 `main`。主工作树绑定 `integration`，`act-dev1` 和 `act-dev2` 用于功能实现，`act-resource` 绑定 `resource` 用于课程资源制作和资源相关开发。永久工作树本身就是隔离边界，不要在其中再为同一任务创建第二层临时 worktree。
-- OpenSpec/Buddy 仍是功能推进主线，但当前 active changes 已经从 6 月初的控制校正和智能助教提案扩展阶段，收束到知识图谱壳层迁移、数据中心角色可见性和二级导航视觉治理。React Doctor 错误清理系列已归档，覆盖 server、aria role、shared state/effect、interactive state/effect 和 resource state/effect；AppShell 折叠导航合同 #413 已归档，桌面收起态固定为 72px 图标栏并带 aria/title 标签；学生二级路线壳层迁移 #414 已归档，覆盖互动学习入口、课程目录、章节组件、跨域探索和自适应练习。
+- OpenSpec/Buddy 仍是功能推进主线，但当前 active changes 已经从 6 月初的控制校正和智能助教提案扩展阶段，收束到数据中心角色可见性和二级导航视觉治理。React Doctor 错误清理系列已归档，覆盖 server、aria role、shared state/effect、interactive state/effect 和 resource state/effect；AppShell 折叠导航合同 #413 已归档，桌面收起态固定为 72px 图标栏并带 aria/title 标签；学生二级路线壳层迁移 #414 已归档，覆盖互动学习入口、课程目录、章节组件、跨域探索和自适应练习；知识图谱壳层迁移 #415 已完成实现，`/knowledge` 进入可收起 AppShell，图谱章节目录、关系筛选、图例和资源面板保持局部工具语义。
 - 平台 UI 正在以 `AppShell`、角色导航、证据状态组件和页面族治理为统一壳层。`src/lib/platform-role-navigation.ts` 已经把课程、任务空间、数据中心、教师治理、Arena/控制工作台等入口纳入角色导航。`AppShell` 会被测试纯函数调用，顶层不要直接引入 runtime hook；折叠导航应渲染注册图标，不显示首字标签，相关视觉证据由 `appShellNavigationContract: collapsed-icon-rail` 治理字段约束。
 - `1-1` 标准互动课已经完成首轮实现，路由为 `/interactive-learning/courses/unit-1-1-see-the-full-picture`。作者态材料、互动契约和 acceptance 已齐备，manifest audit 已达到 15 steps、91 modules、0 issues。当前剩余工程口径是把 `1-1` 纳入严格实现契约注册，避免新标准课被旧 migrated-lesson 语义遗漏。
 - 互动学习入口以控制工作台、互动课程、跨域探索和互动组件为主。综合仿真工作台 `/interactive-learning/control-workbench` 已承载经典四视图、复合校正、预测控制、黑箱辨识等控制设计流，并与 Arena 路由和提交面板衔接。
@@ -30,7 +30,7 @@
 - `1-1` 不再应记为旧的 `unit-1-1-laplace-transfer-function`。当前课程定位是“看见系统全貌”，固定路由段是 `unit-1-1-see-the-full-picture`，运行态内容位于 `course-content/runtime/lessons/1-1`。
 - `src/lib/unit-1-1-course.ts`、`src/lib/lesson-1-1-ai-contexts.ts`、`src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx` 和 `src/features/interactive/unit-1-1-see-the-full-picture/*` 是当前 1-1 实现入口。
 - `course-content/scripts/sync_runtime_knowledge.py --check` 当前会报告全局知识冲突以及旧式 `concepts/*.mdx` 缺失。对 `1-1` 来说，这不是作者态或 manifest 就绪失败，而是知识同步脚本仍含 legacy concept 路径预期。
-- 平台 UI 重构系列已经把 Mission workspace shell、AppShell 折叠导航合同、学生二级路线壳层、数据中心、教师工作台、状态证据组件和角色导航推进到实现与归档阶段；当前需要继续迁移知识图谱页面，并固化治理门禁，避免页面族回退。
+- 平台 UI 重构系列已经把 Mission workspace shell、AppShell 折叠导航合同、学生二级路线壳层、知识图谱壳层、数据中心、教师工作台、状态证据组件和角色导航推进到实现与归档阶段；当前需要继续固化数据中心角色可见性和二级导航视觉治理，避免页面族回退。
 - `src/lib/ai/model-provider-compatibility.ts`、provider registry/settings 和 provider runtime smoke 组成当前模型供应商兼容边界。新增供应商时不要只改聊天接口，还要纳入兼容矩阵、配置和 smoke。
 - 文档 rubric 批改工作台中，MarkItDown 只承担 PDF/Office 到 Markdown 的转换适配器职责；评分、教师审核、学生反馈、证据定位和画像回写需要平台契约与 UI 工作台。
 - OpenWolf 多工作树共享采用“长期知识文件软链接、运行态本地化”的策略。不要把派生工作树的 `.wolf/` 整体软链接到主工作树。
@@ -44,6 +44,7 @@
 - `openspec list --json` 若出现已归档 change 的 `no-tasks` 幽灵项，通常是本地空目录残留；先查文件，再清理空目录，避免误判 active 状态。
 - 依赖大版本迁移后，全量 tsc 可能仍暴露既有仓库债务；提交前应按改动风险选择最小充分验证，不要把历史 tsc 债务混同为本次改动失败。
 - 生产运行问题不能只看配置文件。优先查 `.logs/`、端口监听、`/api/readyz`、worker/scheduler 日志、Prisma generate、容器和 systemd 状态。
+- 本地 Next dev 交互证据优先用 `localhost` 而不是 `127.0.0.1`。在当前主机上，`127.0.0.1:3001` 可能经过代理路径，HMR WebSocket 失败且客户端 hydration 不执行；用它验收会误判 AppShell 收起按钮、主题按钮和知识图谱数据加载。
 
 ## 建议下一跳
 

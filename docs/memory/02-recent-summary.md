@@ -18,7 +18,7 @@
 
 - 2026-06-12 当前工作树 `act-resource` 绑定本地 `resource` 分支并跟踪 `origin/integration`，用于课程资源制作和资源相关开发。它是永久隔离工作树，在其中工作时不要再为同一任务创建第二层 worktree。
 
-- 2026-06-13 React Doctor 错误清理系列已归档到 specs，覆盖 server、aria role、shared state/effect、interactive state/effect 和 resource state/effect；AppShell 折叠导航合同 #413 已归档，桌面收起态为 72px 图标栏，展开态为 248px，light/dark 视觉证据已进入 `artifacts/commercial-ui/app-shell-collapsed-navigation-413/`。学生二级路线壳层迁移 #414 已归档，覆盖互动学习入口、课程目录、章节组件、跨域探索和自适应练习，视觉证据位于 `artifacts/commercial-ui/student-secondary-routes-414/`。当前 active OpenSpec 主要剩余知识图谱壳层迁移、数据中心角色可见性和二级导航视觉治理。控制校正与智能助教系列中的多项能力已经进入 specs 和实现。
+- 2026-06-13 React Doctor 错误清理系列已归档到 specs，覆盖 server、aria role、shared state/effect、interactive state/effect 和 resource state/effect；AppShell 折叠导航合同 #413 已归档，桌面收起态为 72px 图标栏，展开态为 248px，light/dark 视觉证据已进入 `artifacts/commercial-ui/app-shell-collapsed-navigation-413/`。学生二级路线壳层迁移 #414 已归档，覆盖互动学习入口、课程目录、章节组件、跨域探索和自适应练习，视觉证据位于 `artifacts/commercial-ui/student-secondary-routes-414/`。知识图谱壳层迁移 #415 已完成实现，`/knowledge` 使用可收起 AppShell，章节目录、关系筛选、图例和资源面板保持图谱局部工具语义，视觉证据位于 `artifacts/commercial-ui/knowledge-map-unified-shell-415/`。当前 active OpenSpec 主要剩余数据中心角色可见性和二级导航视觉治理。控制校正与智能助教系列中的多项能力已经进入 specs 和实现。
 
 - 2026-06-12 平台 UI 已从分散页面推进到 `AppShell`、角色导航、状态证据组件和页面族治理。`src/lib/platform-role-navigation.ts` 现在覆盖课程、任务空间、数据中心、教师治理、Arena/控制工作台等入口。`AppShell` 在测试中会被纯函数调用，顶层不要直接引入 runtime hook；桌面折叠导航应使用注册图标、aria/title 标签和 72px 窄栏，不再使用首字截断文本。
 
@@ -46,6 +46,7 @@
 - 处理控制校正 goal slice 时，目标归属必须来自显式 canonical scope，例如 `goalId`/`goal`/`targetGoal`/`learningGoal` 等于 `control-correction`，不要用中文“校正”或英文 `correction` 关键词猜测。
 - 处理 1-1 内容链路时，`sync_runtime_knowledge.py --check` 的 legacy `concepts/*.mdx` 缺失不等于当前 1-1 authoring、runtime 或 manifest 未就绪。
 - 生产和本地运行问题优先查 `.logs/`、端口监听、`/api/readyz`、Prisma generate、worker/scheduler 日志和容器状态，不要只看配置文件。
+- Next dev 视觉证据和交互验收优先使用 `http://localhost:<port>`。当前环境中 `127.0.0.1:3001` 可能走代理路径，导致 HMR WebSocket 失败、客户端 hydration 不执行，进而把可收起导航或图谱加载误判为页面问题。
 
 ## 初始化后的建议下一跳
 
