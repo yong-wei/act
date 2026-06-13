@@ -138,7 +138,7 @@ export async function resolveKonlingTeachingAssistantServerModeContext(input: {
   if (mode.id === 'class-summarizer') {
     if (signedPayload) {
       if (input.scope.role !== 'teacher' && input.scope.role !== 'admin') return {};
-      if (input.scope.role === 'teacher' && !await teacherOwnsClass(input.db, input.scope.classId, input.scope.authenticatedUserId)) {
+      if (input.scope.role === 'teacher' && !await teacherOwnsClass(input.db, signedPayload.classId, input.scope.authenticatedUserId)) {
         return {};
       }
       return signedPayload.context;
