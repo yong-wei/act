@@ -410,7 +410,7 @@ export function KnowledgeGraph2D({
     const focusNodeId = hoveredNode?.id ?? selectedNode?.id ?? null;
     const focusState = getRelationFocusState(source.id, target.id, focusNodeId);
     const focusOpacity = focusState === 'dimmed' ? 0.22 : focusState === 'active' ? 1 : 0.82;
-    const alpha = (0.2 + strength * 0.65) * focusOpacity;
+    const alpha = (0.2 + strength * 0.65) * focusOpacity * style.opacity;
     const lineWidth = style.width * (0.6 + strength * 0.9) * (focusState === 'active' ? 1.25 : 1);
 
     const dx = target.x - source.x;

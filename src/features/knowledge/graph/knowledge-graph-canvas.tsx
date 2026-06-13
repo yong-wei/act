@@ -252,7 +252,9 @@ export function KnowledgeGraphCanvas({
 
     // 4. 创建选中环
     if (isSelected) {
-      const ringGeometry = new THREE.RingGeometry(6, 7, 32);
+      const ringInnerRadius = nodeScale.radius + 0.6;
+      const ringOuterRadius = ringInnerRadius + Math.max(0.8, nodeScale.radius * 0.12);
+      const ringGeometry = new THREE.RingGeometry(ringInnerRadius, ringOuterRadius, 32);
       const ringMaterial = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         transparent: true,
@@ -290,7 +292,8 @@ export function KnowledgeGraphCanvas({
     const focusNodeId = hoveredNode?.id ?? selectedNode?.id ?? null;
     const focusState = getRelationFocusState(sourceId, targetId, focusNodeId);
     const focusGain = focusState === 'dimmed' ? 0.22 : focusState === 'active' ? 1.15 : 0.9;
-    const gain = (0.55 + strength * 0.45) * focusGain;
+    const semanticGain = 0.4 + style.opacity * 0.6;
+    const gain = (0.55 + strength * 0.45) * focusGain * semanticGain;
     color.multiplyScalar(gain);
     return color.getStyle();
   }, [hoveredNode?.id, isLightTheme, selectedNode?.id]);
