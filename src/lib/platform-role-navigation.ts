@@ -295,6 +295,7 @@ const KNOWLEDGE_MAP_UNIFIED_SHELL_CHANGE = 'migrate-knowledge-map-to-unified-she
 const SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE = 'migrate-secondary-route-families-to-unified-shell';
 const OPERATIONS_REPORT_MIGRATION_CHANGE = 'migrate-operations-report-ledger-surfaces';
 const DATA_CENTER_OPERATIONS_ROLE_CHANGE = 'restrict-data-center-to-operations-roles';
+const SIMULATION_SHELL_MISSION_WORKSPACE_CHANGE = 'introduce-simulation-shell-mission-workspace';
 
 function inferUnifiedUiMigrationOwner(input: Pick<PlatformPrimaryRouteInventoryEntry, 'href' | 'frame'>) {
   if (input.frame === 'mission-workspace') return MISSION_WORKSPACE_MIGRATION_CHANGE;
@@ -753,16 +754,15 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'hidden',
     visualQaProfile: 'immersive',
     screenshotProfile: 'direct-capture',
-    owningChange: 'redesign-immersive-learning-workspaces',
+    owningChange: SIMULATION_SHELL_MISSION_WORKSPACE_CHANGE,
     aliases: [
       '/simulations/cruise?arenaTask=:taskId',
       '/simulations/cruise?arenaTask=:taskId&publicationId=:publicationId',
     ],
-    legacyShell: {
-      component: 'FeaturePageNav',
-      disposition: 'retained-temporary',
-      sourceFile: 'src/app/simulations/cruise/page.tsx',
-      removalCondition: 'Concrete simulation scenes preserve launch provenance, return target, evidence rail, and local scene controls in the immersive workspace shell.',
+    contextualReturn: {
+      sourceContext: 'simulation-descendant',
+      targetHint: 'Return to the simulation fleet or Arena context when leaving the Cruise simulation.',
+      fallbackHref: '/simulations',
     },
   }),
   primaryRoute({
@@ -774,24 +774,97 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     floatingDock: 'hidden',
     visualQaProfile: 'immersive',
-    screenshotProfile: 'temporary-exception',
-    owningChange: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
+    screenshotProfile: 'direct-capture',
+    owningChange: SIMULATION_SHELL_MISSION_WORKSPACE_CHANGE,
     contextualReturn: {
       sourceContext: 'simulation-descendant',
       targetHint: 'Return to the simulation fleet when leaving the LNG simulation.',
       fallbackHref: '/simulations',
     },
-    legacyShell: {
-      component: 'FeaturePageNav',
-      disposition: 'retained-temporary',
-      sourceFile: 'src/app/simulations/lng/page.tsx',
-      removalCondition: 'LNG simulation preserves launch provenance, return target, evidence rail, and local scene controls in the immersive workspace shell.',
+  }),
+  primaryRoute({
+    href: '/simulations/destroyer',
+    routeFile: 'src/app/simulations/destroyer/page.tsx',
+    frame: 'mission-workspace',
+    roleScope: ['guest', 'student', 'teacher'],
+    authState: 'mixed',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'hidden',
+    visualQaProfile: 'immersive',
+    screenshotProfile: 'representative-covered',
+    owningChange: SIMULATION_SHELL_MISSION_WORKSPACE_CHANGE,
+    contextualReturn: {
+      sourceContext: 'simulation-descendant',
+      targetHint: 'Return to the simulation fleet when leaving the Destroyer simulation.',
+      fallbackHref: '/simulations',
     },
-    exception: {
-      owner: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
-      affectedCapability: 'simulation-descendant-shell',
-      reason: 'LNG uses the simulation runtime FeaturePageNav until concrete scenes share an approved immersive workspace shell.',
-      expiresOn: '2026-08-31',
+  }),
+  primaryRoute({
+    href: '/simulations/drilling',
+    routeFile: 'src/app/simulations/drilling/page.tsx',
+    frame: 'mission-workspace',
+    roleScope: ['guest', 'student', 'teacher'],
+    authState: 'mixed',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'hidden',
+    visualQaProfile: 'immersive',
+    screenshotProfile: 'representative-covered',
+    owningChange: SIMULATION_SHELL_MISSION_WORKSPACE_CHANGE,
+    contextualReturn: {
+      sourceContext: 'simulation-descendant',
+      targetHint: 'Return to the simulation fleet when leaving the drilling platform simulation.',
+      fallbackHref: '/simulations',
+    },
+  }),
+  primaryRoute({
+    href: '/simulations/container',
+    routeFile: 'src/app/simulations/container/page.tsx',
+    frame: 'mission-workspace',
+    roleScope: ['guest', 'student', 'teacher'],
+    authState: 'mixed',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'hidden',
+    visualQaProfile: 'immersive',
+    screenshotProfile: 'representative-covered',
+    owningChange: SIMULATION_SHELL_MISSION_WORKSPACE_CHANGE,
+    contextualReturn: {
+      sourceContext: 'simulation-descendant',
+      targetHint: 'Return to the simulation fleet when leaving the container ship simulation.',
+      fallbackHref: '/simulations',
+    },
+  }),
+  primaryRoute({
+    href: '/simulations/icebreaker',
+    routeFile: 'src/app/simulations/icebreaker/page.tsx',
+    frame: 'mission-workspace',
+    roleScope: ['guest', 'student', 'teacher'],
+    authState: 'mixed',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'hidden',
+    visualQaProfile: 'immersive',
+    screenshotProfile: 'representative-covered',
+    owningChange: SIMULATION_SHELL_MISSION_WORKSPACE_CHANGE,
+    contextualReturn: {
+      sourceContext: 'simulation-descendant',
+      targetHint: 'Return to the simulation fleet when leaving the icebreaker simulation.',
+      fallbackHref: '/simulations',
+    },
+  }),
+  primaryRoute({
+    href: '/simulations/dredger',
+    routeFile: 'src/app/simulations/dredger/page.tsx',
+    frame: 'mission-workspace',
+    roleScope: ['guest', 'student', 'teacher'],
+    authState: 'mixed',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'hidden',
+    visualQaProfile: 'immersive',
+    screenshotProfile: 'representative-covered',
+    owningChange: SIMULATION_SHELL_MISSION_WORKSPACE_CHANGE,
+    contextualReturn: {
+      sourceContext: 'simulation-descendant',
+      targetHint: 'Return to the simulation fleet when leaving the dredger simulation.',
+      fallbackHref: '/simulations',
     },
   }),
   primaryRoute({

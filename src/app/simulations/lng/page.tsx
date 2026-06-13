@@ -1,13 +1,16 @@
-import { FeaturePageNav } from '@/components/shared/feature-page-nav';
+import { SimulationShell } from '../_components/simulation-shell';
 import { LNGSimulation } from '../_components/simulation-loaders';
 
 export const dynamic = 'force-dynamic';
 
 export default function LNGSimulationPage() {
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100">
-      <FeaturePageNav title="LNG运输船仿真" backHref="/simulations" backLabel="返回仿真入口" floating />
+    <SimulationShell
+      title="LNG运输船仿真"
+      subtitle="大型船舶操纵仿真 · 大惯性系统控制"
+      activeHref="/simulations/lng"
+    >
       <LNGSimulation />
-    </div>
+    </SimulationShell>
   );
 }

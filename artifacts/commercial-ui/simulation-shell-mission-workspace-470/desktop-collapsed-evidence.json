@@ -1,0 +1,11 @@
+{
+  "issue": 470,
+  "change": "introduce-simulation-shell-mission-workspace",
+  "capturedAt": "2026-06-13",
+  "navigationState": "desktop-collapsed",
+  "assertions": [
+    "SimulationShell uses AppShell collapsible navigation.",
+    "Collapsed navigation keeps accessible names and active route indication.",
+    "Main simulation workspace expands after the navigation rail collapses."
+  ]
+}

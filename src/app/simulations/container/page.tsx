@@ -1,13 +1,16 @@
-import { FeaturePageNav } from '@/components/shared/feature-page-nav';
+import { SimulationShell } from '../_components/simulation-shell';
 import { ContainerSimulation } from '../_components/simulation-loaders';
 
 export const dynamic = 'force-dynamic';
 
 export default function ContainerSimulationPage() {
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100">
-      <FeaturePageNav title="集装箱船仿真" backHref="/simulations" backLabel="返回仿真入口" floating />
+    <SimulationShell
+      title="集装箱船仿真"
+      subtitle="变质量 Nomoto · 风载荷与增益调度"
+      activeHref="/simulations/container"
+    >
       <ContainerSimulation />
-    </div>
+    </SimulationShell>
   );
 }

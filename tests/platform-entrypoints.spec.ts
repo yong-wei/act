@@ -271,3 +271,15 @@ test('virtual lab compatibility route redirects to canonical simulations catalog
   await expect(page.getByText('当前开放')).toHaveCount(0);
   await expect(page.getByText('筹备中')).toHaveCount(0);
 });
+
+test('simulation detail pages render through mission workspace shell', async ({ page }) => {
+  await page.goto('/simulations/destroyer', { waitUntil: 'networkidle' });
+
+  await expect(page.locator('[data-platform-route-frame="mission-workspace"]')).toBeVisible();
+  await expect(page.locator('[data-simulation-shell-route="/simulations/destroyer"]')).toBeVisible();
+  await expect(page.locator('[data-commercial-workspace="simulation-scene"]')).toBeVisible();
+  await expect(page.locator('[data-commercial-workspace-zone="instrument-area"]')).toBeVisible();
+  await expect(page.getByLabel('Breadcrumb').getByRole('link', { name: '虚拟仿真' })).toHaveAttribute('href', '/simulations');
+  await expect(page.getByRole('link', { name: '个人中心' })).toHaveAttribute('href', '/profile');
+  await expect(page.getByRole('heading', { name: '军用驱逐舰战术机动仿真' })).toBeVisible();
+});

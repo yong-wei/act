@@ -1,0 +1,24 @@
+{
+  "issue": 470,
+  "change": "introduce-simulation-shell-mission-workspace",
+  "capturedAt": "2026-06-13",
+  "coverage": {
+    "shell": "src/app/simulations/_components/simulation-shell.tsx",
+    "representativeRuntimeCheck": "tests/platform-entrypoints.spec.ts",
+    "routes": [
+      "/simulations/cruise",
+      "/simulations/lng",
+      "/simulations/destroyer",
+      "/simulations/drilling",
+      "/simulations/container",
+      "/simulations/icebreaker",
+      "/simulations/dredger"
+    ]
+  },
+  "assertions": [
+    "Simulation detail pages use SimulationShell instead of FeaturePageNav.",
+    "The shell provides AppShell breadcrumbs, theme switching, personal-center action, and simulation return target metadata.",
+    "Simulation runtime components remain imported from src/app/simulations/_components/simulation-loaders.tsx.",
+    "No Rust/WASM, simulation clock, telemetry bridge, or Arena scoring code is changed."
+  ]
+}
