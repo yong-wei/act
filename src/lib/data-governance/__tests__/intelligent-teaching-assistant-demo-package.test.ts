@@ -557,11 +557,39 @@ describe('intelligent teaching assistant demo package', () => {
       'teacher report metrics require methodology and recomputable values',
       'route checks must cover known demo product surfaces',
       'API examples must cover known demo API contracts',
-      'effect report source references must resolve to installed demo records',
+      'effect report source references must resolve to the metric-specific evidence source set',
       'effect report metrics must match recomputable demo record values',
       'effect report metric sample sizes must match recomputable demo record denominators',
       'Konling sessions must cover all required teaching assistant modes',
       'prep packs require signed server context, review items, and citations',
+    ]));
+
+    const routeLedgerReferenceOnGradingMetric = structuredClone(INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE);
+    routeLedgerReferenceOnGradingMetric.effectReports[0].metrics.find((metric) => (
+      metric.id === 'gradingFeedbackCoverage'
+    ))!.sourceReferences = ['entry-home'];
+    expect(validateIntelligentTeachingAssistantDemoPackage(routeLedgerReferenceOnGradingMetric)).toEqual(expect.arrayContaining([
+      'effect report source references must resolve to the metric-specific evidence source set',
+    ]));
+
+    const fixtureReferencesOnBaselineMetric = structuredClone(INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE);
+    fixtureReferencesOnBaselineMetric.effectReports[0].metrics.find((metric) => (
+      metric.id === 'baselineUsageCoverage'
+    ))!.sourceReferences = ['demo-ita-class', 'path-alpha-main'];
+    expect(validateIntelligentTeachingAssistantDemoPackage(fixtureReferencesOnBaselineMetric)).toEqual(expect.arrayContaining([
+      'effect report source references must resolve to the metric-specific evidence source set',
+    ]));
+
+    const duplicatedRouteLedgerReferenceOnBaselineMetric = structuredClone(INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE);
+    const baselineMetric = duplicatedRouteLedgerReferenceOnBaselineMetric.effectReports[0].metrics.find((metric) => (
+      metric.id === 'baselineUsageCoverage'
+    ));
+    baselineMetric!.sourceReferences = [
+      ...baselineMetric!.sourceReferences.slice(0, -1),
+      baselineMetric!.sourceReferences[0],
+    ];
+    expect(validateIntelligentTeachingAssistantDemoPackage(duplicatedRouteLedgerReferenceOnBaselineMetric)).toEqual(expect.arrayContaining([
+      'effect report source references must resolve to the metric-specific evidence source set',
     ]));
 
     const duplicateRoute = structuredClone(INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE);

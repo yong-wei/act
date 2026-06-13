@@ -171,7 +171,8 @@ function validateCompetitionVisualEvidence(): string[] {
 
   for (const href of requiredRoutes) {
     const routeEvidence = evidenceByHref.get(href);
-    const widths = new Set((routeEvidence?.viewports ?? []).map((viewport) => viewport.width));
+    const viewports = routeEvidence?.viewports ?? [];
+    const widths = new Set(viewports.map((viewport) => viewport.width));
     const themes = new Set((routeEvidence?.viewports ?? []).map((viewport) => viewport.theme).filter(Boolean));
     const invalidAuthState = (routeEvidence?.viewports ?? []).find((viewport) => (
       viewport.authState && !validAuthStates.has(viewport.authState)
@@ -187,8 +188,10 @@ function validateCompetitionVisualEvidence(): string[] {
     }
     const requiredThemes = resolvePlatformRouteInventory(href)?.themeSupport ?? ['light', 'dark'];
     for (const requiredTheme of requiredThemes) {
-      if (!themes.has(requiredTheme)) {
-        errors.push(`visual evidence missing ${requiredTheme} theme coverage for ${href}`);
+      for (const requiredWidth of [1440, 320]) {
+        if (!viewports.some((viewport) => viewport.width === requiredWidth && viewport.theme === requiredTheme)) {
+          errors.push(`visual evidence missing ${requiredTheme} ${requiredWidth}px coverage for ${href}`);
+        }
       }
     }
   }
