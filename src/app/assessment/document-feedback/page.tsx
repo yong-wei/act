@@ -1,6 +1,7 @@
 import { UserRole } from '@prisma/client';
 import { redirect } from 'next/navigation';
 
+import { AppShell } from '@/components/platform/app-shell';
 import { StudentDocumentGradingFeedback } from '@/features/assessment/document-rubric-grading-ui';
 import { buildDocumentRubricDemoViews } from '@/features/assessment/document-rubric-grading-demo';
 import { getServerAuthSession } from '@/lib/auth';
@@ -13,6 +14,21 @@ import {
 } from '@/lib/data-governance/document-rubric-grading-workbench';
 
 export const dynamic = 'force-dynamic';
+
+function renderDocumentFeedbackShell(view: Parameters<typeof StudentDocumentGradingFeedback>[0]['view']) {
+  return (
+    <AppShell
+      viewerRole="student"
+      title="报告反馈"
+      subtitle="查看教师审核后的评分证据与后续行动"
+      activeHref="/assessment/document-feedback"
+      sidebarMode="collapsible"
+      className="surface-page"
+    >
+      <StudentDocumentGradingFeedback view={view} />
+    </AppShell>
+  );
+}
 
 export default async function DocumentFeedbackPage({
   searchParams,
@@ -33,10 +49,10 @@ export default async function DocumentFeedbackPage({
       studentId: session.user.id,
       viewerStudentId: session.user.id,
     });
-    return <StudentDocumentGradingFeedback view={studentView} />;
+    return renderDocumentFeedbackShell(studentView);
   }
   if (!params?.gradingRunId) {
-    return <StudentDocumentGradingFeedback view={createHiddenStudentGradingFeedbackView({ studentId: session.user.id })} />;
+    return renderDocumentFeedbackShell(createHiddenStudentGradingFeedbackView({ studentId: session.user.id }));
   }
 
   const draft = await prisma.learningEvidenceDraft.findFirst({
@@ -60,5 +76,5 @@ export default async function DocumentFeedbackPage({
         viewerStudentId: session.user.id,
       })
     : createHiddenStudentGradingFeedbackView({ studentId: session.user.id });
-  return <StudentDocumentGradingFeedback view={studentView} />;
+  return renderDocumentFeedbackShell(studentView);
 }

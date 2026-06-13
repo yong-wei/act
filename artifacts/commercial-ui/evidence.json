@@ -1371,7 +1371,7 @@
         },
         {
           "width": 1440,
-          "artifact": "artifacts/commercial-ui/app-shell-392-evidence.json",
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
           "firstViewportUseful": true,
           "navigationReachable": true,
           "noTextOverlap": true,
@@ -6705,7 +6705,7 @@
           "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
           "theme": "light",
           "role": "student",
-          "authState": "mixed",
+          "authState": "authenticated",
           "navigationState": "desktop-expanded"
         },
         {
@@ -6737,7 +6737,7 @@
           "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
           "theme": "light",
           "role": "student",
-          "authState": "mixed",
+          "authState": "authenticated",
           "navigationState": "workspace-command-surface"
         },
         {
@@ -6764,7 +6764,7 @@
           "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
           "theme": "light",
           "role": "student",
-          "authState": "mixed",
+          "authState": "authenticated",
           "navigationState": "desktop-collapsed"
         }
       ]
@@ -6796,7 +6796,7 @@
           "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/demo",
           "theme": "light",
           "role": "teacher",
-          "authState": "mixed",
+          "authState": "authenticated",
           "navigationState": "desktop-expanded"
         },
         {
@@ -6828,7 +6828,7 @@
           "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/demo",
           "theme": "light",
           "role": "teacher",
-          "authState": "mixed",
+          "authState": "authenticated",
           "navigationState": "workspace-command-surface"
         },
         {
@@ -6855,7 +6855,7 @@
           "finalUrl": "http://127.0.0.1:3001/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/demo",
           "theme": "light",
           "role": "teacher",
-          "authState": "mixed",
+          "authState": "authenticated",
           "navigationState": "desktop-collapsed"
         }
       ]
@@ -6887,7 +6887,7 @@
           "finalUrl": "http://127.0.0.1:3001/login",
           "theme": "light",
           "role": "student",
-          "authState": "protected-redirect",
+          "authState": "unauth-redirect-fallback",
           "navigationState": "desktop-expanded"
         },
         {
@@ -6919,7 +6919,7 @@
           "finalUrl": "http://127.0.0.1:3001/login",
           "theme": "light",
           "role": "student",
-          "authState": "protected-redirect",
+          "authState": "unauth-redirect-fallback",
           "navigationState": "hidden-immersive"
         },
         {
@@ -6946,7 +6946,7 @@
           "finalUrl": "http://127.0.0.1:3001/login",
           "theme": "light",
           "role": "student",
-          "authState": "protected-redirect",
+          "authState": "unauth-redirect-fallback",
           "navigationState": "desktop-collapsed"
         }
       ]
@@ -8681,6 +8681,100 @@
             "/arena",
             "/assessment/adaptive-practice"
           ]
+        }
+      ]
+    },
+    {
+      "href": "/assessment/document-feedback",
+      "viewports": [
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/app-shell-392-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/assessment/document-feedback/page.tsx",
+          "routeArchetype": "report-ledger",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/assessment/document-feedback",
+          "finalUrl": "http://127.0.0.1:3001/assessment/document-feedback?demo=1",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "navigationState": "desktop-expanded"
+        },
+        {
+          "width": 1440,
+          "artifact": "artifacts/commercial-ui/navigation-state-396-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/assessment/document-feedback/page.tsx",
+          "routeArchetype": "report-ledger",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/assessment/document-feedback",
+          "finalUrl": "http://127.0.0.1:3001/assessment/document-feedback?demo=1",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "navigationState": "desktop-collapsed",
+          "gridTemplateColumns": "72px 1368px",
+          "sidebarWidth": 72,
+          "contentWidth": 1368
+        },
+        {
+          "width": 320,
+          "artifact": "artifacts/commercial-ui/app-shell-392-evidence.json",
+          "firstViewportUseful": true,
+          "navigationReachable": true,
+          "noTextOverlap": true,
+          "stablePanelGeometry": true,
+          "coherentBrandApplication": true,
+          "taskControlsVisible": true,
+          "contrastChecked": true,
+          "visibleFocus": true,
+          "keyboardReachable": true,
+          "reducedMotionChecked": true,
+          "buttonTextFits": true,
+          "noMobileTextOverlap": true,
+          "routeFile": "src/app/assessment/document-feedback/page.tsx",
+          "routeArchetype": "report-ledger",
+          "dockState": "required",
+          "result": "passed",
+          "firstViewportTaskVisible": true,
+          "requestedRoute": "/assessment/document-feedback",
+          "finalUrl": "http://127.0.0.1:3001/assessment/document-feedback?demo=1",
+          "theme": "light",
+          "role": "student",
+          "authState": "authenticated",
+          "navigationState": "role-route-tabs",
+          "mobileCanvasFirst": true,
+          "noPersistentMobileSidebar": true,
+          "noPersistentMobileFilter": true,
+          "noPersistentWorkbenchPanels": true,
+          "noPersistentKnowledgeGraphDrawer": true
         }
       ]
     }

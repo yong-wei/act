@@ -169,7 +169,7 @@ export function TeacherDocumentGradingEmptyState() {
 
 export function StudentDocumentGradingFeedback({ view }: { view: StudentGradingFeedbackView }) {
   return (
-    <main className="surface-page" data-intelligent-teaching-assistant-demo-surface="document-feedback">
+    <section className="w-full" data-intelligent-teaching-assistant-demo-surface="document-feedback">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8">
         <header className="border-b border-border pb-5">
           <p className="text-xs uppercase tracking-[0.18em] text-primary">Returned feedback</p>
@@ -263,6 +263,6 @@ export function StudentDocumentGradingFeedback({ view }: { view: StudentGradingF
           </section>
         )}
       </div>
-    </main>
+    </section>
   );
 }

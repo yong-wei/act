@@ -840,6 +840,18 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     owningChange: 'redesign-learner-data-and-report-surfaces',
   }),
   primaryRoute({
+    href: '/assessment/document-feedback',
+    routeFile: 'src/app/assessment/document-feedback/page.tsx',
+    frame: 'report-ledger',
+    roleScope: ['student'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    mobileNavigation: 'role-route-tabs',
+    owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
+  }),
+  primaryRoute({
     href: '/data-center',
     routeFile: 'src/app/data-center/page.tsx',
     frame: 'knowledge-data-map',

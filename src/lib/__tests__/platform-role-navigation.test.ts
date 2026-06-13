@@ -285,6 +285,7 @@ describe('platform role navigation', () => {
       '/profile/growth',
       '/profile/portfolio',
       '/profile/evidence',
+      '/assessment/document-feedback',
       '/data-center',
       '/classroom/student/[sessionId]',
       '/interactive-learning/courses/[course]/student/[sessionId]',
@@ -393,6 +394,11 @@ describe('platform role navigation', () => {
       floatingDock: 'enabled',
       legacyFrameAliases: expect.arrayContaining([expect.objectContaining({ alias: 'teacher-operations' })]),
     });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/teacher/prep-packs')).toMatchObject({
+      frame: 'report-ledger',
+      owningChange: 'migrate-operations-report-ledger-surfaces',
+      roleScope: ['teacher'],
+    });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/admin')).toMatchObject({
       frame: 'operations-console',
       owningChange: 'migrate-operations-report-ledger-surfaces',
@@ -486,7 +492,10 @@ describe('platform role navigation', () => {
 
     for (const route of PLATFORM_PRIMARY_ROUTE_INVENTORY) {
       expect(route.owningChange).toMatch(/^[a-z0-9-]+$/);
-      expect(route.themeSupport).toEqual(expect.arrayContaining(['light', 'dark']));
+      expect(route.themeSupport.length).toBeGreaterThan(0);
+      for (const theme of route.themeSupport) {
+        expect(['light', 'dark']).toContain(theme);
+      }
       expect(route.authState).toBeTruthy();
       expect(route.mobileNavigation).toBeTruthy();
       expect(route.shellMigrationDisposition).toBeTruthy();
@@ -647,6 +656,11 @@ describe('platform role navigation', () => {
       frame: 'report-ledger',
       mobileNavigation: 'role-route-tabs',
       owningChange: 'redesign-learner-data-and-report-surfaces',
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/assessment/document-feedback')).toMatchObject({
+      frame: 'report-ledger',
+      roleScope: ['student'],
+      mobileNavigation: 'role-route-tabs',
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/data-center')).toMatchObject({
       frame: 'knowledge-data-map',

@@ -23,7 +23,8 @@ interface AssistantDemoMethodology {
 
 export interface AssistantDemoEffectMetric {
   id: 'gradingFeedbackCoverage' | 'teacherOverrideRate' | 'aiTeacherScoreDelta' |
-    'aiTeacherAgreementRate' | 'blockedEvaluatorOutputCount' | 'gradingSampleSize';
+    'aiTeacherAgreementRate' | 'blockedEvaluatorOutputCount' | 'gradingSampleSize' |
+    'pathAdoptionRate' | 'prepPackActivationRate' | 'citationCoverageRate' | 'baselineUsageCoverage';
   label: string;
   value: number;
   unit: 'rate' | 'score' | 'count';
@@ -35,6 +36,8 @@ export interface AssistantDemoEffectMetric {
   sourceReferences: string[];
   exclusions: string[];
   caveats: string[];
+  sampleSize: number;
+  dataOrigin: 'synthetic-demo' | 'real-learner-evidence';
   synthetic: true;
 }
 
@@ -280,7 +283,6 @@ export const INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE: IntelligentTeachingAss
   },
   providerExamples: [
     { id: 'ita-openai-compatible', providerKind: 'openai-compatible', secretRef: 'env:DEMO_AI_API_KEY', capabilities: { tools: true, streaming: true, citations: true } },
-    { id: 'ita-anthropic-compatible', providerKind: 'anthropic-compatible', secretRef: 'env:DEMO_ANTHROPIC_API_KEY', capabilities: { tools: true, streaming: true, citations: true } },
   ],
   class: {
     id: 'demo-ita-class',
@@ -373,12 +375,16 @@ export const INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE: IntelligentTeachingAss
     generatedAt: '2026-06-05T18:00:00.000Z',
     syntheticOnly: true,
     metrics: [
-      { id: 'gradingFeedbackCoverage', label: '批改反馈覆盖率', value: 0.5, unit: 'rate', confidence: 'high', definition: 'Share of document rubric grading runs with teacher-approved or returned feedback visible to students.', numerator: '1 approved synthetic grading run with feedback action cards and citations', denominator: '2 synthetic grading runs', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['grading-beta-approved', 'feedback-grading-beta-approved'], exclusions: ['Draft grading runs awaiting teacher approval are excluded from the numerator.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
-      { id: 'teacherOverrideRate', label: '教师覆写率', value: 0.5, unit: 'rate', confidence: 'medium', definition: 'Share of teacher-reviewed assistant draft rubric criteria changed by the teacher before approval or return.', numerator: '1 criterion with teacher diff', denominator: '2 approved grading criteria', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['approval-grading-beta-approved'], exclusions: ['Draft and blocked evaluator outputs without teacher review are excluded from the denominator.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
-      { id: 'aiTeacherScoreDelta', label: 'AI/教师分差', value: 0.5, unit: 'score', confidence: 'medium', definition: 'Average absolute criterion score delta between assistant draft and teacher-approved rubric values.', numerator: '1 total changed score point across edited criteria', denominator: '2 approved grading criteria', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['grading-beta-approved', 'approval-grading-beta-approved'], exclusions: ['Unapproved drafts and blocked evaluator outputs are excluded.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
-      { id: 'aiTeacherAgreementRate', label: 'AI/教师一致率', value: 0.5, unit: 'rate', confidence: 'medium', definition: 'Share of teacher-reviewed rubric criteria whose assistant draft required no teacher diff.', numerator: '1 unchanged criterion', denominator: '2 approved grading criteria', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['grading-beta-approved', 'approval-grading-beta-approved'], exclusions: ['Draft and blocked evaluator outputs without teacher review are excluded from the denominator.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
-      { id: 'blockedEvaluatorOutputCount', label: '阻塞输出数', value: 0, unit: 'count', confidence: 'high', definition: 'Count of schema-invalid or evidence-anchor-invalid evaluator outputs blocked before writeback.', numerator: '0 blocked evaluator outputs', denominator: '2 synthetic evaluator outputs inspected', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['conversion-doc-alpha-control-report', 'conversion-doc-beta-control-report'], exclusions: ['Manual teacher edits after a valid draft are not counted as blocked outputs.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
-      { id: 'gradingSampleSize', label: '评分样本量', value: 2, unit: 'count', confidence: 'high', definition: 'Number of document rubric grading runs included in the synthetic effect report window.', numerator: '2 grading runs in report scope', denominator: '1 synthetic class report window', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['grading-alpha-draft', 'grading-beta-approved'], exclusions: ['Real learner evidence imports are excluded until privacy review is complete.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
+      { id: 'gradingFeedbackCoverage', label: '批改反馈覆盖率', value: 0.5, unit: 'rate', confidence: 'high', definition: 'Share of document rubric grading runs with teacher-approved or returned feedback visible to students.', numerator: '1 approved synthetic grading run with feedback action cards and citations', denominator: '2 synthetic grading runs', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['grading-beta-approved', 'feedback-grading-beta-approved'], exclusions: ['Draft grading runs awaiting teacher approval are excluded from the numerator.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], sampleSize: 2, dataOrigin: 'synthetic-demo', synthetic: true },
+      { id: 'teacherOverrideRate', label: '教师覆写率', value: 0.5, unit: 'rate', confidence: 'medium', definition: 'Share of teacher-reviewed assistant draft rubric criteria changed by the teacher before approval or return.', numerator: '1 criterion with teacher diff', denominator: '2 approved grading criteria', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['approval-grading-beta-approved'], exclusions: ['Draft and blocked evaluator outputs without teacher review are excluded from the denominator.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], sampleSize: 2, dataOrigin: 'synthetic-demo', synthetic: true },
+      { id: 'aiTeacherScoreDelta', label: 'AI/教师分差', value: 0.5, unit: 'score', confidence: 'medium', definition: 'Average absolute criterion score delta between assistant draft and teacher-approved rubric values.', numerator: '1 total changed score point across edited criteria', denominator: '2 approved grading criteria', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['grading-beta-approved', 'approval-grading-beta-approved'], exclusions: ['Unapproved drafts and blocked evaluator outputs are excluded.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], sampleSize: 2, dataOrigin: 'synthetic-demo', synthetic: true },
+      { id: 'aiTeacherAgreementRate', label: 'AI/教师一致率', value: 0.5, unit: 'rate', confidence: 'medium', definition: 'Share of teacher-reviewed rubric criteria whose assistant draft required no teacher diff.', numerator: '1 unchanged criterion', denominator: '2 approved grading criteria', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['grading-beta-approved', 'approval-grading-beta-approved'], exclusions: ['Draft and blocked evaluator outputs without teacher review are excluded from the denominator.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], sampleSize: 2, dataOrigin: 'synthetic-demo', synthetic: true },
+      { id: 'blockedEvaluatorOutputCount', label: '阻塞输出数', value: 0, unit: 'count', confidence: 'high', definition: 'Count of schema-invalid or evidence-anchor-invalid evaluator outputs blocked before writeback.', numerator: '0 blocked evaluator outputs', denominator: '2 synthetic evaluator outputs inspected', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['conversion-doc-alpha-control-report', 'conversion-doc-beta-control-report'], exclusions: ['Manual teacher edits after a valid draft are not counted as blocked outputs.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], sampleSize: 2, dataOrigin: 'synthetic-demo', synthetic: true },
+      { id: 'gradingSampleSize', label: '评分样本量', value: 2, unit: 'count', confidence: 'high', definition: 'Number of document rubric grading runs included in the synthetic effect report window.', numerator: '2 grading runs in report scope', denominator: '1 synthetic class report window', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['grading-alpha-draft', 'grading-beta-approved'], exclusions: ['Real learner evidence imports are excluded until privacy review is complete.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], sampleSize: 2, dataOrigin: 'synthetic-demo', synthetic: true },
+      { id: 'pathAdoptionRate', label: '路径采纳率', value: 0.667, unit: 'rate', confidence: 'medium', definition: 'Share of synthetic learner paths with a selected governed path option.', numerator: '2 selected path options', denominator: '3 synthetic path plans', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['path-alpha-main', 'path-beta-feedback', 'path-option-alpha-selected', 'path-option-beta-selected'], exclusions: ['Alternative options are excluded from the adoption numerator.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], sampleSize: 3, dataOrigin: 'synthetic-demo', synthetic: true },
+      { id: 'prepPackActivationRate', label: '课前包激活率', value: 1, unit: 'rate', confidence: 'medium', definition: 'Share of generated synthetic teacher prep packs with an active runtime overlay.', numerator: '1 active prep-pack overlay', denominator: '1 synthetic prep pack', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['prep-pack-demo-ita', 'overlay-prep-pack-demo-ita'], exclusions: ['Draft-resource requests without approved overlay anchors are excluded.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], sampleSize: 1, dataOrigin: 'synthetic-demo', synthetic: true },
+      { id: 'citationCoverageRate', label: '引用覆盖率', value: 1, unit: 'rate', confidence: 'high', definition: 'Share of required Konling demo sessions carrying reviewable redacted citations.', numerator: '8 cited Konling sessions', denominator: '8 required Konling sessions', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['konling-diagnosis', 'konling-path', 'konling-resource', 'konling-grading', 'konling-feedback', 'konling-class', 'konling-prep', 'konling-generic'], exclusions: ['Generic uncited chat transcripts are excluded from the demo package.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], sampleSize: 8, dataOrigin: 'synthetic-demo', synthetic: true },
+      { id: 'baselineUsageCoverage', label: '基线使用覆盖率', value: 1, unit: 'rate', confidence: 'medium', definition: 'Share of baseline acceptance route and API checks represented by deterministic synthetic demo package records.', numerator: '15 baseline route and API checks represented', denominator: '15 baseline route and API checks', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['demo-ita-class', 'snapshot-diagnosis-alpha', 'path-alpha-main', 'prep-pack-demo-ita', 'effect-report-demo-ita-export'], exclusions: ['External live-video repository availability is tracked separately in the asset manifest.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], sampleSize: 15, dataOrigin: 'synthetic-demo', synthetic: true },
     ],
     export: { id: 'effect-report-demo-ita-export', redacted: true, route: '/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true', omits: ['raw answer bodies', 'private memory', 'hidden Arena internals', 'raw traces', 'plaintext secrets'] },
   }],
@@ -435,10 +441,11 @@ export const XH_202620_COMPETITION_BASELINE: CompetitionBaseline = {
       displayName: 'Competition Demo Teacher',
       synthetic: true,
       routeScope: [
+        '/',
         '/teacher/grading-workbench?demo=1',
-        '/teacher/classes/demo-ita-class',
         '/teacher/classes/demo-ita-class/analytics-v2',
         '/teacher/classes/demo-ita-class/students/demo-ita-student-beta',
+        '/teacher/prep-packs',
         '/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true',
       ],
     },
@@ -449,6 +456,7 @@ export const XH_202620_COMPETITION_BASELINE: CompetitionBaseline = {
       synthetic: true,
       routeScope: [
         '/admin/settings',
+        '/admin/data-governance',
         '/data-center',
       ],
     },
@@ -458,9 +466,14 @@ export const XH_202620_COMPETITION_BASELINE: CompetitionBaseline = {
       displayName: 'Competition Demo Student Alpha',
       synthetic: true,
       routeScope: [
+        '/',
         '/profile/evidence',
+        '/profile/growth',
         '/assessment/adaptive-practice?goal=control-correction',
         '/assessment/document-feedback?demo=1',
+        '/arena',
+        '/arena/challenges/task-second-order-lead-pid',
+        '/interactive-learning/control-workbench',
       ],
     },
   ],
@@ -475,6 +488,15 @@ export const XH_202620_COMPETITION_BASELINE: CompetitionBaseline = {
     { id: 'effect-report-demo-ita-export', type: 'effect-report-export', dataOrigin: 'synthetic-demo', sourcePackageId: 'intelligent-teaching-assistant' },
   ],
   routeLedger: [
+    {
+      id: 'entry-home',
+      actorRole: 'student',
+      label: 'Reviewer starts from the unified student entry surface',
+      route: '/',
+      expectedEvidence: 'commercial student entry with competition route order',
+      surfaceStatus: 'implemented',
+      dataOrigin: 'synthetic-demo',
+    },
     {
       id: 'teacher-grading-workbench',
       actorRole: 'teacher',
@@ -503,6 +525,15 @@ export const XH_202620_COMPETITION_BASELINE: CompetitionBaseline = {
       dataOrigin: 'synthetic-demo',
     },
     {
+      id: 'student-diagnosis-growth',
+      actorRole: 'student',
+      label: 'Student opens diagnosis and growth evidence',
+      route: '/profile/growth',
+      expectedEvidence: 'diagnosis-alpha and learner growth evidence',
+      surfaceStatus: 'implemented',
+      dataOrigin: 'synthetic-demo',
+    },
+    {
       id: 'student-adaptive-path',
       actorRole: 'student',
       label: 'Student follows control-correction adaptive path',
@@ -514,10 +545,28 @@ export const XH_202620_COMPETITION_BASELINE: CompetitionBaseline = {
     {
       id: 'teacher-prep-pack-review',
       actorRole: 'teacher',
-      label: 'Teacher reviews prep-pack action slot',
-      route: '/teacher/classes/demo-ita-class',
-      expectedEvidence: 'prep-pack-demo-ita fixture with signed server context',
-      surfaceStatus: 'placeholder',
+      label: 'Teacher reviews prep-pack actions',
+      route: '/teacher/prep-packs',
+      expectedEvidence: 'prep-pack-demo-ita fixture with signed server context and lifecycle actions',
+      surfaceStatus: 'implemented',
+      dataOrigin: 'synthetic-demo',
+    },
+    {
+      id: 'teacher-class-diagnosis',
+      actorRole: 'teacher',
+      label: 'Teacher reviews class-level diagnosis and report evidence',
+      route: '/teacher/classes/demo-ita-class/analytics-v2',
+      expectedEvidence: 'teacher-class-analytics marker and demo-ita-class governance summary',
+      surfaceStatus: 'implemented',
+      dataOrigin: 'synthetic-demo',
+    },
+    {
+      id: 'teacher-student-diagnosis',
+      actorRole: 'teacher',
+      label: 'Teacher drills into individual student evidence',
+      route: '/teacher/classes/demo-ita-class/students/demo-ita-student-beta',
+      expectedEvidence: 'teacher-student-insights marker and demo-ita-student-beta evidence summary',
+      surfaceStatus: 'implemented',
       dataOrigin: 'synthetic-demo',
     },
     {
@@ -538,6 +587,42 @@ export const XH_202620_COMPETITION_BASELINE: CompetitionBaseline = {
       surfaceStatus: 'implemented',
       dataOrigin: 'synthetic-demo',
     },
+    {
+      id: 'admin-governance',
+      actorRole: 'administrator',
+      label: 'Administrator verifies governed data and provider policy',
+      route: '/admin/data-governance',
+      expectedEvidence: 'admin data governance surface with provenance controls',
+      surfaceStatus: 'implemented',
+      dataOrigin: 'synthetic-demo',
+    },
+    {
+      id: 'student-arena-entry',
+      actorRole: 'student',
+      label: 'Student opens Arena challenge workspace',
+      route: '/arena',
+      expectedEvidence: 'Arena workspace shell and task map',
+      surfaceStatus: 'implemented',
+      dataOrigin: 'synthetic-demo',
+    },
+    {
+      id: 'student-arena-challenge',
+      actorRole: 'student',
+      label: 'Student inspects official Arena challenge',
+      route: '/arena/challenges/task-second-order-lead-pid',
+      expectedEvidence: 'task-second-order-lead-pid challenge detail and leaderboard evidence',
+      surfaceStatus: 'implemented',
+      dataOrigin: 'synthetic-demo',
+    },
+    {
+      id: 'student-control-workbench',
+      actorRole: 'student',
+      label: 'Student rehearses in the simulation control workbench',
+      route: '/interactive-learning/control-workbench',
+      expectedEvidence: 'control-workbench simulation shell',
+      surfaceStatus: 'implemented',
+      dataOrigin: 'synthetic-demo',
+    },
   ],
   capabilities: [
     {
@@ -551,42 +636,32 @@ export const XH_202620_COMPETITION_BASELINE: CompetitionBaseline = {
       id: 'document-grading',
       competitionRequirement: 'AI-assisted report grading with teacher review',
       platformCapability: 'document rubric grading workbench and cited student feedback',
-      status: 'partial',
+      status: 'implemented',
       proof: ['grading-alpha-draft', 'approval-grading-beta-approved', '/teacher/grading-workbench?demo=1'],
-      nextChange: 'professionalize-document-grading',
     },
     {
       id: 'konling-explanation',
       competitionRequirement: 'Interactive assistant explains diagnosis, path, resources, and grading',
       platformCapability: 'Konling mode runtime with scoped citations',
-      status: 'partial',
+      status: 'implemented',
       proof: ['konling-diagnosis', 'konling-path', 'konling-grading'],
-      nextChange: 'harden-assistant-evidence-loop',
     },
     {
       id: 'teacher-prep-pack',
       competitionRequirement: 'Teacher receives a prep-pack action from student evidence',
       platformCapability: 'teacher prep-pack and runtime overlay fixtures',
-      status: 'partial',
+      status: 'implemented',
       proof: ['prep-pack-demo-ita', 'overlay-prep-pack-demo-ita'],
-      nextChange: 'productize-learning-path-prep-pack',
     },
     {
       id: 'effect-report',
       competitionRequirement: 'Competition reviewer sees source-backed effect report',
       platformCapability: 'assistant effect report export with metric methodology',
-      status: 'planned',
+      status: 'implemented',
       proof: ['effect-report-demo-ita-export'],
-      nextChange: 'polish-competition-surfaces-report',
     },
   ],
   temporarySurfaces: [
-    {
-      id: 'teacher-prep-pack-page-slot',
-      routeOrApi: '/teacher/classes/demo-ita-class',
-      surfaceStatus: 'placeholder',
-      removalOwner: 'productize-learning-path-prep-pack',
-    },
     {
       id: 'assistant-effect-report-api-only',
       routeOrApi: '/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true',
@@ -610,6 +685,7 @@ export const XH_202620_COMPETITION_BASELINE: CompetitionBaseline = {
   acceptanceCommands: [
     'rtk npm run test:competition-baseline',
     'rtk npm run test:intelligent-teaching-assistant-demo',
+    'rtk npm run test:commercial-ui-governance',
     'rtk openspec validate competition-demo-baseline --strict',
   ],
 };
@@ -674,13 +750,34 @@ const REQUIRED_INSTALL_RECORD_TYPES = new Set([
   'teacher-approval',
   'writeback-preview',
 ]);
-const REQUIRED_GRADING_EFFECT_METRICS = new Set([
+const REQUIRED_EFFECT_REPORT_METRICS = new Set([
   'gradingFeedbackCoverage',
   'teacherOverrideRate',
   'aiTeacherScoreDelta',
   'aiTeacherAgreementRate',
   'blockedEvaluatorOutputCount',
   'gradingSampleSize',
+  'pathAdoptionRate',
+  'prepPackActivationRate',
+  'citationCoverageRate',
+  'baselineUsageCoverage',
+]);
+const REQUIRED_COMPETITION_ROUTE_IDS = new Set([
+  'entry-home',
+  'teacher-grading-workbench',
+  'student-document-feedback',
+  'student-learner-record',
+  'student-diagnosis-growth',
+  'student-adaptive-path',
+  'teacher-prep-pack-review',
+  'teacher-class-diagnosis',
+  'teacher-student-diagnosis',
+  'teacher-effect-report',
+  'admin-provenance',
+  'admin-governance',
+  'student-arena-entry',
+  'student-arena-challenge',
+  'student-control-workbench',
 ]);
 const FORBIDDEN_PATTERNS = [
   /(?:^|[\s:"'])sk-[a-z0-9_-]{8,}/i,
@@ -740,6 +837,53 @@ function expectedMetricValue(pkg: IntelligentTeachingAssistantDemoPackage, metri
   if (metricId === 'gradingSampleSize') {
     return pkg.gradingRuns.length;
   }
+  if (metricId === 'pathAdoptionRate') {
+    const selectedOptions = pkg.pathOptions.filter((option) => option.optionType === 'selected').length;
+    return pkg.pathPlans.length === 0 ? 0 : selectedOptions / pkg.pathPlans.length;
+  }
+  if (metricId === 'prepPackActivationRate') {
+    const activeOverlays = pkg.prepPackOverlays.filter((overlay) => overlay.status === 'active').length;
+    return pkg.prepPacks.length === 0 ? 0 : activeOverlays / pkg.prepPacks.length;
+  }
+  if (metricId === 'citationCoverageRate') {
+    const citedSessions = pkg.konlingSessions.filter((session) => session.citations.length > 0).length;
+    return pkg.konlingSessions.length === 0 ? 0 : citedSessions / pkg.konlingSessions.length;
+  }
+  if (metricId === 'baselineUsageCoverage') {
+    const representedChecks = pkg.routeChecks.length + pkg.apiExamples.length;
+    const expectedChecks = REQUIRED_ROUTES.size + REQUIRED_APIS.size;
+    return expectedChecks === 0 ? 0 : representedChecks / expectedChecks;
+  }
+  return null;
+}
+
+function expectedEffectMetricSampleSize(pkg: IntelligentTeachingAssistantDemoPackage, metricId: AssistantDemoEffectMetric['id']): number | null {
+  if (
+    metricId === 'gradingFeedbackCoverage' ||
+    metricId === 'blockedEvaluatorOutputCount' ||
+    metricId === 'gradingSampleSize'
+  ) {
+    return pkg.gradingRuns.length;
+  }
+  if (
+    metricId === 'teacherOverrideRate' ||
+    metricId === 'aiTeacherScoreDelta' ||
+    metricId === 'aiTeacherAgreementRate'
+  ) {
+    return pkg.documentWorkflow.teacherApprovals.reduce((total, approval) => total + approval.reviewedCriteria, 0);
+  }
+  if (metricId === 'pathAdoptionRate') {
+    return pkg.pathPlans.length;
+  }
+  if (metricId === 'prepPackActivationRate') {
+    return pkg.prepPacks.length;
+  }
+  if (metricId === 'citationCoverageRate') {
+    return pkg.konlingSessions.length;
+  }
+  if (metricId === 'baselineUsageCoverage') {
+    return REQUIRED_ROUTES.size + REQUIRED_APIS.size;
+  }
   return null;
 }
 
@@ -757,12 +901,15 @@ function isCompleteEffectMetric(metric: AssistantDemoEffectMetric): boolean {
     metric.sourceReferences.length > 0 &&
     metric.exclusions.length > 0 &&
     metric.caveats.length > 0 &&
+    metric.sampleSize > 0 &&
+    metric.dataOrigin === 'synthetic-demo' &&
     metric.synthetic,
   );
 }
 
 function collectDemoSourceReferenceIds(pkg: IntelligentTeachingAssistantDemoPackage): Set<string> {
   return new Set([
+    pkg.class.id,
     ...Object.values(demoCitations).map((citation) => citation.id),
     ...pkg.citationRecords.map((citation) => citation.id),
     ...pkg.learnerStateSlices.map((slice) => slice.id),
@@ -779,6 +926,8 @@ function collectDemoSourceReferenceIds(pkg: IntelligentTeachingAssistantDemoPack
     ...pkg.teacherReports.map((report) => report.id),
     ...pkg.prepPacks.map((pack) => pack.id),
     ...pkg.prepPackOverlays.map((overlay) => overlay.id),
+    ...pkg.effectReports.map((report) => report.export.id),
+    ...pkg.konlingSessions.map((session) => session.id),
   ]);
 }
 
@@ -948,7 +1097,7 @@ export function validateIntelligentTeachingAssistantDemoPackage(
     report.goalId === 'control-correction' &&
     report.export.redacted &&
     REQUIRED_OMISSIONS.every((omission) => report.export.omits.includes(omission)) &&
-    [...REQUIRED_GRADING_EFFECT_METRICS].every((id) => report.metrics.some((metric) => metric.id === id)) &&
+    [...REQUIRED_EFFECT_REPORT_METRICS].every((id) => report.metrics.some((metric) => metric.id === id)) &&
     report.metrics.every(isCompleteEffectMetric)
   )), 'effect report metrics require definitions, source windows, source references, exclusions, caveats, and synthetic labels');
   add(pkg.effectReports.every((report) => report.metrics.every((metric) => (
@@ -958,6 +1107,10 @@ export function validateIntelligentTeachingAssistantDemoPackage(
     const expected = expectedMetricValue(pkg, metric.id);
     return expected === null || roundMetric(expected) === metric.value;
   })), 'effect report metrics must match recomputable demo record values');
+  add(pkg.effectReports.every((report) => report.metrics.every((metric) => {
+    const expected = expectedEffectMetricSampleSize(pkg, metric.id);
+    return expected === null || expected === metric.sampleSize;
+  })), 'effect report metric sample sizes must match recomputable demo record denominators');
   add(pkg.realEvidenceImports.every((entry) => (
     entry.status === 'pending-review' ||
     (entry.consentOrAuthorizationRef.length > 0 && entry.privacyReviewRef.length > 0 && entry.separatedFromSyntheticFixtures)
@@ -1012,7 +1165,6 @@ export function validateCompetitionBaseline(
   const roles = new Set(baseline.accounts.map((account) => account.role));
   const routeRoles = new Set(baseline.routeLedger.map((step) => step.actorRole));
   const statuses = new Set(baseline.routeLedger.map((step) => step.surfaceStatus));
-  const capabilityStatuses = new Set(baseline.capabilities.map((capability) => capability.status));
   const installed = installIntelligentTeachingAssistantDemoFixtures({ records: [] }, pkg);
   const reinstalled = installIntelligentTeachingAssistantDemoFixtures(installed.state, pkg);
   const installedIds = new Set(installed.upsertedIds);
@@ -1030,23 +1182,25 @@ export function validateCompetitionBaseline(
   add(baseline.records.every((record) => installedTypesById.get(record.id) === record.type), 'competition baseline record types must match deterministic demo fixture install output');
   add(JSON.stringify(installed.state.records) === JSON.stringify(reinstalled.state.records), 'competition baseline seed/reset must be idempotent');
   add(['student', 'teacher', 'administrator'].every((role) => routeRoles.has(role as CompetitionBaselineActorRole)), 'competition route ledger must cover student, teacher, and administrator routes');
+  add([...REQUIRED_COMPETITION_ROUTE_IDS].every((id) => baseline.routeLedger.some((step) => step.id === id)), 'competition route ledger must cover final entry, grading, diagnosis, path, prep-pack, effect-report, simulation or Arena, and admin surfaces');
   add(baseline.routeLedger.every((step) => step.dataOrigin === 'synthetic-demo' && step.expectedEvidence.length > 0), 'competition route ledger steps require synthetic data origin and expected evidence');
   add(baseline.routeLedger.every((step) => accountScopeByRole.get(step.actorRole)?.has(step.route)), 'competition route ledger routes must stay within each account role scope');
   add(!baseline.routeLedger.some((step) => step.actorRole === 'student' && step.route === '/data-center'), 'student competition route ledger must not use Data Center');
   add(baseline.routeLedger.some((step) => step.actorRole === 'student' && step.route === '/profile/evidence'), 'student competition route ledger must use learner-record evidence surface');
-  add(['implemented', 'placeholder', 'api-only'].every((status) => statuses.has(status as CompetitionBaselineSurfaceStatus)), 'competition route ledger must classify implemented, placeholder, and API-only surface status');
-  add(['implemented', 'partial', 'planned'].every((status) => capabilityStatuses.has(status as CompetitionBaselineCapabilityStatus)), 'competition capability map must include implemented, partial, and planned status');
+  add(['implemented', 'api-only'].every((status) => statuses.has(status as CompetitionBaselineSurfaceStatus)), 'competition route ledger must classify implemented and API-only surface status');
+  add(baseline.capabilities.every((capability) => capability.status === 'implemented' && !capability.nextChange), 'competition capability map must mark final baseline capabilities implemented without follow-up change pointers');
   add(capabilityProofs.every((proof) => installedIds.has(proof) || ledgerRoutes.has(proof)), 'competition capability proof ids must resolve to fixture records or ledger routes');
   add(
-    ['placeholder', 'feature-flagged', 'api-only'].every((status) => (
+    ['feature-flagged', 'api-only'].every((status) => (
       baseline.temporarySurfaces.some((surface) => surface.surfaceStatus === status)
     )) && baseline.temporarySurfaces.every((surface) => surface.removalOwner.length > 0),
-    'competition baseline must record placeholder, feature-flagged, and API-only surfaces with removal owners',
+    'competition baseline must record feature-flagged and API-only surfaces with removal owners',
   );
   add(baseline.seedReset.idempotencyKey === pkg.fixtureScope.resetIdempotencyKey, 'competition seed/reset must reuse the demo package idempotency key');
   add(baseline.seedReset.cleanupSelectors.every((selector) => selector.includes('syntheticOnly=true') || selector.includes('demoPackage=intelligent-teaching-assistant')), 'competition cleanup selectors must target synthetic demo package data');
   add(baseline.acceptanceCommands.includes('rtk npm run test:competition-baseline'), 'competition baseline must expose a named acceptance command');
   add(baseline.acceptanceCommands.includes('rtk npm run test:intelligent-teaching-assistant-demo'), 'competition baseline must reuse intelligent assistant demo acceptance');
+  add(baseline.acceptanceCommands.includes('rtk npm run test:commercial-ui-governance'), 'competition baseline must expose commercial UI governance acceptance');
   add(baseline.acceptanceCommands.includes('rtk openspec validate competition-demo-baseline --strict'), 'competition baseline must expose the archived spec validation command');
   add(!baseline.acceptanceCommands.some((command) => command.includes('freeze-competition-baseline')), 'competition baseline acceptance commands must not reference the archived change id');
   return errors;

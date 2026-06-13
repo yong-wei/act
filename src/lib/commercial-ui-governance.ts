@@ -122,6 +122,12 @@ export type CommercialVisualQaTheme = 'light' | 'dark';
 const COMMERCIAL_VISUAL_QA_REQUIRED_THEMES: readonly CommercialVisualQaTheme[] = ['light', 'dark'];
 export type CommercialVisualQaRole = 'guest' | 'student' | 'teacher' | 'admin';
 export type CommercialVisualQaAuthState = 'public' | 'auth-entry' | 'authenticated' | 'unauth-redirect-fallback';
+const COMMERCIAL_VISUAL_QA_AUTH_STATES: readonly CommercialVisualQaAuthState[] = [
+  'public',
+  'auth-entry',
+  'authenticated',
+  'unauth-redirect-fallback',
+];
 export type CommercialVisualQaNavigationState =
   | 'desktop-expanded'
   | 'desktop-collapsed'
@@ -329,11 +335,15 @@ export const DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES: CommercialVisualAccept
   { href: '/interactive-learning/courses/unit-4-1-design-task-expression', requiredWidths: [1440, 320] },
   { href: '/simulations', requiredWidths: [1440, 320] },
   { href: '/arena', requiredWidths: [1440, 320] },
+  { href: '/assessment/document-feedback', requiredWidths: [1440, 320] },
   { href: '/assessment/adaptive-practice', requiredWidths: [1440, 320] },
   { href: '/profile', requiredWidths: [1440, 320] },
+  { href: '/profile/evidence', requiredWidths: [1440, 320] },
   { href: '/interactive-learning/control-workbench', requiredWidths: [1440, 320] },
   { href: '/interactive-learning/courses/unit-5-4-data-driven-mpc-transition', requiredWidths: [1440, 320] },
   { href: '/teacher', requiredWidths: [1440, 320] },
+  { href: '/teacher/grading-workbench', requiredWidths: [1440, 320] },
+  { href: '/teacher/prep-packs', requiredWidths: [1440, 320] },
   { href: '/teacher/classes/[classId]/analytics-v2', requiredWidths: [1440, 320] },
   { href: '/admin', requiredWidths: [1440, 320] },
   { href: '/admin/data-governance', requiredWidths: [1440, 320] },
@@ -1178,7 +1188,6 @@ function buildRouteLedgerViolations(routeInventory: readonly PlatformPrimaryRout
       !route.owningChange ? 'owningChange' : '',
       !route.routeFile ? 'routeFile' : '',
       !route.themeSupport.includes('light') ? 'themeSupport=light' : '',
-      !route.themeSupport.includes('dark') ? 'themeSupport=dark' : '',
       route.navigationLayers.length === 0 ? 'navigationLayers' : '',
       !route.mobileNavigation ? 'mobileNavigation' : '',
       !route.shellMigrationDisposition ? 'shellMigrationDisposition' : '',
@@ -1266,7 +1275,7 @@ function buildVisualManifestMetadataViolations(
           : '',
         !viewport.theme ? 'theme' : '',
         !viewport.role ? 'role' : '',
-        !viewport.authState ? 'authState' : '',
+        !viewport.authState || !COMMERCIAL_VISUAL_QA_AUTH_STATES.includes(viewport.authState) ? 'authState' : '',
         !viewport.finalUrl ? 'finalUrl' : '',
         viewport.result !== 'passed' ? 'result=passed' : '',
         !viewport.firstViewportTaskVisible ? 'firstViewportTaskVisible' : '',

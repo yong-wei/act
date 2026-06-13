@@ -2,7 +2,6 @@
 
 ## Purpose
 Define the deterministic XH-202620 competition baseline for the automatic-control intelligent teaching assistant demo, including the fixed story, synthetic data contract, route ledger, and scriptable acceptance boundary used by later hardening and polish changes.
-
 ## Requirements
 ### Requirement: Competition baseline defines a deterministic assistant story
 The system SHALL define one competition baseline story that maps the automatic-control intelligent teaching assistant loop to concrete accounts, routes, data records, and acceptance checks.
@@ -27,17 +26,17 @@ Competition demo data SHALL be reproducible and resettable without contaminating
 - **AND** real user evidence SHALL NOT be overwritten or relabeled as demo data.
 
 ### Requirement: Competition route ledger is explicit
-The baseline SHALL identify the minimum reviewer click path before visual polishing begins.
+The competition route ledger SHALL include final visual evidence expectations.
 
-#### Scenario: Route ledger is generated
-- **WHEN** the route ledger is checked
-- **THEN** it SHALL include teacher grading workbench, student feedback, student diagnosis or learner-record surface, adaptive path surface, teacher prep-pack or review slot, assistant effect report, and administrator configuration or provenance surface
-- **AND** it SHALL identify any route that is only a temporary placeholder, feature-flagged slot, or API export.
+#### Scenario: Final route evidence is generated
+- **WHEN** visual evidence is generated for the competition route ledger
+- **THEN** teacher grading, student feedback, student diagnosis or evidence, path center, teacher prep-pack, effect report, administrator configuration or provenance, Arena or simulation validation, and homepage entry surfaces SHALL be covered where they are part of the demo
+- **AND** each route SHALL include desktop 1440px and mobile 320px expectations or a documented exception.
 
 ### Requirement: Baseline acceptance is scriptable
-The baseline SHALL include named verification commands or manual browser checks for the story.
+Final competition acceptance SHALL include visual, report, and material checks after product hardening is complete.
 
-#### Scenario: Baseline acceptance is executed
-- **WHEN** a developer runs the baseline acceptance procedure
-- **THEN** it SHALL prove seed/reset success, authenticated route reachability, role boundaries, data-origin visibility, and source-backed effect-report payload availability
-- **AND** it SHALL NOT require final visual screenshots or production deployment.
+#### Scenario: Final competition acceptance is executed
+- **WHEN** final competition acceptance runs
+- **THEN** it SHALL verify baseline seed/reset, role-scoped route reachability, core surface shell conformance, source-backed effect-report export, and asset-manifest completeness
+- **AND** it SHALL record any skipped external video repository step as an explicit out-of-repo dependency.

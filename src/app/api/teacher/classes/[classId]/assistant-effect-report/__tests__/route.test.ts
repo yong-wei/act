@@ -74,6 +74,10 @@ describe('GET /api/teacher/classes/[classId]/assistant-effect-report', () => {
       'aiTeacherAgreementRate',
       'blockedEvaluatorOutputCount',
       'gradingSampleSize',
+      'pathAdoptionRate',
+      'prepPackActivationRate',
+      'citationCoverageRate',
+      'baselineUsageCoverage',
     ]);
   });
 });
