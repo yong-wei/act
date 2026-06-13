@@ -187,7 +187,7 @@ Effect-report metric ids:
 | `pathAdoptionRate` | selected governed path options | synthetic path plans | `path-alpha-main`, `path-beta-feedback`, `path-option-alpha-selected`, `path-option-beta-selected` |
 | `prepPackActivationRate` | active prep-pack overlays | synthetic prep packs | `prep-pack-demo-ita`, `overlay-prep-pack-demo-ita` |
 | `citationCoverageRate` | cited Konling sessions | required Konling sessions | `konling-diagnosis`, `konling-path`, `konling-resource`, `konling-grading`, `konling-feedback`, `konling-class`, `konling-prep`, `konling-generic` |
-| `baselineUsageCoverage` | represented baseline route and API checks | baseline route and API checks | `demo-ita-class`, `snapshot-diagnosis-alpha`, `path-alpha-main`, `prep-pack-demo-ita`, `effect-report-demo-ita-export` |
+| `baselineUsageCoverage` | represented final competition route-ledger steps | final competition route-ledger steps | `entry-home`, `teacher-grading-workbench`, `student-document-feedback`, `student-learner-record`, `student-diagnosis-growth`, `student-adaptive-path`, `teacher-prep-pack-review`, `teacher-class-diagnosis`, `teacher-student-diagnosis`, `teacher-effect-report`, `admin-provenance`, `admin-governance`, `student-arena-entry`, `student-arena-challenge`, `student-control-workbench` |
 
 Each effect-report metric uses the window `2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z`, includes exclusions and caveats, and carries `dataOrigin: synthetic-demo`.
 

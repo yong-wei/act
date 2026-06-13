@@ -384,7 +384,7 @@ export const INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE: IntelligentTeachingAss
       { id: 'pathAdoptionRate', label: '路径采纳率', value: 0.667, unit: 'rate', confidence: 'medium', definition: 'Share of synthetic learner paths with a selected governed path option.', numerator: '2 selected path options', denominator: '3 synthetic path plans', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['path-alpha-main', 'path-beta-feedback', 'path-option-alpha-selected', 'path-option-beta-selected'], exclusions: ['Alternative options are excluded from the adoption numerator.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], sampleSize: 3, dataOrigin: 'synthetic-demo', synthetic: true },
       { id: 'prepPackActivationRate', label: '课前包激活率', value: 1, unit: 'rate', confidence: 'medium', definition: 'Share of generated synthetic teacher prep packs with an active runtime overlay.', numerator: '1 active prep-pack overlay', denominator: '1 synthetic prep pack', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['prep-pack-demo-ita', 'overlay-prep-pack-demo-ita'], exclusions: ['Draft-resource requests without approved overlay anchors are excluded.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], sampleSize: 1, dataOrigin: 'synthetic-demo', synthetic: true },
       { id: 'citationCoverageRate', label: '引用覆盖率', value: 1, unit: 'rate', confidence: 'high', definition: 'Share of required Konling demo sessions carrying reviewable redacted citations.', numerator: '8 cited Konling sessions', denominator: '8 required Konling sessions', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['konling-diagnosis', 'konling-path', 'konling-resource', 'konling-grading', 'konling-feedback', 'konling-class', 'konling-prep', 'konling-generic'], exclusions: ['Generic uncited chat transcripts are excluded from the demo package.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], sampleSize: 8, dataOrigin: 'synthetic-demo', synthetic: true },
-      { id: 'baselineUsageCoverage', label: '基线使用覆盖率', value: 1, unit: 'rate', confidence: 'medium', definition: 'Share of baseline acceptance route and API checks represented by deterministic synthetic demo package records.', numerator: '15 baseline route and API checks represented', denominator: '15 baseline route and API checks', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['demo-ita-class', 'snapshot-diagnosis-alpha', 'path-alpha-main', 'prep-pack-demo-ita', 'effect-report-demo-ita-export'], exclusions: ['External live-video repository availability is tracked separately in the asset manifest.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], sampleSize: 15, dataOrigin: 'synthetic-demo', synthetic: true },
+      { id: 'baselineUsageCoverage', label: '基线使用覆盖率', value: 1, unit: 'rate', confidence: 'medium', definition: 'Share of final competition route-ledger steps represented by deterministic synthetic demo package evidence.', numerator: '15 final competition route-ledger steps represented', denominator: '15 final competition route-ledger steps', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['entry-home', 'teacher-grading-workbench', 'student-document-feedback', 'student-learner-record', 'student-diagnosis-growth', 'student-adaptive-path', 'teacher-prep-pack-review', 'teacher-class-diagnosis', 'teacher-student-diagnosis', 'teacher-effect-report', 'admin-provenance', 'admin-governance', 'student-arena-entry', 'student-arena-challenge', 'student-control-workbench'], exclusions: ['External live-video repository availability is tracked separately in the asset manifest.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], sampleSize: 15, dataOrigin: 'synthetic-demo', synthetic: true },
     ],
     export: { id: 'effect-report-demo-ita-export', redacted: true, route: '/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true', omits: ['raw answer bodies', 'private memory', 'hidden Arena internals', 'raw traces', 'plaintext secrets'] },
   }],
@@ -850,9 +850,14 @@ function expectedMetricValue(pkg: IntelligentTeachingAssistantDemoPackage, metri
     return pkg.konlingSessions.length === 0 ? 0 : citedSessions / pkg.konlingSessions.length;
   }
   if (metricId === 'baselineUsageCoverage') {
-    const representedChecks = pkg.routeChecks.length + pkg.apiExamples.length;
-    const expectedChecks = REQUIRED_ROUTES.size + REQUIRED_APIS.size;
-    return expectedChecks === 0 ? 0 : representedChecks / expectedChecks;
+    const representedSteps = XH_202620_COMPETITION_BASELINE.routeLedger.filter((step) => (
+      (step.surfaceStatus === 'implemented' || step.surfaceStatus === 'api-only') &&
+      step.expectedEvidence.length > 0 &&
+      step.dataOrigin === 'synthetic-demo'
+    )).length;
+    return XH_202620_COMPETITION_BASELINE.routeLedger.length === 0
+      ? 0
+      : representedSteps / XH_202620_COMPETITION_BASELINE.routeLedger.length;
   }
   return null;
 }
@@ -882,7 +887,7 @@ function expectedEffectMetricSampleSize(pkg: IntelligentTeachingAssistantDemoPac
     return pkg.konlingSessions.length;
   }
   if (metricId === 'baselineUsageCoverage') {
-    return REQUIRED_ROUTES.size + REQUIRED_APIS.size;
+    return XH_202620_COMPETITION_BASELINE.routeLedger.length;
   }
   return null;
 }
@@ -928,6 +933,7 @@ function collectDemoSourceReferenceIds(pkg: IntelligentTeachingAssistantDemoPack
     ...pkg.prepPackOverlays.map((overlay) => overlay.id),
     ...pkg.effectReports.map((report) => report.export.id),
     ...pkg.konlingSessions.map((session) => session.id),
+    ...XH_202620_COMPETITION_BASELINE.routeLedger.map((step) => step.id),
   ]);
 }
 
