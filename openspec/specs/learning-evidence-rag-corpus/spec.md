@@ -60,6 +60,11 @@ Citation guardrails SHALL be visible in assistant-facing product surfaces.
 - **THEN** the response SHALL be blocked, degraded, or accompanied by an explicit fallback notice
 - **AND** the route or response metadata SHALL expose the missing citation classes for debugging and acceptance tests.
 
+#### Scenario: High-authority sources conflict
+- **WHEN** retrieval finds conflicting high-authority sources or authorized learner evidence contradicts the generated claim
+- **THEN** the response SHALL expose a conflict limitation or avoid making the disputed claim
+- **AND** citation presence alone SHALL NOT qualify the answer as verified support for the disputed claim.
+
 ### Requirement: Citation rendering is shared
 The system SHALL render verified learning-evidence citations through shared product-visible components or payload contracts.
 

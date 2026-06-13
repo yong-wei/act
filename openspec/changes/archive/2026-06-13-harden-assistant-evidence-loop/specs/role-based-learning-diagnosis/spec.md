@@ -21,3 +21,8 @@ Evidence drilldowns SHALL be inspectable and privacy-safe.
 - **WHEN** a user opens evidence for a diagnosis dimension
 - **THEN** the drawer SHALL show source family, source title, observation time window, confidence, limitation state, and citation payload where available
 - **AND** fields that are not permitted for the viewer's role SHALL be redacted rather than omitted silently.
+
+#### Scenario: Student opens evidence drawer
+- **WHEN** a student opens evidence behind a diagnosis claim
+- **THEN** the drawer SHALL show only that student's visible evidence summaries, source capsule, confidence, freshness, and allowed citation links
+- **AND** raw answer bodies, private Konling memory, hidden Arena internals, and teacher-only notes SHALL remain hidden.

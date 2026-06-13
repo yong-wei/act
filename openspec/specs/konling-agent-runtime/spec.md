@@ -185,6 +185,16 @@ Teaching-assistant modes SHALL expose route-level readiness for the competition 
 - **THEN** the mode SHALL expose permitted tools and safe scope metadata
 - **AND** client-supplied hints SHALL NOT override server-verifiable permissions or target identity.
 
+#### Scenario: Grading assistant prepares write-capable output
+- **WHEN** the grading assistant prepares feedback, score changes, or diagnosis-affecting output
+- **THEN** generated output SHALL remain a draft until the grading workflow records an explicit approval action
+- **AND** the runtime SHALL NOT approve grading, write back profiles, or mutate governed evidence from assistant context alone.
+
+#### Scenario: Prep coauthor proposes lesson material
+- **WHEN** the prep coauthor generates insertion candidates, replacement text, or prep-pack updates
+- **THEN** generated suggestions SHALL remain drafts until the authorized teacher approves them
+- **AND** the runtime SHALL NOT insert, publish, or replace prep-pack material from client hints or assistant output alone.
+
 ### Requirement: Mode fallback is explicit
 Mode fallback SHALL be user-visible and testable.
 
