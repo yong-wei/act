@@ -4,18 +4,25 @@
 Define how governed diagnosis, evidence summaries, path outcomes, grading summaries, and ResourceNode metadata become reviewable teacher prep packs for upcoming lessons. Prep packs keep generated interventions in a draft state until teacher approval, separate export from automatic insertion eligibility, and preserve privacy by carrying only aggregate or redacted evidence.
 ## Requirements
 ### Requirement: Prep packs convert diagnosis into teacher actions
-The system SHALL generate reviewable teacher prep packs from governed class diagnosis and evidence.
+The system SHALL generate reviewable teacher prep packs from governed class diagnosis and evidence, and prep packs SHALL be accessible from teacher diagnosis surfaces as reviewable interventions.
 
 #### Scenario: Prep pack is generated
-- **WHEN** a teacher requests a prep pack for an upcoming class or learning goal
-- **THEN** the system SHALL produce candidate interventions with title, item type, affected population, evidence basis, insertion target, estimated time, confidence, and methodology notes.
+- **WHEN** a teacher generates a prep pack from class diagnosis
+- **THEN** each candidate SHALL include source diagnosis evidence, target class or lesson context, insertion target, evidence citations, expected learner impact, and teacher review state
+- **AND** candidate interventions SHALL include title, item type, affected population, evidence basis, estimated time, confidence, and methodology notes
+- **AND** unsupported candidates SHALL become draft-resource requests that require review.
 
 #### Scenario: Candidate has no source support
 - **WHEN** an intervention candidate cannot be tied to governed diagnosis, ResourceNode metadata, lesson context, grading summary, or path evidence
 - **THEN** it SHALL be marked as draft-request or excluded from automatic insertion.
 
 ### Requirement: Teacher review gates publication
-Prep packs SHALL require teacher review before they affect students or class sessions.
+Prep packs SHALL require teacher review before they affect students or class sessions, and teacher review SHALL provide visible approve, reject, edit, preview, activate, rollback, and archive states.
+
+#### Scenario: Teacher reviews a prep item
+- **WHEN** a teacher opens a prep-pack review surface
+- **THEN** the UI SHALL show candidate rationale, source evidence, insertion target, runtime diff, allowed actions, and current lifecycle state
+- **AND** only approved items SHALL be eligible for activation.
 
 #### Scenario: Teacher approves a prep item
 - **WHEN** a teacher approves a prep-pack item
@@ -48,23 +55,27 @@ Approved teacher prep-pack items SHALL be persistable as course enhancement pack
 - **AND** the preview SHALL not publish content to students.
 
 ### Requirement: Runtime overlays are teacher-activated and reversible
-Course enhancement packs SHALL require teacher activation before affecting student runtime and SHALL remain reversible.
+Course enhancement packs SHALL require teacher activation before affecting student runtime and SHALL remain reversible, scoped, auditable, and non-mutating.
 
 #### Scenario: Pack is activated
-- **WHEN** a teacher activates an enhancement pack
-- **THEN** only approved items with valid insertion targets SHALL be merged into authorized class or session runtime
+- **WHEN** a teacher activates an approved enhancement pack
+- **THEN** active overlay items SHALL be scoped to the intended class, class session, lesson, and insertion anchors
+- **AND** only approved items with valid insertion targets SHALL be merged into authorized class or session runtime
 - **AND** student runtime output SHALL retain only opaque pack id, item id, activation metadata, and renderable resource metadata
-- **AND** teacher audit output MAY retain source evidence references when explicitly requested.
+- **AND** teacher audit output MAY retain source evidence references when explicitly requested
+- **AND** the base runtime manifest SHALL NOT be mutated.
 
 #### Scenario: Pack is rolled back
-- **WHEN** a teacher rolls back or archives an enhancement pack
-- **THEN** student runtime SHALL stop displaying the overlay
-- **AND** the base course manifest and authoring content SHALL remain unchanged.
+- **WHEN** a teacher rolls back an active enhancement pack
+- **THEN** overlay items SHALL disappear from the merged runtime view
+- **AND** activation, rollback, and impact evidence history SHALL remain auditable.
 
 ### Requirement: Enhancement impact is traceable
-Activated enhancement packs SHALL be linkable to subsequent learning evidence and teacher feedback.
+Activated enhancement packs SHALL be linkable to subsequent learning evidence and teacher feedback, and prep-pack impact SHALL be available to effect-report and teacher reflection workflows.
 
 #### Scenario: Post-class evidence is collected
-- **WHEN** students interact with content inserted by an enhancement pack
-- **THEN** generated learning evidence SHALL reference the pack item where safe
-- **AND** teacher reports SHALL be able to compare post-activation evidence with the diagnosis that motivated the pack.
+- **WHEN** learners interact with activated overlay items
+- **THEN** the system SHALL record impact evidence linked to pack id, item id, lesson/session scope, and source diagnosis
+- **AND** generated learning evidence SHALL reference the pack item where safe
+- **AND** teacher reports SHALL be able to compare post-activation evidence with the diagnosis that motivated the pack
+- **AND** effect-report code SHALL be able to aggregate impact without raw private evidence.

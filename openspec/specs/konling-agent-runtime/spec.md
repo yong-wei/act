@@ -137,7 +137,7 @@ Konling SHALL separate controller patch proposal from controller patch applicati
 - **AND** it SHALL apply the patch only after approval and only within the owner user's scoped controller draft.
 
 ### Requirement: Konling coaching is path-aware and citation-enforced
-Konling SHALL provide control-correction coaching from server-owned path context and SHALL attach required citations to coaching claims.
+Konling SHALL provide control-correction coaching from server-owned path context, consume path comparison, selection history, and terminal validation context, and attach required citations to coaching claims.
 
 #### Scenario: Control-correction coaching starts
 - **WHEN** Konling handles a message in a control-correction learning path context
@@ -145,9 +145,11 @@ Konling SHALL provide control-correction coaching from server-owned path context
 - **AND** client-provided page hints SHALL NOT expand user, class, resource, path, or privacy scope.
 
 #### Scenario: Personalized recommendation is generated
-- **WHEN** Konling recommends a next action, fallback path, readiness decision, or correction step
-- **THEN** the response SHALL include at least one content citation and at least one learner, path, execution, simulation, Arena, or intervention evidence citation where available
-- **AND** missing or low-confidence evidence SHALL be disclosed as a limitation.
+- **WHEN** a student asks why a path is recommended or selected
+- **THEN** Konling SHALL ground the answer in diagnosis, path option context, selection history, and evidence citations
+- **AND** the response SHALL include at least one content citation and at least one learner, path, execution, simulation, Arena, or intervention evidence citation where available
+- **AND** missing or low-confidence evidence SHALL be disclosed as a limitation
+- **AND** it SHALL distinguish preference evidence from mastery evidence.
 
 #### Scenario: Simulation or Arena failure is analyzed
 - **WHEN** Konling analyzes a simulation failure or Arena submission issue
@@ -173,7 +175,7 @@ Konling SHALL use governed simulation and Arena validation summaries when coachi
 - **AND** it SHALL recommend evidence-gathering or fallback actions instead of claiming verified causality.
 
 ### Requirement: Konling supports teaching-assistant modes
-Teaching-assistant modes SHALL expose route-level readiness for the competition assistant workflow.
+Teaching-assistant modes SHALL expose route-level readiness for the competition assistant workflow, and prep coauthor mode SHALL remain advisory during prep-pack review.
 
 #### Scenario: Assistant mode readiness is requested
 - **WHEN** diagnosis explainer, path advisor, grading assistant, feedback explainer, class summarizer, or prep coauthor mode is mounted on a supported route
@@ -205,9 +207,10 @@ Teaching-assistant modes SHALL expose route-level readiness for the competition 
 - **AND** the runtime SHALL NOT insert, publish, or replace prep-pack material from client hints or assistant output alone.
 
 #### Scenario: Prep coauthor mode starts
-- **WHEN** Konling opens from a prep-pack page
-- **THEN** it SHALL load class diagnosis, candidate prep items, evidence references, insertion targets, and teacher review state
-- **AND** generated suggestions SHALL remain drafts until teacher approval.
+- **WHEN** a teacher opens prep coauthor mode from a prep-pack review surface
+- **THEN** Konling SHALL receive prep-pack, diagnosis, citation, and teacher-review context
+- **AND** generated suggestions SHALL remain drafts until teacher approval
+- **AND** it SHALL be forbidden from publishing prep items or inserting lesson items directly.
 
 ### Requirement: Mode fallback is explicit
 Mode fallback SHALL be user-visible and testable.

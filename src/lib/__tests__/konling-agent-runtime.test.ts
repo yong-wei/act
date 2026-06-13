@@ -261,6 +261,13 @@ describe('konling agent runtime', () => {
       'write-back-profile',
     ]));
 
+    const prepCoauthor = resolveKonlingTeachingAssistantMode('prep-coauthor');
+    expect(prepCoauthor.outputContract.status).toBe('draft-only');
+    expect(prepCoauthor.outputContract.forbiddenActions).toEqual(expect.arrayContaining([
+      'publish-prep-item',
+      'insert-lesson-item',
+    ]));
+
     const mounts = getKonlingTeachingAssistantMountContracts();
     expect(mounts).toEqual(expect.arrayContaining([
       expect.objectContaining({

@@ -44,7 +44,12 @@ The system SHALL expose path visualization data for map, timeline, and evidence 
 - **THEN** the response SHALL include evidence basis, confidence, source coverage, learner-state deficits, prerequisite reasons, teacher policy, and alternative nodes.
 
 ### Requirement: Path execution feedback is captured
-The system SHALL capture path adoption, completion, deviation, correction, explanation clicks, and helpfulness feedback.
+The system SHALL capture path adoption, completion, deviation, correction, explanation clicks, and helpfulness feedback, and path execution SHALL produce a learner-visible timeline plus teacher-visible evidence summary.
+
+#### Scenario: Path checkpoint is recorded
+- **WHEN** a learner completes, skips, deviates from, or receives an intervention for a path node
+- **THEN** the path center SHALL show checkpoint state, evidence confidence, and next action
+- **AND** teacher-facing summaries SHALL aggregate checkpoint, deviation, and intervention evidence without exposing private raw answers.
 
 #### Scenario: Student deviates from path
 - **WHEN** a student skips, replaces, or abandons a path node
@@ -102,7 +107,12 @@ The system SHALL preserve existing recommendation and lightweight path consumers
 - **AND** disabling the control-correction path feature SHALL not break existing adaptive practice, profile, recommendation, or chat surfaces.
 
 ### Requirement: Control-correction paths use simulation and Arena terminal validation
-The system SHALL determine control-correction path completion from configured simulation and Arena validation evidence rather than resource views alone.
+The system SHALL determine control-correction path completion from configured simulation and Arena validation evidence rather than resource views alone, and terminal validation SHALL be summarized as a product-visible result.
+
+#### Scenario: Terminal validation succeeds or fails
+- **WHEN** a path reaches simulation or Arena terminal validation
+- **THEN** the path center SHALL show validation source, result state, evidence references, and remediation or completion next action
+- **AND** validation preview evidence SHALL NOT be represented as official Arena success.
 
 #### Scenario: Terminal validation succeeds
 - **WHEN** a student completes the required simulation and Arena validation nodes with governed evidence that meets the path policy
@@ -143,12 +153,12 @@ When multiple path styles are shown together, the system SHALL verify that they 
 - **AND** resource overlap SHALL stay below the configured threshold unless a low-resource fallback is returned.
 
 ### Requirement: Control-correction planner returns three path styles
-The path planner SHALL provide a three-style path bundle for control-correction diagnosis when sufficient resources and evidence exist.
+The path planner SHALL provide a directly comparable three-style path bundle for control-correction diagnosis when sufficient resources and evidence exist.
 
 #### Scenario: Three-style bundle is generated
-- **WHEN** a student requests control-correction next steps from a diagnosis surface
-- **THEN** the bundle SHALL include foundation remediation, Arena or simulation sprint, and preference-matched route options
-- **AND** each option SHALL include target deficits, evidence basis, estimated effort, modality mix, terminal validation strategy, and limitations.
+- **WHEN** a student opens the control-correction path center from diagnosis or adaptive practice
+- **THEN** the system SHALL display available path styles with style id, policy family, target deficits, estimated effort, resource mix, terminal validation strategy, evidence basis, and limitations
+- **AND** unavailable or insufficient path diversity SHALL be represented as fallback state rather than three cosmetic cards.
 
 #### Scenario: Resources are insufficient
 - **WHEN** the planner cannot produce meaningfully distinct path options
@@ -156,12 +166,14 @@ The path planner SHALL provide a three-style path bundle for control-correction 
 - **AND** it SHALL NOT show three cosmetic variants with materially identical resources.
 
 ### Requirement: Path choice writes back as preference evidence
-Student path selection and outcomes SHALL update governed preference and strategy evidence without inflating mastery directly.
+Student path selection and outcomes SHALL update governed preference and strategy evidence, and selection SHALL be visible without inflating mastery directly.
 
 #### Scenario: Student selects a path style
-- **WHEN** a student chooses one of the displayed path styles
-- **THEN** the system SHALL record the selected style, rejected alternatives, diagnosis snapshot reference, resource mix, and rationale metadata
+- **WHEN** a student chooses a displayed path style
+- **THEN** the system SHALL record selected style, rejected alternatives, diagnosis snapshot reference, resource mix, and rationale metadata
 - **AND** the choice SHALL be available to learner-state preference features.
+- **AND** the path center SHALL show the selection history
+- **AND** the original selection alone SHALL NOT be treated as mastery evidence.
 
 #### Scenario: Path execution changes mastery
 - **WHEN** the selected path is executed

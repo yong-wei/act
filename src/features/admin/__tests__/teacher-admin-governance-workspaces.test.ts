@@ -139,6 +139,7 @@ describe('teacher and admin governance workspace contracts', () => {
       '/teacher/classes',
       '/teacher/lesson-plans',
       '/teacher/resources',
+      '/teacher/prep-packs',
       '/teacher/history',
       '/teacher/classes/[classId]/analytics-v2',
     ]);

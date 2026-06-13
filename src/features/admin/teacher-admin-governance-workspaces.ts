@@ -197,6 +197,14 @@ export const TEACHER_OPERATIONS_NAVIGATION: TeacherOperationsNavigationEntry[] =
     statusSemantics: ['available', 'teacher-only', 'path-eligible'],
   },
   {
+    id: 'teacher-operations-prep-packs',
+    label: '课前包',
+    href: '/teacher/prep-packs',
+    workspace: 'teacher-operations',
+    objectLevelActions: ['复核候选项', '预览 runtime diff', '激活或回滚 overlay'],
+    statusSemantics: ['review-ready', 'active', 'rolled-back', 'archived'],
+  },
+  {
     id: 'teacher-operations-history',
     label: '课堂历史',
     href: '/teacher/history',
