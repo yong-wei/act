@@ -275,6 +275,42 @@ describe('document rubric grading workbench', () => {
         limitationState: null,
       }),
     }));
+    const multiAnchorDraft = createDraftRubricGrading({
+      convertedDocument: converted,
+      rubric: rubric(),
+      evaluatorOutput: {
+        evaluatorId: 'multi-anchor-test-evaluator',
+        evaluatorVersion: '2026.06',
+        assessments: [
+          {
+            criterionId: 'modeling',
+            levelId: 'advanced',
+            score: 4,
+            rationale: 'Modeling cites two anchors for damping ratio evidence.',
+            confidence: 0.9,
+            evidenceBlockIds: ['block-1', 'block-1'],
+            limitationState: 'none',
+          },
+          {
+            criterionId: 'validation',
+            levelId: 'advanced',
+            score: 4,
+            rationale: 'Validation cites the simulation evidence anchor.',
+            confidence: 0.9,
+            evidenceBlockIds: ['block-2'],
+            limitationState: 'none',
+          },
+        ],
+      },
+      now,
+    });
+    const multiAnchorIds = multiAnchorDraft.annotations.map((annotation) => annotation.id);
+    expect(multiAnchorIds).toEqual([
+      'annotation:modeling:block-1:1',
+      'annotation:modeling:block-1:2',
+      'annotation:validation:block-2:1',
+    ]);
+    expect(new Set(multiAnchorIds).size).toBe(multiAnchorIds.length);
     await expect(writeApprovedGradingEvidence({
       db: mockEvidenceDb(),
       run: draft,
@@ -666,6 +702,14 @@ describe('document rubric grading workbench', () => {
       rubric: rubric(),
       now,
     });
+    const annotationIds = secondEdit.annotations.map((annotation) => annotation.id);
+    expect(annotationIds).toEqual([
+      'annotation:modeling:block-1:1',
+      'annotation:validation:block-2:1',
+      'annotation:modeling:block-1:teacher:1:3',
+      'annotation:modeling:block-1:teacher:1:4',
+    ]);
+    expect(new Set(annotationIds).size).toBe(annotationIds.length);
     const approved = approveGradingRun(secondEdit, { reviewerId: 'teacher-1', decision: 'approved', now });
     const preview = previewApprovedGradingEvidence({
       run: approved,
@@ -920,7 +964,7 @@ describe('document rubric grading workbench', () => {
 
     expect(parsed?.run.annotations).toHaveLength(2);
     expect(parsed?.run.annotations[0]).toEqual(expect.objectContaining({
-      id: 'annotation:modeling:1',
+      id: 'annotation:modeling:block-1:1',
       criterionId: 'modeling',
       authorRole: 'ai-draft',
       reference: expect.objectContaining({
