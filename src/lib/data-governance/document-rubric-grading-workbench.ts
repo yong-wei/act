@@ -558,8 +558,8 @@ export function createDraftRubricGrading(input: {
     status: 'draft',
     draftGrades,
     approvedGrades: [],
-    annotations: draftGrades.flatMap((grade, index) => grade.evidenceRefs.map((reference) => ({
-      id: `annotation:${grade.criterionId}:${index + 1}`,
+    annotations: draftGrades.flatMap((grade) => grade.evidenceRefs.map((reference, refIndex) => ({
+      id: `annotation:${grade.criterionId}:${reference.blockId}:${refIndex + 1}`,
       criterionId: grade.criterionId,
       reference,
       comment: grade.comment,
@@ -727,8 +727,8 @@ export function editCriterionGrade(
       ...run.annotations,
       ...edited
         .filter((grade) => grade.criterionId === edit.criterionId)
-        .flatMap((grade) => grade.evidenceRefs.map((reference) => ({
-          id: `annotation:${grade.criterionId}:teacher`,
+        .flatMap((grade) => grade.evidenceRefs.map((reference, refIndex) => ({
+          id: `annotation:${grade.criterionId}:${reference.blockId}:teacher:${refIndex + 1}:${run.annotations.length + 1}`,
           criterionId: grade.criterionId,
           reference,
           comment: edit.comment,
