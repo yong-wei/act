@@ -3,6 +3,10 @@ import {
   getRelationCategory,
   resolveChapterName,
 } from '@/lib/knowledge-labels';
+import {
+  getKnowledgeNodeScale,
+  KNOWLEDGE_NODE_SCALE_CONTRACT,
+} from './visual-config';
 import type { KnowledgeLinkData, KnowledgeNodeData } from '../knowledge-graph-system';
 
 const CHAPTER_ORDER_INDEX = new Map<string, number>(
@@ -14,6 +18,35 @@ export { CHAPTER_DISPLAY_ORDER, resolveChapterName };
 
 export type RelationDensityMode = 'structure' | 'focused' | 'all';
 export type RelationFocusState = 'neutral' | 'active' | 'dimmed';
+export type RelationFamily = 'structure' | 'context' | 'optional' | 'weak';
+
+export interface KnowledgeGraphStatistics {
+  nodeCount: number;
+  edgeCount: number;
+  maxDegree: number;
+  degreeByNodeId: Map<string, number>;
+  importanceScoreByNodeId: Map<string, number>;
+  relationFamilyCounts: Record<RelationFamily, number>;
+}
+
+export interface KnowledgeGraphFocusNeighborhood {
+  focusNodeId: string | null;
+  firstOrderNodeIds: Set<string>;
+  secondOrderNodeIds: Set<string>;
+  directLinkIds: Set<string>;
+  contextualLinkIds: Set<string>;
+}
+
+export interface KnowledgeGraphClarityMetrics {
+  nodeCount: number;
+  visibleEdgeCount: number;
+  edgeToNodeRatio: number;
+  weakEdgeRatio: number;
+  selectedNeighborhoodEdgeRatio: number;
+  minNodeRadius: number;
+  maxNodeRadius: number;
+  relationFamilyCounts: Record<RelationFamily, number>;
+}
 
 const DEFAULT_STRUCTURE_RELATION_ORDER = [
   'contains',
@@ -66,6 +99,151 @@ const STRUCTURE_RELATION_LIMITS: Record<string, { maxEdges: number; maxDegreePer
   opposite: { maxEdges: 80, maxDegreePerNode: 1 },
   related: { maxEdges: 80, maxDegreePerNode: 1 },
 };
+
+export function getKnowledgeLinkKey(
+  link: Pick<KnowledgeLinkData, 'sourceId' | 'targetId' | 'relation' | 'relationType'> & { id?: string }
+): string {
+  return link.id || `${link.sourceId}->${link.targetId}:${link.relationType || link.relation || 'related'}`;
+}
+
+export function getRelationFamily(relation?: string | null): RelationFamily {
+  if (!relation || relation === 'related' || relation === 'informs') return 'weak';
+  if (DEFAULT_STRUCTURE_RELATION_ORDER.includes(relation as (typeof DEFAULT_STRUCTURE_RELATION_ORDER)[number])) {
+    return 'structure';
+  }
+  if (getRelationCategory(relation) === 'related') return 'optional';
+  return 'context';
+}
+
+export function getBoundedKnowledgeNodeImportanceScore(metadata?: Record<string, unknown> | null): number {
+  const safeMetadata = metadata ?? {};
+  const rawImportance = safeMetadata.importance ?? safeMetadata.teachingImportance ?? safeMetadata.priority;
+  if (typeof rawImportance === 'number') {
+    const normalized = rawImportance > 1 && rawImportance <= 5 ? rawImportance / 5 : rawImportance;
+    return Math.max(0, Math.min(1, normalized));
+  }
+  if (typeof rawImportance !== 'string') return 0.46;
+  if (['core', '核心', 'essential', 'main'].includes(rawImportance)) return 0.96;
+  if (['foundation', '基础', 'important'].includes(rawImportance)) return 0.82;
+  if (['supporting', '辅助', 'optional'].includes(rawImportance)) return 0.38;
+  return 0.56;
+}
+
+export function buildGraphStatistics(
+  nodes: KnowledgeNodeData[],
+  links: KnowledgeLinkData[]
+): KnowledgeGraphStatistics {
+  const nodeIds = new Set(nodes.map((node) => node.id));
+  const degreeByNodeId = new Map<string, number>(nodes.map((node) => [node.id, 0]));
+  const importanceScoreByNodeId = new Map<string, number>(
+    nodes.map((node) => [node.id, getBoundedKnowledgeNodeImportanceScore(node.metadata)])
+  );
+  const relationFamilyCounts: Record<RelationFamily, number> = {
+    structure: 0,
+    context: 0,
+    optional: 0,
+    weak: 0,
+  };
+  let edgeCount = 0;
+
+  links.forEach((link) => {
+    if (!nodeIds.has(link.sourceId) || !nodeIds.has(link.targetId)) return;
+    edgeCount += 1;
+    degreeByNodeId.set(link.sourceId, (degreeByNodeId.get(link.sourceId) ?? 0) + 1);
+    degreeByNodeId.set(link.targetId, (degreeByNodeId.get(link.targetId) ?? 0) + 1);
+    relationFamilyCounts[getRelationFamily(link.relationType || link.relation)] += 1;
+  });
+
+  return {
+    nodeCount: nodes.length,
+    edgeCount,
+    maxDegree: Math.max(0, ...Array.from(degreeByNodeId.values())),
+    degreeByNodeId,
+    importanceScoreByNodeId,
+    relationFamilyCounts,
+  };
+}
+
+export function buildFocusNeighborhood(
+  links: KnowledgeLinkData[],
+  focusNodeId?: string | null,
+  eligibleNodeIds?: Set<string>
+): KnowledgeGraphFocusNeighborhood {
+  const firstOrderNodeIds = new Set<string>();
+  const secondOrderNodeIds = new Set<string>();
+  const directLinkIds = new Set<string>();
+  const contextualLinkIds = new Set<string>();
+  if (!focusNodeId) {
+    return { focusNodeId: null, firstOrderNodeIds, secondOrderNodeIds, directLinkIds, contextualLinkIds };
+  }
+
+  const isEligible = (nodeId: string) => !eligibleNodeIds || eligibleNodeIds.has(nodeId);
+  links.forEach((link) => {
+    if (!isEligible(link.sourceId) || !isEligible(link.targetId)) return;
+    if (link.sourceId !== focusNodeId && link.targetId !== focusNodeId) return;
+    directLinkIds.add(getKnowledgeLinkKey(link));
+    firstOrderNodeIds.add(link.sourceId === focusNodeId ? link.targetId : link.sourceId);
+  });
+
+  const contextualCandidates = links
+    .filter((link) => {
+      if (!isEligible(link.sourceId) || !isEligible(link.targetId)) return false;
+      if (directLinkIds.has(getKnowledgeLinkKey(link))) return false;
+      if (!isHighSignalRelation(link.relationType || link.relation)) return false;
+      return firstOrderNodeIds.has(link.sourceId) || firstOrderNodeIds.has(link.targetId);
+    })
+    .sort((a, b) => {
+      const strengthA = typeof a.strength === 'number' ? a.strength : 1;
+      const strengthB = typeof b.strength === 'number' ? b.strength : 1;
+      if (strengthA !== strengthB) return strengthB - strengthA;
+      return getKnowledgeLinkKey(a).localeCompare(getKnowledgeLinkKey(b));
+    });
+
+  const secondOrderDegreeByFirstOrder = new Map<string, number>();
+  contextualCandidates.forEach((link) => {
+    const firstOrderEndpoint = firstOrderNodeIds.has(link.sourceId) ? link.sourceId : link.targetId;
+    const secondOrderEndpoint = firstOrderEndpoint === link.sourceId ? link.targetId : link.sourceId;
+    if (secondOrderEndpoint === focusNodeId || firstOrderNodeIds.has(secondOrderEndpoint)) return;
+    const count = secondOrderDegreeByFirstOrder.get(firstOrderEndpoint) ?? 0;
+    if (count >= 3 || contextualLinkIds.size >= 120) return;
+    secondOrderDegreeByFirstOrder.set(firstOrderEndpoint, count + 1);
+    secondOrderNodeIds.add(secondOrderEndpoint);
+    contextualLinkIds.add(getKnowledgeLinkKey(link));
+  });
+
+  return { focusNodeId, firstOrderNodeIds, secondOrderNodeIds, directLinkIds, contextualLinkIds };
+}
+
+export function calculateGraphClarityMetrics(
+  nodes: KnowledgeNodeData[],
+  visibleLinks: KnowledgeLinkData[],
+  focusNeighborhood?: KnowledgeGraphFocusNeighborhood
+): KnowledgeGraphClarityMetrics {
+  const statistics = buildGraphStatistics(nodes, visibleLinks);
+  const radii = nodes.map((node) =>
+    getKnowledgeNodeScale({
+      metadata: node.metadata,
+      degree: statistics.degreeByNodeId.get(node.id) ?? 0,
+      focused: focusNeighborhood?.focusNodeId === node.id,
+    }).radius
+  );
+  const neighborhoodLinkCount = visibleLinks.filter((link) => {
+    const key = getKnowledgeLinkKey(link);
+    return focusNeighborhood?.directLinkIds.has(key) || focusNeighborhood?.contextualLinkIds.has(key);
+  }).length;
+  const weakEdgeCount = visibleLinks.filter((link) => getRelationFamily(link.relationType || link.relation) === 'weak').length;
+
+  return {
+    nodeCount: nodes.length,
+    visibleEdgeCount: visibleLinks.length,
+    edgeToNodeRatio: nodes.length === 0 ? 0 : visibleLinks.length / nodes.length,
+    weakEdgeRatio: visibleLinks.length === 0 ? 0 : weakEdgeCount / visibleLinks.length,
+    selectedNeighborhoodEdgeRatio: visibleLinks.length === 0 ? 0 : neighborhoodLinkCount / visibleLinks.length,
+    minNodeRadius: radii.length === 0 ? KNOWLEDGE_NODE_SCALE_CONTRACT.minRadius : Math.min(...radii),
+    maxNodeRadius: radii.length === 0 ? KNOWLEDGE_NODE_SCALE_CONTRACT.minRadius : Math.max(...radii),
+    relationFamilyCounts: statistics.relationFamilyCounts,
+  };
+}
 
 export function isChapterNodeId(nodeId?: string | null): boolean {
   if (!nodeId) return false;
@@ -187,19 +365,93 @@ export function relationPassesDensity(
   options: {
     densityMode: RelationDensityMode;
     focusNodeId?: string | null;
+    focusNeighborhood?: KnowledgeGraphFocusNeighborhood;
   }
 ): boolean {
   if (options.densityMode === 'all') return true;
 
   const relationType = link.relationType || link.relation || 'related';
+  const linkKey = getKnowledgeLinkKey(link);
+  const isDirectFocusLink = options.focusNeighborhood?.directLinkIds.has(linkKey) ?? false;
+  const isContextualFocusLink = options.focusNeighborhood?.contextualLinkIds.has(linkKey) ?? false;
+  if (options.densityMode === 'focused') {
+    if (!options.focusNeighborhood?.focusNodeId) {
+      if (isHighSignalRelation(relationType)) return true;
+      const strength = typeof link.strength === 'number' ? link.strength : 1;
+      return strength >= WEAK_RELATION_MIN_STRENGTH;
+    }
+    return isDirectFocusLink || isContextualFocusLink;
+  }
+
   if (isHighSignalRelation(relationType)) return true;
 
   const strength = typeof link.strength === 'number' ? link.strength : 1;
-  if (options.densityMode === 'focused') {
-    return getRelationFocusState(link.sourceId, link.targetId, options.focusNodeId) === 'active';
-  }
-
   return strength >= WEAK_RELATION_MIN_STRENGTH;
+}
+
+export function relationPassesActiveFilters(
+  link: Pick<KnowledgeLinkData, 'sourceId' | 'targetId' | 'relation' | 'relationType' | 'strength'>,
+  options: {
+    densityMode: RelationDensityMode;
+    selectedRelationTypes: string[];
+    minRelationStrength: number;
+    focusNodeId?: string | null;
+    focusNeighborhood?: KnowledgeGraphFocusNeighborhood;
+  }
+): boolean {
+  if (options.densityMode !== 'all' && options.selectedRelationTypes.length === 0) return false;
+
+  const relationType = link.relationType || link.relation || 'related';
+  const strength = typeof link.strength === 'number' ? link.strength : 1;
+  const isFocusedLink = options.densityMode === 'focused' && options.focusNodeId !== null
+    && (link.sourceId === options.focusNodeId || link.targetId === options.focusNodeId);
+  if (options.densityMode !== 'all' && !options.selectedRelationTypes.includes(relationType)) return false;
+  if (options.densityMode !== 'all' && strength < options.minRelationStrength && !isFocusedLink) return false;
+  return relationPassesDensity(link, {
+    densityMode: options.densityMode,
+    focusNodeId: options.focusNodeId,
+    focusNeighborhood: options.focusNeighborhood,
+  });
+}
+
+export function relationPassesFocusNeighborhoodSeedFilters(
+  link: Pick<KnowledgeLinkData, 'sourceId' | 'targetId' | 'relation' | 'relationType' | 'strength'>,
+  options: {
+    densityMode: RelationDensityMode;
+    selectedRelationTypes: string[];
+    minRelationStrength: number;
+    focusNodeId?: string | null;
+  }
+): boolean {
+  if (options.densityMode === 'all') return true;
+  if (options.selectedRelationTypes.length === 0) return false;
+
+  const relationType = link.relationType || link.relation || 'related';
+  if (!options.selectedRelationTypes.includes(relationType)) return false;
+
+  const isDirectFocusLink = options.focusNodeId !== null
+    && (link.sourceId === options.focusNodeId || link.targetId === options.focusNodeId);
+  const strength = typeof link.strength === 'number' ? link.strength : 1;
+  return isDirectFocusLink || strength >= options.minRelationStrength;
+}
+
+export function isNodeInFocusNeighborhood(
+  nodeId: string,
+  focusNeighborhood: KnowledgeGraphFocusNeighborhood
+): boolean {
+  return focusNeighborhood.focusNodeId === nodeId
+    || focusNeighborhood.firstOrderNodeIds.has(nodeId)
+    || focusNeighborhood.secondOrderNodeIds.has(nodeId);
+}
+
+export function isNodeVisibleInFocusedGraph(
+  nodeId: string,
+  focusNeighborhood: KnowledgeGraphFocusNeighborhood,
+  visibleNodeIds: Set<string>
+): boolean {
+  if (focusNeighborhood.focusNodeId === nodeId) return true;
+  if (!isNodeInFocusNeighborhood(nodeId, focusNeighborhood)) return false;
+  return visibleNodeIds.has(nodeId);
 }
 
 export function limitStructureRelationDensity<T extends Pick<KnowledgeLinkData, 'sourceId' | 'targetId' | 'relation' | 'relationType' | 'strength'>>(

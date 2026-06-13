@@ -1,0 +1,443 @@
+{
+  "capturedAt": "2026-06-13T14:35:48.434Z",
+  "url": "http://localhost:3002/knowledge",
+  "selectedNodeId": "极点配置_9_b5578c51",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "assertions": {
+    "defaultHasClaritySummary": true,
+    "focusedHasNeighborhoodMetric": true,
+    "selectedNodeContextPreserved": true,
+    "allRelationsIsExplicit": true,
+    "allRelationsIncludesWeakEdges": true,
+    "canvasRendered": true
+  },
+  "states": [
+    {
+      "name": "default-structure",
+      "screenshotPath": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/commercial-ui/knowledge-graph-layout-clarity-461/default-structure.png",
+      "url": "http://localhost:3002/knowledge?node=%E6%9E%81%E7%82%B9%E9%85%8D%E7%BD%AE_9_b5578c51",
+      "summary": "1309 条可见关系 · 2.21 边/点 · 弱关系 0%",
+      "relationText": [
+        {
+          "text": "收起",
+          "pressed": null
+        },
+        {
+          "text": "重点标签",
+          "pressed": "true"
+        },
+        {
+          "text": "全部标签",
+          "pressed": "false"
+        },
+        {
+          "text": "结构优先",
+          "pressed": "true"
+        },
+        {
+          "text": "焦点邻域",
+          "pressed": "false"
+        },
+        {
+          "text": "全部关系",
+          "pressed": "false"
+        },
+        {
+          "text": "全选",
+          "pressed": null
+        },
+        {
+          "text": "清空",
+          "pressed": null
+        },
+        {
+          "text": "弱关联 · 7444",
+          "pressed": null
+        },
+        {
+          "text": "方法应用 · 5381",
+          "pressed": null
+        },
+        {
+          "text": "章节包含 · 1541",
+          "pressed": null
+        },
+        {
+          "text": "引出问题 · 1128",
+          "pressed": null
+        },
+        {
+          "text": "前置基础 · 752",
+          "pressed": null
+        },
+        {
+          "text": "相反概念 · 179",
+          "pressed": null
+        },
+        {
+          "text": "跨域迁移 · 67",
+          "pressed": null
+        },
+        {
+          "text": "抽象推广 · 11",
+          "pressed": null
+        },
+        {
+          "text": "具体实例 · 7",
+          "pressed": null
+        },
+        {
+          "text": "证据支撑 · 5",
+          "pressed": null
+        },
+        {
+          "text": "能力启用 · 4",
+          "pressed": null
+        },
+        {
+          "text": "决定因素 · 2",
+          "pressed": null
+        },
+        {
+          "text": "互补说明 · 1",
+          "pressed": null
+        },
+        {
+          "text": "对照比较 · 1",
+          "pressed": null
+        },
+        {
+          "text": "推导得到 · 1",
+          "pressed": null
+        },
+        {
+          "text": "迁移描述 · 1",
+          "pressed": null
+        },
+        {
+          "text": "体现为 · 1",
+          "pressed": null
+        },
+        {
+          "text": "提示参考 · 1",
+          "pressed": null
+        },
+        {
+          "text": "量化指标 · 1",
+          "pressed": null
+        },
+        {
+          "text": "使用工具 · 1",
+          "pressed": null
+        },
+        {
+          "text": "图形呈现 · 1",
+          "pressed": null
+        },
+        {
+          "text": "清空节点筛选条件",
+          "pressed": null
+        }
+      ],
+      "canvas": {
+        "width": 856,
+        "height": 900
+      },
+      "selectedPanelOpen": true,
+      "bodyText": "收起导航\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n学生\n知识图谱\n\n知识关系、证据来源与学习路径入口\n\n收起目录\n章节目录\n基本概念\n61\n系统模型\n76\n时域分析\n93\n根轨迹分析\n52\n频域分析\n73\n系统校正\n44\n离散系统\n70\n非线性系统\n61\n状态空间\n131\n结构机理层\n21\n课程全景\n17\n前沿拓展\n5\n约束设计层\n64\n知识边界与方法迁移层\n37\n关系筛选\n文件图谱\n收起\n当前显示关系 1309 条\n节点 577 / 805\n1309 条可见关系 · 2.21 边/点 · 弱关系 0%\n标签显示\n重点标签\n全部标签\n章节筛选（多选）\n知识类别筛选\n认知层级筛选\n关系密度\n结构优先\n焦点邻域\n全部关系\n关系类型\n全选\n清空\n弱关联 · 7444\n方法应用 · 5381\n章节包含 · 1541\n引出问题 · 1128\n前置基础 · 752\n相反概念 · 179\n跨域迁移 · 67\n抽象推广 · 11\n具体实例 · 7\n证据支撑 · 5\n能力启用 · 4\n决定因素 · 2\n互补说明 · 1\n对照比较 · 1\n推导得到 · 1\n迁移描述 · 1\n体现为 · 1\n提示参考 · 1\n量化指标 · 1\n使用工具 · 1\n图形呈现 · 1\n关系图例\n前置基础\n学习前需要先掌握的基础关系。\n提供基础\n为后续概念提供理论或方法基础。\n章节包含\n章节、主题或概念簇的结构归属。\n学习后续\n建议沿着课程顺序继续学习。\n引出问题\n由当前概念自然引出新的分析对象。\n方法应用\n方法、公式或概念可应用到目标对象。\n相反概念\n强调概念之间的反向或互斥关系。\n弱关联\n保留辅助联想，不作为默认骨架。\n跨域迁移\n把控制概念迁移到其他场景或学科域。\n抽象推广\n从具体对象提升到一般规律。\n具体实例\n说明某个概念是一般规律的实例。\n证据支撑\n用事实、公式或实验结果支撑结论。\n能力启用\n掌握当前概念后可以执行目标任务。\n互补说明\n两个概念共同补全同一知识面。\n对照比较\n通过差异比较帮助辨析概念。\n推导得到\n由已有模型、公式或条件推导出目标结果。\n迁移描述\n描述概念在不同表示或场景中的迁移。\n决定因素\n当前因素会决定或约束目标性质。\n体现为\n抽象概念在具体对象中体现出来。\n提示参考\n提供理解目标概念的辅助信息。\n量化指标\n用指标、参数或图形量化目标概念。\n使用工具\n当前任务或概念使用目标方法、工具或资源。\n图形呈现\n通过图形、曲线或可视化方式呈现概念。\n关系强度阈值\n0.8\n仅显示存在可见关系的节点\n清空节点筛选条件\n2D 视图\n3D 视图\n极点配置\n控制理论\n应用\n程序性\n章节：状态空间\n难度：5\n重要性：5\n\n通过设计状态反馈向量，将闭环系统的极点配置到期望位置以改善系统性能的方法。\n\n示例\n利用状态反馈任意配置闭环极点的充分必要条件是被控系统可控。\n例9-21中，已知系统状态方程，求状态反馈向量使闭环特征值为指定值。\n关键词\n极点\n反馈\n配置\n状态反馈\n闭环极点\n可控性\n公式\ndet\n⁡\n(\n𝑠\n𝐼\n−\n(\n𝐴\n−\n𝐵\n𝐾\n)\n)\n=\n∏\n𝑖\n=\n1\n𝑛\n(\n𝑠\n−\n𝜆\n𝑖\n)\ndet(sI−(A−BK))=\ni=1\n∏\nn\n\t​\n\n(s−λ\ni\n\t​\n\n)\ndet\n⁡\n(\n𝑠\n𝐼\n−\n(\n𝐴\n−\n𝐾\n𝑓\n𝐶\n)\n)\n=\n∏\n𝑖\n=\n1\n𝑛\n(\n𝑠\n−\n𝜆\n𝑖\n)\ndet(sI−(A−K\nf\n\t​\n\nC))=\ni=1\n∏\nn\n\t​\n\n(s−λ\ni\n\t​\n\n)\n𝑢\n=\n−\n𝐾\n𝑥\nu=−Kx\n𝑥\n˙\n=\n(\n𝐴\n−\n𝐵\n𝐾\n)\n𝑥\nx\n˙\n=(A−BK)x\n关联知识点\n前置关系\n32\n方法应用\n状态反馈\n1.0\n方法应用\n闭环极点\n0.9\n方法应用\n闭环特征方程\n0.9\n前置基础\n极点\n"
+    },
+    {
+      "name": "focused-neighborhood",
+      "screenshotPath": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/commercial-ui/knowledge-graph-layout-clarity-461/focused-neighborhood.png",
+      "url": "http://localhost:3002/knowledge?node=%E6%9E%81%E7%82%B9%E9%85%8D%E7%BD%AE_9_b5578c51",
+      "summary": "296 条可见关系 · 1.48 边/点 · 邻域 36%",
+      "relationText": [
+        {
+          "text": "收起",
+          "pressed": null
+        },
+        {
+          "text": "重点标签",
+          "pressed": "true"
+        },
+        {
+          "text": "全部标签",
+          "pressed": "false"
+        },
+        {
+          "text": "结构优先",
+          "pressed": "false"
+        },
+        {
+          "text": "焦点邻域",
+          "pressed": "true"
+        },
+        {
+          "text": "全部关系",
+          "pressed": "false"
+        },
+        {
+          "text": "全选",
+          "pressed": null
+        },
+        {
+          "text": "清空",
+          "pressed": null
+        },
+        {
+          "text": "弱关联 · 7444",
+          "pressed": null
+        },
+        {
+          "text": "方法应用 · 5381",
+          "pressed": null
+        },
+        {
+          "text": "章节包含 · 1541",
+          "pressed": null
+        },
+        {
+          "text": "引出问题 · 1128",
+          "pressed": null
+        },
+        {
+          "text": "前置基础 · 752",
+          "pressed": null
+        },
+        {
+          "text": "相反概念 · 179",
+          "pressed": null
+        },
+        {
+          "text": "跨域迁移 · 67",
+          "pressed": null
+        },
+        {
+          "text": "抽象推广 · 11",
+          "pressed": null
+        },
+        {
+          "text": "具体实例 · 7",
+          "pressed": null
+        },
+        {
+          "text": "证据支撑 · 5",
+          "pressed": null
+        },
+        {
+          "text": "能力启用 · 4",
+          "pressed": null
+        },
+        {
+          "text": "决定因素 · 2",
+          "pressed": null
+        },
+        {
+          "text": "互补说明 · 1",
+          "pressed": null
+        },
+        {
+          "text": "对照比较 · 1",
+          "pressed": null
+        },
+        {
+          "text": "推导得到 · 1",
+          "pressed": null
+        },
+        {
+          "text": "迁移描述 · 1",
+          "pressed": null
+        },
+        {
+          "text": "体现为 · 1",
+          "pressed": null
+        },
+        {
+          "text": "提示参考 · 1",
+          "pressed": null
+        },
+        {
+          "text": "量化指标 · 1",
+          "pressed": null
+        },
+        {
+          "text": "使用工具 · 1",
+          "pressed": null
+        },
+        {
+          "text": "图形呈现 · 1",
+          "pressed": null
+        },
+        {
+          "text": "清空节点筛选条件",
+          "pressed": null
+        }
+      ],
+      "canvas": {
+        "width": 856,
+        "height": 900
+      },
+      "selectedPanelOpen": true,
+      "bodyText": "收起导航\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n学生\n知识图谱\n\n知识关系、证据来源与学习路径入口\n\n收起目录\n章节目录\n基本概念\n61\n系统模型\n76\n时域分析\n93\n根轨迹分析\n52\n频域分析\n73\n系统校正\n44\n离散系统\n70\n非线性系统\n61\n状态空间\n131\n结构机理层\n21\n课程全景\n17\n前沿拓展\n5\n约束设计层\n64\n知识边界与方法迁移层\n37\n关系筛选\n文件图谱\n收起\n当前显示关系 296 条\n节点 189 / 805\n296 条可见关系 · 1.48 边/点 · 邻域 36%\n标签显示\n重点标签\n全部标签\n章节筛选（多选）\n知识类别筛选\n认知层级筛选\n关系密度\n结构优先\n焦点邻域\n全部关系\n关系类型\n全选\n清空\n弱关联 · 7444\n方法应用 · 5381\n章节包含 · 1541\n引出问题 · 1128\n前置基础 · 752\n相反概念 · 179\n跨域迁移 · 67\n抽象推广 · 11\n具体实例 · 7\n证据支撑 · 5\n能力启用 · 4\n决定因素 · 2\n互补说明 · 1\n对照比较 · 1\n推导得到 · 1\n迁移描述 · 1\n体现为 · 1\n提示参考 · 1\n量化指标 · 1\n使用工具 · 1\n图形呈现 · 1\n关系图例\n前置基础\n学习前需要先掌握的基础关系。\n提供基础\n为后续概念提供理论或方法基础。\n章节包含\n章节、主题或概念簇的结构归属。\n学习后续\n建议沿着课程顺序继续学习。\n引出问题\n由当前概念自然引出新的分析对象。\n方法应用\n方法、公式或概念可应用到目标对象。\n相反概念\n强调概念之间的反向或互斥关系。\n弱关联\n保留辅助联想，不作为默认骨架。\n跨域迁移\n把控制概念迁移到其他场景或学科域。\n抽象推广\n从具体对象提升到一般规律。\n具体实例\n说明某个概念是一般规律的实例。\n证据支撑\n用事实、公式或实验结果支撑结论。\n能力启用\n掌握当前概念后可以执行目标任务。\n互补说明\n两个概念共同补全同一知识面。\n对照比较\n通过差异比较帮助辨析概念。\n推导得到\n由已有模型、公式或条件推导出目标结果。\n迁移描述\n描述概念在不同表示或场景中的迁移。\n决定因素\n当前因素会决定或约束目标性质。\n体现为\n抽象概念在具体对象中体现出来。\n提示参考\n提供理解目标概念的辅助信息。\n量化指标\n用指标、参数或图形量化目标概念。\n使用工具\n当前任务或概念使用目标方法、工具或资源。\n图形呈现\n通过图形、曲线或可视化方式呈现概念。\n关系强度阈值\n0.8\n\n焦点邻域会保留直连弱关系，关系类型筛选仍然生效。\n\n仅显示存在可见关系的节点\n清空节点筛选条件\n2D 视图\n3D 视图\n极点配置\n控制理论\n应用\n程序性\n章节：状态空间\n难度：5\n重要性：5\n\n通过设计状态反馈向量，将闭环系统的极点配置到期望位置以改善系统性能的方法。\n\n示例\n利用状态反馈任意配置闭环极点的充分必要条件是被控系统可控。\n例9-21中，已知系统状态方程，求状态反馈向量使闭环特征值为指定值。\n关键词\n极点\n反馈\n配置\n状态反馈\n闭环极点\n可控性\n公式\ndet\n⁡\n(\n𝑠\n𝐼\n−\n(\n𝐴\n−\n𝐵\n𝐾\n)\n)\n=\n∏\n𝑖\n=\n1\n𝑛\n(\n𝑠\n−\n𝜆\n𝑖\n)\ndet(sI−(A−BK))=\ni=1\n∏\nn\n\t​\n\n(s−λ\ni\n\t​\n\n)\ndet\n⁡\n(\n𝑠\n𝐼\n−\n(\n𝐴\n−\n𝐾\n𝑓\n𝐶\n)\n)\n=\n∏\n𝑖\n=\n1\n𝑛\n(\n𝑠\n−\n𝜆\n𝑖\n)\ndet(sI−(A−K\nf\n\t​\n\nC))=\ni=1\n∏\nn\n\t​\n\n(s−λ\ni\n\t​\n\n)\n𝑢\n=\n−\n𝐾\n𝑥\nu=−Kx\n𝑥\n˙\n=\n(\n𝐴\n−\n𝐵\n𝐾\n)\n𝑥\nx\n˙\n=(A−BK)x\n关联知识点\n前置关系\n32\n方法应用\n状态反馈\n1.0\n方法应用\n闭环极点\n0.9"
+    },
+    {
+      "name": "all-relations",
+      "screenshotPath": "/Users/YW/.codex/worktrees/e734/act.just.edu.cn/artifacts/commercial-ui/knowledge-graph-layout-clarity-461/all-relations.png",
+      "url": "http://localhost:3002/knowledge?node=%E6%9E%81%E7%82%B9%E9%85%8D%E7%BD%AE_9_b5578c51",
+      "summary": "17335 条可见关系 · 21.17 边/点 · 弱关系 43%",
+      "relationText": [
+        {
+          "text": "收起",
+          "pressed": null
+        },
+        {
+          "text": "重点标签",
+          "pressed": "true"
+        },
+        {
+          "text": "全部标签",
+          "pressed": "false"
+        },
+        {
+          "text": "结构优先",
+          "pressed": "false"
+        },
+        {
+          "text": "焦点邻域",
+          "pressed": "false"
+        },
+        {
+          "text": "全部关系",
+          "pressed": "true"
+        },
+        {
+          "text": "全选",
+          "pressed": null
+        },
+        {
+          "text": "清空",
+          "pressed": null
+        },
+        {
+          "text": "弱关联 · 7444",
+          "pressed": null
+        },
+        {
+          "text": "方法应用 · 5381",
+          "pressed": null
+        },
+        {
+          "text": "章节包含 · 1541",
+          "pressed": null
+        },
+        {
+          "text": "引出问题 · 1128",
+          "pressed": null
+        },
+        {
+          "text": "前置基础 · 752",
+          "pressed": null
+        },
+        {
+          "text": "相反概念 · 179",
+          "pressed": null
+        },
+        {
+          "text": "跨域迁移 · 67",
+          "pressed": null
+        },
+        {
+          "text": "抽象推广 · 11",
+          "pressed": null
+        },
+        {
+          "text": "具体实例 · 7",
+          "pressed": null
+        },
+        {
+          "text": "证据支撑 · 5",
+          "pressed": null
+        },
+        {
+          "text": "能力启用 · 4",
+          "pressed": null
+        },
+        {
+          "text": "决定因素 · 2",
+          "pressed": null
+        },
+        {
+          "text": "互补说明 · 1",
+          "pressed": null
+        },
+        {
+          "text": "对照比较 · 1",
+          "pressed": null
+        },
+        {
+          "text": "推导得到 · 1",
+          "pressed": null
+        },
+        {
+          "text": "迁移描述 · 1",
+          "pressed": null
+        },
+        {
+          "text": "体现为 · 1",
+          "pressed": null
+        },
+        {
+          "text": "提示参考 · 1",
+          "pressed": null
+        },
+        {
+          "text": "量化指标 · 1",
+          "pressed": null
+        },
+        {
+          "text": "使用工具 · 1",
+          "pressed": null
+        },
+        {
+          "text": "图形呈现 · 1",
+          "pressed": null
+        },
+        {
+          "text": "清空节点筛选条件",
+          "pressed": null
+        }
+      ],
+      "canvas": {
+        "width": 856,
+        "height": 900
+      },
+      "selectedPanelOpen": true,
+      "bodyText": "收起导航\n首页\n虚拟仿真\n知识资源\n竞技场\n控制工作台\n自适应学习\n互动学习\n学生\n知识图谱\n\n知识关系、证据来源与学习路径入口\n\n收起目录\n章节目录\n基本概念\n61\n系统模型\n76\n时域分析\n93\n根轨迹分析\n52\n频域分析\n73\n系统校正\n44\n离散系统\n70\n非线性系统\n61\n状态空间\n131\n结构机理层\n21\n课程全景\n17\n前沿拓展\n5\n约束设计层\n64\n知识边界与方法迁移层\n37\n关系筛选\n文件图谱\n收起\n当前显示关系 17335 条\n节点 805 / 805\n17335 条可见关系 · 21.17 边/点 · 弱关系 43%\n标签显示\n重点标签\n全部标签\n章节筛选（多选）\n知识类别筛选\n认知层级筛选\n关系密度\n结构优先\n焦点邻域\n全部关系\n关系类型\n全选\n清空\n弱关联 · 7444\n方法应用 · 5381\n章节包含 · 1541\n引出问题 · 1128\n前置基础 · 752\n相反概念 · 179\n跨域迁移 · 67\n抽象推广 · 11\n具体实例 · 7\n证据支撑 · 5\n能力启用 · 4\n决定因素 · 2\n互补说明 · 1\n对照比较 · 1\n推导得到 · 1\n迁移描述 · 1\n体现为 · 1\n提示参考 · 1\n量化指标 · 1\n使用工具 · 1\n图形呈现 · 1\n关系图例\n前置基础\n学习前需要先掌握的基础关系。\n提供基础\n为后续概念提供理论或方法基础。\n章节包含\n章节、主题或概念簇的结构归属。\n学习后续\n建议沿着课程顺序继续学习。\n引出问题\n由当前概念自然引出新的分析对象。\n方法应用\n方法、公式或概念可应用到目标对象。\n相反概念\n强调概念之间的反向或互斥关系。\n弱关联\n保留辅助联想，不作为默认骨架。\n跨域迁移\n把控制概念迁移到其他场景或学科域。\n抽象推广\n从具体对象提升到一般规律。\n具体实例\n说明某个概念是一般规律的实例。\n证据支撑\n用事实、公式或实验结果支撑结论。\n能力启用\n掌握当前概念后可以执行目标任务。\n互补说明\n两个概念共同补全同一知识面。\n对照比较\n通过差异比较帮助辨析概念。\n推导得到\n由已有模型、公式或条件推导出目标结果。\n迁移描述\n描述概念在不同表示或场景中的迁移。\n决定因素\n当前因素会决定或约束目标性质。\n体现为\n抽象概念在具体对象中体现出来。\n提示参考\n提供理解目标概念的辅助信息。\n量化指标\n用指标、参数或图形量化目标概念。\n使用工具\n当前任务或概念使用目标方法、工具或资源。\n图形呈现\n通过图形、曲线或可视化方式呈现概念。\n关系强度阈值\n0.8\n仅显示存在可见关系的节点\n清空节点筛选条件\n2D 视图\n3D 视图\n极点配置\n控制理论\n应用\n程序性\n章节：状态空间\n难度：5\n重要性：5\n\n通过设计状态反馈向量，将闭环系统的极点配置到期望位置以改善系统性能的方法。\n\n示例\n利用状态反馈任意配置闭环极点的充分必要条件是被控系统可控。\n例9-21中，已知系统状态方程，求状态反馈向量使闭环特征值为指定值。\n关键词\n极点\n反馈\n配置\n状态反馈\n闭环极点\n可控性\n公式\ndet\n⁡\n(\n𝑠\n𝐼\n−\n(\n𝐴\n−\n𝐵\n𝐾\n)\n)\n=\n∏\n𝑖\n=\n1\n𝑛\n(\n𝑠\n−\n𝜆\n𝑖\n)\ndet(sI−(A−BK))=\ni=1\n∏\nn\n\t​\n\n(s−λ\ni\n\t​\n\n)\ndet\n⁡\n(\n𝑠\n𝐼\n−\n(\n𝐴\n−\n𝐾\n𝑓\n𝐶\n)\n)\n=\n∏\n𝑖\n=\n1\n𝑛\n(\n𝑠\n−\n𝜆\n𝑖\n)\ndet(sI−(A−K\nf\n\t​\n\nC))=\ni=1\n∏\nn\n\t​\n\n(s−λ\ni\n\t​\n\n)\n𝑢\n=\n−\n𝐾\n𝑥\nu=−Kx\n𝑥\n˙\n=\n(\n𝐴\n−\n𝐵\n𝐾\n)\n𝑥\nx\n˙\n=(A−BK)x\n关联知识点\n前置关系\n32\n方法应用\n状态反馈\n1.0\n方法应用\n闭环极点\n0.9\n方法应用\n闭环特征方程\n0.9\n前置基础"
+    }
+  ],
+  "reviewFixEvidence": {
+    "capturedAt": "2026-06-13T14:55:46.655Z",
+    "url": "http://localhost:3002/knowledge",
+    "assertions": {
+      "allRelationsAfterClearingRelationTypesKeepsEdges": true,
+      "focusOnlyFocusedNeighborhoodKeepsEdges": true,
+      "focusOnlyFocusedNeighborhoodHasNeighborhoodShare": true
+    },
+    "states": {
+      "allRelationsAfterClearingRelationTypes": {
+        "summary": "17335 条可见关系 · 21.17 边/点 · 弱关系 43%",
+        "visibleEdgeCount": 17335
+      },
+      "focusOnlyFocusedNeighborhood": {
+        "focusedNodeText": "按扰动控制",
+        "summary": "204 条可见关系 · 1.46 边/点 · 邻域 36%",
+        "visibleEdgeCount": 204,
+        "neighborhoodPercent": 36
+      }
+    },
+    "note": "Focus-only state uses the sidebar node button focus handler, which shares the same setHoveredNode path as hover but avoids mouseleave when changing density controls."
+  }
+}

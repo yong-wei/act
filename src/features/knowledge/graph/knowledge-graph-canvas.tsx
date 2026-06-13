@@ -139,7 +139,7 @@ export function KnowledgeGraphCanvas({
     });
     const clonedNodes = nodes.map((n) => ({
       ...n,
-      graphDegree: degreeById.get(n.id) ?? 0,
+      graphDegree: n.graphDegree ?? degreeById.get(n.id) ?? 0,
     } as any));
     const nodeById = new Map(clonedNodes.map((node) => [node.id, node]));
 
