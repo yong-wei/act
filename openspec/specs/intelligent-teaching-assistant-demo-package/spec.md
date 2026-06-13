@@ -16,11 +16,12 @@ The system SHALL provide a reproducible demo package for the intelligent teachin
 - **AND** it SHALL NOT duplicate path outcomes, grading runs, citations, prep packs, or intervention counts.
 
 ### Requirement: Demo acceptance covers product surfaces
-The demo package SHALL verify the report's visible product surfaces.
+Demo acceptance SHALL cover final competition materials in addition to API payloads.
 
 #### Scenario: Acceptance checks run
-- **WHEN** demo acceptance is executed
-- **THEN** it SHALL verify student diagnosis overview, multi-path selection, resource execution context, document grading workbench, student feedback, teacher report, fixture-backed prep-pack review evidence, Konling modes, citations, and privacy redaction.
+- **WHEN** demo acceptance runs for the competition submission
+- **THEN** it SHALL verify route screenshots, effect-report export, citation visibility, role boundaries, model/provider note, privacy note, and demo script or asset manifest
+- **AND** no unsupported provider or learning-gain claim SHALL be included without source evidence.
 
 ### Requirement: Demo package avoids real private data
 The demo package SHALL avoid real student data and restricted raw payloads.
@@ -38,12 +39,17 @@ The demo package SHALL include professional grading artifacts when the grading w
 - **AND** grading artifacts SHALL be privacy-reviewed and tied to the baseline class and student records.
 
 ### Requirement: Effect report metrics are source-backed
-Assistant demo effect reports SHALL include document grading quality metrics when the competition baseline uses grading.
+The assistant effect report SHALL be exportable from governed metric snapshots or deterministic demo records.
 
 #### Scenario: Effect metric is generated
-- **WHEN** the effect report includes document grading
-- **THEN** it SHALL expose grading feedback coverage, teacher override rate, AI/teacher score delta or agreement, blocked-evaluator count, and sample size
-- **AND** every metric SHALL include source references, source window, exclusions, confidence, and synthetic or real data marker.
+- **WHEN** the assistant effect report is exported
+- **THEN** metrics SHALL cover grading feedback coverage, teacher override or review rate, path adoption, prep-pack activation or impact, citation coverage, and baseline usage where data is available
+- **AND** every metric SHALL include definition, numerator, denominator, source window, source references, exclusions, caveats, confidence, and data-origin marker.
+
+#### Scenario: Real user evidence is imported
+- **WHEN** real evidence is used in an effect report
+- **THEN** the report SHALL distinguish real and synthetic sources
+- **AND** privacy-reviewed aggregation SHALL be required before export.
 
 ### Requirement: Demo package preserves privacy and safety boundaries
 The demo package SHALL not leak restricted raw data or present unsupported AI claims as measured results.

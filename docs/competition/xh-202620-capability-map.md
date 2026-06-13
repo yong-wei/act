@@ -1,26 +1,17 @@
 # XH-202620 Competition Capability Map
 
-This map freezes the automatic-control intelligent teaching assistant baseline for the XH-202620 competition story. It is scoped to synthetic demo data and does not claim production learning gains.
+This map freezes the automatic-control intelligent teaching assistant baseline for the XH-202620 competition story. It is scoped to synthetic demo data and does not claim measured classroom outcomes.
 
-## Implemented
+## Final Capability Map
 
-| Capability | Competition Need | Baseline Evidence | Reviewer Surface |
-| --- | --- | --- | --- |
-| diagnosis-to-path | Diagnose learner state and recommend a learning path | `snapshot-diagnosis-alpha`, `path-alpha-main`, `demo-ita-student-alpha` | `/profile/evidence`, `/assessment/adaptive-practice?goal=control-correction` |
-
-## Partial
-
-| Capability | Competition Need | Baseline Evidence | Current Boundary | Follow-up Change |
+| Capability | Status | Competition Need | Baseline Evidence | Reviewer Surface |
 | --- | --- | --- | --- | --- |
-| document-grading | AI-assisted report grading with teacher review and cited feedback | `grading-alpha-draft`, `approval-grading-beta-approved`, `assignment-control-report` | Grading and feedback fixtures are present; final professional workbench polish is still separate. | `professionalize-document-grading` |
-| konling-explanation | Konling explains diagnosis, path, resources, grading, class summary, and prep-pack context | `konling-diagnosis`, `konling-path`, `konling-grading`, `konling-prep` | Mode coverage and citations exist; evidence loop hardening remains separate. | `harden-assistant-evidence-loop` |
-| teacher-prep-pack | Teacher receives a prep-pack action generated from student evidence | `prep-pack-demo-ita`, `overlay-prep-pack-demo-ita` | Fixture and overlay contract exist; productionized learning-path prep-pack surface remains separate. | `productize-learning-path-prep-pack` |
-
-## Planned
-
-| Capability | Competition Need | Baseline Evidence | Current Boundary | Follow-up Change |
-| --- | --- | --- | --- | --- |
-| effect-report | Reviewer sees a source-backed effect report with metric methodology | `effect-report-demo-ita-export` | API export and synthetic metric contract exist; final visible report surface remains separate. | `polish-competition-surfaces-report` |
+| diagnosis-to-path | implemented | Diagnose learner state and recommend a learning path | `snapshot-diagnosis-alpha`, `path-alpha-main`, `demo-ita-student-alpha` | `/profile/evidence`, `/profile/growth`, `/assessment/adaptive-practice?goal=control-correction` |
+| document-grading | implemented | AI-assisted report grading with teacher review and cited feedback | `grading-alpha-draft`, `approval-grading-beta-approved`, `assignment-control-report` | `/teacher/grading-workbench?demo=1`, `/assessment/document-feedback?demo=1` |
+| konling-explanation | implemented | Konling explains diagnosis, path, resources, grading, class summary, and prep-pack context | `konling-diagnosis`, `konling-path`, `konling-grading`, `konling-prep` | `/profile/evidence`, `/teacher/classes/demo-ita-class/analytics-v2` |
+| teacher-prep-pack | implemented | Teacher receives a prep-pack action generated from student evidence | `prep-pack-demo-ita`, `overlay-prep-pack-demo-ita` | `/teacher/prep-packs` |
+| effect-report | implemented | Reviewer sees a source-backed effect report with metric methodology | `effect-report-demo-ita-export` | `/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true` |
+| simulation-arena-validation | implemented | Reviewer sees simulation and Arena validation boundaries | `path-alpha-main`, `task-second-order-lead-pid` | `/arena`, `/arena/challenges/task-second-order-lead-pid`, `/interactive-learning/control-workbench` |
 
 ## Data Origin
 
@@ -30,4 +21,5 @@ Every baseline record uses `synthetic-demo` origin metadata and `intelligent-tea
 
 - `rtk npm run test:competition-baseline`
 - `rtk npm run test:intelligent-teaching-assistant-demo`
+- `rtk npm run test:commercial-ui-governance`
 - `rtk openspec validate competition-demo-baseline --strict`

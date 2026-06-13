@@ -544,7 +544,7 @@ describe('commercial UI governance', () => {
     const result = evaluateCommercialUiGovernance(baseInput({
       routeInventory: PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => (
         route.href === '/data-center'
-          ? { ...route, owningChange: '', navigationLayers: [], themeSupport: ['light'] as const, frame: 'legacy-dashboard' as never }
+          ? { ...route, owningChange: '', navigationLayers: [], themeSupport: [] as never, frame: 'legacy-dashboard' as never }
           : route
       )),
       premiumVisualQaMatrix: PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.filter((route) => route.href !== '/data-center'),
@@ -558,7 +558,7 @@ describe('commercial UI governance', () => {
           category: 'route-ledger',
           rule: 'route-ledger.incomplete-primary-route',
           path: '/data-center',
-          evidence: expect.arrayContaining(['owningChange', 'themeSupport=dark', 'navigationLayers']),
+          evidence: expect.arrayContaining(['owningChange', 'themeSupport=light', 'navigationLayers']),
         }),
         expect.objectContaining({
           category: 'visual-acceptance',
@@ -919,6 +919,34 @@ describe('commercial UI governance', () => {
           rule: 'visual-acceptance.incomplete-manifest-metadata',
           path: '/interactive-learning/control-workbench',
           evidence: expect.arrayContaining(['navigationState']),
+        }),
+      ]),
+    );
+  });
+
+  it('fails when visual QA manifest uses an unknown auth state', () => {
+    const visualEvidence = completeVisualEvidence().map((entry) => {
+      if (entry.href !== '/interactive-learning/control-workbench') return entry;
+      return {
+        ...entry,
+        viewports: entry.viewports.map((viewport) => (
+          viewport.width === 1440
+            ? { ...viewport, authState: 'protected-redirect' as never }
+            : viewport
+        )),
+      };
+    });
+
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'visual-acceptance',
+          rule: 'visual-acceptance.incomplete-manifest-metadata',
+          path: '/interactive-learning/control-workbench',
+          evidence: expect.arrayContaining(['authState']),
         }),
       ]),
     );

@@ -15,7 +15,7 @@ Expected reviewer checkpoints:
 - Teacher reports expose metric methodology and redacted export policy.
 - Prep packs use server-owned signed context and cite class evidence.
 - Prep-pack overlay activation is represented as an active synthetic overlay that does not mutate base manifests.
-- Effect report export metrics include grading time saved, teacher edit rate, path adoption, second-attempt improvement, and user feedback quality.
+- Effect report export metrics include grading feedback coverage, teacher override/review rate, assistant-teacher score delta and agreement, blocked evaluator output count, grading sample size, path adoption, prep-pack activation, citation coverage, and baseline usage coverage.
 - Konling covers `generic-chat`, diagnosis, path, resource, grading, feedback, class summary, and prep coauthoring modes.
 - Unavailable-state handling is represented for every mode.
 
@@ -135,7 +135,7 @@ GET /api/teacher/classes/demo-ita-class/control-correction-report?export=true
 GET /api/teacher/classes/demo-ita-class/assistant-effect-report?export=true
 ```
 
-Expected assertions: the control-correction report export is redacted and metrics include methodology; the assistant effect report export returns the five source-backed synthetic metrics (`gradingTimeSaved`, `teacherEditRate`, `pathAdoption`, `secondAttemptImprovement`, and `userFeedbackQuality`) with caveats and exclusions.
+Expected assertions: the control-correction report export is redacted and metrics include methodology; the assistant effect report export returns source-backed synthetic metrics for grading, review, path, prep-pack, citation, and baseline usage coverage with definitions, source windows, references, exclusions, caveats, confidence, sample size, and data-origin markers.
 
 ```http
 GET /api/teacher/classes/demo-ita-class/insights
@@ -174,54 +174,30 @@ Expected assertions: the class insights response identifies `demo-ita-class`, ex
 - Confidence: medium.
 - Source coverage: 8 of 8 required modes.
 
-`gradingTimeSaved`
+Effect-report metric ids:
 
-- Numerator: synthetic manual grading minutes minus assistant-assisted review minutes.
-- Denominator: synthetic grading runs.
-- Window: `2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z`.
-- Source references: `grading-alpha-draft`, `grading-beta-approved`.
-- Caveat: synthetic fixture metric for demo readiness; not a measured learning-gain claim.
+| Metric | Numerator | Denominator | Source references |
+| --- | --- | --- | --- |
+| `gradingFeedbackCoverage` | approved synthetic grading run with visible feedback and citations | synthetic grading runs | `grading-beta-approved`, `feedback-grading-beta-approved` |
+| `teacherOverrideRate` | reviewed criterion changed by teacher | approved grading criteria | `approval-grading-beta-approved` |
+| `aiTeacherScoreDelta` | changed score points across edited criteria | approved grading criteria | `grading-beta-approved`, `approval-grading-beta-approved` |
+| `aiTeacherAgreementRate` | unchanged reviewed criterion | approved grading criteria | `grading-beta-approved`, `approval-grading-beta-approved` |
+| `blockedEvaluatorOutputCount` | schema-invalid or anchor-invalid outputs blocked before writeback | inspected synthetic evaluator outputs | `conversion-doc-alpha-control-report`, `conversion-doc-beta-control-report` |
+| `gradingSampleSize` | grading runs in report scope | synthetic class report window | `grading-alpha-draft`, `grading-beta-approved` |
+| `pathAdoptionRate` | selected governed path options | synthetic path plans | `path-alpha-main`, `path-beta-feedback`, `path-option-alpha-selected`, `path-option-beta-selected` |
+| `prepPackActivationRate` | active prep-pack overlays | synthetic prep packs | `prep-pack-demo-ita`, `overlay-prep-pack-demo-ita` |
+| `citationCoverageRate` | cited Konling sessions | required Konling sessions | `konling-diagnosis`, `konling-path`, `konling-resource`, `konling-grading`, `konling-feedback`, `konling-class`, `konling-prep`, `konling-generic` |
+| `baselineUsageCoverage` | represented baseline route and API checks | baseline route and API checks | `demo-ita-class`, `snapshot-diagnosis-alpha`, `path-alpha-main`, `prep-pack-demo-ita`, `effect-report-demo-ita-export` |
 
-`teacherEditRate`
-
-- Numerator: edited rubric fields before teacher approval.
-- Denominator: reviewed rubric fields.
-- Window: `2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z`.
-- Source references: `approval-grading-beta-approved`.
-- Caveat: synthetic fixture metric for demo readiness; not a measured learning-gain claim.
-
-`pathAdoption`
-
-- Numerator: learners with selected path execution context.
-- Denominator: synthetic class roster.
-- Window: `2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z`.
-- Source references: `path-alpha-main`, `path-beta-feedback`, `execution-alpha-resource`.
-- Caveat: synthetic fixture metric for demo readiness; not a measured learning-gain claim.
-
-`secondAttemptImprovement`
-
-- Numerator: second-attempt synthetic score minus first-attempt synthetic score.
-- Denominator: paired synthetic Arena/simulation attempt sequence.
-- Window: `2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z`.
-- Source references: `evidence-alpha-simulation`.
-- Caveat: synthetic fixture metric for demo readiness; not a measured learning-gain claim.
-
-`userFeedbackQuality`
-
-- Numerator: positive feedback quality rubric points.
-- Denominator: possible feedback quality points.
-- Window: `2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z`.
-- Source references: `feedback-grading-beta-approved`, `cit-feedback-alpha`.
-- Caveat: synthetic fixture metric for demo readiness; not a measured learning-gain claim.
+Each effect-report metric uses the window `2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z`, includes exclusions and caveats, and carries `dataOrigin: synthetic-demo`.
 
 ## Provider Configuration
 
 Provider examples use secret references only:
 
 - `env:DEMO_AI_API_KEY` for OpenAI-compatible providers.
-- `env:DEMO_ANTHROPIC_API_KEY` for Anthropic-compatible providers.
 
-The package must not store plaintext API keys. Provider capability checks require tool use, streaming, and citation support.
+The package must not store plaintext API keys. Provider capability checks require tool use, streaming, and citation support. This package does not claim support for runtime paths that have not landed in this repository.
 
 ## Privacy And Citation Controls
 

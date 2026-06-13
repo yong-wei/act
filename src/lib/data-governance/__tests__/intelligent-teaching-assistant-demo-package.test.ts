@@ -263,23 +263,35 @@ describe('intelligent teaching assistant demo package', () => {
       record.sourcePackageId === 'intelligent-teaching-assistant'
     ))).toBe(true);
     expect(baseline.routeLedger.map((step) => step.route)).toEqual(expect.arrayContaining([
+      '/',
       '/teacher/grading-workbench?demo=1',
       '/assessment/document-feedback?demo=1',
       '/profile/evidence',
+      '/profile/growth',
       '/assessment/adaptive-practice?goal=control-correction',
+      '/teacher/prep-packs',
+      '/teacher/classes/demo-ita-class/analytics-v2',
+      '/teacher/classes/demo-ita-class/students/demo-ita-student-beta',
       '/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true',
       '/data-center',
+      '/admin/data-governance',
+      '/arena',
+      '/arena/challenges/task-second-order-lead-pid',
+      '/interactive-learning/control-workbench',
     ]));
     expect(baseline.routeLedger.some((step) => step.actorRole === 'student' && step.route === '/data-center')).toBe(false);
     expect(baseline.routeLedger.find((step) => step.route === '/data-center')?.actorRole).toBe('administrator');
     expect(baseline.temporarySurfaces.map((surface) => surface.surfaceStatus)).toEqual(expect.arrayContaining([
-      'placeholder',
       'feature-flagged',
       'api-only',
     ]));
+    expect(baseline.capabilities.every((capability) => (
+      capability.status === 'implemented' && !capability.nextChange
+    ))).toBe(true);
     expect(baseline.routeLedger.every((step) => (
       baseline.accounts.find((account) => account.role === step.actorRole)?.routeScope.includes(step.route)
     ))).toBe(true);
+    expect(baseline.acceptanceCommands).toContain('rtk npm run test:commercial-ui-governance');
     expect(baseline.acceptanceCommands).toContain('rtk openspec validate competition-demo-baseline --strict');
     expect(baseline.acceptanceCommands.some((command) => command.includes('freeze-competition-baseline'))).toBe(false);
     expect(validateCompetitionBaseline(baseline)).toEqual([]);
@@ -305,6 +317,8 @@ describe('intelligent teaching assistant demo package', () => {
       sourcePackageId: 'unknown',
     };
     broken.capabilities[0].proof = ['not-a-real-proof'];
+    broken.capabilities[0].status = 'partial';
+    broken.capabilities[0].nextChange = 'old-follow-up';
     broken.acceptanceCommands.push('rtk openspec validate freeze-competition-baseline --strict');
     broken.temporarySurfaces = broken.temporarySurfaces.filter((surface) => surface.surfaceStatus !== 'feature-flagged');
 
@@ -313,8 +327,9 @@ describe('intelligent teaching assistant demo package', () => {
       'competition records require explicit synthetic-demo data-origin metadata',
       'competition route ledger routes must stay within each account role scope',
       'student competition route ledger must not use Data Center',
+      'competition capability map must mark final baseline capabilities implemented without follow-up change pointers',
       'competition capability proof ids must resolve to fixture records or ledger routes',
-      'competition baseline must record placeholder, feature-flagged, and API-only surfaces with removal owners',
+      'competition baseline must record feature-flagged and API-only surfaces with removal owners',
       'competition baseline acceptance commands must not reference the archived change id',
     ]));
   });
@@ -347,6 +362,10 @@ describe('intelligent teaching assistant demo package', () => {
       'aiTeacherAgreementRate',
       'blockedEvaluatorOutputCount',
       'gradingSampleSize',
+      'pathAdoptionRate',
+      'prepPackActivationRate',
+      'citationCoverageRate',
+      'baselineUsageCoverage',
     ]);
     for (const metric of effectReport.metrics) {
       expect(metric.definition).toBeTruthy();
@@ -356,6 +375,8 @@ describe('intelligent teaching assistant demo package', () => {
       expect(metric.sourceWindow).toMatch(/2026-06-05T00:00:00.000Z/);
       expect(metric.sourceReferences.length).toBeGreaterThan(0);
       expect(metric.exclusions.length).toBeGreaterThan(0);
+      expect(metric.sampleSize).toBeGreaterThan(0);
+      expect(metric.dataOrigin).toBe('synthetic-demo');
       expect(metric.caveats).toEqual(expect.arrayContaining([
         'Synthetic fixture metric for demo readiness; not a measured learning-gain claim.',
       ]));
@@ -373,6 +394,24 @@ describe('intelligent teaching assistant demo package', () => {
       value: 0.5,
       numerator: '1 unchanged criterion',
       denominator: '2 approved grading criteria',
+    }));
+    expect(effectReport.metrics.find((metric) => metric.id === 'pathAdoptionRate')).toEqual(expect.objectContaining({
+      value: 0.667,
+      sourceReferences: ['path-alpha-main', 'path-beta-feedback', 'path-option-alpha-selected', 'path-option-beta-selected'],
+      sampleSize: 3,
+    }));
+    expect(effectReport.metrics.find((metric) => metric.id === 'prepPackActivationRate')).toEqual(expect.objectContaining({
+      value: 1,
+      sourceReferences: ['prep-pack-demo-ita', 'overlay-prep-pack-demo-ita'],
+      sampleSize: 1,
+    }));
+    expect(effectReport.metrics.find((metric) => metric.id === 'citationCoverageRate')).toEqual(expect.objectContaining({
+      value: 1,
+      sampleSize: 8,
+    }));
+    expect(effectReport.metrics.find((metric) => metric.id === 'baselineUsageCoverage')).toEqual(expect.objectContaining({
+      value: 1,
+      sampleSize: 15,
     }));
   });
 
@@ -509,6 +548,7 @@ describe('intelligent teaching assistant demo package', () => {
     broken.routeChecks[0].route = '/not-a-demo-route';
     broken.apiExamples[0].path = '/api/not-real';
     broken.effectReports[0].metrics[1].value = 0.25;
+    broken.effectReports[0].metrics.find((metric) => metric.id === 'pathAdoptionRate')!.sampleSize = 999;
     broken.effectReports[0].metrics[0].sourceReferences = ['not-real-source'];
     broken.konlingSessions = broken.konlingSessions.filter((session) => session.modeId !== 'prep-coauthor');
     (broken.prepPacks[0] as unknown as { serverContextSigned: boolean }).serverContextSigned = false;
@@ -519,6 +559,7 @@ describe('intelligent teaching assistant demo package', () => {
       'API examples must cover known demo API contracts',
       'effect report source references must resolve to installed demo records',
       'effect report metrics must match recomputable demo record values',
+      'effect report metric sample sizes must match recomputable demo record denominators',
       'Konling sessions must cover all required teaching assistant modes',
       'prep packs require signed server context, review items, and citations',
     ]));

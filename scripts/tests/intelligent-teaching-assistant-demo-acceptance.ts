@@ -6,6 +6,7 @@ import {
   type AssistantDemoActorRole,
   INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE,
   buildIntelligentTeachingAssistantDemoAcceptanceReport,
+  buildIntelligentTeachingAssistantEffectReportExport,
 } from '../../src/lib/data-governance/intelligent-teaching-assistant-demo-package';
 
 const repoRoot = process.cwd();
@@ -150,6 +151,49 @@ function parseSseJsonPayloads(body: string): unknown[] {
     .filter((payload): payload is unknown => payload !== null);
 }
 
+function sameStringSet(actual: unknown, expected: string[]): boolean {
+  if (!Array.isArray(actual) || actual.some((item) => typeof item !== 'string')) return false;
+  const actualSorted = [...actual].sort();
+  const expectedSorted = [...expected].sort();
+  return actualSorted.length === expectedSorted.length
+    && actualSorted.every((item, index) => item === expectedSorted[index]);
+}
+
+function validateAssistantEffectReportMetrics(metrics: unknown): string[] {
+  if (!Array.isArray(metrics)) {
+    return ['assistant effect report response metrics must be an array'];
+  }
+
+  const expectedMetrics = buildIntelligentTeachingAssistantEffectReportExport().metrics;
+  const actualById = new Map(metrics.map((metric) => [readPath(metric, ['id']), readObject(metric)]));
+  const errors: string[] = [];
+
+  for (const expected of expectedMetrics) {
+    const actual = actualById.get(expected.id);
+    if (!actual) {
+      errors.push(`assistant effect report response is missing required effect metric: ${expected.id}`);
+      continue;
+    }
+    if (readPath(actual, ['value']) !== expected.value) {
+      errors.push(`assistant effect report metric ${expected.id} has unexpected value`);
+    }
+    if (readPath(actual, ['sampleSize']) !== expected.sampleSize) {
+      errors.push(`assistant effect report metric ${expected.id} has unexpected sampleSize`);
+    }
+    if (readPath(actual, ['dataOrigin']) !== expected.dataOrigin) {
+      errors.push(`assistant effect report metric ${expected.id} has unexpected dataOrigin`);
+    }
+    if (readPath(actual, ['synthetic']) !== expected.synthetic) {
+      errors.push(`assistant effect report metric ${expected.id} has unexpected synthetic marker`);
+    }
+    if (!sameStringSet(readPath(actual, ['sourceReferences']), expected.sourceReferences)) {
+      errors.push(`assistant effect report metric ${expected.id} has unexpected sourceReferences`);
+    }
+  }
+
+  return errors;
+}
+
 export function validateIntelligentTeachingAssistantDemoApiPayload(path: string, body: string, contentType = ''): string[] {
   if (path === '/api/ai/chat') {
     if (contentType.includes('text/event-stream')) {
@@ -233,6 +277,10 @@ export function validateIntelligentTeachingAssistantDemoApiPayload(path: string,
         'aiTeacherAgreementRate',
         'blockedEvaluatorOutputCount',
         'gradingSampleSize',
+        'pathAdoptionRate',
+        'prepPackActivationRate',
+        'citationCoverageRate',
+        'baselineUsageCoverage',
       ].every((id) => metricIds.includes(id))
         ? null
         : 'assistant effect report response is missing required effect metrics',
@@ -242,12 +290,15 @@ export function validateIntelligentTeachingAssistantDemoApiPayload(path: string,
         readPath(metric, ['denominator']) &&
         readPath(metric, ['sourceWindow']) &&
         readPath(metric, ['confidence']) &&
+        typeof readPath(metric, ['sampleSize']) === 'number' &&
+        readPath(metric, ['dataOrigin']) === 'synthetic-demo' &&
         Array.isArray(readPath(metric, ['sourceReferences'])) &&
         (readPath(metric, ['sourceReferences']) as unknown[]).length > 0 &&
         Array.isArray(readPath(metric, ['exclusions'])) &&
         Array.isArray(readPath(metric, ['caveats'])) &&
         readPath(metric, ['synthetic']) === true
       )) ? null : 'assistant effect report metrics require source-backed methodology and synthetic caveats',
+      ...validateAssistantEffectReportMetrics(metrics),
     ].filter((error): error is string => Boolean(error));
   }
 
