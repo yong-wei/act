@@ -933,7 +933,6 @@ function collectDemoSourceReferenceIds(pkg: IntelligentTeachingAssistantDemoPack
     ...pkg.prepPackOverlays.map((overlay) => overlay.id),
     ...pkg.effectReports.map((report) => report.export.id),
     ...pkg.konlingSessions.map((session) => session.id),
-    ...XH_202620_COMPETITION_BASELINE.routeLedger.map((step) => step.id),
   ]);
 }
 
@@ -1058,6 +1057,7 @@ export function validateIntelligentTeachingAssistantDemoPackage(
   const routeSet = new Set(pkg.routeChecks.map((check) => check.route));
   const apiSet = new Set(pkg.apiExamples.map((example) => example.path));
   const sourceReferenceIds = collectDemoSourceReferenceIds(pkg);
+  const baselineRouteLedgerIds = new Set(XH_202620_COMPETITION_BASELINE.routeLedger.map((step) => step.id));
   add(pkg.fixtureScope.syntheticOnly, 'fixture scope must be synthetic only');
   add(pkg.fixtureScope.cleanupSelectors.every((selector) => (
     selector.includes('tenantId=demo-intelligent-teaching-assistant-tenant') &&
@@ -1107,8 +1107,11 @@ export function validateIntelligentTeachingAssistantDemoPackage(
     report.metrics.every(isCompleteEffectMetric)
   )), 'effect report metrics require definitions, source windows, source references, exclusions, caveats, and synthetic labels');
   add(pkg.effectReports.every((report) => report.metrics.every((metric) => (
-    metric.sourceReferences.every((reference) => sourceReferenceIds.has(reference))
-  ))), 'effect report source references must resolve to installed demo records');
+    metric.sourceReferences.every((reference) => (
+      sourceReferenceIds.has(reference) ||
+      (metric.id === 'baselineUsageCoverage' && baselineRouteLedgerIds.has(reference))
+    ))
+  ))), 'effect report source references must resolve to installed demo records or baseline route-ledger steps');
   add(pkg.effectReports.every((report) => report.metrics.every((metric) => {
     const expected = expectedMetricValue(pkg, metric.id);
     return expected === null || roundMetric(expected) === metric.value;
