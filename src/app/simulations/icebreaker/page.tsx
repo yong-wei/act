@@ -1,12 +1,15 @@
-import { FeaturePageNav } from '@/components/shared/feature-page-nav';
+import { SimulationShell } from '../_components/simulation-shell';
 import { IcebreakerSimulation } from '../_components/simulation-loaders';
 
 export default function IcebreakerSimulationPage() {
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100">
-      <FeaturePageNav title="雪龙2号破冰船仿真" backHref="/simulations" backLabel="返回仿真入口" floating />
+    <SimulationShell
+      title="雪龙2号破冰船仿真"
+      subtitle="Azipod 推进与冰阻力 · 参数摄动与鲁棒控制"
+      activeHref="/simulations/icebreaker"
+    >
       <IcebreakerSimulation />
-    </div>
+    </SimulationShell>
   );
 }
 

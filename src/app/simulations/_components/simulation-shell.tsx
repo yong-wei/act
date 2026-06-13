@@ -1,0 +1,116 @@
+'use client';
+
+import Link from 'next/link';
+import type { ReactNode } from 'react';
+
+import { AppShell, type AppBreadcrumbItem } from '@/components/platform/app-shell';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+
+export interface SimulationShellProps {
+  title: string;
+  subtitle?: string;
+  activeHref: string;
+  returnHref?: string;
+  returnLabel?: string;
+  launchProvenance?: string;
+  children: ReactNode;
+  contextStrip?: ReactNode;
+  evidenceRail?: ReactNode;
+  supportDrawer?: ReactNode;
+  commandBar?: ReactNode;
+  className?: string;
+}
+
+export function SimulationShell({
+  title,
+  subtitle,
+  activeHref,
+  returnHref = '/simulations',
+  returnLabel = '虚拟仿真',
+  launchProvenance = 'standalone',
+  children,
+  contextStrip,
+  evidenceRail,
+  supportDrawer,
+  commandBar,
+  className,
+}: SimulationShellProps) {
+  const breadcrumbs: AppBreadcrumbItem[] = [
+    { label: '首页', href: '/' },
+    { label: returnLabel, href: returnHref },
+    { label: title },
+  ];
+  const hasStructuredSlots = Boolean(contextStrip || evidenceRail || supportDrawer || commandBar);
+
+  return (
+    <AppShell
+      viewerRole="student"
+      activeHref={activeHref}
+      sidebarMode="collapsible"
+      title={title}
+      subtitle={subtitle}
+      breadcrumbs={breadcrumbs}
+      actions={(
+        <Button asChild variant="outline" size="sm" data-simulation-shell-profile-action>
+          <Link href="/profile">个人中心</Link>
+        </Button>
+      )}
+      className="bg-platform-canvas"
+      workspaceSlots={hasStructuredSlots ? {
+        contextHeader: contextStrip,
+        commandBar,
+        instrumentArea: (
+          <SimulationSceneFrame activeHref={activeHref} launchProvenance={launchProvenance} returnHref={returnHref}>
+            {children}
+          </SimulationSceneFrame>
+        ),
+        evidenceRail,
+        supportDrawer,
+      } : undefined}
+    >
+      <div
+        className={cn('relative min-h-[calc(100vh-10rem)] overflow-hidden rounded-lg border border-platform-border bg-platform-canvas text-platform-fg-primary shadow-2xl', className)}
+        data-commercial-workspace="simulation-scene"
+        data-task-workspace-archetype="immersive-scene"
+        data-simulation-shell-route={activeHref}
+        data-launch-provenance={launchProvenance}
+        data-return-target={returnHref}
+        data-evidence-flow-target="/profile/evidence"
+      >
+        <section data-commercial-workspace-zone="instrument-area" data-instrument-nonblank-contract="simulation-scene">
+          {children}
+        </section>
+      </div>
+    </AppShell>
+  );
+}
+
+function SimulationSceneFrame({
+  activeHref,
+  launchProvenance,
+  returnHref,
+  children,
+}: {
+  activeHref: string;
+  launchProvenance: string;
+  returnHref: string;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className="relative min-h-[calc(100vh-10rem)] overflow-hidden rounded-lg border border-platform-border bg-platform-canvas text-platform-fg-primary shadow-2xl"
+      data-commercial-workspace="simulation-scene"
+      data-task-workspace-archetype="immersive-scene"
+      data-simulation-shell-route={activeHref}
+      data-launch-provenance={launchProvenance}
+      data-return-target={returnHref}
+      data-evidence-flow-target="/profile/evidence"
+      data-instrument-nonblank-contract="simulation-scene"
+    >
+      <section data-commercial-workspace-zone="instrument-area">
+        {children}
+      </section>
+    </div>
+  );
+}

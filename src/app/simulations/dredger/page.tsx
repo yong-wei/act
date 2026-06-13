@@ -1,12 +1,15 @@
-import { FeaturePageNav } from '@/components/shared/feature-page-nav';
+import { SimulationShell } from '../_components/simulation-shell';
 import { DredgerSimulation } from '../_components/simulation-loaders';
 
 export default function DredgerSimulationPage() {
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100">
-      <FeaturePageNav title="天鲸号挖泥船仿真" backHref="/simulations" backLabel="返回仿真入口" floating />
+    <SimulationShell
+      title="天鲸号挖泥船仿真"
+      subtitle="MMG 三自由度 · 动力定位与前馈扰动补偿"
+      activeHref="/simulations/dredger"
+    >
       <DredgerSimulation />
-    </div>
+    </SimulationShell>
   );
 }
 

@@ -487,6 +487,9 @@ function AppShellDesktopLayout({
 }) {
   const [navigationCollapsed, setNavigationCollapsed] = useState(false);
   const renderItems = flattenNavigationItems(effectiveNavigation);
+  const renderMobileNavigation = showSidebar
+    && effectiveNavigation.length > 0
+    && resolvedRouteMetadata?.mobileNavigation !== 'hidden-immersive';
 
   return (
     <div
@@ -518,7 +521,7 @@ function AppShellDesktopLayout({
           actions={actions}
           userMenu={userMenu}
         />
-        {showSidebar && effectiveNavigation.length > 0 ? (
+        {renderMobileNavigation ? (
           resolvedRouteMetadata?.mobileNavigation === 'drawer' ? (
           <AppMobileNavigation
             navigation={renderItems}

@@ -114,6 +114,11 @@ The system SHALL maintain an inventory of representative routes and their expect
 - **THEN** the change SHALL update or satisfy the route inventory
 - **AND** route aliases and authentication callback destinations SHALL remain compatible.
 
+#### Scenario: Simulation detail route is inventoried
+- **WHEN** a `/simulations/*` detail route adopts `SimulationShell`
+- **THEN** the route inventory SHALL register it as a `mission-workspace` route with contextual return to `/simulations`
+- **AND** migrated simulation detail pages SHALL NOT retain a `FeaturePageNav` legacy shell disposition.
+
 ### Requirement: Public entry routes preserve destination intent
 Public entry routes SHALL preserve destination intent across login, role redirect, cockpit, profile, learning, and simulation entry actions.
 

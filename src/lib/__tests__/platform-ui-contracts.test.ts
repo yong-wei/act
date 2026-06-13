@@ -376,6 +376,7 @@ describe('platform UI contracts', () => {
     const manifestRuntimeSource = readSource('src/features/interactive/shared/manifest-runtime/layout-renderer.tsx');
     const unit41StudentRuntimeSource = readSource('src/features/interactive/unit-4-1-design-task-expression/student-page.tsx');
     const cruiseSimulationSource = readSource('src/app/simulations/cruise/page.tsx');
+    const simulationShellSource = readSource('src/app/simulations/_components/simulation-shell.tsx');
     const teacherAnalyticsSource = readSource('src/app/teacher/classes/[classId]/analytics-v2/page.tsx');
     const teacherLayoutSource = readSource('src/app/teacher/layout.tsx');
     const teacherOperationsNavSource = readSource('src/features/teacher/teacher-operations-nav.tsx');
@@ -403,8 +404,10 @@ describe('platform UI contracts', () => {
     expect(arenaDetailSource).toContain('data-commercial-workspace="arena-challenge-detail"');
     expect(arenaDetailSource).toContain('data-task-workspace-archetype="challenge-task"');
     expect(arenaDetailSource).toContain('data-commercial-workspace-zone="command-bar"');
-    expect(cruiseSimulationSource).toContain('data-commercial-workspace="simulation-scene"');
-    expect(cruiseSimulationSource).toContain('data-task-workspace-archetype="immersive-scene"');
+    expect(cruiseSimulationSource).toContain('SimulationShell');
+    expect(simulationShellSource).toContain('data-commercial-workspace="simulation-scene"');
+    expect(simulationShellSource).toContain('data-task-workspace-archetype="immersive-scene"');
+    expect(simulationShellSource).toContain('data-simulation-shell-profile-action');
     expect(manifestRuntimeSource).toContain('data-commercial-module-chrome');
     expect(manifestRuntimeSource).not.toContain("'data-task-workspace-archetype': 'lesson-runtime'");
     expect(unit41StudentRuntimeSource).toContain('data-task-workspace-archetype="lesson-runtime"');
@@ -794,6 +797,22 @@ describe('platform UI contracts', () => {
     expect(shellMarkup).toContain('href="/teacher"');
     expect(shellMarkup).toContain('href="/teacher/classes"');
     expect(shellMarkup).toContain('aria-current="page"');
+  });
+
+  it('honors hidden-immersive mobile navigation routes without rendering mobile platform navigation', () => {
+    const shellMarkup = renderAppShellMarkup({
+      viewerRole: 'student',
+      title: '军用驱逐舰战术机动仿真',
+      activeHref: '/simulations/destroyer',
+      sidebarMode: 'collapsible',
+      children: null,
+    });
+
+    expect(shellMarkup).toContain('data-platform-mobile-navigation="hidden-immersive"');
+    expect(shellMarkup).toContain('hidden xl:block');
+    expect(shellMarkup).not.toContain('aria-label="平台导航"');
+    expect(shellMarkup).not.toContain('aria-controls="app-shell-mobile-navigation"');
+    expect(shellMarkup).not.toContain('grid grid-cols-2');
   });
 
   it('derives shell navigation from route inventory when navigation is omitted', () => {

@@ -238,6 +238,7 @@ describe('simulation arena workbench experience UI contracts', () => {
 
   it('binds representative task routes to workspace archetype markers and floating dock safe areas', () => {
     const cruiseSource = readRepoFile('src/app/simulations/cruise/page.tsx');
+    const simulationShellSource = readRepoFile('src/app/simulations/_components/simulation-shell.tsx');
     const workbenchSource = readRepoFile('src/features/control-workbench/shell/control-workbench-shell.tsx');
     const arenaDetailSource = readRepoFile('src/features/arena/challenge-detail.tsx');
     const manifestRuntimeSource = readRepoFile('src/features/interactive/shared/manifest-runtime/layout-renderer.tsx');
@@ -245,12 +246,17 @@ describe('simulation arena workbench experience UI contracts', () => {
     const unit41StudentRuntimeSource = readRepoFile('src/features/interactive/unit-4-1-design-task-expression/student-page.tsx');
     const globalsSource = readRepoFile('src/app/globals.css');
 
-    expect(cruiseSource).toContain('data-task-workspace-archetype="immersive-scene"');
-    expect(cruiseSource).toContain('data-launch-provenance={launchKind}');
-    expect(cruiseSource).toContain('data-return-target="/simulations"');
-    expect(cruiseSource).toContain('data-evidence-flow-target="/profile/evidence"');
-    expect(cruiseSource).toContain('data-instrument-nonblank-contract="simulation-scene"');
+    expect(cruiseSource).toContain('<SimulationShell');
+    expect(cruiseSource).toContain('launchProvenance={launchKind}');
+    expect(cruiseSource).toContain('returnHref={returnHref}');
+    expect(cruiseSource).toContain('buildArenaReturnHref(arenaContext.returnHref, publicationContext?.id)');
+    expect(cruiseSource).toContain("params.set('publicationId', publicationId)");
     expect(cruiseSource).toContain('data-task-workspace-zone="floating-dock-safe-area"');
+    expect(simulationShellSource).toContain('data-task-workspace-archetype="immersive-scene"');
+    expect(simulationShellSource).toContain('data-launch-provenance={launchProvenance}');
+    expect(simulationShellSource).toContain('data-return-target={returnHref}');
+    expect(simulationShellSource).toContain('data-evidence-flow-target="/profile/evidence"');
+    expect(simulationShellSource).toContain('data-instrument-nonblank-contract="simulation-scene"');
     expect(workbenchSource).toContain('data-task-workspace-archetype="engineering-analysis"');
     expect(workbenchSource).toContain('data-return-target={returnHref}');
     expect(workbenchSource).toContain('data-workspace-mobile-sheets="secondary-controls"');

@@ -1,13 +1,16 @@
-import { FeaturePageNav } from '@/components/shared/feature-page-nav';
+import { SimulationShell } from '../_components/simulation-shell';
 import { DestroyerSimulation } from '../_components/simulation-loaders';
 
 export const dynamic = 'force-dynamic';
 
 export default function DestroyerSimulationPage() {
   return (
-    <div className="relative min-h-screen bg-slate-950 text-slate-100">
-      <FeaturePageNav title="军用驱逐舰战术机动仿真" backHref="/simulations" backLabel="返回仿真入口" floating />
+    <SimulationShell
+      title="军用驱逐舰战术机动仿真"
+      subtitle="Nomoto 船舶运动模型 · 航向保持与战术机动"
+      activeHref="/simulations/destroyer"
+    >
       <DestroyerSimulation />
-    </div>
+    </SimulationShell>
   );
 }

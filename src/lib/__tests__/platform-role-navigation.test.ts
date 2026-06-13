@@ -289,6 +289,11 @@ describe('platform role navigation', () => {
       '/simulations',
       '/simulations/cruise',
       '/simulations/lng',
+      '/simulations/destroyer',
+      '/simulations/drilling',
+      '/simulations/container',
+      '/simulations/icebreaker',
+      '/simulations/dredger',
       '/arena',
       '/arena/challenges/[taskId]',
       '/assessment/adaptive-practice',
@@ -375,10 +380,29 @@ describe('platform role navigation', () => {
       frame: 'mission-workspace',
       floatingDock: 'hidden',
       visualQaProfile: 'immersive',
+      owningChange: 'introduce-simulation-shell-mission-workspace',
       aliases: expect.arrayContaining([
         '/simulations/cruise?arenaTask=:taskId',
       ]),
     });
+    for (const href of [
+      '/simulations/cruise',
+      '/simulations/lng',
+      '/simulations/destroyer',
+      '/simulations/drilling',
+      '/simulations/container',
+      '/simulations/icebreaker',
+      '/simulations/dredger',
+    ]) {
+      expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === href)).toMatchObject({
+        frame: 'mission-workspace',
+        owningChange: 'introduce-simulation-shell-mission-workspace',
+        contextualReturn: expect.objectContaining({
+          sourceContext: 'simulation-descendant',
+          fallbackHref: '/simulations',
+        }),
+      });
+    }
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/arena/challenges/[taskId]')).toMatchObject({
       routePattern: '/arena/challenges/:taskId',
       routeFile: 'src/app/arena/challenges/[taskId]/page.tsx',
@@ -629,6 +653,8 @@ describe('platform role navigation', () => {
       '/simulations/cruise',
     );
     expect(resolvePlatformRouteInventory('/simulations/lng')?.href).toBe('/simulations/lng');
+    expect(resolvePlatformRouteInventory('/simulations/destroyer')?.href).toBe('/simulations/destroyer');
+    expect(resolvePlatformRouteInventory('/simulations/drilling')?.href).toBe('/simulations/drilling');
     expect(resolvePlatformRouteInventory('/teacher/lesson-plans/demo-plan/edit')?.href).toBe(
       '/teacher/lesson-plans/[id]/edit',
     );
@@ -726,7 +752,6 @@ describe('platform role navigation', () => {
     const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
 
     expect(exceptions.map((route) => route.href)).toEqual([
-      '/simulations/lng',
       '/classroom/student/[sessionId]',
       '/interactive-learning/courses/[course]/student/[sessionId]',
       '/playlists/[id]/play',
@@ -938,6 +963,19 @@ describe('platform role navigation', () => {
     expect(readSource('src/features/arena/arena-hall.tsx')).toContain('data-entry-current-work-priority="active-arena-publication"');
     expect(readSource('src/app/assessment/adaptive-practice/page.tsx')).toContain('data-commercial-entry-intent="practice"');
     expect(readSource('src/app/assessment/adaptive-practice/page.tsx')).toContain('data-student-entry-evidence-return="/profile/evidence"');
+    for (const simulationRouteFile of [
+      'src/app/simulations/cruise/page.tsx',
+      'src/app/simulations/lng/page.tsx',
+      'src/app/simulations/destroyer/page.tsx',
+      'src/app/simulations/drilling/page.tsx',
+      'src/app/simulations/container/page.tsx',
+      'src/app/simulations/icebreaker/page.tsx',
+      'src/app/simulations/dredger/page.tsx',
+    ]) {
+      const simulationDetailSource = readSource(simulationRouteFile);
+      expect(simulationDetailSource).toContain('SimulationShell');
+      expect(simulationDetailSource).not.toContain('FeaturePageNav');
+    }
     expect(unit41EntrySource).toContain('data-commercial-student-entry-route={`/interactive-learning/courses/${config.routeSegment}`}');
     expect(unit41EntrySource).toContain('data-commercial-entry-intent="learn"');
     expect(unit41EntrySource).toContain('data-task-workspace-archetype="lesson-runtime"');
