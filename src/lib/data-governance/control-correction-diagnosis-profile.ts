@@ -167,7 +167,24 @@ export interface DiagnosisIndicatorSnapshot {
   };
   limitations: DiagnosisLimitation[];
   evidenceRefs: DiagnosisEvidenceReference[];
+  observations: DiagnosisEvidenceObservation[];
   materializerVersion: typeof CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION;
+}
+
+export interface DiagnosisEvidenceObservation {
+  recordId: string;
+  sourceFamily: DiagnosisSourceFamily;
+  indicatorId: string;
+  dimensionId: DiagnosisDimensionId;
+  normalizedValue: number | null;
+  confidence: LearningEvidenceConfidence;
+  window: {
+    generatedAt: string;
+    sourceLastUpdatedAt: string | null;
+    stale: boolean;
+  };
+  limitations: DiagnosisLimitation[];
+  evidenceRef?: DiagnosisEvidenceReference;
 }
 
 export interface DiagnosisDimensionSnapshot {
@@ -192,6 +209,7 @@ export interface DiagnosisReportSnapshot {
   dimensions: DiagnosisDimensionSnapshot[];
   limitations: DiagnosisLimitation[];
   sourceWindows: Record<string, { sourceLastUpdatedAt: string | null; stale: boolean; evidenceCount: number }>;
+  observations: DiagnosisEvidenceObservation[];
 }
 
 export interface DiagnosisReportMaterializationInput {
@@ -397,6 +415,7 @@ export function materializeControlCorrectionDiagnosisReport(input: DiagnosisRepo
     dimensions,
     limitations,
     sourceWindows: sourceWindows(acceptedRecords, generatedAt),
+    observations: indicators.flatMap((indicator) => indicator.observations),
   };
 }
 
@@ -514,8 +533,12 @@ function materializeIndicator(
   generatedAt: string,
 ): DiagnosisIndicatorSnapshot {
   const matched = records.filter((record) => recordMatchesDefinition(record, definition, input));
-  const normalized = matched
-    .map((record) => normalizeRecord(record, definition.normalizationPolicy))
+  const normalizedByRecord = matched.map((record) => ({
+    record,
+    value: normalizeRecord(record, definition.normalizationPolicy),
+  }));
+  const normalized = normalizedByRecord
+    .map((item) => item.value)
     .filter((value): value is number => value !== null);
   const score = normalized.length ? round(normalized.reduce((sum, value) => sum + value, 0) / normalized.length) : null;
   const percentile = percentileFor(input.subject, definition.indicatorId, score, input.cohortIndicatorScores ?? []);
@@ -538,8 +561,47 @@ function materializeIndicator(
     },
     limitations,
     evidenceRefs: matched.map((record) => record.evidenceRef).filter((ref): ref is DiagnosisEvidenceReference => Boolean(ref)),
+    observations: observationsForIndicator(definition, normalizedByRecord, input.now ?? input.generatedAt, generatedAt),
     materializerVersion: CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION,
   };
+}
+
+function observationsForIndicator(
+  definition: DiagnosisIndicatorDefinition,
+  records: Array<{ record: DiagnosisEvidenceRecord; value: number | null }>,
+  now: Date,
+  generatedAt: string,
+): DiagnosisEvidenceObservation[] {
+  return records.map(({ record, value }) => ({
+    recordId: record.id,
+    sourceFamily: record.sourceFamily,
+    indicatorId: definition.indicatorId,
+    dimensionId: definition.dimensionId,
+    normalizedValue: value,
+    confidence: record.confidence,
+    window: {
+      generatedAt,
+      sourceLastUpdatedAt: record.updatedAt || null,
+      stale: isStale(record.updatedAt, now, definition.confidencePolicy.staleAfterDays),
+    },
+    limitations: limitationsForObservationRecord(definition, record, now),
+    ...(record.evidenceRef ? { evidenceRef: record.evidenceRef } : {}),
+  }));
+}
+
+function limitationsForObservationRecord(
+  definition: DiagnosisIndicatorDefinition,
+  record: DiagnosisEvidenceRecord,
+  now: Date,
+): DiagnosisLimitation[] {
+  const limitations: DiagnosisLimitation[] = [];
+  if (record.previewOnly) limitations.push(limitation('preview-only-source', 'Preview-only evidence cannot produce high-confidence diagnosis.', definition.indicatorId, definition.dimensionId));
+  if (record.partial) limitations.push(limitation('partial-source', 'Partial evidence lowers confidence.', definition.indicatorId, definition.dimensionId));
+  if (record.confidence === 'low' || record.confidence === 'none') limitations.push(limitation('low-confidence-source', 'Low-confidence source lowers confidence.', definition.indicatorId, definition.dimensionId));
+  if (isStale(record.updatedAt, now, definition.confidencePolicy.staleAfterDays)) {
+    limitations.push(limitation('stale-source', 'Source evidence is stale for this indicator window.', definition.indicatorId, definition.dimensionId));
+  }
+  return uniqueLimitations(limitations);
 }
 
 function materializeDimension(
@@ -812,7 +874,23 @@ function snapshotFromPersistenceRow(row: DiagnosisReportSnapshotPersistenceRow):
   const snapshot = value as DiagnosisReportSnapshot;
   if (snapshot.id !== row.id || snapshot.goalId !== row.goalId) return null;
   if (snapshot.materializerVersion !== CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION) return null;
-  return snapshot;
+  return normalizeDiagnosisReportSnapshot(snapshot);
+}
+
+function normalizeDiagnosisReportSnapshot(snapshot: DiagnosisReportSnapshot): DiagnosisReportSnapshot {
+  return {
+    ...snapshot,
+    indicators: Array.isArray(snapshot.indicators)
+      ? snapshot.indicators.map((indicator) => ({
+        ...indicator,
+        observations: Array.isArray(indicator.observations) ? indicator.observations : [],
+      }))
+      : [],
+    dimensions: Array.isArray(snapshot.dimensions) ? snapshot.dimensions : [],
+    limitations: Array.isArray(snapshot.limitations) ? snapshot.limitations : [],
+    observations: Array.isArray(snapshot.observations) ? snapshot.observations : [],
+    sourceWindows: snapshot.sourceWindows && typeof snapshot.sourceWindows === 'object' ? snapshot.sourceWindows : {},
+  };
 }
 
 function persistenceWhereFor(request: DiagnosisReportReadRequest): Parameters<DiagnosisReportSnapshotPersistenceDelegate['findMany']>[0]['where'] {

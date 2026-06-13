@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   LEARNING_EVIDENCE_CORPUS_RETENTION_POLICY,
+  buildLearningEvidenceCitationAuditPayloads,
   buildLearningEvidenceCitationChips,
   createLearningEvidenceCorpusChunk,
   retrieveLearningEvidenceCorpus,
@@ -722,6 +723,181 @@ describe('learning evidence RAG corpus contract', () => {
     expect(JSON.stringify(chips)).not.toContain('classRequired');
     expect(JSON.stringify(chips)).not.toContain('allowedRoles');
     expect(JSON.stringify(chips)).not.toContain('raw answer body');
+  });
+
+  it('builds citation audit payloads for verified, rejected, redacted, and degraded citations', () => {
+    const lowAuthorityCourse = chunk({
+      id: 'low-authority-course',
+      confidence: 'high',
+      authority: {
+        ...chunk().authority,
+        level: 'contextual',
+      },
+    });
+    const lowConfidenceCourse = chunk({
+      id: 'low-confidence-course',
+      confidence: 'low',
+    });
+
+    const verification = verifyLearningEvidenceCitations([
+      ...corpus,
+      lowAuthorityCourse,
+      lowConfidenceCourse,
+    ], {
+      role: 'teacher',
+      userId: 'teacher-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    }, [
+      { chunkId: 'chunk-course-1', useCase: 'diagnosis' },
+      { chunkId: 'low-authority-course', useCase: 'diagnosis' },
+      { chunkId: 'low-confidence-course', useCase: 'diagnosis' },
+      { chunkId: 'chunk-student-path', useCase: 'diagnosis' },
+      { chunkId: 'fake-chunk', useCase: 'diagnosis' },
+    ], {
+      minimumAuthority: 'canonical',
+      exposePrivacyRedaction: true,
+    });
+
+    const audit = buildLearningEvidenceCitationAuditPayloads(verification, {
+      role: 'teacher',
+      userId: 'teacher-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    });
+
+    expect(audit).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        chunkId: 'chunk-course-1',
+        outcome: 'verified',
+        citationChip: expect.objectContaining({ limitationState: null }),
+      }),
+      expect.objectContaining({
+        chunkId: 'low-authority-course',
+        outcome: 'downgraded',
+        reason: 'insufficient-authority',
+        citationChip: expect.objectContaining({ limitationState: 'insufficient-authority' }),
+      }),
+      expect.objectContaining({
+        chunkId: 'low-confidence-course',
+        outcome: 'downgraded',
+        reason: 'low-confidence-source',
+        reasons: ['low-confidence-source'],
+        citationChip: expect.objectContaining({ confidence: 'low', limitationState: 'low-confidence-source' }),
+      }),
+      expect.objectContaining({
+        chunkId: 'chunk-student-path',
+        outcome: 'downgraded',
+        reason: 'insufficient-authority',
+        reasons: expect.arrayContaining(['insufficient-authority', 'privacy-redacted']),
+        citationChip: expect.objectContaining({ privacyVisibility: 'redacted', limitationState: 'insufficient-authority' }),
+      }),
+      expect.objectContaining({
+        chunkId: 'fake-chunk',
+        outcome: 'rejected',
+        reason: 'missing-chunk',
+        citationChip: null,
+      }),
+    ]));
+  });
+
+  it('downgrades stale and expired citations in chips and audit payloads', () => {
+    const staleCourse = chunk({
+      id: 'stale-course',
+      freshness: {
+        indexedAt: '2026-03-01T00:00:00.000Z',
+        sourceUpdatedAt: '2026-02-01T00:00:00.000Z',
+        expiresAt: null,
+        stale: true,
+      },
+      authority: {
+        ...chunk().authority,
+        freshnessBucket: 'stale',
+      },
+    });
+    const expiredCourse = chunk({
+      id: 'expired-course',
+      freshness: {
+        indexedAt: '2026-01-01T00:00:00.000Z',
+        sourceUpdatedAt: '2025-12-01T00:00:00.000Z',
+        expiresAt: '2026-01-15T00:00:00.000Z',
+        stale: true,
+      },
+      authority: {
+        ...chunk().authority,
+        freshnessBucket: 'expired',
+      },
+    });
+    const verification = verifyLearningEvidenceCitations([staleCourse, expiredCourse], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    }, [
+      { chunkId: 'stale-course', useCase: 'diagnosis' },
+      { chunkId: 'expired-course', useCase: 'diagnosis' },
+    ]);
+
+    expect(verification.status).toBe('downgraded');
+    expect(verification.limitations).toEqual(expect.arrayContaining([
+      { chunkId: 'stale-course', reason: 'stale-source' },
+      { chunkId: 'expired-course', reason: 'expired-source' },
+    ]));
+    expect(buildLearningEvidenceCitationChips(verification, {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    }).map((chip) => [chip.chunkId, chip.limitationState])).toEqual([
+      ['stale-course', 'stale-source'],
+      ['expired-course', 'expired-source'],
+    ]);
+    expect(buildLearningEvidenceCitationAuditPayloads(verification, {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    })).toEqual(expect.arrayContaining([
+      expect.objectContaining({ chunkId: 'stale-course', outcome: 'downgraded', reason: 'stale-source' }),
+      expect.objectContaining({ chunkId: 'expired-course', outcome: 'downgraded', reason: 'expired-source' }),
+    ]));
+  });
+
+  it('keeps global downgrade limitations downgraded in citation audit payloads', () => {
+    const verification = verifyLearningEvidenceCitations([chunk()], {
+      role: 'teacher',
+      userId: 'teacher-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    }, [
+      { chunkId: 'chunk-course-1', useCase: 'diagnosis' },
+    ], {
+      requireLearnerEvidence: true,
+    });
+
+    expect(buildLearningEvidenceCitationAuditPayloads(verification, {
+      role: 'teacher',
+      userId: 'teacher-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    })).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        chunkId: 'learner-evidence',
+        outcome: 'downgraded',
+        reason: 'missing-learner-evidence',
+        citationChip: null,
+      }),
+    ]));
   });
 
   it('rejects citations outside user, goal, class, allowed source, and use-case scope', () => {

@@ -6,6 +6,9 @@ import {
   type PersistedDocumentRubricGradingDraft,
 } from '@/lib/data-governance/document-rubric-grading-workbench';
 import {
+  CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION,
+} from '@/lib/data-governance/control-correction-diagnosis-profile';
+import {
   normalizeKonlingRole,
   resolveKonlingTeachingAssistantMode,
   type KonlingRuntimeContext,
@@ -19,8 +22,19 @@ interface SignedModeContextPayload {
   courseId?: string;
   pageId?: string;
   resourceId?: string;
+  teacherId?: string;
+  goalId?: string;
+  classReportId?: string;
+  prepPackId?: string;
+  issuedAt?: string;
+  expiresAt?: string;
   context: KonlingTeachingAssistantServerModeContext;
 }
+
+type VerifiedModeContextPayload = SignedModeContextPayload & {
+  classId: string;
+  expiresAt: string;
+};
 
 interface LearningEvidenceDraftReader {
   findFirst(input: {
@@ -45,10 +59,36 @@ interface TeachingResourceReader {
   }): Promise<{ id: string; teacherOnly: boolean } | null>;
 }
 
+interface CourseEnhancementPackReader {
+  findFirst(input: {
+    where: {
+      classId: string;
+      teacherId: string;
+      goalId: string;
+      OR: Array<{ id: string } | { sourcePrepPackId: string }>;
+    };
+  }): Promise<{ id: string; sourcePrepPackId: string; classId: string; teacherId: string; goalId: string; status?: string | null } | null>;
+}
+
+interface DiagnosisReportSnapshotReader {
+  findMany(input: {
+    where: {
+      goalId: string;
+      subjectKind: 'class';
+      classId: string;
+      materializerVersion: typeof CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION;
+    };
+    orderBy?: { generatedAt: 'desc' };
+    take?: number;
+  }): Promise<Array<{ id: string; goalId: string; classId: string | null }>>;
+}
+
 export interface KonlingTeachingAssistantServerContextDb {
   learningEvidenceDraft?: LearningEvidenceDraftReader;
   class?: ClassReader;
   teachingResource?: TeachingResourceReader;
+  courseEnhancementPack?: CourseEnhancementPackReader;
+  diagnosisReportSnapshot?: DiagnosisReportSnapshotReader;
 }
 
 interface ResolvedDocumentGradingDraft {
@@ -60,7 +100,9 @@ export function createKonlingTeachingAssistantServerContextToken(payload: Signed
   if (!secret) {
     return null;
   }
-  const encoded = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
+  const issuedAt = payload.issuedAt ?? new Date().toISOString();
+  const expiresAt = payload.expiresAt ?? new Date(Date.parse(issuedAt) + 8 * 60 * 60 * 1000).toISOString();
+  const encoded = Buffer.from(JSON.stringify({ ...payload, issuedAt, expiresAt }), 'utf8').toString('base64url');
   return `${encoded}.${signModeContext(encoded, secret)}`;
 }
 
@@ -72,11 +114,17 @@ export async function resolveKonlingTeachingAssistantServerModeContext(input: {
   clientContextHints?: Record<string, unknown> | null;
 }): Promise<KonlingTeachingAssistantServerModeContext> {
   const mode = resolveKonlingTeachingAssistantMode(input.modeId);
-  const signedContext = verifySignedModeContext(input.clientContextHints, {
+  const signedPayload = verifySignedModeContext(input.clientContextHints, {
     modeId: mode.id,
     scope: input.scope,
+    hints: input.clientContextHints,
   });
-  if (signedContext) return signedContext;
+  const verifiedHints = signedPayload ? {
+    ...input.clientContextHints,
+    ...(signedPayload.goalId ? { goalId: signedPayload.goalId } : {}),
+    ...(signedPayload.classReportId ? { classReportId: signedPayload.classReportId } : {}),
+    ...(signedPayload.prepPackId ? { prepPackId: signedPayload.prepPackId } : {}),
+  } : input.clientContextHints;
 
   if (mode.id === 'resource-coach') {
     return resolveResourceCoachModeContext(input);
@@ -88,10 +136,17 @@ export async function resolveKonlingTeachingAssistantServerModeContext(input: {
     return resolveDocumentGradingModeContext(input, 'student');
   }
   if (mode.id === 'class-summarizer') {
-    return resolveClassSummarizerModeContext(input);
+    if (signedPayload) {
+      if (input.scope.role !== 'teacher' && input.scope.role !== 'admin') return {};
+      if (input.scope.role === 'teacher' && !await teacherOwnsClass(input.db, input.scope.classId, input.scope.authenticatedUserId)) {
+        return {};
+      }
+      return signedPayload.context;
+    }
+    return resolveClassSummarizerModeContext({ ...input, clientContextHints: verifiedHints });
   }
   if (mode.id === 'prep-coauthor') {
-    return resolvePrepCoauthorModeContext(input);
+    return resolvePrepCoauthorModeContext({ ...input, clientContextHints: verifiedHints });
   }
   return {};
 }
@@ -201,19 +256,67 @@ async function teacherOwnsClass(
   return Boolean(classData && classData.teacherId === teacherId);
 }
 
-function resolveClassSummarizerModeContext(input: {
+async function resolveClassSummarizerModeContext(input: {
+  db: KonlingTeachingAssistantServerContextDb;
   scope: KonlingRuntimeScope;
   runtimeContext: KonlingRuntimeContext;
   clientContextHints?: Record<string, unknown> | null;
-}): KonlingTeachingAssistantServerModeContext {
-  return {};
+}): Promise<KonlingTeachingAssistantServerModeContext> {
+  if (input.scope.role !== 'teacher' && input.scope.role !== 'admin') return {};
+  if (!input.scope.classId || !input.db.diagnosisReportSnapshot) return {};
+  if (input.scope.role === 'teacher' && !await teacherOwnsClass(input.db, input.scope.classId, input.scope.authenticatedUserId)) {
+    return {};
+  }
+  const goalId = stringHint(input.clientContextHints, 'goalId') ?? 'control-correction';
+  const classReportId = stringHint(input.clientContextHints, 'classReportId');
+  const rows = await input.db.diagnosisReportSnapshot.findMany({
+    where: {
+      goalId,
+      subjectKind: 'class',
+      classId: input.scope.classId,
+      materializerVersion: CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION,
+    },
+    orderBy: { generatedAt: 'desc' },
+    take: 1,
+  });
+  const snapshot = rows[0];
+  if (!snapshot) return {};
+  if (classReportId && classReportId !== snapshot.id && classReportId !== `${input.scope.classId}:${snapshot.goalId}`) return {};
+  return {
+    'class-report': true,
+    'diagnosis-view': true,
+  };
 }
 
 function resolvePrepCoauthorModeContext(input: {
+  db: KonlingTeachingAssistantServerContextDb;
   scope: KonlingRuntimeScope;
   clientContextHints?: Record<string, unknown> | null;
-}): KonlingTeachingAssistantServerModeContext {
-  return {};
+}): Promise<KonlingTeachingAssistantServerModeContext> {
+  if (input.scope.role !== 'teacher' && input.scope.role !== 'admin') return Promise.resolve({});
+  if (!input.scope.classId || !input.db.courseEnhancementPack) return Promise.resolve({});
+  const prepPackId = stringHint(input.clientContextHints, 'prepPackId');
+  const goalId = stringHint(input.clientContextHints, 'goalId');
+  if (!prepPackId || !goalId) return Promise.resolve({});
+  return input.db.courseEnhancementPack.findFirst({
+    where: {
+      classId: input.scope.classId,
+      teacherId: input.scope.authenticatedUserId,
+      goalId,
+      OR: [
+        { id: prepPackId },
+        { sourcePrepPackId: prepPackId },
+      ],
+    },
+  }).then((pack) => {
+    if (!pack) return {};
+    if (pack.status === 'archived' || pack.status === 'rolled-back') return {};
+    return {
+      'prep-pack': true,
+      'diagnosis-view': true,
+      'teacher-review-state': true,
+    };
+  });
 }
 
 function stringHint(hints: Record<string, unknown> | null | undefined, key: string): string | null {
@@ -240,8 +343,9 @@ function verifySignedModeContext(
   input: {
     modeId: string;
     scope: KonlingRuntimeScope;
+    hints?: Record<string, unknown> | null;
   },
-): KonlingTeachingAssistantServerModeContext | null {
+): VerifiedModeContextPayload | null {
   const token = stringHint(hints, 'modeContextToken');
   if (!token) return null;
 
@@ -266,11 +370,24 @@ function verifySignedModeContext(
     return null;
   }
   if (payload.mode !== input.modeId) return null;
-  if (payload.classId && payload.classId !== input.scope.classId) return null;
+  if (!payload.classId || payload.classId !== input.scope.classId) return null;
   if (payload.courseId && payload.courseId !== input.scope.courseId) return null;
   if (payload.pageId && payload.pageId !== input.scope.pageId) return null;
   if (payload.resourceId && payload.resourceId !== input.scope.resourceId) return null;
-  return payload.context;
+  if (input.modeId === 'prep-coauthor') {
+    if (!payload.teacherId || payload.teacherId !== input.scope.authenticatedUserId) return null;
+    if (!payload.goalId || !payload.prepPackId) return null;
+  }
+  if (input.modeId === 'class-summarizer') {
+    if (!payload.goalId || !payload.classReportId) return null;
+  }
+  if (payload.goalId && stringHint(input.hints, 'goalId') && payload.goalId !== stringHint(input.hints, 'goalId')) return null;
+  if (payload.classReportId && stringHint(input.hints, 'classReportId') && payload.classReportId !== stringHint(input.hints, 'classReportId')) return null;
+  if (payload.prepPackId && stringHint(input.hints, 'prepPackId') && payload.prepPackId !== stringHint(input.hints, 'prepPackId')) return null;
+  if (!payload.expiresAt) return null;
+  const expiresAt = Date.parse(payload.expiresAt);
+  if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) return null;
+  return payload as VerifiedModeContextPayload;
 }
 
 function resolveModeContextSigningSecret(): string | null {

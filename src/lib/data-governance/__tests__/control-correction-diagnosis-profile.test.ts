@@ -93,6 +93,79 @@ describe('control-correction diagnosis profile', () => {
     expect(report.limitations.map((item) => item.reason)).toContain('missing-source');
   });
 
+  it('keeps report-ready observation records with source family, window, limitations, and evidence refs', () => {
+    const report = materializeControlCorrectionDiagnosisReport({
+      subject: { kind: 'student', userId: 'student-1', classId: 'class-1' },
+      goalId: 'control-correction',
+      generatedAt: now,
+      adaptiveAssessmentRecords: [{
+        id: 'adaptive-settling-control',
+        sourceFamily: 'adaptive-assessment',
+        indicatorIds: ['time-response-settling-control'],
+        value: 0.62,
+        confidence: 'low',
+        updatedAt: '2026-04-01T00:00:00.000Z',
+        provenance: { classId: 'class-1', userId: 'student-1', goalId: 'control-correction', materializerVersion: CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION },
+        evidenceRef: { chunkId: 'chunk-adaptive-settling', sourceType: 'path-summary', title: '调节时间作答记录', href: '/learning-paths/path-1' },
+      }],
+      pathEvidence: [{
+        id: 'path-settling-control',
+        sourceFamily: 'path-evidence',
+        indicatorIds: ['time-response-settling-control'],
+        value: 0.88,
+        confidence: 'high',
+        updatedAt: now.toISOString(),
+        provenance: { classId: 'class-1', userId: 'student-1', goalId: 'control-correction', materializerVersion: CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION },
+        evidenceRef: { chunkId: 'chunk-path-settling', sourceType: 'path-summary', title: '学习路径终端验证' },
+      }],
+      gradingFacts: [{
+        id: 'grading-root-locus-rationale',
+        sourceFamily: 'grading-fact',
+        indicatorIds: ['root-locus-design-explanation'],
+        value: 'developing',
+        confidence: 'medium',
+        updatedAt: now.toISOString(),
+        provenance: { sourceModel: 'LearningEvidenceDraft', classId: 'class-1', userId: 'student-1', goalId: 'control-correction', materializerVersion: CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION },
+        evidenceRef: { chunkId: 'chunk-grading-rationale', sourceType: 'grading-artifact', title: '根轨迹设计量规' },
+      }],
+      now,
+    });
+
+    const timeIndicator = report.indicators.find((item) => item.indicatorId === 'time-response-settling-control');
+    expect(timeIndicator?.observations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        recordId: 'adaptive-settling-control',
+        sourceFamily: 'adaptive-assessment',
+        indicatorId: 'time-response-settling-control',
+        dimensionId: 'time-domain-analysis',
+        normalizedValue: 0.62,
+        confidence: 'low',
+        window: {
+          generatedAt: now.toISOString(),
+          sourceLastUpdatedAt: '2026-04-01T00:00:00.000Z',
+          stale: true,
+        },
+        limitations: expect.arrayContaining([
+          expect.objectContaining({ reason: 'stale-source' }),
+          expect.objectContaining({ reason: 'low-confidence-source' }),
+        ]),
+        evidenceRef: expect.objectContaining({ chunkId: 'chunk-adaptive-settling' }),
+      }),
+      expect.objectContaining({
+        recordId: 'path-settling-control',
+        sourceFamily: 'path-evidence',
+        normalizedValue: 0.88,
+        confidence: 'high',
+        limitations: [],
+      }),
+    ]));
+    expect(report.observations.map((item) => item.recordId)).toEqual(expect.arrayContaining([
+      'adaptive-settling-control',
+      'path-settling-control',
+      'grading-root-locus-rationale',
+    ]));
+  });
+
   it('calculates cohort percentiles and keeps growth percentile cold-start explicit', () => {
     const report = materializeControlCorrectionDiagnosisReport({
       subject: { kind: 'student', userId: 'student-1', classId: 'class-1' },
@@ -218,6 +291,34 @@ describe('control-correction diagnosis profile', () => {
     const indicator = report.indicators.find((item) => item.indicatorId === 'time-response-settling-control');
     expect(indicator?.score).toBeNull();
     expect(indicator?.evidenceRefs).toEqual([]);
+  });
+
+  it('does not let unrelated goals inflate control-correction diagnosis', () => {
+    const report = materializeControlCorrectionDiagnosisReport({
+      subject: { kind: 'student', userId: 'student-1', classId: 'class-1' },
+      goalId: 'control-correction',
+      generatedAt: now,
+      evidenceRecords: [{
+        id: 'laplace-perfect-score',
+        sourceFamily: 'adaptive-assessment',
+        indicatorIds: ['time-response-settling-control'],
+        value: 1,
+        confidence: 'high',
+        updatedAt: now.toISOString(),
+        provenance: { classId: 'class-1', userId: 'student-1', goalId: 'laplace-transform', materializerVersion: CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION },
+        evidenceRef: { chunkId: 'chunk-laplace', sourceType: 'path-summary', title: '拉普拉斯专项作答' },
+      }],
+      now,
+    });
+
+    const indicator = report.indicators.find((item) => item.indicatorId === 'time-response-settling-control');
+    expect(indicator).toEqual(expect.objectContaining({
+      score: null,
+      evidenceCount: 0,
+      observations: [],
+    }));
+    expect(report.observations).toEqual([]);
+    expect(JSON.stringify(report.sourceWindows)).not.toContain('laplace-perfect-score');
   });
 
   it('does not calculate growth percentile when the target prior snapshot is not earlier than current', () => {
@@ -447,6 +548,56 @@ describe('control-correction diagnosis profile', () => {
       classId: 'class-1',
       subjectKind: 'student',
     }));
+  });
+
+  it('normalizes legacy persisted snapshots that predate report observations', async () => {
+    const snapshot = materializeControlCorrectionDiagnosisReport({
+      subject: { kind: 'student', userId: 'student-1', classId: 'class-1' },
+      goalId: 'control-correction',
+      generatedAt: now,
+      evidenceRecords: [{
+        id: 'legacy-evidence',
+        sourceFamily: 'adaptive-assessment',
+        indicatorIds: ['time-response-settling-control'],
+        value: 0.7,
+        confidence: 'high',
+        updatedAt: now.toISOString(),
+        provenance: { classId: 'class-1', userId: 'student-1', goalId: 'control-correction', materializerVersion: CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION },
+        evidenceRef: { chunkId: 'chunk-legacy', sourceType: 'diagnosis', title: '旧版诊断证据' },
+      }],
+      now,
+    });
+    const legacySnapshot = { ...snapshot } as Record<string, unknown>;
+    delete legacySnapshot.observations;
+    legacySnapshot.indicators = snapshot.indicators.map((indicator) => {
+      const legacyIndicator = { ...indicator } as Record<string, unknown>;
+      delete legacyIndicator.observations;
+      return legacyIndicator;
+    });
+    const store = createPrismaDiagnosisReportSnapshotStore({
+      upsert: async () => {},
+      findMany: async () => [{
+        id: snapshot.id,
+        goalId: snapshot.goalId,
+        subjectKind: 'student',
+        userId: 'student-1',
+        classId: 'class-1',
+        generatedAt: now,
+        materializerVersion: CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION,
+        snapshot: legacySnapshot,
+      }],
+    });
+
+    const restored = await readLatestControlCorrectionDiagnosisReportSnapshotFromPersistence(store, {
+      view: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+    });
+
+    expect(restored?.observations).toEqual([]);
+    expect(restored?.indicators.every((indicator) => Array.isArray(indicator.observations))).toBe(true);
   });
 
   it('degrades to an empty snapshot list when the persistence table is not migrated', async () => {

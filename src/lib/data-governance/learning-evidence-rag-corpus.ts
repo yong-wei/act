@@ -161,7 +161,10 @@ export interface LearningEvidenceCitationVerificationResult {
       | 'insufficient-authority'
       | 'missing-learner-evidence'
       | 'conflicting-source'
-      | 'privacy-redacted';
+      | 'privacy-redacted'
+      | 'low-confidence-source'
+      | 'stale-source'
+      | 'expired-source';
   }>;
 }
 
@@ -175,6 +178,14 @@ export interface LearningEvidenceCitationChipPayload {
   freshnessBucket: LearningEvidenceFreshnessBucket;
   privacyVisibility: 'public' | 'redacted' | 'privileged';
   limitationState: LearningEvidenceCitationVerificationResult['limitations'][number]['reason'] | null;
+}
+
+export interface LearningEvidenceCitationAuditPayload {
+  chunkId: string;
+  outcome: 'verified' | 'rejected' | 'redacted' | 'downgraded';
+  reason: LearningEvidenceCitationVerificationResult['limitations'][number]['reason'] | null;
+  reasons: Array<LearningEvidenceCitationVerificationResult['limitations'][number]['reason']>;
+  citationChip: LearningEvidenceCitationChipPayload | null;
 }
 
 export const LEARNING_EVIDENCE_CORPUS_FAMILY_SOURCE_TYPES: Record<LearningEvidenceCorpusFamily, LearningEvidenceCorpusSourceType[]> = {
@@ -386,6 +397,11 @@ export function verifyLearningEvidenceCitations(
     ) {
       limitations.push({ chunkId: chunk.id, reason: 'insufficient-authority' });
     }
+    if (chunk.authority.freshnessBucket === 'expired') {
+      limitations.push({ chunkId: chunk.id, reason: 'expired-source' });
+    } else if (chunk.authority.freshnessBucket === 'stale' || chunk.freshness.stale) {
+      limitations.push({ chunkId: chunk.id, reason: 'stale-source' });
+    }
     if (policy.exposePrivacyRedaction && chunk.content.text && redactChunkForScope(chunk, scope).content.text === null) {
       limitations.push({ chunkId: chunk.id, reason: 'privacy-redacted' });
     }
@@ -418,7 +434,9 @@ export function verifyLearningEvidenceCitations(
   const hasDowngrade = limitations.some((item) =>
     item.reason === 'insufficient-authority' ||
     item.reason === 'missing-learner-evidence' ||
-    item.reason === 'conflicting-source'
+    item.reason === 'conflicting-source' ||
+    item.reason === 'stale-source' ||
+    item.reason === 'expired-source'
   );
   const hasRedaction = limitations.some((item) => item.reason === 'privacy-redacted');
   const hasLowConfidence = verifiedRefs.some((ref) => ref.confidence === 'none' || ref.confidence === 'low');
@@ -433,9 +451,7 @@ export function buildLearningEvidenceCitationChips(
   verification: LearningEvidenceCitationVerificationResult,
   scope: LearningEvidenceRetrievalScope,
 ): LearningEvidenceCitationChipPayload[] {
-  const limitationsByChunk = new Map(
-    verification.limitations.map((limitation) => [limitation.chunkId, limitation.reason])
-  );
+  const limitationsByChunk = limitationsByChunkId(verification);
   return verification.verifiedRefs.map((ref) => ({
     chunkId: ref.chunkId,
     displayTitle: ref.displayTitle,
@@ -445,8 +461,114 @@ export function buildLearningEvidenceCitationChips(
     confidence: ref.confidence,
     freshnessBucket: ref.freshnessBucket,
     privacyVisibility: ref.privacyVisibility,
-    limitationState: limitationsByChunk.get(ref.chunkId) ?? null,
+    limitationState: primaryCitationReason(ref, limitationsByChunk.get(ref.chunkId) ?? []),
   }));
+}
+
+export function buildLearningEvidenceCitationAuditPayloads(
+  verification: LearningEvidenceCitationVerificationResult,
+  scope: LearningEvidenceRetrievalScope,
+): LearningEvidenceCitationAuditPayload[] {
+  const chips = buildLearningEvidenceCitationChips(verification, scope);
+  const chipByChunk = new Map(chips.map((chip) => [chip.chunkId, chip]));
+  const limitationsByChunk = limitationsByChunkId(verification);
+  const audit = verification.verifiedRefs.map((ref) => {
+    const reasons = reasonsForCitationRef(ref, limitationsByChunk.get(ref.chunkId) ?? []);
+    const reason = primaryCitationReason(ref, reasons);
+    return {
+      chunkId: ref.chunkId,
+      outcome: outcomeForCitationReason(reason),
+      reason,
+      reasons,
+      citationChip: chipByChunk.get(ref.chunkId) ?? null,
+    } satisfies LearningEvidenceCitationAuditPayload;
+  });
+
+  for (const limitation of verification.limitations) {
+    if (chipByChunk.has(limitation.chunkId)) continue;
+    audit.push({
+      chunkId: limitation.chunkId,
+      outcome: outcomeForCitationReason(limitation.reason),
+      reason: limitation.reason,
+      reasons: [limitation.reason],
+      citationChip: null,
+    });
+  }
+  return audit;
+}
+
+function limitationsByChunkId(verification: LearningEvidenceCitationVerificationResult) {
+  const limitationsByChunk = new Map<string, Array<LearningEvidenceCitationVerificationResult['limitations'][number]['reason']>>();
+  for (const limitation of verification.limitations) {
+    const existing = limitationsByChunk.get(limitation.chunkId) ?? [];
+    existing.push(limitation.reason);
+    limitationsByChunk.set(limitation.chunkId, existing);
+  }
+  return limitationsByChunk;
+}
+
+function reasonsForCitationRef(
+  ref: LearningEvidenceCitationVerificationResult['verifiedRefs'][number],
+  reasons: Array<LearningEvidenceCitationVerificationResult['limitations'][number]['reason']>,
+) {
+  const next = [...reasons];
+  if ((ref.confidence === 'low' || ref.confidence === 'none') && !next.includes('low-confidence-source')) {
+    next.push('low-confidence-source');
+  }
+  return next;
+}
+
+function primaryCitationReason(
+  ref: LearningEvidenceCitationVerificationResult['verifiedRefs'][number],
+  reasons: Array<LearningEvidenceCitationVerificationResult['limitations'][number]['reason']>,
+): LearningEvidenceCitationVerificationResult['limitations'][number]['reason'] | null {
+  const enriched = reasonsForCitationRef(ref, reasons);
+  return enriched.sort(compareCitationReasons)[0] ?? null;
+}
+
+function outcomeForCitationReason(
+  reason: LearningEvidenceCitationVerificationResult['limitations'][number]['reason'] | null,
+): LearningEvidenceCitationAuditPayload['outcome'] {
+  if (!reason) return 'verified';
+  if (reason === 'privacy-redacted') return 'redacted';
+  if (
+    reason === 'insufficient-authority' ||
+    reason === 'missing-learner-evidence' ||
+    reason === 'conflicting-source' ||
+    reason === 'low-confidence-source' ||
+    reason === 'stale-source' ||
+    reason === 'expired-source'
+  ) return 'downgraded';
+  return 'rejected';
+}
+
+function compareCitationReasons(
+  left: LearningEvidenceCitationVerificationResult['limitations'][number]['reason'],
+  right: LearningEvidenceCitationVerificationResult['limitations'][number]['reason'],
+) {
+  return citationReasonPriority(left) - citationReasonPriority(right);
+}
+
+function citationReasonPriority(reason: LearningEvidenceCitationVerificationResult['limitations'][number]['reason']) {
+  if (
+    reason === 'missing-chunk' ||
+    reason === 'inaccessible-source' ||
+    reason === 'unsupported-source-type' ||
+    reason === 'privacy-violation' ||
+    reason === 'source-type-mismatch' ||
+    reason === 'quote-hash-mismatch' ||
+    reason === 'span-ref-mismatch'
+  ) return 0;
+  if (
+    reason === 'insufficient-authority' ||
+    reason === 'missing-learner-evidence' ||
+    reason === 'conflicting-source' ||
+    reason === 'low-confidence-source' ||
+    reason === 'stale-source' ||
+    reason === 'expired-source'
+  ) return 1;
+  if (reason === 'privacy-redacted') return 2;
+  return 3;
 }
 
 function matchesRetrievalScope(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRetrievalScope) {

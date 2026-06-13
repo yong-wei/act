@@ -111,6 +111,8 @@ export function buildControlCorrectionTeacherReport(
   const modeContextToken = createKonlingTeachingAssistantServerContextToken({
     mode: 'class-summarizer',
     classId: input.classInfo.id,
+    classReportId: `${input.classInfo.id}:${CONTROL_CORRECTION_REPORT_GOAL_ID}`,
+    goalId: CONTROL_CORRECTION_REPORT_GOAL_ID,
     context: {
       'class-report': true,
       'diagnosis-view': true,
