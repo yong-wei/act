@@ -1,12 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Users } from 'lucide-react';
+import { resolveScopedReturnTarget } from '@/lib/navigation-return-target';
 
 export default function NewClassPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTarget = resolveScopedReturnTarget(
+    searchParams.get('returnTo') ?? undefined,
+    '/teacher/classes',
+    ['/teacher'],
+  );
+  const returnLabel = returnTarget === '/teacher' ? '返回教师工作台' : '返回班级列表';
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -46,11 +54,11 @@ export default function NewClassPage() {
     <main className="mx-auto max-w-2xl px-6 py-8">
       {/* 返回链接 */}
       <Link
-        href="/teacher/classes"
+        href={returnTarget}
         className="mb-6 inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-white"
       >
         <ArrowLeft className="h-4 w-4" />
-        返回班级列表
+        {returnLabel}
       </Link>
 
       {/* 表单卡片 */}
@@ -128,7 +136,7 @@ export default function NewClassPage() {
 
           <div className="flex items-center justify-end gap-3 pt-4">
             <Link
-              href="/teacher/classes"
+              href={returnTarget}
               className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition hover:border-slate-600 hover:bg-slate-800"
             >
               取消

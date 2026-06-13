@@ -26,6 +26,7 @@ import {
   getStudentCoreNavigationEntries,
   resolvePlatformRouteInventory,
 } from '@/lib/platform-role-navigation';
+import { resolveScopedReturnTarget } from '@/lib/navigation-return-target';
 
 describe('platform role navigation', () => {
   const readSource = (relativePath: string) => readFileSync(join(process.cwd(), relativePath), 'utf8');
@@ -268,6 +269,8 @@ describe('platform role navigation', () => {
       '/interactive-learning',
       '/interactive-learning/courses',
       '/interactive-learning/chapter-components',
+      '/interactive-learning/chapter-components/[category]',
+      '/interactive-learning/resources/[id]',
       '/interactive-learning/cross-domain-exploration',
       '/interactive-learning/courses/unit-4-1-design-task-expression',
       '/interactive-learning/courses/unit-1-1-see-the-full-picture',
@@ -276,6 +279,7 @@ describe('platform role navigation', () => {
       '/interactive-learning/courses/unit-5-4-data-driven-mpc-transition',
       '/simulations',
       '/simulations/cruise',
+      '/simulations/lng',
       '/arena',
       '/arena/challenges/[taskId]',
       '/assessment/adaptive-practice',
@@ -292,11 +296,14 @@ describe('platform role navigation', () => {
       '/playlists/[id]/play',
       '/teacher',
       '/teacher/classes',
+      '/teacher/classes/new',
       '/teacher/classes/[classId]',
       '/teacher/classes/[classId]/analytics-v2',
       '/teacher/classes/[classId]/students/[studentId]',
       '/teacher/classes/[classId]/students/[studentId]/evidence',
       '/teacher/lesson-plans',
+      '/teacher/lesson-plans/new',
+      '/teacher/lesson-plans/[id]/edit',
       '/teacher/preset-lessons',
       '/teacher/resources',
       '/teacher/resources/resource-nodes',
@@ -310,6 +317,8 @@ describe('platform role navigation', () => {
       '/admin/states',
       '/admin/config',
       '/admin/lesson-plans',
+      '/admin/lesson-plans/new',
+      '/admin/lesson-plans/[id]/edit',
       '/admin/data-governance',
       '/ai',
       '/ai/copilot',
@@ -568,6 +577,20 @@ describe('platform role navigation', () => {
       frame: 'mission-workspace',
       mobileNavigation: 'drawer',
     });
+    expect(resolvePlatformRouteInventory('/interactive-learning/chapter-components/time-domain')).toMatchObject({
+      href: '/interactive-learning/chapter-components/[category]',
+      frame: 'learning-atlas',
+      contextualReturn: {
+        fallbackHref: '/interactive-learning/chapter-components',
+      },
+    });
+    expect(resolvePlatformRouteInventory('/interactive-learning/resources/demo-resource?source=chapter-components&category=time-domain')).toMatchObject({
+      href: '/interactive-learning/resources/[id]',
+      frame: 'learning-atlas',
+      contextualReturn: {
+        fallbackHref: '/interactive-learning',
+      },
+    });
   });
 
   it('does not let public-entry leak into authenticated workspaces', () => {
@@ -587,8 +610,21 @@ describe('platform role navigation', () => {
     expect(resolvePlatformRouteInventory('/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo-session')?.href).toBe(
       '/interactive-learning/courses/[course]/student/[sessionId]',
     );
+    expect(resolvePlatformRouteInventory('/interactive-learning/chapter-components/modeling-language')?.href).toBe(
+      '/interactive-learning/chapter-components/[category]',
+    );
+    expect(resolvePlatformRouteInventory('/interactive-learning/resources/lesson09-correction-precheck')?.href).toBe(
+      '/interactive-learning/resources/[id]',
+    );
     expect(resolvePlatformRouteInventory('/simulations/cruise?arenaTask=task-cruise-roll-blackbox-identification')?.href).toBe(
       '/simulations/cruise',
+    );
+    expect(resolvePlatformRouteInventory('/simulations/lng')?.href).toBe('/simulations/lng');
+    expect(resolvePlatformRouteInventory('/teacher/lesson-plans/demo-plan/edit')?.href).toBe(
+      '/teacher/lesson-plans/[id]/edit',
+    );
+    expect(resolvePlatformRouteInventory('/admin/lesson-plans/demo-plan/edit')?.href).toBe(
+      '/admin/lesson-plans/[id]/edit',
     );
     expect(resolvePlatformRouteInventory('/interactive-learning/control-workbench?arenaTask=task-second-order-lead-pid')?.href).toBe(
       '/interactive-learning/control-workbench',
@@ -681,9 +717,15 @@ describe('platform role navigation', () => {
     const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
 
     expect(exceptions.map((route) => route.href)).toEqual([
+      '/simulations/lng',
       '/classroom/student/[sessionId]',
       '/interactive-learning/courses/[course]/student/[sessionId]',
       '/playlists/[id]/play',
+      '/teacher/classes/new',
+      '/teacher/lesson-plans/new',
+      '/teacher/lesson-plans/[id]/edit',
+      '/admin/lesson-plans/new',
+      '/admin/lesson-plans/[id]/edit',
       '/ai',
       '/ai/copilot',
     ]);
@@ -821,6 +863,9 @@ describe('platform role navigation', () => {
     const loginSource = readSource('src/app/(auth)/login/page.tsx');
     const interactiveSource = readSource('src/app/interactive-learning/page.tsx');
     const coursesSource = readSource('src/app/interactive-learning/courses/page.tsx');
+    const chapterCategorySource = readSource('src/app/interactive-learning/chapter-components/[category]/page.tsx');
+    const crossDomainSource = readSource('src/app/interactive-learning/cross-domain-exploration/page.tsx');
+    const resourceSource = readSource('src/app/interactive-learning/resources/[id]/page.tsx');
     const simulationsSource = readSource('src/app/simulations/page.tsx');
     const unit41EntrySource = readSource('src/features/interactive/shared/premium-lesson-entry-page.tsx');
 
@@ -838,6 +883,10 @@ describe('platform role navigation', () => {
     expect(interactiveSource).toContain('data-commercial-entry-intent-map="learn-practice-challenge"');
     expect(interactiveSource).toContain('data-entry-current-work-priority="active-learning-context"');
     expect(interactiveSource).toContain('data-secondary-implementation-links="component-library"');
+    expect(chapterCategorySource).toContain('source=chapter-components&category=');
+    expect(crossDomainSource).toContain('source=cross-domain-exploration');
+    expect(resourceSource).toContain('data-route-source={sourceContext.href}');
+    expect(resourceSource).toContain('breadcrumbs={[');
     expect(coursesSource).toContain('data-learning-entry-map="course-module-progression"');
     expect(coursesSource).toContain('data-entry-current-work-priority="recommended-course"');
     expect(coursesSource).toContain('data-secondary-implementation-links="legacy-source-labels"');
@@ -856,5 +905,44 @@ describe('platform role navigation', () => {
     expect(unit41EntrySource).toContain('data-course-entry-action="teacher-launch"');
     expect(unit41EntrySource).toContain('data-course-entry-action="demo-launch"');
     expect(unit41EntrySource).toContain('data-course-entry-action="join-code"');
+  });
+
+  it('preserves source-aware return targets for secondary teacher and admin descendants', () => {
+    const teacherNewClassSource = readSource('src/app/teacher/classes/new/page.tsx');
+    const teacherClassDetailSource = readSource('src/app/teacher/classes/[classId]/page.tsx');
+    const teacherLessonPlansSource = readSource('src/app/teacher/lesson-plans/page.tsx');
+    const teacherNewLessonPlanSource = readSource('src/app/teacher/lesson-plans/new/page.tsx');
+    const teacherEditLessonPlanSource = readSource('src/app/teacher/lesson-plans/[id]/edit/page.tsx');
+    const teacherDashboardSource = readSource('src/features/teacher/teacher-dashboard.tsx');
+    const presetLessonsSource = readSource('src/features/teacher/preset-lessons/preset-lesson-list.tsx');
+    const adminLessonPlansSource = readSource('src/app/admin/lesson-plans/page.tsx');
+    const adminNewLessonPlanSource = readSource('src/app/admin/lesson-plans/new/page.tsx');
+    const adminEditLessonPlanSource = readSource('src/app/admin/lesson-plans/[id]/edit/page.tsx');
+    const lessonPlanListSource = readSource('src/features/lesson-engine/lesson-plan-list.tsx');
+
+    expect(teacherNewClassSource).toContain('useSearchParams');
+    expect(teacherNewClassSource).toContain('resolveScopedReturnTarget(');
+    expect(teacherClassDetailSource).toContain('returnTo=${encodeURIComponent(`/teacher/classes/${classId}`)}');
+    expect(teacherLessonPlansSource).toContain('/teacher/lesson-plans/new?returnTo=%2Fteacher%2Flesson-plans');
+    expect(teacherNewLessonPlanSource).toContain('returnPath={returnTarget}');
+    expect(teacherNewLessonPlanSource).toContain('workbenchReturnLabel={getTeacherReturnLabel(returnTarget)}');
+    expect(teacherEditLessonPlanSource).toContain('returnPath={returnTarget}');
+    expect(teacherDashboardSource).toContain("encodeURIComponent('/teacher')");
+    expect(presetLessonsSource).toContain("encodeURIComponent('/teacher/preset-lessons')");
+    expect(adminLessonPlansSource).toContain('/admin/lesson-plans/new?returnTo=%2Fadmin%2Flesson-plans');
+    expect(adminNewLessonPlanSource).toContain('session.user.role !== UserRole.ADMIN');
+    expect(adminNewLessonPlanSource).toContain('workbenchReturnLabel="返回教案管理"');
+    expect(adminEditLessonPlanSource).toContain('session.user.role !== UserRole.ADMIN');
+    expect(adminEditLessonPlanSource).toContain('workbenchReturnLabel="返回教案管理"');
+    expect(lessonPlanListSource).toContain('returnTo?: string');
+    expect(lessonPlanListSource).toContain('encodeURIComponent(returnTo)');
+  });
+
+  it('sanitizes scoped secondary route return targets', () => {
+    expect(resolveScopedReturnTarget('/teacher/classes/demo', '/teacher/lesson-plans', ['/teacher'])).toBe('/teacher/classes/demo');
+    expect(resolveScopedReturnTarget('/admin/lesson-plans', '/admin', ['/admin'])).toBe('/admin/lesson-plans');
+    expect(resolveScopedReturnTarget('/admin/lesson-plans', '/teacher', ['/teacher'])).toBe('/teacher');
+    expect(resolveScopedReturnTarget('https://example.com', '/teacher', ['/teacher'])).toBe('/teacher');
+    expect(resolveScopedReturnTarget('//example.com', '/teacher', ['/teacher'])).toBe('/teacher');
   });
 });

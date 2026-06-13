@@ -1,6 +1,7 @@
 import { getPlatformNavigationHref } from '@/lib/platform-role-navigation';
 
 const teacherHref = (id: string, fallback: string) => getPlatformNavigationHref(id) ?? fallback;
+const withReturnTo = (href: string, returnTo: string) => `${href}?returnTo=${encodeURIComponent(returnTo)}`;
 
 export type TeacherDashboardStatKey =
   | 'totalClasses'
@@ -74,14 +75,14 @@ export const TEACHER_DASHBOARD_QUICK_ACTIONS: TeacherDashboardQuickAction[] = [
   {
     title: '新建班级',
     description: '创建班级并生成加入码',
-    href: `${teacherHref('teacher-classes', '/teacher/classes')}/new`,
+    href: withReturnTo(`${teacherHref('teacher-classes', '/teacher/classes')}/new`, '/teacher'),
     icon: 'plus',
     tone: 'sky',
   },
   {
     title: '新建教案',
     description: '创建 BOPPPS 教学设计',
-    href: `${teacherHref('teacher-lesson-plans', '/teacher/lesson-plans')}/new`,
+    href: withReturnTo(`${teacherHref('teacher-lesson-plans', '/teacher/lesson-plans')}/new`, '/teacher'),
     icon: 'book-open',
     tone: 'amber',
   },

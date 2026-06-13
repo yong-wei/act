@@ -93,6 +93,7 @@ interface OrchestratorBuilderProps {
   };
   returnPath?: string; // 保存后跳转路径，默认根据当前路径判断
   workbenchReturnUrl?: string;
+  workbenchReturnLabel?: string;
 }
 
 function createEmptyPlanState(): Record<StageId, LessonItemDraft[]> {
@@ -237,6 +238,7 @@ export function OrchestratorBuilder({
   initialData,
   returnPath,
   workbenchReturnUrl,
+  workbenchReturnLabel,
 }: OrchestratorBuilderProps) {
   return (
     <OrchestratorBuilderContent
@@ -244,6 +246,7 @@ export function OrchestratorBuilder({
       initialData={initialData}
       returnPath={returnPath}
       workbenchReturnUrl={workbenchReturnUrl}
+      workbenchReturnLabel={workbenchReturnLabel}
     />
   );
 }
@@ -252,6 +255,7 @@ function OrchestratorBuilderContent({
   initialData,
   returnPath,
   workbenchReturnUrl,
+  workbenchReturnLabel,
 }: OrchestratorBuilderProps) {
   const router = useRouter();
   const [resources, setResources] = useState<ExtendedTeachingResource[]>([]);
@@ -542,7 +546,7 @@ function OrchestratorBuilderContent({
                     className="inline-flex items-center gap-1 text-sm text-slate-400 transition-colors hover:text-cyan-400"
                   >
                     <ArrowLeft className="h-4 w-4" />
-                    返回教师工作台
+                    {workbenchReturnLabel ?? '返回教师工作台'}
                   </Link>
                 )}
                 <h2 className="font-bold flex items-center gap-2">

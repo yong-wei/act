@@ -897,7 +897,7 @@ export default function ClassDetailPage() {
                   <BookOpen className="mx-auto h-8 w-8 text-slate-500" />
                   <p className="mt-2 text-sm text-slate-400">暂无可用教案</p>
                   <Link
-                    href="/teacher/lesson-plans/new"
+                    href={`/teacher/lesson-plans/new?returnTo=${encodeURIComponent(`/teacher/classes/${classId}`)}`}
                     className="mt-2 inline-block text-sm text-sky-400 hover:text-sky-300"
                   >
                     创建教案
