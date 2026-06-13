@@ -114,18 +114,33 @@ const KNOWLEDGE_DIM_MAP: Record<string, KnowledgeDim> = {
 };
 
 const RELATION_TYPE_MAP: Record<string, string> = {
+  applies_to: 'applies_to',
+  complements: 'complements',
+  contains: 'contains',
+  contrasts_with: 'contrasts_with',
+  cross_domain: 'cross_domain',
+  derives: 'derives',
+  describes_migration_of: 'describes_migration_of',
+  determines: 'determines',
+  embodies: 'embodies',
+  enables: 'enables',
+  follows: 'follows',
+  generalizes: 'generalizes',
+  informs: 'informs',
+  instance_of: 'instance_of',
+  leads_to: 'leads_to',
+  opposite: 'opposite',
   prerequisite: 'prerequisite',
   provides_foundation: 'provides_foundation',
-  follows: 'follows',
+  quantified_by: 'quantified_by',
   related: 'related',
-  influences: 'related',
+  supports: 'supports',
+  uses: 'uses',
+  visualized_by: 'visualized_by',
   defines: 'related',
-  implements: 'related',
   governs: 'related',
-  contains: 'contains',
-  leads_to: 'leads_to',
-  applies_to: 'applies_to',
-  opposite: 'opposite',
+  implements: 'related',
+  influences: 'related',
 };
 
 const FILE_GRAPH_CACHE_TTL_MS = 60_000;
@@ -150,7 +165,11 @@ function normalizeKnowledgeDim(value?: string): KnowledgeDim {
 function normalizeRelationType(value?: string): string {
   if (!value) return 'related';
   const key = value.trim().toLowerCase();
-  return RELATION_TYPE_MAP[key] ?? 'related';
+  const mapped = RELATION_TYPE_MAP[key];
+  if (!mapped) {
+    throw new Error(`Unknown knowledge graph relation type: ${value}`);
+  }
+  return mapped;
 }
 
 function clampStrength(value?: number): number {

@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { getRelationLabel } from '@/lib/knowledge-labels';
 import {
@@ -20,6 +20,18 @@ import {
   getRelationThreeDimensionalEncoding,
   KNOWLEDGE_NODE_SCALE_CONTRACT,
 } from '../graph/visual-config';
+
+vi.mock('server-only', () => ({}));
+vi.mock('@/lib/prisma', () => ({
+  prisma: {
+    knowledgeLink: {
+      findMany: vi.fn(async () => []),
+    },
+    knowledgeNode: {
+      findMany: vi.fn(async () => []),
+    },
+  },
+}));
 
 describe('knowledge graph relation visual semantics', () => {
   const runtimeRelationTypes = Array.from(
@@ -56,6 +68,31 @@ describe('knowledge graph relation visual semantics', () => {
     expect(assertRuntimeRelationStyleCoverage(['contains', 'not_authored_relation'])).toEqual([
       'not_authored_relation',
     ]);
+  });
+
+  it('keeps runtime relation types intact through the unified knowledge graph source', () => {
+    const source = readFileSync(
+      path.join(process.cwd(), 'src/lib/knowledge-graph-source.ts'),
+      'utf8'
+    );
+
+    runtimeRelationTypes.forEach((relationType) => {
+      expect(source).toContain(`${relationType}: '${relationType}'`);
+    });
+    expect(source).not.toContain("return RELATION_TYPE_MAP[key] ?? 'related';");
+  });
+
+  it('loads file graph links without flattening specialized relation types', async () => {
+    const { loadKnowledgeGraphData } = await import('@/lib/knowledge-graph-source');
+    const graph = await loadKnowledgeGraphData();
+    const loadedRelationTypes = new Set(graph.links.map((link) => link.relationType));
+    const missing = runtimeRelationTypes.filter((relationType) => !loadedRelationTypes.has(relationType));
+
+    expect(graph.source).toBe('file');
+    expect(missing).toEqual([]);
+    expect(loadedRelationTypes.has('related')).toBe(true);
+    expect(loadedRelationTypes.has('cross_domain')).toBe(true);
+    expect(loadedRelationTypes.has('visualized_by')).toBe(true);
   });
 
   it('gives core relation families distinct non-color visual encodings', () => {
