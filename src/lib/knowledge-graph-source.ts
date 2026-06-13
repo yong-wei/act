@@ -143,6 +143,12 @@ const RELATION_TYPE_MAP: Record<string, string> = {
   governs: 'related',
   implements: 'related',
   influences: 'related',
+  引出机械建模: 'leads_to',
+  引出电路建模: 'leads_to',
+  机电类比: 'cross_domain',
+  非线性扩展: 'generalizes',
+  建模基础: 'provides_foundation',
+  电路应用: 'applies_to',
 };
 
 const FILE_GRAPH_CACHE_TTL_MS = 60_000;

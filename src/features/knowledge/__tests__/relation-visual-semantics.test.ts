@@ -81,6 +81,12 @@ describe('knowledge graph relation visual semantics', () => {
     });
     expect(source).toContain("explains: 'informs'");
     expect(source).toContain("example: 'instance_of'");
+    expect(source).toContain("引出机械建模: 'leads_to'");
+    expect(source).toContain("引出电路建模: 'leads_to'");
+    expect(source).toContain("机电类比: 'cross_domain'");
+    expect(source).toContain("非线性扩展: 'generalizes'");
+    expect(source).toContain("建模基础: 'provides_foundation'");
+    expect(source).toContain("电路应用: 'applies_to'");
     expect(source).not.toContain("return RELATION_TYPE_MAP[key] ?? 'related';");
   });
 
