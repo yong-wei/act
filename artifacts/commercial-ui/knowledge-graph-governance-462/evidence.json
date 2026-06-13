@@ -1,0 +1,130 @@
+{
+  "issue": 462,
+  "change": "govern-knowledge-graph-navigation-and-visual-qa",
+  "route": "/knowledge",
+  "capturedAt": "2026-06-13T00:00:00.000Z",
+  "sourceEvidence": {
+    "shellManifest": "artifacts/commercial-ui/knowledge-map-unified-shell-415/manifest.json",
+    "visualLanguage": "artifacts/commercial-ui/knowledge-graph-visual-language-460/evidence.json",
+    "layoutClarity": "artifacts/commercial-ui/knowledge-graph-layout-clarity-461/evidence.json",
+    "runtimeRelations": "course-content/runtime/knowledge/graph/relations.jsonl"
+  },
+  "localToolEvidence": {
+    "desktopDefault": {
+      "width": 1440,
+      "canvasPrimary": true,
+      "chapterDirectory": "compact",
+      "relationFilters": "compact",
+      "legend": "compact",
+      "viewModeSwitch": "compact",
+      "resourcePanel": "closed-until-node-selection",
+      "activeFilterSummaryWhenCollapsed": true
+    },
+    "desktopOpenClose": {
+      "chapterDirectoryOpenClosed": true,
+      "relationFiltersOpenClosed": true,
+      "legendOpenClosed": true,
+      "viewModeSwitchOpenClosed": true,
+      "resourcePanelOpenClosed": true,
+      "selectedNodePreserved": true,
+      "activeFiltersPreserved": true,
+      "densityModePreserved": true,
+      "legendStatePreserved": true,
+      "visibleSummariesPreserved": true
+    },
+    "tabletDefault": {
+      "width": 768,
+      "behavior": "compact-or-drawer",
+      "canvasPrimary": true,
+      "permanentPanelsForbidden": [
+        "chapter-directory",
+        "relation-filters",
+        "graph-legend",
+        "resource-panel"
+      ],
+      "noCanvasSqueeze": true
+    },
+    "mobileDefault": {
+      "width": 320,
+      "behavior": "single-tool-panel",
+      "canvasPrimary": true,
+      "noPersistentSidebar": true,
+      "noPersistentFilter": true,
+      "noPersistentKnowledgeDrawer": true
+    }
+  },
+  "runtimeRelationEvidence": {
+    "samplePolicy": "include every runtime relation type present at capture time",
+    "countPolicy": "counts are report-only; governance blocks on relation type coverage and current visual semantics, not on unchanged edge counts",
+    "commonSamples": [
+      "applies_to",
+      "contains",
+      "leads_to",
+      "prerequisite",
+      "related"
+    ],
+    "lowFrequencySamples": [
+      "complements",
+      "contrasts_with",
+      "cross_domain",
+      "derives",
+      "describes_migration_of",
+      "determines",
+      "embodies",
+      "enables",
+      "generalizes",
+      "informs",
+      "instance_of",
+      "opposite",
+      "quantified_by",
+      "supports",
+      "uses",
+      "visualized_by"
+    ],
+    "types": [
+      { "type": "applies_to", "count": 5381 },
+      { "type": "complements", "count": 1 },
+      { "type": "contains", "count": 1541 },
+      { "type": "contrasts_with", "count": 1 },
+      { "type": "cross_domain", "count": 67 },
+      { "type": "derives", "count": 1 },
+      { "type": "describes_migration_of", "count": 1 },
+      { "type": "determines", "count": 2 },
+      { "type": "embodies", "count": 1 },
+      { "type": "enables", "count": 4 },
+      { "type": "generalizes", "count": 11 },
+      { "type": "informs", "count": 1 },
+      { "type": "instance_of", "count": 7 },
+      { "type": "leads_to", "count": 1128 },
+      { "type": "opposite", "count": 179 },
+      { "type": "prerequisite", "count": 752 },
+      { "type": "quantified_by", "count": 1 },
+      { "type": "related", "count": 7444 },
+      { "type": "supports", "count": 5 },
+      { "type": "uses", "count": 1 },
+      { "type": "visualized_by", "count": 1 }
+    ]
+  },
+  "graphClarityEvidence": {
+    "defaultHighSignal": true,
+    "selectedNodeFocused": true,
+    "allRelationsDenseExplicit": true,
+    "allRelationsIncludesWeakEdges": true,
+    "selectedNodeContextPreserved": true,
+    "canvasRendered": true
+  },
+  "scopeProtection": {
+    "coveredRoutes": [
+      "/knowledge"
+    ],
+    "excludedRouteFamilies": [
+      "simulation",
+      "interactive-learning-descendant",
+      "teacher",
+      "admin"
+    ],
+    "doesNotRequireSimulationRouteMigration": true,
+    "doesNotRequireInteractiveDescendantMigration": true,
+    "doesNotRequireTeacherAdminMigration": true
+  }
+}
