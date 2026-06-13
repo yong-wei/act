@@ -5,7 +5,12 @@ Define the governed indicator profile, reproducible snapshot contract, and
 role-based access behavior for control-correction learning diagnosis.
 ## Requirements
 ### Requirement: Control-correction diagnosis uses governed indicators
-The diagnosis profile SHALL consume governed evidence sources that are relevant to the competition assistant story.
+The diagnosis profile SHALL use governed indicator definitions and consume governed evidence sources that are relevant to the competition assistant story.
+
+#### Scenario: Indicator definition is registered
+- **WHEN** a control-correction diagnosis indicator is added
+- **THEN** it SHALL declare dimension id, indicator id, source families, query spec, normalization policy, confidence policy, privacy visibility, materializer version, and fallback behavior
+- **AND** definitions missing query spec or evidence threshold metadata SHALL fail validation.
 
 #### Scenario: Indicator evidence is gathered
 - **WHEN** diagnosis evidence is gathered for the competition baseline class or learner
@@ -14,6 +19,11 @@ The diagnosis profile SHALL consume governed evidence sources that are relevant 
 
 ### Requirement: Diagnosis snapshots are reproducible
 Control-correction diagnosis snapshots SHALL remain reproducible and SHALL expose report-ready observations for competition assistant workflows.
+
+#### Scenario: Indicator snapshot is materialized
+- **WHEN** an indicator is calculated for a student, class, or report scope
+- **THEN** the snapshot SHALL store score, confidence, source coverage, evidence count, evidence window, materializer version, and limitations
+- **AND** stale, preview-only, low-confidence, missing, or sparse sources SHALL lower confidence or mark the indicator unavailable instead of producing a precise high-confidence score.
 
 #### Scenario: Report snapshot is materialized
 - **WHEN** the system materializes a control-correction diagnosis report snapshot
