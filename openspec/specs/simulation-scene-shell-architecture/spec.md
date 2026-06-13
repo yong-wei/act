@@ -4,16 +4,14 @@
 Define the scene shell decomposition contract for virtual simulation pages so rendering, controls, telemetry, and runtime wiring can migrate without changing physics ownership or Arena evaluation semantics.
 ## Requirements
 ### Requirement: Simulation scenes use explicit shell boundaries
+
 The system SHALL support simulation scene decomposition into `SceneShell`, `ControllerPanel`, `VisualizationLayer`, and `TelemetryBridge` boundaries.
 
-#### Scenario: Pilot scene is rendered
-- **WHEN** the pilot simulation route is opened
-- **THEN** the scene SHALL render through the shell boundary while preserving the existing user-visible route behavior
-
-#### Scenario: Detail page shell is rendered
-- **WHEN** an existing `/simulations/*` detail page is wrapped by `SimulationShell`
-- **THEN** the existing simulation runtime component SHALL remain the scene owner
-- **AND** the page shell SHALL only provide route chrome, navigation, return target, and workspace-zone placement.
+#### Scenario: Simulation detail page declares local tool templates
+- **WHEN** a migrated `/simulations/*` detail page renders inside `SimulationShell`
+- **THEN** it SHALL declare a simulation-local tool template for its task family
+- **AND** the shell SHALL expose collapsible side panel, hint strip, and bottom toolbar markers
+- **AND** local tool panels SHALL NOT alter controller algorithms, scene runtime state, or Arena scoring semantics.
 
 ### Requirement: Physics behavior is preserved during shell migration
 The system SHALL preserve existing Rust/WASM runtime facade calls and physical model behavior during the pilot shell migration.

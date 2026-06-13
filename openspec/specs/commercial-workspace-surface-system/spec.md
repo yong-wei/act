@@ -57,12 +57,14 @@ Commercial workspaces SHALL support registered archetypes for immersive scene, e
 - **AND** it SHALL inherit platform tokens, navigation conventions, account actions, and floating dock rules.
 
 ### Requirement: Dense workspace controls do not compete with shell controls
+
 Commercial workspace local controls SHALL be visually distinct from role cockpit, global navigation, and floating dock controls.
 
-#### Scenario: A workspace has local tools and shell actions
-- **WHEN** camera tools, chart toggles, parameter controls, Konling, and settings are all available
-- **THEN** their location and priority SHALL make task-local tools distinct from shell-level floating controls
-- **AND** keyboard focus order SHALL remain coherent.
+#### Scenario: Simulation pages expose local tools as workspace controls
+- **WHEN** a simulation detail route renders local telemetry, controls, hints, or scene commands
+- **THEN** the controls SHALL be organized as simulation-local workspace panels and bottom tools
+- **AND** mobile secondary controls SHALL NOT appear as persistent sidebars that compete with the primary scene
+- **AND** the local tool layer SHALL use governed platform tokens rather than page-local palettes.
 
 ### Requirement: Mission workspaces prioritize instrument area
 Commercial mission workspaces SHALL prioritize active object, current step, primary command, and instrument area before explanatory or configuration content.

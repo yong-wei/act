@@ -7,6 +7,8 @@ import { AppShell, type AppBreadcrumbItem } from '@/components/platform/app-shel
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
+import { SimulationLocalToolWorkspace, type SimulationLocalToolTemplateId } from './simulation-local-tools';
+
 export interface SimulationShellProps {
   title: string;
   subtitle?: string;
@@ -19,6 +21,7 @@ export interface SimulationShellProps {
   evidenceRail?: ReactNode;
   supportDrawer?: ReactNode;
   commandBar?: ReactNode;
+  localToolTemplate?: SimulationLocalToolTemplateId;
   className?: string;
 }
 
@@ -34,6 +37,7 @@ export function SimulationShell({
   evidenceRail,
   supportDrawer,
   commandBar,
+  localToolTemplate,
   className,
 }: SimulationShellProps) {
   const breadcrumbs: AppBreadcrumbItem[] = [
@@ -61,7 +65,12 @@ export function SimulationShell({
         contextHeader: contextStrip,
         commandBar,
         instrumentArea: (
-          <SimulationSceneFrame activeHref={activeHref} launchProvenance={launchProvenance} returnHref={returnHref}>
+          <SimulationSceneFrame
+            activeHref={activeHref}
+            launchProvenance={launchProvenance}
+            returnHref={returnHref}
+            localToolTemplate={localToolTemplate}
+          >
             {children}
           </SimulationSceneFrame>
         ),
@@ -78,9 +87,15 @@ export function SimulationShell({
         data-return-target={returnHref}
         data-evidence-flow-target="/profile/evidence"
       >
-        <section data-commercial-workspace-zone="instrument-area" data-instrument-nonblank-contract="simulation-scene">
-          {children}
-        </section>
+        {localToolTemplate ? (
+          <SimulationLocalToolWorkspace templateId={localToolTemplate}>
+            {children}
+          </SimulationLocalToolWorkspace>
+        ) : (
+          <section data-commercial-workspace-zone="instrument-area" data-instrument-nonblank-contract="simulation-scene">
+            {children}
+          </section>
+        )}
       </div>
     </AppShell>
   );
@@ -90,11 +105,13 @@ function SimulationSceneFrame({
   activeHref,
   launchProvenance,
   returnHref,
+  localToolTemplate,
   children,
 }: {
   activeHref: string;
   launchProvenance: string;
   returnHref: string;
+  localToolTemplate?: SimulationLocalToolTemplateId;
   children: ReactNode;
 }) {
   return (
@@ -108,9 +125,15 @@ function SimulationSceneFrame({
       data-evidence-flow-target="/profile/evidence"
       data-instrument-nonblank-contract="simulation-scene"
     >
-      <section data-commercial-workspace-zone="instrument-area">
-        {children}
-      </section>
+      {localToolTemplate ? (
+        <SimulationLocalToolWorkspace templateId={localToolTemplate} panelLayout="stacked">
+          {children}
+        </SimulationLocalToolWorkspace>
+      ) : (
+        <section data-commercial-workspace-zone="instrument-area">
+          {children}
+        </section>
+      )}
     </div>
   );
 }

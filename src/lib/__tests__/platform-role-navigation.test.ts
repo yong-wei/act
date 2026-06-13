@@ -974,8 +974,16 @@ describe('platform role navigation', () => {
     ]) {
       const simulationDetailSource = readSource(simulationRouteFile);
       expect(simulationDetailSource).toContain('SimulationShell');
+      expect(simulationDetailSource).toContain('localToolTemplate=');
       expect(simulationDetailSource).not.toContain('FeaturePageNav');
     }
+    expect(readSource('src/app/simulations/destroyer/page.tsx')).toContain('localToolTemplate="heading-control"');
+    expect(readSource('src/app/simulations/lng/page.tsx')).toContain('localToolTemplate="heading-control"');
+    expect(readSource('src/app/simulations/container/page.tsx')).toContain('localToolTemplate="heading-control"');
+    expect(readSource('src/app/simulations/drilling/page.tsx')).toContain('localToolTemplate="dp-positioning"');
+    expect(readSource('src/app/simulations/dredger/page.tsx')).toContain('localToolTemplate="dp-positioning"');
+    expect(readSource('src/app/simulations/cruise/page.tsx')).toContain('localToolTemplate="comfort-frequency"');
+    expect(readSource('src/app/simulations/icebreaker/page.tsx')).toContain('localToolTemplate="ice-propulsion"');
     expect(unit41EntrySource).toContain('data-commercial-student-entry-route={`/interactive-learning/courses/${config.routeSegment}`}');
     expect(unit41EntrySource).toContain('data-commercial-entry-intent="learn"');
     expect(unit41EntrySource).toContain('data-task-workspace-archetype="lesson-runtime"');

@@ -279,7 +279,59 @@ test('simulation detail pages render through mission workspace shell', async ({ 
   await expect(page.locator('[data-simulation-shell-route="/simulations/destroyer"]')).toBeVisible();
   await expect(page.locator('[data-commercial-workspace="simulation-scene"]')).toBeVisible();
   await expect(page.locator('[data-commercial-workspace-zone="instrument-area"]')).toBeVisible();
+  await expect(page.locator('[data-simulation-local-workspace="heading-control"]')).toBeVisible();
+  await expect(page.locator('[data-simulation-local-panel-layout="side-rails"]')).toBeVisible();
+  await expect(page.locator('[data-simulation-mobile-secondary-controls="stacked-sheets"]')).toBeVisible();
+  await expect(page.locator('[data-simulation-local-panel="left"]')).toBeVisible();
+  await expect(page.locator('[data-simulation-local-panel="right"]')).toBeVisible();
+  await expect(page.locator('[data-simulation-local-hint-strip]')).toBeVisible();
+  await expect(page.getByRole('group', { name: '仿真局部工具' })).toBeVisible();
   await expect(page.getByLabel('Breadcrumb').getByRole('link', { name: '虚拟仿真' })).toHaveAttribute('href', '/simulations');
   await expect(page.getByRole('link', { name: '个人中心' })).toHaveAttribute('href', '/profile');
   await expect(page.getByRole('heading', { name: '军用驱逐舰战术机动仿真' })).toBeVisible();
+});
+
+test('simulation local tools preserve structured Cruise slots without fake actions', async ({ page }) => {
+  await page.goto('/simulations/cruise', { waitUntil: 'networkidle' });
+
+  await expect(page.locator('[data-simulation-shell-route="/simulations/cruise"]')).toBeVisible();
+  await expect(page.locator('[data-simulation-local-workspace="comfort-frequency"]')).toBeVisible();
+  await expect(page.locator('[data-simulation-local-panel-layout="stacked"]')).toBeVisible();
+  await expect(page.locator('[data-simulation-mobile-secondary-controls="stacked-sheets"]')).toBeVisible();
+  await expect(page.locator('[data-commercial-workspace-zone="instrument-area"] [data-sim-ui]')).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('[data-commercial-workspace-zone="context-strip"]')).toBeVisible();
+  await expect(page.locator('[data-commercial-workspace-zone="command-bar"][data-task-workspace-zone="bottom-tools"]')).toHaveCount(0);
+  await expect(page.locator('[data-commercial-workspace-zone="local-tool-note"]')).toHaveCount(0);
+  await expect(page.locator('[data-simulation-local-note="scene-controls"]')).toHaveCount(1);
+  await expect(page.locator('[data-simulation-local-bottom-toolbar] button')).toHaveCount(0);
+  await expect(page.getByRole('group', { name: '仿真局部工具' })).toBeVisible();
+  await expect(page.getByText('官方提交')).toHaveCount(0);
+  await expect(page.getByText('榜单视图')).toHaveCount(0);
+  await expect(page.getByText('Arena 黑箱提交')).toHaveCount(0);
+});
+
+test('simulation local panels stack after the scene on mobile', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto('/simulations/destroyer', { waitUntil: 'networkidle' });
+
+  const primary = page.locator('[data-simulation-local-primary-column]');
+  const leftPanel = page.locator('[data-simulation-local-panel="left"]');
+  const rightPanel = page.locator('[data-simulation-local-panel="right"]');
+
+  await expect(primary).toBeVisible();
+  await expect(leftPanel).toBeVisible();
+  await expect(rightPanel).toBeVisible();
+  await expect(page.locator('[data-simulation-local-bottom-toolbar] button')).toHaveCount(0);
+
+  const primaryBox = await primary.boundingBox();
+  const leftBox = await leftPanel.boundingBox();
+  const rightBox = await rightPanel.boundingBox();
+
+  expect(primaryBox).not.toBeNull();
+  expect(leftBox).not.toBeNull();
+  expect(rightBox).not.toBeNull();
+  expect(primaryBox!.y).toBeLessThanOrEqual(leftBox!.y);
+  expect(leftBox!.y).toBeLessThanOrEqual(rightBox!.y);
+  expect(leftBox!.width).toBeLessThanOrEqual(320);
+  expect(rightBox!.width).toBeLessThanOrEqual(320);
 });

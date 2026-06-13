@@ -377,6 +377,7 @@ describe('platform UI contracts', () => {
     const unit41StudentRuntimeSource = readSource('src/features/interactive/unit-4-1-design-task-expression/student-page.tsx');
     const cruiseSimulationSource = readSource('src/app/simulations/cruise/page.tsx');
     const simulationShellSource = readSource('src/app/simulations/_components/simulation-shell.tsx');
+    const simulationLocalToolsSource = readSource('src/app/simulations/_components/simulation-local-tools.tsx');
     const teacherAnalyticsSource = readSource('src/app/teacher/classes/[classId]/analytics-v2/page.tsx');
     const teacherLayoutSource = readSource('src/app/teacher/layout.tsx');
     const teacherOperationsNavSource = readSource('src/features/teacher/teacher-operations-nav.tsx');
@@ -408,6 +409,31 @@ describe('platform UI contracts', () => {
     expect(simulationShellSource).toContain('data-commercial-workspace="simulation-scene"');
     expect(simulationShellSource).toContain('data-task-workspace-archetype="immersive-scene"');
     expect(simulationShellSource).toContain('data-simulation-shell-profile-action');
+    expect(simulationShellSource).toContain('SimulationLocalToolWorkspace');
+    expect(simulationShellSource).toContain('panelLayout="stacked"');
+    expect(simulationLocalToolsSource).toContain('data-simulation-local-workspace={template.id}');
+    expect(simulationLocalToolsSource).toContain('data-simulation-local-panel-layout={panelLayout}');
+    expect(simulationLocalToolsSource).toContain('data-simulation-local-bottom-toolbar');
+    expect(simulationLocalToolsSource).toContain('data-simulation-local-hint-strip');
+    expect(simulationLocalToolsSource).toContain('data-simulation-panel-collapsible="true"');
+    expect(simulationLocalToolsSource).toContain('data-simulation-mobile-secondary-controls="stacked-sheets"');
+    expect(simulationLocalToolsSource).toContain('order-1 flex min-w-0 flex-col gap-3');
+    expect(simulationLocalToolsSource).toContain("side === 'left' && panelLayout === 'side-rails' ? 'order-2 lg:order-first'");
+    expect(simulationLocalToolsSource).toContain("side === 'left' && panelLayout === 'stacked' ? 'order-2'");
+    expect(simulationLocalToolsSource).toContain("side === 'right' && panelLayout === 'side-rails' ? 'order-3 lg:order-last'");
+    expect(simulationLocalToolsSource).toContain("side === 'right' && panelLayout === 'stacked' ? 'order-3'");
+    expect(simulationLocalToolsSource).toContain('ChevronDown');
+    expect(simulationLocalToolsSource).toContain('focus-visible:ring-2 focus-visible:ring-platform-action-primary');
+    expect(simulationLocalToolsSource).not.toContain('platform-action-ring');
+    expect(simulationLocalToolsSource).not.toContain('platform-fg-tertiary');
+    expect(simulationLocalToolsSource).not.toContain('<button');
+    expect(simulationLocalToolsSource).not.toContain('sticky bottom-3');
+    expect(simulationLocalToolsSource).toContain('data-simulation-local-panel-zone={side ===');
+    expect(simulationLocalToolsSource).toContain('data-task-workspace-zone={side ===');
+    expect(simulationLocalToolsSource).not.toContain('data-commercial-workspace-zone={side ===');
+    expect(simulationLocalToolsSource.indexOf('data-simulation-local-primary-column')).toBeLessThan(
+      simulationLocalToolsSource.indexOf('<SimulationLocalPanel side="left"'),
+    );
     expect(manifestRuntimeSource).toContain('data-commercial-module-chrome');
     expect(manifestRuntimeSource).not.toContain("'data-task-workspace-archetype': 'lesson-runtime'");
     expect(unit41StudentRuntimeSource).toContain('data-task-workspace-archetype="lesson-runtime"');

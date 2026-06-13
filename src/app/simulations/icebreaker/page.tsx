@@ -7,6 +7,7 @@ export default function IcebreakerSimulationPage() {
       title="雪龙2号破冰船仿真"
       subtitle="Azipod 推进与冰阻力 · 参数摄动与鲁棒控制"
       activeHref="/simulations/icebreaker"
+      localToolTemplate="ice-propulsion"
     >
       <IcebreakerSimulation />
     </SimulationShell>
