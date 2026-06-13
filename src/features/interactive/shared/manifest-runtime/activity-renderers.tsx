@@ -5,8 +5,10 @@ import { InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
 import {
+  buildStepActivityIdentity,
   buildPerCardSubmissionAnswers,
-  mergeSavedAnswersIntoDraft,
+  resolveStudentCardDraftEnvelope,
+  type StudentCardDraftEnvelope,
 } from '@/features/interactive/shared/per-card-response-utils';
 import { SubmissionStatus } from '@/features/interactive/shared/submission-status';
 import type {
@@ -990,31 +992,27 @@ function StudentCards({
 }) {
   const cards = useMemo(() => cardsFor(stepManifest), [stepManifest]);
   const cardKeys = useMemo(() => cards.map((card) => card.id), [cards]);
-  const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>(savedResponse?.answers ?? {});
-  const [localSubmittedKeys, setLocalSubmittedKeys] = useState<Set<string>>(() => new Set());
-  const [touchedKeys, setTouchedKeys] = useState<Set<string>>(() => new Set());
-
-  useEffect(() => {
-    setDraftAnswers((currentDraft) =>
-      Object.fromEntries(
-        Object.entries(
-          mergeSavedAnswersIntoDraft({
-            savedAnswers: savedResponse?.answers,
-            currentDraft,
-            keys: cardKeys,
-          }),
-        ).map(([key, value]) => [
-          key,
-          touchedKeys.has(key) ? currentDraft[key] ?? value : value,
-        ]),
-      ),
-    );
-  }, [cardKeys, savedResponse, touchedKeys]);
-
-  useEffect(() => {
-    setLocalSubmittedKeys(new Set());
-    setTouchedKeys(new Set());
-  }, [stepManifest.id]);
+  const stepActivityIdentity = buildStepActivityIdentity(stepManifest.id, cardKeys);
+  const [draftEnvelope, setDraftEnvelope] = useState<StudentCardDraftEnvelope>(() => ({
+    identity: stepActivityIdentity,
+    draftAnswers: savedResponse?.answers ?? {},
+    touchedKeys: new Set(),
+    localSubmittedKeys: new Set(),
+  }));
+  const {
+    identityChanged,
+    nextEnvelope,
+    mergedDraftAnswers,
+  } = resolveStudentCardDraftEnvelope({
+    identity: stepActivityIdentity,
+    savedAnswers: savedResponse?.answers,
+    cardKeys,
+    envelope: draftEnvelope,
+  });
+  if (identityChanged) {
+    setDraftEnvelope(nextEnvelope);
+  }
+  const effectiveLocalSubmittedKeys = nextEnvelope.localSubmittedKeys;
 
   if (!cards.length) return null;
 
@@ -1036,11 +1034,11 @@ function StudentCards({
     );
   }
 
-  const submittedKeys = new Set([...Object.keys(savedResponse?.answers ?? {}), ...Array.from(localSubmittedKeys)]);
+  const submittedKeys = new Set([...Object.keys(savedResponse?.answers ?? {}), ...Array.from(effectiveLocalSubmittedKeys)]);
   const draftValueForCard = (card: InteractiveRuntimeActivityCardManifest) => {
     const currentParameterValue = parameterSetDraftValue(card, workspaceParameters);
     if (currentParameterValue) return currentParameterValue;
-    return draftAnswers[card.id] ?? '';
+    return mergedDraftAnswers[card.id] ?? '';
   };
 
   return (
@@ -1055,9 +1053,12 @@ function StudentCards({
             <StudentCardAnswerInput
               card={card}
               value={draftValueForCard(card)}
-              onChange={(value) => {
-                setTouchedKeys((prev) => new Set(prev).add(card.id));
-                setDraftAnswers((prev) => ({ ...prev, [card.id]: value }));
+                onChange={(value) => {
+                setDraftEnvelope((previous) => ({
+                  ...previous,
+                  draftAnswers: { ...previous.draftAnswers, [card.id]: value },
+                  touchedKeys: new Set(previous.touchedKeys).add(card.id),
+                }));
               }}
             />
             <div className="mt-3 flex items-center justify-between gap-3">
@@ -1065,14 +1066,17 @@ function StudentCards({
                 type="button"
                 onClick={() => {
                   const currentDraft = {
-                    ...draftAnswers,
+                    ...mergedDraftAnswers,
                     [card.id]: draftValueForCard(card),
                   };
-                  setLocalSubmittedKeys((previous) => new Set(previous).add(card.id));
-                  setTouchedKeys((previous) => {
-                    const next = new Set(previous);
-                    next.delete(card.id);
-                    return next;
+                  setDraftEnvelope((previous) => {
+                    const nextTouchedKeys = new Set(previous.touchedKeys);
+                    nextTouchedKeys.delete(card.id);
+                    return {
+                      ...previous,
+                      localSubmittedKeys: new Set(previous.localSubmittedKeys).add(card.id),
+                      touchedKeys: nextTouchedKeys,
+                    };
                   });
                   onSubmit({
                     stepId: stepManifest.id,

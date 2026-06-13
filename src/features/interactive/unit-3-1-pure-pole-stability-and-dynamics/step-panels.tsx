@@ -904,13 +904,19 @@ function StepInlineVisual({
   step: UNIT_3_1StepDefinition;
   onParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
+  return <StepInlineVisualContent key={step.id} step={step} onParameterChange={onParameterChange} />;
+}
+
+function StepInlineVisualContent({
+  step,
+  onParameterChange,
+}: {
+  step: UNIT_3_1StepDefinition;
+  onParameterChange?: (change: WorkspaceParameterChange) => void;
+}) {
   const [activeTab, setActiveTab] = useState<typeof POLE_FAMILY_TABS[number]['key']>('negative-real');
   const [revealedCount, setRevealedCount] = useState(0);
   const activeFamily = POLE_FAMILY_TABS.find((item) => item.key === activeTab) ?? POLE_FAMILY_TABS[0];
-
-  useEffect(() => {
-    setRevealedCount(0);
-  }, [step.id]);
 
   if (step.id === 'step-02') {
     return <UNIT_3_1InteractiveExplorationPanel mode="step" defaultPoleMagnitude={5} onParameterChange={onParameterChange} />;

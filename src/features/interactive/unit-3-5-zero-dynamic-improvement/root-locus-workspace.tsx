@@ -94,6 +94,22 @@ export function UNIT_3_5RootLocusWorkspace({
   stepId: Unit35RootStepId;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
+  return (
+    <UNIT_3_5RootLocusWorkspaceContent
+      key={stepId}
+      stepId={stepId}
+      onWorkspaceParameterChange={onWorkspaceParameterChange}
+    />
+  );
+}
+
+function UNIT_3_5RootLocusWorkspaceContent({
+  stepId,
+  onWorkspaceParameterChange,
+}: {
+  stepId: Unit35RootStepId;
+  onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
+}) {
   const config = UNIT_3_5_ROOT_LOCUS_WORKSPACE_CONFIG[stepId];
   const defaultMode = config.modes[0];
   const [modeKey, setModeKey] = useState(defaultMode.key);
@@ -101,13 +117,6 @@ export function UNIT_3_5RootLocusWorkspace({
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<ECharts | null>(null);
-
-  useEffect(() => {
-    const nextDefaultMode = UNIT_3_5_ROOT_LOCUS_WORKSPACE_CONFIG[stepId].modes[0];
-    setModeKey(nextDefaultMode.key);
-    setPoints(clonePoints(nextDefaultMode.points));
-    setDraggingId(null);
-  }, [stepId]);
 
   const currentMode = useMemo(
     () => config.modes.find((mode) => mode.key === modeKey) ?? config.modes[0],

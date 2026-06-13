@@ -745,9 +745,12 @@ describe('control chart shared presets and themes', () => {
 
     expect(pageSource).toContain('data-panel-local-configuration="curve-toggle-group"');
     expect(pageSource).toContain('function PanelCurveToggleGroup');
-    expect(pageSource).toContain('const [panelOptionOverrides, setPanelOptionOverrides]');
+    expect(pageSource).toContain('const [panelOptionState, setPanelOptionState]');
     expect(pageSource).toContain('onPanelSelectedOptionsChange?.(panel.id, nextOptions)');
-    expect(pageSource).toContain('setPanelOptionOverrides({});');
+    expect(pageSource).toContain('const panelSelectionChanged = panelOptionState.signature !== panelSelectionSignature;');
+    expect(pageSource).toContain('setPanelOptionState({ signature: panelSelectionSignature, overrides: {} });');
+    expect(pageSource).toContain('const panelOptionOverrides = panelSelectionChanged ? {} : panelOptionState.overrides;');
+    expect(pageSource).toContain('current.signature === panelSelectionSignature ? current.overrides : {}');
     expect(pageSource).toContain('onToggle={(id, mode) => togglePanelLocalOption(panel, id, mode)}');
     expect(pageSource).toContain('data-line-style={option.style.lineType}');
     expect(pageSource).toContain('<LineStyleSample style={option.style} />');

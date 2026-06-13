@@ -17,6 +17,11 @@ import type { RuntimeLessonEntryBundle, RuntimeLessonMediaResource } from '@/lib
 
 type LessonEntryMediaSlot = 'introVideo' | 'courseVideo' | 'audio' | 'slides';
 type ReadyLessonEntryResource = RuntimeLessonMediaResource & { status: 'ready'; url: string };
+type AudioPreviewState = {
+  identity: string;
+  resolvedUrl: string | null;
+  status: 'idle' | 'loading' | 'ready' | 'error';
+};
 
 interface LessonEntryMediaHubProps {
   lessonRuntime: RuntimeLessonEntryBundle;
@@ -224,47 +229,8 @@ function InlineMediaPreview({
 }) {
   const frameClassName = 'block h-full w-full border-0';
   const wrapperRef = useRef<HTMLDivElement | null>(null);
-  const [embedVersion, setEmbedVersion] = useState(0);
   const isDirectVideo = resource.kind === 'video' && isDirectPlayableUrl(resource.url, resource.kind);
   const isDirectAudio = resource.kind === 'audio' && isDirectPlayableUrl(resource.url, resource.kind);
-  const needsResponsiveIframeReload = Boolean(resource.url && !isDirectVideo && !isDirectAudio);
-
-  useEffect(() => {
-    if (!needsResponsiveIframeReload || !wrapperRef.current || typeof ResizeObserver === 'undefined') {
-      return;
-    }
-
-    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
-    let lastWidth = 0;
-    let lastHeight = 0;
-    const observer = new ResizeObserver(([entry]) => {
-      const width = Math.round(entry.contentRect.width);
-      const height = Math.round(entry.contentRect.height);
-      if (Math.abs(width - lastWidth) < 24 && Math.abs(height - lastHeight) < 24) {
-        return;
-      }
-
-      lastWidth = width;
-      lastHeight = height;
-
-      if (resizeTimer) {
-        clearTimeout(resizeTimer);
-      }
-
-      resizeTimer = setTimeout(() => {
-        setEmbedVersion((current) => current + 1);
-      }, 120);
-    });
-
-    observer.observe(wrapperRef.current);
-
-    return () => {
-      observer.disconnect();
-      if (resizeTimer) {
-        clearTimeout(resizeTimer);
-      }
-    };
-  }, [needsResponsiveIframeReload]);
 
   if (resource.kind === 'video' && isDirectPlayableUrl(resource.url, resource.kind)) {
     return (
@@ -307,7 +273,7 @@ function InlineMediaPreview({
       className={`${wrapperClassName} overflow-hidden rounded-[24px] border border-border/60 bg-black`}
     >
       <iframe
-        key={`${resource.id}-${embedVersion}`}
+        key={resource.id}
         src={resource.url}
         title={resource.title}
         className={`${frameClassName} ${innerClassName ?? ''}`}
@@ -328,25 +294,28 @@ function ResolvedAudioPlayer({
   onProgress: (resource: RuntimeLessonMediaResource, progressPercent: number, durationMs: number) => void;
   onComplete: (resource: RuntimeLessonMediaResource, durationMs: number) => void;
 }) {
-  const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const audioIdentity = resource && resource.kind === 'audio' && resource.status === 'ready' && resource.url
+    ? `${resource.id}:${resource.url}`
+    : 'idle';
+  const directAudioUrl = resource && resource.kind === 'audio' && resource.status === 'ready' && resource.url && isDirectPlayableUrl(resource.url, resource.kind)
+    ? resource.url
+    : null;
+  const buildInitialAudioState = (): AudioPreviewState => ({
+    identity: audioIdentity,
+    resolvedUrl: directAudioUrl,
+    status: directAudioUrl ? 'ready' : audioIdentity === 'idle' ? 'idle' : 'loading',
+  });
+  const [audioState, setAudioState] = useState(buildInitialAudioState);
+  if (audioState.identity !== audioIdentity) {
+    setAudioState(buildInitialAudioState());
+  }
 
   useEffect(() => {
-    if (!resource || resource.kind !== 'audio' || resource.status !== 'ready' || !resource.url) {
-      setResolvedUrl(null);
-      setStatus('idle');
-      return;
-    }
-
-    if (isDirectPlayableUrl(resource.url, resource.kind)) {
-      setResolvedUrl(resource.url);
-      setStatus('ready');
-      return;
+    if (!resource || resource.kind !== 'audio' || resource.status !== 'ready' || !resource.url || directAudioUrl) {
+      return undefined;
     }
 
     let cancelled = false;
-    setResolvedUrl(null);
-    setStatus('loading');
 
     void fetch(`/api/course-runtime/audio-preview-source?previewUrl=${encodeURIComponent(resource.url)}`, {
       cache: 'no-store',
@@ -360,26 +329,31 @@ function ResolvedAudioPlayer({
       .then((payload) => {
         if (cancelled || !payload.sourceUrl) {
           if (!cancelled) {
-            setStatus('error');
+            setAudioState((current) => current.identity === audioIdentity
+              ? { identity: audioIdentity, resolvedUrl: null, status: 'error' }
+              : current);
           }
           return;
         }
 
-        setResolvedUrl(payload.sourceUrl);
-        setStatus('ready');
+        setAudioState((current) => current.identity === audioIdentity
+          ? { identity: audioIdentity, resolvedUrl: payload.sourceUrl ?? null, status: 'ready' }
+          : current);
       })
       .catch(() => {
         if (!cancelled) {
-          setStatus('error');
+          setAudioState((current) => current.identity === audioIdentity
+            ? { identity: audioIdentity, resolvedUrl: null, status: 'error' }
+            : current);
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [resource]);
+  }, [audioIdentity, directAudioUrl, resource]);
 
-  const playableResource = status === 'ready' && resolvedUrl && resource
+  const playableResource = audioState.status === 'ready' && audioState.resolvedUrl && resource
     ? resource
     : null;
 
@@ -387,29 +361,29 @@ function ResolvedAudioPlayer({
     <div className="rounded-[24px] border border-border/60 bg-[linear-gradient(135deg,rgba(244,114,182,0.1),rgba(15,23,42,0.05))] p-4 sm:p-5">
       <div className="flex flex-col">
         <div className="flex items-center justify-center">
-          {playableResource && resolvedUrl ? (
+          {playableResource && audioState.resolvedUrl ? (
             <TrackedMediaElement
               resource={playableResource}
               mediaType="audio"
-              src={resolvedUrl}
+              src={audioState.resolvedUrl}
               className="w-full max-w-full"
               onPlay={onPlay}
               onProgress={onProgress}
               onComplete={onComplete}
             />
           ) : null}
-          {status === 'loading' ? (
+          {audioState.status === 'loading' ? (
             <div className="premium-lesson-muted inline-flex items-center gap-2 text-sm">
               <Loader2 className="h-4 w-4 animate-spin" />
               正在准备播放器
             </div>
           ) : null}
-          {status === 'error' ? (
+          {audioState.status === 'error' ? (
             <div className="premium-lesson-muted text-sm">
               当前播放器暂未取到可播放音源。
             </div>
           ) : null}
-          {status === 'idle' ? (
+          {audioState.status === 'idle' ? (
             <div className="premium-lesson-muted text-sm">
               当前音频资源暂未就绪。
             </div>

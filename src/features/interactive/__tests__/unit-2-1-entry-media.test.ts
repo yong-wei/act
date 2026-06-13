@@ -161,7 +161,8 @@ describe('unit 2-1 entry media runtime', () => {
     expect(sharedSource).toContain('overflow-hidden rounded-[24px]');
     expect(sharedSource).toContain('block h-full w-full border-0');
     expect(sharedSource).toContain("isAudio ? 'lg:col-span-2' : ''");
-    expect(sharedSource).toContain('key={`${resource.id}-${embedVersion}`}');
+    expect(sharedSource).toContain('key={resource.id}');
+    expect(sharedSource).not.toContain('embedVersion');
     expect(sharedSource).not.toContain('解析实验版');
     expect(sharedSource).toContain('/api/course-runtime/audio-preview-source');
     expect(sharedSource).toContain('resource.title');

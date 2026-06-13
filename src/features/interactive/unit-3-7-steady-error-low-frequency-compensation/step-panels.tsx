@@ -852,14 +852,20 @@ function ProgressiveRevealPanel({
   stepId: string;
   title?: string;
 }) {
+  return <ProgressiveRevealPanelContent key={stepId} stepId={stepId} title={title} />;
+}
+
+function ProgressiveRevealPanelContent({
+  stepId,
+  title,
+}: {
+  stepId: string;
+  title?: string;
+}) {
   const steps = REVEAL_STEP_CONTENT[stepId] ?? [];
   const [revealedCount, setRevealedCount] = useState(0);
   const nextStep = steps[revealedCount];
   const canRevealMore = revealedCount < steps.length;
-
-  useEffect(() => {
-    setRevealedCount(0);
-  }, [stepId]);
 
   if (!steps.length) {
     return null;
