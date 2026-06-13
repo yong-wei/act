@@ -68,11 +68,12 @@ describe('GET /api/teacher/classes/[classId]/assistant-effect-report', () => {
       },
     });
     expect(payload.effectReport.metrics.map((metric: { id: string }) => metric.id)).toEqual([
-      'gradingTimeSaved',
-      'teacherEditRate',
-      'pathAdoption',
-      'secondAttemptImprovement',
-      'userFeedbackQuality',
+      'gradingFeedbackCoverage',
+      'teacherOverrideRate',
+      'aiTeacherScoreDelta',
+      'aiTeacherAgreementRate',
+      'blockedEvaluatorOutputCount',
+      'gradingSampleSize',
     ]);
   });
 });

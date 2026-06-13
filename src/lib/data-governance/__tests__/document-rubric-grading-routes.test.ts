@@ -1557,6 +1557,47 @@ describe('document rubric grading routes', () => {
     }));
   });
 
+  it('rejects blocked evaluator grading runs before approval writeback', async () => {
+    const draft = await gradingDraft();
+    const blockedRun = createDraftRubricGrading({
+      convertedDocument: draft.evidenceRefs.convertedDocument as ConvertedDocument,
+      rubric: draft.summary.rubric,
+      evaluatorOutput: {
+        evaluatorId: 'blocked-test-evaluator',
+        evaluatorVersion: '2026.06',
+        assessments: [],
+      },
+      now,
+    });
+    const blockedDraft = {
+      ...draft,
+      id: blockedRun.id,
+      dedupeKey: buildDocumentRubricDraftDedupeKey(draft.sourceRefs.asset as DocumentSubmissionAsset, blockedRun),
+      summary: {
+        ...draft.summary,
+        run: blockedRun,
+      },
+    };
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue(blockedDraft);
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const response = await postJson({
+      gradingRunId: blockedRun.id,
+      decision: 'approved',
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toEqual(expect.objectContaining({
+      error: '评分草稿存在阻塞的评估器输出，需要重新转换或重新评估后再审批',
+      reasons: expect.arrayContaining(['criterion-assessment-missing']),
+    }));
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();
+  });
+
   it('reports skipped facts for idempotent approval writeback duplicates', async () => {
     const draft = await gradingDraft();
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
@@ -1741,6 +1782,44 @@ describe('document rubric grading routes', () => {
       criterionId: 'modeling',
       competencyDimension: 'controlModeling',
       sourceEventId: `${draft.id}:modeling:${draft.summary.run.rubricVersion}`,
+    }));
+    expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects blocked evaluator grading runs before writeback preview', async () => {
+    const draft = await gradingDraft();
+    const blockedRun = createDraftRubricGrading({
+      convertedDocument: draft.evidenceRefs.convertedDocument as ConvertedDocument,
+      rubric: draft.summary.rubric,
+      evaluatorOutput: {
+        evaluatorId: 'blocked-test-evaluator',
+        evaluatorVersion: '2026.06',
+        assessments: [],
+      },
+      now,
+    });
+    const blockedDraft = {
+      ...draft,
+      id: blockedRun.id,
+      dedupeKey: buildDocumentRubricDraftDedupeKey(draft.sourceRefs.asset as DocumentSubmissionAsset, blockedRun),
+      summary: {
+        ...draft.summary,
+        run: blockedRun,
+      },
+    };
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.learningEvidenceDraft.findFirst.mockResolvedValue(blockedDraft);
+    mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
+    mocks.prisma.studentProfile.findFirst.mockResolvedValue({ id: 'student-profile-1' });
+
+    const response = await postPreviewJson({ gradingRunId: blockedRun.id });
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toEqual(expect.objectContaining({
+      error: '评分草稿存在阻塞的评估器输出，需要重新转换或重新评估后再预览写回',
+      reasons: expect.arrayContaining(['criterion-assessment-missing']),
     }));
     expect(mocks.prisma.learningFact.createMany).not.toHaveBeenCalled();
     expect(mocks.prisma.learningEvidenceDraft.update).not.toHaveBeenCalled();

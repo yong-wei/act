@@ -70,6 +70,9 @@ export function TeacherDocumentGradingWorkbench({ view }: { view: TeacherGrading
                         <p className="mt-1 text-sm text-muted-foreground">
                           {criterion.selectedLevelId ?? 'pending'} · evidence {criterion.evidenceCount}
                         </p>
+                        {criterion.limitationState && criterion.limitationState !== 'none' ? (
+                          <p className="mt-1 text-xs text-primary">limitation {criterion.limitationState}</p>
+                        ) : null}
                       </div>
                       <span className="text-lg font-semibold text-primary">{criterion.editableScore ?? '-'}</span>
                     </div>
@@ -100,6 +103,16 @@ export function TeacherDocumentGradingWorkbench({ view }: { view: TeacherGrading
 
             <section className="min-w-0 rounded border border-border bg-card/75 p-5">
               <h2 className="text-lg font-medium">审批动作</h2>
+              {view.evaluator.status === 'blocked' && view.evaluator.blockedReasons.length > 0 ? (
+                <div className="mt-4 rounded border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                  <p className="font-medium">评估器输出已阻塞</p>
+                  <ul className="mt-2 list-disc space-y-1 pl-5">
+                    {view.evaluator.blockedReasons.map((reason) => (
+                      <li key={reason}>{reason}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
               <div className="mt-4 flex flex-wrap gap-2">
                 {view.actions.map((action) => (
                   action === 'approve' && view.gradingRunId ? (
@@ -217,6 +230,22 @@ export function StudentDocumentGradingFeedback({ view }: { view: StudentGradingF
                     </div>
                   ))}
                 </div>
+                {view.actionCards.length > 0 ? (
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {view.actionCards.map((card) => (
+                      <a
+                        key={card.id}
+                        href={card.href}
+                        className="rounded border border-border bg-background p-3 text-sm transition hover:border-primary hover:text-primary"
+                      >
+                        <span className="block font-medium">{card.label}</span>
+                        <span className="mt-1 block text-muted-foreground">
+                          {card.criterionId} · evidence {card.evidenceRefCount}
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
                 {view.konlingEntryPoint ? (
                   <div className="mt-4 flex items-center justify-between gap-3 rounded border border-border bg-background px-3 py-2">
                     <p className="text-sm text-muted-foreground">

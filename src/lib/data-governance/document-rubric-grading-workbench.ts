@@ -16,8 +16,9 @@ const execFileAsync = promisify(execFile);
 
 export type DocumentSubmissionFormat = 'pdf' | 'docx' | 'pptx' | 'xlsx' | 'markdown' | 'unknown';
 export type ConversionStatus = 'pending' | 'converted' | 'failed' | 'fallback';
-export type GradingRunStatus = 'draft' | 'teacher-edited' | 'approved' | 'returned' | 'rejected';
+export type GradingRunStatus = 'draft' | 'blocked' | 'retry' | 'teacher-edited' | 'approved' | 'returned' | 'rejected';
 export type DocumentReferencePrecision = 'page' | 'block' | 'span';
+export type DraftCriterionLimitationState = 'none' | 'missing-evidence' | 'low-confidence' | 'conversion-limited';
 
 export const DOCUMENT_RUBRIC_GOAL_DIMENSION_MAP: Record<string, CompetencyDimension> = {
   controlModeling: 'controlModeling',
@@ -137,7 +138,9 @@ export interface CriterionDraftGrade {
   levelId: string;
   score: number;
   comment: string;
+  rationale: string;
   confidence: number;
+  limitationState: DraftCriterionLimitationState;
   evidenceRefs: GradingEvidenceReference[];
   profileWritebackCandidate: {
     goalDimension: string;
@@ -164,6 +167,13 @@ export interface DocumentRubricGradingRun {
   draftGrades: CriterionDraftGrade[];
   approvedGrades: CriterionDraftGrade[];
   annotations: GradingAnnotation[];
+  teacherDiffs: CriterionTeacherDiff[];
+  evaluator: {
+    id: string;
+    version: string;
+    status: 'valid' | 'blocked';
+    blockedReasons: string[];
+  };
   teacherReview: {
     reviewerId: string | null;
     reviewedAt: string | null;
@@ -172,6 +182,34 @@ export interface DocumentRubricGradingRun {
   };
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CriterionTeacherDiff {
+  criterionId: string;
+  fields: Array<'levelId' | 'score' | 'comment' | 'rationale' | 'evidenceRefs'>;
+  aiDraft: Pick<CriterionDraftGrade, 'levelId' | 'score' | 'comment' | 'rationale' | 'evidenceRefs'>;
+  teacherApproved: Pick<CriterionDraftGrade, 'levelId' | 'score' | 'comment' | 'rationale' | 'evidenceRefs'>;
+}
+
+export interface DraftRubricEvaluatorCriterionAssessment {
+  criterionId: string;
+  levelId: string;
+  score: number;
+  rationale: string;
+  confidence: number;
+  evidenceBlockIds: string[];
+  limitationState: DraftCriterionLimitationState;
+}
+
+export interface DraftRubricEvaluatorOutput {
+  evaluatorId: string;
+  evaluatorVersion: string;
+  assessments: DraftRubricEvaluatorCriterionAssessment[];
+}
+
+export interface DraftRubricEvaluatorValidationResult {
+  valid: boolean;
+  reasons: string[];
 }
 
 export interface DocumentRubricEvidenceWriteback {
@@ -201,8 +239,11 @@ export interface DocumentRubricEvidenceWriteback {
       targetGoal: string;
       learningGoal: string;
       teacherReview: DocumentRubricGradingRun['teacherReview'];
+      teacherDiffs: CriterionTeacherDiff[];
+      evaluator: DocumentRubricGradingRun['evaluator'];
       evidenceRefs: GradingEvidenceReference[];
       confidence: number;
+      idempotencyKey: string;
     };
   }>;
 }
@@ -277,6 +318,7 @@ export interface TeacherGradingWorkbenchView {
     weight: number;
     selectedLevelId: string | null;
     editableScore: number | null;
+    limitationState: DraftCriterionLimitationState | null;
     evidenceCount: number;
   }>;
   annotations: Array<{
@@ -290,6 +332,10 @@ export interface TeacherGradingWorkbenchView {
     status: GradingRunStatus;
     averageConfidence: number;
     requiresTeacherApproval: boolean;
+  };
+  evaluator: {
+    status: DocumentRubricGradingRun['evaluator']['status'];
+    blockedReasons: string[];
   };
   actions: Array<'edit-criterion' | 'add-annotation' | 'approve' | 'return-feedback' | 'retry-conversion'>;
   konlingEntryPoint: KonlingTeachingAssistantEntryPoint & { mode: 'grading-assistant' };
@@ -321,7 +367,27 @@ export interface StudentGradingFeedbackView {
     contribution: number;
     confidence: number;
   }>;
+  actionCards: StudentGradingFeedbackActionCard[];
   konlingEntryPoint: (KonlingTeachingAssistantEntryPoint & { mode: 'feedback-explainer' }) | null;
+}
+
+export interface StudentGradingFeedbackActionCard {
+  id: string;
+  criterionId: string;
+  label: string;
+  destinationType: 'learner-record' | 'path' | 'practice' | 'resource';
+  href: string;
+  evidenceRefCount: number;
+}
+
+export interface DocumentRubricGradingQualityMetrics {
+  sampleSize: number;
+  approvedCount: number;
+  blockedEvaluatorOutputs: number;
+  feedbackCoverageRate: number;
+  teacherOverrideRate: number;
+  averageAiTeacherScoreDelta: number;
+  agreementRate: number;
 }
 
 export function createHiddenStudentGradingFeedbackView(input: {
@@ -336,6 +402,7 @@ export function createHiddenStudentGradingFeedbackView(input: {
     rubricBreakdown: [],
     evidenceCapsules: [],
     profileImpactSummary: [],
+    actionCards: [],
     konlingEntryPoint: null,
   };
 }
@@ -427,27 +494,61 @@ export async function convertSubmissionDocument(input: {
 export function createDraftRubricGrading(input: {
   convertedDocument: ConvertedDocument;
   rubric: RubricDefinition;
+  evaluatorOutput?: DraftRubricEvaluatorOutput;
   now?: Date;
 }): DocumentRubricGradingRun {
+  const evaluatorOutput = input.evaluatorOutput ?? createDeterministicControlCorrectionEvaluatorOutput(input);
+  const validation = validateDraftRubricEvaluatorOutput({
+    output: evaluatorOutput,
+    rubric: input.rubric,
+    convertedDocument: input.convertedDocument,
+  });
+  const now = (input.now ?? new Date()).toISOString();
+  if (!validation.valid) {
+    return {
+      id: `grading:${input.convertedDocument.assetId}:${input.rubric.id}:${input.rubric.version}`,
+      assetId: input.convertedDocument.assetId,
+      convertedDocumentId: input.convertedDocument.id,
+      rubricId: input.rubric.id,
+      rubricVersion: input.rubric.version,
+      status: 'blocked',
+      draftGrades: [],
+      approvedGrades: [],
+      annotations: [],
+      teacherDiffs: [],
+      evaluator: {
+        id: evaluatorOutput.evaluatorId || 'unknown-evaluator',
+        version: evaluatorOutput.evaluatorVersion || 'unknown',
+        status: 'blocked',
+        blockedReasons: validation.reasons,
+      },
+      teacherReview: { reviewerId: null, reviewedAt: null, decision: 'pending', notes: validation.reasons.join(';') },
+      createdAt: now,
+      updatedAt: now,
+    };
+  }
+  const blockMap = new Map(input.convertedDocument.blocks.map((block) => [block.id, block]));
+  const assessmentMap = new Map(evaluatorOutput.assessments.map((assessment) => [assessment.criterionId, assessment]));
   const draftGrades = input.rubric.criteria.map((criterion) => {
-    const evidenceBlock = findEvidenceBlock(input.convertedDocument, criterion.evidenceRequirement);
-    const level = criterion.levels[Math.max(0, Math.floor((criterion.levels.length - 1) / 2))];
-    const confidence = round(Math.min(input.convertedDocument.confidence, evidenceBlock.confidence));
+    const assessment = assessmentMap.get(criterion.id)!;
+    const evidenceBlocks = assessment.evidenceBlockIds.map((blockId) => blockMap.get(blockId)).filter((block): block is ConvertedDocumentBlock => Boolean(block));
+    const confidence = round(Math.min(input.convertedDocument.confidence, assessment.confidence, ...evidenceBlocks.map((block) => block.confidence)));
     return {
       criterionId: criterion.id,
-      levelId: level.id,
-      score: level.score,
-      comment: `AI draft: ${criterion.label} cites ${evidenceBlock.id}.`,
+      levelId: assessment.levelId,
+      score: assessment.score,
+      comment: assessment.rationale,
+      rationale: assessment.rationale,
       confidence,
-      evidenceRefs: [toEvidenceReference(input.convertedDocument, evidenceBlock)],
+      limitationState: requireDraftCriterionLimitationState(assessment.limitationState),
+      evidenceRefs: evidenceBlocks.map((block) => toEvidenceReference(input.convertedDocument, block)),
       profileWritebackCandidate: {
         goalDimension: criterion.goalDimension,
-        contribution: round((level.score / input.rubric.maxScore) * criterion.weight),
+        contribution: round((assessment.score / input.rubric.maxScore) * criterion.weight),
         confidence,
       },
     };
   });
-  const now = (input.now ?? new Date()).toISOString();
   return {
     id: `grading:${input.convertedDocument.assetId}:${input.rubric.id}:${input.rubric.version}`,
     assetId: input.convertedDocument.assetId,
@@ -464,9 +565,123 @@ export function createDraftRubricGrading(input: {
       comment: grade.comment,
       authorRole: 'ai-draft' as const,
     }))),
+    teacherDiffs: [],
+    evaluator: {
+      id: evaluatorOutput.evaluatorId,
+      version: evaluatorOutput.evaluatorVersion,
+      status: 'valid',
+      blockedReasons: [],
+    },
     teacherReview: { reviewerId: null, reviewedAt: null, decision: 'pending', notes: null },
     createdAt: now,
     updatedAt: now,
+  };
+}
+
+export function createDeterministicControlCorrectionEvaluatorOutput(input: {
+  convertedDocument: ConvertedDocument;
+  rubric: RubricDefinition;
+}): DraftRubricEvaluatorOutput {
+  return {
+    evaluatorId: 'control-correction-rubric-v1-deterministic',
+    evaluatorVersion: '2026.06',
+    assessments: input.rubric.criteria.map((criterion) => {
+      const evidenceBlock = findEvidenceBlock(input.convertedDocument, criterion.evidenceRequirement);
+      const hasRequiredEvidence = evidenceBlock.id !== 'missing-block' &&
+        evidenceBlock.text.toLowerCase().includes(criterion.evidenceRequirement.toLowerCase());
+      const limitationState: DraftCriterionLimitationState = input.convertedDocument.status === 'failed'
+        ? 'conversion-limited'
+        : !hasRequiredEvidence
+          ? 'missing-evidence'
+          : evidenceBlock.confidence < 0.7
+            ? 'low-confidence'
+            : 'none';
+      const level = chooseRubricLevel(criterion, limitationState, evidenceBlock.confidence);
+      return {
+        criterionId: criterion.id,
+        levelId: level.id,
+        score: level.score,
+        confidence: round(Math.min(input.convertedDocument.confidence, evidenceBlock.confidence)),
+        evidenceBlockIds: [evidenceBlock.id],
+        limitationState,
+        rationale: [
+          `AI draft: ${criterion.label} evaluated against "${criterion.evidenceRequirement}".`,
+          `Selected ${level.label} because evidence anchor ${evidenceBlock.id} has ${limitationState === 'none' ? 'usable' : limitationState} support.`,
+        ].join(' '),
+      };
+    }),
+  };
+}
+
+export function validateDraftRubricEvaluatorOutput(input: {
+  output: DraftRubricEvaluatorOutput;
+  rubric: RubricDefinition;
+  convertedDocument: ConvertedDocument;
+}): DraftRubricEvaluatorValidationResult {
+  const reasons: string[] = [];
+  if (!input.output.evaluatorId) reasons.push('evaluator-id-missing');
+  if (!input.output.evaluatorVersion) reasons.push('evaluator-version-missing');
+  if (!Array.isArray(input.output.assessments)) reasons.push('assessments-missing');
+  const criteria = new Map(input.rubric.criteria.map((criterion) => [criterion.id, criterion]));
+  const blocks = new Map(input.convertedDocument.blocks.map((block) => [block.id, block]));
+  const seenCriteria = new Set<string>();
+  const assessments = Array.isArray(input.output.assessments) ? input.output.assessments : [];
+  for (const assessment of assessments) {
+    if (!assessment || typeof assessment !== 'object' || Array.isArray(assessment)) {
+      reasons.push('assessment-malformed');
+      continue;
+    }
+    const criterion = criteria.get(assessment.criterionId);
+    if (!criterion) {
+      reasons.push('unsupported-criterion');
+      continue;
+    }
+    if (seenCriteria.has(assessment.criterionId)) reasons.push('duplicate-criterion');
+    seenCriteria.add(assessment.criterionId);
+    const selectedLevel = criterion.levels.find((level) => level.id === assessment.levelId);
+    if (!selectedLevel) {
+      reasons.push('unsupported-level');
+    } else if (assessment.score !== selectedLevel.score) {
+      reasons.push('score-level-mismatch');
+    }
+    if (!Number.isFinite(assessment.score) || assessment.score < 0 || assessment.score > input.rubric.maxScore) {
+      reasons.push('score-out-of-range');
+    }
+    if (typeof assessment.rationale !== 'string' || assessment.rationale.trim().length < 12) {
+      reasons.push('rationale-missing');
+    }
+    if (!Number.isFinite(assessment.confidence) || assessment.confidence < 0 || assessment.confidence > 1) {
+      reasons.push('confidence-out-of-range');
+    }
+    const evidenceBlockIds = Array.isArray(assessment.evidenceBlockIds) ? assessment.evidenceBlockIds : [];
+    if (evidenceBlockIds.length === 0) {
+      reasons.push('evidence-anchors-missing');
+    }
+    if (!isDraftCriterionLimitationState(assessment.limitationState)) {
+      reasons.push('limitation-state-missing');
+    }
+    for (const blockId of evidenceBlockIds) {
+      const block = blocks.get(blockId);
+      if (!block) {
+        reasons.push('evidence-anchor-missing');
+        continue;
+      }
+      const matchesRequirement = normalizeEvidenceText(block.text).includes(normalizeEvidenceText(criterion.evidenceRequirement));
+      const declaredMissingEvidence = assessment.limitationState === 'missing-evidence' || assessment.limitationState === 'conversion-limited';
+      if (!matchesRequirement && !declaredMissingEvidence) {
+        reasons.push('evidence-anchor-requirement-mismatch');
+      }
+    }
+    if (assessment.rationale && /sk-[a-z0-9_-]+/i.test(assessment.rationale)) {
+      reasons.push('unsafe-rationale');
+    }
+  }
+  for (const criterion of criteria.keys()) {
+    if (!seenCriteria.has(criterion)) reasons.push('criterion-assessment-missing');
+  }
+  return {
+    valid: reasons.length === 0,
+    reasons: [...new Set(reasons)],
   };
 }
 
@@ -488,14 +703,22 @@ export function editCriterionGrade(
         levelId: edit.levelId,
         score: edit.score,
         comment: edit.comment,
-        confidence: 1,
+        rationale: edit.comment,
         profileWritebackCandidate: {
           ...grade.profileWritebackCandidate,
           contribution: recalculateEditedContribution(grade, edit),
-          confidence: 1,
         },
       }
     : grade);
+  const original = run.draftGrades.find((grade) => grade.criterionId === edit.criterionId);
+  const teacherApproved = edited.find((grade) => grade.criterionId === edit.criterionId);
+  const existingDiff = run.teacherDiffs.find((diff) => diff.criterionId === edit.criterionId);
+  const aiDraft = original && existingDiff
+    ? { ...original, ...existingDiff.aiDraft }
+    : original;
+  const teacherDiff = aiDraft && teacherApproved
+    ? buildCriterionTeacherDiff(aiDraft, teacherApproved)
+    : null;
   return {
     ...run,
     status: 'teacher-edited',
@@ -512,6 +735,9 @@ export function editCriterionGrade(
           authorRole: 'teacher' as const,
         }))),
     ],
+    teacherDiffs: teacherDiff
+      ? [...run.teacherDiffs.filter((diff) => diff.criterionId !== edit.criterionId), teacherDiff]
+      : run.teacherDiffs,
     teacherReview: {
       reviewerId: edit.reviewerId,
       reviewedAt: (edit.now ?? new Date()).toISOString(),
@@ -526,6 +752,9 @@ export function approveGradingRun(
   run: DocumentRubricGradingRun,
   input: { reviewerId: string; decision?: 'approved' | 'returned' | 'rejected'; notes?: string; now?: Date },
 ): DocumentRubricGradingRun {
+  if (run.status === 'blocked' || run.evaluator.status === 'blocked') {
+    throw new Error('blocked-evaluator-grading-run-cannot-be-approved');
+  }
   const decision = input.decision ?? 'approved';
   const status: GradingRunStatus = decision === 'approved' ? 'approved' : decision;
   const approvedGrades = decision === 'rejected'
@@ -544,6 +773,39 @@ export function approveGradingRun(
       notes: input.notes ?? null,
     },
     updatedAt: (input.now ?? new Date()).toISOString(),
+  };
+}
+
+export function calculateDocumentRubricGradingQualityMetrics(
+  runs: DocumentRubricGradingRun[],
+): DocumentRubricGradingQualityMetrics {
+  const sampleSize = runs.length;
+  const approvedCount = runs.filter((run) => run.status === 'approved').length;
+  const blockedEvaluatorOutputs = runs.filter((run) => run.status === 'blocked' || run.evaluator.status === 'blocked').length;
+  const feedbackEligibleRuns = runs.filter((run) => (
+    (run.status === 'approved' || run.status === 'returned') && run.approvedGrades.length > 0
+  ));
+  const reviewedRuns = runs.filter((run) => (
+    (run.status === 'approved' || run.status === 'returned') && run.approvedGrades.length > 0
+  ));
+  const reviewedCriteria = reviewedRuns.reduce((sum, run) => (
+    sum + run.approvedGrades.length
+  ), 0);
+  const changedCriteria = reviewedRuns.reduce((sum, run) => (
+    sum + run.teacherDiffs.filter((diff) => diff.fields.length > 0).length
+  ), 0);
+  const deltas = reviewedRuns.flatMap((run) => run.approvedGrades.map((grade) => {
+    const diff = run.teacherDiffs.find((item) => item.criterionId === grade.criterionId);
+    return diff ? Math.abs(diff.teacherApproved.score - diff.aiDraft.score) : 0;
+  }));
+  return {
+    sampleSize,
+    approvedCount,
+    blockedEvaluatorOutputs,
+    feedbackCoverageRate: sampleSize === 0 ? 0 : round(feedbackEligibleRuns.length / sampleSize),
+    teacherOverrideRate: reviewedCriteria === 0 ? 0 : round(changedCriteria / reviewedCriteria),
+    averageAiTeacherScoreDelta: deltas.length === 0 ? 0 : average(deltas),
+    agreementRate: reviewedCriteria === 0 ? 0 : round(Math.max(0, 1 - changedCriteria / reviewedCriteria)),
   };
 }
 
@@ -666,6 +928,7 @@ export function buildTeacherGradingWorkbenchView(input: {
         weight: criterion.weight,
         selectedLevelId: grade?.levelId ?? null,
         editableScore: grade?.score ?? null,
+        limitationState: grade?.limitationState ?? null,
         evidenceCount: grade?.evidenceRefs.length ?? 0,
       };
     }),
@@ -681,7 +944,13 @@ export function buildTeacherGradingWorkbenchView(input: {
       averageConfidence: average(input.run.draftGrades.map((grade) => grade.confidence)),
       requiresTeacherApproval: input.run.status !== 'approved',
     },
-    actions: ['edit-criterion', 'add-annotation', 'approve', 'return-feedback', 'retry-conversion'],
+    evaluator: {
+      status: input.run.evaluator.status,
+      blockedReasons: input.run.evaluator.blockedReasons,
+    },
+    actions: input.run.status === 'blocked'
+      ? ['retry-conversion']
+      : ['edit-criterion', 'add-annotation', 'approve', 'return-feedback', 'retry-conversion'],
     konlingEntryPoint: {
       mode: 'grading-assistant',
       promptContext: `rubric:${input.rubric.id}@${input.rubric.version};asset:${input.asset.id}`,
@@ -738,8 +1007,12 @@ function buildApprovedGradingEvidenceFacts(input: {
         targetGoal: input.goalContext.targetGoal,
         learningGoal: input.goalContext.learningGoal ?? input.goalContext.targetGoal,
         teacherReview: input.run.teacherReview,
+        teacherDiffs: input.run.teacherDiffs.filter((diff) => diff.criterionId === grade.criterionId),
+        evaluator: input.run.evaluator,
+        criterionLimitationState: grade.limitationState,
         evidenceRefs: grade.evidenceRefs,
         confidence: Math.min(grade.profileWritebackCandidate.confidence, 0.92),
+        idempotencyKey: `${input.run.id}:${grade.criterionId}:${input.run.rubricVersion}`,
       },
     };
   });
@@ -954,6 +1227,7 @@ export function buildStudentGradingFeedbackView(input: {
       rubricBreakdown: [],
       evidenceCapsules: [],
       profileImpactSummary: [],
+      actionCards: [],
       konlingEntryPoint: null,
     };
   }
@@ -980,6 +1254,7 @@ export function buildStudentGradingFeedbackView(input: {
       confidence: grade.confidence,
     })),
     profileImpactSummary: grades.map((grade) => grade.profileWritebackCandidate),
+    actionCards: grades.flatMap((grade) => buildStudentGradingFeedbackActionCards(input.asset, grade)),
     konlingEntryPoint: {
       mode: 'feedback-explainer',
       promptContext: `grading:${input.run.id};assignment:${input.asset.assignmentId}`,
@@ -1037,6 +1312,95 @@ function findEvidenceBlock(document: ConvertedDocument, query: string): Converte
       markdown: '',
       confidence: 0,
     };
+}
+
+function chooseRubricLevel(
+  criterion: RubricCriterion,
+  limitationState: DraftCriterionLimitationState,
+  confidence: number,
+): RubricCriterionLevel {
+  const levels = criterion.levels.slice().sort((left, right) => left.score - right.score);
+  if (levels.length === 0) {
+    throw new Error(`rubric-criterion-has-no-levels:${criterion.id}`);
+  }
+  if (limitationState !== 'none' || confidence < 0.7) {
+    return levels[0];
+  }
+  if (confidence >= 0.85) {
+    return levels[levels.length - 1];
+  }
+  return levels[Math.max(0, Math.floor((levels.length - 1) / 2))];
+}
+
+function buildCriterionTeacherDiff(
+  aiDraft: CriterionDraftGrade,
+  teacherApproved: CriterionDraftGrade,
+): CriterionTeacherDiff {
+  const fields: CriterionTeacherDiff['fields'] = [];
+  if (aiDraft.levelId !== teacherApproved.levelId) fields.push('levelId');
+  if (aiDraft.score !== teacherApproved.score) fields.push('score');
+  if (aiDraft.comment !== teacherApproved.comment) fields.push('comment');
+  if (aiDraft.rationale !== teacherApproved.rationale) fields.push('rationale');
+  if (JSON.stringify(aiDraft.evidenceRefs) !== JSON.stringify(teacherApproved.evidenceRefs)) fields.push('evidenceRefs');
+  return {
+    criterionId: aiDraft.criterionId,
+    fields,
+    aiDraft: pickCriterionDiffFields(aiDraft),
+    teacherApproved: pickCriterionDiffFields(teacherApproved),
+  };
+}
+
+function pickCriterionDiffFields(
+  grade: CriterionDraftGrade,
+): Pick<CriterionDraftGrade, 'levelId' | 'score' | 'comment' | 'rationale' | 'evidenceRefs'> {
+  return {
+    levelId: grade.levelId,
+    score: grade.score,
+    comment: grade.comment,
+    rationale: grade.rationale,
+    evidenceRefs: grade.evidenceRefs,
+  };
+}
+
+function buildStudentGradingFeedbackActionCards(
+  asset: DocumentSubmissionAsset,
+  grade: CriterionDraftGrade,
+): StudentGradingFeedbackActionCard[] {
+  const query = `assignment=${encodeURIComponent(asset.assignmentId)}&criterion=${encodeURIComponent(grade.criterionId)}`;
+  return [
+    {
+      id: `feedback-action:${grade.criterionId}:learner-record`,
+      criterionId: grade.criterionId,
+      label: '查看学情画像',
+      destinationType: 'learner-record',
+      href: `/profile/evidence?${query}`,
+      evidenceRefCount: grade.evidenceRefs.length,
+    },
+    {
+      id: `feedback-action:${grade.criterionId}:path`,
+      criterionId: grade.criterionId,
+      label: '查看练习入口',
+      destinationType: 'path',
+      href: `/assessment/adaptive-practice?${query}`,
+      evidenceRefCount: grade.evidenceRefs.length,
+    },
+    {
+      id: `feedback-action:${grade.criterionId}:practice`,
+      criterionId: grade.criterionId,
+      label: '练习相关任务',
+      destinationType: 'practice',
+      href: `/assessment/adaptive-practice?mode=practice&${query}`,
+      evidenceRefCount: grade.evidenceRefs.length,
+    },
+    {
+      id: `feedback-action:${grade.criterionId}:resource`,
+      criterionId: grade.criterionId,
+      label: '复习关联资源',
+      destinationType: 'resource',
+      href: `/interactive-learning/resources/lesson09-correction-precheck?${query}`,
+      evidenceRefCount: grade.evidenceRefs.length,
+    },
+  ];
 }
 
 async function markItDownCliRunner(asset: DocumentSubmissionAsset): Promise<MarkItDownRunnerResult> {
@@ -1331,8 +1695,14 @@ function asDocumentRubricGradingRun(value: unknown): DocumentRubricGradingRun | 
     : Array.isArray(record.annotations)
       ? record.annotations.map(asGradingAnnotation).filter((annotation): annotation is GradingAnnotation => Boolean(annotation))
       : null;
+  const teacherDiffs = record.teacherDiffs === undefined
+    ? []
+    : Array.isArray(record.teacherDiffs)
+      ? record.teacherDiffs.map(asCriterionTeacherDiff).filter((diff): diff is CriterionTeacherDiff => Boolean(diff))
+      : null;
+  const evaluatorRecord = asRecord(record.evaluator);
   const teacherReview = asRecord(record.teacherReview);
-  if (!id || !assetId || !convertedDocumentId || !rubricId || !rubricVersion || !createdAt || !updatedAt || !draftGrades || !approvedGrades || !annotations || !teacherReview) {
+  if (!id || !assetId || !convertedDocumentId || !rubricId || !rubricVersion || !createdAt || !updatedAt || !draftGrades || !approvedGrades || !annotations || !teacherDiffs || !teacherReview) {
     return null;
   }
   return {
@@ -1345,6 +1715,15 @@ function asDocumentRubricGradingRun(value: unknown): DocumentRubricGradingRun | 
     draftGrades,
     approvedGrades,
     annotations,
+    teacherDiffs,
+    evaluator: {
+      id: stringFrom(evaluatorRecord?.id) ?? 'legacy-evaluator',
+      version: stringFrom(evaluatorRecord?.version) ?? 'legacy',
+      status: evaluatorRecord?.status === 'blocked' ? 'blocked' : 'valid',
+      blockedReasons: Array.isArray(evaluatorRecord?.blockedReasons)
+        ? evaluatorRecord.blockedReasons.filter((reason): reason is string => typeof reason === 'string')
+        : [],
+    },
     teacherReview: {
       reviewerId: stringFrom(teacherReview.reviewerId),
       reviewedAt: stringFrom(teacherReview.reviewedAt),
@@ -1354,6 +1733,38 @@ function asDocumentRubricGradingRun(value: unknown): DocumentRubricGradingRun | 
     createdAt,
     updatedAt,
   };
+}
+
+function asCriterionTeacherDiff(value: unknown): CriterionTeacherDiff | null {
+  const record = asRecord(value);
+  if (!record) return null;
+  const criterionId = stringFrom(record.criterionId);
+  const fields = Array.isArray(record.fields)
+    ? record.fields.filter(isCriterionTeacherDiffField)
+    : null;
+  const aiDraft = asCriterionDiffSnapshot(record.aiDraft);
+  const teacherApproved = asCriterionDiffSnapshot(record.teacherApproved);
+  if (!criterionId || !fields || !aiDraft || !teacherApproved) {
+    return null;
+  }
+  return { criterionId, fields, aiDraft, teacherApproved };
+}
+
+function asCriterionDiffSnapshot(
+  value: unknown,
+): Pick<CriterionDraftGrade, 'levelId' | 'score' | 'comment' | 'rationale' | 'evidenceRefs'> | null {
+  const record = asRecord(value);
+  if (!record) return null;
+  const levelId = stringFrom(record.levelId);
+  const score = numberFrom(record.score);
+  const comment = stringFrom(record.comment);
+  const evidenceRefs = Array.isArray(record.evidenceRefs)
+    ? record.evidenceRefs.map(asEvidenceReference).filter((ref): ref is GradingEvidenceReference => Boolean(ref))
+    : null;
+  if (!levelId || score === null || comment === null || !evidenceRefs) {
+    return null;
+  }
+  return { levelId, score, comment, rationale: stringFrom(record.rationale) ?? comment, evidenceRefs };
 }
 
 function asGradingAnnotation(value: unknown): GradingAnnotation | null {
@@ -1399,7 +1810,9 @@ function asCriterionDraftGrade(value: unknown): CriterionDraftGrade | null {
     levelId,
     score,
     comment,
+    rationale: stringFrom(record.rationale) ?? comment,
     confidence,
+    limitationState: isDraftCriterionLimitationState(record.limitationState) ? record.limitationState : 'none',
     evidenceRefs,
     profileWritebackCandidate: {
       goalDimension,
@@ -1478,9 +1891,25 @@ function isReferencePrecision(value: unknown): value is DocumentReferencePrecisi
 }
 
 function isGradingRunStatus(value: unknown): value is GradingRunStatus {
-  return value === 'draft' || value === 'teacher-edited' || value === 'approved' || value === 'returned' || value === 'rejected';
+  return value === 'draft' || value === 'blocked' || value === 'retry' ||
+    value === 'teacher-edited' || value === 'approved' || value === 'returned' || value === 'rejected';
 }
 
 function isReviewDecision(value: unknown): value is DocumentRubricGradingRun['teacherReview']['decision'] {
   return value === 'pending' || value === 'approved' || value === 'returned' || value === 'rejected';
+}
+
+function isDraftCriterionLimitationState(value: unknown): value is DraftCriterionLimitationState {
+  return value === 'none' || value === 'missing-evidence' || value === 'low-confidence' || value === 'conversion-limited';
+}
+
+function requireDraftCriterionLimitationState(value: unknown): DraftCriterionLimitationState {
+  if (isDraftCriterionLimitationState(value)) {
+    return value;
+  }
+  throw new Error('validated-draft-criterion-limitation-state-missing');
+}
+
+function isCriterionTeacherDiffField(value: unknown): value is CriterionTeacherDiff['fields'][number] {
+  return value === 'levelId' || value === 'score' || value === 'comment' || value === 'rationale' || value === 'evidenceRefs';
 }

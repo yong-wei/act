@@ -341,16 +341,18 @@ describe('intelligent teaching assistant demo package', () => {
     expect(effectReport.goalId).toBe('control-correction');
     expect(effectReport.export.route).toBe('/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true');
     expect(effectReport.metrics.map((metric) => metric.id)).toEqual([
-      'gradingTimeSaved',
-      'teacherEditRate',
-      'pathAdoption',
-      'secondAttemptImprovement',
-      'userFeedbackQuality',
+      'gradingFeedbackCoverage',
+      'teacherOverrideRate',
+      'aiTeacherScoreDelta',
+      'aiTeacherAgreementRate',
+      'blockedEvaluatorOutputCount',
+      'gradingSampleSize',
     ]);
     for (const metric of effectReport.metrics) {
       expect(metric.definition).toBeTruthy();
       expect(metric.numerator).toBeTruthy();
       expect(metric.denominator).toBeTruthy();
+      expect(metric.confidence).toMatch(/^(high|medium|low)$/);
       expect(metric.sourceWindow).toMatch(/2026-06-05T00:00:00.000Z/);
       expect(metric.sourceReferences.length).toBeGreaterThan(0);
       expect(metric.exclusions.length).toBeGreaterThan(0);
@@ -358,6 +360,36 @@ describe('intelligent teaching assistant demo package', () => {
         'Synthetic fixture metric for demo readiness; not a measured learning-gain claim.',
       ]));
     }
+    expect(effectReport.metrics.find((metric) => metric.id === 'gradingFeedbackCoverage')).toEqual(expect.objectContaining({
+      value: 0.5,
+      sourceReferences: ['grading-beta-approved', 'feedback-grading-beta-approved'],
+    }));
+    expect(effectReport.metrics.find((metric) => metric.id === 'teacherOverrideRate')).toEqual(expect.objectContaining({
+      value: 0.5,
+      denominator: '2 approved grading criteria',
+      sourceReferences: ['approval-grading-beta-approved'],
+    }));
+    expect(effectReport.metrics.find((metric) => metric.id === 'aiTeacherAgreementRate')).toEqual(expect.objectContaining({
+      value: 0.5,
+      numerator: '1 unchanged criterion',
+      denominator: '2 approved grading criteria',
+    }));
+  });
+
+  it('counts returned visible grading feedback in report metric recomputation', () => {
+    const returnedPackage = structuredClone(INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE);
+    const draftRun = returnedPackage.gradingRuns.find((run) => run.id === 'grading-alpha-draft');
+    if (!draftRun) throw new Error('missing grading-alpha-draft fixture');
+    draftRun.status = 'returned';
+    draftRun.feedbackVisible = true;
+    returnedPackage.teacherReports[0].metrics.find((metric) => metric.id === 'gradingFeedbackCoverage')!.value = 1;
+    returnedPackage.teacherReports[0].metrics.find((metric) => metric.id === 'gradingFeedbackCoverage')!.methodology.sourceCoverage = {
+      covered: 2,
+      total: 2,
+    };
+    returnedPackage.effectReports[0].metrics.find((metric) => metric.id === 'gradingFeedbackCoverage')!.value = 1;
+
+    expect(validateIntelligentTeachingAssistantDemoPackage(returnedPackage)).toEqual([]);
   });
 
   it('requires privacy-reviewed metadata before real evidence can be imported into effect reports', () => {
@@ -423,7 +455,9 @@ describe('intelligent teaching assistant demo package', () => {
     expect(pkg.assignments.every((assignment) => assignment.synthetic && assignment.documentIds.length > 0)).toBe(true);
     expect(pkg.citationRecords.length).toBeGreaterThanOrEqual(7);
     expect(pkg.resourceExecutions.every((execution) => execution.konlingMode === 'resource-coach')).toBe(true);
-    expect(pkg.gradingRuns.every((run) => run.feedbackVisible && run.redactedExport)).toBe(true);
+    expect(pkg.gradingRuns.every((run) => run.citations.length > 0 && run.redactedExport)).toBe(true);
+    expect(pkg.gradingRuns.find((run) => run.id === 'grading-alpha-draft')?.feedbackVisible).toBe(false);
+    expect(pkg.gradingRuns.every((run) => !run.feedbackVisible || run.status === 'approved')).toBe(true);
     expect(pkg.teacherReports[0].export.omits).toEqual(expect.arrayContaining([
       'raw answer bodies',
       'private memory',
@@ -458,10 +492,12 @@ describe('intelligent teaching assistant demo package', () => {
     (broken as unknown as { originalAnswer: string }).originalAnswer = 'student raw answer body';
     (broken as unknown as { privateMemory: string }).privateMemory = 'private Konling memory';
     (broken as unknown as { evaluatorInternals: string }).evaluatorInternals = 'hidden Arena evaluator internals';
+    broken.gradingRuns[0].feedbackVisible = true;
 
     expect(validateIntelligentTeachingAssistantDemoPackage(broken)).toEqual(expect.arrayContaining([
       'Konling sessions require citations and unavailable-state coverage',
-      'grading runs require visible feedback, citations, and redacted exports',
+      'grading runs require citations and redacted exports',
+      'visible grading feedback requires teacher-approved or returned grading state',
       'provider examples must use env secret refs and declare tool, streaming, and citation support',
       expect.stringContaining('forbidden private or secret pattern'),
     ]));
@@ -472,6 +508,8 @@ describe('intelligent teaching assistant demo package', () => {
     broken.teacherReports[0].metrics[0].value = 0.1;
     broken.routeChecks[0].route = '/not-a-demo-route';
     broken.apiExamples[0].path = '/api/not-real';
+    broken.effectReports[0].metrics[1].value = 0.25;
+    broken.effectReports[0].metrics[0].sourceReferences = ['not-real-source'];
     broken.konlingSessions = broken.konlingSessions.filter((session) => session.modeId !== 'prep-coauthor');
     (broken.prepPacks[0] as unknown as { serverContextSigned: boolean }).serverContextSigned = false;
 
@@ -479,6 +517,8 @@ describe('intelligent teaching assistant demo package', () => {
       'teacher report metrics require methodology and recomputable values',
       'route checks must cover known demo product surfaces',
       'API examples must cover known demo API contracts',
+      'effect report source references must resolve to installed demo records',
+      'effect report metrics must match recomputable demo record values',
       'Konling sessions must cover all required teaching assistant modes',
       'prep packs require signed server context, review items, and citations',
     ]));

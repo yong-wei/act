@@ -87,6 +87,12 @@ export async function POST(request: Request) {
     if (parsed.run.status === 'approved' && (body.edits ?? []).length > 0) {
       return NextResponse.json({ error: '已批准评分不能直接编辑' }, { status: 409 });
     }
+    if (parsed.run.status === 'blocked' || parsed.run.evaluator.status === 'blocked') {
+      return NextResponse.json({
+        error: '评分草稿存在阻塞的评估器输出，需要重新转换或重新评估后再预览写回',
+        reasons: parsed.run.evaluator.blockedReasons,
+      }, { status: 409 });
+    }
     const editValidationError = validateDocumentGradingEditsAgainstRubric(
       body.edits ?? [],
       parsed.rubric,

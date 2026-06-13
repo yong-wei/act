@@ -226,7 +226,14 @@ export function validateIntelligentTeachingAssistantDemoApiPayload(path: string,
       Object.keys(effectReport).length > 0 ? null : 'assistant effect report response is missing effectReport payload',
       readPath(effectReport, ['goalId']) === 'control-correction' ? null : 'assistant effect report response is missing control-correction goalId',
       readPath(effectReport, ['syntheticOnly']) === true ? null : 'assistant effect report response must be syntheticOnly',
-      ['gradingTimeSaved', 'teacherEditRate', 'pathAdoption', 'secondAttemptImprovement', 'userFeedbackQuality'].every((id) => metricIds.includes(id))
+      [
+        'gradingFeedbackCoverage',
+        'teacherOverrideRate',
+        'aiTeacherScoreDelta',
+        'aiTeacherAgreementRate',
+        'blockedEvaluatorOutputCount',
+        'gradingSampleSize',
+      ].every((id) => metricIds.includes(id))
         ? null
         : 'assistant effect report response is missing required effect metrics',
       Array.isArray(metrics) && metrics.every((metric) => (
@@ -234,6 +241,7 @@ export function validateIntelligentTeachingAssistantDemoApiPayload(path: string,
         readPath(metric, ['numerator']) &&
         readPath(metric, ['denominator']) &&
         readPath(metric, ['sourceWindow']) &&
+        readPath(metric, ['confidence']) &&
         Array.isArray(readPath(metric, ['sourceReferences'])) &&
         (readPath(metric, ['sourceReferences']) as unknown[]).length > 0 &&
         Array.isArray(readPath(metric, ['exclusions'])) &&

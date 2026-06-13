@@ -22,10 +22,12 @@ interface AssistantDemoMethodology {
 }
 
 export interface AssistantDemoEffectMetric {
-  id: 'gradingTimeSaved' | 'teacherEditRate' | 'pathAdoption' | 'secondAttemptImprovement' | 'userFeedbackQuality';
+  id: 'gradingFeedbackCoverage' | 'teacherOverrideRate' | 'aiTeacherScoreDelta' |
+    'aiTeacherAgreementRate' | 'blockedEvaluatorOutputCount' | 'gradingSampleSize';
   label: string;
   value: number;
-  unit: 'minutes' | 'rate' | 'score';
+  unit: 'rate' | 'score' | 'count';
+  confidence: AssistantDemoConfidence;
   definition: string;
   numerator: string;
   denominator: string;
@@ -109,15 +111,24 @@ export interface IntelligentTeachingAssistantDemoPackage {
     teacherId: string;
     studentId: string;
     documentId: string;
-    status: 'draft' | 'approved';
+    status: 'draft' | 'blocked' | 'approved' | 'returned';
     rubricVersion: string;
-    feedbackVisible: true;
+    feedbackVisible: boolean;
     citations: AssistantDemoCitation[];
     redactedExport: true;
   }>;
   documentWorkflow: {
     conversions: Array<{ id: string; documentId: string; status: 'converted'; redacted: true; sourceReference: string }>;
-    teacherApprovals: Array<{ id: string; gradingRunId: string; teacherId: string; status: 'approved'; evidenceSourceEventIds: string[] }>;
+    teacherApprovals: Array<{
+      id: string;
+      gradingRunId: string;
+      teacherId: string;
+      status: 'approved';
+      reviewedCriteria: number;
+      changedCriteria: number;
+      totalScoreDelta: number;
+      evidenceSourceEventIds: string[];
+    }>;
     writebackPreviews: Array<{ id: string; gradingRunId: string; target: 'learning-fact-preview'; createsFacts: number; committed: false }>;
   };
   diagnosisSnapshots: Array<{ id: string; diagnosisViewId: string; refreshedAt: string; evidenceRefs: string[]; redacted: true }>;
@@ -310,7 +321,7 @@ export const INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE: IntelligentTeachingAss
     { id: 'execution-beta-feedback', studentId: 'demo-ita-student-beta', nodeId: 'document-feedback:rubric-control-report', status: 'completed', evidenceRef: 'evidence-beta-feedback', konlingMode: 'resource-coach' },
   ],
   gradingRuns: [
-    { id: 'grading-alpha-draft', teacherId: 'demo-teacher-ita', studentId: 'demo-ita-student-alpha', documentId: 'doc-alpha-control-report', status: 'draft', rubricVersion: 'rubric-control-report.v1', feedbackVisible: true, citations: [demoCitations.grading], redactedExport: true },
+    { id: 'grading-alpha-draft', teacherId: 'demo-teacher-ita', studentId: 'demo-ita-student-alpha', documentId: 'doc-alpha-control-report', status: 'draft', rubricVersion: 'rubric-control-report.v1', feedbackVisible: false, citations: [demoCitations.grading], redactedExport: true },
     { id: 'grading-beta-approved', teacherId: 'demo-teacher-ita', studentId: 'demo-ita-student-beta', documentId: 'doc-beta-control-report', status: 'approved', rubricVersion: 'rubric-control-report.v1', feedbackVisible: true, citations: [demoCitations.grading, demoCitations.feedback], redactedExport: true },
   ],
   documentWorkflow: {
@@ -319,7 +330,7 @@ export const INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE: IntelligentTeachingAss
       { id: 'conversion-doc-beta-control-report', documentId: 'doc-beta-control-report', status: 'converted', redacted: true, sourceReference: 'submission:doc-beta-control-report' },
     ],
     teacherApprovals: [
-      { id: 'approval-grading-beta-approved', gradingRunId: 'grading-beta-approved', teacherId: 'demo-teacher-ita', status: 'approved', evidenceSourceEventIds: ['event-grading-beta-approved'] },
+      { id: 'approval-grading-beta-approved', gradingRunId: 'grading-beta-approved', teacherId: 'demo-teacher-ita', status: 'approved', reviewedCriteria: 2, changedCriteria: 1, totalScoreDelta: 1, evidenceSourceEventIds: ['event-grading-beta-approved'] },
     ],
     writebackPreviews: [
       { id: 'writeback-preview-grading-alpha-draft', gradingRunId: 'grading-alpha-draft', target: 'learning-fact-preview', createsFacts: 1, committed: false },
@@ -344,7 +355,7 @@ export const INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE: IntelligentTeachingAss
     classId: 'demo-ita-class',
     metrics: [
       { id: 'diagnosisCoverage', label: '诊断覆盖率', value: 1, methodology: { numerator: 'students with student or teacher-student diagnosis views', denominator: 'demo class roster students represented by diagnosis and path fixtures', window: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', confidence: 'medium', sourceFamily: 'role-based-learning-diagnosis', sourceCoverage: { covered: 3, total: 3 } } },
-      { id: 'gradingFeedbackCoverage', label: '批改反馈覆盖率', value: 1, methodology: { numerator: 'grading runs with visible feedback and citations', denominator: 'synthetic grading runs', window: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', confidence: 'high', sourceFamily: 'document-rubric-grading', sourceCoverage: { covered: 2, total: 2 } } },
+      { id: 'gradingFeedbackCoverage', label: '批改反馈覆盖率', value: 0.5, methodology: { numerator: 'approved or returned grading runs with visible feedback and citations', denominator: 'synthetic grading runs', window: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', confidence: 'high', sourceFamily: 'document-rubric-grading', sourceCoverage: { covered: 1, total: 2 } } },
       { id: 'konlingModeCoverage', label: '控灵模式覆盖率', value: 1, methodology: { numerator: 'required Konling modes with scoped context and citations', denominator: 'required demo Konling modes', window: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', confidence: 'medium', sourceFamily: 'konling-agent-runtime', sourceCoverage: { covered: 8, total: 8 } } },
     ],
     export: { id: 'teacher-report-demo-ita-export', redacted: true, omits: ['raw answer bodies', 'private memory', 'hidden Arena internals', 'raw traces', 'plaintext secrets'], route: '/api/teacher/classes/demo-ita-class/control-correction-report?export=true' },
@@ -362,11 +373,12 @@ export const INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE: IntelligentTeachingAss
     generatedAt: '2026-06-05T18:00:00.000Z',
     syntheticOnly: true,
     metrics: [
-      { id: 'gradingTimeSaved', label: '批改节省时间', value: 18, unit: 'minutes', definition: 'Synthetic minutes saved between manual rubric pass and assistant draft review.', numerator: '36 synthetic manual grading minutes minus 18 assistant-assisted review minutes', denominator: '2 synthetic grading runs', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['grading-alpha-draft', 'grading-beta-approved'], exclusions: ['No real teacher time claim is made.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
-      { id: 'teacherEditRate', label: '教师修改率', value: 0.25, unit: 'rate', definition: 'Share of assistant draft rubric fields edited by the teacher before approval.', numerator: '1 edited rubric field', denominator: '4 reviewed rubric fields', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['approval-grading-beta-approved'], exclusions: ['Drafts without teacher review are excluded.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
-      { id: 'pathAdoption', label: '学习路径采纳率', value: 0.67, unit: 'rate', definition: 'Share of roster learners with a selected assistant path and execution evidence.', numerator: '2 learners with selected path execution context', denominator: '3 synthetic roster learners', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['path-alpha-main', 'path-beta-feedback', 'execution-alpha-resource'], exclusions: ['Students with diagnosis only are excluded from adoption numerator.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
-      { id: 'secondAttemptImprovement', label: '二次尝试提升', value: 0.16, unit: 'score', definition: 'Synthetic Arena/simulation improvement between first and second controlled attempts.', numerator: '0.74 second-attempt score minus 0.58 first-attempt score', denominator: '1 paired synthetic attempt sequence', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['evidence-alpha-simulation'], exclusions: ['Unpaired official evaluation details are excluded.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
-      { id: 'userFeedbackQuality', label: '用户反馈质量', value: 0.8, unit: 'score', definition: 'Synthetic feedback rubric score for usefulness and citation clarity.', numerator: '4 positive rubric points', denominator: '5 possible feedback quality points', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['feedback-grading-beta-approved', 'cit-feedback-alpha'], exclusions: ['Unreviewed free-text comments are excluded.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
+      { id: 'gradingFeedbackCoverage', label: '批改反馈覆盖率', value: 0.5, unit: 'rate', confidence: 'high', definition: 'Share of document rubric grading runs with teacher-approved or returned feedback visible to students.', numerator: '1 approved synthetic grading run with feedback action cards and citations', denominator: '2 synthetic grading runs', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['grading-beta-approved', 'feedback-grading-beta-approved'], exclusions: ['Draft grading runs awaiting teacher approval are excluded from the numerator.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
+      { id: 'teacherOverrideRate', label: '教师覆写率', value: 0.5, unit: 'rate', confidence: 'medium', definition: 'Share of teacher-reviewed assistant draft rubric criteria changed by the teacher before approval or return.', numerator: '1 criterion with teacher diff', denominator: '2 approved grading criteria', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['approval-grading-beta-approved'], exclusions: ['Draft and blocked evaluator outputs without teacher review are excluded from the denominator.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
+      { id: 'aiTeacherScoreDelta', label: 'AI/教师分差', value: 0.5, unit: 'score', confidence: 'medium', definition: 'Average absolute criterion score delta between assistant draft and teacher-approved rubric values.', numerator: '1 total changed score point across edited criteria', denominator: '2 approved grading criteria', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['grading-beta-approved', 'approval-grading-beta-approved'], exclusions: ['Unapproved drafts and blocked evaluator outputs are excluded.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
+      { id: 'aiTeacherAgreementRate', label: 'AI/教师一致率', value: 0.5, unit: 'rate', confidence: 'medium', definition: 'Share of teacher-reviewed rubric criteria whose assistant draft required no teacher diff.', numerator: '1 unchanged criterion', denominator: '2 approved grading criteria', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['grading-beta-approved', 'approval-grading-beta-approved'], exclusions: ['Draft and blocked evaluator outputs without teacher review are excluded from the denominator.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
+      { id: 'blockedEvaluatorOutputCount', label: '阻塞输出数', value: 0, unit: 'count', confidence: 'high', definition: 'Count of schema-invalid or evidence-anchor-invalid evaluator outputs blocked before writeback.', numerator: '0 blocked evaluator outputs', denominator: '2 synthetic evaluator outputs inspected', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['conversion-doc-alpha-control-report', 'conversion-doc-beta-control-report'], exclusions: ['Manual teacher edits after a valid draft are not counted as blocked outputs.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
+      { id: 'gradingSampleSize', label: '评分样本量', value: 2, unit: 'count', confidence: 'high', definition: 'Number of document rubric grading runs included in the synthetic effect report window.', numerator: '2 grading runs in report scope', denominator: '1 synthetic class report window', sourceWindow: '2026-06-05T00:00:00.000Z/2026-06-05T23:59:59.999Z', sourceReferences: ['grading-alpha-draft', 'grading-beta-approved'], exclusions: ['Real learner evidence imports are excluded until privacy review is complete.'], caveats: ['Synthetic fixture metric for demo readiness; not a measured learning-gain claim.'], synthetic: true },
     ],
     export: { id: 'effect-report-demo-ita-export', redacted: true, route: '/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true', omits: ['raw answer bodies', 'private memory', 'hidden Arena internals', 'raw traces', 'plaintext secrets'] },
   }],
@@ -513,7 +525,7 @@ export const XH_202620_COMPETITION_BASELINE: CompetitionBaseline = {
       actorRole: 'teacher',
       label: 'Teacher exports source-backed assistant effect report',
       route: '/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true',
-      expectedEvidence: 'effectReport payload with five synthetic metrics',
+      expectedEvidence: 'effectReport payload with source-backed synthetic metrics',
       surfaceStatus: 'api-only',
       dataOrigin: 'synthetic-demo',
     },
@@ -662,6 +674,14 @@ const REQUIRED_INSTALL_RECORD_TYPES = new Set([
   'teacher-approval',
   'writeback-preview',
 ]);
+const REQUIRED_GRADING_EFFECT_METRICS = new Set([
+  'gradingFeedbackCoverage',
+  'teacherOverrideRate',
+  'aiTeacherScoreDelta',
+  'aiTeacherAgreementRate',
+  'blockedEvaluatorOutputCount',
+  'gradingSampleSize',
+]);
 const FORBIDDEN_PATTERNS = [
   /(?:^|[\s:"'])sk-[a-z0-9_-]{8,}/i,
   /Bearer\s+[a-z0-9._-]+/i,
@@ -689,13 +709,42 @@ function expectedMetricValue(pkg: IntelligentTeachingAssistantDemoPackage, metri
     return pkg.class.studentIds.filter((id) => represented.has(id) || pathStudents.has(id)).length / pkg.class.studentIds.length;
   }
   if (metricId === 'gradingFeedbackCoverage') {
-    return pkg.gradingRuns.filter((run) => run.feedbackVisible && run.citations.length > 0).length / pkg.gradingRuns.length;
+    return pkg.gradingRuns.filter((run) => (
+      run.feedbackVisible &&
+      run.citations.length > 0 &&
+      (run.status === 'approved' || run.status === 'returned')
+    )).length / pkg.gradingRuns.length;
   }
   if (metricId === 'konlingModeCoverage') {
     const modes = new Set(pkg.konlingSessions.map((session) => session.modeId));
     return [...REQUIRED_MODES].filter((mode) => modes.has(mode)).length / REQUIRED_MODES.size;
   }
+  if (metricId === 'teacherOverrideRate') {
+    const reviewedCriteria = pkg.documentWorkflow.teacherApprovals.reduce((sum, approval) => sum + approval.reviewedCriteria, 0);
+    const changedCriteria = pkg.documentWorkflow.teacherApprovals.reduce((sum, approval) => sum + approval.changedCriteria, 0);
+    return reviewedCriteria === 0 ? 0 : changedCriteria / reviewedCriteria;
+  }
+  if (metricId === 'aiTeacherScoreDelta') {
+    const reviewedCriteria = pkg.documentWorkflow.teacherApprovals.reduce((sum, approval) => sum + approval.reviewedCriteria, 0);
+    const totalScoreDelta = pkg.documentWorkflow.teacherApprovals.reduce((sum, approval) => sum + approval.totalScoreDelta, 0);
+    return reviewedCriteria === 0 ? 0 : totalScoreDelta / reviewedCriteria;
+  }
+  if (metricId === 'aiTeacherAgreementRate') {
+    const reviewedCriteria = pkg.documentWorkflow.teacherApprovals.reduce((sum, approval) => sum + approval.reviewedCriteria, 0);
+    const changedCriteria = pkg.documentWorkflow.teacherApprovals.reduce((sum, approval) => sum + approval.changedCriteria, 0);
+    return reviewedCriteria === 0 ? 0 : Math.max(0, 1 - changedCriteria / reviewedCriteria);
+  }
+  if (metricId === 'blockedEvaluatorOutputCount') {
+    return pkg.gradingRuns.filter((run) => run.status === 'blocked').length;
+  }
+  if (metricId === 'gradingSampleSize') {
+    return pkg.gradingRuns.length;
+  }
   return null;
+}
+
+function roundMetric(value: number): number {
+  return Math.round(value * 1000) / 1000;
 }
 
 function isCompleteEffectMetric(metric: AssistantDemoEffectMetric): boolean {
@@ -704,11 +753,33 @@ function isCompleteEffectMetric(metric: AssistantDemoEffectMetric): boolean {
     metric.numerator &&
     metric.denominator &&
     metric.sourceWindow &&
+    metric.confidence &&
     metric.sourceReferences.length > 0 &&
     metric.exclusions.length > 0 &&
     metric.caveats.length > 0 &&
     metric.synthetic,
   );
+}
+
+function collectDemoSourceReferenceIds(pkg: IntelligentTeachingAssistantDemoPackage): Set<string> {
+  return new Set([
+    ...Object.values(demoCitations).map((citation) => citation.id),
+    ...pkg.citationRecords.map((citation) => citation.id),
+    ...pkg.learnerStateSlices.map((slice) => slice.id),
+    ...pkg.diagnosisViews.map((view) => view.id),
+    ...pkg.diagnosisSnapshots.map((snapshot) => snapshot.id),
+    ...pkg.pathPlans.map((path) => path.id),
+    ...pkg.pathOptions.map((option) => option.id),
+    ...pkg.resourceExecutions.map((execution) => execution.id),
+    ...pkg.gradingRuns.map((run) => run.id),
+    ...pkg.gradingRuns.map((run) => `feedback-${run.id}`),
+    ...pkg.documentWorkflow.conversions.map((conversion) => conversion.id),
+    ...pkg.documentWorkflow.teacherApprovals.map((approval) => approval.id),
+    ...pkg.documentWorkflow.writebackPreviews.map((preview) => preview.id),
+    ...pkg.teacherReports.map((report) => report.id),
+    ...pkg.prepPacks.map((pack) => pack.id),
+    ...pkg.prepPackOverlays.map((overlay) => overlay.id),
+  ]);
 }
 
 export function buildIntelligentTeachingAssistantEffectReportExport(
@@ -771,7 +842,7 @@ export function installIntelligentTeachingAssistantDemoFixtures(
     ...pkg.prepPackOverlays.map((overlay) => demoRecord('prep-pack-overlay', overlay.id, scope, overlay)),
     ...pkg.effectReports.flatMap((report) => [
       demoRecord('effect-report-export', report.export.id, scope, report.export),
-      ...report.metrics.map((metric) => demoRecord('effect-report-metric', metric.id, scope, metric)),
+      ...report.metrics.map((metric) => demoRecord('effect-report-metric', `${report.id}:${metric.id}`, scope, metric)),
     ]),
     ...pkg.konlingSessions.map((session) => demoRecord('konling-session', session.id, scope, session)),
   ].sort((left, right) => left.type.localeCompare(right.type) || left.id.localeCompare(right.id));
@@ -831,6 +902,7 @@ export function validateIntelligentTeachingAssistantDemoPackage(
   const add = (condition: boolean, message: string) => { if (!condition) errors.push(message); };
   const routeSet = new Set(pkg.routeChecks.map((check) => check.route));
   const apiSet = new Set(pkg.apiExamples.map((example) => example.path));
+  const sourceReferenceIds = collectDemoSourceReferenceIds(pkg);
   add(pkg.fixtureScope.syntheticOnly, 'fixture scope must be synthetic only');
   add(pkg.fixtureScope.cleanupSelectors.every((selector) => (
     selector.includes('tenantId=demo-intelligent-teaching-assistant-tenant') &&
@@ -846,9 +918,20 @@ export function validateIntelligentTeachingAssistantDemoPackage(
   add(pkg.assignments.every((assignment) => assignment.synthetic && assignment.classId === pkg.class.id && assignment.documentIds.length > 0), 'assignments require synthetic class-scoped document ids');
   add(pkg.citationRecords.length >= Object.keys(demoCitations).length && pkg.citationRecords.every((citation) => REVIEWABLE_HREFS.has(citation.href)), 'independent citation records must point to reviewable demo routes');
   add(pkg.resourceExecutions.every((execution) => execution.konlingMode === 'resource-coach' && execution.evidenceRef), 'resource executions require resource-coach context and evidence refs');
-  add(pkg.gradingRuns.every((run) => run.feedbackVisible && run.citations.length > 0 && run.redactedExport), 'grading runs require visible feedback, citations, and redacted exports');
+  add(pkg.gradingRuns.every((run) => run.citations.length > 0 && run.redactedExport), 'grading runs require citations and redacted exports');
+  add(pkg.gradingRuns.every((run) => (
+    !run.feedbackVisible || run.status === 'approved' || run.status === 'returned'
+  )), 'visible grading feedback requires teacher-approved or returned grading state');
   add(pkg.documentWorkflow.conversions.every((conversion) => pkg.gradingRuns.some((run) => run.documentId === conversion.documentId) && conversion.redacted), 'document conversions require redacted source submissions');
-  add(pkg.documentWorkflow.teacherApprovals.every((approval) => pkg.gradingRuns.some((run) => run.id === approval.gradingRunId) && approval.status === 'approved' && approval.evidenceSourceEventIds.length > 0), 'teacher approvals require approved grading runs and evidence source events');
+  add(pkg.documentWorkflow.teacherApprovals.every((approval) => (
+    pkg.gradingRuns.some((run) => run.id === approval.gradingRunId && run.status === 'approved') &&
+    approval.status === 'approved' &&
+    approval.reviewedCriteria > 0 &&
+    approval.changedCriteria >= 0 &&
+    approval.changedCriteria <= approval.reviewedCriteria &&
+    approval.totalScoreDelta >= 0 &&
+    approval.evidenceSourceEventIds.length > 0
+  )), 'teacher approvals require approved grading runs, criterion deltas, and evidence source events');
   add(pkg.documentWorkflow.writebackPreviews.every((preview) => pkg.gradingRuns.some((run) => run.id === preview.gradingRunId) && preview.target === 'learning-fact-preview' && preview.createsFacts > 0 && preview.committed === false), 'writeback previews must describe uncommitted learning-fact effects');
   add(pkg.diagnosisSnapshots.every((snapshot) => pkg.diagnosisViews.some((view) => view.id === snapshot.diagnosisViewId) && snapshot.redacted && snapshot.evidenceRefs.length > 0), 'diagnosis snapshots require refreshed redacted evidence');
   add(pkg.pathOptions.every((option) => pkg.pathPlans.some((path) => path.id === option.pathPlanId) && option.nodeIds.length > 0 && option.evidenceRefs.length > 0), 'path options require linked path plans, nodes, and evidence refs');
@@ -865,9 +948,16 @@ export function validateIntelligentTeachingAssistantDemoPackage(
     report.goalId === 'control-correction' &&
     report.export.redacted &&
     REQUIRED_OMISSIONS.every((omission) => report.export.omits.includes(omission)) &&
-    report.metrics.map((metric) => metric.id).join('|') === 'gradingTimeSaved|teacherEditRate|pathAdoption|secondAttemptImprovement|userFeedbackQuality' &&
+    [...REQUIRED_GRADING_EFFECT_METRICS].every((id) => report.metrics.some((metric) => metric.id === id)) &&
     report.metrics.every(isCompleteEffectMetric)
   )), 'effect report metrics require definitions, source windows, source references, exclusions, caveats, and synthetic labels');
+  add(pkg.effectReports.every((report) => report.metrics.every((metric) => (
+    metric.sourceReferences.every((reference) => sourceReferenceIds.has(reference))
+  ))), 'effect report source references must resolve to installed demo records');
+  add(pkg.effectReports.every((report) => report.metrics.every((metric) => {
+    const expected = expectedMetricValue(pkg, metric.id);
+    return expected === null || roundMetric(expected) === metric.value;
+  })), 'effect report metrics must match recomputable demo record values');
   add(pkg.realEvidenceImports.every((entry) => (
     entry.status === 'pending-review' ||
     (entry.consentOrAuthorizationRef.length > 0 && entry.privacyReviewRef.length > 0 && entry.separatedFromSyntheticFixtures)
