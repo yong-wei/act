@@ -124,6 +124,7 @@ export default async function CruiseSimulationPage(props: CruiseSimulationPagePr
       returnHref={returnHref}
       returnLabel={blackBoxTask ? '竞技场' : '虚拟仿真'}
       launchProvenance={launchKind}
+      localToolTemplate="comfort-frequency"
       contextStrip={(
         <div className="text-xs leading-5 text-platform-fg-secondary" data-commercial-workspace-zone="context-strip">
           <div className="font-semibold text-platform-fg-primary">{launchDescription.label}</div>
@@ -134,7 +135,6 @@ export default async function CruiseSimulationPage(props: CruiseSimulationPagePr
         <div
           className="text-xs leading-5 text-platform-fg-secondary"
           data-commercial-workspace-zone="command-bar"
-          data-task-workspace-zone="bottom-tools"
         >
           场景相机、参数和任务工具属于仿真局部控制；Konling、角色座舱和账户设置属于全局外层控制。
         </div>
@@ -159,7 +159,7 @@ export default async function CruiseSimulationPage(props: CruiseSimulationPagePr
       ) : null}
     >
       <CruiseSimulation />
-      <section className="sr-only" data-commercial-workspace-zone="bottom-tools">
+      <section className="sr-only" data-simulation-local-note="scene-controls">
         相机、视角和场景工具为任务局部控制。
       </section>
       <section className="sr-only" data-task-workspace-zone="floating-dock-safe-area">

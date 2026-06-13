@@ -7,6 +7,7 @@ export default function DredgerSimulationPage() {
       title="天鲸号挖泥船仿真"
       subtitle="MMG 三自由度 · 动力定位与前馈扰动补偿"
       activeHref="/simulations/dredger"
+      localToolTemplate="dp-positioning"
     >
       <DredgerSimulation />
     </SimulationShell>
