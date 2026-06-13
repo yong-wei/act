@@ -390,6 +390,15 @@ export const PLATFORM_ROLE_COCKPIT_HREFS = {
   admin: '/admin',
 } as const;
 
+export const PLATFORM_ROUTE_COMPATIBILITY_REDIRECTS = [
+  {
+    from: '/virtual-lab',
+    to: '/simulations',
+    owner: 'unify-virtual-simulation-information-architecture',
+    reason: 'Virtual lab remains a legacy entry URL, but /simulations is the canonical student simulation catalog.',
+  },
+] as const;
+
 export const STUDENT_CORE_ENTRY_IDS = [
   'student-simulations',
   'student-knowledge',
@@ -1689,7 +1698,7 @@ export const COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES: CommercialStudentEntrySurf
     routeFile: 'src/app/simulations/page.tsx',
     viewportWidths: [1440, 320],
     currentIntent: 'experiment',
-    firstViewportRequirement: 'usable ship imagery, difficulty, course fit, task status, and launch action visible',
+    firstViewportRequirement: 'usable ship imagery, difficulty, course fit, canonical simulation entry, and launch action visible',
     stateCoverage: ['public', 'scenario-fleet', 'course-design-dialog'],
   },
   {

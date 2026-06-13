@@ -23,6 +23,7 @@ import {
   PLATFORM_PROFILE_AND_COCKPIT_ACTIONS,
   PLATFORM_PRIMARY_ROUTE_INVENTORY,
   PLATFORM_REPORT_SURFACE_INVENTORY,
+  PLATFORM_ROUTE_COMPATIBILITY_REDIRECTS,
   resolvePlatformRouteInventory,
   STUDENT_CORE_ENTRY_IDS,
   STUDENT_LEARNING_INTENT_GROUPS,
@@ -381,14 +382,23 @@ function affectedVisualRoutes(files: string[]): CommercialVisualAcceptanceRoute[
 
 function appPageRouteHref(file: string) {
   if (!/^src\/app\/(?:.*\/)?page\.tsx$/.test(file)) return undefined;
-  if (NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS.has(file)) return undefined;
   const route = file
     .replace(/^src\/app\/?/, '')
     .replace(/\/page\.tsx$/, '')
     .split('/')
     .filter((segment) => segment && !/^\(.+\)$/.test(segment))
     .join('/');
-  return route ? `/${route}` : '/';
+  const href = route ? `/${route}` : '/';
+  if (isRegisteredRedirectOnlyCompatibilityPage(file, href)) return undefined;
+  if (NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS.has(file)) return undefined;
+  return href;
+}
+
+function isRegisteredRedirectOnlyCompatibilityPage(file: string, href: string) {
+  const redirect = PLATFORM_ROUTE_COMPATIBILITY_REDIRECTS.find((entry) => entry.from === href);
+  if (!redirect) return false;
+  const source = readFileSync(path.join(repoRoot, file), 'utf8');
+  return source.includes(`redirect('${redirect.to}')`) && !source.includes('return (');
 }
 
 function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {

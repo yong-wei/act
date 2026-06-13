@@ -1,0 +1,38 @@
+{
+  "issue": 469,
+  "change": "unify-virtual-simulation-information-architecture",
+  "capturedAt": "2026-06-13",
+  "canonicalCatalog": {
+    "href": "/simulations",
+    "routeFile": "src/app/simulations/page.tsx",
+    "sourceMarkers": [
+      "data-simulation-catalog-source=\"canonical\"",
+      "data-simulation-entry-map=\"scenario-fleet\"",
+      "data-simulation-canonical-launch={simulation.id}"
+    ],
+    "removedStudentFacingStatusTruth": [
+      "taskStatus",
+      "任务状态",
+      "任务链开放",
+      "已部署",
+      "筹备中"
+    ]
+  },
+  "compatibilityRoute": {
+    "href": "/virtual-lab",
+    "routeFile": "src/app/virtual-lab/page.tsx",
+    "behavior": "redirect('/simulations')",
+    "registry": "PLATFORM_ROUTE_COMPATIBILITY_REDIRECTS"
+  },
+  "navigationContract": {
+    "studentCanonicalEntry": "/simulations",
+    "studentHiddenEntry": "/virtual-lab",
+    "mobileViewportCoverage": [
+      1440,
+      320
+    ],
+    "contractTests": [
+      "src/lib/__tests__/platform-role-navigation.test.ts"
+    ]
+  }
+}

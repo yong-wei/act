@@ -23,7 +23,6 @@ interface SimulationInfo {
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   tags: string[];
   controlFocus: string[];
-  taskStatus: string;
   courseDesign: {
     overview: string;
     objectives: string[];
@@ -43,7 +42,6 @@ const simulations: SimulationInfo[] = [
     difficulty: 'beginner',
     tags: ['Nomoto模型', 'PID控制', '航向保持'],
     controlFocus: ['航向控制', '舵角响应', '转向特性'],
-    taskStatus: '任务链开放',
     courseDesign: {
       overview: '通过052D驱逐舰仿真，掌握船舶运动的基本数学模型和PID控制器设计方法。',
       objectives: [
@@ -70,7 +68,6 @@ const simulations: SimulationInfo[] = [
     difficulty: 'intermediate',
     tags: ['大惯性系统', '能源运输', '港口靠泊'],
     controlFocus: ['减速控制', '靠泊操作', '安全距离'],
-    taskStatus: '任务链开放',
     courseDesign: {
       overview: 'LNG运输船具有大吨位、低速、高惯性特点，是学习大惯性系统控制的典型案例。',
       objectives: [
@@ -97,7 +94,6 @@ const simulations: SimulationInfo[] = [
     difficulty: 'intermediate',
     tags: ['航线规划', '经济航速', '定时到达'],
     controlFocus: ['速度控制', '航线跟踪', '油耗优化'],
-    taskStatus: '任务链开放',
     courseDesign: {
       overview: '集装箱船追求准时性和经济性，需要在速度、油耗和安全间寻找平衡。',
       objectives: [
@@ -124,7 +120,6 @@ const simulations: SimulationInfo[] = [
     difficulty: 'intermediate',
     tags: ['舒适性控制', '减摇稳定', '平稳操纵'],
     controlFocus: ['横摇控制', '平稳转向', '加速度限制'],
-    taskStatus: '任务链开放',
     courseDesign: {
       overview: '邮轮以乘客体验为核心，控制系统需要在快速响应和舒适性间取得平衡。',
       objectives: [
@@ -151,7 +146,6 @@ const simulations: SimulationInfo[] = [
     difficulty: 'advanced',
     tags: ['动力定位', '解耦控制', '多推进器'],
     controlFocus: ['位置保持', '推力分配', '冗余设计'],
-    taskStatus: '任务链开放',
     courseDesign: {
       overview: '钻井平台需要在深海精确保持位置，是多自由度解耦控制的经典应用。',
       objectives: [
@@ -178,7 +172,6 @@ const simulations: SimulationInfo[] = [
     difficulty: 'advanced',
     tags: ['Azipod推进', '冰阻力', '参数摄动'],
     controlFocus: ['推进角度', '破冰策略', '鲁棒控制'],
-    taskStatus: '任务链开放',
     courseDesign: {
       overview: '雪龙2号采用先进的Azipod推进系统，在冰区航行时船舶参数会显著变化。',
       objectives: [
@@ -205,7 +198,6 @@ const simulations: SimulationInfo[] = [
     difficulty: 'advanced',
     tags: ['多工况', '模式切换', '自适应控制'],
     controlFocus: ['工况识别', '参数切换', '平滑过渡'],
-    taskStatus: '任务链开放',
     courseDesign: {
       overview: '挖泥船需要在多种工况间灵活切换，是自适应控制和模式切换控制的典型应用。',
       objectives: [
@@ -247,6 +239,7 @@ export default function SimulationsPage() {
       data-commercial-student-entry-route="/simulations"
       data-commercial-entry-intent="experiment"
       data-simulation-entry-map="scenario-fleet"
+      data-simulation-catalog-source="canonical"
     >
       <FeaturePageNav
         title="虚拟仿真实验室"
@@ -283,7 +276,7 @@ export default function SimulationsPage() {
             <span className="rounded-full border border-border px-3 py-1">场景身份</span>
             <span className="rounded-full border border-border px-3 py-1">控制难度</span>
             <span className="rounded-full border border-border px-3 py-1">课程适配</span>
-            <span className="rounded-full border border-border px-3 py-1">任务状态</span>
+            <span className="rounded-full border border-border px-3 py-1">仿真入口</span>
           </div>
         </div>
       </div>
@@ -437,9 +430,9 @@ function SimulationCard({
             <dt className="font-medium text-foreground">课程适配</dt>
             <dd className="mt-1">{simulation.controlFocus.slice(0, 2).join(' / ')}</dd>
           </div>
-          <div className="rounded-md border border-border bg-muted/30 px-3 py-2" data-simulation-task-status={simulation.id}>
-            <dt className="font-medium text-foreground">任务状态</dt>
-            <dd className="mt-1">{simulation.taskStatus}</dd>
+          <div className="rounded-md border border-border bg-muted/30 px-3 py-2" data-simulation-canonical-launch={simulation.id}>
+            <dt className="font-medium text-foreground">仿真入口</dt>
+            <dd className="mt-1">{simulation.href}</dd>
           </div>
         </dl>
 
@@ -457,7 +450,7 @@ function SimulationCard({
           <Link href={simulation.href} prefetch={false} className="flex-1">
             <Button className="cta-primary w-full" size="sm">
               <Play className="mr-1.5 h-3.5 w-3.5" />
-              开启任务链
+              进入仿真
             </Button>
           </Link>
           <Button

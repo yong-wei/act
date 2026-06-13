@@ -14,6 +14,7 @@ import {
   PLATFORM_PRIMARY_ROUTE_INVENTORY,
   PLATFORM_PROFILE_AND_COCKPIT_ACTIONS,
   PLATFORM_ROLE_COCKPIT_HREFS,
+  PLATFORM_ROUTE_COMPATIBILITY_REDIRECTS,
   STUDENT_LEARNING_INTENT_GROUPS,
   STUDENT_CORE_ENTRY_IDS,
   getCommercialStudentEntryIntentGroups,
@@ -52,6 +53,7 @@ describe('platform role navigation', () => {
       expect.arrayContaining(['/dashboard', '/simulations', '/knowledge', '/arena', '/interactive-learning', '/profile']),
     );
     expect(getPlatformRoleNavigation('student').map((entry) => entry.href)).not.toContain('/data-center');
+    expect(getPlatformRoleNavigation('student').map((entry) => entry.href)).not.toContain('/virtual-lab');
     expect(getPlatformRoleNavigation('teacher').map((entry) => entry.href)).toEqual(
       expect.arrayContaining([
         '/teacher',
@@ -71,6 +73,7 @@ describe('platform role navigation', () => {
     expect(getPlatformRoleNavigation('guest').map((entry) => entry.href)).toEqual(
       expect.arrayContaining(['/', '/login', '/simulations', '/knowledge', '/arena']),
     );
+    expect(getPlatformRoleNavigation('guest').map((entry) => entry.href)).not.toContain('/virtual-lab');
   });
 
   it('keeps role cockpit destinations compatible with auth roles', () => {
@@ -191,6 +194,12 @@ describe('platform role navigation', () => {
       'student-simulations',
       'student-control-workbench',
     ]);
+    expect(intentGroups.find((group) => group.intent === 'experiment')?.entries.map((entry) => entry.href)).toEqual(
+      expect.arrayContaining(['/simulations', '/interactive-learning/control-workbench']),
+    );
+    expect(intentGroups.find((group) => group.intent === 'experiment')?.entries.map((entry) => entry.href)).not.toContain(
+      '/virtual-lab',
+    );
     expect(intentGroups.flatMap((group) => group.compatibilityAliases)).toEqual(
       expect.arrayContaining(['/interactive-learning/control-workbench?mode=explore&preset=classic-four-view']),
     );
@@ -852,10 +861,25 @@ describe('platform role navigation', () => {
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/arena')?.owningChange).toBe(
       'unify-arena-workspace-shell',
     );
+    expect(COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES.find((route) => route.href === '/simulations')?.firstViewportRequirement).toBe(
+      'usable ship imagery, difficulty, course fit, canonical simulation entry, and launch action visible',
+    );
+    expect(
+      COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES.find((route) => route.href === '/simulations')?.firstViewportRequirement,
+    ).not.toMatch(/task status|任务状态|deployment|preparing/i);
     expect(COMMERCIAL_STUDENT_ENTRY_SURFACE_ROUTES.every((route) => route.viewportWidths.join(',') === '1440,320')).toBe(true);
     expect(resolveCommercialEntryHref('account-profile', false)).toBe('/login?callbackUrl=%2Fprofile');
     expect(resolveCommercialEntryHref('account-profile', true)).toBe('/profile');
     expect(resolveCommercialEntryHref('review', true)).toBe('/profile/evidence');
+    expect(PLATFORM_ROUTE_COMPATIBILITY_REDIRECTS).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          from: '/virtual-lab',
+          to: '/simulations',
+          owner: 'unify-virtual-simulation-information-architecture',
+        }),
+      ]),
+    );
   });
 
   it('binds public learning entry route sources to the premium entry map contract', () => {
@@ -867,6 +891,7 @@ describe('platform role navigation', () => {
     const crossDomainSource = readSource('src/app/interactive-learning/cross-domain-exploration/page.tsx');
     const resourceSource = readSource('src/app/interactive-learning/resources/[id]/page.tsx');
     const simulationsSource = readSource('src/app/simulations/page.tsx');
+    const virtualLabSource = readSource('src/app/virtual-lab/page.tsx');
     const unit41EntrySource = readSource('src/features/interactive/shared/premium-lesson-entry-page.tsx');
 
     expect(homeSource).toContain('data-commercial-student-entry-route="/"');
@@ -893,10 +918,23 @@ describe('platform role navigation', () => {
     expect(coursesSource).toContain('data-secondary-implementation-links="legacy-source-labels"');
     expect(coursesSource).toContain('data-course-entry-action="launch"');
     expect(simulationsSource).toContain('data-simulation-entry-map="scenario-fleet"');
+    expect(simulationsSource).toContain('data-simulation-catalog-source="canonical"');
     expect(simulationsSource).toContain('data-entry-current-work-priority="recommended-experiment"');
     expect(simulationsSource).toContain('data-simulation-scenario-card={simulation.id}');
     expect(simulationsSource).toContain('data-simulation-scenario-fit={simulation.id}');
-    expect(simulationsSource).toContain('data-simulation-task-status={simulation.id}');
+    expect(simulationsSource).toContain('data-simulation-canonical-launch={simulation.id}');
+    expect(simulationsSource).not.toContain('data-simulation-task-status={simulation.id}');
+    expect(simulationsSource).not.toContain('taskStatus');
+    expect(simulationsSource).not.toContain('任务状态');
+    expect(simulationsSource).not.toContain('任务链开放');
+    expect(simulationsSource).not.toContain('已部署');
+    expect(simulationsSource).not.toContain('筹备中');
+    expect(virtualLabSource).toContain("redirect('/simulations')");
+    expect(virtualLabSource).not.toContain('已上架模型');
+    expect(virtualLabSource).not.toContain('当前开放');
+    expect(virtualLabSource).not.toContain('筹备中');
+    expect(virtualLabSource).not.toContain('modelPath');
+    expect(virtualLabSource).not.toContain('任务链：');
     expect(readSource('src/features/arena/arena-hall.tsx')).toContain('data-entry-current-work-priority="active-arena-publication"');
     expect(readSource('src/app/assessment/adaptive-practice/page.tsx')).toContain('data-commercial-entry-intent="practice"');
     expect(readSource('src/app/assessment/adaptive-practice/page.tsx')).toContain('data-student-entry-evidence-return="/profile/evidence"');

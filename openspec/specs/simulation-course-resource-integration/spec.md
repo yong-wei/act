@@ -1,7 +1,6 @@
 ## Purpose
 
 Define how eligible virtual simulations and Arena workbench activities participate in the DB BOPPPS course-resource chain while preserving standalone simulation access.
-
 ## Requirements
 ### Requirement: Simulations can be registered as course resources
 The system SHALL allow eligible standalone virtual simulations to be registered as `SIMULATION_APP` course resources with stable registry ids.
@@ -28,6 +27,12 @@ The system SHALL preserve existing standalone `/simulations/*` routes while addi
 - **WHEN** a student opens a standalone simulation route
 - **THEN** the route SHALL remain available and record standalone launch context rather than course/class/session context
 
+#### Scenario: Student opens the simulation catalog
+- **WHEN** a student opens `/simulations`
+- **THEN** the page SHALL be the canonical standalone simulation catalog.
+- **AND** it SHALL NOT expose model deployment status, task-chain status, preparing/open model counts, or model file paths as student-facing availability truth.
+- **AND** existing `/simulations/*` scene deep links SHALL remain reachable.
+
 ### Requirement: Course-launched simulation emits learning evidence context
 The system SHALL attach course, class, and session context to simulation learning evidence when launched from a DB BOPPPS lesson.
 
@@ -45,3 +50,4 @@ The system SHALL allow lesson-engine launched `SIMULATION_APP` resources to emit
 #### Scenario: Simulation reports completion
 - **WHEN** a course-launched simulation reports completion
 - **THEN** the lesson engine SHALL be able to record resource progress or completion with the resolved resource id, scene id, and launch context
+

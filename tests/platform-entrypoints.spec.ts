@@ -253,8 +253,21 @@ test('simulations hub remains reachable without opening 3D runtimes', async ({ p
   await expect(page.locator('[data-simulation-entry-map="scenario-fleet"]')).toBeVisible();
   await expect(page.locator('[data-simulation-scenario-card]')).toHaveCount(7);
   await expect(page.locator('[data-simulation-scenario-fit]')).toHaveCount(7);
-  await expect(page.locator('[data-simulation-task-status]')).toHaveCount(7);
+  await expect(page.locator('[data-simulation-canonical-launch]')).toHaveCount(7);
+  await expect(page.locator('[data-simulation-task-status]')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: '虚拟仿真实验室' })).toBeVisible();
   await expect(page.getByText('7 个仿真场景')).toBeVisible();
+  await expect(page.getByText('任务状态')).toHaveCount(0);
+  await expect(page.getByText('任务链开放')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: '052D驱逐舰' })).toBeVisible();
+});
+
+test('virtual lab compatibility route redirects to canonical simulations catalog', async ({ page }) => {
+  await page.goto('/virtual-lab', { waitUntil: 'networkidle' });
+
+  await expect(page).toHaveURL(/\/simulations$/);
+  await expect(page.locator('[data-simulation-catalog-source="canonical"]')).toBeVisible();
+  await expect(page.getByText('已上架模型')).toHaveCount(0);
+  await expect(page.getByText('当前开放')).toHaveCount(0);
+  await expect(page.getByText('筹备中')).toHaveCount(0);
 });
