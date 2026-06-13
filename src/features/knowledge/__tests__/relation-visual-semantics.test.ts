@@ -79,6 +79,8 @@ describe('knowledge graph relation visual semantics', () => {
     runtimeRelationTypes.forEach((relationType) => {
       expect(source).toContain(`${relationType}: '${relationType}'`);
     });
+    expect(source).toContain("explains: 'informs'");
+    expect(source).toContain("example: 'instance_of'");
     expect(source).not.toContain("return RELATION_TYPE_MAP[key] ?? 'related';");
   });
 
@@ -178,12 +180,30 @@ describe('knowledge graph relation visual semantics', () => {
       degree: 80,
       focused: true,
     });
+    const tierThreeNode = getKnowledgeNodeScale({
+      metadata: { importance: 3 },
+      degree: 0,
+      focused: false,
+    });
+    const tierFourNode = getKnowledgeNodeScale({
+      metadata: { importance: 4 },
+      degree: 0,
+      focused: false,
+    });
+    const tierFiveNode = getKnowledgeNodeScale({
+      metadata: { importance: 5 },
+      degree: 0,
+      focused: false,
+    });
 
     expect(coreNode.radius).toBeGreaterThan(highDegreeNode.radius);
     expect(highDegreeNode.radius).toBeLessThanOrEqual(KNOWLEDGE_NODE_SCALE_CONTRACT.maxRadius);
     expect(focusedNode.radius).toBeGreaterThan(coreNode.radius);
     expect(focusedNode.radius).toBeLessThanOrEqual(KNOWLEDGE_NODE_SCALE_CONTRACT.focusMaxRadius);
     expect(coreNode.scaleClass).toMatch(/^knowledge-node-scale-/);
+    expect(tierFourNode.radius).toBeGreaterThan(tierThreeNode.radius);
+    expect(tierFiveNode.radius).toBeGreaterThan(tierFourNode.radius);
+    expect(tierFiveNode.radius).toBeLessThanOrEqual(KNOWLEDGE_NODE_SCALE_CONTRACT.maxRadius);
   });
 
   it('localizes graph filters and hides raw schema field names from visible UI', () => {

@@ -138,6 +138,8 @@ const RELATION_TYPE_MAP: Record<string, string> = {
   uses: 'uses',
   visualized_by: 'visualized_by',
   defines: 'related',
+  example: 'instance_of',
+  explains: 'informs',
   governs: 'related',
   implements: 'related',
   influences: 'related',

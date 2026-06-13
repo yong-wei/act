@@ -237,7 +237,10 @@ export function getGraphFilterLabel(field: string): string {
 
 function getTeachingImportanceScore(metadata: Record<string, unknown>): number {
   const rawImportance = metadata.importance ?? metadata.teachingImportance ?? metadata.priority;
-  if (typeof rawImportance === 'number') return Math.max(0, Math.min(1, rawImportance));
+  if (typeof rawImportance === 'number') {
+    const normalized = rawImportance > 1 && rawImportance <= 5 ? rawImportance / 5 : rawImportance;
+    return Math.max(0, Math.min(1, normalized));
+  }
   if (typeof rawImportance !== 'string') return 0.46;
   if (['core', '核心', 'essential', 'main'].includes(rawImportance)) return 0.96;
   if (['foundation', '基础', 'important'].includes(rawImportance)) return 0.82;
