@@ -22,7 +22,7 @@ Baseline evidence: `artifacts/react-doctor/eliminate-interactive-react-doctor-er
 
 Verification evidence:
 
-- `npm run test:unit -- src/features/interactive/__tests__/per-card-response-utils.test.ts src/features/interactive/__tests__/unit-3-1-course.test.ts src/features/interactive/__tests__/interactive-manifest-runtime.test.tsx` passed 3 files / 63 tests.
-- `openspec validate eliminate-interactive-react-doctor-errors --strict` passed.
+- `npm run test:unit -- src/features/interactive/__tests__/per-card-response-utils.test.ts src/features/interactive/__tests__/unit-3-1-course.test.ts src/features/interactive/__tests__/interactive-manifest-runtime.test.tsx` passed 3 files / 65 tests, including same-step touched draft preservation and step/card identity reset helper coverage.
+- `openspec validate --changes --strict` and `openspec validate --specs --strict` passed after archive.
 - `git diff --check` passed.
 - `artifacts/react-doctor/eliminate-interactive-react-doctor-errors-final.json` reported 48 owned error diagnostics with 0 under `src/features/interactive/**`; the remaining 48 diagnostics are under `src/resources/**` and belong to `eliminate-resource-react-doctor-errors`.
