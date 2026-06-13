@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, SlidersHorizontal } from 'lucide-react';
 import { BlockMath } from 'react-katex';
@@ -217,7 +217,6 @@ export function MultiRepresentationLinkageClient({
 }) {
   const model = useMultiRepresentationLinkageModel(initialParams);
   const [panelSourceSelections, setPanelSourceSelections] = useState<Record<string, ClassicPanelSourceId>>({});
-  const [panelOptionOverrides, setPanelOptionOverrides] = useState<Record<string, string[]>>({});
   const result = model.analysisResult;
   const frequencyResult = (model.frequencyAnalysisResult ?? result)!;
   const showCorrectionComparison = Boolean(
@@ -258,11 +257,17 @@ export function MultiRepresentationLinkageClient({
         { id: 'panel-nyquist', viewId: 'nyquist', title: 'Nyquist 图', selectedOptions: Array.from(nyquistOptions) },
       ];
   const panelSelectionSignature = workbenchPanels
-    .map((panel) => `${panel.id}:${(panel.selectedOptions ?? []).join(',')}`)
+    .map((panel) => `${panel.id}:${panel.viewId}:${(panel.selectedOptions ?? []).join(',')}`)
     .join('|');
-  useEffect(() => {
-    setPanelOptionOverrides({});
-  }, [panelSelectionSignature]);
+  const [panelOptionState, setPanelOptionState] = useState(() => ({
+    signature: panelSelectionSignature,
+    overrides: {} as Record<string, string[]>,
+  }));
+  const panelSelectionChanged = panelOptionState.signature !== panelSelectionSignature;
+  if (panelSelectionChanged) {
+    setPanelOptionState({ signature: panelSelectionSignature, overrides: {} });
+  }
+  const panelOptionOverrides = panelSelectionChanged ? {} : panelOptionState.overrides;
   const buildTimeDomainPanels = (options: Set<string>) => result
     ? [
         ...(options.has('reference')
@@ -300,8 +305,9 @@ export function MultiRepresentationLinkageClient({
     new Set(panelOptionOverrides[panel.id] ?? Array.from(resolvePanelSelectedOptions(panel, bodeOptions)))
   );
   const togglePanelLocalOption = (panel: MultiRepresentationPanelInstance, optionId: ClassicPanelOptionId, mode: 'multiple' | 'single') => {
-    setPanelOptionOverrides((current) => {
-      const selected = new Set(current[panel.id] ?? Array.from(resolvePanelSelectedOptions(
+    setPanelOptionState((current) => {
+      const currentOverrides = current.signature === panelSelectionSignature ? current.overrides : {};
+      const selected = new Set(currentOverrides[panel.id] ?? Array.from(resolvePanelSelectedOptions(
         panel,
         panel.viewId === 'time-domain' ? timeDomainOptions : bodeOptions,
       )));
@@ -313,7 +319,10 @@ export function MultiRepresentationLinkageClient({
       }
       const nextOptions = Array.from(selected);
       onPanelSelectedOptionsChange?.(panel.id, nextOptions);
-      return { ...current, [panel.id]: nextOptions };
+      return {
+        signature: panelSelectionSignature,
+        overrides: { ...currentOverrides, [panel.id]: nextOptions },
+      };
     });
   };
   const buildTimeDomainCurveOptions = (): Array<ClassicCurveOption<ClassicTimeDomainOptionId>> => [

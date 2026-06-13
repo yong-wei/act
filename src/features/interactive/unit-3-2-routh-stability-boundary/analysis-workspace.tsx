@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { BlockMath, InlineMath } from 'react-katex';
 
 import { useControlEngine } from '@/resources/control-system/analysis/use-control-engine';
@@ -173,11 +173,23 @@ export function UNIT_3_2DynamicAnalysisPanel({
   stepId: UNIT_3_2AnalysisStepId;
   onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
 }) {
-  const [gain, setGain] = useState(4);
+  return (
+    <UNIT_3_2DynamicAnalysisPanelContent
+      key={stepId}
+      stepId={stepId}
+      onWorkspaceParameterChange={onWorkspaceParameterChange}
+    />
+  );
+}
 
-  useEffect(() => {
-    setGain(4);
-  }, [stepId]);
+function UNIT_3_2DynamicAnalysisPanelContent({
+  stepId,
+  onWorkspaceParameterChange,
+}: {
+  stepId: UNIT_3_2AnalysisStepId;
+  onWorkspaceParameterChange?: (change: WorkspaceParameterChange) => void;
+}) {
+  const [gain, setGain] = useState(4);
 
   const rootLocusRequest = useMemo(() => buildRootLocusRequest(gain), [gain]);
   const responseRequest = useMemo(() => {

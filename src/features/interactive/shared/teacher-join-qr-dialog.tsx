@@ -22,7 +22,6 @@ export function TeacherJoinQrDialog({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [origin, setOrigin] = useState('');
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,10 +32,13 @@ export function TeacherJoinQrDialog({
     if (!joinCode || !origin) return null;
     return buildClassroomJoinUrl(joinCode, origin);
   }, [joinCode, origin]);
+  const [qrState, setQrState] = useState(() => ({ joinUrl, dataUrl: null as string | null }));
+  if (qrState.joinUrl !== joinUrl) {
+    setQrState({ joinUrl, dataUrl: null });
+  }
 
   useEffect(() => {
     let cancelled = false;
-    setQrDataUrl(null);
     if (!joinUrl) return undefined;
 
     void QRCode.toDataURL(joinUrl, {
@@ -48,7 +50,7 @@ export function TeacherJoinQrDialog({
       },
     }).then((dataUrl) => {
       if (!cancelled) {
-        setQrDataUrl(dataUrl);
+        setQrState((current) => current.joinUrl === joinUrl ? { joinUrl, dataUrl } : current);
       }
     });
 
@@ -88,9 +90,9 @@ export function TeacherJoinQrDialog({
 
           <div className="space-y-4">
             <div className="rounded-xl border border-border bg-muted/30 p-4 text-center">
-              {qrDataUrl ? (
+              {qrState.dataUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={qrDataUrl} alt="课堂加入二维码" className="mx-auto h-60 w-60 rounded-lg bg-white p-2" />
+                <img src={qrState.dataUrl} alt="课堂加入二维码" className="mx-auto h-60 w-60 rounded-lg bg-background p-2" />
               ) : (
                 <div className="mx-auto flex h-60 w-60 items-center justify-center rounded-lg bg-muted text-sm text-muted-foreground">
                   二维码生成中...
