@@ -29,18 +29,33 @@ export const NODE_TYPE_LABELS: Record<string, string> = {
 
 // 知识关系类型
 export const RELATION_TYPE_LABELS: Record<string, string> = {
-  prerequisite: '前置',
-  provides_foundation: '前置',
-  follows: '后置',
-  related: '关联',
-  contains: '包含',
-  leads_to: '引出',
-  applies_to: '应用',
-  opposite: '对立',
-  influences: '关联',
-  defines: '关联',
-  implements: '关联',
-  governs: '关联',
+  prerequisite: '前置基础',
+  provides_foundation: '提供基础',
+  follows: '学习后续',
+  related: '弱关联',
+  contains: '章节包含',
+  leads_to: '引出问题',
+  applies_to: '方法应用',
+  opposite: '相反概念',
+  cross_domain: '跨域迁移',
+  generalizes: '抽象推广',
+  instance_of: '具体实例',
+  supports: '证据支撑',
+  enables: '能力启用',
+  complements: '互补说明',
+  contrasts_with: '对照比较',
+  derives: '推导得到',
+  describes_migration_of: '迁移描述',
+  determines: '决定因素',
+  embodies: '体现为',
+  informs: '提示参考',
+  quantified_by: '量化指标',
+  uses: '使用工具',
+  visualized_by: '图形呈现',
+  influences: '影响',
+  defines: '定义',
+  implements: '实现',
+  governs: '约束',
 };
 
 // 章节显示顺序（用于知识图谱默认分组与筛选）
@@ -97,10 +112,27 @@ export function getRelationLabel(relation?: string | null) {
 // 获取关系类型的分类（用于列表显示）
 export function getRelationCategory(relation?: string | null): 'prerequisite' | 'follows' | 'related' {
   if (!relation) return 'related';
-  if (relation === 'prerequisite' || relation === 'provides_foundation' || relation === 'contains') {
+  if (
+    relation === 'prerequisite' ||
+    relation === 'provides_foundation' ||
+    relation === 'contains' ||
+    relation === 'derives' ||
+    relation === 'determines' ||
+    relation === 'generalizes' ||
+    relation === 'instance_of'
+  ) {
     return 'prerequisite';
   }
-  if (relation === 'follows' || relation === 'leads_to') return 'follows';
+  if (
+    relation === 'follows' ||
+    relation === 'leads_to' ||
+    relation === 'applies_to' ||
+    relation === 'cross_domain' ||
+    relation === 'supports' ||
+    relation === 'enables' ||
+    relation === 'uses' ||
+    relation === 'visualized_by'
+  ) return 'follows';
   return 'related';
 }
 

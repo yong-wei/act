@@ -28,6 +28,11 @@ import {
   type RelationDensityMode,
 } from './graph/filter-utils';
 import type { KnowledgeGraphLabelMode } from './graph/label-policy';
+import {
+  getGraphFilterLabel,
+  getRelationLegendItems,
+  type RelationLegendItem,
+} from './graph/visual-config';
 // import { getAllLessonCards, getAllLessonCardLinks } from './data/lesson-knowledge-cards'; // Removed static import
 
 // 动态导入 3D 图谱组件（客户端专用）
@@ -89,6 +94,62 @@ interface GraphApiResponse {
   source?: 'file' | 'database';
 }
 
+function RelationLegendSample({ item, isLightTheme }: { item: RelationLegendItem; isLightTheme: boolean }) {
+  const dashArray = item.sampleStyle.dash.length > 0 ? item.sampleStyle.dash.join(' ') : undefined;
+  const markerId = `knowledge-relation-legend-${item.type}`;
+  const sampleColor = isLightTheme ? item.sampleStyle.lightColor : item.sampleStyle.darkColor;
+
+  return (
+    <div className="grid grid-cols-[4rem_minmax(0,1fr)] gap-2 rounded-md border border-platform-border bg-platform-canvas-muted px-2 py-1.5">
+      <svg
+        viewBox="0 0 72 22"
+        role="img"
+        aria-label={`${item.label}关系线样式`}
+        className="h-6 w-16 overflow-visible"
+        data-knowledge-relation-legend-sample={item.type}
+      >
+        {item.sampleStyle.hasArrow && (
+          <defs>
+            <marker
+              id={markerId}
+              markerWidth="5"
+              markerHeight="5"
+              refX="4"
+              refY="2.5"
+              orient="auto"
+            >
+              <path d="M0,0 L5,2.5 L0,5 Z" fill={sampleColor} />
+            </marker>
+          </defs>
+        )}
+        <path
+          d={`M6 11 C 24 ${11 - item.sampleStyle.curvature * 55}, 48 ${11 + item.sampleStyle.curvature * 55}, 66 11`}
+          fill="none"
+          stroke={sampleColor}
+          strokeDasharray={dashArray}
+          strokeLinecap="round"
+          strokeWidth={item.sampleStyle.width}
+          markerEnd={item.sampleStyle.hasArrow ? `url(#${markerId})` : undefined}
+          opacity={item.sampleStyle.opacity}
+        />
+        {item.sampleStyle.endpoint === 'dot' && (
+          <circle cx="66" cy="11" r="2.2" fill={sampleColor} opacity={item.sampleStyle.opacity} />
+        )}
+        {item.sampleStyle.endpoint === 'bar' && (
+          <path d="M63 6 L69 16" stroke={sampleColor} strokeWidth="1.4" strokeLinecap="round" opacity={item.sampleStyle.opacity} />
+        )}
+        {item.sampleStyle.endpoint === 'diamond' && (
+          <path d="M66 6 L70 11 L66 16 L62 11 Z" fill={sampleColor} opacity={item.sampleStyle.opacity} />
+        )}
+      </svg>
+      <div className="min-w-0">
+        <div className="text-[11px] font-medium text-platform-fg-primary">{item.label}</div>
+        <div className="line-clamp-2 text-[10px] text-platform-fg-muted">{item.legendExplanation}</div>
+      </div>
+    </div>
+  );
+}
+
 export function KnowledgeGraphSystem({
   initialNodes = [],
   initialLinks = [],
@@ -120,6 +181,7 @@ export function KnowledgeGraphSystem({
   const [desktopRelationFiltersOpen, setDesktopRelationFiltersOpen] = useState(true);
   const [mobileActiveTool, setMobileActiveTool] = useState<KnowledgeMobileTool>('chapter-directory');
   const [mobileToolPanelOpen, setMobileToolPanelOpen] = useState(false);
+  const [isLightTheme, setIsLightTheme] = useState(false);
 
   // 视图模式：默认 2D
   const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
@@ -158,6 +220,17 @@ export function KnowledgeGraphSystem({
       observer?.disconnect();
       window.removeEventListener('resize', updateSize);
     };
+  }, []);
+
+  useEffect(() => {
+    const updateTheme = () => {
+      setIsLightTheme(document.documentElement.classList.contains('light'));
+    };
+
+    updateTheme();
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
   }, []);
 
   // Fetch data from API on mount
@@ -403,6 +476,7 @@ export function KnowledgeGraphSystem({
   const hoveredChapterName = hoveredNode
     ? resolveChapterName(hoveredNode.chapter, hoveredNode.chapterName)
     : '';
+  const relationLegendItems = getRelationLegendItems();
 
   return (
     <div
@@ -499,7 +573,7 @@ export function KnowledgeGraphSystem({
               data-state="open"
             >
             {mobileActiveTool === 'chapter-directory' && (
-              <div data-knowledge-local-tool="chapter-directory" data-state="open">
+              <div data-knowledge-mobile-drawer="chapter-directory" data-knowledge-local-tool="chapter-directory" data-state="open">
                 <KnowledgeSidebar
                   nodes={nodeFilteredByMeta}
                   selectedNodeId={visibleSelectedNode?.id}
@@ -512,7 +586,7 @@ export function KnowledgeGraphSystem({
             )}
 
             {mobileActiveTool === 'relation-filters' && (
-              <div className="space-y-2" data-knowledge-local-tool="relation-filters" data-state="open">
+              <div className="space-y-2" data-knowledge-mobile-drawer="relation-filters" data-knowledge-local-tool="relation-filters" data-state="open">
                 <p className="text-platform-fg-secondary">关系 {displayLinks.length} 条 · 节点 {filteredNodes.length} / {nodes.length}</p>
                 <input
                   type="text"
@@ -564,7 +638,7 @@ export function KnowledgeGraphSystem({
                 </div>
                 <div className="grid gap-2">
                   <details className="rounded-md border border-platform-border px-2 py-1.5">
-                    <summary className="cursor-pointer text-[11px] font-medium">category 筛选{selectedCategories.length > 0 ? ` · ${selectedCategories.length}` : ''}</summary>
+                    <summary className="cursor-pointer text-[11px] font-medium">{getGraphFilterLabel('category')}筛选{selectedCategories.length > 0 ? ` · ${selectedCategories.length}` : ''}</summary>
                     <div className="mt-2 grid gap-1">
                       {categoryOptions.map((category) => (
                         <label key={`mobile-category-${category}`} className="flex items-center gap-2 text-[11px] text-platform-fg-secondary">
@@ -580,7 +654,7 @@ export function KnowledgeGraphSystem({
                     </div>
                   </details>
                   <details className="rounded-md border border-platform-border px-2 py-1.5">
-                    <summary className="cursor-pointer text-[11px] font-medium">bloom_level 筛选{selectedBloomLevels.length > 0 ? ` · ${selectedBloomLevels.length}` : ''}</summary>
+                    <summary className="cursor-pointer text-[11px] font-medium">{getGraphFilterLabel('bloom_level')}筛选{selectedBloomLevels.length > 0 ? ` · ${selectedBloomLevels.length}` : ''}</summary>
                     <div className="mt-2 grid gap-1">
                       {bloomOptions.map((bloom) => (
                         <label key={`mobile-bloom-${bloom}`} className="flex items-center gap-2 text-[11px] text-platform-fg-secondary">
@@ -633,13 +707,10 @@ export function KnowledgeGraphSystem({
             )}
 
             {mobileActiveTool === 'legend' && (
-              <div className="grid gap-1 text-[11px] text-platform-fg-secondary" data-knowledge-local-tool="legend" data-state="open">
-                <span>实线箭头：前置/基础</span>
-                <span>粗实线：章节包含</span>
-                <span>长虚线箭头：后续/引出</span>
-                <span>短虚线箭头：应用</span>
-                <span>短虚线无箭头：对立</span>
-                <span>细虚线：弱关联</span>
+              <div className="grid gap-1.5 text-[11px] text-platform-fg-secondary" data-knowledge-mobile-drawer="legend" data-knowledge-local-tool="legend" data-state="open">
+                {relationLegendItems.map((item) => (
+                  <RelationLegendSample key={`mobile-legend-${item.type}`} item={item} isLightTheme={isLightTheme} />
+                ))}
               </div>
             )}
             </div>
@@ -745,7 +816,7 @@ export function KnowledgeGraphSystem({
 
             <details className="rounded-lg border border-platform-border bg-platform-canvas-muted px-2 py-1.5">
               <summary className="cursor-pointer text-[11px] font-medium text-platform-fg-primary">
-                category 筛选{selectedCategories.length > 0 ? ` · ${selectedCategories.length}` : ''}
+                {getGraphFilterLabel('category')}筛选{selectedCategories.length > 0 ? ` · ${selectedCategories.length}` : ''}
               </summary>
               <div className="mt-2 max-h-24 space-y-1 overflow-y-auto pr-1">
                 {categoryOptions.map((category) => (
@@ -764,7 +835,7 @@ export function KnowledgeGraphSystem({
 
             <details className="rounded-lg border border-platform-border bg-platform-canvas-muted px-2 py-1.5">
               <summary className="cursor-pointer text-[11px] font-medium text-platform-fg-primary">
-                bloom_level 筛选{selectedBloomLevels.length > 0 ? ` · ${selectedBloomLevels.length}` : ''}
+                {getGraphFilterLabel('bloom_level')}筛选{selectedBloomLevels.length > 0 ? ` · ${selectedBloomLevels.length}` : ''}
               </summary>
               <div className="mt-2 max-h-24 space-y-1 overflow-y-auto pr-1">
                 {bloomOptions.map((bloom) => (
@@ -850,13 +921,10 @@ export function KnowledgeGraphSystem({
 
           <div className="mb-3 rounded-lg border border-platform-border bg-platform-surface px-2.5 py-2 text-[11px] text-platform-fg-secondary">
             <div className="mb-1 font-medium text-platform-fg-primary">关系图例</div>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-              <span>实线箭头：前置/基础</span>
-              <span>粗实线：章节包含</span>
-              <span>长虚线箭头：后续/引出</span>
-              <span>短虚线箭头：应用</span>
-              <span>短虚线无箭头：对立</span>
-              <span>细虚线：弱关联</span>
+            <div className="grid grid-cols-2 gap-1.5">
+              {relationLegendItems.map((item) => (
+                <RelationLegendSample key={`desktop-legend-${item.type}`} item={item} isLightTheme={isLightTheme} />
+              ))}
             </div>
           </div>
 

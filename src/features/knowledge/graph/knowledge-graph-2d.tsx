@@ -10,6 +10,7 @@ import {
   getGlowColor,
   getRelationStyle,
   getNodeTypeConfig,
+  getKnowledgeNodeScale,
   hexToRgba,
 } from './visual-config';
 import {
@@ -177,7 +178,15 @@ export function KnowledgeGraph2D({
 
   // 1. 处理数据并应用布局
   const graphData = useMemo(() => {
-    const clonedNodes = nodes.map(n => ({ ...n }));
+    const degreeById = new Map<string, number>();
+    links.forEach((link) => {
+      degreeById.set(link.sourceId, (degreeById.get(link.sourceId) ?? 0) + 1);
+      degreeById.set(link.targetId, (degreeById.get(link.targetId) ?? 0) + 1);
+    });
+    const clonedNodes = nodes.map(n => ({
+      ...n,
+      graphDegree: degreeById.get(n.id) ?? 0,
+    }));
 
     // 转换 links: sourceId/targetId -> source/target (ForceGraph2D 格式)
     const transformedLinks = links.map(l => ({
@@ -206,9 +215,14 @@ export function KnowledgeGraph2D({
     const isHovered = hoveredNode?.id === node.id;
     const isActive = isSelected || isHovered;
 
-    // 节点尺寸
-    const baseRadius = isActive ? 8 : 5;
-    const glowRadius = isActive ? 22 : 14;
+    // 节点尺寸：显式教学重要性优先，连接度只作为封顶的辅助信号。
+    const nodeScale = getKnowledgeNodeScale({
+      metadata: node.metadata,
+      degree: node.graphDegree,
+      focused: isActive,
+    });
+    const baseRadius = nodeScale.radius;
+    const glowRadius = nodeScale.glowRadius;
 
     // 绘制辉光（如果有 bloomLevel）
     if (glowColor) {
@@ -217,7 +231,7 @@ export function KnowledgeGraph2D({
     }
 
     // 绘制节点核心
-    ctx.fillStyle = fillColor;
+    ctx.fillStyle = hexToRgba(fillColor, 1);
     drawShape(ctx, node.nodeType, node.x, node.y, baseRadius);
 
     // 绘制选中环
@@ -292,6 +306,7 @@ export function KnowledgeGraph2D({
     if (target.x === undefined || target.y === undefined) return;
 
     const style = getRelationStyle(link.relationType || link.relation);
+    const strokeColor = isLightTheme ? style.lightColor : style.darkColor;
     const strength = typeof link.strength === 'number'
       ? Math.min(1, Math.max(0, link.strength))
       : 1;
@@ -305,19 +320,19 @@ export function KnowledgeGraph2D({
     ctx.moveTo(source.x, source.y);
     ctx.lineTo(target.x, target.y);
 
-    ctx.strokeStyle = hexToRgba(style.color, alpha);
+    ctx.strokeStyle = hexToRgba(strokeColor, alpha);
     ctx.setLineDash(style.dash.map(d => d / globalScale));
     ctx.lineWidth = lineWidth / globalScale;
     ctx.stroke();
 
     // 绘制箭头（对于有方向的关系）
     if (style.hasArrow) {
-      drawArrow(ctx, source.x, source.y, target.x, target.y, globalScale, hexToRgba(style.color, alpha));
+      drawArrow(ctx, source.x, source.y, target.x, target.y, globalScale, hexToRgba(strokeColor, alpha));
     }
 
     // 重置虚线设置
     ctx.setLineDash([]);
-  }, [hoveredNode?.id, selectedNode?.id]);
+  }, [hoveredNode?.id, isLightTheme, selectedNode?.id]);
 
   // 4. 物理引擎配置
   useEffect(() => {
