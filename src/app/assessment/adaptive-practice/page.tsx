@@ -67,7 +67,41 @@ interface LearningPathRoundResponse {
     pathPayload?: Record<string, unknown> | null;
     explanationPayload?: Record<string, unknown> | null;
     alternativePayload?: unknown[] | null;
+    terminalValidation?: Record<string, unknown> | null;
+    lastExecutionMetadata?: Record<string, unknown> | null;
+    executions?: Array<Record<string, unknown>>;
+    deviations?: Array<Record<string, unknown>>;
+    interventions?: Array<Record<string, unknown>>;
   } | null;
+}
+
+type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
+
+interface PathOptionView {
+  styleId: string;
+  policyFamily: string;
+  label: string;
+  targetDeficits: Array<Record<string, unknown>>;
+  evidenceBasis: string[];
+  resourceMix: Record<string, number>;
+  effort: {
+    estimatedMinutes?: number;
+    relative?: string;
+  };
+  terminalValidationNodeIds: string[];
+  terminalValidationStrategy: {
+    summary?: string;
+  };
+  limitations: string[];
+}
+
+interface PathSelectionHistoryView {
+  type: string;
+  createdAt?: string;
+  selectedStyleId?: string | null;
+  previousStyleId?: string | null;
+  rejectedStyleIds?: string[];
+  helpful?: boolean | null;
 }
 
 type DemoScene = 'stable' | 'generate';
@@ -240,7 +274,26 @@ function restoreLearningPathPlan(round: LearningPathRoundResponse['path']): Adap
     executionStatus: payload.executionStatus as AdaptiveLearningPathPlan['executionStatus'],
     deviations: payload.deviations as AdaptiveLearningPathPlan['deviations'] ?? [],
     corrections: payload.corrections as AdaptiveLearningPathPlan['corrections'] ?? [],
-    feedbackEvents: payload.feedbackEvents as AdaptiveLearningPathPlan['feedbackEvents'] ?? [],
+    feedbackEvents: Array.isArray(payload.feedbackEvents)
+      ? payload.feedbackEvents as AdaptiveLearningPathPlan['feedbackEvents']
+      : Array.isArray(payload.selectionHistory)
+        ? payload.selectionHistory.map((item) => {
+            const history = getRecord(item);
+            return {
+              id: typeof history.id === 'string' ? history.id : `selection-history:${Math.random().toString(36).slice(2)}`,
+              type: typeof history.type === 'string' ? history.type as AdaptiveLearningPathPlan['feedbackEvents'][number]['type'] : 'selection',
+              nodeId: null,
+              createdAt: typeof history.createdAt === 'string' ? history.createdAt : new Date().toISOString(),
+              helpful: typeof history.helpful === 'boolean' ? history.helpful : undefined,
+              context: {
+                selectedStyleId: typeof history.selectedStyleId === 'string' ? history.selectedStyleId : undefined,
+                previousStyleId: typeof history.previousStyleId === 'string' ? history.previousStyleId : undefined,
+                rejectedStyleIds: getStringArray(history.rejectedStyleIds),
+                helpful: typeof history.helpful === 'boolean' ? history.helpful : undefined,
+              },
+            };
+          }) as AdaptiveLearningPathPlan['feedbackEvents']
+        : [],
     visualization: payload.visualization as AdaptiveLearningPathPlan['visualization'],
   };
 }
@@ -250,6 +303,140 @@ function controlCorrectionAlternativeCount(view: ControlCorrectionLearningCenter
   const payload = currentPath?.payload;
   if (!payload || typeof payload !== 'object' || !('alternatives' in payload)) return 0;
   return Array.isArray(payload.alternatives) ? payload.alternatives.length : 0;
+}
+
+function getRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function getStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
+function getNumberRecord(value: unknown): Record<string, number> {
+  const record = getRecord(value);
+  return Object.fromEntries(
+    Object.entries(record).filter((entry): entry is [string, number] => typeof entry[1] === 'number'),
+  );
+}
+
+function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathOptionView[] {
+  const currentPath = view?.panels.find((panel) => panel.region === 'current-path');
+  const payload = getRecord(currentPath?.payload);
+  const pathOptions = Array.isArray(payload.pathOptions) ? payload.pathOptions : [];
+  return pathOptions.map((item) => {
+    const option = getRecord(item);
+    const effort = getRecord(option.effort);
+    const terminalValidationStrategy = getRecord(option.terminalValidationStrategy);
+    return {
+      styleId: typeof option.styleId === 'string' ? option.styleId : 'unknown-style',
+      policyFamily: typeof option.policyFamily === 'string' ? option.policyFamily : 'unknown-policy',
+      label: typeof option.label === 'string' ? option.label : '未命名路径',
+      targetDeficits: Array.isArray(option.targetDeficits)
+        ? option.targetDeficits.map(getRecord)
+        : [],
+      evidenceBasis: getStringArray(option.evidenceBasis),
+      resourceMix: getNumberRecord(option.resourceMix),
+      effort: {
+        estimatedMinutes: typeof effort.estimatedMinutes === 'number' ? effort.estimatedMinutes : undefined,
+        relative: typeof effort.relative === 'string' ? effort.relative : undefined,
+      },
+      terminalValidationNodeIds: getStringArray(option.terminalValidationNodeIds),
+      terminalValidationStrategy: {
+        summary: typeof terminalValidationStrategy.summary === 'string' ? terminalValidationStrategy.summary : undefined,
+      },
+      limitations: getStringArray(option.limitations),
+    };
+  });
+}
+
+function getPathSelectionHistory(view: ControlCorrectionLearningCenterView | null): PathSelectionHistoryView[] {
+  const currentPath = view?.panels.find((panel) => panel.region === 'current-path');
+  const payload = getRecord(currentPath?.payload);
+  const selectionHistory = Array.isArray(payload.selectionHistory) ? payload.selectionHistory : [];
+  return selectionHistory.map((item) => {
+    const history = getRecord(item);
+    return {
+      type: typeof history.type === 'string' ? history.type : 'unknown',
+      createdAt: typeof history.createdAt === 'string' ? history.createdAt : undefined,
+      selectedStyleId: typeof history.selectedStyleId === 'string' ? history.selectedStyleId : null,
+      previousStyleId: typeof history.previousStyleId === 'string' ? history.previousStyleId : null,
+      rejectedStyleIds: getStringArray(history.rejectedStyleIds),
+      helpful: typeof history.helpful === 'boolean' ? history.helpful : null,
+    };
+  });
+}
+
+function getPathOptionFallback(view: ControlCorrectionLearningCenterView | null): Record<string, unknown> | null {
+  const currentPath = view?.panels.find((panel) => panel.region === 'current-path');
+  const payload = getRecord(currentPath?.payload);
+  const fallback = getRecord(payload.pathOptionFallback);
+  return Object.keys(fallback).length > 0 ? fallback : null;
+}
+
+function formatResourceMix(resourceMix: Record<string, number>): string {
+  const entries = Object.entries(resourceMix);
+  if (entries.length === 0) return '未声明资源组合';
+  return entries.map(([key, value]) => `${key}×${value}`).join(' · ');
+}
+
+function formatPathDeficits(deficits: Array<Record<string, unknown>>): string {
+  if (deficits.length === 0) return '未声明薄弱项';
+  return deficits
+    .map((deficit) => {
+      const target = typeof deficit.targetId === 'string' ? deficit.targetId : 'unknown-target';
+      const confidence = typeof deficit.confidence === 'number' ? `置信 ${Math.round(deficit.confidence * 100)}%` : '置信未知';
+      return `${target} (${confidence})`;
+    })
+    .join(' · ');
+}
+
+function formatPathHistoryType(type: string): string {
+  if (type === 'selection') return '选择';
+  if (type === 'rejection') return '拒绝';
+  if (type === 'switch') return '切换';
+  if (type === 'helpfulness') return '有用性反馈';
+  return type;
+}
+
+function formatTerminalValidation(round: LearningPathRoundView | null, option?: PathOptionView): string {
+  const terminal = getRecord(round?.terminalValidation);
+  const state = typeof terminal.state === 'string' ? terminal.state : 'pending';
+  const nodeId = typeof terminal.nodeId === 'string'
+    ? terminal.nodeId
+    : option?.terminalValidationNodeIds[0] ?? 'terminal-validation-unavailable';
+  const strategy = option?.terminalValidationStrategy.summary ?? 'terminal validation strategy unavailable';
+  return `${strategy} · ${nodeId} · ${state}`;
+}
+
+function buildChoiceBody(
+  action: 'selection' | 'rejection' | 'switch' | 'helpfulness',
+  option: PathOptionView,
+  allOptions: PathOptionView[],
+  selectedHistory: PathSelectionHistoryView[],
+  helpful?: boolean,
+) {
+  const latestSelection = [...selectedHistory].reverse().find((item) => item.selectedStyleId);
+  return {
+    action,
+    selectedStyleId: action === 'rejection' ? null : option.styleId,
+    selectedPolicyFamily: action === 'rejection' ? null : option.policyFamily,
+    previousStyleId: action === 'switch' ? latestSelection?.selectedStyleId ?? null : null,
+    rejectedStyleIds: action === 'helpfulness'
+      ? []
+      : action === 'selection' || action === 'switch'
+        ? allOptions.filter((item) => item.styleId !== option.styleId).map((item) => item.styleId)
+        : [option.styleId],
+    resourceMix: option.resourceMix,
+    helpful: action === 'helpfulness' ? helpful ?? true : null,
+    rationaleMetadata: {
+      targetDeficits: option.targetDeficits,
+      evidenceBasis: option.evidenceBasis,
+      terminalValidationStrategy: option.terminalValidationStrategy,
+      limitations: option.limitations,
+    },
+    idempotencyKey: `path-choice:${action}:${option.styleId}:${Date.now()}`,
+  };
 }
 
 export default function AdaptivePracticePage() {
@@ -282,6 +469,9 @@ export default function AdaptivePracticePage() {
   const [error, setError] = useState<string | null>(null);
   const [controlCorrectionLearnerState, setControlCorrectionLearnerState] = useState<AdaptiveLearnerState | null>(null);
   const [controlCorrectionPathPlan, setControlCorrectionPathPlan] = useState<AdaptiveLearningPathPlan | null>(null);
+  const [controlCorrectionPathRound, setControlCorrectionPathRound] = useState<LearningPathRoundView | null>(null);
+  const [pathChoicePending, setPathChoicePending] = useState<string | null>(null);
+  const [pathChoiceMessage, setPathChoiceMessage] = useState<string | null>(null);
   const practiceRouteNodes = useMemo(() => buildPracticeEntryRouteNodes({
     recommendedFocus: diagnostic?.recommendedFocus ?? [],
     weakAreas: diagnostic?.weakAreas ?? [],
@@ -300,6 +490,9 @@ export default function AdaptivePracticePage() {
         questionAvailable: Boolean(questionState),
       })
     : null, [activeGoal, controlCorrectionLearnerState, controlCorrectionPathPlan, error, questionState, routeIntent]);
+  const pathOptions = useMemo(() => getPathOptions(controlCorrectionCenter), [controlCorrectionCenter]);
+  const pathSelectionHistory = useMemo(() => getPathSelectionHistory(controlCorrectionCenter), [controlCorrectionCenter]);
+  const pathOptionFallback = useMemo(() => getPathOptionFallback(controlCorrectionCenter), [controlCorrectionCenter]);
 
   const applyDemoScene = useCallback((scene: DemoScene) => {
     const demoData = DEMO_SCENES[scene];
@@ -367,6 +560,7 @@ export default function AdaptivePracticePage() {
     if (!activeGoal || isDemoMode) {
       setControlCorrectionLearnerState(null);
       setControlCorrectionPathPlan(null);
+      setControlCorrectionPathRound(null);
       return;
     }
 
@@ -377,6 +571,7 @@ export default function AdaptivePracticePage() {
     if (authStatus === 'unauthenticated') {
       setControlCorrectionLearnerState(null);
       setControlCorrectionPathPlan(null);
+      setControlCorrectionPathRound(null);
       return;
     }
 
@@ -391,12 +586,14 @@ export default function AdaptivePracticePage() {
         } else if (!cancelled) {
           setControlCorrectionLearnerState(null);
           setControlCorrectionPathPlan(null);
+          setControlCorrectionPathRound(null);
           return;
         }
       } catch {
         if (!cancelled) {
           setControlCorrectionLearnerState(null);
           setControlCorrectionPathPlan(null);
+          setControlCorrectionPathRound(null);
         }
         return;
       }
@@ -404,7 +601,10 @@ export default function AdaptivePracticePage() {
       const fallbackPathId = learnerState?.pathContext.activeControlCorrectionPath.pathId ?? null;
       const pathIdToLoad = activePathId ?? fallbackPathId;
       if (!pathIdToLoad) {
-        if (!cancelled) setControlCorrectionPathPlan(null);
+        if (!cancelled) {
+          setControlCorrectionPathPlan(null);
+          setControlCorrectionPathRound(null);
+        }
         return;
       }
 
@@ -412,12 +612,17 @@ export default function AdaptivePracticePage() {
         const pathResponse = await fetch(`/api/learning-paths/${encodeURIComponent(pathIdToLoad)}`);
         if (!cancelled && pathResponse.ok) {
           const payload = (await pathResponse.json()) as LearningPathRoundResponse;
+          setControlCorrectionPathRound(payload.path ?? null);
           setControlCorrectionPathPlan(restoreLearningPathPlan(payload.path ?? null));
         } else if (!cancelled) {
           setControlCorrectionPathPlan(null);
+          setControlCorrectionPathRound(null);
         }
       } catch {
-        if (!cancelled) setControlCorrectionPathPlan(null);
+        if (!cancelled) {
+          setControlCorrectionPathPlan(null);
+          setControlCorrectionPathRound(null);
+        }
       }
     }
 
@@ -426,6 +631,55 @@ export default function AdaptivePracticePage() {
       cancelled = true;
     };
   }, [activeGoal, activePathId, authStatus, isDemoMode]);
+
+  const reloadControlCorrectionPath = useCallback(async () => {
+    const pathIdToLoad = controlCorrectionPathRound?.id ?? activePathId ?? controlCorrectionLearnerState?.pathContext.activeControlCorrectionPath.pathId;
+    if (!pathIdToLoad) return;
+    const pathResponse = await fetch(`/api/learning-paths/${encodeURIComponent(pathIdToLoad)}`);
+    if (!pathResponse.ok) {
+      throw new Error('路径状态刷新失败');
+    }
+    const payload = (await pathResponse.json()) as LearningPathRoundResponse;
+    setControlCorrectionPathRound(payload.path ?? null);
+    setControlCorrectionPathPlan(restoreLearningPathPlan(payload.path ?? null));
+  }, [activePathId, controlCorrectionLearnerState, controlCorrectionPathRound]);
+
+  const submitPathChoice = useCallback(async (
+    action: 'selection' | 'rejection' | 'switch' | 'helpfulness',
+    option: PathOptionView,
+    helpful?: boolean,
+  ) => {
+    const pathId = controlCorrectionPathRound?.id ?? controlCorrectionPathPlan?.id;
+    if (!pathId) {
+      setPathChoiceMessage('当前没有可写入的学习路径。');
+      return;
+    }
+    setPathChoicePending(`${action}:${option.styleId}`);
+    setPathChoiceMessage(null);
+    try {
+      const response = await fetch(`/api/learning-paths/${encodeURIComponent(pathId)}/choices`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(buildChoiceBody(action, option, pathOptions, pathSelectionHistory, helpful)),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(typeof payload.error === 'string' ? payload.error : '路径选择写入失败');
+      }
+      await reloadControlCorrectionPath();
+      setPathChoiceMessage('路径选择证据已记录。');
+    } catch (choiceError) {
+      setPathChoiceMessage(choiceError instanceof Error ? choiceError.message : '路径选择写入失败');
+    } finally {
+      setPathChoicePending(null);
+    }
+  }, [
+    controlCorrectionPathPlan,
+    controlCorrectionPathRound,
+    pathOptions,
+    pathSelectionHistory,
+    reloadControlCorrectionPath,
+  ]);
 
   useEffect(() => {
     if (isDemoMode) {
@@ -650,6 +904,163 @@ export default function AdaptivePracticePage() {
                 ))}
               </div>
             ) : null}
+
+            <div className="mt-5 border-t border-border pt-5" data-learning-path-product-surface="path-options-selection-history-terminal-validation">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-semibold text-foreground">路径选择与验证</h3>
+                  <p className="mt-1 text-sm text-subtle">
+                    对比不同路径风格，记录选择或拒绝，并保留官方/预览终端验证边界。
+                  </p>
+                </div>
+                <span className="rounded-full border border-border px-3 py-1 text-xs text-subtle">
+                  {pathOptions.length > 0 ? `${pathOptions.length} 条路径方案` : '路径方案待生成'}
+                </span>
+              </div>
+
+              {pathOptions.length > 0 ? (
+                <div className="mt-4 grid gap-3 lg:grid-cols-3">
+                  {pathOptions.map((option) => {
+                    const isPending = pathChoicePending?.endsWith(`:${option.styleId}`) ?? false;
+                    return (
+                      <article
+                        key={option.styleId}
+                        className="rounded-xl border border-border bg-muted/20 p-4"
+                        data-learning-path-option={option.styleId}
+                        data-learning-path-policy-family={option.policyFamily}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-xs text-primary">{option.policyFamily}</p>
+                            <h4 className="mt-1 font-semibold text-foreground">{option.label}</h4>
+                          </div>
+                          <span className="rounded-full border border-border px-2 py-1 text-xs text-subtle">
+                            {option.effort.estimatedMinutes ? `${option.effort.estimatedMinutes} 分钟` : option.effort.relative ?? '时长未知'}
+                          </span>
+                        </div>
+                        <dl className="mt-4 space-y-3 text-sm">
+                          <div>
+                            <dt className="text-xs text-subtle">目标薄弱项</dt>
+                            <dd className="mt-1 text-foreground">{formatPathDeficits(option.targetDeficits)}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-xs text-subtle">资源组合</dt>
+                            <dd className="mt-1 text-foreground">{formatResourceMix(option.resourceMix)}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-xs text-subtle">证据依据</dt>
+                            <dd className="mt-1 text-foreground">{option.evidenceBasis.join(' · ') || '证据待补齐'}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-xs text-subtle">终端验证</dt>
+                            <dd className="mt-1 text-foreground">{formatTerminalValidation(controlCorrectionPathRound, option)}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-xs text-subtle">限制</dt>
+                            <dd className="mt-1 text-foreground">{option.limitations.join(' · ') || '无额外限制'}</dd>
+                          </div>
+                        </dl>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:opacity-60"
+                            disabled={Boolean(pathChoicePending)}
+                            onClick={() => submitPathChoice('selection', option)}
+                          >
+                            {isPending ? '记录中' : '选择路径'}
+                          </button>
+                          <button
+                            type="button"
+                            className="rounded-md border border-border px-3 py-1.5 text-xs text-foreground disabled:opacity-60"
+                            disabled={Boolean(pathChoicePending)}
+                            onClick={() => submitPathChoice('switch', option)}
+                          >
+                            切换到此路径
+                          </button>
+                          <button
+                            type="button"
+                            className="rounded-md border border-border px-3 py-1.5 text-xs text-subtle disabled:opacity-60"
+                            disabled={Boolean(pathChoicePending)}
+                            onClick={() => submitPathChoice('rejection', option)}
+                          >
+                            暂不采用
+                          </button>
+                          <button
+                            type="button"
+                            className="rounded-md border border-border px-3 py-1.5 text-xs text-subtle disabled:opacity-60"
+                            disabled={Boolean(pathChoicePending)}
+                            onClick={() => submitPathChoice('helpfulness', option, true)}
+                          >
+                            有帮助
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="mt-4 rounded-xl border border-border bg-muted/20 p-4 text-sm text-subtle">
+                  {pathOptionFallback
+                    ? `当前使用降级路径：${getStringArray(pathOptionFallback.fallbackReasons).join('、') || '路径多样性证据不足'}`
+                    : '等待诊断结果生成三风格路径方案。'}
+                </div>
+              )}
+
+              <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr]">
+                <div className="rounded-xl border border-border bg-muted/20 p-4" data-learning-path-history="selection-history">
+                  <h4 className="text-sm font-semibold text-foreground">选择历史</h4>
+                  <div className="mt-3 space-y-2">
+                    {pathSelectionHistory.map((history, index) => (
+                      <div key={`${history.type}:${history.createdAt ?? index}`} className="rounded-lg border border-border bg-background/40 px-3 py-2 text-sm">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="font-medium text-foreground">{formatPathHistoryType(history.type)}</span>
+                          <span className="text-xs text-subtle">{history.createdAt ?? '时间待记录'}</span>
+                        </div>
+                        <p className="mt-1 text-subtle">
+                          选择 {history.selectedStyleId ?? '无'}；拒绝 {history.rejectedStyleIds?.join('、') || '无'}；
+                          {history.helpful === null || history.helpful === undefined ? ' 未评价有用性' : history.helpful ? ' 有帮助' : ' 无帮助'}
+                        </p>
+                      </div>
+                    ))}
+                    {pathSelectionHistory.length === 0 ? (
+                      <p className="text-sm text-subtle">尚未记录选择、拒绝、切换或有用性反馈。</p>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-border bg-muted/20 p-4" data-learning-path-validation-timeline="checkpoint-deviation-intervention-terminal">
+                  <h4 className="text-sm font-semibold text-foreground">执行与终端验证</h4>
+                  <div className="mt-3 grid gap-2 text-sm">
+                    <div className="rounded-lg border border-border bg-background/40 px-3 py-2">
+                      <p className="font-medium text-foreground">检查点</p>
+                      <p className="mt-1 text-subtle">
+                        {(controlCorrectionPathRound?.executions ?? []).length} 条执行记录；
+                        当前节点 {controlCorrectionPathPlan?.currentNodeId ?? '待定位'}
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border bg-background/40 px-3 py-2">
+                      <p className="font-medium text-foreground">偏离与干预</p>
+                      <p className="mt-1 text-subtle">
+                        {(controlCorrectionPathRound?.deviations ?? []).length} 条偏离；
+                        {(controlCorrectionPathRound?.interventions ?? []).length} 条教师或 Konling 干预
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-border bg-background/40 px-3 py-2">
+                      <p className="font-medium text-foreground">官方 / 预览验证</p>
+                      <p className="mt-1 text-subtle">
+                        {formatTerminalValidation(controlCorrectionPathRound, pathOptions[0])}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {pathChoiceMessage ? (
+                <p className="mt-3 rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-foreground">
+                  {pathChoiceMessage}
+                </p>
+              ) : null}
+            </div>
           </section>
         ) : null}
 

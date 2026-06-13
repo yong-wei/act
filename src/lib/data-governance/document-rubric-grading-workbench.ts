@@ -241,6 +241,7 @@ export interface DocumentRubricEvidenceWriteback {
       teacherReview: DocumentRubricGradingRun['teacherReview'];
       teacherDiffs: CriterionTeacherDiff[];
       evaluator: DocumentRubricGradingRun['evaluator'];
+      criterionLimitationState: DraftCriterionLimitationState;
       evidenceRefs: GradingEvidenceReference[];
       confidence: number;
       idempotencyKey: string;

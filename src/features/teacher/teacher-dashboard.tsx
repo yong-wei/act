@@ -312,6 +312,16 @@ export function TeacherDashboard({
           ))}
           <span className="rounded-md border border-border px-2 py-1">不修改基础 manifest</span>
         </div>
+        <div className="mt-4">
+          <Link
+            href="/teacher/prep-packs"
+            className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm"
+            data-teacher-prep-pack-review-entry="dashboard"
+          >
+            进入课前包复核
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
       </section>
 
       <section

@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   recordPathNodeExecution: vi.fn(),
   recordPathDeviation: vi.fn(),
   recordPathIntervention: vi.fn(),
+  recordPathChoiceEvidence: vi.fn(),
   refreshStudentEvidenceFeatureCache: vi.fn(),
   prisma: {
     learningPath: {
@@ -52,6 +53,7 @@ vi.mock('@/lib/control-correction-path-rounds', async (importOriginal) => {
     recordPathNodeExecution: mocks.recordPathNodeExecution,
     recordPathDeviation: mocks.recordPathDeviation,
     recordPathIntervention: mocks.recordPathIntervention,
+    recordPathChoiceEvidence: mocks.recordPathChoiceEvidence,
   };
 });
 
@@ -64,6 +66,7 @@ import { GET as readPath } from '../[id]/route';
 import { POST as executePath } from '../[id]/execute/route';
 import { POST as deviatePath } from '../[id]/deviations/route';
 import { POST as intervenePath } from '../[id]/interventions/route';
+import { POST as choosePath } from '../[id]/choices/route';
 
 const params = { params: Promise.resolve({ id: 'path-1' }) };
 
@@ -121,7 +124,24 @@ describe('learning path round API routes', () => {
       pathStatus: 'active',
       currentNodeId: 'node-1',
       nodeIds: ['node-1'],
-      pathPayload: { mainPathNodeIds: ['node-1'] },
+      pathPayload: {
+        mainPathNodeIds: ['node-1'],
+        policyBundle: {
+          status: 'ready',
+          paths: [
+            {
+              styleId: 'foundation-remediation',
+              policyFamily: 'foundation-remediation',
+            },
+            {
+              styleId: 'simulation-driven',
+              policyFamily: 'simulation-driven',
+            },
+          ],
+        },
+      },
+      learnerStateRef: 'diagnosis-snapshot:server-owned',
+      inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
       terminalValidation: { nodeId: 'node-1', state: 'pending' },
       lastExecutionMetadata: { completedNodeIds: [] },
     });
@@ -171,6 +191,10 @@ describe('learning path round API routes', () => {
       suggestedAction: 'raw model text',
       citedEvidence: [{ raw: true }],
       privacySafeSummary: '建议回看根轨迹规则。',
+    });
+    mocks.recordPathChoiceEvidence.mockResolvedValue({
+      emitted: true,
+      dedupeKey: 'control-correction-path:choice:path-1:choice-key',
     });
     mocks.refreshStudentEvidenceFeatureCache.mockResolvedValue({ userId: 'student-1' });
   });
@@ -435,6 +459,71 @@ describe('learning path round API routes', () => {
       },
       cacheRefresh: 'completed',
     });
+  });
+
+  it('records path choice evidence for the student owner with current style ids', async () => {
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedStyleId: 'foundation-remediation',
+      selectedPolicyFamily: 'foundation-remediation',
+      rejectedStyleIds: ['simulation-driven'],
+      resourceMix: { knowledge_card: 1, arena_task: 1 },
+      rationaleMetadata: { evidenceBasis: ['adaptive-learner-state'] },
+      diagnosisSnapshotRef: 'diagnosis-snapshot:forged-client',
+      idempotencyKey: 'choice-key',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathChoiceEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      action: 'selection',
+      pathId: 'path-1',
+      userId: 'student-1',
+      selectedStyleId: 'foundation-remediation',
+      rejectedStyleIds: ['simulation-driven'],
+      diagnosisSnapshotRef: 'diagnosis-snapshot:server-owned',
+      idempotencyKey: 'choice-key',
+    }));
+    expect(mocks.refreshStudentEvidenceFeatureCache).toHaveBeenCalledWith(expect.anything(), 'student-1');
+    expect(payload).toMatchObject({
+      choice: {
+        emitted: true,
+        dedupeKey: 'control-correction-path:choice:path-1:choice-key',
+      },
+      cacheRefresh: 'completed',
+    });
+  });
+
+  it('rejects path choice evidence for style ids outside the current path options', async () => {
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'switch',
+      selectedStyleId: 'unrelated-style',
+      rejectedStyleIds: ['foundation-remediation'],
+      idempotencyKey: 'choice-key',
+    }), params);
+
+    expect(response.status).toBe(400);
+    expect(mocks.recordPathChoiceEvidence).not.toHaveBeenCalled();
+  });
+
+  it('rejects contradictory path choice and helpfulness payloads', async () => {
+    const contradictory = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedStyleId: 'foundation-remediation',
+      rejectedStyleIds: ['foundation-remediation'],
+      idempotencyKey: 'choice-key',
+    }), params);
+    const helpfulnessWithRejected = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'helpfulness',
+      selectedStyleId: 'foundation-remediation',
+      rejectedStyleIds: ['simulation-driven'],
+      helpful: true,
+      idempotencyKey: 'helpful-key',
+    }), params);
+
+    expect(contradictory.status).toBe(400);
+    expect(helpfulnessWithRejected.status).toBe(400);
+    expect(mocks.recordPathChoiceEvidence).not.toHaveBeenCalled();
   });
 
   it('allows ai intervention path node execution to match planner resource types', async () => {

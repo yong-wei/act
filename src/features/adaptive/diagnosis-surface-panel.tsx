@@ -127,7 +127,7 @@ export function DiagnosisSurfacePanel({
           </div>
           <div className="grid gap-3 lg:grid-cols-2">
             {clusters.slice(0, 4).map((cluster) => (
-              <ClusterCard key={cluster.id} cluster={cluster} />
+              <ClusterCard key={cluster.id} cluster={cluster} mode={mode} />
             ))}
           </div>
         </div>
@@ -234,8 +234,12 @@ function DiagnosisClaimCard({ claim, mode }: { claim: RoleBasedLearningDiagnosis
   );
 }
 
-function ClusterCard({ cluster }: { cluster: RoleBasedLearningDiagnosisRootCauseCluster }) {
+function ClusterCard({ cluster, mode }: {
+  cluster: RoleBasedLearningDiagnosisRootCauseCluster;
+  mode: DiagnosisSurfaceMode;
+}) {
   const prepReady = cluster.confidence !== 'none' && cluster.denominator > 0 && cluster.affectedPopulation > 0;
+  const canReviewPrepPack = mode === 'teacher-class' && prepReady;
 
   return (
     <article className="rounded-lg border border-border/70 bg-card/75 p-4">
@@ -257,6 +261,16 @@ function ClusterCard({ cluster }: { cluster: RoleBasedLearningDiagnosisRootCause
       <div className="mt-3 text-xs text-subtle">
         证据覆盖：ready {cluster.evidenceCoverage.ready}，stale {cluster.evidenceCoverage.stale}，missing {cluster.evidenceCoverage.missing}，low {cluster.evidenceCoverage.lowConfidence}
       </div>
+      {canReviewPrepPack ? (
+        <Link
+          href={`/teacher/prep-packs?cluster=${encodeURIComponent(cluster.id)}`}
+          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-border/60 px-3 py-2 text-xs text-foreground hover:border-primary"
+          data-teacher-prep-pack-review-entry="diagnosis-cluster"
+        >
+          打开课前包复核
+          <ArrowRight className="h-3 w-3" />
+        </Link>
+      ) : null}
     </article>
   );
 }

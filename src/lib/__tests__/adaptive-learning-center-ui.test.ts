@@ -339,8 +339,14 @@ describe('adaptive learning center UI contracts', () => {
       expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((entry) => entry.href === route.href)).toMatchObject({
         href: route.href,
         routeFile: route.routeFile,
-        frame: 'learner-data',
-        navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+        frame: route.href === '/dashboard' || route.href === '/assessment/adaptive-practice'
+          ? 'learning-atlas'
+          : 'report-ledger',
+        navigationLayers: [
+          route.href === '/assessment/adaptive-practice' ? 'global-product' : 'role-cockpit',
+          'contextual-workspace',
+          'local-tool',
+        ],
         owningChange: 'redesign-learner-data-and-report-surfaces',
       });
     }
@@ -358,6 +364,20 @@ describe('adaptive learning center UI contracts', () => {
     }
   });
 
+  it('binds adaptive practice to the productized path options, history, and terminal validation surface', () => {
+    const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(source).toContain('data-learning-path-product-surface="path-options-selection-history-terminal-validation"');
+    expect(source).toContain('data-learning-path-option=');
+    expect(source).toContain('data-learning-path-history="selection-history"');
+    expect(source).toContain('data-learning-path-validation-timeline="checkpoint-deviation-intervention-terminal"');
+    expect(source).toContain('/api/learning-paths/${encodeURIComponent(pathId)}/choices');
+    expect(source).toContain("submitPathChoice('selection'");
+    expect(source).toContain("submitPathChoice('rejection'");
+    expect(source).toContain("submitPathChoice('switch'");
+    expect(source).toContain("submitPathChoice('helpfulness'");
+  });
+
   it('prioritizes current path, next action, evidence confidence, and missing source on dashboard and profile', () => {
     const dashboard = readFileSync(join(repoRoot, 'src/app/(main)/dashboard/page.tsx'), 'utf8');
     const profile = readFileSync(join(repoRoot, 'src/app/(main)/profile/page.tsx'), 'utf8');
@@ -370,7 +390,7 @@ describe('adaptive learning center UI contracts', () => {
     }
 
     expect(dashboard.indexOf('data-learner-record-priority="current-path"')).toBeLessThan(
-      dashboard.indexOf('商业入口地图'),
+      dashboard.indexOf('欢迎回来'),
     );
     expect(profile.indexOf('data-learner-record-priority="current-path"')).toBeLessThan(
       profile.indexOf('<h3 className="text-lg font-semibold text-foreground">能力画像</h3>'),
@@ -630,6 +650,11 @@ describe('adaptive learning center UI contracts', () => {
         },
       ],
     });
+
+    const mastery = view.panels.find((panel) => panel.region === 'mastery');
+    expect(mastery?.payload).toEqual(learnerState().knowledgeMastery);
+    expect(JSON.stringify(mastery?.payload)).not.toContain('selectionHistory');
+    expect(JSON.stringify(mastery?.payload)).not.toContain('foundation-remediation');
   });
 
   it('does not expose cosmetic path options when the policy bundle is low-resource fallback', () => {
@@ -871,6 +896,10 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('data-control-correction-alternative-count');
     expect(source).toContain('goalId: activeGoal');
     expect(source).toContain('routeIntent: activeGoal ? routeIntent : null');
+    expect(source).toContain('fetch(`/api/learning-paths/${encodeURIComponent(pathId)}/choices`');
+    expect(source).toContain("submitPathChoice('helpfulness', option, true)");
+    expect(source).toContain("rejectedStyleIds: action === 'helpfulness'");
+    expect(source).toContain('? []');
   });
 
   it('keeps next main-path nodes distinct from optional alternatives', () => {

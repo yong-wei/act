@@ -552,7 +552,7 @@ describe('role-based learning diagnosis materialization', () => {
   });
 
   it('keeps legacy diagnosis snapshots without observations usable in role projections', () => {
-    const snapshot = materializeControlCorrectionDiagnosisReport({
+    const { observations: _observations, ...legacySnapshot } = materializeControlCorrectionDiagnosisReport({
       subject: { kind: 'student', userId: 'student-1', classId: 'class-1' },
       goalId: 'control-correction',
       generatedAt: now,
@@ -567,14 +567,13 @@ describe('role-based learning diagnosis materialization', () => {
         evidenceRef: { chunkId: 'chunk-legacy-snapshot', sourceType: 'diagnosis', title: '旧版治理指标快照' },
       }],
       now,
-    }) as DiagnosisReportSnapshot & { observations?: unknown };
-    delete snapshot.observations;
+    });
 
     expect(() => materializeRoleBasedLearningDiagnosis({
       ...baseInput,
       goalSlice: null,
       evidenceCorpus: [],
-      diagnosisReportSnapshot: snapshot,
+      diagnosisReportSnapshot: legacySnapshot as DiagnosisReportSnapshot,
     })).not.toThrow();
   });
 
