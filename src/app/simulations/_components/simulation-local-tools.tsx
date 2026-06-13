@@ -173,10 +173,10 @@ function SimulationLocalPanel({
       data-simulation-panel-collapsible="true"
       data-task-workspace-zone={side === 'left' ? 'status-rail' : 'local-tools'}
     >
-      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-md font-semibold text-platform-fg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-action-ring [&::-webkit-details-marker]:hidden">
+      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-md font-semibold text-platform-fg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-action-primary [&::-webkit-details-marker]:hidden">
         <ChevronDown
           aria-hidden="true"
-          className="h-4 w-4 shrink-0 text-platform-fg-tertiary transition-transform group-open:rotate-180"
+          className="h-4 w-4 shrink-0 text-platform-fg-secondary transition-transform group-open:rotate-180"
         />
         {config.title}
         <span className="sr-only">可展开或收起</span>

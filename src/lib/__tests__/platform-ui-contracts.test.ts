@@ -420,7 +420,9 @@ describe('platform UI contracts', () => {
     expect(simulationLocalToolsSource).toContain('order-1 flex min-w-0 flex-col gap-3');
     expect(simulationLocalToolsSource).toContain("side === 'left' ? 'order-2 lg:order-first' : 'order-3 lg:order-last'");
     expect(simulationLocalToolsSource).toContain('ChevronDown');
-    expect(simulationLocalToolsSource).toContain('focus-visible:ring-2 focus-visible:ring-platform-action-ring');
+    expect(simulationLocalToolsSource).toContain('focus-visible:ring-2 focus-visible:ring-platform-action-primary');
+    expect(simulationLocalToolsSource).not.toContain('platform-action-ring');
+    expect(simulationLocalToolsSource).not.toContain('platform-fg-tertiary');
     expect(simulationLocalToolsSource).not.toContain('<button');
     expect(simulationLocalToolsSource).not.toContain('sticky bottom-3');
     expect(simulationLocalToolsSource).toContain('data-simulation-local-panel-zone={side ===');
