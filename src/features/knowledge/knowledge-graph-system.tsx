@@ -44,6 +44,7 @@ const KnowledgeGraph2D = dynamic(
 
 // 知识节点类型
 export type NodeType = 'THEORY' | 'SCENARIO' | 'ETHICS';
+type KnowledgeMobileTool = 'chapter-directory' | 'relation-filters' | 'legend';
 
 // 知识节点接口 (Aligned with Prisma Model)
 export interface KnowledgeNodeData {
@@ -115,6 +116,9 @@ export function KnowledgeGraphSystem({
   const [showOnlyConnectedNodes, setShowOnlyConnectedNodes] = useState(true);
   const [labelMode, setLabelMode] = useState<KnowledgeGraphLabelMode>('focus');
   const [relationDensityMode, setRelationDensityMode] = useState<RelationDensityMode>('structure');
+  const [desktopChapterDirectoryOpen, setDesktopChapterDirectoryOpen] = useState(true);
+  const [desktopRelationFiltersOpen, setDesktopRelationFiltersOpen] = useState(true);
+  const [mobileActiveTool, setMobileActiveTool] = useState<KnowledgeMobileTool>('chapter-directory');
 
   // 视图模式：默认 2D
   const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
@@ -128,11 +132,12 @@ export function KnowledgeGraphSystem({
 
   // 监听容器大小变化
   useEffect(() => {
+    const container = containerRef.current;
     const updateSize = () => {
-      if (containerRef.current) {
+      if (container) {
         setDimensions({
-          width: containerRef.current.offsetWidth,
-          height: containerRef.current.offsetHeight
+          width: container.offsetWidth,
+          height: container.offsetHeight
         });
       }
     };
@@ -140,9 +145,18 @@ export function KnowledgeGraphSystem({
     // 初始化
     updateSize();
     
-    // 监听窗口缩放
+    const observer = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(updateSize)
+      : null;
+    if (container) {
+      observer?.observe(container);
+    }
+
     window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
   }, []);
 
   // Fetch data from API on mount
@@ -358,6 +372,15 @@ export function KnowledgeGraphSystem({
     ? selectedNode
     : null;
   const visiblePanelOpen = isPanelOpen && Boolean(visibleSelectedNode);
+  const activeFilterSummary = [
+    searchQuery ? `搜索：${searchQuery}` : '',
+    selectedChapters.length > 0 ? `章节 ${selectedChapters.length}` : '',
+    selectedCategories.length > 0 ? `分类 ${selectedCategories.length}` : '',
+    selectedBloomLevels.length > 0 ? `层级 ${selectedBloomLevels.length}` : '',
+    selectedRelationTypes.length !== relationTypeStats.length ? `关系 ${selectedRelationTypes.length}/${relationTypeStats.length}` : '',
+    minRelationStrength > 0 ? `强度 >= ${minRelationStrength.toFixed(1)}` : '',
+    showOnlyConnectedNodes ? '仅连通节点' : '',
+  ].filter(Boolean).join(' · ') || '未启用额外筛选';
 
   const toggleRelationType = useCallback((type: string) => {
     setSelectedRelationTypes((prev) =>
@@ -387,27 +410,80 @@ export function KnowledgeGraphSystem({
       data-knowledge-squeeze-down-rejected="permanent-panels-hidden-at-320"
     >
       {/* 左侧导航侧边栏 */}
-      <div className="hidden h-full w-72 shrink-0 p-3 lg:block" data-knowledge-desktop-panel="chapter-directory">
-        <KnowledgeSidebar
-          nodes={nodeFilteredByMeta}
-          selectedNodeId={visibleSelectedNode?.id}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          onNodeSelect={handleNodeClick}
-          onNodeHover={setHoveredNode}
-        />
+      <div
+        className={`hidden h-full shrink-0 p-3 transition-[width] lg:block ${desktopChapterDirectoryOpen ? 'w-72' : 'w-20'}`}
+        data-knowledge-desktop-panel="chapter-directory"
+        data-knowledge-local-tool="chapter-directory"
+        data-state={desktopChapterDirectoryOpen ? 'open' : 'closed'}
+      >
+        <div className="flex h-full flex-col rounded-xl border border-platform-border bg-platform-surface/90 p-2 shadow-lg">
+          <button
+            type="button"
+            onClick={() => setDesktopChapterDirectoryOpen((open) => !open)}
+            className="mb-2 rounded-lg border border-platform-border px-2 py-1.5 text-xs font-medium text-platform-fg-secondary transition hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+            aria-expanded={desktopChapterDirectoryOpen}
+          >
+            {desktopChapterDirectoryOpen ? '收起目录' : '目录'}
+          </button>
+          {desktopChapterDirectoryOpen ? (
+            <KnowledgeSidebar
+              nodes={nodeFilteredByMeta}
+              selectedNodeId={visibleSelectedNode?.id}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onNodeSelect={handleNodeClick}
+              onNodeHover={setHoveredNode}
+            />
+          ) : (
+            <div className="grid flex-1 place-items-center rounded-lg bg-platform-canvas-muted px-2 text-center text-[11px] text-platform-fg-secondary">
+              <div>
+                <div className="font-semibold text-platform-fg-primary">{filteredNodes.length}</div>
+                <div>可见节点</div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 中央图谱区域 */}
       <div ref={containerRef} className="relative h-full min-w-0 flex-1 overflow-hidden" data-knowledge-canvas-primary="true">
-        <div className="absolute left-3 right-3 top-3 z-30 grid gap-2 lg:hidden" data-knowledge-mobile-command-surface="drawer-launchers">
-          <div className="flex flex-wrap items-center gap-2">
-            <details
-              className="group rounded-lg border border-platform-border bg-platform-surface/95 px-3 py-2 text-xs text-platform-fg-primary shadow-lg backdrop-blur"
-              data-knowledge-mobile-drawer="chapter-directory"
-            >
-              <summary className="cursor-pointer font-medium">章节目录</summary>
-              <div className="mt-2 max-h-48 min-w-[min(17rem,calc(100vw-2rem))] overflow-y-auto">
+        <div
+          className="absolute left-3 right-3 top-3 z-30 grid gap-2 lg:hidden"
+          data-knowledge-mobile-command-surface="single-tool-panel"
+          data-knowledge-local-tool={mobileActiveTool}
+          data-state="open"
+        >
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-platform-border bg-platform-surface/95 p-2 text-xs text-platform-fg-primary shadow-lg backdrop-blur">
+            {([
+              ['chapter-directory', '目录'],
+              ['relation-filters', '筛选'],
+              ['legend', '图例'],
+            ] as const).map(([tool, label]) => (
+              <button
+                key={tool}
+                type="button"
+                aria-pressed={mobileActiveTool === tool}
+                onClick={() => setMobileActiveTool(tool)}
+                className={`rounded-lg border px-2.5 py-1.5 transition ${
+                  mobileActiveTool === tool
+                    ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary'
+                    : 'border-platform-border text-platform-fg-secondary'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+            <span className="min-w-0 flex-1 truncate text-[11px] text-platform-fg-secondary">
+              {activeFilterSummary}
+            </span>
+          </div>
+
+          <div
+            className="max-h-[min(28rem,calc(100vh-7rem))] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-3 text-xs text-platform-fg-primary shadow-xl backdrop-blur"
+            data-knowledge-mobile-tool-panel={mobileActiveTool}
+          >
+            {mobileActiveTool === 'chapter-directory' && (
+              <div data-knowledge-local-tool="chapter-directory" data-state="open">
                 <KnowledgeSidebar
                   nodes={nodeFilteredByMeta}
                   selectedNodeId={visibleSelectedNode?.id}
@@ -417,14 +493,10 @@ export function KnowledgeGraphSystem({
                   onNodeHover={setHoveredNode}
                 />
               </div>
-            </details>
+            )}
 
-            <details
-              className="rounded-lg border border-platform-border bg-platform-surface/95 px-3 py-2 text-xs text-platform-fg-primary shadow-lg backdrop-blur"
-              data-knowledge-mobile-drawer="relation-filters"
-            >
-              <summary className="cursor-pointer font-medium">关系筛选</summary>
-              <div className="mt-2 max-h-56 w-[min(17rem,calc(100vw-2rem))] overflow-y-auto space-y-2">
+            {mobileActiveTool === 'relation-filters' && (
+              <div className="space-y-2" data-knowledge-local-tool="relation-filters" data-state="open">
                 <p className="text-platform-fg-secondary">关系 {displayLinks.length} 条 · 节点 {filteredNodes.length} / {nodes.length}</p>
                 <input
                   type="text"
@@ -542,14 +614,10 @@ export function KnowledgeGraphSystem({
                   清空节点筛选条件
                 </button>
               </div>
-            </details>
+            )}
 
-            <details
-              className="rounded-lg border border-platform-border bg-platform-surface/95 px-3 py-2 text-xs text-platform-fg-primary shadow-lg backdrop-blur"
-              data-knowledge-mobile-drawer="legend"
-            >
-              <summary className="cursor-pointer font-medium">图例</summary>
-              <div className="mt-2 grid w-[min(17rem,calc(100vw-2rem))] gap-1 text-[11px] text-platform-fg-secondary">
+            {mobileActiveTool === 'legend' && (
+              <div className="grid gap-1 text-[11px] text-platform-fg-secondary" data-knowledge-local-tool="legend" data-state="open">
                 <span>实线箭头：前置/基础</span>
                 <span>粗实线：章节包含</span>
                 <span>长虚线箭头：后续/引出</span>
@@ -557,27 +625,48 @@ export function KnowledgeGraphSystem({
                 <span>短虚线无箭头：对立</span>
                 <span>细虚线：弱关联</span>
               </div>
-            </details>
+            )}
           </div>
         </div>
 
         {/* 筛选控制区 */}
         <div
-          className="surface-card absolute left-4 top-4 z-20 hidden max-w-[calc(100vw-2rem)] p-3 shadow-lg backdrop-blur-md lg:block lg:w-[22.5rem]"
+          className={`surface-card absolute left-4 top-4 z-20 hidden max-w-[calc(100vw-2rem)] p-3 shadow-lg backdrop-blur-md lg:block ${desktopRelationFiltersOpen ? 'lg:w-[22.5rem]' : 'lg:w-64'}`}
           data-knowledge-desktop-panel="relation-filters"
           data-knowledge-local-panel="relation-filters"
+          data-knowledge-local-tool="relation-filters"
+          data-state={desktopRelationFiltersOpen ? 'open' : 'closed'}
         >
           <div className="mb-2 flex items-center justify-between">
             <div className="text-xs font-semibold tracking-wide text-platform-fg-primary">
               关系筛选
             </div>
-            <span
-              className="rounded-full border border-platform-border bg-platform-action-subtle px-2 py-0.5 text-[10px] text-platform-fg-secondary"
-            >
-              {dataSource === 'file' ? '文件图谱' : '数据库图谱'}
-            </span>
+            <div className="flex items-center gap-2">
+              <span
+                className="rounded-full border border-platform-border bg-platform-action-subtle px-2 py-0.5 text-[10px] text-platform-fg-secondary"
+              >
+                {dataSource === 'file' ? '文件图谱' : '数据库图谱'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setDesktopRelationFiltersOpen((open) => !open)}
+                className="rounded-md border border-platform-border px-2 py-0.5 text-[10px] text-platform-fg-secondary transition hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                aria-expanded={desktopRelationFiltersOpen}
+              >
+                {desktopRelationFiltersOpen ? '收起' : '展开'}
+              </button>
+            </div>
           </div>
 
+          {!desktopRelationFiltersOpen ? (
+            <div
+              className="rounded-lg border border-platform-border bg-platform-canvas-muted px-2.5 py-2 text-[11px] text-platform-fg-secondary"
+              data-knowledge-active-filter-summary="relation-filters"
+            >
+              {activeFilterSummary}
+            </div>
+          ) : (
+            <>
           <div className="mb-3 flex items-center justify-between text-[11px] text-platform-fg-secondary">
             <span>当前显示关系 {displayLinks.length} 条</span>
             <span>节点 {filteredNodes.length} / {nodes.length}</span>
@@ -797,12 +886,16 @@ export function KnowledgeGraphSystem({
           >
             清空节点筛选条件
           </button>
+            </>
+          )}
         </div>
 
         {/* 视图切换按钮 */}
         <div
           className="absolute right-4 top-4 z-10 flex rounded-lg border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur-sm"
           data-knowledge-local-panel="view-mode-switch"
+          data-knowledge-local-tool="view-mode-switch"
+          data-state="open"
         >
           <button 
             onClick={() => setViewMode('2D')}

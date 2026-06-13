@@ -78,7 +78,7 @@ export function PresetLessonList({ onUseTemplate }: PresetLessonListProps) {
       const result = await response.json();
 
       // 跳转到编辑页面
-      window.location.href = `/teacher/lesson-plans/${result.lessonPlanId}/edit`;
+      window.location.href = `/teacher/lesson-plans/${result.lessonPlanId}/edit?returnTo=${encodeURIComponent('/teacher/preset-lessons')}`;
     } catch (error) {
       console.error('克隆预置教案失败:', error);
       alert('克隆失败，请重试');

@@ -147,7 +147,22 @@ export interface PlatformProfileAndCockpitAction {
 export interface PlatformContextualReturnTargetRule {
   workspaceMode: PlatformWorkspaceMode;
   routePrefix: string;
-  sourceContext: 'arena-challenge' | 'arena-publication' | 'interactive-learning' | 'adaptive-learning';
+  sourceContext:
+    | 'arena-challenge'
+    | 'arena-publication'
+    | 'interactive-learning'
+    | 'interactive-learning-chapter-components'
+    | 'interactive-learning-resource'
+    | 'adaptive-learning'
+    | 'simulation-descendant'
+    | 'teacher-classes'
+    | 'teacher-class-create'
+    | 'teacher-lesson-plans'
+    | 'teacher-lesson-plan-create'
+    | 'teacher-lesson-plan-edit'
+    | 'admin-lesson-plans'
+    | 'admin-lesson-plan-create'
+    | 'admin-lesson-plan-edit';
   targetHint: string;
   fallbackHref: string;
 }
@@ -277,6 +292,7 @@ const APP_SHELL_MIGRATION_CHANGE = 'upgrade-platform-app-shell-to-archetype-shel
 const MISSION_WORKSPACE_MIGRATION_CHANGE = 'migrate-mission-workspaces-to-unified-shell';
 const LEARNER_KNOWLEDGE_DATA_MIGRATION_CHANGE = 'migrate-learner-knowledge-data-surfaces';
 const KNOWLEDGE_MAP_UNIFIED_SHELL_CHANGE = 'migrate-knowledge-map-to-unified-shell-panels';
+const SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE = 'migrate-secondary-route-families-to-unified-shell';
 const OPERATIONS_REPORT_MIGRATION_CHANGE = 'migrate-operations-report-ledger-surfaces';
 const DATA_CENTER_OPERATIONS_ROLE_CHANGE = 'restrict-data-center-to-operations-roles';
 
@@ -595,6 +611,42 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     owningChange: 'migrate-student-secondary-routes-to-unified-shell',
   }),
   primaryRoute({
+    href: '/interactive-learning/chapter-components/[category]',
+    routeFile: 'src/app/interactive-learning/chapter-components/[category]/page.tsx',
+    routePattern: '/interactive-learning/chapter-components/:category',
+    coveredRouteGlob: 'src/app/interactive-learning/chapter-components/*/page.tsx',
+    frame: 'learning-atlas',
+    roleScope: ['guest', 'student'],
+    authState: 'public',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'collapsed',
+    visualQaProfile: 'representative',
+    owningChange: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
+    contextualReturn: {
+      sourceContext: 'interactive-learning-chapter-components',
+      targetHint: 'Return to the chapter component library with the selected category context preserved.',
+      fallbackHref: '/interactive-learning/chapter-components',
+    },
+  }),
+  primaryRoute({
+    href: '/interactive-learning/resources/[id]',
+    routeFile: 'src/app/interactive-learning/resources/[id]/page.tsx',
+    routePattern: '/interactive-learning/resources/:id',
+    coveredRouteGlob: 'src/app/interactive-learning/resources/*/page.tsx',
+    frame: 'learning-atlas',
+    roleScope: ['guest', 'student'],
+    authState: 'public',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'collapsed',
+    visualQaProfile: 'representative',
+    owningChange: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
+    contextualReturn: {
+      sourceContext: 'interactive-learning-resource',
+      targetHint: 'Return to the launching Interactive Learning source route when leaving a resource detail.',
+      fallbackHref: '/interactive-learning',
+    },
+  }),
+  primaryRoute({
     href: '/interactive-learning/cross-domain-exploration',
     routeFile: 'src/app/interactive-learning/cross-domain-exploration/page.tsx',
     frame: 'learning-atlas',
@@ -702,6 +754,35 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
       disposition: 'retained-temporary',
       sourceFile: 'src/app/simulations/cruise/page.tsx',
       removalCondition: 'Concrete simulation scenes preserve launch provenance, return target, evidence rail, and local scene controls in the immersive workspace shell.',
+    },
+  }),
+  primaryRoute({
+    href: '/simulations/lng',
+    routeFile: 'src/app/simulations/lng/page.tsx',
+    frame: 'mission-workspace',
+    roleScope: ['guest', 'student', 'teacher'],
+    authState: 'mixed',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'hidden',
+    visualQaProfile: 'immersive',
+    screenshotProfile: 'temporary-exception',
+    owningChange: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
+    contextualReturn: {
+      sourceContext: 'simulation-descendant',
+      targetHint: 'Return to the simulation fleet when leaving the LNG simulation.',
+      fallbackHref: '/simulations',
+    },
+    legacyShell: {
+      component: 'FeaturePageNav',
+      disposition: 'retained-temporary',
+      sourceFile: 'src/app/simulations/lng/page.tsx',
+      removalCondition: 'LNG simulation preserves launch provenance, return target, evidence rail, and local scene controls in the immersive workspace shell.',
+    },
+    exception: {
+      owner: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
+      affectedCapability: 'simulation-descendant-shell',
+      reason: 'LNG uses the simulation runtime FeaturePageNav until concrete scenes share an approved immersive workspace shell.',
+      expiresOn: '2026-08-31',
     },
   }),
   primaryRoute({
@@ -950,6 +1031,29 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
   }),
   primaryRoute({
+    href: '/teacher/classes/new',
+    routeFile: 'src/app/teacher/classes/new/page.tsx',
+    frame: 'operations-console',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    screenshotProfile: 'temporary-exception',
+    owningChange: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
+    contextualReturn: {
+      sourceContext: 'teacher-class-create',
+      targetHint: 'Return to the teacher class list after creating or cancelling a class.',
+      fallbackHref: '/teacher/classes',
+    },
+    exception: {
+      owner: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
+      affectedCapability: 'teacher-class-create-shell',
+      reason: 'Class creation still uses a route-local form shell and needs AppShell form slot migration.',
+      expiresOn: '2026-08-31',
+    },
+  }),
+  primaryRoute({
     href: '/teacher/classes/[classId]',
     routeFile: 'src/app/teacher/classes/[classId]/page.tsx',
     frame: 'operations-console',
@@ -1004,6 +1108,54 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
+  }),
+  primaryRoute({
+    href: '/teacher/lesson-plans/new',
+    routeFile: 'src/app/teacher/lesson-plans/new/page.tsx',
+    frame: 'operations-console',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    screenshotProfile: 'temporary-exception',
+    owningChange: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
+    contextualReturn: {
+      sourceContext: 'teacher-lesson-plan-create',
+      targetHint: 'Return to the teacher lesson-plan source after creating a plan.',
+      fallbackHref: '/teacher/lesson-plans',
+    },
+    exception: {
+      owner: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
+      affectedCapability: 'teacher-lesson-plan-builder-shell',
+      reason: 'Teacher lesson-plan creation uses OrchestratorBuilder until builder controls move into AppShell workspace slots.',
+      expiresOn: '2026-08-31',
+    },
+  }),
+  primaryRoute({
+    href: '/teacher/lesson-plans/[id]/edit',
+    routeFile: 'src/app/teacher/lesson-plans/[id]/edit/page.tsx',
+    routePattern: '/teacher/lesson-plans/:id/edit',
+    coveredRouteGlob: 'src/app/teacher/lesson-plans/*/edit/page.tsx',
+    frame: 'operations-console',
+    roleScope: ['teacher'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    screenshotProfile: 'temporary-exception',
+    owningChange: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
+    contextualReturn: {
+      sourceContext: 'teacher-lesson-plan-edit',
+      targetHint: 'Return to the teacher lesson-plan source after editing a plan.',
+      fallbackHref: '/teacher/lesson-plans',
+    },
+    exception: {
+      owner: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
+      affectedCapability: 'teacher-lesson-plan-builder-shell',
+      reason: 'Teacher lesson-plan editing uses OrchestratorBuilder until builder controls move into AppShell workspace slots.',
+      expiresOn: '2026-08-31',
+    },
   }),
   primaryRoute({
     href: '/teacher/preset-lessons',
@@ -1177,6 +1329,54 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
+  }),
+  primaryRoute({
+    href: '/admin/lesson-plans/new',
+    routeFile: 'src/app/admin/lesson-plans/new/page.tsx',
+    frame: 'operations-console',
+    roleScope: ['admin'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    screenshotProfile: 'temporary-exception',
+    owningChange: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
+    contextualReturn: {
+      sourceContext: 'admin-lesson-plan-create',
+      targetHint: 'Return to the administrator lesson-plan list after creating a plan.',
+      fallbackHref: '/admin/lesson-plans',
+    },
+    exception: {
+      owner: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
+      affectedCapability: 'admin-lesson-plan-builder-shell',
+      reason: 'Admin lesson-plan creation uses OrchestratorBuilder until builder controls move into AppShell workspace slots.',
+      expiresOn: '2026-08-31',
+    },
+  }),
+  primaryRoute({
+    href: '/admin/lesson-plans/[id]/edit',
+    routeFile: 'src/app/admin/lesson-plans/[id]/edit/page.tsx',
+    routePattern: '/admin/lesson-plans/:id/edit',
+    coveredRouteGlob: 'src/app/admin/lesson-plans/*/edit/page.tsx',
+    frame: 'operations-console',
+    roleScope: ['admin'],
+    authState: 'protected-redirect',
+    navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'enabled',
+    visualQaProfile: 'representative',
+    screenshotProfile: 'temporary-exception',
+    owningChange: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
+    contextualReturn: {
+      sourceContext: 'admin-lesson-plan-edit',
+      targetHint: 'Return to the administrator lesson-plan list after editing a plan.',
+      fallbackHref: '/admin/lesson-plans',
+    },
+    exception: {
+      owner: SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE,
+      affectedCapability: 'admin-lesson-plan-builder-shell',
+      reason: 'Admin lesson-plan editing uses OrchestratorBuilder until builder controls move into AppShell workspace slots.',
+      expiresOn: '2026-08-31',
+    },
   }),
   primaryRoute({
     href: '/admin/data-governance',

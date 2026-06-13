@@ -17,6 +17,7 @@ interface LessonPlanListProps {
   plans: any[];
   basePath?: string; // 默认 /admin/lesson-plans
   currentUserId?: string;
+  returnTo?: string;
 }
 
 const dateFormatter = new Intl.DateTimeFormat('zh-CN', {
@@ -32,7 +33,7 @@ function formatStableDate(value: string | Date) {
   return dateFormatter.format(date);
 }
 
-export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', currentUserId }: LessonPlanListProps) {
+export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', currentUserId, returnTo }: LessonPlanListProps) {
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [visiblePlans, setVisiblePlans] = useState(plans);
@@ -95,6 +96,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
       {visiblePlans.map((plan) => {
         const isPreset = Boolean(plan.isPreset);
         const canEdit = !isPreset && (!currentUserId || plan.authorId === currentUserId);
+        const editHref = `${basePath}/${plan.id}/edit${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`;
         return (
         <div 
           key={plan.id} 
@@ -158,7 +160,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
              <div className="flex gap-2">
                 {canEdit && (
                   <button
-                      onClick={() => router.push(`${basePath}/${plan.id}/edit`)}
+                      onClick={() => router.push(editHref)}
                       className="flex items-center gap-1 text-xs text-slate-400 hover:text-white px-2 py-1 transition-colors"
                   >
                       <Edit className="h-3 w-3" />

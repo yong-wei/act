@@ -54,7 +54,7 @@ export default function CrossDomainExplorationPage() {
       key: resource.id,
       title: resource.displayName || resource.title,
       description: resource.description || '跨域探索互动组件',
-      href: `/interactive-learning/resources/${resource.id}`,
+      href: `/interactive-learning/resources/${resource.id}?source=cross-domain-exploration`,
       tag: '跨域组件',
     }));
   }, [resources]);

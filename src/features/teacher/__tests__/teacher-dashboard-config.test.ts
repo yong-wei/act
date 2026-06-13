@@ -28,8 +28,8 @@ describe('teacher dashboard config', () => {
         href: item.href,
       }))
     ).toEqual([
-      { title: '新建班级', href: '/teacher/classes/new' },
-      { title: '新建教案', href: '/teacher/lesson-plans/new' },
+      { title: '新建班级', href: '/teacher/classes/new?returnTo=%2Fteacher' },
+      { title: '新建教案', href: '/teacher/lesson-plans/new?returnTo=%2Fteacher' },
       { title: '预置教案', href: '/teacher/preset-lessons' },
       { title: '教学资源管理', href: '/teacher/resources' },
       { title: '上课历史', href: '/teacher/history' },

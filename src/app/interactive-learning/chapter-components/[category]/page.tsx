@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Ship } from 'lucide-react';
 
+import { InteractiveLearningShell } from '@/features/interactive/interactive-learning-shell';
 import {
   CATEGORY_CONFIG,
   CHAPTER_COMPONENT_CATEGORIES,
@@ -56,7 +57,7 @@ export default function ChapterCategoryPage() {
   const content = useMemo(() => {
     if (!categoryConfig) {
       return (
-        <div className="rounded-2xl border border-dashed border-rose-400/30 bg-rose-950/20 px-6 py-10 text-center text-sm text-rose-200">
+        <div className="surface-card rounded-2xl border-dashed px-6 py-10 text-center text-sm text-subtle">
           未找到对应章节入口，请返回“各章节互动组件”重新选择。
         </div>
       );
@@ -64,7 +65,7 @@ export default function ChapterCategoryPage() {
 
     if (isLoading) {
       return (
-        <div className="rounded-2xl border border-dashed border-white/15 bg-slate-900/30 px-6 py-12 text-center text-sm text-slate-400">
+        <div className="surface-card rounded-2xl border-dashed px-6 py-12 text-center text-sm text-subtle">
           正在加载组件...
         </div>
       );
@@ -72,7 +73,7 @@ export default function ChapterCategoryPage() {
 
     if (resources.length === 0) {
       return (
-        <div className="rounded-2xl border border-dashed border-white/15 bg-slate-900/30 px-6 py-12 text-center text-sm text-slate-400">
+        <div className="surface-card rounded-2xl border-dashed px-6 py-12 text-center text-sm text-subtle">
           当前章节暂无组件。
         </div>
       );
@@ -83,12 +84,12 @@ export default function ChapterCategoryPage() {
         {resources.map((resource) => (
           <Link
             key={resource.id}
-            href={`/interactive-learning/resources/${resource.id}`}
-            className="group rounded-xl border border-slate-800 bg-slate-900/60 p-5 transition hover:-translate-y-0.5 hover:border-cyan-300/45"
+            href={`/interactive-learning/resources/${resource.id}?source=chapter-components&category=${slug}`}
+            className="surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-primary/45"
           >
-            <h2 className="text-lg font-semibold text-white">{resource.displayName || resource.title}</h2>
-            <p className="mt-2 text-sm text-slate-300">{resource.description || '暂无组件描述。'}</p>
-            <div className="mt-4 inline-flex items-center text-xs text-cyan-200">
+            <h2 className="text-lg font-semibold text-foreground">{resource.displayName || resource.title}</h2>
+            <p className="mt-2 text-sm text-subtle">{resource.description || '暂无组件描述。'}</p>
+            <div className="mt-4 inline-flex items-center text-xs text-primary">
               打开资源
               <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
             </div>
@@ -96,38 +97,42 @@ export default function ChapterCategoryPage() {
         ))}
       </section>
     );
-  }, [categoryConfig, isLoading, resources]);
+  }, [categoryConfig, isLoading, resources, slug]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      <nav className="border-b border-white/10">
-        <div className="mx-auto flex max-w-[1280px] items-center justify-between px-6 py-4">
-          <Link href="/interactive-learning/chapter-components" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/15 text-cyan-300">
-              <Ship className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-sm font-semibold tracking-wide">各章节互动组件</div>
-              <div className="text-xs text-white/50">Chapter Detail</div>
-            </div>
-          </Link>
-          <Link
-            href="/interactive-learning/chapter-components"
-            className="rounded-lg border border-white/20 px-4 py-2 text-sm text-white/80 transition hover:bg-white/10"
-          >
-            返回章节入口
-          </Link>
-        </div>
-      </nav>
-
-      <main className="mx-auto max-w-[1280px] px-6 py-10">
-        <header className="mb-8 rounded-2xl border border-white/10 bg-slate-900/60 p-6">
-          <h1 className="text-3xl font-semibold">{title}</h1>
-          <p className="mt-2 text-sm text-slate-300">{description}</p>
+    <InteractiveLearningShell
+      activeHref={`/interactive-learning/chapter-components/${slug}`}
+      title={title}
+      subtitle="Chapter component detail"
+      breadcrumbs={[
+        { label: '互动学习', href: '/interactive-learning' },
+        { label: '各章节互动组件', href: '/interactive-learning/chapter-components' },
+        { label: title },
+      ]}
+      actions={(
+        <Link
+          href="/interactive-learning/chapter-components"
+          className="inline-flex items-center gap-2 rounded-md border border-platform-border bg-platform-surface px-3 py-2 text-sm text-platform-fg-secondary transition hover:border-platform-border-strong hover:text-platform-action-primary"
+        >
+          <Ship className="h-4 w-4" />
+          返回章节入口
+        </Link>
+      )}
+    >
+      <section
+        className="mx-auto max-w-[1280px] px-6 py-10"
+        data-commercial-workspace="interactive-learning"
+        data-commercial-student-entry-route="/interactive-learning/chapter-components/[category]"
+        data-route-family="interactive-learning-chapter-components"
+        data-route-source="/interactive-learning/chapter-components"
+      >
+        <header className="surface-card mb-8 p-6">
+          <h1 className="text-3xl font-semibold text-foreground">{title}</h1>
+          <p className="mt-2 text-sm text-subtle">{description}</p>
         </header>
 
         {content}
-      </main>
-    </div>
+      </section>
+    </InteractiveLearningShell>
   );
 }

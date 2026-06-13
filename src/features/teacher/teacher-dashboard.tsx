@@ -124,7 +124,10 @@ export function TeacherDashboard({
 
   const activeClassHref = resolveTeacherOperationsClassHref(activeSessions, recentClasses);
   const analyticsHref = `${activeClassHref}${activeClassHref === '/teacher/classes' ? '' : '/analytics-v2'}`;
-  const preparationHref = recentPlans[0] ? `/teacher/lesson-plans/${recentPlans[0].id}/edit` : '/teacher/lesson-plans/new';
+  const teacherHomeReturnTo = encodeURIComponent('/teacher');
+  const preparationHref = recentPlans[0]
+    ? `/teacher/lesson-plans/${recentPlans[0].id}/edit?returnTo=${teacherHomeReturnTo}`
+    : `/teacher/lesson-plans/new?returnTo=${teacherHomeReturnTo}`;
   const liveClassHref = activeSessions[0] ? `/classroom/teacher/${activeSessions[0].id}` : activeClassHref;
   const attentionItems = [
     {
@@ -445,7 +448,7 @@ export function TeacherDashboard({
               <BookOpen className="mx-auto h-12 w-12 text-slate-500" />
               <p className="mt-2 text-subtle">暂无教案</p>
               <Link
-                href="/teacher/lesson-plans/new"
+                href={`/teacher/lesson-plans/new?returnTo=${teacherHomeReturnTo}`}
                 className="mt-4 inline-block text-sm text-amber-600 transition hover:text-amber-500 dark:text-amber-300 dark:hover:text-amber-200"
               >
                 创建第一个教案
@@ -456,7 +459,7 @@ export function TeacherDashboard({
               {recentPlans.map((plan) => (
                 <Link
                   key={plan.id}
-                  href={`/teacher/lesson-plans/${plan.id}/edit`}
+                  href={`/teacher/lesson-plans/${plan.id}/edit?returnTo=${teacherHomeReturnTo}`}
                   className="teacher-home-list-item"
                 >
                   <div>

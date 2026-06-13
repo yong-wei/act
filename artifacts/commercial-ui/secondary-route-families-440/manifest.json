@@ -1,0 +1,126 @@
+{
+  "changeId": "migrate-secondary-route-families-to-unified-shell",
+  "capturedAt": "2026-06-13T15:24:00+08:00",
+  "routes": [
+    {
+      "href": "/interactive-learning/chapter-components/[category]",
+      "sampleRoute": "/interactive-learning/chapter-components/time-domain",
+      "sourceRoute": "/interactive-learning/chapter-components",
+      "shell": "InteractiveLearningShell",
+      "routeFamily": "interactive-learning-chapter-components",
+      "coverage": [
+        "desktop-expanded",
+        "desktop-collapsed",
+        "mobile-workspace-command-surface",
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "href": "/interactive-learning/resources/[id]",
+      "sampleRoute": "/interactive-learning/resources/lesson09-correction-precheck?source=chapter-components&category=time-domain",
+      "sourceRoute": "/interactive-learning/chapter-components/time-domain",
+      "alternateSourceRoute": "/interactive-learning/cross-domain-exploration",
+      "shell": "InteractiveLearningShell",
+      "routeFamily": "interactive-learning-resource-detail",
+      "coverage": [
+        "desktop-expanded",
+        "desktop-collapsed",
+        "mobile-workspace-command-surface",
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "href": "/teacher/classes/new",
+      "sampleRoute": "/teacher/classes/new?returnTo=%2Fteacher",
+      "sourceRoute": "/teacher",
+      "shell": "TeacherLayout legacy operations shell",
+      "routeFamily": "teacher-classes",
+      "coverage": [
+        "desktop-1440",
+        "mobile-320",
+        "source-aware-return-targets",
+        "temporary-route-exception"
+      ]
+    },
+    {
+      "href": "/teacher/lesson-plans",
+      "sampleRoute": "/teacher/lesson-plans",
+      "sourceRoute": "/teacher",
+      "shell": "TeacherLayout operations shell",
+      "routeFamily": "teacher-lesson-plans",
+      "coverage": [
+        "desktop-1440",
+        "mobile-320",
+        "source-aware-return-targets",
+        "temporary-route-exception"
+      ]
+    },
+    {
+      "href": "/teacher/lesson-plans/new",
+      "sampleRoute": "/teacher/lesson-plans/new?returnTo=%2Fteacher%2Flesson-plans",
+      "sourceRoute": "/teacher/lesson-plans",
+      "shell": "OrchestratorBuilder temporary operations workspace",
+      "routeFamily": "teacher-lesson-plans",
+      "coverage": [
+        "desktop-1440",
+        "mobile-320",
+        "source-aware-return-targets",
+        "temporary-route-exception"
+      ]
+    },
+    {
+      "href": "/teacher/lesson-plans/[id]/edit",
+      "sampleRoute": "/teacher/lesson-plans/demo-plan/edit?returnTo=%2Fteacher%2Flesson-plans",
+      "sourceRoute": "/teacher/lesson-plans",
+      "shell": "OrchestratorBuilder temporary operations workspace",
+      "routeFamily": "teacher-lesson-plans",
+      "coverage": [
+        "desktop-1440",
+        "mobile-320",
+        "source-aware-return-targets",
+        "temporary-route-exception"
+      ]
+    },
+    {
+      "href": "/admin/lesson-plans",
+      "sampleRoute": "/admin/lesson-plans",
+      "sourceRoute": "/admin",
+      "shell": "Admin operations shell",
+      "routeFamily": "admin-lesson-plans",
+      "coverage": [
+        "desktop-1440",
+        "mobile-320",
+        "source-aware-return-targets",
+        "temporary-route-exception"
+      ]
+    },
+    {
+      "href": "/admin/lesson-plans/new",
+      "sampleRoute": "/admin/lesson-plans/new?returnTo=%2Fadmin%2Flesson-plans",
+      "sourceRoute": "/admin/lesson-plans",
+      "shell": "OrchestratorBuilder temporary admin workspace",
+      "routeFamily": "admin-lesson-plans",
+      "coverage": [
+        "desktop-1440",
+        "mobile-320",
+        "source-aware-return-targets",
+        "temporary-route-exception"
+      ]
+    },
+    {
+      "href": "/admin/lesson-plans/[id]/edit",
+      "sampleRoute": "/admin/lesson-plans/demo-plan/edit?returnTo=%2Fadmin%2Flesson-plans",
+      "sourceRoute": "/admin/lesson-plans",
+      "shell": "OrchestratorBuilder temporary admin workspace",
+      "routeFamily": "admin-lesson-plans",
+      "coverage": [
+        "desktop-1440",
+        "mobile-320",
+        "source-aware-return-targets",
+        "temporary-route-exception"
+      ]
+    }
+  ]
+}

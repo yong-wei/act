@@ -2,17 +2,21 @@
 
 import type { ReactNode } from 'react';
 
-import { AppShell } from '@/components/platform/app-shell';
+import { AppShell, type AppBreadcrumbItem } from '@/components/platform/app-shell';
 
 export function InteractiveLearningShell({
   activeHref,
   title,
   subtitle,
+  breadcrumbs,
+  actions,
   children,
 }: {
   activeHref: string;
   title: string;
   subtitle: string;
+  breadcrumbs?: readonly AppBreadcrumbItem[];
+  actions?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -20,6 +24,8 @@ export function InteractiveLearningShell({
       viewerRole="student"
       title={title}
       subtitle={subtitle}
+      breadcrumbs={breadcrumbs}
+      actions={actions}
       activeHref={activeHref}
       sidebarMode="collapsible"
       className="surface-page"
