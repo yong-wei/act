@@ -813,6 +813,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     mobileNavigation: 'role-route-tabs',
+    themeSupport: ['light'],
     owningChange: 'redesign-learner-data-and-report-surfaces',
   }),
   primaryRoute({
@@ -837,6 +838,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     mobileNavigation: 'role-route-tabs',
+    themeSupport: ['light'],
     owningChange: 'redesign-learner-data-and-report-surfaces',
   }),
   primaryRoute({
@@ -849,6 +851,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     mobileNavigation: 'role-route-tabs',
+    themeSupport: ['light'],
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
   }),
   primaryRoute({
@@ -977,6 +980,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
+    themeSupport: ['light'],
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
   }),
   primaryRoute({
@@ -1054,6 +1058,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
+    themeSupport: ['light'],
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
   }),
   primaryRoute({
@@ -1065,6 +1070,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
+    themeSupport: ['light'],
     owningChange: OPERATIONS_REPORT_MIGRATION_CHANGE,
   }),
   primaryRoute({

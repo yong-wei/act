@@ -81,7 +81,7 @@ All competition records use `synthetic-demo` data origin. Real classroom evidenc
 1. Run `rtk npm run test:competition-baseline` for route, API, role-boundary, visual-evidence, and synthetic-data checks.
 2. Run `rtk npm run test:intelligent-teaching-assistant-demo` for fixture, API, provider, privacy, and citation checks.
 3. Run `rtk npm run test:commercial-ui-governance` for route ledger and visual evidence gates.
-4. Run `rtk openspec validate polish-competition-surfaces-report --strict` before archiving this change.
+4. Run `rtk openspec validate competition-demo-baseline --strict` to verify the archived competition baseline spec.
 5. If the external video repository is unavailable, submit this manifest plus the checked-in browser evidence manifest and mark video capture as skipped.
 
 ## Submission Checklist

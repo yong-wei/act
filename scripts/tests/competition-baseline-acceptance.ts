@@ -150,12 +150,6 @@ function evidenceHrefForRoute(route: string): string | null {
   return route.split('?')[0] || '/';
 }
 
-function visualThemeExceptionHrefs(markdown: string): Set<string> {
-  return new Set(markdownRows(markdown)
-    .filter((cells) => cells.length >= 2 && cells[1] === 'light-only')
-    .map((cells) => cells[0]));
-}
-
 function validateCompetitionVisualEvidence(): string[] {
   let evidence: {
     routes?: Array<{
@@ -171,7 +165,6 @@ function validateCompetitionVisualEvidence(): string[] {
   const evidenceByHref = new Map((evidence.routes ?? []).map((route) => [route.href, route]));
   const errors: string[] = [];
   const validAuthStates = new Set(['public', 'auth-entry', 'authenticated', 'unauth-redirect-fallback']);
-  const lightOnlyThemeExceptions = visualThemeExceptionHrefs(requireText(assetsManifestPath));
   const requiredRoutes = [...new Set(XH_202620_COMPETITION_BASELINE.routeLedger
     .map((step) => evidenceHrefForRoute(step.route))
     .filter((href): href is string => Boolean(href)))];
@@ -192,10 +185,7 @@ function validateCompetitionVisualEvidence(): string[] {
     if (themes.size === 0) {
       errors.push(`visual evidence missing theme metadata for ${href}`);
     }
-    const inventoryThemes = resolvePlatformRouteInventory(href)?.themeSupport ?? ['light', 'dark'];
-    const requiredThemes = lightOnlyThemeExceptions.has(href)
-      ? inventoryThemes.filter((theme) => theme === 'light')
-      : inventoryThemes;
+    const requiredThemes = resolvePlatformRouteInventory(href)?.themeSupport ?? ['light', 'dark'];
     for (const requiredTheme of requiredThemes) {
       if (!themes.has(requiredTheme)) {
         errors.push(`visual evidence missing ${requiredTheme} theme coverage for ${href}`);
@@ -257,7 +247,7 @@ function routeMarker(step: CompetitionBaselineRouteStep): string {
 function liveRouteMarker(step: CompetitionBaselineRouteStep): string {
   if (step.route === '/') return 'data-commercial-entry-intent';
   if (step.route === '/profile/evidence') return 'data-learner-record-surface';
-  if (step.route === '/profile/growth') return 'data-learner-growth-surface';
+  if (step.route === '/profile/growth') return 'data-learner-record-surface';
   if (step.route.includes('/adaptive-practice')) return 'data-control-correction-center';
   if (step.route.includes('/document-feedback')) return 'data-intelligent-teaching-assistant-demo-surface="document-feedback"';
   if (step.route.includes('/grading-workbench')) return 'data-intelligent-teaching-assistant-demo-surface="document-grading-workbench"';
@@ -268,7 +258,7 @@ function liveRouteMarker(step: CompetitionBaselineRouteStep): string {
   if (step.route === '/admin/data-governance') return 'data-commercial-operations-workspace="admin-operations"';
   if (step.route === '/arena') return 'data-arena-workspace-shell';
   if (step.route.includes('/arena/challenges/')) return 'task-second-order-lead-pid';
-  if (step.route === '/interactive-learning/control-workbench') return 'data-control-workbench-shell';
+  if (step.route === '/interactive-learning/control-workbench') return 'data-commercial-workspace="control-workbench"';
   return '';
 }
 
