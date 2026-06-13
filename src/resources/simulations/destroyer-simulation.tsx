@@ -1132,7 +1132,6 @@ export function DestroyerSimulation() {
   const [miniTrail, setMiniTrail] = useState<Array<{ x: number; z: number }>>([]);
   const [taskIndex, setTaskIndex] = useState(0);
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
-  const [taskProgress, setTaskProgress] = useState(0); // 进度现在基于时间
   const [resetToken, setResetToken] = useState(0);
   const [simSpeed, setSimSpeed] = useState(1);
   const [cameraOffset, setCameraOffset] = useState({
@@ -1196,6 +1195,7 @@ export function DestroyerSimulation() {
     return baseScenario;
   }, [baseScenario, customScenario, useCustomScenario]);
   const scenarioDuration = baseScenario.duration;
+  const taskProgress = activeTask ? Math.min(1, hud.time / scenarioDuration) : 0;
 
   const speedOptions = useMemo(() => [0.5, 1, 2, 4], []);
   const baseHeadingPoints = useMemo(
@@ -1263,9 +1263,19 @@ export function DestroyerSimulation() {
   const speedDirectionRef = useRef(0);
   const trailStampRef = useRef(0);
   const skipFirstTrailUpdateRef = useRef(true);
+  const nextTaskTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduledNextTaskIdRef = useRef<string | null>(null);
+
+  const clearNextTaskAdvance = useCallback(() => {
+    if (nextTaskTimerRef.current) {
+      clearTimeout(nextTaskTimerRef.current);
+      nextTaskTimerRef.current = null;
+    }
+    scheduledNextTaskIdRef.current = null;
+  }, []);
 
   const resetScenarioState = useCallback(() => {
-    setTaskProgress(0);
+    clearNextTaskAdvance();
     setMiniTrail([]);
     trailStampRef.current = 0;
     skipFirstTrailUpdateRef.current = true;
@@ -1277,7 +1287,7 @@ export function DestroyerSimulation() {
     errorSampleCountRef.current = 0;
     setChartData({ time: [], desiredHeading: [], actualHeading: [], speed: [], rudder: [] });
     setResetToken((prev) => prev + 1);
-  }, []);
+  }, [clearNextTaskAdvance]);
 
   const handleRunQuickSimulation = useCallback(() => {
     const result = runQuickSimulation(
@@ -1387,6 +1397,23 @@ export function DestroyerSimulation() {
     resetScenarioState();
   }, [taskIndex, resetScenarioState]);
 
+  const scheduleNextTaskAdvance = useCallback((taskId: string) => {
+    if (
+      taskIndex >= tasks.length - 1 ||
+      scheduledNextTaskIdRef.current === taskId ||
+      nextTaskTimerRef.current
+    ) {
+      return;
+    }
+
+    scheduledNextTaskIdRef.current = taskId;
+    nextTaskTimerRef.current = setTimeout(() => {
+      nextTaskTimerRef.current = null;
+      scheduledNextTaskIdRef.current = null;
+      setTaskIndex(prev => prev + 1);
+    }, 1000);
+  }, [taskIndex]);
+
   // 小地图航迹更新
   useEffect(() => {
     if (skipFirstTrailUpdateRef.current) {
@@ -1407,10 +1434,6 @@ export function DestroyerSimulation() {
   // 任务进度与完成检测
   useEffect(() => {
     if (!activeTask) return;
-    
-    // 进度基于时间
-    const progress = Math.min(1, hud.time / scenarioDuration);
-    setTaskProgress(progress);
 
     // 完成判定
     if (!isCustomScenario && hud.time >= activeTask.duration) {
@@ -1419,12 +1442,16 @@ export function DestroyerSimulation() {
                 prev.includes(activeTask.id) ? prev : [...prev, activeTask.id]
             );
             // 自动进入下一任务
-            if (taskIndex < tasks.length - 1) {
-                setTimeout(() => setTaskIndex(prev => prev + 1), 1000);
-            }
+            scheduleNextTaskAdvance(activeTask.id);
         }
     }
-  }, [hud.time, hud.avgError, activeTask, isCustomScenario, scenarioDuration, taskIndex]);
+  }, [hud.time, hud.avgError, activeTask, isCustomScenario, scheduleNextTaskAdvance]);
+
+  useEffect(() => {
+    return () => {
+      clearNextTaskAdvance();
+    };
+  }, [activeTask?.id, clearNextTaskAdvance]);
 
   const chartDisplayData = quickMode && quickResult ? quickResult.data : chartData;
   const previewDesiredPath = useMemo(
@@ -1850,6 +1877,7 @@ export function DestroyerSimulation() {
               <Button
                 variant="outline"
                 onClick={() => {
+                  clearNextTaskAdvance();
                   setTaskIndex(0);
                   setCompletedTaskIds([]);
                   setUseCustomScenario(false);
@@ -2505,13 +2533,16 @@ function ShipTrail({
   simRef: React.MutableRefObject<SimulationState>;
   resetToken: number;
 }) {
+  return <ShipTrailContent key={resetToken} simRef={simRef} />;
+}
+
+function ShipTrailContent({
+  simRef,
+}: {
+  simRef: React.MutableRefObject<SimulationState>;
+}) {
   const [points, setPoints] = useState<THREE.Vector3[]>([]);
   const lastRecordRef = useRef(0);
-
-  useEffect(() => {
-    setPoints([]);
-    lastRecordRef.current = 0;
-  }, [resetToken]);
 
   useFrame((state) => {
     const time = state.clock.getElapsedTime();

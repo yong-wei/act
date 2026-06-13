@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { BookOpen, Layers, Target } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
@@ -66,22 +66,32 @@ interface LaplaceKnowledgeDeckProps extends BaseWidgetProps {}
 
 export default function LaplaceKnowledgeDeck({ onComplete, onStateChange }: LaplaceKnowledgeDeckProps) {
   const interactive = useOptionalInteractiveContext();
-  const [activeId, setActiveId] = useState(KNOWLEDGE_CARDS[0]?.id ?? 'node-laplace-transform');
-  const [visited, setVisited] = useState<string[]>([]);
+  const initialActiveId = KNOWLEDGE_CARDS[0]?.id ?? 'node-laplace-transform';
+  const [activeId, setActiveId] = useState(initialActiveId);
+  const [visited, setVisited] = useState<string[]>(() => [initialActiveId]);
+  const publishedVisitedCountRef = useRef(0);
 
   const activeCard = useMemo(
     () => KNOWLEDGE_CARDS.find((card) => card.id === activeId) ?? KNOWLEDGE_CARDS[0],
     [activeId]
   );
 
+  const recordVisit = useCallback((nextActiveId: string) => {
+    setActiveId(nextActiveId);
+    setVisited((current) =>
+      current.includes(nextActiveId) ? current : [...current, nextActiveId]
+    );
+  }, []);
+
   useEffect(() => {
-    if (visited.includes(activeId)) return;
-    const nextVisited = [...visited, activeId];
-    setVisited(nextVisited);
+    if (publishedVisitedCountRef.current >= visited.length) return;
+    publishedVisitedCountRef.current = visited.length;
+    const nextVisited = visited;
+    const latestVisitedId = nextVisited[nextVisited.length - 1] ?? initialActiveId;
     const progressValue = Math.round((nextVisited.length / KNOWLEDGE_CARDS.length) * 100);
     const snapshot = {
       progress: progressValue,
-      data: { cardId: activeId, visitedCount: nextVisited.length },
+      data: { cardId: latestVisitedId, visitedCount: nextVisited.length },
       timestamp: Date.now(),
     };
     onStateChange?.(snapshot);
@@ -97,7 +107,7 @@ export default function LaplaceKnowledgeDeck({ onComplete, onStateChange }: Lapl
       interactive?.progress.markComplete(result);
       onComplete?.(result);
     }
-  }, [activeId, visited, interactive, onComplete, onStateChange]);
+  }, [initialActiveId, visited, interactive, onComplete, onStateChange]);
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -116,7 +126,7 @@ export default function LaplaceKnowledgeDeck({ onComplete, onStateChange }: Lapl
             {KNOWLEDGE_CARDS.map((card, index) => (
               <button
                 key={card.id}
-                onClick={() => setActiveId(card.id)}
+                onClick={() => recordVisit(card.id)}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                   activeId === card.id
                     ? 'bg-slate-900 text-white'

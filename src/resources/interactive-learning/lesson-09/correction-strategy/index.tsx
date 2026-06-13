@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { ListChecks, Sliders, Zap, Shield, Flag, type LucideIcon } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
@@ -69,22 +69,32 @@ interface CorrectionStrategyProps extends BaseWidgetProps {}
 
 export default function CorrectionStrategy({ onComplete, onStateChange }: CorrectionStrategyProps) {
   const interactive = useOptionalInteractiveContext();
-  const [activeId, setActiveId] = useState(STRATEGIES[0]?.id ?? 'pd');
-  const [visited, setVisited] = useState<string[]>([]);
+  const initialActiveId = STRATEGIES[0]?.id ?? 'pd';
+  const [activeId, setActiveId] = useState(initialActiveId);
+  const [visited, setVisited] = useState<string[]>(() => [initialActiveId]);
+  const publishedVisitedCountRef = useRef(0);
 
   const activeSection = useMemo(
     () => STRATEGIES.find((section) => section.id === activeId) ?? STRATEGIES[0],
     [activeId]
   );
 
+  const recordVisit = useCallback((nextActiveId: string) => {
+    setActiveId(nextActiveId);
+    setVisited((current) =>
+      current.includes(nextActiveId) ? current : [...current, nextActiveId]
+    );
+  }, []);
+
   useEffect(() => {
-    if (visited.includes(activeId)) return;
-    const nextVisited = [...visited, activeId];
-    setVisited(nextVisited);
+    if (publishedVisitedCountRef.current >= visited.length) return;
+    publishedVisitedCountRef.current = visited.length;
+    const nextVisited = visited;
+    const latestVisitedId = nextVisited[nextVisited.length - 1] ?? initialActiveId;
     const progressValue = Math.round((nextVisited.length / STRATEGIES.length) * 100);
     const snapshot = {
       progress: progressValue,
-      data: { sectionId: activeId, visitedCount: nextVisited.length },
+      data: { sectionId: latestVisitedId, visitedCount: nextVisited.length },
       timestamp: Date.now(),
     };
     onStateChange?.(snapshot);
@@ -100,7 +110,7 @@ export default function CorrectionStrategy({ onComplete, onStateChange }: Correc
       interactive?.progress.markComplete(result);
       onComplete?.(result);
     }
-  }, [activeId, visited, interactive, onComplete, onStateChange]);
+  }, [initialActiveId, visited, interactive, onComplete, onStateChange]);
 
   const ActiveIcon = activeSection.icon;
 
@@ -121,7 +131,7 @@ export default function CorrectionStrategy({ onComplete, onStateChange }: Correc
             {STRATEGIES.map((section) => (
               <button
                 key={section.id}
-                onClick={() => setActiveId(section.id)}
+                onClick={() => recordVisit(section.id)}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                   activeId === section.id
                     ? 'bg-slate-900 text-white'
