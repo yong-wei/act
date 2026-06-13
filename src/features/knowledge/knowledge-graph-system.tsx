@@ -719,7 +719,7 @@ export function KnowledgeGraphSystem({
 
         {/* 筛选控制区 */}
         <div
-          className={`surface-card absolute left-4 top-4 z-20 hidden max-w-[calc(100vw-2rem)] p-3 shadow-lg backdrop-blur-md lg:block ${desktopRelationFiltersOpen ? 'lg:w-[22.5rem]' : 'lg:w-64'}`}
+          className={`surface-card absolute left-4 top-4 z-20 hidden max-h-[calc(100vh-2rem)] max-w-[calc(100vw-2rem)] overflow-y-auto p-3 shadow-lg backdrop-blur-md lg:block ${desktopRelationFiltersOpen ? 'lg:w-[22.5rem]' : 'lg:w-64'}`}
           data-knowledge-desktop-panel="relation-filters"
           data-knowledge-local-panel="relation-filters"
           data-knowledge-local-tool="relation-filters"
@@ -921,7 +921,7 @@ export function KnowledgeGraphSystem({
 
           <div className="mb-3 rounded-lg border border-platform-border bg-platform-surface px-2.5 py-2 text-[11px] text-platform-fg-secondary">
             <div className="mb-1 font-medium text-platform-fg-primary">关系图例</div>
-            <div className="grid grid-cols-2 gap-1.5">
+            <div className="grid max-h-48 grid-cols-2 gap-1.5 overflow-y-auto pr-1">
               {relationLegendItems.map((item) => (
                 <RelationLegendSample key={`desktop-legend-${item.type}`} item={item} isLightTheme={isLightTheme} />
               ))}
