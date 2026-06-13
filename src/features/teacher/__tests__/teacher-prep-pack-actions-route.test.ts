@@ -8,6 +8,12 @@ const mocks = vi.hoisted(() => ({
       findUnique: vi.fn(),
       upsert: vi.fn(),
     },
+    lessonPlan: {
+      findUnique: vi.fn(),
+    },
+    classSession: {
+      findMany: vi.fn(),
+    },
   },
 }));
 
@@ -141,6 +147,20 @@ describe('teacher prep-pack lifecycle actions route', () => {
     vi.clearAllMocks();
     mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
     mocks.prisma.courseEnhancementPack.findUnique.mockResolvedValue(enhancementRecord());
+    mocks.prisma.lessonPlan.findUnique.mockResolvedValue({
+      id: 'lesson-3-6',
+      items: [{
+        id: 'step-quiz',
+        stage: 'PARTICIPATORY',
+        resourceId: 'resource-node-1',
+        knowledgeNodeId: null,
+        resource: { registryId: 'control-correction-diagnosis-recap' },
+      }],
+    });
+    mocks.prisma.classSession.findMany.mockResolvedValue([{
+      id: 'session-1',
+      currentItemId: 'step-quiz',
+    }]);
     mocks.prisma.courseEnhancementPack.upsert.mockImplementation(async (args) => enhancementRecord({
       status: args.update.status,
       items: args.update.items,
@@ -181,6 +201,25 @@ describe('teacher prep-pack lifecycle actions route', () => {
     expect(upsertArg.update.status).toBe('active');
     expect(JSON.stringify(upsertArg.update.auditLog)).toContain('"action":"activate"');
     expect(mocks.revalidatePath).toHaveBeenCalledWith('/teacher/prep-packs');
+  });
+
+  it('rejects activation when persisted insertion anchors are absent from the real runtime', async () => {
+    mocks.prisma.lessonPlan.findUnique.mockResolvedValue({
+      id: 'lesson-3-6',
+      items: [{
+        id: 'other-step',
+        stage: 'SUMMARY',
+        resourceId: null,
+        knowledgeNodeId: null,
+        resource: null,
+      }],
+    });
+    mocks.prisma.classSession.findMany.mockResolvedValue([]);
+
+    const response = await POST(postForm({ packId: 'enhancement-pack-1', action: 'activate' }) as never);
+
+    expect(response.headers.get('location')).toContain('status=action-failed');
+    expect(mocks.prisma.courseEnhancementPack.upsert).not.toHaveBeenCalled();
   });
 
   it('rejects rollback and impact evidence before the pack is active', async () => {
