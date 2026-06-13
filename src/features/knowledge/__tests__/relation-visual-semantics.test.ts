@@ -18,6 +18,7 @@ import {
   getRelationSemantic,
   getRelationStyle,
   getRelationThreeDimensionalEncoding,
+  hexToRgba,
   KNOWLEDGE_NODE_SCALE_CONTRACT,
 } from '../graph/visual-config';
 
@@ -117,6 +118,34 @@ describe('knowledge graph relation visual semantics', () => {
     expect(appliesTo.dash).not.toEqual(follows.dash);
     expect(opposite.hasArrow).toBe(false);
     expect(related.width).toBeLessThan(prerequisite.width);
+  });
+
+  it('caches platform color token lookups across alpha conversions until theme changes', () => {
+    const documentElement = {
+      className: 'theme-dark',
+      getAttribute: vi.fn((name: string) => (name === 'data-theme' ? 'dark' : '')),
+    };
+    let tokenValue = '210 80% 54%';
+    const getPropertyValue = vi.fn((name: string) => (
+      name === '--platform-chart-1' ? tokenValue : ''
+    ));
+    const getComputedStyleMock = vi.fn(() => ({ getPropertyValue }));
+
+    vi.stubGlobal('document', { documentElement });
+    vi.stubGlobal('getComputedStyle', getComputedStyleMock);
+
+    try {
+      expect(hexToRgba('hsl(var(--platform-chart-1))', 0.7)).toBe('hsla(210, 80%, 54%, 0.7)');
+      expect(hexToRgba('hsl(var(--platform-chart-1))', 0.42)).toBe('hsla(210, 80%, 54%, 0.42)');
+      expect(getComputedStyleMock).toHaveBeenCalledTimes(1);
+
+      tokenValue = '221 72% 46%';
+      documentElement.className = 'theme-light';
+      expect(hexToRgba('hsl(var(--platform-chart-1))', 0.7)).toBe('hsla(221, 72%, 46%, 0.7)');
+      expect(getComputedStyleMock).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it('selects high-signal structure before weak related edges by default', () => {

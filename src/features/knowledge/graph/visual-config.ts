@@ -98,17 +98,48 @@ function platformToken(name: string): string {
   return `hsl(var(--${name}))`;
 }
 
+const PLATFORM_TOKEN_VALUE_CACHE = new Map<string, string>();
+const MAX_PLATFORM_TOKEN_CACHE_SIZE = 512;
+
+function getDocumentThemeCacheKey(): string {
+  const root = document.documentElement;
+  return [
+    root.className,
+    root.getAttribute('data-theme') ?? '',
+    root.getAttribute('style') ?? '',
+  ].join('|');
+}
+
+function cachePlatformTokenValue(key: string, value: string): string {
+  if (PLATFORM_TOKEN_VALUE_CACHE.size > MAX_PLATFORM_TOKEN_CACHE_SIZE) {
+    PLATFORM_TOKEN_VALUE_CACHE.clear();
+  }
+  PLATFORM_TOKEN_VALUE_CACHE.set(key, value);
+  return value;
+}
+
 function resolvePlatformToken(color: string, alpha: number): string {
   const tokenMatch = /hsl\(var\((--[^)]+)\)\)/.exec(color);
   if (!tokenMatch) return color;
+  const tokenName = tokenMatch[1];
   if (typeof document === 'undefined') {
-    return alpha >= 1 ? `hsl(var(${tokenMatch[1]}))` : `hsl(var(${tokenMatch[1]}) / ${alpha})`;
+    return alpha >= 1 ? `hsl(var(${tokenName}))` : `hsl(var(${tokenName}) / ${alpha})`;
   }
 
-  const value = getComputedStyle(document.documentElement).getPropertyValue(tokenMatch[1]).trim();
-  if (!value) return alpha >= 1 ? `hsl(var(${tokenMatch[1]}))` : `hsl(var(${tokenMatch[1]}) / ${alpha})`;
+  const cacheKey = `${getDocumentThemeCacheKey()}|${tokenName}`;
+  const cached = PLATFORM_TOKEN_VALUE_CACHE.get(cacheKey);
+  const value = cached ?? cachePlatformTokenValue(
+    cacheKey,
+    getComputedStyle(document.documentElement).getPropertyValue(tokenName).trim()
+  );
+
+  if (!value) {
+    return alpha >= 1 ? `hsl(var(${tokenName}))` : `hsl(var(${tokenName}) / ${alpha})`;
+  }
   const [hue, saturation, lightness] = value.split(/\s+/);
-  if (!hue || !saturation || !lightness) return alpha >= 1 ? `hsl(${value})` : `hsl(${value} / ${alpha})`;
+  if (!hue || !saturation || !lightness) {
+    return alpha >= 1 ? `hsl(${value})` : `hsl(${value} / ${alpha})`;
+  }
   return alpha >= 1
     ? `hsl(${hue}, ${saturation}, ${lightness})`
     : `hsla(${hue}, ${saturation}, ${lightness}, ${alpha})`;
