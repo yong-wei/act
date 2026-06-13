@@ -148,8 +148,8 @@ export function SimulationLocalToolWorkspace({
           ))}
         </div>
       </div>
-      <SimulationLocalPanel side="left" config={template.leftPanel} />
-      <SimulationLocalPanel side="right" config={template.rightPanel} />
+      <SimulationLocalPanel side="left" config={template.leftPanel} panelLayout={panelLayout} />
+      <SimulationLocalPanel side="right" config={template.rightPanel} panelLayout={panelLayout} />
     </div>
   );
 }
@@ -157,16 +157,21 @@ export function SimulationLocalToolWorkspace({
 function SimulationLocalPanel({
   side,
   config,
+  panelLayout,
 }: {
   side: 'left' | 'right';
   config: SimulationLocalPanelConfig;
+  panelLayout: 'side-rails' | 'stacked';
 }) {
   return (
     <details
       open
       className={cn(
         'group min-w-0 rounded-lg border border-platform-border bg-platform-surface-overlay p-3 text-sm text-platform-fg-secondary shadow-sm',
-        side === 'left' ? 'order-2 lg:order-first' : 'order-3 lg:order-last',
+        side === 'left' && panelLayout === 'side-rails' ? 'order-2 lg:order-first' : null,
+        side === 'left' && panelLayout === 'stacked' ? 'order-2' : null,
+        side === 'right' && panelLayout === 'side-rails' ? 'order-3 lg:order-last' : null,
+        side === 'right' && panelLayout === 'stacked' ? 'order-3' : null,
       )}
       data-simulation-local-panel={side}
       data-simulation-local-panel-zone={side === 'left' ? 'status-rail' : 'local-tools'}

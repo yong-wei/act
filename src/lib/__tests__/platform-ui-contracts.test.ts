@@ -418,7 +418,10 @@ describe('platform UI contracts', () => {
     expect(simulationLocalToolsSource).toContain('data-simulation-panel-collapsible="true"');
     expect(simulationLocalToolsSource).toContain('data-simulation-mobile-secondary-controls="stacked-sheets"');
     expect(simulationLocalToolsSource).toContain('order-1 flex min-w-0 flex-col gap-3');
-    expect(simulationLocalToolsSource).toContain("side === 'left' ? 'order-2 lg:order-first' : 'order-3 lg:order-last'");
+    expect(simulationLocalToolsSource).toContain("side === 'left' && panelLayout === 'side-rails' ? 'order-2 lg:order-first'");
+    expect(simulationLocalToolsSource).toContain("side === 'left' && panelLayout === 'stacked' ? 'order-2'");
+    expect(simulationLocalToolsSource).toContain("side === 'right' && panelLayout === 'side-rails' ? 'order-3 lg:order-last'");
+    expect(simulationLocalToolsSource).toContain("side === 'right' && panelLayout === 'stacked' ? 'order-3'");
     expect(simulationLocalToolsSource).toContain('ChevronDown');
     expect(simulationLocalToolsSource).toContain('focus-visible:ring-2 focus-visible:ring-platform-action-primary');
     expect(simulationLocalToolsSource).not.toContain('platform-action-ring');
