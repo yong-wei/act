@@ -1107,11 +1107,11 @@ export function validateIntelligentTeachingAssistantDemoPackage(
     report.metrics.every(isCompleteEffectMetric)
   )), 'effect report metrics require definitions, source windows, source references, exclusions, caveats, and synthetic labels');
   add(pkg.effectReports.every((report) => report.metrics.every((metric) => (
-    metric.sourceReferences.every((reference) => (
-      sourceReferenceIds.has(reference) ||
-      (metric.id === 'baselineUsageCoverage' && baselineRouteLedgerIds.has(reference))
-    ))
-  ))), 'effect report source references must resolve to installed demo records or baseline route-ledger steps');
+    metric.id === 'baselineUsageCoverage'
+      ? metric.sourceReferences.length === baselineRouteLedgerIds.size
+        && metric.sourceReferences.every((reference) => baselineRouteLedgerIds.has(reference))
+      : metric.sourceReferences.every((reference) => sourceReferenceIds.has(reference))
+  ))), 'effect report source references must resolve to the metric-specific evidence source set');
   add(pkg.effectReports.every((report) => report.metrics.every((metric) => {
     const expected = expectedMetricValue(pkg, metric.id);
     return expected === null || roundMetric(expected) === metric.value;
