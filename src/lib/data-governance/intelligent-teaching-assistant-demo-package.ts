@@ -1108,8 +1108,8 @@ export function validateIntelligentTeachingAssistantDemoPackage(
   )), 'effect report metrics require definitions, source windows, source references, exclusions, caveats, and synthetic labels');
   add(pkg.effectReports.every((report) => report.metrics.every((metric) => (
     metric.id === 'baselineUsageCoverage'
-      ? metric.sourceReferences.length === baselineRouteLedgerIds.size
-        && metric.sourceReferences.every((reference) => baselineRouteLedgerIds.has(reference))
+      ? new Set(metric.sourceReferences).size === baselineRouteLedgerIds.size
+        && [...baselineRouteLedgerIds].every((reference) => metric.sourceReferences.includes(reference))
       : metric.sourceReferences.every((reference) => sourceReferenceIds.has(reference))
   ))), 'effect report source references must resolve to the metric-specific evidence source set');
   add(pkg.effectReports.every((report) => report.metrics.every((metric) => {

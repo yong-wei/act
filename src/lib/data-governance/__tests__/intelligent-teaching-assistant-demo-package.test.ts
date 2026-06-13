@@ -580,6 +580,18 @@ describe('intelligent teaching assistant demo package', () => {
       'effect report source references must resolve to the metric-specific evidence source set',
     ]));
 
+    const duplicatedRouteLedgerReferenceOnBaselineMetric = structuredClone(INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE);
+    const baselineMetric = duplicatedRouteLedgerReferenceOnBaselineMetric.effectReports[0].metrics.find((metric) => (
+      metric.id === 'baselineUsageCoverage'
+    ));
+    baselineMetric!.sourceReferences = [
+      ...baselineMetric!.sourceReferences.slice(0, -1),
+      baselineMetric!.sourceReferences[0],
+    ];
+    expect(validateIntelligentTeachingAssistantDemoPackage(duplicatedRouteLedgerReferenceOnBaselineMetric)).toEqual(expect.arrayContaining([
+      'effect report source references must resolve to the metric-specific evidence source set',
+    ]));
+
     const duplicateRoute = structuredClone(INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE);
     duplicateRoute.routeChecks[1] = { ...duplicateRoute.routeChecks[0] };
     duplicateRoute.apiExamples[1] = { ...duplicateRoute.apiExamples[0] };
