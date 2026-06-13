@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { spawnSync } from 'node:child_process';
 
 import {
   COMMERCIAL_ROUTE_INVENTORY_VISUAL_ACCEPTANCE_ROUTES,
@@ -960,11 +962,146 @@ describe('commercial UI governance', () => {
     expect(packageJson.scripts['test:react-doctor:ui-errors']).toBe(
       'npx --yes react-doctor@0.5.1 --no-score --no-telemetry --no-warnings --json .',
     );
+    expect(packageJson.scripts['test:react-doctor:owned-errors']).toBe(
+      'node ./scripts/tests/react-doctor-owned-surface-gate.mjs --mode=errors',
+    );
+    expect(packageJson.scripts['test:react-doctor:owned-security']).toBe(
+      'node ./scripts/tests/react-doctor-owned-surface-gate.mjs --mode=security',
+    );
+    expect(packageJson.scripts['react-doctor:owned-warnings']).toBe(
+      'node ./scripts/tests/react-doctor-owned-surface-gate.mjs --mode=warnings',
+    );
     expect(packageJson.scripts.test).not.toContain('react-doctor');
     for (const workflowSource of workflowSources) {
       expect(workflowSource).not.toContain('react-doctor');
       expect(workflowSource).not.toContain('test:react-doctor:ui-errors');
+      expect(workflowSource).not.toContain('test:react-doctor:owned-errors');
+      expect(workflowSource).not.toContain('test:react-doctor:owned-security');
     }
+  });
+
+  it('documents owned-surface React Doctor scope and advisory warning behavior', () => {
+    const docs = readFileSync(join(process.cwd(), 'docs/react-doctor-local-ui-gate.md'), 'utf8');
+    const scriptSource = readFileSync(join(process.cwd(), 'scripts/tests/react-doctor-owned-surface-gate.mjs'), 'utf8');
+    const doctorConfig = JSON.parse(readFileSync(join(process.cwd(), 'doctor.config.json'), 'utf8')) as { ignore: { files: string[] } };
+    const scriptExcludedRoots = scriptSource.match(/const EXCLUDED_ROOTS = \[([\s\S]*?)\];/)?.[1]
+      .split('\n')
+      .map((line) => line.trim().match(/^'(.+)',?$/)?.[1])
+      .filter((root): root is string => Boolean(root)) ?? [];
+    const scriptIncludedRoots = scriptSource.match(/const INCLUDED_ROOTS = \[([\s\S]*?)\];/)?.[1]
+      .split('\n')
+      .map((line) => line.trim().match(/^'(.+)',?$/)?.[1])
+      .filter((root): root is string => Boolean(root)) ?? [];
+    const configExcludedRoots = doctorConfig.ignore.files.map((pattern) => pattern.replace(/\/\*\*$/, '/'));
+
+    expect(docs).toContain('rtk npm run test:react-doctor:owned-errors');
+    expect(docs).toContain('rtk npm run test:react-doctor:owned-security');
+    expect(docs).toContain('rtk npm run react-doctor:owned-warnings');
+    expect(docs).toContain('`doctor.config.json` excludes');
+    expect(docs).toContain('`evaluate/`, generated build outputs');
+    expect(scriptSource).toContain("const REACT_DOCTOR_VERSION = '0.5.1'");
+    expect(scriptSource).toContain("'evaluate/'");
+    expect(scriptSource).toContain("process.exitCode = mode === 'warnings' || diagnostics.length === 0 ? 0 : 1");
+    expect(scriptIncludedRoots).toEqual(expect.arrayContaining([
+      'doctor.config',
+      'eslint.config',
+      'playwright.config',
+      'prisma.config',
+    ]));
+    expect(doctorConfig.ignore.files).toEqual(expect.arrayContaining([
+      'evaluate/**',
+      'artifacts/**',
+      'node_modules/**',
+      '.next/**',
+    ]));
+    expect(configExcludedRoots).toEqual(scriptExcludedRoots);
+  });
+
+  it('filters React Doctor owned-surface diagnostics and keeps large JSON stdout parseable', () => {
+    const tmp = mkdtempSync(join(tmpdir(), 'react-doctor-owned-gate-'));
+    const fakeNpx = join(tmp, 'npx');
+    const diagnostics = [
+      { filePath: 'src/app/page.tsx', severity: 'error', category: 'Bugs', rule: 'bug-rule', title: 'Owned app error', line: 1, column: 1 },
+      { filePath: join(process.cwd(), 'src/app/absolute-page.tsx'), severity: 'error', category: 'Bugs', rule: 'absolute-bug-rule', title: 'Owned absolute app error', line: 1, column: 1 },
+      { filePath: 'src/resources/demo.tsx', severity: 'warning', category: 'Performance', rule: 'resource-warning', title: 'Owned resource warning', line: 2, column: 1 },
+      { filePath: 'src/hooks/use-demo.ts', severity: 'warning', category: 'Maintainability', rule: 'hook-warning', title: 'Owned hook warning', line: 3, column: 1 },
+      { filePath: 'docs/security.md', severity: 'warning', category: 'Security', rule: 'security-warning', title: 'Owned security warning', line: 4, column: 1 },
+      { filePath: 'eslint.config.mjs', severity: 'error', category: 'Bugs', rule: 'root-config-error', title: 'Owned root config error', line: 5, column: 1 },
+      { filePath: 'prisma.config.ts', severity: 'warning', category: 'Security', rule: 'root-config-security', title: 'Owned root config security', line: 6, column: 1 },
+      { filePath: 'evaluate/test_repos/sample.tsx', severity: 'error', category: 'Bugs', rule: 'fixture-error', title: 'Fixture error', line: 5, column: 1 },
+      { filePath: 'artifacts/sample.tsx', severity: 'warning', category: 'Security', rule: 'artifact-security', title: 'Artifact security', line: 6, column: 1 },
+      ...Array.from({ length: 1800 }, (_, index) => ({
+        filePath: `src/app/generated-error-${index}.tsx`,
+        severity: 'error',
+        category: 'Bugs',
+        rule: 'large-error-output',
+        title: `Large error ${index}`,
+        line: index + 7,
+        column: 1,
+      })),
+      ...Array.from({ length: 1800 }, (_, index) => ({
+        filePath: `src/hooks/generated-${index}.tsx`,
+        severity: 'warning',
+        category: 'Bugs',
+        rule: 'large-warning-output',
+        title: `Large warning ${index}`,
+        line: index + 1807,
+        column: 1,
+      })),
+    ];
+    writeFileSync(fakeNpx, `#!/usr/bin/env node\nconsole.log(JSON.stringify({ schemaVersion: 1, diagnostics: ${JSON.stringify(diagnostics)} }));\n`, { mode: 0o755 });
+
+    const runGate = (mode: 'errors' | 'security' | 'warnings') => {
+      const result = spawnSync(process.execPath, [
+        join(process.cwd(), 'scripts/tests/react-doctor-owned-surface-gate.mjs'),
+        `--mode=${mode}`,
+      ], {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+        env: { ...process.env, PATH: `${tmp}:${process.env.PATH ?? ''}` },
+        maxBuffer: 8 * 1024 * 1024,
+      });
+      return { result, report: JSON.parse(result.stdout) as { totals: { selectedDiagnostics: number; fixtureNoiseDiagnostics: number }; summary: { byOwnedSurface: Record<string, number>; byCategory: Record<string, number> } } };
+    };
+
+    const errors = runGate('errors');
+    const security = runGate('security');
+    const warnings = runGate('warnings');
+
+    expect(errors.result.status).toBe(1);
+    expect(errors.report.totals.selectedDiagnostics).toBe(1803);
+    expect(errors.result.stdout.length).toBeGreaterThan(65_536);
+    expect(security.result.status).toBe(1);
+    expect(security.report.totals.selectedDiagnostics).toBe(2);
+    expect(warnings.result.status).toBe(0);
+    expect(warnings.report.totals.selectedDiagnostics).toBe(1804);
+    expect(warnings.report.totals.fixtureNoiseDiagnostics).toBe(2);
+    expect(warnings.report.summary.byOwnedSurface).toMatchObject({
+      docs: 1,
+      hooks: 1801,
+      resources: 1,
+    });
+    expect(warnings.report.summary.byCategory.Security).toBe(2);
+    expect(warnings.result.stdout.length).toBeGreaterThan(65_536);
+  });
+
+  it('fails React Doctor owned-surface gates when the scanner returns an error report', () => {
+    const tmp = mkdtempSync(join(tmpdir(), 'react-doctor-owned-failure-'));
+    const fakeNpx = join(tmp, 'npx');
+    writeFileSync(fakeNpx, `#!/usr/bin/env node\nconsole.log(JSON.stringify({ schemaVersion: 1, ok: false, error: 'scanner failed before diagnostics' }));\nprocess.exit(2);\n`, { mode: 0o755 });
+
+    const result = spawnSync(process.execPath, [
+      join(process.cwd(), 'scripts/tests/react-doctor-owned-surface-gate.mjs'),
+      '--mode=errors',
+    ], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+      env: { ...process.env, PATH: `${tmp}:${process.env.PATH ?? ''}` },
+    });
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('scanner failed before diagnostics');
+    expect(result.stdout).toBe('');
   });
 
   it('accepts hidden dock evidence for login redirect fallback viewports without falling back to protected route dock state', () => {

@@ -1,0 +1,16 @@
+{
+  "ignore": {
+    "files": [
+      "evaluate/**",
+      "node_modules/**",
+      ".next/**",
+      ".turbo/**",
+      "artifacts/**",
+      "coverage/**",
+      "dist/**",
+      "build/**",
+      "out/**",
+      "public/vendor/**"
+    ]
+  }
+}
