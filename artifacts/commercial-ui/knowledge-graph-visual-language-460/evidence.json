@@ -1,0 +1,482 @@
+{
+  "issue": 460,
+  "baseUrl": "http://localhost:3012/knowledge",
+  "capturedAt": "2026-06-13T12:24:57.198Z",
+  "screenshots": [
+    {
+      "name": "dark2d",
+      "mode": "2D",
+      "theme": "dark",
+      "screenshot": "knowledge-graph-dark-2d.png",
+      "htmlClass": "",
+      "colorScheme": "dark",
+      "canvasCount": 1,
+      "legendSampleCount": 23,
+      "legendTypes": [
+        "prerequisite",
+        "provides_foundation",
+        "contains",
+        "follows",
+        "leads_to",
+        "applies_to",
+        "opposite",
+        "related",
+        "cross_domain",
+        "generalizes",
+        "instance_of",
+        "supports",
+        "enables",
+        "complements",
+        "contrasts_with",
+        "derives",
+        "describes_migration_of",
+        "determines",
+        "embodies",
+        "informs",
+        "quantified_by",
+        "uses",
+        "visualized_by"
+      ],
+      "hasKnowledgeCategoryLabel": true,
+      "hasBloomLabel": true,
+      "exposesRawCategoryFilter": false,
+      "exposesRawBloomFilter": false,
+      "hasCrossDomainLegend": true,
+      "hasSupportLegend": true,
+      "hasEnablementLegend": true
+    },
+    {
+      "name": "light2d",
+      "mode": "2D",
+      "theme": "light",
+      "screenshot": "knowledge-graph-light-2d.png",
+      "htmlClass": "light",
+      "colorScheme": "light",
+      "canvasCount": 1,
+      "legendSampleCount": 23,
+      "legendTypes": [
+        "prerequisite",
+        "provides_foundation",
+        "contains",
+        "follows",
+        "leads_to",
+        "applies_to",
+        "opposite",
+        "related",
+        "cross_domain",
+        "generalizes",
+        "instance_of",
+        "supports",
+        "enables",
+        "complements",
+        "contrasts_with",
+        "derives",
+        "describes_migration_of",
+        "determines",
+        "embodies",
+        "informs",
+        "quantified_by",
+        "uses",
+        "visualized_by"
+      ],
+      "hasKnowledgeCategoryLabel": true,
+      "hasBloomLabel": true,
+      "exposesRawCategoryFilter": false,
+      "exposesRawBloomFilter": false,
+      "hasCrossDomainLegend": true,
+      "hasSupportLegend": true,
+      "hasEnablementLegend": true
+    },
+    {
+      "name": "dark3d",
+      "mode": "3D",
+      "theme": "dark",
+      "screenshot": "knowledge-graph-dark-3d.png",
+      "htmlClass": "",
+      "colorScheme": "dark",
+      "canvasCount": 1,
+      "legendSampleCount": 23,
+      "legendTypes": [
+        "prerequisite",
+        "provides_foundation",
+        "contains",
+        "follows",
+        "leads_to",
+        "applies_to",
+        "opposite",
+        "related",
+        "cross_domain",
+        "generalizes",
+        "instance_of",
+        "supports",
+        "enables",
+        "complements",
+        "contrasts_with",
+        "derives",
+        "describes_migration_of",
+        "determines",
+        "embodies",
+        "informs",
+        "quantified_by",
+        "uses",
+        "visualized_by"
+      ],
+      "hasKnowledgeCategoryLabel": true,
+      "hasBloomLabel": true,
+      "exposesRawCategoryFilter": false,
+      "exposesRawBloomFilter": false,
+      "hasCrossDomainLegend": true,
+      "hasSupportLegend": true,
+      "hasEnablementLegend": true
+    },
+    {
+      "name": "light3d",
+      "mode": "3D",
+      "theme": "light",
+      "screenshot": "knowledge-graph-light-3d.png",
+      "htmlClass": "light",
+      "colorScheme": "light",
+      "canvasCount": 1,
+      "legendSampleCount": 23,
+      "legendTypes": [
+        "prerequisite",
+        "provides_foundation",
+        "contains",
+        "follows",
+        "leads_to",
+        "applies_to",
+        "opposite",
+        "related",
+        "cross_domain",
+        "generalizes",
+        "instance_of",
+        "supports",
+        "enables",
+        "complements",
+        "contrasts_with",
+        "derives",
+        "describes_migration_of",
+        "determines",
+        "embodies",
+        "informs",
+        "quantified_by",
+        "uses",
+        "visualized_by"
+      ],
+      "hasKnowledgeCategoryLabel": true,
+      "hasBloomLabel": true,
+      "exposesRawCategoryFilter": false,
+      "exposesRawBloomFilter": false,
+      "hasCrossDomainLegend": true,
+      "hasSupportLegend": true,
+      "hasEnablementLegend": true
+    }
+  ],
+  "relationLegend": [
+    {
+      "type": "prerequisite",
+      "label": "前置基础",
+      "visualFamily": "foundation-solid-arrow",
+      "direction": "directed",
+      "density": "structure",
+      "legendExplanation": "学习前需要先掌握的基础关系。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "provides_foundation",
+      "label": "提供基础",
+      "visualFamily": "foundation-solid-arrow",
+      "direction": "directed",
+      "density": "structure",
+      "legendExplanation": "为后续概念提供理论或方法基础。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "contains",
+      "label": "章节包含",
+      "visualFamily": "structural-solid-dot",
+      "direction": "undirected",
+      "density": "structure",
+      "legendExplanation": "章节、主题或概念簇的结构归属。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "follows",
+      "label": "学习后续",
+      "visualFamily": "sequence-long-dash-arrow",
+      "direction": "directed",
+      "density": "structure",
+      "legendExplanation": "建议沿着课程顺序继续学习。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "leads_to",
+      "label": "引出问题",
+      "visualFamily": "sequence-long-dash-arrow",
+      "direction": "directed",
+      "density": "structure",
+      "legendExplanation": "由当前概念自然引出新的分析对象。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "applies_to",
+      "label": "方法应用",
+      "visualFamily": "application-short-dash-arrow",
+      "direction": "directed",
+      "density": "context",
+      "legendExplanation": "方法、公式或概念可应用到目标对象。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "opposite",
+      "label": "相反概念",
+      "visualFamily": "contrast-alternating-bar",
+      "direction": "bidirectional",
+      "density": "optional",
+      "legendExplanation": "强调概念之间的反向或互斥关系。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "related",
+      "label": "弱关联",
+      "visualFamily": "weak-dotted",
+      "direction": "undirected",
+      "density": "weak",
+      "legendExplanation": "保留辅助联想，不作为默认骨架。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "cross_domain",
+      "label": "跨域迁移",
+      "visualFamily": "cross-domain-chain-diamond",
+      "direction": "directed",
+      "density": "context",
+      "legendExplanation": "把控制概念迁移到其他场景或学科域。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "generalizes",
+      "label": "抽象推广",
+      "visualFamily": "generalization-wide-dash",
+      "direction": "directed",
+      "density": "context",
+      "legendExplanation": "从具体对象提升到一般规律。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "instance_of",
+      "label": "具体实例",
+      "visualFamily": "instance-dot-dash",
+      "direction": "directed",
+      "density": "context",
+      "legendExplanation": "说明某个概念是一般规律的实例。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "supports",
+      "label": "证据支撑",
+      "visualFamily": "support-fine-dotted-arrow",
+      "direction": "directed",
+      "density": "optional",
+      "legendExplanation": "用事实、公式或实验结果支撑结论。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "enables",
+      "label": "能力启用",
+      "visualFamily": "enablement-pulse-arrow",
+      "direction": "directed",
+      "density": "context",
+      "legendExplanation": "掌握当前概念后可以执行目标任务。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "complements",
+      "label": "互补说明",
+      "visualFamily": "complement-diamond-dash",
+      "direction": "bidirectional",
+      "density": "optional",
+      "legendExplanation": "两个概念共同补全同一知识面。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "contrasts_with",
+      "label": "对照比较",
+      "visualFamily": "contrast-alternating-bar",
+      "direction": "bidirectional",
+      "density": "optional",
+      "legendExplanation": "通过差异比较帮助辨析概念。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "derives",
+      "label": "推导得到",
+      "visualFamily": "derivation-tight-dash",
+      "direction": "directed",
+      "density": "context",
+      "legendExplanation": "由已有模型、公式或条件推导出目标结果。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "describes_migration_of",
+      "label": "迁移描述",
+      "visualFamily": "migration-broken-arc",
+      "direction": "directed",
+      "density": "optional",
+      "legendExplanation": "描述概念在不同表示或场景中的迁移。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "determines",
+      "label": "决定因素",
+      "visualFamily": "determinant-dot-arrow",
+      "direction": "directed",
+      "density": "context",
+      "legendExplanation": "当前因素会决定或约束目标性质。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "embodies",
+      "label": "体现为",
+      "visualFamily": "embodiment-solid-dot",
+      "direction": "undirected",
+      "density": "context",
+      "legendExplanation": "抽象概念在具体对象中体现出来。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "informs",
+      "label": "提示参考",
+      "visualFamily": "informing-light-dots",
+      "direction": "directed",
+      "density": "weak",
+      "legendExplanation": "提供理解目标概念的辅助信息。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "quantified_by",
+      "label": "量化指标",
+      "visualFamily": "measurement-dot-chain",
+      "direction": "directed",
+      "density": "context",
+      "legendExplanation": "用指标、参数或图形量化目标概念。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "uses",
+      "label": "使用工具",
+      "visualFamily": "application-short-dash-arrow",
+      "direction": "directed",
+      "density": "context",
+      "legendExplanation": "当前任务或概念使用目标方法、工具或资源。",
+      "hasNonColorEncoding": true
+    },
+    {
+      "type": "visualized_by",
+      "label": "图形呈现",
+      "visualFamily": "visualization-diamond-chain",
+      "direction": "directed",
+      "density": "optional",
+      "legendExplanation": "通过图形、曲线或可视化方式呈现概念。",
+      "hasNonColorEncoding": true
+    }
+  ],
+  "threeDimensionalEncodings": {
+    "cross_domain": {
+      "arrowLength": 4,
+      "directionalParticles": 2,
+      "particleWidth": 1.107,
+      "particleSpeed": 0.0034
+    },
+    "generalizes": {
+      "arrowLength": 4,
+      "directionalParticles": 2,
+      "particleWidth": 1.23,
+      "particleSpeed": 0.0034
+    },
+    "supports": {
+      "arrowLength": 4,
+      "directionalParticles": 2,
+      "particleWidth": 1.025,
+      "particleSpeed": 0.0034
+    },
+    "enables": {
+      "arrowLength": 3.5,
+      "directionalParticles": 3,
+      "particleWidth": 1.026,
+      "particleSpeed": 0.003
+    },
+    "opposite": {
+      "arrowLength": 0,
+      "directionalParticles": 3,
+      "particleWidth": 1.4850000000000003,
+      "particleSpeed": 0.0018
+    },
+    "related": {
+      "arrowLength": 0,
+      "directionalParticles": 0,
+      "particleWidth": 0.7,
+      "particleSpeed": 0
+    },
+    "applies_to": {
+      "arrowLength": 3.5,
+      "directionalParticles": 3,
+      "particleWidth": 1.026,
+      "particleSpeed": 0.003
+    },
+    "prerequisite": {
+      "arrowLength": 4,
+      "directionalParticles": 2,
+      "particleWidth": 1.312,
+      "particleSpeed": 0.0034
+    }
+  },
+  "assertions": {
+    "hasLight2dEvidence": true,
+    "allScreenshotsHaveCanvas": true,
+    "allScreenshotsHaveGraphicalLegend": true,
+    "labelsAreLocalized": true,
+    "rawSchemaLabelsHidden": true,
+    "specializedRelationsVisibleInLegend": true,
+    "threeDimensionalSpecialRelationsEncoded": true
+  },
+  "consoleMessages": [
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+    },
+    {
+      "type": "log",
+      "text": "[HMR] connected"
+    },
+    {
+      "type": "warning",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    },
+    {
+      "type": "warning",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    },
+    {
+      "type": "warning",
+      "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x10c004d6600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x10c004d6600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x10c004d6600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x10c004d6600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+    }
+  ],
+  "pageErrors": []
+}

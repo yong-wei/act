@@ -17,6 +17,8 @@ import {
   getRelationStyle,
   getRelationThreeDimensionalEncoding,
   getNodeTypeConfig,
+  getKnowledgeNodeScale,
+  hexToRgba,
 } from './visual-config';
 import { CHAPTER_DISPLAY_ORDER } from '@/lib/knowledge-labels';
 import { CHAPTER_NODE_PREFIX, getRelationFocusState } from './filter-utils';
@@ -130,7 +132,15 @@ export function KnowledgeGraphCanvas({
 
   // 1. 处理数据并转换 links 格式
   const graphData = useMemo(() => {
-    const clonedNodes = nodes.map((n) => ({ ...n } as any));
+    const degreeById = new Map<string, number>();
+    links.forEach((link) => {
+      degreeById.set(link.sourceId, (degreeById.get(link.sourceId) ?? 0) + 1);
+      degreeById.set(link.targetId, (degreeById.get(link.targetId) ?? 0) + 1);
+    });
+    const clonedNodes = nodes.map((n) => ({
+      ...n,
+      graphDegree: degreeById.get(n.id) ?? 0,
+    } as any));
     const nodeById = new Map(clonedNodes.map((node) => [node.id, node]));
 
     const chapterNodes = clonedNodes.filter((node) => node.id.startsWith(CHAPTER_NODE_PREFIX));
@@ -205,14 +215,19 @@ export function KnowledgeGraphCanvas({
     const isSelected = selectedNode?.id === node.id;
     const isHovered = hoveredNode?.id === node.id;
     const isActive = isSelected || isHovered;
+    const nodeScale = getKnowledgeNodeScale({
+      metadata: node.metadata,
+      degree: node.graphDegree,
+      focused: isActive,
+    });
 
     // 1. 创建节点几何体
     const geometry = createGeometryByType(node.nodeType);
 
     // 2. 创建材质（带发光效果）
     const material = new THREE.MeshPhongMaterial({
-      color: new THREE.Color(fillColor),
-      emissive: glowColor ? new THREE.Color(glowColor) : new THREE.Color(fillColor),
+      color: new THREE.Color(hexToRgba(fillColor, 1)),
+      emissive: glowColor ? new THREE.Color(hexToRgba(glowColor, 1)) : new THREE.Color(hexToRgba(fillColor, 1)),
       emissiveIntensity: glowColor ? (isActive ? 0.8 : 0.5) : (isActive ? 0.4 : 0.2),
       transparent: true,
       opacity: isActive ? 1 : 0.9,
@@ -220,13 +235,14 @@ export function KnowledgeGraphCanvas({
     });
 
     const mesh = new THREE.Mesh(geometry, material);
+    mesh.scale.setScalar(nodeScale.radius / 5);
     group.add(mesh);
 
     // 3. 创建辉光层（如果有 bloomLevel）
     if (glowColor) {
-      const glowGeometry = new THREE.SphereGeometry(7, 16, 16);
+      const glowGeometry = new THREE.SphereGeometry(nodeScale.glowRadius / 1.7, 16, 16);
       const glowMaterial = new THREE.MeshBasicMaterial({
-        color: new THREE.Color(glowColor),
+        color: new THREE.Color(hexToRgba(glowColor, 1)),
         transparent: true,
         opacity: isActive ? 0.3 : 0.15,
       });
@@ -236,7 +252,9 @@ export function KnowledgeGraphCanvas({
 
     // 4. 创建选中环
     if (isSelected) {
-      const ringGeometry = new THREE.RingGeometry(6, 7, 32);
+      const ringInnerRadius = nodeScale.radius + 0.6;
+      const ringOuterRadius = ringInnerRadius + Math.max(0.8, nodeScale.radius * 0.12);
+      const ringGeometry = new THREE.RingGeometry(ringInnerRadius, ringOuterRadius, 32);
       const ringMaterial = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         transparent: true,
@@ -268,16 +286,17 @@ export function KnowledgeGraphCanvas({
     const strength = typeof link.strength === 'number'
       ? Math.min(1, Math.max(0, link.strength))
       : 1;
-    const color = new THREE.Color(style.color);
+    const color = new THREE.Color(hexToRgba(isLightTheme ? style.lightColor : style.darkColor, 1));
     const sourceId = typeof link.source === 'object' ? link.source.id : link.sourceId;
     const targetId = typeof link.target === 'object' ? link.target.id : link.targetId;
     const focusNodeId = hoveredNode?.id ?? selectedNode?.id ?? null;
     const focusState = getRelationFocusState(sourceId, targetId, focusNodeId);
     const focusGain = focusState === 'dimmed' ? 0.22 : focusState === 'active' ? 1.15 : 0.9;
-    const gain = (0.55 + strength * 0.45) * focusGain;
+    const semanticGain = 0.4 + style.opacity * 0.6;
+    const gain = (0.55 + strength * 0.45) * focusGain * semanticGain;
     color.multiplyScalar(gain);
     return color.getStyle();
-  }, [hoveredNode?.id, selectedNode?.id]);
+  }, [hoveredNode?.id, isLightTheme, selectedNode?.id]);
 
   // 4. 获取连线宽度
   const getLinkWidth = useCallback((link: any) => {
