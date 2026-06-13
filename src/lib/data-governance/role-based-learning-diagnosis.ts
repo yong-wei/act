@@ -13,6 +13,7 @@ import {
   CONTROL_CORRECTION_DIAGNOSIS_MATERIALIZER_VERSION,
   canReadDiagnosisReportSnapshot,
   diagnosisEvidenceRefToCitationChip,
+  type DiagnosisEvidenceObservation,
   type DiagnosisDimensionSnapshot,
   type DiagnosisPercentileSnapshot,
   type DiagnosisReportSnapshot,
@@ -242,24 +243,29 @@ function claimFromDiagnosisDimensionSnapshot(
   dimension: DiagnosisDimensionSnapshot,
   generatedAt: string,
 ): RoleBasedLearningDiagnosisClaim {
+  const observationByChunkId = observationsByChunkId(snapshot, dimension.dimensionId);
   const evidenceRefs = dimension.evidenceRefs
     .filter((ref) => evidenceRefVisibleFor(ref, input.view))
     .map((ref): RoleBasedLearningDiagnosisEvidenceRef => {
+      const observation = observationByChunkId.get(ref.chunkId) ?? null;
       const displayTitle = sanitizeDiagnosisEvidenceText(ref.title);
       const capsule = sanitizeDiagnosisEvidenceText(ref.capsule ?? ref.title);
       const displayHref = sanitizeDiagnosisEvidenceHref(ref.href);
+      const citationChip = {
+        ...diagnosisEvidenceRefToCitationChip(ref, observation?.confidence ?? dimension.confidence),
+        displayTitle,
+        displayHref,
+        freshnessBucket: observation?.window.stale ? 'stale' as const : 'current' as const,
+        limitationState: diagnosisObservationLimitationState(observation),
+      };
       return {
         chunkId: ref.chunkId,
         sourceType: ref.sourceType,
         displayTitle,
         displayHref,
-        confidence: dimension.confidence,
+        confidence: observation?.confidence ?? dimension.confidence,
         capsule,
-        citationChip: {
-          ...diagnosisEvidenceRefToCitationChip(ref, dimension.confidence),
-          displayTitle,
-          displayHref,
-        },
+        citationChip,
       };
     });
   const limitations = uniqueLimitations([
@@ -306,6 +312,25 @@ function claimFromDiagnosisDimensionSnapshot(
     privacyClass: privacyClassFor(input.view),
     materializationVersion: ROLE_BASED_LEARNING_DIAGNOSIS_VERSION,
   };
+}
+
+function observationsByChunkId(snapshot: DiagnosisReportSnapshot, dimensionId: string): Map<string, DiagnosisEvidenceObservation> {
+  const observations = Array.isArray(snapshot.observations) ? snapshot.observations : [];
+  return new Map(observations
+    .filter((observation) => observation.dimensionId === dimensionId && observation.evidenceRef)
+    .map((observation) => [observation.evidenceRef?.chunkId as string, observation]));
+}
+
+function diagnosisObservationLimitationState(
+  observation: DiagnosisEvidenceObservation | null,
+): LearningEvidenceCitationChipPayload['limitationState'] {
+  if (!observation) return null;
+  const reasons = observation.limitations.map((item) => item.reason);
+  if (reasons.includes('stale-source')) return 'stale-source';
+  if (reasons.includes('low-confidence-source')) return 'low-confidence-source';
+  if (reasons.includes('preview-only-source')) return 'unsupported-source-type';
+  if (reasons.includes('partial-source')) return 'insufficient-authority';
+  return null;
 }
 
 function canUseDiagnosisReportSnapshot(snapshot: DiagnosisReportSnapshot, input: RoleBasedLearningDiagnosisInput): boolean {

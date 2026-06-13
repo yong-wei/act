@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { createHmac } from 'node:crypto';
 
 import {
   createKonlingTeachingAssistantServerContextToken,
@@ -48,6 +49,8 @@ describe('Konling teaching-assistant server context', () => {
     const modeContextToken = createKonlingTeachingAssistantServerContextToken({
       mode: 'class-summarizer',
       classId: 'class-1',
+      classReportId: 'class-1:control-correction',
+      goalId: 'control-correction',
       courseId: 'course-1',
       pageId: 'teacher-report',
       context: {
@@ -58,7 +61,11 @@ describe('Konling teaching-assistant server context', () => {
     });
 
     const context = await resolveKonlingTeachingAssistantServerModeContext({
-      db: {},
+      db: {
+        class: {
+          findUnique: async () => ({ teacherId: 'teacher-1' }),
+        },
+      },
       modeId: 'class-summarizer',
       scope: scope(),
       runtimeContext,
@@ -72,6 +79,38 @@ describe('Konling teaching-assistant server context', () => {
       'diagnosis-view': true,
       'learner-state-summary': true,
     });
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: {
+        class: {
+          findUnique: async () => ({ teacherId: 'teacher-1' }),
+        },
+      },
+      modeId: 'class-summarizer',
+      scope: scope({ role: 'student', authenticatedUserId: 'student-1', targetUserId: 'student-1' }),
+      runtimeContext,
+      clientContextHints: {
+        modeContextToken,
+        classReportId: 'class-1:control-correction',
+        goalId: 'control-correction',
+      },
+    })).resolves.toEqual({});
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: {
+        class: {
+          findUnique: async () => ({ teacherId: 'teacher-2' }),
+        },
+      },
+      modeId: 'class-summarizer',
+      scope: scope(),
+      runtimeContext,
+      clientContextHints: {
+        modeContextToken,
+        classReportId: 'class-1:control-correction',
+        goalId: 'control-correction',
+      },
+    })).resolves.toEqual({});
   });
 
   it('fails closed when mode context signing secret is unavailable', async () => {
@@ -121,6 +160,232 @@ describe('Konling teaching-assistant server context', () => {
       runtimeContext,
       clientContextHints: {
         prepPackId: 'prep-pack:class-1:control-correction:2026-06-05',
+      },
+    })).resolves.toEqual({});
+  });
+
+  it('rejects signed mode context tokens when object bindings do not match hints or scope', async () => {
+    const modeContextToken = createKonlingTeachingAssistantServerContextToken({
+      mode: 'prep-coauthor',
+      classId: 'class-1',
+      teacherId: 'teacher-1',
+      goalId: 'control-correction',
+      prepPackId: 'prep-pack-1',
+      context: {
+        'prep-pack': true,
+        'diagnosis-view': true,
+        'teacher-review-state': true,
+      },
+    });
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: {},
+      modeId: 'prep-coauthor',
+      scope: scope({ classId: 'class-1', targetUserId: 'teacher-1' }),
+      runtimeContext,
+      clientContextHints: {
+        modeContextToken,
+        prepPackId: 'prep-pack-2',
+        goalId: 'control-correction',
+      },
+    })).resolves.toEqual({});
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: {},
+      modeId: 'prep-coauthor',
+      scope: scope({ authenticatedUserId: 'teacher-2', targetUserId: 'teacher-2', classId: 'class-1' }),
+      runtimeContext,
+      clientContextHints: {
+        modeContextToken,
+        prepPackId: 'prep-pack-1',
+      },
+    })).resolves.toEqual({});
+  });
+
+  it('rejects legacy, expired, and archived signed prep-pack tokens before readiness', async () => {
+    const legacyToken = createLegacyModeContextToken({
+      mode: 'prep-coauthor',
+      classId: 'class-1',
+      context: {
+        'prep-pack': true,
+        'diagnosis-view': true,
+        'teacher-review-state': true,
+      },
+    });
+    const expiredToken = createKonlingTeachingAssistantServerContextToken({
+      mode: 'prep-coauthor',
+      classId: 'class-1',
+      teacherId: 'teacher-1',
+      goalId: 'control-correction',
+      prepPackId: 'prep-pack-1',
+      expiresAt: '2026-01-01T00:00:00.000Z',
+      context: {
+        'prep-pack': true,
+        'diagnosis-view': true,
+        'teacher-review-state': true,
+      },
+    });
+    const archivedToken = createKonlingTeachingAssistantServerContextToken({
+      mode: 'prep-coauthor',
+      classId: 'class-1',
+      teacherId: 'teacher-1',
+      goalId: 'control-correction',
+      prepPackId: 'prep-pack-archived',
+      context: {
+        'prep-pack': true,
+        'diagnosis-view': true,
+        'teacher-review-state': true,
+      },
+    });
+    const db = {
+      courseEnhancementPack: {
+        findFirst: async () => ({
+          id: 'enhancement-pack-archived',
+          sourcePrepPackId: 'prep-pack-archived',
+          classId: 'class-1',
+          teacherId: 'teacher-1',
+          goalId: 'control-correction',
+          status: 'archived',
+        }),
+      },
+    };
+
+    for (const modeContextToken of [legacyToken, expiredToken, archivedToken]) {
+      await expect(resolveKonlingTeachingAssistantServerModeContext({
+        db,
+        modeId: 'prep-coauthor',
+        scope: scope({ classId: 'class-1', targetUserId: 'teacher-1' }),
+        runtimeContext,
+        clientContextHints: {
+          modeContextToken,
+          prepPackId: modeContextToken === archivedToken ? 'prep-pack-archived' : 'prep-pack-1',
+          goalId: 'control-correction',
+        },
+      })).resolves.toEqual({});
+    }
+  });
+
+  it('resolves prep-pack mode from the persisted course enhancement pack reader', async () => {
+    const db = {
+      courseEnhancementPack: {
+        findFirst: async ({ where }: { where: { classId: string; teacherId: string; goalId: string; OR: Array<{ id: string } | { sourcePrepPackId: string }> } }) =>
+          where.classId === 'class-1' &&
+          where.teacherId === 'teacher-1' &&
+          where.goalId === 'control-correction' &&
+          where.OR.some((item) => ('id' in item && item.id === 'enhancement-pack-1') || ('sourcePrepPackId' in item && item.sourcePrepPackId === 'prep-pack-1'))
+            ? { id: 'enhancement-pack-1', sourcePrepPackId: 'prep-pack-1', classId: 'class-1', teacherId: 'teacher-1', goalId: 'control-correction', status: 'draft' }
+            : null,
+      },
+    };
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db,
+      modeId: 'prep-coauthor',
+      scope: scope({ classId: 'class-1', targetUserId: 'teacher-1' }),
+      runtimeContext,
+      clientContextHints: {
+        prepPackId: 'prep-pack-1',
+        goalId: 'control-correction',
+      },
+    })).resolves.toEqual({
+      'prep-pack': true,
+      'diagnosis-view': true,
+      'teacher-review-state': true,
+    });
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db,
+      modeId: 'prep-coauthor',
+      scope: scope({ authenticatedUserId: 'teacher-2', targetUserId: 'teacher-2', classId: 'class-1' }),
+      runtimeContext,
+      clientContextHints: {
+        prepPackId: 'prep-pack-1',
+        goalId: 'control-correction',
+      },
+    })).resolves.toEqual({});
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db,
+      modeId: 'prep-coauthor',
+      scope: scope({ classId: 'class-1', targetUserId: 'teacher-1' }),
+      runtimeContext,
+      clientContextHints: {
+        prepPackId: 'prep-pack-1',
+        goalId: 'other-goal',
+      },
+    })).resolves.toEqual({});
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: {
+        courseEnhancementPack: {
+          findFirst: async () => ({
+          id: 'enhancement-pack-archived',
+          sourcePrepPackId: 'prep-pack-archived',
+          classId: 'class-1',
+          teacherId: 'teacher-1',
+          goalId: 'control-correction',
+          status: 'archived',
+        }),
+        },
+      },
+      modeId: 'prep-coauthor',
+      scope: scope({ classId: 'class-1', targetUserId: 'teacher-1' }),
+      runtimeContext,
+      clientContextHints: {
+        prepPackId: 'prep-pack-archived',
+        goalId: 'control-correction',
+      },
+    })).resolves.toEqual({});
+  });
+
+  it('resolves class summarizer mode from governed diagnosis report snapshots without a token', async () => {
+    const findManyCalls: Array<{ where: Record<string, unknown> }> = [];
+    const db = {
+      class: {
+        findUnique: async () => ({ teacherId: 'teacher-1' }),
+      },
+      diagnosisReportSnapshot: {
+        findMany: async ({ where }: { where: Record<string, unknown> }) => {
+          findManyCalls.push({ where });
+          return where.goalId === 'control-correction' &&
+            where.subjectKind === 'class' &&
+            where.classId === 'class-1' &&
+            where.materializerVersion === 'control-correction-diagnosis-profile.v1'
+            ? [{
+              id: 'diagnosis-report:control-correction:class:class-1:2026-06-05T00:00:00.000Z',
+              goalId: 'control-correction',
+              classId: 'class-1',
+            }]
+            : [];
+        },
+      },
+    };
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db,
+      modeId: 'class-summarizer',
+      scope: scope({ classId: 'class-1', targetUserId: 'teacher-1' }),
+      runtimeContext,
+      clientContextHints: {
+        classReportId: 'class-1:control-correction',
+        goalId: 'control-correction',
+      },
+    })).resolves.toEqual({
+      'class-report': true,
+      'diagnosis-view': true,
+    });
+    expect(findManyCalls.at(-1)?.where).toEqual(expect.objectContaining({
+      materializerVersion: 'control-correction-diagnosis-profile.v1',
+    }));
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db,
+      modeId: 'class-summarizer',
+      scope: scope({ authenticatedUserId: 'teacher-2', targetUserId: 'teacher-2', classId: 'class-1' }),
+      runtimeContext,
+      clientContextHints: {
+        classReportId: 'class-1:control-correction',
+        goalId: 'control-correction',
       },
     })).resolves.toEqual({});
   });
@@ -178,4 +443,9 @@ function restoreEnv(name: 'KONLING_MODE_CONTEXT_SECRET' | 'NEXTAUTH_SECRET' | 'A
     return;
   }
   process.env[name] = value;
+}
+
+function createLegacyModeContextToken(payload: Record<string, unknown>) {
+  const encoded = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
+  return `${encoded}.${createHmac('sha256', TEST_SECRET).update(encoded).digest('base64url')}`;
 }

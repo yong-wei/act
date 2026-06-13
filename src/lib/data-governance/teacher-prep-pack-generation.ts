@@ -353,6 +353,9 @@ export function generateTeacherPrepPack(input: TeacherPrepPackInput): TeacherPre
   const modeContextToken = createKonlingTeachingAssistantServerContextToken({
     mode: 'prep-coauthor',
     classId: input.classId,
+    teacherId: input.teacherId,
+    goalId: input.goalId,
+    prepPackId,
     context: {
       'prep-pack': true,
       'diagnosis-view': true,

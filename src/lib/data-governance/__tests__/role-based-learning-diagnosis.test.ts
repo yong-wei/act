@@ -515,6 +515,69 @@ describe('role-based learning diagnosis materialization', () => {
     expect(validateRoleBasedLearningDiagnosis(fallback)).toEqual([]);
   });
 
+  it('projects diagnosis observation freshness and limitation states into visible citation chips', () => {
+    const snapshot = materializeControlCorrectionDiagnosisReport({
+      subject: { kind: 'student', userId: 'student-1', classId: 'class-1' },
+      goalId: 'control-correction',
+      generatedAt: now,
+      evidenceRecords: [{
+        id: 'snapshot-stale-evidence',
+        sourceFamily: 'adaptive-assessment',
+        indicatorIds: ['time-response-settling-control'],
+        value: 0.72,
+        confidence: 'low',
+        updatedAt: '2026-03-01T00:00:00.000Z',
+        provenance: { classId: 'class-1', userId: 'student-1', goalId: 'control-correction' },
+        evidenceRef: { chunkId: 'chunk-stale-snapshot', sourceType: 'diagnosis', title: '过期治理指标快照' },
+      }],
+      now,
+    });
+
+    const diagnosis = materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      goalSlice: null,
+      evidenceCorpus: [],
+      diagnosisReportSnapshot: snapshot,
+    });
+
+    const evidence = diagnosis.claims[0].evidenceRefs[0];
+    expect(evidence).toEqual(expect.objectContaining({
+      chunkId: 'chunk-stale-snapshot',
+      confidence: 'low',
+      citationChip: expect.objectContaining({
+        freshnessBucket: 'stale',
+        limitationState: 'stale-source',
+      }),
+    }));
+  });
+
+  it('keeps legacy diagnosis snapshots without observations usable in role projections', () => {
+    const snapshot = materializeControlCorrectionDiagnosisReport({
+      subject: { kind: 'student', userId: 'student-1', classId: 'class-1' },
+      goalId: 'control-correction',
+      generatedAt: now,
+      evidenceRecords: [{
+        id: 'snapshot-legacy-evidence',
+        sourceFamily: 'adaptive-assessment',
+        indicatorIds: ['time-response-settling-control'],
+        value: 0.72,
+        confidence: 'high',
+        updatedAt: now.toISOString(),
+        provenance: { classId: 'class-1', userId: 'student-1', goalId: 'control-correction' },
+        evidenceRef: { chunkId: 'chunk-legacy-snapshot', sourceType: 'diagnosis', title: '旧版治理指标快照' },
+      }],
+      now,
+    }) as DiagnosisReportSnapshot & { observations?: unknown };
+    delete snapshot.observations;
+
+    expect(() => materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      goalSlice: null,
+      evidenceCorpus: [],
+      diagnosisReportSnapshot: snapshot,
+    })).not.toThrow();
+  });
+
   it.each([
     ['studentAnswer in title', { title: 'studentAnswer hidden answer', href: '/profile/path/safe', capsule: 'safe capsule' }, 'studentAnswer'],
     ['rawTracePayload in title', { title: 'rawTracePayload secret', href: '/profile/path/safe', capsule: 'safe capsule' }, 'rawTracePayload'],
