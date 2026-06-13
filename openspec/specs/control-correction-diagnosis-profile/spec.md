@@ -3,10 +3,9 @@
 ## Purpose
 Define the governed indicator profile, reproducible snapshot contract, and
 role-based access behavior for control-correction learning diagnosis.
-
 ## Requirements
 ### Requirement: Control-correction diagnosis uses governed indicators
-The system SHALL define control-correction diagnosis through governed indicator definitions rather than page-local scoring or model-generated scores.
+The diagnosis profile SHALL use governed indicator definitions and consume governed evidence sources that are relevant to the competition assistant story.
 
 #### Scenario: Indicator definition is registered
 - **WHEN** a control-correction diagnosis indicator is added
@@ -18,18 +17,26 @@ The system SHALL define control-correction diagnosis through governed indicator 
 - **THEN** it SHALL include time-domain analysis, root-locus reasoning, frequency-domain margin analysis, method selection, constraint tradeoff, simulation validation, Arena transfer, reflection, and AI collaboration dimensions
 - **AND** each dimension SHALL contain at least three registered indicators before the profile is marked report-ready.
 
+#### Scenario: Indicator evidence is gathered
+- **WHEN** diagnosis evidence is gathered for the competition baseline class or learner
+- **THEN** eligible sources SHALL include document rubric grading, adaptive-practice answers, simulation or Arena summaries, learning-path execution or deviation records, and approved learning facts when available
+- **AND** every source SHALL be filtered by goal or scope so unrelated course activity cannot inflate control-correction diagnosis.
+
 ### Requirement: Diagnosis snapshots are reproducible
-The system SHALL materialize diagnosis snapshots from governed evidence using deterministic scoring and confidence policies.
+Control-correction diagnosis snapshots SHALL remain reproducible and SHALL expose report-ready observations for competition assistant workflows.
 
 #### Scenario: Indicator snapshot is materialized
-- **WHEN** an indicator is calculated for a student or class scope
+- **WHEN** an indicator is calculated for a student, class, or report scope
 - **THEN** the snapshot SHALL store score, confidence, source coverage, evidence count, evidence window, materializer version, and limitations
-- **AND** missing, stale, preview-only, or low-confidence sources SHALL lower confidence or mark the indicator unavailable instead of producing a precise high-confidence score.
+- **AND** stale, preview-only, low-confidence, missing, or sparse sources SHALL lower confidence or mark the indicator unavailable instead of producing a precise high-confidence score.
 
 #### Scenario: Report snapshot is materialized
-- **WHEN** a diagnosis report is generated
-- **THEN** it SHALL compose indicator snapshots into dimension scores, qualitative judgments, percentiles where cohort evidence allows, and evidence references
-- **AND** the report SHALL preserve source windows and limitation reasons for every displayed dimension.
+- **WHEN** the system materializes a control-correction diagnosis report snapshot
+- **THEN** the snapshot SHALL include score, confidence, time window, limitations, and source version metadata for each reported dimension
+- **AND** each report-ready dimension SHALL include observation records or observation payload entries with indicator key, evidence references, source family, and calculation window
+- **AND** it SHALL compose indicator snapshots into dimension scores, qualitative judgments, percentiles where cohort evidence allows, and evidence references
+- **AND** it SHALL preserve source windows and limitation reasons for every displayed dimension
+- **AND** missing or sparse evidence SHALL be represented as a limitation instead of a fabricated score.
 
 ### Requirement: Percentiles are cohort-scoped and explicit
 The system SHALL calculate class percentile and growth percentile only from authorized cohort snapshots.

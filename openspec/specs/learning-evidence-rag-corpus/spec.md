@@ -53,21 +53,33 @@ The retrieval layer SHALL distinguish high-authority teaching knowledge from per
 - **AND** the response SHALL expose a limitation when learner evidence is missing or low confidence.
 
 ### Requirement: Generated answers are citation-guarded
-The system SHALL verify citation adequacy before displaying or persisting generated assistant output.
+Citation guardrails SHALL be visible in assistant-facing product surfaces.
 
 #### Scenario: Citation verification fails
+- **WHEN** a high-risk diagnosis, grading, path, or prep-pack answer lacks required verified citations
+- **THEN** the response SHALL be blocked, degraded, or accompanied by an explicit fallback notice
+- **AND** the route or response metadata SHALL expose the missing citation classes for debugging and acceptance tests.
+
+#### Scenario: Generated output cites invalid evidence
 - **WHEN** generated output cites missing, inaccessible, unsupported, low-authority, or privacy-violating chunks
 - **THEN** the system SHALL reject, redact, or downgrade the output
 - **AND** it SHALL expose the citation limitation to the caller.
 
 #### Scenario: High-authority sources conflict
-- **WHEN** retrieval finds conflicting high-authority sources or learner evidence contradicts the generated claim
-- **THEN** the answer SHALL include a conflict limitation or avoid making the disputed claim.
+- **WHEN** retrieval finds conflicting high-authority sources or authorized learner evidence contradicts the generated claim
+- **THEN** the response SHALL expose a conflict limitation or avoid making the disputed claim
+- **AND** citation presence alone SHALL NOT qualify the answer as verified support for the disputed claim.
 
 ### Requirement: Citation rendering is shared
-Student, teacher, grading, diagnosis, Konling, and prep-pack surfaces SHALL use a shared citation payload contract.
+The system SHALL render verified learning-evidence citations through shared product-visible components or payload contracts.
 
 #### Scenario: CitationChip payload is produced
-- **WHEN** a visible citation is returned to a UI surface
-- **THEN** it SHALL include display title, href when allowed, source type, authority level, confidence, freshness, privacy visibility, and limitation state
+- **WHEN** diagnosis, grading feedback, path advice, Konling answer, prep-pack, or teacher report code receives verified citations
+- **THEN** each citation SHALL expose display title, source type, authority level, confidence, freshness, privacy visibility, href or null display target, and limitation state
+- **AND** the same semantics SHALL be used across student, teacher, and administrator surfaces.
 - **AND** student-visible payloads SHALL NOT expose privileged scope diagnostics or raw private evidence.
+
+#### Scenario: Citation cannot be opened
+- **WHEN** a citation points to restricted, redacted, missing, stale, or low-authority evidence
+- **THEN** the UI SHALL expose the limitation state
+- **AND** the system SHALL NOT present the citation as fully verified.
