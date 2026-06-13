@@ -51,6 +51,7 @@
     "test:react-doctor:ui-errors": "npx --yes react-doctor@0.5.1 --no-score --no-telemetry --no-warnings --json .",
     "test:control-correction-demo": "npx --yes tsx ./scripts/tests/control-correction-demo-acceptance.ts",
     "test:intelligent-teaching-assistant-demo": "npx --yes tsx ./scripts/tests/intelligent-teaching-assistant-demo-acceptance.ts",
+    "test:competition-baseline": "npx --yes tsx ./scripts/tests/competition-baseline-acceptance.ts",
     "test:provider-runtime-smoke": "npx --yes tsx ./scripts/tests/provider-runtime-smoke.ts",
     "test:admin-states": "npx --yes tsx ./scripts/tests/test-admin-states-mock-data.ts",
     "seed:fixed-passwords": "node ./scripts/db/update-fixed-account-passwords.mjs",

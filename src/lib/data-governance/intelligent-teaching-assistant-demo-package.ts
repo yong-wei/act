@@ -193,6 +193,57 @@ export interface AssistantDemoAcceptanceReport {
   errors: string[];
 }
 
+export type CompetitionBaselineActorRole = 'student' | 'teacher' | 'administrator';
+export type CompetitionBaselineCapabilityStatus = 'implemented' | 'partial' | 'planned';
+export type CompetitionBaselineSurfaceStatus = 'implemented' | 'placeholder' | 'feature-flagged' | 'api-only';
+
+export interface CompetitionBaselineAccount {
+  id: string;
+  role: CompetitionBaselineActorRole;
+  displayName: string;
+  synthetic: true;
+  routeScope: string[];
+}
+
+export interface CompetitionBaselineRouteStep {
+  id: string;
+  actorRole: CompetitionBaselineActorRole;
+  label: string;
+  route: string;
+  expectedEvidence: string;
+  surfaceStatus: CompetitionBaselineSurfaceStatus;
+  dataOrigin: 'synthetic-demo';
+}
+
+export interface CompetitionBaselineCapability {
+  id: string;
+  competitionRequirement: string;
+  platformCapability: string;
+  status: CompetitionBaselineCapabilityStatus;
+  proof: string[];
+  nextChange?: string;
+}
+
+export interface CompetitionBaseline {
+  id: string;
+  competitionCode: 'xh-202620';
+  story: string;
+  sourcePackageVersion: IntelligentTeachingAssistantDemoPackage['version'];
+  accounts: CompetitionBaselineAccount[];
+  records: Array<{ id: string; type: string; dataOrigin: 'synthetic-demo'; sourcePackageId: string }>;
+  routeLedger: CompetitionBaselineRouteStep[];
+  capabilities: CompetitionBaselineCapability[];
+  temporarySurfaces: Array<{ id: string; routeOrApi: string; surfaceStatus: CompetitionBaselineSurfaceStatus; removalOwner: string }>;
+  seedReset: {
+    command: string;
+    resetCommand: string;
+    idempotencyKey: string;
+    cleanupSelectors: string[];
+    duplicateCheck: string;
+  };
+  acceptanceCommands: string[];
+}
+
 const demoCitations = {
   diagnosis: { id: 'cit-diagnosis-alpha', owner: 'student', sourceFamily: 'role-based-learning-diagnosis', title: 'Synthetic diagnosis summary', confidence: 'high', href: '/profile/growth' },
   path: { id: 'cit-path-alpha', owner: 'student', sourceFamily: 'adaptive-learning-path-planning', title: 'Recommended control-correction path', confidence: 'high', href: '/assessment/adaptive-practice?goal=control-correction' },
@@ -358,6 +409,197 @@ export const INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE: IntelligentTeachingAss
     command: 'rtk npx tsx scripts/tests/intelligent-teaching-assistant-demo-acceptance.ts --rollback-check',
     expectedChecks: ['AI provider fallback can be disabled', 'signed mode context can be removed', 'demo tenant cleanup selector present'],
   },
+};
+
+export const XH_202620_COMPETITION_BASELINE: CompetitionBaseline = {
+  id: 'xh-202620-control-assistant-baseline',
+  competitionCode: 'xh-202620',
+  story: 'Automatic-control intelligent teaching assistant closed loop from document assignment to effect report.',
+  sourcePackageVersion: INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE.version,
+  accounts: [
+    {
+      id: 'demo-teacher-ita',
+      role: 'teacher',
+      displayName: 'Competition Demo Teacher',
+      synthetic: true,
+      routeScope: [
+        '/teacher/grading-workbench?demo=1',
+        '/teacher/classes/demo-ita-class',
+        '/teacher/classes/demo-ita-class/analytics-v2',
+        '/teacher/classes/demo-ita-class/students/demo-ita-student-beta',
+        '/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true',
+      ],
+    },
+    {
+      id: 'demo-admin-ita',
+      role: 'administrator',
+      displayName: 'Competition Demo Administrator',
+      synthetic: true,
+      routeScope: [
+        '/admin/settings',
+        '/data-center',
+      ],
+    },
+    {
+      id: 'demo-ita-student-alpha',
+      role: 'student',
+      displayName: 'Competition Demo Student Alpha',
+      synthetic: true,
+      routeScope: [
+        '/profile/evidence',
+        '/assessment/adaptive-practice?goal=control-correction',
+        '/assessment/document-feedback?demo=1',
+      ],
+    },
+  ],
+  records: [
+    { id: 'demo-ita-class', type: 'class', dataOrigin: 'synthetic-demo', sourcePackageId: 'intelligent-teaching-assistant' },
+    { id: 'assignment-control-report', type: 'assignment', dataOrigin: 'synthetic-demo', sourcePackageId: 'intelligent-teaching-assistant' },
+    { id: 'snapshot-diagnosis-alpha', type: 'diagnosis-snapshot', dataOrigin: 'synthetic-demo', sourcePackageId: 'intelligent-teaching-assistant' },
+    { id: 'path-alpha-main', type: 'path-plan', dataOrigin: 'synthetic-demo', sourcePackageId: 'intelligent-teaching-assistant' },
+    { id: 'konling-diagnosis', type: 'konling-session', dataOrigin: 'synthetic-demo', sourcePackageId: 'intelligent-teaching-assistant' },
+    { id: 'prep-pack-demo-ita', type: 'prep-pack', dataOrigin: 'synthetic-demo', sourcePackageId: 'intelligent-teaching-assistant' },
+    { id: 'overlay-prep-pack-demo-ita', type: 'prep-pack-overlay', dataOrigin: 'synthetic-demo', sourcePackageId: 'intelligent-teaching-assistant' },
+    { id: 'effect-report-demo-ita-export', type: 'effect-report-export', dataOrigin: 'synthetic-demo', sourcePackageId: 'intelligent-teaching-assistant' },
+  ],
+  routeLedger: [
+    {
+      id: 'teacher-grading-workbench',
+      actorRole: 'teacher',
+      label: 'Teacher reviews assistant draft grading',
+      route: '/teacher/grading-workbench?demo=1',
+      expectedEvidence: 'document-grading-workbench marker and grading-alpha-draft fixture',
+      surfaceStatus: 'implemented',
+      dataOrigin: 'synthetic-demo',
+    },
+    {
+      id: 'student-document-feedback',
+      actorRole: 'student',
+      label: 'Student reads rubric feedback',
+      route: '/assessment/document-feedback?demo=1',
+      expectedEvidence: 'document-feedback marker and feedback-grading-beta-approved fixture',
+      surfaceStatus: 'implemented',
+      dataOrigin: 'synthetic-demo',
+    },
+    {
+      id: 'student-learner-record',
+      actorRole: 'student',
+      label: 'Student opens learner record instead of operations data center',
+      route: '/profile/evidence',
+      expectedEvidence: 'student evidence profile route, not /data-center',
+      surfaceStatus: 'implemented',
+      dataOrigin: 'synthetic-demo',
+    },
+    {
+      id: 'student-adaptive-path',
+      actorRole: 'student',
+      label: 'Student follows control-correction adaptive path',
+      route: '/assessment/adaptive-practice?goal=control-correction',
+      expectedEvidence: 'data-control-correction-center marker and path-alpha-main fixture',
+      surfaceStatus: 'implemented',
+      dataOrigin: 'synthetic-demo',
+    },
+    {
+      id: 'teacher-prep-pack-review',
+      actorRole: 'teacher',
+      label: 'Teacher reviews prep-pack action slot',
+      route: '/teacher/classes/demo-ita-class',
+      expectedEvidence: 'prep-pack-demo-ita fixture with signed server context',
+      surfaceStatus: 'placeholder',
+      dataOrigin: 'synthetic-demo',
+    },
+    {
+      id: 'teacher-effect-report',
+      actorRole: 'teacher',
+      label: 'Teacher exports source-backed assistant effect report',
+      route: '/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true',
+      expectedEvidence: 'effectReport payload with five synthetic metrics',
+      surfaceStatus: 'api-only',
+      dataOrigin: 'synthetic-demo',
+    },
+    {
+      id: 'admin-provenance',
+      actorRole: 'administrator',
+      label: 'Administrator inspects provenance and demo-source policy',
+      route: '/data-center',
+      expectedEvidence: 'admin/teacher operations-only data center with source quality attributes',
+      surfaceStatus: 'implemented',
+      dataOrigin: 'synthetic-demo',
+    },
+  ],
+  capabilities: [
+    {
+      id: 'diagnosis-to-path',
+      competitionRequirement: 'Learner diagnosis and recommended learning path',
+      platformCapability: 'role-based diagnosis, adaptive path planning, learner evidence profile',
+      status: 'implemented',
+      proof: ['snapshot-diagnosis-alpha', 'path-alpha-main', '/profile/evidence'],
+    },
+    {
+      id: 'document-grading',
+      competitionRequirement: 'AI-assisted report grading with teacher review',
+      platformCapability: 'document rubric grading workbench and cited student feedback',
+      status: 'partial',
+      proof: ['grading-alpha-draft', 'approval-grading-beta-approved', '/teacher/grading-workbench?demo=1'],
+      nextChange: 'professionalize-document-grading',
+    },
+    {
+      id: 'konling-explanation',
+      competitionRequirement: 'Interactive assistant explains diagnosis, path, resources, and grading',
+      platformCapability: 'Konling mode runtime with scoped citations',
+      status: 'partial',
+      proof: ['konling-diagnosis', 'konling-path', 'konling-grading'],
+      nextChange: 'harden-assistant-evidence-loop',
+    },
+    {
+      id: 'teacher-prep-pack',
+      competitionRequirement: 'Teacher receives a prep-pack action from student evidence',
+      platformCapability: 'teacher prep-pack and runtime overlay fixtures',
+      status: 'partial',
+      proof: ['prep-pack-demo-ita', 'overlay-prep-pack-demo-ita'],
+      nextChange: 'productize-learning-path-prep-pack',
+    },
+    {
+      id: 'effect-report',
+      competitionRequirement: 'Competition reviewer sees source-backed effect report',
+      platformCapability: 'assistant effect report export with metric methodology',
+      status: 'planned',
+      proof: ['effect-report-demo-ita-export'],
+      nextChange: 'polish-competition-surfaces-report',
+    },
+  ],
+  temporarySurfaces: [
+    {
+      id: 'teacher-prep-pack-page-slot',
+      routeOrApi: '/teacher/classes/demo-ita-class',
+      surfaceStatus: 'placeholder',
+      removalOwner: 'productize-learning-path-prep-pack',
+    },
+    {
+      id: 'assistant-effect-report-api-only',
+      routeOrApi: '/api/teacher/classes/demo-ita-class/assistant-effect-report?export=true',
+      surfaceStatus: 'api-only',
+      removalOwner: 'polish-competition-surfaces-report',
+    },
+    {
+      id: 'demo-provider-flags',
+      routeOrApi: 'AI_PROVIDER_ENABLED, KONLING_SERVER_MODE_CONTEXT_SECRET, DOCUMENT_RUBRIC_GRADING_ENABLED',
+      surfaceStatus: 'feature-flagged',
+      removalOwner: 'harden-assistant-evidence-loop',
+    },
+  ],
+  seedReset: {
+    command: 'rtk npm run test:competition-baseline',
+    resetCommand: 'rtk npm run test:intelligent-teaching-assistant-demo -- --rollback-check',
+    idempotencyKey: INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE.fixtureScope.resetIdempotencyKey,
+    cleanupSelectors: INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE.fixtureScope.cleanupSelectors,
+    duplicateCheck: 'installIntelligentTeachingAssistantDemoFixtures(firstInstall.state) equals firstInstall.state',
+  },
+  acceptanceCommands: [
+    'rtk npm run test:competition-baseline',
+    'rtk npm run test:intelligent-teaching-assistant-demo',
+    'rtk openspec validate competition-demo-baseline --strict',
+  ],
 };
 
 const REQUIRED_MODES = new Set([
@@ -667,6 +909,73 @@ export function buildIntelligentTeachingAssistantDemoAcceptanceReport(
     { id: 'teacher-grading-report-prep', ok: errors.every((error) => !error.includes('grading') && !error.includes('teacher') && !error.includes('prep')), detail: 'Teacher report, grading workbench, feedback, and prep-pack evidence are represented.' },
     { id: 'konling-modes', ok: errors.every((error) => !error.includes('Konling') && !error.includes('mode')), detail: 'All teaching assistant modes have scoped context, citations, and unavailable-state coverage.' },
     { id: 'privacy-provider-rollback', ok: errors.every((error) => !error.includes('forbidden') && !error.includes('provider') && !error.includes('rollback')), detail: 'Privacy scan, provider prerequisites, and rollback checks pass.' },
+  ];
+  return { ok: errors.length === 0 && checks.every((check) => check.ok), checks, errors };
+}
+
+export function validateCompetitionBaseline(
+  baseline: CompetitionBaseline = XH_202620_COMPETITION_BASELINE,
+  pkg: IntelligentTeachingAssistantDemoPackage = INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE,
+): string[] {
+  const errors: string[] = [];
+  const add = (condition: boolean, message: string) => { if (!condition) errors.push(message); };
+  const roles = new Set(baseline.accounts.map((account) => account.role));
+  const routeRoles = new Set(baseline.routeLedger.map((step) => step.actorRole));
+  const statuses = new Set(baseline.routeLedger.map((step) => step.surfaceStatus));
+  const capabilityStatuses = new Set(baseline.capabilities.map((capability) => capability.status));
+  const installed = installIntelligentTeachingAssistantDemoFixtures({ records: [] }, pkg);
+  const reinstalled = installIntelligentTeachingAssistantDemoFixtures(installed.state, pkg);
+  const installedIds = new Set(installed.upsertedIds);
+  const installedTypesById = new Map(installed.state.records.map((record) => [record.id, record.type]));
+  const ledgerRoutes = new Set(baseline.routeLedger.map((step) => step.route));
+  const accountScopeByRole = new Map(baseline.accounts.map((account) => [account.role, new Set(account.routeScope)]));
+  const capabilityProofs = baseline.capabilities.flatMap((capability) => capability.proof);
+
+  add(baseline.competitionCode === 'xh-202620', 'competition baseline must target xh-202620');
+  add(baseline.sourcePackageVersion === pkg.version, 'competition baseline must reference the current demo package version');
+  add(['student', 'teacher', 'administrator'].every((role) => roles.has(role as CompetitionBaselineActorRole)), 'competition baseline must define student, teacher, and administrator demo accounts');
+  add(baseline.accounts.every((account) => account.synthetic && account.routeScope.length > 0), 'competition demo accounts require synthetic markers and scoped routes');
+  add(baseline.records.every((record) => record.dataOrigin === 'synthetic-demo' && record.sourcePackageId === 'intelligent-teaching-assistant'), 'competition records require explicit synthetic-demo data-origin metadata');
+  add(baseline.records.every((record) => installedIds.has(record.id)), 'competition baseline records must exist in deterministic demo fixture install output');
+  add(baseline.records.every((record) => installedTypesById.get(record.id) === record.type), 'competition baseline record types must match deterministic demo fixture install output');
+  add(JSON.stringify(installed.state.records) === JSON.stringify(reinstalled.state.records), 'competition baseline seed/reset must be idempotent');
+  add(['student', 'teacher', 'administrator'].every((role) => routeRoles.has(role as CompetitionBaselineActorRole)), 'competition route ledger must cover student, teacher, and administrator routes');
+  add(baseline.routeLedger.every((step) => step.dataOrigin === 'synthetic-demo' && step.expectedEvidence.length > 0), 'competition route ledger steps require synthetic data origin and expected evidence');
+  add(baseline.routeLedger.every((step) => accountScopeByRole.get(step.actorRole)?.has(step.route)), 'competition route ledger routes must stay within each account role scope');
+  add(!baseline.routeLedger.some((step) => step.actorRole === 'student' && step.route === '/data-center'), 'student competition route ledger must not use Data Center');
+  add(baseline.routeLedger.some((step) => step.actorRole === 'student' && step.route === '/profile/evidence'), 'student competition route ledger must use learner-record evidence surface');
+  add(['implemented', 'placeholder', 'api-only'].every((status) => statuses.has(status as CompetitionBaselineSurfaceStatus)), 'competition route ledger must classify implemented, placeholder, and API-only surface status');
+  add(['implemented', 'partial', 'planned'].every((status) => capabilityStatuses.has(status as CompetitionBaselineCapabilityStatus)), 'competition capability map must include implemented, partial, and planned status');
+  add(capabilityProofs.every((proof) => installedIds.has(proof) || ledgerRoutes.has(proof)), 'competition capability proof ids must resolve to fixture records or ledger routes');
+  add(
+    ['placeholder', 'feature-flagged', 'api-only'].every((status) => (
+      baseline.temporarySurfaces.some((surface) => surface.surfaceStatus === status)
+    )) && baseline.temporarySurfaces.every((surface) => surface.removalOwner.length > 0),
+    'competition baseline must record placeholder, feature-flagged, and API-only surfaces with removal owners',
+  );
+  add(baseline.seedReset.idempotencyKey === pkg.fixtureScope.resetIdempotencyKey, 'competition seed/reset must reuse the demo package idempotency key');
+  add(baseline.seedReset.cleanupSelectors.every((selector) => selector.includes('syntheticOnly=true') || selector.includes('demoPackage=intelligent-teaching-assistant')), 'competition cleanup selectors must target synthetic demo package data');
+  add(baseline.acceptanceCommands.includes('rtk npm run test:competition-baseline'), 'competition baseline must expose a named acceptance command');
+  add(baseline.acceptanceCommands.includes('rtk npm run test:intelligent-teaching-assistant-demo'), 'competition baseline must reuse intelligent assistant demo acceptance');
+  add(baseline.acceptanceCommands.includes('rtk openspec validate competition-demo-baseline --strict'), 'competition baseline must expose the archived spec validation command');
+  add(!baseline.acceptanceCommands.some((command) => command.includes('freeze-competition-baseline')), 'competition baseline acceptance commands must not reference the archived change id');
+  return errors;
+}
+
+export function buildCompetitionBaselineAcceptanceReport(
+  baseline: CompetitionBaseline = XH_202620_COMPETITION_BASELINE,
+  pkg: IntelligentTeachingAssistantDemoPackage = INTELLIGENT_TEACHING_ASSISTANT_DEMO_PACKAGE,
+): AssistantDemoAcceptanceReport {
+  const errors = [
+    ...validateIntelligentTeachingAssistantDemoPackage(pkg),
+    ...validateCompetitionBaseline(baseline, pkg),
+  ];
+  const checks = [
+    { id: 'competition.accounts', ok: errors.every((error) => !error.includes('accounts')), detail: 'Teacher, administrator, and student demo accounts are declared with stable ids.' },
+    { id: 'competition.routes', ok: errors.every((error) => !error.includes('route ledger') && !error.includes('Data Center') && !error.includes('learner-record')), detail: 'Route ledger covers teacher, student, administrator, and learner-record boundaries.' },
+    { id: 'competition.data-origin', ok: errors.every((error) => !error.includes('data-origin') && !error.includes('records')), detail: 'Baseline records are synthetic-demo scoped and backed by deterministic fixture ids.' },
+    { id: 'competition.seed-reset', ok: errors.every((error) => !error.includes('seed/reset') && !error.includes('idempotent')), detail: 'Seed/reset commands reuse the existing fixture idempotency contract.' },
+    { id: 'competition.acceptance', ok: errors.every((error) => !error.includes('acceptance command')), detail: 'Named acceptance commands are available for baseline and assistant demo checks.' },
   ];
   return { ok: errors.length === 0 && checks.every((check) => check.ok), checks, errors };
 }
