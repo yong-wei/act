@@ -28,15 +28,11 @@ The system SHALL keep a human teacher in the loop for document grading.
 - **AND** unapproved machine drafts SHALL NOT update competency profiles as high-confidence evidence.
 
 ### Requirement: Grading UI is part of the workflow
-The system SHALL provide teacher and student UI surfaces for document grading.
+The grading workbench SHALL support professional teacher review states.
 
 #### Scenario: Teacher opens grading workbench
-- **WHEN** a teacher opens the grading workbench
-- **THEN** the page SHALL show upload/conversion status, document preview, rubric tree, AI draft comments, editable annotations, approval actions, and error states.
-
-#### Scenario: Student opens feedback
-- **WHEN** a student opens returned grading feedback
-- **THEN** the page SHALL show annotated document or page references, rubric breakdown, teacher-approved comments, evidence capsules, and profile impact summary.
+- **WHEN** a teacher opens a grading draft
+- **THEN** the UI SHALL show converted document precision, evaluator limitations, criterion-level AI draft, teacher-edit controls, evidence anchors, approval state, and writeback preview.
 
 ### Requirement: Document grading persists first-class artifacts
 The system SHALL persist document submissions, conversion artifacts, rubric assessments, and annotation anchors as durable grading workflow records.
@@ -52,38 +48,35 @@ The system SHALL persist document submissions, conversion artifacts, rubric asse
 - **AND** conversion precision SHALL be visible to downstream grading and UI consumers.
 
 ### Requirement: Draft rubric grading is anchor-backed
-Rubric grading drafts SHALL cite converted document anchors for every criterion that affects learner-state or diagnosis.
+Draft rubric grading SHALL evaluate document quality through schema-validated criterion assessments rather than fixed scaffold scores.
 
 #### Scenario: Draft criterion grade is produced
-- **WHEN** a draft assessment scores a rubric criterion
-- **THEN** it SHALL include criterion id, selected level, normalized score, rationale, confidence, and one or more evidence anchors
-- **AND** criterion grades without required anchors SHALL be blocked from profile writeback.
+- **WHEN** a converted control-correction document is evaluated
+- **THEN** each rubric criterion SHALL include criterion id, selected level, score, rationale, confidence, evidence anchors, and limitation state
+- **AND** the selected level SHALL be derived from document content, rubric evidence requirements, and evaluator reasoning rather than a fixed middle level.
 
-#### Scenario: Anchor precision is limited
-- **WHEN** a converted document only supports page-level or block-level references
-- **THEN** the grading UI SHALL disclose that precision
-- **AND** it SHALL NOT present the feedback as exact inline PDF annotation.
+#### Scenario: Evaluator output is invalid
+- **WHEN** evaluator output is malformed, references unsupported criteria, lacks evidence anchors, or violates safety constraints
+- **THEN** the draft SHALL NOT be approved or written back automatically
+- **AND** the workbench SHALL expose a retry or blocked-evaluator state for teacher review.
 
 ### Requirement: Teacher review governs feedback and writeback
-Only teacher-approved or teacher-edited grading assessments SHALL be returned to students or written back to profiles.
+Teacher review SHALL remain the governing step for student feedback and learner-profile writeback.
 
-#### Scenario: Teacher approves assessment
-- **WHEN** a teacher approves or edits a grading assessment
-- **THEN** the final assessment SHALL become eligible for student feedback and governed LearningFact writeback
-- **AND** the writeback preview SHALL identify affected dimensions, evidence references, confidence, and dedupe keys.
+#### Scenario: Teacher edits a criterion assessment
+- **WHEN** a teacher changes score, level, rationale, or evidence anchor before approval
+- **THEN** the system SHALL preserve AI draft values and teacher-approved values
+- **AND** it SHALL record the diff for quality metrics and audit.
 
-#### Scenario: Draft remains unapproved
-- **WHEN** a grading run is still draft, returned, or rejected
-- **THEN** it SHALL NOT create high-confidence learner-state, diagnosis, path, or teacher-prep evidence.
+#### Scenario: Student feedback is generated
+- **WHEN** grading is approved for student feedback
+- **THEN** the student feedback SHALL include criterion results, evidence anchors, teacher-approved comments, and remediation action cards
+- **AND** each action card SHALL link to a valid learner-record, path, resource, or practice destination.
 
 ### Requirement: Grading writeback is idempotent and auditable
-Approved grading writeback SHALL produce governed learning evidence without duplicating profile facts.
-
-#### Scenario: Writeback is repeated
-- **WHEN** the same final assessment is written back more than once
-- **THEN** the system SHALL reuse or skip existing LearningFact records through stable source ids
-- **AND** it SHALL report created, skipped, and blocked counts.
+Writeback SHALL include grading quality metadata.
 
 #### Scenario: Writeback is audited
-- **WHEN** approved grading contributes to a diagnosis or profile
-- **THEN** the resulting evidence SHALL include rubric id, rubric version, assessment id, criterion id, anchor references, teacher review state, confidence, and privacy scope.
+- **WHEN** approved grading creates learning facts or profile contributions
+- **THEN** the audit SHALL include rubric version, evaluator version, teacher reviewer, AI/teacher delta, source anchors, and idempotency key
+- **AND** repeated writeback SHALL NOT duplicate learner facts.
