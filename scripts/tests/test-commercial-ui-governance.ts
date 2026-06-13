@@ -374,7 +374,7 @@ function affectedVisualRoutes(files: string[]): CommercialVisualAcceptanceRoute[
 
 function appPageRouteHref(file: string) {
   if (!/^src\/app\/(?:.*\/)?page\.tsx$/.test(file)) return undefined;
-  if (REDIRECT_ONLY_APP_PAGE_LEDGER_EXEMPTIONS.has(file)) return undefined;
+  if (NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS.has(file)) return undefined;
   const route = file
     .replace(/^src\/app\/?/, '')
     .replace(/\/page\.tsx$/, '')
@@ -476,9 +476,23 @@ function changedPrimaryRouteInventoryHrefs() {
 }
 const changedPrimaryRouteHrefs = changedPrimaryRouteInventoryHrefs();
 const currentPrimaryRouteHrefs = new Set(PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => route.href));
-const REDIRECT_ONLY_APP_PAGE_LEDGER_EXEMPTIONS = new Set([
-  'src/app/(main)/teacher/students/[studentId]/diagnosis/page.tsx',
-  'src/app/(main)/teacher/students/[studentId]/evidence/page.tsx',
+const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
+  [
+    'src/app/(main)/teacher/students/[studentId]/diagnosis/page.tsx',
+    'redirect-only compatibility route; teacher diagnosis is covered by registered teacher student surfaces',
+  ],
+  [
+    'src/app/(main)/teacher/students/[studentId]/evidence/page.tsx',
+    'redirect-only compatibility route; teacher evidence is covered by registered teacher student surfaces',
+  ],
+  [
+    'src/app/interactive-learning/lessons/[lessonId]/handout-print/page.tsx',
+    'lesson handout print is an export view launched from registered interactive learning routes',
+  ],
+  [
+    'src/app/review/adaptive-assessment-figures/page.tsx',
+    'adaptive assessment figures is an internal review preview launched from the review hub',
+  ],
 ]);
 const missingChangedPrimaryRouteLedgerViolations: CommercialUiGovernanceViolation[] = [...changedPrimaryRouteHrefs]
   .filter((href) => !currentPrimaryRouteHrefs.has(href))

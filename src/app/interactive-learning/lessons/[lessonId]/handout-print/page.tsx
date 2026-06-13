@@ -153,7 +153,7 @@ export default async function LessonHandoutPrintPage(
 
     return (
       <main className="min-h-screen bg-white text-slate-900" data-handout-print-ready="true">
-        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: PRINT_PAGE_CSS }} />
+        <style suppressHydrationWarning>{PRINT_PAGE_CSS}</style>
         <div className="mx-auto max-w-[820px] px-8 py-10">
           <header className="mb-8 border-b border-slate-200 pb-5">
             <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{params.lessonId} Handout</div>

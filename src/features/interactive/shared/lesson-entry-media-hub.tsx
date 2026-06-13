@@ -37,6 +37,11 @@ const DEFAULT_RECOMMENDATION =
   '建议先浏览课前讲义，再结合已开放的视频、音频或课件回看关键图表与公式。';
 const DEFAULT_AUDIO_CARD_TITLE = '《闲聊自控》播客';
 const MEDIA_PROGRESS_THRESHOLDS = [25, 50, 75, 90] as const;
+// Sandbox rationale: iframe previews need scripts for hosted slide/video widgets,
+// popup links, and presentation/fullscreen affordances.
+// Same-origin is intentionally omitted to avoid script + same-origin escape.
+const LESSON_MEDIA_PREVIEW_IFRAME_SANDBOX =
+  'allow-scripts allow-popups allow-presentation';
 
 const SLOT_COPY = {
   introVideo: {
@@ -278,6 +283,7 @@ function InlineMediaPreview({
         title={resource.title}
         className={`${frameClassName} ${innerClassName ?? ''}`}
         allow="autoplay; fullscreen"
+        sandbox={LESSON_MEDIA_PREVIEW_IFRAME_SANDBOX}
       />
     </div>
   );
