@@ -119,6 +119,7 @@ export function KnowledgeGraphSystem({
   const [desktopChapterDirectoryOpen, setDesktopChapterDirectoryOpen] = useState(true);
   const [desktopRelationFiltersOpen, setDesktopRelationFiltersOpen] = useState(true);
   const [mobileActiveTool, setMobileActiveTool] = useState<KnowledgeMobileTool>('chapter-directory');
+  const [mobileToolPanelOpen, setMobileToolPanelOpen] = useState(false);
 
   // 视图模式：默认 2D
   const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
@@ -451,7 +452,7 @@ export function KnowledgeGraphSystem({
           className="absolute left-3 right-3 top-3 z-30 grid gap-2 lg:hidden"
           data-knowledge-mobile-command-surface="single-tool-panel"
           data-knowledge-local-tool={mobileActiveTool}
-          data-state="open"
+          data-state={mobileToolPanelOpen ? 'open' : 'closed'}
         >
           <div className="flex flex-wrap items-center gap-2 rounded-xl border border-platform-border bg-platform-surface/95 p-2 text-xs text-platform-fg-primary shadow-lg backdrop-blur">
             {([
@@ -463,7 +464,11 @@ export function KnowledgeGraphSystem({
                 key={tool}
                 type="button"
                 aria-pressed={mobileActiveTool === tool}
-                onClick={() => setMobileActiveTool(tool)}
+                aria-expanded={mobileActiveTool === tool && mobileToolPanelOpen}
+                onClick={() => {
+                  setMobileActiveTool(tool);
+                  setMobileToolPanelOpen(true);
+                }}
                 className={`rounded-lg border px-2.5 py-1.5 transition ${
                   mobileActiveTool === tool
                     ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary'
@@ -476,12 +481,23 @@ export function KnowledgeGraphSystem({
             <span className="min-w-0 flex-1 truncate text-[11px] text-platform-fg-secondary">
               {activeFilterSummary}
             </span>
+            <button
+              type="button"
+              aria-expanded={mobileToolPanelOpen}
+              onClick={() => setMobileToolPanelOpen((open) => !open)}
+              className="rounded-lg border border-platform-border px-2.5 py-1.5 text-[11px] text-platform-fg-secondary transition hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+              data-knowledge-mobile-panel-toggle="true"
+            >
+              {mobileToolPanelOpen ? '收起' : '展开'}
+            </button>
           </div>
 
-          <div
-            className="max-h-[min(28rem,calc(100vh-7rem))] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-3 text-xs text-platform-fg-primary shadow-xl backdrop-blur"
-            data-knowledge-mobile-tool-panel={mobileActiveTool}
-          >
+          {mobileToolPanelOpen && (
+            <div
+              className="max-h-[min(28rem,calc(100vh-7rem))] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-3 text-xs text-platform-fg-primary shadow-xl backdrop-blur"
+              data-knowledge-mobile-tool-panel={mobileActiveTool}
+              data-state="open"
+            >
             {mobileActiveTool === 'chapter-directory' && (
               <div data-knowledge-local-tool="chapter-directory" data-state="open">
                 <KnowledgeSidebar
@@ -626,7 +642,8 @@ export function KnowledgeGraphSystem({
                 <span>细虚线：弱关联</span>
               </div>
             )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* 筛选控制区 */}
