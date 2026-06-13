@@ -949,6 +949,9 @@ describe('platform role navigation', () => {
     expect(knowledgeGraphSource).toContain("data-state={desktopRelationFiltersOpen ? 'open' : 'closed'}");
     expect(knowledgeGraphSource).toContain('data-knowledge-active-filter-summary="relation-filters"');
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-command-surface="single-tool-panel"');
+    expect(knowledgeGraphSource).toContain("data-state={mobileToolPanelOpen ? 'open' : 'closed'}");
+    expect(knowledgeGraphSource).toContain('data-knowledge-mobile-panel-toggle="true"');
+    expect(knowledgeGraphSource).toContain('{mobileToolPanelOpen && (');
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-tool-panel={mobileActiveTool}');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="legend"');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="view-mode-switch"');
