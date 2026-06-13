@@ -173,26 +173,22 @@ Konling SHALL use governed simulation and Arena validation summaries when coachi
 - **AND** it SHALL recommend evidence-gathering or fallback actions instead of claiming verified causality.
 
 ### Requirement: Konling supports teaching-assistant modes
-Konling SHALL expose registered teaching-assistant modes with explicit context, tool, citation, and privacy contracts.
+Teaching-assistant modes SHALL expose route-level readiness for the competition assistant workflow.
 
-#### Scenario: Diagnosis explainer mode starts
-- **WHEN** Konling opens from a learning diagnosis surface
-- **THEN** it SHALL load the server-owned diagnosis view, learner-state summary, relevant evidence citations, permitted tools, and missing-context state.
+#### Scenario: Assistant mode readiness is requested
+- **WHEN** diagnosis explainer, path advisor, grading assistant, feedback explainer, class summarizer, or prep coauthor mode is mounted on a supported route
+- **THEN** the runtime SHALL return `ready`, `degraded`, or `unavailable`
+- **AND** unavailable states SHALL include missing required context, unsupported role, missing citation class, or unknown mode reasons.
 
-#### Scenario: Grading assistant mode starts
-- **WHEN** Konling opens from a teacher grading workbench
-- **THEN** it SHALL load rubric, converted document references, draft grading state, teacher review state, citation requirements, and role-scoped permissions
-- **AND** it SHALL NOT approve grading or write back profiles without the grading workflow approval action.
-
-#### Scenario: Prep coauthor mode starts
-- **WHEN** Konling opens from a prep-pack page
-- **THEN** it SHALL load class diagnosis, candidate prep items, evidence references, insertion targets, and teacher review state
-- **AND** generated suggestions SHALL remain drafts until teacher approval.
+#### Scenario: Required context is present
+- **WHEN** a mode has its required server-owned context and citation classes
+- **THEN** the mode SHALL expose permitted tools and safe scope metadata
+- **AND** client-supplied hints SHALL NOT override server-verifiable permissions or target identity.
 
 ### Requirement: Mode fallback is explicit
-Konling SHALL expose missing or unavailable mode dependencies rather than silently downgrading to generic chat.
+Mode fallback SHALL be user-visible and testable.
 
 #### Scenario: Required mode context is unavailable
-- **WHEN** a mode requires diagnosis, path, grading, prep-pack, or citation context that is not available
-- **THEN** the runtime SHALL return a visible unavailable or degraded state
-- **AND** it SHALL NOT invent authoritative personalized claims from client hints.
+- **WHEN** a teaching-assistant mode lacks required context or citations
+- **THEN** the mode SHALL be unavailable or degraded with a clear reason
+- **AND** it SHALL NOT generate authoritative recommendations from generic chat context alone.
