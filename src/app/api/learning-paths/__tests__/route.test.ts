@@ -132,10 +132,16 @@ describe('learning path round API routes', () => {
             {
               styleId: 'foundation-remediation',
               policyFamily: 'foundation-remediation',
+              resourceMix: { knowledge_card: 1, arena_task: 1 },
+              evidenceBasis: ['adaptive-learner-state'],
+              limitations: ['terminal-validation-required'],
+              terminalValidationNodeIds: ['arena-task:terminal'],
             },
             {
               styleId: 'simulation-driven',
               policyFamily: 'simulation-driven',
+              resourceMix: { simulation: 1, arena_task: 1 },
+              evidenceBasis: ['simulation-run'],
             },
           ],
         },
@@ -465,10 +471,10 @@ describe('learning path round API routes', () => {
     const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
       action: 'selection',
       selectedStyleId: 'foundation-remediation',
-      selectedPolicyFamily: 'foundation-remediation',
+      selectedPolicyFamily: 'forged-policy-family',
       rejectedStyleIds: ['simulation-driven'],
-      resourceMix: { knowledge_card: 1, arena_task: 1 },
-      rationaleMetadata: { evidenceBasis: ['adaptive-learner-state'] },
+      resourceMix: { forged_resource: 99 },
+      rationaleMetadata: { evidenceBasis: ['forged-client-evidence'] },
       diagnosisSnapshotRef: 'diagnosis-snapshot:forged-client',
       idempotencyKey: 'choice-key',
     }), params);
@@ -480,8 +486,15 @@ describe('learning path round API routes', () => {
       pathId: 'path-1',
       userId: 'student-1',
       selectedStyleId: 'foundation-remediation',
+      selectedPolicyFamily: 'foundation-remediation',
       rejectedStyleIds: ['simulation-driven'],
       diagnosisSnapshotRef: 'diagnosis-snapshot:server-owned',
+      resourceMix: { knowledge_card: 1, arena_task: 1 },
+      rationaleMetadata: expect.objectContaining({
+        evidenceBasis: ['adaptive-learner-state'],
+        limitations: ['terminal-validation-required'],
+        terminalValidationNodeIds: ['arena-task:terminal'],
+      }),
       idempotencyKey: 'choice-key',
     }));
     expect(mocks.refreshStudentEvidenceFeatureCache).toHaveBeenCalledWith(expect.anything(), 'student-1');

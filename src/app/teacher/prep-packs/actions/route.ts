@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
         client: prisma,
         packId,
         teacherId: session.user.id,
-        runtimeContext: runtimeContextFromPack(pack),
+        runtimeContext: await loadRuntimeContextForPack(pack),
       });
     } else if (action === 'rollback') {
       if (!hasActiveOverlay(pack)) {
@@ -96,25 +96,51 @@ export async function POST(request: NextRequest) {
   return redirectToReview(request, action, packId);
 }
 
-function runtimeContextFromPack(pack: CourseEnhancementPack): CourseEnhancementRuntimeContext {
+async function loadRuntimeContextForPack(pack: CourseEnhancementPack): Promise<CourseEnhancementRuntimeContext> {
+  const [lessonPlan, sessions] = await Promise.all([
+    prisma.lessonPlan.findUnique({
+      where: { id: pack.lessonId },
+      select: {
+        id: true,
+        items: {
+          select: {
+            id: true,
+            stage: true,
+            resourceId: true,
+            knowledgeNodeId: true,
+            resource: { select: { registryId: true } },
+          },
+        },
+      },
+    }),
+    prisma.classSession.findMany({
+      where: { classId: pack.classId, planId: pack.lessonId },
+      select: { id: true, currentItemId: true },
+    }),
+  ]);
+
   const stageById = new Map<string, CourseEnhancementRuntimeContext['stages'][number]>();
   const lessonStepIds = new Set<string>();
   const resourceNodeIds = new Set<string>();
   const classSessionIds = new Set<string>();
 
-  for (const item of pack.items) {
-    const target = item.insertionTarget;
-    if (target.lessonStepId) lessonStepIds.add(target.lessonStepId);
-    if (target.resourceNodeId) resourceNodeIds.add(target.resourceNodeId);
-    if (target.classSessionId) classSessionIds.add(target.classSessionId);
-    if (target.lessonStage) {
-      const id = target.lessonStage;
-      const existing = stageById.get(id);
-      const stepIds = target.lessonStepId
-        ? Array.from(new Set([...(existing?.stepIds ?? []), target.lessonStepId]))
-        : existing?.stepIds;
-      stageById.set(id, { id, stage: target.lessonStage, stepIds });
-    }
+  for (const item of lessonPlan?.items ?? []) {
+    lessonStepIds.add(item.id);
+    if (item.resourceId) resourceNodeIds.add(item.resourceId);
+    if (item.knowledgeNodeId) resourceNodeIds.add(item.knowledgeNodeId);
+    if (item.resource?.registryId) resourceNodeIds.add(item.resource.registryId);
+    const stage = item.stage as CourseEnhancementRuntimeContext['stages'][number]['stage'];
+    const existing = stageById.get(String(item.stage));
+    stageById.set(String(item.stage), {
+      id: String(item.stage),
+      stage,
+      stepIds: [...(existing?.stepIds ?? []), item.id],
+    });
+  }
+
+  for (const session of sessions) {
+    classSessionIds.add(session.id);
+    if (session.currentItemId) lessonStepIds.add(session.currentItemId);
   }
 
   return {

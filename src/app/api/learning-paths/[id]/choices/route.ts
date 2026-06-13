@@ -35,7 +35,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       return NextResponse.json({ error: '路径选择动作不符合契约' }, { status: 400 });
     }
 
-    const styleIds = readPathStyleIds(path.pathPayload);
+    const pathOptions = readPathOptions(path.pathPayload);
+    const styleIds = new Set(pathOptions.keys());
     const selectedStyleId = nullableString(body.selectedStyleId);
     const previousStyleId = nullableString(body.previousStyleId);
     const rejectedStyleIds = readStringArray(body.rejectedStyleIds);
@@ -58,18 +59,19 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (body.action === 'helpfulness' && rejectedStyleIds.length > 0) {
       return NextResponse.json({ error: '路径有用性反馈不能携带 rejectedStyleIds' }, { status: 400 });
     }
+    const selectedOption = selectedStyleId ? pathOptions.get(selectedStyleId) ?? null : null;
 
     const choice = await recordPathChoiceEvidence(prisma as any, {
       pathId: params.id,
       userId: path.userId,
       action: body.action as PathChoiceEvidenceAction,
       selectedStyleId,
-      selectedPolicyFamily: nullableString(body.selectedPolicyFamily),
+      selectedPolicyFamily: selectedOption?.policyFamily ?? null,
       rejectedStyleIds,
       previousStyleId,
       diagnosisSnapshotRef: resolveServerDiagnosisSnapshotRef(path),
-      resourceMix: readNumberRecord(body.resourceMix),
-      rationaleMetadata: readRecord(body.rationaleMetadata),
+      resourceMix: selectedOption?.resourceMix ?? {},
+      rationaleMetadata: selectedOption?.rationaleMetadata ?? {},
       helpful: typeof body.helpful === 'boolean' ? body.helpful : null,
       eventId: nullableString(body.eventId),
       idempotencyKey: body.idempotencyKey,
@@ -86,13 +88,35 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
   }
 }
 
-function readPathStyleIds(pathPayload: unknown): Set<string> {
+interface ServerPathChoiceOption {
+  styleId: string;
+  policyFamily: string | null;
+  resourceMix: Record<string, number>;
+  rationaleMetadata: Record<string, unknown>;
+}
+
+function readPathOptions(pathPayload: unknown): Map<string, ServerPathChoiceOption> {
   const payload = readRecord(pathPayload);
   const policyBundle = readRecord(payload.policyBundle);
   const paths = Array.isArray(policyBundle.paths) ? policyBundle.paths : [];
-  return new Set(paths
-    .map((item) => nullableString(readRecord(item).styleId))
-    .filter((styleId): styleId is string => Boolean(styleId)));
+  return new Map(paths
+    .map((item): [string, ServerPathChoiceOption] | null => {
+      const option = readRecord(item);
+      const styleId = nullableString(option.styleId);
+      if (!styleId) return null;
+      return [styleId, {
+        styleId,
+        policyFamily: nullableString(option.policyFamily),
+        resourceMix: readNumberRecord(option.resourceMix),
+        rationaleMetadata: compactRecord({
+          evidenceBasis: readStringArray(option.evidenceBasis),
+          limitations: readStringArray(option.limitations),
+          terminalValidationNodeIds: readStringArray(option.terminalValidationNodeIds),
+          terminalValidationStrategy: readRecord(option.terminalValidationStrategy),
+        }),
+      }];
+    })
+    .filter((entry): entry is [string, ServerPathChoiceOption] => Boolean(entry)));
 }
 
 function resolveServerDiagnosisSnapshotRef(path: { learnerStateRef?: unknown; inputSnapshot?: unknown }): string | null {
@@ -128,4 +152,12 @@ function readNumberRecord(value: unknown): Record<string, number> {
 
 function nullableString(value: unknown): string | null {
   return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
+function compactRecord(value: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(value).filter(([, entry]) => {
+    if (Array.isArray(entry)) return entry.length > 0;
+    if (entry && typeof entry === 'object') return Object.keys(entry).length > 0;
+    return entry !== null && entry !== undefined;
+  }));
 }
