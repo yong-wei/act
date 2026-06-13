@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { PLATFORM_ROUTE_COMPATIBILITY_REDIRECTS } from '../../src/lib/platform-role-navigation';
+
 const root = process.cwd();
 const targets = [
   'src/app/page.tsx',
@@ -18,9 +20,27 @@ const hardcodedDarkTokens = [
   'bg-[#0b132b]',
 ];
 
+function appPageFileToRoute(file: string) {
+  if (!/^src\/app\/(?:.*\/)?page\.tsx$/.test(file)) return undefined;
+  const route = file
+    .replace(/^src\/app\/?/, '')
+    .replace(/\/page\.tsx$/, '')
+    .split('/')
+    .filter((segment) => segment && !/^\(.+\)$/.test(segment))
+    .join('/');
+  return route ? `/${route}` : '/';
+}
+
+function isRegisteredRedirectOnlyRoute(file: string, content: string) {
+  const route = appPageFileToRoute(file);
+  const redirect = PLATFORM_ROUTE_COMPATIBILITY_REDIRECTS.find((entry) => entry.from === route);
+  return Boolean(redirect && content.includes(`redirect('${redirect.to}')`) && !content.includes('return ('));
+}
+
 for (const file of targets) {
   const fullPath = path.join(root, file);
   const content = fs.readFileSync(fullPath, 'utf8');
+  if (isRegisteredRedirectOnlyRoute(file, content)) continue;
 
   const hasThemeBase =
     content.includes('surface-page') || content.includes('bg-background') || content.includes('text-foreground');

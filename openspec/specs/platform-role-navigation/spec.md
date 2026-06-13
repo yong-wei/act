@@ -10,10 +10,10 @@ The system SHALL define role-specific navigation entries through a central schem
 - **AND** Personal Center SHALL NOT be counted as one of the core student module entries.
 - **AND** Data Center SHALL NOT be visible as a student core, review, or fallback navigation destination.
 
-#### Scenario: Operations navigation is rendered
-- **WHEN** a teacher or administrator page renders operations navigation
-- **THEN** Data Center MAY be visible according to role policy and route inventory.
-- **AND** the entry SHALL be treated as a teacher or administrator operations destination, not as a student learning destination.
+#### Scenario: Virtual lab compatibility route is resolved
+- **WHEN** simulation navigation is rendered for students or guests
+- **THEN** `/simulations` SHALL be the canonical simulation catalog entry.
+- **AND** `/virtual-lab` SHALL be treated as a redirect-only compatibility route to `/simulations`, not as a second student navigation destination.
 
 ### Requirement: Homepage and student cockpit expose complete core entries
 The system SHALL migrate homepage and student cockpit entry surfaces to the unified role-navigation model with a complete core student entry matrix.
@@ -368,3 +368,4 @@ Route-family inventory SHALL accept migrated entry pages only when their first s
 - **WHEN** a student follows the first learning, practice, challenge, experiment, review, or launch action from a migrated route
 - **THEN** the destination SHALL remain within the unified navigation family or declare a bounded exception
 - **AND** the parent route SHALL NOT be accepted as migrated if the first action opens an untracked local shell.
+
