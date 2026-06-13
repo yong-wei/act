@@ -184,8 +184,8 @@ export function KnowledgeGraphSystem({
   const [showOnlyConnectedNodes, setShowOnlyConnectedNodes] = useState(true);
   const [labelMode, setLabelMode] = useState<KnowledgeGraphLabelMode>('focus');
   const [relationDensityMode, setRelationDensityMode] = useState<RelationDensityMode>('structure');
-  const [desktopChapterDirectoryOpen, setDesktopChapterDirectoryOpen] = useState(true);
-  const [desktopRelationFiltersOpen, setDesktopRelationFiltersOpen] = useState(true);
+  const [desktopChapterDirectoryOpen, setDesktopChapterDirectoryOpen] = useState(false);
+  const [desktopRelationFiltersOpen, setDesktopRelationFiltersOpen] = useState(false);
   const [mobileActiveTool, setMobileActiveTool] = useState<KnowledgeMobileTool>('chapter-directory');
   const [mobileToolPanelOpen, setMobileToolPanelOpen] = useState(false);
   const [isLightTheme, setIsLightTheme] = useState(false);

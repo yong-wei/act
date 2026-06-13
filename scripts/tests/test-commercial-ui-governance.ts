@@ -27,6 +27,13 @@ import {
   STUDENT_CORE_ENTRY_IDS,
   STUDENT_LEARNING_INTENT_GROUPS,
 } from '../../src/lib/platform-role-navigation';
+import {
+  assertRuntimeRelationStyleCoverage,
+  getRelationLegendItems,
+  getRelationSemantic,
+  KNOWLEDGE_NODE_SCALE_CONTRACT,
+} from '../../src/features/knowledge/graph/visual-config';
+import { relationPassesActiveFilters } from '../../src/features/knowledge/graph/filter-utils';
 
 const repoRoot = path.resolve(__dirname, '../..');
 const today = new Date().toISOString().slice(0, 10);
@@ -398,6 +405,351 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
   }));
 }
 
+type JsonRecord = Record<string, unknown>;
+
+const KNOWLEDGE_GRAPH_GOVERNANCE_EVIDENCE_PATH =
+  'artifacts/commercial-ui/knowledge-graph-governance-462/evidence.json';
+
+function readJsonFile<T>(relativePath: string): T | undefined {
+  const absolutePath = path.join(repoRoot, relativePath);
+  if (!existsSync(absolutePath)) return undefined;
+  return JSON.parse(readFileSync(absolutePath, 'utf8')) as T;
+}
+
+function objectRecord(value: unknown): JsonRecord {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as JsonRecord : {};
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string') : [];
+}
+
+function readRuntimeKnowledgeRelationCounts() {
+  const relationPath = path.join(repoRoot, 'course-content/runtime/knowledge/graph/relations.jsonl');
+  const counts = new Map<string, number>();
+  for (const line of readFileSync(relationPath, 'utf8').trim().split('\n').filter(Boolean)) {
+    const row = JSON.parse(line) as { relation_type?: string; relationType?: string; relation?: string };
+    const relationType = row.relation_type ?? row.relationType ?? row.relation ?? 'related';
+    counts.set(relationType, (counts.get(relationType) ?? 0) + 1);
+  }
+  return counts;
+}
+
+function knowledgeGraphGovernanceViolation(message: string, evidence: string[]): CommercialUiGovernanceViolation {
+  return {
+    path: '/knowledge',
+    rule: 'visual-acceptance.incomplete-evidence',
+    message,
+    evidence,
+  };
+}
+
+function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViolation[] {
+  const violations: CommercialUiGovernanceViolation[] = [];
+  const evidence = readJsonFile<JsonRecord>(KNOWLEDGE_GRAPH_GOVERNANCE_EVIDENCE_PATH);
+  const shellManifest = readJsonFile<{ viewports?: CommercialVisualAcceptanceEvidence['viewports'] }>(
+    'artifacts/commercial-ui/knowledge-map-unified-shell-415/manifest.json',
+  );
+  const visualLanguage = readJsonFile<JsonRecord>(
+    'artifacts/commercial-ui/knowledge-graph-visual-language-460/evidence.json',
+  );
+  const layoutClarity = readJsonFile<JsonRecord>(
+    'artifacts/commercial-ui/knowledge-graph-layout-clarity-461/evidence.json',
+  );
+  const graphSource = existsSync(path.join(repoRoot, 'src/features/knowledge/knowledge-graph-system.tsx'))
+    ? readFileSync(path.join(repoRoot, 'src/features/knowledge/knowledge-graph-system.tsx'), 'utf8')
+    : '';
+  const resourcePanelSource = existsSync(path.join(repoRoot, 'src/features/knowledge/resource-panel/resource-panel.tsx'))
+    ? readFileSync(path.join(repoRoot, 'src/features/knowledge/resource-panel/resource-panel.tsx'), 'utf8')
+    : '';
+
+  if (!evidence) {
+    return [knowledgeGraphGovernanceViolation('Knowledge graph governance evidence file is missing.', [
+      KNOWLEDGE_GRAPH_GOVERNANCE_EVIDENCE_PATH,
+    ])];
+  }
+
+  const localToolEvidence = objectRecord(evidence.localToolEvidence);
+  const desktopDefault = objectRecord(localToolEvidence.desktopDefault);
+  const desktopOpenClose = objectRecord(localToolEvidence.desktopOpenClose);
+  const tabletDefault = objectRecord(localToolEvidence.tabletDefault);
+  const mobileDefault = objectRecord(localToolEvidence.mobileDefault);
+  const shellViewports = shellManifest?.viewports ?? [];
+  const shellDesktop = shellViewports.find((viewport) => viewport.width === 1440);
+  const shellMobile = shellViewports.find((viewport) => viewport.width === 320);
+  const shellDesktopPanels = objectRecord(shellDesktop?.localPanelEvidence);
+  const shellMobilePanels = objectRecord(shellMobile?.localPanelEvidence);
+  const requiredDesktopPanels = [
+    'chapterDirectory',
+    'relationFilters',
+    'chapterDirectoryOpenClosed',
+    'relationFiltersOpenClosed',
+    'activeFilterSummaryWhenCollapsed',
+    'legend',
+    'viewModeSwitch',
+  ];
+  const missingDesktopPanels = requiredDesktopPanels.filter((key) => shellDesktopPanels[key] !== true);
+  const defaultStateProblems = [
+    graphSource.includes('const [desktopChapterDirectoryOpen, setDesktopChapterDirectoryOpen] = useState(false);')
+      ? null
+      : 'desktopChapterDirectoryOpen:default-not-closed',
+    graphSource.includes('const [desktopRelationFiltersOpen, setDesktopRelationFiltersOpen] = useState(false);')
+      ? null
+      : 'desktopRelationFiltersOpen:default-not-closed',
+    graphSource.includes('const [isPanelOpen, setIsPanelOpen] = useState(Boolean(initialSelectedNode));')
+      ? null
+      : 'resourcePanel:not-closed-until-node-selection',
+    graphSource.includes("data-state={desktopChapterDirectoryOpen ? 'open' : 'closed'}")
+      ? null
+      : 'chapterDirectory:data-state-missing',
+    graphSource.includes("data-state={desktopRelationFiltersOpen ? 'open' : 'closed'}")
+      ? null
+      : 'relationFilters:data-state-missing',
+  ].filter((entry): entry is string => Boolean(entry));
+  const missingOpenCloseEvidence = [
+    'chapterDirectoryOpenClosed',
+    'relationFiltersOpenClosed',
+    'legendOpenClosed',
+    'viewModeSwitchOpenClosed',
+    'resourcePanelOpenClosed',
+    'selectedNodePreserved',
+    'activeFiltersPreserved',
+    'densityModePreserved',
+    'legendStatePreserved',
+    'visibleSummariesPreserved',
+  ].filter((key) => desktopOpenClose[key] !== true);
+
+  if (
+    desktopDefault.canvasPrimary !== true
+    || desktopDefault.chapterDirectory !== 'compact'
+    || desktopDefault.relationFilters !== 'compact'
+    || desktopDefault.legend !== 'compact'
+    || desktopDefault.viewModeSwitch !== 'compact'
+    || desktopDefault.resourcePanel !== 'closed-until-node-selection'
+    || desktopDefault.activeFilterSummaryWhenCollapsed !== true
+    || missingDesktopPanels.length > 0
+    || defaultStateProblems.length > 0
+    || missingOpenCloseEvidence.length > 0
+  ) {
+    violations.push(knowledgeGraphGovernanceViolation('Knowledge graph compact desktop tool evidence is incomplete.', [
+      `missingShellPanels=${missingDesktopPanels.join(',') || 'none'}`,
+      `defaultStateProblems=${defaultStateProblems.join(',') || 'none'}`,
+      `missingOpenClose=${missingOpenCloseEvidence.join(',') || 'none'}`,
+    ]));
+  }
+
+  if (
+    tabletDefault.width !== 768
+    || tabletDefault.behavior !== 'compact-or-drawer'
+    || tabletDefault.canvasPrimary !== true
+    || tabletDefault.noCanvasSqueeze !== true
+    || !stringArray(tabletDefault.permanentPanelsForbidden).includes('resource-panel')
+    || !graphSource.includes('data-knowledge-squeeze-down-rejected="permanent-panels-hidden-at-320"')
+    || !graphSource.includes('data-knowledge-workspace="canvas-first"')
+  ) {
+    violations.push(knowledgeGraphGovernanceViolation('Knowledge graph tablet canvas-first evidence is incomplete.', [
+      'tabletDefault',
+      'data-knowledge-squeeze-down-rejected',
+      'data-knowledge-workspace',
+    ]));
+  }
+
+  if (
+    mobileDefault.width !== 320
+    || mobileDefault.behavior !== 'single-tool-panel'
+    || mobileDefault.canvasPrimary !== true
+    || mobileDefault.noPersistentSidebar !== true
+    || mobileDefault.noPersistentFilter !== true
+    || mobileDefault.noPersistentKnowledgeDrawer !== true
+    || shellMobilePanels.mobileSingleToolPanel !== true
+    || shellMobilePanels.mobileCommandSurface !== true
+    || shellMobile?.noPersistentKnowledgeGraphDrawer !== true
+  ) {
+    violations.push(knowledgeGraphGovernanceViolation('Knowledge graph mobile local-tool evidence is incomplete.', [
+      'mobileDefault',
+      'mobileSingleToolPanel',
+      'noPersistentKnowledgeGraphDrawer',
+    ]));
+  }
+
+  if (
+    !graphSource.includes('data-knowledge-local-tool="legend"')
+    || !graphSource.includes('data-knowledge-local-tool="view-mode-switch"')
+    || !resourcePanelSource.includes('data-knowledge-local-panel="resource-panel"')
+  ) {
+    violations.push(knowledgeGraphGovernanceViolation('Knowledge graph local tool DOM contracts are incomplete.', [
+      'legend',
+      'view-mode-switch',
+      'resource-panel',
+    ]));
+  }
+
+  const runtimeRelationCounts = readRuntimeKnowledgeRelationCounts();
+  const relationEvidence = objectRecord(evidence.runtimeRelationEvidence);
+  const evidenceTypes = new Set(
+    (Array.isArray(relationEvidence.types) ? relationEvidence.types : [])
+      .map((entry) => objectRecord(entry))
+      .map((entry) => (typeof entry.type === 'string' ? entry.type : undefined))
+      .filter((type): type is string => Boolean(type)),
+  );
+  const visualLegend = (Array.isArray(visualLanguage?.relationLegend) ? visualLanguage?.relationLegend : [])
+    .map((entry) => objectRecord(entry));
+  const legendByType = new Map(
+    visualLegend
+      .filter((entry): entry is {
+        type: string;
+        label: string;
+        visualFamily: string;
+        direction: string;
+        density: string;
+        legendExplanation: string;
+        hasNonColorEncoding: boolean;
+      } => (
+        typeof entry.type === 'string'
+        && typeof entry.label === 'string'
+        && typeof entry.visualFamily === 'string'
+        && typeof entry.direction === 'string'
+        && typeof entry.density === 'string'
+        && typeof entry.legendExplanation === 'string'
+        && typeof entry.hasNonColorEncoding === 'boolean'
+      ))
+      .map((entry) => [entry.type, entry] as const),
+  );
+  const runtimeRelationTypes = [...runtimeRelationCounts.keys()].sort();
+  const currentCoverageGaps = assertRuntimeRelationStyleCoverage(runtimeRelationTypes);
+  const currentLegendByType = new Map(getRelationLegendItems().map((item) => [item.type, item]));
+  const missingRelationEvidence: string[] = [];
+  for (const type of runtimeRelationTypes) {
+    if (!evidenceTypes.has(type)) missingRelationEvidence.push(`${type}:evidence-sample`);
+    const currentLegend = currentLegendByType.get(type);
+    if (!currentLegend) missingRelationEvidence.push(`${type}:current-legend`);
+    const evidenceLegend = legendByType.get(type);
+    if (!evidenceLegend) missingRelationEvidence.push(`${type}:screenshot-legend`);
+    try {
+      const semantic = getRelationSemantic(type);
+      if (!/[\u4e00-\u9fff]/.test(semantic.label)) missingRelationEvidence.push(`${type}:localized-label`);
+      if (!semantic.visualFamily) missingRelationEvidence.push(`${type}:visual-family`);
+      if (!/^(directed|undirected|bidirectional)$/.test(semantic.direction)) missingRelationEvidence.push(`${type}:direction`);
+      if (!/^(structure|context|optional|weak)$/.test(semantic.density)) missingRelationEvidence.push(`${type}:density`);
+      if (!/[\u4e00-\u9fff]/.test(semantic.legendExplanation)) missingRelationEvidence.push(`${type}:legend-explanation`);
+    } catch {
+      missingRelationEvidence.push(`${type}:current-semantic`);
+    }
+    if (currentLegend?.sampleStyle.dash.length === 0 && currentLegend.sampleStyle.hasArrow === false && currentLegend.sampleStyle.endpoint === 'none') {
+      missingRelationEvidence.push(`${type}:text-or-color-only-encoding`);
+    }
+    if (evidenceLegend?.hasNonColorEncoding !== true) missingRelationEvidence.push(`${type}:non-color-encoding`);
+  }
+  const requiredRelationSamples = [
+    'cross_domain',
+    'generalizes',
+    'instance_of',
+    'supports',
+    'enables',
+    'complements',
+    'contrasts_with',
+    'derives',
+    'determines',
+    'quantified_by',
+    'uses',
+    'visualized_by',
+    'opposite',
+    'related',
+  ];
+  const missingSamples = requiredRelationSamples.filter((type) => (
+    runtimeRelationCounts.has(type)
+    && !stringArray(relationEvidence.commonSamples).includes(type)
+    && !stringArray(relationEvidence.lowFrequencySamples).includes(type)
+  ));
+  if (currentCoverageGaps.length > 0 || missingRelationEvidence.length > 0 || missingSamples.length > 0) {
+    violations.push(knowledgeGraphGovernanceViolation('Knowledge graph runtime relation coverage evidence is incomplete.', [
+      `currentCoverageGaps=${currentCoverageGaps.join(',') || 'none'}`,
+      `missingRelationEvidence=${missingRelationEvidence.join(',') || 'none'}`,
+      `missingSamples=${missingSamples.join(',') || 'none'}`,
+    ]));
+  }
+
+  const visualAssertions = objectRecord(visualLanguage?.assertions);
+  const missingVisualAssertions = [
+    'allScreenshotsHaveCanvas',
+    'allScreenshotsHaveGraphicalLegend',
+    'labelsAreLocalized',
+    'rawSchemaLabelsHidden',
+    'specializedRelationsVisibleInLegend',
+    'threeDimensionalSpecialRelationsEncoded',
+  ].filter((key) => visualAssertions[key] !== true);
+  const clarityAssertions = objectRecord(layoutClarity?.assertions);
+  const graphClarityEvidence = objectRecord(evidence.graphClarityEvidence);
+  const missingClarityAssertions = [
+    'defaultHasClaritySummary',
+    'focusedHasNeighborhoodMetric',
+    'selectedNodeContextPreserved',
+    'allRelationsIsExplicit',
+    'allRelationsIncludesWeakEdges',
+    'canvasRendered',
+  ].filter((key) => clarityAssertions[key] !== true);
+  const missingClarityEvidence = [
+    'defaultHighSignal',
+    'selectedNodeFocused',
+    'allRelationsDenseExplicit',
+    'allRelationsIncludesWeakEdges',
+    'selectedNodeContextPreserved',
+    'canvasRendered',
+  ].filter((key) => graphClarityEvidence[key] !== true);
+  const currentClarityProblems = [
+    KNOWLEDGE_NODE_SCALE_CONTRACT.minRadius >= 4 ? null : 'node-scale:min-radius',
+    KNOWLEDGE_NODE_SCALE_CONTRACT.maxRadius <= 12 ? null : 'node-scale:max-radius',
+    relationPassesActiveFilters({
+      sourceId: 'a',
+      targetId: 'b',
+      relation: 'related',
+      relationType: 'related',
+      strength: 0.2,
+    }, {
+      densityMode: 'all',
+      selectedRelationTypes: [],
+      minRelationStrength: 0.8,
+    })
+      ? null
+      : 'all-relations:does-not-bypass-type-strength-filters',
+  ].filter((entry): entry is string => Boolean(entry));
+  if (
+    missingVisualAssertions.length > 0
+    || missingClarityAssertions.length > 0
+    || missingClarityEvidence.length > 0
+    || currentClarityProblems.length > 0
+  ) {
+    violations.push(knowledgeGraphGovernanceViolation('Knowledge graph visual grammar or clarity evidence is incomplete.', [
+      `visual=${missingVisualAssertions.join(',') || 'none'}`,
+      `clarity=${missingClarityAssertions.join(',') || 'none'}`,
+      `governance=${missingClarityEvidence.join(',') || 'none'}`,
+      `currentImplementation=${currentClarityProblems.join(',') || 'none'}`,
+    ]));
+  }
+
+  const scopeProtection = objectRecord(evidence.scopeProtection);
+  const coveredRoutes = stringArray(scopeProtection.coveredRoutes);
+  const excludedRouteFamilies = stringArray(scopeProtection.excludedRouteFamilies);
+  if (
+    coveredRoutes.length !== 1
+    || coveredRoutes[0] !== '/knowledge'
+    || !excludedRouteFamilies.includes('simulation')
+    || !excludedRouteFamilies.includes('interactive-learning-descendant')
+    || !excludedRouteFamilies.includes('teacher')
+    || !excludedRouteFamilies.includes('admin')
+    || scopeProtection.doesNotRequireSimulationRouteMigration !== true
+    || scopeProtection.doesNotRequireInteractiveDescendantMigration !== true
+    || scopeProtection.doesNotRequireTeacherAdminMigration !== true
+  ) {
+    violations.push(knowledgeGraphGovernanceViolation('Knowledge graph governance scope protection is incomplete.', [
+      `coveredRoutes=${coveredRoutes.join(',') || 'none'}`,
+      `excludedRouteFamilies=${excludedRouteFamilies.join(',') || 'none'}`,
+    ]));
+  }
+
+  return violations;
+}
+
 export function buildSecondaryRouteGovernanceMatrixFromEvidence(
   visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
 ): CommercialSecondaryRouteGovernanceEntry[] {
@@ -529,6 +881,7 @@ const result = evaluateCommercialUiGovernance({
     ...buildSourceViolations(files),
     ...missingChangedPrimaryRouteLedgerViolations,
     ...missingChangedAppPageLedgerViolations,
+    ...validateKnowledgeGraphGovernanceEvidence(),
   ],
   shellInventory: buildShellInventory(files),
   moduleChromeInventory: buildModuleChromeInventory(files),
