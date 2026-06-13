@@ -938,10 +938,27 @@ describe('platform role navigation', () => {
     expect(lessonPlanListSource).toContain('encodeURIComponent(returnTo)');
   });
 
+  it('binds knowledge graph local tools to open, closed, and mobile state contracts', () => {
+    const knowledgeGraphSource = readSource('src/features/knowledge/knowledge-graph-system.tsx');
+
+    expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="chapter-directory"');
+    expect(knowledgeGraphSource).toContain("data-state={desktopChapterDirectoryOpen ? 'open' : 'closed'}");
+    expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="relation-filters"');
+    expect(knowledgeGraphSource).toContain("data-state={desktopRelationFiltersOpen ? 'open' : 'closed'}");
+    expect(knowledgeGraphSource).toContain('data-knowledge-active-filter-summary="relation-filters"');
+    expect(knowledgeGraphSource).toContain('data-knowledge-mobile-command-surface="single-tool-panel"');
+    expect(knowledgeGraphSource).toContain('data-knowledge-mobile-tool-panel={mobileActiveTool}');
+    expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="legend"');
+    expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="view-mode-switch"');
+  });
+
   it('sanitizes scoped secondary route return targets', () => {
     expect(resolveScopedReturnTarget('/teacher/classes/demo', '/teacher/lesson-plans', ['/teacher'])).toBe('/teacher/classes/demo');
+    expect(resolveScopedReturnTarget('/teacher/classes/demo?from=list#top', '/teacher/lesson-plans', ['/teacher'])).toBe('/teacher/classes/demo?from=list#top');
     expect(resolveScopedReturnTarget('/admin/lesson-plans', '/admin', ['/admin'])).toBe('/admin/lesson-plans');
     expect(resolveScopedReturnTarget('/admin/lesson-plans', '/teacher', ['/teacher'])).toBe('/teacher');
+    expect(resolveScopedReturnTarget('/teacher/../admin', '/teacher', ['/teacher'])).toBe('/teacher');
+    expect(resolveScopedReturnTarget('/teacher/%2e%2e/admin', '/teacher', ['/teacher'])).toBe('/teacher');
     expect(resolveScopedReturnTarget('https://example.com', '/teacher', ['/teacher'])).toBe('/teacher');
     expect(resolveScopedReturnTarget('//example.com', '/teacher', ['/teacher'])).toBe('/teacher');
   });

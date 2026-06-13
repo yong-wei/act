@@ -10,7 +10,15 @@ export function resolveScopedReturnTarget(
     return fallback;
   }
 
-  const pathname = target.split(/[?#]/, 1)[0] ?? target;
-  const isAllowed = allowedPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
-  return isAllowed ? target : fallback;
+  let normalized: URL;
+  try {
+    normalized = new URL(target, 'http://local.return');
+  } catch {
+    return fallback;
+  }
+
+  const isAllowed = allowedPrefixes.some((prefix) => (
+    normalized.pathname === prefix || normalized.pathname.startsWith(`${prefix}/`)
+  ));
+  return isAllowed ? `${normalized.pathname}${normalized.search}${normalized.hash}` : fallback;
 }
