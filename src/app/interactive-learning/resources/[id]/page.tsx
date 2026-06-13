@@ -86,7 +86,7 @@ export default function InteractiveResourcePage() {
         data-route-family={sourceContext.family}
         data-route-source={sourceContext.href}
       >
-        <div className="min-h-[calc(100vh-12rem)] overflow-hidden rounded-lg border border-platform-border bg-platform-surface">
+        <div className="h-[calc(100vh-12rem)] min-h-[calc(100vh-12rem)] overflow-hidden rounded-lg border border-platform-border bg-platform-surface">
         {isLoading ? (
           <div className="flex h-full min-h-[20rem] items-center justify-center text-platform-fg-secondary">
             <Loader2 className="h-6 w-6 animate-spin" />

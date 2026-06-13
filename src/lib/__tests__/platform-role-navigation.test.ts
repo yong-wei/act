@@ -887,6 +887,7 @@ describe('platform role navigation', () => {
     expect(crossDomainSource).toContain('source=cross-domain-exploration');
     expect(resourceSource).toContain('data-route-source={sourceContext.href}');
     expect(resourceSource).toContain('breadcrumbs={[');
+    expect(resourceSource).toContain('h-[calc(100vh-12rem)] min-h-[calc(100vh-12rem)]');
     expect(coursesSource).toContain('data-learning-entry-map="course-module-progression"');
     expect(coursesSource).toContain('data-entry-current-work-priority="recommended-course"');
     expect(coursesSource).toContain('data-secondary-implementation-links="legacy-source-labels"');
