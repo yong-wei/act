@@ -5082,8 +5082,7 @@
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
-            "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true
+            "viewModeSwitch": true
           }
         },
         {
@@ -5132,8 +5131,7 @@
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
-            "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true
+            "viewModeSwitch": true
           }
         },
         {
@@ -5178,16 +5176,15 @@
           "localPanelEvidence": {
             "chapterDirectory": true,
             "relationFilters": true,
-            "mobileCommandSurface": true,
-            "platformMobileDrawer": false,
-            "noPersistentMobileSidebar": true,
             "chapterDirectoryOpenClosed": true,
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
             "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true,
-            "mobileSingleToolPanel": true
+            "mobileSingleToolPanel": true,
+            "mobileCommandSurface": true,
+            "platformMobileDrawer": false,
+            "noPersistentMobileSidebar": true
           },
           "mobileCanvasFirst": true,
           "noPersistentMobileSidebar": true,
@@ -5241,8 +5238,7 @@
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
-            "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true
+            "viewModeSwitch": true
           }
         },
         {
@@ -5291,8 +5287,7 @@
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
-            "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true
+            "viewModeSwitch": true
           }
         },
         {
@@ -5337,16 +5332,15 @@
           "localPanelEvidence": {
             "chapterDirectory": true,
             "relationFilters": true,
-            "mobileCommandSurface": true,
-            "platformMobileDrawer": false,
-            "noPersistentMobileSidebar": true,
             "chapterDirectoryOpenClosed": true,
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
             "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true,
-            "mobileSingleToolPanel": true
+            "mobileSingleToolPanel": true,
+            "mobileCommandSurface": true,
+            "platformMobileDrawer": false,
+            "noPersistentMobileSidebar": true
           },
           "mobileCanvasFirst": true,
           "noPersistentMobileSidebar": true,
@@ -5400,8 +5394,7 @@
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
-            "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true
+            "viewModeSwitch": true
           }
         },
         {
@@ -5450,8 +5443,7 @@
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
-            "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true
+            "viewModeSwitch": true
           }
         },
         {
@@ -5496,16 +5488,15 @@
           "localPanelEvidence": {
             "chapterDirectory": true,
             "relationFilters": true,
-            "mobileCommandSurface": true,
-            "platformMobileDrawer": false,
-            "noPersistentMobileSidebar": true,
             "chapterDirectoryOpenClosed": true,
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
             "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true,
-            "mobileSingleToolPanel": true
+            "mobileSingleToolPanel": true,
+            "mobileCommandSurface": true,
+            "platformMobileDrawer": false,
+            "noPersistentMobileSidebar": true
           },
           "mobileCanvasFirst": true,
           "noPersistentMobileSidebar": true,
@@ -5559,8 +5550,7 @@
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
-            "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true
+            "viewModeSwitch": true
           }
         },
         {
@@ -5609,8 +5599,7 @@
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
-            "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true
+            "viewModeSwitch": true
           }
         },
         {
@@ -5655,16 +5644,15 @@
           "localPanelEvidence": {
             "chapterDirectory": true,
             "relationFilters": true,
-            "mobileCommandSurface": true,
-            "platformMobileDrawer": false,
-            "noPersistentMobileSidebar": true,
             "chapterDirectoryOpenClosed": true,
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
             "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true,
-            "mobileSingleToolPanel": true
+            "mobileSingleToolPanel": true,
+            "mobileCommandSurface": true,
+            "platformMobileDrawer": false,
+            "noPersistentMobileSidebar": true
           },
           "mobileCanvasFirst": true,
           "noPersistentMobileSidebar": true,
@@ -5718,8 +5706,7 @@
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
-            "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true
+            "viewModeSwitch": true
           }
         },
         {
@@ -5768,8 +5755,7 @@
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
-            "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true
+            "viewModeSwitch": true
           }
         },
         {
@@ -5814,16 +5800,15 @@
           "localPanelEvidence": {
             "chapterDirectory": true,
             "relationFilters": true,
-            "mobileCommandSurface": true,
-            "platformMobileDrawer": false,
-            "noPersistentMobileSidebar": true,
             "chapterDirectoryOpenClosed": true,
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
             "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true,
-            "mobileSingleToolPanel": true
+            "mobileSingleToolPanel": true,
+            "mobileCommandSurface": true,
+            "platformMobileDrawer": false,
+            "noPersistentMobileSidebar": true
           },
           "mobileCanvasFirst": true,
           "noPersistentMobileSidebar": true,
@@ -5877,8 +5862,7 @@
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
-            "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true
+            "viewModeSwitch": true
           }
         },
         {
@@ -5927,8 +5911,7 @@
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
-            "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true
+            "viewModeSwitch": true
           }
         },
         {
@@ -5973,16 +5956,15 @@
           "localPanelEvidence": {
             "chapterDirectory": true,
             "relationFilters": true,
-            "mobileCommandSurface": true,
-            "platformMobileDrawer": false,
-            "noPersistentMobileSidebar": true,
             "chapterDirectoryOpenClosed": true,
             "relationFiltersOpenClosed": true,
             "activeFilterSummaryWhenCollapsed": true,
             "legend": true,
             "viewModeSwitch": true,
-            "resourcePanelOpenClosed": true,
-            "mobileSingleToolPanel": true
+            "mobileSingleToolPanel": true,
+            "mobileCommandSurface": true,
+            "platformMobileDrawer": false,
+            "noPersistentMobileSidebar": true
           },
           "mobileCanvasFirst": true,
           "noPersistentMobileSidebar": true,

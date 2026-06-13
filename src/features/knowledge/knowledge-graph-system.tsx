@@ -132,11 +132,12 @@ export function KnowledgeGraphSystem({
 
   // 监听容器大小变化
   useEffect(() => {
+    const container = containerRef.current;
     const updateSize = () => {
-      if (containerRef.current) {
+      if (container) {
         setDimensions({
-          width: containerRef.current.offsetWidth,
-          height: containerRef.current.offsetHeight
+          width: container.offsetWidth,
+          height: container.offsetHeight
         });
       }
     };
@@ -144,9 +145,18 @@ export function KnowledgeGraphSystem({
     // 初始化
     updateSize();
     
-    // 监听窗口缩放
+    const observer = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(updateSize)
+      : null;
+    if (container) {
+      observer?.observe(container);
+    }
+
     window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
   }, []);
 
   // Fetch data from API on mount

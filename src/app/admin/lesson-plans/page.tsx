@@ -1,5 +1,6 @@
 
 import Link from 'next/link';
+import { UserRole } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { Plus, BookOpen } from 'lucide-react';
 import { getServerAuthSession } from '@/lib/auth';
@@ -9,6 +10,7 @@ import { LessonPlanList } from '@/features/lesson-engine/lesson-plan-list';
 export default async function LessonPlansIndexPage() {
   const session = await getServerAuthSession();
   if (!session) redirect('/login');
+  if (session.user.role !== UserRole.ADMIN) redirect('/');
 
   const plans = await prisma.lessonPlan.findMany({
     orderBy: { updatedAt: 'desc' },

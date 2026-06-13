@@ -930,6 +930,7 @@ describe('platform role navigation', () => {
     expect(teacherDashboardSource).toContain("encodeURIComponent('/teacher')");
     expect(presetLessonsSource).toContain("encodeURIComponent('/teacher/preset-lessons')");
     expect(adminLessonPlansSource).toContain('/admin/lesson-plans/new?returnTo=%2Fadmin%2Flesson-plans');
+    expect(adminLessonPlansSource).toContain('session.user.role !== UserRole.ADMIN');
     expect(adminNewLessonPlanSource).toContain('session.user.role !== UserRole.ADMIN');
     expect(adminNewLessonPlanSource).toContain('workbenchReturnLabel="返回教案管理"');
     expect(adminEditLessonPlanSource).toContain('session.user.role !== UserRole.ADMIN');

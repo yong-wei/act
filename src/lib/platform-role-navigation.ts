@@ -147,7 +147,22 @@ export interface PlatformProfileAndCockpitAction {
 export interface PlatformContextualReturnTargetRule {
   workspaceMode: PlatformWorkspaceMode;
   routePrefix: string;
-  sourceContext: 'arena-challenge' | 'arena-publication' | 'interactive-learning' | 'adaptive-learning';
+  sourceContext:
+    | 'arena-challenge'
+    | 'arena-publication'
+    | 'interactive-learning'
+    | 'interactive-learning-chapter-components'
+    | 'interactive-learning-resource'
+    | 'adaptive-learning'
+    | 'simulation-descendant'
+    | 'teacher-classes'
+    | 'teacher-class-create'
+    | 'teacher-lesson-plans'
+    | 'teacher-lesson-plan-create'
+    | 'teacher-lesson-plan-edit'
+    | 'admin-lesson-plans'
+    | 'admin-lesson-plan-create'
+    | 'admin-lesson-plan-edit';
   targetHint: string;
   fallbackHref: string;
 }
