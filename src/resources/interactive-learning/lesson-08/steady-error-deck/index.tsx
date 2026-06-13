@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { BookOpen, Target, Activity, Sigma } from 'lucide-react';
 import { useOptionalInteractiveContext } from '@/features/interactive';
 import type { BaseWidgetProps, WidgetResult } from '@/resources/widgets/widget-props';
@@ -89,22 +89,32 @@ function TypeTable() {
 
 export default function SteadyErrorDeck({ onComplete, onStateChange }: SteadyErrorDeckProps) {
   const interactive = useOptionalInteractiveContext();
-  const [activeId, setActiveId] = useState(SECTIONS[0]?.id ?? 'sources');
-  const [visited, setVisited] = useState<string[]>([]);
+  const initialActiveId = SECTIONS[0]?.id ?? 'sources';
+  const [activeId, setActiveId] = useState(initialActiveId);
+  const [visited, setVisited] = useState<string[]>(() => [initialActiveId]);
+  const publishedVisitedCountRef = useRef(0);
 
   const activeSection = useMemo(
     () => SECTIONS.find((section) => section.id === activeId) ?? SECTIONS[0],
     [activeId]
   );
 
+  const recordVisit = useCallback((nextActiveId: string) => {
+    setActiveId(nextActiveId);
+    setVisited((current) =>
+      current.includes(nextActiveId) ? current : [...current, nextActiveId]
+    );
+  }, []);
+
   useEffect(() => {
-    if (visited.includes(activeId)) return;
-    const nextVisited = [...visited, activeId];
-    setVisited(nextVisited);
+    if (publishedVisitedCountRef.current >= visited.length) return;
+    publishedVisitedCountRef.current = visited.length;
+    const nextVisited = visited;
+    const latestVisitedId = nextVisited[nextVisited.length - 1] ?? initialActiveId;
     const progressValue = Math.round((nextVisited.length / SECTIONS.length) * 100);
     const snapshot = {
       progress: progressValue,
-      data: { sectionId: activeId, visitedCount: nextVisited.length },
+      data: { sectionId: latestVisitedId, visitedCount: nextVisited.length },
       timestamp: Date.now(),
     };
     onStateChange?.(snapshot);
@@ -120,7 +130,7 @@ export default function SteadyErrorDeck({ onComplete, onStateChange }: SteadyErr
       interactive?.progress.markComplete(result);
       onComplete?.(result);
     }
-  }, [activeId, visited, interactive, onComplete, onStateChange]);
+  }, [initialActiveId, visited, interactive, onComplete, onStateChange]);
 
   return (
     <div className="w-full max-w-6xl mx-auto">
@@ -139,7 +149,7 @@ export default function SteadyErrorDeck({ onComplete, onStateChange }: SteadyErr
             {SECTIONS.map((section) => (
               <button
                 key={section.id}
-                onClick={() => setActiveId(section.id)}
+                onClick={() => recordVisit(section.id)}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
                   activeId === section.id
                     ? 'bg-slate-900 text-white'

@@ -7,7 +7,7 @@
  * Supports both standalone and embedded (BOPPPS) modes.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { Lightbulb, Bot, Circle } from 'lucide-react';
 import { useLessonContext } from '@/features/lesson-engine/ContextInjector';
@@ -52,7 +52,6 @@ export default function ArgumentPrincipleWidget({
   });
 
   // Local state
-  const [aiHint, setAiHint] = useState<string | null>(null);
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
@@ -75,16 +74,11 @@ export default function ArgumentPrincipleWidget({
     }
   }, [hasInteracted, onStateChange]);
 
-  // Generate contextual AI hints
-  useEffect(() => {
-    if (!embedded) return;
-
-    if (!hasInteracted) {
-      setAiHint('尝试修改传递函数的极点和零点位置，观察 Nyquist 图的变化。');
-    } else {
-      setAiHint('观察轮廓映射后对原点的包围次数，这与系统稳定性直接相关。');
-    }
-  }, [hasInteracted, embedded]);
+  const aiHint = !embedded
+    ? null
+    : hasInteracted
+      ? '观察轮廓映射后对原点的包围次数，这与系统稳定性直接相关。'
+      : '尝试修改传递函数的极点和零点位置，观察 Nyquist 图的变化。';
 
   // Ask AI for help
   const askAI = async () => {

@@ -552,13 +552,16 @@ function ShipTrail({
   simRef: React.MutableRefObject<SimulationState>;
   resetToken: number;
 }) {
+  return <ShipTrailContent key={resetToken} simRef={simRef} />;
+}
+
+function ShipTrailContent({
+  simRef,
+}: {
+  simRef: React.MutableRefObject<SimulationState>;
+}) {
   const [points, setPoints] = useState<THREE.Vector3[]>([]);
   const lastRecordRef = useRef(0);
-
-  useEffect(() => {
-    setPoints([]);
-    lastRecordRef.current = 0;
-  }, [resetToken]);
 
   useFrame((state) => {
     const time = state.clock.getElapsedTime();

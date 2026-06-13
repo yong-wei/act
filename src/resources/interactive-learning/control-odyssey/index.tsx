@@ -139,10 +139,14 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   );
   const [tierProgress, setTierProgress] = useState<Record<string, LevelTier>>({});
   const [personalBestScores, setPersonalBestScores] = useState<Record<string, { overall: number; tiers: Partial<Record<LevelTier, number>> }>>({});
-  const [showDetails, setShowDetails] = useState(false);
-  const [aiConfigError, setAiConfigError] = useState<string | null>(null);
-  const [aiResultError, setAiResultError] = useState<string | null>(null);
-  const [aiLoadingContext, setAiLoadingContext] = useState<'config' | 'result' | null>(null);
+  const [detailsState, setDetailsState] = useState({ runId: '', visible: false });
+  const [aiStatusByLevel, setAiStatusByLevel] = useState<
+    Record<string, {
+      configError: string | null;
+      resultError: string | null;
+      loadingContext: 'config' | 'result' | null;
+    }>
+  >({});
   const [aiHistoryByLevel, setAiHistoryByLevel] = useState<Record<string, { content: string; updatedAt: string }>>({});
   const [topConfigs, setTopConfigs] = useState<ControlConfigSnapshot[]>([]);
   const [manualTierSelections, setManualTierSelections] = useState<Record<string, boolean>>({});
@@ -152,6 +156,43 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const hasSubmittedRef = useRef(false);
   const bestScoreSnapshotRef = useRef<number | null>(null);
+  const currentAiStatus = aiStatusByLevel[selectedLevelId] ?? {
+    configError: null,
+    resultError: null,
+    loadingContext: null
+  };
+  const aiConfigError = currentAiStatus.configError;
+  const aiResultError = currentAiStatus.resultError;
+  const aiLoadingContext = currentAiStatus.loadingContext;
+  const showDetails = detailsState.runId === runId && detailsState.visible;
+  const toggleDetails = useCallback(() => {
+    setDetailsState((prev) => ({
+      runId,
+      visible: prev.runId === runId ? !prev.visible : true
+    }));
+  }, [runId]);
+  const updateAiStatusForSelectedLevel = useCallback((
+    patch: Partial<{
+      configError: string | null;
+      resultError: string | null;
+      loadingContext: 'config' | 'result' | null;
+    }>
+  ) => {
+    setAiStatusByLevel((prev) => {
+      const current = prev[selectedLevelId] ?? {
+        configError: null,
+        resultError: null,
+        loadingContext: null
+      };
+      return {
+        ...prev,
+        [selectedLevelId]: {
+          ...current,
+          ...patch
+        }
+      };
+    });
+  }, [selectedLevelId]);
 
   const hasLevelProgress = useCallback(
     (levelId: string) =>
@@ -164,7 +205,6 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   useEffect(() => {
     if (gameState !== 'VICTORY') {
       hasSubmittedRef.current = false;
-      setShowDetails(false);
       bestScoreSnapshotRef.current = null;
       return;
     }
@@ -297,12 +337,6 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     };
     if (!selectedLevelId) return;
     loadAiHistory();
-  }, [selectedLevelId]);
-
-  useEffect(() => {
-    setAiConfigError(null);
-    setAiResultError(null);
-    setAiLoadingContext(null);
   }, [selectedLevelId]);
 
   useEffect(() => {
@@ -635,7 +669,6 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   const aiResponseTime = currentAiHistory?.updatedAt
     ? new Date(currentAiHistory.updatedAt).toLocaleString('zh-CN')
     : null;
-
   const controllerLabelMap = useMemo(() => {
     return CONTROL_SHOP_CONFIG.items.reduce<Record<ControllerId, string>>((acc, item) => {
       acc[item.unlocks.controller] = item.label;
@@ -902,14 +935,20 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   };
 
   const requestAiAdvice = async (contextType: 'config' | 'result') => {
-    const setError = contextType === 'config' ? setAiConfigError : setAiResultError;
+    const setError = (message: string | null) => {
+      updateAiStatusForSelectedLevel(
+        contextType === 'config'
+          ? { configError: message }
+          : { resultError: message }
+      );
+    };
 
     if (controlCredits < AI_ASSIST_COST) {
       setError('积分不足，请先获取控制积分。');
       return;
     }
 
-    setAiLoadingContext(contextType);
+    updateAiStatusForSelectedLevel({ loadingContext: contextType });
     setError(null);
 
     try {
@@ -967,7 +1006,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     } catch (error) {
       setError(error instanceof Error ? error.message : 'AI 请求失败，请稍后再试。');
     } finally {
-      setAiLoadingContext(null);
+      updateAiStatusForSelectedLevel({ loadingContext: null });
     }
   };
 
@@ -1527,7 +1566,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
 
                      <Button
                        variant="outline"
-                       onClick={() => setShowDetails((prev) => !prev)}
+                       onClick={toggleDetails}
                        className="mb-6 border-slate-700 text-slate-300"
                      >
                        {showDetails ? '收起详细信息' : '详细信息'}
@@ -1571,7 +1610,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
 
                      <Button
                        variant="outline"
-                       onClick={() => setShowDetails((prev) => !prev)}
+                       onClick={toggleDetails}
                        className="mb-6 border-slate-700 text-slate-300"
                      >
                        {showDetails ? '收起详细信息' : '详细信息'}

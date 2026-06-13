@@ -186,33 +186,40 @@ export function ShipModelPreview({
   onInteractionStart,
   onInteractionEnd,
 }: ShipModelPreviewProps) {
+  return (
+    <ShipModelPreviewSession
+      key={modelPath}
+      modelPath={modelPath}
+      onInteractionStart={onInteractionStart}
+      onInteractionEnd={onInteractionEnd}
+    />
+  )
+}
+
+function ShipModelPreviewSession({
+  modelPath,
+  onInteractionStart,
+  onInteractionEnd,
+}: ShipModelPreviewProps) {
   const controlsRef = useRef<OrbitControlsImpl | null>(null)
   const isInteractingRef = useRef(false)
   const retryTimerRef = useRef<number | null>(null)
   const [showCanvas, setShowCanvas] = useState(false)
   const [isModelReady, setIsModelReady] = useState(false)
-  const [isStaticOnly, setIsStaticOnly] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
   const [retryKey, setRetryKey] = useState(0)
   const [loadFailed, setLoadFailed] = useState(false)
 
   const posterPath = getShipModelPosterPath(modelPath)
+  const isStaticOnly = shouldForceStaticByConnection(getConnectionHint())
 
   useEffect(() => {
-    setShowCanvas(false)
-    setIsModelReady(false)
-    setRetryCount(0)
-    setRetryKey(0)
-    setLoadFailed(false)
-
     if (retryTimerRef.current) {
       window.clearTimeout(retryTimerRef.current)
       retryTimerRef.current = null
     }
 
-    const staticOnly = shouldForceStaticByConnection(getConnectionHint())
-    setIsStaticOnly(staticOnly)
-    if (staticOnly) {
+    if (isStaticOnly) {
       return
     }
 
@@ -228,7 +235,7 @@ export function ShipModelPreview({
         retryTimerRef.current = null
       }
     }
-  }, [modelPath])
+  }, [isStaticOnly, modelPath])
 
   const handleModelError = () => {
     setIsModelReady(false)

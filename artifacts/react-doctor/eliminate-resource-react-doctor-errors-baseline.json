@@ -1,0 +1,493 @@
+{
+  "schemaVersion": 1,
+  "tool": "react-doctor",
+  "reactDoctorVersion": "0.5.1",
+  "mode": "errors",
+  "localOnly": true,
+  "ciRequired": false,
+  "command": "npx --yes react-doctor@0.5.1 --no-score --no-telemetry --no-warnings --json .",
+  "includedRoots": [
+    "src/",
+    "scripts/",
+    "docs/",
+    "openspec/",
+    "package.json",
+    "doctor.config",
+    "eslint.config",
+    "next.config",
+    "playwright.config",
+    "postcss.config",
+    "prisma.config",
+    "tailwind.config",
+    "tsconfig",
+    "vitest.config"
+  ],
+  "excludedRoots": [
+    "evaluate/",
+    "node_modules/",
+    ".next/",
+    ".turbo/",
+    "artifacts/",
+    "coverage/",
+    "dist/",
+    "build/",
+    "out/",
+    "public/vendor/"
+  ],
+  "totals": {
+    "rawDiagnostics": 48,
+    "ownedDiagnostics": 48,
+    "selectedDiagnostics": 48,
+    "fixtureNoiseDiagnostics": 0
+  },
+  "summary": {
+    "bySeverity": {
+      "error": 48
+    },
+    "byCategory": {
+      "Bugs": 48
+    },
+    "byRule": {
+      "effect-needs-cleanup": 1,
+      "no-adjust-state-on-prop-change": 46,
+      "no-mutable-in-deps": 1
+    },
+    "byOwnedSurface": {
+      "resources": 48
+    }
+  },
+  "diagnostics": [
+    {
+      "filePath": "src/resources/interactive-learning/lesson-01/feedback-knowledge-deck/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 76,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/control-system/charts/control-analysis-panels.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 2141,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/control-odyssey/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 167,
+      "column": 7
+    },
+    {
+      "filePath": "src/resources/interactive-learning/control-odyssey/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 303,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/control-odyssey/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 304,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/control-odyssey/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 305,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-09/time-domain-synthesis/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 89,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-14/margin-knowledge-deck/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 128,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-03/diff-knowledge-deck/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 125,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-15/series-knowledge-deck/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 127,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-06/metric-handbook/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 103,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-13/phase-knowledge-deck/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 132,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-17/df-knowledge-deck/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 114,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-16/nonlinear-knowledge-deck/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 129,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-09/correction-strategy/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 83,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-11/parameter-root-locus-deck/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 119,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-08/routh-guide/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 101,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-04/transfer-knowledge-deck/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 142,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-05/structure-knowledge-deck/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 187,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-08/steady-error-deck/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 103,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-07/theory-deck/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 133,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-16/harmonic-linearization-guide/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 83,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-02/laplace-knowledge-deck/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 80,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-13/cruise-typhoon-sim/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 229,
+      "column": 7
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-13/cruise-typhoon-sim/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 230,
+      "column": 7
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-13/cruise-typhoon-sim/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 231,
+      "column": 7
+    },
+    {
+      "filePath": "src/resources/simulations/ship-model-preview.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 202,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/simulations/ship-model-preview.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 203,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/simulations/ship-model-preview.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 204,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/simulations/ship-model-preview.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 205,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/simulations/ship-model-preview.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 206,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/simulations/ship-model-preview.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 214,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/widgets/analogy-mapper.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 176,
+      "column": 7
+    },
+    {
+      "filePath": "src/resources/widgets/analogy-mapper.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 178,
+      "column": 7
+    },
+    {
+      "filePath": "src/resources/widgets/analogy-mapper.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 180,
+      "column": 7
+    },
+    {
+      "filePath": "src/resources/widgets/analogy-mapper.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 182,
+      "column": 7
+    },
+    {
+      "filePath": "src/resources/widgets/physics-builder.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 113,
+      "column": 7
+    },
+    {
+      "filePath": "src/resources/widgets/physics-builder.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 115,
+      "column": 7
+    },
+    {
+      "filePath": "src/resources/widgets/physics-builder.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 117,
+      "column": 7
+    },
+    {
+      "filePath": "src/resources/simulations/destroyer-simulation.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "effect-needs-cleanup",
+      "title": "Effect subscription or timer never cleaned up",
+      "line": 1408,
+      "column": 3
+    },
+    {
+      "filePath": "src/resources/simulations/destroyer-simulation.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 2512,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/widgets/argument-principle.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 83,
+      "column": 7
+    },
+    {
+      "filePath": "src/resources/widgets/argument-principle.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 85,
+      "column": 7
+    },
+    {
+      "filePath": "src/resources/interactive-learning/lesson-17/negative-inverse-workshop/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 83,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/ten-drops-game/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-mutable-in-deps",
+      "title": "Mutable value in effect dependencies",
+      "line": 285,
+      "column": 7
+    },
+    {
+      "filePath": "src/resources/interactive-learning/ten-drops-game/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 236,
+      "column": 5
+    },
+    {
+      "filePath": "src/resources/interactive-learning/ten-drops-game/index.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 240,
+      "column": 7
+    },
+    {
+      "filePath": "src/resources/simulations/simulations/destroyer-simulation.tsx",
+      "severity": "error",
+      "category": "Bugs",
+      "rule": "no-adjust-state-on-prop-change",
+      "title": "State synced to a prop inside an effect",
+      "line": 559,
+      "column": 5
+    }
+  ]
+}

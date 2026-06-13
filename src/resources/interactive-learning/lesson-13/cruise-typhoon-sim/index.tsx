@@ -118,14 +118,22 @@ export function CruiseTyphoonSim({
     violationCount: 0,
     maxLateralAccel: 0,
   });
+  const missionStateRef = useRef(missionState);
 
   // 伦理熔断状态
   const [ethicalTriggered, setEthicalTriggered] = useState(false);
   const [showEthicalOverlay, setShowEthicalOverlay] = useState(false);
+  const ethicalTriggeredRef = useRef(ethicalTriggered);
 
   useEffect(() => {
     simStateRef.current = simState;
   }, [simState]);
+  useEffect(() => {
+    missionStateRef.current = missionState;
+  }, [missionState]);
+  useEffect(() => {
+    ethicalTriggeredRef.current = ethicalTriggered;
+  }, [ethicalTriggered]);
 
   // 香槟塔状态
   const champagneTower = useChampagneTower({
@@ -155,6 +163,80 @@ export function CruiseTyphoonSim({
     };
   }, []);
 
+  const evaluateMissionFrame = useCallback((nextSimState: SimulationState) => {
+    const currentMission = missionStateRef.current;
+    if (!currentMission.started || currentMission.completed) return;
+
+    const headingError = Math.abs(nextSimState.heading - nextSimState.targetHeading);
+    const hasReachedTarget = headingError < 1;
+    const isTimeout = scenario.constraints.maxTime && nextSimState.time > scenario.constraints.maxTime;
+    let nextMission = currentMission;
+
+    if (nextSimState.lateralAccel > nextMission.maxLateralAccel) {
+      nextMission = {
+        ...nextMission,
+        maxLateralAccel: nextSimState.lateralAccel,
+      };
+    }
+
+    if (nextSimState.lateralAccel > scenario.constraints.ethicalThreshold && !ethicalTriggeredRef.current) {
+      ethicalTriggeredRef.current = true;
+      setEthicalTriggered(true);
+      setShowEthicalOverlay(true);
+      nextMission = {
+        ...nextMission,
+        violationCount: nextMission.violationCount + 1,
+      };
+    }
+
+    if (hasReachedTarget || isTimeout) {
+      const success =
+        hasReachedTarget &&
+        !champagneTower.hasFallen &&
+        nextMission.violationCount === 0 &&
+        nextMission.maxLateralAccel < scenario.constraints.maxLateralAccel;
+      const completedMission = {
+        ...nextMission,
+        completed: true,
+        success,
+      };
+      missionStateRef.current = completedMission;
+      setMissionState(completedMission);
+
+      const missionResult: MissionResult = {
+        success,
+        duration: nextSimState.time,
+        maxLateralAccel: nextMission.maxLateralAccel,
+        champagneTowerFallen: champagneTower.hasFallen,
+        fallCount: champagneTower.fallCount,
+        violationCount: nextMission.violationCount,
+        finalHeading: nextSimState.heading,
+      };
+      const score = success ? 100 : Math.max(0, 70 - nextMission.violationCount * 10);
+      const completion: WidgetResult = {
+        success,
+        score,
+        data: { mission: missionResult },
+      };
+      interactive?.progress.markComplete(completion);
+      onComplete?.(completion);
+      return;
+    }
+
+    if (nextMission !== currentMission) {
+      missionStateRef.current = nextMission;
+      setMissionState(nextMission);
+    }
+  }, [
+    champagneTower.fallCount,
+    champagneTower.hasFallen,
+    interactive,
+    onComplete,
+    scenario.constraints.ethicalThreshold,
+    scenario.constraints.maxLateralAccel,
+    scenario.constraints.maxTime,
+  ]);
+
   // 模拟仿真循环（实际应用中从3D仿真获取数据）
   useEffect(() => {
     if (!simState.isRunning || simState.isPaused) return;
@@ -182,6 +264,7 @@ export function CruiseTyphoonSim({
       if (steps > 0) {
         simStateRef.current = currentState;
         setSimState(currentState);
+        evaluateMissionFrame(currentState);
       }
 
       animationRef.current = requestAnimationFrame(simulate);
@@ -196,7 +279,7 @@ export function CruiseTyphoonSim({
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [simState.isRunning, simState.isPaused, scenario.seaState]);
+  }, [simState.isRunning, simState.isPaused, scenario.seaState, evaluateMissionFrame]);
 
   // 更新香槟塔输入
   useEffect(() => {
@@ -204,78 +287,6 @@ export function CruiseTyphoonSim({
       champagneTower.updateInput(simState.lateralAccel, simState.rollAngle);
     }
   }, [simState.lateralAccel, simState.rollAngle, simState.isRunning, simState.isPaused, champagneTower]);
-
-  // 检测任务完成
-  useEffect(() => {
-    if (!missionState.started || missionState.completed) return;
-
-    // 检查是否到达目标航向
-    const headingError = Math.abs(simState.heading - simState.targetHeading);
-    const hasReachedTarget = headingError < 1; // 1度误差范围内
-
-    // 检查是否超时
-    const isTimeout = scenario.constraints.maxTime && simState.time > scenario.constraints.maxTime;
-
-    // 更新最大加速度
-    if (simState.lateralAccel > missionState.maxLateralAccel) {
-      setMissionState((prev) => ({
-        ...prev,
-        maxLateralAccel: simState.lateralAccel,
-      }));
-    }
-
-    // 检查伦理熔断条件
-    if (simState.lateralAccel > scenario.constraints.ethicalThreshold && !ethicalTriggered) {
-      setEthicalTriggered(true);
-      setShowEthicalOverlay(true);
-      setMissionState((prev) => ({
-        ...prev,
-        violationCount: prev.violationCount + 1,
-      }));
-    }
-
-    // 任务完成判定
-    if (hasReachedTarget || isTimeout) {
-      const success =
-        hasReachedTarget &&
-        !champagneTower.hasFallen &&
-        missionState.violationCount === 0 &&
-        missionState.maxLateralAccel < scenario.constraints.maxLateralAccel;
-
-      setMissionState((prev) => ({
-        ...prev,
-        completed: true,
-        success,
-      }));
-
-      const missionResult: MissionResult = {
-        success,
-        duration: simState.time,
-        maxLateralAccel: missionState.maxLateralAccel,
-        champagneTowerFallen: champagneTower.hasFallen,
-        fallCount: champagneTower.fallCount,
-        violationCount: missionState.violationCount,
-        finalHeading: simState.heading,
-      };
-      const score = success ? 100 : Math.max(0, 70 - missionState.violationCount * 10);
-      const completion: WidgetResult = {
-        success,
-        score,
-        data: { mission: missionResult },
-      };
-      interactive?.progress.markComplete(completion);
-      onComplete?.(completion);
-    }
-  }, [
-    simState,
-    missionState,
-    champagneTower.hasFallen,
-    champagneTower.fallCount,
-    scenario.constraints,
-    ethicalTriggered,
-    interactive,
-    onComplete,
-  ]);
 
   useEffect(() => {
     const headingDelta = Math.abs(scenario.targetHeading - scenario.initialHeading) || 1;
@@ -310,13 +321,15 @@ export function CruiseTyphoonSim({
 
   // 开始任务
   const handleStartMission = useCallback(() => {
-    setMissionState({
+    const nextMissionState = {
       started: true,
       completed: false,
       success: false,
       violationCount: 0,
       maxLateralAccel: 0,
-    });
+    };
+    missionStateRef.current = nextMissionState;
+    setMissionState(nextMissionState);
     setSimState((prev) => ({
       ...prev,
       isRunning: true,
@@ -325,6 +338,7 @@ export function CruiseTyphoonSim({
       heading: scenario.initialHeading,
     }));
     champagneTower.reset();
+    ethicalTriggeredRef.current = false;
     setEthicalTriggered(false);
     lastTimeRef.current = 0;
     interactive?.tracking.emit('interact', { action: 'start_mission' });
@@ -355,14 +369,17 @@ export function CruiseTyphoonSim({
       speed: 20,
       lateralAccel: 0,
     });
-    setMissionState({
+    const nextMissionState = {
       started: false,
       completed: false,
       success: false,
       violationCount: 0,
       maxLateralAccel: 0,
-    });
+    };
+    missionStateRef.current = nextMissionState;
+    setMissionState(nextMissionState);
     champagneTower.reset();
+    ethicalTriggeredRef.current = false;
     setEthicalTriggered(false);
     setShowEthicalOverlay(false);
     lastTimeRef.current = 0;

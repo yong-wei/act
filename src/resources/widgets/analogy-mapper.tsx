@@ -7,7 +7,7 @@
  * Supports both standalone and embedded (BOPPPS) modes.
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { Link2, CheckCircle2, Lightbulb, Bot, Sparkles } from 'lucide-react';
 import { useLessonContext } from '@/features/lesson-engine/ContextInjector';
 import { useLessonAI } from '@/hooks/useLessonAI';
@@ -128,7 +128,6 @@ export default function AnalogyMapperWidget({
 
   // Local state
   const [completedMappings, setCompletedMappings] = useState<string[]>(initialCompleted);
-  const [aiHint, setAiHint] = useState<string | null>(null);
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [aiResponse, setAiResponse] = useState<string | null>(null);
 
@@ -168,20 +167,19 @@ export default function AnalogyMapperWidget({
     [completedMappings, required, onStateChange, onComplete]
   );
 
-  // Generate contextual AI hints
-  useEffect(() => {
-    if (!embedded) return;
-
+  const aiHint = (() => {
+    if (!embedded) return null;
     if (completedMappings.length === 0) {
-      setAiHint('点击连接按钮，将左侧机械量与右侧电气量配对。思考：为什么质量对应电感？');
-    } else if (completedMappings.length < 3) {
-      setAiHint('继续探索更多映射关系。注意观察单位的对应规律。');
-    } else if (!allCompleted) {
-      setAiHint('还差一点！完成所有映射以理解机电系统的统一性。');
-    } else {
-      setAiHint(null);
+      return '点击连接按钮，将左侧机械量与右侧电气量配对。思考：为什么质量对应电感？';
     }
-  }, [completedMappings.length, allCompleted, embedded]);
+    if (completedMappings.length < 3) {
+      return '继续探索更多映射关系。注意观察单位的对应规律。';
+    }
+    if (!allCompleted) {
+      return '还差一点！完成所有映射以理解机电系统的统一性。';
+    }
+    return null;
+  })();
 
   // Ask AI for explanation
   const askAI = async (mappingId?: string) => {

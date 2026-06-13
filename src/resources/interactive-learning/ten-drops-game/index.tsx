@@ -179,13 +179,19 @@ export function TenDropsGame({
       setLeaderboardState('error');
     }
   }, [isAuthenticated]);
+  const currentLevelId = currentLevel?.id ?? null;
 
   useEffect(() => {
-    if (!currentLevel) return;
-    fetchLeaderboard(currentLevel.id);
-  }, [currentLevel, fetchLeaderboard]);
+    if (!currentLevelId) return;
+    fetchLeaderboard(currentLevelId);
+  }, [currentLevelId, fetchLeaderboard]);
 
-  const persistCompletion = useCallback(async (levelId: string, finalScore: number) => {
+  const persistCompletion = useCallback(async (
+    levelId: string,
+    finalScore: number,
+    finalDropsRemaining: number,
+    finalMaxChain: number
+  ) => {
     setCompletedLevels((prev) => (prev.includes(levelId) ? prev : [...prev, levelId]));
 
     if (isAuthenticated) {
@@ -194,8 +200,8 @@ export function TenDropsGame({
           game: 'ten-drops',
           levelId,
           score: finalScore,
-          dropsRemaining: dropsAvailable,
-          maxChain: maxChainReached,
+          dropsRemaining: finalDropsRemaining,
+          maxChain: finalMaxChain,
         });
         return;
       }
@@ -206,8 +212,8 @@ export function TenDropsGame({
         body: JSON.stringify({
           levelId,
           score: finalScore,
-          dropsRemaining: dropsAvailable,
-          maxChain: maxChainReached,
+          dropsRemaining: finalDropsRemaining,
+          maxChain: finalMaxChain,
         }),
       });
       return;
@@ -224,32 +230,40 @@ export function TenDropsGame({
       bestScores: { ...localSnapshot.bestScores, [levelId]: bestScore },
       updatedAt: Date.now(),
     });
-  }, [dropsAvailable, interactiveContext, isAuthenticated, maxChainReached]);
+  }, [interactiveContext, isAuthenticated]);
 
-  // 处理胜利
-  useEffect(() => {
-    if (gameStatus !== 'won' || !currentLevel) return;
-    const completionKey = `${currentLevel.id}-${score}`;
+  const handleCompletion = (
+    levelId: string,
+    finalScore: number,
+    finalDropsRemaining: number,
+    finalMaxChain: number
+  ) => {
+    const completionKey = `${levelId}-${finalScore}`;
     if (lastCompletionKeyRef.current === completionKey) return;
     lastCompletionKeyRef.current = completionKey;
 
-    persistCompletion(currentLevel.id, score);
-    onComplete?.(score, currentLevel.id);
+    void persistCompletion(levelId, finalScore, finalDropsRemaining, finalMaxChain);
+    onComplete?.(finalScore, levelId);
 
     if (isAuthenticated) {
-      fetchLeaderboard(currentLevel.id);
+      void fetchLeaderboard(levelId);
     }
-  }, [gameStatus, currentLevel, score, persistCompletion, onComplete, isAuthenticated, fetchLeaderboard]);
+  };
 
   // 点击格子处理
-  const handleCellClick = useCallback(
-    (row: number, col: number) => {
-      if (gameStatus === 'playing') {
-        addDrop({ row, col });
-      }
-    },
-    [addDrop, gameStatus]
-  );
+  const handleCellClick = async (row: number, col: number) => {
+    if (gameStatus !== 'playing' || !currentLevelId) return;
+    await addDrop({ row, col });
+    const nextState = useTenDropsGame.getState();
+    if (nextState.gameStatus === 'won') {
+      handleCompletion(
+        currentLevelId,
+        nextState.score,
+        nextState.dropsAvailable,
+        nextState.maxChainReached
+      );
+    }
+  };
 
   // 选择关卡
   const handleLevelSelect = useCallback(
@@ -277,12 +291,12 @@ export function TenDropsGame({
     }
   }, [currentLevel, loadLevel]);
 
-  // 撤销
-  const handleUndo = useCallback(() => {
-    if (history.length > 0 && gameStatus === 'playing') {
+  const canUndo = history.length > 0 && gameStatus === 'playing';
+  const handleUndo = () => {
+    if (canUndo) {
       undo();
     }
-  }, [history.length, gameStatus, undo]);
+  };
 
   if (!currentLevel || isProgressLoading) {
     return (
@@ -293,7 +307,6 @@ export function TenDropsGame({
   }
 
   const isProcessing = gameStatus === 'processing';
-  const canUndo = history.length > 0 && gameStatus === 'playing';
   const hasNextLevel = !!getNextLevel(currentLevel.id);
 
   return (
