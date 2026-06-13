@@ -133,6 +133,10 @@ describe('knowledge graph relation visual semantics', () => {
       path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-system.tsx'),
       'utf8'
     );
+    const twoDimensionalRendererSource = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/graph/knowledge-graph-2d.tsx'),
+      'utf8'
+    );
 
     const legendItems = getRelationLegendItems();
     const legendByType = new Map(legendItems.map((item) => [item.type, item]));
@@ -153,6 +157,9 @@ describe('knowledge graph relation visual semantics', () => {
     expect(source).toContain('item.sampleStyle.lightColor');
     expect(source).toContain('item.sampleStyle.darkColor');
     expect(source).not.toContain('实线箭头：前置/基础');
+    expect(twoDimensionalRendererSource).toContain('ctx.quadraticCurveTo(controlX, controlY, target.x, target.y)');
+    expect(twoDimensionalRendererSource).toContain('drawEndpointMarker(ctx, style.endpoint');
+    expect(twoDimensionalRendererSource).toContain('getQuadraticTangentAngle(source.x, source.y, controlX, controlY, target.x, target.y, 0.65)');
 
     expect(getRelationStyle('prerequisite').dash).toEqual([]);
     expect(getRelationStyle('leads_to').dash.length).toBeGreaterThan(0);

@@ -147,6 +147,103 @@ function drawArrow(
   ctx.restore();
 }
 
+function getQuadraticPoint(
+  fromX: number,
+  fromY: number,
+  controlX: number,
+  controlY: number,
+  toX: number,
+  toY: number,
+  t: number
+) {
+  const inverseT = 1 - t;
+  return {
+    x: inverseT * inverseT * fromX + 2 * inverseT * t * controlX + t * t * toX,
+    y: inverseT * inverseT * fromY + 2 * inverseT * t * controlY + t * t * toY,
+  };
+}
+
+function getQuadraticTangentAngle(
+  fromX: number,
+  fromY: number,
+  controlX: number,
+  controlY: number,
+  toX: number,
+  toY: number,
+  t: number
+) {
+  const dx = 2 * (1 - t) * (controlX - fromX) + 2 * t * (toX - controlX);
+  const dy = 2 * (1 - t) * (controlY - fromY) + 2 * t * (toY - controlY);
+  return Math.atan2(dy, dx);
+}
+
+function drawArrowHead(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  angle: number,
+  globalScale: number,
+  color: string
+) {
+  const headLength = 8 / globalScale;
+
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(
+    x - headLength * Math.cos(angle - Math.PI / 6),
+    y - headLength * Math.sin(angle - Math.PI / 6)
+  );
+  ctx.lineTo(
+    x - headLength * Math.cos(angle + Math.PI / 6),
+    y - headLength * Math.sin(angle + Math.PI / 6)
+  );
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawEndpointMarker(
+  ctx: CanvasRenderingContext2D,
+  endpoint: 'arrow' | 'none' | 'dot' | 'bar' | 'diamond',
+  x: number,
+  y: number,
+  angle: number,
+  globalScale: number,
+  color: string
+) {
+  if (endpoint === 'none' || endpoint === 'arrow') return;
+
+  const size = 4.5 / globalScale;
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.4 / globalScale;
+  if (endpoint === 'dot') {
+    ctx.beginPath();
+    ctx.arc(x, y, size * 0.62, 0, 2 * Math.PI);
+    ctx.fill();
+  } else if (endpoint === 'bar') {
+    const barAngle = angle + Math.PI / 2;
+    ctx.beginPath();
+    ctx.moveTo(x - size * Math.cos(barAngle), y - size * Math.sin(barAngle));
+    ctx.lineTo(x + size * Math.cos(barAngle), y + size * Math.sin(barAngle));
+    ctx.stroke();
+  } else if (endpoint === 'diamond') {
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.moveTo(size, 0);
+    ctx.lineTo(0, size * 0.72);
+    ctx.lineTo(-size, 0);
+    ctx.lineTo(0, -size * 0.72);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 export function KnowledgeGraph2D({
   nodes,
   links,
@@ -316,9 +413,20 @@ export function KnowledgeGraph2D({
     const alpha = (0.2 + strength * 0.65) * focusOpacity;
     const lineWidth = style.width * (0.6 + strength * 0.9) * (focusState === 'active' ? 1.25 : 1);
 
+    const dx = target.x - source.x;
+    const dy = target.y - source.y;
+    const distance = Math.hypot(dx, dy) || 1;
+    const controlX = (source.x + target.x) / 2 - (dy / distance) * distance * style.curvature;
+    const controlY = (source.y + target.y) / 2 + (dx / distance) * distance * style.curvature;
+    const isCurved = Math.abs(style.curvature) > 0.001;
+
     ctx.beginPath();
     ctx.moveTo(source.x, source.y);
-    ctx.lineTo(target.x, target.y);
+    if (isCurved) {
+      ctx.quadraticCurveTo(controlX, controlY, target.x, target.y);
+    } else {
+      ctx.lineTo(target.x, target.y);
+    }
 
     ctx.strokeStyle = hexToRgba(strokeColor, alpha);
     ctx.setLineDash(style.dash.map(d => d / globalScale));
@@ -327,8 +435,25 @@ export function KnowledgeGraph2D({
 
     // 绘制箭头（对于有方向的关系）
     if (style.hasArrow) {
-      drawArrow(ctx, source.x, source.y, target.x, target.y, globalScale, hexToRgba(strokeColor, alpha));
+      if (isCurved) {
+        const arrowPoint = getQuadraticPoint(source.x, source.y, controlX, controlY, target.x, target.y, 0.65);
+        const arrowAngle = getQuadraticTangentAngle(source.x, source.y, controlX, controlY, target.x, target.y, 0.65);
+        drawArrowHead(ctx, arrowPoint.x, arrowPoint.y, arrowAngle, globalScale, hexToRgba(strokeColor, alpha));
+      } else {
+        drawArrow(ctx, source.x, source.y, target.x, target.y, globalScale, hexToRgba(strokeColor, alpha));
+      }
     }
+
+    const endpointPoint = isCurved
+      ? getQuadraticPoint(source.x, source.y, controlX, controlY, target.x, target.y, 0.82)
+      : {
+          x: source.x + (target.x - source.x) * 0.82,
+          y: source.y + (target.y - source.y) * 0.82,
+        };
+    const endpointAngle = isCurved
+      ? getQuadraticTangentAngle(source.x, source.y, controlX, controlY, target.x, target.y, 1)
+      : Math.atan2(target.y - source.y, target.x - source.x);
+    drawEndpointMarker(ctx, style.endpoint, endpointPoint.x, endpointPoint.y, endpointAngle, globalScale, hexToRgba(strokeColor, alpha));
 
     // 重置虚线设置
     ctx.setLineDash([]);
