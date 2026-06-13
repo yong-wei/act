@@ -4,11 +4,20 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { getRelationLabel } from '@/lib/knowledge-labels';
 import {
+  buildFocusNeighborhood,
+  buildGraphStatistics,
   buildDefaultSelectedRelationTypes,
+  calculateGraphClarityMetrics,
+  getBoundedKnowledgeNodeImportanceScore,
   getRelationFocusState,
+  getRelationFamily,
   isHighSignalRelation,
+  isNodeInFocusNeighborhood,
+  isNodeVisibleInFocusedGraph,
   limitStructureRelationDensity,
+  relationPassesActiveFilters,
   relationPassesDensity,
+  relationPassesFocusNeighborhoodSeedFilters,
 } from '../graph/filter-utils';
 import {
   assertRuntimeRelationStyleCoverage,
@@ -280,34 +289,274 @@ describe('knowledge graph relation visual semantics', () => {
     );
 
     expect(source).toContain('const densityFilteredLinks = useMemo');
+    expect(source).toContain('const graphStatistics = useMemo');
+    expect(source).toContain('relationPassesFocusNeighborhoodSeedFilters(link');
+    expect(source).toContain('buildFocusNeighborhood(focusNeighborhoodSeedLinks, focusNodeId, nodeFilterIdSet)');
+    expect(source).toContain('data-knowledge-clarity-summary="desktop"');
     expect(source).toContain('focusNodeId: hoveredNode?.id ?? selectedNode?.id ?? null');
-    expect(source).toContain("const isFocusedLink = relationDensityMode === 'focused'");
-    expect(source).toContain('if (!selectedRelationTypes.includes(relationType)) return false;');
-    expect(source).toContain('if (strength < minRelationStrength && !isFocusedLink) return false;');
+    expect(source).toContain('relationPassesActiveFilters(link');
+    expect(source).toContain("if (relationDensityMode === 'focused' && focusNeighborhood.focusNodeId)");
+    expect(source).toContain('isNodeVisibleInFocusedGraph(node.id, focusNeighborhood, connectedByVisibleLinks)');
     expect(source).toContain('焦点邻域会保留直连弱关系，关系类型筛选仍然生效。');
     expect(source).toContain('densityFilteredLinks.forEach((link) => {');
+    expect(source).toContain('graphDegree: graphStatistics.degreeByNodeId.get(node.id) ?? 0');
     expect(source).not.toContain('filteredLinksByRelation.forEach((link) => {');
     expect(source).not.toContain('&& !densityFocused');
   });
 
   it('keeps weak edges hidden in structure mode but reveals focused-neighborhood weak edges', () => {
     const weakRelated = {
+      id: 'weak-related',
       sourceId: 'node-a',
       targetId: 'node-b',
       relation: 'related',
       relationType: 'related',
       strength: 0.35,
     };
+    const weakPrerequisite = {
+      id: 'weak-prerequisite',
+      sourceId: 'node-a',
+      targetId: 'node-c',
+      relation: 'prerequisite',
+      relationType: 'prerequisite',
+      strength: 0.35,
+    };
+    const focusNeighborhood = buildFocusNeighborhood([weakRelated], 'node-a');
+    const noFocusNeighborhood = buildFocusNeighborhood([weakRelated, weakPrerequisite], null);
 
     expect(relationPassesDensity(weakRelated, { densityMode: 'structure' })).toBe(false);
     expect(
       relationPassesDensity(weakRelated, {
         densityMode: 'focused',
+        focusNodeId: null,
+        focusNeighborhood: noFocusNeighborhood,
+      })
+    ).toBe(false);
+    expect(
+      relationPassesDensity(weakPrerequisite, {
+        densityMode: 'focused',
+        focusNodeId: null,
+        focusNeighborhood: noFocusNeighborhood,
+      })
+    ).toBe(true);
+    expect(
+      relationPassesDensity(weakRelated, {
+        densityMode: 'focused',
         focusNodeId: 'node-a',
+        focusNeighborhood,
       })
     ).toBe(true);
     expect(getRelationFocusState('node-a', 'node-b', 'node-a')).toBe('active');
     expect(getRelationFocusState('node-a', 'node-b', 'node-c')).toBe('dimmed');
+  });
+
+  it('keeps all-relations mode independent from relation-type selection', () => {
+    const weakRelated = {
+      sourceId: 'node-a',
+      targetId: 'node-b',
+      relation: 'related',
+      relationType: 'related',
+      strength: 0.1,
+    };
+
+    expect(
+      relationPassesActiveFilters(weakRelated, {
+        densityMode: 'all',
+        selectedRelationTypes: [],
+        minRelationStrength: 0.9,
+      })
+    ).toBe(true);
+    expect(
+      relationPassesActiveFilters(weakRelated, {
+        densityMode: 'structure',
+        selectedRelationTypes: [],
+        minRelationStrength: 0,
+      })
+    ).toBe(false);
+  });
+
+  it('preserves the hover-only focus center in focused neighborhoods', () => {
+    const focusNeighborhood = buildFocusNeighborhood([
+      {
+        id: 'direct',
+        sourceId: 'hovered',
+        targetId: 'neighbor',
+        relation: 'prerequisite',
+        relationType: 'prerequisite',
+        strength: 1,
+      },
+      {
+        id: 'contextual',
+        sourceId: 'neighbor',
+        targetId: 'context',
+        relation: 'applies_to',
+        relationType: 'applies_to',
+        strength: 1,
+      },
+    ], 'hovered');
+
+    expect(isNodeInFocusNeighborhood('hovered', focusNeighborhood)).toBe(true);
+    expect(isNodeInFocusNeighborhood('neighbor', focusNeighborhood)).toBe(true);
+    expect(isNodeInFocusNeighborhood('context', focusNeighborhood)).toBe(true);
+    expect(isNodeInFocusNeighborhood('unrelated', focusNeighborhood)).toBe(false);
+  });
+
+  it('keeps focused nodes aligned with relation-type filtered visible links', () => {
+    const links = [
+      {
+        id: 'strong',
+        sourceId: 'focus',
+        targetId: 'strong-only',
+        relation: 'prerequisite',
+        relationType: 'prerequisite',
+        strength: 1,
+      },
+      {
+        id: 'filtered',
+        sourceId: 'focus',
+        targetId: 'weak-only',
+        relation: 'related',
+        relationType: 'related',
+        strength: 1,
+      },
+    ];
+    const focusNeighborhood = buildFocusNeighborhood(links, 'focus');
+    const visibleLinks = links.filter((link) =>
+      relationPassesActiveFilters(link, {
+        densityMode: 'focused',
+        selectedRelationTypes: ['prerequisite'],
+        minRelationStrength: 0,
+        focusNodeId: 'focus',
+        focusNeighborhood,
+      })
+    );
+    const visibleNodeIds = new Set(visibleLinks.flatMap((link) => [link.sourceId, link.targetId]));
+
+    expect(visibleLinks.map((link) => link.id)).toEqual(['strong']);
+    expect(isNodeVisibleInFocusedGraph('focus', focusNeighborhood, visibleNodeIds)).toBe(true);
+    expect(isNodeVisibleInFocusedGraph('strong-only', focusNeighborhood, visibleNodeIds)).toBe(true);
+    expect(isNodeVisibleInFocusedGraph('weak-only', focusNeighborhood, visibleNodeIds)).toBe(false);
+  });
+
+  it('prevents contextual focus links from bypassing filtered direct focus links', () => {
+    const links = [
+      {
+        id: 'filtered-direct',
+        sourceId: 'focus',
+        targetId: 'bridge',
+        relation: 'related',
+        relationType: 'related',
+        strength: 1,
+      },
+      {
+        id: 'contextual',
+        sourceId: 'bridge',
+        targetId: 'context',
+        relation: 'prerequisite',
+        relationType: 'prerequisite',
+        strength: 1,
+      },
+    ];
+    const seedLinks = links.filter((link) =>
+      relationPassesFocusNeighborhoodSeedFilters(link, {
+        densityMode: 'focused',
+        selectedRelationTypes: ['prerequisite'],
+        minRelationStrength: 0,
+        focusNodeId: 'focus',
+      })
+    );
+    const focusNeighborhood = buildFocusNeighborhood(seedLinks, 'focus');
+    const visibleLinks = links.filter((link) =>
+      relationPassesActiveFilters(link, {
+        densityMode: 'focused',
+        selectedRelationTypes: ['prerequisite'],
+        minRelationStrength: 0,
+        focusNodeId: 'focus',
+        focusNeighborhood,
+      })
+    );
+
+    expect(seedLinks.map((link) => link.id)).toEqual(['contextual']);
+    expect(focusNeighborhood.directLinkIds.size).toBe(0);
+    expect(focusNeighborhood.contextualLinkIds.size).toBe(0);
+    expect(visibleLinks).toEqual([]);
+  });
+
+  it('computes graph statistics and bounded clarity metrics for representative states', () => {
+    const nodes = [
+      {
+        id: 'root',
+        name: '根节点',
+        nodeType: 'THEORY' as const,
+        description: '',
+        positionX: 0,
+        positionY: 0,
+        positionZ: 0,
+        metadata: { importance: 5 },
+      },
+      {
+        id: 'neighbor',
+        name: '一阶邻居',
+        nodeType: 'THEORY' as const,
+        description: '',
+        positionX: 0,
+        positionY: 0,
+        positionZ: 0,
+        metadata: { importance: 3 },
+      },
+      {
+        id: 'context',
+        name: '二阶上下文',
+        nodeType: 'THEORY' as const,
+        description: '',
+        positionX: 0,
+        positionY: 0,
+        positionZ: 0,
+        metadata: { importance: 'supporting' },
+      },
+      {
+        id: 'weak-only',
+        name: '弱关联节点',
+        nodeType: 'THEORY' as const,
+        description: '',
+        positionX: 0,
+        positionY: 0,
+        positionZ: 0,
+        metadata: { importance: 'supporting' },
+      },
+    ];
+    const links = [
+      { id: 'direct', sourceId: 'root', targetId: 'neighbor', relation: 'prerequisite', relationType: 'prerequisite', strength: 1 },
+      { id: 'contextual', sourceId: 'neighbor', targetId: 'context', relation: 'applies_to', relationType: 'applies_to', strength: 0.9 },
+      { id: 'weak', sourceId: 'context', targetId: 'weak-only', relation: 'related', relationType: 'related', strength: 0.2 },
+    ];
+
+    const statistics = buildGraphStatistics(nodes, links);
+    const focusNeighborhood = buildFocusNeighborhood(links, 'root');
+    const focusedLinks = links.filter((link) =>
+      relationPassesDensity(link, {
+        densityMode: 'focused',
+        focusNodeId: 'root',
+        focusNeighborhood,
+      })
+    );
+    const clarityMetrics = calculateGraphClarityMetrics(nodes, focusedLinks, focusNeighborhood);
+
+    expect(statistics.degreeByNodeId.get('root')).toBe(1);
+    expect(statistics.maxDegree).toBe(2);
+    expect(statistics.relationFamilyCounts.structure).toBe(1);
+    expect(statistics.relationFamilyCounts.context).toBe(1);
+    expect(statistics.relationFamilyCounts.weak).toBe(1);
+    expect(statistics.importanceScoreByNodeId.get('root')).toBe(1);
+    expect(getBoundedKnowledgeNodeImportanceScore({ importance: 4 })).toBe(0.8);
+    expect(getRelationFamily('related')).toBe('weak');
+    expect(focusNeighborhood.firstOrderNodeIds.has('neighbor')).toBe(true);
+    expect(focusNeighborhood.secondOrderNodeIds.has('context')).toBe(true);
+    expect(focusedLinks.map((link) => link.id)).toEqual(['direct', 'contextual']);
+    expect(clarityMetrics.visibleEdgeCount).toBe(2);
+    expect(clarityMetrics.weakEdgeRatio).toBe(0);
+    expect(clarityMetrics.selectedNeighborhoodEdgeRatio).toBe(1);
+    expect(clarityMetrics.maxNodeRadius).toBeLessThanOrEqual(KNOWLEDGE_NODE_SCALE_CONTRACT.focusMaxRadius);
   });
 
   it('caps default structure density while leaving stronger skeleton edges first', () => {

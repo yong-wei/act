@@ -282,7 +282,7 @@ export function KnowledgeGraph2D({
     });
     const clonedNodes = nodes.map(n => ({
       ...n,
-      graphDegree: degreeById.get(n.id) ?? 0,
+      graphDegree: n.graphDegree ?? degreeById.get(n.id) ?? 0,
     }));
 
     // 转换 links: sourceId/targetId -> source/target (ForceGraph2D 格式)

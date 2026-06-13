@@ -19,12 +19,17 @@ import {
   resolveChapterName,
 } from '@/lib/knowledge-labels';
 import {
+  buildFocusNeighborhood,
+  buildGraphStatistics,
   buildDefaultSelectedRelationTypes,
   buildRelationTypeStats,
+  calculateGraphClarityMetrics,
   injectChapterNodes,
+  isNodeVisibleInFocusedGraph,
   limitStructureRelationDensity,
   matchesNodeFilters,
-  relationPassesDensity,
+  relationPassesActiveFilters,
+  relationPassesFocusNeighborhoodSeedFilters,
   type RelationDensityMode,
 } from './graph/filter-utils';
 import type { KnowledgeGraphLabelMode } from './graph/label-policy';
@@ -69,6 +74,8 @@ export interface KnowledgeNodeData {
   chapter?: number;
   chapterName?: string;
   ethicsContent?: Record<string, unknown>;
+  graphDegree?: number;
+  graphImportanceScore?: number;
 }
 
 // 知识连接接口
@@ -361,6 +368,30 @@ export function KnowledgeGraphSystem({
     () => buildRelationTypeStats(links, nodeFilterIdSet),
     [links, nodeFilterIdSet]
   );
+  const eligibleLinks = useMemo(
+    () => links.filter((link) => nodeFilterIdSet.has(link.sourceId) && nodeFilterIdSet.has(link.targetId)),
+    [links, nodeFilterIdSet]
+  );
+  const graphStatistics = useMemo(
+    () => buildGraphStatistics(nodeFilteredByMeta, eligibleLinks),
+    [eligibleLinks, nodeFilteredByMeta]
+  );
+  const focusNodeId = hoveredNode?.id ?? selectedNode?.id ?? null;
+  const focusNeighborhoodSeedLinks = useMemo(
+    () => eligibleLinks.filter((link) =>
+      relationPassesFocusNeighborhoodSeedFilters(link, {
+        densityMode: relationDensityMode,
+        selectedRelationTypes,
+        minRelationStrength,
+        focusNodeId,
+      })
+    ),
+    [eligibleLinks, focusNodeId, minRelationStrength, relationDensityMode, selectedRelationTypes]
+  );
+  const focusNeighborhood = useMemo(
+    () => buildFocusNeighborhood(focusNeighborhoodSeedLinks, focusNodeId, nodeFilterIdSet),
+    [focusNeighborhoodSeedLinks, focusNodeId, nodeFilterIdSet]
+  );
 
   useEffect(() => {
     const types = relationTypeStats.map((item) => item.type);
@@ -376,20 +407,16 @@ export function KnowledgeGraphSystem({
   }, [relationTypeStats]);
 
   const filteredLinksByRelation = useMemo(() => {
-    if (selectedRelationTypes.length === 0) return [] as KnowledgeLinkData[];
-    const focusNodeId = hoveredNode?.id ?? selectedNode?.id ?? null;
-    return links.filter((link) => {
-      const relationType = link.relationType || link.relation || 'related';
-      const strength = typeof link.strength === 'number' ? link.strength : 1;
-      const isFocusedLink = relationDensityMode === 'focused' && focusNodeId !== null
-        && (link.sourceId === focusNodeId || link.targetId === focusNodeId);
-      if (!selectedRelationTypes.includes(relationType)) return false;
-      if (strength < minRelationStrength && !isFocusedLink) return false;
-      if (!nodeFilterIdSet.has(link.sourceId) || !nodeFilterIdSet.has(link.targetId)) return false;
-      if (!relationPassesDensity(link, { densityMode: relationDensityMode, focusNodeId })) return false;
-      return true;
-    });
-  }, [hoveredNode?.id, links, minRelationStrength, nodeFilterIdSet, relationDensityMode, selectedNode?.id, selectedRelationTypes]);
+    return eligibleLinks.filter((link) =>
+      relationPassesActiveFilters(link, {
+        densityMode: relationDensityMode,
+        selectedRelationTypes,
+        minRelationStrength,
+        focusNodeId,
+        focusNeighborhood,
+      })
+    );
+  }, [eligibleLinks, focusNeighborhood, focusNodeId, minRelationStrength, relationDensityMode, selectedRelationTypes]);
 
   const densityFilteredLinks = useMemo(
     () =>
@@ -421,10 +448,13 @@ export function KnowledgeGraphSystem({
 
     return nodeFilteredByMeta.filter((node) => {
       if (node.id === selectedNode?.id) return true;
+      if (relationDensityMode === 'focused' && focusNeighborhood.focusNodeId) {
+        return isNodeVisibleInFocusedGraph(node.id, focusNeighborhood, connectedByVisibleLinks);
+      }
       if (!connectedInSearch.has(node.id)) return true;
       return connectedByVisibleLinks.has(node.id);
     });
-  }, [densityFilteredLinks, links, nodeFilterIdSet, nodeFilteredByMeta, selectedNode?.id, showOnlyConnectedNodes]);
+  }, [densityFilteredLinks, focusNeighborhood, links, nodeFilterIdSet, nodeFilteredByMeta, relationDensityMode, selectedNode?.id, showOnlyConnectedNodes]);
 
   const filteredNodeIdSet = useMemo(() => new Set(filteredNodes.map((item) => item.id)), [filteredNodes]);
 
@@ -436,8 +466,15 @@ export function KnowledgeGraphSystem({
   }, [densityFilteredLinks, filteredNodeIdSet]);
 
   const graphWithChapterNodes = useMemo(
-    () => injectChapterNodes(filteredNodes, filteredLinks),
-    [filteredNodes, filteredLinks]
+    () => injectChapterNodes(
+      filteredNodes.map((node) => ({
+        ...node,
+        graphDegree: graphStatistics.degreeByNodeId.get(node.id) ?? 0,
+        graphImportanceScore: graphStatistics.importanceScoreByNodeId.get(node.id) ?? 0,
+      })),
+      filteredLinks
+    ),
+    [filteredNodes, filteredLinks, graphStatistics]
   );
 
   const displayNodes = graphWithChapterNodes.nodes;
@@ -477,6 +514,17 @@ export function KnowledgeGraphSystem({
     ? resolveChapterName(hoveredNode.chapter, hoveredNode.chapterName)
     : '';
   const relationLegendItems = getRelationLegendItems();
+  const clarityMetrics = useMemo(
+    () => calculateGraphClarityMetrics(displayNodes, displayLinks, focusNeighborhood),
+    [displayLinks, displayNodes, focusNeighborhood]
+  );
+  const claritySummary = [
+    `${clarityMetrics.visibleEdgeCount} 条可见关系`,
+    `${clarityMetrics.edgeToNodeRatio.toFixed(2)} 边/点`,
+    relationDensityMode === 'focused'
+      ? `邻域 ${(clarityMetrics.selectedNeighborhoodEdgeRatio * 100).toFixed(0)}%`
+      : `弱关系 ${(clarityMetrics.weakEdgeRatio * 100).toFixed(0)}%`,
+  ].join(' · ');
 
   return (
     <div
@@ -588,6 +636,9 @@ export function KnowledgeGraphSystem({
             {mobileActiveTool === 'relation-filters' && (
               <div className="space-y-2" data-knowledge-mobile-drawer="relation-filters" data-knowledge-local-tool="relation-filters" data-state="open">
                 <p className="text-platform-fg-secondary">关系 {displayLinks.length} 条 · 节点 {filteredNodes.length} / {nodes.length}</p>
+                <p className="text-[11px] text-platform-fg-muted" data-knowledge-clarity-summary="mobile">
+                  {claritySummary}
+                </p>
                 <input
                   type="text"
                   value={searchQuery}
@@ -758,6 +809,12 @@ export function KnowledgeGraphSystem({
           <div className="mb-3 flex items-center justify-between text-[11px] text-platform-fg-secondary">
             <span>当前显示关系 {displayLinks.length} 条</span>
             <span>节点 {filteredNodes.length} / {nodes.length}</span>
+          </div>
+          <div
+            className="mb-3 rounded-lg border border-platform-border bg-platform-canvas-muted px-2 py-1.5 text-[11px] text-platform-fg-secondary"
+            data-knowledge-clarity-summary="desktop"
+          >
+            {claritySummary}
           </div>
 
           <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-platform-border bg-platform-canvas-muted px-2 py-1.5">
