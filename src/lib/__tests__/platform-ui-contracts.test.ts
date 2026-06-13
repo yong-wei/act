@@ -426,6 +426,9 @@ describe('platform UI contracts', () => {
     expect(simulationLocalToolsSource).toContain('data-simulation-local-panel-zone={side ===');
     expect(simulationLocalToolsSource).toContain('data-task-workspace-zone={side ===');
     expect(simulationLocalToolsSource).not.toContain('data-commercial-workspace-zone={side ===');
+    expect(simulationLocalToolsSource.indexOf('data-simulation-local-primary-column')).toBeLessThan(
+      simulationLocalToolsSource.indexOf('<SimulationLocalPanel side="left"'),
+    );
     expect(manifestRuntimeSource).toContain('data-commercial-module-chrome');
     expect(manifestRuntimeSource).not.toContain("'data-task-workspace-archetype': 'lesson-runtime'");
     expect(unit41StudentRuntimeSource).toContain('data-task-workspace-archetype="lesson-runtime"');

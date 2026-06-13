@@ -119,7 +119,6 @@ export function SimulationLocalToolWorkspace({
       data-simulation-mobile-secondary-controls="stacked-sheets"
       data-simulation-side-panels="collapsible"
     >
-      <SimulationLocalPanel side="left" config={template.leftPanel} />
       <div className="order-1 flex min-w-0 flex-col gap-3" data-simulation-local-primary-column>
         <section data-commercial-workspace-zone="instrument-area" data-instrument-nonblank-contract="simulation-scene">
           {children}
@@ -149,6 +148,7 @@ export function SimulationLocalToolWorkspace({
           ))}
         </div>
       </div>
+      <SimulationLocalPanel side="left" config={template.leftPanel} />
       <SimulationLocalPanel side="right" config={template.rightPanel} />
     </div>
   );
