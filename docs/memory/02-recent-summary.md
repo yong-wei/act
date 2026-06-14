@@ -39,6 +39,7 @@
 ## 当前需要优先记住的运行事实
 
 - 本项目基线分支是 `integration`，发布分支是 `main`。只说“提交”默认本地提交；明确“推送”才推送；明确“当前所有变动”才按整棵当前工作树处理。
+- 主工作树主要用于 OpenSpec 提案生成和集成测试；在本工作树完成提案后，默认流程是先审核、提交并推送到 `integration`，之后再创建或登记 GitHub issue，避免 issue 指向未进入远端集成基线的本地工件。
 - OpenSpec 校验默认使用 `rtk openspec validate --changes --strict`；仓库级 `--all` 可能混入旧债，不作为普通提案或实现的默认门槛。
 - 新建或修复派生工作树时，优先使用 `scripts/dev/sync-local-worktree-config.sh`，并开启依赖安装、Prisma generate、Git hooks、CodeGraph/CRG 和 OpenWolf 知识链接等显式选项。
 - 已经进入永久隔离工作树执行功能开发时，直接在该工作树完成 claim、实现、验证、提交和 PR，不要再嵌套创建临时隔离工作树。
