@@ -1,0 +1,29 @@
+[
+  {
+    "name": "09-course-catalog-dark",
+    "file": "/Users/YW/Documents/Site/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/screenshots/09-course-catalog-dark-desktop.png",
+    "frame": {
+      "htmlClass": "dark",
+      "platformFrame": "learning-atlas",
+      "premiumShell": false
+    }
+  },
+  {
+    "name": "10-course-entry-1-1-dark",
+    "file": "/Users/YW/Documents/Site/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/screenshots/10-course-entry-1-1-dark-desktop.png",
+    "frame": {
+      "htmlClass": "dark",
+      "platformFrame": null,
+      "premiumShell": true
+    }
+  },
+  {
+    "name": "11-student-runtime-demo-dark",
+    "file": "/Users/YW/Documents/Site/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/screenshots/11-student-runtime-demo-dark-desktop.png",
+    "frame": {
+      "htmlClass": "dark",
+      "platformFrame": null,
+      "premiumShell": true
+    }
+  }
+]

@@ -1,0 +1,3672 @@
+[
+  {
+    "screenshot": "/Users/YW/Documents/Site/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/screenshots/01-interactive-learning-desktop.png",
+    "metrics": {
+      "breadcrumbText": "",
+      "buttons": [
+        {
+          "aria": "收起平台导航",
+          "cls": "inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-platform-border bg-platform-surface t",
+          "href": null,
+          "tag": "button",
+          "text": "收起导航"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/",
+          "tag": "a",
+          "text": "首页"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/simulations",
+          "tag": "a",
+          "text": "虚拟仿真"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "知识资源"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/arena",
+          "tag": "a",
+          "text": "竞技场"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/interactive-learning/control-workbench",
+          "tag": "a",
+          "text": "控制工作台"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "自适应学习"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition bg-platform-action-subtle text-platform-a",
+          "href": "/interactive-learning",
+          "tag": "a",
+          "text": "互动学习"
+        },
+        {
+          "aria": "切换到深色模式",
+          "cls": "inline-flex h-9 w-9 items-center justify-center rounded-md border border-platform-border bg-platform-surface text-platfo",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/",
+          "tag": "a",
+          "text": "首页"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/simulations",
+          "tag": "a",
+          "text": "虚拟仿真"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "知识资源"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/arena",
+          "tag": "a",
+          "text": "竞技场"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/interactive-learning/control-workbench",
+          "tag": "a",
+          "text": "控制工作台"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "自适应学习"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition bg-platform-action-subtle text-platform-",
+          "href": "/interactive-learning",
+          "tag": "a",
+          "text": "互动学习"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses",
+          "tag": "a",
+          "text": "当前路径继续互动课程从课程目录进入已开放单元，优先处理当前课堂、当前课次和下一次练习。进入课程"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft p-5 transition hover:border-primary/40",
+          "href": "/profile/evidence",
+          "tag": "a",
+          "text": "学习证据查看证据复盘完成课程、练习或挑战后回到证据时间线。"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft rounded-lg p-4 text-sm transition hover:border-primary/40",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "学习课程、知识图谱与互动学习入口。"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft rounded-lg p-4 text-sm transition hover:border-primary/40",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "练习自适应练习、诊断与补强路径。"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft rounded-lg p-4 text-sm transition hover:border-primary/40",
+          "href": "/arena",
+          "tag": "a",
+          "text": "挑战竞技场挑战、榜单与正式评价。"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group relative overflow-hidden p-6 transition hover:-translate-y-0.5 hover:border-primary/40",
+          "href": "/interactive-learning/cross-domain-exploration",
+          "tag": "a",
+          "text": "Cross-Domain跨域探索跨域问题驱动探索：根轨迹、Bode、Nyquist 与时域响应联动，聚焦“结构可见”能力"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group relative overflow-hidden p-6 transition hover:-translate-y-0.5 hover:border-primary/40",
+          "href": "/interactive-learning/courses",
+          "tag": "a",
+          "text": "Course Hub互动课程进入各章节 90 分钟互动课程入口，按 BOPPPS 路径开展课堂活动与课后复盘。进入入口"
+        },
+        {
+          "aria": null,
+          "cls": "flex items-center justify-between gap-4 text-sm text-foreground",
+          "href": "/interactive-learning/chapter-components",
+          "tag": "a",
+          "text": "各章节互动组件按章节维度查看互动组件库，点击章节后展示对应组件并进入资源页面。"
+        },
+        {
+          "aria": null,
+          "cls": "rounded p-2 transition-colors text-slate-500 hover:bg-slate-700/30",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        }
+      ],
+      "hasShell": false,
+      "headings": [
+        {
+          "cls": "truncate text-base font-semibold text-platform-fg-primary",
+          "tag": "h1",
+          "text": "互动学习"
+        },
+        {
+          "cls": "mb-3 text-3xl font-bold text-foreground md:text-4xl",
+          "tag": "h1",
+          "text": "互动学习"
+        },
+        {
+          "cls": "mt-3 text-xl font-semibold text-foreground",
+          "tag": "h2",
+          "text": "继续互动课程"
+        },
+        {
+          "cls": "mt-3 text-base font-semibold text-foreground",
+          "tag": "h2",
+          "text": "查看证据复盘"
+        },
+        {
+          "cls": "mt-4 text-xl font-semibold text-foreground",
+          "tag": "h2",
+          "text": "跨域探索"
+        },
+        {
+          "cls": "mt-4 text-xl font-semibold text-foreground",
+          "tag": "h2",
+          "text": "互动课程"
+        }
+      ],
+      "mainRect": {
+        "height": 1224,
+        "width": 1425,
+        "x": 0,
+        "y": 0
+      },
+      "maxWidthEls": [
+        {
+          "cls": "px-4 py-5 sm:px-6 mx-auto max-w-7xl",
+          "tag": "div",
+          "text": "学习入口 · 学习互动学习先继续当前学习路径，再进入课程、练习、挑战或实验。组件库保留为次级资料入口。当前课程下一次练习证据复盘当前路径继续互动课程从课程目录进入已开放单元，优先处"
+        },
+        {
+          "cls": "mx-auto max-w-[1200px] px-6 py-12",
+          "tag": "section",
+          "text": "学习入口 · 学习互动学习先继续当前学习路径，再进入课程、练习、挑战或实验。组件库保留为次级资料入口。当前课程下一次练习证据复盘当前路径继续互动课程从课程目录进入已开放单元，优先处"
+        }
+      ],
+      "mode": "desktop",
+      "name": "01-interactive-learning",
+      "scroll": {
+        "clientWidth": 1425,
+        "height": 1224,
+        "width": 1425
+      },
+      "title": "AI-OBE船舶控制平台",
+      "url": "http://localhost:3001/interactive-learning",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    }
+  },
+  {
+    "screenshot": "/Users/YW/Documents/Site/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/screenshots/02-course-catalog-desktop.png",
+    "metrics": {
+      "breadcrumbText": "",
+      "buttons": [
+        {
+          "aria": "收起平台导航",
+          "cls": "inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-platform-border bg-platform-surface t",
+          "href": null,
+          "tag": "button",
+          "text": "收起导航"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/",
+          "tag": "a",
+          "text": "首页"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/simulations",
+          "tag": "a",
+          "text": "虚拟仿真"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "知识资源"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/arena",
+          "tag": "a",
+          "text": "竞技场"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/interactive-learning/control-workbench",
+          "tag": "a",
+          "text": "控制工作台"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "自适应学习"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition bg-platform-action-subtle text-platform-a",
+          "href": "/interactive-learning",
+          "tag": "a",
+          "text": "互动学习"
+        },
+        {
+          "aria": "切换到深色模式",
+          "cls": "inline-flex h-9 w-9 items-center justify-center rounded-md border border-platform-border bg-platform-surface text-platfo",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/",
+          "tag": "a",
+          "text": "首页"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/simulations",
+          "tag": "a",
+          "text": "虚拟仿真"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "知识资源"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/arena",
+          "tag": "a",
+          "text": "竞技场"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/interactive-learning/control-workbench",
+          "tag": "a",
+          "text": "控制工作台"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "自适应学习"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition bg-platform-action-subtle text-platform-",
+          "href": "/interactive-learning",
+          "tag": "a",
+          "text": "互动学习"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+          "tag": "a",
+          "text": "精品先导精品课程90 分钟看见整门课：从反馈思想到控制全景用一条船为贯穿对象，90分钟闪电遍历自动控制原理全部核心主题—"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/cruise-comfort-boppps",
+          "tag": "a",
+          "text": "精品先导精品课程45 分钟柔性之海：豪华邮轮舒适度控制45 分钟标准互动课：围绕舒适度约束、PID 参数整定、AI 诊断"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+          "tag": "a",
+          "text": "1-1精品课程90 分钟看见整门课：从反馈思想到控制全景用一条船为贯穿对象，90分钟闪电遍历自动控制原理全部核心主题——"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/unit-2-1-modeling-language",
+          "tag": "a",
+          "text": "2-1精品课程90 分钟2-1：建模与变换语言——从真实对象到统一分析对象精品互动课：把微分方程、传递函数、结构图和梅森"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/unit-2-2-time-domain-response",
+          "tag": "a",
+          "text": "2-2精品课程90 分钟2-2：时域响应基础——从响应曲线到动态性能指标精品互动课：把闭环传递函数翻译成响应曲线与动态性"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro",
+          "tag": "a",
+          "text": "2-3精品课程90 分钟2-3：频率响应基础与 Bode 图初步——从时域现象到频域图形入口精品互动课：把时域现象翻译成"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry",
+          "tag": "a",
+          "text": "2-4精品课程90 分钟2-4：Nyquist 图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别精品互动课"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics",
+          "tag": "a",
+          "text": "3-1精品课程90 分钟3-1：纯极点视角下的稳定、模态与双域近似——为什么高阶系统仍能用低阶模型理解精品互动课：从稳定"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/unit-3-2-routh-stability-boundary",
+          "tag": "a",
+          "text": "3-2精品课程90 分钟3-2：劳斯判据——从高阶系统稳定判定到参数可行域精品互动课：把高阶系统稳定底线推进到参数可行域"
+        }
+      ],
+      "hasShell": false,
+      "headings": [
+        {
+          "cls": "truncate text-base font-semibold text-platform-fg-primary",
+          "tag": "h1",
+          "text": "互动课程"
+        },
+        {
+          "cls": "text-3xl font-semibold text-foreground",
+          "tag": "h1",
+          "text": "互动课程"
+        },
+        {
+          "cls": "text-xl font-semibold text-foreground",
+          "tag": "h2",
+          "text": "精品课程"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "看见整门课：从反馈思想到控制全景"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "柔性之海：豪华邮轮舒适度控制"
+        },
+        {
+          "cls": "text-xl font-semibold text-foreground",
+          "tag": "h2",
+          "text": "模块1"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "看见整门课：从反馈思想到控制全景"
+        },
+        {
+          "cls": "text-xl font-semibold text-foreground",
+          "tag": "h2",
+          "text": "模块2"
+        }
+      ],
+      "mainRect": {
+        "height": 4355,
+        "width": 1425,
+        "x": 0,
+        "y": 0
+      },
+      "maxWidthEls": [
+        {
+          "cls": "px-4 py-5 sm:px-6 mx-auto max-w-7xl",
+          "tag": "div",
+          "text": "互动课程优先进入已经建成并可直接学习的课程，再按模块查看完整目录。模块进阶课程类型启动动作精品课程优先开放完整教师端/学生端链路的精品互动课。优先推荐精品先导精品课程90 分钟看见"
+        },
+        {
+          "cls": "mx-auto max-w-[1280px] px-6 py-10",
+          "tag": "section",
+          "text": "互动课程优先进入已经建成并可直接学习的课程，再按模块查看完整目录。模块进阶课程类型启动动作精品课程优先开放完整教师端/学生端链路的精品互动课。优先推荐精品先导精品课程90 分钟看见"
+        }
+      ],
+      "mode": "desktop",
+      "name": "02-course-catalog",
+      "scroll": {
+        "clientWidth": 1425,
+        "height": 4355,
+        "width": 1425
+      },
+      "title": "AI-OBE船舶控制平台",
+      "url": "http://localhost:3001/interactive-learning/courses",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    }
+  },
+  {
+    "screenshot": "/Users/YW/Documents/Site/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/screenshots/03-course-entry-1-1-desktop.png",
+    "metrics": {
+      "breadcrumbText": "",
+      "buttons": [
+        {
+          "aria": null,
+          "cls": "premium-lesson-nav-button inline-flex items-center gap-1 px-3 py-1",
+          "href": "/interactive-learning/courses",
+          "tag": "a",
+          "text": "返回课程总览"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-primary mt-5 flex w-full",
+          "href": null,
+          "tag": "button",
+          "text": "开始上课（教师）"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary mt-5 flex w-full",
+          "href": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
+          "tag": "a",
+          "text": "进入演示模式"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary flex shrink-0",
+          "href": null,
+          "tag": "button",
+          "text": "在线阅读讲义"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary flex shrink-0 disabled:cursor-not-allowed disabled:opacity-50",
+          "href": null,
+          "tag": "button",
+          "text": "下载 PDF 讲义"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary flex",
+          "href": "https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=15be6b1e6af28de13adf2f75c60ab2c4&v=1780831239892&puid=26652392&enc=d0d9bf2eca59308bf03cc7bb0dfbc8a6&wps=532c043fc91d022d7bc5ba80a2bbd4b3d70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=-1265539036&timestamp=1780831239892&signature=d58d49f22751aa0a3ca89c54f0806344",
+          "tag": "a",
+          "text": "打开课件"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "反馈概念←0→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "开环控制概念←1→0"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "闭环控制概念←1→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "误差信号概念←1→0"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "传递函数概念←1→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "极点概念←2→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "时域响应概念←1→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "性能指标概念←1→0"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "稳定性概念←2→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "根轨迹概念←0→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "频域响应概念←2→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "Bode图概念←1→0"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "控制器概念←1→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "比例控制概念←0→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "校正设计概念←2→0"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "课程总图概念←0→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "系统观念概念←1→0"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground transit",
+          "href": null,
+          "tag": "button",
+          "text": "详情"
+        },
+        {
+          "aria": "放大查看反馈 信息图",
+          "cls": "group relative block w-full bg-background text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 f",
+          "href": null,
+          "tag": "button",
+          "text": "查看大图"
+        }
+      ],
+      "hasShell": false,
+      "headings": [
+        {
+          "cls": "premium-lesson-title text-base font-semibold sm:text-lg",
+          "tag": "h1",
+          "text": "看见整门课：从反馈思想到控制全景"
+        },
+        {
+          "cls": "premium-lesson-title mt-2 text-3xl font-semibold sm:text-4xl",
+          "tag": "h2",
+          "text": "看见整门课：从反馈思想到控制全景"
+        },
+        {
+          "cls": "premium-lesson-title mt-2 text-2xl font-semibold sm:text-3xl",
+          "tag": "h2",
+          "text": "课前预习台"
+        }
+      ],
+      "mainRect": {
+        "height": 4121,
+        "width": 1180,
+        "x": 123,
+        "y": 74
+      },
+      "maxWidthEls": [
+        {
+          "cls": "mx-auto flex max-w-[1180px] items-center justify-between px-4 py-4 sm:px-6",
+          "tag": "div",
+          "text": "返回课程总览Premium Classroom看见整门课：从反馈思想到控制全景"
+        },
+        {
+          "cls": "premium-lesson-main mx-auto max-w-[1180px] px-3 py-4 sm:px-6 sm:py-8",
+          "tag": "main",
+          "text": "教师入口创建课堂并进入教师端自动克隆预置教案，生成课堂码并进入精品课堂。开始上课（教师）自由浏览以演示模式进入学生端，预览课堂环节与导学资料。进入演示模式1-1 · Course "
+        },
+        {
+          "cls": "premium-lesson-muted mt-3 max-w-3xl sm:text-base",
+          "tag": "p",
+          "text": "用一条船为贯穿对象，90分钟闪电遍历自动控制原理全部核心主题——从建模、时域、稳定性、根轨迹、频域到反馈与校正，走通诊断-校正-验证的完整闭环。"
+        },
+        {
+          "cls": "premium-lesson-muted mt-3 max-w-3xl text-sm sm:text-base",
+          "tag": "p",
+          "text": "自动控制原理：全景地图"
+        },
+        {
+          "cls": "prose prose-sm max-w-none text-muted-foreground prose-p:my-0 prose-strong:text-foreground prose-ul:my-2",
+          "tag": "div",
+          "text": "这份讲义旨在为自动控制原理课程提供一个全景导览，帮助学生在深入复杂的数学推导前掌握学科的核心逻辑。教材通过反馈思想这一主线，将分散的工程问题整合进统一的理论框架，并以客船自动航行为"
+        },
+        {
+          "cls": "w-full max-w-full",
+          "tag": "audio",
+          "text": ""
+        },
+        {
+          "cls": "premium-lesson-panel-soft mt-4 max-w-full overflow-x-auto overflow-y-hidden rounded-[22px] p-0",
+          "tag": "div",
+          "text": "后置后置反馈与开闭环模型与三域诊断校正与课程总图反馈概念←0→2开环控制概念←1→0闭环控制概念←1→2误差信号概念←1→0传递函数概念←1→2极点概念←2→2时域响应概念←1→2"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        }
+      ],
+      "mode": "desktop",
+      "name": "03-course-entry-1-1",
+      "scroll": {
+        "clientWidth": 1425,
+        "height": 4323,
+        "width": 1425
+      },
+      "title": "AI-OBE船舶控制平台",
+      "url": "http://localhost:3001/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    }
+  },
+  {
+    "screenshot": "/Users/YW/Documents/Site/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/screenshots/04-course-entry-4-1-desktop.png",
+    "metrics": {
+      "breadcrumbText": "",
+      "buttons": [
+        {
+          "aria": null,
+          "cls": "premium-lesson-nav-button inline-flex items-center gap-1 px-3 py-1",
+          "href": "/interactive-learning/courses",
+          "tag": "a",
+          "text": "返回课程总览"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-primary mt-5 flex w-full",
+          "href": null,
+          "tag": "button",
+          "text": "开始上课（教师）"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary mt-5 flex w-full",
+          "href": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo",
+          "tag": "a",
+          "text": "进入演示模式"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary flex shrink-0",
+          "href": null,
+          "tag": "button",
+          "text": "在线阅读讲义"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary flex shrink-0 disabled:cursor-not-allowed disabled:opacity-50",
+          "href": null,
+          "tag": "button",
+          "text": "下载 PDF 讲义"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary flex",
+          "href": "https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=7ebf71ccb36513fab8a7923add55dfa9&v=1776002474222&puid=26652392&enc=51730e089664ec4d6982a02625974813&wps=92c264c45607fd016714fcbf3bae1072d70d687fb84ea7b5",
+          "tag": "a",
+          "text": "打开课件"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "超调量概念←3→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "调节时间概念←0→3"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "相角裕度概念←0→4"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "带宽频率概念←1→4"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "指标角色重组概念←4→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "稳定可行域概念←0→3"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "复平面可行域概念←2→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "设计可行域概念←2→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "硬约束-软目标-观察指标分类概念←1→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "可行域-满意域-最优域分层概念←4→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "跨域联读任务重排概念←4→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "谐振峰值Mr概念←2→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "设计任务表达卡概念←2→0"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground transit",
+          "href": null,
+          "tag": "button",
+          "text": "详情"
+        },
+        {
+          "aria": "放大查看指标角色重组 信息图",
+          "cls": "group relative block w-full bg-background text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 f",
+          "href": null,
+          "tag": "button",
+          "text": "查看大图"
+        },
+        {
+          "aria": null,
+          "cls": "rounded-[20px] px-4 py-4 text-left premium-lesson-selectable-card",
+          "href": null,
+          "tag": "button",
+          "text": "Card 1超调量系统阶跃响应中，输出最大值超出稳态值的百分比，是衡量系统动态性能的指标之一。"
+        },
+        {
+          "aria": null,
+          "cls": "rounded-[20px] px-4 py-4 text-left premium-lesson-selectable-card",
+          "href": null,
+          "tag": "button",
+          "text": "Card 2调节时间系统响应进入并保持在稳态值允许误差带内所需的最短时间，取决于最靠近虚轴的闭环极点的实部。"
+        },
+        {
+          "aria": null,
+          "cls": "rounded-[20px] px-4 py-4 text-left premium-lesson-selectable-card",
+          "href": null,
+          "tag": "button",
+          "text": "Card 3相角裕度在开环截止频率 $\\omega_c$ 处，相位距离 $-180^\\circ$ 还剩下的角度余量。"
+        },
+        {
+          "aria": null,
+          "cls": "rounded-[20px] px-4 py-4 text-left premium-lesson-selectable-card",
+          "href": null,
+          "tag": "button",
+          "text": "Card 4带宽频率闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。"
+        }
+      ],
+      "hasShell": false,
+      "headings": [
+        {
+          "cls": "premium-lesson-title text-base font-semibold sm:text-lg",
+          "tag": "h1",
+          "text": "4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        },
+        {
+          "cls": "premium-lesson-title mt-2 text-3xl font-semibold sm:text-4xl",
+          "tag": "h2",
+          "text": "4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        },
+        {
+          "cls": "premium-lesson-title mt-2 text-2xl font-semibold sm:text-3xl",
+          "tag": "h2",
+          "text": "课前预习台"
+        }
+      ],
+      "mainRect": {
+        "height": 4742,
+        "width": 1180,
+        "x": 123,
+        "y": 74
+      },
+      "maxWidthEls": [
+        {
+          "cls": "mx-auto flex max-w-[1180px] items-center justify-between px-4 py-4 sm:px-6",
+          "tag": "div",
+          "text": "返回课程总览Premium Classroom4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        },
+        {
+          "cls": "premium-lesson-main mx-auto max-w-[1180px] px-3 py-4 sm:px-6 sm:py-8",
+          "tag": "main",
+          "text": "教师入口创建课堂并进入教师端自动克隆预置教案，生成课堂码并进入精品课堂。开始上课（教师）自由浏览以演示模式进入学生端，预览课堂环节与导学资料。进入演示模式4-1 · Course "
+        },
+        {
+          "cls": "premium-lesson-muted mt-3 max-w-3xl sm:text-base",
+          "tag": "p",
+          "text": "围绕性能指标角色、硬约束/软目标/观察指标、可行域分层和双案例联读，把模块 3 的分析证据收束成可交给 4-2/4-3 的任务表达卡。"
+        },
+        {
+          "cls": "premium-lesson-muted mt-3 max-w-3xl text-sm sm:text-base",
+          "tag": "p",
+          "text": "用导入情境聚焦“在同一间自动控制实验教室里，客船航向控制沙盘和船载稳定平台姿态演示架同时运行”。"
+        },
+        {
+          "cls": "premium-lesson-muted mt-3 max-w-3xl text-sm sm:text-base",
+          "tag": "p",
+          "text": "控制系统的“翻译”艺术"
+        },
+        {
+          "cls": "prose prose-sm max-w-none text-muted-foreground prose-p:my-0 prose-strong:text-foreground prose-ul:my-2",
+          "tag": "div",
+          "text": "这份讲义详细介绍了自动化控制系统的两个设计案例，重点通过传递函数和性能指标来分析系统的稳定性与响应速度。案例A侧重于客船航向控制，其设计优先考虑舒适度与储备，通过波特图和根轨迹图展"
+        },
+        {
+          "cls": "w-full max-w-full",
+          "tag": "audio",
+          "text": ""
+        },
+        {
+          "cls": "premium-lesson-panel-soft mt-4 max-w-full overflow-x-auto overflow-y-hidden rounded-[22px] p-0",
+          "tag": "div",
+          "text": "前置前置后置前置前置入口回收与指标重组任务分类与区域分层主场景联读对照案例与排序重排任务表达与收束超调量概念←3→1调节时间概念←0→3相角裕度概念←0→4带宽频率概念←1→4指标"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        }
+      ],
+      "mode": "desktop",
+      "name": "04-course-entry-4-1",
+      "scroll": {
+        "clientWidth": 1425,
+        "height": 4944,
+        "width": 1425
+      },
+      "title": "AI-OBE船舶控制平台",
+      "url": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    }
+  },
+  {
+    "screenshot": "/Users/YW/Documents/Site/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/screenshots/05-chapter-components-desktop.png",
+    "metrics": {
+      "breadcrumbText": "",
+      "buttons": [
+        {
+          "aria": "收起平台导航",
+          "cls": "inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-platform-border bg-platform-surface t",
+          "href": null,
+          "tag": "button",
+          "text": "收起导航"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/",
+          "tag": "a",
+          "text": "首页"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/simulations",
+          "tag": "a",
+          "text": "虚拟仿真"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "知识资源"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/arena",
+          "tag": "a",
+          "text": "竞技场"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/interactive-learning/control-workbench",
+          "tag": "a",
+          "text": "控制工作台"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "自适应学习"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition bg-platform-action-subtle text-platform-a",
+          "href": "/interactive-learning",
+          "tag": "a",
+          "text": "互动学习"
+        },
+        {
+          "aria": "切换到深色模式",
+          "cls": "inline-flex h-9 w-9 items-center justify-center rounded-md border border-platform-border bg-platform-surface text-platfo",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/",
+          "tag": "a",
+          "text": "首页"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/simulations",
+          "tag": "a",
+          "text": "虚拟仿真"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "知识资源"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/arena",
+          "tag": "a",
+          "text": "竞技场"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/interactive-learning/control-workbench",
+          "tag": "a",
+          "text": "控制工作台"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "自适应学习"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition bg-platform-action-subtle text-platform-",
+          "href": "/interactive-learning",
+          "tag": "a",
+          "text": "互动学习"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-amber-400/45",
+          "href": "/interactive-learning/chapter-components/system-modeling",
+          "tag": "a",
+          "text": "系统建模学习如何建立物理系统的数学模型16 个组件查看组件"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-amber-400/45",
+          "href": "/interactive-learning/chapter-components/time-domain",
+          "tag": "a",
+          "text": "时域分析分析系统的时间响应特性24 个组件查看组件"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-amber-400/45",
+          "href": "/interactive-learning/chapter-components/root-locus",
+          "tag": "a",
+          "text": "根轨迹分析探索闭环极点与系统稳定性的关系12 个组件查看组件"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-amber-400/45",
+          "href": "/interactive-learning/chapter-components/frequency-domain",
+          "tag": "a",
+          "text": "频域分析通过频率响应分析系统特性9 个组件查看组件"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-amber-400/45",
+          "href": "/interactive-learning/chapter-components/system-correction",
+          "tag": "a",
+          "text": "系统校正设计控制器改善系统性能10 个组件查看组件"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-amber-400/45",
+          "href": "/interactive-learning/chapter-components/nonlinear",
+          "tag": "a",
+          "text": "非线性处理非线性系统和伦理决策1 个组件查看组件"
+        },
+        {
+          "aria": null,
+          "cls": "rounded p-2 transition-colors text-slate-500 hover:bg-slate-700/30",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transiti",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": "打开页面工具菜单",
+          "cls": "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors f",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        }
+      ],
+      "hasShell": false,
+      "headings": [
+        {
+          "cls": "truncate text-base font-semibold text-platform-fg-primary",
+          "tag": "h1",
+          "text": "各章节互动组件"
+        },
+        {
+          "cls": "text-3xl font-semibold",
+          "tag": "h1",
+          "text": "各章节互动组件"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "系统建模"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "时域分析"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "根轨迹分析"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "频域分析"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "系统校正"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "非线性"
+        }
+      ],
+      "mainRect": {
+        "height": 1000,
+        "width": 1440,
+        "x": 0,
+        "y": 0
+      },
+      "maxWidthEls": [
+        {
+          "cls": "px-4 py-5 sm:px-6 mx-auto max-w-7xl",
+          "tag": "div",
+          "text": "各章节互动组件先选择章节分类，再进入对应组件列表页。系统建模学习如何建立物理系统的数学模型16 个组件查看组件时域分析分析系统的时间响应特性24 个组件查看组件根轨迹分析探索闭环极"
+        },
+        {
+          "cls": "mx-auto max-w-[1280px] px-6 py-10",
+          "tag": "section",
+          "text": "各章节互动组件先选择章节分类，再进入对应组件列表页。系统建模学习如何建立物理系统的数学模型16 个组件查看组件时域分析分析系统的时间响应特性24 个组件查看组件根轨迹分析探索闭环极"
+        }
+      ],
+      "mode": "desktop",
+      "name": "05-chapter-components",
+      "scroll": {
+        "clientWidth": 1440,
+        "height": 1000,
+        "width": 1440
+      },
+      "title": "AI-OBE船舶控制平台",
+      "url": "http://localhost:3001/interactive-learning/chapter-components",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    }
+  },
+  {
+    "screenshot": "/Users/YW/Documents/Site/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/screenshots/06-cross-domain-list-desktop.png",
+    "metrics": {
+      "breadcrumbText": "",
+      "buttons": [
+        {
+          "aria": "收起平台导航",
+          "cls": "inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-platform-border bg-platform-surface t",
+          "href": null,
+          "tag": "button",
+          "text": "收起导航"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/",
+          "tag": "a",
+          "text": "首页"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/simulations",
+          "tag": "a",
+          "text": "虚拟仿真"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "知识资源"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/arena",
+          "tag": "a",
+          "text": "竞技场"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/interactive-learning/control-workbench",
+          "tag": "a",
+          "text": "控制工作台"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "自适应学习"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition bg-platform-action-subtle text-platform-a",
+          "href": "/interactive-learning",
+          "tag": "a",
+          "text": "互动学习"
+        },
+        {
+          "aria": "切换到深色模式",
+          "cls": "inline-flex h-9 w-9 items-center justify-center rounded-md border border-platform-border bg-platform-surface text-platfo",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/",
+          "tag": "a",
+          "text": "首页"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/simulations",
+          "tag": "a",
+          "text": "虚拟仿真"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "知识资源"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/arena",
+          "tag": "a",
+          "text": "竞技场"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/interactive-learning/control-workbench",
+          "tag": "a",
+          "text": "控制工作台"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "自适应学习"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition bg-platform-action-subtle text-platform-",
+          "href": "/interactive-learning",
+          "tag": "a",
+          "text": "互动学习"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-fuchsia-400/50",
+          "href": "/interactive-learning/resources/control-odyssey-v1?source=cross-domain-exploration",
+          "tag": "a",
+          "text": "跨域组件第一组件Control Odyssey: 穿越误差带通过游戏化方式体验比例控制、系统惯性与误差带限制，穿越控制系"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-fuchsia-400/50",
+          "href": "/interactive-learning/resources/ten-drops-game-v1?source=cross-domain-exploration",
+          "tag": "a",
+          "text": "跨域组件十滴水益智游戏经典的逻辑消除游戏，培养多步预测与连锁反应思维。打开组件"
+        },
+        {
+          "aria": null,
+          "cls": "rounded p-2 transition-colors text-slate-500 hover:bg-slate-700/30",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transiti",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": "打开页面工具菜单",
+          "cls": "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors f",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        }
+      ],
+      "hasShell": false,
+      "headings": [
+        {
+          "cls": "truncate text-base font-semibold text-platform-fg-primary",
+          "tag": "h1",
+          "text": "跨域探索"
+        },
+        {
+          "cls": "text-3xl font-semibold",
+          "tag": "h1",
+          "text": "跨域探索"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "Control Odyssey: 穿越误差带"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "十滴水益智游戏"
+        }
+      ],
+      "mainRect": {
+        "height": 1000,
+        "width": 1440,
+        "x": 0,
+        "y": 0
+      },
+      "maxWidthEls": [
+        {
+          "cls": "px-4 py-5 sm:px-6 mx-auto max-w-7xl",
+          "tag": "div",
+          "text": "跨域探索聚焦跨表征联动与跨域问题拆解，按资源目录动态展示趣味探索组件。跨域组件第一组件Control Odyssey: 穿越误差带通过游戏化方式体验比例控制、系统惯性与误差带限制，"
+        },
+        {
+          "cls": "mx-auto max-w-[1280px] px-6 py-10",
+          "tag": "section",
+          "text": "跨域探索聚焦跨表征联动与跨域问题拆解，按资源目录动态展示趣味探索组件。跨域组件第一组件Control Odyssey: 穿越误差带通过游戏化方式体验比例控制、系统惯性与误差带限制，"
+        }
+      ],
+      "mode": "desktop",
+      "name": "06-cross-domain-list",
+      "scroll": {
+        "clientWidth": 1440,
+        "height": 1000,
+        "width": 1440
+      },
+      "title": "AI-OBE船舶控制平台",
+      "url": "http://localhost:3001/interactive-learning/cross-domain-exploration",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    }
+  },
+  {
+    "screenshot": "/Users/YW/Documents/Site/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/screenshots/07-course-student-runtime-blocker-desktop.png",
+    "metrics": {
+      "breadcrumbText": "",
+      "buttons": [
+        {
+          "aria": null,
+          "cls": "premium-lesson-nav-button inline-flex items-center gap-1 px-3 py-1",
+          "href": "/interactive-learning/courses",
+          "tag": "a",
+          "text": "返回课程总览"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-primary mt-5 flex w-full",
+          "href": null,
+          "tag": "button",
+          "text": "开始上课（教师）"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary mt-5 flex w-full",
+          "href": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
+          "tag": "a",
+          "text": "进入演示模式"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary flex shrink-0",
+          "href": null,
+          "tag": "button",
+          "text": "在线阅读讲义"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary flex shrink-0 disabled:cursor-not-allowed disabled:opacity-50",
+          "href": null,
+          "tag": "button",
+          "text": "下载 PDF 讲义"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary flex",
+          "href": "https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=15be6b1e6af28de13adf2f75c60ab2c4&v=1780831239892&puid=26652392&enc=d0d9bf2eca59308bf03cc7bb0dfbc8a6&wps=532c043fc91d022d7bc5ba80a2bbd4b3d70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=-1265539036&timestamp=1780831239892&signature=d58d49f22751aa0a3ca89c54f0806344",
+          "tag": "a",
+          "text": "打开课件"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "反馈概念←0→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "开环控制概念←1→0"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "闭环控制概念←1→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "误差信号概念←1→0"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "传递函数概念←1→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "极点概念←2→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "时域响应概念←1→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "性能指标概念←1→0"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "稳定性概念←2→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "根轨迹概念←0→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "频域响应概念←2→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "Bode图概念←1→0"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "控制器概念←1→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "比例控制概念←0→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "校正设计概念←2→0"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "课程总图概念←0→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "系统观念概念←1→0"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground transit",
+          "href": null,
+          "tag": "button",
+          "text": "详情"
+        },
+        {
+          "aria": "放大查看反馈 信息图",
+          "cls": "group relative block w-full bg-background text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 f",
+          "href": null,
+          "tag": "button",
+          "text": "查看大图"
+        }
+      ],
+      "hasShell": false,
+      "headings": [
+        {
+          "cls": "premium-lesson-title text-base font-semibold sm:text-lg",
+          "tag": "h1",
+          "text": "看见整门课：从反馈思想到控制全景"
+        },
+        {
+          "cls": "premium-lesson-title mt-2 text-3xl font-semibold sm:text-4xl",
+          "tag": "h2",
+          "text": "看见整门课：从反馈思想到控制全景"
+        },
+        {
+          "cls": "premium-lesson-title mt-2 text-2xl font-semibold sm:text-3xl",
+          "tag": "h2",
+          "text": "课前预习台"
+        }
+      ],
+      "mainRect": {
+        "height": 4121,
+        "width": 1180,
+        "x": 123,
+        "y": 74
+      },
+      "maxWidthEls": [
+        {
+          "cls": "mx-auto flex max-w-[1180px] items-center justify-between px-4 py-4 sm:px-6",
+          "tag": "div",
+          "text": "返回课程总览Premium Classroom看见整门课：从反馈思想到控制全景"
+        },
+        {
+          "cls": "premium-lesson-main mx-auto max-w-[1180px] px-3 py-4 sm:px-6 sm:py-8",
+          "tag": "main",
+          "text": "教师入口创建课堂并进入教师端自动克隆预置教案，生成课堂码并进入精品课堂。开始上课（教师）自由浏览以演示模式进入学生端，预览课堂环节与导学资料。进入演示模式1-1 · Course "
+        },
+        {
+          "cls": "premium-lesson-muted mt-3 max-w-3xl sm:text-base",
+          "tag": "p",
+          "text": "用一条船为贯穿对象，90分钟闪电遍历自动控制原理全部核心主题——从建模、时域、稳定性、根轨迹、频域到反馈与校正，走通诊断-校正-验证的完整闭环。"
+        },
+        {
+          "cls": "premium-lesson-muted mt-3 max-w-3xl text-sm sm:text-base",
+          "tag": "p",
+          "text": "自动控制原理：全景地图"
+        },
+        {
+          "cls": "prose prose-sm max-w-none text-muted-foreground prose-p:my-0 prose-strong:text-foreground prose-ul:my-2",
+          "tag": "div",
+          "text": "这份讲义旨在为自动控制原理课程提供一个全景导览，帮助学生在深入复杂的数学推导前掌握学科的核心逻辑。教材通过反馈思想这一主线，将分散的工程问题整合进统一的理论框架，并以客船自动航行为"
+        },
+        {
+          "cls": "w-full max-w-full",
+          "tag": "audio",
+          "text": ""
+        },
+        {
+          "cls": "premium-lesson-panel-soft mt-4 max-w-full overflow-x-auto overflow-y-hidden rounded-[22px] p-0",
+          "tag": "div",
+          "text": "后置后置反馈与开闭环模型与三域诊断校正与课程总图反馈概念←0→2开环控制概念←1→0闭环控制概念←1→2误差信号概念←1→0传递函数概念←1→2极点概念←2→2时域响应概念←1→2"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        }
+      ],
+      "mode": "desktop",
+      "name": "07-course-student-runtime-blocker",
+      "scroll": {
+        "clientWidth": 1425,
+        "height": 4323,
+        "width": 1425
+      },
+      "title": "AI-OBE船舶控制平台",
+      "url": "http://localhost:3001/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    }
+  },
+  {
+    "screenshot": "/Users/YW/Documents/Site/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/screenshots/08-course-teacher-runtime-blocker-desktop.png",
+    "metrics": {
+      "breadcrumbText": "",
+      "buttons": [
+        {
+          "aria": null,
+          "cls": "premium-lesson-nav-button shrink-0",
+          "href": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+          "tag": "a",
+          "text": "返回"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-control inline-flex items-center disabled:opacity-40",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-control inline-flex items-center disabled:opacity-40",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transiti",
+          "href": null,
+          "tag": "button",
+          "text": "二维码"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-tone premium-tone-rose",
+          "href": null,
+          "tag": "button",
+          "text": "结束课堂"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-title flex w-full items-center justify-between gap-3 text-left text-sm font-medium",
+          "href": null,
+          "tag": "button",
+          "text": "当前在线学生0 人"
+        },
+        {
+          "aria": null,
+          "cls": "rounded p-2 transition-colors text-slate-500 hover:bg-slate-700/30",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transiti",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": "打开页面工具菜单",
+          "cls": "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors f",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        }
+      ],
+      "hasShell": false,
+      "headings": [
+        {
+          "cls": "premium-lesson-title truncate text-sm font-semibold md:text-base",
+          "tag": "h1",
+          "text": "1-1：看见整门课——从反馈思想到控制全景"
+        },
+        {
+          "cls": "premium-lesson-title mt-2 text-xl font-semibold",
+          "tag": "h2",
+          "text": "从 1-1 到 2-1：先看见全景，再深入细节"
+        },
+        {
+          "cls": "premium-lesson-title mt-2 text-2xl font-semibold",
+          "tag": "h2",
+          "text": "看见整门课"
+        }
+      ],
+      "mainRect": {
+        "height": 2070,
+        "width": 1180,
+        "x": 123,
+        "y": 89
+      },
+      "maxWidthEls": [
+        {
+          "cls": "mx-auto max-w-[1280px] px-3 py-2 sm:px-4 sm:py-2.5",
+          "tag": "div",
+          "text": "返回A Lightning Tour of Control1-1：看见整门课——从反馈思想到控制全景B · 导入⏱ 5 min课堂码 ------ · 用一条船贯穿全部八个问题，9"
+        },
+        {
+          "cls": "premium-lesson-main mx-auto max-w-[1180px] px-3 py-4 sm:px-6 sm:py-6",
+          "tag": "main",
+          "text": "教师推进台课堂码：------教师可推进步骤、查看学生提交统计，并在需要时释放题目、显示答案。二维码结束课堂当前在线学生0 人Not foundCourse Bridge从 1-1"
+        }
+      ],
+      "mode": "desktop",
+      "name": "08-course-teacher-runtime-blocker",
+      "scroll": {
+        "clientWidth": 1425,
+        "height": 2159,
+        "width": 1425
+      },
+      "title": "AI-OBE船舶控制平台",
+      "url": "http://localhost:3001/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/audit-session",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    }
+  },
+  {
+    "screenshot": "/Users/YW/Documents/Site/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/screenshots/01-interactive-learning-mobile.png",
+    "metrics": {
+      "breadcrumbText": "",
+      "buttons": [
+        {
+          "aria": "收起平台导航",
+          "cls": "inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-platform-border bg-platform-surface t",
+          "href": null,
+          "tag": "button",
+          "text": "收起导航"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/",
+          "tag": "a",
+          "text": "首页"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/simulations",
+          "tag": "a",
+          "text": "虚拟仿真"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "知识资源"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/arena",
+          "tag": "a",
+          "text": "竞技场"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/interactive-learning/control-workbench",
+          "tag": "a",
+          "text": "控制工作台"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "自适应学习"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition bg-platform-action-subtle text-platform-a",
+          "href": "/interactive-learning",
+          "tag": "a",
+          "text": "互动学习"
+        },
+        {
+          "aria": "切换到深色模式",
+          "cls": "inline-flex h-9 w-9 items-center justify-center rounded-md border border-platform-border bg-platform-surface text-platfo",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/",
+          "tag": "a",
+          "text": "首页"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/simulations",
+          "tag": "a",
+          "text": "虚拟仿真"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "知识资源"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/arena",
+          "tag": "a",
+          "text": "竞技场"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/interactive-learning/control-workbench",
+          "tag": "a",
+          "text": "控制工作台"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "自适应学习"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition bg-platform-action-subtle text-platform-",
+          "href": "/interactive-learning",
+          "tag": "a",
+          "text": "互动学习"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses",
+          "tag": "a",
+          "text": "当前路径继续互动课程从课程目录进入已开放单元，优先处理当前课堂、当前课次和下一次练习。进入课程"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft p-5 transition hover:border-primary/40",
+          "href": "/profile/evidence",
+          "tag": "a",
+          "text": "学习证据查看证据复盘完成课程、练习或挑战后回到证据时间线。"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft rounded-lg p-4 text-sm transition hover:border-primary/40",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "学习课程、知识图谱与互动学习入口。"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft rounded-lg p-4 text-sm transition hover:border-primary/40",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "练习自适应练习、诊断与补强路径。"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft rounded-lg p-4 text-sm transition hover:border-primary/40",
+          "href": "/arena",
+          "tag": "a",
+          "text": "挑战竞技场挑战、榜单与正式评价。"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group relative overflow-hidden p-6 transition hover:-translate-y-0.5 hover:border-primary/40",
+          "href": "/interactive-learning/cross-domain-exploration",
+          "tag": "a",
+          "text": "Cross-Domain跨域探索跨域问题驱动探索：根轨迹、Bode、Nyquist 与时域响应联动，聚焦“结构可见”能力"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group relative overflow-hidden p-6 transition hover:-translate-y-0.5 hover:border-primary/40",
+          "href": "/interactive-learning/courses",
+          "tag": "a",
+          "text": "Course Hub互动课程进入各章节 90 分钟互动课程入口，按 BOPPPS 路径开展课堂活动与课后复盘。进入入口"
+        },
+        {
+          "aria": null,
+          "cls": "flex items-center justify-between gap-4 text-sm text-foreground",
+          "href": "/interactive-learning/chapter-components",
+          "tag": "a",
+          "text": "各章节互动组件按章节维度查看互动组件库，点击章节后展示对应组件并进入资源页面。"
+        },
+        {
+          "aria": null,
+          "cls": "rounded p-2 transition-colors text-slate-500 hover:bg-slate-700/30",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        }
+      ],
+      "hasShell": false,
+      "headings": [
+        {
+          "cls": "truncate text-base font-semibold text-platform-fg-primary",
+          "tag": "h1",
+          "text": "互动学习"
+        },
+        {
+          "cls": "mb-3 text-3xl font-bold text-foreground md:text-4xl",
+          "tag": "h1",
+          "text": "互动学习"
+        },
+        {
+          "cls": "mt-3 text-xl font-semibold text-foreground",
+          "tag": "h2",
+          "text": "继续互动课程"
+        },
+        {
+          "cls": "mt-3 text-base font-semibold text-foreground",
+          "tag": "h2",
+          "text": "查看证据复盘"
+        },
+        {
+          "cls": "mt-4 text-xl font-semibold text-foreground",
+          "tag": "h2",
+          "text": "跨域探索"
+        },
+        {
+          "cls": "mt-4 text-xl font-semibold text-foreground",
+          "tag": "h2",
+          "text": "互动课程"
+        }
+      ],
+      "mainRect": {
+        "height": 2474,
+        "width": 375,
+        "x": 0,
+        "y": 0
+      },
+      "maxWidthEls": [
+        {
+          "cls": "px-4 py-5 sm:px-6 mx-auto max-w-7xl",
+          "tag": "div",
+          "text": "学习入口 · 学习互动学习先继续当前学习路径，再进入课程、练习、挑战或实验。组件库保留为次级资料入口。当前课程下一次练习证据复盘当前路径继续互动课程从课程目录进入已开放单元，优先处"
+        },
+        {
+          "cls": "mx-auto max-w-[1200px] px-6 py-12",
+          "tag": "section",
+          "text": "学习入口 · 学习互动学习先继续当前学习路径，再进入课程、练习、挑战或实验。组件库保留为次级资料入口。当前课程下一次练习证据复盘当前路径继续互动课程从课程目录进入已开放单元，优先处"
+        }
+      ],
+      "mode": "mobile",
+      "name": "01-interactive-learning",
+      "scroll": {
+        "clientWidth": 375,
+        "height": 2474,
+        "width": 375
+      },
+      "title": "AI-OBE船舶控制平台",
+      "url": "http://localhost:3001/interactive-learning",
+      "viewport": {
+        "height": 844,
+        "width": 390
+      }
+    }
+  },
+  {
+    "screenshot": "/Users/YW/Documents/Site/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/screenshots/02-course-catalog-mobile.png",
+    "metrics": {
+      "breadcrumbText": "",
+      "buttons": [
+        {
+          "aria": "收起平台导航",
+          "cls": "inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-platform-border bg-platform-surface t",
+          "href": null,
+          "tag": "button",
+          "text": "收起导航"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/",
+          "tag": "a",
+          "text": "首页"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/simulations",
+          "tag": "a",
+          "text": "虚拟仿真"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "知识资源"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/arena",
+          "tag": "a",
+          "text": "竞技场"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/interactive-learning/control-workbench",
+          "tag": "a",
+          "text": "控制工作台"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "自适应学习"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition bg-platform-action-subtle text-platform-a",
+          "href": "/interactive-learning",
+          "tag": "a",
+          "text": "互动学习"
+        },
+        {
+          "aria": "切换到深色模式",
+          "cls": "inline-flex h-9 w-9 items-center justify-center rounded-md border border-platform-border bg-platform-surface text-platfo",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/",
+          "tag": "a",
+          "text": "首页"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/simulations",
+          "tag": "a",
+          "text": "虚拟仿真"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "知识资源"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/arena",
+          "tag": "a",
+          "text": "竞技场"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/interactive-learning/control-workbench",
+          "tag": "a",
+          "text": "控制工作台"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "自适应学习"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition bg-platform-action-subtle text-platform-",
+          "href": "/interactive-learning",
+          "tag": "a",
+          "text": "互动学习"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+          "tag": "a",
+          "text": "精品先导精品课程90 分钟看见整门课：从反馈思想到控制全景用一条船为贯穿对象，90分钟闪电遍历自动控制原理全部核心主题—"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/cruise-comfort-boppps",
+          "tag": "a",
+          "text": "精品先导精品课程45 分钟柔性之海：豪华邮轮舒适度控制45 分钟标准互动课：围绕舒适度约束、PID 参数整定、AI 诊断"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+          "tag": "a",
+          "text": "1-1精品课程90 分钟看见整门课：从反馈思想到控制全景用一条船为贯穿对象，90分钟闪电遍历自动控制原理全部核心主题——"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/unit-2-1-modeling-language",
+          "tag": "a",
+          "text": "2-1精品课程90 分钟2-1：建模与变换语言——从真实对象到统一分析对象精品互动课：把微分方程、传递函数、结构图和梅森"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/unit-2-2-time-domain-response",
+          "tag": "a",
+          "text": "2-2精品课程90 分钟2-2：时域响应基础——从响应曲线到动态性能指标精品互动课：把闭环传递函数翻译成响应曲线与动态性"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro",
+          "tag": "a",
+          "text": "2-3精品课程90 分钟2-3：频率响应基础与 Bode 图初步——从时域现象到频域图形入口精品互动课：把时域现象翻译成"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry",
+          "tag": "a",
+          "text": "2-4精品课程90 分钟2-4：Nyquist 图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别精品互动课"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics",
+          "tag": "a",
+          "text": "3-1精品课程90 分钟3-1：纯极点视角下的稳定、模态与双域近似——为什么高阶系统仍能用低阶模型理解精品互动课：从稳定"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card-soft group rounded-lg p-5 transition hover:border-primary/40",
+          "href": "/interactive-learning/courses/unit-3-2-routh-stability-boundary",
+          "tag": "a",
+          "text": "3-2精品课程90 分钟3-2：劳斯判据——从高阶系统稳定判定到参数可行域精品互动课：把高阶系统稳定底线推进到参数可行域"
+        }
+      ],
+      "hasShell": false,
+      "headings": [
+        {
+          "cls": "truncate text-base font-semibold text-platform-fg-primary",
+          "tag": "h1",
+          "text": "互动课程"
+        },
+        {
+          "cls": "text-3xl font-semibold text-foreground",
+          "tag": "h1",
+          "text": "互动课程"
+        },
+        {
+          "cls": "text-xl font-semibold text-foreground",
+          "tag": "h2",
+          "text": "精品课程"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "看见整门课：从反馈思想到控制全景"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "柔性之海：豪华邮轮舒适度控制"
+        },
+        {
+          "cls": "text-xl font-semibold text-foreground",
+          "tag": "h2",
+          "text": "模块1"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "看见整门课：从反馈思想到控制全景"
+        },
+        {
+          "cls": "text-xl font-semibold text-foreground",
+          "tag": "h2",
+          "text": "模块2"
+        }
+      ],
+      "mainRect": {
+        "height": 10149,
+        "width": 375,
+        "x": 0,
+        "y": 0
+      },
+      "maxWidthEls": [
+        {
+          "cls": "px-4 py-5 sm:px-6 mx-auto max-w-7xl",
+          "tag": "div",
+          "text": "互动课程优先进入已经建成并可直接学习的课程，再按模块查看完整目录。模块进阶课程类型启动动作精品课程优先开放完整教师端/学生端链路的精品互动课。优先推荐精品先导精品课程90 分钟看见"
+        },
+        {
+          "cls": "mx-auto max-w-[1280px] px-6 py-10",
+          "tag": "section",
+          "text": "互动课程优先进入已经建成并可直接学习的课程，再按模块查看完整目录。模块进阶课程类型启动动作精品课程优先开放完整教师端/学生端链路的精品互动课。优先推荐精品先导精品课程90 分钟看见"
+        }
+      ],
+      "mode": "mobile",
+      "name": "02-course-catalog",
+      "scroll": {
+        "clientWidth": 375,
+        "height": 10149,
+        "width": 375
+      },
+      "title": "AI-OBE船舶控制平台",
+      "url": "http://localhost:3001/interactive-learning/courses",
+      "viewport": {
+        "height": 844,
+        "width": 390
+      }
+    }
+  },
+  {
+    "screenshot": "/Users/YW/Documents/Site/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/screenshots/03-course-entry-1-1-mobile.png",
+    "metrics": {
+      "breadcrumbText": "",
+      "buttons": [
+        {
+          "aria": null,
+          "cls": "premium-lesson-nav-button inline-flex items-center gap-1 px-3 py-1",
+          "href": "/interactive-learning/courses",
+          "tag": "a",
+          "text": "返回课程总览"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-primary mt-5 flex w-full",
+          "href": null,
+          "tag": "button",
+          "text": "开始上课（教师）"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary mt-5 flex w-full",
+          "href": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
+          "tag": "a",
+          "text": "进入演示模式"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary flex shrink-0",
+          "href": null,
+          "tag": "button",
+          "text": "在线阅读讲义"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary flex shrink-0 disabled:cursor-not-allowed disabled:opacity-50",
+          "href": null,
+          "tag": "button",
+          "text": "下载 PDF 讲义"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary flex",
+          "href": "https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=15be6b1e6af28de13adf2f75c60ab2c4&v=1780831239892&puid=26652392&enc=d0d9bf2eca59308bf03cc7bb0dfbc8a6&wps=532c043fc91d022d7bc5ba80a2bbd4b3d70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=-1265539036&timestamp=1780831239892&signature=d58d49f22751aa0a3ca89c54f0806344",
+          "tag": "a",
+          "text": "打开课件"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "反馈概念←0→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "开环控制概念←1→0"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "闭环控制概念←1→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "误差信号概念←1→0"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "传递函数概念←1→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "极点概念←2→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "时域响应概念←1→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "性能指标概念←1→0"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "稳定性概念←2→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "根轨迹概念←0→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "频域响应概念←2→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "Bode图概念←1→0"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "控制器概念←1→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "比例控制概念←0→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "校正设计概念←2→0"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "课程总图概念←0→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "系统观念概念←1→0"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground transit",
+          "href": null,
+          "tag": "button",
+          "text": "详情"
+        },
+        {
+          "aria": "放大查看反馈 信息图",
+          "cls": "group relative block w-full bg-background text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 f",
+          "href": null,
+          "tag": "button",
+          "text": "查看大图"
+        }
+      ],
+      "hasShell": false,
+      "headings": [
+        {
+          "cls": "premium-lesson-title text-base font-semibold sm:text-lg",
+          "tag": "h1",
+          "text": "看见整门课：从反馈思想到控制全景"
+        },
+        {
+          "cls": "premium-lesson-title mt-2 text-3xl font-semibold sm:text-4xl",
+          "tag": "h2",
+          "text": "看见整门课：从反馈思想到控制全景"
+        },
+        {
+          "cls": "premium-lesson-title mt-2 text-2xl font-semibold sm:text-3xl",
+          "tag": "h2",
+          "text": "课前预习台"
+        }
+      ],
+      "mainRect": {
+        "height": 7534,
+        "width": 375,
+        "x": 0,
+        "y": 94
+      },
+      "maxWidthEls": [
+        {
+          "cls": "mx-auto flex max-w-[1180px] items-center justify-between px-4 py-4 sm:px-6",
+          "tag": "div",
+          "text": "返回课程总览Premium Classroom看见整门课：从反馈思想到控制全景"
+        },
+        {
+          "cls": "premium-lesson-main mx-auto max-w-[1180px] px-3 py-4 sm:px-6 sm:py-8",
+          "tag": "main",
+          "text": "教师入口创建课堂并进入教师端自动克隆预置教案，生成课堂码并进入精品课堂。开始上课（教师）自由浏览以演示模式进入学生端，预览课堂环节与导学资料。进入演示模式1-1 · Course "
+        },
+        {
+          "cls": "premium-lesson-muted mt-3 max-w-3xl sm:text-base",
+          "tag": "p",
+          "text": "用一条船为贯穿对象，90分钟闪电遍历自动控制原理全部核心主题——从建模、时域、稳定性、根轨迹、频域到反馈与校正，走通诊断-校正-验证的完整闭环。"
+        },
+        {
+          "cls": "premium-lesson-muted mt-3 max-w-3xl text-sm sm:text-base",
+          "tag": "p",
+          "text": "自动控制原理：全景地图"
+        },
+        {
+          "cls": "prose prose-sm max-w-none text-muted-foreground prose-p:my-0 prose-strong:text-foreground prose-ul:my-2",
+          "tag": "div",
+          "text": "这份讲义旨在为自动控制原理课程提供一个全景导览，帮助学生在深入复杂的数学推导前掌握学科的核心逻辑。教材通过反馈思想这一主线，将分散的工程问题整合进统一的理论框架，并以客船自动航行为"
+        },
+        {
+          "cls": "w-full max-w-full",
+          "tag": "audio",
+          "text": ""
+        },
+        {
+          "cls": "premium-lesson-panel-soft mt-4 max-w-full overflow-x-auto overflow-y-hidden rounded-[22px] p-0",
+          "tag": "div",
+          "text": "后置后置反馈与开闭环模型与三域诊断校正与课程总图反馈概念←0→2开环控制概念←1→0闭环控制概念←1→2误差信号概念←1→0传递函数概念←1→2极点概念←2→2时域响应概念←1→2"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        }
+      ],
+      "mode": "mobile",
+      "name": "03-course-entry-1-1",
+      "scroll": {
+        "clientWidth": 375,
+        "height": 7756,
+        "width": 375
+      },
+      "title": "AI-OBE船舶控制平台",
+      "url": "http://localhost:3001/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "viewport": {
+        "height": 844,
+        "width": 390
+      }
+    }
+  },
+  {
+    "screenshot": "/Users/YW/Documents/Site/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/screenshots/04-course-entry-4-1-mobile.png",
+    "metrics": {
+      "breadcrumbText": "",
+      "buttons": [
+        {
+          "aria": null,
+          "cls": "premium-lesson-nav-button inline-flex items-center gap-1 px-3 py-1",
+          "href": "/interactive-learning/courses",
+          "tag": "a",
+          "text": "返回课程总览"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-primary mt-5 flex w-full",
+          "href": null,
+          "tag": "button",
+          "text": "开始上课（教师）"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary mt-5 flex w-full",
+          "href": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo",
+          "tag": "a",
+          "text": "进入演示模式"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary flex shrink-0",
+          "href": null,
+          "tag": "button",
+          "text": "在线阅读讲义"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary flex shrink-0 disabled:cursor-not-allowed disabled:opacity-50",
+          "href": null,
+          "tag": "button",
+          "text": "下载 PDF 讲义"
+        },
+        {
+          "aria": null,
+          "cls": "premium-lesson-action-secondary flex",
+          "href": "https://pan-yz.cldisk.com/preview/objectshowpreview.html?objectid=7ebf71ccb36513fab8a7923add55dfa9&v=1776002474222&puid=26652392&enc=51730e089664ec4d6982a02625974813&wps=92c264c45607fd016714fcbf3bae1072d70d687fb84ea7b5",
+          "tag": "a",
+          "text": "打开课件"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "超调量概念←3→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "调节时间概念←0→3"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "相角裕度概念←0→4"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "带宽频率概念←1→4"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "指标角色重组概念←4→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "稳定可行域概念←0→3"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "复平面可行域概念←2→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "设计可行域概念←2→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "硬约束-软目标-观察指标分类概念←1→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "可行域-满意域-最优域分层概念←4→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "跨域联读任务重排概念←4→1"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "谐振峰值Mr概念←2→2"
+        },
+        {
+          "aria": null,
+          "cls": "absolute overflow-hidden rounded-[16px] border px-3 py-2 text-left shadow-sm transition border-[hsl(var(--premium-lesson",
+          "href": null,
+          "tag": "button",
+          "text": "设计任务表达卡概念←2→0"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground transit",
+          "href": null,
+          "tag": "button",
+          "text": "详情"
+        },
+        {
+          "aria": "放大查看指标角色重组 信息图",
+          "cls": "group relative block w-full bg-background text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 f",
+          "href": null,
+          "tag": "button",
+          "text": "查看大图"
+        },
+        {
+          "aria": null,
+          "cls": "rounded-[20px] px-4 py-4 text-left premium-lesson-selectable-card",
+          "href": null,
+          "tag": "button",
+          "text": "Card 1超调量系统阶跃响应中，输出最大值超出稳态值的百分比，是衡量系统动态性能的指标之一。"
+        },
+        {
+          "aria": null,
+          "cls": "rounded-[20px] px-4 py-4 text-left premium-lesson-selectable-card",
+          "href": null,
+          "tag": "button",
+          "text": "Card 2调节时间系统响应进入并保持在稳态值允许误差带内所需的最短时间，取决于最靠近虚轴的闭环极点的实部。"
+        },
+        {
+          "aria": null,
+          "cls": "rounded-[20px] px-4 py-4 text-left premium-lesson-selectable-card",
+          "href": null,
+          "tag": "button",
+          "text": "Card 3相角裕度在开环截止频率 $\\omega_c$ 处，相位距离 $-180^\\circ$ 还剩下的角度余量。"
+        },
+        {
+          "aria": null,
+          "cls": "rounded-[20px] px-4 py-4 text-left premium-lesson-selectable-card",
+          "href": null,
+          "tag": "button",
+          "text": "Card 4带宽频率闭环幅频特性曲线幅值下降到零频率幅值的0.707倍时所对应的频率，反映了系统对输入信号的响应速度。"
+        }
+      ],
+      "hasShell": false,
+      "headings": [
+        {
+          "cls": "premium-lesson-title text-base font-semibold sm:text-lg",
+          "tag": "h1",
+          "text": "4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        },
+        {
+          "cls": "premium-lesson-title mt-2 text-3xl font-semibold sm:text-4xl",
+          "tag": "h2",
+          "text": "4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        },
+        {
+          "cls": "premium-lesson-title mt-2 text-2xl font-semibold sm:text-3xl",
+          "tag": "h2",
+          "text": "课前预习台"
+        }
+      ],
+      "mainRect": {
+        "height": 7395,
+        "width": 375,
+        "x": 0,
+        "y": 94
+      },
+      "maxWidthEls": [
+        {
+          "cls": "mx-auto flex max-w-[1180px] items-center justify-between px-4 py-4 sm:px-6",
+          "tag": "div",
+          "text": "返回课程总览Premium Classroom4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        },
+        {
+          "cls": "premium-lesson-main mx-auto max-w-[1180px] px-3 py-4 sm:px-6 sm:py-8",
+          "tag": "main",
+          "text": "教师入口创建课堂并进入教师端自动克隆预置教案，生成课堂码并进入精品课堂。开始上课（教师）自由浏览以演示模式进入学生端，预览课堂环节与导学资料。进入演示模式4-1 · Course "
+        },
+        {
+          "cls": "premium-lesson-muted mt-3 max-w-3xl sm:text-base",
+          "tag": "p",
+          "text": "围绕性能指标角色、硬约束/软目标/观察指标、可行域分层和双案例联读，把模块 3 的分析证据收束成可交给 4-2/4-3 的任务表达卡。"
+        },
+        {
+          "cls": "premium-lesson-muted mt-3 max-w-3xl text-sm sm:text-base",
+          "tag": "p",
+          "text": "用导入情境聚焦“在同一间自动控制实验教室里，客船航向控制沙盘和船载稳定平台姿态演示架同时运行”。"
+        },
+        {
+          "cls": "premium-lesson-muted mt-3 max-w-3xl text-sm sm:text-base",
+          "tag": "p",
+          "text": "控制系统的“翻译”艺术"
+        },
+        {
+          "cls": "prose prose-sm max-w-none text-muted-foreground prose-p:my-0 prose-strong:text-foreground prose-ul:my-2",
+          "tag": "div",
+          "text": "这份讲义详细介绍了自动化控制系统的两个设计案例，重点通过传递函数和性能指标来分析系统的稳定性与响应速度。案例A侧重于客船航向控制，其设计优先考虑舒适度与储备，通过波特图和根轨迹图展"
+        },
+        {
+          "cls": "w-full max-w-full",
+          "tag": "audio",
+          "text": ""
+        },
+        {
+          "cls": "premium-lesson-panel-soft mt-4 max-w-full overflow-x-auto overflow-y-hidden rounded-[22px] p-0",
+          "tag": "div",
+          "text": "前置前置后置前置前置入口回收与指标重组任务分类与区域分层主场景联读对照案例与排序重排任务表达与收束超调量概念←3→1调节时间概念←0→3相角裕度概念←0→4带宽频率概念←1→4指标"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        },
+        {
+          "cls": "mt-1 inline-flex max-w-full items-center truncate rounded-full border border-white/15 px-2 py-0.5 text-[10px] text-[hsl(var(--premium-lesson-graph-node-text))]",
+          "tag": "span",
+          "text": "概念"
+        }
+      ],
+      "mode": "mobile",
+      "name": "04-course-entry-4-1",
+      "scroll": {
+        "clientWidth": 375,
+        "height": 7618,
+        "width": 375
+      },
+      "title": "AI-OBE船舶控制平台",
+      "url": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression",
+      "viewport": {
+        "height": 844,
+        "width": 390
+      }
+    }
+  },
+  {
+    "screenshot": "/Users/YW/Documents/Site/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/screenshots/05-chapter-components-mobile.png",
+    "metrics": {
+      "breadcrumbText": "",
+      "buttons": [
+        {
+          "aria": "收起平台导航",
+          "cls": "inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-platform-border bg-platform-surface t",
+          "href": null,
+          "tag": "button",
+          "text": "收起导航"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/",
+          "tag": "a",
+          "text": "首页"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/simulations",
+          "tag": "a",
+          "text": "虚拟仿真"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "知识资源"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/arena",
+          "tag": "a",
+          "text": "竞技场"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/interactive-learning/control-workbench",
+          "tag": "a",
+          "text": "控制工作台"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "自适应学习"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition bg-platform-action-subtle text-platform-a",
+          "href": "/interactive-learning",
+          "tag": "a",
+          "text": "互动学习"
+        },
+        {
+          "aria": "切换到深色模式",
+          "cls": "inline-flex h-9 w-9 items-center justify-center rounded-md border border-platform-border bg-platform-surface text-platfo",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/",
+          "tag": "a",
+          "text": "首页"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/simulations",
+          "tag": "a",
+          "text": "虚拟仿真"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "知识资源"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/arena",
+          "tag": "a",
+          "text": "竞技场"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/interactive-learning/control-workbench",
+          "tag": "a",
+          "text": "控制工作台"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "自适应学习"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition bg-platform-action-subtle text-platform-",
+          "href": "/interactive-learning",
+          "tag": "a",
+          "text": "互动学习"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-amber-400/45",
+          "href": "/interactive-learning/chapter-components/system-modeling",
+          "tag": "a",
+          "text": "系统建模学习如何建立物理系统的数学模型16 个组件查看组件"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-amber-400/45",
+          "href": "/interactive-learning/chapter-components/time-domain",
+          "tag": "a",
+          "text": "时域分析分析系统的时间响应特性24 个组件查看组件"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-amber-400/45",
+          "href": "/interactive-learning/chapter-components/root-locus",
+          "tag": "a",
+          "text": "根轨迹分析探索闭环极点与系统稳定性的关系12 个组件查看组件"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-amber-400/45",
+          "href": "/interactive-learning/chapter-components/frequency-domain",
+          "tag": "a",
+          "text": "频域分析通过频率响应分析系统特性9 个组件查看组件"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-amber-400/45",
+          "href": "/interactive-learning/chapter-components/system-correction",
+          "tag": "a",
+          "text": "系统校正设计控制器改善系统性能10 个组件查看组件"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-amber-400/45",
+          "href": "/interactive-learning/chapter-components/nonlinear",
+          "tag": "a",
+          "text": "非线性处理非线性系统和伦理决策1 个组件查看组件"
+        },
+        {
+          "aria": null,
+          "cls": "rounded p-2 transition-colors text-slate-500 hover:bg-slate-700/30",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transiti",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": "打开页面工具菜单",
+          "cls": "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors f",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        }
+      ],
+      "hasShell": false,
+      "headings": [
+        {
+          "cls": "truncate text-base font-semibold text-platform-fg-primary",
+          "tag": "h1",
+          "text": "各章节互动组件"
+        },
+        {
+          "cls": "text-3xl font-semibold",
+          "tag": "h1",
+          "text": "各章节互动组件"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "系统建模"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "时域分析"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "根轨迹分析"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "频域分析"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "系统校正"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "非线性"
+        }
+      ],
+      "mainRect": {
+        "height": 1740,
+        "width": 375,
+        "x": 0,
+        "y": 0
+      },
+      "maxWidthEls": [
+        {
+          "cls": "px-4 py-5 sm:px-6 mx-auto max-w-7xl",
+          "tag": "div",
+          "text": "各章节互动组件先选择章节分类，再进入对应组件列表页。系统建模学习如何建立物理系统的数学模型16 个组件查看组件时域分析分析系统的时间响应特性24 个组件查看组件根轨迹分析探索闭环极"
+        },
+        {
+          "cls": "mx-auto max-w-[1280px] px-6 py-10",
+          "tag": "section",
+          "text": "各章节互动组件先选择章节分类，再进入对应组件列表页。系统建模学习如何建立物理系统的数学模型16 个组件查看组件时域分析分析系统的时间响应特性24 个组件查看组件根轨迹分析探索闭环极"
+        }
+      ],
+      "mode": "mobile",
+      "name": "05-chapter-components",
+      "scroll": {
+        "clientWidth": 375,
+        "height": 1740,
+        "width": 375
+      },
+      "title": "AI-OBE船舶控制平台",
+      "url": "http://localhost:3001/interactive-learning/chapter-components",
+      "viewport": {
+        "height": 844,
+        "width": 390
+      }
+    }
+  },
+  {
+    "screenshot": "/Users/YW/Documents/Site/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/screenshots/06-cross-domain-list-mobile.png",
+    "metrics": {
+      "breadcrumbText": "",
+      "buttons": [
+        {
+          "aria": "收起平台导航",
+          "cls": "inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-platform-border bg-platform-surface t",
+          "href": null,
+          "tag": "button",
+          "text": "收起导航"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/",
+          "tag": "a",
+          "text": "首页"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/simulations",
+          "tag": "a",
+          "text": "虚拟仿真"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "知识资源"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/arena",
+          "tag": "a",
+          "text": "竞技场"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/interactive-learning/control-workbench",
+          "tag": "a",
+          "text": "控制工作台"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition text-platform-fg-secondary hover:bg-platf",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "自适应学习"
+        },
+        {
+          "aria": null,
+          "cls": "flex min-h-10 items-center rounded-md px-3 py-2 text-sm font-medium transition bg-platform-action-subtle text-platform-a",
+          "href": "/interactive-learning",
+          "tag": "a",
+          "text": "互动学习"
+        },
+        {
+          "aria": "切换到深色模式",
+          "cls": "inline-flex h-9 w-9 items-center justify-center rounded-md border border-platform-border bg-platform-surface text-platfo",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/",
+          "tag": "a",
+          "text": "首页"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/simulations",
+          "tag": "a",
+          "text": "虚拟仿真"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/knowledge",
+          "tag": "a",
+          "text": "知识资源"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/arena",
+          "tag": "a",
+          "text": "竞技场"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/interactive-learning/control-workbench",
+          "tag": "a",
+          "text": "控制工作台"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition text-platform-fg-secondary hover:bg-plat",
+          "href": "/assessment/adaptive-practice",
+          "tag": "a",
+          "text": "自适应学习"
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex min-h-9 items-center rounded-md px-3 text-sm font-medium transition bg-platform-action-subtle text-platform-",
+          "href": "/interactive-learning",
+          "tag": "a",
+          "text": "互动学习"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-fuchsia-400/50",
+          "href": "/interactive-learning/resources/control-odyssey-v1?source=cross-domain-exploration",
+          "tag": "a",
+          "text": "跨域组件第一组件Control Odyssey: 穿越误差带通过游戏化方式体验比例控制、系统惯性与误差带限制，穿越控制系"
+        },
+        {
+          "aria": null,
+          "cls": "surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-fuchsia-400/50",
+          "href": "/interactive-learning/resources/ten-drops-game-v1?source=cross-domain-exploration",
+          "tag": "a",
+          "text": "跨域组件十滴水益智游戏经典的逻辑消除游戏，培养多步预测与连锁反应思维。打开组件"
+        },
+        {
+          "aria": null,
+          "cls": "rounded p-2 transition-colors text-slate-500 hover:bg-slate-700/30",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": null,
+          "cls": "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transiti",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        },
+        {
+          "aria": "打开页面工具菜单",
+          "cls": "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors f",
+          "href": null,
+          "tag": "button",
+          "text": ""
+        }
+      ],
+      "hasShell": false,
+      "headings": [
+        {
+          "cls": "truncate text-base font-semibold text-platform-fg-primary",
+          "tag": "h1",
+          "text": "跨域探索"
+        },
+        {
+          "cls": "text-3xl font-semibold",
+          "tag": "h1",
+          "text": "跨域探索"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "Control Odyssey: 穿越误差带"
+        },
+        {
+          "cls": "mt-4 text-lg font-semibold text-foreground",
+          "tag": "h2",
+          "text": "十滴水益智游戏"
+        }
+      ],
+      "mainRect": {
+        "height": 969,
+        "width": 375,
+        "x": 0,
+        "y": 0
+      },
+      "maxWidthEls": [
+        {
+          "cls": "px-4 py-5 sm:px-6 mx-auto max-w-7xl",
+          "tag": "div",
+          "text": "跨域探索聚焦跨表征联动与跨域问题拆解，按资源目录动态展示趣味探索组件。跨域组件第一组件Control Odyssey: 穿越误差带通过游戏化方式体验比例控制、系统惯性与误差带限制，"
+        },
+        {
+          "cls": "mx-auto max-w-[1280px] px-6 py-10",
+          "tag": "section",
+          "text": "跨域探索聚焦跨表征联动与跨域问题拆解，按资源目录动态展示趣味探索组件。跨域组件第一组件Control Odyssey: 穿越误差带通过游戏化方式体验比例控制、系统惯性与误差带限制，"
+        }
+      ],
+      "mode": "mobile",
+      "name": "06-cross-domain-list",
+      "scroll": {
+        "clientWidth": 375,
+        "height": 969,
+        "width": 375
+      },
+      "title": "AI-OBE船舶控制平台",
+      "url": "http://localhost:3001/interactive-learning/cross-domain-exploration",
+      "viewport": {
+        "height": 844,
+        "width": 390
+      }
+    }
+  }
+]
