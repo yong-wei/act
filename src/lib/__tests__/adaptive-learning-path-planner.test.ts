@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
   buildAdaptiveLearningPathPlan,
   buildControlCorrectionThreeStylePathBundle,
   recordLearningPathFeedback,
@@ -499,7 +500,7 @@ describe('adaptive learning path planner', () => {
     expect(plan.policyBundle?.status).toBe('low-resource-fallback');
     expect(plan.policyBundle?.fallbackReasons).toContain('path-diversity-insufficient');
     expect(plan.policyBundle?.diversity.terminalValidationDifference).toBe(0);
-    expect(plan.policyBundle?.fallbackReasons).toContain('terminal-validation-diversity-insufficient');
+    expect(plan.policyBundle?.fallbackReasons).not.toContain('terminal-validation-diversity-insufficient');
     expect(plan.policyBundle?.fallbackReasons).toContain('path-modality-diversity-insufficient');
     expect(plan.policyBundle?.fallbackReasons).toContain('path-effort-diversity-insufficient');
   });
@@ -1099,6 +1100,61 @@ describe('adaptive learning path planner', () => {
     );
   });
 
+  it('returns executable starter options with checkpoints for cold-start registered goals', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
+      learnerState: null,
+      constraints: {
+        timeBudgetMinutes: 45,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+      },
+      now: new Date('2026-06-14T08:00:00.000Z'),
+    }));
+
+    expect(plan.status).toBe('fallback');
+    expect(plan.confidence.level).toBe('low');
+    expect(plan.mainPath.length).toBeGreaterThan(0);
+    expect(plan.currentNodeId).toBe(plan.mainPath[0]?.nodeId);
+    expect(plan.explanations.fallbackReasons).toContain('learner-state-missing');
+    const executableOptions = plan.policyBundle?.paths.filter((path) => path.nodeIds.length > 0) ?? [];
+    expect(executableOptions.length).toBeGreaterThanOrEqual(2);
+    expect(executableOptions.every((path) => path.checkpointNodeIds.length > 0)).toBe(true);
+    expect(executableOptions.every((path) => path.estimatedMinutes <= 45)).toBe(true);
+    expect(JSON.stringify(plan.mainPath)).not.toContain('learner-state-missing');
+    expect(JSON.stringify(plan.mainPath)).not.toContain('learner-evidence-low-confidence');
+  });
+
+  it('keeps low-confidence usable path nodes while recording confidence internally', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
+      learnerState: {
+        evidence: {
+          confidence: {
+            level: 'low',
+            score: 0.2,
+            evidenceCount: 1,
+            sourceCompleteness: 0.2,
+          },
+          sourceCoverage: {
+            LearningFact: 'partial',
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 45,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+      },
+    }));
+
+    expect(plan.status).toBe('fallback');
+    expect(plan.mainPath.length).toBeGreaterThan(0);
+    expect(plan.currentNodeId).not.toBeNull();
+    expect(plan.visualization.evidence.evidenceBasis).toBe('adaptive-learner-state');
+    expect(plan.explanations.fallbackReasons).toContain('learner-evidence-low-confidence');
+  });
+
   it('captures deviations and generates correction path records without losing evidence chain', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput());
     const updated = recordLearningPathFeedback(plan, {
@@ -1176,6 +1232,31 @@ describe('adaptive learning path planner', () => {
     expect(record.payload.explanations).toEqual(withFeedback.explanations);
     expect(record.payload.executionStatus).toEqual(withFeedback.executionStatus);
     expect(record.payload.feedbackEvents).toEqual(withFeedback.feedbackEvents);
+  });
+
+  it('keeps internal fallback and policy strings out of student-facing serialized text', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
+      learnerState: null,
+      constraints: {
+        timeBudgetMinutes: 45,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+      },
+    }));
+
+    const record = serializeLearningPathPlan(plan);
+    const studentFacing = JSON.stringify({
+      description: record.description,
+      studentFacing: record.payload.studentFacing,
+    });
+
+    expect(studentFacing).toContain('先从入门路径开始');
+    expect(studentFacing).not.toContain('learner-state-missing');
+    expect(studentFacing).not.toContain('learner-evidence-low-confidence');
+    expect(studentFacing).not.toContain('resource-mapping-insufficient');
+    expect(studentFacing).not.toContain('stage-1-rules-graph');
+    expect(studentFacing).not.toContain('rules-plus-graph-search');
   });
 
   it('does not add blocked prerequisite nodes to the main path', () => {

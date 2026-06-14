@@ -1,5 +1,9 @@
 import type { LearningFact } from '@prisma/client';
 import {
+  ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
+  isRegisteredAdaptiveLearningPathGoal,
+} from '../adaptive-learning-path-planner';
+import {
   COMPETENCY_DIMENSIONS,
   type CompetencyDimension,
 } from './competency-model';
@@ -601,19 +605,19 @@ export async function rebuildStudentEvidenceFeatureCache(
   const [executionRows, deviationRows, interventionRows] = await Promise.all([
     db.learningPathExecution?.findMany({
       select: { userId: true },
-      where: CONTROL_CORRECTION_PATH_EVIDENCE_WHERE,
+      where: REGISTERED_LEARNING_PATH_EVIDENCE_WHERE,
       distinct: ['userId'],
       orderBy: { userId: 'asc' },
     }) ?? Promise.resolve([]),
     db.learningPathDeviation?.findMany({
       select: { userId: true },
-      where: CONTROL_CORRECTION_PATH_EVIDENCE_WHERE,
+      where: REGISTERED_LEARNING_PATH_EVIDENCE_WHERE,
       distinct: ['userId'],
       orderBy: { userId: 'asc' },
     }) ?? Promise.resolve([]),
     db.learningPathIntervention?.findMany({
       select: { userId: true },
-      where: CONTROL_CORRECTION_PATH_EVIDENCE_WHERE,
+      where: REGISTERED_LEARNING_PATH_EVIDENCE_WHERE,
       distinct: ['userId'],
       orderBy: { userId: 'asc' },
     }) ?? Promise.resolve([]),
@@ -801,36 +805,36 @@ async function loadStudentPathEvidence(
   const orderBy = [{ createdAt: 'asc' }, { id: 'asc' }];
   const [executions, deviations, interventions] = await Promise.all([
     db.learningPathExecution?.findMany({
-      where: { userId, ...CONTROL_CORRECTION_PATH_EVIDENCE_WHERE },
+      where: { userId, ...REGISTERED_LEARNING_PATH_EVIDENCE_WHERE },
       orderBy,
       select: CONTROL_CORRECTION_PATH_EXECUTION_SELECT,
     }) ?? Promise.resolve([]),
     db.learningPathDeviation?.findMany({
-      where: { userId, ...CONTROL_CORRECTION_PATH_EVIDENCE_WHERE },
+      where: { userId, ...REGISTERED_LEARNING_PATH_EVIDENCE_WHERE },
       orderBy,
       select: CONTROL_CORRECTION_PATH_DEVIATION_SELECT,
     }) ?? Promise.resolve([]),
     db.learningPathIntervention?.findMany({
-      where: { userId, ...CONTROL_CORRECTION_PATH_EVIDENCE_WHERE },
+      where: { userId, ...REGISTERED_LEARNING_PATH_EVIDENCE_WHERE },
       orderBy,
       select: CONTROL_CORRECTION_PATH_INTERVENTION_SELECT,
     }) ?? Promise.resolve([]),
   ]);
 
   return {
-    executions: (executions as Array<Record<string, any>>).filter(isControlCorrectionPathEvidenceRow),
-    deviations: (deviations as Array<Record<string, any>>).filter(isControlCorrectionPathEvidenceRow),
-    interventions: (interventions as Array<Record<string, any>>).filter(isControlCorrectionPathEvidenceRow),
+    executions: (executions as Array<Record<string, any>>).filter(isRegisteredPathEvidenceRow),
+    deviations: (deviations as Array<Record<string, any>>).filter(isRegisteredPathEvidenceRow),
+    interventions: (interventions as Array<Record<string, any>>).filter(isRegisteredPathEvidenceRow),
   };
 }
 
-function isControlCorrectionPathEvidenceRow(row: Record<string, any>): boolean {
+function isRegisteredPathEvidenceRow(row: Record<string, any>): boolean {
   const path = isObject(row.path) ? row.path : {};
-  return path.goalId === 'control-correction';
+  return typeof path.goalId === 'string' && isRegisteredAdaptiveLearningPathGoal(path.goalId);
 }
 
-const CONTROL_CORRECTION_PATH_EVIDENCE_WHERE = {
-  path: { goalId: 'control-correction' },
+const REGISTERED_LEARNING_PATH_EVIDENCE_WHERE = {
+  path: { goalId: { in: Object.keys(ADAPTIVE_LEARNING_GOAL_DEFINITIONS) } },
 } as const;
 
 const CONTROL_CORRECTION_PATH_EXECUTION_SELECT = {

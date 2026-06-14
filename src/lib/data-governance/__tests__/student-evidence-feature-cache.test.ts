@@ -856,7 +856,14 @@ describe('student evidence feature cache service', () => {
       })
     );
     expect(db.learningPathExecution.findMany).toHaveBeenCalledWith(expect.objectContaining({
-      where: { userId: 'student-1', path: { goalId: 'control-correction' } },
+      where: {
+        userId: 'student-1',
+        path: {
+          goalId: {
+            in: expect.arrayContaining(['control-correction', 'frequency-response-foundations']),
+          },
+        },
+      },
       select: expect.not.objectContaining({
         evidenceRefs: true,
         liftMetadata: true,
@@ -964,6 +971,62 @@ describe('student evidence feature cache service', () => {
         evidenceCount: 1,
       }),
       lastSourceFactAt: null,
+    });
+  });
+
+  it('includes registered non-control path executions in feature cache refresh', async () => {
+    const db = {
+      learningFact: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      learningPathExecution: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'exec-bode-quiz',
+            pathId: 'path-frequency',
+            userId: 'student-frequency',
+            nodeId: 'registry:bode-quiz',
+            resourceType: 'quiz',
+            status: 'completed',
+            completedAt: new Date('2026-06-04T10:20:00.000Z'),
+            idempotencyKey: 'exec-bode-quiz',
+            createdAt: new Date('2026-06-04T10:20:01.000Z'),
+            path: { goalId: 'frequency-response-foundations', terminalValidation: { nodeId: null } },
+          },
+        ]),
+      },
+      learningPathDeviation: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      learningPathIntervention: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      studentCompetencySnapshot: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+      studentProfileSummary: {
+        findUnique: vi.fn().mockResolvedValue(null),
+      },
+      studentEvidenceFeatureCache: {
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+
+    const entry = await refreshStudentEvidenceFeatureCache(db, 'student-frequency', {
+      now: new Date('2026-06-04T11:00:00.000Z'),
+    });
+
+    expect((entry.features as any).pathExecution.allTime).toMatchObject({
+      evidenceCount: 1,
+      completionCount: 1,
+      sourceReferences: [
+        expect.objectContaining({
+          sourceType: 'LearningPathExecution',
+          sourceId: 'exec-bode-quiz',
+          pathId: 'path-frequency',
+          nodeId: 'registry:bode-quiz',
+        }),
+      ],
     });
   });
 
@@ -1205,7 +1268,13 @@ describe('student evidence feature cache service', () => {
 
     expect(result.processedStudents).toBe(4);
     expect(db.learningPathExecution.findMany).toHaveBeenNthCalledWith(1, expect.objectContaining({
-      where: { path: { goalId: 'control-correction' } },
+      where: {
+        path: {
+          goalId: {
+            in: expect.arrayContaining(['control-correction', 'frequency-response-foundations']),
+          },
+        },
+      },
       select: { userId: true },
     }));
     expect(db.studentEvidenceFeatureCache.upsert.mock.calls.map(([args]) => args.where.userId)).toEqual([

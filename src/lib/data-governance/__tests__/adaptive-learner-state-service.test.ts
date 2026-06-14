@@ -501,6 +501,7 @@ describe('adaptive learner state service', () => {
             score: null,
             timeSpent: 120,
             contextJson: {
+              goalId: 'frequency-response-foundations',
               preferenceEvidence: {
                 action: 'selection',
                 resourceMix: {
@@ -526,6 +527,65 @@ describe('adaptive learner state service', () => {
                 helpful: true,
                 resourceMix: {
                   media: 1,
+                },
+              },
+            },
+          },
+          {
+            id: 'fact-generic-path-choice',
+            factType: 'learning_path.selection_recorded',
+            moduleId: 'frequency-response-foundations-path-advisor',
+            lessonId: null,
+            startedAt: new Date('2026-05-18T00:05:30.000Z'),
+            finishedAt: new Date('2026-05-18T00:06:00.000Z'),
+            outcome: 'success',
+            score: null,
+            timeSpent: 30,
+            contextJson: {
+              goalId: 'frequency-response-foundations',
+              preferenceEvidence: {
+                action: 'selection',
+                resourceMix: {
+                  knowledge_card: 2,
+                },
+              },
+            },
+          },
+          {
+            id: 'fact-unregistered-generic-path-choice',
+            factType: 'learning_path.selection_recorded',
+            moduleId: 'unregistered-path-advisor',
+            lessonId: null,
+            startedAt: new Date('2026-05-18T00:06:15.000Z'),
+            finishedAt: new Date('2026-05-18T00:06:30.000Z'),
+            outcome: 'success',
+            score: null,
+            timeSpent: 15,
+            contextJson: {
+              goalId: 'unregistered-goal',
+              preferenceEvidence: {
+                action: 'selection',
+                resourceMix: {
+                  handout: 9,
+                },
+              },
+            },
+          },
+          {
+            id: 'fact-missing-goal-generic-path-choice',
+            factType: 'learning_path.selection_recorded',
+            moduleId: 'missing-goal-path-advisor',
+            lessonId: null,
+            startedAt: new Date('2026-05-18T00:06:35.000Z'),
+            finishedAt: new Date('2026-05-18T00:06:45.000Z'),
+            outcome: 'success',
+            score: null,
+            timeSpent: 10,
+            contextJson: {
+              preferenceEvidence: {
+                action: 'selection',
+                resourceMix: {
+                  quiz: 7,
                 },
               },
             },
@@ -580,12 +640,15 @@ describe('adaptive learner state service', () => {
     expect(state.resourcePreference.sourceCounts).toMatchObject({
       simulation: 3,
       arena_task: 2,
+      knowledge_card: 2,
       assessment: 1,
       media: 1,
     });
     expect(state.resourcePreference.sourceCounts).not.toHaveProperty('control_correction_path.helpfulness_recorded');
     expect(state.resourcePreference.sourceCounts).not.toHaveProperty('video');
     expect(state.resourcePreference.sourceCounts).not.toHaveProperty('worksheet');
+    expect(state.resourcePreference.sourceCounts).not.toHaveProperty('handout');
+    expect(state.resourcePreference.sourceCounts).not.toHaveProperty('quiz');
     expect(state.resourcePreference.preferredModalities.slice(0, 2)).toEqual(['simulation', 'arena_task']);
     expect(state.knowledgeMastery.tags['root-locus']).toMatchObject({
       posteriorMastery: 0.76,

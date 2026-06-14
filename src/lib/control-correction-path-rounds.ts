@@ -1,4 +1,5 @@
 import {
+  getRegisteredAdaptiveLearningPathGoal,
   serializeLearningPathPlan,
   type AdaptiveLearningPathPlan,
   type AdaptiveLearningPathPlanNode,
@@ -49,6 +50,7 @@ export interface PersistControlCorrectionPathRoundInput {
 export interface PathNodeExecutionInput {
   pathId: string;
   userId: string;
+  goalId?: string | null;
   nodeId: string;
   resourceType: string;
   status: 'started' | 'completed' | 'failed' | 'abandoned';
@@ -67,6 +69,7 @@ export interface PathNodeExecutionInput {
 export interface PathDeviationInput {
   pathId: string;
   userId: string;
+  goalId?: string | null;
   deviationType: 'skip' | 'timeout' | 'manual-jump' | 'resource-failure' | 'abandonment' | 'help-request';
   priorNodeId?: string | null;
   targetNodeId?: string | null;
@@ -80,6 +83,7 @@ export interface PathDeviationInput {
 export interface PathInterventionInput {
   pathId: string;
   userId: string;
+  goalId?: string | null;
   interventionKind: 'diagnosis' | 'hint' | 'rollback' | 'fallback-path' | 'reflection-prompt';
   citedEvidence?: unknown[];
   suggestedAction: string;
@@ -95,6 +99,7 @@ export type PathChoiceEvidenceAction = 'selection' | 'rejection' | 'switch' | 'h
 export interface PathChoiceEvidenceInput {
   pathId: string;
   userId: string;
+  goalId?: string | null;
   action: PathChoiceEvidenceAction;
   selectedStyleId?: string | null;
   selectedPolicyFamily?: string | null;
@@ -144,16 +149,29 @@ export async function persistControlCorrectionPathRound(
   input: PersistControlCorrectionPathRoundInput,
 ): Promise<any> {
   validateControlCorrectionPathPlanForPersistence(input.plan);
+  return persistLearningPathRound(db, input);
+}
+
+export async function persistLearningPathRound(
+  db: ControlCorrectionPathRoundDb,
+  input: PersistControlCorrectionPathRoundInput,
+): Promise<any> {
+  validateLearningPathPlanForPersistence(input.plan);
   const record = serializeLearningPathPlan(input.plan);
   const existing = await db.learningPath.findFirst({
     where: { id: record.id },
     select: { id: true, userId: true, goalId: true },
   });
-  if (existing && (existing.userId !== record.userId || existing.goalId !== CONTROL_CORRECTION_PATH_ROUND_GOAL_ID)) {
+  if (existing && (existing.userId !== record.userId || existing.goalId !== input.plan.goal.id)) {
     throw new ControlCorrectionPathRoundConflictError();
   }
-  const terminalValidation = resolveTerminalValidation(input.plan.mainPath);
+  const terminalValidation = resolveTerminalValidation(
+    input.plan.mainPath,
+    getRegisteredAdaptiveLearningPathGoal(input.plan.goal.id)?.checkpointPolicy.requiresTerminalValidation ?? false,
+  );
   const pathPayload = {
+    goalId: input.plan.goal.id,
+    plannerVersion: input.plan.stage,
     status: record.payload.status,
     mainPathNodeIds: input.plan.mainPath.map((node) => node.nodeId),
     planNodes: record.payload.planNodes,
@@ -162,12 +180,14 @@ export async function persistControlCorrectionPathRound(
     policyBundle: record.payload.policyBundle ?? null,
     feedbackEvents: record.payload.feedbackEvents,
     selectionHistory: buildPathSelectionHistory(record.payload.feedbackEvents),
+    activity: buildGenericPathActivity(input.plan),
     visualization: record.payload.visualization,
   };
   const explanationPayload = {
     explanations: record.payload.explanations,
     selectedReasons: record.payload.explanations.selectedReasons,
     fallbackReasons: record.payload.explanations.fallbackReasons,
+    studentFacing: record.payload.studentFacing,
   };
   const alternativePayload = record.payload.alternatives;
   const data = {
@@ -230,6 +250,106 @@ function buildPathSelectionHistory(
       };
     });
 }
+
+function buildGenericPathActivity(plan: AdaptiveLearningPathPlan): Array<Record<string, unknown>> {
+  return [
+    {
+      id: `${plan.id}:generation`,
+      type: 'generation',
+      nodeId: null,
+      createdAt: plan.executionStatus.updatedAt,
+      goalId: plan.goal.id,
+      plannerVersion: plan.stage,
+    },
+    ...plan.feedbackEvents.map((event) => ({
+      id: event.id,
+      type: event.type,
+      nodeId: event.nodeId,
+      createdAt: event.createdAt,
+    })),
+    ...plan.deviations.map((deviation) => ({
+      id: deviation.id,
+      type: 'deviation',
+      nodeId: deviation.nodeId,
+      createdAt: deviation.createdAt,
+    })),
+    ...plan.corrections.map((correction) => ({
+      id: correction.id,
+      type: 'konling-adjustment',
+      nodeIds: correction.nodeIds,
+      createdAt: plan.executionStatus.updatedAt,
+    })),
+  ];
+}
+
+export function validateLearningPathPlanForPersistence(plan: AdaptiveLearningPathPlan): void {
+  const registeredGoal = getRegisteredAdaptiveLearningPathGoal(plan.goal.id);
+  if (
+    !plan.id ||
+    plan.userId.length === 0 ||
+    !registeredGoal ||
+    plan.stage !== CONTROL_CORRECTION_PATH_ROUND_PLANNER_VERSION ||
+    !plan.id.includes(plan.userId) ||
+    !plan.id.includes(plan.goal.id) ||
+    plan.mainPath.length === 0
+  ) {
+    throw new ControlCorrectionPathRoundValidationError();
+  }
+  const seen = new Set<string>();
+  for (const node of plan.mainPath) {
+    if (
+      !node.nodeId ||
+      seen.has(node.nodeId) ||
+      !['lesson_step', 'knowledge_node', 'knowledge_card', 'video', 'audio', 'handout', 'quiz', 'simulation', 'arena_task', 'reflection', 'ai_intervention', 'project'].includes(node.type) ||
+      !registeredGoal.allowedResourceMix.includes(node.type) ||
+      node.privacyLevel !== 'student-visible' ||
+      node.teacherPolicy !== 'allowed' ||
+      typeof node.target !== 'string' ||
+      node.target.length === 0 ||
+      !isStudentVisiblePathTarget(node.target) ||
+      !Number.isFinite(node.estimatedTimeMinutes) ||
+      !Number.isFinite(node.score) ||
+      !['completed', 'current', 'next', 'blocked'].includes(node.status)
+    ) {
+      throw new ControlCorrectionPathRoundValidationError();
+    }
+    seen.add(node.nodeId);
+  }
+  if (plan.currentNodeId && !seen.has(plan.currentNodeId)) {
+    throw new ControlCorrectionPathRoundValidationError();
+  }
+}
+
+function isStudentVisiblePathTarget(target: string): boolean {
+  const normalized = target.trim();
+  if (normalized.length === 0 || normalized !== target) return false;
+  if (/^(?:[a-z][a-z\d+.-]*:)?\/\//i.test(normalized)) return false;
+  const pathname = normalized.split(/[?#]/, 1)[0] ?? normalized;
+  const segments = pathname.split('/').filter(Boolean);
+  if (segments.some((segment) => ['admin', 'api', 'teacher', '_next', 'data-center'].includes(segment))) {
+    return false;
+  }
+  if (!pathname.startsWith('/')) {
+    return pathname.startsWith('course-content/runtime/');
+  }
+  return STUDENT_VISIBLE_PATH_TARGET_PREFIXES.some((prefix) => (
+    pathname === prefix.slice(0, -1) || pathname.startsWith(prefix)
+  ));
+}
+
+const STUDENT_VISIBLE_PATH_TARGET_PREFIXES = [
+  '/adaptive-learning/',
+  '/arena/',
+  '/assessment/',
+  '/classroom/student/',
+  '/course-runtime/',
+  '/dashboard/',
+  '/interactive-learning/',
+  '/knowledge/',
+  '/playlists/',
+  '/profile/',
+  '/simulations/',
+] as const;
 
 export function validateControlCorrectionPathPlanForPersistence(plan: AdaptiveLearningPathPlan): void {
   if (
@@ -428,12 +548,14 @@ export async function recordPathChoiceEvidence(
   input: PathChoiceEvidenceInput,
 ): Promise<{ emitted: boolean; dedupeKey: string }> {
   const eventKey = input.idempotencyKey ?? input.eventId ?? `${input.action}:${new Date().toISOString()}:${Math.random().toString(36).slice(2)}`;
-  const dedupeKey = `control-correction-path:choice:${input.pathId}:${eventKey}`;
-  const eventType = `control_correction_path.${input.action}_recorded`;
+  const namespace = resolvePathEventNamespace(input.goalId);
+  const dedupeKey = `${namespace.dedupePrefix}:choice:${input.pathId}:${eventKey}`;
+  const eventType = `${namespace.eventPrefix}.${input.action}_recorded`;
   const occurredAt = new Date();
   const occurredAtIso = occurredAt.toISOString();
   const payload = {
     eventType,
+    goalId: input.goalId ?? null,
     actor: {
       userId: input.actorUserId ?? input.userId,
       role: input.actorRole ?? 'student',
@@ -441,8 +563,8 @@ export async function recordPathChoiceEvidence(
     subject: {
       userId: input.userId,
     },
-    sourceCapability: 'three-style-learning-path-loop',
-    payloadVersion: 'control-correction-path-choice-evidence.v1',
+    sourceCapability: namespace.choiceSourceCapability,
+    payloadVersion: `${namespace.payloadPrefix}-choice-evidence.v1`,
     occurredAt: occurredAtIso,
     privacyLevel: 'student-visible',
     confidence: input.action === 'helpfulness' ? 'low' : 'medium',
@@ -482,7 +604,7 @@ export async function recordPathChoiceEvidence(
       data: [{
         userId: input.userId,
         factType: eventType,
-        moduleId: 'control-correction-path-advisor',
+        moduleId: namespace.moduleId,
         sessionId: null,
         startedAt: occurredAt,
         finishedAt: occurredAt,
@@ -511,8 +633,12 @@ export async function recordPathChoiceEvidence(
       const existingHistory = Array.isArray(pathPayload.selectionHistory)
         ? pathPayload.selectionHistory
         : [];
+      const existingActivity = Array.isArray(pathPayload.activity)
+        ? pathPayload.activity
+        : [];
       const hasHistoryEntry = existingHistory.some((entry) => toRecord(entry).id === dedupeKey);
       if (!hasHistoryEntry) {
+        const historyEntry = buildPathChoiceSelectionHistoryEntry(input, payload, dedupeKey);
         writes.push(db.learningPath.update({
           where: { id: input.pathId },
           data: {
@@ -520,7 +646,15 @@ export async function recordPathChoiceEvidence(
               ...pathPayload,
               selectionHistory: [
                 ...existingHistory,
-                buildPathChoiceSelectionHistoryEntry(input, payload, dedupeKey),
+                historyEntry,
+              ],
+              activity: [
+                ...existingActivity,
+                {
+                  ...historyEntry,
+                  goalId: input.goalId ?? null,
+                  type: `choice:${input.action}`,
+                },
               ],
             },
           },
@@ -622,7 +756,7 @@ export function toControlCorrectionPathRoundView(path: any) {
   };
 }
 
-function resolveTerminalValidation(nodes: AdaptiveLearningPathPlanNode[]) {
+function resolveTerminalValidation(nodes: AdaptiveLearningPathPlanNode[], required = true) {
   let terminal: AdaptiveLearningPathPlanNode | undefined;
   for (let index = nodes.length - 1; index >= 0; index -= 1) {
     const node = nodes[index];
@@ -644,7 +778,7 @@ function resolveTerminalValidation(nodes: AdaptiveLearningPathPlanNode[]) {
     : {
         nodeId: null,
         resourceType: null,
-        state: 'missing',
+        state: required ? 'missing' : 'not-required',
       };
 }
 
@@ -989,20 +1123,22 @@ async function emitPathEvidenceEvent(
   db: ControlCorrectionPathRoundDb,
   kind: PathEvidenceEventKind,
   row: any,
-  input: { pathId: string; userId: string; idempotencyKey?: string | null; actorUserId?: string | null; actorRole?: string | null },
+  input: { pathId: string; userId: string; goalId?: string | null; idempotencyKey?: string | null; actorUserId?: string | null; actorRole?: string | null },
 ): Promise<void> {
   if (!db.evidenceOutbox?.createMany) return;
   const rowId = typeof row?.id === 'string' ? row.id : input.idempotencyKey ?? input.pathId;
-  const eventType = `control_correction_path.${kind}_recorded`;
+  const namespace = resolvePathEventNamespace(input.goalId);
+  const eventType = `${namespace.eventPrefix}.${kind}_recorded`;
   const sourceType = kind === 'execution'
     ? 'LearningPathExecution'
     : kind === 'deviation'
       ? 'LearningPathDeviation'
       : 'LearningPathIntervention';
-  const dedupeKey = `control-correction-path:${kind}:${input.pathId}:${input.idempotencyKey ?? rowId}`;
+  const dedupeKey = `${namespace.dedupePrefix}:${kind}:${input.pathId}:${input.idempotencyKey ?? rowId}`;
   const occurredAt = resolvePathEvidenceOccurredAt(kind, row);
   const payload = {
     eventType,
+    goalId: input.goalId ?? null,
     actor: {
       userId: input.actorUserId ?? input.userId,
       role: input.actorRole ?? 'student',
@@ -1010,8 +1146,8 @@ async function emitPathEvidenceEvent(
     subject: {
       userId: input.userId,
     },
-    sourceCapability: 'connect-path-execution-to-evidence-cache',
-    payloadVersion: 'control-correction-path-evidence.v1',
+    sourceCapability: namespace.evidenceSourceCapability,
+    payloadVersion: `${namespace.payloadPrefix}-evidence.v1`,
     occurredAt,
     privacyLevel: kind === 'intervention' ? 'teacher-scoped' : 'student-visible',
     confidence: kind === 'deviation' ? readPathEvidenceConfidence(row?.evidenceConfidence) : 'medium',
@@ -1055,6 +1191,28 @@ function readPathEvidenceConfidence(value: unknown): 'low' | 'medium' | 'high' |
   return value === 'low' || value === 'medium' || value === 'high' || value === 'unknown'
     ? value
     : 'unknown';
+}
+
+function resolvePathEventNamespace(goalId?: string | null) {
+  if (!goalId || goalId === CONTROL_CORRECTION_PATH_ROUND_GOAL_ID) {
+    return {
+      eventPrefix: 'control_correction_path',
+      dedupePrefix: 'control-correction-path',
+      payloadPrefix: 'control-correction-path',
+      moduleId: 'control-correction-path-advisor',
+      choiceSourceCapability: 'three-style-learning-path-loop',
+      evidenceSourceCapability: 'connect-path-execution-to-evidence-cache',
+    };
+  }
+  const safeGoalId = goalId.replace(/[^a-zA-Z0-9_-]/g, '-');
+  return {
+    eventPrefix: 'learning_path',
+    dedupePrefix: 'learning-path',
+    payloadPrefix: 'learning-path',
+    moduleId: `${safeGoalId}-path-advisor`,
+    choiceSourceCapability: 'generic-learning-path-loop',
+    evidenceSourceCapability: 'generic-path-execution-evidence-cache',
+  };
 }
 
 function sanitizeResourceMix(value: Record<string, number> | undefined): Record<string, number> | undefined {

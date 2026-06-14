@@ -5,8 +5,10 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 import {
   ControlCorrectionPathRoundConflictError,
   ControlCorrectionPathRoundValidationError,
+  persistLearningPathRound,
   persistControlCorrectionPathRound,
 } from '@/lib/control-correction-path-rounds';
+import { isRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
 import {
   assertPathRoundIdAvailable,
   ensureControlCorrectionPathRoutesEnabled,
@@ -26,8 +28,11 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const plan = body.plan;
-    if (!plan || typeof plan !== 'object' || plan.goal?.id !== 'control-correction') {
-      return NextResponse.json({ error: '仅支持 control-correction 学习路径计划' }, { status: 400 });
+    if (!plan || typeof plan !== 'object' || typeof plan.goal?.id !== 'string') {
+      return NextResponse.json({ error: '学习路径计划缺少已注册学习目标' }, { status: 400 });
+    }
+    if (!isRegisteredAdaptiveLearningPathGoal(plan.goal.id)) {
+      return NextResponse.json({ error: '学习路径目标未注册' }, { status: 400 });
     }
     if (typeof plan.userId !== 'string' || plan.userId.length === 0) {
       return NextResponse.json({ error: '学习路径计划缺少学生用户' }, { status: 400 });
@@ -46,10 +51,14 @@ export async function POST(request: Request) {
     const idConflict = await assertPathRoundIdAvailable({
       pathId: plan.id,
       studentUserId: plan.userId,
+      goalId: plan.goal.id,
     });
     if (idConflict) return idConflict;
 
-    const path = await persistControlCorrectionPathRound(prisma as any, {
+    const persist = plan.goal.id === 'control-correction'
+      ? persistControlCorrectionPathRound
+      : persistLearningPathRound;
+    const path = await persist(prisma as any, {
       plan,
       learnerStateRef: body.learnerStateRef ?? null,
       inputSnapshot: body.inputSnapshot ?? null,

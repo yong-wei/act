@@ -64,6 +64,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const choice = await recordPathChoiceEvidence(prisma as any, {
       pathId: params.id,
       userId: path.userId,
+      goalId: path.goalId ?? null,
       action: body.action as PathChoiceEvidenceAction,
       selectedStyleId,
       selectedPolicyFamily: selectedOption?.policyFamily ?? null,

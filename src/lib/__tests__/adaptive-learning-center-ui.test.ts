@@ -584,6 +584,7 @@ describe('adaptive learning center UI contracts', () => {
               expectedTargetLift: 1.2,
               terminalValidationNodeIds: ['arena-task:terminal'],
               terminalValidationStrategy: { nodeIds: ['arena-task:terminal'], summary: 'official Arena validation' },
+              checkpointNodeIds: ['arena-task:terminal'],
               limitations: ['some-targets-have-no-direct-evidence'],
             },
           ],
@@ -631,21 +632,22 @@ describe('adaptive learning center UI contracts', () => {
     expect(currentPath?.payload).toMatchObject({
       pathOptions: [
         {
-          styleId: 'foundation-remediation',
-          policyFamily: 'foundation-remediation',
-          evidenceBasis: ['adaptive-learner-state', 'LearningFact'],
+          optionId: 'path-option-1',
+          label: '基础补救',
+          evidenceBasis: ['学习证据', '练习记录'],
           terminalValidationNodeIds: ['arena-task:terminal'],
+          limitations: ['部分目标还缺少直接证据'],
         },
       ],
       selectionHistory: [
         {
           type: 'selection',
-          selectedStyleId: 'foundation-remediation',
-          rejectedStyleIds: ['arena-simulation-sprint'],
+          selectedOptionLabel: '基础补救',
+          rejectedOptionLabels: ['未采用路径'],
         },
         {
           type: 'helpfulness',
-          selectedStyleId: 'foundation-remediation',
+          selectedOptionLabel: '基础补救',
           helpful: true,
         },
       ],
@@ -655,6 +657,12 @@ describe('adaptive learning center UI contracts', () => {
     expect(mastery?.payload).toEqual(learnerState().knowledgeMastery);
     expect(JSON.stringify(mastery?.payload)).not.toContain('selectionHistory');
     expect(JSON.stringify(mastery?.payload)).not.toContain('foundation-remediation');
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('rules-plus-graph-search');
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('stage-1-rules-graph');
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('foundation-remediation');
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('arena-simulation-sprint');
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('some-targets-have-no-direct-evidence');
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('terminal-validation-');
   });
 
   it('does not expose cosmetic path options when the policy bundle is low-resource fallback', () => {
@@ -682,6 +690,7 @@ describe('adaptive learning center UI contracts', () => {
               expectedTargetLift: 0.8,
               terminalValidationNodeIds: [],
               terminalValidationStrategy: { nodeIds: [], summary: 'terminal validation unavailable' },
+              checkpointNodeIds: ['node-1'],
               limitations: ['terminal-validation-missing'],
             },
           ],
@@ -700,6 +709,18 @@ describe('adaptive learning center UI contracts', () => {
           },
           fallbackReasons: ['path-diversity-insufficient', 'terminal-validation-diversity-insufficient'],
         },
+        feedbackEvents: [
+          {
+            id: 'feedback-switch-fallback',
+            type: 'switch',
+            nodeId: null,
+            createdAt: '2026-05-28T06:08:00.000Z',
+            context: {
+              selectedStyleId: 'foundation-remediation',
+              rejectedStyleIds: ['arena-simulation-sprint'],
+            },
+          },
+        ],
       }),
     });
 
@@ -708,9 +729,20 @@ describe('adaptive learning center UI contracts', () => {
       pathOptions: [],
       pathOptionFallback: {
         status: 'low-resource-fallback',
-        fallbackReasons: ['path-diversity-insufficient', 'terminal-validation-diversity-insufficient'],
+        fallbackReasons: ['路径差异不足', '终点检验差异不足'],
+        diversity: {
+          resourceOverlap: 1,
+          modalityDistance: 0,
+          effortDifference: 0,
+        },
       },
     });
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('rules-plus-graph-search');
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('foundation-remediation');
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('arena-simulation-sprint');
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('terminal-validation-diversity-insufficient');
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('terminal-validation-missing');
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('terminal-validation-');
   });
 
   it('launches control-correction path nodes with path, node, goal, and route intent context', () => {
@@ -984,7 +1016,7 @@ describe('adaptive learning center UI contracts', () => {
     const currentPath = view.panels.find((panel) => panel.region === 'current-path');
 
     expect(currentPath?.status.categories.sourceCoverage).toBe('missing');
-    expect(currentPath?.status.fallbackReason).toBe('learner-state-missing');
+    expect(currentPath?.status.fallbackReason).toBe('学习证据待补充');
   });
 
   it('surfaces low-confidence, stale, privacy, fallback, and partial-coverage limits for adaptive claims', () => {

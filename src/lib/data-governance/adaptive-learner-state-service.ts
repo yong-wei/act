@@ -12,6 +12,7 @@ import {
   type StudentEvidenceStatusMarker,
   type StudentEvidenceWindow,
 } from './student-evidence-feature-cache';
+import { isRegisteredAdaptiveLearningPathGoal } from '../adaptive-learning-path-planner';
 
 export const ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const ADAPTIVE_LEARNER_STATE_FEATURE_FLAG = 'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED';
@@ -1023,7 +1024,7 @@ function buildResourcePreference(facts: Array<Record<string, unknown>>): Adaptiv
   for (const fact of facts) {
     const factType = readString(fact.factType) ?? '';
     const modality = factTypeToModality(factType);
-    if (modality && modality !== 'path_choice' && !isControlCorrectionPathChoiceFactType(factType)) {
+    if (modality && modality !== 'path_choice' && !isPathChoiceFactType(factType)) {
       sourceCounts[modality] = (sourceCounts[modality] ?? 0) + 1;
     }
     for (const [pathChoiceModality, count] of Object.entries(readPathChoiceResourceMix(fact))) {
@@ -1042,10 +1043,16 @@ function buildResourcePreference(facts: Array<Record<string, unknown>>): Adaptiv
 
 function readPathChoiceResourceMix(fact: Record<string, unknown>): Record<string, number> {
   const factType = readString(fact.factType) ?? '';
-  if (factType !== 'path_choice' && !isControlCorrectionPathChoiceFactType(factType)) {
+  if (factType !== 'path_choice' && !isPathChoiceFactType(factType)) {
     return {};
   }
   const context = getObject(fact.contextJson);
+  if (factType.startsWith('learning_path.')) {
+    const goalId = readString(context.goalId);
+    if (!goalId || !isRegisteredAdaptiveLearningPathGoal(goalId)) {
+      return {};
+    }
+  }
   const preferenceEvidence = getObject(context.preferenceEvidence);
   const action = readString(preferenceEvidence.action ?? context.action);
   const helpful = typeof preferenceEvidence.helpful === 'boolean'
@@ -1060,8 +1067,11 @@ function readPathChoiceResourceMix(fact: Record<string, unknown>): Record<string
   ))) as Record<string, number>;
 }
 
-function isControlCorrectionPathChoiceFactType(factType: string): boolean {
-  return factType.startsWith('control_correction_path.') && factType.endsWith('_recorded');
+function isPathChoiceFactType(factType: string): boolean {
+  return (
+    factType.startsWith('control_correction_path.') ||
+    factType.startsWith('learning_path.')
+  ) && factType.endsWith('_recorded');
 }
 
 function buildMediaAbsorption(facts: Array<Record<string, unknown>>): AdaptiveLearnerState['mediaAbsorption'] {
