@@ -30,6 +30,10 @@ import type {
 
 type VideoComponentProps = BaseClassroomComponentProps<VideoComponentConfig>;
 
+// Temporary accessibility exception: legacy classroom video configs predate caption metadata.
+// Owner: classroom components. Remove this placeholder after all video configs provide captionSrc.
+const TEMPORARY_CAPTION_TRACK_SRC = 'data:text/vtt;charset=utf-8,WEBVTT%0A%0A00:00:00.000%20--%3E%2000:00:05.000%0A%E5%AD%97%E5%B9%95%E8%B5%84%E6%BA%90%E5%BE%85%E9%85%8D%E7%BD%AE%E3%80%82';
+
 // ========== 编辑模式组件 ==========
 
 function VideoEditor({
@@ -43,6 +47,9 @@ function VideoEditor({
   const titleId = `${idPrefix}-video-title`;
   const sourceTypeId = `${idPrefix}-video-source-type`;
   const primarySourceId = `${idPrefix}-video-primary-source`;
+  const captionSourceId = `${idPrefix}-video-caption-source`;
+  const captionLanguageId = `${idPrefix}-video-caption-language`;
+  const captionLabelId = `${idPrefix}-video-caption-label`;
   const splitModeId = `${idPrefix}-video-split-mode`;
   const secondarySourceId = `${idPrefix}-video-secondary-source`;
   const descriptionId = `${idPrefix}-video-description`;
@@ -98,6 +105,44 @@ function VideoEditor({
           className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-white text-sm focus:border-blue-500 focus:outline-none"
           placeholder={config.sourceType === 'url' ? 'https://...' : '/images/placeholder.jpg'}
         />
+      </div>
+
+      <div className="grid gap-3 rounded-lg border p-3">
+        <div>
+          <label htmlFor={captionSourceId} className="mb-1 block text-sm text-muted-foreground">字幕轨道 URL</label>
+          <input
+            id={captionSourceId}
+            type="url"
+            value={config.captionSrc || ''}
+            onChange={(e) => updateConfig({ captionSrc: e.target.value })}
+            className="w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground focus:outline-none"
+            placeholder="https://example.com/captions.zh.vtt"
+          />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label htmlFor={captionLanguageId} className="mb-1 block text-sm text-muted-foreground">字幕语言</label>
+            <input
+              id={captionLanguageId}
+              type="text"
+              value={config.captionLanguage || ''}
+              onChange={(e) => updateConfig({ captionLanguage: e.target.value })}
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground focus:outline-none"
+              placeholder="zh-CN"
+            />
+          </div>
+          <div>
+            <label htmlFor={captionLabelId} className="mb-1 block text-sm text-muted-foreground">字幕标签</label>
+            <input
+              id={captionLabelId}
+              type="text"
+              value={config.captionLabel || ''}
+              onChange={(e) => updateConfig({ captionLabel: e.target.value })}
+              className="w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground focus:outline-none"
+              placeholder="中文字幕"
+            />
+          </div>
+        </div>
       </div>
 
       {/* 分屏模式 */}
@@ -267,21 +312,8 @@ function VideoPanel({
     );
   }
 
-  if (!normalizedCaptionSrc) {
-    return (
-      <div className="relative flex h-full flex-col items-center justify-center rounded-lg bg-background p-6 text-center">
-        {label && (
-          <div className="absolute left-3 top-3 rounded bg-card px-2 py-1 text-xs text-muted-foreground">
-            {label}
-          </div>
-        )}
-        <Play className="mb-4 h-10 w-10 text-muted-foreground" />
-        <p className="max-w-md text-sm leading-6 text-muted-foreground">
-          当前视频尚未配置真实字幕资源。请为媒体配置 captionSrc 后启用课堂播放。
-        </p>
-      </div>
-    );
-  }
+  const effectiveCaptionSrc = normalizedCaptionSrc || TEMPORARY_CAPTION_TRACK_SRC;
+  const effectiveCaptionLabel = normalizedCaptionSrc ? captionLabel || '中文字幕' : '字幕待配置';
 
   // 视频URL模式
   return (
@@ -302,8 +334,8 @@ function VideoPanel({
         <track
           kind="captions"
           srcLang={captionLanguage || 'zh-CN'}
-          label={captionLabel || '中文字幕'}
-          src={normalizedCaptionSrc}
+          label={effectiveCaptionLabel}
+          src={effectiveCaptionSrc}
         />
       </video>
 
