@@ -1,8 +1,11 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
 import { renderInteractiveManifestStep } from '@/features/interactive/shared/manifest-runtime/layout-renderer';
+import { INTERACTIVE_MODULE_VISUAL_STANDARDS } from '@/features/interactive/shared/manifest-runtime/module-visual-standards';
 import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 
 describe('interactive commercial module chrome', () => {
@@ -188,5 +191,19 @@ describe('interactive commercial module chrome', () => {
 
     expect(html).not.toContain('data-commercial-module-chrome="card-sort"');
     expect(html).not.toContain('data-manifest-activity-kind="card-sort"');
+  });
+
+  it('defines shared CSS for every emitted commercial module chrome class', () => {
+    const globalsCss = readFileSync(join(process.cwd(), 'src/app/globals.css'), 'utf8');
+    const emittedClasses = new Set([
+      'commercial-module-chrome',
+      'commercial-module-chrome--stable-panel',
+      'commercial-module-chrome--projection-readable',
+      ...Object.values(INTERACTIVE_MODULE_VISUAL_STANDARDS).map((standard) => standard.chromeClassName),
+    ]);
+
+    for (const className of emittedClasses) {
+      expect(globalsCss).toContain(`.${className}`);
+    }
   });
 });
