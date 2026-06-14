@@ -27,6 +27,7 @@ import {
   type KnowledgeGraphLabelMode,
 } from './label-policy';
 import {
+  markKnowledgeGraphAutomaticNodeAnchors,
   syncKnowledgeGraphMutableNodePositions,
   type KnowledgeGraphLayoutState,
 } from './layout-state';
@@ -211,6 +212,8 @@ export function KnowledgeGraphCanvas({
       source: l.sourceId,
       target: l.targetId,
     }));
+
+    markKnowledgeGraphAutomaticNodeAnchors(clonedNodes);
 
     return {
       nodes: clonedNodes,

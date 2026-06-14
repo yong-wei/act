@@ -19,6 +19,7 @@ import {
 } from './label-policy';
 import { getRelationFocusState } from './filter-utils';
 import {
+  markKnowledgeGraphAutomaticNodeAnchors,
   syncKnowledgeGraphMutableNodePositions,
   type KnowledgeGraphLayoutState,
 } from './layout-state';
@@ -309,6 +310,7 @@ export function KnowledgeGraph2D({
     // 应用辐射布局。拖拽后的 pinned 坐标通过下方 effect 同步到现有图节点，
     // 避免 layoutState 变化时重建 graphData 并重新加热力导向布局。
     const layoutNodes = applyRadialLayout(clonedNodes, links, undefined, layoutRadius);
+    markKnowledgeGraphAutomaticNodeAnchors(layoutNodes);
 
     return {
       nodes: layoutNodes,

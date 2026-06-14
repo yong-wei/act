@@ -19,6 +19,13 @@ export interface KnowledgeGraphNodePositionInput {
   z?: number;
 }
 
+interface KnowledgeGraphAutomaticAnchor {
+  id: string;
+  x: number;
+  y: number;
+  z?: number;
+}
+
 interface KnowledgeGraphMutablePositionNode extends KnowledgeNodeData {
   x?: number;
   y?: number;
@@ -27,12 +34,14 @@ interface KnowledgeGraphMutablePositionNode extends KnowledgeNodeData {
   fy?: number;
   fz?: number;
   __knowledgeUserPinned?: true;
+  __knowledgeAutomaticAnchor?: KnowledgeGraphAutomaticAnchor;
 }
 
 const EMPTY_LAYOUT_STATE: KnowledgeGraphLayoutState = {
   version: 0,
   positionsByNodeId: {},
 };
+const CHAPTER_NODE_ID_PREFIX = 'chapter-node:';
 
 function readCoordinate(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
@@ -136,6 +145,25 @@ export function applyKnowledgeGraphStoredPositions<T extends KnowledgeNodeData>(
   });
 }
 
+export function markKnowledgeGraphAutomaticNodeAnchors<T extends KnowledgeGraphMutablePositionNode>(
+  nodes: T[] | undefined
+): void {
+  if (!nodes) return;
+  nodes.forEach((node) => {
+    if (!node.id.startsWith(CHAPTER_NODE_ID_PREFIX) || node.__knowledgeAutomaticAnchor) return;
+    const x = readCoordinate(node.fx ?? node.x ?? node.positionX);
+    const y = readCoordinate(node.fy ?? node.y ?? node.positionY);
+    if (x === null || y === null) return;
+    const z = readCoordinate(node.fz ?? node.z ?? node.positionZ);
+    node.__knowledgeAutomaticAnchor = {
+      id: node.id,
+      x,
+      y,
+      ...(z === null ? {} : { z }),
+    };
+  });
+}
+
 export function syncKnowledgeGraphMutableNodePositions<T extends KnowledgeGraphMutablePositionNode>(
   nodes: T[] | undefined,
   state: KnowledgeGraphLayoutState
@@ -145,9 +173,27 @@ export function syncKnowledgeGraphMutableNodePositions<T extends KnowledgeGraphM
     const stored = state.positionsByNodeId[node.id];
     if (!stored) {
       if (node.__knowledgeUserPinned) {
-        delete node.fx;
-        delete node.fy;
-        delete node.fz;
+        const automaticAnchor = node.__knowledgeAutomaticAnchor;
+        if (automaticAnchor) {
+          node.x = automaticAnchor.x;
+          node.y = automaticAnchor.y;
+          node.positionX = automaticAnchor.x;
+          node.positionY = automaticAnchor.y;
+          node.fx = automaticAnchor.x;
+          node.fy = automaticAnchor.y;
+          if (automaticAnchor.z === undefined) {
+            delete node.z;
+            delete node.fz;
+          } else {
+            node.z = automaticAnchor.z;
+            node.positionZ = automaticAnchor.z;
+            node.fz = automaticAnchor.z;
+          }
+        } else {
+          delete node.fx;
+          delete node.fy;
+          delete node.fz;
+        }
         delete node.__knowledgeUserPinned;
       }
       return;

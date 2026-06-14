@@ -7,6 +7,7 @@ import {
   applyKnowledgeGraphStoredPositions,
   clearKnowledgeGraphLayoutPins,
   getKnowledgeGraphRuntimeNodePosition,
+  markKnowledgeGraphAutomaticNodeAnchors,
   removeKnowledgeGraphNodePin,
   storeKnowledgeGraphNodePosition,
   syncKnowledgeGraphMutableNodePositions,
@@ -149,6 +150,45 @@ describe('knowledge graph interaction state stability', () => {
       positionZ: 0,
       __knowledgeUserPinned: true,
     });
+  });
+
+  it('restores chapter automatic anchors after clearing a user pin', () => {
+    const mutableNodes = [
+      {
+        ...graphNode('chapter-node:基本概念', -200, -300),
+        x: -200,
+        y: -300,
+        z: 0,
+        fx: -200,
+        fy: -300,
+        fz: 0,
+        positionZ: 0,
+      },
+    ];
+    markKnowledgeGraphAutomaticNodeAnchors(mutableNodes);
+
+    const userPinned = storeKnowledgeGraphNodePosition(undefined, {
+      id: 'chapter-node:基本概念',
+      x: 40,
+      y: 50,
+      z: 12,
+    });
+    syncKnowledgeGraphMutableNodePositions(mutableNodes, userPinned);
+    syncKnowledgeGraphMutableNodePositions(mutableNodes, clearKnowledgeGraphLayoutPins(userPinned));
+
+    expect(mutableNodes[0]).toMatchObject({
+      id: 'chapter-node:基本概念',
+      x: -200,
+      y: -300,
+      z: 0,
+      fx: -200,
+      fy: -300,
+      fz: 0,
+      positionX: -200,
+      positionY: -300,
+      positionZ: 0,
+    });
+    expect(mutableNodes[0]).not.toHaveProperty('__knowledgeUserPinned');
   });
 
   it('only releases coordinates that were created by a user pin', () => {
