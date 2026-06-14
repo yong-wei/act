@@ -454,26 +454,6 @@
     color: var(--color-slate-600);
   }
 
-  .dark .simulation-light-panel :is(.border-slate-200, .border-slate-200\/90, .border-slate-300, .border-slate-300\/90) {
-    border-color: rgb(148 163 184 / 0.32);
-  }
-
-  .dark .simulation-light-panel :is(.bg-white, .bg-white\/90, .bg-white\/95, .bg-slate-50, .bg-slate-50\/90, .bg-slate-50\/92, .bg-slate-100) {
-    background-color: rgb(15 23 42 / 0.82);
-  }
-
-  .dark .simulation-light-panel :is(.bg-slate-200, .bg-slate-300) {
-    background-color: rgb(51 65 85 / 0.76);
-  }
-
-  .dark .simulation-light-panel :is(.text-slate-900, .text-slate-800, .text-slate-700, .text-black) {
-    color: rgb(248 250 252 / 0.94);
-  }
-
-  .dark .simulation-light-panel :is(.text-slate-600, .text-slate-500, .text-slate-400) {
-    color: rgb(203 213 225 / 0.82);
-  }
-
   .text-subtle {
     @apply text-muted-foreground;
   }
@@ -1280,6 +1260,26 @@
 }
 
 @layer utilities {
+  .dark .simulation-light-panel :is(.border-slate-200, .border-slate-200\/90, .border-slate-300, .border-slate-300\/90) {
+    border-color: rgb(148 163 184 / 0.32) !important;
+  }
+
+  .dark .simulation-light-panel :is(.bg-white, .bg-white\/90, .bg-white\/95, .bg-slate-50, .bg-slate-50\/90, .bg-slate-50\/92, .bg-slate-100) {
+    background-color: rgb(15 23 42 / 0.82) !important;
+  }
+
+  .dark .simulation-light-panel :is(.bg-slate-200, .bg-slate-300) {
+    background-color: rgb(51 65 85 / 0.76) !important;
+  }
+
+  .dark .simulation-light-panel :is(.text-slate-900, .text-slate-800, .text-slate-700, .text-black) {
+    color: rgb(248 250 252 / 0.94) !important;
+  }
+
+  .dark .simulation-light-panel :is(.text-slate-600, .text-slate-500, .text-slate-400) {
+    color: rgb(203 213 225 / 0.82) !important;
+  }
+
   .premium-lesson-shell .bg-white,
   .premium-lesson-shell .bg-white\/80,
   .premium-lesson-shell .bg-white\/90,
