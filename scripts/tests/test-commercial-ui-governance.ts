@@ -1568,7 +1568,7 @@ const missingChangedAppPageLedgerViolations: CommercialUiGovernanceViolation[] =
   .filter(hasNonAccessibilityOnlyDiff)
   .map(appPageRouteHref)
   .filter((href): href is string => Boolean(href))
-  .filter((href) => !currentPrimaryRouteHrefs.has(href))
+  .filter((href) => !currentPrimaryRouteHrefs.has(href) && !resolvePlatformRouteInventory(href))
   .map((href) => ({
     path: href,
     rule: 'route-ledger.incomplete-primary-route',

@@ -154,7 +154,7 @@ export function CourseEntryShell({
         throw new Error(createData.error || '课堂创建失败');
       }
 
-      router.push(`/interactive-learning/courses/${config.routeSegment}/teacher/${createData.id}`);
+      router.push(`/interactive-learning/courses/${config.routeSegment}/teacher/${createData.id}/waiting`);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : '创建失败，请稍后重试');
     } finally {
@@ -275,7 +275,7 @@ export function CourseEntryShell({
             </div>
             <div className="mt-4 grid gap-3 text-sm text-platform-fg-secondary">
               <div className="rounded-md border border-platform-border bg-platform-canvas-muted p-3">
-                教师创建课堂后进入投影与发放控制。
+                教师创建课堂后先进入课堂等待页，确认扫码加入情况后再开始投影。
               </div>
               <div className="rounded-md border border-platform-border bg-platform-canvas-muted p-3">
                 学生使用课堂码加入，访客只进入演示浏览。
@@ -338,9 +338,9 @@ export function CourseEntryShell({
                 <Presentation className="h-4 w-4 text-platform-action-primary" />
                 教师入口
               </div>
-              <h3 className="mt-3 text-lg font-semibold text-platform-fg-primary">创建课堂并进入教师端</h3>
+              <h3 className="mt-3 text-lg font-semibold text-platform-fg-primary">创建课堂并进入等待页</h3>
               <p className="mt-2 text-sm leading-6 text-platform-fg-secondary">
-                {config.teacherDescription ?? '自动克隆预置教案，生成课堂码并进入课堂。'}
+                {config.teacherDescription ?? '自动克隆预置教案，生成课堂码，等待学生加入后再开始上课。'}
               </p>
               <button
                 type="button"
@@ -350,7 +350,7 @@ export function CourseEntryShell({
                 data-course-entry-action="teacher-launch"
               >
                 {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Presentation className="h-4 w-4" />}
-                开始上课
+                创建课堂
               </button>
             </PlatformSurface>
           ) : null}
