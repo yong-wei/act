@@ -295,6 +295,8 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
             result: 'passed' as const,
             screenshot: `artifacts/commercial-ui/simulation-experience-visual-qa/${href.replace(/[^a-z0-9]+/gi, '-')}-${theme}-${width}-${navigationState}-${dockState}-${localToolState}.png`,
             screenshotSha256: `${href}:${theme}:${width}:${navigationState}:${dockState}:${localToolState}`,
+            screenshotWidth: width,
+            screenshotHeight: width === 320 ? 900 : 900,
           }))
         ))
       ))
@@ -763,6 +765,43 @@ describe('commercial UI governance', () => {
         path: '/simulations',
         evidence: expect.arrayContaining([
           'theme=dark:width=320:navigationState=workspace-command-surface:dockState=collapsed:localToolState=not-applicable:screenshotWidth=320',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when simulation screenshot width cannot be parsed from the screenshot file', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport) => (
+            viewport.theme === 'light'
+            && viewport.width === 320
+              ? {
+                  ...viewport,
+                  screenshot: 'artifacts/commercial-ui/simulation-experience-visual-qa/non-png-placeholder.json',
+                  screenshotSha256: 'non-png-placeholder',
+                  screenshotWidth: undefined,
+                  screenshotHeight: undefined,
+                }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining([
+          'theme=light:width=320:navigationState=workspace-command-surface:dockState=collapsed:localToolState=not-applicable:screenshotWidth=320',
         ]),
       }),
     ]));

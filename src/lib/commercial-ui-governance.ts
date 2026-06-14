@@ -1826,7 +1826,7 @@ function buildSimulationVisualQaViolations(
               }
               if (!viewport.screenshot) missing.push(`${key}:screenshot`);
               if (!viewport.screenshotSha256) missing.push(`${key}:screenshotSha256`);
-              if (viewport.screenshotWidth !== undefined && viewport.screenshotWidth !== width) {
+              if (viewport.screenshotWidth !== width) {
                 missing.push(`${key}:screenshotWidth=${width}`);
               }
               if (viewport.artifact && !viewport.artifactSha256) missing.push(`${key}:artifactSha256`);
