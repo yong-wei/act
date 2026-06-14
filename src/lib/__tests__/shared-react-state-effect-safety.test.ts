@@ -55,6 +55,7 @@ describe('shared React state/effect safety contracts', () => {
 
     expect(source).toContain('function createInitialPollState');
     expect(source).toContain('function pollPlayerIdentityKey');
+    expect(source).toContain('(config.options ?? []).map((option) => option.key).join');
     expect(source).toContain('() => createInitialPollState(options, config?.showLiveResults)');
     expect(source).toContain("${config.showLiveResults ? 'live' : 'hidden'}");
     expect(source).toContain('key={pollPlayerIdentityKey(config)}');

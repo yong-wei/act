@@ -284,7 +284,7 @@ function createInitialPollState(options: PollOption[], showLiveResults = false):
 }
 
 function pollPlayerIdentityKey(config: PollComponentConfig) {
-  const optionKey = config.options.map((option) => option.key).join('|');
+  const optionKey = (config.options ?? []).map((option) => option.key).join('|');
   return `${config.id}:${optionKey}:${config.timeLimit ?? 0}:${config.showLiveResults ? 'live' : 'hidden'}`;
 }
 
