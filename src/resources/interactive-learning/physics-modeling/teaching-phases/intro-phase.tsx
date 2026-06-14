@@ -110,7 +110,7 @@ export function IntroPhase({
             <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
               <button type="button"
                 onClick={handlePlay}
-                className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-amber-400"
+                className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-amber-400"
               >
                 {isPlaying ? (
                   <>
