@@ -850,6 +850,34 @@ describe('learning path round API routes', () => {
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
   });
 
+  it('rejects external resource execution when metadata belongs to a different goal', async () => {
+    configureSingleNodePath('external-resource:ocw-bode', 'external_resource', 'https://ocw.mit.edu/control/bode', {
+      goalId: 'control-correction',
+      planNode: {
+        pathNodeType: 'external_resource',
+        externalResource: {
+          source: 'MIT OCW',
+          url: 'https://ocw.mit.edu/control/bode',
+          estimatedTimeMinutes: 15,
+          knowledgeCoverage: ['kn-bode'],
+          applicableGoalId: 'frequency-response-foundations',
+          evidenceUseStatus: 'explicit-access-required',
+          privacyPolicy: 'student-visible',
+        },
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'external-resource:ocw-bode',
+      resourceType: 'external_resource',
+      status: 'started',
+      idempotencyKey: 'external-wrong-goal',
+    }), params);
+
+    expect(response.status).toBe(400);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
   it('rejects external resource execution when governed metadata has non-positive estimated time', async () => {
     configureSingleNodePath('external-resource:ocw-bode', 'external_resource', 'https://ocw.mit.edu/control/bode', {
       planNode: {

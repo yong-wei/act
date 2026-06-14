@@ -209,6 +209,9 @@ async function resolveGovernedExternalResourceEvidence<T extends {
   if (!metadata) {
     return NextResponse.json({ error: '外部资料节点缺少受治理的资源元数据' }, { status: 400 });
   }
+  if (metadata.applicableGoalId !== path.goalId) {
+    return NextResponse.json({ error: '外部资料节点不适用于当前学习目标' }, { status: 400 });
+  }
   if (input.status !== 'completed') {
     return {
       ...input,
