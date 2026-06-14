@@ -26,6 +26,7 @@ const projectEntries = getStudentLearningIntentNavigationGroups().flatMap((group
 const arenaRouteMetadata: AppShellRouteMetadata = {
   frame: 'mission-workspace',
   themeSupport: ['light', 'dark'],
+  desktopNavigation: 'collapsible',
   mobileNavigation: 'drawer',
   navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
   floatingDock: 'collapsed',

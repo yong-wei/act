@@ -374,3 +374,16 @@ Route-family inventory SHALL accept migrated entry pages only when their first s
 - **THEN** the destination SHALL remain within the unified navigation family or declare a bounded exception
 - **AND** the parent route SHALL NOT be accepted as migrated if the first action opens an untracked local shell.
 
+### Requirement: Route navigation inventory supports collapsed default shell state
+Platform route inventory SHALL remain complete and usable when the desktop AppShell navigation defaults to collapsed.
+
+#### Scenario: Collapsed navigation renders role-scoped entries
+- **WHEN** a student, teacher, or administrator opens a route with collapsed desktop AppShell navigation
+- **THEN** only routes allowed for that role SHALL appear
+- **AND** each visible entry SHALL expose an icon, accessible name, route target, and active-state metadata.
+
+#### Scenario: Route frame declares navigation behavior
+- **WHEN** a primary route declares AppShell route metadata
+- **THEN** its route inventory entry SHALL identify whether desktop navigation is collapsible
+- **AND** routes that cannot support collapsed desktop navigation SHALL declare a temporary exception with owner and removal condition.
+
