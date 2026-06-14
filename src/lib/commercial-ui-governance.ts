@@ -1822,8 +1822,8 @@ function buildSimulationVisualQaViolations(
                 missing.push(key);
                 continue;
               }
-              if (!viewport.screenshot && !viewport.artifact) missing.push(`${key}:screenshot or artifact`);
-              if (viewport.screenshot && !viewport.screenshotSha256) missing.push(`${key}:screenshotSha256`);
+              if (!viewport.screenshot) missing.push(`${key}:screenshot`);
+              if (!viewport.screenshotSha256) missing.push(`${key}:screenshotSha256`);
               if (viewport.artifact && !viewport.artifactSha256) missing.push(`${key}:artifactSha256`);
               if (viewport.result !== 'passed') missing.push(`${key}:result=passed`);
               if (viewport.firstViewportTaskVisible !== true) missing.push(`${key}:firstViewportTaskVisible`);

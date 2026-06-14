@@ -696,6 +696,43 @@ describe('commercial UI governance', () => {
     ]));
   });
 
+  it('fails when simulation visual QA only provides a state artifact without a screenshot', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport, index) => (
+            index === 0
+              ? {
+                  ...viewport,
+                  screenshot: undefined,
+                  screenshotSha256: undefined,
+                  artifact: 'artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/artifact-only.json',
+                  artifactSha256: 'artifact-only-state',
+                }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining([
+          'theme=light:width=1440:navigationState=desktop-expanded:dockState=collapsed:localToolState=collapsed:screenshot',
+          'theme=light:width=1440:navigationState=desktop-expanded:dockState=collapsed:localToolState=collapsed:screenshotSha256',
+        ]),
+      }),
+    ]));
+  });
+
   it('fails when simulation viewport metadata does not match the route matrix', () => {
     const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
       if (entry.href !== '/virtual-lab' || !entry.simulationVisualQa) return entry;
