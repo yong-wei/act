@@ -23,3 +23,4 @@
 - [x] 4.1 Document temporary exceptions with owner and removal condition.
 - [x] 4.2 Verify Control Workbench does not regress after simulation route changes.
 - [x] 4.3 Run `rtk openspec validate govern-simulation-experience-visual-qa --strict`.
+- [x] 4.4 Verify the final QA evidence records `align-virtual-simulation-product-design-handoff` as the handoff-aligned design prerequisite.

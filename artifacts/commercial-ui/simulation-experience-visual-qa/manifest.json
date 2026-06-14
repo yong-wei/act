@@ -82,7 +82,19 @@
             "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-dark-320.png",
             "firstViewportTaskVisible": true
           }
-        ]
+        ],
+        "handoffBaseline": {
+          "change": "align-virtual-simulation-product-design-handoff",
+          "archivePath": "openspec/changes/archive/2026-06-14-align-virtual-simulation-product-design-handoff",
+          "designHandoff": "artifacts/product-design-audits/virtual-simulation-2026-06-13/design-handoff.md",
+          "implementationMatrix": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-matrix.md",
+          "route": "/simulations",
+          "independentReviewStatus": "passed",
+          "handoffSection": "Virtual simulation catalog",
+          "conceptImage": "artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-1-platform-continuity.png",
+          "implementationScreenshot": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/simulations-dark-1440.png",
+          "evidenceHook": "data-product-design-concept-reference=\"concept-1-platform-continuity\""
+        }
       }
     },
     {
@@ -167,7 +179,20 @@
             "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-dark-320.png",
             "firstViewportTaskVisible": true
           }
-        ]
+        ],
+        "handoffBaseline": {
+          "change": "align-virtual-simulation-product-design-handoff",
+          "archivePath": "openspec/changes/archive/2026-06-14-align-virtual-simulation-product-design-handoff",
+          "designHandoff": "artifacts/product-design-audits/virtual-simulation-2026-06-13/design-handoff.md",
+          "implementationMatrix": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-matrix.md",
+          "route": "/virtual-lab",
+          "independentReviewStatus": "passed",
+          "handoffSection": "Canonical entry hierarchy",
+          "conceptImage": "artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-1-platform-continuity.png",
+          "implementationScreenshot": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/virtual-lab-redirect-dark-1440.png",
+          "evidenceHook": "data-virtual-lab-compatibility-role=\"redirect-to-simulations\"",
+          "compatibilityRole": "redirect-to-simulations"
+        }
       }
     },
     {
@@ -502,7 +527,19 @@
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-320-workspace-command-surface-expanded-expanded.json",
             "firstViewportTaskVisible": true
           }
-        ]
+        ],
+        "handoffBaseline": {
+          "change": "align-virtual-simulation-product-design-handoff",
+          "archivePath": "openspec/changes/archive/2026-06-14-align-virtual-simulation-product-design-handoff",
+          "designHandoff": "artifacts/product-design-audits/virtual-simulation-2026-06-13/design-handoff.md",
+          "implementationMatrix": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-matrix.md",
+          "route": "/simulations/destroyer",
+          "independentReviewStatus": "passed",
+          "handoffSection": "Command-deck shell",
+          "conceptImage": "artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png",
+          "implementationScreenshot": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/destroyer-dark-1440.png",
+          "evidenceHook": "data-command-deck-composition=\"scene-primary-glass-panels-bottom-tools\""
+        }
       }
     },
     {
@@ -837,7 +874,19 @@
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-320-workspace-command-surface-expanded-expanded.json",
             "firstViewportTaskVisible": true
           }
-        ]
+        ],
+        "handoffBaseline": {
+          "change": "align-virtual-simulation-product-design-handoff",
+          "archivePath": "openspec/changes/archive/2026-06-14-align-virtual-simulation-product-design-handoff",
+          "designHandoff": "artifacts/product-design-audits/virtual-simulation-2026-06-13/design-handoff.md",
+          "implementationMatrix": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-matrix.md",
+          "route": "/simulations/drilling",
+          "independentReviewStatus": "passed",
+          "handoffSection": "Command-deck shell",
+          "conceptImage": "artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png",
+          "implementationScreenshot": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/drilling-dark-1440.png",
+          "evidenceHook": "data-command-deck-composition=\"scene-primary-glass-panels-bottom-tools\""
+        }
       }
     },
     {
@@ -1172,7 +1221,19 @@
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-320-workspace-command-surface-expanded-expanded.json",
             "firstViewportTaskVisible": true
           }
-        ]
+        ],
+        "handoffBaseline": {
+          "change": "align-virtual-simulation-product-design-handoff",
+          "archivePath": "openspec/changes/archive/2026-06-14-align-virtual-simulation-product-design-handoff",
+          "designHandoff": "artifacts/product-design-audits/virtual-simulation-2026-06-13/design-handoff.md",
+          "implementationMatrix": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-matrix.md",
+          "route": "/simulations/cruise",
+          "independentReviewStatus": "passed",
+          "handoffSection": "Command-deck shell",
+          "conceptImage": "artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png",
+          "implementationScreenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-expanded-collapsed-collapsed.png",
+          "evidenceHook": "data-simulation-panel-restore-handle"
+        }
       }
     },
     {
@@ -1255,7 +1316,19 @@
             "screenshot": "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-dark-mobile.png",
             "firstViewportTaskVisible": true
           }
-        ]
+        ],
+        "handoffBaseline": {
+          "change": "align-virtual-simulation-product-design-handoff",
+          "archivePath": "openspec/changes/archive/2026-06-14-align-virtual-simulation-product-design-handoff",
+          "designHandoff": "artifacts/product-design-audits/virtual-simulation-2026-06-13/design-handoff.md",
+          "implementationMatrix": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-matrix.md",
+          "route": "/interactive-learning/control-workbench",
+          "independentReviewStatus": "passed",
+          "handoffSection": "Learning mission semantics",
+          "conceptImage": "artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-3-learning-mission-studio.png",
+          "implementationScreenshot": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/workbench-dark-1440.png",
+          "evidenceHook": "data-learning-mission-semantics=\"objective-task-chain-evidence-next-action\""
+        }
       }
     }
   ],

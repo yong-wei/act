@@ -74,6 +74,67 @@ function simulationNavigationStatesForWidth(
   ));
 }
 
+const handoffRoot = 'artifacts/product-design-audits/virtual-simulation-2026-06-13';
+const handoffConcepts = {
+  catalog: `${handoffRoot}/concepts/concept-1-platform-continuity.png`,
+  commandDeck: `${handoffRoot}/concepts/concept-2-command-deck-shell.png`,
+  missionStudio: `${handoffRoot}/concepts/concept-3-learning-mission-studio.png`,
+} as const;
+
+function simulationHandoffBaselineFor(href: string) {
+  const routeReference = {
+    '/simulations': {
+      handoffSection: 'Virtual simulation catalog',
+      conceptImage: handoffConcepts.catalog,
+      implementationScreenshot: `${handoffRoot}/implementation-screenshots/simulations-dark-1440.png`,
+      evidenceHook: 'data-product-design-concept-reference="concept-1-platform-continuity"',
+    },
+    '/virtual-lab': {
+      handoffSection: 'Canonical entry hierarchy',
+      conceptImage: handoffConcepts.catalog,
+      implementationScreenshot: `${handoffRoot}/implementation-screenshots/virtual-lab-redirect-dark-1440.png`,
+      evidenceHook: 'data-virtual-lab-compatibility-role="redirect-to-simulations"',
+      compatibilityRole: 'redirect-to-simulations',
+    },
+    '/simulations/destroyer': {
+      handoffSection: 'Command-deck shell',
+      conceptImage: handoffConcepts.commandDeck,
+      implementationScreenshot: `${handoffRoot}/implementation-screenshots/destroyer-dark-1440.png`,
+      evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
+    },
+    '/simulations/drilling': {
+      handoffSection: 'Command-deck shell',
+      conceptImage: handoffConcepts.commandDeck,
+      implementationScreenshot: `${handoffRoot}/implementation-screenshots/drilling-dark-1440.png`,
+      evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
+    },
+    '/simulations/cruise': {
+      handoffSection: 'Command-deck shell',
+      conceptImage: handoffConcepts.commandDeck,
+      implementationScreenshot:
+        'artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-expanded-collapsed-collapsed.png',
+      evidenceHook: 'data-simulation-panel-restore-handle',
+    },
+    '/interactive-learning/control-workbench': {
+      handoffSection: 'Learning mission semantics',
+      conceptImage: handoffConcepts.missionStudio,
+      implementationScreenshot: `${handoffRoot}/implementation-screenshots/workbench-dark-1440.png`,
+      evidenceHook: 'data-learning-mission-semantics="objective-task-chain-evidence-next-action"',
+    },
+  } as const;
+  const reference = routeReference[href as keyof typeof routeReference];
+  if (!reference) throw new Error(`Missing handoff baseline for ${href}`);
+  return {
+    change: 'align-virtual-simulation-product-design-handoff',
+    archivePath: 'openspec/changes/archive/2026-06-14-align-virtual-simulation-product-design-handoff',
+    designHandoff: `${handoffRoot}/design-handoff.md`,
+    implementationMatrix: `${handoffRoot}/implementation-matrix.md`,
+    route: href,
+    independentReviewStatus: 'passed' as const,
+    ...reference,
+  };
+}
+
 function completeVisualEvidence(): CommercialVisualAcceptanceEvidence[] {
   return DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES.map((route) => {
     const inventoryRoute = findInventoryRoute(route.href);
@@ -198,6 +259,7 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
     archetype: scenario.archetype,
     availabilityConsistentWith: scenario.href === '/virtual-lab' ? '/simulations' : undefined,
     virtualLabFinalBehavior: scenario.href === '/virtual-lab' ? 'redirects-to-simulations' : undefined,
+    handoffBaseline: simulationHandoffBaselineFor(scenario.href),
     hidesInternalModelStatus: true,
     duplicateAssistantEntries: 0,
     unmanagedRightBottomControls: 0,
@@ -415,12 +477,16 @@ describe('commercial UI governance', () => {
     const brokenDestroyer = completeSimulationEvidence.map((entry) => entry.href === '/simulations/destroyer'
       ? {
           ...entry,
-          simulationVisualQa: {
-            ...entry.simulationVisualQa,
-            duplicateAssistantEntries: 1,
-            localControlCollisionFree: false,
-            reactDoctorErrorCheck: { ...entry.simulationVisualQa.reactDoctorErrorCheck, status: 'not-run' as const },
-            viewports: entry.simulationVisualQa.viewports.filter((viewport) => (
+            simulationVisualQa: {
+              ...entry.simulationVisualQa,
+              duplicateAssistantEntries: 1,
+              handoffBaseline: {
+                ...simulationHandoffBaselineFor(entry.href),
+                independentReviewStatus: 'not-run' as const,
+              },
+              localControlCollisionFree: false,
+              reactDoctorErrorCheck: { ...entry.simulationVisualQa.reactDoctorErrorCheck, status: 'not-run' as const },
+              viewports: entry.simulationVisualQa.viewports.filter((viewport) => (
               viewport.dockState !== 'expanded' || viewport.primarySceneNonblank !== true
             )),
           },
@@ -443,9 +509,65 @@ describe('commercial UI governance', () => {
         path: '/simulations/destroyer',
         evidence: expect.arrayContaining([
           'duplicateAssistantEntries=0',
+          'handoffBaseline.independentReviewStatus=passed',
           'localControlCollisionFree',
           'reactDoctorErrorCheck=passed',
           'theme=light:width=1440:navigationState=desktop-expanded:dockState=expanded:localToolState=collapsed',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when final simulation QA omits the handoff-alignment baseline', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      const { handoffBaseline: _handoffBaseline, ...simulationVisualQa } = entry.simulationVisualQa;
+      return {
+        ...entry,
+        simulationVisualQa,
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining(['handoffBaseline']),
+      }),
+    ]));
+  });
+
+  it('fails when simulation handoff baseline points a route at the wrong concept source', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          handoffBaseline: {
+            ...simulationHandoffBaselineFor(entry.href),
+            handoffSection: 'Learning mission semantics',
+            conceptImage: handoffConcepts.missionStudio,
+            evidenceHook: 'data-learning-mission-semantics="objective-task-chain-evidence-next-action"',
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining([
+          'handoffBaseline.handoffSection=Command-deck shell',
+          `handoffBaseline.conceptImage=${handoffConcepts.commandDeck}`,
+          'handoffBaseline.evidenceHook=data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
         ]),
       }),
     ]));

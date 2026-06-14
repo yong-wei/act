@@ -182,6 +182,11 @@ export interface CommercialSimulationVisualQaRoute {
   reactDoctorCommand: string;
 }
 
+type CommercialSimulationExpectedHandoffBaseline = Pick<
+  CommercialSimulationHandoffBaselineEvidence,
+  'handoffSection' | 'conceptImage' | 'implementationScreenshot' | 'evidenceHook' | 'compatibilityRole'
+>;
+
 export interface CommercialSimulationViewportEvidence {
   width: number;
   theme: CommercialVisualQaTheme;
@@ -206,10 +211,27 @@ export interface CommercialSimulationReactDoctorEvidence {
   report?: string;
 }
 
+export type CommercialSimulationHandoffReviewStatus = 'passed' | 'failed' | 'not-run';
+
+export interface CommercialSimulationHandoffBaselineEvidence {
+  change: string;
+  archivePath: string;
+  designHandoff: string;
+  implementationMatrix: string;
+  route: string;
+  handoffSection: string;
+  conceptImage: string;
+  implementationScreenshot: string;
+  evidenceHook?: string;
+  independentReviewStatus: CommercialSimulationHandoffReviewStatus;
+  compatibilityRole?: 'redirect-to-simulations';
+}
+
 export interface CommercialSimulationVisualQaEvidence {
   archetype: CommercialSimulationVisualQaArchetype;
   availabilityConsistentWith?: string;
   virtualLabFinalBehavior?: CommercialSimulationVirtualLabFinalBehavior;
+  handoffBaseline?: CommercialSimulationHandoffBaselineEvidence;
   hidesInternalModelStatus?: boolean;
   duplicateAssistantEntries?: number;
   unmanagedRightBottomControls?: number;
@@ -644,6 +666,69 @@ export const PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX: CommercialPremiumVisualQaR
 const SIMULATION_VISUAL_QA_REQUIRED_THEMES: readonly CommercialVisualQaTheme[] = ['light', 'dark'];
 const SIMULATION_VISUAL_QA_REQUIRED_WIDTHS: readonly [1440, 320] = [1440, 320];
 const SIMULATION_REACT_DOCTOR_COMMAND = 'rtk npm run test:react-doctor:owned-errors';
+const SIMULATION_PRODUCT_DESIGN_HANDOFF_CHANGE = 'align-virtual-simulation-product-design-handoff';
+const SIMULATION_PRODUCT_DESIGN_HANDOFF_ARCHIVE =
+  'openspec/changes/archive/2026-06-14-align-virtual-simulation-product-design-handoff';
+const SIMULATION_PRODUCT_DESIGN_HANDOFF_SOURCE =
+  'artifacts/product-design-audits/virtual-simulation-2026-06-13/design-handoff.md';
+const SIMULATION_PRODUCT_DESIGN_HANDOFF_MATRIX =
+  'artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-matrix.md';
+const SIMULATION_PRODUCT_DESIGN_CONCEPT_IMAGES = new Set([
+  'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-1-platform-continuity.png',
+  'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
+  'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-3-learning-mission-studio.png',
+]);
+const SIMULATION_PRODUCT_DESIGN_HANDOFF_BASELINE_BY_ROUTE: Record<string, CommercialSimulationExpectedHandoffBaseline> = {
+  '/simulations': {
+    handoffSection: 'Virtual simulation catalog',
+    conceptImage:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-1-platform-continuity.png',
+    implementationScreenshot:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/simulations-dark-1440.png',
+    evidenceHook: 'data-product-design-concept-reference="concept-1-platform-continuity"',
+  },
+  '/virtual-lab': {
+    handoffSection: 'Canonical entry hierarchy',
+    conceptImage:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-1-platform-continuity.png',
+    implementationScreenshot:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/virtual-lab-redirect-dark-1440.png',
+    evidenceHook: 'data-virtual-lab-compatibility-role="redirect-to-simulations"',
+    compatibilityRole: 'redirect-to-simulations',
+  },
+  '/simulations/destroyer': {
+    handoffSection: 'Command-deck shell',
+    conceptImage:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
+    implementationScreenshot:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/destroyer-dark-1440.png',
+    evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
+  },
+  '/simulations/drilling': {
+    handoffSection: 'Command-deck shell',
+    conceptImage:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
+    implementationScreenshot:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/drilling-dark-1440.png',
+    evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
+  },
+  '/simulations/cruise': {
+    handoffSection: 'Command-deck shell',
+    conceptImage:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
+    implementationScreenshot:
+      'artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-expanded-collapsed-collapsed.png',
+    evidenceHook: 'data-simulation-panel-restore-handle',
+  },
+  '/interactive-learning/control-workbench': {
+    handoffSection: 'Learning mission semantics',
+    conceptImage:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-3-learning-mission-studio.png',
+    implementationScreenshot:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/workbench-dark-1440.png',
+    evidenceHook: 'data-learning-mission-semantics="objective-task-chain-evidence-next-action"',
+  },
+};
 const SIMULATION_APP_SHELL_NAVIGATION_STATES: readonly CommercialVisualQaNavigationState[] = [
   'desktop-expanded',
   'desktop-collapsed',
@@ -1659,6 +1744,50 @@ function buildSimulationVisualQaViolations(
         : '',
       simulationEvidence.reactDoctorErrorCheck?.status !== 'passed' ? 'reactDoctorErrorCheck=passed' : '',
     ].filter(Boolean);
+    const handoffBaseline = simulationEvidence.handoffBaseline;
+    const expectedHandoffBaseline = SIMULATION_PRODUCT_DESIGN_HANDOFF_BASELINE_BY_ROUTE[route.href];
+    if (!handoffBaseline) {
+      missing.push('handoffBaseline');
+    } else if (!expectedHandoffBaseline) {
+      missing.push(`handoffBaseline.expectedRoute=${route.href}`);
+    } else {
+      if (handoffBaseline.change !== SIMULATION_PRODUCT_DESIGN_HANDOFF_CHANGE) {
+        missing.push(`handoffBaseline.change=${SIMULATION_PRODUCT_DESIGN_HANDOFF_CHANGE}`);
+      }
+      if (handoffBaseline.archivePath !== SIMULATION_PRODUCT_DESIGN_HANDOFF_ARCHIVE) {
+        missing.push(`handoffBaseline.archivePath=${SIMULATION_PRODUCT_DESIGN_HANDOFF_ARCHIVE}`);
+      }
+      if (handoffBaseline.designHandoff !== SIMULATION_PRODUCT_DESIGN_HANDOFF_SOURCE) {
+        missing.push(`handoffBaseline.designHandoff=${SIMULATION_PRODUCT_DESIGN_HANDOFF_SOURCE}`);
+      }
+      if (handoffBaseline.implementationMatrix !== SIMULATION_PRODUCT_DESIGN_HANDOFF_MATRIX) {
+        missing.push(`handoffBaseline.implementationMatrix=${SIMULATION_PRODUCT_DESIGN_HANDOFF_MATRIX}`);
+      }
+      if (handoffBaseline.route !== route.href) {
+        missing.push(`handoffBaseline.route=${route.href}`);
+      }
+      if (handoffBaseline.handoffSection !== expectedHandoffBaseline.handoffSection) {
+        missing.push(`handoffBaseline.handoffSection=${expectedHandoffBaseline.handoffSection}`);
+      }
+      if (
+        !SIMULATION_PRODUCT_DESIGN_CONCEPT_IMAGES.has(handoffBaseline.conceptImage)
+        || handoffBaseline.conceptImage !== expectedHandoffBaseline.conceptImage
+      ) {
+        missing.push(`handoffBaseline.conceptImage=${expectedHandoffBaseline.conceptImage}`);
+      }
+      if (handoffBaseline.implementationScreenshot !== expectedHandoffBaseline.implementationScreenshot) {
+        missing.push(`handoffBaseline.implementationScreenshot=${expectedHandoffBaseline.implementationScreenshot}`);
+      }
+      if (handoffBaseline.evidenceHook !== expectedHandoffBaseline.evidenceHook) {
+        missing.push(`handoffBaseline.evidenceHook=${expectedHandoffBaseline.evidenceHook}`);
+      }
+      if (handoffBaseline.independentReviewStatus !== 'passed') {
+        missing.push('handoffBaseline.independentReviewStatus=passed');
+      }
+      if (handoffBaseline.compatibilityRole !== expectedHandoffBaseline.compatibilityRole) {
+        missing.push(`handoffBaseline.compatibilityRole=${expectedHandoffBaseline.compatibilityRole ?? 'none'}`);
+      }
+    }
 
     for (const theme of route.requiredThemes) {
       for (const width of route.requiredWidths) {
