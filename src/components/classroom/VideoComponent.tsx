@@ -380,6 +380,9 @@ function VideoPlayer({ config }: { config: VideoComponentConfig }) {
           source={config.secondarySource || ''}
           sourceType={config.sourceType}
           description={config.description}
+          captionSrc={config.captionSrc}
+          captionLanguage={config.captionLanguage}
+          captionLabel={config.captionLabel}
           label="对比B"
         />
       </div>
