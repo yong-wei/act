@@ -6,8 +6,9 @@
  * 重构自 knowledge0316.html，使用 React Three Fiber
  */
 
-import { Suspense, useState, useCallback, useEffect, useRef, useMemo, type Dispatch, type SetStateAction } from 'react';
+import { Suspense, useState, useCallback, useEffect, useRef, useMemo, type Dispatch, type KeyboardEvent, type SetStateAction } from 'react';
 import dynamic from 'next/dynamic';
+import { BookOpen, Filter, LocateFixed, Network, SlidersHorizontal, X } from 'lucide-react';
 import { KnowledgeSidebar } from './sidebar/knowledge-sidebar';
 import { ResourcePanel } from './resource-panel/resource-panel';
 import {
@@ -62,7 +63,17 @@ const KnowledgeGraph2D = dynamic(
 
 // 知识节点类型
 export type NodeType = 'THEORY' | 'SCENARIO' | 'ETHICS';
-type KnowledgeMobileTool = 'chapter-directory' | 'relation-filters' | 'legend';
+type KnowledgeMobileTool = 'chapter-directory' | 'relation-filters' | 'legend' | 'view-layout';
+type KnowledgeDesktopTool = KnowledgeMobileTool;
+const DESKTOP_TOOL_PANEL_ID_PREFIX = 'knowledge-desktop-tool-panel';
+const FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
 
 // 知识节点接口 (Aligned with Prisma Model)
 export interface KnowledgeNodeData {
@@ -192,8 +203,7 @@ export function KnowledgeGraphSystem({
   const [showOnlyConnectedNodes, setShowOnlyConnectedNodes] = useState(true);
   const [labelMode, setLabelMode] = useState<KnowledgeGraphLabelMode>('focus');
   const [relationDensityMode, setRelationDensityMode] = useState<RelationDensityMode>('structure');
-  const [desktopChapterDirectoryOpen, setDesktopChapterDirectoryOpen] = useState(false);
-  const [desktopRelationFiltersOpen, setDesktopRelationFiltersOpen] = useState(false);
+  const [desktopActiveTool, setDesktopActiveTool] = useState<KnowledgeDesktopTool | null>(null);
   const [mobileActiveTool, setMobileActiveTool] = useState<KnowledgeMobileTool>('chapter-directory');
   const [mobileToolPanelOpen, setMobileToolPanelOpen] = useState(false);
   const [isLightTheme, setIsLightTheme] = useState(false);
@@ -204,6 +214,9 @@ export function KnowledgeGraphSystem({
   const hoverAnimationFrameRef = useRef<number | null>(null);
   const pendingHoveredNodeRef = useRef<KnowledgeNodeData | null>(null);
   const hoveredNodeIdRef = useRef<string | null>(null);
+  const desktopToolPanelRef = useRef<HTMLDivElement | null>(null);
+  const desktopToolTriggerRefs = useRef<Partial<Record<KnowledgeDesktopTool, HTMLButtonElement | null>>>({});
+  const previousDesktopToolRef = useRef<KnowledgeDesktopTool | null>(null);
 
   // 视图模式：默认 2D
   const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
@@ -595,6 +608,35 @@ export function KnowledgeGraphSystem({
     setExplicitFocusNodeId((current) => current === visibleSelectedNode.id ? null : visibleSelectedNode.id);
   }, [visibleSelectedNode]);
 
+  useEffect(() => {
+    if (desktopActiveTool) {
+      previousDesktopToolRef.current = desktopActiveTool;
+      window.requestAnimationFrame(() => {
+        const panel = desktopToolPanelRef.current;
+        const focusTarget = panel?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR) ?? panel;
+        focusTarget?.focus();
+      });
+      return;
+    }
+
+    const previousTool = previousDesktopToolRef.current;
+    if (!previousTool) return;
+    previousDesktopToolRef.current = null;
+    window.requestAnimationFrame(() => {
+      desktopToolTriggerRefs.current[previousTool]?.focus();
+    });
+  }, [desktopActiveTool]);
+
+  const closeDesktopTool = useCallback(() => {
+    setDesktopActiveTool(null);
+  }, []);
+
+  const handleDesktopToolPanelKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
+    if (event.key !== 'Escape') return;
+    event.stopPropagation();
+    closeDesktopTool();
+  }, [closeDesktopTool]);
+
   const hoveredBloomLabel = hoveredNode?.bloomLevel ? getBloomLabel(hoveredNode.bloomLevel) : '';
   const hoveredKnowledgeDimLabel = hoveredNode?.knowledgeDim
     ? getKnowledgeDimLabel(hoveredNode.knowledgeDim)
@@ -614,6 +656,38 @@ export function KnowledgeGraphSystem({
       ? `邻域 ${(clarityMetrics.selectedNeighborhoodEdgeRatio * 100).toFixed(0)}%`
       : `弱关系 ${(clarityMetrics.weakEdgeRatio * 100).toFixed(0)}%`,
   ].join(' · ');
+  const desktopToolItems = [
+    {
+      id: 'chapter-directory',
+      label: '目录',
+      icon: BookOpen,
+      summary: `${filteredNodes.length} 个节点`,
+    },
+    {
+      id: 'relation-filters',
+      label: '筛选',
+      icon: Filter,
+      summary: `${selectedRelationTypes.length}/${relationTypeStats.length} 类关系`,
+    },
+    {
+      id: 'legend',
+      label: '图例',
+      icon: Network,
+      summary: `${relationLegendItems.length} 种语义`,
+    },
+    {
+      id: 'view-layout',
+      label: '视图',
+      icon: SlidersHorizontal,
+      summary: `${viewMode} · ${pinnedNodeCount} 固定`,
+    },
+  ] satisfies Array<{
+    id: KnowledgeDesktopTool;
+    label: string;
+    icon: typeof BookOpen;
+    summary: string;
+  }>;
+  const desktopActiveToolLabel = desktopToolItems.find((item) => item.id === desktopActiveTool)?.label ?? '';
 
   return (
     <div
@@ -621,46 +695,12 @@ export function KnowledgeGraphSystem({
       data-knowledge-workspace="canvas-first"
       data-knowledge-squeeze-down-rejected="permanent-panels-hidden-at-320"
     >
-      {/* 左侧导航侧边栏 */}
-      <div
-        className={`hidden h-full shrink-0 p-3 transition-[width] lg:block ${desktopChapterDirectoryOpen ? 'w-72' : 'w-20'}`}
-        data-knowledge-desktop-panel="chapter-directory"
-        data-knowledge-local-tool="chapter-directory"
-        data-state={desktopChapterDirectoryOpen ? 'open' : 'closed'}
-      >
-        <div className="flex h-full flex-col rounded-xl border border-platform-border bg-platform-surface/90 p-2 shadow-lg">
-          <button
-            type="button"
-            onClick={() => setDesktopChapterDirectoryOpen((open) => !open)}
-            className="mb-2 rounded-lg border border-platform-border px-2 py-1.5 text-xs font-medium text-platform-fg-secondary transition hover:bg-platform-action-subtle hover:text-platform-fg-primary"
-            aria-expanded={desktopChapterDirectoryOpen}
-          >
-            {desktopChapterDirectoryOpen ? '收起目录' : '目录'}
-          </button>
-          {desktopChapterDirectoryOpen ? (
-            <KnowledgeSidebar
-              nodes={nodeFilteredByMeta}
-              selectedNodeId={visibleSelectedNode?.id}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              onNodeSelect={handleNodeClick}
-              onNodeHover={handleNodeHover}
-            />
-          ) : (
-            <div className="grid flex-1 place-items-center rounded-lg bg-platform-canvas-muted px-2 text-center text-[11px] text-platform-fg-secondary">
-              <div>
-                <div className="font-semibold text-platform-fg-primary">{filteredNodes.length}</div>
-                <div>可见节点</div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* 中央图谱区域 */}
       <div
         ref={containerRef}
         className="relative h-full min-w-0 flex-1 overflow-hidden"
+        tabIndex={-1}
+        aria-label="知识图谱画布"
         data-knowledge-canvas-primary="true"
         data-knowledge-layout-version={layoutState.version}
         data-knowledge-visible-node-count={displayNodes.length}
@@ -669,6 +709,196 @@ export function KnowledgeGraphSystem({
         data-knowledge-pinned-layout-signature={pinnedLayoutSignature}
         data-knowledge-selected-node-id={visibleSelectedNode?.id ?? ''}
       >
+        <div
+          className="absolute left-4 top-4 z-30 hidden max-w-[min(45rem,calc(100vw-36rem))] lg:block"
+          data-knowledge-desktop-command-system="compact"
+          data-knowledge-local-tool={desktopActiveTool ?? 'closed'}
+          data-state={desktopActiveTool ? 'open' : 'closed'}
+          data-knowledge-active-filter-summary={activeFilterSummary}
+          data-knowledge-command-summary={`${claritySummary} · ${desktopActiveTool ? `打开：${desktopActiveToolLabel}` : '局部工具已收起'}`}
+        >
+          <div className="rounded-xl border border-platform-border bg-platform-surface/90 p-2 shadow-lg backdrop-blur-md">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {desktopToolItems.map((item) => {
+                const Icon = item.icon;
+                const active = desktopActiveTool === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    ref={(element) => {
+                      desktopToolTriggerRefs.current[item.id] = element;
+                    }}
+                    type="button"
+                    aria-controls={`${DESKTOP_TOOL_PANEL_ID_PREFIX}-${item.id}`}
+                    aria-expanded={active}
+                    aria-pressed={active}
+                    onClick={() => setDesktopActiveTool((current) => current === item.id ? null : item.id)}
+                    className={`inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-xs font-medium transition ${
+                      active
+                        ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary'
+                        : 'border-platform-border bg-platform-surface/80 text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary'
+                    }`}
+                    data-knowledge-command-trigger={item.id}
+                  >
+                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>{item.label}</span>
+                    <span className="hidden max-w-24 truncate text-[10px] font-normal text-platform-fg-muted xl:inline">
+                      {item.summary}
+                    </span>
+                  </button>
+                );
+              })}
+              {desktopActiveTool && (
+                <button
+                  type="button"
+                  aria-label="收起知识图谱局部工具"
+                  onClick={closeDesktopTool}
+                  className="ml-1 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-platform-border bg-platform-surface/80 text-platform-fg-secondary transition hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                  data-knowledge-command-close="true"
+                >
+                  <X className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              )}
+            </div>
+            <div
+              className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-platform-fg-secondary"
+              data-knowledge-local-tool-summary="desktop"
+            >
+              <span className="rounded-full border border-platform-border bg-platform-canvas-muted px-2 py-0.5">
+                {displayNodes.length} 节点
+              </span>
+              <span className="rounded-full border border-platform-border bg-platform-canvas-muted px-2 py-0.5">
+                {displayLinks.length} 关系
+              </span>
+              <span className="rounded-full border border-platform-border bg-platform-canvas-muted px-2 py-0.5">
+                {relationDensityMode === 'structure' ? '结构优先' : relationDensityMode === 'focused' ? '焦点邻域' : '全部关系'}
+              </span>
+              <span className="min-w-0 max-w-[26rem] truncate rounded-full border border-platform-border bg-platform-canvas-muted px-2 py-0.5">
+                {activeFilterSummary}
+              </span>
+            </div>
+
+            {desktopActiveTool && desktopActiveTool !== 'relation-filters' && (
+              <div
+                id={`${DESKTOP_TOOL_PANEL_ID_PREFIX}-${desktopActiveTool}`}
+                ref={desktopToolPanelRef}
+                role="region"
+                tabIndex={-1}
+                aria-label={`${desktopActiveToolLabel}工具`}
+                onKeyDown={handleDesktopToolPanelKeyDown}
+                className="mt-2 max-h-[min(36rem,calc(100vh-9rem))] w-[min(28rem,calc(100vw-38rem))] min-w-[22rem] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-3 text-xs text-platform-fg-primary shadow-xl backdrop-blur-md"
+                data-knowledge-desktop-tool-panel={desktopActiveTool}
+                data-knowledge-local-tool={desktopActiveTool}
+                data-state="open"
+              >
+                {desktopActiveTool === 'chapter-directory' && (
+                  <KnowledgeSidebar
+                    nodes={nodeFilteredByMeta}
+                    selectedNodeId={visibleSelectedNode?.id}
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    onNodeSelect={handleNodeClick}
+                    onNodeHover={handleNodeHover}
+                  />
+                )}
+
+                {desktopActiveTool === 'legend' && (
+                  <div className="grid gap-2" data-knowledge-local-panel="relation-legend">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="font-semibold text-platform-fg-primary">关系图例</div>
+                        <div className="text-[11px] text-platform-fg-muted">细线、虚线和端点标记解释关系语义。</div>
+                      </div>
+                      <Network className="h-4 w-4 text-platform-action-primary" aria-hidden="true" />
+                    </div>
+                    <div className="grid gap-1.5">
+                      {relationLegendItems.map((item) => (
+                        <RelationLegendSample key={`desktop-command-legend-${item.type}`} item={item} isLightTheme={isLightTheme} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {desktopActiveTool === 'view-layout' && (
+                  <div className="space-y-3" data-knowledge-local-panel="view-layout-controls">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold text-platform-fg-primary">视图与布局</div>
+                        <div className="text-[11px] text-platform-fg-muted">布局命令只响应显式操作，不跟随选择或悬停重排。</div>
+                      </div>
+                      <LocateFixed className="h-4 w-4 text-platform-action-primary" aria-hidden="true" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-1 rounded-lg border border-platform-border p-1">
+                      {([
+                        ['2D', '2D 视图'],
+                        ['3D', '3D 视图'],
+                      ] as const).map(([mode, label]) => (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => setViewMode(mode)}
+                          className={`rounded-md px-3 py-2 text-xs font-medium transition-all ${
+                            viewMode === mode
+                              ? 'bg-platform-action-primary text-platform-fg-inverse shadow-sm'
+                              : 'text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={handleFitView}
+                        className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse"
+                        data-knowledge-layout-control="fit-view"
+                      >
+                        适配视图
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRelayout}
+                        className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse"
+                        data-knowledge-layout-control="relayout"
+                      >
+                        重新布局
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleToggleSelectedNodePin}
+                        disabled={!visibleSelectedNode || selectedNodePinUnavailable}
+                        className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse disabled:cursor-not-allowed disabled:opacity-45"
+                        data-knowledge-layout-control={selectedNodePinned ? 'unpin-selected' : 'pin-selected'}
+                        title={selectedNodePinUnavailable ? '需要先在图谱中点击或拖拽节点，才能固定当前画布坐标' : undefined}
+                      >
+                        {selectedNodePinned ? '取消固定' : '固定节点'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleToggleSelectedFocus}
+                        disabled={!visibleSelectedNode}
+                        className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse disabled:cursor-not-allowed disabled:opacity-45"
+                        data-knowledge-layout-control={selectedNodeFocused ? 'clear-focus-node' : 'set-focus-node'}
+                      >
+                        {selectedNodeFocused ? '取消焦点' : '设为焦点'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleClearLayoutPins}
+                        className="col-span-2 rounded-md border border-platform-border bg-platform-surface px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                        data-knowledge-layout-control="clear-pins"
+                      >
+                        清除固定节点
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
         <div
           className="absolute left-3 right-3 top-3 z-30 grid gap-2 lg:hidden"
           data-knowledge-mobile-command-surface="single-tool-panel"
@@ -680,6 +910,7 @@ export function KnowledgeGraphSystem({
               ['chapter-directory', '目录'],
               ['relation-filters', '筛选'],
               ['legend', '图例'],
+              ['view-layout', '视图'],
             ] as const).map(([tool, label]) => (
               <button
                 key={tool}
@@ -863,17 +1094,105 @@ export function KnowledgeGraphSystem({
                 ))}
               </div>
             )}
+
+            {mobileActiveTool === 'view-layout' && (
+              <div
+                className="space-y-3"
+                data-knowledge-mobile-drawer="view-layout"
+                data-knowledge-local-tool="view-layout"
+                data-knowledge-local-panel="view-layout-controls"
+                data-state="open"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-semibold text-platform-fg-primary">视图与布局</div>
+                    <div className="text-[11px] text-platform-fg-muted">移动端保留同一组显式布局命令。</div>
+                  </div>
+                  <LocateFixed className="h-4 w-4 text-platform-action-primary" aria-hidden="true" />
+                </div>
+                <div className="grid grid-cols-2 gap-1 rounded-lg border border-platform-border p-1">
+                  {([
+                    ['2D', '2D 视图'],
+                    ['3D', '3D 视图'],
+                  ] as const).map(([mode, label]) => (
+                    <button
+                      key={`mobile-view-${mode}`}
+                      type="button"
+                      onClick={() => setViewMode(mode)}
+                      className={`rounded-md px-3 py-2 text-xs font-medium transition-all ${
+                        viewMode === mode
+                          ? 'bg-platform-action-primary text-platform-fg-inverse shadow-sm'
+                          : 'text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={handleFitView}
+                    className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse"
+                    data-knowledge-layout-control="fit-view"
+                  >
+                    适配视图
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRelayout}
+                    className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse"
+                    data-knowledge-layout-control="relayout"
+                  >
+                    重新布局
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleToggleSelectedNodePin}
+                    disabled={!visibleSelectedNode || selectedNodePinUnavailable}
+                    className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse disabled:cursor-not-allowed disabled:opacity-45"
+                    data-knowledge-layout-control={selectedNodePinned ? 'unpin-selected' : 'pin-selected'}
+                    title={selectedNodePinUnavailable ? '需要先在图谱中点击或拖拽节点，才能固定当前画布坐标' : undefined}
+                  >
+                    {selectedNodePinned ? '取消固定' : '固定节点'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleToggleSelectedFocus}
+                    disabled={!visibleSelectedNode}
+                    className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse disabled:cursor-not-allowed disabled:opacity-45"
+                    data-knowledge-layout-control={selectedNodeFocused ? 'clear-focus-node' : 'set-focus-node'}
+                  >
+                    {selectedNodeFocused ? '取消焦点' : '设为焦点'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClearLayoutPins}
+                    className="col-span-2 rounded-md border border-platform-border bg-platform-surface px-2 py-2 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                    data-knowledge-layout-control="clear-pins"
+                  >
+                    清除固定节点
+                  </button>
+                </div>
+              </div>
+            )}
             </div>
           )}
         </div>
 
-        {/* 筛选控制区 */}
+        {desktopActiveTool === 'relation-filters' && (
         <div
-          className={`surface-card absolute left-4 top-4 z-20 hidden max-h-[calc(100vh-2rem)] max-w-[calc(100vw-2rem)] overflow-y-auto p-3 shadow-lg backdrop-blur-md lg:block ${desktopRelationFiltersOpen ? 'lg:w-[22.5rem]' : 'lg:w-64'}`}
+          id={`${DESKTOP_TOOL_PANEL_ID_PREFIX}-relation-filters`}
+          ref={desktopToolPanelRef}
+          role="region"
+          tabIndex={-1}
+          aria-label="筛选工具"
+          onKeyDown={handleDesktopToolPanelKeyDown}
+          className="surface-card absolute left-4 top-[8.5rem] z-20 hidden max-h-[min(36rem,calc(100vh-10rem))] w-[min(28rem,calc(100vw-38rem))] min-w-[22rem] overflow-y-auto p-3 shadow-lg backdrop-blur-md lg:block"
           data-knowledge-desktop-panel="relation-filters"
           data-knowledge-local-panel="relation-filters"
           data-knowledge-local-tool="relation-filters"
-          data-state={desktopRelationFiltersOpen ? 'open' : 'closed'}
+          data-state="open"
         >
           <div className="mb-2 flex items-center justify-between">
             <div className="text-xs font-semibold tracking-wide text-platform-fg-primary">
@@ -887,24 +1206,15 @@ export function KnowledgeGraphSystem({
               </span>
               <button
                 type="button"
-                onClick={() => setDesktopRelationFiltersOpen((open) => !open)}
-                className="rounded-md border border-platform-border px-2 py-0.5 text-[10px] text-platform-fg-secondary transition hover:bg-platform-action-subtle hover:text-platform-fg-primary"
-                aria-expanded={desktopRelationFiltersOpen}
+                onClick={closeDesktopTool}
+                className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-platform-border text-platform-fg-secondary transition hover:bg-platform-action-subtle hover:text-platform-fg-primary"
+                aria-label="收起关系筛选"
               >
-                {desktopRelationFiltersOpen ? '收起' : '展开'}
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             </div>
           </div>
 
-          {!desktopRelationFiltersOpen ? (
-            <div
-              className="rounded-lg border border-platform-border bg-platform-canvas-muted px-2.5 py-2 text-[11px] text-platform-fg-secondary"
-              data-knowledge-active-filter-summary="relation-filters"
-            >
-              {activeFilterSummary}
-            </div>
-          ) : (
-            <>
           <div className="mb-3 flex items-center justify-between text-[11px] text-platform-fg-secondary">
             <span>当前显示关系 {displayLinks.length} 条</span>
             <span>节点 {filteredNodes.length} / {nodes.length}</span>
@@ -1127,89 +1437,8 @@ export function KnowledgeGraphSystem({
           >
             清空节点筛选条件
           </button>
-            </>
-          )}
         </div>
-
-        {/* 视图切换按钮 */}
-        <div
-          className="absolute right-4 top-4 z-10 flex rounded-lg border border-platform-border bg-platform-surface/95 p-1 shadow-lg backdrop-blur-sm"
-          data-knowledge-local-panel="view-mode-switch"
-          data-knowledge-local-tool="view-mode-switch"
-          data-state="open"
-        >
-          <button type="button"
-            onClick={() => setViewMode('2D')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
-              viewMode === '2D'
-                ? 'bg-platform-action-primary text-platform-fg-inverse shadow-sm'
-                : 'text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary'
-            }`}
-          >
-            2D 视图
-          </button>
-          <button type="button"
-            onClick={() => setViewMode('3D')}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
-              viewMode === '3D'
-                ? 'bg-platform-action-primary text-platform-fg-inverse shadow-sm'
-                : 'text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary'
-            }`}
-          >
-            3D 视图
-          </button>
-        </div>
-
-        <div
-          className="absolute right-4 top-16 z-10 flex flex-wrap justify-end gap-1.5 rounded-lg border border-platform-border bg-platform-surface/95 p-1.5 shadow-lg backdrop-blur-sm"
-          data-knowledge-local-panel="layout-controls"
-          data-knowledge-local-tool="layout-controls"
-          data-state="open"
-        >
-          <button
-            type="button"
-            onClick={handleFitView}
-            className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-1 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse"
-            data-knowledge-layout-control="fit-view"
-          >
-            适配视图
-          </button>
-          <button
-            type="button"
-            onClick={handleRelayout}
-            className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-1 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse"
-            data-knowledge-layout-control="relayout"
-          >
-            重新布局
-          </button>
-          <button
-            type="button"
-            onClick={handleToggleSelectedNodePin}
-            disabled={!visibleSelectedNode || selectedNodePinUnavailable}
-            className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-1 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse disabled:cursor-not-allowed disabled:opacity-45"
-            data-knowledge-layout-control={selectedNodePinned ? 'unpin-selected' : 'pin-selected'}
-            title={selectedNodePinUnavailable ? '需要先在图谱中点击或拖拽节点，才能固定当前画布坐标' : undefined}
-          >
-            {selectedNodePinned ? '取消固定' : '固定节点'}
-          </button>
-          <button
-            type="button"
-            onClick={handleToggleSelectedFocus}
-            disabled={!visibleSelectedNode}
-            className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-1 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse disabled:cursor-not-allowed disabled:opacity-45"
-            data-knowledge-layout-control={selectedNodeFocused ? 'clear-focus-node' : 'set-focus-node'}
-          >
-            {selectedNodeFocused ? '取消焦点' : '设为焦点'}
-          </button>
-          <button
-            type="button"
-            onClick={handleClearLayoutPins}
-            className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-1 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse"
-            data-knowledge-layout-control="clear-pins"
-          >
-            清除固定
-          </button>
-        </div>
+        )}
 
         {isLoading ? (
             <div className="flex h-full w-full items-center justify-center">

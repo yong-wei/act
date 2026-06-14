@@ -85,6 +85,20 @@ export interface KnowledgeNodeScale {
   scaleClass: string;
 }
 
+export interface KnowledgeSemanticRegionStyle {
+  enabled: boolean;
+  fillColor: string;
+  strokeColor: string;
+  fillOpacity: number;
+  strokeOpacity: number;
+  radiusMultiplier: number;
+  maxRadius: number;
+  label: string;
+}
+
+export type KnowledgeGraphEdgeFocusState = 'active' | 'dimmed' | 'neutral';
+export type KnowledgeGraphEdgeRenderer = '2d' | '3d';
+
 export const KNOWLEDGE_GRAPH_FILTER_LABELS: Record<string, string> = {
   category: '知识类别',
   bloom_level: '认知层级',
@@ -93,6 +107,19 @@ export const KNOWLEDGE_GRAPH_FILTER_LABELS: Record<string, string> = {
   strength: '关系强度',
   connected_nodes: '连通节点',
 };
+
+export const KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT = {
+  maxDefaultEdgeWidth: 1.42,
+  maxDefaultEdgeOpacity: 0.68,
+  dimmedNeighborhoodOpacity: 0.18,
+  activeNeighborhoodWidthGain: 1.18,
+  semanticRegionKinds: ['chapter-territory'],
+  conceptReferences: [
+    'layered-research-atlas',
+    'night-bridge-semantic-map',
+    'daylight-engineering-atlas',
+  ],
+} as const;
 
 function platformToken(name: string): string {
   return `hsl(var(--${name}))`;
@@ -155,10 +182,32 @@ export function hexToRgba(color: string, alpha: number): string {
 }
 
 function relationStyle(style: Omit<RelationStyle, 'colorRgba'>): RelationStyle {
-  return {
+  const semanticMapStyle = {
     ...style,
-    colorRgba: hexToRgba(style.color, style.opacity),
+    width: Math.min(style.width, KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.maxDefaultEdgeWidth),
+    opacity: Math.min(style.opacity, KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.maxDefaultEdgeOpacity),
   };
+  return {
+    ...semanticMapStyle,
+    colorRgba: hexToRgba(semanticMapStyle.color, semanticMapStyle.opacity),
+  };
+}
+
+export function getKnowledgeGraphEffectiveEdgeWidth(
+  style: Pick<RelationStyle, 'width'>,
+  strength: number,
+  focusState: KnowledgeGraphEdgeFocusState,
+  renderer: KnowledgeGraphEdgeRenderer
+): number {
+  const boundedStrength = Math.min(1, Math.max(0, strength));
+  const rendererGain = renderer === '2d'
+    ? 0.6 + boundedStrength * 0.9
+    : 0.7 + boundedStrength;
+  const activeGain = focusState === 'active'
+    ? KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.activeNeighborhoodWidthGain
+    : 1;
+  const maxWidth = KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.maxDefaultEdgeWidth * activeGain;
+  return Math.min(style.width * rendererGain * activeGain, maxWidth);
 }
 
 // ========== 关系类型样式与语义 ==========
@@ -307,6 +356,39 @@ export function getKnowledgeNodeScale({
   };
 }
 
+export function getKnowledgeSemanticRegionStyle(
+  node: { id?: string; metadata?: Record<string, unknown> | null; graphDegree?: number | null },
+  isLightTheme = false
+): KnowledgeSemanticRegionStyle {
+  const isChapterRegion = Boolean(node.metadata?.isVirtualChapter)
+    || (typeof node.id === 'string' && node.id.startsWith('chapter-node:'));
+  if (!isChapterRegion) {
+    return {
+      enabled: false,
+      fillColor: platformToken('platform-canvas-muted'),
+      strokeColor: platformToken('platform-border'),
+      fillOpacity: 0,
+      strokeOpacity: 0,
+      radiusMultiplier: 0,
+      maxRadius: 0,
+      label: '',
+    };
+  }
+
+  const nodeCount = typeof node.metadata?.nodeCount === 'number' ? node.metadata.nodeCount : 12;
+  const densityGain = Math.min(1, Math.max(0, nodeCount / 96));
+  return {
+    enabled: true,
+    fillColor: platformToken(isLightTheme ? 'platform-action-subtle' : 'platform-canvas-muted'),
+    strokeColor: platformToken('platform-border-strong'),
+    fillOpacity: isLightTheme ? 0.14 : 0.18,
+    strokeOpacity: isLightTheme ? 0.28 : 0.24,
+    radiusMultiplier: 3.8 + densityGain * 2.4,
+    maxRadius: 64,
+    label: 'chapter-territory',
+  };
+}
+
 export function getRelationThreeDimensionalEncoding(
   relation?: string | null
 ): RelationThreeDimensionalEncoding {
@@ -326,7 +408,10 @@ export function getRelationThreeDimensionalEncoding(
     return {
       arrowLength: 0,
       directionalParticles: 3,
-      particleWidth: style.width * 1.1,
+      particleWidth: Math.min(
+        style.width * 1.1,
+        KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.maxDefaultEdgeWidth
+      ),
       particleSpeed: 0.0018,
     };
   }

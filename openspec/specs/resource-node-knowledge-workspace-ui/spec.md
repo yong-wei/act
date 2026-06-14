@@ -270,3 +270,76 @@ The knowledge graph SHALL preserve user-dragged node positions until the user or
 - **THEN** visible user-positioned nodes SHALL retain their stored coordinates where possible
 - **AND** the layout system SHALL not erase pinned positions unless the node is no longer part of the current graph data or the user resets layout.
 
+### Requirement: Knowledge graph renders as a semantic map
+The knowledge graph SHALL present nodes, edges, labels, and semantic regions as a readable concept map rather than an all-edge tangle.
+
+#### Scenario: Default semantic map renders
+- **WHEN** `/knowledge` renders its default graph view
+- **THEN** relation lines SHALL be thin, visually subordinate, and distinguishable through non-color visual grammar
+- **AND** the learner SHALL be able to identify major conceptual regions, important nodes, and high-signal relation families without opening dense all-relations mode.
+
+#### Scenario: Selected neighborhood renders
+- **WHEN** a node is selected or explicitly focused
+- **THEN** directly relevant nodes and relations SHALL become visually prominent through bounded emphasis
+- **AND** unrelated graph content SHALL dim enough to clarify the selected neighborhood without disappearing unless the user requests focused mode.
+
+#### Scenario: Graph legend renders
+- **WHEN** the relation legend is visible
+- **THEN** legend edge samples SHALL be generated from the same visual style contract as the graph renderer
+- **AND** the legend SHALL remain accurate in both light and dark themes.
+
+#### Scenario: Semantic clusters are available
+- **WHEN** chapter, category, or graph-structure grouping can be represented safely
+- **THEN** the graph MAY show subtle semantic regions or cluster territories
+- **AND** those regions SHALL be derived from graph semantics, use platform tokens, and remain visually subordinate to nodes and selected relations.
+
+### Requirement: Knowledge graph presentation follows approved concept direction
+Knowledge graph presentation SHALL adopt the approved Product Design direction without copying generated mockup chrome.
+
+#### Scenario: Concept direction is applied
+- **WHEN** the graph visual presentation is implemented
+- **THEN** it SHALL adopt layered semantic organization, premium dark depth, and clear light-mode readability from the approved concept references
+- **AND** it SHALL NOT copy standalone shell chrome, role switchers, exact generated node positions, or generated labels as product truth.
+
+### Requirement: Knowledge graph local tools use a compact command system
+The knowledge workspace SHALL expose graph-specific directory, filter, legend, view, layout, and focus controls through a coherent compact local command system.
+
+#### Scenario: Desktop knowledge graph opens
+- **WHEN** `/knowledge` renders on a desktop viewport
+- **THEN** chapter directory, relation filters, relation legend, view mode, layout, and focus controls SHALL appear as compact local workspace tools by default
+- **AND** detailed panels SHALL open only when requested by the user.
+
+#### Scenario: Local tools are collapsed
+- **WHEN** local graph tools are closed or compacted
+- **THEN** active relation count, density, strength, connected-node mode, and selected focus summaries SHALL remain visible where relevant
+- **AND** the graph canvas SHALL remain the primary visual surface.
+
+#### Scenario: User opens a local tool
+- **WHEN** the user opens directory, filters, legend, view, layout, or focus controls
+- **THEN** the tool SHALL preserve selected node, graph density, active filters, pinned layout state, and inspector context
+- **AND** the tool SHALL not overlap the shared floating dock or global navigation.
+- **AND** keyboard focus SHALL enter and leave the opened tool predictably, Escape or an equivalent close action SHALL close the tool where appropriate, and focus SHALL return to the invoking control.
+
+### Requirement: Selected knowledge nodes render in a stable inspector
+The knowledge workspace SHALL present selected-node content through a stable inspector hierarchy rather than a cramped content overlay.
+
+#### Scenario: User selects a knowledge node on desktop
+- **WHEN** a selected knowledge node has details, infograph, relations, learning actions, or evidence sources
+- **THEN** the UI SHALL render a stable inspector with clear hierarchy for those sections
+- **AND** the inspector SHALL use predictable desktop width or overlay rules that do not cause graph layout jitter.
+
+#### Scenario: User changes selected node
+- **WHEN** the selected node changes
+- **THEN** inspector content SHALL update without remounting the whole panel or losing stable scroll and layout context unnecessarily
+- **AND** stale async detail responses SHALL NOT overwrite the current selected-node content.
+
+#### Scenario: Inspector content updates asynchronously
+- **WHEN** details, infograph metadata, relations, or evidence sources load for the current selected node
+- **THEN** async updates SHALL preserve the user's active inspector section and scroll context where possible
+- **AND** they SHALL NOT reset reading position solely because data returned after the panel opened.
+
+#### Scenario: Mobile knowledge graph opens a node
+- **WHEN** a selected node is opened on a mobile viewport
+- **THEN** node details SHALL render through a drawer or sheet pattern
+- **AND** graph pan, zoom, and local tool access SHALL remain reachable when the sheet is collapsed.
+- **AND** keyboard and screen-reader focus SHALL remain inside the opened sheet while active and return to the invoking graph context when closed.
