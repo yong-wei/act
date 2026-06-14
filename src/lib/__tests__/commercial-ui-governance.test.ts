@@ -1678,7 +1678,9 @@ describe('commercial UI governance', () => {
 
     expect(scriptSource).toContain('SIMULATION_VISUAL_QA_ROUTE_MATRIX.filter');
     expect(scriptSource).toContain('simulationSharedDetailRouteAffected(route.href, files)');
-    expect(scriptSource).toContain('requiresFullSimulationVisualQaMatrix(requiredVisualRoutes, files)');
+    expect(scriptSource).toContain('requiresFullSimulationVisualQaMatrix(requiredVisualRoutes, files, visualEvidence)');
+    expect(scriptSource).toContain('function simulationVisualQaEvidenceArtifactPaths');
+    expect(scriptSource).toContain('referencedSimulationArtifacts.has(file)');
     expect(scriptSource).toContain("route.href.startsWith('/simulations/')");
     expect(scriptSource).toContain("file === 'src/lib/platform-role-navigation.ts'");
     expect(scriptSource).toContain("file.startsWith('artifacts/commercial-ui/simulation-experience-visual-qa/')");

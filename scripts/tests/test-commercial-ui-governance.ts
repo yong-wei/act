@@ -465,10 +465,34 @@ function simulationSharedDetailRouteAffected(routeHref: string, files: readonly 
   ));
 }
 
+function simulationVisualQaEvidenceArtifactPaths(
+  visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
+) {
+  const paths = new Set<string>();
+  for (const route of visualEvidence) {
+    const simulationVisualQa = route.simulationVisualQa;
+    if (!simulationVisualQa) continue;
+    if (simulationVisualQa.reactDoctorErrorCheck?.report) {
+      paths.add(simulationVisualQa.reactDoctorErrorCheck.report);
+    }
+    if (simulationVisualQa.handoffBaseline) {
+      paths.add(simulationVisualQa.handoffBaseline.conceptImage);
+      paths.add(simulationVisualQa.handoffBaseline.implementationScreenshot);
+    }
+    for (const viewport of simulationVisualQa.viewports) {
+      if (viewport.screenshot) paths.add(viewport.screenshot);
+      if (viewport.artifact) paths.add(viewport.artifact);
+    }
+  }
+  return paths;
+}
+
 function requiresFullSimulationVisualQaMatrix(
   routes: readonly CommercialVisualAcceptanceRoute[],
   files: readonly string[],
+  visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
 ) {
+  const referencedSimulationArtifacts = simulationVisualQaEvidenceArtifactPaths(visualEvidence);
   return routes.some((route) => route.href === '/simulations')
     || routes.some((route) => route.href.startsWith('/simulations/'))
     || files.some((file) => (
@@ -483,6 +507,7 @@ function requiresFullSimulationVisualQaMatrix(
       || file.startsWith('src/resources/simulations/')
       || file.startsWith('src/resources/control-system/')
       || file.startsWith('rust/control-engine/')
+      || referencedSimulationArtifacts.has(file)
     ));
 }
 
@@ -955,7 +980,7 @@ const routeInventoryForGate = routeLedgerHelperChanged
 const visualRouteInventoryForGate = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => (
   requiredVisualRoutes.some((visualRoute) => resolvePlatformRouteInventory(visualRoute.href)?.href === route.href)
 ));
-const simulationVisualQaMatrix = requiresFullSimulationVisualQaMatrix(requiredVisualRoutes, files)
+const simulationVisualQaMatrix = requiresFullSimulationVisualQaMatrix(requiredVisualRoutes, files, visualEvidence)
   ? SIMULATION_VISUAL_QA_ROUTE_MATRIX
   : SIMULATION_VISUAL_QA_ROUTE_MATRIX.filter((route) => (
     requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
