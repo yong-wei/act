@@ -91,4 +91,3 @@ Path resource icons and visual shape hints SHALL be generated from a central con
 - **WHEN** path comparison, execution, or history UI renders a path node
 - **THEN** the node SHALL provide stable type, display name, icon key, shape hint, and evidence status
 - **AND** each surface SHALL render the same type with the same core visual semantics.
-
