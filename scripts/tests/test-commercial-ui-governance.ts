@@ -614,6 +614,8 @@ type JsonRecord = Record<string, unknown>;
 
 const KNOWLEDGE_GRAPH_GOVERNANCE_EVIDENCE_PATH =
   'artifacts/commercial-ui/knowledge-graph-governance-462/evidence.json';
+const KNOWLEDGE_GRAPH_INTERACTION_STATE_EVIDENCE_PATH =
+  'artifacts/knowledge-graph-interaction-state-485/browser-evidence.json';
 
 function readJsonFile<T>(relativePath: string): T | undefined {
   const absolutePath = path.join(repoRoot, relativePath);
@@ -647,6 +649,119 @@ function knowledgeGraphGovernanceViolation(message: string, evidence: string[]):
     message,
     evidence,
   };
+}
+
+function artifactPathFromEvidence(value: unknown): string | undefined {
+  if (typeof value !== 'string' || value.length === 0) return undefined;
+  return path.isAbsolute(value) ? path.relative(repoRoot, value) : value;
+}
+
+function numberFromEvidence(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim().length > 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+  return undefined;
+}
+
+function validateKnowledgeGraphInteractionStateEvidence(): CommercialUiGovernanceViolation[] {
+  const evidence = readJsonFile<JsonRecord>(KNOWLEDGE_GRAPH_INTERACTION_STATE_EVIDENCE_PATH);
+  if (!evidence) {
+    return [knowledgeGraphGovernanceViolation('Knowledge graph interaction-state evidence file is missing.', [
+      KNOWLEDGE_GRAPH_INTERACTION_STATE_EVIDENCE_PATH,
+    ])];
+  }
+
+  const screenshots = objectRecord(evidence.screenshots);
+  const screenshotProblems = [
+    'initial',
+    'hover',
+    'selected',
+    'dragged',
+    'inspectorClosed',
+    'relayout',
+  ].flatMap((key) => {
+    const pathname = artifactPathFromEvidence(screenshots[key]);
+    const artifact = simulationViewportArtifact(pathname);
+    if (!pathname || !artifact) return [`${key}:missing-screenshot`];
+    return artifact.width === 1425 && artifact.height === 900 ? [] : [`${key}:invalid-png-dimensions`];
+  });
+
+  const states = objectRecord(evidence.states);
+  const initial = objectRecord(states.initial);
+  const hover = objectRecord(states.hover);
+  const rapidHover = objectRecord(states.rapidHover);
+  const selected = objectRecord(states.selected);
+  const dragged = objectRecord(states.dragged);
+  const hoverAfterDrag = objectRecord(states.hoverAfterDrag);
+  const inspectorClosed = objectRecord(states.inspectorClosed);
+  const relayout = objectRecord(states.relayout);
+  const currentRun = objectRecord(evidence.currentRun);
+  const currentRunBaseline = objectRecord(currentRun.baseline);
+  const currentRunRelayout = objectRecord(currentRun.explicitRelayout);
+  const currentRunRelayoutBefore = objectRecord(currentRunRelayout.before);
+  const currentRunRelayoutAfter = objectRecord(currentRunRelayout.after);
+
+  const initialNodeCount = numberFromEvidence(initial.visibleNodeCount);
+  const initialLinkCount = numberFromEvidence(initial.visibleLinkCount);
+  const currentRunNodeCount = numberFromEvidence(currentRunBaseline.visibleNodeCount);
+  const currentRunLinkCount = numberFromEvidence(currentRunBaseline.visibleLinkCount);
+  const draggedSignature = typeof dragged.pinnedLayoutSignature === 'string'
+    ? dragged.pinnedLayoutSignature
+    : '';
+  const selectedNodeId = typeof selected.selectedNodeId === 'string' ? selected.selectedNodeId : '';
+  const stateProblems = [
+    initial.layoutVersion === '0' ? null : 'initial:layout-version',
+    initial.pinnedNodeCount === '0' ? null : 'initial:pinned-count',
+    hover.layoutVersion === '0' ? null : 'hover:layout-version-changed',
+    rapidHover.layoutVersion === '0' ? null : 'rapid-hover:layout-version-changed',
+    numberFromEvidence(hover.visibleNodeCount) === initialNodeCount ? null : 'hover:visible-node-count-changed',
+    numberFromEvidence(hover.visibleLinkCount) === initialLinkCount ? null : 'hover:visible-link-count-changed',
+    numberFromEvidence(rapidHover.visibleNodeCount) === initialNodeCount ? null : 'rapid-hover:visible-node-count-changed',
+    numberFromEvidence(rapidHover.visibleLinkCount) === initialLinkCount ? null : 'rapid-hover:visible-link-count-changed',
+    hover.hoverPreviewVisible === true ? null : 'hover:preview-not-visible',
+    selected.inspectorOpen === true ? null : 'selected:inspector-not-open',
+    selected.layoutVersion === '0' ? null : 'selected:layout-version-changed',
+    selectedNodeId.length > 0 ? null : 'selected:selected-node-missing',
+    numberFromEvidence(selected.visibleNodeCount) === initialNodeCount ? null : 'selected:visible-node-count-changed',
+    numberFromEvidence(selected.visibleLinkCount) === initialLinkCount ? null : 'selected:visible-link-count-changed',
+    dragged.pinnedNodeCount === '1' ? null : 'dragged:pinned-count',
+    draggedSignature.includes(selectedNodeId) ? null : 'dragged:pinned-signature-missing-selected-node',
+    hoverAfterDrag.pinnedLayoutSignature === draggedSignature ? null : 'hover-after-drag:pinned-signature-changed',
+    hoverAfterDrag.pinnedNodeCount === '1' ? null : 'hover-after-drag:pinned-count',
+    inspectorClosed.inspectorOpen === false ? null : 'inspector-closed:inspector-still-open',
+    inspectorClosed.pinnedLayoutSignature === draggedSignature ? null : 'inspector-closed:pinned-signature-changed',
+    relayout.pinnedNodeCount === '0' ? null : 'relayout:pinned-count-not-cleared',
+    numberFromEvidence(relayout.layoutVersion)! > numberFromEvidence(dragged.layoutVersion)! ? null : 'relayout:layout-version-not-incremented',
+    currentRunNodeCount === initialNodeCount ? null : 'current-run:visible-node-count-changed',
+    currentRunLinkCount === initialLinkCount ? null : 'current-run:visible-link-count-changed',
+    currentRunBaseline.pinnedNodeCount === 0 ? null : 'current-run:pinned-count',
+    numberFromEvidence(currentRunRelayoutAfter.layoutVersion)! > numberFromEvidence(currentRunRelayoutBefore.layoutVersion)! ? null : 'current-run:relayout-version-not-incremented',
+    numberFromEvidence(currentRunRelayoutAfter.visibleNodeCount) === currentRunNodeCount ? null : 'current-run:relayout-node-count-changed',
+    numberFromEvidence(currentRunRelayoutAfter.visibleLinkCount) === currentRunLinkCount ? null : 'current-run:relayout-link-count-changed',
+  ].filter((entry): entry is string => Boolean(entry));
+
+  const layoutControls = [
+    ...new Set([
+      ...stringArray(initial.layoutControls),
+      ...stringArray(currentRunBaseline.layoutControls),
+    ]),
+  ];
+  const missingControls = ['fit-view', 'relayout', 'pin-selected', 'set-focus-node', 'clear-pins'].filter(
+    (control) => !layoutControls.includes(control),
+  );
+
+  if (screenshotProblems.length > 0 || stateProblems.length > 0 || missingControls.length > 0) {
+    return [knowledgeGraphGovernanceViolation('Knowledge graph interaction-state evidence is incomplete.', [
+      `screenshots=${screenshotProblems.join(',') || 'none'}`,
+      `states=${stateProblems.join(',') || 'none'}`,
+      `controls=${missingControls.join(',') || 'none'}`,
+      KNOWLEDGE_GRAPH_INTERACTION_STATE_EVIDENCE_PATH,
+    ])];
+  }
+
+  return [];
 }
 
 function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViolation[] {
@@ -788,6 +903,8 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
       'resource-panel',
     ]));
   }
+
+  violations.push(...validateKnowledgeGraphInteractionStateEvidence());
 
   const runtimeRelationCounts = readRuntimeKnowledgeRelationCounts();
   const relationEvidence = objectRecord(evidence.runtimeRelationEvidence);

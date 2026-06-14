@@ -40,12 +40,33 @@ interface ResourcePanelProps {
   onNodeClick?: (nodeId: string) => void;
 }
 
+interface ResourcePanelSelectionState {
+  nodeDetail: KnowledgeNodeDetail | null;
+  nodeDetailOwnerId: string | null;
+  isLoading: boolean;
+  isCardOpen: boolean;
+  expandedRelationGroups: Record<string, boolean>;
+}
+
 const RELATION_GROUP_ORDER: Array<RelatedNode['category']> = ['prerequisite', 'follows', 'related'];
 const RELATION_GROUP_LABEL: Record<RelatedNode['category'], string> = {
   prerequisite: '前置关系',
   follows: '后续关系',
   related: '关联关系',
 };
+
+export function resolveResourcePanelSelectionState(
+  selectedNode: KnowledgeNodeData
+): ResourcePanelSelectionState {
+  const isChapterNode = isChapterNodeId(selectedNode.id);
+  return {
+    nodeDetail: isChapterNode ? selectedNode as KnowledgeNodeDetail : null,
+    nodeDetailOwnerId: isChapterNode ? selectedNode.id : null,
+    isLoading: !isChapterNode,
+    isCardOpen: false,
+    expandedRelationGroups: {},
+  };
+}
 
 function toStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
@@ -157,7 +178,6 @@ export function ResourcePanel({
 
   return (
     <ResourcePanelContent
-      key={selectedNode.id}
       selectedNode={selectedNode}
       onClose={onClose}
       onNodeClick={onNodeClick}
@@ -170,13 +190,20 @@ function ResourcePanelContent({
   onClose,
   onNodeClick,
 }: Omit<ResourcePanelProps, 'isOpen' | 'selectedNode'> & { selectedNode: KnowledgeNodeData }) {
-  const [nodeDetail, setNodeDetail] = useState<KnowledgeNodeDetail | null>(() =>
-    isChapterNodeId(selectedNode.id) ? selectedNode as KnowledgeNodeDetail : null
+  const [nodeDetail, setNodeDetail] = useState<KnowledgeNodeDetail | null>(
+    () => resolveResourcePanelSelectionState(selectedNode).nodeDetail
   );
-  const [isCardOpen, setIsCardOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(() => !isChapterNodeId(selectedNode.id));
+  const [nodeDetailOwnerId, setNodeDetailOwnerId] = useState<string | null>(
+    () => resolveResourcePanelSelectionState(selectedNode).nodeDetailOwnerId
+  );
+  const [isCardOpen, setIsCardOpen] = useState(
+    () => resolveResourcePanelSelectionState(selectedNode).isCardOpen
+  );
+  const [isLoading, setIsLoading] = useState(() => resolveResourcePanelSelectionState(selectedNode).isLoading);
   const [isLightTheme, setIsLightTheme] = useState(false);
-  const [expandedRelationGroups, setExpandedRelationGroups] = useState<Record<string, boolean>>({});
+  const [expandedRelationGroups, setExpandedRelationGroups] = useState<Record<string, boolean>>(
+    () => resolveResourcePanelSelectionState(selectedNode).expandedRelationGroups
+  );
 
   useEffect(() => {
     const updateTheme = () => {
@@ -192,23 +219,34 @@ function ResourcePanelContent({
   }, []);
 
   useEffect(() => {
-    if (isChapterNodeId(selectedNode.id)) {
+    const nextSelectionState = resolveResourcePanelSelectionState(selectedNode);
+    setNodeDetail(nextSelectionState.nodeDetail);
+    setNodeDetailOwnerId(nextSelectionState.nodeDetailOwnerId);
+    setIsLoading(nextSelectionState.isLoading);
+    setIsCardOpen(nextSelectionState.isCardOpen);
+    setExpandedRelationGroups(nextSelectionState.expandedRelationGroups);
+
+    if (!nextSelectionState.isLoading) {
       return;
     }
 
+    const selectedNodeId = selectedNode.id;
     let cancelled = false;
+    const controller = new AbortController();
     const fetchDetail = async () => {
       try {
-        const res = await fetch(`/api/knowledge/nodes/${selectedNode.id}`);
+        const res = await fetch(`/api/knowledge/nodes/${selectedNodeId}`, { signal: controller.signal });
         if (!res.ok) return;
         const data = await res.json();
-        if (!cancelled) {
+        if (!cancelled && data?.id === selectedNodeId) {
           setNodeDetail(data);
+          setNodeDetailOwnerId(selectedNodeId);
         }
       } catch (error) {
+        if ((error as Error).name === 'AbortError') return;
         console.error('Failed to fetch knowledge node detail:', error);
       } finally {
-        if (!cancelled) {
+        if (!cancelled && !controller.signal.aborted) {
           setIsLoading(false);
         }
       }
@@ -218,10 +256,12 @@ function ResourcePanelContent({
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [selectedNode.id]);
+  }, [selectedNode]);
 
-  const displayNode = (nodeDetail || selectedNode) as KnowledgeNodeDetail | null;
+  const currentNodeDetail = nodeDetailOwnerId === selectedNode.id ? nodeDetail : null;
+  const displayNode = (currentNodeDetail || selectedNode) as KnowledgeNodeDetail | null;
   const metadata = (displayNode?.metadata ?? {}) as Record<string, unknown>;
   const relatedNodes = displayNode?.relatedNodes || [];
 

@@ -14,10 +14,13 @@ describe('shared React state/effect safety contracts', () => {
     const source = readRepoFile('src/features/knowledge/resource-panel/resource-panel.tsx');
 
     expect(source).toContain('function ResourcePanelContent');
-    expect(source).toContain('key={selectedNode.id}');
-    expect(source).toContain('const [isCardOpen, setIsCardOpen] = useState(false)');
-    expect(source).not.toContain('setIsCardOpen(false);');
-    expect(source).not.toContain('setNodeDetail(null);');
+    expect(source).toContain('nodeDetailOwnerId');
+    expect(source).toContain('nodeDetailOwnerId === selectedNode.id ? nodeDetail : null');
+    expect(source).toContain('const selectedNodeId = selectedNode.id');
+    expect(source).toContain('const controller = new AbortController();');
+    expect(source).toContain('controller.abort();');
+    expect(source).toContain('data?.id === selectedNodeId');
+    expect(source).not.toContain('key={selectedNode.id}');
   });
 
   it('keeps MDX slide scaling as measured state and cleans up ResizeObserver subscriptions', () => {

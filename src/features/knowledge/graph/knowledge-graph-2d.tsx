@@ -18,6 +18,10 @@ import {
   type KnowledgeGraphLabelMode,
 } from './label-policy';
 import { getRelationFocusState } from './filter-utils';
+import {
+  syncKnowledgeGraphMutableNodePositions,
+  type KnowledgeGraphLayoutState,
+} from './layout-state';
 
 interface KnowledgeGraph2DProps {
   nodes: KnowledgeNodeData[];
@@ -26,9 +30,13 @@ interface KnowledgeGraph2DProps {
   hoveredNode: KnowledgeNodeData | null;
   onNodeClick: (node: KnowledgeNodeData) => void;
   onNodeHover: (node: KnowledgeNodeData | null) => void;
+  onNodeDragEnd: (node: KnowledgeNodeData) => void;
   width?: number;
   height?: number;
   labelMode: KnowledgeGraphLabelMode;
+  layoutState: KnowledgeGraphLayoutState;
+  fitViewVersion: number;
+  relayoutVersion: number;
 }
 
 // ========== 形状绘制函数 ==========
@@ -251,9 +259,13 @@ export function KnowledgeGraph2D({
   hoveredNode,
   onNodeClick,
   onNodeHover,
+  onNodeDragEnd,
   width,
   height,
   labelMode,
+  layoutState,
+  fitViewVersion,
+  relayoutVersion,
 }: KnowledgeGraph2DProps) {
   const fgRef = useRef<any>(null);
   const [isLightTheme, setIsLightTheme] = useState(false);
@@ -292,14 +304,17 @@ export function KnowledgeGraph2D({
       target: l.targetId,
     }));
 
-    // 应用辐射布局
-    const layoutNodes = applyRadialLayout(clonedNodes, links, undefined, 180);
+    const layoutRadius = 180 + relayoutVersion * 0;
+
+    // 应用辐射布局。拖拽后的 pinned 坐标通过下方 effect 同步到现有图节点，
+    // 避免 layoutState 变化时重建 graphData 并重新加热力导向布局。
+    const layoutNodes = applyRadialLayout(clonedNodes, links, undefined, layoutRadius);
 
     return {
       nodes: layoutNodes,
       links: transformedLinks
     };
-  }, [nodes, links]);
+  }, [nodes, links, relayoutVersion]);
 
   // 2. 自定义节点渲染
   const paintNode = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
@@ -459,6 +474,10 @@ export function KnowledgeGraph2D({
     ctx.setLineDash([]);
   }, [hoveredNode?.id, isLightTheme, selectedNode?.id]);
 
+  const handleNodeDragEnd = useCallback((node: any) => {
+    onNodeDragEnd(node as KnowledgeNodeData);
+  }, [onNodeDragEnd]);
+
   // 4. 物理引擎配置
   useEffect(() => {
     if (fgRef.current) {
@@ -470,6 +489,21 @@ export function KnowledgeGraph2D({
       fgRef.current.d3Force('collide', d3.forceCollide(24).strength(0.8));
     }
   }, []);
+
+  useEffect(() => {
+    if (fitViewVersion === 0 || !fgRef.current?.zoomToFit) return;
+    window.setTimeout(() => {
+      fgRef.current?.zoomToFit?.(320, 48);
+    }, 0);
+  }, [fitViewVersion]);
+
+  useEffect(() => {
+    const currentNodes = fgRef.current?.graphData?.()?.nodes as
+      | Array<KnowledgeNodeData & { x?: number; y?: number; z?: number; fx?: number; fy?: number; fz?: number }>
+      | undefined;
+    syncKnowledgeGraphMutableNodePositions(currentNodes, layoutState);
+    fgRef.current?.refresh?.();
+  }, [graphData, layoutState]);
 
   return (
     <ForceGraph2D
@@ -492,6 +526,7 @@ export function KnowledgeGraph2D({
       // 交互
       onNodeClick={onNodeClick}
       onNodeHover={onNodeHover}
+      onNodeDragEnd={handleNodeDragEnd}
 
       // 物理引擎配置
       d3VelocityDecay={0.3}

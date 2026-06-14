@@ -335,3 +335,15 @@ Commercial UI governance SHALL verify that collapsed desktop navigation is the d
 #### Scenario: Preference regression is detected
 - **WHEN** a route resets the desktop navigation state without user action, renders expanded by default without an approved exception, or leaks desktop rail geometry into mobile
 - **THEN** governance SHALL fail or report the route as a blocking shell regression according to the active governance mode.
+
+### Requirement: Knowledge graph interaction QA blocks jitter regressions
+Commercial UI governance SHALL verify that knowledge graph hover, selection, inspector, and drag interactions do not create visible layout jitter.
+
+#### Scenario: Knowledge graph interaction evidence is captured
+- **WHEN** governance validates `/knowledge` interaction states
+- **THEN** evidence SHALL include hover preview, node selection, inspector open/close, user drag, and explicit relayout states
+- **AND** the evidence SHALL prove that hover and selection do not trigger unintended graph redistribution.
+
+#### Scenario: Jitter regression is detected
+- **WHEN** pointer hover, node click, or inspector updates visibly reset layout, move unrelated nodes, or remount the graph surface
+- **THEN** governance SHALL fail or report a blocking interaction-stability regression.

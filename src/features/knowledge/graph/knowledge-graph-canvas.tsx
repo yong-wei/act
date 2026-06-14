@@ -26,6 +26,10 @@ import {
   shouldRenderKnowledgeNodeLabel,
   type KnowledgeGraphLabelMode,
 } from './label-policy';
+import {
+  syncKnowledgeGraphMutableNodePositions,
+  type KnowledgeGraphLayoutState,
+} from './layout-state';
 
 interface KnowledgeGraphCanvasProps {
   nodes: KnowledgeNodeData[];
@@ -34,7 +38,11 @@ interface KnowledgeGraphCanvasProps {
   hoveredNode: KnowledgeNodeData | null;
   onNodeClick: (node: KnowledgeNodeData) => void;
   onNodeHover: (node: KnowledgeNodeData | null) => void;
+  onNodeDragEnd: (node: KnowledgeNodeData) => void;
   labelMode: KnowledgeGraphLabelMode;
+  layoutState: KnowledgeGraphLayoutState;
+  fitViewVersion: number;
+  relayoutVersion: number;
 }
 
 // ========== 几何体创建函数 ==========
@@ -111,7 +119,11 @@ export function KnowledgeGraphCanvas({
   hoveredNode,
   onNodeClick,
   onNodeHover,
+  onNodeDragEnd,
   labelMode,
+  layoutState,
+  fitViewVersion,
+  relayoutVersion,
 }: KnowledgeGraphCanvasProps) {
   const fgRef = useRef<any>(null);
   const [isLightTheme, setIsLightTheme] = useState(false);
@@ -142,6 +154,7 @@ export function KnowledgeGraphCanvas({
       graphDegree: n.graphDegree ?? degreeById.get(n.id) ?? 0,
     } as any));
     const nodeById = new Map(clonedNodes.map((node) => [node.id, node]));
+    const relayoutRadiusOffset = relayoutVersion * 0;
 
     const chapterNodes = clonedNodes.filter((node) => node.id.startsWith(CHAPTER_NODE_PREFIX));
     if (chapterNodes.length > 0) {
@@ -154,7 +167,7 @@ export function KnowledgeGraphCanvas({
         if (typeof orderB === 'number') return 1;
         return a.name.localeCompare(b.name, 'zh-Hans-CN');
       });
-      const chapterRadius = Math.max(180, orderedChapterNodes.length * 32);
+      const chapterRadius = Math.max(180 + relayoutRadiusOffset, orderedChapterNodes.length * 32);
       orderedChapterNodes.forEach((node, index) => {
         const angle = -Math.PI / 2 + (index / orderedChapterNodes.length) * Math.PI * 2;
         node.x = chapterRadius * Math.cos(angle);
@@ -203,7 +216,7 @@ export function KnowledgeGraphCanvas({
       nodes: clonedNodes,
       links: transformedLinks
     };
-  }, [nodes, links]);
+  }, [nodes, links, relayoutVersion]);
 
   // 2. 创建自定义节点 3D 对象
   const createNodeObject = useCallback((node: any) => {
@@ -340,6 +353,21 @@ export function KnowledgeGraphCanvas({
     }
   }, []);
 
+  useEffect(() => {
+    if (fitViewVersion === 0 || !fgRef.current?.zoomToFit) return;
+    window.setTimeout(() => {
+      fgRef.current?.zoomToFit?.(420, 56);
+    }, 0);
+  }, [fitViewVersion]);
+
+  useEffect(() => {
+    const currentNodes = fgRef.current?.graphData?.()?.nodes as
+      | Array<KnowledgeNodeData & { x?: number; y?: number; z?: number; fx?: number; fy?: number; fz?: number }>
+      | undefined;
+    syncKnowledgeGraphMutableNodePositions(currentNodes, layoutState);
+    fgRef.current?.refresh?.();
+  }, [graphData, layoutState]);
+
   // 6. 节点点击处理
   const handleNodeClick = useCallback((node: any) => {
     onNodeClick(node as KnowledgeNodeData);
@@ -349,6 +377,10 @@ export function KnowledgeGraphCanvas({
   const handleNodeHover = useCallback((node: any) => {
     onNodeHover(node as KnowledgeNodeData | null);
   }, [onNodeHover]);
+
+  const handleNodeDragEnd = useCallback((node: any) => {
+    onNodeDragEnd(node as KnowledgeNodeData);
+  }, [onNodeDragEnd]);
 
   return (
     <div className="relative h-full w-full">
@@ -373,6 +405,7 @@ export function KnowledgeGraphCanvas({
         // 交互
         onNodeClick={handleNodeClick}
         onNodeHover={handleNodeHover}
+        onNodeDragEnd={handleNodeDragEnd}
         enableNodeDrag={true}
 
         // 物理引擎
