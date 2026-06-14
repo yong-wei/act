@@ -30,6 +30,7 @@ import {
   hexToRgba,
   KNOWLEDGE_NODE_SCALE_CONTRACT,
 } from '../graph/visual-config';
+import * as visualConfig from '../graph/visual-config';
 
 vi.mock('server-only', () => ({}));
 vi.mock('@/lib/prisma', () => ({
@@ -654,5 +655,137 @@ describe('knowledge graph relation visual semantics', () => {
     expect(generalizes3d.arrowLength).toBe(prerequisite3d.arrowLength);
     expect(supports3d.particleWidth).toBeLessThan(prerequisite3d.particleWidth);
     expect(enables3d.particleSpeed).toBe(appliesTo3d.particleSpeed);
+  });
+
+  it('defines a semantic-map contract that keeps default edges fine and non-color differentiated', () => {
+    const contract = (visualConfig as any).KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT;
+
+    expect(contract).toBeDefined();
+    expect(contract.maxDefaultEdgeWidth).toBeLessThanOrEqual(1.42);
+    expect(contract.maxDefaultEdgeOpacity).toBeLessThanOrEqual(0.68);
+    expect(contract.dimmedNeighborhoodOpacity).toBeLessThanOrEqual(0.2);
+    expect(contract.activeNeighborhoodWidthGain).toBeLessThanOrEqual(1.2);
+    expect(contract.semanticRegionKinds).toContain('chapter-territory');
+    expect(contract.conceptReferences).toEqual([
+      'layered-research-atlas',
+      'night-bridge-semantic-map',
+      'daylight-engineering-atlas',
+    ]);
+
+    runtimeRelationTypes.forEach((relationType) => {
+      const style = getRelationStyle(relationType);
+      expect(style.width).toBeLessThanOrEqual(contract.maxDefaultEdgeWidth);
+      expect(style.opacity).toBeLessThanOrEqual(contract.maxDefaultEdgeOpacity);
+      const effectiveWidth = (visualConfig as any).getKnowledgeGraphEffectiveEdgeWidth;
+      expect(effectiveWidth).toBeTypeOf('function');
+      expect(effectiveWidth(style, 1, 'neutral', '2d')).toBeLessThanOrEqual(contract.maxDefaultEdgeWidth);
+      expect(effectiveWidth(style, 1, 'neutral', '3d')).toBeLessThanOrEqual(contract.maxDefaultEdgeWidth);
+      expect(effectiveWidth(style, 1, 'active', '2d')).toBeLessThanOrEqual(
+        contract.maxDefaultEdgeWidth * contract.activeNeighborhoodWidthGain
+      );
+      expect(effectiveWidth(style, 1, 'active', '3d')).toBeLessThanOrEqual(
+        contract.maxDefaultEdgeWidth * contract.activeNeighborhoodWidthGain
+      );
+      expect(getRelationThreeDimensionalEncoding(relationType).particleWidth).toBeLessThanOrEqual(
+        contract.maxDefaultEdgeWidth
+      );
+      expect(
+        style.dash.length > 0
+        || style.endpoint !== 'none'
+        || style.curvature !== 0
+        || style.hasArrow
+      ).toBe(true);
+    });
+  });
+
+  it('derives semantic chapter territories from graph semantics and platform tokens', () => {
+    const getKnowledgeSemanticRegionStyle = (visualConfig as any).getKnowledgeSemanticRegionStyle as
+      | ((node: { id?: string; metadata?: Record<string, unknown> | null; graphDegree?: number | null }, isLightTheme?: boolean) => {
+        enabled: boolean;
+        fillColor: string;
+        strokeColor: string;
+        fillOpacity: number;
+        strokeOpacity: number;
+        radiusMultiplier: number;
+        maxRadius: number;
+        label: string;
+      })
+      | undefined;
+
+    expect(getKnowledgeSemanticRegionStyle).toBeTypeOf('function');
+    const chapterRegion = getKnowledgeSemanticRegionStyle?.({
+      id: 'chapter-node:频域分析',
+      metadata: { isVirtualChapter: true, nodeCount: 48 },
+      graphDegree: 32,
+    }, false);
+    const lightChapterRegion = getKnowledgeSemanticRegionStyle?.({
+      id: 'chapter-node:时域分析',
+      metadata: { isVirtualChapter: true, nodeCount: 12 },
+      graphDegree: 8,
+    }, true);
+    const normalNodeRegion = getKnowledgeSemanticRegionStyle?.({
+      id: 'concept:transfer-function',
+      metadata: { importance: 'core' },
+      graphDegree: 24,
+    }, false);
+
+    expect(chapterRegion?.enabled).toBe(true);
+    expect(chapterRegion?.label).toBe('chapter-territory');
+    expect(chapterRegion?.fillColor).toMatch(/^hsl\(var\(--platform-/);
+    expect(chapterRegion?.strokeColor).toMatch(/^hsl\(var\(--platform-/);
+    expect(chapterRegion?.fillOpacity).toBeLessThanOrEqual(0.2);
+    expect(chapterRegion?.strokeOpacity).toBeLessThanOrEqual(0.32);
+    expect(chapterRegion?.radiusMultiplier).toBeGreaterThan(lightChapterRegion?.radiusMultiplier ?? 0);
+    expect(normalNodeRegion?.enabled).toBe(false);
+    expect(normalNodeRegion?.fillOpacity).toBe(0);
+  });
+
+  it('uses the shared semantic-map contract in 2D, 3D, legend, and governance evidence checks', () => {
+    const twoDimensionalRendererSource = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/graph/knowledge-graph-2d.tsx'),
+      'utf8'
+    );
+    const threeDimensionalRendererSource = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/graph/knowledge-graph-canvas.tsx'),
+      'utf8'
+    );
+    const governanceSource = readFileSync(
+      path.join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'),
+      'utf8'
+    );
+    const visualConfigSource = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/graph/visual-config.ts'),
+      'utf8'
+    );
+
+    expect(visualConfigSource).toContain('KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT');
+    expect(twoDimensionalRendererSource).toContain('getKnowledgeSemanticRegionStyle');
+    expect(twoDimensionalRendererSource).toContain('KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.dimmedNeighborhoodOpacity');
+    expect(twoDimensionalRendererSource).toContain('getKnowledgeGraphEffectiveEdgeWidth');
+    expect(threeDimensionalRendererSource).toContain('getKnowledgeSemanticRegionStyle');
+    expect(threeDimensionalRendererSource).toContain('KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.dimmedNeighborhoodOpacity');
+    expect(threeDimensionalRendererSource).toContain('getKnowledgeGraphEffectiveEdgeWidth');
+    expect(governanceSource).toContain('validateKnowledgeGraphSemanticMapEvidence');
+    expect(governanceSource).toContain('knowledge-graph-semantic-map-486/browser-evidence.json');
+    expect(governanceSource).toContain('legendSharedContract');
+    expect(governanceSource).toContain('getKnowledgeGraphEffectiveEdgeWidth');
+    expect(governanceSource).toContain('imageFormat');
+  });
+
+  it('requires semantic-map browser screenshots to be real image artifacts with accurate extensions', () => {
+    const evidence = JSON.parse(readFileSync(
+      path.join(process.cwd(), 'artifacts/knowledge-graph-semantic-map-486/browser-evidence.json'),
+      'utf8'
+    )) as { browserStates: Record<string, { screenshot: string }> };
+
+    Object.values(evidence.browserStates).forEach((state) => {
+      const screenshotPath = state.screenshot;
+      const bytes = readFileSync(path.join(process.cwd(), screenshotPath));
+      const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8;
+      const isPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+
+      expect(isJpeg || isPng).toBe(true);
+      expect(screenshotPath.endsWith(isJpeg ? '.jpg' : '.png')).toBe(true);
+    });
   });
 });

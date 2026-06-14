@@ -11,7 +11,10 @@ import {
   getRelationStyle,
   getNodeTypeConfig,
   getKnowledgeNodeScale,
+  getKnowledgeSemanticRegionStyle,
+  getKnowledgeGraphEffectiveEdgeWidth,
   hexToRgba,
+  KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT,
 } from './visual-config';
 import {
   shouldRenderKnowledgeNodeLabel,
@@ -337,6 +340,23 @@ export function KnowledgeGraph2D({
     });
     const baseRadius = nodeScale.radius;
     const glowRadius = nodeScale.glowRadius;
+    const semanticRegionStyle = getKnowledgeSemanticRegionStyle(node, isLightTheme);
+
+    if (semanticRegionStyle.enabled) {
+      const regionRadius = Math.min(
+        semanticRegionStyle.maxRadius,
+        baseRadius * semanticRegionStyle.radiusMultiplier
+      );
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, regionRadius, 0, 2 * Math.PI);
+      ctx.fillStyle = hexToRgba(semanticRegionStyle.fillColor, semanticRegionStyle.fillOpacity);
+      ctx.strokeStyle = hexToRgba(semanticRegionStyle.strokeColor, semanticRegionStyle.strokeOpacity);
+      ctx.lineWidth = 1.2 / globalScale;
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
 
     // 绘制辉光（如果有 bloomLevel）
     if (glowColor) {
@@ -426,9 +446,13 @@ export function KnowledgeGraph2D({
       : 1;
     const focusNodeId = hoveredNode?.id ?? selectedNode?.id ?? null;
     const focusState = getRelationFocusState(source.id, target.id, focusNodeId);
-    const focusOpacity = focusState === 'dimmed' ? 0.22 : focusState === 'active' ? 1 : 0.82;
+    const focusOpacity = focusState === 'dimmed'
+      ? KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.dimmedNeighborhoodOpacity
+      : focusState === 'active'
+        ? 1
+        : 0.82;
     const alpha = (0.2 + strength * 0.65) * focusOpacity * style.opacity;
-    const lineWidth = style.width * (0.6 + strength * 0.9) * (focusState === 'active' ? 1.25 : 1);
+    const lineWidth = getKnowledgeGraphEffectiveEdgeWidth(style, strength, focusState, '2d');
 
     const dx = target.x - source.x;
     const dy = target.y - source.y;
