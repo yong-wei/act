@@ -243,7 +243,6 @@ const difficultyLabels = {
 
 const catalogModes = [
   { id: 'all', label: '全部仿真' },
-  { id: 'recent', label: '最近使用' },
   { id: 'course', label: '课程任务' },
   { id: 'explore', label: '自由探索' },
 ] as const;
@@ -251,9 +250,8 @@ const catalogModes = [
 type CatalogMode = typeof catalogModes[number]['id'];
 type CatalogViewMode = 'list' | 'cards';
 
-function simulationMatchesMode(simulation: SimulationInfo, mode: CatalogMode, index: number) {
+function simulationMatchesMode(simulation: SimulationInfo, mode: CatalogMode) {
   if (mode === 'all') return true;
-  if (mode === 'recent') return index < 3;
   if (mode === 'course') return simulation.difficulty !== 'advanced';
   return simulation.difficulty === 'advanced' || simulation.tags.includes('参数摄动');
 }
@@ -262,11 +260,6 @@ function simulationTaskFit(simulation: SimulationInfo) {
   if (simulation.difficulty === 'beginner') return '基础课程任务';
   if (simulation.difficulty === 'intermediate') return '课程任务 / 自由探索';
   return '综合挑战任务';
-}
-
-function simulationRecentContext(index: number) {
-  const contexts = ['今天 14:32 继续上次', '昨天 09:11 参数试验', '5月20日 航迹观察'];
-  return contexts[index] ?? '尚无最近记录';
 }
 
 // ============ 页面组件 ============
@@ -279,7 +272,7 @@ export default function SimulationsPage() {
   const [viewMode, setViewMode] = useState<CatalogViewMode>('list');
 
   const normalizedQuery = query.trim().toLowerCase();
-  const filteredSimulations = simulations.filter((simulation, index) => {
+  const filteredSimulations = simulations.filter((simulation) => {
     const searchableText = [
       simulation.title,
       simulation.subtitle,
@@ -289,7 +282,7 @@ export default function SimulationsPage() {
     ].join(' ').toLowerCase();
     const queryMatch = !normalizedQuery || searchableText.includes(normalizedQuery);
     const difficultyMatch = difficultyFilter === 'all' || simulation.difficulty === difficultyFilter;
-    return queryMatch && difficultyMatch && simulationMatchesMode(simulation, mode, index);
+    return queryMatch && difficultyMatch && simulationMatchesMode(simulation, mode);
   });
 
   return (
@@ -429,15 +422,14 @@ export default function SimulationsPage() {
                 <span>仿真对象</span>
                 <span>控制主题</span>
                 <span>难度</span>
-                <span>任务与最近使用</span>
+                <span>任务适配</span>
                 <span>操作</span>
               </div>
               <div className="divide-y divide-border">
-                {filteredSimulations.map((sim, index) => (
+                {filteredSimulations.map((sim) => (
                   <SimulationListItem
                     key={sim.id}
                     simulation={sim}
-                    index={index}
                     onLearnMore={() => setSelectedSimulation(sim)}
                   />
                 ))}
@@ -445,11 +437,10 @@ export default function SimulationsPage() {
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" data-simulation-catalog-view="cards">
-              {filteredSimulations.map((sim, index) => (
+              {filteredSimulations.map((sim) => (
                 <SimulationCatalogCard
                   key={sim.id}
                   simulation={sim}
-                  index={index}
                   onLearnMore={() => setSelectedSimulation(sim)}
                 />
               ))}
@@ -577,11 +568,9 @@ function SimulationPreview({
 
 function SimulationListItem({
   simulation,
-  index,
   onLearnMore,
 }: {
   simulation: SimulationInfo;
-  index: number;
   onLearnMore: () => void;
 }) {
   return (
@@ -615,7 +604,7 @@ function SimulationListItem({
       </div>
       <div className="text-sm text-foreground" data-simulation-scenario-fit={simulation.id}>
         <span className="block">{simulationTaskFit(simulation)}</span>
-        <span className="mt-1 block text-xs text-subtle">{simulationRecentContext(index)}</span>
+        <span className="mt-1 block text-xs text-subtle">按课程任务、控制主题与难度筛选</span>
       </div>
       <div className="flex flex-wrap gap-2 xl:justify-end">
         <Link href={simulation.href} prefetch={false} data-simulation-canonical-launch={simulation.id}>
@@ -635,11 +624,9 @@ function SimulationListItem({
 
 function SimulationCatalogCard({
   simulation,
-  index,
   onLearnMore,
 }: {
   simulation: SimulationInfo;
-  index: number;
   onLearnMore: () => void;
 }) {
   return (
@@ -662,8 +649,8 @@ function SimulationCatalogCard({
             <dd className="mt-1">{simulation.controlFocus.slice(0, 2).join(' / ')}</dd>
           </div>
           <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
-            <dt className="font-medium text-foreground">任务状态</dt>
-            <dd className="mt-1">{simulationTaskFit(simulation)} · {simulationRecentContext(index)}</dd>
+            <dt className="font-medium text-foreground">任务适配</dt>
+            <dd className="mt-1">{simulationTaskFit(simulation)}</dd>
           </div>
         </dl>
         <div className="flex gap-2 pt-2">
