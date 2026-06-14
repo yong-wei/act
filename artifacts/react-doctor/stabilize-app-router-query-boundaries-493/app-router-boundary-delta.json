@@ -1,0 +1,32 @@
+{
+  "baselineTotal": 285,
+  "afterTotal": 271,
+  "totalDelta": -14,
+  "ruleDeltas": {
+    "nextjs-no-use-search-params-without-suspense": {
+      "before": 36,
+      "after": 32,
+      "delta": -4
+    },
+    "nextjs-no-client-fetch-for-server-data": {
+      "before": 6,
+      "after": 4,
+      "delta": -2
+    },
+    "nextjs-missing-metadata": {
+      "before": 153,
+      "after": 149,
+      "delta": -4
+    },
+    "server-sequential-independent-await": {
+      "before": 66,
+      "after": 64,
+      "delta": -2
+    },
+    "no-fetch-in-effect": {
+      "before": 24,
+      "after": 22,
+      "delta": -2
+    }
+  }
+}

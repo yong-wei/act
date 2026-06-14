@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
 
@@ -38,13 +37,13 @@ import { getStepAIContext } from '@/lib/course-ai-contexts';
 export function UNIT_1_1StudentPage({
   sessionId,
   lessonRuntime,
+  demoStepId,
 }: {
   sessionId: string;
   lessonRuntime: RuntimeLessonEntryBundle;
+  demoStepId?: string;
 }) {
   const isDemo = sessionId === 'demo';
-  const searchParams = useSearchParams();
-  const demoStepId = searchParams.get('step');
   const { data: authSession } = useSession();
 
   const currentStudentName = authSession?.user?.name?.trim() || '学生';
