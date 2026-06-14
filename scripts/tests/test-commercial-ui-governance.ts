@@ -463,6 +463,9 @@ function requiresFullSimulationVisualQaMatrix(
       file === 'src/app/simulations/page.tsx'
       || file === 'src/app/virtual-lab/page.tsx'
       || file === 'src/lib/platform-role-navigation.ts'
+      || file === 'artifacts/commercial-ui/evidence.json'
+      || file === 'artifacts/commercial-ui/simulation-experience-visual-qa/manifest.json'
+      || file.startsWith('artifacts/commercial-ui/simulation-experience-visual-qa/')
       || /^src\/app\/simulations\/[^/]+\/page\.tsx$/.test(file)
       || file.startsWith('src/app/simulations/_components/')
       || file.startsWith('src/resources/simulations/')
