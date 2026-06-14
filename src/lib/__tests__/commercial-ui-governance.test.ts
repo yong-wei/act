@@ -733,6 +733,41 @@ describe('commercial UI governance', () => {
     ]));
   });
 
+  it('fails when simulation screenshot dimensions do not match the viewport width', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport) => (
+            viewport.theme === 'dark'
+            && viewport.width === 320
+              ? {
+                  ...viewport,
+                  screenshotWidth: 390,
+                  screenshotHeight: 900,
+                }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining([
+          'theme=dark:width=320:navigationState=workspace-command-surface:dockState=collapsed:localToolState=not-applicable:screenshotWidth=320',
+        ]),
+      }),
+    ]));
+  });
+
   it('fails when simulation viewport metadata does not match the route matrix', () => {
     const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
       if (entry.href !== '/virtual-lab' || !entry.simulationVisualQa) return entry;
@@ -1579,6 +1614,7 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('route.simulationVisualQa.viewports.map');
     expect(scriptSource).toContain('const screenshot = simulationViewportArtifact(viewport.screenshot)');
     expect(scriptSource).toContain('screenshotSha256: screenshot?.sha256');
+    expect(scriptSource).toContain('screenshotWidth: screenshot?.width');
   });
 
   it('filters React Doctor owned-surface diagnostics and keeps large JSON stdout parseable', () => {

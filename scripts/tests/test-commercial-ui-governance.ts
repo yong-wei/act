@@ -408,9 +408,19 @@ function fileSha256(relativePath: string) {
 }
 
 function simulationViewportArtifact(pathname: string | undefined) {
-  return pathname && existsSync(path.join(repoRoot, pathname))
-    ? { pathname, sha256: fileSha256(pathname) }
-    : undefined;
+  if (!pathname || !existsSync(path.join(repoRoot, pathname))) return undefined;
+  const buffer = readFileSync(path.join(repoRoot, pathname));
+  const isPng = buffer.length > 24
+    && buffer[0] === 0x89
+    && buffer[1] === 0x50
+    && buffer[2] === 0x4e
+    && buffer[3] === 0x47;
+  return {
+    pathname,
+    sha256: createHash('sha256').update(buffer).digest('hex'),
+    width: isPng ? buffer.readUInt32BE(16) : undefined,
+    height: isPng ? buffer.readUInt32BE(20) : undefined,
+  };
 }
 
 function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
@@ -431,6 +441,8 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
               artifactSha256: artifact?.sha256,
               screenshot: screenshot?.pathname,
               screenshotSha256: screenshot?.sha256,
+              screenshotWidth: screenshot?.width,
+              screenshotHeight: screenshot?.height,
             };
           }),
         }

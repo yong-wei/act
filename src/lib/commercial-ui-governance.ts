@@ -204,6 +204,8 @@ export interface CommercialSimulationViewportEvidence {
   result?: 'passed' | 'failed';
   screenshot?: string;
   screenshotSha256?: string;
+  screenshotWidth?: number;
+  screenshotHeight?: number;
   artifact?: string;
   artifactSha256?: string;
 }
@@ -1824,6 +1826,9 @@ function buildSimulationVisualQaViolations(
               }
               if (!viewport.screenshot) missing.push(`${key}:screenshot`);
               if (!viewport.screenshotSha256) missing.push(`${key}:screenshotSha256`);
+              if (viewport.screenshotWidth !== undefined && viewport.screenshotWidth !== width) {
+                missing.push(`${key}:screenshotWidth=${width}`);
+              }
               if (viewport.artifact && !viewport.artifactSha256) missing.push(`${key}:artifactSha256`);
               if (viewport.result !== 'passed') missing.push(`${key}:result=passed`);
               if (viewport.firstViewportTaskVisible !== true) missing.push(`${key}:firstViewportTaskVisible`);
