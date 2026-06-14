@@ -17,19 +17,16 @@ import {
 } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
-import { MaritimeEnvironment } from '../environment';
+import { MaritimeEnvironment } from '../environment/maritime-environment';
 import { SimulationClock } from '@/lib/simulation';
 import {
   UnifiedCameraController,
   RightClickFreeModeBridge,
-  CameraViewSwitcher,
-  SimulationTopBar,
-  SimulationDock,
-  SimulationAssessmentPanel,
-  ModelLoadingPlaceholder,
-  simulationUi,
   type CameraMode,
-} from '../components';
+} from '../components/camera-controller';
+import { CameraViewSwitcher } from '../components/camera-view-switcher';
+import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
+import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
 import {
   Play,
   Pause,

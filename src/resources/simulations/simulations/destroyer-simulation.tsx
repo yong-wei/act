@@ -44,14 +44,11 @@ import {
 import {
   UnifiedCameraController,
   RightClickFreeModeBridge,
-  CameraViewSwitcher,
-  SimulationTopBar,
-  SimulationDock,
-  SimulationAssessmentPanel,
-  ModelLoadingPlaceholder,
-  simulationUi,
   type CameraMode,
-} from '../components';
+} from '../components/camera-controller';
+import { CameraViewSwitcher } from '../components/camera-view-switcher';
+import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
+import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
 import {
   SIMULATION_FIXED_STEP_SECONDS,
   SIMULATION_MAX_SUB_STEPS,
