@@ -458,9 +458,11 @@ function requiresFullSimulationVisualQaMatrix(
   files: readonly string[],
 ) {
   return routes.some((route) => route.href === '/simulations')
+    || routes.some((route) => route.href.startsWith('/simulations/'))
     || files.some((file) => (
       file === 'src/app/simulations/page.tsx'
       || file === 'src/app/virtual-lab/page.tsx'
+      || /^src\/app\/simulations\/[^/]+\/page\.tsx$/.test(file)
       || file.startsWith('src/app/simulations/_components/')
       || file.startsWith('src/resources/simulations/')
       || file.startsWith('src/resources/control-system/')
