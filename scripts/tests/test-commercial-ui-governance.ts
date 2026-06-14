@@ -488,6 +488,23 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
     simulationVisualQa: route.simulationVisualQa
       ? {
           ...route.simulationVisualQa,
+          reactDoctorErrorCheck: route.simulationVisualQa.reactDoctorErrorCheck
+            ? {
+                ...route.simulationVisualQa.reactDoctorErrorCheck,
+                reportSha256: simulationViewportArtifact(route.simulationVisualQa.reactDoctorErrorCheck.report)?.sha256,
+              }
+            : undefined,
+          handoffBaseline: route.simulationVisualQa.handoffBaseline
+            ? {
+                ...route.simulationVisualQa.handoffBaseline,
+                designHandoffSha256: simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.designHandoff)?.sha256,
+                implementationMatrixSha256:
+                  simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.implementationMatrix)?.sha256,
+                conceptImageSha256: simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.conceptImage)?.sha256,
+                implementationScreenshotSha256:
+                  simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.implementationScreenshot)?.sha256,
+              }
+            : undefined,
           viewports: route.simulationVisualQa.viewports.map((viewport) => {
             const artifact = simulationViewportArtifact(viewport.artifact);
             const screenshot = simulationViewportArtifact(viewport.screenshot);
@@ -532,6 +549,8 @@ function simulationVisualQaEvidenceArtifactPaths(
       paths.add(simulationVisualQa.reactDoctorErrorCheck.report);
     }
     if (simulationVisualQa.handoffBaseline) {
+      paths.add(simulationVisualQa.handoffBaseline.designHandoff);
+      paths.add(simulationVisualQa.handoffBaseline.implementationMatrix);
       paths.add(simulationVisualQa.handoffBaseline.conceptImage);
       paths.add(simulationVisualQa.handoffBaseline.implementationScreenshot);
     }

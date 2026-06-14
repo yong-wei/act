@@ -218,6 +218,7 @@ export interface CommercialSimulationReactDoctorEvidence {
   command: string;
   status: CommercialSimulationReactDoctorStatus;
   report?: string;
+  reportSha256?: string;
 }
 
 export type CommercialSimulationHandoffReviewStatus = 'passed' | 'failed' | 'not-run';
@@ -226,11 +227,15 @@ export interface CommercialSimulationHandoffBaselineEvidence {
   change: string;
   archivePath: string;
   designHandoff: string;
+  designHandoffSha256?: string;
   implementationMatrix: string;
+  implementationMatrixSha256?: string;
   route: string;
   handoffSection: string;
   conceptImage: string;
+  conceptImageSha256?: string;
   implementationScreenshot: string;
+  implementationScreenshotSha256?: string;
   evidenceHook?: string;
   independentReviewStatus: CommercialSimulationHandoffReviewStatus;
   compatibilityRole?: 'redirect-to-simulations';
@@ -1760,6 +1765,8 @@ function buildSimulationVisualQaViolations(
         ? `reactDoctorCommand=${route.reactDoctorCommand}`
         : '',
       simulationEvidence.reactDoctorErrorCheck?.status !== 'passed' ? 'reactDoctorErrorCheck=passed' : '',
+      !simulationEvidence.reactDoctorErrorCheck?.report ? 'reactDoctorErrorCheck.report' : '',
+      !simulationEvidence.reactDoctorErrorCheck?.reportSha256 ? 'reactDoctorErrorCheck.reportSha256' : '',
     ].filter(Boolean);
     const handoffBaseline = simulationEvidence.handoffBaseline;
     const expectedHandoffBaseline = SIMULATION_PRODUCT_DESIGN_HANDOFF_BASELINE_BY_ROUTE[route.href];
@@ -1777,8 +1784,14 @@ function buildSimulationVisualQaViolations(
       if (handoffBaseline.designHandoff !== SIMULATION_PRODUCT_DESIGN_HANDOFF_SOURCE) {
         missing.push(`handoffBaseline.designHandoff=${SIMULATION_PRODUCT_DESIGN_HANDOFF_SOURCE}`);
       }
+      if (!handoffBaseline.designHandoffSha256) {
+        missing.push('handoffBaseline.designHandoffSha256');
+      }
       if (handoffBaseline.implementationMatrix !== SIMULATION_PRODUCT_DESIGN_HANDOFF_MATRIX) {
         missing.push(`handoffBaseline.implementationMatrix=${SIMULATION_PRODUCT_DESIGN_HANDOFF_MATRIX}`);
+      }
+      if (!handoffBaseline.implementationMatrixSha256) {
+        missing.push('handoffBaseline.implementationMatrixSha256');
       }
       if (handoffBaseline.route !== route.href) {
         missing.push(`handoffBaseline.route=${route.href}`);
@@ -1792,8 +1805,14 @@ function buildSimulationVisualQaViolations(
       ) {
         missing.push(`handoffBaseline.conceptImage=${expectedHandoffBaseline.conceptImage}`);
       }
+      if (!handoffBaseline.conceptImageSha256) {
+        missing.push('handoffBaseline.conceptImageSha256');
+      }
       if (handoffBaseline.implementationScreenshot !== expectedHandoffBaseline.implementationScreenshot) {
         missing.push(`handoffBaseline.implementationScreenshot=${expectedHandoffBaseline.implementationScreenshot}`);
+      }
+      if (!handoffBaseline.implementationScreenshotSha256) {
+        missing.push('handoffBaseline.implementationScreenshotSha256');
       }
       if (handoffBaseline.evidenceHook !== expectedHandoffBaseline.evidenceHook) {
         missing.push(`handoffBaseline.evidenceHook=${expectedHandoffBaseline.evidenceHook}`);

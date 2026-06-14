@@ -128,9 +128,13 @@ function simulationHandoffBaselineFor(href: string) {
     change: 'align-virtual-simulation-product-design-handoff',
     archivePath: 'openspec/changes/archive/2026-06-14-align-virtual-simulation-product-design-handoff',
     designHandoff: `${handoffRoot}/design-handoff.md`,
+    designHandoffSha256: 'design-handoff-content',
     implementationMatrix: `${handoffRoot}/implementation-matrix.md`,
+    implementationMatrixSha256: 'implementation-matrix-content',
     route: href,
     independentReviewStatus: 'passed' as const,
+    conceptImageSha256: 'concept-image-content',
+    implementationScreenshotSha256: 'implementation-screenshot-content',
     ...reference,
   };
 }
@@ -272,6 +276,7 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
       command: 'rtk npm run test:react-doctor:owned-errors',
       status: 'passed',
       report: 'artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json',
+      reportSha256: 'react-doctor-report-content',
     },
     viewports: scenario.requiredThemes.flatMap((theme) => scenario.requiredWidths.flatMap((width) => (
       simulationNavigationStatesForWidth(width, scenario.requiredNavigationStates).flatMap((navigationState) => (
@@ -545,6 +550,68 @@ describe('commercial UI governance', () => {
         rule: 'simulation-visual-qa.incomplete-evidence',
         path: '/simulations/destroyer',
         evidence: expect.arrayContaining(['handoffBaseline']),
+      }),
+    ]));
+  });
+
+  it('fails when simulation React Doctor proof omits the report artifact hash', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          reactDoctorErrorCheck: {
+            ...entry.simulationVisualQa.reactDoctorErrorCheck,
+            reportSha256: undefined,
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining(['reactDoctorErrorCheck.reportSha256']),
+      }),
+    ]));
+  });
+
+  it('fails when simulation handoff baseline omits source file hashes', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          handoffBaseline: {
+            ...simulationHandoffBaselineFor(entry.href),
+            designHandoffSha256: undefined,
+            implementationMatrixSha256: undefined,
+            conceptImageSha256: undefined,
+            implementationScreenshotSha256: undefined,
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining([
+          'handoffBaseline.designHandoffSha256',
+          'handoffBaseline.implementationMatrixSha256',
+          'handoffBaseline.conceptImageSha256',
+          'handoffBaseline.implementationScreenshotSha256',
+        ]),
       }),
     ]));
   });
@@ -1692,6 +1759,13 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('screenshot: viewport.screenshot');
     expect(scriptSource).toContain('screenshotSha256: screenshot?.sha256');
     expect(scriptSource).toContain('screenshotWidth: screenshot?.width');
+    expect(scriptSource).toContain('reportSha256: simulationViewportArtifact(route.simulationVisualQa.reactDoctorErrorCheck.report)?.sha256');
+    expect(scriptSource).toContain('designHandoffSha256: simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.designHandoff)?.sha256');
+    expect(scriptSource).toContain('implementationMatrixSha256:');
+    expect(scriptSource).toContain('conceptImageSha256: simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.conceptImage)?.sha256');
+    expect(scriptSource).toContain('implementationScreenshotSha256:');
+    expect(scriptSource).toContain('paths.add(simulationVisualQa.handoffBaseline.designHandoff)');
+    expect(scriptSource).toContain('paths.add(simulationVisualQa.handoffBaseline.implementationMatrix)');
   });
 
   it('filters React Doctor owned-surface diagnostics and keeps large JSON stdout parseable', () => {
