@@ -1,0 +1,244 @@
+{
+  "change": "redesign-knowledge-workspace-tools-and-inspector",
+  "issue": 487,
+  "capturedAt": "2026-06-14T12:31:32.588Z",
+  "baseUrl": "http://127.0.0.1:3001",
+  "selectedNodeId": "传递函数_1_1",
+  "designSourceOfTruth": {
+    "handoff": "artifacts/product-design-audits/knowledge-graph-2026-06-14/design-handoff.md",
+    "concepts": [
+      "artifacts/product-design-audits/knowledge-graph-2026-06-14/concepts/layered-research-atlas.png",
+      "artifacts/product-design-audits/knowledge-graph-2026-06-14/concepts/night-bridge-semantic-map.png",
+      "artifacts/product-design-audits/knowledge-graph-2026-06-14/concepts/daylight-engineering-atlas.png"
+    ]
+  },
+  "keyboardVerification": {
+    "desktopToolPaths": [
+      {
+        "tool": "chapter-directory",
+        "openedFocusWithinPanel": true,
+        "escapeClosed": true,
+        "focusReturnedToTrigger": true
+      },
+      {
+        "tool": "relation-filters",
+        "openedFocusWithinPanel": true,
+        "escapeClosed": true,
+        "focusReturnedToTrigger": true
+      },
+      {
+        "tool": "legend",
+        "openedFocusWithinPanel": true,
+        "escapeClosed": true,
+        "focusReturnedToTrigger": true
+      },
+      {
+        "tool": "view-layout",
+        "openedFocusWithinPanel": true,
+        "escapeClosed": true,
+        "focusReturnedToTrigger": true
+      }
+    ],
+    "mobileInspector": {
+      "focusTrapped": true,
+      "escapeClosed": true,
+      "focusReturnedToCanvas": true,
+      "dockSafeArea": "bottom-padding"
+    },
+    "mobileToolPaths": [
+      {
+        "tool": "view-layout",
+        "opened": true,
+        "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/mobile-320-view-layout-dark.png",
+        "layoutControls": [
+          "fit-view",
+          "relayout",
+          "pin-selected",
+          "set-focus-node",
+          "clear-pins"
+        ]
+      }
+    ]
+  },
+  "results": [
+    {
+      "name": "desktop-default-compact-dark",
+      "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-default-compact-dark.png",
+      "url": "http://127.0.0.1:3001/knowledge",
+      "state": "desktop default compact tools",
+      "theme": "dark",
+      "handoff": "design-handoff.md#Target Experience",
+      "concept": "layered-research-atlas.png + night-bridge-semantic-map.png",
+      "markers": {
+        "commandSystemState": "closed",
+        "activeDesktopTool": "closed",
+        "activeFilterSummary": "关系 3/21 · 强度 >= 0.8 · 仅连通节点",
+        "commandSummary": "1286 条可见关系 · 2.18 边/点 · 弱关系 0% · 局部工具已收起",
+        "desktopToolPanel": null,
+        "inspectorMode": null,
+        "inspectorResponsive": null,
+        "inspectorFocusContract": null,
+        "inspectorDockSafeArea": null,
+        "inspectorSections": [],
+        "mobileToolState": "closed",
+        "selectedNodeId": "",
+        "visibleNodeCount": "589",
+        "visibleLinkCount": "1286",
+        "activeElementMarker": {
+          "tag": "BODY",
+          "text": "展开导航学生知识图谱知识关系、证据来源与学习路径入口首页虚拟仿真",
+          "commandTrigger": null,
+          "canvasPrimary": null
+        },
+        "width": 1440,
+        "height": 1000,
+        "htmlClass": "dark"
+      }
+    },
+    {
+      "name": "desktop-open-filters-dark",
+      "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-open-filters-dark.png",
+      "url": "http://127.0.0.1:3001/knowledge",
+      "state": "desktop opened relation filters",
+      "theme": "dark",
+      "handoff": "design-handoff.md#Desktop Layout",
+      "concept": "layered-research-atlas.png",
+      "markers": {
+        "commandSystemState": "open",
+        "activeDesktopTool": "relation-filters",
+        "activeFilterSummary": "关系 3/21 · 强度 >= 0.8 · 仅连通节点",
+        "commandSummary": "1286 条可见关系 · 2.18 边/点 · 弱关系 0% · 打开：筛选",
+        "desktopToolPanel": null,
+        "inspectorMode": null,
+        "inspectorResponsive": null,
+        "inspectorFocusContract": null,
+        "inspectorDockSafeArea": null,
+        "inspectorSections": [],
+        "mobileToolState": "closed",
+        "selectedNodeId": "",
+        "visibleNodeCount": "589",
+        "visibleLinkCount": "1286",
+        "activeElementMarker": {
+          "tag": "BUTTON",
+          "text": "",
+          "commandTrigger": null,
+          "canvasPrimary": null
+        },
+        "width": 1440,
+        "height": 1000,
+        "htmlClass": "dark"
+      }
+    },
+    {
+      "name": "desktop-selected-inspector-light",
+      "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/desktop-selected-inspector-light.png",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E4%BC%A0%E9%80%92%E5%87%BD%E6%95%B0_1_1",
+      "state": "desktop selected node inspector with infograph preview",
+      "theme": "light",
+      "handoff": "design-handoff.md#Selected-Node Drawer",
+      "concept": "daylight-engineering-atlas.png",
+      "markers": {
+        "commandSystemState": "closed",
+        "activeDesktopTool": "closed",
+        "activeFilterSummary": "关系 3/21 · 强度 >= 0.8 · 仅连通节点",
+        "commandSummary": "1286 条可见关系 · 2.18 边/点 · 弱关系 0% · 局部工具已收起",
+        "desktopToolPanel": null,
+        "inspectorMode": "stable-rail",
+        "inspectorResponsive": "desktop-rail-mobile-sheet",
+        "inspectorFocusContract": "mobile-trap-escape-return",
+        "inspectorDockSafeArea": "bottom-padding",
+        "inspectorSections": [
+          "header",
+          "semantic-metadata",
+          "summary",
+          "infograph-preview",
+          "relation-overview",
+          "evidence-sources",
+          "learning-actions"
+        ],
+        "mobileToolState": "closed",
+        "selectedNodeId": "传递函数_1_1",
+        "visibleNodeCount": "589",
+        "visibleLinkCount": "1286",
+        "activeElementMarker": {
+          "tag": "DIV",
+          "text": "目录575 个节点筛选3/21 类关系图例23 种语义视图2D ",
+          "commandTrigger": null,
+          "canvasPrimary": "true"
+        },
+        "width": 1440,
+        "height": 1000,
+        "htmlClass": "light"
+      }
+    },
+    {
+      "name": "mobile-320-selected-sheet-dark",
+      "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/mobile-320-selected-sheet-dark.png",
+      "url": "http://127.0.0.1:3001/knowledge?node=%E4%BC%A0%E9%80%92%E5%87%BD%E6%95%B0_1_1",
+      "state": "mobile selected node sheet with graph reachable above collapsed tools",
+      "theme": "dark",
+      "viewport": "320x800",
+      "handoff": "design-handoff.md#Mobile Layout",
+      "concept": "night-bridge-semantic-map.png",
+      "markers": {
+        "commandSystemState": "closed",
+        "activeDesktopTool": "closed",
+        "activeFilterSummary": "关系 3/21 · 强度 >= 0.8 · 仅连通节点",
+        "commandSummary": "1286 条可见关系 · 2.18 边/点 · 弱关系 0% · 局部工具已收起",
+        "desktopToolPanel": null,
+        "inspectorMode": "stable-rail",
+        "inspectorResponsive": "desktop-rail-mobile-sheet",
+        "inspectorFocusContract": "mobile-trap-escape-return",
+        "inspectorDockSafeArea": "bottom-padding",
+        "inspectorSections": [
+          "header",
+          "semantic-metadata",
+          "summary",
+          "infograph-preview",
+          "relation-overview",
+          "evidence-sources",
+          "learning-actions"
+        ],
+        "mobileToolState": "closed",
+        "selectedNodeId": "传递函数_1_1",
+        "visibleNodeCount": "589",
+        "visibleLinkCount": "1286",
+        "activeElementMarker": {
+          "tag": "BUTTON",
+          "text": "",
+          "commandTrigger": null,
+          "canvasPrimary": null
+        },
+        "width": 320,
+        "height": 800,
+        "htmlClass": "dark"
+      }
+    },
+    {
+      "name": "mobile-320-view-layout-dark",
+      "screenshotPath": "artifacts/knowledge-workspace-tools-inspector-487/mobile-320-view-layout-dark.png",
+      "url": "http://127.0.0.1:3001/knowledge",
+      "state": "mobile view and layout tool opened with graph controls available",
+      "theme": "dark",
+      "viewport": "320x800",
+      "handoff": "design-handoff.md#Mobile Layout",
+      "concept": "night-bridge-semantic-map.png",
+      "markers": {
+        "commandSystemState": "closed",
+        "activeDesktopTool": "closed",
+        "activeMobileTool": "view-layout",
+        "mobileToolState": "open",
+        "mobileLayoutControls": [
+          "fit-view",
+          "relayout",
+          "pin-selected",
+          "set-focus-node",
+          "clear-pins"
+        ],
+        "width": 320,
+        "height": 800,
+        "htmlClass": "dark"
+      }
+    }
+  ]
+}

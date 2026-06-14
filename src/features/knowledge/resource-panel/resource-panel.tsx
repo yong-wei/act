@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import Image from 'next/image';
 import { BookOpen, FileText, X, ArrowRight, Link2, ChevronDown, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import { BlockMath } from 'react-katex';
@@ -54,6 +54,15 @@ const RELATION_GROUP_LABEL: Record<RelatedNode['category'], string> = {
   follows: '后续关系',
   related: '关联关系',
 };
+const MOBILE_INSPECTOR_QUERY = '(max-width: 1023px)';
+const INSPECTOR_FOCUSABLE_SELECTOR = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
 
 export function resolveResourcePanelSelectionState(
   selectedNode: KnowledgeNodeData
@@ -204,6 +213,9 @@ function ResourcePanelContent({
   const [expandedRelationGroups, setExpandedRelationGroups] = useState<Record<string, boolean>>(
     () => resolveResourcePanelSelectionState(selectedNode).expandedRelationGroups
   );
+  const inspectorRef = useRef<HTMLElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const updateTheme = () => {
@@ -259,6 +271,56 @@ function ResourcePanelContent({
       controller.abort();
     };
   }, [selectedNode]);
+
+  useEffect(() => {
+    previouslyFocusedElementRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    return () => {
+      const previous = previouslyFocusedElementRef.current;
+      if (previous?.isConnected && previous !== document.body && previous !== document.documentElement) {
+        previous.focus();
+        return;
+      }
+      document.querySelector<HTMLElement>('[data-knowledge-canvas-primary="true"]')?.focus();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!window.matchMedia(MOBILE_INSPECTOR_QUERY).matches) return;
+    window.requestAnimationFrame(() => {
+      closeButtonRef.current?.focus();
+    });
+  }, [selectedNode.id]);
+
+  const handleInspectorKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+      onClose();
+      return;
+    }
+
+    if (event.key !== 'Tab' || !window.matchMedia(MOBILE_INSPECTOR_QUERY).matches) return;
+
+    const focusable = Array.from(
+      inspectorRef.current?.querySelectorAll<HTMLElement>(INSPECTOR_FOCUSABLE_SELECTOR) ?? []
+    ).filter((item) => !item.hasAttribute('disabled') && item.tabIndex !== -1);
+    if (focusable.length === 0) {
+      event.preventDefault();
+      inspectorRef.current?.focus();
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }, [onClose]);
 
   const currentNodeDetail = nodeDetailOwnerId === selectedNode.id ? nodeDetail : null;
   const displayNode = (currentNodeDetail || selectedNode) as KnowledgeNodeDetail | null;
@@ -329,17 +391,32 @@ function ResourcePanelContent({
 
   return (
     <aside
-      className={`absolute right-2 top-2 z-50 h-[calc(100%-1rem)] w-[min(22rem,calc(100vw-1rem))] transform overflow-y-auto rounded-lg shadow-lg transition-transform duration-300 ${panelTheme.shell} translate-x-0`}
+      ref={inspectorRef}
+      role="dialog"
+      aria-modal="false"
+      tabIndex={-1}
+      onKeyDown={handleInspectorKeyDown}
+      className={`fixed inset-x-2 bottom-2 z-50 max-h-[72vh] overflow-y-auto rounded-xl pb-16 shadow-xl transition-transform duration-300 lg:relative lg:inset-auto lg:z-20 lg:h-full lg:max-h-none lg:w-[clamp(22.5rem,30vw,28.75rem)] lg:shrink-0 lg:rounded-none lg:border-y-0 lg:border-r-0 lg:pb-0 lg:shadow-none ${panelTheme.shell} translate-x-0`}
       data-knowledge-local-panel="resource-panel"
+      data-knowledge-inspector="stable-rail"
+      data-knowledge-inspector-responsive="desktop-rail-mobile-sheet"
+      data-knowledge-inspector-focus-contract="mobile-trap-escape-return"
+      data-knowledge-inspector-dock-safe-area="bottom-padding"
+      aria-label="知识节点检查器"
     >
-      <div className={`sticky top-0 z-10 flex items-center justify-between border-b p-4 ${panelTheme.header}`}>
+      <div
+        className={`sticky top-0 z-10 flex items-center justify-between border-b p-4 ${panelTheme.header}`}
+        data-knowledge-inspector-section="header"
+      >
         <div className="flex min-w-0 items-center gap-2">
-          <FileText className="h-4 w-4 shrink-0 text-sky-500" />
+          <FileText className="h-4 w-4 shrink-0 text-platform-action-primary" />
           <span className="truncate text-sm font-medium">{selectedNode.name}</span>
         </div>
         <button type="button"
+          ref={closeButtonRef}
           onClick={onClose}
-          className={`shrink-0 transition-colors ${isLightTheme ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-slate-200'}`}
+          className="shrink-0 text-platform-fg-muted transition-colors hover:text-platform-fg-primary"
+          aria-label="关闭知识节点检查器"
         >
           <X className="h-4 w-4" />
         </button>
@@ -349,9 +426,9 @@ function ResourcePanelContent({
 
       {!isLoading && (
         <div className="space-y-4 p-4">
-          <section className="space-y-3">
+          <section className="space-y-3" data-knowledge-inspector-section="semantic-metadata">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center rounded-full bg-sky-600 px-2.5 py-0.5 text-xs font-medium text-white">
+              <span className="inline-flex items-center rounded-full bg-platform-action-primary px-2.5 py-0.5 text-xs font-medium text-platform-fg-inverse">
                 {isVirtualChapter ? '章节节点' : typeLabel}
               </span>
               {bloomLabel && !isVirtualChapter && (
@@ -379,13 +456,15 @@ function ResourcePanelContent({
               )}
             </div>
 
-            <p className={`text-sm leading-relaxed ${panelTheme.text}`}>{displayNode.description}</p>
+            <p className={`text-sm leading-relaxed ${panelTheme.text}`} data-knowledge-inspector-section="summary">
+              {displayNode.description}
+            </p>
           </section>
 
           {infographSrc && (
-            <section className={`overflow-hidden rounded-lg border ${panelTheme.block}`}>
+            <section className={`overflow-hidden rounded-lg border ${panelTheme.block}`} data-knowledge-inspector-section="infograph-preview">
               <div className={`flex items-center gap-2 border-b px-3 py-2 text-sm font-medium ${panelTheme.blockTitle} ${isLightTheme ? 'border-slate-200' : 'border-blue-500/20'}`}>
-                <ImageIcon className="h-4 w-4 text-sky-500" />
+                <ImageIcon className="h-4 w-4 text-platform-action-primary" />
                 知识点信息图
               </div>
               <Image
@@ -454,9 +533,9 @@ function ResourcePanelContent({
           )}
 
           {!isVirtualChapter && relationGroups.length > 0 && (
-            <section className={`rounded-lg border p-3 ${panelTheme.block}`}>
+            <section className={`rounded-lg border p-3 ${panelTheme.block}`} data-knowledge-inspector-section="relation-overview">
               <div className="mb-3 flex items-center gap-2">
-                <Link2 className="h-4 w-4 text-sky-500" />
+                <Link2 className="h-4 w-4 text-platform-action-primary" />
                 <h3 className={`text-sm font-medium ${panelTheme.blockTitle}`}>关联知识点</h3>
               </div>
               <div className="space-y-2">
@@ -531,10 +610,10 @@ function ResourcePanelContent({
           )}
 
           {!isVirtualChapter && (
-            <section className={`rounded-lg border p-3 ${panelTheme.block}`}>
+            <section className={`rounded-lg border p-3 ${panelTheme.block}`} data-knowledge-inspector-section="evidence-sources">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <BookOpen className="h-4 w-4 text-sky-500" />
+                  <BookOpen className="h-4 w-4 text-platform-action-primary" />
                   <h3 className={`text-sm font-medium ${panelTheme.blockTitle}`}>知识卡片</h3>
                 </div>
                 {hasKnowledgeCard ? (
@@ -559,6 +638,7 @@ function ResourcePanelContent({
             <section
               className="rounded-lg border border-platform-border bg-platform-surface p-3"
               data-resource-node-launch-contract="launch-return-evidence"
+              data-knowledge-inspector-section="learning-actions"
             >
               <div className="mb-3 flex items-center gap-2">
                 <ArrowRight className="h-4 w-4 text-platform-action-primary" />

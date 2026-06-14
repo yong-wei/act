@@ -300,6 +300,83 @@ describe('knowledge graph interaction state stability', () => {
     expect(governanceSource).toContain('preservedZAxisAnchorFor2DPin');
   });
 
+  it('keeps knowledge graph desktop tools in one compact local command system', () => {
+    const systemSource = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-system.tsx'),
+      'utf8'
+    );
+
+    expect(systemSource).toContain("type KnowledgeMobileTool = 'chapter-directory' | 'relation-filters' | 'legend' | 'view-layout';");
+    expect(systemSource).toContain('type KnowledgeDesktopTool = KnowledgeMobileTool;');
+    expect(systemSource).toContain('const [desktopActiveTool, setDesktopActiveTool] = useState<KnowledgeDesktopTool | null>(null);');
+    expect(systemSource).toContain('data-knowledge-desktop-command-system="compact"');
+    expect(systemSource).toContain('data-knowledge-local-tool-summary="desktop"');
+    expect(systemSource).toContain('data-knowledge-command-trigger={item.id}');
+    expect(systemSource).toContain('data-knowledge-desktop-tool-panel={desktopActiveTool}');
+    expect(systemSource).toContain('aria-controls={`${DESKTOP_TOOL_PANEL_ID_PREFIX}-${item.id}`}');
+    expect(systemSource).toContain('handleDesktopToolPanelKeyDown');
+    expect(systemSource).toContain("if (event.key !== 'Escape') return;");
+    expect(systemSource).toContain('desktopToolTriggerRefs.current[previousTool]?.focus();');
+    expect(systemSource).toContain("desktopActiveTool === 'chapter-directory'");
+    expect(systemSource).toContain("desktopActiveTool === 'relation-filters'");
+    expect(systemSource).toContain("desktopActiveTool === 'legend'");
+    expect(systemSource).toContain("desktopActiveTool === 'view-layout'");
+    expect(systemSource).toContain("['view-layout', '视图']");
+    expect(systemSource).toContain("mobileActiveTool === 'view-layout'");
+    expect(systemSource).toContain('data-knowledge-mobile-drawer="view-layout"');
+    expect(systemSource).toContain('data-knowledge-local-panel="view-layout-controls"');
+    expect(systemSource).toContain('data-knowledge-active-filter-summary={activeFilterSummary}');
+    expect(systemSource).not.toContain('desktopChapterDirectoryOpen');
+    expect(systemSource).not.toContain('desktopRelationFiltersOpen');
+    expect(systemSource).not.toContain('data-knowledge-local-panel="view-mode-switch"');
+    expect(systemSource).not.toContain('data-knowledge-local-panel="layout-controls"');
+  });
+
+  it('renders selected knowledge nodes through a stable inspector hierarchy', () => {
+    const resourcePanelSource = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/resource-panel/resource-panel.tsx'),
+      'utf8'
+    );
+
+    expect(resourcePanelSource).toContain('data-knowledge-inspector="stable-rail"');
+    expect(resourcePanelSource).toContain('data-knowledge-inspector-responsive="desktop-rail-mobile-sheet"');
+    expect(resourcePanelSource).toContain('data-knowledge-inspector-focus-contract="mobile-trap-escape-return"');
+    expect(resourcePanelSource).toContain('data-knowledge-inspector-dock-safe-area="bottom-padding"');
+    expect(resourcePanelSource).toContain('role="dialog"');
+    expect(resourcePanelSource).toContain('handleInspectorKeyDown');
+    expect(resourcePanelSource).toContain("if (event.key === 'Escape')");
+    expect(resourcePanelSource).toContain("window.matchMedia(MOBILE_INSPECTOR_QUERY).matches");
+    expect(resourcePanelSource).toContain('closeButtonRef.current?.focus();');
+    expect(resourcePanelSource).toContain('}, [selectedNode.id]);');
+    expect(resourcePanelSource).toContain("document.querySelector<HTMLElement>('[data-knowledge-canvas-primary=\"true\"]')?.focus();");
+    expect(resourcePanelSource).toContain('lg:w-[clamp(22.5rem,30vw,28.75rem)]');
+    expect(resourcePanelSource).toContain('data-knowledge-inspector-section="header"');
+    expect(resourcePanelSource).toContain('data-knowledge-inspector-section="semantic-metadata"');
+    expect(resourcePanelSource).toContain('data-knowledge-inspector-section="summary"');
+    expect(resourcePanelSource).toContain('data-knowledge-inspector-section="infograph-preview"');
+    expect(resourcePanelSource).toContain('data-knowledge-inspector-section="relation-overview"');
+    expect(resourcePanelSource).toContain('data-knowledge-inspector-section="learning-actions"');
+    expect(resourcePanelSource).toContain('data-knowledge-inspector-section="evidence-sources"');
+    expect(resourcePanelSource).not.toContain('w-[min(22rem,calc(100vw-1rem))]');
+  });
+
+  it('registers #487 browser evidence as a governance hard gate', () => {
+    const governanceSource = readFileSync(
+      path.join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'),
+      'utf8'
+    );
+
+    expect(governanceSource).toContain('KNOWLEDGE_WORKSPACE_TOOLS_INSPECTOR_EVIDENCE_PATH');
+    expect(governanceSource).toContain('artifacts/knowledge-workspace-tools-inspector-487/browser-evidence.json');
+    expect(governanceSource).toContain('validateKnowledgeWorkspaceToolsInspectorEvidence');
+    expect(governanceSource).toContain('desktopToolPaths');
+    expect(governanceSource).toContain('openedFocusWithinPanel');
+    expect(governanceSource).toContain('focusReturnedToTrigger');
+    expect(governanceSource).toContain('mobileInspector');
+    expect(governanceSource).toContain('focusReturnedToCanvas');
+    expect(governanceSource).toContain('inspectorDockSafeArea');
+  });
+
   it('resets resource inspector detail state when selection changes without remounting the panel', () => {
     const ordinaryState = resolveResourcePanelSelectionState(graphNode('node-a'));
     const chapterState = resolveResourcePanelSelectionState({
