@@ -437,9 +437,9 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
             const screenshot = simulationViewportArtifact(viewport.screenshot);
             return {
               ...viewport,
-              artifact: artifact?.pathname,
+              artifact: viewport.artifact,
               artifactSha256: artifact?.sha256,
-              screenshot: screenshot?.pathname,
+              screenshot: viewport.screenshot,
               screenshotSha256: screenshot?.sha256,
               screenshotWidth: screenshot?.width,
               screenshotHeight: screenshot?.height,

@@ -1689,6 +1689,7 @@ describe('commercial UI governance', () => {
     expect(scriptSource).not.toContain('visualEvidence.some((entry) => entry.href === route.href && entry.simulationVisualQa)');
     expect(scriptSource).toContain('route.simulationVisualQa.viewports.map');
     expect(scriptSource).toContain('const screenshot = simulationViewportArtifact(viewport.screenshot)');
+    expect(scriptSource).toContain('screenshot: viewport.screenshot');
     expect(scriptSource).toContain('screenshotSha256: screenshot?.sha256');
     expect(scriptSource).toContain('screenshotWidth: screenshot?.width');
   });
