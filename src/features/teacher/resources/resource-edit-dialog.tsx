@@ -54,8 +54,8 @@ export function ResourceEditDialog({
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">显示名称</label>
-            <input
+            <label htmlFor="resource-edit-dialog-control-1" className="text-sm font-medium text-slate-300">显示名称</label>
+            <input id="resource-edit-dialog-control-1" aria-label="输入显示名称"
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
@@ -67,8 +67,8 @@ export function ResourceEditDialog({
             </p>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">描述</label>
-            <textarea
+            <label htmlFor="resource-edit-dialog-control-2" className="text-sm font-medium text-slate-300">描述</label>
+            <textarea id="resource-edit-dialog-control-2" aria-label="输入资源描述"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="w-full h-24 bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-white text-sm resize-none focus:border-cyan-500 outline-none"
@@ -77,14 +77,14 @@ export function ResourceEditDialog({
           </div>
         </div>
         <div className="flex justify-end gap-3">
-          <button
+          <button type="button"
             onClick={() => onOpenChange(false)}
             disabled={isSaving}
             className="px-4 py-2 text-slate-400 hover:text-white transition disabled:opacity-50"
           >
             取消
           </button>
-          <button
+          <button type="button"
             onClick={handleSave}
             disabled={isSaving}
             className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-md transition disabled:opacity-50"

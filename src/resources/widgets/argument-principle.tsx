@@ -100,7 +100,7 @@ export default function ArgumentPrincipleWidget({
   };
 
   return (
-    <div
+    <div tabIndex={0} role="button" onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click(); } }}
       className={`relative flex h-full w-full flex-col bg-slate-950 ${className}`}
       onClick={handleInteraction}
     >
@@ -121,7 +121,7 @@ export default function ArgumentPrincipleWidget({
 
       {/* AI Assistant Button */}
       {embedded && (
-        <button
+        <button type="button"
           onClick={(e) => {
             e.stopPropagation();
             askAI();
@@ -139,7 +139,7 @@ export default function ArgumentPrincipleWidget({
         <div className="absolute bottom-16 right-4 z-20 w-80 max-h-60 overflow-y-auto rounded-lg border border-slate-700 bg-slate-900/95 p-4 shadow-xl">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-medium text-emerald-400">AI 助手</span>
-            <button
+            <button type="button"
               onClick={() => setShowAIPanel(false)}
               className="text-slate-500 hover:text-slate-300"
             >

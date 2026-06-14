@@ -224,7 +224,7 @@ export default function JudgeBenchSim({ onComplete, onStateChange }: JudgeBenchS
                 />
               </label>
             </div>
-            <button
+            <button type="button"
               onClick={handleRun}
               className="mt-4 w-full rounded-lg bg-slate-900 py-2 text-sm font-semibold text-white"
             >

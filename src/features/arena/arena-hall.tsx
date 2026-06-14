@@ -223,7 +223,7 @@ export function ArenaHall({
               <Search className="h-5 w-5 text-primary" />
             </div>
             <div className="relative z-10 mt-4 grid flex-1 content-start gap-3 md:grid-cols-2 xl:grid-cols-3">
-              <input
+              <input aria-label="搜索对象、目标或知识点"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="搜索对象、目标或知识点"

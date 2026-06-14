@@ -50,7 +50,7 @@ export default async function TeacherLessonPlansPage() {
             </p>
           </div>
           <Link href="/teacher/lesson-plans/new?returnTo=%2Fteacher%2Flesson-plans">
-            <button className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-cyan-900/20">
+            <button type="button" className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-lg shadow-cyan-900/20">
               <Plus className="h-5 w-5" />
               新建教案
             </button>
@@ -73,7 +73,7 @@ export default async function TeacherLessonPlansPage() {
               <h3 className="text-lg font-medium text-slate-300">暂无教案</h3>
               <p className="text-slate-500 mt-1 mb-6">创建一个新的 BOPPPS 教案开始教学设计</p>
               <Link href="/teacher/lesson-plans/new?returnTo=%2Fteacher%2Flesson-plans">
-                <button className="text-cyan-400 hover:text-cyan-300 font-medium">
+                <button type="button" className="text-cyan-400 hover:text-cyan-300 font-medium">
                    立即创建 &rarr;
                 </button>
               </Link>

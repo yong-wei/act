@@ -7,7 +7,7 @@
  * 支持可编辑的报告模板、数据可视化类型和语音播报脚本。
  */
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useId, useMemo } from 'react';
 import {
   FileText,
   BarChart3,
@@ -86,6 +86,11 @@ export function AIDynamicReport({
   isGenerating = false,
   onGenerated,
 }: AIDynamicReportProps) {
+  const idPrefix = useId();
+  const titleInputId = `${idPrefix}-report-title`;
+  const templateInputId = `${idPrefix}-report-template`;
+  const enableVoiceId = `${idPrefix}-enable-voice`;
+
   // 防御性检查：确保 reportTemplate 存在
   const reportTemplate = config?.reportTemplate ?? '';
   const isValidConfig = !!reportTemplate;
@@ -206,14 +211,14 @@ export function AIDynamicReport({
             编辑报告配置
           </h3>
           <div className="flex gap-2">
-            <button
+            <button type="button"
               onClick={handleSaveEdit}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-500"
             >
               <Save className="h-4 w-4" />
               保存
             </button>
-            <button
+            <button type="button"
               onClick={() => setIsEditing(false)}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300"
             >
@@ -226,8 +231,8 @@ export function AIDynamicReport({
         {/* 编辑表单 */}
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">标题</label>
-            <input
+            <label htmlFor={titleInputId} className="block text-sm font-medium text-slate-700 mb-1">标题</label>
+            <input id={titleInputId}
               type="text"
               value={editConfig.title}
               onChange={(e) =>
@@ -237,14 +242,14 @@ export function AIDynamicReport({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label htmlFor={templateInputId} className="block text-sm font-medium text-slate-700 mb-1">
               报告模板
               <span className="text-xs text-slate-400 ml-2">
                 可用变量: {'{totalStudents}'}, {'{completedStudents}'}, {'{completionRate}'}, {'{averageScore}'},{' '}
                 {'{violationRate}'}
               </span>
             </label>
-            <textarea
+            <textarea id={templateInputId}
               value={editConfig.reportTemplate}
               onChange={(e) =>
                 setEditConfig((prev) => ({ ...prev, reportTemplate: e.target.value }))
@@ -254,10 +259,10 @@ export function AIDynamicReport({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">可视化类型</label>
+            <p className="block text-sm font-medium text-slate-700 mb-2">可视化类型</p>
             <div className="flex gap-2">
               {['bar', 'pie', 'line'].map((type) => (
-                <button
+                <button type="button"
                   key={type}
                   onClick={() =>
                     setEditConfig((prev) => ({
@@ -284,14 +289,14 @@ export function AIDynamicReport({
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
-              id="enableVoice"
+              id={enableVoiceId}
               checked={editConfig.enableVoice}
               onChange={(e) =>
                 setEditConfig((prev) => ({ ...prev, enableVoice: e.target.checked }))
               }
               className="rounded border-slate-300"
             />
-            <label htmlFor="enableVoice" className="text-sm text-slate-700">
+            <label htmlFor={enableVoiceId} className="text-sm text-slate-700">
               启用语音播报
             </label>
           </div>
@@ -374,7 +379,7 @@ export function AIDynamicReport({
         {/* 语音控制 */}
         {config.enableVoice && (
           <div className="flex items-center gap-3 mt-4 pt-4 border-t border-violet-200">
-            <button
+            <button type="button"
               onClick={handleTogglePlay}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isPlaying
@@ -410,7 +415,7 @@ export function AIDynamicReport({
       )}
 
       {/* 详细信息折叠 */}
-      <button
+      <button type="button"
         onClick={() => setShowDetails(!showDetails)}
         className="w-full flex items-center justify-center gap-2 py-3 text-sm text-slate-500 hover:text-slate-700 transition-colors"
       >
@@ -489,7 +494,7 @@ export function AIDynamicReport({
 
       {/* 编辑按钮 */}
       {mode === 'edit' && !isEditing && (
-        <button
+        <button type="button"
           onClick={() => setIsEditing(true)}
           className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-slate-300 rounded-lg text-sm text-slate-500 hover:border-blue-500 hover:text-blue-500 transition-colors"
         >

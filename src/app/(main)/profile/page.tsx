@@ -204,7 +204,7 @@ export default function ProfilePage() {
         <div className="text-center">
           <p className="mb-2 text-xs font-medium uppercase tracking-[0.24em] text-primary">学习入口 · 复盘</p>
           <p className="text-xl text-red-400">{error || '加载失败'}</p>
-          <button onClick={fetchProfile} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
+          <button type="button" onClick={fetchProfile} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
             重试
           </button>
           <Link href="/dashboard" className="btn-ghost-themed ml-2 inline-block rounded-lg px-6 py-2">
@@ -507,7 +507,7 @@ export default function ProfilePage() {
                 </p>
               </div>
               {profile.recentActivity.total > 3 && (
-                <button
+                <button type="button"
                   onClick={() => setShowAllActivities((value) => !value)}
                   className="rounded-full border border-border/70 px-4 py-2 text-sm text-foreground transition hover:border-amber-500/40 hover:text-amber-600 dark:hover:text-amber-300"
                 >

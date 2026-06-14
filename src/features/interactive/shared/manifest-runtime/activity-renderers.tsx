@@ -964,7 +964,7 @@ function StudentCardAnswerInput({
   }
 
   return (
-    <textarea
+    <textarea aria-label="写出判断依据。"
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder="写出判断依据。"

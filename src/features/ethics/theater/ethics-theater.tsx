@@ -83,7 +83,7 @@ export function EthicsTheater({
               <p className="mb-6 max-w-md text-sm text-slate-400">
                 点击下方按钮开始倒计时，在规定时间内做出您的伦理决策。
               </p>
-              <button
+              <button type="button"
                 onClick={onStartDecision}
                 className="flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 font-medium text-white transition-colors hover:bg-emerald-500"
               >
@@ -118,7 +118,7 @@ export function EthicsTheater({
               <CheckCircle className="mb-4 h-16 w-16 text-emerald-400" />
               <h2 className="mb-2 text-xl font-medium text-emerald-400">决策已提交</h2>
               <p className="mb-4 text-slate-300">您选择了：{selectedOption.label}</p>
-              <button
+              <button type="button"
                 onClick={onReset}
                 className="flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 text-slate-300 transition-colors hover:bg-slate-700"
               >
@@ -134,7 +134,7 @@ export function EthicsTheater({
       {isTimerRunning && !decisionMade && (
         <div className="grid gap-4 md:grid-cols-3">
           {decisionOptions.map((option) => (
-            <button
+            <button type="button"
               key={option.id}
               onClick={() => onSubmitDecision(option)}
               className="group rounded-xl border border-slate-600 bg-slate-800/50 p-4 text-left transition-all hover:border-emerald-500/50 hover:bg-emerald-500/10"

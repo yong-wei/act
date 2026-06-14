@@ -864,7 +864,7 @@ function RobustAssessmentPanel() {
         {disturbance.map((item, index) => (
           <div key={item.name} className="grid grid-cols-[1fr_84px] items-center gap-2 rounded border border-slate-300 bg-white p-2 text-xs">
             <span className="text-slate-700">{item.name}</span>
-            <input
+            <input aria-label="破冰船仿真参数"
               type="number"
               step={0.1}
               value={item.intensity}

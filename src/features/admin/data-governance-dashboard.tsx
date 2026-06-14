@@ -149,7 +149,7 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
           </span>
         }
         actions={
-          <button
+          <button type="button"
             onClick={fetchStatus}
             className="admin-console-button-primary"
             disabled={loading}

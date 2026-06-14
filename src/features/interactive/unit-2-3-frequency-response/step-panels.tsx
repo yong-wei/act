@@ -731,7 +731,7 @@ function TextInput({
   placeholder: string;
 }) {
   return (
-    <textarea
+    <textarea aria-label={placeholder}
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
@@ -836,7 +836,7 @@ export function UNIT_2_3StudentActivityForm({
             <div className="grid gap-4 md:grid-cols-2">
               <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                 <div className="premium-lesson-title text-sm font-medium">保留谐波个数</div>
-                <input
+                <input aria-label="保留谐波个数"
                   type="range"
                   min={1}
                   max={9}
@@ -848,7 +848,7 @@ export function UNIT_2_3StudentActivityForm({
               </div>
               <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                 <div className="premium-lesson-title text-sm font-medium">高频衰减强度</div>
-                <input
+                <input aria-label="高频衰减强度"
                   type="range"
                   min={0}
                   max={100}

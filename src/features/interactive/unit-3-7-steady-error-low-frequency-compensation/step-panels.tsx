@@ -1046,7 +1046,7 @@ function TextInput({
   placeholder: string;
 }) {
   return (
-    <textarea
+    <textarea aria-label="稳态误差补偿学习记录"
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}

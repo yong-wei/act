@@ -543,7 +543,7 @@ function FinStabilizerPanel({
     <div className="rounded-lg bg-slate-800 p-3">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs font-semibold text-slate-400">减摇鳍</span>
-        <button
+        <button type="button"
           onClick={onToggle}
           className={`rounded px-2 py-0.5 text-xs ${
             enabled ? 'bg-green-600' : 'bg-slate-600'
@@ -607,7 +607,7 @@ function NotchFilterPanel({
     <div className="rounded-lg bg-slate-800 p-3">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs font-semibold text-slate-400">陷波滤波器</span>
-        <button
+        <button type="button"
           onClick={onToggle}
           className={`rounded px-2 py-0.5 text-xs ${
             enabled ? 'bg-green-600' : 'bg-slate-600'
@@ -714,21 +714,21 @@ function ControllerPanel({
       {/* 仿真控制 */}
       <div className="flex gap-2">
         {!state.isRunning ? (
-          <button
+          <button type="button"
             onClick={onStart}
             className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonPrimary}`}
           >
             开始仿真
           </button>
         ) : (
-          <button
+          <button type="button"
             onClick={onPause}
             className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonSecondary}`}
           >
             {state.isPaused ? '继续' : '暂停'}
           </button>
         )}
-        <button
+        <button type="button"
           onClick={onReset}
           className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonOutline}`}
         >
@@ -756,7 +756,7 @@ function ControllerPanel({
             ({state.seaState <= 2 ? '轻浪' : state.seaState <= 4 ? '中浪' : '大浪'})
           </span>
         </label>
-        <input
+        <input aria-label="巡航舒适性参数一"
           type="range"
           min="1"
           max="7"
@@ -774,7 +774,7 @@ function ControllerPanel({
             ({state.waveDirection === 90 || state.waveDirection === 270 ? '横浪' : state.waveDirection === 0 || state.waveDirection === 180 ? '纵浪' : '斜浪'})
           </span>
         </label>
-        <input
+        <input aria-label="巡航舒适性参数二"
           type="range"
           min="0"
           max="360"
@@ -786,10 +786,10 @@ function ControllerPanel({
 
       {/* 控制模式 */}
       <div>
-        <label className="mb-1 block text-xs text-slate-400">控制模式</label>
+        <p className="mb-1 block text-xs text-slate-400">控制模式</p>
         <div className="flex flex-wrap gap-1">
           {(['manual', 'p', 'pd', 'pid'] as ControlMode[]).map((mode) => (
-            <button
+            <button type="button"
               key={mode}
               onClick={() => onControlModeChange(mode)}
               className={`rounded border px-2 py-1 text-xs ${
@@ -809,7 +809,7 @@ function ControllerPanel({
           <label className="mb-1 block text-xs text-slate-400">
             手动舵角: {state.manualRudder.toFixed(0)}°
           </label>
-          <input
+          <input aria-label="巡航舒适性参数三"
             type="range"
             min={-CRUISE_ADORA_PARAMS.MAX_RUDDER_ANGLE}
             max={CRUISE_ADORA_PARAMS.MAX_RUDDER_ANGLE}

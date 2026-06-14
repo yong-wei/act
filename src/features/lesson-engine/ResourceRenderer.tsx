@@ -106,7 +106,7 @@ function ConceptViewer({ contentPath, extraContext, onComplete }: ConceptViewerP
         </div>
 
         {onComplete && (
-          <button
+          <button type="button"
             onClick={() => onComplete()}
             className="mt-6 rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-400"
           >
@@ -248,7 +248,7 @@ function QuizViewer({ questions, passingScore = 60, onComplete }: QuizViewerProp
             </p>
             <div className="space-y-2">
               {q.options.map((option, optIndex) => (
-                <button
+                <button type="button"
                   key={optIndex}
                   className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-left text-sm text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-700"
                 >
@@ -263,7 +263,7 @@ function QuizViewer({ questions, passingScore = 60, onComplete }: QuizViewerProp
         ))}
 
         {onComplete && (
-          <button
+          <button type="button"
             onClick={() => onComplete(100)} // 简化：直接满分
             className="w-full rounded-lg bg-green-500 py-3 font-medium text-white hover:bg-green-400"
           >
@@ -300,7 +300,7 @@ function VideoViewer({ videoUrl, duration, onComplete }: VideoViewerProps) {
       </div>
 
       {onComplete && (
-        <button
+        <button type="button"
           onClick={() => onComplete()}
           className="mt-4 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-amber-400"
         >

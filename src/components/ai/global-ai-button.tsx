@@ -57,7 +57,7 @@ export function GlobalAITextButton() {
   const isDark = mounted ? theme !== 'light' : true;
 
   return (
-    <button
+    <button type="button"
       onClick={toggleSidebar}
       className={`
         flex items-center gap-3 rounded-xl px-4 py-3 shadow-lg

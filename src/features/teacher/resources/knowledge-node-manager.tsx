@@ -202,7 +202,7 @@ export function KnowledgeNodeManager({
           style={{ paddingLeft: `${depth * 24 + 12}px` }}
         >
           {/* 展开/折叠按钮 */}
-          <button
+          <button type="button"
             onClick={() => toggleExpand(node.id)}
             className={`p-0.5 rounded hover:bg-slate-600 ${hasChildren ? '' : 'invisible'}`}
           >
@@ -226,14 +226,14 @@ export function KnowledgeNodeManager({
 
           {/* 操作按钮 */}
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
+            <button type="button"
               onClick={() => setPreviewNode(node)}
               className="p-1.5 text-slate-400 hover:text-emerald-400 hover:bg-slate-600 rounded"
               title="预览"
             >
               <Eye className="h-3.5 w-3.5" />
             </button>
-            <button
+            <button type="button"
               onClick={() => setEditingNode(node)}
               className="p-1.5 text-slate-400 hover:text-cyan-400 hover:bg-slate-600 rounded"
               title="编辑"

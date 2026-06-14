@@ -97,7 +97,7 @@ export default function MissionsPage() {
       <div className="surface-page flex items-center justify-center">
         <div className="text-center">
           <p className="text-xl text-red-400">{error}</p>
-          <button
+          <button type="button"
             onClick={fetchMissions}
             className="btn-ghost-themed mt-4 rounded-lg border px-6 py-2"
           >
@@ -227,7 +227,7 @@ export default function MissionsPage() {
                   : '你还没有完成任何任务，开始第一个挑战吧！'}
             </p>
             {filter !== 'all' && (
-              <button
+              <button type="button"
                 onClick={() => setFilter('all')}
                 className="btn-ghost-themed mt-4 rounded-lg border px-4 py-2"
               >
@@ -301,7 +301,7 @@ function FilterButton({
   count: number;
 }) {
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
         active

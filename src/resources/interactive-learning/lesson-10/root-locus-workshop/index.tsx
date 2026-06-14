@@ -293,7 +293,7 @@ export default function RootLocusWorkshop({
               {sections.map((section) => {
                 const sectionCompleted = completedIds.includes(section.id);
                 return (
-                  <button
+                  <button type="button"
                     key={section.id}
                     onClick={() => setActiveId(section.id)}
                     className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${
@@ -339,7 +339,7 @@ export default function RootLocusWorkshop({
             {activeSection.options.map((option) => {
               const selected = selectedOptions.includes(option.id);
               return (
-                <button
+                <button type="button"
                   key={option.id}
                   onClick={() => toggleOption(activeId, option.id, activeSection.multiSelect)}
                   className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm transition-colors ${
@@ -360,7 +360,7 @@ export default function RootLocusWorkshop({
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <button
+            <button type="button"
               onClick={() => handleCheck(activeId)}
               className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
             >

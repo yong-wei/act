@@ -34,7 +34,7 @@ export function AnalysisResultPanel({
 
   return (
     <div className="rounded-xl border border-slate-700/50 bg-slate-900/80 backdrop-blur-sm">
-      <button
+      <button type="button"
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex w-full items-center justify-between p-4"
       >

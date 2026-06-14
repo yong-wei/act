@@ -751,7 +751,7 @@ function ParameterMirrorPanel({
             <div className="premium-lesson-title text-sm font-medium">
               <InlineMath math={config.key} /> 共享增益滑块
             </div>
-            <input
+            <input aria-label="设计任务参数"
               type="range"
               min={config.min}
               max={config.max}

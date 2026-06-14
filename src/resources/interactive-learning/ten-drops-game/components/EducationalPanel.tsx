@@ -63,7 +63,7 @@ export const EducationalPanel = memo(function EducationalPanel({
             <Lightbulb className="h-5 w-5 text-blue-400" />
             <h2 className="text-lg font-bold text-white">学习提示</h2>
           </div>
-          <button
+          <button type="button"
             onClick={onClose}
             className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
             aria-label="关闭"
@@ -112,7 +112,7 @@ export const EducationalPanel = memo(function EducationalPanel({
 
         {/* 底部 */}
         <div className="p-4 bg-slate-900/50 border-t border-slate-700">
-          <button
+          <button type="button"
             onClick={onClose}
             className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
           >

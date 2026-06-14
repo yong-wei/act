@@ -81,7 +81,7 @@ export function InteractiveResourceList({
     <div className="space-y-6">
       {/* 分类筛选 */}
       <div className="flex flex-wrap gap-2">
-        <button
+        <button type="button"
           onClick={() => setSelectedCategory(null)}
           className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
             !selectedCategory
@@ -96,7 +96,7 @@ export function InteractiveResourceList({
           if (!config) return null;
           const Icon = config.icon;
           return (
-            <button
+            <button type="button"
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors ${
@@ -156,7 +156,7 @@ export function InteractiveResourceList({
                         )}
                       </div>
                     </div>
-                    <button
+                    <button type="button"
                       onClick={() => setEditingResource(resource)}
                       className="ml-2 p-1.5 text-slate-500 hover:text-cyan-400 hover:bg-slate-700 rounded transition-colors"
                       title="编辑"

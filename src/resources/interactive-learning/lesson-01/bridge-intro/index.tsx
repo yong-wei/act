@@ -91,7 +91,7 @@ export default function FeedbackBridgeIntro({ onComplete, onStateChange }: Feedb
             <p className="text-sm font-semibold text-slate-700">你会强调哪一步？</p>
             <div className="mt-4 space-y-3">
               {OPTIONS.map((option) => (
-                <button
+                <button type="button"
                   key={option.id}
                   onClick={() => setSelected(option.id)}
                   className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition-colors ${
@@ -110,7 +110,7 @@ export default function FeedbackBridgeIntro({ onComplete, onStateChange }: Feedb
 
         <div className="mt-6 flex items-center justify-between gap-3">
           <p className="text-xs text-slate-500">选择后进入反馈控制核心概念。</p>
-          <button
+          <button type="button"
             onClick={handleComplete}
             disabled={!selected || completed}
             className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs ${

@@ -184,11 +184,11 @@ export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps)
         }
         actions={
           <>
-            <button onClick={toggleDemoMode} className="admin-console-button">
+            <button type="button" onClick={toggleDemoMode} className="admin-console-button">
               {demoMode ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
               {demoMode ? '演示模式：开' : '演示模式：关'}
             </button>
-            <button onClick={refreshData} disabled={loading} className="admin-console-button disabled:opacity-50">
+            <button type="button" onClick={refreshData} disabled={loading} className="admin-console-button disabled:opacity-50">
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               刷新
             </button>

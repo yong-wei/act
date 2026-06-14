@@ -9,7 +9,7 @@
  * - 编辑模式下的配置
  */
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import {
   Target,
   Settings,
@@ -88,6 +88,9 @@ function ObjectiveEditor({
   config: ObjectiveCardConfig;
   onConfigChange?: (config: ObjectiveCardConfig) => void;
 }) {
+  const idPrefix = useId();
+  const titleInputId = `${idPrefix}-objective-title`;
+
   const updateConfig = (updates: Partial<ObjectiveCardConfig>) => {
     onConfigChange?.({ ...config, ...updates });
   };
@@ -123,8 +126,8 @@ function ObjectiveEditor({
 
       {/* 标题 */}
       <div>
-        <label className="block text-sm text-slate-400 mb-1">卡片标题</label>
-        <input
+        <label htmlFor={titleInputId} className="block text-sm text-slate-400 mb-1">卡片标题</label>
+        <input id={titleInputId}
           type="text"
           value={config.title}
           onChange={(e) => updateConfig({ title: e.target.value })}
@@ -136,12 +139,12 @@ function ObjectiveEditor({
       {/* 目标列表 */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="text-sm text-slate-400">目标列表</label>
+          <p className="text-sm text-slate-400">目标列表</p>
           <div className="flex gap-2">
             {(['knowledge', 'ability', 'value'] as ObjectiveType[]).map((type) => {
               const typeConfig = OBJECTIVE_TYPE_CONFIG[type];
               return (
-                <button
+                <button type="button"
                   key={type}
                   onClick={() => addObjective(type)}
                   className={`flex items-center gap-1 px-2 py-1 text-xs ${typeConfig.color} hover:bg-slate-700 rounded`}
@@ -159,6 +162,7 @@ function ObjectiveEditor({
           {config.objectives.map((objective, index) => {
             const typeConfig = OBJECTIVE_TYPE_CONFIG[objective.type];
             const TypeIcon = typeConfig.icon;
+            const objectiveIdPrefix = `${idPrefix}-objective-${objective.id || index}`;
 
             return (
               <div
@@ -168,7 +172,7 @@ function ObjectiveEditor({
                 <div className="flex items-center gap-2 mb-2">
                   <TypeIcon className={`h-4 w-4 ${typeConfig.color}`} />
                   <span className={`text-xs ${typeConfig.color}`}>{typeConfig.label}</span>
-                  <button
+                  <button type="button"
                     onClick={() => removeObjective(index)}
                     className="ml-auto p-1 text-slate-500 hover:text-red-400"
                   >
@@ -176,7 +180,7 @@ function ObjectiveEditor({
                   </button>
                 </div>
 
-                <textarea
+                <textarea aria-label="目标描述..."
                   value={objective.description}
                   onChange={(e) => updateObjective(index, { description: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600 rounded-md text-white text-sm focus:border-blue-500 focus:outline-none resize-none mb-2"
@@ -186,8 +190,8 @@ function ObjectiveEditor({
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-xs text-slate-500 mb-1">徽章名称</label>
-                    <input
+                    <label htmlFor={`${objectiveIdPrefix}-badge-name`} className="block text-xs text-slate-500 mb-1">徽章名称</label>
+                    <input id={`${objectiveIdPrefix}-badge-name`} aria-label={'徽章名称'}
                       type="text"
                       value={objective.badgeName || ''}
                       onChange={(e) => updateObjective(index, { badgeName: e.target.value })}
@@ -196,8 +200,8 @@ function ObjectiveEditor({
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-500 mb-1">徽章图标</label>
-                    <select
+                    <label htmlFor={`${objectiveIdPrefix}-badge-icon`} className="block text-xs text-slate-500 mb-1">徽章图标</label>
+                    <select id={`${objectiveIdPrefix}-badge-icon`}
                       value={objective.badgeIcon || 'trophy'}
                       onChange={(e) => updateObjective(index, { badgeIcon: e.target.value })}
                       className="w-full px-2 py-1 bg-slate-900/50 border border-slate-600 rounded text-white text-xs focus:border-blue-500 focus:outline-none"

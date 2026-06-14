@@ -657,7 +657,7 @@ function TextInput({
   placeholder: string;
 }) {
   return (
-    <textarea
+    <textarea aria-label={placeholder}
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}

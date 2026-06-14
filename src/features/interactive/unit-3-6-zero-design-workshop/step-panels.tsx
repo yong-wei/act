@@ -547,7 +547,7 @@ function TextInput({
 }) {
   if (multiline) {
     return (
-      <textarea
+      <textarea aria-label={placeholder ?? '零点设计工作坊学习记录'}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
@@ -558,7 +558,7 @@ function TextInput({
   }
 
   return (
-    <input
+    <input aria-label={placeholder ?? '零点设计工作坊输入'}
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}

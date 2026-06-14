@@ -127,7 +127,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
     setControlCredits,
     runId
   } = useGameStore();
-  
+
   const [currentView, setCurrentView] = useState<ViewState>('INTRO');
   const [selectedLevelId, setSelectedLevelId] = useState<string>(initialLevelId);
   const [levels, setLevels] = useState(() => CONTROL_ODYSSEY_LEVELS.map((level) => ({ ...level })));
@@ -150,7 +150,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
   const [aiHistoryByLevel, setAiHistoryByLevel] = useState<Record<string, { content: string; updatedAt: string }>>({});
   const [topConfigs, setTopConfigs] = useState<ControlConfigSnapshot[]>([]);
   const [manualTierSelections, setManualTierSelections] = useState<Record<string, boolean>>({});
-  
+
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1102,7 +1102,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
         currentView === 'LEVEL_SELECT' ? 'min-h-[100dvh]' : 'h-full overflow-hidden'
       )}
     >
-      
+
       {/* 视图 0: 游戏介绍 (Landing) */}
       {currentView === 'INTRO' && (
         <div className="flex flex-col items-center justify-center w-full h-full bg-slate-950 text-white p-8">
@@ -1115,7 +1115,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                 欢迎来到控制奥德赛。这不仅是一场飞行竞赛，更是一次对自动控制理论的深度探索。
                 你将化身为控制工程师，通过调校 PID 参数或手动直控，驾驶飞船穿越复杂的误差带通道。
               </p>
-              
+
               <div className="grid grid-cols-3 gap-6 py-8">
                  <div className="p-6 bg-slate-900/50 border border-slate-800 rounded-2xl">
                     <Gamepad2 className="w-8 h-8 text-emerald-400 mx-auto mb-3" />
@@ -1148,13 +1148,13 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
            <Button variant="ghost" onClick={() => setCurrentView('INTRO')} className="absolute top-3 left-4 text-slate-500 hover:text-white z-20">
               <ArrowLeft className="w-4 h-4 mr-2" /> 返回介绍
            </Button>
-             <LevelSelector 
-               levels={levels} 
+             <LevelSelector
+               levels={levels}
                selectedLevelId={selectedLevelId}
                leaderboardData={leaderboardData}
                tierProgress={tierProgress}
                personalBestScores={personalBestScores}
-               onSelectLevel={handleLevelSelect} 
+               onSelectLevel={handleLevelSelect}
                onConfirmLevel={handleEnterConfig}
                isLoadingLeaderboard={isLoadingLeaderboard}
                controlCredits={controlCredits}
@@ -1372,7 +1372,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                    <ArrowLeft className="w-4 h-4 mr-1" /> 返回关卡列表
                  </Button>
               </div>
-              
+
               <div className="mb-8">
                 <div className="flex justify-between items-start">
                   <div>
@@ -1448,7 +1448,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                       <span>包络宽度系数</span>
                       <span className="font-mono text-white">{difficultyScale.toFixed(2)}</span>
                     </div>
-                    <input
+                    <input aria-label="控制奥德赛参数"
                       type="range"
                       min="0.7"
                       max="1.3"
@@ -1469,7 +1469,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                     <h3 className="font-semibold text-emerald-400 flex items-center gap-2">
                       <Gamepad2 className="w-4 h-4" /> 控制模式：手动
                     </h3>
-                    <div 
+                    <div tabIndex={0} role="button" onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click(); } }}
                       onClick={() => setControlMode('MANUAL')}
                       className={cn(
                         "p-4 rounded-xl border transition-all cursor-pointer hover:bg-slate-800",
@@ -1486,7 +1486,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                     <h3 className="font-semibold text-blue-400 flex items-center gap-2">
                       <Settings2 className="w-4 h-4" /> 控制模式：PID
                     </h3>
-                    <div 
+                    <div tabIndex={0} role="button" onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click(); } }}
                       onClick={() => setControlMode('AUTO')}
                       className={cn(
                         "p-4 rounded-xl border transition-all cursor-pointer hover:bg-slate-800",
@@ -1529,7 +1529,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                      </div>
                      <h2 className="text-4xl font-black text-white mb-2">航行成功!</h2>
                      <p className="text-slate-400 mb-8">表现优异，数据已同步。{isSubmitting && '上传中...'}</p>
-                     
+
                      <div className="bg-slate-950/50 rounded-2xl p-6 mb-8 border border-slate-800 text-left space-y-4">
                         <div className="flex items-center justify-between gap-6">
                           <div>
@@ -1602,7 +1602,7 @@ export const ControlOdysseyGame: React.FC<ControlOdysseyProps> = ({
                      </div>
                      <h2 className="text-4xl font-black text-white mb-2">任务失败</h2>
                      <p className="text-slate-400 mb-8 italic">&quot;指挥官，飞船超出了安全操作包线。&quot;</p>
-                     
+
                      <div className="bg-red-500/5 rounded-2xl p-6 mb-8 text-left border border-red-500/20">
                         <div className="text-[10px] text-red-400/60 uppercase font-bold tracking-widest mb-1">遥测报告</div>
                         <div className="text-red-200 text-lg">飞船触碰了物理边界。请在操作时注意观察底部误差曲线。</div>

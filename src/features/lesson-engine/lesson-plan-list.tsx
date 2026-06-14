@@ -54,9 +54,9 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ planId })
       });
-      
+
       if (!res.ok) throw new Error('Failed to start session');
-      
+
       const session = await res.json();
       // Redirect to Teacher Player
       router.push(`/classroom/teacher/${session.id}`);
@@ -98,8 +98,8 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
         const canEdit = !isPreset && (!currentUserId || plan.authorId === currentUserId);
         const editHref = `${basePath}/${plan.id}/edit${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`;
         return (
-        <div 
-          key={plan.id} 
+        <div
+          key={plan.id}
           className="group bg-slate-900/50 border border-slate-800 rounded-xl p-5 hover:border-cyan-500/50 transition-all hover:bg-slate-900 hover:shadow-xl hover:shadow-cyan-900/10 flex flex-col"
         >
           <div className="flex justify-between items-start mb-4">
@@ -108,7 +108,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
             </div>
             {canEdit && (
               <div className="relative">
-                <button
+                <button type="button"
                   onClick={() => setMenuOpenId(menuOpenId === plan.id ? null : plan.id)}
                   className="text-slate-500 hover:text-white p-1"
                   aria-label="更多操作"
@@ -117,7 +117,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
                 </button>
                 {menuOpenId === plan.id && (
                   <div className="absolute right-0 top-8 z-10 w-32 rounded-lg border border-slate-700 bg-slate-900 shadow-lg">
-                    <button
+                    <button type="button"
                       onClick={() => {
                         setPendingDelete(plan);
                         setMenuOpenId(null);
@@ -141,7 +141,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
               预置公开教案
             </span>
           )}
-          
+
           <div className="flex items-center gap-4 text-xs text-slate-500 mb-6">
             <span className="flex items-center gap-1">
                <Clock className="h-3 w-3" />
@@ -156,10 +156,10 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
              <div className="text-xs font-mono text-slate-400 bg-slate-800 px-2 py-1 rounded">
                 {plan._count.items} 个环节
              </div>
-             
+
              <div className="flex gap-2">
                 {canEdit && (
-                  <button
+                  <button type="button"
                       onClick={() => router.push(editHref)}
                       className="flex items-center gap-1 text-xs text-slate-400 hover:text-white px-2 py-1 transition-colors"
                   >
@@ -167,7 +167,7 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
                       编辑
                   </button>
                 )}
-                <button 
+                <button type="button"
                     onClick={() => startSession(plan.id)}
                     disabled={!!loadingId}
                     className="flex items-center gap-1 bg-cyan-600 hover:bg-cyan-500 text-white text-xs px-3 py-1.5 rounded transition-all disabled:opacity-50"
@@ -201,14 +201,14 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4 flex flex-row justify-end gap-3">
-            <button
+            <button type="button"
               onClick={() => setPendingDelete(null)}
               className="rounded-lg border border-slate-700 px-4 py-2 text-xs text-slate-300 hover:bg-slate-800"
               disabled={isDeleting}
             >
               取消
             </button>
-            <button
+            <button type="button"
               onClick={handleDeleteConfirm}
               className="inline-flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2 text-xs text-white disabled:opacity-70"
               disabled={isDeleting}

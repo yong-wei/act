@@ -91,7 +91,7 @@ export default function LaplaceBridgeIntro({ onComplete, onStateChange }: Laplac
             <p className="text-sm font-semibold text-slate-700">你认为拉普拉斯变换最核心的作用是？</p>
             <div className="mt-4 space-y-3">
               {OPTIONS.map((option) => (
-                <button
+                <button type="button"
                   key={option.id}
                   onClick={() => setSelected(option.id)}
                   className={`w-full rounded-xl border px-4 py-3 text-left text-sm transition-colors ${
@@ -112,7 +112,7 @@ export default function LaplaceBridgeIntro({ onComplete, onStateChange }: Laplac
           <p className="text-xs text-slate-500">
             选择后即可进入拉氏变换的工程直觉。
           </p>
-          <button
+          <button type="button"
             onClick={handleComplete}
             disabled={!selected || completed}
             className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs ${

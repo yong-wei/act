@@ -87,7 +87,7 @@ export function BridgePhase({ onComplete }: BridgePhaseProps) {
         <div className="absolute right-4 top-4 rounded-xl border border-slate-700 bg-slate-900/90 p-4 backdrop-blur">
           <div className="mb-2 text-xs text-slate-400">海况等级</div>
           <div className="flex items-center gap-2">
-            <input
+            <input aria-label="桥接阶段作答"
               type="range"
               min="1"
               max="9"
@@ -103,7 +103,7 @@ export function BridgePhase({ onComplete }: BridgePhaseProps) {
 
         {/* 透视按钮 */}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-          <button
+          <button type="button"
             onClick={() => setIsTransparent(!isTransparent)}
             className={`flex items-center gap-2 rounded-lg px-6 py-3 text-sm font-medium transition-all ${
               isTransparent
@@ -117,7 +117,7 @@ export function BridgePhase({ onComplete }: BridgePhaseProps) {
         </div>
 
         {/* 知识卡片按钮 */}
-        <button
+        <button type="button"
           onClick={() => setShowKnowledgeCard(!showKnowledgeCard)}
           disabled={!knowledgeCard}
           className={`absolute right-4 bottom-4 flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
@@ -165,7 +165,7 @@ export function BridgePhase({ onComplete }: BridgePhaseProps) {
                 点击「透视船体」按钮，查看隐藏在船体内部的舵机系统。
               </p>
             </div>
-            <button
+            <button type="button"
               onClick={onComplete}
               className="flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-400"
             >

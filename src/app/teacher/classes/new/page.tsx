@@ -75,10 +75,10 @@ export default function NewClassPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">
+            <label htmlFor="page-control-1" className="mb-2 block text-sm font-medium text-slate-300">
               班级名称 <span className="text-rose-400">*</span>
             </label>
-            <input
+            <input id="page-control-1"
               type="text"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -89,10 +89,10 @@ export default function NewClassPage() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-300">
+            <label htmlFor="page-control-2" className="mb-2 block text-sm font-medium text-slate-300">
               班级描述
             </label>
-            <textarea
+            <textarea id="page-control-2"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="简短描述这个班级的内容或特点..."
@@ -103,10 +103,10 @@ export default function NewClassPage() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-300">
+              <label htmlFor="page-control-3" className="mb-2 block text-sm font-medium text-slate-300">
                 学年
               </label>
-              <input
+              <input id="page-control-3"
                 type="text"
                 value={form.year}
                 onChange={(e) => setForm({ ...form, year: e.target.value })}
@@ -115,10 +115,10 @@ export default function NewClassPage() {
               />
             </div>
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-300">
+              <label htmlFor="page-control-4" className="mb-2 block text-sm font-medium text-slate-300">
                 学期
               </label>
-              <input
+              <input id="page-control-4"
                 type="text"
                 value={form.semester}
                 onChange={(e) => setForm({ ...form, semester: e.target.value })}

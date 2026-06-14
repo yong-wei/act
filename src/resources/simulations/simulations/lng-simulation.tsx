@@ -368,8 +368,8 @@ function ControlPanel({
   return (
     <div className="space-y-3">
       <div>
-        <label className="mb-1 block text-sm text-slate-700">控制模式</label>
-        <select
+        <label htmlFor="lng-simulation-control-1" className="mb-1 block text-sm text-slate-700">控制模式</label>
+        <select id="lng-simulation-control-1"
           value={state.controlMode}
           onChange={(e) => onControlModeChange(e.target.value as ControlMode)}
           className="w-full rounded border border-slate-300 bg-white p-2 text-slate-900"
@@ -386,7 +386,7 @@ function ControlPanel({
         <label className="mb-1 block text-sm text-slate-700">
           目标航向: {state.targetHeading}°
         </label>
-        <input
+        <input aria-label="LNG 船仿真参数"
           type="range"
           min="-180"
           max="180"
@@ -410,7 +410,7 @@ function ControlPanel({
       </div>
 
       <div className="flex gap-2">
-        <button
+        <button type="button"
           onClick={onStartPause}
           className={`flex-1 rounded border px-4 py-2 ${
             state.isRunning && !state.isPaused
@@ -420,7 +420,7 @@ function ControlPanel({
         >
           {state.isRunning && !state.isPaused ? '暂停' : '开始'}
         </button>
-        <button
+        <button type="button"
           onClick={onReset}
           className={`flex-1 rounded border px-4 py-2 ${simulationUi.buttonOutline}`}
         >

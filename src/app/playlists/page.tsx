@@ -23,7 +23,7 @@ export default async function PlaylistsPage() {
             <p className="text-slate-400">管理和播放您的互动课程流</p>
         </div>
         <Link href="/playlists/new">
-          <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-md font-medium transition-colors">
+          <button type="button" className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-md font-medium transition-colors">
             <Plus className="h-4 w-4" />
             新建课程流
           </button>
@@ -63,7 +63,7 @@ export default async function PlaylistsPage() {
             </CardContent>
             <CardFooter className="border-t border-slate-800 pt-4">
                <Link href={`/playlists/${playlist.id}/play`} className="w-full">
-                 <button className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white py-2 rounded transition-colors group-hover:bg-blue-600 group-hover:text-white">
+                 <button type="button" className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white py-2 rounded transition-colors group-hover:bg-blue-600 group-hover:text-white">
                     <Play className="h-4 w-4" />
                     开始上课
                  </button>
