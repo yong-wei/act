@@ -50,6 +50,19 @@ describe('shared React state/effect safety contracts', () => {
     expect(source).not.toContain('setPlanState(newState)');
   });
 
+  it('initializes classroom poll runtime state at the poll identity boundary', () => {
+    const source = readRepoFile('src/components/classroom/PollComponent.tsx');
+
+    expect(source).toContain('function createInitialPollState');
+    expect(source).toContain('function pollPlayerIdentityKey');
+    expect(source).toContain('(config.options ?? []).map((option) => option.key).join');
+    expect(source).toContain('() => createInitialPollState(options, config?.showLiveResults)');
+    expect(source).toContain("${config.showLiveResults ? 'live' : 'hidden'}");
+    expect(source).toContain('key={pollPlayerIdentityKey(config)}');
+    expect(source).not.toContain('useState<PollState>({');
+    expect(source).not.toContain('results: mockResults');
+  });
+
   it('keeps URL-selected knowledge nodes working after asynchronous graph loading', () => {
     const source = readRepoFile('src/features/knowledge/knowledge-graph-system.tsx');
 

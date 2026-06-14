@@ -35,6 +35,7 @@ import {
   UNIT_2_1StudentActivityForm,
   UNIT_2_1StudentSummaryPanel,
 } from './step-panels';
+import { commitUNIT_2_1StudentSubmission } from './submission-state';
 import type { WorkspaceParameterChange } from './workspace';
 
 export function UNIT_2_1StudentPage({
@@ -160,26 +161,15 @@ export function UNIT_2_1StudentPage({
   }, [error, errorTelemetry, step.id, trackSyncError]);
 
   const handleSubmitResponse = (response: UNIT_2_1StepResponse) => {
-    const isResubmit = Boolean(savedResponse);
     void saveCourseState((prev) => {
-      const nextState: UNIT_2_1StudentCourseState = {
-        ...prev,
-        studentName: currentStudentName,
-        updatedAt: Date.now(),
-        responses: {
-          ...prev.responses,
-          [step.id]: response,
-        },
-      };
-      submitCurrentManifestResponse({
+      return commitUNIT_2_1StudentSubmission({
+        previousState: prev,
+        currentStudentName,
+        stepId: step.id,
         response,
-        isResubmit,
-        dataOverrides: {
-          stepId: step.id,
-          summary: response.summary ?? null,
-        },
+        savedResponse,
+        submitManifestResponse: submitCurrentManifestResponse,
       });
-      return nextState;
     });
   };
 
@@ -296,6 +286,7 @@ export function UNIT_2_1StudentPage({
 
         <div className="mt-4">
           <UNIT_2_1StudentActivityForm
+            key={`${step.id}:${savedResponse?.submittedAt ?? 0}`}
             step={step}
             savedResponse={savedResponse}
             released={released}

@@ -1519,10 +1519,6 @@ export function UNIT_2_1StudentActivityForm({
   const [draft, setDraft] = useState<Record<string, unknown>>(() => getDefaultDraft(activity, savedResponse));
   const [draggingCardId, setDraggingCardId] = useState<string | null>(null);
 
-  useEffect(() => {
-    setDraft(getDefaultDraft(activity, savedResponse));
-  }, [activity, savedResponse]);
-
   if (activity.kind === 'none') {
     return null;
   }

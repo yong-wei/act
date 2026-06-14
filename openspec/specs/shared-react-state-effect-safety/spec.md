@@ -2,7 +2,6 @@
 
 ## Purpose
 Define the React state and effect safety contract for shared components, hooks, and active platform surfaces so selection, local editing, asynchronous previews, and status feedback avoid stale prop-synced state, clean up resources, and remain locally verifiable with React Doctor.
-
 ## Requirements
 ### Requirement: Shared and active platform components avoid stale prop-synced state
 The system SHALL avoid effect-driven prop-to-state synchronization in shared components and active platform surfaces when state can be derived, keyed, or adjusted without a stale intermediate render.
@@ -35,3 +34,11 @@ The system SHALL validate this change with React Doctor `0.5.1` in local error-o
 #### Scenario: Developer validates shared state/effect cleanup
 - **WHEN** a developer runs `npx --yes react-doctor@0.5.1 --no-score --no-telemetry --no-warnings --json .`
 - **THEN** the report SHALL contain no state/effect diagnostics for files covered by this change
+
+### Requirement: Shared warning-level effects avoid parent synchronization loops
+Shared components touched by React Doctor warning remediation SHALL avoid effect-driven parent synchronization when the parent update can be tied to a user action or explicit identity change.
+
+#### Scenario: Shared component derives status from props
+- **WHEN** a shared component derives trigger, status, selection, or display values from props
+- **THEN** the value SHALL be derived during render or reset by explicit identity
+- **AND** it SHALL NOT copy derived values into local state through an effect unless preserving user edits requires it.
