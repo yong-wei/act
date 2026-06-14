@@ -807,6 +807,41 @@ describe('commercial UI governance', () => {
     ]));
   });
 
+  it('fails when simulation screenshot height is too small to prove first viewport coverage', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport) => (
+            viewport.theme === 'dark'
+            && viewport.width === 320
+              ? {
+                  ...viewport,
+                  screenshotWidth: 320,
+                  screenshotHeight: 100,
+                }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining([
+          'theme=dark:width=320:navigationState=workspace-command-surface:dockState=collapsed:localToolState=not-applicable:screenshotHeight>=640',
+        ]),
+      }),
+    ]));
+  });
+
   it('fails when simulation viewport metadata does not match the route matrix', () => {
     const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
       if (entry.href !== '/virtual-lab' || !entry.simulationVisualQa) return entry;

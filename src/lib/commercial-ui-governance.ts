@@ -154,6 +154,8 @@ const COMMERCIAL_VISUAL_QA_NAVIGATION_STATES: readonly CommercialVisualQaNavigat
   'hidden-immersive',
 ];
 
+const COMMERCIAL_SIMULATION_MIN_SCREENSHOT_HEIGHT = 640;
+
 export type CommercialSimulationVisualQaArchetype =
   | 'catalog'
   | 'legacy-redirect'
@@ -1828,6 +1830,12 @@ function buildSimulationVisualQaViolations(
               if (!viewport.screenshotSha256) missing.push(`${key}:screenshotSha256`);
               if (viewport.screenshotWidth !== width) {
                 missing.push(`${key}:screenshotWidth=${width}`);
+              }
+              if (
+                viewport.screenshotHeight === undefined
+                || viewport.screenshotHeight < COMMERCIAL_SIMULATION_MIN_SCREENSHOT_HEIGHT
+              ) {
+                missing.push(`${key}:screenshotHeight>=${COMMERCIAL_SIMULATION_MIN_SCREENSHOT_HEIGHT}`);
               }
               if (viewport.artifact && !viewport.artifactSha256) missing.push(`${key}:artifactSha256`);
               if (viewport.result !== 'passed') missing.push(`${key}:result=passed`);
