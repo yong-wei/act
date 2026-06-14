@@ -711,7 +711,16 @@ function localChromeOverrideKey(module: InteractiveRuntimeModuleManifest): strin
 }
 
 function localChromeOverrideKeyFromRecord(record: Record<string, unknown>): string | undefined {
-  return COURSE_LOCAL_CHROME_KEYS.find((key) => Boolean(stringValue(record[key])));
+  return COURSE_LOCAL_CHROME_KEYS.find((key) => hasCourseLocalChromeValue(record[key]));
+}
+
+function hasCourseLocalChromeValue(value: unknown): boolean {
+  if (value == null) return false;
+  if (typeof value === 'string') return Boolean(value.trim());
+  if (typeof value === 'boolean') return value;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === 'object') return Object.keys(value as Record<string, unknown>).length > 0;
+  return true;
 }
 
 function rawCourseLocalChromeViolations(

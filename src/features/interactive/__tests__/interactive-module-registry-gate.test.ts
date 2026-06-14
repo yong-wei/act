@@ -443,6 +443,36 @@ describe('interactive module registry gate', () => {
     ]);
   });
 
+  it('rejects object-shaped course-local chrome overrides for standard module kinds', () => {
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'object-local-chrome-module',
+              kind: 'content.rich',
+              mustBeVisible: true,
+              payload: { moduleChrome: { variant: 'custom-local-shell' } },
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.violations).toEqual([
+      expect.objectContaining({
+        lessonId: 'fixture-lesson',
+        stepId: 'step-01',
+        moduleId: 'object-local-chrome-module',
+        kind: 'content.rich',
+        code: 'course-local-module-chrome',
+        canonicalClass: 'content.rich',
+      }),
+    ]);
+  });
+
   it('rejects legacy aliases in lessons marked migrated to canonical modules', () => {
     const result = evaluateInteractiveModuleRegistryGate({
       migratedLessonIds: ['fixture-lesson'],
@@ -1229,6 +1259,58 @@ describe('interactive module registry gate', () => {
           code: 'course-local-module-chrome',
           canonicalClass: 'content.rich',
           manifestPath: 'course-content/runtime/lessons/local-chrome-lesson/interactive-manifest.json',
+        }),
+      ]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects top-level object or array course-local chrome before normalization strips it', () => {
+    const rootDir = mkdtempSync(join(tmpdir(), 'interactive-module-gate-'));
+    try {
+      const lessonDir = join(rootDir, 'course-content/runtime/lessons/local-chrome-object-lesson');
+      mkdirSync(lessonDir, { recursive: true });
+      writeFileSync(
+        join(lessonDir, 'interactive-manifest.json'),
+        JSON.stringify({
+          lesson_id: 'local-chrome-object-lesson',
+          steps: {
+            'step-01': {
+              title: 'Step 01',
+              layout: { regions: [{ id: 'main', width: 'full', order: 1 }] },
+              modules: [
+                {
+                  id: 'intro',
+                  kind: 'content.rich',
+                  region: 'main',
+                  must_be_visible: true,
+                  localChrome: [{ variant: 'course-local-shell' }],
+                  payload: {},
+                },
+              ],
+              interaction_spec: { interaction_kind: 'display' },
+            },
+          },
+        }),
+        'utf8',
+      );
+
+      const result = scanRuntimeInteractiveModuleRegistry({
+        rootDir,
+        standardModuleLessonIds: ['local-chrome-object-lesson'],
+      });
+
+      expect(result.passed).toBe(false);
+      expect(result.violations).toEqual([
+        expect.objectContaining({
+          lessonId: 'local-chrome-object-lesson',
+          stepId: 'step-01',
+          moduleId: 'intro',
+          kind: 'content.rich',
+          code: 'course-local-module-chrome',
+          canonicalClass: 'content.rich',
+          manifestPath: 'course-content/runtime/lessons/local-chrome-object-lesson/interactive-manifest.json',
         }),
       ]);
     } finally {
