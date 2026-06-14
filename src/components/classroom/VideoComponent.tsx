@@ -30,10 +30,6 @@ import type {
 
 type VideoComponentProps = BaseClassroomComponentProps<VideoComponentConfig>;
 
-// Temporary accessibility exception: dynamic classroom media has no caption asset field yet.
-// Owner: classroom runtime. Remove this placeholder when media metadata carries caption URLs.
-const TEMPORARY_CAPTION_TRACK_SRC = 'data:text/vtt;charset=utf-8,WEBVTT%0A%0A00:00:00.000%20--%3E%2000:00:05.000%0A%E6%9A%82%E6%97%A0%E5%8F%AF%E7%94%A8%E5%AD%97%E5%B9%95%EF%BC%9B%E8%AF%B7%E6%95%99%E5%B8%88%E4%B8%BA%E6%AD%A3%E5%BC%8F%E5%AA%92%E4%BD%93%E8%A1%A5%E5%85%85%E5%AD%97%E5%B9%95%E8%B5%84%E4%BA%A7%E3%80%82';
-
 // ========== 编辑模式组件 ==========
 
 function VideoEditor({
@@ -192,16 +188,23 @@ function VideoPanel({
   sourceType,
   description,
   label,
+  captionSrc,
+  captionLanguage,
+  captionLabel,
 }: {
   source: string;
   sourceType: 'url' | 'placeholder';
   description?: string;
   label?: string;
+  captionSrc?: string;
+  captionLanguage?: string;
+  captionLabel?: string;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const normalizedCaptionSrc = captionSrc?.trim();
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -264,6 +267,22 @@ function VideoPanel({
     );
   }
 
+  if (!normalizedCaptionSrc) {
+    return (
+      <div className="relative flex h-full flex-col items-center justify-center rounded-lg bg-background p-6 text-center">
+        {label && (
+          <div className="absolute left-3 top-3 rounded bg-card px-2 py-1 text-xs text-muted-foreground">
+            {label}
+          </div>
+        )}
+        <Play className="mb-4 h-10 w-10 text-muted-foreground" />
+        <p className="max-w-md text-sm leading-6 text-muted-foreground">
+          当前视频尚未配置真实字幕资源。请为媒体配置 captionSrc 后启用课堂播放。
+        </p>
+      </div>
+    );
+  }
+
   // 视频URL模式
   return (
     <div className="relative h-full bg-black rounded-lg overflow-hidden group">
@@ -280,7 +299,12 @@ function VideoPanel({
         className="w-full h-full object-cover"
         onEnded={() => setIsPlaying(false)}
       >
-        <track kind="captions" srcLang="zh-CN" label="中文说明" src={TEMPORARY_CAPTION_TRACK_SRC} />
+        <track
+          kind="captions"
+          srcLang={captionLanguage || 'zh-CN'}
+          label={captionLabel || '中文字幕'}
+          src={normalizedCaptionSrc}
+        />
       </video>
 
       {/* 控制栏 */}
@@ -328,6 +352,9 @@ function VideoPlayer({ config }: { config: VideoComponentConfig }) {
           source={config.primarySource}
           sourceType={config.sourceType}
           description={config.description}
+          captionSrc={config.captionSrc}
+          captionLanguage={config.captionLanguage}
+          captionLabel={config.captionLabel}
         />
       );
     }
@@ -344,6 +371,9 @@ function VideoPlayer({ config }: { config: VideoComponentConfig }) {
           source={config.primarySource}
           sourceType={config.sourceType}
           description={config.description}
+          captionSrc={config.captionSrc}
+          captionLanguage={config.captionLanguage}
+          captionLabel={config.captionLabel}
           label="对比A"
         />
         <VideoPanel
