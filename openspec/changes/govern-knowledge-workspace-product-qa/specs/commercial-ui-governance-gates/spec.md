@@ -20,8 +20,24 @@ Commercial UI governance SHALL verify the redesigned knowledge graph as an integ
 
 #### Scenario: Product Design concepts are referenced
 - **WHEN** knowledge workspace visual evidence is produced
-- **THEN** the evidence SHALL cite the approved concept references and state which visual principles were adopted
+- **THEN** the evidence SHALL cite `artifacts/product-design-audits/knowledge-graph-2026-06-14/design-handoff.md` as the design source of truth
+- **AND** the evidence SHALL cite the approved concept references and state which visual principles were adopted
 - **AND** it SHALL state which generated mockup details were rejected to preserve the shared AppShell, role navigation, and dock model.
+
+#### Scenario: Handoff alignment is evaluated
+- **WHEN** `/knowledge` is reviewed after the redesign implementation
+- **THEN** QA evidence SHALL include a handoff-to-implementation matrix covering adopted, rejected, and merged guidance from `design-handoff.md` and `concepts/README.md`
+- **AND** concept image evidence SHALL be evaluated only through that handoff guidance
+- **AND** route inventory, platform tokens, screenshots, DOM markers, or source checks SHALL NOT be sufficient when the visible result contradicts the handoff.
+
+### Requirement: Knowledge workspace QA requires independent visual subagent review
+Commercial UI governance SHALL require an independent visual review subagent before the knowledge graph workspace product QA can pass.
+
+#### Scenario: Visual review subagent runs
+- **WHEN** implementation screenshots and current-source evidence are ready for `/knowledge`
+- **THEN** an independent visual review subagent SHALL receive `design-handoff.md`, `concepts/README.md`, the three concept image paths, implementation screenshots, changed files, and evidence artifacts
+- **AND** the subagent SHALL report PASS/BLOCK findings for handoff alignment, accepted concept adoption, rejected generated details, AppShell continuity, local graph tool integration, semantic-map readability, inspector hierarchy, Konling dock behavior, hover/click/drag stability, keyboard and focus behavior, theme parity, mobile behavior, and combined stress-state non-overlap
+- **AND** unresolved BLOCK findings SHALL prevent `govern-knowledge-workspace-product-qa` from being marked complete.
 
 #### Scenario: Integration regression is detected
 - **WHEN** `/knowledge` shows duplicated global navigation, duplicated assistant UI, permanent desktop panels that compete with the graph, text-only relation legend, raw schema labels, semantic-map tangle, hover/click jitter, dragged-node reset, dock overlap, crowded stress-state obstruction, or theme/mobile inconsistency
