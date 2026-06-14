@@ -484,7 +484,7 @@ export function buildRecommendedPathNodeView(
       expectedEffort: `${node.estimatedTimeMinutes} 分钟`,
       sourceContext: `${node.sourceKind}:${node.sourceRef}`,
       action: {
-        href: pathNodeLaunchHref(node.target, node.nodeId, launchContext),
+        href: pathNodeLaunchHref(node.target, node.nodeId, node.pathNodeType, launchContext),
         label: pathPlan.currentNodeId === node.nodeId ? '继续当前节点' : '打开路径节点',
       },
       state: recommendedNodeState(node.status),
@@ -730,10 +730,19 @@ function practiceRouteNodeHref(actionHref: string, priority: number): string {
 function pathNodeLaunchHref(
   target: string,
   nodeId: string,
+  pathNodeType: string,
   launchContext?: RecommendedPathLaunchContext,
 ): string {
   const href = normalizePathNodeTarget(target);
   if (!launchContext) return href;
+  if (pathNodeType === 'external_resource') {
+    const params = new URLSearchParams({
+      nodeId,
+      goal: launchContext.goalId,
+      intent: launchContext.routeIntent,
+    });
+    return `/api/learning-paths/${encodeURIComponent(launchContext.pathId)}/execute?${params.toString()}`;
+  }
 
   const separator = href.includes('?') ? '&' : '?';
   const params = new URLSearchParams({

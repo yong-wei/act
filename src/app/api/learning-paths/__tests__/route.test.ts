@@ -65,7 +65,7 @@ vi.mock('@/lib/data-governance/student-evidence-feature-cache', () => ({
 
 import { POST as planPath } from '../plan/route';
 import { GET as readPath } from '../[id]/route';
-import { POST as executePath } from '../[id]/execute/route';
+import { GET as launchPathNode, POST as executePath } from '../[id]/execute/route';
 import { POST as deviatePath } from '../[id]/deviations/route';
 import { POST as intervenePath } from '../[id]/interventions/route';
 import { POST as choosePath } from '../[id]/choices/route';
@@ -822,6 +822,49 @@ describe('learning path round API routes', () => {
         evidenceSource: 'learning-path-execution',
         accessExecutionId: 'exec-started',
       })],
+    }));
+  });
+
+  it('records governed external access before redirecting to external resource nodes', async () => {
+    configureSingleNodePath('external-resource:ocw-bode', 'external_resource', 'https://ocw.mit.edu/control/bode', {
+      planNode: {
+        pathNodeType: 'external_resource',
+        externalResource: {
+          source: 'MIT OCW',
+          url: 'https://ocw.mit.edu/control/bode',
+          estimatedTimeMinutes: 15,
+          knowledgeCoverage: ['kn-bode'],
+          applicableGoalId: 'frequency-response-foundations',
+          evidenceUseStatus: 'explicit-access-required',
+          privacyPolicy: 'student-visible',
+        },
+      },
+    });
+
+    const response = await launchPathNode(
+      new Request('http://localhost/api/learning-paths/path-1/execute?nodeId=external-resource%3Aocw-bode&intent=path-execution'),
+      params,
+    );
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get('location')).toBe('https://ocw.mit.edu/control/bode');
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'external-resource:ocw-bode',
+      resourceType: 'external_resource',
+      status: 'started',
+      idempotencyKey: 'external-resource-access:path-1:student-1:external-resource:ocw-bode',
+      evidenceRefs: [expect.objectContaining({
+        kind: 'LearningPathExternalResourceAccess',
+        pathId: 'path-1',
+        nodeId: 'external-resource:ocw-bode',
+        userId: 'student-1',
+        url: 'https://ocw.mit.edu/control/bode',
+      })],
+      liftMetadata: {
+        launchIntent: 'path-execution',
+      },
     }));
   });
 

@@ -148,6 +148,62 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
   }
 }
 
+export async function GET(request: Request, props: { params: Promise<{ id: string }> }) {
+  try {
+    const requester = await getLearningPathRequester();
+    if (requester instanceof NextResponse) return requester;
+    const params = await props.params;
+    const path = await readPathForAccess(params.id);
+    if (path instanceof NextResponse) return path;
+    const denied = assertCanWriteStudentPath(requester, path);
+    if (denied) return denied;
+
+    const url = new URL(request.url);
+    const nodeId = url.searchParams.get('nodeId');
+    const nodeIds = new Set(readPathNodeIds(path));
+    const pathNode = readPathNode(path, nodeId);
+    const metadata = readGovernedExternalResourceMetadata(pathNode, nodeId ?? '');
+    if (!nodeId || !nodeIds.has(nodeId) || !metadata) {
+      return NextResponse.json({ error: '外部资料访问入口不符合路径节点契约' }, { status: 400 });
+    }
+    if (path.currentNodeId !== nodeId) {
+      return NextResponse.json({ error: '外部资料访问只能启动当前路径节点' }, { status: 409 });
+    }
+
+    const executionInput = {
+      pathId: params.id,
+      userId: path.userId,
+      goalId: path.goalId ?? null,
+      nodeId,
+      resourceType: 'external_resource',
+      status: 'started' as const,
+      startedAt: new Date(),
+      completedAt: null,
+      failedAt: null,
+      evidenceRefs: [externalResourceAccessEvidenceRef(path, {
+        pathId: params.id,
+        userId: path.userId,
+        nodeId,
+      }, metadata)],
+      liftMetadata: {
+        launchIntent: url.searchParams.get('intent') ?? 'external-resource-access',
+      },
+      simulationRef: null,
+      arenaRef: null,
+      idempotencyKey: `external-resource-access:${params.id}:${path.userId}:${nodeId}`,
+      actorUserId: requester.userId,
+      actorRole: requester.role,
+    };
+    await recordPathNodeExecution(prisma as any, executionInput);
+    await refreshPathEvidenceFeatureCache(path.userId);
+    return NextResponse.redirect(metadata.url, 302);
+  } catch (error) {
+    rethrowIfNextDynamicError(error);
+    console.error('[LearningPathExecuteLaunch] Error:', error);
+    return NextResponse.json({ error: '启动外部资料访问失败' }, { status: 500 });
+  }
+}
+
 function readExecutionStatus(value: unknown): 'started' | 'completed' | 'failed' | 'abandoned' | null {
   return typeof value === 'string' && EXECUTION_STATUSES.has(value)
     ? value as 'started' | 'completed' | 'failed' | 'abandoned'

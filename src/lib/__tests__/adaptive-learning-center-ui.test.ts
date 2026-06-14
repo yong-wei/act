@@ -828,6 +828,43 @@ describe('adaptive learning center UI contracts', () => {
     );
   });
 
+  it('launches external resource path nodes through governed access recording', () => {
+    const node = buildRecommendedPathNodeView(pathPlan({
+      mainPath: [
+        {
+          ...pathPlan().mainPath[0],
+          nodeId: 'external-resource:ocw-bode',
+          title: '外部伯德图资料',
+          type: 'external_resource',
+          ...pathNodeSemantics('external_resource'),
+          sourceKind: 'external_resource',
+          sourceRef: 'ocw-bode',
+          target: 'https://ocw.mit.edu/control/bode',
+          externalResource: {
+            source: 'MIT OCW',
+            url: 'https://ocw.mit.edu/control/bode',
+            estimatedTimeMinutes: 15,
+            knowledgeCoverage: ['phase-margin'],
+            applicableGoalId: 'control-correction',
+            evidenceUseStatus: 'explicit-access-required',
+            privacyPolicy: 'student-visible',
+          },
+          evidenceStatus: 'explicit-access-required',
+        },
+      ],
+      currentNodeId: 'external-resource:ocw-bode',
+    }), {
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      routeIntent: 'path-execution',
+    }).nodes[0];
+
+    expect(node.action.href).toBe(
+      '/api/learning-paths/path-1/execute?nodeId=external-resource%3Aocw-bode&goal=control-correction&intent=path-execution',
+    );
+    expect(node.action.href).not.toContain('https://ocw.mit.edu/control/bode');
+  });
+
   it('normalizes persisted knowledge card targets before adding control-correction launch context', () => {
     const node = buildRecommendedPathNodeView(pathPlan({
       goal: {
