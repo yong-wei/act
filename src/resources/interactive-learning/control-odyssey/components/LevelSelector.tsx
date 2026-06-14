@@ -158,7 +158,7 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
             const starCount = tierStarCount(derivedTier);
             const bestScore = personalBestScores[level.id]?.overall ?? 0;
             return (
-            <div tabIndex={0} role="button" onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click(); } }}
+            <div tabIndex={0} role="button" onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click(); } }}
               key={level.id}
               className={cn(
                 "relative group overflow-hidden rounded-2xl border p-6 transition-all duration-300",
