@@ -440,6 +440,20 @@ describe('resource node registry', () => {
           evidenceUseStatus: 'reference-only',
           privacyPolicy: 'student-visible',
         },
+        {
+          id: 'override-coverage',
+          title: '覆盖范围来自规划覆写',
+          source: 'MIT OCW',
+          url: 'https://ocw.mit.edu/control/override',
+          estimatedTimeMinutes: 10,
+          knowledgeNodeIds: [],
+          applicableGoalId: 'frequency-response-foundations',
+          evidenceUseStatus: 'explicit-access-required',
+          privacyPolicy: 'student-visible',
+          planningOverride: {
+            knowledgeCoverage: ['kn-bode'],
+          },
+        },
       ],
     });
 
@@ -472,6 +486,15 @@ describe('resource node registry', () => {
       },
     });
     expect(JSON.stringify(registry.nodes.find((node) => node.id === 'external-resource:unsafe'))).not.toContain('javascript:');
+    expect(registry.nodes.find((node) => node.id === 'external-resource:override-coverage')).toMatchObject({
+      planningMetadata: {
+        knowledgeCoverage: ['kn-bode'],
+      },
+      externalResource: {
+        knowledgeCoverage: ['kn-bode'],
+      },
+      eligibility: { pathEligible: true },
+    });
   });
 
   it('keeps runtime media and TeachingResource ownership separate when sources overlap', () => {

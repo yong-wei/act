@@ -878,6 +878,9 @@ function buildExternalResourceNodes(resources: ExternalResourceNodeInput[]): Res
   return resources.map((resource) => {
     const safeUrl = safeExternalUrl(resource.url);
     const privacyPolicy = isResourceNodePrivacyLevel(resource.privacyPolicy) ? resource.privacyPolicy : null;
+    const effectiveKnowledgeCoverage = uniqueSorted(
+      resource.planningOverride?.knowledgeCoverage ?? resource.knowledgeNodeIds ?? [],
+    );
     return createNode({
       id: `external-resource:${resource.id}`,
       title: resource.title,
@@ -909,7 +912,7 @@ function buildExternalResourceNodes(resources: ExternalResourceNodeInput[]): Res
           resource.estimatedTimeMinutes > 0
           ? resource.estimatedTimeMinutes
           : null,
-        knowledgeCoverage: uniqueSorted(resource.knowledgeNodeIds ?? []),
+        knowledgeCoverage: effectiveKnowledgeCoverage,
         applicableGoalId: normalizeOptionalString(resource.applicableGoalId),
         evidenceUseStatus: resource.evidenceUseStatus === 'explicit-access-required' || resource.evidenceUseStatus === 'reference-only'
           ? resource.evidenceUseStatus
