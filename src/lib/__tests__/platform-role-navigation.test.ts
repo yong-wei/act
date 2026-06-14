@@ -792,7 +792,6 @@ describe('platform role navigation', () => {
     const shellRoutes = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => route.legacyShell);
     expect(shellRoutes.map((route) => [route.href, route.legacyShell?.component])).toEqual(
       expect.arrayContaining([
-        ['/simulations', 'FeaturePageNav'],
         ['/arena', 'ArenaPageShell'],
         ['/teacher', 'TeacherLayout'],
         ['/admin', 'AdminConsoleHeader'],
@@ -953,7 +952,7 @@ describe('platform role navigation', () => {
     expect(coursesSource).toContain('data-course-entry-action="launch"');
     expect(simulationsSource).toContain('data-simulation-entry-map="scenario-fleet"');
     expect(simulationsSource).toContain('data-simulation-catalog-source="canonical"');
-    expect(simulationsSource).toContain('data-entry-current-work-priority="recommended-experiment"');
+    expect(simulationsSource).toContain('data-entry-primary-action="recommended-experiment"');
     expect(simulationsSource).toContain('data-simulation-scenario-card={simulation.id}');
     expect(simulationsSource).toContain('data-simulation-scenario-fit={simulation.id}');
     expect(simulationsSource).toContain('data-simulation-canonical-launch={simulation.id}');
@@ -1036,18 +1035,22 @@ describe('platform role navigation', () => {
   it('binds knowledge graph local tools to open, closed, and mobile state contracts', () => {
     const knowledgeGraphSource = readSource('src/features/knowledge/knowledge-graph-system.tsx');
 
+    expect(knowledgeGraphSource).toContain('data-knowledge-desktop-command-system="compact"');
+    expect(knowledgeGraphSource).toContain("data-knowledge-local-tool={desktopActiveTool ?? 'closed'}");
+    expect(knowledgeGraphSource).toContain("data-state={desktopActiveTool ? 'open' : 'closed'}");
+    expect(knowledgeGraphSource).toContain('data-knowledge-command-trigger={item.id}');
+    expect(knowledgeGraphSource).toContain('data-knowledge-local-tool-summary="desktop"');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="chapter-directory"');
-    expect(knowledgeGraphSource).toContain("data-state={desktopChapterDirectoryOpen ? 'open' : 'closed'}");
     expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="relation-filters"');
-    expect(knowledgeGraphSource).toContain("data-state={desktopRelationFiltersOpen ? 'open' : 'closed'}");
-    expect(knowledgeGraphSource).toContain('data-knowledge-active-filter-summary="relation-filters"');
+    expect(knowledgeGraphSource).toContain('data-knowledge-active-filter-summary={activeFilterSummary}');
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-command-surface="single-tool-panel"');
     expect(knowledgeGraphSource).toContain("data-state={mobileToolPanelOpen ? 'open' : 'closed'}");
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-panel-toggle="true"');
     expect(knowledgeGraphSource).toContain('{mobileToolPanelOpen && (');
     expect(knowledgeGraphSource).toContain('data-knowledge-mobile-tool-panel={mobileActiveTool}');
     expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="legend"');
-    expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="view-mode-switch"');
+    expect(knowledgeGraphSource).toContain('data-knowledge-local-tool="view-layout"');
+    expect(knowledgeGraphSource).toContain('data-knowledge-local-panel="view-layout-controls"');
   });
 
   it('sanitizes scoped secondary route return targets', () => {

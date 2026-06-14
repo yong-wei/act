@@ -623,7 +623,8 @@ describe('platform UI contracts', () => {
     expect(knowledgeSidebarSource).not.toContain('w-[240px]');
     expect(knowledgeSidebarSource).not.toContain('bg-[#091540]');
     expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="relation-filters"');
-    expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="view-mode-switch"');
+    expect(knowledgeSystemSource).toContain('data-knowledge-desktop-command-system="compact"');
+    expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="view-layout-controls"');
     expect(knowledgeSystemSource).toContain('data-knowledge-local-panel="node-hover-preview"');
     expect(knowledgeSystemSource).not.toContain('bg-[#091540]');
     expect(knowledgeSystemSource).not.toContain('bg-[#0c1d4f]');
@@ -642,6 +643,8 @@ describe('platform UI contracts', () => {
     const chapterComponentsSource = readSource('src/app/interactive-learning/chapter-components/page.tsx');
     const crossDomainSource = readSource('src/app/interactive-learning/cross-domain-exploration/page.tsx');
     const shellSource = readSource('src/features/interactive/interactive-learning-shell.tsx');
+    const catalogSource = readSource('src/features/interactive/learning-catalog.ts');
+    const globalAiButtonSource = readSource('src/components/ai/global-ai-button.tsx');
 
     for (const source of [
       interactiveEntrySource,
@@ -650,17 +653,34 @@ describe('platform UI contracts', () => {
       crossDomainSource,
     ]) {
       expect(source).toContain('<InteractiveLearningShell');
+      expect(source).toContain('data-interactive-atlas-workspace');
       expect(source).not.toContain('UnifiedTopBar');
       expect(source).not.toContain('商业入口');
       expect(source).not.toContain('<main');
+      expect(source).not.toMatch(/mx-auto\\s+max-w-/);
     }
 
     expect(shellSource).toContain('<AppShell');
     expect(shellSource).toContain('viewerRole="student"');
     expect(shellSource).toContain('sidebarMode="collapsible"');
     expect(shellSource).toContain('data-platform-learning-atlas-shell');
+    expect(shellSource).toContain('INTERACTIVE_LEARNING_BREADCRUMBS');
+    expect(shellSource).not.toContain('interactive-learning-konling');
+    expect(shellSource).not.toContain("control: 'konling'");
+    expect(globalAiButtonSource).toContain("id: 'konling-global-ai'");
+    expect(globalAiButtonSource).toContain('<KonlingAvatar size="sm" />');
     expect(interactiveEntrySource).toContain('data-commercial-student-entry-route="/interactive-learning"');
     expect(courseCatalogSource).toContain('data-commercial-student-entry-route="/interactive-learning/courses"');
+    expect(courseCatalogSource).toContain('courseKind');
+    expect(courseCatalogSource).toContain('runtimeCardMetadata.durationLabel');
+    expect(courseCatalogSource).toContain('data-course-runtime-status={lesson.runtimeCardMetadata.statusLabel}');
+    expect(courseCatalogSource).not.toContain('lesson.duration');
+    expect(catalogSource).toContain("export type InteractiveCourseKind = '理论课' | '实践课'");
+    expect(catalogSource).toContain('runtimeCardMetadata');
+    expect(catalogSource).toContain('durationLabel: lesson.duration');
+    expect(catalogSource).toContain('statusLabel: lesson.badge');
+    expect(catalogSource).toContain("'实践课'");
+    expect(courseCatalogSource).not.toContain('精品先导');
     expect(courseCatalogSource).not.toContain('interactive-course-hub-');
     expect(chapterComponentsSource).toContain('data-commercial-student-entry-route="/interactive-learning/chapter-components"');
     expect(crossDomainSource).toContain('data-commercial-student-entry-route="/interactive-learning/cross-domain-exploration"');

@@ -12,14 +12,15 @@ export default function InteractiveCoursesPage() {
       subtitle="Interactive Courses"
     >
       <section
-        className="mx-auto max-w-[1280px] px-6 py-10"
+        className="w-full px-4 py-8 sm:px-6 lg:px-8"
         data-commercial-workspace="interactive-learning"
         data-commercial-student-entry-route="/interactive-learning/courses"
         data-commercial-entry-intent="learn"
+        data-interactive-atlas-workspace="course-catalog"
         data-learning-entry-map="course-module-progression"
       >
         <header
-          className="surface-card mb-8 p-6"
+          className="mb-8 border-b border-border/60 pb-6"
           data-entry-current-context="course-catalog"
           data-entry-current-work-priority="recommended-course"
         >
@@ -35,7 +36,7 @@ export default function InteractiveCoursesPage() {
         </header>
 
         <div className="space-y-8">
-          <section className="surface-card p-5" data-course-progression-section="premium">
+          <section className="border-b border-border/60 pb-7" data-course-progression-section="premium">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="text-xl font-semibold text-foreground">精品课程</h2>
@@ -52,13 +53,14 @@ export default function InteractiveCoursesPage() {
                   className="surface-card-soft group rounded-lg p-5 transition hover:border-primary/40"
                   data-course-entry-card={lesson.id}
                   data-course-entry-action="launch"
+                  data-course-runtime-status={lesson.runtimeCardMetadata.statusLabel}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex flex-wrap items-center gap-2 text-xs">
-                      <span className="rounded-full bg-primary/10 px-2 py-1 text-primary">精品先导</span>
-                      <span className="rounded-full bg-muted px-2 py-1 text-subtle">{lesson.badge}</span>
+                      <span className="rounded-full bg-primary/10 px-2 py-1 text-primary">{lesson.courseKind}</span>
+                      <span className="rounded-full bg-muted px-2 py-1 text-subtle">{lesson.unitLabel}</span>
                     </div>
-                    <span className="text-xs text-subtle">{lesson.duration}</span>
+                    <span className="text-xs text-subtle">{lesson.runtimeCardMetadata.durationLabel}</span>
                   </div>
 
                   <h2 className="mt-4 text-lg font-semibold text-foreground">{lesson.title}</h2>
@@ -74,7 +76,7 @@ export default function InteractiveCoursesPage() {
           </section>
 
           {INTERACTIVE_COURSE_MODULES.map((module) => (
-            <section key={module.id} className="surface-card p-5" data-course-progression-section={module.id}>
+            <section key={module.id} className="border-b border-border/60 pb-7" data-course-progression-section={module.id}>
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-semibold text-foreground">{module.title}</h2>
@@ -91,13 +93,14 @@ export default function InteractiveCoursesPage() {
                     className="surface-card-soft group rounded-lg p-5 transition hover:border-primary/40"
                     data-course-entry-card={lesson.id}
                     data-course-entry-action="launch"
+                    data-course-runtime-status={lesson.runtimeCardMetadata.statusLabel}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex flex-wrap items-center gap-2 text-xs">
                         <span className="rounded-full bg-primary/10 px-2 py-1 text-primary">{lesson.unitLabel}</span>
-                        <span className="rounded-full bg-muted px-2 py-1 text-subtle">{lesson.badge}</span>
+                        <span className="rounded-full bg-muted px-2 py-1 text-subtle">{lesson.courseKind}</span>
                       </div>
-                      <span className="text-xs text-subtle">{lesson.duration}</span>
+                      <span className="text-xs text-subtle">{lesson.runtimeCardMetadata.durationLabel}</span>
                     </div>
 
                     <h2 className="mt-4 text-lg font-semibold text-foreground">{lesson.title}</h2>

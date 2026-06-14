@@ -760,12 +760,6 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     screenshotProfile: 'representative-covered',
     owningChange: 'redesign-immersive-learning-workspaces',
     dockDisposition: SIMULATION_SHARED_DOCK_DISPOSITION,
-    legacyShell: {
-      component: 'FeaturePageNav',
-      disposition: 'scheduled-replacement',
-      sourceFile: 'src/app/simulations/page.tsx',
-      removalCondition: 'Simulation entry maps local return and title controls into AppShell or the approved immersive workspace shell.',
-    },
   }),
   primaryRoute({
     href: '/simulations/cruise',

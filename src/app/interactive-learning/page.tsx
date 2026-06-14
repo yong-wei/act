@@ -10,21 +10,21 @@ const ENTRY_ROUTES = [
       '跨域问题驱动探索：根轨迹、Bode、Nyquist 与时域响应联动，聚焦“结构可见”能力。',
     href: '/interactive-learning/cross-domain-exploration',
     badge: 'Cross-Domain',
-    accent: 'border-fuchsia-400/40 bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300',
+    accent: 'border-border bg-muted text-subtle',
   },
   {
     title: '互动课程',
     description: '进入各章节 90 分钟互动课程入口，按 BOPPPS 路径开展课堂活动与课后复盘。',
     href: '/interactive-learning/courses',
     badge: 'Course Hub',
-    accent: 'border-cyan-400/40 bg-cyan-500/10 text-cyan-700 dark:text-cyan-300',
+    accent: 'border-border bg-muted text-subtle',
   },
   {
     title: '各章节互动组件',
     description: '按章节维度查看互动组件库，点击章节后展示对应组件并进入资源页面。',
     href: '/interactive-learning/chapter-components',
     badge: 'Component Hub',
-    accent: 'border-amber-400/40 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+    accent: 'border-border bg-muted text-subtle',
   },
 ] as const;
 
@@ -37,14 +37,15 @@ export default function InteractiveLearningPage() {
       subtitle="Interactive Learning"
     >
       <section
-        className="mx-auto max-w-[1200px] px-6 py-12"
+        className="w-full px-4 py-8 sm:px-6 lg:px-8"
         data-commercial-workspace="interactive-learning"
         data-commercial-student-entry-route="/interactive-learning"
         data-commercial-entry-intent="learn"
+        data-interactive-atlas-workspace="landing"
         data-learning-entry-map="student-intent"
       >
         <header
-          className="surface-card mb-6 p-6"
+          className="mb-6 border-b border-border/60 pb-6"
           data-entry-current-context="interactive-learning"
           data-entry-current-work-priority="active-learning-context"
         >
@@ -95,7 +96,6 @@ export default function InteractiveLearningPage() {
               href={entry.href}
               className="surface-card group relative overflow-hidden p-6 transition hover:-translate-y-0.5 hover:border-primary/40"
             >
-              <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
               <span className={`inline-flex rounded-full border px-3 py-1 text-xs ${entry.accent}`}>{entry.badge}</span>
               <h2 className="mt-4 text-xl font-semibold text-foreground">{entry.title}</h2>
               <p className="mt-3 text-sm leading-6 text-subtle">{entry.description}</p>
@@ -121,21 +121,21 @@ export default function InteractiveLearningPage() {
 
         <section className="mt-10 grid gap-4 md:grid-cols-3">
           <div className="surface-card-soft p-4">
-            <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-fuchsia-500/15 text-fuchsia-300">
+            <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <Sparkles className="h-4 w-4" />
             </div>
             <h3 className="text-sm font-semibold text-foreground">跨域问题驱动</h3>
             <p className="mt-2 text-xs text-subtle">聚焦跨表征关系，建立“模型-图形-响应”联动直觉。</p>
           </div>
           <div className="surface-card-soft p-4">
-            <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/15 text-cyan-300">
+            <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <Workflow className="h-4 w-4" />
             </div>
             <h3 className="text-sm font-semibold text-foreground">课程链路清晰</h3>
             <p className="mt-2 text-xs text-subtle">按章节快速进入互动课程，支持课堂演示与学生自学切换。</p>
           </div>
           <div className="surface-card-soft p-4">
-            <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/15 text-amber-300">
+            <div className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <Compass className="h-4 w-4" />
             </div>
             <h3 className="text-sm font-semibold text-foreground">组件按章归集</h3>
