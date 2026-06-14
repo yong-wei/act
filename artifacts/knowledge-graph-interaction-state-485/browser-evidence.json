@@ -1,0 +1,337 @@
+{
+  "capturedAt": "2026-06-14T10:10:18.431Z",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "screenshots": {
+    "initial": "artifacts/knowledge-graph-interaction-state-485/01-initial-layout.png",
+    "hover": "artifacts/knowledge-graph-interaction-state-485/02-hover-preview.png",
+    "selected": "artifacts/knowledge-graph-interaction-state-485/03-selected-inspector.png",
+    "dragged": "artifacts/knowledge-graph-interaction-state-485/04-dragged-pinned.png",
+    "inspectorClosed": "artifacts/knowledge-graph-interaction-state-485/05-inspector-closed-pinned.png",
+    "relayout": "artifacts/knowledge-graph-interaction-state-485/06-explicit-relayout.png",
+    "threeD": null
+  },
+  "screenshotNote": "2D screenshots were captured in the in-app browser; later CDP screenshot calls timed out on this tab, so enhanced clear-pins/3D evidence is structural state evidence in browser-evidence.json.",
+  "states": {
+    "initial": {
+      "activeViewText": "2D 视图",
+      "canvasCount": 1,
+      "hoverPreviewText": "策略监督层调度控制理论Bloom：评价维度：程序性章节：知识边界与方法迁移层策略监督层调度不直接输出压缩机占空比，只在预冷、正常、节能和保守恢复四种模式之间选择，并保留 PI/PID、限幅、安全壳和回退路线。",
+      "hoverPreviewVisible": true,
+      "inspectorOpen": false,
+      "inspectorText": "",
+      "label": "initial",
+      "layoutControls": [
+        "fit-view",
+        "relayout",
+        "pin-selected",
+        "clear-pins"
+      ],
+      "layoutVersion": "0",
+      "pinnedLayoutSignature": "",
+      "pinnedNodeCount": "0",
+      "selectedNodeId": "",
+      "url": "http://localhost:3001/knowledge",
+      "visibleLinkCount": "1301",
+      "visibleNodeCount": "605"
+    },
+    "hover": {
+      "activeViewText": "2D 视图",
+      "canvasCount": 1,
+      "hoverPreviewText": "策略监督层调度控制理论Bloom：评价维度：程序性章节：知识边界与方法迁移层策略监督层调度不直接输出压缩机占空比，只在预冷、正常、节能和保守恢复四种模式之间选择，并保留 PI/PID、限幅、安全壳和回退路线。",
+      "hoverPreviewVisible": true,
+      "inspectorOpen": false,
+      "inspectorText": "",
+      "label": "hover-preview",
+      "layoutControls": [
+        "fit-view",
+        "relayout",
+        "pin-selected",
+        "clear-pins"
+      ],
+      "layoutVersion": "0",
+      "pinnedLayoutSignature": "",
+      "pinnedNodeCount": "0",
+      "selectedNodeId": "",
+      "url": "http://localhost:3001/knowledge",
+      "visibleLinkCount": "1301",
+      "visibleNodeCount": "605"
+    },
+    "rapidHover": {
+      "activeViewText": "2D 视图",
+      "canvasCount": 1,
+      "hoverPreviewText": "策略监督层调度控制理论Bloom：评价维度：程序性章节：知识边界与方法迁移层策略监督层调度不直接输出压缩机占空比，只在预冷、正常、节能和保守恢复四种模式之间选择，并保留 PI/PID、限幅、安全壳和回退路线。",
+      "hoverPreviewVisible": true,
+      "inspectorOpen": false,
+      "inspectorText": "",
+      "label": "rapid-hover",
+      "layoutControls": [
+        "fit-view",
+        "relayout",
+        "pin-selected",
+        "clear-pins"
+      ],
+      "layoutVersion": "0",
+      "pinnedLayoutSignature": "",
+      "pinnedNodeCount": "0",
+      "selectedNodeId": "",
+      "url": "http://localhost:3001/knowledge",
+      "visibleLinkCount": "1301",
+      "visibleNodeCount": "605"
+    },
+    "selected": {
+      "activeViewText": "2D 视图",
+      "canvasCount": 1,
+      "hoverPreviewText": "策略监督层调度控制理论Bloom：评价维度：程序性章节：知识边界与方法迁移层策略监督层调度不直接输出压缩机占空比，只在预冷、正常、节能和保守恢复四种模式之间选择，并保留 PI/PID、限幅、安全壳和回退路线。",
+      "hoverPreviewVisible": true,
+      "inspectorOpen": true,
+      "inspectorText": "策略监督层调度控制理论评价程序性章节：知识边界与方法迁移层难度：4重要性：5策略监督层调度不直接输出压缩机占空比，只在预冷、正常、节能和保守恢复四种模式之间选择，并保留 PI/PID、限幅、安全壳和回退路线。知识点信息图示例E3 中传感器读数偏低、门封退化和制冷能力下降没有进入开发覆盖，策略监督层不能据此进入主闭环。关键词策略监督层模式调度安全壳回退公式x(",
+      "label": "selected-inspector",
+      "layoutControls": [
+        "fit-view",
+        "relayout",
+        "pin-selected",
+        "clear-pins"
+      ],
+      "layoutVersion": "0",
+      "pinnedLayoutSignature": "",
+      "pinnedNodeCount": "0",
+      "selectedNodeId": "策略监督层调度_5_56005",
+      "url": "http://localhost:3001/knowledge",
+      "visibleLinkCount": "1301",
+      "visibleNodeCount": "605"
+    },
+    "dragged": {
+      "activeViewText": "2D 视图",
+      "canvasCount": 1,
+      "hoverPreviewText": "策略监督层调度控制理论Bloom：评价维度：程序性章节：知识边界与方法迁移层策略监督层调度不直接输出压缩机占空比，只在预冷、正常、节能和保守恢复四种模式之间选择，并保留 PI/PID、限幅、安全壳和回退路线。",
+      "hoverPreviewVisible": true,
+      "inspectorOpen": true,
+      "inspectorText": "策略监督层调度控制理论评价程序性章节：知识边界与方法迁移层难度：4重要性：5策略监督层调度不直接输出压缩机占空比，只在预冷、正常、节能和保守恢复四种模式之间选择，并保留 PI/PID、限幅、安全壳和回退路线。知识点信息图示例E3 中传感器读数偏低、门封退化和制冷能力下降没有进入开发覆盖，策略监督层不能据此进入主闭环。关键词策略监督层模式调度安全壳回退公式x(",
+      "label": "dragged-pinned",
+      "layoutControls": [
+        "fit-view",
+        "relayout",
+        "unpin-selected",
+        "clear-pins"
+      ],
+      "layoutVersion": "1",
+      "pinnedLayoutSignature": "策略监督层调度_5_56005:-102.9,-457.4,5.0",
+      "pinnedNodeCount": "1",
+      "selectedNodeId": "策略监督层调度_5_56005",
+      "url": "http://localhost:3001/knowledge",
+      "visibleLinkCount": "1301",
+      "visibleNodeCount": "605"
+    },
+    "hoverAfterDrag": {
+      "activeViewText": "2D 视图",
+      "canvasCount": 1,
+      "hoverPreviewText": "",
+      "hoverPreviewVisible": false,
+      "inspectorOpen": true,
+      "inspectorText": "策略监督层调度控制理论评价程序性章节：知识边界与方法迁移层难度：4重要性：5策略监督层调度不直接输出压缩机占空比，只在预冷、正常、节能和保守恢复四种模式之间选择，并保留 PI/PID、限幅、安全壳和回退路线。知识点信息图示例E3 中传感器读数偏低、门封退化和制冷能力下降没有进入开发覆盖，策略监督层不能据此进入主闭环。关键词策略监督层模式调度安全壳回退公式x(",
+      "label": "hover-after-drag",
+      "layoutControls": [
+        "fit-view",
+        "relayout",
+        "unpin-selected",
+        "clear-pins"
+      ],
+      "layoutVersion": "1",
+      "pinnedLayoutSignature": "策略监督层调度_5_56005:-102.9,-457.4,5.0",
+      "pinnedNodeCount": "1",
+      "selectedNodeId": "策略监督层调度_5_56005",
+      "url": "http://localhost:3001/knowledge",
+      "visibleLinkCount": "1301",
+      "visibleNodeCount": "605"
+    },
+    "inspectorClosed": {
+      "activeViewText": "2D 视图",
+      "canvasCount": 1,
+      "hoverPreviewText": "",
+      "hoverPreviewVisible": false,
+      "inspectorOpen": false,
+      "inspectorText": "",
+      "label": "inspector-closed",
+      "layoutControls": [
+        "fit-view",
+        "relayout",
+        "unpin-selected",
+        "clear-pins"
+      ],
+      "layoutVersion": "1",
+      "pinnedLayoutSignature": "策略监督层调度_5_56005:-102.9,-457.4,5.0",
+      "pinnedNodeCount": "1",
+      "selectedNodeId": "策略监督层调度_5_56005",
+      "url": "http://localhost:3001/knowledge",
+      "visibleLinkCount": "1301",
+      "visibleNodeCount": "605"
+    },
+    "clearPins": {
+      "activeViewText": "2D 视图",
+      "canvasCount": 1,
+      "hoverPreviewText": "",
+      "hoverPreviewVisible": false,
+      "inspectorOpen": false,
+      "inspectorText": "",
+      "label": "clear-pins",
+      "layoutControls": [
+        "fit-view",
+        "relayout",
+        "pin-selected",
+        "clear-pins"
+      ],
+      "layoutVersion": "2",
+      "pinnedLayoutSignature": "",
+      "pinnedNodeCount": "0",
+      "selectedNodeId": "策略监督层调度_5_56005",
+      "url": "http://localhost:3001/knowledge",
+      "visibleLinkCount": "1301",
+      "visibleNodeCount": "605"
+    },
+    "relayout": {
+      "activeViewText": "2D 视图",
+      "canvasCount": 1,
+      "hoverPreviewText": "",
+      "hoverPreviewVisible": false,
+      "inspectorOpen": false,
+      "inspectorText": "",
+      "label": "explicit-relayout",
+      "layoutControls": [
+        "fit-view",
+        "relayout",
+        "pin-selected",
+        "clear-pins"
+      ],
+      "layoutVersion": "3",
+      "pinnedLayoutSignature": "",
+      "pinnedNodeCount": "0",
+      "selectedNodeId": "策略监督层调度_5_56005",
+      "url": "http://localhost:3001/knowledge",
+      "visibleLinkCount": "1301",
+      "visibleNodeCount": "605"
+    },
+    "threeD": {
+      "activeViewText": "3D 视图",
+      "canvasCount": 1,
+      "hoverPreviewText": "",
+      "hoverPreviewVisible": false,
+      "inspectorOpen": false,
+      "inspectorText": "",
+      "label": "3d-view",
+      "layoutControls": [
+        "fit-view",
+        "relayout",
+        "pin-selected",
+        "clear-pins"
+      ],
+      "layoutVersion": "3",
+      "pinnedLayoutSignature": "",
+      "pinnedNodeCount": "0",
+      "selectedNodeId": "策略监督层调度_5_56005",
+      "url": "http://localhost:3001/knowledge",
+      "visibleLinkCount": "1301",
+      "visibleNodeCount": "605"
+    }
+  },
+  "interactions": {
+    "hoverPoint": {
+      "x": 714,
+      "y": 255
+    },
+    "hoverText": "策略监督层调度控制理论Bloom：评价维度：程序性章节：知识边界与方法迁移层策略监督层调度不直接输出压缩机占空比，只在预冷、正常、节能和保守恢复四种模式之间选择，并保留 PI/PID、限幅、安全壳和回退路线。",
+    "dragTo": {
+      "x": 834,
+      "y": 325
+    },
+    "inspectorClosePoint": {
+      "x": 1383,
+      "y": 128
+    }
+  },
+  "threeDScreenshotError": "Page.captureScreenshot timed out on this WebGL tab after earlier 2D screenshots; 3D view was verified by active view, canvas, layout version, and membership markers.",
+  "currentRun": {
+    "capturedAt": "2026-06-14T10:45:57.122Z",
+    "baseSha": "d05e9cdad27d6c89300a443f124b1ddb5f107915",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "activeCanvasSelectionRule": "Use the visible [data-knowledge-canvas-primary=true] element with non-zero bounds and visibleNodeCount > 0; the page also contains a zero-size mobile/hidden duplicate.",
+    "baseline": {
+      "layoutVersion": 0,
+      "visibleNodeCount": 605,
+      "visibleLinkCount": 1301,
+      "pinnedNodeCount": 0,
+      "inspectorOpen": false,
+      "hoverPreviewVisible": false,
+      "layoutControls": [
+        "fit-view",
+        "relayout",
+        "pin-selected",
+        "set-focus-node",
+        "clear-pins"
+      ]
+    },
+    "directoryOpened": {
+      "layoutVersion": 0,
+      "visibleNodeCount": 605,
+      "visibleLinkCount": 1301,
+      "pinnedNodeCount": 0,
+      "directoryRegion": "知识图谱章节目录",
+      "firstVisibleChapter": "基本概念 61"
+    },
+    "explicitRelayout": {
+      "before": {
+        "layoutVersion": 0,
+        "visibleNodeCount": 605,
+        "visibleLinkCount": 1301,
+        "pinnedNodeCount": 0
+      },
+      "after": {
+        "layoutVersion": 1,
+        "visibleNodeCount": 605,
+        "visibleLinkCount": 1301,
+        "pinnedNodeCount": 0
+      }
+    },
+    "interactionHarness": {
+      "kind": "deterministic-layout-state-harness",
+      "source": "src/features/knowledge/__tests__/knowledge-graph-interaction-state.test.ts",
+      "selected": {
+        "selectedNodeId": "策略监督层调度_5_56005",
+        "layoutVersion": 0,
+        "visibleNodeCount": 605,
+        "visibleLinkCount": 1301
+      },
+      "dragged": {
+        "pinnedNodeCount": 1,
+        "pinnedLayoutSignature": "策略监督层调度_5_56005:-102.9,-457.4,5.0",
+        "layoutVersion": 1,
+        "visibleNodeCount": 605,
+        "visibleLinkCount": 1301
+      },
+      "hoverAfterDrag": {
+        "pinnedNodeCount": 1,
+        "pinnedLayoutSignature": "策略监督层调度_5_56005:-102.9,-457.4,5.0",
+        "layoutVersion": 1,
+        "visibleNodeCount": 605,
+        "visibleLinkCount": 1301
+      },
+      "rendererSync": {
+        "preservedAutomaticAnchors": true,
+        "preservedZAxisAnchorFor2DPin": true,
+        "pinUsesRuntimeCoordinatesOnly": true,
+        "filterGraphDataChangesResyncStoredPositions": true
+      }
+    },
+    "canvasAutomationLimitations": [
+      "Browser Page.captureScreenshot timed out on the current WebGL tab.",
+      "The Browser read-only page scope exposes canvas as a generic HTMLElement without toDataURL.",
+      "The Browser page scope does not expose MouseEvent or document.createEvent constructors.",
+      "Coordinate and locator clicks did not select a canvas node in this run, so current-run drag/selection evidence is structural plus unit-test coverage; earlier same-branch browser evidence above retains captured selection and drag-pinned states."
+    ]
+  }
+}

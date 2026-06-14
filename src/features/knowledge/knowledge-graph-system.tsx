@@ -38,6 +38,14 @@ import {
   getRelationLegendItems,
   type RelationLegendItem,
 } from './graph/visual-config';
+import {
+  clearKnowledgeGraphLayoutPins,
+  getEmptyKnowledgeGraphLayoutState,
+  getKnowledgeGraphRuntimeNodePosition,
+  isKnowledgeGraphNodePinned,
+  removeKnowledgeGraphNodePin,
+  storeKnowledgeGraphNodePosition,
+} from './graph/layout-state';
 // import { getAllLessonCards, getAllLessonCardLinks } from './data/lesson-knowledge-cards'; // Removed static import
 
 // 动态导入 3D 图谱组件（客户端专用）
@@ -189,6 +197,13 @@ export function KnowledgeGraphSystem({
   const [mobileActiveTool, setMobileActiveTool] = useState<KnowledgeMobileTool>('chapter-directory');
   const [mobileToolPanelOpen, setMobileToolPanelOpen] = useState(false);
   const [isLightTheme, setIsLightTheme] = useState(false);
+  const [layoutState, setLayoutState] = useState(getEmptyKnowledgeGraphLayoutState);
+  const [fitViewVersion, setFitViewVersion] = useState(0);
+  const [relayoutVersion, setRelayoutVersion] = useState(0);
+  const [explicitFocusNodeId, setExplicitFocusNodeId] = useState<string | null>(null);
+  const hoverAnimationFrameRef = useRef<number | null>(null);
+  const pendingHoveredNodeRef = useRef<KnowledgeNodeData | null>(null);
+  const hoveredNodeIdRef = useRef<string | null>(null);
 
   // 视图模式：默认 2D
   const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
@@ -299,7 +314,32 @@ export function KnowledgeGraphSystem({
 
   // 节点悬停处理
   const handleNodeHover = useCallback((node: KnowledgeNodeData | null) => {
-    setHoveredNode(node);
+    pendingHoveredNodeRef.current = node;
+    if (hoverAnimationFrameRef.current !== null) return;
+    hoverAnimationFrameRef.current = window.requestAnimationFrame(() => {
+      hoverAnimationFrameRef.current = null;
+      const nextNode = pendingHoveredNodeRef.current;
+      const nextNodeId = nextNode?.id ?? null;
+      if (hoveredNodeIdRef.current === nextNodeId) return;
+      hoveredNodeIdRef.current = nextNodeId;
+      setHoveredNode(nextNode);
+    });
+  }, []);
+
+  useEffect(() => () => {
+    if (hoverAnimationFrameRef.current !== null) {
+      window.cancelAnimationFrame(hoverAnimationFrameRef.current);
+    }
+  }, []);
+
+  const handleNodeDragEnd = useCallback((node: KnowledgeNodeData) => {
+    const runtimePosition = getKnowledgeGraphRuntimeNodePosition(
+      node as KnowledgeNodeData & { x?: number; y?: number; z?: number }
+    );
+    if (!runtimePosition) return;
+    setLayoutState((current) =>
+      storeKnowledgeGraphNodePosition(current, runtimePosition)
+    );
   }, []);
 
   // 关闭资源面板
@@ -376,21 +416,23 @@ export function KnowledgeGraphSystem({
     () => buildGraphStatistics(nodeFilteredByMeta, eligibleLinks),
     [eligibleLinks, nodeFilteredByMeta]
   );
-  const focusNodeId = hoveredNode?.id ?? selectedNode?.id ?? null;
+  const graphFilterFocusNodeId = explicitFocusNodeId && nodeFilterIdSet.has(explicitFocusNodeId)
+    ? explicitFocusNodeId
+    : null;
   const focusNeighborhoodSeedLinks = useMemo(
     () => eligibleLinks.filter((link) =>
       relationPassesFocusNeighborhoodSeedFilters(link, {
         densityMode: relationDensityMode,
         selectedRelationTypes,
         minRelationStrength,
-        focusNodeId,
+        focusNodeId: graphFilterFocusNodeId,
       })
     ),
-    [eligibleLinks, focusNodeId, minRelationStrength, relationDensityMode, selectedRelationTypes]
+    [eligibleLinks, graphFilterFocusNodeId, minRelationStrength, relationDensityMode, selectedRelationTypes]
   );
   const focusNeighborhood = useMemo(
-    () => buildFocusNeighborhood(focusNeighborhoodSeedLinks, focusNodeId, nodeFilterIdSet),
-    [focusNeighborhoodSeedLinks, focusNodeId, nodeFilterIdSet]
+    () => buildFocusNeighborhood(focusNeighborhoodSeedLinks, graphFilterFocusNodeId, nodeFilterIdSet),
+    [focusNeighborhoodSeedLinks, graphFilterFocusNodeId, nodeFilterIdSet]
   );
 
   useEffect(() => {
@@ -412,20 +454,20 @@ export function KnowledgeGraphSystem({
         densityMode: relationDensityMode,
         selectedRelationTypes,
         minRelationStrength,
-        focusNodeId,
+        focusNodeId: graphFilterFocusNodeId,
         focusNeighborhood,
       })
     );
-  }, [eligibleLinks, focusNeighborhood, focusNodeId, minRelationStrength, relationDensityMode, selectedRelationTypes]);
+  }, [eligibleLinks, focusNeighborhood, graphFilterFocusNodeId, minRelationStrength, relationDensityMode, selectedRelationTypes]);
 
   const densityFilteredLinks = useMemo(
     () =>
       relationDensityMode === 'structure'
         ? limitStructureRelationDensity(filteredLinksByRelation, {
-            focusNodeId: hoveredNode?.id ?? selectedNode?.id ?? null,
+            focusNodeId: graphFilterFocusNodeId,
           })
         : filteredLinksByRelation,
-    [filteredLinksByRelation, hoveredNode?.id, relationDensityMode, selectedNode?.id]
+    [filteredLinksByRelation, graphFilterFocusNodeId, relationDensityMode]
   );
 
   const filteredNodes = useMemo(() => {
@@ -447,14 +489,13 @@ export function KnowledgeGraphSystem({
     });
 
     return nodeFilteredByMeta.filter((node) => {
-      if (node.id === selectedNode?.id) return true;
       if (relationDensityMode === 'focused' && focusNeighborhood.focusNodeId) {
         return isNodeVisibleInFocusedGraph(node.id, focusNeighborhood, connectedByVisibleLinks);
       }
       if (!connectedInSearch.has(node.id)) return true;
       return connectedByVisibleLinks.has(node.id);
     });
-  }, [densityFilteredLinks, focusNeighborhood, links, nodeFilterIdSet, nodeFilteredByMeta, relationDensityMode, selectedNode?.id, showOnlyConnectedNodes]);
+  }, [densityFilteredLinks, focusNeighborhood, links, nodeFilterIdSet, nodeFilteredByMeta, relationDensityMode, showOnlyConnectedNodes]);
 
   const filteredNodeIdSet = useMemo(() => new Set(filteredNodes.map((item) => item.id)), [filteredNodes]);
 
@@ -483,12 +524,26 @@ export function KnowledgeGraphSystem({
     ? selectedNode
     : null;
   const visiblePanelOpen = isPanelOpen && Boolean(visibleSelectedNode);
+  const pinnedNodeCount = Object.keys(layoutState.positionsByNodeId).length;
+  const pinnedLayoutSignature = Object.entries(layoutState.positionsByNodeId)
+    .map(([nodeId, position]) =>
+      `${nodeId}:${position.x.toFixed(1)},${position.y.toFixed(1)},${(position.z ?? 0).toFixed(1)}`
+    )
+    .sort()
+    .join('|');
+  const selectedNodePinned = isKnowledgeGraphNodePinned(layoutState, visibleSelectedNode?.id);
+  const selectedNodeRuntimePosition = getKnowledgeGraphRuntimeNodePosition(
+    visibleSelectedNode as (KnowledgeNodeData & { x?: number; y?: number; z?: number }) | null
+  );
+  const selectedNodePinUnavailable = Boolean(visibleSelectedNode && !selectedNodePinned && !selectedNodeRuntimePosition);
+  const selectedNodeFocused = Boolean(visibleSelectedNode && graphFilterFocusNodeId === visibleSelectedNode.id);
   const activeFilterSummary = [
     searchQuery ? `搜索：${searchQuery}` : '',
     selectedChapters.length > 0 ? `章节 ${selectedChapters.length}` : '',
     selectedCategories.length > 0 ? `分类 ${selectedCategories.length}` : '',
     selectedBloomLevels.length > 0 ? `层级 ${selectedBloomLevels.length}` : '',
     selectedRelationTypes.length !== relationTypeStats.length ? `关系 ${selectedRelationTypes.length}/${relationTypeStats.length}` : '',
+    graphFilterFocusNodeId ? '焦点邻域' : '',
     minRelationStrength > 0 ? `强度 >= ${minRelationStrength.toFixed(1)}` : '',
     showOnlyConnectedNodes ? '仅连通节点' : '',
   ].filter(Boolean).join(' · ') || '未启用额外筛选';
@@ -505,6 +560,40 @@ export function KnowledgeGraphSystem({
     },
     []
   );
+
+  const handleFitView = useCallback(() => {
+    setFitViewVersion((current) => current + 1);
+  }, []);
+
+  const handleRelayout = useCallback(() => {
+    setLayoutState((current) => ({
+      version: current.version + 1,
+      positionsByNodeId: {},
+    }));
+    setRelayoutVersion((current) => current + 1);
+    setFitViewVersion((current) => current + 1);
+  }, []);
+
+  const handleToggleSelectedNodePin = useCallback(() => {
+    if (!visibleSelectedNode) return;
+    if (isKnowledgeGraphNodePinned(layoutState, visibleSelectedNode.id)) {
+      setLayoutState((current) => removeKnowledgeGraphNodePin(current, visibleSelectedNode.id));
+      return;
+    }
+    if (!selectedNodeRuntimePosition) return;
+    setLayoutState((current) =>
+      storeKnowledgeGraphNodePosition(current, selectedNodeRuntimePosition)
+    );
+  }, [layoutState, selectedNodeRuntimePosition, visibleSelectedNode]);
+
+  const handleClearLayoutPins = useCallback(() => {
+    setLayoutState((current) => clearKnowledgeGraphLayoutPins(current));
+  }, []);
+
+  const handleToggleSelectedFocus = useCallback(() => {
+    if (!visibleSelectedNode) return;
+    setExplicitFocusNodeId((current) => current === visibleSelectedNode.id ? null : visibleSelectedNode.id);
+  }, [visibleSelectedNode]);
 
   const hoveredBloomLabel = hoveredNode?.bloomLevel ? getBloomLabel(hoveredNode.bloomLevel) : '';
   const hoveredKnowledgeDimLabel = hoveredNode?.knowledgeDim
@@ -555,7 +644,7 @@ export function KnowledgeGraphSystem({
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               onNodeSelect={handleNodeClick}
-              onNodeHover={setHoveredNode}
+              onNodeHover={handleNodeHover}
             />
           ) : (
             <div className="grid flex-1 place-items-center rounded-lg bg-platform-canvas-muted px-2 text-center text-[11px] text-platform-fg-secondary">
@@ -569,7 +658,17 @@ export function KnowledgeGraphSystem({
       </div>
 
       {/* 中央图谱区域 */}
-      <div ref={containerRef} className="relative h-full min-w-0 flex-1 overflow-hidden" data-knowledge-canvas-primary="true">
+      <div
+        ref={containerRef}
+        className="relative h-full min-w-0 flex-1 overflow-hidden"
+        data-knowledge-canvas-primary="true"
+        data-knowledge-layout-version={layoutState.version}
+        data-knowledge-visible-node-count={displayNodes.length}
+        data-knowledge-visible-link-count={displayLinks.length}
+        data-knowledge-pinned-node-count={pinnedNodeCount}
+        data-knowledge-pinned-layout-signature={pinnedLayoutSignature}
+        data-knowledge-selected-node-id={visibleSelectedNode?.id ?? ''}
+      >
         <div
           className="absolute left-3 right-3 top-3 z-30 grid gap-2 lg:hidden"
           data-knowledge-mobile-command-surface="single-tool-panel"
@@ -628,7 +727,7 @@ export function KnowledgeGraphSystem({
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
                   onNodeSelect={handleNodeClick}
-                  onNodeHover={setHoveredNode}
+                  onNodeHover={handleNodeHover}
                 />
               </div>
             )}
@@ -1061,6 +1160,57 @@ export function KnowledgeGraphSystem({
           </button>
         </div>
 
+        <div
+          className="absolute right-4 top-16 z-10 flex flex-wrap justify-end gap-1.5 rounded-lg border border-platform-border bg-platform-surface/95 p-1.5 shadow-lg backdrop-blur-sm"
+          data-knowledge-local-panel="layout-controls"
+          data-knowledge-local-tool="layout-controls"
+          data-state="open"
+        >
+          <button
+            type="button"
+            onClick={handleFitView}
+            className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-1 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse"
+            data-knowledge-layout-control="fit-view"
+          >
+            适配视图
+          </button>
+          <button
+            type="button"
+            onClick={handleRelayout}
+            className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-1 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse"
+            data-knowledge-layout-control="relayout"
+          >
+            重新布局
+          </button>
+          <button
+            type="button"
+            onClick={handleToggleSelectedNodePin}
+            disabled={!visibleSelectedNode || selectedNodePinUnavailable}
+            className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-1 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse disabled:cursor-not-allowed disabled:opacity-45"
+            data-knowledge-layout-control={selectedNodePinned ? 'unpin-selected' : 'pin-selected'}
+            title={selectedNodePinUnavailable ? '需要先在图谱中点击或拖拽节点，才能固定当前画布坐标' : undefined}
+          >
+            {selectedNodePinned ? '取消固定' : '固定节点'}
+          </button>
+          <button
+            type="button"
+            onClick={handleToggleSelectedFocus}
+            disabled={!visibleSelectedNode}
+            className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-1 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse disabled:cursor-not-allowed disabled:opacity-45"
+            data-knowledge-layout-control={selectedNodeFocused ? 'clear-focus-node' : 'set-focus-node'}
+          >
+            {selectedNodeFocused ? '取消焦点' : '设为焦点'}
+          </button>
+          <button
+            type="button"
+            onClick={handleClearLayoutPins}
+            className="rounded-md border border-platform-border bg-platform-action-subtle px-2 py-1 text-xs font-medium text-platform-fg-secondary hover:bg-platform-action-primary hover:text-platform-fg-inverse"
+            data-knowledge-layout-control="clear-pins"
+          >
+            清除固定
+          </button>
+        </div>
+
         {isLoading ? (
             <div className="flex h-full w-full items-center justify-center">
               <div className="text-center">
@@ -1087,9 +1237,13 @@ export function KnowledgeGraphSystem({
                 hoveredNode={hoveredNode}
                 onNodeClick={handleNodeClick}
                 onNodeHover={handleNodeHover}
+                onNodeDragEnd={handleNodeDragEnd}
                 width={dimensions.width}
                 height={dimensions.height}
                 labelMode={labelMode}
+                layoutState={layoutState}
+                fitViewVersion={fitViewVersion}
+                relayoutVersion={relayoutVersion}
               />
             ) : (
               <KnowledgeGraphCanvas
@@ -1099,7 +1253,11 @@ export function KnowledgeGraphSystem({
                 hoveredNode={hoveredNode}
                 onNodeClick={handleNodeClick}
                 onNodeHover={handleNodeHover}
+                onNodeDragEnd={handleNodeDragEnd}
                 labelMode={labelMode}
+                layoutState={layoutState}
+                fitViewVersion={fitViewVersion}
+                relayoutVersion={relayoutVersion}
               />
             )}
             </Suspense>

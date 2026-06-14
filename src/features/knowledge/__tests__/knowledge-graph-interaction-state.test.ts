@@ -1,0 +1,328 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { describe, expect, it } from 'vitest';
+
+import type { KnowledgeNodeData } from '../knowledge-graph-system';
+import {
+  applyKnowledgeGraphStoredPositions,
+  clearKnowledgeGraphLayoutPins,
+  getKnowledgeGraphRuntimeNodePosition,
+  markKnowledgeGraphAutomaticNodeAnchors,
+  removeKnowledgeGraphNodePin,
+  storeKnowledgeGraphNodePosition,
+  syncKnowledgeGraphMutableNodePositions,
+} from '../graph/layout-state';
+import { resolveResourcePanelSelectionState } from '../resource-panel/resource-panel';
+
+function graphNode(id: string, x = 0, y = 0): KnowledgeNodeData {
+  return {
+    id,
+    name: id,
+    nodeType: 'THEORY',
+    description: `${id} description`,
+    positionX: x,
+    positionY: y,
+    positionZ: 0,
+  };
+}
+
+describe('knowledge graph interaction state stability', () => {
+  it('stores dragged coordinates by node id and reapplies them as pinned graph coordinates', () => {
+    const state = storeKnowledgeGraphNodePosition(undefined, {
+      id: 'node-a',
+      x: 128,
+      y: -64,
+      z: 9,
+    });
+
+    const [nodeA, nodeB] = applyKnowledgeGraphStoredPositions(
+      [graphNode('node-a'), graphNode('node-b')],
+      state
+    );
+
+    expect(state.version).toBe(1);
+    expect(state.positionsByNodeId['node-a']).toMatchObject({
+      x: 128,
+      y: -64,
+      z: 9,
+      pinned: true,
+    });
+    expect(nodeA).toMatchObject({
+      x: 128,
+      y: -64,
+      z: 9,
+      fx: 128,
+      fy: -64,
+      fz: 9,
+      positionX: 128,
+      positionY: -64,
+      positionZ: 9,
+    });
+    expect(nodeB).toEqual(graphNode('node-b'));
+  });
+
+  it('keeps pinned coordinates through hover, selection, inspector, and visible filter changes', () => {
+    const pinned = storeKnowledgeGraphNodePosition(undefined, {
+      id: 'node-a',
+      x: 32,
+      y: 48,
+    });
+
+    const afterHover = applyKnowledgeGraphStoredPositions(
+      [graphNode('node-a'), graphNode('node-c')],
+      pinned
+    );
+    const afterSelection = applyKnowledgeGraphStoredPositions(
+      [graphNode('node-a'), graphNode('node-d')],
+      pinned
+    );
+
+    expect(afterHover[0]).toMatchObject({ id: 'node-a', x: 32, y: 48, fx: 32, fy: 48 });
+    expect(afterSelection[0]).toMatchObject({ id: 'node-a', x: 32, y: 48, fx: 32, fy: 48 });
+    expect(pinned.version).toBe(1);
+  });
+
+  it('removes pins only through explicit unpin or clear-pins commands', () => {
+    const pinnedA = storeKnowledgeGraphNodePosition(undefined, { id: 'node-a', x: 1, y: 2 });
+    const pinnedBoth = storeKnowledgeGraphNodePosition(pinnedA, { id: 'node-b', x: 3, y: 4 });
+
+    const withoutA = removeKnowledgeGraphNodePin(pinnedBoth, 'node-a');
+    const cleared = clearKnowledgeGraphLayoutPins(withoutA);
+
+    expect(Object.keys(pinnedBoth.positionsByNodeId).sort()).toEqual(['node-a', 'node-b']);
+    expect(Object.keys(withoutA.positionsByNodeId)).toEqual(['node-b']);
+    expect(withoutA.version).toBe(3);
+    expect(cleared.positionsByNodeId).toEqual({});
+    expect(cleared.version).toBe(4);
+  });
+
+  it('preserves automatic layout anchors while syncing user-pinned mutable coordinates', () => {
+    const pinned = storeKnowledgeGraphNodePosition(undefined, { id: 'node-a', x: 10, y: 20 });
+    const mutableNodes = [
+      {
+        ...graphNode('chapter-node:基本概念', -200, -300),
+        fx: -200,
+        fy: -300,
+      },
+      graphNode('node-a'),
+    ];
+
+    syncKnowledgeGraphMutableNodePositions(mutableNodes, pinned);
+
+    expect(mutableNodes[0]).toMatchObject({
+      id: 'chapter-node:基本概念',
+      fx: -200,
+      fy: -300,
+      positionX: -200,
+      positionY: -300,
+    });
+    expect(mutableNodes[1]).toMatchObject({
+      id: 'node-a',
+      x: 10,
+      y: 20,
+      fx: 10,
+      fy: 20,
+      __knowledgeUserPinned: true,
+    });
+  });
+
+  it('preserves existing z-axis anchors when a 2D pin only stores x and y', () => {
+    const pinnedFrom2D = storeKnowledgeGraphNodePosition(undefined, { id: 'node-a', x: 14, y: -18 });
+    const mutableNodes = [
+      {
+        ...graphNode('node-a', 0, 0),
+        z: 0,
+        fz: 0,
+        positionZ: 0,
+      },
+    ];
+
+    syncKnowledgeGraphMutableNodePositions(mutableNodes, pinnedFrom2D);
+
+    expect(mutableNodes[0]).toMatchObject({
+      id: 'node-a',
+      x: 14,
+      y: -18,
+      fx: 14,
+      fy: -18,
+      z: 0,
+      fz: 0,
+      positionZ: 0,
+      __knowledgeUserPinned: true,
+    });
+  });
+
+  it('restores chapter automatic anchors after clearing a user pin', () => {
+    const mutableNodes = [
+      {
+        ...graphNode('chapter-node:基本概念', -200, -300),
+        x: -200,
+        y: -300,
+        z: 0,
+        fx: -200,
+        fy: -300,
+        fz: 0,
+        positionZ: 0,
+      },
+    ];
+    markKnowledgeGraphAutomaticNodeAnchors(mutableNodes);
+
+    const userPinned = storeKnowledgeGraphNodePosition(undefined, {
+      id: 'chapter-node:基本概念',
+      x: 40,
+      y: 50,
+      z: 12,
+    });
+    syncKnowledgeGraphMutableNodePositions(mutableNodes, userPinned);
+    syncKnowledgeGraphMutableNodePositions(mutableNodes, clearKnowledgeGraphLayoutPins(userPinned));
+
+    expect(mutableNodes[0]).toMatchObject({
+      id: 'chapter-node:基本概念',
+      x: -200,
+      y: -300,
+      z: 0,
+      fx: -200,
+      fy: -300,
+      fz: 0,
+      positionX: -200,
+      positionY: -300,
+      positionZ: 0,
+    });
+    expect(mutableNodes[0]).not.toHaveProperty('__knowledgeUserPinned');
+  });
+
+  it('only releases coordinates that were created by a user pin', () => {
+    const mutableNodes = [
+      {
+        ...graphNode('node-a', 10, 20),
+        x: 10,
+        y: 20,
+        fx: 10,
+        fy: 20,
+        __knowledgeUserPinned: true as const,
+      },
+      {
+        ...graphNode('chapter-node:系统模型', -40, -50),
+        fx: -40,
+        fy: -50,
+      },
+    ];
+
+    syncKnowledgeGraphMutableNodePositions(mutableNodes, {
+      version: 2,
+      positionsByNodeId: {},
+    });
+
+    expect(mutableNodes[0]).not.toHaveProperty('fx');
+    expect(mutableNodes[0]).not.toHaveProperty('fy');
+    expect(mutableNodes[0]).not.toHaveProperty('__knowledgeUserPinned');
+    expect(mutableNodes[1]).toMatchObject({ fx: -40, fy: -50 });
+  });
+
+  it('only exposes runtime graph coordinates for pinning when the renderer supplied x and y', () => {
+    expect(getKnowledgeGraphRuntimeNodePosition(graphNode('source-only', 7, 8))).toBeNull();
+    expect(getKnowledgeGraphRuntimeNodePosition({
+      ...graphNode('runtime-node', 7, 8),
+      x: 31,
+      y: -22,
+      z: 4,
+    })).toEqual({
+      id: 'runtime-node',
+      x: 31,
+      y: -22,
+      z: 4,
+    });
+  });
+
+  it('keeps hover and selection out of graph filtering, membership, and layout derivation', () => {
+    const systemSource = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/knowledge-graph-system.tsx'),
+      'utf8'
+    );
+    const rendererSource = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/graph/knowledge-graph-2d.tsx'),
+      'utf8'
+    );
+    const canvasSource = readFileSync(
+      path.join(process.cwd(), 'src/features/knowledge/graph/knowledge-graph-canvas.tsx'),
+      'utf8'
+    );
+
+    expect(systemSource).toContain('const [explicitFocusNodeId, setExplicitFocusNodeId] = useState<string | null>(null);');
+    expect(systemSource).toContain('hoverAnimationFrameRef');
+    expect(systemSource).toContain('window.requestAnimationFrame');
+    expect(systemSource).toContain('const graphFilterFocusNodeId = explicitFocusNodeId && nodeFilterIdSet.has(explicitFocusNodeId)');
+    expect(systemSource).not.toContain('const focusNodeId = hoveredNode?.id ?? selectedNode?.id ?? null;');
+    expect(systemSource).not.toContain('focusNodeId: hoveredNode?.id ?? selectedNode?.id ?? null');
+    expect(systemSource).not.toContain('onNodeHover={setHoveredNode}');
+    expect(systemSource).toContain('onNodeDragEnd={handleNodeDragEnd}');
+    expect(systemSource).toContain('data-knowledge-layout-version={layoutState.version}');
+    expect(systemSource).toContain('data-knowledge-visible-node-count={displayNodes.length}');
+    expect(systemSource).toContain('data-knowledge-pinned-node-count={pinnedNodeCount}');
+    expect(systemSource).toContain('data-knowledge-pinned-layout-signature={pinnedLayoutSignature}');
+    expect(systemSource).toContain("data-knowledge-selected-node-id={visibleSelectedNode?.id ?? ''}");
+    expect(systemSource).toContain('data-knowledge-layout-control="relayout"');
+    expect(systemSource).toContain('data-knowledge-layout-control="clear-pins"');
+    expect(systemSource).toContain("data-knowledge-layout-control={selectedNodeFocused ? 'clear-focus-node' : 'set-focus-node'}");
+    expect(systemSource).toContain('setExplicitFocusNodeId((current) => current === visibleSelectedNode.id ? null : visibleSelectedNode.id)');
+    expect(systemSource).toContain('const [relayoutVersion, setRelayoutVersion] = useState(0);');
+    expect(systemSource).toContain('setRelayoutVersion((current) => current + 1);');
+    expect(systemSource).toContain('selectedNodePinUnavailable');
+    expect(systemSource).not.toContain('x: graphNode.x ?? visibleSelectedNode.positionX');
+    expect(systemSource).not.toContain('y: graphNode.y ?? visibleSelectedNode.positionY');
+    expect(rendererSource).toContain('onNodeDragEnd={handleNodeDragEnd}');
+    expect(rendererSource).not.toContain('applyKnowledgeGraphStoredPositions(');
+    expect(rendererSource).toContain('syncKnowledgeGraphMutableNodePositions(currentNodes, layoutState);');
+    expect(rendererSource).toContain('}, [nodes, links, relayoutVersion]);');
+    expect(rendererSource).toContain('}, [graphData, layoutState]);');
+    expect(rendererSource).not.toContain('}, [layoutState, nodes, links]);');
+    expect(canvasSource).not.toContain('applyKnowledgeGraphStoredPositions(');
+    expect(canvasSource).toContain('syncKnowledgeGraphMutableNodePositions(currentNodes, layoutState);');
+    expect(canvasSource).toContain('}, [nodes, links, relayoutVersion]);');
+    expect(canvasSource).toContain('}, [graphData, layoutState]);');
+    expect(canvasSource).not.toContain('}, [layoutState, nodes, links]);');
+  });
+
+  it('registers interaction-state browser evidence in the commercial governance gate', () => {
+    const governanceSource = readFileSync(
+      path.join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'),
+      'utf8'
+    );
+
+    expect(governanceSource).toContain('KNOWLEDGE_GRAPH_INTERACTION_STATE_EVIDENCE_PATH');
+    expect(governanceSource).toContain('artifacts/knowledge-graph-interaction-state-485/browser-evidence.json');
+    expect(governanceSource).toContain('validateKnowledgeGraphInteractionStateEvidence');
+    expect(governanceSource).toContain('pinnedLayoutSignature');
+    expect(governanceSource).toContain('layoutVersion');
+    expect(governanceSource).toContain('currentRunBaseline');
+    expect(governanceSource).toContain("'set-focus-node'");
+    expect(governanceSource).toContain('currentRunInteractionHarness');
+    expect(governanceSource).toContain('preservedZAxisAnchorFor2DPin');
+  });
+
+  it('resets resource inspector detail state when selection changes without remounting the panel', () => {
+    const ordinaryState = resolveResourcePanelSelectionState(graphNode('node-a'));
+    const chapterState = resolveResourcePanelSelectionState({
+      ...graphNode('chapter-node:根轨迹分析'),
+      metadata: { isVirtualChapter: true },
+    });
+
+    expect(ordinaryState).toEqual({
+      nodeDetail: null,
+      nodeDetailOwnerId: null,
+      isLoading: true,
+      isCardOpen: false,
+      expandedRelationGroups: {},
+    });
+    expect(chapterState).toEqual({
+      nodeDetail: {
+        ...graphNode('chapter-node:根轨迹分析'),
+        metadata: { isVirtualChapter: true },
+      },
+      nodeDetailOwnerId: 'chapter-node:根轨迹分析',
+      isLoading: false,
+      isCardOpen: false,
+      expandedRelationGroups: {},
+    });
+  });
+});

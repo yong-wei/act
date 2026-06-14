@@ -291,9 +291,12 @@ describe('knowledge graph relation visual semantics', () => {
     expect(source).toContain('const densityFilteredLinks = useMemo');
     expect(source).toContain('const graphStatistics = useMemo');
     expect(source).toContain('relationPassesFocusNeighborhoodSeedFilters(link');
-    expect(source).toContain('buildFocusNeighborhood(focusNeighborhoodSeedLinks, focusNodeId, nodeFilterIdSet)');
+    expect(source).toContain('const graphFilterFocusNodeId = explicitFocusNodeId && nodeFilterIdSet.has(explicitFocusNodeId)');
+    expect(source).toContain('const [explicitFocusNodeId, setExplicitFocusNodeId] = useState<string | null>(null);');
+    expect(source).toContain('buildFocusNeighborhood(focusNeighborhoodSeedLinks, graphFilterFocusNodeId, nodeFilterIdSet)');
     expect(source).toContain('data-knowledge-clarity-summary="desktop"');
-    expect(source).toContain('focusNodeId: hoveredNode?.id ?? selectedNode?.id ?? null');
+    expect(source).toContain('focusNodeId: graphFilterFocusNodeId');
+    expect(source).not.toContain('focusNodeId: hoveredNode?.id ?? selectedNode?.id ?? null');
     expect(source).toContain('relationPassesActiveFilters(link');
     expect(source).toContain("if (relationDensityMode === 'focused' && focusNeighborhood.focusNodeId)");
     expect(source).toContain('isNodeVisibleInFocusedGraph(node.id, focusNeighborhood, connectedByVisibleLinks)');
