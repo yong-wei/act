@@ -155,9 +155,13 @@ function PageFloatingControls({
       className="no-print fixed bottom-4 right-6 z-[120] flex flex-col items-end"
       data-page-floating-controls="true"
       data-platform-floating-dock={behavior === 'collapsed' ? 'collapsed' : 'enabled'}
+      data-platform-floating-dock-safe-area="bottom-right"
     >
       {isMenuOpen ? (
-        <div className="mb-3 w-56 rounded-2xl border border-border/70 bg-background/95 p-2 text-sm text-foreground shadow-2xl backdrop-blur">
+        <div
+          className="mb-3 max-h-[min(70vh,28rem)] w-56 overflow-y-auto rounded-2xl border border-border/70 bg-background/95 p-2 text-sm text-foreground shadow-2xl backdrop-blur"
+          data-platform-floating-dock-expanded-panel
+        >
           {menu.map((item) => (
             <button
               key={item.id}

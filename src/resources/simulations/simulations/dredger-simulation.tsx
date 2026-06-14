@@ -30,7 +30,6 @@ import {
   simulationUi,
   type CameraMode,
 } from '../components';
-import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
 import {
   Play,
   Pause,
@@ -904,11 +903,6 @@ export function DredgerSimulation() {
                 ]}
               />
             ),
-          },
-          {
-            id: 'ai',
-            label: 'AI伴学',
-            content: <AICompanionPanel title="挖泥船动力定位控制" sessionId="dredger-simulation-session" />,
           },
         ]}
       />

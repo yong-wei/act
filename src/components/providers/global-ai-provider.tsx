@@ -85,7 +85,7 @@ interface GlobalAIProviderProps {
 
 export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
 
   // 状态
   const [resolvedContext, setResolvedContext] = useState<ResolvedContext>({
@@ -237,8 +237,9 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
   const shouldShowButton = useMemo(() => {
     if (!mounted) return false;
     if (isPathExcluded(pathname)) return false;
+    if (sessionStatus !== 'authenticated' || !session?.user) return false;
     return resolvedContext.enabled;
-  }, [mounted, pathname, resolvedContext.enabled]);
+  }, [mounted, pathname, resolvedContext.enabled, session?.user, sessionStatus]);
 
   // 上下文值
   const contextValue: GlobalAIContextValue = {

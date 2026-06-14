@@ -296,6 +296,11 @@ const SECONDARY_ROUTE_FAMILY_MIGRATION_CHANGE = 'migrate-secondary-route-familie
 const OPERATIONS_REPORT_MIGRATION_CHANGE = 'migrate-operations-report-ledger-surfaces';
 const DATA_CENTER_OPERATIONS_ROLE_CHANGE = 'restrict-data-center-to-operations-roles';
 const SIMULATION_SHELL_MISSION_WORKSPACE_CHANGE = 'introduce-simulation-shell-mission-workspace';
+const SIMULATION_SHARED_DOCK_DISPOSITION: readonly PlatformRouteDockDisposition[] = [{
+  component: 'GlobalAIFloatingButton',
+  disposition: 'registered-shared-dock',
+  removalCondition: 'Simulation pages use PageFloatingControlsProvider and route dock behavior instead of page-local Konling fixed controls.',
+}];
 
 function inferUnifiedUiMigrationOwner(input: Pick<PlatformPrimaryRouteInventoryEntry, 'href' | 'frame'>) {
   if (input.frame === 'mission-workspace') return MISSION_WORKSPACE_MIGRATION_CHANGE;
@@ -737,6 +742,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     visualQaProfile: 'immersive',
     screenshotProfile: 'representative-covered',
     owningChange: 'redesign-immersive-learning-workspaces',
+    dockDisposition: SIMULATION_SHARED_DOCK_DISPOSITION,
     legacyShell: {
       component: 'FeaturePageNav',
       disposition: 'scheduled-replacement',
@@ -751,10 +757,11 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'mixed',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
-    floatingDock: 'hidden',
+    floatingDock: 'collapsed',
     visualQaProfile: 'immersive',
     screenshotProfile: 'direct-capture',
     owningChange: SIMULATION_SHELL_MISSION_WORKSPACE_CHANGE,
+    dockDisposition: SIMULATION_SHARED_DOCK_DISPOSITION,
     aliases: [
       '/simulations/cruise?arenaTask=:taskId',
       '/simulations/cruise?arenaTask=:taskId&publicationId=:publicationId',
@@ -772,10 +779,11 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'mixed',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
-    floatingDock: 'hidden',
+    floatingDock: 'collapsed',
     visualQaProfile: 'immersive',
     screenshotProfile: 'direct-capture',
     owningChange: SIMULATION_SHELL_MISSION_WORKSPACE_CHANGE,
+    dockDisposition: SIMULATION_SHARED_DOCK_DISPOSITION,
     contextualReturn: {
       sourceContext: 'simulation-descendant',
       targetHint: 'Return to the simulation fleet when leaving the LNG simulation.',
@@ -789,10 +797,11 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'mixed',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
-    floatingDock: 'hidden',
+    floatingDock: 'collapsed',
     visualQaProfile: 'immersive',
     screenshotProfile: 'representative-covered',
     owningChange: SIMULATION_SHELL_MISSION_WORKSPACE_CHANGE,
+    dockDisposition: SIMULATION_SHARED_DOCK_DISPOSITION,
     contextualReturn: {
       sourceContext: 'simulation-descendant',
       targetHint: 'Return to the simulation fleet when leaving the Destroyer simulation.',
@@ -806,10 +815,11 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'mixed',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
-    floatingDock: 'hidden',
+    floatingDock: 'collapsed',
     visualQaProfile: 'immersive',
     screenshotProfile: 'representative-covered',
     owningChange: SIMULATION_SHELL_MISSION_WORKSPACE_CHANGE,
+    dockDisposition: SIMULATION_SHARED_DOCK_DISPOSITION,
     contextualReturn: {
       sourceContext: 'simulation-descendant',
       targetHint: 'Return to the simulation fleet when leaving the drilling platform simulation.',
@@ -823,10 +833,11 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'mixed',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
-    floatingDock: 'hidden',
+    floatingDock: 'collapsed',
     visualQaProfile: 'immersive',
     screenshotProfile: 'representative-covered',
     owningChange: SIMULATION_SHELL_MISSION_WORKSPACE_CHANGE,
+    dockDisposition: SIMULATION_SHARED_DOCK_DISPOSITION,
     contextualReturn: {
       sourceContext: 'simulation-descendant',
       targetHint: 'Return to the simulation fleet when leaving the container ship simulation.',
@@ -840,10 +851,11 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'mixed',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
-    floatingDock: 'hidden',
+    floatingDock: 'collapsed',
     visualQaProfile: 'immersive',
     screenshotProfile: 'representative-covered',
     owningChange: SIMULATION_SHELL_MISSION_WORKSPACE_CHANGE,
+    dockDisposition: SIMULATION_SHARED_DOCK_DISPOSITION,
     contextualReturn: {
       sourceContext: 'simulation-descendant',
       targetHint: 'Return to the simulation fleet when leaving the icebreaker simulation.',
@@ -857,10 +869,11 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'mixed',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
-    floatingDock: 'hidden',
+    floatingDock: 'collapsed',
     visualQaProfile: 'immersive',
     screenshotProfile: 'representative-covered',
     owningChange: SIMULATION_SHELL_MISSION_WORKSPACE_CHANGE,
+    dockDisposition: SIMULATION_SHARED_DOCK_DISPOSITION,
     contextualReturn: {
       sourceContext: 'simulation-descendant',
       targetHint: 'Return to the simulation fleet when leaving the dredger simulation.',

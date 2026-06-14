@@ -39,6 +39,19 @@ const resourceRendererSource = readFileSync(
   join(process.cwd(), 'src/features/lesson-engine/resource-renderer.tsx'),
   'utf8',
 );
+const aiContextResolverSource = readFileSync(
+  join(process.cwd(), 'src/lib/ai-context-resolver.ts'),
+  'utf8',
+);
+const simulationResourceSources = [
+  'src/resources/simulations/simulations/cruise-simulation.tsx',
+  'src/resources/simulations/simulations/lng-simulation.tsx',
+  'src/resources/simulations/simulations/destroyer-simulation.tsx',
+  'src/resources/simulations/simulations/drilling-simulation.tsx',
+  'src/resources/simulations/simulations/container-simulation.tsx',
+  'src/resources/simulations/simulations/icebreaker-simulation.tsx',
+  'src/resources/simulations/simulations/dredger-simulation.tsx',
+].map((sourcePath) => readFileSync(join(process.cwd(), sourcePath), 'utf8'));
 
 describe('AI chat route Konling runtime guard', () => {
   it('keeps legacy lessonContext prompt construction when no page runtime context is provided', () => {
@@ -199,6 +212,20 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('scopedSimulationState: simulationState');
   });
 
+  it('keeps simulation Konling context scoped to route-owned runtime signals', () => {
+    expect(aiContextResolverSource).toContain('simulationIdFromPath(pathname)');
+    expect(aiContextResolverSource).toContain('routeProvenance: \'simulation-route\'');
+    expect(aiContextResolverSource).toContain('runSummaryAvailability: \'unavailable-until-runtime-run\'');
+    expect(konlingRuntimeSource).toContain('buildServerOwnedSimulationPageContext(scope)');
+    expect(konlingRuntimeSource).toContain("scope.courseId !== 'simulation'");
+    expect(konlingRuntimeSource).toContain('simulationId');
+    expect(konlingRuntimeSource).toContain('simulation-run-summary-unavailable');
+    expect(aiContextResolverSource).not.toContain('toolPermissions:');
+    expect(chatRouteSource).toContain('clientHintsRejected: Object.keys(modeClientContextHints ?? {})');
+    expect(sessionMessagesRouteSource).toContain('clientContextHints: modeClientContextHints');
+    expect(sessionMessagesRouteSource).toContain('permittedTools: modeContract.permittedTools');
+  });
+
   it('validates runtime scope before building Konling context and preserves scope error status', () => {
     const verifyIndex = chatRouteSource.indexOf('const scope = await verifyKonlingRuntimeScope');
     const buildIndex = chatRouteSource.indexOf('const runtimeContext = await buildKonlingRuntimeContext');
@@ -232,5 +259,10 @@ describe('AI chat route Konling runtime guard', () => {
     expect(aiCompanionPanelSource).toContain('useSession');
     expect(aiCompanionPanelSource).toContain("authStatus !== 'authenticated'");
     expect(aiCompanionPanelSource).toContain('return null');
+    expect(globalAIProviderSource).toContain("sessionStatus !== 'authenticated'");
+    expect(globalAIProviderSource).toContain('!session?.user');
+    simulationResourceSources.forEach((source) => {
+      expect(source).not.toContain('AICompanionPanel');
+    });
   });
 });

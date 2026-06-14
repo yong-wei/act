@@ -29,7 +29,6 @@ import {
   simulationUi,
   type CameraMode,
 } from '../components';
-import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
 
 import type {
   ControlMode,
@@ -1318,7 +1317,6 @@ function CruiseAIPanel({
         </div>
       ) : null}
 
-      <AICompanionPanel title="邮轮舒适度控制" sessionId="cruise-comfort-session" />
     </div>
   );
 }

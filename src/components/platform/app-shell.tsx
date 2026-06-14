@@ -910,6 +910,8 @@ export function AppShell({
       data-platform-route-navigation-layers={routeDataAttribute(resolvedRouteMetadata?.navigationLayers as readonly PlatformNavigationLayerId[] | undefined)}
       data-platform-mobile-navigation={resolvedRouteMetadata?.mobileNavigation as PlatformMobileNavigationBehavior | undefined}
       data-platform-floating-dock-behavior={floatingDockBehavior}
+      data-platform-floating-dock-collision-policy={floatingDockBehavior === 'hidden' ? undefined : 'safe-area-primary-controls'}
+      data-platform-floating-dock-mobile-behavior={floatingDockBehavior === 'hidden' ? 'hidden' : 'sheet-after-local-tools'}
       className={cn(
         'min-h-screen bg-platform-canvas text-platform-fg-primary',
         resolvedRouteMetadata?.frame && frameClassNames[resolvedRouteMetadata.frame],

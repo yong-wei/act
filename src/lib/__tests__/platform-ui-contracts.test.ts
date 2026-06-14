@@ -891,8 +891,8 @@ describe('platform UI contracts', () => {
   it('honors hidden-immersive mobile navigation routes without rendering mobile platform navigation', () => {
     const shellMarkup = renderAppShellMarkup({
       viewerRole: 'student',
-      title: '军用驱逐舰战术机动仿真',
-      activeHref: '/simulations/destroyer',
+      title: 'AI 助手',
+      activeHref: '/ai',
       sidebarMode: 'collapsible',
       children: null,
     });
@@ -1012,6 +1012,32 @@ describe('platform UI contracts', () => {
     expect(pageFloatingControlsSource).toContain("behavior === 'hidden'");
     expect(pageFloatingControlsSource).toContain('data-platform-floating-dock=');
     expect(pageFloatingControlsSource).toContain('data-page-floating-controls="true"');
+  });
+
+  it('registers simulation Konling through the shared dock without covering local controls', () => {
+    const simulationShellSource = readSource('src/app/simulations/_components/simulation-shell.tsx');
+    const simulationLocalToolsSource = readSource('src/app/simulations/_components/simulation-local-tools.tsx');
+    const pageFloatingControlsSource = readSource('src/components/shared/page-floating-controls.tsx');
+    const appShellSource = readSource('src/components/platform/app-shell.tsx');
+    const globalsSource = readSource('src/app/globals.css');
+
+    expect(simulationShellSource).toContain('data-simulation-konling-context-source="server-owned"');
+    expect(simulationShellSource).toContain('data-simulation-konling-context-status="degraded-without-run"');
+    expect(simulationShellSource).toContain('data-simulation-dock-collision-policy="avoid-local-tools"');
+    expect(simulationShellSource).not.toContain('KonlingEntryPointButton');
+    expect(simulationShellSource).not.toContain('fixed bottom-');
+    expect(simulationLocalToolsSource).toContain('data-simulation-dock-offset-anchor="bottom-toolbar"');
+    expect(simulationLocalToolsSource).toContain('data-simulation-dock-offset-anchor="hint-strip"');
+    expect(pageFloatingControlsSource).toContain('data-platform-floating-dock-safe-area="bottom-right"');
+    expect(pageFloatingControlsSource).toContain('data-platform-floating-dock-expanded-panel');
+    expect(pageFloatingControlsSource).toContain('max-h-[min(70vh,28rem)]');
+    expect(appShellSource).toContain('data-platform-floating-dock-collision-policy');
+    expect(appShellSource).toContain('data-platform-floating-dock-mobile-behavior');
+    expect(globalsSource).toContain('body:has([data-simulation-dock-collision-policy="avoid-local-tools"]) [data-page-floating-controls]');
+    expect(globalsSource).toContain('right: auto !important');
+    expect(globalsSource).toContain('width: max-content');
+    expect(globalsSource).toContain('top: 7rem');
+    expect(globalsSource).toContain('bottom: auto !important');
   });
 
   it('lets dense commercial workspaces defer fixed sidebar space until xl', () => {

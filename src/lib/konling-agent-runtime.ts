@@ -1071,7 +1071,7 @@ export async function buildKonlingRuntimeContext(
     memory,
     citationContext,
     permittedTools: DEFAULT_TOOLS,
-    missingContext: buildMissingContext({ learnerStateEnabled, learnerState, planContext, memory, citationContext }),
+    missingContext: buildMissingContext({ learnerStateEnabled, learnerState, planContext, memory, citationContext, pageContext }),
     featureFlags: {
       learnerState: learnerStateEnabled,
       semanticMemory: process.env.KONLING_SEMANTIC_MEMORY_ENABLED === 'true',
@@ -3807,6 +3807,7 @@ function analyzeKonlingAttempt(studentState: StudentState) {
 
 function buildServerOwnedPageContext(scope: KonlingRuntimeScope, hint?: Partial<PageContext> | null): PageContext {
   const stepContext = getStepAIContext(scope.courseId, scope.pageId);
+  const simulationContext = buildServerOwnedSimulationPageContext(scope);
   return {
     courseId: scope.courseId,
     courseTitle: stepContext?.courseTitle || hint?.courseTitle || scope.courseId,
@@ -3817,6 +3818,17 @@ function buildServerOwnedPageContext(scope: KonlingRuntimeScope, hint?: Partial<
     knowledgeType: stepContext?.knowledgeType || hint?.knowledgeType || 'C',
     stage: hint?.stage,
     url: hint?.url,
+    ...simulationContext,
+  };
+}
+
+function buildServerOwnedSimulationPageContext(scope: KonlingRuntimeScope): Partial<PageContext> {
+  if (scope.courseId !== 'simulation') return {};
+  const simulationId = scope.pageId && scope.pageId !== 'unknown-page' ? scope.pageId : 'catalog';
+  return {
+    simulationId,
+    routeProvenance: 'simulation-route',
+    runSummaryAvailability: 'unavailable-until-runtime-run',
   };
 }
 
@@ -3864,12 +3876,16 @@ function buildMissingContext(input: {
   planContext: KonlingPlanContext;
   memory: KonlingMemoryView[];
   citationContext: KonlingCitationContext;
+  pageContext: PageContext;
 }): string[] {
   return [
     !input.learnerStateEnabled ? ADAPTIVE_LEARNER_STATE_FEATURE_FLAG : null,
     input.learnerStateEnabled && !input.learnerState ? 'learner-state-read-failed' : null,
     input.planContext.status === 'missing' ? 'plan-context-missing' : null,
     input.memory.length === 0 ? 'learning-memory-empty' : null,
+    input.pageContext.courseId === 'simulation' && input.pageContext.runSummaryAvailability === 'unavailable-until-runtime-run'
+      ? 'simulation-run-summary-unavailable'
+      : null,
     ...input.citationContext.missingCitationClasses.map((item) => `citation-${item}-missing`),
     ...input.citationContext.lowConfidenceReasons,
   ].filter((item): item is string => Boolean(item));

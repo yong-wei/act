@@ -30,7 +30,6 @@ import {
   simulationUi,
   type CameraMode,
 } from '../components';
-import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
 
 import type {
   ControlMode,
@@ -746,11 +745,6 @@ export function LNGSimulation() {
                 ]}
               />
             ),
-          },
-          {
-            id: 'ai',
-            label: 'AI伴学',
-            content: <AICompanionPanel title="LNG船操纵控制" sessionId="lng-simulation-session" />,
           },
         ]}
       />

@@ -30,7 +30,6 @@ import {
   simulationUi,
   type CameraMode,
 } from '../components';
-import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
 import {
   Play,
   Pause,
@@ -1123,11 +1122,6 @@ export function DrillingSimulation() {
                 ]}
               />
             ),
-          },
-          {
-            id: 'ai',
-            label: 'AI伴学',
-            content: <AICompanionPanel title="钻井平台动力定位控制" sessionId="drilling-simulation-session" />,
           },
         ]}
       />
