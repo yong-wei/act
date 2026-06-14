@@ -113,6 +113,7 @@ export function SimulationLocalToolWorkspace({
         className,
       )}
       data-simulation-local-workspace={template.id}
+      data-simulation-theme-template="local-tools"
       data-simulation-local-tool-template={template.id}
       data-simulation-local-tool-family={template.family}
       data-simulation-local-panel-layout={panelLayout}
@@ -126,6 +127,7 @@ export function SimulationLocalToolWorkspace({
         <div
           className="rounded-lg border border-platform-border bg-platform-action-subtle px-4 py-3 text-xs leading-5 text-platform-fg-primary"
           data-simulation-local-hint-strip
+          data-simulation-state-role="hint"
         >
           {template.hints.map((hint) => (
             <p key={hint}>{hint}</p>
@@ -136,6 +138,7 @@ export function SimulationLocalToolWorkspace({
           aria-label="仿真局部工具"
           className="flex flex-wrap items-center gap-2 rounded-lg border border-platform-border bg-platform-surface-raised/95 px-3 py-2 shadow-lg backdrop-blur"
           data-simulation-local-bottom-toolbar
+          data-simulation-state-role="replay"
           data-task-workspace-zone="bottom-tools"
         >
           {template.commands.map((command) => (

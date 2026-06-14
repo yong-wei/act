@@ -82,6 +82,8 @@ export function SimulationShell({
         className={cn('relative min-h-[calc(100vh-10rem)] overflow-hidden rounded-lg border border-platform-border bg-platform-canvas text-platform-fg-primary shadow-2xl', className)}
         data-commercial-workspace="simulation-scene"
         data-task-workspace-archetype="immersive-scene"
+        data-simulation-theme-template="mission-workspace"
+        data-simulation-scene-color-policy="feature-owned"
         data-simulation-shell-route={activeHref}
         data-launch-provenance={launchProvenance}
         data-return-target={returnHref}
@@ -119,6 +121,8 @@ function SimulationSceneFrame({
       className="relative min-h-[calc(100vh-10rem)] overflow-hidden rounded-lg border border-platform-border bg-platform-canvas text-platform-fg-primary shadow-2xl"
       data-commercial-workspace="simulation-scene"
       data-task-workspace-archetype="immersive-scene"
+      data-simulation-theme-template="mission-workspace"
+      data-simulation-scene-color-policy="feature-owned"
       data-simulation-shell-route={activeHref}
       data-launch-provenance={launchProvenance}
       data-return-target={returnHref}

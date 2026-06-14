@@ -216,9 +216,9 @@ const simulations: SimulationInfo[] = [
 ];
 
 const difficultyColors = {
-  beginner: 'bg-green-500/20 text-green-400 border-green-500/30',
-  intermediate: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  advanced: 'bg-red-500/20 text-red-400 border-red-500/30',
+  beginner: 'bg-platform-evidence-eligible/15 text-platform-evidence-eligible border-platform-evidence-eligible/40',
+  intermediate: 'bg-platform-evidence-context/15 text-platform-evidence-context border-platform-evidence-context/40',
+  advanced: 'bg-platform-evidence-unsupported/15 text-platform-evidence-unsupported border-platform-evidence-unsupported/40',
 };
 
 const difficultyLabels = {
@@ -238,6 +238,8 @@ export default function SimulationsPage() {
       data-commercial-workspace="simulations"
       data-commercial-student-entry-route="/simulations"
       data-commercial-entry-intent="experiment"
+      data-simulation-theme-template="catalog"
+      data-simulation-visual-world="instrument-atlas"
       data-simulation-entry-map="scenario-fleet"
       data-simulation-catalog-source="canonical"
     >
@@ -269,6 +271,7 @@ export default function SimulationsPage() {
             prefetch={false}
             className="mt-4 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
             data-entry-primary-action="recommended-experiment"
+            data-simulation-state-role="official"
           >
             继续动力定位实验
           </Link>
@@ -390,7 +393,10 @@ function SimulationCard({
   return (
     <Card className="surface-card group transition-all hover:border-primary/45 hover:bg-card/90" data-simulation-scenario-card={simulation.id}>
       {/* 预览图区域 */}
-      <div className="relative h-40 overflow-hidden bg-secondary/35">
+      <div
+        className="relative h-40 overflow-hidden bg-secondary/35"
+        data-simulation-state-role="preview"
+      >
         <Image
           src={simulation.previewImage}
           alt={`${simulation.title} 3D模型预览`}
@@ -399,7 +405,7 @@ function SimulationCard({
           sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
           priority={simulation.id === 'destroyer'}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+        <div className="absolute inset-0 bg-platform-canvas/30" />
         <div className="absolute top-3 right-3">
           <Badge className={`${difficultyColors[simulation.difficulty]} border`}>
             {difficultyLabels[simulation.difficulty]}
