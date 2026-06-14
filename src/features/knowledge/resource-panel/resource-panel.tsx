@@ -297,7 +297,7 @@ function ResourcePanelContent({
           <FileText className="h-4 w-4 shrink-0 text-sky-500" />
           <span className="truncate text-sm font-medium">{selectedNode.name}</span>
         </div>
-        <button
+        <button type="button"
           onClick={onClose}
           className={`shrink-0 transition-colors ${isLightTheme ? 'text-slate-500 hover:text-slate-800' : 'text-slate-400 hover:text-slate-200'}`}
         >
@@ -454,7 +454,7 @@ function ResourcePanelContent({
                         <ul className="space-y-1 px-2 pb-2">
                           {group.nodes.map((node) => (
                             <li key={node.id}>
-                              <button
+                              <button type="button"
                                 onClick={() => onNodeClick?.(node.id)}
                                 className={`group flex w-full items-center gap-2 rounded-md p-2 text-left transition-colors ${
                                   isLightTheme ? 'bg-slate-50 hover:bg-slate-100' : 'bg-slate-800/50 hover:bg-slate-700/50'

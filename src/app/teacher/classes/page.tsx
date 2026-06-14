@@ -97,7 +97,7 @@ export default function ClassesPage() {
       <div className="mb-6">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-          <input
+          <input aria-label="搜索班级名称或班级码..."
             type="text"
             placeholder="搜索班级名称或班级码..."
             value={search}

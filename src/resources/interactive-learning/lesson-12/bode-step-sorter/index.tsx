@@ -144,14 +144,14 @@ export default function BodeStepSorter({ onComplete, onStateChange }: BodeStepSo
                 <div className="text-xs text-slate-500 mt-1">{step.detail}</div>
               </div>
               <div className="flex flex-col gap-2">
-                <button
+                <button type="button"
                   onClick={() => moveStep(index, 'up')}
                   className="rounded-md border border-slate-200 p-1 text-slate-500 hover:text-slate-700"
                   aria-label="向上移动"
                 >
                   <ArrowUp className="h-4 w-4" />
                 </button>
-                <button
+                <button type="button"
                   onClick={() => moveStep(index, 'down')}
                   className="rounded-md border border-slate-200 p-1 text-slate-500 hover:text-slate-700"
                   aria-label="向下移动"
@@ -164,14 +164,14 @@ export default function BodeStepSorter({ onComplete, onStateChange }: BodeStepSo
         </div>
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <button
+          <button type="button"
             onClick={handleShuffle}
             className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-xs text-slate-500 hover:text-slate-700"
           >
             <RefreshCw className="h-4 w-4" />
             重新打乱
           </button>
-          <button
+          <button type="button"
             onClick={handleCheck}
             className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs ${
               checked && isCorrect ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-white'

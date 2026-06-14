@@ -102,7 +102,7 @@ export function KnowledgeCard({
       }}
     >
       {/* 卡片头部 */}
-      <div
+      <div tabIndex={0} role="button" onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click(); } }}
         className="flex cursor-pointer items-center justify-between p-4"
         onClick={() => setIsExpanded(!isExpanded)}
       >
@@ -141,7 +141,7 @@ export function KnowledgeCard({
           )}
           <div className="flex items-center gap-2">
             {dismissible && onDismiss && (
-              <button
+              <button type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDismiss();
@@ -285,7 +285,7 @@ export function KnowledgeCardTrigger({
   color = '#ef4444',
 }: KnowledgeCardTriggerProps) {
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-slate-700"
       style={{

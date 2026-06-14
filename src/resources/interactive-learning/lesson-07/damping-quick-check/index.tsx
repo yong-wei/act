@@ -204,7 +204,7 @@ export default function DampingQuickCheck({ onComplete, onStateChange }: Damping
             const isWrong = checked && option.id === selected && option.id !== current.answerId;
 
             return (
-              <button
+              <button type="button"
                 key={option.id}
                 onClick={() => !checked && setSelected(option.id)}
                 className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left text-sm transition-colors ${
@@ -232,14 +232,14 @@ export default function DampingQuickCheck({ onComplete, onStateChange }: Damping
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
           <div className="text-sm text-slate-500">当前得分：{score}/{QUIZ_ITEMS.length}</div>
           <div className="flex flex-wrap gap-2">
-            <button
+            <button type="button"
               onClick={handleReset}
               className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-500 hover:border-slate-400"
             >
               <RotateCcw className="h-4 w-4" />
               重新开始
             </button>
-            <button
+            <button type="button"
               onClick={handleCheck}
               disabled={!selected || checked}
               className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-xs text-white transition disabled:cursor-not-allowed disabled:bg-slate-400"
@@ -247,7 +247,7 @@ export default function DampingQuickCheck({ onComplete, onStateChange }: Damping
               检查答案
             </button>
             {!isLast && (
-              <button
+              <button type="button"
                 onClick={handleNext}
                 disabled={!checked}
                 className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs text-white transition disabled:cursor-not-allowed disabled:bg-emerald-300"

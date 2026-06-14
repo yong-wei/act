@@ -33,6 +33,9 @@ interface LessonEntryMediaHubProps {
 }
 
 const DEFAULT_TITLE = '课前预习台';
+// Temporary accessibility exception: runtime lesson media lacks a caption URL contract today.
+// Owner: course runtime. Remove this placeholder when RuntimeLessonMediaResource exposes captions.
+const TEMPORARY_CAPTION_TRACK_SRC = 'data:text/vtt;charset=utf-8,WEBVTT%0A%0A00:00:00.000%20--%3E%2000:00:05.000%0A%E6%9A%82%E6%97%A0%E5%8F%AF%E7%94%A8%E5%AD%97%E5%B9%95%EF%BC%9B%E8%AF%B7%E6%95%99%E5%B8%88%E4%B8%BA%E6%AD%A3%E5%BC%8F%E5%AA%92%E4%BD%93%E8%A1%A5%E5%85%85%E5%AD%97%E5%B9%95%E8%B5%84%E4%BA%A7%E3%80%82';
 const DEFAULT_RECOMMENDATION =
   '建议先浏览课前讲义，再结合已开放的视频、音频或课件回看关键图表与公式。';
 const DEFAULT_AUDIO_CARD_TITLE = '《闲聊自控》播客';
@@ -194,24 +197,30 @@ function TrackedMediaElement({
   if (mediaType === 'video') {
     return (
       <video
+        aria-label={`${resource.title} 视频`}
         ref={mediaRef as never}
         controls
         preload="metadata"
         playsInline
         src={src}
         className={className}
-      />
+      >
+        <track kind="captions" srcLang="zh-CN" label="中文说明" src={TEMPORARY_CAPTION_TRACK_SRC} />
+      </video>
     );
   }
 
   return (
     <audio
+      aria-label={`${resource.title} 音频`}
       ref={mediaRef as never}
       controls
       preload="none"
       src={src}
       className={className}
-    />
+    >
+      <track kind="captions" srcLang="zh-CN" label="中文说明" src={TEMPORARY_CAPTION_TRACK_SRC} />
+    </audio>
   );
 }
 

@@ -123,7 +123,7 @@ export default function ClassAnalyticsV2Page() {
       >
         <div className="text-center">
           <p className="text-xl text-red-500">{error || '加载失败'}</p>
-          <button onClick={fetchData} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
+          <button type="button" onClick={fetchData} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
             重试
           </button>
         </div>
@@ -161,7 +161,7 @@ export default function ClassAnalyticsV2Page() {
               </p>
             </div>
           </div>
-          <button onClick={fetchData} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm">
+          <button type="button" onClick={fetchData} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm">
             <RefreshCw className="h-4 w-4" />
             刷新数据
           </button>

@@ -213,13 +213,13 @@ export function TeacherResourceNodeManagement({
             <option value="mapped">已映射</option>
             <option value="unmapped">未映射</option>
           </Select>
-          <input
+          <input aria-label="课程/模块"
             value={courseModule}
             onChange={(event) => setCourseModule(event.target.value)}
             placeholder="课程/模块"
             className="h-10 rounded-md border border-slate-700 bg-slate-900 px-3 text-sm text-white outline-none focus:border-cyan-500"
           />
-          <input
+          <input aria-label="知识点 ID"
             value={knowledge}
             onChange={(event) => setKnowledge(event.target.value)}
             placeholder="知识点 ID"

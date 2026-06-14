@@ -58,7 +58,7 @@ export function PracticePhase({
           </div>
 
           {isCorrect && (
-            <button
+            <button type="button"
               onClick={onComplete}
               className="flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-medium text-white hover:bg-green-400"
             >
@@ -128,7 +128,7 @@ export function PracticePhase({
             <div className="space-y-4">
               {/* 输入框 */}
               <div className="relative">
-                <textarea
+                <textarea aria-label="例如: J\ddot{\theta} + f\dot{\theta} + mgl\sin\theta = T"
                   value={practiceAnswer}
                   onChange={(e) => onAnswerChange(e.target.value)}
                   placeholder="例如: J\ddot{\theta} + f\dot{\theta} + mgl\sin\theta = T"
@@ -138,7 +138,7 @@ export function PracticePhase({
 
               {/* 提交按钮 */}
               <div className="flex items-center justify-between">
-                <button
+                <button type="button"
                   onClick={() => setShowHint(!showHint)}
                   className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-200"
                 >
@@ -146,7 +146,7 @@ export function PracticePhase({
                   {showHint ? '隐藏提示' : '需要提示？'}
                 </button>
 
-                <button
+                <button type="button"
                   onClick={handleSubmit}
                   disabled={!practiceAnswer.trim() || isSubmitting}
                   className={`flex items-center gap-2 rounded-lg px-6 py-2.5 text-sm font-medium transition-colors ${

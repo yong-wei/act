@@ -206,7 +206,7 @@ export default function StabilityPrecheck({ onComplete, onStateChange }: Stabili
             const isWrong = checked && isSelected && option.id !== current.answerId;
 
             return (
-              <button
+              <button type="button"
                 key={option.id}
                 onClick={() => !checked && setSelected(option.id)}
                 className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left text-sm transition-all ${
@@ -234,7 +234,7 @@ export default function StabilityPrecheck({ onComplete, onStateChange }: Stabili
         )}
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <button
+          <button type="button"
             onClick={handleReset}
             className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-600"
           >
@@ -243,14 +243,14 @@ export default function StabilityPrecheck({ onComplete, onStateChange }: Stabili
           </button>
 
           <div className="flex items-center gap-3">
-            <button
+            <button type="button"
               onClick={handleCheck}
               disabled={!selected || checked}
               className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-xs text-white disabled:opacity-40"
             >
               提交答案
             </button>
-            <button
+            <button type="button"
               onClick={handleNext}
               disabled={!checked || isLast}
               className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-xs text-white disabled:opacity-40"

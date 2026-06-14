@@ -973,7 +973,7 @@ function TextInput({
 }) {
   if (multiline) {
     return (
-      <textarea
+      <textarea aria-label={placeholder ?? '劳斯稳定边界学习记录'}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
@@ -982,7 +982,7 @@ function TextInput({
     );
   }
   return (
-    <input
+    <input aria-label={placeholder ?? '劳斯稳定边界输入'}
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
@@ -1020,7 +1020,7 @@ function RevealTrack({
       </div>
       <div className="mt-3 grid gap-2">
         {items.slice(0, visibleCount).map((item, index) => (
-          <div
+          <div tabIndex={0} role="button" onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click(); } }}
             key={item.key}
             onClick={() => {
               if (index === visibleCount - 1 && canRevealMore) {

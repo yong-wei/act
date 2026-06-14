@@ -81,7 +81,7 @@ export function KnowledgeSidebar({
       <div className="border-b border-platform-border px-3 py-2">
         <div className="flex items-center gap-2 rounded-md border border-platform-border bg-platform-canvas-muted px-2.5 py-1.5">
           <Search className="h-3.5 w-3.5 text-platform-fg-muted" />
-          <input
+          <input aria-label="搜索知识点..."
             type="text"
             placeholder="搜索知识点..."
             value={searchQuery}
@@ -96,7 +96,7 @@ export function KnowledgeSidebar({
           const isExpanded = expandedGroups[group.chapterName];
           return (
             <div key={group.chapterName} className="mb-1">
-              <button
+              <button type="button"
                 onClick={() => toggleChapter(group.chapterName)}
                 className="flex w-full items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-platform-fg-secondary transition-colors hover:bg-platform-action-subtle hover:text-platform-fg-primary"
               >
@@ -114,7 +114,7 @@ export function KnowledgeSidebar({
                   {group.nodes.map((node) => {
                     const isSelected = selectedNodeId === node.id;
                     return (
-                      <button
+                      <button type="button"
                         key={node.id}
                         onClick={() => onNodeSelect(node)}
                         onMouseEnter={() => onNodeHover?.(node)}

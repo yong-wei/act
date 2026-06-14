@@ -232,7 +232,7 @@ function AddStudentsModalContent({
             <h2 className="text-lg font-semibold text-white">添加学生到班级</h2>
             <p className="text-sm text-slate-400">{className}</p>
           </div>
-          <button
+          <button type="button"
             onClick={onClose}
             className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white"
           >
@@ -242,7 +242,7 @@ function AddStudentsModalContent({
 
         {/* 标签页 */}
         <div className="flex border-b border-slate-700">
-          <button
+          <button type="button"
             onClick={() => setActiveTab('search')}
             className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === 'search'
@@ -253,7 +253,7 @@ function AddStudentsModalContent({
             <Search className="mr-2 inline h-4 w-4" />
             搜索添加
           </button>
-          <button
+          <button type="button"
             onClick={() => setActiveTab('import')}
             className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
               activeTab === 'import'
@@ -274,7 +274,7 @@ function AddStudentsModalContent({
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input
+                  <input aria-label="搜索姓名、账号或学号..."
                     type="text"
                     value={searchQuery}
                     onChange={(e) => {
@@ -286,7 +286,7 @@ function AddStudentsModalContent({
                     className="w-full rounded-lg border border-slate-600 bg-slate-800 py-2 pl-10 pr-4 text-white placeholder:text-slate-500 focus:border-sky-500 focus:outline-none"
                   />
                 </div>
-                <button
+                <button type="button"
                   onClick={handleSearch}
                   disabled={searchQuery.trim().length === 1 || isSearching}
                   className="rounded-lg bg-sky-600 px-4 py-2 font-medium text-white transition hover:bg-sky-500 disabled:opacity-50"
@@ -333,7 +333,7 @@ function AddStudentsModalContent({
                           </p>
                         )}
                       </div>
-                      <button
+                      <button type="button"
                         onClick={() => handleAddStudent(student)}
                         disabled={isAdding === student.id || addedStudents.has(student.id)}
                         className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50"
@@ -398,7 +398,7 @@ function AddStudentsModalContent({
                   </label>
 
                   {selectedFile && (
-                    <button
+                    <button type="button"
                       onClick={handleImport}
                       disabled={isImporting}
                       className="w-full rounded-lg bg-sky-600 py-3 font-medium text-white transition hover:bg-sky-500 disabled:opacity-50"
@@ -482,7 +482,7 @@ function AddStudentsModalContent({
                     </div>
                   )}
 
-                  <button
+                  <button type="button"
                     onClick={resetImport}
                     className="w-full rounded-lg border border-slate-600 py-2 text-white transition hover:bg-slate-800"
                   >
@@ -496,7 +496,7 @@ function AddStudentsModalContent({
 
         {/* 底部 */}
         <div className="border-t border-slate-700 p-4">
-          <button
+          <button type="button"
             onClick={onClose}
             className="w-full rounded-lg border border-slate-600 py-2 text-white transition hover:bg-slate-800"
           >

@@ -64,7 +64,7 @@ function MappingCard({
               <CheckCircle2 className="h-5 w-5 text-green-500" />
             </div>
           ) : (
-            <button
+            <button type="button"
               onClick={onConnect}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/20 text-amber-500 transition-all hover:scale-110 hover:bg-amber-500/30"
             >
@@ -291,7 +291,7 @@ export default function AnalogyMapperWidget({
 
       {/* AI Assistant Button */}
       {embedded && (
-        <button
+        <button type="button"
           onClick={() => askAI()}
           disabled={aiLoading}
           className="absolute bottom-4 right-4 z-20 flex items-center gap-2 rounded-full border border-violet-500/50 bg-violet-500/10 px-4 py-2 text-sm text-violet-300 shadow-lg transition hover:bg-violet-500/20 disabled:opacity-50"
@@ -306,7 +306,7 @@ export default function AnalogyMapperWidget({
         <div className="absolute bottom-16 right-4 z-20 w-80 max-h-60 overflow-y-auto rounded-lg border border-slate-700 bg-slate-900/95 p-4 shadow-xl">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-medium text-violet-400">AI 助手</span>
-            <button
+            <button type="button"
               onClick={() => setShowAIPanel(false)}
               className="text-slate-500 hover:text-slate-300"
             >

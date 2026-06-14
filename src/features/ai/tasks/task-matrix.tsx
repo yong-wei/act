@@ -79,7 +79,7 @@ export function TaskMatrix({ tasks, achievements, selectedTask, onTaskSelect }: 
             const isSelected = selectedTask?.id === task.id;
 
             return (
-              <button
+              <button type="button"
                 key={task.id}
                 onClick={() => !isLocked && onTaskSelect(isSelected ? null : task)}
                 disabled={isLocked}

@@ -88,7 +88,7 @@ export function ConsequencesPanel({
       {/* 头部 */}
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-xl font-medium text-emerald-400">多维度代价沙盘</h2>
-        <button
+        <button type="button"
           onClick={onClose}
           className="text-slate-400 transition-colors hover:text-slate-200"
         >
@@ -166,10 +166,10 @@ export function ConsequencesPanel({
 
       {/* 操作按钮 */}
       <div className="mt-6 space-y-3">
-        <button className="w-full rounded-lg bg-emerald-600 py-3 font-medium text-white transition-colors hover:bg-emerald-500">
+        <button type="button" className="w-full rounded-lg bg-emerald-600 py-3 font-medium text-white transition-colors hover:bg-emerald-500">
           保存决策记录
         </button>
-        <button className="w-full rounded-lg border border-slate-600 bg-slate-800 py-3 text-slate-300 transition-colors hover:bg-slate-700">
+        <button type="button" className="w-full rounded-lg border border-slate-600 bg-slate-800 py-3 text-slate-300 transition-colors hover:bg-slate-700">
           查看历史决策对比
         </button>
       </div>

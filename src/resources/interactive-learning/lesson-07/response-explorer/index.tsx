@@ -212,7 +212,7 @@ export default function ResponseExplorer({ onComplete, onStateChange }: Response
               <div className="mt-4 space-y-4">
                 <div>
                   <label className="text-xs text-slate-500">阻尼比 ζ: {zeta.toFixed(2)}</label>
-                  <input
+                  <input aria-label="响应探索参数一"
                     type="range"
                     min={0.05}
                     max={0.9}
@@ -228,7 +228,7 @@ export default function ResponseExplorer({ onComplete, onStateChange }: Response
                 </div>
                 <div>
                   <label className="text-xs text-slate-500">自然频率 ω_n: {wn.toFixed(2)} rad/s</label>
-                  <input
+                  <input aria-label="响应探索参数二"
                     type="range"
                     min={0.6}
                     max={4.5}
@@ -271,7 +271,7 @@ export default function ResponseExplorer({ onComplete, onStateChange }: Response
                       t_s ≤ {challenge.targetSettling}s
                     </div>
                   </div>
-                  <button
+                  <button type="button"
                     onClick={() => handleCompleteChallenge(challenge.id)}
                     disabled={!isReady || isDone}
                     className="mt-3 inline-flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-xs text-white transition disabled:cursor-not-allowed disabled:bg-slate-300"
@@ -282,7 +282,7 @@ export default function ResponseExplorer({ onComplete, onStateChange }: Response
               );
             })}
 
-            <button
+            <button type="button"
               onClick={handleReset}
               className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs text-slate-500 hover:border-slate-400"
             >

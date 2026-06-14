@@ -78,7 +78,7 @@ export function InteractiveAIPanel({
           <span className="font-medium text-white">{title}</span>
         </div>
         {onClose && (
-          <button
+          <button type="button"
             onClick={onClose}
             className="p-1 text-slate-400 hover:text-white transition-colors"
           >
@@ -131,7 +131,7 @@ export function InteractiveAIPanel({
             className="flex-1 resize-none bg-slate-800 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             style={{ minHeight: '40px', maxHeight: '120px' }}
           />
-          <button
+          <button type="button"
             onClick={handleSend}
             disabled={!input.trim() || ai.isLoading}
             className="flex items-center justify-center h-10 w-10 rounded-lg bg-blue-500 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"

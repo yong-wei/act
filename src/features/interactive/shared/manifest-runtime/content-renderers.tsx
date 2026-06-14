@@ -1147,16 +1147,11 @@ function StepReveal({
             setLocalVisibleCount((prev) => Math.min(items.length, prev + 1));
           };
           return (
-            <div
+            <button
+              type="button"
               key={`${item.title ?? ''}:${item.body}:${item.formula ?? ''}`}
-              role={canExpand ? 'button' : undefined}
-              tabIndex={canExpand ? 0 : undefined}
+              disabled={!canExpand}
               onClick={showNext}
-              onKeyDown={(event) => {
-                if (!canExpand || (event.key !== 'Enter' && event.key !== ' ')) return;
-                event.preventDefault();
-                showNext();
-              }}
               className={`block w-full rounded-2xl border px-4 py-3 text-left ${
                 canExpand ? 'cursor-pointer border-cyan-200 bg-cyan-50 hover:border-cyan-300' : 'border-slate-200 bg-slate-50'
               }`}
@@ -1167,7 +1162,7 @@ function StepReveal({
               ) : null}
               {item.formula ? <div className="mt-2 overflow-x-auto">{renderFormulaContent(item.formula)}</div> : null}
               {canExpand ? <p className="premium-lesson-muted mt-2 text-xs">点击当前最下方步骤继续显示下一层。</p> : null}
-            </div>
+            </button>
           );
         })}
       </div>

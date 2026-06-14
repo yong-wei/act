@@ -220,7 +220,7 @@ export function CameraViewSwitcherCompact({
         const isActive = currentMode === mode.id;
 
         return (
-          <button
+          <button type="button"
             key={mode.id}
             onClick={() => onModeChange(mode.id)}
             className={cn(

@@ -197,7 +197,7 @@ export default function MasonLoopChallenge({ onComplete, onStateChange }: MasonL
             const isCorrect = checked && current.answerIds.includes(option.id);
             const isWrong = checked && isSelected && !current.answerIds.includes(option.id);
             return (
-              <button
+              <button type="button"
                 key={option.id}
                 onClick={() => handleOptionToggle(option.id)}
                 className={`w-full rounded-xl border px-4 py-3 text-left transition-all ${
@@ -217,7 +217,7 @@ export default function MasonLoopChallenge({ onComplete, onStateChange }: MasonL
         </div>
 
         <div className="mt-5 flex items-center justify-between">
-          <button
+          <button type="button"
             onClick={handleReset}
             className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700"
           >
@@ -226,7 +226,7 @@ export default function MasonLoopChallenge({ onComplete, onStateChange }: MasonL
           </button>
           <div className="flex items-center gap-3">
             {!checked ? (
-              <button
+              <button type="button"
                 onClick={handleCheck}
                 disabled={selectedIds.length === 0}
                 className="rounded-lg bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-40"
@@ -234,7 +234,7 @@ export default function MasonLoopChallenge({ onComplete, onStateChange }: MasonL
                 确认答案
               </button>
             ) : (
-              <button
+              <button type="button"
                 onClick={handleNext}
                 disabled={isLast}
                 className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white disabled:opacity-40"

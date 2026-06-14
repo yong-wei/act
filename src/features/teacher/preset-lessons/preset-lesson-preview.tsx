@@ -45,7 +45,7 @@ export function PresetLessonPreview({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
       <div className="relative max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
         {/* 关闭按钮 */}
-        <button
+        <button type="button"
           onClick={onClose}
           className="absolute right-4 top-4 z-10 rounded-full bg-slate-800 p-2 text-slate-400 transition-colors hover:bg-slate-700 hover:text-white"
         >
@@ -129,13 +129,13 @@ export function PresetLessonPreview({
               使用此模板将创建一份您自己的教案副本，您可以自由修改。
             </p>
             <div className="flex gap-3">
-              <button
+              <button type="button"
                 onClick={onClose}
                 className="rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-2 text-sm text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
               >
                 关闭
               </button>
-              <button
+              <button type="button"
                 onClick={onUse}
                 disabled={isCloning}
                 className="flex items-center gap-2 rounded-lg bg-cyan-600 px-6 py-2 text-sm font-medium text-white transition-colors hover:bg-cyan-500 disabled:opacity-50"

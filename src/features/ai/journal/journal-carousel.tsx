@@ -40,7 +40,7 @@ export function JournalCarousel({ journals }: JournalCarouselProps) {
           思政学习日志
         </h3>
         <div className="flex items-center gap-2">
-          <button
+          <button type="button"
             onClick={handlePrev}
             className="rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-700 hover:text-slate-200"
           >
@@ -49,7 +49,7 @@ export function JournalCarousel({ journals }: JournalCarouselProps) {
           <span className="text-xs text-slate-500">
             {currentIndex + 1} / {journals.length}
           </span>
-          <button
+          <button type="button"
             onClick={handleNext}
             className="rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-700 hover:text-slate-200"
           >
@@ -103,7 +103,7 @@ export function JournalCarousel({ journals }: JournalCarouselProps) {
                 </div>
 
                 {/* 操作按钮 */}
-                <button className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-1.5 text-xs text-cyan-400 transition-colors hover:bg-cyan-500/20">
+                <button type="button" className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-1.5 text-xs text-cyan-400 transition-colors hover:bg-cyan-500/20">
                   查看详情
                 </button>
               </div>
@@ -115,7 +115,8 @@ export function JournalCarousel({ journals }: JournalCarouselProps) {
       {/* 指示器 */}
       <div className="mt-3 flex justify-center gap-1.5">
         {journals.map((_, index) => (
-          <button
+          <button type="button"
+            aria-label={`查看日志 ${index + 1}`}
             key={index}
             onClick={() => setCurrentIndex(index)}
             className={`h-1.5 rounded-full transition-all ${

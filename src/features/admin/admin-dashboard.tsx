@@ -401,7 +401,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
           </>
         }
         actions={
-          <button onClick={handleRefresh} className="admin-console-button">
+          <button type="button" onClick={handleRefresh} className="admin-console-button">
             <RefreshCcw className="h-4 w-4" />
             刷新数据
           </button>
@@ -435,21 +435,21 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
           <div className="admin-console-surface">
             <span className="admin-console-kicker">操作区</span>
             <div className="mt-4 space-y-3">
-              <button
+              <button type="button"
                 onClick={() => setCreateOpen(true)}
                 className="admin-console-button-primary w-full justify-between"
               >
                 新建账号
                 <Plus className="h-4 w-4" />
               </button>
-              <button
+              <button type="button"
                 onClick={handleDownloadTemplate}
                 className="admin-console-button w-full justify-between"
               >
                 下载模板
                 <Download className="h-4 w-4" />
               </button>
-              <button
+              <button type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="admin-console-button w-full justify-between"
               >
@@ -460,7 +460,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                 <Settings className="h-4 w-4" />
                 打开系统配置
               </Link>
-              <input
+              <input aria-label="搜索管理员功能"
                 ref={fileInputRef}
                 type="file"
                 accept=".xlsx"
@@ -540,7 +540,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
               <div className="flex flex-wrap gap-3">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 admin-console-muted" />
-                  <input
+                  <input aria-label="搜索姓名/账号/学号"
                     value={search}
                     onChange={(event) => {
                       setSearch(event.target.value);
@@ -563,7 +563,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                   <option value="TEACHER">教师</option>
                   <option value="STUDENT">学生</option>
                 </select>
-                <button
+                <button type="button"
                   onClick={() => setCreateOpen(true)}
                   className="admin-console-button-primary"
                 >
@@ -620,19 +620,19 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex justify-end gap-2">
-                            <button
+                            <button type="button"
                               onClick={() => setSelectedUser(user)}
                               className="admin-console-button px-3 py-1.5 text-xs"
                             >
                               查看
                             </button>
-                            <button
+                            <button type="button"
                               onClick={() => openReset(user)}
                               className="admin-console-button px-3 py-1.5 text-xs"
                             >
                               改密
                             </button>
-                            <button
+                            <button type="button"
                               onClick={() => handleDelete(user)}
                               className="admin-console-button admin-console-tone-danger px-3 py-1.5 text-xs"
                             >
@@ -652,14 +652,14 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                 共 {totalUsers} 条 · 第 {page} / {totalPages} 页
               </span>
               <div className="flex gap-2">
-                <button
+                <button type="button"
                   disabled={page <= 1}
                   onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                   className="admin-console-button px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   上一页
                 </button>
-                <button
+                <button type="button"
                   disabled={page >= totalPages}
                   onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
                   className="admin-console-button px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-40"
@@ -735,13 +735,13 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button
+                  <button type="button"
                     onClick={() => openReset(selectedUser)}
                     className="admin-console-button flex-1 justify-center"
                   >
                     修改密码
                   </button>
-                  <button
+                  <button type="button"
                     onClick={() => handleDelete(selectedUser)}
                     className="admin-console-button admin-console-tone-danger flex-1 justify-center"
                   >
@@ -766,7 +766,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                 <p className="admin-console-title text-xl font-semibold">新建账号</p>
                 <p className="admin-console-muted mt-1 text-sm">支持创建学生、教师、管理员账号</p>
               </div>
-              <button
+              <button type="button"
                 onClick={() => setCreateOpen(false)}
                 className="admin-console-button px-3 py-1.5 text-xs"
               >
@@ -775,7 +775,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
             </div>
 
             <div className="mt-5 grid gap-3">
-              <input
+              <input aria-label="姓名 *"
                 value={createForm.name}
                 onChange={(event) =>
                   setCreateForm((prev) => ({ ...prev, name: event.target.value }))
@@ -798,7 +798,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                   <option value="TEACHER">教师</option>
                   <option value="ADMIN">管理员</option>
                 </select>
-                <input
+                <input aria-label="账号邮箱（可选）"
                   value={createForm.email}
                   onChange={(event) =>
                     setCreateForm((prev) => ({ ...prev, email: event.target.value }))
@@ -809,7 +809,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
               </div>
               {createForm.role === 'STUDENT' && (
                 <div className="grid gap-3 md:grid-cols-2">
-                  <input
+                  <input aria-label="学号 *"
                     value={createForm.studentNumber}
                     onChange={(event) =>
                       setCreateForm((prev) => ({
@@ -820,7 +820,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                     placeholder="学号 *"
                     className="admin-console-input"
                   />
-                  <input
+                  <input aria-label="班级（可选）"
                     value={createForm.className}
                     onChange={(event) =>
                       setCreateForm((prev) => ({
@@ -834,7 +834,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                 </div>
               )}
               {createForm.role === 'TEACHER' && (
-                <input
+                <input aria-label="工号 *"
                   value={createForm.employeeNumber}
                   onChange={(event) =>
                     setCreateForm((prev) => ({
@@ -846,7 +846,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                   className="admin-console-input"
                 />
               )}
-              <input
+              <input aria-label="初始密码（默认 123456）"
                 value={createForm.password}
                 onChange={(event) =>
                   setCreateForm((prev) => ({ ...prev, password: event.target.value }))
@@ -858,10 +858,10 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
             </div>
 
             <div className="mt-6 flex items-center justify-end gap-3">
-              <button onClick={() => setCreateOpen(false)} className="admin-console-button">
+              <button type="button" onClick={() => setCreateOpen(false)} className="admin-console-button">
                 取消
               </button>
-              <button
+              <button type="button"
                 disabled={creating}
                 onClick={handleCreate}
                 className="admin-console-button-primary disabled:opacity-50"
@@ -884,7 +884,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                   {resetTarget?.name || '账号'} · {resetTarget?.email || resetTarget?.profile?.studentNumber || ''}
                 </p>
               </div>
-              <button
+              <button type="button"
                 onClick={() => setResetOpen(false)}
                 className="admin-console-button px-3 py-1.5 text-xs"
               >
@@ -903,7 +903,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                 <span className="admin-console-muted">重置为默认密码 123456</span>
               </label>
               {!resetToDefault && (
-                <input
+                <input aria-label="输入新密码"
                   value={resetPassword}
                   onChange={(event) => setResetPassword(event.target.value)}
                   placeholder="输入新密码"
@@ -914,10 +914,10 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
             </div>
 
             <div className="mt-6 flex items-center justify-end gap-3">
-              <button onClick={() => setResetOpen(false)} className="admin-console-button">
+              <button type="button" onClick={() => setResetOpen(false)} className="admin-console-button">
                 取消
               </button>
-              <button onClick={handleResetPassword} className="admin-console-button-primary">
+              <button type="button" onClick={handleResetPassword} className="admin-console-button-primary">
                 确认修改
               </button>
             </div>

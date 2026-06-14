@@ -7,7 +7,7 @@
  * 支持可编辑的评估公式、参数范围和评分权重。
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useId, useMemo } from 'react';
 import {
   Calculator,
   Send,
@@ -53,6 +53,13 @@ export function AssessmentProbe({
   onSubmit,
   isCompleted = false,
 }: AssessmentProbeProps) {
+  const idPrefix = useId();
+  const editTitleId = `${idPrefix}-assessment-title`;
+  const editDescriptionId = `${idPrefix}-assessment-description`;
+  const baseScoreId = `${idPrefix}-assessment-base-score`;
+  const msiWeightId = `${idPrefix}-assessment-msi-weight`;
+  const penaltyId = `${idPrefix}-assessment-penalty`;
+
   // 防御性检查：确保 parameters 存在
   const parameters = config?.parameters ?? [];
   const isValidConfig = parameters.length > 0 && config?.scoring;
@@ -209,14 +216,14 @@ export function AssessmentProbe({
             编辑评估配置
           </h3>
           <div className="flex gap-2">
-            <button
+            <button type="button"
               onClick={handleSaveEdit}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-500"
             >
               <Save className="h-4 w-4" />
               保存
             </button>
-            <button
+            <button type="button"
               onClick={() => setIsEditing(false)}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-sm hover:bg-slate-300"
             >
@@ -229,8 +236,8 @@ export function AssessmentProbe({
         {/* 编辑表单 */}
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">标题</label>
-            <input
+            <label htmlFor={editTitleId} className="block text-sm font-medium text-slate-700 mb-1">标题</label>
+            <input id={editTitleId}
               type="text"
               value={editConfig.title}
               onChange={(e) =>
@@ -240,8 +247,8 @@ export function AssessmentProbe({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">说明</label>
-            <textarea
+            <label htmlFor={editDescriptionId} className="block text-sm font-medium text-slate-700 mb-1">说明</label>
+            <textarea id={editDescriptionId}
               value={editConfig.description}
               onChange={(e) =>
                 setEditConfig((prev) => ({ ...prev, description: e.target.value }))
@@ -252,8 +259,8 @@ export function AssessmentProbe({
           </div>
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">基础分</label>
-              <input
+              <label htmlFor={baseScoreId} className="block text-sm font-medium text-slate-700 mb-1">基础分</label>
+              <input id={baseScoreId}
                 type="number"
                 value={editConfig.scoring.baseScore}
                 onChange={(e) =>
@@ -266,8 +273,8 @@ export function AssessmentProbe({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">MSI权重</label>
-              <input
+              <label htmlFor={msiWeightId} className="block text-sm font-medium text-slate-700 mb-1">MSI权重</label>
+              <input id={msiWeightId}
                 type="number"
                 step="0.1"
                 value={editConfig.scoring.msiWeight}
@@ -281,8 +288,8 @@ export function AssessmentProbe({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">违规扣分</label>
-              <input
+              <label htmlFor={penaltyId} className="block text-sm font-medium text-slate-700 mb-1">违规扣分</label>
+              <input id={penaltyId}
                 type="number"
                 value={editConfig.scoring.penaltyPerViolation}
                 onChange={(e) =>
@@ -331,40 +338,44 @@ export function AssessmentProbe({
         </div>
 
         <div className="space-y-4">
-          {config.parameters.map((param) => (
-            <div key={param.id}>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-sm text-slate-700">
-                  {param.name}
-                  <span className="ml-1 text-xs text-slate-500">({param.symbol})</span>
-                </label>
-                <span className="font-mono text-sm text-slate-900">
-                  {params[param.id]?.toFixed(param.step < 1 ? 2 : 0)}
-                  {param.unit && <span className="text-slate-500 ml-0.5">{param.unit}</span>}
-                </span>
+          {config.parameters.map((param) => {
+            const paramInputId = `${idPrefix}-assessment-param-${param.id}`;
+
+            return (
+              <div key={param.id}>
+                <div className="flex items-center justify-between mb-1">
+                  <label htmlFor={paramInputId} className="text-sm text-slate-700">
+                    {param.name}
+                    <span className="ml-1 text-xs text-slate-500">({param.symbol})</span>
+                  </label>
+                  <span className="font-mono text-sm text-slate-900">
+                    {params[param.id]?.toFixed(param.step < 1 ? 2 : 0)}
+                    {param.unit && <span className="text-slate-500 ml-0.5">{param.unit}</span>}
+                  </span>
+                </div>
+                <input id={paramInputId}
+                  type="range"
+                  min={param.min}
+                  max={param.max}
+                  step={param.step}
+                  value={params[param.id] ?? param.defaultValue ?? param.min}
+                  onChange={(e) => handleParamChange(param.id, Number(e.target.value))}
+                  disabled={isSubmitting || isCompleted}
+                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                />
+                <div className="flex justify-between text-xs text-slate-400 mt-0.5">
+                  <span>{param.min}</span>
+                  <span>{param.max}</span>
+                </div>
               </div>
-              <input
-                type="range"
-                min={param.min}
-                max={param.max}
-                step={param.step}
-                value={params[param.id] ?? param.defaultValue ?? param.min}
-                onChange={(e) => handleParamChange(param.id, Number(e.target.value))}
-                disabled={isSubmitting || isCompleted}
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
-              />
-              <div className="flex justify-between text-xs text-slate-400 mt-0.5">
-                <span>{param.min}</span>
-                <span>{param.max}</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
       {/* 提交按钮 */}
       <div className="flex gap-3 mb-6">
-        <button
+        <button type="button"
           onClick={handleSubmit}
           disabled={isSubmitting || isCompleted}
           className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-colors ${
@@ -390,7 +401,7 @@ export function AssessmentProbe({
             </>
           )}
         </button>
-        <button
+        <button type="button"
           onClick={handleReset}
           disabled={isSubmitting || isCompleted}
           className="px-4 py-3 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors"
@@ -443,7 +454,7 @@ export function AssessmentProbe({
 
       {/* 编辑按钮 (仅在编辑模式可用) */}
       {mode === 'edit' && !isEditing && (
-        <button
+        <button type="button"
           onClick={() => setIsEditing(true)}
           className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-slate-300 rounded-lg text-sm text-slate-500 hover:border-blue-500 hover:text-blue-500 transition-colors"
         >

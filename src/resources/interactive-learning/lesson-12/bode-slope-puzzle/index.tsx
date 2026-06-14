@@ -219,14 +219,14 @@ export default function BodeSlopePuzzle({ onComplete, onStateChange }: BodeSlope
         </div>
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-          <button
+          <button type="button"
             onClick={handleReset}
             className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-xs text-slate-500 hover:text-slate-700"
           >
             <RotateCcw className="h-4 w-4" />
             清空重来
           </button>
-          <button
+          <button type="button"
             onClick={handleCheck}
             className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs ${
               checked && isCorrect ? 'bg-emerald-600 text-white' : 'bg-slate-900 text-white'

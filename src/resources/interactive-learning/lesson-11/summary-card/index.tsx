@@ -72,7 +72,7 @@ export default function Lesson11SummaryCard({ onComplete, onStateChange }: Lesso
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button
+          <button type="button"
             onClick={handleComplete}
             className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2 text-xs text-white"
           >

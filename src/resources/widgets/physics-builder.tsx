@@ -154,7 +154,7 @@ export default function PhysicsBuilderWidget({
 
       {/* AI Assistant Button (embedded mode) */}
       {embedded && enableAIHints && (
-        <button
+        <button type="button"
           onClick={askAI}
           disabled={aiLoading}
           className="absolute bottom-4 right-4 z-20 flex items-center gap-2 rounded-full border border-cyan-500/50 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-300 shadow-lg transition hover:bg-cyan-500/20 disabled:opacity-50"
@@ -169,7 +169,7 @@ export default function PhysicsBuilderWidget({
         <div className="absolute bottom-16 right-4 z-20 w-80 max-h-60 overflow-y-auto rounded-lg border border-slate-700 bg-slate-900/95 p-4 shadow-xl">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-medium text-cyan-400">AI 助手</span>
-            <button
+            <button type="button"
               onClick={() => setShowAIPanel(false)}
               className="text-slate-500 hover:text-slate-300"
             >

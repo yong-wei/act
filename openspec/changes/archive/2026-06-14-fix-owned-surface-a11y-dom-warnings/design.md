@@ -26,7 +26,8 @@ Sample findings confirm real defects: admin lesson plan buttons omit explicit `t
    - Add keyboard support only when a semantic element is impossible.
 
 4. Media pass:
-   - Add captions or document inaccessible media exceptions with owner and removal conditions.
+   - Add captions where caption assets exist.
+   - For dynamic media contracts that do not yet expose caption asset URLs, document a temporary accessibility exception in code with owner and removal conditions, and use a non-empty VTT placeholder until the media metadata contract carries real captions.
 
 ## Risks
 

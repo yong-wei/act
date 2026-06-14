@@ -127,7 +127,7 @@ export function ObjectivePhase({
       {/* 底部按钮 */}
       <div className="border-t border-slate-800 bg-slate-900/50 p-4">
         <div className="mx-auto flex max-w-2xl justify-end">
-          <button
+          <button type="button"
             onClick={onComplete}
             className="flex items-center gap-2 rounded-lg bg-blue-500 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-400"
           >

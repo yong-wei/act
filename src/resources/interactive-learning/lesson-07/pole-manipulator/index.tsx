@@ -1339,7 +1339,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
             </p>
           </div>
           <div className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/70 p-1 text-xs">
-            <button
+            <button type="button"
               onClick={() => setMode('explore')}
               className={`rounded-full px-4 py-2 transition ${
                 mode === 'explore' ? 'bg-cyan-500/20 text-cyan-200' : 'text-slate-400'
@@ -1347,7 +1347,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
             >
               自由探索
             </button>
-            <button
+            <button type="button"
               onClick={() => setMode('challenge')}
               className={`rounded-full px-4 py-2 transition ${
                 mode === 'challenge' ? 'bg-amber-500/20 text-amber-200' : 'text-slate-400'
@@ -1366,7 +1366,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                 复平面 · S-Plane
               </div>
               <div className="flex flex-wrap items-center gap-2 text-xs">
-                <button
+                <button type="button"
                   onClick={toggleLockReal}
                   className={`rounded-full border px-3 py-1 transition ${
                     lockReal ? 'border-cyan-400/70 text-cyan-200' : 'border-slate-700 text-slate-400'
@@ -1374,7 +1374,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                 >
                   锁定实部
                 </button>
-                <button
+                <button type="button"
                   onClick={toggleLockImag}
                   className={`rounded-full border px-3 py-1 transition ${
                     lockImag ? 'border-amber-400/70 text-amber-200' : 'border-slate-700 text-slate-400'
@@ -1382,7 +1382,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                 >
                   锁定虚部
                 </button>
-                <button
+                <button type="button"
                   onClick={toggleLockZeta}
                   disabled={!canLockPolar}
                   className={`rounded-full border px-3 py-1 transition ${
@@ -1391,7 +1391,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                 >
                   锁定阻尼
                 </button>
-                <button
+                <button type="button"
                   onClick={toggleLockWn}
                   disabled={!canLockPolar}
                   className={`rounded-full border px-3 py-1 transition ${
@@ -1401,21 +1401,21 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                   锁定频率
                 </button>
                 <div className="flex items-center gap-1 rounded-full border border-slate-800 bg-slate-900/50 px-1 py-1">
-                  <button
+                  <button type="button"
                     onClick={() => zoomPlane('in')}
                     className="rounded-full border border-slate-700 px-2 py-1 text-slate-300 hover:border-slate-500"
                     aria-label="放大复平面"
                   >
                     <Plus className="h-3 w-3" />
                   </button>
-                  <button
+                  <button type="button"
                     onClick={() => zoomPlane('out')}
                     className="rounded-full border border-slate-700 px-2 py-1 text-slate-300 hover:border-slate-500"
                     aria-label="缩小复平面"
                   >
                     <Minus className="h-3 w-3" />
                   </button>
-                  <button
+                  <button type="button"
                     onClick={() => zoomPlane('reset')}
                     className="rounded-full border border-slate-700 px-3 py-1 text-slate-300 hover:border-slate-500"
                   >
@@ -1682,35 +1682,35 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
 
             {mode === 'explore' && (
               <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
-                <button
+                <button type="button"
                   onClick={() => addRoot('pole', false)}
                   className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-3 py-1 text-slate-300 hover:border-slate-500"
                 >
                   <Plus className="h-3 w-3" />
                   添加实极点
                 </button>
-                <button
+                <button type="button"
                   onClick={() => addRoot('pole', true)}
                   className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-3 py-1 text-slate-300 hover:border-slate-500"
                 >
                   <Plus className="h-3 w-3" />
                   添加共轭极点
                 </button>
-                <button
+                <button type="button"
                   onClick={() => addRoot('zero', false)}
                   className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-3 py-1 text-slate-300 hover:border-slate-500"
                 >
                   <Plus className="h-3 w-3" />
                   添加实零点
                 </button>
-                <button
+                <button type="button"
                   onClick={() => addRoot('zero', true)}
                   className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-3 py-1 text-slate-300 hover:border-slate-500"
                 >
                   <Plus className="h-3 w-3" />
                   添加共轭零点
                 </button>
-                <button
+                <button type="button"
                   onClick={removeSelected}
                   disabled={!selectedId}
                   className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-3 py-1 text-slate-400 hover:border-slate-500 disabled:opacity-40"
@@ -1718,7 +1718,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                   <Minus className="h-3 w-3" />
                   删除选中
                 </button>
-                <button
+                <button type="button"
                   onClick={resetExplore}
                   className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-3 py-1 text-slate-400 hover:border-slate-500"
                 >
@@ -1748,21 +1748,21 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                   </select>
                 )}
                 <div className="flex items-center gap-1 rounded-full border border-slate-800 bg-slate-900/50 px-1 py-1">
-                  <button
+                  <button type="button"
                     onClick={() => zoomResponse('in')}
                     className="rounded-full border border-slate-700 px-2 py-1 text-slate-300 hover:border-slate-500"
                     aria-label="放大响应曲线"
                   >
                     <Plus className="h-3 w-3" />
                   </button>
-                  <button
+                  <button type="button"
                     onClick={() => zoomResponse('out')}
                     className="rounded-full border border-slate-700 px-2 py-1 text-slate-300 hover:border-slate-500"
                     aria-label="缩小响应曲线"
                   >
                     <Minus className="h-3 w-3" />
                   </button>
-                  <button
+                  <button type="button"
                     onClick={() => zoomResponse('reset')}
                     className="rounded-full border border-slate-700 px-3 py-1 text-slate-300 hover:border-slate-500"
                   >
@@ -2125,7 +2125,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
                     历史最佳 {bestRecord.score}% · {formatSeconds(bestRecord.duration)}
                   </div>
                 )}
-                <button
+                <button type="button"
                   onClick={buildChallengeTargets}
                   className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-3 py-1 text-slate-400 hover:border-slate-500"
                 >
@@ -2136,7 +2136,7 @@ export default function PoleManipulator({ onComplete, onStateChange }: BaseWidge
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <button
+              <button type="button"
                 onClick={handleSubmitChallenge}
                 disabled={challengeSubmitted}
                 className="inline-flex items-center gap-2 rounded-lg bg-emerald-500/20 px-3 py-2 text-xs text-emerald-200 disabled:cursor-not-allowed disabled:opacity-40"

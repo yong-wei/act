@@ -165,7 +165,7 @@ export default function BlockDiagramPrecheck({ onComplete, onStateChange }: Bloc
             const isCorrect = checked && option.id === current.answerId;
             const isWrong = checked && isSelected && option.id !== current.answerId;
             return (
-              <button
+              <button type="button"
                 key={option.id}
                 onClick={() => !checked && setSelected(option.id)}
                 className={`w-full rounded-xl border px-4 py-3 text-left transition-all ${
@@ -185,7 +185,7 @@ export default function BlockDiagramPrecheck({ onComplete, onStateChange }: Bloc
         </div>
 
         <div className="mt-5 flex items-center justify-between">
-          <button
+          <button type="button"
             onClick={handleReset}
             className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700"
           >
@@ -194,7 +194,7 @@ export default function BlockDiagramPrecheck({ onComplete, onStateChange }: Bloc
           </button>
           <div className="flex items-center gap-3">
             {!checked ? (
-              <button
+              <button type="button"
                 onClick={handleCheck}
                 disabled={!selected}
                 className="rounded-lg bg-slate-900 px-4 py-2 text-sm text-white disabled:opacity-40"
@@ -202,7 +202,7 @@ export default function BlockDiagramPrecheck({ onComplete, onStateChange }: Bloc
                 确认答案
               </button>
             ) : (
-              <button
+              <button type="button"
                 onClick={handleNext}
                 disabled={isLast}
                 className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white disabled:opacity-40"

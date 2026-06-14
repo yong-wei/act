@@ -37,7 +37,7 @@ export function KonlingCallButton({
   const badgeStyles = getUnreadBadgeStyles(isDark);
 
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       className={`
         ${buttonStyles}
@@ -77,7 +77,7 @@ export function KonlingMiniButton({
   const isDark = mounted ? theme !== 'light' : true;
 
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       className={`
         flex items-center gap-2 rounded-full px-3 py-2 shadow-lg transition-all hover:scale-105
@@ -117,7 +117,7 @@ export function KonlingTextButton({
   const isDark = mounted ? theme !== 'light' : true;
 
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       className={`
         flex items-center gap-3 rounded-xl px-4 py-3 shadow-lg transition-all hover:scale-105

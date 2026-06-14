@@ -37,7 +37,7 @@ export function PresetExamples({ onSelectExample }: PresetExamplesProps) {
       <h3 className="mb-3 text-sm font-semibold text-white">预设示例</h3>
       <div className="flex flex-wrap gap-2">
         {examples.map((example) => (
-          <button
+          <button type="button"
             key={example.id}
             onClick={() => onSelectExample(example.numerator, example.denominator)}
             className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-xs text-slate-300 transition-colors hover:border-blue-500/50 hover:bg-slate-800 hover:text-white"

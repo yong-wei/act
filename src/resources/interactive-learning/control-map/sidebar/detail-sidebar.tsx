@@ -49,7 +49,7 @@ export function DetailSidebar({ nodeId, isDiscrete, onClose, onNavigate }: Detai
             </span>
           </div>
         </div>
-        <button
+        <button type="button"
           onClick={onClose}
           className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
         >
@@ -114,7 +114,7 @@ export function DetailSidebar({ nodeId, isDiscrete, onClose, onNavigate }: Detai
                 if (!related) return null;
                 const relatedZone = zoneConfigs[related.zone];
                 return (
-                  <button
+                  <button type="button"
                     key={related.id}
                     onClick={() => onNavigate(related.id)}
                     className="rounded-lg border px-3 py-1.5 text-xs transition-colors hover:bg-slate-800"

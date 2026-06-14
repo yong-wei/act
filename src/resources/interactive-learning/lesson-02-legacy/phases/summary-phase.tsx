@@ -205,7 +205,7 @@ export function SummaryPhase({
           <div>
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-white">今日核心公式</h3>
-              <button className="flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-400 transition-colors hover:bg-slate-800">
+              <button type="button" className="flex items-center gap-2 rounded-lg border border-slate-600 px-3 py-1.5 text-xs text-slate-400 transition-colors hover:bg-slate-800">
                 <Download className="h-3 w-3" />
                 保存卡片
               </button>

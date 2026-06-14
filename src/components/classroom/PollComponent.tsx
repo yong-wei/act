@@ -10,7 +10,7 @@
  * - 多选/单选模式
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useId, useMemo } from 'react';
 import {
   Vote,
   Settings,
@@ -51,6 +51,10 @@ function PollEditor({
   config: PollComponentConfig;
   onConfigChange?: (config: PollComponentConfig) => void;
 }) {
+  const idPrefix = useId();
+  const questionId = `${idPrefix}-poll-question`;
+  const timeLimitId = `${idPrefix}-poll-time-limit`;
+
   const updateConfig = (updates: Partial<PollComponentConfig>) => {
     onConfigChange?.({ ...config, ...updates });
   };
@@ -91,8 +95,8 @@ function PollEditor({
 
       {/* 问题 */}
       <div>
-        <label className="block text-sm text-slate-400 mb-1">投票问题</label>
-        <textarea
+        <label htmlFor={questionId} className="block text-sm text-slate-400 mb-1">投票问题</label>
+        <textarea id={questionId}
           value={config.question}
           onChange={(e) => updateConfig({ question: e.target.value })}
           className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-white text-sm focus:border-blue-500 focus:outline-none resize-none"
@@ -104,8 +108,8 @@ function PollEditor({
       {/* 选项列表 */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="text-sm text-slate-400">选项列表</label>
-          <button
+          <p className="text-sm text-slate-400">选项列表</p>
+          <button type="button"
             onClick={addOption}
             disabled={config.options.length >= 6}
             className="flex items-center gap-1 px-2 py-1 text-xs text-blue-400 hover:bg-blue-500/10 rounded disabled:opacity-50 disabled:cursor-not-allowed"
@@ -117,13 +121,15 @@ function PollEditor({
         <div className="space-y-2">
           {config.options.map((option, index) => (
             <div key={option.key} className="flex items-center gap-2">
-              <div
+              <label
+                htmlFor={`${idPrefix}-poll-option-${option.key}`}
                 className="w-8 h-8 rounded flex items-center justify-center text-white font-bold text-sm shrink-0"
                 style={{ backgroundColor: option.color || DEFAULT_COLORS[index] }}
               >
                 {option.key}
-              </div>
-              <input
+              </label>
+              <input id={`${idPrefix}-poll-option-${option.key}`}
+                aria-label={`选项 ${option.key} 内容`}
                 type="text"
                 value={option.text}
                 onChange={(e) => updateOption(index, { text: e.target.value })}
@@ -131,13 +137,14 @@ function PollEditor({
                 placeholder={`选项 ${option.key} 内容`}
               />
               <input
+                aria-label={`选项 ${option.key} 颜色`}
                 type="color"
                 value={option.color || DEFAULT_COLORS[index]}
                 onChange={(e) => updateOption(index, { color: e.target.value })}
                 className="w-8 h-8 rounded border border-slate-600 cursor-pointer"
                 title="选项颜色"
               />
-              <button
+              <button type="button"
                 onClick={() => removeOption(index)}
                 disabled={config.options.length <= 2}
                 className="p-2 text-slate-500 hover:text-red-400 disabled:opacity-30 disabled:cursor-not-allowed"
@@ -182,10 +189,10 @@ function PollEditor({
 
       {/* 时限 */}
       <div>
-        <label className="block text-sm text-slate-400 mb-1">
+        <label htmlFor={timeLimitId} className="block text-sm text-slate-400 mb-1">
           投票时限（秒，0表示无限制）
         </label>
-        <input
+        <input id={timeLimitId}
           type="number"
           value={config.timeLimit || 0}
           onChange={(e) => updateConfig({ timeLimit: parseInt(e.target.value) || 0 })}
@@ -414,7 +421,7 @@ function PollPlayer({
             {config.options.map((option) => {
               const isSelected = selectedOptions.includes(option.key);
               return (
-                <button
+                <button type="button"
                   key={option.key}
                   onClick={() => handleOptionClick(option.key)}
                   className={`w-full flex items-center gap-3 p-4 rounded-lg border-2 transition-all ${
@@ -438,7 +445,7 @@ function PollPlayer({
             })}
 
             {/* 提交按钮 */}
-            <button
+            <button type="button"
               onClick={handleSubmit}
               disabled={selectedOptions.length === 0}
               className="w-full mt-4 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"

@@ -70,7 +70,7 @@ export const LevelSelector = memo(function LevelSelector({
         {/* 头部 */}
         <div className="flex-none flex items-center justify-between p-4 border-b border-slate-700">
           <h2 className="text-xl font-bold text-white">选择关卡</h2>
-          <button
+          <button type="button"
             onClick={onClose}
             className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
             aria-label="关闭"
@@ -92,7 +92,7 @@ export const LevelSelector = memo(function LevelSelector({
               const diffConfig = DIFFICULTY_CONFIG[level.difficulty];
 
               return (
-                <button
+                <button type="button"
                   key={level.id}
                   onClick={() => isUnlocked && onSelect(level)}
                   disabled={!isUnlocked}

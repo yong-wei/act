@@ -445,7 +445,7 @@ function BaselineMetricForm({
               <tr key={metric.key}>
                 <td className="border-b border-border/40 px-3 py-2 font-medium">{metric.label}</td>
                 <td className="border-b border-border/40 px-3 py-2">
-                  <input
+                  <input aria-label={`填写${metric.label}`}
                     value={draft[metric.key] ?? ''}
                     onChange={(event) => setDraft((prev) => ({ ...prev, [metric.key]: event.target.value }))}
                     className="premium-lesson-input w-full"
@@ -611,7 +611,7 @@ function MappingTableForm({
                   const key = `${row.key}.${column.key}`;
                   return (
                     <td key={key} className="border-b border-border/40 px-2 py-2">
-                      <textarea
+                      <textarea aria-label={`${row.label}${column.label}`}
                         value={draft[key] ?? ''}
                         onChange={(event) => setDraft((prev) => ({ ...prev, [key]: event.target.value }))}
                         className="premium-lesson-input min-h-[72px] w-full"
