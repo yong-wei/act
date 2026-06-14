@@ -229,6 +229,9 @@ export interface RecommendedPathNodeView {
   action: {
     href: string;
     label: string;
+    method: 'GET' | 'POST';
+    body?: Record<string, unknown>;
+    redirectHref?: string;
   };
   state: RecommendedPathNodeState;
 }
@@ -262,6 +265,9 @@ export interface PracticeEntryRouteNode {
   action: {
     href: string;
     label: string;
+    method: 'GET' | 'POST';
+    body?: Record<string, unknown>;
+    redirectHref?: string;
   };
 }
 
@@ -484,7 +490,7 @@ export function buildRecommendedPathNodeView(
       expectedEffort: `${node.estimatedTimeMinutes} 分钟`,
       sourceContext: `${node.sourceKind}:${node.sourceRef}`,
       action: {
-        href: pathNodeLaunchHref(node.target, node.nodeId, node.pathNodeType, launchContext),
+        ...pathNodeLaunchAction(node.target, node.nodeId, node.pathNodeType, launchContext),
         label: pathPlan.currentNodeId === node.nodeId ? '继续当前节点' : '打开路径节点',
       },
       state: recommendedNodeState(node.status),
@@ -586,6 +592,7 @@ export function buildPracticeEntryRouteNodes(input: PracticeEntryRouteNodeInput)
     action: {
       href: practiceRouteNodeHref(input.actionHref, index + 1),
       label: index === 0 ? '开始当前训练' : '查看训练节点',
+      method: 'GET',
     },
   }));
 }
@@ -727,21 +734,29 @@ function practiceRouteNodeHref(actionHref: string, priority: number): string {
   return `${actionHref}${separator}focus=practice-focus-${priority}`;
 }
 
-function pathNodeLaunchHref(
+function pathNodeLaunchAction(
   target: string,
   nodeId: string,
   pathNodeType: string,
   launchContext?: RecommendedPathLaunchContext,
-): string {
+): Omit<RecommendedPathNodeView['action'], 'label'> {
   const href = normalizePathNodeTarget(target);
-  if (!launchContext) return href;
+  if (!launchContext) return { href, method: 'GET' };
   if (pathNodeType === 'external_resource') {
-    const params = new URLSearchParams({
-      nodeId,
-      goal: launchContext.goalId,
-      intent: launchContext.routeIntent,
-    });
-    return `/api/learning-paths/${encodeURIComponent(launchContext.pathId)}/execute?${params.toString()}`;
+    return {
+      href: `/api/learning-paths/${encodeURIComponent(launchContext.pathId)}/execute`,
+      method: 'POST',
+      redirectHref: href,
+      body: {
+        nodeId,
+        resourceType: 'external_resource',
+        status: 'started',
+        idempotencyKey: `external-resource-access:${launchContext.pathId}:${nodeId}`,
+        liftMetadata: {
+          launchIntent: launchContext.routeIntent,
+        },
+      },
+    };
   }
 
   const separator = href.includes('?') ? '&' : '?';
@@ -751,7 +766,7 @@ function pathNodeLaunchHref(
     goal: launchContext.goalId,
     intent: launchContext.routeIntent,
   });
-  return `${href}${separator}${params.toString()}`;
+  return { href: `${href}${separator}${params.toString()}`, method: 'GET' };
 }
 
 function normalizePathNodeTarget(target: string): string {

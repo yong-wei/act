@@ -665,6 +665,70 @@ describe('adaptive learning path planner', () => {
     );
   });
 
+  it('does not expose external resources as preference support nodes when the policy disallows them', () => {
+    const registry = buildControlCorrectionResourceNodeRegistry();
+    const externalSupportNode = buildResourceNodeRegistry({
+      externalResources: [{
+        id: 'external-control-correction-guide',
+        title: '外部控制校正资料',
+        source: 'MIT OCW',
+        url: 'https://ocw.mit.edu/control/correction',
+        estimatedTimeMinutes: 1,
+        knowledgeNodeIds: ['control-correction:time-domain-targets'],
+        applicableGoalId: 'control-correction',
+        evidenceUseStatus: 'explicit-access-required',
+        privacyPolicy: 'student-visible',
+      }],
+    }).nodes.find((node) => node.id === 'external-resource:external-control-correction-guide');
+    if (!externalSupportNode) {
+      throw new Error('expected external support node fixture');
+    }
+    const bundle = buildControlCorrectionThreeStylePathBundle(plannerInput({
+      registry: {
+        ...registry,
+        nodes: [...registry.nodes, externalSupportNode],
+      },
+      goal: {
+        id: 'control-correction',
+        title: '控制系统校正设计',
+        knowledgeTargets: [
+          'control-correction:time-domain-targets',
+          'control-correction:root-locus-design',
+          'control-correction:simulation-validation',
+          'control-correction:arena-transfer',
+        ],
+        competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.3, confidence: 0.7, evidenceCount: 2 },
+            'control-correction:root-locus-design': { posteriorMastery: 0.25, confidence: 0.65, evidenceCount: 2 },
+            'control-correction:simulation-validation': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+            'control-correction:arena-transfer': { posteriorMastery: 0.1, confidence: 0.5, evidenceCount: 0 },
+          },
+        },
+        resourcePreference: {
+          preferredModalities: ['external_resource'],
+        },
+        evidence: {
+          confidence: { level: 'medium', score: 0.68, evidenceCount: 8, sourceCompleteness: 0.7 },
+          sourceCoverage: { LearningFact: 'available' },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 180,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+      },
+    }));
+
+    expect(bundle.paths.flatMap((path) => path.nodeIds)).not.toContain(
+      'external-resource:external-control-correction-guide',
+    );
+  });
+
   it('generates a feasible 90-minute control-correction path from audited seed nodes', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput({
       registry: buildControlCorrectionResourceNodeRegistry({ includeInvalidFixture: true }),

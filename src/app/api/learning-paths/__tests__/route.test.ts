@@ -825,7 +825,7 @@ describe('learning path round API routes', () => {
     }));
   });
 
-  it('serves an explicit external access confirmation before writing access evidence', async () => {
+  it('does not serve external resource launch through GET navigation probes', async () => {
     configureSingleNodePath('external-resource:ocw-bode', 'external_resource', 'https://ocw.mit.edu/control/bode', {
       planNode: {
         pathNodeType: 'external_resource',
@@ -845,13 +845,8 @@ describe('learning path round API routes', () => {
       new Request('http://localhost/api/learning-paths/path-1/execute?nodeId=external-resource%3Aocw-bode&intent=path-execution'),
       params,
     );
-    const html = await response.text();
 
-    expect(response.status).toBe(200);
-    expect(response.headers.get('content-type')).toContain('text/html');
-    expect(html).toContain('记录学习访问并打开资料');
-    expect(html).toContain('external-resource-access:path-1:student-1:external-resource:ocw-bode');
-    expect(html).toContain('https://ocw.mit.edu/control/bode');
+    expect(response.status).toBe(405);
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
   });
 

@@ -859,9 +859,20 @@ describe('adaptive learning center UI contracts', () => {
       routeIntent: 'path-execution',
     }).nodes[0];
 
-    expect(node.action.href).toBe(
-      '/api/learning-paths/path-1/execute?nodeId=external-resource%3Aocw-bode&goal=control-correction&intent=path-execution',
-    );
+    expect(node.action).toMatchObject({
+      href: '/api/learning-paths/path-1/execute',
+      method: 'POST',
+      redirectHref: 'https://ocw.mit.edu/control/bode',
+      body: {
+        nodeId: 'external-resource:ocw-bode',
+        resourceType: 'external_resource',
+        status: 'started',
+        idempotencyKey: 'external-resource-access:path-1:external-resource:ocw-bode',
+        liftMetadata: {
+          launchIntent: 'path-execution',
+        },
+      },
+    });
     expect(node.action.href).not.toContain('https://ocw.mit.edu/control/bode');
   });
 
@@ -1085,6 +1096,7 @@ describe('adaptive learning center UI contracts', () => {
         action: {
           href: '/assessment/adaptive-practice?focus=practice-focus-1',
           label: '开始当前训练',
+          method: 'GET',
         },
       },
       {
@@ -1097,6 +1109,7 @@ describe('adaptive learning center UI contracts', () => {
         action: {
           href: '/assessment/adaptive-practice?focus=practice-focus-2',
           label: '查看训练节点',
+          method: 'GET',
         },
       },
     ]);

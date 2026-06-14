@@ -12,6 +12,7 @@ import {
   buildPracticeEntryRouteNodes,
   type ControlCorrectionLearningCenterView,
   type ControlCorrectionCenterRouteIntent,
+  type PracticeEntryRouteNode,
 } from '@/features/adaptive/adaptive-learning-center-contracts';
 import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
@@ -681,6 +682,26 @@ export default function AdaptivePracticePage() {
     reloadControlCorrectionPath,
   ]);
 
+  const launchPathNode = useCallback(async (node: PracticeEntryRouteNode) => {
+    if (node.action.method !== 'POST' || !node.action.body || !node.action.redirectHref) {
+      return;
+    }
+    try {
+      const response = await fetch(node.action.href, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(node.action.body),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(typeof payload.error === 'string' ? payload.error : '路径节点启动失败');
+      }
+      window.location.assign(node.action.redirectHref);
+    } catch (launchError) {
+      setError(launchError instanceof Error ? launchError.message : '路径节点启动失败');
+    }
+  }, []);
+
   useEffect(() => {
     if (isDemoMode) {
       applyDemoScene(demoScene);
@@ -1147,9 +1168,19 @@ export default function AdaptivePracticePage() {
                         缺失证据 {node.missingEvidence.join('、')}
                       </p>
                     ) : null}
-                    <Link href={node.action.href} className="mt-2 inline-flex text-xs text-emerald-300 hover:text-emerald-200">
-                      {node.action.label}
-                    </Link>
+                    {node.action.method === 'POST' ? (
+                      <button
+                        type="button"
+                        onClick={() => void launchPathNode(node)}
+                        className="mt-2 inline-flex text-xs text-emerald-300 hover:text-emerald-200"
+                      >
+                        {node.action.label}
+                      </button>
+                    ) : (
+                      <Link href={node.action.href} className="mt-2 inline-flex text-xs text-emerald-300 hover:text-emerald-200">
+                        {node.action.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
                 {practiceRouteNodes.length === 0 ? (
