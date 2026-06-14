@@ -688,12 +688,18 @@ describe('platform UI contracts', () => {
 
   it('keeps concrete interactive course entry pages on the unified course entry shell', () => {
     const courseEntryShellSource = readSource('src/features/interactive/shared/course-entry-shell.tsx');
+    const teacherWaitingRouteSource = readSource('src/features/interactive/shared/teacher-classroom-waiting-route.tsx');
+    const teacherWaitingSource = readSource('src/features/interactive/shared/teacher-classroom-waiting-page.tsx');
     const entryPages = listSourceFiles('src/features/interactive').filter((relativePath) =>
       relativePath.endsWith('/entry-page.tsx'),
+    );
+    const waitingPages = listSourceFiles('src/app/interactive-learning/courses').filter((relativePath) =>
+      relativePath.endsWith('/teacher/[sessionId]/waiting/page.tsx'),
     );
 
     expect(courseEntryShellSource).toContain('<AppShell');
     expect(courseEntryShellSource).toContain('sidebarMode="collapsible"');
+    expect(courseEntryShellSource).toContain('router.push(`/interactive-learning/courses/${config.routeSegment}/teacher/${createData.id}/waiting`)');
     expect(courseEntryShellSource).toContain('data-course-entry-shell="app-shell"');
     expect(courseEntryShellSource).toContain('data-commercial-workspace="interactive-learning"');
     expect(courseEntryShellSource).toContain('data-course-entry-role-panel="teacher"');
@@ -722,12 +728,39 @@ describe('platform UI contracts', () => {
     expect(courseEntryShellSource).not.toContain('dockControls');
     expect(courseEntryShellSource).not.toContain('premium-lesson-');
     expect(courseEntryShellSource).not.toContain('max-w-[1180px]');
+    expect(teacherWaitingRouteSource).toContain("import { getServerSession } from 'next-auth';");
+    expect(teacherWaitingRouteSource).toContain("import { redirect } from 'next/navigation';");
+    expect(teacherWaitingRouteSource).toContain('getServerSession(authOptions)');
+    expect(teacherWaitingRouteSource).toContain("redirect('/login')");
+    expect(teacherWaitingRouteSource).toContain("redirect(`/interactive-learning/courses/${routeSegment}/student/${sessionId}`)");
+    expect(teacherWaitingRouteSource).toContain("['TEACHER', 'ADMIN', '教师', '管理员']");
+    expect(teacherWaitingRouteSource).toContain('<TeacherClassroomWaitingPage');
+    expect(teacherWaitingSource).toContain('<AppShell');
+    expect(teacherWaitingSource).toContain('viewerRole="teacher"');
+    expect(teacherWaitingSource).toContain('sidebarMode="collapsible"');
+    expect(teacherWaitingSource).toContain('data-teacher-classroom-waiting="standard"');
+    expect(teacherWaitingSource).toContain('data-classroom-join-qr');
+    expect(teacherWaitingSource).toContain('data-classroom-code=');
+    expect(teacherWaitingSource).toContain('data-joined-student-count=');
+    expect(teacherWaitingSource).toContain('data-start-class-action="teacher-runtime"');
+    expect(teacherWaitingSource).toContain('router.push(runtimeHref)');
+    expect(teacherWaitingSource).not.toContain('routeMetadata=');
+    expect(teacherWaitingSource).not.toContain('dockControls');
+    expect(teacherWaitingSource).not.toContain('premium-lesson-');
 
     expect(entryPages.length).toBeGreaterThan(0);
     for (const relativePath of entryPages) {
       const source = readSource(relativePath);
       expect(source, relativePath).toContain('CourseEntryShell');
       expect(source, relativePath).not.toContain('PremiumLessonEntryPage');
+    }
+
+    expect(waitingPages.length).toBeGreaterThan(20);
+    for (const relativePath of waitingPages) {
+      const source = readSource(relativePath);
+      expect(source, relativePath).toContain('TeacherClassroomWaitingRoute');
+      expect(source, relativePath).not.toContain('TeacherClassroomWaitingPage');
+      expect(source, relativePath).toContain('routeSegment=');
     }
   });
 
@@ -737,11 +770,31 @@ describe('platform UI contracts', () => {
       .filter((relativePath) => relativePath.split(path.sep).length === 6)
       .map((relativePath) => `/${path.dirname(relativePath).replace(/^src\/app\//, '')}`)
       .sort();
+    const teacherWaitingRoutes = listSourceFiles('src/app/interactive-learning/courses')
+      .filter((relativePath) => relativePath.endsWith('/teacher/[sessionId]/waiting/page.tsx'))
+      .map((relativePath) =>
+        `/${path.dirname(relativePath)
+          .replace(/^src\/app\//, '')
+          .replace('/teacher/[sessionId]/waiting', '/teacher/session-1/waiting')}`
+      )
+      .sort();
     const courseHref = '/interactive-learning/courses/unit-1-1-see-the-full-picture';
+    const waitingHref = '/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/session-1/waiting';
     const inventoryEntry = resolvePlatformRouteInventory(courseHref);
+    const waitingInventoryEntry = resolvePlatformRouteInventory(waitingHref);
 
     expect(courseEntryPageRoutes.length).toBeGreaterThan(20);
     for (const href of courseEntryPageRoutes) {
+      const route = resolvePlatformRouteInventory(href);
+      expect(route, href).toMatchObject({
+        frame: 'learning-atlas',
+        desktopNavigation: 'collapsible',
+        floatingDock: 'collapsed',
+      });
+      expect(route?.navigationLayers, href).toEqual(['global-product', 'contextual-workspace', 'local-tool']);
+    }
+    expect(teacherWaitingRoutes.length).toBeGreaterThan(20);
+    for (const href of teacherWaitingRoutes) {
       const route = resolvePlatformRouteInventory(href);
       expect(route, href).toMatchObject({
         frame: 'learning-atlas',
@@ -757,6 +810,13 @@ describe('platform UI contracts', () => {
       floatingDock: 'collapsed',
     });
     expect(inventoryEntry?.navigationLayers).toEqual(['global-product', 'contextual-workspace', 'local-tool']);
+    expect(waitingInventoryEntry).toMatchObject({
+      frame: 'learning-atlas',
+      desktopNavigation: 'collapsible',
+      floatingDock: 'collapsed',
+      mobileNavigation: 'workspace-command-surface',
+    });
+    expect(waitingInventoryEntry?.navigationLayers).toEqual(['global-product', 'contextual-workspace', 'local-tool']);
 
     const shellMarkup = renderAppShellMarkup({
       viewerRole: 'student',
@@ -771,6 +831,18 @@ describe('platform UI contracts', () => {
     expect(shellMarkup).toContain('data-platform-floating-dock-behavior="collapsed"');
     expect(shellMarkup).toContain('data-app-shell-navigation-state="collapsed"');
     expect(shellMarkup).not.toContain('data-platform-route-frame="mission-workspace"');
+
+    const waitingShellMarkup = renderAppShellMarkup({
+      viewerRole: 'teacher',
+      title: '课堂等待页',
+      activeHref: waitingHref,
+      sidebarMode: 'collapsible',
+      children: null,
+    });
+
+    expect(waitingShellMarkup).toContain('data-platform-route-frame="learning-atlas"');
+    expect(waitingShellMarkup).toContain('data-platform-desktop-navigation="collapsible"');
+    expect(waitingShellMarkup).toContain('data-platform-floating-dock-behavior="collapsed"');
   });
 
   it('does not use student or teacher business identity as a JSX role prop', () => {

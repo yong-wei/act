@@ -33,6 +33,10 @@ function resolveStateKey(itemId: string | null | undefined, explicitStateKey: st
   return 'course';
 }
 
+function isTeacherOrAdminRole(role: unknown) {
+  return ['TEACHER', 'ADMIN', '教师', '管理员'].includes(String(role ?? '').toUpperCase());
+}
+
 /**
  * POST: 学生提交状态数据
  * GET: 教师获取所有学生状态（用于数据大屏）
@@ -118,6 +122,10 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
     const teacherStateKey = 'teacher-sync';
 
     if (scope === 'teacher-view') {
+      if (!isTeacherOrAdminRole(session.user.role)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+
       const [courseStates, teacherStates] = await Promise.all([
         prisma.studentState.findMany({
           where: {
@@ -259,6 +267,10 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
     }
 
     // 获取所有学生状态
+    if (!isTeacherOrAdminRole(session.user.role)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const [states, teacherStates] = await Promise.all([
       prisma.studentState.findMany({
         where: {
