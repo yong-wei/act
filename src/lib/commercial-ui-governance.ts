@@ -190,6 +190,11 @@ type CommercialSimulationExpectedHandoffBaseline = Pick<
 export interface CommercialSimulationViewportEvidence {
   width: number;
   theme: CommercialVisualQaTheme;
+  requestedRoute?: string;
+  finalUrl?: string;
+  role?: CommercialVisualQaRole;
+  authState?: CommercialVisualQaAuthState;
+  routeFile?: string;
   navigationState: CommercialVisualQaNavigationState;
   dockState: CommercialSimulationVisualQaDockState;
   localToolState: CommercialSimulationVisualQaLocalToolState;
@@ -1707,6 +1712,14 @@ function buildSimulationVisualQaViolations(
     ?? viewport.artifactSha256
     ?? ''
   );
+  const finalUrlPath = (finalUrl: string | undefined) => {
+    if (!finalUrl) return '';
+    try {
+      return new URL(finalUrl).pathname;
+    } catch {
+      return finalUrl;
+    }
+  };
 
   return requiredRoutes.flatMap((route) => {
     const routeEvidence = visualEvidence.find((entry) => entry.href === route.href);
@@ -1791,8 +1804,8 @@ function buildSimulationVisualQaViolations(
 
     for (const theme of route.requiredThemes) {
       for (const width of route.requiredWidths) {
+        const stateArtifactFingerprints = new Map<string, string>();
         for (const navigationState of navigationStatesForSimulationWidth(route, width)) {
-          const stateArtifactFingerprints = new Map<string, string>();
           for (const dockState of route.requiredDockStates) {
             for (const localToolState of route.requiredLocalToolStates) {
               const viewport = simulationEvidence.viewports.find((entry) => (
@@ -1812,6 +1825,16 @@ function buildSimulationVisualQaViolations(
               if (viewport.artifact && !viewport.artifactSha256) missing.push(`${key}:artifactSha256`);
               if (viewport.result !== 'passed') missing.push(`${key}:result=passed`);
               if (viewport.firstViewportTaskVisible !== true) missing.push(`${key}:firstViewportTaskVisible`);
+              if (viewport.requestedRoute !== route.href) missing.push(`${key}:requestedRoute=${route.href}`);
+              const expectedFinalPath = route.finalBehavior === 'redirects-to-simulations' ? '/simulations' : route.href;
+              if (finalUrlPath(viewport.finalUrl) !== expectedFinalPath) {
+                missing.push(`${key}:finalUrl=${expectedFinalPath}`);
+              }
+              if (viewport.role !== route.role) missing.push(`${key}:role=${route.role}`);
+              if (viewport.authState !== route.acceptedAuthState) {
+                missing.push(`${key}:authState=${route.acceptedAuthState}`);
+              }
+              if (viewport.routeFile !== route.routeFile) missing.push(`${key}:routeFile=${route.routeFile}`);
               if (route.requiresNonblankScene && viewport.primarySceneNonblank !== true) {
                 missing.push(`${key}:primarySceneNonblank`);
               }
@@ -1819,20 +1842,26 @@ function buildSimulationVisualQaViolations(
                 missing.push(`${key}:instrumentAreaNonblank`);
               }
               const fingerprint = artifactFingerprint(viewport);
-              if (fingerprint) stateArtifactFingerprints.set(`${dockState}/${localToolState}`, fingerprint);
+              if (fingerprint) {
+                stateArtifactFingerprints.set(`${navigationState}/${dockState}/${localToolState}`, fingerprint);
+              }
             }
           }
-          if ((route.requiredDockStates.length > 1 || route.requiredLocalToolStates.length > 1)) {
-            const seen = new Map<string, string>();
-            for (const [stateKey, fingerprint] of stateArtifactFingerprints) {
-              const previousStateKey = seen.get(fingerprint);
-              if (previousStateKey && previousStateKey !== stateKey) {
-                missing.push(
-                  `theme=${theme}:width=${width}:navigationState=${navigationState}:stateArtifactUnique=${previousStateKey}->${stateKey}`,
-                );
-              }
-              seen.set(fingerprint, stateKey);
+        }
+        if (
+          route.requiredNavigationStates.length > 1
+          || route.requiredDockStates.length > 1
+          || route.requiredLocalToolStates.length > 1
+        ) {
+          const seen = new Map<string, string>();
+          for (const [stateKey, fingerprint] of stateArtifactFingerprints) {
+            const previousStateKey = seen.get(fingerprint);
+            if (previousStateKey && previousStateKey !== stateKey) {
+              missing.push(
+                `theme=${theme}:width=${width}:stateArtifactUnique=${previousStateKey}->${stateKey}`,
+              );
             }
+            seen.set(fingerprint, stateKey);
           }
         }
       }

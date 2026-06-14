@@ -279,6 +279,13 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
           scenario.requiredLocalToolStates.map((localToolState) => ({
             width,
             theme,
+            requestedRoute: scenario.href,
+            finalUrl: scenario.finalBehavior === 'redirects-to-simulations'
+              ? 'http://localhost:3000/simulations'
+              : `http://localhost:3000${scenario.href}`,
+            role: scenario.role,
+            authState: scenario.acceptedAuthState,
+            routeFile: scenario.routeFile,
             navigationState,
             dockState,
             localToolState,
@@ -601,7 +608,89 @@ describe('commercial UI governance', () => {
         rule: 'simulation-visual-qa.incomplete-evidence',
         path: '/simulations/destroyer',
         evidence: expect.arrayContaining([
-          'theme=light:width=1440:navigationState=desktop-expanded:stateArtifactUnique=collapsed/collapsed->collapsed/expanded',
+          'theme=light:width=1440:stateArtifactUnique=desktop-expanded/collapsed/collapsed->desktop-expanded/collapsed/expanded',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when simulation navigation states reuse the same visual artifact', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations' || !entry.simulationVisualQa) return entry;
+      const expanded = entry.simulationVisualQa.viewports.find((viewport) => (
+        viewport.theme === 'light'
+        && viewport.width === 1440
+        && viewport.navigationState === 'desktop-expanded'
+      ));
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport) => (
+            viewport.theme === 'light'
+            && viewport.width === 1440
+            && viewport.navigationState === 'desktop-collapsed'
+              ? {
+                  ...viewport,
+                  screenshot: expanded?.screenshot,
+                  screenshotSha256: expanded?.screenshotSha256,
+                }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining([
+          'theme=light:width=1440:stateArtifactUnique=desktop-expanded/collapsed/not-applicable->desktop-collapsed/collapsed/not-applicable',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when simulation viewport metadata does not match the route matrix', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/virtual-lab' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport, index) => (
+            index === 0
+              ? {
+                  ...viewport,
+                  requestedRoute: '/simulations',
+                  finalUrl: 'http://localhost:3000/virtual-lab',
+                  role: 'teacher' as const,
+                  authState: 'authenticated' as const,
+                  routeFile: 'src/app/simulations/page.tsx',
+                }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/virtual-lab',
+        evidence: expect.arrayContaining([
+          'theme=light:width=1440:navigationState=desktop-expanded:dockState=collapsed:localToolState=not-applicable:requestedRoute=/virtual-lab',
+          'theme=light:width=1440:navigationState=desktop-expanded:dockState=collapsed:localToolState=not-applicable:finalUrl=/simulations',
+          'theme=light:width=1440:navigationState=desktop-expanded:dockState=collapsed:localToolState=not-applicable:role=student',
+          'theme=light:width=1440:navigationState=desktop-expanded:dockState=collapsed:localToolState=not-applicable:authState=public',
+          'theme=light:width=1440:navigationState=desktop-expanded:dockState=collapsed:localToolState=not-applicable:routeFile=src/app/virtual-lab/page.tsx',
         ]),
       }),
     ]));

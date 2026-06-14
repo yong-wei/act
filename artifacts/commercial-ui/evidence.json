@@ -2367,7 +2367,12 @@
             "localToolState": "not-applicable",
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-light-desktop-expanded.png",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/interactive-learning/control-workbench",
+            "finalUrl": "http://127.0.0.1:3001/interactive-learning/control-workbench",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/interactive-learning/control-workbench/page.tsx"
           },
           {
             "width": 1440,
@@ -2377,7 +2382,12 @@
             "localToolState": "not-applicable",
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-light-desktop-collapsed.png",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/interactive-learning/control-workbench",
+            "finalUrl": "http://127.0.0.1:3001/interactive-learning/control-workbench",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/interactive-learning/control-workbench/page.tsx"
           },
           {
             "width": 320,
@@ -2387,7 +2397,12 @@
             "localToolState": "not-applicable",
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-light-mobile.png",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/interactive-learning/control-workbench",
+            "finalUrl": "http://127.0.0.1:3001/interactive-learning/control-workbench",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/interactive-learning/control-workbench/page.tsx"
           },
           {
             "width": 1440,
@@ -2397,7 +2412,12 @@
             "localToolState": "not-applicable",
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-dark-desktop-expanded.png",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/interactive-learning/control-workbench",
+            "finalUrl": "http://127.0.0.1:3001/interactive-learning/control-workbench",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/interactive-learning/control-workbench/page.tsx"
           },
           {
             "width": 1440,
@@ -2407,7 +2427,12 @@
             "localToolState": "not-applicable",
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-dark-desktop-collapsed.png",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/interactive-learning/control-workbench",
+            "finalUrl": "http://127.0.0.1:3001/interactive-learning/control-workbench",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/interactive-learning/control-workbench/page.tsx"
           },
           {
             "width": 320,
@@ -2417,7 +2442,12 @@
             "localToolState": "not-applicable",
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-dark-mobile.png",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/interactive-learning/control-workbench",
+            "finalUrl": "http://127.0.0.1:3001/interactive-learning/control-workbench",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/interactive-learning/control-workbench/page.tsx"
           }
         ],
         "handoffBaseline": {
@@ -4342,7 +4372,12 @@
             "localToolState": "not-applicable",
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-light-1440.png",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations",
+            "finalUrl": "http://127.0.0.1:3001/simulations",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/page.tsx"
           },
           {
             "width": 1440,
@@ -4351,8 +4386,13 @@
             "dockState": "collapsed",
             "localToolState": "not-applicable",
             "result": "passed",
-            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-light-1440.png",
-            "firstViewportTaskVisible": true
+            "screenshot": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/simulations-light-1440.png",
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations",
+            "finalUrl": "http://127.0.0.1:3001/simulations",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/page.tsx"
           },
           {
             "width": 320,
@@ -4362,7 +4402,12 @@
             "localToolState": "not-applicable",
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-light-320.png",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations",
+            "finalUrl": "http://127.0.0.1:3001/simulations",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/page.tsx"
           },
           {
             "width": 1440,
@@ -4372,7 +4417,12 @@
             "localToolState": "not-applicable",
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-dark-1440.png",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations",
+            "finalUrl": "http://127.0.0.1:3001/simulations",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/page.tsx"
           },
           {
             "width": 1440,
@@ -4381,8 +4431,13 @@
             "dockState": "collapsed",
             "localToolState": "not-applicable",
             "result": "passed",
-            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-dark-1440.png",
-            "firstViewportTaskVisible": true
+            "screenshot": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/simulations-dark-1440.png",
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations",
+            "finalUrl": "http://127.0.0.1:3001/simulations",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/page.tsx"
           },
           {
             "width": 320,
@@ -4392,7 +4447,12 @@
             "localToolState": "not-applicable",
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-dark-320.png",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations",
+            "finalUrl": "http://127.0.0.1:3001/simulations",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/page.tsx"
           }
         ],
         "handoffBaseline": {
@@ -10519,7 +10579,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-expanded-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-1440-desktop-expanded-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 1440,
@@ -10532,7 +10597,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-expanded-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-1440-desktop-expanded-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 1440,
@@ -10545,7 +10615,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-expanded-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-1440-desktop-expanded-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 1440,
@@ -10558,7 +10633,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-expanded-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-1440-desktop-expanded-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 1440,
@@ -10571,7 +10651,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-collapsed-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-1440-desktop-collapsed-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 1440,
@@ -10584,7 +10669,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-collapsed-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-1440-desktop-collapsed-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 1440,
@@ -10597,7 +10687,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-collapsed-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-1440-desktop-collapsed-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 1440,
@@ -10610,7 +10705,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-collapsed-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-1440-desktop-collapsed-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 320,
@@ -10623,7 +10723,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-320-workspace-command-surface-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-320-workspace-command-surface-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 320,
@@ -10636,7 +10741,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-320-workspace-command-surface-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-320-workspace-command-surface-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 320,
@@ -10649,7 +10759,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-320-workspace-command-surface-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-320-workspace-command-surface-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 320,
@@ -10662,7 +10777,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-320-workspace-command-surface-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-320-workspace-command-surface-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 1440,
@@ -10675,7 +10795,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-expanded-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-1440-desktop-expanded-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 1440,
@@ -10688,7 +10813,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-expanded-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-1440-desktop-expanded-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 1440,
@@ -10701,7 +10831,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-expanded-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-1440-desktop-expanded-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 1440,
@@ -10714,7 +10849,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-expanded-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-1440-desktop-expanded-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 1440,
@@ -10727,7 +10867,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-collapsed-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-1440-desktop-collapsed-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 1440,
@@ -10740,7 +10885,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-collapsed-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-1440-desktop-collapsed-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 1440,
@@ -10753,7 +10903,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-collapsed-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-1440-desktop-collapsed-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 1440,
@@ -10766,7 +10921,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-collapsed-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-1440-desktop-collapsed-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 320,
@@ -10779,7 +10939,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-320-workspace-command-surface-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-320-workspace-command-surface-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 320,
@@ -10792,7 +10957,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-320-workspace-command-surface-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-320-workspace-command-surface-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 320,
@@ -10805,7 +10975,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-320-workspace-command-surface-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-320-workspace-command-surface-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           },
           {
             "width": 320,
@@ -10818,7 +10993,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-320-workspace-command-surface-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-320-workspace-command-surface-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/cruise",
+            "finalUrl": "http://127.0.0.1:3001/simulations/cruise",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/cruise/page.tsx"
           }
         ],
         "handoffBaseline": {
@@ -11067,7 +11247,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-expanded-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-1440-desktop-expanded-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 1440,
@@ -11080,7 +11265,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-expanded-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-1440-desktop-expanded-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 1440,
@@ -11093,7 +11283,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-expanded-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-1440-desktop-expanded-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 1440,
@@ -11106,7 +11301,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-expanded-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-1440-desktop-expanded-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 1440,
@@ -11119,7 +11319,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-collapsed-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-1440-desktop-collapsed-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 1440,
@@ -11132,7 +11337,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-collapsed-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-1440-desktop-collapsed-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 1440,
@@ -11145,7 +11355,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-collapsed-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-1440-desktop-collapsed-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 1440,
@@ -11158,7 +11373,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-collapsed-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-1440-desktop-collapsed-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 320,
@@ -11171,7 +11391,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-320-workspace-command-surface-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-320-workspace-command-surface-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 320,
@@ -11184,7 +11409,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-320-workspace-command-surface-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-320-workspace-command-surface-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 320,
@@ -11197,7 +11427,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-320-workspace-command-surface-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-320-workspace-command-surface-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 320,
@@ -11210,7 +11445,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-320-workspace-command-surface-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-320-workspace-command-surface-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 1440,
@@ -11223,7 +11463,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-1440-desktop-expanded-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-1440-desktop-expanded-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 1440,
@@ -11236,7 +11481,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-1440-desktop-expanded-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-1440-desktop-expanded-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 1440,
@@ -11249,7 +11499,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-1440-desktop-expanded-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-1440-desktop-expanded-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 1440,
@@ -11262,7 +11517,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-1440-desktop-expanded-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-1440-desktop-expanded-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 1440,
@@ -11275,7 +11535,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-1440-desktop-collapsed-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-1440-desktop-collapsed-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 1440,
@@ -11288,7 +11553,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-1440-desktop-collapsed-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-1440-desktop-collapsed-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 1440,
@@ -11301,7 +11571,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-1440-desktop-collapsed-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-1440-desktop-collapsed-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 1440,
@@ -11314,7 +11589,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-1440-desktop-collapsed-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-1440-desktop-collapsed-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 320,
@@ -11327,7 +11607,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-320-workspace-command-surface-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-320-workspace-command-surface-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 320,
@@ -11340,7 +11625,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-320-workspace-command-surface-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-320-workspace-command-surface-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 320,
@@ -11353,7 +11643,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-320-workspace-command-surface-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-320-workspace-command-surface-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           },
           {
             "width": 320,
@@ -11366,7 +11661,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-320-workspace-command-surface-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-320-workspace-command-surface-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/destroyer",
+            "finalUrl": "http://127.0.0.1:3001/simulations/destroyer",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/destroyer/page.tsx"
           }
         ],
         "handoffBaseline": {
@@ -11512,7 +11812,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-expanded-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-1440-desktop-expanded-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 1440,
@@ -11525,7 +11830,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-expanded-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-1440-desktop-expanded-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 1440,
@@ -11538,7 +11848,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-expanded-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-1440-desktop-expanded-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 1440,
@@ -11551,7 +11866,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-expanded-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-1440-desktop-expanded-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 1440,
@@ -11564,7 +11884,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-collapsed-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-1440-desktop-collapsed-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 1440,
@@ -11577,7 +11902,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-collapsed-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-1440-desktop-collapsed-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 1440,
@@ -11590,7 +11920,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-collapsed-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-1440-desktop-collapsed-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 1440,
@@ -11603,7 +11938,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-collapsed-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-1440-desktop-collapsed-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 320,
@@ -11616,7 +11956,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-320-workspace-command-surface-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-320-workspace-command-surface-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 320,
@@ -11629,7 +11974,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-320-workspace-command-surface-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-320-workspace-command-surface-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 320,
@@ -11642,7 +11992,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-320-workspace-command-surface-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-320-workspace-command-surface-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 320,
@@ -11655,7 +12010,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-320-workspace-command-surface-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-320-workspace-command-surface-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 1440,
@@ -11668,7 +12028,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-1440-desktop-expanded-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-1440-desktop-expanded-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 1440,
@@ -11681,7 +12046,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-1440-desktop-expanded-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-1440-desktop-expanded-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 1440,
@@ -11694,7 +12064,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-1440-desktop-expanded-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-1440-desktop-expanded-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 1440,
@@ -11707,7 +12082,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-1440-desktop-expanded-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-1440-desktop-expanded-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 1440,
@@ -11720,7 +12100,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-1440-desktop-collapsed-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-1440-desktop-collapsed-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 1440,
@@ -11733,7 +12118,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-1440-desktop-collapsed-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-1440-desktop-collapsed-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 1440,
@@ -11746,7 +12136,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-1440-desktop-collapsed-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-1440-desktop-collapsed-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 1440,
@@ -11759,7 +12154,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-1440-desktop-collapsed-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-1440-desktop-collapsed-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 320,
@@ -11772,7 +12172,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-320-workspace-command-surface-collapsed-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-320-workspace-command-surface-collapsed-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 320,
@@ -11785,7 +12190,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-320-workspace-command-surface-collapsed-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-320-workspace-command-surface-collapsed-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 320,
@@ -11798,7 +12208,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-320-workspace-command-surface-expanded-collapsed.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-320-workspace-command-surface-expanded-collapsed.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           },
           {
             "width": 320,
@@ -11811,7 +12226,12 @@
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-320-workspace-command-surface-expanded-expanded.png",
             "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-320-workspace-command-surface-expanded-expanded.json",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/simulations/drilling",
+            "finalUrl": "http://127.0.0.1:3001/simulations/drilling",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/simulations/drilling/page.tsx"
           }
         ],
         "handoffBaseline": {
@@ -12165,8 +12585,13 @@
             "dockState": "collapsed",
             "localToolState": "not-applicable",
             "result": "passed",
-            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-light-1440.png",
-            "firstViewportTaskVisible": true
+            "screenshot": "artifacts/product-design-audits/virtual-simulation-2026-06-13/screenshots/18-virtual-lab-light-1440.png",
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/virtual-lab",
+            "finalUrl": "http://127.0.0.1:3001/simulations",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/virtual-lab/page.tsx"
           },
           {
             "width": 1440,
@@ -12175,8 +12600,13 @@
             "dockState": "collapsed",
             "localToolState": "not-applicable",
             "result": "passed",
-            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-light-1440.png",
-            "firstViewportTaskVisible": true
+            "screenshot": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/simulations-light-1440.png",
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/virtual-lab",
+            "finalUrl": "http://127.0.0.1:3001/simulations",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/virtual-lab/page.tsx"
           },
           {
             "width": 320,
@@ -12186,7 +12616,12 @@
             "localToolState": "not-applicable",
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-light-320.png",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/virtual-lab",
+            "finalUrl": "http://127.0.0.1:3001/simulations",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/virtual-lab/page.tsx"
           },
           {
             "width": 1440,
@@ -12195,8 +12630,13 @@
             "dockState": "collapsed",
             "localToolState": "not-applicable",
             "result": "passed",
-            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-dark-1440.png",
-            "firstViewportTaskVisible": true
+            "screenshot": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/virtual-lab-redirect-dark-1440.png",
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/virtual-lab",
+            "finalUrl": "http://127.0.0.1:3001/simulations",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/virtual-lab/page.tsx"
           },
           {
             "width": 1440,
@@ -12205,8 +12645,13 @@
             "dockState": "collapsed",
             "localToolState": "not-applicable",
             "result": "passed",
-            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-dark-1440.png",
-            "firstViewportTaskVisible": true
+            "screenshot": "artifacts/product-design-audits/virtual-simulation-2026-06-13/screenshots/17-virtual-lab-dark-1440.png",
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/virtual-lab",
+            "finalUrl": "http://127.0.0.1:3001/simulations",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/virtual-lab/page.tsx"
           },
           {
             "width": 320,
@@ -12216,7 +12661,12 @@
             "localToolState": "not-applicable",
             "result": "passed",
             "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-dark-320.png",
-            "firstViewportTaskVisible": true
+            "firstViewportTaskVisible": true,
+            "requestedRoute": "/virtual-lab",
+            "finalUrl": "http://127.0.0.1:3001/simulations",
+            "role": "student",
+            "authState": "public",
+            "routeFile": "src/app/virtual-lab/page.tsx"
           }
         ],
         "handoffBaseline": {
