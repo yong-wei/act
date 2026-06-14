@@ -277,6 +277,8 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
       status: 'passed',
       report: 'artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json',
       reportSha256: 'react-doctor-report-content',
+      ownedDiagnostics: 0,
+      selectedDiagnostics: 0,
     },
     viewports: scenario.requiredThemes.flatMap((theme) => scenario.requiredWidths.flatMap((width) => (
       simulationNavigationStatesForWidth(width, scenario.requiredNavigationStates).flatMap((navigationState) => (
@@ -581,6 +583,37 @@ describe('commercial UI governance', () => {
     ]));
   });
 
+  it('fails when simulation React Doctor report still contains owned diagnostics', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          reactDoctorErrorCheck: {
+            ...entry.simulationVisualQa.reactDoctorErrorCheck,
+            ownedDiagnostics: 1,
+            selectedDiagnostics: 1,
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining([
+          'reactDoctorErrorCheck.ownedDiagnostics=0',
+          'reactDoctorErrorCheck.selectedDiagnostics=0',
+        ]),
+      }),
+    ]));
+  });
+
   it('fails when simulation handoff baseline omits source file hashes', () => {
     const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
       if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
@@ -760,6 +793,47 @@ describe('commercial UI governance', () => {
         path: '/simulations',
         evidence: expect.arrayContaining([
           'width=1440:navigationState=desktop-expanded:dockState=collapsed:localToolState=not-applicable:themeArtifactUnique=light->dark',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when simulation evidence reuses a visual artifact across theme and navigation state', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/virtual-lab' || !entry.simulationVisualQa) return entry;
+      const lightExpanded = entry.simulationVisualQa.viewports.find((viewport) => (
+        viewport.theme === 'light'
+        && viewport.width === 1440
+        && viewport.navigationState === 'desktop-expanded'
+      ));
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport) => (
+            viewport.theme === 'dark'
+            && viewport.width === 1440
+            && viewport.navigationState === 'desktop-collapsed'
+              ? {
+                  ...viewport,
+                  screenshot: lightExpanded?.screenshot,
+                  screenshotSha256: lightExpanded?.screenshotSha256,
+                }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/virtual-lab',
+        evidence: expect.arrayContaining([
+          'width=1440:visualArtifactUnique=light/desktop-expanded/collapsed/not-applicable->dark/desktop-collapsed/collapsed/not-applicable',
         ]),
       }),
     ]));
@@ -1759,10 +1833,15 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('screenshot: viewport.screenshot');
     expect(scriptSource).toContain('screenshotSha256: screenshot?.sha256');
     expect(scriptSource).toContain('screenshotWidth: screenshot?.width');
-    expect(scriptSource).toContain('reportSha256: simulationViewportArtifact(route.simulationVisualQa.reactDoctorErrorCheck.report)?.sha256');
-    expect(scriptSource).toContain('designHandoffSha256: simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.designHandoff)?.sha256');
+    expect(scriptSource).toContain('function simulationReactDoctorReport');
+    expect(scriptSource).toContain('reportSha256: reactDoctorReport?.sha256');
+    expect(scriptSource).toContain('ownedDiagnostics: reactDoctorReport?.ownedDiagnostics');
+    expect(scriptSource).toContain('selectedDiagnostics: reactDoctorReport?.selectedDiagnostics');
+    expect(scriptSource).toContain('designHandoffSha256:');
+    expect(scriptSource).toContain('route.simulationVisualQa.handoffBaseline.designHandoff');
     expect(scriptSource).toContain('implementationMatrixSha256:');
-    expect(scriptSource).toContain('conceptImageSha256: simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.conceptImage)?.sha256');
+    expect(scriptSource).toContain('conceptImageSha256:');
+    expect(scriptSource).toContain('route.simulationVisualQa.handoffBaseline.conceptImage');
     expect(scriptSource).toContain('implementationScreenshotSha256:');
     expect(scriptSource).toContain('paths.add(simulationVisualQa.handoffBaseline.designHandoff)');
     expect(scriptSource).toContain('paths.add(simulationVisualQa.handoffBaseline.implementationMatrix)');

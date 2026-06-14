@@ -219,6 +219,8 @@ export interface CommercialSimulationReactDoctorEvidence {
   status: CommercialSimulationReactDoctorStatus;
   report?: string;
   reportSha256?: string;
+  ownedDiagnostics?: number;
+  selectedDiagnostics?: number;
 }
 
 export type CommercialSimulationHandoffReviewStatus = 'passed' | 'failed' | 'not-run';
@@ -1767,6 +1769,12 @@ function buildSimulationVisualQaViolations(
       simulationEvidence.reactDoctorErrorCheck?.status !== 'passed' ? 'reactDoctorErrorCheck=passed' : '',
       !simulationEvidence.reactDoctorErrorCheck?.report ? 'reactDoctorErrorCheck.report' : '',
       !simulationEvidence.reactDoctorErrorCheck?.reportSha256 ? 'reactDoctorErrorCheck.reportSha256' : '',
+      simulationEvidence.reactDoctorErrorCheck?.ownedDiagnostics !== 0
+        ? 'reactDoctorErrorCheck.ownedDiagnostics=0'
+        : '',
+      simulationEvidence.reactDoctorErrorCheck?.selectedDiagnostics !== 0
+        ? 'reactDoctorErrorCheck.selectedDiagnostics=0'
+        : '',
     ].filter(Boolean);
     const handoffBaseline = simulationEvidence.handoffBaseline;
     const expectedHandoffBaseline = SIMULATION_PRODUCT_DESIGN_HANDOFF_BASELINE_BY_ROUTE[route.href];
@@ -1826,6 +1834,7 @@ function buildSimulationVisualQaViolations(
     }
 
     const themeArtifactFingerprintsByState = new Map<string, Map<CommercialVisualQaTheme, string>>();
+    const artifactFingerprintsByWidth = new Map<number, Map<string, string>>();
 
     for (const theme of route.requiredThemes) {
       for (const width of route.requiredWidths) {
@@ -1878,7 +1887,15 @@ function buildSimulationVisualQaViolations(
               const fingerprint = artifactFingerprint(viewport);
               if (fingerprint) {
                 const stateKey = `${navigationState}/${dockState}/${localToolState}`;
+                const routeStateKey = `${theme}/${stateKey}`;
                 const themedStateKey = `width=${width}:navigationState=${navigationState}:dockState=${dockState}:localToolState=${localToolState}`;
+                const widthFingerprints = artifactFingerprintsByWidth.get(width) ?? new Map();
+                const previousRouteStateKey = widthFingerprints.get(fingerprint);
+                if (previousRouteStateKey && previousRouteStateKey !== routeStateKey) {
+                  missing.push(`width=${width}:visualArtifactUnique=${previousRouteStateKey}->${routeStateKey}`);
+                }
+                widthFingerprints.set(fingerprint, routeStateKey);
+                artifactFingerprintsByWidth.set(width, widthFingerprints);
                 stateArtifactFingerprints.set(stateKey, fingerprint);
                 const themedFingerprints = themeArtifactFingerprintsByState.get(themedStateKey) ?? new Map();
                 themedFingerprints.set(theme, fingerprint);

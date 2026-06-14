@@ -19,7 +19,10 @@
           "ciRequired": false,
           "command": "rtk npm run test:react-doctor:owned-errors",
           "status": "passed",
-          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json"
+          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json",
+          "reportSha256": "445667a82eecac7f1a00015009755939527508a81cd68a560549ae94f79c7fa9",
+          "ownedDiagnostics": 0,
+          "selectedDiagnostics": 0
         },
         "viewports": [
           {
@@ -123,7 +126,11 @@
           "handoffSection": "Virtual simulation catalog",
           "conceptImage": "artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-1-platform-continuity.png",
           "implementationScreenshot": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/simulations-dark-1440.png",
-          "evidenceHook": "data-product-design-concept-reference=\"concept-1-platform-continuity\""
+          "evidenceHook": "data-product-design-concept-reference=\"concept-1-platform-continuity\"",
+          "designHandoffSha256": "dbf67fe73f79f8822413c751c63253d62dc131d23e563563cf0d1e5903f025c9",
+          "implementationMatrixSha256": "a497b6275dcfa39da12a03414c1e9e5e9e0b9456bf6688b012945876a679c2f5",
+          "conceptImageSha256": "c9c25acd7714ee9b4eadf53e51bee753fb74ac4091cc5d8756748b1d7b37332f",
+          "implementationScreenshotSha256": "c68094f0fd85b5262222352d5755c7183b685cfaf240f09ed79fe8f561a95069"
         }
       }
     },
@@ -146,7 +153,10 @@
           "ciRequired": false,
           "command": "rtk npm run test:react-doctor:owned-errors",
           "status": "passed",
-          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json"
+          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json",
+          "reportSha256": "445667a82eecac7f1a00015009755939527508a81cd68a560549ae94f79c7fa9",
+          "ownedDiagnostics": 0,
+          "selectedDiagnostics": 0
         },
         "viewports": [
           {
@@ -216,7 +226,7 @@
             "dockState": "collapsed",
             "localToolState": "not-applicable",
             "result": "passed",
-            "screenshot": "artifacts/product-design-audits/virtual-simulation-2026-06-13/screenshots/17-virtual-lab-dark-1440.png",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/virtual-lab-dark-1440-desktop-collapsed-collapsed-not-applicable.png",
             "firstViewportTaskVisible": true,
             "requestedRoute": "/virtual-lab",
             "finalUrl": "http://127.0.0.1:3001/simulations",
@@ -251,7 +261,11 @@
           "conceptImage": "artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-1-platform-continuity.png",
           "implementationScreenshot": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/virtual-lab-redirect-dark-1440.png",
           "evidenceHook": "data-virtual-lab-compatibility-role=\"redirect-to-simulations\"",
-          "compatibilityRole": "redirect-to-simulations"
+          "compatibilityRole": "redirect-to-simulations",
+          "designHandoffSha256": "dbf67fe73f79f8822413c751c63253d62dc131d23e563563cf0d1e5903f025c9",
+          "implementationMatrixSha256": "a497b6275dcfa39da12a03414c1e9e5e9e0b9456bf6688b012945876a679c2f5",
+          "conceptImageSha256": "c9c25acd7714ee9b4eadf53e51bee753fb74ac4091cc5d8756748b1d7b37332f",
+          "implementationScreenshotSha256": "c68094f0fd85b5262222352d5755c7183b685cfaf240f09ed79fe8f561a95069"
         }
       }
     },
@@ -272,7 +286,10 @@
           "ciRequired": false,
           "command": "rtk npm run test:react-doctor:owned-errors",
           "status": "passed",
-          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json"
+          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json",
+          "reportSha256": "445667a82eecac7f1a00015009755939527508a81cd68a560549ae94f79c7fa9",
+          "ownedDiagnostics": 0,
+          "selectedDiagnostics": 0
         },
         "viewports": [
           {
@@ -718,7 +735,11 @@
           "handoffSection": "Command-deck shell",
           "conceptImage": "artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png",
           "implementationScreenshot": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/destroyer-dark-1440.png",
-          "evidenceHook": "data-command-deck-composition=\"scene-primary-glass-panels-bottom-tools\""
+          "evidenceHook": "data-command-deck-composition=\"scene-primary-glass-panels-bottom-tools\"",
+          "designHandoffSha256": "dbf67fe73f79f8822413c751c63253d62dc131d23e563563cf0d1e5903f025c9",
+          "implementationMatrixSha256": "a497b6275dcfa39da12a03414c1e9e5e9e0b9456bf6688b012945876a679c2f5",
+          "conceptImageSha256": "37c5c888b117e2a922f01749e35e35e7760fd2253d5782709a20b4cfcc134409",
+          "implementationScreenshotSha256": "5113a09e33b916c9cdebe72b88bef5a05179800c5e9335c2e43a74c75fd6a84b"
         }
       }
     },
@@ -739,7 +760,10 @@
           "ciRequired": false,
           "command": "rtk npm run test:react-doctor:owned-errors",
           "status": "passed",
-          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json"
+          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json",
+          "reportSha256": "445667a82eecac7f1a00015009755939527508a81cd68a560549ae94f79c7fa9",
+          "ownedDiagnostics": 0,
+          "selectedDiagnostics": 0
         },
         "viewports": [
           {
@@ -1185,7 +1209,11 @@
           "handoffSection": "Command-deck shell",
           "conceptImage": "artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png",
           "implementationScreenshot": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/drilling-dark-1440.png",
-          "evidenceHook": "data-command-deck-composition=\"scene-primary-glass-panels-bottom-tools\""
+          "evidenceHook": "data-command-deck-composition=\"scene-primary-glass-panels-bottom-tools\"",
+          "designHandoffSha256": "dbf67fe73f79f8822413c751c63253d62dc131d23e563563cf0d1e5903f025c9",
+          "implementationMatrixSha256": "a497b6275dcfa39da12a03414c1e9e5e9e0b9456bf6688b012945876a679c2f5",
+          "conceptImageSha256": "37c5c888b117e2a922f01749e35e35e7760fd2253d5782709a20b4cfcc134409",
+          "implementationScreenshotSha256": "64c81b7e8cffb403a48e1e4d8700880f3972f3c12fb5d6fd77b8342a7f1e4a6f"
         }
       }
     },
@@ -1206,7 +1234,10 @@
           "ciRequired": false,
           "command": "rtk npm run test:react-doctor:owned-errors",
           "status": "passed",
-          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json"
+          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json",
+          "reportSha256": "445667a82eecac7f1a00015009755939527508a81cd68a560549ae94f79c7fa9",
+          "ownedDiagnostics": 0,
+          "selectedDiagnostics": 0
         },
         "viewports": [
           {
@@ -1652,7 +1683,11 @@
           "handoffSection": "Command-deck shell",
           "conceptImage": "artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png",
           "implementationScreenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-expanded-collapsed-collapsed.png",
-          "evidenceHook": "data-simulation-panel-restore-handle"
+          "evidenceHook": "data-simulation-panel-restore-handle",
+          "designHandoffSha256": "dbf67fe73f79f8822413c751c63253d62dc131d23e563563cf0d1e5903f025c9",
+          "implementationMatrixSha256": "a497b6275dcfa39da12a03414c1e9e5e9e0b9456bf6688b012945876a679c2f5",
+          "conceptImageSha256": "37c5c888b117e2a922f01749e35e35e7760fd2253d5782709a20b4cfcc134409",
+          "implementationScreenshotSha256": "15d3fa5a06241607e1015956877b2adcb78362f9fb4b1073af052df4204cf523"
         }
       }
     },
@@ -1673,7 +1708,10 @@
           "ciRequired": false,
           "command": "rtk npm run test:react-doctor:owned-errors",
           "status": "passed",
-          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json"
+          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json",
+          "reportSha256": "445667a82eecac7f1a00015009755939527508a81cd68a560549ae94f79c7fa9",
+          "ownedDiagnostics": 0,
+          "selectedDiagnostics": 0
         },
         "viewports": [
           {
@@ -1777,7 +1815,11 @@
           "handoffSection": "Learning mission semantics",
           "conceptImage": "artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-3-learning-mission-studio.png",
           "implementationScreenshot": "artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/workbench-dark-1440.png",
-          "evidenceHook": "data-learning-mission-semantics=\"objective-task-chain-evidence-next-action\""
+          "evidenceHook": "data-learning-mission-semantics=\"objective-task-chain-evidence-next-action\"",
+          "designHandoffSha256": "dbf67fe73f79f8822413c751c63253d62dc131d23e563563cf0d1e5903f025c9",
+          "implementationMatrixSha256": "a497b6275dcfa39da12a03414c1e9e5e9e0b9456bf6688b012945876a679c2f5",
+          "conceptImageSha256": "9be80d71effdd8e8b82dff0cc54d72bbc0f936aae79d9bb028c9b0e68c15e7d6",
+          "implementationScreenshotSha256": "a095fb816266090d0dd11dfaf9245448c4b894f151058a872a18a3e835ce3328"
         }
       }
     }

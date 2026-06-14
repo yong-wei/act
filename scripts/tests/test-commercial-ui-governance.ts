@@ -479,6 +479,22 @@ function simulationViewportArtifact(pathname: string | undefined) {
   };
 }
 
+function simulationReactDoctorReport(pathname: string | undefined) {
+  const artifact = simulationViewportArtifact(pathname);
+  if (!artifact) return undefined;
+  const content = JSON.parse(readFileSync(path.join(repoRoot, artifact.pathname), 'utf8')) as {
+    totals?: {
+      ownedDiagnostics?: number;
+      selectedDiagnostics?: number;
+    };
+  };
+  return {
+    ...artifact,
+    ownedDiagnostics: content.totals?.ownedDiagnostics,
+    selectedDiagnostics: content.totals?.selectedDiagnostics,
+  };
+}
+
 function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
   const manifestPath = path.join(repoRoot, 'artifacts/commercial-ui/evidence.json');
   if (!existsSync(manifestPath)) return [];
@@ -486,39 +502,46 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
   return (manifest.routes ?? []).map((route) => ({
     ...route,
     simulationVisualQa: route.simulationVisualQa
-      ? {
-          ...route.simulationVisualQa,
-          reactDoctorErrorCheck: route.simulationVisualQa.reactDoctorErrorCheck
-            ? {
-                ...route.simulationVisualQa.reactDoctorErrorCheck,
-                reportSha256: simulationViewportArtifact(route.simulationVisualQa.reactDoctorErrorCheck.report)?.sha256,
-              }
-            : undefined,
-          handoffBaseline: route.simulationVisualQa.handoffBaseline
-            ? {
-                ...route.simulationVisualQa.handoffBaseline,
-                designHandoffSha256: simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.designHandoff)?.sha256,
-                implementationMatrixSha256:
-                  simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.implementationMatrix)?.sha256,
-                conceptImageSha256: simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.conceptImage)?.sha256,
-                implementationScreenshotSha256:
-                  simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.implementationScreenshot)?.sha256,
-              }
-            : undefined,
-          viewports: route.simulationVisualQa.viewports.map((viewport) => {
-            const artifact = simulationViewportArtifact(viewport.artifact);
-            const screenshot = simulationViewportArtifact(viewport.screenshot);
-            return {
-              ...viewport,
-              artifact: viewport.artifact,
-              artifactSha256: artifact?.sha256,
-              screenshot: viewport.screenshot,
-              screenshotSha256: screenshot?.sha256,
-              screenshotWidth: screenshot?.width,
-              screenshotHeight: screenshot?.height,
-            };
-          }),
-        }
+      ? (() => {
+          const reactDoctorReport = simulationReactDoctorReport(route.simulationVisualQa.reactDoctorErrorCheck?.report);
+          return {
+            ...route.simulationVisualQa,
+            reactDoctorErrorCheck: route.simulationVisualQa.reactDoctorErrorCheck
+              ? {
+                  ...route.simulationVisualQa.reactDoctorErrorCheck,
+                  reportSha256: reactDoctorReport?.sha256,
+                  ownedDiagnostics: reactDoctorReport?.ownedDiagnostics,
+                  selectedDiagnostics: reactDoctorReport?.selectedDiagnostics,
+                }
+              : undefined,
+            handoffBaseline: route.simulationVisualQa.handoffBaseline
+              ? {
+                  ...route.simulationVisualQa.handoffBaseline,
+                  designHandoffSha256:
+                    simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.designHandoff)?.sha256,
+                  implementationMatrixSha256:
+                    simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.implementationMatrix)?.sha256,
+                  conceptImageSha256:
+                    simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.conceptImage)?.sha256,
+                  implementationScreenshotSha256:
+                    simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.implementationScreenshot)?.sha256,
+                }
+              : undefined,
+            viewports: route.simulationVisualQa.viewports.map((viewport) => {
+              const artifact = simulationViewportArtifact(viewport.artifact);
+              const screenshot = simulationViewportArtifact(viewport.screenshot);
+              return {
+                ...viewport,
+                artifact: viewport.artifact,
+                artifactSha256: artifact?.sha256,
+                screenshot: viewport.screenshot,
+                screenshotSha256: screenshot?.sha256,
+                screenshotWidth: screenshot?.width,
+                screenshotHeight: screenshot?.height,
+              };
+            }),
+          };
+        })()
       : undefined,
     viewports: route.viewports.map((viewport) => ({
       ...viewport,
