@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "tool": "react-doctor",
+  "reactDoctorVersion": "0.5.1",
+  "mode": "security",
+  "localOnly": true,
+  "ciRequired": false,
+  "command": "npx --yes react-doctor@0.5.1 --no-score --no-telemetry --json .",
+  "includedRoots": [
+    "src/",
+    "scripts/",
+    "docs/",
+    "openspec/",
+    "package.json",
+    "doctor.config",
+    "eslint.config",
+    "next.config",
+    "playwright.config",
+    "postcss.config",
+    "prisma.config",
+    "tailwind.config",
+    "tsconfig",
+    "vitest.config"
+  ],
+  "excludedRoots": [
+    "evaluate/",
+    "node_modules/",
+    ".next/",
+    ".turbo/",
+    "artifacts/",
+    "coverage/",
+    "dist/",
+    "build/",
+    "out/",
+    "public/vendor/"
+  ],
+  "totals": {
+    "rawDiagnostics": 3418,
+    "ownedDiagnostics": 3418,
+    "selectedDiagnostics": 0,
+    "fixtureNoiseDiagnostics": 0
+  },
+  "summary": {
+    "bySeverity": {},
+    "byCategory": {},
+    "byRule": {},
+    "byOwnedSurface": {},
+    "byFile": {}
+  },
+  "diagnostics": []
+}
