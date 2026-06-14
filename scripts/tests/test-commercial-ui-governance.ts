@@ -32,8 +32,13 @@ import {
 } from '../../src/lib/platform-role-navigation';
 import {
   assertRuntimeRelationStyleCoverage,
+  getKnowledgeGraphEffectiveEdgeWidth,
+  getKnowledgeSemanticRegionStyle,
+  getRelationStyle,
   getRelationLegendItems,
   getRelationSemantic,
+  getRelationThreeDimensionalEncoding,
+  KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT,
   KNOWLEDGE_NODE_SCALE_CONTRACT,
 } from '../../src/features/knowledge/graph/visual-config';
 import { relationPassesActiveFilters } from '../../src/features/knowledge/graph/filter-utils';
@@ -463,6 +468,42 @@ function fileSha256(relativePath: string) {
   return createHash('sha256').update(readFileSync(path.join(repoRoot, relativePath))).digest('hex');
 }
 
+function jpegDimensions(buffer: Buffer): { width: number; height: number } | undefined {
+  if (buffer.length < 4 || buffer[0] !== 0xff || buffer[1] !== 0xd8) return undefined;
+  let offset = 2;
+  while (offset + 9 < buffer.length) {
+    if (buffer[offset] !== 0xff) {
+      offset += 1;
+      continue;
+    }
+    const marker = buffer[offset + 1];
+    const length = buffer.readUInt16BE(offset + 2);
+    if (length < 2) return undefined;
+    if (
+      marker === 0xc0
+      || marker === 0xc1
+      || marker === 0xc2
+      || marker === 0xc3
+      || marker === 0xc5
+      || marker === 0xc6
+      || marker === 0xc7
+      || marker === 0xc9
+      || marker === 0xca
+      || marker === 0xcb
+      || marker === 0xcd
+      || marker === 0xce
+      || marker === 0xcf
+    ) {
+      return {
+        height: buffer.readUInt16BE(offset + 5),
+        width: buffer.readUInt16BE(offset + 7),
+      };
+    }
+    offset += 2 + length;
+  }
+  return undefined;
+}
+
 function simulationViewportArtifact(pathname: string | undefined) {
   if (!pathname || !existsSync(path.join(repoRoot, pathname))) return undefined;
   const buffer = readFileSync(path.join(repoRoot, pathname));
@@ -471,11 +512,13 @@ function simulationViewportArtifact(pathname: string | undefined) {
     && buffer[1] === 0x50
     && buffer[2] === 0x4e
     && buffer[3] === 0x47;
+  const jpegSize = jpegDimensions(buffer);
   return {
     pathname,
+    imageFormat: isPng ? 'png' : jpegSize ? 'jpeg' : 'unknown',
     sha256: createHash('sha256').update(buffer).digest('hex'),
-    width: isPng ? buffer.readUInt32BE(16) : undefined,
-    height: isPng ? buffer.readUInt32BE(20) : undefined,
+    width: isPng ? buffer.readUInt32BE(16) : jpegSize?.width,
+    height: isPng ? buffer.readUInt32BE(20) : jpegSize?.height,
   };
 }
 
@@ -616,6 +659,8 @@ const KNOWLEDGE_GRAPH_GOVERNANCE_EVIDENCE_PATH =
   'artifacts/commercial-ui/knowledge-graph-governance-462/evidence.json';
 const KNOWLEDGE_GRAPH_INTERACTION_STATE_EVIDENCE_PATH =
   'artifacts/knowledge-graph-interaction-state-485/browser-evidence.json';
+const KNOWLEDGE_GRAPH_SEMANTIC_MAP_EVIDENCE_PATH =
+  'artifacts/knowledge-graph-semantic-map-486/browser-evidence.json';
 
 function readJsonFile<T>(relativePath: string): T | undefined {
   const absolutePath = path.join(repoRoot, relativePath);
@@ -781,6 +826,152 @@ function validateKnowledgeGraphInteractionStateEvidence(): CommercialUiGovernanc
   return [];
 }
 
+function validateKnowledgeGraphSemanticMapEvidence(): CommercialUiGovernanceViolation[] {
+  const evidence = readJsonFile<JsonRecord>(KNOWLEDGE_GRAPH_SEMANTIC_MAP_EVIDENCE_PATH);
+  const visualConfigSource = existsSync(path.join(repoRoot, 'src/features/knowledge/graph/visual-config.ts'))
+    ? readFileSync(path.join(repoRoot, 'src/features/knowledge/graph/visual-config.ts'), 'utf8')
+    : '';
+  const twoDimensionalRendererSource = existsSync(path.join(repoRoot, 'src/features/knowledge/graph/knowledge-graph-2d.tsx'))
+    ? readFileSync(path.join(repoRoot, 'src/features/knowledge/graph/knowledge-graph-2d.tsx'), 'utf8')
+    : '';
+  const threeDimensionalRendererSource = existsSync(path.join(repoRoot, 'src/features/knowledge/graph/knowledge-graph-canvas.tsx'))
+    ? readFileSync(path.join(repoRoot, 'src/features/knowledge/graph/knowledge-graph-canvas.tsx'), 'utf8')
+    : '';
+
+  if (!evidence) {
+    return [knowledgeGraphGovernanceViolation('Knowledge graph semantic-map evidence file is missing.', [
+      KNOWLEDGE_GRAPH_SEMANTIC_MAP_EVIDENCE_PATH,
+    ])];
+  }
+
+  const runtimeRelationTypes = [...readRuntimeKnowledgeRelationCounts().keys()].sort();
+  const edgeProblems = runtimeRelationTypes.flatMap((relationType) => {
+    const style = getRelationStyle(relationType);
+    return [
+      style.width <= KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.maxDefaultEdgeWidth
+        ? null
+        : `${relationType}:edge-width-too-large`,
+      style.opacity <= KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.maxDefaultEdgeOpacity
+        ? null
+        : `${relationType}:edge-opacity-too-large`,
+      getKnowledgeGraphEffectiveEdgeWidth(style, 1, 'neutral', '2d') <= KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.maxDefaultEdgeWidth
+        ? null
+        : `${relationType}:2d-effective-edge-width-too-large`,
+      getKnowledgeGraphEffectiveEdgeWidth(style, 1, 'neutral', '3d') <= KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.maxDefaultEdgeWidth
+        ? null
+        : `${relationType}:3d-effective-edge-width-too-large`,
+      getKnowledgeGraphEffectiveEdgeWidth(style, 1, 'active', '2d') <= KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.maxDefaultEdgeWidth * KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.activeNeighborhoodWidthGain
+        ? null
+        : `${relationType}:2d-active-effective-edge-width-too-large`,
+      getKnowledgeGraphEffectiveEdgeWidth(style, 1, 'active', '3d') <= KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.maxDefaultEdgeWidth * KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.activeNeighborhoodWidthGain
+        ? null
+        : `${relationType}:3d-active-effective-edge-width-too-large`,
+      getRelationThreeDimensionalEncoding(relationType).particleWidth <= KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.maxDefaultEdgeWidth
+        ? null
+        : `${relationType}:3d-particle-width-too-large`,
+      (
+        style.dash.length > 0
+        || style.endpoint !== 'none'
+        || style.curvature !== 0
+        || style.hasArrow
+      )
+        ? null
+        : `${relationType}:color-only-encoding`,
+    ].filter((entry): entry is string => Boolean(entry));
+  });
+  const chapterRegion = getKnowledgeSemanticRegionStyle({
+    id: 'chapter-node:governance',
+    metadata: { isVirtualChapter: true, nodeCount: 48 },
+    graphDegree: 24,
+  });
+  const normalRegion = getKnowledgeSemanticRegionStyle({
+    id: 'concept:governance',
+    metadata: { importance: 'core' },
+    graphDegree: 24,
+  });
+  const sourceProblems = [
+    getRelationLegendItems().every((item) => item.sampleStyle === getRelationStyle(item.type))
+      ? null
+      : 'legend:not-shared-contract',
+    visualConfigSource.includes('KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT')
+      ? null
+      : 'visual-config:missing-semantic-map-contract',
+    twoDimensionalRendererSource.includes('getKnowledgeSemanticRegionStyle')
+      ? null
+      : '2d-renderer:missing-semantic-region-style',
+    threeDimensionalRendererSource.includes('getKnowledgeSemanticRegionStyle')
+      ? null
+      : '3d-renderer:missing-semantic-region-style',
+    twoDimensionalRendererSource.includes('getKnowledgeGraphEffectiveEdgeWidth')
+      ? null
+      : '2d-renderer:missing-effective-edge-width-contract',
+    threeDimensionalRendererSource.includes('getKnowledgeGraphEffectiveEdgeWidth')
+      ? null
+      : '3d-renderer:missing-effective-edge-width-contract',
+    twoDimensionalRendererSource.includes('KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.dimmedNeighborhoodOpacity')
+      ? null
+      : '2d-renderer:missing-dimmed-contract',
+    threeDimensionalRendererSource.includes('KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.dimmedNeighborhoodOpacity')
+      ? null
+      : '3d-renderer:missing-dimmed-contract',
+    chapterRegion.enabled && !normalRegion.enabled
+      ? null
+      : 'semantic-region:not-derived-from-chapter-semantics',
+    chapterRegion.fillColor.startsWith('hsl(var(--platform-')
+      && chapterRegion.strokeColor.startsWith('hsl(var(--platform-')
+      ? null
+      : 'semantic-region:not-platform-tokenized',
+    chapterRegion.fillOpacity <= 0.2 && chapterRegion.strokeOpacity <= 0.32
+      ? null
+      : 'semantic-region:not-subordinate',
+  ].filter((entry): entry is string => Boolean(entry));
+
+  const states = objectRecord(evidence.browserStates);
+  const requiredStates = [
+    'defaultSemanticMap',
+    'selectedNeighborhood',
+    'denseAllRelations',
+    'lightTheme',
+    'darkTheme',
+  ];
+  const stateProblems = requiredStates.flatMap((key) => {
+    const state = objectRecord(states[key]);
+    const artifact = simulationViewportArtifact(artifactPathFromEvidence(state.screenshot));
+    return [
+      artifact ? null : `${key}:missing-screenshot`,
+      artifact?.imageFormat === 'png' || artifact?.imageFormat === 'jpeg' ? null : `${key}:invalid-image-format`,
+      artifact?.imageFormat === 'jpeg' && !artifact.pathname.endsWith('.jpg') ? `${key}:jpeg-extension-mismatch` : null,
+      artifact?.imageFormat === 'png' && !artifact.pathname.endsWith('.png') ? `${key}:png-extension-mismatch` : null,
+      typeof artifact?.width === 'number' && artifact.width >= 1200 ? null : `${key}:image-width-too-small`,
+      typeof artifact?.height === 'number' && artifact.height >= 800 ? null : `${key}:image-height-too-small`,
+      state.canvasRendered === true ? null : `${key}:canvas-not-rendered`,
+      state.legendVisible === true ? null : `${key}:legend-not-visible`,
+      state.noGlobalEdgeSaturation === true ? null : `${key}:global-edge-saturation`,
+      state.nonColorRelationGrammar === true ? null : `${key}:color-only-relations`,
+    ].filter((entry): entry is string => Boolean(entry));
+  });
+  const sourceEvidence = objectRecord(evidence.sourceEvidence);
+  const sourceEvidenceProblems = [
+    sourceEvidence.legendSharedContract === true ? null : 'evidence:legendSharedContract',
+    sourceEvidence.rendererUsesSemanticMapContract === true ? null : 'evidence:rendererUsesSemanticMapContract',
+    sourceEvidence.semanticRegionEvidence === true ? null : 'evidence:semanticRegionEvidence',
+    sourceEvidence.defaultEdgeBounds === true ? null : 'evidence:defaultEdgeBounds',
+    sourceEvidence.nonColorDifferentiation === true ? null : 'evidence:nonColorDifferentiation',
+  ].filter((entry): entry is string => Boolean(entry));
+
+  if (edgeProblems.length > 0 || sourceProblems.length > 0 || stateProblems.length > 0 || sourceEvidenceProblems.length > 0) {
+    return [knowledgeGraphGovernanceViolation('Knowledge graph semantic-map presentation evidence is incomplete.', [
+      `edges=${edgeProblems.join(',') || 'none'}`,
+      `source=${sourceProblems.join(',') || 'none'}`,
+      `states=${stateProblems.join(',') || 'none'}`,
+      `sourceEvidence=${sourceEvidenceProblems.join(',') || 'none'}`,
+      KNOWLEDGE_GRAPH_SEMANTIC_MAP_EVIDENCE_PATH,
+    ])];
+  }
+
+  return [];
+}
+
 function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViolation[] {
   const violations: CommercialUiGovernanceViolation[] = [];
   const evidence = readJsonFile<JsonRecord>(KNOWLEDGE_GRAPH_GOVERNANCE_EVIDENCE_PATH);
@@ -922,6 +1113,7 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
   }
 
   violations.push(...validateKnowledgeGraphInteractionStateEvidence());
+  violations.push(...validateKnowledgeGraphSemanticMapEvidence());
 
   const runtimeRelationCounts = readRuntimeKnowledgeRelationCounts();
   const relationEvidence = objectRecord(evidence.runtimeRelationEvidence);

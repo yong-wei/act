@@ -18,7 +18,10 @@ import {
   getRelationThreeDimensionalEncoding,
   getNodeTypeConfig,
   getKnowledgeNodeScale,
+  getKnowledgeSemanticRegionStyle,
+  getKnowledgeGraphEffectiveEdgeWidth,
   hexToRgba,
+  KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT,
 } from './visual-config';
 import { CHAPTER_DISPLAY_ORDER } from '@/lib/knowledge-labels';
 import { CHAPTER_NODE_PREFIX, getRelationFocusState } from './filter-utils';
@@ -236,6 +239,29 @@ export function KnowledgeGraphCanvas({
       degree: node.graphDegree,
       focused: isActive,
     });
+    const semanticRegionStyle = getKnowledgeSemanticRegionStyle(node, isLightTheme);
+
+    if (semanticRegionStyle.enabled) {
+      const regionRadius = Math.min(
+        semanticRegionStyle.maxRadius,
+        nodeScale.radius * semanticRegionStyle.radiusMultiplier
+      );
+      const territoryGeometry = new THREE.RingGeometry(
+        regionRadius * 0.82,
+        regionRadius,
+        64
+      );
+      const territoryMaterial = new THREE.MeshBasicMaterial({
+        color: new THREE.Color(hexToRgba(semanticRegionStyle.strokeColor, 1)),
+        transparent: true,
+        opacity: semanticRegionStyle.strokeOpacity,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      });
+      const territory = new THREE.Mesh(territoryGeometry, territoryMaterial);
+      territory.rotation.x = Math.PI / 2;
+      group.add(territory);
+    }
 
     // 1. 创建节点几何体
     const geometry = createGeometryByType(node.nodeType);
@@ -307,7 +333,11 @@ export function KnowledgeGraphCanvas({
     const targetId = typeof link.target === 'object' ? link.target.id : link.targetId;
     const focusNodeId = hoveredNode?.id ?? selectedNode?.id ?? null;
     const focusState = getRelationFocusState(sourceId, targetId, focusNodeId);
-    const focusGain = focusState === 'dimmed' ? 0.22 : focusState === 'active' ? 1.15 : 0.9;
+    const focusGain = focusState === 'dimmed'
+      ? KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.dimmedNeighborhoodOpacity
+      : focusState === 'active'
+        ? KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.activeNeighborhoodWidthGain
+        : 0.9;
     const semanticGain = 0.4 + style.opacity * 0.6;
     const gain = (0.55 + strength * 0.45) * focusGain * semanticGain;
     color.multiplyScalar(gain);
@@ -324,7 +354,7 @@ export function KnowledgeGraphCanvas({
     const targetId = typeof link.target === 'object' ? link.target.id : link.targetId;
     const focusNodeId = hoveredNode?.id ?? selectedNode?.id ?? null;
     const focusState = getRelationFocusState(sourceId, targetId, focusNodeId);
-    return style.width * (0.7 + strength) * (focusState === 'active' ? 1.35 : 1.1);
+    return getKnowledgeGraphEffectiveEdgeWidth(style, strength, focusState, '3d');
   }, [hoveredNode?.id, selectedNode?.id]);
 
   const getLinkArrowLength = useCallback((link: any) => {
