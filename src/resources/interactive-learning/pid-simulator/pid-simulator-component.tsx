@@ -264,14 +264,14 @@ export function PidSimulatorComponent({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button
+              <button type="button"
                 onClick={handleReset}
                 className="flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 transition hover:bg-slate-800"
               >
                 <RefreshCcw className="h-4 w-4" />
                 重置
               </button>
-              <button
+              <button type="button"
                  onClick={() => void runSimulation()}
                 className="flex items-center gap-2 rounded-lg border border-cyan-500/60 bg-cyan-500/10 px-3 py-1.5 text-sm text-cyan-100 transition hover:border-cyan-400"
               >
@@ -288,13 +288,13 @@ export function PidSimulatorComponent({
         <div className="border-b border-slate-800 bg-slate-900/50 px-4 py-2 flex items-center justify-between">
           <span className="text-sm text-slate-400">PID 控制仿真器</span>
           <div className="flex items-center gap-2">
-            <button
+            <button type="button"
               onClick={handleReset}
               className="rounded px-2 py-1 text-xs text-slate-400 hover:bg-slate-800"
             >
               <RefreshCcw className="h-3 w-3" />
             </button>
-            <button
+            <button type="button"
                onClick={() => void runSimulation()}
               className="flex items-center gap-1 rounded bg-cyan-500/20 px-2 py-1 text-xs text-cyan-300 hover:bg-cyan-500/30"
             >

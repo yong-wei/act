@@ -47,7 +47,7 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
     setFeedforwardEnabled,
     setSmithPredictorEnabled
   } = useGameStore();
-  
+
   const isAuto = controlMode === 'AUTO';
   const baseController = CONTROL_BASE_CONTROLLERS.includes(controllerId)
     ? controllerId
@@ -134,7 +134,7 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
     setFeedforwardEnabled,
     setSmithPredictorEnabled
   ]);
-  
+
   return (
     <div className="w-full h-full bg-slate-900/50 rounded-xl border border-slate-800 p-4 flex flex-col gap-4">
       <div className="flex items-center gap-2 text-base text-slate-200 pb-2 border-b border-slate-800">
@@ -433,7 +433,7 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
           {aiSection}
         </div>
       )}
-      
+
       {/* 参数滑块 */}
       {isAuto ? (
         <div className="space-y-4 flex-1 overflow-y-auto pr-1 custom-scrollbar">
@@ -443,8 +443,8 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
                 <span>比例增益 Kp（Lv {getLevel('P')}）</span>
                 <span className="font-mono text-white">{pidParams.kp.toFixed(2)} / {kpMax.toFixed(2)}</span>
               </div>
-              <input 
-                type="range" 
+              <input aria-label="比例增益 Kp"
+                type="range"
                 className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
                 min="0" max={kpMax} step="0.005"
                 value={pidParams.kp}
@@ -459,8 +459,8 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
                 <span>积分增益 Ki（Lv {getLevel('PI')}）</span>
                 <span className="font-mono text-white">{pidParams.ki.toFixed(2)} / {kiMax.toFixed(2)}</span>
               </div>
-              <input 
-                type="range" 
+              <input aria-label="积分增益 Ki"
+                type="range"
                 className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
                 min="0" max={kiMax} step="0.002"
                 value={pidParams.ki}
@@ -475,8 +475,8 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
                 <span>微分增益 Kd（Lv {getLevel('PD')}）</span>
                 <span className="font-mono text-white">{pidParams.kd.toFixed(2)} / {kdMax.toFixed(2)}</span>
               </div>
-              <input 
-                type="range" 
+              <input aria-label="微分增益 Kd"
+                type="range"
                 className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
                 min="0" max={kdMax} step="0.005"
                 value={pidParams.kd}
@@ -491,8 +491,8 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
                 <span>测速反馈时间常数 τ（Lv {getLevel('VFB')}）</span>
                 <span className="font-mono text-white">{extraParams.speedFeedbackTau.toFixed(2)} / {tauMax.toFixed(2)}</span>
               </div>
-              <input 
-                type="range" 
+              <input aria-label="目标响应时间"
+                type="range"
                 className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-400"
                 min="0" max={tauMax} step="0.005"
                 value={extraParams.speedFeedbackTau}
@@ -507,8 +507,8 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
                 <span>前馈增益 Kff（Lv {getLevel('FF')}）</span>
                 <span className="font-mono text-white">{extraParams.feedforwardGain.toFixed(2)} / {ffMax.toFixed(2)}</span>
               </div>
-              <input 
-                type="range" 
+              <input aria-label="最大超调量"
+                type="range"
                 className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-400"
                 min="0" max={ffMax} step="0.005"
                 value={extraParams.feedforwardGain}
@@ -523,7 +523,7 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
                 <span>史密斯预估延时 L_est（Lv {getLevel('SMITH')}）</span>
                 <span className="font-mono text-white">{extraParams.smithDelay.toFixed(2)} / {smithMax.toFixed(2)}</span>
               </div>
-              <input
+              <input aria-label="稳态误差目标"
                 type="range"
                 className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-400"
                 min="0" max={smithMax} step="0.01"
@@ -538,7 +538,7 @@ export const TuningPanel: React.FC<TuningPanelProps> = ({ aiSection }) => {
           手动模式无需整定参数。
         </div>
       )}
-      
+
     </div>
   );
 };

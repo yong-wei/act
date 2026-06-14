@@ -101,7 +101,7 @@ export default function ParameterChallenge({ onComplete, onStateChange }: Parame
             <div className="mt-4 space-y-4">
               <div>
                 <label className="text-xs text-slate-500">阻尼比 ζ: {zeta.toFixed(2)}</label>
-                <input
+                <input aria-label="参数挑战输入一"
                   type="range"
                   min={0.1}
                   max={0.9}
@@ -113,7 +113,7 @@ export default function ParameterChallenge({ onComplete, onStateChange }: Parame
               </div>
               <div>
                 <label className="text-xs text-slate-500">自然频率 ω_n: {wn.toFixed(2)} rad/s</label>
-                <input
+                <input aria-label="参数挑战输入二"
                   type="range"
                   min={1.0}
                   max={4.5}
@@ -150,7 +150,7 @@ export default function ParameterChallenge({ onComplete, onStateChange }: Parame
         </div>
 
         <div className="mt-6 flex justify-end">
-          <button
+          <button type="button"
             onClick={evaluate}
             className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-xs text-white"
           >

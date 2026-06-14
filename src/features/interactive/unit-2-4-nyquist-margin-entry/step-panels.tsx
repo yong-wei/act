@@ -719,7 +719,7 @@ function TextInput({
   placeholder: string;
 }) {
   return (
-    <textarea
+    <textarea aria-label={placeholder}
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
@@ -816,7 +816,7 @@ export function UNIT_2_4StudentActivityForm({
             <div className="grid gap-4 md:grid-cols-2">
               <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                 <div className="premium-lesson-title text-sm font-medium">时间常数 T</div>
-                <input
+                <input aria-label="时间常数 T"
                   type="range"
                   min={0.2}
                   max={3}
@@ -829,7 +829,7 @@ export function UNIT_2_4StudentActivityForm({
               </div>
               <div className="premium-lesson-surface-elevated rounded-3xl px-4 py-4">
                 <div className="premium-lesson-title text-sm font-medium">观察频率 ω</div>
-                <input
+                <input aria-label="观察频率 omega"
                   type="range"
                   min={0.1}
                   max={10}

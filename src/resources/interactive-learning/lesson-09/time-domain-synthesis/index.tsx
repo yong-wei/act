@@ -132,7 +132,7 @@ export default function TimeDomainSynthesis({ onComplete, onStateChange }: TimeD
           <div className="text-sm font-semibold text-slate-700">步骤导航</div>
           <div className="mt-4 space-y-2">
             {STEPS.map((step, index) => (
-              <button
+              <button type="button"
                 key={step.id}
                 onClick={() => recordVisit(step.id)}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${

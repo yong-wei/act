@@ -110,7 +110,7 @@ export function TeacherPlayer({ session, initialItems }: TeacherPlayerProps) {
                 <span className="font-bold text-lg text-white">{session.plan.title}</span>
                 <span className="bg-blue-600 px-2 py-0.5 rounded text-xs font-mono">{currentItem?.stage}</span>
             </div>
-            
+
             <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2 text-slate-400 bg-slate-800/50 px-3 py-1 rounded-full">
                     <QrCode className="h-4 w-4" />
@@ -121,7 +121,7 @@ export function TeacherPlayer({ session, initialItems }: TeacherPlayerProps) {
                     <span>{studentCount} 在线</span>
                 </div>
                 <div className="h-6 w-px bg-slate-700 mx-2"></div>
-                <button onClick={handleEndClass} className="text-red-400 hover:text-red-300 flex items-center gap-1 text-sm">
+                <button type="button" onClick={handleEndClass} className="text-red-400 hover:text-red-300 flex items-center gap-1 text-sm">
                     <X className="h-4 w-4" />
                     结束
                 </button>
@@ -150,8 +150,8 @@ export function TeacherPlayer({ session, initialItems }: TeacherPlayerProps) {
 
         {/* Bottom Control Bar */}
         <div className="h-20 bg-slate-900 border-t border-slate-800 flex items-center justify-center gap-12 z-20 shadow-xl shadow-black/50">
-            <button 
-                onClick={handlePrev} 
+            <button type="button"
+                onClick={handlePrev}
                 disabled={currentIndex === 0}
                 className="flex items-center gap-2 px-6 py-3 rounded-full bg-slate-800 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-slate-200"
             >
@@ -164,24 +164,24 @@ export function TeacherPlayer({ session, initialItems }: TeacherPlayerProps) {
                     {currentIndex + 1} / {initialItems.length}
                 </div>
                 <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                    <div 
+                    <div
                         className="h-full bg-blue-500 transition-all duration-300"
                         style={{ width: `${((currentIndex + 1) / initialItems.length) * 100}%` }}
                     />
                 </div>
             </div>
 
-            <button 
-                onClick={handleNext} 
+            <button type="button"
+                onClick={handleNext}
                 disabled={currentIndex === initialItems.length - 1}
                 className="flex items-center gap-2 px-6 py-3 rounded-full bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-900/20"
             >
                 下一页
                 <ChevronRight className="h-5 w-5" />
             </button>
-            
+
             <div className="absolute right-8">
-                <button
+                <button type="button"
                   onClick={() => setShowDashboard(true)}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm transition-colors border border-slate-700"
                 >

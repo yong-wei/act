@@ -149,7 +149,7 @@ export default function BlockDiagramWorkshop({ onComplete, onStateChange }: Bloc
               {WORKFLOW_STEPS.map((step) => {
                 const isChosen = selectedSteps.some((item) => item.id === step.id);
                 return (
-                  <button
+                  <button type="button"
                     key={step.id}
                     onClick={() => !isChosen && handleSelect(step)}
                     className={`rounded-lg border px-3 py-3 text-left text-sm transition ${
@@ -187,7 +187,7 @@ export default function BlockDiagramWorkshop({ onComplete, onStateChange }: Bloc
         </div>
 
         <div className="mt-6 flex items-center justify-between">
-          <button
+          <button type="button"
             onClick={handleReset}
             className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-xs text-slate-500 hover:text-slate-700"
           >

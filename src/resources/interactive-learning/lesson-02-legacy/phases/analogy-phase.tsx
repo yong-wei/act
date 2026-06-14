@@ -59,7 +59,7 @@ function MappingCard({ mapping, isCompleted, onConnect }: MappingCardProps) {
               <CheckCircle2 className="h-5 w-5 text-green-500" />
             </div>
           ) : (
-            <button
+            <button type="button"
               onClick={onConnect}
               className="flex h-8 w-8 items-center justify-center rounded-full bg-pink-500/20 text-pink-500 transition-all hover:scale-110 hover:bg-pink-500/30"
             >
@@ -148,7 +148,7 @@ export function AnalogyPhase({
               </span>
             </div>
 
-            <button
+            <button type="button"
               onClick={onComplete}
               disabled={!allCompleted}
               className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${

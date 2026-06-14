@@ -449,7 +449,7 @@ export default function HomePage() {
                 </div>
                 <div className="mt-4 space-y-3">
                   {shipScenarios.map((scenario, index) => (
-                    <button
+                    <button type="button"
                       key={scenario.id}
                       onClick={() => setCurrentSlide(index)}
                       className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition ${
@@ -505,13 +505,13 @@ export default function HomePage() {
               今日推荐任务：半潜平台动力定位挑战 · 预计时长 90 分钟
             </div>
             <div className="flex items-center gap-3">
-              <button
+              <button type="button"
                 onClick={prevSlide}
                 className="btn-ghost-themed rounded-full border p-2 transition"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <button
+              <button type="button"
                 onClick={nextSlide}
                 className="btn-ghost-themed rounded-full border p-2 transition"
               >

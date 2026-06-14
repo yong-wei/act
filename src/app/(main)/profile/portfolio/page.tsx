@@ -157,7 +157,7 @@ export default function PortfolioPage() {
       <div className="surface-page flex items-center justify-center">
         <div className="text-center">
           <p className="text-xl text-red-500">{error}</p>
-          <button onClick={fetchPortfolio} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
+          <button type="button" onClick={fetchPortfolio} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
             重试
           </button>
         </div>
@@ -211,7 +211,7 @@ export default function PortfolioPage() {
         {/* Tabs */}
         <div className="mb-6 flex flex-wrap gap-2">
           {tabs.map((tab) => (
-            <button
+            <button type="button"
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition ${

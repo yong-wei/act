@@ -519,7 +519,7 @@ export function CruiseTyphoonSim({
           {/* 控制按钮 */}
           <div className="flex gap-2">
             {!missionState.started ? (
-              <button
+              <button type="button"
                 onClick={handleStartMission}
                 className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
               >
@@ -528,7 +528,7 @@ export function CruiseTyphoonSim({
               </button>
             ) : (
               <>
-                <button
+                <button type="button"
                   onClick={handleTogglePause}
                   className="flex items-center gap-2 rounded-lg bg-slate-700 px-3 py-2 text-sm text-white hover:bg-slate-600 transition-colors"
                   disabled={missionState.completed}
@@ -539,7 +539,7 @@ export function CruiseTyphoonSim({
                     <Pause className="h-4 w-4" />
                   )}
                 </button>
-                <button
+                <button type="button"
                   onClick={handleReset}
                   className="flex items-center gap-2 rounded-lg bg-slate-700 px-3 py-2 text-sm text-white hover:bg-slate-600 transition-colors"
                 >
@@ -641,7 +641,7 @@ export function CruiseTyphoonSim({
               </div>
             </div>
 
-            <button
+            <button type="button"
               onClick={handleReset}
               className="w-full flex items-center justify-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-white hover:bg-white/20 transition-colors"
             >

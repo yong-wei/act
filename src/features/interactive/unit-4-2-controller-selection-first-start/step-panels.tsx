@@ -335,7 +335,7 @@ function CaseNativeWorkspace({
             <div className="text-sm">
               当前调节：<InlineMath math={`${config.sliderKey}=${value.toFixed(panelId === 'ship' ? 2 : 1)}`} />
             </div>
-            <input
+            <input aria-label="控制器选择参数"
               type="range"
               min={config.min}
               max={config.max}

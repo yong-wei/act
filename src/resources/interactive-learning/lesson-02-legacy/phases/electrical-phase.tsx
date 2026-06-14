@@ -129,7 +129,7 @@ export function ElectricalPhase({
               </div>
             )}
 
-            <button
+            <button type="button"
               onClick={onNext}
               disabled={!isComplete}
               className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
@@ -164,7 +164,7 @@ export function ElectricalPhase({
 
           {/* 视角切换 */}
           {isComplete && (
-            <button
+            <button type="button"
               onClick={toggleViewMode}
               className="flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-slate-300 transition-colors hover:bg-slate-700"
             >
@@ -186,7 +186,7 @@ export function ElectricalPhase({
 
         {/* 知识卡片入口 */}
         <div className="mt-2 flex justify-end">
-          <button
+          <button type="button"
             onClick={() => setShowKnowledgeCard(!showKnowledgeCard)}
             disabled={!knowledgeCard}
             className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs transition-colors ${
@@ -252,7 +252,7 @@ export function ElectricalPhase({
       )}
 
       {/* 提示按钮 */}
-      <button
+      <button type="button"
         onClick={() => setShowHint(!showHint)}
         className="absolute bottom-4 right-4 z-10 flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm text-slate-400 transition-colors hover:bg-slate-700 hover:text-slate-200"
       >

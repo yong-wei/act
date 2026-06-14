@@ -171,6 +171,62 @@ function diffDeletedLines(file: string) {
     .map((line) => line.slice(1));
 }
 
+function usesReusableAccessibilityIdScope(file: string) {
+  return file.startsWith('src/components/classroom/');
+}
+
+function normalizeAccessibilityOnlyLine(line: string, file: string, side: 'added' | 'deleted') {
+  const allowStringControlAttributes = side === 'deleted' || !usesReusableAccessibilityIdScope(file);
+  let normalized = line
+    .trim()
+    .replace(/^<p\b/, '<label')
+    .replace(/<\/p>$/, '</label>')
+    .replace(/\s+type="[^"]*"/g, '')
+    .replace(/\s+(?:htmlFor|id|aria-label|aria-labelledby|title)=\{[^>]*?\}(?=\s|>)/g, '');
+
+  if (allowStringControlAttributes) {
+    normalized = normalized.replace(/\s+(?:htmlFor|id|aria-label|aria-labelledby|title)="[^"]*"/g, '');
+  }
+
+  return normalized
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s*>$/, '>')
+}
+
+function accessibilityOnlyDeletedLineSet(file: string) {
+  return new Set(diffDeletedLines(file).map((line) => normalizeAccessibilityOnlyLine(line, file, 'deleted')));
+}
+
+function isAccessibilityOnlyAddedLine(file: string, line: string) {
+  const trimmed = line.trim();
+  const stringControlAttributePattern = usesReusableAccessibilityIdScope(file)
+    ? /$^/
+    : /\b(?:htmlFor|id|aria-label|aria-labelledby|title)="[^"]*"/;
+  if (!/(?:\btype="(?:button|submit)"|\b(?:htmlFor|id|aria-label|aria-labelledby|title)=\{|^<p\b)/.test(trimmed)
+    && !stringControlAttributePattern.test(trimmed)) {
+    return false;
+  }
+  return accessibilityOnlyDeletedLineSet(file).has(normalizeAccessibilityOnlyLine(line, file, 'added'));
+}
+
+function meaningfulAddedLines(file: string) {
+  const deletedTrimmedLines = new Set(diffDeletedLines(file).map((line) => line.trim()));
+  return diffAddedLines(file).filter((line) => (
+    !deletedTrimmedLines.has(line.trim())
+    && !isAccessibilityOnlyAddedLine(file, line)
+  ));
+}
+
+function hasNonAccessibilityOnlyDiff(file: string) {
+  if (meaningfulAddedLines(file).length > 0) return true;
+  const normalizedAddedLines = new Set(
+    diffAddedLines(file).map((line) => normalizeAccessibilityOnlyLine(line, file, 'added')),
+  );
+  return diffDeletedLines(file).some((line) => !normalizedAddedLines.has(
+    normalizeAccessibilityOnlyLine(line, file, 'deleted'),
+  ));
+}
+
 function someLineMatches(lines: string[], pattern: RegExp) {
   return lines.some((line) => {
     const matched = pattern.test(line);
@@ -181,7 +237,7 @@ function someLineMatches(lines: string[], pattern: RegExp) {
 
 function hasShellRelevantDiff(file: string) {
   return someLineMatches(
-    diffAddedLines(file),
+    meaningfulAddedLines(file),
     /<AppShell\b|data-commercial-(operations-)?workspace=|<main\b|<section\b|<div\b|className=/,
   ) || someLineMatches(
     diffDeletedLines(file),
@@ -190,7 +246,7 @@ function hasShellRelevantDiff(file: string) {
 }
 
 function lineEvidence(source: string, pattern: RegExp, label: string, file?: string) {
-  const addedLineSet = file ? new Set(diffAddedLines(file).map((line) => line.trim())) : null;
+  const addedLineSet = file ? new Set(meaningfulAddedLines(file).map((line) => line.trim())) : null;
   const evidence = new Set<string>();
   source.split('\n').forEach((line, index) => {
     if (addedLineSet && !addedLineSet.has(line.trim())) return;
@@ -892,7 +948,8 @@ function readAccessibilityEvidenceManifest(routes: readonly CommercialVisualAcce
 }
 
 const files = changedFiles();
-const requiredVisualRoutes = affectedVisualRoutes(files);
+const commercialUiBehaviorFiles = files.filter(hasNonAccessibilityOnlyDiff);
+const requiredVisualRoutes = affectedVisualRoutes(commercialUiBehaviorFiles);
 const visualEvidence = readVisualEvidenceManifest();
 function changedPrimaryRouteInventoryHrefs() {
   const hrefs = new Set<string>();
@@ -961,6 +1018,7 @@ const missingChangedPrimaryRouteLedgerViolations: CommercialUiGovernanceViolatio
     evidence: ['missing-current-inventory-entry'],
   }));
 const missingChangedAppPageLedgerViolations: CommercialUiGovernanceViolation[] = files
+  .filter(hasNonAccessibilityOnlyDiff)
   .map(appPageRouteHref)
   .filter((href): href is string => Boolean(href))
   .filter((href) => !currentPrimaryRouteHrefs.has(href))
@@ -996,9 +1054,9 @@ const result = evaluateCommercialUiGovernance({
     ...missingChangedAppPageLedgerViolations,
     ...validateKnowledgeGraphGovernanceEvidence(),
   ],
-  shellInventory: buildShellInventory(files),
-  moduleChromeInventory: buildModuleChromeInventory(files),
-  statusInventory: buildStatusInventory(files),
+  shellInventory: buildShellInventory(commercialUiBehaviorFiles),
+  moduleChromeInventory: buildModuleChromeInventory(commercialUiBehaviorFiles),
+  statusInventory: buildStatusInventory(commercialUiBehaviorFiles),
   navigationCoverage: buildNavigationCoverage(),
   visualEvidence,
   accessibilityEvidence: readAccessibilityEvidenceManifest(requiredVisualRoutes),

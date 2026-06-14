@@ -54,7 +54,7 @@ export function ClassroomPlayer({ playlist }: PlayerProps) {
       {/* Header / Progress */}
       <div className="h-14 bg-[#091540] border-b border-blue-900/50 flex items-center justify-between px-6 z-10">
         <div className="flex items-center gap-4">
-            <button onClick={() => router.push('/playlists')} className="text-slate-400 hover:text-white">
+            <button type="button" onClick={() => router.push('/playlists')} className="text-slate-400 hover:text-white">
                 <Home className="h-5 w-5" />
             </button>
             <h1 className="text-lg font-medium text-white">{playlist.title}</h1>
@@ -63,13 +63,13 @@ export function ClassroomPlayer({ playlist }: PlayerProps) {
             </span>
         </div>
         <div className="flex items-center gap-2">
-            <button 
+            <button type="button"
                 onClick={() => setShowList(!showList)}
                 className={`p-2 rounded hover:bg-slate-800 ${showList ? 'text-blue-400' : 'text-slate-400'}`}
             >
                 <List className="h-5 w-5" />
             </button>
-            <button onClick={toggleFullscreen} className="text-slate-400 hover:text-white p-2">
+            <button type="button" onClick={toggleFullscreen} className="text-slate-400 hover:text-white p-2">
                 {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
             </button>
         </div>
@@ -81,7 +81,7 @@ export function ClassroomPlayer({ playlist }: PlayerProps) {
          <div className={`bg-[#0F172A] border-r border-slate-700 transition-all duration-300 overflow-y-auto ${showList ? 'w-64' : 'w-0'}`}>
             <div className="p-4 space-y-2">
                 {items.map((item: any, idx: number) => (
-                    <div 
+                    <div tabIndex={0} role="button" onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click(); } }}
                         key={item.id}
                         onClick={() => setCurrentIndex(idx)}
                         className={`p-3 rounded cursor-pointer text-sm ${idx === currentIndex ? 'bg-blue-900/50 border border-blue-500/50 text-white' : 'text-slate-400 hover:bg-slate-800'}`}
@@ -112,12 +112,12 @@ export function ClassroomPlayer({ playlist }: PlayerProps) {
                     />
                 </div>
             )}
-            
+
             {/* Mission Placeholder - Would integrate with Simulation Engine here */}
             {currentItem.missionId && (
                 <div className="text-center">
                     <div className="text-2xl text-white mb-4">仿真任务: {currentItem.missionId}</div>
-                    <button className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-bold">
+                    <button type="button" className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-bold">
                         启动仿真环境
                     </button>
                 </div>
@@ -127,8 +127,8 @@ export function ClassroomPlayer({ playlist }: PlayerProps) {
 
       {/* Footer Controls */}
       <div className="h-20 bg-[#091540] border-t border-blue-900/50 flex items-center justify-center gap-8 z-10">
-        <button 
-            onClick={handlePrev} 
+        <button type="button"
+            onClick={handlePrev}
             disabled={currentIndex === 0}
             className="flex items-center gap-2 px-6 py-2 rounded-full bg-slate-800 text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
@@ -137,13 +137,13 @@ export function ClassroomPlayer({ playlist }: PlayerProps) {
         </button>
 
         <div className="w-64 h-1 bg-slate-800 rounded-full overflow-hidden">
-            <div 
-                className="h-full bg-blue-500 transition-all duration-300" 
+            <div
+                className="h-full bg-blue-500 transition-all duration-300"
                 style={{ width: `${((currentIndex + 1) / items.length) * 100}%` }}
             />
         </div>
 
-        <button 
+        <button type="button"
             onClick={handleNext}
             disabled={currentIndex === items.length - 1}
             className="flex items-center gap-2 px-6 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-900/20"

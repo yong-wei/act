@@ -93,7 +93,7 @@ export function TeacherResourceManager({
       <div className="mb-6">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-          <input
+          <input aria-label="搜索资源..."
             type="text"
             placeholder="搜索资源..."
             value={searchQuery}
@@ -109,7 +109,7 @@ export function TeacherResourceManager({
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
-            <button
+            <button type="button"
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${

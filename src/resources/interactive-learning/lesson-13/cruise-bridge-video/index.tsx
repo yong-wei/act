@@ -172,7 +172,7 @@ export function CruiseBridgeVideo({
 
       {/* 控制栏 */}
       <div className="absolute top-4 right-4 z-40 flex items-center gap-2">
-        <button
+        <button type="button"
           onClick={handleToggleMute}
           className="rounded-full bg-slate-800/80 p-2 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors backdrop-blur-sm"
         >
@@ -183,7 +183,7 @@ export function CruiseBridgeVideo({
       {/* 开始播放按钮（未自动播放时） */}
       {!isPlaying && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60">
-          <button
+          <button type="button"
             onClick={handlePlay}
             className="flex items-center gap-3 rounded-2xl bg-sky-600 px-8 py-4 text-lg font-medium text-white shadow-lg hover:bg-sky-500 transition-all hover:scale-105"
           >
@@ -196,7 +196,7 @@ export function CruiseBridgeVideo({
       {/* 完成按钮 */}
       {showCompleteButton && progress >= 100 && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 animate-fadeIn">
-          <button
+          <button type="button"
             onClick={handleComplete}
             className="flex items-center gap-2 rounded-2xl bg-emerald-600 px-8 py-4 text-lg font-medium text-white shadow-lg hover:bg-emerald-500 transition-all hover:scale-105"
           >

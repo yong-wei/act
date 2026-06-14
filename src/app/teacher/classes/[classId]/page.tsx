@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useId, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -94,6 +94,7 @@ export default function ClassDetailPage() {
   // 开始上课相关
   const [showStartModal, setShowStartModal] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
+  const lessonPlanSelectId = useId();
   const [starting, setStarting] = useState(false);
   const [regeneratingJoinCode, setRegeneratingJoinCode] = useState(false);
   const [endingSessionId, setEndingSessionId] = useState<string | null>(null);
@@ -452,7 +453,7 @@ export default function ClassDetailPage() {
                 <span className="font-mono text-2xl font-bold tracking-wider text-sky-500 dark:text-sky-300">
                   {classData.code}
                 </span>
-                <button
+                <button type="button"
                   onClick={copyCode}
                   className="rounded-lg border border-sky-500/30 p-2 text-sky-500 transition hover:bg-sky-500/10 dark:text-sky-300"
                 >
@@ -461,7 +462,7 @@ export default function ClassDetailPage() {
               </div>
             </div>
 
-            <button
+            <button type="button"
               onClick={() => setShowStartModal(true)}
               className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 px-6 py-4 font-medium text-white transition hover:from-emerald-500 hover:to-green-500"
             >
@@ -601,7 +602,7 @@ export default function ClassDetailPage() {
                 <QrCode className="h-5 w-5 text-emerald-400" />
                 <span className="font-mono text-lg font-bold text-foreground">{activeSession.joinCode}</span>
               </div>
-              <button
+              <button type="button"
                 onClick={handleRegenerateJoinCode}
                 disabled={regeneratingJoinCode}
                 className="flex items-center gap-2 rounded-lg border border-emerald-500/40 px-3 py-2 text-sm text-emerald-200 transition hover:border-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
@@ -615,7 +616,7 @@ export default function ClassDetailPage() {
               >
                 进入课堂
               </Link>
-              <button
+              <button type="button"
                 onClick={() => void handleFinishSession(activeSession.id)}
                 disabled={endingSessionId === activeSession.id}
                 className="inline-flex items-center gap-2 rounded-lg border border-rose-500/40 px-4 py-2 text-sm font-medium text-rose-300 transition hover:border-rose-400 disabled:cursor-not-allowed disabled:opacity-50"
@@ -652,7 +653,7 @@ export default function ClassDetailPage() {
             {/* 搜索 */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-              <input
+              <input aria-label="搜索教案..."
                 type="text"
                 placeholder="搜索教案..."
                 value={searchTerm}
@@ -701,7 +702,7 @@ export default function ClassDetailPage() {
                       >
                         进入课堂
                       </Link>
-                      <button
+                      <button type="button"
                         onClick={() => void handleFinishSession(session.id)}
                         disabled={endingSessionId === session.id}
                         className="rounded-lg border border-rose-500/40 px-3 py-1.5 text-sm text-rose-300 transition hover:border-rose-400 disabled:cursor-not-allowed disabled:opacity-50"
@@ -736,7 +737,7 @@ export default function ClassDetailPage() {
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-slate-400">{classData.students.length} 人</span>
-            <button
+            <button type="button"
               onClick={() => setShowAddStudentsModal(true)}
               className="flex items-center gap-1.5 rounded-lg border border-sky-500/50 px-3 py-1.5 text-sm text-sky-400 transition hover:bg-sky-500/10"
             >
@@ -851,7 +852,7 @@ export default function ClassDetailPage() {
                           >
                             详情
                           </Link>
-                          <button
+                          <button type="button"
                             onClick={() => handleRemoveStudent(student.user.id, student.user.name || '该学生')}
                             disabled={removingStudent === student.user.id}
                             className="inline-flex items-center gap-1 rounded-lg border border-rose-500/30 px-3 py-1.5 text-sm text-rose-600 transition hover:bg-rose-500/10 dark:text-rose-300 disabled:opacity-50"
@@ -880,7 +881,7 @@ export default function ClassDetailPage() {
           <div className="surface-card mx-4 w-full max-w-md p-6 shadow-2xl">
             <div className="mb-6 flex items-center justify-between">
               <h3 className="text-xl font-bold text-foreground">开始上课</h3>
-              <button
+              <button type="button"
                 onClick={() => setShowStartModal(false)}
                 className="btn-ghost-themed rounded-lg p-1 transition"
               >
@@ -889,7 +890,7 @@ export default function ClassDetailPage() {
             </div>
 
             <div className="mb-6">
-              <label className="mb-2 block text-sm font-medium text-slate-300">
+              <label htmlFor={lessonPlanSelectId} className="mb-2 block text-sm font-medium text-slate-300">
                 选择教案
               </label>
               {lessonPlans.length === 0 ? (
@@ -905,6 +906,7 @@ export default function ClassDetailPage() {
                 </div>
               ) : (
                 <select
+                  id={lessonPlanSelectId}
                   value={selectedPlanId}
                   onChange={e => setSelectedPlanId(e.target.value)}
                   className="w-full rounded-lg border border-border/70 bg-background/70 px-4 py-3 text-foreground focus:border-primary focus:outline-none"
@@ -920,13 +922,13 @@ export default function ClassDetailPage() {
             </div>
 
             <div className="flex gap-3">
-              <button
+              <button type="button"
                 onClick={() => setShowStartModal(false)}
                 className="btn-ghost-themed flex-1 rounded-lg py-3 font-medium transition"
               >
                 取消
               </button>
-              <button
+              <button type="button"
                 onClick={handleStartClass}
                 disabled={!selectedPlanId || starting}
                 className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 py-3 font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50"

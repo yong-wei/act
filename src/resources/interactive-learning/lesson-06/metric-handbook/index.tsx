@@ -152,7 +152,7 @@ export default function MetricHandbookCard({ onComplete, onStateChange }: Metric
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-wrap gap-2">
             {PERFORMANCE_METRIC_DEFINITIONS.map((item) => (
-              <button
+              <button type="button"
                 key={item.id}
                 onClick={() => recordVisit(item.id)}
                 className={`rounded-full px-4 py-1.5 text-sm transition-colors ${

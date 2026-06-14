@@ -42,6 +42,10 @@ interface ResourceRendererProps {
   enableAIPanel?: boolean;
 }
 
+// Temporary accessibility exception: legacy static media resources only store one content URL.
+// Owner: lesson engine. Remove this placeholder when TeachingResource stores caption URLs.
+const TEMPORARY_CAPTION_TRACK_SRC = 'data:text/vtt;charset=utf-8,WEBVTT%0A%0A00:00:00.000%20--%3E%2000:00:05.000%0A%E6%9A%82%E6%97%A0%E5%8F%AF%E7%94%A8%E5%AD%97%E5%B9%95%EF%BC%9B%E8%AF%B7%E6%95%99%E5%B8%88%E4%B8%BA%E6%AD%A3%E5%BC%8F%E5%AA%92%E4%BD%93%E8%A1%A5%E5%85%85%E5%AD%97%E5%B9%95%E8%B5%84%E4%BA%A7%E3%80%82';
+
 // Simple Markdown + LaTeX Renderer
 const SimpleMarkdown = ({ content }: { content: string }) => {
     if (!content) return null;
@@ -219,7 +223,9 @@ export function ResourceRenderer({
           <div className="flex items-center justify-center h-full bg-black">
               {/* Simplified media handling */}
               {resource.content?.endsWith('.mp4') ? (
-                  <video src={resource.content} controls className="max-h-full max-w-full" />
+                  <video aria-label={effectiveTitle} src={resource.content} controls className="max-h-full max-w-full">
+                      <track kind="captions" srcLang="zh-CN" label="中文说明" src={TEMPORARY_CAPTION_TRACK_SRC} />
+                  </video>
               ) : (
                   <div className="relative h-full w-full">
                       {resource.content ? (

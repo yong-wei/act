@@ -549,14 +549,14 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
         description="管理平台基础参数、AI 供应商、模型目录与响应测试。"
         actions={
           <>
-            <button
+            <button type="button"
               onClick={handleReset}
               className="admin-console-button"
             >
               <RefreshCcw className="h-4 w-4" />
               重置为默认
             </button>
-            <button
+            <button type="button"
               onClick={handleSave}
               disabled={saving}
               className="admin-console-button-primary disabled:cursor-not-allowed disabled:opacity-50"
@@ -590,10 +590,10 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
             </div>
             <div className="grid gap-4 xl:grid-cols-3">
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-300">
+                <label htmlFor="system-config-dashboard-control-1" className="mb-2 block text-sm font-medium text-slate-300">
                   平台名称
                 </label>
-                <input
+                <input id="system-config-dashboard-control-1"
                   type="text"
                   value={config.siteName}
                   onChange={(e) => setConfig({ ...config, siteName: e.target.value })}
@@ -601,10 +601,10 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                 />
               </div>
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-300">
+                <label htmlFor="system-config-dashboard-control-2" className="mb-2 block text-sm font-medium text-slate-300">
                   默认密码
                 </label>
-                <input
+                <input id="system-config-dashboard-control-2" aria-label="新账号默认密码"
                   type="text"
                   value={config.defaultPassword}
                   onChange={(e) => setConfig({ ...config, defaultPassword: e.target.value })}
@@ -614,10 +614,10 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                 <p className="mt-1 text-xs text-slate-500">批量创建账号时使用的默认密码</p>
               </div>
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-300">
+                <label htmlFor="system-config-dashboard-control-3" className="mb-2 block text-sm font-medium text-slate-300">
                   每班最大学生数
                 </label>
-                <input
+                <input id="system-config-dashboard-control-3"
                   type="number"
                   value={config.maxStudentsPerClass}
                   onChange={(e) => setConfig({ ...config, maxStudentsPerClass: parseInt(e.target.value) || 0 })}
@@ -631,7 +631,8 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                   <p className="text-sm font-medium text-slate-200">维护模式</p>
                   <p className="text-xs text-slate-500">开启后仅管理员可访问</p>
                 </div>
-                <button
+                <button type="button"
+                  aria-label="切换维护模式"
                   onClick={() => setConfig({ ...config, maintenanceMode: !config.maintenanceMode })}
                   className={`relative h-6 w-11 rounded-full transition ${
                     config.maintenanceMode ? 'bg-cyan-500' : 'bg-slate-600'
@@ -649,7 +650,8 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                   <p className="text-sm font-medium text-slate-200">首页动态模型渲染</p>
                   <p className="text-xs text-slate-500">关闭后首页仅显示静态图片，仿真页保持不变</p>
                 </div>
-                <button
+                <button type="button"
+                  aria-label="切换首页动态模型渲染"
                   onClick={() => setConfig({ ...config, homeDynamicModelEnabled: !config.homeDynamicModelEnabled })}
                   className={`relative h-6 w-11 rounded-full transition ${
                     config.homeDynamicModelEnabled ? 'bg-cyan-500' : 'bg-slate-600'
@@ -667,7 +669,8 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                   <p className="text-sm font-medium text-platform-fg-primary">数据中心演示来源标签</p>
                   <p className="text-xs text-platform-fg-muted">仅控制普通数据中心可见标签，治理审计来源保持可用</p>
                 </div>
-                <button
+                <button type="button"
+                  aria-label="切换数据中心演示来源标签"
                   onClick={() => setConfig({
                     ...config,
                     dataCenterShowDemoSourceLabels: !config.dataCenterShowDemoSourceLabels,
@@ -698,8 +701,8 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
             <div className="space-y-5">
               <div className="grid gap-3 md:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-300">当前供应商</label>
-                  <select
+                  <label htmlFor="system-config-dashboard-control-4" className="mb-2 block text-sm font-medium text-slate-300">当前供应商</label>
+                  <select id="system-config-dashboard-control-4"
                     value={aiSettings.activeProvider}
                     onChange={(event) => selectProvider(event.target.value)}
                     className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
@@ -710,8 +713,8 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                   </select>
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-slate-300">当前模型</label>
-                  <select
+                  <label htmlFor="system-config-dashboard-control-5" className="mb-2 block text-sm font-medium text-slate-300">当前模型</label>
+                  <select id="system-config-dashboard-control-5"
                     value={activeProvider?.selectedModel ?? ''}
                     onChange={(event) => activeProvider && selectModel(activeProvider.id, event.target.value)}
                     className="w-full rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
@@ -727,8 +730,8 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                 <div className="admin-console-surface-soft space-y-4">
                     <div className="grid gap-3 md:grid-cols-[0.8fr_1fr]">
                       <div>
-                        <label className="mb-2 block text-xs font-medium text-platform-fg-muted">供应商名称</label>
-                        <input
+                        <label htmlFor="system-config-dashboard-control-6" className="mb-2 block text-xs font-medium text-platform-fg-muted">供应商名称</label>
+                        <input id="system-config-dashboard-control-6"
                         type="text"
                         value={activeProvider.name}
                         onChange={(event) => updateProvider(activeProvider.id, { name: event.target.value })}
@@ -736,8 +739,8 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                       />
                     </div>
                     <div>
-                      <label className="mb-2 block text-xs font-medium text-platform-fg-muted">API 端点</label>
-                      <input
+                      <label htmlFor="system-config-dashboard-api-7" className="mb-2 block text-xs font-medium text-platform-fg-muted">API 端点</label>
+                      <input id="system-config-dashboard-api-7"
                         type="text"
                         value={activeProvider.baseURL}
                         onChange={(event) => updateProvider(activeProvider.id, { baseURL: event.target.value })}
@@ -745,8 +748,8 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                       />
                     </div>
                     <div>
-                      <label className="mb-2 block text-xs font-medium text-platform-fg-muted">供应商类型</label>
-                      <select
+                      <label htmlFor="system-config-dashboard-control-8" className="mb-2 block text-xs font-medium text-platform-fg-muted">供应商类型</label>
+                      <select id="system-config-dashboard-control-8"
                         value={activeProvider.providerKind}
                         onChange={(event) => updateProvider(activeProvider.id, { providerKind: event.target.value as AIProviderKind })}
                         className="admin-console-input w-full px-3 py-2 text-sm"
@@ -756,8 +759,8 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                       </select>
                     </div>
                     <div>
-                      <label className="mb-2 block text-xs font-medium text-platform-fg-muted">密钥引用</label>
-                      <input
+                      <label htmlFor="system-config-dashboard-control-9" className="mb-2 block text-xs font-medium text-platform-fg-muted">密钥引用</label>
+                      <input id="system-config-dashboard-control-9" aria-label="env:CUSTOM_PROVIDER_API_KEY"
                         type="text"
                         value={activeProvider.secretRef}
                         onChange={(event) => updateProvider(activeProvider.id, { secretRef: event.target.value })}
@@ -776,8 +779,8 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                         />
                       </label>
                       <div>
-                        <label className="mb-2 block text-xs font-medium text-platform-fg-muted">优先级</label>
-                        <input
+                        <label htmlFor="system-config-dashboard-control-10" className="mb-2 block text-xs font-medium text-platform-fg-muted">优先级</label>
+                        <input id="system-config-dashboard-control-10"
                           type="number"
                           value={activeProvider.priority}
                           onChange={(event) => updateProvider(activeProvider.id, { priority: Number(event.target.value) })}
@@ -785,8 +788,8 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                         />
                       </div>
                       <div>
-                        <label className="mb-2 block text-xs font-medium text-platform-fg-muted">健康状态</label>
-                        <select
+                        <label htmlFor="system-config-dashboard-control-11" className="mb-2 block text-xs font-medium text-platform-fg-muted">健康状态</label>
+                        <select id="system-config-dashboard-control-11"
                           value={activeProvider.health}
                           onChange={(event) => updateProvider(activeProvider.id, { health: event.target.value as AIProviderHealthState })}
                           className="admin-console-input w-full px-3 py-2 text-sm"
@@ -831,21 +834,21 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                           <div className="flex flex-wrap items-start justify-between gap-3">
                             {isEditing && editingModel ? (
                               <div className="grid min-w-0 flex-1 gap-3 md:grid-cols-[0.7fr_1fr_1.2fr]">
-                                <input
+                                <input aria-label="模型显示名"
                                   type="text"
                                   value={editingModel.label}
                                   onChange={(event) => setEditingModel({ ...editingModel, label: event.target.value })}
                                   placeholder="模型显示名"
                                   className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
                                 />
-                                <input
+                                <input aria-label="模型 ID，例如 vendor/model"
                                   type="text"
                                   value={editingModel.model}
                                   onChange={(event) => setEditingModel({ ...editingModel, model: event.target.value })}
                                   placeholder="模型 ID，例如 vendor/model"
                                   className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500"
                                 />
-                                <input
+                                <input aria-label="备注，可选"
                                   type="text"
                                   value={editingModel.description}
                                   onChange={(event) => setEditingModel({ ...editingModel, description: event.target.value })}
@@ -906,9 +909,9 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                   </div>
 
                   <div className="grid gap-3 border-t border-slate-800 pt-4 md:grid-cols-[0.7fr_1fr_1.2fr_auto]">
-                    <input type="text" value={newModel.label} onChange={(event) => setNewModel({ ...newModel, label: event.target.value })} placeholder="模型显示名" className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500" />
-                    <input type="text" value={newModel.model} onChange={(event) => setNewModel({ ...newModel, model: event.target.value })} placeholder="模型 ID，例如 vendor/model" className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500" />
-                    <input type="text" value={newModel.description} onChange={(event) => setNewModel({ ...newModel, description: event.target.value })} placeholder="备注，可选" className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500" />
+                    <input aria-label="模型显示名" type="text" value={newModel.label} onChange={(event) => setNewModel({ ...newModel, label: event.target.value })} placeholder="模型显示名" className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500" />
+                    <input aria-label="模型 ID，例如 vendor/model" type="text" value={newModel.model} onChange={(event) => setNewModel({ ...newModel, model: event.target.value })} placeholder="模型 ID，例如 vendor/model" className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500" />
+                    <input aria-label="备注，可选" type="text" value={newModel.description} onChange={(event) => setNewModel({ ...newModel, description: event.target.value })} placeholder="备注，可选" className="rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-2 text-sm text-slate-200 outline-none transition focus:border-cyan-500" />
                     <button type="button" onClick={addModel} className="inline-flex items-center justify-center gap-2 rounded-lg border border-cyan-500/50 px-3 py-2 text-sm text-cyan-100 transition hover:bg-cyan-500/10">
                       <Plus className="h-4 w-4" />
                       添加模型
@@ -928,14 +931,14 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                   )}
                 </div>
 	                <div className="grid gap-3 md:grid-cols-[0.7fr_0.9fr_0.9fr_1fr_1fr_auto]">
-                  <input type="text" value={newProvider.id} onChange={(event) => setNewProvider({ ...newProvider, id: event.target.value })} placeholder="provider-id" className="admin-console-input px-3 py-2 text-sm" />
-                  <input type="text" value={newProvider.name} onChange={(event) => setNewProvider({ ...newProvider, name: event.target.value })} placeholder="供应商名称" className="admin-console-input px-3 py-2 text-sm" />
+                  <input aria-label="provider-id" type="text" value={newProvider.id} onChange={(event) => setNewProvider({ ...newProvider, id: event.target.value })} placeholder="provider-id" className="admin-console-input px-3 py-2 text-sm" />
+                  <input aria-label="供应商名称" type="text" value={newProvider.name} onChange={(event) => setNewProvider({ ...newProvider, name: event.target.value })} placeholder="供应商名称" className="admin-console-input px-3 py-2 text-sm" />
                   <select value={newProvider.providerKind} onChange={(event) => setNewProvider({ ...newProvider, providerKind: event.target.value as AIProviderKind })} className="admin-console-input px-3 py-2 text-sm">
                     <option value="openai-compatible">OpenAI Compatible</option>
                     <option value="anthropic-compatible">Anthropic Compatible</option>
                   </select>
-                  <input type="text" value={newProvider.baseURL} onChange={(event) => setNewProvider({ ...newProvider, baseURL: event.target.value })} placeholder="https://example.com/v1" className="admin-console-input px-3 py-2 text-sm" />
-                  <input type="text" value={newProvider.secretRef} onChange={(event) => setNewProvider({ ...newProvider, secretRef: event.target.value })} placeholder="env:CUSTOM_API_KEY" className="admin-console-input px-3 py-2 text-sm" />
+                  <input aria-label="https://example.com/v1" type="text" value={newProvider.baseURL} onChange={(event) => setNewProvider({ ...newProvider, baseURL: event.target.value })} placeholder="https://example.com/v1" className="admin-console-input px-3 py-2 text-sm" />
+                  <input aria-label="env:CUSTOM_API_KEY" type="text" value={newProvider.secretRef} onChange={(event) => setNewProvider({ ...newProvider, secretRef: event.target.value })} placeholder="env:CUSTOM_API_KEY" className="admin-console-input px-3 py-2 text-sm" />
                   <button type="button" onClick={addProvider} className="admin-console-button inline-flex items-center justify-center gap-2 px-3 py-2 text-sm">
                     <Plus className="h-4 w-4" />
                     添加供应商
@@ -961,7 +964,8 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
                   <p className="text-sm font-medium text-slate-200">启用通知</p>
                   <p className="text-xs text-slate-500">系统消息和预警通知</p>
                 </div>
-                <button
+                <button type="button"
+                  aria-label="切换通知"
                   onClick={() => setConfig({ ...config, enableNotifications: !config.enableNotifications })}
                   className={`relative h-6 w-11 rounded-full transition ${
                     config.enableNotifications ? 'bg-cyan-500' : 'bg-slate-600'
@@ -985,10 +989,10 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
             </div>
             <div className="space-y-4">
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-300">
+                <label htmlFor="system-config-dashboard-control-12" className="mb-2 block text-sm font-medium text-slate-300">
                   预警阈值
                 </label>
-                <input
+                <input id="system-config-dashboard-control-12"
                   type="number"
                   value={config.ethicsAlertThreshold}
                   onChange={(e) => setConfig({ ...config, ethicsAlertThreshold: parseInt(e.target.value) || 1 })}

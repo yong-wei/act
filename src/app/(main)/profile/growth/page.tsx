@@ -186,7 +186,7 @@ export default function GrowthPage() {
       >
         <div className="text-center">
           <p className="text-xl text-red-500">{error}</p>
-          <button onClick={fetchData} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
+          <button type="button" onClick={fetchData} className="btn-ghost-themed mt-4 rounded-lg px-6 py-2">
             重试
           </button>
         </div>
@@ -234,7 +234,7 @@ export default function GrowthPage() {
       actions={(
         <div className="flex rounded-lg bg-platform-action-subtle p-1">
           {(['7d', '30d', '90d'] as const).map((range) => (
-            <button
+            <button type="button"
               key={range}
               onClick={() => setTimeRange(range)}
               className={`rounded-md px-3 py-1 text-sm transition ${

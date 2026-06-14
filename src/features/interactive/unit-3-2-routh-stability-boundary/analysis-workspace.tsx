@@ -114,7 +114,7 @@ function AnalysisControls({
             <span>当前参数</span>
             <span className="font-medium">k = {gain.toFixed(1)}</span>
           </div>
-          <input
+          <input aria-label="当前参数 k"
             type="range"
             min={-4}
             max={24}

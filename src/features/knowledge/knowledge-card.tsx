@@ -367,7 +367,7 @@ export function KnowledgeCard({
     <Card className={`relative w-full ${surfaceClassName} ${className || ''}`}>
       {/* 关闭按钮 - 仅在传入 onClose 时显示 */}
       {onClose && (
-        <button
+        <button type="button"
           onClick={onClose}
           className="absolute right-3 top-3 z-10 rounded-full bg-muted p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
           aria-label="关闭"

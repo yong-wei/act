@@ -103,7 +103,7 @@ export function KonlingSidebar({
     <>
       {/* 遮罩层 - 仅在移动端显示 */}
       {isOpen && (
-        <div
+        <div aria-label="关闭控灵侧栏" tabIndex={0} role="button" onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click(); } }}
           className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm sm:hidden"
           onClick={onClose}
         />
@@ -143,7 +143,7 @@ export function KonlingSidebar({
           </div>
           <div className="flex items-center gap-1">
             {messages.length > 0 && (
-              <button
+              <button type="button"
                 onClick={handleClear}
                 className={`rounded p-2 transition-colors ${styles.text.muted} hover:bg-slate-700/30`}
                 title="清空对话"
@@ -151,7 +151,7 @@ export function KonlingSidebar({
                 <Trash2 className="h-4 w-4" />
               </button>
             )}
-            <button
+            <button type="button"
               onClick={onClose}
               className={`rounded p-2 transition-colors ${styles.text.muted} hover:bg-slate-700/30`}
               title="关闭 (ESC)"
@@ -208,7 +208,7 @@ export function KonlingSidebar({
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {quickQuestions.map((q, i) => (
-                    <button
+                    <button type="button"
                       key={i}
                       onClick={() => handleQuickQuestion(q.question)}
                       className={`

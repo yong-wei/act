@@ -1802,6 +1802,77 @@ describe('commercial UI governance', () => {
     expect(warnings.result.stdout.length).toBeGreaterThan(65_536);
   });
 
+  it('records owned accessibility and DOM warning remediation evidence for issue 492', () => {
+    const targetRules = [
+      'button-has-type',
+      'control-has-associated-label',
+      'label-has-associated-control',
+      'media-has-caption',
+      'click-events-have-key-events',
+      'no-static-element-interactions',
+    ];
+    const readReport = (artifact: string) => JSON.parse(readFileSync(join(
+      process.cwd(),
+      'artifacts/react-doctor/fix-owned-surface-a11y-dom-warnings-492',
+      artifact,
+    ), 'utf8')) as { summary: { byRule: Record<string, number> } };
+
+    const before = readReport('before-owned-warnings.json');
+    const after = readReport('after-review-fix-owned-warnings.json');
+    const governanceScript = readFileSync(join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'), 'utf8');
+    const mediaSources = [
+      'src/components/classroom/VideoComponent.tsx',
+      'src/features/interactive/shared/lesson-entry-media-hub.tsx',
+      'src/features/lesson-engine/resource-renderer.tsx',
+    ].map((file) => readFileSync(join(process.cwd(), file), 'utf8')).join('\n');
+    const classroomAccessibilitySources = [
+      'src/components/classroom/VideoComponent.tsx',
+      'src/components/classroom/AIDynamicReport.tsx',
+      'src/components/classroom/PollComponent.tsx',
+      'src/components/classroom/AssessmentProbe.tsx',
+      'src/components/classroom/EthicalTrigger.tsx',
+      'src/components/classroom/ObjectiveCard.tsx',
+      'src/app/teacher/classes/[classId]/page.tsx',
+    ].map((file) => readFileSync(join(process.cwd(), file), 'utf8')).join('\n');
+    const nestedInteractionSource = readFileSync(
+      join(process.cwd(), 'src/resources/widgets/argument-principle.tsx'),
+      'utf8',
+    );
+    const archiveTasks = readFileSync(
+      join(process.cwd(), 'openspec/changes/archive/2026-06-14-fix-owned-surface-a11y-dom-warnings/tasks.md'),
+      'utf8',
+    );
+
+    expect(Object.fromEntries(targetRules.map((rule) => [rule, before.summary.byRule[rule]]))).toEqual({
+      'button-has-type': 547,
+      'control-has-associated-label': 171,
+      'label-has-associated-control': 63,
+      'media-has-caption': 4,
+      'click-events-have-key-events': 11,
+      'no-static-element-interactions': 12,
+    });
+    for (const rule of targetRules) {
+      expect(after.summary.byRule[rule] ?? 0).toBe(0);
+    }
+    expect(mediaSources).not.toContain('data:text/vtt,WEBVTT%0A%0A');
+    expect(mediaSources).toContain('Temporary accessibility exception');
+    expect(classroomAccessibilitySources).not.toMatch(/field \d+/);
+    expect(classroomAccessibilitySources).not.toMatch(/(?:id|htmlFor)="(?:ethicaltrigger|objectivecard)-control-\d+"/);
+    expect(classroomAccessibilitySources).not.toContain('id="enableVoice"');
+    expect(classroomAccessibilitySources).toContain('useId');
+    expect(classroomAccessibilitySources).toContain('htmlFor={');
+    expect(classroomAccessibilitySources).toContain('id={');
+    expect(nestedInteractionSource).toContain('event.target !== event.currentTarget');
+    expect(archiveTasks).toContain('rtk openspec validate owned-surface-accessibility-semantics --strict');
+    expect(archiveTasks).toContain('rtk openspec validate --changes --strict');
+    expect(governanceScript).toContain('usesReusableAccessibilityIdScope');
+    expect(governanceScript).toContain('type="[^"]*"');
+    expect(governanceScript).toContain('(?:htmlFor|id|aria-label|aria-labelledby|title)=\\{');
+    expect(governanceScript).not.toContain('role|title');
+    expect(governanceScript).not.toContain('tabIndex|disabled');
+    expect(governanceScript).not.toContain('onKeyDown');
+  });
+
   it('fails React Doctor owned-surface gates when the scanner returns an error report', () => {
     const tmp = mkdtempSync(join(tmpdir(), 'react-doctor-owned-failure-'));
     const fakeNpx = join(tmp, 'npx');

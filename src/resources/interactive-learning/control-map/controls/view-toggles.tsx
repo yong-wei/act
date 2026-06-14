@@ -34,7 +34,7 @@ export function ViewToggles({ viewState, onViewStateChange }: ViewTogglesProps) 
           <span className="text-xs text-slate-500">{group.label}</span>
           <div className="flex rounded-lg border border-slate-700 bg-slate-800/50 p-0.5">
             {group.options.map((option) => (
-              <button
+              <button type="button"
                 key={option.key}
                 onClick={() =>
                   onViewStateChange({

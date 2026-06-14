@@ -496,10 +496,10 @@ function TextInput({
   multiline?: boolean;
 }) {
   if (!multiline) {
-    return <input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="premium-lesson-input w-full" />;
+    return <input aria-label={placeholder} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="premium-lesson-input w-full" />;
   }
   return (
-    <textarea
+    <textarea aria-label={placeholder}
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
@@ -614,7 +614,7 @@ function CurveComparePanel({
           <div className="premium-lesson-title text-sm font-medium">{activeControl.label}</div>
           <div className="premium-lesson-caption text-xs">{sliderValue.toFixed(variant === 'integral-lag' ? 1 : 2)}</div>
         </div>
-        <input
+        <input aria-label={activeControl.label}
           type="range"
           min={activeControl.min}
           max={activeControl.max}
@@ -863,7 +863,7 @@ function Unit38RustControlPanel({
             <span>{config.title}</span>
             <span className="premium-lesson-caption">{value.toFixed(2)}</span>
           </div>
-          <input
+          <input aria-label={config.title}
             type="range"
             min={config.min}
             max={config.max}

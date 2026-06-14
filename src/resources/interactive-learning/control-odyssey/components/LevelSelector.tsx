@@ -52,7 +52,7 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
             </div>
           </div>
         </div>
-        
+
         <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar min-h-[300px]">
            {isLoadingLeaderboard ? (
              <div className="flex flex-col items-center justify-center h-40 text-slate-500 gap-2">
@@ -73,7 +73,7 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
                  <div className="flex items-center gap-3 overflow-hidden">
                    <div className={cn(
                      "w-6 h-6 flex-none flex items-center justify-center font-bold rounded text-xs font-mono",
-                     player.rank === 1 ? "bg-yellow-500/20 text-yellow-500 border border-yellow-500/30" : 
+                     player.rank === 1 ? "bg-yellow-500/20 text-yellow-500 border border-yellow-500/30" :
                      player.rank === 2 ? "bg-slate-300/20 text-slate-300 border border-slate-300/30" :
                      player.rank === 3 ? "bg-amber-700/20 text-amber-700 border border-amber-700/30" : "text-slate-500 bg-slate-900"
                    )}>
@@ -118,7 +118,7 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
              })
            )}
         </div>
-        
+
         <div className="text-center text-[10px] text-slate-600 mt-4 pt-4 border-t border-slate-800 uppercase tracking-widest">
            Top 50 Commanders
         </div>
@@ -143,7 +143,7 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
             </Button>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {levels.map((level) => {
             const isSelected = level.id === selectedLevelId;
@@ -158,12 +158,12 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
             const starCount = tierStarCount(derivedTier);
             const bestScore = personalBestScores[level.id]?.overall ?? 0;
             return (
-            <div 
+            <div tabIndex={level.unlocked ? 0 : -1} role="button" aria-disabled={!level.unlocked} onKeyDown={(event) => { if (!level.unlocked || event.target !== event.currentTarget) return; if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click(); } }}
               key={level.id}
               className={cn(
                 "relative group overflow-hidden rounded-2xl border p-6 transition-all duration-300",
-                level.unlocked 
-                  ? "bg-slate-900 border-slate-700 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 cursor-pointer" 
+                level.unlocked
+                  ? "bg-slate-900 border-slate-700 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10 cursor-pointer"
                   : "bg-slate-900/50 border-slate-800 opacity-60 grayscale cursor-not-allowed",
                 level.id === selectedLevelId && level.unlocked
                   ? "border-blue-400 ring-2 ring-blue-500/30 shadow-lg shadow-blue-500/10"

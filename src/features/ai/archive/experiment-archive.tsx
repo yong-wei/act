@@ -105,7 +105,7 @@ export function ExperimentArchive({ experiments }: ExperimentArchiveProps) {
       </div>
 
       {/* 查看更多 */}
-      <button className="mt-4 w-full rounded-lg border border-cyan-500/30 bg-cyan-500/10 py-2 text-sm text-cyan-400 transition-colors hover:bg-cyan-500/20">
+      <button type="button" className="mt-4 w-full rounded-lg border border-cyan-500/30 bg-cyan-500/10 py-2 text-sm text-cyan-400 transition-colors hover:bg-cyan-500/20">
         查看完整档案
       </button>
     </aside>

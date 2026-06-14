@@ -34,7 +34,7 @@ export function PlaylistBuilder({ initialData }: PlaylistBuilderProps) {
     fetchNodes();
   }, []);
 
-  const filteredNodes = nodes.filter(n => 
+  const filteredNodes = nodes.filter(n =>
     n.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     n.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -104,7 +104,7 @@ export function PlaylistBuilder({ initialData }: PlaylistBuilderProps) {
           <CardTitle className="text-white">知识库</CardTitle>
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-400" />
-            <input
+            <input aria-label="搜索知识点..."
               type="text"
               placeholder="搜索知识点..."
               className="w-full bg-slate-900 border border-slate-700 rounded-md pl-8 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
@@ -120,7 +120,7 @@ export function PlaylistBuilder({ initialData }: PlaylistBuilderProps) {
                 <div className="font-medium text-slate-200">{node.name}</div>
                 <div className="text-xs text-slate-400 truncate max-w-[200px]">{node.description}</div>
               </div>
-              <button 
+              <button type="button"
                 onClick={() => addItem(node)}
                 className="p-2 bg-blue-600 rounded-full text-white hover:bg-blue-500"
               >
@@ -136,14 +136,14 @@ export function PlaylistBuilder({ initialData }: PlaylistBuilderProps) {
         <CardHeader>
           <CardTitle className="text-white">课程编排</CardTitle>
           <div className="space-y-3">
-             <input
+             <input aria-label="课程标题"
               type="text"
               placeholder="课程标题"
               className="w-full bg-slate-900 border border-slate-700 rounded-md px-4 py-2 text-white font-bold focus:outline-none focus:border-blue-500"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-            <textarea
+            <textarea aria-label="课程描述"
               placeholder="课程描述"
               className="w-full bg-slate-900 border border-slate-700 rounded-md px-4 py-2 text-sm text-slate-300 focus:outline-none focus:border-blue-500 resize-none h-20"
               value={description}
@@ -168,7 +168,7 @@ export function PlaylistBuilder({ initialData }: PlaylistBuilderProps) {
                     <div className="flex-1">
                         <div className="font-medium text-slate-200">{item.nodeName}</div>
                         <div className="flex gap-2 mt-1">
-                            <select 
+                            <select
                                 className="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded px-1"
                                 value={item.interactionMode}
                                 onChange={(e) => {
@@ -181,8 +181,8 @@ export function PlaylistBuilder({ initialData }: PlaylistBuilderProps) {
                                 <option value="quiz">测验</option>
                                 <option value="discussion">讨论</option>
                             </select>
-                            <input 
-                                type="number" 
+                            <input aria-label="选择知识节点"
+                                type="number"
                                 className="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded w-16 px-1 text-center"
                                 value={item.duration}
                                 onChange={(e) => {
@@ -195,21 +195,21 @@ export function PlaylistBuilder({ initialData }: PlaylistBuilderProps) {
                         </div>
                     </div>
                     <div className="flex flex-col gap-1">
-                        <button onClick={() => moveItem(idx, 'up')} className="text-slate-400 hover:text-white disabled:opacity-30" disabled={idx === 0}>
+                        <button type="button" onClick={() => moveItem(idx, 'up')} className="text-slate-400 hover:text-white disabled:opacity-30" disabled={idx === 0}>
                             <ArrowUp className="h-4 w-4" />
                         </button>
-                        <button onClick={() => moveItem(idx, 'down')} className="text-slate-400 hover:text-white disabled:opacity-30" disabled={idx === playlistItems.length - 1}>
+                        <button type="button" onClick={() => moveItem(idx, 'down')} className="text-slate-400 hover:text-white disabled:opacity-30" disabled={idx === playlistItems.length - 1}>
                             <ArrowDown className="h-4 w-4" />
                         </button>
                     </div>
-                    <button onClick={() => removeItem(idx)} className="text-red-400 hover:text-red-300 ml-2">
+                    <button type="button" onClick={() => removeItem(idx)} className="text-red-400 hover:text-red-300 ml-2">
                         <Trash2 className="h-4 w-4" />
                     </button>
                 </div>
             ))}
         </CardContent>
         <div className="p-4 border-t border-slate-700">
-            <button 
+            <button type="button"
                 onClick={handleSave}
                 disabled={isSaving}
                 className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white py-2 rounded-md font-medium transition-colors disabled:opacity-50"

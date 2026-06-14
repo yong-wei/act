@@ -75,7 +75,7 @@ export const Cell = memo(function Cell({
   };
 
   return (
-    <button
+    <button type="button"
       onClick={handleClick}
       disabled={disabled}
       className={`

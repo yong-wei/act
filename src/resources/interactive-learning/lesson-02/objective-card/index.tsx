@@ -69,7 +69,7 @@ export default function LaplaceObjectiveCard({ onComplete, onStateChange }: Lapl
             <Target className="h-4 w-4" />
             完成目标确认后进入前测。
           </div>
-          <button
+          <button type="button"
             onClick={handleConfirm}
             className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-xs ${
               confirmed ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-600 text-white'

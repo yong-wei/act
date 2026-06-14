@@ -444,7 +444,7 @@ export function PresentationDataCenter({ role, showDemoSourceLabels }: Presentat
           <p className="text-xs text-platform-fg-muted">
             导出快照将自动移除原始学习证据、原始轨迹和私有数据，保留来源标记
           </p>
-          <button
+          <button type="button"
             className="inline-flex items-center gap-2 rounded-lg border border-platform-border bg-platform-surface px-4 py-2 text-sm font-medium text-platform-fg-primary transition-colors hover:bg-platform-action-subtle"
             onClick={() => {
               downloadExportSafeSnapshot(exportSnapshot(), `data-center-snapshot-${data._meta.semester}.json`);

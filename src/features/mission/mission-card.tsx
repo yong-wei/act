@@ -164,21 +164,21 @@ export function MissionCard({ mission, onStart }: MissionCardProps) {
       {/* 操作按钮 */}
       <div className="mt-6">
         {mission.status === 'LOCKED' ? (
-          <button
+          <button type="button"
             disabled
             className="w-full rounded-lg bg-slate-700 px-4 py-3 text-sm font-medium text-slate-500 cursor-not-allowed"
           >
             暂未解锁
           </button>
         ) : mission.status === 'COMPLETED' ? (
-          <button
+          <button type="button"
             onClick={() => onStart?.(mission.id)}
             className="w-full rounded-lg bg-emerald-600/20 px-4 py-3 text-sm font-medium text-emerald-400 transition-colors hover:bg-emerald-600/30"
           >
             再次挑战
           </button>
         ) : (
-          <button
+          <button type="button"
             onClick={() => onStart?.(mission.id)}
             className="w-full rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-3 text-sm font-medium text-white transition-transform hover:scale-[1.02]"
           >

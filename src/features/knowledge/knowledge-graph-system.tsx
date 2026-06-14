@@ -211,10 +211,10 @@ export function KnowledgeGraphSystem({
         });
       }
     };
-    
+
     // 初始化
     updateSize();
-    
+
     const observer = typeof ResizeObserver !== 'undefined'
       ? new ResizeObserver(updateSize)
       : null;
@@ -639,7 +639,7 @@ export function KnowledgeGraphSystem({
                 <p className="text-[11px] text-platform-fg-muted" data-knowledge-clarity-summary="mobile">
                   {claritySummary}
                 </p>
-                <input
+                <input aria-label="关键词搜索"
                   type="text"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
@@ -842,7 +842,7 @@ export function KnowledgeGraphSystem({
           </div>
 
           <div className="mb-3">
-            <input
+            <input aria-label="关键词搜索（名称 / 标签 / 公式 / 示例）"
               type="text"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
@@ -990,7 +990,7 @@ export function KnowledgeGraphSystem({
               <span>关系强度阈值</span>
               <span className="text-platform-action-primary">{minRelationStrength.toFixed(1)}</span>
             </div>
-            <input
+            <input aria-label="知识图谱搜索"
               type="range"
               min={0}
               max={1}
@@ -1039,20 +1039,20 @@ export function KnowledgeGraphSystem({
           data-knowledge-local-tool="view-mode-switch"
           data-state="open"
         >
-          <button 
+          <button type="button"
             onClick={() => setViewMode('2D')}
             className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
-              viewMode === '2D' 
+              viewMode === '2D'
                 ? 'bg-platform-action-primary text-platform-fg-inverse shadow-sm'
                 : 'text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary'
             }`}
           >
             2D 视图
           </button>
-          <button 
+          <button type="button"
             onClick={() => setViewMode('3D')}
             className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
-              viewMode === '3D' 
+              viewMode === '3D'
                 ? 'bg-platform-action-primary text-platform-fg-inverse shadow-sm'
                 : 'text-platform-fg-secondary hover:bg-platform-action-subtle hover:text-platform-fg-primary'
             }`}

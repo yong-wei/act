@@ -108,7 +108,7 @@ export function IntroPhase({
 
             {/* 播放控制 */}
             <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
-              <button
+              <button type="button"
                 onClick={handlePlay}
                 className="flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-amber-400"
               >
@@ -124,7 +124,7 @@ export function IntroPhase({
                   </>
                 )}
               </button>
-              <button
+              <button type="button"
                 onClick={() => setIsPlaying(false)}
                 className="flex items-center gap-2 rounded-lg bg-slate-700 px-4 py-2 text-sm text-slate-300 transition-colors hover:bg-slate-600"
               >
@@ -140,7 +140,7 @@ export function IntroPhase({
           {/* 海况控制 */}
           <div className="rounded-xl border border-slate-700 bg-slate-900/50 p-4">
             <h3 className="mb-3 text-sm font-medium text-slate-300">海况调节</h3>
-            <input
+            <input aria-label="物理建模导入作答"
               type="range"
               min="1"
               max="9"
@@ -162,7 +162,7 @@ export function IntroPhase({
           </div>
 
           {/* 拆解按钮 */}
-          <button
+          <button type="button"
             onClick={handleDecompose}
             className="w-full rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-left transition-colors hover:bg-amber-500/20"
           >
@@ -193,7 +193,7 @@ export function IntroPhase({
           )}
 
           {/* 继续按钮 */}
-          <button
+          <button type="button"
             onClick={onComplete}
             className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-3 font-medium text-slate-900 transition-all hover:from-amber-400 hover:to-orange-400"
           >

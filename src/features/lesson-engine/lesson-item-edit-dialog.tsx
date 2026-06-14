@@ -51,8 +51,8 @@ export function LessonItemEditDialog({
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">标题覆盖</label>
-            <input
+            <label htmlFor="lesson-item-edit-dialog-control-1" className="text-sm font-medium text-slate-300">标题覆盖</label>
+            <input id="lesson-item-edit-dialog-control-1"
               type="text"
               placeholder={originalTitle}
               value={titleOverride}
@@ -62,8 +62,8 @@ export function LessonItemEditDialog({
             <p className="text-xs text-slate-500">留空使用原标题: {originalTitle}</p>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-300">描述覆盖</label>
-            <textarea
+            <label htmlFor="lesson-item-edit-dialog-control-2" className="text-sm font-medium text-slate-300">描述覆盖</label>
+            <textarea id="lesson-item-edit-dialog-control-2"
               placeholder={originalDescription || '无描述'}
               value={descriptionOverride}
               onChange={(e) => setDescriptionOverride(e.target.value)}
@@ -72,13 +72,13 @@ export function LessonItemEditDialog({
           </div>
         </div>
         <div className="flex justify-end gap-3">
-          <button
+          <button type="button"
             onClick={() => onOpenChange(false)}
             className="px-4 py-2 text-slate-400 hover:text-white transition"
           >
             取消
           </button>
-          <button
+          <button type="button"
             onClick={handleSave}
             className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-md transition"
           >

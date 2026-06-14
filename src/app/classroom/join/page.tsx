@@ -310,7 +310,7 @@ function JoinClassroomShell({
 
           <div className="space-y-3">
             {!hasResult ? (
-              <button
+              <button type="button"
                 onClick={onLookup}
                 disabled={joinCode.length !== 6 || isLoading}
                 className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-slate-800 font-medium text-white transition-all hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -325,7 +325,7 @@ function JoinClassroomShell({
                 )}
               </button>
             ) : sessionInfo ? (
-              <button
+              <button type="button"
                 onClick={onJoinSession}
                 className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-cyan-600 font-medium text-white transition-all hover:bg-cyan-500"
               >
@@ -333,7 +333,7 @@ function JoinClassroomShell({
                 加入课堂
               </button>
             ) : (
-              <button
+              <button type="button"
                 onClick={onReturnToDashboard}
                 className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-cyan-600 font-medium text-white transition-all hover:bg-cyan-500"
               >

@@ -198,10 +198,10 @@ function SortableItem({ item, idx, onRemove, onDurationChange, onEdit }: Sortabl
             )}
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={onEdit} className="text-slate-500 hover:text-cyan-400" title="编辑">
+            <button type="button" onClick={onEdit} className="text-slate-500 hover:text-cyan-400" title="编辑">
               <Pencil className="h-4 w-4" />
             </button>
-            <button onClick={onRemove} className="text-slate-500 hover:text-red-400" title="删除">
+            <button type="button" onClick={onRemove} className="text-slate-500 hover:text-red-400" title="删除">
               <Trash2 className="h-4 w-4" />
             </button>
           </div>
@@ -214,7 +214,7 @@ function SortableItem({ item, idx, onRemove, onDurationChange, onEdit }: Sortabl
           </span>
           <div className="flex items-center gap-1">
             <span>时长:</span>
-            <input
+            <input aria-label="编排资源搜索"
               type="number"
               className="w-12 bg-slate-900 border border-slate-700 rounded px-1 text-center focus:border-cyan-500 outline-none"
               value={item.duration}
@@ -555,7 +555,7 @@ function OrchestratorBuilderContent({
                 </h2>
                 <div className="relative">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-500" />
-                    <input
+                    <input aria-label="搜索资源或知识卡片..."
                         type="text"
                         placeholder="搜索资源或知识卡片..."
                         className="w-full bg-slate-950 border border-slate-700 rounded pl-8 pr-2 py-2 text-sm focus:border-cyan-500 outline-none"
@@ -565,7 +565,7 @@ function OrchestratorBuilderContent({
                 </div>
                 {/* Category Filter */}
                 <div className="flex flex-wrap gap-1">
-                    <button
+                    <button type="button"
                         onClick={() => setSelectedCategory(null)}
                         className={`px-2 py-1 text-xs rounded transition-colors ${
                             !selectedCategory
@@ -579,7 +579,7 @@ function OrchestratorBuilderContent({
                         const config = CATEGORY_CONFIG[cat];
                         if (!config) return null;
                         return (
-                            <button
+                            <button type="button"
                                 key={cat}
                                 onClick={() => setSelectedCategory(cat)}
                                 className={`px-2 py-1 text-xs rounded transition-colors ${
@@ -612,7 +612,7 @@ function OrchestratorBuilderContent({
                                         <div className="text-sm font-medium truncate">{res.displayName || res.title}</div>
                                         <div className="text-[10px] text-slate-500 truncate">{res.type}</div>
                                     </div>
-                                    <button
+                                    <button type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             setPreviewResource(res);
@@ -663,7 +663,7 @@ function OrchestratorBuilderContent({
                                                 <span className="text-[10px] text-purple-400">教师专用</span>
                                             )}
                                         </div>
-                                        <button
+                                        <button type="button"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 setPreviewResource(res);
@@ -701,7 +701,7 @@ function OrchestratorBuilderContent({
                                         <div className="text-sm font-medium truncate">{node.name}</div>
                                         <div className="text-[10px] text-slate-500 truncate">{node.nodeType}</div>
                                     </div>
-                                    <button
+                                    <button type="button"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             setPreviewKnowledge(node);
@@ -725,7 +725,7 @@ function OrchestratorBuilderContent({
              <div className="h-16 border-b border-slate-800 flex items-center justify-between px-6 bg-slate-900 z-10">
                 <div className="flex items-center gap-4 flex-1 max-w-xl">
                     <Layout className="h-5 w-5 text-cyan-400 flex-shrink-0" />
-                    <input
+                    <input aria-label="输入教案标题..."
                         type="text"
                         placeholder="输入教案标题..."
                         className="bg-slate-800 border border-slate-700 focus:border-cyan-500 focus:outline-none text-lg font-bold w-full text-white placeholder:text-slate-500 px-3 py-1.5 rounded"
@@ -733,7 +733,7 @@ function OrchestratorBuilderContent({
                         onChange={e => setTitle(e.target.value)}
                     />
                 </div>
-                <button
+                <button type="button"
                     onClick={savePlan}
                     disabled={isSaving}
                     className="ml-4 flex-shrink-0 flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-md font-medium transition-colors disabled:opacity-50"

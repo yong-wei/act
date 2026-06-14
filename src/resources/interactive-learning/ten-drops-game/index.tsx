@@ -352,7 +352,7 @@ export function TenDropsGame({
                   </Link>
                 )}
                 {showEducation && currentLevel.educationalHint && (
-                  <button
+                  <button type="button"
                     onClick={() => setShowEducationalPanel(true)}
                     className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
                     title="学习提示"
@@ -360,7 +360,7 @@ export function TenDropsGame({
                     <Info className="h-5 w-5 text-blue-400" />
                   </button>
                 )}
-                <button
+                <button type="button"
                   onClick={() => setShowLevelSelect(true)}
                   className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition-colors"
                 >
@@ -398,7 +398,7 @@ export function TenDropsGame({
 
         {/* 控制按钮 */}
         <div className="flex justify-center gap-3">
-          <button
+          <button type="button"
             onClick={handleUndo}
             disabled={!canUndo || isProcessing}
             className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
@@ -406,7 +406,7 @@ export function TenDropsGame({
             <Undo2 className="h-4 w-4" />
             撤销
           </button>
-          <button
+          <button type="button"
             onClick={handleRestart}
             disabled={isProcessing}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-lg transition-colors"
@@ -424,7 +424,7 @@ export function TenDropsGame({
               {currentLevel.educationalHint.slice(0, 80)}
               {currentLevel.educationalHint.length > 80 && '...'}
               {currentLevel.educationalHint.length > 80 && (
-                <button
+                <button type="button"
                   onClick={() => setShowEducationalPanel(true)}
                   className="ml-1 text-blue-400 hover:underline"
                 >

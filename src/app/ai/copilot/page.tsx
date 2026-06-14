@@ -120,7 +120,7 @@ export default function CopilotPage() {
                   <p className="mb-3 text-sm text-slate-500">快捷问题</p>
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                     {quickQuestions.map((q, i) => (
-                      <button
+                      <button type="button"
                         key={i}
                         onClick={() => append({ role: 'user', content: q.question })}
                         className="rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-3 text-left text-sm text-slate-300 transition-colors hover:border-amber-600 hover:bg-slate-800"
@@ -195,7 +195,7 @@ export default function CopilotPage() {
           {/* 输入区 */}
           <form onSubmit={handleSubmit} className="mt-4">
             <div className="flex gap-3">
-              <input
+              <input aria-label="请输入您的问题，例如：如何减少航迹误差？"
                 type="text"
                 value={input}
                 onChange={handleInputChange}

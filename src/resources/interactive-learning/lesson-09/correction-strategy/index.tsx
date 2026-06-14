@@ -129,7 +129,7 @@ export default function CorrectionStrategy({ onComplete, onStateChange }: Correc
           </div>
           <div className="mt-4 space-y-2">
             {STRATEGIES.map((section) => (
-              <button
+              <button type="button"
                 key={section.id}
                 onClick={() => recordVisit(section.id)}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${

@@ -1146,27 +1146,41 @@ function StepReveal({
             }
             setLocalVisibleCount((prev) => Math.min(items.length, prev + 1));
           };
-          return (
-            <div
-              key={`${item.title ?? ''}:${item.body}:${item.formula ?? ''}`}
-              role={canExpand ? 'button' : undefined}
-              tabIndex={canExpand ? 0 : undefined}
-              onClick={showNext}
-              onKeyDown={(event) => {
-                if (!canExpand || (event.key !== 'Enter' && event.key !== ' ')) return;
-                event.preventDefault();
-                showNext();
-              }}
-              className={`block w-full rounded-2xl border px-4 py-3 text-left ${
-                canExpand ? 'cursor-pointer border-cyan-200 bg-cyan-50 hover:border-cyan-300' : 'border-slate-200 bg-slate-50'
-              }`}
-            >
+          const key = `${item.title ?? ''}:${item.body}:${item.formula ?? ''}`;
+          const cardClassName = `block w-full rounded-2xl border px-4 py-3 text-left ${
+            canExpand ? 'cursor-pointer border-cyan-200 bg-cyan-50 hover:border-cyan-300' : 'border-slate-200 bg-slate-50'
+          }`;
+          const cardContent = (
+            <>
               {item.title ? <ManifestContentTitle>{item.title}</ManifestContentTitle> : null}
               {item.body ? (
                 <p className="premium-lesson-title text-sm leading-7">{renderInlineContent(item.body)}</p>
               ) : null}
               {item.formula ? <div className="mt-2 overflow-x-auto">{renderFormulaContent(item.formula)}</div> : null}
               {canExpand ? <p className="premium-lesson-muted mt-2 text-xs">点击当前最下方步骤继续显示下一层。</p> : null}
+            </>
+          );
+          if (canExpand) {
+            return (
+              <div
+                key={key}
+                role="button"
+                tabIndex={0}
+                onClick={showNext}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter' && event.key !== ' ') return;
+                  event.preventDefault();
+                  showNext();
+                }}
+                className={cardClassName}
+              >
+                {cardContent}
+              </div>
+            );
+          }
+          return (
+            <div key={key} className={cardClassName}>
+              {cardContent}
             </div>
           );
         })}

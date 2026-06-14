@@ -60,6 +60,12 @@ export interface VideoComponentConfig extends BaseComponentConfig {
   primarySource: string;
   /** 副视频URL或占位符图片（分屏模式） */
   secondarySource?: string;
+  /** 字幕轨道 URL（仅填写真实字幕资源） */
+  captionSrc?: string;
+  /** 字幕语言 */
+  captionLanguage?: string;
+  /** 字幕标签 */
+  captionLabel?: string;
   /** 分屏模式 */
   splitMode: SplitMode;
   /** AI旁白文本 */

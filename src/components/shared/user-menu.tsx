@@ -96,7 +96,7 @@ export function UserMenu({ user, variant = 'default' }: UserMenuProps) {
 
   return (
     <div ref={menuRef} className="relative z-[70]">
-      <button
+      <button type="button"
         onClick={() => setOpen((prev) => !prev)}
         className={cn(
           'flex items-center gap-3 px-4 py-2 transition-colors',
@@ -145,7 +145,7 @@ export function UserMenu({ user, variant = 'default' }: UserMenuProps) {
               个人中心
             </Link>
           )}
-          <button
+          <button type="button"
             onClick={() => {
               closeMenu();
               setPasswordOpen(true);
@@ -155,7 +155,7 @@ export function UserMenu({ user, variant = 'default' }: UserMenuProps) {
             <KeyRound className="h-4 w-4" />
             修改密码
           </button>
-          <button
+          <button type="button"
             onClick={handleSignOut}
             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-rose-300 transition hover:bg-rose-500/10"
           >
@@ -173,7 +173,7 @@ export function UserMenu({ user, variant = 'default' }: UserMenuProps) {
                 <p className="text-lg font-semibold text-foreground">修改密码</p>
                 <p className="text-xs text-subtle">请输入当前密码与新密码</p>
               </div>
-              <button
+              <button type="button"
                 onClick={() => setPasswordOpen(false)}
                 className="btn-ghost-themed rounded-lg border px-2 py-1 text-xs"
               >
@@ -182,21 +182,21 @@ export function UserMenu({ user, variant = 'default' }: UserMenuProps) {
             </div>
 
             <div className="mt-4 space-y-3 text-sm">
-              <input
+              <input aria-label="当前密码"
                 value={currentPassword}
                 onChange={(event) => setCurrentPassword(event.target.value)}
                 placeholder="当前密码"
                 type="password"
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
               />
-              <input
+              <input aria-label="新密码"
                 value={nextPassword}
                 onChange={(event) => setNextPassword(event.target.value)}
                 placeholder="新密码"
                 type="password"
                 className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
               />
-              <input
+              <input aria-label="确认新密码"
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 placeholder="确认新密码"
@@ -208,13 +208,13 @@ export function UserMenu({ user, variant = 'default' }: UserMenuProps) {
             </div>
 
             <div className="mt-6 flex items-center justify-end gap-2">
-              <button
+              <button type="button"
                 onClick={() => setPasswordOpen(false)}
                 className="btn-ghost-themed rounded-lg border px-3 py-2 text-sm"
               >
                 取消
               </button>
-              <button
+              <button type="button"
                 disabled={submitting}
                 onClick={handlePasswordSubmit}
                 className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary disabled:opacity-50"

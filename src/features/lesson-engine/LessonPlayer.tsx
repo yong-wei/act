@@ -72,7 +72,7 @@ function TimelineScrubber({
         const isAccessible = isTeacherMode || index <= currentIndex;
 
         return (
-          <button
+          <button type="button"
             key={index}
             onClick={() => isAccessible && onStepClick(index)}
             disabled={!isAccessible}
@@ -292,7 +292,7 @@ export function LessonPlayer({
 
           {/* 跟随模式切换（仅学生） */}
           {!isTeacherMode && (
-            <button
+            <button type="button"
               onClick={() => setFollowMode(!isFollowMode)}
               className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs transition-colors ${
                 isFollowMode
@@ -337,7 +337,7 @@ export function LessonPlayer({
       <footer className="flex items-center justify-between border-t border-slate-800 px-4 py-3">
         {/* 左侧：播放控制 */}
         <div className="flex items-center gap-2">
-          <button
+          <button type="button"
             onClick={isPaused ? play : pause}
             className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-800 text-slate-300 transition-colors hover:bg-slate-700"
           >
@@ -360,7 +360,7 @@ export function LessonPlayer({
 
         {/* 右侧：导航按钮 */}
         <div className="flex items-center gap-2">
-          <button
+          <button type="button"
             onClick={prevStep}
             disabled={currentStepIndex === 0}
             className="flex items-center gap-1 rounded-lg bg-slate-800 px-3 py-2 text-sm text-slate-300 transition-colors hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -369,7 +369,7 @@ export function LessonPlayer({
             <span className="hidden sm:inline">上一步</span>
           </button>
 
-          <button
+          <button type="button"
             onClick={nextStep}
             disabled={currentStepIndex === totalSteps - 1}
             className="flex items-center gap-1 rounded-lg bg-amber-500 px-3 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"

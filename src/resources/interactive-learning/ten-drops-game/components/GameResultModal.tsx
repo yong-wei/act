@@ -109,7 +109,7 @@ export const GameResultModal = memo(function GameResultModal({
 
         {/* 按钮 */}
         <div className="flex gap-3 mt-6">
-          <button
+          <button type="button"
             onClick={onRestart}
             className={`
               flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg
@@ -126,7 +126,7 @@ export const GameResultModal = memo(function GameResultModal({
           </button>
 
           {isWon && hasNextLevel && onNextLevel && (
-            <button
+            <button type="button"
               onClick={onNextLevel}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium transition-all"
             >

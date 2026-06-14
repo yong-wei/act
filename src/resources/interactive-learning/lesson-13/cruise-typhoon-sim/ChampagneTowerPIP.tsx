@@ -132,7 +132,7 @@ export function ChampagneTowerPIP({
 
   if (minimized) {
     return (
-      <button
+      <button type="button"
         onClick={onClick}
         className={`absolute ${positionStyles[position]} z-50 p-2 rounded-full transition-all ${
           state.isFalling
@@ -148,7 +148,7 @@ export function ChampagneTowerPIP({
   }
 
   return (
-    <div
+    <div tabIndex={0} role="button" onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click(); } }}
       className={`absolute ${positionStyles[position]} z-50 transition-all`}
       onClick={onClick}
     >

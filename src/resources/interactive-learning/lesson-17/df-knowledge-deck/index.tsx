@@ -158,7 +158,7 @@ export default function DfKnowledgeDeck({ onComplete, onStateChange }: DfKnowled
           </div>
           <div className="mt-4 space-y-2">
             {KNOWLEDGE_CARDS.map((card, index) => (
-              <button
+              <button type="button"
                 key={card.id}
                 onClick={() => recordVisit(card.id)}
                 className={`w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${

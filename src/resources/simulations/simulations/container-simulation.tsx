@@ -360,21 +360,21 @@ function ControlPanel({
       {/* 仿真控制 */}
       <div className="mb-4 flex gap-2">
         {!state.isRunning ? (
-          <button
+          <button type="button"
             onClick={onStart}
             className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonPrimary}`}
           >
             开始仿真
           </button>
         ) : (
-          <button
+          <button type="button"
             onClick={onPause}
             className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonSecondary}`}
           >
             {state.isPaused ? '继续' : '暂停'}
           </button>
         )}
-        <button
+        <button type="button"
           onClick={onReset}
           className={`flex-1 rounded border px-3 py-2 ${simulationUi.buttonOutline}`}
         >
@@ -385,7 +385,7 @@ function ControlPanel({
       {/* 目标航向 */}
       <div className="mb-3">
         <label className={`mb-1 block ${simulationUi.mutedText}`}>目标航向: {state.targetHeading.toFixed(0)}°</label>
-        <input
+        <input aria-label="集装箱船仿真参数一"
           type="range"
           min="-180"
           max="180"
@@ -403,7 +403,7 @@ function ControlPanel({
             ({state.loadRatio < 0.3 ? '空载' : state.loadRatio < 0.7 ? '半载' : '满载'})
           </span>
         </label>
-        <input
+        <input aria-label="集装箱船仿真参数二"
           type="range"
           min="0"
           max="100"
@@ -420,7 +420,7 @@ function ControlPanel({
       {/* 风速 */}
       <div className="mb-3">
         <label className={`mb-1 block ${simulationUi.mutedText}`}>风速: {state.windSpeed.toFixed(1)} m/s</label>
-        <input
+        <input aria-label="集装箱船仿真参数三"
           type="range"
           min="0"
           max="25"
@@ -434,7 +434,7 @@ function ControlPanel({
       {/* 风向 */}
       <div className="mb-3">
         <label className={`mb-1 block ${simulationUi.mutedText}`}>风向: {state.windDirection.toFixed(0)}°</label>
-        <input
+        <input aria-label="集装箱船仿真参数四"
           type="range"
           min="0"
           max="360"
@@ -446,10 +446,10 @@ function ControlPanel({
 
       {/* 控制模式 */}
       <div className="mb-3">
-        <label className={`mb-1 block ${simulationUi.mutedText}`}>控制模式</label>
+        <p className={`mb-1 block ${simulationUi.mutedText}`}>控制模式</p>
         <div className="flex flex-wrap gap-1">
           {(['manual', 'p', 'pd', 'pid', 'pid_scheduled'] as ControlMode[]).map((mode) => (
-            <button
+            <button type="button"
               key={mode}
               onClick={() => onControlModeChange(mode)}
               className={`rounded border px-2 py-1 text-xs ${

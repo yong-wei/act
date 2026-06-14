@@ -199,6 +199,8 @@ export interface PlatformRouteDockDisposition {
   removalCondition: string;
 }
 
+export type PlatformDesktopNavigationBehavior = 'fixed' | 'collapsible' | 'hidden';
+
 export interface PlatformRouteAliasRetirement {
   alias: string;
   owningChange: string;
@@ -220,6 +222,7 @@ export interface PlatformPrimaryRouteInventoryEntry {
   roleScope: readonly PlatformRoleNavigationAudience[];
   authState: PlatformRouteAuthState;
   themeSupport: readonly PlatformRouteThemeSupport[];
+  desktopNavigation: PlatformDesktopNavigationBehavior;
   mobileNavigation: PlatformMobileNavigationBehavior;
   navigationLayers: readonly PlatformNavigationLayerId[];
   floatingDock: PlatformFloatingDockRouteBehavior;
@@ -259,6 +262,7 @@ export interface PlatformRoleNavigationOptions {
 type PrimaryRouteInput = Omit<
   PlatformPrimaryRouteInventoryEntry,
   | 'themeSupport'
+  | 'desktopNavigation'
   | 'mobileNavigation'
   | 'shellMigrationDisposition'
   | 'shellRemovalCondition'
@@ -273,6 +277,7 @@ type PrimaryRouteInput = Omit<
   Pick<
     PlatformPrimaryRouteInventoryEntry,
     | 'themeSupport'
+    | 'desktopNavigation'
     | 'mobileNavigation'
     | 'shellMigrationDisposition'
     | 'shellRemovalCondition'
@@ -352,9 +357,20 @@ function primaryRoute(input: PrimaryRouteInput): PlatformPrimaryRouteInventoryEn
       }]
     : undefined);
 
+  const desktopNavigation = input.desktopNavigation ?? (
+    input.frame === 'public-entry'
+      ? 'hidden'
+      : input.legacyShell || input.exception
+        ? 'fixed'
+      : input.navigationLayers.includes('global-product')
+        ? 'collapsible'
+        : 'fixed'
+  );
+
   return {
     ...input,
     themeSupport: input.themeSupport ?? ['light', 'dark'],
+    desktopNavigation,
     mobileNavigation: input.mobileNavigation ?? (
       input.frame === 'public-entry'
         ? input.authState === 'auth-entry'
@@ -738,6 +754,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['guest', 'student'],
     authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'collapsed',
     visualQaProfile: 'immersive',
     screenshotProfile: 'representative-covered',
@@ -887,6 +904,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'public',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'collapsed',
     mobileNavigation: 'drawer',
     visualQaProfile: 'immersive',
@@ -908,6 +926,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['guest', 'student', 'teacher'],
     authState: 'mixed',
     navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'collapsed',
     mobileNavigation: 'drawer',
     visualQaProfile: 'immersive',
@@ -1037,6 +1056,7 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     roleScope: ['teacher', 'admin'],
     authState: 'protected-redirect',
     navigationLayers: ['role-cockpit', 'contextual-workspace', 'local-tool'],
+    desktopNavigation: 'collapsible',
     floatingDock: 'enabled',
     visualQaProfile: 'representative',
     owningChange: DATA_CENTER_OPERATIONS_ROLE_CHANGE,

@@ -10,7 +10,7 @@
  * - 可配置的触发条件和警告内容
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useId } from 'react';
 import {
   AlertTriangle,
   Settings,
@@ -57,6 +57,15 @@ function EthicalEditor({
   config: EthicalTriggerConfig;
   onConfigChange?: (config: EthicalTriggerConfig) => void;
 }) {
+  const idPrefix = useId();
+  const violationTypeId = `${idPrefix}-violation-type`;
+  const warningTitleId = `${idPrefix}-warning-title`;
+  const warningMessageId = `${idPrefix}-warning-message`;
+  const regulationId = `${idPrefix}-regulation`;
+  const remediationQuestionId = `${idPrefix}-remediation-question`;
+  const remediationAnswerId = `${idPrefix}-remediation-answer`;
+  const remediationExplanationId = `${idPrefix}-remediation-explanation`;
+
   const updateConfig = (updates: Partial<EthicalTriggerConfig>) => {
     onConfigChange?.({ ...config, ...updates });
   };
@@ -91,8 +100,8 @@ function EthicalEditor({
 
       {/* 违规类型 */}
       <div>
-        <label className="block text-sm text-slate-400 mb-1">违规类型标识</label>
-        <input
+        <label htmlFor={violationTypeId} className="block text-sm text-slate-400 mb-1">违规类型标识</label>
+        <input id={violationTypeId}
           type="text"
           value={config.violationType}
           onChange={(e) => updateConfig({ violationType: e.target.value })}
@@ -104,8 +113,8 @@ function EthicalEditor({
       {/* 触发条件 */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="text-sm text-slate-400">触发条件</label>
-          <button
+          <p className="text-sm text-slate-400">触发条件</p>
+          <button type="button"
             onClick={addCondition}
             className="flex items-center gap-1 px-2 py-1 text-xs text-red-400 hover:bg-red-500/10 rounded"
           >
@@ -116,7 +125,7 @@ function EthicalEditor({
         <div className="space-y-2">
           {config.conditions.map((condition, index) => (
             <div key={condition.id} className="flex items-center gap-2">
-              <input
+              <input aria-label="指标名称"
                 type="text"
                 value={condition.metric}
                 onChange={(e) => updateCondition(index, { metric: e.target.value })}
@@ -138,7 +147,7 @@ function EthicalEditor({
                   </option>
                 ))}
               </select>
-              <input
+              <input aria-label="阈值"
                 type="number"
                 value={condition.threshold}
                 onChange={(e) =>
@@ -148,14 +157,14 @@ function EthicalEditor({
                 placeholder="阈值"
                 step="0.01"
               />
-              <input
+              <input aria-label="单位"
                 type="text"
                 value={condition.unit || ''}
                 onChange={(e) => updateCondition(index, { unit: e.target.value })}
                 className="w-16 px-2 py-1.5 bg-slate-900 border border-slate-600 rounded text-white text-sm focus:border-red-500 focus:outline-none"
                 placeholder="单位"
               />
-              <button
+              <button type="button"
                 onClick={() => removeCondition(index)}
                 className="p-1.5 text-slate-500 hover:text-red-400"
               >
@@ -168,8 +177,8 @@ function EthicalEditor({
 
       {/* 警告内容 */}
       <div>
-        <label className="block text-sm text-slate-400 mb-1">警告标题</label>
-        <input
+        <label htmlFor={warningTitleId} className="block text-sm text-slate-400 mb-1">警告标题</label>
+        <input id={warningTitleId}
           type="text"
           value={config.warningTitle}
           onChange={(e) => updateConfig({ warningTitle: e.target.value })}
@@ -179,8 +188,8 @@ function EthicalEditor({
       </div>
 
       <div>
-        <label className="block text-sm text-slate-400 mb-1">警告消息</label>
-        <textarea
+        <label htmlFor={warningMessageId} className="block text-sm text-slate-400 mb-1">警告消息</label>
+        <textarea id={warningMessageId}
           value={config.warningMessage}
           onChange={(e) => updateConfig({ warningMessage: e.target.value })}
           className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-white text-sm focus:border-red-500 focus:outline-none resize-none"
@@ -190,8 +199,8 @@ function EthicalEditor({
       </div>
 
       <div>
-        <label className="block text-sm text-slate-400 mb-1">相关法规（可选）</label>
-        <input
+        <label htmlFor={regulationId} className="block text-sm text-slate-400 mb-1">相关法规（可选）</label>
+        <input id={regulationId}
           type="text"
           value={config.regulation || ''}
           onChange={(e) => updateConfig({ regulation: e.target.value })}
@@ -202,8 +211,8 @@ function EthicalEditor({
 
       {/* 整改问题 */}
       <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-        <label className="block text-sm text-amber-400 mb-2">整改问题</label>
-        <input
+        <label htmlFor={remediationQuestionId} className="block text-sm text-amber-400 mb-2">整改问题</label>
+        <input id={remediationQuestionId}
           type="text"
           value={config.remediation.question}
           onChange={(e) =>
@@ -216,8 +225,8 @@ function EthicalEditor({
         />
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="block text-xs text-slate-500 mb-1">正确答案</label>
-            <input
+            <label htmlFor={remediationAnswerId} className="block text-xs text-slate-500 mb-1">正确答案</label>
+            <input id={remediationAnswerId}
               type="text"
               value={config.remediation.correctAnswer}
               onChange={(e) =>
@@ -230,8 +239,8 @@ function EthicalEditor({
             />
           </div>
           <div>
-            <label className="block text-xs text-slate-500 mb-1">答案解释（可选）</label>
-            <input
+            <label htmlFor={remediationExplanationId} className="block text-xs text-slate-500 mb-1">答案解释（可选）</label>
+            <input id={remediationExplanationId}
               type="text"
               value={config.remediation.explanation || ''}
               onChange={(e) =>
@@ -311,7 +320,7 @@ function MeltdownOverlay({
           <p className="text-emerald-300 mb-4">
             {config.remediation.explanation || '回答正确，仿真已解锁'}
           </p>
-          <button
+          <button type="button"
             onClick={onDismiss}
             className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors"
           >
@@ -388,7 +397,7 @@ function MeltdownOverlay({
           </div>
           <p className="text-white mb-3">{config.remediation.question}</p>
           <div className="flex gap-2">
-            <input
+            <input aria-label="输入答案..."
               type="text"
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
@@ -401,7 +410,7 @@ function MeltdownOverlay({
               placeholder="输入答案..."
               autoFocus
             />
-            <button
+            <button type="button"
               onClick={handleSubmit}
               className="px-6 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors"
             >

@@ -102,7 +102,7 @@ export function StudentPlayer({ session: initialSession, items }: StudentPlayerP
           <CheckCircle className="h-16 w-16 text-green-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-white mb-2">课堂已结束</h2>
           <p className="text-slate-400 mb-6">感谢您的参与！</p>
-          <button
+          <button type="button"
             onClick={() => router.push('/classroom/join')}
             className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors"
           >

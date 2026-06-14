@@ -376,7 +376,7 @@ function CompoundControlPanel({
               <div className="premium-lesson-muted mt-1 text-xs">
                 {fmt(deferred[key], meta.unit ? ` ${meta.unit}` : '', meta.step < 0.01 ? 3 : 2)}
               </div>
-              <input
+              <input aria-label="初始方案验证参数"
                 type="range"
                 min={meta.min}
                 max={meta.max}
