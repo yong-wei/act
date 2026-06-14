@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react';
 
-import { KonlingAvatar } from '@/components/ai/konling-avatar';
 import { AppShell, type AppBreadcrumbItem } from '@/components/platform/app-shell';
 
 const INTERACTIVE_LEARNING_BREADCRUMBS: Record<string, readonly AppBreadcrumbItem[]> = {
@@ -51,13 +50,6 @@ export function InteractiveLearningShell({
       actions={actions}
       activeHref={activeHref}
       sidebarMode="collapsible"
-      dockControls={[{
-        id: 'interactive-learning-konling',
-        label: '控灵',
-        control: 'konling',
-        href: '/ai/copilot?mode=konling',
-        icon: <KonlingAvatar size="sm" />,
-      }]}
       className="surface-page"
     >
       <div data-platform-learning-atlas-shell="student-secondary-route">

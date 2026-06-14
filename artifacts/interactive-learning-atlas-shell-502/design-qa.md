@@ -43,7 +43,7 @@ QA runner: equivalent per-change design QA report. The current Codex session did
 - Outer route containers are fluid workspace surfaces; fixed 1200/1280px centered shells are absent.
 - Course catalog labels are restricted to `理论课` and `实践课`; duration and status markers are sourced through `runtimeCardMetadata`.
 - Repeated entries remain card-like, while page sections are unframed bands rather than nested cards.
-- Shared platform floating dock is present and exposes the `控灵` entry from the dock menu.
+- Shared platform floating dock is present and exposes the single global `控灵` entry from the dock menu.
 - 320px light and dark mobile screenshots cover all four first-hop atlas routes and show no horizontal overflow.
 - Some long full-page captures repeat the fixed shell chrome at the end of the image; DOM metrics and viewport captures confirm this is a screenshot capture artifact, not duplicate page content.
 

@@ -644,6 +644,7 @@ describe('platform UI contracts', () => {
     const crossDomainSource = readSource('src/app/interactive-learning/cross-domain-exploration/page.tsx');
     const shellSource = readSource('src/features/interactive/interactive-learning-shell.tsx');
     const catalogSource = readSource('src/features/interactive/learning-catalog.ts');
+    const globalAiButtonSource = readSource('src/components/ai/global-ai-button.tsx');
 
     for (const source of [
       interactiveEntrySource,
@@ -664,8 +665,10 @@ describe('platform UI contracts', () => {
     expect(shellSource).toContain('sidebarMode="collapsible"');
     expect(shellSource).toContain('data-platform-learning-atlas-shell');
     expect(shellSource).toContain('INTERACTIVE_LEARNING_BREADCRUMBS');
-    expect(shellSource).toContain("control: 'konling'");
-    expect(shellSource).toContain('/ai/copilot?mode=konling');
+    expect(shellSource).not.toContain('interactive-learning-konling');
+    expect(shellSource).not.toContain("control: 'konling'");
+    expect(globalAiButtonSource).toContain("id: 'konling-global-ai'");
+    expect(globalAiButtonSource).toContain('<KonlingAvatar size="sm" />');
     expect(interactiveEntrySource).toContain('data-commercial-student-entry-route="/interactive-learning"');
     expect(courseCatalogSource).toContain('data-commercial-student-entry-route="/interactive-learning/courses"');
     expect(courseCatalogSource).toContain('courseKind');

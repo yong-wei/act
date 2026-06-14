@@ -554,7 +554,7 @@
     "Outer route containers are fluid workspace surfaces and no longer use full-page 1200/1280px centered shells.",
     "Course catalog exposes only 理论课 and 实践课 course-kind chips while duration remains sourced from lesson runtime card metadata.",
     "Repeated learning entries remain card-like; page sections are unframed bands to avoid card nesting.",
-    "Shared platform floating dock includes the 控灵 entry and remains at the safe-area bottom-right dock surface."
+    "Shared platform floating dock includes one global 控灵 entry and remains at the safe-area bottom-right dock surface."
   ],
   "blockingFindings": [],
   "qaRunner": "equivalent per-change design QA report; Product Design design-qa tool was not callable in this Codex session"
