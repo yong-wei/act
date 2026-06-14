@@ -263,6 +263,31 @@ function BarChart({
 
 // ========== 播放模式组件 ==========
 
+function createInitialPollState(options: PollOption[], showLiveResults = false): PollState {
+  const results: PollResult[] = options.map((opt) => ({
+    optionKey: opt.key,
+    count: showLiveResults ? Math.floor(Math.random() * 10) : 0,
+    percentage: 0,
+  }));
+  const totalVotes = results.reduce((sum, result) => sum + result.count, 0);
+  const normalizedResults = results.map((result) => ({
+    ...result,
+    percentage: totalVotes > 0 ? (result.count / totalVotes) * 100 : 0,
+  }));
+
+  return {
+    results: normalizedResults,
+    totalVotes,
+    hasVoted: false,
+    isClosed: false,
+  };
+}
+
+function pollPlayerIdentityKey(config: PollComponentConfig) {
+  const optionKey = config.options.map((option) => option.key).join('|');
+  return `${config.id}:${optionKey}:${config.timeLimit ?? 0}:${config.showLiveResults ? 'live' : 'hidden'}`;
+}
+
 function PollPlayer({
   config,
   classroomSession,
@@ -276,41 +301,9 @@ function PollPlayer({
   const options = useMemo(() => config?.options ?? [], [config?.options]);
   const isValidConfig = options.length > 0;
 
-  const [pollState, setPollState] = useState<PollState>({
-    results: options.map((opt) => ({
-      optionKey: opt.key,
-      count: 0,
-      percentage: 0,
-    })),
-    totalVotes: 0,
-    hasVoted: false,
-    isClosed: false,
-  });
+  const [pollState, setPollState] = useState<PollState>(() => createInitialPollState(options, config?.showLiveResults));
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [timeRemaining, setTimeRemaining] = useState(config?.timeLimit || 0);
-
-  // 模拟获取投票数据
-  useEffect(() => {
-    // TODO: 实际实现应从API获取
-    // 这里使用模拟数据
-    if (isValidConfig && config?.showLiveResults) {
-      // 模拟一些初始投票
-      const mockResults: PollResult[] = options.map((opt) => ({
-        optionKey: opt.key,
-        count: Math.floor(Math.random() * 10),
-        percentage: 0,
-      }));
-      const total = mockResults.reduce((sum, r) => sum + r.count, 0);
-      mockResults.forEach((r) => {
-        r.percentage = total > 0 ? (r.count / total) * 100 : 0;
-      });
-      setPollState((prev) => ({
-        ...prev,
-        results: mockResults,
-        totalVotes: total,
-      }));
-    }
-  }, [options, config?.showLiveResults, isValidConfig]);
 
   // 倒计时
   useEffect(() => {
@@ -503,6 +496,7 @@ export function PollComponent({
 
   return (
     <PollPlayer
+      key={pollPlayerIdentityKey(config)}
       config={config}
       classroomSession={classroomSession}
       userId={userId}

@@ -9,7 +9,13 @@ import {
   getUNIT_2_1MediaSrc,
   UNIT_2_1_LESSON_STEPS,
   UNIT_2_1_PAGE_CONTRACTS,
+  type UNIT_2_1StepResponse,
+  type UNIT_2_1StudentCourseState,
 } from '@/lib/unit-2-1-course';
+import {
+  commitUNIT_2_1StudentSubmission,
+  createUNIT_2_1ManifestSubmissionInput,
+} from '../unit-2-1-modeling-language/submission-state';
 
 const repoRoot = process.cwd();
 
@@ -114,6 +120,92 @@ describe('unit 2-1 interactive course', () => {
     expect(source).toContain('G(s)=\\frac{Y(s)}{U(s)}\\bigg|_{\\text{零初值}}');
     expect(source).toContain('五类典型环节及其第一判断');
     expect(source).toContain('\\frac{Y(s)}{R(s)}=\\frac{\\sum P_k\\Delta_k}{\\Delta}');
+  });
+
+  it('keeps student activity draft ownership keyed by step and saved response identity', () => {
+    const stepPanelsSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-2-1-modeling-language/step-panels.tsx'),
+      'utf8',
+    );
+    const studentPageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-2-1-modeling-language/student-page.tsx'),
+      'utf8',
+    );
+    const formStart = stepPanelsSource.indexOf('export function UNIT_2_1StudentActivityForm');
+    const formEnd = stepPanelsSource.indexOf('export function UNIT_2_1TeacherResponsePanel');
+    const formSource = stepPanelsSource.slice(formStart, formEnd);
+
+    expect(formSource).not.toContain('setDraft(getDefaultDraft(activity, savedResponse))');
+    expect(studentPageSource).toContain('key={`${step.id}:${savedResponse?.submittedAt ?? 0}`}');
+  });
+
+  it('delegates submission evidence to the student submit event path helper', () => {
+    const studentPageSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/unit-2-1-modeling-language/student-page.tsx'),
+      'utf8',
+    );
+    const handlerStart = studentPageSource.indexOf('const handleSubmitResponse');
+    const handlerEnd = studentPageSource.indexOf('const handleAiEvent');
+    const handlerSource = studentPageSource.slice(handlerStart, handlerEnd);
+
+    expect(handlerSource).toContain('commitUNIT_2_1StudentSubmission({');
+    expect(handlerSource).toContain('response,');
+    expect(handlerSource).toContain('stepId: step.id');
+    expect(handlerSource).toContain('savedResponse,');
+    expect(handlerSource).toContain('submitManifestResponse: submitCurrentManifestResponse');
+  });
+
+  it('commits student submission evidence once with stable payload and resubmit identity', () => {
+    const response: UNIT_2_1StepResponse = {
+      stepId: 'step-02',
+      submittedAt: 1778550642900,
+      answers: { selected: 'object-first' },
+      summary: { attemptCount: 1, resultState: 'correct' },
+    };
+    const previousState: UNIT_2_1StudentCourseState = {
+      kind: 'unit21_student_state',
+      version: 1,
+      studentName: '旧姓名',
+      updatedAt: 1,
+      responses: {},
+    };
+    const submissions: ReturnType<typeof createUNIT_2_1ManifestSubmissionInput>[] = [];
+
+    const nextState = commitUNIT_2_1StudentSubmission({
+      previousState,
+      currentStudentName: '周同学',
+      stepId: 'step-02',
+      response,
+      submitManifestResponse: (input) => submissions.push(input),
+      now: 1778550642999,
+    });
+
+    expect(submissions).toHaveLength(1);
+    expect(submissions[0]).toEqual({
+      response,
+      isResubmit: false,
+      dataOverrides: {
+        stepId: 'step-02',
+        summary: response.summary,
+      },
+    });
+    expect(nextState).toEqual({
+      ...previousState,
+      studentName: '周同学',
+      updatedAt: 1778550642999,
+      responses: { 'step-02': response },
+    });
+
+    const resubmitInput = createUNIT_2_1ManifestSubmissionInput({
+      stepId: 'step-02',
+      response: { ...response, submittedAt: 1778550643900 },
+      savedResponse: response,
+    });
+    expect(resubmitInput.isResubmit).toBe(true);
+    expect(resubmitInput.dataOverrides).toEqual({
+      stepId: 'step-02',
+      summary: response.summary,
+    });
   });
 
   it('renders the revised static formulas for step-05, step-07, step-13 and step-14', () => {

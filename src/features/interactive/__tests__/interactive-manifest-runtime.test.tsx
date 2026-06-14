@@ -781,6 +781,19 @@ describe('interactive runtime manifest', () => {
     expect(html).not.toContain('data-manifest-render-error');
   });
 
+  it('keys progressive reveal state by step module and teacher progress instead of syncing through an effect', () => {
+    const source = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
+      'utf8',
+    );
+    const revealStart = source.indexOf('function StepReveal');
+    const registryStart = source.indexOf('export function createManifestContentModuleRegistry');
+    const revealSource = source.slice(revealStart, registryStart);
+
+    expect(revealSource).not.toContain('setLocalVisibleCount(teacherVisibleCount)');
+    expect(source).toContain('stepRevealIdentityKey(step, module, renderExtra.revealProgress)');
+  });
+
   it('renders objective lists from content block items', () => {
     const manifest = normalizeInteractiveRuntimeManifest({
       lesson_id: 'test-lesson',
@@ -1843,7 +1856,8 @@ describe('interactive runtime manifest', () => {
     expect(source).toContain('onInlineReveal?.()');
     expect(source).toContain('const visibleCount = onInlineReveal');
     expect(source).toMatch(/onInlineReveal\s*\?\s*teacherVisibleCount/);
-    expect(source).toContain('setLocalVisibleCount(teacherVisibleCount)');
+    expect(source).toContain('setLocalVisibleCount((prev) => Math.min(items.length, prev + 1))');
+    expect(source).not.toContain('setLocalVisibleCount(teacherVisibleCount)');
   });
 
   it('keeps drag-match draft answers controlled by parent runtime state', () => {

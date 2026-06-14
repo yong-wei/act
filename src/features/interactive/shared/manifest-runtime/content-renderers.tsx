@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useMemo, useState, type ReactNode } from 'react';
 import { BlockMath, InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
@@ -1124,10 +1124,6 @@ function StepReveal({
   const teacherVisibleCount = Math.min(items.length, Math.max(1, revealProgress + 1));
   const [localVisibleCount, setLocalVisibleCount] = useState(teacherVisibleCount);
 
-  useEffect(() => {
-    setLocalVisibleCount(teacherVisibleCount);
-  }, [teacherVisibleCount, title]);
-
   const visibleCount = onInlineReveal
     ? teacherVisibleCount
     : Math.min(items.length, Math.max(teacherVisibleCount, localVisibleCount));
@@ -1189,6 +1185,14 @@ function StepReveal({
   );
 }
 
+function stepRevealIdentityKey(
+  step: InteractiveRuntimeStepManifest,
+  module: InteractiveRuntimeModuleManifest,
+  revealProgress: number,
+) {
+  return `${step.id}:${module.id}:${revealProgress}`;
+}
+
 export function createManifestContentModuleRegistry(extra: {
   revealProgress: number;
   allowInlineReveal: boolean;
@@ -1248,6 +1252,7 @@ export function createManifestContentModuleRegistry(extra: {
       if (items.length) {
         return (
           <StepReveal
+            key={stepRevealIdentityKey(step, module, renderExtra.revealProgress)}
             title={titleFromModule(module)}
             items={items}
             revealProgress={renderExtra.revealProgress}
@@ -1605,6 +1610,7 @@ export function createManifestContentModuleRegistry(extra: {
       if (!items.length) return null;
       return (
         <StepReveal
+          key={stepRevealIdentityKey(step, module, renderExtra.revealProgress)}
           title={titleFromModule(module)}
           items={items}
           revealProgress={renderExtra.revealProgress}
@@ -1618,6 +1624,7 @@ export function createManifestContentModuleRegistry(extra: {
       if (!items.length) return null;
       return (
         <StepReveal
+          key={stepRevealIdentityKey(step, module, renderExtra.revealProgress)}
           title={titleFromModule(module)}
           items={items}
           revealProgress={renderExtra.revealProgress}
@@ -1631,6 +1638,7 @@ export function createManifestContentModuleRegistry(extra: {
       if (!items.length) return null;
       return (
         <StepReveal
+          key={stepRevealIdentityKey(step, module, renderExtra.revealProgress)}
           title={titleFromModule(module)}
           items={items}
           revealProgress={renderExtra.revealProgress}
@@ -1644,6 +1652,7 @@ export function createManifestContentModuleRegistry(extra: {
       if (items.length) {
         return (
           <StepReveal
+            key={stepRevealIdentityKey(step, module, renderExtra.revealProgress)}
             title={titleFromModule(module)}
             items={items}
             revealProgress={renderExtra.revealProgress}
