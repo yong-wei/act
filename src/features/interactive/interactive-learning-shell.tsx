@@ -2,7 +2,30 @@
 
 import type { ReactNode } from 'react';
 
+import { KonlingAvatar } from '@/components/ai/konling-avatar';
 import { AppShell, type AppBreadcrumbItem } from '@/components/platform/app-shell';
+
+const INTERACTIVE_LEARNING_BREADCRUMBS: Record<string, readonly AppBreadcrumbItem[]> = {
+  '/interactive-learning': [
+    { label: '学习', href: '/dashboard' },
+    { label: '互动学习' },
+  ],
+  '/interactive-learning/courses': [
+    { label: '学习', href: '/dashboard' },
+    { label: '互动学习', href: '/interactive-learning' },
+    { label: '互动课程' },
+  ],
+  '/interactive-learning/chapter-components': [
+    { label: '学习', href: '/dashboard' },
+    { label: '互动学习', href: '/interactive-learning' },
+    { label: '章节组件' },
+  ],
+  '/interactive-learning/cross-domain-exploration': [
+    { label: '学习', href: '/dashboard' },
+    { label: '互动学习', href: '/interactive-learning' },
+    { label: '跨域探索' },
+  ],
+};
 
 export function InteractiveLearningShell({
   activeHref,
@@ -24,10 +47,17 @@ export function InteractiveLearningShell({
       viewerRole="student"
       title={title}
       subtitle={subtitle}
-      breadcrumbs={breadcrumbs}
+      breadcrumbs={breadcrumbs ?? INTERACTIVE_LEARNING_BREADCRUMBS[activeHref]}
       actions={actions}
       activeHref={activeHref}
       sidebarMode="collapsible"
+      dockControls={[{
+        id: 'interactive-learning-konling',
+        label: '控灵',
+        control: 'konling',
+        href: '/ai/copilot?mode=konling',
+        icon: <KonlingAvatar size="sm" />,
+      }]}
       className="surface-page"
     >
       <div data-platform-learning-atlas-shell="student-secondary-route">

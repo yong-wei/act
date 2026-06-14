@@ -58,13 +58,18 @@ export interface InteractiveResource {
   displayOrder: number;
 }
 
+export type InteractiveCourseKind = '理论课' | '实践课';
+
 export interface InteractiveCourseHubLesson {
   id: string;
   title: string;
   description: string;
-  duration: string;
   href: string;
-  badge: string;
+  courseKind: InteractiveCourseKind;
+  runtimeCardMetadata: {
+    durationLabel: string;
+    statusLabel: string;
+  };
   unitLabel: string;
   legacySourceLabel?: string;
 }
@@ -189,11 +194,6 @@ export const FEATURED_LESSONS = [
   },
 ] as const;
 
-export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
-  lesson.id === 'unit-1-1-see-the-full-picture' ||
-  lesson.id === 'cruise-comfort-boppps'
-);
-
 export const LEGACY_LESSONS = FEATURED_LESSONS.filter(
   (lesson) =>
     lesson.id !== 'cruise-comfort-boppps' &&
@@ -238,15 +238,43 @@ function getFeaturedLessonById(id: string) {
   return lesson;
 }
 
-function createModuleLesson(id: string, unitLabel: string, legacySourceLabel?: string): InteractiveCourseHubLesson {
-  const lesson = getFeaturedLessonById(id);
+function getCourseKind(id: string): InteractiveCourseKind {
+  return id === 'cruise-comfort-boppps' ? '实践课' : '理论课';
+}
 
+function createCourseHubLesson(
+  lesson: (typeof FEATURED_LESSONS)[number],
+  unitLabel: string,
+  legacySourceLabel?: string
+): InteractiveCourseHubLesson {
   return {
-    ...lesson,
+    id: lesson.id,
+    title: lesson.title,
+    description: lesson.description,
+    href: lesson.href,
+    courseKind: getCourseKind(lesson.id),
+    runtimeCardMetadata: {
+      durationLabel: lesson.duration,
+      statusLabel: lesson.badge,
+    },
     unitLabel,
     ...(legacySourceLabel ? { legacySourceLabel } : {}),
   };
 }
+
+function createModuleLesson(id: string, unitLabel: string, legacySourceLabel?: string): InteractiveCourseHubLesson {
+  const lesson = getFeaturedLessonById(id);
+
+  return createCourseHubLesson(lesson, unitLabel, legacySourceLabel);
+}
+
+export const PREMIUM_LESSONS = FEATURED_LESSONS.filter((lesson) =>
+  lesson.id === 'unit-1-1-see-the-full-picture' ||
+  lesson.id === 'cruise-comfort-boppps'
+).map((lesson) => createCourseHubLesson(
+  lesson,
+  lesson.id === 'unit-1-1-see-the-full-picture' ? '1-1' : '邮轮实践'
+));
 
 export const INTERACTIVE_COURSE_MODULES: InteractiveCourseHubModule[] = [
   {

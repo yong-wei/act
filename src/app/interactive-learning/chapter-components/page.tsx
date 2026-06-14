@@ -54,13 +54,14 @@ export default function ChapterComponentsPage() {
       subtitle="Chapter Components"
     >
       <section
-        className="mx-auto max-w-[1280px] px-6 py-10"
+        className="w-full px-4 py-8 sm:px-6 lg:px-8"
         data-commercial-workspace="interactive-learning"
         data-commercial-student-entry-route="/interactive-learning/chapter-components"
         data-commercial-entry-intent="learn"
+        data-interactive-atlas-workspace="chapter-components"
         data-learning-entry-map="chapter-component-library"
       >
-        <header className="surface-card mb-8 p-6">
+        <header className="mb-8 border-b border-border/60 pb-6">
           <h1 className="text-3xl font-semibold">各章节互动组件</h1>
           <p className="mt-2 text-sm text-subtle">先选择章节分类，再进入对应组件列表页。</p>
         </header>
@@ -78,7 +79,7 @@ export default function ChapterComponentsPage() {
                 <Link
                   key={categoryKey}
                   href={`/interactive-learning/chapter-components/${config.routeSlug}`}
-                  className="surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-amber-400/45"
+                  className="surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-primary/40"
                 >
                   <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <Icon className="h-5 w-5" />
@@ -87,7 +88,7 @@ export default function ChapterComponentsPage() {
                   <p className="mt-2 text-sm text-subtle">{config.description}</p>
                   <div className="mt-4 flex items-center justify-between text-xs text-subtle">
                     <span>{counts[categoryKey] ?? 0} 个组件</span>
-                    <span className="inline-flex items-center text-amber-700 dark:text-amber-200">
+                    <span className="inline-flex items-center text-primary">
                       查看组件
                       <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                     </span>

@@ -261,8 +261,8 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
   it('uses 90-minute durations for 2-2, 2-3, 2-4, and 3-1 in module cards and presets', () => {
     const module2 = INTERACTIVE_COURSE_MODULES.find((module) => module.id === 'module-2');
     const module3 = INTERACTIVE_COURSE_MODULES.find((module) => module.id === 'module-3');
-    const module2Lessons = new Map(module2?.lessons.map((lesson) => [lesson.id, lesson.duration]));
-    const module3Lessons = new Map(module3?.lessons.map((lesson) => [lesson.id, lesson.duration]));
+    const module2Lessons = new Map(module2?.lessons.map((lesson) => [lesson.id, lesson.runtimeCardMetadata.durationLabel]));
+    const module3Lessons = new Map(module3?.lessons.map((lesson) => [lesson.id, lesson.runtimeCardMetadata.durationLabel]));
 
     expect(module2Lessons.get('unit-2-2-time-domain-response')).toBe('90 分钟');
     expect(module2Lessons.get('unit-2-3-frequency-response-bode-intro')).toBe('90 分钟');

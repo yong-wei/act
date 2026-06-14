@@ -66,13 +66,14 @@ export default function CrossDomainExplorationPage() {
       subtitle="Cross-Domain Exploration"
     >
       <section
-        className="mx-auto max-w-[1280px] px-6 py-10"
+        className="w-full px-4 py-8 sm:px-6 lg:px-8"
         data-commercial-workspace="interactive-learning"
         data-commercial-student-entry-route="/interactive-learning/cross-domain-exploration"
         data-commercial-entry-intent="learn"
+        data-interactive-atlas-workspace="cross-domain-exploration"
         data-learning-entry-map="cross-domain-exploration"
       >
-        <header className="surface-card mb-8 p-6">
+        <header className="mb-8 border-b border-border/60 pb-6">
           <h1 className="text-3xl font-semibold">跨域探索</h1>
           <p className="mt-2 text-sm text-subtle">聚焦跨表征联动与跨域问题拆解，按资源目录动态展示趣味探索组件。</p>
         </header>
@@ -96,12 +97,12 @@ export default function CrossDomainExplorationPage() {
                     openMode: 'route',
                   });
                 }}
-                className="surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-fuchsia-400/50"
+                className="surface-card group rounded-xl p-5 transition hover:-translate-y-0.5 hover:border-primary/40"
               >
                 <div className="flex items-center justify-between text-xs">
-                  <span className="rounded-full border border-fuchsia-400/35 bg-fuchsia-500/10 px-3 py-1 text-fuchsia-700 dark:text-fuchsia-200">{entry.tag}</span>
+                  <span className="rounded-full border border-border bg-muted px-3 py-1 text-subtle">{entry.tag}</span>
                   {index === 0 ? (
-                    <span className="inline-flex items-center gap-1 text-fuchsia-600 dark:text-fuchsia-300">
+                    <span className="inline-flex items-center gap-1 text-primary">
                       <Sparkles className="h-3.5 w-3.5" />
                       第一组件
                     </span>
@@ -109,7 +110,7 @@ export default function CrossDomainExplorationPage() {
                 </div>
                 <h2 className="mt-4 text-lg font-semibold text-foreground">{entry.title}</h2>
                 <p className="mt-2 text-sm text-subtle">{entry.description}</p>
-                <div className="mt-4 inline-flex items-center text-xs text-fuchsia-700 dark:text-fuchsia-200">
+                <div className="mt-4 inline-flex items-center text-xs text-primary">
                   打开组件
                   <ArrowRight className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-0.5" />
                 </div>
