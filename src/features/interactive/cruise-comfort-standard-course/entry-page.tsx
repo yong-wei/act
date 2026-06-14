@@ -1,6 +1,6 @@
 'use client';
 
-import { PremiumLessonEntryPage } from '@/features/interactive/shared/premium-lesson-entry-page';
+import { CourseEntryShell } from '@/features/interactive/shared/course-entry-shell';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   CRUISE_COURSE_DESCRIPTION,
@@ -17,7 +17,7 @@ export function CruiseStandardCourseEntryPage({
   lessonRuntime: RuntimeLessonEntryBundle;
 }) {
   return (
-    <PremiumLessonEntryPage
+    <CourseEntryShell
       initialRole={initialRole}
       lessonRuntime={lessonRuntime}
       config={{

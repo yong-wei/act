@@ -281,6 +281,7 @@ describe('platform role navigation', () => {
       '/interactive-learning/chapter-components/[category]',
       '/interactive-learning/resources/[id]',
       '/interactive-learning/cross-domain-exploration',
+      '/interactive-learning/courses/[courseId]',
       '/interactive-learning/courses/unit-4-1-design-task-expression',
       '/interactive-learning/courses/unit-1-1-see-the-full-picture',
       '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]',
@@ -648,6 +649,9 @@ describe('platform role navigation', () => {
     expect(resolvePlatformRouteInventory('/profile/portfolio')?.href).toBe('/profile/portfolio');
     expect(resolvePlatformRouteInventory('/teacher/classes/demo-class/students/demo-student')?.href).toBe(
       '/teacher/classes/[classId]/students/[studentId]',
+    );
+    expect(resolvePlatformRouteInventory('/interactive-learning/courses/unit-5-4-data-driven-mpc-transition')?.href).toBe(
+      '/interactive-learning/courses/unit-5-4-data-driven-mpc-transition',
     );
     expect(resolvePlatformRouteInventory('/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo-session')?.href).toBe(
       '/interactive-learning/courses/[course]/student/[sessionId]',
