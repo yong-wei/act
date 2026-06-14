@@ -1356,6 +1356,7 @@ export function UNIT_4_1StudentActivityForm({
   browseEnabled,
   answerVisible,
   revealProgress,
+  readOnly,
   onSubmit,
 }: {
   step: UNIT_4_1StepDefinition;
@@ -1365,6 +1366,7 @@ export function UNIT_4_1StudentActivityForm({
   browseEnabled: boolean;
   answerVisible: boolean;
   revealProgress: number;
+  readOnly?: boolean;
   onSubmit: (response: ManifestStepResponse) => void;
 }) {
   const activeManifest = requireUnit41Manifest(manifest);
@@ -1380,6 +1382,7 @@ export function UNIT_4_1StudentActivityForm({
         browseEnabled,
         answerVisible,
         revealProgress,
+        readOnly,
         onSubmit,
       })}
     </>

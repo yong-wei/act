@@ -153,6 +153,7 @@ const COMMERCIAL_VISUAL_QA_NAVIGATION_STATES: readonly CommercialVisualQaNavigat
   'workspace-command-surface',
   'hidden-immersive',
 ];
+const COMMERCIAL_VISUAL_QA_MOBILE_WIDTHS = [320, 390] as const;
 
 const COMMERCIAL_SIMULATION_MIN_SCREENSHOT_HEIGHT = 640;
 
@@ -1594,22 +1595,26 @@ function buildNavigationStateViolations(
   return visualEvidence.flatMap((routeEvidence) => {
     const route = findVisualRouteInventoryEntry(routeInventory, routeEvidence.href);
     if (!route) return [];
+    const routeViewports = visualEvidence
+      .filter((entry) => entry.href === routeEvidence.href)
+      .flatMap((entry) => entry.viewports);
     const expectedMobileState = MOBILE_NAVIGATION_STATE_BY_BEHAVIOR[route.mobileNavigation];
     const missing = [
-      !routeEvidence.viewports.some((viewport) => (
+      !routeViewports.some((viewport) => (
         viewport.width === 1440 && viewport.navigationState === 'desktop-expanded'
       )) ? 'width=1440:navigationState=desktop-expanded' : '',
-      !routeEvidence.viewports.some((viewport) => (
+      !routeViewports.some((viewport) => (
         viewport.width === 1440 && viewport.navigationState === 'desktop-collapsed'
       )) ? 'width=1440:navigationState=desktop-collapsed' : '',
-      !routeEvidence.viewports.some((viewport) => (
-        viewport.width === 320 && viewport.navigationState === expectedMobileState
-      )) ? `width=320:navigationState=${expectedMobileState}` : '',
+      !routeViewports.some((viewport) => (
+        COMMERCIAL_VISUAL_QA_MOBILE_WIDTHS.some((width) => viewport.width === width)
+        && viewport.navigationState === expectedMobileState
+      )) ? `width=320|390:navigationState=${expectedMobileState}` : '',
     ].filter(Boolean);
-    const expandedViewports = routeEvidence.viewports.filter((viewport) => (
+    const expandedViewports = routeViewports.filter((viewport) => (
       viewport.width === 1440 && viewport.navigationState === 'desktop-expanded'
     ));
-    const reusedCollapsedEvidence = routeEvidence.viewports.some((viewport) => (
+    const reusedCollapsedEvidence = routeViewports.some((viewport) => (
       viewport.width === 1440
       && viewport.navigationState === 'desktop-collapsed'
       && visualEvidenceFingerprint(viewport) !== '|'
@@ -1688,7 +1693,7 @@ function buildNavigationStateViolations(
 
 function buildMobileStructureViolations(visualEvidence: readonly CommercialVisualAcceptanceEvidence[]) {
   return visualEvidence.flatMap((routeEvidence) => routeEvidence.viewports
-    .filter((viewport) => viewport.width === 320)
+    .filter((viewport) => COMMERCIAL_VISUAL_QA_MOBILE_WIDTHS.some((width) => viewport.width === width))
     .flatMap((viewport) => {
       const missing = [
         !viewport.mobileCanvasFirst ? 'mobileCanvasFirst' : '',

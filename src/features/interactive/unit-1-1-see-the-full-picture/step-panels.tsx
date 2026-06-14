@@ -355,12 +355,14 @@ export function UNIT_1_1StudentActivityForm({
   savedResponse,
   released,
   answerVisible,
+  readOnly,
   onSubmit,
 }: {
   step: UNIT_1_1StepDefinition;
   savedResponse?: UNIT_1_1StepResponse;
   released: boolean;
   answerVisible: boolean;
+  readOnly?: boolean;
   onSubmit: (response: UNIT_1_1StepResponse) => void;
 }) {
   const activity = useMemo(() => getStepActivity(step), [step]);
@@ -504,7 +506,10 @@ export function UNIT_1_1StudentActivityForm({
           {activity.submitLabel ?? '提交作答'}
         </button>
 
-        <SubmissionStatus submitted={Boolean(savedResponse)} />
+        <SubmissionStatus
+          submitted={Boolean(savedResponse)}
+          idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : undefined}
+        />
       </section>
     );
   }
@@ -560,7 +565,10 @@ export function UNIT_1_1StudentActivityForm({
           {activity.submitLabel ?? '提交作答'}
         </button>
 
-        <SubmissionStatus submitted={Boolean(savedResponse)} />
+        <SubmissionStatus
+          submitted={Boolean(savedResponse)}
+          idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : undefined}
+        />
       </section>
     );
   }

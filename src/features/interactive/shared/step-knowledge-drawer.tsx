@@ -57,11 +57,13 @@ export function StepKnowledgeDrawer({
   currentStepId,
   orderedStepIds,
   title = '页面知识卡片',
+  inlineTool = false,
 }: {
   lessonRuntime: RuntimeLessonEntryBundle;
   currentStepId: string;
   orderedStepIds: string[];
   title?: string;
+  inlineTool?: boolean;
 }) {
   const { registerControl } = usePageFloatingControls();
   const [isOpen, setIsOpen] = useState(false);
@@ -104,12 +106,42 @@ export function StepKnowledgeDrawer({
     });
   }, [nodes, registerControl]);
 
-  if (!nodes.length) {
+  if (!nodes.length && !inlineTool) {
     return null;
+  }
+
+  if (!nodes.length) {
+    return (
+      <div
+        className="rounded-md border border-platform-border bg-platform-surface-muted px-3 py-3 text-sm text-platform-fg-secondary"
+        data-step-knowledge-inline-tool="empty"
+      >
+        本页暂无知识卡片。
+      </div>
+    );
   }
 
   return (
     <>
+      {inlineTool ? (
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedNodeId(nodes[0]?.id ?? null);
+            setIsOpen(true);
+          }}
+          className="flex w-full items-start gap-3 rounded-md border border-platform-border bg-platform-surface-muted px-3 py-3 text-left text-sm text-platform-fg-primary transition hover:border-platform-action-primary/60 hover:bg-platform-surface"
+          data-step-knowledge-inline-tool="trigger"
+        >
+          <BookOpen className="mt-0.5 h-4 w-4 flex-none text-platform-action-primary" />
+          <span className="min-w-0">
+            <span className="block font-medium">{title}</span>
+            <span className="mt-1 block text-xs leading-5 text-platform-fg-secondary">
+              查看当前页面关联的 {nodes.length} 张知识卡片。
+            </span>
+          </span>
+        </button>
+      ) : null}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="left-auto right-0 top-0 h-screen max-h-screen w-full max-w-4xl translate-x-0 translate-y-0 rounded-none border-l border-border bg-background p-0 text-foreground data-[state=closed]:slide-out-to-right-full data-[state=closed]:slide-out-to-top-0 data-[state=open]:slide-in-from-right-full data-[state=open]:slide-in-from-top-0 sm:max-w-4xl">
           <div className="grid h-full gap-0 md:grid-cols-[260px_1fr]">

@@ -481,6 +481,18 @@ function assertCoveredRouteGlobDoesNotHideStaticPages() {
   if (staticSiblingHref !== '/interactive-learning/chapter-components/new') {
     throw new Error('coveredRouteGlob must not exempt newly added static App Router pages from route ledger registration');
   }
+  if (!matchesCoveredRouteFile(
+    'src/app/interactive-learning/courses/unit-2-1-modeling-language/student/[sessionId]/page.tsx',
+    'src/app/interactive-learning/courses/*/student/[sessionId]/page.tsx',
+  )) {
+    throw new Error('coveredRouteGlob must treat [sessionId] as a literal route segment');
+  }
+  if (matchesCoveredRouteFile(
+    'src/app/interactive-learning/courses/unit-2-1-modeling-language/teacher/[sessionId]/waiting/page.tsx',
+    'src/app/interactive-learning/courses/*/teacher/[sessionId]/page.tsx',
+  )) {
+    throw new Error('coveredRouteGlob * must match exactly one route segment');
+  }
 }
 
 function isRegisteredRedirectOnlyCompatibilityPage(file: string, href: string) {
@@ -1497,16 +1509,46 @@ const files = changedFiles();
 const commercialUiBehaviorFiles = files.filter(hasNonAccessibilityOnlyDiff);
 const requiredVisualRoutes = affectedVisualRoutes(commercialUiBehaviorFiles);
 const visualEvidence = readVisualEvidenceManifest();
-function changedPrimaryRouteInventoryHrefs() {
-  const hrefs = new Set<string>();
+const trackedFiles = git(['ls-files']).split('\n').filter(Boolean);
+interface ChangedPrimaryRouteInventoryBlock {
+  href: string;
+  routeFile?: string;
+  coveredRouteGlob?: string;
+  deleted: boolean;
+}
+
+function primaryRouteBlockStillCoversFiles(block: ChangedPrimaryRouteInventoryBlock) {
+  if (block.routeFile && existsSync(path.join(repoRoot, block.routeFile))) return true;
+  if (!block.coveredRouteGlob) return false;
+  return trackedFiles.some((file) => (
+    matchesCoveredRouteFile(file, block.coveredRouteGlob)
+    && existsSync(path.join(repoRoot, file))
+  ));
+}
+
+function changedPrimaryRouteInventoryBlocks() {
+  const blocks = new Map<string, ChangedPrimaryRouteInventoryBlock>();
   let blockChanged = false;
   let blockHref: string | undefined;
+  let blockRouteFile: string | undefined;
+  let blockCoveredRouteGlob: string | undefined;
+  let blockHasCurrentHrefLine = false;
   let inPrimaryRouteBlock = false;
 
   const finishBlock = () => {
-    if (blockChanged && blockHref) hrefs.add(blockHref);
+    if (blockChanged && blockHref) {
+      blocks.set(blockHref, {
+        href: blockHref,
+        routeFile: blockRouteFile,
+        coveredRouteGlob: blockCoveredRouteGlob,
+        deleted: !blockHasCurrentHrefLine,
+      });
+    }
     blockChanged = false;
     blockHref = undefined;
+    blockRouteFile = undefined;
+    blockCoveredRouteGlob = undefined;
+    blockHasCurrentHrefLine = false;
     inPrimaryRouteBlock = false;
   };
 
@@ -1528,14 +1570,24 @@ function changedPrimaryRouteInventoryHrefs() {
     if (!inPrimaryRouteBlock) continue;
     if (marker !== ' ') blockChanged = true;
     const href = /href:\s*'([^']+)'/.exec(content)?.[1];
-    if (href && marker !== '-') blockHref = href;
+    if (href && marker !== '-') {
+      blockHref = href;
+      blockHasCurrentHrefLine = true;
+    }
     if (href && !blockHref) blockHref = href;
+    const routeFile = /routeFile:\s*'([^']+)'/.exec(content)?.[1];
+    if (routeFile && !blockRouteFile) blockRouteFile = routeFile;
+    if (routeFile && marker !== '-') blockRouteFile = routeFile;
+    const coveredRouteGlob = /coveredRouteGlob:\s*'([^']+)'/.exec(content)?.[1];
+    if (coveredRouteGlob && !blockCoveredRouteGlob) blockCoveredRouteGlob = coveredRouteGlob;
+    if (coveredRouteGlob && marker !== '-') blockCoveredRouteGlob = coveredRouteGlob;
     if (/^\s*}\),/.test(content)) finishBlock();
   }
   if (inPrimaryRouteBlock) finishBlock();
-  return hrefs;
+  return [...blocks.values()];
 }
-const changedPrimaryRouteHrefs = changedPrimaryRouteInventoryHrefs();
+const changedPrimaryRouteBlocks = changedPrimaryRouteInventoryBlocks();
+const changedPrimaryRouteHrefs = new Set(changedPrimaryRouteBlocks.map((block) => block.href));
 const currentPrimaryRouteHrefs = new Set(PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => route.href));
 const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
   [
@@ -1556,10 +1608,11 @@ const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
   ],
 ]);
 assertCoveredRouteGlobDoesNotHideStaticPages();
-const missingChangedPrimaryRouteLedgerViolations: CommercialUiGovernanceViolation[] = [...changedPrimaryRouteHrefs]
-  .filter((href) => !currentPrimaryRouteHrefs.has(href))
-  .map((href) => ({
-    path: href,
+const missingChangedPrimaryRouteLedgerViolations: CommercialUiGovernanceViolation[] = changedPrimaryRouteBlocks
+  .filter((block) => !currentPrimaryRouteHrefs.has(block.href))
+  .filter((block) => !block.deleted || primaryRouteBlockStillCoversFiles(block))
+  .map((block) => ({
+    path: block.href,
     rule: 'route-ledger.incomplete-primary-route',
     message: 'Changed primary route inventory href no longer resolves to a current route ledger entry.',
     evidence: ['missing-current-inventory-entry'],

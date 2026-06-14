@@ -444,7 +444,10 @@ describe('platform UI contracts', () => {
     const workbenchSource = readSource('src/features/control-workbench/shell/control-workbench-shell.tsx');
     const arenaDetailSource = readSource('src/features/arena/challenge-detail.tsx');
     const manifestRuntimeSource = readSource('src/features/interactive/shared/manifest-runtime/layout-renderer.tsx');
-    const unit41StudentRuntimeSource = readSource('src/features/interactive/unit-4-1-design-task-expression/student-page.tsx');
+    const unit41StudentRuntimeSource = [
+      readSource('src/features/interactive/shared/lesson-runtime-shell.tsx'),
+      readSource('src/features/interactive/unit-4-1-design-task-expression/student-page.tsx'),
+    ].join('\n');
     const cruiseSimulationSource = readSource('src/app/simulations/cruise/page.tsx');
     const simulationsCatalogSource = readSource('src/app/simulations/page.tsx');
     const simulationShellSource = readSource('src/app/simulations/_components/simulation-shell.tsx');
@@ -640,7 +643,10 @@ describe('platform UI contracts', () => {
   it('keeps Interactive Learning first-hop surfaces on the unified learning-atlas shell', () => {
     const interactiveEntrySource = readSource('src/app/interactive-learning/page.tsx');
     const courseCatalogSource = readSource('src/app/interactive-learning/courses/page.tsx');
-    const chapterComponentsSource = readSource('src/app/interactive-learning/chapter-components/page.tsx');
+    const chapterComponentsSource = [
+      readSource('src/app/interactive-learning/chapter-components/page.tsx'),
+      readSource('src/app/interactive-learning/chapter-components/_components/chapter-components-client.tsx'),
+    ].join('\n');
     const crossDomainSource = readSource('src/app/interactive-learning/cross-domain-exploration/page.tsx');
     const shellSource = readSource('src/features/interactive/interactive-learning-shell.tsx');
     const catalogSource = readSource('src/features/interactive/learning-catalog.ts');
@@ -761,6 +767,66 @@ describe('platform UI contracts', () => {
       expect(source, relativePath).toContain('TeacherClassroomWaitingRoute');
       expect(source, relativePath).not.toContain('TeacherClassroomWaitingPage');
       expect(source, relativePath).toContain('routeSegment=');
+    }
+  });
+
+  it('keeps interactive lesson runtime pages on the unified runtime shell contract', () => {
+    const runtimeShellSource = readSource('src/features/interactive/shared/lesson-runtime-shell.tsx');
+    const unit11StudentSource = readSource('src/features/interactive/unit-1-1-see-the-full-picture/student-page.tsx');
+    const unit11StepPanelsSource = readSource('src/features/interactive/unit-1-1-see-the-full-picture/step-panels.tsx');
+    const unit11TeacherSource = readSource('src/features/interactive/unit-1-1-see-the-full-picture/teacher-page.tsx');
+    const unit41StudentSource = readSource('src/features/interactive/unit-4-1-design-task-expression/student-page.tsx');
+    const unit41StepPanelsSource = readSource('src/features/interactive/unit-4-1-design-task-expression/step-panels.tsx');
+    const unit41TeacherSource = readSource('src/features/interactive/unit-4-1-design-task-expression/teacher-page.tsx');
+    const manifestActivitySource = readSource('src/features/interactive/shared/manifest-runtime/activity-renderers.tsx');
+    const stepKnowledgeDrawerSource = readSource('src/features/interactive/shared/step-knowledge-drawer.tsx');
+
+    expect(runtimeShellSource).toContain('<AppShell');
+    expect(runtimeShellSource).toContain('data-lesson-runtime-shell="unified"');
+    expect(runtimeShellSource).toContain('data-lesson-runtime-mode={mode}');
+    expect(runtimeShellSource).toContain('data-lesson-runtime-bottom-navigation');
+    expect(runtimeShellSource).toContain('data-lesson-runtime-page-jump');
+    expect(runtimeShellSource).toContain("toolsDefaultState = 'collapsed'");
+    expect(runtimeShellSource).toContain('data-lesson-runtime-local-tools={toolsDefaultState}');
+    expect(runtimeShellSource).toContain('data-lesson-runtime-invalid-session');
+    expect(runtimeShellSource).toContain('const hasSteps = steps.length > 0');
+    expect(runtimeShellSource).toContain('floatingDock');
+    expect(runtimeShellSource).not.toContain('premium-lesson-topbar');
+    expect(runtimeShellSource).not.toContain('max-w-[1180px]');
+
+    for (const source of [unit11StudentSource, unit11TeacherSource, unit41StudentSource, unit41TeacherSource]) {
+      expect(source).toContain('LessonRuntimeShell');
+      expect(source).not.toContain('CourseHeader');
+      expect(source).not.toContain('premium-lesson-topbar');
+      expect(source).not.toContain('premium-lesson-main mx-auto max-w-[1180px]');
+    }
+
+    for (const source of [unit11StudentSource, unit41StudentSource]) {
+      expect(source).toContain('mode={isDemo ? \'guest\' : \'student\'}');
+      expect(source).toContain('readOnly={isDemo}');
+      expect(source).toContain('inlineTool');
+      expect(source).toContain('data-runtime-manifest-truth');
+      expect(source).toContain('data-activity-submission-contract');
+      expect(source).toContain('manifest-runtime');
+      expect(source).not.toContain('TeacherActivitySummary');
+      expect(source).not.toContain('submittedStudents=');
+    }
+
+    expect(stepKnowledgeDrawerSource).toContain('inlineTool = false');
+    expect(stepKnowledgeDrawerSource).toContain('data-step-knowledge-inline-tool="trigger"');
+    expect(stepKnowledgeDrawerSource).toContain('data-step-knowledge-inline-tool="empty"');
+
+    expect(manifestActivitySource).toContain('readOnly?: boolean');
+    expect(manifestActivitySource).toContain('演示模式会展示作答流程，但不会写入课堂汇总。');
+    expect(unit11StepPanelsSource).toContain('演示模式仅本机预览，不会同步到教师端汇总。');
+    expect(unit41StepPanelsSource).toContain('readOnly?: boolean');
+
+    for (const source of [unit11TeacherSource, unit41TeacherSource]) {
+      expect(source).toContain('mode="teacher"');
+      expect(source).toContain('data-teacher-projection-runtime');
+      expect(source).toContain('toolsDefaultState="collapsed"');
+      expect(source).not.toContain('StudentActivityForm');
+      expect(source).not.toContain('下一页');
     }
   });
 
