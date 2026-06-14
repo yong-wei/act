@@ -1,0 +1,120 @@
+{
+  "capturedAt": "2026-06-14T00:55:29.300Z",
+  "baseUrl": "http://127.0.0.1:3001",
+  "results": [
+    {
+      "route": "/simulations",
+      "theme": "light",
+      "status": 200,
+      "screenshot": "catalog-light.png",
+      "consoleMessages": [],
+      "state": {
+        "title": "AI-OBE船舶控制平台",
+        "rootClass": "light",
+        "colorScheme": "light",
+        "template": "catalog",
+        "visualWorld": "instrument-atlas",
+        "sceneColorPolicy": null,
+        "localToolsTemplate": null,
+        "hasPreviewState": true,
+        "hasOfficialState": true,
+        "hasToolbar": false,
+        "bodyTextLength": 1178
+      }
+    },
+    {
+      "route": "/simulations/destroyer",
+      "theme": "light",
+      "status": 200,
+      "screenshot": "destroyer-detail-light.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x12c0058f000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x12c0058f000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x12c0058f000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+        },
+        {
+          "type": "warning",
+          "text": "[.WebGL-0x12c0058f000]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "state": {
+        "title": "AI-OBE船舶控制平台",
+        "rootClass": "light",
+        "colorScheme": "light",
+        "template": "mission-workspace",
+        "visualWorld": null,
+        "sceneColorPolicy": "feature-owned",
+        "localToolsTemplate": "local-tools",
+        "hasPreviewState": false,
+        "hasOfficialState": false,
+        "hasToolbar": true,
+        "bodyTextLength": 647
+      }
+    },
+    {
+      "route": "/simulations",
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "catalog-dark.png",
+      "consoleMessages": [],
+      "state": {
+        "title": "AI-OBE船舶控制平台",
+        "rootClass": "dark",
+        "colorScheme": "dark",
+        "template": "catalog",
+        "visualWorld": "instrument-atlas",
+        "sceneColorPolicy": null,
+        "localToolsTemplate": null,
+        "hasPreviewState": true,
+        "hasOfficialState": true,
+        "hasToolbar": false,
+        "bodyTextLength": 1178
+      }
+    },
+    {
+      "route": "/simulations/destroyer",
+      "theme": "dark",
+      "status": 200,
+      "screenshot": "destroyer-detail-dark.png",
+      "consoleMessages": [
+        {
+          "type": "warning",
+          "text": "THREE.Clock: This module has been deprecated. Please use THREE.Timer instead."
+        },
+        {
+          "type": "warning",
+          "text": "THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead."
+        }
+      ],
+      "state": {
+        "title": "AI-OBE船舶控制平台",
+        "rootClass": "dark",
+        "colorScheme": "dark",
+        "template": "mission-workspace",
+        "visualWorld": null,
+        "sceneColorPolicy": "feature-owned",
+        "localToolsTemplate": "local-tools",
+        "hasPreviewState": false,
+        "hasOfficialState": false,
+        "hasToolbar": true,
+        "bodyTextLength": 647
+      }
+    }
+  ]
+}

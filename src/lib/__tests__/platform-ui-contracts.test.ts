@@ -17,6 +17,8 @@ import {
   PLATFORM_FLOATING_ACTION_DOCK_CONTROL_CONTRACTS,
   PLATFORM_LEGACY_SHELL_RETIREMENT_CONTRACTS,
   PLATFORM_PREMIUM_VISUAL_THEME_CONTRACTS,
+  PLATFORM_SIMULATION_STATE_ROLE_TOKENS,
+  PLATFORM_SIMULATION_THEME_TEMPLATES,
   PLATFORM_SEMANTIC_TOKENS,
   PLATFORM_SHELL_ADAPTERS,
   PLATFORM_SHELL_ROLLBACK_FLAG,
@@ -236,6 +238,55 @@ describe('platform UI contracts', () => {
     });
   });
 
+  it('defines governed simulation light and dark templates with state roles', () => {
+    expect(PLATFORM_SIMULATION_THEME_TEMPLATES.map((template) => template.theme)).toEqual(['light', 'dark']);
+    expect(PLATFORM_SIMULATION_THEME_TEMPLATES.find((template) => template.theme === 'light')).toMatchObject({
+      visualWorld: expect.stringContaining('daylight engineering chart'),
+      roles: expect.arrayContaining(['scene-canvas', 'translucent-shell', 'local-panel', 'bottom-toolbar', 'hint-strip']),
+      tokenNames: expect.arrayContaining([
+        'platform-canvas',
+        'platform-surface-overlay',
+        'platform-fg-primary',
+        'platform-border',
+        'platform-action-primary',
+        'platform-evidence-context',
+        'platform-replay-ready',
+        'platform-evaluation-official',
+      ]),
+      prohibitedFallbacks: expect.arrayContaining([
+        'generic white administration cards',
+        'decorative glow blobs',
+      ]),
+    });
+    expect(PLATFORM_SIMULATION_THEME_TEMPLATES.find((template) => template.theme === 'dark')).toMatchObject({
+      visualWorld: expect.stringContaining('night bridge'),
+      roles: expect.arrayContaining(['scene-canvas', 'translucent-shell', 'local-panel', 'bottom-toolbar', 'hint-strip']),
+      tokenNames: expect.arrayContaining([
+        'platform-canvas-muted',
+        'platform-surface-overlay',
+        'platform-fg-secondary',
+        'platform-border-strong',
+        'platform-chart-1',
+      ]),
+      prohibitedFallbacks: expect.arrayContaining([
+        'one-note navy card skin',
+        'cyan-only chrome',
+      ]),
+    });
+
+    expect(PLATFORM_SIMULATION_STATE_ROLE_TOKENS).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ role: 'preview', tokenName: 'platform-evaluation-preview' }),
+        expect.objectContaining({ role: 'official', tokenName: 'platform-evaluation-official' }),
+        expect.objectContaining({ role: 'replay', tokenName: 'platform-replay-ready' }),
+        expect.objectContaining({ role: 'warning', tokenName: 'platform-evidence-context' }),
+        expect.objectContaining({ role: 'success', tokenName: 'platform-evidence-eligible' }),
+        expect.objectContaining({ role: 'danger', tokenName: 'platform-evidence-unsupported' }),
+        expect.objectContaining({ role: 'unavailable', tokenName: 'platform-replay-missing' }),
+      ]),
+    );
+  });
+
   it('defines a shared floating action dock for Konling and management controls', () => {
     expect(PLATFORM_FLOATING_ACTION_DOCK_CONTRACT).toMatchObject({
       owner: 'platform-shell',
@@ -376,6 +427,7 @@ describe('platform UI contracts', () => {
     const manifestRuntimeSource = readSource('src/features/interactive/shared/manifest-runtime/layout-renderer.tsx');
     const unit41StudentRuntimeSource = readSource('src/features/interactive/unit-4-1-design-task-expression/student-page.tsx');
     const cruiseSimulationSource = readSource('src/app/simulations/cruise/page.tsx');
+    const simulationsCatalogSource = readSource('src/app/simulations/page.tsx');
     const simulationShellSource = readSource('src/app/simulations/_components/simulation-shell.tsx');
     const simulationLocalToolsSource = readSource('src/app/simulations/_components/simulation-local-tools.tsx');
     const teacherAnalyticsSource = readSource('src/app/teacher/classes/[classId]/analytics-v2/page.tsx');
@@ -408,10 +460,21 @@ describe('platform UI contracts', () => {
     expect(cruiseSimulationSource).toContain('SimulationShell');
     expect(simulationShellSource).toContain('data-commercial-workspace="simulation-scene"');
     expect(simulationShellSource).toContain('data-task-workspace-archetype="immersive-scene"');
+    expect(simulationShellSource).toContain('data-simulation-theme-template="mission-workspace"');
+    expect(simulationShellSource).toContain('data-simulation-scene-color-policy="feature-owned"');
     expect(simulationShellSource).toContain('data-simulation-shell-profile-action');
     expect(simulationShellSource).toContain('SimulationLocalToolWorkspace');
     expect(simulationShellSource).toContain('panelLayout="stacked"');
+    expect(simulationsCatalogSource).toContain('data-simulation-theme-template="catalog"');
+    expect(simulationsCatalogSource).toContain('data-simulation-visual-world="instrument-atlas"');
+    expect(simulationsCatalogSource).toContain('data-simulation-state-role="preview"');
+    expect(simulationsCatalogSource).toContain('data-simulation-state-role="official"');
+    expect(simulationsCatalogSource).not.toMatch(/\b(?:bg|text|border)-(?:green|yellow|red|black|white|slate|cyan|blue)-/);
+    expect(simulationsCatalogSource).not.toContain('bg-gradient');
     expect(simulationLocalToolsSource).toContain('data-simulation-local-workspace={template.id}');
+    expect(simulationLocalToolsSource).toContain('data-simulation-theme-template="local-tools"');
+    expect(simulationLocalToolsSource).toContain('data-simulation-state-role="hint"');
+    expect(simulationLocalToolsSource).toContain('data-simulation-state-role="replay"');
     expect(simulationLocalToolsSource).toContain('data-simulation-local-panel-layout={panelLayout}');
     expect(simulationLocalToolsSource).toContain('data-simulation-local-bottom-toolbar');
     expect(simulationLocalToolsSource).toContain('data-simulation-local-hint-strip');

@@ -54,6 +54,28 @@ export type PlatformPremiumVisualRole =
   | 'low-light-instrument'
   | 'trace-signal'
   | 'warning-success-signal';
+export type PlatformSimulationThemeRole =
+  | 'scene-canvas'
+  | 'translucent-shell'
+  | 'local-panel'
+  | 'bottom-toolbar'
+  | 'hint-strip'
+  | 'border-line'
+  | 'text-label'
+  | 'status-marker'
+  | 'evidence-marker'
+  | 'replay-marker'
+  | 'preview-context'
+  | 'official-context';
+export type PlatformSimulationStateRole =
+  | 'preview'
+  | 'official'
+  | 'replay'
+  | 'warning'
+  | 'success'
+  | 'danger'
+  | 'unavailable'
+  | 'hint';
 export type PlatformFloatingActionDockControl = 'konling' | 'management' | 'settings' | 'page-tools' | 'issue-badge';
 export type PlatformFloatingActionDockVisibility = 'role-aware' | 'feature-flagged' | 'workspace-hidden';
 export type PlatformFloatingActionDockResponsiveMode = 'expanded' | 'collapsed-icons' | 'hidden-by-workspace';
@@ -70,6 +92,20 @@ export interface PlatformPremiumVisualThemeContract {
   requiredRoles: readonly PlatformPremiumVisualRole[];
   requiredTokenCategories: readonly PlatformTokenCategory[];
   prohibitedFallbacks: readonly string[];
+}
+
+export interface PlatformSimulationThemeTemplate {
+  theme: PlatformThemeMode;
+  visualWorld: string;
+  roles: readonly PlatformSimulationThemeRole[];
+  tokenNames: readonly string[];
+  prohibitedFallbacks: readonly string[];
+}
+
+export interface PlatformSimulationStateRoleToken {
+  role: PlatformSimulationStateRole;
+  tokenName: string;
+  purpose: string;
 }
 
 export interface PlatformNavigationItem {
@@ -261,6 +297,98 @@ export const PLATFORM_PREMIUM_VISUAL_THEME_CONTRACTS: PlatformPremiumVisualTheme
       'hidden controls on dark surfaces',
     ],
   },
+] as const;
+
+export const PLATFORM_SIMULATION_THEME_TEMPLATES: PlatformSimulationThemeTemplate[] = [
+  {
+    theme: 'light',
+    visualWorld: 'daylight engineering chart with matte instruments, translucent controls, and governed evidence',
+    roles: [
+      'scene-canvas',
+      'translucent-shell',
+      'local-panel',
+      'bottom-toolbar',
+      'hint-strip',
+      'border-line',
+      'text-label',
+      'status-marker',
+      'evidence-marker',
+      'replay-marker',
+      'preview-context',
+      'official-context',
+    ],
+    tokenNames: [
+      'platform-canvas',
+      'platform-canvas-muted',
+      'platform-surface',
+      'platform-surface-raised',
+      'platform-surface-overlay',
+      'platform-fg-primary',
+      'platform-fg-secondary',
+      'platform-border',
+      'platform-border-strong',
+      'platform-action-primary',
+      'platform-action-subtle',
+      'platform-evidence-context',
+      'platform-replay-ready',
+      'platform-evaluation-official',
+    ],
+    prohibitedFallbacks: [
+      'generic white administration cards',
+      'decorative glow blobs',
+      'page-local pastel palette',
+    ],
+  },
+  {
+    theme: 'dark',
+    visualWorld: 'night bridge with low-light instruments, readable traces, and accessible signal colors',
+    roles: [
+      'scene-canvas',
+      'translucent-shell',
+      'local-panel',
+      'bottom-toolbar',
+      'hint-strip',
+      'border-line',
+      'text-label',
+      'status-marker',
+      'evidence-marker',
+      'replay-marker',
+      'preview-context',
+      'official-context',
+    ],
+    tokenNames: [
+      'platform-canvas',
+      'platform-canvas-muted',
+      'platform-surface',
+      'platform-surface-raised',
+      'platform-surface-overlay',
+      'platform-fg-primary',
+      'platform-fg-secondary',
+      'platform-border',
+      'platform-border-strong',
+      'platform-action-primary',
+      'platform-chart-1',
+      'platform-evidence-eligible',
+      'platform-replay-ready',
+      'platform-evaluation-preview',
+    ],
+    prohibitedFallbacks: [
+      'one-note navy card skin',
+      'cyan-only chrome',
+      'washed-out inverted light theme',
+    ],
+  },
+] as const;
+
+export const PLATFORM_SIMULATION_STATE_ROLE_TOKENS: PlatformSimulationStateRoleToken[] = [
+  { role: 'preview', tokenName: 'platform-evaluation-preview', purpose: 'Preview-only simulation context and draft evidence.' },
+  { role: 'official', tokenName: 'platform-evaluation-official', purpose: 'Official evaluation or approved mission context.' },
+  { role: 'replay', tokenName: 'platform-replay-ready', purpose: 'Replay and repeatable observation affordances.' },
+  { role: 'warning', tokenName: 'platform-evidence-context', purpose: 'Cautionary but recoverable simulation state.' },
+  { role: 'success', tokenName: 'platform-evidence-eligible', purpose: 'Successful or eligible simulation evidence state.' },
+  { role: 'danger', tokenName: 'platform-evidence-unsupported', purpose: 'Unsafe, failed, or unsupported simulation condition.' },
+  { role: 'unavailable', tokenName: 'platform-replay-missing', purpose: 'Unavailable replay, scene, or context state.' },
+  { role: 'hint', tokenName: 'platform-action-subtle', purpose: 'Instructional hints that support the current simulation task.' },
 ] as const;
 
 const PLATFORM_STATUS_LABELS = {
