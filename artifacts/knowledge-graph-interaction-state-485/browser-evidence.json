@@ -5,12 +5,12 @@
     "height": 900
   },
   "screenshots": {
-    "initial": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/knowledge-graph-interaction-state-485/01-initial-layout.png",
-    "hover": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/knowledge-graph-interaction-state-485/02-hover-preview.png",
-    "selected": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/knowledge-graph-interaction-state-485/03-selected-inspector.png",
-    "dragged": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/knowledge-graph-interaction-state-485/04-dragged-pinned.png",
-    "inspectorClosed": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/knowledge-graph-interaction-state-485/05-inspector-closed-pinned.png",
-    "relayout": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/knowledge-graph-interaction-state-485/06-explicit-relayout.png",
+    "initial": "artifacts/knowledge-graph-interaction-state-485/01-initial-layout.png",
+    "hover": "artifacts/knowledge-graph-interaction-state-485/02-hover-preview.png",
+    "selected": "artifacts/knowledge-graph-interaction-state-485/03-selected-inspector.png",
+    "dragged": "artifacts/knowledge-graph-interaction-state-485/04-dragged-pinned.png",
+    "inspectorClosed": "artifacts/knowledge-graph-interaction-state-485/05-inspector-closed-pinned.png",
+    "relayout": "artifacts/knowledge-graph-interaction-state-485/06-explicit-relayout.png",
     "threeD": null
   },
   "screenshotNote": "2D screenshots were captured in the in-app browser; later CDP screenshot calls timed out on this tab, so enhanced clear-pins/3D evidence is structural state evidence in browser-evidence.json.",
@@ -295,6 +295,36 @@
         "visibleNodeCount": 605,
         "visibleLinkCount": 1301,
         "pinnedNodeCount": 0
+      }
+    },
+    "interactionHarness": {
+      "kind": "deterministic-layout-state-harness",
+      "source": "src/features/knowledge/__tests__/knowledge-graph-interaction-state.test.ts",
+      "selected": {
+        "selectedNodeId": "策略监督层调度_5_56005",
+        "layoutVersion": 0,
+        "visibleNodeCount": 605,
+        "visibleLinkCount": 1301
+      },
+      "dragged": {
+        "pinnedNodeCount": 1,
+        "pinnedLayoutSignature": "策略监督层调度_5_56005:-102.9,-457.4,5.0",
+        "layoutVersion": 1,
+        "visibleNodeCount": 605,
+        "visibleLinkCount": 1301
+      },
+      "hoverAfterDrag": {
+        "pinnedNodeCount": 1,
+        "pinnedLayoutSignature": "策略监督层调度_5_56005:-102.9,-457.4,5.0",
+        "layoutVersion": 1,
+        "visibleNodeCount": 605,
+        "visibleLinkCount": 1301
+      },
+      "rendererSync": {
+        "preservedAutomaticAnchors": true,
+        "preservedZAxisAnchorFor2DPin": true,
+        "pinUsesRuntimeCoordinatesOnly": true,
+        "filterGraphDataChangesResyncStoredPositions": true
       }
     },
     "canvasAutomationLimitations": [
