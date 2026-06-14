@@ -118,7 +118,11 @@ export function CameraViewSwitcher({
   return (
     <div className={cn('flex items-center gap-1', className)}>
       {/* 视角按钮组 */}
-      <div className="flex rounded-xl border border-slate-200/90 bg-slate-50/92 p-1 shadow-lg shadow-slate-950/20 backdrop-blur-sm">
+      <div
+        className="simulation-command-restore-handle flex p-1"
+        data-simulation-local-bottom-toolbar
+        data-command-deck-bottom-tools="edge-adjacent"
+      >
         {viewModes.map((mode) => {
           const Icon = mode.icon;
           const isActive = currentMode === mode.id;
@@ -177,7 +181,7 @@ export function CameraViewSwitcher({
       ) : null}
 
       {onSpeedChange ? (
-        <div className="flex items-center gap-1 rounded-xl border border-slate-200/90 bg-slate-50/92 p-1 shadow-lg shadow-slate-950/20 backdrop-blur-sm">
+        <div className="simulation-command-restore-handle flex items-center gap-1 p-1">
           <Button
             variant="ghost"
             size={size}

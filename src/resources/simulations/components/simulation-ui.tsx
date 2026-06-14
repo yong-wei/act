@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, PanelLeft, PanelRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -9,18 +9,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 export const simulationUi = {
   root: 'relative h-screen w-full overflow-hidden bg-slate-950',
   topBar:
-    'absolute left-4 right-4 top-4 z-30 flex h-12 items-center justify-between rounded-2xl border border-slate-200/90 bg-slate-50/90 px-3 shadow-xl shadow-slate-950/30 backdrop-blur-md',
+    'simulation-command-topbar absolute left-4 right-4 top-4 z-30 hidden h-12 items-center justify-between px-3 sm:flex',
   topBarTitleWrap: 'flex min-w-0 flex-col items-center justify-center px-3',
-  topBarTitle: 'truncate text-sm font-semibold text-slate-900 sm:text-base',
-  topBarSubtitle: 'truncate text-[11px] text-slate-700 sm:text-xs',
+  topBarTitle: 'truncate text-sm font-semibold sm:text-base',
+  topBarSubtitle: 'truncate text-[11px] opacity-75 sm:text-xs',
   backButton:
-    'inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-900 transition hover:bg-slate-100',
+    'inline-flex items-center gap-1.5 rounded-md border border-current/20 bg-white/35 px-2.5 py-1.5 text-xs font-medium transition hover:bg-white/50 dark:bg-white/10 dark:hover:bg-white/15',
   badge:
-    'rounded-full border border-slate-300 bg-white/95 px-2.5 py-1 text-[11px] font-medium text-slate-800',
+    'rounded-md border border-current/20 bg-white/35 px-2.5 py-1 text-[11px] font-medium dark:bg-white/10',
   panel: 'simulation-light-panel',
-  controlPanelPosition: 'absolute right-4 top-20 z-20 w-[22rem] pointer-events-auto',
-  statusPanelPosition: 'absolute left-4 top-20 z-20 w-[20rem] pointer-events-auto',
-  cameraSwitcherPosition: 'absolute bottom-4 left-1/2 z-20 -translate-x-1/2',
+  controlPanelPosition: 'absolute inset-x-4 bottom-20 z-20 max-h-[46vh] overflow-y-auto pointer-events-auto lg:inset-auto lg:right-4 lg:top-20 lg:bottom-auto lg:w-[22rem] lg:max-h-[calc(100vh-7rem)]',
+  statusPanelPosition: 'absolute inset-x-4 top-4 z-20 max-h-[30vh] overflow-y-auto pointer-events-auto lg:inset-auto lg:left-4 lg:top-20 lg:w-[20rem] lg:max-h-[calc(100vh-7rem)]',
+  cameraSwitcherPosition: 'absolute bottom-4 left-4 right-4 z-20 justify-center lg:left-1/2 lg:right-auto lg:-translate-x-1/2',
   sectionTitle: 'text-xs font-semibold tracking-wide text-slate-700',
   mutedText: 'text-xs text-slate-600',
   valueText: 'font-mono text-slate-900',
@@ -35,16 +35,14 @@ export const simulationUi = {
   dockHeader: 'mb-3 flex items-center justify-between border-b border-slate-300/90 pb-2',
   dockTitle: 'text-sm font-semibold text-slate-900',
   dockToggle:
-    'inline-flex h-7 w-7 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-100',
+    'inline-flex h-7 w-7 items-center justify-center rounded-md border border-current/20 bg-white/35 transition hover:bg-white/50 dark:bg-white/10 dark:hover:bg-white/15',
   collapsedDockButton:
-    'absolute top-20 z-20 flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/90 bg-slate-50/95 text-slate-800 shadow-xl shadow-slate-950/30 backdrop-blur-md',
+    'simulation-command-restore-handle absolute top-4 z-20 flex h-9 w-9 items-center justify-center lg:top-20',
   slider:
     '[&_.bg-secondary]:bg-slate-300 [&_.bg-primary]:bg-sky-700 [&_.bg-background]:bg-white [&_.border-primary]:border-sky-700 [&_.ring-offset-background]:ring-offset-slate-50',
   nativeRange: 'w-full cursor-pointer accent-sky-700',
-  statusDockTheme:
-    'text-slate-900 [&_*]:text-slate-900 [&_.text-muted-foreground]:text-slate-900 [&_.text-red-300]:text-slate-900 [&_.text-red-400]:text-slate-900 [&_.text-red-500]:text-slate-900 [&_.text-red-600]:text-slate-900 [&_.text-amber-600]:text-slate-900 [&_.text-amber-700]:text-slate-900 [&_.text-yellow-400]:text-slate-900 [&_.text-green-400]:text-slate-900 [&_.text-green-500]:text-slate-900 [&_.text-green-600]:text-slate-900 [&_.text-sky-700]:text-slate-900 [&_.text-blue-400]:text-slate-900 [&_.text-purple-400]:text-slate-900 [&_.text-cyan-300]:text-slate-900 [&_.text-cyan-400]:text-slate-900 [&_.text-cyan-500]:text-slate-900',
-  controlDockTheme:
-    '[&_.text-red-300]:text-red-700 [&_.text-red-400]:text-red-700 [&_.text-red-500]:text-red-700 [&_.text-yellow-400]:text-amber-700 [&_.text-green-400]:text-emerald-700 [&_.text-green-500]:text-emerald-700 [&_.text-blue-400]:text-sky-700 [&_.text-purple-400]:text-slate-700 [&_.text-cyan-300]:text-slate-900 [&_.text-cyan-400]:text-slate-900 [&_.text-cyan-500]:text-slate-900',
+  statusDockTheme: '',
+  controlDockTheme: '',
 };
 
 export function SimulationTopBar({
@@ -108,6 +106,15 @@ export function SimulationDock({
       ? 'left-4'
       : 'right-4';
 
+  useEffect(() => {
+    const mobileMedia = window.matchMedia('(max-width: 1023px)');
+    const applyResponsiveDefault = () => setCollapsed(mobileMedia.matches);
+
+    applyResponsiveDefault();
+    mobileMedia.addEventListener('change', applyResponsiveDefault);
+    return () => mobileMedia.removeEventListener('change', applyResponsiveDefault);
+  }, []);
+
   if (collapsed) {
     return (
       <button
@@ -115,6 +122,7 @@ export function SimulationDock({
         className={cn(simulationUi.collapsedDockButton, collapsedPosition)}
         onClick={() => setCollapsed(false)}
         aria-label={`展开${title}`}
+        data-simulation-panel-restore-handle={side}
       >
         {side === 'left' ? <PanelLeft className="h-4 w-4" /> : <PanelRight className="h-4 w-4" />}
       </button>
@@ -122,7 +130,13 @@ export function SimulationDock({
   }
 
   return (
-    <div className={cn(simulationUi.panel, dockPosition, dockTheme, 'p-3 text-sm', className)}>
+    <div
+      className={cn(simulationUi.panel, dockPosition, dockTheme, 'p-3 text-sm', className)}
+      data-simulation-local-panel={side}
+      data-simulation-panel-collapsible="true"
+      data-command-deck-glass-surface="true"
+      data-task-workspace-zone={side === 'left' ? 'status-rail' : 'local-tools'}
+    >
       <div className={simulationUi.dockHeader}>
         <h3 className={simulationUi.dockTitle}>{title}</h3>
         <button
