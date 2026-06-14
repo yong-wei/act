@@ -1823,6 +1823,7 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('function simulationVisualQaEvidenceArtifactPaths');
     expect(scriptSource).toContain('referencedSimulationArtifacts.has(file)');
     expect(scriptSource).toContain("route.href.startsWith('/simulations/')");
+    expect(scriptSource).toContain("route.href === '/interactive-learning/control-workbench'");
     expect(scriptSource).toContain("file === 'src/lib/platform-role-navigation.ts'");
     expect(scriptSource).toContain("file.startsWith('artifacts/commercial-ui/simulation-experience-visual-qa/')");
     expect(scriptSource).toContain('/^src\\/app\\/simulations\\/[^/]+\\/page\\.tsx$/.test(file)');

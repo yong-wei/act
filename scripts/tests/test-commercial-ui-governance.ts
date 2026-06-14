@@ -593,6 +593,7 @@ function requiresFullSimulationVisualQaMatrix(
   const referencedSimulationArtifacts = simulationVisualQaEvidenceArtifactPaths(visualEvidence);
   return routes.some((route) => route.href === '/simulations')
     || routes.some((route) => route.href.startsWith('/simulations/'))
+    || routes.some((route) => route.href === '/interactive-learning/control-workbench')
     || files.some((file) => (
       file === 'src/app/simulations/page.tsx'
       || file === 'src/app/virtual-lab/page.tsx'
