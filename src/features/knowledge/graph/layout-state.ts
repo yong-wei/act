@@ -160,7 +160,6 @@ export function syncKnowledgeGraphMutableNodePositions<T extends KnowledgeGraphM
     node.fy = stored.y;
     node.__knowledgeUserPinned = true;
     if (stored.z === undefined) {
-      delete node.fz;
       return;
     }
     node.z = stored.z;

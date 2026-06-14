@@ -702,6 +702,11 @@ function validateKnowledgeGraphInteractionStateEvidence(): CommercialUiGovernanc
   const currentRunRelayout = objectRecord(currentRun.explicitRelayout);
   const currentRunRelayoutBefore = objectRecord(currentRunRelayout.before);
   const currentRunRelayoutAfter = objectRecord(currentRunRelayout.after);
+  const currentRunInteractionHarness = objectRecord(currentRun.interactionHarness);
+  const currentRunHarnessSelected = objectRecord(currentRunInteractionHarness.selected);
+  const currentRunHarnessDragged = objectRecord(currentRunInteractionHarness.dragged);
+  const currentRunHarnessHoverAfterDrag = objectRecord(currentRunInteractionHarness.hoverAfterDrag);
+  const currentRunHarnessRendererSync = objectRecord(currentRunInteractionHarness.rendererSync);
 
   const initialNodeCount = numberFromEvidence(initial.visibleNodeCount);
   const initialLinkCount = numberFromEvidence(initial.visibleLinkCount);
@@ -740,6 +745,18 @@ function validateKnowledgeGraphInteractionStateEvidence(): CommercialUiGovernanc
     numberFromEvidence(currentRunRelayoutAfter.layoutVersion)! > numberFromEvidence(currentRunRelayoutBefore.layoutVersion)! ? null : 'current-run:relayout-version-not-incremented',
     numberFromEvidence(currentRunRelayoutAfter.visibleNodeCount) === currentRunNodeCount ? null : 'current-run:relayout-node-count-changed',
     numberFromEvidence(currentRunRelayoutAfter.visibleLinkCount) === currentRunLinkCount ? null : 'current-run:relayout-link-count-changed',
+    currentRunInteractionHarness.kind === 'deterministic-layout-state-harness' ? null : 'current-run:harness-missing',
+    typeof currentRunHarnessSelected.selectedNodeId === 'string' && currentRunHarnessSelected.selectedNodeId.length > 0 ? null : 'current-run:harness-selected-node-missing',
+    currentRunHarnessDragged.pinnedNodeCount === 1 ? null : 'current-run:harness-dragged-pinned-count',
+    typeof currentRunHarnessDragged.pinnedLayoutSignature === 'string'
+      && currentRunHarnessDragged.pinnedLayoutSignature.includes(String(currentRunHarnessSelected.selectedNodeId ?? ''))
+      ? null
+      : 'current-run:harness-dragged-signature-missing-selected-node',
+    currentRunHarnessHoverAfterDrag.pinnedLayoutSignature === currentRunHarnessDragged.pinnedLayoutSignature
+      ? null
+      : 'current-run:harness-hover-pinned-signature-changed',
+    currentRunHarnessRendererSync.preservedAutomaticAnchors === true ? null : 'current-run:harness-automatic-anchors-not-preserved',
+    currentRunHarnessRendererSync.preservedZAxisAnchorFor2DPin === true ? null : 'current-run:harness-z-axis-anchor-not-preserved',
   ].filter((entry): entry is string => Boolean(entry));
 
   const layoutControls = [

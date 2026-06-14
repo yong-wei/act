@@ -125,6 +125,32 @@ describe('knowledge graph interaction state stability', () => {
     });
   });
 
+  it('preserves existing z-axis anchors when a 2D pin only stores x and y', () => {
+    const pinnedFrom2D = storeKnowledgeGraphNodePosition(undefined, { id: 'node-a', x: 14, y: -18 });
+    const mutableNodes = [
+      {
+        ...graphNode('node-a', 0, 0),
+        z: 0,
+        fz: 0,
+        positionZ: 0,
+      },
+    ];
+
+    syncKnowledgeGraphMutableNodePositions(mutableNodes, pinnedFrom2D);
+
+    expect(mutableNodes[0]).toMatchObject({
+      id: 'node-a',
+      x: 14,
+      y: -18,
+      fx: 14,
+      fy: -18,
+      z: 0,
+      fz: 0,
+      positionZ: 0,
+      __knowledgeUserPinned: true,
+    });
+  });
+
   it('only releases coordinates that were created by a user pin', () => {
     const mutableNodes = [
       {
@@ -230,6 +256,8 @@ describe('knowledge graph interaction state stability', () => {
     expect(governanceSource).toContain('layoutVersion');
     expect(governanceSource).toContain('currentRunBaseline');
     expect(governanceSource).toContain("'set-focus-node'");
+    expect(governanceSource).toContain('currentRunInteractionHarness');
+    expect(governanceSource).toContain('preservedZAxisAnchorFor2DPin');
   });
 
   it('resets resource inspector detail state when selection changes without remounting the panel', () => {
