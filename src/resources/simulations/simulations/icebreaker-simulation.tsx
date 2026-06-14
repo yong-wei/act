@@ -29,7 +29,6 @@ import {
   simulationUi,
   type CameraMode,
 } from '../components';
-import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
 import {
   Play,
   Pause,
@@ -1242,11 +1241,6 @@ export default function IcebreakerSimulation() {
             id: 'robust',
             label: '评估',
             content: <RobustAssessmentPanel />,
-          },
-          {
-            id: 'ai',
-            label: 'AI伴学',
-            content: <AICompanionPanel title="破冰船鲁棒控制" sessionId="icebreaker-robust-session" />,
           },
         ]}
       />

@@ -1,0 +1,153 @@
+{
+  "generatedAt": "2026-06-14T02:01:49.910Z",
+  "change": "unify-konling-simulation-dock",
+  "routes": [
+    {
+      "href": "/simulations/cruise",
+      "routeFile": "src/app/simulations/cruise/page.tsx",
+      "captures": [
+        {
+          "width": 1440,
+          "navigationState": "desktop-expanded",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-cruise-desktop-expanded.png"
+        },
+        {
+          "width": 1440,
+          "navigationState": "desktop-collapsed",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-cruise-desktop-collapsed.png"
+        },
+        {
+          "width": 320,
+          "navigationState": "workspace-command-surface",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-cruise-mobile-320.png"
+        }
+      ]
+    },
+    {
+      "href": "/simulations/lng",
+      "routeFile": "src/app/simulations/lng/page.tsx",
+      "captures": [
+        {
+          "width": 1440,
+          "navigationState": "desktop-expanded",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-lng-desktop-expanded.png"
+        },
+        {
+          "width": 1440,
+          "navigationState": "desktop-collapsed",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-lng-desktop-collapsed.png"
+        },
+        {
+          "width": 320,
+          "navigationState": "workspace-command-surface",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-lng-mobile-320.png"
+        }
+      ]
+    },
+    {
+      "href": "/simulations/destroyer",
+      "routeFile": "src/app/simulations/destroyer/page.tsx",
+      "captures": [
+        {
+          "width": 1440,
+          "navigationState": "desktop-expanded",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-destroyer-desktop-expanded.png"
+        },
+        {
+          "width": 1440,
+          "navigationState": "desktop-collapsed",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-destroyer-desktop-collapsed.png"
+        },
+        {
+          "width": 320,
+          "navigationState": "workspace-command-surface",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-destroyer-mobile-320.png"
+        }
+      ]
+    },
+    {
+      "href": "/simulations/drilling",
+      "routeFile": "src/app/simulations/drilling/page.tsx",
+      "captures": [
+        {
+          "width": 1440,
+          "navigationState": "desktop-expanded",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-drilling-desktop-expanded.png"
+        },
+        {
+          "width": 1440,
+          "navigationState": "desktop-collapsed",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-drilling-desktop-collapsed.png"
+        },
+        {
+          "width": 320,
+          "navigationState": "workspace-command-surface",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-drilling-mobile-320.png"
+        }
+      ]
+    },
+    {
+      "href": "/simulations/container",
+      "routeFile": "src/app/simulations/container/page.tsx",
+      "captures": [
+        {
+          "width": 1440,
+          "navigationState": "desktop-expanded",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-container-desktop-expanded.png"
+        },
+        {
+          "width": 1440,
+          "navigationState": "desktop-collapsed",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-container-desktop-collapsed.png"
+        },
+        {
+          "width": 320,
+          "navigationState": "workspace-command-surface",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-container-mobile-320.png"
+        }
+      ]
+    },
+    {
+      "href": "/simulations/icebreaker",
+      "routeFile": "src/app/simulations/icebreaker/page.tsx",
+      "captures": [
+        {
+          "width": 1440,
+          "navigationState": "desktop-expanded",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-icebreaker-desktop-expanded.png"
+        },
+        {
+          "width": 1440,
+          "navigationState": "desktop-collapsed",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-icebreaker-desktop-collapsed.png"
+        },
+        {
+          "width": 320,
+          "navigationState": "workspace-command-surface",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-icebreaker-mobile-320.png"
+        }
+      ]
+    },
+    {
+      "href": "/simulations/dredger",
+      "routeFile": "src/app/simulations/dredger/page.tsx",
+      "captures": [
+        {
+          "width": 1440,
+          "navigationState": "desktop-expanded",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-dredger-desktop-expanded.png"
+        },
+        {
+          "width": 1440,
+          "navigationState": "desktop-collapsed",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-dredger-desktop-collapsed.png"
+        },
+        {
+          "width": 320,
+          "navigationState": "workspace-command-surface",
+          "screenshot": "artifacts/commercial-ui/simulation-konling-dock-472/simulations-dredger-mobile-320.png"
+        }
+      ]
+    }
+  ]
+}

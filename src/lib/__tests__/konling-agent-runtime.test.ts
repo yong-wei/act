@@ -931,6 +931,49 @@ describe('konling agent runtime', () => {
     expect(runtime.citationContext?.missingCitationClasses).toContain('content');
   });
 
+  it('derives simulation runtime page context from server-owned scope', async () => {
+    const runtime = await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      classId: 'class-1',
+      courseId: 'simulation',
+      pageId: 'destroyer',
+      pageContextHint: {
+        simulationId: 'client-forged',
+        routeProvenance: 'simulation-route',
+        runSummaryAvailability: 'available',
+      },
+    });
+
+    expect(runtime.pageContext).toMatchObject({
+      courseId: 'simulation',
+      stepId: 'destroyer',
+      simulationId: 'destroyer',
+      routeProvenance: 'simulation-route',
+      runSummaryAvailability: 'unavailable-until-runtime-run',
+    });
+    expect(runtime.missingContext).toContain('simulation-run-summary-unavailable');
+
+    const prompt = buildKonlingSystemPrompt({
+      page: runtime.pageContext,
+      user: runtime.userProfile,
+      adaptiveRuntime: runtime,
+    });
+    expect(prompt).toContain('simulation-run-summary-unavailable');
+    expect(prompt).toContain('不得给出权威仿真诊断');
+  });
+
   it('does not treat unmatched pathNodeId as an active path node', async () => {
     const runtime = await buildKonlingRuntimeContext({
       studentProfile: {

@@ -30,7 +30,6 @@ import {
   simulationUi,
   type CameraMode,
 } from '../components';
-import { AICompanionPanel } from '@/features/ai/companion/ai-companion-panel';
 
 import type {
   ControlMode,
@@ -935,11 +934,6 @@ export default function ContainerSimulation() {
                 ]}
               />
             ),
-          },
-          {
-            id: 'ai',
-            label: 'AI伴学',
-            content: <AICompanionPanel title="集装箱船航线控制" sessionId="container-simulation-session" />,
           },
         ]}
       />

@@ -84,6 +84,9 @@ export function SimulationShell({
         data-task-workspace-archetype="immersive-scene"
         data-simulation-theme-template="mission-workspace"
         data-simulation-scene-color-policy="feature-owned"
+        data-simulation-konling-context-source="server-owned"
+        data-simulation-konling-context-status="degraded-without-run"
+        data-simulation-dock-collision-policy="avoid-local-tools"
         data-simulation-shell-route={activeHref}
         data-launch-provenance={launchProvenance}
         data-return-target={returnHref}
@@ -123,6 +126,9 @@ function SimulationSceneFrame({
       data-task-workspace-archetype="immersive-scene"
       data-simulation-theme-template="mission-workspace"
       data-simulation-scene-color-policy="feature-owned"
+      data-simulation-konling-context-source="server-owned"
+      data-simulation-konling-context-status="degraded-without-run"
+      data-simulation-dock-collision-policy="avoid-local-tools"
       data-simulation-shell-route={activeHref}
       data-launch-provenance={launchProvenance}
       data-return-target={returnHref}

@@ -378,7 +378,8 @@ describe('platform role navigation', () => {
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/simulations/cruise')).toMatchObject({
       frame: 'mission-workspace',
-      floatingDock: 'hidden',
+      floatingDock: 'collapsed',
+      mobileNavigation: 'workspace-command-surface',
       visualQaProfile: 'immersive',
       owningChange: 'introduce-simulation-shell-mission-workspace',
       aliases: expect.arrayContaining([
@@ -396,6 +397,14 @@ describe('platform role navigation', () => {
     ]) {
       expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === href)).toMatchObject({
         frame: 'mission-workspace',
+        floatingDock: 'collapsed',
+        mobileNavigation: 'workspace-command-surface',
+        dockDisposition: expect.arrayContaining([
+          expect.objectContaining({
+            component: 'GlobalAIFloatingButton',
+            disposition: 'registered-shared-dock',
+          }),
+        ]),
         owningChange: 'introduce-simulation-shell-mission-workspace',
         contextualReturn: expect.objectContaining({
           sourceContext: 'simulation-descendant',

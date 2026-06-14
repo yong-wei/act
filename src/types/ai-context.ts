@@ -59,6 +59,12 @@ export interface PageContext {
   stage?: BopppsStage;
   /** 当前页面URL */
   url?: string;
+  /** 仿真页面路由解析出的仿真ID */
+  simulationId?: string;
+  /** 仿真上下文来源 */
+  routeProvenance?: 'simulation-route';
+  /** 运行摘要可用性 */
+  runSummaryAvailability?: 'unavailable-until-runtime-run' | 'available';
 }
 
 /**

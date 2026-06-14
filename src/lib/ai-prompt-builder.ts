@@ -149,6 +149,9 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
   }
   if (runtime.missingContext?.length) {
     lines.push(`- 低置信或缺失上下文: ${runtime.missingContext.join(', ')}`);
+    if (runtime.missingContext.includes('simulation-run-summary-unavailable')) {
+      lines.push('- 仿真限制: 当前未绑定可验证运行摘要、任务上下文或提交结果；只能解释通用仿真概念和下一步观察方法，不得给出权威仿真诊断、评分判断或正式调参结论。');
+    }
   }
   if (runtime.permittedTools?.length) {
     lines.push(`- 可用工具: ${runtime.permittedTools.join(', ')}`);

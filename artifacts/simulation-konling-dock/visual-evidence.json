@@ -1,0 +1,231 @@
+{
+  "generatedAt": "2026-06-14T01:43:02.531Z",
+  "evidence": [
+    {
+      "viewport": {
+        "name": "desktop",
+        "width": 1440,
+        "height": 900
+      },
+      "url": "http://127.0.0.1:3001/simulations/destroyer",
+      "screenshots": {
+        "collapsed": "artifacts/simulation-konling-dock/desktop-collapsed.png",
+        "expanded": "artifacts/simulation-konling-dock/desktop-expanded.png"
+      },
+      "collapsed": {
+        "dock": {
+          "x": 16,
+          "y": 844,
+          "width": 40,
+          "height": 40
+        },
+        "button": {
+          "x": 16,
+          "y": 844,
+          "width": 40,
+          "height": 40
+        },
+        "hintStrip": {
+          "x": 573,
+          "y": 682,
+          "width": 542,
+          "height": 46
+        },
+        "bottomToolbar": {
+          "x": 573,
+          "y": 740,
+          "width": 542,
+          "height": 50
+        },
+        "leftPanel": {
+          "x": 273,
+          "y": 110,
+          "width": 288,
+          "height": 740
+        },
+        "rightPanel": {
+          "x": 1127,
+          "y": 110,
+          "width": 288,
+          "height": 740
+        },
+        "scene": {
+          "x": 573,
+          "y": 110,
+          "width": 542,
+          "height": 560
+        }
+      },
+      "expanded": {
+        "dock": {
+          "x": 16,
+          "y": 714,
+          "width": 224,
+          "height": 170
+        },
+        "panel": {
+          "x": 16,
+          "y": 714,
+          "width": 224,
+          "height": 118
+        },
+        "hintStrip": {
+          "x": 573,
+          "y": 682,
+          "width": 542,
+          "height": 46
+        },
+        "bottomToolbar": {
+          "x": 573,
+          "y": 740,
+          "width": 542,
+          "height": 50
+        },
+        "leftPanel": {
+          "x": 273,
+          "y": 110,
+          "width": 288,
+          "height": 740
+        },
+        "rightPanel": {
+          "x": 1127,
+          "y": 110,
+          "width": 288,
+          "height": 740
+        },
+        "scene": {
+          "x": 573,
+          "y": 110,
+          "width": 542,
+          "height": 560
+        }
+      },
+      "overlapAreas": {
+        "collapsedDockVsHintStrip": 0,
+        "collapsedDockVsBottomToolbar": 0,
+        "collapsedDockVsLeftPanel": 0,
+        "collapsedDockVsRightPanel": 0,
+        "collapsedDockVsScene": 0,
+        "expandedPanelVsHintStrip": 0,
+        "expandedPanelVsBottomToolbar": 0,
+        "expandedPanelVsLeftPanel": 0,
+        "expandedPanelVsRightPanel": 0,
+        "expandedPanelVsScene": 0
+      },
+      "consoleMessages": []
+    },
+    {
+      "viewport": {
+        "name": "mobile-320",
+        "width": 320,
+        "height": 900
+      },
+      "url": "http://127.0.0.1:3001/simulations/destroyer",
+      "screenshots": {
+        "collapsed": "artifacts/simulation-konling-dock/mobile-320-collapsed.png",
+        "expanded": "artifacts/simulation-konling-dock/mobile-320-expanded.png"
+      },
+      "collapsed": {
+        "dock": {
+          "x": 256,
+          "y": 112,
+          "width": 40,
+          "height": 40
+        },
+        "button": {
+          "x": 256,
+          "y": 112,
+          "width": 40,
+          "height": 40
+        },
+        "hintStrip": {
+          "x": 17,
+          "y": 867,
+          "width": 286,
+          "height": 66
+        },
+        "bottomToolbar": {
+          "x": 17,
+          "y": 945,
+          "width": 286,
+          "height": 50
+        },
+        "leftPanel": {
+          "x": 17,
+          "y": 1007,
+          "width": 286,
+          "height": 224
+        },
+        "rightPanel": {
+          "x": 17,
+          "y": 1243,
+          "width": 286,
+          "height": 224
+        },
+        "scene": {
+          "x": 17,
+          "y": 295,
+          "width": 286,
+          "height": 560
+        }
+      },
+      "expanded": {
+        "dock": {
+          "x": 72,
+          "y": 112,
+          "width": 224,
+          "height": 170
+        },
+        "panel": {
+          "x": 72,
+          "y": 112,
+          "width": 224,
+          "height": 118
+        },
+        "hintStrip": {
+          "x": 17,
+          "y": 867,
+          "width": 286,
+          "height": 66
+        },
+        "bottomToolbar": {
+          "x": 17,
+          "y": 945,
+          "width": 286,
+          "height": 50
+        },
+        "leftPanel": {
+          "x": 17,
+          "y": 1007,
+          "width": 286,
+          "height": 224
+        },
+        "rightPanel": {
+          "x": 17,
+          "y": 1243,
+          "width": 286,
+          "height": 224
+        },
+        "scene": {
+          "x": 17,
+          "y": 295,
+          "width": 286,
+          "height": 560
+        }
+      },
+      "overlapAreas": {
+        "collapsedDockVsHintStrip": 0,
+        "collapsedDockVsBottomToolbar": 0,
+        "collapsedDockVsLeftPanel": 0,
+        "collapsedDockVsRightPanel": 0,
+        "collapsedDockVsScene": 0,
+        "expandedPanelVsHintStrip": 0,
+        "expandedPanelVsBottomToolbar": 0,
+        "expandedPanelVsLeftPanel": 0,
+        "expandedPanelVsRightPanel": 0,
+        "expandedPanelVsScene": 0
+      },
+      "consoleMessages": []
+    }
+  ]
+}
