@@ -8,7 +8,10 @@ import type {
   PlatformStatusDomain,
   PlatformStatusPayload,
 } from '@/components/platform/platform-ui-contracts';
-import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
+import type {
+  AdaptiveLearningPathDeficit,
+  AdaptiveLearningPathPlan,
+} from '@/lib/adaptive-learning-path-planner';
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
 
 export type AdaptiveLearningCenterRegion =
@@ -990,11 +993,9 @@ function currentPathPanel(pathPlan: AdaptiveLearningPathPlan | null): AdaptiveLe
     payload: pathPlan
       ? {
           id: pathPlan.id,
-          stage: pathPlan.stage,
-          policyFamily: pathPlan.policyFamily,
           currentNodeId: pathPlan.currentNodeId,
-          mainPath: pathPlan.mainPath,
-          alternatives: pathPlan.alternatives,
+          mainPath: pathPlan.mainPath.map(toStudentPathNode),
+          alternatives: pathPlan.alternatives.map(toStudentPathAlternative),
           pathOptions: buildPathOptionSummaries(pathPlan),
           pathOptionFallback: buildPathOptionFallback(pathPlan),
           selectionHistory: buildPathSelectionHistory(pathPlan),
@@ -1007,20 +1008,19 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
   if (pathPlan.policyBundle?.status !== 'ready') {
     return [];
   }
-  return pathPlan.policyBundle?.paths.map((path) => ({
-    styleId: path.styleId,
-    policyFamily: path.policyFamily,
+  return pathPlan.policyBundle?.paths.map((path, index) => ({
+    optionId: `path-option-${index + 1}`,
     label: path.label,
     nodeIds: path.nodeIds,
-    targetDeficits: path.targetDeficits,
-    evidenceBasis: path.evidenceBasis,
+    targetDeficits: path.targetDeficits.map(toStudentDeficit),
+    evidenceBasis: path.evidenceBasis.map(toStudentPathReason),
     resourceMix: path.resourceMix,
     overlap: path.overlap,
     effort: path.effort,
     expectedTargetLift: path.expectedTargetLift,
     terminalValidationNodeIds: path.terminalValidationNodeIds,
     terminalValidationStrategy: path.terminalValidationStrategy,
-    limitations: path.limitations,
+    limitations: path.limitations.map(toStudentPathReason),
   })) ?? [];
 }
 
@@ -1030,12 +1030,18 @@ function buildPathOptionFallback(pathPlan: AdaptiveLearningPathPlan) {
   }
   return {
     status: pathPlan.policyBundle.status,
-    fallbackReasons: pathPlan.policyBundle.fallbackReasons,
-    diversity: pathPlan.policyBundle.diversity,
+    fallbackReasons: pathPlan.policyBundle.fallbackReasons.map(toStudentPathReason),
+    diversity: {
+      resourceOverlap: pathPlan.policyBundle.diversity.maxResourceOverlap,
+      modalityDistance: pathPlan.policyBundle.diversity.minModalityDistance,
+      effortDifference: pathPlan.policyBundle.diversity.minEstimatedEffortDifference,
+      terminalValidationDifference: pathPlan.policyBundle.diversity.terminalValidationDifference,
+    },
   };
 }
 
 function buildPathSelectionHistory(pathPlan: AdaptiveLearningPathPlan) {
+  const optionLabels = buildPathOptionLabelMap(pathPlan);
   return pathPlan.feedbackEvents
     .filter((event) => event.type === 'selection' || event.type === 'rejection' || event.type === 'switch' || event.type === 'helpfulness')
     .map((event) => {
@@ -1046,16 +1052,61 @@ function buildPathSelectionHistory(pathPlan: AdaptiveLearningPathPlan) {
         type: event.type,
         nodeId: event.nodeId,
         createdAt: event.createdAt,
-        selectedStyleId: typeof context.selectedStyleId === 'string' ? context.selectedStyleId : null,
-        previousStyleId: typeof context.previousStyleId === 'string' ? context.previousStyleId : null,
-        rejectedStyleIds: Array.isArray(context.rejectedStyleIds)
-          ? context.rejectedStyleIds.filter((item): item is string => typeof item === 'string')
+        selectedOptionLabel: typeof context.selectedStyleId === 'string'
+          ? optionLabels.get(context.selectedStyleId) ?? '已选路径'
+          : null,
+        previousOptionLabel: typeof context.previousStyleId === 'string'
+          ? optionLabels.get(context.previousStyleId) ?? '上一条路径'
+          : null,
+        rejectedOptionLabels: Array.isArray(context.rejectedStyleIds)
+          ? context.rejectedStyleIds
+              .filter((item): item is string => typeof item === 'string')
+              .map((item) => optionLabels.get(item) ?? '未采用路径')
           : [],
         helpful: typeof context.helpful === 'boolean'
           ? context.helpful
           : typeof event.helpful === 'boolean' ? event.helpful : null,
       };
     });
+}
+
+function buildPathOptionLabelMap(pathPlan: AdaptiveLearningPathPlan): Map<string, string> {
+  return new Map(pathPlan.policyBundle?.paths.map((path) => [path.styleId, path.label]) ?? []);
+}
+
+function toStudentPathNode(node: AdaptiveLearningPathPlan['mainPath'][number]) {
+  return {
+    nodeId: node.nodeId,
+    title: node.title,
+    type: node.type,
+    target: node.target,
+    estimatedTimeMinutes: node.estimatedTimeMinutes,
+    prerequisiteNodeIds: node.prerequisiteNodeIds,
+    knowledgeCoverage: node.knowledgeCoverage,
+    status: node.status,
+    score: node.score,
+    checkpoint: node.terminalConstraints.length > 0,
+  };
+}
+
+function toStudentPathAlternative(alternative: AdaptiveLearningPathPlan['alternatives'][number]) {
+  return {
+    nodeId: alternative.nodeId,
+    nodeIds: alternative.nodeIds,
+    title: alternative.title,
+    score: alternative.score,
+    blocked: alternative.blocked,
+  };
+}
+
+function toStudentDeficit(deficit: AdaptiveLearningPathDeficit) {
+  return {
+    targetId: deficit.targetId,
+    kind: deficit.kind,
+    value: deficit.value,
+    confidence: deficit.confidence,
+    evidenceCount: deficit.evidenceCount,
+  };
 }
 
 function pathPanel(
@@ -1119,20 +1170,38 @@ function pathStatus(pathPlan: AdaptiveLearningPathPlan | null): PlatformStatusPa
         : 'partial',
     privacy: 'classroom',
     readiness: pathPlan.status === 'ready' ? 'ready' : 'degraded',
-    fallbackReason: pathPlan.explanations.fallbackReasons[0] ?? null,
-    details: [
-      {
-        label: '策略族',
-        value: pathPlan.policyFamily,
-        roleScope: 'student-visible',
-      },
-      {
-        label: '优化阶段',
-        value: pathPlan.stage,
-        roleScope: 'student-visible',
-      },
-    ],
+    fallbackReason: pathPlan.explanations.fallbackReasons[0]
+      ? toStudentPathReason(pathPlan.explanations.fallbackReasons[0])
+      : null,
   });
+}
+
+function toStudentPathReason(reason: string): string {
+  const reasons: Record<string, string> = {
+    'adaptive-learner-state': '学习证据',
+    LearningFact: '练习记录',
+    SimulationRun: '仿真记录',
+    ArenaSubmission: '挑战记录',
+    'low-confidence-learner-state': '证据较少',
+    'learner-state-missing': '学习证据待补充',
+    'learner-evidence-low-confidence': '当前证据较少',
+    'resource-mapping-insufficient': '可用学习资源不足',
+    'feasible-goal-path-missing': '暂未形成完整路径',
+    'time-budget-insufficient': '当前时间预算不足',
+    'risk-intervention-resource-missing': '需要补充支持资源',
+    'teacher-assignment-resource-missing': '教师指定资源待补充',
+    'terminal-validation-resource-missing': '终点检验资源待补充',
+    'path-diversity-insufficient': '路径差异不足',
+    'path-modality-diversity-insufficient': '资源形式差异不足',
+    'path-effort-diversity-insufficient': '学习时长差异不足',
+    'terminal-validation-diversity-insufficient': '终点检验差异不足',
+    'policy-path-resource-missing': '路径资源不足',
+    'policy-paths-identical': '路径选项过于接近',
+    'terminal-validation-missing': '需要完成终点检验',
+    'some-targets-have-no-direct-evidence': '部分目标还缺少直接证据',
+    'low-learner-state-confidence': '当前证据较少',
+  };
+  return reasons[reason] ?? '路径状态待确认';
 }
 
 function practicePanel(learnerState: AdaptiveLearnerState | null): AdaptiveLearningCenterPanel {

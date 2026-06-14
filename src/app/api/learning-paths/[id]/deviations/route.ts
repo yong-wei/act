@@ -52,6 +52,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const deviation = await recordPathDeviation(prisma as any, {
       pathId: params.id,
       userId: path.userId,
+      goalId: path.goalId ?? null,
       deviationType: body.deviationType,
       priorNodeId: body.priorNodeId ?? null,
       targetNodeId: body.targetNodeId ?? null,

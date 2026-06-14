@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   getServerAuthSession: vi.fn(),
+  persistLearningPathRound: vi.fn(),
   persistControlCorrectionPathRound: vi.fn(),
   readControlCorrectionPathRound: vi.fn(),
   recordPathNodeExecution: vi.fn(),
@@ -48,6 +49,7 @@ vi.mock('@/lib/control-correction-path-rounds', async (importOriginal) => {
   return {
     ...actual,
     isControlCorrectionPathRoundPersistenceEnabled: () => process.env.CONTROL_CORRECTION_PATH_ROUNDS_ENABLED !== 'false',
+    persistLearningPathRound: mocks.persistLearningPathRound,
     persistControlCorrectionPathRound: mocks.persistControlCorrectionPathRound,
     readControlCorrectionPathRound: mocks.readControlCorrectionPathRound,
     recordPathNodeExecution: mocks.recordPathNodeExecution,
@@ -126,6 +128,13 @@ describe('learning path round API routes', () => {
       nodeIds: ['node-1'],
       pathPayload: {
         mainPathNodeIds: ['node-1'],
+        planNodes: [
+          {
+            nodeId: 'node-1',
+            type: 'simulation',
+            target: '/simulations/cruise',
+          },
+        ],
         policyBundle: {
           status: 'ready',
           paths: [
@@ -159,6 +168,7 @@ describe('learning path round API routes', () => {
     mocks.prisma.arenaSubmission.findFirst.mockResolvedValue(null);
     mocks.prisma.arenaVirtualSimulationRun.findFirst.mockResolvedValue(null);
     mocks.persistControlCorrectionPathRound.mockResolvedValue({ id: 'path-1' });
+    mocks.persistLearningPathRound.mockResolvedValue({ id: 'path-1' });
     mocks.readControlCorrectionPathRound.mockResolvedValue({
       id: 'path-1',
       userId: 'student-1',
@@ -204,6 +214,43 @@ describe('learning path round API routes', () => {
     });
     mocks.refreshStudentEvidenceFeatureCache.mockResolvedValue({ userId: 'student-1' });
   });
+
+  function configureSingleNodePath(
+    nodeId: string,
+    type: string,
+    target: string,
+    options: {
+      goalId?: string;
+      includePlanNodes?: boolean;
+      terminalValidation?: Record<string, unknown>;
+    } = {},
+  ) {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: options.goalId ?? 'frequency-response-foundations',
+      pathStatus: 'active',
+      currentNodeId: nodeId,
+      nodeIds: [nodeId],
+      pathPayload: {
+        mainPathNodeIds: [nodeId],
+        ...(options.includePlanNodes === false
+          ? {}
+          : {
+              planNodes: [
+                {
+                  nodeId,
+                  type,
+                  target,
+                },
+              ],
+            }),
+      },
+      terminalValidation: options.terminalValidation ?? { nodeId: null, state: 'not-required' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+  }
 
   it('requires authentication before creating a path round', async () => {
     mocks.getServerAuthSession.mockResolvedValue(null);
@@ -263,6 +310,85 @@ describe('learning path round API routes', () => {
       learnerStateRef: 'cache-1',
       classId: 'class-1',
     }));
+  });
+
+  it('persists a teacher scoped registered non-control path round for a student', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+    mocks.prisma.learningPath.findUnique.mockResolvedValue(null);
+    mocks.persistLearningPathRound.mockResolvedValue({ id: 'path-frequency' });
+
+    const response = await planPath(post('http://localhost/api/learning-paths/plan', {
+      plan: {
+        id: 'path-frequency',
+        goal: {
+          id: 'frequency-response-foundations',
+          title: '频率响应基础',
+          knowledgeTargets: ['kn-bode'],
+        },
+        userId: 'student-1',
+        stage: 'stage-1-rules-graph',
+        policyFamily: 'foundation-remediation',
+        mainPath: [{
+          nodeId: 'registry:bode-card',
+          title: '伯德图知识卡',
+          type: 'knowledge_card',
+          sourceKind: 'resource_registry',
+          sourceRef: 'bode-card',
+          target: '/interactive-learning/resources/bode-card',
+          estimatedTimeMinutes: 10,
+          prerequisiteNodeIds: [],
+          knowledgeCoverage: ['kn-bode'],
+          teacherPolicy: 'allowed',
+          privacyLevel: 'student-visible',
+          terminalConstraints: [],
+          score: 1,
+          reasonCodes: ['matches-knowledge-deficit'],
+          status: 'current',
+        }],
+        alternatives: [],
+        confidence: { level: 'low', score: 0.2, sourceCoverage: 0.2 },
+        explanations: { selectedReasons: ['matches-knowledge-deficit'], rejectedAlternatives: [], fallbackReasons: ['learner-evidence-low-confidence'] },
+        executionStatus: { adopted: false, completedNodeIds: [], activeNodeId: 'registry:bode-card', updatedAt: '2026-06-14T08:00:00.000Z' },
+        deviations: [],
+        corrections: [],
+        feedbackEvents: [],
+        visualization: {
+          map: { mainPathNodeIds: ['registry:bode-card'], branchPaths: [], currentNodeId: 'registry:bode-card', completedNodeIds: [], riskNodeIds: [], blockedNodes: [], alternatives: [] },
+          timeline: { generatedAt: '2026-06-14T08:00:00.000Z', windows: [] },
+          evidence: { evidenceBasis: 'adaptive-learner-state', confidence: { level: 'low', score: 0.2, sourceCoverage: 0.2 }, sourceCoverage: {}, learnerStateDeficits: [], prerequisiteReasons: [], teacherPolicy: [], alternatives: [] },
+        },
+      },
+      learnerStateRef: 'cache-frequency',
+      classId: 'class-1',
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.path.id).toBe('path-frequency');
+    expect(mocks.persistLearningPathRound).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      learnerStateRef: 'cache-frequency',
+      classId: 'class-1',
+    }));
+    expect(mocks.persistControlCorrectionPathRound).not.toHaveBeenCalled();
+  });
+
+  it('rejects unknown learning goals during plan creation', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+
+    const response = await planPath(post('http://localhost/api/learning-paths/plan', {
+      plan: {
+        id: 'path-unknown',
+        goal: { id: 'unknown-goal', title: '未知目标', knowledgeTargets: ['kn-x'] },
+        userId: 'student-1',
+      },
+      classId: 'class-1',
+    }));
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.error).toContain('未注册');
+    expect(mocks.persistLearningPathRound).not.toHaveBeenCalled();
+    expect(mocks.persistControlCorrectionPathRound).not.toHaveBeenCalled();
   });
 
   it('rejects a client supplied path id that already belongs to another owner', async () => {
@@ -540,6 +666,10 @@ describe('learning path round API routes', () => {
   });
 
   it('allows ai intervention path node execution to match planner resource types', async () => {
+    configureSingleNodePath('node-1', 'ai_intervention', '/adaptive-learning/path-advisor', {
+      goalId: 'control-correction',
+    });
+
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
       nodeId: 'node-1',
       resourceType: 'ai_intervention',
@@ -555,7 +685,68 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('allows registered non-control path quiz execution to write activity', async () => {
+    for (const resourceType of ['quiz', 'handout', 'lesson_step']) {
+      const nodeId = `registry:bode-${resourceType}`;
+      configureSingleNodePath(nodeId, resourceType, `/interactive-learning/resources/bode-${resourceType}`);
+
+      const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+        nodeId,
+        resourceType,
+        status: 'completed',
+        idempotencyKey: `exec-bode-${resourceType}`,
+      }), params);
+
+      expect(response.status).toBe(200);
+      expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+        goalId: 'frequency-response-foundations',
+        nodeId,
+        resourceType,
+        idempotencyKey: `exec-bode-${resourceType}`,
+      }));
+    }
+  });
+
+  it('rejects execution when resource type does not match the persisted path node', async () => {
+    configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz');
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:bode-quiz',
+      resourceType: 'handout',
+      status: 'completed',
+      idempotencyKey: 'exec-bode-quiz',
+    }), params);
+
+    expect(response.status).toBe(400);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
+  it('rejects execution when the current path node is missing from planNodes', async () => {
+    configureSingleNodePath('registry:bode-quiz', 'quiz', '/interactive-learning/resources/bode-quiz', {
+      includePlanNodes: false,
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:bode-quiz',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'exec-bode-quiz',
+    }), params);
+
+    expect(response.status).toBe(400);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
   it('does not let clients forge official terminal Arena evidence', async () => {
+    configureSingleNodePath('node-1', 'arena_task', '/arena/challenges/task-second-order-lead-pid', {
+      goalId: 'control-correction',
+      terminalValidation: {
+        nodeId: 'node-1',
+        state: 'pending',
+        target: '/arena/challenges/task-second-order-lead-pid',
+      },
+    });
+
     const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
       nodeId: 'node-1',
       resourceType: 'arena_task',
@@ -946,7 +1137,13 @@ describe('learning path round API routes', () => {
       pathStatus: 'active',
       currentNodeId: 'node-1',
       nodeIds: ['node-1', 'node-2'],
-      pathPayload: { mainPathNodeIds: ['node-1', 'node-2'] },
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2'],
+        planNodes: [
+          { nodeId: 'node-1', type: 'simulation', target: '/simulations/cruise' },
+          { nodeId: 'node-2', type: 'simulation', target: '/simulations/lng' },
+        ],
+      },
       terminalValidation: { nodeId: 'node-2', state: 'pending' },
       lastExecutionMetadata: { completedNodeIds: [] },
     });
@@ -1049,7 +1246,13 @@ describe('learning path round API routes', () => {
       pathStatus: 'active',
       currentNodeId: 'node-2',
       nodeIds: ['node-1', 'node-2'],
-      pathPayload: { mainPathNodeIds: ['node-1', 'node-2'] },
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2'],
+        planNodes: [
+          { nodeId: 'node-1', type: 'simulation', target: '/simulations/cruise' },
+          { nodeId: 'node-2', type: 'simulation', target: '/simulations/lng' },
+        ],
+      },
       terminalValidation: { nodeId: 'node-2', state: 'pending' },
       lastExecutionMetadata: { completedNodeIds: ['node-1'] },
     });

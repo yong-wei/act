@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { isControlCorrectionPathRoundPersistenceEnabled } from '@/lib/control-correction-path-rounds';
+import { isRegisteredAdaptiveLearningPathGoal } from '@/lib/adaptive-learning-path-planner';
 import { refreshStudentEvidenceFeatureCache } from '@/lib/data-governance/student-evidence-feature-cache';
 
 export type LearningPathRequesterRole = 'student' | 'teacher' | 'admin';
@@ -46,7 +47,7 @@ export async function readPathForAccess(pathId: string): Promise<any | NextRespo
   if (!path) {
     return NextResponse.json({ error: '学习路径不存在' }, { status: 404 });
   }
-  const invalidGoal = ensureControlCorrectionPath(path);
+  const invalidGoal = ensureRegisteredLearningPath(path);
   if (invalidGoal) return invalidGoal;
   return path;
 }
@@ -64,15 +65,20 @@ export function ensureControlCorrectionPath(path: { goalId?: string | null }): N
   return NextResponse.json({ error: '该接口仅支持 control-correction 学习路径' }, { status: 404 });
 }
 
+export function ensureRegisteredLearningPath(path: { goalId?: string | null }): NextResponse | null {
+  if (path.goalId && isRegisteredAdaptiveLearningPathGoal(path.goalId)) return null;
+  return NextResponse.json({ error: '该接口仅支持已注册学习目标的学习路径' }, { status: 404 });
+}
+
 export async function assertPathRoundIdAvailable(
-  input: { pathId: string; studentUserId: string },
+  input: { pathId: string; studentUserId: string; goalId: string },
 ): Promise<NextResponse | null> {
   const existing = await prisma.learningPath.findUnique({
     where: { id: input.pathId },
     select: { id: true, userId: true, goalId: true },
   });
   if (!existing) return null;
-  if (existing.userId === input.studentUserId && existing.goalId === 'control-correction') {
+  if (existing.userId === input.studentUserId && existing.goalId === input.goalId) {
     return null;
   }
   return NextResponse.json({ error: '学习路径 id 已被其他路径占用' }, { status: 409 });

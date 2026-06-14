@@ -49,6 +49,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const intervention = await recordPathIntervention(prisma as any, {
       pathId: params.id,
       userId: path.userId,
+      goalId: path.goalId ?? null,
       interventionKind: body.interventionKind,
       citedEvidence: body.citedEvidence ?? [],
       suggestedAction: body.suggestedAction,

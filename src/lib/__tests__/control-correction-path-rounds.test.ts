@@ -6,6 +6,7 @@ import {
 } from '../adaptive-learning-path-planner';
 import {
   persistControlCorrectionPathRound,
+  persistLearningPathRound,
   ControlCorrectionPathRoundConflictError,
   ControlCorrectionPathRoundValidationError,
   readControlCorrectionPathRound,
@@ -135,6 +136,65 @@ function samplePlan(): AdaptiveLearningPathPlan {
   };
 }
 
+function frequencyResponsePlan(): AdaptiveLearningPathPlan {
+  const base = samplePlan();
+  return {
+    ...base,
+    id: 'adaptive-path:student-1:frequency-response-foundations',
+    goal: {
+      id: 'frequency-response-foundations',
+      title: '频率响应基础',
+      knowledgeTargets: ['kn-bode'],
+      competencyTargets: [],
+    },
+    policyFamily: 'foundation-remediation',
+    policyMetadata: ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES['foundation-remediation'],
+    status: 'fallback',
+    confidence: {
+      level: 'low',
+      score: 0.2,
+      sourceCoverage: 0.2,
+    },
+    currentNodeId: 'knowledge-card:frequency-response-basics',
+    mainPath: [{
+      nodeId: 'knowledge-card:frequency-response-basics',
+      title: '频率响应基础卡',
+      type: 'knowledge_card',
+      sourceKind: 'knowledge_graph',
+      sourceRef: 'frequency-response-basics',
+      target: '/course-runtime/knowledge/cards/frequency-response-basics',
+      estimatedTimeMinutes: 10,
+      prerequisiteNodeIds: [],
+      knowledgeCoverage: ['kn-bode'],
+      teacherPolicy: 'allowed',
+      privacyLevel: 'student-visible',
+      terminalConstraints: [],
+      score: 0.8,
+      reasonCodes: ['matches-knowledge-deficit'],
+      status: 'current',
+    }],
+    explanations: {
+      selectedReasons: ['matches-knowledge-deficit'],
+      rejectedAlternatives: [],
+      fallbackReasons: ['learner-evidence-low-confidence'],
+    },
+    executionStatus: {
+      adopted: false,
+      completedNodeIds: [],
+      activeNodeId: 'knowledge-card:frequency-response-basics',
+      updatedAt: '2026-06-14T08:00:00.000Z',
+    },
+    visualization: {
+      ...base.visualization,
+      map: {
+        ...base.visualization.map,
+        mainPathNodeIds: ['knowledge-card:frequency-response-basics'],
+        currentNodeId: 'knowledge-card:frequency-response-basics',
+      },
+    },
+  };
+}
+
 function mockDb() {
   const existingExecutions = new Map<string, any>();
   const existingDeviations = new Map<string, any>();
@@ -215,6 +275,7 @@ describe('control-correction path rounds', () => {
             nodeIds: ['arena-task:task-second-order-lead-pid'],
             summary: 'terminal validation through arena-task:task-second-order-lead-pid',
           },
+          checkpointNodeIds: ['arena-task:task-second-order-lead-pid'],
           limitations: ['some-targets-have-no-direct-evidence'],
         }],
         diversity: {
@@ -307,6 +368,143 @@ describe('control-correction path rounds', () => {
         }),
       }),
     }));
+  });
+
+  it('persists registered generic path rounds without requiring control-correction terminal validation', async () => {
+    const db = mockDb();
+    db.learningPath.findFirst = vi.fn(async () => null) as any;
+    const plan: AdaptiveLearningPathPlan = {
+      ...samplePlan(),
+      id: 'adaptive-path:student-1:frequency-response-foundations',
+      goal: {
+        id: 'frequency-response-foundations',
+        title: '频率响应基础',
+        knowledgeTargets: ['kn-bode'],
+        competencyTargets: [],
+      },
+      policyFamily: 'foundation-remediation',
+      policyMetadata: ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES['foundation-remediation'],
+      status: 'fallback',
+      confidence: {
+        level: 'low',
+        score: 0.2,
+        sourceCoverage: 0.2,
+      },
+      currentNodeId: 'knowledge-card:frequency-response-basics',
+      mainPath: [{
+        nodeId: 'knowledge-card:frequency-response-basics',
+        title: '频率响应基础卡',
+        type: 'knowledge_card',
+        sourceKind: 'knowledge_graph',
+        sourceRef: 'frequency-response-basics',
+        target: '/course-runtime/knowledge/cards/frequency-response-basics',
+        estimatedTimeMinutes: 10,
+        prerequisiteNodeIds: [],
+        knowledgeCoverage: ['kn-bode'],
+        teacherPolicy: 'allowed',
+        privacyLevel: 'student-visible',
+        terminalConstraints: [],
+        score: 0.8,
+        reasonCodes: ['matches-knowledge-deficit'],
+        status: 'current',
+      }],
+      explanations: {
+        selectedReasons: ['matches-knowledge-deficit'],
+        rejectedAlternatives: [],
+        fallbackReasons: ['learner-evidence-low-confidence'],
+      },
+      executionStatus: {
+        adopted: false,
+        completedNodeIds: [],
+        activeNodeId: 'knowledge-card:frequency-response-basics',
+        updatedAt: '2026-06-14T08:00:00.000Z',
+      },
+      visualization: {
+        ...samplePlan().visualization,
+        map: {
+          ...samplePlan().visualization.map,
+          mainPathNodeIds: ['knowledge-card:frequency-response-basics'],
+          currentNodeId: 'knowledge-card:frequency-response-basics',
+        },
+      },
+    };
+
+    await persistLearningPathRound(db, {
+      plan,
+      learnerStateRef: 'learner-state-cache-frequency',
+      inputSnapshot: { goalId: 'frequency-response-foundations' },
+      classId: 'class-1',
+    });
+
+    expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: plan.id },
+      create: expect.objectContaining({
+        id: plan.id,
+        userId: 'student-1',
+        goalId: 'frequency-response-foundations',
+        plannerVersion: 'stage-1-rules-graph',
+        pathStatus: 'fallback',
+        currentNodeId: 'knowledge-card:frequency-response-basics',
+        learnerStateRef: 'learner-state-cache-frequency',
+        classId: 'class-1',
+        terminalValidation: expect.objectContaining({
+          nodeId: null,
+          state: 'not-required',
+        }),
+        pathPayload: expect.objectContaining({
+          mainPathNodeIds: ['knowledge-card:frequency-response-basics'],
+          plannerVersion: 'stage-1-rules-graph',
+        }),
+        explanationPayload: expect.objectContaining({
+          studentFacing: expect.objectContaining({
+            summary: expect.stringContaining('当前证据不足'),
+          }),
+        }),
+      }),
+    }));
+  });
+
+  it('rejects registered generic path rounds when nodes exceed the goal resource contract', async () => {
+    const db = mockDb();
+    const plan = frequencyResponsePlan();
+    plan.mainPath[0] = {
+      ...plan.mainPath[0],
+      type: 'project',
+      nodeId: 'project:frequency-response-open-task',
+      target: '/interactive-learning/projects/frequency-response-open-task',
+    };
+    plan.currentNodeId = 'project:frequency-response-open-task';
+
+    await expect(persistLearningPathRound(db, {
+      plan,
+      inputSnapshot: { goalId: 'frequency-response-foundations' },
+    })).rejects.toBeInstanceOf(ControlCorrectionPathRoundValidationError);
+    expect(db.learningPath.upsert).not.toHaveBeenCalled();
+  });
+
+  it('rejects registered generic path rounds that point students outside student-visible targets', async () => {
+    const forbiddenTargets = [
+      '/teacher/resources',
+      '/data-center',
+      '/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/session-1',
+      '/api/learning-paths/path-1',
+      'https://example.com/lesson',
+    ];
+
+    for (const target of forbiddenTargets) {
+      const db = mockDb();
+      const plan = frequencyResponsePlan();
+      plan.mainPath[0] = {
+        ...plan.mainPath[0],
+        target,
+      };
+
+      await expect(persistLearningPathRound(db, {
+        plan,
+        inputSnapshot: { goalId: 'frequency-response-foundations' },
+      })).rejects.toBeInstanceOf(ControlCorrectionPathRoundValidationError);
+      expect(db.learningPath.upsert).not.toHaveBeenCalled();
+    }
   });
 
   it('persists ai intervention nodes that the planner can include in path options', async () => {
@@ -537,6 +735,119 @@ describe('control-correction path rounds', () => {
         causationId: 'LearningPathChoice:helpful-event-2',
       })],
     }));
+  });
+
+  it('records generic path choice evidence without control-correction event names', async () => {
+    const db = mockDb();
+
+    const result = await recordPathChoiceEvidence(db, {
+      pathId: 'path-frequency',
+      userId: 'student-1',
+      goalId: 'frequency-response-foundations',
+      action: 'selection',
+      selectedStyleId: 'foundation-remediation',
+      selectedPolicyFamily: 'foundation-remediation',
+      resourceMix: { knowledge_card: 1 },
+      idempotencyKey: 'choice-key',
+    });
+
+    expect(result).toEqual({
+      emitted: true,
+      dedupeKey: 'learning-path:choice:path-frequency:choice-key',
+    });
+    expect(db.evidenceOutbox.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: [
+        expect.objectContaining({
+          eventType: 'learning_path.selection_recorded',
+          dedupeKey: 'learning-path:choice:path-frequency:choice-key',
+          payload: expect.objectContaining({
+            goalId: 'frequency-response-foundations',
+            sourceCapability: 'generic-learning-path-loop',
+            payloadVersion: 'learning-path-choice-evidence.v1',
+          }),
+        }),
+      ],
+      skipDuplicates: true,
+    }));
+    expect(db.learningFact.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: [
+        expect.objectContaining({
+          factType: 'learning_path.selection_recorded',
+          moduleId: 'frequency-response-foundations-path-advisor',
+          sourceEventId: 'learning-path:choice:path-frequency:choice-key',
+          contextJson: expect.objectContaining({
+            goalId: 'frequency-response-foundations',
+          }),
+        }),
+      ],
+      skipDuplicates: true,
+    }));
+    expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('control_correction_path');
+    expect(JSON.stringify(db.learningFact.createMany.mock.calls)).not.toContain('control-correction-path');
+  });
+
+  it('records generic path activity evidence without control-correction event names', async () => {
+    const db = mockDb();
+
+    await recordPathNodeExecution(db, {
+      pathId: 'path-frequency',
+      userId: 'student-1',
+      goalId: 'frequency-response-foundations',
+      nodeId: 'registry:bode-quiz',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'exec-key',
+    });
+    await recordPathDeviation(db, {
+      pathId: 'path-frequency',
+      userId: 'student-1',
+      goalId: 'frequency-response-foundations',
+      deviationType: 'skip',
+      targetNodeId: 'registry:bode-card',
+      evidenceConfidence: 'low',
+      idempotencyKey: 'dev-key',
+    });
+    await recordPathIntervention(db, {
+      pathId: 'path-frequency',
+      userId: 'student-1',
+      goalId: 'frequency-response-foundations',
+      interventionKind: 'hint',
+      suggestedAction: '回看伯德图基础卡。',
+      privacySafeSummary: '建议回看伯德图基础卡。',
+      idempotencyKey: 'int-key',
+    });
+
+    expect(db.evidenceOutbox.createMany).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      data: [expect.objectContaining({
+        eventType: 'learning_path.execution_recorded',
+        dedupeKey: 'learning-path:execution:path-frequency:exec-key',
+        payload: expect.objectContaining({
+          goalId: 'frequency-response-foundations',
+          sourceCapability: 'generic-path-execution-evidence-cache',
+          payloadVersion: 'learning-path-evidence.v1',
+        }),
+      })],
+    }));
+    expect(db.evidenceOutbox.createMany).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      data: [expect.objectContaining({
+        eventType: 'learning_path.deviation_recorded',
+        dedupeKey: 'learning-path:deviation:path-frequency:dev-key',
+        payload: expect.objectContaining({
+          goalId: 'frequency-response-foundations',
+        }),
+      })],
+    }));
+    expect(db.evidenceOutbox.createMany).toHaveBeenNthCalledWith(3, expect.objectContaining({
+      data: [expect.objectContaining({
+        eventType: 'learning_path.intervention_recorded',
+        dedupeKey: 'learning-path:intervention:path-frequency:int-key',
+        payload: expect.objectContaining({
+          goalId: 'frequency-response-foundations',
+        }),
+      })],
+    }));
+    expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('control_correction_path');
+    expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('control-correction-path');
   });
 
   it('does not append duplicate path choice history for idempotent retries', async () => {

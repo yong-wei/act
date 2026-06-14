@@ -38,6 +38,30 @@ export interface AdaptiveLearningPathGoal {
   competencyTargets?: string[];
 }
 
+export interface AdaptiveLearningPathRegisteredGoalDefinition {
+  goal: AdaptiveLearningPathGoal;
+  displayName: string;
+  allowedResourceMix: ResourceNode['type'][];
+  starterPathPolicy: {
+    policyFamilies: AdaptiveLearningPathPolicyFamily[];
+    minOptions: number;
+    difficultyRhythm: 'gentle' | 'steady' | 'challenge';
+    allowExternalResources: boolean;
+    preferredResourceTypes: ResourceNode['type'][];
+  };
+  checkpointPolicy: {
+    minCheckpoints: number;
+    checkpointResourceTypes: ResourceNode['type'][];
+    requiresTerminalValidation: boolean;
+  };
+  explanationTemplates: {
+    ready: string;
+    coldStart: string;
+    lowConfidence: string;
+    fallback: string;
+  };
+}
+
 export interface AdaptiveLearningPathLearnerState {
   knowledgeMastery?: {
     tags?: Record<string, {
@@ -95,6 +119,9 @@ export interface AdaptiveLearningPathPlannerInput {
     families: AdaptiveLearningPathPolicyFamily[];
     overlapThreshold?: number;
   };
+  difficultyRhythm?: 'gentle' | 'steady' | 'challenge';
+  resourcePreferences?: ResourceNode['type'][];
+  allowExternalResources?: boolean;
   now?: Date;
 }
 
@@ -213,6 +240,7 @@ export interface AdaptiveLearningPathPolicyBundle {
       nodeIds: string[];
       summary: string;
     };
+    checkpointNodeIds: string[];
     limitations: string[];
   }>;
   diversity: {
@@ -336,6 +364,11 @@ export interface AdaptiveLearningPathPersistenceRecord {
     corrections: AdaptiveLearningPathCorrection[];
     feedbackEvents: AdaptiveLearningPathFeedbackEvent[];
     visualization: AdaptiveLearningPathVisualization;
+    studentFacing: {
+      summary: string;
+      nextAction: string;
+      confidenceLabel: string;
+    };
   };
 }
 
@@ -419,6 +452,80 @@ export const ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES: Record<
   },
 };
 
+export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearningPathRegisteredGoalDefinition> = {
+  'control-correction': {
+    goal: {
+      id: 'control-correction',
+      title: '控制系统校正设计',
+      knowledgeTargets: [
+        'control-correction:time-domain-targets',
+        'control-correction:root-locus-design',
+        'control-correction:simulation-validation',
+        'control-correction:arena-transfer',
+      ],
+      competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
+    },
+    displayName: '控制系统校正设计',
+    allowedResourceMix: ['knowledge_card', 'simulation', 'arena_task', 'reflection', 'ai_intervention'],
+    starterPathPolicy: {
+      policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
+      minOptions: 2,
+      difficultyRhythm: 'steady',
+      allowExternalResources: false,
+      preferredResourceTypes: ['knowledge_card', 'simulation', 'arena_task'],
+    },
+    checkpointPolicy: {
+      minCheckpoints: 1,
+      checkpointResourceTypes: ['simulation', 'arena_task'],
+      requiresTerminalValidation: true,
+    },
+    explanationTemplates: {
+      ready: '已根据当前证据生成校正设计学习路径。',
+      coldStart: '证据还少，先从入门路径开始，系统会随学习过程调整。',
+      lowConfidence: '当前证据不足，先沿可执行路径学习，后续会根据新证据调整。',
+      fallback: '当前只能给出保守路径建议，请先完成可用资源并补充学习证据。',
+    },
+  },
+  'frequency-response-foundations': {
+    goal: {
+      id: 'frequency-response-foundations',
+      title: '频率响应基础',
+      knowledgeTargets: ['kn-bode'],
+      competencyTargets: [],
+    },
+    displayName: '频率响应基础',
+    allowedResourceMix: ['knowledge_card', 'simulation', 'quiz', 'reflection', 'handout', 'lesson_step'],
+    starterPathPolicy: {
+      policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
+      minOptions: 2,
+      difficultyRhythm: 'gentle',
+      allowExternalResources: false,
+      preferredResourceTypes: ['knowledge_card', 'simulation', 'quiz'],
+    },
+    checkpointPolicy: {
+      minCheckpoints: 1,
+      checkpointResourceTypes: ['quiz', 'simulation', 'reflection', 'knowledge_card'],
+      requiresTerminalValidation: false,
+    },
+    explanationTemplates: {
+      ready: '已根据当前证据生成频率响应学习路径。',
+      coldStart: '证据还少，先从入门路径开始，系统会随学习过程调整。',
+      lowConfidence: '当前证据不足，先完成基础路径，系统会根据后续表现调整顺序。',
+      fallback: '当前可用资源不足，请先完成基础材料并补充学习证据。',
+    },
+  },
+};
+
+export function getRegisteredAdaptiveLearningPathGoal(
+  goalId: string,
+): AdaptiveLearningPathRegisteredGoalDefinition | null {
+  return ADAPTIVE_LEARNING_GOAL_DEFINITIONS[goalId] ?? null;
+}
+
+export function isRegisteredAdaptiveLearningPathGoal(goalId: string): boolean {
+  return Boolean(getRegisteredAdaptiveLearningPathGoal(goalId));
+}
+
 export function buildAdaptiveLearningPathPlan(input: AdaptiveLearningPathPlannerInput): AdaptiveLearningPathPlan {
   return buildAdaptiveLearningPathPlanInternal(input, true);
 }
@@ -444,6 +551,7 @@ function buildAdaptiveLearningPathPlanInternal(
   const now = (input.now ?? new Date()).toISOString();
   const policyFamily = input.policyFamily ?? 'rules-plus-graph-search';
   const policyMetadata = ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES[policyFamily];
+  const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
   const deficits = inferDeficits(input.goal, input.learnerState);
   const confidence = resolvePlanConfidence(input.learnerState);
   const sourceCoverage = input.learnerState?.evidence?.sourceCoverage ?? {};
@@ -453,6 +561,7 @@ function buildAdaptiveLearningPathPlanInternal(
   const eligibleIds = new Set(policyEligible.map((node) => node.id));
   const scored = eligible
     .filter((node) => eligibleIds.has(node.id))
+    .filter((node) => goalAllowsResourceNode(node, registeredGoal))
     .filter((node) =>
       nodeMatchesGoal(node, input.goal, deficits) ||
       (input.constraints.requireRiskIntervention && isRiskInterventionNode(node))
@@ -478,14 +587,15 @@ function buildAdaptiveLearningPathPlanInternal(
     policyFamily,
   });
   const status: AdaptiveLearningPathStatus = fallbackReasons.length > 0 ? 'fallback' : 'ready';
-  const plannedEntries = status === 'ready' ? mainPathNodes : [];
+  const hasBlockingFallback = fallbackReasons.some(isPathBlockingFallbackReason);
+  const plannedEntries = hasBlockingFallback ? [] : mainPathNodes;
   const mainPathNodeIds = new Set(plannedEntries.map((entry) => entry.node.id));
   const completedNodeIds = requestedCompletedNodeIds.filter((nodeId) => mainPathNodeIds.has(nodeId));
   const planningCompletedNodeIds = requestedCompletedNodeIds.filter((nodeId) => eligibleIds.has(nodeId));
-  const currentNodeId = status === 'ready'
+  const currentNodeId = plannedEntries.length > 0
     ? resolveCurrentNodeId(plannedEntries, completedNodeIds)
     : null;
-  const mainPath = status === 'ready'
+  const mainPath = plannedEntries.length > 0
     ? plannedEntries.map((entry) => toPlanNode(entry, currentNodeId, completedNodeIds))
     : [];
   const alternatives = buildAlternatives(
@@ -504,6 +614,7 @@ function buildAdaptiveLearningPathPlanInternal(
     rejectedAlternatives: alternatives.filter((item) => item.blocked || !mainPath.some((node) => node.nodeId === item.nodeId)),
     fallbackReasons,
   };
+  const policyBundleRequest = resolvePolicyBundleRequest(input, confidence, registeredGoal);
 
   return {
     id: `adaptive-path:${input.studentId}:${input.goal.id}`,
@@ -512,7 +623,10 @@ function buildAdaptiveLearningPathPlanInternal(
     stage: 'stage-1-rules-graph',
     policyFamily,
     policyMetadata,
-    policyBundle: includePolicyBundle ? buildPolicyBundle(input, policyFamily) : undefined,
+    policyBundle: includePolicyBundle ? buildPolicyBundle({
+      ...input,
+      policyBundle: policyBundleRequest,
+    }, policyFamily) : undefined,
     excludedPolicyFamilies: EXCLUDED_POLICY_FAMILIES,
     status,
     currentNodeId,
@@ -540,6 +654,7 @@ function buildAdaptiveLearningPathPlanInternal(
       sourceCoverage,
       confidence,
       status,
+      hasUsablePath: mainPath.length > 0,
       generatedAt: now,
     }),
   };
@@ -636,11 +751,12 @@ export function recordLearningPathFeedback(
 }
 
 export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): AdaptiveLearningPathPersistenceRecord {
+  const studentFacing = buildStudentFacingPathExplanation(plan);
   return {
     id: plan.id,
     userId: plan.userId,
     title: plan.goal.title,
-    description: plan.explanations.selectedReasons.join('; ') || plan.explanations.fallbackReasons.join('; '),
+    description: studentFacing.summary,
     estimatedTime: remainingEstimatedMinutes(plan.mainPath),
     nodeIds: plan.mainPath.map((node) => node.nodeId),
     isAiGenerated: false,
@@ -660,6 +776,7 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
       corrections: plan.corrections,
       feedbackEvents: plan.feedbackEvents,
       visualization: plan.visualization,
+      studentFacing,
     },
   };
 }
@@ -1292,8 +1409,68 @@ function buildFallbackReasons(input: {
   return unique(reasons);
 }
 
+function isPathBlockingFallbackReason(reason: string): boolean {
+  return [
+    'resource-mapping-insufficient',
+    'feasible-goal-path-missing',
+    'time-budget-insufficient',
+    'risk-intervention-resource-missing',
+    'teacher-assignment-resource-missing',
+    'terminal-validation-resource-missing',
+  ].includes(reason);
+}
+
+function goalAllowsResourceNode(
+  node: ResourceNode,
+  registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
+): boolean {
+  return !registeredGoal || registeredGoal.allowedResourceMix.includes(node.type);
+}
+
+function resolvePolicyBundleRequest(
+  input: AdaptiveLearningPathPlannerInput,
+  confidence: AdaptiveLearningPathPlan['confidence'],
+  registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
+): AdaptiveLearningPathPlannerInput['policyBundle'] {
+  if (input.policyBundle) return input.policyBundle;
+  if (!registeredGoal) return undefined;
+  const evidenceCount = input.learnerState?.evidence?.confidence?.evidenceCount ?? 0;
+  const needsStarterOptions = !input.learnerState || confidence.level === 'low' || evidenceCount <= 1;
+  if (!needsStarterOptions) return undefined;
+  return {
+    families: registeredGoal.starterPathPolicy.policyFamilies,
+    overlapThreshold: 0.95,
+  };
+}
+
+function buildStudentFacingPathExplanation(plan: AdaptiveLearningPathPlan): AdaptiveLearningPathPersistenceRecord['payload']['studentFacing'] {
+  const registeredGoal = getRegisteredAdaptiveLearningPathGoal(plan.goal.id);
+  const templates = registeredGoal?.explanationTemplates;
+  const fallbackReasons = plan.explanations.fallbackReasons;
+  const summary = fallbackReasons.includes('learner-state-missing')
+    ? templates?.coldStart ?? '证据还少，先从入门路径开始，系统会随学习过程调整。'
+    : fallbackReasons.includes('learner-evidence-low-confidence')
+      ? templates?.lowConfidence ?? '当前证据不足，先沿可执行路径学习，后续会根据新证据调整。'
+      : plan.status === 'ready'
+        ? templates?.ready ?? '已根据当前学习证据生成可执行路径。'
+        : templates?.fallback ?? '当前只能给出保守路径建议，请先完成可用资源并补充学习证据。';
+  const nextAction = plan.currentNodeId
+    ? `从“${plan.mainPath.find((node) => node.nodeId === plan.currentNodeId)?.title ?? '当前节点'}”开始。`
+    : '先完成可用的基础资源，系统会继续更新路径。';
+  const confidenceLabel = plan.confidence.level === 'high'
+    ? '证据充分'
+    : plan.confidence.level === 'medium'
+      ? '证据基本可用'
+      : '证据较少';
+  return {
+    summary,
+    nextAction,
+    confidenceLabel,
+  };
+}
+
 function requiresTerminalValidation(goal: AdaptiveLearningPathGoal): boolean {
-  return goal.id === 'control-correction';
+  return getRegisteredAdaptiveLearningPathGoal(goal.id)?.checkpointPolicy.requiresTerminalValidation ?? false;
 }
 
 function isTerminalValidationNode(node: ResourceNode): boolean {
@@ -1353,6 +1530,8 @@ function buildPolicyBundle(
   }
   const families = unique([primaryPolicyFamily, ...requestedFamilies]);
   const overlapThreshold = input.policyBundle?.overlapThreshold ?? 0.6;
+  const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
+  const terminalValidationRequired = registeredGoal?.checkpointPolicy.requiresTerminalValidation ?? false;
   const deficits = inferDeficits(input.goal, input.learnerState);
   const sourceCoverage = input.learnerState?.evidence?.sourceCoverage ?? {};
   const basePaths = families.map((policyFamily) => {
@@ -1369,6 +1548,7 @@ function buildPolicyBundle(
     const terminalValidationNodeIds = mainPath
       .filter((node) => node.terminalConstraints.includes('terminal-validation'))
       .map((node) => node.nodeId);
+    const checkpointNodeIds = selectCheckpointNodeIds(mainPath, registeredGoal);
     return {
       styleId: styleIdForPolicyFamily(policyFamily),
       policyFamily,
@@ -1390,11 +1570,14 @@ function buildPolicyBundle(
       terminalValidationNodeIds,
       terminalValidationStrategy: {
         nodeIds: terminalValidationNodeIds,
-        summary: terminalValidationNodeIds.length > 0
-          ? `terminal validation through ${terminalValidationNodeIds.join(', ')}`
-          : 'terminal validation unavailable',
+        summary: terminalValidationRequired
+          ? terminalValidationNodeIds.length > 0
+            ? `terminal validation through ${terminalValidationNodeIds.join(', ')}`
+            : 'terminal validation unavailable'
+          : '阶段检查点用于学习反馈',
       },
-      limitations: buildPathOptionLimitations(plan, terminalValidationNodeIds, deficits),
+      checkpointNodeIds,
+      limitations: buildPathOptionLimitations(plan, terminalValidationNodeIds, deficits, terminalValidationRequired),
     };
   });
   const pairwiseResourceOverlap = buildPairwiseResourceOverlap(basePaths);
@@ -1424,7 +1607,8 @@ function buildPolicyBundle(
   );
   const terminalValidationDifference = minTerminalValidationDifference;
   const emptyPathCount = paths.filter((path) => path.nodeIds.length === 0).length;
-  const terminalValidationMissing = paths.some((path) => path.terminalValidationNodeIds.length === 0);
+  const terminalValidationMissing = terminalValidationRequired &&
+    paths.some((path) => path.terminalValidationNodeIds.length === 0);
   const fallbackReasons = unique([
     emptyPathCount > 0 ? 'policy-path-resource-missing' : null,
     maxResourceOverlap > overlapThreshold ? 'path-diversity-insufficient' : null,
@@ -1552,6 +1736,28 @@ function selectPolicySupportNodes(
   return picked;
 }
 
+function selectCheckpointNodeIds(
+  mainPath: AdaptiveLearningPathPlanNode[],
+  registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
+): string[] {
+  if (mainPath.length === 0) return [];
+  const terminalValidationNodeIds = mainPath
+    .filter((node) => node.terminalConstraints.includes('terminal-validation'))
+    .map((node) => node.nodeId);
+  if (terminalValidationNodeIds.length > 0) return terminalValidationNodeIds;
+  const policy = registeredGoal?.checkpointPolicy;
+  const preferred = policy
+    ? mainPath
+        .filter((node) => policy.checkpointResourceTypes.includes(node.type))
+        .map((node) => node.nodeId)
+    : [];
+  const minimum = Math.max(1, policy?.minCheckpoints ?? 1);
+  return unique([
+    ...preferred,
+    mainPath.at(-1)?.nodeId,
+  ]).slice(0, minimum);
+}
+
 function buildModalityMix(mainPath: AdaptiveLearningPathPlanNode[]): Record<string, number> {
   return mainPath.reduce<Record<string, number>>((mix, node) => {
     mix[node.type] = (mix[node.type] ?? 0) + 1;
@@ -1620,12 +1826,12 @@ function buildPathOptionLimitations(
   plan: AdaptiveLearningPathPlan,
   terminalValidationNodeIds: string[],
   deficits: AdaptiveLearningPathDeficit[],
+  terminalValidationRequired = true,
 ): string[] {
   return unique([
-    ...plan.explanations.fallbackReasons,
-    terminalValidationNodeIds.length === 0 ? 'terminal-validation-missing' : null,
-    deficits.some((deficit) => deficit.evidenceCount === 0) ? 'some-targets-have-no-direct-evidence' : null,
-    plan.confidence.level === 'low' ? 'low-learner-state-confidence' : null,
+    terminalValidationRequired && terminalValidationNodeIds.length === 0 ? '需要完成终点检验' : null,
+    deficits.some((deficit) => deficit.evidenceCount === 0) ? '部分目标还缺少直接证据' : null,
+    plan.confidence.level === 'low' ? '当前证据较少' : null,
   ]);
 }
 
@@ -1733,6 +1939,7 @@ function buildVisualization(input: {
   sourceCoverage: Record<string, string>;
   confidence: AdaptiveLearningPathPlan['confidence'];
   status: AdaptiveLearningPathStatus;
+  hasUsablePath: boolean;
   generatedAt: string;
 }): AdaptiveLearningPathVisualization {
   const mainPathNodeIds = input.mainPath.map((node) => node.nodeId);
@@ -1754,7 +1961,7 @@ function buildVisualization(input: {
     },
     timeline: buildTimelinePayload(input.mainPath, input.generatedAt),
     evidence: {
-      evidenceBasis: input.status === 'fallback' ? 'fallback' : 'adaptive-learner-state',
+      evidenceBasis: input.status === 'fallback' && !input.hasUsablePath ? 'fallback' : 'adaptive-learner-state',
       confidence: input.confidence,
       sourceCoverage: input.sourceCoverage,
       learnerStateDeficits: input.deficits,

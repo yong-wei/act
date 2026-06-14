@@ -18,7 +18,21 @@ import {
 export const dynamic = 'force-dynamic';
 
 const EXECUTION_STATUSES = new Set(['started', 'completed', 'failed', 'abandoned']);
-const RESOURCE_TYPES = new Set(['knowledge_card', 'simulation', 'arena_task', 'intervention', 'ai_intervention', 'reflection']);
+const RESOURCE_TYPES = new Set([
+  'lesson_step',
+  'knowledge_node',
+  'knowledge_card',
+  'video',
+  'audio',
+  'handout',
+  'quiz',
+  'simulation',
+  'arena_task',
+  'intervention',
+  'ai_intervention',
+  'reflection',
+  'project',
+]);
 
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
@@ -34,11 +48,14 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const missingIdempotencyKey = requireIdempotencyKey(body.idempotencyKey);
     if (missingIdempotencyKey) return missingIdempotencyKey;
     const nodeIds = new Set(readPathNodeIds(path));
+    const expectedResourceType = readPathNodeResourceType(path, body.nodeId);
     if (
       typeof body.nodeId !== 'string' ||
       !nodeIds.has(body.nodeId) ||
       typeof body.resourceType !== 'string' ||
       !RESOURCE_TYPES.has(body.resourceType) ||
+      !expectedResourceType ||
+      body.resourceType !== expectedResourceType ||
       typeof body.status !== 'string' ||
       !EXECUTION_STATUSES.has(body.status)
     ) {
@@ -61,6 +78,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
           const executionInput = {
             pathId: params.id,
             userId: path.userId,
+            goalId: path.goalId ?? null,
             nodeId: existingExecution.nodeId,
             resourceType: existingExecution.resourceType,
             status: existingStatus,
@@ -91,6 +109,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const executionInput = await resolveGovernedTerminalEvidence(prisma as any, path, {
       pathId: params.id,
       userId: path.userId,
+      goalId: path.goalId ?? null,
       nodeId: body.nodeId,
       resourceType: body.resourceType,
       status: body.status,
@@ -125,6 +144,16 @@ function readExecutionStatus(value: unknown): 'started' | 'completed' | 'failed'
 
 function toRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function readPathNodeResourceType(path: any, nodeId: unknown): string | null {
+  if (typeof nodeId !== 'string') return null;
+  const payload = toRecord(path?.pathPayload);
+  const planNodes = Array.isArray(payload.planNodes) ? payload.planNodes : [];
+  const node = planNodes
+    .map(toRecord)
+    .find((entry) => entry.nodeId === nodeId);
+  return typeof node?.type === 'string' ? node.type : null;
 }
 
 function toNullableRecord(value: unknown): Record<string, unknown> | null {
