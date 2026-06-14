@@ -9,6 +9,7 @@ import {
   type InteractiveModuleCanonicalClass,
   type LegacyInteractiveModuleKindAlias,
 } from './module-taxonomy';
+import { resolveInteractiveModuleVisualStandard } from './module-visual-standards';
 import {
   normalizeInteractiveRuntimeManifest,
   type InteractiveRuntimeActivityCardManifest,
@@ -30,6 +31,7 @@ export type InteractiveModuleRegistryGateViolationCode =
   | 'code-module-missing-source'
   | 'compute-missing-capability-ref'
   | 'compute-unregistered-capability-ref'
+  | 'course-local-module-chrome'
   | 'invalid-runtime-manifest'
   | 'lesson-missing-from-standard-module-inventory'
   | 'non-interactive-status-module';
@@ -112,6 +114,20 @@ const NON_INTERACTIVE_STATUS_PATTERNS = [
 ];
 
 const CODE_LIKE_CONTENT_PATTERN = /\b(tf|step|rlocus|bode|margin|feedback|isstable|figure|grid|legend)\s*\(|(^|\n)\s*%|;\s*%/i;
+const COURSE_LOCAL_CHROME_KEYS = [
+  'className',
+  'class_name',
+  'chromeClassName',
+  'chrome_class_name',
+  'moduleChrome',
+  'module_chrome',
+  'localChrome',
+  'local_chrome',
+  'visualChrome',
+  'visual_chrome',
+  'wrapperClassName',
+  'wrapper_class_name',
+];
 
 export const STANDARD_MODULE_ENFORCED_LESSON_IDS = [
   '1-1',
@@ -212,6 +228,7 @@ export function scanRuntimeInteractiveModuleRegistry({
 } = {}): InteractiveModuleRegistryGateResult {
   const enforcedLessonIds = standardModuleLessonIds ?? migratedLessonIds ?? STANDARD_MODULE_ENFORCED_LESSON_IDS;
   const lessonRoot = join(rootDir, 'course-content/runtime/lessons');
+  const rawLocalChromeViolations: InteractiveModuleRegistryGateViolation[] = [];
   const manifests = collectManifestPaths(lessonRoot)
     .map((manifestPath): InteractiveModuleRegistryGateScanItem => {
       const relativeManifestPath = relative(rootDir, manifestPath);
@@ -225,6 +242,9 @@ export function scanRuntimeInteractiveModuleRegistry({
             violation: invalidManifestViolation(fallbackLessonId, relativeManifestPath),
           };
         }
+        rawLocalChromeViolations.push(
+          ...rawCourseLocalChromeViolations(raw, fallbackLessonId, relativeManifestPath),
+        );
         const manifest = normalizeInteractiveRuntimeManifest(raw);
         const lessonId = manifest?.lessonId || fallbackLessonId;
         if (!manifest) {
@@ -264,9 +284,12 @@ export function scanRuntimeInteractiveModuleRegistry({
   const inventoryViolations = missingStandardModuleInventoryViolations(validManifests, enforcedLessonIds);
 
   return {
-    passed: result.violations.length === 0 && invalidViolations.length === 0 && inventoryViolations.length === 0,
+    passed: result.violations.length === 0
+      && invalidViolations.length === 0
+      && inventoryViolations.length === 0
+      && rawLocalChromeViolations.length === 0,
     scannedModules: result.scannedModules,
-    violations: [...invalidViolations, ...inventoryViolations, ...result.violations],
+    violations: [...invalidViolations, ...rawLocalChromeViolations, ...inventoryViolations, ...result.violations],
   };
 }
 
@@ -298,6 +321,7 @@ function evaluateRuntimeModule({
   }
 
   const definition = INTERACTIVE_MODULE_DEFINITIONS[resolution.canonicalClass];
+  const visualStandard = resolveInteractiveModuleVisualStandard(module.kind);
 
   if (resolution.source === 'legacy-alias') {
     return [violation({
@@ -320,6 +344,45 @@ function evaluateRuntimeModule({
       code: 'legacy-alias-in-migrated-lesson',
       canonicalClass: resolution.canonicalClass,
       message: `${lessonId} ${step.id} ${module.id} still uses migration-only module class ${resolution.canonicalClass}.`,
+    }));
+  }
+
+  if (!visualStandard) {
+    violations.push(violation({
+      lessonId,
+      manifestPath,
+      step,
+      module,
+      code: 'unregistered-module-kind',
+      canonicalClass: resolution.canonicalClass,
+      message: `${lessonId} ${step.id} ${module.id} has no registered visual standard for ${module.kind}.`,
+    }));
+  } else if (
+    !visualStandard.projectionSafe
+    || visualStandard.projectionTypography !== 'projection-readable'
+    || visualStandard.geometry !== 'stable-panel'
+  ) {
+    violations.push(violation({
+      lessonId,
+      manifestPath,
+      step,
+      module,
+      code: 'course-local-module-chrome',
+      canonicalClass: resolution.canonicalClass,
+      message: `${lessonId} ${step.id} ${module.id} has a visual standard that is not projection-safe.`,
+    }));
+  }
+
+  const localChromeKey = localChromeOverrideKey(module);
+  if (localChromeKey) {
+    violations.push(violation({
+      lessonId,
+      manifestPath,
+      step,
+      module,
+      code: 'course-local-module-chrome',
+      canonicalClass: resolution.canonicalClass,
+      message: `${lessonId} ${step.id} ${module.id} uses course-local module chrome field ${localChromeKey}; register shared chrome instead.`,
     }));
   }
 
@@ -639,6 +702,49 @@ function moduleVisibleText(module: InteractiveRuntimeModuleManifest) {
     module.title ?? '',
     visibleTextFromUnknown(module.payload),
   ].join('\n');
+}
+
+function localChromeOverrideKey(module: InteractiveRuntimeModuleManifest): string | undefined {
+  const moduleRecord = module as unknown as Record<string, unknown>;
+  return localChromeOverrideKeyFromRecord(moduleRecord)
+    ?? localChromeOverrideKeyFromRecord(recordValue(module.payload));
+}
+
+function localChromeOverrideKeyFromRecord(record: Record<string, unknown>): string | undefined {
+  return COURSE_LOCAL_CHROME_KEYS.find((key) => Boolean(stringValue(record[key])));
+}
+
+function rawCourseLocalChromeViolations(
+  raw: { steps: Record<string, unknown> },
+  fallbackLessonId: string,
+  manifestPath: string,
+): InteractiveModuleRegistryGateViolation[] {
+  const rawLessonId = stringValue((raw as { lesson_id?: unknown; lessonId?: unknown }).lesson_id)
+    ?? stringValue((raw as { lessonId?: unknown }).lessonId)
+    ?? fallbackLessonId;
+  return Object.entries(raw.steps).flatMap(([stepId, rawStep]) => {
+    const stepRecord = recordValue(rawStep);
+    const modules = Array.isArray(stepRecord.modules) ? stepRecord.modules : [];
+    return modules.flatMap((rawModule, index): InteractiveModuleRegistryGateViolation[] => {
+      const moduleRecord = recordValue(rawModule);
+      const localChromeKey = localChromeOverrideKeyFromRecord(moduleRecord);
+      if (!localChromeKey) return [];
+      const kind = stringValue(moduleRecord.kind) ?? '';
+      const resolution = resolveInteractiveModuleKind(kind);
+      if (resolution.source === 'unknown') return [];
+      const moduleId = stringValue(moduleRecord.id) ?? `(module-${index + 1})`;
+      return [{
+        lessonId: rawLessonId,
+        stepId,
+        moduleId,
+        kind,
+        code: 'course-local-module-chrome',
+        canonicalClass: resolution.canonicalClass,
+        message: `${rawLessonId} ${stepId} ${moduleId} uses course-local module chrome field ${localChromeKey}; register shared chrome instead.`,
+        manifestPath,
+      }];
+    });
+  });
 }
 
 function visibleTextFromUnknown(value: unknown): string {
