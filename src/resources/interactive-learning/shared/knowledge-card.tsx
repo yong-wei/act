@@ -102,7 +102,7 @@ export function KnowledgeCard({
       }}
     >
       {/* 卡片头部 */}
-      <div tabIndex={0} role="button" onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click(); } }}
+      <div tabIndex={0} role="button" onKeyDown={(event) => { if (event.target !== event.currentTarget) return; if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.currentTarget.click(); } }}
         className="flex cursor-pointer items-center justify-between p-4"
         onClick={() => setIsExpanded(!isExpanded)}
       >
