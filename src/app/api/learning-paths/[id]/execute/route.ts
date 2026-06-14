@@ -26,10 +26,15 @@ const RESOURCE_TYPES = new Set([
   'audio',
   'handout',
   'quiz',
+  'adaptive_quiz',
+  'control_workbench',
   'simulation',
   'arena_task',
+  'external_resource',
+  'checkpoint',
   'intervention',
   'ai_intervention',
+  'konling',
   'reflection',
   'project',
 ]);
@@ -48,7 +53,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const missingIdempotencyKey = requireIdempotencyKey(body.idempotencyKey);
     if (missingIdempotencyKey) return missingIdempotencyKey;
     const nodeIds = new Set(readPathNodeIds(path));
-    const expectedResourceType = readPathNodeResourceType(path, body.nodeId);
+    const pathNode = readPathNode(path, body.nodeId);
+    const expectedResourceType = typeof pathNode?.type === 'string' ? pathNode.type : null;
     if (
       typeof body.nodeId !== 'string' ||
       !nodeIds.has(body.nodeId) ||
@@ -93,7 +99,10 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
             actorUserId: requester.userId,
             actorRole: requester.role,
           };
-          const governedExecutionInput = await resolveGovernedTerminalEvidence(prisma as any, path, executionInput);
+          const existingPathNode = readPathNode(path, existingExecution.nodeId);
+          const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, existingPathNode, executionInput);
+          if (governedExternalInput instanceof NextResponse) return governedExternalInput;
+          const governedExecutionInput = await resolveGovernedTerminalEvidence(prisma as any, path, governedExternalInput);
           execution = await recordPathNodeExecution(prisma as any, governedExecutionInput);
           if (path.currentNodeId === existingExecution.nodeId) {
             await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, governedExecutionInput);
@@ -106,7 +115,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (path.currentNodeId !== body.nodeId) {
       return NextResponse.json({ error: '执行事件只能写入当前路径节点' }, { status: 409 });
     }
-    const executionInput = await resolveGovernedTerminalEvidence(prisma as any, path, {
+    const externalExecutionInput = {
       pathId: params.id,
       userId: path.userId,
       goalId: path.goalId ?? null,
@@ -123,7 +132,10 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       idempotencyKey: body.idempotencyKey ?? null,
       actorUserId: requester.userId,
       actorRole: requester.role,
-    });
+    };
+    const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, pathNode, externalExecutionInput);
+    if (governedExternalInput instanceof NextResponse) return governedExternalInput;
+    const executionInput = await resolveGovernedTerminalEvidence(prisma as any, path, governedExternalInput);
     const execution = await recordPathNodeExecution(prisma as any, executionInput);
     await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, executionInput);
     const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
@@ -146,14 +158,13 @@ function toRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
-function readPathNodeResourceType(path: any, nodeId: unknown): string | null {
+function readPathNode(path: any, nodeId: unknown): Record<string, unknown> | null {
   if (typeof nodeId !== 'string') return null;
   const payload = toRecord(path?.pathPayload);
   const planNodes = Array.isArray(payload.planNodes) ? payload.planNodes : [];
-  const node = planNodes
+  return planNodes
     .map(toRecord)
-    .find((entry) => entry.nodeId === nodeId);
-  return typeof node?.type === 'string' ? node.type : null;
+    .find((entry) => entry.nodeId === nodeId) ?? null;
 }
 
 function toNullableRecord(value: unknown): Record<string, unknown> | null {
@@ -171,6 +182,124 @@ function toExecutionWriteView(execution: any) {
     failedAt: execution.failedAt ?? null,
     createdAt: execution.createdAt ?? null,
   };
+}
+
+async function resolveGovernedExternalResourceEvidence<T extends {
+  pathId: string;
+  userId: string;
+  nodeId: string;
+  resourceType: string;
+  status: string;
+  evidenceRefs?: unknown[];
+}>(
+  db: any,
+  path: any,
+  pathNode: Record<string, unknown> | null,
+  input: T,
+): Promise<T | NextResponse> {
+  if (input.resourceType !== 'external_resource') return input;
+  const metadata = readGovernedExternalResourceMetadata(pathNode, input.nodeId);
+  if (!metadata) {
+    return NextResponse.json({ error: '外部资料节点缺少受治理的资源元数据' }, { status: 400 });
+  }
+  if (input.status !== 'completed') {
+    return {
+      ...input,
+      evidenceRefs: [externalResourceAccessEvidenceRef(path, input, metadata)],
+    };
+  }
+  const accessExecution = await db.learningPathExecution?.findFirst?.({
+    where: {
+      pathId: input.pathId,
+      userId: input.userId,
+      nodeId: input.nodeId,
+      resourceType: 'external_resource',
+      status: 'started',
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+  if (!accessExecution) {
+    return NextResponse.json({ error: '外部资料完成事件缺少服务端记录的访问证据' }, { status: 400 });
+  }
+  return {
+    ...input,
+    evidenceRefs: [{
+      ...externalResourceAccessEvidenceRef(path, input, metadata),
+      evidenceSource: 'learning-path-execution',
+      accessExecutionId: accessExecution.id,
+    }],
+  };
+}
+
+function readGovernedExternalResourceMetadata(
+  pathNode: Record<string, unknown> | null,
+  nodeId: string,
+): {
+  source: string;
+  url: string;
+  estimatedTimeMinutes: number;
+  knowledgeCoverage: string[];
+  applicableGoalId: string;
+  evidenceUseStatus: 'explicit-access-required';
+  privacyPolicy: string;
+} | null {
+  if (!pathNode || pathNode.type !== 'external_resource' || pathNode.nodeId !== nodeId) return null;
+  const metadata = toRecord(pathNode.externalResource);
+  const source = typeof metadata.source === 'string' && metadata.source.trim() ? metadata.source.trim() : null;
+  const url = typeof metadata.url === 'string' && isSafeExternalUrl(metadata.url) ? metadata.url : null;
+  const estimatedTimeMinutes = typeof metadata.estimatedTimeMinutes === 'number' && Number.isFinite(metadata.estimatedTimeMinutes)
+    ? metadata.estimatedTimeMinutes
+    : null;
+  const knowledgeCoverage = Array.isArray(metadata.knowledgeCoverage)
+    ? metadata.knowledgeCoverage.filter((value): value is string => typeof value === 'string' && value.length > 0)
+    : [];
+  const applicableGoalId = typeof metadata.applicableGoalId === 'string' && metadata.applicableGoalId.trim()
+    ? metadata.applicableGoalId.trim()
+    : null;
+  const evidenceUseStatus = metadata.evidenceUseStatus === 'explicit-access-required'
+    ? metadata.evidenceUseStatus
+    : null;
+  const privacyPolicy = typeof metadata.privacyPolicy === 'string' && metadata.privacyPolicy.length > 0
+    ? metadata.privacyPolicy
+    : null;
+  if (!source || !url || !estimatedTimeMinutes || estimatedTimeMinutes <= 0 || knowledgeCoverage.length === 0 || !applicableGoalId || !evidenceUseStatus || !privacyPolicy) {
+    return null;
+  }
+  if (typeof pathNode.target === 'string' && pathNode.target !== url) return null;
+  return {
+    source,
+    url,
+    estimatedTimeMinutes,
+    knowledgeCoverage,
+    applicableGoalId,
+    evidenceUseStatus,
+    privacyPolicy,
+  };
+}
+
+function externalResourceAccessEvidenceRef(
+  path: any,
+  input: { pathId: string; userId: string; nodeId: string },
+  metadata: { source: string; url: string; applicableGoalId: string },
+): Record<string, unknown> {
+  return {
+    kind: 'LearningPathExternalResourceAccess',
+    pathId: input.pathId,
+    nodeId: input.nodeId,
+    userId: input.userId,
+    goalId: path.goalId ?? metadata.applicableGoalId,
+    source: metadata.source,
+    url: metadata.url,
+  };
+}
+
+function isSafeExternalUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:';
+  } catch {
+    return false;
+  }
 }
 
 async function resolveGovernedTerminalEvidence<T extends {

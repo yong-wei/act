@@ -3,6 +3,8 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 import {
+  GOVERNED_PATH_NODE_TYPES,
+  PATH_NODE_SEMANTICS,
   RESOURCE_NODE_TYPES,
   auditResourceNode,
   buildResourceNodeRegistry,
@@ -66,6 +68,13 @@ function sampleRegistry() {
         renderTarget: '/teacher/resources',
         knowledgeNodeIds: ['kn-bode'],
       },
+      {
+        id: 'adaptive-bode-quiz',
+        label: '伯德图自适应练习',
+        type: 'ADAPTIVE_QUIZ',
+        renderTarget: '/interactive-learning/resources/adaptive-bode-quiz',
+        knowledgeNodeIds: ['kn-bode'],
+      },
     ],
     knowledgeNodes: [
       { id: 'kn-bode', name: '伯德图' },
@@ -118,6 +127,27 @@ function sampleRegistry() {
         official: true,
       },
     ],
+    externalResources: [
+      {
+        id: 'bode-open-course',
+        title: '伯德图开放课程资料',
+        source: 'Open Course',
+        url: 'https://example.test/bode-open-course',
+        estimatedTimeMinutes: 14,
+        knowledgeNodeIds: ['kn-bode'],
+        applicableGoalId: 'frequency-response-foundations',
+        evidenceUseStatus: 'explicit-access-required',
+        privacyPolicy: 'student-visible',
+      },
+    ],
+    controlWorkbenchTasks: [
+      {
+        id: 'bode-workbench',
+        title: '伯德图控制工作台',
+        launchTarget: '/simulations/control-workbench?task=bode',
+        knowledgeNodeIds: ['kn-bode'],
+      },
+    ],
     reflectionPrompts: [
       {
         id: 'reflection-1',
@@ -126,11 +156,31 @@ function sampleRegistry() {
         knowledgeNodeIds: ['kn-bode'],
       },
     ],
+    checkpoints: [
+      {
+        id: 'bode-checkpoint',
+        title: '伯德图阶段检查',
+        assessmentPurpose: '确认伯德图关键概念',
+        criteria: ['解释斜率', '说明穿越频率'],
+        requiredEvidenceRefs: ['adaptive_quiz.completed'],
+        remediationBehavior: 'retry-prerequisite-node',
+        launchTarget: '/assessment/adaptive-practice?checkpoint=bode',
+        knowledgeNodeIds: ['kn-bode'],
+      },
+    ],
     aiInterventions: [
       {
         id: 'hint-bode',
         title: '伯德图提示',
         renderTarget: '/ai/copilot?context=bode',
+        knowledgeNodeIds: ['kn-bode'],
+      },
+    ],
+    konlingSupports: [
+      {
+        id: 'konling-bode',
+        title: '伯德图控灵伴学',
+        renderTarget: '/ai/copilot?context=bode-konling',
         knowledgeNodeIds: ['kn-bode'],
       },
     ],
@@ -247,6 +297,181 @@ describe('resource node registry', () => {
     expect(new Set(registry.nodes.map((node) => node.type))).toEqual(new Set(RESOURCE_NODE_TYPES));
     expect(registry.nodes.every((node) => node.id && node.title && node.sourceKind && node.sourceRef)).toBe(true);
     expect(registry.nodes.every((node) => 'renderTarget' in node && 'launchTarget' in node)).toBe(true);
+  });
+
+  it('exposes central governed path semantics for every accepted path node type', () => {
+    const registry = buildResourceNodeRegistry({
+      runtimeLessons: [{
+        lessonId: 'unit-demo',
+        title: '互动课',
+        steps: [{
+          id: 'step-1',
+          title: '互动讲解',
+          knowledgeNodeIds: ['kn-demo'],
+          renderTarget: '/interactive-learning/courses/unit-demo/student/demo?step=step-1',
+        }],
+      }],
+      knowledgeCards: [{
+        id: 'demo-card',
+        title: '知识卡',
+        sourceRef: 'kn-demo:card',
+        renderTarget: '/knowledge/cards/demo-card',
+        knowledgeNodeIds: ['kn-demo'],
+      }],
+      registeredResources: [{
+        id: 'demo-quiz',
+        label: '自适应练习',
+        type: 'INTERACTIVE_COMP',
+        renderTarget: '/interactive-learning/resources/demo-quiz',
+        knowledgeNodeIds: ['kn-demo'],
+      }],
+      controlWorkbenchTasks: [{
+        id: 'demo-workbench',
+        title: '控制工作台任务',
+        launchTarget: '/simulations/control-workbench?task=demo',
+        knowledgeNodeIds: ['kn-demo'],
+      }],
+      simulations: [{
+        id: 'demo-sim',
+        title: '仿真实验',
+        launchTarget: '/simulations/demo',
+        knowledgeNodeIds: ['kn-demo'],
+      }],
+      arenaTasks: [{
+        id: 'demo-arena',
+        title: 'Arena 挑战',
+        launchTarget: '/arena/challenges/demo',
+        knowledgeNodeIds: ['kn-demo'],
+      }],
+      externalResources: [{
+        id: 'demo-paper',
+        title: '外部资料',
+        source: 'IEEE Control Systems',
+        url: 'https://example.edu/control/paper',
+        estimatedTimeMinutes: 12,
+        knowledgeNodeIds: ['kn-demo'],
+        applicableGoalId: 'goal-demo',
+        evidenceUseStatus: 'explicit-access-required',
+        privacyPolicy: 'student-visible',
+      }],
+      reflectionPrompts: [{
+        id: 'demo-reflection',
+        title: '反思',
+        renderTarget: '/profile/growth?prompt=demo',
+        knowledgeNodeIds: ['kn-demo'],
+      }],
+      checkpoints: [{
+        id: 'demo-checkpoint',
+        title: '阶段检查',
+        assessmentPurpose: '确认学生能解释当前路径的核心概念',
+        criteria: ['说明关键概念', '给出例子'],
+        requiredEvidenceRefs: ['learning_path.execution.completed'],
+        remediationBehavior: 'retry-prerequisite-node',
+        reviewState: 'pending',
+        launchTarget: '/assessment/adaptive-practice?checkpoint=demo',
+        knowledgeNodeIds: ['kn-demo'],
+      }],
+      konlingSupports: [{
+        id: 'demo-konling',
+        title: '控灵伴学',
+        renderTarget: '/ai/copilot?context=demo',
+        knowledgeNodeIds: ['kn-demo'],
+      }],
+    });
+
+    expect(GOVERNED_PATH_NODE_TYPES).toEqual([
+      'interactive_lesson',
+      'knowledge_card',
+      'adaptive_quiz',
+      'control_workbench',
+      'simulation',
+      'arena_task',
+      'external_resource',
+      'reflection',
+      'checkpoint',
+      'konling',
+    ]);
+    expect(Object.keys(PATH_NODE_SEMANTICS).sort()).toEqual([...GOVERNED_PATH_NODE_TYPES].sort());
+    expect(Object.values(PATH_NODE_SEMANTICS).every((semantics) =>
+      semantics.displayName && semantics.iconKey && semantics.shapeHint && semantics.evidenceBehavior
+    )).toBe(true);
+    expect(new Set(registry.nodes.map((node) => node.pathSemantics.type))).toEqual(new Set(GOVERNED_PATH_NODE_TYPES));
+    expect(registry.nodes.every((node) => node.pathSemantics.iconKey === PATH_NODE_SEMANTICS[node.pathSemantics.type].iconKey))
+      .toBe(true);
+    expect(registry.nodes.find((node) => node.id === 'checkpoint:demo-checkpoint')).toMatchObject({
+      type: 'checkpoint',
+      pathSemantics: {
+        type: 'checkpoint',
+        iconKey: 'checkpoint',
+        shapeHint: 'gate',
+      },
+      checkpoint: {
+        assessmentPurpose: '确认学生能解释当前路径的核心概念',
+        criteria: ['说明关键概念', '给出例子'],
+        requiredEvidenceRefs: ['learning_path.execution.completed'],
+        remediationBehavior: 'retry-prerequisite-node',
+        reviewState: 'pending',
+      },
+    });
+  });
+
+  it('audits external resources before path eligibility and never invents missing targets', () => {
+    const registry = buildResourceNodeRegistry({
+      externalResources: [
+        {
+          id: 'complete',
+          title: '完整外部资料',
+          source: 'MIT OCW',
+          url: 'https://ocw.mit.edu/control/lesson',
+          estimatedTimeMinutes: 18,
+          knowledgeNodeIds: ['kn-bode'],
+          applicableGoalId: 'frequency-response-foundations',
+          evidenceUseStatus: 'explicit-access-required',
+          privacyPolicy: 'student-visible',
+        },
+        {
+          id: 'unsafe',
+          title: '不安全外部资料',
+          source: '',
+          url: 'javascript:alert(1)',
+          estimatedTimeMinutes: -5,
+          knowledgeNodeIds: [],
+          applicableGoalId: '',
+          evidenceUseStatus: 'reference-only',
+          privacyPolicy: 'student-visible',
+        },
+      ],
+    });
+
+    expect(registry.nodes.find((node) => node.id === 'external-resource:complete')).toMatchObject({
+      type: 'external_resource',
+      launchTarget: 'https://ocw.mit.edu/control/lesson',
+      pathSemantics: {
+        type: 'external_resource',
+        evidenceBehavior: 'explicit_access',
+      },
+      externalResource: {
+        source: 'MIT OCW',
+        applicableGoalId: 'frequency-response-foundations',
+        evidenceUseStatus: 'explicit-access-required',
+      },
+      eligibility: { pathEligible: true },
+    });
+    expect(registry.nodes.find((node) => node.id === 'external-resource:unsafe')).toMatchObject({
+      launchTarget: null,
+      eligibility: {
+        pathEligible: false,
+        reasons: expect.arrayContaining([
+          'unsafe-external-url',
+          'missing-external-source',
+          'missing-external-estimated-time',
+          'missing-external-applicable-goal',
+          'external-resource-reference-only',
+          'missing-knowledge-mapping',
+        ]),
+      },
+    });
+    expect(JSON.stringify(registry.nodes.find((node) => node.id === 'external-resource:unsafe'))).not.toContain('javascript:');
   });
 
   it('keeps runtime media and TeachingResource ownership separate when sources overlap', () => {

@@ -24,8 +24,26 @@ import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learne
 import { ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES } from '@/lib/adaptive-learning-path-planner';
 import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
 import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '@/lib/platform-role-navigation';
+import {
+  getPathNodeSemanticsForResourceType,
+  type ResourceNodeType,
+} from '@/lib/resource-node-registry';
 
 const repoRoot = process.cwd();
+
+function pathNodeSemantics(type: ResourceNodeType) {
+  const semantics = getPathNodeSemanticsForResourceType(type);
+  return {
+    pathNodeType: semantics.type,
+    displayName: semantics.displayName,
+    iconKey: semantics.iconKey,
+    shapeHint: semantics.shapeHint,
+    evidenceBehavior: semantics.evidenceBehavior,
+    evidenceStatus: 'instrumented' as const,
+    externalResource: null,
+    checkpoint: null,
+  };
+}
 
 function learnerState(overrides: Partial<AdaptiveLearnerState> = {}): AdaptiveLearnerState {
   return {
@@ -153,6 +171,7 @@ function pathPlan(overrides: Partial<AdaptiveLearningPathPlan> = {}): AdaptiveLe
         nodeId: 'node-1',
         title: '相位裕度映射练习',
         type: 'quiz',
+        ...pathNodeSemantics('quiz'),
         sourceKind: 'runtime_lesson_step',
         sourceRef: 'lesson-3-8',
         target: '/assessment/adaptive-practice',
@@ -574,6 +593,32 @@ describe('adaptive learning center UI contracts', () => {
               policyFamily: 'foundation-remediation',
               label: '基础补救',
               nodeIds: ['knowledge-card:targets', 'arena-task:terminal'],
+              nodeSummaries: [
+                {
+                  nodeId: 'knowledge-card:targets',
+                  title: '目标知识卡',
+                  pathNodeType: 'knowledge_card',
+                  displayName: '知识卡',
+                  iconKey: 'knowledge-card',
+                  shapeHint: 'card',
+                  evidenceBehavior: 'view',
+                  evidenceStatus: 'instrumented',
+                  estimatedTimeMinutes: 10,
+                  status: 'current',
+                },
+                {
+                  nodeId: 'arena-task:terminal',
+                  title: '终端 Arena',
+                  pathNodeType: 'arena_task',
+                  displayName: 'Arena 挑战',
+                  iconKey: 'arena',
+                  shapeHint: 'challenge',
+                  evidenceBehavior: 'judged_submission',
+                  evidenceStatus: 'instrumented',
+                  estimatedTimeMinutes: 28,
+                  status: 'next',
+                },
+              ],
               targetDeficits: [{ targetId: 'phase-margin', kind: 'knowledge', value: 0.42, confidence: 0.6, evidenceCount: 3, reasonCode: 'low-mastery-target' }],
               evidenceBasis: ['adaptive-learner-state', 'LearningFact'],
               estimatedMinutes: 38,
@@ -634,6 +679,20 @@ describe('adaptive learning center UI contracts', () => {
         {
           optionId: 'path-option-1',
           label: '基础补救',
+          nodeSummaries: [
+            expect.objectContaining({
+              nodeId: 'knowledge-card:targets',
+              pathNodeType: 'knowledge_card',
+              iconKey: 'knowledge-card',
+              shapeHint: 'card',
+            }),
+            expect.objectContaining({
+              nodeId: 'arena-task:terminal',
+              pathNodeType: 'arena_task',
+              iconKey: 'arena',
+              shapeHint: 'challenge',
+            }),
+          ],
           evidenceBasis: ['学习证据', '练习记录'],
           terminalValidationNodeIds: ['arena-task:terminal'],
           limitations: ['部分目标还缺少直接证据'],
@@ -680,6 +739,18 @@ describe('adaptive learning center UI contracts', () => {
               policyFamily: 'foundation-remediation',
               label: '基础补救',
               nodeIds: ['node-1'],
+              nodeSummaries: [{
+                nodeId: 'node-1',
+                title: '相位裕度映射练习',
+                pathNodeType: 'adaptive_quiz',
+                displayName: '自适应练习',
+                iconKey: 'adaptive-quiz',
+                shapeHint: 'task',
+                evidenceBehavior: 'assessment',
+                evidenceStatus: 'instrumented',
+                estimatedTimeMinutes: 15,
+                status: 'current',
+              }],
               targetDeficits: [],
               evidenceBasis: ['adaptive-learner-state'],
               estimatedMinutes: 15,

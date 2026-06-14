@@ -300,13 +300,33 @@ export function validateLearningPathPlanForPersistence(plan: AdaptiveLearningPat
     if (
       !node.nodeId ||
       seen.has(node.nodeId) ||
-      !['lesson_step', 'knowledge_node', 'knowledge_card', 'video', 'audio', 'handout', 'quiz', 'simulation', 'arena_task', 'reflection', 'ai_intervention', 'project'].includes(node.type) ||
+      ![
+        'lesson_step',
+        'knowledge_node',
+        'knowledge_card',
+        'video',
+        'audio',
+        'handout',
+        'quiz',
+        'adaptive_quiz',
+        'control_workbench',
+        'simulation',
+        'arena_task',
+        'external_resource',
+        'reflection',
+        'checkpoint',
+        'ai_intervention',
+        'konling',
+        'project',
+      ].includes(node.type) ||
       !registeredGoal.allowedResourceMix.includes(node.type) ||
       node.privacyLevel !== 'student-visible' ||
       node.teacherPolicy !== 'allowed' ||
       typeof node.target !== 'string' ||
       node.target.length === 0 ||
-      !isStudentVisiblePathTarget(node.target) ||
+      (node.type === 'external_resource'
+        ? !isGovernedExternalPathNode(node)
+        : !isStudentVisiblePathTarget(node.target)) ||
       !Number.isFinite(node.estimatedTimeMinutes) ||
       !Number.isFinite(node.score) ||
       !['completed', 'current', 'next', 'blocked'].includes(node.status)
@@ -317,6 +337,37 @@ export function validateLearningPathPlanForPersistence(plan: AdaptiveLearningPat
   }
   if (plan.currentNodeId && !seen.has(plan.currentNodeId)) {
     throw new ControlCorrectionPathRoundValidationError();
+  }
+}
+
+function isGovernedExternalPathNode(node: AdaptiveLearningPathPlanNode): boolean {
+  const metadata = node.externalResource;
+  return node.pathNodeType === 'external_resource' &&
+    node.evidenceBehavior === 'explicit_access' &&
+    node.evidenceStatus === 'explicit-access-required' &&
+    Boolean(metadata) &&
+    typeof metadata?.source === 'string' &&
+    metadata.source.trim().length > 0 &&
+    typeof metadata.url === 'string' &&
+    metadata.url === node.target &&
+    isSafeExternalPathTarget(metadata.url) &&
+    node.estimatedTimeMinutes > 0 &&
+    typeof metadata.estimatedTimeMinutes === 'number' &&
+    Number.isFinite(metadata.estimatedTimeMinutes) &&
+    metadata.estimatedTimeMinutes > 0 &&
+    metadata.knowledgeCoverage.length > 0 &&
+    typeof metadata.applicableGoalId === 'string' &&
+    metadata.applicableGoalId.length > 0 &&
+    metadata.evidenceUseStatus === 'explicit-access-required' &&
+    metadata.privacyPolicy === node.privacyLevel;
+}
+
+function isSafeExternalPathTarget(target: string): boolean {
+  try {
+    const url = new URL(target);
+    return url.protocol === 'https:';
+  } catch {
+    return false;
   }
 }
 

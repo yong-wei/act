@@ -1,5 +1,8 @@
 import type {
   ResourceNode,
+  ResourceNodeCheckpointMetadata,
+  ResourceNodeExternalResourceMetadata,
+  ResourceNodePathSemantics,
   ResourceNodePrivacyLevel,
   ResourceNodeRegistry,
 } from './resource-node-registry';
@@ -129,6 +132,14 @@ export interface AdaptiveLearningPathPlanNode {
   nodeId: string;
   title: string;
   type: ResourceNode['type'];
+  pathNodeType: ResourceNodePathSemantics['type'];
+  displayName: string;
+  iconKey: string;
+  shapeHint: ResourceNodePathSemantics['shapeHint'];
+  evidenceBehavior: ResourceNodePathSemantics['evidenceBehavior'];
+  evidenceStatus: 'instrumented' | 'explicit-access-required' | 'reference-only' | 'missing';
+  externalResource: ResourceNodeExternalResourceMetadata | null;
+  checkpoint: ResourceNodeCheckpointMetadata | null;
   sourceKind: ResourceNode['sourceKind'];
   sourceRef: string;
   target: string;
@@ -222,6 +233,7 @@ export interface AdaptiveLearningPathPolicyBundle {
     policyFamily: AdaptiveLearningPathPolicyFamily;
     label: string;
     nodeIds: string[];
+    nodeSummaries: AdaptiveLearningPathOptionNodeSummary[];
     targetDeficits: AdaptiveLearningPathDeficit[];
     evidenceBasis: string[];
     estimatedMinutes: number;
@@ -273,6 +285,19 @@ export interface AdaptiveLearningPathPolicyBundle {
     terminalValidationDifference: number;
   };
   fallbackReasons: string[];
+}
+
+export interface AdaptiveLearningPathOptionNodeSummary {
+  nodeId: string;
+  title: string;
+  pathNodeType: AdaptiveLearningPathPlanNode['pathNodeType'];
+  displayName: string;
+  iconKey: string;
+  shapeHint: AdaptiveLearningPathPlanNode['shapeHint'];
+  evidenceBehavior: AdaptiveLearningPathPlanNode['evidenceBehavior'];
+  evidenceStatus: AdaptiveLearningPathPlanNode['evidenceStatus'];
+  estimatedTimeMinutes: number;
+  status: AdaptiveLearningPathPlanNode['status'];
 }
 
 export interface AdaptiveLearningPathDeficit {
@@ -466,17 +491,28 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
     },
     displayName: '控制系统校正设计',
-    allowedResourceMix: ['knowledge_card', 'simulation', 'arena_task', 'reflection', 'ai_intervention'],
+    allowedResourceMix: [
+      'knowledge_card',
+      'adaptive_quiz',
+      'control_workbench',
+      'simulation',
+      'arena_task',
+      'external_resource',
+      'reflection',
+      'checkpoint',
+      'ai_intervention',
+      'konling',
+    ],
     starterPathPolicy: {
       policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
       minOptions: 2,
       difficultyRhythm: 'steady',
       allowExternalResources: false,
-      preferredResourceTypes: ['knowledge_card', 'simulation', 'arena_task'],
+      preferredResourceTypes: ['knowledge_card', 'control_workbench', 'simulation', 'arena_task'],
     },
     checkpointPolicy: {
       minCheckpoints: 1,
-      checkpointResourceTypes: ['simulation', 'arena_task'],
+      checkpointResourceTypes: ['checkpoint', 'simulation', 'arena_task'],
       requiresTerminalValidation: true,
     },
     explanationTemplates: {
@@ -494,17 +530,28 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       competencyTargets: [],
     },
     displayName: '频率响应基础',
-    allowedResourceMix: ['knowledge_card', 'simulation', 'quiz', 'reflection', 'handout', 'lesson_step'],
+    allowedResourceMix: [
+      'knowledge_card',
+      'simulation',
+      'quiz',
+      'adaptive_quiz',
+      'external_resource',
+      'reflection',
+      'checkpoint',
+      'handout',
+      'lesson_step',
+      'konling',
+    ],
     starterPathPolicy: {
       policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
       minOptions: 2,
       difficultyRhythm: 'gentle',
       allowExternalResources: false,
-      preferredResourceTypes: ['knowledge_card', 'simulation', 'quiz'],
+      preferredResourceTypes: ['knowledge_card', 'simulation', 'quiz', 'adaptive_quiz'],
     },
     checkpointPolicy: {
       minCheckpoints: 1,
-      checkpointResourceTypes: ['quiz', 'simulation', 'reflection', 'knowledge_card'],
+      checkpointResourceTypes: ['checkpoint', 'quiz', 'adaptive_quiz', 'simulation', 'reflection', 'knowledge_card'],
       requiresTerminalValidation: false,
     },
     explanationTemplates: {
@@ -561,6 +608,7 @@ function buildAdaptiveLearningPathPlanInternal(
   const eligibleIds = new Set(policyEligible.map((node) => node.id));
   const scored = eligible
     .filter((node) => eligibleIds.has(node.id))
+    .filter((node) => externalResourceAllowed(node, input, registeredGoal))
     .filter((node) => goalAllowsResourceNode(node, registeredGoal))
     .filter((node) =>
       nodeMatchesGoal(node, input.goal, deficits) ||
@@ -1299,6 +1347,14 @@ function toPlanNode(
     nodeId: entry.node.id,
     title: entry.node.title,
     type: entry.node.type,
+    pathNodeType: entry.node.pathSemantics.type,
+    displayName: entry.node.pathSemantics.displayName,
+    iconKey: entry.node.pathSemantics.iconKey,
+    shapeHint: entry.node.pathSemantics.shapeHint,
+    evidenceBehavior: entry.node.pathSemantics.evidenceBehavior,
+    evidenceStatus: pathNodeEvidenceStatus(entry.node),
+    externalResource: entry.node.externalResource,
+    checkpoint: entry.node.checkpoint,
     sourceKind: entry.node.sourceKind,
     sourceRef: entry.node.sourceRef,
     target,
@@ -1312,6 +1368,14 @@ function toPlanNode(
     reasonCodes: entry.reasonCodes,
     status: isCompleted ? 'completed' : entry.node.id === currentNodeId ? 'current' : 'next',
   };
+}
+
+function pathNodeEvidenceStatus(node: ResourceNode): AdaptiveLearningPathPlanNode['evidenceStatus'] {
+  if (node.type === 'external_resource') {
+    if (node.externalResource?.evidenceUseStatus === 'explicit-access-required') return 'explicit-access-required';
+    if (node.externalResource?.evidenceUseStatus === 'reference-only') return 'reference-only';
+  }
+  return node.planningMetadata.evidenceInstrumentation.length > 0 ? 'instrumented' : 'missing';
 }
 
 function buildAlternatives(
@@ -1425,6 +1489,19 @@ function goalAllowsResourceNode(
   registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
 ): boolean {
   return !registeredGoal || registeredGoal.allowedResourceMix.includes(node.type);
+}
+
+function externalResourceAllowed(
+  node: ResourceNode,
+  input: AdaptiveLearningPathPlannerInput,
+  registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
+): boolean {
+  if (node.type !== 'external_resource') return true;
+  const allowed = input.allowExternalResources ?? registeredGoal?.starterPathPolicy.allowExternalResources ?? false;
+  return allowed && (
+    !node.externalResource?.applicableGoalId ||
+    node.externalResource.applicableGoalId === input.goal.id
+  );
 }
 
 function resolvePolicyBundleRequest(
@@ -1554,6 +1631,7 @@ function buildPolicyBundle(
       policyFamily,
       label: styleLabelForPolicyFamily(policyFamily),
       nodeIds: mainPath.map((node) => node.nodeId),
+      nodeSummaries: mainPath.map(toPathOptionNodeSummary),
       targetDeficits: deficitsForPath(mainPath, deficits),
       evidenceBasis: buildPathEvidenceBasis(plan, sourceCoverage),
       estimatedMinutes: remainingEstimatedMinutes(mainPath),
@@ -1734,6 +1812,21 @@ function selectPolicySupportNodes(
       left.id.localeCompare(right.id)
     ), 2);
   return picked;
+}
+
+function toPathOptionNodeSummary(node: AdaptiveLearningPathPlanNode): AdaptiveLearningPathOptionNodeSummary {
+  return {
+    nodeId: node.nodeId,
+    title: node.title,
+    pathNodeType: node.pathNodeType,
+    displayName: node.displayName,
+    iconKey: node.iconKey,
+    shapeHint: node.shapeHint,
+    evidenceBehavior: node.evidenceBehavior,
+    evidenceStatus: node.evidenceStatus,
+    estimatedTimeMinutes: node.estimatedTimeMinutes,
+    status: node.status,
+  };
 }
 
 function selectCheckpointNodeIds(

@@ -5,6 +5,10 @@ import {
   type AdaptiveLearningPathPlan,
 } from '../adaptive-learning-path-planner';
 import {
+  getPathNodeSemanticsForResourceType,
+  type ResourceNodeType,
+} from '../resource-node-registry';
+import {
   persistControlCorrectionPathRound,
   persistLearningPathRound,
   ControlCorrectionPathRoundConflictError,
@@ -18,6 +22,20 @@ import {
   toLegacyLearningPathSummary,
   updateControlCorrectionPathRoundAfterExecution,
 } from '../control-correction-path-rounds';
+
+function pathNodeSemantics(type: ResourceNodeType) {
+  const semantics = getPathNodeSemanticsForResourceType(type);
+  return {
+    pathNodeType: semantics.type,
+    displayName: semantics.displayName,
+    iconKey: semantics.iconKey,
+    shapeHint: semantics.shapeHint,
+    evidenceBehavior: semantics.evidenceBehavior,
+    evidenceStatus: 'instrumented' as const,
+    externalResource: null,
+    checkpoint: null,
+  };
+}
 
 function samplePlan(): AdaptiveLearningPathPlan {
   return {
@@ -40,6 +58,7 @@ function samplePlan(): AdaptiveLearningPathPlan {
         nodeId: 'knowledge-card:control-correction-time-domain-targets',
         title: '时域指标知识卡',
         type: 'knowledge_card',
+        ...pathNodeSemantics('knowledge_card'),
         sourceKind: 'knowledge_graph',
         sourceRef: 'control-correction:time-domain-targets:card',
         target: 'course-content/runtime/knowledge/cards/nodes/时域指标到目标极点区域_3_36001.md',
@@ -57,6 +76,7 @@ function samplePlan(): AdaptiveLearningPathPlan {
         nodeId: 'arena-task:task-second-order-lead-pid',
         title: '二阶对象超前校正 Arena',
         type: 'arena_task',
+        ...pathNodeSemantics('arena_task'),
         sourceKind: 'arena_task',
         sourceRef: 'task-second-order-lead-pid',
         target: '/arena/challenges/task-second-order-lead-pid',
@@ -160,6 +180,7 @@ function frequencyResponsePlan(): AdaptiveLearningPathPlan {
       nodeId: 'knowledge-card:frequency-response-basics',
       title: '频率响应基础卡',
       type: 'knowledge_card',
+      ...pathNodeSemantics('knowledge_card'),
       sourceKind: 'knowledge_graph',
       sourceRef: 'frequency-response-basics',
       target: '/course-runtime/knowledge/cards/frequency-response-basics',
@@ -262,6 +283,22 @@ describe('control-correction path rounds', () => {
           policyFamily: 'foundation-remediation',
           label: '基础补救',
           nodeIds: ['knowledge-card:control-correction-time-domain-targets', 'arena-task:task-second-order-lead-pid'],
+          nodeSummaries: [
+            {
+              nodeId: 'knowledge-card:control-correction-time-domain-targets',
+              title: '时域指标知识卡',
+              ...pathNodeSemantics('knowledge_card'),
+              estimatedTimeMinutes: 8,
+              status: 'current',
+            },
+            {
+              nodeId: 'arena-task:task-second-order-lead-pid',
+              title: '二阶对象超前校正 Arena',
+              ...pathNodeSemantics('arena_task'),
+              estimatedTimeMinutes: 18,
+              status: 'next',
+            },
+          ],
           targetDeficits: [{ targetId: 'control-correction:arena-transfer', kind: 'knowledge', value: 0.2, confidence: 0.6, evidenceCount: 1, reasonCode: 'low-mastery-target' }],
           evidenceBasis: ['adaptive-learner-state', 'LearningFact'],
           estimatedMinutes: 26,
@@ -395,6 +432,7 @@ describe('control-correction path rounds', () => {
         nodeId: 'knowledge-card:frequency-response-basics',
         title: '频率响应基础卡',
         type: 'knowledge_card',
+        ...pathNodeSemantics('knowledge_card'),
         sourceKind: 'knowledge_graph',
         sourceRef: 'frequency-response-basics',
         target: '/course-runtime/knowledge/cards/frequency-response-basics',
@@ -507,6 +545,101 @@ describe('control-correction path rounds', () => {
     }
   });
 
+  it('persists governed external resource path nodes with verified metadata', async () => {
+    const db = mockDb();
+    db.learningPath.findFirst = vi.fn(async () => null) as any;
+    const plan = frequencyResponsePlan();
+    plan.mainPath[0] = {
+      ...plan.mainPath[0],
+      nodeId: 'external-resource:ocw-bode',
+      title: '外部伯德图资料',
+      type: 'external_resource',
+      ...pathNodeSemantics('external_resource'),
+      sourceKind: 'external_resource',
+      sourceRef: 'ocw-bode',
+      target: 'https://ocw.mit.edu/control/bode',
+      estimatedTimeMinutes: 15,
+      externalResource: {
+        source: 'MIT OCW',
+        url: 'https://ocw.mit.edu/control/bode',
+        estimatedTimeMinutes: 15,
+        knowledgeCoverage: ['kn-bode'],
+        applicableGoalId: 'frequency-response-foundations',
+        evidenceUseStatus: 'explicit-access-required',
+        privacyPolicy: 'student-visible',
+      },
+      evidenceStatus: 'explicit-access-required',
+    };
+    plan.currentNodeId = 'external-resource:ocw-bode';
+
+    await persistLearningPathRound(db, {
+      plan,
+      inputSnapshot: { goalId: 'frequency-response-foundations' },
+    });
+
+    expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        currentNodeId: 'external-resource:ocw-bode',
+      }),
+    }));
+  });
+
+  it('rejects external resource path nodes without governed metadata', async () => {
+    const db = mockDb();
+    const plan = frequencyResponsePlan();
+    plan.mainPath[0] = {
+      ...plan.mainPath[0],
+      nodeId: 'external-resource:unsafe',
+      title: '未治理外部资料',
+      type: 'external_resource',
+      ...pathNodeSemantics('external_resource'),
+      sourceKind: 'external_resource',
+      sourceRef: 'unsafe',
+      target: '/interactive-learning/resources/unsafe-external',
+      externalResource: null,
+    };
+    plan.currentNodeId = 'external-resource:unsafe';
+
+    await expect(persistLearningPathRound(db, {
+      plan,
+      inputSnapshot: { goalId: 'frequency-response-foundations' },
+    })).rejects.toBeInstanceOf(ControlCorrectionPathRoundValidationError);
+    expect(db.learningPath.upsert).not.toHaveBeenCalled();
+  });
+
+  it('rejects external resource path nodes with non-positive estimated time', async () => {
+    const db = mockDb();
+    const plan = frequencyResponsePlan();
+    plan.mainPath[0] = {
+      ...plan.mainPath[0],
+      nodeId: 'external-resource:negative-time',
+      title: '负时长外部资料',
+      type: 'external_resource',
+      ...pathNodeSemantics('external_resource'),
+      sourceKind: 'external_resource',
+      sourceRef: 'negative-time',
+      target: 'https://ocw.mit.edu/control/negative-time',
+      estimatedTimeMinutes: -5,
+      externalResource: {
+        source: 'MIT OCW',
+        url: 'https://ocw.mit.edu/control/negative-time',
+        estimatedTimeMinutes: -5,
+        knowledgeCoverage: ['kn-bode'],
+        applicableGoalId: 'frequency-response-foundations',
+        evidenceUseStatus: 'explicit-access-required',
+        privacyPolicy: 'student-visible',
+      },
+      evidenceStatus: 'explicit-access-required',
+    };
+    plan.currentNodeId = 'external-resource:negative-time';
+
+    await expect(persistLearningPathRound(db, {
+      plan,
+      inputSnapshot: { goalId: 'frequency-response-foundations' },
+    })).rejects.toBeInstanceOf(ControlCorrectionPathRoundValidationError);
+    expect(db.learningPath.upsert).not.toHaveBeenCalled();
+  });
+
   it('persists ai intervention nodes that the planner can include in path options', async () => {
     const db = mockDb();
     const plan = samplePlan();
@@ -514,6 +647,7 @@ describe('control-correction path rounds', () => {
       nodeId: 'ai_intervention:control-correction-path-coach',
       title: '控灵路径辅导',
       type: 'ai_intervention',
+      ...pathNodeSemantics('ai_intervention'),
       sourceKind: 'ai_intervention',
       sourceRef: 'control-correction-path-coach',
       target: '/adaptive-learning/path-advisor',
