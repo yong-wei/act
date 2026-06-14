@@ -655,6 +655,47 @@ describe('commercial UI governance', () => {
     ]));
   });
 
+  it('fails when light and dark simulation evidence reuse the same visual artifact for the same state', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations' || !entry.simulationVisualQa) return entry;
+      const lightExpanded = entry.simulationVisualQa.viewports.find((viewport) => (
+        viewport.theme === 'light'
+        && viewport.width === 1440
+        && viewport.navigationState === 'desktop-expanded'
+      ));
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport) => (
+            viewport.theme === 'dark'
+            && viewport.width === 1440
+            && viewport.navigationState === 'desktop-expanded'
+              ? {
+                  ...viewport,
+                  screenshot: lightExpanded?.screenshot,
+                  screenshotSha256: lightExpanded?.screenshotSha256,
+                }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining([
+          'width=1440:navigationState=desktop-expanded:dockState=collapsed:localToolState=not-applicable:themeArtifactUnique=light->dark',
+        ]),
+      }),
+    ]));
+  });
+
   it('fails when simulation viewport metadata does not match the route matrix', () => {
     const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
       if (entry.href !== '/virtual-lab' || !entry.simulationVisualQa) return entry;
@@ -1493,6 +1534,7 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('simulationSharedDetailRouteAffected(route.href, files)');
     expect(scriptSource).toContain('requiresFullSimulationVisualQaMatrix(requiredVisualRoutes, files)');
     expect(scriptSource).toContain("route.href.startsWith('/simulations/')");
+    expect(scriptSource).toContain("file === 'src/lib/platform-role-navigation.ts'");
     expect(scriptSource).toContain('/^src\\/app\\/simulations\\/[^/]+\\/page\\.tsx$/.test(file)');
     expect(scriptSource).toContain('? SIMULATION_VISUAL_QA_ROUTE_MATRIX');
     expect(scriptSource).not.toContain('visualEvidence.some((entry) => entry.href === route.href && entry.simulationVisualQa)');

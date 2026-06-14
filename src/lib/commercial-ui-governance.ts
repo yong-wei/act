@@ -1802,6 +1802,8 @@ function buildSimulationVisualQaViolations(
       }
     }
 
+    const themeArtifactFingerprintsByState = new Map<string, Map<CommercialVisualQaTheme, string>>();
+
     for (const theme of route.requiredThemes) {
       for (const width of route.requiredWidths) {
         const stateArtifactFingerprints = new Map<string, string>();
@@ -1843,7 +1845,12 @@ function buildSimulationVisualQaViolations(
               }
               const fingerprint = artifactFingerprint(viewport);
               if (fingerprint) {
-                stateArtifactFingerprints.set(`${navigationState}/${dockState}/${localToolState}`, fingerprint);
+                const stateKey = `${navigationState}/${dockState}/${localToolState}`;
+                const themedStateKey = `width=${width}:navigationState=${navigationState}:dockState=${dockState}:localToolState=${localToolState}`;
+                stateArtifactFingerprints.set(stateKey, fingerprint);
+                const themedFingerprints = themeArtifactFingerprintsByState.get(themedStateKey) ?? new Map();
+                themedFingerprints.set(theme, fingerprint);
+                themeArtifactFingerprintsByState.set(themedStateKey, themedFingerprints);
               }
             }
           }
@@ -1864,6 +1871,18 @@ function buildSimulationVisualQaViolations(
             seen.set(fingerprint, stateKey);
           }
         }
+      }
+    }
+    for (const [stateKey, themedFingerprints] of themeArtifactFingerprintsByState) {
+      const seen = new Map<string, CommercialVisualQaTheme>();
+      for (const theme of route.requiredThemes) {
+        const fingerprint = themedFingerprints.get(theme);
+        if (!fingerprint) continue;
+        const previousTheme = seen.get(fingerprint);
+        if (previousTheme && previousTheme !== theme) {
+          missing.push(`${stateKey}:themeArtifactUnique=${previousTheme}->${theme}`);
+        }
+        seen.set(fingerprint, theme);
       }
     }
 

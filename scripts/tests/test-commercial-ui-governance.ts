@@ -462,6 +462,7 @@ function requiresFullSimulationVisualQaMatrix(
     || files.some((file) => (
       file === 'src/app/simulations/page.tsx'
       || file === 'src/app/virtual-lab/page.tsx'
+      || file === 'src/lib/platform-role-navigation.ts'
       || /^src\/app\/simulations\/[^/]+\/page\.tsx$/.test(file)
       || file.startsWith('src/app/simulations/_components/')
       || file.startsWith('src/resources/simulations/')
