@@ -1,0 +1,18 @@
+{
+  "route": "/simulations/destroyer",
+  "theme": "light",
+  "width": 1440,
+  "navigationState": "desktop-expanded",
+  "dockState": "expanded",
+  "localToolState": "expanded",
+  "primarySceneNonblank": true,
+  "instrumentAreaNonblank": true,
+  "collisionEvidence": {
+    "dockAndLocalToolsObservedTogether": true,
+    "dockObservedExpanded": true,
+    "localToolsObservedExpanded": true,
+    "localControlCollisionFree": true
+  },
+  "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-expanded-expanded-expanded.png",
+  "result": "passed"
+}

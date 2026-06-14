@@ -2342,7 +2342,85 @@
             "/arena"
           ]
         }
-      ]
+      ],
+      "simulationVisualQa": {
+        "archetype": "control-workbench-regression",
+        "hidesInternalModelStatus": true,
+        "duplicateAssistantEntries": 0,
+        "unmanagedRightBottomControls": 0,
+        "localControlCollisionFree": true,
+        "routeInventoryCompatible": true,
+        "modelLibraryCompatible": true,
+        "reactDoctorErrorCheck": {
+          "localOnly": true,
+          "ciRequired": false,
+          "command": "rtk npm run test:react-doctor:owned-errors",
+          "status": "passed",
+          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json"
+        },
+        "viewports": [
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-expanded",
+            "dockState": "required",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-light-desktop-expanded.png",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-collapsed",
+            "dockState": "required",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-light-desktop-collapsed.png",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "light",
+            "navigationState": "mobile-drawer",
+            "dockState": "required",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-light-mobile.png",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-expanded",
+            "dockState": "required",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-dark-desktop-expanded.png",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-collapsed",
+            "dockState": "required",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-dark-desktop-collapsed.png",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "dark",
+            "navigationState": "mobile-drawer",
+            "dockState": "required",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/app-shell-collapsed-navigation-413/control-workbench-dark-mobile.png",
+            "firstViewportTaskVisible": true
+          }
+        ]
+      }
     },
     {
       "href": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition",
@@ -4227,7 +4305,85 @@
           "firstViewportTaskVisible": true,
           "navigationState": "desktop-collapsed"
         }
-      ]
+      ],
+      "simulationVisualQa": {
+        "archetype": "catalog",
+        "hidesInternalModelStatus": true,
+        "duplicateAssistantEntries": 0,
+        "unmanagedRightBottomControls": 0,
+        "localControlCollisionFree": true,
+        "routeInventoryCompatible": true,
+        "modelLibraryCompatible": true,
+        "reactDoctorErrorCheck": {
+          "localOnly": true,
+          "ciRequired": false,
+          "command": "rtk npm run test:react-doctor:owned-errors",
+          "status": "passed",
+          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json"
+        },
+        "viewports": [
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-expanded",
+            "dockState": "collapsed",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-light-1440.png",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-collapsed",
+            "dockState": "collapsed",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-light-1440.png",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "light",
+            "navigationState": "workspace-command-surface",
+            "dockState": "collapsed",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-light-320.png",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-expanded",
+            "dockState": "collapsed",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-dark-1440.png",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-collapsed",
+            "dockState": "collapsed",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-dark-1440.png",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "dark",
+            "navigationState": "workspace-command-surface",
+            "dockState": "collapsed",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-dark-320.png",
+            "firstViewportTaskVisible": true
+          }
+        ]
+      }
     },
     {
       "href": "/teacher",
@@ -10311,7 +10467,337 @@
           "firstViewportTaskVisible": true,
           "navigationState": "desktop-collapsed"
         }
-      ]
+      ],
+      "simulationVisualQa": {
+        "archetype": "cruise-roll",
+        "hidesInternalModelStatus": true,
+        "duplicateAssistantEntries": 0,
+        "unmanagedRightBottomControls": 0,
+        "localControlCollisionFree": true,
+        "routeInventoryCompatible": true,
+        "modelLibraryCompatible": true,
+        "reactDoctorErrorCheck": {
+          "localOnly": true,
+          "ciRequired": false,
+          "command": "rtk npm run test:react-doctor:owned-errors",
+          "status": "passed",
+          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json"
+        },
+        "viewports": [
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-expanded",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-expanded-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-1440-desktop-expanded-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-expanded",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-expanded-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-1440-desktop-expanded-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-expanded",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-expanded-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-1440-desktop-expanded-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-expanded",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-expanded-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-1440-desktop-expanded-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-collapsed",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-collapsed-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-1440-desktop-collapsed-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-collapsed",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-collapsed-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-1440-desktop-collapsed-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-collapsed",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-collapsed-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-1440-desktop-collapsed-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-collapsed",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-1440-desktop-collapsed-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-1440-desktop-collapsed-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "light",
+            "navigationState": "workspace-command-surface",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-320-workspace-command-surface-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-320-workspace-command-surface-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "light",
+            "navigationState": "workspace-command-surface",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-320-workspace-command-surface-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-320-workspace-command-surface-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "light",
+            "navigationState": "workspace-command-surface",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-320-workspace-command-surface-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-320-workspace-command-surface-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "light",
+            "navigationState": "workspace-command-surface",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-light-320-workspace-command-surface-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-light-320-workspace-command-surface-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-expanded",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-expanded-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-1440-desktop-expanded-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-expanded",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-expanded-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-1440-desktop-expanded-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-expanded",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-expanded-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-1440-desktop-expanded-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-expanded",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-expanded-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-1440-desktop-expanded-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-collapsed",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-collapsed-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-1440-desktop-collapsed-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-collapsed",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-collapsed-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-1440-desktop-collapsed-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-collapsed",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-collapsed-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-1440-desktop-collapsed-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-collapsed",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-collapsed-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-1440-desktop-collapsed-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "dark",
+            "navigationState": "workspace-command-surface",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-320-workspace-command-surface-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-320-workspace-command-surface-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "dark",
+            "navigationState": "workspace-command-surface",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-320-workspace-command-surface-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-320-workspace-command-surface-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "dark",
+            "navigationState": "workspace-command-surface",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-320-workspace-command-surface-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-320-workspace-command-surface-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "dark",
+            "navigationState": "workspace-command-surface",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-320-workspace-command-surface-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-cruise-dark-320-workspace-command-surface-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          }
+        ]
+      }
     },
     {
       "href": "/simulations/lng",
@@ -10517,7 +11003,337 @@
           "firstViewportTaskVisible": true,
           "navigationState": "desktop-collapsed"
         }
-      ]
+      ],
+      "simulationVisualQa": {
+        "archetype": "heading-control",
+        "hidesInternalModelStatus": true,
+        "duplicateAssistantEntries": 0,
+        "unmanagedRightBottomControls": 0,
+        "localControlCollisionFree": true,
+        "routeInventoryCompatible": true,
+        "modelLibraryCompatible": true,
+        "reactDoctorErrorCheck": {
+          "localOnly": true,
+          "ciRequired": false,
+          "command": "rtk npm run test:react-doctor:owned-errors",
+          "status": "passed",
+          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json"
+        },
+        "viewports": [
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-expanded",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-expanded-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-1440-desktop-expanded-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-expanded",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-expanded-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-1440-desktop-expanded-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-expanded",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-expanded-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-1440-desktop-expanded-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-expanded",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-expanded-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-1440-desktop-expanded-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-collapsed",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-collapsed-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-1440-desktop-collapsed-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-collapsed",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-collapsed-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-1440-desktop-collapsed-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-collapsed",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-collapsed-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-1440-desktop-collapsed-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-collapsed",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-1440-desktop-collapsed-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-1440-desktop-collapsed-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "light",
+            "navigationState": "workspace-command-surface",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-320-workspace-command-surface-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-320-workspace-command-surface-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "light",
+            "navigationState": "workspace-command-surface",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-320-workspace-command-surface-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-320-workspace-command-surface-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "light",
+            "navigationState": "workspace-command-surface",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-320-workspace-command-surface-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-320-workspace-command-surface-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "light",
+            "navigationState": "workspace-command-surface",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-light-320-workspace-command-surface-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-light-320-workspace-command-surface-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-expanded",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-1440-desktop-expanded-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-1440-desktop-expanded-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-expanded",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-1440-desktop-expanded-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-1440-desktop-expanded-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-expanded",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-1440-desktop-expanded-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-1440-desktop-expanded-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-expanded",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-1440-desktop-expanded-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-1440-desktop-expanded-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-collapsed",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-1440-desktop-collapsed-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-1440-desktop-collapsed-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-collapsed",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-1440-desktop-collapsed-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-1440-desktop-collapsed-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-collapsed",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-1440-desktop-collapsed-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-1440-desktop-collapsed-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-collapsed",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-1440-desktop-collapsed-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-1440-desktop-collapsed-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "dark",
+            "navigationState": "workspace-command-surface",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-320-workspace-command-surface-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-320-workspace-command-surface-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "dark",
+            "navigationState": "workspace-command-surface",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-320-workspace-command-surface-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-320-workspace-command-surface-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "dark",
+            "navigationState": "workspace-command-surface",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-320-workspace-command-surface-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-320-workspace-command-surface-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "dark",
+            "navigationState": "workspace-command-surface",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-destroyer-dark-320-workspace-command-surface-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-destroyer-dark-320-workspace-command-surface-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          }
+        ]
+      }
     },
     {
       "href": "/simulations/drilling",
@@ -10620,7 +11436,337 @@
           "firstViewportTaskVisible": true,
           "navigationState": "desktop-collapsed"
         }
-      ]
+      ],
+      "simulationVisualQa": {
+        "archetype": "dp-positioning",
+        "hidesInternalModelStatus": true,
+        "duplicateAssistantEntries": 0,
+        "unmanagedRightBottomControls": 0,
+        "localControlCollisionFree": true,
+        "routeInventoryCompatible": true,
+        "modelLibraryCompatible": true,
+        "reactDoctorErrorCheck": {
+          "localOnly": true,
+          "ciRequired": false,
+          "command": "rtk npm run test:react-doctor:owned-errors",
+          "status": "passed",
+          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json"
+        },
+        "viewports": [
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-expanded",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-expanded-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-1440-desktop-expanded-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-expanded",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-expanded-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-1440-desktop-expanded-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-expanded",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-expanded-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-1440-desktop-expanded-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-expanded",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-expanded-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-1440-desktop-expanded-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-collapsed",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-collapsed-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-1440-desktop-collapsed-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-collapsed",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-collapsed-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-1440-desktop-collapsed-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-collapsed",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-collapsed-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-1440-desktop-collapsed-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-collapsed",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-1440-desktop-collapsed-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-1440-desktop-collapsed-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "light",
+            "navigationState": "workspace-command-surface",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-320-workspace-command-surface-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-320-workspace-command-surface-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "light",
+            "navigationState": "workspace-command-surface",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-320-workspace-command-surface-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-320-workspace-command-surface-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "light",
+            "navigationState": "workspace-command-surface",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-320-workspace-command-surface-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-320-workspace-command-surface-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "light",
+            "navigationState": "workspace-command-surface",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-light-320-workspace-command-surface-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-light-320-workspace-command-surface-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-expanded",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-1440-desktop-expanded-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-1440-desktop-expanded-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-expanded",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-1440-desktop-expanded-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-1440-desktop-expanded-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-expanded",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-1440-desktop-expanded-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-1440-desktop-expanded-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-expanded",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-1440-desktop-expanded-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-1440-desktop-expanded-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-collapsed",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-1440-desktop-collapsed-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-1440-desktop-collapsed-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-collapsed",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-1440-desktop-collapsed-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-1440-desktop-collapsed-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-collapsed",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-1440-desktop-collapsed-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-1440-desktop-collapsed-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-collapsed",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-1440-desktop-collapsed-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-1440-desktop-collapsed-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "dark",
+            "navigationState": "workspace-command-surface",
+            "dockState": "collapsed",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-320-workspace-command-surface-collapsed-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-320-workspace-command-surface-collapsed-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "dark",
+            "navigationState": "workspace-command-surface",
+            "dockState": "collapsed",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-320-workspace-command-surface-collapsed-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-320-workspace-command-surface-collapsed-expanded.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "dark",
+            "navigationState": "workspace-command-surface",
+            "dockState": "expanded",
+            "localToolState": "collapsed",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-320-workspace-command-surface-expanded-collapsed.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-320-workspace-command-surface-expanded-collapsed.json",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "dark",
+            "navigationState": "workspace-command-surface",
+            "dockState": "expanded",
+            "localToolState": "expanded",
+            "primarySceneNonblank": true,
+            "instrumentAreaNonblank": true,
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-drilling-dark-320-workspace-command-surface-expanded-expanded.png",
+            "artifact": "artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/simulations-drilling-dark-320-workspace-command-surface-expanded-expanded.json",
+            "firstViewportTaskVisible": true
+          }
+        ]
+      }
     },
     {
       "href": "/simulations/container",
@@ -10930,6 +12076,90 @@
           "navigationState": "desktop-collapsed"
         }
       ]
+    },
+    {
+      "href": "/virtual-lab",
+      "viewports": [],
+      "simulationVisualQa": {
+        "archetype": "legacy-redirect",
+        "availabilityConsistentWith": "/simulations",
+        "virtualLabFinalBehavior": "redirects-to-simulations",
+        "hidesInternalModelStatus": true,
+        "duplicateAssistantEntries": 0,
+        "unmanagedRightBottomControls": 0,
+        "localControlCollisionFree": true,
+        "routeInventoryCompatible": true,
+        "modelLibraryCompatible": true,
+        "reactDoctorErrorCheck": {
+          "localOnly": true,
+          "ciRequired": false,
+          "command": "rtk npm run test:react-doctor:owned-errors",
+          "status": "passed",
+          "report": "artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json"
+        },
+        "viewports": [
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-expanded",
+            "dockState": "collapsed",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-light-1440.png",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "light",
+            "navigationState": "desktop-collapsed",
+            "dockState": "collapsed",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-light-1440.png",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "light",
+            "navigationState": "workspace-command-surface",
+            "dockState": "collapsed",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-light-320.png",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-expanded",
+            "dockState": "collapsed",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-dark-1440.png",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 1440,
+            "theme": "dark",
+            "navigationState": "desktop-collapsed",
+            "dockState": "collapsed",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-dark-1440.png",
+            "firstViewportTaskVisible": true
+          },
+          {
+            "width": 320,
+            "theme": "dark",
+            "navigationState": "workspace-command-surface",
+            "dockState": "collapsed",
+            "localToolState": "not-applicable",
+            "result": "passed",
+            "screenshot": "artifacts/commercial-ui/premium-foundation/2026-06-04T13-34-45-380Z/simulations-dark-320.png",
+            "firstViewportTaskVisible": true
+          }
+        ]
+      }
     }
   ]
 }

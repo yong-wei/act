@@ -10,9 +10,11 @@ import {
   DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX,
   DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES,
   PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX,
+  SIMULATION_VISUAL_QA_ROUTE_MATRIX,
   evaluateCommercialUiGovernance,
   type CommercialAccessibilityTextFitEvidence,
   type CommercialNavigationCoverageInput,
+  type CommercialSimulationVisualQaEvidence,
   type CommercialUiGovernanceInput,
   type CommercialVisualQaNavigationState,
   type CommercialVisualAcceptanceEvidence,
@@ -61,6 +63,15 @@ function navigationStatesForWidth(
 ): CommercialVisualQaNavigationState[] {
   if (width === 1440) return ['desktop-expanded', 'desktop-collapsed'];
   return [mobileNavigationStateByBehavior[inventoryRoute?.mobileNavigation ?? 'drawer']];
+}
+
+function simulationNavigationStatesForWidth(
+  width: 1440 | 320,
+  states: readonly CommercialVisualQaNavigationState[],
+): CommercialVisualQaNavigationState[] {
+  return states.filter((state) => (
+    width === 1440 ? state.startsWith('desktop-') : !state.startsWith('desktop-')
+  ));
 }
 
 function completeVisualEvidence(): CommercialVisualAcceptanceEvidence[] {
@@ -180,12 +191,109 @@ function completeAccessibilityEvidence(): CommercialAccessibilityTextFitEvidence
   }));
 }
 
+function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEvidence {
+  const scenario = SIMULATION_VISUAL_QA_ROUTE_MATRIX.find((entry) => entry.href === href);
+  if (!scenario) throw new Error(`Missing simulation visual QA scenario for ${href}`);
+  return {
+    archetype: scenario.archetype,
+    availabilityConsistentWith: scenario.href === '/virtual-lab' ? '/simulations' : undefined,
+    virtualLabFinalBehavior: scenario.href === '/virtual-lab' ? 'redirects-to-simulations' : undefined,
+    hidesInternalModelStatus: true,
+    duplicateAssistantEntries: 0,
+    unmanagedRightBottomControls: 0,
+    localControlCollisionFree: true,
+    routeInventoryCompatible: true,
+    modelLibraryCompatible: true,
+    reactDoctorErrorCheck: {
+      localOnly: true,
+      ciRequired: false,
+      command: 'rtk npm run test:react-doctor:owned-errors',
+      status: 'passed',
+      report: 'artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json',
+    },
+    viewports: scenario.requiredThemes.flatMap((theme) => scenario.requiredWidths.flatMap((width) => (
+      simulationNavigationStatesForWidth(width, scenario.requiredNavigationStates).flatMap((navigationState) => (
+        scenario.requiredDockStates.flatMap((dockState) => (
+          scenario.requiredLocalToolStates.map((localToolState) => ({
+            width,
+            theme,
+            navigationState,
+            dockState,
+            localToolState,
+            firstViewportTaskVisible: true,
+            primarySceneNonblank: scenario.requiresNonblankScene || undefined,
+            instrumentAreaNonblank: scenario.requiresNonblankScene || undefined,
+            result: 'passed' as const,
+            screenshot: `artifacts/commercial-ui/simulation-experience-visual-qa/${href.replace(/[^a-z0-9]+/gi, '-')}-${theme}-${width}-${navigationState}-${dockState}-${localToolState}.png`,
+            screenshotSha256: `${href}:${theme}:${width}:${navigationState}:${dockState}:${localToolState}`,
+          }))
+        ))
+      ))
+    ))),
+  };
+}
+
+function completeSimulationVisualEvidence(): CommercialVisualAcceptanceEvidence[] {
+  return SIMULATION_VISUAL_QA_ROUTE_MATRIX.map((route) => ({
+    href: route.href,
+    viewports: route.href === '/virtual-lab' ? [] : route.requiredThemes.flatMap((theme) => (
+      route.requiredWidths.flatMap((width) => (
+        navigationStatesForWidth(width, findInventoryRoute(route.href)).map((navigationState) => {
+          const inventoryRoute = findInventoryRoute(route.href);
+          return {
+            width,
+            theme,
+            role: route.role,
+            requestedRoute: route.href,
+            finalUrl: `http://localhost:3000${route.href}`,
+            authState: route.acceptedAuthState,
+            routeFile: route.routeFile,
+            routeArchetype: inventoryRoute?.frame,
+            dockState: inventoryRoute?.floatingDock === 'enabled' ? 'required' : inventoryRoute?.floatingDock,
+            navigationState,
+            result: 'passed' as const,
+            screenshot: `artifacts/commercial-ui/simulation-experience-visual-qa/${route.href.replace(/[^a-z0-9]+/gi, '-')}-${theme}-${width}-${navigationState}.png`,
+            firstViewportUseful: true,
+            firstViewportTaskVisible: true,
+            navigationReachable: true,
+            noTextOverlap: true,
+            stablePanelGeometry: true,
+            coherentBrandApplication: true,
+            taskControlsVisible: true,
+            dockPlacementChecked: true,
+            noDockCollision: true,
+            dockFocusReachable: true,
+            mobileCanvasFirst: width === 320 ? true : undefined,
+            noPersistentMobileSidebar: width === 320 ? true : undefined,
+            noPersistentMobileFilter: width === 320 ? true : undefined,
+            noPersistentWorkbenchPanels: width === 320 ? true : undefined,
+            noPersistentKnowledgeGraphDrawer: width === 320 ? true : undefined,
+          };
+        })
+      ))
+    )),
+    simulationVisualQa: simulationVisualQaFor(route.href),
+  }));
+}
+
+function completeVisualEvidenceWithSimulationQa(): CommercialVisualAcceptanceEvidence[] {
+  const routes = new Map<string, CommercialVisualAcceptanceEvidence>();
+  for (const evidence of completeVisualEvidence()) routes.set(evidence.href, evidence);
+  for (const evidence of completeSimulationVisualEvidence()) {
+    const existing = routes.get(evidence.href);
+    routes.set(evidence.href, existing
+      ? { ...existing, simulationVisualQa: evidence.simulationVisualQa }
+      : evidence);
+  }
+  return [...routes.values()];
+}
+
 function baseInput(overrides: Partial<CommercialUiGovernanceInput> = {}): CommercialUiGovernanceInput {
   return {
     mode: 'blocking',
     today,
     navigationCoverage: fullNavigationCoverage,
-    visualEvidence: completeVisualEvidence(),
+    visualEvidence: completeVisualEvidenceWithSimulationQa(),
     accessibilityEvidence: completeAccessibilityEvidence(),
     ...overrides,
   };
@@ -258,6 +366,123 @@ describe('commercial UI governance', () => {
     expect(DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES.map((route) => route.href)).toEqual(
       expect.arrayContaining(PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.map((route) => route.href)),
     );
+  });
+
+  it('defines simulation visual QA route matrix for redirect, catalog, scenes, dock, and workbench regression', () => {
+    expect(SIMULATION_VISUAL_QA_ROUTE_MATRIX.map((route) => route.href)).toEqual([
+      '/simulations',
+      '/virtual-lab',
+      '/simulations/destroyer',
+      '/simulations/drilling',
+      '/simulations/cruise',
+      '/interactive-learning/control-workbench',
+    ]);
+    expect(SIMULATION_VISUAL_QA_ROUTE_MATRIX.find((route) => route.href === '/virtual-lab')).toMatchObject({
+      archetype: 'legacy-redirect',
+      finalBehavior: 'redirects-to-simulations',
+    });
+    for (const route of SIMULATION_VISUAL_QA_ROUTE_MATRIX) {
+      expect(route.requiredThemes).toEqual(['light', 'dark']);
+      expect(route.requiredWidths).toEqual([1440, 320]);
+      expect(route.requiredNavigationStates).toEqual(expect.arrayContaining(['desktop-expanded', 'desktop-collapsed']));
+      expect(route.reactDoctorCommand).toBe('rtk npm run test:react-doctor:owned-errors');
+    }
+    expect(SIMULATION_VISUAL_QA_ROUTE_MATRIX.filter((route) => route.requiresNonblankScene).map((route) => route.href)).toEqual([
+      '/simulations/destroyer',
+      '/simulations/drilling',
+      '/simulations/cruise',
+    ]);
+    expect(SIMULATION_VISUAL_QA_ROUTE_MATRIX.find((route) => route.href === '/simulations/destroyer')?.requiredDockStates).toEqual([
+      'collapsed',
+      'expanded',
+    ]);
+  });
+
+  it('accepts complete simulation visual QA evidence for required routes', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: completeVisualEvidenceWithSimulationQa(),
+    }));
+
+    expect(result.passed).toBe(true);
+  });
+
+  it('fails when simulation visual QA evidence omits route, scene, dock, or React Doctor proof', () => {
+    const completeSimulationEvidence = SIMULATION_VISUAL_QA_ROUTE_MATRIX.map((route) => ({
+      href: route.href,
+      viewports: [],
+      simulationVisualQa: simulationVisualQaFor(route.href),
+    }));
+    const brokenDestroyer = completeSimulationEvidence.map((entry) => entry.href === '/simulations/destroyer'
+      ? {
+          ...entry,
+          simulationVisualQa: {
+            ...entry.simulationVisualQa,
+            duplicateAssistantEntries: 1,
+            localControlCollisionFree: false,
+            reactDoctorErrorCheck: { ...entry.simulationVisualQa.reactDoctorErrorCheck, status: 'not-run' as const },
+            viewports: entry.simulationVisualQa.viewports.filter((viewport) => (
+              viewport.dockState !== 'expanded' || viewport.primarySceneNonblank !== true
+            )),
+          },
+        }
+      : entry);
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: brokenDestroyer.filter((entry) => entry.href !== '/virtual-lab'),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.missing-route-evidence',
+        path: '/virtual-lab',
+      }),
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining([
+          'duplicateAssistantEntries=0',
+          'localControlCollisionFree',
+          'reactDoctorErrorCheck=passed',
+          'theme=light:width=1440:navigationState=desktop-expanded:dockState=expanded:localToolState=collapsed',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when simulation state evidence reuses the same artifact for different dock or local-tool states', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      const reusedScreenshot = 'artifacts/commercial-ui/simulation-experience-visual-qa/reused-destroyer-state.png';
+      const reusedScreenshotSha256 = 'reused-destroyer-state-content';
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport) => (
+            viewport.theme === 'light'
+            && viewport.width === 1440
+            && viewport.navigationState === 'desktop-expanded'
+              ? { ...viewport, screenshot: reusedScreenshot, screenshotSha256: reusedScreenshotSha256 }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining([
+          'theme=light:width=1440:navigationState=desktop-expanded:stateArtifactUnique=collapsed/collapsed->collapsed/expanded',
+        ]),
+      }),
+    ]));
   });
 
   it('defines a secondary navigation governance matrix for migrated route families and data-center role states', () => {
@@ -1043,6 +1268,19 @@ describe('commercial UI governance', () => {
       '.next/**',
     ]));
     expect(configExcludedRoots).toEqual(scriptExcludedRoots);
+  });
+
+  it('keeps simulation QA matrix scoped and verifies nested visual artifacts in the governance script', () => {
+    const scriptSource = readFileSync(join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'), 'utf8');
+
+    expect(scriptSource).toContain('SIMULATION_VISUAL_QA_ROUTE_MATRIX.filter');
+    expect(scriptSource).toContain('simulationSharedDetailRouteAffected(route.href, files)');
+    expect(scriptSource).toContain('requiresFullSimulationVisualQaMatrix(requiredVisualRoutes, files)');
+    expect(scriptSource).toContain('? SIMULATION_VISUAL_QA_ROUTE_MATRIX');
+    expect(scriptSource).toContain('visualEvidence.some((entry) => entry.href === route.href && entry.simulationVisualQa)');
+    expect(scriptSource).toContain('route.simulationVisualQa.viewports.map');
+    expect(scriptSource).toContain('const screenshot = simulationViewportArtifact(viewport.screenshot)');
+    expect(scriptSource).toContain('screenshotSha256: screenshot?.sha256');
   });
 
   it('filters React Doctor owned-surface diagnostics and keeps large JSON stdout parseable', () => {

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -7,6 +8,7 @@ import {
   DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX,
   DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES,
   PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX,
+  SIMULATION_VISUAL_QA_ROUTE_MATRIX,
   evaluateCommercialUiGovernance,
   type CommercialAccessibilityTextFitEvidence,
   type CommercialVisualAcceptanceRoute,
@@ -401,18 +403,69 @@ function isRegisteredRedirectOnlyCompatibilityPage(file: string, href: string) {
   return source.includes(`redirect('${redirect.to}')`) && !source.includes('return (');
 }
 
+function fileSha256(relativePath: string) {
+  return createHash('sha256').update(readFileSync(path.join(repoRoot, relativePath))).digest('hex');
+}
+
+function simulationViewportArtifact(pathname: string | undefined) {
+  return pathname && existsSync(path.join(repoRoot, pathname))
+    ? { pathname, sha256: fileSha256(pathname) }
+    : undefined;
+}
+
 function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
   const manifestPath = path.join(repoRoot, 'artifacts/commercial-ui/evidence.json');
   if (!existsSync(manifestPath)) return [];
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { routes?: CommercialVisualAcceptanceEvidence[] };
   return (manifest.routes ?? []).map((route) => ({
     ...route,
+    simulationVisualQa: route.simulationVisualQa
+      ? {
+          ...route.simulationVisualQa,
+          viewports: route.simulationVisualQa.viewports.map((viewport) => {
+            const artifact = simulationViewportArtifact(viewport.artifact);
+            const screenshot = simulationViewportArtifact(viewport.screenshot);
+            return {
+              ...viewport,
+              artifact: artifact?.pathname,
+              artifactSha256: artifact?.sha256,
+              screenshot: screenshot?.pathname,
+              screenshotSha256: screenshot?.sha256,
+            };
+          }),
+        }
+      : undefined,
     viewports: route.viewports.map((viewport) => ({
       ...viewport,
       artifact: viewport.artifact && existsSync(path.join(repoRoot, viewport.artifact)) ? viewport.artifact : undefined,
       screenshot: viewport.screenshot && existsSync(path.join(repoRoot, viewport.screenshot)) ? viewport.screenshot : undefined,
     })),
   }));
+}
+
+function simulationSharedDetailRouteAffected(routeHref: string, files: readonly string[]) {
+  if (!routeHref.startsWith('/simulations/')) return false;
+  return files.some((file) => (
+    file.startsWith('src/app/simulations/_components/')
+    || file.startsWith('src/resources/simulations/')
+    || file.startsWith('src/resources/control-system/')
+    || file.startsWith('rust/control-engine/')
+  ));
+}
+
+function requiresFullSimulationVisualQaMatrix(
+  routes: readonly CommercialVisualAcceptanceRoute[],
+  files: readonly string[],
+) {
+  return routes.some((route) => route.href === '/simulations')
+    || files.some((file) => (
+      file === 'src/app/simulations/page.tsx'
+      || file === 'src/app/virtual-lab/page.tsx'
+      || file.startsWith('src/app/simulations/_components/')
+      || file.startsWith('src/resources/simulations/')
+      || file.startsWith('src/resources/control-system/')
+      || file.startsWith('rust/control-engine/')
+    ));
 }
 
 type JsonRecord = Record<string, unknown>;
@@ -884,6 +937,14 @@ const routeInventoryForGate = routeLedgerHelperChanged
 const visualRouteInventoryForGate = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => (
   requiredVisualRoutes.some((visualRoute) => resolvePlatformRouteInventory(visualRoute.href)?.href === route.href)
 ));
+const simulationVisualQaMatrix = requiresFullSimulationVisualQaMatrix(requiredVisualRoutes, files)
+  ? SIMULATION_VISUAL_QA_ROUTE_MATRIX
+  : SIMULATION_VISUAL_QA_ROUTE_MATRIX.filter((route) => (
+    requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
+    || files.some((file) => file === route.routeFile || file.startsWith(`${path.dirname(route.routeFile)}/`))
+    || simulationSharedDetailRouteAffected(route.href, files)
+    || visualEvidence.some((entry) => entry.href === route.href && entry.simulationVisualQa)
+  ));
 const result = evaluateCommercialUiGovernance({
   mode: 'blocking',
   today,
@@ -906,6 +967,7 @@ const result = evaluateCommercialUiGovernance({
   premiumVisualQaMatrix: PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.filter((route) => (
     requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
   )),
+  simulationVisualQaMatrix,
   reportSurfaceInventory: PLATFORM_REPORT_SURFACE_INVENTORY.filter((surface) => (
     requiredVisualRoutes.some((visualRoute) => visualRoute.href === surface.ownerRoute)
   )),
