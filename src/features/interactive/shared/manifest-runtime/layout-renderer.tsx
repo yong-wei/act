@@ -6,6 +6,10 @@ import type {
   InteractiveRuntimeModuleManifest,
   InteractiveRuntimeStepManifest,
 } from '@/lib/interactive-lesson-manifest';
+import {
+  isActivityRuntimeModuleKind,
+  resolveInteractiveModuleVisualStandard,
+} from './module-visual-standards';
 
 export type {
   InteractiveRuntimeManifest,
@@ -35,28 +39,6 @@ type InteractiveTemplateRenderer = (props: {
   step: InteractiveRuntimeStepManifest;
   regionNodes: InteractiveLayoutRegionNode[];
 }) => ReactNode;
-
-const ACTIVITY_RUNTIME_MODULE_KINDS = new Set([
-  'activity.panel',
-  'activity.workspace',
-  'activity-card',
-  'activity-card-grid',
-  'activity-card-row',
-  'activity-card-set',
-  'binary-choice',
-  'card-sort',
-  'drag-match',
-  'hotspot-labeling',
-  'reason-chain',
-  'multi-select-matrix',
-  'task-card-workspace',
-  'triple-match',
-  'single-choice-card',
-  'quiz-card',
-  'quiz-group',
-  'teacher-reveal-only',
-  'table-builder',
-]);
 
 function renderActivityRuntimeModuleSlot({
   module,
@@ -160,14 +142,33 @@ function renderCommercialModuleChrome({
   module: InteractiveRuntimeModuleManifest;
   node: ReactNode;
 }) {
+  const standard = resolveInteractiveModuleVisualStandard(module.kind);
+  const roleStates = standard?.roleStates.join(' ') ?? 'student guest teacher';
+  const themeStates = standard?.themeStates.join(' ') ?? 'light dark';
+  const viewportStates = standard?.viewportStates.join(' ') ?? 'desktop mobile projection';
+  const teacherControlScope = standard?.teacherControlAttachment === 'module' ? module.id : 'none';
+
   return createElement(
     'section',
     {
       'data-commercial-module-chrome': module.kind,
+      'data-interactive-module-standard-class': standard?.canonicalClass ?? 'unregistered',
+      'data-interactive-module-chrome-category': standard?.chromeCategory ?? 'fallback',
+      'data-interactive-module-role-states': roleStates,
+      'data-interactive-module-theme-states': themeStates,
+      'data-interactive-module-viewport-states': viewportStates,
+      'data-interactive-module-projection-safe': String(standard?.projectionSafe === true),
+      'data-interactive-module-geometry': standard?.geometry ?? 'stable-panel',
+      'data-interactive-module-teacher-controls': standard?.teacherControlAttachment ?? 'none',
+      'data-interactive-module-control-scope': teacherControlScope,
       'data-commercial-module-state': module.mustBeVisible ? 'required' : 'available',
       'data-commercial-workspace-zone': 'instrument-area',
       'data-task-workspace-zone': 'instrument-area',
-      className: 'commercial-module-chrome min-h-[120px]',
+      className: [
+        'commercial-module-chrome min-h-[120px]',
+        'commercial-module-chrome--stable-panel commercial-module-chrome--projection-readable',
+        standard?.chromeClassName ?? 'commercial-module-chrome--fallback',
+      ].join(' '),
     },
     node,
   );
@@ -308,7 +309,7 @@ export function renderInteractiveManifestStep<TExtra = undefined>({
 }) {
   const regionNodes: InteractiveLayoutRegionNode[] = step.modules
     .map((module) => {
-      if (ACTIVITY_RUNTIME_MODULE_KINDS.has(module.kind)) {
+      if (isActivityRuntimeModuleKind(module.kind)) {
         if (module.mustBeVisible) {
           const node = renderActivityRuntimeModuleSlot({ module });
           return {
@@ -322,14 +323,15 @@ export function renderInteractiveManifestStep<TExtra = undefined>({
       const renderModule = moduleRegistry[module.kind];
       if (!renderModule) {
         if (module.mustBeVisible) {
+          const node = renderManifestModuleError({
+            step,
+            module,
+            reason: '缺少模块 renderer',
+          });
           return {
             moduleId: module.id,
             regionId: module.region,
-            node: renderManifestModuleError({
-              step,
-              module,
-              reason: '缺少模块 renderer',
-            }),
+            node: renderCommercialModuleChrome({ module, node }),
           } as InteractiveLayoutRegionNode;
         }
         return null;
@@ -342,14 +344,15 @@ export function renderInteractiveManifestStep<TExtra = undefined>({
       });
       if (!node) {
         if (module.mustBeVisible) {
+          const errorNode = renderManifestModuleError({
+            step,
+            module,
+            reason: '模块 renderer 返回空内容',
+          });
           return {
             moduleId: module.id,
             regionId: module.region,
-            node: renderManifestModuleError({
-              step,
-              module,
-              reason: '模块 renderer 返回空内容',
-            }),
+            node: renderCommercialModuleChrome({ module, node: errorNode }),
           } as InteractiveLayoutRegionNode;
         }
         return null;

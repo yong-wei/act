@@ -206,6 +206,73 @@
     @apply rounded-xl border border-border/60 bg-card/55 backdrop-blur;
   }
 
+  .commercial-module-chrome {
+    @apply relative min-w-0 overflow-hidden rounded-xl border border-border/65 bg-card/70 p-4 text-foreground shadow-sm backdrop-blur transition-colors;
+    background:
+      linear-gradient(135deg, hsl(var(--card) / 0.88), hsl(var(--accent) / 0.42)),
+      radial-gradient(circle at top right, hsl(var(--primary) / 0.1), transparent 32%);
+  }
+
+  .commercial-module-chrome--stable-panel {
+    @apply grid gap-3;
+    grid-template-rows: auto;
+    container-type: inline-size;
+  }
+
+  .commercial-module-chrome--projection-readable {
+    @apply text-sm leading-6 md:text-base md:leading-7;
+  }
+
+  .commercial-module-chrome--projection-readable :where(h2, h3, h4) {
+    @apply text-balance font-semibold tracking-normal text-foreground;
+  }
+
+  .commercial-module-chrome--projection-readable :where(p, li) {
+    @apply text-pretty text-muted-foreground;
+  }
+
+  .commercial-module-chrome--content,
+  .commercial-module-chrome--card-set,
+  .commercial-module-chrome--formula,
+  .commercial-module-chrome--stage-map {
+    @apply border-border/70 bg-card/78;
+  }
+
+  .commercial-module-chrome--interaction,
+  .commercial-module-chrome--workspace,
+  .commercial-module-chrome--compute {
+    @apply border-primary/30 bg-primary/8 shadow-primary/10;
+  }
+
+  .commercial-module-chrome--teacher-summary {
+    @apply border-platform-evidence-eligible/35 bg-platform-evidence-eligible/10;
+  }
+
+  .commercial-module-chrome--support,
+  .commercial-module-chrome--fallback {
+    @apply border-dashed border-border/70 bg-muted/35;
+  }
+
+  .commercial-module-chrome--media {
+    @apply p-3;
+  }
+
+  .commercial-module-chrome--table {
+    @apply overflow-x-auto;
+  }
+
+  .commercial-module-chrome--code {
+    @apply font-mono text-sm;
+  }
+
+  .commercial-module-chrome--reveal {
+    @apply border-platform-evidence-context/35 bg-platform-evidence-context/10;
+  }
+
+  .commercial-module-chrome[data-interactive-module-teacher-controls="module"] {
+    @apply border-l-4 border-l-primary/55;
+  }
+
   .teacher-insight-shell {
     @apply min-h-screen bg-background text-foreground;
     background:
