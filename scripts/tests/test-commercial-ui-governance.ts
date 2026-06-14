@@ -661,6 +661,8 @@ const KNOWLEDGE_GRAPH_INTERACTION_STATE_EVIDENCE_PATH =
   'artifacts/knowledge-graph-interaction-state-485/browser-evidence.json';
 const KNOWLEDGE_GRAPH_SEMANTIC_MAP_EVIDENCE_PATH =
   'artifacts/knowledge-graph-semantic-map-486/browser-evidence.json';
+const KNOWLEDGE_WORKSPACE_TOOLS_INSPECTOR_EVIDENCE_PATH =
+  'artifacts/knowledge-workspace-tools-inspector-487/browser-evidence.json';
 
 function readJsonFile<T>(relativePath: string): T | undefined {
   const absolutePath = path.join(repoRoot, relativePath);
@@ -972,6 +974,150 @@ function validateKnowledgeGraphSemanticMapEvidence(): CommercialUiGovernanceViol
   return [];
 }
 
+function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGovernanceViolation[] {
+  const evidence = readJsonFile<JsonRecord>(KNOWLEDGE_WORKSPACE_TOOLS_INSPECTOR_EVIDENCE_PATH);
+  const graphSource = existsSync(path.join(repoRoot, 'src/features/knowledge/knowledge-graph-system.tsx'))
+    ? readFileSync(path.join(repoRoot, 'src/features/knowledge/knowledge-graph-system.tsx'), 'utf8')
+    : '';
+  const resourcePanelSource = existsSync(path.join(repoRoot, 'src/features/knowledge/resource-panel/resource-panel.tsx'))
+    ? readFileSync(path.join(repoRoot, 'src/features/knowledge/resource-panel/resource-panel.tsx'), 'utf8')
+    : '';
+  if (!evidence) {
+    return [knowledgeGraphGovernanceViolation('Knowledge workspace tools inspector evidence file is missing.', [
+      KNOWLEDGE_WORKSPACE_TOOLS_INSPECTOR_EVIDENCE_PATH,
+    ])];
+  }
+
+  const results = Array.isArray(evidence.results)
+    ? evidence.results.map((entry) => objectRecord(entry))
+    : [];
+  const resultByName = new Map(
+    results
+      .map((entry) => [typeof entry.name === 'string' ? entry.name : '', entry] as const)
+      .filter(([name]) => name.length > 0)
+  );
+  const requiredScreenshots = [
+    ['desktop-default-compact-dark', 1440],
+    ['desktop-open-filters-dark', 1440],
+    ['desktop-selected-inspector-light', 1440],
+    ['mobile-320-selected-sheet-dark', 320],
+    ['mobile-320-view-layout-dark', 320],
+  ] as const;
+  const screenshotProblems = requiredScreenshots.flatMap(([name, width]) => {
+    const result = resultByName.get(name);
+    const pathname = artifactPathFromEvidence(result?.screenshotPath);
+    const artifact = simulationViewportArtifact(pathname);
+    if (!pathname || !artifact) return [`${name}:missing-screenshot`];
+    return artifact.width === width ? [] : [`${name}:invalid-width-${artifact.width ?? 'unknown'}`];
+  });
+
+  const defaultMarkers = objectRecord(resultByName.get('desktop-default-compact-dark')?.markers);
+  const openFilterMarkers = objectRecord(resultByName.get('desktop-open-filters-dark')?.markers);
+  const desktopInspectorMarkers = objectRecord(resultByName.get('desktop-selected-inspector-light')?.markers);
+  const mobileInspectorMarkers = objectRecord(resultByName.get('mobile-320-selected-sheet-dark')?.markers);
+  const mobileViewLayoutMarkers = objectRecord(resultByName.get('mobile-320-view-layout-dark')?.markers);
+  const mobileViewLayoutControls = stringArray(mobileViewLayoutMarkers.mobileLayoutControls);
+  const requiredInspectorSections = [
+    'header',
+    'semantic-metadata',
+    'summary',
+    'infograph-preview',
+    'relation-overview',
+    'evidence-sources',
+    'learning-actions',
+  ];
+  const desktopSections = stringArray(desktopInspectorMarkers.inspectorSections);
+  const mobileSections = stringArray(mobileInspectorMarkers.inspectorSections);
+  const markerProblems = [
+    defaultMarkers.commandSystemState === 'closed' ? null : 'default:command-system-not-closed',
+    defaultMarkers.activeDesktopTool === 'closed' ? null : 'default:active-tool-not-closed',
+    openFilterMarkers.commandSystemState === 'open' ? null : 'filters:command-system-not-open',
+    openFilterMarkers.activeDesktopTool === 'relation-filters' ? null : 'filters:active-tool-not-relation-filters',
+    desktopInspectorMarkers.inspectorMode === 'stable-rail' ? null : 'desktop-inspector:not-stable-rail',
+    desktopInspectorMarkers.inspectorResponsive === 'desktop-rail-mobile-sheet' ? null : 'desktop-inspector:responsive-contract-missing',
+    mobileInspectorMarkers.inspectorMode === 'stable-rail' ? null : 'mobile-inspector:not-stable-rail',
+    mobileInspectorMarkers.inspectorResponsive === 'desktop-rail-mobile-sheet' ? null : 'mobile-inspector:responsive-contract-missing',
+    mobileInspectorMarkers.inspectorFocusContract === 'mobile-trap-escape-return' ? null : 'mobile-inspector:focus-contract-missing',
+    mobileInspectorMarkers.inspectorDockSafeArea === 'bottom-padding' ? null : 'mobile-inspector:dock-safe-area-missing',
+    mobileViewLayoutMarkers.activeMobileTool === 'view-layout' ? null : 'mobile-view-layout:not-active',
+    mobileViewLayoutMarkers.mobileToolState === 'open' ? null : 'mobile-view-layout:not-open',
+    ...['fit-view', 'relayout', 'pin-selected', 'set-focus-node', 'clear-pins']
+      .filter((control) => !mobileViewLayoutControls.includes(control))
+      .map((control) => `mobile-view-layout:missing-${control}`),
+    ...requiredInspectorSections
+      .filter((section) => !desktopSections.includes(section))
+      .map((section) => `desktop-inspector:missing-${section}`),
+    ...requiredInspectorSections
+      .filter((section) => !mobileSections.includes(section))
+      .map((section) => `mobile-inspector:missing-${section}`),
+  ].filter((entry): entry is string => Boolean(entry));
+
+  const keyboardVerification = objectRecord(evidence.keyboardVerification);
+  const desktopKeyboardPaths = Array.isArray(keyboardVerification.desktopToolPaths)
+    ? keyboardVerification.desktopToolPaths.map((entry) => objectRecord(entry))
+    : [];
+  const desktopKeyboardByTool = new Map(
+    desktopKeyboardPaths
+      .map((entry) => [typeof entry.tool === 'string' ? entry.tool : '', entry] as const)
+      .filter(([tool]) => tool.length > 0)
+  );
+  const requiredDesktopTools = ['chapter-directory', 'relation-filters', 'legend', 'view-layout'];
+  const keyboardProblems = requiredDesktopTools.flatMap((tool) => {
+    const entry = desktopKeyboardByTool.get(tool);
+    if (!entry) return [`${tool}:keyboard-path-missing`];
+    return [
+      entry.openedFocusWithinPanel === true ? null : `${tool}:focus-not-in-panel`,
+      entry.escapeClosed === true ? null : `${tool}:escape-did-not-close`,
+      entry.focusReturnedToTrigger === true ? null : `${tool}:focus-not-returned`,
+    ].filter((item): item is string => Boolean(item));
+  });
+  const mobileKeyboard = objectRecord(keyboardVerification.mobileInspector);
+  keyboardProblems.push(...[
+    mobileKeyboard.focusTrapped === true ? null : 'mobile-inspector:focus-not-trapped',
+    mobileKeyboard.escapeClosed === true ? null : 'mobile-inspector:escape-did-not-close',
+    mobileKeyboard.focusReturnedToCanvas === true ? null : 'mobile-inspector:focus-not-returned-to-canvas',
+    mobileKeyboard.dockSafeArea === 'bottom-padding' ? null : 'mobile-inspector:dock-safe-area-not-verified',
+  ].filter((entry): entry is string => Boolean(entry)));
+
+  const sourceProblems = [
+    existsSync(path.join(repoRoot, 'artifacts/knowledge-workspace-tools-inspector-487/implementation-matrix.md'))
+      ? null
+      : 'implementation-matrix:missing',
+    Array.isArray(objectRecord(evidence.designSourceOfTruth).concepts)
+      && stringArray(objectRecord(evidence.designSourceOfTruth).concepts).length === 3
+      ? null
+      : 'design-source:concepts-missing',
+    graphSource.includes("type KnowledgeMobileTool = 'chapter-directory' | 'relation-filters' | 'legend' | 'view-layout';")
+      ? null
+      : 'mobile-tools:view-layout-not-in-tool-type',
+    graphSource.includes("['view-layout', '视图']")
+      ? null
+      : 'mobile-tools:view-layout-trigger-missing',
+    graphSource.includes('data-knowledge-mobile-drawer="view-layout"')
+      ? null
+      : 'mobile-tools:view-layout-drawer-missing',
+    graphSource.includes('data-knowledge-local-panel="view-layout-controls"')
+      ? null
+      : 'mobile-tools:view-layout-controls-missing',
+    resourcePanelSource.includes('closeButtonRef.current?.focus();')
+      && resourcePanelSource.includes('}, [selectedNode.id]);')
+      ? null
+      : 'mobile-inspector:selection-change-refocus-missing',
+  ].filter((entry): entry is string => Boolean(entry));
+
+  if (screenshotProblems.length > 0 || markerProblems.length > 0 || keyboardProblems.length > 0 || sourceProblems.length > 0) {
+    return [knowledgeGraphGovernanceViolation('Knowledge workspace tools inspector evidence is incomplete.', [
+      `screenshots=${screenshotProblems.join(',') || 'none'}`,
+      `markers=${markerProblems.join(',') || 'none'}`,
+      `keyboard=${keyboardProblems.join(',') || 'none'}`,
+      `source=${sourceProblems.join(',') || 'none'}`,
+      KNOWLEDGE_WORKSPACE_TOOLS_INSPECTOR_EVIDENCE_PATH,
+    ])];
+  }
+
+  return [];
+}
+
 function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViolation[] {
   const violations: CommercialUiGovernanceViolation[] = [];
   const evidence = readJsonFile<JsonRecord>(KNOWLEDGE_GRAPH_GOVERNANCE_EVIDENCE_PATH);
@@ -1018,21 +1164,21 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
   ];
   const missingDesktopPanels = requiredDesktopPanels.filter((key) => shellDesktopPanels[key] !== true);
   const defaultStateProblems = [
-    graphSource.includes('const [desktopChapterDirectoryOpen, setDesktopChapterDirectoryOpen] = useState(false);')
+    graphSource.includes('const [desktopActiveTool, setDesktopActiveTool] = useState<KnowledgeDesktopTool | null>(null);')
       ? null
-      : 'desktopChapterDirectoryOpen:default-not-closed',
-    graphSource.includes('const [desktopRelationFiltersOpen, setDesktopRelationFiltersOpen] = useState(false);')
+      : 'desktopActiveTool:default-not-closed',
+    graphSource.includes('data-knowledge-desktop-command-system="compact"')
       ? null
-      : 'desktopRelationFiltersOpen:default-not-closed',
+      : 'desktopCommandSystem:missing',
     graphSource.includes('const [isPanelOpen, setIsPanelOpen] = useState(Boolean(initialSelectedNode));')
       ? null
       : 'resourcePanel:not-closed-until-node-selection',
-    graphSource.includes("data-state={desktopChapterDirectoryOpen ? 'open' : 'closed'}")
+    graphSource.includes("data-state={desktopActiveTool ? 'open' : 'closed'}")
       ? null
-      : 'chapterDirectory:data-state-missing',
-    graphSource.includes("data-state={desktopRelationFiltersOpen ? 'open' : 'closed'}")
+      : 'desktopCommandSystem:data-state-missing',
+    graphSource.includes("desktopActiveTool === 'relation-filters'")
       ? null
-      : 'relationFilters:data-state-missing',
+      : 'relationFilters:command-panel-missing',
   ].filter((entry): entry is string => Boolean(entry));
   const missingOpenCloseEvidence = [
     'chapterDirectoryOpenClosed',
@@ -1102,18 +1248,23 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
 
   if (
     !graphSource.includes('data-knowledge-local-tool="legend"')
-    || !graphSource.includes('data-knowledge-local-tool="view-mode-switch"')
+    || !graphSource.includes('data-knowledge-mobile-drawer="view-layout"')
+    || !graphSource.includes('data-knowledge-local-panel="view-layout-controls"')
     || !resourcePanelSource.includes('data-knowledge-local-panel="resource-panel"')
+    || !resourcePanelSource.includes('data-knowledge-inspector="stable-rail"')
   ) {
     violations.push(knowledgeGraphGovernanceViolation('Knowledge graph local tool DOM contracts are incomplete.', [
       'legend',
-      'view-mode-switch',
+      'mobile-view-layout',
+      'view-layout-controls',
       'resource-panel',
+      'stable-rail-inspector',
     ]));
   }
 
   violations.push(...validateKnowledgeGraphInteractionStateEvidence());
   violations.push(...validateKnowledgeGraphSemanticMapEvidence());
+  violations.push(...validateKnowledgeWorkspaceToolsInspectorEvidence());
 
   const runtimeRelationCounts = readRuntimeKnowledgeRelationCounts();
   const relationEvidence = objectRecord(evidence.runtimeRelationEvidence);
