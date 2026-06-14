@@ -404,39 +404,53 @@
     @apply border-primary/35 bg-accent/65;
   }
 
-  .simulation-light-panel {
-    @apply rounded-2xl border border-slate-200/90 bg-slate-50/92 text-slate-900 shadow-2xl shadow-slate-950/30 backdrop-blur-md;
+  .simulation-command-topbar {
+    @apply rounded-lg border border-platform-border-strong bg-platform-surface-overlay/86 text-platform-fg-primary shadow-2xl shadow-slate-950/25 backdrop-blur-md;
   }
 
-  .simulation-light-panel :is(.border-slate-700, .border-slate-700\/60, .border-slate-700\/70, .border-slate-700\/80) {
+  .simulation-command-restore-handle {
+    @apply rounded-lg border border-platform-border-strong bg-platform-surface-overlay/86 text-platform-fg-primary shadow-2xl shadow-slate-950/25 backdrop-blur-md;
+  }
+
+  .simulation-light-panel {
+    @apply rounded-lg border border-platform-border-strong bg-platform-surface-overlay/86 text-platform-fg-primary shadow-2xl shadow-slate-950/25 backdrop-blur-md;
+  }
+
+  .dark .simulation-command-topbar,
+  .dark .simulation-command-restore-handle,
+  .dark .simulation-light-panel {
+    color: rgb(248 250 252 / 0.94);
+  }
+
+  :root:not(.dark) .simulation-light-panel :is(.border-slate-700, .border-slate-700\/60, .border-slate-700\/70, .border-slate-700\/80) {
     border-color: var(--color-slate-300);
   }
 
-  .simulation-light-panel .bg-slate-700 {
+  :root:not(.dark) .simulation-light-panel .bg-slate-700 {
     background-color: var(--color-slate-200);
   }
 
-  .simulation-light-panel :is(.bg-slate-800, .bg-slate-800\/60, .bg-slate-800\/70, .bg-slate-800\/80) {
+  :root:not(.dark) .simulation-light-panel :is(.bg-slate-800, .bg-slate-800\/60, .bg-slate-800\/70, .bg-slate-800\/80) {
     background-color: rgb(255 255 255 / 0.9);
   }
 
-  .simulation-light-panel :is(.bg-slate-900\/80, .bg-slate-900\/88, .bg-slate-950, .bg-slate-950\/70, .bg-slate-950\/80) {
+  :root:not(.dark) .simulation-light-panel :is(.bg-slate-900\/80, .bg-slate-900\/88, .bg-slate-950, .bg-slate-950\/70, .bg-slate-950\/80) {
     background-color: var(--color-slate-100);
   }
 
-  .simulation-light-panel :is(.text-slate-100, .text-slate-200, .text-white, .text-cyan-300, .text-cyan-400, .text-cyan-500, .text-blue-400, .text-purple-400) {
+  :root:not(.dark) .simulation-light-panel :is(.text-slate-100, .text-slate-200, .text-white, .text-cyan-300, .text-cyan-400, .text-cyan-500, .text-blue-400, .text-purple-400) {
     color: var(--color-slate-900);
   }
 
-  .simulation-light-panel .text-slate-300 {
+  :root:not(.dark) .simulation-light-panel .text-slate-300 {
     color: var(--color-slate-800);
   }
 
-  .simulation-light-panel .text-slate-400 {
+  :root:not(.dark) .simulation-light-panel .text-slate-400 {
     color: var(--color-slate-700);
   }
 
-  .simulation-light-panel .text-slate-500 {
+  :root:not(.dark) .simulation-light-panel .text-slate-500 {
     color: var(--color-slate-600);
   }
 
@@ -1246,6 +1260,26 @@
 }
 
 @layer utilities {
+  .dark .simulation-light-panel :is(.border-slate-200, .border-slate-200\/90, .border-slate-300, .border-slate-300\/90) {
+    border-color: rgb(148 163 184 / 0.32) !important;
+  }
+
+  .dark .simulation-light-panel :is(.bg-white, .bg-white\/90, .bg-white\/95, .bg-slate-50, .bg-slate-50\/90, .bg-slate-50\/92, .bg-slate-100) {
+    background-color: rgb(15 23 42 / 0.82) !important;
+  }
+
+  .dark .simulation-light-panel :is(.bg-slate-200, .bg-slate-300) {
+    background-color: rgb(51 65 85 / 0.76) !important;
+  }
+
+  .dark .simulation-light-panel :is(.text-slate-900, .text-slate-800, .text-slate-700, .text-black) {
+    color: rgb(248 250 252 / 0.94) !important;
+  }
+
+  .dark .simulation-light-panel :is(.text-slate-600, .text-slate-500, .text-slate-400) {
+    color: rgb(203 213 225 / 0.82) !important;
+  }
+
   .premium-lesson-shell .bg-white,
   .premium-lesson-shell .bg-white\/80,
   .premium-lesson-shell .bg-white\/90,
