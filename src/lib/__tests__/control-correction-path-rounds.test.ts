@@ -640,6 +640,39 @@ describe('control-correction path rounds', () => {
     expect(db.learningPath.upsert).not.toHaveBeenCalled();
   });
 
+  it('rejects external resource path nodes scoped to another registered goal', async () => {
+    const db = mockDb();
+    const plan = frequencyResponsePlan();
+    plan.mainPath[0] = {
+      ...plan.mainPath[0],
+      nodeId: 'external-resource:wrong-goal',
+      title: '错误目标外部资料',
+      type: 'external_resource',
+      ...pathNodeSemantics('external_resource'),
+      sourceKind: 'external_resource',
+      sourceRef: 'wrong-goal',
+      target: 'https://ocw.mit.edu/control/wrong-goal',
+      estimatedTimeMinutes: 15,
+      externalResource: {
+        source: 'MIT OCW',
+        url: 'https://ocw.mit.edu/control/wrong-goal',
+        estimatedTimeMinutes: 15,
+        knowledgeCoverage: ['kn-bode'],
+        applicableGoalId: 'control-correction',
+        evidenceUseStatus: 'explicit-access-required',
+        privacyPolicy: 'student-visible',
+      },
+      evidenceStatus: 'explicit-access-required',
+    };
+    plan.currentNodeId = 'external-resource:wrong-goal';
+
+    await expect(persistLearningPathRound(db, {
+      plan,
+      inputSnapshot: { goalId: 'frequency-response-foundations' },
+    })).rejects.toBeInstanceOf(ControlCorrectionPathRoundValidationError);
+    expect(db.learningPath.upsert).not.toHaveBeenCalled();
+  });
+
   it('persists ai intervention nodes that the planner can include in path options', async () => {
     const db = mockDb();
     const plan = samplePlan();
@@ -674,6 +707,141 @@ describe('control-correction path rounds', () => {
         }),
       }),
     }));
+  });
+
+  it('persists governed control-correction nodes from the registered resource mix', async () => {
+    const db = mockDb();
+    const plan = samplePlan();
+    plan.mainPath.splice(
+      1,
+      0,
+      {
+        nodeId: 'adaptive-quiz:control-correction-targets',
+        title: '校正指标自适应测验',
+        type: 'adaptive_quiz',
+        ...pathNodeSemantics('adaptive_quiz'),
+        sourceKind: 'adaptive_quiz',
+        sourceRef: 'control-correction-targets',
+        target: '/assessment/quizzes/control-correction-targets',
+        estimatedTimeMinutes: 8,
+        prerequisiteNodeIds: ['knowledge-card:control-correction-time-domain-targets'],
+        knowledgeCoverage: ['control-correction:time-domain-targets'],
+        teacherPolicy: 'allowed',
+        privacyLevel: 'student-visible',
+        terminalConstraints: [],
+        score: 0.7,
+        reasonCodes: ['matches-knowledge-deficit'],
+        status: 'next',
+      },
+      {
+        nodeId: 'control-workbench:control-correction-lead',
+        title: '超前校正工作台',
+        type: 'control_workbench',
+        ...pathNodeSemantics('control_workbench'),
+        sourceKind: 'control_workbench',
+        sourceRef: 'control-correction-lead',
+        target: '/simulations/control-correction/lead-workbench',
+        estimatedTimeMinutes: 14,
+        prerequisiteNodeIds: ['adaptive-quiz:control-correction-targets'],
+        knowledgeCoverage: ['control-correction:root-locus-design'],
+        teacherPolicy: 'allowed',
+        privacyLevel: 'student-visible',
+        terminalConstraints: [],
+        score: 0.9,
+        reasonCodes: ['matches-resource-preference'],
+        status: 'next',
+      },
+      {
+        nodeId: 'checkpoint:control-correction-design-review',
+        title: '校正方案检查点',
+        type: 'checkpoint',
+        ...pathNodeSemantics('checkpoint'),
+        sourceKind: 'checkpoint',
+        sourceRef: 'control-correction-design-review',
+        target: '/assessment/checkpoints/control-correction-design-review',
+        estimatedTimeMinutes: 6,
+        prerequisiteNodeIds: ['control-workbench:control-correction-lead'],
+        knowledgeCoverage: ['control-correction:simulation-validation'],
+        teacherPolicy: 'allowed',
+        privacyLevel: 'student-visible',
+        terminalConstraints: [],
+        score: 0.8,
+        reasonCodes: ['requires-terminal-validation'],
+        status: 'next',
+      },
+      {
+        nodeId: 'konling:control-correction-path-support',
+        title: '控灵路径支持',
+        type: 'konling',
+        ...pathNodeSemantics('konling'),
+        sourceKind: 'konling',
+        sourceRef: 'control-correction-path-support',
+        target: '/adaptive-learning/path-advisor',
+        estimatedTimeMinutes: 5,
+        prerequisiteNodeIds: ['checkpoint:control-correction-design-review'],
+        knowledgeCoverage: ['control-correction:arena-transfer'],
+        teacherPolicy: 'allowed',
+        privacyLevel: 'student-visible',
+        terminalConstraints: [],
+        score: 0.6,
+        reasonCodes: ['matches-resource-preference'],
+        status: 'next',
+      },
+    );
+
+    await persistControlCorrectionPathRound(db, { plan });
+
+    expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        pathPayload: expect.objectContaining({
+          mainPathNodeIds: expect.arrayContaining([
+            'adaptive-quiz:control-correction-targets',
+            'control-workbench:control-correction-lead',
+            'checkpoint:control-correction-design-review',
+            'konling:control-correction-path-support',
+            'arena-task:task-second-order-lead-pid',
+          ]),
+        }),
+      }),
+    }));
+  });
+
+  it('rejects control-correction external resources scoped to another goal', async () => {
+    const db = mockDb();
+    const plan = samplePlan();
+    plan.mainPath.splice(1, 0, {
+      nodeId: 'external-resource:control-wrong-goal',
+      title: '错误目标外部资料',
+      type: 'external_resource',
+      ...pathNodeSemantics('external_resource'),
+      sourceKind: 'external_resource',
+      sourceRef: 'control-wrong-goal',
+      target: 'https://ocw.mit.edu/control/wrong-goal',
+      estimatedTimeMinutes: 12,
+      prerequisiteNodeIds: ['knowledge-card:control-correction-time-domain-targets'],
+      knowledgeCoverage: ['control-correction:root-locus-design'],
+      teacherPolicy: 'allowed',
+      privacyLevel: 'student-visible',
+      terminalConstraints: [],
+      score: 0.7,
+      reasonCodes: ['matches-resource-preference'],
+      status: 'next',
+      externalResource: {
+        source: 'MIT OCW',
+        url: 'https://ocw.mit.edu/control/wrong-goal',
+        estimatedTimeMinutes: 12,
+        knowledgeCoverage: ['control-correction:root-locus-design'],
+        applicableGoalId: 'frequency-response-foundations',
+        evidenceUseStatus: 'explicit-access-required',
+        privacyPolicy: 'student-visible',
+      },
+      evidenceStatus: 'explicit-access-required',
+    });
+
+    await expect(persistControlCorrectionPathRound(db, {
+      plan,
+    })).rejects.toBeInstanceOf(ControlCorrectionPathRoundValidationError);
+    expect(db.learningPath.upsert).not.toHaveBeenCalled();
   });
 
   it('records execution, deviation, and intervention rows append-only with idempotency keys', async () => {

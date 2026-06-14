@@ -325,7 +325,7 @@ export function validateLearningPathPlanForPersistence(plan: AdaptiveLearningPat
       typeof node.target !== 'string' ||
       node.target.length === 0 ||
       (node.type === 'external_resource'
-        ? !isGovernedExternalPathNode(node)
+        ? !isGovernedExternalPathNode(node, plan.goal.id)
         : !isStudentVisiblePathTarget(node.target)) ||
       !Number.isFinite(node.estimatedTimeMinutes) ||
       !Number.isFinite(node.score) ||
@@ -340,7 +340,7 @@ export function validateLearningPathPlanForPersistence(plan: AdaptiveLearningPat
   }
 }
 
-function isGovernedExternalPathNode(node: AdaptiveLearningPathPlanNode): boolean {
+function isGovernedExternalPathNode(node: AdaptiveLearningPathPlanNode, goalId: string): boolean {
   const metadata = node.externalResource;
   return node.pathNodeType === 'external_resource' &&
     node.evidenceBehavior === 'explicit_access' &&
@@ -357,7 +357,7 @@ function isGovernedExternalPathNode(node: AdaptiveLearningPathPlanNode): boolean
     metadata.estimatedTimeMinutes > 0 &&
     metadata.knowledgeCoverage.length > 0 &&
     typeof metadata.applicableGoalId === 'string' &&
-    metadata.applicableGoalId.length > 0 &&
+    metadata.applicableGoalId === goalId &&
     metadata.evidenceUseStatus === 'explicit-access-required' &&
     metadata.privacyPolicy === node.privacyLevel;
 }
@@ -419,11 +419,26 @@ export function validateControlCorrectionPathPlanForPersistence(plan: AdaptiveLe
     if (
       !node.nodeId ||
       seen.has(node.nodeId) ||
-      !['knowledge_card', 'simulation', 'arena_task', 'intervention', 'ai_intervention', 'reflection'].includes(node.type) ||
+      ![
+        'knowledge_card',
+        'adaptive_quiz',
+        'control_workbench',
+        'simulation',
+        'arena_task',
+        'external_resource',
+        'intervention',
+        'reflection',
+        'checkpoint',
+        'ai_intervention',
+        'konling',
+      ].includes(node.type) ||
       node.privacyLevel !== 'student-visible' ||
       node.teacherPolicy !== 'allowed' ||
       typeof node.target !== 'string' ||
       node.target.length === 0 ||
+      (node.type === 'external_resource'
+        ? !isGovernedExternalPathNode(node, plan.goal.id)
+        : !isStudentVisiblePathTarget(node.target)) ||
       !Number.isFinite(node.estimatedTimeMinutes) ||
       !Number.isFinite(node.score) ||
       !['completed', 'current', 'next', 'blocked'].includes(node.status)
