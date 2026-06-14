@@ -604,11 +604,11 @@ function buildAdaptiveLearningPathPlanInternal(
   const sourceCoverage = input.learnerState?.evidence?.sourceCoverage ?? {};
   const requestedCompletedNodeIds = input.constraints.completedNodeIds ?? [];
   const { eligible, blocked } = partitionResourceNodes(input.registry.nodes, input.constraints);
-  const policyEligible = eligible.filter((node) => policyAllowsNode(node, policyFamily, input.constraints));
-  const eligibleIds = new Set(policyEligible.map((node) => node.id));
-  const scored = eligible
-    .filter((node) => eligibleIds.has(node.id))
-    .filter((node) => externalResourceAllowed(node, input, registeredGoal))
+  const pathEligible = eligible
+    .filter((node) => policyAllowsNode(node, policyFamily, input.constraints))
+    .filter((node) => externalResourceAllowed(node, input, registeredGoal));
+  const eligibleIds = new Set(pathEligible.map((node) => node.id));
+  const scored = pathEligible
     .filter((node) => goalAllowsResourceNode(node, registeredGoal))
     .filter((node) =>
       nodeMatchesGoal(node, input.goal, deficits) ||

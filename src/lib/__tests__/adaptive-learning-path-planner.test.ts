@@ -1142,6 +1142,18 @@ describe('adaptive learning path planner', () => {
         evidenceUseStatus: 'explicit-access-required',
         privacyPolicy: 'student-visible',
       }],
+      checkpoints: [{
+        id: 'bode-after-external',
+        title: '外部资料后检查点',
+        assessmentPurpose: '确认学生能解释外部资料中的伯德图概念',
+        criteria: ['解释幅频曲线斜率'],
+        requiredEvidenceRefs: ['external_resource.accessed'],
+        remediationBehavior: 'retry-prerequisite-node',
+        reviewState: 'pending',
+        launchTarget: '/assessment/checkpoints/bode-after-external',
+        knowledgeNodeIds: ['kn-bode'],
+        prerequisiteNodeIds: ['external-resource:ocw-bode'],
+      }],
     });
     const baseInput = plannerInput({
       registry,
@@ -1179,7 +1191,10 @@ describe('adaptive learning path planner', () => {
     });
 
     expect(blocked.mainPath.map((node) => node.nodeId)).not.toContain('external-resource:ocw-bode');
-    expect(allowed.mainPath.map((node) => node.nodeId)).toContain('external-resource:ocw-bode');
+    expect(blocked.mainPath.map((node) => node.nodeId)).not.toContain('checkpoint:bode-after-external');
+    expect(allowed.mainPath.map((node) => node.nodeId)).toEqual(
+      expect.arrayContaining(['external-resource:ocw-bode', 'checkpoint:bode-after-external']),
+    );
   });
 
   it('keeps low-confidence usable path nodes while recording confidence internally', () => {
@@ -2303,6 +2318,7 @@ describe('adaptive learning path planner', () => {
         timeBudgetMinutes: 45,
         privacyScopes: ['student-visible'],
       },
+      allowExternalResources: true,
       learnerState: {
         knowledgeMastery: {
           tags: {
