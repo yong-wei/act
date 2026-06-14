@@ -170,38 +170,96 @@ export async function GET(request: Request, props: { params: Promise<{ id: strin
       return NextResponse.json({ error: '外部资料访问只能启动当前路径节点' }, { status: 409 });
     }
 
-    const executionInput = {
-      pathId: params.id,
-      userId: path.userId,
-      goalId: path.goalId ?? null,
+    return new Response(externalResourceLaunchConfirmationHtml({
+      endpoint: `/api/learning-paths/${encodeURIComponent(params.id)}/execute`,
       nodeId,
-      resourceType: 'external_resource',
-      status: 'started' as const,
-      startedAt: new Date(),
-      completedAt: null,
-      failedAt: null,
-      evidenceRefs: [externalResourceAccessEvidenceRef(path, {
-        pathId: params.id,
-        userId: path.userId,
-        nodeId,
-      }, metadata)],
-      liftMetadata: {
-        launchIntent: url.searchParams.get('intent') ?? 'external-resource-access',
-      },
-      simulationRef: null,
-      arenaRef: null,
+      source: metadata.source,
+      targetUrl: metadata.url,
       idempotencyKey: `external-resource-access:${params.id}:${path.userId}:${nodeId}`,
-      actorUserId: requester.userId,
-      actorRole: requester.role,
-    };
-    await recordPathNodeExecution(prisma as any, executionInput);
-    await refreshPathEvidenceFeatureCache(path.userId);
-    return NextResponse.redirect(metadata.url, 302);
+      intent: url.searchParams.get('intent') ?? 'external-resource-access',
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('[LearningPathExecuteLaunch] Error:', error);
     return NextResponse.json({ error: '启动外部资料访问失败' }, { status: 500 });
   }
+}
+
+function externalResourceLaunchConfirmationHtml(input: {
+  endpoint: string;
+  nodeId: string;
+  source: string;
+  targetUrl: string;
+  idempotencyKey: string;
+  intent: string;
+}): string {
+  const postBody = {
+    nodeId: input.nodeId,
+    resourceType: 'external_resource',
+    status: 'started',
+    idempotencyKey: input.idempotencyKey,
+    liftMetadata: {
+      launchIntent: input.intent,
+    },
+  };
+  return `<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>打开外部学习资料</title>
+  <style>
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0f172a; color: #e2e8f0; }
+    main { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+    section { max-width: 560px; border: 1px solid #334155; border-radius: 14px; padding: 24px; background: #111827; }
+    p { line-height: 1.7; color: #cbd5e1; }
+    button { border: 0; border-radius: 10px; padding: 12px 16px; background: #10b981; color: #052e16; font-weight: 700; cursor: pointer; }
+    button:disabled { opacity: 0.6; cursor: wait; }
+    .status { margin-top: 12px; min-height: 24px; color: #fbbf24; }
+  </style>
+</head>
+<body>
+  <main>
+    <section>
+      <h1>打开外部学习资料</h1>
+      <p>即将打开 ${escapeHtml(input.source)}。点击按钮后，系统会先记录本次学习访问，再进入外部资料页面。</p>
+      <button id="launch">记录学习访问并打开资料</button>
+      <p id="status" class="status" role="status"></p>
+    </section>
+  </main>
+  <script>
+    const button = document.getElementById('launch');
+    const status = document.getElementById('status');
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      status.textContent = '正在记录学习访问...';
+      const response = await fetch(${JSON.stringify(input.endpoint)}, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: ${JSON.stringify(JSON.stringify(postBody))},
+      });
+      if (!response.ok) {
+        button.disabled = false;
+        status.textContent = '学习访问记录失败，请返回路径页面重试。';
+        return;
+      }
+      window.location.assign(${JSON.stringify(input.targetUrl)});
+    });
+  </script>
+</body>
+</html>`;
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function readExecutionStatus(value: unknown): 'started' | 'completed' | 'failed' | 'abandoned' | null {

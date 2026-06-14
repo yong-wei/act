@@ -506,8 +506,25 @@ describe('adaptive learning path planner', () => {
   });
 
   it('builds a control-correction three-style bundle with explainable option contracts', () => {
+    const controlRegistry = buildControlCorrectionResourceNodeRegistry();
+    const externalRegistry = buildResourceNodeRegistry({
+      externalResources: [{
+        id: 'control-ocw',
+        title: '外部校正资料',
+        source: 'MIT OCW',
+        url: 'https://ocw.mit.edu/control/correction',
+        estimatedTimeMinutes: 12,
+        knowledgeNodeIds: ['control-correction:root-locus-design'],
+        applicableGoalId: 'control-correction',
+        evidenceUseStatus: 'explicit-access-required',
+        privacyPolicy: 'student-visible',
+      }],
+    });
     const input = plannerInput({
-      registry: buildControlCorrectionResourceNodeRegistry(),
+      registry: {
+        ...controlRegistry,
+        nodes: [...controlRegistry.nodes, ...externalRegistry.nodes],
+      },
       goal: {
         id: 'control-correction',
         title: '控制系统校正设计',
@@ -536,7 +553,7 @@ describe('adaptive learning path planner', () => {
           },
         },
         resourcePreference: {
-          preferredModalities: ['video', 'ai_intervention', 'simulation'],
+          preferredModalities: ['external_resource', 'video', 'ai_intervention', 'simulation'],
         },
         evidence: {
           confidence: {
@@ -588,6 +605,7 @@ describe('adaptive learning path planner', () => {
       }),
     ]));
     expect(bundle.diversity.pairwiseResourceOverlap.length).toBe(3);
+    expect(JSON.stringify(bundle.paths)).not.toContain('external-resource:control-ocw');
   });
 
   it('does not expose ineligible support nodes in control-correction path options', () => {

@@ -825,7 +825,7 @@ describe('learning path round API routes', () => {
     }));
   });
 
-  it('records governed external access before redirecting to external resource nodes', async () => {
+  it('serves an explicit external access confirmation before writing access evidence', async () => {
     configureSingleNodePath('external-resource:ocw-bode', 'external_resource', 'https://ocw.mit.edu/control/bode', {
       planNode: {
         pathNodeType: 'external_resource',
@@ -845,27 +845,14 @@ describe('learning path round API routes', () => {
       new Request('http://localhost/api/learning-paths/path-1/execute?nodeId=external-resource%3Aocw-bode&intent=path-execution'),
       params,
     );
+    const html = await response.text();
 
-    expect(response.status).toBe(302);
-    expect(response.headers.get('location')).toBe('https://ocw.mit.edu/control/bode');
-    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      pathId: 'path-1',
-      userId: 'student-1',
-      nodeId: 'external-resource:ocw-bode',
-      resourceType: 'external_resource',
-      status: 'started',
-      idempotencyKey: 'external-resource-access:path-1:student-1:external-resource:ocw-bode',
-      evidenceRefs: [expect.objectContaining({
-        kind: 'LearningPathExternalResourceAccess',
-        pathId: 'path-1',
-        nodeId: 'external-resource:ocw-bode',
-        userId: 'student-1',
-        url: 'https://ocw.mit.edu/control/bode',
-      })],
-      liftMetadata: {
-        launchIntent: 'path-execution',
-      },
-    }));
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('text/html');
+    expect(html).toContain('记录学习访问并打开资料');
+    expect(html).toContain('external-resource-access:path-1:student-1:external-resource:ocw-bode');
+    expect(html).toContain('https://ocw.mit.edu/control/bode');
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
   });
 
   it('rejects external resource execution when governed metadata has non-positive estimated time', async () => {

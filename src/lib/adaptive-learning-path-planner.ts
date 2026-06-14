@@ -1761,7 +1761,10 @@ function selectPolicySupportNodes(
 ): ResourceNode[] {
   let remaining = Math.max(0, remainingBudget);
   const deficits = inferDeficits(input.goal, input.learnerState);
-  const eligibleIds = new Set(partitionResourceNodes(input.registry.nodes, input.constraints).eligible.map((node) => node.id));
+  const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
+  const eligibleIds = new Set(partitionResourceNodes(input.registry.nodes, input.constraints).eligible
+    .filter((node) => externalResourceAllowed(node, input, registeredGoal))
+    .map((node) => node.id));
   const picked: ResourceNode[] = [];
   const addCandidates = (candidates: ResourceNode[], limit: number) => {
     for (const node of candidates) {
