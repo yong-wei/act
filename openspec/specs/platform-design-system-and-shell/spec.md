@@ -342,3 +342,11 @@ Interactive learning atlas implementation SHALL prove visual alignment with the 
 - **THEN** QA evidence SHALL cite `artifacts/product-design-audits/interactive-learning-2026-06-14/design-handoff.md`
 - **AND** it SHALL cite `concepts/01-learning-atlas-course-catalog.png` and `concepts/revised/01-course-catalog-theory-practice.png`
 - **AND** Product Design `design-qa` SHALL report `final result: passed`.
+
+### Requirement: Concrete interactive course entries remain in AppShell
+Concrete interactive course entry routes SHALL preserve platform shell, breadcrumb, theme, user center, and shared assistant continuity.
+
+#### Scenario: Course entry route renders
+- **WHEN** a concrete interactive course entry route renders
+- **THEN** AppShell SHALL provide global navigation, breadcrumb, theme switching, user center, and shared Konling dock
+- **AND** the entry route SHALL NOT introduce competing global navigation or a page-local topbar that replaces the platform shell.

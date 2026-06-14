@@ -46,7 +46,7 @@ import {
   resolveTeacherOperationsNavHref,
 } from '@/features/teacher/teacher-operations-nav';
 import { resolveTeacherOperationsClassHref } from '@/features/teacher/teacher-dashboard';
-import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '@/lib/platform-role-navigation';
+import { PLATFORM_PRIMARY_ROUTE_INVENTORY, resolvePlatformRouteInventory } from '@/lib/platform-role-navigation';
 
 const rootDir = path.resolve(__dirname, '../../..');
 
@@ -684,6 +684,93 @@ describe('platform UI contracts', () => {
     expect(courseCatalogSource).not.toContain('interactive-course-hub-');
     expect(chapterComponentsSource).toContain('data-commercial-student-entry-route="/interactive-learning/chapter-components"');
     expect(crossDomainSource).toContain('data-commercial-student-entry-route="/interactive-learning/cross-domain-exploration"');
+  });
+
+  it('keeps concrete interactive course entry pages on the unified course entry shell', () => {
+    const courseEntryShellSource = readSource('src/features/interactive/shared/course-entry-shell.tsx');
+    const entryPages = listSourceFiles('src/features/interactive').filter((relativePath) =>
+      relativePath.endsWith('/entry-page.tsx'),
+    );
+
+    expect(courseEntryShellSource).toContain('<AppShell');
+    expect(courseEntryShellSource).toContain('sidebarMode="collapsible"');
+    expect(courseEntryShellSource).toContain('data-course-entry-shell="app-shell"');
+    expect(courseEntryShellSource).toContain('data-commercial-workspace="interactive-learning"');
+    expect(courseEntryShellSource).toContain('data-course-entry-role-panel="teacher"');
+    expect(courseEntryShellSource).toContain('data-course-entry-role-panel="teacher-sign-in"');
+    expect(courseEntryShellSource).toContain('data-course-entry-role-panel="student"');
+    expect(courseEntryShellSource).toContain('data-course-entry-role-panel="guest-demo"');
+    expect(courseEntryShellSource).toContain('data-course-entry-action="teacher-launch"');
+    expect(courseEntryShellSource).toContain('data-course-entry-action="teacher-sign-in"');
+    expect(courseEntryShellSource).toContain('data-course-entry-action="join-launch"');
+    expect(courseEntryShellSource).toContain('data-course-entry-action="demo-launch"');
+    expect(courseEntryShellSource).toContain('const showTeacherSection = canCreateAsTeacher;');
+    expect(courseEntryShellSource).toContain('const showTeacherSignInSection = !roleResolved;');
+    expect(courseEntryShellSource).toContain('const showStudentSection = roleResolved ? canJoinAsStudent : true;');
+    expect(courseEntryShellSource).not.toContain('const showTeacherSection = roleResolved ? canCreateAsTeacher : true;');
+    expect(courseEntryShellSource).toContain('href={`/login?callbackUrl=${encodeURIComponent(activeHref)}`}');
+    expect(courseEntryShellSource).toContain('data-course-entry-region="course-stats"');
+    expect(courseEntryShellSource).toContain('data-course-entry-region="unit-route"');
+    expect(courseEntryShellSource).toContain('data-course-entry-region="boppps-path"');
+    expect(courseEntryShellSource).toContain('data-course-entry-region="self-study"');
+    expect(courseEntryShellSource).toContain('data-course-entry-region="knowledge-path"');
+    expect(courseEntryShellSource).toContain('buildBopppsRows');
+    expect(courseEntryShellSource).toContain('manifestModuleCount');
+    expect(courseEntryShellSource).toContain('LessonEntryMediaHub');
+    expect(courseEntryShellSource).toContain('LessonEntryRuntimeSections');
+    expect(courseEntryShellSource).not.toContain('routeMetadata=');
+    expect(courseEntryShellSource).not.toContain('dockControls');
+    expect(courseEntryShellSource).not.toContain('premium-lesson-');
+    expect(courseEntryShellSource).not.toContain('max-w-[1180px]');
+
+    expect(entryPages.length).toBeGreaterThan(0);
+    for (const relativePath of entryPages) {
+      const source = readSource(relativePath);
+      expect(source, relativePath).toContain('CourseEntryShell');
+      expect(source, relativePath).not.toContain('PremiumLessonEntryPage');
+    }
+  });
+
+  it('derives concrete course entry route metadata from the canonical route inventory', () => {
+    const courseEntryPageRoutes = listSourceFiles('src/app/interactive-learning/courses')
+      .filter((relativePath) => relativePath.endsWith('/page.tsx'))
+      .filter((relativePath) => relativePath.split(path.sep).length === 6)
+      .map((relativePath) => `/${path.dirname(relativePath).replace(/^src\/app\//, '')}`)
+      .sort();
+    const courseHref = '/interactive-learning/courses/unit-1-1-see-the-full-picture';
+    const inventoryEntry = resolvePlatformRouteInventory(courseHref);
+
+    expect(courseEntryPageRoutes.length).toBeGreaterThan(20);
+    for (const href of courseEntryPageRoutes) {
+      const route = resolvePlatformRouteInventory(href);
+      expect(route, href).toMatchObject({
+        frame: 'learning-atlas',
+        desktopNavigation: 'collapsible',
+        floatingDock: 'collapsed',
+      });
+      expect(route?.navigationLayers, href).toEqual(['global-product', 'contextual-workspace', 'local-tool']);
+    }
+
+    expect(inventoryEntry).toMatchObject({
+      frame: 'learning-atlas',
+      desktopNavigation: 'collapsible',
+      floatingDock: 'collapsed',
+    });
+    expect(inventoryEntry?.navigationLayers).toEqual(['global-product', 'contextual-workspace', 'local-tool']);
+
+    const shellMarkup = renderAppShellMarkup({
+      viewerRole: 'student',
+      title: '看见整门课：从反馈思想到控制全景',
+      activeHref: courseHref,
+      sidebarMode: 'collapsible',
+      children: null,
+    });
+
+    expect(shellMarkup).toContain('data-platform-route-frame="learning-atlas"');
+    expect(shellMarkup).toContain('data-platform-desktop-navigation="collapsible"');
+    expect(shellMarkup).toContain('data-platform-floating-dock-behavior="collapsed"');
+    expect(shellMarkup).toContain('data-app-shell-navigation-state="collapsed"');
+    expect(shellMarkup).not.toContain('data-platform-route-frame="mission-workspace"');
   });
 
   it('does not use student or teacher business identity as a JSX role prop', () => {

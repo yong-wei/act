@@ -119,7 +119,7 @@ describe('unit 2-2 interactive course', () => {
       'utf8',
     );
 
-    expect(unit22EntrySource).toContain('PremiumLessonEntryPage');
+    expect(unit22EntrySource).toContain('CourseEntryShell');
     expect(unit22EntrySource).toContain('mediaCourseLabel');
     expect(unit22EntrySource).not.toContain('2-2-media.md');
     expect(runtimeSectionsSource).toContain("surface: 'lesson_entry'");

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
-import type { ReactNode } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react';
 import {
   BarChart3,
   BookOpen,
@@ -125,10 +125,9 @@ export interface AppSidebarProps {
   className?: string;
 }
 
-export interface PlatformSurfaceProps {
+export interface PlatformSurfaceProps extends HTMLAttributes<HTMLElement> {
   children: ReactNode;
   variant?: 'default' | 'raised' | 'overlay' | 'muted';
-  className?: string;
 }
 
 const roleLabels: Record<PlatformRole, string> = {
@@ -335,9 +334,10 @@ function renderNavigationLink(
   );
 }
 
-export function PlatformSurface({ children, variant = 'default', className }: PlatformSurfaceProps) {
+export function PlatformSurface({ children, variant = 'default', className, ...props }: PlatformSurfaceProps) {
   return (
     <section
+      {...props}
       className={cn(
         'rounded-lg border text-platform-fg-primary',
         variant === 'default' && 'border-platform-border bg-platform-surface',

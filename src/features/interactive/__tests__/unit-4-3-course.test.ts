@@ -325,8 +325,8 @@ describe('unit 4-3 interactive course', () => {
       'utf8',
     );
 
-    expect(entrySource).toContain('PremiumLessonEntryPage');
-    expect(entrySource).toContain('<PremiumLessonEntryPage');
+    expect(entrySource).toContain('CourseEntryShell');
+    expect(entrySource).toContain('<CourseEntryShell');
     expect(entrySource).toContain('lessonRuntime={lessonRuntime}');
     expect(entrySource).toContain('mediaCourseLabel');
   });

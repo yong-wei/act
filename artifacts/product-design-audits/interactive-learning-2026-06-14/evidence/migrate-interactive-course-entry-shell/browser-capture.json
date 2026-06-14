@@ -1,0 +1,386 @@
+{
+  "screenshots": [
+    "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/migrate-interactive-course-entry-shell/course-entry-desktop-dark.png",
+    "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/migrate-interactive-course-entry-shell/course-entry-desktop-light.png",
+    "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/migrate-interactive-course-entry-shell/course-entry-mobile-light.png",
+    "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/migrate-interactive-course-entry-shell/course-entry-mobile-dark.png",
+    "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/migrate-interactive-course-entry-shell/course-entry-unit-4-1-desktop-dark.png",
+    "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/migrate-interactive-course-entry-shell/course-entry-unit-4-1-desktop-light.png",
+    "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/migrate-interactive-course-entry-shell/course-entry-unit-4-1-mobile-light.png",
+    "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/migrate-interactive-course-entry-shell/course-entry-unit-4-1-mobile-dark.png"
+  ],
+  "states": [
+    {
+      "actions": [
+        "teacher-launch",
+        "join-code",
+        "join-launch",
+        "demo-launch"
+      ],
+      "frame": "learning-atlas",
+      "label": "desktop-dark",
+      "layout": "collapsible",
+      "navState": "collapsed",
+      "navigationLayers": "global-product contextual-workspace local-tool",
+      "regions": [
+        "identity",
+        "course-stats",
+        "path-context",
+        "unit-route",
+        "boppps-path",
+        "self-study",
+        "knowledge-path"
+      ],
+      "rolePanels": [
+        "teacher",
+        "student",
+        "guest-demo"
+      ],
+      "shell": true,
+      "theme": "dark",
+      "url": "http://localhost:3001/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "requestedRoute": "/interactive-learning/courses/[courseId]",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "routeFile": "src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx",
+      "routeArchetype": "learning-atlas",
+      "dockState": "collapsed",
+      "navigationState": "desktop-collapsed",
+      "role": "student",
+      "authState": "public",
+      "firstViewportTaskVisible": true,
+      "result": "passed",
+      "viewport": {
+        "height": 960,
+        "width": 1440
+      },
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "actions": [
+        "teacher-launch",
+        "join-code",
+        "join-launch",
+        "demo-launch"
+      ],
+      "frame": "learning-atlas",
+      "label": "desktop-light",
+      "layout": "collapsible",
+      "navState": "collapsed",
+      "navigationLayers": "global-product contextual-workspace local-tool",
+      "regions": [
+        "identity",
+        "course-stats",
+        "path-context",
+        "unit-route",
+        "boppps-path",
+        "self-study",
+        "knowledge-path"
+      ],
+      "rolePanels": [
+        "teacher",
+        "student",
+        "guest-demo"
+      ],
+      "shell": true,
+      "theme": "light",
+      "url": "http://localhost:3001/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "requestedRoute": "/interactive-learning/courses/[courseId]",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "routeFile": "src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx",
+      "routeArchetype": "learning-atlas",
+      "dockState": "collapsed",
+      "navigationState": "desktop-collapsed",
+      "role": "student",
+      "authState": "public",
+      "firstViewportTaskVisible": true,
+      "result": "passed",
+      "viewport": {
+        "height": 960,
+        "width": 1440
+      },
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "actions": [
+        "teacher-launch",
+        "join-code",
+        "join-launch",
+        "demo-launch"
+      ],
+      "frame": "learning-atlas",
+      "label": "mobile-light",
+      "layout": "collapsible",
+      "navState": "collapsed",
+      "navigationLayers": "global-product contextual-workspace local-tool",
+      "regions": [
+        "identity",
+        "course-stats",
+        "path-context",
+        "unit-route",
+        "boppps-path",
+        "self-study",
+        "knowledge-path"
+      ],
+      "rolePanels": [
+        "teacher",
+        "student",
+        "guest-demo"
+      ],
+      "shell": true,
+      "theme": "light",
+      "url": "http://localhost:3001/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "requestedRoute": "/interactive-learning/courses/[courseId]",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "routeFile": "src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx",
+      "routeArchetype": "learning-atlas",
+      "dockState": "collapsed",
+      "navigationState": "workspace-command-surface",
+      "role": "student",
+      "authState": "public",
+      "firstViewportTaskVisible": true,
+      "result": "passed",
+      "viewport": {
+        "height": 844,
+        "width": 390
+      },
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "actions": [
+        "teacher-launch",
+        "join-code",
+        "join-launch",
+        "demo-launch"
+      ],
+      "frame": "learning-atlas",
+      "label": "mobile-dark",
+      "layout": "collapsible",
+      "navState": "collapsed",
+      "navigationLayers": "global-product contextual-workspace local-tool",
+      "regions": [
+        "identity",
+        "course-stats",
+        "path-context",
+        "unit-route",
+        "boppps-path",
+        "self-study",
+        "knowledge-path"
+      ],
+      "rolePanels": [
+        "teacher",
+        "student",
+        "guest-demo"
+      ],
+      "shell": true,
+      "theme": "dark",
+      "url": "http://localhost:3001/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "requestedRoute": "/interactive-learning/courses/[courseId]",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "routeFile": "src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx",
+      "routeArchetype": "learning-atlas",
+      "dockState": "collapsed",
+      "navigationState": "workspace-command-surface",
+      "role": "student",
+      "authState": "public",
+      "firstViewportTaskVisible": true,
+      "result": "passed",
+      "viewport": {
+        "height": 844,
+        "width": 390
+      },
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "label": "unit-4-1-desktop-dark",
+      "theme": "dark",
+      "url": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression",
+      "requestedRoute": "/interactive-learning/courses/[courseId]",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression",
+      "routeFile": "src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx",
+      "routeArchetype": "learning-atlas",
+      "dockState": "collapsed",
+      "navigationState": "desktop-collapsed",
+      "role": "student",
+      "authState": "public",
+      "firstViewportTaskVisible": true,
+      "result": "passed",
+      "shell": true,
+      "frame": "learning-atlas",
+      "layout": "collapsible",
+      "navState": null,
+      "navigationLayers": null,
+      "regions": [
+        "identity",
+        "course-stats",
+        "path-context",
+        "unit-route",
+        "boppps-path",
+        "self-study",
+        "knowledge-path"
+      ],
+      "actions": [
+        "teacher-launch",
+        "join-code",
+        "join-launch",
+        "demo-launch"
+      ],
+      "rolePanels": [
+        "teacher",
+        "student",
+        "guest-demo"
+      ],
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/migrate-interactive-course-entry-shell/course-entry-unit-4-1-desktop-dark.png",
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "label": "unit-4-1-desktop-light",
+      "theme": "light",
+      "url": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression",
+      "requestedRoute": "/interactive-learning/courses/[courseId]",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression",
+      "routeFile": "src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx",
+      "routeArchetype": "learning-atlas",
+      "dockState": "collapsed",
+      "navigationState": "desktop-collapsed",
+      "role": "student",
+      "authState": "public",
+      "firstViewportTaskVisible": true,
+      "result": "passed",
+      "shell": true,
+      "frame": "learning-atlas",
+      "layout": "collapsible",
+      "navState": null,
+      "navigationLayers": null,
+      "regions": [
+        "identity",
+        "course-stats",
+        "path-context",
+        "unit-route",
+        "boppps-path",
+        "self-study",
+        "knowledge-path"
+      ],
+      "actions": [
+        "teacher-launch",
+        "join-code",
+        "join-launch",
+        "demo-launch"
+      ],
+      "rolePanels": [
+        "teacher",
+        "student",
+        "guest-demo"
+      ],
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/migrate-interactive-course-entry-shell/course-entry-unit-4-1-desktop-light.png",
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "label": "unit-4-1-mobile-light",
+      "theme": "light",
+      "url": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression",
+      "requestedRoute": "/interactive-learning/courses/[courseId]",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression",
+      "routeFile": "src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx",
+      "routeArchetype": "learning-atlas",
+      "dockState": "collapsed",
+      "navigationState": "workspace-command-surface",
+      "role": "student",
+      "authState": "public",
+      "firstViewportTaskVisible": true,
+      "result": "passed",
+      "shell": true,
+      "frame": "learning-atlas",
+      "layout": "collapsible",
+      "navState": null,
+      "navigationLayers": null,
+      "regions": [
+        "identity",
+        "course-stats",
+        "path-context",
+        "unit-route",
+        "boppps-path",
+        "self-study",
+        "knowledge-path"
+      ],
+      "actions": [
+        "teacher-launch",
+        "join-code",
+        "join-launch",
+        "demo-launch"
+      ],
+      "rolePanels": [
+        "teacher",
+        "student",
+        "guest-demo"
+      ],
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/migrate-interactive-course-entry-shell/course-entry-unit-4-1-mobile-light.png",
+      "errorCount": 0,
+      "errors": []
+    },
+    {
+      "label": "unit-4-1-mobile-dark",
+      "theme": "dark",
+      "url": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression",
+      "requestedRoute": "/interactive-learning/courses/[courseId]",
+      "finalUrl": "http://localhost:3001/interactive-learning/courses/unit-4-1-design-task-expression",
+      "routeFile": "src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx",
+      "routeArchetype": "learning-atlas",
+      "dockState": "collapsed",
+      "navigationState": "workspace-command-surface",
+      "role": "student",
+      "authState": "public",
+      "firstViewportTaskVisible": true,
+      "result": "passed",
+      "shell": true,
+      "frame": "learning-atlas",
+      "layout": "collapsible",
+      "navState": null,
+      "navigationLayers": null,
+      "regions": [
+        "identity",
+        "course-stats",
+        "path-context",
+        "unit-route",
+        "boppps-path",
+        "self-study",
+        "knowledge-path"
+      ],
+      "actions": [
+        "teacher-launch",
+        "join-code",
+        "join-launch",
+        "demo-launch"
+      ],
+      "rolePanels": [
+        "teacher",
+        "student",
+        "guest-demo"
+      ],
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "screenshot": "/Users/YW/.codex/worktrees/e946/act.just.edu.cn/artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/migrate-interactive-course-entry-shell/course-entry-unit-4-1-mobile-dark.png",
+      "errorCount": 0,
+      "errors": []
+    }
+  ]
+}

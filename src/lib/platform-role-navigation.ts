@@ -689,6 +689,25 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     owningChange: 'migrate-student-secondary-routes-to-unified-shell',
   }),
   primaryRoute({
+    href: '/interactive-learning/courses/[courseId]',
+    routeFile: 'src/app/interactive-learning/courses/unit-1-1-see-the-full-picture/page.tsx',
+    routePattern: '/interactive-learning/courses/:courseId',
+    coveredRouteGlob: 'src/app/interactive-learning/courses/*/page.tsx',
+    frame: 'learning-atlas',
+    roleScope: ['guest', 'student', 'teacher'],
+    authState: 'public',
+    navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    floatingDock: 'collapsed',
+    visualQaProfile: 'representative',
+    screenshotProfile: 'temporary-exception',
+    owningChange: 'migrate-interactive-course-entry-shell',
+    contextualReturn: {
+      sourceContext: 'interactive-learning',
+      targetHint: 'Return to the interactive course catalog before launching a concrete course entry.',
+      fallbackHref: '/interactive-learning/courses',
+    },
+  }),
+  primaryRoute({
     href: '/interactive-learning/courses/unit-4-1-design-task-expression',
     routeFile: 'src/app/interactive-learning/courses/unit-4-1-design-task-expression/page.tsx',
     frame: 'learning-atlas',
@@ -2252,12 +2271,13 @@ function routePatternToRegExp(pattern: string) {
 
 export function resolvePlatformRouteInventory(href: string): PlatformPrimaryRouteInventoryEntry | undefined {
   const path = normalizeInventoryHref(href);
-  const directMatch = PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => {
-    if (normalizeInventoryHref(route.href) === path) return true;
+  const directMatch = PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => normalizeInventoryHref(route.href) === path);
+  if (directMatch) return directMatch;
+  const patternMatch = PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => {
     if (route.routePattern && routePatternToRegExp(route.routePattern).test(path)) return true;
     return routePatternToRegExp(route.href).test(path);
   });
-  if (directMatch) return directMatch;
+  if (patternMatch) return patternMatch;
   return PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => (
     route.aliases?.some((alias) => normalizeInventoryHref(alias) === path)
   ));

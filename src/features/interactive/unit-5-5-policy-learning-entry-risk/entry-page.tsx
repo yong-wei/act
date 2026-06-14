@@ -1,6 +1,6 @@
 'use client';
 
-import { PremiumLessonEntryPage } from '@/features/interactive/shared/premium-lesson-entry-page';
+import { CourseEntryShell } from '@/features/interactive/shared/course-entry-shell';
 import type { RuntimeLessonEntryBundle } from '@/lib/course-runtime';
 import {
   UNIT_5_5_COURSE_DESCRIPTION,
@@ -17,7 +17,7 @@ export function UNIT_5_5CourseEntryPage({
   lessonRuntime: RuntimeLessonEntryBundle;
 }) {
   return (
-    <PremiumLessonEntryPage
+    <CourseEntryShell
       initialRole={initialRole}
       lessonRuntime={lessonRuntime}
       config={{

@@ -97,8 +97,8 @@ describe('unit 2-1 entry media runtime', () => {
       join(repoRoot, 'src/features/interactive/shared/lesson-entry-handout-panel.tsx'),
       'utf8',
     );
-    const entryPageSource = readFileSync(
-      join(repoRoot, 'src/features/interactive/shared/premium-lesson-entry-page.tsx'),
+    const courseEntryShellSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/course-entry-shell.tsx'),
       'utf8',
     );
     const runtimeSectionsSource = readFileSync(
@@ -110,7 +110,7 @@ describe('unit 2-1 entry media runtime', () => {
       'utf8',
     );
 
-    expect(source).toContain('PremiumLessonEntryPage');
+    expect(source).toContain('CourseEntryShell');
     expect(sharedSource).toContain('课前预习台');
     expect(sharedSource).toContain('预习导入视频');
     expect(sharedSource).toContain('完整课程视频');
@@ -145,9 +145,9 @@ describe('unit 2-1 entry media runtime', () => {
     expect(sharedSource).not.toContain('待补充');
     expect(sharedSource).not.toContain('链接待补充');
     expect(source).not.toContain('href={lessonRuntime.handoutPath}');
-    expect(source).toContain('<PremiumLessonEntryPage');
+    expect(source).toContain('<CourseEntryShell');
     expect(source).toContain('mediaCourseLabel');
-    expect(entryPageSource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
+    expect(courseEntryShellSource).toContain('<LessonEntryRuntimeSections runtime={lessonRuntime} hideHandoutEntry />');
     expect(sharedSource).toContain('lessonRuntime.handoutPdfPath');
     expect(sharedSource).toContain('lessonId: lessonRuntime.lesson.lesson_id');
     expect(handoutPanelSource).toContain('下载 PDF 讲义');
@@ -183,7 +183,7 @@ describe('unit 2-1 entry media runtime', () => {
     expect(runtimeSectionsSource).toContain('trackKnowledgeNodeFocus');
     expect(runtimeSectionsSource).toContain('trackResourceOpen');
     expect(runtimeSectionsSource).toContain('trackResourceDownload');
-    expect(unit22Source).toContain('PremiumLessonEntryPage');
-    expect(entryPageSource).toContain('hideHandoutEntry');
+    expect(unit22Source).toContain('CourseEntryShell');
+    expect(courseEntryShellSource).toContain('hideHandoutEntry');
   });
 });
