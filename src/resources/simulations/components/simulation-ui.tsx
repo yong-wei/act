@@ -19,7 +19,7 @@ export const simulationUi = {
     'rounded-md border border-current/20 bg-white/35 px-2.5 py-1 text-[11px] font-medium dark:bg-white/10',
   panel: 'simulation-light-panel',
   controlPanelPosition: 'absolute inset-x-4 bottom-20 z-20 max-h-[46vh] overflow-y-auto pointer-events-auto lg:inset-auto lg:right-4 lg:top-20 lg:bottom-auto lg:w-[22rem] lg:max-h-[calc(100vh-7rem)]',
-  statusPanelPosition: 'absolute inset-x-4 top-4 z-20 max-h-[30vh] overflow-y-auto pointer-events-auto lg:inset-auto lg:left-4 lg:top-20 lg:w-[20rem] lg:max-h-[calc(100vh-7rem)]',
+  statusPanelPosition: 'absolute inset-x-4 top-4 z-20 max-h-[30vh] overflow-y-auto pointer-events-auto sm:top-20 lg:inset-auto lg:left-4 lg:top-20 lg:w-[20rem] lg:max-h-[calc(100vh-7rem)]',
   cameraSwitcherPosition: 'absolute bottom-4 left-4 right-4 z-20 justify-center lg:left-1/2 lg:right-auto lg:-translate-x-1/2',
   sectionTitle: 'text-xs font-semibold tracking-wide text-slate-700',
   mutedText: 'text-xs text-slate-600',
@@ -37,7 +37,7 @@ export const simulationUi = {
   dockToggle:
     'inline-flex h-7 w-7 items-center justify-center rounded-md border border-current/20 bg-white/35 transition hover:bg-white/50 dark:bg-white/10 dark:hover:bg-white/15',
   collapsedDockButton:
-    'simulation-command-restore-handle absolute top-4 z-20 flex h-9 w-9 items-center justify-center lg:top-20',
+    'simulation-command-restore-handle absolute top-4 z-20 flex h-9 w-9 items-center justify-center sm:top-20 lg:top-20',
   slider:
     '[&_.bg-secondary]:bg-slate-300 [&_.bg-primary]:bg-sky-700 [&_.bg-background]:bg-white [&_.border-primary]:border-sky-700 [&_.ring-offset-background]:ring-offset-slate-50',
   nativeRange: 'w-full cursor-pointer accent-sky-700',

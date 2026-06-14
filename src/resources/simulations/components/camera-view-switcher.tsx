@@ -66,6 +66,10 @@ const viewModes: Array<{
   },
 ];
 
+const commandButtonInactiveClass =
+  'text-platform-fg-secondary hover:bg-platform-action-hover hover:text-platform-fg-primary';
+const commandValueClass = 'text-platform-fg-primary';
+
 /**
  * 相机视角切换器
  * 显示三个预设视角按钮，当处于自由视角时显示状态标签
@@ -136,8 +140,8 @@ export function CameraViewSwitcher({
               className={cn(
                 'transition-all',
                 isActive
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
+                  ? 'bg-platform-fg-primary text-platform-fg-inverse'
+                  : commandButtonInactiveClass
               )}
               title={`${mode.label} - ${mode.description}`}
             >
@@ -166,10 +170,10 @@ export function CameraViewSwitcher({
           size={size}
           onClick={onToggleGrid}
           className={cn(
-            'rounded-xl border border-slate-200/90 bg-slate-50/92 shadow-lg shadow-slate-950/20 backdrop-blur-sm transition-all',
+            'rounded-xl border border-platform-border-strong bg-platform-surface-overlay/86 shadow-lg shadow-slate-950/20 backdrop-blur-sm transition-all',
             gridEnabled
-              ? 'bg-slate-900 text-white hover:bg-slate-800'
-              : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
+              ? 'bg-platform-fg-primary text-platform-fg-inverse'
+              : commandButtonInactiveClass
           )}
           title={gridEnabled ? '关闭网格' : '开启网格'}
           aria-label={gridEnabled ? '关闭网格' : '开启网格'}
@@ -186,18 +190,18 @@ export function CameraViewSwitcher({
             variant="ghost"
             size={size}
             onClick={handleDecrease}
-            className="text-slate-700 hover:bg-slate-200 hover:text-slate-900"
+            className={commandButtonInactiveClass}
             title="减速"
             aria-label="减速"
           >
             <Minus className="h-4 w-4" />
           </Button>
-          <span className="min-w-11 text-center text-xs font-semibold text-slate-800">{speedScale.toFixed(1)}x</span>
+          <span className={cn('min-w-11 text-center text-xs font-semibold', commandValueClass)}>{speedScale.toFixed(1)}x</span>
           <Button
             variant="ghost"
             size={size}
             onClick={handleIncrease}
-            className="text-slate-700 hover:bg-slate-200 hover:text-slate-900"
+            className={commandButtonInactiveClass}
             title="加速"
             aria-label="加速"
           >
@@ -218,7 +222,7 @@ export function CameraViewSwitcherCompact({
   className,
 }: Omit<CameraViewSwitcherProps, 'showFreeLabel' | 'size'>) {
   return (
-    <div className={cn('flex rounded-lg border border-slate-200 bg-slate-50/92 p-0.5 backdrop-blur-sm', className)}>
+    <div className={cn('flex rounded-lg border border-platform-border-strong bg-platform-surface-overlay/86 p-0.5 backdrop-blur-sm', className)}>
       {viewModes.map((mode) => {
         const Icon = mode.icon;
         const isActive = currentMode === mode.id;
@@ -230,8 +234,8 @@ export function CameraViewSwitcherCompact({
             className={cn(
               'p-1.5 rounded transition-all',
               isActive
-                ? 'bg-slate-900 text-white'
-                : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900'
+                ? 'bg-platform-fg-primary text-platform-fg-inverse'
+                : commandButtonInactiveClass
             )}
             title={mode.label}
           >
