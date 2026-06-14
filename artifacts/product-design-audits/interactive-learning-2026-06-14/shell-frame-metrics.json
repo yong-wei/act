@@ -1,0 +1,87 @@
+[
+  {
+    "breadcrumbs": [
+      {
+        "aria": null,
+        "text": "首页虚拟仿真知识资源竞技场控制工作台自适应学习互动学习"
+      },
+      {
+        "aria": "平台导航",
+        "text": "首页虚拟仿真知识资源竞技场控制工作台自适应学习互动学习"
+      }
+    ],
+    "name": "interactive-learning",
+    "navigationState": "expanded",
+    "platformRouteFrame": "learning-atlas",
+    "premiumShell": false,
+    "titleTexts": [
+      "互动学习",
+      "互动学习"
+    ],
+    "url": "http://localhost:3001/interactive-learning"
+  },
+  {
+    "breadcrumbs": [
+      {
+        "aria": null,
+        "text": "首页虚拟仿真知识资源竞技场控制工作台自适应学习互动学习"
+      },
+      {
+        "aria": "平台导航",
+        "text": "首页虚拟仿真知识资源竞技场控制工作台自适应学习互动学习"
+      }
+    ],
+    "name": "course-catalog",
+    "navigationState": "expanded",
+    "platformRouteFrame": "learning-atlas",
+    "premiumShell": false,
+    "titleTexts": [
+      "互动课程",
+      "互动课程"
+    ],
+    "url": "http://localhost:3001/interactive-learning/courses"
+  },
+  {
+    "breadcrumbs": [],
+    "name": "course-entry-1-1",
+    "navigationState": null,
+    "platformRouteFrame": null,
+    "premiumShell": true,
+    "titleTexts": [
+      "看见整门课：从反馈思想到控制全景"
+    ],
+    "url": "http://localhost:3001/interactive-learning/courses/unit-1-1-see-the-full-picture"
+  },
+  {
+    "breadcrumbs": [],
+    "name": "student-runtime-demo",
+    "navigationState": null,
+    "platformRouteFrame": null,
+    "premiumShell": true,
+    "titleTexts": [
+      "1-1：看见整门课——从反馈思想到控制全景"
+    ],
+    "url": "http://localhost:3001/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo"
+  },
+  {
+    "breadcrumbs": [
+      {
+        "aria": null,
+        "text": "首页虚拟仿真知识资源竞技场控制工作台自适应学习互动学习"
+      },
+      {
+        "aria": "平台导航",
+        "text": "首页虚拟仿真知识资源竞技场控制工作台自适应学习互动学习"
+      }
+    ],
+    "name": "cross-domain-list",
+    "navigationState": "expanded",
+    "platformRouteFrame": "learning-atlas",
+    "premiumShell": false,
+    "titleTexts": [
+      "跨域探索",
+      "跨域探索"
+    ],
+    "url": "http://localhost:3001/interactive-learning/cross-domain-exploration"
+  }
+]

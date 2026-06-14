@@ -341,6 +341,10 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
   const experienceContext = buildWorkbenchExperienceContext(session);
   const launchDescription = describeExperienceLaunch(experienceContext.launch);
   const returnHref = getControlWorkbenchReturnHref(session);
+  const missionDataState = 'taskId' in session ? 'available' : 'missing-task-context';
+  const evidenceStatus = session.submissionPolicy.officialEvaluationEnabled
+    ? '可提交到官方评价，合格证据将回流学习记录'
+    : session.submissionPolicy.disabledReason;
 
   const selectObject = (objectId: string) => {
     const result = selectControlWorkbenchObject(session, objectId);
@@ -480,6 +484,10 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
       className="min-h-screen text-foreground"
       data-commercial-workspace="control-workbench"
       data-task-workspace-archetype="engineering-analysis"
+      data-product-design-handoff-source="artifacts/product-design-audits/virtual-simulation-2026-06-13/design-handoff.md"
+      data-product-design-concept-reference="concept-3-learning-mission-studio"
+      data-learning-mission-semantics="objective-task-chain-evidence-next-action"
+      data-learning-mission-data-state={missionDataState}
       data-launch-provenance={experienceContext.launch.kind}
       data-return-target={returnHref}
     >
@@ -510,10 +518,15 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
             className="surface-card rounded-lg p-4"
             data-current-workspace-step={session.designFlow.currentStep.id}
             data-primary-view-entry="control-workbench-instrument"
+            data-concept-3-acceptance-sample="control-workbench"
           >
-            <div className="grid gap-3 text-sm sm:grid-cols-3">
+            <div className="grid gap-3 text-sm md:grid-cols-4">
               <div>
-                <p className="text-subtle">当前步骤</p>
+                <p className="text-subtle">当前目标</p>
+                <p className="mt-1 font-medium text-foreground">{session.designFlow.currentStep.description}</p>
+              </div>
+              <div>
+                <p className="text-subtle">任务链</p>
                 <p className="mt-1 font-medium text-foreground">{session.designFlow.currentStep.title}</p>
               </div>
               <div>
@@ -521,8 +534,8 @@ function ResolvedControlWorkbenchShell({ session: initialSession }: { session: W
                 <p className="mt-1 text-foreground">{session.designFlow.nextAction}</p>
               </div>
               <div>
-                <p className="text-subtle">主视图</p>
-                <p className="mt-1 text-foreground">下方仪表面板</p>
+                <p className="text-subtle">证据状态</p>
+                <p className="mt-1 text-foreground">{evidenceStatus}</p>
               </div>
             </div>
           </section>

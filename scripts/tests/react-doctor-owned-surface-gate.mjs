@@ -33,6 +33,21 @@ const EXCLUDED_ROOTS = [
   'public/vendor/',
 ];
 const VALID_MODES = new Set(['errors', 'security', 'warnings']);
+const PRODUCT_RISK_WARNING_RULES = new Set([
+  'button-has-type',
+  'control-has-associated-label',
+  'click-events-have-key-events',
+  'label-has-associated-control',
+  'media-has-caption',
+  'nextjs-no-use-search-params-without-suspense',
+  'no-pass-data-to-parent',
+]);
+const MECHANICAL_CLEANUP_WARNING_RULES = new Set([
+  'nextjs-missing-metadata',
+  'only-export-components',
+  'unused-export',
+  'unused-file',
+]);
 
 function argValue(name) {
   const prefix = `${name}=`;
@@ -106,11 +121,13 @@ function groupedSummary(diagnostics) {
   const category = new Map();
   const rule = new Map();
   const surface = new Map();
+  const file = new Map();
   for (const diagnostic of diagnostics) {
     increment(severity, diagnostic.severity || 'unknown');
     increment(category, diagnostic.category || 'unknown');
     increment(rule, diagnostic.rule || 'unknown');
     increment(surface, surfaceFor(diagnostic.filePath));
+    increment(file, normalizePath(diagnostic.filePath) || 'unknown');
   }
   const toObject = (map) => Object.fromEntries([...map.entries()].sort((left, right) => left[0].localeCompare(right[0])));
   return {
@@ -118,6 +135,60 @@ function groupedSummary(diagnostics) {
     byCategory: toObject(category),
     byRule: toObject(rule),
     byOwnedSurface: toObject(surface),
+    byFile: toObject(file),
+  };
+}
+
+function isR3FOrThreeFile(filePath) {
+  const normalized = normalizePath(filePath);
+  return normalized.startsWith('src/resources/simulations/');
+}
+
+function warningBucketFor(diagnostic) {
+  const rule = diagnostic.rule || 'unknown';
+  if (rule === 'no-unknown-property' && isR3FOrThreeFile(diagnostic.filePath)) return 'tool-noise';
+  if (PRODUCT_RISK_WARNING_RULES.has(rule)) return 'product-risk';
+  if (MECHANICAL_CLEANUP_WARNING_RULES.has(rule)) return 'mechanical-cleanup';
+  return 'deferred';
+}
+
+function buildAdvisoryBaseline(diagnostics) {
+  const buckets = {
+    'product-risk': { total: 0, rules: {} },
+    'mechanical-cleanup': { total: 0, rules: {} },
+    'tool-noise': { total: 0, rules: {} },
+    deferred: { total: 0, rules: {} },
+  };
+  const ruleClassifications = {};
+  const toolNoiseCandidateFiles = new Set();
+  const domRiskFiles = new Set();
+
+  for (const diagnostic of diagnostics) {
+    const rule = diagnostic.rule || 'unknown';
+    const bucket = warningBucketFor(diagnostic);
+    buckets[bucket].total += 1;
+    buckets[bucket].rules[rule] = (buckets[bucket].rules[rule] || 0) + 1;
+    ruleClassifications[rule] ??= bucket;
+
+    if (rule === 'no-unknown-property') {
+      if (bucket === 'tool-noise') {
+        toolNoiseCandidateFiles.add(normalizePath(diagnostic.filePath));
+        ruleClassifications[rule] = 'tool-noise';
+      } else {
+        domRiskFiles.add(normalizePath(diagnostic.filePath));
+      }
+    }
+  }
+
+  return {
+    buckets,
+    ruleClassifications: Object.fromEntries(
+      Object.entries(ruleClassifications).sort((left, right) => left[0].localeCompare(right[0]))
+    ),
+    r3fThreeNoUnknownProperty: {
+      toolNoiseCandidateFiles: [...toolNoiseCandidateFiles].sort(),
+      domRiskFiles: [...domRiskFiles].sort(),
+    },
   };
 }
 
@@ -186,6 +257,9 @@ const report = {
   summary: groupedSummary(diagnostics),
   diagnostics,
 };
+if (mode === 'warnings') {
+  report.advisoryBaseline = buildAdvisoryBaseline(diagnostics);
+}
 
 const serialized = `${JSON.stringify(report, null, 2)}\n`;
 if (outputPath) {
