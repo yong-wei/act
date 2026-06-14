@@ -945,7 +945,6 @@ const simulationVisualQaMatrix = requiresFullSimulationVisualQaMatrix(requiredVi
     requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
     || files.some((file) => file === route.routeFile || file.startsWith(`${path.dirname(route.routeFile)}/`))
     || simulationSharedDetailRouteAffected(route.href, files)
-    || visualEvidence.some((entry) => entry.href === route.href && entry.simulationVisualQa)
   ));
 const result = evaluateCommercialUiGovernance({
   mode: 'blocking',

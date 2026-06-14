@@ -1495,7 +1495,7 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain("route.href.startsWith('/simulations/')");
     expect(scriptSource).toContain('/^src\\/app\\/simulations\\/[^/]+\\/page\\.tsx$/.test(file)');
     expect(scriptSource).toContain('? SIMULATION_VISUAL_QA_ROUTE_MATRIX');
-    expect(scriptSource).toContain('visualEvidence.some((entry) => entry.href === route.href && entry.simulationVisualQa)');
+    expect(scriptSource).not.toContain('visualEvidence.some((entry) => entry.href === route.href && entry.simulationVisualQa)');
     expect(scriptSource).toContain('route.simulationVisualQa.viewports.map');
     expect(scriptSource).toContain('const screenshot = simulationViewportArtifact(viewport.screenshot)');
     expect(scriptSource).toContain('screenshotSha256: screenshot?.sha256');
