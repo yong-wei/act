@@ -454,7 +454,33 @@ function appPageRouteHref(file: string) {
   const href = route ? `/${route}` : '/';
   if (isRegisteredRedirectOnlyCompatibilityPage(file, href)) return undefined;
   if (NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS.has(file)) return undefined;
+  if (
+    isDynamicAppRouteFile(file)
+    && PLATFORM_PRIMARY_ROUTE_INVENTORY.some((entry) => matchesCoveredRouteFile(file, entry.coveredRouteGlob))
+  ) {
+    return undefined;
+  }
   return href;
+}
+
+function isDynamicAppRouteFile(file: string) {
+  return file.split('/').some((segment) => /^\[\[?\.{0,3}[^/\\\]]+\]\]?$/.test(segment));
+}
+
+function matchesCoveredRouteFile(file: string, coveredRouteGlob?: string) {
+  if (!coveredRouteGlob) return false;
+  const pattern = new RegExp(`^${coveredRouteGlob
+    .split('*')
+    .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
+    .join('[^/]+')}$`);
+  return pattern.test(file);
+}
+
+function assertCoveredRouteGlobDoesNotHideStaticPages() {
+  const staticSiblingHref = appPageRouteHref('src/app/interactive-learning/chapter-components/new/page.tsx');
+  if (staticSiblingHref !== '/interactive-learning/chapter-components/new') {
+    throw new Error('coveredRouteGlob must not exempt newly added static App Router pages from route ledger registration');
+  }
 }
 
 function isRegisteredRedirectOnlyCompatibilityPage(file: string, href: string) {
@@ -1529,6 +1555,7 @@ const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
     'adaptive assessment figures is an internal review preview launched from the review hub',
   ],
 ]);
+assertCoveredRouteGlobDoesNotHideStaticPages();
 const missingChangedPrimaryRouteLedgerViolations: CommercialUiGovernanceViolation[] = [...changedPrimaryRouteHrefs]
   .filter((href) => !currentPrimaryRouteHrefs.has(href))
   .map((href) => ({
