@@ -11,10 +11,10 @@ import { useEffect, useMemo, useState } from 'react';
 
 /** 知识卡片 ID 列表 (Lesson 02) */
 export const LESSON_02_CARD_IDS = [
-  'node-laplace-transform',
-  'node-laplace-interpretation',
-  'node-laplace-properties',
-  'node-inverse-laplace-methods',
+  '拉普拉斯变换_2_c635236f',
+  '拉氏变换工程动机_2_11001',
+  '微分定理_2_11002',
+  '部分分式展开_7_d822352e',
 ] as const;
 
 export type Lesson02CardId = (typeof LESSON_02_CARD_IDS)[number];
@@ -114,10 +114,10 @@ export function useKnowledgeCard(id: string) {
  * 获取 Lesson 02 的所有知识卡片
  */
 export const CARD_PHASE_MAPPING: Record<Lesson02CardId, string> = {
-  'node-laplace-transform': 'bridge',
-  'node-laplace-interpretation': 'participatory',
-  'node-laplace-properties': 'participatory',
-  'node-inverse-laplace-methods': 'posttest',
+  '拉普拉斯变换_2_c635236f': 'bridge',
+  '拉氏变换工程动机_2_11001': 'participatory',
+  '微分定理_2_11002': 'participatory',
+  '部分分式展开_7_d822352e': 'posttest',
 };
 
 export function useLesson02Cards() {

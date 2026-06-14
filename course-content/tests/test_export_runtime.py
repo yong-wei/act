@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import importlib.util
 from pathlib import Path
 
@@ -89,3 +90,35 @@ def test_build_runtime_relations_rewrites_duplicate_ids_for_different_relations(
     relation_ids = {relation['relation_id'] for relation in relations}
     assert 'rt-1' in relation_ids
     assert len(relation_ids) == 2
+
+
+def test_resolve_lessons_export_all_skips_mainline_draft(monkeypatch, tmp_path):
+    available_authoring = {
+        '1-1': tmp_path / 'authoring' / '1-1',
+        '1-2': tmp_path / 'authoring' / '1-2',
+        'legacy/L-2b': tmp_path / 'authoring' / 'legacy' / 'L-2b',
+    }
+    for path in available_authoring.values():
+        path.mkdir(parents=True)
+
+    monkeypatch.setattr(
+        export_runtime,
+        'load_lesson_id_map',
+        lambda: {
+            'entries': [
+                {'status': 'mainline', 'request_ids': ['1-1']},
+                {'status': 'mainline_draft', 'request_ids': ['1-2']},
+                {'status': 'legacy_source', 'request_ids': ['legacy/L-2b']},
+                {'status': 'mainline', 'request_ids': ['missing']},
+            ],
+        },
+    )
+    monkeypatch.setattr(
+        export_runtime,
+        'get_authoring_lesson_dir',
+        lambda lesson_id: available_authoring.get(lesson_id, tmp_path / 'missing' / lesson_id),
+    )
+
+    lessons = export_runtime.resolve_lessons(argparse.Namespace(export_all=True, lesson=None))
+
+    assert lessons == ['1-1']

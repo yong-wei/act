@@ -2,7 +2,9 @@
   "version": "2026-04-04",
   "entries": [
     {
-      "request_ids": ["1-1"],
+      "request_ids": [
+        "1-1"
+      ],
       "canonical_id": "1-1",
       "display_id": "1-1",
       "status": "mainline",
@@ -17,7 +19,9 @@
       "notes": "1-1 为模块1当前主线首课，对应反馈思想与控制全景导入。"
     },
     {
-      "request_ids": ["2-1"],
+      "request_ids": [
+        "2-1"
+      ],
       "canonical_id": "2-1",
       "display_id": "2-1",
       "status": "mainline",
@@ -28,11 +32,16 @@
       "authoring_cards_dir": "2-1",
       "authoring_overlays_dir": "2-1",
       "runtime_lesson_dir": "2-1",
-      "legacy_source_ids": ["1-1", "1-2"],
+      "legacy_source_ids": [
+        "1-1",
+        "1-2"
+      ],
       "notes": "2-1 为模块2当前主线课次，整合 legacy/1-1 与 legacy/1-2 的来源组内容。"
     },
     {
-      "request_ids": ["2-2"],
+      "request_ids": [
+        "2-2"
+      ],
       "canonical_id": "2-2",
       "display_id": "2-2",
       "status": "mainline",
@@ -47,7 +56,9 @@
       "notes": "2-2 为模块2当前独立主线课次，统一承接时域响应基础与动态性能指标主线。"
     },
     {
-      "request_ids": ["2-3"],
+      "request_ids": [
+        "2-3"
+      ],
       "canonical_id": "2-3",
       "display_id": "2-3",
       "status": "mainline",
@@ -58,11 +69,15 @@
       "authoring_cards_dir": "2-3",
       "authoring_overlays_dir": "2-3",
       "runtime_lesson_dir": "2-3",
-      "legacy_source_ids": ["L-2c"],
+      "legacy_source_ids": [
+        "L-2c"
+      ],
       "notes": "2-3 为模块2当前主线课次，对应频率响应基础与 Bode 图初步。"
     },
     {
-      "request_ids": ["2-4"],
+      "request_ids": [
+        "2-4"
+      ],
       "canonical_id": "2-4",
       "display_id": "2-4",
       "status": "mainline",
@@ -77,7 +92,9 @@
       "notes": "2-4 为模块2当前主线课次，对应 Nyquist 图与频域指标入口。"
     },
     {
-      "request_ids": ["3-1"],
+      "request_ids": [
+        "3-1"
+      ],
       "canonical_id": "3-1",
       "display_id": "3-1",
       "status": "mainline",
@@ -92,7 +109,9 @@
       "notes": "3-1 为模块3当前主线课次，对应纯极点视角下的稳定与动态基础。"
     },
     {
-      "request_ids": ["3-2"],
+      "request_ids": [
+        "3-2"
+      ],
       "canonical_id": "3-2",
       "display_id": "3-2",
       "status": "mainline",
@@ -107,7 +126,9 @@
       "notes": "3-2 为模块3当前主线课次，对应劳斯判据、特殊情况处理与参数可行域。"
     },
     {
-      "request_ids": ["3-3"],
+      "request_ids": [
+        "3-3"
+      ],
       "canonical_id": "3-3",
       "display_id": "3-3",
       "status": "mainline",
@@ -122,7 +143,9 @@
       "notes": "3-3 为模块3当前主线课次，对应根轨迹机制与完整法则，以及从开环增益根轨迹到广义根轨迹的总视角。"
     },
     {
-      "request_ids": ["3-4"],
+      "request_ids": [
+        "3-4"
+      ],
       "canonical_id": "3-4",
       "display_id": "3-4",
       "status": "mainline",
@@ -137,7 +160,9 @@
       "notes": "3-4 为模块3当前主线实践课次，对应根轨迹读图、参数窗口判断、增益换算与对象化三域验证。"
     },
     {
-      "request_ids": ["3-5"],
+      "request_ids": [
+        "3-5"
+      ],
       "canonical_id": "3-5",
       "display_id": "3-5",
       "status": "mainline",
@@ -152,7 +177,9 @@
       "notes": "3-5 为模块3当前主线课次，对应零点引入、动态改善与非最小相代价表达。"
     },
     {
-      "request_ids": ["3-6"],
+      "request_ids": [
+        "3-6"
+      ],
       "canonical_id": "3-6",
       "display_id": "3-6",
       "status": "mainline",
@@ -167,7 +194,9 @@
       "notes": "3-6 为模块3当前主线实践课次，对应零点作用、动态改善与跨域实验验证。"
     },
     {
-      "request_ids": ["3-7"],
+      "request_ids": [
+        "3-7"
+      ],
       "canonical_id": "3-7",
       "display_id": "3-7",
       "status": "mainline",
@@ -182,7 +211,9 @@
       "notes": "3-7 为模块3当前主线课次，对应误差两类来源、双通道闭环/误差传函、终值定理、型别与低频补偿路径。"
     },
     {
-      "request_ids": ["3-8"],
+      "request_ids": [
+        "3-8"
+      ],
       "canonical_id": "3-8",
       "display_id": "3-8",
       "status": "mainline",
@@ -197,7 +228,9 @@
       "notes": "3-8 为模块3当前主线课次，对应频域判别、三频段分工与跨域综合语言。"
     },
     {
-      "request_ids": ["3-9"],
+      "request_ids": [
+        "3-9"
+      ],
       "canonical_id": "3-9",
       "display_id": "3-9",
       "status": "mainline",
@@ -212,7 +245,9 @@
       "notes": "3-9 为模块3当前主线实践课次，对应稳定、动态与稳态综合映射实验。"
     },
     {
-      "request_ids": ["4-1"],
+      "request_ids": [
+        "4-1"
+      ],
       "canonical_id": "4-1",
       "display_id": "4-1",
       "status": "mainline",
@@ -223,11 +258,15 @@
       "authoring_cards_dir": "4-1",
       "authoring_overlays_dir": "4-1",
       "runtime_lesson_dir": "4-1",
-      "legacy_source_ids": ["L-sum"],
+      "legacy_source_ids": [
+        "L-sum"
+      ],
       "notes": "4-1 允许生成，但当前可引用 legacy/L-sum 作为临时来源。"
     },
     {
-      "request_ids": ["4-2"],
+      "request_ids": [
+        "4-2"
+      ],
       "canonical_id": "4-2",
       "display_id": "4-2",
       "status": "mainline",
@@ -242,7 +281,9 @@
       "notes": "4-2 为模块4当前主线课次，对应控制器选型原理与单结构首轮起步。"
     },
     {
-      "request_ids": ["4-3"],
+      "request_ids": [
+        "4-3"
+      ],
       "canonical_id": "4-3",
       "display_id": "4-3",
       "status": "mainline",
@@ -257,7 +298,9 @@
       "notes": "4-3 为模块4当前主线实践课次，对应初始方案落地实践：从对象分析到结构组合与首轮验证。"
     },
     {
-      "request_ids": ["4-4"],
+      "request_ids": [
+        "4-4"
+      ],
       "canonical_id": "4-4",
       "display_id": "4-4",
       "status": "mainline",
@@ -272,7 +315,9 @@
       "notes": "4-4 为模块4当前主线理论课次，对应多目标权衡与控制器优化设计。"
     },
     {
-      "request_ids": ["4-5"],
+      "request_ids": [
+        "4-5"
+      ],
       "canonical_id": "4-5",
       "display_id": "4-5",
       "status": "mainline",
@@ -287,7 +332,9 @@
       "notes": "4-5 为模块4当前主线实践课次，对应约束下的优化设计实践。"
     },
     {
-      "request_ids": ["4-6"],
+      "request_ids": [
+        "4-6"
+      ],
       "canonical_id": "4-6",
       "display_id": "4-6",
       "status": "mainline",
@@ -302,7 +349,9 @@
       "notes": "4-6 为模块4当前主线理论课次，对应场景迁移与方案比较。"
     },
     {
-      "request_ids": ["4-7"],
+      "request_ids": [
+        "4-7"
+      ],
       "canonical_id": "4-7",
       "display_id": "4-7",
       "status": "mainline",
@@ -317,7 +366,9 @@
       "notes": "4-7 为模块4当前主线实践课次，对应综合工程场景对比设计。"
     },
     {
-      "request_ids": ["5-1"],
+      "request_ids": [
+        "5-1"
+      ],
       "canonical_id": "5-1",
       "display_id": "5-1",
       "status": "mainline",
@@ -332,7 +383,9 @@
       "notes": "5-1 为模块5当前主线课次，对应线性主干的边界：饱和、死区、滞回、切换与模型失配。"
     },
     {
-      "request_ids": ["5-2"],
+      "request_ids": [
+        "5-2"
+      ],
       "canonical_id": "5-2",
       "display_id": "5-2",
       "status": "mainline",
@@ -347,7 +400,9 @@
       "notes": "5-2 为模块5当前主线课次，对应非线性系统的最小分析入口：局部线性化、相平面与描述函数的边界角色。"
     },
     {
-      "request_ids": ["5-3"],
+      "request_ids": [
+        "5-3"
+      ],
       "canonical_id": "5-3",
       "display_id": "5-3",
       "status": "mainline",
@@ -362,7 +417,9 @@
       "notes": "5-3 为模块5当前主线课次，对应从单回路控制到复杂自主系统链路：MASS 的感知—估计—规划—控制协同。"
     },
     {
-      "request_ids": ["5-4"],
+      "request_ids": [
+        "5-4"
+      ],
       "canonical_id": "5-4",
       "display_id": "5-4",
       "status": "mainline",
@@ -377,7 +434,9 @@
       "notes": "5-4 为模块5当前主线课次，对应从模型驱动到数据驱动：MPC、数据驱动控制与模型依赖松动。"
     },
     {
-      "request_ids": ["5-5"],
+      "request_ids": [
+        "5-5"
+      ],
       "canonical_id": "5-5",
       "display_id": "5-5",
       "status": "mainline",
@@ -392,7 +451,9 @@
       "notes": "5-5 为模块5当前主线课次，对应从显式控制器到策略学习：强化学习的进入条件、收益与风险。"
     },
     {
-      "request_ids": ["5-6"],
+      "request_ids": [
+        "5-6"
+      ],
       "canonical_id": "5-6",
       "display_id": "5-6",
       "status": "mainline",
@@ -407,7 +468,9 @@
       "notes": "5-6 为模块5当前主线实践课次，对应方法迁移与前沿比较：经典控制、数据驱动与策略学习的同题比较。"
     },
     {
-      "request_ids": ["legacy/1-1"],
+      "request_ids": [
+        "legacy/1-1"
+      ],
       "canonical_id": "legacy/1-1",
       "display_id": "1-1",
       "status": "legacy_source",
@@ -418,11 +481,16 @@
       "authoring_cards_dir": "legacy/1-1",
       "authoring_overlays_dir": "legacy/1-1",
       "runtime_lesson_dir": "legacy/1-1",
-      "legacy_source_ids": ["1-1"],
+      "legacy_source_ids": [
+        "1-1"
+      ],
       "notes": "现有 1-1 作为新 2-1 的来源组成员，进入 legacy。"
     },
     {
-      "request_ids": ["legacy/1-2", "1-2"],
+      "request_ids": [
+        "legacy/1-2",
+        "1-2"
+      ],
       "canonical_id": "legacy/1-2",
       "display_id": "1-2",
       "status": "legacy_source",
@@ -433,11 +501,16 @@
       "authoring_cards_dir": "legacy/1-2",
       "authoring_overlays_dir": "legacy/1-2",
       "runtime_lesson_dir": "legacy/1-2",
-      "legacy_source_ids": ["1-2"],
+      "legacy_source_ids": [
+        "1-2"
+      ],
       "notes": "现有 1-2 作为新 2-1 的来源组成员，进入 legacy。"
     },
     {
-      "request_ids": ["legacy/L-2a", "L-2a"],
+      "request_ids": [
+        "legacy/L-2a",
+        "L-2a"
+      ],
       "canonical_id": "legacy/L-2a",
       "display_id": "L-2a",
       "status": "legacy_source",
@@ -448,11 +521,16 @@
       "authoring_cards_dir": "legacy/L-2a",
       "authoring_overlays_dir": "legacy/L-2a",
       "runtime_lesson_dir": "legacy/L-2a",
-      "legacy_source_ids": ["L-2a"],
+      "legacy_source_ids": [
+        "L-2a"
+      ],
       "notes": "L-2a 作为模块1速通来源组成员进入 legacy。"
     },
     {
-      "request_ids": ["legacy/L-2b", "L-2b"],
+      "request_ids": [
+        "legacy/L-2b",
+        "L-2b"
+      ],
       "canonical_id": "legacy/L-2b",
       "display_id": "L-2b",
       "status": "legacy_source",
@@ -463,11 +541,16 @@
       "authoring_cards_dir": "legacy/L-2b",
       "authoring_overlays_dir": "legacy/L-2b",
       "runtime_lesson_dir": "legacy/L-2b",
-      "legacy_source_ids": ["L-2b"],
+      "legacy_source_ids": [
+        "L-2b"
+      ],
       "notes": "L-2b 作为模块1速通来源组成员进入 legacy。"
     },
     {
-      "request_ids": ["legacy/L-2c", "L-2c"],
+      "request_ids": [
+        "legacy/L-2c",
+        "L-2c"
+      ],
       "canonical_id": "legacy/L-2c",
       "display_id": "L-2c",
       "status": "legacy_source",
@@ -478,11 +561,17 @@
       "authoring_cards_dir": "legacy/L-2c",
       "authoring_overlays_dir": "legacy/L-2c",
       "runtime_lesson_dir": "legacy/L-2c",
-      "legacy_source_ids": ["L-2c"],
+      "legacy_source_ids": [
+        "L-2c"
+      ],
       "notes": "L-2c 作为模块1速通来源组成员进入 legacy。"
     },
     {
-      "request_ids": ["legacy/L-2d", "L-2d", "1-5"],
+      "request_ids": [
+        "legacy/L-2d",
+        "L-2d",
+        "1-5"
+      ],
       "canonical_id": "legacy/L-2d",
       "display_id": "1-5",
       "status": "blocked",
@@ -493,11 +582,17 @@
       "authoring_cards_dir": "legacy/L-2d",
       "authoring_overlays_dir": "legacy/L-2d",
       "runtime_lesson_dir": "legacy/L-2d",
-      "legacy_source_ids": ["L-2d"],
+      "legacy_source_ids": [
+        "L-2d"
+      ],
       "notes": "L-2d 是新 1-5 的直接来源，但模块1缺少 unit-design-details，当前阻断生成。"
     },
     {
-      "request_ids": ["legacy/L-sum", "L-sum", "L-∑"],
+      "request_ids": [
+        "legacy/L-sum",
+        "L-sum",
+        "L-∑"
+      ],
       "canonical_id": "legacy/L-sum",
       "display_id": "L-sum",
       "status": "legacy_source",
@@ -508,8 +603,28 @@
       "authoring_cards_dir": "legacy/L-sum",
       "authoring_overlays_dir": "legacy/L-sum",
       "runtime_lesson_dir": "legacy/L-sum",
-      "legacy_source_ids": ["L-sum", "L-∑"],
+      "legacy_source_ids": [
+        "L-sum",
+        "L-∑"
+      ],
       "notes": "L-sum 进入 legacy，但保留为 4-1 的临时来源。"
+    },
+    {
+      "request_ids": [
+        "1-2"
+      ],
+      "canonical_id": "1-2",
+      "display_id": "1-2",
+      "status": "mainline_draft",
+      "generation_allowed": true,
+      "mapped_target_id": "1-2",
+      "source_group": null,
+      "authoring_lesson_dir": "1-2",
+      "authoring_cards_dir": "1-2",
+      "authoring_overlays_dir": "1-2",
+      "runtime_lesson_dir": "1-2",
+      "legacy_source_ids": [],
+      "notes": "v4.0 模块1第二轮速通：模型与复平面极点的第一轮速通。当前为主线草稿，待 runtime、路由与 identity registry 完整落地后切换为 mainline。"
     }
   ]
 }

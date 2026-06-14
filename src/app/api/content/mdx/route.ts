@@ -19,7 +19,7 @@ export async function GET(request: Request) {
 
     const resolvedPath = resolveReadableContentPath(rawPath);
 
-    if (!resolvedPath.projectPath.endsWith('.md') && !resolvedPath.projectPath.endsWith('.mdx')) {
+    if (!resolvedPath.projectPath.endsWith('.md')) {
       return NextResponse.json({ error: 'Only Markdown files are supported' }, { status: 400 });
     }
 

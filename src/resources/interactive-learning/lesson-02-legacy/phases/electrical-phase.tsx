@@ -36,7 +36,7 @@ export function ElectricalPhase({
     card: knowledgeCard,
     isLoading: isKnowledgeCardLoading,
     error: knowledgeCardError,
-  } = useKnowledgeCard('node-kvl-circuit');
+  } = useKnowledgeCard('动态数学模型_2_b7f98344');
 
   // 需要辅助提示（前测在电感/电容上出错）
   const needsHelp = weakAreas.includes('inductor') || weakAreas.includes('capacitor');

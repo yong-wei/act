@@ -16255,7 +16255,7 @@
 {"relation_id": "rel-3c0c29dc86b1769a", "source": "微分定理", "target": "传递函数", "source_chapter": 2, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.95}
 {"relation_id": "rel-3cacf083f1cc253c", "source": "信号流图", "target": "回路", "source_chapter": 2, "target_chapter": 2, "relation_type": "contains", "strength": 0.95}
 {"relation_id": "rel-3d0da8e96e343443", "source": "时域指标到极点参数映射", "target": "复平面可行域", "source_chapter": 3, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.9}
-{"relation_id": "rel-40b7839809041838", "source": "拉氏变换工程动机", "target": "传递函数", "source_chapter": 2, "target_chapter": 1, "relation_type": "leads_to", "strength": 0.85}
+{"relation_id": "rel-40b7839809041838", "source": "拉氏变换工程动机", "target": "传递函数", "source_chapter": 2, "target_chapter": 1, "relation_type": "leads_to", "strength": 0.85, "source_id": "拉氏变换工程动机_2_11001", "target_id": "传递函数_1_5b0faf8b"}
 {"relation_id": "rel-429c53526836651f", "source": "反馈连接", "target": "开环传递函数（精化）", "source_chapter": 2, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "rel-46482f8d38235618", "source": "前向通路", "target": "余子式接触判定", "source_chapter": 1, "target_chapter": 2, "relation_type": "prerequisite", "strength": 0.95}
 {"relation_id": "rel-472911defa7da3cf", "source": "自然频率", "target": "无阻尼自然频率", "source_chapter": 10, "target_chapter": 3, "relation_type": "generalizes", "strength": 0.85}
@@ -16274,7 +16274,7 @@
 {"relation_id": "rel-697b83c88a845805", "source": "比例环节", "target": "系统结构图", "source_chapter": 2, "target_chapter": 2, "relation_type": "instance_of", "strength": 0.7}
 {"relation_id": "rel-6ab4c0be5e41bb63", "source": "调节时间", "target": "时域指标到极点参数映射", "source_chapter": 3, "target_chapter": 3, "relation_type": "cross_domain", "strength": 0.95}
 {"relation_id": "rel-6b5f60e72c5c0f8f", "source": "劳斯判据", "target": "变量平移判稳", "source_chapter": 3, "target_chapter": 3, "relation_type": "leads_to", "strength": 0.94}
-{"relation_id": "rel-6cb70242ff621f38", "source": "传递函数", "target": "频率特性", "source_chapter": 1, "target_chapter": 5, "relation_type": "cross_domain", "strength": 0.95}
+{"relation_id": "rel-6cb70242ff621f38", "source": "传递函数", "target": "频率特性", "source_chapter": 1, "target_chapter": 5, "relation_type": "cross_domain", "strength": 0.95, "source_id": "传递函数_1_5b0faf8b", "target_id": "频率特性_5_404adfdd"}
 {"relation_id": "rel-7413c9369168dab6", "source": "结构图等效变换", "target": "结构图简化", "source_chapter": 2, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.95}
 {"relation_id": "rel-766bf121ad564a65", "source": "拉氏变换工程动机", "target": "拉氏变换", "source_chapter": 2, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.95}
 {"relation_id": "rel-7d141ffc20484187", "source": "变量平移判稳", "target": "复平面可行域", "source_chapter": 3, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.9}
@@ -16285,7 +16285,7 @@
 {"relation_id": "rel-882dce7aa1c2a51e", "source": "闭环特征方程", "target": "劳斯判据", "source_chapter": 3, "target_chapter": 3, "relation_type": "prerequisite", "strength": 0.95}
 {"relation_id": "rel-884deb267e552ae6", "source": "三域联动操作体验", "target": "临界增益体验", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 1.0}
 {"relation_id": "rel-897e5745769c97e8", "source": "串联连接", "target": "结构图等效变换", "source_chapter": 2, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.8}
-{"relation_id": "rel-89a9dccb1ebe9abe", "source": "传递函数", "target": "典型环节对象库", "source_chapter": 1, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.95}
+{"relation_id": "rel-89a9dccb1ebe9abe", "source": "传递函数", "target": "典型环节对象库", "source_chapter": 1, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.95, "source_id": "传递函数_1_5b0faf8b", "target_id": "典型环节对象库_2_21002"}
 {"relation_id": "rel-8b2033d899c32f9f", "source": "阻尼比", "target": "超调量", "source_chapter": 3, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.98}
 {"relation_id": "rel-8d9f9a56ea764bf5", "source": "稳定可行域", "target": "复平面可行域", "source_chapter": 3, "target_chapter": 4, "relation_type": "cross_domain", "strength": 0.9}
 {"relation_id": "rel-925bf2acd0c6995b", "source": "正弦函数", "target": "正弦稳态响应", "source_chapter": 1, "target_chapter": 5, "relation_type": "prerequisite", "strength": 0.95}
@@ -16304,7 +16304,7 @@
 {"relation_id": "rel-c0322d2b6fe9ba27", "source": "传递函数", "target": "惯性环节", "source_chapter": 2, "target_chapter": 2, "relation_type": "contains", "strength": 0.85}
 {"relation_id": "rel-c06bd48ca3751e81", "source": "频率分量重构", "target": "正弦稳态响应", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.86}
 {"relation_id": "rel-c4631556906d4ddf", "source": "稳定可行域", "target": "设计可行域", "source_chapter": 3, "target_chapter": 4, "relation_type": "generalizes", "strength": 0.88}
-{"relation_id": "rel-cd3b9a8beb18c331", "source": "零初值传递函数", "target": "传递函数", "source_chapter": 2, "target_chapter": 1, "relation_type": "generalizes", "strength": 0.88}
+{"relation_id": "rel-cd3b9a8beb18c331", "source": "零初值传递函数", "target": "传递函数", "source_chapter": 2, "target_chapter": 1, "relation_type": "generalizes", "strength": 0.88, "source_id": "零初值传递函数_2_21001", "target_id": "传递函数_1_5b0faf8b"}
 {"relation_id": "rel-cfd4eb42d530cd87", "source": "余子式接触判定", "target": "闭环传递函数", "source_chapter": 2, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.86}
 {"relation_id": "rel-dda19e4ed511e8db", "source": "非周期信号频谱", "target": "频率分量重构", "source_chapter": 5, "target_chapter": 5, "relation_type": "generalizes", "strength": 0.88}
 {"relation_id": "rel-e21433afd4b4f669", "source": "余因子式", "target": "余子式接触判定", "source_chapter": 2, "target_chapter": 2, "relation_type": "generalizes", "strength": 0.9}
@@ -16314,7 +16314,7 @@
 {"relation_id": "rel-f290a873adb1586e", "source": "拉氏变换", "target": "微分定理", "source_chapter": 2, "target_chapter": 2, "relation_type": "contains", "strength": 0.95}
 {"relation_id": "rel-f2b695e8e425f4ed", "source": "传递函数", "target": "积分环节", "source_chapter": 2, "target_chapter": 2, "relation_type": "contains", "strength": 0.8}
 {"relation_id": "rel-f36af14bdfbe39c8", "source": "传递函数", "target": "振荡环节", "source_chapter": 2, "target_chapter": 5, "relation_type": "contains", "strength": 0.85}
-{"relation_id": "rel-f64bed693f5c9b72", "source": "传递函数", "target": "正弦稳态响应", "source_chapter": 1, "target_chapter": 5, "relation_type": "prerequisite", "strength": 0.9}
+{"relation_id": "rel-f64bed693f5c9b72", "source": "传递函数", "target": "正弦稳态响应", "source_chapter": 1, "target_chapter": 5, "relation_type": "prerequisite", "strength": 0.9, "source_id": "传递函数_1_5b0faf8b", "target_id": "正弦稳态响应_5_b6dc1100"}
 {"relation_id": "rel-f8896dd0d6b25b59", "source": "回路", "target": "余子式接触判定", "source_chapter": 2, "target_chapter": 2, "relation_type": "prerequisite", "strength": 0.95}
 {"relation_id": "rel-fb88ebfd2b19cdef", "source": "结构图简化", "target": "闭环传递函数", "source_chapter": 2, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "rel-fbfc9a5feee47ac5", "source": "拉氏变换工程动机", "target": "零初值传递函数", "source_chapter": 2, "target_chapter": 2, "relation_type": "leads_to", "strength": 0.95}
@@ -16694,7 +16694,7 @@
 {"relation_id": "rel-bfd9d07ab8a04ed3", "source": "强化学习控制回报", "target": "航向控制RL环境", "source_chapter": 5, "target_chapter": 5, "relation_type": "applies_to", "strength": 0.9}
 {"relation_id": "rel-c0d4ce4265b149be", "source": "控制器频域特性矩阵", "target": "结构作用点与代价来源对照", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.94}
 {"relation_id": "rel-c50d970cfc5fa5a4", "source": "设计任务表达卡", "target": "策略学习进入条件", "source_chapter": 4, "target_chapter": 5, "relation_type": "cross_domain", "strength": 0.82}
-{"relation_id": "rel-cb9460fed854556c", "source": "传递函数", "target": "IMC/SIMC 与模型匹配整定", "source_chapter": 1, "target_chapter": 4, "relation_type": "prerequisite", "strength": 0.88}
+{"relation_id": "rel-cb9460fed854556c", "source": "传递函数", "target": "IMC/SIMC 与模型匹配整定", "source_chapter": 1, "target_chapter": 4, "relation_type": "prerequisite", "strength": 0.88, "source_id": "传递函数_1_5b0faf8b", "target_id": "IMC_SIMC与模型匹配整定_4_42013"}
 {"relation_id": "rel-ce38fb3856e68f81", "source": "策略学习安全外壳", "target": "RL调度PID", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.88}
 {"relation_id": "rel-cff9c54b7c4fe467", "source": "冷链温控同题任务", "target": "二状态冷链热模型", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.94}
 {"relation_id": "rel-d7e33654b448dccf", "source": "方法迁移前边界说明", "target": "冷链温控同题任务", "source_chapter": 5, "target_chapter": 5, "relation_type": "leads_to", "strength": 0.9}
@@ -16729,3 +16729,19 @@
 {"relation_id": "rel-eaf01124008ca14c", "source": "实现层复合保护", "target": "复合方案首轮记录表", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.97}
 {"relation_id": "rel-f8e843067f8710a9", "source": "自然频率", "target": "调节时间", "source_chapter": 10, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.9}
 {"relation_id": "rel-fe7bcfddd6056a20", "source": "经典复合控制边界", "target": "参考前馈与给定滤波分工", "source_chapter": 4, "target_chapter": 4, "relation_type": "leads_to", "strength": 0.93}
+{"relation_id": "rel-34d21ec0f867815b", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "反馈", "target": "闭环控制", "relation_type": "enables", "strength": 1.0, "source_id": "反馈_1_1", "target_id": "闭环控制_1_1"}
+{"relation_id": "rel-66f800edc56f1d23", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "闭环控制", "target": "误差信号", "relation_type": "uses", "strength": 1.0, "source_id": "闭环控制_1_1", "target_id": "误差_1_1"}
+{"relation_id": "rel-a047830052521f9c", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "闭环控制", "target": "开环控制", "relation_type": "contrasts_with", "strength": 1.0, "source_id": "闭环控制_1_1", "target_id": "开环控制_1_1"}
+{"relation_id": "rel-075ce3f1d7377a88", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "传递函数", "target": "极点", "relation_type": "derives", "strength": 1.0, "source_id": "传递函数_1_1", "target_id": "极点_1_1"}
+{"relation_id": "rel-3b295b08dd6626d5", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "极点", "target": "时域响应", "relation_type": "determines", "strength": 1.0, "source_id": "极点_1_1", "target_id": "时域响应_1_1"}
+{"relation_id": "rel-c80c222983ea4e38", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "极点", "target": "稳定性", "relation_type": "determines", "strength": 1.0, "source_id": "极点_1_1", "target_id": "稳定性_1_1"}
+{"relation_id": "rel-c10c70700e02f4fe", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "时域响应", "target": "性能指标", "relation_type": "quantified_by", "strength": 1.0, "source_id": "时域响应_1_1", "target_id": "性能指标_1_1"}
+{"relation_id": "rel-36bcded84877b2ed", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "根轨迹", "target": "极点", "relation_type": "describes_migration_of", "strength": 1.0, "source_id": "根轨迹_1_1", "target_id": "极点_1_1"}
+{"relation_id": "rel-5af6be66a6413099", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "传递函数", "target": "频域响应", "relation_type": "enables", "strength": 1.0, "source_id": "传递函数_1_1", "target_id": "频域响应_1_1"}
+{"relation_id": "rel-399bfbb5243bc777", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "频域响应", "target": "Bode图", "relation_type": "visualized_by", "strength": 1.0, "source_id": "频域响应_1_1", "target_id": "Bode图_1_1"}
+{"relation_id": "rel-b1d9e7d5ee40a9f3", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "比例控制", "target": "控制器", "relation_type": "instance_of", "strength": 1.0, "source_id": "比例控制_1_1", "target_id": "控制器_1_1"}
+{"relation_id": "rel-92c6068137c4b443", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "控制器", "target": "校正设计", "relation_type": "enables", "strength": 1.0, "source_id": "控制器_1_1", "target_id": "校正_1_1"}
+{"relation_id": "rel-962e07547144ae37", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "反馈", "target": "校正设计", "relation_type": "enables", "strength": 1.0, "source_id": "反馈_1_1", "target_id": "校正_1_1"}
+{"relation_id": "rel-a50ac543959ca198", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "课程总图", "target": "系统观念", "relation_type": "embodies", "strength": 1.0, "source_id": "课程总图_1_1", "target_id": "系统观念_1_1"}
+{"relation_id": "rel-58bf92720adecb0a", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "时域响应", "target": "频域响应", "relation_type": "complements", "strength": 1.0, "source_id": "时域响应_1_1", "target_id": "频域响应_1_1"}
+{"relation_id": "rel-fd892abe9b167d80", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "根轨迹", "target": "稳定性", "relation_type": "informs", "strength": 1.0, "source_id": "根轨迹_1_1", "target_id": "稳定性_1_1"}

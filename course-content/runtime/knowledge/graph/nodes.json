@@ -5639,7 +5639,7 @@
       "chapter": 2,
       "chapterName": "系统模型",
       "category": "程序性",
-      "knowledge_type": null,
+      "knowledge_type": "C",
       "bloom_level": "应用",
       "definition": "一种将时域函数变换到复频域的积分变换，常用于求解线性微分方程和分析线性系统。",
       "examples": [
@@ -5664,7 +5664,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/concepts/拉普拉斯变换_2_c635236f.mdx"
+      "course-content/runtime/knowledge/cards/nodes/拉普拉斯变换_2_c635236f.md"
     ],
     "tags": [
       "复频域",
@@ -15818,7 +15818,9 @@
       "source": "course-content/runtime/knowledge/graph/nodes.json"
     },
     "content": {},
-    "resources": [],
+    "resources": [
+      "course-content/runtime/knowledge/cards/nodes/劳斯判据_4_05ba60cd.md"
+    ],
     "tags": [
       "稳定性判据",
       "劳斯表",
@@ -22971,7 +22973,7 @@
       "chapter": 5,
       "chapterName": "频域分析",
       "category": "概念性",
-      "knowledge_type": null,
+      "knowledge_type": "C",
       "bloom_level": "理解",
       "definition": "构成开环传递函数的基本因子，可分为最小相位环节和非最小相位环节两大类。",
       "examples": [
@@ -22998,7 +23000,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/concepts/典型环节_5_8187e2ed.mdx"
+      "course-content/runtime/knowledge/cards/nodes/典型环节_5_8187e2ed.md"
     ],
     "tags": [
       "最小相位",
@@ -23737,7 +23739,7 @@
       "chapter": 5,
       "chapterName": "频域分析",
       "category": "程序性",
-      "knowledge_type": null,
+      "knowledge_type": "C",
       "bloom_level": "应用",
       "definition": "利用开环系统对数频率特性曲线判断闭环系统稳定性的方法，通过穿越次数计算不稳定极点个数。",
       "examples": [
@@ -23763,7 +23765,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/concepts/对数稳定判据_5_50391b50.mdx"
+      "course-content/runtime/knowledge/cards/nodes/对数稳定判据_5_50391b50.md"
     ],
     "tags": [
       "对数频率特性",
@@ -26457,7 +26459,7 @@
       "chapter": 5,
       "chapterName": "频域分析",
       "category": "概念性",
-      "knowledge_type": null,
+      "knowledge_type": "X",
       "bloom_level": "应用",
       "definition": "衡量控制系统相对稳定性的指标，包括相角裕度和幅值裕度，反映系统偏离临界稳定的程度。",
       "examples": [
@@ -26484,7 +26486,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/concepts/稳定裕度_5_bfd54f1c.mdx"
+      "course-content/runtime/knowledge/cards/nodes/稳定裕度_5_bfd54f1c.md"
     ],
     "tags": [
       "相角裕度",
@@ -29150,7 +29152,7 @@
       "chapter": 6,
       "chapterName": "系统校正",
       "category": "概念性",
-      "knowledge_type": null,
+      "knowledge_type": "D",
       "bloom_level": "理解",
       "definition": "校正装置串接在系统前向通道中，位于误差测量点之后和放大器之前。",
       "examples": [
@@ -29174,7 +29176,7 @@
     },
     "content": {},
     "resources": [
-      "course-content/runtime/knowledge/cards/concepts/串联校正_6_fede5751.mdx"
+      "course-content/runtime/knowledge/cards/nodes/串联校正_6_fede5751.md"
     ],
     "tags": [
       "前向通道",

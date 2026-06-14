@@ -9,7 +9,7 @@ import type { LessonKnowledgeCard } from '@/resources/interactive-learning/share
 
 const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
   {
-    id: 'node-nyquist-definition',
+    id: '开环幅相特性曲线_5_fd86e289',
     name: '开环幅相特性（奈奎斯特图）',
     nodeType: 'THEORY',
     description: '频率响应的幅值与相位在复平面形成的极坐标轨迹。',
@@ -22,7 +22,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['稳定性判据', '频域校正', '频响实验验证'],
   },
   {
-    id: 'node-nyquist-start-end',
+    id: '奈奎斯特曲线_5_deaa0845',
     name: '起点与终点',
     nodeType: 'THEORY',
     description: '低频段起点由 G(0) 决定，高频段终点由传函阶次决定。',
@@ -35,7 +35,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['概略绘制', '形状判断'],
   },
   {
-    id: 'node-nyquist-crossing',
+    id: '穿越频率_5_c4c2b93c',
     name: '负实轴交点与穿越频率',
     nodeType: 'METHOD',
     description: '相位穿越与幅值穿越决定曲线是否接近 -1 点。',
@@ -48,7 +48,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['稳定裕度', '对数判据'],
   },
   {
-    id: 'node-nyquist-feature-points',
+    id: '奈奎斯特曲线_5_deaa0845',
     name: '特征点求法',
     nodeType: 'METHOD',
     description: '通过实部/虚部方程锁定关键交点与转向趋势。',
@@ -61,7 +61,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['手工绘制', '近似判断'],
   },
   {
-    id: 'node-nyquist-sketch-steps',
+    id: '奈奎斯特曲线_5_deaa0845',
     name: '概略绘制步骤',
     nodeType: 'METHOD',
     description: '三步走：求频响 → 找特征点 → 概略连线。',
@@ -74,7 +74,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['课堂推导', '快速判稳'],
   },
   {
-    id: 'node-argument-principle',
+    id: '幅角原理_5_f843970e',
     name: '幅角原理',
     nodeType: 'THEORY',
     description: '闭合曲线映射的转角变化量与零极点数量关联。',
@@ -87,7 +87,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['稳定判据推导'],
   },
   {
-    id: 'node-nyquist-criterion',
+    id: '奈奎斯特稳定判据_5_a1b34560',
     name: '奈奎斯特稳定判据',
     nodeType: 'THEORY',
     description: '由开环曲线包围 -1 的次数判断闭环极点分布。',
@@ -100,7 +100,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['判稳', '结构调整'],
   },
   {
-    id: 'node-log-stability-criterion',
+    id: '对数稳定判据_5_50391b50',
     name: '对数稳定判据',
     nodeType: 'METHOD',
     description: '用 Bode 图的 0 dB 与 -180° 穿越次数近似判稳。',

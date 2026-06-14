@@ -68,7 +68,7 @@ export function KnowledgeCard({
   const colorConfig = cardColors.default;
   const bloomLabel = getBloomLabel(node.bloomLevel);
   const knowledgeLabel = getKnowledgeDimLabel(node.knowledgeDim);
-  const mdxPaths = Array.isArray(node.resources)
+  const markdownPaths = Array.isArray(node.resources)
     ? node.resources
         .map((item) => {
           if (typeof item === 'string') return item;
@@ -79,7 +79,7 @@ export function KnowledgeCard({
           }
           return null;
         })
-        .filter((path): path is string => !!path && path.endsWith('.mdx'))
+        .filter((path): path is string => !!path && path.endsWith('.md'))
     : [];
 
   // 根据变体确定基础样式
@@ -214,11 +214,11 @@ export function KnowledgeCard({
             </div>
           )}
 
-          {mdxPaths.length > 0 && (
+          {markdownPaths.length > 0 && (
             <div className="pt-4">
               <div className="mb-2 text-xs text-slate-500">扩展内容</div>
               <div className="space-y-4">
-                {mdxPaths.map((path) => (
+                {markdownPaths.map((path) => (
                   <MdxSlide key={path} path={path} />
                 ))}
               </div>

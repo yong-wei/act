@@ -326,7 +326,7 @@ export function parseRuntimeLessonMediaDocument(markdown: string): RuntimeLesson
 
 async function loadFrontContentForNode(node: RuntimeNode): Promise<string> {
   const resourcePath = (node.resources ?? []).find((item): item is string =>
-    typeof item === 'string' && (item.endsWith('.md') || item.endsWith('.mdx')),
+    typeof item === 'string' && item.endsWith('.md'),
   );
   if (!resourcePath) {
     return node.description;

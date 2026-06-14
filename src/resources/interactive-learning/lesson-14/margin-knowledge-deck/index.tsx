@@ -9,7 +9,7 @@ import type { LessonKnowledgeCard } from '@/resources/interactive-learning/share
 
 const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
   {
-    id: 'node-stability-margin-definition',
+    id: '稳定裕度_5_bfd54f1c',
     name: '稳定裕度（Stability Margin）',
     nodeType: 'THEORY',
     description: '系统在幅值与相角方面的稳定储备量，描述“离失稳边界还有多远”。',
@@ -22,7 +22,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['鲁棒性评估', '控制器调参', '工程安全裕度'],
   },
   {
-    id: 'node-phase-margin',
+    id: '相角裕度_5_5a74b451',
     name: '相角裕度',
     nodeType: 'THEORY',
     description: '增益穿越频率处相位与 -180° 的距离。',
@@ -35,7 +35,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['超调控制', '动态响应评估', '稳定性设计'],
   },
   {
-    id: 'node-gain-margin',
+    id: '幅值裕度_5_73af26a5',
     name: '幅值裕度',
     nodeType: 'THEORY',
     description: '相位穿越频率处幅值距离 1（0 dB）的倍率。',
@@ -48,7 +48,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['增益调节', '安全裕度评估'],
   },
   {
-    id: 'node-margin-bode-estimation',
+    id: '稳定裕度_5_bfd54f1c',
     name: 'Bode 图估算稳定裕度',
     nodeType: 'METHOD',
     description: '用幅频与相频曲线的穿越点快速估算裕度。',
@@ -61,7 +61,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['快速判稳', '工程评估', '控制调参与验证'],
   },
   {
-    id: 'node-three-band-theory',
+    id: '三频段闭环性能回读_3_38003',
     name: '三频段理论',
     nodeType: 'THEORY',
     description: '低频段、中频段、高频段各自对应不同的性能指标。',
@@ -73,7 +73,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['频域整形', '性能需求分解'],
   },
   {
-    id: 'node-low-frequency-band',
+    id: '稳态误差_3_c0207063',
     name: '低频段：稳态误差',
     nodeType: 'THEORY',
     description: '低频增益越高，稳态误差越小。',
@@ -85,7 +85,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['稳态误差控制', '抗扰性能设计'],
   },
   {
-    id: 'node-mid-frequency-band',
+    id: '三频段闭环性能回读_3_38003',
     name: '中频段：动态性能',
     nodeType: 'THEORY',
     description: '中频段与穿越频率附近形状决定超调与调节时间。',
@@ -97,7 +97,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['带宽设计', '动态响应优化'],
   },
   {
-    id: 'node-high-frequency-band',
+    id: '三频段闭环性能回读_3_38003',
     name: '高频段：抗噪与鲁棒性',
     nodeType: 'THEORY',
     description: '高频衰减用于抑制噪声与未建模高频动态。',
@@ -114,7 +114,7 @@ interface MarginKnowledgeDeckProps extends BaseWidgetProps {}
 
 export default function MarginKnowledgeDeck({ onComplete, onStateChange }: MarginKnowledgeDeckProps) {
   const interactive = useOptionalInteractiveContext();
-  const initialActiveId = KNOWLEDGE_CARDS[0]?.id ?? 'node-stability-margin-definition';
+  const initialActiveId = KNOWLEDGE_CARDS[0]?.id ?? '稳定裕度_5_bfd54f1c';
   const [activeId, setActiveId] = useState(initialActiveId);
   const [visited, setVisited] = useState<string[]>(() => [initialActiveId]);
   const publishedVisitedCountRef = useRef(0);

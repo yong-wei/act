@@ -48,6 +48,26 @@ def test_lesson_skill_kg_add_writes_course_content_authoring() -> None:
     assert module.REL_FILE.exists()
 
 
+def test_lesson_skill_kg_add_requires_knowledge_type() -> None:
+    module = load_module(
+        'lesson_kg_add_required_type',
+        ROOT / '.agents' / 'skills' / 'lesson' / 'scripts' / 'kg_add.py',
+    )
+
+    is_valid, errors = module.validate_node({
+        'id': 'node-1',
+        'name': '节点',
+        'category': '概念性',
+        'bloom_level': '理解',
+        'chapter': 1,
+        'chapter_name': '测试章节',
+        'definition': '测试定义',
+    })
+
+    assert not is_valid
+    assert '缺少必填字段: knowledge_type' in errors
+
+
 def test_lesson_skill_sync_overlays_discovers_real_lesson_graphs() -> None:
     module = load_module(
         'lesson_sync_overlays',

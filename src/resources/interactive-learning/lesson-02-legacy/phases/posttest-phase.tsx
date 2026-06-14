@@ -37,7 +37,7 @@ export function PosttestPhase({
     card: knowledgeCard,
     isLoading: isKnowledgeCardLoading,
     error: knowledgeCardError,
-  } = useKnowledgeCard('node-linearization');
+  } = useKnowledgeCard('小偏差线性化_2_277afa67');
 
   const hints = [
     '转动惯量 J 对应惯性项 J·θ̈',

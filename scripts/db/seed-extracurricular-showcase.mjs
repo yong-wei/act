@@ -303,19 +303,19 @@ function buildLearningPathCards(studentNumber, seed) {
         title: 'Bode图判读专项练习（3题）',
         description: '针对“频域稳定判读”短板，完成3题快速补强。',
         estimatedTime: 25,
-        nodeIds: ['node-bode', 'node-phase-margin', 'frequency-stability-judgement'],
+        nodeIds: ['Bode图_1_1', '相角裕度_5_5a74b451', '频域综合判断与工程读回_3_38004'],
       },
       {
         title: '控制奥德赛第7关：频域稳定边界',
         description: '建议重复挑战并对比三种控制器在稳定边界下的表现。',
         estimatedTime: 30,
-        nodeIds: ['level-7', 'control-odyssey', 'frequency-stability-judgement'],
+        nodeIds: ['level-7', 'control-odyssey', '频域综合判断与工程读回_3_38004'],
       },
       {
         title: '推荐阅读：相位裕度工程解读',
         description: '通过工程案例理解相位裕度与阻尼比之间的映射关系。',
         estimatedTime: 20,
-        nodeIds: ['node-phase-margin', 'node-damping-ratio', 'cross-domain-mapping'],
+        nodeIds: ['相角裕度_5_5a74b451', '阻尼比_3_b849784e', '三域直觉联动_5_L2c005'],
       },
     ]
   }
@@ -326,19 +326,19 @@ function buildLearningPathCards(studentNumber, seed) {
         title: 'Bode图分析题组（3题）',
         description: '聚焦频域稳定判读，完成基础判读到边界估算的阶梯练习。',
         estimatedTime: 24,
-        nodeIds: ['node-bode', 'frequency-stability-judgement'],
+        nodeIds: ['Bode图_1_1', '频域综合判断与工程读回_3_38004'],
       },
       {
         title: '控制奥德赛第8关：交越频率冲刺',
         description: '通过游戏化反馈建立“速度-稳定”取舍直觉。',
         estimatedTime: 28,
-        nodeIds: ['level-8', 'control-odyssey', 'design-tradeoff'],
+        nodeIds: ['level-8', 'control-odyssey', '可行域-满意域-最优域分层_4_41004'],
       },
       {
         title: '推荐阅读：频域判读速查',
         description: '阅读后完成一次自测，巩固相位裕度与增益裕度判读流程。',
         estimatedTime: 18,
-        nodeIds: ['node-frequency-domain', 'node-phase-margin'],
+        nodeIds: ['频域响应_1_1', '相角裕度_5_5a74b451'],
       },
     ]
   }
@@ -347,31 +347,31 @@ function buildLearningPathCards(studentNumber, seed) {
     'frequency-stability-judgement': {
       title: '频域稳定补强任务',
       description: '完成Bode图边界判读和相位裕度估算。',
-      nodeIds: ['node-bode', 'node-phase-margin', 'frequency-stability-judgement'],
+      nodeIds: ['Bode图_1_1', '相角裕度_5_5a74b451', '频域综合判断与工程读回_3_38004'],
       level: 7,
     },
     'pole-time-mapping': {
       title: '极点-时域映射补强任务',
       description: '通过极点拖动练习建立阻尼比与超调映射。',
-      nodeIds: ['node-root-locus', 'node-damping-ratio', 'pole-time-mapping'],
+      nodeIds: ['根轨迹_1_1', '阻尼比_3_b849784e', '时域指标到极点参数映射_3_13003'],
       level: 6,
     },
     'cross-domain-mapping': {
       title: '跨域映射强化任务',
       description: '完成“时域-频域-复平面”三联动练习。',
-      nodeIds: ['cross-domain-mapping', 'node-bode', 'node-root-locus'],
+      nodeIds: ['三域直觉联动_5_L2c005', 'Bode图_1_1', '根轨迹_1_1'],
       level: 8,
     },
     'design-tradeoff': {
       title: '设计权衡专项任务',
       description: '围绕“速度-稳定-能耗”完成三目标权衡设计。',
-      nodeIds: ['design-tradeoff', 'node-controller-design'],
+      nodeIds: ['可行域-满意域-最优域分层_4_41004', '极点配置_3_d367ec42'],
       level: 9,
     },
     'prompt-structuring': {
       title: '提示词结构化专项任务',
       description: '按模板重构提示词，提升设计结果一致性。',
-      nodeIds: ['prompt-structuring', 'node-ai-prompting'],
+      nodeIds: ['三域直觉联动_5_L2c005', '频域综合判断与工程读回_3_38004'],
       level: 7,
     },
   }
@@ -396,7 +396,7 @@ function buildLearningPathCards(studentNumber, seed) {
       title: '推荐阅读：工程案例迁移',
       description: '阅读案例并输出“问题-模型-策略-验证”的简要总结。',
       estimatedTime: 18,
-      nodeIds: ['engineering-case-reading', 'cross-domain-mapping'],
+      nodeIds: ['engineering-case-reading', '三域直觉联动_5_L2c005'],
     },
   ]
 }

@@ -9,7 +9,7 @@ import type { LessonKnowledgeCard } from '@/resources/interactive-learning/share
 
 const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
   {
-    id: 'node-feedback-core',
+    id: '反馈_1_1',
     name: '反馈的核心思想',
     nodeType: 'THEORY',
     description: '输出回到输入，误差驱动控制器调整行为。',
@@ -21,7 +21,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['温控系统', '航向控制', '电机调速'],
   },
   {
-    id: 'node-control-system-components',
+    id: '自动控制系统_1_9678f418',
     name: '控制系统四要素',
     nodeType: 'THEORY',
     description: '对象、控制器、执行器、传感器构成闭环基础。',
@@ -33,7 +33,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['机器人', '工业控制', '生物医学系统'],
   },
   {
-    id: 'node-open-closed-loop',
+    id: '闭环控制_1_1',
     name: '开环 vs 闭环',
     nodeType: 'THEORY',
     description: '开环不看输出，闭环依赖反馈。',
@@ -45,7 +45,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['定时加热', '自动驾驶', '无人机稳姿'],
   },
   {
-    id: 'node-feedback-benefits',
+    id: '反馈控制_1_516da087',
     name: '反馈带来的价值',
     nodeType: 'THEORY',
     description: '提高鲁棒性、减弱扰动、改善精度。',
@@ -62,7 +62,7 @@ interface FeedbackKnowledgeDeckProps extends BaseWidgetProps {}
 
 export default function FeedbackKnowledgeDeck({ onComplete, onStateChange }: FeedbackKnowledgeDeckProps) {
   const interactive = useOptionalInteractiveContext();
-  const initialActiveId = KNOWLEDGE_CARDS[0]?.id ?? 'node-feedback-core';
+  const initialActiveId = KNOWLEDGE_CARDS[0]?.id ?? '反馈_1_1';
   const [activeId, setActiveId] = useState(initialActiveId);
   const [visited, setVisited] = useState<string[]>(() => [initialActiveId]);
   const publishedVisitedCountRef = useRef(0);

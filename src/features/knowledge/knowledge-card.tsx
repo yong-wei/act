@@ -72,7 +72,7 @@ export function extractMdxPaths(resources?: unknown[]): string[] {
       }
       return null;
     })
-    .filter((path): path is string => !!path && (path.endsWith('.md') || path.endsWith('.mdx')));
+    .filter((path): path is string => !!path && path.endsWith('.md'));
 }
 
 export function extractInfographResource(resources?: unknown[]): KnowledgeInfographResource | null {

@@ -50,6 +50,10 @@ npm run db:backfill-facts
 npm run db:backfill-class-attribution
 ```
 
+`npm run seed:knowledge` 以 `course-content/runtime/knowledge/graph/nodes.json` 与
+`relations.jsonl` 为唯一真源，同步 `KnowledgeNode` / `KnowledgeLink` 到数据库；
+它不再读取已废弃的根目录 `content/` 或 MDX concepts 卡片。
+
 直接运行脚本时使用 `node`、`npx tsx` 或 `bash`，保持与 `package.json` 中的调用方式一致。
 
 ## 制图脚本

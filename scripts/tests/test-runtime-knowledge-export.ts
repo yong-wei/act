@@ -18,8 +18,9 @@ const lessonId = '3-6';
 const runtimeNodeId = '目标驱动PD校正_3_36002';
 const runtimeNodeWithKnowledgeTypeId = '展示解与Pareto最小取舍_4_44006';
 const runtimeNodeCardPath = `course-content/runtime/knowledge/cards/nodes/${runtimeNodeId}.md`;
-const runtimeConceptPath = 'course-content/runtime/knowledge/cards/concepts/相角裕度_5_5a74b451.mdx';
-const legacyConceptPath = 'course-content/runtime/knowledge/cards/concepts/phase-margin.mdx';
+const migratedConceptNodeCardPath = 'course-content/runtime/knowledge/cards/nodes/相角裕度_5_5a74b451.md';
+const authoringConceptsDirPath = 'course-content/authoring/knowledge/cards/concepts';
+const runtimeConceptsDirPath = 'course-content/runtime/knowledge/cards/concepts';
 const lessonJsonPath = `course-content/runtime/lessons/${lessonId}/lesson.json`;
 const graphOverlayPath = `course-content/runtime/lessons/${lessonId}/graph-overlay.json`;
 const handoutPath = `course-content/runtime/lessons/${lessonId}/${lessonId}-handout.md`;
@@ -28,14 +29,19 @@ assert.equal(fs.existsSync(path.join(root, nodesPath)), true, '应导出 runtime
 assert.equal(fs.existsSync(path.join(root, relationsPath)), true, '应导出 runtime 全局关系文件 relations.jsonl');
 assert.equal(fs.existsSync(path.join(root, runtimeNodeCardPath)), true, '应导出 runtime 节点卡片 Markdown');
 assert.equal(
-  fs.existsSync(path.join(root, runtimeConceptPath)),
+  fs.existsSync(path.join(root, migratedConceptNodeCardPath)),
   true,
-  '应迁移 content/concepts 到 runtime/cards/concepts，并对已匹配节点的卡片改为 node_id 命名',
+  '已匹配到知识节点的 legacy concepts 卡片应统一迁移为 runtime 节点 Markdown 卡片',
 );
 assert.equal(
-  fs.existsSync(path.join(root, legacyConceptPath)),
+  fs.existsSync(path.join(root, authoringConceptsDirPath)),
   false,
-  '已匹配到知识节点的 concepts 卡片不应继续保留旧文件名',
+  'authoring 不应继续保留废弃的 cards/concepts MDX 目录',
+);
+assert.equal(
+  fs.existsSync(path.join(root, runtimeConceptsDirPath)),
+  false,
+  'runtime 不应继续生成 cards/concepts MDX 目录',
 );
 assert.equal(fs.existsSync(path.join(root, lessonJsonPath)), true, `应导出 ${lessonId} lesson.json`);
 assert.equal(fs.existsSync(path.join(root, graphOverlayPath)), true, `应导出 ${lessonId} graph-overlay.json`);
@@ -91,7 +97,7 @@ assert.equal(
 const runtimeNodeCard = readText(runtimeNodeCardPath);
 assert.equal(runtimeNodeCard.includes('目标驱动PD校正'), true, 'runtime 节点卡片应保留原始内容');
 
-const runtimeConcept = readText(runtimeConceptPath);
-assert.equal(runtimeConcept.includes('相角裕度'), true, 'runtime concepts 卡片应保留兼容内容');
+const migratedConceptNodeCard = readText(migratedConceptNodeCardPath);
+assert.equal(migratedConceptNodeCard.includes('相角裕度'), true, '迁移后的 runtime 节点卡片应保留原始知识点内容');
 
 console.log('runtime knowledge export test passed');

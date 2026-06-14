@@ -25,7 +25,7 @@ export function BridgePhase({ onComplete }: BridgePhaseProps) {
     card: knowledgeCard,
     isLoading: isKnowledgeCardLoading,
     error: knowledgeCardError,
-  } = useKnowledgeCard('node-modeling-intro');
+  } = useKnowledgeCard('数学模型_2_b21e01f6');
 
   // 延迟显示 AI 消息
   useEffect(() => {

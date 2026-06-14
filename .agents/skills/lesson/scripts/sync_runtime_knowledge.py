@@ -43,6 +43,10 @@ RUNTIME_CARDS = RUNTIME_KNOWLEDGE / "cards"
 AUTHORING_GRAPH = AUTHORING_KNOWLEDGE / "base" / "knowledge_graph.json"
 AUTHORING_RELS = AUTHORING_KNOWLEDGE / "base" / "relations.jsonl"
 AUTHORING_CARDS = AUTHORING_KNOWLEDGE / "cards"
+AUTHORING_CANONICAL_NODES = AUTHORING_KNOWLEDGE / "canonical-nodes.json"
+AUTHORING_LESSONS = COURSE_ROOT / "authoring" / "lessons"
+AUTHORING_NODE_CARDS = AUTHORING_CARDS / "nodes"
+AUTHORING_CONCEPT_CARDS = AUTHORING_CARDS / "concepts"
 
 RELATION_DERIVED_FIELDS = {"id", "source_id", "target_id", "run_id"}
 NODE_DERIVED_FIELDS = {
@@ -58,6 +62,15 @@ NODE_DERIVED_FIELDS = {
     "resources",
     "tags",
 }
+VALID_KNOWLEDGE_TYPES = {"C", "X", "D", "框架", "前沿"}
+
+
+@dataclass(frozen=True)
+class NodeFieldBackfill:
+    node_id: str
+    field: str
+    value: Any
+    source: str
 
 
 @dataclass
@@ -68,6 +81,8 @@ class SyncReport:
     node_conflicts: list[str] = field(default_factory=list)
     relation_conflicts: list[str] = field(default_factory=list)
     card_conflicts: list[str] = field(default_factory=list)
+    ignored_legacy_cards: list[str] = field(default_factory=list)
+    node_field_backfills: list[str] = field(default_factory=list)
     applied: list[str] = field(default_factory=list)
 
     @property
@@ -80,6 +95,8 @@ class SyncReport:
         print(f"missing nodes: {len(self.missing_nodes)}")
         print(f"missing relations: {len(self.missing_relations)}")
         print(f"missing cards: {len(self.missing_cards)}")
+        print(f"ignored legacy cards: {len(self.ignored_legacy_cards)}")
+        print(f"safe node field backfills: {len(self.node_field_backfills)}")
         print(f"conflicts: {len(self.conflicts)}")
         print(f"applied changes: {len(self.applied)}")
 
@@ -87,6 +104,8 @@ class SyncReport:
             ("node conflicts", self.node_conflicts),
             ("relation conflicts", self.relation_conflicts),
             ("card conflicts", self.card_conflicts),
+            ("ignored legacy cards", self.ignored_legacy_cards),
+            ("safe node field backfills", self.node_field_backfills),
             ("missing nodes", self.missing_nodes),
             ("missing relations", self.missing_relations),
             ("missing cards", self.missing_cards),
@@ -121,6 +140,10 @@ def load_jsonl(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
+def sorted_json(value: Any) -> Any:
+    return json.loads(json.dumps(value, ensure_ascii=False, sort_keys=True))
+
+
 def normalize_node(node: dict[str, Any]) -> dict[str, Any]:
     if isinstance(node.get("metadata"), dict):
         metadata = dict(node["metadata"])
@@ -142,12 +165,12 @@ def normalize_node(node: dict[str, Any]) -> dict[str, Any]:
         }
         if metadata.get("knowledge_type") is not None:
             normalized["knowledge_type"] = metadata["knowledge_type"]
-        return json.loads(json.dumps(normalized, ensure_ascii=False, sort_keys=True))
+        return sorted_json(normalized)
 
     cleaned = {k: v for k, v in node.items() if k not in NODE_DERIVED_FIELDS and k != "metadata"}
     cleaned.pop("created_at", None)
     cleaned.pop("updated_at", None)
-    return json.loads(json.dumps(cleaned, ensure_ascii=False, sort_keys=True))
+    return sorted_json(cleaned)
 
 
 def authoring_node_from_runtime(node: dict[str, Any]) -> dict[str, Any]:
@@ -184,7 +207,7 @@ def normalize_relation(rel: dict[str, Any]) -> dict[str, Any]:
     cleaned = {k: v for k, v in rel.items() if k not in RELATION_DERIVED_FIELDS}
     if "relation_id" not in cleaned and rel.get("id"):
         cleaned["relation_id"] = rel["id"]
-    return json.loads(json.dumps(cleaned, ensure_ascii=False, sort_keys=True))
+    return sorted_json(cleaned)
 
 
 def relation_key(rel: dict[str, Any]) -> str:
@@ -209,19 +232,110 @@ def authoring_graph() -> dict[str, Any]:
     return data
 
 
-def compare_graph(report: SyncReport) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
+def read_card_frontmatter(path: Path) -> dict[str, str]:
+    text = path.read_text(encoding="utf-8")
+    if not text.startswith("---\n"):
+        return {}
+    end = text.find("\n---", 4)
+    if end == -1:
+        return {}
+
+    frontmatter: dict[str, str] = {}
+    for line in text[4:end].splitlines():
+        if ":" not in line or line.lstrip().startswith("#"):
+            continue
+        key, raw_value = line.split(":", 1)
+        value = raw_value.strip().strip('"').strip("'")
+        if value:
+            frontmatter[key.strip()] = value
+    return frontmatter
+
+
+def authoring_node_field_sources() -> dict[str, dict[str, dict[Any, set[str]]]]:
+    sources: dict[str, dict[str, dict[Any, set[str]]]] = {}
+
+    for path in sorted(AUTHORING_LESSONS.glob("**/graph/nodes.jsonl")):
+        for node in load_jsonl(path):
+            node_id = node.get("id")
+            value = node.get("knowledge_type")
+            if not node_id or value is None:
+                continue
+            rel_path = path.relative_to(COURSE_ROOT)
+            field_sources = sources.setdefault(str(node_id), {}).setdefault("knowledge_type", {})
+            field_sources.setdefault(value, set()).add(str(rel_path))
+
+    if AUTHORING_NODE_CARDS.exists():
+        for path in sorted(AUTHORING_NODE_CARDS.glob("*.md")):
+            frontmatter = read_card_frontmatter(path)
+            node_id = frontmatter.get("id") or frontmatter.get("node_id") or path.stem
+            value = frontmatter.get("knowledge_type")
+            if not node_id or value is None:
+                continue
+            rel_path = path.relative_to(COURSE_ROOT)
+            field_sources = sources.setdefault(str(node_id), {}).setdefault("knowledge_type", {})
+            field_sources.setdefault(value, set()).add(str(rel_path))
+
+    return sources
+
+
+def node_backfill_candidate(
+    node_id: str,
+    authoring_node: dict[str, Any],
+    runtime_node: dict[str, Any],
+    field_sources: dict[str, dict[str, dict[Any, set[str]]]],
+) -> NodeFieldBackfill | None:
+    normalized_authoring = normalize_node(authoring_node)
+    normalized_runtime = normalize_node(runtime_node)
+    if normalized_authoring == normalized_runtime:
+        return None
+
+    differing_fields = {
+        key
+        for key in set(normalized_authoring) | set(normalized_runtime)
+        if normalized_authoring.get(key) != normalized_runtime.get(key)
+    }
+    if differing_fields != {"knowledge_type"}:
+        return None
+
+    authoring_value = normalized_authoring.get("knowledge_type")
+    runtime_value = normalized_runtime.get("knowledge_type")
+    if authoring_value is not None or runtime_value is None:
+        return None
+
+    if runtime_value not in VALID_KNOWLEDGE_TYPES:
+        return None
+
+    node_sources = field_sources.get(node_id, {}).get("knowledge_type", {})
+    source_values = set(node_sources)
+    if source_values != {runtime_value}:
+        return None
+
+    source = sorted(node_sources[runtime_value])[0]
+    return NodeFieldBackfill(node_id=node_id, field="knowledge_type", value=runtime_value, source=source)
+
+
+def compare_graph(
+    report: SyncReport,
+) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]], list[NodeFieldBackfill]]:
     runtime_nodes = runtime_nodes_by_id()
     graph = authoring_graph()
     authoring_nodes = graph["nodes"]
+    field_sources = authoring_node_field_sources()
 
     missing_nodes: list[dict[str, Any]] = []
+    node_field_backfills: list[NodeFieldBackfill] = []
     for node_id, runtime_node in runtime_nodes.items():
         authoring_node = authoring_nodes.get(node_id)
         if authoring_node is None:
             report.missing_nodes.append(node_id)
             missing_nodes.append(authoring_node_from_runtime(runtime_node))
         elif normalize_node(authoring_node) != normalize_node(runtime_node):
-            report.node_conflicts.append(node_id)
+            candidate = node_backfill_candidate(node_id, authoring_node, runtime_node, field_sources)
+            if candidate is None:
+                report.node_conflicts.append(node_id)
+            else:
+                node_field_backfills.append(candidate)
+                report.node_field_backfills.append(f"{candidate.node_id}.{candidate.field}={candidate.value} <- {candidate.source}")
 
     runtime_rels = load_jsonl(RUNTIME_RELS)
     authoring_rels = load_jsonl(AUTHORING_RELS)
@@ -238,7 +352,7 @@ def compare_graph(report: SyncReport) -> tuple[dict[str, Any], list[dict[str, An
         elif authoring_rel != normalized_runtime:
             report.relation_conflicts.append(key)
 
-    return graph, missing_nodes, missing_rels
+    return graph, missing_nodes, missing_rels, node_field_backfills
 
 
 def iter_card_files(base: Path) -> list[Path]:
@@ -247,10 +361,65 @@ def iter_card_files(base: Path) -> list[Path]:
     return sorted(path for path in base.rglob("*") if path.is_file())
 
 
+def canonical_alias_targets() -> dict[str, str]:
+    if not AUTHORING_CANONICAL_NODES.exists():
+        return {}
+
+    data = load_json(AUTHORING_CANONICAL_NODES)
+    if isinstance(data, dict):
+        raw_entries = data.get("nodes") or data.get("entries") or data.get("canonical_nodes") or []
+    else:
+        raw_entries = data
+    entries = raw_entries.values() if isinstance(raw_entries, dict) else raw_entries
+
+    targets: dict[str, str] = {}
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        target = entry.get("selected_card_node_id") or entry.get("canonical_node_id")
+        if not target:
+            continue
+        for alias in entry.get("aliases", []) or []:
+            targets[str(alias)] = str(target)
+    return targets
+
+
+def registered_authoring_node_ids() -> set[str]:
+    if not AUTHORING_GRAPH.exists():
+        return set()
+    graph = authoring_graph()
+    return set(graph["nodes"])
+
+
+def deprecated_concept_target(stem: str, registered_node_ids: set[str], alias_targets: dict[str, str]) -> str:
+    if stem in registered_node_ids:
+        return f"nodes/{stem}.md"
+    if stem in alias_targets:
+        return f"nodes/{alias_targets[stem]}.md"
+    return "delete unregistered concept card"
+
+
 def compare_cards(report: SyncReport) -> list[tuple[Path, Path]]:
     missing: list[tuple[Path, Path]] = []
+    runtime_node_ids = set(runtime_nodes_by_id()) if RUNTIME_NODES.exists() else set()
+    registered_node_ids = registered_authoring_node_ids()
+    alias_targets = canonical_alias_targets()
+
+    for authoring_concept in sorted(AUTHORING_CONCEPT_CARDS.glob("*.mdx")) if AUTHORING_CONCEPT_CARDS.exists() else []:
+        rel = authoring_concept.relative_to(AUTHORING_CARDS)
+        target = deprecated_concept_target(authoring_concept.stem, registered_node_ids, alias_targets)
+        report.card_conflicts.append(
+            f"deprecated authoring concept card must be migrated or deleted: {rel} -> {target}"
+        )
+
     for runtime_file in iter_card_files(RUNTIME_CARDS):
         rel = runtime_file.relative_to(RUNTIME_CARDS)
+        if len(rel.parts) > 1 and rel.parts[0] == "concepts" and runtime_file.suffix == ".mdx":
+            target = f"nodes/{runtime_file.stem}.md" if runtime_file.stem in runtime_node_ids else "authoring node card"
+            report.card_conflicts.append(
+                f"deprecated runtime concept card must be migrated or deleted: {rel} -> {target}"
+            )
+            continue
         authoring_file = AUTHORING_CARDS / rel
         if not authoring_file.exists():
             report.missing_cards.append(str(rel))
@@ -283,6 +452,35 @@ def apply_missing_graph(
                 report.applied.append(f"relation {relation_key(rel)}")
 
 
+def apply_node_field_backfills(
+    report: SyncReport,
+    graph: dict[str, Any],
+    backfills: list[NodeFieldBackfill],
+) -> bool:
+    if not backfills:
+        return False
+
+    nodes = graph["nodes"]
+    changed = False
+    for backfill in backfills:
+        node = nodes.get(backfill.node_id)
+        if not isinstance(node, dict):
+            continue
+        existing = node.get(backfill.field)
+        if existing is not None:
+            continue
+        node[backfill.field] = backfill.value
+        report.applied.append(f"node {backfill.node_id}.{backfill.field}={backfill.value}")
+        changed = True
+
+    if changed:
+        AUTHORING_GRAPH.write_text(
+            json.dumps(graph, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+    return changed
+
+
 def apply_missing_cards(report: SyncReport, missing_cards: list[tuple[Path, Path]]) -> None:
     for source, target in missing_cards:
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -295,6 +493,11 @@ def parse_args() -> argparse.Namespace:
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--check", action="store_true", help="report differences without writing; this is the default")
     mode.add_argument("--apply", action="store_true", help="copy runtime-only knowledge into authoring sources")
+    parser.add_argument(
+        "--node-field-backfills-only",
+        action="store_true",
+        help="with --apply, only apply safe node field backfills and leave missing runtime-only items untouched",
+    )
     return parser.parse_args()
 
 
@@ -311,7 +514,7 @@ def main() -> int:
         return 2
 
     report = SyncReport()
-    graph, missing_nodes, missing_rels = compare_graph(report)
+    graph, missing_nodes, missing_rels, node_field_backfills = compare_graph(report)
     missing_cards = compare_cards(report)
 
     if report.conflicts:
@@ -320,12 +523,19 @@ def main() -> int:
         return 1
 
     if apply_changes:
-        apply_missing_graph(report, graph, missing_nodes, missing_rels)
-        apply_missing_cards(report, missing_cards)
+        backfilled_graph = apply_node_field_backfills(report, graph, node_field_backfills)
+        if not args.node_field_backfills_only:
+            apply_missing_graph(report, graph, missing_nodes, missing_rels)
+            apply_missing_cards(report, missing_cards)
+        elif not backfilled_graph and node_field_backfills:
+            print("[WARN] safe node field backfills were detected but none were applied.")
 
     report.print()
-    if not apply_changes and (report.missing_nodes or report.missing_relations or report.missing_cards):
-        print("\n[INFO] run with --apply to copy runtime-only knowledge into authoring sources.")
+    if not apply_changes:
+        if report.node_field_backfills:
+            print("\n[INFO] run with --apply --node-field-backfills-only to backfill safe node fields.")
+        if report.missing_nodes or report.missing_relations or report.missing_cards:
+            print("[INFO] run with --apply to copy runtime-only knowledge into authoring sources.")
     return 0
 
 

@@ -50,7 +50,7 @@ def make_node_id(name, chapter):
 def validate_node(node):
     """校验节点格式，返回 (is_valid, errors)"""
     errors = []
-    required = ["id", "name", "category", "bloom_level", "chapter",
+    required = ["id", "name", "category", "knowledge_type", "bloom_level", "chapter",
                 "chapter_name", "definition"]
     for field in required:
         if field not in node:

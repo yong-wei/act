@@ -94,10 +94,8 @@ function resolveInfographSrc(resource: ReturnType<typeof extractInfographResourc
 
 function isKnowledgeCardPath(value: unknown): boolean {
   return typeof value === 'string'
-    && (
-      value.startsWith('content/concepts/')
-      || value.startsWith('course-content/runtime/knowledge/cards/')
-    );
+    && value.startsWith('course-content/runtime/knowledge/cards/nodes/')
+    && value.endsWith('.md');
 }
 
 function readLessonIdFromResources(resources: unknown[] | undefined): string | null {
@@ -345,8 +343,8 @@ function ResourcePanelContent({
   const infographSrc = resolveInfographSrc(infographResource);
   const knowledgeCardPaths = mdxPaths.filter(
     (path) =>
-      path.startsWith('content/concepts/')
-      || path.startsWith('course-content/runtime/knowledge/cards/')
+      path.startsWith('course-content/runtime/knowledge/cards/nodes/')
+      && path.endsWith('.md')
   );
   const hasKnowledgeCard = knowledgeCardPaths.length > 0;
 

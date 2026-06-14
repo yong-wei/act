@@ -42,15 +42,15 @@ assert.equal(
 );
 
 assert.equal(
-  mdxRoute.includes(".endsWith('.md')") || mdxRoute.includes(".endsWith('.mdx')"),
+  mdxRoute.includes(".endsWith('.md')") && !mdxRoute.includes(".endsWith('.mdx')"),
   true,
-  'mdx route 应支持 .md/.mdx 文件',
+  'mdx route 应只支持 runtime Markdown 文件',
 );
 
 assert.equal(
-  knowledgeCard.includes("path.endsWith('.md')") || knowledgeCard.includes("path.endsWith('.mdx')"),
+  knowledgeCard.includes("path.endsWith('.md')") && !knowledgeCard.includes("path.endsWith('.mdx')"),
   true,
-  '知识卡片组件应同时支持 .md 与 .mdx 资源',
+  '知识卡片组件应只把 Markdown 节点卡片作为卡片资源',
 );
 
 console.log('runtime knowledge source test passed');

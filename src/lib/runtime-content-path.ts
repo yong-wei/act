@@ -5,10 +5,8 @@ import path from 'node:path';
 
 const PROJECT_ROOT = process.cwd();
 const RUNTIME_PREFIX = 'course-content/runtime/';
-const CONTENT_PREFIX = 'content/';
 
 export const RUNTIME_CONTENT_ROOT = path.join(PROJECT_ROOT, 'course-content', 'runtime');
-export const PUBLIC_CONTENT_ROOT = path.join(PROJECT_ROOT, 'content');
 
 export type RuntimeContentPath = {
   absolutePath: string;
@@ -16,11 +14,7 @@ export type RuntimeContentPath = {
   runtimePath: string;
 };
 
-export type ReadableContentPath = RuntimeContentPath | {
-  absolutePath: string;
-  projectPath: string;
-  contentPath: string;
-};
+export type ReadableContentPath = RuntimeContentPath;
 
 export function isInvalidContentPathError(error: unknown) {
   return error instanceof Error
@@ -93,15 +87,6 @@ export function tryResolveRuntimeContentPath(input: string): RuntimeContentPath 
 
 export function resolveReadableContentPath(input: string): ReadableContentPath {
   const normalized = normalizeInputPath(input, 'Invalid readable content path');
-  if (normalized.startsWith(CONTENT_PREFIX)) {
-    const contentPath = normalized.slice(CONTENT_PREFIX.length);
-    const resolved = resolveInsideRoot(PUBLIC_CONTENT_ROOT, contentPath, 'Invalid readable content path');
-    return {
-      absolutePath: resolved.absolutePath,
-      projectPath: `${CONTENT_PREFIX}${resolved.normalizedRelative}`,
-      contentPath: resolved.normalizedRelative,
-    };
-  }
   if (normalized.startsWith(RUNTIME_PREFIX)) {
     return resolveRuntimeContentPath(normalized);
   }

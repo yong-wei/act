@@ -4948,7 +4948,8 @@
         "积分变换"
       ],
       "created_at": "2026-02-04T17:54:16.627720",
-      "updated_at": "2026-02-04T17:54:16.627720"
+      "updated_at": "2026-02-04T17:54:16.627720",
+      "knowledge_type": "C"
     },
     "时域分析法_3_0f0489e0": {
       "id": "时域分析法_3_0f0489e0",
@@ -8261,7 +8262,8 @@
         "传递函数"
       ],
       "created_at": "2026-02-04T17:54:16.628417",
-      "updated_at": "2026-02-04T17:54:16.628417"
+      "updated_at": "2026-02-04T17:54:16.628417",
+      "knowledge_type": "C"
     },
     "最小相位环节_5_b749dc72": {
       "id": "最小相位环节_5_b749dc72",
@@ -8996,7 +8998,8 @@
         "不稳定极点"
       ],
       "created_at": "2026-02-04T17:54:16.628570",
-      "updated_at": "2026-02-04T17:54:16.628570"
+      "updated_at": "2026-02-04T17:54:16.628570",
+      "knowledge_type": "C"
     },
     "结构不稳定系统_5_ebb91c84": {
       "id": "结构不稳定系统_5_ebb91c84",
@@ -9047,7 +9050,8 @@
         "相对稳定性"
       ],
       "created_at": "2026-02-04T17:54:16.628580",
-      "updated_at": "2026-02-04T17:54:16.628580"
+      "updated_at": "2026-02-04T17:54:16.628580",
+      "knowledge_type": "X"
     },
     "相角裕度_5_5a74b451": {
       "id": "相角裕度_5_5a74b451",
@@ -9603,7 +9607,8 @@
         "放大器"
       ],
       "created_at": "2026-02-04T17:54:16.628700",
-      "updated_at": "2026-02-04T17:54:16.628700"
+      "updated_at": "2026-02-04T17:54:16.628700",
+      "knowledge_type": "D"
     },
     "前馈校正_6_40284f13": {
       "id": "前馈校正_6_40284f13",
@@ -16426,7 +16431,8 @@
         "跨域映射"
       ],
       "created_at": "2026-03-13T03:07:32.395807+00:00",
-      "updated_at": "2026-03-13T03:07:32.395807+00:00"
+      "updated_at": "2026-03-13T03:07:32.395807+00:00",
+      "knowledge_type": "X"
     },
     "三域联动操作体验_5_L2d001": {
       "id": "三域联动操作体验_5_L2d001",
@@ -16463,7 +16469,8 @@
         "三面板"
       ],
       "created_at": "2026-03-13T00:00:00+00:00",
-      "updated_at": "2026-03-13T00:00:00+00:00"
+      "updated_at": "2026-03-13T00:00:00+00:00",
+      "knowledge_type": "X"
     },
     "临界增益体验_5_L2d002": {
       "id": "临界增益体验_5_L2d002",
@@ -16500,7 +16507,8 @@
         "γ=0"
       ],
       "created_at": "2026-03-13T00:00:00+00:00",
-      "updated_at": "2026-03-13T00:00:00+00:00"
+      "updated_at": "2026-03-13T00:00:00+00:00",
+      "knowledge_type": "X"
     },
     "二阶系统标准型_3_L2a": {
       "id": "二阶系统标准型_3_L2a",
@@ -16538,7 +16546,8 @@
         "ζ"
       ],
       "created_at": "2026-03-10T13:14:23.104067+00:00",
-      "updated_at": "2026-03-10T13:14:23.104067+00:00"
+      "updated_at": "2026-03-10T13:14:23.104067+00:00",
+      "knowledge_type": "C"
     },
     "传递函数标准形式_2_11003": {
       "id": "传递函数标准形式_2_11003",
@@ -16573,7 +16582,8 @@
         "零极点形式"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "四种响应家族_3_L2a": {
       "id": "四种响应家族_3_L2a",
@@ -16609,7 +16619,8 @@
         "不稳定"
       ],
       "created_at": "2026-03-10T13:14:23.099889+00:00",
-      "updated_at": "2026-03-10T13:14:23.099889+00:00"
+      "updated_at": "2026-03-10T13:14:23.099889+00:00",
+      "knowledge_type": "X"
     },
     "复平面可行域_4_Lsum001": {
       "id": "复平面可行域_4_Lsum001",
@@ -16644,7 +16655,8 @@
         "极点约束"
       ],
       "created_at": "2026-03-14T00:44:08.244152+00:00",
-      "updated_at": "2026-03-14T00:44:08.244152+00:00"
+      "updated_at": "2026-03-14T00:44:08.244152+00:00",
+      "knowledge_type": "X"
     },
     "幅值裕度直觉_5_L2c004": {
       "id": "幅值裕度直觉_5_L2c004",
@@ -16678,7 +16690,8 @@
         "稳定裕量"
       ],
       "created_at": "2026-03-13T03:07:32.392734+00:00",
-      "updated_at": "2026-03-13T03:07:32.392734+00:00"
+      "updated_at": "2026-03-13T03:07:32.392734+00:00",
+      "knowledge_type": "X"
     },
     "开环传递函数定义_2_12002": {
       "id": "开环传递函数定义_2_12002",
@@ -16713,7 +16726,8 @@
         "稳定性分析基础"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "微分定理_2_11002": {
       "id": "微分定理_2_11002",
@@ -16746,7 +16760,8 @@
         "零初始条件"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "微分环节_2_11006": {
       "id": "微分环节_2_11006",
@@ -16780,7 +16795,8 @@
         "原点零点"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "惯性环节_2_11007": {
       "id": "惯性环节_2_11007",
@@ -16816,7 +16832,8 @@
         "RC电路"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "截止频率直觉_5_L2c002": {
       "id": "截止频率直觉_5_L2c002",
@@ -16850,7 +16867,8 @@
         "频域"
       ],
       "created_at": "2026-03-13T03:07:32.386724+00:00",
-      "updated_at": "2026-03-13T03:07:32.386724+00:00"
+      "updated_at": "2026-03-13T03:07:32.386724+00:00",
+      "knowledge_type": "X"
     },
     "拉氏变换工程动机_2_11001": {
       "id": "拉氏变换工程动机_2_11001",
@@ -16883,7 +16901,8 @@
         "s域"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "时域响应包络_3_Lsum002": {
       "id": "时域响应包络_3_Lsum002",
@@ -16916,7 +16935,8 @@
         "时域投影"
       ],
       "created_at": "2026-03-14T00:44:08.247687+00:00",
-      "updated_at": "2026-03-14T00:44:08.247687+00:00"
+      "updated_at": "2026-03-14T00:44:08.247687+00:00",
+      "knowledge_type": "X"
     },
     "最佳阻尼比_3_L2b002": {
       "id": "最佳阻尼比_3_L2b002",
@@ -16952,7 +16972,8 @@
         "工程选取"
       ],
       "created_at": "2026-03-11T15:04:55.391791+00:00",
-      "updated_at": "2026-03-11T15:04:55.391791+00:00"
+      "updated_at": "2026-03-11T15:04:55.391791+00:00",
+      "knowledge_type": "D"
     },
     "极点迁移_4_L2b001": {
       "id": "极点迁移_4_L2b001",
@@ -16988,7 +17009,8 @@
         "轨迹"
       ],
       "created_at": "2026-03-11T15:04:55.388112+00:00",
-      "updated_at": "2026-03-11T15:04:55.388112+00:00"
+      "updated_at": "2026-03-11T15:04:55.388112+00:00",
+      "knowledge_type": "X"
     },
     "比例环节_2_11004": {
       "id": "比例环节_2_11004",
@@ -17020,7 +17042,8 @@
         "无动态"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "相位裕度直觉_5_L2c003": {
       "id": "相位裕度直觉_5_L2c003",
@@ -17057,7 +17080,8 @@
         "γ"
       ],
       "created_at": "2026-03-13T03:07:32.389832+00:00",
-      "updated_at": "2026-03-13T03:07:32.389832+00:00"
+      "updated_at": "2026-03-13T03:07:32.389832+00:00",
+      "knowledge_type": "X"
     },
     "积分环节_2_11005": {
       "id": "积分环节_2_11005",
@@ -17090,7 +17114,8 @@
         "累积效应"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "结构图等效变换_2_12001": {
       "id": "结构图等效变换_2_12001",
@@ -17128,7 +17153,8 @@
         "顺流补除"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "设计可行域_4_Lsum004": {
       "id": "设计可行域_4_Lsum004",
@@ -17163,7 +17189,8 @@
         "设计决策"
       ],
       "created_at": "2026-03-14T00:44:08.253171+00:00",
-      "updated_at": "2026-03-14T00:44:08.253171+00:00"
+      "updated_at": "2026-03-14T00:44:08.253171+00:00",
+      "knowledge_type": "D"
     },
     "频域可行带_5_Lsum003": {
       "id": "频域可行带_5_Lsum003",
@@ -17198,7 +17225,8 @@
         "频域投影"
       ],
       "created_at": "2026-03-14T00:44:08.250483+00:00",
-      "updated_at": "2026-03-14T00:44:08.250483+00:00"
+      "updated_at": "2026-03-14T00:44:08.250483+00:00",
+      "knowledge_type": "X"
     },
     "频率响应直觉_5_L2c001": {
       "id": "频率响应直觉_5_L2c001",
@@ -17231,7 +17259,8 @@
         "Bode图"
       ],
       "created_at": "2026-03-13T03:07:32.381963+00:00",
-      "updated_at": "2026-03-13T03:07:32.381963+00:00"
+      "updated_at": "2026-03-13T03:07:32.381963+00:00",
+      "knowledge_type": "X"
     },
     "无阻尼自然频率_3_13001": {
       "id": "无阻尼自然频率_3_13001",
@@ -17266,7 +17295,8 @@
         "二阶系统"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "时域指标到极点参数映射_3_13003": {
       "id": "时域指标到极点参数映射_3_13003",
@@ -17307,7 +17337,8 @@
         "闭环极点"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "阻尼振荡频率_3_13002": {
       "id": "阻尼振荡频率_3_13002",
@@ -17342,7 +17373,8 @@
         "峰值时间"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "余子式接触判定_2_21003": {
       "id": "余子式接触判定_2_21003",
@@ -17379,7 +17411,8 @@
         "Δk"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "典型环节对象库_2_21002": {
       "id": "典型环节对象库_2_21002",
@@ -17416,7 +17449,8 @@
         "系统分解"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "零初值传递函数_2_21001": {
       "id": "零初值传递函数_2_21001",
@@ -17451,7 +17485,8 @@
         "传递函数"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "Bode首轮骨架_5_1e07d9da": {
       "id": "Bode首轮骨架_5_1e07d9da",
@@ -17484,7 +17519,8 @@
         "手绘"
       ],
       "created_at": "2026-03-28T09:57:11.127527+00:00",
-      "updated_at": "2026-03-28T09:57:11.127527+00:00"
+      "updated_at": "2026-03-28T09:57:11.127527+00:00",
+      "knowledge_type": "C"
     },
     "对数频率坐标_5_5e366881": {
       "id": "对数频率坐标_5_5e366881",
@@ -17515,7 +17551,8 @@
         "转折频率"
       ],
       "created_at": "2026-03-28T09:57:11.124577+00:00",
-      "updated_at": "2026-03-28T09:57:11.124577+00:00"
+      "updated_at": "2026-03-28T09:57:11.124577+00:00",
+      "knowledge_type": "X"
     },
     "正弦稳态响应_5_b6dc1100": {
       "id": "正弦稳态响应_5_b6dc1100",
@@ -17548,7 +17585,8 @@
         "相位变化"
       ],
       "created_at": "2026-03-28T09:57:11.118123+00:00",
-      "updated_at": "2026-03-28T09:57:11.118123+00:00"
+      "updated_at": "2026-03-28T09:57:11.118123+00:00",
+      "knowledge_type": "X"
     },
     "频率分量重构_5_42082c97": {
       "id": "频率分量重构_5_42082c97",
@@ -17580,7 +17618,8 @@
         "时域重塑"
       ],
       "created_at": "2026-03-28T09:57:11.113186+00:00",
-      "updated_at": "2026-03-28T09:57:11.113186+00:00"
+      "updated_at": "2026-03-28T09:57:11.113186+00:00",
+      "knowledge_type": "X"
     },
     "劳斯判据_3_e3500ac9": {
       "id": "劳斯判据_3_e3500ac9",
@@ -17616,7 +17655,8 @@
         "稳定边界"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "劳斯表特殊情况_3_f787433f": {
       "id": "劳斯表特殊情况_3_f787433f",
@@ -17650,7 +17690,8 @@
         "辅助方程"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "变量平移判稳_3_38e76ca0": {
       "id": "变量平移判稳_3_38e76ca0",
@@ -17685,7 +17726,8 @@
         "参数设计"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "稳定可行域_3_7eed0929": {
       "id": "稳定可行域_3_7eed0929",
@@ -17721,7 +17763,8 @@
         "可行域"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "辅助方程_3_ed86f1f0": {
       "id": "辅助方程_3_ed86f1f0",
@@ -17755,7 +17798,8 @@
         "虚轴根"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "幅值条件_3_2d5b92ac": {
       "id": "幅值条件_3_2d5b92ac",
@@ -17790,7 +17834,8 @@
         "点位验证"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "根轨迹完整法则_3_0f2e7b11": {
       "id": "根轨迹完整法则_3_0f2e7b11",
@@ -17827,7 +17872,8 @@
         "虚轴交点"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "零度与一百八十度根轨迹_3_c1bb7dbe": {
       "id": "零度与一百八十度根轨迹_3_c1bb7dbe",
@@ -17897,7 +17943,8 @@
         "主导极点"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "参数窗口判断_3_7c3e318f": {
       "id": "参数窗口判断_3_7c3e318f",
@@ -17932,7 +17979,8 @@
         "参数判断"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "对象化三域验证_3_56cb3a4e": {
       "id": "对象化三域验证_3_56cb3a4e",
@@ -17967,7 +18015,8 @@
         "频域"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "根轨迹增益换算_3_4b1d9e6c": {
       "id": "根轨迹增益换算_3_4b1d9e6c",
@@ -18001,7 +18050,8 @@
         "幅值条件"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "PD与测速反馈的等效阻尼对比_3_35003": {
       "id": "PD与测速反馈的等效阻尼对比_3_35003",
@@ -18040,7 +18090,8 @@
         "前向零点"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "PD与超前的频域整形差异_3_35004": {
       "id": "PD与超前的频域整形差异_3_35004",
@@ -18080,7 +18131,8 @@
         "相位峰"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "左半平面零点的动态改善机理_3_35002": {
       "id": "左半平面零点的动态改善机理_3_35002",
@@ -18117,7 +18169,8 @@
         "高频代价"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "零点引入与根轨迹重排_3_35001": {
       "id": "零点引入与根轨迹重排_3_35001",
@@ -18155,7 +18208,8 @@
         "主导分支"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "非最小相与右半平面零点_3_35005": {
       "id": "非最小相与右半平面零点_3_35005",
@@ -18192,7 +18246,8 @@
         "保守带宽"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "右半平面零点可行性边界_3_36005": {
       "id": "右半平面零点可行性边界_3_36005",
@@ -18225,7 +18280,8 @@
         "边界审查"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "时域指标到目标极点区域_3_36001": {
       "id": "时域指标到目标极点区域_3_36001",
@@ -18259,7 +18315,8 @@
         "目标极点区域"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "目标驱动PD校正_3_36002": {
       "id": "目标驱动PD校正_3_36002",
@@ -18293,7 +18350,8 @@
         "阶跃验收"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "目标驱动测速反馈校正_3_36003": {
       "id": "目标驱动测速反馈校正_3_36003",
@@ -18328,7 +18386,8 @@
         "阻尼设计"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "目标驱动超前校正_3_36004": {
       "id": "目标驱动超前校正_3_36004",
@@ -18365,7 +18424,8 @@
         "Bode设计"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "低频补偿稳态改善路径_3_37003": {
       "id": "低频补偿稳态改善路径_3_37003",
@@ -18405,7 +18465,8 @@
         "代价"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "稳态误差双路径判断_3_37002": {
       "id": "稳态误差双路径判断_3_37002",
@@ -18442,7 +18503,8 @@
         "适用边界"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "给定-扰动双通道误差分析_3_37001": {
       "id": "给定-扰动双通道误差分析_3_37001",
@@ -18477,7 +18539,8 @@
         "分母相同"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "三频段闭环性能回读_3_38003": {
       "id": "三频段闭环性能回读_3_38003",
@@ -18516,7 +18579,8 @@
         "高频代价"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "奈奎斯特与Bode统一判稳链_3_38002": {
       "id": "奈奎斯特与Bode统一判稳链_3_38002",
@@ -18560,7 +18624,8 @@
         "增益裕度"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "结构变化的频域指纹_3_38001": {
       "id": "结构变化的频域指纹_3_38001",
@@ -18600,7 +18665,8 @@
         "非最小相"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "频域综合判断与工程读回_3_38004": {
       "id": "频域综合判断与工程读回_3_38004",
@@ -18636,7 +18702,8 @@
         "频域设计入口"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "可行域-满意域-最优域分层_4_41004": {
       "id": "可行域-满意域-最优域分层_4_41004",
@@ -18671,7 +18738,8 @@
         "分层筛选"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "指标角色重组_4_41002": {
       "id": "指标角色重组_4_41002",
@@ -18708,7 +18776,8 @@
         "指标分工"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "硬约束-软目标-观察指标分类_4_41003": {
       "id": "硬约束-软目标-观察指标分类_4_41003",
@@ -18741,7 +18810,8 @@
         "优先级"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "设计任务表达卡_4_41001": {
       "id": "设计任务表达卡_4_41001",
@@ -18776,7 +18846,8 @@
         "设计输入"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "跨域联读任务重排_4_41005": {
       "id": "跨域联读任务重排_4_41005",
@@ -18813,7 +18884,8 @@
         "案例对照"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "任务标签与机制标签匹配_3_39002": {
       "id": "任务标签与机制标签匹配_3_39002",
@@ -18849,7 +18921,8 @@
         "综合折中"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "模块4入口的首轮任务判断_3_39004": {
       "id": "模块4入口的首轮任务判断_3_39004",
@@ -18884,7 +18957,8 @@
         "设计起点"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "积分与滞后的稳态改善分工_3_39003": {
       "id": "积分与滞后的稳态改善分工_3_39003",
@@ -18921,7 +18995,8 @@
         "低频补偿"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "稳定_动态_稳态综合映射框架_3_39001": {
       "id": "稳定_动态_稳态综合映射框架_3_39001",
@@ -18960,7 +19035,8 @@
         "综合映射"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "主矛盾到频段职责映射_4_42003": {
       "id": "主矛盾到频段职责映射_4_42003",
@@ -19911,7 +19987,8 @@
         "工程解释"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "剩余风险说明_4_45006": {
       "id": "剩余风险说明_4_45006",
@@ -19944,7 +20021,8 @@
         "移交"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "参数约束翻译表_4_45002": {
       "id": "参数约束翻译表_4_45002",
@@ -19978,7 +20056,8 @@
         "职责分工"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "求解记录单_4_45004": {
       "id": "求解记录单_4_45004",
@@ -20011,7 +20090,8 @@
         "复现"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "罚函数表达表_4_45003": {
       "id": "罚函数表达表_4_45003",
@@ -20044,7 +20124,8 @@
         "显性边界"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "越界证据记录单_4_45001": {
       "id": "越界证据记录单_4_45001",
@@ -20079,7 +20160,8 @@
         "工程失真"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "四类方案比较矩阵_4_46006": {
       "id": "四类方案比较矩阵_4_46006",
@@ -20111,7 +20193,8 @@
         "结构边界"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "固定结构迁移失配信号_4_46002": {
       "id": "固定结构迁移失配信号_4_46002",
@@ -20143,7 +20226,8 @@
         "航迹偏离"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "组合结构专项验证边界判断_4_46007": {
       "id": "组合结构专项验证边界判断_4_46007",
@@ -20174,7 +20258,8 @@
         "边界判断"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "结构搜索引入条件_4_46004": {
       "id": "结构搜索引入条件_4_46004",
@@ -20204,7 +20289,8 @@
         "可用域"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "统一结构编码与解码_4_46005": {
       "id": "统一结构编码与解码_4_46005",
@@ -20236,7 +20322,8 @@
         "逐槽映射"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "迁移场景任务重排_4_46001": {
       "id": "迁移场景任务重排_4_46001",
@@ -20266,7 +20353,8 @@
         "筛选线"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "驱逐舰专用代价函数改写_4_46003": {
       "id": "驱逐舰专用代价函数改写_4_46003",
@@ -20298,7 +20386,8 @@
         "峰值动作"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "传统控制结构局限_4_47008": {
       "id": "传统控制结构局限_4_47008",
@@ -20330,7 +20419,8 @@
         "MPC"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "传统设计四联图校正_4_47004": {
       "id": "传统设计四联图校正_4_47004",
@@ -20361,7 +20451,8 @@
         "根轨迹"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "分段辨识模型组合_4_47002": {
       "id": "分段辨识模型组合_4_47002",
@@ -20394,7 +20485,8 @@
         "扰动等效"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "工程指标代价函数翻译_4_47003": {
       "id": "工程指标代价函数翻译_4_47003",
@@ -20427,7 +20519,8 @@
         "舵速"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "扰动噪声设计边界_4_47007": {
       "id": "扰动噪声设计边界_4_47007",
@@ -20458,7 +20551,8 @@
         "抗噪设计"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "结构参数联合搜索解码_4_47005": {
       "id": "结构参数联合搜索解码_4_47005",
@@ -20490,7 +20584,8 @@
         "遗传算法"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "船舶航向控制对象_2_21004": {
       "id": "船舶航向控制对象_2_21004",
@@ -20527,7 +20622,8 @@
         "结构图"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "C"
     },
     "跨模型验证比较_4_47006": {
       "id": "跨模型验证比较_4_47006",
@@ -20559,7 +20655,8 @@
         "回转任务"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "高保真任务降阶辨识_4_47001": {
       "id": "高保真任务降阶辨识_4_47001",
@@ -20589,7 +20686,8 @@
         "驱逐舰航向"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "主导极点_3_4c4c6bbd": {
       "id": "主导极点_3_4c4c6bbd",
@@ -20714,7 +20812,8 @@
         "量化"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "局部线性化工作点_5_52002": {
       "id": "局部线性化工作点_5_52002",
@@ -20746,7 +20845,8 @@
         "泰勒展开"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "局部线性化边界判断_5_51003": {
       "id": "局部线性化边界判断_5_51003",
@@ -20779,7 +20879,8 @@
         "不连续环节"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "描述函数适用条件_5_52003": {
       "id": "描述函数适用条件_5_52003",
@@ -20811,7 +20912,8 @@
         "描述函数"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "方法迁移前边界说明_5_51005": {
       "id": "方法迁移前边界说明_5_51005",
@@ -20843,7 +20945,8 @@
         "风险说明"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "线性主干边界识别_5_51001": {
       "id": "线性主干边界识别_5_51001",
@@ -20876,7 +20979,8 @@
         "全局失真"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "线性预测失真对比_5_51004": {
       "id": "线性预测失真对比_5_51004",
@@ -20910,7 +21014,8 @@
         "控制量对比"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "自振微小扰动判断_5_52004": {
       "id": "自振微小扰动判断_5_52004",
@@ -20943,7 +21048,8 @@
         "包围关系"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "舵机死区饱和自振风险_5_52005": {
       "id": "舵机死区饱和自振风险_5_52005",
@@ -20977,7 +21083,8 @@
         "抗积分饱和"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "非线性边界工具选择_5_52001": {
       "id": "非线性边界工具选择_5_52001",
@@ -21011,7 +21118,8 @@
         "频域证据"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "MASS协同链路_5_53001": {
       "id": "MASS协同链路_5_53001",
@@ -21045,7 +21153,8 @@
         "监督"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "MASS自动化等级责任边界_5_53008": {
       "id": "MASS自动化等级责任边界_5_53008",
@@ -21074,7 +21183,8 @@
         "降级接管"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "上游信息质量_5_53003": {
       "id": "上游信息质量_5_53003",
@@ -21108,7 +21218,8 @@
         "反馈状态"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "执行约束反馈_5_53005": {
       "id": "执行约束反馈_5_53005",
@@ -21141,7 +21252,8 @@
         "可实现性"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "控制在自主系统链路中的位置_5_53002": {
       "id": "控制在自主系统链路中的位置_5_53002",
@@ -21174,7 +21286,8 @@
         "反馈状态"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "规划参考可实现性_5_53004": {
       "id": "规划参考可实现性_5_53004",
@@ -21207,7 +21320,8 @@
         "舵角约束"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "避碰转弯半径可行域_5_53007": {
       "id": "避碰转弯半径可行域_5_53007",
@@ -21240,7 +21354,8 @@
         "规划可行域"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "链路责任诊断_5_53006": {
       "id": "链路责任诊断_5_53006",
@@ -21273,7 +21388,8 @@
         "监督"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "MPC再定位_5_54002": {
       "id": "MPC再定位_5_54002",
@@ -21306,7 +21422,8 @@
         "约束"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "三路线控制比较_5_54008": {
       "id": "三路线控制比较_5_54008",
@@ -21339,7 +21456,8 @@
         "触边比例"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "在线辨识与模型更新_5_54006": {
       "id": "在线辨识与模型更新_5_54006",
@@ -21373,7 +21491,8 @@
         "保守预测"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "数据覆盖与泛化边界_5_54005": {
       "id": "数据覆盖与泛化边界_5_54005",
@@ -21404,7 +21523,8 @@
         "故障注入"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "数据驱动控制_5_54003": {
       "id": "数据驱动控制_5_54003",
@@ -21436,7 +21556,8 @@
         "控制补偿"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "数据驱动进入条件_5_54004": {
       "id": "数据驱动进入条件_5_54004",
@@ -21468,7 +21589,8 @@
         "泛化条件"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "模型依赖松动_5_54001": {
       "id": "模型依赖松动_5_54001",
@@ -21502,7 +21624,8 @@
         "参数漂移"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "模型数据责任分配_5_54007": {
       "id": "模型数据责任分配_5_54007",
@@ -21534,7 +21657,8 @@
         "安全保护"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "IMC_SIMC与模型匹配整定_4_42013": {
       "id": "IMC_SIMC与模型匹配整定_4_42013",
@@ -21568,7 +21692,8 @@
         "闭环时间常数"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "RL调度PID_5_55006": {
       "id": "RL调度PID_5_55006",
@@ -21601,7 +21726,8 @@
         "工程入口"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "三场景同题比较_5_56006": {
       "id": "三场景同题比较_5_56006",
@@ -21636,7 +21762,8 @@
         "恢复时间"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "临界比例PID整定_4_42012": {
       "id": "临界比例PID整定_4_42012",
@@ -21668,7 +21795,8 @@
         "整定表"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "二状态冷链热模型_5_56002": {
       "id": "二状态冷链热模型_5_56002",
@@ -21701,7 +21829,8 @@
         "时间尺度"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "冷链温控同题任务_5_56001": {
       "id": "冷链温控同题任务_5_56001",
@@ -21734,7 +21863,8 @@
         "方法迁移"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "单结构整定四类复核量_4_42015": {
       "id": "单结构整定四类复核量_4_42015",
@@ -21769,7 +21899,8 @@
         "控制量"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "四路线策略评价_5_55008": {
       "id": "四路线策略评价_5_55008",
@@ -21804,7 +21935,8 @@
         "评价指标"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "客船候选结构整定比较_4_42014": {
       "id": "客船候选结构整定比较_4_42014",
@@ -21838,7 +21970,8 @@
         "控制量"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "强化学习控制回报_5_55003": {
       "id": "强化学习控制回报_5_55003",
@@ -21871,7 +22004,8 @@
         "动作平滑"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "控制器频域特性矩阵_4_42008": {
       "id": "控制器频域特性矩阵_4_42008",
@@ -21905,7 +22039,8 @@
         "幅值"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "方法选择说明卡_5_56008": {
       "id": "方法选择说明卡_5_56008",
@@ -21938,7 +22073,8 @@
         "暂不采用"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "显式控制律与学习策略_5_55001": {
       "id": "显式控制律与学习策略_5_55001",
@@ -21972,7 +22108,8 @@
         "验证责任"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "热负荷预测补偿_5_56004": {
       "id": "热负荷预测补偿_5_56004",
@@ -22006,7 +22143,8 @@
         "数据驱动"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "策略学习安全外壳_5_55005": {
       "id": "策略学习安全外壳_5_55005",
@@ -22040,7 +22178,8 @@
         "安全退化"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "策略学习进入条件_5_55002": {
       "id": "策略学习进入条件_5_55002",
@@ -22073,7 +22212,8 @@
         "部署监控"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "策略监督层调度_5_56005": {
       "id": "策略监督层调度_5_56005",
@@ -22107,7 +22247,8 @@
         "回退"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "经典PID冷链基线_5_56003": {
       "id": "经典PID冷链基线_5_56003",
@@ -22141,7 +22282,8 @@
         "安全退路"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "结构选型决策树_4_42009": {
       "id": "结构选型决策树_4_42009",
@@ -22173,7 +22315,8 @@
         "候选结构"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "航向控制RL环境_5_55004": {
       "id": "航向控制RL环境_5_55004",
@@ -22208,7 +22351,8 @@
         "动作设计"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "训练覆盖与部署验证_5_55007": {
       "id": "训练覆盖与部署验证_5_55007",
@@ -22242,7 +22386,8 @@
         "部署监控"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "X"
     },
     "证据要求等级_5_56007": {
       "id": "证据要求等级_5_56007",
@@ -22274,7 +22419,8 @@
         "部署监控"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "频域PD与超前整定_4_42011": {
       "id": "频域PD与超前整定_4_42011",
@@ -22309,7 +22455,8 @@
         "高频噪声"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "频域PI与滞后整定_4_42010": {
       "id": "频域PI与滞后整定_4_42010",
@@ -22344,7 +22491,8 @@
         "截止频率"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "参考前馈与给定滤波分工_4_43008": {
       "id": "参考前馈与给定滤波分工_4_43008",
@@ -22377,7 +22525,8 @@
         "参考通道"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "复合方案首轮记录表_4_43011": {
       "id": "复合方案首轮记录表_4_43011",
@@ -22410,7 +22559,8 @@
         "验证证据"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "实现层复合保护_4_43010": {
       "id": "实现层复合保护_4_43010",
@@ -22443,7 +22593,8 @@
         "微分滤波"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "扰动前馈保守落地_4_43009": {
       "id": "扰动前馈保守落地_4_43009",
@@ -22477,7 +22628,8 @@
         "模型误差"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
     },
     "经典复合控制边界_4_43007": {
       "id": "经典复合控制边界_4_43007",
@@ -22512,7 +22664,427 @@
         "实现层复合"
       ],
       "created_at": null,
-      "updated_at": null
+      "updated_at": null,
+      "knowledge_type": "D"
+    },
+    "反馈_1_1": {
+      "id": "反馈_1_1",
+      "name": "反馈",
+      "category": "概念性",
+      "knowledge_type": "X",
+      "bloom_level": "理解",
+      "chapter": 1,
+      "chapter_name": "课程全景",
+      "definition": "把输出信息送回比较与决策环节的机制，是闭环控制的核心思想",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "反馈",
+        "闭环控制"
+      ],
+      "tags": [
+        "反馈",
+        "闭环控制",
+        "1-1"
+      ]
+    },
+    "开环控制_1_1": {
+      "id": "开环控制_1_1",
+      "name": "开环控制",
+      "category": "概念性",
+      "knowledge_type": "X",
+      "bloom_level": "理解",
+      "chapter": 1,
+      "chapter_name": "课程全景",
+      "definition": "不利用输出信息修正控制动作的方式——系统只按预设指令运行",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 4,
+      "keywords": [
+        "开环控制"
+      ],
+      "tags": [
+        "开环控制",
+        "1-1"
+      ]
+    },
+    "闭环控制_1_1": {
+      "id": "闭环控制_1_1",
+      "name": "闭环控制",
+      "category": "概念性",
+      "knowledge_type": "X",
+      "bloom_level": "理解",
+      "chapter": 1,
+      "chapter_name": "课程全景",
+      "definition": "利用输出信息持续修正控制动作的方式——系统持续测量、比较、修正",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "闭环控制",
+        "反馈"
+      ],
+      "tags": [
+        "闭环控制",
+        "反馈",
+        "1-1"
+      ]
+    },
+    "误差_1_1": {
+      "id": "误差_1_1",
+      "name": "误差信号",
+      "category": "概念性",
+      "knowledge_type": "X",
+      "bloom_level": "理解",
+      "chapter": 1,
+      "chapter_name": "课程全景",
+      "definition": "期望输出与测量输出的差值 e(t)=r(t)-y_m(t)，是控制器真正关心的量",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 4,
+      "keywords": [
+        "误差",
+        "反馈"
+      ],
+      "tags": [
+        "误差",
+        "反馈",
+        "1-1"
+      ]
+    },
+    "传递函数_1_1": {
+      "id": "传递函数_1_1",
+      "name": "传递函数",
+      "category": "概念性",
+      "knowledge_type": "X",
+      "bloom_level": "理解",
+      "chapter": 1,
+      "chapter_name": "课程全景",
+      "definition": "零初值条件下输出拉氏变换与输入拉氏变换之比 G(s)=Y(s)/U(s)，是课程统一的分析对象",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "传递函数",
+        "模型"
+      ],
+      "tags": [
+        "传递函数",
+        "模型",
+        "1-1"
+      ]
+    },
+    "极点_1_1": {
+      "id": "极点_1_1",
+      "name": "极点",
+      "category": "概念性",
+      "knowledge_type": "X",
+      "bloom_level": "理解",
+      "chapter": 1,
+      "chapter_name": "课程全景",
+      "definition": "传递函数分母的根，决定系统自然演化方式的关键坐标——实部关联衰减/发散，虚部关联振荡",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "极点",
+        "稳定性"
+      ],
+      "tags": [
+        "极点",
+        "稳定性",
+        "1-1"
+      ]
+    },
+    "时域响应_1_1": {
+      "id": "时域响应_1_1",
+      "name": "时域响应",
+      "category": "概念性",
+      "knowledge_type": "X",
+      "bloom_level": "理解",
+      "chapter": 1,
+      "chapter_name": "课程全景",
+      "definition": "输出 y(t) 随时间变化的过程曲线，分解为基本运动模态 e^{σt}sin(ωt) 的叠加，其中 σ 是极点实部",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 4,
+      "keywords": [
+        "时域响应",
+        "阶跃响应"
+      ],
+      "tags": [
+        "时域响应",
+        "阶跃响应",
+        "1-1"
+      ]
+    },
+    "性能指标_1_1": {
+      "id": "性能指标_1_1",
+      "name": "性能指标",
+      "category": "概念性",
+      "knowledge_type": "X",
+      "bloom_level": "理解",
+      "chapter": 1,
+      "chapter_name": "课程全景",
+      "definition": "超调量 M_p、调节时间 t_s、上升时间 t_r——构成跨对象通用的评价语言",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 4,
+      "keywords": [
+        "性能指标",
+        "时域响应"
+      ],
+      "tags": [
+        "性能指标",
+        "时域响应",
+        "1-1"
+      ]
+    },
+    "稳定性_1_1": {
+      "id": "稳定性_1_1",
+      "name": "稳定性",
+      "category": "概念性",
+      "knowledge_type": "X",
+      "bloom_level": "理解",
+      "chapter": 1,
+      "chapter_name": "课程全景",
+      "definition": "全部极点位于左半平面则系统稳定——扰动引起的偏差会逐渐衰减；劳斯判据提供不求根的代数判断方法",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 5,
+      "keywords": [
+        "稳定性",
+        "极点"
+      ],
+      "tags": [
+        "稳定性",
+        "极点",
+        "1-1"
+      ]
+    },
+    "根轨迹_1_1": {
+      "id": "根轨迹_1_1",
+      "name": "根轨迹",
+      "category": "概念性",
+      "knowledge_type": "X",
+      "bloom_level": "理解",
+      "chapter": 1,
+      "chapter_name": "课程全景",
+      "definition": "参数变化时闭环极点在复平面上的迁移路径——把'调参'变成一张可读的地图",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 4,
+      "keywords": [
+        "根轨迹",
+        "极点"
+      ],
+      "tags": [
+        "根轨迹",
+        "极点",
+        "1-1"
+      ]
+    },
+    "频域响应_1_1": {
+      "id": "频域响应_1_1",
+      "name": "频域响应",
+      "category": "概念性",
+      "knowledge_type": "X",
+      "bloom_level": "理解",
+      "chapter": 1,
+      "chapter_name": "课程全景",
+      "definition": "系统对不同频率正弦输入的稳态响应特性——幅值变化和相位变化",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 4,
+      "keywords": [
+        "频域响应"
+      ],
+      "tags": [
+        "频域响应",
+        "1-1"
+      ]
+    },
+    "Bode图_1_1": {
+      "id": "Bode图_1_1",
+      "name": "Bode图",
+      "category": "概念性",
+      "knowledge_type": "X",
+      "bloom_level": "理解",
+      "chapter": 1,
+      "chapter_name": "课程全景",
+      "definition": "频域响应的图形表示——幅频曲线和相频曲线，对数频率横轴",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 4,
+      "keywords": [
+        "Bode图",
+        "频域响应"
+      ],
+      "tags": [
+        "Bode图",
+        "频域响应",
+        "1-1"
+      ]
+    },
+    "控制器_1_1": {
+      "id": "控制器_1_1",
+      "name": "控制器",
+      "category": "概念性",
+      "knowledge_type": "X",
+      "bloom_level": "理解",
+      "chapter": 1,
+      "chapter_name": "课程全景",
+      "definition": "根据目标与测量结果作出决策、产生控制信号的环节",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 4,
+      "keywords": [
+        "控制器"
+      ],
+      "tags": [
+        "控制器",
+        "1-1"
+      ]
+    },
+    "比例控制_1_1": {
+      "id": "比例控制_1_1",
+      "name": "比例控制",
+      "category": "概念性",
+      "knowledge_type": "X",
+      "bloom_level": "理解",
+      "chapter": 1,
+      "chapter_name": "课程全景",
+      "definition": "最简单的控制器 C(s)=K_p——误差大时用力修正，误差小时轻点修正",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 3,
+      "importance": 4,
+      "keywords": [
+        "比例控制",
+        "控制器"
+      ],
+      "tags": [
+        "比例控制",
+        "控制器",
+        "1-1"
+      ]
+    },
+    "校正_1_1": {
+      "id": "校正_1_1",
+      "name": "校正设计",
+      "category": "概念性",
+      "knowledge_type": "X",
+      "bloom_level": "分析",
+      "chapter": 1,
+      "chapter_name": "课程全景",
+      "definition": "根据诊断结果在回路中插入控制器改写系统行为——诊断→加控制器→重新诊断→比较→调整的循环",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 4,
+      "importance": 4,
+      "keywords": [
+        "校正设计",
+        "控制器"
+      ],
+      "tags": [
+        "校正设计",
+        "控制器",
+        "1-1"
+      ]
+    },
+    "课程总图_1_1": {
+      "id": "课程总图_1_1",
+      "name": "课程总图",
+      "category": "概念性",
+      "knowledge_type": "X",
+      "bloom_level": "分析",
+      "chapter": 1,
+      "chapter_name": "课程全景",
+      "definition": "整门课程的知识结构地图——五个模块对应五个连续追问",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "课程总图",
+        "模块1"
+      ],
+      "tags": [
+        "课程总图",
+        "模块1",
+        "1-1"
+      ]
+    },
+    "系统观念_1_1": {
+      "id": "系统观念_1_1",
+      "name": "系统观念",
+      "category": "概念性",
+      "knowledge_type": "X",
+      "bloom_level": "分析",
+      "chapter": 1,
+      "chapter_name": "课程全景",
+      "definition": "同时看目标与输出、信息测量与反馈、执行与作用三层关系——方法换了很多种，对象只有一个",
+      "examples": [],
+      "formulas": [],
+      "prerequisites": [],
+      "related_concepts": [],
+      "difficulty": 4,
+      "importance": 5,
+      "keywords": [
+        "系统观念",
+        "三域联动"
+      ],
+      "tags": [
+        "系统观念",
+        "三域联动",
+        "1-1"
+      ]
     }
   },
   "relations": [],

@@ -9,7 +9,7 @@ import type { LessonKnowledgeCard } from '@/resources/interactive-learning/share
 
 const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
   {
-    id: 'node-block-diagram-elements',
+    id: '方块图_1_dbd6301e',
     name: '方框图四元素',
     nodeType: 'THEORY',
     description: '信号线、引出点、综合点、方框构成结构图语言。',
@@ -21,7 +21,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['结构图阅读', '系统分析', '课堂推导'],
   },
   {
-    id: 'node-block-diagram-causal-chain',
+    id: '结构图_2_3f312ccc',
     name: '由微分方程到结构图',
     nodeType: 'THEORY',
     description: '先做拉氏变换，再按因果顺序连接信号链。',
@@ -33,7 +33,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['结构图建立', '建模流程', '系统等效'],
   },
   {
-    id: 'node-block-diagram-equivalents',
+    id: '结构图等效变换_2_12001',
     name: '串并联与反馈等效',
     nodeType: 'THEORY',
     description: '串联相乘，并联相加，负反馈闭环为 G/(1+GH)。',
@@ -46,7 +46,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['结构图化简', '传递函数求解'],
   },
   {
-    id: 'node-block-diagram-move-points',
+    id: '结构图等效变换_2_12001',
     name: '引出点与综合点移位',
     nodeType: 'THEORY',
     description: '移位时需乘或除所跨越的传递函数，信号不变。',
@@ -58,7 +58,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['解交叉', '结构图整理'],
   },
   {
-    id: 'node-block-diagram-simplify-strategy',
+    id: '结构图简化_2_6d86a775',
     name: '结构图化简策略',
     nodeType: 'THEORY',
     description: '找典型、解交叉、由内向外是化简路线。',
@@ -70,7 +70,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['复杂结构图化简', '课堂推导'],
   },
   {
-    id: 'node-signal-flow-basics',
+    id: '信号流图_2_372d4084',
     name: '信号流图节点与支路',
     nodeType: 'THEORY',
     description: '节点表示变量，支路表示变量间传递关系。',
@@ -82,7 +82,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['拓扑建模', '系统结构表达'],
   },
   {
-    id: 'node-signal-flow-node-types',
+    id: '节点_2_1d010af8',
     name: '输入/输出/混合节点',
     nodeType: 'THEORY',
     description: '只出不入为输入，只入不出为输出，出入兼具为混合节点。',
@@ -94,7 +94,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['节点标注', '拓扑检查'],
   },
   {
-    id: 'node-signal-flow-paths-loops',
+    id: '前向通路_2_1f0b4ba2',
     name: '前向通路与回路增益',
     nodeType: 'THEORY',
     description: '前向通路从输入到输出且不重复节点，回路从节点出发再回到自身。',
@@ -106,7 +106,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['梅森公式', '路径计算'],
   },
   {
-    id: 'node-signal-flow-conversion',
+    id: '信号流图_2_372d4084',
     name: '结构图转信号流图',
     nodeType: 'THEORY',
     description: '标变量、定出入、列节点、连支路。',
@@ -118,7 +118,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['拓扑转换', '图形化建模'],
   },
   {
-    id: 'node-signal-flow-equation',
+    id: '信号流图_2_372d4084',
     name: '由方程组绘制信号流图',
     nodeType: 'THEORY',
     description: '代数式、拉氏变换与初始条件可直接转成支路。',
@@ -130,7 +130,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['方程建模', '非零初始条件处理'],
   },
   {
-    id: 'node-mason-formula',
+    id: '梅森增益公式_2_419eab0c',
     name: '梅森增益公式',
     nodeType: 'THEORY',
     description: '整体传递函数由前向通路与特征式共同决定。',
@@ -143,7 +143,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['传递函数求解', '复杂拓扑计算'],
   },
   {
-    id: 'node-mason-delta',
+    id: '流图特征式_2_ce0bf70b',
     name: '特征式与互不接触回路',
     nodeType: 'THEORY',
     description: 'Delta 由回路增益与互不接触回路乘积交替相加减。',
@@ -156,7 +156,7 @@ const KNOWLEDGE_CARDS: LessonKnowledgeCard[] = [
     applications: ['回路计数', '公式代入'],
   },
   {
-    id: 'node-mason-cofactor',
+    id: '余因子式_2_1da0d7e8',
     name: '余子式 Delta_k',
     nodeType: 'THEORY',
     description: '剔除与前向通路相接触回路后的特征式。',
@@ -173,7 +173,7 @@ interface StructureKnowledgeDeckProps extends BaseWidgetProps {}
 
 export default function StructureKnowledgeDeck({ onComplete, onStateChange }: StructureKnowledgeDeckProps) {
   const interactive = useOptionalInteractiveContext();
-  const initialActiveId = KNOWLEDGE_CARDS[0]?.id ?? 'node-block-diagram-elements';
+  const initialActiveId = KNOWLEDGE_CARDS[0]?.id ?? '方块图_1_dbd6301e';
   const [activeId, setActiveId] = useState(initialActiveId);
   const [visited, setVisited] = useState<string[]>(() => [initialActiveId]);
   const publishedVisitedCountRef = useRef(0);

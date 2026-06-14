@@ -116,11 +116,7 @@ scripts/
     seed-demo-user.mjs
     seed-extracurricular-showcase.mjs
     seed-interactive-resources.ts
-    seed-knowledge.mjs
-    seed-knowledge.ts
-    seed-legacy-content.mjs
     seed-lesson02-complete.mjs
-    seed-lesson13-knowledge.mjs
     seed-missions.mjs
     seed-semester-usage-for-test-students.mjs
     seed-test-accounts.mjs

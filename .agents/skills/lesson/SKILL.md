@@ -253,11 +253,14 @@ description: 面向"自动控制原理"课程创作讲义、知识图谱节点�
    python3 .agents/skills/lesson/scripts/sync_runtime_knowledge.py --check
    ```
 2. 若发现冲突，立即停止并展示冲突清单；不得覆盖作者态真源。
-3. 若仅有可安全合并项，可先运行 `python3 .agents/skills/lesson/scripts/sync_runtime_knowledge.py --apply`，再重新运行 `--check` 确认无冲突。
-4. 再检查当前课次作者态内容、运行态导出和知识卡片是否存在明显冲突；可使用 `course-content/scripts/review_lesson_content.py --review-only <lesson>` 与 `course-content/scripts/export-runtime.sh <lesson>` 验证当前课次。
-5. 若当前课次仍存在冲突，立即停止并展示冲突清单。
-6. 若仅有可安全合并项，应先在作者态真源中完成合并，再重新运行 review/export 链路。
-7. 合并完成后，再进入本技能后续流程。
+3. `course-content/authoring/knowledge/cards/concepts/*.mdx`、`course-content/runtime/knowledge/cards/concepts/*.mdx` 与根目录 `content/` 属于废弃卡片层；残留时应视为冲突并迁移或删除。当前知识卡片唯一真源为 `course-content/authoring/knowledge/cards/nodes/*.md`，运行态只导出 `course-content/runtime/knowledge/cards/nodes/*.md`。
+4. 若仅有可安全合并项，可先运行 `python3 .agents/skills/lesson/scripts/sync_runtime_knowledge.py --apply`，再重新运行 `--check` 确认无冲突。
+   - 若报告的是 base 节点缺少 `knowledge_type`，且作者态课次图谱或节点卡片 frontmatter 能唯一证明该字段，可使用 `--apply --node-field-backfills-only` 只回填安全字段。
+   - 新增知识节点必须显式提供 `knowledge_type`；不得依赖运行态导出后再反推补齐。
+5. 再检查当前课次作者态内容、运行态导出和知识卡片是否存在明显冲突；可使用 `course-content/scripts/review_lesson_content.py --review-only <lesson>` 与 `course-content/scripts/export-runtime.sh <lesson>` 验证当前课次。
+6. 若当前课次仍存在冲突，立即停止并展示冲突清单。
+7. 若仅有可安全合并项，应先在作者态真源中完成合并，再重新运行 review/export 链路。
+8. 合并完成后，再进入本技能后续流程。
 
 ## 工作流：8 步
 

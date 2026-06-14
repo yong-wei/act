@@ -53,7 +53,7 @@ export interface LessonConfig {
   /** 课时类型 */
   type: LessonType;
 
-  /** MDX 内容文件路径，指向 content/lessons/xxx.mdx */
+  /** 运行态 Markdown 内容路径，指向 course-content/runtime/lessons/.../*.md */
   contentPath: string;
 
   /** 预加载资源列表（如 3D 模型 key） */
