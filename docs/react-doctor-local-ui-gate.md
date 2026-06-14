@@ -49,20 +49,40 @@ rtk npm run --silent test:react-doctor:owned-security > artifacts/react-doctor/o
 rtk npm run --silent react-doctor:owned-warnings > artifacts/react-doctor/owned-warnings.json
 ```
 
-Current local baseline on 2026-06-13:
+Warning-mode reports include an `advisoryBaseline` object. It classifies each
+owned warning into one of four planning buckets:
 
-- owned error diagnostics: 62, all `Bugs` category.
-- owned Security diagnostics: 4 warnings.
-- owned warning-summary diagnostics: 3,497 warnings, including the 4 Security
-  diagnostics governed by the security blocker channel.
+- `product-risk`: accessibility, App Router, or state/effect warnings that can
+  affect product behavior.
+- `mechanical-cleanup`: unused files, unused exports, metadata, and component
+  hygiene work that should be handled with graph-backed cleanup.
+- `tool-noise`: scanner limitations that need evidence before suppression or
+  rewrite, currently including R3F/Three `no-unknown-property` diagnostics.
+- `deferred`: advisory warnings that are real but not yet promoted to a child
+  remediation scope.
+
+The report also preserves machine-readable counts by rule, owned surface, and
+file. Downstream remediation changes should use those deltas as local evidence;
+they must not turn the warning channel into a CI blocker unless a later
+OpenSpec change explicitly promotes a rule family.
+
+Current local baseline on 2026-06-14:
+
+- error-only UI diagnostics: 0.
+- owned error diagnostics: 0.
+- owned Security diagnostics: 0 selected diagnostics.
+- owned warning-summary diagnostics: 3,418 advisory warnings.
+- advisory buckets: `product-risk` 1,060, `mechanical-cleanup` 681,
+  `tool-noise` 186, `deferred` 1,491.
 - `evaluate/` is declared as a React Doctor ignored root; the current React
   Doctor run did not emit diagnostics from that root.
 
 For unified UI governance, use this output as a local review artifact for the
-affected migrated routes or representative route set. Existing error classes
-are owned by the active React Doctor cleanup changes under `openspec/changes/`;
-do not connect this gate to CI or treat unrelated active cleanup findings as a
-commercial UI governance failure.
+affected migrated routes or representative route set. The blocker channels are
+clean; the warning channel is advisory planning evidence for the active React
+Doctor cleanup series under `openspec/changes/`. Do not connect this gate to CI
+or treat unrelated advisory warning findings as a commercial UI governance
+failure.
 
 Business identity must not be encoded through JSX `role` attributes. Student
 or teacher surface identity should use explicit domain props such as

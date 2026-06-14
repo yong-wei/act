@@ -1025,6 +1025,11 @@ describe('commercial UI governance', () => {
     expect(docs).toContain('rtk npm run test:react-doctor:owned-errors');
     expect(docs).toContain('rtk npm run test:react-doctor:owned-security');
     expect(docs).toContain('rtk npm run react-doctor:owned-warnings');
+    expect(docs).toContain('`advisoryBaseline`');
+    expect(docs).toContain('product-risk');
+    expect(docs).toContain('mechanical-cleanup');
+    expect(docs).toContain('tool-noise');
+    expect(docs).toContain('deferred');
     expect(docs).toContain('`doctor.config.json` excludes');
     expect(docs).toContain('`evaluate/`, generated build outputs');
     expect(scriptSource).toContain("const REACT_DOCTOR_VERSION = '0.5.1'");
@@ -1056,6 +1061,11 @@ describe('commercial UI governance', () => {
       { filePath: 'docs/security.md', severity: 'warning', category: 'Security', rule: 'security-warning', title: 'Owned security warning', line: 4, column: 1 },
       { filePath: 'eslint.config.mjs', severity: 'error', category: 'Bugs', rule: 'root-config-error', title: 'Owned root config error', line: 5, column: 1 },
       { filePath: 'prisma.config.ts', severity: 'warning', category: 'Security', rule: 'root-config-security', title: 'Owned root config security', line: 6, column: 1 },
+      { filePath: 'src/app/form-action.tsx', severity: 'warning', category: 'Accessibility', rule: 'button-has-type', title: 'Button type missing', line: 7, column: 1 },
+      { filePath: 'src/components/unused-card.tsx', severity: 'warning', category: 'Maintainability', rule: 'unused-export', title: 'Unused export', line: 8, column: 1 },
+      { filePath: 'src/resources/simulations/ship-scene.tsx', severity: 'warning', category: 'Compatibility', rule: 'no-unknown-property', title: 'R3F prop', line: 9, column: 1 },
+      { filePath: 'src/app/raw-dom.tsx', severity: 'warning', category: 'Compatibility', rule: 'no-unknown-property', title: 'DOM prop', line: 10, column: 1 },
+      { filePath: 'src/app/SceneCard.tsx', severity: 'warning', category: 'Compatibility', rule: 'no-unknown-property', title: 'DOM scene card prop', line: 11, column: 1 },
       { filePath: 'evaluate/test_repos/sample.tsx', severity: 'error', category: 'Bugs', rule: 'fixture-error', title: 'Fixture error', line: 5, column: 1 },
       { filePath: 'artifacts/sample.tsx', severity: 'warning', category: 'Security', rule: 'artifact-security', title: 'Artifact security', line: 6, column: 1 },
       ...Array.from({ length: 1800 }, (_, index) => ({
@@ -1089,7 +1099,25 @@ describe('commercial UI governance', () => {
         env: { ...process.env, PATH: `${tmp}:${process.env.PATH ?? ''}` },
         maxBuffer: 8 * 1024 * 1024,
       });
-      return { result, report: JSON.parse(result.stdout) as { totals: { selectedDiagnostics: number; fixtureNoiseDiagnostics: number }; summary: { byOwnedSurface: Record<string, number>; byCategory: Record<string, number> } } };
+      return {
+        result,
+        report: JSON.parse(result.stdout) as {
+          totals: { selectedDiagnostics: number; fixtureNoiseDiagnostics: number };
+          summary: {
+            byOwnedSurface: Record<string, number>;
+            byCategory: Record<string, number>;
+            byFile: Record<string, number>;
+          };
+          advisoryBaseline?: {
+            buckets: Record<string, { total: number; rules: Record<string, number> }>;
+            ruleClassifications: Record<string, string>;
+            r3fThreeNoUnknownProperty: {
+              toolNoiseCandidateFiles: string[];
+              domRiskFiles: string[];
+            };
+          };
+        },
+      };
     };
 
     const errors = runGate('errors');
@@ -1102,14 +1130,31 @@ describe('commercial UI governance', () => {
     expect(security.result.status).toBe(1);
     expect(security.report.totals.selectedDiagnostics).toBe(2);
     expect(warnings.result.status).toBe(0);
-    expect(warnings.report.totals.selectedDiagnostics).toBe(1804);
+    expect(warnings.report.totals.selectedDiagnostics).toBe(1809);
     expect(warnings.report.totals.fixtureNoiseDiagnostics).toBe(2);
     expect(warnings.report.summary.byOwnedSurface).toMatchObject({
+      app: 3,
+      components: 1,
       docs: 1,
       hooks: 1801,
-      resources: 1,
+      resources: 2,
     });
     expect(warnings.report.summary.byCategory.Security).toBe(2);
+    expect(warnings.report.summary.byFile['src/app/form-action.tsx']).toBe(1);
+    expect(warnings.report.advisoryBaseline?.ruleClassifications['button-has-type']).toBe('product-risk');
+    expect(warnings.report.advisoryBaseline?.ruleClassifications['unused-export']).toBe('mechanical-cleanup');
+    expect(warnings.report.advisoryBaseline?.ruleClassifications['no-unknown-property']).toBe('tool-noise');
+    expect(warnings.report.advisoryBaseline?.buckets['product-risk'].rules['button-has-type']).toBe(1);
+    expect(warnings.report.advisoryBaseline?.buckets['mechanical-cleanup'].rules['unused-export']).toBe(1);
+    expect(warnings.report.advisoryBaseline?.buckets['tool-noise'].rules['no-unknown-property']).toBe(1);
+    expect(warnings.report.advisoryBaseline?.buckets.deferred.rules['no-unknown-property']).toBe(2);
+    expect(warnings.report.advisoryBaseline?.r3fThreeNoUnknownProperty.toolNoiseCandidateFiles).toEqual([
+      'src/resources/simulations/ship-scene.tsx',
+    ]);
+    expect(warnings.report.advisoryBaseline?.r3fThreeNoUnknownProperty.domRiskFiles).toEqual([
+      'src/app/SceneCard.tsx',
+      'src/app/raw-dom.tsx',
+    ]);
     expect(warnings.result.stdout.length).toBeGreaterThan(65_536);
   });
 
