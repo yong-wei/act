@@ -41,6 +41,8 @@ export type CommercialUiGovernanceRule =
   | 'report-export.incomplete-visual-evidence'
   | 'accessibility-text-fit.missing-route-evidence'
   | 'accessibility-text-fit.incomplete-evidence'
+  | 'simulation-visual-qa.missing-route-evidence'
+  | 'simulation-visual-qa.incomplete-evidence'
   | 'allowlist.invalid-entry';
 
 export type CommercialUiGovernanceCategory =
@@ -55,6 +57,7 @@ export type CommercialUiGovernanceCategory =
   | 'mobile-structure'
   | 'report-export'
   | 'accessibility-text-fit'
+  | 'simulation-visual-qa'
   | 'allowlist';
 
 export interface CommercialUiGovernanceViolation {
@@ -151,6 +154,110 @@ const COMMERCIAL_VISUAL_QA_NAVIGATION_STATES: readonly CommercialVisualQaNavigat
   'hidden-immersive',
 ];
 
+const COMMERCIAL_SIMULATION_MIN_SCREENSHOT_HEIGHT = 640;
+
+export type CommercialSimulationVisualQaArchetype =
+  | 'catalog'
+  | 'legacy-redirect'
+  | 'heading-control'
+  | 'dp-positioning'
+  | 'cruise-roll'
+  | 'control-workbench-regression';
+export type CommercialSimulationVisualQaDockState = 'collapsed' | 'expanded' | 'hidden' | 'required';
+export type CommercialSimulationVisualQaLocalToolState = 'collapsed' | 'expanded' | 'not-applicable';
+export type CommercialSimulationVirtualLabFinalBehavior = 'redirects-to-simulations';
+export type CommercialSimulationReactDoctorStatus = 'passed' | 'documented' | 'not-run';
+
+export interface CommercialSimulationVisualQaRoute {
+  href: string;
+  routeFile: string;
+  archetype: CommercialSimulationVisualQaArchetype;
+  requiredThemes: readonly CommercialVisualQaTheme[];
+  requiredWidths: readonly [1440, 320];
+  requiredNavigationStates: readonly CommercialVisualQaNavigationState[];
+  requiredDockStates: readonly CommercialSimulationVisualQaDockState[];
+  requiredLocalToolStates: readonly CommercialSimulationVisualQaLocalToolState[];
+  role: CommercialVisualQaRole;
+  acceptedAuthState: CommercialVisualQaAuthState;
+  finalBehavior?: CommercialSimulationVirtualLabFinalBehavior;
+  requiresNonblankScene?: boolean;
+  reactDoctorCommand: string;
+}
+
+type CommercialSimulationExpectedHandoffBaseline = Pick<
+  CommercialSimulationHandoffBaselineEvidence,
+  'handoffSection' | 'conceptImage' | 'implementationScreenshot' | 'evidenceHook' | 'compatibilityRole'
+>;
+
+export interface CommercialSimulationViewportEvidence {
+  width: number;
+  theme: CommercialVisualQaTheme;
+  requestedRoute?: string;
+  finalUrl?: string;
+  role?: CommercialVisualQaRole;
+  authState?: CommercialVisualQaAuthState;
+  routeFile?: string;
+  navigationState: CommercialVisualQaNavigationState;
+  dockState: CommercialSimulationVisualQaDockState;
+  localToolState: CommercialSimulationVisualQaLocalToolState;
+  firstViewportTaskVisible?: boolean;
+  primarySceneNonblank?: boolean;
+  instrumentAreaNonblank?: boolean;
+  result?: 'passed' | 'failed';
+  screenshot?: string;
+  screenshotSha256?: string;
+  screenshotWidth?: number;
+  screenshotHeight?: number;
+  artifact?: string;
+  artifactSha256?: string;
+}
+
+export interface CommercialSimulationReactDoctorEvidence {
+  localOnly: boolean;
+  ciRequired: boolean;
+  command: string;
+  status: CommercialSimulationReactDoctorStatus;
+  report?: string;
+  reportSha256?: string;
+  ownedDiagnostics?: number;
+  selectedDiagnostics?: number;
+}
+
+export type CommercialSimulationHandoffReviewStatus = 'passed' | 'failed' | 'not-run';
+
+export interface CommercialSimulationHandoffBaselineEvidence {
+  change: string;
+  archivePath: string;
+  designHandoff: string;
+  designHandoffSha256?: string;
+  implementationMatrix: string;
+  implementationMatrixSha256?: string;
+  route: string;
+  handoffSection: string;
+  conceptImage: string;
+  conceptImageSha256?: string;
+  implementationScreenshot: string;
+  implementationScreenshotSha256?: string;
+  evidenceHook?: string;
+  independentReviewStatus: CommercialSimulationHandoffReviewStatus;
+  compatibilityRole?: 'redirect-to-simulations';
+}
+
+export interface CommercialSimulationVisualQaEvidence {
+  archetype: CommercialSimulationVisualQaArchetype;
+  availabilityConsistentWith?: string;
+  virtualLabFinalBehavior?: CommercialSimulationVirtualLabFinalBehavior;
+  handoffBaseline?: CommercialSimulationHandoffBaselineEvidence;
+  hidesInternalModelStatus?: boolean;
+  duplicateAssistantEntries?: number;
+  unmanagedRightBottomControls?: number;
+  localControlCollisionFree?: boolean;
+  routeInventoryCompatible?: boolean;
+  modelLibraryCompatible?: boolean;
+  reactDoctorErrorCheck?: CommercialSimulationReactDoctorEvidence;
+  viewports: readonly CommercialSimulationViewportEvidence[];
+}
+
 const MOBILE_NAVIGATION_STATE_BY_BEHAVIOR: Record<PlatformMobileNavigationBehavior, CommercialVisualQaNavigationState> = {
   'public-entry-menu': 'public-entry-menu',
   'auth-callback-panel': 'auth-callback-panel',
@@ -219,6 +326,7 @@ export interface CommercialViewportVisualEvidence {
 export interface CommercialVisualAcceptanceEvidence {
   href: string;
   viewports: readonly CommercialViewportVisualEvidence[];
+  simulationVisualQa?: CommercialSimulationVisualQaEvidence;
   secondaryRouteGovernance?: readonly CommercialSecondaryRouteGovernanceEntry[];
 }
 
@@ -312,6 +420,7 @@ export interface CommercialUiGovernanceInput {
   routeInventory?: readonly PlatformPrimaryRouteInventoryEntry[];
   visualRouteInventory?: readonly PlatformPrimaryRouteInventoryEntry[];
   premiumVisualQaMatrix?: readonly CommercialPremiumVisualQaRoute[];
+  simulationVisualQaMatrix?: readonly CommercialSimulationVisualQaRoute[];
   secondaryRouteGovernanceMatrix?: readonly CommercialSecondaryRouteGovernanceEntry[];
   secondaryRouteDependencies?: readonly CommercialSecondaryRouteDependency[];
   reportSurfaceInventory?: readonly PlatformReportSurfaceInventoryEntry[];
@@ -567,6 +676,165 @@ export const PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX: CommercialPremiumVisualQaR
     floatingDock: 'collapsed',
     acceptedAuthState: 'public',
     artifactDirectory: 'artifacts/commercial-ui/premium-foundation',
+  },
+] as const;
+
+const SIMULATION_VISUAL_QA_REQUIRED_THEMES: readonly CommercialVisualQaTheme[] = ['light', 'dark'];
+const SIMULATION_VISUAL_QA_REQUIRED_WIDTHS: readonly [1440, 320] = [1440, 320];
+const SIMULATION_REACT_DOCTOR_COMMAND = 'rtk npm run test:react-doctor:owned-errors';
+const SIMULATION_PRODUCT_DESIGN_HANDOFF_CHANGE = 'align-virtual-simulation-product-design-handoff';
+const SIMULATION_PRODUCT_DESIGN_HANDOFF_ARCHIVE =
+  'openspec/changes/archive/2026-06-14-align-virtual-simulation-product-design-handoff';
+const SIMULATION_PRODUCT_DESIGN_HANDOFF_SOURCE =
+  'artifacts/product-design-audits/virtual-simulation-2026-06-13/design-handoff.md';
+const SIMULATION_PRODUCT_DESIGN_HANDOFF_MATRIX =
+  'artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-matrix.md';
+const SIMULATION_PRODUCT_DESIGN_CONCEPT_IMAGES = new Set([
+  'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-1-platform-continuity.png',
+  'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
+  'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-3-learning-mission-studio.png',
+]);
+const SIMULATION_PRODUCT_DESIGN_HANDOFF_BASELINE_BY_ROUTE: Record<string, CommercialSimulationExpectedHandoffBaseline> = {
+  '/simulations': {
+    handoffSection: 'Virtual simulation catalog',
+    conceptImage:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-1-platform-continuity.png',
+    implementationScreenshot:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/simulations-dark-1440.png',
+    evidenceHook: 'data-product-design-concept-reference="concept-1-platform-continuity"',
+  },
+  '/virtual-lab': {
+    handoffSection: 'Canonical entry hierarchy',
+    conceptImage:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-1-platform-continuity.png',
+    implementationScreenshot:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/virtual-lab-redirect-dark-1440.png',
+    evidenceHook: 'data-virtual-lab-compatibility-role="redirect-to-simulations"',
+    compatibilityRole: 'redirect-to-simulations',
+  },
+  '/simulations/destroyer': {
+    handoffSection: 'Command-deck shell',
+    conceptImage:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
+    implementationScreenshot:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/destroyer-dark-1440.png',
+    evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
+  },
+  '/simulations/drilling': {
+    handoffSection: 'Command-deck shell',
+    conceptImage:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
+    implementationScreenshot:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/drilling-dark-1440.png',
+    evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
+  },
+  '/simulations/cruise': {
+    handoffSection: 'Command-deck shell',
+    conceptImage:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
+    implementationScreenshot:
+      'artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-expanded-collapsed-collapsed.png',
+    evidenceHook: 'data-simulation-panel-restore-handle',
+  },
+  '/interactive-learning/control-workbench': {
+    handoffSection: 'Learning mission semantics',
+    conceptImage:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-3-learning-mission-studio.png',
+    implementationScreenshot:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/workbench-dark-1440.png',
+    evidenceHook: 'data-learning-mission-semantics="objective-task-chain-evidence-next-action"',
+  },
+};
+const SIMULATION_APP_SHELL_NAVIGATION_STATES: readonly CommercialVisualQaNavigationState[] = [
+  'desktop-expanded',
+  'desktop-collapsed',
+  'workspace-command-surface',
+];
+const SIMULATION_SCENE_DOCK_STATES: readonly CommercialSimulationVisualQaDockState[] = ['collapsed', 'expanded'];
+const SIMULATION_SCENE_LOCAL_TOOL_STATES: readonly CommercialSimulationVisualQaLocalToolState[] = ['collapsed', 'expanded'];
+
+export const SIMULATION_VISUAL_QA_ROUTE_MATRIX: CommercialSimulationVisualQaRoute[] = [
+  {
+    href: '/simulations',
+    routeFile: 'src/app/simulations/page.tsx',
+    archetype: 'catalog',
+    requiredThemes: SIMULATION_VISUAL_QA_REQUIRED_THEMES,
+    requiredWidths: SIMULATION_VISUAL_QA_REQUIRED_WIDTHS,
+    requiredNavigationStates: SIMULATION_APP_SHELL_NAVIGATION_STATES,
+    requiredDockStates: ['collapsed'],
+    requiredLocalToolStates: ['not-applicable'],
+    role: 'student',
+    acceptedAuthState: 'public',
+    reactDoctorCommand: SIMULATION_REACT_DOCTOR_COMMAND,
+  },
+  {
+    href: '/virtual-lab',
+    routeFile: 'src/app/virtual-lab/page.tsx',
+    archetype: 'legacy-redirect',
+    requiredThemes: SIMULATION_VISUAL_QA_REQUIRED_THEMES,
+    requiredWidths: SIMULATION_VISUAL_QA_REQUIRED_WIDTHS,
+    requiredNavigationStates: SIMULATION_APP_SHELL_NAVIGATION_STATES,
+    requiredDockStates: ['collapsed'],
+    requiredLocalToolStates: ['not-applicable'],
+    role: 'student',
+    acceptedAuthState: 'public',
+    finalBehavior: 'redirects-to-simulations',
+    reactDoctorCommand: SIMULATION_REACT_DOCTOR_COMMAND,
+  },
+  {
+    href: '/simulations/destroyer',
+    routeFile: 'src/app/simulations/destroyer/page.tsx',
+    archetype: 'heading-control',
+    requiredThemes: SIMULATION_VISUAL_QA_REQUIRED_THEMES,
+    requiredWidths: SIMULATION_VISUAL_QA_REQUIRED_WIDTHS,
+    requiredNavigationStates: SIMULATION_APP_SHELL_NAVIGATION_STATES,
+    requiredDockStates: SIMULATION_SCENE_DOCK_STATES,
+    requiredLocalToolStates: SIMULATION_SCENE_LOCAL_TOOL_STATES,
+    role: 'student',
+    acceptedAuthState: 'public',
+    requiresNonblankScene: true,
+    reactDoctorCommand: SIMULATION_REACT_DOCTOR_COMMAND,
+  },
+  {
+    href: '/simulations/drilling',
+    routeFile: 'src/app/simulations/drilling/page.tsx',
+    archetype: 'dp-positioning',
+    requiredThemes: SIMULATION_VISUAL_QA_REQUIRED_THEMES,
+    requiredWidths: SIMULATION_VISUAL_QA_REQUIRED_WIDTHS,
+    requiredNavigationStates: SIMULATION_APP_SHELL_NAVIGATION_STATES,
+    requiredDockStates: SIMULATION_SCENE_DOCK_STATES,
+    requiredLocalToolStates: SIMULATION_SCENE_LOCAL_TOOL_STATES,
+    role: 'student',
+    acceptedAuthState: 'public',
+    requiresNonblankScene: true,
+    reactDoctorCommand: SIMULATION_REACT_DOCTOR_COMMAND,
+  },
+  {
+    href: '/simulations/cruise',
+    routeFile: 'src/app/simulations/cruise/page.tsx',
+    archetype: 'cruise-roll',
+    requiredThemes: SIMULATION_VISUAL_QA_REQUIRED_THEMES,
+    requiredWidths: SIMULATION_VISUAL_QA_REQUIRED_WIDTHS,
+    requiredNavigationStates: SIMULATION_APP_SHELL_NAVIGATION_STATES,
+    requiredDockStates: SIMULATION_SCENE_DOCK_STATES,
+    requiredLocalToolStates: SIMULATION_SCENE_LOCAL_TOOL_STATES,
+    role: 'student',
+    acceptedAuthState: 'public',
+    requiresNonblankScene: true,
+    reactDoctorCommand: SIMULATION_REACT_DOCTOR_COMMAND,
+  },
+  {
+    href: '/interactive-learning/control-workbench',
+    routeFile: 'src/app/interactive-learning/control-workbench/page.tsx',
+    archetype: 'control-workbench-regression',
+    requiredThemes: SIMULATION_VISUAL_QA_REQUIRED_THEMES,
+    requiredWidths: SIMULATION_VISUAL_QA_REQUIRED_WIDTHS,
+    requiredNavigationStates: ['desktop-expanded', 'desktop-collapsed', 'mobile-drawer'],
+    requiredDockStates: ['required'],
+    requiredLocalToolStates: ['not-applicable'],
+    role: 'student',
+    acceptedAuthState: 'public',
+    reactDoctorCommand: SIMULATION_REACT_DOCTOR_COMMAND,
   },
 ] as const;
 
@@ -1440,6 +1708,244 @@ function buildMobileStructureViolations(visualEvidence: readonly CommercialVisua
     }));
 }
 
+function buildSimulationVisualQaViolations(
+  requiredRoutes: readonly CommercialSimulationVisualQaRoute[],
+  visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
+) {
+  const navigationStatesForSimulationWidth = (
+    route: CommercialSimulationVisualQaRoute,
+    width: 1440 | 320,
+  ) => route.requiredNavigationStates.filter((state) => (
+    width === 1440 ? state.startsWith('desktop-') : !state.startsWith('desktop-')
+  ));
+  const artifactFingerprint = (viewport: CommercialSimulationViewportEvidence) => (
+    viewport.screenshotSha256
+    ?? viewport.artifactSha256
+    ?? ''
+  );
+  const finalUrlPath = (finalUrl: string | undefined) => {
+    if (!finalUrl) return '';
+    try {
+      return new URL(finalUrl).pathname;
+    } catch {
+      return finalUrl;
+    }
+  };
+
+  return requiredRoutes.flatMap((route) => {
+    const routeEvidence = visualEvidence.find((entry) => entry.href === route.href);
+    const simulationEvidence = routeEvidence?.simulationVisualQa;
+    if (!routeEvidence || !simulationEvidence) {
+      return [withCategory({
+        path: route.href,
+        rule: 'simulation-visual-qa.missing-route-evidence',
+        message: 'Simulation route is missing structured visual QA evidence.',
+        evidence: [
+          `archetype=${route.archetype}`,
+          ...route.requiredWidths.map((width) => `width=${width}`),
+        ],
+      })];
+    }
+
+    const missing = [
+      simulationEvidence.archetype !== route.archetype ? `archetype=${route.archetype}` : '',
+      route.finalBehavior && simulationEvidence.virtualLabFinalBehavior !== route.finalBehavior
+        ? `virtualLabFinalBehavior=${route.finalBehavior}`
+        : '',
+      route.href === '/virtual-lab' && simulationEvidence.availabilityConsistentWith !== '/simulations'
+        ? 'availabilityConsistentWith=/simulations'
+        : '',
+      simulationEvidence.hidesInternalModelStatus !== true ? 'hidesInternalModelStatus' : '',
+      simulationEvidence.duplicateAssistantEntries !== 0 ? 'duplicateAssistantEntries=0' : '',
+      simulationEvidence.unmanagedRightBottomControls !== 0 ? 'unmanagedRightBottomControls=0' : '',
+      simulationEvidence.localControlCollisionFree !== true ? 'localControlCollisionFree' : '',
+      simulationEvidence.routeInventoryCompatible !== true ? 'routeInventoryCompatible' : '',
+      simulationEvidence.modelLibraryCompatible !== true ? 'modelLibraryCompatible' : '',
+      simulationEvidence.reactDoctorErrorCheck?.localOnly !== true ? 'reactDoctorErrorCheck.localOnly' : '',
+      simulationEvidence.reactDoctorErrorCheck?.ciRequired !== false ? 'reactDoctorErrorCheck.ciRequired=false' : '',
+      simulationEvidence.reactDoctorErrorCheck?.command !== route.reactDoctorCommand
+        ? `reactDoctorCommand=${route.reactDoctorCommand}`
+        : '',
+      simulationEvidence.reactDoctorErrorCheck?.status !== 'passed' ? 'reactDoctorErrorCheck=passed' : '',
+      !simulationEvidence.reactDoctorErrorCheck?.report ? 'reactDoctorErrorCheck.report' : '',
+      !simulationEvidence.reactDoctorErrorCheck?.reportSha256 ? 'reactDoctorErrorCheck.reportSha256' : '',
+      simulationEvidence.reactDoctorErrorCheck?.ownedDiagnostics !== 0
+        ? 'reactDoctorErrorCheck.ownedDiagnostics=0'
+        : '',
+      simulationEvidence.reactDoctorErrorCheck?.selectedDiagnostics !== 0
+        ? 'reactDoctorErrorCheck.selectedDiagnostics=0'
+        : '',
+    ].filter(Boolean);
+    const handoffBaseline = simulationEvidence.handoffBaseline;
+    const expectedHandoffBaseline = SIMULATION_PRODUCT_DESIGN_HANDOFF_BASELINE_BY_ROUTE[route.href];
+    if (!handoffBaseline) {
+      missing.push('handoffBaseline');
+    } else if (!expectedHandoffBaseline) {
+      missing.push(`handoffBaseline.expectedRoute=${route.href}`);
+    } else {
+      if (handoffBaseline.change !== SIMULATION_PRODUCT_DESIGN_HANDOFF_CHANGE) {
+        missing.push(`handoffBaseline.change=${SIMULATION_PRODUCT_DESIGN_HANDOFF_CHANGE}`);
+      }
+      if (handoffBaseline.archivePath !== SIMULATION_PRODUCT_DESIGN_HANDOFF_ARCHIVE) {
+        missing.push(`handoffBaseline.archivePath=${SIMULATION_PRODUCT_DESIGN_HANDOFF_ARCHIVE}`);
+      }
+      if (handoffBaseline.designHandoff !== SIMULATION_PRODUCT_DESIGN_HANDOFF_SOURCE) {
+        missing.push(`handoffBaseline.designHandoff=${SIMULATION_PRODUCT_DESIGN_HANDOFF_SOURCE}`);
+      }
+      if (!handoffBaseline.designHandoffSha256) {
+        missing.push('handoffBaseline.designHandoffSha256');
+      }
+      if (handoffBaseline.implementationMatrix !== SIMULATION_PRODUCT_DESIGN_HANDOFF_MATRIX) {
+        missing.push(`handoffBaseline.implementationMatrix=${SIMULATION_PRODUCT_DESIGN_HANDOFF_MATRIX}`);
+      }
+      if (!handoffBaseline.implementationMatrixSha256) {
+        missing.push('handoffBaseline.implementationMatrixSha256');
+      }
+      if (handoffBaseline.route !== route.href) {
+        missing.push(`handoffBaseline.route=${route.href}`);
+      }
+      if (handoffBaseline.handoffSection !== expectedHandoffBaseline.handoffSection) {
+        missing.push(`handoffBaseline.handoffSection=${expectedHandoffBaseline.handoffSection}`);
+      }
+      if (
+        !SIMULATION_PRODUCT_DESIGN_CONCEPT_IMAGES.has(handoffBaseline.conceptImage)
+        || handoffBaseline.conceptImage !== expectedHandoffBaseline.conceptImage
+      ) {
+        missing.push(`handoffBaseline.conceptImage=${expectedHandoffBaseline.conceptImage}`);
+      }
+      if (!handoffBaseline.conceptImageSha256) {
+        missing.push('handoffBaseline.conceptImageSha256');
+      }
+      if (handoffBaseline.implementationScreenshot !== expectedHandoffBaseline.implementationScreenshot) {
+        missing.push(`handoffBaseline.implementationScreenshot=${expectedHandoffBaseline.implementationScreenshot}`);
+      }
+      if (!handoffBaseline.implementationScreenshotSha256) {
+        missing.push('handoffBaseline.implementationScreenshotSha256');
+      }
+      if (handoffBaseline.evidenceHook !== expectedHandoffBaseline.evidenceHook) {
+        missing.push(`handoffBaseline.evidenceHook=${expectedHandoffBaseline.evidenceHook}`);
+      }
+      if (handoffBaseline.independentReviewStatus !== 'passed') {
+        missing.push('handoffBaseline.independentReviewStatus=passed');
+      }
+      if (handoffBaseline.compatibilityRole !== expectedHandoffBaseline.compatibilityRole) {
+        missing.push(`handoffBaseline.compatibilityRole=${expectedHandoffBaseline.compatibilityRole ?? 'none'}`);
+      }
+    }
+
+    const themeArtifactFingerprintsByState = new Map<string, Map<CommercialVisualQaTheme, string>>();
+    const artifactFingerprintsByWidth = new Map<number, Map<string, string>>();
+
+    for (const theme of route.requiredThemes) {
+      for (const width of route.requiredWidths) {
+        const stateArtifactFingerprints = new Map<string, string>();
+        for (const navigationState of navigationStatesForSimulationWidth(route, width)) {
+          for (const dockState of route.requiredDockStates) {
+            for (const localToolState of route.requiredLocalToolStates) {
+              const viewport = simulationEvidence.viewports.find((entry) => (
+                entry.theme === theme
+                && entry.width === width
+                && entry.navigationState === navigationState
+                && entry.dockState === dockState
+                && entry.localToolState === localToolState
+              ));
+              const key = `theme=${theme}:width=${width}:navigationState=${navigationState}:dockState=${dockState}:localToolState=${localToolState}`;
+              if (!viewport) {
+                missing.push(key);
+                continue;
+              }
+              if (!viewport.screenshot) missing.push(`${key}:screenshot`);
+              if (!viewport.screenshotSha256) missing.push(`${key}:screenshotSha256`);
+              if (viewport.screenshotWidth !== width) {
+                missing.push(`${key}:screenshotWidth=${width}`);
+              }
+              if (
+                viewport.screenshotHeight === undefined
+                || viewport.screenshotHeight < COMMERCIAL_SIMULATION_MIN_SCREENSHOT_HEIGHT
+              ) {
+                missing.push(`${key}:screenshotHeight>=${COMMERCIAL_SIMULATION_MIN_SCREENSHOT_HEIGHT}`);
+              }
+              if (viewport.artifact && !viewport.artifactSha256) missing.push(`${key}:artifactSha256`);
+              if (viewport.result !== 'passed') missing.push(`${key}:result=passed`);
+              if (viewport.firstViewportTaskVisible !== true) missing.push(`${key}:firstViewportTaskVisible`);
+              if (viewport.requestedRoute !== route.href) missing.push(`${key}:requestedRoute=${route.href}`);
+              const expectedFinalPath = route.finalBehavior === 'redirects-to-simulations' ? '/simulations' : route.href;
+              if (finalUrlPath(viewport.finalUrl) !== expectedFinalPath) {
+                missing.push(`${key}:finalUrl=${expectedFinalPath}`);
+              }
+              if (viewport.role !== route.role) missing.push(`${key}:role=${route.role}`);
+              if (viewport.authState !== route.acceptedAuthState) {
+                missing.push(`${key}:authState=${route.acceptedAuthState}`);
+              }
+              if (viewport.routeFile !== route.routeFile) missing.push(`${key}:routeFile=${route.routeFile}`);
+              if (route.requiresNonblankScene && viewport.primarySceneNonblank !== true) {
+                missing.push(`${key}:primarySceneNonblank`);
+              }
+              if (route.requiresNonblankScene && viewport.instrumentAreaNonblank !== true) {
+                missing.push(`${key}:instrumentAreaNonblank`);
+              }
+              const fingerprint = artifactFingerprint(viewport);
+              if (fingerprint) {
+                const stateKey = `${navigationState}/${dockState}/${localToolState}`;
+                const routeStateKey = `${theme}/${stateKey}`;
+                const themedStateKey = `width=${width}:navigationState=${navigationState}:dockState=${dockState}:localToolState=${localToolState}`;
+                const widthFingerprints = artifactFingerprintsByWidth.get(width) ?? new Map();
+                const previousRouteStateKey = widthFingerprints.get(fingerprint);
+                if (previousRouteStateKey && previousRouteStateKey !== routeStateKey) {
+                  missing.push(`width=${width}:visualArtifactUnique=${previousRouteStateKey}->${routeStateKey}`);
+                }
+                widthFingerprints.set(fingerprint, routeStateKey);
+                artifactFingerprintsByWidth.set(width, widthFingerprints);
+                stateArtifactFingerprints.set(stateKey, fingerprint);
+                const themedFingerprints = themeArtifactFingerprintsByState.get(themedStateKey) ?? new Map();
+                themedFingerprints.set(theme, fingerprint);
+                themeArtifactFingerprintsByState.set(themedStateKey, themedFingerprints);
+              }
+            }
+          }
+        }
+        if (
+          route.requiredNavigationStates.length > 1
+          || route.requiredDockStates.length > 1
+          || route.requiredLocalToolStates.length > 1
+        ) {
+          const seen = new Map<string, string>();
+          for (const [stateKey, fingerprint] of stateArtifactFingerprints) {
+            const previousStateKey = seen.get(fingerprint);
+            if (previousStateKey && previousStateKey !== stateKey) {
+              missing.push(
+                `theme=${theme}:width=${width}:stateArtifactUnique=${previousStateKey}->${stateKey}`,
+              );
+            }
+            seen.set(fingerprint, stateKey);
+          }
+        }
+      }
+    }
+    for (const [stateKey, themedFingerprints] of themeArtifactFingerprintsByState) {
+      const seen = new Map<string, CommercialVisualQaTheme>();
+      for (const theme of route.requiredThemes) {
+        const fingerprint = themedFingerprints.get(theme);
+        if (!fingerprint) continue;
+        const previousTheme = seen.get(fingerprint);
+        if (previousTheme && previousTheme !== theme) {
+          missing.push(`${stateKey}:themeArtifactUnique=${previousTheme}->${theme}`);
+        }
+        seen.set(fingerprint, theme);
+      }
+    }
+
+    return missing.length > 0
+      ? [withCategory({
+          path: route.href,
+          rule: 'simulation-visual-qa.incomplete-evidence',
+          message: 'Simulation route visual QA evidence is incomplete or conflicts with the route matrix.',
+          evidence: missing,
+        })]
+      : [];
+  });
+}
+
 function buildReportExportViolations(
   reportSurfaceInventory: readonly PlatformReportSurfaceInventoryEntry[],
   visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
@@ -1519,6 +2025,7 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
   const allowlistViolations = buildAllowlistViolations(allowlist, input.today);
   const requiredVisualRoutes = input.requiredVisualRoutes ?? DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES;
   const premiumVisualQaMatrix = input.premiumVisualQaMatrix ?? PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX;
+  const simulationVisualQaMatrix = input.simulationVisualQaMatrix ?? SIMULATION_VISUAL_QA_ROUTE_MATRIX;
   const defaultRouteHrefs = new Set([
     ...requiredVisualRoutes.map((route) => route.href),
     ...premiumVisualQaMatrix.map((route) => route.href),
@@ -1553,6 +2060,7 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
     ...buildVisualManifestMetadataViolations(visualRouteInventory, premiumVisualQaMatrix, input.visualEvidence),
     ...buildNavigationStateViolations(visualRouteInventory, input.visualEvidence),
     ...buildMobileStructureViolations(input.visualEvidence),
+    ...buildSimulationVisualQaViolations(simulationVisualQaMatrix, input.visualEvidence),
     ...buildReportExportViolations(reportSurfaceInventory, input.visualEvidence),
     ...buildAccessibilityViolations(
       requiredVisualRoutes,

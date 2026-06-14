@@ -1,0 +1,18 @@
+{
+  "route": "/simulations/cruise",
+  "theme": "dark",
+  "width": 1440,
+  "navigationState": "desktop-expanded",
+  "dockState": "collapsed",
+  "localToolState": "expanded",
+  "primarySceneNonblank": true,
+  "instrumentAreaNonblank": true,
+  "collisionEvidence": {
+    "dockAndLocalToolsObservedTogether": false,
+    "dockObservedExpanded": false,
+    "localToolsObservedExpanded": true,
+    "localControlCollisionFree": true
+  },
+  "screenshot": "artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-expanded-collapsed-expanded.png",
+  "result": "passed"
+}

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -7,6 +8,7 @@ import {
   DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX,
   DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES,
   PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX,
+  SIMULATION_VISUAL_QA_ROUTE_MATRIX,
   evaluateCommercialUiGovernance,
   type CommercialAccessibilityTextFitEvidence,
   type CommercialVisualAcceptanceRoute,
@@ -457,18 +459,155 @@ function isRegisteredRedirectOnlyCompatibilityPage(file: string, href: string) {
   return source.includes(`redirect('${redirect.to}')`) && !source.includes('return (');
 }
 
+function fileSha256(relativePath: string) {
+  return createHash('sha256').update(readFileSync(path.join(repoRoot, relativePath))).digest('hex');
+}
+
+function simulationViewportArtifact(pathname: string | undefined) {
+  if (!pathname || !existsSync(path.join(repoRoot, pathname))) return undefined;
+  const buffer = readFileSync(path.join(repoRoot, pathname));
+  const isPng = buffer.length > 24
+    && buffer[0] === 0x89
+    && buffer[1] === 0x50
+    && buffer[2] === 0x4e
+    && buffer[3] === 0x47;
+  return {
+    pathname,
+    sha256: createHash('sha256').update(buffer).digest('hex'),
+    width: isPng ? buffer.readUInt32BE(16) : undefined,
+    height: isPng ? buffer.readUInt32BE(20) : undefined,
+  };
+}
+
+function simulationReactDoctorReport(pathname: string | undefined) {
+  const artifact = simulationViewportArtifact(pathname);
+  if (!artifact) return undefined;
+  const content = JSON.parse(readFileSync(path.join(repoRoot, artifact.pathname), 'utf8')) as {
+    totals?: {
+      ownedDiagnostics?: number;
+      selectedDiagnostics?: number;
+    };
+  };
+  return {
+    ...artifact,
+    ownedDiagnostics: content.totals?.ownedDiagnostics,
+    selectedDiagnostics: content.totals?.selectedDiagnostics,
+  };
+}
+
 function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
   const manifestPath = path.join(repoRoot, 'artifacts/commercial-ui/evidence.json');
   if (!existsSync(manifestPath)) return [];
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { routes?: CommercialVisualAcceptanceEvidence[] };
   return (manifest.routes ?? []).map((route) => ({
     ...route,
+    simulationVisualQa: route.simulationVisualQa
+      ? (() => {
+          const reactDoctorReport = simulationReactDoctorReport(route.simulationVisualQa.reactDoctorErrorCheck?.report);
+          return {
+            ...route.simulationVisualQa,
+            reactDoctorErrorCheck: route.simulationVisualQa.reactDoctorErrorCheck
+              ? {
+                  ...route.simulationVisualQa.reactDoctorErrorCheck,
+                  reportSha256: reactDoctorReport?.sha256,
+                  ownedDiagnostics: reactDoctorReport?.ownedDiagnostics,
+                  selectedDiagnostics: reactDoctorReport?.selectedDiagnostics,
+                }
+              : undefined,
+            handoffBaseline: route.simulationVisualQa.handoffBaseline
+              ? {
+                  ...route.simulationVisualQa.handoffBaseline,
+                  designHandoffSha256:
+                    simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.designHandoff)?.sha256,
+                  implementationMatrixSha256:
+                    simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.implementationMatrix)?.sha256,
+                  conceptImageSha256:
+                    simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.conceptImage)?.sha256,
+                  implementationScreenshotSha256:
+                    simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.implementationScreenshot)?.sha256,
+                }
+              : undefined,
+            viewports: route.simulationVisualQa.viewports.map((viewport) => {
+              const artifact = simulationViewportArtifact(viewport.artifact);
+              const screenshot = simulationViewportArtifact(viewport.screenshot);
+              return {
+                ...viewport,
+                artifact: viewport.artifact,
+                artifactSha256: artifact?.sha256,
+                screenshot: viewport.screenshot,
+                screenshotSha256: screenshot?.sha256,
+                screenshotWidth: screenshot?.width,
+                screenshotHeight: screenshot?.height,
+              };
+            }),
+          };
+        })()
+      : undefined,
     viewports: route.viewports.map((viewport) => ({
       ...viewport,
       artifact: viewport.artifact && existsSync(path.join(repoRoot, viewport.artifact)) ? viewport.artifact : undefined,
       screenshot: viewport.screenshot && existsSync(path.join(repoRoot, viewport.screenshot)) ? viewport.screenshot : undefined,
     })),
   }));
+}
+
+function simulationSharedDetailRouteAffected(routeHref: string, files: readonly string[]) {
+  if (!routeHref.startsWith('/simulations/')) return false;
+  return files.some((file) => (
+    file.startsWith('src/app/simulations/_components/')
+    || file.startsWith('src/resources/simulations/')
+    || file.startsWith('src/resources/control-system/')
+    || file.startsWith('rust/control-engine/')
+  ));
+}
+
+function simulationVisualQaEvidenceArtifactPaths(
+  visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
+) {
+  const paths = new Set<string>();
+  for (const route of visualEvidence) {
+    const simulationVisualQa = route.simulationVisualQa;
+    if (!simulationVisualQa) continue;
+    if (simulationVisualQa.reactDoctorErrorCheck?.report) {
+      paths.add(simulationVisualQa.reactDoctorErrorCheck.report);
+    }
+    if (simulationVisualQa.handoffBaseline) {
+      paths.add(simulationVisualQa.handoffBaseline.designHandoff);
+      paths.add(simulationVisualQa.handoffBaseline.implementationMatrix);
+      paths.add(simulationVisualQa.handoffBaseline.conceptImage);
+      paths.add(simulationVisualQa.handoffBaseline.implementationScreenshot);
+    }
+    for (const viewport of simulationVisualQa.viewports) {
+      if (viewport.screenshot) paths.add(viewport.screenshot);
+      if (viewport.artifact) paths.add(viewport.artifact);
+    }
+  }
+  return paths;
+}
+
+function requiresFullSimulationVisualQaMatrix(
+  routes: readonly CommercialVisualAcceptanceRoute[],
+  files: readonly string[],
+  visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
+) {
+  const referencedSimulationArtifacts = simulationVisualQaEvidenceArtifactPaths(visualEvidence);
+  return routes.some((route) => route.href === '/simulations')
+    || routes.some((route) => route.href.startsWith('/simulations/'))
+    || routes.some((route) => route.href === '/interactive-learning/control-workbench')
+    || files.some((file) => (
+      file === 'src/app/simulations/page.tsx'
+      || file === 'src/app/virtual-lab/page.tsx'
+      || file === 'src/lib/platform-role-navigation.ts'
+      || file === 'artifacts/commercial-ui/evidence.json'
+      || file === 'artifacts/commercial-ui/simulation-experience-visual-qa/manifest.json'
+      || file.startsWith('artifacts/commercial-ui/simulation-experience-visual-qa/')
+      || /^src\/app\/simulations\/[^/]+\/page\.tsx$/.test(file)
+      || file.startsWith('src/app/simulations/_components/')
+      || file.startsWith('src/resources/simulations/')
+      || file.startsWith('src/resources/control-system/')
+      || file.startsWith('rust/control-engine/')
+      || referencedSimulationArtifacts.has(file)
+    ));
 }
 
 type JsonRecord = Record<string, unknown>;
@@ -942,6 +1081,13 @@ const routeInventoryForGate = routeLedgerHelperChanged
 const visualRouteInventoryForGate = PLATFORM_PRIMARY_ROUTE_INVENTORY.filter((route) => (
   requiredVisualRoutes.some((visualRoute) => resolvePlatformRouteInventory(visualRoute.href)?.href === route.href)
 ));
+const simulationVisualQaMatrix = requiresFullSimulationVisualQaMatrix(requiredVisualRoutes, files, visualEvidence)
+  ? SIMULATION_VISUAL_QA_ROUTE_MATRIX
+  : SIMULATION_VISUAL_QA_ROUTE_MATRIX.filter((route) => (
+    requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
+    || files.some((file) => file === route.routeFile || file.startsWith(`${path.dirname(route.routeFile)}/`))
+    || simulationSharedDetailRouteAffected(route.href, files)
+  ));
 const result = evaluateCommercialUiGovernance({
   mode: 'blocking',
   today,
@@ -964,6 +1110,7 @@ const result = evaluateCommercialUiGovernance({
   premiumVisualQaMatrix: PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.filter((route) => (
     requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
   )),
+  simulationVisualQaMatrix,
   reportSurfaceInventory: PLATFORM_REPORT_SURFACE_INVENTORY.filter((surface) => (
     requiredVisualRoutes.some((visualRoute) => visualRoute.href === surface.ownerRoute)
   )),

@@ -10,9 +10,11 @@ import {
   DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX,
   DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES,
   PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX,
+  SIMULATION_VISUAL_QA_ROUTE_MATRIX,
   evaluateCommercialUiGovernance,
   type CommercialAccessibilityTextFitEvidence,
   type CommercialNavigationCoverageInput,
+  type CommercialSimulationVisualQaEvidence,
   type CommercialUiGovernanceInput,
   type CommercialVisualQaNavigationState,
   type CommercialVisualAcceptanceEvidence,
@@ -61,6 +63,80 @@ function navigationStatesForWidth(
 ): CommercialVisualQaNavigationState[] {
   if (width === 1440) return ['desktop-expanded', 'desktop-collapsed'];
   return [mobileNavigationStateByBehavior[inventoryRoute?.mobileNavigation ?? 'drawer']];
+}
+
+function simulationNavigationStatesForWidth(
+  width: 1440 | 320,
+  states: readonly CommercialVisualQaNavigationState[],
+): CommercialVisualQaNavigationState[] {
+  return states.filter((state) => (
+    width === 1440 ? state.startsWith('desktop-') : !state.startsWith('desktop-')
+  ));
+}
+
+const handoffRoot = 'artifacts/product-design-audits/virtual-simulation-2026-06-13';
+const handoffConcepts = {
+  catalog: `${handoffRoot}/concepts/concept-1-platform-continuity.png`,
+  commandDeck: `${handoffRoot}/concepts/concept-2-command-deck-shell.png`,
+  missionStudio: `${handoffRoot}/concepts/concept-3-learning-mission-studio.png`,
+} as const;
+
+function simulationHandoffBaselineFor(href: string) {
+  const routeReference = {
+    '/simulations': {
+      handoffSection: 'Virtual simulation catalog',
+      conceptImage: handoffConcepts.catalog,
+      implementationScreenshot: `${handoffRoot}/implementation-screenshots/simulations-dark-1440.png`,
+      evidenceHook: 'data-product-design-concept-reference="concept-1-platform-continuity"',
+    },
+    '/virtual-lab': {
+      handoffSection: 'Canonical entry hierarchy',
+      conceptImage: handoffConcepts.catalog,
+      implementationScreenshot: `${handoffRoot}/implementation-screenshots/virtual-lab-redirect-dark-1440.png`,
+      evidenceHook: 'data-virtual-lab-compatibility-role="redirect-to-simulations"',
+      compatibilityRole: 'redirect-to-simulations',
+    },
+    '/simulations/destroyer': {
+      handoffSection: 'Command-deck shell',
+      conceptImage: handoffConcepts.commandDeck,
+      implementationScreenshot: `${handoffRoot}/implementation-screenshots/destroyer-dark-1440.png`,
+      evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
+    },
+    '/simulations/drilling': {
+      handoffSection: 'Command-deck shell',
+      conceptImage: handoffConcepts.commandDeck,
+      implementationScreenshot: `${handoffRoot}/implementation-screenshots/drilling-dark-1440.png`,
+      evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
+    },
+    '/simulations/cruise': {
+      handoffSection: 'Command-deck shell',
+      conceptImage: handoffConcepts.commandDeck,
+      implementationScreenshot:
+        'artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-expanded-collapsed-collapsed.png',
+      evidenceHook: 'data-simulation-panel-restore-handle',
+    },
+    '/interactive-learning/control-workbench': {
+      handoffSection: 'Learning mission semantics',
+      conceptImage: handoffConcepts.missionStudio,
+      implementationScreenshot: `${handoffRoot}/implementation-screenshots/workbench-dark-1440.png`,
+      evidenceHook: 'data-learning-mission-semantics="objective-task-chain-evidence-next-action"',
+    },
+  } as const;
+  const reference = routeReference[href as keyof typeof routeReference];
+  if (!reference) throw new Error(`Missing handoff baseline for ${href}`);
+  return {
+    change: 'align-virtual-simulation-product-design-handoff',
+    archivePath: 'openspec/changes/archive/2026-06-14-align-virtual-simulation-product-design-handoff',
+    designHandoff: `${handoffRoot}/design-handoff.md`,
+    designHandoffSha256: 'design-handoff-content',
+    implementationMatrix: `${handoffRoot}/implementation-matrix.md`,
+    implementationMatrixSha256: 'implementation-matrix-content',
+    route: href,
+    independentReviewStatus: 'passed' as const,
+    conceptImageSha256: 'concept-image-content',
+    implementationScreenshotSha256: 'implementation-screenshot-content',
+    ...reference,
+  };
 }
 
 function completeVisualEvidence(): CommercialVisualAcceptanceEvidence[] {
@@ -180,12 +256,122 @@ function completeAccessibilityEvidence(): CommercialAccessibilityTextFitEvidence
   }));
 }
 
+function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEvidence {
+  const scenario = SIMULATION_VISUAL_QA_ROUTE_MATRIX.find((entry) => entry.href === href);
+  if (!scenario) throw new Error(`Missing simulation visual QA scenario for ${href}`);
+  return {
+    archetype: scenario.archetype,
+    availabilityConsistentWith: scenario.href === '/virtual-lab' ? '/simulations' : undefined,
+    virtualLabFinalBehavior: scenario.href === '/virtual-lab' ? 'redirects-to-simulations' : undefined,
+    handoffBaseline: simulationHandoffBaselineFor(scenario.href),
+    hidesInternalModelStatus: true,
+    duplicateAssistantEntries: 0,
+    unmanagedRightBottomControls: 0,
+    localControlCollisionFree: true,
+    routeInventoryCompatible: true,
+    modelLibraryCompatible: true,
+    reactDoctorErrorCheck: {
+      localOnly: true,
+      ciRequired: false,
+      command: 'rtk npm run test:react-doctor:owned-errors',
+      status: 'passed',
+      report: 'artifacts/commercial-ui/simulation-experience-visual-qa/react-doctor-owned-errors.json',
+      reportSha256: 'react-doctor-report-content',
+      ownedDiagnostics: 0,
+      selectedDiagnostics: 0,
+    },
+    viewports: scenario.requiredThemes.flatMap((theme) => scenario.requiredWidths.flatMap((width) => (
+      simulationNavigationStatesForWidth(width, scenario.requiredNavigationStates).flatMap((navigationState) => (
+        scenario.requiredDockStates.flatMap((dockState) => (
+          scenario.requiredLocalToolStates.map((localToolState) => ({
+            width,
+            theme,
+            requestedRoute: scenario.href,
+            finalUrl: scenario.finalBehavior === 'redirects-to-simulations'
+              ? 'http://localhost:3000/simulations'
+              : `http://localhost:3000${scenario.href}`,
+            role: scenario.role,
+            authState: scenario.acceptedAuthState,
+            routeFile: scenario.routeFile,
+            navigationState,
+            dockState,
+            localToolState,
+            firstViewportTaskVisible: true,
+            primarySceneNonblank: scenario.requiresNonblankScene || undefined,
+            instrumentAreaNonblank: scenario.requiresNonblankScene || undefined,
+            result: 'passed' as const,
+            screenshot: `artifacts/commercial-ui/simulation-experience-visual-qa/${href.replace(/[^a-z0-9]+/gi, '-')}-${theme}-${width}-${navigationState}-${dockState}-${localToolState}.png`,
+            screenshotSha256: `${href}:${theme}:${width}:${navigationState}:${dockState}:${localToolState}`,
+            screenshotWidth: width,
+            screenshotHeight: width === 320 ? 900 : 900,
+          }))
+        ))
+      ))
+    ))),
+  };
+}
+
+function completeSimulationVisualEvidence(): CommercialVisualAcceptanceEvidence[] {
+  return SIMULATION_VISUAL_QA_ROUTE_MATRIX.map((route) => ({
+    href: route.href,
+    viewports: route.href === '/virtual-lab' ? [] : route.requiredThemes.flatMap((theme) => (
+      route.requiredWidths.flatMap((width) => (
+        navigationStatesForWidth(width, findInventoryRoute(route.href)).map((navigationState) => {
+          const inventoryRoute = findInventoryRoute(route.href);
+          return {
+            width,
+            theme,
+            role: route.role,
+            requestedRoute: route.href,
+            finalUrl: `http://localhost:3000${route.href}`,
+            authState: route.acceptedAuthState,
+            routeFile: route.routeFile,
+            routeArchetype: inventoryRoute?.frame,
+            dockState: inventoryRoute?.floatingDock === 'enabled' ? 'required' : inventoryRoute?.floatingDock,
+            navigationState,
+            result: 'passed' as const,
+            screenshot: `artifacts/commercial-ui/simulation-experience-visual-qa/${route.href.replace(/[^a-z0-9]+/gi, '-')}-${theme}-${width}-${navigationState}.png`,
+            firstViewportUseful: true,
+            firstViewportTaskVisible: true,
+            navigationReachable: true,
+            noTextOverlap: true,
+            stablePanelGeometry: true,
+            coherentBrandApplication: true,
+            taskControlsVisible: true,
+            dockPlacementChecked: true,
+            noDockCollision: true,
+            dockFocusReachable: true,
+            mobileCanvasFirst: width === 320 ? true : undefined,
+            noPersistentMobileSidebar: width === 320 ? true : undefined,
+            noPersistentMobileFilter: width === 320 ? true : undefined,
+            noPersistentWorkbenchPanels: width === 320 ? true : undefined,
+            noPersistentKnowledgeGraphDrawer: width === 320 ? true : undefined,
+          };
+        })
+      ))
+    )),
+    simulationVisualQa: simulationVisualQaFor(route.href),
+  }));
+}
+
+function completeVisualEvidenceWithSimulationQa(): CommercialVisualAcceptanceEvidence[] {
+  const routes = new Map<string, CommercialVisualAcceptanceEvidence>();
+  for (const evidence of completeVisualEvidence()) routes.set(evidence.href, evidence);
+  for (const evidence of completeSimulationVisualEvidence()) {
+    const existing = routes.get(evidence.href);
+    routes.set(evidence.href, existing
+      ? { ...existing, simulationVisualQa: evidence.simulationVisualQa }
+      : evidence);
+  }
+  return [...routes.values()];
+}
+
 function baseInput(overrides: Partial<CommercialUiGovernanceInput> = {}): CommercialUiGovernanceInput {
   return {
     mode: 'blocking',
     today,
     navigationCoverage: fullNavigationCoverage,
-    visualEvidence: completeVisualEvidence(),
+    visualEvidence: completeVisualEvidenceWithSimulationQa(),
     accessibilityEvidence: completeAccessibilityEvidence(),
     ...overrides,
   };
@@ -258,6 +444,584 @@ describe('commercial UI governance', () => {
     expect(DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES.map((route) => route.href)).toEqual(
       expect.arrayContaining(PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.map((route) => route.href)),
     );
+  });
+
+  it('defines simulation visual QA route matrix for redirect, catalog, scenes, dock, and workbench regression', () => {
+    expect(SIMULATION_VISUAL_QA_ROUTE_MATRIX.map((route) => route.href)).toEqual([
+      '/simulations',
+      '/virtual-lab',
+      '/simulations/destroyer',
+      '/simulations/drilling',
+      '/simulations/cruise',
+      '/interactive-learning/control-workbench',
+    ]);
+    expect(SIMULATION_VISUAL_QA_ROUTE_MATRIX.find((route) => route.href === '/virtual-lab')).toMatchObject({
+      archetype: 'legacy-redirect',
+      finalBehavior: 'redirects-to-simulations',
+    });
+    for (const route of SIMULATION_VISUAL_QA_ROUTE_MATRIX) {
+      expect(route.requiredThemes).toEqual(['light', 'dark']);
+      expect(route.requiredWidths).toEqual([1440, 320]);
+      expect(route.requiredNavigationStates).toEqual(expect.arrayContaining(['desktop-expanded', 'desktop-collapsed']));
+      expect(route.reactDoctorCommand).toBe('rtk npm run test:react-doctor:owned-errors');
+    }
+    expect(SIMULATION_VISUAL_QA_ROUTE_MATRIX.filter((route) => route.requiresNonblankScene).map((route) => route.href)).toEqual([
+      '/simulations/destroyer',
+      '/simulations/drilling',
+      '/simulations/cruise',
+    ]);
+    expect(SIMULATION_VISUAL_QA_ROUTE_MATRIX.find((route) => route.href === '/simulations/destroyer')?.requiredDockStates).toEqual([
+      'collapsed',
+      'expanded',
+    ]);
+  });
+
+  it('accepts complete simulation visual QA evidence for required routes', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: completeVisualEvidenceWithSimulationQa(),
+    }));
+
+    expect(result.passed).toBe(true);
+  });
+
+  it('fails when simulation visual QA evidence omits route, scene, dock, or React Doctor proof', () => {
+    const completeSimulationEvidence = SIMULATION_VISUAL_QA_ROUTE_MATRIX.map((route) => ({
+      href: route.href,
+      viewports: [],
+      simulationVisualQa: simulationVisualQaFor(route.href),
+    }));
+    const brokenDestroyer = completeSimulationEvidence.map((entry) => entry.href === '/simulations/destroyer'
+      ? {
+          ...entry,
+            simulationVisualQa: {
+              ...entry.simulationVisualQa,
+              duplicateAssistantEntries: 1,
+              handoffBaseline: {
+                ...simulationHandoffBaselineFor(entry.href),
+                independentReviewStatus: 'not-run' as const,
+              },
+              localControlCollisionFree: false,
+              reactDoctorErrorCheck: { ...entry.simulationVisualQa.reactDoctorErrorCheck, status: 'not-run' as const },
+              viewports: entry.simulationVisualQa.viewports.filter((viewport) => (
+              viewport.dockState !== 'expanded' || viewport.primarySceneNonblank !== true
+            )),
+          },
+        }
+      : entry);
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: brokenDestroyer.filter((entry) => entry.href !== '/virtual-lab'),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.missing-route-evidence',
+        path: '/virtual-lab',
+      }),
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining([
+          'duplicateAssistantEntries=0',
+          'handoffBaseline.independentReviewStatus=passed',
+          'localControlCollisionFree',
+          'reactDoctorErrorCheck=passed',
+          'theme=light:width=1440:navigationState=desktop-expanded:dockState=expanded:localToolState=collapsed',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when final simulation QA omits the handoff-alignment baseline', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      const { handoffBaseline: _handoffBaseline, ...simulationVisualQa } = entry.simulationVisualQa;
+      return {
+        ...entry,
+        simulationVisualQa,
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining(['handoffBaseline']),
+      }),
+    ]));
+  });
+
+  it('fails when simulation React Doctor proof omits the report artifact hash', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          reactDoctorErrorCheck: {
+            ...entry.simulationVisualQa.reactDoctorErrorCheck,
+            reportSha256: undefined,
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining(['reactDoctorErrorCheck.reportSha256']),
+      }),
+    ]));
+  });
+
+  it('fails when simulation React Doctor report still contains owned diagnostics', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          reactDoctorErrorCheck: {
+            ...entry.simulationVisualQa.reactDoctorErrorCheck,
+            ownedDiagnostics: 1,
+            selectedDiagnostics: 1,
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining([
+          'reactDoctorErrorCheck.ownedDiagnostics=0',
+          'reactDoctorErrorCheck.selectedDiagnostics=0',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when simulation handoff baseline omits source file hashes', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          handoffBaseline: {
+            ...simulationHandoffBaselineFor(entry.href),
+            designHandoffSha256: undefined,
+            implementationMatrixSha256: undefined,
+            conceptImageSha256: undefined,
+            implementationScreenshotSha256: undefined,
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining([
+          'handoffBaseline.designHandoffSha256',
+          'handoffBaseline.implementationMatrixSha256',
+          'handoffBaseline.conceptImageSha256',
+          'handoffBaseline.implementationScreenshotSha256',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when simulation handoff baseline points a route at the wrong concept source', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          handoffBaseline: {
+            ...simulationHandoffBaselineFor(entry.href),
+            handoffSection: 'Learning mission semantics',
+            conceptImage: handoffConcepts.missionStudio,
+            evidenceHook: 'data-learning-mission-semantics="objective-task-chain-evidence-next-action"',
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining([
+          'handoffBaseline.handoffSection=Command-deck shell',
+          `handoffBaseline.conceptImage=${handoffConcepts.commandDeck}`,
+          'handoffBaseline.evidenceHook=data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when simulation state evidence reuses the same artifact for different dock or local-tool states', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      const reusedScreenshot = 'artifacts/commercial-ui/simulation-experience-visual-qa/reused-destroyer-state.png';
+      const reusedScreenshotSha256 = 'reused-destroyer-state-content';
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport) => (
+            viewport.theme === 'light'
+            && viewport.width === 1440
+            && viewport.navigationState === 'desktop-expanded'
+              ? { ...viewport, screenshot: reusedScreenshot, screenshotSha256: reusedScreenshotSha256 }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining([
+          'theme=light:width=1440:stateArtifactUnique=desktop-expanded/collapsed/collapsed->desktop-expanded/collapsed/expanded',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when simulation navigation states reuse the same visual artifact', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations' || !entry.simulationVisualQa) return entry;
+      const expanded = entry.simulationVisualQa.viewports.find((viewport) => (
+        viewport.theme === 'light'
+        && viewport.width === 1440
+        && viewport.navigationState === 'desktop-expanded'
+      ));
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport) => (
+            viewport.theme === 'light'
+            && viewport.width === 1440
+            && viewport.navigationState === 'desktop-collapsed'
+              ? {
+                  ...viewport,
+                  screenshot: expanded?.screenshot,
+                  screenshotSha256: expanded?.screenshotSha256,
+                }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining([
+          'theme=light:width=1440:stateArtifactUnique=desktop-expanded/collapsed/not-applicable->desktop-collapsed/collapsed/not-applicable',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when light and dark simulation evidence reuse the same visual artifact for the same state', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations' || !entry.simulationVisualQa) return entry;
+      const lightExpanded = entry.simulationVisualQa.viewports.find((viewport) => (
+        viewport.theme === 'light'
+        && viewport.width === 1440
+        && viewport.navigationState === 'desktop-expanded'
+      ));
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport) => (
+            viewport.theme === 'dark'
+            && viewport.width === 1440
+            && viewport.navigationState === 'desktop-expanded'
+              ? {
+                  ...viewport,
+                  screenshot: lightExpanded?.screenshot,
+                  screenshotSha256: lightExpanded?.screenshotSha256,
+                }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining([
+          'width=1440:navigationState=desktop-expanded:dockState=collapsed:localToolState=not-applicable:themeArtifactUnique=light->dark',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when simulation evidence reuses a visual artifact across theme and navigation state', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/virtual-lab' || !entry.simulationVisualQa) return entry;
+      const lightExpanded = entry.simulationVisualQa.viewports.find((viewport) => (
+        viewport.theme === 'light'
+        && viewport.width === 1440
+        && viewport.navigationState === 'desktop-expanded'
+      ));
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport) => (
+            viewport.theme === 'dark'
+            && viewport.width === 1440
+            && viewport.navigationState === 'desktop-collapsed'
+              ? {
+                  ...viewport,
+                  screenshot: lightExpanded?.screenshot,
+                  screenshotSha256: lightExpanded?.screenshotSha256,
+                }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/virtual-lab',
+        evidence: expect.arrayContaining([
+          'width=1440:visualArtifactUnique=light/desktop-expanded/collapsed/not-applicable->dark/desktop-collapsed/collapsed/not-applicable',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when simulation visual QA only provides a state artifact without a screenshot', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport, index) => (
+            index === 0
+              ? {
+                  ...viewport,
+                  screenshot: undefined,
+                  screenshotSha256: undefined,
+                  artifact: 'artifacts/commercial-ui/simulation-experience-visual-qa/state-artifacts/artifact-only.json',
+                  artifactSha256: 'artifact-only-state',
+                }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining([
+          'theme=light:width=1440:navigationState=desktop-expanded:dockState=collapsed:localToolState=collapsed:screenshot',
+          'theme=light:width=1440:navigationState=desktop-expanded:dockState=collapsed:localToolState=collapsed:screenshotSha256',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when simulation screenshot dimensions do not match the viewport width', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport) => (
+            viewport.theme === 'dark'
+            && viewport.width === 320
+              ? {
+                  ...viewport,
+                  screenshotWidth: 390,
+                  screenshotHeight: 900,
+                }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining([
+          'theme=dark:width=320:navigationState=workspace-command-surface:dockState=collapsed:localToolState=not-applicable:screenshotWidth=320',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when simulation screenshot width cannot be parsed from the screenshot file', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport) => (
+            viewport.theme === 'light'
+            && viewport.width === 320
+              ? {
+                  ...viewport,
+                  screenshot: 'artifacts/commercial-ui/simulation-experience-visual-qa/non-png-placeholder.json',
+                  screenshotSha256: 'non-png-placeholder',
+                  screenshotWidth: undefined,
+                  screenshotHeight: undefined,
+                }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining([
+          'theme=light:width=320:navigationState=workspace-command-surface:dockState=collapsed:localToolState=not-applicable:screenshotWidth=320',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when simulation screenshot height is too small to prove first viewport coverage', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport) => (
+            viewport.theme === 'dark'
+            && viewport.width === 320
+              ? {
+                  ...viewport,
+                  screenshotWidth: 320,
+                  screenshotHeight: 100,
+                }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining([
+          'theme=dark:width=320:navigationState=workspace-command-surface:dockState=collapsed:localToolState=not-applicable:screenshotHeight>=640',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when simulation viewport metadata does not match the route matrix', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/virtual-lab' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          viewports: entry.simulationVisualQa.viewports.map((viewport, index) => (
+            index === 0
+              ? {
+                  ...viewport,
+                  requestedRoute: '/simulations',
+                  finalUrl: 'http://localhost:3000/virtual-lab',
+                  role: 'teacher' as const,
+                  authState: 'authenticated' as const,
+                  routeFile: 'src/app/simulations/page.tsx',
+                }
+              : viewport
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/virtual-lab',
+        evidence: expect.arrayContaining([
+          'theme=light:width=1440:navigationState=desktop-expanded:dockState=collapsed:localToolState=not-applicable:requestedRoute=/virtual-lab',
+          'theme=light:width=1440:navigationState=desktop-expanded:dockState=collapsed:localToolState=not-applicable:finalUrl=/simulations',
+          'theme=light:width=1440:navigationState=desktop-expanded:dockState=collapsed:localToolState=not-applicable:role=student',
+          'theme=light:width=1440:navigationState=desktop-expanded:dockState=collapsed:localToolState=not-applicable:authState=public',
+          'theme=light:width=1440:navigationState=desktop-expanded:dockState=collapsed:localToolState=not-applicable:routeFile=src/app/virtual-lab/page.tsx',
+        ]),
+      }),
+    ]));
   });
 
   it('defines a secondary navigation governance matrix for migrated route families and data-center role states', () => {
@@ -1048,6 +1812,40 @@ describe('commercial UI governance', () => {
       '.next/**',
     ]));
     expect(configExcludedRoots).toEqual(scriptExcludedRoots);
+  });
+
+  it('keeps simulation QA matrix scoped and verifies nested visual artifacts in the governance script', () => {
+    const scriptSource = readFileSync(join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'), 'utf8');
+
+    expect(scriptSource).toContain('SIMULATION_VISUAL_QA_ROUTE_MATRIX.filter');
+    expect(scriptSource).toContain('simulationSharedDetailRouteAffected(route.href, files)');
+    expect(scriptSource).toContain('requiresFullSimulationVisualQaMatrix(requiredVisualRoutes, files, visualEvidence)');
+    expect(scriptSource).toContain('function simulationVisualQaEvidenceArtifactPaths');
+    expect(scriptSource).toContain('referencedSimulationArtifacts.has(file)');
+    expect(scriptSource).toContain("route.href.startsWith('/simulations/')");
+    expect(scriptSource).toContain("route.href === '/interactive-learning/control-workbench'");
+    expect(scriptSource).toContain("file === 'src/lib/platform-role-navigation.ts'");
+    expect(scriptSource).toContain("file.startsWith('artifacts/commercial-ui/simulation-experience-visual-qa/')");
+    expect(scriptSource).toContain('/^src\\/app\\/simulations\\/[^/]+\\/page\\.tsx$/.test(file)');
+    expect(scriptSource).toContain('? SIMULATION_VISUAL_QA_ROUTE_MATRIX');
+    expect(scriptSource).not.toContain('visualEvidence.some((entry) => entry.href === route.href && entry.simulationVisualQa)');
+    expect(scriptSource).toContain('route.simulationVisualQa.viewports.map');
+    expect(scriptSource).toContain('const screenshot = simulationViewportArtifact(viewport.screenshot)');
+    expect(scriptSource).toContain('screenshot: viewport.screenshot');
+    expect(scriptSource).toContain('screenshotSha256: screenshot?.sha256');
+    expect(scriptSource).toContain('screenshotWidth: screenshot?.width');
+    expect(scriptSource).toContain('function simulationReactDoctorReport');
+    expect(scriptSource).toContain('reportSha256: reactDoctorReport?.sha256');
+    expect(scriptSource).toContain('ownedDiagnostics: reactDoctorReport?.ownedDiagnostics');
+    expect(scriptSource).toContain('selectedDiagnostics: reactDoctorReport?.selectedDiagnostics');
+    expect(scriptSource).toContain('designHandoffSha256:');
+    expect(scriptSource).toContain('route.simulationVisualQa.handoffBaseline.designHandoff');
+    expect(scriptSource).toContain('implementationMatrixSha256:');
+    expect(scriptSource).toContain('conceptImageSha256:');
+    expect(scriptSource).toContain('route.simulationVisualQa.handoffBaseline.conceptImage');
+    expect(scriptSource).toContain('implementationScreenshotSha256:');
+    expect(scriptSource).toContain('paths.add(simulationVisualQa.handoffBaseline.designHandoff)');
+    expect(scriptSource).toContain('paths.add(simulationVisualQa.handoffBaseline.implementationMatrix)');
   });
 
   it('filters React Doctor owned-surface diagnostics and keeps large JSON stdout parseable', () => {
