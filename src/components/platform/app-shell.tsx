@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import type { ReactNode } from 'react';
 import {
   BarChart3,
@@ -97,7 +97,7 @@ export type AppShellRouteMetadata = Pick<
   | 'navigationLayers'
   | 'floatingDock'
   | 'contextualReturn'
->;
+> & Partial<Pick<PlatformPrimaryRouteInventoryEntry, 'desktopNavigation'>>;
 
 export interface AppShellDockControl {
   id: string;
@@ -191,6 +191,48 @@ const mobileDrawerFocusableSelector = [
   'select:not([disabled])',
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
+
+export const APP_SHELL_NAVIGATION_PREFERENCE_STORAGE_KEY = 'act:app-shell:navigation-preference';
+
+export type AppShellNavigationPreference = 'collapsed' | 'expanded';
+
+type AppShellNavigationPreferenceStorage = Pick<Storage, 'getItem' | 'setItem'>;
+
+export function resolveAppShellNavigationPreference(value?: string | null): AppShellNavigationPreference {
+  return value === 'expanded' ? 'expanded' : 'collapsed';
+}
+
+export function readAppShellNavigationPreference(
+  storage?: Pick<AppShellNavigationPreferenceStorage, 'getItem'> | null,
+): AppShellNavigationPreference {
+  if (!storage) return 'collapsed';
+  try {
+    return resolveAppShellNavigationPreference(storage.getItem(APP_SHELL_NAVIGATION_PREFERENCE_STORAGE_KEY));
+  } catch {
+    return 'collapsed';
+  }
+}
+
+export function writeAppShellNavigationPreference(
+  preference: AppShellNavigationPreference,
+  storage?: Pick<AppShellNavigationPreferenceStorage, 'setItem'> | null,
+) {
+  if (!storage) return;
+  try {
+    storage.setItem(APP_SHELL_NAVIGATION_PREFERENCE_STORAGE_KEY, preference);
+  } catch {
+    // Ignore unavailable or blocked browser storage; the collapsed default remains safe.
+  }
+}
+
+export function getBrowserNavigationPreferenceStorage() {
+  if (typeof window === 'undefined') return undefined;
+  try {
+    return window.localStorage;
+  } catch {
+    return undefined;
+  }
+}
 
 interface NavigationRenderItem {
   item: PlatformNavigationItem;
@@ -485,24 +527,37 @@ function AppShellDesktopLayout({
   floatingDockBehavior: PlatformFloatingDockRouteBehavior;
   children: ReactNode;
 }) {
-  const [navigationCollapsed, setNavigationCollapsed] = useState(false);
+  const [navigationPreference, setNavigationPreference] = useState<AppShellNavigationPreference>('collapsed');
   const renderItems = flattenNavigationItems(effectiveNavigation);
   const renderMobileNavigation = showSidebar
     && effectiveNavigation.length > 0
     && resolvedRouteMetadata?.mobileNavigation !== 'hidden-immersive';
+  const navigationCollapsed = allowSidebarCollapse ? navigationPreference === 'collapsed' : false;
+
+  useEffect(() => {
+    if (!allowSidebarCollapse) return;
+    setNavigationPreference(readAppShellNavigationPreference(getBrowserNavigationPreferenceStorage()));
+  }, [allowSidebarCollapse]);
+
+  const handleNavigationCollapsedChange = useCallback((collapsed: boolean) => {
+    const nextPreference = collapsed ? 'collapsed' : 'expanded';
+    setNavigationPreference(nextPreference);
+    writeAppShellNavigationPreference(nextPreference, getBrowserNavigationPreferenceStorage());
+  }, []);
 
   return (
     <div
       className={getAppShellDesktopGridClassName({ showSidebar, sidebarBreakpoint, navigationCollapsed })}
       data-app-shell-layout={allowSidebarCollapse ? 'collapsible' : undefined}
       data-app-shell-navigation-state={allowSidebarCollapse ? (navigationCollapsed ? 'collapsed' : 'expanded') : undefined}
+      data-app-shell-navigation-preference={allowSidebarCollapse ? navigationPreference : undefined}
     >
       {showSidebar ? allowSidebarCollapse ? (
         <CollapsibleAppSidebar
           navigation={effectiveNavigation}
           activeHref={activeHref}
           navigationCollapsed={navigationCollapsed}
-          onNavigationCollapsedChange={setNavigationCollapsed}
+          onNavigationCollapsedChange={handleNavigationCollapsedChange}
           className={sidebarBreakpoint === 'lg' ? 'hidden lg:block' : 'hidden xl:block'}
         />
       ) : (
@@ -879,7 +934,7 @@ export function AppShell({
   actions,
   userMenu,
   activeHref,
-  sidebarMode = 'fixed',
+  sidebarMode,
   routeMetadata,
   workspaceSlots,
   dockControls = [],
@@ -899,14 +954,16 @@ export function AppShell({
   const routeNavigation = navigation === undefined && activeHref ? getPlatformRouteNavigation(activeHref, viewerRole) : [];
   const effectiveNavigation = navigation ?? routeNavigation;
   const renderItems = flattenNavigationItems(effectiveNavigation);
-  const showSidebar = sidebarMode !== 'hidden' && renderItems.length > 0;
-  const sidebarBreakpoint = sidebarMode === 'collapsible' ? 'xl' : 'lg';
-  const allowSidebarCollapse = sidebarMode === 'collapsible';
+  const resolvedSidebarMode = sidebarMode ?? resolvedRouteMetadata?.desktopNavigation ?? 'fixed';
+  const showSidebar = resolvedSidebarMode !== 'hidden' && renderItems.length > 0;
+  const sidebarBreakpoint = resolvedSidebarMode === 'collapsible' ? 'xl' : 'lg';
+  const allowSidebarCollapse = resolvedSidebarMode === 'collapsible';
   const activeItemId = getActiveNavigationItemId(effectiveNavigation, activeHref);
   return (
     <main
       data-platform-route-frame={resolvedRouteMetadata?.frame}
       data-platform-route-theme-support={routeDataAttribute(resolvedRouteMetadata?.themeSupport as readonly PlatformRouteThemeSupport[] | undefined)}
+      data-platform-desktop-navigation={resolvedRouteMetadata?.desktopNavigation}
       data-platform-route-navigation-layers={routeDataAttribute(resolvedRouteMetadata?.navigationLayers as readonly PlatformNavigationLayerId[] | undefined)}
       data-platform-mobile-navigation={resolvedRouteMetadata?.mobileNavigation as PlatformMobileNavigationBehavior | undefined}
       data-platform-floating-dock-behavior={floatingDockBehavior}

@@ -25,21 +25,28 @@ import {
   createPlatformNavigation,
   filterPlatformNavigation,
   type PlatformNavigationItem,
+  type PlatformRole,
 } from '@/components/platform/platform-ui-contracts';
 import {
+  APP_SHELL_NAVIGATION_PREFERENCE_STORAGE_KEY,
   AppBreadcrumb,
   AppHeader,
   AppShell,
   AppSidebar,
   PlatformSurface,
   ThemeSwitcher,
+  getBrowserNavigationPreferenceStorage,
   getAppShellDesktopGridClassName,
+  readAppShellNavigationPreference,
+  resolveAppShellNavigationPreference,
+  writeAppShellNavigationPreference,
 } from '@/components/platform/app-shell';
 import {
   isTeacherOperationsNavActive,
   resolveTeacherOperationsNavHref,
 } from '@/features/teacher/teacher-operations-nav';
 import { resolveTeacherOperationsClassHref } from '@/features/teacher/teacher-dashboard';
+import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '@/lib/platform-role-navigation';
 
 const rootDir = path.resolve(__dirname, '../../..');
 
@@ -117,6 +124,18 @@ function renderAppShellMarkup(props: Parameters<typeof AppShell>[0]) {
       createElement(PageFloatingControlsProvider, null, createElement(AppShell, props)),
     ),
   );
+}
+
+function createPreferenceStorage(initialValue?: string) {
+  const values = new Map<string, string>();
+  if (initialValue !== undefined) {
+    values.set(APP_SHELL_NAVIGATION_PREFERENCE_STORAGE_KEY, initialValue);
+  }
+  return {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => values.set(key, value),
+    values,
+  };
 }
 
 describe('platform UI contracts', () => {
@@ -480,10 +499,10 @@ describe('platform UI contracts', () => {
     expect(simulationLocalToolsSource).toContain('data-simulation-local-hint-strip');
     expect(simulationLocalToolsSource).toContain('data-simulation-panel-collapsible="true"');
     expect(simulationLocalToolsSource).toContain('data-simulation-mobile-secondary-controls="stacked-sheets"');
-    expect(simulationLocalToolsSource).toContain('order-1 flex min-w-0 flex-col gap-3');
-    expect(simulationLocalToolsSource).toContain("side === 'left' && panelLayout === 'side-rails' ? 'order-2 lg:order-first'");
+    expect(simulationLocalToolsSource).toContain('order-1 flex min-w-0 flex-1 flex-col');
+    expect(simulationLocalToolsSource).toContain("side === 'left' && panelLayout === 'side-rails' ? 'order-2 lg:hidden'");
     expect(simulationLocalToolsSource).toContain("side === 'left' && panelLayout === 'stacked' ? 'order-2'");
-    expect(simulationLocalToolsSource).toContain("side === 'right' && panelLayout === 'side-rails' ? 'order-3 lg:order-last'");
+    expect(simulationLocalToolsSource).toContain("side === 'right' && panelLayout === 'side-rails' ? 'order-3 lg:hidden'");
     expect(simulationLocalToolsSource).toContain("side === 'right' && panelLayout === 'stacked' ? 'order-3'");
     expect(simulationLocalToolsSource).toContain('ChevronDown');
     expect(simulationLocalToolsSource).toContain('focus-visible:ring-2 focus-visible:ring-platform-action-primary');
@@ -818,6 +837,153 @@ describe('platform UI contracts', () => {
     expect(collapsedSidebarMarkup).not.toContain('>知</a>');
   });
 
+  it('persists AppShell desktop navigation preference with a collapsed fallback', () => {
+    const storage = createPreferenceStorage();
+
+    expect(resolveAppShellNavigationPreference(undefined)).toBe('collapsed');
+    expect(resolveAppShellNavigationPreference('invalid')).toBe('collapsed');
+    expect(resolveAppShellNavigationPreference('expanded')).toBe('expanded');
+    expect(readAppShellNavigationPreference(storage)).toBe('collapsed');
+
+    writeAppShellNavigationPreference('expanded', storage);
+    expect(storage.values.get(APP_SHELL_NAVIGATION_PREFERENCE_STORAGE_KEY)).toBe('expanded');
+    expect(readAppShellNavigationPreference(storage)).toBe('expanded');
+
+    storage.values.set(APP_SHELL_NAVIGATION_PREFERENCE_STORAGE_KEY, 'wide');
+    expect(readAppShellNavigationPreference(storage)).toBe('collapsed');
+  });
+
+  it('does not throw when AppShell browser navigation storage is blocked', () => {
+    const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
+    const throwingGetStorage = {
+      getItem: () => {
+        throw new Error('storage blocked');
+      },
+    };
+    const throwingSetStorage = {
+      setItem: () => {
+        throw new Error('storage blocked');
+      },
+    };
+
+    expect(readAppShellNavigationPreference(throwingGetStorage)).toBe('collapsed');
+    expect(() => writeAppShellNavigationPreference('expanded', throwingSetStorage)).not.toThrow();
+
+    Object.defineProperty(globalThis, 'window', {
+      configurable: true,
+      value: {
+        get localStorage() {
+          throw new Error('storage blocked');
+        },
+      },
+    });
+
+    expect(getBrowserNavigationPreferenceStorage()).toBeUndefined();
+
+    if (originalWindow) {
+      Object.defineProperty(globalThis, 'window', originalWindow);
+    } else {
+      delete (globalThis as { window?: Window }).window;
+    }
+  });
+
+  it('defaults collapsible AppShell desktop navigation to the collapsed rail', () => {
+    const shellMarkup = renderAppShellMarkup({
+      viewerRole: 'student',
+      title: '知识图谱',
+      activeHref: '/knowledge',
+      sidebarMode: 'collapsible',
+      children: null,
+    });
+
+    expect(shellMarkup).toContain('data-app-shell-layout="collapsible"');
+    expect(shellMarkup).toContain('data-app-shell-navigation-state="collapsed"');
+    expect(shellMarkup).toContain('data-app-shell-navigation-preference="collapsed"');
+    expect(shellMarkup).toContain('xl:grid-cols-[72px_minmax(0,1fr)]');
+    expect(shellMarkup).toContain('aria-label="展开平台导航"');
+    expect(shellMarkup).toContain('aria-label="知识资源"');
+    expect(shellMarkup).toContain('title="知识资源"');
+    expect(shellMarkup).toContain('aria-current="page"');
+  });
+
+  it('renders representative route frames with collapsed desktop navigation metadata', () => {
+    const routeFrames: Array<{
+      href: string;
+      role: PlatformRole;
+      title: string;
+    }> = [
+      { href: '/knowledge', role: 'student', title: '知识图谱' },
+      { href: '/arena', role: 'student', title: '竞技场' },
+      { href: '/simulations', role: 'student', title: '虚拟仿真' },
+      { href: '/interactive-learning', role: 'student', title: '互动学习' },
+      { href: '/data-center', role: 'teacher', title: '教师数据中心' },
+      { href: '/data-center', role: 'admin', title: '管理员数据中心' },
+    ];
+
+    for (const route of routeFrames) {
+      const shellMarkup = renderAppShellMarkup({
+        viewerRole: route.role,
+        title: route.title,
+        activeHref: route.href,
+        children: null,
+      });
+
+      expect(shellMarkup, route.href).toContain('data-platform-desktop-navigation="collapsible"');
+      expect(shellMarkup, route.href).toContain('data-app-shell-navigation-state="collapsed"');
+      expect(shellMarkup, route.href).toContain('data-shell-navigation-state="collapsed"');
+      expect(shellMarkup, route.href).toContain('xl:grid-cols-[72px_minmax(0,1fr)]');
+      expect(shellMarkup, route.href).toContain('aria-current="page"');
+    }
+  });
+
+  it('keeps legacy role-cockpit operation shells fixed until they migrate to AppShell', () => {
+    const teacherMarkup = renderAppShellMarkup({
+      viewerRole: 'teacher',
+      title: '班级管理',
+      activeHref: '/teacher/classes',
+      children: null,
+    });
+    const adminMarkup = renderAppShellMarkup({
+      viewerRole: 'admin',
+      title: '管理控制台',
+      activeHref: '/admin',
+      children: null,
+    });
+
+    expect(teacherMarkup).toContain('data-platform-desktop-navigation="fixed"');
+    expect(teacherMarkup).not.toContain('data-app-shell-layout="collapsible"');
+    expect(teacherMarkup).toContain('lg:grid-cols-[248px_minmax(0,1fr)]');
+    expect(adminMarkup).toContain('data-platform-desktop-navigation="fixed"');
+    expect(adminMarkup).not.toContain('data-app-shell-layout="collapsible"');
+    expect(adminMarkup).toContain('lg:grid-cols-[248px_minmax(0,1fr)]');
+  });
+
+  it('does not infer collapsible desktop navigation for retained legacy product routes', () => {
+    const aiRoute = PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/ai');
+    const copilotRoute = PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/ai/copilot');
+
+    expect(aiRoute?.legacyShell?.disposition).toBe('retained-temporary');
+    expect(aiRoute?.desktopNavigation).toBe('fixed');
+    expect(copilotRoute?.legacyShell?.disposition).toBe('retained-temporary');
+    expect(copilotRoute?.desktopNavigation).toBe('fixed');
+  });
+
+  it('keeps mobile drawer behavior independent from desktop rail preference', () => {
+    const shellMarkup = renderAppShellMarkup({
+      viewerRole: 'student',
+      title: '竞技场',
+      activeHref: '/arena',
+      children: null,
+    });
+
+    expect(shellMarkup).toContain('data-platform-desktop-navigation="collapsible"');
+    expect(shellMarkup).toContain('data-app-shell-navigation-state="collapsed"');
+    expect(shellMarkup).toContain('data-platform-mobile-navigation="drawer"');
+    expect(shellMarkup).toContain('aria-controls="app-shell-mobile-navigation"');
+    expect(shellMarkup).toContain('xl:hidden');
+    expect(shellMarkup).not.toContain('data-app-shell-mobile-drawer="open"');
+  });
+
   it('keeps active route matching stable when the current route has query or hash', () => {
     const sidebar = asElement(
       AppSidebar({
@@ -933,7 +1099,9 @@ describe('platform UI contracts', () => {
 
     expect(shell.props?.['data-platform-route-frame']).toBe('mission-workspace');
     expect(shell.props?.['data-platform-route-theme-support']).toBe('light dark');
+    expect(shell.props?.['data-platform-desktop-navigation']).toBe('collapsible');
     expect(shell.props?.['data-platform-mobile-navigation']).toBe('drawer');
+    expect(shellMarkup).toContain('data-app-shell-navigation-state="collapsed"');
     expect(shellMarkup).toContain('href="/arena"');
     expect(shellMarkup).toContain('竞技场');
     expect(shellMarkup).toContain('Arena 任务');
@@ -1058,7 +1226,8 @@ describe('platform UI contracts', () => {
       sidebarBreakpoint: 'xl',
       navigationCollapsed: false,
     })).toContain('xl:grid-cols-[248px_minmax(0,1fr)]');
-    expect(shellMarkup).toContain('xl:grid-cols-[248px_minmax(0,1fr)]');
+    expect(shellMarkup).toContain('xl:grid-cols-[72px_minmax(0,1fr)]');
+    expect(shellMarkup).toContain('data-app-shell-navigation-state="collapsed"');
     expect(shellMarkup).not.toContain('lg:grid-cols-[248px_1fr]');
     expect(shellMarkup).toContain('hidden xl:block');
     expect(shellMarkup).toContain('xl:hidden');
