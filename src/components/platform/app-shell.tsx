@@ -535,9 +535,8 @@ function AppShellDesktopLayout({
   const navigationCollapsed = allowSidebarCollapse ? navigationPreference === 'collapsed' : false;
 
   useEffect(() => {
-    if (!allowSidebarCollapse) return;
     setNavigationPreference(readAppShellNavigationPreference(getBrowserNavigationPreferenceStorage()));
-  }, [allowSidebarCollapse]);
+  }, []);
 
   const handleNavigationCollapsedChange = useCallback((collapsed: boolean) => {
     const nextPreference = collapsed ? 'collapsed' : 'expanded';

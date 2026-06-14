@@ -17,6 +17,7 @@ export {
 } from './data-center-contracts';
 export { DataCenterSourceMarker } from './source-marker';
 export { DataCenterChartPanel } from './chart-panel';
-export { DataCenterDrilldownLink, canAccessDrilldown } from './drilldown-link';
+export { canAccessDrilldown } from './drilldown-access';
+export { DataCenterDrilldownLink } from './drilldown-link';
 export { buildExportSafeSnapshot } from './export-safe-snapshot';
 export type { SafeSnapshot } from './export-safe-snapshot';

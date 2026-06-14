@@ -509,7 +509,7 @@ describe('commercial UI governance', () => {
         }
       : entry);
     const result = evaluateCommercialUiGovernance(baseInput({
-      visualEvidence: brokenDestroyer.filter((entry) => entry.href !== '/virtual-lab'),
+      visualEvidence: brokenDestroyer.filter((entry) => entry.href !== '/virtual-lab') as CommercialVisualAcceptanceEvidence[],
     }));
 
     expect(result.passed).toBe(false);
@@ -543,7 +543,9 @@ describe('commercial UI governance', () => {
         simulationVisualQa,
       };
     });
-    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
 
     expect(result.passed).toBe(false);
     expect(result.blockingViolations).toEqual(expect.arrayContaining([
@@ -570,7 +572,9 @@ describe('commercial UI governance', () => {
         },
       };
     });
-    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
 
     expect(result.passed).toBe(false);
     expect(result.blockingViolations).toEqual(expect.arrayContaining([
@@ -598,7 +602,9 @@ describe('commercial UI governance', () => {
         },
       };
     });
-    const result = evaluateCommercialUiGovernance(baseInput({ visualEvidence }));
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
 
     expect(result.passed).toBe(false);
     expect(result.blockingViolations).toEqual(expect.arrayContaining([

@@ -11,7 +11,7 @@ import {
 import { buildDataMapContextCards, buildPresentationExportSnapshot } from '../presentation-data-center';
 import { presentationDataCenterMock } from '../presentation-mock-data';
 import { sanitizeSnapshotMetrics, buildExportSafeSnapshot } from '../shared/export-safe-snapshot';
-import { canAccessDrilldown } from '../shared/drilldown-link';
+import { canAccessDrilldown } from '../shared/drilldown-access';
 import type { SnapshotMetric } from '../shared/export-safe-snapshot';
 import {
   REPORT_LEDGER_ARCHETYPE_RULES,

@@ -1,5 +1,6 @@
 import type { PlatformRole } from '@/components/platform/platform-ui-contracts';
 import type { DataCenterDrilldownTarget } from './data-center-contracts';
+import { canAccessDrilldown } from './drilldown-access';
 import { cn } from '@/lib/utils';
 
 interface DataCenterDrilldownLinkProps {
@@ -18,10 +19,6 @@ const targetLabels: Record<DataCenterDrilldownTarget, string> = {
   'teacher-governance': '教师治理',
   'evidence-browser': '证据浏览器',
 };
-
-export function canAccessDrilldown(currentRole: PlatformRole, allowedRoles: PlatformRole[]): boolean {
-  return allowedRoles.includes(currentRole);
-}
 
 export function DataCenterDrilldownLink({
   label,
