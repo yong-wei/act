@@ -194,6 +194,20 @@
     }
   }
 
+  @media (min-width: 1024px) {
+    body:has([data-knowledge-inspector="stable-rail"]) [data-page-floating-controls] {
+      right: calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem)) !important;
+      width: max-content;
+    }
+  }
+
+  @media (max-width: 1023px) {
+    body:has([data-knowledge-inspector="stable-rail"]) [data-page-floating-controls] {
+      top: 7rem;
+      bottom: auto !important;
+    }
+  }
+
   .surface-topbar {
     @apply relative z-20 border-b border-border/70 bg-card/75 backdrop-blur;
   }

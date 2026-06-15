@@ -1,0 +1,297 @@
+{
+  "change": "connect-knowledge-workspace-konling-context",
+  "issue": 488,
+  "capturedAt": "2026-06-15T01:03:06.768Z",
+  "baseUrl": "http://localhost:3002",
+  "selectedNodeId": "z反变换_7_7959c077",
+  "states": [
+    {
+      "url": "http://localhost:3002/knowledge",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "root": {
+        "data-knowledge-workspace": "canvas-first",
+        "data-knowledge-konling-context-source": "server-owned",
+        "data-knowledge-konling-context-status": "no-selection",
+        "data-knowledge-shared-dock-collision-policy": "avoid-local-tools-and-inspector"
+      },
+      "canvas": {
+        "data-knowledge-selected-node-id": "",
+        "data-knowledge-konling-selected-node-id": "",
+        "data-knowledge-konling-relation-summary": "关系 3/21 · 强度 >= 0.8 · 仅连通节点",
+        "data-knowledge-konling-density-mode": "structure",
+        "data-knowledge-konling-view-mode": "2D",
+        "data-knowledge-visible-node-count": "590",
+        "data-knowledge-visible-link-count": "1285"
+      },
+      "hoverPolicySourcePresent": false,
+      "localTool": {
+        "data-knowledge-local-tool": "closed",
+        "data-knowledge-active-filter-summary": "关系 3/21 · 强度 >= 0.8 · 仅连通节点"
+      },
+      "inspectorPresent": false,
+      "dock": {
+        "data-platform-floating-dock": "collapsed",
+        "data-platform-floating-dock-safe-area": "bottom-right"
+      },
+      "dockMenuLabels": [],
+      "rects": {
+        "dock": {
+          "left": 1376,
+          "top": 904,
+          "right": 1416,
+          "bottom": 944,
+          "width": 40,
+          "height": 40
+        },
+        "expandedDock": null,
+        "desktopTools": {
+          "left": 112,
+          "top": 109,
+          "right": 670,
+          "bottom": 194,
+          "width": 558,
+          "height": 85
+        },
+        "inspector": null
+      },
+      "collision": {
+        "dockOverlapsDesktopTools": false,
+        "expandedDockOverlapsDesktopTools": false,
+        "dockOverlapsInspector": false,
+        "expandedDockOverlapsInspector": false
+      }
+    },
+    {
+      "url": "http://localhost:3002/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "root": {
+        "data-knowledge-workspace": "canvas-first",
+        "data-knowledge-konling-context-source": "server-owned",
+        "data-knowledge-konling-context-status": "selected-node",
+        "data-knowledge-shared-dock-collision-policy": "avoid-local-tools-and-inspector"
+      },
+      "canvas": {
+        "data-knowledge-selected-node-id": "z反变换_7_7959c077",
+        "data-knowledge-konling-selected-node-id": "z反变换_7_7959c077",
+        "data-knowledge-konling-relation-summary": "关系 3/21 · 强度 >= 0.8 · 仅连通节点",
+        "data-knowledge-konling-density-mode": "structure",
+        "data-knowledge-konling-view-mode": "2D",
+        "data-knowledge-visible-node-count": "590",
+        "data-knowledge-visible-link-count": "1285"
+      },
+      "hoverPolicySourcePresent": false,
+      "localTool": {
+        "data-knowledge-local-tool": "closed",
+        "data-knowledge-active-filter-summary": "关系 3/21 · 强度 >= 0.8 · 仅连通节点"
+      },
+      "inspectorPresent": true,
+      "dock": {
+        "data-platform-floating-dock": "collapsed",
+        "data-platform-floating-dock-safe-area": "bottom-right"
+      },
+      "dockMenuLabels": [
+        "主题切换深色"
+      ],
+      "rects": {
+        "dock": {
+          "left": 760,
+          "top": 830,
+          "right": 984,
+          "bottom": 944,
+          "width": 224,
+          "height": 114
+        },
+        "expandedDock": {
+          "left": 760,
+          "top": 830,
+          "right": 984,
+          "bottom": 892,
+          "width": 224,
+          "height": 62
+        },
+        "desktopTools": {
+          "left": 112,
+          "top": 16,
+          "right": 670,
+          "bottom": 101,
+          "width": 558,
+          "height": 85
+        },
+        "inspector": {
+          "left": 984,
+          "top": 0,
+          "right": 1416,
+          "bottom": 960,
+          "width": 432,
+          "height": 960
+        }
+      },
+      "collision": {
+        "dockOverlapsDesktopTools": false,
+        "expandedDockOverlapsDesktopTools": false,
+        "dockOverlapsInspector": false,
+        "expandedDockOverlapsInspector": false
+      }
+    },
+    {
+      "url": "http://localhost:3002/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "root": {
+        "data-knowledge-workspace": "canvas-first",
+        "data-knowledge-konling-context-source": "server-owned",
+        "data-knowledge-konling-context-status": "selected-node",
+        "data-knowledge-shared-dock-collision-policy": "avoid-local-tools-and-inspector"
+      },
+      "canvas": {
+        "data-knowledge-selected-node-id": "z反变换_7_7959c077",
+        "data-knowledge-konling-selected-node-id": "z反变换_7_7959c077",
+        "data-knowledge-konling-relation-summary": "关系 3/21 · 强度 >= 0.8 · 仅连通节点",
+        "data-knowledge-konling-density-mode": "structure",
+        "data-knowledge-konling-view-mode": "2D",
+        "data-knowledge-visible-node-count": "590",
+        "data-knowledge-visible-link-count": "1285"
+      },
+      "hoverPolicySourcePresent": false,
+      "localTool": {
+        "data-knowledge-local-tool": "closed",
+        "data-knowledge-active-filter-summary": "关系 3/21 · 强度 >= 0.8 · 仅连通节点"
+      },
+      "inspectorPresent": true,
+      "dock": {
+        "data-platform-floating-dock": "collapsed",
+        "data-platform-floating-dock-safe-area": "bottom-right"
+      },
+      "dockMenuLabels": [
+        "主题切换深色"
+      ],
+      "rects": {
+        "dock": {
+          "left": 760,
+          "top": 830,
+          "right": 984,
+          "bottom": 944,
+          "width": 224,
+          "height": 114
+        },
+        "expandedDock": {
+          "left": 760,
+          "top": 830,
+          "right": 984,
+          "bottom": 892,
+          "width": 224,
+          "height": 62
+        },
+        "desktopTools": {
+          "left": 112,
+          "top": 16,
+          "right": 670,
+          "bottom": 101,
+          "width": 558,
+          "height": 85
+        },
+        "inspector": {
+          "left": 984,
+          "top": 0,
+          "right": 1416,
+          "bottom": 960,
+          "width": 432,
+          "height": 960
+        }
+      },
+      "collision": {
+        "dockOverlapsDesktopTools": false,
+        "expandedDockOverlapsDesktopTools": false,
+        "dockOverlapsInspector": false,
+        "expandedDockOverlapsInspector": false
+      }
+    },
+    {
+      "url": "http://localhost:3002/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "root": {
+        "data-knowledge-workspace": "canvas-first",
+        "data-knowledge-konling-context-source": "server-owned",
+        "data-knowledge-konling-context-status": "selected-node",
+        "data-knowledge-shared-dock-collision-policy": "avoid-local-tools-and-inspector"
+      },
+      "canvas": {
+        "data-knowledge-selected-node-id": "z反变换_7_7959c077",
+        "data-knowledge-konling-selected-node-id": "z反变换_7_7959c077",
+        "data-knowledge-konling-relation-summary": "关系 3/21 · 强度 >= 0.8 · 仅连通节点",
+        "data-knowledge-konling-density-mode": "structure",
+        "data-knowledge-konling-view-mode": "2D",
+        "data-knowledge-visible-node-count": "590",
+        "data-knowledge-visible-link-count": "1285"
+      },
+      "hoverPolicySourcePresent": false,
+      "localTool": {
+        "data-knowledge-local-tool": "closed",
+        "data-knowledge-active-filter-summary": "关系 3/21 · 强度 >= 0.8 · 仅连通节点"
+      },
+      "inspectorPresent": true,
+      "dock": {
+        "data-platform-floating-dock": "collapsed",
+        "data-platform-floating-dock-safe-area": "bottom-right"
+      },
+      "dockMenuLabels": [
+        "主题切换深色"
+      ],
+      "rects": {
+        "dock": {
+          "left": 142,
+          "top": 112,
+          "right": 366,
+          "bottom": 226,
+          "width": 224,
+          "height": 114
+        },
+        "expandedDock": {
+          "left": 142,
+          "top": 112,
+          "right": 366,
+          "bottom": 174,
+          "width": 224,
+          "height": 62
+        },
+        "desktopTools": {
+          "left": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "inspector": {
+          "left": 8,
+          "top": 228,
+          "right": 382,
+          "bottom": 836,
+          "width": 374,
+          "height": 608
+        }
+      },
+      "collision": {
+        "dockOverlapsDesktopTools": false,
+        "expandedDockOverlapsDesktopTools": false,
+        "dockOverlapsInspector": false,
+        "expandedDockOverlapsInspector": false
+      }
+    }
+  ]
+}

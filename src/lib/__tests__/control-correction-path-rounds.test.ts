@@ -720,7 +720,7 @@ describe('control-correction path rounds', () => {
         title: '校正指标自适应测验',
         type: 'adaptive_quiz',
         ...pathNodeSemantics('adaptive_quiz'),
-        sourceKind: 'adaptive_quiz',
+        sourceKind: 'resource_registry',
         sourceRef: 'control-correction-targets',
         target: '/assessment/quizzes/control-correction-targets',
         estimatedTimeMinutes: 8,

@@ -1665,6 +1665,11 @@ export const PLATFORM_PRIMARY_ROUTE_INVENTORY: PlatformPrimaryRouteInventoryEntr
     visualQaProfile: 'representative',
     owningChange: KNOWLEDGE_MAP_UNIFIED_SHELL_CHANGE,
     unifiedUiMigrationOwner: KNOWLEDGE_MAP_UNIFIED_SHELL_CHANGE,
+    dockDisposition: [{
+      component: 'GlobalAIFloatingButton',
+      disposition: 'registered-shared-dock',
+      removalCondition: 'Konling knowledge workspace entry registers through PageFloatingControlsProvider instead of rendering an independent fixed button.',
+    }],
   }),
 ] as const;
 

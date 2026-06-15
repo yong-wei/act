@@ -31,6 +31,7 @@ import {
   buildScopedKonlingAiTools,
   getOrCreateKonlingAgentSession,
   KonlingRuntimeScopeError,
+  normalizeKonlingKnowledgeWorkspaceHint,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
 import { AIProviderCapabilityUnavailableError } from '@/lib/ai/provider-settings';
@@ -105,6 +106,7 @@ export async function POST(request: Request) {
       agentSessionId,
       teachingAssistantModeId,
       modeClientContextHints,
+      knowledgeWorkspaceHint,
     } = body as {
       messages: IncomingMessage[];
       simulationState?: Record<string, unknown>;
@@ -119,6 +121,7 @@ export async function POST(request: Request) {
       agentSessionId?: string;
       teachingAssistantModeId?: string;
       modeClientContextHints?: Record<string, unknown>;
+      knowledgeWorkspaceHint?: Record<string, unknown>;
     };
 
     // 验证用户身份
@@ -237,6 +240,7 @@ export async function POST(request: Request) {
         resourceId,
         pathNodeId,
         pageContextHint: pageContext,
+        knowledgeWorkspaceHint: normalizeKonlingKnowledgeWorkspaceHint(knowledgeWorkspaceHint ?? modeClientContextHints),
         trustedContentContext: Boolean(scope.scope.courseId && scope.scope.pageId),
       });
       const modeContract = buildKonlingTeachingAssistantRuntimeContract({

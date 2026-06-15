@@ -31,6 +31,7 @@ export function GlobalAISidebar() {
     tools,
     systemPromptExtension,
     assistantEntryPoint,
+    knowledgeWorkspaceHint,
     quickQuestions,
     clearUnread,
   } = useGlobalAI();
@@ -52,7 +53,8 @@ export function GlobalAISidebar() {
     systemPromptExtension,
     teachingAssistantModeId: assistantEntryPoint?.mode,
     modeClientContextHints: assistantEntryPoint?.serverContext,
-  }), [pageContext, userProfile, sessionId, tools, systemPromptExtension, assistantEntryPoint]);
+    knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? assistantEntryPoint?.serverContext,
+  }), [pageContext, userProfile, sessionId, tools, systemPromptExtension, assistantEntryPoint, knowledgeWorkspaceHint]);
 
   const {
     messages,

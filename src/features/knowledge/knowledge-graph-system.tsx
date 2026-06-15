@@ -9,6 +9,7 @@
 import { Suspense, useState, useCallback, useEffect, useRef, useMemo, type Dispatch, type KeyboardEvent, type SetStateAction } from 'react';
 import dynamic from 'next/dynamic';
 import { BookOpen, Filter, LocateFixed, Network, SlidersHorizontal, X } from 'lucide-react';
+import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { KnowledgeSidebar } from './sidebar/knowledge-sidebar';
 import { ResourcePanel } from './resource-panel/resource-panel';
 import {
@@ -181,6 +182,7 @@ export function KnowledgeGraphSystem({
   initialLinks = [],
   initialSelectedNodeId = null,
 }: KnowledgeGraphSystemProps) {
+  const { updatePageContext } = useGlobalAI();
   const initialRequestedNodeId = initialSelectedNodeId
     ?? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('node') : null);
   const initialSelectedNode = initialRequestedNodeId
@@ -550,8 +552,21 @@ export function KnowledgeGraphSystem({
   );
   const selectedNodePinUnavailable = Boolean(visibleSelectedNode && !selectedNodePinned && !selectedNodeRuntimePosition);
   const selectedNodeFocused = Boolean(visibleSelectedNode && graphFilterFocusNodeId === visibleSelectedNode.id);
+  const selectedNodeRelationCount = visibleSelectedNode
+    ? displayLinks.filter((link) => link.sourceId === visibleSelectedNode.id || link.targetId === visibleSelectedNode.id).length
+    : 0;
   const activeFilterSummary = [
     searchQuery ? `搜索：${searchQuery}` : '',
+    selectedChapters.length > 0 ? `章节 ${selectedChapters.length}` : '',
+    selectedCategories.length > 0 ? `分类 ${selectedCategories.length}` : '',
+    selectedBloomLevels.length > 0 ? `层级 ${selectedBloomLevels.length}` : '',
+    selectedRelationTypes.length !== relationTypeStats.length ? `关系 ${selectedRelationTypes.length}/${relationTypeStats.length}` : '',
+    graphFilterFocusNodeId ? '焦点邻域' : '',
+    minRelationStrength > 0 ? `强度 >= ${minRelationStrength.toFixed(1)}` : '',
+    showOnlyConnectedNodes ? '仅连通节点' : '',
+  ].filter(Boolean).join(' · ') || '未启用额外筛选';
+  const knowledgeWorkspaceFilterSummary = [
+    searchQuery.trim() ? '搜索词已启用' : '',
     selectedChapters.length > 0 ? `章节 ${selectedChapters.length}` : '',
     selectedCategories.length > 0 ? `分类 ${selectedCategories.length}` : '',
     selectedBloomLevels.length > 0 ? `层级 ${selectedBloomLevels.length}` : '',
@@ -689,11 +704,46 @@ export function KnowledgeGraphSystem({
   }>;
   const desktopActiveToolLabel = desktopToolItems.find((item) => item.id === desktopActiveTool)?.label ?? '';
 
+  useEffect(() => {
+    updatePageContext({
+      courseId: 'knowledge',
+      courseTitle: '知识资源',
+      stepId: '/knowledge',
+      topic: visibleSelectedNode ? visibleSelectedNode.name : '知识图谱',
+      pageType: 'workspace',
+      learningObjectives: ['结合知识图谱关系定位当前概念、资源和后续学习动作。'],
+      knowledgeType: 'C',
+      tools: ['search_knowledge_graph', 'recommend_next_action'],
+      systemPromptExtension: visibleSelectedNode
+        ? `当前知识图谱选中节点：${visibleSelectedNode.name}`
+        : '当前知识图谱尚未选中节点。',
+      knowledgeWorkspaceHint: {
+        selectedNodeId: visibleSelectedNode?.id ?? null,
+        activeFilters: [knowledgeWorkspaceFilterSummary],
+        densityMode: relationDensityMode,
+        viewMode,
+        visibleRelationCount: displayLinks.length,
+        selectedNodeRelationCount,
+      },
+    });
+  }, [
+    displayLinks.length,
+    knowledgeWorkspaceFilterSummary,
+    relationDensityMode,
+    selectedNodeRelationCount,
+    updatePageContext,
+    viewMode,
+    visibleSelectedNode,
+  ]);
+
   return (
     <div
       className="relative flex h-screen w-full bg-platform-page text-platform-fg-primary"
       data-knowledge-workspace="canvas-first"
       data-knowledge-squeeze-down-rejected="permanent-panels-hidden-at-320"
+      data-knowledge-konling-context-source="server-owned"
+      data-knowledge-konling-context-status={visibleSelectedNode ? 'selected-node' : 'no-selection'}
+      data-knowledge-shared-dock-collision-policy="avoid-local-tools-and-inspector"
     >
       {/* 中央图谱区域 */}
       <div
@@ -708,6 +758,10 @@ export function KnowledgeGraphSystem({
         data-knowledge-pinned-node-count={pinnedNodeCount}
         data-knowledge-pinned-layout-signature={pinnedLayoutSignature}
         data-knowledge-selected-node-id={visibleSelectedNode?.id ?? ''}
+        data-knowledge-konling-selected-node-id={visibleSelectedNode?.id ?? ''}
+        data-knowledge-konling-relation-summary={activeFilterSummary}
+        data-knowledge-konling-density-mode={relationDensityMode}
+        data-knowledge-konling-view-mode={viewMode}
       >
         <div
           className="absolute left-4 top-4 z-30 hidden max-w-[min(45rem,calc(100vw-36rem))] lg:block"
@@ -1497,6 +1551,7 @@ export function KnowledgeGraphSystem({
           <div
             className="surface-card pointer-events-none absolute left-1/2 top-4 z-50 -translate-x-1/2 transform p-4 shadow-lg backdrop-blur-md"
             data-knowledge-local-panel="node-hover-preview"
+            data-knowledge-hover-context-policy="preview-only-not-durable-context"
           >
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-medium text-platform-fg-primary">{hoveredNode.name}</span>

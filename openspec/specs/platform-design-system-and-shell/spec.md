@@ -351,6 +351,19 @@ Concrete interactive course entry routes SHALL preserve platform shell, breadcru
 - **THEN** AppShell SHALL provide global navigation, breadcrumb, theme switching, user center, and shared Konling dock
 - **AND** the entry route SHALL NOT introduce competing global navigation or a page-local topbar that replaces the platform shell.
 
+### Requirement: Knowledge graph uses the shared floating dock
+The knowledge graph workspace SHALL expose Konling and related shell-level floating controls through the shared platform dock.
+
+#### Scenario: Konling is available on `/knowledge`
+- **WHEN** Konling is enabled on the knowledge graph route
+- **THEN** the assistant SHALL render through the shared right-bottom dock model
+- **AND** page-local duplicate assistant regions or separate right-bottom fixed systems SHALL NOT render concurrently.
+
+#### Scenario: Konling expands in the knowledge workspace
+- **WHEN** the user expands Konling while directory tools, relation filters, legend, graph controls, or selected-node inspector are visible
+- **THEN** the assistant SHALL remain keyboard reachable and readable
+- **AND** it SHALL NOT obscure required graph controls, inspector actions, or primary graph interaction.
+
 ### Requirement: Lesson runtime routes preserve platform shell continuity
 Interactive lesson runtime routes SHALL preserve AppShell continuity while expressing runtime-specific local controls.
 
