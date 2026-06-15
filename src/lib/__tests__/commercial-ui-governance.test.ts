@@ -386,28 +386,39 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
           'src/resources/simulations/components/simulation-ui.tsx',
           'scripts/tests/capture-simulation-command-deck-qa.ts',
         ].map((sourcePath) => [sourcePath, `${sourcePath}:sha256`])),
-        viewports: scenario.requiredThemes.flatMap((theme) => scenario.requiredWidths.map((width) => ({
-          width,
-          theme,
-          screenshot: `artifacts/commercial-ui/simulation-command-deck-535/${href.replace(/[^a-z0-9]+/gi, '-')}-${theme}-${width}.png`,
-          screenshotSha256: `${href}:command-deck:${theme}:${width}`,
-          screenshotWidth: width,
-          screenshotHeight: width === 320 ? 900 : 900,
-          sceneChromeRemoved: true,
-          inSceneBackControlCount: 0,
-          inSceneAbbreviationCount: 0,
-          collapseButtonCount: width === 1440 ? 2 : 0,
-          restoreHandleCount: width === 320 ? 2 : 0,
-          panelsTopAligned: true,
-          bottomToolsUnobscured: true,
-          bottomToolsWithinViewport: true,
-          bottomToolSegmentRoles: ['view-switcher', 'grid-toggle', 'speed-controls'],
-          konlingDockCollisionFree: true,
-          restoreHandlesKeyboardReachable: true,
-          primarySceneNonblank: true,
-          structuredSurfacesBelowScene: scenario.href === '/simulations/cruise' ? true : undefined,
-          sceneRect: { width: width === 1440 ? 1180 : 320, height: width === 1440 ? 720 : 760 },
-        }))),
+        viewports: scenario.requiredThemes.flatMap((theme) => scenario.requiredWidths.map((width) => {
+          const sceneRect = width === 1440
+            ? { left: 96, top: 110, right: 1416, bottom: 850, width: 1320, height: 740 }
+            : { left: 16, top: 295, right: 304, bottom: 855, width: 288, height: 560 };
+          return {
+            width,
+            theme,
+            screenshot: `artifacts/commercial-ui/simulation-command-deck-535/${href.replace(/[^a-z0-9]+/gi, '-')}-${theme}-${width}.png`,
+            screenshotSha256: `${href}:command-deck:${theme}:${width}`,
+            screenshotWidth: width,
+            screenshotHeight: width === 320 ? 900 : 900,
+            sceneChromeRemoved: true,
+            inSceneBackControlCount: 0,
+            inSceneAbbreviationCount: 0,
+            collapseButtonCount: width === 1440 ? 2 : 0,
+            restoreHandleCount: width === 320 ? 2 : 0,
+            panelsTopAligned: true,
+            bottomToolsUnobscured: true,
+            bottomToolsWithinViewport: true,
+            bottomToolSegmentRoles: ['view-switcher', 'grid-toggle', 'speed-controls'],
+            konlingDockCollisionFree: true,
+            restoreHandlesKeyboardReachable: true,
+            primarySceneNonblank: true,
+            structuredSurfacesBelowScene: scenario.href === '/simulations/cruise' ? true : undefined,
+            sceneRect,
+            statusPanelRect: width === 1440
+              ? { left: 112, top: 126, right: 432, bottom: 834, width: 320, height: 708 }
+              : undefined,
+            controlPanelRect: width === 1440
+              ? { left: 1048, top: 126, right: 1400, bottom: 834, width: 352, height: 708 }
+              : undefined,
+          };
+        })),
         cruiseComparison: scenario.href === '/simulations/cruise'
           ? {
               comparedRoutes: ['/simulations/destroyer', '/simulations/lng'],
@@ -1305,6 +1316,7 @@ describe('commercial UI governance', () => {
                     inSceneBackControlCount: 1,
                     inSceneAbbreviationCount: 1,
                     panelsTopAligned: false,
+                    controlPanelRect: { left: 1048, top: 126, right: 1400, bottom: 946, width: 352, height: 820 },
                     bottomToolsWithinViewport: false,
                   }
                 : viewport
@@ -1323,6 +1335,8 @@ describe('commercial UI governance', () => {
       'commandDeckGeometry:theme=dark:width=1440:inSceneBackControlCount=0',
       'commandDeckGeometry:theme=dark:width=1440:inSceneAbbreviationCount=0',
       'commandDeckGeometry:theme=dark:width=1440:panelsTopAligned',
+      'commandDeckGeometry:theme=dark:width=1440:controlPanelRectWithinViewport',
+      'commandDeckGeometry:theme=dark:width=1440:controlPanelRectWithinScene',
       'commandDeckGeometry:theme=dark:width=1440:bottomToolsWithinViewport',
     ]));
   });

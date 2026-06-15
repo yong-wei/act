@@ -220,6 +220,15 @@ export interface CommercialSimulationViewportEvidence {
   artifactSha256?: string;
 }
 
+export interface CommercialRectEvidence {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+}
+
 export interface CommercialSimulationCommandDeckViewportEvidence {
   width: number;
   theme: CommercialVisualQaTheme;
@@ -240,7 +249,9 @@ export interface CommercialSimulationCommandDeckViewportEvidence {
   restoreHandlesKeyboardReachable: boolean;
   primarySceneNonblank: boolean;
   structuredSurfacesBelowScene?: boolean;
-  sceneRect?: { width: number; height: number };
+  sceneRect?: CommercialRectEvidence;
+  statusPanelRect?: CommercialRectEvidence;
+  controlPanelRect?: CommercialRectEvidence;
 }
 
 export interface CommercialSimulationCommandDeckCruiseComparisonEvidence {
@@ -1940,6 +1951,24 @@ function commandDeckGeometrySourcePaths(routeFile: string) {
   ] as const;
 }
 
+function rectWithinViewport(
+  rect: CommercialRectEvidence,
+  width: number,
+  height: number | undefined,
+) {
+  if (height === undefined) return false;
+  return rect.left >= 0 && rect.top >= 0 && rect.right <= width && rect.bottom <= height;
+}
+
+function rectWithinRect(rect: CommercialRectEvidence, container: CommercialRectEvidence) {
+  return (
+    rect.left >= container.left
+    && rect.top >= container.top
+    && rect.right <= container.right
+    && rect.bottom <= container.bottom
+  );
+}
+
 function buildSimulationVisualQaViolations(
   requiredRoutes: readonly CommercialSimulationVisualQaRoute[],
   visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
@@ -2235,6 +2264,23 @@ function buildSimulationVisualQaViolations(
               missing.push(`${key}:restoreHandleCount>=2`);
             }
             if (viewport.panelsTopAligned !== true) missing.push(`${key}:panelsTopAligned`);
+            if (width === 1440) {
+              for (const [rectKey, panelRect] of [
+                ['statusPanelRect', viewport.statusPanelRect],
+                ['controlPanelRect', viewport.controlPanelRect],
+              ] as const) {
+                if (!panelRect) {
+                  missing.push(`${key}:${rectKey}`);
+                  continue;
+                }
+                if (!rectWithinViewport(panelRect, width, viewport.screenshotHeight)) {
+                  missing.push(`${key}:${rectKey}WithinViewport`);
+                }
+                if (!viewport.sceneRect || !rectWithinRect(panelRect, viewport.sceneRect)) {
+                  missing.push(`${key}:${rectKey}WithinScene`);
+                }
+              }
+            }
             if (viewport.bottomToolsUnobscured !== true) missing.push(`${key}:bottomToolsUnobscured`);
             if (viewport.bottomToolsWithinViewport !== true) missing.push(`${key}:bottomToolsWithinViewport`);
             for (const role of ['view-switcher', 'grid-toggle', 'speed-controls']) {
