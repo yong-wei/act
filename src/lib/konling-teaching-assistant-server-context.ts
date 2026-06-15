@@ -411,7 +411,9 @@ function verifySignedModeContext(
 }
 
 function resolveModeContextSigningSecret(): string | null {
-  const secret = process.env.KONLING_MODE_CONTEXT_SECRET || '';
+  const secret = process.env.KONLING_SERVER_MODE_CONTEXT_SECRET ||
+    process.env.KONLING_MODE_CONTEXT_SECRET ||
+    '';
   const trimmed = secret.trim();
   if (!trimmed || isPlaceholderSigningSecret(trimmed)) return null;
   return trimmed;

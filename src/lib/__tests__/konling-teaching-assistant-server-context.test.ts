@@ -27,20 +27,24 @@ const TEST_SECRET = 'test-konling-mode-context-secret-for-unit-tests';
 
 describe('Konling teaching-assistant server context', () => {
   let originalContextSecret: string | undefined;
+  let originalServerContextSecret: string | undefined;
   let originalNextAuthSecret: string | undefined;
   let originalAuthSecret: string | undefined;
 
   beforeEach(() => {
     originalContextSecret = process.env.KONLING_MODE_CONTEXT_SECRET;
+    originalServerContextSecret = process.env.KONLING_SERVER_MODE_CONTEXT_SECRET;
     originalNextAuthSecret = process.env.NEXTAUTH_SECRET;
     originalAuthSecret = process.env.AUTH_SECRET;
     process.env.KONLING_MODE_CONTEXT_SECRET = TEST_SECRET;
+    delete process.env.KONLING_SERVER_MODE_CONTEXT_SECRET;
     delete process.env.NEXTAUTH_SECRET;
     delete process.env.AUTH_SECRET;
   });
 
   afterEach(() => {
     restoreEnv('KONLING_MODE_CONTEXT_SECRET', originalContextSecret);
+    restoreEnv('KONLING_SERVER_MODE_CONTEXT_SECRET', originalServerContextSecret);
     restoreEnv('NEXTAUTH_SECRET', originalNextAuthSecret);
     restoreEnv('AUTH_SECRET', originalAuthSecret);
   });
@@ -170,6 +174,38 @@ describe('Konling teaching-assistant server context', () => {
       runtimeContext,
       clientContextHints: { modeContextToken },
     })).resolves.toEqual({});
+  });
+
+  it('uses the documented server mode context secret for path-advisor tokens', async () => {
+    delete process.env.KONLING_MODE_CONTEXT_SECRET;
+    process.env.KONLING_SERVER_MODE_CONTEXT_SECRET = TEST_SECRET;
+
+    const modeContextToken = createKonlingTeachingAssistantServerContextToken({
+      mode: 'path-advisor',
+      classId: 'class-1',
+      courseId: 'course-1',
+      pageId: 'adaptive-path-center',
+      context: {
+        'student-path-center': true,
+      },
+    });
+
+    expect(modeContextToken).toEqual(expect.any(String));
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: {},
+      modeId: 'path-advisor',
+      scope: scope({
+        role: 'student',
+        authenticatedUserId: 'student-1',
+        targetUserId: 'student-1',
+        pageId: 'adaptive-path-center',
+        privacyScopes: ['student-visible'],
+      }),
+      runtimeContext,
+      clientContextHints: { modeContextToken },
+    })).resolves.toEqual({
+      'student-path-center': true,
+    });
   });
 
   it('fails closed when mode context signing secret is unavailable', async () => {
@@ -553,7 +589,10 @@ describe('Konling teaching-assistant server context', () => {
   });
 });
 
-function restoreEnv(name: 'KONLING_MODE_CONTEXT_SECRET' | 'NEXTAUTH_SECRET' | 'AUTH_SECRET', value: string | undefined) {
+function restoreEnv(
+  name: 'KONLING_MODE_CONTEXT_SECRET' | 'KONLING_SERVER_MODE_CONTEXT_SECRET' | 'NEXTAUTH_SECRET' | 'AUTH_SECRET',
+  value: string | undefined,
+) {
   if (value === undefined) {
     delete process.env[name];
     return;
