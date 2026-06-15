@@ -6038,6 +6038,61 @@ describe('konling agent runtime', () => {
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('hiddenEvaluation');
   });
 
+  it('requires approval for teacher-owned adaptive path write tool runs', async () => {
+    const scope = createScope({
+      authenticatedUserId: 'teacher-1',
+      targetUserId: 'student-1',
+      role: 'teacher',
+      privacyScopes: ['student-visible', 'teacher-scoped'],
+    });
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          ownerUserId: 'student-1',
+          permittedTools: ['select_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn().mockImplementation(async ({ data }) => ({
+          id: 'tool-run-teacher-path-1',
+          ...data,
+          createdAt: new Date('2026-05-28T00:00:00Z'),
+          updatedAt: new Date('2026-05-28T00:00:00Z'),
+        })),
+      },
+    };
+
+    const toolRun = await startKonlingToolRun(db, {
+      scope,
+      agentSessionId: 'agent-session-1',
+      toolName: 'select_learning_path',
+      input: {
+        pathId: 'path-1',
+        selectedStyleId: 'arena-simulation-sprint',
+      },
+      idempotencyKey: 'teacher-select-path-1',
+    });
+
+    expect(toolRun).toMatchObject({
+      id: 'tool-run-teacher-path-1',
+      ownerUserId: 'student-1',
+      actorUserId: 'teacher-1',
+      targetUserId: 'student-1',
+      toolName: 'select_learning_path',
+      permissionTier: 'write',
+      approvalState: 'required',
+      status: 'awaiting_approval',
+    });
+    expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        approvalState: 'required',
+        status: 'awaiting_approval',
+      }),
+    }));
+  });
+
   it('enforces scope-scoped idempotency before creating another state-changing tool run', async () => {
     const scope = createScope();
     const db = {

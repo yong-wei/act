@@ -954,6 +954,14 @@ const KONLING_ADAPTIVE_PATH_TOOLS = new Set<KonlingToolName>([
   'record_path_adjustment_outcome',
 ]);
 
+const KONLING_ADAPTIVE_PATH_WRITE_TOOLS = new Set<KonlingToolName>([
+  'generate_learning_path',
+  'revise_learning_path_options',
+  'select_learning_path',
+  'reject_learning_path_option',
+  'record_path_adjustment_outcome',
+]);
+
 const simulationTaskSpecParameters = z.object({
   sceneId: z.string().min(1),
   scenarioId: z.string().min(1),
@@ -1943,8 +1951,7 @@ export async function startKonlingToolRun(
     }
   }
 
-  const approvalState: KonlingToolApprovalState =
-    registryEntry.approvalPolicy === 'required' ? 'required' : 'not_required';
+  const approvalState = resolveKonlingToolApprovalState(registryEntry, input);
   const status: KonlingToolRunStatus =
     approvalState === 'required' ? 'awaiting_approval' : 'running';
   let created: unknown | null | undefined;
@@ -1988,6 +1995,24 @@ export async function startKonlingToolRun(
     throw new KonlingRuntimeScopeError(404, 'AgentToolRun 存储不可用。');
   }
   return toToolRunView(created);
+}
+
+function resolveKonlingToolApprovalState(
+  registryEntry: KonlingToolRegistryEntry,
+  input: KonlingToolRunStartInput,
+): KonlingToolApprovalState {
+  if (registryEntry.approvalPolicy === 'required') return 'required';
+  if (
+    KONLING_ADAPTIVE_PATH_WRITE_TOOLS.has(input.toolName) &&
+    !isStudentOwnedKonlingToolScope(input.scope)
+  ) {
+    return 'required';
+  }
+  return 'not_required';
+}
+
+function isStudentOwnedKonlingToolScope(scope: KonlingRuntimeScope) {
+  return scope.role === 'student' && scope.authenticatedUserId === scope.targetUserId;
 }
 
 export async function completeKonlingToolRun(
