@@ -139,6 +139,32 @@ interface PathSelectionHistoryView {
   helpful?: boolean | null;
 }
 
+interface PathExecutionNodeView {
+  nodeId: string;
+  title: string;
+  type: string;
+  resourceLabel: string;
+  status: 'current' | 'completed' | 'skipped' | 'blocked' | 'next' | 'optional';
+  target: string;
+  estimatedMinutes: number;
+  reason: string;
+  evidence: string;
+  checkpoint: string;
+}
+
+interface PathActivityTimelineItem {
+  id: string;
+  nodeId: string;
+  type: string;
+  title: string;
+  detail: string;
+  nodeTitle: string;
+  sourceLabel: string;
+  stateLabel: '已记录' | '待复核' | '可用于推荐' | '仅作参考';
+  createdAt: string;
+  sortTime: number;
+}
+
 type DemoScene = 'stable' | 'generate';
 
 const DEMO_SCENES: Record<DemoScene, {
@@ -317,6 +343,14 @@ function adaptivePracticeGoalLabel(goalId: AdaptivePracticeGoalId): string {
   return '控制校正';
 }
 
+function resolveAdaptivePracticeGoalId(
+  value: string | null | undefined,
+  fallback: AdaptivePracticeGoalId = 'control-correction',
+): AdaptivePracticeGoalId {
+  const candidate = value ?? null;
+  return isAdaptivePracticeGoalId(candidate) ? candidate : fallback;
+}
+
 function uniquePathIds(pathIds: Array<string | null | undefined>): string[] {
   return Array.from(new Set(pathIds.filter((pathId): pathId is string => Boolean(pathId))));
 }
@@ -469,6 +503,250 @@ function getPathOptionFallback(view: ControlCorrectionLearningCenterView | null)
   return Object.keys(fallback).length > 0 ? fallback : null;
 }
 
+const SKIP_WARNING_TEXT = '跳过后该资源不会计入完成进度，但会记录为路径偏离，可稍后返回。';
+
+function formatResourceType(type: string): string {
+  if (type === 'interactive_lesson' || type === 'interactive-lesson') return '互动课程';
+  if (type === 'knowledge_card' || type === 'knowledge-node') return '知识卡';
+  if (type === 'adaptive_quiz' || type === 'quiz') return '自适应练习';
+  if (type === 'control_workbench') return '控制工作台';
+  if (type === 'simulation') return '虚拟仿真';
+  if (type === 'arena_task') return 'Arena';
+  if (type === 'external_resource') return '外部资源';
+  if (type === 'konling' || type === 'ai_intervention' || type === 'intervention') return '控灵建议';
+  if (type === 'checkpoint') return '检查点';
+  return '学习资源';
+}
+
+function resourceGlyph(type: string): string {
+  if (type === 'interactive_lesson' || type === 'interactive-lesson') return '互';
+  if (type === 'knowledge_card' || type === 'knowledge-node') return '知';
+  if (type === 'adaptive_quiz' || type === 'quiz') return '练';
+  if (type === 'control_workbench') return '控';
+  if (type === 'simulation') return '仿';
+  if (type === 'arena_task') return '赛';
+  if (type === 'external_resource') return '外';
+  if (type === 'konling' || type === 'ai_intervention' || type === 'intervention') return '灵';
+  if (type === 'checkpoint') return '检';
+  return '学';
+}
+
+function formatPathNodeReason(reasonCodes: string[]): string {
+  const labels: Record<string, string> = {
+    'matches-knowledge-deficit': '针对当前薄弱知识点安排。',
+    'matches-competency-deficit': '针对当前能力短板安排。',
+    'matches-resource-preference': '符合当前资源偏好。',
+    'low-mastery-target': '用于补强掌握度较低的知识点。',
+    'preference-matched': '符合当前学习偏好和资源选择。',
+    'checkpoint-required': '用于形成下一段路径所需的检查证据。',
+    'terminal-validation-required': '用于完成路径终端验证。',
+    'risk-intervention-fit': '适合用于处理当前学习风险。',
+    'policy-simulation-driven': '优先通过仿真验证理解。',
+  };
+  const studentReasons = reasonCodes
+    .map((reason) => labels[reason] ?? (/[^\x00-\x7F]/.test(reason) ? reason : null))
+    .filter((reason): reason is string => Boolean(reason));
+  return studentReasons.length > 0
+    ? studentReasons.join('、')
+    : '这一步用于衔接当前目标和后续检查节点。';
+}
+
+function formatMinutes(minutes: number): string {
+  if (minutes <= 0) return '待估算';
+  if (minutes < 60) return `${minutes} 分钟`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest > 0 ? `${hours} 小时 ${rest} 分钟` : `${hours} 小时`;
+}
+
+function getEstimatedMinutes(node: Record<string, unknown>): number {
+  const value = node.estimatedTimeMinutes ?? node.estimatedMinutes ?? node.durationMinutes;
+  return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0;
+}
+
+function getPathExecutionNodes(plan: AdaptiveLearningPathPlan | null, round: LearningPathRoundView | null): PathExecutionNodeView[] {
+  if (!plan) return [];
+  const metadata = getRecord(round?.lastExecutionMetadata);
+  const completedNodeIds = new Set(getStringArray(metadata.completedNodeIds));
+  const failedNodeIds = new Set(getStringArray(metadata.failedNodeIds));
+  const skippedNodeIds = new Set((round?.deviations ?? [])
+    .filter((item) => getRecord(item).deviationType === 'skip')
+    .map((item) => getRecord(item).targetNodeId)
+    .filter((value): value is string => typeof value === 'string'));
+  const currentNodeId = plan.currentNodeId ?? round?.currentNodeId ?? null;
+
+  const nodes = plan.mainPath.map((item, index) => {
+    const node = getRecord(item);
+    const nodeId = typeof node.nodeId === 'string' ? node.nodeId : `path-node-${index + 1}`;
+    const type = typeof node.type === 'string' ? node.type : typeof node.sourceKind === 'string' ? node.sourceKind : 'resource';
+    const rawStatus = typeof node.status === 'string' ? node.status : 'optional';
+    const status: PathExecutionNodeView['status'] = completedNodeIds.has(nodeId) || rawStatus === 'completed'
+      ? 'completed'
+      : failedNodeIds.has(nodeId) || rawStatus === 'blocked'
+        ? 'blocked'
+        : currentNodeId === nodeId || rawStatus === 'current'
+          ? 'current'
+          : skippedNodeIds.has(nodeId)
+            ? 'skipped'
+            : rawStatus === 'next'
+              ? 'next'
+              : 'optional';
+    const knowledgeCoverage = getStringArray(node.knowledgeCoverage);
+    const reasonCodes = getStringArray(node.reasonCodes);
+    return {
+      nodeId,
+      title: typeof node.title === 'string' ? node.title : `学习节点 ${index + 1}`,
+      type,
+      resourceLabel: formatResourceType(type),
+      status,
+      target: typeof node.target === 'string' ? node.target : '/assessment/adaptive-practice',
+      estimatedMinutes: getEstimatedMinutes(node),
+      reason: formatPathNodeReason(reasonCodes),
+      evidence: knowledgeCoverage.length > 0 ? knowledgeCoverage.join('、') : `${formatResourceType(type)}完成记录`,
+      checkpoint: type === 'checkpoint' || type === 'arena_task' || type === 'simulation'
+        ? '完成后用于判断是否进入下一段路径。'
+        : '完成学习动作并留下可复核记录。',
+    };
+  });
+  if (nodes.some((node) => node.status === 'current')) return nodes;
+  const currentIndex = currentNodeId ? nodes.findIndex((node) => node.nodeId === currentNodeId) : -1;
+  const promotedCurrentNode = nodes.find((node, index) => index > currentIndex && (node.status === 'next' || node.status === 'optional'));
+  return promotedCurrentNode
+    ? nodes.map((node) => node.nodeId === promotedCurrentNode.nodeId ? { ...node, status: 'current' } : node)
+    : nodes;
+}
+
+function getPathExecutionSummary(nodes: PathExecutionNodeView[], round: LearningPathRoundView | null) {
+  const completed = nodes.filter((node) => node.status === 'completed').length;
+  const totalMinutes = nodes.reduce((sum, node) => sum + node.estimatedMinutes, 0);
+  const elapsedMinutes = nodes.filter((node) => node.status === 'completed').reduce((sum, node) => sum + node.estimatedMinutes, 0);
+  const remainingMinutes = Math.max(0, totalMinutes - elapsedMinutes);
+  const terminalState = getRecord(round?.terminalValidation).state;
+  return {
+    elapsed: formatMinutes(elapsedMinutes),
+    remaining: formatMinutes(remainingMinutes),
+    total: formatMinutes(totalMinutes),
+    completed: `${completed}/${nodes.length}`,
+    checkpointPass: terminalState === 'completed' ? '100%' : terminalState === 'failed' || terminalState === 'low-confidence' ? '0%' : '待产生',
+    weekly: `${completed} 个节点`,
+  };
+}
+
+function readTimelineTime(value: unknown): { label: string; sortTime: number } {
+  if (typeof value !== 'string' && !(value instanceof Date)) return { label: '时间待记录', sortTime: Number.POSITIVE_INFINITY };
+  const date = value instanceof Date ? value : new Date(value);
+  const sortTime = date.getTime();
+  if (Number.isNaN(sortTime)) return { label: '时间待记录', sortTime: Number.POSITIVE_INFINITY };
+  return { label: date.toLocaleString('zh-CN', { hour12: false }), sortTime };
+}
+
+function getPathActivityStateLabel(
+  activityKind: string,
+  status: string,
+  resourceType: string,
+): PathActivityTimelineItem['stateLabel'] {
+  if (activityKind === 'checkpoint-fail' || status === 'failed' || status === 'low-confidence') {
+    return '待复核';
+  }
+  if (resourceType === 'external_resource' || activityKind === 'external-resource-reference') {
+    return '仅作参考';
+  }
+  if (activityKind === 'continued-interaction' || activityKind === 'return-to-skipped' || status === 'completed') {
+    return '可用于推荐';
+  }
+  return '已记录';
+}
+
+function getPathActivityTitle(activityKind: string): string {
+  if (activityKind === 'review') return '回顾内容';
+  if (activityKind === 'continued-interaction') return '已完成节点继续互动';
+  if (activityKind === 'return-to-skipped') return '返回跳过资源';
+  if (activityKind === 'external-resource-reference') return '外部资源引用';
+  if (activityKind === 'checkpoint-fail') return '检查点未通过';
+  if (activityKind === 'konling-support') return '控灵干预';
+  return '完成节点';
+}
+
+function getPathActivityTimeline(nodes: PathExecutionNodeView[], round: LearningPathRoundView | null): PathActivityTimelineItem[] {
+  const nodeTitle = new Map(nodes.map((node) => [node.nodeId, node.title]));
+  const items: PathActivityTimelineItem[] = [];
+  for (const execution of round?.executions ?? []) {
+    const record = getRecord(execution);
+    const nodeId = typeof record.nodeId === 'string' ? record.nodeId : '';
+    const activityKind = typeof record.activityKind === 'string' ? record.activityKind : typeof record.status === 'string' ? record.status : 'started';
+    const status = typeof record.status === 'string' ? record.status : 'started';
+    const resourceType = typeof record.resourceType === 'string' ? record.resourceType : 'resource';
+    const timelineTime = readTimelineTime(record.createdAt ?? record.completedAt ?? record.startedAt);
+    items.push({
+      id: typeof record.id === 'string' ? record.id : `execution:${items.length}`,
+      nodeId,
+      type: activityKind,
+      title: getPathActivityTitle(activityKind),
+      detail: activityKind === 'review' ? '回顾不会重复计算完成进度。' : '节点活动已进入学习路径记录。',
+      nodeTitle: nodeTitle.get(nodeId) ?? nodeId,
+      sourceLabel: formatResourceType(resourceType),
+      stateLabel: getPathActivityStateLabel(activityKind, status, resourceType),
+      createdAt: timelineTime.label,
+      sortTime: timelineTime.sortTime,
+    });
+  }
+  for (const deviation of round?.deviations ?? []) {
+    const record = getRecord(deviation);
+    const targetNodeId = typeof record.targetNodeId === 'string' ? record.targetNodeId : '';
+    const timelineTime = readTimelineTime(record.createdAt);
+    items.push({
+      id: typeof record.id === 'string' ? record.id : `deviation:${items.length}`,
+      nodeId: targetNodeId,
+      type: 'skip',
+      title: '跳过未完成资源',
+      detail: '该资源不会计入完成进度，已记录为路径偏离。',
+      nodeTitle: nodeTitle.get(targetNodeId) ?? targetNodeId,
+      sourceLabel: '学习路径',
+      stateLabel: '待复核',
+      createdAt: timelineTime.label,
+      sortTime: timelineTime.sortTime,
+    });
+  }
+  for (const intervention of round?.interventions ?? []) {
+    const record = getRecord(intervention);
+    const targetNodeId = typeof record.targetNodeId === 'string' ? record.targetNodeId : typeof record.nodeId === 'string' ? record.nodeId : '';
+    const timelineTime = readTimelineTime(record.createdAt);
+    items.push({
+      id: typeof record.id === 'string' ? record.id : `intervention:${items.length}`,
+      nodeId: targetNodeId,
+      type: 'konling-support',
+      title: '控灵干预',
+      detail: '控灵建议已作为路径调整参考记录。',
+      nodeTitle: nodeTitle.get(targetNodeId) ?? targetNodeId,
+      sourceLabel: '控灵建议',
+      stateLabel: '可用于推荐',
+      createdAt: timelineTime.label,
+      sortTime: timelineTime.sortTime,
+    });
+  }
+  return items.sort((left, right) => left.sortTime - right.sortTime);
+}
+
+function buildEvidenceSourceSummary(nodes: PathExecutionNodeView[]): Array<{ label: string; count: number }> {
+  const labels = ['互动课程', '知识卡', '自适应练习', '控制工作台', '虚拟仿真', 'Arena', '外部资源', '控灵建议'];
+  const counts = new Map(labels.map((label) => [label, 0]));
+  for (const node of nodes) if (counts.has(node.resourceLabel)) counts.set(node.resourceLabel, (counts.get(node.resourceLabel) ?? 0) + 1);
+  return labels.map((label) => ({ label, count: counts.get(label) ?? 0 }));
+}
+
+function pathNodeContextHref(node: PathExecutionNodeView, options: {
+  goalId: AdaptivePracticeGoalId;
+  pathId?: string | null;
+}): string {
+  const href = node.target || '/assessment/adaptive-practice';
+  if (/^https?:\/\//.test(href)) return href;
+  const separator = href.includes('?') ? '&' : '?';
+  const { goalId, pathId } = options;
+  const params = new URLSearchParams({ goal: goalId, intent: 'path-execution', nodeId: node.nodeId });
+  if (pathId) params.set('pathId', pathId);
+  return `${href}${separator}${params.toString()}`;
+}
+
 function formatPathHistoryType(type: string): string {
   if (type === 'selection') return '选择';
   if (type === 'rejection') return '拒绝';
@@ -552,6 +830,9 @@ export default function AdaptivePracticePage() {
   const [pathChoicePending, setPathChoicePending] = useState<string | null>(null);
   const [pathChoiceMessage, setPathChoiceMessage] = useState<string | null>(null);
   const [pathNodeCompletionPending, setPathNodeCompletionPending] = useState<string | null>(null);
+  const [skipCandidateNode, setSkipCandidateNode] = useState<PathExecutionNodeView | null>(null);
+  const [pathActivityPending, setPathActivityPending] = useState<string | null>(null);
+  const [selectedPathNodeId, setSelectedPathNodeId] = useState<string | null>(activeNodeId);
   const practiceRouteNodes = useMemo(() => buildPracticeEntryRouteNodes({
     recommendedFocus: diagnostic?.recommendedFocus ?? [],
     weakAreas: diagnostic?.weakAreas ?? [],
@@ -576,6 +857,45 @@ export default function AdaptivePracticePage() {
   const visiblePathOptions = useMemo(() => buildAdaptivePathOptionDisplays(pathOptions), [pathOptions]);
   const pathSelectionHistory = useMemo(() => getPathSelectionHistory(controlCorrectionCenter), [controlCorrectionCenter]);
   const pathOptionFallback = useMemo(() => getPathOptionFallback(controlCorrectionCenter), [controlCorrectionCenter]);
+  const pathExecutionNodes = useMemo(
+    () => getPathExecutionNodes(controlCorrectionPathPlan, controlCorrectionPathRound),
+    [controlCorrectionPathPlan, controlCorrectionPathRound],
+  );
+  useEffect(() => {
+    if (activeNodeId) setSelectedPathNodeId(activeNodeId);
+  }, [activeNodeId]);
+  useEffect(() => {
+    if (pathExecutionNodes.length === 0) {
+      setSelectedPathNodeId(null);
+      return;
+    }
+    setSelectedPathNodeId((current) => (
+      current && pathExecutionNodes.some((node) => node.nodeId === current)
+        ? current
+        : pathExecutionNodes.find((node) => node.status === 'current')?.nodeId ?? pathExecutionNodes[0]?.nodeId ?? null
+    ));
+  }, [pathExecutionNodes]);
+  const currentPathNode = useMemo(() => (
+    pathExecutionNodes.find((node) => node.status === 'current') ?? null
+  ), [pathExecutionNodes]);
+  const focusedPathNode = useMemo(() => (
+    pathExecutionNodes.find((node) => node.nodeId === selectedPathNodeId) ??
+    pathExecutionNodes.find((node) => node.status === 'current') ??
+    pathExecutionNodes[0] ??
+    null
+  ), [pathExecutionNodes, selectedPathNodeId]);
+  const pathExecutionSummary = useMemo(
+    () => getPathExecutionSummary(pathExecutionNodes, controlCorrectionPathRound),
+    [controlCorrectionPathRound, pathExecutionNodes],
+  );
+  const pathActivityTimeline = useMemo(
+    () => getPathActivityTimeline(pathExecutionNodes, controlCorrectionPathRound),
+    [controlCorrectionPathRound, pathExecutionNodes],
+  );
+  const evidenceSourceSummary = useMemo(
+    () => buildEvidenceSourceSummary(pathExecutionNodes),
+    [pathExecutionNodes],
+  );
 
   const setPathChoiceUnavailable = useCallback(() => {
     setPathChoiceMessage('请先登录并生成路径后再记录选择。');
@@ -840,6 +1160,94 @@ export default function AdaptivePracticePage() {
     if (!nextAction?.nodeId) return;
     await completePathNodeAction(nextAction.nodeId, nextAction.completionAction);
   }, [completePathNodeAction, controlCorrectionCenter]);
+
+  const writePathNodeActivity = useCallback(async (
+    node: PathExecutionNodeView,
+    activityKind: string,
+    status: 'started' | 'completed' | 'failed' = 'started',
+  ): Promise<boolean> => {
+    const pathId = controlCorrectionPathRound?.id ?? controlCorrectionPathPlan?.id;
+    if (!pathId) return false;
+    setPathActivityPending(`${activityKind}:${node.nodeId}`);
+    try {
+      const response = await fetch(`/api/learning-paths/${encodeURIComponent(pathId)}/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nodeId: node.nodeId,
+          resourceType: node.type,
+          status,
+          startedAt: new Date().toISOString(),
+          completedAt: status === 'completed' ? new Date().toISOString() : null,
+          failedAt: status === 'failed' ? new Date().toISOString() : null,
+          idempotencyKey: `${activityKind}:${pathId}:${node.nodeId}:${Date.now()}`,
+          liftMetadata: { pathActivityKind: activityKind },
+        }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(typeof payload.error === 'string' ? payload.error : '路径活动写入失败');
+      }
+      await reloadControlCorrectionPath();
+      setError(null);
+      return true;
+    } catch (activityError) {
+      setError(activityError instanceof Error ? activityError.message : '路径活动写入失败');
+      return false;
+    } finally {
+      setPathActivityPending(null);
+    }
+  }, [controlCorrectionPathPlan, controlCorrectionPathRound, reloadControlCorrectionPath]);
+
+  const skipPathNode = useCallback(async (node: PathExecutionNodeView) => {
+    const pathId = controlCorrectionPathRound?.id ?? controlCorrectionPathPlan?.id;
+    if (!pathId) return;
+    setPathActivityPending(`skip:${node.nodeId}`);
+    try {
+      const response = await fetch(`/api/learning-paths/${encodeURIComponent(pathId)}/deviations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deviationType: 'skip',
+          priorNodeId: controlCorrectionPathPlan?.currentNodeId ?? controlCorrectionPathRound?.currentNodeId ?? null,
+          targetNodeId: node.nodeId,
+          evidenceConfidence: 'medium',
+          idempotencyKey: `skip:${pathId}:${node.nodeId}:${Date.now()}`,
+          context: {
+            consequence: SKIP_WARNING_TEXT,
+            returnEligible: true,
+          },
+        }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(typeof payload.error === 'string' ? payload.error : '路径偏离写入失败');
+      }
+      await reloadControlCorrectionPath();
+      setSkipCandidateNode(null);
+      setError(null);
+    } catch (skipError) {
+      setError(skipError instanceof Error ? skipError.message : '路径偏离写入失败');
+    } finally {
+      setPathActivityPending(null);
+    }
+  }, [controlCorrectionPathPlan, controlCorrectionPathRound, reloadControlCorrectionPath]);
+
+  const launchExecutionNode = useCallback(async (node: PathExecutionNodeView) => {
+    const activityWritten = await writePathNodeActivity(
+      node,
+      node.status === 'skipped' ? 'return-to-skipped' : 'initial-completion',
+      'started',
+    );
+    if (!activityWritten) return;
+    window.location.assign(pathNodeContextHref(node, {
+      goalId: resolveAdaptivePracticeGoalId(
+        controlCorrectionPathPlan?.goal.id ?? controlCorrectionPathRound?.goalId ?? activeGoal,
+        activeGoal ?? 'control-correction',
+      ),
+      pathId: controlCorrectionPathPlan?.id ?? controlCorrectionPathRound?.id,
+    }));
+  }, [activeGoal, controlCorrectionPathPlan, controlCorrectionPathRound, writePathNodeActivity]);
 
   const retryNextQuestion = useCallback(async () => {
     setLoading(true);
@@ -1550,6 +1958,239 @@ export default function AdaptivePracticePage() {
               </p>
             ) : null}
           </section>
+
+          {pathExecutionNodes.length > 0 ? (
+            <section className="grid gap-4 xl:grid-cols-[minmax(0,0.62fr)_minmax(0,0.38fr)]">
+              <div className="surface-card p-5" data-adaptive-path-execution-surface="active-route">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-normal text-primary">Active route</p>
+                    <h2 className="mt-1 text-xl font-semibold text-foreground">当前学习路径</h2>
+                    <p className="mt-2 text-sm text-subtle">完整路线、当前节点、预计时间和检查点状态保持可见。</p>
+                  </div>
+                  <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-xs text-subtle">
+                    当前节点：{currentPathNode?.title ?? '待定位'}
+                  </span>
+                </div>
+
+                <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-6">
+                  {[
+                    ['已耗时', pathExecutionSummary.elapsed],
+                    ['预计剩余', pathExecutionSummary.remaining],
+                    ['预计总时长', pathExecutionSummary.total],
+                    ['完成节点', pathExecutionSummary.completed],
+                    ['检查点通过', pathExecutionSummary.checkpointPass],
+                    ['本周学习', pathExecutionSummary.weekly],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-lg border border-border bg-muted/30 p-3">
+                      <p className="text-xs text-subtle">{label}</p>
+                      <p className="mt-1 text-sm font-semibold text-foreground">{value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 grid gap-3 lg:grid-cols-[1.15fr_0.85fr]">
+                  <div className="rounded-lg border border-border bg-background/55 p-3" data-adaptive-path-route-map="complete">
+                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3" data-adaptive-path-route-flow="connected">
+                      <span className="sr-only" data-adaptive-path-route-connector="true" />
+                      {pathExecutionNodes.map((node, index) => (
+                        <button
+                          key={node.nodeId}
+                          type="button"
+                          onClick={() => setSelectedPathNodeId(node.nodeId)}
+                          aria-pressed={focusedPathNode?.nodeId === node.nodeId}
+                          data-adaptive-path-node={node.nodeId}
+                          data-adaptive-path-node-state={node.status}
+                          data-adaptive-path-node-selectable="true"
+                          className={`min-h-32 rounded-lg border p-3 text-left transition hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                            node.status === 'current'
+                              ? 'border-primary bg-primary/10'
+                              : node.status === 'completed'
+                                ? 'border-platform-evidence-eligible/40 bg-platform-evidence-eligible/10'
+                                : node.status === 'skipped' || node.status === 'blocked'
+                                  ? 'border-platform-evidence-context/40 bg-platform-evidence-context/10'
+                                  : 'border-border bg-muted/25'
+                          } ${focusedPathNode?.nodeId === node.nodeId ? 'ring-2 ring-primary/30' : ''}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className="grid size-9 shrink-0 place-items-center rounded-full border border-border bg-background text-sm font-semibold text-foreground">
+                              {resourceGlyph(node.type)}
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block text-xs text-subtle">第 {index + 1} 步 · {node.resourceLabel}</span>
+                              <span className="mt-1 block text-sm font-semibold text-foreground">{node.title}</span>
+                            </span>
+                          </div>
+                          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-subtle">
+                            <span className="rounded-md border border-border bg-background/70 px-2 py-1">
+                              {node.status === 'current'
+                                ? '当前节点'
+                                : node.status === 'completed'
+                                  ? '已完成'
+                                  : node.status === 'skipped'
+                                    ? '已跳过'
+                                    : node.status === 'blocked'
+                                      ? '待复核'
+                                      : '等待前置节点'}
+                            </span>
+                            <span>预计 {formatMinutes(node.estimatedMinutes)}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {focusedPathNode ? (
+                    <div className="rounded-lg border border-border bg-background/55 p-4" data-adaptive-path-node-detail="selected">
+                      <p className="text-xs text-primary">{focusedPathNode.resourceLabel}</p>
+                      <h3 className="mt-1 text-base font-semibold text-foreground">{focusedPathNode.title}</h3>
+                      <dl className="mt-4 space-y-3 text-sm">
+                        <div>
+                          <dt className="text-xs text-subtle">推荐理由</dt>
+                          <dd className="mt-1 text-foreground">{focusedPathNode.reason}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-xs text-subtle">将收集的学习证据</dt>
+                          <dd className="mt-1 text-foreground">{focusedPathNode.evidence}</dd>
+                        </div>
+                        <div>
+                          <dt className="text-xs text-subtle">检查标准</dt>
+                          <dd className="mt-1 text-foreground">{focusedPathNode.checkpoint}</dd>
+                        </div>
+                      </dl>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {focusedPathNode.status === 'completed' ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => void writePathNodeActivity(focusedPathNode, 'review', 'started')}
+                              disabled={pathActivityPending === `review:${focusedPathNode.nodeId}`}
+                              className="rounded-lg border border-border px-3 py-2 text-xs text-foreground disabled:opacity-60"
+                            >
+                              回顾
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void writePathNodeActivity(focusedPathNode, 'continued-interaction', 'started')}
+                              disabled={pathActivityPending === `continued-interaction:${focusedPathNode.nodeId}`}
+                              className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                            >
+                              继续互动
+                            </button>
+                            <Link
+                              href={`/profile/evidence?goal=control-correction&pathId=${encodeURIComponent(controlCorrectionPathPlan?.id ?? '')}&nodeId=${encodeURIComponent(focusedPathNode.nodeId)}`}
+                              className="rounded-lg border border-border px-3 py-2 text-xs text-foreground"
+                            >
+                              查看证据
+                            </Link>
+                          </>
+                        ) : focusedPathNode.status === 'current' || focusedPathNode.status === 'skipped' ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => void launchExecutionNode(focusedPathNode)}
+                              disabled={pathActivityPending === `initial-completion:${focusedPathNode.nodeId}` ||
+                                pathActivityPending === `return-to-skipped:${focusedPathNode.nodeId}`}
+                              className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                            >
+                              {focusedPathNode.status === 'skipped' ? '返回学习' : '开始学习'}
+                            </button>
+                            {focusedPathNode.status !== 'skipped' ? (
+                              <button
+                                type="button"
+                                onClick={() => setSkipCandidateNode(focusedPathNode)}
+                                className="rounded-lg border border-border px-3 py-2 text-xs text-foreground"
+                              >
+                                跳过
+                              </button>
+                            ) : null}
+                          </>
+                        ) : (
+                          <span className="rounded-lg border border-border px-3 py-2 text-xs text-subtle">等待前置节点</span>
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+
+                {skipCandidateNode ? (
+                  <div className="mt-4 rounded-lg border border-platform-evidence-context/60 bg-platform-evidence-context/10 p-4" data-adaptive-path-skip-warning="visible">
+                    <h3 className="text-sm font-semibold text-foreground">确认跳过 {skipCandidateNode.title}</h3>
+                    <p className="mt-2 text-sm text-foreground">{SKIP_WARNING_TEXT}</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void skipPathNode(skipCandidateNode)}
+                        disabled={pathActivityPending === `skip:${skipCandidateNode.nodeId}`}
+                        className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                      >
+                        确认跳过
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSkipCandidateNode(null)}
+                        className="rounded-lg border border-border px-3 py-2 text-xs text-foreground"
+                      >
+                        继续保留
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              <aside
+                className="surface-card p-5"
+                data-adaptive-path-history-surface="timeline-evidence"
+                data-adaptive-path-evidence-sources="complete"
+                data-adaptive-path-evidence-states="student-safe"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-normal text-primary">Evidence Record</p>
+                    <h2 className="mt-1 text-xl font-semibold text-foreground">路径完成与证据</h2>
+                  </div>
+                  <History className="size-5 text-primary" aria-hidden="true" />
+                </div>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {evidenceSourceSummary.slice(0, 6).map((item) => (
+                    <div key={item.label} className="rounded-lg border border-border bg-muted/30 p-3">
+                      <p className="text-xs text-subtle">{item.label}</p>
+                      <p className="mt-1 text-sm font-semibold text-foreground">{item.count}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 space-y-3" data-adaptive-path-history-timeline="governed-activity">
+                  {pathActivityTimeline.length > 0 ? pathActivityTimeline.map((item) => (
+                    <article key={item.id} className="rounded-lg border border-border bg-background/55 p-3">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <p className="text-xs text-primary">{item.sourceLabel} · {item.stateLabel}</p>
+                          <h3 className="mt-1 text-sm font-semibold text-foreground">{item.title}</h3>
+                          <p className="mt-1 text-xs text-subtle">{item.nodeTitle} · {item.detail}</p>
+                        </div>
+                        <div className="flex flex-col items-start gap-2 sm:items-end">
+                          <span className="text-xs text-subtle">{item.createdAt}</span>
+                          {item.nodeId && pathExecutionNodes.some((node) => node.nodeId === item.nodeId) ? (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedPathNodeId(item.nodeId)}
+                              className="rounded-md border border-border px-2 py-1 text-xs text-foreground hover:border-primary"
+                            >
+                              查看节点
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                    </article>
+                  )) : (
+                    <p className="rounded-lg border border-border bg-background/55 p-3 text-sm text-subtle">
+                      路径执行、回顾、继续互动、跳过、检查点和控灵建议会在这里形成时间线。
+                    </p>
+                  )}
+                </div>
+              </aside>
+            </section>
+          ) : null}
 
           <section className="grid gap-4 xl:grid-cols-[minmax(0,0.58fr)_minmax(0,0.42fr)]">
             <div className="surface-card p-5" data-adaptive-practice-resource="path-node">

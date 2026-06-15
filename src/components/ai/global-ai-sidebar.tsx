@@ -116,7 +116,7 @@ export function GlobalAISidebar() {
         opener.focus();
         return;
       }
-      document.querySelector<HTMLElement>('[data-platform-floating-dock] button[aria-label="打开页面工具菜单"]')?.focus();
+      document.querySelector<HTMLElement>('[data-platform-floating-dock] button[aria-label*="页面工具菜单"]')?.focus();
     });
   }, [isOpen]);
 

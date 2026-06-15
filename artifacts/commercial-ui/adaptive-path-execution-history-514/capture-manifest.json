@@ -1,0 +1,127 @@
+{
+  "capturedAt": "2026-06-15T10:32:57.380Z",
+  "baseUrl": "http://localhost:3001/assessment/adaptive-practice?demo=1&goal=control-correction",
+  "captures": [
+    {
+      "name": "active-path-light-desktop",
+      "theme": "light",
+      "width": 1440,
+      "height": 1100,
+      "url": "http://localhost:3001/assessment/adaptive-practice?demo=1&goal=control-correction",
+      "file": "artifacts/commercial-ui/adaptive-path-execution-history-514/active-path-light-desktop.png",
+      "sha1": "9c199ebaec6e1b8c4932c2edbb66ebeea821c7ea"
+    },
+    {
+      "name": "completed-node-review-light-desktop",
+      "theme": "light",
+      "width": 1440,
+      "height": 1100,
+      "url": "http://localhost:3001/assessment/adaptive-practice?demo=1&goal=control-correction",
+      "beforeScreenshot": "select-completed",
+      "file": "artifacts/commercial-ui/adaptive-path-execution-history-514/completed-node-review-light-desktop.png",
+      "sha1": "c46ab2c346fd4881aedd89dc09c399a77c267c76"
+    },
+    {
+      "name": "history-light-desktop",
+      "theme": "light",
+      "width": 1440,
+      "height": 1400,
+      "url": "http://localhost:3001/assessment/adaptive-practice?demo=1&goal=control-correction",
+      "selector": "[data-adaptive-path-history-surface]",
+      "file": "artifacts/commercial-ui/adaptive-path-execution-history-514/history-light-desktop.png",
+      "sha1": "848f6ca570bb6dcaddca371fcb80df645bf74808"
+    },
+    {
+      "name": "active-path-dark-desktop",
+      "theme": "dark",
+      "width": 1440,
+      "height": 1100,
+      "url": "http://localhost:3001/assessment/adaptive-practice?demo=1&goal=control-correction",
+      "file": "artifacts/commercial-ui/adaptive-path-execution-history-514/active-path-dark-desktop.png",
+      "sha1": "0332a6dbb6e5028ad961d79e25ca903f670f36e1"
+    },
+    {
+      "name": "active-path-light-mobile",
+      "theme": "light",
+      "width": 320,
+      "height": 1100,
+      "url": "http://localhost:3001/assessment/adaptive-practice?demo=1&goal=control-correction",
+      "file": "artifacts/commercial-ui/adaptive-path-execution-history-514/active-path-light-mobile.png",
+      "sha1": "7524b9e7c1b1d065135c0793da8b25437b15f418"
+    },
+    {
+      "name": "active-path-dark-mobile",
+      "theme": "dark",
+      "width": 320,
+      "height": 1100,
+      "url": "http://localhost:3001/assessment/adaptive-practice?demo=1&goal=control-correction",
+      "file": "artifacts/commercial-ui/adaptive-path-execution-history-514/active-path-dark-mobile.png",
+      "sha1": "e8e79449ed390595e30ab708c484a8cccbd7a138"
+    },
+    {
+      "name": "route-map-light-mobile",
+      "theme": "light",
+      "width": 320,
+      "height": 1200,
+      "url": "http://localhost:3001/assessment/adaptive-practice?demo=1&goal=control-correction",
+      "selector": "[data-adaptive-path-execution-surface=\"active-route\"]",
+      "clipInsetLeft": 12,
+      "file": "artifacts/commercial-ui/adaptive-path-execution-history-514/route-map-light-mobile.png",
+      "sha1": "513b2a15840b0944fdbab5928b9aa4c8a23096c7"
+    },
+    {
+      "name": "route-map-dark-mobile",
+      "theme": "dark",
+      "width": 320,
+      "height": 1200,
+      "url": "http://localhost:3001/assessment/adaptive-practice?demo=1&goal=control-correction",
+      "selector": "[data-adaptive-path-execution-surface=\"active-route\"]",
+      "clipInsetLeft": 12,
+      "file": "artifacts/commercial-ui/adaptive-path-execution-history-514/route-map-dark-mobile.png",
+      "sha1": "33564b8b3d71c6bbd1fb75d2eb3a6581690df24f"
+    },
+    {
+      "name": "history-light-mobile",
+      "theme": "light",
+      "width": 320,
+      "height": 1200,
+      "url": "http://localhost:3001/assessment/adaptive-practice?demo=1&goal=control-correction",
+      "selector": "[data-adaptive-path-history-surface]",
+      "clipInsetLeft": 12,
+      "file": "artifacts/commercial-ui/adaptive-path-execution-history-514/history-light-mobile.png",
+      "sha1": "656e3be1efcea48540a578b7015d067ca41f8944"
+    },
+    {
+      "name": "history-dark-mobile",
+      "theme": "dark",
+      "width": 320,
+      "height": 1200,
+      "url": "http://localhost:3001/assessment/adaptive-practice?demo=1&goal=control-correction",
+      "selector": "[data-adaptive-path-history-surface]",
+      "clipInsetLeft": 12,
+      "file": "artifacts/commercial-ui/adaptive-path-execution-history-514/history-dark-mobile.png",
+      "sha1": "7befbb0c5281c20a66ea15ac31cd26a9e61d5dd9"
+    },
+    {
+      "name": "skip-warning-light-desktop",
+      "theme": "light",
+      "width": 1440,
+      "height": 1100,
+      "url": "http://localhost:3001/assessment/adaptive-practice?demo=1&goal=control-correction",
+      "selector": "[data-adaptive-path-skip-warning=\"visible\"]",
+      "beforeScreenshot": "skip-warning",
+      "file": "artifacts/commercial-ui/adaptive-path-execution-history-514/skip-warning-light-desktop.png",
+      "sha1": "bb2ce865439623f90df8f26c1ad8074043f9efe9"
+    },
+    {
+      "name": "skipped-node-confirmed-light-desktop",
+      "theme": "light",
+      "width": 1440,
+      "height": 1100,
+      "url": "http://localhost:3001/assessment/adaptive-practice?demo=1&goal=control-correction",
+      "beforeScreenshot": "skip-confirm",
+      "file": "artifacts/commercial-ui/adaptive-path-execution-history-514/skipped-node-confirmed-light-desktop.png",
+      "sha1": "ecf296a89b27301899590fe5fa499b550989996f"
+    }
+  ]
+}

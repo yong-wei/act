@@ -18,6 +18,17 @@ import {
 export const dynamic = 'force-dynamic';
 
 const EXECUTION_STATUSES = new Set(['started', 'completed', 'failed', 'abandoned']);
+const PATH_ACTIVITY_KINDS = new Set([
+  'initial-completion',
+  'continued-interaction',
+  'review',
+  'return-to-skipped',
+  'retry',
+  'checkpoint-pass',
+  'checkpoint-fail',
+  'external-resource-reference',
+  'konling-support',
+]);
 const RESOURCE_TYPES = new Set([
   'lesson_step',
   'knowledge_node',
@@ -92,7 +103,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
             completedAt: existingExecution.completedAt ?? null,
             failedAt: existingExecution.failedAt ?? null,
             evidenceRefs: Array.isArray(existingExecution.evidenceRefs) ? existingExecution.evidenceRefs : [],
-            liftMetadata: toRecord(existingExecution.liftMetadata),
+            liftMetadata: normalizeExecutionLiftMetadata(existingExecution.liftMetadata),
             simulationRef: toNullableRecord(existingExecution.simulationRef),
             arenaRef: toNullableRecord(existingExecution.arenaRef),
             idempotencyKey: body.idempotencyKey ?? null,
@@ -100,11 +111,27 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
             actorRole: requester.role,
           };
           const existingPathNode = readPathNode(path, existingExecution.nodeId);
+          const existingActivityKind = readPathActivityKind(executionInput.liftMetadata);
+          const existingHistoricalActivity = path.currentNodeId !== executionInput.nodeId;
+          const canReplayHistoricalActivity = existingActivityKind
+            ? await canWriteHistoricalPathActivity(
+                prisma as any,
+                path,
+                existingPathNode,
+                executionInput.nodeId,
+                existingActivityKind,
+                executionInput.status,
+              )
+            : false;
+          if (existingHistoricalActivity && !canReplayHistoricalActivity) {
+            const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
+            return NextResponse.json({ execution: toExecutionWriteView(existingExecution), cacheRefresh });
+          }
           const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, existingPathNode, executionInput);
           if (governedExternalInput instanceof NextResponse) return governedExternalInput;
           const governedExecutionInput = await resolveGovernedTerminalEvidence(prisma as any, path, governedExternalInput);
           execution = await recordPathNodeExecution(prisma as any, governedExecutionInput);
-          if (path.currentNodeId === existingExecution.nodeId) {
+          if (shouldUpdatePathAfterExecution(path, existingPathNode, governedExecutionInput, existingActivityKind, existingHistoricalActivity)) {
             await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, governedExecutionInput);
           }
         }
@@ -112,7 +139,12 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
         return NextResponse.json({ execution: toExecutionWriteView(execution), cacheRefresh });
       }
     }
-    if (path.currentNodeId !== body.nodeId) {
+    const activityKind = readPathActivityKind(body.liftMetadata);
+    const isHistoricalActivity = path.currentNodeId !== body.nodeId;
+    if (
+      isHistoricalActivity &&
+      !(await canWriteHistoricalPathActivity(prisma as any, path, pathNode, body.nodeId, activityKind, body.status))
+    ) {
       return NextResponse.json({ error: '执行事件只能写入当前路径节点' }, { status: 409 });
     }
     const externalExecutionInput = {
@@ -126,7 +158,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       completedAt: body.completedAt ?? null,
       failedAt: body.failedAt ?? null,
       evidenceRefs: body.evidenceRefs ?? [],
-      liftMetadata: body.liftMetadata ?? {},
+      liftMetadata: normalizeExecutionLiftMetadata(body.liftMetadata),
       simulationRef: body.simulationRef ?? null,
       arenaRef: body.arenaRef ?? null,
       idempotencyKey: body.idempotencyKey ?? null,
@@ -137,7 +169,9 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (governedExternalInput instanceof NextResponse) return governedExternalInput;
     const executionInput = await resolveGovernedTerminalEvidence(prisma as any, path, governedExternalInput);
     const execution = await recordPathNodeExecution(prisma as any, executionInput);
-    await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, executionInput);
+    if (shouldUpdatePathAfterExecution(path, pathNode, executionInput, activityKind, isHistoricalActivity)) {
+      await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, executionInput);
+    }
     const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
 
     return NextResponse.json({ execution: toExecutionWriteView(execution), cacheRefresh });
@@ -165,6 +199,10 @@ function toRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
+function arrayOfStrings(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
 function readPathNode(path: any, nodeId: unknown): Record<string, unknown> | null {
   if (typeof nodeId !== 'string') return null;
   const payload = toRecord(path?.pathPayload);
@@ -184,11 +222,99 @@ function toExecutionWriteView(execution: any) {
     nodeId: execution.nodeId,
     resourceType: execution.resourceType,
     status: execution.status,
+    activityKind: readPathActivityKind(execution.liftMetadata),
     startedAt: execution.startedAt ?? null,
     completedAt: execution.completedAt ?? null,
     failedAt: execution.failedAt ?? null,
     createdAt: execution.createdAt ?? null,
   };
+}
+
+function readPathActivityKind(value: unknown): string | null {
+  const metadata = toRecord(value);
+  const activityKind = metadata.pathActivityKind ?? metadata.activityKind;
+  return typeof activityKind === 'string' && PATH_ACTIVITY_KINDS.has(activityKind)
+    ? activityKind
+    : null;
+}
+
+function normalizeExecutionLiftMetadata(value: unknown): Record<string, unknown> {
+  const activityKind = readPathActivityKind(value);
+  return activityKind ? { pathActivityKind: activityKind } : {};
+}
+
+async function canWriteHistoricalPathActivity(
+  db: any,
+  path: any,
+  pathNode: Record<string, unknown> | null,
+  nodeId: unknown,
+  activityKind: string | null,
+  status: unknown,
+): Promise<boolean> {
+  if (typeof nodeId !== 'string' || !activityKind || !pathNode) return false;
+  if (typeof status !== 'string' || !EXECUTION_STATUSES.has(status)) return false;
+  const metadata = toRecord(path.lastExecutionMetadata);
+  const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
+  const failedNodeIds = new Set(arrayOfStrings(metadata.failedNodeIds));
+  const skippedNodeIds = new Set(arrayOfStrings(metadata.skippedNodeIds));
+  const reachedNodeIds = new Set([...completedNodeIds, ...failedNodeIds, ...skippedNodeIds]);
+  if ((activityKind === 'review' || activityKind === 'continued-interaction') && completedNodeIds.has(nodeId) && status === 'started') {
+    return true;
+  }
+  if (activityKind === 'retry' && failedNodeIds.has(nodeId) && status === 'started') {
+    return true;
+  }
+  if (activityKind === 'return-to-skipped') {
+    return status === 'started' && !completedNodeIds.has(nodeId) && await hasReturnEligibleSkipDeviation(db, path, nodeId);
+  }
+  if (
+    (activityKind === 'checkpoint-pass' || activityKind === 'checkpoint-fail') &&
+    pathNode.type === 'checkpoint' &&
+    failedNodeIds.has(nodeId) &&
+    (status === 'completed' || status === 'failed')
+  ) {
+    return true;
+  }
+  if (activityKind === 'external-resource-reference' && pathNode.type === 'external_resource' && reachedNodeIds.has(nodeId) && status === 'started') {
+    return true;
+  }
+  if (activityKind === 'konling-support' && (pathNode.type === 'konling' || pathNode.type === 'ai_intervention') && reachedNodeIds.has(nodeId) && status === 'started') {
+    return true;
+  }
+  return false;
+}
+
+async function hasReturnEligibleSkipDeviation(db: any, path: any, nodeId: string): Promise<boolean> {
+  const deviation = await db.learningPathDeviation?.findFirst?.({
+    where: {
+      pathId: path.id,
+      userId: path.userId,
+      deviationType: 'skip',
+      targetNodeId: nodeId,
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+  if (!deviation) return false;
+  return toRecord(deviation.context).returnEligible !== false;
+}
+
+function shouldUpdatePathAfterExecution(
+  path: any,
+  pathNode: Record<string, unknown> | null,
+  input: { nodeId: string; status: string },
+  activityKind: string | null,
+  isHistoricalActivity: boolean,
+): boolean {
+  if (!isHistoricalActivity) return true;
+  if (activityKind === 'return-to-skipped' && input.status === 'started') return true;
+  const metadata = toRecord(path.lastExecutionMetadata);
+  const failedNodeIds = new Set(arrayOfStrings(metadata.failedNodeIds));
+  return Boolean(
+    pathNode?.type === 'checkpoint' &&
+    failedNodeIds.has(input.nodeId) &&
+    (activityKind === 'checkpoint-pass' || activityKind === 'checkpoint-fail') &&
+    (input.status === 'completed' || input.status === 'failed'),
+  );
 }
 
 async function resolveGovernedExternalResourceEvidence<T extends {

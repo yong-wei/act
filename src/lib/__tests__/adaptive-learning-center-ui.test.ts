@@ -584,6 +584,99 @@ describe('adaptive learning center UI contracts', () => {
     expect(layoutSource).toContain("'frequency-response-foundations': createKonlingTeachingAssistantServerContextToken");
   });
 
+  it('renders adaptive path execution, skip warning, and evidence history in student-facing language', () => {
+    const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(source).toContain('data-adaptive-path-execution-surface="active-route"');
+    expect(source).toContain('data-adaptive-path-route-map="complete"');
+    expect(source).toContain('data-adaptive-path-node-detail="selected"');
+    expect(source).toContain('data-adaptive-path-skip-warning="visible"');
+    expect(source).toContain('data-adaptive-path-history-surface="timeline-evidence"');
+    expect(source).toContain('data-adaptive-path-history-timeline="governed-activity"');
+    expect(source).toContain('当前学习路径');
+    expect(source).toContain('当前节点');
+    expect(source).toContain('已耗时');
+    expect(source).toContain('预计剩余');
+    expect(source).toContain('预计总时长');
+    expect(source).toContain('完成节点');
+    expect(source).toContain('检查点通过');
+    expect(source).toContain('本周学习');
+    expect(source).toContain('推荐理由');
+    expect(source).toContain('将收集的学习证据');
+    expect(source).toContain('检查标准');
+    expect(source).toContain('回顾');
+    expect(source).toContain('继续互动');
+    expect(source).toContain('查看证据');
+    expect(source).toContain('开始学习');
+    expect(source).toContain('跳过');
+    expect(source).toContain('跳过后该资源不会计入完成进度，但会记录为路径偏离，可稍后返回。');
+    expect(source).toContain('路径完成与证据');
+    expect(source).toContain('data-adaptive-path-route-flow="connected"');
+    expect(source).toContain('data-adaptive-path-route-connector="true"');
+    expect(source).toContain('data-adaptive-path-node-selectable="true"');
+    expect(source).toContain('aria-pressed={focusedPathNode?.nodeId === node.nodeId}');
+    expect(source).toContain('setSelectedPathNodeId(item.nodeId)');
+    expect(source).toContain('currentPathNode?.title');
+    expect(source).toContain('promotedCurrentNode');
+    expect(source).toContain("index > currentIndex");
+    expect(source).toContain("? { ...node, status: 'current' }");
+    expect(source).not.toContain("selectedNode?.status === 'skipped'");
+    expect(source).not.toContain('setSelectedPathNodeId(currentPathNode.nodeId)');
+    expect(source).toContain('查看节点');
+    expect(source).toContain('等待前置节点');
+    expect(source).toContain('data-adaptive-path-evidence-sources="complete"');
+    expect(source).toContain('data-adaptive-path-evidence-states="student-safe"');
+    expect(source).toContain('检查点未通过');
+    expect(source).toContain('外部资源引用');
+    expect(source).toContain('控灵干预');
+    expect(source).toContain('互动课程');
+    expect(source).toContain('自适应练习');
+    expect(source).toContain('控制工作台');
+    expect(source).toContain('虚拟仿真');
+    expect(source).toContain('Arena');
+    expect(source).toContain('外部资源');
+    expect(source).toContain('控灵建议');
+    expect(source).toContain('知识卡');
+    expect(source).toContain('已记录');
+    expect(source).toContain('待复核');
+    expect(source).toContain('可用于推荐');
+    expect(source).toContain('仅作参考');
+    expect(source).toContain('function getPathActivityStateLabel');
+    expect(source).toContain("activityKind === 'checkpoint-fail'");
+    expect(source).toContain("status === 'low-confidence'");
+    expect(source).toContain("resourceType === 'external_resource'");
+    expect(source).toContain("return '待复核'");
+    expect(source).toContain("return '仅作参考'");
+    expect(source).not.toContain("node.resourceLabel === '知识卡' ? '互动课程'");
+    expect(source).toContain("'continued-interaction'");
+    expect(source).toContain("pathActivityKind: activityKind");
+    expect(source).toContain("deviationType: 'skip'");
+    expect(source.indexOf("failedNodeIds.has(nodeId) || rawStatus === 'blocked'"))
+      .toBeLessThan(source.indexOf("currentNodeId === nodeId || rawStatus === 'current'"));
+    expect(source.indexOf("currentNodeId === nodeId || rawStatus === 'current'"))
+      .toBeLessThan(source.indexOf('skippedNodeIds.has(nodeId)'));
+    expect(source).toContain('function formatPathNodeReason');
+    expect(source).toContain("'matches-knowledge-deficit': '针对当前薄弱知识点安排。'");
+    expect(source).toContain("'matches-competency-deficit': '针对当前能力短板安排。'");
+    expect(source).toContain("'risk-intervention-fit': '适合用于处理当前学习风险。'");
+    expect(source).toContain("'policy-simulation-driven': '优先通过仿真验证理解。'");
+    expect(source).toContain('reason: formatPathNodeReason(reasonCodes)');
+    expect(source).not.toContain("reasonCodes.length > 0 ? reasonCodes.join('、')");
+    expect(source).toContain('): Promise<boolean> =>');
+    expect(source).toContain('const activityWritten = await writePathNodeActivity');
+    expect(source).toContain('if (!activityWritten) return;');
+    expect(source).toContain('window.location.assign(pathNodeContextHref');
+    expect(source).toContain("goalId: AdaptivePracticeGoalId");
+    expect(source).toContain('function resolveAdaptivePracticeGoalId');
+    expect(source).toContain('goalId: resolveAdaptivePracticeGoalId');
+    expect(source).toContain('controlCorrectionPathPlan?.goal.id ?? controlCorrectionPathRound?.goalId ?? activeGoal');
+    expect(source).toContain("new URLSearchParams({ goal: goalId, intent: 'path-execution', nodeId: node.nodeId })");
+    expect(source).not.toContain("new URLSearchParams({ goal: 'control-correction', intent: 'path-execution', nodeId: node.nodeId })");
+    expect(source).not.toContain('Readiness Gate');
+    expect(source).not.toContain('入口意图：');
+    expect(source).not.toContain('terminal-validation-unavailable');
+  });
+
   it('binds growth center to grouped learner timeline and stable chart containers', () => {
     const source = readFileSync(join(repoRoot, 'src/app/(main)/profile/growth/page.tsx'), 'utf8');
 
@@ -1488,6 +1581,15 @@ describe('adaptive learning center UI contracts', () => {
       fallback: 'fallback-missing-context',
     });
     expect(konlingPanel?.status.fallbackReason).toBe('missing-konling-context');
+  });
+
+  it('sorts adaptive practice path history by raw timestamps before formatting labels', () => {
+    const routeSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(routeSource).toContain('sortTime: number;');
+    expect(routeSource).toContain('const timelineTime = readTimelineTime(record.createdAt ?? record.completedAt ?? record.startedAt);');
+    expect(routeSource).toContain('return items.sort((left, right) => left.sortTime - right.sortTime);');
+    expect(routeSource).not.toContain('left.createdAt.localeCompare(right.createdAt)');
   });
 });
 
