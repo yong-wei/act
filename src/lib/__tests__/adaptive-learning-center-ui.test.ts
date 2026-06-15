@@ -24,8 +24,26 @@ import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learne
 import { ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES } from '@/lib/adaptive-learning-path-planner';
 import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
 import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '@/lib/platform-role-navigation';
+import {
+  getPathNodeSemanticsForResourceType,
+  type ResourceNodeType,
+} from '@/lib/resource-node-registry';
 
 const repoRoot = process.cwd();
+
+function pathNodeSemantics(type: ResourceNodeType) {
+  const semantics = getPathNodeSemanticsForResourceType(type);
+  return {
+    pathNodeType: semantics.type,
+    displayName: semantics.displayName,
+    iconKey: semantics.iconKey,
+    shapeHint: semantics.shapeHint,
+    evidenceBehavior: semantics.evidenceBehavior,
+    evidenceStatus: 'instrumented' as const,
+    externalResource: null,
+    checkpoint: null,
+  };
+}
 
 function learnerState(overrides: Partial<AdaptiveLearnerState> = {}): AdaptiveLearnerState {
   return {
@@ -153,6 +171,7 @@ function pathPlan(overrides: Partial<AdaptiveLearningPathPlan> = {}): AdaptiveLe
         nodeId: 'node-1',
         title: '相位裕度映射练习',
         type: 'quiz',
+        ...pathNodeSemantics('quiz'),
         sourceKind: 'runtime_lesson_step',
         sourceRef: 'lesson-3-8',
         target: '/assessment/adaptive-practice',
@@ -574,6 +593,32 @@ describe('adaptive learning center UI contracts', () => {
               policyFamily: 'foundation-remediation',
               label: '基础补救',
               nodeIds: ['knowledge-card:targets', 'arena-task:terminal'],
+              nodeSummaries: [
+                {
+                  nodeId: 'knowledge-card:targets',
+                  title: '目标知识卡',
+                  pathNodeType: 'knowledge_card',
+                  displayName: '知识卡',
+                  iconKey: 'knowledge-card',
+                  shapeHint: 'card',
+                  evidenceBehavior: 'view',
+                  evidenceStatus: 'instrumented',
+                  estimatedTimeMinutes: 10,
+                  status: 'current',
+                },
+                {
+                  nodeId: 'arena-task:terminal',
+                  title: '终端 Arena',
+                  pathNodeType: 'arena_task',
+                  displayName: 'Arena 挑战',
+                  iconKey: 'arena',
+                  shapeHint: 'challenge',
+                  evidenceBehavior: 'judged_submission',
+                  evidenceStatus: 'instrumented',
+                  estimatedTimeMinutes: 28,
+                  status: 'next',
+                },
+              ],
               targetDeficits: [{ targetId: 'phase-margin', kind: 'knowledge', value: 0.42, confidence: 0.6, evidenceCount: 3, reasonCode: 'low-mastery-target' }],
               evidenceBasis: ['adaptive-learner-state', 'LearningFact'],
               estimatedMinutes: 38,
@@ -634,6 +679,20 @@ describe('adaptive learning center UI contracts', () => {
         {
           optionId: 'path-option-1',
           label: '基础补救',
+          nodeSummaries: [
+            expect.objectContaining({
+              nodeId: 'knowledge-card:targets',
+              pathNodeType: 'knowledge_card',
+              iconKey: 'knowledge-card',
+              shapeHint: 'card',
+            }),
+            expect.objectContaining({
+              nodeId: 'arena-task:terminal',
+              pathNodeType: 'arena_task',
+              iconKey: 'arena',
+              shapeHint: 'challenge',
+            }),
+          ],
           evidenceBasis: ['学习证据', '练习记录'],
           terminalValidationNodeIds: ['arena-task:terminal'],
           limitations: ['部分目标还缺少直接证据'],
@@ -680,6 +739,18 @@ describe('adaptive learning center UI contracts', () => {
               policyFamily: 'foundation-remediation',
               label: '基础补救',
               nodeIds: ['node-1'],
+              nodeSummaries: [{
+                nodeId: 'node-1',
+                title: '相位裕度映射练习',
+                pathNodeType: 'adaptive_quiz',
+                displayName: '自适应练习',
+                iconKey: 'adaptive-quiz',
+                shapeHint: 'task',
+                evidenceBehavior: 'assessment',
+                evidenceStatus: 'instrumented',
+                estimatedTimeMinutes: 15,
+                status: 'current',
+              }],
               targetDeficits: [],
               evidenceBasis: ['adaptive-learner-state'],
               estimatedMinutes: 15,
@@ -755,6 +826,69 @@ describe('adaptive learning center UI contracts', () => {
     expect(node.action.href).toBe(
       '/assessment/adaptive-practice?pathId=path-1&nodeId=node-1&goal=control-correction&intent=path-execution',
     );
+  });
+
+  it('launches external resource path nodes through governed access recording', () => {
+    const node = buildRecommendedPathNodeView(pathPlan({
+      mainPath: [
+        {
+          ...pathPlan().mainPath[0],
+          nodeId: 'external-resource:ocw-bode',
+          title: '外部伯德图资料',
+          type: 'external_resource',
+          ...pathNodeSemantics('external_resource'),
+          sourceKind: 'external_resource',
+          sourceRef: 'ocw-bode',
+          target: 'https://ocw.mit.edu/control/bode',
+          externalResource: {
+            source: 'MIT OCW',
+            url: 'https://ocw.mit.edu/control/bode',
+            estimatedTimeMinutes: 15,
+            knowledgeCoverage: ['phase-margin'],
+            applicableGoalId: 'control-correction',
+            evidenceUseStatus: 'explicit-access-required',
+            privacyPolicy: 'student-visible',
+          },
+          evidenceStatus: 'explicit-access-required',
+        },
+      ],
+      currentNodeId: 'external-resource:ocw-bode',
+    }), {
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      routeIntent: 'path-execution',
+    }).nodes[0];
+
+    expect(node.action).toMatchObject({
+      href: '/api/learning-paths/path-1/execute',
+      method: 'POST',
+      redirectHref: 'https://ocw.mit.edu/control/bode',
+      body: {
+        nodeId: 'external-resource:ocw-bode',
+        resourceType: 'external_resource',
+        status: 'started',
+        idempotencyKey: 'external-resource-access:path-1:external-resource:ocw-bode',
+        liftMetadata: {
+          launchIntent: 'path-execution',
+        },
+      },
+      completionAction: {
+        href: '/api/learning-paths/path-1/execute',
+        label: '已学习该资料，继续路径',
+        method: 'POST',
+        body: {
+          nodeId: 'external-resource:ocw-bode',
+          resourceType: 'external_resource',
+          status: 'completed',
+          idempotencyKey: 'external-resource-completion:path-1:external-resource:ocw-bode',
+          liftMetadata: {
+            launchIntent: 'path-execution',
+            completionIntent: 'learner-confirmed-external-resource',
+          },
+        },
+      },
+    });
+    expect(node.action.href).not.toContain('https://ocw.mit.edu/control/bode');
   });
 
   it('normalizes persisted knowledge card targets before adding control-correction launch context', () => {
@@ -837,6 +971,67 @@ describe('adaptive learning center UI contracts', () => {
         routeIntent: 'path-execution',
       },
     ]);
+  });
+
+  it('exposes external resource completion on the control-correction next action', () => {
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState({ missingEvidence: [] }),
+      pathPlan: pathPlan({
+        goal: {
+          id: 'control-correction',
+          title: '控制校正路径',
+          knowledgeTargets: ['phase-margin'],
+        },
+        mainPath: [
+          {
+            ...pathPlan().mainPath[0],
+            nodeId: 'external-resource:ocw-bode',
+            title: '外部伯德图资料',
+            type: 'external_resource',
+            ...pathNodeSemantics('external_resource'),
+            sourceKind: 'external_resource',
+            sourceRef: 'ocw-bode',
+            target: 'https://ocw.mit.edu/control/bode',
+            externalResource: {
+              source: 'MIT OCW',
+              url: 'https://ocw.mit.edu/control/bode',
+              estimatedTimeMinutes: 15,
+              knowledgeCoverage: ['phase-margin'],
+              applicableGoalId: 'control-correction',
+              evidenceUseStatus: 'explicit-access-required',
+              privacyPolicy: 'student-visible',
+            },
+            evidenceStatus: 'explicit-access-required',
+          },
+        ],
+        currentNodeId: 'external-resource:ocw-bode',
+      }),
+      routeIntent: 'path-execution',
+    });
+
+    expect(view.nextAction).toMatchObject({
+      nodeId: 'external-resource:ocw-bode',
+      href: '/api/learning-paths/path-1/execute',
+      method: 'POST',
+      redirectHref: 'https://ocw.mit.edu/control/bode',
+      body: {
+        nodeId: 'external-resource:ocw-bode',
+        resourceType: 'external_resource',
+        status: 'started',
+      },
+      completionAction: {
+        href: '/api/learning-paths/path-1/execute',
+        label: '已学习该资料，继续路径',
+        method: 'POST',
+        body: {
+          nodeId: 'external-resource:ocw-bode',
+          resourceType: 'external_resource',
+          status: 'completed',
+          idempotencyKey: 'external-resource-completion:path-1:external-resource:ocw-bode',
+        },
+      },
+    });
   });
 
   it('renders actionable control-correction fallback states without private internals', () => {
@@ -977,6 +1172,7 @@ describe('adaptive learning center UI contracts', () => {
         action: {
           href: '/assessment/adaptive-practice?focus=practice-focus-1',
           label: '开始当前训练',
+          method: 'GET',
         },
       },
       {
@@ -989,6 +1185,7 @@ describe('adaptive learning center UI contracts', () => {
         action: {
           href: '/assessment/adaptive-practice?focus=practice-focus-2',
           label: '查看训练节点',
+          method: 'GET',
         },
       },
     ]);

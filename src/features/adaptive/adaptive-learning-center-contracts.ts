@@ -178,6 +178,15 @@ export interface ControlCorrectionCenterNextAction {
   nodeId: string | null;
   title: string;
   href: string;
+  method: 'GET' | 'POST';
+  body?: Record<string, unknown>;
+  redirectHref?: string;
+  completionAction?: {
+    href: string;
+    label: string;
+    method: 'POST';
+    body: Record<string, unknown>;
+  };
   confidence: PlatformConfidenceStatus;
   evidenceLimitation: PlatformSourceCoverageStatus;
 }
@@ -229,6 +238,15 @@ export interface RecommendedPathNodeView {
   action: {
     href: string;
     label: string;
+    method: 'GET' | 'POST';
+    body?: Record<string, unknown>;
+    redirectHref?: string;
+    completionAction?: {
+      href: string;
+      label: string;
+      method: 'POST';
+      body: Record<string, unknown>;
+    };
   };
   state: RecommendedPathNodeState;
 }
@@ -262,6 +280,15 @@ export interface PracticeEntryRouteNode {
   action: {
     href: string;
     label: string;
+    method: 'GET' | 'POST';
+    body?: Record<string, unknown>;
+    redirectHref?: string;
+    completionAction?: {
+      href: string;
+      label: string;
+      method: 'POST';
+      body: Record<string, unknown>;
+    };
   };
 }
 
@@ -484,7 +511,7 @@ export function buildRecommendedPathNodeView(
       expectedEffort: `${node.estimatedTimeMinutes} 分钟`,
       sourceContext: `${node.sourceKind}:${node.sourceRef}`,
       action: {
-        href: pathNodeLaunchHref(node.target, node.nodeId, launchContext),
+        ...pathNodeLaunchAction(node.target, node.nodeId, node.pathNodeType, launchContext),
         label: pathPlan.currentNodeId === node.nodeId ? '继续当前节点' : '打开路径节点',
       },
       state: recommendedNodeState(node.status),
@@ -542,6 +569,10 @@ export function buildControlCorrectionLearningCenterView(
       nodeId: nextNode?.nodeId ?? null,
       title: nextNode?.title ?? '生成控制校正学习路径',
       href: nextNode?.action.href ?? `/assessment/adaptive-practice?goal=control-correction&intent=${routeIntent}`,
+      method: nextNode?.action.method ?? 'GET',
+      body: nextNode?.action.body,
+      redirectHref: nextNode?.action.redirectHref,
+      completionAction: nextNode?.action.completionAction,
       confidence: nextNode?.confidence ?? 'unknown',
       evidenceLimitation: nextNode?.evidenceLimitation ?? 'missing',
     },
@@ -586,6 +617,7 @@ export function buildPracticeEntryRouteNodes(input: PracticeEntryRouteNodeInput)
     action: {
       href: practiceRouteNodeHref(input.actionHref, index + 1),
       label: index === 0 ? '开始当前训练' : '查看训练节点',
+      method: 'GET',
     },
   }));
 }
@@ -727,13 +759,45 @@ function practiceRouteNodeHref(actionHref: string, priority: number): string {
   return `${actionHref}${separator}focus=practice-focus-${priority}`;
 }
 
-function pathNodeLaunchHref(
+function pathNodeLaunchAction(
   target: string,
   nodeId: string,
+  pathNodeType: string,
   launchContext?: RecommendedPathLaunchContext,
-): string {
+): Omit<RecommendedPathNodeView['action'], 'label'> {
   const href = normalizePathNodeTarget(target);
-  if (!launchContext) return href;
+  if (!launchContext) return { href, method: 'GET' };
+  if (pathNodeType === 'external_resource') {
+    return {
+      href: `/api/learning-paths/${encodeURIComponent(launchContext.pathId)}/execute`,
+      method: 'POST',
+      redirectHref: href,
+      body: {
+        nodeId,
+        resourceType: 'external_resource',
+        status: 'started',
+        idempotencyKey: `external-resource-access:${launchContext.pathId}:${nodeId}`,
+        liftMetadata: {
+          launchIntent: launchContext.routeIntent,
+        },
+      },
+      completionAction: {
+        href: `/api/learning-paths/${encodeURIComponent(launchContext.pathId)}/execute`,
+        label: '已学习该资料，继续路径',
+        method: 'POST',
+        body: {
+          nodeId,
+          resourceType: 'external_resource',
+          status: 'completed',
+          idempotencyKey: `external-resource-completion:${launchContext.pathId}:${nodeId}`,
+          liftMetadata: {
+            launchIntent: launchContext.routeIntent,
+            completionIntent: 'learner-confirmed-external-resource',
+          },
+        },
+      },
+    };
+  }
 
   const separator = href.includes('?') ? '&' : '?';
   const params = new URLSearchParams({
@@ -742,7 +806,7 @@ function pathNodeLaunchHref(
     goal: launchContext.goalId,
     intent: launchContext.routeIntent,
   });
-  return `${href}${separator}${params.toString()}`;
+  return { href: `${href}${separator}${params.toString()}`, method: 'GET' };
 }
 
 function normalizePathNodeTarget(target: string): string {
@@ -1012,6 +1076,7 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
     optionId: `path-option-${index + 1}`,
     label: path.label,
     nodeIds: path.nodeIds,
+    nodeSummaries: path.nodeSummaries,
     targetDeficits: path.targetDeficits.map(toStudentDeficit),
     evidenceBasis: path.evidenceBasis.map(toStudentPathReason),
     resourceMix: path.resourceMix,
@@ -1079,6 +1144,14 @@ function toStudentPathNode(node: AdaptiveLearningPathPlan['mainPath'][number]) {
     nodeId: node.nodeId,
     title: node.title,
     type: node.type,
+    pathNodeType: node.pathNodeType,
+    displayName: node.displayName,
+    iconKey: node.iconKey,
+    shapeHint: node.shapeHint,
+    evidenceBehavior: node.evidenceBehavior,
+    evidenceStatus: node.evidenceStatus,
+    externalResource: node.externalResource,
+    checkpointContract: node.checkpoint,
     target: node.target,
     estimatedTimeMinutes: node.estimatedTimeMinutes,
     prerequisiteNodeIds: node.prerequisiteNodeIds,

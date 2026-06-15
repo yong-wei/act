@@ -13,7 +13,10 @@ import {
 } from '@/features/knowledge/resource-node-workspace-contracts';
 import { resolveKnowledgeResourceLaunch } from '@/features/knowledge/resource-panel/resource-panel';
 import { buildPlatformStatusViewModel } from '@/components/platform/platform-ui-contracts';
-import type { ResourceNode } from '@/lib/resource-node-registry';
+import {
+  getPathNodeSemanticsForResourceType,
+  type ResourceNode,
+} from '@/lib/resource-node-registry';
 
 const repoRoot = process.cwd();
 
@@ -36,6 +39,9 @@ function resourceNode(overrides: Partial<ResourceNode> = {}): ResourceNode {
     ],
     renderTarget: null,
     launchTarget: '/simulations/cruise',
+    pathSemantics: getPathNodeSemanticsForResourceType('simulation'),
+    externalResource: null,
+    checkpoint: null,
     planningMetadata: {
       prerequisites: ['knowledge-node:kn-bode'],
       estimatedTimeMinutes: 25,

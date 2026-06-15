@@ -34,6 +34,7 @@ export type StudentInteractiveActivityRendererProps<TStep, TResponse> = {
   answerVisible: boolean;
   revealProgress: number;
   workspaceParameters?: Record<string, string | number | boolean>;
+  readOnly?: boolean;
   onSubmit: (response: TResponse) => void;
 };
 
@@ -52,6 +53,7 @@ export function renderStudentInteractiveActivity<TStep, TResponse>({
   answerVisible,
   revealProgress,
   workspaceParameters,
+  readOnly,
   onSubmit,
 }: {
   registry: StudentInteractiveActivityRegistry<TStep, TResponse>;
@@ -63,6 +65,7 @@ export function renderStudentInteractiveActivity<TStep, TResponse>({
   answerVisible: boolean;
   revealProgress: number;
   workspaceParameters?: Record<string, string | number | boolean>;
+  readOnly?: boolean;
   onSubmit: (response: TResponse) => void;
 }) {
   const Renderer = registry[stepManifest.interactionSpec.interactionKind];
@@ -78,6 +81,7 @@ export function renderStudentInteractiveActivity<TStep, TResponse>({
     answerVisible,
     revealProgress,
     workspaceParameters,
+    readOnly,
     onSubmit,
   });
 }
@@ -980,6 +984,7 @@ function StudentCards({
   browseEnabled,
   answerVisible,
   workspaceParameters,
+  readOnly = false,
   onSubmit,
 }: {
   stepManifest: InteractiveRuntimeStepManifest;
@@ -988,6 +993,7 @@ function StudentCards({
   browseEnabled: boolean;
   answerVisible: boolean;
   workspaceParameters?: Record<string, string | number | boolean>;
+  readOnly?: boolean;
   onSubmit: (response: ManifestStepResponse) => void;
 }) {
   const cards = useMemo(() => cardsFor(stepManifest), [stepManifest]);
@@ -1100,7 +1106,7 @@ function StudentCards({
             <SubmissionStatus
               submitted={submittedKeys.has(card.id)}
               submittedText="本卡已提交，修改后可以再次提交。"
-              idleText="提交后会同步到教师端汇总。"
+              idleText={readOnly ? '演示模式仅本机预览，不会同步到教师端汇总。' : '提交后会同步到教师端汇总。'}
               showLock={false}
             />
             {answerVisible ? (
@@ -1116,7 +1122,7 @@ function StudentCards({
         <SubmissionStatus
           submitted={cards.every((card) => submittedKeys.has(card.id))}
           submittedText="本页作答卡已至少提交一次，可继续修改并逐卡重提。"
-          idleText="各作答卡独立提交，教师端会按卡汇总。"
+          idleText={readOnly ? '演示模式会展示作答流程，但不会写入课堂汇总。' : '各作答卡独立提交，教师端会按卡汇总。'}
           showLock={false}
         />
       </div>

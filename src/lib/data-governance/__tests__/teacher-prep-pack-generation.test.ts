@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import type { ResourceNode } from '@/lib/resource-node-registry';
+import {
+  getPathNodeSemanticsForResourceType,
+  type ResourceNode,
+} from '@/lib/resource-node-registry';
 import type { ControlCorrectionTeacherReport } from '../control-correction-teacher-report';
 import type { RoleBasedLearningDiagnosis } from '../role-based-learning-diagnosis';
 import {
@@ -44,6 +47,9 @@ function resourceNode(input: Partial<ResourceNode> & { id: string; title: string
     sourceRefs: [{ kind: 'resource_registry', ref: input.id }],
     renderTarget: null,
     launchTarget: `/resources/${input.id}`,
+    pathSemantics: getPathNodeSemanticsForResourceType(input.type),
+    externalResource: null,
+    checkpoint: null,
     planningMetadata: {
       prerequisites: [],
       estimatedTimeMinutes: 9,
