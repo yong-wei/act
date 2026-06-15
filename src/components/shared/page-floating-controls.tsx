@@ -104,6 +104,8 @@ function PageFloatingControls({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menu = buildFloatingControlMenu(registrations);
   const isDark = theme === 'dark';
+  const primaryControl = menu.find((item) => item.id !== 'theme');
+  const triggerLabel = primaryControl?.label.includes('控灵') ? '控灵' : primaryControl ? '工具' : '工具';
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -198,10 +200,12 @@ function PageFloatingControls({
         variant="ghost"
         onClick={() => setIsMenuOpen((prev) => !prev)}
         aria-expanded={isMenuOpen}
-        aria-label="打开页面工具菜单"
-        className="btn-ghost-themed h-10 w-10 rounded-full border p-0 shadow-lg"
+        aria-label={`打开${triggerLabel}与页面工具菜单`}
+        className="btn-ghost-themed h-10 w-auto gap-2 rounded-full border px-3 text-xs font-semibold shadow-lg"
+        data-platform-floating-dock-trigger-label={triggerLabel}
       >
-        <Settings className="h-4 w-4" />
+        {primaryControl ? renderItemIcon(primaryControl) : <Settings className="h-4 w-4" />}
+        <span>{triggerLabel}</span>
       </Button>
     </div>
   );

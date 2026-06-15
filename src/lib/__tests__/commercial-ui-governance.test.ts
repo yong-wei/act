@@ -2767,6 +2767,20 @@ describe('commercial UI governance', () => {
     expect(scanSource).toContain("'tailwind-color-family',\n      file");
   });
 
+  it('keeps the adaptive path center default student branch free of internal status strings', () => {
+    const pageSource = readFileSync(join(process.cwd(), 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(pageSource).toContain('自适应学习路径中心');
+    expect(pageSource).toContain('生成学习路径');
+    expect(pageSource).toContain('告诉控灵你想达成什么');
+    expect(pageSource).toContain('data-adaptive-path-comparison-state="information-grid"');
+    expect(pageSource).toContain('data-learning-path-options-layout="comparable-information-grid"');
+    expect(pageSource).toContain("label: '控灵助手'");
+    expect(pageSource).toContain("label: '路径管理'");
+    const studentVisibleSource = pageSource.replaceAll('data-learner-record-missing-source', '');
+    expect(studentVisibleSource).not.toMatch(/自适应跨域题库|Control Correction Center|Readiness Gate|missing-[a-z-]+|terminal-validation-unavailable|strategy unavailable|no-path|low-evidence/);
+  });
+
   it('keeps simulation resource palette governance on full-file scan after migration', () => {
     const scriptSource = readFileSync(join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'), 'utf8');
     const scanSource = scriptSource.slice(
