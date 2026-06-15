@@ -220,6 +220,8 @@ export interface ControlCorrectionLearningCenterView extends AdaptiveLearningCen
 }
 
 export interface ControlCorrectionLearningCenterInput extends AdaptiveLearningCenterViewInput {
+  goalId?: string;
+  goalLabel?: string;
   entrySource?: ControlCorrectionCenterEntrySource;
   routeIntent?: ControlCorrectionCenterRouteIntent;
   networkError?: boolean;
@@ -523,8 +525,8 @@ export function buildControlCorrectionLearningCenterView(
   input: ControlCorrectionLearningCenterInput,
 ): ControlCorrectionLearningCenterView {
   const pathPlan = input.pathPlan ?? null;
-  const goalId = pathPlan?.goal.id ?? 'control-correction';
-  const goalLabel = pathPlan?.goal.title ?? '控制校正';
+  const goalId = pathPlan?.goal.id ?? input.goalId ?? 'control-correction';
+  const goalLabel = pathPlan?.goal.title ?? input.goalLabel ?? formatAdaptivePathGoalLabel(goalId);
   const baseView = buildAdaptiveLearningCenterView({ ...input, pathPlan });
   const routeIntent = input.routeIntent ?? 'practice';
   const entrySource = input.entrySource ?? 'adaptive-practice';
@@ -605,6 +607,11 @@ export function buildControlCorrectionLearningCenterView(
         }))
       : [],
   };
+}
+
+function formatAdaptivePathGoalLabel(goalId: string): string {
+  if (goalId === 'frequency-response-foundations') return '频率响应基础';
+  return '控制校正';
 }
 
 export function buildPracticeEntryRouteNodes(input: PracticeEntryRouteNodeInput): PracticeEntryRouteNode[] {

@@ -312,6 +312,15 @@ function isAdaptivePracticeGoalId(value: string | null): value is AdaptivePracti
   return value === 'control-correction' || value === 'frequency-response-foundations';
 }
 
+function adaptivePracticeGoalLabel(goalId: AdaptivePracticeGoalId): string {
+  if (goalId === 'frequency-response-foundations') return '频率响应基础';
+  return '控制校正';
+}
+
+function uniquePathIds(pathIds: Array<string | null | undefined>): string[] {
+  return Array.from(new Set(pathIds.filter((pathId): pathId is string => Boolean(pathId))));
+}
+
 function compactPathNodeTitle(title?: string): string {
   if (!title) return '入门诊断';
   return title.length > 12 ? '入门诊断' : title;
@@ -504,7 +513,9 @@ export default function AdaptivePracticePage() {
   const isDemoMode = searchParams.get('demo') === '1';
   const demoScene = resolveDemoScene(searchParams.get('scene'));
   const activePracticeFocus = searchParams.get('focus');
-  const activeGoal = isAdaptivePracticeGoalId(searchParams.get('goal')) ? searchParams.get('goal') : null;
+  const requestedGoal = searchParams.get('goal');
+  const activeGoal = isAdaptivePracticeGoalId(requestedGoal) ? requestedGoal : null;
+  const activeGoalLabel = activeGoal ? adaptivePracticeGoalLabel(activeGoal) : '自适应学习';
   const activePathAdvisorGoal = activeGoal;
   const routeIntent = resolveControlCorrectionIntent(searchParams.get('intent'));
   const activePathId = searchParams.get('pathId');
@@ -551,6 +562,8 @@ export default function AdaptivePracticePage() {
   const controlCorrectionCenter = useMemo(() => activeGoal
     ? buildControlCorrectionLearningCenterView({
         featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+        goalId: activeGoal,
+        goalLabel: activeGoalLabel,
         learnerState: controlCorrectionLearnerState,
         pathPlan: controlCorrectionPathPlan,
         routeIntent,
@@ -558,7 +571,7 @@ export default function AdaptivePracticePage() {
         networkError: Boolean(error) && !controlCorrectionLearnerState && !controlCorrectionPathPlan,
         questionAvailable: Boolean(questionState),
       })
-    : null, [activeGoal, controlCorrectionLearnerState, controlCorrectionPathPlan, error, questionState, routeIntent]);
+    : null, [activeGoal, activeGoalLabel, controlCorrectionLearnerState, controlCorrectionPathPlan, error, questionState, routeIntent]);
   const pathOptions = useMemo(() => getPathOptions(controlCorrectionCenter), [controlCorrectionCenter]);
   const visiblePathOptions = useMemo(() => buildAdaptivePathOptionDisplays(pathOptions), [pathOptions]);
   const pathSelectionHistory = useMemo(() => getPathSelectionHistory(controlCorrectionCenter), [controlCorrectionCenter]);
@@ -672,11 +685,11 @@ export default function AdaptivePracticePage() {
         }
       }
 
-      const fallbackPathId = goalToLoad === 'control-correction'
-        ? learnerState?.pathContext.activeControlCorrectionPath.pathId ?? null
-        : null;
-      const pathIdToLoad = activePathId ?? fallbackPathId;
-      if (!pathIdToLoad) {
+      const fallbackPathIds = goalToLoad === 'control-correction'
+        ? [learnerState?.pathContext.activeControlCorrectionPath.pathId ?? null]
+        : learnerState?.pathContext.recentPathIds ?? [];
+      const pathIdsToTry = uniquePathIds([activePathId, ...fallbackPathIds]);
+      if (pathIdsToTry.length === 0) {
         if (!cancelled) {
           setControlCorrectionPathPlan(null);
           setControlCorrectionPathRound(null);
@@ -684,21 +697,28 @@ export default function AdaptivePracticePage() {
         return;
       }
 
-      try {
-        const pathResponse = await fetch(`/api/learning-paths/${encodeURIComponent(pathIdToLoad)}`);
-        if (!cancelled && pathResponse.ok) {
-          const payload = (await pathResponse.json()) as LearningPathRoundResponse;
-          setControlCorrectionPathRound(payload.path ?? null);
-          setControlCorrectionPathPlan(restoreLearningPathPlan(payload.path ?? null));
-        } else if (!cancelled) {
-          setControlCorrectionPathPlan(null);
-          setControlCorrectionPathRound(null);
+      let loadedMatchingPath = false;
+      for (const pathIdToLoad of pathIdsToTry) {
+        if (cancelled) return;
+        try {
+          const pathResponse = await fetch(`/api/learning-paths/${encodeURIComponent(pathIdToLoad)}`);
+          if (!cancelled && pathResponse.ok) {
+            const payload = (await pathResponse.json()) as LearningPathRoundResponse;
+            const restoredPlan = restoreLearningPathPlan(payload.path ?? null);
+            if (payload.path?.goalId === goalToLoad && restoredPlan) {
+              setControlCorrectionPathRound(payload.path ?? null);
+              setControlCorrectionPathPlan(restoredPlan);
+              loadedMatchingPath = true;
+              break;
+            }
+          }
+        } catch {
+          // Try the next recent path before falling back to an empty center.
         }
-      } catch {
-        if (!cancelled) {
-          setControlCorrectionPathPlan(null);
-          setControlCorrectionPathRound(null);
-        }
+      }
+      if (!loadedMatchingPath && !cancelled) {
+        setControlCorrectionPathPlan(null);
+        setControlCorrectionPathRound(null);
       }
     }
 
@@ -706,7 +726,7 @@ export default function AdaptivePracticePage() {
     return () => {
       cancelled = true;
     };
-  }, [activeGoal, activePathId, authStatus, isDemoMode]);
+  }, [activeGoal, activeGoalLabel, activePathId, authStatus, isDemoMode]);
 
   const reloadControlCorrectionPath = useCallback(async () => {
     const pathIdToLoad = controlCorrectionPathRound?.id ?? activePathId ?? controlCorrectionLearnerState?.pathContext.activeControlCorrectionPath.pathId;

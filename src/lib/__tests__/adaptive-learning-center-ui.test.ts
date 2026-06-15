@@ -1240,6 +1240,21 @@ describe('adaptive learning center UI contracts', () => {
     expect(view.readinessGate.missing).not.toContain('no-path');
   });
 
+  it('keeps explicit registered goal context when no path is loaded yet', () => {
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      goalId: 'frequency-response-foundations',
+      goalLabel: '频率响应基础',
+      learnerState: null,
+      pathPlan: null,
+    });
+
+    expect(view.goalId).toBe('frequency-response-foundations');
+    expect(view.nextAction.href).toContain('goal=frequency-response-foundations');
+    expect(JSON.stringify(view.fallbackStates)).toContain('goal=frequency-response-foundations');
+    expect(JSON.stringify(view.fallbackStates)).not.toContain('goal=control-correction');
+  });
+
   it('binds the adaptive practice page to control-correction query context', () => {
     const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
 
@@ -1261,6 +1276,9 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("setControlCorrectionPathPlan(null)");
     expect(source).toContain("goalToLoad === 'control-correction'");
     expect(source).toContain('learnerState?.pathContext.activeControlCorrectionPath.pathId');
+    expect(source).toContain('learnerState?.pathContext.recentPathIds ?? []');
+    expect(source).toContain('uniquePathIds([activePathId, ...fallbackPathIds])');
+    expect(source).toContain('payload.path?.goalId === goalToLoad && restoredPlan');
     expect(source).toContain('fetch(`/api/learning-paths/${encodeURIComponent(pathIdToLoad)}`)');
     expect(source).toContain("if (!round || !isAdaptivePracticeGoalId(round.goalId)) return null;");
     expect(source).toContain('id: round.goalId');
