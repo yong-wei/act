@@ -263,7 +263,7 @@ async function canWriteHistoricalPathActivity(
     return true;
   }
   if (activityKind === 'return-to-skipped') {
-    return status === 'started' && await hasReturnEligibleSkipDeviation(db, path, nodeId);
+    return status === 'started' && !completedNodeIds.has(nodeId) && await hasReturnEligibleSkipDeviation(db, path, nodeId);
   }
   if (
     (activityKind === 'checkpoint-pass' || activityKind === 'checkpoint-fail') &&

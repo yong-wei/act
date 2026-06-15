@@ -527,6 +527,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("'continued-interaction'");
     expect(source).toContain("pathActivityKind: activityKind");
     expect(source).toContain("deviationType: 'skip'");
+    expect(source.indexOf("currentNodeId === nodeId || rawStatus === 'current'"))
+      .toBeLessThan(source.indexOf('skippedNodeIds.has(nodeId)'));
     expect(source).toContain('): Promise<boolean> =>');
     expect(source).toContain('const activityWritten = await writePathNodeActivity');
     expect(source).toContain('if (!activityWritten) return;');
