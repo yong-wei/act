@@ -2638,6 +2638,18 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('paths.add(simulationVisualQa.handoffBaseline.implementationMatrix)');
   });
 
+  it('keeps general commercial source palette governance limited to added lines', () => {
+    const scriptSource = readFileSync(join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'), 'utf8');
+    const scanSource = scriptSource.slice(
+      scriptSource.indexOf('function buildSourceViolations'),
+      scriptSource.indexOf('function buildSimulationResourcePaletteViolations'),
+    );
+
+    expect(scanSource).toContain("lineEvidence(source, /#[0-9a-fA-F]{3,8}\\b/g, 'raw-color', file)");
+    expect(scanSource).toContain("lineEvidence(source, /\\brgba\\(\\s*\\d+\\s*,\\s*\\d+\\s*,\\s*\\d+\\s*,/g, 'raw-rgba', file)");
+    expect(scanSource).toContain("'tailwind-color-family',\n      file");
+  });
+
   it('keeps simulation resource palette governance on full-file scan after migration', () => {
     const scriptSource = readFileSync(join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'), 'utf8');
     const scanSource = scriptSource.slice(

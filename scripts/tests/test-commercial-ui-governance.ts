@@ -304,12 +304,13 @@ function lineEvidence(source: string, pattern: RegExp, label: string, file?: str
 function buildSourceViolations(files: string[]): CommercialUiGovernanceViolation[] {
   return sourceFilesForTokenGate(files).flatMap((file) => {
     const source = readFileSync(path.join(repoRoot, file), 'utf8');
-    const rawPaletteEvidence = lineEvidence(source, /#[0-9a-fA-F]{3,8}\b/g, 'raw-color');
-    const rawRgbaEvidence = lineEvidence(source, /\brgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,/g, 'raw-rgba');
+    const rawPaletteEvidence = lineEvidence(source, /#[0-9a-fA-F]{3,8}\b/g, 'raw-color', file);
+    const rawRgbaEvidence = lineEvidence(source, /\brgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,/g, 'raw-rgba', file);
     const tailwindColorEvidence = lineEvidence(
       source,
       /\b(?:bg|text|border|shadow|ring|from|via|to)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|black|white)(?:-\d{2,3})?(?:\/\d{1,3})?\b/g,
       'tailwind-color-family',
+      file,
     );
     const gradientEvidence = lineEvidence(
       source,
