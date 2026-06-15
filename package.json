@@ -52,6 +52,7 @@
     "test:react-doctor:owned-errors": "node ./scripts/tests/react-doctor-owned-surface-gate.mjs --mode=errors",
     "test:react-doctor:owned-security": "node ./scripts/tests/react-doctor-owned-surface-gate.mjs --mode=security",
     "react-doctor:owned-warnings": "node ./scripts/tests/react-doctor-owned-surface-gate.mjs --mode=warnings",
+    "capture:simulation-command-deck-qa": "npx --yes tsx ./scripts/tests/capture-simulation-command-deck-qa.ts",
     "test:control-correction-demo": "npx --yes tsx ./scripts/tests/control-correction-demo-acceptance.ts",
     "test:intelligent-teaching-assistant-demo": "npx --yes tsx ./scripts/tests/intelligent-teaching-assistant-demo-acceptance.ts",
     "test:competition-baseline": "npx --yes tsx ./scripts/tests/competition-baseline-acceptance.ts",

@@ -41,6 +41,7 @@ import {
 } from '@/resources/simulations/components/simulation-theme';
 
 const today = '2026-05-31';
+const commandDeckGeometryWidths = [1440, 1024, 320] as const;
 
 const fullNavigationCoverage: CommercialNavigationCoverageInput = {
   intents: COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.map((group) => group.intent),
@@ -371,6 +372,68 @@ function completeAccessibilityEvidence(): CommercialAccessibilityTextFitEvidence
 function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEvidence {
   const scenario = SIMULATION_VISUAL_QA_ROUTE_MATRIX.find((entry) => entry.href === href);
   if (!scenario) throw new Error(`Missing simulation visual QA scenario for ${href}`);
+  const commandDeckGeometry = scenario.requiresNonblankScene
+    ? {
+        change: 'normalize-simulation-command-deck-layout' as const,
+        generatedAt: '2026-06-15T00:00:00.000Z',
+        sourceSha256: Object.fromEntries([
+          scenario.routeFile,
+          'src/app/simulations/_components/simulation-shell.tsx',
+          'src/resources/simulations/components/simulation-ui.tsx',
+          'src/resources/simulations/components/camera-view-switcher.tsx',
+          'scripts/tests/capture-simulation-command-deck-qa.ts',
+        ].map((sourcePath) => [sourcePath, `${sourcePath}:sha256`])),
+        currentSourceSha256: Object.fromEntries([
+          scenario.routeFile,
+          'src/app/simulations/_components/simulation-shell.tsx',
+          'src/resources/simulations/components/simulation-ui.tsx',
+          'src/resources/simulations/components/camera-view-switcher.tsx',
+          'scripts/tests/capture-simulation-command-deck-qa.ts',
+        ].map((sourcePath) => [sourcePath, `${sourcePath}:sha256`])),
+        viewports: scenario.requiredThemes.flatMap((theme) => commandDeckGeometryWidths.map((width) => {
+          const sceneRect = width === 320
+            ? { left: 16, top: 295, right: 304, bottom: 855, width: 288, height: 560 }
+            : { left: width === 1440 ? 96 : 17, top: 110, right: width === 1440 ? 1416 : 1007, bottom: 850, width: width === 1440 ? 1320 : 990, height: 740 };
+          return {
+            width,
+            theme,
+            screenshot: `artifacts/commercial-ui/simulation-command-deck-535/${href.replace(/[^a-z0-9]+/gi, '-')}-${theme}-${width}.png`,
+            screenshotSha256: `${href}:command-deck:${theme}:${width}`,
+            screenshotWidth: width,
+            screenshotHeight: width === 320 ? 900 : 900,
+            sceneChromeRemoved: true,
+            inSceneBackControlCount: 0,
+            inSceneAbbreviationCount: 0,
+            collapseButtonCount: width === 1440 ? 2 : 0,
+            restoreHandleCount: width === 1440 ? 0 : 2,
+            panelsTopAligned: true,
+            bottomToolsUnobscured: true,
+            bottomToolsWithinViewport: true,
+            bottomToolSegmentRoles: ['view-switcher', 'grid-toggle', 'speed-controls'],
+            konlingDockCollisionFree: true,
+            restoreHandlesKeyboardReachable: true,
+            primarySceneNonblank: true,
+            structuredSurfacesBelowScene: scenario.href === '/simulations/cruise' ? true : undefined,
+            sceneRect,
+            statusPanelRect: width === 1440
+              ? { left: 112, top: 126, right: 432, bottom: 754, width: 320, height: 628 }
+              : undefined,
+            controlPanelRect: width === 1440
+              ? { left: 1048, top: 126, right: 1400, bottom: 754, width: 352, height: 628 }
+              : undefined,
+          };
+        })),
+        cruiseComparison: scenario.href === '/simulations/cruise'
+          ? {
+              comparedRoutes: ['/simulations/destroyer', '/simulations/lng'],
+              desktopSceneWidthRatioToMedian: 0.98,
+              desktopSceneHeightRatioToMedian: 1.03,
+              contextPlacement: 'below-primary-scene' as const,
+              mobileSceneFirst: true,
+            }
+          : undefined,
+      }
+    : undefined;
   return {
     archetype: scenario.archetype,
     availabilityConsistentWith: scenario.href === '/virtual-lab' ? '/simulations' : undefined,
@@ -396,6 +459,7 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
       labelHudContrastChecked: true,
       unchangedLightSceneInDarkTheme: false,
     },
+    commandDeckGeometry,
     reactDoctorErrorCheck: {
       localOnly: true,
       ciRequired: false,
@@ -1504,12 +1568,229 @@ describe('commercial UI governance', () => {
     expect(source).toContain('sceneTheme.hudOverlay');
   });
 
+  it('keeps simulation command-deck geometry scene-first without resource-local chrome', () => {
+    const shellSource = readFileSync(join(process.cwd(), 'src/app/simulations/_components/simulation-shell.tsx'), 'utf8');
+    const localToolsSource = readFileSync(join(process.cwd(), 'src/app/simulations/_components/simulation-local-tools.tsx'), 'utf8');
+    const resourceUiSource = readFileSync(join(process.cwd(), 'src/resources/simulations/components/simulation-ui.tsx'), 'utf8');
+
+    expect(shellSource).toContain('data-simulation-shell-structured-surfaces="below-primary-scene"');
+    expect(shellSource).toContain('data-command-deck-context-placement="below-primary-scene"');
+    expect(shellSource).toContain('panelLayout="side-rails"');
+    expect(shellSource).not.toContain('workspaceSlots={hasStructuredSlots');
+    expect(localToolsSource).toContain('data-command-deck-scene-primacy="true"');
+    expect(resourceUiSource).toContain('data-simulation-scene-local-chrome="removed"');
+    expect(resourceUiSource).toContain('data-command-deck-panel-anchor="top-command-area"');
+    expect(resourceUiSource).not.toContain('返回上一层');
+    expect(resourceUiSource).not.toContain('<Link');
+  });
+
   it('accepts complete simulation visual QA evidence for required routes', () => {
     const result = evaluateCommercialUiGovernance(baseInput({
       visualEvidence: completeVisualEvidenceWithSimulationQa(),
     }));
 
     expect(result.passed).toBe(true);
+  });
+
+  it('fails when command-deck simulation evidence keeps scene chrome or loses top-aligned panels', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa?.commandDeckGeometry) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          commandDeckGeometry: {
+            ...entry.simulationVisualQa.commandDeckGeometry,
+            viewports: entry.simulationVisualQa.commandDeckGeometry.viewports.map((viewport) => (
+              viewport.theme === 'dark' && viewport.width === 1440
+                ? {
+                    ...viewport,
+                    sceneChromeRemoved: false,
+                    inSceneBackControlCount: 1,
+                    inSceneAbbreviationCount: 1,
+                    panelsTopAligned: false,
+                    controlPanelRect: { left: 1048, top: 126, right: 1400, bottom: 946, width: 352, height: 820 },
+                    bottomToolsWithinViewport: false,
+                  }
+                : viewport
+            )),
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.violations.flatMap((violation) => violation.evidence)).toEqual(expect.arrayContaining([
+      'commandDeckGeometry:theme=dark:width=1440:sceneChromeRemoved',
+      'commandDeckGeometry:theme=dark:width=1440:inSceneBackControlCount=0',
+      'commandDeckGeometry:theme=dark:width=1440:inSceneAbbreviationCount=0',
+      'commandDeckGeometry:theme=dark:width=1440:panelsTopAligned',
+      'commandDeckGeometry:theme=dark:width=1440:controlPanelRectWithinViewport',
+      'commandDeckGeometry:theme=dark:width=1440:controlPanelRectWithinScene',
+      'commandDeckGeometry:theme=dark:width=1440:bottomToolsWithinViewport',
+    ]));
+  });
+
+  it('fails when command-deck screenshot proof is missing, stale, or dimensionally invalid', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa?.commandDeckGeometry) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          commandDeckGeometry: {
+            ...entry.simulationVisualQa.commandDeckGeometry,
+            viewports: entry.simulationVisualQa.commandDeckGeometry.viewports.map((viewport) => (
+              viewport.theme === 'dark' && viewport.width === 1440
+                ? {
+                    ...viewport,
+                    screenshotSha256: undefined,
+                    screenshotWidth: 1024,
+                    screenshotHeight: 500,
+                  }
+                : viewport
+            )),
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.violations.flatMap((violation) => violation.evidence)).toEqual(expect.arrayContaining([
+      'commandDeckGeometry:theme=dark:width=1440:screenshotSha256',
+      'commandDeckGeometry:theme=dark:width=1440:screenshotWidth=1440',
+      'commandDeckGeometry:theme=dark:width=1440:screenshotHeight>=640',
+    ]));
+  });
+
+  it('fails when command-deck source hashes are missing or stale', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa?.commandDeckGeometry) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          commandDeckGeometry: {
+            ...entry.simulationVisualQa.commandDeckGeometry,
+            sourceSha256: {
+              ...entry.simulationVisualQa.commandDeckGeometry.sourceSha256,
+              'src/app/simulations/_components/simulation-shell.tsx': 'stale-shell-source',
+            },
+            currentSourceSha256: {
+              ...entry.simulationVisualQa.commandDeckGeometry.currentSourceSha256,
+              'scripts/tests/capture-simulation-command-deck-qa.ts': undefined as never,
+            },
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.violations.flatMap((violation) => violation.evidence)).toEqual(expect.arrayContaining([
+      'commandDeckGeometry.sourceSha256.src/app/simulations/_components/simulation-shell.tsx=current',
+      'commandDeckGeometry.currentSourceSha256.scripts/tests/capture-simulation-command-deck-qa.ts',
+    ]));
+  });
+
+  it('fails when command-deck collapse or restore controls are absent from evidence', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa?.commandDeckGeometry) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          commandDeckGeometry: {
+            ...entry.simulationVisualQa.commandDeckGeometry,
+            viewports: entry.simulationVisualQa.commandDeckGeometry.viewports.map((viewport) => {
+              if (viewport.theme !== 'dark') return viewport;
+              return viewport.width === 1440
+                ? { ...viewport, collapseButtonCount: 0 }
+                : { ...viewport, restoreHandleCount: 0 };
+            }),
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.violations.flatMap((violation) => violation.evidence)).toEqual(expect.arrayContaining([
+      'commandDeckGeometry:theme=dark:width=1440:collapseButtonCount>=2',
+      'commandDeckGeometry:theme=dark:width=1024:restoreHandleCount>=2',
+      'commandDeckGeometry:theme=dark:width=320:restoreHandleCount>=2',
+    ]));
+  });
+
+  it('fails when command-deck evidence does not cover all bottom tool segments', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa?.commandDeckGeometry) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          commandDeckGeometry: {
+            ...entry.simulationVisualQa.commandDeckGeometry,
+            viewports: entry.simulationVisualQa.commandDeckGeometry.viewports.map((viewport) => (
+              viewport.theme === 'dark' && viewport.width === 320
+                ? { ...viewport, bottomToolSegmentRoles: ['view-switcher', 'grid-toggle'] }
+                : viewport
+            )),
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.violations.flatMap((violation) => violation.evidence)).toEqual(expect.arrayContaining([
+      'commandDeckGeometry:theme=dark:width=320:bottomToolSegmentRoles.speed-controls',
+    ]));
+  });
+
+  it('fails when cruise command-deck evidence does not compare scene-first geometry', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/cruise' || !entry.simulationVisualQa?.commandDeckGeometry) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          commandDeckGeometry: {
+            ...entry.simulationVisualQa.commandDeckGeometry,
+            cruiseComparison: {
+              comparedRoutes: ['/simulations/destroyer'],
+              desktopSceneWidthRatioToMedian: 0.72,
+              desktopSceneHeightRatioToMedian: 1.42,
+              contextPlacement: 'below-primary-scene' as const,
+              mobileSceneFirst: false,
+            },
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.violations.flatMap((violation) => violation.evidence)).toEqual(expect.arrayContaining([
+      'commandDeckGeometry.cruiseComparison.comparedRoutes.lng',
+      'commandDeckGeometry.cruiseComparison.desktopSceneWidthRatioToMedian>=0.9',
+      'commandDeckGeometry.cruiseComparison.desktopSceneHeightRatioToMedian<=1.25',
+      'commandDeckGeometry.cruiseComparison.mobileSceneFirst',
+    ]));
   });
 
   it('fails when simulation visual QA evidence omits route, scene, dock, or React Doctor proof', () => {
@@ -2896,6 +3177,11 @@ describe('commercial UI governance', () => {
 
   it('keeps simulation QA matrix scoped and verifies nested visual artifacts in the governance script', () => {
     const scriptSource = readFileSync(join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'), 'utf8');
+    const governanceSource = readFileSync(join(process.cwd(), 'src/lib/commercial-ui-governance.ts'), 'utf8');
+    const simulationCaptureScriptSource = readFileSync(
+      join(process.cwd(), 'scripts/tests/capture-simulation-command-deck-qa.ts'),
+      'utf8',
+    );
 
     expect(scriptSource).toContain('SIMULATION_VISUAL_QA_ROUTE_MATRIX.filter');
     expect(scriptSource).toContain('simulationSharedDetailRouteAffected(route.href, files)');
@@ -2906,6 +3192,7 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain("route.href === '/interactive-learning/control-workbench'");
     expect(scriptSource).toContain("file === 'src/lib/platform-role-navigation.ts'");
     expect(scriptSource).toContain("file.startsWith('artifacts/commercial-ui/simulation-experience-visual-qa/')");
+    expect(scriptSource).toContain("file.startsWith('artifacts/commercial-ui/simulation-command-deck-535/')");
     expect(scriptSource).toContain('/^src\\/app\\/simulations\\/[^/]+\\/page\\.tsx$/.test(file)');
     expect(scriptSource).toContain('? SIMULATION_VISUAL_QA_ROUTE_MATRIX');
     expect(scriptSource).not.toContain('visualEvidence.some((entry) => entry.href === route.href && entry.simulationVisualQa)');
@@ -2914,6 +3201,21 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('screenshot: viewport.screenshot');
     expect(scriptSource).toContain('screenshotSha256: screenshot?.sha256');
     expect(scriptSource).toContain('screenshotWidth: screenshot?.width');
+    expect(scriptSource).toContain('route.simulationVisualQa.commandDeckGeometry.viewports.map');
+    expect(scriptSource).toContain('currentSourceSha256: commandDeckGeometryCurrentSourceSha256(simulationRoute?.routeFile ?? \'\')');
+    expect(scriptSource).toContain('function commandDeckGeometrySourcePaths(routeFile: string)');
+    expect(scriptSource).toContain("'src/app/simulations/_components/simulation-shell.tsx'");
+    expect(scriptSource).toContain("'src/resources/simulations/components/simulation-ui.tsx'");
+    expect(scriptSource).toContain("'src/resources/simulations/components/camera-view-switcher.tsx'");
+    expect(scriptSource).toContain("'scripts/tests/capture-simulation-command-deck-qa.ts'");
+    expect(governanceSource).toContain('bottomToolsWithinViewport');
+    expect(governanceSource).toContain('bottomToolSegmentRoles');
+    expect(governanceSource).toContain("['view-switcher', 'grid-toggle', 'speed-controls']");
+    expect(governanceSource).toContain('bottomToolSegmentRoles.${role}');
+    expect(simulationCaptureScriptSource).toContain('[data-simulation-local-bottom-tool-segment]');
+    expect(simulationCaptureScriptSource).toContain('bottomToolSegmentRoles');
+    expect(simulationCaptureScriptSource).not.toContain('[data-simulation-local-bottom-toolbar], [data-simulation-local-hint-strip]');
+    expect(scriptSource).toContain('simulationVisualQa.commandDeckGeometry?.viewports');
     expect(scriptSource).toContain('function simulationReactDoctorReport');
     expect(scriptSource).toContain('reportSha256: reactDoctorReport?.sha256');
     expect(scriptSource).toContain('ownedDiagnostics: reactDoctorReport?.ownedDiagnostics');
@@ -3019,7 +3321,8 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('graph2dSourcePath');
     expect(scriptSource).toContain('floatingControlsSourcePath');
     expect(scriptSource).toContain('captureScriptSourcePath');
-    expect(scriptSource).toContain('governanceScriptSourcePath');
+    expect(scriptSource).toContain('stringRecordsEqualForPaths(visualReviewSourceSha256, currentSourceSha256, productQaSourcePaths)');
+    expect(scriptSource).not.toContain('const governanceScriptSourcePath');
     expect(captureScriptSource).toContain("'scripts/tests/capture-knowledge-workspace-product-qa.ts'");
     expect(captureScriptSource).toContain("'scripts/tests/test-commercial-ui-governance.ts'");
     expect(captureScriptSource).toContain("'src/components/providers/global-ai-provider.tsx'");

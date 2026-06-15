@@ -163,6 +163,7 @@ const COMMERCIAL_VISUAL_QA_NAVIGATION_STATES: readonly CommercialVisualQaNavigat
 const COMMERCIAL_VISUAL_QA_MOBILE_WIDTHS = [320, 390] as const;
 
 const COMMERCIAL_SIMULATION_MIN_SCREENSHOT_HEIGHT = 640;
+const COMMERCIAL_SIMULATION_COMMAND_DECK_GEOMETRY_WIDTHS = [1440, 1024, 320] as const;
 
 export type CommercialSimulationVisualQaArchetype =
   | 'catalog'
@@ -221,6 +222,57 @@ export interface CommercialSimulationViewportEvidence {
   screenshotHeight?: number;
   artifact?: string;
   artifactSha256?: string;
+}
+
+export interface CommercialRectEvidence {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+}
+
+export interface CommercialSimulationCommandDeckViewportEvidence {
+  width: number;
+  theme: CommercialVisualQaTheme;
+  screenshot: string;
+  screenshotSha256?: string;
+  screenshotWidth?: number;
+  screenshotHeight?: number;
+  sceneChromeRemoved: boolean;
+  inSceneBackControlCount: number;
+  inSceneAbbreviationCount: number;
+  collapseButtonCount?: number;
+  restoreHandleCount?: number;
+  panelsTopAligned: boolean;
+  bottomToolsUnobscured: boolean;
+  bottomToolsWithinViewport?: boolean;
+  bottomToolSegmentRoles?: readonly string[];
+  konlingDockCollisionFree: boolean;
+  restoreHandlesKeyboardReachable: boolean;
+  primarySceneNonblank: boolean;
+  structuredSurfacesBelowScene?: boolean;
+  sceneRect?: CommercialRectEvidence;
+  statusPanelRect?: CommercialRectEvidence;
+  controlPanelRect?: CommercialRectEvidence;
+}
+
+export interface CommercialSimulationCommandDeckCruiseComparisonEvidence {
+  comparedRoutes: readonly string[];
+  desktopSceneWidthRatioToMedian: number;
+  desktopSceneHeightRatioToMedian: number;
+  contextPlacement: 'below-primary-scene';
+  mobileSceneFirst: boolean;
+}
+
+export interface CommercialSimulationCommandDeckGeometryEvidence {
+  change: 'normalize-simulation-command-deck-layout';
+  generatedAt?: string;
+  sourceSha256?: Record<string, string>;
+  currentSourceSha256?: Record<string, string>;
+  viewports: readonly CommercialSimulationCommandDeckViewportEvidence[];
+  cruiseComparison?: CommercialSimulationCommandDeckCruiseComparisonEvidence;
 }
 
 export interface CommercialSimulationReactDoctorEvidence {
@@ -283,6 +335,7 @@ export interface CommercialSimulationVisualQaEvidence {
   modelLibraryCompatible?: boolean;
   resourceInternalTheme?: CommercialSimulationResourceThemeEvidence;
   sceneThemeParameters?: CommercialSimulationSceneThemeEvidence;
+  commandDeckGeometry?: CommercialSimulationCommandDeckGeometryEvidence;
   reactDoctorErrorCheck?: CommercialSimulationReactDoctorEvidence;
   viewports: readonly CommercialSimulationViewportEvidence[];
 }
@@ -1973,7 +2026,35 @@ function buildMobileStructureViolations(visualEvidence: readonly CommercialVisua
             evidence: [`width=${viewport.width}`, ...missing],
           })]
         : [];
-    }));
+	    }));
+}
+
+function commandDeckGeometrySourcePaths(routeFile: string) {
+  return [
+    routeFile,
+    'src/app/simulations/_components/simulation-shell.tsx',
+    'src/resources/simulations/components/simulation-ui.tsx',
+    'src/resources/simulations/components/camera-view-switcher.tsx',
+    'scripts/tests/capture-simulation-command-deck-qa.ts',
+  ] as const;
+}
+
+function rectWithinViewport(
+  rect: CommercialRectEvidence,
+  width: number,
+  height: number | undefined,
+) {
+  if (height === undefined) return false;
+  return rect.left >= 0 && rect.top >= 0 && rect.right <= width && rect.bottom <= height;
+}
+
+function rectWithinRect(rect: CommercialRectEvidence, container: CommercialRectEvidence) {
+  return (
+    rect.left >= container.left
+    && rect.top >= container.top
+    && rect.right <= container.right
+    && rect.bottom <= container.bottom
+  );
 }
 
 function buildSimulationVisualQaViolations(
@@ -2133,6 +2214,7 @@ function buildSimulationVisualQaViolations(
 
     const themeArtifactFingerprintsByState = new Map<string, Map<CommercialVisualQaTheme, string>>();
     const artifactFingerprintsByWidth = new Map<number, Map<string, string>>();
+    const commandDeckGeometry = simulationEvidence.commandDeckGeometry;
 
     for (const theme of route.requiredThemes) {
       for (const width of route.requiredWidths) {
@@ -2220,6 +2302,115 @@ function buildSimulationVisualQaViolations(
         }
       }
     }
+
+    if (route.requiresNonblankScene) {
+      if (!commandDeckGeometry) {
+        missing.push('commandDeckGeometry');
+      } else {
+        if (commandDeckGeometry.change !== 'normalize-simulation-command-deck-layout') {
+          missing.push('commandDeckGeometry.change=normalize-simulation-command-deck-layout');
+        }
+        for (const sourcePath of commandDeckGeometrySourcePaths(route.routeFile)) {
+          if (!commandDeckGeometry.sourceSha256?.[sourcePath]) {
+            missing.push(`commandDeckGeometry.sourceSha256.${sourcePath}`);
+            continue;
+          }
+          if (!commandDeckGeometry.currentSourceSha256?.[sourcePath]) {
+            missing.push(`commandDeckGeometry.currentSourceSha256.${sourcePath}`);
+            continue;
+          }
+          if (commandDeckGeometry.sourceSha256[sourcePath] !== commandDeckGeometry.currentSourceSha256[sourcePath]) {
+            missing.push(`commandDeckGeometry.sourceSha256.${sourcePath}=current`);
+          }
+        }
+        for (const theme of route.requiredThemes) {
+          for (const width of COMMERCIAL_SIMULATION_COMMAND_DECK_GEOMETRY_WIDTHS) {
+            const viewport = commandDeckGeometry.viewports.find((entry) => (
+              entry.theme === theme && entry.width === width
+            ));
+            const key = `commandDeckGeometry:theme=${theme}:width=${width}`;
+            if (!viewport) {
+              missing.push(key);
+              continue;
+            }
+            if (!viewport.screenshot) missing.push(`${key}:screenshot`);
+            if (!viewport.screenshotSha256) missing.push(`${key}:screenshotSha256`);
+            if (viewport.screenshotWidth !== width) missing.push(`${key}:screenshotWidth=${width}`);
+            if (
+              viewport.screenshotHeight === undefined
+              || viewport.screenshotHeight < COMMERCIAL_SIMULATION_MIN_SCREENSHOT_HEIGHT
+            ) {
+              missing.push(`${key}:screenshotHeight>=${COMMERCIAL_SIMULATION_MIN_SCREENSHOT_HEIGHT}`);
+            }
+            if (viewport.sceneChromeRemoved !== true) missing.push(`${key}:sceneChromeRemoved`);
+            if (viewport.inSceneBackControlCount !== 0) missing.push(`${key}:inSceneBackControlCount=0`);
+            if (viewport.inSceneAbbreviationCount !== 0) missing.push(`${key}:inSceneAbbreviationCount=0`);
+            if (width === 1440 && (viewport.collapseButtonCount ?? 0) < 2) {
+              missing.push(`${key}:collapseButtonCount>=2`);
+            }
+            if (width !== 1440 && (viewport.restoreHandleCount ?? 0) < 2) {
+              missing.push(`${key}:restoreHandleCount>=2`);
+            }
+            if (width === 1440 && viewport.panelsTopAligned !== true) missing.push(`${key}:panelsTopAligned`);
+            if (width === 1440) {
+              for (const [rectKey, panelRect] of [
+                ['statusPanelRect', viewport.statusPanelRect],
+                ['controlPanelRect', viewport.controlPanelRect],
+              ] as const) {
+                if (!panelRect) {
+                  missing.push(`${key}:${rectKey}`);
+                  continue;
+                }
+                if (!rectWithinViewport(panelRect, width, viewport.screenshotHeight)) {
+                  missing.push(`${key}:${rectKey}WithinViewport`);
+                }
+                if (!viewport.sceneRect || !rectWithinRect(panelRect, viewport.sceneRect)) {
+                  missing.push(`${key}:${rectKey}WithinScene`);
+                }
+              }
+            }
+            if (viewport.bottomToolsUnobscured !== true) missing.push(`${key}:bottomToolsUnobscured`);
+            if (viewport.bottomToolsWithinViewport !== true) missing.push(`${key}:bottomToolsWithinViewport`);
+            for (const role of ['view-switcher', 'grid-toggle', 'speed-controls']) {
+              if (!viewport.bottomToolSegmentRoles?.includes(role)) {
+                missing.push(`${key}:bottomToolSegmentRoles.${role}`);
+              }
+            }
+            if (viewport.konlingDockCollisionFree !== true) missing.push(`${key}:konlingDockCollisionFree`);
+            if (viewport.restoreHandlesKeyboardReachable !== true) {
+              missing.push(`${key}:restoreHandlesKeyboardReachable`);
+            }
+            if (viewport.primarySceneNonblank !== true) missing.push(`${key}:primarySceneNonblank`);
+          }
+        }
+        if (route.href === '/simulations/cruise') {
+          const comparison = commandDeckGeometry.cruiseComparison;
+          if (!comparison) {
+            missing.push('commandDeckGeometry.cruiseComparison');
+          } else {
+            if (!comparison.comparedRoutes.includes('/simulations/destroyer')) {
+              missing.push('commandDeckGeometry.cruiseComparison.comparedRoutes.destroyer');
+            }
+            if (!comparison.comparedRoutes.includes('/simulations/lng')) {
+              missing.push('commandDeckGeometry.cruiseComparison.comparedRoutes.lng');
+            }
+            if (comparison.desktopSceneWidthRatioToMedian < 0.9) {
+              missing.push('commandDeckGeometry.cruiseComparison.desktopSceneWidthRatioToMedian>=0.9');
+            }
+            if (comparison.desktopSceneHeightRatioToMedian > 1.25) {
+              missing.push('commandDeckGeometry.cruiseComparison.desktopSceneHeightRatioToMedian<=1.25');
+            }
+            if (comparison.contextPlacement !== 'below-primary-scene') {
+              missing.push('commandDeckGeometry.cruiseComparison.contextPlacement=below-primary-scene');
+            }
+            if (comparison.mobileSceneFirst !== true) {
+              missing.push('commandDeckGeometry.cruiseComparison.mobileSceneFirst');
+            }
+          }
+        }
+      }
+    }
+
     for (const [stateKey, themedFingerprints] of themeArtifactFingerprintsByState) {
       const seen = new Map<string, CommercialVisualQaTheme>();
       for (const theme of route.requiredThemes) {
