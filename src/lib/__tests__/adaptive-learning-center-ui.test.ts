@@ -542,6 +542,21 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).not.toContain('onClick={loadNextQuestion}');
   });
 
+  it('routes adaptive path generation into the control-correction path-advisor context', () => {
+    const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(source).toContain("const pathGenerationContextHref = '/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation';");
+    expect(source).toContain('useGlobalAI');
+    expect(source).toContain('openPathGenerationAdvisor');
+    expect(source).toContain("data-adaptive-path-generation-action=\"open-in-page-path-advisor\"");
+    expect(source).toContain("data-adaptive-path-generation-action=\"enter-control-correction-context\"");
+    expect(source).toContain('请控灵生成路径');
+    expect(source).toContain('进入路径生成');
+    expect(source).toContain('路径顾问准备中');
+    expect(source).not.toContain('/ai/copilot?mode=path-advisor');
+    expect(source).not.toContain("setPathChoiceMessage('控灵已准备好根据你的目标生成路径。')");
+  });
+
   it('binds growth center to grouped learner timeline and stable chart containers', () => {
     const source = readFileSync(join(repoRoot, 'src/app/(main)/profile/growth/page.tsx'), 'utf8');
 

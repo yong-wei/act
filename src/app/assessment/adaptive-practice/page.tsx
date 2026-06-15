@@ -25,6 +25,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { AppShell } from '@/components/platform/app-shell';
+import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import {
   ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG,
   buildControlCorrectionLearningCenterView,
@@ -488,8 +489,10 @@ export default function AdaptivePracticePage() {
   if (activePathId) controlCorrectionQuery.set('pathId', activePathId);
   if (activeNodeId) controlCorrectionQuery.set('nodeId', activeNodeId);
   const controlCorrectionContextHref = `/assessment/adaptive-practice?${controlCorrectionQuery.toString()}`;
+  const pathGenerationContextHref = '/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation';
   const loginHref = `/login?callbackUrl=${encodeURIComponent(activeGoal ? controlCorrectionContextHref : '/assessment/adaptive-practice')}`;
   const entryIntents = getCommercialStudentEntryIntentGroups();
+  const { assistantEntryPoint, openAssistantEntryPoint } = useGlobalAI();
 
   const sessionId = useMemo(() => `practice-${Math.random().toString(36).slice(2, 10)}`, []);
 
@@ -532,6 +535,11 @@ export default function AdaptivePracticePage() {
   const setPathChoiceUnavailable = useCallback(() => {
     setPathChoiceMessage('请先登录并生成路径后再记录选择。');
   }, []);
+
+  const openPathGenerationAdvisor = useCallback(() => {
+    if (!assistantEntryPoint || assistantEntryPoint.mode !== 'path-advisor') return;
+    openAssistantEntryPoint(assistantEntryPoint);
+  }, [assistantEntryPoint, openAssistantEntryPoint]);
 
   const applyDemoScene = useCallback((scene: DemoScene) => {
     const demoData = DEMO_SCENES[scene];
@@ -945,7 +953,7 @@ export default function AdaptivePracticePage() {
             id: 'adaptive-path-konling',
             label: '控灵助手',
             control: 'konling',
-            href: '/ai/copilot?mode=path-advisor',
+            href: pathGenerationContextHref,
             icon: <BrainCircuit className="h-4 w-4 text-primary" />,
           },
           {
@@ -1000,14 +1008,27 @@ export default function AdaptivePracticePage() {
                 </p>
               </div>
               <div className="mt-5 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
-                  onClick={() => setPathChoiceMessage('控灵已准备好根据你的目标生成路径。')}
-                >
-                  <Sparkles className="size-4" aria-hidden="true" />
-                  生成学习路径
-                </button>
+                {activeGoal ? (
+                  <button
+                    type="button"
+                    onClick={openPathGenerationAdvisor}
+                    disabled={assistantEntryPoint?.mode !== 'path-advisor'}
+                    data-adaptive-path-generation-action="open-in-page-path-advisor"
+                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
+                  >
+                    <Sparkles className="size-4" aria-hidden="true" />
+                    {assistantEntryPoint?.mode === 'path-advisor' ? '请控灵生成路径' : '路径顾问准备中'}
+                  </button>
+                ) : (
+                  <Link
+                    href={pathGenerationContextHref}
+                    data-adaptive-path-generation-action="enter-control-correction-context"
+                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+                  >
+                    <Sparkles className="size-4" aria-hidden="true" />
+                    进入路径生成
+                  </Link>
+                )}
                 <Link
                   href="/profile/evidence"
                   className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary"
