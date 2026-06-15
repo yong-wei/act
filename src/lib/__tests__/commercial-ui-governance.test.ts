@@ -398,6 +398,109 @@ const interactiveLearningProductQaMatrixIds = [
   'focus-management-keyboard',
 ] as const;
 
+const interactiveLearningProductQaConceptImages = [
+  'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png',
+  'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/02-course-entry-shell.png',
+  'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/01-course-catalog-theory-practice.png',
+  'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/02-teacher-classroom-qr-waiting.png',
+  'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+  'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/06-teacher-projection-runtime-compact-navigation.png',
+] as const;
+
+const interactiveLearningProductQaMatrixMetadata = {
+  'atlas-desktop-light': {
+    route: '/interactive-learning',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png',
+  },
+  'course-catalog-mobile-dark': {
+    route: '/interactive-learning/courses',
+    role: 'student',
+    theme: 'dark',
+    viewport: 'mobile',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/01-course-catalog-theory-practice.png',
+  },
+  'chapter-components-desktop-light': {
+    route: '/interactive-learning/chapter-components',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png',
+  },
+  'cross-domain-list-mobile-light': {
+    route: '/interactive-learning/cross-domain-exploration',
+    role: 'student',
+    theme: 'light',
+    viewport: 'mobile',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png',
+  },
+  'course-entry-desktop-light': {
+    route: '/interactive-learning/courses/unit-1-1-see-the-full-picture',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/02-course-entry-shell.png',
+  },
+  'teacher-waiting-desktop-light': {
+    route: '/interactive-learning/courses/[courseId]/teacher/[sessionId]/waiting',
+    role: 'teacher',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/02-teacher-classroom-qr-waiting.png',
+  },
+  'student-runtime-desktop-light': {
+    route: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+  },
+  'guest-runtime-mobile-dark': {
+    route: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo',
+    role: 'guest',
+    theme: 'dark',
+    viewport: 'mobile',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+  },
+  'teacher-projection-desktop-dark': {
+    route: '/interactive-learning/courses/unit-4-1-design-task-expression/teacher/[sessionId]',
+    role: 'teacher',
+    theme: 'dark',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/06-teacher-projection-runtime-compact-navigation.png',
+  },
+  'invalid-session-desktop-light': {
+    route: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+  },
+  'module-chrome-student-choice-mobile': {
+    route: '/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]',
+    role: 'student',
+    theme: 'light',
+    viewport: 'mobile',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+  },
+  'konling-dock-collapsed-desktop': {
+    route: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+  },
+  'focus-management-keyboard': {
+    route: '/interactive-learning/courses/unit-4-1-design-task-expression/teacher/[sessionId]',
+    role: 'teacher',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/06-teacher-projection-runtime-compact-navigation.png',
+  },
+} as const;
+
 function completeInteractiveLearningProductQaEvidence(
   overrides: Partial<CommercialInteractiveLearningProductQaEvidence> = {},
 ): CommercialInteractiveLearningProductQaEvidence {
@@ -412,13 +515,15 @@ function completeInteractiveLearningProductQaEvidence(
     handoffMatrix: 'artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/handoff-to-implementation-matrix.md',
     handoffMatrixSha256: 'matrix-sha',
     currentHandoffMatrixSha256: 'matrix-sha',
-    conceptImages: ['artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png'],
-    conceptImageSha256: {
-      'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png': 'concept-sha',
-    },
-    currentConceptImageSha256: {
-      'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png': 'concept-sha',
-    },
+    conceptImages: interactiveLearningProductQaConceptImages,
+    conceptImageSha256: Object.fromEntries(interactiveLearningProductQaConceptImages.map((conceptImage) => [
+      conceptImage,
+      'concept-sha',
+    ])),
+    currentConceptImageSha256: Object.fromEntries(interactiveLearningProductQaConceptImages.map((conceptImage) => [
+      conceptImage,
+      'concept-sha',
+    ])),
     childDesignQaReports: [
       'unify-interactive-learning-atlas-shell',
       'migrate-interactive-course-entry-shell',
@@ -435,15 +540,11 @@ function completeInteractiveLearningProductQaEvidence(
     })),
     routeMatrix: interactiveLearningProductQaMatrixIds.map((id) => ({
       id,
-      route: '/interactive-learning',
-      role: 'student',
-      theme: 'light',
-      viewport: 'desktop',
+      ...interactiveLearningProductQaMatrixMetadata[id],
       navigationState: 'desktop-collapsed',
       dockState: 'collapsed',
       pageState: 'covered',
       moduleState: 'covered',
-      sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
       result: 'passed',
     })),
     independentVisualReview: {
@@ -677,6 +778,61 @@ describe('commercial UI governance', () => {
     );
   });
 
+  it('fails final interactive learning product QA evidence when source changes do not refresh final evidence', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQaSourceRefreshRequired: true,
+      interactiveLearningProductQaEvidenceRefreshed: false,
+      interactiveLearningProductQa: completeInteractiveLearningProductQaEvidence(),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining(['sourceCommit=refreshed-for-current-source-change']),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final interactive learning product QA evidence when a route matrix id carries the wrong fixed metadata', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: completeInteractiveLearningProductQaEvidence({
+        routeMatrix: completeInteractiveLearningProductQaEvidence().routeMatrix.map((entry, index) => (
+          index === 0
+            ? {
+                ...entry,
+                route: '/interactive-learning/courses',
+                role: 'teacher',
+                theme: 'dark',
+                viewport: 'mobile',
+                sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+              }
+            : entry
+        )),
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            'routeMatrix.atlas-desktop-light.route=/interactive-learning',
+            'routeMatrix.atlas-desktop-light.role=student',
+            'routeMatrix.atlas-desktop-light.theme=light',
+            'routeMatrix.atlas-desktop-light.viewport=desktop',
+            'routeMatrix.atlas-desktop-light.sourceConcept=artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png',
+          ]),
+        }),
+      ]),
+    );
+  });
+
   it('fails final interactive learning product QA evidence when route matrix cites an unaccepted source concept', () => {
     const result = evaluateCommercialUiGovernance(baseInput({
       interactiveLearningProductQaRequired: true,
@@ -729,7 +885,7 @@ describe('commercial UI governance', () => {
         expect.objectContaining({
           category: 'interactive-learning-product-qa',
           evidence: expect.arrayContaining([
-            'conceptImageSha256.artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png=current',
+            `conceptImageSha256.${sourceConcept}=current`,
             'routeMatrix.atlas-desktop-light.sourceConceptSha256=current',
           ]),
         }),

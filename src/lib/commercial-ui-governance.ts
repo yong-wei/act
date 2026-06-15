@@ -491,6 +491,8 @@ export interface CommercialUiGovernanceInput {
   reportSurfaceInventory?: readonly PlatformReportSurfaceInventoryEntry[];
   interactiveLearningProductQaRequired?: boolean;
   interactiveLearningProductQa?: CommercialInteractiveLearningProductQaEvidence;
+  interactiveLearningProductQaSourceRefreshRequired?: boolean;
+  interactiveLearningProductQaEvidenceRefreshed?: boolean;
 }
 
 export interface CommercialUiGovernanceResult {
@@ -2046,6 +2048,103 @@ const REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_IDS = [
   'focus-management-keyboard',
 ] as const;
 
+const REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_METADATA = {
+  'atlas-desktop-light': {
+    route: '/interactive-learning',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png',
+  },
+  'course-catalog-mobile-dark': {
+    route: '/interactive-learning/courses',
+    role: 'student',
+    theme: 'dark',
+    viewport: 'mobile',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/01-course-catalog-theory-practice.png',
+  },
+  'chapter-components-desktop-light': {
+    route: '/interactive-learning/chapter-components',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png',
+  },
+  'cross-domain-list-mobile-light': {
+    route: '/interactive-learning/cross-domain-exploration',
+    role: 'student',
+    theme: 'light',
+    viewport: 'mobile',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png',
+  },
+  'course-entry-desktop-light': {
+    route: '/interactive-learning/courses/unit-1-1-see-the-full-picture',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/02-course-entry-shell.png',
+  },
+  'teacher-waiting-desktop-light': {
+    route: '/interactive-learning/courses/[courseId]/teacher/[sessionId]/waiting',
+    role: 'teacher',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/02-teacher-classroom-qr-waiting.png',
+  },
+  'student-runtime-desktop-light': {
+    route: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+  },
+  'guest-runtime-mobile-dark': {
+    route: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo',
+    role: 'guest',
+    theme: 'dark',
+    viewport: 'mobile',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+  },
+  'teacher-projection-desktop-dark': {
+    route: '/interactive-learning/courses/unit-4-1-design-task-expression/teacher/[sessionId]',
+    role: 'teacher',
+    theme: 'dark',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/06-teacher-projection-runtime-compact-navigation.png',
+  },
+  'invalid-session-desktop-light': {
+    route: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+  },
+  'module-chrome-student-choice-mobile': {
+    route: '/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]',
+    role: 'student',
+    theme: 'light',
+    viewport: 'mobile',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+  },
+  'konling-dock-collapsed-desktop': {
+    route: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+  },
+  'focus-management-keyboard': {
+    route: '/interactive-learning/courses/unit-4-1-design-task-expression/teacher/[sessionId]',
+    role: 'teacher',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/06-teacher-projection-runtime-compact-navigation.png',
+  },
+} as const satisfies Record<
+  typeof REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_IDS[number],
+  Pick<CommercialInteractiveLearningProductQaMatrixEntry, 'route' | 'role' | 'theme' | 'viewport' | 'sourceConcept'>
+>;
+
 const REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_REGRESSION_CHECKS = [
   'sharedShellNavigationDock',
   'teacherNoStudentInputs',
@@ -2065,6 +2164,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function buildInteractiveLearningProductQaViolations(
   evidence: CommercialInteractiveLearningProductQaEvidence | undefined,
   required = false,
+  sourceRefreshRequired = false,
+  evidenceRefreshed = false,
 ) {
   if (!evidence) {
     return required ? [withCategory({
@@ -2093,6 +2194,7 @@ function buildInteractiveLearningProductQaViolations(
     evidence.change !== 'govern-interactive-learning-product-qa' ? 'change=govern-interactive-learning-product-qa' : '',
     !evidence.generatedAt ? 'generatedAt' : '',
     !evidence.sourceCommit ? 'sourceCommit' : '',
+    sourceRefreshRequired && !evidenceRefreshed ? 'sourceCommit=refreshed-for-current-source-change' : '',
     evidence.designHandoff !== INTERACTIVE_LEARNING_PRODUCT_QA_HANDOFF
       ? `designHandoff=${INTERACTIVE_LEARNING_PRODUCT_QA_HANDOFF}`
       : '',
@@ -2172,12 +2274,24 @@ function buildInteractiveLearningProductQaViolations(
     }
     if (entry.result !== 'passed') missing.push(`routeMatrix.${id}.result=passed`);
     if (!entry.route) missing.push(`routeMatrix.${id}.route`);
+    if (entry.route && entry.route !== REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_METADATA[id].route) {
+      missing.push(`routeMatrix.${id}.route=${REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_METADATA[id].route}`);
+    }
     if (!entry.role) missing.push(`routeMatrix.${id}.role`);
     if (entry.role && !COMMERCIAL_VISUAL_QA_ROLES.includes(entry.role)) missing.push(`routeMatrix.${id}.role=valid`);
+    if (entry.role && entry.role !== REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_METADATA[id].role) {
+      missing.push(`routeMatrix.${id}.role=${REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_METADATA[id].role}`);
+    }
     if (!entry.theme) missing.push(`routeMatrix.${id}.theme`);
     if (entry.theme && !COMMERCIAL_VISUAL_QA_REQUIRED_THEMES.includes(entry.theme)) missing.push(`routeMatrix.${id}.theme=valid`);
+    if (entry.theme && entry.theme !== REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_METADATA[id].theme) {
+      missing.push(`routeMatrix.${id}.theme=${REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_METADATA[id].theme}`);
+    }
     if (!entry.viewport) missing.push(`routeMatrix.${id}.viewport`);
     if (entry.viewport && !['desktop', 'mobile'].includes(entry.viewport)) missing.push(`routeMatrix.${id}.viewport=valid`);
+    if (entry.viewport && entry.viewport !== REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_METADATA[id].viewport) {
+      missing.push(`routeMatrix.${id}.viewport=${REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_METADATA[id].viewport}`);
+    }
     if (!entry.navigationState) missing.push(`routeMatrix.${id}.navigationState`);
     if (
       entry.navigationState
@@ -2192,6 +2306,12 @@ function buildInteractiveLearningProductQaViolations(
     if (!entry.pageState) missing.push(`routeMatrix.${id}.pageState`);
     if (!entry.moduleState) missing.push(`routeMatrix.${id}.moduleState`);
     if (!entry.sourceConcept) missing.push(`routeMatrix.${id}.sourceConcept`);
+    if (
+      entry.sourceConcept
+      && entry.sourceConcept !== REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_METADATA[id].sourceConcept
+    ) {
+      missing.push(`routeMatrix.${id}.sourceConcept=${REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_METADATA[id].sourceConcept}`);
+    }
     if (entry.sourceConcept && !acceptedConceptImages.has(entry.sourceConcept)) {
       missing.push(`routeMatrix.${id}.sourceConcept=accepted-concept-image`);
     }
@@ -2341,6 +2461,8 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
     ...buildInteractiveLearningProductQaViolations(
       input.interactiveLearningProductQa,
       input.interactiveLearningProductQaRequired,
+      input.interactiveLearningProductQaSourceRefreshRequired,
+      input.interactiveLearningProductQaEvidenceRefreshed,
     ),
     ...buildReportExportViolations(reportSurfaceInventory, input.visualEvidence),
     ...buildAccessibilityViolations(

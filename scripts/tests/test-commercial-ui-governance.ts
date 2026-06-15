@@ -1834,6 +1834,10 @@ const simulationVisualQaMatrix = requiresFullSimulationVisualQaMatrix(requiredVi
     || simulationSharedDetailRouteAffected(route.href, files)
   ));
 const interactiveLearningProductQaRequired = shouldRequireInteractiveLearningProductQa(files);
+const interactiveLearningProductQaSourceRefreshRequired = files.some((file) => (
+  INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix))
+));
+const interactiveLearningProductQaEvidenceRefreshed = files.includes(INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH);
 const result = evaluateCommercialUiGovernance({
   mode: 'blocking',
   today,
@@ -1858,6 +1862,8 @@ const result = evaluateCommercialUiGovernance({
   )),
   simulationVisualQaMatrix,
   interactiveLearningProductQaRequired,
+  interactiveLearningProductQaSourceRefreshRequired,
+  interactiveLearningProductQaEvidenceRefreshed,
   interactiveLearningProductQa: interactiveLearningProductQaRequired
     ? readInteractiveLearningProductQaEvidence()
     : undefined,
