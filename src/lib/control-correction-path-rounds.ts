@@ -548,10 +548,13 @@ export async function updateControlCorrectionPathRoundAfterExecution(
   const metadata = toRecord(path.lastExecutionMetadata);
   const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
   const failedNodeIds = new Set(arrayOfStrings(metadata.failedNodeIds));
-  if (input.status === 'completed' && !isNonCompletionPathActivity(activityKind)) completedNodeIds.add(input.nodeId);
+  const nonCompletionPathActivity = isNonCompletionPathActivity(activityKind);
+  if (input.status === 'completed' && !nonCompletionPathActivity) completedNodeIds.add(input.nodeId);
   if (input.status === 'failed') failedNodeIds.add(input.nodeId);
 
-  const terminalValidation = updateTerminalValidationState(path.terminalValidation, input);
+  const terminalValidation = nonCompletionPathActivity
+    ? toRecord(path.terminalValidation)
+    : updateTerminalValidationState(path.terminalValidation, input);
   const terminalNodeId = typeof terminalValidation.nodeId === 'string' ? terminalValidation.nodeId : null;
   const isTerminalExecution = terminalNodeId === input.nodeId;
   const terminalState = typeof terminalValidation.state === 'string' ? terminalValidation.state : null;

@@ -151,6 +151,7 @@ interface PathActivityTimelineItem {
   sourceLabel: string;
   stateLabel: '已记录' | '待复核' | '可用于推荐' | '仅作参考';
   createdAt: string;
+  sortTime: number;
 }
 
 type DemoScene = 'stable' | 'generate';
@@ -847,6 +848,7 @@ function getPathActivityTimeline(
     const resourceType = typeof record.resourceType === 'string' ? record.resourceType : 'resource';
     const status = typeof record.status === 'string' ? record.status : 'started';
     const activityKind = typeof record.activityKind === 'string' ? record.activityKind : '';
+    const timelineTime = readTimelineTime(record.createdAt ?? record.completedAt ?? record.startedAt);
     items.push({
       id: typeof record.id === 'string' ? record.id : `execution:${items.length}`,
       nodeId,
@@ -856,12 +858,14 @@ function getPathActivityTimeline(
       nodeTitle: nodeTitle.get(nodeId) ?? nodeId,
       sourceLabel: formatResourceType(resourceType),
       stateLabel: getPathActivityStateLabel(activityKind, status, resourceType),
-      createdAt: formatTimelineTime(record.createdAt ?? record.completedAt ?? record.startedAt),
+      createdAt: timelineTime.label,
+      sortTime: timelineTime.sortTime,
     });
   }
   for (const deviation of round?.deviations ?? []) {
     const record = getRecord(deviation);
     const targetNodeId = typeof record.targetNodeId === 'string' ? record.targetNodeId : '';
+    const timelineTime = readTimelineTime(record.createdAt);
     items.push({
       id: typeof record.id === 'string' ? record.id : `deviation:${items.length}`,
       nodeId: targetNodeId,
@@ -871,11 +875,13 @@ function getPathActivityTimeline(
       nodeTitle: nodeTitle.get(targetNodeId) ?? targetNodeId,
       sourceLabel: '学习路径',
       stateLabel: '待复核',
-      createdAt: formatTimelineTime(record.createdAt),
+      createdAt: timelineTime.label,
+      sortTime: timelineTime.sortTime,
     });
   }
   for (const intervention of round?.interventions ?? []) {
     const record = getRecord(intervention);
+    const timelineTime = readTimelineTime(record.createdAt);
     items.push({
       id: typeof record.id === 'string' ? record.id : `intervention:${items.length}`,
       nodeId: '',
@@ -885,10 +891,11 @@ function getPathActivityTimeline(
       nodeTitle: '路径调整',
       sourceLabel: '控灵建议',
       stateLabel: '已记录',
-      createdAt: formatTimelineTime(record.createdAt),
+      createdAt: timelineTime.label,
+      sortTime: timelineTime.sortTime,
     });
   }
-  return items.sort((left, right) => left.createdAt.localeCompare(right.createdAt));
+  return items.sort((left, right) => left.sortTime - right.sortTime);
 }
 
 function buildEvidenceSourceSummary(nodes: PathExecutionNodeView[]): Array<{ label: string; count: number }> {
@@ -927,10 +934,16 @@ function formatPathActivityDetail(activityKind: string, status: string): string 
   return status === 'completed' ? '节点完成记录已进入学习证据。' : '节点启动记录已进入学习路径。';
 }
 
-function formatTimelineTime(value: unknown): string {
-  if (typeof value !== 'string' && !(value instanceof Date)) return '时间待记录';
+function readTimelineTime(value: unknown): { label: string; sortTime: number } {
+  if (typeof value !== 'string' && !(value instanceof Date)) {
+    return { label: '时间待记录', sortTime: Number.POSITIVE_INFINITY };
+  }
   const date = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(date.getTime()) ? '时间待记录' : date.toLocaleString('zh-CN', { hour12: false });
+  const sortTime = date.getTime();
+  if (Number.isNaN(sortTime)) {
+    return { label: '时间待记录', sortTime: Number.POSITIVE_INFINITY };
+  }
+  return { label: date.toLocaleString('zh-CN', { hour12: false }), sortTime };
 }
 
 function pathNodeContextHref(node: PathExecutionNodeView, pathId?: string | null): string {

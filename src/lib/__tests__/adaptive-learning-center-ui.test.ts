@@ -1400,6 +1400,15 @@ describe('adaptive learning center UI contracts', () => {
     });
     expect(konlingPanel?.status.fallbackReason).toBe('missing-konling-context');
   });
+
+  it('sorts adaptive practice path history by raw timestamps before formatting labels', () => {
+    const routeSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(routeSource).toContain('sortTime: number;');
+    expect(routeSource).toContain('const timelineTime = readTimelineTime(record.createdAt ?? record.completedAt ?? record.startedAt);');
+    expect(routeSource).toContain('return items.sort((left, right) => left.sortTime - right.sortTime);');
+    expect(routeSource).not.toContain('left.createdAt.localeCompare(right.createdAt)');
+  });
 });
 
 function readRouteSource(route: AdaptiveLearningCompatibilityRoute) {
