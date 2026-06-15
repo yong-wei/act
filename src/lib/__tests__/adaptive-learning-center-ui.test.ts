@@ -527,6 +527,10 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("'continued-interaction'");
     expect(source).toContain("pathActivityKind: activityKind");
     expect(source).toContain("deviationType: 'skip'");
+    expect(source).toContain('): Promise<boolean> =>');
+    expect(source).toContain('const activityWritten = await writePathNodeActivity');
+    expect(source).toContain('if (!activityWritten) return;');
+    expect(source).toContain('window.location.assign(pathNodeContextHref');
     expect(source).not.toContain('Readiness Gate');
     expect(source).not.toContain('入口意图：');
     expect(source).not.toContain('terminal-validation-unavailable');

@@ -65,9 +65,16 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       actorUserId: requester.userId,
       actorRole: requester.role,
     });
+    const pathUpdate = skipContext
+      ? await advanceCurrentNodeAfterCurrentSkip(path, body.targetNodeId)
+      : null;
     const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
 
-    return NextResponse.json({ deviation: toDeviationWriteView(deviation), cacheRefresh });
+    return NextResponse.json({
+      deviation: toDeviationWriteView(deviation),
+      pathUpdate,
+      cacheRefresh,
+    });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('[LearningPathDeviation] Error:', error);
@@ -112,6 +119,37 @@ function validateAndBuildSkipContext(path: any, body: any): Record<string, unkno
     consequence: SKIP_WARNING_TEXT,
     returnEligible: true,
   };
+}
+
+async function advanceCurrentNodeAfterCurrentSkip(path: any, targetNodeId: unknown): Promise<{ currentNodeId: string | null } | null> {
+  if (!prisma.learningPath.update) return null;
+  if (typeof path.currentNodeId !== 'string' || targetNodeId !== path.currentNodeId) return null;
+  const metadata = toRecord(path.lastExecutionMetadata);
+  const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
+  const skippedNodeIds = new Set(arrayOfStrings(metadata.skippedNodeIds));
+  skippedNodeIds.add(path.currentNodeId);
+  const mainPathNodeIds = arrayOfStrings(toRecord(path.pathPayload).mainPathNodeIds);
+  const currentIndex = mainPathNodeIds.indexOf(path.currentNodeId);
+  const nextNodeId = currentIndex >= 0
+    ? mainPathNodeIds
+        .slice(currentIndex + 1)
+        .find((nodeId) => !completedNodeIds.has(nodeId) && !skippedNodeIds.has(nodeId)) ?? null
+    : null;
+
+  await prisma.learningPath.update({
+    where: { id: path.id },
+    data: {
+      currentNodeId: nextNodeId,
+      lastExecutionMetadata: {
+        ...metadata,
+        activeNodeId: nextNodeId,
+        skippedNodeIds: [...skippedNodeIds],
+        updatedAt: new Date().toISOString(),
+      },
+    },
+  });
+
+  return { currentNodeId: nextNodeId };
 }
 
 function toRecord(value: unknown): Record<string, unknown> {

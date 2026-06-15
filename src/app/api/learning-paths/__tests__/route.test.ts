@@ -795,6 +795,64 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('advances the server current node after skipping the current node', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-2',
+      nodeIds: ['node-1', 'node-2', 'node-3'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3'],
+        planNodes: [
+          { nodeId: 'node-1', type: 'simulation', target: '/simulations/cruise' },
+          { nodeId: 'node-2', type: 'adaptive_quiz', target: '/assessment/adaptive-practice' },
+          { nodeId: 'node-3', type: 'checkpoint', target: '/assessment/adaptive-practice' },
+        ],
+      },
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], skippedNodeIds: [] },
+    });
+    mocks.recordPathDeviation.mockResolvedValueOnce({
+      id: 'dev-2',
+      deviationType: 'skip',
+      targetNodeId: 'node-2',
+      context: { ignored: true },
+    });
+
+    const response = await deviatePath(post('http://localhost/api/learning-paths/path-1/deviations', {
+      deviationType: 'skip',
+      priorNodeId: 'node-2',
+      targetNodeId: 'node-2',
+      idempotencyKey: 'skip-current-node-2',
+      context: { returnEligible: false, rawClientClaim: 'ignored' },
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.pathUpdate).toEqual({ currentNodeId: 'node-3' });
+    expect(mocks.recordPathDeviation).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      targetNodeId: 'node-2',
+      context: {
+        consequence: '跳过后该资源不会计入完成进度，但会记录为路径偏离，可稍后返回。',
+        returnEligible: true,
+      },
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'path-1' },
+      data: expect.objectContaining({
+        currentNodeId: 'node-3',
+        lastExecutionMetadata: expect.objectContaining({
+          activeNodeId: 'node-3',
+          completedNodeIds: ['node-1'],
+          skippedNodeIds: ['node-2'],
+        }),
+      }),
+    }));
+  });
+
   it('records path choice evidence for the student owner with current style ids', async () => {
     const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
       action: 'selection',

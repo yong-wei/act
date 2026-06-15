@@ -1336,9 +1336,9 @@ export default function AdaptivePracticePage() {
     node: PathExecutionNodeView,
     activityKind: string,
     status: 'started' | 'completed' | 'failed' = 'started',
-  ) => {
+  ): Promise<boolean> => {
     const pathId = controlCorrectionPathRound?.id ?? controlCorrectionPathPlan?.id;
-    if (!pathId) return;
+    if (!pathId) return false;
     setPathActivityPending(`${activityKind}:${node.nodeId}`);
     try {
       const response = await fetch(`/api/learning-paths/${encodeURIComponent(pathId)}/execute`, {
@@ -1363,8 +1363,10 @@ export default function AdaptivePracticePage() {
       }
       await reloadControlCorrectionPath();
       setError(null);
+      return true;
     } catch (activityError) {
       setError(activityError instanceof Error ? activityError.message : '路径活动写入失败');
+      return false;
     } finally {
       setPathActivityPending(null);
     }
@@ -1437,11 +1439,12 @@ export default function AdaptivePracticePage() {
   }, [controlCorrectionPathPlan, controlCorrectionPathRound, isDemoMode, reloadControlCorrectionPath]);
 
   const launchExecutionNode = useCallback(async (node: PathExecutionNodeView) => {
-    await writePathNodeActivity(
+    const activityWritten = await writePathNodeActivity(
       node,
       node.status === 'skipped' ? 'return-to-skipped' : 'initial-completion',
       'started',
     );
+    if (!activityWritten) return;
     window.location.assign(pathNodeContextHref(node, controlCorrectionPathPlan?.id ?? controlCorrectionPathRound?.id));
   }, [controlCorrectionPathPlan, controlCorrectionPathRound, writePathNodeActivity]);
 
