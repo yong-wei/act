@@ -11,6 +11,7 @@ import {
   SIMULATION_VISUAL_QA_ROUTE_MATRIX,
   evaluateCommercialUiGovernance,
   type CommercialAccessibilityTextFitEvidence,
+  type CommercialAdaptivePathProductQaEvidence,
   type CommercialVisualAcceptanceRoute,
   type CommercialInteractiveLearningProductQaEvidence,
   type CommercialModuleChromeInventoryEntry,
@@ -897,6 +898,214 @@ function interactiveLearningProductQaEvidenceCoversLatestSource(files: readonly 
   const latestSourceCommits = latestInteractiveLearningProductQaSourceCommits(files);
   if (latestSourceCommits.length === 0) return true;
   const evidenceCommit = latestCommitForPath(INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH);
+  return Boolean(evidenceCommit) && latestSourceCommits.every((sourceCommit) => (
+    isAncestorCommit(sourceCommit, evidenceCommit)
+  ));
+}
+
+const ADAPTIVE_PATH_PRODUCT_QA_EVIDENCE_PATH =
+  'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/final-product-qa.json';
+const ADAPTIVE_PATH_PRODUCT_QA_CAPTURE_MANIFEST =
+  'artifacts/commercial-ui/adaptive-path-product-qa-516/capture-manifest.json';
+const ADAPTIVE_PATH_PRODUCT_QA_VISUAL_SIGNALS =
+  'artifacts/commercial-ui/adaptive-path-product-qa-516/visual-signals.json';
+const ADAPTIVE_PATH_PRODUCT_QA_SOURCE_PREFIXES = [
+  'src/app/assessment/adaptive-practice/',
+  'src/app/api/learning-paths/',
+  'src/features/adaptive/',
+  'src/lib/adaptive-learning-path-planner.ts',
+  'src/lib/adaptive-path-option-display.ts',
+  'src/lib/control-correction-path-rounds.ts',
+  'src/lib/konling-agent-runtime.ts',
+] as const;
+
+function adaptivePathSourceFileChanged(file: string) {
+  return ADAPTIVE_PATH_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => (
+    prefix.endsWith('.ts') || prefix.endsWith('.tsx')
+      ? file === prefix
+      : file.startsWith(prefix)
+  ));
+}
+
+function readAdaptivePathProductQaEvidence(): CommercialAdaptivePathProductQaEvidence | undefined {
+  const evidencePath = path.join(repoRoot, ADAPTIVE_PATH_PRODUCT_QA_EVIDENCE_PATH);
+  if (!existsSync(evidencePath)) return undefined;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(readFileSync(evidencePath, 'utf8'));
+  } catch (error) {
+    return {
+      change: 'govern-adaptive-path-product-qa',
+      parseError: error instanceof Error ? error.message : 'invalid JSON',
+      designHandoff: '',
+      handoffMatrix: '',
+      captureManifest: '',
+      visualSignals: '',
+      conceptImages: [],
+      childChangeValidations: [],
+      routeMatrix: [],
+      captureStates: [],
+      independentVisualReview: {
+        status: 'not-run',
+        reviewer: '',
+        report: '',
+      },
+      functionalGates: {},
+      temporaryExceptions: [],
+    };
+  }
+  return hydrateAdaptivePathProductQaEvidence(parsed);
+}
+
+export function hydrateAdaptivePathProductQaEvidence(
+  parsed: unknown,
+): CommercialAdaptivePathProductQaEvidence {
+  const evidence = typeof parsed === 'object' && parsed !== null
+    ? parsed as Partial<CommercialAdaptivePathProductQaEvidence>
+    : {};
+  const conceptImages = Array.isArray(evidence.conceptImages) ? evidence.conceptImages : [];
+  const childChangeValidations = Array.isArray(evidence.childChangeValidations) ? evidence.childChangeValidations : [];
+  const routeMatrix = Array.isArray(evidence.routeMatrix) ? evidence.routeMatrix : [];
+  const temporaryExceptions = Array.isArray(evidence.temporaryExceptions) ? evidence.temporaryExceptions : [];
+  const independentVisualReview = isPlainObject(evidence.independentVisualReview)
+    ? evidence.independentVisualReview
+    : undefined;
+  const conceptImageSha256 = Object.fromEntries(
+    conceptImages.filter((conceptImage): conceptImage is string => typeof conceptImage === 'string').map((conceptImage) => [
+      conceptImage,
+      simulationViewportArtifact(conceptImage)?.sha256 ?? '',
+    ]),
+  );
+  const independentReviewPath = typeof independentVisualReview?.report === 'string'
+    && independentVisualReview.report.trim()
+    ? independentVisualReview.report
+    : undefined;
+  const independentReviewReport = independentReviewPath
+    ? readOptionalText(independentReviewPath)
+    : '';
+  return {
+    ...evidence,
+    change: evidence.change ?? 'govern-adaptive-path-product-qa',
+    designHandoff: evidence.designHandoff ?? '',
+    currentDesignHandoffSha256: evidence.designHandoff
+      ? simulationViewportArtifact(evidence.designHandoff)?.sha256
+      : undefined,
+    handoffMatrix: evidence.handoffMatrix ?? '',
+    currentHandoffMatrixSha256: evidence.handoffMatrix
+      ? simulationViewportArtifact(evidence.handoffMatrix)?.sha256
+      : undefined,
+    captureManifest: evidence.captureManifest ?? ADAPTIVE_PATH_PRODUCT_QA_CAPTURE_MANIFEST,
+    currentCaptureManifestSha256: simulationViewportArtifact(
+      evidence.captureManifest ?? ADAPTIVE_PATH_PRODUCT_QA_CAPTURE_MANIFEST,
+    )?.sha256,
+    visualSignals: evidence.visualSignals ?? ADAPTIVE_PATH_PRODUCT_QA_VISUAL_SIGNALS,
+    currentVisualSignalsSha256: simulationViewportArtifact(
+      evidence.visualSignals ?? ADAPTIVE_PATH_PRODUCT_QA_VISUAL_SIGNALS,
+    )?.sha256,
+    conceptImages,
+    currentConceptImageSha256: conceptImageSha256,
+    childChangeValidations,
+    routeMatrix: routeMatrix.map((entry) => {
+      if (!isPlainObject(entry)) return entry;
+      return {
+        ...entry,
+        screenshotSha256: typeof entry.screenshot === 'string'
+          ? simulationViewportArtifact(entry.screenshot)?.sha256
+          : entry.screenshotSha256,
+      };
+    }),
+    captureStates: Array.isArray(evidence.captureStates) ? evidence.captureStates : [],
+    independentVisualReview: independentVisualReview
+      ? {
+          ...independentVisualReview,
+          currentReportSha256: independentReviewPath
+            ? simulationViewportArtifact(independentReviewPath)?.sha256
+            : undefined,
+          reportHasPassVerdict: /final verdict:\s*pass/i.test(independentReviewReport),
+          reportHasNoUnresolvedBlocks: interactiveLearningReviewHasNoUnresolvedBlocks(independentReviewReport),
+        }
+      : Object.hasOwn(evidence, 'independentVisualReview')
+        ? evidence.independentVisualReview
+        : {
+            status: 'not-run',
+            reviewer: '',
+            report: '',
+          },
+    functionalGates: evidence.functionalGates ?? {},
+    temporaryExceptions,
+  } as CommercialAdaptivePathProductQaEvidence;
+}
+
+function adaptivePathProductQaEvidenceArtifactPaths() {
+  const paths = new Set<string>([ADAPTIVE_PATH_PRODUCT_QA_EVIDENCE_PATH]);
+  const evidencePath = path.join(repoRoot, ADAPTIVE_PATH_PRODUCT_QA_EVIDENCE_PATH);
+  if (!existsSync(evidencePath)) return paths;
+
+  let evidence: unknown;
+  try {
+    evidence = JSON.parse(readFileSync(evidencePath, 'utf8'));
+  } catch {
+    return paths;
+  }
+  if (!isPlainObject(evidence)) return paths;
+
+  const addPath = (value: unknown) => {
+    if (typeof value === 'string' && value.trim()) paths.add(value);
+  };
+  addPath(evidence.designHandoff);
+  addPath(evidence.handoffMatrix);
+  addPath(evidence.captureManifest);
+  addPath(evidence.visualSignals);
+  if (Array.isArray(evidence.conceptImages)) {
+    for (const conceptImage of evidence.conceptImages) addPath(conceptImage);
+  }
+  if (Array.isArray(evidence.routeMatrix)) {
+    for (const route of evidence.routeMatrix) {
+      if (!isPlainObject(route)) continue;
+      addPath(route.sourceConcept);
+      addPath(route.screenshot);
+    }
+  }
+  if (Array.isArray(evidence.captureStates)) {
+    for (const state of evidence.captureStates) {
+      if (!isPlainObject(state)) continue;
+      addPath(state.screenshot);
+    }
+  }
+  if (isPlainObject(evidence.independentVisualReview)) {
+    addPath(evidence.independentVisualReview.report);
+  }
+  return paths;
+}
+
+function shouldRequireAdaptivePathProductQa(files: readonly string[]) {
+  const referencedProductQaArtifacts = adaptivePathProductQaEvidenceArtifactPaths();
+  return files.some((file) => (
+    file.startsWith('openspec/changes/govern-adaptive-path-product-qa/')
+    || (file.startsWith('openspec/changes/archive/')
+      && file.includes('/govern-adaptive-path-product-qa/'))
+    || file.startsWith('artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/')
+    || referencedProductQaArtifacts.has(file)
+    || adaptivePathSourceFileChanged(file)
+    || file === 'src/lib/commercial-ui-governance.ts'
+    || file === 'scripts/tests/test-commercial-ui-governance.ts'
+  ));
+}
+
+function latestAdaptivePathProductQaSourceCommits(files: readonly string[]) {
+  return Array.from(new Set(files
+    .filter(adaptivePathSourceFileChanged)
+    .map(latestCommitForPath)
+    .filter(Boolean)));
+}
+
+function adaptivePathProductQaEvidenceCoversLatestSource(files: readonly string[]) {
+  const sourceFiles = files.filter(adaptivePathSourceFileChanged);
+  const hasUncommittedSourceChange = sourceFiles.some(hasUncommittedPathChange);
+  if (hasUncommittedSourceChange) return hasUncommittedPathChange(ADAPTIVE_PATH_PRODUCT_QA_EVIDENCE_PATH);
+  const latestSourceCommits = latestAdaptivePathProductQaSourceCommits(files);
+  if (latestSourceCommits.length === 0) return true;
+  const evidenceCommit = latestCommitForPath(ADAPTIVE_PATH_PRODUCT_QA_EVIDENCE_PATH);
   return Boolean(evidenceCommit) && latestSourceCommits.every((sourceCommit) => (
     isAncestorCommit(sourceCommit, evidenceCommit)
   ));
@@ -2331,6 +2540,9 @@ const interactiveLearningProductQaSourceRefreshRequired = files.some((file) => (
   INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix))
 ));
 const interactiveLearningProductQaEvidenceRefreshed = interactiveLearningProductQaEvidenceCoversLatestSource(files);
+const adaptivePathProductQaRequired = shouldRequireAdaptivePathProductQa(files);
+const adaptivePathProductQaSourceRefreshRequired = files.some(adaptivePathSourceFileChanged);
+const adaptivePathProductQaEvidenceRefreshed = adaptivePathProductQaEvidenceCoversLatestSource(files);
 const result = evaluateCommercialUiGovernance({
   mode: 'blocking',
   today,
@@ -2360,6 +2572,12 @@ const result = evaluateCommercialUiGovernance({
   interactiveLearningProductQaEvidenceRefreshed,
   interactiveLearningProductQa: interactiveLearningProductQaRequired
     ? readInteractiveLearningProductQaEvidence()
+    : undefined,
+  adaptivePathProductQaRequired,
+  adaptivePathProductQaSourceRefreshRequired,
+  adaptivePathProductQaEvidenceRefreshed,
+  adaptivePathProductQa: adaptivePathProductQaRequired
+    ? readAdaptivePathProductQaEvidence()
     : undefined,
   reportSurfaceInventory: PLATFORM_REPORT_SURFACE_INVENTORY.filter((surface) => (
     requiredVisualRoutes.some((visualRoute) => visualRoute.href === surface.ownerRoute)
