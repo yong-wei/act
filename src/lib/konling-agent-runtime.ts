@@ -123,6 +123,7 @@ export type KonlingTeachingAssistantMountSurface =
   | 'teacher-class-report'
   | 'teacher-prep-pack';
 export type KonlingTeachingAssistantContextKey =
+  | 'student-path-center'
   | 'diagnosis-view'
   | 'learner-state-summary'
   | 'evidence-citations'
@@ -134,8 +135,7 @@ export type KonlingTeachingAssistantContextKey =
   | 'teacher-review-state'
   | 'student-feedback'
   | 'class-report'
-  | 'prep-pack'
-  | 'student-path-center';
+  | 'prep-pack';
 export type KonlingTeachingAssistantStatus = 'ready' | 'degraded' | 'unavailable';
 
 export interface KonlingTeachingAssistantModeContract {
@@ -502,14 +502,12 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
   const runtimePermittedTools = new Set(input.runtimeContext.permittedTools);
   const permittedTools = mode.id === 'generic-chat'
     ? input.runtimeContext.permittedTools
-    : mode.permittedTools.filter((toolName) =>
-      runtimePermittedTools.has(toolName) || isKonlingModeOwnedTool(
-        mode.id,
-        toolName,
-        input.scope,
-        input.serverModeContext,
-      )
-    );
+    : mode.permittedTools.filter((toolName) => {
+      if (isKonlingAdaptivePathTool(toolName)) {
+        return isKonlingModeOwnedTool(mode, toolName, input.scope, input.serverModeContext);
+      }
+      return runtimePermittedTools.has(toolName);
+    });
   const safePermittedTools = status === 'unavailable' ? [] : permittedTools;
 
   return {
@@ -594,6 +592,8 @@ function isKonlingModeContextAvailable(
   if (serverModeContext?.[contextKey] === true) return true;
 
   switch (contextKey) {
+    case 'student-path-center':
+      return isKonlingStudentPathCenterScope(scope);
     case 'diagnosis-view':
     case 'learner-state-summary':
       return Boolean(runtimeContext.learnerState) && !runtimeContext.missingContext.includes('learner-state');
@@ -1897,16 +1897,22 @@ function isKonlingAdaptivePathTool(toolName: KonlingToolName) {
 }
 
 function isKonlingModeOwnedTool(
-  modeId: KonlingTeachingAssistantModeId,
+  mode: KonlingTeachingAssistantModeContract,
   toolName: KonlingToolName,
   scope: KonlingRuntimeScope,
   serverModeContext: KonlingTeachingAssistantServerModeContext | null | undefined,
 ) {
-  return modeId === 'path-advisor' &&
-    KONLING_ADAPTIVE_PATH_TOOLS.has(toolName) &&
-    scope.role === 'student' &&
-    scope.authenticatedUserId === scope.targetUserId &&
-    serverModeContext?.['student-path-center'] === true;
+  return mode.id === 'path-advisor'
+    && mode.mountingSurfaces.includes('student-path-center')
+    && KONLING_ADAPTIVE_PATH_TOOLS.has(toolName)
+    && scope.role === 'student'
+    && scope.authenticatedUserId === scope.targetUserId
+    && serverModeContext?.['student-path-center'] === true
+    && isKonlingStudentPathCenterScope(scope);
+}
+
+function isKonlingStudentPathCenterScope(scope: KonlingRuntimeScope) {
+  return scope.pageId === 'adaptive-path-center' || scope.pageId === 'student-path-center';
 }
 
 function buildKonlingToolInputSummary(toolName: KonlingToolName, input: unknown) {

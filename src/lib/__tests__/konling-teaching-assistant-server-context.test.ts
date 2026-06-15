@@ -223,6 +223,63 @@ describe('Konling teaching-assistant server context', () => {
     })).resolves.toEqual({});
   });
 
+  it('only grants path-advisor server context with a signed path center token', async () => {
+    const modeContextToken = createKonlingTeachingAssistantServerContextToken({
+      mode: 'path-advisor',
+      classId: 'class-1',
+      courseId: 'course-1',
+      pageId: 'adaptive-path-center',
+      context: {
+        'student-path-center': true,
+      },
+    });
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: {},
+      modeId: 'path-advisor',
+      scope: scope({
+        role: 'student',
+        authenticatedUserId: 'student-1',
+        targetUserId: 'student-1',
+        pageId: 'adaptive-path-center',
+        privacyScopes: ['student-visible'],
+      }),
+      runtimeContext,
+      clientContextHints: {
+        modeContextToken,
+      },
+    })).resolves.toEqual({ 'student-path-center': true });
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: {},
+      modeId: 'path-advisor',
+      scope: scope({
+        role: 'student',
+        authenticatedUserId: 'student-1',
+        targetUserId: 'student-1',
+        pageId: 'step-03',
+        privacyScopes: ['student-visible'],
+      }),
+      runtimeContext,
+      clientContextHints: {
+        modeContextToken,
+      },
+    })).resolves.toEqual({});
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: {},
+      modeId: 'path-advisor',
+      scope: scope({
+        role: 'student',
+        authenticatedUserId: 'student-1',
+        targetUserId: 'student-1',
+        pageId: 'adaptive-path-center',
+        privacyScopes: ['student-visible'],
+      }),
+      runtimeContext,
+    })).resolves.toEqual({});
+  });
+
   it('rejects signed mode context tokens when object bindings do not match hints or scope', async () => {
     const modeContextToken = createKonlingTeachingAssistantServerContextToken({
       mode: 'prep-coauthor',

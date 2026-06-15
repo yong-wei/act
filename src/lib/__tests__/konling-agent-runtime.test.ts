@@ -421,7 +421,8 @@ describe('konling agent runtime', () => {
     const contract = buildKonlingTeachingAssistantRuntimeContract({
       modeId: 'path-advisor',
       runtimeContext: runtime,
-      scope: createScope({ role: 'student' }),
+      scope: createScope({ role: 'student', pageId: 'adaptive-path-center' }),
+      serverModeContext: { 'student-path-center': true },
     });
 
     expect(contract.status).toBe('ready');
@@ -550,6 +551,65 @@ describe('konling agent runtime', () => {
       'get_learner_state',
       'get_plan_context',
       'search_knowledge_graph',
+    ]));
+  });
+
+  it('does not expose path-advisor write tools from runtime permissions without server context', () => {
+    const runtime = createRuntimeContext({
+      learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],
+      permittedTools: [
+        'get_page_context',
+        'get_learner_state',
+        'get_plan_context',
+        'generate_learning_path',
+        'revise_learning_path_options',
+        'select_learning_path',
+        'reject_learning_path_option',
+        'record_path_adjustment_outcome',
+      ],
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:generic',
+          sourceType: 'content',
+          displayTitle: '当前页面内容',
+          href: null,
+          confidence: 'high',
+          evidenceBasis: 'course-ai-context',
+          owner: 'answer',
+        }],
+        evidenceCitations: [{
+          id: 'learner:student-1',
+          sourceType: 'learner-state',
+          displayTitle: '学习状态摘要',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'AdaptiveLearnerState',
+          owner: 'recommendation',
+        }],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer', 'recommendation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    });
+
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'path-advisor',
+      runtimeContext: runtime,
+      scope: createScope({ role: 'student', pageId: 'adaptive-path-center', pathNodeId: null }),
+    });
+
+    expect(contract.status).toBe('ready');
+    expect(contract.permittedTools).not.toEqual(expect.arrayContaining([
+      'generate_learning_path',
+      'revise_learning_path_options',
+      'select_learning_path',
+      'reject_learning_path_option',
+      'record_path_adjustment_outcome',
     ]));
   });
 
