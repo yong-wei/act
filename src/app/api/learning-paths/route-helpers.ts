@@ -36,6 +36,7 @@ export async function readPathForAccess(pathId: string): Promise<any | NextRespo
       classId: true,
       goalId: true,
       pathStatus: true,
+      currentNodeId: true,
       nodeIds: true,
       pathPayload: true,
       learnerStateRef: true,

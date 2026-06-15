@@ -560,6 +560,7 @@ describe('learning path round API routes', () => {
     }));
     expect(mocks.prisma.learningPath.findUnique).toHaveBeenCalledWith(expect.objectContaining({
       select: expect.objectContaining({
+        currentNodeId: true,
         terminalValidation: true,
         lastExecutionMetadata: true,
       }),
