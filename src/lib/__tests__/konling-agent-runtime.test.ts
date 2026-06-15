@@ -675,6 +675,56 @@ describe('konling agent runtime', () => {
     expect(contract.unavailableReasons).toEqual([]);
   });
 
+  it('does not expose adaptive path write tools through generic chat defaults', () => {
+    const runtime = createRuntimeContext();
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      runtimeContext: runtime,
+      scope: createScope(),
+    });
+
+    expect(contract.mode.id).toBe('generic-chat');
+    expect(contract.permittedTools).not.toEqual(expect.arrayContaining([
+      'generate_learning_path',
+      'revise_learning_path_options',
+      'select_learning_path',
+      'reject_learning_path_option',
+      'record_path_adjustment_outcome',
+    ]));
+  });
+
+  it('does not include adaptive path write tools in server-owned default runtime tools', async () => {
+    const runtime = await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      studentEvidenceFeatureCache: {
+        findUnique: vi.fn().mockResolvedValue(null),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      classId: 'class-1',
+      courseId: 'unit-4-5',
+      pageId: 'adaptive-path-center',
+      trustedContentContext: true,
+    });
+
+    expect(runtime.permittedTools).not.toEqual(expect.arrayContaining([
+      'generate_learning_path',
+      'revise_learning_path_options',
+      'select_learning_path',
+      'reject_learning_path_option',
+      'record_path_adjustment_outcome',
+    ]));
+  });
+
   it('adds teaching-assistant mode privacy and output constraints to the system prompt', () => {
     const runtime = createRuntimeContext();
     const modeContract = buildKonlingTeachingAssistantRuntimeContract({

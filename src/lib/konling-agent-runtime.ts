@@ -432,9 +432,12 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
       : degradedReasons.length > 0
         ? 'degraded'
         : 'ready';
+  const runtimePermittedTools = new Set(input.runtimeContext.permittedTools);
   const permittedTools = mode.id === 'generic-chat'
     ? input.runtimeContext.permittedTools
-    : mode.permittedTools.filter((toolName) => input.runtimeContext.permittedTools.includes(toolName));
+    : mode.permittedTools.filter((toolName) =>
+      runtimePermittedTools.has(toolName) || isKonlingModeOwnedTool(mode.id, toolName)
+    );
   const safePermittedTools = status === 'unavailable' ? [] : permittedTools;
 
   return {
@@ -897,12 +900,6 @@ const DEFAULT_TOOLS: KonlingToolName[] = [
   'propose_controller_patch',
   'apply_controller_patch',
   'record_intervention_result',
-  'generate_learning_path',
-  'revise_learning_path_options',
-  'select_learning_path',
-  'reject_learning_path_option',
-  'explain_learning_path_tradeoff',
-  'record_path_adjustment_outcome',
   'analyze_attempt',
 ];
 
@@ -1681,6 +1678,10 @@ function isKonlingAdaptivePathTool(toolName: KonlingToolName) {
   return KONLING_ADAPTIVE_PATH_TOOLS.has(toolName);
 }
 
+function isKonlingModeOwnedTool(modeId: KonlingTeachingAssistantModeId, toolName: KonlingToolName) {
+  return modeId === 'path-advisor' && KONLING_ADAPTIVE_PATH_TOOLS.has(toolName);
+}
+
 function buildKonlingToolInputSummary(toolName: KonlingToolName, input: unknown) {
   if (!isKonlingAdaptivePathTool(toolName)) {
     return redactSensitivePayload(input ?? {});
@@ -1978,7 +1979,7 @@ async function runKonlingRuntimeTool<T>(
     if (isKonlingAdaptivePathTool(toolName)) {
       throw new KonlingRuntimeScopeError(403, '自适应路径工具必须通过 AgentSession 执行。');
     }
-    return assertToolResult(runtimeInput.scope, toolName, await effect());
+    return assertToolResult(runtimeInput, toolName, await effect());
   }
 
   const inputRecord = readRecord(toolInput);
@@ -2001,7 +2002,7 @@ async function runKonlingRuntimeTool<T>(
       toolRun,
       approvalPreview,
     );
-    return assertToolResult(runtimeInput.scope, toolName, {
+    return assertToolResult(runtimeInput, toolName, {
       approvalRequired: true,
       toolRunId: toolRun.id,
       toolName,
@@ -2013,7 +2014,7 @@ async function runKonlingRuntimeTool<T>(
   }
   if (toolRun.reused) {
     if (toolRun.status === 'succeeded') {
-      return assertToolResult(runtimeInput.scope, toolName, toolRun.outputSummary ?? {
+      return assertToolResult(runtimeInput, toolName, toolRun.outputSummary ?? {
         toolRunReused: true,
         toolRunId: toolRun.id,
         toolName,
@@ -2025,7 +2026,7 @@ async function runKonlingRuntimeTool<T>(
         throw new KonlingRuntimeScopeError(409, '幂等 Konling 工具请求此前已失败，不能重复执行。');
       }
     } else {
-      return assertToolResult(runtimeInput.scope, toolName, {
+      return assertToolResult(runtimeInput, toolName, {
         toolRunReused: true,
         toolRunId: toolRun.id,
         toolName,
@@ -2043,7 +2044,7 @@ async function runKonlingRuntimeTool<T>(
       toolRunId: toolRun.id,
       output: result,
     });
-    return assertToolResult(runtimeInput.scope, toolName, result);
+    return assertToolResult(runtimeInput, toolName, result);
   } catch (error) {
     await failKonlingToolRun(runtimeInput.db, {
       scope: runtimeInput.scope,
@@ -3746,11 +3747,14 @@ function summarizeRuntimeToolError(error: unknown): Record<string, unknown> {
   return { message: String(error) };
 }
 
-function assertToolResult(scope: KonlingRuntimeScope, toolName: KonlingToolName, result: unknown) {
-  if (!DEFAULT_TOOLS.includes(toolName)) {
+function assertToolResult(input: KonlingToolRuntimeInput, toolName: KonlingToolName, result: unknown) {
+  const permittedTools = input.agentSessionId
+    ? normalizeKonlingToolNames(input.permittedTools ?? input.context.permittedTools)
+    : DEFAULT_TOOLS;
+  if (!permittedTools.includes(toolName)) {
     throw new KonlingRuntimeScopeError(403, `Konling 工具 ${toolName} 未授权。`);
   }
-  return redactSensitivePayload(result, scope.privacyScopes);
+  return redactSensitivePayload(result, input.scope.privacyScopes);
 }
 
 function assertSimulationScope(scope: KonlingRuntimeScope, hasScopedSimulationState: boolean) {
