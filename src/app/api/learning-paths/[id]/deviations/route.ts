@@ -31,6 +31,15 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const body = await request.json();
     const missingIdempotencyKey = requireIdempotencyKey(body.idempotencyKey);
     if (missingIdempotencyKey) return missingIdempotencyKey;
+    const existingDeviation = await readExistingDeviation(params.id, body.idempotencyKey);
+    if (existingDeviation) {
+      const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
+      return NextResponse.json({
+        deviation: toDeviationWriteView(existingDeviation),
+        pathUpdate: { currentNodeId: typeof path.currentNodeId === 'string' ? path.currentNodeId : null },
+        cacheRefresh,
+      });
+    }
     const nodeIds = new Set(readPathNodeIds(path));
     if (
       typeof body.deviationType !== 'string' ||
@@ -91,6 +100,16 @@ function toDeviationWriteView(deviation: any) {
     evidenceConfidence: deviation.evidenceConfidence ?? 'unknown',
     createdAt: deviation.createdAt ?? null,
   };
+}
+
+async function readExistingDeviation(pathId: string, idempotencyKey: unknown): Promise<any | null> {
+  if (typeof idempotencyKey !== 'string' || idempotencyKey.length === 0) return null;
+  return await prisma.learningPathDeviation?.findFirst?.({
+    where: {
+      pathId,
+      idempotencyKey,
+    },
+  }) ?? null;
 }
 
 function validateAndBuildSkipContext(path: any, body: any): Record<string, unknown> | NextResponse | null {

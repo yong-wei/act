@@ -793,6 +793,10 @@ describe('learning path round API routes', () => {
         returnEligible: true,
       },
     }));
+    expect(await futureSkipResponse.json()).toMatchObject({
+      pathUpdate: null,
+    });
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
 
   it('advances the server current node after skipping the current node', async () => {
@@ -851,6 +855,61 @@ describe('learning path round API routes', () => {
         }),
       }),
     }));
+  });
+
+  it('returns idempotent success when a current-node skip is retried after current advancement', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-3',
+      nodeIds: ['node-1', 'node-2', 'node-3'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3'],
+        planNodes: [
+          { nodeId: 'node-1', type: 'simulation', target: '/simulations/cruise' },
+          { nodeId: 'node-2', type: 'adaptive_quiz', target: '/assessment/adaptive-practice' },
+          { nodeId: 'node-3', type: 'checkpoint', target: '/assessment/adaptive-practice' },
+        ],
+      },
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], skippedNodeIds: ['node-2'] },
+    });
+    mocks.prisma.learningPathDeviation.findFirst.mockResolvedValueOnce({
+      id: 'dev-2',
+      pathId: 'path-1',
+      userId: 'student-1',
+      deviationType: 'skip',
+      priorNodeId: 'node-2',
+      targetNodeId: 'node-2',
+      evidenceConfidence: 'medium',
+      idempotencyKey: 'skip-current-node-2',
+      createdAt: new Date('2026-06-15T10:00:00.000Z'),
+    });
+
+    const response = await deviatePath(post('http://localhost/api/learning-paths/path-1/deviations', {
+      deviationType: 'skip',
+      priorNodeId: 'node-2',
+      targetNodeId: 'node-2',
+      idempotencyKey: 'skip-current-node-2',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({
+      deviation: {
+        id: 'dev-2',
+        deviationType: 'skip',
+        priorNodeId: 'node-2',
+        targetNodeId: 'node-2',
+        evidenceConfidence: 'medium',
+      },
+      pathUpdate: { currentNodeId: 'node-3' },
+    });
+    expect(mocks.recordPathDeviation).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
 
   it('records path choice evidence for the student owner with current style ids', async () => {
