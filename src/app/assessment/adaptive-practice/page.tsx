@@ -255,6 +255,198 @@ const DEMO_SCENES: Record<DemoScene, {
   },
 };
 
+const DEMO_CONTROL_CORRECTION_PATH_NODES = [
+  {
+    nodeId: 'demo-foundation-card',
+    title: '复习根轨迹与超调关系',
+    type: 'knowledge_card',
+    pathNodeType: 'resource',
+    displayName: '知识卡',
+    iconKey: 'knowledge-card',
+    shapeHint: 'rounded',
+    evidenceBehavior: 'explicit-access',
+    evidenceStatus: 'instrumented',
+    externalResource: null,
+    checkpoint: null,
+    sourceKind: 'knowledge_card',
+    sourceRef: 'demo-foundation-card',
+    target: '/knowledge?node=control-root-locus',
+    estimatedTimeMinutes: 25,
+    prerequisiteNodeIds: [],
+    knowledgeCoverage: ['根轨迹', '超调量'],
+    teacherPolicy: 'default',
+    privacyLevel: 'learner-private',
+    terminalConstraints: [],
+    score: 0.88,
+    reasonCodes: ['matches-knowledge-deficit', 'low-mastery-target'],
+    status: 'completed',
+  },
+  {
+    nodeId: 'demo-current-quiz',
+    title: '完成频域到时域检查题',
+    type: 'adaptive_quiz',
+    pathNodeType: 'checkpoint',
+    displayName: '自适应练习',
+    iconKey: 'adaptive-quiz',
+    shapeHint: 'diamond',
+    evidenceBehavior: 'instrumented',
+    evidenceStatus: 'instrumented',
+    externalResource: null,
+    checkpoint: { required: true, label: '检查点', criteria: ['解释裕度变化', '选择校正方向'] },
+    sourceKind: 'adaptive_quiz',
+    sourceRef: 'demo-current-quiz',
+    target: '/assessment/adaptive-practice',
+    estimatedTimeMinutes: 35,
+    prerequisiteNodeIds: ['demo-foundation-card'],
+    knowledgeCoverage: ['相位裕度', '频域稳定性'],
+    teacherPolicy: 'default',
+    privacyLevel: 'learner-private',
+    terminalConstraints: ['checkpoint-pass'],
+    score: 0.91,
+    reasonCodes: ['checkpoint-required', 'matches-competency-deficit'],
+    status: 'current',
+  },
+  {
+    nodeId: 'demo-simulation',
+    title: '进入仿真验证校正效果',
+    type: 'simulation',
+    pathNodeType: 'resource',
+    displayName: '虚拟仿真',
+    iconKey: 'simulation',
+    shapeHint: 'rounded',
+    evidenceBehavior: 'instrumented',
+    evidenceStatus: 'instrumented',
+    externalResource: null,
+    checkpoint: null,
+    sourceKind: 'simulation',
+    sourceRef: 'demo-simulation',
+    target: '/simulations/control-workbench',
+    estimatedTimeMinutes: 45,
+    prerequisiteNodeIds: ['demo-current-quiz'],
+    knowledgeCoverage: ['校正验证', '参数实验'],
+    teacherPolicy: 'default',
+    privacyLevel: 'learner-private',
+    terminalConstraints: [],
+    score: 0.8,
+    reasonCodes: ['policy-simulation-driven'],
+    status: 'next',
+  },
+] as unknown as AdaptiveLearningPathPlan['mainPath'];
+
+const DEMO_CONTROL_CORRECTION_PATH_PLAN = {
+  id: 'demo-control-correction-path',
+  userId: 'demo-student',
+  goal: {
+    id: 'control-correction',
+    title: '控制系统校正设计',
+    knowledgeTargets: ['root-locus', 'frequency-response', 'simulation-validation'],
+    competencyTargets: ['parameterDesign', 'engineeringDecision'],
+  },
+  stage: 'stage-1-rules-graph',
+  policyFamily: 'foundation-remediation',
+  policyMetadata: {
+    id: 'foundation-remediation',
+    label: '基础补救策略',
+    scoringIntent: 'prioritize prerequisite repair before validation',
+    constraints: ['terminal-validation-last'],
+    fallbackSemantics: 'use available starter path',
+  },
+  excludedPolicyFamilies: ['contextual-bandit', 'reinforcement-learning', 'long-horizon-hybrid'],
+  status: 'ready',
+  currentNodeId: 'demo-current-quiz',
+  mainPath: DEMO_CONTROL_CORRECTION_PATH_NODES,
+  alternatives: [],
+  score: {
+    total: 0.84,
+    objectives: {
+      learningGain: 0.88,
+      engagement: 0.72,
+      constraintSatisfaction: 1,
+      diversity: 0.8,
+      fatigue: 0.12,
+    },
+  },
+  confidence: {
+    level: 'medium',
+    score: 0.76,
+    sourceCoverage: 0.68,
+  },
+  explanations: {
+    selectedReasons: ['matches-knowledge-deficit', 'checkpoint-required'],
+    rejectedAlternatives: [],
+    fallbackReasons: [],
+  },
+  executionStatus: {
+    adopted: true,
+    completedNodeIds: ['demo-foundation-card'],
+    activeNodeId: 'demo-current-quiz',
+    updatedAt: '2026-06-16T09:00:00+08:00',
+  },
+  deviations: [],
+  corrections: [],
+  feedbackEvents: [],
+  visualization: {
+    graph: { nodes: [], edges: [] },
+    timeline: { generatedAt: '2026-06-16T09:00:00+08:00', items: [] },
+    badges: [],
+  },
+} as unknown as AdaptiveLearningPathPlan;
+
+const DEMO_CONTROL_CORRECTION_PATH_ROUND = {
+  id: 'demo-control-correction-round',
+  userId: 'demo-student',
+  title: '控制系统校正设计学习路径',
+  goalId: 'control-correction',
+  pathStatus: 'active',
+  currentNodeId: 'demo-current-quiz',
+  lastExecutionMetadata: {
+    completedNodeIds: ['demo-foundation-card'],
+    failedNodeIds: [],
+  },
+  terminalValidation: { state: 'pending' },
+  executions: [
+    {
+      id: 'demo-exec-foundation',
+      nodeId: 'demo-foundation-card',
+      activityKind: 'completion',
+      status: 'completed',
+      resourceType: 'knowledge_card',
+      createdAt: '2026-06-16T09:10:00+08:00',
+    },
+    {
+      id: 'demo-exec-review',
+      nodeId: 'demo-foundation-card',
+      activityKind: 'continued-interaction',
+      status: 'completed',
+      resourceType: 'knowledge_card',
+      createdAt: '2026-06-16T09:24:00+08:00',
+    },
+    {
+      id: 'demo-exec-external',
+      nodeId: 'demo-simulation',
+      activityKind: 'external-resource-reference',
+      status: 'referenced',
+      resourceType: 'external_resource',
+      createdAt: '2026-06-16T09:32:00+08:00',
+    },
+  ],
+  deviations: [
+    {
+      id: 'demo-deviation-skip',
+      deviationType: 'skip',
+      targetNodeId: 'demo-simulation',
+      createdAt: '2026-06-16T09:36:00+08:00',
+    },
+  ],
+  interventions: [
+    {
+      id: 'demo-konling-adjustment',
+      targetNodeId: 'demo-current-quiz',
+      createdAt: '2026-06-16T09:40:00+08:00',
+    },
+  ],
+} satisfies LearningPathRoundView;
+
 const learnerDataShell = buildLearnerDataRouteShell('/assessment/adaptive-practice');
 
 const adaptivePathResourceIcons: Record<AdaptivePathResourceKind, LucideIcon> = {
@@ -833,6 +1025,7 @@ export default function AdaptivePracticePage() {
   const [skipCandidateNode, setSkipCandidateNode] = useState<PathExecutionNodeView | null>(null);
   const [pathActivityPending, setPathActivityPending] = useState<string | null>(null);
   const [selectedPathNodeId, setSelectedPathNodeId] = useState<string | null>(activeNodeId);
+  const [practiceQuestionExpanded, setPracticeQuestionExpanded] = useState(activePracticeFocus === 'question');
   const practiceRouteNodes = useMemo(() => buildPracticeEntryRouteNodes({
     recommendedFocus: diagnostic?.recommendedFocus ?? [],
     weakAreas: diagnostic?.weakAreas ?? [],
@@ -912,10 +1105,12 @@ export default function AdaptivePracticePage() {
     setQuestionState(demoData.questionState);
     setSelectedOption(demoData.defaultSelectedOption);
     setFeedback(demoData.feedback);
+    setControlCorrectionPathPlan(activeGoal === 'control-correction' ? DEMO_CONTROL_CORRECTION_PATH_PLAN : null);
+    setControlCorrectionPathRound(activeGoal === 'control-correction' ? DEMO_CONTROL_CORRECTION_PATH_ROUND : null);
     setQuestionStartAt(Date.now());
     setLoading(false);
     setError(null);
-  }, []);
+  }, [activeGoal]);
 
   const loadDiagnostic = useCallback(async () => {
     const response = await fetch('/api/assessment/diagnostic');
@@ -1250,6 +1445,7 @@ export default function AdaptivePracticePage() {
   }, [activeGoal, controlCorrectionPathPlan, controlCorrectionPathRound, writePathNodeActivity]);
 
   const retryNextQuestion = useCallback(async () => {
+    setPracticeQuestionExpanded(true);
     setLoading(true);
     setError(null);
     try {
@@ -1337,6 +1533,7 @@ export default function AdaptivePracticePage() {
   };
 
   const generateQuestion = async () => {
+    setPracticeQuestionExpanded(true);
     if (!diagnostic) {
       return;
     }
@@ -1991,53 +2188,60 @@ export default function AdaptivePracticePage() {
 
                 <div className="mt-4 grid gap-3 lg:grid-cols-[1.15fr_0.85fr]">
                   <div className="rounded-lg border border-border bg-background/55 p-3" data-adaptive-path-route-map="complete">
-                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3" data-adaptive-path-route-flow="connected">
-                      <span className="sr-only" data-adaptive-path-route-connector="true" />
+                    <span className="sr-only" data-adaptive-path-route-connector="true" />
+                    <ol className="grid gap-3 lg:grid-cols-3" data-adaptive-path-route-flow="connected">
                       {pathExecutionNodes.map((node, index) => (
-                        <button
-                          key={node.nodeId}
-                          type="button"
-                          onClick={() => setSelectedPathNodeId(node.nodeId)}
-                          aria-pressed={focusedPathNode?.nodeId === node.nodeId}
-                          data-adaptive-path-node={node.nodeId}
-                          data-adaptive-path-node-state={node.status}
-                          data-adaptive-path-node-selectable="true"
-                          className={`min-h-32 rounded-lg border p-3 text-left transition hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                            node.status === 'current'
-                              ? 'border-primary bg-primary/10'
-                              : node.status === 'completed'
-                                ? 'border-platform-evidence-eligible/40 bg-platform-evidence-eligible/10'
-                                : node.status === 'skipped' || node.status === 'blocked'
-                                  ? 'border-platform-evidence-context/40 bg-platform-evidence-context/10'
-                                  : 'border-border bg-muted/25'
-                          } ${focusedPathNode?.nodeId === node.nodeId ? 'ring-2 ring-primary/30' : ''}`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <span className="grid size-9 shrink-0 place-items-center rounded-full border border-border bg-background text-sm font-semibold text-foreground">
-                              {resourceGlyph(node.type)}
-                            </span>
-                            <span className="min-w-0">
-                              <span className="block text-xs text-subtle">第 {index + 1} 步 · {node.resourceLabel}</span>
-                              <span className="mt-1 block text-sm font-semibold text-foreground">{node.title}</span>
-                            </span>
-                          </div>
-                          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-subtle">
-                            <span className="rounded-md border border-border bg-background/70 px-2 py-1">
-                              {node.status === 'current'
-                                ? '当前节点'
+                        <li key={node.nodeId} className="relative pl-8 lg:pl-0">
+                          {index < pathExecutionNodes.length - 1 ? (
+                            <span
+                              aria-hidden="true"
+                              className="absolute left-4 top-12 h-[calc(100%+0.75rem)] w-px bg-border lg:left-[calc(100%-0.25rem)] lg:top-14 lg:h-px lg:w-[calc(100%+0.5rem)]"
+                            />
+                          ) : null}
+                          <button
+                            type="button"
+                            onClick={() => setSelectedPathNodeId(node.nodeId)}
+                            aria-pressed={focusedPathNode?.nodeId === node.nodeId}
+                            data-adaptive-path-node={node.nodeId}
+                            data-adaptive-path-node-state={node.status}
+                            data-adaptive-path-node-selectable="true"
+                            className={`relative z-10 min-h-36 w-full rounded-lg border p-3 text-left transition hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                              node.status === 'current'
+                                ? 'border-primary bg-primary/10'
                                 : node.status === 'completed'
-                                  ? '已完成'
-                                  : node.status === 'skipped'
-                                    ? '已跳过'
-                                    : node.status === 'blocked'
-                                      ? '待复核'
-                                      : '等待前置节点'}
-                            </span>
-                            <span>预计 {formatMinutes(node.estimatedMinutes)}</span>
-                          </div>
-                        </button>
+                                  ? 'border-platform-evidence-eligible/40 bg-platform-evidence-eligible/10'
+                                  : node.status === 'skipped' || node.status === 'blocked'
+                                    ? 'border-platform-evidence-context/40 bg-platform-evidence-context/10'
+                                    : 'border-border bg-muted/25'
+                            } ${focusedPathNode?.nodeId === node.nodeId ? 'ring-2 ring-primary/30' : ''}`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <span className="grid size-10 shrink-0 place-items-center rounded-full border border-border bg-background text-sm font-semibold text-foreground">
+                                {resourceGlyph(node.type)}
+                              </span>
+                              <span className="min-w-0">
+                                <span className="block text-xs text-subtle">第 {index + 1} 步 · {node.resourceLabel}</span>
+                                <span className="mt-1 block text-sm font-semibold text-foreground">{node.title}</span>
+                              </span>
+                            </div>
+                            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-subtle">
+                              <span className="rounded-md border border-border bg-background/70 px-2 py-1">
+                                {node.status === 'current'
+                                  ? '当前节点'
+                                  : node.status === 'completed'
+                                    ? '已完成'
+                                    : node.status === 'skipped'
+                                      ? '已跳过'
+                                      : node.status === 'blocked'
+                                        ? '待复核'
+                                        : '等待前置节点'}
+                              </span>
+                              <span>预计 {formatMinutes(node.estimatedMinutes)}</span>
+                            </div>
+                          </button>
+                        </li>
                       ))}
-                    </div>
+                    </ol>
                   </div>
 
                   {focusedPathNode ? (
@@ -2202,12 +2406,12 @@ export default function AdaptivePracticePage() {
                 </div>
                 <button
                   type="button"
-                  onClick={generateQuestion}
+                  onClick={questionState ? () => setPracticeQuestionExpanded((expanded) => !expanded) : generateQuestion}
                   disabled={loading}
                   className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground hover:border-primary disabled:opacity-60"
                 >
                   <ListChecks className="size-4" aria-hidden="true" />
-                  生成练习题
+                  {questionState ? (practiceQuestionExpanded ? '收起练习题' : '展开练习题') : '生成练习题'}
                 </button>
               </div>
 
@@ -2267,7 +2471,7 @@ export default function AdaptivePracticePage() {
                     ))}
                   </div>
 
-                  {questionState ? (
+                  {questionState && practiceQuestionExpanded ? (
                     <div className="rounded-lg border border-border bg-background/55 p-4" data-adaptive-practice-question="active">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="text-sm font-semibold text-foreground">检查节点练习</p>
@@ -2320,6 +2524,28 @@ export default function AdaptivePracticePage() {
                           <p className="mt-1 leading-6 text-subtle">{feedback.explanation}</p>
                         </div>
                       ) : null}
+                    </div>
+                  ) : questionState ? (
+                    <div
+                      className="rounded-lg border border-border bg-background/55 p-4"
+                      data-adaptive-practice-question="summary"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">检查节点练习已准备</p>
+                          <p className="mt-1 text-sm leading-6 text-subtle">
+                            题面会在选择路径或进入检查节点后展开，避免干扰路径生成与比较。
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setPracticeQuestionExpanded(true)}
+                          className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+                        >
+                          <ListChecks className="size-3.5" aria-hidden="true" />
+                          展开练习题
+                        </button>
+                      </div>
                     </div>
                   ) : null}
                 </div>

@@ -226,3 +226,11 @@ The adaptive path execution and history UI SHALL use the accepted handoff and co
 - **THEN** evidence SHALL cite `artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md`
 - **AND** it SHALL compare rendered browser screenshots against `03-active-path-execution.png` and `04-history-evidence-record.png`
 - **AND** an independent browser-capable visual subagent SHALL return PASS before completion.
+
+### Requirement: Adaptive path center is accepted as one integrated product surface
+The adaptive learning center SHALL pass integrated product QA across generation, selection, execution, history, evidence, and Konling states before the adaptive path redesign is considered complete.
+
+#### Scenario: Integrated adaptive path surface is accepted
+- **WHEN** all adaptive path child changes have been implemented
+- **THEN** the center SHALL demonstrate cold-start generation, generic goal support, comparable path selection, full path execution, history/evidence record, shared Konling dock, student-safe language, and responsive light/dark layouts
+- **AND** the final QA evidence SHALL compare the visible result to the accepted handoff and concept images.

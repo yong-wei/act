@@ -13,6 +13,7 @@ import {
   SIMULATION_VISUAL_QA_ROUTE_MATRIX,
   evaluateCommercialUiGovernance,
   type CommercialAccessibilityTextFitEvidence,
+  type CommercialAdaptivePathProductQaEvidence,
   type CommercialInteractiveLearningProductQaEvidence,
   type CommercialNavigationCoverageInput,
   type CommercialSimulationVisualQaEvidence,
@@ -753,6 +754,134 @@ function completeInteractiveLearningProductQaEvidence(
   };
 }
 
+const adaptivePathProductQaConceptImages = [
+  'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png',
+  'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/02-path-selection-comparison.png',
+  'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png',
+  'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/04-history-evidence-record.png',
+] as const;
+
+const adaptivePathProductQaMatrixMetadata = {
+  'generation-main-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[0], 'frequency-response-foundations'],
+  'generation-main-mobile-dark': ['dark', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[0], 'frequency-response-foundations'],
+  'konling-parameter-panel-desktop-dark': ['dark', 'desktop', 'desktop-collapsed', 'expanded', adaptivePathProductQaConceptImages[0], 'frequency-response-foundations'],
+  'cold-start-starter-paths-mobile-light': ['light', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[0], 'frequency-response-foundations'],
+  'path-comparison-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[1], 'frequency-response-foundations'],
+  'path-comparison-mobile-dark': ['dark', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[1], 'frequency-response-foundations'],
+  'active-path-execution-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[2], 'control-correction'],
+  'active-path-execution-mobile-dark': ['dark', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[2], 'control-correction'],
+  'node-detail-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[2], 'control-correction'],
+  'skip-warning-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[2], 'control-correction'],
+  'history-evidence-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[3], 'control-correction'],
+  'history-evidence-mobile-dark': ['dark', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[3], 'control-correction'],
+  'app-shell-expanded-dock-desktop-dark': ['dark', 'desktop', 'desktop-expanded', 'expanded', adaptivePathProductQaConceptImages[2], 'control-correction'],
+} as const;
+
+const adaptivePathFunctionalGates = [
+  'coldStartGeneratesSelectablePaths',
+  'generationSupportsGenericGoals',
+  'governedResourceNodes',
+  'atLeastOneCheckpoint',
+  'forbiddenStudentVisibleStringsAbsent',
+  'generationSelectionRejectionSwitchRecorded',
+  'startCompletionReviewContinuedInteractionRecorded',
+  'skipReturnDeviationCheckpointRecorded',
+  'konlingAdjustmentRecorded',
+  'externalResourceAccessGoverned',
+  'noCompletedNodeDoubleCount',
+  'desktopFluidWorkspace',
+  'mobileTaskFirstPanels',
+  'comparisonNotMarketingCards',
+  'appShellBreadcrumbsAccountControls',
+  'rightBottomKonlingDock',
+] as const;
+
+function completeAdaptivePathProductQaEvidence(
+  overrides: Partial<CommercialAdaptivePathProductQaEvidence> = {},
+): CommercialAdaptivePathProductQaEvidence {
+  const reportSha256 = 'adaptive-report-sha';
+  return {
+    change: 'govern-adaptive-path-product-qa',
+    generatedAt: '2026-06-16T10:00:00+08:00',
+    sourceCommit: 'c2702c206',
+    designHandoff: 'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md',
+    designHandoffSha256: 'adaptive-handoff-sha',
+    currentDesignHandoffSha256: 'adaptive-handoff-sha',
+    handoffMatrix: 'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/handoff-to-implementation-matrix.md',
+    handoffMatrixSha256: 'adaptive-matrix-sha',
+    currentHandoffMatrixSha256: 'adaptive-matrix-sha',
+    captureManifest: 'artifacts/commercial-ui/adaptive-path-product-qa-516/capture-manifest.json',
+    captureManifestSha256: 'adaptive-capture-manifest-sha',
+    currentCaptureManifestSha256: 'adaptive-capture-manifest-sha',
+    visualSignals: 'artifacts/commercial-ui/adaptive-path-product-qa-516/visual-signals.json',
+    visualSignalsSha256: 'adaptive-visual-signals-sha',
+    currentVisualSignalsSha256: 'adaptive-visual-signals-sha',
+    conceptImages: adaptivePathProductQaConceptImages,
+    conceptImageSha256: Object.fromEntries(adaptivePathProductQaConceptImages.map((conceptImage) => [
+      conceptImage,
+      'adaptive-concept-sha',
+    ])),
+    currentConceptImageSha256: Object.fromEntries(adaptivePathProductQaConceptImages.map((conceptImage) => [
+      conceptImage,
+      'adaptive-concept-sha',
+    ])),
+    childChangeValidations: [
+      'generalize-adaptive-learning-path-generation',
+      'govern-adaptive-path-resource-nodes',
+      'add-konling-path-generation-tools',
+      'redesign-adaptive-path-generation-selection-ui',
+      'build-adaptive-path-execution-history-ui',
+    ].map((change) => ({
+      change,
+      validationCommand: `rtk openspec validate ${change} --strict`,
+      result: 'passed',
+      archivedTasksComplete: true,
+    })),
+    routeMatrix: Object.entries(adaptivePathProductQaMatrixMetadata).map(([
+      id,
+      [theme, viewport, navigationState, dockState, sourceConcept, goal],
+    ]) => ({
+      id,
+      route: '/assessment/adaptive-practice',
+      goal,
+      role: 'student',
+      theme,
+      viewport,
+      authState: 'authenticated',
+      navigationState,
+      dockState,
+      pageState: 'covered',
+      sourceConcept,
+      screenshot: `artifacts/commercial-ui/adaptive-path-product-qa/${id}.png`,
+      screenshotSha256: 'screenshot-sha',
+      result: 'passed',
+    })),
+    captureStates: Object.entries(adaptivePathProductQaMatrixMetadata).map(([
+      id,
+      [theme, viewport, , , , goal],
+    ]) => ({
+      id,
+      goal,
+      theme,
+      viewport,
+      screenshot: `artifacts/commercial-ui/adaptive-path-product-qa/${id}.png`,
+      screenshotSha256: 'screenshot-sha',
+    })),
+    independentVisualReview: {
+      status: 'passed',
+      reviewer: 'ui-flow-reviewer',
+      report: 'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/independent-visual-review.md',
+      reportSha256,
+      currentReportSha256: reportSha256,
+      reportHasPassVerdict: true,
+      reportHasNoUnresolvedBlocks: true,
+    },
+    functionalGates: Object.fromEntries(adaptivePathFunctionalGates.map((gate) => [gate, true])),
+    temporaryExceptions: [],
+    ...overrides,
+  };
+}
+
 describe('commercial UI governance', () => {
   it('does not require final interactive learning product QA evidence outside the scoped change', () => {
     const result = evaluateCommercialUiGovernance(baseInput());
@@ -777,6 +906,167 @@ describe('commercial UI governance', () => {
         expect.objectContaining({
           category: 'interactive-learning-product-qa',
           rule: 'interactive-learning-product-qa.missing-evidence',
+        }),
+      ]),
+    );
+  });
+
+  it('requires final adaptive path product QA evidence when the scoped change is under review', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      adaptivePathProductQaRequired: true,
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'adaptive-path-product-qa',
+          rule: 'adaptive-path-product-qa.missing-evidence',
+        }),
+      ]),
+    );
+  });
+
+  it('passes final adaptive path product QA evidence when the integrated matrix is complete', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      adaptivePathProductQaRequired: true,
+      adaptivePathProductQa: completeAdaptivePathProductQaEvidence(),
+    }));
+
+    expect(result.blockingViolations).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'adaptive-path-product-qa',
+        }),
+      ]),
+    );
+  });
+
+  it('fails final adaptive path product QA evidence when source changes do not refresh final evidence', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      adaptivePathProductQaRequired: true,
+      adaptivePathProductQaSourceRefreshRequired: true,
+      adaptivePathProductQaEvidenceRefreshed: false,
+      adaptivePathProductQa: completeAdaptivePathProductQaEvidence(),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'adaptive-path-product-qa',
+          rule: 'adaptive-path-product-qa.incomplete-evidence',
+          evidence: expect.arrayContaining(['sourceCommit=refreshed-for-current-source-change']),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final adaptive path product QA evidence when visual review or functional gates are incomplete', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      adaptivePathProductQaRequired: true,
+      adaptivePathProductQa: completeAdaptivePathProductQaEvidence({
+        independentVisualReview: {
+          ...completeAdaptivePathProductQaEvidence().independentVisualReview,
+          status: 'blocked',
+          reportSha256: 'old-review-sha',
+          currentReportSha256: 'new-review-sha',
+          reportHasNoUnresolvedBlocks: false,
+        },
+        functionalGates: {
+          ...completeAdaptivePathProductQaEvidence().functionalGates,
+          comparisonNotMarketingCards: false,
+        },
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'adaptive-path-product-qa',
+          evidence: expect.arrayContaining([
+            'independentVisualReview.status=passed',
+            'independentVisualReview.reportSha256=current',
+            'independentVisualReview.reportHasNoUnresolvedBlocks=true',
+            'functionalGates.comparisonNotMarketingCards=true',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final adaptive path product QA evidence when route matrix and capture manifest states diverge', () => {
+    const completeEvidence = completeAdaptivePathProductQaEvidence();
+    const result = evaluateCommercialUiGovernance(baseInput({
+      adaptivePathProductQaRequired: true,
+      adaptivePathProductQa: completeAdaptivePathProductQaEvidence({
+        routeMatrix: completeEvidence.routeMatrix.map((entry) => (
+          entry.id === 'cold-start-starter-paths-mobile-light'
+            ? { ...entry, goal: 'starter-path' }
+            : entry
+        )),
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'adaptive-path-product-qa',
+          evidence: expect.arrayContaining([
+            'routeMatrix.cold-start-starter-paths-mobile-light.goal=frequency-response-foundations',
+            'captureStates.cold-start-starter-paths-mobile-light.goal=routeMatrix.goal',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final adaptive path product QA evidence when capture evidence hashes are stale', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      adaptivePathProductQaRequired: true,
+      adaptivePathProductQa: completeAdaptivePathProductQaEvidence({
+        captureManifestSha256: 'old-capture-manifest-sha',
+        currentCaptureManifestSha256: 'new-capture-manifest-sha',
+        visualSignalsSha256: 'old-visual-signals-sha',
+        currentVisualSignalsSha256: 'new-visual-signals-sha',
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'adaptive-path-product-qa',
+          evidence: expect.arrayContaining([
+            'captureManifestSha256=current',
+            'visualSignalsSha256=current',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final adaptive path product QA evidence when a required state or child validation is missing', () => {
+    const completeEvidence = completeAdaptivePathProductQaEvidence();
+    const result = evaluateCommercialUiGovernance(baseInput({
+      adaptivePathProductQaRequired: true,
+      adaptivePathProductQa: completeAdaptivePathProductQaEvidence({
+        childChangeValidations: completeEvidence.childChangeValidations.slice(1),
+        routeMatrix: completeEvidence.routeMatrix.filter((entry) => entry.id !== 'path-comparison-desktop-light'),
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'adaptive-path-product-qa',
+          evidence: expect.arrayContaining([
+            'childChangeValidations.generalize-adaptive-learning-path-generation',
+            'routeMatrix.path-comparison-desktop-light',
+          ]),
         }),
       ]),
     );
