@@ -379,12 +379,14 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
           scenario.routeFile,
           'src/app/simulations/_components/simulation-shell.tsx',
           'src/resources/simulations/components/simulation-ui.tsx',
+          'src/resources/simulations/components/camera-view-switcher.tsx',
           'scripts/tests/capture-simulation-command-deck-qa.ts',
         ].map((sourcePath) => [sourcePath, `${sourcePath}:sha256`])),
         currentSourceSha256: Object.fromEntries([
           scenario.routeFile,
           'src/app/simulations/_components/simulation-shell.tsx',
           'src/resources/simulations/components/simulation-ui.tsx',
+          'src/resources/simulations/components/camera-view-switcher.tsx',
           'scripts/tests/capture-simulation-command-deck-qa.ts',
         ].map((sourcePath) => [sourcePath, `${sourcePath}:sha256`])),
         viewports: scenario.requiredThemes.flatMap((theme) => scenario.requiredWidths.map((width) => {
@@ -3202,6 +3204,7 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('function commandDeckGeometrySourcePaths(routeFile: string)');
     expect(scriptSource).toContain("'src/app/simulations/_components/simulation-shell.tsx'");
     expect(scriptSource).toContain("'src/resources/simulations/components/simulation-ui.tsx'");
+    expect(scriptSource).toContain("'src/resources/simulations/components/camera-view-switcher.tsx'");
     expect(scriptSource).toContain("'scripts/tests/capture-simulation-command-deck-qa.ts'");
     expect(governanceSource).toContain('bottomToolsWithinViewport');
     expect(governanceSource).toContain('bottomToolSegmentRoles');

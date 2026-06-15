@@ -736,6 +736,7 @@ function commandDeckGeometrySourcePaths(routeFile: string) {
     routeFile,
     'src/app/simulations/_components/simulation-shell.tsx',
     'src/resources/simulations/components/simulation-ui.tsx',
+    'src/resources/simulations/components/camera-view-switcher.tsx',
     'scripts/tests/capture-simulation-command-deck-qa.ts',
   ] as const;
 }
