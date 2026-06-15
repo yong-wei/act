@@ -256,6 +256,8 @@ async function canWriteHistoricalPathActivity(
   const metadata = toRecord(path.lastExecutionMetadata);
   const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
   const failedNodeIds = new Set(arrayOfStrings(metadata.failedNodeIds));
+  const skippedNodeIds = new Set(arrayOfStrings(metadata.skippedNodeIds));
+  const reachedNodeIds = new Set([...completedNodeIds, ...failedNodeIds, ...skippedNodeIds]);
   if ((activityKind === 'review' || activityKind === 'continued-interaction') && completedNodeIds.has(nodeId) && status === 'started') {
     return true;
   }
@@ -273,10 +275,10 @@ async function canWriteHistoricalPathActivity(
   ) {
     return true;
   }
-  if (activityKind === 'external-resource-reference' && pathNode.type === 'external_resource' && status === 'started') {
+  if (activityKind === 'external-resource-reference' && pathNode.type === 'external_resource' && reachedNodeIds.has(nodeId) && status === 'started') {
     return true;
   }
-  if (activityKind === 'konling-support' && (pathNode.type === 'konling' || pathNode.type === 'ai_intervention') && status === 'started') {
+  if (activityKind === 'konling-support' && (pathNode.type === 'konling' || pathNode.type === 'ai_intervention') && reachedNodeIds.has(nodeId) && status === 'started') {
     return true;
   }
   return false;

@@ -708,6 +708,86 @@ describe('learning path round API routes', () => {
 
   });
 
+  it('rejects reference activities for future external and Konling path nodes', async () => {
+    const pathWithFutureReferenceNodes = {
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1', 'external-node', 'konling-node'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'external-node', 'konling-node'],
+        planNodes: [
+          { nodeId: 'node-1', type: 'adaptive_quiz', target: '/assessment/adaptive-practice' },
+          {
+            nodeId: 'external-node',
+            type: 'external_resource',
+            target: 'https://example.edu/control',
+            externalResource: {
+              source: 'Example Open Course',
+              url: 'https://example.edu/control',
+              estimatedTimeMinutes: 15,
+              knowledgeCoverage: ['control-correction'],
+              applicableGoalId: 'control-correction',
+              evidenceUseStatus: 'explicit-access-required',
+              privacyPolicy: 'student-visible',
+            },
+          },
+          { nodeId: 'konling-node', type: 'konling', target: '/assessment/adaptive-practice?goal=control-correction' },
+        ],
+      },
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      lastExecutionMetadata: { completedNodeIds: [], failedNodeIds: [], skippedNodeIds: [] },
+    };
+    mocks.prisma.learningPath.findUnique.mockResolvedValueOnce(pathWithFutureReferenceNodes);
+
+    const futureExternalResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'external-node',
+      resourceType: 'external_resource',
+      status: 'started',
+      idempotencyKey: 'future-external-reference',
+      liftMetadata: { pathActivityKind: 'external-resource-reference' },
+    }), params);
+    expect(futureExternalResponse.status).toBe(409);
+
+    mocks.prisma.learningPath.findUnique.mockResolvedValueOnce(pathWithFutureReferenceNodes);
+    const futureKonlingResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'konling-node',
+      resourceType: 'konling',
+      status: 'started',
+      idempotencyKey: 'future-konling-support',
+      liftMetadata: { pathActivityKind: 'konling-support' },
+    }), params);
+    expect(futureKonlingResponse.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+
+    mocks.prisma.learningPath.findUnique.mockResolvedValueOnce({
+      ...pathWithFutureReferenceNodes,
+      lastExecutionMetadata: {
+        completedNodeIds: ['external-node'],
+        failedNodeIds: [],
+        skippedNodeIds: [],
+      },
+    });
+    mocks.recordPathNodeExecution.mockResolvedValueOnce({
+      id: 'exec-external-reference',
+      nodeId: 'external-node',
+      resourceType: 'external_resource',
+      status: 'started',
+      liftMetadata: { pathActivityKind: 'external-resource-reference' },
+    });
+    const reachedExternalResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'external-node',
+      resourceType: 'external_resource',
+      status: 'started',
+      idempotencyKey: 'reached-external-reference',
+      liftMetadata: { pathActivityKind: 'external-resource-reference' },
+    }), params);
+    expect(reachedExternalResponse.status).toBe(200);
+  });
+
   it('returns to a skipped node only while it remains unfinished', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1',

@@ -529,6 +529,13 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("deviationType: 'skip'");
     expect(source.indexOf("currentNodeId === nodeId || rawStatus === 'current'"))
       .toBeLessThan(source.indexOf('skippedNodeIds.has(nodeId)'));
+    expect(source).toContain('function formatPathNodeReason');
+    expect(source).toContain("'matches-knowledge-deficit': '针对当前薄弱知识点安排。'");
+    expect(source).toContain("'matches-competency-deficit': '针对当前能力短板安排。'");
+    expect(source).toContain("'risk-intervention-fit': '适合用于处理当前学习风险。'");
+    expect(source).toContain("'policy-simulation-driven': '优先通过仿真验证理解。'");
+    expect(source).toContain('reason: formatPathNodeReason(reasonCodes)');
+    expect(source).not.toContain("reasonCodes.length > 0 ? reasonCodes.join('、')");
     expect(source).toContain('): Promise<boolean> =>');
     expect(source).toContain('const activityWritten = await writePathNodeActivity');
     expect(source).toContain('if (!activityWritten) return;');

@@ -704,6 +704,29 @@ function resourceGlyph(type: string): string {
   return '学';
 }
 
+function formatPathNodeReason(reasonCodes: string[]): string {
+  const labels: Record<string, string> = {
+    'matches-knowledge-deficit': '针对当前薄弱知识点安排。',
+    'matches-competency-deficit': '针对当前能力短板安排。',
+    'matches-resource-preference': '符合当前资源偏好。',
+    'low-mastery-target': '用于补强掌握度较低的知识点。',
+    'preference-matched': '符合当前学习偏好和资源选择。',
+    'checkpoint-required': '用于形成下一段路径所需的检查证据。',
+    'terminal-validation-required': '用于完成路径终端验证。',
+    'risk-intervention': '用于及时处理当前学习风险。',
+    'risk-intervention-fit': '适合用于处理当前学习风险。',
+    'policy-foundation-remediation': '优先补强基础概念。',
+    'policy-simulation-driven': '优先通过仿真验证理解。',
+    'policy-preference-matched': '优先匹配当前学习偏好。',
+  };
+  const studentReasons = reasonCodes
+    .map((reason) => labels[reason] ?? (/[^\x00-\x7F]/.test(reason) ? reason : null))
+    .filter((reason): reason is string => Boolean(reason));
+  return studentReasons.length > 0
+    ? studentReasons.join('、')
+    : '这一步用于衔接当前目标和后续检查节点。';
+}
+
 function formatMinutes(minutes: number): string {
   if (minutes <= 0) return '待估算';
   if (minutes < 60) return `${minutes} 分钟`;
@@ -754,7 +777,7 @@ function getPathExecutionNodes(plan: AdaptiveLearningPathPlan | null, round: Lea
       status,
       target: typeof node.target === 'string' ? node.target : '/assessment/adaptive-practice',
       estimatedMinutes: getEstimatedMinutes(node),
-      reason: reasonCodes.length > 0 ? reasonCodes.join('、') : '这一步用于衔接当前目标和后续检查节点。',
+      reason: formatPathNodeReason(reasonCodes),
       evidence: knowledgeCoverage.length > 0 ? knowledgeCoverage.join('、') : `${formatResourceType(type)}完成记录`,
       checkpoint: type === 'checkpoint' || type === 'arena_task' || type === 'simulation'
         ? '完成后用于判断是否进入下一段路径。'
