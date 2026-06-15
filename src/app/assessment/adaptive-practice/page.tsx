@@ -4,6 +4,26 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import {
+  BookOpenCheck,
+  BrainCircuit,
+  CheckCircle2,
+  Clock3,
+  Compass,
+  ExternalLink,
+  Flag,
+  GitBranch,
+  History,
+  ListChecks,
+  MessageSquare,
+  RefreshCw,
+  Settings,
+  Sparkles,
+  Target,
+  Timer,
+  Trophy,
+  type LucideIcon,
+} from 'lucide-react';
 import { AppShell } from '@/components/platform/app-shell';
 import {
   ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG,
@@ -16,6 +36,12 @@ import {
 } from '@/features/adaptive/adaptive-learning-center-contracts';
 import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
+import {
+  buildAdaptivePathOptionDisplays,
+  type AdaptivePathOptionDisplay,
+  type AdaptivePathOptionWriteOption,
+  type AdaptivePathResourceKind,
+} from '@/lib/adaptive-path-option-display';
 import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 
 type PostLearningPathNodeAction = {
@@ -101,23 +127,7 @@ interface LearningPathRoundResponse {
 
 type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
 
-interface PathOptionView {
-  styleId: string;
-  policyFamily: string;
-  label: string;
-  targetDeficits: Array<Record<string, unknown>>;
-  evidenceBasis: string[];
-  resourceMix: Record<string, number>;
-  effort: {
-    estimatedMinutes?: number;
-    relative?: string;
-  };
-  terminalValidationNodeIds: string[];
-  terminalValidationStrategy: {
-    summary?: string;
-  };
-  limitations: string[];
-}
+type PathOptionView = AdaptivePathOptionWriteOption;
 
 interface PathSelectionHistoryView {
   type: string;
@@ -220,6 +230,28 @@ const DEMO_SCENES: Record<DemoScene, {
 
 const learnerDataShell = buildLearnerDataRouteShell('/assessment/adaptive-practice');
 
+const adaptivePathResourceIcons: Record<AdaptivePathResourceKind, LucideIcon> = {
+  interactive_lesson: BookOpenCheck,
+  knowledge_card: BrainCircuit,
+  adaptive_quiz: ListChecks,
+  control_workbench: Compass,
+  simulation: GitBranch,
+  arena_task: Trophy,
+  external_resource: ExternalLink,
+  reflection: History,
+  checkpoint: Flag,
+  konling: MessageSquare,
+};
+
+const adaptiveGenerationFields = [
+  { label: '学习目标', value: '自动控制原理核心能力' },
+  { label: '可用时间', value: '本周 3 小时' },
+  { label: '难度节奏', value: '先稳固，再加速' },
+  { label: '资源偏好', value: '互动课程、练习、仿真' },
+  { label: '检查节点', value: '每 45 分钟一次' },
+  { label: '站外资源', value: '允许受治理资料' },
+];
+
 function percentLabel(value: number): string {
   return `${Math.round(value)}%`;
 }
@@ -252,6 +284,11 @@ function resolveControlCorrectionIntent(intentParam: string | null): ControlCorr
     return intentParam;
   }
   return 'practice';
+}
+
+function compactPathNodeTitle(title?: string): string {
+  if (!title) return '入门诊断';
+  return title.length > 12 ? '入门诊断' : title;
 }
 
 function restoreLearningPathPlan(round: LearningPathRoundResponse['path']): AdaptiveLearningPathPlan | null {
@@ -353,8 +390,7 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
     const effort = getRecord(option.effort);
     const terminalValidationStrategy = getRecord(option.terminalValidationStrategy);
     return {
-      styleId: typeof option.styleId === 'string' ? option.styleId : 'unknown-style',
-      policyFamily: typeof option.policyFamily === 'string' ? option.policyFamily : 'unknown-policy',
+      optionId: typeof option.optionId === 'string' ? option.optionId : 'unknown-option',
       label: typeof option.label === 'string' ? option.label : '未命名路径',
       targetDeficits: Array.isArray(option.targetDeficits)
         ? option.targetDeficits.map(getRecord)
@@ -398,39 +434,12 @@ function getPathOptionFallback(view: ControlCorrectionLearningCenterView | null)
   return Object.keys(fallback).length > 0 ? fallback : null;
 }
 
-function formatResourceMix(resourceMix: Record<string, number>): string {
-  const entries = Object.entries(resourceMix);
-  if (entries.length === 0) return '未声明资源组合';
-  return entries.map(([key, value]) => `${key}×${value}`).join(' · ');
-}
-
-function formatPathDeficits(deficits: Array<Record<string, unknown>>): string {
-  if (deficits.length === 0) return '未声明薄弱项';
-  return deficits
-    .map((deficit) => {
-      const target = typeof deficit.targetId === 'string' ? deficit.targetId : 'unknown-target';
-      const confidence = typeof deficit.confidence === 'number' ? `置信 ${Math.round(deficit.confidence * 100)}%` : '置信未知';
-      return `${target} (${confidence})`;
-    })
-    .join(' · ');
-}
-
 function formatPathHistoryType(type: string): string {
   if (type === 'selection') return '选择';
   if (type === 'rejection') return '拒绝';
   if (type === 'switch') return '切换';
   if (type === 'helpfulness') return '有用性反馈';
   return type;
-}
-
-function formatTerminalValidation(round: LearningPathRoundView | null, option?: PathOptionView): string {
-  const terminal = getRecord(round?.terminalValidation);
-  const state = typeof terminal.state === 'string' ? terminal.state : 'pending';
-  const nodeId = typeof terminal.nodeId === 'string'
-    ? terminal.nodeId
-    : option?.terminalValidationNodeIds[0] ?? 'terminal-validation-unavailable';
-  const strategy = option?.terminalValidationStrategy.summary ?? 'terminal validation strategy unavailable';
-  return `${strategy} · ${nodeId} · ${state}`;
 }
 
 function buildChoiceBody(
@@ -441,16 +450,16 @@ function buildChoiceBody(
   helpful?: boolean,
 ) {
   const latestSelection = [...selectedHistory].reverse().find((item) => item.selectedStyleId);
+  const rejectedOptionIds = action === 'helpfulness'
+    ? []
+    : action === 'selection' || action === 'switch'
+      ? allOptions.filter((item) => item.optionId !== option.optionId).map((item) => item.optionId)
+      : [option.optionId];
   return {
     action,
-    selectedStyleId: action === 'rejection' ? null : option.styleId,
-    selectedPolicyFamily: action === 'rejection' ? null : option.policyFamily,
+    selectedOptionId: action === 'rejection' ? null : option.optionId,
     previousStyleId: action === 'switch' ? latestSelection?.selectedStyleId ?? null : null,
-    rejectedStyleIds: action === 'helpfulness'
-      ? []
-      : action === 'selection' || action === 'switch'
-        ? allOptions.filter((item) => item.styleId !== option.styleId).map((item) => item.styleId)
-        : [option.styleId],
+    rejectedOptionIds,
     resourceMix: option.resourceMix,
     helpful: action === 'helpfulness' ? helpful ?? true : null,
     rationaleMetadata: {
@@ -459,7 +468,7 @@ function buildChoiceBody(
       terminalValidationStrategy: option.terminalValidationStrategy,
       limitations: option.limitations,
     },
-    idempotencyKey: `path-choice:${action}:${option.styleId}:${Date.now()}`,
+    idempotencyKey: `path-choice:${action}:${option.optionId}:${Date.now()}`,
   };
 }
 
@@ -469,7 +478,7 @@ export default function AdaptivePracticePage() {
   const isDemoMode = searchParams.get('demo') === '1';
   const demoScene = resolveDemoScene(searchParams.get('scene'));
   const activePracticeFocus = searchParams.get('focus');
-  const activeGoal = searchParams.get('goal') === null || searchParams.get('goal') === 'control-correction'
+  const activeGoal = searchParams.get('goal') === 'control-correction'
     ? 'control-correction'
     : null;
   const routeIntent = resolveControlCorrectionIntent(searchParams.get('intent'));
@@ -516,8 +525,13 @@ export default function AdaptivePracticePage() {
       })
     : null, [activeGoal, controlCorrectionLearnerState, controlCorrectionPathPlan, error, questionState, routeIntent]);
   const pathOptions = useMemo(() => getPathOptions(controlCorrectionCenter), [controlCorrectionCenter]);
+  const visiblePathOptions = useMemo(() => buildAdaptivePathOptionDisplays(pathOptions), [pathOptions]);
   const pathSelectionHistory = useMemo(() => getPathSelectionHistory(controlCorrectionCenter), [controlCorrectionCenter]);
   const pathOptionFallback = useMemo(() => getPathOptionFallback(controlCorrectionCenter), [controlCorrectionCenter]);
+
+  const setPathChoiceUnavailable = useCallback(() => {
+    setPathChoiceMessage('请先登录并生成路径后再记录选择。');
+  }, []);
 
   const applyDemoScene = useCallback((scene: DemoScene) => {
     const demoData = DEMO_SCENES[scene];
@@ -679,7 +693,7 @@ export default function AdaptivePracticePage() {
       setPathChoiceMessage('当前没有可写入的学习路径。');
       return;
     }
-    setPathChoicePending(`${action}:${option.styleId}`);
+    setPathChoicePending(`${action}:${option.optionId}`);
     setPathChoiceMessage(null);
     try {
       const response = await fetch(`/api/learning-paths/${encodeURIComponent(pathId)}/choices`, {
@@ -769,6 +783,18 @@ export default function AdaptivePracticePage() {
     if (!nextAction?.nodeId) return;
     await completePathNodeAction(nextAction.nodeId, nextAction.completionAction);
   }, [completePathNodeAction, controlCorrectionCenter]);
+
+  const retryNextQuestion = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await loadNextQuestion();
+    } catch (nextQuestionError) {
+      setError(nextQuestionError instanceof Error ? nextQuestionError.message : '下一题加载失败');
+    } finally {
+      setLoading(false);
+    }
+  }, [loadNextQuestion]);
 
   useEffect(() => {
     if (isDemoMode) {
@@ -885,565 +911,675 @@ export default function AdaptivePracticePage() {
     }
   };
 
-  return (
-    <AppShell
-      viewerRole="student"
-      title="自适应练习"
-      subtitle="证据驱动的当前路径与题目推荐"
-      activeHref="/assessment/adaptive-practice"
-      sidebarMode="collapsible"
-      className="surface-page"
-    >
-      <section
-      className="space-y-6"
-      data-commercial-workspace="adaptive-practice"
-      data-commercial-student-entry-route="/assessment/adaptive-practice"
-      data-commercial-entry-intent="practice"
-      data-student-entry-evidence-return="/profile/evidence"
-      data-learning-path-options-slot="three-style"
-      data-learning-path-history-slot="selection-history"
-      data-konling-citation-slot="cited-explanation"
-      data-route-family={learnerDataShell.routeFamily}
-      data-route-identity={learnerDataShell.routeIdentity}
-      data-learner-record-surface={learnerDataShell.archetype}
-      data-learner-record-priority="current-path"
-      data-learner-record-evidence-confidence={controlCorrectionCenter?.nextAction.confidence ?? 'unknown'}
-      data-learner-record-missing-source={controlCorrectionCenter?.readinessGate.missing.join(',') || 'complete'}
-    >
-        <header className="surface-card p-5">
-          <p className="text-xs uppercase tracking-[0.28em] text-primary">学习入口 · Practice</p>
-          <h1 className="mt-1 text-2xl font-semibold">自适应跨域题库</h1>
-          <p className="mt-2 text-sm text-subtle">
-            基于答题历史动态估计能力值，针对薄弱知识点推荐下一题，并支持即时生成跨域题目。
-          </p>
-          {isDemoMode ? (
-            <div className="mt-3 inline-flex items-center rounded-full border border-emerald-400/50 bg-emerald-500/15 px-3 py-1 text-xs text-emerald-200">
-              报告演示模式：{demoScene === 'stable' ? '题库稳定性视图' : '差异化生成视图'}
-            </div>
+    const learnedTime = diagnostic ? '42 分钟' : '尚未开始';
+    const currentNode = practiceRouteNodes.find((node) => node.state === 'current') ?? practiceRouteNodes[0];
+    const compactCurrentNodeTitle = compactPathNodeTitle(currentNode?.title);
+    const nextPathAction = controlCorrectionCenter?.nextAction ?? null;
+    const canLaunchNextPathAction = nextPathAction
+      ? isPostLearningPathNodeAction(nextPathAction) && Boolean(nextPathAction.body && nextPathAction.redirectHref)
+      : false;
+    const canOpenNextPathAction = nextPathAction?.method === 'GET';
+    const canCompleteNextPathAction = Boolean(nextPathAction?.nodeId && nextPathAction.completionAction);
+    const nextPathActionLabel = nextPathAction?.title ?? '生成并比较学习路径';
+    const weeklyProgress = diagnostic
+      ? Math.max(24, Math.min(86, Math.round((
+          diagnostic.knowledgeDimensions.computational +
+          diagnostic.knowledgeDimensions.crossDomain +
+          diagnostic.knowledgeDimensions.design
+        ) / 3)))
+      : 18;
+
+    return (
+      <AppShell
+        viewerRole="student"
+        title="自适应学习路径中心"
+        subtitle="生成、比较并继续执行个人学习路径"
+        activeHref="/assessment/adaptive-practice"
+        sidebarMode="collapsible"
+        breadcrumbs={[
+          { label: '学习工作台', href: '/dashboard' },
+          { label: '自适应学习路径中心' },
+        ]}
+        dockControls={[
+          {
+            id: 'adaptive-path-konling',
+            label: '控灵助手',
+            control: 'konling',
+            href: '/ai/copilot?mode=path-advisor',
+            icon: <BrainCircuit className="h-4 w-4 text-primary" />,
+          },
+          {
+            id: 'adaptive-path-management',
+            label: '路径管理',
+            control: 'management',
+            href: '/profile/growth',
+            icon: <Settings className="h-4 w-4 text-muted-foreground" />,
+          },
+        ]}
+        className="surface-page"
+      >
+        <section
+          className="space-y-5"
+          data-commercial-workspace="adaptive-path-center"
+          data-adaptive-path-center="generation-selection"
+          data-commercial-student-entry-route="/assessment/adaptive-practice"
+          data-commercial-entry-intent="practice"
+          data-student-entry-evidence-return="/profile/evidence"
+          data-adaptive-path-generation-state="generation-main"
+          data-adaptive-path-comparison-state="information-grid"
+          data-konling-dock-placement="shared-right-bottom"
+          data-route-family={learnerDataShell.routeFamily}
+          data-route-identity={learnerDataShell.routeIdentity}
+          data-learner-record-surface={learnerDataShell.archetype}
+          data-learner-record-priority="current-path"
+          data-learner-record-next-action="generate-and-compare-path"
+          data-learner-record-evidence-confidence={controlCorrectionCenter?.nextAction.confidence ?? 'unknown'}
+          data-learner-record-missing-source={controlCorrectionCenter?.readinessGate.missing.length ? 'learning-task-evidence-needed' : 'generic-path-center'}
+        >
+          {controlCorrectionCenter ? (
+            <span
+              className="sr-only"
+              data-control-correction-center="adaptive-practice"
+              data-control-correction-goal={controlCorrectionCenter.goalId}
+              data-control-correction-intent={controlCorrectionCenter.entry.routeIntent}
+              data-control-correction-ready={String(controlCorrectionCenter.readinessGate.ready)}
+              data-control-correction-alternative-count={controlCorrectionAlternativeCount(controlCorrectionCenter)}
+            />
           ) : null}
-          <div className="mt-4 hidden flex-wrap gap-2 text-xs text-subtle sm:flex">
-            {entryIntents.filter((intent) => ['practice', 'learn', 'challenge', 'review'].includes(intent.intent)).map((intent) => (
-              <Link key={intent.intent} href={intent.hrefs[0] ?? '/dashboard'} className="rounded-full border border-border px-3 py-1 hover:border-primary">
-                {intent.label}
-              </Link>
-            ))}
-            <Link href="/profile/evidence" className="rounded-full border border-border px-3 py-1 text-subtle hover:border-primary">
-              证据复盘
-            </Link>
-          </div>
-        </header>
-
-        {controlCorrectionCenter ? (
-          <section
-            className="surface-card p-5"
-            data-control-correction-center="adaptive-practice"
-            data-control-correction-goal={controlCorrectionCenter.goalId}
-            data-control-correction-intent={controlCorrectionCenter.entry.routeIntent}
-            data-control-correction-ready={String(controlCorrectionCenter.readinessGate.ready)}
-            data-control-correction-alternative-count={controlCorrectionAlternativeCount(controlCorrectionCenter)}
-          >
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="text-xs uppercase tracking-[0.24em] text-primary">Control Correction Center</p>
-                <h2 className="mt-1 text-xl font-semibold text-foreground">{controlCorrectionCenter.competencyHero.title}</h2>
-                <p className="mt-2 text-sm text-subtle">
-                  入口意图：{controlCorrectionCenter.entry.routeIntent} · 状态：
-                  {controlCorrectionCenter.readinessGate.ready ? '路径可继续' : '需要补齐上下文'}
+          <header className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.6fr)]">
+            <div className="surface-card p-5">
+              <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-primary">
+                <span className="rounded-md border border-border bg-muted px-2.5 py-1">学习路径</span>
+                <span className="rounded-md border border-border bg-muted px-2.5 py-1">控灵生成</span>
+                <span className="rounded-md border border-border bg-muted px-2.5 py-1">可比较方案</span>
+              </div>
+              <div className="mt-5 max-w-3xl">
+                <h1 className="text-3xl font-semibold tracking-normal text-foreground">自适应学习路径中心</h1>
+                <p className="mt-3 text-sm leading-6 text-subtle">
+                  证据还少，先从入门路径开始，系统会随学习过程调整。你可以让控灵按目标、时间和资源偏好生成路径，再比较后选择执行。
                 </p>
               </div>
-              {controlCorrectionCenter.nextAction.method === 'POST' ? (
-                <div className="flex flex-wrap gap-2" data-learner-record-next-action="control-correction">
-                  <button
-                    type="button"
-                    onClick={() => void launchNextAction()}
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
-                  >
-                    {controlCorrectionCenter.nextAction.title}
-                  </button>
-                  {controlCorrectionCenter.nextAction.completionAction && controlCorrectionCenter.nextAction.nodeId ? (
-                    <button
-                      type="button"
-                      onClick={() => void completeNextAction()}
-                      disabled={pathNodeCompletionPending === controlCorrectionCenter.nextAction.nodeId}
-                      className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary disabled:cursor-wait disabled:text-subtle"
-                    >
-                      {pathNodeCompletionPending === controlCorrectionCenter.nextAction.nodeId
-                        ? '正在确认完成'
-                        : controlCorrectionCenter.nextAction.completionAction.label}
-                    </button>
-                  ) : null}
-                </div>
-              ) : (
-                <Link
-                  href={controlCorrectionCenter.nextAction.href}
-                  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
-                  data-learner-record-next-action="control-correction"
+              <div className="mt-5 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+                  onClick={() => setPathChoiceMessage('控灵已准备好根据你的目标生成路径。')}
                 >
-                  {controlCorrectionCenter.nextAction.title}
+                  <Sparkles className="size-4" aria-hidden="true" />
+                  生成学习路径
+                </button>
+                <Link
+                  href="/profile/evidence"
+                  className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary"
+                >
+                  <History className="size-4" aria-hidden="true" />
+                  查看学习证据
                 </Link>
-              )}
-            </div>
-
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
-              <div className="surface-card-soft p-3">
-                <p className="text-xs text-subtle">Readiness Gate</p>
-                <p className="mt-1 break-words text-sm text-foreground">
-                  {controlCorrectionCenter.readinessGate.missing.length > 0
-                    ? controlCorrectionCenter.readinessGate.missing.join('、')
-                    : 'ready'}
-                </p>
-              </div>
-              <div className="surface-card-soft p-3">
-                <p className="text-xs text-subtle">{controlCorrectionCenter.citationAccess.title}</p>
-                <p className="mt-1 break-words text-sm text-foreground">{controlCorrectionCenter.citationAccess.status.summary}</p>
-              </div>
-              <div className="surface-card-soft p-3">
-                <p className="text-xs text-subtle">{controlCorrectionCenter.konlingDock.title}</p>
-                <p className="mt-1 break-words text-sm text-foreground">{controlCorrectionCenter.konlingDock.status.summary}</p>
               </div>
             </div>
 
-            {controlCorrectionCenter.fallbackStates.length > 0 ? (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {controlCorrectionCenter.fallbackStates.map((state) => (
-                  <Link
-                    key={state.state}
-                    href={state.actions[0]?.href ?? controlCorrectionContextHref}
-                    className="rounded-full border border-border px-3 py-1 text-xs text-foreground hover:border-primary"
-                    data-control-correction-state={state.state}
-                  >
-                    {state.title}
-                  </Link>
-                ))}
-              </div>
-            ) : null}
-
-            <div className="mt-5 border-t border-border pt-5" data-learning-path-product-surface="path-options-selection-history-terminal-validation">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h3 className="text-base font-semibold text-foreground">路径选择与验证</h3>
-                  <p className="mt-1 text-sm text-subtle">
-                    对比不同路径风格，记录选择或拒绝，并保留官方/预览终端验证边界。
-                  </p>
-                </div>
-                <span className="rounded-full border border-border px-3 py-1 text-xs text-subtle">
-                  {pathOptions.length > 0 ? `${pathOptions.length} 条路径方案` : '路径方案待生成'}
+            <aside className="surface-card p-5" data-adaptive-path-cold-start="product-language">
+              <div className="flex items-center gap-3">
+                <span className="grid size-10 place-items-center rounded-lg border border-border bg-muted text-primary">
+                  <Target className="size-5" aria-hidden="true" />
                 </span>
+                <div>
+                  <p className="text-xs text-subtle">当前建议</p>
+                  <h2 className="text-base font-semibold text-foreground">先建立入门路径</h2>
+                </div>
               </div>
-
-              {pathOptions.length > 0 ? (
-                <div className="mt-4 grid gap-3 lg:grid-cols-3">
-                  {pathOptions.map((option) => {
-                    const isPending = pathChoicePending?.endsWith(`:${option.styleId}`) ?? false;
-                    return (
-                      <article
-                        key={option.styleId}
-                        className="rounded-xl border border-border bg-muted/20 p-4"
-                        data-learning-path-option={option.styleId}
-                        data-learning-path-policy-family={option.policyFamily}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-xs text-primary">{option.policyFamily}</p>
-                            <h4 className="mt-1 font-semibold text-foreground">{option.label}</h4>
-                          </div>
-                          <span className="rounded-full border border-border px-2 py-1 text-xs text-subtle">
-                            {option.effort.estimatedMinutes ? `${option.effort.estimatedMinutes} 分钟` : option.effort.relative ?? '时长未知'}
-                          </span>
-                        </div>
-                        <dl className="mt-4 space-y-3 text-sm">
-                          <div>
-                            <dt className="text-xs text-subtle">目标薄弱项</dt>
-                            <dd className="mt-1 text-foreground">{formatPathDeficits(option.targetDeficits)}</dd>
-                          </div>
-                          <div>
-                            <dt className="text-xs text-subtle">资源组合</dt>
-                            <dd className="mt-1 text-foreground">{formatResourceMix(option.resourceMix)}</dd>
-                          </div>
-                          <div>
-                            <dt className="text-xs text-subtle">证据依据</dt>
-                            <dd className="mt-1 text-foreground">{option.evidenceBasis.join(' · ') || '证据待补齐'}</dd>
-                          </div>
-                          <div>
-                            <dt className="text-xs text-subtle">终端验证</dt>
-                            <dd className="mt-1 text-foreground">{formatTerminalValidation(controlCorrectionPathRound, option)}</dd>
-                          </div>
-                          <div>
-                            <dt className="text-xs text-subtle">限制</dt>
-                            <dd className="mt-1 text-foreground">{option.limitations.join(' · ') || '无额外限制'}</dd>
-                          </div>
-                        </dl>
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground disabled:opacity-60"
-                            disabled={Boolean(pathChoicePending)}
-                            onClick={() => submitPathChoice('selection', option)}
-                          >
-                            {isPending ? '记录中' : '选择路径'}
-                          </button>
-                          <button
-                            type="button"
-                            className="rounded-md border border-border px-3 py-1.5 text-xs text-foreground disabled:opacity-60"
-                            disabled={Boolean(pathChoicePending)}
-                            onClick={() => submitPathChoice('switch', option)}
-                          >
-                            切换到此路径
-                          </button>
-                          <button
-                            type="button"
-                            className="rounded-md border border-border px-3 py-1.5 text-xs text-subtle disabled:opacity-60"
-                            disabled={Boolean(pathChoicePending)}
-                            onClick={() => submitPathChoice('rejection', option)}
-                          >
-                            暂不采用
-                          </button>
-                          <button
-                            type="button"
-                            className="rounded-md border border-border px-3 py-1.5 text-xs text-subtle disabled:opacity-60"
-                            disabled={Boolean(pathChoicePending)}
-                            onClick={() => submitPathChoice('helpfulness', option, true)}
-                          >
-                            有帮助
-                          </button>
-                        </div>
-                      </article>
-                    );
-                  })}
+              <p className="mt-4 text-sm leading-6 text-subtle">
+                这条路径更适合先补概念，再进入练习。完成检查点后，系统会把互动、练习和仿真记录纳入后续推荐。
+              </p>
+              <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+                <div className="rounded-lg border border-border bg-muted/40 p-3">
+                  <p className="text-xs text-subtle">当前节点</p>
+                  <p className="mt-1 font-medium text-foreground">{compactCurrentNodeTitle}</p>
                 </div>
-              ) : (
-                <div className="mt-4 rounded-xl border border-border bg-muted/20 p-4 text-sm text-subtle">
-                  {pathOptionFallback
-                    ? `当前使用降级路径：${getStringArray(pathOptionFallback.fallbackReasons).join('、') || '路径多样性证据不足'}`
-                    : '等待诊断结果生成三风格路径方案。'}
+                <div className="rounded-lg border border-border bg-muted/40 p-3">
+                  <p className="text-xs text-subtle">本周完成</p>
+                  <p className="mt-1 font-medium text-foreground">{percentLabel(weeklyProgress)}</p>
                 </div>
-              )}
+              </div>
+            </aside>
+          </header>
 
-              <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr]">
-                <div className="rounded-xl border border-border bg-muted/20 p-4" data-learning-path-history="selection-history">
-                  <h4 className="text-sm font-semibold text-foreground">选择历史</h4>
-                  <div className="mt-3 space-y-2">
-                    {pathSelectionHistory.map((history, index) => (
-                      <div key={`${history.type}:${history.createdAt ?? index}`} className="rounded-lg border border-border bg-background/40 px-3 py-2 text-sm">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="font-medium text-foreground">{formatPathHistoryType(history.type)}</span>
-                          <span className="text-xs text-subtle">{history.createdAt ?? '时间待记录'}</span>
-                        </div>
-                        <p className="mt-1 text-subtle">
-                          选择 {history.selectedStyleId ?? '无'}；拒绝 {history.rejectedStyleIds?.join('、') || '无'}；
-                          {history.helpful === null || history.helpful === undefined ? ' 未评价有用性' : history.helpful ? ' 有帮助' : ' 无帮助'}
-                        </p>
-                      </div>
-                    ))}
-                    {pathSelectionHistory.length === 0 ? (
-                      <p className="text-sm text-subtle">尚未记录选择、拒绝、切换或有用性反馈。</p>
-                    ) : null}
+          <section className="grid gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+            <div className="surface-card p-5" data-adaptive-path-overview="learning-overview">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-normal text-primary">Learning overview</p>
+                  <h2 className="mt-1 text-xl font-semibold text-foreground">学习概况</h2>
+                </div>
+                <Clock3 className="size-5 text-primary" aria-hidden="true" />
+              </div>
+              <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+                {[
+                  ['当前目标', '自动控制原理核心能力'],
+                  ['当前节点', compactCurrentNodeTitle],
+                  ['已学习时间', learnedTime],
+                  ['预计总时长', '3 小时 10 分'],
+                  ['本周完成情况', percentLabel(weeklyProgress)],
+                  ['证据覆盖', controlCorrectionCenter ? formatConfidence(controlCorrectionCenter.nextAction.confidence) : '待积累'],
+                  ['缺失证据', controlCorrectionCenter?.readinessGate.missing.length ? '需要继续完成学习任务' : '暂无完整路径证据'],
+                  ['下一步', nextPathActionLabel],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-lg border border-border bg-muted/35 p-3">
+                    <dt className="text-xs text-subtle">{label}</dt>
+                    <dd className="mt-1 text-sm font-medium text-foreground">{value}</dd>
                   </div>
-                </div>
-
-                <div className="rounded-xl border border-border bg-muted/20 p-4" data-learning-path-validation-timeline="checkpoint-deviation-intervention-terminal">
-                  <h4 className="text-sm font-semibold text-foreground">执行与终端验证</h4>
-                  <div className="mt-3 grid gap-2 text-sm">
-                    <div className="rounded-lg border border-border bg-background/40 px-3 py-2">
-                      <p className="font-medium text-foreground">检查点</p>
-                      <p className="mt-1 text-subtle">
-                        {(controlCorrectionPathRound?.executions ?? []).length} 条执行记录；
-                        当前节点 {controlCorrectionPathPlan?.currentNodeId ?? '待定位'}
-                      </p>
+                ))}
+              </dl>
+              {nextPathAction ? (
+                <div
+                  className="mt-4 rounded-lg border border-border bg-background/55 p-3"
+                  data-adaptive-path-current-node-actions="launch-complete"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-medium text-subtle">当前路径动作</p>
+                      <p className="mt-1 text-sm font-semibold text-foreground">{nextPathAction.title}</p>
                     </div>
-                    <div className="rounded-lg border border-border bg-background/40 px-3 py-2">
-                      <p className="font-medium text-foreground">偏离与干预</p>
-                      <p className="mt-1 text-subtle">
-                        {(controlCorrectionPathRound?.deviations ?? []).length} 条偏离；
-                        {(controlCorrectionPathRound?.interventions ?? []).length} 条教师或 Konling 干预
-                      </p>
-                    </div>
-                    <div className="rounded-lg border border-border bg-background/40 px-3 py-2">
-                      <p className="font-medium text-foreground">官方 / 预览验证</p>
-                      <p className="mt-1 text-subtle">
-                        {formatTerminalValidation(controlCorrectionPathRound, pathOptions[0])}
-                      </p>
+                    <div className="flex flex-wrap gap-2">
+                      {canLaunchNextPathAction ? (
+                        <button
+                          type="button"
+                          onClick={launchNextAction}
+                          className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+                        >
+                          <ExternalLink className="size-3.5" aria-hidden="true" />
+                          继续当前节点
+                        </button>
+                      ) : canOpenNextPathAction ? (
+                        <Link
+                          href={nextPathAction.href}
+                          className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+                        >
+                          <ExternalLink className="size-3.5" aria-hidden="true" />
+                          打开下一步
+                        </Link>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled
+                          className="inline-flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-xs font-semibold text-muted-foreground"
+                        >
+                          <ExternalLink className="size-3.5" aria-hidden="true" />
+                          当前节点暂不可启动
+                        </button>
+                      )}
+                      {canCompleteNextPathAction ? (
+                        <button
+                          type="button"
+                          onClick={completeNextAction}
+                          disabled={pathNodeCompletionPending === nextPathAction.nodeId}
+                          className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-60"
+                        >
+                          <CheckCircle2 className="size-3.5" aria-hidden="true" />
+                          {nextPathAction.completionAction?.label ?? '确认完成'}
+                        </button>
+                      ) : null}
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {pathChoiceMessage ? (
-                <p className="mt-3 rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-foreground">
-                  {pathChoiceMessage}
-                </p>
               ) : null}
             </div>
-          </section>
-        ) : null}
 
-        <section className="grid gap-4 lg:grid-cols-[340px_1fr]">
-          <aside className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
-            <h2 className="text-lg font-medium">能力诊断</h2>
-
-            <div className="space-y-3">
-              <div>
-                <div className="mb-1 flex items-center justify-between text-xs text-slate-400">
-                  <span>计算型知识</span>
-                  <span>{percentLabel(diagnostic?.knowledgeDimensions.computational ?? 0)}</span>
-                </div>
-                <div className="h-2 rounded bg-slate-800">
-                  <div
-                    className="h-2 rounded bg-cyan-400"
-                    style={{ width: `${diagnostic?.knowledgeDimensions.computational ?? 0}%` }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="mb-1 flex items-center justify-between text-xs text-slate-400">
-                  <span>跨域型知识</span>
-                  <span>{percentLabel(diagnostic?.knowledgeDimensions.crossDomain ?? 0)}</span>
-                </div>
-                <div className="h-2 rounded bg-slate-800">
-                  <div
-                    className="h-2 rounded bg-emerald-400"
-                    style={{ width: `${diagnostic?.knowledgeDimensions.crossDomain ?? 0}%` }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="mb-1 flex items-center justify-between text-xs text-slate-400">
-                  <span>设计型知识</span>
-                  <span>{percentLabel(diagnostic?.knowledgeDimensions.design ?? 0)}</span>
-                </div>
-                <div className="h-2 rounded bg-slate-800">
-                  <div
-                    className="h-2 rounded bg-violet-400"
-                    style={{ width: `${diagnostic?.knowledgeDimensions.design ?? 0}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <p className="mb-2 text-xs text-slate-400">薄弱知识点</p>
-              <div className="flex flex-wrap gap-2">
-                {(diagnostic?.weakAreas ?? []).map((item) => (
-                  <span key={item} className="rounded bg-rose-500/20 px-2 py-1 text-xs text-rose-300">
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <p className="mb-2 text-xs text-slate-400">当前路径与推荐节点</p>
-              <ul className="space-y-2 text-sm text-slate-300">
-                {practiceRouteNodes.map((node) => (
-                  <li
-                    key={node.nodeId}
-                    className={`rounded border px-3 py-2 ${
-                      activePracticeFocus === node.nodeId
-                        ? 'border-emerald-400 bg-emerald-500/10'
-                        : 'border-slate-800 bg-slate-950'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-medium text-slate-100">{node.title}</span>
-                      <span className="rounded bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-200">
-                        {node.state === 'current' ? '当前节点' : '可选节点'}
-                      </span>
-                    </div>
-                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-400">
-                      <span>置信度 {formatConfidence(node.confidence)}</span>
-                      <span>证据覆盖 {formatEvidenceLimitation(node.evidenceLimitation)}</span>
-                    </div>
-                    {node.missingEvidence.length > 0 ? (
-                      <p className="mt-2 text-xs text-rose-200/90">
-                        缺失证据 {node.missingEvidence.join('、')}
-                      </p>
-                    ) : null}
-                    {node.action.method === 'POST' ? (
-                      <div className="mt-2 flex flex-wrap gap-3">
-                        <button
-                          type="button"
-                          onClick={() => void launchPathNode(node)}
-                          className="inline-flex text-xs text-emerald-300 hover:text-emerald-200"
-                        >
-                          {node.action.label}
-                        </button>
-                        {node.action.completionAction ? (
-                          <button
-                            type="button"
-                            onClick={() => void completePathNode(node)}
-                            disabled={pathNodeCompletionPending === node.nodeId}
-                            className="inline-flex text-xs text-sky-300 hover:text-sky-200 disabled:cursor-wait disabled:text-slate-500"
-                          >
-                            {pathNodeCompletionPending === node.nodeId ? '正在确认完成' : node.action.completionAction.label}
-                          </button>
-                        ) : null}
-                      </div>
-                    ) : (
-                      <Link href={node.action.href} className="mt-2 inline-flex text-xs text-emerald-300 hover:text-emerald-200">
-                        {node.action.label}
-                      </Link>
-                    )}
-                  </li>
-                ))}
-                {practiceRouteNodes.length === 0 ? (
-                  <li className="rounded border border-slate-800 bg-slate-950 px-3 py-2 text-slate-500">
-                    等待诊断结果生成当前路径节点。
-                  </li>
-                ) : null}
-              </ul>
-            </div>
-
-            <button
-              type="button"
-              onClick={generateQuestion}
-              disabled={loading}
-              className="w-full rounded bg-emerald-600 px-3 py-2 text-sm font-medium hover:bg-emerald-500 disabled:opacity-60"
+            <div
+              className="surface-card p-5"
+              data-konling-generation-parameters="adaptive-path"
+              data-konling-citation-slot="cited-explanation"
             >
-              AI 即时生成题目
-            </button>
-          </aside>
-
-          <section className="surface-card space-y-4 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-lg font-medium">自适应练习区</h2>
-              <div className="text-sm text-slate-300">
-                能力值 θ: <span className="font-semibold text-emerald-300">{questionState?.estimatedAbility ?? 0}</span>
-                <span className="ml-2 text-slate-400">
-                  CI: [{questionState?.confidenceInterval?.[0] ?? 0}, {questionState?.confidenceInterval?.[1] ?? 0}]
-                </span>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-normal text-primary">Konling parameters</p>
+                  <h2 className="mt-1 text-xl font-semibold text-foreground">控灵生成参数</h2>
+                  <p className="mt-2 text-sm text-subtle">告诉控灵你想达成什么，系统会把目标、时间和资源偏好转成可执行路径。</p>
+                </div>
+                <MessageSquare className="size-5 text-primary" aria-hidden="true" />
               </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {adaptiveGenerationFields.map((field) => (
+                  <label key={field.label} className="rounded-lg border border-border bg-background/45 p-3">
+                    <span className="text-xs text-subtle">{field.label}</span>
+                    <span className="mt-1 block text-sm font-medium text-foreground">{field.value}</span>
+                  </label>
+                ))}
+              </div>
+              <label className="mt-3 block rounded-lg border border-border bg-background/45 p-3">
+                <span className="text-xs text-subtle">告诉控灵你想达成什么</span>
+                <span className="mt-2 block min-h-16 rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm text-subtle">
+                  例如：我想在本周完成根轨迹和频域稳定性的复习，并用一次仿真检查理解。
+                </span>
+              </label>
+            </div>
+          </section>
+
+          <section
+            className="surface-card p-5"
+            data-learning-path-product-surface="path-options-selection-history-terminal-validation"
+            data-learning-path-options-slot="three-style"
+            data-learning-path-options-layout="comparable-information-grid"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-normal text-primary">Path comparison</p>
+                <h2 className="mt-1 text-xl font-semibold text-foreground">选择你的学习路径</h2>
+                <p className="mt-2 text-sm text-subtle">不同路径按同一组字段比较，便于直接判断取舍。</p>
+              </div>
+              <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-xs text-subtle">
+                {visiblePathOptions.length} 条可比较路径
+              </span>
             </div>
 
-            {questionState ? (
-              <div className="space-y-4">
-                <div className="rounded-xl border border-slate-700 bg-slate-950 p-4">
-                  <div className="mb-2 flex flex-wrap gap-2">
-                    {questionState.question.domains.map((domain) => (
-                      <span key={domain} className="rounded bg-cyan-500/20 px-2 py-1 text-xs text-cyan-300">
-                        {domain}
-                      </span>
-                    ))}
-                    <span className="rounded bg-violet-500/20 px-2 py-1 text-xs text-violet-300">
-                      难度 {questionState.question.difficulty}
+            <div className="mt-4 hidden gap-3 lg:grid lg:grid-cols-[minmax(180px,0.55fr)_repeat(3,minmax(0,1fr))]">
+              <div className="hidden rounded-lg border border-border bg-muted/35 p-3 text-xs font-medium text-subtle lg:block">比较字段</div>
+              {visiblePathOptions.map((option) => (
+                <div key={option.id} className="rounded-lg border border-border bg-muted/35 p-3" data-learning-path-option={option.id}>
+                  <h3 className="text-base font-semibold text-foreground">{option.title}</h3>
+                  <p className="mt-1 text-sm text-subtle">{option.scenario}</p>
+                </div>
+              ))}
+
+              {[
+                ['预计时长', (option: AdaptivePathOptionDisplay) => option.estimatedTime],
+                ['已匹配资源', (option: AdaptivePathOptionDisplay) => option.resources.map((resource) => resource.label).join('、')],
+                ['检查节点', (option: AdaptivePathOptionDisplay) => option.checkpoints],
+                ['适合场景', (option: AdaptivePathOptionDisplay) => option.scenario],
+                ['当前建议理由', (option: AdaptivePathOptionDisplay) => option.reason],
+                ['预期结果', (option: AdaptivePathOptionDisplay) => option.outcome],
+              ].map(([label, resolve]) => (
+                <div key={label as string} className="contents">
+                  <div className="rounded-lg border border-border bg-background/45 p-3 text-sm font-medium text-foreground">
+                    {label as string}
+                  </div>
+                  {visiblePathOptions.map((option) => (
+                    <div key={`${option.id}:${label}`} className="rounded-lg border border-border bg-background/45 p-3 text-sm leading-6 text-subtle">
+                      {(resolve as (option: AdaptivePathOptionDisplay) => string)(option)}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 space-y-2 lg:hidden">
+              <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1 text-xs" data-learning-path-mobile-summary="horizontal-scan">
+                {visiblePathOptions.map((option) => (
+                  <div key={`${option.id}:mobile-summary`} className="min-w-[9.5rem] snap-start rounded-lg border border-border bg-background/60 p-2">
+                    <p className="font-semibold text-foreground">{option.title.replace('路径', '')}</p>
+                    <p className="mt-1 text-subtle">{option.estimatedTime}</p>
+                    <p className="mt-1 text-subtle">{option.checkpoints}</p>
+                  </div>
+                ))}
+              </div>
+              {visiblePathOptions.map((option) => (
+                <section key={`${option.id}:mobile`} className="rounded-lg border border-border bg-muted/30 p-3" data-learning-path-option={option.id}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 className="text-base font-semibold text-foreground">{option.title}</h3>
+                      <p className="mt-1 text-sm leading-6 text-subtle">{option.scenario}</p>
+                    </div>
+                    <span className="shrink-0 rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-subtle">
+                      {option.estimatedTime}
                     </span>
                   </div>
+                  <div className="mt-3 space-y-2 rounded-lg border border-border bg-background/60 p-3 text-sm">
+                    <p className="leading-6 text-foreground">{option.reason}</p>
+                    <div className="flex flex-wrap gap-1.5 text-xs text-subtle">
+                      <span className="rounded-md border border-border bg-muted/40 px-2 py-1">{option.checkpoints}</span>
+                      <span className="rounded-md border border-border bg-muted/40 px-2 py-1">
+                        {option.resources.slice(0, 2).map((resource) => resource.label).join('、')}
+                      </span>
+                    </div>
+                    <p className="text-xs leading-5 text-subtle">{option.outcome}</p>
+                  </div>
+                  <details className="mt-3 rounded-lg border border-border bg-background/50 px-3 py-2 text-xs text-subtle">
+                    <summary className="cursor-pointer font-medium text-foreground">查看资源组合</summary>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {option.resources.map((resource) => {
+                        const Icon = adaptivePathResourceIcons[resource.kind];
+                        return (
+                          <span key={`${option.id}:mobile:${resource.kind}`} className="inline-flex items-center gap-1 rounded-md border border-border bg-background/60 px-2 py-1">
+                            <Icon className="size-3.5" aria-hidden="true" />
+                            {resource.label}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </details>
+                  <div className="mt-3 grid gap-2" data-learning-path-mobile-actions="primary-then-secondary">
+                    <button
+                      type="button"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                      disabled={!option.writeOption || Boolean(pathChoicePending)}
+                      onClick={() => {
+                        const optionForWrite = option.writeOption;
+                        if (optionForWrite) {
+                          submitPathChoice('selection', optionForWrite);
+                          return;
+                        }
+                        setPathChoiceUnavailable();
+                      }}
+                    >
+                      <CheckCircle2 className="size-3.5" aria-hidden="true" />
+                      选择路径
+                    </button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-60"
+                        disabled={!option.writeOption || Boolean(pathChoicePending)}
+                        onClick={() => {
+                          const optionForWrite = option.writeOption;
+                          if (optionForWrite) {
+                            submitPathChoice('switch', optionForWrite);
+                            return;
+                          }
+                          setPathChoiceUnavailable();
+                        }}
+                      >
+                        <RefreshCw className="size-3.5" aria-hidden="true" />
+                        调整
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
+                        disabled={!option.writeOption || Boolean(pathChoicePending)}
+                        onClick={() => {
+                          const optionForWrite = option.writeOption;
+                          if (optionForWrite) {
+                            submitPathChoice('rejection', optionForWrite);
+                            return;
+                          }
+                          setPathChoiceUnavailable();
+                        }}
+                      >
+                        暂不采用
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
+                        disabled={!option.writeOption || Boolean(pathChoicePending)}
+                        onClick={() => {
+                          const optionForWrite = option.writeOption;
+                          if (optionForWrite) {
+                            submitPathChoice('helpfulness', optionForWrite, true);
+                            return;
+                          }
+                          setPathChoiceUnavailable();
+                        }}
+                      >
+                        有帮助
+                      </button>
+                    </div>
+                  </div>
+                </section>
+              ))}
+            </div>
 
-                  <p className="text-base leading-7 text-slate-100">{questionState.question.stem}</p>
-
-                  <div className="mt-4 space-y-2">
-                    {questionState.question.options.map((option) => {
-                      const active = selectedOption === option.label;
+            <div className="mt-4 hidden gap-3 lg:grid lg:grid-cols-3">
+              {visiblePathOptions.map((option) => (
+                <div key={`${option.id}:actions`} className="rounded-lg border border-border bg-muted/30 p-3">
+                  <div className="flex flex-wrap gap-1.5">
+                    {option.resources.map((resource) => {
+                      const Icon = adaptivePathResourceIcons[resource.kind];
                       return (
-                        <button
-                          key={option.label}
-                          type="button"
-                          onClick={() => setSelectedOption(option.label)}
-                          className={`w-full rounded border px-3 py-2 text-left text-sm transition ${
-                            active
-                              ? 'border-emerald-400 bg-emerald-500/10 text-emerald-100'
-                              : 'border-slate-700 bg-slate-900 text-slate-200 hover:border-slate-500'
-                          }`}
-                        >
-                          {option.label}. {option.text}
-                        </button>
+                        <span key={`${option.id}:${resource.kind}`} className="inline-flex items-center gap-1 rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-subtle">
+                          <Icon className="size-3.5" aria-hidden="true" />
+                          {resource.label}
+                        </span>
                       );
                     })}
                   </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={submitCurrentAnswer}
-                    disabled={loading || !selectedOption}
-                    className="rounded bg-emerald-600 px-4 py-2 text-sm font-medium hover:bg-emerald-500 disabled:opacity-60"
-                  >
-                    提交答案
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void loadNextQuestion()}
-                    disabled={loading}
-                    className="rounded bg-slate-700 px-4 py-2 text-sm font-medium hover:bg-slate-600 disabled:opacity-60"
-                  >
-                    下一题
-                  </button>
-                </div>
-
-                {feedback ? (
-                  <div className={`rounded-xl border p-4 ${feedback.isCorrect ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-rose-500/40 bg-rose-500/10'}`}>
-                    <div className="text-sm font-medium">
-                      {feedback.isCorrect ? '回答正确' : `回答错误，正确选项：${feedback.correctOption}`}
-                    </div>
-                    <p className="mt-2 text-sm text-slate-200">{feedback.explanation}</p>
-                    <div className="mt-2 text-xs text-slate-300">
-                      最新能力估计 θ: <span className="text-emerald-300">{feedback.estimatedAbility}</span>
-                    </div>
-                    <ul className="mt-2 space-y-1 text-xs text-slate-300">
-                      {feedback.recommendedFocus.map((item) => (
-                        <li key={item} className="rounded bg-slate-900/70 px-2 py-1">
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                      disabled={!option.writeOption || Boolean(pathChoicePending)}
+                      onClick={() => {
+                        const optionForWrite = option.writeOption;
+                        if (optionForWrite) {
+                          submitPathChoice('selection', optionForWrite);
+                          return;
+                        }
+                        setPathChoiceUnavailable();
+                      }}
+                    >
+                      <CheckCircle2 className="size-3.5" aria-hidden="true" />
+                      选择路径
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-60"
+                      disabled={!option.writeOption || Boolean(pathChoicePending)}
+                      onClick={() => {
+                        const optionForWrite = option.writeOption;
+                        if (optionForWrite) {
+                          submitPathChoice('switch', optionForWrite);
+                          return;
+                        }
+                        setPathChoiceUnavailable();
+                      }}
+                    >
+                      <RefreshCw className="size-3.5" aria-hidden="true" />
+                      请控灵调整
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
+                      disabled={!option.writeOption || Boolean(pathChoicePending)}
+                      onClick={() => {
+                        const optionForWrite = option.writeOption;
+                        if (optionForWrite) {
+                          submitPathChoice('rejection', optionForWrite);
+                          return;
+                        }
+                        setPathChoiceUnavailable();
+                      }}
+                    >
+                      暂不采用
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
+                      disabled={!option.writeOption || Boolean(pathChoicePending)}
+                      onClick={() => {
+                        const optionForWrite = option.writeOption;
+                        if (optionForWrite) {
+                          submitPathChoice('helpfulness', optionForWrite, true);
+                          return;
+                        }
+                        setPathChoiceUnavailable();
+                      }}
+                    >
+                      有帮助
+                    </button>
                   </div>
-                ) : null}
-              </div>
-            ) : authStatus === 'unauthenticated' && !isDemoMode ? (
-              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-6 text-center text-sm text-amber-100">
-                <p className="font-medium">请先登录后再进入自适应练习。</p>
-                <p className="mt-2 text-amber-100/80">当前 practice intent 会在登录后继续保留。</p>
-                <Link
-                  href={loginHref}
-                  className="mt-4 inline-flex rounded bg-amber-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-amber-400"
-                >
-                  登录后继续
-                </Link>
-              </div>
-            ) : error ? (
-              <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 p-6 text-center text-sm text-rose-100">
-                <p className="font-medium">题目加载失败</p>
-                <p className="mt-2 text-rose-100/80">{error}</p>
-                <div className="mt-4 flex flex-wrap justify-center gap-2">
-                  <Link href="/profile" className="rounded border border-rose-300/40 px-3 py-2 text-xs text-rose-50 hover:bg-rose-500/20">
-                    查看证据画像
-                  </Link>
-                  <Link href="/interactive-learning" className="rounded border border-rose-300/40 px-3 py-2 text-xs text-rose-50 hover:bg-rose-500/20">
-                    返回互动学习
-                  </Link>
-                  <Link href="/arena" className="rounded border border-rose-300/40 px-3 py-2 text-xs text-rose-50 hover:bg-rose-500/20">
-                    返回竞技场
-                  </Link>
+                </div>
+              ))}
+            </div>
+
+            {pathChoiceMessage ? (
+              <p className="mt-3 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground">
+                {pathChoiceMessage}
+              </p>
+            ) : null}
+          </section>
+
+          <section className="grid gap-4 xl:grid-cols-[minmax(0,0.58fr)_minmax(0,0.42fr)]">
+            <div className="surface-card p-5" data-adaptive-practice-resource="path-node">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-normal text-primary">Practice resource</p>
+                  <h2 className="mt-1 text-xl font-semibold text-foreground">路径资源入口</h2>
+                  <p className="mt-2 text-sm text-subtle">自适应练习保留为检查节点，选择路径后再展开题面和反馈。</p>
                 </div>
                 <button
                   type="button"
-                  onClick={() => void bootstrapPractice()}
+                  onClick={generateQuestion}
                   disabled={loading}
-                  className="mt-4 rounded bg-rose-600 px-4 py-2 text-sm font-medium text-white hover:bg-rose-500 disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground hover:border-primary disabled:opacity-60"
                 >
-                  重新加载
+                  <ListChecks className="size-4" aria-hidden="true" />
+                  生成练习题
                 </button>
               </div>
-            ) : (
-              <div className="rounded-xl border border-slate-800 bg-slate-950 p-6 text-center text-sm text-slate-400">
-                正在加载练习题...
-              </div>
-            )}
 
-            <div className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-400">
-              {loading
-                ? '系统正在评估并更新题目推荐...'
-                : error
-                  ? `操作失败：${error}`
-                  : isDemoMode
-                    ? '提示：可切换 scene=stable / generate 直接导出两类报告配图。'
-                    : '提示：答错后会触发跨域解释与后续补强建议。'}
+              {authStatus === 'unauthenticated' && !isDemoMode ? (
+                <div className="mt-4 rounded-lg border border-border bg-muted/30 p-5 text-sm text-subtle">
+                  <p className="font-medium text-foreground">登录后可以继续当前路径和练习任务。</p>
+                  <Link
+                    href={loginHref}
+                    className="mt-3 inline-flex rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                  >
+                    登录后继续
+                  </Link>
+                </div>
+              ) : (
+                <div className="mt-4 space-y-4">
+                  {error ? (
+                    <div
+                      className="rounded-lg border border-destructive/35 bg-destructive/10 p-4 text-sm"
+                      data-adaptive-practice-error-state="recoverable"
+                    >
+                      <p className="font-medium text-foreground">练习加载未完成</p>
+                      <p className="mt-1 leading-6 text-subtle">{error}</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={bootstrapPractice}
+                          disabled={loading}
+                          className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                        >
+                          <RefreshCw className="size-3.5" aria-hidden="true" />
+                          重新加载
+                        </button>
+                        {diagnostic ? (
+                          <button
+                            type="button"
+                            onClick={retryNextQuestion}
+                            disabled={loading}
+                            className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-60"
+                          >
+                            <ListChecks className="size-3.5" aria-hidden="true" />
+                            重试下一题
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {[
+                      ['当前作用', '检查理解并更新路径推荐'],
+                      ['资源状态', questionState ? '已准备一组练习题' : '选择路径后展开'],
+                      ['后续记录', feedback ? '反馈将纳入学习证据' : '完成后形成检查证据'],
+                    ].map(([label, value]) => (
+                      <div key={label} className="rounded-lg border border-border bg-muted/30 p-3 text-sm">
+                        <p className="text-xs text-subtle">{label}</p>
+                        <p className="mt-1 font-medium text-foreground">{value}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {questionState ? (
+                    <div className="rounded-lg border border-border bg-background/55 p-4" data-adaptive-practice-question="active">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-foreground">检查节点练习</p>
+                        <span className="rounded-md border border-border bg-muted/40 px-2 py-1 text-xs text-subtle">
+                          能力估计 {questionState.estimatedAbility.toFixed(2)}
+                        </span>
+                      </div>
+                      <p className="mt-3 text-sm leading-6 text-foreground">{questionState.question.stem}</p>
+                      <div className="mt-3 grid gap-2">
+                        {questionState.question.options.map((option) => (
+                          <label key={option.label} className="flex gap-2 rounded-lg border border-border bg-muted/25 p-3 text-sm">
+                            <input
+                              type="radio"
+                              name="adaptive-practice-option"
+                              value={option.label}
+                              checked={selectedOption === option.label}
+                              onChange={() => setSelectedOption(option.label)}
+                              className="mt-1"
+                            />
+                            <span>
+                              <span className="font-medium text-foreground">{option.label}. </span>
+                              <span className="text-subtle">{option.text}</span>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={submitCurrentAnswer}
+                          disabled={!selectedOption || loading}
+                          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                        >
+                          <CheckCircle2 className="size-4" aria-hidden="true" />
+                          提交答案
+                        </button>
+                        <button
+                          type="button"
+                          onClick={retryNextQuestion}
+                          disabled={loading}
+                          className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground disabled:opacity-60"
+                        >
+                          <RefreshCw className="size-4" aria-hidden="true" />
+                          换一题
+                        </button>
+                      </div>
+                      {feedback ? (
+                        <div className="mt-3 rounded-lg border border-border bg-muted/30 p-3 text-sm">
+                          <p className="font-medium text-foreground">{feedback.isCorrect ? '回答正确' : '需要复盘'}</p>
+                          <p className="mt-1 leading-6 text-subtle">{feedback.explanation}</p>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              )}
             </div>
+
+            <aside
+              className="surface-card p-5"
+              data-learning-path-history="selection-history"
+              data-learning-path-history-slot="selection-history"
+              data-learning-path-validation-timeline="checkpoint-deviation-intervention-terminal"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-normal text-primary">History</p>
+                  <h2 className="mt-1 text-xl font-semibold text-foreground">选择历史</h2>
+                </div>
+                <Timer className="size-5 text-primary" aria-hidden="true" />
+              </div>
+              <div className="mt-4 space-y-2">
+                {pathSelectionHistory.length > 0 ? pathSelectionHistory.map((history, index) => (
+                  <div key={`${history.type}:${history.createdAt ?? index}`} className="rounded-lg border border-border bg-muted/35 p-3 text-sm">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium text-foreground">{formatPathHistoryType(history.type)}</span>
+                      <span className="text-xs text-subtle">{history.createdAt ?? '刚刚'}</span>
+                    </div>
+                    <p className="mt-1 text-subtle">
+                      {history.selectedStyleId ? `已选择 ${history.selectedStyleId}` : '已记录路径偏好'}
+                    </p>
+                  </div>
+                )) : (
+                  <>
+                    <div className="rounded-lg border border-border bg-muted/35 p-3 text-sm">
+                      <p className="font-medium text-foreground">待选择</p>
+                      <p className="mt-1 text-subtle">选择、拒绝、切换和有用性反馈会在这里显示。</p>
+                    </div>
+                    <div className="rounded-lg border border-border bg-muted/35 p-3 text-sm">
+                      <p className="font-medium text-foreground">控灵调整</p>
+                      <p className="mt-1 text-subtle">调整请求会作为路径生成偏好进入后续推荐。</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </aside>
           </section>
         </section>
-      </section>
-    </AppShell>
-  );
+      </AppShell>
+    );
 }

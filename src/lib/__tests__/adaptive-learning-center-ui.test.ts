@@ -23,6 +23,10 @@ import { buildPlatformStatusViewModel } from '@/components/platform/platform-ui-
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
 import { ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES } from '@/lib/adaptive-learning-path-planner';
 import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
+import {
+  buildAdaptivePathOptionDisplays,
+  type AdaptivePathOptionWriteOption,
+} from '@/lib/adaptive-path-option-display';
 import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '@/lib/platform-role-navigation';
 import {
   getPathNodeSemanticsForResourceType,
@@ -397,6 +401,68 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("submitPathChoice('helpfulness'");
   });
 
+  it('does not fall back static starter path actions to the first real option', () => {
+    const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(source).not.toContain('realPathOption');
+    expect(source).not.toContain('pathOptions[index] ??');
+    expect(source).not.toContain('pathOptions[index]');
+    expect(source).toContain('const visiblePathOptions = useMemo(() => buildAdaptivePathOptionDisplays(pathOptions), [pathOptions]);');
+    expect(source).toContain('const optionForWrite = option.writeOption;');
+    expect(source).toContain('disabled={!option.writeOption || Boolean(pathChoicePending)}');
+    expect(source).toContain("setPathChoiceMessage('请先登录并生成路径后再记录选择。')");
+  });
+
+  it('binds displayed real path options to their own writable option payload', () => {
+    const options: AdaptivePathOptionWriteOption[] = [
+      {
+        optionId: 'rules-plus-graph-search-route',
+        label: '规则图谱推荐路线',
+        targetDeficits: [{ targetId: 'phase-margin' }],
+        evidenceBasis: ['adaptive-learner-state'],
+        resourceMix: { knowledge_card: 1, arena_task: 1 },
+        effort: { estimatedMinutes: 42, relative: 'medium' },
+        terminalValidationNodeIds: ['arena-task:terminal'],
+        terminalValidationStrategy: { summary: 'official Arena validation' },
+        limitations: [],
+      },
+      {
+        optionId: 'foundation-remediation-route',
+        label: '基础补救路线',
+        targetDeficits: [],
+        evidenceBasis: ['LearningFact'],
+        resourceMix: { adaptive_quiz: 1 },
+        effort: { estimatedMinutes: 18, relative: 'short' },
+        terminalValidationNodeIds: [],
+        terminalValidationStrategy: {},
+        limitations: [],
+      },
+    ];
+
+    const displays = buildAdaptivePathOptionDisplays(options);
+    const preview = buildAdaptivePathOptionDisplays([]);
+
+    expect(displays.map((option) => option.title)).toEqual(['规则图谱推荐路线', '基础补救路线']);
+    expect(displays[0].writeOption).toBe(options[0]);
+    expect(displays[1].writeOption).toBe(options[1]);
+    expect(displays[0].id).toBe('rules-plus-graph-search-route');
+    expect(displays[0].resources.map((resource) => resource.label)).toEqual(['知识卡', 'Arena']);
+    expect(preview).toHaveLength(3);
+    expect(preview.every((option) => option.writeOption === undefined)).toBe(true);
+  });
+
+  it('keeps productized path option writes compatible with server style evidence', () => {
+    const routeSource = readFileSync(join(repoRoot, 'src/app/api/learning-paths/[id]/choices/route.ts'), 'utf8');
+
+    expect(routeSource).toContain('selectedOptionId');
+    expect(routeSource).toContain('rejectedOptionIds');
+    expect(routeSource).toContain('resolveChoiceOption');
+    expect(routeSource).toContain('path-option-${index + 1}');
+    expect(routeSource).toContain('selectedStyleId');
+    expect(routeSource).toContain('selectedPolicyFamily');
+    expect(routeSource).toContain('rejectedStyleIds');
+  });
+
   it('prioritizes current path, next action, evidence confidence, and missing source on dashboard and profile', () => {
     const dashboard = readFileSync(join(repoRoot, 'src/app/(main)/dashboard/page.tsx'), 'utf8');
     const profile = readFileSync(join(repoRoot, 'src/app/(main)/profile/page.tsx'), 'utf8');
@@ -458,6 +524,22 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('practiceRouteNodes');
     expect(source).toContain('证据覆盖');
     expect(source).toContain('缺失证据');
+    expect(source).toContain('data-adaptive-path-current-node-actions="launch-complete"');
+    expect(source).toContain('onClick={launchNextAction}');
+    expect(source).toContain('onClick={completeNextAction}');
+    expect(source).toContain("const canOpenNextPathAction = nextPathAction?.method === 'GET';");
+    expect(source).toContain('当前节点暂不可启动');
+  });
+
+  it('keeps adaptive practice failures recoverable from the resource card', () => {
+    const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(source).toContain('data-adaptive-practice-error-state="recoverable"');
+    expect(source).toContain('练习加载未完成');
+    expect(source).toContain('onClick={bootstrapPractice}');
+    expect(source).toContain('const retryNextQuestion = useCallback(async () =>');
+    expect(source).toContain('onClick={retryNextQuestion}');
+    expect(source).not.toContain('onClick={loadNextQuestion}');
   });
 
   it('binds growth center to grouped learner timeline and stable chart containers', () => {
@@ -1106,6 +1188,7 @@ describe('adaptive learning center UI contracts', () => {
 
     expect(source).toContain('buildControlCorrectionLearningCenterView');
     expect(source).toContain("searchParams.get('goal')");
+    expect(source).toContain("searchParams.get('goal') === 'control-correction'");
     expect(source).toContain("searchParams.get('intent')");
     expect(source).toContain("searchParams.get('pathId')");
     expect(source).toContain("searchParams.get('nodeId')");
@@ -1124,9 +1207,11 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('goalId: activeGoal');
     expect(source).toContain('routeIntent: activeGoal ? routeIntent : null');
     expect(source).toContain('fetch(`/api/learning-paths/${encodeURIComponent(pathId)}/choices`');
-    expect(source).toContain("submitPathChoice('helpfulness', option, true)");
-    expect(source).toContain("rejectedStyleIds: action === 'helpfulness'");
-    expect(source).toContain('? []');
+    expect(source).toContain("submitPathChoice('helpfulness'");
+    expect(source).toContain('selectedOptionId');
+    expect(source).toContain('rejectedOptionIds');
+    expect(source).toContain('option.optionId');
+    expect(source).toContain("setPathChoiceMessage('请先登录并生成路径后再记录选择。')");
   });
 
   it('keeps next main-path nodes distinct from optional alternatives', () => {

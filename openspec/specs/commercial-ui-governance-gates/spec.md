@@ -408,3 +408,16 @@ Commercial UI governance SHALL reject simulation visual evidence that proves onl
 - **WHEN** visual evidence is submitted for a migrated simulation detail route
 - **THEN** governance SHALL require the evidence to show theme-aware resource panels, local controls, scene visual parameters, HUD labels, and shared dock behavior
 - **AND** screenshots where the dark route still embeds an unchanged light scene or white resource panel SHALL fail acceptance unless explicitly documented as a temporary exception with an owner and removal condition.
+
+### Requirement: Adaptive generation UI requires design-qa evidence
+Commercial UI governance SHALL require visual evidence for the adaptive path generation and selection UI against the accepted handoff and concept images.
+
+#### Scenario: Adaptive generation UI is reviewed
+- **WHEN** `/assessment/adaptive-practice` generation or selection UI changes
+- **THEN** evidence SHALL include desktop and 320px mobile screenshots in light and dark themes
+- **AND** it SHALL include generation main state, Konling parameter state, path comparison state, cold-start state, and shared dock non-overlap.
+
+#### Scenario: Visual subagent review runs
+- **WHEN** implementation evidence is ready
+- **THEN** a browser-capable visual subagent SHALL compare screenshots to the handoff and concept images
+- **AND** unresolved BLOCK findings SHALL fail acceptance.

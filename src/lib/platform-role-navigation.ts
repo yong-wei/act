@@ -1807,7 +1807,7 @@ export const COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS: CommercialStudentEntryInten
   {
     intent: 'practice',
     label: '练习',
-    summary: '自适应练习、诊断与补强路径。',
+    summary: '自适应学习路径、诊断与补强建议。',
     entryIds: ['student-adaptive-learning'],
     hrefs: ['/assessment/adaptive-practice', '/profile/growth'],
   },
@@ -2034,14 +2034,14 @@ const PLATFORM_ROLE_NAVIGATION_ITEMS: readonly PlatformRoleNavigationItem[] = [
   },
   {
     id: 'student-adaptive-learning',
-    label: '自适应学习',
+    label: '学习路径',
     href: '/assessment/adaptive-practice',
     role: 'student',
     order: 140,
     group: 'student-core',
-    description: '进入个性化练习与能力诊断，连接后续学习建议。',
+    description: '生成、比较并执行个性化学习路径。',
     iconKey: 'adaptive',
-    actionLabel: '继续练习',
+    actionLabel: '打开路径中心',
     actionPriority: 60,
     aliasHrefs: [
       '/profile/growth',

@@ -635,6 +635,31 @@ describe('learning path round API routes', () => {
     });
   });
 
+  it('records product option ids through server-owned style evidence', async () => {
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-1',
+      rejectedOptionIds: ['path-option-2'],
+      resourceMix: { forged_resource: 99 },
+      rationaleMetadata: { evidenceBasis: ['forged-client-evidence'] },
+      idempotencyKey: 'choice-option-key',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathChoiceEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      selectedStyleId: 'foundation-remediation',
+      selectedPolicyFamily: 'foundation-remediation',
+      rejectedStyleIds: ['simulation-driven'],
+      resourceMix: { knowledge_card: 1, arena_task: 1 },
+      rationaleMetadata: expect.objectContaining({
+        evidenceBasis: ['adaptive-learner-state'],
+        limitations: ['terminal-validation-required'],
+        terminalValidationNodeIds: ['arena-task:terminal'],
+      }),
+      idempotencyKey: 'choice-option-key',
+    }));
+  });
+
   it('rejects path choice evidence for style ids outside the current path options', async () => {
     const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
       action: 'switch',
