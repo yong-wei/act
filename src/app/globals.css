@@ -199,6 +199,12 @@
       right: calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem)) !important;
       width: max-content;
     }
+
+    body:has([data-knowledge-inspector="stable-rail"]) [data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"] {
+      top: 7rem !important;
+      right: calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem)) !important;
+      height: calc(100vh - 8rem) !important;
+    }
   }
 
   @media (max-width: 1023px) {

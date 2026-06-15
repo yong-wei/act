@@ -20,6 +20,8 @@ const sourceFiles = [
   'src/components/shared/page-floating-controls.tsx',
   'src/app/globals.css',
   'src/lib/konling-agent-runtime.ts',
+  'scripts/tests/capture-knowledge-workspace-product-qa.ts',
+  'scripts/tests/test-commercial-ui-governance.ts',
 ] as const;
 
 type Theme = 'dark' | 'light';
@@ -141,6 +143,7 @@ async function openStatePage(browser: Browser, state: CaptureState) {
     deviceScaleFactor: 1,
   });
   await context.addInitScript(({ theme, navigationPreference }) => {
+    (window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA__?: boolean }).__ACT_KNOWLEDGE_PRODUCT_QA__ = true;
     window.localStorage.setItem('ai-obe-theme', theme);
     window.localStorage.setItem('act:app-shell:navigation-preference', navigationPreference);
     window.localStorage.setItem('act:knowledge-product-qa', 'true');
@@ -332,7 +335,7 @@ async function probeFocusTarget(
   open: (page: Page) => Promise<void>,
   panelSelector: string,
   close: (page: Page) => Promise<void>,
-  returnSelector?: string,
+  returnSelector: string,
 ) {
   const { context, page } = await openStatePage(browser, state);
   try {
@@ -342,10 +345,8 @@ async function probeFocusTarget(
     const keyboardReachable = openedFocusManaged || await focusableByTab(page, panelSelector);
     await close(page);
     await page.waitForTimeout(250);
-      const panelClosed = !(await page.locator(panelSelector).first().isVisible().catch(() => false));
-      const escapeOrCloseReturnsFocus = returnSelector
-        ? panelClosed && await activeElementWithin(page, returnSelector)
-        : panelClosed;
+    const panelClosed = !(await page.locator(panelSelector).first().isVisible().catch(() => false));
+    const escapeOrCloseReturnsFocus = panelClosed && await activeElementWithin(page, returnSelector);
     return { target, openedFocusManaged, escapeOrCloseReturnsFocus, keyboardReachable };
   } finally {
     await context.close();
@@ -434,6 +435,7 @@ async function captureFocusEvidence(browser: Browser) {
       expandDock,
       '[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]',
       (page) => page.keyboard.press('Escape'),
+      '[data-platform-floating-dock] button[aria-label="打开页面工具菜单"]',
     ),
   ];
 }
@@ -492,6 +494,7 @@ async function captureMarkers(page: Page) {
        effectiveDockState: konlingSidebar || expandedDock ? 'expanded' : (dock?.getAttribute('data-platform-floating-dock') ?? null),
        expandedDockVisible: Boolean(konlingSidebar || expandedDock),
        konlingAssistantSurface: konlingSidebar?.getAttribute('data-konling-assistant-surface') ?? null,
+       konlingInspectorAvoidance: konlingSidebar?.getAttribute('data-konling-inspector-avoidance') ?? null,
        konlingKnowledgeContext: konlingKnowledgeContext?.getAttribute('data-konling-knowledge-context') ?? null,
       rects: {
         desktopTools: desktopToolsRect,
@@ -727,7 +730,7 @@ async function main() {
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await openDesktopTool(page, 'relation-filters');
-        await closeInspectorIfPresent(page);
+        await page.waitForSelector('[data-knowledge-inspector="stable-rail"]', { timeout: 8000 });
         await expandDock(page);
       },
     },

@@ -1446,6 +1446,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const floatingControlsSourcePath = 'src/components/shared/page-floating-controls.tsx';
   const globalsSourcePath = 'src/app/globals.css';
   const konlingRuntimeSourcePath = 'src/lib/konling-agent-runtime.ts';
+  const captureScriptSourcePath = 'scripts/tests/capture-knowledge-workspace-product-qa.ts';
+  const governanceScriptSourcePath = 'scripts/tests/test-commercial-ui-governance.ts';
   const productQaSourcePaths = [
     graphSourcePath,
     graph2dSourcePath,
@@ -1457,6 +1459,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     floatingControlsSourcePath,
     globalsSourcePath,
     konlingRuntimeSourcePath,
+    captureScriptSourcePath,
+    governanceScriptSourcePath,
   ];
   const graphSource = existsSync(path.join(repoRoot, graphSourcePath))
     ? readFileSync(path.join(repoRoot, graphSourcePath), 'utf8')
@@ -1602,6 +1606,12 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
           )
         : null,
       name.includes('stress')
+        ? (markerRects.inspector ? null : `${name}:inspector-rect-missing`)
+        : null,
+      name.includes('stress')
+        ? (markers.konlingInspectorAvoidance === 'active' ? null : `${name}:konling-inspector-avoidance-missing`)
+        : null,
+      name.includes('stress')
         ? (booleanFromEvidence(overlaps.expandedDockOverlapsInspector) === false ? null : `${name}:expanded-dock-overlaps-inspector`)
         : null,
       name.includes('stress')
@@ -1674,6 +1684,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       : 'resource-panel:infograph-preview-missing',
     konlingRuntimeSource.includes("status: 'degraded'")
       && konlingRuntimeSource.includes("knowledge-workspace-selected-node-unresolved")
+      && konlingRuntimeSource.includes("const contextNodeId = hint?.status === 'degraded'")
       ? null
       : 'konling-runtime:degraded-context-missing',
     ...productQaSourcePaths.map((sourcePath) => (

@@ -25,6 +25,7 @@ export function GlobalAISidebar() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const [sessionId] = useState(() => `global-${Date.now()}`);
+  const [knowledgeInspectorAvoidanceActive, setKnowledgeInspectorAvoidanceActive] = useState(false);
 
   const {
     pageContext,
@@ -119,6 +120,34 @@ export function GlobalAISidebar() {
     });
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      setKnowledgeInspectorAvoidanceActive(false);
+      return;
+    }
+
+    const updateAvoidance = () => {
+      const hasDesktopInspector = window.matchMedia('(min-width: 1024px)').matches
+        && Boolean(document.querySelector('[data-knowledge-inspector="stable-rail"]'));
+      setKnowledgeInspectorAvoidanceActive(hasDesktopInspector);
+    };
+
+    updateAvoidance();
+    window.addEventListener('resize', updateAvoidance);
+    const observer = new MutationObserver(updateAvoidance);
+    observer.observe(document.body, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+      attributeFilter: ['data-knowledge-inspector'],
+    });
+
+    return () => {
+      window.removeEventListener('resize', updateAvoidance);
+      observer.disconnect();
+    };
+  }, [isOpen]);
+
   // 处理快捷问题
   const handleQuickQuestion = useCallback(
     (question: string) => {
@@ -197,6 +226,11 @@ export function GlobalAISidebar() {
       <div
         ref={panelRef}
         tabIndex={-1}
+        style={knowledgeInspectorAvoidanceActive ? {
+          top: '7rem',
+          right: 'calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem))',
+          height: 'calc(100vh - 8rem)',
+        } : undefined}
         className={`
           fixed right-0 top-0 z-50 flex flex-col
           h-screen w-screen
@@ -212,6 +246,7 @@ export function GlobalAISidebar() {
         `}
         data-global-ai-sidebar={isOpen ? 'open' : 'closed'}
         data-konling-assistant-surface="global-sidebar"
+        data-konling-inspector-avoidance={knowledgeInspectorAvoidanceActive ? 'active' : 'inactive'}
       >
         {/* 头部 */}
         <div className={`flex items-center justify-between border-b px-4 py-3 ${styles.header}`}>

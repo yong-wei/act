@@ -19,6 +19,7 @@ export function GlobalAIFloatingButton() {
     && process.env.NODE_ENV !== 'production'
     && typeof window !== 'undefined'
     && window.location.pathname === '/knowledge'
+    && (window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA__?: boolean }).__ACT_KNOWLEDGE_PRODUCT_QA__ === true
     && window.localStorage.getItem('act:knowledge-product-qa') === 'true'
     && new URLSearchParams(window.location.search).get('qa') === 'knowledge-product';
 

@@ -251,6 +251,10 @@ describe('knowledge graph interaction state stability', () => {
       path.join(process.cwd(), 'src/app/globals.css'),
       'utf8'
     );
+    const globalSidebarSource = readFileSync(
+      path.join(process.cwd(), 'src/components/ai/global-ai-sidebar.tsx'),
+      'utf8'
+    );
 
     expect(systemSource).toContain('const [explicitFocusNodeId, setExplicitFocusNodeId] = useState<string | null>(null);');
     expect(systemSource).toContain('hoverAnimationFrameRef');
@@ -285,6 +289,12 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).toContain('data-knowledge-shared-dock-collision-policy="avoid-local-tools-and-inspector"');
     expect(globalStylesSource).toContain('body:has([data-knowledge-inspector="stable-rail"]) [data-page-floating-controls]');
     expect(globalStylesSource).toContain('right: calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem)) !important;');
+    expect(globalStylesSource).toContain('body:has([data-knowledge-inspector="stable-rail"]) [data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
+    expect(globalStylesSource).toContain('height: calc(100vh - 8rem) !important;');
+    expect(globalSidebarSource).toContain('knowledgeInspectorAvoidanceActive');
+    expect(globalSidebarSource).toContain('data-konling-inspector-avoidance');
+    expect(globalSidebarSource).toContain("document.querySelector('[data-knowledge-inspector=\"stable-rail\"]')");
+    expect(globalSidebarSource).toContain("height: 'calc(100vh - 8rem)'");
     expect(systemSource).toContain('data-knowledge-layout-control="relayout"');
     expect(systemSource).toContain('data-knowledge-layout-control="clear-pins"');
     expect(systemSource).toContain("data-knowledge-layout-control={selectedNodeFocused ? 'clear-focus-node' : 'set-focus-node'}");

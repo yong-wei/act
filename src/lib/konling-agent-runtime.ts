@@ -3844,11 +3844,11 @@ async function buildKnowledgeWorkspaceContext(
 ): Promise<KonlingKnowledgeWorkspaceContext | null> {
   if (scope.pageId !== '/knowledge' && scope.pageId !== 'knowledge') return null;
 
-  const explicitSelectedNodeId = sanitizeKnowledgeWorkspaceText(hint?.selectedNodeId);
+  const selectedNodeId = sanitizeKnowledgeWorkspaceText(hint?.selectedNodeId);
   const requestedNodeId = sanitizeKnowledgeWorkspaceText(hint?.requestedNodeId);
-  const selectedNodeId = hint?.status === 'degraded'
-    ? explicitSelectedNodeId
-    : explicitSelectedNodeId ?? requestedNodeId;
+  const contextNodeId = hint?.status === 'degraded'
+    ? null
+    : selectedNodeId ?? requestedNodeId;
   const relationSummary = {
     density_mode: sanitizeKnowledgeWorkspaceText(hint?.densityMode),
     view_mode: sanitizeKnowledgeWorkspaceText(hint?.viewMode),
@@ -3857,7 +3857,7 @@ async function buildKnowledgeWorkspaceContext(
     selected_node_relation_count: normalizeKnowledgeWorkspaceCount(hint?.selectedNodeRelationCount),
   };
 
-  if (!selectedNodeId) {
+  if (!contextNodeId) {
     const missingContext = hint?.status === 'degraded'
       ? 'knowledge-workspace-selected-node-unresolved'
       : 'knowledge-workspace-selected-node-missing';
@@ -3876,7 +3876,7 @@ async function buildKnowledgeWorkspaceContext(
   const nodes = await db.knowledgeNode?.findMany?.({
     where: {
       isActive: true,
-      id: { in: [selectedNodeId] },
+      id: { in: [contextNodeId] },
     },
     select: {
       id: true,
