@@ -1416,6 +1416,37 @@ describe('control-correction path rounds', () => {
     });
   });
 
+  it('shows a failed current node as blocked in the route view', () => {
+    const view = toControlCorrectionPathRoundView({
+      id: 'path-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      currentNodeId: 'node-1',
+      pathPayload: {
+        planNodes: [
+          { nodeId: 'node-1', status: 'current', type: 'simulation' },
+          { nodeId: 'node-2', status: 'next', type: 'knowledge_node' },
+        ],
+      },
+      lastExecutionMetadata: {
+        failedNodeIds: ['node-1'],
+      },
+    });
+    const pathPayload = view?.pathPayload as {
+      planNodes: Array<Record<string, unknown>>;
+      executionStatus: Record<string, unknown>;
+    };
+
+    expect(pathPayload.planNodes[0]).toEqual(expect.objectContaining({
+      nodeId: 'node-1',
+      status: 'blocked',
+    }));
+    expect(pathPayload.executionStatus).toMatchObject({
+      activeNodeId: 'node-1',
+      failedNodeIds: ['node-1'],
+    });
+  });
+
   it('completes terminal validation only with governed simulation plus official Arena replay evidence', async () => {
     const db = mockDb();
     const path = {

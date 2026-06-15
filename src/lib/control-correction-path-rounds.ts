@@ -839,9 +839,9 @@ function derivePathPayloadExecutionState(path: any): unknown {
       const nodeId = typeof record.nodeId === 'string' ? record.nodeId : null;
       if (!nodeId) return node;
       if (completedNodeIds.has(nodeId)) return { ...record, status: 'completed' };
+      if (failedNodeIds.has(nodeId)) return { ...record, status: 'blocked' };
       if (currentNodeId === nodeId) return { ...record, status: 'current' };
       if (record.status === 'current') return { ...record, status: 'next' };
-      if (failedNodeIds.has(nodeId)) return { ...record, status: 'blocked' };
       return node;
     }),
     executionStatus: {
