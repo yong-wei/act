@@ -343,6 +343,14 @@ function adaptivePracticeGoalLabel(goalId: AdaptivePracticeGoalId): string {
   return '控制校正';
 }
 
+function resolveAdaptivePracticeGoalId(
+  value: string | null | undefined,
+  fallback: AdaptivePracticeGoalId = 'control-correction',
+): AdaptivePracticeGoalId {
+  const candidate = value ?? null;
+  return isAdaptivePracticeGoalId(candidate) ? candidate : fallback;
+}
+
 function uniquePathIds(pathIds: Array<string | null | undefined>): string[] {
   return Array.from(new Set(pathIds.filter((pathId): pathId is string => Boolean(pathId))));
 }
@@ -726,11 +734,15 @@ function buildEvidenceSourceSummary(nodes: PathExecutionNodeView[]): Array<{ lab
   return labels.map((label) => ({ label, count: counts.get(label) ?? 0 }));
 }
 
-function pathNodeContextHref(node: PathExecutionNodeView, pathId?: string | null): string {
+function pathNodeContextHref(node: PathExecutionNodeView, options: {
+  goalId: AdaptivePracticeGoalId;
+  pathId?: string | null;
+}): string {
   const href = node.target || '/assessment/adaptive-practice';
   if (/^https?:\/\//.test(href)) return href;
   const separator = href.includes('?') ? '&' : '?';
-  const params = new URLSearchParams({ goal: 'control-correction', intent: 'path-execution', nodeId: node.nodeId });
+  const { goalId, pathId } = options;
+  const params = new URLSearchParams({ goal: goalId, intent: 'path-execution', nodeId: node.nodeId });
   if (pathId) params.set('pathId', pathId);
   return `${href}${separator}${params.toString()}`;
 }
@@ -1228,8 +1240,14 @@ export default function AdaptivePracticePage() {
       'started',
     );
     if (!activityWritten) return;
-    window.location.assign(pathNodeContextHref(node, controlCorrectionPathPlan?.id ?? controlCorrectionPathRound?.id));
-  }, [controlCorrectionPathPlan, controlCorrectionPathRound, writePathNodeActivity]);
+    window.location.assign(pathNodeContextHref(node, {
+      goalId: resolveAdaptivePracticeGoalId(
+        controlCorrectionPathPlan?.goal.id ?? controlCorrectionPathRound?.goalId ?? activeGoal,
+        activeGoal ?? 'control-correction',
+      ),
+      pathId: controlCorrectionPathPlan?.id ?? controlCorrectionPathRound?.id,
+    }));
+  }, [activeGoal, controlCorrectionPathPlan, controlCorrectionPathRound, writePathNodeActivity]);
 
   const retryNextQuestion = useCallback(async () => {
     setLoading(true);

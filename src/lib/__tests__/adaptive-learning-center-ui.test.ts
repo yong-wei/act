@@ -666,6 +666,12 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('const activityWritten = await writePathNodeActivity');
     expect(source).toContain('if (!activityWritten) return;');
     expect(source).toContain('window.location.assign(pathNodeContextHref');
+    expect(source).toContain("goalId: AdaptivePracticeGoalId");
+    expect(source).toContain('function resolveAdaptivePracticeGoalId');
+    expect(source).toContain('goalId: resolveAdaptivePracticeGoalId');
+    expect(source).toContain('controlCorrectionPathPlan?.goal.id ?? controlCorrectionPathRound?.goalId ?? activeGoal');
+    expect(source).toContain("new URLSearchParams({ goal: goalId, intent: 'path-execution', nodeId: node.nodeId })");
+    expect(source).not.toContain("new URLSearchParams({ goal: 'control-correction', intent: 'path-execution', nodeId: node.nodeId })");
     expect(source).not.toContain('Readiness Gate');
     expect(source).not.toContain('入口意图：');
     expect(source).not.toContain('terminal-validation-unavailable');
