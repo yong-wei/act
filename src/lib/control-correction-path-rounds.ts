@@ -540,14 +540,15 @@ export async function updateControlCorrectionPathRoundAfterExecution(
   const pathCurrentNodeId = typeof path.currentNodeId === 'string' ? path.currentNodeId : null;
   const activityKind = readPathActivityKind(input.liftMetadata);
   const isHistoricalActivity = Boolean(pathCurrentNodeId && pathCurrentNodeId !== input.nodeId);
-  const nextNodeId = isHistoricalActivity && activityKind !== 'return-to-skipped'
-    ? pathCurrentNodeId
-    : input.status === 'completed' && currentIndex >= 0
-      ? mainPathNodeIds[currentIndex + 1] ?? input.nodeId
-      : input.nodeId;
   const metadata = toRecord(path.lastExecutionMetadata);
   const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
   const failedNodeIds = new Set(arrayOfStrings(metadata.failedNodeIds));
+  const skippedNodeIds = new Set(arrayOfStrings(metadata.skippedNodeIds));
+  const nextNodeId = isHistoricalActivity && activityKind !== 'return-to-skipped'
+    ? pathCurrentNodeId
+    : input.status === 'completed' && currentIndex >= 0
+      ? findNextPendingMainPathNodeId(mainPathNodeIds, currentIndex, completedNodeIds, skippedNodeIds) ?? input.nodeId
+      : input.nodeId;
   const nonCompletionPathActivity = isNonCompletionPathActivity(activityKind);
   if (input.status === 'completed' && !nonCompletionPathActivity) completedNodeIds.add(input.nodeId);
   if (input.status === 'failed') failedNodeIds.add(input.nodeId);
@@ -596,6 +597,19 @@ export async function updateControlCorrectionPathRoundAfterExecution(
       },
     },
   });
+}
+
+function findNextPendingMainPathNodeId(
+  mainPathNodeIds: string[],
+  currentIndex: number,
+  completedNodeIds: Set<string>,
+  skippedNodeIds: Set<string>,
+): string | null {
+  for (const nodeId of mainPathNodeIds.slice(currentIndex + 1)) {
+    if (completedNodeIds.has(nodeId) || skippedNodeIds.has(nodeId)) continue;
+    return nodeId;
+  }
+  return null;
 }
 
 function isNonCompletionPathActivity(activityKind: string | undefined): boolean {

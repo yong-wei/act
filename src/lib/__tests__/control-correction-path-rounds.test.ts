@@ -1139,6 +1139,49 @@ describe('control-correction path rounds', () => {
     }));
   });
 
+  it('skips already handled nodes when completing a returned skipped node', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'node-2',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3', 'node-4'],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: ['node-1', 'node-3'],
+        failedNodeIds: [],
+        skippedNodeIds: ['node-2'],
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'node-2',
+      resourceType: 'simulation',
+      status: 'completed',
+      completedAt: '2026-06-15T08:00:00.000Z',
+      idempotencyKey: 'complete-returned-skipped-node',
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'node-4',
+        lastExecutionMetadata: expect.objectContaining({
+          activeNodeId: 'node-4',
+          completedNodeIds: ['node-1', 'node-3', 'node-2'],
+          failedNodeIds: [],
+          lastExecution: expect.objectContaining({
+            nodeId: 'node-2',
+            status: 'completed',
+          }),
+        }),
+      }),
+    }));
+  });
+
   it('records path style selection evidence for preference writeback without raw rationale leakage', async () => {
     const db = mockDb();
 
