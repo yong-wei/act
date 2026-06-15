@@ -4121,6 +4121,83 @@ describe('konling agent runtime', () => {
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我想先补相位裕度');
   });
 
+  it('normalizes server-owned competency scores before adaptive path generation', async () => {
+    const createdRun = {
+      id: 'tool-run-path-normalized-1',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'generate_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-normalized-1',
+      correlationId: 'corr-path-normalized-1',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['generate_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ resourceId: null, pathNodeId: null, pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['generate_learning_path'],
+        learnerState: {
+          primaryCompetencies: {
+            vector: {
+              parameterDesign: { score: 50, confidence: 0.8, evidenceCount: 4 },
+            },
+          },
+          knowledgeMastery: {
+            tags: {},
+          },
+          evidence: {
+            confidence: { level: 'medium', score: 0.8, evidenceCount: 4, sourceCompleteness: 0.8 },
+            sourceCoverage: {},
+          },
+        } as unknown as KonlingRuntimeContext['learnerState'],
+      }),
+    });
+
+    await runtime.generateLearningPath({
+      idempotencyKey: 'path-normalized-1',
+      goalId: 'control-correction',
+      timeBudgetMinutes: 90,
+    });
+
+    expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        explanationPayload: expect.objectContaining({
+          selectedReasons: expect.arrayContaining(['matches-competency-deficit']),
+        }),
+      }),
+    }));
+  });
+
   it('accepts registered non-control adaptive path goals during path tool preflight', async () => {
     const createdRun = {
       id: 'tool-run-path-tradeoff-1',
@@ -4318,7 +4395,16 @@ describe('konling agent runtime', () => {
           id: 'frequency-path-1',
           userId: 'student-1',
           goalId: 'frequency-response-foundations',
-          pathPayload: { selectionHistory: [], activity: [] },
+          pathPayload: {
+            policyBundle: {
+              paths: [{
+                styleId: 'guided-frequency-route',
+                nodeIds: ['frequency-node-1'],
+              }],
+            },
+            selectionHistory: [],
+            activity: [],
+          },
         }),
         update: vi.fn().mockResolvedValue({ id: 'frequency-path-1' }),
       },
@@ -4388,6 +4474,89 @@ describe('konling agent runtime', () => {
     }));
   });
 
+  it('accepts explicit scoped path ids from the path center when no path node is mounted', async () => {
+    const createdRun = {
+      id: 'tool-run-select-explicit-1',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'select_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'select-explicit-path-1',
+      correlationId: 'corr-select-explicit-1',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['select_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          userId: 'student-1',
+          pathPayload: {
+            policyBundle: {
+              paths: [{ styleId: 'arena-simulation-sprint', nodeIds: ['node-1'] }],
+            },
+            selectionHistory: [],
+            activity: [],
+          },
+        }),
+        update: vi.fn().mockResolvedValue({ id: 'path-1' }),
+      },
+      learningFact: {
+        createMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      evidenceOutbox: {
+        createMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center', pathNodeId: null }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['select_learning_path'],
+        planContext: {
+          currentPathId: null,
+          activeNodeId: null,
+          nextNodeIds: [],
+          recentPathIds: [],
+          completedNodeIds: [],
+          status: 'missing',
+        },
+      }),
+    });
+
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-explicit-path-1',
+      pathId: 'path-1',
+      selectedStyleId: 'arena-simulation-sprint',
+    })).resolves.toMatchObject({
+      outcome: 'selected',
+    });
+    expect(db.agentToolRun.create).toHaveBeenCalled();
+    expect(db.learningPath.update).toHaveBeenCalled();
+  });
+
   it('records adaptive path selection and rejection as governed path activity', async () => {
     const selectRun = {
       id: 'tool-run-select-1',
@@ -4447,7 +4616,17 @@ describe('konling agent runtime', () => {
         findFirst: vi.fn().mockResolvedValue({
           id: 'path-1',
           userId: 'student-1',
-          pathPayload: { selectionHistory: [], activity: [] },
+          pathPayload: {
+            policyBundle: {
+              paths: [
+                { styleId: 'arena-simulation-sprint', nodeIds: ['node-1'] },
+                { styleId: 'foundation-remediation', nodeIds: ['node-2'] },
+                { styleId: 'preference-matched-route', nodeIds: ['node-3'] },
+              ],
+            },
+            selectionHistory: [],
+            activity: [],
+          },
         }),
         update: vi.fn().mockResolvedValue({ id: 'path-1' }),
       },
@@ -4611,7 +4790,16 @@ describe('konling agent runtime', () => {
           .mockResolvedValueOnce({
             id: 'path-1',
             userId: 'student-1',
-            pathPayload: { selectionHistory: [], activity: [] },
+            pathPayload: {
+              policyBundle: {
+                paths: [
+                  { styleId: 'arena-simulation-sprint', nodeIds: ['node-1'] },
+                  { styleId: 'foundation-remediation', nodeIds: ['node-2'] },
+                ],
+              },
+              selectionHistory: [],
+              activity: [],
+            },
           })
           .mockResolvedValueOnce(null)
           .mockResolvedValueOnce({
@@ -4850,6 +5038,67 @@ describe('konling agent runtime', () => {
     expect(db.evidenceOutbox.createMany).not.toHaveBeenCalled();
     expect(db.learningFact.createMany).not.toHaveBeenCalled();
     expect(db.learningPath.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects path option ids that are not stored on the scoped learning path', async () => {
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['select_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn(),
+        create: vi.fn(),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          userId: 'student-1',
+          pathPayload: {
+            policyBundle: {
+              paths: [{ styleId: 'foundation-remediation', nodeIds: ['node-1'] }],
+            },
+          },
+        }),
+        update: vi.fn(),
+      },
+      learningFact: {
+        createMany: vi.fn(),
+      },
+      evidenceOutbox: {
+        createMany: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['select_learning_path'],
+        planContext: {
+          currentPathId: 'path-1',
+          activeNodeId: 'node-1',
+          nextNodeIds: [],
+          recentPathIds: ['path-1'],
+          completedNodeIds: [],
+          status: 'available',
+        },
+      }),
+    });
+
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-invalid-style',
+      selectedStyleId: 'hallucinated-style',
+    })).rejects.toMatchObject({
+      status: 403,
+      message: '路径选项不属于当前学习路径。',
+    });
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
+    expect(db.learningPath.update).not.toHaveBeenCalled();
+    expect(db.evidenceOutbox.createMany).not.toHaveBeenCalled();
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
   });
 
   it('rejects path-bound adaptive path tools when no current path is available', async () => {

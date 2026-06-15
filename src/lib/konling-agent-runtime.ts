@@ -30,6 +30,7 @@ import {
 import {
   buildAdaptiveLearningPathPlan,
   getRegisteredAdaptiveLearningPathGoal,
+  type AdaptiveLearningPathLearnerState,
   type AdaptiveLearningPathPlan,
   type AdaptiveLearningPathPlanNode,
 } from '@/lib/adaptive-learning-path-planner';
@@ -1325,7 +1326,8 @@ async function buildAdaptivePathToolOutput(
   const plan = buildAdaptiveLearningPathPlan({
     studentId: input.scope.targetUserId,
     goal: registeredGoal.goal,
-    learnerState: (input.context.learnerState as any) ?? buildColdStartAdaptivePathLearnerState(registeredGoal.goal.knowledgeTargets),
+    learnerState: normalizeAdaptivePathLearnerStateForPlanner(input.context.learnerState as any)
+      ?? buildColdStartAdaptivePathLearnerState(registeredGoal.goal.knowledgeTargets),
     registry,
     constraints: {
       timeBudgetMinutes: timeBudget.effectiveMinutes,
@@ -1416,7 +1418,7 @@ function resolveAdaptivePathTimeBudget(
   };
 }
 
-function buildColdStartAdaptivePathLearnerState(knowledgeTargets: string[]) {
+function buildColdStartAdaptivePathLearnerState(knowledgeTargets: string[]): AdaptiveLearningPathLearnerState {
   const tags = Object.fromEntries(knowledgeTargets.map((target) => [target, {
     posteriorMastery: 0.35,
     confidence: 0.25,
@@ -1424,7 +1426,6 @@ function buildColdStartAdaptivePathLearnerState(knowledgeTargets: string[]) {
   }]));
   return {
     knowledgeMastery: {
-      coverage: 'partial',
       tags,
     },
     evidence: {
@@ -1446,6 +1447,32 @@ function buildColdStartAdaptivePathLearnerState(knowledgeTargets: string[]) {
       activeFlags: [],
     },
   };
+}
+
+function normalizeAdaptivePathLearnerStateForPlanner(
+  learnerState: AdaptiveLearnerState | null | undefined,
+): AdaptiveLearningPathLearnerState | null {
+  if (!learnerState) return null;
+  const vector = learnerState.primaryCompetencies?.vector ?? {};
+  return {
+    ...learnerState,
+    primaryCompetencies: {
+      ...learnerState.primaryCompetencies,
+      vector: Object.fromEntries(Object.entries(vector).map(([key, value]) => [
+        key,
+        {
+          ...value,
+          score: normalizePlannerScore(value?.score),
+        },
+      ])),
+    },
+  } as AdaptiveLearningPathLearnerState;
+}
+
+function normalizePlannerScore(value: unknown) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
+  if (value > 1) return Math.max(0, Math.min(1, value / 100));
+  return Math.max(0, Math.min(1, value));
 }
 
 function normalizeAdaptivePathResourcePreferences(value: string[] | undefined): AdaptiveLearningPathPlanNode['type'][] | undefined {
@@ -1641,7 +1668,7 @@ async function assertScopedAdaptivePathToolPath(
     currentPathId,
     ...(input.context.planContext?.recentPathIds ?? []),
   ].filter((pathId): pathId is string => typeof pathId === 'string' && pathId.length > 0));
-  if (requestedPathId && (knownPathIds.size === 0 || !knownPathIds.has(requestedPathId))) {
+  if (requestedPathId && knownPathIds.size > 0 && !knownPathIds.has(requestedPathId)) {
     throw new KonlingRuntimeScopeError(403, 'Konling 路径工具不能扩展到当前学习路径之外。');
   }
   const pathId = requestedPathId ?? currentPathId;
@@ -1659,11 +1686,41 @@ async function assertScopedAdaptivePathToolPath(
       goalId: options.goalId,
       ...(input.scope.classId ? { classId: input.scope.classId } : {}),
     },
-    select: { id: true },
+    select: { id: true, pathPayload: true },
   });
   if (!path) {
     throw new KonlingRuntimeScopeError(403, 'Konling 路径工具不能访问不属于当前学生的学习路径。');
   }
+  return path;
+}
+
+function assertAdaptivePathOptionIds(
+  path: unknown,
+  selectedStyleId: string | null | undefined,
+  rejectedStyleIds: string[],
+) {
+  const requestedStyleIds = [
+    selectedStyleId ?? null,
+    ...rejectedStyleIds,
+  ].filter((styleId): styleId is string => typeof styleId === 'string' && styleId.length > 0);
+  if (requestedStyleIds.length === 0) return;
+  const validStyleIds = readStoredAdaptivePathOptionStyleIds(readRecord(getValue(path, 'pathPayload')));
+  if (validStyleIds.size === 0) {
+    throw new KonlingRuntimeScopeError(403, '当前学习路径没有可记录的路径选项。');
+  }
+  if (requestedStyleIds.some((styleId) => !validStyleIds.has(styleId))) {
+    throw new KonlingRuntimeScopeError(403, '路径选项不属于当前学习路径。');
+  }
+}
+
+function readStoredAdaptivePathOptionStyleIds(pathPayload: Record<string, unknown>) {
+  const policyBundle = readRecord(getValue(pathPayload, 'policyBundle'));
+  const options = arrayOfRecords(getValue(policyBundle, 'paths')).length > 0
+    ? arrayOfRecords(getValue(policyBundle, 'paths'))
+    : arrayOfRecords(getValue(pathPayload, 'pathOptions'));
+  return new Set(options
+    .map((option) => getString(option, 'styleId'))
+    .filter((styleId): styleId is string => Boolean(styleId)));
 }
 
 function buildAdaptivePathToolScope(input: KonlingToolRuntimeInput, goalId: string, pathId?: string | null) {
@@ -2086,19 +2143,22 @@ async function validateKonlingToolPreflight(
     const parsed = reviseLearningPathOptionsParameters.parse(toolInput);
     const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
     resolveAdaptivePathGenerationRegistry(goalId);
-    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
+    const path = await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
+    assertAdaptivePathOptionIds(path, parsed.selectedStyleId, parsed.rejectedStyleIds ?? []);
     return;
   }
   if (toolName === 'select_learning_path') {
     const parsed = selectLearningPathParameters.parse(toolInput);
     const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
+    const path = await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
+    assertAdaptivePathOptionIds(path, parsed.selectedStyleId, []);
     return;
   }
   if (toolName === 'reject_learning_path_option') {
     const parsed = rejectLearningPathOptionParameters.parse(toolInput);
     const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
+    const path = await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
+    assertAdaptivePathOptionIds(path, null, [parsed.rejectedStyleId]);
     return;
   }
   if (toolName === 'explain_learning_path_tradeoff') {
@@ -2110,7 +2170,8 @@ async function validateKonlingToolPreflight(
   if (toolName === 'record_path_adjustment_outcome') {
     const parsed = recordPathAdjustmentOutcomeParameters.parse(toolInput);
     const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
+    const path = await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
+    assertAdaptivePathOptionIds(path, parsed.selectedStyleId, parsed.rejectedStyleIds ?? []);
     return;
   }
   if (toolName === 'set_simulation_params') {
