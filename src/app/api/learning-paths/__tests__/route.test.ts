@@ -1143,6 +1143,64 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('returns existing external-resource completion on idempotent replay after the path advances', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'frequency-response-foundations',
+      pathStatus: 'active',
+      currentNodeId: 'node-2',
+      nodeIds: ['external-resource:ocw-bode', 'node-2'],
+      pathPayload: {
+        mainPathNodeIds: ['external-resource:ocw-bode', 'node-2'],
+        planNodes: [
+          {
+            nodeId: 'external-resource:ocw-bode',
+            type: 'external_resource',
+            target: 'https://ocw.mit.edu/control/bode',
+            externalResource: {
+              source: 'MIT OCW',
+              url: 'https://ocw.mit.edu/control/bode',
+              estimatedTimeMinutes: 15,
+              knowledgeCoverage: ['kn-bode'],
+              applicableGoalId: 'frequency-response-foundations',
+              evidenceUseStatus: 'explicit-access-required',
+              privacyPolicy: 'student-visible',
+            },
+          },
+          { nodeId: 'node-2', type: 'adaptive_quiz', target: '/assessment/adaptive-practice' },
+        ],
+      },
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      lastExecutionMetadata: { completedNodeIds: ['external-resource:ocw-bode'] },
+    });
+    const existingExecution = {
+      id: 'exec-external-completed',
+      pathId: 'path-1',
+      userId: 'student-1',
+      idempotencyKey: 'external-resource-completion:path-1:external-resource:ocw-bode',
+      nodeId: 'external-resource:ocw-bode',
+      resourceType: 'external_resource',
+      status: 'completed',
+      completedAt: new Date('2026-06-04T10:00:00.000Z'),
+    };
+    mocks.prisma.learningPathExecution.findFirst.mockResolvedValue(existingExecution);
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'external-resource:ocw-bode',
+      resourceType: 'external_resource',
+      status: 'completed',
+      idempotencyKey: 'external-resource-completion:path-1:external-resource:ocw-bode',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.execution.id).toBe('exec-external-completed');
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
   it('does not serve external resource launch through GET navigation probes', async () => {
     configureSingleNodePath('external-resource:ocw-bode', 'external_resource', 'https://ocw.mit.edu/control/bode', {
       planNode: {
@@ -1720,7 +1778,7 @@ describe('learning path round API routes', () => {
     }));
   });
 
-  it('rejects idempotent retry for an older node without governed activity metadata', async () => {
+  it('returns an idempotent older-node replay without governed activity metadata without re-emitting evidence', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1',
       userId: 'student-1',
@@ -1756,8 +1814,10 @@ describe('learning path round API routes', () => {
       status: 'completed',
       idempotencyKey: 'exec-key',
     }), params);
+    const payload = await response.json();
 
-    expect(response.status).toBe(409);
+    expect(response.status).toBe(200);
+    expect(payload.execution.id).toBe('exec-existing');
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
     expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
@@ -1851,7 +1911,7 @@ describe('learning path round API routes', () => {
     }));
   });
 
-  it('rejects invalid idempotent historical return before re-emitting execution evidence', async () => {
+  it('returns invalid idempotent historical return without re-emitting execution evidence', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1',
       userId: 'student-1',
@@ -1891,13 +1951,15 @@ describe('learning path round API routes', () => {
       idempotencyKey: 'return-key',
       liftMetadata: { pathActivityKind: 'return-to-skipped' },
     }), params);
+    const payload = await response.json();
 
-    expect(response.status).toBe(409);
+    expect(response.status).toBe(200);
+    expect(payload.execution.id).toBe('exec-return-existing');
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
     expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
 
-  it('rejects idempotent historical executions without governed activity metadata before re-emitting evidence', async () => {
+  it('returns idempotent historical executions without governed activity metadata before re-emitting evidence', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1',
       userId: 'student-1',
@@ -1932,8 +1994,10 @@ describe('learning path round API routes', () => {
       status: 'completed',
       idempotencyKey: 'old-history-key',
     }), params);
+    const payload = await response.json();
 
-    expect(response.status).toBe(409);
+    expect(response.status).toBe(200);
+    expect(payload.execution.id).toBe('exec-old-history');
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
     expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });

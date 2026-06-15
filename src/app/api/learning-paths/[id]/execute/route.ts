@@ -111,24 +111,25 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
             actorRole: requester.role,
           };
           const existingPathNode = readPathNode(path, existingExecution.nodeId);
+          const existingActivityKind = readPathActivityKind(executionInput.liftMetadata);
+          const existingHistoricalActivity = path.currentNodeId !== executionInput.nodeId;
+          const canReplayHistoricalActivity = existingActivityKind
+            ? await canWriteHistoricalPathActivity(
+                prisma as any,
+                path,
+                existingPathNode,
+                executionInput.nodeId,
+                existingActivityKind,
+                executionInput.status,
+              )
+            : false;
+          if (existingHistoricalActivity && !canReplayHistoricalActivity) {
+            const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
+            return NextResponse.json({ execution: toExecutionWriteView(existingExecution), cacheRefresh });
+          }
           const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, existingPathNode, executionInput);
           if (governedExternalInput instanceof NextResponse) return governedExternalInput;
           const governedExecutionInput = await resolveGovernedTerminalEvidence(prisma as any, path, governedExternalInput);
-          const existingActivityKind = readPathActivityKind(governedExecutionInput.liftMetadata);
-          const existingHistoricalActivity = path.currentNodeId !== governedExecutionInput.nodeId;
-          if (
-            existingHistoricalActivity &&
-            (!existingActivityKind || !(await canWriteHistoricalPathActivity(
-              prisma as any,
-              path,
-              existingPathNode,
-              governedExecutionInput.nodeId,
-              existingActivityKind,
-              governedExecutionInput.status,
-            )))
-          ) {
-            return NextResponse.json({ error: '执行事件只能写入当前路径节点' }, { status: 409 });
-          }
           execution = await recordPathNodeExecution(prisma as any, governedExecutionInput);
           if (shouldUpdatePathAfterExecution(path, existingPathNode, governedExecutionInput, existingActivityKind, existingHistoricalActivity)) {
             await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, governedExecutionInput);
