@@ -18,6 +18,9 @@ const mocks = vi.hoisted(() => ({
     learningPathExecution: {
       findFirst: vi.fn(),
     },
+    learningPathDeviation: {
+      findFirst: vi.fn(),
+    },
     simulationRun: {
       findFirst: vi.fn(),
     },
@@ -164,6 +167,7 @@ describe('learning path round API routes', () => {
     mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
     mocks.prisma.learningPath.update.mockResolvedValue({ id: 'path-1' });
     mocks.prisma.learningPathExecution.findFirst.mockResolvedValue(null);
+    mocks.prisma.learningPathDeviation.findFirst.mockResolvedValue(null);
     mocks.prisma.simulationRun.findFirst.mockResolvedValue(null);
     mocks.prisma.arenaSubmission.findFirst.mockResolvedValue(null);
     mocks.prisma.arenaVirtualSimulationRun.findFirst.mockResolvedValue(null);
@@ -545,6 +549,7 @@ describe('learning path round API routes', () => {
     const deviationResponse = await deviatePath(post('http://localhost/api/learning-paths/path-1/deviations', {
       deviationType: 'skip',
       priorNodeId: 'node-1',
+      targetNodeId: 'node-1',
       idempotencyKey: 'dev-key',
     }), params);
 
@@ -575,6 +580,10 @@ describe('learning path round API routes', () => {
     }));
     expect(mocks.recordPathDeviation).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       idempotencyKey: 'dev-key',
+      context: {
+        consequence: '跳过后该资源不会计入完成进度，但会记录为路径偏离，可稍后返回。',
+        returnEligible: true,
+      },
     }));
     expect(mocks.refreshStudentEvidenceFeatureCache).toHaveBeenCalledTimes(2);
     expect(mocks.refreshStudentEvidenceFeatureCache).toHaveBeenCalledWith(expect.anything(), 'student-1');
@@ -593,6 +602,197 @@ describe('learning path round API routes', () => {
       },
       cacheRefresh: 'completed',
     });
+  });
+
+  it('records completed-node continue and return-to-skipped as governed path activity without opening arbitrary nodes', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-2',
+      nodeIds: ['node-1', 'node-2'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2'],
+        planNodes: [
+          { nodeId: 'node-1', type: 'simulation', target: '/simulations/cruise' },
+          { nodeId: 'node-2', type: 'adaptive_quiz', target: '/assessment/adaptive-practice' },
+        ],
+      },
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: [] },
+    });
+    mocks.recordPathNodeExecution.mockResolvedValueOnce({
+      id: 'exec-continue',
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'started',
+      liftMetadata: { pathActivityKind: 'continued-interaction' },
+    });
+
+    const continueResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'started',
+      idempotencyKey: 'continue-node-1',
+      liftMetadata: { pathActivityKind: 'continued-interaction' },
+    }), params);
+    expect(continueResponse.status).toBe(200);
+    expect(await continueResponse.json()).toMatchObject({
+      execution: {
+        id: 'exec-continue',
+        nodeId: 'node-1',
+        activityKind: 'continued-interaction',
+      },
+    });
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      nodeId: 'node-1',
+      liftMetadata: { pathActivityKind: 'continued-interaction' },
+    }));
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+
+    const forgedContinueResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'forged-continue-node-1',
+      liftMetadata: { pathActivityKind: 'continued-interaction' },
+    }), params);
+    expect(forgedContinueResponse.status).toBe(409);
+
+    const rejectedResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'arbitrary-node-1',
+    }), params);
+    expect(rejectedResponse.status).toBe(409);
+
+    const forgedReturnResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'forged-return-node-1',
+      liftMetadata: { pathActivityKind: 'return-to-skipped' },
+    }), params);
+    expect(forgedReturnResponse.status).toBe(409);
+
+    const missingSkipReturnResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'started',
+      idempotencyKey: 'missing-skip-return-node-1',
+      liftMetadata: { pathActivityKind: 'return-to-skipped' },
+    }), params);
+    expect(missingSkipReturnResponse.status).toBe(409);
+
+    mocks.prisma.learningPathDeviation.findFirst.mockResolvedValueOnce({
+      id: 'dev-skip-node-1',
+      pathId: 'path-1',
+      userId: 'student-1',
+      deviationType: 'skip',
+      targetNodeId: 'node-1',
+      context: { returnEligible: false },
+    });
+    const blockedReturnResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'started',
+      idempotencyKey: 'blocked-skip-return-node-1',
+      liftMetadata: { pathActivityKind: 'return-to-skipped' },
+    }), params);
+    expect(blockedReturnResponse.status).toBe(409);
+
+    mocks.recordPathNodeExecution.mockResolvedValueOnce({
+      id: 'exec-return',
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'started',
+      liftMetadata: { pathActivityKind: 'return-to-skipped' },
+    });
+    mocks.prisma.learningPathDeviation.findFirst.mockResolvedValueOnce({
+      id: 'dev-skip-node-1',
+      pathId: 'path-1',
+      userId: 'student-1',
+      deviationType: 'skip',
+      targetNodeId: 'node-1',
+      context: { returnEligible: true },
+    });
+    const returnResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'started',
+      idempotencyKey: 'return-node-1',
+      liftMetadata: { pathActivityKind: 'return-to-skipped' },
+    }), params);
+    expect(returnResponse.status).toBe(200);
+    expect(await returnResponse.json()).toMatchObject({
+      execution: {
+        id: 'exec-return',
+        activityKind: 'return-to-skipped',
+      },
+    });
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'node-1',
+      }),
+    }));
+  });
+
+  it('rejects skip deviations for completed historical nodes and rebuilds skip context server-side', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-2',
+      nodeIds: ['node-1', 'node-2', 'node-3'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3'],
+        planNodes: [
+          { nodeId: 'node-1', type: 'simulation', target: '/simulations/cruise' },
+          { nodeId: 'node-2', type: 'adaptive_quiz', target: '/assessment/adaptive-practice' },
+          { nodeId: 'node-3', type: 'checkpoint', target: '/assessment/adaptive-practice' },
+        ],
+      },
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: [] },
+    });
+
+    const forgedHistoryResponse = await deviatePath(post('http://localhost/api/learning-paths/path-1/deviations', {
+      deviationType: 'skip',
+      priorNodeId: 'node-2',
+      targetNodeId: 'node-1',
+      idempotencyKey: 'skip-node-1',
+      context: { returnEligible: true, rawClientClaim: 'forged' },
+    }), params);
+    expect(forgedHistoryResponse.status).toBe(409);
+    expect(mocks.recordPathDeviation).not.toHaveBeenCalled();
+
+    mocks.recordPathDeviation.mockResolvedValueOnce({
+      id: 'dev-3',
+      deviationType: 'skip',
+      targetNodeId: 'node-3',
+      context: { ignored: true },
+    });
+    const futureSkipResponse = await deviatePath(post('http://localhost/api/learning-paths/path-1/deviations', {
+      deviationType: 'skip',
+      priorNodeId: 'node-2',
+      targetNodeId: 'node-3',
+      idempotencyKey: 'skip-node-3',
+      context: { returnEligible: false, rawClientClaim: 'ignored' },
+    }), params);
+
+    expect(futureSkipResponse.status).toBe(200);
+    expect(mocks.recordPathDeviation).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      targetNodeId: 'node-3',
+      context: {
+        consequence: '跳过后该资源不会计入完成进度，但会记录为路径偏离，可稍后返回。',
+        returnEligible: true,
+      },
+    }));
   });
 
   it('records path choice evidence for the student owner with current style ids', async () => {
@@ -1402,7 +1602,7 @@ describe('learning path round API routes', () => {
     }));
   });
 
-  it('does not roll back the parent path on idempotent retry for an older node', async () => {
+  it('rejects idempotent retry for an older node without governed activity metadata', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1',
       userId: 'student-1',
@@ -1439,11 +1639,184 @@ describe('learning path round API routes', () => {
       idempotencyKey: 'exec-key',
     }), params);
 
-    expect(response.status).toBe(200);
-    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      idempotencyKey: 'exec-key',
-      status: 'completed',
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
+  it('repairs parent path updates on idempotent historical return and checkpoint retries', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-2',
+      nodeIds: ['node-1', 'node-2'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2'],
+        planNodes: [
+          { nodeId: 'node-1', type: 'simulation', target: '/simulations/cruise' },
+          { nodeId: 'node-2', type: 'checkpoint', target: '/assessment/adaptive-practice' },
+        ],
+      },
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: ['node-2'] },
+    });
+    mocks.prisma.learningPathDeviation.findFirst.mockResolvedValueOnce({
+      id: 'dev-skip-node-1',
+      pathId: 'path-1',
+      userId: 'student-1',
+      deviationType: 'skip',
+      targetNodeId: 'node-1',
+      context: { returnEligible: true },
+    });
+    const existingReturn = {
+      id: 'exec-return-existing',
+      pathId: 'path-1',
+      idempotencyKey: 'return-key',
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'started',
+      liftMetadata: { pathActivityKind: 'return-to-skipped' },
+    };
+    mocks.prisma.learningPathExecution.findFirst.mockResolvedValueOnce(existingReturn);
+    mocks.recordPathNodeExecution.mockResolvedValueOnce(existingReturn);
+
+    const returnResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'started',
+      idempotencyKey: 'return-key',
+      liftMetadata: { pathActivityKind: 'return-to-skipped' },
+    }), params);
+
+    expect(returnResponse.status).toBe(200);
+    expect(mocks.prisma.learningPath.update).toHaveBeenLastCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'node-1',
+      }),
     }));
+
+    mocks.prisma.learningPath.update.mockClear();
+    const existingCheckpoint = {
+      id: 'exec-checkpoint-existing',
+      pathId: 'path-1',
+      idempotencyKey: 'checkpoint-key',
+      nodeId: 'node-2',
+      resourceType: 'checkpoint',
+      status: 'completed',
+      liftMetadata: { pathActivityKind: 'checkpoint-pass' },
+      completedAt: new Date('2026-06-04T10:30:00.000Z'),
+    };
+    mocks.prisma.learningPathExecution.findFirst.mockResolvedValueOnce(existingCheckpoint);
+    mocks.recordPathNodeExecution.mockResolvedValueOnce(existingCheckpoint);
+
+    const checkpointResponse = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-2',
+      resourceType: 'checkpoint',
+      status: 'completed',
+      idempotencyKey: 'checkpoint-key',
+      liftMetadata: { pathActivityKind: 'checkpoint-pass' },
+    }), params);
+
+    expect(checkpointResponse.status).toBe(200);
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        lastExecutionMetadata: expect.objectContaining({
+          lastExecution: expect.objectContaining({
+            nodeId: 'node-2',
+            status: 'completed',
+          }),
+        }),
+      }),
+    }));
+  });
+
+  it('rejects invalid idempotent historical return before re-emitting execution evidence', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-2',
+      nodeIds: ['node-1', 'node-2'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2'],
+        planNodes: [
+          { nodeId: 'node-1', type: 'simulation', target: '/simulations/cruise' },
+          { nodeId: 'node-2', type: 'adaptive_quiz', target: '/assessment/adaptive-practice' },
+        ],
+      },
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: [] },
+    });
+    mocks.prisma.learningPathDeviation.findFirst.mockResolvedValueOnce(null);
+    mocks.prisma.learningPathExecution.findFirst.mockResolvedValueOnce({
+      id: 'exec-return-existing',
+      pathId: 'path-1',
+      idempotencyKey: 'return-key',
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'started',
+      liftMetadata: {
+        pathActivityKind: 'return-to-skipped',
+        rawClientPayload: 'must-not-be-re-emitted',
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'started',
+      idempotencyKey: 'return-key',
+      liftMetadata: { pathActivityKind: 'return-to-skipped' },
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects idempotent historical executions without governed activity metadata before re-emitting evidence', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-2',
+      nodeIds: ['node-1', 'node-2'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2'],
+        planNodes: [
+          { nodeId: 'node-1', type: 'simulation', target: '/simulations/cruise' },
+          { nodeId: 'node-2', type: 'adaptive_quiz', target: '/assessment/adaptive-practice' },
+        ],
+      },
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      lastExecutionMetadata: { completedNodeIds: ['node-1'], failedNodeIds: [] },
+    });
+    mocks.prisma.learningPathExecution.findFirst.mockResolvedValueOnce({
+      id: 'exec-old-history',
+      pathId: 'path-1',
+      idempotencyKey: 'old-history-key',
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
+      liftMetadata: { rawLegacyPayload: true },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'old-history-key',
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
     expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
 

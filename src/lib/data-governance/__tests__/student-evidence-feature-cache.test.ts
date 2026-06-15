@@ -233,6 +233,45 @@ describe('buildStudentEvidenceFeaturePayload', () => {
     });
   });
 
+  it('does not count path activity records as completions even if legacy rows are completed', () => {
+    const activityKinds = [
+      'continued-interaction',
+      'review',
+      'return-to-skipped',
+      'external-resource-reference',
+      'konling-support',
+    ];
+    const payload = buildStudentEvidenceFeaturePayload({
+      userId: 'student-1',
+      now: new Date('2026-06-04T12:00:00.000Z'),
+      facts: [],
+      pathEvidence: {
+        executions: activityKinds.map((activityKind, index) => ({
+          id: `exec-activity-${index}`,
+          pathId: 'path-1',
+          userId: 'student-1',
+          nodeId: `node-${index}`,
+          resourceType: 'simulation',
+          status: 'completed',
+          completedAt: new Date(`2026-06-04T10:0${index}:00.000Z`),
+          idempotencyKey: `activity-${index}`,
+          liftMetadata: { pathActivityKind: activityKind },
+          createdAt: new Date(`2026-06-04T10:0${index}:01.000Z`),
+        })),
+        deviations: [],
+        interventions: [],
+      },
+    } as any);
+
+    expect((payload.features as any).pathExecution.allTime).toMatchObject({
+      evidenceCount: activityKinds.length,
+      completionCount: 0,
+      sourceCoverage: {
+        completion: 'missing',
+      },
+    });
+  });
+
   it('summarizes failed terminal validation executions', () => {
     const payload = buildStudentEvidenceFeaturePayload({
       userId: 'student-1',
@@ -823,6 +862,7 @@ describe('student evidence feature cache service', () => {
             status: 'completed',
             completedAt: new Date('2026-06-04T10:20:00.000Z'),
             idempotencyKey: 'exec-key',
+            liftMetadata: { pathActivityKind: 'continued-interaction' },
             createdAt: new Date('2026-06-04T10:20:01.000Z'),
             path: { goalId: 'control-correction', terminalValidation: { nodeId: 'terminal-node' } },
           },
@@ -866,10 +906,15 @@ describe('student evidence feature cache service', () => {
       },
       select: expect.not.objectContaining({
         evidenceRefs: true,
-        liftMetadata: true,
       }),
       orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
     }));
+    expect(db.learningPathExecution.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      select: expect.objectContaining({
+        liftMetadata: true,
+      }),
+    }));
+    expect((entry.features as any).pathExecution.allTime.completionCount).toBe(0);
     expect(db.studentCompetencySnapshot.findFirst).toHaveBeenCalledWith(
       expect.objectContaining({
         orderBy: [
@@ -896,7 +941,7 @@ describe('student evidence feature cache service', () => {
           features: expect.objectContaining({
             pathExecution: expect.objectContaining({
               allTime: expect.objectContaining({
-                completionCount: 1,
+                completionCount: 0,
               }),
             }),
           }),

@@ -951,6 +951,134 @@ describe('control-correction path rounds', () => {
     }));
   });
 
+  it('records governed path activity kind without exposing raw lift metadata in the student path view', async () => {
+    const db = mockDb();
+
+    const execution = await recordPathNodeExecution(db, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'continue-key',
+      liftMetadata: {
+        pathActivityKind: 'continued-interaction',
+        rawPrompt: 'do-not-expose',
+      },
+    });
+
+    expect(execution).toMatchObject({
+      liftMetadata: expect.objectContaining({ pathActivityKind: 'continued-interaction' }),
+    });
+    expect(db.evidenceOutbox.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: [
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            relatedRefs: expect.objectContaining({
+              activityKind: 'continued-interaction',
+            }),
+          }),
+        }),
+      ],
+      skipDuplicates: true,
+    }));
+
+    const view = toControlCorrectionPathRoundView({
+      id: 'path-1',
+      userId: 'student-1',
+      pathPayload: { planNodes: [] },
+      executions: [execution],
+      deviations: [],
+      interventions: [],
+    });
+    expect(view?.executions[0]).toMatchObject({
+      id: 'exec-created',
+      activityKind: 'continued-interaction',
+    });
+    expect(view?.executions[0]).not.toHaveProperty('liftMetadata');
+    expect(JSON.stringify(view)).not.toContain('do-not-expose');
+  });
+
+  it('keeps completed-node continued interaction from double-counting first completion', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'node-2',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2'],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: ['node-1'],
+        failedNodeIds: [],
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'continue-key',
+      liftMetadata: { pathActivityKind: 'continued-interaction' },
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'node-2',
+        lastExecutionMetadata: expect.objectContaining({
+          completedNodeIds: ['node-1'],
+          lastExecution: expect.objectContaining({
+            nodeId: 'node-1',
+            status: 'completed',
+          }),
+        }),
+      }),
+    }));
+  });
+
+  it('does not roll back current path position when historical activity is appended to an older completed node', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'node-3',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3'],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: ['node-1', 'node-2'],
+        failedNodeIds: [],
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'continue-key',
+      liftMetadata: { pathActivityKind: 'continued-interaction' },
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'node-3',
+        lastExecutionMetadata: expect.objectContaining({
+          completedNodeIds: ['node-1', 'node-2'],
+          lastExecution: expect.objectContaining({
+            nodeId: 'node-1',
+            status: 'completed',
+          }),
+        }),
+      }),
+    }));
+  });
+
   it('records path style selection evidence for preference writeback without raw rationale leakage', async () => {
     const db = mockDb();
 

@@ -16,6 +16,7 @@ export const dynamic = 'force-dynamic';
 
 const DEVIATION_TYPES = new Set(['skip', 'timeout', 'manual-jump', 'resource-failure', 'abandonment', 'help-request']);
 const EVIDENCE_CONFIDENCE = new Set(['low', 'medium', 'high', 'unknown']);
+const SKIP_WARNING_TEXT = '跳过后该资源不会计入完成进度，但会记录为路径偏离，可稍后返回。';
 
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
@@ -49,6 +50,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     ) {
       return NextResponse.json({ error: '路径偏离事件不符合枚举或节点契约' }, { status: 400 });
     }
+    const skipContext = validateAndBuildSkipContext(path, body);
+    if (skipContext instanceof NextResponse) return skipContext;
     const deviation = await recordPathDeviation(prisma as any, {
       pathId: params.id,
       userId: path.userId,
@@ -56,7 +59,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       deviationType: body.deviationType,
       priorNodeId: body.priorNodeId ?? null,
       targetNodeId: body.targetNodeId ?? null,
-      context: body.context ?? {},
+      context: skipContext ?? body.context ?? {},
       evidenceConfidence: body.evidenceConfidence ?? 'unknown',
       idempotencyKey: body.idempotencyKey ?? null,
       actorUserId: requester.userId,
@@ -81,4 +84,40 @@ function toDeviationWriteView(deviation: any) {
     evidenceConfidence: deviation.evidenceConfidence ?? 'unknown',
     createdAt: deviation.createdAt ?? null,
   };
+}
+
+function validateAndBuildSkipContext(path: any, body: any): Record<string, unknown> | NextResponse | null {
+  if (body.deviationType !== 'skip') return null;
+  if (typeof body.targetNodeId !== 'string') {
+    return NextResponse.json({ error: '跳过路径偏离必须指定目标节点' }, { status: 400 });
+  }
+  if (typeof path.currentNodeId === 'string' && body.priorNodeId !== path.currentNodeId) {
+    return NextResponse.json({ error: '跳过路径偏离必须从当前节点发起' }, { status: 409 });
+  }
+  const metadata = toRecord(path.lastExecutionMetadata);
+  const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
+  if (completedNodeIds.has(body.targetNodeId)) {
+    return NextResponse.json({ error: '已完成节点不能写入跳过偏离' }, { status: 409 });
+  }
+  const payload = toRecord(path.pathPayload);
+  const mainPathNodeIds = arrayOfStrings(payload.mainPathNodeIds);
+  if (typeof path.currentNodeId === 'string' && mainPathNodeIds.length > 0) {
+    const currentIndex = mainPathNodeIds.indexOf(path.currentNodeId);
+    const targetIndex = mainPathNodeIds.indexOf(body.targetNodeId);
+    if (currentIndex >= 0 && targetIndex >= 0 && targetIndex < currentIndex) {
+      return NextResponse.json({ error: '历史节点不能写入跳过偏离' }, { status: 409 });
+    }
+  }
+  return {
+    consequence: SKIP_WARNING_TEXT,
+    returnEligible: true,
+  };
+}
+
+function toRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function arrayOfStrings(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }

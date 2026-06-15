@@ -392,3 +392,16 @@ Final interactive learning product QA SHALL require an independent visual review
 #### Scenario: Interactive learning regression is detected
 - **WHEN** pages show duplicated global navigation, missing breadcrumbs, fixed full-page centered width, missing Konling dock, Konling embedded into a course right rail, permanent teacher right drawer, top duplicate next-page action, missing teacher page-jump dropdown, oversized teacher bottom navigation, student answer inputs in teacher mode, teacher stats in student/guest mode, or unregistered module chrome
 - **THEN** governance SHALL fail or report the issue as a blocking product QA regression.
+
+### Requirement: Adaptive execution and history UI requires design-qa evidence
+Commercial UI governance SHALL require visual evidence for adaptive path execution and history surfaces against the accepted handoff and concept images.
+
+#### Scenario: Adaptive execution UI is reviewed
+- **WHEN** current path execution, node detail, skip, or history UI changes
+- **THEN** evidence SHALL include desktop and 320px mobile screenshots in light and dark themes
+- **AND** it SHALL include active full-path map, current-node state, completed-node actions, skip warning, history timeline, and shared dock non-overlap.
+
+#### Scenario: Visual subagent review runs
+- **WHEN** implementation evidence is ready
+- **THEN** a browser-capable visual subagent SHALL compare screenshots to the handoff, `03-active-path-execution.png`, and `04-history-evidence-record.png`
+- **AND** unresolved BLOCK findings SHALL fail acceptance.
