@@ -308,7 +308,10 @@ describe('platform role navigation', () => {
       '/assessment/document-feedback',
       '/data-center',
       '/classroom/student/[sessionId]',
+      '/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]',
+      '/interactive-learning/courses/unit-4-1-design-task-expression/teacher/[sessionId]',
       '/interactive-learning/courses/[course]/student/[sessionId]',
+      '/interactive-learning/courses/[course]/teacher/[sessionId]',
       '/playlists/[id]/play',
       '/teacher',
       '/teacher/classes',
@@ -359,7 +362,7 @@ describe('platform role navigation', () => {
       ]),
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning/courses')).toMatchObject({
-      frame: 'learning-atlas',
+      frame: 'mission-workspace',
       navigationLayers: expect.arrayContaining(['global-product', 'contextual-workspace']),
       floatingDock: 'collapsed',
     });
@@ -495,8 +498,8 @@ describe('platform role navigation', () => {
     expect(missingLegacyAliasRetirement).toEqual([]);
 
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning')).toMatchObject({
-      frame: 'learning-atlas',
-      legacyFrameAliases: expect.arrayContaining([expect.objectContaining({ alias: 'learning-map' })]),
+      frame: 'mission-workspace',
+      legacyFrameAliases: expect.arrayContaining([expect.objectContaining({ alias: 'immersive-task-workspace' })]),
     });
     expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/arena')).toMatchObject({
       frame: 'mission-workspace',
@@ -654,9 +657,45 @@ describe('platform role navigation', () => {
     expect(resolvePlatformRouteInventory('/interactive-learning/courses/unit-5-4-data-driven-mpc-transition')?.href).toBe(
       '/interactive-learning/courses/unit-5-4-data-driven-mpc-transition',
     );
-    expect(resolvePlatformRouteInventory('/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo-session')?.href).toBe(
-      '/interactive-learning/courses/[course]/student/[sessionId]',
-    );
+    expect(resolvePlatformRouteInventory('/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo-session')).toMatchObject({
+      href: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]',
+      owningChange: 'implement-unit-1-1-see-the-full-picture',
+    });
+    expect(resolvePlatformRouteInventory('/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/demo-session')).toMatchObject({
+      href: '/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]',
+      owningChange: 'implement-unit-1-1-see-the-full-picture',
+    });
+    for (const course of [
+      'unit-2-1-modeling-language',
+      'unit-3-4-root-locus-reading-validation',
+      'unit-5-4-data-driven-mpc-transition',
+    ]) {
+      expect(resolvePlatformRouteInventory(`/interactive-learning/courses/${course}/student/demo-session`)).toMatchObject({
+        href: '/interactive-learning/courses/[course]/student/[sessionId]',
+        owningChange: 'legacy-interactive-runtime-route-ledger-coverage',
+        exception: expect.objectContaining({
+          affectedCapability: 'interactive-lesson-runtime-legacy-pages',
+        }),
+      });
+      expect(resolvePlatformRouteInventory(`/interactive-learning/courses/${course}/teacher/demo-session`)).toMatchObject({
+        href: '/interactive-learning/courses/[course]/teacher/[sessionId]',
+        owningChange: 'legacy-interactive-runtime-route-ledger-coverage',
+        authState: 'mixed',
+        exception: expect.objectContaining({
+          affectedCapability: 'interactive-lesson-runtime-legacy-pages',
+        }),
+      });
+    }
+    expect(resolvePlatformRouteInventory('/interactive-learning/courses/unit-4-1-design-task-expression/student/demo')).toMatchObject({
+      href: '/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]',
+      roleScope: ['guest', 'student'],
+      authState: 'mixed',
+    });
+    expect(resolvePlatformRouteInventory('/interactive-learning/courses/unit-4-1-design-task-expression/teacher/demo')).toMatchObject({
+      href: '/interactive-learning/courses/unit-4-1-design-task-expression/teacher/[sessionId]',
+      roleScope: ['teacher', 'admin'],
+      authState: 'protected-redirect',
+    });
     expect(resolvePlatformRouteInventory('/interactive-learning/chapter-components/modeling-language')?.href).toBe(
       '/interactive-learning/chapter-components/[category]',
     );
@@ -704,7 +743,9 @@ describe('platform role navigation', () => {
       expect.arrayContaining(['/teacher', '/teacher/classes', '/teacher/lesson-plans']),
     );
     expect(getPlatformRouteNavigation('/classroom/student/demo-session', 'student')).toEqual([]);
-    expect(getPlatformRouteNavigation('/interactive-learning/courses/unit-4-1-design-task-expression/student/demo-session', 'student')).toEqual([]);
+    expect(getPlatformRouteNavigation('/interactive-learning/courses/unit-4-1-design-task-expression/student/demo-session', 'student').map((entry) => entry.href)).toEqual(
+      expect.arrayContaining(['/interactive-learning']),
+    );
   });
 
   it('resolves every declared route alias through the central inventory', () => {
@@ -768,6 +809,7 @@ describe('platform role navigation', () => {
     expect(exceptions.map((route) => route.href)).toEqual([
       '/classroom/student/[sessionId]',
       '/interactive-learning/courses/[course]/student/[sessionId]',
+      '/interactive-learning/courses/[course]/teacher/[sessionId]',
       '/playlists/[id]/play',
       '/teacher/classes/new',
       '/teacher/lesson-plans/new',
@@ -787,9 +829,39 @@ describe('platform role navigation', () => {
       });
       expect(route.exception?.expiresOn).toMatch(isoDatePattern);
     }
-    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning/courses/[course]/student/[sessionId]')).toMatchObject({
-      routePattern: '/interactive-learning/courses/:course/student/:sessionId',
-      coveredRouteGlob: 'src/app/interactive-learning/courses/*/student/[sessionId]/page.tsx',
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]')).toMatchObject({
+      routePattern: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/:sessionId',
+      frame: 'mission-workspace',
+      roleScope: ['guest', 'student'],
+      authState: 'mixed',
+      floatingDock: 'collapsed',
+      mobileNavigation: 'workspace-command-surface',
+      navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/[sessionId]')).toMatchObject({
+      routePattern: '/interactive-learning/courses/unit-1-1-see-the-full-picture/teacher/:sessionId',
+      frame: 'mission-workspace',
+      roleScope: ['teacher', 'admin'],
+      floatingDock: 'collapsed',
+      mobileNavigation: 'workspace-command-surface',
+      navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]')).toMatchObject({
+      routePattern: '/interactive-learning/courses/unit-4-1-design-task-expression/student/:sessionId',
+      frame: 'mission-workspace',
+      roleScope: ['guest', 'student'],
+      authState: 'mixed',
+      floatingDock: 'collapsed',
+      desktopNavigation: 'collapsible',
+      navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
+    });
+    expect(PLATFORM_PRIMARY_ROUTE_INVENTORY.find((route) => route.href === '/interactive-learning/courses/unit-4-1-design-task-expression/teacher/[sessionId]')).toMatchObject({
+      routePattern: '/interactive-learning/courses/unit-4-1-design-task-expression/teacher/:sessionId',
+      frame: 'mission-workspace',
+      roleScope: ['teacher', 'admin'],
+      floatingDock: 'collapsed',
+      desktopNavigation: 'collapsible',
+      navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
     });
   });
 
