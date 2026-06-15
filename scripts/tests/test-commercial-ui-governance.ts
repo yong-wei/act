@@ -69,6 +69,28 @@ function hasGitRef(ref: string) {
   return git(['rev-parse', '--verify', ref]).trim().length > 0;
 }
 
+function isAncestorCommit(ancestor: string, descendant: string) {
+  try {
+    execFileSync('git', ['merge-base', '--is-ancestor', ancestor, descendant], {
+      cwd: repoRoot,
+      stdio: ['ignore', 'ignore', 'ignore'],
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function latestCommitForPath(file: string) {
+  return git(['log', '-1', '--format=%H', '--', file]).trim();
+}
+
+function hasUncommittedPathChange(file: string) {
+  return diffNameStatus(['--', file]).includes(file)
+    || diffNameStatus(['--cached', '--', file]).includes(file)
+    || lines(git(['ls-files', '--others', '--exclude-standard', '--', file])).includes(file);
+}
+
 function lines(output: string) {
   return output.split('\n').map((line) => line.trim()).filter(Boolean);
 }
@@ -817,6 +839,27 @@ function shouldRequireInteractiveLearningProductQa(files: readonly string[]) {
     || INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix))
     || file === 'src/lib/commercial-ui-governance.ts'
     || file === 'scripts/tests/test-commercial-ui-governance.ts'
+  ));
+}
+
+function latestInteractiveLearningProductQaSourceCommits(files: readonly string[]) {
+  return Array.from(new Set(files
+    .filter((file) => INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix)))
+    .map(latestCommitForPath)
+    .filter(Boolean)));
+}
+
+function interactiveLearningProductQaEvidenceCoversLatestSource(files: readonly string[]) {
+  const sourceFiles = files.filter((file) => (
+    INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix))
+  ));
+  const hasUncommittedSourceChange = sourceFiles.some(hasUncommittedPathChange);
+  if (hasUncommittedSourceChange) return hasUncommittedPathChange(INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH);
+  const latestSourceCommits = latestInteractiveLearningProductQaSourceCommits(files);
+  if (latestSourceCommits.length === 0) return true;
+  const evidenceCommit = latestCommitForPath(INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH);
+  return Boolean(evidenceCommit) && latestSourceCommits.every((sourceCommit) => (
+    isAncestorCommit(sourceCommit, evidenceCommit)
   ));
 }
 
@@ -1837,7 +1880,7 @@ const interactiveLearningProductQaRequired = shouldRequireInteractiveLearningPro
 const interactiveLearningProductQaSourceRefreshRequired = files.some((file) => (
   INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix))
 ));
-const interactiveLearningProductQaEvidenceRefreshed = files.includes(INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH);
+const interactiveLearningProductQaEvidenceRefreshed = interactiveLearningProductQaEvidenceCoversLatestSource(files);
 const result = evaluateCommercialUiGovernance({
   mode: 'blocking',
   today,

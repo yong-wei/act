@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { existsSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 
@@ -76,6 +76,78 @@ function simulationNavigationStatesForWidth(
 ): CommercialVisualQaNavigationState[] {
   return states.filter((state) => (
     width === 1440 ? state.startsWith('desktop-') : !state.startsWith('desktop-')
+  ));
+}
+
+function runTempGit(cwd: string, args: string[]) {
+  const result = spawnSync('git', args, { cwd, encoding: 'utf8' });
+  if (result.status !== 0) {
+    throw new Error(`git ${args.join(' ')} failed: ${result.stderr || result.stdout}`);
+  }
+  return result.stdout.trim();
+}
+
+function initTempGitRepo(prefix: string) {
+  const repo = mkdtempSync(join(tmpdir(), prefix));
+  runTempGit(repo, ['init']);
+  runTempGit(repo, ['branch', '-M', 'main']);
+  runTempGit(repo, ['config', 'user.name', 'Commercial UI Governance Test']);
+  runTempGit(repo, ['config', 'user.email', 'commercial-ui-governance@example.invalid']);
+  return repo;
+}
+
+function commitTempFile(repo: string, file: string, content: string, message: string) {
+  const absolutePath = join(repo, file);
+  mkdirSync(dirname(absolutePath), { recursive: true });
+  writeFileSync(absolutePath, content);
+  runTempGit(repo, ['add', file]);
+  runTempGit(repo, ['commit', '-m', message]);
+  return runTempGit(repo, ['rev-parse', 'HEAD']);
+}
+
+function isTempGitAncestor(repo: string, ancestor: string, descendant: string) {
+  return spawnSync('git', ['merge-base', '--is-ancestor', ancestor, descendant], {
+    cwd: repo,
+    stdio: ['ignore', 'ignore', 'ignore'],
+  }).status === 0;
+}
+
+function tempGitLines(repo: string, args: string[]) {
+  return runTempGit(repo, args).split('\n').map((line) => line.trim()).filter(Boolean);
+}
+
+function tempChangedFiles(repo: string) {
+  const files = new Set<string>();
+  for (const args of [['diff', '--name-only'], ['diff', '--name-only', '--cached']]) {
+    for (const file of tempGitLines(repo, args)) files.add(file);
+  }
+  for (const file of tempGitLines(repo, ['ls-files', '--others', '--exclude-standard'])) files.add(file);
+  return Array.from(files);
+}
+
+function tempHasUncommittedPathChange(repo: string, file: string) {
+  return tempGitLines(repo, ['diff', '--name-only', '--', file]).includes(file)
+    || tempGitLines(repo, ['diff', '--name-only', '--cached', '--', file]).includes(file)
+    || tempGitLines(repo, ['ls-files', '--others', '--exclude-standard', '--', file]).includes(file);
+}
+
+function tempInteractiveLearningProductQaEvidenceCoversSource(
+  repo: string,
+  files: readonly string[],
+  evidencePath: string,
+  sourcePrefixes: readonly string[],
+) {
+  const sourceFiles = files.filter((file) => sourcePrefixes.some((prefix) => file.startsWith(prefix)));
+  if (sourceFiles.some((file) => tempHasUncommittedPathChange(repo, file))) {
+    return tempHasUncommittedPathChange(repo, evidencePath);
+  }
+  const sourceCommits = Array.from(new Set(files
+    .filter((file) => sourcePrefixes.some((prefix) => file.startsWith(prefix)))
+    .map((file) => runTempGit(repo, ['log', '-1', '--format=%H', '--', file]))
+    .filter(Boolean)));
+  const evidenceCommit = runTempGit(repo, ['log', '-1', '--format=%H', '--', evidencePath]);
+  return Boolean(evidenceCommit) && sourceCommits.every((sourceCommit) => (
+    isTempGitAncestor(repo, sourceCommit, evidenceCommit)
   ));
 }
 
@@ -2460,6 +2532,115 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain("'src/features/interactive/'");
     expect(scriptSource).toContain("'src/features/lesson-engine/'");
     expect(scriptSource).toContain('INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix))');
+    expect(scriptSource).toContain('function latestInteractiveLearningProductQaSourceCommits');
+    expect(scriptSource).toContain("git(['log', '-1', '--format=%H', '--', file])");
+    expect(scriptSource).toContain('latestCommitForPath(INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH)');
+    expect(scriptSource).toContain("execFileSync('git', ['merge-base', '--is-ancestor', ancestor, descendant]");
+    expect(scriptSource).toContain('latestSourceCommits.every((sourceCommit)');
+    expect(scriptSource).toContain('interactiveLearningProductQaEvidenceCoversLatestSource(files)');
+  });
+
+  it('rejects stale final interactive learning product QA evidence across source commit topology', () => {
+    const evidencePath = 'artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/final-product-qa.json';
+    const sourceA = 'src/features/interactive/source-a.ts';
+    const sourceB = 'src/features/lesson-engine/source-b.ts';
+    const sourceC = 'src/app/interactive-learning/source-c.ts';
+    const sourcePrefixes = ['src/features/interactive/', 'src/features/lesson-engine/'];
+
+    const linearRepo = initTempGitRepo('interactive-product-qa-linear-');
+    commitTempFile(linearRepo, sourceA, 'export const sourceA = 1;\n', 'source a initial');
+    commitTempFile(linearRepo, evidencePath, '{"sourceCommit":"after-source-a"}\n', 'qa after source a');
+    commitTempFile(linearRepo, sourceA, 'export const sourceA = 2;\n', 'source a after qa');
+
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      linearRepo,
+      [sourceA, evidencePath],
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(false);
+
+    commitTempFile(linearRepo, evidencePath, '{"sourceCommit":"after-source-a-refresh"}\n', 'qa after source a refresh');
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      linearRepo,
+      [sourceA, evidencePath],
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(true);
+
+    const nonlinearRepo = initTempGitRepo('interactive-product-qa-nonlinear-');
+    const sourceABase = commitTempFile(nonlinearRepo, sourceA, 'export const sourceA = 1;\n', 'source a initial');
+    commitTempFile(nonlinearRepo, evidencePath, '{"sourceCommit":"after-source-a"}\n', 'qa after source a');
+    runTempGit(nonlinearRepo, ['checkout', '-b', 'source-b-side', sourceABase]);
+    commitTempFile(nonlinearRepo, sourceB, 'export const sourceB = 1;\n', 'source b side');
+    runTempGit(nonlinearRepo, ['checkout', 'main']);
+    runTempGit(nonlinearRepo, ['merge', '--no-ff', 'source-b-side', '-m', 'merge source b side']);
+
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      nonlinearRepo,
+      [sourceA, sourceB, evidencePath],
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(false);
+
+    commitTempFile(nonlinearRepo, evidencePath, '{"sourceCommit":"after-merge-refresh"}\n', 'qa after merge refresh');
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      nonlinearRepo,
+      [sourceA, sourceB, evidencePath],
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(true);
+
+    const dirtyRepo = initTempGitRepo('interactive-product-qa-dirty-');
+    commitTempFile(dirtyRepo, sourceA, 'export const sourceA = 1;\n', 'source a initial');
+    commitTempFile(dirtyRepo, evidencePath, '{"sourceCommit":"after-source-a"}\n', 'qa after source a');
+    writeFileSync(join(dirtyRepo, sourceA), 'export const sourceA = 2;\n');
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      dirtyRepo,
+      tempChangedFiles(dirtyRepo),
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(false);
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      dirtyRepo,
+      [sourceA, evidencePath],
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(false);
+
+    runTempGit(dirtyRepo, ['add', sourceA]);
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      dirtyRepo,
+      tempChangedFiles(dirtyRepo),
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(false);
+
+    writeFileSync(join(dirtyRepo, evidencePath), '{"sourceCommit":"dirty-source-a-refresh"}\n');
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      dirtyRepo,
+      tempChangedFiles(dirtyRepo),
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(true);
+
+    runTempGit(dirtyRepo, ['add', sourceA, evidencePath]);
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      dirtyRepo,
+      tempChangedFiles(dirtyRepo),
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(true);
+    runTempGit(dirtyRepo, ['commit', '-m', 'qa after dirty source refresh']);
+
+    const untrackedPath = join(dirtyRepo, sourceC);
+    mkdirSync(dirname(untrackedPath), { recursive: true });
+    writeFileSync(untrackedPath, 'export const sourceC = 1;\n');
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      dirtyRepo,
+      tempChangedFiles(dirtyRepo),
+      evidencePath,
+      [...sourcePrefixes, 'src/app/interactive-learning/'],
+    )).toBe(false);
   });
 
   it('filters React Doctor owned-surface diagnostics and keeps large JSON stdout parseable', () => {
