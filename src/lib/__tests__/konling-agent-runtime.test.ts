@@ -4619,7 +4619,16 @@ describe('konling agent runtime', () => {
           pathPayload: {
             policyBundle: {
               paths: [
-                { styleId: 'arena-simulation-sprint', nodeIds: ['node-1'] },
+                {
+                  styleId: 'arena-simulation-sprint',
+                  policyFamily: 'simulation-driven',
+                  nodeIds: ['node-1'],
+                  resourceMix: { simulation: 2, arena_task: 1 },
+                  evidenceBasis: ['recent-simulation-attempt'],
+                  limitations: ['requires-lab-time'],
+                  terminalValidationNodeIds: ['arena-checkpoint-1'],
+                  terminalValidationStrategy: { strategy: 'arena-validation' },
+                },
                 { styleId: 'foundation-remediation', nodeIds: ['node-2'] },
                 { styleId: 'preference-matched-route', nodeIds: ['node-3'] },
               ],
@@ -4738,6 +4747,27 @@ describe('konling agent runtime', () => {
     expect(db.evidenceOutbox.createMany).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.arrayContaining([
         expect.objectContaining({
+          dedupeKey: 'control-correction-path:choice:path-1:select-path-1',
+          payload: expect.objectContaining({
+            relatedRefs: expect.objectContaining({
+              selectedPolicyFamily: 'simulation-driven',
+            }),
+            preferenceEvidence: expect.objectContaining({
+              resourceMix: { simulation: 2, arena_task: 1 },
+              rationaleMetadata: expect.objectContaining({
+                evidenceBasis: '[redacted-object]',
+                limitations: '[redacted-object]',
+                terminalValidationNodeIds: '[redacted-object]',
+                terminalValidationStrategy: '[redacted-object]',
+              }),
+            }),
+          }),
+        }),
+      ]),
+    }));
+    expect(db.evidenceOutbox.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.arrayContaining([
+        expect.objectContaining({
           dedupeKey: 'control-correction-path:choice:path-1:outcome-path-1',
           payload: expect.objectContaining({
             preferenceEvidence: expect.objectContaining({
@@ -4749,6 +4779,116 @@ describe('konling agent runtime', () => {
     }));
     expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('我想先做仿真');
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我想先做仿真');
+  });
+
+  it('records selected option metadata for adjustment outcomes from pathOptions fallback', async () => {
+    const outcomeRun = {
+      id: 'tool-run-outcome-fallback-1',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'record_path_adjustment_outcome',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'outcome-fallback-1',
+      correlationId: 'corr-outcome-fallback-1',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['record_path_adjustment_outcome'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(outcomeRun),
+        create: vi.fn().mockResolvedValue(outcomeRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          userId: 'student-1',
+          pathPayload: {
+            pathOptions: [{
+              styleId: 'legacy-foundation-route',
+              policyFamily: 'foundation-remediation',
+              nodeIds: ['node-1'],
+              resourceMix: { knowledge_card: 2, quiz: 1 },
+              evidenceBasis: ['fallback-option-evidence'],
+            }],
+            selectionHistory: [],
+            activity: [],
+          },
+        }),
+        update: vi.fn().mockResolvedValue({ id: 'path-1' }),
+      },
+      learningFact: {
+        createMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      evidenceOutbox: {
+        createMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['record_path_adjustment_outcome'],
+        planContext: {
+          currentPathId: 'path-1',
+          activeNodeId: 'node-1',
+          nextNodeIds: [],
+          recentPathIds: ['path-1'],
+          completedNodeIds: [],
+          status: 'available',
+        },
+      }),
+    });
+
+    await expect(runtime.recordPathAdjustmentOutcome({
+      idempotencyKey: 'outcome-fallback-1',
+      outcome: 'helpful',
+      selectedStyleId: 'legacy-foundation-route',
+    })).resolves.toMatchObject({
+      outcome: 'helpful',
+      evidence: {
+        emitted: true,
+        dedupeKey: 'control-correction-path:choice:path-1:outcome-fallback-1',
+      },
+    });
+
+    expect(db.evidenceOutbox.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.arrayContaining([
+        expect.objectContaining({
+          dedupeKey: 'control-correction-path:choice:path-1:outcome-fallback-1',
+          payload: expect.objectContaining({
+            relatedRefs: expect.objectContaining({
+              selectedPolicyFamily: 'foundation-remediation',
+              selectedStyleId: 'legacy-foundation-route',
+            }),
+            preferenceEvidence: expect.objectContaining({
+              helpful: true,
+              resourceMix: { knowledge_card: 2, quiz: 1 },
+              rationaleMetadata: expect.objectContaining({
+                evidenceBasis: '[redacted-object]',
+              }),
+            }),
+          }),
+        }),
+      ]),
+    }));
   });
 
   it('records adaptive path revision as governed switch activity', async () => {
@@ -5301,6 +5441,87 @@ describe('konling agent runtime', () => {
     expect(db.agentToolRun.create).not.toHaveBeenCalled();
     expect(db.agentToolRun.updateMany).not.toHaveBeenCalled();
     expect(db.learningPath.upsert).not.toHaveBeenCalled();
+  });
+
+  it('reuses idempotent adaptive path choices before validating mutable path options', async () => {
+    const outputSummary = {
+      outcome: 'selected',
+      activity: {
+        selectedStyleId: 'previous-style',
+      },
+      evidence: {
+        emitted: true,
+        dedupeKey: 'control-correction-path:choice:path-1:select-retry-key',
+      },
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['select_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'tool-run-existing',
+          ownerUserId: 'student-1',
+          actorUserId: 'student-1',
+          targetUserId: 'student-1',
+          agentSessionId: 'agent-session-previous',
+          toolName: 'select_learning_path',
+          permissionTier: 'write',
+          approvalState: 'not_required',
+          status: 'succeeded',
+          inputSummary: {},
+          outputSummary,
+          errorSummary: null,
+          idempotencyKey: 'select-retry-key',
+          correlationId: 'corr-select-existing',
+          startedAt: new Date('2026-05-28T00:00:00Z'),
+          completedAt: new Date('2026-05-28T00:00:01Z'),
+          latencyMs: 1000,
+        }),
+        create: vi.fn(),
+        updateMany: vi.fn(),
+      },
+      learningPath: {
+        findFirst: vi.fn(),
+        update: vi.fn(),
+      },
+      learningFact: {
+        createMany: vi.fn(),
+      },
+      evidenceOutbox: {
+        createMany: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['select_learning_path'],
+        planContext: {
+          currentPathId: 'path-1',
+          activeNodeId: 'node-1',
+          nextNodeIds: [],
+          recentPathIds: ['path-1'],
+          completedNodeIds: [],
+          status: 'available',
+        },
+      }),
+    });
+
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-retry-key',
+      selectedStyleId: 'previous-style',
+    })).resolves.toMatchObject(outputSummary);
+    expect(db.learningPath.findFirst).not.toHaveBeenCalled();
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
+    expect(db.agentToolRun.updateMany).not.toHaveBeenCalled();
+    expect(db.learningPath.update).not.toHaveBeenCalled();
+    expect(db.evidenceOutbox.createMany).not.toHaveBeenCalled();
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
   });
 
   it('applies intervention cooldowns and persists feedback outcomes', async () => {

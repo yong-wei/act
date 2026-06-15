@@ -1586,6 +1586,7 @@ async function buildAdaptivePathToolOutcome(
   if (!pathId) {
     throw new KonlingRuntimeScopeError(400, '记录路径反馈需要有效的学习路径。');
   }
+  const path = await assertScopedAdaptivePathToolPath(input, pathId, { goalId, requirePath: true, requireExisting: true });
   const activity = {
     selectedStyleId: 'selectedStyleId' in args ? args.selectedStyleId ?? null : null,
     rejectedStyleIds: 'rejectedStyleIds' in args
@@ -1593,6 +1594,9 @@ async function buildAdaptivePathToolOutcome(
       : 'rejectedStyleId' in args ? [args.rejectedStyleId] : [],
     helpful: 'helpful' in args ? args.helpful ?? null : helpfulFromPathAdjustmentOutcome(outcome),
   };
+  const selectedOption = activity.selectedStyleId
+    ? readStoredAdaptivePathOptions(readRecord(getValue(path, 'pathPayload'))).get(activity.selectedStyleId) ?? null
+    : null;
   const action = resolveAdaptivePathChoiceAction(outcome, activity.helpful);
   const evidence = await recordPathChoiceEvidence(input.db as any, {
     pathId,
@@ -1600,9 +1604,13 @@ async function buildAdaptivePathToolOutcome(
     goalId,
     action,
     selectedStyleId: activity.selectedStyleId,
+    selectedPolicyFamily: selectedOption?.policyFamily ?? null,
     rejectedStyleIds: activity.rejectedStyleIds,
+    diagnosisSnapshotRef: resolveAdaptivePathDiagnosisSnapshotRef(path),
+    resourceMix: selectedOption?.resourceMix ?? {},
     helpful: activity.helpful,
     rationaleMetadata: {
+      ...(selectedOption?.rationaleMetadata ?? {}),
       outcome,
       intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
       routeIntent: args.routeIntent ?? null,
@@ -1694,12 +1702,19 @@ async function assertScopedAdaptivePathToolPath(
       goalId: options.goalId,
       ...(input.scope.classId ? { classId: input.scope.classId } : {}),
     },
-    select: { id: true, pathPayload: true },
+    select: { id: true, pathPayload: true, learnerStateRef: true, inputSnapshot: true },
   });
   if (!path) {
     throw new KonlingRuntimeScopeError(403, 'Konling 路径工具不能访问不属于当前学生的学习路径。');
   }
   return path;
+}
+
+interface AdaptivePathStoredOption {
+  styleId: string;
+  policyFamily: string | null;
+  resourceMix: Record<string, number>;
+  rationaleMetadata: Record<string, unknown>;
 }
 
 function assertAdaptivePathOptionIds(
@@ -1712,23 +1727,64 @@ function assertAdaptivePathOptionIds(
     ...rejectedStyleIds,
   ].filter((styleId): styleId is string => typeof styleId === 'string' && styleId.length > 0);
   if (requestedStyleIds.length === 0) return;
-  const validStyleIds = readStoredAdaptivePathOptionStyleIds(readRecord(getValue(path, 'pathPayload')));
-  if (validStyleIds.size === 0) {
+  const validOptions = readStoredAdaptivePathOptions(readRecord(getValue(path, 'pathPayload')));
+  if (validOptions.size === 0) {
     throw new KonlingRuntimeScopeError(403, '当前学习路径没有可记录的路径选项。');
   }
-  if (requestedStyleIds.some((styleId) => !validStyleIds.has(styleId))) {
+  if (requestedStyleIds.some((styleId) => !validOptions.has(styleId))) {
     throw new KonlingRuntimeScopeError(403, '路径选项不属于当前学习路径。');
   }
 }
 
-function readStoredAdaptivePathOptionStyleIds(pathPayload: Record<string, unknown>) {
+function readStoredAdaptivePathOptions(pathPayload: Record<string, unknown>) {
   const policyBundle = readRecord(getValue(pathPayload, 'policyBundle'));
   const options = arrayOfRecords(getValue(policyBundle, 'paths')).length > 0
     ? arrayOfRecords(getValue(policyBundle, 'paths'))
     : arrayOfRecords(getValue(pathPayload, 'pathOptions'));
-  return new Set(options
-    .map((option) => getString(option, 'styleId'))
-    .filter((styleId): styleId is string => Boolean(styleId)));
+  return new Map(options
+    .map((option): [string, AdaptivePathStoredOption] | null => {
+      const styleId = getString(option, 'styleId');
+      if (!styleId) return null;
+      return [styleId, {
+        styleId,
+        policyFamily: getString(option, 'policyFamily') || null,
+        resourceMix: readNumberRecord(getValue(option, 'resourceMix')),
+        rationaleMetadata: buildStoredAdaptivePathOptionRationale(option),
+      }];
+    })
+    .filter((entry): entry is [string, AdaptivePathStoredOption] => Boolean(entry)));
+}
+
+function buildStoredAdaptivePathOptionRationale(option: Record<string, unknown>): Record<string, unknown> {
+  return compactRuntimeRecord({
+    evidenceBasis: arrayOfStrings(getValue(option, 'evidenceBasis')),
+    limitations: arrayOfStrings(getValue(option, 'limitations')),
+    terminalValidationNodeIds: arrayOfStrings(getValue(option, 'terminalValidationNodeIds')),
+    terminalValidationStrategy: readRecord(getValue(option, 'terminalValidationStrategy')),
+  });
+}
+
+function compactRuntimeRecord(value: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(value).filter(([, entry]) => {
+    if (Array.isArray(entry)) return entry.length > 0;
+    if (entry && typeof entry === 'object') return Object.keys(entry).length > 0;
+    return entry !== null && entry !== undefined;
+  }));
+}
+
+function resolveAdaptivePathDiagnosisSnapshotRef(path: unknown): string | null {
+  const inputSnapshot = readRecord(getValue(path, 'inputSnapshot'));
+  const candidates = [
+    getValue(path, 'learnerStateRef'),
+    getValue(inputSnapshot, 'diagnosisSnapshotRef'),
+    getValue(inputSnapshot, 'diagnosisReportSnapshotId'),
+    getValue(inputSnapshot, 'snapshotId'),
+    getValue(readRecord(getValue(inputSnapshot, 'diagnosisReportSnapshot')), 'id'),
+  ];
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string' && candidate.length > 0) return candidate;
+  }
+  return null;
 }
 
 function buildAdaptivePathToolScope(input: KonlingToolRuntimeInput, goalId: string, pathId?: string | null) {
@@ -1933,8 +1989,6 @@ export async function startKonlingToolRun(
   if (!permittedTools.includes(input.toolName)) {
     throw new KonlingRuntimeScopeError(403, `AgentSession 未授权 Konling 工具 ${input.toolName}。`);
   }
-  await input.preflight?.();
-
   const idempotencyWhere = input.idempotencyKey && registryEntry.idempotencyPolicy !== 'none'
     ? buildAgentToolRunIdempotencyWhere(input)
     : null;
@@ -1950,6 +2004,8 @@ export async function startKonlingToolRun(
       return toToolRunView(existing, { reused: true });
     }
   }
+
+  await input.preflight?.();
 
   const approvalState = resolveKonlingToolApprovalState(registryEntry, input);
   const status: KonlingToolRunStatus =
