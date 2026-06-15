@@ -1318,6 +1318,7 @@ async function buildAdaptivePathToolOutput(
   if (!registeredGoal) {
     throw new KonlingRuntimeScopeError(404, '当前页面目标没有可生成的学习路径。');
   }
+  const registry = resolveAdaptivePathGenerationRegistry(goalId);
   const timeBudget = resolveAdaptivePathTimeBudget(registeredGoal, args.timeBudgetMinutes);
   const resourcePreferences = normalizeAdaptivePathResourcePreferences(args.resourcePreference)
     ?? registeredGoal.starterPathPolicy.preferredResourceTypes;
@@ -1325,7 +1326,7 @@ async function buildAdaptivePathToolOutput(
     studentId: input.scope.targetUserId,
     goal: registeredGoal.goal,
     learnerState: (input.context.learnerState as any) ?? buildColdStartAdaptivePathLearnerState(registeredGoal.goal.knowledgeTargets),
-    registry: buildControlCorrectionResourceNodeRegistry(),
+    registry,
     constraints: {
       timeBudgetMinutes: timeBudget.effectiveMinutes,
       privacyScopes: ['student-visible'],
@@ -1621,6 +1622,13 @@ function resolveScopedAdaptivePathGoalId(input: KonlingToolRuntimeInput, request
     throw new KonlingRuntimeScopeError(403, 'Konling 路径工具不能扩展到未登记的学习目标。');
   }
   return goalId;
+}
+
+function resolveAdaptivePathGenerationRegistry(goalId: string) {
+  if (goalId === CONTROL_CORRECTION_PATH_ROUND_GOAL_ID) {
+    return buildControlCorrectionResourceNodeRegistry();
+  }
+  throw new KonlingRuntimeScopeError(403, '当前学习目标还没有可生成的路径资源注册表。');
 }
 
 async function assertScopedAdaptivePathToolPath(
@@ -2070,12 +2078,14 @@ async function validateKonlingToolPreflight(
   if (toolName === 'generate_learning_path') {
     const parsed = generateLearningPathParameters.parse(toolInput);
     const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
+    resolveAdaptivePathGenerationRegistry(goalId);
     await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: false, requireExisting: false });
     return;
   }
   if (toolName === 'revise_learning_path_options') {
     const parsed = reviseLearningPathOptionsParameters.parse(toolInput);
     const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
+    resolveAdaptivePathGenerationRegistry(goalId);
     await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
     return;
   }

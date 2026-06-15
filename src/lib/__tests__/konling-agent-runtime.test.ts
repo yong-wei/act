@@ -4719,6 +4719,88 @@ describe('konling agent runtime', () => {
     expect(db.learningPath.upsert).not.toHaveBeenCalled();
   });
 
+  it('rejects registered goals without generation registries before creating path tool runs', async () => {
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['generate_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn(),
+        create: vi.fn(),
+      },
+      learningPath: {
+        upsert: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({ permittedTools: ['generate_learning_path'] }),
+    });
+
+    await expect(runtime.generateLearningPath({
+      idempotencyKey: 'frequency-path-gen',
+      goalId: 'frequency-response-foundations',
+    })).rejects.toMatchObject({
+      status: 403,
+      message: '当前学习目标还没有可生成的路径资源注册表。',
+    });
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
+    expect(db.learningPath.upsert).not.toHaveBeenCalled();
+  });
+
+  it('rejects registered goals without generation registries before revising path options', async () => {
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['revise_learning_path_options'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn(),
+        create: vi.fn(),
+      },
+      learningPath: {
+        findFirst: vi.fn(),
+        upsert: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['revise_learning_path_options'],
+        planContext: {
+          currentPathId: 'frequency-path-1',
+          activeNodeId: 'node-1',
+          nextNodeIds: [],
+          recentPathIds: ['frequency-path-1'],
+          completedNodeIds: [],
+          status: 'available',
+        },
+      }),
+    });
+
+    await expect(runtime.reviseLearningPathOptions({
+      idempotencyKey: 'frequency-path-revise',
+      goalId: 'frequency-response-foundations',
+      pathId: 'frequency-path-1',
+      difficultyRhythm: 'challenge',
+    })).rejects.toMatchObject({
+      status: 403,
+      message: '当前学习目标还没有可生成的路径资源注册表。',
+    });
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
+    expect(db.learningPath.findFirst).not.toHaveBeenCalled();
+    expect(db.learningPath.upsert).not.toHaveBeenCalled();
+  });
+
   it('rejects forged adaptive path ids before creating tool runs or evidence', async () => {
     const db = {
       agentSession: {
@@ -5586,6 +5668,10 @@ describe('konling agent runtime', () => {
 
   it('declares durable AgentSession and AgentToolRun persistence contracts in Prisma', () => {
     const schema = readFileSync(join(process.cwd(), 'prisma/schema.prisma'), 'utf8');
+    const scopeIdempotencyMigration = readFileSync(
+      join(process.cwd(), 'prisma/migrations/20260615111000_add_agent_tool_run_scope_idempotency/migration.sql'),
+      'utf8',
+    );
 
     expect(schema).toContain('model AgentSession');
     expect(schema).toMatch(/ownerUserId\s+String/);
@@ -5596,6 +5682,14 @@ describe('konling agent runtime', () => {
     expect(schema).toMatch(/approvalState\s+String/);
     expect(schema).toMatch(/correlationId\s+String/);
     expect(schema).toContain('@@unique([agentSessionId, toolName, idempotencyKey])');
+    expect(scopeIdempotencyMigration).toContain('CREATE UNIQUE INDEX "AgentToolRun_scope_idempotency_unique"');
+    expect(scopeIdempotencyMigration).toContain('WHERE "idempotencyKey" IS NOT NULL');
+    for (const field of ['ownerUserId', 'toolName', 'idempotencyKey', 'courseId', 'pageId']) {
+      expect(scopeIdempotencyMigration).toContain(`"${field}"`);
+    }
+    for (const field of ['classId', 'resourceId', 'pathNodeId']) {
+      expect(scopeIdempotencyMigration).toContain(`COALESCE("${field}", '__null__')`);
+    }
   });
 
   it('registers tool tiers and routes write tools into approval-required tool runs', async () => {
