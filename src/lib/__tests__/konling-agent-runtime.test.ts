@@ -22,6 +22,7 @@ import {
   buildKonlingCitationGuard,
   buildKonlingStreamingCitationGuard,
   buildScopedKonlingAiTools,
+  buildStudentSafePathOptions,
   buildKonlingRuntimeContext,
   buildKonlingToolRuntime,
   createKonlingAgentSession,
@@ -1253,6 +1254,7 @@ describe('konling agent runtime', () => {
             nodeIds: ['node-1', 'arena-task:terminal'],
             pathPayload: {
               policyBundle: {
+                status: 'ready',
                 paths: [
                   {
                     styleId: 'foundation-remediation',
@@ -4102,10 +4104,10 @@ describe('konling agent runtime', () => {
     expect(db.agentToolRun.create.mock.invocationCallOrder[0]).toBeLessThan(
       db.learningPath.upsert.mock.invocationCallOrder[0],
     );
-    expect(result.pathOptions.length).toBeGreaterThan(1);
+    expect(result.pathOptions).toHaveLength(1);
     expect(result.pathOptions[0]).toEqual(expect.objectContaining({
-      styleId: expect.any(String),
-      label: expect.any(String),
+      styleId: 'recommended',
+      label: '推荐学习路径',
       estimatedMinutes: expect.any(Number),
       nodeSummaries: expect.arrayContaining([
         expect.objectContaining({
@@ -4119,6 +4121,57 @@ describe('konling agent runtime', () => {
     expect(JSON.stringify(result)).not.toMatch(/missing-|low-evidence|no-path|stage-1-rules-graph|policyFamily/);
     expect(JSON.stringify(result)).not.toMatch(/low-confidence-learner-state|adaptive-learner-state|knowledgeMastery/);
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我想先补相位裕度');
+  });
+
+  it('hides policy bundle options from Konling output when bundle is in fallback status', () => {
+    const options = buildStudentSafePathOptions({
+      status: 'ready',
+      goal: {
+        id: 'control-correction',
+        knowledgeTargets: ['phase-margin'],
+      },
+      confidence: {
+        level: 'medium',
+      },
+      mainPath: [{
+        nodeId: 'node-main',
+        title: '相位裕度补强',
+        type: 'knowledge_card',
+        estimatedTimeMinutes: 15,
+        knowledgeCoverage: ['phase-margin'],
+      }],
+      policyBundle: {
+        status: 'low-resource-fallback',
+        paths: [{
+          styleId: 'simulation-driven',
+          label: '仿真优先路径',
+          effort: { estimatedMinutes: 15, relative: 'short' },
+          nodeSummaries: [{
+            nodeId: 'node-policy',
+            title: '候选仿真节点',
+            pathNodeType: 'simulation',
+            estimatedTimeMinutes: 15,
+          }],
+          targetDeficits: [{ targetId: 'phase-margin' }],
+          evidenceBasis: ['resource overlap too high'],
+          limitations: [],
+          terminalValidationStrategy: { nodeIds: [] },
+        }],
+      },
+    } as any);
+
+    expect(options).toEqual([
+      expect.objectContaining({
+        styleId: 'recommended',
+        label: '推荐学习路径',
+        nodeSummaries: [expect.objectContaining({
+          nodeId: 'node-main',
+          resourceType: 'knowledge_card',
+        })],
+      }),
+    ]);
+    expect(JSON.stringify(options)).not.toContain('simulation-driven');
+    expect(JSON.stringify(options)).not.toContain('候选仿真节点');
   });
 
   it('normalizes server-owned competency scores before adaptive path generation', async () => {
@@ -4397,6 +4450,7 @@ describe('konling agent runtime', () => {
           goalId: 'frequency-response-foundations',
           pathPayload: {
             policyBundle: {
+              status: 'ready',
               paths: [{
                 styleId: 'guided-frequency-route',
                 nodeIds: ['frequency-node-1'],
@@ -4514,6 +4568,7 @@ describe('konling agent runtime', () => {
           userId: 'student-1',
           pathPayload: {
             policyBundle: {
+              status: 'ready',
               paths: [{ styleId: 'arena-simulation-sprint', nodeIds: ['node-1'] }],
             },
             selectionHistory: [],
@@ -4618,6 +4673,7 @@ describe('konling agent runtime', () => {
           userId: 'student-1',
           pathPayload: {
             policyBundle: {
+              status: 'ready',
               paths: [
                 {
                   styleId: 'arena-simulation-sprint',
@@ -4932,6 +4988,7 @@ describe('konling agent runtime', () => {
             userId: 'student-1',
             pathPayload: {
               policyBundle: {
+                status: 'ready',
                 paths: [
                   { styleId: 'arena-simulation-sprint', nodeIds: ['node-1'] },
                   { styleId: 'foundation-remediation', nodeIds: ['node-2'] },
@@ -5198,6 +5255,7 @@ describe('konling agent runtime', () => {
           userId: 'student-1',
           pathPayload: {
             policyBundle: {
+              status: 'ready',
               paths: [{ styleId: 'foundation-remediation', nodeIds: ['node-1'] }],
             },
           },
@@ -5234,6 +5292,68 @@ describe('konling agent runtime', () => {
     })).rejects.toMatchObject({
       status: 403,
       message: '路径选项不属于当前学习路径。',
+    });
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
+    expect(db.learningPath.update).not.toHaveBeenCalled();
+    expect(db.evidenceOutbox.createMany).not.toHaveBeenCalled();
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
+  });
+
+  it('rejects hidden fallback policy bundle options before recording path activity', async () => {
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['select_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn(),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          userId: 'student-1',
+          pathPayload: {
+            policyBundle: {
+              status: 'low-resource-fallback',
+              paths: [{ styleId: 'simulation-driven', nodeIds: ['node-1'] }],
+            },
+          },
+        }),
+        update: vi.fn(),
+      },
+      learningFact: {
+        createMany: vi.fn(),
+      },
+      evidenceOutbox: {
+        createMany: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['select_learning_path'],
+        planContext: {
+          currentPathId: 'path-1',
+          activeNodeId: 'node-1',
+          nextNodeIds: [],
+          recentPathIds: ['path-1'],
+          completedNodeIds: [],
+          status: 'available',
+        },
+      }),
+    });
+
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-hidden-fallback-style',
+      selectedStyleId: 'simulation-driven',
+    })).rejects.toMatchObject({
+      status: 403,
+      message: '当前学习路径没有可记录的路径选项。',
     });
     expect(db.agentToolRun.create).not.toHaveBeenCalled();
     expect(db.learningPath.update).not.toHaveBeenCalled();

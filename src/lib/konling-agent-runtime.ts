@@ -1508,8 +1508,8 @@ function normalizeAdaptivePathResourcePreferences(value: string[] | undefined): 
     allowed.has(item as AdaptiveLearningPathPlanNode['type']));
 }
 
-function buildStudentSafePathOptions(plan: AdaptiveLearningPathPlan) {
-  if (plan.policyBundle?.paths.length) {
+export function buildStudentSafePathOptions(plan: AdaptiveLearningPathPlan) {
+  if (plan.policyBundle?.status === 'ready' && plan.policyBundle.paths.length) {
     return plan.policyBundle.paths.map((path) => ({
       styleId: path.styleId,
       label: path.label,
@@ -1738,8 +1738,10 @@ function assertAdaptivePathOptionIds(
 
 function readStoredAdaptivePathOptions(pathPayload: Record<string, unknown>) {
   const policyBundle = readRecord(getValue(pathPayload, 'policyBundle'));
-  const options = arrayOfRecords(getValue(policyBundle, 'paths')).length > 0
-    ? arrayOfRecords(getValue(policyBundle, 'paths'))
+  const policyBundleStatus = getString(policyBundle, 'status') || 'ready';
+  const policyBundlePaths = policyBundleStatus === 'ready' ? arrayOfRecords(getValue(policyBundle, 'paths')) : [];
+  const options = policyBundlePaths.length > 0
+    ? policyBundlePaths
     : arrayOfRecords(getValue(pathPayload, 'pathOptions'));
   return new Map(options
     .map((option): [string, AdaptivePathStoredOption] | null => {
