@@ -633,11 +633,11 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
   }));
 }
 
+const INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH =
+  'artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/final-product-qa.json';
+
 function readInteractiveLearningProductQaEvidence(): CommercialInteractiveLearningProductQaEvidence | undefined {
-  const evidencePath = path.join(
-    repoRoot,
-    'artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/final-product-qa.json',
-  );
+  const evidencePath = path.join(repoRoot, INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH);
   if (!existsSync(evidencePath)) return undefined;
   let parsed: unknown;
   try {
@@ -736,6 +736,43 @@ export function hydrateInteractiveLearningProductQaEvidence(
   } as CommercialInteractiveLearningProductQaEvidence;
 }
 
+function interactiveLearningProductQaEvidenceArtifactPaths() {
+  const paths = new Set<string>([INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH]);
+  const evidencePath = path.join(repoRoot, INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH);
+  if (!existsSync(evidencePath)) return paths;
+
+  let evidence: unknown;
+  try {
+    evidence = JSON.parse(readFileSync(evidencePath, 'utf8'));
+  } catch {
+    return paths;
+  }
+  if (!isPlainObject(evidence)) return paths;
+
+  const addPath = (value: unknown) => {
+    if (typeof value === 'string' && value.trim()) paths.add(value);
+  };
+  addPath(evidence.designHandoff);
+  addPath(evidence.handoffMatrix);
+  if (Array.isArray(evidence.conceptImages)) {
+    for (const conceptImage of evidence.conceptImages) addPath(conceptImage);
+  }
+  if (Array.isArray(evidence.routeMatrix)) {
+    for (const route of evidence.routeMatrix) {
+      if (isPlainObject(route)) addPath(route.sourceConcept);
+    }
+  }
+  if (Array.isArray(evidence.childDesignQaReports)) {
+    for (const report of evidence.childDesignQaReports) {
+      if (isPlainObject(report)) addPath(report.report);
+    }
+  }
+  if (isPlainObject(evidence.independentVisualReview)) {
+    addPath(evidence.independentVisualReview.report);
+  }
+  return paths;
+}
+
 export function interactiveLearningReviewHasNoUnresolvedBlocks(report: string) {
   const reportWithoutCleanPhrase = report.replace(/no unresolved block findings remain/ig, '');
   return /no unresolved block findings remain/i.test(report)
@@ -765,11 +802,13 @@ function parseInteractiveLearningDesignQaResult(relativePath?: string) {
 }
 
 function shouldRequireInteractiveLearningProductQa(files: readonly string[]) {
+  const referencedProductQaArtifacts = interactiveLearningProductQaEvidenceArtifactPaths();
   return files.some((file) => (
     file.startsWith('openspec/changes/govern-interactive-learning-product-qa/')
     || (file.startsWith('openspec/changes/archive/')
       && file.includes('/govern-interactive-learning-product-qa/'))
     || file.startsWith('artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/')
+    || referencedProductQaArtifacts.has(file)
     || file === 'src/lib/commercial-ui-governance.ts'
     || file === 'scripts/tests/test-commercial-ui-governance.ts'
   ));

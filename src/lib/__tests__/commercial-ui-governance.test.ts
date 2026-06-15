@@ -2287,6 +2287,20 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('paths.add(simulationVisualQa.handoffBaseline.implementationMatrix)');
   });
 
+  it('requires final interactive learning product QA when referenced evidence artifacts change', () => {
+    const scriptSource = readFileSync(join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'), 'utf8');
+
+    expect(scriptSource).toContain('function interactiveLearningProductQaEvidenceArtifactPaths');
+    expect(scriptSource).toContain('INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH');
+    expect(scriptSource).toContain('addPath(evidence.designHandoff)');
+    expect(scriptSource).toContain('addPath(evidence.handoffMatrix)');
+    expect(scriptSource).toContain('for (const conceptImage of evidence.conceptImages) addPath(conceptImage)');
+    expect(scriptSource).toContain('if (isPlainObject(route)) addPath(route.sourceConcept)');
+    expect(scriptSource).toContain('if (isPlainObject(report)) addPath(report.report)');
+    expect(scriptSource).toContain('addPath(evidence.independentVisualReview.report)');
+    expect(scriptSource).toContain('referencedProductQaArtifacts.has(file)');
+  });
+
   it('filters React Doctor owned-surface diagnostics and keeps large JSON stdout parseable', () => {
     const tmp = mkdtempSync(join(tmpdir(), 'react-doctor-owned-gate-'));
     const fakeNpx = join(tmp, 'npx');
