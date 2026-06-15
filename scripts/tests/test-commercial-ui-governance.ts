@@ -635,6 +635,11 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
 
 const INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH =
   'artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/final-product-qa.json';
+const INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES = [
+  'src/app/interactive-learning/',
+  'src/features/interactive/',
+  'src/features/lesson-engine/',
+] as const;
 
 function readInteractiveLearningProductQaEvidence(): CommercialInteractiveLearningProductQaEvidence | undefined {
   const evidencePath = path.join(repoRoot, INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH);
@@ -809,6 +814,7 @@ function shouldRequireInteractiveLearningProductQa(files: readonly string[]) {
       && file.includes('/govern-interactive-learning-product-qa/'))
     || file.startsWith('artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/')
     || referencedProductQaArtifacts.has(file)
+    || INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix))
     || file === 'src/lib/commercial-ui-governance.ts'
     || file === 'scripts/tests/test-commercial-ui-governance.ts'
   ));

@@ -2299,6 +2299,11 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('if (isPlainObject(report)) addPath(report.report)');
     expect(scriptSource).toContain('addPath(evidence.independentVisualReview.report)');
     expect(scriptSource).toContain('referencedProductQaArtifacts.has(file)');
+    expect(scriptSource).toContain('INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES');
+    expect(scriptSource).toContain("'src/app/interactive-learning/'");
+    expect(scriptSource).toContain("'src/features/interactive/'");
+    expect(scriptSource).toContain("'src/features/lesson-engine/'");
+    expect(scriptSource).toContain('INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix))');
   });
 
   it('filters React Doctor owned-surface diagnostics and keeps large JSON stdout parseable', () => {
