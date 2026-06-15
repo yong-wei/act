@@ -225,6 +225,8 @@ export interface KonlingRuntimeContext {
 
 export interface KonlingKnowledgeWorkspaceHint {
   selectedNodeId?: string | null;
+  requestedNodeId?: string | null;
+  status?: 'selected-node' | 'no-selection' | 'degraded' | null;
   activeFilters?: string[] | null;
   densityMode?: string | null;
   viewMode?: string | null;
@@ -235,6 +237,10 @@ export interface KonlingKnowledgeWorkspaceHint {
 export function normalizeKonlingKnowledgeWorkspaceHint(value: unknown): KonlingKnowledgeWorkspaceHint | null {
   const record = readRecord(value);
   const selectedNodeId = sanitizeKnowledgeWorkspaceText(record.selectedNodeId);
+  const requestedNodeId = sanitizeKnowledgeWorkspaceText(record.requestedNodeId);
+  const status = record.status === 'selected-node' || record.status === 'no-selection' || record.status === 'degraded'
+    ? record.status
+    : null;
   const activeFilters = normalizeKnowledgeWorkspaceStrings(record.activeFilters);
   const densityMode = sanitizeKnowledgeWorkspaceText(record.densityMode);
   const viewMode = sanitizeKnowledgeWorkspaceText(record.viewMode);
@@ -243,6 +249,8 @@ export function normalizeKonlingKnowledgeWorkspaceHint(value: unknown): KonlingK
 
   if (
     selectedNodeId
+    || requestedNodeId
+    || status
     || activeFilters.length > 0
     || densityMode
     || viewMode
@@ -251,6 +259,8 @@ export function normalizeKonlingKnowledgeWorkspaceHint(value: unknown): KonlingK
   ) {
     return {
       selectedNodeId,
+      requestedNodeId,
+      status,
       activeFilters,
       densityMode,
       viewMode,
@@ -4627,6 +4637,10 @@ async function buildKnowledgeWorkspaceContext(
   if (scope.pageId !== '/knowledge' && scope.pageId !== 'knowledge') return null;
 
   const selectedNodeId = sanitizeKnowledgeWorkspaceText(hint?.selectedNodeId);
+  const requestedNodeId = sanitizeKnowledgeWorkspaceText(hint?.requestedNodeId);
+  const contextNodeId = hint?.status === 'degraded'
+    ? null
+    : selectedNodeId ?? requestedNodeId;
   const relationSummary = {
     density_mode: sanitizeKnowledgeWorkspaceText(hint?.densityMode),
     view_mode: sanitizeKnowledgeWorkspaceText(hint?.viewMode),
@@ -4635,23 +4649,26 @@ async function buildKnowledgeWorkspaceContext(
     selected_node_relation_count: normalizeKnowledgeWorkspaceCount(hint?.selectedNodeRelationCount),
   };
 
-  if (!selectedNodeId) {
+  if (!contextNodeId) {
+    const missingContext = hint?.status === 'degraded'
+      ? 'knowledge-workspace-selected-node-unresolved'
+      : 'knowledge-workspace-selected-node-missing';
     return {
       source: 'server-owned',
       route: '/knowledge',
-      status: 'no-selection',
+      status: hint?.status === 'degraded' ? 'degraded' : 'no-selection',
       selected_node: null,
       relation_summary: relationSummary,
       available_learning_actions: ['search-knowledge-graph', 'open-chapter-directory'],
       hover_policy: 'preview-only-not-durable-context',
-      missing_context: ['knowledge-workspace-selected-node-missing'],
+      missing_context: [missingContext],
     };
   }
 
   const nodes = await db.knowledgeNode?.findMany?.({
     where: {
       isActive: true,
-      id: { in: [selectedNodeId] },
+      id: { in: [contextNodeId] },
     },
     select: {
       id: true,

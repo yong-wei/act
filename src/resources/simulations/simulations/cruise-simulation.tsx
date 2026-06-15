@@ -264,7 +264,7 @@ function Ocean({ seaState, sceneTheme }: { seaState: number; sceneTheme: Simulat
       transparent: true,
       side: THREE.DoubleSide,
     });
-  }, [waveAmplitude]);
+  }, [sceneTheme.waterColor, waveAmplitude]);
 
   return (
     <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} material={shaderMaterial}>

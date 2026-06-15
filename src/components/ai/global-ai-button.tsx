@@ -15,13 +15,20 @@ export function GlobalAIFloatingButton() {
   const [mounted, setMounted] = useState(false);
   const { shouldShowButton, isOpen, toggleSidebar, unreadCount } = useGlobalAI();
   const { registerControl } = usePageFloatingControls();
+  const knowledgeProductQaEnabled = mounted
+    && process.env.NODE_ENV !== 'production'
+    && typeof window !== 'undefined'
+    && window.location.pathname === '/knowledge'
+    && (window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA__?: boolean }).__ACT_KNOWLEDGE_PRODUCT_QA__ === true
+    && window.localStorage.getItem('act:knowledge-product-qa') === 'true'
+    && new URLSearchParams(window.location.search).get('qa') === 'knowledge-product';
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (!mounted || !shouldShowButton || isOpen) return undefined;
+    if (!mounted || (!shouldShowButton && !knowledgeProductQaEnabled) || isOpen) return undefined;
     return registerControl({
       id: 'konling-global-ai',
       label: '控灵 AI助手',
@@ -33,7 +40,7 @@ export function GlobalAIFloatingButton() {
         : undefined,
       onSelect: toggleSidebar,
     });
-  }, [isOpen, mounted, registerControl, shouldShowButton, toggleSidebar, unreadCount]);
+  }, [isOpen, knowledgeProductQaEnabled, mounted, registerControl, shouldShowButton, toggleSidebar, unreadCount]);
 
   return null;
 }

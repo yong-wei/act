@@ -19,9 +19,13 @@ import { KONLING_BRAND, getQuickQuestions } from '@/lib/ai-branding';
 
 export function GlobalAISidebar() {
   const styles = useAIThemeStyles();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const openerElementRef = useRef<HTMLElement | null>(null);
+  const wasOpenRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
   const [sessionId] = useState(() => `global-${Date.now()}`);
+  const [knowledgeInspectorAvoidanceActive, setKnowledgeInspectorAvoidanceActive] = useState(false);
 
   const {
     pageContext,
@@ -91,6 +95,59 @@ export function GlobalAISidebar() {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isOpen, closeSidebar]);
 
+  useEffect(() => {
+    if (isOpen) {
+      const activeElement = document.activeElement;
+      if (activeElement instanceof HTMLElement && activeElement !== document.body) {
+        openerElementRef.current = activeElement;
+      }
+      wasOpenRef.current = true;
+      window.requestAnimationFrame(() => {
+        panelRef.current?.focus();
+      });
+      return;
+    }
+
+    if (!wasOpenRef.current) return;
+    wasOpenRef.current = false;
+    window.requestAnimationFrame(() => {
+      const opener = openerElementRef.current;
+      if (opener?.isConnected && opener.offsetParent !== null) {
+        opener.focus();
+        return;
+      }
+      document.querySelector<HTMLElement>('[data-platform-floating-dock] button[aria-label="打开页面工具菜单"]')?.focus();
+    });
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setKnowledgeInspectorAvoidanceActive(false);
+      return;
+    }
+
+    const updateAvoidance = () => {
+      const hasDesktopInspector = window.matchMedia('(min-width: 1024px)').matches
+        && Boolean(document.querySelector('[data-knowledge-inspector="stable-rail"]'));
+      setKnowledgeInspectorAvoidanceActive(hasDesktopInspector);
+    };
+
+    updateAvoidance();
+    window.addEventListener('resize', updateAvoidance);
+    const observer = new MutationObserver(updateAvoidance);
+    observer.observe(document.body, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+      attributeFilter: ['data-knowledge-inspector'],
+    });
+
+    return () => {
+      window.removeEventListener('resize', updateAvoidance);
+      observer.disconnect();
+    };
+  }, [isOpen]);
+
   // 处理快捷问题
   const handleQuickQuestion = useCallback(
     (question: string) => {
@@ -128,6 +185,31 @@ export function GlobalAISidebar() {
     }
   }, [pageContext]);
 
+  const knowledgeWorkspaceContext = useMemo(() => {
+    if (!pageContext || (pageContext.courseId !== 'knowledge' && pageContext.stepId !== '/knowledge')) return null;
+    const status = knowledgeWorkspaceHint?.status ?? 'no-selection';
+    const nodeId = knowledgeWorkspaceHint?.selectedNodeId ?? knowledgeWorkspaceHint?.requestedNodeId ?? null;
+    if (status === 'selected-node') {
+      return {
+        status,
+        label: '已选知识节点',
+        description: nodeId ? `当前节点: ${nodeId}` : '当前节点已进入控灵上下文。',
+      };
+    }
+    if (status === 'degraded') {
+      return {
+        status,
+        label: '节点未解析',
+        description: nodeId ? `请求节点 ${nodeId} 暂不可用。` : '请求节点暂不可用。',
+      };
+    }
+    return {
+      status,
+      label: '未选择节点',
+      description: '控灵仅接收图谱筛选与视图状态。',
+    };
+  }, [knowledgeWorkspaceHint, pageContext]);
+
   if (!mounted) return null;
 
   return (
@@ -142,6 +224,13 @@ export function GlobalAISidebar() {
 
       {/* 侧边栏面板 */}
       <div
+        ref={panelRef}
+        tabIndex={-1}
+        style={knowledgeInspectorAvoidanceActive ? {
+          top: '7rem',
+          right: 'calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem))',
+          height: 'calc(100vh - 8rem)',
+        } : undefined}
         className={`
           fixed right-0 top-0 z-50 flex flex-col
           h-screen w-screen
@@ -155,6 +244,9 @@ export function GlobalAISidebar() {
           }
           shadow-2xl
         `}
+        data-global-ai-sidebar={isOpen ? 'open' : 'closed'}
+        data-konling-assistant-surface="global-sidebar"
+        data-konling-inspector-avoidance={knowledgeInspectorAvoidanceActive ? 'active' : 'inactive'}
       >
         {/* 头部 */}
         <div className={`flex items-center justify-between border-b px-4 py-3 ${styles.header}`}>
@@ -201,6 +293,15 @@ export function GlobalAISidebar() {
                   <KonlingAvatar size="sm" />
                   <div>
                     <p className="text-sm leading-relaxed">{welcomeMessage}</p>
+                    {knowledgeWorkspaceContext && (
+                      <div
+                        className={`mt-3 rounded-lg border px-3 py-2 text-xs ${styles.border} ${styles.text.secondary}`}
+                        data-konling-knowledge-context={knowledgeWorkspaceContext.status}
+                      >
+                        <p className={`font-medium ${styles.text.primary}`}>知识图谱上下文 · {knowledgeWorkspaceContext.label}</p>
+                        <p className="mt-1">{knowledgeWorkspaceContext.description}</p>
+                      </div>
+                    )}
                     {pageContext?.learningObjectives && pageContext.learningObjectives.length > 0 && (
                       <div className="mt-3">
                         <p className={`text-xs font-medium ${styles.text.secondary}`}>

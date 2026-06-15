@@ -48,6 +48,7 @@ import {
   removeKnowledgeGraphNodePin,
   storeKnowledgeGraphNodePosition,
 } from './graph/layout-state';
+import { applyRadialLayout } from './graph/layout-engine';
 // import { getAllLessonCards, getAllLessonCardLinks } from './data/lesson-knowledge-cards'; // Removed static import
 
 // 动态导入 3D 图谱组件（客户端专用）
@@ -182,9 +183,8 @@ export function KnowledgeGraphSystem({
   initialLinks = [],
   initialSelectedNodeId = null,
 }: KnowledgeGraphSystemProps) {
-  const { updatePageContext } = useGlobalAI();
-  const initialRequestedNodeId = initialSelectedNodeId
-    ?? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('node') : null);
+  const { updatePageContext, isOpen: aiSidebarOpen } = useGlobalAI();
+  const initialRequestedNodeId = initialSelectedNodeId;
   const initialSelectedNode = initialRequestedNodeId
     ? initialNodes.find((node) => node.id === initialRequestedNodeId) ?? null
     : null;
@@ -192,6 +192,7 @@ export function KnowledgeGraphSystem({
   const [links, setLinks] = useState<KnowledgeLinkData[]>(initialLinks);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [requestedNodeId, setRequestedNodeId] = useState<string | null>(initialRequestedNodeId);
   const [selectedNode, setSelectedNode] = useState<KnowledgeNodeData | null>(initialSelectedNode);
   const [hoveredNode, setHoveredNode] = useState<KnowledgeNodeData | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(Boolean(initialSelectedNode));
@@ -219,6 +220,8 @@ export function KnowledgeGraphSystem({
   const desktopToolPanelRef = useRef<HTMLDivElement | null>(null);
   const desktopToolTriggerRefs = useRef<Partial<Record<KnowledgeDesktopTool, HTMLButtonElement | null>>>({});
   const previousDesktopToolRef = useRef<KnowledgeDesktopTool | null>(null);
+  const mobileToolPanelRef = useRef<HTMLDivElement | null>(null);
+  const mobileToolToggleRef = useRef<HTMLButtonElement | null>(null);
 
   // 视图模式：默认 2D
   const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
@@ -229,6 +232,12 @@ export function KnowledgeGraphSystem({
   const initialRequestedNodeIdRef = useRef(initialRequestedNodeId);
   const initialSelectedNodeResolvedRef = useRef(Boolean(initialSelectedNode));
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+
+  useEffect(() => {
+    const nodeId = new URLSearchParams(window.location.search).get('node');
+    initialRequestedNodeIdRef.current = nodeId;
+    setRequestedNodeId(nodeId);
+  }, []);
 
   // 监听容器大小变化
   useEffect(() => {
@@ -535,10 +544,21 @@ export function KnowledgeGraphSystem({
 
   const displayNodes = graphWithChapterNodes.nodes;
   const displayLinks = graphWithChapterNodes.links;
-  const visibleSelectedNode = selectedNode && displayNodes.some((node) => node.id === selectedNode.id)
-    ? selectedNode
+  const displaySelectedNode = selectedNode
+    ? displayNodes.find((node) => node.id === selectedNode.id) ?? null
     : null;
+  const visibleSelectedNode = useMemo(
+    () => selectedNode && displaySelectedNode
+      ? { ...displaySelectedNode, ...selectedNode }
+      : null,
+    [displaySelectedNode, selectedNode]
+  );
   const visiblePanelOpen = isPanelOpen && Boolean(visibleSelectedNode);
+  const konlingContextStatus = visibleSelectedNode
+    ? 'selected-node'
+    : requestedNodeId
+      ? 'degraded'
+      : 'no-selection';
   const pinnedNodeCount = Object.keys(layoutState.positionsByNodeId).length;
   const pinnedLayoutSignature = Object.entries(layoutState.positionsByNodeId)
     .map(([nodeId, position]) =>
@@ -547,9 +567,17 @@ export function KnowledgeGraphSystem({
     .sort()
     .join('|');
   const selectedNodePinned = isKnowledgeGraphNodePinned(layoutState, visibleSelectedNode?.id);
+  const selectedNodeFallbackLayoutPosition = useMemo(() => {
+    if (!visibleSelectedNode) return null;
+    const positionedNode = applyRadialLayout(displayNodes, displayLinks, undefined, 180)
+      .find((node) => node.id === visibleSelectedNode.id);
+    return getKnowledgeGraphRuntimeNodePosition(
+      positionedNode as (KnowledgeNodeData & { x?: number; y?: number; z?: number }) | null | undefined
+    );
+  }, [displayLinks, displayNodes, visibleSelectedNode]);
   const selectedNodeRuntimePosition = getKnowledgeGraphRuntimeNodePosition(
     visibleSelectedNode as (KnowledgeNodeData & { x?: number; y?: number; z?: number }) | null
-  );
+  ) ?? selectedNodeFallbackLayoutPosition;
   const selectedNodePinUnavailable = Boolean(visibleSelectedNode && !selectedNodePinned && !selectedNodeRuntimePosition);
   const selectedNodeFocused = Boolean(visibleSelectedNode && graphFilterFocusNodeId === visibleSelectedNode.id);
   const selectedNodeRelationCount = visibleSelectedNode
@@ -652,6 +680,22 @@ export function KnowledgeGraphSystem({
     closeDesktopTool();
   }, [closeDesktopTool]);
 
+  useEffect(() => {
+    if (!mobileToolPanelOpen) return;
+    window.requestAnimationFrame(() => {
+      mobileToolPanelRef.current?.focus();
+    });
+  }, [mobileActiveTool, mobileToolPanelOpen]);
+
+  const handleMobileToolPanelKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
+    if (event.key !== 'Escape') return;
+    event.stopPropagation();
+    setMobileToolPanelOpen(false);
+    window.requestAnimationFrame(() => {
+      mobileToolToggleRef.current?.focus();
+    });
+  }, []);
+
   const hoveredBloomLabel = hoveredNode?.bloomLevel ? getBloomLabel(hoveredNode.bloomLevel) : '';
   const hoveredKnowledgeDimLabel = hoveredNode?.knowledgeDim
     ? getKnowledgeDimLabel(hoveredNode.knowledgeDim)
@@ -719,6 +763,8 @@ export function KnowledgeGraphSystem({
         : '当前知识图谱尚未选中节点。',
       knowledgeWorkspaceHint: {
         selectedNodeId: visibleSelectedNode?.id ?? null,
+        requestedNodeId,
+        status: konlingContextStatus,
         activeFilters: [knowledgeWorkspaceFilterSummary],
         densityMode: relationDensityMode,
         viewMode,
@@ -730,10 +776,12 @@ export function KnowledgeGraphSystem({
     displayLinks.length,
     knowledgeWorkspaceFilterSummary,
     relationDensityMode,
+    requestedNodeId,
     selectedNodeRelationCount,
     updatePageContext,
     viewMode,
     visibleSelectedNode,
+    konlingContextStatus,
   ]);
 
   return (
@@ -742,7 +790,7 @@ export function KnowledgeGraphSystem({
       data-knowledge-workspace="canvas-first"
       data-knowledge-squeeze-down-rejected="permanent-panels-hidden-at-320"
       data-knowledge-konling-context-source="server-owned"
-      data-knowledge-konling-context-status={visibleSelectedNode ? 'selected-node' : 'no-selection'}
+      data-knowledge-konling-context-status={konlingContextStatus}
       data-knowledge-shared-dock-collision-policy="avoid-local-tools-and-inspector"
     >
       {/* 中央图谱区域 */}
@@ -953,12 +1001,13 @@ export function KnowledgeGraphSystem({
           </div>
         </div>
 
-        <div
-          className="absolute left-3 right-3 top-3 z-30 grid gap-2 lg:hidden"
-          data-knowledge-mobile-command-surface="single-tool-panel"
-          data-knowledge-local-tool={mobileActiveTool}
-          data-state={mobileToolPanelOpen ? 'open' : 'closed'}
-        >
+        {!aiSidebarOpen && (
+          <div
+            className="absolute left-3 right-3 top-3 z-30 grid gap-2 lg:hidden"
+            data-knowledge-mobile-command-surface="single-tool-panel"
+            data-knowledge-local-tool={mobileActiveTool}
+            data-state={mobileToolPanelOpen ? 'open' : 'closed'}
+          >
           <div className="flex flex-wrap items-center gap-2 rounded-xl border border-platform-border bg-platform-surface/95 p-2 text-xs text-platform-fg-primary shadow-lg backdrop-blur">
             {([
               ['chapter-directory', '目录'],
@@ -988,6 +1037,7 @@ export function KnowledgeGraphSystem({
               {activeFilterSummary}
             </span>
             <button
+              ref={mobileToolToggleRef}
               type="button"
               aria-expanded={mobileToolPanelOpen}
               onClick={() => setMobileToolPanelOpen((open) => !open)}
@@ -1000,6 +1050,9 @@ export function KnowledgeGraphSystem({
 
           {mobileToolPanelOpen && (
             <div
+              ref={mobileToolPanelRef}
+              tabIndex={-1}
+              onKeyDown={handleMobileToolPanelKeyDown}
               className="max-h-[min(28rem,calc(100vh-7rem))] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-3 text-xs text-platform-fg-primary shadow-xl backdrop-blur"
               data-knowledge-mobile-tool-panel={mobileActiveTool}
               data-state="open"
@@ -1232,7 +1285,8 @@ export function KnowledgeGraphSystem({
             )}
             </div>
           )}
-        </div>
+          </div>
+        )}
 
         {desktopActiveTool === 'relation-filters' && (
         <div

@@ -262,6 +262,64 @@ describe('Konling context route learner-state integration', () => {
     expect(body.knowledge_workspace_context.relation_summary.selected_node_relation_count).toBe(5);
   });
 
+  it('keeps degraded requested knowledge nodes unresolved instead of upgrading them to selected context', async () => {
+    mocks.prisma.knowledgeNode.findMany.mockResolvedValue([
+      {
+        id: 'node-second-order',
+        name: '二阶系统标准型',
+        nodeType: 'THEORY',
+        description: '二阶系统传递函数标准形式',
+        metadata: { chapterName: '时域分析' },
+        knowledgeDim: 'CONCEPTUAL',
+        tags: ['二阶系统', '标准型'],
+      },
+    ]);
+
+    const response = await request(
+      'http://localhost/api/ai/konling-context?pageId=/knowledge&requestedNodeId=node-second-order&status=degraded'
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.knowledgeNode.findMany).not.toHaveBeenCalled();
+    expect(body.knowledge_workspace_context).toMatchObject({
+      source: 'server-owned',
+      route: '/knowledge',
+      status: 'degraded',
+      selected_node: null,
+    });
+    expect(body.missing_context).toContain('knowledge-workspace-selected-node-unresolved');
+  });
+
+  it('keeps contradictory degraded selected-node hints unresolved', async () => {
+    mocks.prisma.knowledgeNode.findMany.mockResolvedValue([
+      {
+        id: 'node-second-order',
+        name: '二阶系统标准型',
+        nodeType: 'THEORY',
+        description: '二阶系统传递函数标准形式',
+        metadata: { chapterName: '时域分析' },
+        knowledgeDim: 'CONCEPTUAL',
+        tags: ['二阶系统', '标准型'],
+      },
+    ]);
+
+    const response = await request(
+      'http://localhost/api/ai/konling-context?pageId=/knowledge&selectedNodeId=node-second-order&status=degraded'
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.knowledgeNode.findMany).not.toHaveBeenCalled();
+    expect(body.knowledge_workspace_context).toMatchObject({
+      source: 'server-owned',
+      route: '/knowledge',
+      status: 'degraded',
+      selected_node: null,
+    });
+    expect(body.missing_context).toContain('knowledge-workspace-selected-node-unresolved');
+  });
+
   it('keeps hover previews out of durable knowledge workspace context', async () => {
     const response = await request(
       'http://localhost/api/ai/konling-context?pageId=/knowledge&hoveredNodeId=node-hover&activeFilters=未启用额外筛选'

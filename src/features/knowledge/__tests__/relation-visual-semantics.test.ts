@@ -203,7 +203,7 @@ describe('knowledge graph relation visual semantics', () => {
     expect(getRelationSemantic('visualized_by').label).toBe('图形呈现');
     expect(source).toContain('getRelationLegendItems');
     expect(source).toContain('data-knowledge-relation-legend-sample');
-    expect(source).toContain('max-h-[calc(100vh-2rem)]');
+    expect(source).toContain('max-h-[min(36rem,calc(100vh-10rem))]');
     expect(source).toContain('grid max-h-48 grid-cols-2 gap-1.5 overflow-y-auto pr-1');
     expect(source).toContain('item.sampleStyle.lightColor');
     expect(source).toContain('item.sampleStyle.darkColor');
