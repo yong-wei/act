@@ -68,6 +68,12 @@ Konling SHALL register tools through a server-owned registry that declares permi
 - **WHEN** a write or publish tier tool is requested
 - **THEN** the tool call SHALL enter an approval-required state unless a future spec defines a narrower approved exception.
 
+#### Scenario: Student-owned adaptive path tool is requested
+- **WHEN** a student requests an adaptive path generation, revision, selection, rejection, or adjustment-outcome tool from the adaptive path center
+- **THEN** Konling MAY mark the tool run approval state as not-required
+- **AND** the tool SHALL remain bound to the authenticated or target student, registered path goal, class scope where available, course-scoped AgentSession and ToolRun context, privacy scope, AgentSession permitted tools, idempotency key, and redacted input summary
+- **AND** path-bound selection, rejection, revision, explanation, or adjustment tools SHALL verify the requested path belongs to the scoped student, registered goal, and class scope where available before side effects.
+
 ### Requirement: Konling persists auditable tool runs
 Konling SHALL persist every tool call as an auditable tool-run record before executing side effects.
 

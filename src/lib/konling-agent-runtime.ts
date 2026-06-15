@@ -270,8 +270,8 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     label: '学习路径顾问',
     supportedRoles: ['student', 'teacher'],
     mountingSurfaces: ['student-path-center'],
-    requiredContext: ['path-execution-context', 'learner-state-summary', 'evidence-citations'],
-    optionalContext: ['diagnosis-view', 'resource-node'],
+    requiredContext: ['learner-state-summary', 'evidence-citations'],
+    optionalContext: ['path-execution-context', 'diagnosis-view', 'resource-node'],
     permittedTools: [
       'get_page_context',
       'get_learner_state',
@@ -285,7 +285,7 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
       'explain_learning_path_tradeoff',
       'record_path_adjustment_outcome',
     ],
-    citationClasses: ['path-execution', 'learner-state', 'content', 'intervention'],
+    citationClasses: ['learner-state', 'content'],
     payload: 'aggregate-and-redacted-only',
     outputStatus: 'advisory-only',
     requiredCitationOwners: ['answer', 'recommendation'],
@@ -1609,18 +1609,17 @@ function buildAdaptivePathTradeoffOutput(
 }
 
 function resolveScopedAdaptivePathGoalId(input: KonlingToolRuntimeInput, requestedGoalId?: string | null) {
-  const activeGoalId = input.context.planContext?.currentPathId ? CONTROL_CORRECTION_PATH_ROUND_GOAL_ID : CONTROL_CORRECTION_PATH_ROUND_GOAL_ID;
-  if (!requestedGoalId) return activeGoalId;
-  if (requestedGoalId !== activeGoalId) {
-    throw new KonlingRuntimeScopeError(403, 'Konling 路径工具不能扩展到当前页面目标之外。');
+  const goalId = requestedGoalId || CONTROL_CORRECTION_PATH_ROUND_GOAL_ID;
+  if (!getRegisteredAdaptiveLearningPathGoal(goalId)) {
+    throw new KonlingRuntimeScopeError(403, 'Konling 路径工具不能扩展到未登记的学习目标。');
   }
-  return requestedGoalId;
+  return goalId;
 }
 
 async function assertScopedAdaptivePathToolPath(
   input: KonlingToolRuntimeInput,
   requestedPathId: string | null | undefined,
-  options: { requirePath: boolean; requireExisting: boolean },
+  options: { goalId: string; requirePath: boolean; requireExisting: boolean },
 ) {
   const currentPathId = input.context.planContext?.currentPathId ?? null;
   const knownPathIds = new Set([
@@ -1642,7 +1641,7 @@ async function assertScopedAdaptivePathToolPath(
     where: {
       id: pathId,
       userId: input.scope.targetUserId,
-      goalId: CONTROL_CORRECTION_PATH_ROUND_GOAL_ID,
+      goalId: options.goalId,
       ...(input.scope.classId ? { classId: input.scope.classId } : {}),
     },
     select: { id: true },
@@ -2063,38 +2062,38 @@ async function validateKonlingToolPreflight(
   requireIdempotencyKeyForTool(toolName, toolInput);
   if (toolName === 'generate_learning_path') {
     const parsed = generateLearningPathParameters.parse(toolInput);
-    resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { requirePath: false, requireExisting: false });
+    const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
+    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: false, requireExisting: false });
     return;
   }
   if (toolName === 'revise_learning_path_options') {
     const parsed = reviseLearningPathOptionsParameters.parse(toolInput);
-    resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { requirePath: true, requireExisting: true });
+    const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
+    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
     return;
   }
   if (toolName === 'select_learning_path') {
     const parsed = selectLearningPathParameters.parse(toolInput);
-    resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { requirePath: true, requireExisting: true });
+    const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
+    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
     return;
   }
   if (toolName === 'reject_learning_path_option') {
     const parsed = rejectLearningPathOptionParameters.parse(toolInput);
-    resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { requirePath: true, requireExisting: true });
+    const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
+    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
     return;
   }
   if (toolName === 'explain_learning_path_tradeoff') {
     const parsed = explainLearningPathTradeoffParameters.parse(toolInput);
-    resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { requirePath: false, requireExisting: Boolean(parsed.pathId) });
+    const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
+    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: false, requireExisting: Boolean(parsed.pathId) });
     return;
   }
   if (toolName === 'record_path_adjustment_outcome') {
     const parsed = recordPathAdjustmentOutcomeParameters.parse(toolInput);
-    resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { requirePath: true, requireExisting: true });
+    const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
+    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
     return;
   }
   if (toolName === 'set_simulation_params') {

@@ -327,8 +327,9 @@ describe('konling agent runtime', () => {
     expect(contract.status).toBe('unavailable');
     expect(contract.permittedTools).toEqual([]);
     expect(contract.unavailableReasons).toEqual(expect.arrayContaining([
-      'missing-context:path-execution-context',
-      'missing-citation:path-execution',
+      'missing-context:learner-state-summary',
+      'missing-citation:learner-state',
+      'missing-citation:content',
     ]));
     expect(contract.scope).toEqual(expect.objectContaining({
       targetUserId: 'student-1',
@@ -431,6 +432,59 @@ describe('konling agent runtime', () => {
       'explain_learning_path_tradeoff',
       'record_path_adjustment_outcome',
     ]));
+  });
+
+  it('keeps path-advisor generation available when a student has no existing path yet', () => {
+    const runtime = createRuntimeContext({
+      learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],
+      permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context'],
+      planContext: {
+        currentPathId: null,
+        activeNodeId: null,
+        nextNodeIds: [],
+        recentPathIds: [],
+        completedNodeIds: [],
+        status: 'missing',
+      },
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:starter',
+          sourceType: 'content',
+          displayTitle: '路径目标内容',
+          href: null,
+          confidence: 'high',
+          evidenceBasis: 'course-ai-context',
+          owner: 'answer',
+        }],
+        evidenceCitations: [{
+          id: 'learner:student-1',
+          sourceType: 'learner-state',
+          displayTitle: '学习状态摘要',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'AdaptiveLearnerState',
+          owner: 'recommendation',
+        }],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer', 'recommendation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    });
+
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'path-advisor',
+      runtimeContext: runtime,
+      scope: createScope({ role: 'student', pageId: 'adaptive-path-center', pathNodeId: null }),
+    });
+
+    expect(contract.status).toBe('ready');
+    expect(contract.unavailableReasons).toEqual([]);
+    expect(contract.permittedTools).toContain('generate_learning_path');
   });
 
   it('does not make grading mode unavailable for unrelated citation gaps', () => {
@@ -4067,6 +4121,273 @@ describe('konling agent runtime', () => {
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我想先补相位裕度');
   });
 
+  it('accepts registered non-control adaptive path goals during path tool preflight', async () => {
+    const createdRun = {
+      id: 'tool-run-path-tradeoff-1',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'explain_learning_path_tradeoff',
+      permissionTier: 'analyze',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-tradeoff-1',
+      correlationId: 'corr-path-tradeoff-1',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['explain_learning_path_tradeoff'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ resourceId: null, pathNodeId: null, pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['explain_learning_path_tradeoff'],
+        planContext: {
+          currentPathId: null,
+          activeNodeId: null,
+          nextNodeIds: [],
+          recentPathIds: [],
+          completedNodeIds: [],
+          status: 'missing',
+        },
+      }),
+    });
+
+    const result = await runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'path-tradeoff-1',
+      goalId: 'frequency-response-foundations',
+      styleId: 'guided',
+    }) as { scope: { goalId: string } };
+
+    expect(result.scope.goalId).toBe('frequency-response-foundations');
+    expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        toolName: 'explain_learning_path_tradeoff',
+        idempotencyKey: 'path-tradeoff-1',
+        inputSummary: expect.objectContaining({
+          goalId: 'frequency-response-foundations',
+        }),
+      }),
+    }));
+    expect(db.agentToolRun.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        status: 'succeeded',
+      }),
+    }));
+  });
+
+  it('allows tradeoff explanations for scoped path ids within registered goals', async () => {
+    const createdRun = {
+      id: 'tool-run-path-tradeoff-2',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'explain_learning_path_tradeoff',
+      permissionTier: 'analyze',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-tradeoff-2',
+      correlationId: 'corr-path-tradeoff-2',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['explain_learning_path_tradeoff'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue({ id: 'frequency-path-1' }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['explain_learning_path_tradeoff'],
+        planContext: {
+          currentPathId: 'frequency-path-1',
+          activeNodeId: 'node-1',
+          nextNodeIds: [],
+          recentPathIds: ['frequency-path-1'],
+          completedNodeIds: [],
+          status: 'available',
+        },
+      }),
+    });
+
+    await expect(runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'path-tradeoff-2',
+      goalId: 'frequency-response-foundations',
+      pathId: 'frequency-path-1',
+      styleId: 'guided',
+    })).resolves.toMatchObject({
+      operation: 'explained',
+      scope: expect.objectContaining({
+        goalId: 'frequency-response-foundations',
+        pathId: 'frequency-path-1',
+      }),
+    });
+    expect(db.learningPath.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: 'frequency-path-1',
+        userId: 'student-1',
+        goalId: 'frequency-response-foundations',
+        classId: 'class-1',
+      }),
+    }));
+    expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        toolName: 'explain_learning_path_tradeoff',
+        approvalState: 'not_required',
+      }),
+    }));
+  });
+
+  it('records path-bound choices for registered non-control adaptive path goals', async () => {
+    const createdRun = {
+      id: 'tool-run-frequency-select-1',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'select_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'frequency-select-1',
+      correlationId: 'corr-frequency-select-1',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['select_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'frequency-path-1',
+          userId: 'student-1',
+          goalId: 'frequency-response-foundations',
+          pathPayload: { selectionHistory: [], activity: [] },
+        }),
+        update: vi.fn().mockResolvedValue({ id: 'frequency-path-1' }),
+      },
+      learningFact: {
+        createMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      evidenceOutbox: {
+        createMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['select_learning_path'],
+        planContext: {
+          currentPathId: 'frequency-path-1',
+          activeNodeId: 'node-1',
+          nextNodeIds: [],
+          recentPathIds: ['frequency-path-1'],
+          completedNodeIds: [],
+          status: 'available',
+        },
+      }),
+    });
+
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'frequency-select-1',
+      goalId: 'frequency-response-foundations',
+      pathId: 'frequency-path-1',
+      selectedStyleId: 'guided-frequency-route',
+    })).resolves.toMatchObject({
+      outcome: 'selected',
+      evidence: {
+        emitted: true,
+        dedupeKey: 'learning-path:choice:frequency-path-1:frequency-select-1',
+      },
+    });
+    expect(db.learningPath.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: 'frequency-path-1',
+        userId: 'student-1',
+        goalId: 'frequency-response-foundations',
+        classId: 'class-1',
+      }),
+    }));
+    expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        toolName: 'select_learning_path',
+        approvalState: 'not_required',
+      }),
+    }));
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'frequency-path-1' },
+      data: expect.objectContaining({
+        pathPayload: expect.objectContaining({
+          activity: [
+            expect.objectContaining({
+              goalId: 'frequency-response-foundations',
+              type: 'choice:selection',
+              selectedStyleId: 'guided-frequency-route',
+            }),
+          ],
+        }),
+      }),
+    }));
+  });
+
   it('records adaptive path selection and rejection as governed path activity', async () => {
     const selectRun = {
       id: 'tool-run-select-1',
@@ -4434,6 +4755,133 @@ describe('konling agent runtime', () => {
     expect(db.evidenceOutbox.createMany).not.toHaveBeenCalled();
     expect(db.learningFact.createMany).not.toHaveBeenCalled();
     expect(db.learningPath.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects path-bound adaptive path tools when no current path is available', async () => {
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['select_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn(),
+        create: vi.fn(),
+      },
+      learningPath: {
+        findFirst: vi.fn(),
+        update: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center', pathNodeId: null }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['select_learning_path'],
+        planContext: {
+          currentPathId: null,
+          activeNodeId: null,
+          nextNodeIds: [],
+          recentPathIds: [],
+          completedNodeIds: [],
+          status: 'missing',
+        },
+      }),
+    });
+
+    await expect(runtime.selectLearningPath({
+      idempotencyKey: 'select-without-current-path',
+      selectedStyleId: 'arena-simulation-sprint',
+    })).rejects.toMatchObject({
+      status: 400,
+      message: '当前没有可记录的学习路径。',
+    });
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
+    expect(db.learningPath.findFirst).not.toHaveBeenCalled();
+    expect(db.learningPath.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects tradeoff explanations for path ids outside the requested registered goal', async () => {
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['explain_learning_path_tradeoff'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn(),
+        create: vi.fn(),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue(null),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['explain_learning_path_tradeoff'],
+        planContext: {
+          currentPathId: 'path-1',
+          activeNodeId: 'node-1',
+          nextNodeIds: [],
+          recentPathIds: ['path-1'],
+          completedNodeIds: [],
+          status: 'available',
+        },
+      }),
+    });
+
+    await expect(runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'tradeoff-non-control-path',
+      goalId: 'frequency-response-foundations',
+      pathId: 'path-1',
+      styleId: 'guided',
+    })).rejects.toMatchObject({ status: 403 });
+    expect(db.learningPath.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: 'path-1',
+        userId: 'student-1',
+        goalId: 'frequency-response-foundations',
+        classId: 'class-1',
+      }),
+    }));
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects unregistered adaptive path goals for tradeoff explanations before creating tool runs', async () => {
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['explain_learning_path_tradeoff'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn(),
+        create: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center', pathNodeId: null }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({ permittedTools: ['explain_learning_path_tradeoff'] }),
+    });
+
+    await expect(runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'tradeoff-unknown-goal',
+      goalId: 'unknown-goal',
+      styleId: 'guided',
+    })).rejects.toMatchObject({
+      status: 403,
+      message: 'Konling 路径工具不能扩展到未登记的学习目标。',
+    });
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
   });
 
   it('requires an agent session before executing adaptive path write tools', async () => {
@@ -5179,6 +5627,21 @@ describe('konling agent runtime', () => {
     expect(KONLING_TOOL_REGISTRY.explain_learning_path_tradeoff).toMatchObject({
       permissionTier: 'analyze',
       approvalPolicy: 'none',
+    });
+    expect(KONLING_TOOL_REGISTRY.select_learning_path).toMatchObject({
+      permissionTier: 'write',
+      approvalPolicy: 'none',
+      idempotencyPolicy: 'reuse',
+    });
+    expect(KONLING_TOOL_REGISTRY.reject_learning_path_option).toMatchObject({
+      permissionTier: 'write',
+      approvalPolicy: 'none',
+      idempotencyPolicy: 'reuse',
+    });
+    expect(KONLING_TOOL_REGISTRY.record_path_adjustment_outcome).toMatchObject({
+      permissionTier: 'write',
+      approvalPolicy: 'none',
+      idempotencyPolicy: 'reuse',
     });
     expect(KONLING_TOOL_REGISTRY.analyze_result).toMatchObject({
       permissionTier: 'analyze',
