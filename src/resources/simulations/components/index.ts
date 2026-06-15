@@ -31,4 +31,13 @@ export {
   type SimulationAssessmentMetric,
 } from './simulation-ui';
 
+export {
+  SIMULATION_SCENE_THEMES,
+  simulationScenePalette,
+  simulationThemeEvidenceContract,
+  useSimulationSceneTheme,
+  type SimulationSceneTheme,
+  type SimulationThemeMode,
+} from './simulation-theme';
+
 export { ModelLoadingPlaceholder } from './model-loading-placeholder';

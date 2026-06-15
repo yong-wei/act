@@ -5,42 +5,43 @@ import Link from 'next/link';
 import { ArrowLeft, PanelLeft, PanelRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useSimulationSceneTheme } from './simulation-theme';
 
 export const simulationUi = {
-  root: 'relative h-screen w-full overflow-hidden bg-slate-950',
+  root: 'relative h-screen w-full overflow-hidden bg-platform-canvas text-platform-fg-primary',
   topBar:
     'simulation-command-topbar absolute left-4 right-4 top-4 z-30 hidden h-12 items-center justify-between px-3 sm:flex',
   topBarTitleWrap: 'flex min-w-0 flex-col items-center justify-center px-3',
   topBarTitle: 'truncate text-sm font-semibold sm:text-base',
   topBarSubtitle: 'truncate text-[11px] opacity-75 sm:text-xs',
   backButton:
-    'inline-flex items-center gap-1.5 rounded-md border border-current/20 bg-white/35 px-2.5 py-1.5 text-xs font-medium transition hover:bg-white/50 dark:bg-white/10 dark:hover:bg-white/15',
+    'inline-flex items-center gap-1.5 rounded-md border border-platform-border bg-platform-surface-overlay/86 px-2.5 py-1.5 text-xs font-medium text-platform-fg-primary shadow-sm backdrop-blur transition hover:bg-platform-action-hover',
   badge:
-    'rounded-md border border-current/20 bg-white/35 px-2.5 py-1 text-[11px] font-medium dark:bg-white/10',
+    'rounded-md border border-platform-border bg-platform-surface-overlay/86 px-2.5 py-1 text-[11px] font-medium text-platform-fg-secondary shadow-sm backdrop-blur',
   panel: 'simulation-light-panel',
   controlPanelPosition: 'absolute inset-x-4 bottom-20 z-20 max-h-[46vh] overflow-y-auto pointer-events-auto lg:inset-auto lg:right-4 lg:top-20 lg:bottom-auto lg:w-[22rem] lg:max-h-[calc(100vh-7rem)]',
   statusPanelPosition: 'absolute inset-x-4 top-4 z-20 max-h-[30vh] overflow-y-auto pointer-events-auto sm:top-20 lg:inset-auto lg:left-4 lg:top-20 lg:w-[20rem] lg:max-h-[calc(100vh-7rem)]',
   cameraSwitcherPosition: 'absolute bottom-4 left-4 right-4 z-20 justify-center lg:left-1/2 lg:right-auto lg:-translate-x-1/2',
-  sectionTitle: 'text-xs font-semibold tracking-wide text-slate-700',
-  mutedText: 'text-xs text-slate-600',
-  valueText: 'font-mono text-slate-900',
-  infoTile: 'rounded-lg border border-slate-200 bg-white/90 p-2',
-  buttonPrimary: 'border-transparent bg-sky-700 text-white hover:bg-sky-600',
-  buttonSecondary: 'border-transparent bg-amber-600 text-white hover:bg-amber-500',
-  buttonOutline: 'border-slate-300 bg-white text-slate-900 hover:bg-slate-100',
-  tabsList: 'border border-slate-300 bg-slate-100',
+  sectionTitle: 'text-xs font-semibold tracking-wide text-platform-fg-primary',
+  mutedText: 'text-xs text-platform-fg-secondary',
+  valueText: 'font-mono text-platform-fg-primary',
+  infoTile: 'rounded-lg border border-platform-border bg-platform-surface-overlay/86 p-2',
+  buttonPrimary: 'border-transparent bg-platform-action-primary text-platform-fg-inverse hover:bg-platform-action-primary/90',
+  buttonSecondary: 'border-transparent bg-platform-action-subtle text-platform-action-primary hover:bg-platform-action-hover',
+  buttonOutline: 'border-platform-border bg-platform-surface text-platform-fg-primary hover:bg-platform-action-hover',
+  tabsList: 'border border-platform-border bg-platform-canvas-muted',
   tabsTrigger:
-    'text-slate-700 data-[state=active]:bg-slate-900 data-[state=active]:text-white data-[state=active]:shadow-sm',
+    'text-platform-fg-secondary data-[state=active]:bg-platform-fg-primary data-[state=active]:text-platform-fg-inverse data-[state=active]:shadow-sm',
   dockBody: 'max-h-[calc(100vh-11.5rem)] overflow-y-auto',
-  dockHeader: 'mb-3 flex items-center justify-between border-b border-slate-300/90 pb-2',
-  dockTitle: 'text-sm font-semibold text-slate-900',
+  dockHeader: 'mb-3 flex items-center justify-between border-b border-platform-border pb-2',
+  dockTitle: 'text-sm font-semibold text-platform-fg-primary',
   dockToggle:
-    'inline-flex h-7 w-7 items-center justify-center rounded-md border border-current/20 bg-white/35 transition hover:bg-white/50 dark:bg-white/10 dark:hover:bg-white/15',
+    'inline-flex h-7 w-7 items-center justify-center rounded-md border border-platform-border bg-platform-surface-overlay/86 text-platform-fg-primary transition hover:bg-platform-action-hover',
   collapsedDockButton:
     'simulation-command-restore-handle absolute top-4 z-20 flex h-9 w-9 items-center justify-center sm:top-20 lg:top-20',
   slider:
-    '[&_.bg-secondary]:bg-slate-300 [&_.bg-primary]:bg-sky-700 [&_.bg-background]:bg-white [&_.border-primary]:border-sky-700 [&_.ring-offset-background]:ring-offset-slate-50',
-  nativeRange: 'w-full cursor-pointer accent-sky-700',
+    '[&_.bg-secondary]:bg-platform-canvas-muted [&_.bg-primary]:bg-platform-action-primary [&_.bg-background]:bg-platform-surface [&_.border-primary]:border-platform-action-primary [&_.ring-offset-background]:ring-offset-platform-canvas',
+  nativeRange: 'w-full cursor-pointer accent-[hsl(var(--platform-action-primary))]',
   statusDockTheme: '',
   controlDockTheme: '',
 };
@@ -199,6 +200,7 @@ export function SimulationAssessmentPanel({
   title?: string;
   metrics: SimulationAssessmentMetric[];
 }) {
+  const sceneTheme = useSimulationSceneTheme();
   const score = useMemo(() => {
     if (!metrics.length) return 0;
     const sum = metrics.reduce((acc, metric) => acc + normalizeMetric(metric), 0);
@@ -207,25 +209,25 @@ export function SimulationAssessmentPanel({
 
   return (
     <div className="space-y-3">
-      <div className="rounded-lg border border-slate-300 bg-white p-3">
-        <div className="text-xs text-slate-600">{title}</div>
-        <div className="mt-1 text-2xl font-semibold text-slate-900">{score.toFixed(1)}</div>
-        <div className="text-xs text-slate-600">综合得分（0-100）</div>
+      <div className="rounded-lg border border-platform-border bg-platform-surface-overlay/86 p-3" style={{ backgroundColor: sceneTheme.hudOverlay }}>
+        <div className="text-xs text-platform-fg-secondary">{title}</div>
+        <div className="mt-1 text-2xl font-semibold" style={{ color: sceneTheme.labelColor }}>{score.toFixed(1)}</div>
+        <div className="text-xs text-platform-fg-secondary">综合得分（0-100）</div>
       </div>
       <div className="space-y-2">
         {metrics.map((metric) => (
-          <div key={metric.id} className="rounded-lg border border-slate-300 bg-white p-2">
+          <div key={metric.id} className="rounded-lg border border-platform-border bg-platform-surface-overlay/86 p-2" style={{ backgroundColor: sceneTheme.labelSurface }}>
             <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-700">{metric.label}</span>
-              <span className="font-mono text-slate-900">
+              <span className="text-platform-fg-secondary">{metric.label}</span>
+              <span className="font-mono" style={{ color: sceneTheme.labelColor }}>
                 {metric.value.toFixed(metric.precision ?? 1)}
                 {metric.unit ?? ''}
               </span>
             </div>
-            <div className="mt-1 h-1.5 rounded-full bg-slate-200">
+            <div className="mt-1 h-1.5 rounded-full bg-platform-canvas-muted">
               <div
-                className="h-full rounded-full bg-sky-700"
-                style={{ width: `${normalizeMetric(metric)}%` }}
+                className="h-full rounded-full"
+                style={{ width: `${normalizeMetric(metric)}%`, backgroundColor: sceneTheme.emphasis }}
               />
             </div>
           </div>

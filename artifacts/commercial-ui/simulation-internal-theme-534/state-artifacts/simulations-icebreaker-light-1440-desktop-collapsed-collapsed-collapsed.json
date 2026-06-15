@@ -1,0 +1,18 @@
+{
+  "route": "/simulations/icebreaker",
+  "theme": "light",
+  "width": 1440,
+  "navigationState": "desktop-collapsed",
+  "dockState": "collapsed",
+  "localToolState": "collapsed",
+  "primarySceneNonblank": true,
+  "instrumentAreaNonblank": true,
+  "collisionEvidence": {
+    "dockAndLocalToolsObservedTogether": false,
+    "dockObservedExpanded": false,
+    "localToolsObservedExpanded": false,
+    "localControlCollisionFree": true
+  },
+  "screenshot": "artifacts/commercial-ui/simulation-internal-theme-534/simulations-icebreaker-light-1440-desktop-collapsed-collapsed-collapsed.png",
+  "result": "passed"
+}

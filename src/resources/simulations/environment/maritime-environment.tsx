@@ -8,6 +8,7 @@
 import { SkyDome } from './sky-dome';
 import { ProceduralClouds } from './procedural-clouds';
 import { WaveWater } from './wave-water';
+import { SIMULATION_SCENE_THEMES, type SimulationSceneTheme } from '../components/simulation-theme';
 
 interface MaritimeEnvironmentProps {
   /** 船舶位置 (用于海面跟随) */
@@ -22,21 +23,31 @@ interface MaritimeEnvironmentProps {
   waterColor?: string;
   /** 是否显示云层 */
   showClouds?: boolean;
+  /** 统一仿真场景主题 */
+  sceneTheme?: SimulationSceneTheme;
 }
 
 export function MaritimeEnvironment({
   shipPosition,
   seaState = 3,
-  skyHorizonColor = '#d4e8f7',
-  skyZenithColor = '#4a7ba7',
-  waterColor = '#124060',
+  skyHorizonColor = SIMULATION_SCENE_THEMES.light.skyHorizonColor,
+  skyZenithColor = SIMULATION_SCENE_THEMES.light.skyZenithColor,
+  waterColor = SIMULATION_SCENE_THEMES.light.waterColor,
   showClouds = true,
+  sceneTheme,
 }: MaritimeEnvironmentProps) {
+  const skyHorizon = sceneTheme?.skyHorizonColor ?? skyHorizonColor;
+  const skyZenith = sceneTheme?.skyZenithColor ?? skyZenithColor;
+  const water = sceneTheme?.waterColor ?? waterColor;
+  const foam = sceneTheme?.foamColor;
+  const fog = sceneTheme?.fogColor ?? skyHorizon;
+
   return (
     <>
-      <SkyDome horizonColor={skyHorizonColor} zenithColor={skyZenithColor} />
+      <fog attach="fog" args={[fog, 4500, 18000]} />
+      <SkyDome horizonColor={skyHorizon} zenithColor={skyZenith} />
       {showClouds && <ProceduralClouds />}
-      <WaveWater shipPosition={shipPosition} seaState={seaState} waterColor={waterColor} />
+      <WaveWater shipPosition={shipPosition} seaState={seaState} waterColor={water} foamColor={foam} />
     </>
   );
 }
