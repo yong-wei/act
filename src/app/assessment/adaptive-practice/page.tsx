@@ -489,7 +489,8 @@ export default function AdaptivePracticePage() {
   if (activePathId) controlCorrectionQuery.set('pathId', activePathId);
   if (activeNodeId) controlCorrectionQuery.set('nodeId', activeNodeId);
   const controlCorrectionContextHref = `/assessment/adaptive-practice?${controlCorrectionQuery.toString()}`;
-  const pathGenerationContextHref = '/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation';
+  const controlCorrectionGenerationHref = '/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation';
+  const genericPathGenerationHref = '#adaptive-path-generation-goals';
   const loginHref = `/login?callbackUrl=${encodeURIComponent(activeGoal ? controlCorrectionContextHref : '/assessment/adaptive-practice')}`;
   const entryIntents = getCommercialStudentEntryIntentGroups();
   const { assistantEntryPoint, openAssistantEntryPoint } = useGlobalAI();
@@ -953,7 +954,7 @@ export default function AdaptivePracticePage() {
             id: 'adaptive-path-konling',
             label: '控灵助手',
             control: 'konling',
-            href: pathGenerationContextHref,
+            href: activeGoal ? controlCorrectionGenerationHref : genericPathGenerationHref,
             icon: <BrainCircuit className="h-4 w-4 text-primary" />,
           },
           {
@@ -1021,12 +1022,12 @@ export default function AdaptivePracticePage() {
                   </button>
                 ) : (
                   <Link
-                    href={pathGenerationContextHref}
-                    data-adaptive-path-generation-action="enter-control-correction-context"
+                    href={genericPathGenerationHref}
+                    data-adaptive-path-generation-action="choose-generation-goal"
                     className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
                   >
                     <Sparkles className="size-4" aria-hidden="true" />
-                    进入路径生成
+                    生成学习路径
                   </Link>
                 )}
                 <Link
@@ -1173,6 +1174,81 @@ export default function AdaptivePracticePage() {
                   例如：我想在本周完成根轨迹和频域稳定性的复习，并用一次仿真检查理解。
                 </span>
               </label>
+            </div>
+          </section>
+
+          <section
+            id="adaptive-path-generation-goals"
+            className="surface-card scroll-mt-24 p-5"
+            data-adaptive-path-generation-goal-list="generic"
+            data-adaptive-path-generation-default-scope="goal-selection"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-normal text-primary">Goal selection</p>
+                <h2 className="mt-1 text-xl font-semibold text-foreground">选择路径目标</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-subtle">
+                  先选定目标，再让控灵结合学习证据生成路径。目标不同，推荐资源、检查点和练习节奏也会不同。
+                </p>
+              </div>
+              <span className="rounded-lg border border-border bg-muted px-3 py-1.5 text-xs text-subtle">
+                2 个目标
+              </span>
+            </div>
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div
+                className="rounded-lg border border-border bg-background/55 p-4"
+                data-adaptive-path-generation-goal="control-correction"
+                data-adaptive-path-generation-ready="true"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="grid size-10 place-items-center rounded-lg border border-border bg-muted text-primary">
+                    <GitBranch className="size-5" aria-hidden="true" />
+                  </span>
+                  <div>
+                    <p className="text-xs text-subtle">目标一</p>
+                    <h3 className="text-base font-semibold text-foreground">控制系统校正设计</h3>
+                  </div>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-subtle">
+                  面向时域指标、根轨迹设计、仿真验证和 Arena 迁移，适合生成可执行的校正学习路径。
+                </p>
+                <Link
+                  href={controlCorrectionGenerationHref}
+                  data-adaptive-path-generation-action="enter-registered-goal-context"
+                  className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
+                >
+                  <Sparkles className="size-3.5" aria-hidden="true" />
+                  生成该目标路径
+                </Link>
+              </div>
+
+              <div
+                className="rounded-lg border border-border bg-background/55 p-4"
+                data-adaptive-path-generation-goal="frequency-response-foundations"
+                data-adaptive-path-generation-ready="evidence-first"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="grid size-10 place-items-center rounded-lg border border-border bg-muted text-primary">
+                    <Compass className="size-5" aria-hidden="true" />
+                  </span>
+                  <div>
+                    <p className="text-xs text-subtle">目标二</p>
+                    <h3 className="text-base font-semibold text-foreground">频率响应基础</h3>
+                  </div>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-subtle">
+                  面向 Bode 图、频域稳定性和基础练习，适合先补齐学习证据，再进入可比较路径。
+                </p>
+                <Link
+                  href="/profile/evidence?goal=frequency-response-foundations"
+                  data-adaptive-path-generation-action="review-frequency-response-evidence"
+                  className="mt-4 inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground hover:border-primary"
+                >
+                  <History className="size-3.5" aria-hidden="true" />
+                  查看该目标证据
+                </Link>
+              </div>
             </div>
           </section>
 

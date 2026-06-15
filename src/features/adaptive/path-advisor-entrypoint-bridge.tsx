@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 
@@ -24,10 +25,15 @@ export function PathAdvisorEntryPointBridge({
   classId,
   modeContextToken,
 }: PathAdvisorEntryPointBridgeProps) {
+  const searchParams = useSearchParams();
   const { updatePageContext } = useGlobalAI();
+  const explicitControlCorrectionGoal = searchParams.get('goal') === 'control-correction';
 
   useEffect(() => {
-    if (!classId || !modeContextToken) return;
+    if (!explicitControlCorrectionGoal || !classId || !modeContextToken) {
+      updatePageContext({ assistantEntryPoint: null });
+      return;
+    }
 
     updatePageContext({
       ...PATH_ADVISOR_PAGE_CONTEXT,
@@ -42,7 +48,8 @@ export function PathAdvisorEntryPointBridge({
         },
       },
     });
-  }, [classId, modeContextToken, updatePageContext]);
+    return () => updatePageContext({ assistantEntryPoint: null });
+  }, [classId, explicitControlCorrectionGoal, modeContextToken, updatePageContext]);
 
   return null;
 }

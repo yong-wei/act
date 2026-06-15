@@ -542,19 +542,36 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).not.toContain('onClick={loadNextQuestion}');
   });
 
-  it('routes adaptive path generation into the control-correction path-advisor context', () => {
+  it('keeps default adaptive path generation generic before entering a registered goal context', () => {
     const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
 
-    expect(source).toContain("const pathGenerationContextHref = '/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation';");
+    expect(source).toContain("const controlCorrectionGenerationHref = '/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation';");
+    expect(source).toContain("const genericPathGenerationHref = '#adaptive-path-generation-goals';");
     expect(source).toContain('useGlobalAI');
     expect(source).toContain('openPathGenerationAdvisor');
     expect(source).toContain("data-adaptive-path-generation-action=\"open-in-page-path-advisor\"");
-    expect(source).toContain("data-adaptive-path-generation-action=\"enter-control-correction-context\"");
+    expect(source).toContain("data-adaptive-path-generation-action=\"choose-generation-goal\"");
+    expect(source).toContain('data-adaptive-path-generation-goal-list="generic"');
+    expect(source).toContain('data-adaptive-path-generation-goal="control-correction"');
+    expect(source).toContain('data-adaptive-path-generation-goal="frequency-response-foundations"');
+    expect(source).toContain("data-adaptive-path-generation-action=\"enter-registered-goal-context\"");
     expect(source).toContain('请控灵生成路径');
-    expect(source).toContain('进入路径生成');
+    expect(source).toContain('生成学习路径');
     expect(source).toContain('路径顾问准备中');
+    expect(source).not.toContain('data-adaptive-path-generation-action="enter-control-correction-context"');
     expect(source).not.toContain('/ai/copilot?mode=path-advisor');
     expect(source).not.toContain("setPathChoiceMessage('控灵已准备好根据你的目标生成路径。')");
+  });
+
+  it('registers path-advisor entry point only after an explicit control-correction goal is selected', () => {
+    const source = readFileSync(join(repoRoot, 'src/features/adaptive/path-advisor-entrypoint-bridge.tsx'), 'utf8');
+
+    expect(source).toContain("import { useSearchParams } from 'next/navigation';");
+    expect(source).toContain("const explicitControlCorrectionGoal = searchParams.get('goal') === 'control-correction';");
+    expect(source).toContain('if (!explicitControlCorrectionGoal || !classId || !modeContextToken) {');
+    expect(source).toContain('updatePageContext({ assistantEntryPoint: null });');
+    expect(source).toContain('return () => updatePageContext({ assistantEntryPoint: null });');
+    expect(source).toContain('student-path-center:control-correction:adaptive-path-center');
   });
 
   it('binds growth center to grouped learner timeline and stable chart containers', () => {
