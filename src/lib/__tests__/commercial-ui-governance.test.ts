@@ -2638,6 +2638,123 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('paths.add(simulationVisualQa.handoffBaseline.implementationMatrix)');
   });
 
+  it('keeps knowledge workspace product QA local-tool and mobile overlap checks viewport-specific', () => {
+    const scriptSource = readFileSync(join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'), 'utf8');
+    const captureScriptSource = readFileSync(
+      join(process.cwd(), 'scripts/tests/capture-knowledge-workspace-product-qa.ts'),
+      'utf8',
+    );
+    const globalAiButtonSource = readFileSync(
+      join(process.cwd(), 'src/components/ai/global-ai-button.tsx'),
+      'utf8',
+    );
+    const globalAiSidebarSource = readFileSync(
+      join(process.cwd(), 'src/components/ai/global-ai-sidebar.tsx'),
+      'utf8',
+    );
+    const globalsSource = readFileSync(
+      join(process.cwd(), 'src/app/globals.css'),
+      'utf8',
+    );
+
+    expect(scriptSource).toContain('const isMobileViewport = numberFromEvidence(viewport.width) === 320;');
+    expect(scriptSource).toContain('const activeLocalToolMarker = isMobileViewport ? markers.mobileActiveTool : markers.desktopActiveTool;');
+    expect(scriptSource).toContain('const visibleLocalToolPanelState = isMobileViewport ? markers.mobileToolState : markers.desktopToolState;');
+    expect(scriptSource).toContain("visibleLocalToolPanelState === 'closed' || (name.includes('konling') && visibleLocalToolPanelState === null)");
+    expect(scriptSource).toContain("activeLocalToolMarker === state.localToolState && visibleLocalToolPanelState === 'open'");
+    expect(scriptSource).not.toContain("markers.desktopToolState === 'open'");
+    expect(scriptSource).not.toContain("markers.mobileToolState === 'open'");
+    expect(scriptSource).toContain("method ?? '') === 'pointer-drag'");
+    expect(scriptSource).not.toContain('pinControl).pinned === true');
+    expect(captureScriptSource).toContain('__knowledgeGraphProductQaSelectedNodeDragPoints');
+    expect(captureScriptSource).toContain('selectedNodeHoverDragPointCandidates');
+    expect(captureScriptSource).toContain('hoverText.includes(expectedLabel)');
+    expect(captureScriptSource).not.toContain('hoveredCanvasNodeDragPointCandidates');
+    expect(captureScriptSource).toContain('async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string)');
+    expect(captureScriptSource).toContain('pinnedLayoutSignature.includes(expectedNodeId)');
+    expect(captureScriptSource).toContain('dragCanvasNodeUntilPinned(page, selectedNodeId)');
+    expect(scriptSource).toContain('objectRecord(objectRecord(state.interactionEvidence).drag).selectedNodeId === state.selectedNode');
+    expect(scriptSource).toContain("pinnedLayoutSignature).includes(String(state.selectedNode ?? ''))");
+    expect(captureScriptSource).toContain("document.querySelector('[data-knowledge-local-panel=\"node-hover-preview\"]')");
+    expect(captureScriptSource).not.toContain('__knowledgeGraphProductQaDragSelectedNode');
+    expect(captureScriptSource).not.toContain("method: 'drag-end-handler'");
+    expect(scriptSource).toContain('expandedDockOverlapsMobileTools');
+    expect(scriptSource).toContain('`${name}:expanded-dock-overlaps-mobile-tools`');
+    expect(scriptSource).toContain('overlaps.dockOverlapsInspector');
+    expect(scriptSource).toContain('`${name}:dock-overlaps-inspector`');
+    expect(captureScriptSource).toContain('async function captureFocusEvidence(browser: Browser)');
+    expect(captureScriptSource).toContain('const focusEvidence = await captureFocusEvidence(browser);');
+    expect(captureScriptSource).toContain('focusEvidence,');
+    expect(captureScriptSource).toContain("'src/features/knowledge/graph/knowledge-graph-2d.tsx'");
+    expect(captureScriptSource).toContain("'src/features/knowledge/graph/visual-config.ts'");
+    expect(captureScriptSource).toContain("'src/components/ai/global-ai-button.tsx'");
+    expect(captureScriptSource).toContain("'src/components/ai/global-ai-sidebar.tsx'");
+    expect(captureScriptSource).toContain("'src/components/shared/page-floating-controls.tsx'");
+    expect(captureScriptSource).toContain("'src/app/globals.css'");
+    expect(captureScriptSource).toContain('__ACT_KNOWLEDGE_PRODUCT_QA__');
+    expect(globalAiButtonSource).toContain("process.env.NODE_ENV !== 'production'");
+    expect(globalAiButtonSource).toContain('(window as Window & { __ACT_KNOWLEDGE_PRODUCT_QA__?: boolean }).__ACT_KNOWLEDGE_PRODUCT_QA__ === true');
+    expect(globalAiButtonSource).toContain("window.localStorage.getItem('act:knowledge-product-qa') === 'true'");
+    expect(globalAiButtonSource).toContain("new URLSearchParams(window.location.search).get('qa') === 'knowledge-product'");
+    expect(globalAiSidebarSource).toContain('openerElementRef');
+    expect(globalAiSidebarSource).toContain('wasOpenRef');
+    expect(globalAiSidebarSource).toContain('opener.focus();');
+    expect(globalAiSidebarSource).toContain('[data-platform-floating-dock] button[aria-label="打开页面工具菜单"]');
+    expect(globalAiSidebarSource).toContain('knowledgeInspectorAvoidanceActive');
+    expect(globalAiSidebarSource).toContain('data-konling-inspector-avoidance');
+    expect(globalAiSidebarSource).toContain("document.querySelector('[data-knowledge-inspector=\"stable-rail\"]')");
+    expect(globalAiSidebarSource).toContain("right: 'calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem))'");
+    expect(globalsSource).toContain('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
+    expect(globalsSource).toContain('height: calc(100vh - 8rem) !important;');
+    expect(captureScriptSource).toContain("'desktop-local-tools-directory-dark'");
+    expect(captureScriptSource).toContain("openDesktopTool(page, 'chapter-directory')");
+    expect(captureScriptSource).toContain('button[aria-label="呼出控灵 AI助手"]');
+    expect(captureScriptSource).toContain('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
+    expect(captureScriptSource).toContain('konlingAssistantSurface');
+    expect(captureScriptSource).toContain('konlingInspectorAvoidance');
+    expect(captureScriptSource).toContain('data-konling-knowledge-context');
+    expect(captureScriptSource).toContain("await page.waitForSelector('[data-knowledge-inspector=\"stable-rail\"]'");
+    expect(captureScriptSource).not.toMatch(
+      /name: 'desktop-stress-expanded-tool-inspector-konling-dark'[\s\S]*?await closeInspectorIfPresent\(page\);[\s\S]*?name: 'mobile-320-local-tools-dark'/,
+    );
+    expect(scriptSource).toContain('expectedKonlingContext');
+    expect(scriptSource).toContain('markers.konlingKnowledgeContext === expectedKonlingContext');
+    expect(scriptSource).toContain('`${name}:inspector-rect-missing`');
+    expect(scriptSource).toContain('`${name}:konling-inspector-avoidance-missing`');
+    expect(scriptSource).toContain("konlingRuntimeSource.includes(\"const contextNodeId = hint?.status === 'degraded'\")");
+    expect(scriptSource).toContain('const productQaSourcePaths = [');
+    expect(scriptSource).toContain('globalAiButtonSourcePath');
+    expect(scriptSource).toContain('globalAiSidebarSourcePath');
+    expect(scriptSource).toContain('globalAiProviderSourcePath');
+    expect(scriptSource).toContain('graph2dSourcePath');
+    expect(scriptSource).toContain('floatingControlsSourcePath');
+    expect(scriptSource).toContain('captureScriptSourcePath');
+    expect(scriptSource).toContain('governanceScriptSourcePath');
+    expect(captureScriptSource).toContain("'scripts/tests/capture-knowledge-workspace-product-qa.ts'");
+    expect(captureScriptSource).toContain("'scripts/tests/test-commercial-ui-governance.ts'");
+    expect(captureScriptSource).toContain("'src/components/providers/global-ai-provider.tsx'");
+    expect(scriptSource).toContain("['desktop-local-tools-directory-dark', 'dark', 1440, 'collapsed', 'collapsed']");
+    expect(scriptSource).toContain("markers.konlingAssistantSurface === 'global-sidebar'");
+    expect(captureScriptSource).toContain('openedFocusManaged');
+    expect(captureScriptSource).toContain('keyboardReachable');
+    expect(captureScriptSource).toContain('panelClosed && await activeElementWithin(page, returnSelector)');
+    expect(captureScriptSource).toContain("'[data-platform-floating-dock] button[aria-label=\"打开页面工具菜单\"]'");
+    expect(captureScriptSource).not.toContain('returnSelector?: string');
+    expect(captureScriptSource).not.toContain(': panelClosed;');
+    expect(captureScriptSource).toContain("'[data-knowledge-canvas-primary=\"true\"]'");
+    expect(captureScriptSource).not.toContain("{ target: 'desktop-local-tools', openedFocusManaged: true");
+    expect(captureScriptSource).toContain('function readExistingIndependentVisualReview');
+    expect(captureScriptSource).toContain("record.finalResult !== 'passed'");
+    expect(captureScriptSource).toContain('blockingFindings.length !== 0');
+    expect(captureScriptSource).toContain('stringRecordsMatch(reviewedStateSha256, currentStateSha256)');
+    expect(captureScriptSource).toContain('stringRecordsMatch(reviewedSourceSha256, currentSourceSha256)');
+    expect(captureScriptSource).toContain('readExistingIndependentVisualReview(stateMatrix, currentSourceSha256)');
+    expect(captureScriptSource).not.toContain('parsed.stateMatrix');
+    expect(captureScriptSource).not.toContain('parsed.currentSourceSha256');
+    expect(scriptSource).toContain('visual-review:stale-screenshot-review');
+    expect(scriptSource).toContain('visual-review:stale-source-review');
+  });
+
   it('keeps general commercial source palette governance limited to added lines', () => {
     const scriptSource = readFileSync(join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'), 'utf8');
     const scanSource = scriptSource.slice(
@@ -2648,6 +2765,20 @@ describe('commercial UI governance', () => {
     expect(scanSource).toContain("lineEvidence(source, /#[0-9a-fA-F]{3,8}\\b/g, 'raw-color', file)");
     expect(scanSource).toContain("lineEvidence(source, /\\brgba\\(\\s*\\d+\\s*,\\s*\\d+\\s*,\\s*\\d+\\s*,/g, 'raw-rgba', file)");
     expect(scanSource).toContain("'tailwind-color-family',\n      file");
+  });
+
+  it('keeps the adaptive path center default student branch free of internal status strings', () => {
+    const pageSource = readFileSync(join(process.cwd(), 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(pageSource).toContain('自适应学习路径中心');
+    expect(pageSource).toContain('生成学习路径');
+    expect(pageSource).toContain('告诉控灵你想达成什么');
+    expect(pageSource).toContain('data-adaptive-path-comparison-state="information-grid"');
+    expect(pageSource).toContain('data-learning-path-options-layout="comparable-information-grid"');
+    expect(pageSource).toContain("label: '控灵助手'");
+    expect(pageSource).toContain("label: '路径管理'");
+    const studentVisibleSource = pageSource.replaceAll('data-learner-record-missing-source', '');
+    expect(studentVisibleSource).not.toMatch(/自适应跨域题库|Control Correction Center|Readiness Gate|missing-[a-z-]+|terminal-validation-unavailable|strategy unavailable|no-path|low-evidence/);
   });
 
   it('keeps simulation resource palette governance on full-file scan after migration', () => {

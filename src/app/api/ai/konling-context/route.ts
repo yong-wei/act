@@ -165,13 +165,17 @@ export async function GET(request: NextRequest) {
 
 function buildKnowledgeWorkspaceHint(searchParams: URLSearchParams): KonlingKnowledgeWorkspaceHint | null {
   const selectedNodeId = searchParams.get('selectedNodeId');
+  const requestedNodeId = searchParams.get('requestedNodeId');
   const hoveredNodeId = searchParams.get('hoveredNodeId');
+  const status = parseKnowledgeWorkspaceStatus(searchParams.get('status'));
   const activeFilters = [
     ...searchParams.getAll('activeFilters'),
     ...splitDelimitedParam(searchParams.get('activeFilterSummary')),
   ].flatMap(splitDelimitedParam);
   const hint: KonlingKnowledgeWorkspaceHint = {
     selectedNodeId,
+    requestedNodeId,
+    status,
     activeFilters,
     densityMode: searchParams.get('densityMode'),
     viewMode: searchParams.get('viewMode'),
@@ -183,7 +187,9 @@ function buildKnowledgeWorkspaceHint(searchParams: URLSearchParams): KonlingKnow
 
   if (
     selectedNodeId
+    || requestedNodeId
     || hoveredNodeId
+    || status
     || activeFilters.length > 0
     || hint.densityMode
     || hint.viewMode
@@ -193,6 +199,11 @@ function buildKnowledgeWorkspaceHint(searchParams: URLSearchParams): KonlingKnow
     return hint;
   }
 
+  return null;
+}
+
+function parseKnowledgeWorkspaceStatus(value: string | null): KonlingKnowledgeWorkspaceHint['status'] {
+  if (value === 'selected-node' || value === 'no-selection' || value === 'degraded') return value;
   return null;
 }
 

@@ -251,6 +251,10 @@ describe('knowledge graph interaction state stability', () => {
       path.join(process.cwd(), 'src/app/globals.css'),
       'utf8'
     );
+    const globalSidebarSource = readFileSync(
+      path.join(process.cwd(), 'src/components/ai/global-ai-sidebar.tsx'),
+      'utf8'
+    );
 
     expect(systemSource).toContain('const [explicitFocusNodeId, setExplicitFocusNodeId] = useState<string | null>(null);');
     expect(systemSource).toContain('hoverAnimationFrameRef');
@@ -264,12 +268,19 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).toContain('data-knowledge-visible-node-count={displayNodes.length}');
     expect(systemSource).toContain('data-knowledge-pinned-node-count={pinnedNodeCount}');
     expect(systemSource).toContain('data-knowledge-pinned-layout-signature={pinnedLayoutSignature}');
+    expect(systemSource).toContain('const displaySelectedNode = selectedNode');
+    expect(systemSource).toContain('? { ...displaySelectedNode, ...selectedNode }');
     expect(systemSource).toContain("data-knowledge-selected-node-id={visibleSelectedNode?.id ?? ''}");
     expect(systemSource).toContain('data-knowledge-konling-context-source="server-owned"');
-    expect(systemSource).toContain("data-knowledge-konling-context-status={visibleSelectedNode ? 'selected-node' : 'no-selection'}");
+    expect(systemSource).toContain('const [requestedNodeId, setRequestedNodeId] = useState<string | null>(initialRequestedNodeId);');
+    expect(systemSource).toContain("const konlingContextStatus = visibleSelectedNode");
+    expect(systemSource).toContain("requestedNodeId");
+    expect(systemSource).toContain('data-knowledge-konling-context-status={konlingContextStatus}');
     expect(systemSource).toContain('updatePageContext({');
     expect(systemSource).toContain('knowledgeWorkspaceHint: {');
     expect(systemSource).toContain("selectedNodeId: visibleSelectedNode?.id ?? null");
+    expect(systemSource).toContain('requestedNodeId,');
+    expect(systemSource).toContain('status: konlingContextStatus,');
     expect(systemSource).toContain("searchQuery.trim() ? '搜索词已启用' : ''");
     expect(systemSource).toContain('activeFilters: [knowledgeWorkspaceFilterSummary]');
     expect(systemSource).not.toContain('activeFilters: [activeFilterSummary]');
@@ -278,6 +289,12 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).toContain('data-knowledge-shared-dock-collision-policy="avoid-local-tools-and-inspector"');
     expect(globalStylesSource).toContain('body:has([data-knowledge-inspector="stable-rail"]) [data-page-floating-controls]');
     expect(globalStylesSource).toContain('right: calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem)) !important;');
+    expect(globalStylesSource).toContain('body:has([data-knowledge-inspector="stable-rail"]) [data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
+    expect(globalStylesSource).toContain('height: calc(100vh - 8rem) !important;');
+    expect(globalSidebarSource).toContain('knowledgeInspectorAvoidanceActive');
+    expect(globalSidebarSource).toContain('data-konling-inspector-avoidance');
+    expect(globalSidebarSource).toContain("document.querySelector('[data-knowledge-inspector=\"stable-rail\"]')");
+    expect(globalSidebarSource).toContain("height: 'calc(100vh - 8rem)'");
     expect(systemSource).toContain('data-knowledge-layout-control="relayout"');
     expect(systemSource).toContain('data-knowledge-layout-control="clear-pins"');
     expect(systemSource).toContain("data-knowledge-layout-control={selectedNodeFocused ? 'clear-focus-node' : 'set-focus-node'}");
@@ -285,6 +302,13 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).toContain('const [relayoutVersion, setRelayoutVersion] = useState(0);');
     expect(systemSource).toContain('setRelayoutVersion((current) => current + 1);');
     expect(systemSource).toContain('selectedNodePinUnavailable');
+    expect(systemSource).not.toContain('__knowledgeGraphProductQaDragSelectedNode');
+    expect(rendererSource).toContain('__knowledgeGraphProductQaSelectedNodeDragPoints');
+    expect(rendererSource).toContain("new URLSearchParams(window.location.search).get('qa') === 'knowledge-product'");
+    expect(rendererSource).toContain('fgRef.current.graph2ScreenCoords(graphX, graphY)');
+    expect(rendererSource).toContain('nodePointerAreaPaint={paintNodePointerArea}');
+    expect(systemSource).toContain('mobileToolPanelRef.current?.focus()');
+    expect(systemSource).toContain('mobileToolToggleRef.current?.focus()');
     expect(systemSource).not.toContain('x: graphNode.x ?? visibleSelectedNode.positionX');
     expect(systemSource).not.toContain('y: graphNode.y ?? visibleSelectedNode.positionY');
     expect(rendererSource).toContain('onNodeDragEnd={handleNodeDragEnd}');

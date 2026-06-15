@@ -35,6 +35,7 @@ import {
   type AdaptiveLearningPathPlanNode,
 } from '@/lib/adaptive-learning-path-planner';
 import { buildControlCorrectionResourceNodeRegistry } from '@/lib/control-correction-resource-seed';
+import { buildFrequencyResponseFoundationsResourceNodeRegistry } from '@/lib/frequency-response-resource-seed';
 import type { PageContext, UserProfile, AbilityVector } from '@/types/ai-context';
 import type { InterventionDecision, StudentState } from '@/features/ai/companion/intervention-engine';
 import { generateIntervention, shouldIntervene } from '@/features/ai/companion/intervention-engine';
@@ -225,6 +226,8 @@ export interface KonlingRuntimeContext {
 
 export interface KonlingKnowledgeWorkspaceHint {
   selectedNodeId?: string | null;
+  requestedNodeId?: string | null;
+  status?: 'selected-node' | 'no-selection' | 'degraded' | null;
   activeFilters?: string[] | null;
   densityMode?: string | null;
   viewMode?: string | null;
@@ -235,6 +238,10 @@ export interface KonlingKnowledgeWorkspaceHint {
 export function normalizeKonlingKnowledgeWorkspaceHint(value: unknown): KonlingKnowledgeWorkspaceHint | null {
   const record = readRecord(value);
   const selectedNodeId = sanitizeKnowledgeWorkspaceText(record.selectedNodeId);
+  const requestedNodeId = sanitizeKnowledgeWorkspaceText(record.requestedNodeId);
+  const status = record.status === 'selected-node' || record.status === 'no-selection' || record.status === 'degraded'
+    ? record.status
+    : null;
   const activeFilters = normalizeKnowledgeWorkspaceStrings(record.activeFilters);
   const densityMode = sanitizeKnowledgeWorkspaceText(record.densityMode);
   const viewMode = sanitizeKnowledgeWorkspaceText(record.viewMode);
@@ -243,6 +250,8 @@ export function normalizeKonlingKnowledgeWorkspaceHint(value: unknown): KonlingK
 
   if (
     selectedNodeId
+    || requestedNodeId
+    || status
     || activeFilters.length > 0
     || densityMode
     || viewMode
@@ -251,6 +260,8 @@ export function normalizeKonlingKnowledgeWorkspaceHint(value: unknown): KonlingK
   ) {
     return {
       selectedNodeId,
+      requestedNodeId,
+      status,
       activeFilters,
       densityMode,
       viewMode,
@@ -1738,7 +1749,13 @@ function buildAdaptivePathTradeoffOutput(
 }
 
 function resolveScopedAdaptivePathGoalId(input: KonlingToolRuntimeInput, requestedGoalId?: string | null) {
-  const goalId = requestedGoalId || CONTROL_CORRECTION_PATH_ROUND_GOAL_ID;
+  const serverScopedGoalId = getRegisteredAdaptiveLearningPathGoal(input.scope.courseId)
+    ? input.scope.courseId
+    : null;
+  if (requestedGoalId && serverScopedGoalId && requestedGoalId !== serverScopedGoalId) {
+    throw new KonlingRuntimeScopeError(403, 'Konling 路径工具不能扩展到服务端授权目标之外。');
+  }
+  const goalId = requestedGoalId || serverScopedGoalId || CONTROL_CORRECTION_PATH_ROUND_GOAL_ID;
   if (!getRegisteredAdaptiveLearningPathGoal(goalId)) {
     throw new KonlingRuntimeScopeError(403, 'Konling 路径工具不能扩展到未登记的学习目标。');
   }
@@ -1748,6 +1765,9 @@ function resolveScopedAdaptivePathGoalId(input: KonlingToolRuntimeInput, request
 function resolveAdaptivePathGenerationRegistry(goalId: string) {
   if (goalId === CONTROL_CORRECTION_PATH_ROUND_GOAL_ID) {
     return buildControlCorrectionResourceNodeRegistry();
+  }
+  if (goalId === 'frequency-response-foundations') {
+    return buildFrequencyResponseFoundationsResourceNodeRegistry();
   }
   throw new KonlingRuntimeScopeError(403, '当前学习目标还没有可生成的路径资源注册表。');
 }
@@ -2234,6 +2254,7 @@ async function runKonlingRuntimeTool<T>(
 
   const inputRecord = readRecord(toolInput);
   const idempotencyKey = typeof inputRecord.idempotencyKey === 'string' ? inputRecord.idempotencyKey : null;
+  const adaptivePathGoalId = resolveAdaptivePathGoalLock(runtimeInput, toolName, toolInput);
   const toolRun = await startKonlingToolRun(runtimeInput.db, {
     scope: runtimeInput.scope,
     agentSessionId,
@@ -2263,6 +2284,7 @@ async function runKonlingRuntimeTool<T>(
     });
   }
   if (toolRun.reused) {
+    assertReusedAdaptivePathToolRunMatchesGoal(toolName, toolRun, adaptivePathGoalId);
     if (toolRun.status === 'succeeded') {
       return assertToolResult(runtimeInput, toolName, toolRun.outputSummary ?? {
         toolRunReused: true,
@@ -2302,6 +2324,33 @@ async function runKonlingRuntimeTool<T>(
       error: summarizeRuntimeToolError(error),
     });
     throw error;
+  }
+}
+
+function resolveAdaptivePathGoalLock(
+  runtimeInput: KonlingToolRuntimeInput,
+  toolName: KonlingToolName,
+  toolInput: unknown,
+): string | null {
+  if (!isKonlingAdaptivePathTool(toolName)) return null;
+  const requestedGoalId = getString(readRecord(toolInput), 'goalId') || null;
+  return resolveScopedAdaptivePathGoalId(runtimeInput, requestedGoalId);
+}
+
+function assertReusedAdaptivePathToolRunMatchesGoal(
+  toolName: KonlingToolName,
+  toolRun: KonlingToolRunView,
+  goalId: string | null,
+): void {
+  if (!goalId || !isKonlingAdaptivePathTool(toolName)) return;
+  const inputGoalId = getString(readRecord(toolRun.inputSummary), 'goalId') || null;
+  if (inputGoalId && inputGoalId !== goalId) {
+    throw new KonlingRuntimeScopeError(403, '幂等 Konling 工具请求不属于当前页面目标。');
+  }
+  const outputScope = readRecord(getValue(readRecord(toolRun.outputSummary), 'scope'));
+  const outputGoalId = getString(outputScope, 'goalId') || null;
+  if (outputGoalId && outputGoalId !== goalId) {
+    throw new KonlingRuntimeScopeError(403, '幂等 Konling 工具结果不属于当前页面目标。');
   }
 }
 
@@ -4627,6 +4676,10 @@ async function buildKnowledgeWorkspaceContext(
   if (scope.pageId !== '/knowledge' && scope.pageId !== 'knowledge') return null;
 
   const selectedNodeId = sanitizeKnowledgeWorkspaceText(hint?.selectedNodeId);
+  const requestedNodeId = sanitizeKnowledgeWorkspaceText(hint?.requestedNodeId);
+  const contextNodeId = hint?.status === 'degraded'
+    ? null
+    : selectedNodeId ?? requestedNodeId;
   const relationSummary = {
     density_mode: sanitizeKnowledgeWorkspaceText(hint?.densityMode),
     view_mode: sanitizeKnowledgeWorkspaceText(hint?.viewMode),
@@ -4635,23 +4688,26 @@ async function buildKnowledgeWorkspaceContext(
     selected_node_relation_count: normalizeKnowledgeWorkspaceCount(hint?.selectedNodeRelationCount),
   };
 
-  if (!selectedNodeId) {
+  if (!contextNodeId) {
+    const missingContext = hint?.status === 'degraded'
+      ? 'knowledge-workspace-selected-node-unresolved'
+      : 'knowledge-workspace-selected-node-missing';
     return {
       source: 'server-owned',
       route: '/knowledge',
-      status: 'no-selection',
+      status: hint?.status === 'degraded' ? 'degraded' : 'no-selection',
       selected_node: null,
       relation_summary: relationSummary,
       available_learning_actions: ['search-knowledge-graph', 'open-chapter-directory'],
       hover_policy: 'preview-only-not-durable-context',
-      missing_context: ['knowledge-workspace-selected-node-missing'],
+      missing_context: [missingContext],
     };
   }
 
   const nodes = await db.knowledgeNode?.findMany?.({
     where: {
       isActive: true,
-      id: { in: [selectedNodeId] },
+      id: { in: [contextNodeId] },
     },
     select: {
       id: true,

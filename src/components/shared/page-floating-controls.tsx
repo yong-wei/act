@@ -98,13 +98,20 @@ function PageFloatingControls({
   behavior: PageFloatingDockBehavior;
 }) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const { mounted, theme, toggleTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menu = buildFloatingControlMenu(registrations);
   const isDark = theme === 'dark';
+  const primaryControl = menu.find((item) => item.id !== 'theme');
+  const triggerLabel = primaryControl?.label.includes('控灵') ? '控灵' : primaryControl ? '工具' : '工具';
 
   useEffect(() => {
     if (!isMenuOpen) return;
+    window.requestAnimationFrame(() => {
+      panelRef.current?.querySelector<HTMLButtonElement>('button:not([disabled])')?.focus();
+    });
 
     const handleOutsideClick = (event: MouseEvent) => {
       if (!menuRef.current?.contains(event.target as Node)) {
@@ -114,6 +121,9 @@ function PageFloatingControls({
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsMenuOpen(false);
+        window.requestAnimationFrame(() => {
+          triggerRef.current?.focus();
+        });
       }
     };
 
@@ -159,6 +169,7 @@ function PageFloatingControls({
     >
       {isMenuOpen ? (
         <div
+          ref={panelRef}
           className="mb-3 max-h-[min(70vh,28rem)] w-56 overflow-y-auto rounded-2xl border border-border/70 bg-background/95 p-2 text-sm text-foreground shadow-2xl backdrop-blur"
           data-platform-floating-dock-expanded-panel
         >
@@ -184,14 +195,17 @@ function PageFloatingControls({
       ) : null}
 
       <Button
+        ref={triggerRef}
         type="button"
         variant="ghost"
         onClick={() => setIsMenuOpen((prev) => !prev)}
         aria-expanded={isMenuOpen}
-        aria-label="打开页面工具菜单"
-        className="btn-ghost-themed h-10 w-10 rounded-full border p-0 shadow-lg"
+        aria-label={`打开${triggerLabel}与页面工具菜单`}
+        className="btn-ghost-themed h-10 w-auto gap-2 rounded-full border px-3 text-xs font-semibold shadow-lg"
+        data-platform-floating-dock-trigger-label={triggerLabel}
       >
-        <Settings className="h-4 w-4" />
+        {primaryControl ? renderItemIcon(primaryControl) : <Settings className="h-4 w-4" />}
+        <span>{triggerLabel}</span>
       </Button>
     </div>
   );

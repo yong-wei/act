@@ -36,10 +36,14 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     }
 
     const pathOptions = readPathOptions(path.pathPayload);
-    const styleIds = new Set(pathOptions.keys());
-    const selectedStyleId = nullableString(body.selectedStyleId);
+    const styleIds = new Set(Array.from(pathOptions.values()).map((option) => option.styleId));
+    const selectedOption = resolveChoiceOption(pathOptions, body.selectedOptionId, body.selectedStyleId);
+    const selectedStyleId = selectedOption?.styleId ?? null;
     const previousStyleId = nullableString(body.previousStyleId);
-    const rejectedStyleIds = readStringArray(body.rejectedStyleIds);
+    const rejectedStyleIds = [
+      ...readStringArray(body.rejectedStyleIds),
+      ...readStringArray(body.rejectedOptionIds).map((optionId) => pathOptions.get(optionId)?.styleId ?? optionId),
+    ];
     const hasUnknownStyle = [
       selectedStyleId,
       previousStyleId,
@@ -59,8 +63,6 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (body.action === 'helpfulness' && rejectedStyleIds.length > 0) {
       return NextResponse.json({ error: '路径有用性反馈不能携带 rejectedStyleIds' }, { status: 400 });
     }
-    const selectedOption = selectedStyleId ? pathOptions.get(selectedStyleId) ?? null : null;
-
     const choice = await recordPathChoiceEvidence(prisma as any, {
       pathId: params.id,
       userId: path.userId,
@@ -90,6 +92,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
 }
 
 interface ServerPathChoiceOption {
+  optionId: string;
   styleId: string;
   policyFamily: string | null;
   resourceMix: Record<string, number>;
@@ -100,24 +103,40 @@ function readPathOptions(pathPayload: unknown): Map<string, ServerPathChoiceOpti
   const payload = readRecord(pathPayload);
   const policyBundle = readRecord(payload.policyBundle);
   const paths = Array.isArray(policyBundle.paths) ? policyBundle.paths : [];
-  return new Map(paths
-    .map((item): [string, ServerPathChoiceOption] | null => {
-      const option = readRecord(item);
-      const styleId = nullableString(option.styleId);
-      if (!styleId) return null;
-      return [styleId, {
-        styleId,
-        policyFamily: nullableString(option.policyFamily),
-        resourceMix: readNumberRecord(option.resourceMix),
-        rationaleMetadata: compactRecord({
-          evidenceBasis: readStringArray(option.evidenceBasis),
-          limitations: readStringArray(option.limitations),
-          terminalValidationNodeIds: readStringArray(option.terminalValidationNodeIds),
-          terminalValidationStrategy: readRecord(option.terminalValidationStrategy),
-        }),
-      }];
-    })
-    .filter((entry): entry is [string, ServerPathChoiceOption] => Boolean(entry)));
+  const options = new Map<string, ServerPathChoiceOption>();
+  paths.forEach((item, index) => {
+    const option = readRecord(item);
+    const styleId = nullableString(option.styleId);
+    if (!styleId) return;
+    const optionId = nullableString(option.optionId) ?? `path-option-${index + 1}`;
+    const serverOption = {
+      optionId,
+      styleId,
+      policyFamily: nullableString(option.policyFamily),
+      resourceMix: readNumberRecord(option.resourceMix),
+      rationaleMetadata: compactRecord({
+        evidenceBasis: readStringArray(option.evidenceBasis),
+        limitations: readStringArray(option.limitations),
+        terminalValidationNodeIds: readStringArray(option.terminalValidationNodeIds),
+        terminalValidationStrategy: readRecord(option.terminalValidationStrategy),
+      }),
+    };
+    options.set(styleId, serverOption);
+    options.set(optionId, serverOption);
+  });
+  return options;
+}
+
+function resolveChoiceOption(
+  pathOptions: Map<string, ServerPathChoiceOption>,
+  optionId: unknown,
+  styleId: unknown,
+): ServerPathChoiceOption | null {
+  const selectedOptionId = nullableString(optionId);
+  if (selectedOptionId) return pathOptions.get(selectedOptionId) ?? null;
+  const selectedStyleId = nullableString(styleId);
+  if (selectedStyleId) return pathOptions.get(selectedStyleId) ?? null;
+  return null;
 }
 
 function resolveServerDiagnosisSnapshotRef(path: { learnerStateRef?: unknown; inputSnapshot?: unknown }): string | null {

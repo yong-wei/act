@@ -109,9 +109,11 @@ export const KNOWLEDGE_GRAPH_FILTER_LABELS: Record<string, string> = {
 };
 
 export const KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT = {
-  maxDefaultEdgeWidth: 1.42,
-  maxDefaultEdgeOpacity: 0.68,
-  dimmedNeighborhoodOpacity: 0.18,
+  maxDefaultEdgeWidth: 1.1,
+  maxDefaultEdgeOpacity: 0.46,
+  neutralEdgeOpacity: 0.38,
+  activeEdgeOpacity: 0.82,
+  dimmedNeighborhoodOpacity: 0.12,
   activeNeighborhoodWidthGain: 1.18,
   semanticRegionKinds: ['chapter-territory'],
   conceptReferences: [
@@ -381,10 +383,10 @@ export function getKnowledgeSemanticRegionStyle(
     enabled: true,
     fillColor: platformToken(isLightTheme ? 'platform-action-subtle' : 'platform-canvas-muted'),
     strokeColor: platformToken('platform-border-strong'),
-    fillOpacity: isLightTheme ? 0.14 : 0.18,
-    strokeOpacity: isLightTheme ? 0.28 : 0.24,
-    radiusMultiplier: 3.8 + densityGain * 2.4,
-    maxRadius: 64,
+    fillOpacity: isLightTheme ? 0.12 : 0.16,
+    strokeOpacity: isLightTheme ? 0.3 : 0.26,
+    radiusMultiplier: 4.4 + densityGain * 3.1,
+    maxRadius: 92,
     label: 'chapter-territory',
   };
 }
@@ -422,6 +424,15 @@ export function getRelationThreeDimensionalEncoding(
       directionalParticles: 3,
       particleWidth: style.width * 0.76,
       particleSpeed: 0.003,
+    };
+  }
+
+  if (semantic.density === 'optional') {
+    return {
+      arrowLength: style.hasArrow ? 3.2 : 0,
+      directionalParticles: style.hasArrow ? 1 : 0,
+      particleWidth: Math.max(0.75, style.width * 0.72),
+      particleSpeed: style.hasArrow ? 0.0024 : 0,
     };
   }
 

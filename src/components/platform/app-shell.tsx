@@ -158,7 +158,7 @@ const contentFrameClassNames: Record<PlatformPrimaryRouteFrame, string> = {
 const contextualReturnBreadcrumbLabels: Record<string, string> = {
   '/arena': '竞技场',
   '/interactive-learning': '互动学习',
-  '/assessment/adaptive-practice': '自适应练习',
+  '/assessment/adaptive-practice': '自适应学习路径中心',
 };
 const navigationIconComponents: Record<string, LucideIcon> = {
   adaptive: BrainCircuit,
