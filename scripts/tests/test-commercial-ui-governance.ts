@@ -505,6 +505,25 @@ function affectedVisualRoutes(files: string[]): CommercialVisualAcceptanceRoute[
   return [...routes.values()];
 }
 
+const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
+  [
+    'src/app/(main)/teacher/students/[studentId]/diagnosis/page.tsx',
+    'redirect-only compatibility route; teacher diagnosis is covered by registered teacher student surfaces',
+  ],
+  [
+    'src/app/(main)/teacher/students/[studentId]/evidence/page.tsx',
+    'redirect-only compatibility route; teacher evidence is covered by registered teacher student surfaces',
+  ],
+  [
+    'src/app/interactive-learning/lessons/[lessonId]/handout-print/page.tsx',
+    'lesson handout print is an export view launched from registered interactive learning routes',
+  ],
+  [
+    'src/app/review/adaptive-assessment-figures/page.tsx',
+    'adaptive assessment figures is an internal review preview launched from the review hub',
+  ],
+]);
+
 function appPageRouteHref(file: string) {
   if (!/^src\/app\/(?:.*\/)?page\.tsx$/.test(file)) return undefined;
   const route = file
@@ -644,10 +663,11 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { routes?: CommercialVisualAcceptanceEvidence[] };
   return (manifest.routes ?? []).map((route) => ({
     ...route,
-    simulationVisualQa: route.simulationVisualQa
-      ? (() => {
-          const reactDoctorReport = simulationReactDoctorReport(route.simulationVisualQa.reactDoctorErrorCheck?.report);
-          return {
+	    simulationVisualQa: route.simulationVisualQa
+	      ? (() => {
+	          const reactDoctorReport = simulationReactDoctorReport(route.simulationVisualQa.reactDoctorErrorCheck?.report);
+	          const simulationRoute = SIMULATION_VISUAL_QA_ROUTE_MATRIX.find((entry) => entry.href === route.href);
+	          return {
             ...route.simulationVisualQa,
             reactDoctorErrorCheck: route.simulationVisualQa.reactDoctorErrorCheck
               ? {
@@ -668,6 +688,22 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
                     simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.conceptImage)?.sha256,
                   implementationScreenshotSha256:
                     simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.implementationScreenshot)?.sha256,
+                }
+              : undefined,
+	            commandDeckGeometry: route.simulationVisualQa.commandDeckGeometry
+	              ? {
+	                  ...route.simulationVisualQa.commandDeckGeometry,
+	                  currentSourceSha256: commandDeckGeometryCurrentSourceSha256(simulationRoute?.routeFile ?? ''),
+                  viewports: route.simulationVisualQa.commandDeckGeometry.viewports.map((viewport) => {
+                    const screenshot = simulationViewportArtifact(viewport.screenshot);
+                    return {
+                      ...viewport,
+                      screenshot: viewport.screenshot,
+                      screenshotSha256: screenshot?.sha256,
+                      screenshotWidth: screenshot?.width,
+                      screenshotHeight: screenshot?.height,
+                    };
+                  }),
                 }
               : undefined,
             viewports: route.simulationVisualQa.viewports.map((viewport) => {
@@ -692,6 +728,23 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
       screenshot: viewport.screenshot && existsSync(path.join(repoRoot, viewport.screenshot)) ? viewport.screenshot : undefined,
     })),
   }));
+}
+
+function commandDeckGeometrySourcePaths(routeFile: string) {
+  return [
+    routeFile,
+    'src/app/simulations/_components/simulation-shell.tsx',
+    'src/resources/simulations/components/simulation-ui.tsx',
+    'scripts/tests/capture-simulation-command-deck-qa.ts',
+  ] as const;
+}
+
+function commandDeckGeometryCurrentSourceSha256(routeFile: string) {
+  return Object.fromEntries(
+    commandDeckGeometrySourcePaths(routeFile)
+      .filter((sourcePath) => sourcePath.length > 0 && existsSync(path.join(repoRoot, sourcePath)))
+      .map((sourcePath) => [sourcePath, fileSha256(sourcePath)]),
+  );
 }
 
 const INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH =
@@ -932,6 +985,9 @@ function simulationVisualQaEvidenceArtifactPaths(
       if (viewport.screenshot) paths.add(viewport.screenshot);
       if (viewport.artifact) paths.add(viewport.artifact);
     }
+    for (const viewport of simulationVisualQa.commandDeckGeometry?.viewports ?? []) {
+      if (viewport.screenshot) paths.add(viewport.screenshot);
+    }
   }
   return paths;
 }
@@ -952,6 +1008,7 @@ function requiresFullSimulationVisualQaMatrix(
       || file === 'artifacts/commercial-ui/evidence.json'
       || file === 'artifacts/commercial-ui/simulation-experience-visual-qa/manifest.json'
       || file.startsWith('artifacts/commercial-ui/simulation-experience-visual-qa/')
+      || file.startsWith('artifacts/commercial-ui/simulation-command-deck-535/')
       || /^src\/app\/simulations\/[^/]+\/page\.tsx$/.test(file)
       || file.startsWith('src/app/simulations/_components/')
       || file.startsWith('src/resources/simulations/')
@@ -1000,6 +1057,18 @@ function stringRecordsEqual(left: Record<string, string>, right: Record<string, 
   const rightKeys = Object.keys(right).sort();
   return leftKeys.length === rightKeys.length
     && leftKeys.every((key, index) => key === rightKeys[index] && left[key] === right[key]);
+}
+
+function stringRecordsEqualForPaths(
+  left: Record<string, string>,
+  right: Record<string, string>,
+  paths: readonly string[],
+) {
+  return paths.every((sourcePath) => (
+    typeof left[sourcePath] === 'string'
+    && typeof right[sourcePath] === 'string'
+    && left[sourcePath] === right[sourcePath]
+  ));
 }
 
 function readRuntimeKnowledgeRelationCounts() {
@@ -1487,7 +1556,6 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const globalsSourcePath = 'src/app/globals.css';
   const konlingRuntimeSourcePath = 'src/lib/konling-agent-runtime.ts';
   const captureScriptSourcePath = 'scripts/tests/capture-knowledge-workspace-product-qa.ts';
-  const governanceScriptSourcePath = 'scripts/tests/test-commercial-ui-governance.ts';
   const productQaSourcePaths = [
     graphSourcePath,
     graph2dSourcePath,
@@ -1501,7 +1569,6 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     globalsSourcePath,
     konlingRuntimeSourcePath,
     captureScriptSourcePath,
-    governanceScriptSourcePath,
   ];
   const graphSource = existsSync(path.join(repoRoot, graphSourcePath))
     ? readFileSync(path.join(repoRoot, graphSourcePath), 'utf8')
@@ -1789,7 +1856,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     stringRecordsEqual(visualReviewStateSha256, stateScreenshotSha256)
       ? null
       : 'visual-review:stale-screenshot-review',
-    stringRecordsEqual(visualReviewSourceSha256, currentSourceSha256)
+    stringRecordsEqualForPaths(visualReviewSourceSha256, currentSourceSha256, productQaSourcePaths)
       ? null
       : 'visual-review:stale-source-review',
     ...[
@@ -2186,17 +2253,18 @@ function readAccessibilityEvidenceManifest(routes: readonly CommercialVisualAcce
   });
 }
 
-const files = changedFiles();
-const commercialUiBehaviorFiles = files.filter(hasNonAccessibilityOnlyDiff);
-const requiredVisualRoutes = affectedVisualRoutes(commercialUiBehaviorFiles);
-const visualEvidence = readVisualEvidenceManifest();
-const trackedFiles = git(['ls-files']).split('\n').filter(Boolean);
-interface ChangedPrimaryRouteInventoryBlock {
-  href: string;
-  routeFile?: string;
-  coveredRouteGlob?: string;
-  deleted: boolean;
-}
+function runCommercialUiGovernanceScript() {
+  const files = changedFiles();
+  const commercialUiBehaviorFiles = files.filter(hasNonAccessibilityOnlyDiff);
+  const requiredVisualRoutes = affectedVisualRoutes(commercialUiBehaviorFiles);
+  const visualEvidence = readVisualEvidenceManifest();
+  const trackedFiles = git(['ls-files']).split('\n').filter(Boolean);
+  interface ChangedPrimaryRouteInventoryBlock {
+    href: string;
+    routeFile?: string;
+    coveredRouteGlob?: string;
+    deleted: boolean;
+  }
 
 function primaryRouteBlockStillCoversFiles(block: ChangedPrimaryRouteInventoryBlock) {
   if (block.routeFile && existsSync(path.join(repoRoot, block.routeFile))) return true;
@@ -2270,24 +2338,6 @@ function changedPrimaryRouteInventoryBlocks() {
 const changedPrimaryRouteBlocks = changedPrimaryRouteInventoryBlocks();
 const changedPrimaryRouteHrefs = new Set(changedPrimaryRouteBlocks.map((block) => block.href));
 const currentPrimaryRouteHrefs = new Set(PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => route.href));
-const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
-  [
-    'src/app/(main)/teacher/students/[studentId]/diagnosis/page.tsx',
-    'redirect-only compatibility route; teacher diagnosis is covered by registered teacher student surfaces',
-  ],
-  [
-    'src/app/(main)/teacher/students/[studentId]/evidence/page.tsx',
-    'redirect-only compatibility route; teacher evidence is covered by registered teacher student surfaces',
-  ],
-  [
-    'src/app/interactive-learning/lessons/[lessonId]/handout-print/page.tsx',
-    'lesson handout print is an export view launched from registered interactive learning routes',
-  ],
-  [
-    'src/app/review/adaptive-assessment-figures/page.tsx',
-    'adaptive assessment figures is an internal review preview launched from the review hub',
-  ],
-]);
 assertCoveredRouteGlobDoesNotHideStaticPages();
 const missingChangedPrimaryRouteLedgerViolations: CommercialUiGovernanceViolation[] = changedPrimaryRouteBlocks
   .filter((block) => !currentPrimaryRouteHrefs.has(block.href))
@@ -2372,4 +2422,9 @@ assert.equal(
   `commercial UI governance gate failed:\n${JSON.stringify(result.blockingViolations, null, 2)}`,
 );
 
-console.log(`test-commercial-ui-governance passed (${files.length} changed files scanned, ${today})`);
+  console.log(`test-commercial-ui-governance passed (${files.length} changed files scanned, ${today})`);
+}
+
+if (require.main === module) {
+  runCommercialUiGovernanceScript();
+}
