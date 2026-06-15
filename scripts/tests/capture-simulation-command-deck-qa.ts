@@ -11,7 +11,7 @@ const baseUrl = process.env.SIMULATION_COMMAND_DECK_QA_BASE_URL ?? 'http://127.0
 type Theme = 'light' | 'dark';
 type RectEvidence = { left: number; top: number; right: number; bottom: number; width: number; height: number };
 type CaptureViewport = {
-  width: 1440 | 320;
+  width: 1440 | 1024 | 320;
   height: number;
   navigationState: 'desktop-expanded' | 'workspace-command-surface';
 };
@@ -20,7 +20,7 @@ type RouteConfig = {
   routeFile: string;
 };
 type CommandDeckViewportEvidence = {
-  width: 1440 | 320;
+  width: 1440 | 1024 | 320;
   theme: Theme;
   screenshot: string;
   screenshotSha256: string;
@@ -74,6 +74,7 @@ const routes: RouteConfig[] = [
 const themes: Theme[] = ['light', 'dark'];
 const viewports: CaptureViewport[] = [
   { width: 1440, height: 900, navigationState: 'desktop-expanded' },
+  { width: 1024, height: 900, navigationState: 'desktop-expanded' },
   { width: 320, height: 900, navigationState: 'workspace-command-surface' },
 ];
 
@@ -152,9 +153,13 @@ async function openSimulationPage(
   const page = await context.newPage();
   await page.goto(`${baseUrl}${route.href}`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('[data-commercial-workspace="simulation-scene"]', { timeout: 30000 });
-  if (viewport.width >= 1024) {
+  if (viewport.width === 1440) {
     await page.waitForSelector('[data-command-deck-panel-anchor="top-command-area"]', {
       state: 'visible',
+      timeout: 20000,
+    });
+  } else {
+    await page.waitForFunction(() => document.querySelectorAll('[data-simulation-panel-restore-handle]').length >= 2, undefined, {
       timeout: 20000,
     });
   }

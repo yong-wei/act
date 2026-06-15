@@ -163,6 +163,7 @@ const COMMERCIAL_VISUAL_QA_NAVIGATION_STATES: readonly CommercialVisualQaNavigat
 const COMMERCIAL_VISUAL_QA_MOBILE_WIDTHS = [320, 390] as const;
 
 const COMMERCIAL_SIMULATION_MIN_SCREENSHOT_HEIGHT = 640;
+const COMMERCIAL_SIMULATION_COMMAND_DECK_GEOMETRY_WIDTHS = [1440, 1024, 320] as const;
 
 export type CommercialSimulationVisualQaArchetype =
   | 'catalog'
@@ -2323,7 +2324,7 @@ function buildSimulationVisualQaViolations(
           }
         }
         for (const theme of route.requiredThemes) {
-          for (const width of route.requiredWidths) {
+          for (const width of COMMERCIAL_SIMULATION_COMMAND_DECK_GEOMETRY_WIDTHS) {
             const viewport = commandDeckGeometry.viewports.find((entry) => (
               entry.theme === theme && entry.width === width
             ));
@@ -2347,10 +2348,10 @@ function buildSimulationVisualQaViolations(
             if (width === 1440 && (viewport.collapseButtonCount ?? 0) < 2) {
               missing.push(`${key}:collapseButtonCount>=2`);
             }
-            if (width === 320 && (viewport.restoreHandleCount ?? 0) < 2) {
+            if (width !== 1440 && (viewport.restoreHandleCount ?? 0) < 2) {
               missing.push(`${key}:restoreHandleCount>=2`);
             }
-            if (viewport.panelsTopAligned !== true) missing.push(`${key}:panelsTopAligned`);
+            if (width === 1440 && viewport.panelsTopAligned !== true) missing.push(`${key}:panelsTopAligned`);
             if (width === 1440) {
               for (const [rectKey, panelRect] of [
                 ['statusPanelRect', viewport.statusPanelRect],

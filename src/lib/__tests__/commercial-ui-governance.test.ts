@@ -41,6 +41,7 @@ import {
 } from '@/resources/simulations/components/simulation-theme';
 
 const today = '2026-05-31';
+const commandDeckGeometryWidths = [1440, 1024, 320] as const;
 
 const fullNavigationCoverage: CommercialNavigationCoverageInput = {
   intents: COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.map((group) => group.intent),
@@ -389,10 +390,10 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
           'src/resources/simulations/components/camera-view-switcher.tsx',
           'scripts/tests/capture-simulation-command-deck-qa.ts',
         ].map((sourcePath) => [sourcePath, `${sourcePath}:sha256`])),
-        viewports: scenario.requiredThemes.flatMap((theme) => scenario.requiredWidths.map((width) => {
-          const sceneRect = width === 1440
-            ? { left: 96, top: 110, right: 1416, bottom: 850, width: 1320, height: 740 }
-            : { left: 16, top: 295, right: 304, bottom: 855, width: 288, height: 560 };
+        viewports: scenario.requiredThemes.flatMap((theme) => commandDeckGeometryWidths.map((width) => {
+          const sceneRect = width === 320
+            ? { left: 16, top: 295, right: 304, bottom: 855, width: 288, height: 560 }
+            : { left: width === 1440 ? 96 : 17, top: 110, right: width === 1440 ? 1416 : 1007, bottom: 850, width: width === 1440 ? 1320 : 990, height: 740 };
           return {
             width,
             theme,
@@ -404,7 +405,7 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
             inSceneBackControlCount: 0,
             inSceneAbbreviationCount: 0,
             collapseButtonCount: width === 1440 ? 2 : 0,
-            restoreHandleCount: width === 320 ? 2 : 0,
+            restoreHandleCount: width === 1440 ? 0 : 2,
             panelsTopAligned: true,
             bottomToolsUnobscured: true,
             bottomToolsWithinViewport: true,
@@ -415,10 +416,10 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
             structuredSurfacesBelowScene: scenario.href === '/simulations/cruise' ? true : undefined,
             sceneRect,
             statusPanelRect: width === 1440
-              ? { left: 112, top: 126, right: 432, bottom: 834, width: 320, height: 708 }
+              ? { left: 112, top: 126, right: 432, bottom: 754, width: 320, height: 628 }
               : undefined,
             controlPanelRect: width === 1440
-              ? { left: 1048, top: 126, right: 1400, bottom: 834, width: 352, height: 708 }
+              ? { left: 1048, top: 126, right: 1400, bottom: 754, width: 352, height: 628 }
               : undefined,
           };
         })),
@@ -1726,6 +1727,7 @@ describe('commercial UI governance', () => {
     expect(result.passed).toBe(false);
     expect(result.violations.flatMap((violation) => violation.evidence)).toEqual(expect.arrayContaining([
       'commandDeckGeometry:theme=dark:width=1440:collapseButtonCount>=2',
+      'commandDeckGeometry:theme=dark:width=1024:restoreHandleCount>=2',
       'commandDeckGeometry:theme=dark:width=320:restoreHandleCount>=2',
     ]));
   });

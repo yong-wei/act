@@ -11050,20 +11050,20 @@
         },
         "commandDeckGeometry": {
           "change": "normalize-simulation-command-deck-layout",
-          "generatedAt": "2026-06-15T21:43:35.160Z",
+          "generatedAt": "2026-06-15T21:59:18.019Z",
           "sourceSha256": {
             "src/app/simulations/cruise/page.tsx": "8c035b667471d5d321d9c5f5446cfb9ea93cf7c29b23a87bd2c72cec28ea92b2",
             "src/app/simulations/_components/simulation-shell.tsx": "046c730668a865d00b424645482ee66a265fb8ec0139cd4f1a63e4e90b9c67ac",
-            "src/resources/simulations/components/simulation-ui.tsx": "72458601a9839480a1657a0d836d627ced95e5a2eed662eb2bbd3de4446bddd7",
+            "src/resources/simulations/components/simulation-ui.tsx": "d4354d4f0cfe4081798ce5f33b2a955a1d4df918a798f1185129b475670fe68a",
             "src/resources/simulations/components/camera-view-switcher.tsx": "7860cbf653eee564dd82bff8405cd1e29427ff180884ae2259183d2b6b94c047",
-            "scripts/tests/capture-simulation-command-deck-qa.ts": "b01f9d91748c62694596b26143c9dde8ededdcfd2889a1bc7177c2ad4c3484fe"
+            "scripts/tests/capture-simulation-command-deck-qa.ts": "422f07633f08b818f5f9889749aa30bd6c4bcd7e6223da8ad5264a32620b234a"
           },
           "viewports": [
             {
               "width": 1440,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-light-1440.png",
-              "screenshotSha256": "1c48283ad3e93a97b6bd935ae0e517e8c2df41a152184abfdca7733b0a5ee164",
+              "screenshotSha256": "6cc5a838543f0d27a57455c6d240aa015361572f0dc5ec68ee15578f86198048",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -11096,17 +11096,17 @@
                 "left": 113,
                 "top": 126,
                 "right": 433,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 320,
-                "height": 708
+                "height": 628
               },
               "controlPanelRect": {
                 "left": 1047,
                 "top": 126,
                 "right": 1399,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 352,
-                "height": 708
+                "height": 628
               },
               "bottomToolRects": [
                 {
@@ -11144,10 +11144,78 @@
               ]
             },
             {
+              "width": 1024,
+              "theme": "light",
+              "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-light-1024.png",
+              "screenshotSha256": "83b04f10f206d7532df898bd3d55475acdcf982b6ea2b7b6d99098e8594f1121",
+              "screenshotWidth": 1024,
+              "screenshotHeight": 900,
+              "sceneChromeRemoved": true,
+              "inSceneBackControlCount": 0,
+              "inSceneAbbreviationCount": 0,
+              "collapseButtonCount": 0,
+              "restoreHandleCount": 2,
+              "panelsTopAligned": false,
+              "bottomToolsUnobscured": true,
+              "bottomToolsWithinViewport": true,
+              "bottomToolSegmentRoles": [
+                "view-switcher",
+                "grid-toggle",
+                "speed-controls",
+                "true"
+              ],
+              "konlingDockCollisionFree": true,
+              "restoreHandlesKeyboardReachable": true,
+              "primarySceneNonblank": true,
+              "structuredSurfacesBelowScene": true,
+              "sceneRect": {
+                "left": 25,
+                "top": 163,
+                "right": 999,
+                "bottom": 903,
+                "width": 974,
+                "height": 740
+              },
+              "bottomToolRects": [
+                {
+                  "left": 277,
+                  "top": 841,
+                  "right": 517,
+                  "bottom": 887,
+                  "width": 240,
+                  "height": 46
+                },
+                {
+                  "left": 521,
+                  "top": 846,
+                  "right": 601,
+                  "bottom": 882,
+                  "width": 80,
+                  "height": 36
+                },
+                {
+                  "left": 605,
+                  "top": 841,
+                  "right": 747,
+                  "bottom": 887,
+                  "width": 142,
+                  "height": 46
+                },
+                {
+                  "left": 291,
+                  "top": 781,
+                  "right": 733,
+                  "bottom": 827,
+                  "width": 442,
+                  "height": 46
+                }
+              ]
+            },
+            {
               "width": 320,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-light-320.png",
-              "screenshotSha256": "c8fd8dc2b0327dba01695bdd64ea8fb9ff4af5e417bde39612d072799e6cb9ba",
+              "screenshotSha256": "25790e3eaa0dcb63ed24c66ee053d632626c564ad13ec8235b1abbe6851cc5b6",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -11215,7 +11283,7 @@
               "width": 1440,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-dark-1440.png",
-              "screenshotSha256": "f0a77243ed3532eb821c643ea745d80691839e7637777bf7a51f530191a77a74",
+              "screenshotSha256": "4b54afcc65347d0b2e4423e2c4c8f254bd70f1e9885eb8d7c7d6e6885f7c6fce",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -11248,17 +11316,17 @@
                 "left": 113,
                 "top": 126,
                 "right": 433,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 320,
-                "height": 708
+                "height": 628
               },
               "controlPanelRect": {
                 "left": 1047,
                 "top": 126,
                 "right": 1399,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 352,
-                "height": 708
+                "height": 628
               },
               "bottomToolRects": [
                 {
@@ -11296,10 +11364,78 @@
               ]
             },
             {
+              "width": 1024,
+              "theme": "dark",
+              "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-dark-1024.png",
+              "screenshotSha256": "793dc5814da295486b69afcabb615565ddc0fb4ddc924a27b26d6f9ddac68d6f",
+              "screenshotWidth": 1024,
+              "screenshotHeight": 900,
+              "sceneChromeRemoved": true,
+              "inSceneBackControlCount": 0,
+              "inSceneAbbreviationCount": 0,
+              "collapseButtonCount": 0,
+              "restoreHandleCount": 2,
+              "panelsTopAligned": false,
+              "bottomToolsUnobscured": true,
+              "bottomToolsWithinViewport": true,
+              "bottomToolSegmentRoles": [
+                "view-switcher",
+                "grid-toggle",
+                "speed-controls",
+                "true"
+              ],
+              "konlingDockCollisionFree": true,
+              "restoreHandlesKeyboardReachable": true,
+              "primarySceneNonblank": true,
+              "structuredSurfacesBelowScene": true,
+              "sceneRect": {
+                "left": 25,
+                "top": 163,
+                "right": 999,
+                "bottom": 903,
+                "width": 974,
+                "height": 740
+              },
+              "bottomToolRects": [
+                {
+                  "left": 277,
+                  "top": 841,
+                  "right": 517,
+                  "bottom": 887,
+                  "width": 240,
+                  "height": 46
+                },
+                {
+                  "left": 521,
+                  "top": 846,
+                  "right": 601,
+                  "bottom": 882,
+                  "width": 80,
+                  "height": 36
+                },
+                {
+                  "left": 605,
+                  "top": 841,
+                  "right": 747,
+                  "bottom": 887,
+                  "width": 142,
+                  "height": 46
+                },
+                {
+                  "left": 291,
+                  "top": 781,
+                  "right": 733,
+                  "bottom": 827,
+                  "width": 442,
+                  "height": 46
+                }
+              ]
+            },
+            {
               "width": 320,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-dark-320.png",
-              "screenshotSha256": "8b6bdd40702ac697006b1285cef00d47f4f2b92efca59830740389fa60cc9b48",
+              "screenshotSha256": "ea952c9cff27cbe199c2d4c454a2568f5a767440554936e337fa80ce6494f49b",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -11956,20 +12092,20 @@
         },
         "commandDeckGeometry": {
           "change": "normalize-simulation-command-deck-layout",
-          "generatedAt": "2026-06-15T21:43:35.160Z",
+          "generatedAt": "2026-06-15T21:59:18.019Z",
           "sourceSha256": {
             "src/app/simulations/lng/page.tsx": "c1b9fa74dbdebe08be72777d178dae0bde7ce27ab00246cb5617bd99c163a9a0",
             "src/app/simulations/_components/simulation-shell.tsx": "046c730668a865d00b424645482ee66a265fb8ec0139cd4f1a63e4e90b9c67ac",
-            "src/resources/simulations/components/simulation-ui.tsx": "72458601a9839480a1657a0d836d627ced95e5a2eed662eb2bbd3de4446bddd7",
+            "src/resources/simulations/components/simulation-ui.tsx": "d4354d4f0cfe4081798ce5f33b2a955a1d4df918a798f1185129b475670fe68a",
             "src/resources/simulations/components/camera-view-switcher.tsx": "7860cbf653eee564dd82bff8405cd1e29427ff180884ae2259183d2b6b94c047",
-            "scripts/tests/capture-simulation-command-deck-qa.ts": "b01f9d91748c62694596b26143c9dde8ededdcfd2889a1bc7177c2ad4c3484fe"
+            "scripts/tests/capture-simulation-command-deck-qa.ts": "422f07633f08b818f5f9889749aa30bd6c4bcd7e6223da8ad5264a32620b234a"
           },
           "viewports": [
             {
               "width": 1440,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-light-1440.png",
-              "screenshotSha256": "980187b35805cf9ba40abbbd91123b1cadc965be5837f05d0b3b99ff1095f99f",
+              "screenshotSha256": "f64b0b18f42b528905de2b9a188d54d492266c1619461f4cf7fa205260e1939a",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -12001,17 +12137,17 @@
                 "left": 113,
                 "top": 126,
                 "right": 433,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 320,
-                "height": 708
+                "height": 628
               },
               "controlPanelRect": {
                 "left": 1047,
                 "top": 126,
                 "right": 1399,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 352,
-                "height": 708
+                "height": 628
               },
               "bottomToolRects": [
                 {
@@ -12049,10 +12185,77 @@
               ]
             },
             {
+              "width": 1024,
+              "theme": "light",
+              "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-light-1024.png",
+              "screenshotSha256": "9af42df425bc7139c2d1b6124522450eecffae674bf9babc8a6fdb8165a1cb73",
+              "screenshotWidth": 1024,
+              "screenshotHeight": 900,
+              "sceneChromeRemoved": true,
+              "inSceneBackControlCount": 0,
+              "inSceneAbbreviationCount": 0,
+              "collapseButtonCount": 0,
+              "restoreHandleCount": 2,
+              "panelsTopAligned": false,
+              "bottomToolsUnobscured": true,
+              "bottomToolsWithinViewport": true,
+              "bottomToolSegmentRoles": [
+                "view-switcher",
+                "grid-toggle",
+                "speed-controls",
+                "true"
+              ],
+              "konlingDockCollisionFree": true,
+              "restoreHandlesKeyboardReachable": true,
+              "primarySceneNonblank": true,
+              "sceneRect": {
+                "left": 25,
+                "top": 163,
+                "right": 999,
+                "bottom": 903,
+                "width": 974,
+                "height": 740
+              },
+              "bottomToolRects": [
+                {
+                  "left": 277,
+                  "top": 841,
+                  "right": 517,
+                  "bottom": 887,
+                  "width": 240,
+                  "height": 46
+                },
+                {
+                  "left": 521,
+                  "top": 846,
+                  "right": 601,
+                  "bottom": 882,
+                  "width": 80,
+                  "height": 36
+                },
+                {
+                  "left": 605,
+                  "top": 841,
+                  "right": 747,
+                  "bottom": 887,
+                  "width": 142,
+                  "height": 46
+                },
+                {
+                  "left": 291,
+                  "top": 781,
+                  "right": 733,
+                  "bottom": 827,
+                  "width": 442,
+                  "height": 46
+                }
+              ]
+            },
+            {
               "width": 320,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-light-320.png",
-              "screenshotSha256": "7d2450179bd54251f07b8c81b3cd3fbcf368c427b6740bad408d07a25247200d",
+              "screenshotSha256": "2583d7f561b5af13ebc4a98ff60cdd8a7c430e0161d78e35459323f454256aca",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -12119,7 +12322,7 @@
               "width": 1440,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-dark-1440.png",
-              "screenshotSha256": "6b9cd3e1667fb45489839f47b99778819054eceb6b6927be190883c14ded243a",
+              "screenshotSha256": "0a25f6769adc2f503dc099dc585d72f9b7bb73ec9ecce69d21582774b00731e1",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -12151,17 +12354,17 @@
                 "left": 113,
                 "top": 126,
                 "right": 433,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 320,
-                "height": 708
+                "height": 628
               },
               "controlPanelRect": {
                 "left": 1047,
                 "top": 126,
                 "right": 1399,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 352,
-                "height": 708
+                "height": 628
               },
               "bottomToolRects": [
                 {
@@ -12199,10 +12402,77 @@
               ]
             },
             {
+              "width": 1024,
+              "theme": "dark",
+              "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-dark-1024.png",
+              "screenshotSha256": "4887052f86c5fcdaf60c8fadc3bf3b463b1b534f3661576c31fd3f652d6d922d",
+              "screenshotWidth": 1024,
+              "screenshotHeight": 900,
+              "sceneChromeRemoved": true,
+              "inSceneBackControlCount": 0,
+              "inSceneAbbreviationCount": 0,
+              "collapseButtonCount": 0,
+              "restoreHandleCount": 2,
+              "panelsTopAligned": false,
+              "bottomToolsUnobscured": true,
+              "bottomToolsWithinViewport": true,
+              "bottomToolSegmentRoles": [
+                "view-switcher",
+                "grid-toggle",
+                "speed-controls",
+                "true"
+              ],
+              "konlingDockCollisionFree": true,
+              "restoreHandlesKeyboardReachable": true,
+              "primarySceneNonblank": true,
+              "sceneRect": {
+                "left": 25,
+                "top": 163,
+                "right": 999,
+                "bottom": 903,
+                "width": 974,
+                "height": 740
+              },
+              "bottomToolRects": [
+                {
+                  "left": 277,
+                  "top": 841,
+                  "right": 517,
+                  "bottom": 887,
+                  "width": 240,
+                  "height": 46
+                },
+                {
+                  "left": 521,
+                  "top": 846,
+                  "right": 601,
+                  "bottom": 882,
+                  "width": 80,
+                  "height": 36
+                },
+                {
+                  "left": 605,
+                  "top": 841,
+                  "right": 747,
+                  "bottom": 887,
+                  "width": 142,
+                  "height": 46
+                },
+                {
+                  "left": 291,
+                  "top": 781,
+                  "right": 733,
+                  "bottom": 827,
+                  "width": 442,
+                  "height": 46
+                }
+              ]
+            },
+            {
               "width": 320,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-dark-320.png",
-              "screenshotSha256": "befcc0d1fe5c57e3e830aa7cc9b15712c1cd834c5906f083c40a7df0b080aac9",
+              "screenshotSha256": "89bc4e2c02f00857cc5e409b593c7a36cc3ec29dab06f4365cce2dc5db4b153a",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -12855,20 +13125,20 @@
         },
         "commandDeckGeometry": {
           "change": "normalize-simulation-command-deck-layout",
-          "generatedAt": "2026-06-15T21:43:35.160Z",
+          "generatedAt": "2026-06-15T21:59:18.019Z",
           "sourceSha256": {
             "src/app/simulations/destroyer/page.tsx": "4b2c85992bf49365f4cd279ed7960c6920a2ad3df55b3d3c08abd4149fba5b85",
             "src/app/simulations/_components/simulation-shell.tsx": "046c730668a865d00b424645482ee66a265fb8ec0139cd4f1a63e4e90b9c67ac",
-            "src/resources/simulations/components/simulation-ui.tsx": "72458601a9839480a1657a0d836d627ced95e5a2eed662eb2bbd3de4446bddd7",
+            "src/resources/simulations/components/simulation-ui.tsx": "d4354d4f0cfe4081798ce5f33b2a955a1d4df918a798f1185129b475670fe68a",
             "src/resources/simulations/components/camera-view-switcher.tsx": "7860cbf653eee564dd82bff8405cd1e29427ff180884ae2259183d2b6b94c047",
-            "scripts/tests/capture-simulation-command-deck-qa.ts": "b01f9d91748c62694596b26143c9dde8ededdcfd2889a1bc7177c2ad4c3484fe"
+            "scripts/tests/capture-simulation-command-deck-qa.ts": "422f07633f08b818f5f9889749aa30bd6c4bcd7e6223da8ad5264a32620b234a"
           },
           "viewports": [
             {
               "width": 1440,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-light-1440.png",
-              "screenshotSha256": "f8dc72818fa8b9a827b72d572c39e5143b05a66126f2d507fd19bdc20ca1e891",
+              "screenshotSha256": "b040371354e5733798df65ee4a299833d2e18a6004109e8e02d4bd104950fa65",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -12900,17 +13170,17 @@
                 "left": 113,
                 "top": 126,
                 "right": 433,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 320,
-                "height": 708
+                "height": 628
               },
               "controlPanelRect": {
                 "left": 1047,
                 "top": 126,
                 "right": 1399,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 352,
-                "height": 708
+                "height": 628
               },
               "bottomToolRects": [
                 {
@@ -12948,10 +13218,77 @@
               ]
             },
             {
+              "width": 1024,
+              "theme": "light",
+              "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-light-1024.png",
+              "screenshotSha256": "af514e60408355657824aa93a74531060a22d70b07f05dff182a657b32dba4d8",
+              "screenshotWidth": 1024,
+              "screenshotHeight": 900,
+              "sceneChromeRemoved": true,
+              "inSceneBackControlCount": 0,
+              "inSceneAbbreviationCount": 0,
+              "collapseButtonCount": 0,
+              "restoreHandleCount": 2,
+              "panelsTopAligned": false,
+              "bottomToolsUnobscured": true,
+              "bottomToolsWithinViewport": true,
+              "bottomToolSegmentRoles": [
+                "view-switcher",
+                "grid-toggle",
+                "speed-controls",
+                "true"
+              ],
+              "konlingDockCollisionFree": true,
+              "restoreHandlesKeyboardReachable": true,
+              "primarySceneNonblank": true,
+              "sceneRect": {
+                "left": 25,
+                "top": 163,
+                "right": 999,
+                "bottom": 903,
+                "width": 974,
+                "height": 740
+              },
+              "bottomToolRects": [
+                {
+                  "left": 277,
+                  "top": 841,
+                  "right": 517,
+                  "bottom": 887,
+                  "width": 240,
+                  "height": 46
+                },
+                {
+                  "left": 521,
+                  "top": 846,
+                  "right": 601,
+                  "bottom": 882,
+                  "width": 80,
+                  "height": 36
+                },
+                {
+                  "left": 605,
+                  "top": 841,
+                  "right": 747,
+                  "bottom": 887,
+                  "width": 142,
+                  "height": 46
+                },
+                {
+                  "left": 291,
+                  "top": 781,
+                  "right": 733,
+                  "bottom": 827,
+                  "width": 442,
+                  "height": 46
+                }
+              ]
+            },
+            {
               "width": 320,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-light-320.png",
-              "screenshotSha256": "1e7d1e9e02e742b796503c2aa86854b33822cee20eea68f7819b32c2f8d0a408",
+              "screenshotSha256": "25e6b9089728c64d443df32b88ec54daac641c51153d65db3233c11b2da92384",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -13018,7 +13355,7 @@
               "width": 1440,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-dark-1440.png",
-              "screenshotSha256": "01f1e621d9dc294eb2100ee12ce25aaa58ae73546021a8e2c40df336bc39634c",
+              "screenshotSha256": "bf8f82aa489affccd783014f4daf37915d2b0f9c92bc966d2427ea13073994ed",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -13050,17 +13387,17 @@
                 "left": 113,
                 "top": 126,
                 "right": 433,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 320,
-                "height": 708
+                "height": 628
               },
               "controlPanelRect": {
                 "left": 1047,
                 "top": 126,
                 "right": 1399,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 352,
-                "height": 708
+                "height": 628
               },
               "bottomToolRects": [
                 {
@@ -13098,10 +13435,77 @@
               ]
             },
             {
+              "width": 1024,
+              "theme": "dark",
+              "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-dark-1024.png",
+              "screenshotSha256": "0abaf708b62d1ee598f2036d3a0b2f4c0956d85ccc499ea1a94df888bf5196ef",
+              "screenshotWidth": 1024,
+              "screenshotHeight": 900,
+              "sceneChromeRemoved": true,
+              "inSceneBackControlCount": 0,
+              "inSceneAbbreviationCount": 0,
+              "collapseButtonCount": 0,
+              "restoreHandleCount": 2,
+              "panelsTopAligned": false,
+              "bottomToolsUnobscured": true,
+              "bottomToolsWithinViewport": true,
+              "bottomToolSegmentRoles": [
+                "view-switcher",
+                "grid-toggle",
+                "speed-controls",
+                "true"
+              ],
+              "konlingDockCollisionFree": true,
+              "restoreHandlesKeyboardReachable": true,
+              "primarySceneNonblank": true,
+              "sceneRect": {
+                "left": 25,
+                "top": 163,
+                "right": 999,
+                "bottom": 903,
+                "width": 974,
+                "height": 740
+              },
+              "bottomToolRects": [
+                {
+                  "left": 277,
+                  "top": 841,
+                  "right": 517,
+                  "bottom": 887,
+                  "width": 240,
+                  "height": 46
+                },
+                {
+                  "left": 521,
+                  "top": 846,
+                  "right": 601,
+                  "bottom": 882,
+                  "width": 80,
+                  "height": 36
+                },
+                {
+                  "left": 605,
+                  "top": 841,
+                  "right": 747,
+                  "bottom": 887,
+                  "width": 142,
+                  "height": 46
+                },
+                {
+                  "left": 291,
+                  "top": 781,
+                  "right": 733,
+                  "bottom": 827,
+                  "width": 442,
+                  "height": 46
+                }
+              ]
+            },
+            {
               "width": 320,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-dark-320.png",
-              "screenshotSha256": "7ebb7018f70ca21db890ed80948f8264b6aeb53c70683b65a1987847608bf799",
+              "screenshotSha256": "00b7cbb96495d7ee53e65f36296a7ba0f96e837c388f505292bf9bc26cb6564a",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -13754,20 +14158,20 @@
         },
         "commandDeckGeometry": {
           "change": "normalize-simulation-command-deck-layout",
-          "generatedAt": "2026-06-15T21:43:35.160Z",
+          "generatedAt": "2026-06-15T21:59:18.019Z",
           "sourceSha256": {
             "src/app/simulations/drilling/page.tsx": "185aaa67734d35283bc927a2d941dc2bee76bce31aa9afec2ff073a6cbf2166c",
             "src/app/simulations/_components/simulation-shell.tsx": "046c730668a865d00b424645482ee66a265fb8ec0139cd4f1a63e4e90b9c67ac",
-            "src/resources/simulations/components/simulation-ui.tsx": "72458601a9839480a1657a0d836d627ced95e5a2eed662eb2bbd3de4446bddd7",
+            "src/resources/simulations/components/simulation-ui.tsx": "d4354d4f0cfe4081798ce5f33b2a955a1d4df918a798f1185129b475670fe68a",
             "src/resources/simulations/components/camera-view-switcher.tsx": "7860cbf653eee564dd82bff8405cd1e29427ff180884ae2259183d2b6b94c047",
-            "scripts/tests/capture-simulation-command-deck-qa.ts": "b01f9d91748c62694596b26143c9dde8ededdcfd2889a1bc7177c2ad4c3484fe"
+            "scripts/tests/capture-simulation-command-deck-qa.ts": "422f07633f08b818f5f9889749aa30bd6c4bcd7e6223da8ad5264a32620b234a"
           },
           "viewports": [
             {
               "width": 1440,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-light-1440.png",
-              "screenshotSha256": "1d9992201e728f343a3665b52b186c55743a6dc67ca64ffa459f98863821a176",
+              "screenshotSha256": "0bff928e6f34a893aaac8cad92af8850ea2c983b638f309473ca9d562b90d11f",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -13799,17 +14203,17 @@
                 "left": 113,
                 "top": 126,
                 "right": 433,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 320,
-                "height": 708
+                "height": 628
               },
               "controlPanelRect": {
                 "left": 1047,
                 "top": 126,
                 "right": 1399,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 352,
-                "height": 708
+                "height": 628
               },
               "bottomToolRects": [
                 {
@@ -13847,10 +14251,77 @@
               ]
             },
             {
+              "width": 1024,
+              "theme": "light",
+              "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-light-1024.png",
+              "screenshotSha256": "c26d1e798eb6d2c37fcbc1f1ed993e19be016bf0ba978e48fbb42891feaaa205",
+              "screenshotWidth": 1024,
+              "screenshotHeight": 900,
+              "sceneChromeRemoved": true,
+              "inSceneBackControlCount": 0,
+              "inSceneAbbreviationCount": 0,
+              "collapseButtonCount": 0,
+              "restoreHandleCount": 2,
+              "panelsTopAligned": false,
+              "bottomToolsUnobscured": true,
+              "bottomToolsWithinViewport": true,
+              "bottomToolSegmentRoles": [
+                "view-switcher",
+                "grid-toggle",
+                "speed-controls",
+                "true"
+              ],
+              "konlingDockCollisionFree": true,
+              "restoreHandlesKeyboardReachable": true,
+              "primarySceneNonblank": true,
+              "sceneRect": {
+                "left": 25,
+                "top": 163,
+                "right": 999,
+                "bottom": 903,
+                "width": 974,
+                "height": 740
+              },
+              "bottomToolRects": [
+                {
+                  "left": 277,
+                  "top": 841,
+                  "right": 517,
+                  "bottom": 887,
+                  "width": 240,
+                  "height": 46
+                },
+                {
+                  "left": 521,
+                  "top": 846,
+                  "right": 601,
+                  "bottom": 882,
+                  "width": 80,
+                  "height": 36
+                },
+                {
+                  "left": 605,
+                  "top": 841,
+                  "right": 747,
+                  "bottom": 887,
+                  "width": 142,
+                  "height": 46
+                },
+                {
+                  "left": 291,
+                  "top": 781,
+                  "right": 733,
+                  "bottom": 827,
+                  "width": 442,
+                  "height": 46
+                }
+              ]
+            },
+            {
               "width": 320,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-light-320.png",
-              "screenshotSha256": "41508bf8b3e0fdcf5e1a0b2bf937c7d152039c768764805ad69058a5991d8f00",
+              "screenshotSha256": "e580074592662a4bad0e56f54da82487efc432ee2d622066e77d0f101f088e6b",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -13917,7 +14388,7 @@
               "width": 1440,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-dark-1440.png",
-              "screenshotSha256": "2c6f65bf07607c541d5a71112bd38b3d2cc1769e8661282dbd5e69b4da871e80",
+              "screenshotSha256": "6367fb620a17d708052a1bc4033644f9bfcad3c003a089f4ec8b07280c9f2bda",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -13949,17 +14420,17 @@
                 "left": 113,
                 "top": 126,
                 "right": 433,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 320,
-                "height": 708
+                "height": 628
               },
               "controlPanelRect": {
                 "left": 1047,
                 "top": 126,
                 "right": 1399,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 352,
-                "height": 708
+                "height": 628
               },
               "bottomToolRects": [
                 {
@@ -13997,10 +14468,77 @@
               ]
             },
             {
+              "width": 1024,
+              "theme": "dark",
+              "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-dark-1024.png",
+              "screenshotSha256": "647389e79a2161b55b11efac84b49a38446fd37d0832e78493697dc4901146d1",
+              "screenshotWidth": 1024,
+              "screenshotHeight": 900,
+              "sceneChromeRemoved": true,
+              "inSceneBackControlCount": 0,
+              "inSceneAbbreviationCount": 0,
+              "collapseButtonCount": 0,
+              "restoreHandleCount": 2,
+              "panelsTopAligned": false,
+              "bottomToolsUnobscured": true,
+              "bottomToolsWithinViewport": true,
+              "bottomToolSegmentRoles": [
+                "view-switcher",
+                "grid-toggle",
+                "speed-controls",
+                "true"
+              ],
+              "konlingDockCollisionFree": true,
+              "restoreHandlesKeyboardReachable": true,
+              "primarySceneNonblank": true,
+              "sceneRect": {
+                "left": 25,
+                "top": 163,
+                "right": 999,
+                "bottom": 903,
+                "width": 974,
+                "height": 740
+              },
+              "bottomToolRects": [
+                {
+                  "left": 277,
+                  "top": 841,
+                  "right": 517,
+                  "bottom": 887,
+                  "width": 240,
+                  "height": 46
+                },
+                {
+                  "left": 521,
+                  "top": 846,
+                  "right": 601,
+                  "bottom": 882,
+                  "width": 80,
+                  "height": 36
+                },
+                {
+                  "left": 605,
+                  "top": 841,
+                  "right": 747,
+                  "bottom": 887,
+                  "width": 142,
+                  "height": 46
+                },
+                {
+                  "left": 291,
+                  "top": 781,
+                  "right": 733,
+                  "bottom": 827,
+                  "width": 442,
+                  "height": 46
+                }
+              ]
+            },
+            {
               "width": 320,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-dark-320.png",
-              "screenshotSha256": "f9f554fa10e612bbdde441be99d5d63e2b30007c0db90708cb49fd196ca3b369",
+              "screenshotSha256": "85aea636a017f2393c2062e4474f4af3317d17f92bd69d94a59856f891662ca1",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -14646,20 +15184,20 @@
         },
         "commandDeckGeometry": {
           "change": "normalize-simulation-command-deck-layout",
-          "generatedAt": "2026-06-15T21:43:35.160Z",
+          "generatedAt": "2026-06-15T21:59:18.019Z",
           "sourceSha256": {
             "src/app/simulations/container/page.tsx": "35c5ebad26a19cfbbc033d88fa8c886e3790f299bbe6d0c221c45617c86d30e6",
             "src/app/simulations/_components/simulation-shell.tsx": "046c730668a865d00b424645482ee66a265fb8ec0139cd4f1a63e4e90b9c67ac",
-            "src/resources/simulations/components/simulation-ui.tsx": "72458601a9839480a1657a0d836d627ced95e5a2eed662eb2bbd3de4446bddd7",
+            "src/resources/simulations/components/simulation-ui.tsx": "d4354d4f0cfe4081798ce5f33b2a955a1d4df918a798f1185129b475670fe68a",
             "src/resources/simulations/components/camera-view-switcher.tsx": "7860cbf653eee564dd82bff8405cd1e29427ff180884ae2259183d2b6b94c047",
-            "scripts/tests/capture-simulation-command-deck-qa.ts": "b01f9d91748c62694596b26143c9dde8ededdcfd2889a1bc7177c2ad4c3484fe"
+            "scripts/tests/capture-simulation-command-deck-qa.ts": "422f07633f08b818f5f9889749aa30bd6c4bcd7e6223da8ad5264a32620b234a"
           },
           "viewports": [
             {
               "width": 1440,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-light-1440.png",
-              "screenshotSha256": "a136d7e4a468c9726f0c7cf1801349381a0db2f6b5a4c33ca8fe95e93cbcf2ba",
+              "screenshotSha256": "a8d469867475e9fc277f543285be2f98c569101acdb9d703030d4f1429a640c4",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -14691,17 +15229,17 @@
                 "left": 113,
                 "top": 126,
                 "right": 433,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 320,
-                "height": 708
+                "height": 628
               },
               "controlPanelRect": {
                 "left": 1047,
                 "top": 126,
                 "right": 1399,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 352,
-                "height": 708
+                "height": 628
               },
               "bottomToolRects": [
                 {
@@ -14739,10 +15277,77 @@
               ]
             },
             {
+              "width": 1024,
+              "theme": "light",
+              "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-light-1024.png",
+              "screenshotSha256": "f3fed157b8fabfdeeb99f3511f1ac50eeee49f3031b1c2cc2b5442fe6b3001a0",
+              "screenshotWidth": 1024,
+              "screenshotHeight": 900,
+              "sceneChromeRemoved": true,
+              "inSceneBackControlCount": 0,
+              "inSceneAbbreviationCount": 0,
+              "collapseButtonCount": 0,
+              "restoreHandleCount": 2,
+              "panelsTopAligned": false,
+              "bottomToolsUnobscured": true,
+              "bottomToolsWithinViewport": true,
+              "bottomToolSegmentRoles": [
+                "view-switcher",
+                "grid-toggle",
+                "speed-controls",
+                "true"
+              ],
+              "konlingDockCollisionFree": true,
+              "restoreHandlesKeyboardReachable": true,
+              "primarySceneNonblank": true,
+              "sceneRect": {
+                "left": 25,
+                "top": 163,
+                "right": 999,
+                "bottom": 903,
+                "width": 974,
+                "height": 740
+              },
+              "bottomToolRects": [
+                {
+                  "left": 277,
+                  "top": 841,
+                  "right": 517,
+                  "bottom": 887,
+                  "width": 240,
+                  "height": 46
+                },
+                {
+                  "left": 521,
+                  "top": 846,
+                  "right": 601,
+                  "bottom": 882,
+                  "width": 80,
+                  "height": 36
+                },
+                {
+                  "left": 605,
+                  "top": 841,
+                  "right": 747,
+                  "bottom": 887,
+                  "width": 142,
+                  "height": 46
+                },
+                {
+                  "left": 291,
+                  "top": 781,
+                  "right": 733,
+                  "bottom": 827,
+                  "width": 442,
+                  "height": 46
+                }
+              ]
+            },
+            {
               "width": 320,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-light-320.png",
-              "screenshotSha256": "62b59d485fcac7372ec6f1793844ab12ade17871179dafc6e038beead285bc53",
+              "screenshotSha256": "dba3c9508672ec98438e69e756e6921c4c7dc6d84676d1021fde649aa4052d44",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -14809,7 +15414,7 @@
               "width": 1440,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-dark-1440.png",
-              "screenshotSha256": "93ce269be90b463a1fe5aab7bd3cea3ff13f02aba8929083d53ca66e13a081a6",
+              "screenshotSha256": "740a7445a75e14398198f5dacc9c6a66f571e5482da5a1694ea2e9671f664290",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -14841,17 +15446,17 @@
                 "left": 113,
                 "top": 126,
                 "right": 433,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 320,
-                "height": 708
+                "height": 628
               },
               "controlPanelRect": {
                 "left": 1047,
                 "top": 126,
                 "right": 1399,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 352,
-                "height": 708
+                "height": 628
               },
               "bottomToolRects": [
                 {
@@ -14889,10 +15494,77 @@
               ]
             },
             {
+              "width": 1024,
+              "theme": "dark",
+              "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-dark-1024.png",
+              "screenshotSha256": "335d7303a1d1d42bf5235f84db3e9fd41e59bad4e139d774fb971959a6f069d9",
+              "screenshotWidth": 1024,
+              "screenshotHeight": 900,
+              "sceneChromeRemoved": true,
+              "inSceneBackControlCount": 0,
+              "inSceneAbbreviationCount": 0,
+              "collapseButtonCount": 0,
+              "restoreHandleCount": 2,
+              "panelsTopAligned": false,
+              "bottomToolsUnobscured": true,
+              "bottomToolsWithinViewport": true,
+              "bottomToolSegmentRoles": [
+                "view-switcher",
+                "grid-toggle",
+                "speed-controls",
+                "true"
+              ],
+              "konlingDockCollisionFree": true,
+              "restoreHandlesKeyboardReachable": true,
+              "primarySceneNonblank": true,
+              "sceneRect": {
+                "left": 25,
+                "top": 163,
+                "right": 999,
+                "bottom": 903,
+                "width": 974,
+                "height": 740
+              },
+              "bottomToolRects": [
+                {
+                  "left": 277,
+                  "top": 841,
+                  "right": 517,
+                  "bottom": 887,
+                  "width": 240,
+                  "height": 46
+                },
+                {
+                  "left": 521,
+                  "top": 846,
+                  "right": 601,
+                  "bottom": 882,
+                  "width": 80,
+                  "height": 36
+                },
+                {
+                  "left": 605,
+                  "top": 841,
+                  "right": 747,
+                  "bottom": 887,
+                  "width": 142,
+                  "height": 46
+                },
+                {
+                  "left": 291,
+                  "top": 781,
+                  "right": 733,
+                  "bottom": 827,
+                  "width": 442,
+                  "height": 46
+                }
+              ]
+            },
+            {
               "width": 320,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-dark-320.png",
-              "screenshotSha256": "3d1694d4cc8874a14e6e1f3fbebb49ab847ee048a32dd4014242129dc2bb3789",
+              "screenshotSha256": "e0179d15fb25f6530496e81efc222610d4de4b2b0197a8d0afe89238744a3e02",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -15538,20 +16210,20 @@
         },
         "commandDeckGeometry": {
           "change": "normalize-simulation-command-deck-layout",
-          "generatedAt": "2026-06-15T21:43:35.160Z",
+          "generatedAt": "2026-06-15T21:59:18.019Z",
           "sourceSha256": {
             "src/app/simulations/icebreaker/page.tsx": "365cc67c64027689eebc3377c7409e2135474f64b8810c5a3788083b69a42015",
             "src/app/simulations/_components/simulation-shell.tsx": "046c730668a865d00b424645482ee66a265fb8ec0139cd4f1a63e4e90b9c67ac",
-            "src/resources/simulations/components/simulation-ui.tsx": "72458601a9839480a1657a0d836d627ced95e5a2eed662eb2bbd3de4446bddd7",
+            "src/resources/simulations/components/simulation-ui.tsx": "d4354d4f0cfe4081798ce5f33b2a955a1d4df918a798f1185129b475670fe68a",
             "src/resources/simulations/components/camera-view-switcher.tsx": "7860cbf653eee564dd82bff8405cd1e29427ff180884ae2259183d2b6b94c047",
-            "scripts/tests/capture-simulation-command-deck-qa.ts": "b01f9d91748c62694596b26143c9dde8ededdcfd2889a1bc7177c2ad4c3484fe"
+            "scripts/tests/capture-simulation-command-deck-qa.ts": "422f07633f08b818f5f9889749aa30bd6c4bcd7e6223da8ad5264a32620b234a"
           },
           "viewports": [
             {
               "width": 1440,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-light-1440.png",
-              "screenshotSha256": "bc4cc63ac86c405429253e4deab1a53dec76270104dee6e6dddc3a4bb345ad9d",
+              "screenshotSha256": "df77d53527287661c97ece157a1d03de383015f95be29da9cdc9e5a8f45960ed",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -15583,17 +16255,17 @@
                 "left": 113,
                 "top": 126,
                 "right": 433,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 320,
-                "height": 708
+                "height": 628
               },
               "controlPanelRect": {
                 "left": 1047,
                 "top": 126,
                 "right": 1399,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 352,
-                "height": 708
+                "height": 628
               },
               "bottomToolRects": [
                 {
@@ -15631,10 +16303,77 @@
               ]
             },
             {
+              "width": 1024,
+              "theme": "light",
+              "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-light-1024.png",
+              "screenshotSha256": "5ee2620223b26bd601ef4338ec5f323766a657580e043cb2b49757349b09c229",
+              "screenshotWidth": 1024,
+              "screenshotHeight": 900,
+              "sceneChromeRemoved": true,
+              "inSceneBackControlCount": 0,
+              "inSceneAbbreviationCount": 0,
+              "collapseButtonCount": 0,
+              "restoreHandleCount": 2,
+              "panelsTopAligned": false,
+              "bottomToolsUnobscured": true,
+              "bottomToolsWithinViewport": true,
+              "bottomToolSegmentRoles": [
+                "view-switcher",
+                "grid-toggle",
+                "speed-controls",
+                "true"
+              ],
+              "konlingDockCollisionFree": true,
+              "restoreHandlesKeyboardReachable": true,
+              "primarySceneNonblank": true,
+              "sceneRect": {
+                "left": 25,
+                "top": 163,
+                "right": 999,
+                "bottom": 903,
+                "width": 974,
+                "height": 740
+              },
+              "bottomToolRects": [
+                {
+                  "left": 277,
+                  "top": 841,
+                  "right": 517,
+                  "bottom": 887,
+                  "width": 240,
+                  "height": 46
+                },
+                {
+                  "left": 521,
+                  "top": 846,
+                  "right": 601,
+                  "bottom": 882,
+                  "width": 80,
+                  "height": 36
+                },
+                {
+                  "left": 605,
+                  "top": 841,
+                  "right": 747,
+                  "bottom": 887,
+                  "width": 142,
+                  "height": 46
+                },
+                {
+                  "left": 291,
+                  "top": 781,
+                  "right": 733,
+                  "bottom": 827,
+                  "width": 442,
+                  "height": 46
+                }
+              ]
+            },
+            {
               "width": 320,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-light-320.png",
-              "screenshotSha256": "a428cb2c163129053f7088bde991e8807bd1363ed6691155cd1b6a0d7d6bbea2",
+              "screenshotSha256": "6d3aefae2e5e03877cf1c4ddf03a5bc308bb4c3ae4016cfde41911b81fa77f28",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -15701,7 +16440,7 @@
               "width": 1440,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-dark-1440.png",
-              "screenshotSha256": "215719d9dc8ee970e9452e28a1acca04c3efca6a4bfed875e1323e42088433ba",
+              "screenshotSha256": "a4d09b6fa0fbc3af32d283af92f33c710e8d388217f62dcbdcc3368b322a31e5",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -15733,17 +16472,17 @@
                 "left": 113,
                 "top": 126,
                 "right": 433,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 320,
-                "height": 708
+                "height": 628
               },
               "controlPanelRect": {
                 "left": 1047,
                 "top": 126,
                 "right": 1399,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 352,
-                "height": 708
+                "height": 628
               },
               "bottomToolRects": [
                 {
@@ -15781,10 +16520,77 @@
               ]
             },
             {
+              "width": 1024,
+              "theme": "dark",
+              "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-dark-1024.png",
+              "screenshotSha256": "cbbd5d4414de9d75d865eb1d9652fea9f170f3e29ec7209a72b25c946d56e4e7",
+              "screenshotWidth": 1024,
+              "screenshotHeight": 900,
+              "sceneChromeRemoved": true,
+              "inSceneBackControlCount": 0,
+              "inSceneAbbreviationCount": 0,
+              "collapseButtonCount": 0,
+              "restoreHandleCount": 2,
+              "panelsTopAligned": false,
+              "bottomToolsUnobscured": true,
+              "bottomToolsWithinViewport": true,
+              "bottomToolSegmentRoles": [
+                "view-switcher",
+                "grid-toggle",
+                "speed-controls",
+                "true"
+              ],
+              "konlingDockCollisionFree": true,
+              "restoreHandlesKeyboardReachable": true,
+              "primarySceneNonblank": true,
+              "sceneRect": {
+                "left": 25,
+                "top": 163,
+                "right": 999,
+                "bottom": 903,
+                "width": 974,
+                "height": 740
+              },
+              "bottomToolRects": [
+                {
+                  "left": 277,
+                  "top": 841,
+                  "right": 517,
+                  "bottom": 887,
+                  "width": 240,
+                  "height": 46
+                },
+                {
+                  "left": 521,
+                  "top": 846,
+                  "right": 601,
+                  "bottom": 882,
+                  "width": 80,
+                  "height": 36
+                },
+                {
+                  "left": 605,
+                  "top": 841,
+                  "right": 747,
+                  "bottom": 887,
+                  "width": 142,
+                  "height": 46
+                },
+                {
+                  "left": 291,
+                  "top": 781,
+                  "right": 733,
+                  "bottom": 827,
+                  "width": 442,
+                  "height": 46
+                }
+              ]
+            },
+            {
               "width": 320,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-dark-320.png",
-              "screenshotSha256": "d3f17a73b61a6f9c715feee5e6de1ced4667982f719f2d4443be8cbf0ca3e20e",
+              "screenshotSha256": "8f06223a96fd99b6067bebfe03341f4c726442bf510f545ba18bd41537fb840b",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -16430,20 +17236,20 @@
         },
         "commandDeckGeometry": {
           "change": "normalize-simulation-command-deck-layout",
-          "generatedAt": "2026-06-15T21:43:35.160Z",
+          "generatedAt": "2026-06-15T21:59:18.019Z",
           "sourceSha256": {
             "src/app/simulations/dredger/page.tsx": "3d09bb4598c76abf908344672facb02b22da30207d90b87d457c25aad41e3dcb",
             "src/app/simulations/_components/simulation-shell.tsx": "046c730668a865d00b424645482ee66a265fb8ec0139cd4f1a63e4e90b9c67ac",
-            "src/resources/simulations/components/simulation-ui.tsx": "72458601a9839480a1657a0d836d627ced95e5a2eed662eb2bbd3de4446bddd7",
+            "src/resources/simulations/components/simulation-ui.tsx": "d4354d4f0cfe4081798ce5f33b2a955a1d4df918a798f1185129b475670fe68a",
             "src/resources/simulations/components/camera-view-switcher.tsx": "7860cbf653eee564dd82bff8405cd1e29427ff180884ae2259183d2b6b94c047",
-            "scripts/tests/capture-simulation-command-deck-qa.ts": "b01f9d91748c62694596b26143c9dde8ededdcfd2889a1bc7177c2ad4c3484fe"
+            "scripts/tests/capture-simulation-command-deck-qa.ts": "422f07633f08b818f5f9889749aa30bd6c4bcd7e6223da8ad5264a32620b234a"
           },
           "viewports": [
             {
               "width": 1440,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-light-1440.png",
-              "screenshotSha256": "add7876160186681a73eb3b83d8396f60ea664d83224061aa8c278911788a446",
+              "screenshotSha256": "7f8841c6dd85175ea51ce0576dccee4c8ac4767deb247eaf71379996b9e7f6d0",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -16475,17 +17281,17 @@
                 "left": 113,
                 "top": 126,
                 "right": 433,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 320,
-                "height": 708
+                "height": 628
               },
               "controlPanelRect": {
                 "left": 1047,
                 "top": 126,
                 "right": 1399,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 352,
-                "height": 708
+                "height": 628
               },
               "bottomToolRects": [
                 {
@@ -16523,10 +17329,77 @@
               ]
             },
             {
+              "width": 1024,
+              "theme": "light",
+              "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-light-1024.png",
+              "screenshotSha256": "c4a1690e20d581d14c3c4415c6db3e54844b71768fe26bb1a1e3b27206dadff7",
+              "screenshotWidth": 1024,
+              "screenshotHeight": 900,
+              "sceneChromeRemoved": true,
+              "inSceneBackControlCount": 0,
+              "inSceneAbbreviationCount": 0,
+              "collapseButtonCount": 0,
+              "restoreHandleCount": 2,
+              "panelsTopAligned": false,
+              "bottomToolsUnobscured": true,
+              "bottomToolsWithinViewport": true,
+              "bottomToolSegmentRoles": [
+                "view-switcher",
+                "grid-toggle",
+                "speed-controls",
+                "true"
+              ],
+              "konlingDockCollisionFree": true,
+              "restoreHandlesKeyboardReachable": true,
+              "primarySceneNonblank": true,
+              "sceneRect": {
+                "left": 25,
+                "top": 163,
+                "right": 999,
+                "bottom": 903,
+                "width": 974,
+                "height": 740
+              },
+              "bottomToolRects": [
+                {
+                  "left": 277,
+                  "top": 841,
+                  "right": 517,
+                  "bottom": 887,
+                  "width": 240,
+                  "height": 46
+                },
+                {
+                  "left": 521,
+                  "top": 846,
+                  "right": 601,
+                  "bottom": 882,
+                  "width": 80,
+                  "height": 36
+                },
+                {
+                  "left": 605,
+                  "top": 841,
+                  "right": 747,
+                  "bottom": 887,
+                  "width": 142,
+                  "height": 46
+                },
+                {
+                  "left": 291,
+                  "top": 781,
+                  "right": 733,
+                  "bottom": 827,
+                  "width": 442,
+                  "height": 46
+                }
+              ]
+            },
+            {
               "width": 320,
               "theme": "light",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-light-320.png",
-              "screenshotSha256": "550cae985c1d0d2f3d7b59df06cf0b017ec415487c41fb0712979c6641a81540",
+              "screenshotSha256": "4aef09afb64925fe00a39ee5c6332795f4063a5976317322924df7f639262d30",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -16593,7 +17466,7 @@
               "width": 1440,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-dark-1440.png",
-              "screenshotSha256": "34fa1405f56a67c4f7d1cbe1f8139f8ee97d19d98a4d1a7cfe9935e211374138",
+              "screenshotSha256": "015e430f5c136e0138817f3e18e632831a002f972be6441f389434f29e8f4450",
               "screenshotWidth": 1440,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
@@ -16625,17 +17498,17 @@
                 "left": 113,
                 "top": 126,
                 "right": 433,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 320,
-                "height": 708
+                "height": 628
               },
               "controlPanelRect": {
                 "left": 1047,
                 "top": 126,
                 "right": 1399,
-                "bottom": 834,
+                "bottom": 754,
                 "width": 352,
-                "height": 708
+                "height": 628
               },
               "bottomToolRects": [
                 {
@@ -16673,10 +17546,77 @@
               ]
             },
             {
+              "width": 1024,
+              "theme": "dark",
+              "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-dark-1024.png",
+              "screenshotSha256": "a6fcf5b2aadd11cd97c835e98bc08c59c4d70e32011ae4722c25f8db6f590cc7",
+              "screenshotWidth": 1024,
+              "screenshotHeight": 900,
+              "sceneChromeRemoved": true,
+              "inSceneBackControlCount": 0,
+              "inSceneAbbreviationCount": 0,
+              "collapseButtonCount": 0,
+              "restoreHandleCount": 2,
+              "panelsTopAligned": false,
+              "bottomToolsUnobscured": true,
+              "bottomToolsWithinViewport": true,
+              "bottomToolSegmentRoles": [
+                "view-switcher",
+                "grid-toggle",
+                "speed-controls",
+                "true"
+              ],
+              "konlingDockCollisionFree": true,
+              "restoreHandlesKeyboardReachable": true,
+              "primarySceneNonblank": true,
+              "sceneRect": {
+                "left": 25,
+                "top": 163,
+                "right": 999,
+                "bottom": 903,
+                "width": 974,
+                "height": 740
+              },
+              "bottomToolRects": [
+                {
+                  "left": 277,
+                  "top": 841,
+                  "right": 517,
+                  "bottom": 887,
+                  "width": 240,
+                  "height": 46
+                },
+                {
+                  "left": 521,
+                  "top": 846,
+                  "right": 601,
+                  "bottom": 882,
+                  "width": 80,
+                  "height": 36
+                },
+                {
+                  "left": 605,
+                  "top": 841,
+                  "right": 747,
+                  "bottom": 887,
+                  "width": 142,
+                  "height": 46
+                },
+                {
+                  "left": 291,
+                  "top": 781,
+                  "right": 733,
+                  "bottom": 827,
+                  "width": 442,
+                  "height": 46
+                }
+              ]
+            },
+            {
               "width": 320,
               "theme": "dark",
               "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-dark-320.png",
-              "screenshotSha256": "6c54a7b6bd03a8d46925a05b03b31cefe1bf89ef3310f9e95e04752154962c29",
+              "screenshotSha256": "1f6fc8a6caa7fbc2fab41d501d525fe2f57b635a0c651cd2cbfa6b22de0db013",
               "screenshotWidth": 320,
               "screenshotHeight": 900,
               "sceneChromeRemoved": true,
