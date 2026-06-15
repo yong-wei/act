@@ -24,6 +24,7 @@ import {
   buildScopedKonlingAiTools,
   getOrCreateKonlingAgentSession,
   KonlingRuntimeScopeError,
+  normalizeKonlingKnowledgeWorkspaceHint,
   persistKonlingSessionMemories,
   resumeKonlingAgentSession,
   verifyKonlingRuntimeScope,
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     const { id: sessionId } = await context.params;
     const body = await request.json();
-    const { content, pageContext, classId, resourceId, pathNodeId, agentSessionId, teachingAssistantModeId, modeClientContextHints } = body;
+    const { content, pageContext, classId, resourceId, pathNodeId, agentSessionId, teachingAssistantModeId, modeClientContextHints, knowledgeWorkspaceHint } = body;
 
     if (!content) {
       return NextResponse.json(
@@ -132,6 +133,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       resourceId,
       pathNodeId,
       pageContextHint: pageContext,
+      knowledgeWorkspaceHint: normalizeKonlingKnowledgeWorkspaceHint(knowledgeWorkspaceHint ?? modeClientContextHints),
       trustedContentContext: true,
     });
     const modeContract = buildKonlingTeachingAssistantRuntimeContract({

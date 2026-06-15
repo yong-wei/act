@@ -211,6 +211,7 @@ export interface KonlingRuntimeContext {
   learnerState: AdaptiveLearnerState | null;
   planContext: KonlingPlanContext;
   memory: KonlingMemoryView[];
+  knowledgeWorkspace?: KonlingKnowledgeWorkspaceContext | null;
   citationContext?: KonlingCitationContext;
   permittedTools: KonlingToolName[];
   missingContext: string[];
@@ -219,6 +220,70 @@ export interface KonlingRuntimeContext {
     semanticMemory: boolean;
     strategyMemory: boolean;
   };
+}
+
+export interface KonlingKnowledgeWorkspaceHint {
+  selectedNodeId?: string | null;
+  activeFilters?: string[] | null;
+  densityMode?: string | null;
+  viewMode?: string | null;
+  visibleRelationCount?: number | null;
+  selectedNodeRelationCount?: number | null;
+}
+
+export function normalizeKonlingKnowledgeWorkspaceHint(value: unknown): KonlingKnowledgeWorkspaceHint | null {
+  const record = readRecord(value);
+  const selectedNodeId = sanitizeKnowledgeWorkspaceText(record.selectedNodeId);
+  const activeFilters = normalizeKnowledgeWorkspaceStrings(record.activeFilters);
+  const densityMode = sanitizeKnowledgeWorkspaceText(record.densityMode);
+  const viewMode = sanitizeKnowledgeWorkspaceText(record.viewMode);
+  const visibleRelationCount = normalizeKnowledgeWorkspaceOptionalCount(record.visibleRelationCount);
+  const selectedNodeRelationCount = normalizeKnowledgeWorkspaceOptionalCount(record.selectedNodeRelationCount);
+
+  if (
+    selectedNodeId
+    || activeFilters.length > 0
+    || densityMode
+    || viewMode
+    || visibleRelationCount !== null
+    || selectedNodeRelationCount !== null
+  ) {
+    return {
+      selectedNodeId,
+      activeFilters,
+      densityMode,
+      viewMode,
+      visibleRelationCount,
+      selectedNodeRelationCount,
+    };
+  }
+
+  return null;
+}
+
+export interface KonlingKnowledgeWorkspaceContext {
+  source: 'server-owned';
+  route: '/knowledge';
+  status: 'selected-node' | 'no-selection' | 'degraded';
+  selected_node: {
+    id: string;
+    name: string;
+    node_type: string;
+    chapter: string | null;
+    knowledge_dim: string | null;
+    description: string;
+    tags: string[];
+  } | null;
+  relation_summary: {
+    density_mode: string | null;
+    view_mode: string | null;
+    active_filters: string[];
+    visible_relation_count: number;
+    selected_node_relation_count: number;
+  };
+  available_learning_actions: string[];
+  hover_policy: 'preview-only-not-durable-context';
+  missing_context: string[];
 }
 
 export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAssistantModeId, KonlingTeachingAssistantModeContract> = {
@@ -533,7 +598,8 @@ function isKonlingModeContextAvailable(
     case 'path-execution-context':
       return runtimeContext.planContext.status === 'available';
     case 'resource-node':
-      return false;
+      return runtimeContext.knowledgeWorkspace?.status === 'selected-node'
+        && Boolean(runtimeContext.knowledgeWorkspace.selected_node);
     case 'rubric':
     case 'converted-document':
     case 'draft-grading-state':
@@ -708,6 +774,7 @@ interface KonlingRuntimeInput {
   resourceId?: string | null;
   pathNodeId?: string | null;
   pageContextHint?: Partial<PageContext> | null;
+  knowledgeWorkspaceHint?: KonlingKnowledgeWorkspaceHint | null;
   trustedContentContext?: boolean;
   now?: Date;
 }
@@ -1146,13 +1213,14 @@ export async function buildKonlingRuntimeContext(
       }).catch(() => null)
     : null;
 
-  const [planContext, memory] = await Promise.all([
+  const [planContext, memory, knowledgeWorkspace] = await Promise.all([
     readPlanContext(db, scope),
     searchKonlingMemory(db, {
       scope,
       query: '',
       limit: 6,
     }),
+    buildKnowledgeWorkspaceContext(db, scope, input.knowledgeWorkspaceHint),
   ]);
   const pageContext = buildServerOwnedPageContext(scope, input.pageContextHint);
   const citationContext = await buildKonlingCitationContext(db, {
@@ -1175,9 +1243,10 @@ export async function buildKonlingRuntimeContext(
     learnerState,
     planContext,
     memory,
+    knowledgeWorkspace,
     citationContext,
     permittedTools: DEFAULT_TOOLS,
-    missingContext: buildMissingContext({ learnerStateEnabled, learnerState, planContext, memory, citationContext, pageContext }),
+    missingContext: buildMissingContext({ learnerStateEnabled, learnerState, planContext, memory, citationContext, pageContext, knowledgeWorkspace }),
     featureFlags: {
       learnerState: learnerStateEnabled,
       semanticMemory: process.env.KONLING_SEMANTIC_MEMORY_ENABLED === 'true',
@@ -1189,7 +1258,10 @@ export async function buildKonlingRuntimeContext(
 export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
   return {
     permittedTools: normalizeKonlingToolNames(input.permittedTools ?? input.context.permittedTools),
-    getPageContext: async () => runKonlingRuntimeTool(input, 'get_page_context', {}, async () => input.context.pageContext),
+    getPageContext: async () => runKonlingRuntimeTool(input, 'get_page_context', {}, async () => ({
+      pageContext: input.context.pageContext,
+      knowledgeWorkspace: input.context.knowledgeWorkspace ?? null,
+    })),
     getLearnerState: async () => runKonlingRuntimeTool(input, 'get_learner_state', {}, async () => input.context.learnerState),
     getPlanContext: async () => runKonlingRuntimeTool(input, 'get_plan_context', {}, async () => input.context.planContext),
     searchLearningMemory: async (args: { query?: string; limit?: number } = {}) =>
@@ -4523,6 +4595,118 @@ async function searchKnowledgeGraph(db: KonlingRuntimeDb, query: string, limit: 
   }));
 }
 
+async function buildKnowledgeWorkspaceContext(
+  db: KonlingRuntimeDb,
+  scope: KonlingRuntimeScope,
+  hint?: KonlingKnowledgeWorkspaceHint | null,
+): Promise<KonlingKnowledgeWorkspaceContext | null> {
+  if (scope.pageId !== '/knowledge' && scope.pageId !== 'knowledge') return null;
+
+  const selectedNodeId = sanitizeKnowledgeWorkspaceText(hint?.selectedNodeId);
+  const relationSummary = {
+    density_mode: sanitizeKnowledgeWorkspaceText(hint?.densityMode),
+    view_mode: sanitizeKnowledgeWorkspaceText(hint?.viewMode),
+    active_filters: normalizeKnowledgeWorkspaceStrings(hint?.activeFilters),
+    visible_relation_count: normalizeKnowledgeWorkspaceCount(hint?.visibleRelationCount),
+    selected_node_relation_count: normalizeKnowledgeWorkspaceCount(hint?.selectedNodeRelationCount),
+  };
+
+  if (!selectedNodeId) {
+    return {
+      source: 'server-owned',
+      route: '/knowledge',
+      status: 'no-selection',
+      selected_node: null,
+      relation_summary: relationSummary,
+      available_learning_actions: ['search-knowledge-graph', 'open-chapter-directory'],
+      hover_policy: 'preview-only-not-durable-context',
+      missing_context: ['knowledge-workspace-selected-node-missing'],
+    };
+  }
+
+  const nodes = await db.knowledgeNode?.findMany?.({
+    where: {
+      isActive: true,
+      id: { in: [selectedNodeId] },
+    },
+    select: {
+      id: true,
+      name: true,
+      nodeType: true,
+      description: true,
+      knowledgeDim: true,
+      metadata: true,
+      tags: true,
+    },
+    take: 1,
+  }) ?? [];
+  const selectedNode = nodes[0] ?? null;
+  if (!selectedNode) {
+    return {
+      source: 'server-owned',
+      route: '/knowledge',
+      status: 'degraded',
+      selected_node: null,
+      relation_summary: relationSummary,
+      available_learning_actions: ['search-knowledge-graph', 'open-chapter-directory'],
+      hover_policy: 'preview-only-not-durable-context',
+      missing_context: ['knowledge-workspace-selected-node-unresolved'],
+    };
+  }
+
+  return {
+    source: 'server-owned',
+    route: '/knowledge',
+    status: 'selected-node',
+    selected_node: {
+      id: getString(selectedNode, 'id'),
+      name: getString(selectedNode, 'name'),
+      node_type: getString(selectedNode, 'nodeType'),
+      chapter: resolveKnowledgeWorkspaceChapter(selectedNode),
+      knowledge_dim: getString(selectedNode, 'knowledgeDim') || null,
+      description: summarizeText(getString(selectedNode, 'description'), 220),
+      tags: arrayOfStrings(getValue(selectedNode, 'tags')),
+    },
+    relation_summary: relationSummary,
+    available_learning_actions: ['open-knowledge-card', 'search-related-resources', 'continue-learning-path'],
+    hover_policy: 'preview-only-not-durable-context',
+    missing_context: [],
+  };
+}
+
+function resolveKnowledgeWorkspaceChapter(node: unknown): string | null {
+  const metadata = readRecord(getValue(node, 'metadata'));
+  const chapterName = metadata.chapterName ?? metadata.chapter_name ?? metadata.chapter;
+  if (typeof chapterName === 'string' && chapterName.trim()) return chapterName.trim();
+  if (typeof chapterName === 'number' && Number.isFinite(chapterName)) return `第 ${chapterName} 章`;
+  return null;
+}
+
+function sanitizeKnowledgeWorkspaceText(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const normalized = value.replace(/\s+/g, ' ').trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function normalizeKnowledgeWorkspaceStrings(value: unknown): string[] {
+  return arrayOfStrings(value)
+    .map((item) => sanitizeKnowledgeWorkspaceText(item))
+    .filter((item): item is string => Boolean(item));
+}
+
+function normalizeKnowledgeWorkspaceCount(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+}
+
+function normalizeKnowledgeWorkspaceOptionalCount(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value) && value >= 0) return Math.floor(value);
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed >= 0) return Math.floor(parsed);
+  }
+  return null;
+}
+
 function recommendNextAction(context: KonlingRuntimeContext) {
   const citationSupport = buildRecommendationCitationSupport(context.citationContext ?? createMissingCitationContext());
   if (context.planContext.activeNodeId) {
@@ -4645,6 +4829,7 @@ function buildMissingContext(input: {
   memory: KonlingMemoryView[];
   citationContext: KonlingCitationContext;
   pageContext: PageContext;
+  knowledgeWorkspace?: KonlingKnowledgeWorkspaceContext | null;
 }): string[] {
   return [
     !input.learnerStateEnabled ? ADAPTIVE_LEARNER_STATE_FEATURE_FLAG : null,
@@ -4656,6 +4841,7 @@ function buildMissingContext(input: {
       : null,
     ...input.citationContext.missingCitationClasses.map((item) => `citation-${item}-missing`),
     ...input.citationContext.lowConfidenceReasons,
+    ...(input.knowledgeWorkspace?.missing_context ?? []),
   ].filter((item): item is string => Boolean(item));
 }
 

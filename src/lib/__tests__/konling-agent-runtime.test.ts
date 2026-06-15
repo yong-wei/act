@@ -700,6 +700,96 @@ describe('konling agent runtime', () => {
     });
     expect(withServerContext.status).toBe('ready');
     expect(withServerContext.permittedTools).toContain('analyze_attempt');
+
+    const withSelectedKnowledgeNode = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'resource-coach',
+      runtimeContext: {
+        ...runtime,
+        knowledgeWorkspace: {
+          source: 'server-owned',
+          route: '/knowledge',
+          status: 'selected-node',
+          selected_node: {
+            id: 'node-second-order',
+            name: '二阶系统标准型',
+            node_type: 'THEORY',
+            chapter: '时域分析',
+            knowledge_dim: 'CONCEPTUAL',
+            description: '二阶系统传递函数标准形式',
+            tags: ['二阶系统'],
+          },
+          relation_summary: {
+            density_mode: 'focused',
+            view_mode: '2D',
+            active_filters: ['关系 2/6'],
+            visible_relation_count: 7,
+            selected_node_relation_count: 3,
+          },
+          available_learning_actions: ['open-knowledge-card'],
+          hover_policy: 'preview-only-not-durable-context',
+          missing_context: [],
+        },
+      },
+      scope: createScope({ pageId: '/knowledge', resourceId: null }),
+      clientContextHints: { targetUserId: 'other-student' },
+    });
+    expect(withSelectedKnowledgeNode.status).toBe('ready');
+    expect(withSelectedKnowledgeNode.clientHintsAccepted).toEqual([]);
+    expect(withSelectedKnowledgeNode.clientHintsRejected).toEqual(['targetUserId']);
+  });
+
+  it('exposes selected knowledge workspace context to prompts and page-context tools', async () => {
+    const runtime = createRuntimeContext({
+      knowledgeWorkspace: {
+        source: 'server-owned',
+        route: '/knowledge',
+        status: 'selected-node',
+        selected_node: {
+          id: 'node-second-order',
+          name: '二阶系统标准型',
+          node_type: 'THEORY',
+          chapter: '时域分析',
+          knowledge_dim: 'CONCEPTUAL',
+          description: '二阶系统传递函数标准形式',
+          tags: ['二阶系统'],
+        },
+        relation_summary: {
+          density_mode: 'focused',
+          view_mode: '2D',
+          active_filters: ['关系 2/6'],
+          visible_relation_count: 7,
+          selected_node_relation_count: 3,
+        },
+        available_learning_actions: ['open-knowledge-card'],
+        hover_policy: 'preview-only-not-durable-context',
+        missing_context: [],
+      },
+      permittedTools: ['get_page_context'],
+    });
+
+    const prompt = buildKonlingSystemPrompt({
+      page: runtime.pageContext,
+      user: runtime.userProfile,
+      adaptiveRuntime: runtime,
+    });
+    expect(prompt).toContain('知识工作区上下文');
+    expect(prompt).toContain('二阶系统标准型');
+    expect(prompt).toContain('selected-node');
+    expect(prompt).toContain('preview-only-not-durable-context');
+
+    const toolRuntime = buildKonlingToolRuntime({
+      db: {},
+      scope: createScope({ pageId: '/knowledge' }),
+      context: runtime,
+    });
+    await expect(toolRuntime.getPageContext()).resolves.toMatchObject({
+      pageContext: runtime.pageContext,
+      knowledgeWorkspace: {
+        selected_node: {
+          id: 'node-second-order',
+        },
+      },
+    });
   });
 
   it('preserves generic chat behavior when no teaching-assistant mode is requested', () => {

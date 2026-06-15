@@ -17,7 +17,7 @@ import {
 } from 'react';
 import { usePathname } from 'next/navigation';
 import type { PageContext, UserProfile } from '@/types/ai-context';
-import type { KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
+import type { KonlingKnowledgeWorkspaceHint, KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
 import {
   resolveAIContext,
   isPathExcluded,
@@ -42,6 +42,8 @@ interface GlobalAIContextValue {
   systemPromptExtension?: string;
   /** 当前显式教学助理入口 */
   assistantEntryPoint?: KonlingTeachingAssistantEntryPoint | null;
+  /** 当前页面提供的知识工作区上下文提示 */
+  knowledgeWorkspaceHint?: KonlingKnowledgeWorkspaceHint | null;
   /** 快捷问题列表 */
   quickQuestions: Array<{ label: string; question: string }>;
   /** 打开侧边栏 */
@@ -60,6 +62,7 @@ interface GlobalAIContextValue {
     quickQuestions?: Array<{ label: string; question: string }>;
     systemPromptExtension?: string;
     assistantEntryPoint?: KonlingTeachingAssistantEntryPoint | null;
+    knowledgeWorkspaceHint?: KonlingKnowledgeWorkspaceHint | null;
   }) => void;
   /** 打开指定教学助理模式 */
   openAssistantEntryPoint: (entryPoint: KonlingTeachingAssistantEntryPoint) => void;
@@ -100,11 +103,13 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     quickQuestions: Array<{ label: string; question: string }>;
     systemPromptExtension?: string;
     assistantEntryPoint?: KonlingTeachingAssistantEntryPoint | null;
+    knowledgeWorkspaceHint?: KonlingKnowledgeWorkspaceHint | null;
   }>({
     pageContext: null,
     tools: [],
     quickQuestions: [],
     assistantEntryPoint: null,
+    knowledgeWorkspaceHint: null,
   });
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -143,6 +148,7 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
       quickQuestions: [],
       systemPromptExtension: undefined,
       assistantEntryPoint: null,
+      knowledgeWorkspaceHint: null,
     });
 
     // 路由变化时关闭侧边栏（可选，根据UX需求决定）
@@ -182,6 +188,7 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
       quickQuestions?: Array<{ label: string; question: string }>;
       systemPromptExtension?: string;
       assistantEntryPoint?: KonlingTeachingAssistantEntryPoint | null;
+      knowledgeWorkspaceHint?: KonlingKnowledgeWorkspaceHint | null;
     }
   ) => {
     setDynamicContext({
@@ -190,6 +197,7 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
       quickQuestions: context.quickQuestions || [],
       systemPromptExtension: context.systemPromptExtension,
       assistantEntryPoint: context.assistantEntryPoint ?? null,
+      knowledgeWorkspaceHint: context.knowledgeWorkspaceHint ?? null,
     });
   }, []);
 
@@ -251,6 +259,7 @@ export function GlobalAIProvider({ children }: GlobalAIProviderProps) {
     tools: mergedTools,
     systemPromptExtension: mergedSystemPromptExtension,
     assistantEntryPoint: dynamicContext.assistantEntryPoint,
+    knowledgeWorkspaceHint: dynamicContext.knowledgeWorkspaceHint,
     quickQuestions: mergedQuickQuestions,
     openSidebar,
     closeSidebar,
