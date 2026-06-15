@@ -1,0 +1,18 @@
+{
+  "route": "/simulations/container",
+  "theme": "light",
+  "width": 1440,
+  "navigationState": "desktop-collapsed",
+  "dockState": "expanded",
+  "localToolState": "collapsed",
+  "primarySceneNonblank": true,
+  "instrumentAreaNonblank": true,
+  "collisionEvidence": {
+    "dockAndLocalToolsObservedTogether": false,
+    "dockObservedExpanded": true,
+    "localToolsObservedExpanded": false,
+    "localControlCollisionFree": true
+  },
+  "screenshot": "artifacts/commercial-ui/simulation-internal-theme-534/simulations-container-light-1440-desktop-collapsed-expanded-collapsed.png",
+  "result": "passed"
+}

@@ -27,6 +27,7 @@ import {
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
+import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   Play,
   Pause,
@@ -141,7 +142,7 @@ const waterFragmentShader = `
 // ============ 3D 组件 ============
 
 /** 海面组件 */
-function Ocean() {
+function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
@@ -224,7 +225,7 @@ function DredgerModel({
       {/* 船首指示器 */}
       <mesh position={[0, modelHeight * 0.6, 0]}>
         <sphereGeometry args={[3, 16, 16]} />
-        <meshBasicMaterial color="#f59e0b" />
+        <meshBasicMaterial color={simulationScenePalette.dredgerPrimary} />
       </mesh>
     </group>
   );
@@ -248,16 +249,16 @@ function TargetMarker({ position, heading }: { position: Vector2; heading: numbe
       {/* 目标圆圈 */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[8, 10, 32]} />
-        <meshBasicMaterial color="#22c55e" side={THREE.DoubleSide} transparent opacity={0.6} />
+        <meshBasicMaterial color={simulationScenePalette.success} side={THREE.DoubleSide} transparent opacity={0.6} />
       </mesh>
       {/* 航向箭头 */}
       <mesh rotation={[0, -toRadians(heading), 0]} position={[0, 0, 0]}>
         <coneGeometry args={[3, 10, 8]} />
-        <meshBasicMaterial color="#22c55e" transparent opacity={0.8} />
+        <meshBasicMaterial color={simulationScenePalette.success} transparent opacity={0.8} />
       </mesh>
       {/* 标签 */}
       <Html position={[0, 15, 0]} center>
-        <div className="rounded bg-green-500/80 px-2 py-1 text-xs text-white">
+        <div className="rounded bg-[hsl(var(--platform-brand-success)/0.78)] px-2 py-1 text-xs text-platform-fg-inverse">
           目标位置
         </div>
       </Html>
@@ -276,7 +277,7 @@ function TrajectoryLine({ points }: { points: Vector2[] }) {
   return (
     <Line
       points={linePoints}
-      color="#f59e0b"
+      color={simulationScenePalette.dredgerPrimary}
       lineWidth={2}
       dashed={false}
     />
@@ -320,13 +321,13 @@ function HUD({
         <CardContent className="space-y-1 py-2 text-xs">
           <div className="flex justify-between">
             <span>位置误差:</span>
-            <span className={metrics.positionError > 0.1 ? 'text-red-700' : 'text-green-700'}>
+            <span className={metrics.positionError > 0.1 ? 'text-[hsl(var(--platform-brand-danger))]' : 'text-[hsl(var(--platform-brand-success))]'}>
               {metrics.positionError.toFixed(3)} m
             </span>
           </div>
           <div className="flex justify-between">
             <span>航向误差:</span>
-            <span className={metrics.headingError > 1 ? 'text-amber-700' : 'text-green-700'}>
+            <span className={metrics.headingError > 1 ? 'text-[hsl(var(--platform-brand-evidence))]' : 'text-[hsl(var(--platform-brand-success))]'}>
               {metrics.headingError.toFixed(2)}°
             </span>
           </div>
@@ -343,16 +344,16 @@ function HUD({
 
       {/* 违规警告 */}
       {violations.length > 0 && (
-        <Card className={`w-64 border-red-300 bg-red-50/95 ${simulationUi.panel}`}>
+        <Card className={`w-64 border-[hsl(var(--platform-brand-danger)/0.35)] bg-[hsl(var(--platform-brand-danger)/0.12)] ${simulationUi.panel}`}>
           <CardHeader className="py-2">
-            <CardTitle className="flex items-center gap-2 text-sm text-red-700">
+            <CardTitle className="flex items-center gap-2 text-sm text-[hsl(var(--platform-brand-danger))]">
               <AlertTriangle className="h-4 w-4" />
               伦理违规
             </CardTitle>
           </CardHeader>
           <CardContent className="py-2">
             {violations.slice(-3).map((v, i) => (
-              <div key={i} className="text-xs text-red-700">
+              <div key={i} className="text-xs text-[hsl(var(--platform-brand-danger))]">
                 {v.description}
               </div>
             ))}
@@ -425,7 +426,7 @@ function ControlPanel({
                   onConfigChange({ targetPosition: { ...config.targetPosition, x: v } })
                 }
               />
-              <div className="text-right text-xs text-slate-400">
+              <div className="text-right text-xs text-platform-fg-muted">
                 {config.targetPosition.x} m
               </div>
             </div>
@@ -442,7 +443,7 @@ function ControlPanel({
                   onConfigChange({ targetPosition: { ...config.targetPosition, z: v } })
                 }
               />
-              <div className="text-right text-xs text-slate-400">
+              <div className="text-right text-xs text-platform-fg-muted">
                 {config.targetPosition.z} m
               </div>
             </div>
@@ -457,7 +458,7 @@ function ControlPanel({
                 step={5}
                 onValueChange={([v]) => onConfigChange({ targetHeading: v })}
               />
-              <div className="text-right text-xs text-slate-400">
+              <div className="text-right text-xs text-platform-fg-muted">
                 {config.targetHeading}°
               </div>
             </div>
@@ -491,7 +492,7 @@ function ControlPanel({
                 step={0.1}
                 onValueChange={([v]) => onConfigChange({ currentSpeed: v })}
               />
-              <div className="text-right text-xs text-slate-400">
+              <div className="text-right text-xs text-platform-fg-muted">
                 {config.currentSpeed.toFixed(1)} m/s
               </div>
             </div>
@@ -510,7 +511,7 @@ function ControlPanel({
                 step={1}
                 onValueChange={([v]) => onConfigChange({ windSpeed: v })}
               />
-              <div className="text-right text-xs text-slate-400">
+              <div className="text-right text-xs text-platform-fg-muted">
                 {config.windSpeed} m/s
               </div>
             </div>
@@ -590,6 +591,7 @@ export function DredgerSimulation() {
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
   const [showGrid, setShowGrid] = useState(true);
   const [speedScale, setSpeedScale] = useState(1);
+  const sceneTheme = useSimulationSceneTheme();
 
   // 船舶配置
   const profile = dredgerTianjingProfile;
@@ -791,11 +793,11 @@ export function DredgerSimulation() {
         <RightClickFreeModeBridge onRequestFreeMode={() => setCameraMode('free')} />
 
         {/* 环境 */}
-        <ambientLight intensity={0.4} />
-        <directionalLight position={[200, 300, 200]} intensity={1.5} castShadow />
+        <ambientLight intensity={sceneTheme.ambientLightIntensity} />
+        <directionalLight position={[200, 300, 200]} intensity={sceneTheme.directionalLightIntensity} castShadow />
 
         {/* 天空+云层+海面 */}
-        <MaritimeEnvironment shipPosition={shipPosition} seaState={3} />
+        <MaritimeEnvironment shipPosition={shipPosition} seaState={3} sceneTheme={sceneTheme} />
 
         {/* 网格 */}
         {showGrid ? (
@@ -804,10 +806,10 @@ export function DredgerSimulation() {
             args={[20000, 20000]}
             cellSize={100}
             cellThickness={0.5}
-            cellColor="#1e3a5f"
+            cellColor={sceneTheme.gridCellColor}
             sectionSize={500}
             sectionThickness={1}
-            sectionColor="#2563eb"
+            sectionColor={sceneTheme.gridSectionColor}
             fadeDistance={9000}
             fadeStrength={1}
           />

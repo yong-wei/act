@@ -1,0 +1,18 @@
+{
+  "route": "/simulations/cruise",
+  "theme": "dark",
+  "width": 320,
+  "navigationState": "workspace-command-surface",
+  "dockState": "expanded",
+  "localToolState": "collapsed",
+  "primarySceneNonblank": true,
+  "instrumentAreaNonblank": true,
+  "collisionEvidence": {
+    "dockAndLocalToolsObservedTogether": true,
+    "dockObservedExpanded": true,
+    "localToolsObservedExpanded": true,
+    "localControlCollisionFree": true
+  },
+  "screenshot": "artifacts/commercial-ui/simulation-internal-theme-534/simulations-cruise-dark-320-workspace-command-surface-expanded-collapsed.png",
+  "result": "passed"
+}
