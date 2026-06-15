@@ -27,6 +27,7 @@ import {
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
+import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 import {
   Play,
   Pause,
@@ -156,7 +157,7 @@ const waterFragmentShader = `
 // ============ 3D 组件 ============
 
 /** 海面组件 */
-function Ocean() {
+function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
@@ -241,7 +242,7 @@ function DrillingPlatformModel({
       {/* 平台中心指示器 */}
       <mesh position={[0, modelHeight * 0.8, 0]}>
         <sphereGeometry args={[4, 16, 16]} />
-        <meshBasicMaterial color="#ef4444" />
+        <meshBasicMaterial color={simulationScenePalette.danger} />
       </mesh>
     </group>
   );
@@ -265,7 +266,7 @@ function TargetMarker({ position, heading }: { position: Vector2; heading: numbe
       {/* 目标圆圈 - 绿色安全区 */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0, DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION * 10, 32]} />
-        <meshBasicMaterial color="#22c55e" side={THREE.DoubleSide} transparent opacity={0.2} />
+        <meshBasicMaterial color={simulationScenePalette.success} side={THREE.DoubleSide} transparent opacity={0.2} />
       </mesh>
       {/* 黄色警告区 */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
@@ -274,7 +275,7 @@ function TargetMarker({ position, heading }: { position: Vector2; heading: numbe
           DRILLING_ETHICAL_THRESHOLDS.RED_ALERT_POSITION * 10,
           32
         ]} />
-        <meshBasicMaterial color="#eab308" side={THREE.DoubleSide} transparent opacity={0.2} />
+        <meshBasicMaterial color={simulationScenePalette.warning} side={THREE.DoubleSide} transparent opacity={0.2} />
       </mesh>
       {/* 红色危险区 */}
       <mesh rotation={[-Math.PI / 2, 0, 0]}>
@@ -283,20 +284,20 @@ function TargetMarker({ position, heading }: { position: Vector2; heading: numbe
           DRILLING_ETHICAL_THRESHOLDS.EMERGENCY_DISCONNECT * 10,
           32
         ]} />
-        <meshBasicMaterial color="#ef4444" side={THREE.DoubleSide} transparent opacity={0.2} />
+        <meshBasicMaterial color={simulationScenePalette.danger} side={THREE.DoubleSide} transparent opacity={0.2} />
       </mesh>
       {/* 中心十字 */}
       <mesh rotation={[0, -toRadians(heading), 0]} position={[0, 0, 0]}>
         <boxGeometry args={[20, 1, 2]} />
-        <meshBasicMaterial color="#22c55e" transparent opacity={0.8} />
+        <meshBasicMaterial color={simulationScenePalette.success} transparent opacity={0.8} />
       </mesh>
       <mesh rotation={[0, -toRadians(heading), 0]} position={[0, 0, 0]}>
         <boxGeometry args={[2, 1, 20]} />
-        <meshBasicMaterial color="#22c55e" transparent opacity={0.8} />
+        <meshBasicMaterial color={simulationScenePalette.success} transparent opacity={0.8} />
       </mesh>
       {/* 标签 */}
       <Html position={[0, 20, 0]} center>
-        <div className="rounded bg-green-500/80 px-2 py-1 text-xs text-white whitespace-nowrap">
+        <div className="rounded bg-[hsl(var(--platform-brand-success)/0.78)] px-2 py-1 text-xs text-platform-fg-inverse whitespace-nowrap">
           钻井位置
         </div>
       </Html>
@@ -315,7 +316,7 @@ function TrajectoryLine({ points }: { points: Vector2[] }) {
   return (
     <Line
       points={linePoints}
-      color="#ef4444"
+      color={simulationScenePalette.danger}
       lineWidth={2}
       dashed={false}
     />
@@ -363,7 +364,7 @@ function ThrusterPanel({ thrusters }: { thrusters: ThrusterState[] }) {
                   flex flex-col items-center justify-center rounded p-1 text-xs
                   ${row === 1 || row === 2 ? 'col-start-1' : ''}
                   ${col === 2 ? 'col-start-3' : ''}
-                  ${isFailed ? 'bg-red-100 text-red-800' : powerPercent > 80 ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-800'}
+                  ${isFailed ? 'bg-[hsl(var(--platform-brand-danger)/0.12)] text-[hsl(var(--platform-brand-danger))]' : powerPercent > 80 ? 'bg-[hsl(var(--platform-brand-evidence)/0.14)] text-[hsl(var(--platform-brand-evidence))]' : 'bg-platform-canvas-muted text-platform-fg-primary'}
                 `}
                 style={{
                   gridRow: row + 1,
@@ -371,7 +372,7 @@ function ThrusterPanel({ thrusters }: { thrusters: ThrusterState[] }) {
                 }}
               >
                 <span className="font-bold">T{id}</span>
-                <span className={isFailed ? 'text-red-300' : ''}>
+                <span className={isFailed ? 'text-[hsl(var(--platform-brand-danger))]' : ''}>
                   {isFailed ? 'FAIL' : `${powerPercent.toFixed(0)}%`}
                 </span>
               </div>
@@ -379,13 +380,13 @@ function ThrusterPanel({ thrusters }: { thrusters: ThrusterState[] }) {
           })}
           {/* 中心平台指示 */}
           <div
-            className="flex items-center justify-center rounded bg-slate-200 text-xs text-slate-700"
+            className="flex items-center justify-center rounded bg-platform-canvas-muted text-xs text-platform-fg-secondary"
             style={{ gridRow: '2 / 4', gridColumn: 2 }}
           >
             ▣
           </div>
         </div>
-        <div className="mt-2 text-center text-xs text-slate-700">
+        <div className="mt-2 text-center text-xs text-platform-fg-secondary">
           前 (Fore) ↑
         </div>
       </CardContent>
@@ -433,10 +434,10 @@ function HUD({
 
       {/* DP 状态 */}
       <Card className={`w-64 ${simulationUi.panel} ${
-        alertLevel === 'emergency' ? 'border-red-400 bg-red-50/95' :
-        alertLevel === 'red' ? 'border-red-300 bg-red-50/95' :
-        alertLevel === 'yellow' ? 'border-amber-300 bg-amber-50/95' :
-        'border-slate-200 bg-slate-50/95'
+        alertLevel === 'emergency' ? 'border-[hsl(var(--platform-brand-danger)/0.45)] bg-[hsl(var(--platform-brand-danger)/0.12)]' :
+        alertLevel === 'red' ? 'border-[hsl(var(--platform-brand-danger)/0.35)] bg-[hsl(var(--platform-brand-danger)/0.12)]' :
+        alertLevel === 'yellow' ? 'border-[hsl(var(--platform-brand-evidence)/0.42)] bg-[hsl(var(--platform-brand-evidence)/0.14)]' :
+        'border-platform-border bg-platform-surface-overlay/86'
       }`}>
         <CardHeader className="py-2">
           <CardTitle className="flex items-center gap-2 text-sm">
@@ -453,7 +454,7 @@ function HUD({
               </Badge>
             )}
             {alertLevel === 'yellow' && (
-              <Badge className="ml-auto bg-yellow-600">
+              <Badge className="ml-auto bg-[hsl(var(--platform-brand-evidence))]">
                 黄色警报
               </Badge>
             )}
@@ -463,40 +464,40 @@ function HUD({
           <div className="flex justify-between">
             <span>位置误差:</span>
             <span className={
-              alertLevel === 'green' ? 'text-green-700' :
-              alertLevel === 'yellow' ? 'text-amber-700' :
-              'text-red-700'
+              alertLevel === 'green' ? 'text-[hsl(var(--platform-brand-success))]' :
+              alertLevel === 'yellow' ? 'text-[hsl(var(--platform-brand-evidence))]' :
+              'text-[hsl(var(--platform-brand-danger))]'
             }>
               {metrics.positionError.toFixed(2)} m
             </span>
           </div>
           <div className="flex justify-between">
             <span>航向误差:</span>
-            <span className={metrics.headingError > 10 ? 'text-amber-700' : 'text-green-700'}>
+            <span className={metrics.headingError > 10 ? 'text-[hsl(var(--platform-brand-evidence))]' : 'text-[hsl(var(--platform-brand-success))]'}>
               {metrics.headingError.toFixed(1)}°
             </span>
           </div>
           <div className="flex justify-between">
             <span>总功率:</span>
-            <span className={metrics.totalPower > 28000 ? 'text-amber-700' : ''}>
+            <span className={metrics.totalPower > 28000 ? 'text-[hsl(var(--platform-brand-evidence))]' : ''}>
               {(metrics.totalPower / 1000).toFixed(1)} MW
             </span>
           </div>
           {/* 位置误差进度条 */}
           <div className="mt-2">
-            <div className="h-2 w-full rounded bg-slate-700">
+            <div className="h-2 w-full rounded bg-platform-canvas-muted">
               <div
                 className={`h-full rounded transition-all ${
-                  alertLevel === 'green' ? 'bg-green-500' :
-                  alertLevel === 'yellow' ? 'bg-yellow-500' :
-                  'bg-red-500'
+                  alertLevel === 'green' ? 'bg-[hsl(var(--platform-brand-success))]' :
+                  alertLevel === 'yellow' ? 'bg-[hsl(var(--platform-brand-evidence))]' :
+                  'bg-[hsl(var(--platform-brand-danger))]'
                 }`}
                 style={{
                   width: `${Math.min(100, (metrics.positionError / DRILLING_ETHICAL_THRESHOLDS.EMERGENCY_DISCONNECT) * 100)}%`
                 }}
               />
             </div>
-            <div className="mt-1 flex justify-between text-xs text-slate-600">
+            <div className="mt-1 flex justify-between text-xs text-platform-fg-secondary">
               <span>0m</span>
               <span>{DRILLING_ETHICAL_THRESHOLDS.YELLOW_ALERT_POSITION}m</span>
               <span>{DRILLING_ETHICAL_THRESHOLDS.RED_ALERT_POSITION}m</span>
@@ -511,16 +512,16 @@ function HUD({
 
       {/* 违规警告 */}
       {violations.length > 0 && (
-        <Card className={`w-64 border-red-300 bg-red-50/95 ${simulationUi.panel}`}>
+        <Card className={`w-64 border-[hsl(var(--platform-brand-danger)/0.35)] bg-[hsl(var(--platform-brand-danger)/0.12)] ${simulationUi.panel}`}>
           <CardHeader className="py-2">
-            <CardTitle className="flex items-center gap-2 text-sm text-red-700">
+            <CardTitle className="flex items-center gap-2 text-sm text-[hsl(var(--platform-brand-danger))]">
               <AlertTriangle className="h-4 w-4" />
               伦理违规 ({violations.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="py-2 max-h-32 overflow-y-auto">
             {violations.slice(-5).map((v, i) => (
-              <div key={i} className="py-0.5 text-xs text-red-700">
+              <div key={i} className="py-0.5 text-xs text-[hsl(var(--platform-brand-danger))]">
                 [{v.timestamp.toFixed(1)}s] {v.description}
               </div>
             ))}
@@ -573,12 +574,12 @@ function ControlPanel({
         </div>
 
         {/* 解耦控制开关 */}
-        <div className="flex items-center justify-between rounded bg-slate-800 p-2">
+        <div className="flex items-center justify-between rounded bg-platform-canvas-muted p-2">
           <Label className="flex items-center gap-2 text-sm">
             {config.decouplingEnabled ? (
-              <ToggleRight className="h-4 w-4 text-green-400" />
+              <ToggleRight className="h-4 w-4 text-[hsl(var(--platform-brand-success))]" />
             ) : (
-              <ToggleLeft className="h-4 w-4 text-slate-400" />
+              <ToggleLeft className="h-4 w-4 text-platform-fg-muted" />
             )}
             解耦控制
           </Label>
@@ -608,7 +609,7 @@ function ControlPanel({
                   onConfigChange({ targetPosition: { ...config.targetPosition, x: v } })
                 }
               />
-              <div className="text-right text-xs text-slate-400">
+              <div className="text-right text-xs text-platform-fg-muted">
                 {config.targetPosition.x} m
               </div>
             </div>
@@ -625,7 +626,7 @@ function ControlPanel({
                   onConfigChange({ targetPosition: { ...config.targetPosition, z: v } })
                 }
               />
-              <div className="text-right text-xs text-slate-400">
+              <div className="text-right text-xs text-platform-fg-muted">
                 {config.targetPosition.z} m
               </div>
             </div>
@@ -640,7 +641,7 @@ function ControlPanel({
                 step={5}
                 onValueChange={([v]) => onConfigChange({ targetHeading: v })}
               />
-              <div className="text-right text-xs text-slate-400">
+              <div className="text-right text-xs text-platform-fg-muted">
                 {config.targetHeading}°
               </div>
             </div>
@@ -661,7 +662,7 @@ function ControlPanel({
                 step={1}
                 onValueChange={([v]) => onConfigChange({ seaStateLevel: v })}
               />
-              <div className="flex justify-between text-xs text-slate-400">
+              <div className="flex justify-between text-xs text-platform-fg-muted">
                 <span>等级 {config.seaStateLevel}</span>
                 <span>
                   {config.seaStateLevel <= 2 ? '平静' :
@@ -671,7 +672,7 @@ function ControlPanel({
             </div>
 
             {/* 海况信息 */}
-            <div className="rounded bg-slate-800 p-2 text-xs">
+            <div className="rounded bg-platform-canvas-muted p-2 text-xs">
               {(() => {
                 const env = getTypicalEnvironment(config.seaStateLevel);
                 return (
@@ -758,6 +759,7 @@ export function DrillingSimulation() {
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
   const [showGrid, setShowGrid] = useState(true);
   const [speedScale, setSpeedScale] = useState(1);
+  const sceneTheme = useSimulationSceneTheme();
 
   // 船舶配置
   const profile = drillingHYSY981Profile;
@@ -1005,11 +1007,11 @@ export function DrillingSimulation() {
         <RightClickFreeModeBridge onRequestFreeMode={() => setCameraMode('free')} />
 
         {/* 环境 */}
-        <ambientLight intensity={0.4} />
-        <directionalLight position={[200, 300, 200]} intensity={1.5} castShadow />
+        <ambientLight intensity={sceneTheme.ambientLightIntensity} />
+        <directionalLight position={[200, 300, 200]} intensity={sceneTheme.directionalLightIntensity} castShadow />
 
         {/* 天空+云层+海面 */}
-        <MaritimeEnvironment shipPosition={platformPosition} seaState={3} />
+        <MaritimeEnvironment shipPosition={platformPosition} seaState={3} sceneTheme={sceneTheme} />
 
         {/* 网格 */}
         {showGrid ? (
@@ -1018,10 +1020,10 @@ export function DrillingSimulation() {
             args={[20000, 20000]}
             cellSize={100}
             cellThickness={0.5}
-            cellColor="#1e3a5f"
+            cellColor={sceneTheme.gridCellColor}
             sectionSize={500}
             sectionThickness={1}
-            sectionColor="#2563eb"
+            sectionColor={sceneTheme.gridSectionColor}
             fadeDistance={9000}
             fadeStrength={1}
           />

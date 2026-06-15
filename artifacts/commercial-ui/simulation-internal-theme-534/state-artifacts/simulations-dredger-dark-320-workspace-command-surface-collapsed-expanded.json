@@ -1,0 +1,18 @@
+{
+  "route": "/simulations/dredger",
+  "theme": "dark",
+  "width": 320,
+  "navigationState": "workspace-command-surface",
+  "dockState": "collapsed",
+  "localToolState": "expanded",
+  "primarySceneNonblank": true,
+  "instrumentAreaNonblank": true,
+  "collisionEvidence": {
+    "dockAndLocalToolsObservedTogether": true,
+    "dockObservedExpanded": true,
+    "localToolsObservedExpanded": true,
+    "localControlCollisionFree": true
+  },
+  "screenshot": "artifacts/commercial-ui/simulation-internal-theme-534/simulations-dredger-dark-320-workspace-command-surface-collapsed-expanded.png",
+  "result": "passed"
+}

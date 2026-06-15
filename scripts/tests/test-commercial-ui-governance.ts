@@ -152,6 +152,23 @@ function sourceFilesForTokenGate(files: string[]) {
   ));
 }
 
+function simulationResourceFilesForTokenGate(files: string[]) {
+  const simulationFiles = files.filter((file) => (
+    /^src\/resources\/simulations\//.test(file)
+    && /\.(css|tsx?)$/.test(file)
+    && file !== 'src/resources/simulations/components/simulation-theme.ts'
+    && existsSync(path.join(repoRoot, file))
+    && !/(__tests__|\.test\.|\.spec\.)/.test(file)
+  ));
+  if (files.some((file) => /^src\/resources\/simulations\/simulations\/[^/]+-simulation\.tsx$/.test(file))) {
+    simulationFiles.push(
+      'src/resources/simulations/components/camera-view-switcher.tsx',
+      'src/resources/simulations/components/model-loading-placeholder.tsx',
+    );
+  }
+  return [...new Set(simulationFiles)];
+}
+
 function diffForFile(file: string) {
   return [
     git(['diff', '--unified=0', '--', file]),
@@ -319,6 +336,28 @@ function buildSourceViolations(files: string[]): CommercialUiGovernanceViolation
       });
     }
     return violations;
+  });
+}
+
+function buildSimulationResourcePaletteViolations(files: string[]): CommercialUiGovernanceViolation[] {
+  return simulationResourceFilesForTokenGate(files).flatMap((file) => {
+    const source = readFileSync(path.join(repoRoot, file), 'utf8');
+    const rawPaletteEvidence = lineEvidence(source, /#[0-9a-fA-F]{3,8}\b/g, 'raw-color');
+    const rawRgbaEvidence = lineEvidence(source, /\brgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,/g, 'raw-rgba');
+    const tailwindColorEvidence = lineEvidence(
+      source,
+      /\b(?:bg|text|border|shadow|ring|from|via|to)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|black|white)(?:-\d{2,3})?(?:\/\d{1,3})?\b/g,
+      'tailwind-color-family',
+    );
+    if (rawPaletteEvidence.length === 0 && rawRgbaEvidence.length === 0 && tailwindColorEvidence.length === 0) {
+      return [];
+    }
+    return [{
+      path: file,
+      rule: 'token.page-local-palette',
+      message: 'Changed simulation resource source contains raw palette literals outside the shared simulation theme contract.',
+      evidence: [...rawPaletteEvidence, ...rawRgbaEvidence, ...tailwindColorEvidence],
+    }];
   });
 }
 
@@ -1886,6 +1925,7 @@ const result = evaluateCommercialUiGovernance({
   today,
   sourceViolations: [
     ...buildSourceViolations(files),
+    ...buildSimulationResourcePaletteViolations(files),
     ...missingChangedPrimaryRouteLedgerViolations,
     ...missingChangedAppPageLedgerViolations,
     ...validateKnowledgeGraphGovernanceEvidence(),
