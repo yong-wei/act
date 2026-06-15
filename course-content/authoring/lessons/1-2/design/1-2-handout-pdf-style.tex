@@ -110,9 +110,9 @@
   labelsep=period,
   justification=centering
 }
-\renewcommand{\thefigure}{__LESSON_ID__-\arabic{figure}}
-\renewcommand{\thetable}{__LESSON_ID__-\arabic{table}}
-\renewcommand{\theequation}{__LESSON_ID__-\arabic{equation}}
+\renewcommand{\thefigure}{1-2-\arabic{figure}}
+\renewcommand{\thetable}{1-2-\arabic{table}}
+\renewcommand{\theequation}{1-2-\arabic{equation}}
 \DeclareCaptionLabelFormat{zhfigure}{图#2}
 \DeclareCaptionLabelFormat{zhtable}{表#2}
 \captionsetup[figure]{labelformat=zhfigure}
@@ -195,15 +195,15 @@
 
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\small __HEADER_LEFT__}
+\fancyhead[L]{\small 自动控制原理}
 \fancyhead[C]{%
   \raisebox{0pt}[0pt][0pt]{%
-    \includegraphics[height=8.5mm]{__HEADER_LOGO_LEFT__}%
+    \includegraphics[height=8.5mm]{../../../../../public/images/extracted/校徽校名组合-横版-提取.pdf}%
     \hspace{1.4pt}%
-    \includegraphics[height=7.65mm]{__HEADER_LOGO_RIGHT__}%
+    \includegraphics[height=7.65mm]{../../../../../public/images/CAlogo128.png}%
   }%
 }
-\fancyhead[R]{\small __HEADER_RIGHT__}
+\fancyhead[R]{\small 单元 1-2 讲义}
 \fancyfoot[C]{\small \thepage}
 \setlength{\headheight}{34pt}
 \renewcommand{\headrulewidth}{0.35pt}
@@ -214,5 +214,5 @@
   linkcolor=TitleBlue,
   urlcolor=DarkSlateBlue,
   citecolor=TitleBlue,
-  pdftitle={__PDF_TITLE__}
+  pdftitle={单元 1-2 | 建模：从真实对象到可分析的系统}
 }

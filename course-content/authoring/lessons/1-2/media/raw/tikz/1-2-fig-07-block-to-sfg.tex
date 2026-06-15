@@ -1,0 +1,57 @@
+
+\documentclass[tikz,border=7pt]{standalone}
+\usepackage{amsmath}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{PT Serif}
+\setCJKmainfont{Noto Sans CJK SC}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds}
+\definecolor{blockblue}{HTML}{4A90D9}
+\definecolor{sumgreen}{HTML}{5CB85C}
+\definecolor{taporange}{HTML}{F0AD4E}
+\definecolor{linegray}{HTML}{333333}
+\definecolor{sfgpurple}{HTML}{9B59B6}
+\definecolor{sfggreen}{HTML}{2ECC71}
+\definecolor{sfgred}{HTML}{E74C3C}
+\tikzset{
+  block/.style={rectangle, draw=blockblue, fill=none, line width=1.2pt, minimum height=0.75cm, minimum width=1.4cm, inner sep=2pt, font=\footnotesize\bfseries, align=center},
+  wideblock/.style={block, minimum width=2.4cm},
+  sum/.style={circle, draw=sumgreen, fill=none, line width=1.2pt, minimum size=0.34cm, inner sep=0pt, path picture={\draw[line width=0.8pt, linegray] (path picture bounding box.south west) -- (path picture bounding box.north east); \draw[line width=0.8pt, linegray] (path picture bounding box.north west) -- (path picture bounding box.south east);}},
+  tap/.style={circle, draw=taporange, fill=none, line width=1.2pt, minimum size=4pt, inner sep=0pt},
+  signal/.style={-{Latex[length=2.2mm]}, line width=1.2pt, draw=linegray},
+  plain/.style={line width=1.2pt, draw=linegray},
+  signal label above/.style={fill=none, above=4pt, font=\footnotesize},
+  signal label below/.style={fill=none, below=4pt, font=\footnotesize},
+  neg sign/.style={fill=none, font=\footnotesize, very near end},
+  note/.style={font=\footnotesize, align=center},
+  sfgsource/.style={circle, draw=sfggreen, fill=none, line width=1.2pt, minimum size=0.86cm, font=\small\bfseries},
+  sfgnode/.style={circle, draw=sfgpurple, fill=none, line width=1.2pt, minimum size=0.86cm, font=\small\bfseries},
+  sfgsink/.style={circle, draw=sfgred, fill=none, line width=1.2pt, minimum size=0.86cm, font=\small\bfseries},
+  sfgedge/.style={-{Latex[length=2.2mm]}, line width=1.2pt, draw={rgb,255:red,44;green,62;blue,80}},
+  gain label above/.style={fill=none, above=3pt, font=\small\itshape},
+  gain label below/.style={fill=none, below=3pt, font=\small\itshape},
+}
+\begin{document}
+
+\begin{tikzpicture}[x=1cm,y=1cm]
+  \node[sum] (sum) at (0,1.25) {};
+  \node[block] (g) at (1.8,1.25) {$G(s)$};
+  \node[tap] (tap) at (3.2,1.25) {};
+  \node[block] (h) at (1.8,0.1) {$H(s)$};
+  \draw[signal] (-0.75,1.25) -- node[signal label above] {$R$} (sum);
+  \draw[signal] (sum) -- node[signal label above] {$E$} (g);
+  \draw[signal] (g) -- (tap) -- node[signal label above] {$Y$} (4.1,1.25);
+  \draw[signal] (tap) |- (h.east);
+  \draw[signal] (h.west) -| node[neg sign, left] {$-$} (sum.south);
+
+  \node[sfgsource] (r) at (0,-1.85) {$R$};
+  \node[sfgnode] (e) at (2.0,-1.85) {$E$};
+  \node[sfgsink] (y) at (4.0,-1.85) {$Y$};
+  \draw[sfgedge] (r) -- node[gain label above] {$1$} (e);
+  \draw[sfgedge] (e) -- node[gain label above] {$G(s)$} (y);
+  \draw[sfgedge, out=-90, in=-90, looseness=1.25] (y) to node[gain label below] {$-H(s)$} (e);
+  \node[note] at (6.0,1.25) {方框图：环节视角};
+  \node[note] at (6.0,-1.85) {信号流图：变量视角};
+\end{tikzpicture}
+
+\end{document}

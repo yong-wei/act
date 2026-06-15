@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <style>
+      .bg { fill: #fbfdff; }
+      .ink { fill: #10233f; }
+      .muted { fill: #516070; }
+      .blue { fill: #0f4c9a; }
+      .red { fill: #b3261e; }
+      .line { stroke: #1c3557; stroke-width: 4; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .thin { stroke: #5c6f86; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .arrow { stroke: #1c3557; stroke-width: 5; fill: none; stroke-linecap: round; stroke-linejoin: round; marker-end: url(#arrow); }
+      .panel { fill: #ffffff; stroke: #c9d7e8; stroke-width: 2.2; rx: 22; }
+      .panelBlue { fill: #edf6ff; stroke: #b8d6f2; stroke-width: 2; rx: 18; }
+      .panelRed { fill: #fff1f0; stroke: #f0c4bf; stroke-width: 2; rx: 18; }
+      text { font-family: "Noto Sans CJK SC", "PingFang SC", "Heiti SC", sans-serif; }
+      .title { font-size: 48px; font-weight: 800; letter-spacing: 1px; }
+      .subtitle { font-size: 25px; font-weight: 500; fill: #526272; }
+      .h { font-size: 27px; font-weight: 800; fill: #10233f; }
+      .body { font-size: 22px; fill: #233a58; }
+      .small { font-size: 19px; fill: #516070; }
+      .formula { font-size: 27px; fill: #10233f; font-family: "TeX Gyre Termes", "Times New Roman", serif; }
+      .formulaSmall { font-size: 22px; fill: #10233f; font-family: "TeX Gyre Termes", "Times New Roman", serif; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1c3557"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f4c9a"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1600" height="900"/>
+
+  <text class="title ink" x="72" y="78">单元 1-2 核心地图：从模型到行为</text>
+  <text class="subtitle" x="72" y="118">把真实对象翻译成可分析的系统，再从极点读出动态品质</text>
+
+  <g id="main-chain">
+    <rect class="panel" x="70" y="150" width="1460" height="138"/>
+    <text class="h blue" x="110" y="200">主线</text>
+    <g class="body" font-weight="700">
+      <text x="175" y="200">真实对象</text>
+      <text x="340" y="200">机理建模</text>
+      <text x="515" y="200">微分方程</text>
+      <text x="700" y="200">传递函数 G(s)</text>
+      <text x="935" y="200">结构表达</text>
+      <text x="1115" y="200">极点</text>
+      <text x="1270" y="200">行为判断</text>
+    </g>
+    <path class="arrow" d="M275 194 H320"/>
+    <path class="arrow" d="M455 194 H500"/>
+    <path class="arrow" d="M635 194 H680"/>
+    <path class="arrow" d="M870 194 H915"/>
+    <path class="arrow" d="M1045 194 H1095"/>
+    <path class="arrow" d="M1180 194 H1250"/>
+    <text class="small" x="175" y="245">船舶、电机、温控对象</text>
+    <text class="small" x="514" y="245">物理定律的时间域翻译</text>
+    <text class="small" x="699" y="245">把微分运算变成代数比值</text>
+    <text class="small" x="930" y="245">方框图 / 信号流图</text>
+    <text class="small" x="1115" y="245">分母为零的位置</text>
+    <text class="small" x="1270" y="245">收敛、摆动、发散</text>
+  </g>
+
+  <g id="paths">
+    <rect class="panel" x="70" y="320" width="340" height="212"/>
+    <text class="h" x="100" y="365">两条建模路径</text>
+    <rect class="panelBlue" x="98" y="390" width="284" height="62"/>
+    <text class="body" x="118" y="420">机理建模：可解释</text>
+    <text class="small" x="118" y="444">依赖物理定律、参数与结构</text>
+    <rect class="panelRed" x="98" y="462" width="284" height="62"/>
+    <text class="body" x="118" y="492">数据驱动：易接入</text>
+    <text class="small" x="118" y="516">依赖数据覆盖与外推边界</text>
+  </g>
+
+  <g id="ship-equation">
+    <rect class="panel" x="440" y="320" width="410" height="212"/>
+    <text class="h" x="470" y="365">船舶航向例子</text>
+    <path class="line" d="M485 438 C535 404, 640 404, 700 438 C640 470, 535 470, 485 438Z"/>
+    <path class="thin" d="M485 438 H700"/>
+    <path class="thin" d="M590 438 L655 405" marker-end="url(#arrowBlue)"/>
+    <text class="small" x="665" y="405">θ</text>
+    <text class="formula" x="470" y="502">J θ''(t)+B θ'(t)=K u(t)</text>
+  </g>
+
+  <g id="transfer">
+    <rect class="panel" x="880" y="320" width="295" height="212"/>
+    <text class="h" x="910" y="365">传递函数</text>
+    <text class="formula" x="918" y="420">G(s)=Θ(s)/U(s)</text>
+    <text class="formula" x="918" y="470">G(s)=K/(Js²+Bs)</text>
+    <text class="small" x="918" y="506">描述系统本身</text>
+    <text class="small" x="918" y="528">与当前输入分离</text>
+  </g>
+
+  <g id="structure">
+    <rect class="panel" x="1205" y="320" width="325" height="212"/>
+    <text class="h" x="1235" y="365">三种结构表达</text>
+    <text class="formulaSmall" x="1240" y="410">串联：G = G₁G₂</text>
+    <text class="formulaSmall" x="1240" y="455">并联：G = G₁ + G₂</text>
+    <text class="formulaSmall" x="1240" y="500">反馈：Φ = G/(1+GH)</text>
+  </g>
+
+  <g id="s-plane">
+    <rect class="panel" x="70" y="560" width="700" height="282"/>
+    <text class="h" x="100" y="606">复平面行为地图</text>
+    <rect x="330" y="615" width="370" height="180" fill="#e8f4ff" stroke="#c1d7ef" stroke-width="2"/>
+    <rect x="515" y="615" width="185" height="180" fill="#fff0f0" stroke="#efc2bf" stroke-width="2"/>
+    <path class="line" d="M330 705 H700"/>
+    <path class="line" d="M515 795 V615"/>
+    <text class="small" x="682" y="727">σ</text>
+    <text class="small" x="525" y="636">jω</text>
+    <text class="body blue" x="365" y="650">稳定区</text>
+    <text class="body red" x="568" y="650">不稳定区</text>
+    <text class="small" x="100" y="652">σ &lt; 0：偏差衰减</text>
+    <text class="small" x="100" y="690">σ &gt; 0：幅度放大</text>
+    <text class="small" x="100" y="728">|σ| 大：收敛更快</text>
+    <text class="small" x="100" y="766">|ω| 大：摆动更密</text>
+    <text class="blue" x="395" y="705" font-size="36" font-weight="800">×</text>
+    <text class="blue" x="455" y="662" font-size="36" font-weight="800">×</text>
+    <text class="blue" x="455" y="756" font-size="36" font-weight="800">×</text>
+    <text class="red" x="615" y="665" font-size="36" font-weight="800">×</text>
+    <text class="red" x="615" y="755" font-size="36" font-weight="800">×</text>
+  </g>
+
+  <g id="responses">
+    <rect class="panel" x="805" y="560" width="725" height="282"/>
+    <text class="h" x="835" y="606">从极点读行为</text>
+    <g transform="translate(850,635)">
+      <rect class="panelBlue" x="0" y="0" width="190" height="150"/>
+      <path class="thin" d="M32 112 H168 M32 112 V25"/>
+      <path class="line" d="M35 28 C58 62, 70 88, 92 101 C113 113, 140 114, 164 114"/>
+      <text class="body" x="42" y="136">单调收敛</text>
+    </g>
+    <g transform="translate(1080,635)">
+      <rect class="panelBlue" x="0" y="0" width="190" height="150"/>
+      <path class="thin" d="M32 76 H168 M32 118 V25"/>
+      <path class="line" d="M35 30 C55 120, 78 22, 102 82 C126 134, 148 50, 165 78"/>
+      <text class="body" x="42" y="136">边摆边收</text>
+    </g>
+    <g transform="translate(1310,635)">
+      <rect class="panelRed" x="0" y="0" width="190" height="150"/>
+      <path class="thin" d="M32 76 H168 M32 118 V25"/>
+      <path class="line" d="M35 83 C55 63, 72 107, 92 72 C116 28, 145 142, 166 22"/>
+      <text class="body" x="57" y="136">发散</text>
+    </g>
+    <text class="small" x="842" y="817">判断链：对象 → 方程 → G(s) → 极点位置 → 收敛 / 摆动 / 发散</text>
+  </g>
+
+  <text class="subtitle" x="72" y="875">带走结论：模型的价值，不是复写对象细节，而是保住决定动态品质的结构和参数。</text>
+</svg>
