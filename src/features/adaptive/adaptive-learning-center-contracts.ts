@@ -198,14 +198,14 @@ export interface ControlCorrectionCenterReadinessGate {
 }
 
 export interface ControlCorrectionCenterLaunchContext {
-  goalId: 'control-correction';
+  goalId: string;
   pathId: string;
   nodeId: string;
   routeIntent: ControlCorrectionCenterRouteIntent;
 }
 
 export interface ControlCorrectionLearningCenterView extends AdaptiveLearningCenterView {
-  goalId: 'control-correction';
+  goalId: string;
   entry: {
     source: ControlCorrectionCenterEntrySource;
     routeIntent: ControlCorrectionCenterRouteIntent;
@@ -522,14 +522,16 @@ export function buildRecommendedPathNodeView(
 export function buildControlCorrectionLearningCenterView(
   input: ControlCorrectionLearningCenterInput,
 ): ControlCorrectionLearningCenterView {
-  const pathPlan = input.pathPlan?.goal.id === 'control-correction' ? input.pathPlan : null;
+  const pathPlan = input.pathPlan ?? null;
+  const goalId = pathPlan?.goal.id ?? 'control-correction';
+  const goalLabel = pathPlan?.goal.title ?? '控制校正';
   const baseView = buildAdaptiveLearningCenterView({ ...input, pathPlan });
   const routeIntent = input.routeIntent ?? 'practice';
   const entrySource = input.entrySource ?? 'adaptive-practice';
   const learnerState = isServerOwnedLearnerState(input.learnerState) ? input.learnerState : null;
   const pathNodes = pathPlan
     ? buildRecommendedPathNodeView(pathPlan, {
-        goalId: 'control-correction',
+        goalId,
         pathId: pathPlan.id,
         routeIntent,
       }).nodes
@@ -544,12 +546,14 @@ export function buildControlCorrectionLearningCenterView(
     pathPlan,
     networkError: input.networkError ?? false,
     questionAvailable: input.questionAvailable ?? true,
+    goalId,
+    goalLabel,
   });
   const blockingStates = fallbackStates.filter((state) => state.state !== 'path-ready');
 
   return {
     ...baseView,
-    goalId: 'control-correction',
+    goalId,
     entry: {
       source: entrySource,
       routeIntent,
@@ -560,15 +564,15 @@ export function buildControlCorrectionLearningCenterView(
       title: '控制校正能力状态',
       status: learnerStateStatus(learnerState),
       payload: {
-        goalId: 'control-correction',
+        goalId,
         competencies: learnerState?.primaryCompetencies ?? null,
         knowledgeMastery: learnerState?.knowledgeMastery ?? null,
       },
     },
     nextAction: {
       nodeId: nextNode?.nodeId ?? null,
-      title: nextNode?.title ?? '生成控制校正学习路径',
-      href: nextNode?.action.href ?? `/assessment/adaptive-practice?goal=control-correction&intent=${routeIntent}`,
+      title: nextNode?.title ?? `生成${goalLabel}学习路径`,
+      href: nextNode?.action.href ?? `/assessment/adaptive-practice?goal=${encodeURIComponent(goalId)}&intent=${routeIntent}`,
       method: nextNode?.action.method ?? 'GET',
       body: nextNode?.action.body,
       redirectHref: nextNode?.action.redirectHref,
@@ -594,7 +598,7 @@ export function buildControlCorrectionLearningCenterView(
     fallbackStates,
     launchContexts: pathPlan
       ? pathPlan.mainPath.map((node) => ({
-          goalId: 'control-correction',
+          goalId,
           pathId: pathPlan.id,
           nodeId: node.nodeId,
           routeIntent,
@@ -822,26 +826,32 @@ function buildControlCorrectionFallbackStates(input: {
   pathPlan: AdaptiveLearningPathPlan | null;
   networkError: boolean;
   questionAvailable: boolean;
+  goalId: string;
+  goalLabel: string;
 }): ControlCorrectionCenterFallbackState[] {
+  const goalQuery = encodeURIComponent(input.goalId);
+  const evidenceHref = `/profile/evidence?goal=${goalQuery}`;
   return [
     !input.featureEnabled
       ? controlCorrectionFallbackState(
           'feature-flag-disabled',
-          '控制校正中心暂未启用',
+          `${input.goalLabel}中心暂未启用`,
           'adaptive-learning-center-flag-disabled',
           'not-ready',
-          '/assessment/adaptive-practice?goal=control-correction',
+          `/assessment/adaptive-practice?goal=${goalQuery}`,
           '进入兼容练习',
+          evidenceHref,
         )
       : null,
     input.networkError
       ? controlCorrectionFallbackState(
           'network-error',
-          '控制校正数据暂时无法加载',
+          `${input.goalLabel}数据暂时无法加载`,
           'network-error',
           'degraded',
-          '/assessment/adaptive-practice?goal=control-correction',
+          `/assessment/adaptive-practice?goal=${goalQuery}`,
           '重试加载',
+          evidenceHref,
         )
       : null,
     input.learnerState && input.learnerState.evidence.readState === 'stale'
@@ -850,48 +860,53 @@ function buildControlCorrectionFallbackStates(input: {
           '正在刷新学习证据',
           'stale-learner-state',
           'degraded',
-          '/profile/evidence?goal=control-correction',
+          `/profile/evidence?goal=${goalQuery}`,
           '查看证据',
+          evidenceHref,
         )
       : null,
     !input.learnerState || input.learnerState.missingEvidence.length > 0
       ? controlCorrectionFallbackState(
           'low-evidence',
-          '控制校正证据不足',
-          'missing-control-correction-evidence',
+          `${input.goalLabel}证据不足`,
+          `missing-${input.goalId}-evidence`,
           'degraded',
-          '/assessment/adaptive-practice?goal=control-correction',
+          `/assessment/adaptive-practice?goal=${goalQuery}`,
           '先完成诊断练习',
+          evidenceHref,
         )
       : null,
     !input.pathPlan
       ? controlCorrectionFallbackState(
           'no-path',
-          '尚未生成控制校正路径',
-          'missing-control-correction-path',
+          `尚未生成${input.goalLabel}路径`,
+          `missing-${input.goalId}-path`,
           'not-ready',
-          '/profile/growth?goal=control-correction',
+          `/profile/growth?goal=${goalQuery}`,
           '查看成长状态',
+          evidenceHref,
         )
       : null,
     input.pathPlan && !input.questionAvailable && !input.pathPlan.currentNodeId
       ? controlCorrectionFallbackState(
           'no-question',
           '当前路径暂无可用题目',
-          'missing-control-correction-question',
+          `missing-${input.goalId}-question`,
           'degraded',
-          '/interactive-learning?goal=control-correction',
+          `/interactive-learning?goal=${goalQuery}`,
           '打开互动学习',
+          evidenceHref,
         )
       : null,
     input.pathPlan && input.pathPlan.status === 'ready'
       ? controlCorrectionFallbackState(
           'path-ready',
-          '控制校正路径已就绪',
+          `${input.goalLabel}路径已就绪`,
           null,
           'ready',
-          '/assessment/adaptive-practice?goal=control-correction',
+          `/assessment/adaptive-practice?goal=${goalQuery}`,
           '继续当前节点',
+          evidenceHref,
         )
       : null,
   ].filter((state): state is ControlCorrectionCenterFallbackState => Boolean(state));
@@ -904,6 +919,7 @@ function controlCorrectionFallbackState(
   readiness: PlatformReadinessStatus,
   href: string,
   label: string,
+  evidenceHref: string,
 ): ControlCorrectionCenterFallbackState {
   return {
     state,
@@ -924,7 +940,7 @@ function controlCorrectionFallbackState(
         label,
       },
       {
-        href: '/profile/evidence?goal=control-correction',
+        href: evidenceHref,
         label: '查看证据来源',
       },
     ],

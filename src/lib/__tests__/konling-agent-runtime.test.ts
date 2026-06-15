@@ -5375,7 +5375,324 @@ describe('konling agent runtime', () => {
     expect(db.learningPath.upsert).not.toHaveBeenCalled();
   });
 
-  it('rejects registered goals without generation registries before creating path tool runs', async () => {
+  it('rejects adaptive path generation when tool goal differs from the server-scoped path advisor goal', async () => {
+    for (const [serverGoalId, requestedGoalId] of [
+      ['control-correction', 'frequency-response-foundations'],
+      ['frequency-response-foundations', 'control-correction'],
+    ] as const) {
+      const db = {
+        agentSession: {
+          findFirst: vi.fn().mockResolvedValue({
+            id: 'agent-session-1',
+            permittedTools: ['generate_learning_path'],
+          }),
+        },
+        agentToolRun: {
+          findFirst: vi.fn(),
+          create: vi.fn(),
+        },
+        learningPath: {
+          upsert: vi.fn(),
+        },
+      };
+      const runtime = buildKonlingToolRuntime({
+        db,
+        scope: createScope({
+          courseId: serverGoalId,
+          pageId: 'adaptive-path-center',
+          resourceId: null,
+          pathNodeId: null,
+        }),
+        agentSessionId: 'agent-session-1',
+        context: createRuntimeContext({ permittedTools: ['generate_learning_path'] }),
+      });
+
+      await expect(runtime.generateLearningPath({
+        idempotencyKey: `path-gen-cross-goal:${serverGoalId}:${requestedGoalId}`,
+        goalId: requestedGoalId,
+      })).rejects.toMatchObject({
+        status: 403,
+        message: 'Konling 路径工具不能扩展到服务端授权目标之外。',
+      });
+      expect(db.agentToolRun.create).not.toHaveBeenCalled();
+      expect(db.learningPath.upsert).not.toHaveBeenCalled();
+    }
+  });
+
+  it('rejects idempotent adaptive path reuse when the stored output belongs to another server-scoped goal', async () => {
+    const existingRun = {
+      id: 'tool-run-cross-goal-existing',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'generate_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'succeeded',
+      inputSummary: {
+        idempotencyKey: 'path-gen-cross-goal-replay',
+        goalId: null,
+      },
+      outputSummary: {
+        operation: 'generated',
+        scope: {
+          goalId: 'frequency-response-foundations',
+        },
+      },
+      errorSummary: null,
+      idempotencyKey: 'path-gen-cross-goal-replay',
+      correlationId: 'corr-cross-goal-replay',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: new Date('2026-05-28T00:00:01Z'),
+      latencyMs: 1000,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['generate_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn().mockResolvedValue(existingRun),
+        create: vi.fn(),
+        updateMany: vi.fn(),
+      },
+      learningPath: {
+        upsert: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({
+        courseId: 'control-correction',
+        pageId: 'adaptive-path-center',
+        resourceId: null,
+        pathNodeId: null,
+      }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({ permittedTools: ['generate_learning_path'] }),
+    });
+
+    await expect(runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-cross-goal-replay',
+    })).rejects.toMatchObject({
+      status: 403,
+      message: '幂等 Konling 工具结果不属于当前页面目标。',
+    });
+    expect(db.agentToolRun.findFirst).toHaveBeenCalled();
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
+    expect(db.agentToolRun.updateMany).not.toHaveBeenCalled();
+    expect(db.learningPath.upsert).not.toHaveBeenCalled();
+  });
+
+  it('rejects idempotent adaptive path reuse when the stored input belongs to another server-scoped goal', async () => {
+    const existingRun = {
+      id: 'tool-run-cross-goal-input-existing',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'generate_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'succeeded',
+      inputSummary: {
+        idempotencyKey: 'path-gen-cross-goal-input-replay',
+        goalId: 'frequency-response-foundations',
+      },
+      outputSummary: {
+        operation: 'generated',
+        scope: {
+          goalId: 'control-correction',
+        },
+      },
+      errorSummary: null,
+      idempotencyKey: 'path-gen-cross-goal-input-replay',
+      correlationId: 'corr-cross-goal-input-replay',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: new Date('2026-05-28T00:00:01Z'),
+      latencyMs: 1000,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['generate_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn().mockResolvedValue(existingRun),
+        create: vi.fn(),
+        updateMany: vi.fn(),
+      },
+      learningPath: {
+        upsert: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({
+        courseId: 'control-correction',
+        pageId: 'adaptive-path-center',
+        resourceId: null,
+        pathNodeId: null,
+      }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({ permittedTools: ['generate_learning_path'] }),
+    });
+
+    await expect(runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-cross-goal-input-replay',
+    })).rejects.toMatchObject({
+      status: 403,
+      message: '幂等 Konling 工具请求不属于当前页面目标。',
+    });
+    expect(db.agentToolRun.findFirst).toHaveBeenCalled();
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
+    expect(db.agentToolRun.updateMany).not.toHaveBeenCalled();
+    expect(db.learningPath.upsert).not.toHaveBeenCalled();
+  });
+
+  it('generates frequency response paths through a registered generation registry', async () => {
+    const createdRun = {
+      id: 'tool-run-frequency-gen-1',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'generate_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'frequency-path-gen',
+      correlationId: 'corr-frequency-path-gen',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['generate_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({ permittedTools: ['generate_learning_path'] }),
+    });
+
+    await expect(runtime.generateLearningPath({
+      idempotencyKey: 'frequency-path-gen',
+      goalId: 'frequency-response-foundations',
+    })).resolves.toMatchObject({
+      operation: 'generated',
+      scope: expect.objectContaining({
+        goalId: 'frequency-response-foundations',
+      }),
+      pathOptions: expect.arrayContaining([
+        expect.objectContaining({
+          styleId: 'recommended',
+        }),
+      ]),
+    });
+    expect(db.agentToolRun.create).toHaveBeenCalled();
+    expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        goalId: 'frequency-response-foundations',
+      }),
+    }));
+    expect(db.agentToolRun.create.mock.invocationCallOrder[0]).toBeLessThan(
+      db.learningPath.upsert.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('defaults adaptive path generation to the server-scoped registered goal', async () => {
+    const createdRun = {
+      id: 'tool-run-frequency-scoped-default-1',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'generate_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'frequency-scoped-default',
+      correlationId: 'corr-frequency-scoped-default',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['generate_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({
+        courseId: 'frequency-response-foundations',
+        pageId: 'adaptive-path-center',
+        resourceId: null,
+        pathNodeId: null,
+      }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({ permittedTools: ['generate_learning_path'] }),
+    });
+
+    await expect(runtime.generateLearningPath({
+      idempotencyKey: 'frequency-scoped-default',
+    })).resolves.toMatchObject({
+      operation: 'generated',
+      scope: expect.objectContaining({
+        goalId: 'frequency-response-foundations',
+      }),
+    });
+    expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        goalId: 'frequency-response-foundations',
+      }),
+    }));
+  });
+
+  it('rejects adaptive path tools that request a goal outside the server-scoped goal', async () => {
     const db = {
       agentSession: {
         findFirst: vi.fn().mockResolvedValue({
@@ -5393,23 +5710,45 @@ describe('konling agent runtime', () => {
     };
     const runtime = buildKonlingToolRuntime({
       db,
-      scope: createScope({ pageId: 'adaptive-path-center' }),
+      scope: createScope({
+        courseId: 'frequency-response-foundations',
+        pageId: 'adaptive-path-center',
+      }),
       agentSessionId: 'agent-session-1',
       context: createRuntimeContext({ permittedTools: ['generate_learning_path'] }),
     });
 
     await expect(runtime.generateLearningPath({
-      idempotencyKey: 'frequency-path-gen',
-      goalId: 'frequency-response-foundations',
+      idempotencyKey: 'frequency-scope-mismatch',
+      goalId: 'control-correction',
     })).rejects.toMatchObject({
       status: 403,
-      message: '当前学习目标还没有可生成的路径资源注册表。',
+      message: 'Konling 路径工具不能扩展到服务端授权目标之外。',
     });
     expect(db.agentToolRun.create).not.toHaveBeenCalled();
     expect(db.learningPath.upsert).not.toHaveBeenCalled();
   });
 
-  it('rejects registered goals without generation registries before revising path options', async () => {
+  it('revises frequency response path options after scoped path preflight', async () => {
+    const createdRun = {
+      id: 'tool-run-frequency-revise-1',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'revise_learning_path_options',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'frequency-path-revise',
+      correlationId: 'corr-frequency-path-revise',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
     const db = {
       agentSession: {
         findFirst: vi.fn().mockResolvedValue({
@@ -5418,12 +5757,37 @@ describe('konling agent runtime', () => {
         }),
       },
       agentToolRun: {
-        findFirst: vi.fn(),
-        create: vi.fn(),
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       },
       learningPath: {
-        findFirst: vi.fn(),
-        upsert: vi.fn(),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'frequency-path-1',
+          userId: 'student-1',
+          goalId: 'frequency-response-foundations',
+          pathPayload: {
+            policyBundle: {
+              status: 'ready',
+              paths: [{
+                styleId: 'recommended',
+                nodeIds: ['frequency-precheck'],
+              }],
+            },
+            selectionHistory: [],
+            activity: [],
+          },
+        }),
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+        update: vi.fn().mockResolvedValue({ id: 'frequency-path-1' }),
+      },
+      learningFact: {
+        createMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      evidenceOutbox: {
+        createMany: vi.fn().mockResolvedValue({ count: 1 }),
       },
     };
     const runtime = buildKonlingToolRuntime({
@@ -5448,13 +5812,24 @@ describe('konling agent runtime', () => {
       goalId: 'frequency-response-foundations',
       pathId: 'frequency-path-1',
       difficultyRhythm: 'challenge',
-    })).rejects.toMatchObject({
-      status: 403,
-      message: '当前学习目标还没有可生成的路径资源注册表。',
+      selectedStyleId: 'recommended',
+    })).resolves.toMatchObject({
+      operation: 'revised',
+      scope: expect.objectContaining({
+        goalId: 'frequency-response-foundations',
+        pathId: 'frequency-path-1',
+      }),
+      pathOptions: expect.any(Array),
     });
-    expect(db.agentToolRun.create).not.toHaveBeenCalled();
-    expect(db.learningPath.findFirst).not.toHaveBeenCalled();
-    expect(db.learningPath.upsert).not.toHaveBeenCalled();
+    expect(db.learningPath.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: 'frequency-path-1',
+        userId: 'student-1',
+        goalId: 'frequency-response-foundations',
+      }),
+    }));
+    expect(db.agentToolRun.create).toHaveBeenCalled();
+    expect(db.learningPath.upsert).toHaveBeenCalled();
   });
 
   it('rejects forged adaptive path ids before creating tool runs or evidence', async () => {
