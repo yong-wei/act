@@ -481,11 +481,132 @@ describe('konling agent runtime', () => {
       modeId: 'path-advisor',
       runtimeContext: runtime,
       scope: createScope({ role: 'student', pageId: 'adaptive-path-center', pathNodeId: null }),
+      serverModeContext: { 'student-path-center': true },
     });
 
     expect(contract.status).toBe('ready');
     expect(contract.unavailableReasons).toEqual([]);
     expect(contract.permittedTools).toContain('generate_learning_path');
+  });
+
+  it('does not expose path-advisor write tools from forged page ids without server context', () => {
+    const runtime = createRuntimeContext({
+      learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],
+      permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph'],
+      planContext: {
+        currentPathId: null,
+        activeNodeId: null,
+        nextNodeIds: [],
+        recentPathIds: [],
+        completedNodeIds: [],
+        status: 'missing',
+      },
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:generic',
+          sourceType: 'content',
+          displayTitle: '当前页面内容',
+          href: null,
+          confidence: 'high',
+          evidenceBasis: 'course-ai-context',
+          owner: 'answer',
+        }],
+        evidenceCitations: [{
+          id: 'learner:student-1',
+          sourceType: 'learner-state',
+          displayTitle: '学习状态摘要',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'AdaptiveLearnerState',
+          owner: 'recommendation',
+        }],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer', 'recommendation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    });
+
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'path-advisor',
+      runtimeContext: runtime,
+      scope: createScope({ role: 'student', pageId: '/assessment/adaptive-practice', pathNodeId: null }),
+    });
+
+    expect(contract.status).toBe('ready');
+    expect(contract.permittedTools).not.toEqual(expect.arrayContaining([
+      'generate_learning_path',
+      'revise_learning_path_options',
+      'select_learning_path',
+      'reject_learning_path_option',
+      'record_path_adjustment_outcome',
+    ]));
+    expect(contract.permittedTools).toEqual(expect.arrayContaining([
+      'get_page_context',
+      'get_learner_state',
+      'get_plan_context',
+      'search_knowledge_graph',
+    ]));
+  });
+
+  it('does not expose student path write tools to teacher scope even with path-center context', () => {
+    const runtime = createRuntimeContext({
+      learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],
+      permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph'],
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:generic',
+          sourceType: 'content',
+          displayTitle: '当前页面内容',
+          href: null,
+          confidence: 'high',
+          evidenceBasis: 'course-ai-context',
+          owner: 'answer',
+        }],
+        evidenceCitations: [{
+          id: 'learner:student-1',
+          sourceType: 'learner-state',
+          displayTitle: '学习状态摘要',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'AdaptiveLearnerState',
+          owner: 'recommendation',
+        }],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer', 'recommendation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    });
+
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'path-advisor',
+      runtimeContext: runtime,
+      scope: createScope({
+        role: 'teacher',
+        authenticatedUserId: 'teacher-1',
+        targetUserId: 'student-1',
+        pageId: 'adaptive-path-center',
+        pathNodeId: null,
+      }),
+      serverModeContext: { 'student-path-center': true },
+    });
+
+    expect(contract.permittedTools).not.toEqual(expect.arrayContaining([
+      'generate_learning_path',
+      'revise_learning_path_options',
+      'select_learning_path',
+      'reject_learning_path_option',
+      'record_path_adjustment_outcome',
+    ]));
   });
 
   it('does not make grading mode unavailable for unrelated citation gaps', () => {
@@ -5444,6 +5565,70 @@ describe('konling agent runtime', () => {
     })).rejects.toMatchObject({
       status: 403,
       message: '当前学习路径没有可记录的路径选项。',
+    });
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
+    expect(db.learningPath.update).not.toHaveBeenCalled();
+    expect(db.evidenceOutbox.createMany).not.toHaveBeenCalled();
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
+  });
+
+  it('rejects path activity that selects and rejects the same style id', async () => {
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['record_path_adjustment_outcome'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        create: vi.fn(),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          userId: 'student-1',
+          pathPayload: {
+            policyBundle: {
+              status: 'ready',
+              paths: [{ styleId: 'simulation-driven', nodeIds: ['node-1'] }],
+            },
+          },
+        }),
+        update: vi.fn(),
+      },
+      learningFact: {
+        createMany: vi.fn(),
+      },
+      evidenceOutbox: {
+        createMany: vi.fn(),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['record_path_adjustment_outcome'],
+        planContext: {
+          currentPathId: 'path-1',
+          activeNodeId: 'node-1',
+          nextNodeIds: [],
+          recentPathIds: ['path-1'],
+          completedNodeIds: [],
+          status: 'available',
+        },
+      }),
+    });
+
+    await expect(runtime.recordPathAdjustmentOutcome({
+      idempotencyKey: 'path-conflicting-style',
+      outcome: 'switched',
+      selectedStyleId: 'simulation-driven',
+      rejectedStyleIds: ['simulation-driven'],
+    })).rejects.toMatchObject({
+      status: 400,
+      message: '路径选择不能同时选择并拒绝同一 styleId。',
     });
     expect(db.agentToolRun.create).not.toHaveBeenCalled();
     expect(db.learningPath.update).not.toHaveBeenCalled();

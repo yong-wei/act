@@ -134,7 +134,8 @@ export type KonlingTeachingAssistantContextKey =
   | 'teacher-review-state'
   | 'student-feedback'
   | 'class-report'
-  | 'prep-pack';
+  | 'prep-pack'
+  | 'student-path-center';
 export type KonlingTeachingAssistantStatus = 'ready' | 'degraded' | 'unavailable';
 
 export interface KonlingTeachingAssistantModeContract {
@@ -502,7 +503,12 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
   const permittedTools = mode.id === 'generic-chat'
     ? input.runtimeContext.permittedTools
     : mode.permittedTools.filter((toolName) =>
-      runtimePermittedTools.has(toolName) || isKonlingModeOwnedTool(mode.id, toolName)
+      runtimePermittedTools.has(toolName) || isKonlingModeOwnedTool(
+        mode.id,
+        toolName,
+        input.scope,
+        input.serverModeContext,
+      )
     );
   const safePermittedTools = status === 'unavailable' ? [] : permittedTools;
 
@@ -1794,6 +1800,9 @@ function assertAdaptivePathOptionIds(
   selectedStyleId: string | null | undefined,
   rejectedStyleIds: string[],
 ) {
+  if (selectedStyleId && rejectedStyleIds.includes(selectedStyleId)) {
+    throw new KonlingRuntimeScopeError(400, '路径选择不能同时选择并拒绝同一 styleId。');
+  }
   const requestedStyleIds = [
     selectedStyleId ?? null,
     ...rejectedStyleIds,
@@ -1887,8 +1896,17 @@ function isKonlingAdaptivePathTool(toolName: KonlingToolName) {
   return KONLING_ADAPTIVE_PATH_TOOLS.has(toolName);
 }
 
-function isKonlingModeOwnedTool(modeId: KonlingTeachingAssistantModeId, toolName: KonlingToolName) {
-  return modeId === 'path-advisor' && KONLING_ADAPTIVE_PATH_TOOLS.has(toolName);
+function isKonlingModeOwnedTool(
+  modeId: KonlingTeachingAssistantModeId,
+  toolName: KonlingToolName,
+  scope: KonlingRuntimeScope,
+  serverModeContext: KonlingTeachingAssistantServerModeContext | null | undefined,
+) {
+  return modeId === 'path-advisor' &&
+    KONLING_ADAPTIVE_PATH_TOOLS.has(toolName) &&
+    scope.role === 'student' &&
+    scope.authenticatedUserId === scope.targetUserId &&
+    serverModeContext?.['student-path-center'] === true;
 }
 
 function buildKonlingToolInputSummary(toolName: KonlingToolName, input: unknown) {

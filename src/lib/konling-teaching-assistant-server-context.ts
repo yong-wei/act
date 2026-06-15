@@ -129,6 +129,12 @@ export async function resolveKonlingTeachingAssistantServerModeContext(input: {
   if (mode.id === 'resource-coach') {
     return resolveResourceCoachModeContext(input);
   }
+  if (mode.id === 'path-advisor') {
+    return resolvePathAdvisorModeContext({
+      ...input,
+      signedPayload,
+    });
+  }
   if (mode.id === 'grading-assistant') {
     return resolveDocumentGradingModeContext(input, 'teacher');
   }
@@ -336,6 +342,20 @@ async function resolveResourceCoachModeContext(input: {
   if (!resource) return {};
   if (resource.teacherOnly && input.scope.role !== 'teacher' && input.scope.role !== 'admin') return {};
   return { 'resource-node': true };
+}
+
+function resolvePathAdvisorModeContext(input: {
+  scope: KonlingRuntimeScope;
+  signedPayload: VerifiedModeContextPayload | null;
+}): KonlingTeachingAssistantServerModeContext {
+  if (!input.signedPayload) return {};
+  if (input.scope.role !== 'student') return {};
+  if (input.scope.authenticatedUserId !== input.scope.targetUserId) return {};
+  if (input.signedPayload.context['student-path-center'] !== true) return {};
+  return {
+    ...input.signedPayload.context,
+    'student-path-center': true,
+  };
 }
 
 function verifySignedModeContext(

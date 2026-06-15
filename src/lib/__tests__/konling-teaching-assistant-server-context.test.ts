@@ -113,6 +113,65 @@ describe('Konling teaching-assistant server context', () => {
     })).resolves.toEqual({});
   });
 
+  it('accepts signed student path-center context for path-advisor tools', async () => {
+    const modeContextToken = createKonlingTeachingAssistantServerContextToken({
+      mode: 'path-advisor',
+      classId: 'class-1',
+      courseId: 'course-1',
+      pageId: 'adaptive-path-center',
+      context: {
+        'student-path-center': true,
+        'learner-state-summary': true,
+      },
+    });
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: {},
+      modeId: 'path-advisor',
+      scope: scope({
+        role: 'student',
+        authenticatedUserId: 'student-1',
+        targetUserId: 'student-1',
+        pageId: 'adaptive-path-center',
+        privacyScopes: ['student-visible'],
+      }),
+      runtimeContext,
+      clientContextHints: { modeContextToken },
+    })).resolves.toEqual({
+      'student-path-center': true,
+      'learner-state-summary': true,
+    });
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: {},
+      modeId: 'path-advisor',
+      scope: scope({
+        role: 'student',
+        authenticatedUserId: 'student-1',
+        targetUserId: 'student-1',
+        pageId: 'adaptive-path-center',
+        privacyScopes: ['student-visible'],
+      }),
+      runtimeContext,
+      clientContextHints: {
+        'student-path-center': true,
+      },
+    })).resolves.toEqual({});
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: {},
+      modeId: 'path-advisor',
+      scope: scope({
+        role: 'teacher',
+        authenticatedUserId: 'teacher-1',
+        targetUserId: 'student-1',
+        pageId: 'adaptive-path-center',
+      }),
+      runtimeContext,
+      clientContextHints: { modeContextToken },
+    })).resolves.toEqual({});
+  });
+
   it('fails closed when mode context signing secret is unavailable', async () => {
     const modeContextToken = createKonlingTeachingAssistantServerContextToken({
       mode: 'class-summarizer',
