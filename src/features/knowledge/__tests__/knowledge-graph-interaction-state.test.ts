@@ -268,10 +268,15 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).toContain('? { ...displaySelectedNode, ...selectedNode }');
     expect(systemSource).toContain("data-knowledge-selected-node-id={visibleSelectedNode?.id ?? ''}");
     expect(systemSource).toContain('data-knowledge-konling-context-source="server-owned"');
-    expect(systemSource).toContain("data-knowledge-konling-context-status={visibleSelectedNode ? 'selected-node' : 'no-selection'}");
+    expect(systemSource).toContain('const [requestedNodeId, setRequestedNodeId] = useState<string | null>(initialRequestedNodeId);');
+    expect(systemSource).toContain("const konlingContextStatus = visibleSelectedNode");
+    expect(systemSource).toContain("requestedNodeId");
+    expect(systemSource).toContain('data-knowledge-konling-context-status={konlingContextStatus}');
     expect(systemSource).toContain('updatePageContext({');
     expect(systemSource).toContain('knowledgeWorkspaceHint: {');
     expect(systemSource).toContain("selectedNodeId: visibleSelectedNode?.id ?? null");
+    expect(systemSource).toContain('requestedNodeId,');
+    expect(systemSource).toContain('status: konlingContextStatus,');
     expect(systemSource).toContain("searchQuery.trim() ? '搜索词已启用' : ''");
     expect(systemSource).toContain('activeFilters: [knowledgeWorkspaceFilterSummary]');
     expect(systemSource).not.toContain('activeFilters: [activeFilterSummary]');

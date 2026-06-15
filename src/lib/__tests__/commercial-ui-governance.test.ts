@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { existsSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 
@@ -13,6 +13,7 @@ import {
   SIMULATION_VISUAL_QA_ROUTE_MATRIX,
   evaluateCommercialUiGovernance,
   type CommercialAccessibilityTextFitEvidence,
+  type CommercialInteractiveLearningProductQaEvidence,
   type CommercialNavigationCoverageInput,
   type CommercialSimulationVisualQaEvidence,
   type CommercialUiGovernanceInput,
@@ -28,7 +29,11 @@ import {
   STUDENT_CORE_ENTRY_IDS,
   STUDENT_LEARNING_INTENT_GROUPS,
 } from '@/lib/platform-role-navigation';
-import { buildSecondaryRouteGovernanceMatrixFromEvidence } from '../../../scripts/tests/test-commercial-ui-governance';
+import {
+  buildSecondaryRouteGovernanceMatrixFromEvidence,
+  hydrateInteractiveLearningProductQaEvidence,
+  interactiveLearningReviewHasNoUnresolvedBlocks,
+} from '../../../scripts/tests/test-commercial-ui-governance';
 
 const today = '2026-05-31';
 
@@ -71,6 +76,78 @@ function simulationNavigationStatesForWidth(
 ): CommercialVisualQaNavigationState[] {
   return states.filter((state) => (
     width === 1440 ? state.startsWith('desktop-') : !state.startsWith('desktop-')
+  ));
+}
+
+function runTempGit(cwd: string, args: string[]) {
+  const result = spawnSync('git', args, { cwd, encoding: 'utf8' });
+  if (result.status !== 0) {
+    throw new Error(`git ${args.join(' ')} failed: ${result.stderr || result.stdout}`);
+  }
+  return result.stdout.trim();
+}
+
+function initTempGitRepo(prefix: string) {
+  const repo = mkdtempSync(join(tmpdir(), prefix));
+  runTempGit(repo, ['init']);
+  runTempGit(repo, ['branch', '-M', 'main']);
+  runTempGit(repo, ['config', 'user.name', 'Commercial UI Governance Test']);
+  runTempGit(repo, ['config', 'user.email', 'commercial-ui-governance@example.invalid']);
+  return repo;
+}
+
+function commitTempFile(repo: string, file: string, content: string, message: string) {
+  const absolutePath = join(repo, file);
+  mkdirSync(dirname(absolutePath), { recursive: true });
+  writeFileSync(absolutePath, content);
+  runTempGit(repo, ['add', file]);
+  runTempGit(repo, ['commit', '-m', message]);
+  return runTempGit(repo, ['rev-parse', 'HEAD']);
+}
+
+function isTempGitAncestor(repo: string, ancestor: string, descendant: string) {
+  return spawnSync('git', ['merge-base', '--is-ancestor', ancestor, descendant], {
+    cwd: repo,
+    stdio: ['ignore', 'ignore', 'ignore'],
+  }).status === 0;
+}
+
+function tempGitLines(repo: string, args: string[]) {
+  return runTempGit(repo, args).split('\n').map((line) => line.trim()).filter(Boolean);
+}
+
+function tempChangedFiles(repo: string) {
+  const files = new Set<string>();
+  for (const args of [['diff', '--name-only'], ['diff', '--name-only', '--cached']]) {
+    for (const file of tempGitLines(repo, args)) files.add(file);
+  }
+  for (const file of tempGitLines(repo, ['ls-files', '--others', '--exclude-standard'])) files.add(file);
+  return Array.from(files);
+}
+
+function tempHasUncommittedPathChange(repo: string, file: string) {
+  return tempGitLines(repo, ['diff', '--name-only', '--', file]).includes(file)
+    || tempGitLines(repo, ['diff', '--name-only', '--cached', '--', file]).includes(file)
+    || tempGitLines(repo, ['ls-files', '--others', '--exclude-standard', '--', file]).includes(file);
+}
+
+function tempInteractiveLearningProductQaEvidenceCoversSource(
+  repo: string,
+  files: readonly string[],
+  evidencePath: string,
+  sourcePrefixes: readonly string[],
+) {
+  const sourceFiles = files.filter((file) => sourcePrefixes.some((prefix) => file.startsWith(prefix)));
+  if (sourceFiles.some((file) => tempHasUncommittedPathChange(repo, file))) {
+    return tempHasUncommittedPathChange(repo, evidencePath);
+  }
+  const sourceCommits = Array.from(new Set(files
+    .filter((file) => sourcePrefixes.some((prefix) => file.startsWith(prefix)))
+    .map((file) => runTempGit(repo, ['log', '-1', '--format=%H', '--', file]))
+    .filter(Boolean)));
+  const evidenceCommit = runTempGit(repo, ['log', '-1', '--format=%H', '--', evidencePath]);
+  return Boolean(evidenceCommit) && sourceCommits.every((sourceCommit) => (
+    isTempGitAncestor(repo, sourceCommit, evidenceCommit)
   ));
 }
 
@@ -377,7 +454,591 @@ function baseInput(overrides: Partial<CommercialUiGovernanceInput> = {}): Commer
   };
 }
 
+const interactiveLearningProductQaMatrixIds = [
+  'atlas-desktop-light',
+  'course-catalog-mobile-dark',
+  'chapter-components-desktop-light',
+  'cross-domain-list-mobile-light',
+  'course-entry-desktop-light',
+  'teacher-waiting-desktop-light',
+  'student-runtime-desktop-light',
+  'guest-runtime-mobile-dark',
+  'teacher-projection-desktop-dark',
+  'invalid-session-desktop-light',
+  'module-chrome-student-choice-mobile',
+  'konling-dock-collapsed-desktop',
+  'focus-management-keyboard',
+] as const;
+
+const interactiveLearningProductQaConceptImages = [
+  'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png',
+  'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/02-course-entry-shell.png',
+  'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/01-course-catalog-theory-practice.png',
+  'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/02-teacher-classroom-qr-waiting.png',
+  'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+  'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/06-teacher-projection-runtime-compact-navigation.png',
+] as const;
+
+const interactiveLearningProductQaMatrixMetadata = {
+  'atlas-desktop-light': {
+    route: '/interactive-learning',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png',
+  },
+  'course-catalog-mobile-dark': {
+    route: '/interactive-learning/courses',
+    role: 'student',
+    theme: 'dark',
+    viewport: 'mobile',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/01-course-catalog-theory-practice.png',
+  },
+  'chapter-components-desktop-light': {
+    route: '/interactive-learning/chapter-components',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png',
+  },
+  'cross-domain-list-mobile-light': {
+    route: '/interactive-learning/cross-domain-exploration',
+    role: 'student',
+    theme: 'light',
+    viewport: 'mobile',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png',
+  },
+  'course-entry-desktop-light': {
+    route: '/interactive-learning/courses/unit-1-1-see-the-full-picture',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/02-course-entry-shell.png',
+  },
+  'teacher-waiting-desktop-light': {
+    route: '/interactive-learning/courses/[courseId]/teacher/[sessionId]/waiting',
+    role: 'teacher',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/02-teacher-classroom-qr-waiting.png',
+  },
+  'student-runtime-desktop-light': {
+    route: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+  },
+  'guest-runtime-mobile-dark': {
+    route: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo',
+    role: 'guest',
+    theme: 'dark',
+    viewport: 'mobile',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+  },
+  'teacher-projection-desktop-dark': {
+    route: '/interactive-learning/courses/unit-4-1-design-task-expression/teacher/[sessionId]',
+    role: 'teacher',
+    theme: 'dark',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/06-teacher-projection-runtime-compact-navigation.png',
+  },
+  'invalid-session-desktop-light': {
+    route: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+  },
+  'module-chrome-student-choice-mobile': {
+    route: '/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]',
+    role: 'student',
+    theme: 'light',
+    viewport: 'mobile',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+  },
+  'konling-dock-collapsed-desktop': {
+    route: '/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+  },
+  'focus-management-keyboard': {
+    route: '/interactive-learning/courses/unit-4-1-design-task-expression/teacher/[sessionId]',
+    role: 'teacher',
+    theme: 'light',
+    viewport: 'desktop',
+    sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/06-teacher-projection-runtime-compact-navigation.png',
+  },
+} as const;
+
+function completeInteractiveLearningProductQaEvidence(
+  overrides: Partial<CommercialInteractiveLearningProductQaEvidence> = {},
+): CommercialInteractiveLearningProductQaEvidence {
+  const reportSha256 = 'report-sha';
+  return {
+    change: 'govern-interactive-learning-product-qa',
+    generatedAt: '2026-06-15T10:00:00+08:00',
+    sourceCommit: '16f779a1f',
+    designHandoff: 'artifacts/product-design-audits/interactive-learning-2026-06-14/design-handoff.md',
+    designHandoffSha256: 'handoff-sha',
+    currentDesignHandoffSha256: 'handoff-sha',
+    handoffMatrix: 'artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/handoff-to-implementation-matrix.md',
+    handoffMatrixSha256: 'matrix-sha',
+    currentHandoffMatrixSha256: 'matrix-sha',
+    conceptImages: interactiveLearningProductQaConceptImages,
+    conceptImageSha256: Object.fromEntries(interactiveLearningProductQaConceptImages.map((conceptImage) => [
+      conceptImage,
+      'concept-sha',
+    ])),
+    currentConceptImageSha256: Object.fromEntries(interactiveLearningProductQaConceptImages.map((conceptImage) => [
+      conceptImage,
+      'concept-sha',
+    ])),
+    childDesignQaReports: [
+      'unify-interactive-learning-atlas-shell',
+      'migrate-interactive-course-entry-shell',
+      'standardize-interactive-classroom-entry',
+      'standardize-lesson-runtime-shell',
+      'define-interactive-module-visual-standards',
+    ].map((change) => ({
+      change,
+      report: `artifacts/${change}/design-qa.md`,
+      reportSha256,
+      currentReportSha256: reportSha256,
+      finalResult: 'passed',
+      reportFinalResult: 'passed',
+    })),
+    routeMatrix: interactiveLearningProductQaMatrixIds.map((id) => ({
+      id,
+      ...interactiveLearningProductQaMatrixMetadata[id],
+      navigationState: 'desktop-collapsed',
+      dockState: 'collapsed',
+      pageState: 'covered',
+      moduleState: 'covered',
+      result: 'passed',
+    })),
+    independentVisualReview: {
+      status: 'passed',
+      reviewer: 'ui-flow-reviewer',
+      report: 'artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/independent-visual-review.md',
+      reportSha256,
+      currentReportSha256: reportSha256,
+      reportHasPassVerdict: true,
+      reportHasNoUnresolvedBlocks: true,
+    },
+    regressionChecks: {
+      sharedShellNavigationDock: true,
+      teacherNoStudentInputs: true,
+      teacherNoPermanentRightDrawer: true,
+      teacherNoTopDuplicateNext: true,
+      teacherBottomNavHasPageJump: true,
+      konlingRightBottomOnly: true,
+      studentGuestNoTeacherStats: true,
+      courseShellNoPrimaryPremiumLessonShell: true,
+      standardModuleChromeRegistered: true,
+    },
+    temporaryExceptions: [],
+    ...overrides,
+  };
+}
+
 describe('commercial UI governance', () => {
+  it('does not require final interactive learning product QA evidence outside the scoped change', () => {
+    const result = evaluateCommercialUiGovernance(baseInput());
+
+    expect(result.blockingViolations).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+        }),
+      ]),
+    );
+  });
+
+  it('requires final interactive learning product QA evidence when the scoped change is under review', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          rule: 'interactive-learning-product-qa.missing-evidence',
+        }),
+      ]),
+    );
+  });
+
+  it('fails stale final interactive learning product QA evidence when persisted hashes drift', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: completeInteractiveLearningProductQaEvidence({
+        handoffMatrixSha256: 'old-matrix-sha',
+        currentHandoffMatrixSha256: 'new-matrix-sha',
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          rule: 'interactive-learning-product-qa.incomplete-evidence',
+          evidence: expect.arrayContaining(['handoffMatrixSha256=current']),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final interactive learning product QA evidence with incomplete route matrix metadata', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: completeInteractiveLearningProductQaEvidence({
+        routeMatrix: completeInteractiveLearningProductQaEvidence().routeMatrix.map((entry, index) => (
+          index === 0 ? { ...entry, role: undefined as never, navigationState: undefined as never } : entry
+        )),
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            'routeMatrix.atlas-desktop-light.role',
+            'routeMatrix.atlas-desktop-light.navigationState',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final interactive learning product QA evidence without throwing on malformed runtime schema', () => {
+    expect(() => evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: {
+        ...completeInteractiveLearningProductQaEvidence({
+          parseError: 'Unexpected token',
+        }),
+        childDesignQaReports: [null],
+        routeMatrix: [null],
+        temporaryExceptions: [null],
+      } as unknown as CommercialInteractiveLearningProductQaEvidence,
+    }))).not.toThrow();
+
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: {
+        ...completeInteractiveLearningProductQaEvidence({
+          parseError: 'Unexpected token',
+        }),
+        childDesignQaReports: [null],
+        routeMatrix: [null],
+        temporaryExceptions: [null],
+      } as unknown as CommercialInteractiveLearningProductQaEvidence,
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            'parseError=Unexpected token',
+            'childDesignQaReports.entry=object',
+            'routeMatrix.entry=object',
+            'temporaryExceptions.entry=object',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('keeps malformed final interactive learning product QA script input as governance evidence', () => {
+    const hydrated = hydrateInteractiveLearningProductQaEvidence({
+      ...completeInteractiveLearningProductQaEvidence(),
+      childDesignQaReports: [null],
+      routeMatrix: [null],
+      temporaryExceptions: [null],
+    });
+
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: hydrated,
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            'childDesignQaReports.entry=object',
+            'routeMatrix.entry=object',
+            'temporaryExceptions.entry=object',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('keeps malformed independent visual review script input as governance evidence', () => {
+    for (const independentVisualReview of [null, []]) {
+      expect(() => hydrateInteractiveLearningProductQaEvidence({
+        ...completeInteractiveLearningProductQaEvidence(),
+        independentVisualReview,
+      })).not.toThrow();
+
+      const result = evaluateCommercialUiGovernance(baseInput({
+        interactiveLearningProductQaRequired: true,
+        interactiveLearningProductQa: hydrateInteractiveLearningProductQaEvidence({
+          ...completeInteractiveLearningProductQaEvidence(),
+          independentVisualReview,
+        }),
+      }));
+
+      expect(result.passed).toBe(false);
+      expect(result.blockingViolations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            category: 'interactive-learning-product-qa',
+            evidence: expect.arrayContaining(['independentVisualReview=object']),
+          }),
+        ]),
+      );
+    }
+  });
+
+  it('fails final interactive learning product QA evidence with invalid route matrix enum values', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: completeInteractiveLearningProductQaEvidence({
+        routeMatrix: completeInteractiveLearningProductQaEvidence().routeMatrix.map((entry, index) => (
+          index === 0
+            ? {
+                ...entry,
+                role: 'learner' as never,
+                theme: 'contrast' as never,
+                viewport: 'tablet' as never,
+                navigationState: 'sidecar' as never,
+                dockState: 'floating' as never,
+              }
+            : entry
+        )),
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            'routeMatrix.atlas-desktop-light.role=valid',
+            'routeMatrix.atlas-desktop-light.theme=valid',
+            'routeMatrix.atlas-desktop-light.viewport=valid',
+            'routeMatrix.atlas-desktop-light.navigationState=valid',
+            'routeMatrix.atlas-desktop-light.dockState=valid',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final interactive learning product QA evidence when source changes do not refresh final evidence', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQaSourceRefreshRequired: true,
+      interactiveLearningProductQaEvidenceRefreshed: false,
+      interactiveLearningProductQa: completeInteractiveLearningProductQaEvidence(),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining(['sourceCommit=refreshed-for-current-source-change']),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final interactive learning product QA evidence when a route matrix id carries the wrong fixed metadata', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: completeInteractiveLearningProductQaEvidence({
+        routeMatrix: completeInteractiveLearningProductQaEvidence().routeMatrix.map((entry, index) => (
+          index === 0
+            ? {
+                ...entry,
+                route: '/interactive-learning/courses',
+                role: 'teacher',
+                theme: 'dark',
+                viewport: 'mobile',
+                sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+              }
+            : entry
+        )),
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            'routeMatrix.atlas-desktop-light.route=/interactive-learning',
+            'routeMatrix.atlas-desktop-light.role=student',
+            'routeMatrix.atlas-desktop-light.theme=light',
+            'routeMatrix.atlas-desktop-light.viewport=desktop',
+            'routeMatrix.atlas-desktop-light.sourceConcept=artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final interactive learning product QA evidence when route matrix cites an unaccepted source concept', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: completeInteractiveLearningProductQaEvidence({
+        routeMatrix: completeInteractiveLearningProductQaEvidence().routeMatrix.map((entry, index) => (
+          index === 0
+            ? {
+                ...entry,
+                sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/unaccepted.png',
+              }
+            : entry
+        )),
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            'routeMatrix.atlas-desktop-light.sourceConcept=accepted-concept-image',
+            'routeMatrix.atlas-desktop-light.sourceConceptSha256',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final interactive learning product QA evidence when route matrix source concept hash drifts', () => {
+    const evidence = completeInteractiveLearningProductQaEvidence();
+    const sourceConcept = evidence.conceptImages[0];
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: {
+        ...evidence,
+        routeMatrix: evidence.routeMatrix.map((entry, index) => (
+          index === 0 ? { ...entry, sourceConcept } : entry
+        )),
+        currentConceptImageSha256: {
+          ...evidence.currentConceptImageSha256,
+          [sourceConcept]: 'stale-concept-sha',
+        },
+      },
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            `conceptImageSha256.${sourceConcept}=current`,
+            'routeMatrix.atlas-desktop-light.sourceConceptSha256=current',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final interactive learning product QA evidence when child design QA report gates drift', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: completeInteractiveLearningProductQaEvidence({
+        childDesignQaReports: completeInteractiveLearningProductQaEvidence().childDesignQaReports.map((entry, index) => (
+          index === 0
+            ? {
+                ...entry,
+                finalResult: 'blocked',
+                reportFinalResult: 'missing',
+                reportSha256: 'expected-report-sha',
+                currentReportSha256: 'current-report-sha',
+              }
+            : entry
+        )),
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            'childDesignQaReports.unify-interactive-learning-atlas-shell.finalResult=passed',
+            'childDesignQaReports.unify-interactive-learning-atlas-shell.reportFinalResult=passed',
+            'childDesignQaReports.unify-interactive-learning-atlas-shell.reportSha256=current',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final interactive learning product QA evidence without an explicit clean independent review report', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: completeInteractiveLearningProductQaEvidence({
+        independentVisualReview: {
+          ...completeInteractiveLearningProductQaEvidence().independentVisualReview,
+          reportSha256: 'expected-review-sha',
+          currentReportSha256: 'current-review-sha',
+          reportHasPassVerdict: false,
+          reportHasNoUnresolvedBlocks: false,
+        },
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            'independentVisualReview.reportSha256=current',
+            'independentVisualReview.reportHasPassVerdict=true',
+            'independentVisualReview.reportHasNoUnresolvedBlocks=true',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('parses independent visual review text with a negative unresolved BLOCK guard', () => {
+    expect(interactiveLearningReviewHasNoUnresolvedBlocks([
+      'Final verdict: PASS',
+      'No unresolved BLOCK findings remain.',
+    ].join('\n'))).toBe(true);
+    expect(interactiveLearningReviewHasNoUnresolvedBlocks([
+      'Final verdict: PASS',
+      'No unresolved BLOCK findings remain.',
+      'Unresolved BLOCK: stale route matrix still exists.',
+    ].join('\n'))).toBe(false);
+  });
+
   it('defines premium platform visual QA routes for light, dark, desktop, mobile, and dock placement', () => {
     expect(PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.map((route) => route.href)).toEqual([
       '/',
@@ -1864,14 +2525,21 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('const isMobileViewport = numberFromEvidence(viewport.width) === 320;');
     expect(scriptSource).toContain('const activeLocalToolMarker = isMobileViewport ? markers.mobileActiveTool : markers.desktopActiveTool;');
     expect(scriptSource).toContain('const visibleLocalToolPanelState = isMobileViewport ? markers.mobileToolState : markers.desktopToolState;');
-    expect(scriptSource).toContain("visibleLocalToolPanelState === 'closed' ? null : `${name}:local-tool-marker-state`");
+    expect(scriptSource).toContain("visibleLocalToolPanelState === 'closed' || (name.includes('konling') && visibleLocalToolPanelState === null)");
     expect(scriptSource).toContain("activeLocalToolMarker === state.localToolState && visibleLocalToolPanelState === 'open'");
     expect(scriptSource).not.toContain("markers.desktopToolState === 'open'");
     expect(scriptSource).not.toContain("markers.mobileToolState === 'open'");
     expect(scriptSource).toContain("method ?? '') === 'pointer-drag'");
     expect(scriptSource).not.toContain('pinControl).pinned === true');
     expect(captureScriptSource).toContain('__knowledgeGraphProductQaSelectedNodeDragPoints');
-    expect(captureScriptSource).toContain('hoveredCanvasNodeDragPointCandidates');
+    expect(captureScriptSource).toContain('selectedNodeHoverDragPointCandidates');
+    expect(captureScriptSource).toContain('hoverText.includes(expectedLabel)');
+    expect(captureScriptSource).not.toContain('hoveredCanvasNodeDragPointCandidates');
+    expect(captureScriptSource).toContain('async function dragCanvasNodeUntilPinned(page: Page, expectedNodeId: string)');
+    expect(captureScriptSource).toContain('pinnedLayoutSignature.includes(expectedNodeId)');
+    expect(captureScriptSource).toContain('dragCanvasNodeUntilPinned(page, selectedNodeId)');
+    expect(scriptSource).toContain('objectRecord(objectRecord(state.interactionEvidence).drag).selectedNodeId === state.selectedNode');
+    expect(scriptSource).toContain("pinnedLayoutSignature).includes(String(state.selectedNode ?? ''))");
     expect(captureScriptSource).toContain("document.querySelector('[data-knowledge-local-panel=\"node-hover-preview\"]')");
     expect(captureScriptSource).not.toContain('__knowledgeGraphProductQaDragSelectedNode');
     expect(captureScriptSource).not.toContain("method: 'drag-end-handler'");
@@ -1882,9 +2550,170 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain('async function captureFocusEvidence(browser: Browser)');
     expect(captureScriptSource).toContain('const focusEvidence = await captureFocusEvidence(browser);');
     expect(captureScriptSource).toContain('focusEvidence,');
+    expect(captureScriptSource).toContain("'src/features/knowledge/graph/knowledge-graph-2d.tsx'");
+    expect(captureScriptSource).toContain("'src/features/knowledge/graph/visual-config.ts'");
+    expect(captureScriptSource).toContain("'src/components/ai/global-ai-button.tsx'");
+    expect(captureScriptSource).toContain("'src/components/ai/global-ai-sidebar.tsx'");
+    expect(captureScriptSource).toContain("'src/components/shared/page-floating-controls.tsx'");
+    expect(captureScriptSource).toContain("'src/app/globals.css'");
+    expect(captureScriptSource).toContain("'desktop-local-tools-directory-dark'");
+    expect(captureScriptSource).toContain("openDesktopTool(page, 'chapter-directory')");
+    expect(captureScriptSource).toContain('button[aria-label="呼出控灵 AI助手"]');
+    expect(captureScriptSource).toContain('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
+    expect(captureScriptSource).toContain('konlingAssistantSurface');
+    expect(captureScriptSource).toContain('data-konling-knowledge-context');
+    expect(scriptSource).toContain('expectedKonlingContext');
+    expect(scriptSource).toContain('markers.konlingKnowledgeContext === expectedKonlingContext');
+    expect(scriptSource).toContain('const productQaSourcePaths = [');
+    expect(scriptSource).toContain('globalAiButtonSourcePath');
+    expect(scriptSource).toContain('globalAiSidebarSourcePath');
+    expect(scriptSource).toContain('graph2dSourcePath');
+    expect(scriptSource).toContain('floatingControlsSourcePath');
+    expect(scriptSource).toContain("['desktop-local-tools-directory-dark', 'dark', 1440, 'collapsed', 'collapsed']");
+    expect(scriptSource).toContain("markers.konlingAssistantSurface === 'global-sidebar'");
     expect(captureScriptSource).toContain('openedFocusManaged');
     expect(captureScriptSource).toContain('keyboardReachable');
+    expect(captureScriptSource).toContain('panelClosed && await activeElementWithin(page, returnSelector)');
+    expect(captureScriptSource).toContain("'[data-knowledge-canvas-primary=\"true\"]'");
     expect(captureScriptSource).not.toContain("{ target: 'desktop-local-tools', openedFocusManaged: true");
+    expect(captureScriptSource).toContain('function readExistingIndependentVisualReview');
+    expect(captureScriptSource).toContain("record.finalResult !== 'passed'");
+    expect(captureScriptSource).toContain('blockingFindings.length !== 0');
+    expect(captureScriptSource).toContain('stringRecordsMatch(reviewedStateSha256, currentStateSha256)');
+    expect(captureScriptSource).toContain('stringRecordsMatch(reviewedSourceSha256, currentSourceSha256)');
+    expect(captureScriptSource).toContain('readExistingIndependentVisualReview(stateMatrix, currentSourceSha256)');
+    expect(captureScriptSource).not.toContain('parsed.stateMatrix');
+    expect(captureScriptSource).not.toContain('parsed.currentSourceSha256');
+    expect(scriptSource).toContain('visual-review:stale-screenshot-review');
+    expect(scriptSource).toContain('visual-review:stale-source-review');
+  });
+
+  it('requires final interactive learning product QA when referenced evidence artifacts change', () => {
+    const scriptSource = readFileSync(join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'), 'utf8');
+
+    expect(scriptSource).toContain('function interactiveLearningProductQaEvidenceArtifactPaths');
+    expect(scriptSource).toContain('INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH');
+    expect(scriptSource).toContain('addPath(evidence.designHandoff)');
+    expect(scriptSource).toContain('addPath(evidence.handoffMatrix)');
+    expect(scriptSource).toContain('for (const conceptImage of evidence.conceptImages) addPath(conceptImage)');
+    expect(scriptSource).toContain('if (isPlainObject(route)) addPath(route.sourceConcept)');
+    expect(scriptSource).toContain('if (isPlainObject(report)) addPath(report.report)');
+    expect(scriptSource).toContain('addPath(evidence.independentVisualReview.report)');
+    expect(scriptSource).toContain('referencedProductQaArtifacts.has(file)');
+    expect(scriptSource).toContain('INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES');
+    expect(scriptSource).toContain("'src/app/interactive-learning/'");
+    expect(scriptSource).toContain("'src/features/interactive/'");
+    expect(scriptSource).toContain("'src/features/lesson-engine/'");
+    expect(scriptSource).toContain('INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix))');
+    expect(scriptSource).toContain('function latestInteractiveLearningProductQaSourceCommits');
+    expect(scriptSource).toContain("git(['log', '-1', '--format=%H', '--', file])");
+    expect(scriptSource).toContain('latestCommitForPath(INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH)');
+    expect(scriptSource).toContain("execFileSync('git', ['merge-base', '--is-ancestor', ancestor, descendant]");
+    expect(scriptSource).toContain('latestSourceCommits.every((sourceCommit)');
+    expect(scriptSource).toContain('interactiveLearningProductQaEvidenceCoversLatestSource(files)');
+  });
+
+  it('rejects stale final interactive learning product QA evidence across source commit topology', () => {
+    const evidencePath = 'artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/final-product-qa.json';
+    const sourceA = 'src/features/interactive/source-a.ts';
+    const sourceB = 'src/features/lesson-engine/source-b.ts';
+    const sourceC = 'src/app/interactive-learning/source-c.ts';
+    const sourcePrefixes = ['src/features/interactive/', 'src/features/lesson-engine/'];
+
+    const linearRepo = initTempGitRepo('interactive-product-qa-linear-');
+    commitTempFile(linearRepo, sourceA, 'export const sourceA = 1;\n', 'source a initial');
+    commitTempFile(linearRepo, evidencePath, '{"sourceCommit":"after-source-a"}\n', 'qa after source a');
+    commitTempFile(linearRepo, sourceA, 'export const sourceA = 2;\n', 'source a after qa');
+
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      linearRepo,
+      [sourceA, evidencePath],
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(false);
+
+    commitTempFile(linearRepo, evidencePath, '{"sourceCommit":"after-source-a-refresh"}\n', 'qa after source a refresh');
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      linearRepo,
+      [sourceA, evidencePath],
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(true);
+
+    const nonlinearRepo = initTempGitRepo('interactive-product-qa-nonlinear-');
+    const sourceABase = commitTempFile(nonlinearRepo, sourceA, 'export const sourceA = 1;\n', 'source a initial');
+    commitTempFile(nonlinearRepo, evidencePath, '{"sourceCommit":"after-source-a"}\n', 'qa after source a');
+    runTempGit(nonlinearRepo, ['checkout', '-b', 'source-b-side', sourceABase]);
+    commitTempFile(nonlinearRepo, sourceB, 'export const sourceB = 1;\n', 'source b side');
+    runTempGit(nonlinearRepo, ['checkout', 'main']);
+    runTempGit(nonlinearRepo, ['merge', '--no-ff', 'source-b-side', '-m', 'merge source b side']);
+
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      nonlinearRepo,
+      [sourceA, sourceB, evidencePath],
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(false);
+
+    commitTempFile(nonlinearRepo, evidencePath, '{"sourceCommit":"after-merge-refresh"}\n', 'qa after merge refresh');
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      nonlinearRepo,
+      [sourceA, sourceB, evidencePath],
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(true);
+
+    const dirtyRepo = initTempGitRepo('interactive-product-qa-dirty-');
+    commitTempFile(dirtyRepo, sourceA, 'export const sourceA = 1;\n', 'source a initial');
+    commitTempFile(dirtyRepo, evidencePath, '{"sourceCommit":"after-source-a"}\n', 'qa after source a');
+    writeFileSync(join(dirtyRepo, sourceA), 'export const sourceA = 2;\n');
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      dirtyRepo,
+      tempChangedFiles(dirtyRepo),
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(false);
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      dirtyRepo,
+      [sourceA, evidencePath],
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(false);
+
+    runTempGit(dirtyRepo, ['add', sourceA]);
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      dirtyRepo,
+      tempChangedFiles(dirtyRepo),
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(false);
+
+    writeFileSync(join(dirtyRepo, evidencePath), '{"sourceCommit":"dirty-source-a-refresh"}\n');
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      dirtyRepo,
+      tempChangedFiles(dirtyRepo),
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(true);
+
+    runTempGit(dirtyRepo, ['add', sourceA, evidencePath]);
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      dirtyRepo,
+      tempChangedFiles(dirtyRepo),
+      evidencePath,
+      sourcePrefixes,
+    )).toBe(true);
+    runTempGit(dirtyRepo, ['commit', '-m', 'qa after dirty source refresh']);
+
+    const untrackedPath = join(dirtyRepo, sourceC);
+    mkdirSync(dirname(untrackedPath), { recursive: true });
+    writeFileSync(untrackedPath, 'export const sourceC = 1;\n');
+    expect(tempInteractiveLearningProductQaEvidenceCoversSource(
+      dirtyRepo,
+      tempChangedFiles(dirtyRepo),
+      evidencePath,
+      [...sourcePrefixes, 'src/app/interactive-learning/'],
+    )).toBe(false);
   });
 
   it('filters React Doctor owned-surface diagnostics and keeps large JSON stdout parseable', () => {

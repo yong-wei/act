@@ -12,6 +12,7 @@ import {
   evaluateCommercialUiGovernance,
   type CommercialAccessibilityTextFitEvidence,
   type CommercialVisualAcceptanceRoute,
+  type CommercialInteractiveLearningProductQaEvidence,
   type CommercialModuleChromeInventoryEntry,
   type CommercialNavigationCoverageInput,
   type CommercialShellInventoryEntry,
@@ -66,6 +67,28 @@ function gitRequired(args: string[], message: string) {
 
 function hasGitRef(ref: string) {
   return git(['rev-parse', '--verify', ref]).trim().length > 0;
+}
+
+function isAncestorCommit(ancestor: string, descendant: string) {
+  try {
+    execFileSync('git', ['merge-base', '--is-ancestor', ancestor, descendant], {
+      cwd: repoRoot,
+      stdio: ['ignore', 'ignore', 'ignore'],
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function latestCommitForPath(file: string) {
+  return git(['log', '-1', '--format=%H', '--', file]).trim();
+}
+
+function hasUncommittedPathChange(file: string) {
+  return diffNameStatus(['--', file]).includes(file)
+    || diffNameStatus(['--cached', '--', file]).includes(file)
+    || lines(git(['ls-files', '--others', '--exclude-standard', '--', file])).includes(file);
 }
 
 function lines(output: string) {
@@ -632,6 +655,214 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
   }));
 }
 
+const INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH =
+  'artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/final-product-qa.json';
+const INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES = [
+  'src/app/interactive-learning/',
+  'src/features/interactive/',
+  'src/features/lesson-engine/',
+] as const;
+
+function readInteractiveLearningProductQaEvidence(): CommercialInteractiveLearningProductQaEvidence | undefined {
+  const evidencePath = path.join(repoRoot, INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH);
+  if (!existsSync(evidencePath)) return undefined;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(readFileSync(evidencePath, 'utf8'));
+  } catch (error) {
+    return {
+      change: 'govern-interactive-learning-product-qa',
+      parseError: error instanceof Error ? error.message : 'invalid JSON',
+      designHandoff: '',
+      handoffMatrix: '',
+      conceptImages: [],
+      childDesignQaReports: [],
+      routeMatrix: [],
+      independentVisualReview: {
+        status: 'not-run',
+        reviewer: '',
+        report: '',
+      },
+      regressionChecks: {},
+      temporaryExceptions: [],
+    };
+  }
+  return hydrateInteractiveLearningProductQaEvidence(parsed);
+}
+
+export function hydrateInteractiveLearningProductQaEvidence(
+  parsed: unknown,
+): CommercialInteractiveLearningProductQaEvidence {
+  const evidence = typeof parsed === 'object' && parsed !== null
+    ? parsed as Partial<CommercialInteractiveLearningProductQaEvidence>
+    : {};
+  const conceptImages = Array.isArray(evidence.conceptImages) ? evidence.conceptImages : [];
+  const childDesignQaReports = Array.isArray(evidence.childDesignQaReports) ? evidence.childDesignQaReports : [];
+  const routeMatrix = Array.isArray(evidence.routeMatrix) ? evidence.routeMatrix : [];
+  const temporaryExceptions = Array.isArray(evidence.temporaryExceptions) ? evidence.temporaryExceptions : [];
+  const independentVisualReview = isPlainObject(evidence.independentVisualReview)
+    ? evidence.independentVisualReview
+    : undefined;
+  const conceptImageSha256 = Object.fromEntries(
+    conceptImages.filter((conceptImage): conceptImage is string => typeof conceptImage === 'string').map((conceptImage) => [
+      conceptImage,
+      simulationViewportArtifact(conceptImage)?.sha256 ?? '',
+    ]),
+  );
+  const independentReviewPath = typeof independentVisualReview?.report === 'string'
+    && independentVisualReview.report.trim()
+    ? independentVisualReview.report
+    : undefined;
+  const independentReviewReport = independentReviewPath
+    ? readOptionalText(independentReviewPath)
+    : '';
+  return {
+    ...evidence,
+    change: evidence.change ?? 'govern-interactive-learning-product-qa',
+    designHandoff: evidence.designHandoff ?? '',
+    currentDesignHandoffSha256: evidence.designHandoff
+      ? simulationViewportArtifact(evidence.designHandoff)?.sha256
+      : undefined,
+    handoffMatrix: evidence.handoffMatrix ?? '',
+    currentHandoffMatrixSha256: evidence.handoffMatrix
+      ? simulationViewportArtifact(evidence.handoffMatrix)?.sha256
+      : undefined,
+    conceptImages,
+    currentConceptImageSha256: conceptImageSha256,
+    routeMatrix,
+    temporaryExceptions,
+    childDesignQaReports: childDesignQaReports.map((report) => {
+      if (!isPlainObject(report)) return report;
+      return {
+        ...report,
+        currentReportSha256: typeof report.report === 'string'
+          ? simulationViewportArtifact(report.report)?.sha256
+          : undefined,
+        reportFinalResult: typeof report.report === 'string'
+          ? parseInteractiveLearningDesignQaResult(report.report)
+          : 'missing',
+      };
+    }),
+    independentVisualReview: independentVisualReview
+      ? {
+          ...independentVisualReview,
+          currentReportSha256: independentReviewPath
+            ? simulationViewportArtifact(independentReviewPath)?.sha256
+            : undefined,
+          reportHasPassVerdict: /final verdict:\s*pass/i.test(independentReviewReport),
+          reportHasNoUnresolvedBlocks: interactiveLearningReviewHasNoUnresolvedBlocks(independentReviewReport),
+        }
+      : Object.hasOwn(evidence, 'independentVisualReview')
+        ? evidence.independentVisualReview
+        : {
+            status: 'not-run',
+            reviewer: '',
+            report: '',
+          },
+    regressionChecks: evidence.regressionChecks ?? {},
+  } as CommercialInteractiveLearningProductQaEvidence;
+}
+
+function interactiveLearningProductQaEvidenceArtifactPaths() {
+  const paths = new Set<string>([INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH]);
+  const evidencePath = path.join(repoRoot, INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH);
+  if (!existsSync(evidencePath)) return paths;
+
+  let evidence: unknown;
+  try {
+    evidence = JSON.parse(readFileSync(evidencePath, 'utf8'));
+  } catch {
+    return paths;
+  }
+  if (!isPlainObject(evidence)) return paths;
+
+  const addPath = (value: unknown) => {
+    if (typeof value === 'string' && value.trim()) paths.add(value);
+  };
+  addPath(evidence.designHandoff);
+  addPath(evidence.handoffMatrix);
+  if (Array.isArray(evidence.conceptImages)) {
+    for (const conceptImage of evidence.conceptImages) addPath(conceptImage);
+  }
+  if (Array.isArray(evidence.routeMatrix)) {
+    for (const route of evidence.routeMatrix) {
+      if (isPlainObject(route)) addPath(route.sourceConcept);
+    }
+  }
+  if (Array.isArray(evidence.childDesignQaReports)) {
+    for (const report of evidence.childDesignQaReports) {
+      if (isPlainObject(report)) addPath(report.report);
+    }
+  }
+  if (isPlainObject(evidence.independentVisualReview)) {
+    addPath(evidence.independentVisualReview.report);
+  }
+  return paths;
+}
+
+export function interactiveLearningReviewHasNoUnresolvedBlocks(report: string) {
+  const reportWithoutCleanPhrase = report.replace(/no unresolved block findings remain/ig, '');
+  return /no unresolved block findings remain/i.test(report)
+    && !/unresolved\s+block/i.test(reportWithoutCleanPhrase);
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function readOptionalText(relativePath: string) {
+  if (!relativePath.trim()) return '';
+  const absolutePath = path.join(repoRoot, relativePath);
+  try {
+    return existsSync(absolutePath) ? readFileSync(absolutePath, 'utf8') : '';
+  } catch {
+    return '';
+  }
+}
+
+function parseInteractiveLearningDesignQaResult(relativePath?: string) {
+  if (!relativePath) return 'missing';
+  const content = readOptionalText(relativePath);
+  if (/final result:?\s*(?:\n\s*)?passed/i.test(content)) return 'passed';
+  if (/final result:?\s*(?:\n\s*)?blocked/i.test(content)) return 'blocked';
+  return 'missing';
+}
+
+function shouldRequireInteractiveLearningProductQa(files: readonly string[]) {
+  const referencedProductQaArtifacts = interactiveLearningProductQaEvidenceArtifactPaths();
+  return files.some((file) => (
+    file.startsWith('openspec/changes/govern-interactive-learning-product-qa/')
+    || (file.startsWith('openspec/changes/archive/')
+      && file.includes('/govern-interactive-learning-product-qa/'))
+    || file.startsWith('artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/')
+    || referencedProductQaArtifacts.has(file)
+    || INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix))
+    || file === 'src/lib/commercial-ui-governance.ts'
+    || file === 'scripts/tests/test-commercial-ui-governance.ts'
+  ));
+}
+
+function latestInteractiveLearningProductQaSourceCommits(files: readonly string[]) {
+  return Array.from(new Set(files
+    .filter((file) => INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix)))
+    .map(latestCommitForPath)
+    .filter(Boolean)));
+}
+
+function interactiveLearningProductQaEvidenceCoversLatestSource(files: readonly string[]) {
+  const sourceFiles = files.filter((file) => (
+    INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix))
+  ));
+  const hasUncommittedSourceChange = sourceFiles.some(hasUncommittedPathChange);
+  if (hasUncommittedSourceChange) return hasUncommittedPathChange(INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH);
+  const latestSourceCommits = latestInteractiveLearningProductQaSourceCommits(files);
+  if (latestSourceCommits.length === 0) return true;
+  const evidenceCommit = latestCommitForPath(INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH);
+  return Boolean(evidenceCommit) && latestSourceCommits.every((sourceCommit) => (
+    isAncestorCommit(sourceCommit, evidenceCommit)
+  ));
+}
+
 function simulationSharedDetailRouteAffected(routeHref: string, files: readonly string[]) {
   if (!routeHref.startsWith('/simulations/')) return false;
   return files.some((file) => (
@@ -716,6 +947,20 @@ function objectRecord(value: unknown): JsonRecord {
 
 function stringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string') : [];
+}
+
+function stringRecord(value: unknown): Record<string, string> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const entries = Object.entries(value as JsonRecord)
+    .filter((entry): entry is [string, string] => typeof entry[1] === 'string');
+  return entries.length === Object.keys(value).length ? Object.fromEntries(entries) : {};
+}
+
+function stringRecordsEqual(left: Record<string, string>, right: Record<string, string>) {
+  const leftKeys = Object.keys(left).sort();
+  const rightKeys = Object.keys(right).sort();
+  return leftKeys.length === rightKeys.length
+    && leftKeys.every((key, index) => key === rightKeys[index] && left[key] === right[key]);
 }
 
 function readRuntimeKnowledgeRelationCounts() {
@@ -1192,9 +1437,27 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
 function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceViolation[] {
   const evidence = readJsonFile<JsonRecord>(KNOWLEDGE_WORKSPACE_PRODUCT_QA_EVIDENCE_PATH);
   const graphSourcePath = 'src/features/knowledge/knowledge-graph-system.tsx';
+  const graph2dSourcePath = 'src/features/knowledge/graph/knowledge-graph-2d.tsx';
+  const graphVisualConfigSourcePath = 'src/features/knowledge/graph/visual-config.ts';
   const resourcePanelSourcePath = 'src/features/knowledge/resource-panel/resource-panel.tsx';
+  const globalAiButtonSourcePath = 'src/components/ai/global-ai-button.tsx';
+  const globalAiSidebarSourcePath = 'src/components/ai/global-ai-sidebar.tsx';
   const appShellSourcePath = 'src/components/platform/app-shell.tsx';
+  const floatingControlsSourcePath = 'src/components/shared/page-floating-controls.tsx';
+  const globalsSourcePath = 'src/app/globals.css';
   const konlingRuntimeSourcePath = 'src/lib/konling-agent-runtime.ts';
+  const productQaSourcePaths = [
+    graphSourcePath,
+    graph2dSourcePath,
+    graphVisualConfigSourcePath,
+    resourcePanelSourcePath,
+    globalAiButtonSourcePath,
+    globalAiSidebarSourcePath,
+    appShellSourcePath,
+    floatingControlsSourcePath,
+    globalsSourcePath,
+    konlingRuntimeSourcePath,
+  ];
   const graphSource = existsSync(path.join(repoRoot, graphSourcePath))
     ? readFileSync(path.join(repoRoot, graphSourcePath), 'utf8')
     : '';
@@ -1240,15 +1503,21 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       .map((entry) => [typeof entry.name === 'string' ? entry.name : '', entry] as const)
       .filter(([name]) => name.length > 0),
   );
+  const stateScreenshotSha256 = Object.fromEntries(states.flatMap((state) => (
+    typeof state.name === 'string' && typeof state.screenshotSha256 === 'string'
+      ? [[state.name, state.screenshotSha256]]
+      : []
+  )));
   const requiredStates = [
     ['desktop-default-collapsed-dark', 'dark', 1440, 'collapsed', 'collapsed'],
     ['desktop-expanded-persisted-dark', 'dark', 1440, 'expanded', 'collapsed'],
     ['desktop-local-tools-legend-dark', 'dark', 1440, 'collapsed', 'collapsed'],
+    ['desktop-local-tools-directory-dark', 'dark', 1440, 'collapsed', 'collapsed'],
     ['desktop-selected-inspector-light', 'light', 1440, 'collapsed', 'collapsed'],
     ['desktop-hover-click-drag-dark', 'dark', 1440, 'collapsed', 'collapsed'],
     ['desktop-explicit-relayout-dark', 'dark', 1440, 'collapsed', 'collapsed'],
     ['desktop-konling-selected-expanded-dark', 'dark', 1440, 'collapsed', 'expanded'],
-    ['desktop-konling-no-selection-dark', 'dark', 1440, 'collapsed', 'collapsed'],
+    ['desktop-konling-no-selection-dark', 'dark', 1440, 'collapsed', 'expanded'],
     ['desktop-konling-degraded-dark', 'dark', 1440, 'collapsed', 'expanded'],
     ['desktop-stress-expanded-tool-inspector-konling-dark', 'dark', 1440, 'expanded', 'expanded'],
     ['mobile-320-local-tools-dark', 'dark', 320, 'mobile', 'collapsed'],
@@ -1268,6 +1537,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     const activeLocalToolMarker = isMobileViewport ? markers.mobileActiveTool : markers.desktopActiveTool;
     const visibleLocalToolPanelState = isMobileViewport ? markers.mobileToolState : markers.desktopToolState;
     if (!state) return [`${name}:missing-state`];
+    const expectedKonlingContext = name.includes('konling')
+      ? (name.includes('degraded') ? 'degraded' : (state.selectedNode ? 'selected-node' : 'no-selection'))
+      : null;
     return [
       state.route === '/knowledge' ? null : `${name}:route`,
       state.theme === theme ? null : `${name}:theme`,
@@ -1288,11 +1560,21 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         ? (typeof artifact?.height === 'number' && artifact.height >= 700 ? null : `${name}:mobile-screenshot-too-short`)
         : (typeof artifact?.height === 'number' && artifact.height >= 800 ? null : `${name}:desktop-screenshot-too-short`),
       markers.effectiveDockState === dockState ? null : `${name}:dock-marker-state`,
+      name.includes('konling')
+        ? (markers.konlingAssistantSurface === 'global-sidebar' ? null : `${name}:konling-surface-missing`)
+        : null,
+      expectedKonlingContext
+        ? (markers.konlingKnowledgeContext === expectedKonlingContext ? null : `${name}:konling-visible-context`)
+        : null,
       markers.appShellNavigationState === (navigationState === 'mobile' ? 'collapsed' : navigationState)
         ? null
         : `${name}:navigation-marker-state`,
       state.localToolState === 'closed'
-        ? (visibleLocalToolPanelState === 'closed' ? null : `${name}:local-tool-marker-state`)
+        ? (
+            visibleLocalToolPanelState === 'closed' || (name.includes('konling') && visibleLocalToolPanelState === null)
+              ? null
+              : `${name}:local-tool-marker-state`
+          )
         : (
             activeLocalToolMarker === state.localToolState && visibleLocalToolPanelState === 'open'
               ? null
@@ -1312,8 +1594,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
         ? (
             objectRecord(objectRecord(state.interactionEvidence).drag).pinned === true
             && String(objectRecord(objectRecord(state.interactionEvidence).drag).method ?? '') === 'pointer-drag'
+            && objectRecord(objectRecord(state.interactionEvidence).drag).selectedNodeId === state.selectedNode
             && typeof objectRecord(objectRecord(state.interactionEvidence).afterDrag).pinnedLayoutSignature === 'string'
-            && String(objectRecord(objectRecord(state.interactionEvidence).afterDrag).pinnedLayoutSignature).length > 0
+            && String(objectRecord(objectRecord(state.interactionEvidence).afterDrag).pinnedLayoutSignature).includes(String(state.selectedNode ?? ''))
               ? null
               : `${name}:layout-persistence-interaction-proof-missing`
           )
@@ -1341,6 +1624,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
 
   const sourceEvidence = objectRecord(evidence.sourceEvidence);
   const sourceHashes = objectRecord(evidence.currentSourceSha256);
+  const currentSourceSha256 = stringRecord(evidence.currentSourceSha256);
   const sourceProblems = [
     sourceEvidence.sharedAppShell === true ? null : 'source-evidence:shared-app-shell',
     sourceEvidence.noCompetingGlobalNavigation === true ? null : 'source-evidence:no-competing-global-navigation',
@@ -1392,18 +1676,9 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
       && konlingRuntimeSource.includes("knowledge-workspace-selected-node-unresolved")
       ? null
       : 'konling-runtime:degraded-context-missing',
-    sourceHashes[graphSourcePath] === fileSha256(graphSourcePath)
-      ? null
-      : `${graphSourcePath}:sha-mismatch`,
-    sourceHashes[resourcePanelSourcePath] === fileSha256(resourcePanelSourcePath)
-      ? null
-      : `${resourcePanelSourcePath}:sha-mismatch`,
-    sourceHashes[appShellSourcePath] === fileSha256(appShellSourcePath)
-      ? null
-      : `${appShellSourcePath}:sha-mismatch`,
-    sourceHashes[konlingRuntimeSourcePath] === fileSha256(konlingRuntimeSourcePath)
-      ? null
-      : `${konlingRuntimeSourcePath}:sha-mismatch`,
+    ...productQaSourcePaths.map((sourcePath) => (
+      sourceHashes[sourcePath] === fileSha256(sourcePath) ? null : `${sourcePath}:sha-mismatch`
+    )),
   ].filter((entry): entry is string => Boolean(entry));
 
   const focusEvidence = Array.isArray(evidence.focusEvidence)
@@ -1448,6 +1723,8 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
 
   const visualReview = objectRecord(evidence.independentVisualReview);
   const visualReviewDimensions = objectRecord(visualReview.dimensions);
+  const visualReviewStateSha256 = stringRecord(visualReview.reviewedStateSha256);
+  const visualReviewSourceSha256 = stringRecord(visualReview.reviewedSourceSha256);
   const visualReviewPath = artifactPathFromEvidence(visualReview.path);
   const visualReviewProblems = [
     visualReviewPath && existsSync(path.join(repoRoot, visualReviewPath))
@@ -1457,6 +1734,12 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     Array.isArray(visualReview.blockingFindings) && visualReview.blockingFindings.length === 0
       ? null
       : 'visual-review:blocking-findings',
+    stringRecordsEqual(visualReviewStateSha256, stateScreenshotSha256)
+      ? null
+      : 'visual-review:stale-screenshot-review',
+    stringRecordsEqual(visualReviewSourceSha256, currentSourceSha256)
+      ? null
+      : 'visual-review:stale-source-review',
     ...[
       'handoffAlignment',
       'conceptAdoptionRejection',
@@ -1991,6 +2274,11 @@ const simulationVisualQaMatrix = requiresFullSimulationVisualQaMatrix(requiredVi
     || files.some((file) => file === route.routeFile || file.startsWith(`${path.dirname(route.routeFile)}/`))
     || simulationSharedDetailRouteAffected(route.href, files)
   ));
+const interactiveLearningProductQaRequired = shouldRequireInteractiveLearningProductQa(files);
+const interactiveLearningProductQaSourceRefreshRequired = files.some((file) => (
+  INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix))
+));
+const interactiveLearningProductQaEvidenceRefreshed = interactiveLearningProductQaEvidenceCoversLatestSource(files);
 const result = evaluateCommercialUiGovernance({
   mode: 'blocking',
   today,
@@ -2014,6 +2302,12 @@ const result = evaluateCommercialUiGovernance({
     requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
   )),
   simulationVisualQaMatrix,
+  interactiveLearningProductQaRequired,
+  interactiveLearningProductQaSourceRefreshRequired,
+  interactiveLearningProductQaEvidenceRefreshed,
+  interactiveLearningProductQa: interactiveLearningProductQaRequired
+    ? readInteractiveLearningProductQaEvidence()
+    : undefined,
   reportSurfaceInventory: PLATFORM_REPORT_SURFACE_INVENTORY.filter((surface) => (
     requiredVisualRoutes.some((visualRoute) => visualRoute.href === surface.ownerRoute)
   )),

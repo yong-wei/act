@@ -763,6 +763,49 @@ describe('konling agent runtime', () => {
     expect(prompt).toContain('学生在频域裕度迁移上需要脚手架');
   });
 
+  it('keeps degraded knowledge workspace requests from becoming selected nodes', async () => {
+    const db = {
+      knowledgeNode: {
+        findMany: vi.fn().mockResolvedValue([
+          {
+            id: 'node-filtered-out',
+            name: '被过滤节点',
+            nodeType: 'THEORY',
+            description: '当前图谱状态没有解析该节点。',
+            metadata: { chapterName: '时域分析' },
+            knowledgeDim: 'CONCEPTUAL',
+            tags: ['二阶系统'],
+          },
+        ]),
+      },
+    };
+
+    const runtime = await buildKonlingRuntimeContext(db, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      pageId: '/knowledge',
+      knowledgeWorkspaceHint: {
+        requestedNodeId: 'node-filtered-out',
+        selectedNodeId: null,
+        status: 'degraded',
+        activeFilters: ['当前筛选'],
+      },
+    });
+
+    expect(db.knowledgeNode.findMany).not.toHaveBeenCalled();
+    expect(runtime.knowledgeWorkspace).toMatchObject({
+      source: 'server-owned',
+      route: '/knowledge',
+      status: 'degraded',
+      selected_node: null,
+      relation_summary: {
+        active_filters: ['当前筛选'],
+      },
+      missing_context: ['knowledge-workspace-selected-node-unresolved'],
+    });
+  });
+
   it('builds citation requirements from server path context and evidence cache', async () => {
     const db = {
       studentProfile: {
