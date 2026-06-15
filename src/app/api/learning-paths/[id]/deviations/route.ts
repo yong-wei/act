@@ -33,10 +33,18 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     if (missingIdempotencyKey) return missingIdempotencyKey;
     const existingDeviation = await readExistingDeviation(params.id, body.idempotencyKey);
     if (existingDeviation) {
+      let pathUpdate: { currentNodeId: string | null } | null = {
+        currentNodeId: typeof path.currentNodeId === 'string' ? path.currentNodeId : null,
+      };
+      if (shouldRepairExistingCurrentSkip(path, body, existingDeviation)) {
+        const skipContext = validateAndBuildSkipContext(path, body);
+        if (skipContext instanceof NextResponse) return skipContext;
+        pathUpdate = await advanceCurrentNodeAfterCurrentSkip(path, body.targetNodeId) ?? pathUpdate;
+      }
       const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
       return NextResponse.json({
         deviation: toDeviationWriteView(existingDeviation),
-        pathUpdate: { currentNodeId: typeof path.currentNodeId === 'string' ? path.currentNodeId : null },
+        pathUpdate,
         cacheRefresh,
       });
     }
@@ -89,6 +97,15 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     console.error('[LearningPathDeviation] Error:', error);
     return NextResponse.json({ error: '记录路径偏离失败' }, { status: 500 });
   }
+}
+
+function shouldRepairExistingCurrentSkip(path: any, body: any, existingDeviation: any): boolean {
+  if (existingDeviation.deviationType !== 'skip' || body.deviationType !== 'skip') return false;
+  if (typeof path.currentNodeId !== 'string') return false;
+  return body.priorNodeId === path.currentNodeId &&
+    body.targetNodeId === path.currentNodeId &&
+    existingDeviation.priorNodeId === path.currentNodeId &&
+    existingDeviation.targetNodeId === path.currentNodeId;
 }
 
 function toDeviationWriteView(deviation: any) {
