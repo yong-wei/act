@@ -405,6 +405,14 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
       ownedDiagnostics: 0,
       selectedDiagnostics: 0,
     },
+    runtimeNoise: {
+      captureCommand: 'rtk npm run test:simulation-runtime-noise',
+      report: 'artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json',
+      reportSha256: 'runtime-noise-report-content',
+      routesChecked: 7,
+      pageErrors: [],
+      trackedConsoleWarnings: [],
+    },
     viewports: scenario.requiredThemes.flatMap((theme) => scenario.requiredWidths.flatMap((width) => (
       simulationNavigationStatesForWidth(width, scenario.requiredNavigationStates).flatMap((navigationState) => (
         scenario.requiredDockStates.flatMap((dockState) => (
@@ -1353,6 +1361,85 @@ describe('commercial UI governance', () => {
         evidence: expect.arrayContaining([
           'reactDoctorErrorCheck.ownedDiagnostics=0',
           'reactDoctorErrorCheck.selectedDiagnostics=0',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when simulation runtime-noise evidence contains page errors or tracked Three warnings', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          runtimeNoise: {
+            captureCommand: 'rtk npm run test:simulation-runtime-noise',
+            report: 'artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json',
+            reportSha256: 'runtime-noise-report-content',
+            routesChecked: 7,
+            pageErrors: [
+              "Cannot read properties of null (reading 'classList')",
+            ],
+            trackedConsoleWarnings: [
+              'THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.',
+              'THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.',
+            ],
+          },
+        } as CommercialSimulationVisualQaEvidence & Record<string, unknown>,
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining([
+          'runtimeNoise.pageErrors=0',
+          'runtimeNoise.trackedConsoleWarnings=0',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails instead of throwing when simulation runtime-noise arrays are missing', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          runtimeNoise: {
+            captureCommand: 'rtk npm run test:simulation-runtime-noise',
+            report: 'artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json',
+            reportSha256: 'runtime-noise-report-content',
+            routesChecked: 7,
+          },
+        } as CommercialSimulationVisualQaEvidence & Record<string, unknown>,
+      };
+    });
+
+    expect(() => evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }))).not.toThrow();
+
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining([
+          'runtimeNoise.pageErrors=0',
+          'runtimeNoise.trackedConsoleWarnings=0',
         ]),
       }),
     ]));
@@ -2628,6 +2715,11 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('reportSha256: reactDoctorReport?.sha256');
     expect(scriptSource).toContain('ownedDiagnostics: reactDoctorReport?.ownedDiagnostics');
     expect(scriptSource).toContain('selectedDiagnostics: reactDoctorReport?.selectedDiagnostics');
+    expect(scriptSource).toContain('function simulationRuntimeNoiseReport');
+    expect(scriptSource).toContain('const runtimeNoiseReport = simulationRuntimeNoiseReport');
+    expect(scriptSource).toContain('reportSha256: runtimeNoiseReport?.sha256');
+    expect(scriptSource).toContain('pageErrors: runtimeNoiseReport?.pageErrors');
+    expect(scriptSource).toContain('trackedConsoleWarnings:');
     expect(scriptSource).toContain('designHandoffSha256:');
     expect(scriptSource).toContain('route.simulationVisualQa.handoffBaseline.designHandoff');
     expect(scriptSource).toContain('implementationMatrixSha256:');

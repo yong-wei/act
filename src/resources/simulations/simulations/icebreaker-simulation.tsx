@@ -1160,7 +1160,7 @@ export default function IcebreakerSimulation() {
 
   return (
     <div className={simulationUi.root} data-sim-ui>
-      <Canvas shadows>
+      <Canvas shadows={{ type: THREE.PCFShadowMap }}>
         <Scene
           position={position}
           heading={heading}

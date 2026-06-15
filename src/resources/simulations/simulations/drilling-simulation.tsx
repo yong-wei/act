@@ -993,7 +993,7 @@ export function DrillingSimulation() {
   return (
     <div className={simulationUi.root} data-sim-ui>
       {/* 3D 场景 */}
-      <Canvas shadows>
+      <Canvas shadows={{ type: THREE.PCFShadowMap }}>
         <PerspectiveCamera makeDefault position={[400, 300, 400]} fov={60} near={1} far={50000} />
         <OrbitControls
           ref={controlsRef}

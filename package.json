@@ -48,6 +48,7 @@
     "test:model-render-policy": "npx --yes tsx ./scripts/tests/test-model-render-policy.ts",
     "test:runtime-log-delta": "node ./scripts/tests/test-runtime-log-delta.mjs",
     "test:commercial-ui-governance": "npx --yes tsx ./scripts/tests/test-commercial-ui-governance.ts",
+    "test:simulation-runtime-noise": "npx --yes tsx ./scripts/tests/capture-simulation-runtime-noise.ts",
     "test:react-doctor:ui-errors": "npx --yes react-doctor@0.5.1 --no-score --no-telemetry --no-warnings --json .",
     "test:react-doctor:owned-errors": "node ./scripts/tests/react-doctor-owned-surface-gate.mjs --mode=errors",
     "test:react-doctor:owned-security": "node ./scripts/tests/react-doctor-owned-surface-gate.mjs --mode=security",

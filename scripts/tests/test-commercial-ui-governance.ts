@@ -638,6 +638,36 @@ function simulationReactDoctorReport(pathname: string | undefined) {
   };
 }
 
+function runtimeNoiseMessages(entries: unknown[] | undefined, fallbackKey: 'message' | 'text') {
+  return (entries ?? []).map((entry) => {
+    if (typeof entry === 'string') return entry;
+    if (!entry || typeof entry !== 'object') return JSON.stringify(entry);
+    const record = entry as Record<string, unknown>;
+    const detail = typeof record[fallbackKey] === 'string'
+      ? record[fallbackKey]
+      : JSON.stringify(record);
+    return typeof record.route === 'string' ? `${record.route}: ${detail}` : String(detail);
+  });
+}
+
+function simulationRuntimeNoiseReport(pathname: string | undefined) {
+  const artifact = simulationViewportArtifact(pathname);
+  if (!artifact) return undefined;
+  const content = JSON.parse(readFileSync(path.join(repoRoot, artifact.pathname), 'utf8')) as {
+    summary?: {
+      routesChecked?: number;
+      pageErrors?: unknown[];
+      trackedConsoleWarnings?: unknown[];
+    };
+  };
+  return {
+    ...artifact,
+    routesChecked: content.summary?.routesChecked,
+    pageErrors: runtimeNoiseMessages(content.summary?.pageErrors, 'message'),
+    trackedConsoleWarnings: runtimeNoiseMessages(content.summary?.trackedConsoleWarnings, 'text'),
+  };
+}
+
 function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
   const manifestPath = path.join(repoRoot, 'artifacts/commercial-ui/evidence.json');
   if (!existsSync(manifestPath)) return [];
@@ -647,6 +677,7 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
     simulationVisualQa: route.simulationVisualQa
       ? (() => {
           const reactDoctorReport = simulationReactDoctorReport(route.simulationVisualQa.reactDoctorErrorCheck?.report);
+          const runtimeNoiseReport = simulationRuntimeNoiseReport(route.simulationVisualQa.runtimeNoise?.report);
           return {
             ...route.simulationVisualQa,
             reactDoctorErrorCheck: route.simulationVisualQa.reactDoctorErrorCheck
@@ -655,6 +686,17 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
                   reportSha256: reactDoctorReport?.sha256,
                   ownedDiagnostics: reactDoctorReport?.ownedDiagnostics,
                   selectedDiagnostics: reactDoctorReport?.selectedDiagnostics,
+                }
+              : undefined,
+            runtimeNoise: route.simulationVisualQa.runtimeNoise
+              ? {
+                  ...route.simulationVisualQa.runtimeNoise,
+                  reportSha256: runtimeNoiseReport?.sha256,
+                  routesChecked: runtimeNoiseReport?.routesChecked ?? route.simulationVisualQa.runtimeNoise.routesChecked,
+                  pageErrors: runtimeNoiseReport?.pageErrors ?? route.simulationVisualQa.runtimeNoise.pageErrors,
+                  trackedConsoleWarnings:
+                    runtimeNoiseReport?.trackedConsoleWarnings
+                    ?? route.simulationVisualQa.runtimeNoise.trackedConsoleWarnings,
                 }
               : undefined,
             handoffBaseline: route.simulationVisualQa.handoffBaseline

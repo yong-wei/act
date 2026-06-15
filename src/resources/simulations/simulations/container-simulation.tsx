@@ -876,7 +876,7 @@ export default function ContainerSimulation() {
 
   return (
     <div className={simulationUi.root} data-sim-ui>
-      <Canvas shadows gl={{ antialias: true }}>
+      <Canvas shadows={{ type: THREE.PCFShadowMap }} gl={{ antialias: true }}>
         <Scene
           state={simState}
           trajectory={trajectory}

@@ -231,6 +231,15 @@ export interface CommercialSimulationReactDoctorEvidence {
   selectedDiagnostics?: number;
 }
 
+export interface CommercialSimulationRuntimeNoiseEvidence {
+  captureCommand: string;
+  report?: string;
+  reportSha256?: string;
+  routesChecked: number;
+  pageErrors: readonly string[];
+  trackedConsoleWarnings: readonly string[];
+}
+
 export interface CommercialSimulationResourceThemeEvidence {
   sharedPrimitives: boolean;
   panelThemeParity: boolean;
@@ -281,6 +290,7 @@ export interface CommercialSimulationVisualQaEvidence {
   resourceInternalTheme?: CommercialSimulationResourceThemeEvidence;
   sceneThemeParameters?: CommercialSimulationSceneThemeEvidence;
   reactDoctorErrorCheck?: CommercialSimulationReactDoctorEvidence;
+  runtimeNoise?: CommercialSimulationRuntimeNoiseEvidence;
   viewports: readonly CommercialSimulationViewportEvidence[];
 }
 
@@ -1400,6 +1410,7 @@ function buildSecondaryNavigationGovernanceViolations(
 
   const entryViolations = matrix.flatMap((entry) => {
     const violations: CommercialUiGovernanceViolation[] = [];
+
     const missing = [
       !entry.routeFile ? 'routeFile' : '',
       !entry.shellType ? 'shellType' : '',
@@ -1929,6 +1940,13 @@ function buildSimulationVisualQaViolations(
       })];
     }
 
+    const runtimePageErrors = Array.isArray(simulationEvidence.runtimeNoise?.pageErrors)
+      ? simulationEvidence.runtimeNoise.pageErrors
+      : null;
+    const runtimeTrackedWarnings = Array.isArray(simulationEvidence.runtimeNoise?.trackedConsoleWarnings)
+      ? simulationEvidence.runtimeNoise.trackedConsoleWarnings
+      : null;
+
     const missing = [
       simulationEvidence.archetype !== route.archetype ? `archetype=${route.archetype}` : '',
       route.finalBehavior && simulationEvidence.virtualLabFinalBehavior !== route.finalBehavior
@@ -1986,6 +2004,22 @@ function buildSimulationVisualQaViolations(
         : '',
       simulationEvidence.reactDoctorErrorCheck?.selectedDiagnostics !== 0
         ? 'reactDoctorErrorCheck.selectedDiagnostics=0'
+        : '',
+      route.requiresNonblankScene && simulationEvidence.runtimeNoise?.captureCommand !== 'rtk npm run test:simulation-runtime-noise'
+        ? 'runtimeNoise.captureCommand=rtk npm run test:simulation-runtime-noise'
+        : '',
+      route.requiresNonblankScene && !simulationEvidence.runtimeNoise?.report ? 'runtimeNoise.report' : '',
+      route.requiresNonblankScene && !simulationEvidence.runtimeNoise?.reportSha256 ? 'runtimeNoise.reportSha256' : '',
+      route.requiresNonblankScene && simulationEvidence.runtimeNoise?.routesChecked !== SIMULATION_VISUAL_QA_ROUTE_MATRIX.filter((entry) => (
+        entry.href.startsWith('/simulations/') && entry.requiresNonblankScene
+      )).length
+        ? 'runtimeNoise.routesChecked=7'
+        : '',
+      route.requiresNonblankScene && runtimePageErrors?.length !== 0
+        ? 'runtimeNoise.pageErrors=0'
+        : '',
+      route.requiresNonblankScene && runtimeTrackedWarnings?.length !== 0
+        ? 'runtimeNoise.trackedConsoleWarnings=0'
         : '',
     ].filter(Boolean);
     const handoffBaseline = simulationEvidence.handoffBaseline;

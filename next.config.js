@@ -1,3 +1,5 @@
+const path = require('node:path');
+
 const contentTraceExcludes = [
   './course-content/authoring/lessons/**/*',
   './course-content/authoring/knowledge/**/*',
@@ -27,6 +29,11 @@ const contentTraceExcludes = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  turbopack: {
+    resolveAlias: {
+      three: './src/lib/three-runtime-compat.ts',
+    },
+  },
   images: {
     remotePatterns: [
       {
@@ -53,6 +60,13 @@ const nextConfig = {
     '/api/*': contentTraceExcludes,
     '/api/content/*': contentTraceExcludes,
     '/api/content/mdx': contentTraceExcludes,
+  },
+  webpack(config) {
+    config.resolve.alias = {
+      ...(config.resolve.alias ?? {}),
+      three$: path.resolve(__dirname, 'src/lib/three-runtime-compat.ts'),
+    };
+    return config;
   },
 }
 

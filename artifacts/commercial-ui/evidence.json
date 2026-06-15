@@ -11047,6 +11047,14 @@
           "skyWaterGridFogThemeAware": true,
           "labelHudContrastChecked": true,
           "unchangedLightSceneInDarkTheme": false
+        },
+        "runtimeNoise": {
+          "captureCommand": "rtk npm run test:simulation-runtime-noise",
+          "report": "artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json",
+          "reportSha256": "4c273292941aa8c07834d8d01fded37ca1f75b90c61728aa225e8caec3e8405f",
+          "routesChecked": 7,
+          "pageErrors": [],
+          "trackedConsoleWarnings": []
         }
       }
     },
@@ -11626,6 +11634,14 @@
           "evidenceHook": "data-command-deck-composition=\"scene-primary-glass-panels-bottom-tools\"",
           "route": "/simulations/lng",
           "implementationScreenshot": "artifacts/commercial-ui/simulation-internal-theme-534/simulations-lng-dark-1440-desktop-expanded-collapsed-collapsed.png"
+        },
+        "runtimeNoise": {
+          "captureCommand": "rtk npm run test:simulation-runtime-noise",
+          "report": "artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json",
+          "reportSha256": "4c273292941aa8c07834d8d01fded37ca1f75b90c61728aa225e8caec3e8405f",
+          "routesChecked": 7,
+          "pageErrors": [],
+          "trackedConsoleWarnings": []
         }
       }
     },
@@ -12212,6 +12228,14 @@
           "skyWaterGridFogThemeAware": true,
           "labelHudContrastChecked": true,
           "unchangedLightSceneInDarkTheme": false
+        },
+        "runtimeNoise": {
+          "captureCommand": "rtk npm run test:simulation-runtime-noise",
+          "report": "artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json",
+          "reportSha256": "4c273292941aa8c07834d8d01fded37ca1f75b90c61728aa225e8caec3e8405f",
+          "routesChecked": 7,
+          "pageErrors": [],
+          "trackedConsoleWarnings": []
         }
       }
     },
@@ -12798,6 +12822,14 @@
           "skyWaterGridFogThemeAware": true,
           "labelHudContrastChecked": true,
           "unchangedLightSceneInDarkTheme": false
+        },
+        "runtimeNoise": {
+          "captureCommand": "rtk npm run test:simulation-runtime-noise",
+          "report": "artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json",
+          "reportSha256": "4c273292941aa8c07834d8d01fded37ca1f75b90c61728aa225e8caec3e8405f",
+          "routesChecked": 7,
+          "pageErrors": [],
+          "trackedConsoleWarnings": []
         }
       }
     },
@@ -13377,6 +13409,14 @@
           "evidenceHook": "data-command-deck-composition=\"scene-primary-glass-panels-bottom-tools\"",
           "route": "/simulations/container",
           "implementationScreenshot": "artifacts/commercial-ui/simulation-internal-theme-534/simulations-container-dark-1440-desktop-expanded-collapsed-collapsed.png"
+        },
+        "runtimeNoise": {
+          "captureCommand": "rtk npm run test:simulation-runtime-noise",
+          "report": "artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json",
+          "reportSha256": "4c273292941aa8c07834d8d01fded37ca1f75b90c61728aa225e8caec3e8405f",
+          "routesChecked": 7,
+          "pageErrors": [],
+          "trackedConsoleWarnings": []
         }
       }
     },
@@ -13956,6 +13996,14 @@
           "evidenceHook": "data-command-deck-composition=\"scene-primary-glass-panels-bottom-tools\"",
           "route": "/simulations/icebreaker",
           "implementationScreenshot": "artifacts/commercial-ui/simulation-internal-theme-534/simulations-icebreaker-dark-1440-desktop-expanded-collapsed-collapsed.png"
+        },
+        "runtimeNoise": {
+          "captureCommand": "rtk npm run test:simulation-runtime-noise",
+          "report": "artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json",
+          "reportSha256": "4c273292941aa8c07834d8d01fded37ca1f75b90c61728aa225e8caec3e8405f",
+          "routesChecked": 7,
+          "pageErrors": [],
+          "trackedConsoleWarnings": []
         }
       }
     },
@@ -14535,6 +14583,14 @@
           "evidenceHook": "data-command-deck-composition=\"scene-primary-glass-panels-bottom-tools\"",
           "route": "/simulations/dredger",
           "implementationScreenshot": "artifacts/commercial-ui/simulation-internal-theme-534/simulations-dredger-dark-1440-desktop-expanded-collapsed-collapsed.png"
+        },
+        "runtimeNoise": {
+          "captureCommand": "rtk npm run test:simulation-runtime-noise",
+          "report": "artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json",
+          "reportSha256": "4c273292941aa8c07834d8d01fded37ca1f75b90c61728aa225e8caec3e8405f",
+          "routesChecked": 7,
+          "pageErrors": [],
+          "trackedConsoleWarnings": []
         }
       }
     },
