@@ -6,14 +6,127 @@ export const RESOURCE_NODE_TYPES = [
   'audio',
   'handout',
   'quiz',
+  'adaptive_quiz',
+  'control_workbench',
   'simulation',
   'arena_task',
+  'external_resource',
   'reflection',
+  'checkpoint',
   'ai_intervention',
+  'konling',
   'project',
 ] as const;
 
 export type ResourceNodeType = typeof RESOURCE_NODE_TYPES[number];
+
+export const GOVERNED_PATH_NODE_TYPES = [
+  'interactive_lesson',
+  'knowledge_card',
+  'adaptive_quiz',
+  'control_workbench',
+  'simulation',
+  'arena_task',
+  'external_resource',
+  'reflection',
+  'checkpoint',
+  'konling',
+] as const;
+
+export type GovernedPathNodeType = typeof GOVERNED_PATH_NODE_TYPES[number];
+export type PathNodeShapeHint = 'card' | 'task' | 'lab' | 'challenge' | 'link' | 'journal' | 'gate' | 'assistant';
+export type PathNodeEvidenceBehavior =
+  | 'interaction'
+  | 'view'
+  | 'assessment'
+  | 'simulation_trace'
+  | 'simulation_run'
+  | 'judged_submission'
+  | 'explicit_access'
+  | 'reflection'
+  | 'assessment_gate'
+  | 'assistant_interaction';
+
+export interface ResourceNodePathSemantics {
+  type: GovernedPathNodeType;
+  displayName: string;
+  iconKey: string;
+  shapeHint: PathNodeShapeHint;
+  evidenceBehavior: PathNodeEvidenceBehavior;
+}
+
+export const PATH_NODE_SEMANTICS: Record<GovernedPathNodeType, ResourceNodePathSemantics> = {
+  interactive_lesson: {
+    type: 'interactive_lesson',
+    displayName: '互动课程',
+    iconKey: 'interactive-lesson',
+    shapeHint: 'card',
+    evidenceBehavior: 'interaction',
+  },
+  knowledge_card: {
+    type: 'knowledge_card',
+    displayName: '知识卡',
+    iconKey: 'knowledge-card',
+    shapeHint: 'card',
+    evidenceBehavior: 'view',
+  },
+  adaptive_quiz: {
+    type: 'adaptive_quiz',
+    displayName: '自适应练习',
+    iconKey: 'adaptive-quiz',
+    shapeHint: 'task',
+    evidenceBehavior: 'assessment',
+  },
+  control_workbench: {
+    type: 'control_workbench',
+    displayName: '控制工作台',
+    iconKey: 'control-workbench',
+    shapeHint: 'lab',
+    evidenceBehavior: 'simulation_trace',
+  },
+  simulation: {
+    type: 'simulation',
+    displayName: '仿真实验',
+    iconKey: 'simulation',
+    shapeHint: 'lab',
+    evidenceBehavior: 'simulation_run',
+  },
+  arena_task: {
+    type: 'arena_task',
+    displayName: 'Arena 挑战',
+    iconKey: 'arena',
+    shapeHint: 'challenge',
+    evidenceBehavior: 'judged_submission',
+  },
+  external_resource: {
+    type: 'external_resource',
+    displayName: '外部资料',
+    iconKey: 'external-link',
+    shapeHint: 'link',
+    evidenceBehavior: 'explicit_access',
+  },
+  reflection: {
+    type: 'reflection',
+    displayName: '反思记录',
+    iconKey: 'reflection',
+    shapeHint: 'journal',
+    evidenceBehavior: 'reflection',
+  },
+  checkpoint: {
+    type: 'checkpoint',
+    displayName: '阶段检查',
+    iconKey: 'checkpoint',
+    shapeHint: 'gate',
+    evidenceBehavior: 'assessment_gate',
+  },
+  konling: {
+    type: 'konling',
+    displayName: '控灵伴学',
+    iconKey: 'konling',
+    shapeHint: 'assistant',
+    evidenceBehavior: 'assistant_interaction',
+  },
+};
 
 export type ResourceNodeSourceKind =
   | 'teaching_resource'
@@ -24,8 +137,12 @@ export type ResourceNodeSourceKind =
   | 'runtime_handout'
   | 'simulation_resource'
   | 'arena_task'
+  | 'external_resource'
+  | 'control_workbench'
+  | 'checkpoint'
   | 'reflection_prompt'
   | 'ai_intervention'
+  | 'konling'
   | 'project';
 
 export type ResourceNodeEdgeKind =
@@ -46,6 +163,8 @@ export type ResourceNodeSourceOwner =
   | 'knowledge_graph'
   | 'simulation'
   | 'arena'
+  | 'external_resource'
+  | 'checkpoint'
   | 'ResourceNode';
 
 export interface ResourceNodeSourceReference {
@@ -78,7 +197,18 @@ export interface ResourceNodeAuditIssue {
     | 'unavailable-resource'
     | 'teacher-policy-blocked'
     | 'missing-privacy-policy'
-    | 'missing-evidence-instrumentation';
+    | 'missing-evidence-instrumentation'
+    | 'missing-external-source'
+    | 'unsafe-external-url'
+    | 'missing-external-estimated-time'
+    | 'missing-external-applicable-goal'
+    | 'missing-external-evidence-use-status'
+    | 'external-resource-reference-only'
+    | 'missing-external-privacy-policy'
+    | 'missing-checkpoint-assessment-purpose'
+    | 'missing-checkpoint-criteria'
+    | 'missing-checkpoint-required-evidence'
+    | 'missing-checkpoint-remediation';
   message: string;
   severity: 'blocking' | 'warning';
 }
@@ -95,6 +225,27 @@ export interface ResourceNodeSourceOfRecord {
   planningMetadata: 'ResourceNode';
 }
 
+export type ExternalResourceEvidenceUseStatus = 'explicit-access-required' | 'reference-only';
+export type CheckpointReviewState = 'pending' | 'passed' | 'failed' | 'review';
+
+export interface ResourceNodeExternalResourceMetadata {
+  source: string | null;
+  url: string | null;
+  estimatedTimeMinutes: number | null;
+  knowledgeCoverage: string[];
+  applicableGoalId: string | null;
+  evidenceUseStatus: ExternalResourceEvidenceUseStatus | null;
+  privacyPolicy: ResourceNodePrivacyLevel | null;
+}
+
+export interface ResourceNodeCheckpointMetadata {
+  assessmentPurpose: string | null;
+  criteria: string[];
+  requiredEvidenceRefs: string[];
+  remediationBehavior: string | null;
+  reviewState: CheckpointReviewState;
+}
+
 export interface ResourceNode {
   id: string;
   title: string;
@@ -106,6 +257,9 @@ export interface ResourceNode {
   sourceRefs: ResourceNodeSourceReference[];
   renderTarget: string | null;
   launchTarget: string | null;
+  pathSemantics: ResourceNodePathSemantics;
+  externalResource: ResourceNodeExternalResourceMetadata | null;
+  checkpoint: ResourceNodeCheckpointMetadata | null;
   planningMetadata: ResourceNodePlanningMetadata;
   sourceOfRecord: ResourceNodeSourceOfRecord;
   eligibility: ResourceNodeEligibility;
@@ -227,6 +381,35 @@ export interface ArenaTaskResourceNodeInput {
   planningOverride?: ResourceNodePlanningOverride;
 }
 
+export interface ExternalResourceNodeInput {
+  id: string;
+  title: string;
+  source?: string | null;
+  url?: string | null;
+  estimatedTimeMinutes?: number | null;
+  knowledgeNodeIds?: string[];
+  applicableGoalId?: string | null;
+  evidenceUseStatus?: ExternalResourceEvidenceUseStatus | null;
+  privacyPolicy?: ResourceNodePrivacyLevel | null;
+  prerequisiteNodeIds?: string[];
+  planningOverride?: ResourceNodePlanningOverride;
+}
+
+export interface CheckpointResourceNodeInput {
+  id: string;
+  title: string;
+  assessmentPurpose?: string | null;
+  criteria?: string[];
+  requiredEvidenceRefs?: string[];
+  remediationBehavior?: string | null;
+  reviewState?: CheckpointReviewState;
+  launchTarget?: string | null;
+  renderTarget?: string | null;
+  knowledgeNodeIds?: string[];
+  prerequisiteNodeIds?: string[];
+  planningOverride?: ResourceNodePlanningOverride;
+}
+
 export interface LightweightResourceNodeInput {
   id: string;
   title: string;
@@ -248,8 +431,12 @@ export interface ResourceNodeRegistryInput {
   runtimeLessons?: RuntimeLessonNodeInput[];
   simulations?: SimulationResourceNodeInput[];
   arenaTasks?: ArenaTaskResourceNodeInput[];
+  externalResources?: ExternalResourceNodeInput[];
+  controlWorkbenchTasks?: LightweightResourceNodeInput[];
   reflectionPrompts?: LightweightResourceNodeInput[];
+  checkpoints?: CheckpointResourceNodeInput[];
   aiInterventions?: LightweightResourceNodeInput[];
+  konlingSupports?: LightweightResourceNodeInput[];
   projects?: LightweightResourceNodeInput[];
 }
 
@@ -260,10 +447,14 @@ export function buildResourceNodeRegistry(input: ResourceNodeRegistryInput): Res
     ...buildKnowledgeResourceNodes(input.knowledgeNodes ?? []),
     ...buildKnowledgeCardNodes(input.knowledgeCards ?? []),
     ...buildRuntimeLessonNodes(input.runtimeLessons ?? []),
+    ...buildLightweightNodes(input.controlWorkbenchTasks ?? [], 'control_workbench', 'control_workbench'),
     ...buildSimulationNodes(input.simulations ?? []),
     ...buildArenaTaskNodes(input.arenaTasks ?? []),
+    ...buildExternalResourceNodes(input.externalResources ?? []),
     ...buildLightweightNodes(input.reflectionPrompts ?? [], 'reflection', 'reflection_prompt'),
+    ...buildCheckpointNodes(input.checkpoints ?? []),
     ...buildLightweightNodes(input.aiInterventions ?? [], 'ai_intervention', 'ai_intervention'),
+    ...buildLightweightNodes(input.konlingSupports ?? [], 'konling', 'konling'),
     ...buildLightweightNodes(input.projects ?? [], 'project', 'project'),
   ];
   const nodesById = mergeOverlappingSources(nodeCandidates);
@@ -347,6 +538,8 @@ export function auditResourceNode(
       message: 'ResourceNode has no evidence instrumentation mapping.',
     });
   }
+  issues.push(...auditExternalResourceNode(node));
+  issues.push(...auditCheckpointNode(node));
 
   const blockingIssues = issues.filter((issue) => issue.severity === 'blocking');
   return {
@@ -354,6 +547,96 @@ export function auditResourceNode(
     reasons: issues.map((issue) => issue.code),
     auditIssues: issues,
   };
+}
+
+function auditExternalResourceNode(node: ResourceNode): ResourceNodeAuditIssue[] {
+  if (node.type !== 'external_resource') return [];
+  const external = node.externalResource;
+  const issues: ResourceNodeAuditIssue[] = [];
+  if (!external?.source?.trim()) {
+    issues.push({
+      code: 'missing-external-source',
+      severity: 'blocking',
+      message: 'External resource lacks a source label.',
+    });
+  }
+  if (!external?.url || node.launchTarget !== external.url) {
+    issues.push({
+      code: 'unsafe-external-url',
+      severity: 'blocking',
+      message: 'External resource URL is missing or does not satisfy the safe URL policy.',
+    });
+  }
+  if (!Number.isFinite(external?.estimatedTimeMinutes) || (external?.estimatedTimeMinutes ?? 0) <= 0) {
+    issues.push({
+      code: 'missing-external-estimated-time',
+      severity: 'blocking',
+      message: 'External resource lacks an estimated time.',
+    });
+  }
+  if (!external?.applicableGoalId?.trim()) {
+    issues.push({
+      code: 'missing-external-applicable-goal',
+      severity: 'blocking',
+      message: 'External resource lacks an applicable learning goal.',
+    });
+  }
+  if (!external?.evidenceUseStatus) {
+    issues.push({
+      code: 'missing-external-evidence-use-status',
+      severity: 'blocking',
+      message: 'External resource lacks an evidence-use status.',
+    });
+  } else if (external.evidenceUseStatus === 'reference-only') {
+    issues.push({
+      code: 'external-resource-reference-only',
+      severity: 'blocking',
+      message: 'Reference-only external resources cannot affect adaptive path recommendations.',
+    });
+  }
+  if (!external?.privacyPolicy) {
+    issues.push({
+      code: 'missing-external-privacy-policy',
+      severity: 'blocking',
+      message: 'External resource lacks a privacy policy.',
+    });
+  }
+  return issues;
+}
+
+function auditCheckpointNode(node: ResourceNode): ResourceNodeAuditIssue[] {
+  if (node.type !== 'checkpoint') return [];
+  const checkpoint = node.checkpoint;
+  const issues: ResourceNodeAuditIssue[] = [];
+  if (!checkpoint?.assessmentPurpose?.trim()) {
+    issues.push({
+      code: 'missing-checkpoint-assessment-purpose',
+      severity: 'blocking',
+      message: 'Checkpoint lacks an assessment purpose.',
+    });
+  }
+  if (!checkpoint?.criteria.length) {
+    issues.push({
+      code: 'missing-checkpoint-criteria',
+      severity: 'blocking',
+      message: 'Checkpoint lacks passing criteria.',
+    });
+  }
+  if (!checkpoint?.requiredEvidenceRefs.length) {
+    issues.push({
+      code: 'missing-checkpoint-required-evidence',
+      severity: 'blocking',
+      message: 'Checkpoint lacks required evidence references.',
+    });
+  }
+  if (!checkpoint?.remediationBehavior?.trim()) {
+    issues.push({
+      code: 'missing-checkpoint-remediation',
+      severity: 'blocking',
+      message: 'Checkpoint lacks remediation behavior.',
+    });
+  }
+  return issues;
 }
 
 function buildTeachingResourceNodes(resources: TeachingResourceNodeInput[]): ResourceNode[] {
@@ -400,7 +683,11 @@ function buildRegisteredResourceNodes(resources: RegisteredResourceNodeInput[]):
   return resources.map((resource) => createNode({
     id: `registry:${resource.id}`,
     title: resource.label,
-    type: resource.type === 'SIMULATION_APP' ? 'simulation' : inferRegisteredNodeType(resource.id),
+    type: resource.type === 'SIMULATION_APP'
+      ? 'simulation'
+      : resource.type === 'ADAPTIVE_QUIZ'
+        ? 'adaptive_quiz'
+        : inferRegisteredNodeType(resource.id),
     sourceKind: 'resource_registry',
     sourceRef: resource.id,
     renderTarget: resource.renderTarget ?? null,
@@ -587,10 +874,93 @@ function buildArenaTaskNodes(tasks: ArenaTaskResourceNodeInput[]): ResourceNode[
   }));
 }
 
+function buildExternalResourceNodes(resources: ExternalResourceNodeInput[]): ResourceNode[] {
+  return resources.map((resource) => {
+    const safeUrl = safeExternalUrl(resource.url);
+    const privacyPolicy = isResourceNodePrivacyLevel(resource.privacyPolicy) ? resource.privacyPolicy : null;
+    const effectiveKnowledgeCoverage = uniqueSorted(
+      resource.planningOverride?.knowledgeCoverage ?? resource.knowledgeNodeIds ?? [],
+    );
+    return createNode({
+      id: `external-resource:${resource.id}`,
+      title: resource.title,
+      courseModule: null,
+      type: 'external_resource',
+      sourceKind: 'external_resource',
+      sourceRef: resource.id,
+      launchTarget: safeUrl,
+      knowledgeCoverage: resource.knowledgeNodeIds ?? [],
+      sourceOfRecord: {
+        content: 'external_resource',
+        catalogMetadata: 'external_resource',
+        planningMetadata: 'ResourceNode',
+      },
+      prerequisites: resource.prerequisiteNodeIds ?? [],
+      evidenceInstrumentation: resource.evidenceUseStatus === 'explicit-access-required'
+        ? ['external_resource_access']
+        : [],
+      planningOverride: {
+        ...resource.planningOverride,
+        estimatedTimeMinutes: resource.estimatedTimeMinutes ?? resource.planningOverride?.estimatedTimeMinutes,
+        privacyLevel: privacyPolicy ?? resource.planningOverride?.privacyLevel,
+      },
+      externalResource: {
+        source: normalizeOptionalString(resource.source),
+        url: safeUrl,
+        estimatedTimeMinutes: typeof resource.estimatedTimeMinutes === 'number' &&
+          Number.isFinite(resource.estimatedTimeMinutes) &&
+          resource.estimatedTimeMinutes > 0
+          ? resource.estimatedTimeMinutes
+          : null,
+        knowledgeCoverage: effectiveKnowledgeCoverage,
+        applicableGoalId: normalizeOptionalString(resource.applicableGoalId),
+        evidenceUseStatus: resource.evidenceUseStatus === 'explicit-access-required' || resource.evidenceUseStatus === 'reference-only'
+          ? resource.evidenceUseStatus
+          : null,
+        privacyPolicy,
+      },
+    });
+  });
+}
+
+function buildCheckpointNodes(checkpoints: CheckpointResourceNodeInput[]): ResourceNode[] {
+  return checkpoints.map((checkpoint) => createNode({
+    id: `checkpoint:${checkpoint.id}`,
+    title: checkpoint.title,
+    courseModule: null,
+    type: 'checkpoint',
+    sourceKind: 'checkpoint',
+    sourceRef: checkpoint.id,
+    renderTarget: checkpoint.renderTarget ?? null,
+    launchTarget: checkpoint.launchTarget ?? null,
+    knowledgeCoverage: checkpoint.knowledgeNodeIds ?? [],
+    sourceOfRecord: {
+      content: 'checkpoint',
+      catalogMetadata: 'checkpoint',
+      planningMetadata: 'ResourceNode',
+    },
+    prerequisites: checkpoint.prerequisiteNodeIds ?? [],
+    evidenceInstrumentation: checkpoint.requiredEvidenceRefs?.length
+      ? checkpoint.requiredEvidenceRefs
+      : ['checkpoint_review'],
+    planningOverride: {
+      ...checkpoint.planningOverride,
+      terminalConstraints: uniqueSorted(['checkpoint', ...(checkpoint.planningOverride?.terminalConstraints ?? [])]),
+    },
+    checkpoint: {
+      assessmentPurpose: normalizeOptionalString(checkpoint.assessmentPurpose),
+      criteria: uniqueStableStrings(checkpoint.criteria ?? []),
+      requiredEvidenceRefs: uniqueStableStrings(checkpoint.requiredEvidenceRefs ?? []),
+      remediationBehavior: normalizeOptionalString(checkpoint.remediationBehavior),
+      reviewState: checkpoint.reviewState ?? 'pending',
+    },
+  }));
+}
+
 function buildLightweightNodes(
   entries: LightweightResourceNodeInput[],
-  type: Extract<ResourceNodeType, 'reflection' | 'ai_intervention' | 'project'>,
-  sourceKind: Extract<ResourceNodeSourceKind, 'reflection_prompt' | 'ai_intervention' | 'project'>,
+  type: Extract<ResourceNodeType, 'control_workbench' | 'reflection' | 'ai_intervention' | 'konling' | 'project'>,
+  sourceKind: Extract<ResourceNodeSourceKind, 'control_workbench' | 'reflection_prompt' | 'ai_intervention' | 'konling' | 'project'>,
 ): ResourceNode[] {
   return entries.map((entry) => createNode({
     id: `${sourceKind}:${entry.id}`,
@@ -625,6 +995,9 @@ function createNode(input: {
   sourceRefs?: ResourceNodeSourceReference[];
   renderTarget?: string | null;
   launchTarget?: string | null;
+  pathSemantics?: ResourceNodePathSemantics;
+  externalResource?: ResourceNodeExternalResourceMetadata | null;
+  checkpoint?: ResourceNodeCheckpointMetadata | null;
   knowledgeCoverage: string[];
   sourceOfRecord: ResourceNodeSourceOfRecord;
   teacherOnly?: boolean;
@@ -645,6 +1018,9 @@ function createNode(input: {
     sourceRefs: uniqueSourceRefs(input.sourceRefs ?? [{ kind: input.sourceKind, ref: input.sourceRef }]),
     renderTarget: input.renderTarget ?? null,
     launchTarget: input.launchTarget ?? null,
+    pathSemantics: input.pathSemantics ?? pathSemanticsForResourceType(input.type),
+    externalResource: input.externalResource ?? null,
+    checkpoint: input.checkpoint ?? null,
     planningMetadata: {
       prerequisites: uniqueSorted(planningOverride.prerequisites ?? input.prerequisites ?? []),
       estimatedTimeMinutes: planningOverride.estimatedTimeMinutes ?? defaultEstimatedTime(input.type),
@@ -797,6 +1173,7 @@ function inferRegisteredNodeType(value: string): ResourceNodeType {
   if (lower.includes('quiz') || lower.includes('precheck') || lower.includes('posttest') || lower.includes('assessment')) {
     return 'quiz';
   }
+  if (lower.includes('workbench') || lower.includes('control-lab')) return 'control_workbench';
   if (lower.includes('simulation') || lower.includes('sim')) {
     return 'simulation';
   }
@@ -806,6 +1183,43 @@ function inferRegisteredNodeType(value: string): ResourceNodeType {
   return 'lesson_step';
 }
 
+function pathSemanticsForResourceType(type: ResourceNodeType): ResourceNodePathSemantics {
+  if (type === 'knowledge_card' || type === 'knowledge_node') return PATH_NODE_SEMANTICS.knowledge_card;
+  if (type === 'quiz' || type === 'adaptive_quiz') return PATH_NODE_SEMANTICS.adaptive_quiz;
+  if (type === 'control_workbench') return PATH_NODE_SEMANTICS.control_workbench;
+  if (type === 'simulation') return PATH_NODE_SEMANTICS.simulation;
+  if (type === 'arena_task') return PATH_NODE_SEMANTICS.arena_task;
+  if (type === 'external_resource') return PATH_NODE_SEMANTICS.external_resource;
+  if (type === 'reflection') return PATH_NODE_SEMANTICS.reflection;
+  if (type === 'checkpoint') return PATH_NODE_SEMANTICS.checkpoint;
+  if (type === 'ai_intervention' || type === 'konling') return PATH_NODE_SEMANTICS.konling;
+  return PATH_NODE_SEMANTICS.interactive_lesson;
+}
+
+export function getPathNodeSemanticsForResourceType(type: ResourceNodeType): ResourceNodePathSemantics {
+  return pathSemanticsForResourceType(type);
+}
+
+function safeExternalUrl(value: string | null | undefined): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === 'https:' ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+function isResourceNodePrivacyLevel(value: unknown): value is ResourceNodePrivacyLevel {
+  return value === 'student-visible' || value === 'teacher-scoped' || value === 'admin-scoped';
+}
+
+function normalizeOptionalString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
 function collectLessonKnowledgeCoverage(lesson: RuntimeLessonNodeInput): string[] {
   return uniqueSorted((lesson.steps ?? []).flatMap((step) => step.knowledgeNodeIds ?? []));
 }
@@ -813,24 +1227,29 @@ function collectLessonKnowledgeCoverage(lesson: RuntimeLessonNodeInput): string[
 function defaultEstimatedTime(type: ResourceNodeType): number {
   if (type === 'video' || type === 'audio') return 8;
   if (type === 'handout' || type === 'knowledge_card') return 10;
-  if (type === 'quiz' || type === 'reflection') return 12;
-  if (type === 'simulation' || type === 'arena_task') return 25;
+  if (type === 'quiz' || type === 'adaptive_quiz' || type === 'reflection' || type === 'checkpoint') return 12;
+  if (type === 'simulation' || type === 'arena_task' || type === 'control_workbench') return 25;
+  if (type === 'external_resource') return 15;
+  if (type === 'konling' || type === 'ai_intervention') return 6;
   if (type === 'project') return 60;
   return 15;
 }
 
 function defaultCognitiveLoad(type: ResourceNodeType): ResourceNodeCognitiveLoad {
-  if (type === 'project' || type === 'arena_task' || type === 'simulation') return 'high';
-  if (type === 'video' || type === 'audio' || type === 'knowledge_card') return 'low';
+  if (type === 'project' || type === 'arena_task' || type === 'simulation' || type === 'control_workbench') return 'high';
+  if (type === 'video' || type === 'audio' || type === 'knowledge_card' || type === 'external_resource' || type === 'konling') return 'low';
   return 'medium';
 }
 
 function defaultAbilityImpact(type: ResourceNodeType): Record<string, number> {
-  if (type === 'simulation' || type === 'arena_task' || type === 'project') {
+  if (type === 'simulation' || type === 'arena_task' || type === 'project' || type === 'control_workbench') {
     return { parameterDesign: 0.3, engineeringDecision: 0.3, crossDomainTransfer: 0.2 };
   }
-  if (type === 'reflection' || type === 'ai_intervention') {
+  if (type === 'reflection' || type === 'ai_intervention' || type === 'konling') {
     return { inquiryReflection: 0.3, selfDirectedLearning: 0.2 };
+  }
+  if (type === 'adaptive_quiz' || type === 'checkpoint') {
+    return { diagnosticAssessment: 0.25 };
   }
   return { controlModeling: 0.2 };
 }
@@ -849,4 +1268,15 @@ function uniqueSourceRefs(refs: ResourceNodeSourceReference[]): ResourceNodeSour
 
 function uniqueSorted(values: string[]): string[] {
   return Array.from(new Set(values.filter(Boolean))).sort((left, right) => left.localeCompare(right));
+}
+
+function uniqueStableStrings(values: string[]): string[] {
+  const seen = new Set<string>();
+  return values
+    .map((value) => value.trim())
+    .filter((value) => {
+      if (!value || seen.has(value)) return false;
+      seen.add(value);
+      return true;
+    });
 }

@@ -506,8 +506,25 @@ describe('adaptive learning path planner', () => {
   });
 
   it('builds a control-correction three-style bundle with explainable option contracts', () => {
+    const controlRegistry = buildControlCorrectionResourceNodeRegistry();
+    const externalRegistry = buildResourceNodeRegistry({
+      externalResources: [{
+        id: 'control-ocw',
+        title: '外部校正资料',
+        source: 'MIT OCW',
+        url: 'https://ocw.mit.edu/control/correction',
+        estimatedTimeMinutes: 12,
+        knowledgeNodeIds: ['control-correction:root-locus-design'],
+        applicableGoalId: 'control-correction',
+        evidenceUseStatus: 'explicit-access-required',
+        privacyPolicy: 'student-visible',
+      }],
+    });
     const input = plannerInput({
-      registry: buildControlCorrectionResourceNodeRegistry(),
+      registry: {
+        ...controlRegistry,
+        nodes: [...controlRegistry.nodes, ...externalRegistry.nodes],
+      },
       goal: {
         id: 'control-correction',
         title: '控制系统校正设计',
@@ -536,7 +553,7 @@ describe('adaptive learning path planner', () => {
           },
         },
         resourcePreference: {
-          preferredModalities: ['video', 'ai_intervention', 'simulation'],
+          preferredModalities: ['external_resource', 'video', 'ai_intervention', 'simulation'],
         },
         evidence: {
           confidence: {
@@ -588,6 +605,7 @@ describe('adaptive learning path planner', () => {
       }),
     ]));
     expect(bundle.diversity.pairwiseResourceOverlap.length).toBe(3);
+    expect(JSON.stringify(bundle.paths)).not.toContain('external-resource:control-ocw');
   });
 
   it('does not expose ineligible support nodes in control-correction path options', () => {
@@ -644,6 +662,70 @@ describe('adaptive learning path planner', () => {
 
     expect(bundle.paths.flatMap((path) => path.nodeIds)).not.toContain(
       'knowledge-card:control-correction-time-domain-targets',
+    );
+  });
+
+  it('does not expose external resources as preference support nodes when the policy disallows them', () => {
+    const registry = buildControlCorrectionResourceNodeRegistry();
+    const externalSupportNode = buildResourceNodeRegistry({
+      externalResources: [{
+        id: 'external-control-correction-guide',
+        title: '外部控制校正资料',
+        source: 'MIT OCW',
+        url: 'https://ocw.mit.edu/control/correction',
+        estimatedTimeMinutes: 1,
+        knowledgeNodeIds: ['control-correction:time-domain-targets'],
+        applicableGoalId: 'control-correction',
+        evidenceUseStatus: 'explicit-access-required',
+        privacyPolicy: 'student-visible',
+      }],
+    }).nodes.find((node) => node.id === 'external-resource:external-control-correction-guide');
+    if (!externalSupportNode) {
+      throw new Error('expected external support node fixture');
+    }
+    const bundle = buildControlCorrectionThreeStylePathBundle(plannerInput({
+      registry: {
+        ...registry,
+        nodes: [...registry.nodes, externalSupportNode],
+      },
+      goal: {
+        id: 'control-correction',
+        title: '控制系统校正设计',
+        knowledgeTargets: [
+          'control-correction:time-domain-targets',
+          'control-correction:root-locus-design',
+          'control-correction:simulation-validation',
+          'control-correction:arena-transfer',
+        ],
+        competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.3, confidence: 0.7, evidenceCount: 2 },
+            'control-correction:root-locus-design': { posteriorMastery: 0.25, confidence: 0.65, evidenceCount: 2 },
+            'control-correction:simulation-validation': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+            'control-correction:arena-transfer': { posteriorMastery: 0.1, confidence: 0.5, evidenceCount: 0 },
+          },
+        },
+        resourcePreference: {
+          preferredModalities: ['external_resource'],
+        },
+        evidence: {
+          confidence: { level: 'medium', score: 0.68, evidenceCount: 8, sourceCompleteness: 0.7 },
+          sourceCoverage: { LearningFact: 'available' },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 180,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+      },
+    }));
+
+    expect(bundle.paths.flatMap((path) => path.nodeIds)).not.toContain(
+      'external-resource:external-control-correction-guide',
     );
   });
 
@@ -1121,8 +1203,80 @@ describe('adaptive learning path planner', () => {
     expect(executableOptions.length).toBeGreaterThanOrEqual(2);
     expect(executableOptions.every((path) => path.checkpointNodeIds.length > 0)).toBe(true);
     expect(executableOptions.every((path) => path.estimatedMinutes <= 45)).toBe(true);
+    expect(executableOptions.every((path) =>
+      path.nodeSummaries.length === path.nodeIds.length &&
+      path.nodeSummaries.every((node) => node.pathNodeType && node.iconKey && node.shapeHint && node.evidenceBehavior)
+    )).toBe(true);
     expect(JSON.stringify(plan.mainPath)).not.toContain('learner-state-missing');
     expect(JSON.stringify(plan.mainPath)).not.toContain('learner-evidence-low-confidence');
+  });
+
+  it('keeps external resources out of paths unless external resources are explicitly allowed', () => {
+    const registry = buildResourceNodeRegistry({
+      externalResources: [{
+        id: 'ocw-bode',
+        title: '外部伯德图资料',
+        source: 'MIT OCW',
+        url: 'https://ocw.mit.edu/control/bode',
+        estimatedTimeMinutes: 15,
+        knowledgeNodeIds: ['kn-bode'],
+        applicableGoalId: 'frequency-response-foundations',
+        evidenceUseStatus: 'explicit-access-required',
+        privacyPolicy: 'student-visible',
+      }],
+      checkpoints: [{
+        id: 'bode-after-external',
+        title: '外部资料后检查点',
+        assessmentPurpose: '确认学生能解释外部资料中的伯德图概念',
+        criteria: ['解释幅频曲线斜率'],
+        requiredEvidenceRefs: ['external_resource.accessed'],
+        remediationBehavior: 'retry-prerequisite-node',
+        reviewState: 'pending',
+        launchTarget: '/assessment/checkpoints/bode-after-external',
+        knowledgeNodeIds: ['kn-bode'],
+        prerequisiteNodeIds: ['external-resource:ocw-bode'],
+      }],
+    });
+    const baseInput = plannerInput({
+      registry,
+      goal: {
+        id: 'frequency-response-foundations',
+        title: '频率响应基础',
+        knowledgeTargets: ['kn-bode'],
+        competencyTargets: [],
+      },
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-bode': { posteriorMastery: 0.1, confidence: 0.8, evidenceCount: 3 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'high',
+            score: 0.8,
+            evidenceCount: 6,
+            sourceCompleteness: 0.8,
+          },
+        },
+      },
+    });
+
+    const blocked = buildAdaptiveLearningPathPlan(baseInput);
+    const allowed = buildAdaptiveLearningPathPlan({
+      ...baseInput,
+      allowExternalResources: true,
+    });
+
+    expect(blocked.mainPath.map((node) => node.nodeId)).not.toContain('external-resource:ocw-bode');
+    expect(blocked.mainPath.map((node) => node.nodeId)).not.toContain('checkpoint:bode-after-external');
+    expect(allowed.mainPath.map((node) => node.nodeId)).toEqual(
+      expect.arrayContaining(['external-resource:ocw-bode', 'checkpoint:bode-after-external']),
+    );
   });
 
   it('keeps low-confidence usable path nodes while recording confidence internally', () => {
@@ -2205,6 +2359,110 @@ describe('adaptive learning path planner', () => {
     }));
 
     expect(plan.explanations.selectedReasons).not.toContain('matches-competency-deficit');
+  });
+
+  it('carries governed path semantics through generation, serialization, and feedback history', () => {
+    const registry = buildResourceNodeRegistry({
+      externalResources: [{
+        id: 'ocw-bode',
+        title: '外部伯德图资料',
+        source: 'MIT OCW',
+        url: 'https://ocw.mit.edu/control/bode',
+        estimatedTimeMinutes: 15,
+        knowledgeNodeIds: ['kn-bode'],
+        applicableGoalId: 'goal-bode-external',
+        evidenceUseStatus: 'explicit-access-required',
+        privacyPolicy: 'student-visible',
+      }],
+      checkpoints: [{
+        id: 'bode-checkpoint',
+        title: '伯德图阶段检查',
+        assessmentPurpose: '确认学生能根据外部资料解释幅频特性',
+        criteria: ['解释幅频曲线斜率', '说明穿越频率含义'],
+        requiredEvidenceRefs: ['external_resource.accessed'],
+        remediationBehavior: 'retry-prerequisite-node',
+        reviewState: 'pending',
+        launchTarget: '/assessment/adaptive-practice?checkpoint=bode',
+        knowledgeNodeIds: ['kn-bode'],
+        prerequisiteNodeIds: ['external-resource:ocw-bode'],
+      }],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'goal-bode-external',
+        title: '伯德图外部资料路径',
+        knowledgeTargets: ['kn-bode'],
+        competencyTargets: [],
+      },
+      constraints: {
+        timeBudgetMinutes: 45,
+        privacyScopes: ['student-visible'],
+      },
+      allowExternalResources: true,
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-bode': { posteriorMastery: 0.15, confidence: 0.8, evidenceCount: 4 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'high',
+            score: 0.8,
+            evidenceCount: 6,
+            sourceCompleteness: 0.8,
+          },
+        },
+      },
+    }));
+    const afterCompletion = recordLearningPathFeedback(plan, {
+      id: 'feedback-1',
+      type: 'completion',
+      nodeId: 'external-resource:ocw-bode',
+      createdAt: '2026-06-14T09:00:00.000Z',
+      context: {
+        evidenceRefs: [{ kind: 'external_resource_access', id: 'access-1' }],
+      },
+    });
+    const serialized = serializeLearningPathPlan(afterCompletion);
+
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual([
+      'external-resource:ocw-bode',
+      'checkpoint:bode-checkpoint',
+    ]);
+    expect(plan.mainPath.map((node) => ({
+      nodeId: node.nodeId,
+      pathNodeType: node.pathNodeType,
+      iconKey: node.iconKey,
+      shapeHint: node.shapeHint,
+      evidenceBehavior: node.evidenceBehavior,
+    }))).toEqual([
+      {
+        nodeId: 'external-resource:ocw-bode',
+        pathNodeType: 'external_resource',
+        iconKey: 'external-link',
+        shapeHint: 'link',
+        evidenceBehavior: 'explicit_access',
+      },
+      {
+        nodeId: 'checkpoint:bode-checkpoint',
+        pathNodeType: 'checkpoint',
+        iconKey: 'checkpoint',
+        shapeHint: 'gate',
+        evidenceBehavior: 'assessment_gate',
+      },
+    ]);
+    expect(serialized.payload.planNodes.map((node) => [node.nodeId, node.pathNodeType, node.iconKey]))
+      .toEqual([
+        ['external-resource:ocw-bode', 'external_resource', 'external-link'],
+        ['checkpoint:bode-checkpoint', 'checkpoint', 'checkpoint'],
+      ]);
+    expect(serialized.payload.feedbackEvents[0]).toMatchObject({
+      type: 'completion',
+      nodeId: 'external-resource:ocw-bode',
+    });
   });
 
   it('keeps currentNodeId and node status aligned after completed prerequisites', () => {

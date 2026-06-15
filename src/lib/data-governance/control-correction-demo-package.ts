@@ -7,11 +7,29 @@ import {
   validateControlCorrectionPathPlanForPersistence,
 } from '../control-correction-path-rounds';
 import {
+  getPathNodeSemanticsForResourceType,
+  type ResourceNodeType,
+} from '../resource-node-registry';
+import {
   isAdaptiveLearnerStateServiceEnabled,
 } from './adaptive-learner-state-service';
 import { resolveAIProviderConfig } from '../ai/provider-config';
 
 export type DemoConfidence = 'high' | 'medium' | 'low' | 'none';
+
+function pathNodeSemantics(type: ResourceNodeType) {
+  const semantics = getPathNodeSemanticsForResourceType(type);
+  return {
+    pathNodeType: semantics.type,
+    displayName: semantics.displayName,
+    iconKey: semantics.iconKey,
+    shapeHint: semantics.shapeHint,
+    evidenceBehavior: semantics.evidenceBehavior,
+    evidenceStatus: 'instrumented' as const,
+    externalResource: null,
+    checkpoint: null,
+  };
+}
 
 export interface DemoCitation {
   id: string;
@@ -549,6 +567,7 @@ export function buildControlCorrectionDemoPlanPostBody(
       nodeId: 'knowledge-card:control-correction-time-domain-targets',
       title: 'Time-domain target card',
       type: 'knowledge_card',
+      ...pathNodeSemantics('knowledge_card'),
       sourceKind: 'resource_registry',
       sourceRef: 'lesson09-correction-precheck',
       target: '/interactive-learning/resources/lesson09-correction-precheck',
@@ -566,6 +585,7 @@ export function buildControlCorrectionDemoPlanPostBody(
       nodeId: 'simulation:control-correction-step-response-lab',
       title: 'Step response validation lab',
       type: 'simulation',
+      ...pathNodeSemantics('simulation'),
       sourceKind: 'simulation_resource',
       sourceRef: 'control-correction-step-response-lab',
       target: '/simulations/cruise?resource=control-correction-step-response-lab',
@@ -583,6 +603,7 @@ export function buildControlCorrectionDemoPlanPostBody(
       nodeId: 'arena-task:task-second-order-lead-pid',
       title: 'Arena transfer validation',
       type: 'arena_task',
+      ...pathNodeSemantics('arena_task'),
       sourceKind: 'arena_task',
       sourceRef: 'task-second-order-lead-pid',
       target: '/arena/challenges/task-second-order-lead-pid',

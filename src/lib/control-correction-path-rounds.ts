@@ -300,13 +300,33 @@ export function validateLearningPathPlanForPersistence(plan: AdaptiveLearningPat
     if (
       !node.nodeId ||
       seen.has(node.nodeId) ||
-      !['lesson_step', 'knowledge_node', 'knowledge_card', 'video', 'audio', 'handout', 'quiz', 'simulation', 'arena_task', 'reflection', 'ai_intervention', 'project'].includes(node.type) ||
+      ![
+        'lesson_step',
+        'knowledge_node',
+        'knowledge_card',
+        'video',
+        'audio',
+        'handout',
+        'quiz',
+        'adaptive_quiz',
+        'control_workbench',
+        'simulation',
+        'arena_task',
+        'external_resource',
+        'reflection',
+        'checkpoint',
+        'ai_intervention',
+        'konling',
+        'project',
+      ].includes(node.type) ||
       !registeredGoal.allowedResourceMix.includes(node.type) ||
       node.privacyLevel !== 'student-visible' ||
       node.teacherPolicy !== 'allowed' ||
       typeof node.target !== 'string' ||
       node.target.length === 0 ||
-      !isStudentVisiblePathTarget(node.target) ||
+      (node.type === 'external_resource'
+        ? !isGovernedExternalPathNode(node, plan.goal.id)
+        : !isStudentVisiblePathTarget(node.target)) ||
       !Number.isFinite(node.estimatedTimeMinutes) ||
       !Number.isFinite(node.score) ||
       !['completed', 'current', 'next', 'blocked'].includes(node.status)
@@ -317,6 +337,37 @@ export function validateLearningPathPlanForPersistence(plan: AdaptiveLearningPat
   }
   if (plan.currentNodeId && !seen.has(plan.currentNodeId)) {
     throw new ControlCorrectionPathRoundValidationError();
+  }
+}
+
+function isGovernedExternalPathNode(node: AdaptiveLearningPathPlanNode, goalId: string): boolean {
+  const metadata = node.externalResource;
+  return node.pathNodeType === 'external_resource' &&
+    node.evidenceBehavior === 'explicit_access' &&
+    node.evidenceStatus === 'explicit-access-required' &&
+    Boolean(metadata) &&
+    typeof metadata?.source === 'string' &&
+    metadata.source.trim().length > 0 &&
+    typeof metadata.url === 'string' &&
+    metadata.url === node.target &&
+    isSafeExternalPathTarget(metadata.url) &&
+    node.estimatedTimeMinutes > 0 &&
+    typeof metadata.estimatedTimeMinutes === 'number' &&
+    Number.isFinite(metadata.estimatedTimeMinutes) &&
+    metadata.estimatedTimeMinutes > 0 &&
+    metadata.knowledgeCoverage.length > 0 &&
+    typeof metadata.applicableGoalId === 'string' &&
+    metadata.applicableGoalId === goalId &&
+    metadata.evidenceUseStatus === 'explicit-access-required' &&
+    metadata.privacyPolicy === node.privacyLevel;
+}
+
+function isSafeExternalPathTarget(target: string): boolean {
+  try {
+    const url = new URL(target);
+    return url.protocol === 'https:';
+  } catch {
+    return false;
   }
 }
 
@@ -368,11 +419,26 @@ export function validateControlCorrectionPathPlanForPersistence(plan: AdaptiveLe
     if (
       !node.nodeId ||
       seen.has(node.nodeId) ||
-      !['knowledge_card', 'simulation', 'arena_task', 'intervention', 'ai_intervention', 'reflection'].includes(node.type) ||
+      ![
+        'knowledge_card',
+        'adaptive_quiz',
+        'control_workbench',
+        'simulation',
+        'arena_task',
+        'external_resource',
+        'intervention',
+        'reflection',
+        'checkpoint',
+        'ai_intervention',
+        'konling',
+      ].includes(node.type) ||
       node.privacyLevel !== 'student-visible' ||
       node.teacherPolicy !== 'allowed' ||
       typeof node.target !== 'string' ||
       node.target.length === 0 ||
+      (node.type === 'external_resource'
+        ? !isGovernedExternalPathNode(node, plan.goal.id)
+        : !isStudentVisiblePathTarget(node.target)) ||
       !Number.isFinite(node.estimatedTimeMinutes) ||
       !Number.isFinite(node.score) ||
       !['completed', 'current', 'next', 'blocked'].includes(node.status)
@@ -714,7 +780,7 @@ export function toControlCorrectionPathRoundView(path: any) {
     pathStatus: path.pathStatus,
     currentNodeId: path.currentNodeId,
     classId: path.classId,
-    pathPayload: path.pathPayload,
+    pathPayload: derivePathPayloadExecutionState(path),
     explanationPayload: path.explanationPayload,
     alternativePayload: path.alternativePayload,
     entryNodeId: path.entryNodeId,
@@ -753,6 +819,56 @@ export function toControlCorrectionPathRoundView(path: any) {
           createdAt: intervention.createdAt,
         }))
       : [],
+  };
+}
+
+function derivePathPayloadExecutionState(path: any): unknown {
+  const payload = toRecord(path.pathPayload);
+  const planNodes = Array.isArray(payload.planNodes) ? payload.planNodes : null;
+  if (!planNodes) return path.pathPayload;
+
+  const currentNodeId = typeof path.currentNodeId === 'string' ? path.currentNodeId : null;
+  const metadata = toRecord(path.lastExecutionMetadata);
+  const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
+  const failedNodeIds = new Set(arrayOfStrings(metadata.failedNodeIds));
+
+  return {
+    ...payload,
+    planNodes: planNodes.map((node) => {
+      const record = toRecord(node);
+      const nodeId = typeof record.nodeId === 'string' ? record.nodeId : null;
+      if (!nodeId) return node;
+      if (completedNodeIds.has(nodeId)) return { ...record, status: 'completed' };
+      if (failedNodeIds.has(nodeId)) return { ...record, status: 'blocked' };
+      if (currentNodeId === nodeId) return { ...record, status: 'current' };
+      if (record.status === 'current') return { ...record, status: 'next' };
+      return node;
+    }),
+    executionStatus: {
+      ...toRecord(payload.executionStatus),
+      activeNodeId: currentNodeId,
+      completedNodeIds: [...completedNodeIds],
+      failedNodeIds: [...failedNodeIds],
+    },
+    visualization: derivePathVisualizationExecutionState(payload.visualization, currentNodeId, completedNodeIds),
+  };
+}
+
+function derivePathVisualizationExecutionState(
+  visualization: unknown,
+  currentNodeId: string | null,
+  completedNodeIds: Set<string>,
+): unknown {
+  const visualizationRecord = toRecord(visualization);
+  const mapRecord = toRecord(visualizationRecord.map);
+  if (Object.keys(visualizationRecord).length === 0 || Object.keys(mapRecord).length === 0) return visualization;
+  return {
+    ...visualizationRecord,
+    map: {
+      ...mapRecord,
+      currentNodeId,
+      completedNodeIds: [...completedNodeIds],
+    },
   };
 }
 

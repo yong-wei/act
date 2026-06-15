@@ -65,7 +65,7 @@ vi.mock('@/lib/data-governance/student-evidence-feature-cache', () => ({
 
 import { POST as planPath } from '../plan/route';
 import { GET as readPath } from '../[id]/route';
-import { POST as executePath } from '../[id]/execute/route';
+import { GET as launchPathNode, POST as executePath } from '../[id]/execute/route';
 import { POST as deviatePath } from '../[id]/deviations/route';
 import { POST as intervenePath } from '../[id]/interventions/route';
 import { POST as choosePath } from '../[id]/choices/route';
@@ -223,6 +223,7 @@ describe('learning path round API routes', () => {
       goalId?: string;
       includePlanNodes?: boolean;
       terminalValidation?: Record<string, unknown>;
+      planNode?: Record<string, unknown>;
     } = {},
   ) {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
@@ -243,6 +244,7 @@ describe('learning path round API routes', () => {
                   nodeId,
                   type,
                   target,
+                  ...options.planNode,
                 },
               ],
             }),
@@ -731,6 +733,169 @@ describe('learning path round API routes', () => {
       resourceType: 'quiz',
       status: 'completed',
       idempotencyKey: 'exec-bode-quiz',
+    }), params);
+
+    expect(response.status).toBe(400);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
+  it('requires governed access evidence before completing external resource nodes', async () => {
+    configureSingleNodePath('external-resource:ocw-bode', 'external_resource', 'https://ocw.mit.edu/control/bode', {
+      planNode: {
+        pathNodeType: 'external_resource',
+        externalResource: {
+          source: 'MIT OCW',
+          url: 'https://ocw.mit.edu/control/bode',
+          estimatedTimeMinutes: 15,
+          knowledgeCoverage: ['kn-bode'],
+          applicableGoalId: 'frequency-response-foundations',
+          evidenceUseStatus: 'explicit-access-required',
+          privacyPolicy: 'student-visible',
+        },
+      },
+    });
+
+    const rejected = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'external-resource:ocw-bode',
+      resourceType: 'external_resource',
+      status: 'completed',
+      idempotencyKey: 'external-missing-evidence',
+      evidenceRefs: [{ kind: 'external_resource_access', id: 'client-forged-access' }],
+    }), params);
+
+    expect(rejected.status).toBe(400);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+
+    const started = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'external-resource:ocw-bode',
+      resourceType: 'external_resource',
+      status: 'started',
+      idempotencyKey: 'external-started',
+    }), params);
+
+    expect(started.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      nodeId: 'external-resource:ocw-bode',
+      resourceType: 'external_resource',
+      status: 'started',
+      evidenceRefs: [expect.objectContaining({
+        kind: 'LearningPathExternalResourceAccess',
+        pathId: 'path-1',
+        nodeId: 'external-resource:ocw-bode',
+        userId: 'student-1',
+        url: 'https://ocw.mit.edu/control/bode',
+      })],
+    }));
+
+    mocks.recordPathNodeExecution.mockClear();
+    mocks.prisma.learningPathExecution.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        id: 'exec-started',
+        pathId: 'path-1',
+        userId: 'student-1',
+        nodeId: 'external-resource:ocw-bode',
+        resourceType: 'external_resource',
+        status: 'started',
+        evidenceRefs: [{
+          kind: 'LearningPathExternalResourceAccess',
+          pathId: 'path-1',
+          nodeId: 'external-resource:ocw-bode',
+          userId: 'student-1',
+          url: 'https://ocw.mit.edu/control/bode',
+        }],
+      });
+    const accepted = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'external-resource:ocw-bode',
+      resourceType: 'external_resource',
+      status: 'completed',
+      idempotencyKey: 'external-with-evidence',
+    }), params);
+
+    expect(accepted.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      nodeId: 'external-resource:ocw-bode',
+      resourceType: 'external_resource',
+      status: 'completed',
+      evidenceRefs: [expect.objectContaining({
+        kind: 'LearningPathExternalResourceAccess',
+        evidenceSource: 'learning-path-execution',
+        accessExecutionId: 'exec-started',
+      })],
+    }));
+  });
+
+  it('does not serve external resource launch through GET navigation probes', async () => {
+    configureSingleNodePath('external-resource:ocw-bode', 'external_resource', 'https://ocw.mit.edu/control/bode', {
+      planNode: {
+        pathNodeType: 'external_resource',
+        externalResource: {
+          source: 'MIT OCW',
+          url: 'https://ocw.mit.edu/control/bode',
+          estimatedTimeMinutes: 15,
+          knowledgeCoverage: ['kn-bode'],
+          applicableGoalId: 'frequency-response-foundations',
+          evidenceUseStatus: 'explicit-access-required',
+          privacyPolicy: 'student-visible',
+        },
+      },
+    });
+
+    const response = await launchPathNode();
+
+    expect(response.status).toBe(405);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
+  it('rejects external resource execution when metadata belongs to a different goal', async () => {
+    configureSingleNodePath('external-resource:ocw-bode', 'external_resource', 'https://ocw.mit.edu/control/bode', {
+      goalId: 'control-correction',
+      planNode: {
+        pathNodeType: 'external_resource',
+        externalResource: {
+          source: 'MIT OCW',
+          url: 'https://ocw.mit.edu/control/bode',
+          estimatedTimeMinutes: 15,
+          knowledgeCoverage: ['kn-bode'],
+          applicableGoalId: 'frequency-response-foundations',
+          evidenceUseStatus: 'explicit-access-required',
+          privacyPolicy: 'student-visible',
+        },
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'external-resource:ocw-bode',
+      resourceType: 'external_resource',
+      status: 'started',
+      idempotencyKey: 'external-wrong-goal',
+    }), params);
+
+    expect(response.status).toBe(400);
+    expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();
+  });
+
+  it('rejects external resource execution when governed metadata has non-positive estimated time', async () => {
+    configureSingleNodePath('external-resource:ocw-bode', 'external_resource', 'https://ocw.mit.edu/control/bode', {
+      planNode: {
+        pathNodeType: 'external_resource',
+        externalResource: {
+          source: 'MIT OCW',
+          url: 'https://ocw.mit.edu/control/bode',
+          estimatedTimeMinutes: -5,
+          knowledgeCoverage: ['kn-bode'],
+          applicableGoalId: 'frequency-response-foundations',
+          evidenceUseStatus: 'explicit-access-required',
+          privacyPolicy: 'student-visible',
+        },
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'external-resource:ocw-bode',
+      resourceType: 'external_resource',
+      status: 'started',
+      idempotencyKey: 'external-negative-time',
     }), params);
 
     expect(response.status).toBe(400);
