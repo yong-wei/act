@@ -5931,8 +5931,15 @@ describe('konling agent runtime', () => {
     expect(schema).toMatch(/approvalState\s+String/);
     expect(schema).toMatch(/correlationId\s+String/);
     expect(schema).toContain('@@unique([agentSessionId, toolName, idempotencyKey])');
+    expect(scopeIdempotencyMigration).toContain('BEGIN;');
+    expect(scopeIdempotencyMigration).toContain("starts_with(\"idempotencyKey\", '__agent_tool_run_scope_idempotency__:')");
+    expect(scopeIdempotencyMigration).toContain('__agent_tool_run_scope_idempotency__:legacy:');
+    expect(scopeIdempotencyMigration).toContain('WITH duplicate_scope_tool_runs AS');
+    expect(scopeIdempotencyMigration).toContain('ROW_NUMBER() OVER');
+    expect(scopeIdempotencyMigration).toContain('__agent_tool_run_scope_idempotency__:duplicate:');
     expect(scopeIdempotencyMigration).toContain('CREATE UNIQUE INDEX "AgentToolRun_scope_idempotency_unique"');
     expect(scopeIdempotencyMigration).toContain('WHERE "idempotencyKey" IS NOT NULL');
+    expect(scopeIdempotencyMigration).toContain('COMMIT;');
     for (const field of ['ownerUserId', 'toolName', 'idempotencyKey', 'courseId', 'pageId']) {
       expect(scopeIdempotencyMigration).toContain(`"${field}"`);
     }
