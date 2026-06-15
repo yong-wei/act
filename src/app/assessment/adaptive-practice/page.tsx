@@ -758,12 +758,12 @@ function getPathExecutionNodes(plan: AdaptiveLearningPathPlan | null, round: Lea
     const rawStatus = typeof node.status === 'string' ? node.status : 'optional';
     const status: PathExecutionNodeView['status'] = completedNodeIds.has(nodeId) || rawStatus === 'completed'
       ? 'completed'
-      : currentNodeId === nodeId || rawStatus === 'current'
-        ? 'current'
-        : skippedNodeIds.has(nodeId)
-          ? 'skipped'
-          : failedNodeIds.has(nodeId) || rawStatus === 'blocked'
-            ? 'blocked'
+      : failedNodeIds.has(nodeId) || rawStatus === 'blocked'
+        ? 'blocked'
+        : currentNodeId === nodeId || rawStatus === 'current'
+          ? 'current'
+          : skippedNodeIds.has(nodeId)
+            ? 'skipped'
             : rawStatus === 'next'
               ? 'next'
               : 'optional';
