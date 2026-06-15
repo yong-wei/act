@@ -25,6 +25,12 @@ Konling path-generation tools SHALL use the shared AgentToolRun audit and idempo
 - **WHEN** Konling accepts a path-generation, revision, selection, or rejection tool call
 - **THEN** the system SHALL persist tool name, agent session, actor user, target user, goal, permission tier, approval state, correlation id, idempotency key, and redacted input summary before executing side effects.
 
+#### Scenario: Student path-center tool does not require approval
+- **WHEN** a student requests a path generation, revision, selection, rejection, explanation, or adjustment-outcome tool from the adaptive path center
+- **THEN** Konling MAY record the AgentToolRun approval state as not-required
+- **AND** the tool SHALL still enforce authenticated or target student scope, registered goal scope, class scope where available, course-scoped AgentSession and ToolRun context, privacy scope, AgentSession permitted tools, idempotency, and redacted input summary before any side effect
+- **AND** path-bound revision, selection, rejection, explanation, or adjustment tools SHALL verify the requested path belongs to the scoped student, registered goal, and class scope where available before any path-bound side effect.
+
 #### Scenario: Idempotent request repeats
 - **WHEN** the same owner user repeats the same path-generation request with the same idempotency key
 - **THEN** the system SHALL reuse or return the existing tool run according to registry policy

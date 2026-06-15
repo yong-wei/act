@@ -129,6 +129,12 @@ export async function resolveKonlingTeachingAssistantServerModeContext(input: {
   if (mode.id === 'resource-coach') {
     return resolveResourceCoachModeContext(input);
   }
+  if (mode.id === 'path-advisor') {
+    return resolvePathAdvisorModeContext({
+      ...input,
+      signedPayload,
+    });
+  }
   if (mode.id === 'grading-assistant') {
     return resolveDocumentGradingModeContext(input, 'teacher');
   }
@@ -338,6 +344,20 @@ async function resolveResourceCoachModeContext(input: {
   return { 'resource-node': true };
 }
 
+function resolvePathAdvisorModeContext(input: {
+  scope: KonlingRuntimeScope;
+  signedPayload: VerifiedModeContextPayload | null;
+}): KonlingTeachingAssistantServerModeContext {
+  if (!input.signedPayload) return {};
+  if (input.scope.role !== 'student') return {};
+  if (input.scope.authenticatedUserId !== input.scope.targetUserId) return {};
+  if (input.signedPayload.context['student-path-center'] !== true) return {};
+  return {
+    ...input.signedPayload.context,
+    'student-path-center': true,
+  };
+}
+
 function verifySignedModeContext(
   hints: Record<string, unknown> | null | undefined,
   input: {
@@ -391,7 +411,9 @@ function verifySignedModeContext(
 }
 
 function resolveModeContextSigningSecret(): string | null {
-  const secret = process.env.KONLING_MODE_CONTEXT_SECRET || '';
+  const secret = process.env.KONLING_SERVER_MODE_CONTEXT_SECRET ||
+    process.env.KONLING_MODE_CONTEXT_SECRET ||
+    '';
   const trimmed = secret.trim();
   if (!trimmed || isPlaceholderSigningSecret(trimmed)) return null;
   return trimmed;
