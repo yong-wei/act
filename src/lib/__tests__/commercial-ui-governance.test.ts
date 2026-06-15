@@ -677,6 +677,66 @@ describe('commercial UI governance', () => {
     );
   });
 
+  it('fails final interactive learning product QA evidence when route matrix cites an unaccepted source concept', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: completeInteractiveLearningProductQaEvidence({
+        routeMatrix: completeInteractiveLearningProductQaEvidence().routeMatrix.map((entry, index) => (
+          index === 0
+            ? {
+                ...entry,
+                sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/unaccepted.png',
+              }
+            : entry
+        )),
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            'routeMatrix.atlas-desktop-light.sourceConcept=accepted-concept-image',
+            'routeMatrix.atlas-desktop-light.sourceConceptSha256',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final interactive learning product QA evidence when route matrix source concept hash drifts', () => {
+    const evidence = completeInteractiveLearningProductQaEvidence();
+    const sourceConcept = evidence.conceptImages[0];
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: {
+        ...evidence,
+        routeMatrix: evidence.routeMatrix.map((entry, index) => (
+          index === 0 ? { ...entry, sourceConcept } : entry
+        )),
+        currentConceptImageSha256: {
+          ...evidence.currentConceptImageSha256,
+          [sourceConcept]: 'stale-concept-sha',
+        },
+      },
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            'conceptImageSha256.artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png=current',
+            'routeMatrix.atlas-desktop-light.sourceConceptSha256=current',
+          ]),
+        }),
+      ]),
+    );
+  });
+
   it('fails final interactive learning product QA evidence when child design QA report gates drift', () => {
     const result = evaluateCommercialUiGovernance(baseInput({
       interactiveLearningProductQaRequired: true,

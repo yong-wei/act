@@ -2162,6 +2162,7 @@ function buildInteractiveLearningProductQaViolations(
       missing.push(`conceptImageSha256.${conceptImage}=current`);
     }
   }
+  const acceptedConceptImages = new Set(conceptImages);
 
   for (const id of REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_IDS) {
     const entry = routeMatrix.find((item) => item.id === id);
@@ -2191,6 +2192,19 @@ function buildInteractiveLearningProductQaViolations(
     if (!entry.pageState) missing.push(`routeMatrix.${id}.pageState`);
     if (!entry.moduleState) missing.push(`routeMatrix.${id}.moduleState`);
     if (!entry.sourceConcept) missing.push(`routeMatrix.${id}.sourceConcept`);
+    if (entry.sourceConcept && !acceptedConceptImages.has(entry.sourceConcept)) {
+      missing.push(`routeMatrix.${id}.sourceConcept=accepted-concept-image`);
+    }
+    if (entry.sourceConcept && !evidence.conceptImageSha256?.[entry.sourceConcept]) {
+      missing.push(`routeMatrix.${id}.sourceConceptSha256`);
+    }
+    if (
+      entry.sourceConcept
+      && evidence.conceptImageSha256?.[entry.sourceConcept]
+      && evidence.conceptImageSha256[entry.sourceConcept] !== evidence.currentConceptImageSha256?.[entry.sourceConcept]
+    ) {
+      missing.push(`routeMatrix.${id}.sourceConceptSha256=current`);
+    }
   }
 
   for (const check of REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_REGRESSION_CHECKS) {
