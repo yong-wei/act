@@ -1723,9 +1723,9 @@ export default function AdaptivePracticePage() {
                               node.status === 'current'
                                 ? 'border-primary bg-primary/10 ring-2 ring-primary/20'
                                 : node.status === 'completed'
-                                  ? 'border-emerald-500/40 bg-emerald-500/10'
+                                  ? 'border-platform-evidence-eligible/40 bg-platform-evidence-eligible/10'
                                   : node.status === 'skipped'
-                                    ? 'border-amber-500/40 bg-amber-500/10'
+                                    ? 'border-platform-evidence-context/40 bg-platform-evidence-context/10'
                                     : 'border-border bg-background/50'
                             } ${focusedPathNode?.nodeId === node.nodeId ? 'shadow-sm ring-2 ring-primary/30' : ''}`}
                             data-adaptive-path-node={node.nodeId}
@@ -1736,9 +1736,9 @@ export default function AdaptivePracticePage() {
                               <div
                                 className={`flex h-10 w-10 shrink-0 items-center justify-center border text-sm font-semibold ${
                                   node.type === 'checkpoint'
-                                    ? 'rotate-45 rounded-sm border-amber-500 bg-amber-500/15 text-amber-700 dark:text-amber-200'
+                                    ? 'rotate-45 rounded-sm border-platform-evidence-context bg-platform-evidence-context/15 text-platform-evidence-context'
                                     : node.status === 'completed'
-                                      ? 'rounded-full border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-200'
+                                      ? 'rounded-full border-platform-evidence-eligible bg-platform-evidence-eligible/15 text-platform-evidence-eligible'
                                       : node.status === 'current'
                                         ? 'rounded-full border-primary bg-primary/15 text-primary'
                                         : 'rounded-full border-border bg-muted text-foreground'
@@ -1846,7 +1846,7 @@ export default function AdaptivePracticePage() {
                               <button
                                 type="button"
                                 onClick={() => setSkipCandidateNode(focusedPathNode)}
-                                className="rounded-md border border-amber-500/60 px-3 py-1.5 text-xs text-foreground hover:border-amber-400"
+                                className="rounded-md border border-platform-evidence-context/60 px-3 py-1.5 text-xs text-foreground hover:border-platform-evidence-context"
                               >
                                 跳过
                               </button>
@@ -1863,7 +1863,7 @@ export default function AdaptivePracticePage() {
                 </div>
 
                 {skipCandidateNode ? (
-                  <div className="mt-4 rounded-xl border border-amber-500/60 bg-amber-500/10 p-4" data-adaptive-path-skip-warning="visible">
+                  <div className="mt-4 rounded-xl border border-platform-evidence-context/60 bg-platform-evidence-context/10 p-4" data-adaptive-path-skip-warning="visible">
                     <h4 className="text-sm font-semibold text-foreground">确认跳过 {skipCandidateNode.title}</h4>
                     <p className="mt-2 text-sm text-foreground">{SKIP_WARNING_TEXT}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
@@ -1871,7 +1871,7 @@ export default function AdaptivePracticePage() {
                         type="button"
                         onClick={() => void skipPathNode(skipCandidateNode)}
                         disabled={pathActivityPending === `skip:${skipCandidateNode.nodeId}`}
-                        className="rounded-md bg-amber-500 px-3 py-1.5 text-xs font-medium text-black disabled:opacity-60"
+                        className="rounded-md bg-platform-evidence-context px-3 py-1.5 text-xs font-medium text-platform-fg-inverse disabled:opacity-60"
                       >
                         确认跳过
                       </button>
