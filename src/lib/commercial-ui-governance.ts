@@ -43,6 +43,8 @@ export type CommercialUiGovernanceRule =
   | 'accessibility-text-fit.incomplete-evidence'
   | 'simulation-visual-qa.missing-route-evidence'
   | 'simulation-visual-qa.incomplete-evidence'
+  | 'interactive-learning-product-qa.missing-evidence'
+  | 'interactive-learning-product-qa.incomplete-evidence'
   | 'allowlist.invalid-entry';
 
 export type CommercialUiGovernanceCategory =
@@ -58,6 +60,7 @@ export type CommercialUiGovernanceCategory =
   | 'report-export'
   | 'accessibility-text-fit'
   | 'simulation-visual-qa'
+  | 'interactive-learning-product-qa'
   | 'allowlist';
 
 export interface CommercialUiGovernanceViolation {
@@ -124,6 +127,7 @@ export interface CommercialVisualAcceptanceRoute {
 export type CommercialVisualQaTheme = 'light' | 'dark';
 const COMMERCIAL_VISUAL_QA_REQUIRED_THEMES: readonly CommercialVisualQaTheme[] = ['light', 'dark'];
 export type CommercialVisualQaRole = 'guest' | 'student' | 'teacher' | 'admin';
+const COMMERCIAL_VISUAL_QA_ROLES: readonly CommercialVisualQaRole[] = ['guest', 'student', 'teacher', 'admin'];
 export type CommercialVisualQaAuthState = 'public' | 'auth-entry' | 'authenticated' | 'unauth-redirect-fallback';
 const COMMERCIAL_VISUAL_QA_AUTH_STATES: readonly CommercialVisualQaAuthState[] = [
   'public',
@@ -406,6 +410,66 @@ export interface CommercialAccessibilityTextFitEvidence {
   viewports: readonly CommercialViewportAccessibilityEvidence[];
 }
 
+export type CommercialInteractiveLearningProductQaResult = 'passed' | 'blocked' | 'missing';
+
+export interface CommercialInteractiveLearningDesignQaReportEvidence {
+  change: string;
+  report: string;
+  reportSha256?: string;
+  currentReportSha256?: string;
+  finalResult: CommercialInteractiveLearningProductQaResult;
+  reportFinalResult?: CommercialInteractiveLearningProductQaResult;
+}
+
+export interface CommercialInteractiveLearningProductQaMatrixEntry {
+  id: string;
+  route: string;
+  role: CommercialVisualQaRole;
+  theme: CommercialVisualQaTheme;
+  viewport: 'desktop' | 'mobile';
+  navigationState: CommercialVisualQaNavigationState;
+  dockState: 'collapsed' | 'expanded' | 'hidden';
+  pageState: string;
+  moduleState: string;
+  sourceConcept: string;
+  result: CommercialInteractiveLearningProductQaResult;
+}
+
+export interface CommercialInteractiveLearningProductQaReviewEvidence {
+  status: 'passed' | 'blocked' | 'not-run';
+  reviewer: string;
+  report: string;
+  reportSha256?: string;
+  currentReportSha256?: string;
+  reportHasPassVerdict?: boolean;
+  reportHasNoUnresolvedBlocks?: boolean;
+}
+
+export interface CommercialInteractiveLearningProductQaEvidence {
+  change: 'govern-interactive-learning-product-qa';
+  parseError?: string;
+  generatedAt?: string;
+  sourceCommit?: string;
+  designHandoff: string;
+  designHandoffSha256?: string;
+  currentDesignHandoffSha256?: string;
+  handoffMatrix: string;
+  handoffMatrixSha256?: string;
+  currentHandoffMatrixSha256?: string;
+  conceptImages: readonly string[];
+  conceptImageSha256?: Record<string, string>;
+  currentConceptImageSha256?: Record<string, string>;
+  childDesignQaReports: readonly CommercialInteractiveLearningDesignQaReportEvidence[];
+  routeMatrix: readonly CommercialInteractiveLearningProductQaMatrixEntry[];
+  independentVisualReview: CommercialInteractiveLearningProductQaReviewEvidence;
+  regressionChecks: Record<string, boolean>;
+  temporaryExceptions: readonly {
+    id: string;
+    owner: string;
+    removalCondition: string;
+  }[];
+}
+
 export interface CommercialUiGovernanceInput {
   mode: CommercialUiGovernanceMode;
   today?: string;
@@ -425,6 +489,8 @@ export interface CommercialUiGovernanceInput {
   secondaryRouteGovernanceMatrix?: readonly CommercialSecondaryRouteGovernanceEntry[];
   secondaryRouteDependencies?: readonly CommercialSecondaryRouteDependency[];
   reportSurfaceInventory?: readonly PlatformReportSurfaceInventoryEntry[];
+  interactiveLearningProductQaRequired?: boolean;
+  interactiveLearningProductQa?: CommercialInteractiveLearningProductQaEvidence;
 }
 
 export interface CommercialUiGovernanceResult {
@@ -1951,6 +2017,198 @@ function buildSimulationVisualQaViolations(
   });
 }
 
+const INTERACTIVE_LEARNING_PRODUCT_QA_HANDOFF =
+  'artifacts/product-design-audits/interactive-learning-2026-06-14/design-handoff.md';
+const INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX =
+  'artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/handoff-to-implementation-matrix.md';
+
+const REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_CHILD_CHANGES = [
+  'unify-interactive-learning-atlas-shell',
+  'migrate-interactive-course-entry-shell',
+  'standardize-interactive-classroom-entry',
+  'standardize-lesson-runtime-shell',
+  'define-interactive-module-visual-standards',
+] as const;
+
+const REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_IDS = [
+  'atlas-desktop-light',
+  'course-catalog-mobile-dark',
+  'chapter-components-desktop-light',
+  'cross-domain-list-mobile-light',
+  'course-entry-desktop-light',
+  'teacher-waiting-desktop-light',
+  'student-runtime-desktop-light',
+  'guest-runtime-mobile-dark',
+  'teacher-projection-desktop-dark',
+  'invalid-session-desktop-light',
+  'module-chrome-student-choice-mobile',
+  'konling-dock-collapsed-desktop',
+  'focus-management-keyboard',
+] as const;
+
+const REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_REGRESSION_CHECKS = [
+  'sharedShellNavigationDock',
+  'teacherNoStudentInputs',
+  'teacherNoPermanentRightDrawer',
+  'teacherNoTopDuplicateNext',
+  'teacherBottomNavHasPageJump',
+  'konlingRightBottomOnly',
+  'studentGuestNoTeacherStats',
+  'courseShellNoPrimaryPremiumLessonShell',
+  'standardModuleChromeRegistered',
+] as const;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function buildInteractiveLearningProductQaViolations(
+  evidence: CommercialInteractiveLearningProductQaEvidence | undefined,
+  required = false,
+) {
+  if (!evidence) {
+    return required ? [withCategory({
+      path: INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX,
+      rule: 'interactive-learning-product-qa.missing-evidence' as const,
+      message: 'Interactive learning product QA evidence is missing.',
+      evidence: ['govern-interactive-learning-product-qa'],
+    })] : [];
+  }
+
+  const rawConceptImages = Array.isArray(evidence.conceptImages) ? evidence.conceptImages : [];
+  const conceptImages = rawConceptImages.filter((entry): entry is string => typeof entry === 'string');
+  const rawChildDesignQaReports = Array.isArray(evidence.childDesignQaReports) ? evidence.childDesignQaReports : [];
+  const childDesignQaReports = rawChildDesignQaReports.filter(isRecord) as Partial<CommercialInteractiveLearningDesignQaReportEvidence>[];
+  const rawRouteMatrix = Array.isArray(evidence.routeMatrix) ? evidence.routeMatrix : [];
+  const routeMatrix = rawRouteMatrix.filter(isRecord) as Partial<CommercialInteractiveLearningProductQaMatrixEntry>[];
+  const rawTemporaryExceptions = Array.isArray(evidence.temporaryExceptions) ? evidence.temporaryExceptions : [];
+  const temporaryExceptions = rawTemporaryExceptions.filter(isRecord) as Array<Partial<{ owner: string; removalCondition: string }>>;
+  const independentVisualReview = isRecord(evidence.independentVisualReview) ? evidence.independentVisualReview : {
+    status: 'not-run',
+    reviewer: '',
+    report: '',
+  } as Partial<CommercialInteractiveLearningProductQaReviewEvidence>;
+  const missing = [
+    evidence.parseError ? `parseError=${evidence.parseError}` : '',
+    evidence.change !== 'govern-interactive-learning-product-qa' ? 'change=govern-interactive-learning-product-qa' : '',
+    !evidence.generatedAt ? 'generatedAt' : '',
+    !evidence.sourceCommit ? 'sourceCommit' : '',
+    evidence.designHandoff !== INTERACTIVE_LEARNING_PRODUCT_QA_HANDOFF
+      ? `designHandoff=${INTERACTIVE_LEARNING_PRODUCT_QA_HANDOFF}`
+      : '',
+    !evidence.designHandoffSha256 ? 'designHandoffSha256' : '',
+    evidence.designHandoffSha256 && evidence.designHandoffSha256 !== evidence.currentDesignHandoffSha256
+      ? 'designHandoffSha256=current'
+      : '',
+    evidence.handoffMatrix !== INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX
+      ? `handoffMatrix=${INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX}`
+      : '',
+    !evidence.handoffMatrixSha256 ? 'handoffMatrixSha256' : '',
+    evidence.handoffMatrixSha256 && evidence.handoffMatrixSha256 !== evidence.currentHandoffMatrixSha256
+      ? 'handoffMatrixSha256=current'
+      : '',
+    independentVisualReview.status !== 'passed' ? 'independentVisualReview.status=passed' : '',
+    independentVisualReview.reviewer !== 'ui-flow-reviewer' ? 'independentVisualReview.reviewer=ui-flow-reviewer' : '',
+    !independentVisualReview.report ? 'independentVisualReview.report' : '',
+    !independentVisualReview.reportSha256 ? 'independentVisualReview.reportSha256' : '',
+    independentVisualReview.reportSha256
+      && independentVisualReview.reportSha256 !== independentVisualReview.currentReportSha256
+      ? 'independentVisualReview.reportSha256=current'
+      : '',
+    independentVisualReview.reportHasPassVerdict !== true
+      ? 'independentVisualReview.reportHasPassVerdict=true'
+      : '',
+    independentVisualReview.reportHasNoUnresolvedBlocks !== true
+      ? 'independentVisualReview.reportHasNoUnresolvedBlocks=true'
+      : '',
+    temporaryExceptions.length > 0
+      && temporaryExceptions.some((entry) => !entry.owner || !entry.removalCondition)
+      ? 'temporaryExceptions.owner/removalCondition'
+      : '',
+    !Array.isArray(evidence.conceptImages) ? 'conceptImages=array' : '',
+    !Array.isArray(evidence.childDesignQaReports) ? 'childDesignQaReports=array' : '',
+    !Array.isArray(evidence.routeMatrix) ? 'routeMatrix=array' : '',
+    !Array.isArray(evidence.temporaryExceptions) ? 'temporaryExceptions=array' : '',
+    rawConceptImages.length !== conceptImages.length ? 'conceptImages.entry=string' : '',
+    rawChildDesignQaReports.length !== childDesignQaReports.length ? 'childDesignQaReports.entry=object' : '',
+    rawRouteMatrix.length !== routeMatrix.length ? 'routeMatrix.entry=object' : '',
+    rawTemporaryExceptions.length !== temporaryExceptions.length ? 'temporaryExceptions.entry=object' : '',
+    !isRecord(evidence.independentVisualReview) ? 'independentVisualReview=object' : '',
+  ].filter(Boolean);
+
+  for (const change of REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_CHILD_CHANGES) {
+    const report = childDesignQaReports.find((entry) => entry.change === change);
+    if (!report) {
+      missing.push(`childDesignQaReports.${change}`);
+      continue;
+    }
+    if (report.finalResult !== 'passed') missing.push(`childDesignQaReports.${change}.finalResult=passed`);
+    if (report.reportFinalResult !== 'passed') missing.push(`childDesignQaReports.${change}.reportFinalResult=passed`);
+    if (!report.report) missing.push(`childDesignQaReports.${change}.report`);
+    if (!report.reportSha256) missing.push(`childDesignQaReports.${change}.reportSha256`);
+    if (report.reportSha256 && report.reportSha256 !== report.currentReportSha256) {
+      missing.push(`childDesignQaReports.${change}.reportSha256=current`);
+    }
+  }
+
+  for (const conceptImage of conceptImages) {
+    if (!evidence.conceptImageSha256?.[conceptImage]) {
+      missing.push(`conceptImageSha256.${conceptImage}`);
+    }
+    if (
+      evidence.conceptImageSha256?.[conceptImage]
+      && evidence.conceptImageSha256[conceptImage] !== evidence.currentConceptImageSha256?.[conceptImage]
+    ) {
+      missing.push(`conceptImageSha256.${conceptImage}=current`);
+    }
+  }
+
+  for (const id of REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_IDS) {
+    const entry = routeMatrix.find((item) => item.id === id);
+    if (!entry) {
+      missing.push(`routeMatrix.${id}`);
+      continue;
+    }
+    if (entry.result !== 'passed') missing.push(`routeMatrix.${id}.result=passed`);
+    if (!entry.route) missing.push(`routeMatrix.${id}.route`);
+    if (!entry.role) missing.push(`routeMatrix.${id}.role`);
+    if (entry.role && !COMMERCIAL_VISUAL_QA_ROLES.includes(entry.role)) missing.push(`routeMatrix.${id}.role=valid`);
+    if (!entry.theme) missing.push(`routeMatrix.${id}.theme`);
+    if (entry.theme && !COMMERCIAL_VISUAL_QA_REQUIRED_THEMES.includes(entry.theme)) missing.push(`routeMatrix.${id}.theme=valid`);
+    if (!entry.viewport) missing.push(`routeMatrix.${id}.viewport`);
+    if (entry.viewport && !['desktop', 'mobile'].includes(entry.viewport)) missing.push(`routeMatrix.${id}.viewport=valid`);
+    if (!entry.navigationState) missing.push(`routeMatrix.${id}.navigationState`);
+    if (
+      entry.navigationState
+      && !COMMERCIAL_VISUAL_QA_NAVIGATION_STATES.includes(entry.navigationState)
+    ) {
+      missing.push(`routeMatrix.${id}.navigationState=valid`);
+    }
+    if (!entry.dockState) missing.push(`routeMatrix.${id}.dockState`);
+    if (entry.dockState && !['collapsed', 'expanded', 'hidden'].includes(entry.dockState)) {
+      missing.push(`routeMatrix.${id}.dockState=valid`);
+    }
+    if (!entry.pageState) missing.push(`routeMatrix.${id}.pageState`);
+    if (!entry.moduleState) missing.push(`routeMatrix.${id}.moduleState`);
+    if (!entry.sourceConcept) missing.push(`routeMatrix.${id}.sourceConcept`);
+  }
+
+  for (const check of REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_REGRESSION_CHECKS) {
+    if (evidence.regressionChecks[check] !== true) {
+      missing.push(`regressionChecks.${check}=true`);
+    }
+  }
+
+  return missing.length > 0
+    ? [withCategory({
+        path: evidence.handoffMatrix || INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX,
+        rule: 'interactive-learning-product-qa.incomplete-evidence' as const,
+        message: 'Interactive learning product QA evidence is incomplete or blocked.',
+        evidence: missing,
+      })]
+    : [];
+}
+
 function buildReportExportViolations(
   reportSurfaceInventory: readonly PlatformReportSurfaceInventoryEntry[],
   visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
@@ -2066,6 +2324,10 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
     ...buildNavigationStateViolations(visualRouteInventory, input.visualEvidence),
     ...buildMobileStructureViolations(input.visualEvidence),
     ...buildSimulationVisualQaViolations(simulationVisualQaMatrix, input.visualEvidence),
+    ...buildInteractiveLearningProductQaViolations(
+      input.interactiveLearningProductQa,
+      input.interactiveLearningProductQaRequired,
+    ),
     ...buildReportExportViolations(reportSurfaceInventory, input.visualEvidence),
     ...buildAccessibilityViolations(
       requiredVisualRoutes,

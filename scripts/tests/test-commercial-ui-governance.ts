@@ -12,6 +12,7 @@ import {
   evaluateCommercialUiGovernance,
   type CommercialAccessibilityTextFitEvidence,
   type CommercialVisualAcceptanceRoute,
+  type CommercialInteractiveLearningProductQaEvidence,
   type CommercialModuleChromeInventoryEntry,
   type CommercialNavigationCoverageInput,
   type CommercialShellInventoryEntry,
@@ -630,6 +631,148 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
       screenshot: viewport.screenshot && existsSync(path.join(repoRoot, viewport.screenshot)) ? viewport.screenshot : undefined,
     })),
   }));
+}
+
+function readInteractiveLearningProductQaEvidence(): CommercialInteractiveLearningProductQaEvidence | undefined {
+  const evidencePath = path.join(
+    repoRoot,
+    'artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/final-product-qa.json',
+  );
+  if (!existsSync(evidencePath)) return undefined;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(readFileSync(evidencePath, 'utf8'));
+  } catch (error) {
+    return {
+      change: 'govern-interactive-learning-product-qa',
+      parseError: error instanceof Error ? error.message : 'invalid JSON',
+      designHandoff: '',
+      handoffMatrix: '',
+      conceptImages: [],
+      childDesignQaReports: [],
+      routeMatrix: [],
+      independentVisualReview: {
+        status: 'not-run',
+        reviewer: '',
+        report: '',
+      },
+      regressionChecks: {},
+      temporaryExceptions: [],
+    };
+  }
+  return hydrateInteractiveLearningProductQaEvidence(parsed);
+}
+
+export function hydrateInteractiveLearningProductQaEvidence(
+  parsed: unknown,
+): CommercialInteractiveLearningProductQaEvidence {
+  const evidence = typeof parsed === 'object' && parsed !== null
+    ? parsed as Partial<CommercialInteractiveLearningProductQaEvidence>
+    : {};
+  const conceptImages = Array.isArray(evidence.conceptImages) ? evidence.conceptImages : [];
+  const childDesignQaReports = Array.isArray(evidence.childDesignQaReports) ? evidence.childDesignQaReports : [];
+  const routeMatrix = Array.isArray(evidence.routeMatrix) ? evidence.routeMatrix : [];
+  const temporaryExceptions = Array.isArray(evidence.temporaryExceptions) ? evidence.temporaryExceptions : [];
+  const independentVisualReview = isPlainObject(evidence.independentVisualReview)
+    ? evidence.independentVisualReview
+    : undefined;
+  const conceptImageSha256 = Object.fromEntries(
+    conceptImages.filter((conceptImage): conceptImage is string => typeof conceptImage === 'string').map((conceptImage) => [
+      conceptImage,
+      simulationViewportArtifact(conceptImage)?.sha256 ?? '',
+    ]),
+  );
+  const independentReviewPath = typeof independentVisualReview?.report === 'string'
+    && independentVisualReview.report.trim()
+    ? independentVisualReview.report
+    : undefined;
+  const independentReviewReport = independentReviewPath
+    ? readOptionalText(independentReviewPath)
+    : '';
+  return {
+    ...evidence,
+    change: evidence.change ?? 'govern-interactive-learning-product-qa',
+    designHandoff: evidence.designHandoff ?? '',
+    currentDesignHandoffSha256: evidence.designHandoff
+      ? simulationViewportArtifact(evidence.designHandoff)?.sha256
+      : undefined,
+    handoffMatrix: evidence.handoffMatrix ?? '',
+    currentHandoffMatrixSha256: evidence.handoffMatrix
+      ? simulationViewportArtifact(evidence.handoffMatrix)?.sha256
+      : undefined,
+    conceptImages,
+    currentConceptImageSha256: conceptImageSha256,
+    routeMatrix,
+    temporaryExceptions,
+    childDesignQaReports: childDesignQaReports.map((report) => {
+      if (!isPlainObject(report)) return report;
+      return {
+        ...report,
+        currentReportSha256: typeof report.report === 'string'
+          ? simulationViewportArtifact(report.report)?.sha256
+          : undefined,
+        reportFinalResult: typeof report.report === 'string'
+          ? parseInteractiveLearningDesignQaResult(report.report)
+          : 'missing',
+      };
+    }),
+    independentVisualReview: independentVisualReview
+      ? {
+          ...independentVisualReview,
+          currentReportSha256: independentReviewPath
+            ? simulationViewportArtifact(independentReviewPath)?.sha256
+            : undefined,
+          reportHasPassVerdict: /final verdict:\s*pass/i.test(independentReviewReport),
+          reportHasNoUnresolvedBlocks: interactiveLearningReviewHasNoUnresolvedBlocks(independentReviewReport),
+        }
+      : Object.hasOwn(evidence, 'independentVisualReview')
+        ? evidence.independentVisualReview
+        : {
+            status: 'not-run',
+            reviewer: '',
+            report: '',
+          },
+    regressionChecks: evidence.regressionChecks ?? {},
+  } as CommercialInteractiveLearningProductQaEvidence;
+}
+
+export function interactiveLearningReviewHasNoUnresolvedBlocks(report: string) {
+  const reportWithoutCleanPhrase = report.replace(/no unresolved block findings remain/ig, '');
+  return /no unresolved block findings remain/i.test(report)
+    && !/unresolved\s+block/i.test(reportWithoutCleanPhrase);
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function readOptionalText(relativePath: string) {
+  if (!relativePath.trim()) return '';
+  const absolutePath = path.join(repoRoot, relativePath);
+  try {
+    return existsSync(absolutePath) ? readFileSync(absolutePath, 'utf8') : '';
+  } catch {
+    return '';
+  }
+}
+
+function parseInteractiveLearningDesignQaResult(relativePath?: string) {
+  if (!relativePath) return 'missing';
+  const content = readOptionalText(relativePath);
+  if (/final result:?\s*(?:\n\s*)?passed/i.test(content)) return 'passed';
+  if (/final result:?\s*(?:\n\s*)?blocked/i.test(content)) return 'blocked';
+  return 'missing';
+}
+
+function shouldRequireInteractiveLearningProductQa(files: readonly string[]) {
+  return files.some((file) => (
+    file.startsWith('openspec/changes/govern-interactive-learning-product-qa/')
+    || (file.startsWith('openspec/changes/archive/')
+      && file.includes('/govern-interactive-learning-product-qa/'))
+    || file.startsWith('artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/')
+    || file === 'src/lib/commercial-ui-governance.ts'
+    || file === 'scripts/tests/test-commercial-ui-governance.ts'
+  ));
 }
 
 function simulationSharedDetailRouteAffected(routeHref: string, files: readonly string[]) {
@@ -1645,6 +1788,7 @@ const simulationVisualQaMatrix = requiresFullSimulationVisualQaMatrix(requiredVi
     || files.some((file) => file === route.routeFile || file.startsWith(`${path.dirname(route.routeFile)}/`))
     || simulationSharedDetailRouteAffected(route.href, files)
   ));
+const interactiveLearningProductQaRequired = shouldRequireInteractiveLearningProductQa(files);
 const result = evaluateCommercialUiGovernance({
   mode: 'blocking',
   today,
@@ -1668,6 +1812,10 @@ const result = evaluateCommercialUiGovernance({
     requiredVisualRoutes.some((visualRoute) => visualRoute.href === route.href)
   )),
   simulationVisualQaMatrix,
+  interactiveLearningProductQaRequired,
+  interactiveLearningProductQa: interactiveLearningProductQaRequired
+    ? readInteractiveLearningProductQaEvidence()
+    : undefined,
   reportSurfaceInventory: PLATFORM_REPORT_SURFACE_INVENTORY.filter((surface) => (
     requiredVisualRoutes.some((visualRoute) => visualRoute.href === surface.ownerRoute)
   )),

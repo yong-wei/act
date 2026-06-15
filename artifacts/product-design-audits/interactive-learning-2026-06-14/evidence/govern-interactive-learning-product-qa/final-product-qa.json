@@ -1,0 +1,246 @@
+{
+  "change": "govern-interactive-learning-product-qa",
+  "designHandoff": "artifacts/product-design-audits/interactive-learning-2026-06-14/design-handoff.md",
+  "handoffMatrix": "artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/handoff-to-implementation-matrix.md",
+  "conceptImages": [
+    "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png",
+    "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/02-course-entry-shell.png",
+    "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/01-course-catalog-theory-practice.png",
+    "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/02-teacher-classroom-qr-waiting.png",
+    "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png",
+    "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/06-teacher-projection-runtime-compact-navigation.png"
+  ],
+  "childDesignQaReports": [
+    {
+      "change": "unify-interactive-learning-atlas-shell",
+      "report": "artifacts/interactive-learning-atlas-shell-502/design-qa.md",
+      "finalResult": "passed",
+      "reportSha256": "f191775bcf5b43a889ba98cc28084edee32c3f05921855fc1baf482738299d6d"
+    },
+    {
+      "change": "migrate-interactive-course-entry-shell",
+      "report": "artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/migrate-interactive-course-entry-shell/design-qa.md",
+      "finalResult": "passed",
+      "reportSha256": "79bf2ca378b5e5a43e0f2774227b0467d485aa7b73eb2ef416c5187cfb015846"
+    },
+    {
+      "change": "standardize-interactive-classroom-entry",
+      "report": "artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-interactive-classroom-entry/design-qa.md",
+      "finalResult": "passed",
+      "reportSha256": "d39d1708cede85cf8a6cef247399c73e863d371b7c1e3692b4266a4d741296a5"
+    },
+    {
+      "change": "standardize-lesson-runtime-shell",
+      "report": "artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/standardize-lesson-runtime-shell/design-qa.md",
+      "finalResult": "passed",
+      "reportSha256": "1c8e802a785fb68f5905c66f36d7b29c239e46b03c414013ac3828e8bbba918a"
+    },
+    {
+      "change": "define-interactive-module-visual-standards",
+      "report": "artifacts/product-design-audits/interactive-learning-2026-06-14/module-visual-standards-504/design-qa.md",
+      "finalResult": "passed",
+      "reportSha256": "b9ef2550330958716e3d194ecef2e8b99c6088e3b0bd52d4087a45dc909d2da4"
+    }
+  ],
+  "routeMatrix": [
+    {
+      "id": "atlas-desktop-light",
+      "route": "/interactive-learning",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "navigationState": "desktop-collapsed",
+      "dockState": "collapsed",
+      "pageState": "atlas workspace",
+      "moduleState": "not-applicable",
+      "sourceConcept": "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png",
+      "result": "passed"
+    },
+    {
+      "id": "course-catalog-mobile-dark",
+      "route": "/interactive-learning/courses",
+      "role": "student",
+      "theme": "dark",
+      "viewport": "mobile",
+      "navigationState": "workspace-command-surface",
+      "dockState": "collapsed",
+      "pageState": "theory-practice catalog",
+      "moduleState": "not-applicable",
+      "sourceConcept": "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/01-course-catalog-theory-practice.png",
+      "result": "passed"
+    },
+    {
+      "id": "chapter-components-desktop-light",
+      "route": "/interactive-learning/chapter-components",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "navigationState": "desktop-collapsed",
+      "dockState": "collapsed",
+      "pageState": "chapter component list",
+      "moduleState": "not-applicable",
+      "sourceConcept": "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png",
+      "result": "passed"
+    },
+    {
+      "id": "cross-domain-list-mobile-light",
+      "route": "/interactive-learning/cross-domain-exploration",
+      "role": "student",
+      "theme": "light",
+      "viewport": "mobile",
+      "navigationState": "workspace-command-surface",
+      "dockState": "collapsed",
+      "pageState": "cross-domain list",
+      "moduleState": "not-applicable",
+      "sourceConcept": "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png",
+      "result": "passed"
+    },
+    {
+      "id": "course-entry-desktop-light",
+      "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "navigationState": "desktop-collapsed",
+      "dockState": "collapsed",
+      "pageState": "course entry shell",
+      "moduleState": "not-applicable",
+      "sourceConcept": "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/02-course-entry-shell.png",
+      "result": "passed"
+    },
+    {
+      "id": "teacher-waiting-desktop-light",
+      "route": "/interactive-learning/courses/[courseId]/teacher/[sessionId]/waiting",
+      "role": "teacher",
+      "theme": "light",
+      "viewport": "desktop",
+      "navigationState": "desktop-collapsed",
+      "dockState": "collapsed",
+      "pageState": "teacher QR waiting",
+      "moduleState": "not-applicable",
+      "sourceConcept": "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/02-teacher-classroom-qr-waiting.png",
+      "result": "passed"
+    },
+    {
+      "id": "student-runtime-desktop-light",
+      "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "navigationState": "desktop-collapsed",
+      "dockState": "collapsed",
+      "pageState": "student runtime",
+      "moduleState": "student activity",
+      "sourceConcept": "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png",
+      "result": "passed"
+    },
+    {
+      "id": "guest-runtime-mobile-dark",
+      "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
+      "role": "guest",
+      "theme": "dark",
+      "viewport": "mobile",
+      "navigationState": "workspace-command-surface",
+      "dockState": "collapsed",
+      "pageState": "guest demo runtime",
+      "moduleState": "demo activity",
+      "sourceConcept": "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png",
+      "result": "passed"
+    },
+    {
+      "id": "teacher-projection-desktop-dark",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/[sessionId]",
+      "role": "teacher",
+      "theme": "dark",
+      "viewport": "desktop",
+      "navigationState": "desktop-collapsed",
+      "dockState": "collapsed",
+      "pageState": "teacher projection",
+      "moduleState": "teacher controls",
+      "sourceConcept": "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/06-teacher-projection-runtime-compact-navigation.png",
+      "result": "passed"
+    },
+    {
+      "id": "invalid-session-desktop-light",
+      "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "navigationState": "desktop-collapsed",
+      "dockState": "collapsed",
+      "pageState": "invalid session fallback",
+      "moduleState": "fallback",
+      "sourceConcept": "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png",
+      "result": "passed"
+    },
+    {
+      "id": "module-chrome-student-choice-mobile",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/student/[sessionId]",
+      "role": "student",
+      "theme": "light",
+      "viewport": "mobile",
+      "navigationState": "workspace-command-surface",
+      "dockState": "collapsed",
+      "pageState": "student runtime",
+      "moduleState": "standard student choice module",
+      "sourceConcept": "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png",
+      "result": "passed"
+    },
+    {
+      "id": "konling-dock-collapsed-desktop",
+      "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/[sessionId]",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "navigationState": "desktop-collapsed",
+      "dockState": "collapsed",
+      "pageState": "student runtime",
+      "moduleState": "shared Konling dock",
+      "sourceConcept": "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png",
+      "result": "passed"
+    },
+    {
+      "id": "focus-management-keyboard",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/[sessionId]",
+      "role": "teacher",
+      "theme": "light",
+      "viewport": "desktop",
+      "navigationState": "desktop-collapsed",
+      "dockState": "collapsed",
+      "pageState": "teacher projection",
+      "moduleState": "page jump focus",
+      "sourceConcept": "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/06-teacher-projection-runtime-compact-navigation.png",
+      "result": "passed"
+    }
+  ],
+  "independentVisualReview": {
+    "status": "passed",
+    "reviewer": "ui-flow-reviewer",
+    "report": "artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/independent-visual-review.md",
+    "reportSha256": "1e6f00b88c9077298d3150e4d7f71ed0d78cabd5e8b6956bb4a7a6344e93ce7a"
+  },
+  "regressionChecks": {
+    "sharedShellNavigationDock": true,
+    "teacherNoStudentInputs": true,
+    "teacherNoPermanentRightDrawer": true,
+    "teacherNoTopDuplicateNext": true,
+    "teacherBottomNavHasPageJump": true,
+    "konlingRightBottomOnly": true,
+    "studentGuestNoTeacherStats": true,
+    "courseShellNoPrimaryPremiumLessonShell": true,
+    "standardModuleChromeRegistered": true
+  },
+  "temporaryExceptions": [],
+  "generatedAt": "2026-06-15T02:29:27.464Z",
+  "sourceCommit": "16f779a1fb8e943cb03f0f78013821d2d2b87615",
+  "designHandoffSha256": "227cc9c1f7ecc4299a4d483be75b538e5b82a45c4df73ec4e697797de5088058",
+  "handoffMatrixSha256": "d5d0911fe72e658944d8a6a5b63d02b247420bf3efcba72d9abc270cfc9e60ff",
+  "conceptImageSha256": {
+    "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/01-learning-atlas-course-catalog.png": "eb6960134c4be24726775fd041d8eb461d1442e557d6e07a599901e77ac3b6bd",
+    "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/02-course-entry-shell.png": "24bf8b8f33879594652bcaabcd118bafe3656643e61d17adf56a0e833e3b32d4",
+    "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/01-course-catalog-theory-practice.png": "8f05fc2a03b97218a4fe047b37b9714e211a8b471e675ce511df0fc81eac4e32",
+    "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/02-teacher-classroom-qr-waiting.png": "2fcc4c6b11eef7bf26bcd1031e27c73a0efb2f7b493a681ba750d289a2fca5fd",
+    "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png": "2ba9fdcdcb5fafc11af7a6635cd614f06b81df7e4f91915a89ce12f78391ad6a",
+    "artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/06-teacher-projection-runtime-compact-navigation.png": "cef103b464a93f8c546afa73a696287c56446ec9b013fd0f88224f473dfa7059"
+  }
+}

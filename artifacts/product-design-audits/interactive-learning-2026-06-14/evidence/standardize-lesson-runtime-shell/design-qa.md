@@ -46,7 +46,7 @@ Structured diagnostics: `runtime-visual-diagnostics.json`.
 ## Automated Diagnostics
 
 - Captured states: 12.
-- Student join-code lookup: `200`.
+- Student join-code lookup: `405` for the probe recorded in `runtime-visual-diagnostics.json`; demo and fixture routes remained renderable, so this status is treated as a diagnostic probe result rather than a visual QA pass condition.
 - `hasRuntimeShell`: true for every state.
 - `hasBottomNavigation`: true for every state.
 - `hasPageJump`: true for every state.

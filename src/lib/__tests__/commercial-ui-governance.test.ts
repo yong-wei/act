@@ -13,6 +13,7 @@ import {
   SIMULATION_VISUAL_QA_ROUTE_MATRIX,
   evaluateCommercialUiGovernance,
   type CommercialAccessibilityTextFitEvidence,
+  type CommercialInteractiveLearningProductQaEvidence,
   type CommercialNavigationCoverageInput,
   type CommercialSimulationVisualQaEvidence,
   type CommercialUiGovernanceInput,
@@ -28,7 +29,11 @@ import {
   STUDENT_CORE_ENTRY_IDS,
   STUDENT_LEARNING_INTENT_GROUPS,
 } from '@/lib/platform-role-navigation';
-import { buildSecondaryRouteGovernanceMatrixFromEvidence } from '../../../scripts/tests/test-commercial-ui-governance';
+import {
+  buildSecondaryRouteGovernanceMatrixFromEvidence,
+  hydrateInteractiveLearningProductQaEvidence,
+  interactiveLearningReviewHasNoUnresolvedBlocks,
+} from '../../../scripts/tests/test-commercial-ui-governance';
 
 const today = '2026-05-31';
 
@@ -377,7 +382,375 @@ function baseInput(overrides: Partial<CommercialUiGovernanceInput> = {}): Commer
   };
 }
 
+const interactiveLearningProductQaMatrixIds = [
+  'atlas-desktop-light',
+  'course-catalog-mobile-dark',
+  'chapter-components-desktop-light',
+  'cross-domain-list-mobile-light',
+  'course-entry-desktop-light',
+  'teacher-waiting-desktop-light',
+  'student-runtime-desktop-light',
+  'guest-runtime-mobile-dark',
+  'teacher-projection-desktop-dark',
+  'invalid-session-desktop-light',
+  'module-chrome-student-choice-mobile',
+  'konling-dock-collapsed-desktop',
+  'focus-management-keyboard',
+] as const;
+
+function completeInteractiveLearningProductQaEvidence(
+  overrides: Partial<CommercialInteractiveLearningProductQaEvidence> = {},
+): CommercialInteractiveLearningProductQaEvidence {
+  const reportSha256 = 'report-sha';
+  return {
+    change: 'govern-interactive-learning-product-qa',
+    generatedAt: '2026-06-15T10:00:00+08:00',
+    sourceCommit: '16f779a1f',
+    designHandoff: 'artifacts/product-design-audits/interactive-learning-2026-06-14/design-handoff.md',
+    designHandoffSha256: 'handoff-sha',
+    currentDesignHandoffSha256: 'handoff-sha',
+    handoffMatrix: 'artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/handoff-to-implementation-matrix.md',
+    handoffMatrixSha256: 'matrix-sha',
+    currentHandoffMatrixSha256: 'matrix-sha',
+    conceptImages: ['artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png'],
+    conceptImageSha256: {
+      'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png': 'concept-sha',
+    },
+    currentConceptImageSha256: {
+      'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png': 'concept-sha',
+    },
+    childDesignQaReports: [
+      'unify-interactive-learning-atlas-shell',
+      'migrate-interactive-course-entry-shell',
+      'standardize-interactive-classroom-entry',
+      'standardize-lesson-runtime-shell',
+      'define-interactive-module-visual-standards',
+    ].map((change) => ({
+      change,
+      report: `artifacts/${change}/design-qa.md`,
+      reportSha256,
+      currentReportSha256: reportSha256,
+      finalResult: 'passed',
+      reportFinalResult: 'passed',
+    })),
+    routeMatrix: interactiveLearningProductQaMatrixIds.map((id) => ({
+      id,
+      route: '/interactive-learning',
+      role: 'student',
+      theme: 'light',
+      viewport: 'desktop',
+      navigationState: 'desktop-collapsed',
+      dockState: 'collapsed',
+      pageState: 'covered',
+      moduleState: 'covered',
+      sourceConcept: 'artifacts/product-design-audits/interactive-learning-2026-06-14/concepts/revised/03-student-guest-runtime.png',
+      result: 'passed',
+    })),
+    independentVisualReview: {
+      status: 'passed',
+      reviewer: 'ui-flow-reviewer',
+      report: 'artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/independent-visual-review.md',
+      reportSha256,
+      currentReportSha256: reportSha256,
+      reportHasPassVerdict: true,
+      reportHasNoUnresolvedBlocks: true,
+    },
+    regressionChecks: {
+      sharedShellNavigationDock: true,
+      teacherNoStudentInputs: true,
+      teacherNoPermanentRightDrawer: true,
+      teacherNoTopDuplicateNext: true,
+      teacherBottomNavHasPageJump: true,
+      konlingRightBottomOnly: true,
+      studentGuestNoTeacherStats: true,
+      courseShellNoPrimaryPremiumLessonShell: true,
+      standardModuleChromeRegistered: true,
+    },
+    temporaryExceptions: [],
+    ...overrides,
+  };
+}
+
 describe('commercial UI governance', () => {
+  it('does not require final interactive learning product QA evidence outside the scoped change', () => {
+    const result = evaluateCommercialUiGovernance(baseInput());
+
+    expect(result.blockingViolations).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+        }),
+      ]),
+    );
+  });
+
+  it('requires final interactive learning product QA evidence when the scoped change is under review', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          rule: 'interactive-learning-product-qa.missing-evidence',
+        }),
+      ]),
+    );
+  });
+
+  it('fails stale final interactive learning product QA evidence when persisted hashes drift', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: completeInteractiveLearningProductQaEvidence({
+        handoffMatrixSha256: 'old-matrix-sha',
+        currentHandoffMatrixSha256: 'new-matrix-sha',
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          rule: 'interactive-learning-product-qa.incomplete-evidence',
+          evidence: expect.arrayContaining(['handoffMatrixSha256=current']),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final interactive learning product QA evidence with incomplete route matrix metadata', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: completeInteractiveLearningProductQaEvidence({
+        routeMatrix: completeInteractiveLearningProductQaEvidence().routeMatrix.map((entry, index) => (
+          index === 0 ? { ...entry, role: undefined as never, navigationState: undefined as never } : entry
+        )),
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            'routeMatrix.atlas-desktop-light.role',
+            'routeMatrix.atlas-desktop-light.navigationState',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final interactive learning product QA evidence without throwing on malformed runtime schema', () => {
+    expect(() => evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: {
+        ...completeInteractiveLearningProductQaEvidence({
+          parseError: 'Unexpected token',
+        }),
+        childDesignQaReports: [null],
+        routeMatrix: [null],
+        temporaryExceptions: [null],
+      } as unknown as CommercialInteractiveLearningProductQaEvidence,
+    }))).not.toThrow();
+
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: {
+        ...completeInteractiveLearningProductQaEvidence({
+          parseError: 'Unexpected token',
+        }),
+        childDesignQaReports: [null],
+        routeMatrix: [null],
+        temporaryExceptions: [null],
+      } as unknown as CommercialInteractiveLearningProductQaEvidence,
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            'parseError=Unexpected token',
+            'childDesignQaReports.entry=object',
+            'routeMatrix.entry=object',
+            'temporaryExceptions.entry=object',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('keeps malformed final interactive learning product QA script input as governance evidence', () => {
+    const hydrated = hydrateInteractiveLearningProductQaEvidence({
+      ...completeInteractiveLearningProductQaEvidence(),
+      childDesignQaReports: [null],
+      routeMatrix: [null],
+      temporaryExceptions: [null],
+    });
+
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: hydrated,
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            'childDesignQaReports.entry=object',
+            'routeMatrix.entry=object',
+            'temporaryExceptions.entry=object',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('keeps malformed independent visual review script input as governance evidence', () => {
+    for (const independentVisualReview of [null, []]) {
+      expect(() => hydrateInteractiveLearningProductQaEvidence({
+        ...completeInteractiveLearningProductQaEvidence(),
+        independentVisualReview,
+      })).not.toThrow();
+
+      const result = evaluateCommercialUiGovernance(baseInput({
+        interactiveLearningProductQaRequired: true,
+        interactiveLearningProductQa: hydrateInteractiveLearningProductQaEvidence({
+          ...completeInteractiveLearningProductQaEvidence(),
+          independentVisualReview,
+        }),
+      }));
+
+      expect(result.passed).toBe(false);
+      expect(result.blockingViolations).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            category: 'interactive-learning-product-qa',
+            evidence: expect.arrayContaining(['independentVisualReview=object']),
+          }),
+        ]),
+      );
+    }
+  });
+
+  it('fails final interactive learning product QA evidence with invalid route matrix enum values', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: completeInteractiveLearningProductQaEvidence({
+        routeMatrix: completeInteractiveLearningProductQaEvidence().routeMatrix.map((entry, index) => (
+          index === 0
+            ? {
+                ...entry,
+                role: 'learner' as never,
+                theme: 'contrast' as never,
+                viewport: 'tablet' as never,
+                navigationState: 'sidecar' as never,
+                dockState: 'floating' as never,
+              }
+            : entry
+        )),
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            'routeMatrix.atlas-desktop-light.role=valid',
+            'routeMatrix.atlas-desktop-light.theme=valid',
+            'routeMatrix.atlas-desktop-light.viewport=valid',
+            'routeMatrix.atlas-desktop-light.navigationState=valid',
+            'routeMatrix.atlas-desktop-light.dockState=valid',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final interactive learning product QA evidence when child design QA report gates drift', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: completeInteractiveLearningProductQaEvidence({
+        childDesignQaReports: completeInteractiveLearningProductQaEvidence().childDesignQaReports.map((entry, index) => (
+          index === 0
+            ? {
+                ...entry,
+                finalResult: 'blocked',
+                reportFinalResult: 'missing',
+                reportSha256: 'expected-report-sha',
+                currentReportSha256: 'current-report-sha',
+              }
+            : entry
+        )),
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            'childDesignQaReports.unify-interactive-learning-atlas-shell.finalResult=passed',
+            'childDesignQaReports.unify-interactive-learning-atlas-shell.reportFinalResult=passed',
+            'childDesignQaReports.unify-interactive-learning-atlas-shell.reportSha256=current',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final interactive learning product QA evidence without an explicit clean independent review report', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveLearningProductQaRequired: true,
+      interactiveLearningProductQa: completeInteractiveLearningProductQaEvidence({
+        independentVisualReview: {
+          ...completeInteractiveLearningProductQaEvidence().independentVisualReview,
+          reportSha256: 'expected-review-sha',
+          currentReportSha256: 'current-review-sha',
+          reportHasPassVerdict: false,
+          reportHasNoUnresolvedBlocks: false,
+        },
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-learning-product-qa',
+          evidence: expect.arrayContaining([
+            'independentVisualReview.reportSha256=current',
+            'independentVisualReview.reportHasPassVerdict=true',
+            'independentVisualReview.reportHasNoUnresolvedBlocks=true',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('parses independent visual review text with a negative unresolved BLOCK guard', () => {
+    expect(interactiveLearningReviewHasNoUnresolvedBlocks([
+      'Final verdict: PASS',
+      'No unresolved BLOCK findings remain.',
+    ].join('\n'))).toBe(true);
+    expect(interactiveLearningReviewHasNoUnresolvedBlocks([
+      'Final verdict: PASS',
+      'No unresolved BLOCK findings remain.',
+      'Unresolved BLOCK: stale route matrix still exists.',
+    ].join('\n'))).toBe(false);
+  });
+
   it('defines premium platform visual QA routes for light, dark, desktop, mobile, and dock placement', () => {
     expect(PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX.map((route) => route.href)).toEqual([
       '/',
@@ -1569,7 +1942,7 @@ describe('commercial UI governance', () => {
           category: 'visual-acceptance',
           rule: 'visual-acceptance.incomplete-navigation-state-evidence',
           path: '/dashboard',
-          evidence: expect.arrayContaining(['width=320:navigationState=role-route-tabs']),
+          evidence: expect.arrayContaining(['width=320|390:navigationState=role-route-tabs']),
         }),
       ]),
     );
@@ -1597,7 +1970,7 @@ describe('commercial UI governance', () => {
           category: 'visual-acceptance',
           rule: 'visual-acceptance.incomplete-navigation-state-evidence',
           path: '/interactive-learning/control-workbench',
-          evidence: expect.arrayContaining(['width=320:navigationState=mobile-drawer']),
+          evidence: expect.arrayContaining(['width=320|390:navigationState=mobile-drawer']),
         }),
       ]),
     );
@@ -1625,7 +1998,7 @@ describe('commercial UI governance', () => {
           category: 'visual-acceptance',
           rule: 'visual-acceptance.incomplete-navigation-state-evidence',
           path: '/login?callbackUrl=%2Fprofile',
-          evidence: expect.arrayContaining(['width=320:navigationState=auth-callback-panel']),
+          evidence: expect.arrayContaining(['width=320|390:navigationState=auth-callback-panel']),
         }),
       ]),
     );
