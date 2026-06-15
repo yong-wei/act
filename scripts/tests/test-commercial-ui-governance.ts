@@ -701,6 +701,8 @@ const KNOWLEDGE_GRAPH_SEMANTIC_MAP_EVIDENCE_PATH =
   'artifacts/knowledge-graph-semantic-map-486/browser-evidence.json';
 const KNOWLEDGE_WORKSPACE_TOOLS_INSPECTOR_EVIDENCE_PATH =
   'artifacts/knowledge-workspace-tools-inspector-487/browser-evidence.json';
+const KNOWLEDGE_WORKSPACE_PRODUCT_QA_EVIDENCE_PATH =
+  'artifacts/knowledge-workspace-product-qa-489/browser-evidence.json';
 
 function readJsonFile<T>(relativePath: string): T | undefined {
   const absolutePath = path.join(repoRoot, relativePath);
@@ -748,6 +750,37 @@ function numberFromEvidence(value: unknown): number | undefined {
     return Number.isFinite(parsed) ? parsed : undefined;
   }
   return undefined;
+}
+
+function booleanFromEvidence(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
+}
+
+function evidenceRect(value: unknown): { left: number; top: number; right: number; bottom: number } | undefined {
+  const record = objectRecord(value);
+  const left = numberFromEvidence(record.left);
+  const top = numberFromEvidence(record.top);
+  const right = numberFromEvidence(record.right);
+  const bottom = numberFromEvidence(record.bottom);
+  if (
+    typeof left !== 'number'
+    || typeof top !== 'number'
+    || typeof right !== 'number'
+    || typeof bottom !== 'number'
+  ) {
+    return undefined;
+  }
+  return { left, top, right, bottom };
+}
+
+function evidenceRectsOverlap(a: unknown, b: unknown) {
+  const rectA = evidenceRect(a);
+  const rectB = evidenceRect(b);
+  if (!rectA || !rectB) return false;
+  return rectA.left < rectB.right
+    && rectA.right > rectB.left
+    && rectA.top < rectB.bottom
+    && rectA.bottom > rectB.top;
 }
 
 function validateKnowledgeGraphInteractionStateEvidence(): CommercialUiGovernanceViolation[] {
@@ -1156,6 +1189,318 @@ function validateKnowledgeWorkspaceToolsInspectorEvidence(): CommercialUiGoverna
   return [];
 }
 
+function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceViolation[] {
+  const evidence = readJsonFile<JsonRecord>(KNOWLEDGE_WORKSPACE_PRODUCT_QA_EVIDENCE_PATH);
+  const graphSourcePath = 'src/features/knowledge/knowledge-graph-system.tsx';
+  const resourcePanelSourcePath = 'src/features/knowledge/resource-panel/resource-panel.tsx';
+  const appShellSourcePath = 'src/components/platform/app-shell.tsx';
+  const konlingRuntimeSourcePath = 'src/lib/konling-agent-runtime.ts';
+  const graphSource = existsSync(path.join(repoRoot, graphSourcePath))
+    ? readFileSync(path.join(repoRoot, graphSourcePath), 'utf8')
+    : '';
+  const resourcePanelSource = existsSync(path.join(repoRoot, resourcePanelSourcePath))
+    ? readFileSync(path.join(repoRoot, resourcePanelSourcePath), 'utf8')
+    : '';
+  const appShellSource = existsSync(path.join(repoRoot, appShellSourcePath))
+    ? readFileSync(path.join(repoRoot, appShellSourcePath), 'utf8')
+    : '';
+  const konlingRuntimeSource = existsSync(path.join(repoRoot, konlingRuntimeSourcePath))
+    ? readFileSync(path.join(repoRoot, konlingRuntimeSourcePath), 'utf8')
+    : '';
+  if (!evidence) {
+    return [knowledgeGraphGovernanceViolation('Knowledge workspace product QA evidence file is missing.', [
+      KNOWLEDGE_WORKSPACE_PRODUCT_QA_EVIDENCE_PATH,
+    ])];
+  }
+
+  const designSource = objectRecord(evidence.designSourceOfTruth);
+  const conceptImages = stringArray(designSource.conceptImages);
+  const requiredConceptImages = [
+    'artifacts/product-design-audits/knowledge-graph-2026-06-14/concepts/layered-research-atlas.png',
+    'artifacts/product-design-audits/knowledge-graph-2026-06-14/concepts/night-bridge-semantic-map.png',
+    'artifacts/product-design-audits/knowledge-graph-2026-06-14/concepts/daylight-engineering-atlas.png',
+  ];
+  const designProblems = [
+    designSource.handoff === 'artifacts/product-design-audits/knowledge-graph-2026-06-14/design-handoff.md'
+      ? null
+      : 'design-source:handoff',
+    designSource.conceptsReadme === 'artifacts/product-design-audits/knowledge-graph-2026-06-14/concepts/README.md'
+      ? null
+      : 'design-source:concepts-readme',
+    ...requiredConceptImages
+      .filter((conceptPath) => !conceptImages.includes(conceptPath))
+      .map((conceptPath) => `design-source:missing-${path.basename(conceptPath)}`),
+  ].filter((entry): entry is string => Boolean(entry));
+
+  const states = Array.isArray(evidence.stateMatrix)
+    ? evidence.stateMatrix.map((entry) => objectRecord(entry))
+    : [];
+  const stateByName = new Map(
+    states
+      .map((entry) => [typeof entry.name === 'string' ? entry.name : '', entry] as const)
+      .filter(([name]) => name.length > 0),
+  );
+  const requiredStates = [
+    ['desktop-default-collapsed-dark', 'dark', 1440, 'collapsed', 'collapsed'],
+    ['desktop-expanded-persisted-dark', 'dark', 1440, 'expanded', 'collapsed'],
+    ['desktop-local-tools-legend-dark', 'dark', 1440, 'collapsed', 'collapsed'],
+    ['desktop-selected-inspector-light', 'light', 1440, 'collapsed', 'collapsed'],
+    ['desktop-hover-click-drag-dark', 'dark', 1440, 'collapsed', 'collapsed'],
+    ['desktop-explicit-relayout-dark', 'dark', 1440, 'collapsed', 'collapsed'],
+    ['desktop-konling-selected-expanded-dark', 'dark', 1440, 'collapsed', 'expanded'],
+    ['desktop-konling-no-selection-dark', 'dark', 1440, 'collapsed', 'collapsed'],
+    ['desktop-konling-degraded-dark', 'dark', 1440, 'collapsed', 'expanded'],
+    ['desktop-stress-expanded-tool-inspector-konling-dark', 'dark', 1440, 'expanded', 'expanded'],
+    ['mobile-320-local-tools-dark', 'dark', 320, 'mobile', 'collapsed'],
+    ['mobile-320-selected-inspector-dark', 'dark', 320, 'mobile', 'collapsed'],
+    ['mobile-320-konling-expanded-dark', 'dark', 320, 'mobile', 'expanded'],
+    ['light-theme-default', 'light', 1440, 'collapsed', 'collapsed'],
+  ] as const;
+  const stateProblems = requiredStates.flatMap(([name, theme, width, navigationState, dockState]) => {
+    const state = stateByName.get(name);
+    const viewport = objectRecord(state?.viewport);
+    const markers = objectRecord(state?.markers);
+    const canvas = objectRecord(markers.canvas);
+    const overlaps = objectRecord(markers.overlaps);
+    const markerRects = objectRecord(markers.rects);
+    const artifact = simulationViewportArtifact(artifactPathFromEvidence(state?.screenshotPath));
+    const isMobileViewport = numberFromEvidence(viewport.width) === 320;
+    const activeLocalToolMarker = isMobileViewport ? markers.mobileActiveTool : markers.desktopActiveTool;
+    const visibleLocalToolPanelState = isMobileViewport ? markers.mobileToolState : markers.desktopToolState;
+    if (!state) return [`${name}:missing-state`];
+    return [
+      state.route === '/knowledge' ? null : `${name}:route`,
+      state.theme === theme ? null : `${name}:theme`,
+      numberFromEvidence(viewport.width) === width ? null : `${name}:viewport-width`,
+      typeof numberFromEvidence(viewport.height) === 'number' ? null : `${name}:viewport-height`,
+      state.navigationState === navigationState ? null : `${name}:navigation-state`,
+      state.dockState === dockState ? null : `${name}:dock-state`,
+      typeof state.localToolState === 'string' ? null : `${name}:local-tool-state`,
+      typeof state.interactionState === 'string' ? null : `${name}:interaction-state`,
+      state.result === 'passed' ? null : `${name}:result`,
+      artifact ? null : `${name}:missing-screenshot`,
+      artifact?.sha256 === state.screenshotSha256 ? null : `${name}:screenshot-sha-mismatch`,
+      artifact?.imageFormat === 'png' || artifact?.imageFormat === 'jpeg' ? null : `${name}:invalid-image-format`,
+      numberFromEvidence(viewport.width) === 320
+        ? (artifact?.width === 320 ? null : `${name}:invalid-mobile-screenshot-width`)
+        : (typeof artifact?.width === 'number' && artifact.width >= 1200 ? null : `${name}:desktop-screenshot-too-narrow`),
+      numberFromEvidence(viewport.width) === 320
+        ? (typeof artifact?.height === 'number' && artifact.height >= 700 ? null : `${name}:mobile-screenshot-too-short`)
+        : (typeof artifact?.height === 'number' && artifact.height >= 800 ? null : `${name}:desktop-screenshot-too-short`),
+      markers.effectiveDockState === dockState ? null : `${name}:dock-marker-state`,
+      markers.appShellNavigationState === (navigationState === 'mobile' ? 'collapsed' : navigationState)
+        ? null
+        : `${name}:navigation-marker-state`,
+      state.localToolState === 'closed'
+        ? (visibleLocalToolPanelState === 'closed' ? null : `${name}:local-tool-marker-state`)
+        : (
+            activeLocalToolMarker === state.localToolState && visibleLocalToolPanelState === 'open'
+              ? null
+              : `${name}:local-tool-marker-state`
+          ),
+      state.selectedNode
+        ? (
+            name.includes('degraded')
+              ? (canvas.selectedNodeId === '' ? null : `${name}:unexpected-degraded-selected-node`)
+              : (canvas.selectedNodeId === state.selectedNode ? null : `${name}:selected-node-marker`)
+          )
+        : (canvas.selectedNodeId === '' ? null : `${name}:unexpected-selected-node`),
+      name === 'desktop-hover-click-drag-dark'
+        ? (numberFromEvidence(canvas.pinnedNodeCount) === 1 ? null : `${name}:pinned-marker-missing`)
+        : null,
+      name === 'desktop-hover-click-drag-dark'
+        ? (
+            objectRecord(objectRecord(state.interactionEvidence).drag).pinned === true
+            && String(objectRecord(objectRecord(state.interactionEvidence).drag).method ?? '') === 'pointer-drag'
+            && typeof objectRecord(objectRecord(state.interactionEvidence).afterDrag).pinnedLayoutSignature === 'string'
+            && String(objectRecord(objectRecord(state.interactionEvidence).afterDrag).pinnedLayoutSignature).length > 0
+              ? null
+              : `${name}:layout-persistence-interaction-proof-missing`
+          )
+        : null,
+      name.includes('stress')
+        ? (booleanFromEvidence(overlaps.expandedDockOverlapsInspector) === false ? null : `${name}:expanded-dock-overlaps-inspector`)
+        : null,
+      name.includes('stress')
+        ? (booleanFromEvidence(overlaps.expandedDockOverlapsDesktopTools) === false ? null : `${name}:expanded-dock-overlaps-tools`)
+        : null,
+      name.startsWith('mobile-320-konling')
+        ? (booleanFromEvidence(overlaps.expandedDockOverlapsInspector) === false ? null : `${name}:expanded-dock-overlaps-inspector`)
+        : null,
+      name.startsWith('mobile-320-konling')
+        ? (booleanFromEvidence(overlaps.dockOverlapsInspector) === false ? null : `${name}:dock-overlaps-inspector`)
+        : null,
+      name.startsWith('mobile-320-konling')
+        ? (booleanFromEvidence(overlaps.expandedDockOverlapsMobileTools) === false ? null : `${name}:expanded-dock-overlaps-mobile-tools`)
+        : null,
+      name.startsWith('mobile-320-local-tools')
+        ? (evidenceRectsOverlap(markerRects.dock, markerRects.mobileTools) ? `${name}:dock-overlaps-mobile-tools` : null)
+        : null,
+    ].filter((entry): entry is string => Boolean(entry));
+  });
+
+  const sourceEvidence = objectRecord(evidence.sourceEvidence);
+  const sourceHashes = objectRecord(evidence.currentSourceSha256);
+  const sourceProblems = [
+    sourceEvidence.sharedAppShell === true ? null : 'source-evidence:shared-app-shell',
+    sourceEvidence.noCompetingGlobalNavigation === true ? null : 'source-evidence:no-competing-global-navigation',
+    sourceEvidence.compactLocalTools === true ? null : 'source-evidence:compact-local-tools',
+    sourceEvidence.graphicalLegend === true ? null : 'source-evidence:graphical-legend',
+    sourceEvidence.localizedLabels === true ? null : 'source-evidence:localized-labels',
+    sourceEvidence.activeSummaries === true ? null : 'source-evidence:active-summaries',
+    sourceEvidence.hoverDoesNotRelayout === true ? null : 'source-evidence:hover-does-not-relayout',
+    sourceEvidence.selectionDoesNotRelayout === true ? null : 'source-evidence:selection-does-not-relayout',
+    sourceEvidence.draggedPositionPersists === true ? null : 'source-evidence:dragged-position-persists',
+    sourceEvidence.konlingSharedDock === true ? null : 'source-evidence:konling-shared-dock',
+    sourceEvidence.konlingSelectedContext === true ? null : 'source-evidence:konling-selected-context',
+    sourceEvidence.konlingNoSelection === true ? null : 'source-evidence:konling-no-selection',
+    sourceEvidence.konlingDegradedContext === true ? null : 'source-evidence:konling-degraded-context',
+    sourceEvidence.focusManagement === true ? null : 'source-evidence:focus-management',
+    sourceEvidence.stressStateNonOverlap === true ? null : 'source-evidence:stress-state-non-overlap',
+    sourceEvidence.rawSearchExcludedFromAssistantContext === true ? null : 'source-evidence:raw-search-excluded',
+    appShellSource.includes("useState<AppShellNavigationPreference>('collapsed')")
+      ? null
+      : 'app-shell:collapsed-default-missing',
+    appShellSource.includes('APP_SHELL_NAVIGATION_PREFERENCE_STORAGE_KEY')
+      ? null
+      : 'app-shell:persistence-key-missing',
+    graphSource.includes('data-knowledge-workspace="canvas-first"')
+      ? null
+      : 'graph-source:canvas-first-missing',
+    graphSource.includes('data-knowledge-desktop-command-system="compact"')
+      ? null
+      : 'graph-source:compact-command-system-missing',
+    graphSource.includes('data-knowledge-local-panel="relation-legend"')
+      ? null
+      : 'graph-source:relation-legend-panel-missing',
+    graphSource.includes('data-knowledge-hover-context-policy="preview-only-not-durable-context"')
+      ? null
+      : 'graph-source:hover-context-policy-missing',
+    graphSource.includes('activeFilters: [knowledgeWorkspaceFilterSummary]')
+      ? null
+      : 'graph-source:assistant-filter-summary-not-sanitized',
+    graphSource.includes('activeFilters: [activeFilterSummary]')
+      ? 'graph-source:raw-filter-summary-leaks-to-assistant'
+      : null,
+    resourcePanelSource.includes('data-knowledge-inspector="stable-rail"')
+      ? null
+      : 'resource-panel:stable-rail-missing',
+    resourcePanelSource.includes('data-knowledge-inspector-section="infograph-preview"')
+      ? null
+      : 'resource-panel:infograph-preview-missing',
+    konlingRuntimeSource.includes("status: 'degraded'")
+      && konlingRuntimeSource.includes("knowledge-workspace-selected-node-unresolved")
+      ? null
+      : 'konling-runtime:degraded-context-missing',
+    sourceHashes[graphSourcePath] === fileSha256(graphSourcePath)
+      ? null
+      : `${graphSourcePath}:sha-mismatch`,
+    sourceHashes[resourcePanelSourcePath] === fileSha256(resourcePanelSourcePath)
+      ? null
+      : `${resourcePanelSourcePath}:sha-mismatch`,
+    sourceHashes[appShellSourcePath] === fileSha256(appShellSourcePath)
+      ? null
+      : `${appShellSourcePath}:sha-mismatch`,
+    sourceHashes[konlingRuntimeSourcePath] === fileSha256(konlingRuntimeSourcePath)
+      ? null
+      : `${konlingRuntimeSourcePath}:sha-mismatch`,
+  ].filter((entry): entry is string => Boolean(entry));
+
+  const focusEvidence = Array.isArray(evidence.focusEvidence)
+    ? evidence.focusEvidence.map((entry) => objectRecord(entry))
+    : [];
+  const focusByTarget = new Map(
+    focusEvidence
+      .map((entry) => [typeof entry.target === 'string' ? entry.target : '', entry] as const)
+      .filter(([target]) => target.length > 0),
+  );
+  const focusProblems = ['desktop-local-tools', 'mobile-local-sheet', 'mobile-inspector', 'konling-expanded'].flatMap((target) => {
+    const entry = focusByTarget.get(target);
+    if (!entry) return [`${target}:focus-evidence-missing`];
+    return [
+      entry.openedFocusManaged === true ? null : `${target}:opened-focus`,
+      entry.escapeOrCloseReturnsFocus === true ? null : `${target}:focus-return`,
+      entry.keyboardReachable === true ? null : `${target}:keyboard-reachable`,
+    ].filter((item): item is string => Boolean(item));
+  });
+
+  const handoffMatrix = objectRecord(evidence.handoffMatrix);
+  const handoffMatrixPath = artifactPathFromEvidence(handoffMatrix.path);
+  const adopted = stringArray(handoffMatrix.adopted);
+  const rejected = stringArray(handoffMatrix.rejected);
+  const merged = stringArray(handoffMatrix.merged);
+  const handoffProblems = [
+    handoffMatrixPath && existsSync(path.join(repoRoot, handoffMatrixPath))
+      ? null
+      : 'handoff-matrix:path-missing',
+    adopted.includes('layered graph organization') ? null : 'handoff-matrix:layered-graph-not-adopted',
+    adopted.includes('premium dark visual tone') ? null : 'handoff-matrix:dark-tone-not-adopted',
+    adopted.includes('light-mode clarity') ? null : 'handoff-matrix:light-mode-not-adopted',
+    rejected.includes('standalone shell duplication') ? null : 'handoff-matrix:shell-duplication-not-rejected',
+    rejected.includes('generated role switchers') ? null : 'handoff-matrix:role-switcher-not-rejected',
+    rejected.includes('exact mock labels') ? null : 'handoff-matrix:mock-labels-not-rejected',
+    rejected.includes('exact node positions') ? null : 'handoff-matrix:node-positions-not-rejected',
+    rejected.includes('duplicate assistant regions') ? null : 'handoff-matrix:duplicate-assistant-not-rejected',
+    merged.includes('shared AppShell + local graph tools + right-bottom Konling dock')
+      ? null
+      : 'handoff-matrix:merged-shell-tool-dock-guidance-missing',
+  ].filter((entry): entry is string => Boolean(entry));
+
+  const visualReview = objectRecord(evidence.independentVisualReview);
+  const visualReviewDimensions = objectRecord(visualReview.dimensions);
+  const visualReviewPath = artifactPathFromEvidence(visualReview.path);
+  const visualReviewProblems = [
+    visualReviewPath && existsSync(path.join(repoRoot, visualReviewPath))
+      ? null
+      : 'visual-review:path-missing',
+    visualReview.finalResult === 'passed' ? null : 'visual-review:not-passed',
+    Array.isArray(visualReview.blockingFindings) && visualReview.blockingFindings.length === 0
+      ? null
+      : 'visual-review:blocking-findings',
+    ...[
+      'handoffAlignment',
+      'conceptAdoptionRejection',
+      'appShellContinuity',
+      'localTools',
+      'semanticMap',
+      'inspectorHierarchy',
+      'konlingDock',
+      'interactionStability',
+      'keyboardFocus',
+      'themeParity',
+      'mobileBehavior',
+      'stressNonOverlap',
+    ].filter((key) => visualReviewDimensions[key] !== 'PASS').map((key) => `visual-review:${key}`),
+  ].filter((entry): entry is string => Boolean(entry));
+
+  const exceptionProblems = Array.isArray(evidence.temporaryExceptions) && evidence.temporaryExceptions.length === 0
+    ? []
+    : ['temporary-exceptions:not-empty'];
+
+  if (
+    designProblems.length > 0
+    || stateProblems.length > 0
+    || sourceProblems.length > 0
+    || focusProblems.length > 0
+    || handoffProblems.length > 0
+    || visualReviewProblems.length > 0
+    || exceptionProblems.length > 0
+  ) {
+    return [knowledgeGraphGovernanceViolation('Knowledge workspace product QA evidence is incomplete.', [
+      `design=${designProblems.join(',') || 'none'}`,
+      `states=${stateProblems.join(',') || 'none'}`,
+      `source=${sourceProblems.join(',') || 'none'}`,
+      `focus=${focusProblems.join(',') || 'none'}`,
+      `handoff=${handoffProblems.join(',') || 'none'}`,
+      `visualReview=${visualReviewProblems.join(',') || 'none'}`,
+      `exceptions=${exceptionProblems.join(',') || 'none'}`,
+      KNOWLEDGE_WORKSPACE_PRODUCT_QA_EVIDENCE_PATH,
+    ])];
+  }
+
+  return [];
+}
+
 function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViolation[] {
   const violations: CommercialUiGovernanceViolation[] = [];
   const evidence = readJsonFile<JsonRecord>(KNOWLEDGE_GRAPH_GOVERNANCE_EVIDENCE_PATH);
@@ -1303,6 +1648,7 @@ function validateKnowledgeGraphGovernanceEvidence(): CommercialUiGovernanceViola
   violations.push(...validateKnowledgeGraphInteractionStateEvidence());
   violations.push(...validateKnowledgeGraphSemanticMapEvidence());
   violations.push(...validateKnowledgeWorkspaceToolsInspectorEvidence());
+  violations.push(...validateKnowledgeWorkspaceProductQaEvidence());
 
   const runtimeRelationCounts = readRuntimeKnowledgeRelationCounts();
   const relationEvidence = objectRecord(evidence.runtimeRelationEvidence);

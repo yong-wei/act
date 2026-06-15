@@ -1569,7 +1569,7 @@ describe('commercial UI governance', () => {
           category: 'visual-acceptance',
           rule: 'visual-acceptance.incomplete-navigation-state-evidence',
           path: '/dashboard',
-          evidence: expect.arrayContaining(['width=320:navigationState=role-route-tabs']),
+          evidence: expect.arrayContaining(['width=320|390:navigationState=role-route-tabs']),
         }),
       ]),
     );
@@ -1597,7 +1597,7 @@ describe('commercial UI governance', () => {
           category: 'visual-acceptance',
           rule: 'visual-acceptance.incomplete-navigation-state-evidence',
           path: '/interactive-learning/control-workbench',
-          evidence: expect.arrayContaining(['width=320:navigationState=mobile-drawer']),
+          evidence: expect.arrayContaining(['width=320|390:navigationState=mobile-drawer']),
         }),
       ]),
     );
@@ -1625,7 +1625,7 @@ describe('commercial UI governance', () => {
           category: 'visual-acceptance',
           rule: 'visual-acceptance.incomplete-navigation-state-evidence',
           path: '/login?callbackUrl=%2Fprofile',
-          evidence: expect.arrayContaining(['width=320:navigationState=auth-callback-panel']),
+          evidence: expect.arrayContaining(['width=320|390:navigationState=auth-callback-panel']),
         }),
       ]),
     );
@@ -1852,6 +1852,39 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('implementationScreenshotSha256:');
     expect(scriptSource).toContain('paths.add(simulationVisualQa.handoffBaseline.designHandoff)');
     expect(scriptSource).toContain('paths.add(simulationVisualQa.handoffBaseline.implementationMatrix)');
+  });
+
+  it('keeps knowledge workspace product QA local-tool and mobile overlap checks viewport-specific', () => {
+    const scriptSource = readFileSync(join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'), 'utf8');
+    const captureScriptSource = readFileSync(
+      join(process.cwd(), 'scripts/tests/capture-knowledge-workspace-product-qa.ts'),
+      'utf8',
+    );
+
+    expect(scriptSource).toContain('const isMobileViewport = numberFromEvidence(viewport.width) === 320;');
+    expect(scriptSource).toContain('const activeLocalToolMarker = isMobileViewport ? markers.mobileActiveTool : markers.desktopActiveTool;');
+    expect(scriptSource).toContain('const visibleLocalToolPanelState = isMobileViewport ? markers.mobileToolState : markers.desktopToolState;');
+    expect(scriptSource).toContain("visibleLocalToolPanelState === 'closed' ? null : `${name}:local-tool-marker-state`");
+    expect(scriptSource).toContain("activeLocalToolMarker === state.localToolState && visibleLocalToolPanelState === 'open'");
+    expect(scriptSource).not.toContain("markers.desktopToolState === 'open'");
+    expect(scriptSource).not.toContain("markers.mobileToolState === 'open'");
+    expect(scriptSource).toContain("method ?? '') === 'pointer-drag'");
+    expect(scriptSource).not.toContain('pinControl).pinned === true');
+    expect(captureScriptSource).toContain('__knowledgeGraphProductQaSelectedNodeDragPoints');
+    expect(captureScriptSource).toContain('hoveredCanvasNodeDragPointCandidates');
+    expect(captureScriptSource).toContain("document.querySelector('[data-knowledge-local-panel=\"node-hover-preview\"]')");
+    expect(captureScriptSource).not.toContain('__knowledgeGraphProductQaDragSelectedNode');
+    expect(captureScriptSource).not.toContain("method: 'drag-end-handler'");
+    expect(scriptSource).toContain('expandedDockOverlapsMobileTools');
+    expect(scriptSource).toContain('`${name}:expanded-dock-overlaps-mobile-tools`');
+    expect(scriptSource).toContain('overlaps.dockOverlapsInspector');
+    expect(scriptSource).toContain('`${name}:dock-overlaps-inspector`');
+    expect(captureScriptSource).toContain('async function captureFocusEvidence(browser: Browser)');
+    expect(captureScriptSource).toContain('const focusEvidence = await captureFocusEvidence(browser);');
+    expect(captureScriptSource).toContain('focusEvidence,');
+    expect(captureScriptSource).toContain('openedFocusManaged');
+    expect(captureScriptSource).toContain('keyboardReachable');
+    expect(captureScriptSource).not.toContain("{ target: 'desktop-local-tools', openedFocusManaged: true");
   });
 
   it('filters React Doctor owned-surface diagnostics and keeps large JSON stdout parseable', () => {

@@ -264,6 +264,8 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).toContain('data-knowledge-visible-node-count={displayNodes.length}');
     expect(systemSource).toContain('data-knowledge-pinned-node-count={pinnedNodeCount}');
     expect(systemSource).toContain('data-knowledge-pinned-layout-signature={pinnedLayoutSignature}');
+    expect(systemSource).toContain('const displaySelectedNode = selectedNode');
+    expect(systemSource).toContain('? { ...displaySelectedNode, ...selectedNode }');
     expect(systemSource).toContain("data-knowledge-selected-node-id={visibleSelectedNode?.id ?? ''}");
     expect(systemSource).toContain('data-knowledge-konling-context-source="server-owned"');
     expect(systemSource).toContain("data-knowledge-konling-context-status={visibleSelectedNode ? 'selected-node' : 'no-selection'}");
@@ -285,6 +287,13 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).toContain('const [relayoutVersion, setRelayoutVersion] = useState(0);');
     expect(systemSource).toContain('setRelayoutVersion((current) => current + 1);');
     expect(systemSource).toContain('selectedNodePinUnavailable');
+    expect(systemSource).not.toContain('__knowledgeGraphProductQaDragSelectedNode');
+    expect(rendererSource).toContain('__knowledgeGraphProductQaSelectedNodeDragPoints');
+    expect(rendererSource).toContain("new URLSearchParams(window.location.search).get('qa') === 'knowledge-product'");
+    expect(rendererSource).toContain('fgRef.current.graph2ScreenCoords(graphX, graphY)');
+    expect(rendererSource).toContain('nodePointerAreaPaint={paintNodePointerArea}');
+    expect(systemSource).toContain('mobileToolPanelRef.current?.focus()');
+    expect(systemSource).toContain('mobileToolToggleRef.current?.focus()');
     expect(systemSource).not.toContain('x: graphNode.x ?? visibleSelectedNode.positionX');
     expect(systemSource).not.toContain('y: graphNode.y ?? visibleSelectedNode.positionY');
     expect(rendererSource).toContain('onNodeDragEnd={handleNodeDragEnd}');

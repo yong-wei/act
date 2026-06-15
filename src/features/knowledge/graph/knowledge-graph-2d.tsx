@@ -321,6 +321,56 @@ export function KnowledgeGraph2D({
     };
   }, [nodes, links, relayoutVersion]);
 
+  useEffect(() => {
+    const qaWindow = window as Window & {
+      __knowledgeGraphProductQaSelectedNodeDragPoints?: () => Array<{ x: number; y: number }>;
+    };
+    const qaEnabled = new URLSearchParams(window.location.search).get('qa') === 'knowledge-product';
+    if (!qaEnabled) {
+      delete qaWindow.__knowledgeGraphProductQaSelectedNodeDragPoints;
+      return;
+    }
+    qaWindow.__knowledgeGraphProductQaSelectedNodeDragPoints = () => {
+      if (!selectedNode?.id || !fgRef.current?.graph2ScreenCoords) return [];
+      const graphNodes = [
+        ...((fgRef.current.graphData?.()?.nodes ?? []) as Array<KnowledgeNodeData & { x?: number; y?: number }>),
+        ...(graphData.nodes as Array<KnowledgeNodeData & { x?: number; y?: number }>),
+      ];
+      const canvas = document.querySelector<HTMLCanvasElement>('[data-knowledge-canvas-primary="true"] canvas');
+      const rect = canvas?.getBoundingClientRect();
+      const candidates: Array<{ x: number; y: number }> = [];
+      for (const graphNode of graphNodes) {
+        if (graphNode.id !== selectedNode.id) continue;
+        const graphX = Number(graphNode.x);
+        const graphY = Number(graphNode.y);
+        if (!Number.isFinite(graphX) || !Number.isFinite(graphY)) continue;
+        const screen = fgRef.current.graph2ScreenCoords(graphX, graphY);
+        const screenX = Number(screen?.x);
+        const screenY = Number(screen?.y);
+        if (!Number.isFinite(screenX) || !Number.isFinite(screenY)) continue;
+        candidates.push({ x: screenX, y: screenY });
+        if (rect) {
+          candidates.push({ x: rect.left + screenX, y: rect.top + screenY });
+        }
+      }
+      return candidates.flatMap((point) => [
+        point,
+        { x: point.x - 8, y: point.y },
+        { x: point.x + 8, y: point.y },
+        { x: point.x, y: point.y - 8 },
+        { x: point.x, y: point.y + 8 },
+      ]).filter((point, index, points) => (
+        index === points.findIndex((candidate) =>
+          Math.round(candidate.x) === Math.round(point.x)
+          && Math.round(candidate.y) === Math.round(point.y)
+        )
+      ));
+    };
+    return () => {
+      delete qaWindow.__knowledgeGraphProductQaSelectedNodeDragPoints;
+    };
+  }, [graphData, selectedNode?.id]);
+
   // 2. 自定义节点渲染
   const paintNode = useCallback((node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
     // 获取颜色配置
@@ -360,7 +410,7 @@ export function KnowledgeGraph2D({
 
     // 绘制辉光（如果有 bloomLevel）
     if (glowColor) {
-      ctx.fillStyle = hexToRgba(glowColor, isActive ? 0.4 : 0.25);
+      ctx.fillStyle = hexToRgba(glowColor, isActive ? 0.34 : 0.18);
       drawShape(ctx, node.nodeType, node.x, node.y, glowRadius);
     }
 
@@ -429,6 +479,16 @@ export function KnowledgeGraph2D({
     ctx.fillText(label, node.x, node.y + labelOffset);
   }, [selectedNode, hoveredNode, isLightTheme, labelMode]);
 
+  const paintNodePointerArea = useCallback((node: any, color: string, ctx: CanvasRenderingContext2D) => {
+    const nodeScale = getKnowledgeNodeScale({
+      metadata: node.metadata,
+      degree: node.graphDegree,
+      focused: selectedNode?.id === node.id || hoveredNode?.id === node.id,
+    });
+    ctx.fillStyle = color;
+    drawShape(ctx, node.nodeType, node.x, node.y, nodeScale.radius + 8);
+  }, [hoveredNode?.id, selectedNode?.id]);
+
   // 3. 自定义连线渲染
   const paintLink = useCallback((link: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
     const source = link.source;
@@ -449,9 +509,9 @@ export function KnowledgeGraph2D({
     const focusOpacity = focusState === 'dimmed'
       ? KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.dimmedNeighborhoodOpacity
       : focusState === 'active'
-        ? 1
-        : 0.82;
-    const alpha = (0.2 + strength * 0.65) * focusOpacity * style.opacity;
+        ? KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.activeEdgeOpacity
+        : KNOWLEDGE_GRAPH_SEMANTIC_MAP_CONTRACT.neutralEdgeOpacity;
+    const alpha = (0.16 + strength * 0.44) * focusOpacity * style.opacity;
     const lineWidth = getKnowledgeGraphEffectiveEdgeWidth(style, strength, focusState, '2d');
 
     const dx = target.x - source.x;
@@ -540,6 +600,7 @@ export function KnowledgeGraph2D({
 
       // 节点渲染
       nodeCanvasObject={paintNode}
+      nodePointerAreaPaint={paintNodePointerArea}
       nodeLabel="name"
 
       // 连线渲染
@@ -553,6 +614,7 @@ export function KnowledgeGraph2D({
       onNodeClick={onNodeClick}
       onNodeHover={onNodeHover}
       onNodeDragEnd={handleNodeDragEnd}
+      enableNodeDrag={true}
 
       // 物理引擎配置
       d3VelocityDecay={0.3}

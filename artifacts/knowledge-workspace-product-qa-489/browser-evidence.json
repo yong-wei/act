@@ -1,0 +1,1350 @@
+{
+  "change": "govern-knowledge-workspace-product-qa",
+  "issue": 489,
+  "capturedAt": "2026-06-15T05:54:23.989Z",
+  "baseUrl": "http://localhost:3002",
+  "selectedNodeId": "z反变换_7_7959c077",
+  "designSourceOfTruth": {
+    "handoff": "artifacts/product-design-audits/knowledge-graph-2026-06-14/design-handoff.md",
+    "conceptsReadme": "artifacts/product-design-audits/knowledge-graph-2026-06-14/concepts/README.md",
+    "conceptImages": [
+      "artifacts/product-design-audits/knowledge-graph-2026-06-14/concepts/layered-research-atlas.png",
+      "artifacts/product-design-audits/knowledge-graph-2026-06-14/concepts/night-bridge-semantic-map.png",
+      "artifacts/product-design-audits/knowledge-graph-2026-06-14/concepts/daylight-engineering-atlas.png"
+    ]
+  },
+  "sourceEvidence": {
+    "sharedAppShell": true,
+    "noCompetingGlobalNavigation": true,
+    "compactLocalTools": true,
+    "graphicalLegend": true,
+    "localizedLabels": true,
+    "activeSummaries": true,
+    "hoverDoesNotRelayout": true,
+    "selectionDoesNotRelayout": true,
+    "draggedPositionPersists": true,
+    "konlingSharedDock": true,
+    "konlingSelectedContext": true,
+    "konlingNoSelection": true,
+    "konlingDegradedContext": true,
+    "focusManagement": true,
+    "stressStateNonOverlap": true,
+    "rawSearchExcludedFromAssistantContext": true
+  },
+  "currentSourceSha256": {
+    "src/features/knowledge/knowledge-graph-system.tsx": "3786570d85289c08c807b5b714b2585e0d7331e53a8368ecf0d2098a8469e11d",
+    "src/features/knowledge/resource-panel/resource-panel.tsx": "4c08e93de251a008117c62d60c9182bd302ff96dd659cf475f4c5dd0b4278ebd",
+    "src/components/platform/app-shell.tsx": "1abea3e563227ff8164bec4f7b785946efcc90646832de9fe4921a4ba18da935",
+    "src/lib/konling-agent-runtime.ts": "4760f2ff65580a2d6886cde42e635d8d69d45e09a8b00fb647e230550ec34e33"
+  },
+  "stateMatrix": [
+    {
+      "name": "desktop-default-collapsed-dark",
+      "route": "/knowledge",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "navigationState": "collapsed",
+      "dockState": "collapsed",
+      "localToolState": "closed",
+      "selectedNode": null,
+      "interactionState": "default graph",
+      "result": "passed",
+      "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-default-collapsed-dark.png",
+      "screenshotSha256": "885e34bf744faa89baba749e3d68840e511467029352c42767c2377a1bba3e2d",
+      "markers": {
+        "htmlClass": "dark",
+        "workspace": "canvas-first",
+        "konlingContextStatus": "no-selection",
+        "appShellNavigationState": "collapsed",
+        "appShellPreference": "collapsed",
+        "canvas": {
+          "selectedNodeId": "",
+          "visibleNodeCount": "590",
+          "visibleLinkCount": "1285",
+          "layoutVersion": "0",
+          "pinnedNodeCount": "0"
+        },
+        "desktopToolState": "closed",
+        "desktopActiveTool": "closed",
+        "mobileToolState": "closed",
+        "mobileActiveTool": "chapter-directory",
+        "inspectorMode": null,
+        "inspectorSections": [],
+        "dockState": "collapsed",
+        "effectiveDockState": "collapsed",
+        "expandedDockVisible": false,
+        "rects": {
+          "desktopTools": {
+            "left": 112,
+            "top": 109,
+            "right": 670,
+            "bottom": 194,
+            "width": 558,
+            "height": 85
+          },
+          "mobileTools": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "inspector": null,
+          "dock": {
+            "left": 1376,
+            "top": 904,
+            "right": 1416,
+            "bottom": 944,
+            "width": 40,
+            "height": 40
+          },
+          "expandedDock": null
+        },
+        "overlaps": {
+          "dockOverlapsDesktopTools": false,
+          "expandedDockOverlapsDesktopTools": false,
+          "dockOverlapsMobileTools": false,
+          "expandedDockOverlapsMobileTools": false,
+          "dockOverlapsInspector": false,
+          "expandedDockOverlapsInspector": false
+        }
+      }
+    },
+    {
+      "name": "desktop-expanded-persisted-dark",
+      "route": "/knowledge",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "navigationState": "expanded",
+      "dockState": "collapsed",
+      "localToolState": "closed",
+      "selectedNode": null,
+      "interactionState": "navigation preference persisted",
+      "result": "passed",
+      "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-expanded-persisted-dark.png",
+      "screenshotSha256": "188ae56d18f5cce7d66d53bba40a6cb7ec8d8a2bd0ad2c7f665d836ebc214bc0",
+      "markers": {
+        "htmlClass": "dark",
+        "workspace": "canvas-first",
+        "konlingContextStatus": "no-selection",
+        "appShellNavigationState": "expanded",
+        "appShellPreference": "expanded",
+        "canvas": {
+          "selectedNodeId": "",
+          "visibleNodeCount": "590",
+          "visibleLinkCount": "1285",
+          "layoutVersion": "0",
+          "pinnedNodeCount": "0"
+        },
+        "desktopToolState": "closed",
+        "desktopActiveTool": "closed",
+        "mobileToolState": "closed",
+        "mobileActiveTool": "chapter-directory",
+        "inspectorMode": null,
+        "inspectorSections": [],
+        "dockState": "collapsed",
+        "effectiveDockState": "collapsed",
+        "expandedDockVisible": false,
+        "rects": {
+          "desktopTools": {
+            "left": 288,
+            "top": 109,
+            "right": 846,
+            "bottom": 194,
+            "width": 558,
+            "height": 85
+          },
+          "mobileTools": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "inspector": null,
+          "dock": {
+            "left": 1376,
+            "top": 904,
+            "right": 1416,
+            "bottom": 944,
+            "width": 40,
+            "height": 40
+          },
+          "expandedDock": null
+        },
+        "overlaps": {
+          "dockOverlapsDesktopTools": false,
+          "expandedDockOverlapsDesktopTools": false,
+          "dockOverlapsMobileTools": false,
+          "expandedDockOverlapsMobileTools": false,
+          "dockOverlapsInspector": false,
+          "expandedDockOverlapsInspector": false
+        }
+      }
+    },
+    {
+      "name": "desktop-local-tools-legend-dark",
+      "route": "/knowledge",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "navigationState": "collapsed",
+      "dockState": "collapsed",
+      "localToolState": "legend",
+      "selectedNode": null,
+      "interactionState": "local legend opened",
+      "result": "passed",
+      "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-local-tools-legend-dark.png",
+      "screenshotSha256": "31082523ac0ab1434f9bcf4f2f5e30aad61e47627cbdb278c99eb49aeb274830",
+      "markers": {
+        "htmlClass": "dark",
+        "workspace": "canvas-first",
+        "konlingContextStatus": "no-selection",
+        "appShellNavigationState": "collapsed",
+        "appShellPreference": "collapsed",
+        "canvas": {
+          "selectedNodeId": "",
+          "visibleNodeCount": "590",
+          "visibleLinkCount": "1285",
+          "layoutVersion": "0",
+          "pinnedNodeCount": "0"
+        },
+        "desktopToolState": "open",
+        "desktopActiveTool": "legend",
+        "mobileToolState": "closed",
+        "mobileActiveTool": "chapter-directory",
+        "inspectorMode": null,
+        "inspectorSections": [],
+        "dockState": "collapsed",
+        "effectiveDockState": "collapsed",
+        "expandedDockVisible": false,
+        "rects": {
+          "desktopTools": {
+            "left": 112,
+            "top": 109,
+            "right": 716,
+            "bottom": 778,
+            "width": 604,
+            "height": 669
+          },
+          "mobileTools": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "inspector": null,
+          "dock": {
+            "left": 1376,
+            "top": 904,
+            "right": 1416,
+            "bottom": 944,
+            "width": 40,
+            "height": 40
+          },
+          "expandedDock": null
+        },
+        "overlaps": {
+          "dockOverlapsDesktopTools": false,
+          "expandedDockOverlapsDesktopTools": false,
+          "dockOverlapsMobileTools": false,
+          "expandedDockOverlapsMobileTools": false,
+          "dockOverlapsInspector": false,
+          "expandedDockOverlapsInspector": false
+        }
+      }
+    },
+    {
+      "name": "desktop-selected-inspector-light",
+      "route": "/knowledge",
+      "url": "http://localhost:3002/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077&qa=knowledge-product",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "navigationState": "collapsed",
+      "dockState": "collapsed",
+      "localToolState": "closed",
+      "selectedNode": "z反变换_7_7959c077",
+      "interactionState": "selected inspector",
+      "result": "passed",
+      "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-selected-inspector-light.png",
+      "screenshotSha256": "2cec4e1ba0fbacfe29ea6157bc856b3d58370bac2de42b5e028a087ca45515c7",
+      "markers": {
+        "htmlClass": "light",
+        "workspace": "canvas-first",
+        "konlingContextStatus": "selected-node",
+        "appShellNavigationState": "collapsed",
+        "appShellPreference": "collapsed",
+        "canvas": {
+          "selectedNodeId": "z反变换_7_7959c077",
+          "visibleNodeCount": "590",
+          "visibleLinkCount": "1285",
+          "layoutVersion": "0",
+          "pinnedNodeCount": "0"
+        },
+        "desktopToolState": "closed",
+        "desktopActiveTool": "closed",
+        "mobileToolState": "closed",
+        "mobileActiveTool": "chapter-directory",
+        "inspectorMode": "stable-rail",
+        "inspectorSections": [
+          "header",
+          "semantic-metadata",
+          "summary",
+          "relation-overview",
+          "evidence-sources",
+          "learning-actions"
+        ],
+        "dockState": "collapsed",
+        "effectiveDockState": "collapsed",
+        "expandedDockVisible": false,
+        "rects": {
+          "desktopTools": {
+            "left": 112,
+            "top": 16,
+            "right": 670,
+            "bottom": 101,
+            "width": 558,
+            "height": 85
+          },
+          "mobileTools": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "inspector": {
+            "left": 984,
+            "top": 0,
+            "right": 1416,
+            "bottom": 960,
+            "width": 432,
+            "height": 960
+          },
+          "dock": {
+            "left": 944,
+            "top": 904,
+            "right": 984,
+            "bottom": 944,
+            "width": 40,
+            "height": 40
+          },
+          "expandedDock": null
+        },
+        "overlaps": {
+          "dockOverlapsDesktopTools": false,
+          "expandedDockOverlapsDesktopTools": false,
+          "dockOverlapsMobileTools": false,
+          "expandedDockOverlapsMobileTools": false,
+          "dockOverlapsInspector": false,
+          "expandedDockOverlapsInspector": false
+        }
+      }
+    },
+    {
+      "name": "desktop-hover-click-drag-dark",
+      "route": "/knowledge",
+      "url": "http://localhost:3002/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077&qa=knowledge-product",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "navigationState": "collapsed",
+      "dockState": "collapsed",
+      "localToolState": "view-layout",
+      "selectedNode": "z反变换_7_7959c077",
+      "interactionState": "hover click drag persistence evidence",
+      "result": "passed",
+      "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-hover-click-drag-dark.png",
+      "screenshotSha256": "2e2f6a04d172ef686bd5b3494385ff99e068d198b65d72f5759f5a381e20215e",
+      "markers": {
+        "htmlClass": "dark",
+        "workspace": "canvas-first",
+        "konlingContextStatus": "selected-node",
+        "appShellNavigationState": "collapsed",
+        "appShellPreference": "collapsed",
+        "canvas": {
+          "selectedNodeId": "z反变换_7_7959c077",
+          "visibleNodeCount": "590",
+          "visibleLinkCount": "1285",
+          "layoutVersion": "1",
+          "pinnedNodeCount": "1"
+        },
+        "desktopToolState": "open",
+        "desktopActiveTool": "view-layout",
+        "mobileToolState": "closed",
+        "mobileActiveTool": "chapter-directory",
+        "inspectorMode": "stable-rail",
+        "inspectorSections": [
+          "header",
+          "semantic-metadata",
+          "summary",
+          "relation-overview",
+          "evidence-sources",
+          "learning-actions"
+        ],
+        "dockState": "collapsed",
+        "effectiveDockState": "collapsed",
+        "expandedDockVisible": false,
+        "rects": {
+          "desktopTools": {
+            "left": 112,
+            "top": 16,
+            "right": 714,
+            "bottom": 349,
+            "width": 602,
+            "height": 333
+          },
+          "mobileTools": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "inspector": {
+            "left": 984,
+            "top": 0,
+            "right": 1416,
+            "bottom": 960,
+            "width": 432,
+            "height": 960
+          },
+          "dock": {
+            "left": 944,
+            "top": 904,
+            "right": 984,
+            "bottom": 944,
+            "width": 40,
+            "height": 40
+          },
+          "expandedDock": null
+        },
+        "overlaps": {
+          "dockOverlapsDesktopTools": false,
+          "expandedDockOverlapsDesktopTools": false,
+          "dockOverlapsMobileTools": false,
+          "expandedDockOverlapsMobileTools": false,
+          "dockOverlapsInspector": false,
+          "expandedDockOverlapsInspector": false
+        }
+      },
+      "interactionEvidence": {
+        "kind": "dragged-node-and-hover-stability",
+        "beforeDrag": {
+          "layoutVersion": "0",
+          "pinnedNodeCount": "0",
+          "pinnedLayoutSignature": "",
+          "selectedNodeId": "z反变换_7_7959c077",
+          "desktopToolState": "open",
+          "desktopActiveTool": "view-layout"
+        },
+        "drag": {
+          "method": "pointer-drag",
+          "dragFrom": {
+            "x": 776,
+            "y": 200
+          },
+          "dragTo": {
+            "x": 856,
+            "y": 236
+          },
+          "pinned": true
+        },
+        "afterDrag": {
+          "layoutVersion": "1",
+          "pinnedNodeCount": "1",
+          "pinnedLayoutSignature": "时域分析法_3_0f0489e0:673.6,-510.6,0.0",
+          "selectedNodeId": "z反变换_7_7959c077",
+          "desktopToolState": "open",
+          "desktopActiveTool": "view-layout"
+        },
+        "afterHover": {
+          "layoutVersion": "1",
+          "pinnedNodeCount": "1",
+          "pinnedLayoutSignature": "时域分析法_3_0f0489e0:673.6,-510.6,0.0",
+          "selectedNodeId": "z反变换_7_7959c077",
+          "desktopToolState": "open",
+          "desktopActiveTool": "view-layout"
+        }
+      }
+    },
+    {
+      "name": "desktop-explicit-relayout-dark",
+      "route": "/knowledge",
+      "url": "http://localhost:3002/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077&qa=knowledge-product",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "navigationState": "collapsed",
+      "dockState": "collapsed",
+      "localToolState": "view-layout",
+      "selectedNode": "z反变换_7_7959c077",
+      "interactionState": "explicit relayout control visible",
+      "result": "passed",
+      "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-explicit-relayout-dark.png",
+      "screenshotSha256": "d2eba825f8438caaf21db72a5a52fda56a7dbe29b78d6c464eb095c01e98e06c",
+      "markers": {
+        "htmlClass": "dark",
+        "workspace": "canvas-first",
+        "konlingContextStatus": "selected-node",
+        "appShellNavigationState": "collapsed",
+        "appShellPreference": "collapsed",
+        "canvas": {
+          "selectedNodeId": "z反变换_7_7959c077",
+          "visibleNodeCount": "590",
+          "visibleLinkCount": "1285",
+          "layoutVersion": "1",
+          "pinnedNodeCount": "0"
+        },
+        "desktopToolState": "open",
+        "desktopActiveTool": "view-layout",
+        "mobileToolState": "closed",
+        "mobileActiveTool": "chapter-directory",
+        "inspectorMode": "stable-rail",
+        "inspectorSections": [
+          "header",
+          "semantic-metadata",
+          "summary",
+          "relation-overview",
+          "evidence-sources",
+          "learning-actions"
+        ],
+        "dockState": "collapsed",
+        "effectiveDockState": "collapsed",
+        "expandedDockVisible": false,
+        "rects": {
+          "desktopTools": {
+            "left": 112,
+            "top": 16,
+            "right": 716,
+            "bottom": 349,
+            "width": 604,
+            "height": 333
+          },
+          "mobileTools": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "inspector": {
+            "left": 984,
+            "top": 0,
+            "right": 1416,
+            "bottom": 960,
+            "width": 432,
+            "height": 960
+          },
+          "dock": {
+            "left": 944,
+            "top": 904,
+            "right": 984,
+            "bottom": 944,
+            "width": 40,
+            "height": 40
+          },
+          "expandedDock": null
+        },
+        "overlaps": {
+          "dockOverlapsDesktopTools": false,
+          "expandedDockOverlapsDesktopTools": false,
+          "dockOverlapsMobileTools": false,
+          "expandedDockOverlapsMobileTools": false,
+          "dockOverlapsInspector": false,
+          "expandedDockOverlapsInspector": false
+        }
+      }
+    },
+    {
+      "name": "desktop-konling-selected-expanded-dark",
+      "route": "/knowledge",
+      "url": "http://localhost:3002/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077&qa=knowledge-product",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "navigationState": "collapsed",
+      "dockState": "expanded",
+      "localToolState": "closed",
+      "selectedNode": "z反变换_7_7959c077",
+      "interactionState": "konling selected context expanded",
+      "result": "passed",
+      "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-konling-selected-expanded-dark.png",
+      "screenshotSha256": "e3078d720812947112fe797c662ce826fa36c715706fcf2c88e2f691eaa8639c",
+      "markers": {
+        "htmlClass": "dark",
+        "workspace": "canvas-first",
+        "konlingContextStatus": "selected-node",
+        "appShellNavigationState": "collapsed",
+        "appShellPreference": "collapsed",
+        "canvas": {
+          "selectedNodeId": "z反变换_7_7959c077",
+          "visibleNodeCount": "590",
+          "visibleLinkCount": "1285",
+          "layoutVersion": "0",
+          "pinnedNodeCount": "0"
+        },
+        "desktopToolState": "closed",
+        "desktopActiveTool": "closed",
+        "mobileToolState": "closed",
+        "mobileActiveTool": "chapter-directory",
+        "inspectorMode": "stable-rail",
+        "inspectorSections": [
+          "header",
+          "semantic-metadata",
+          "summary",
+          "relation-overview",
+          "evidence-sources",
+          "learning-actions"
+        ],
+        "dockState": "collapsed",
+        "effectiveDockState": "expanded",
+        "expandedDockVisible": true,
+        "rects": {
+          "desktopTools": {
+            "left": 112,
+            "top": 16,
+            "right": 670,
+            "bottom": 101,
+            "width": 558,
+            "height": 85
+          },
+          "mobileTools": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "inspector": {
+            "left": 984,
+            "top": 0,
+            "right": 1416,
+            "bottom": 960,
+            "width": 432,
+            "height": 960
+          },
+          "dock": {
+            "left": 760,
+            "top": 830,
+            "right": 984,
+            "bottom": 944,
+            "width": 224,
+            "height": 114
+          },
+          "expandedDock": {
+            "left": 760,
+            "top": 830,
+            "right": 984,
+            "bottom": 892,
+            "width": 224,
+            "height": 62
+          }
+        },
+        "overlaps": {
+          "dockOverlapsDesktopTools": false,
+          "expandedDockOverlapsDesktopTools": false,
+          "dockOverlapsMobileTools": false,
+          "expandedDockOverlapsMobileTools": false,
+          "dockOverlapsInspector": false,
+          "expandedDockOverlapsInspector": false
+        }
+      }
+    },
+    {
+      "name": "desktop-konling-no-selection-dark",
+      "route": "/knowledge",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "navigationState": "collapsed",
+      "dockState": "collapsed",
+      "localToolState": "closed",
+      "selectedNode": null,
+      "interactionState": "konling no-selection context",
+      "result": "passed",
+      "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-konling-no-selection-dark.png",
+      "screenshotSha256": "6974944215c57d1c9866cd06facae8335d7e006e33f02b8bac44ad0029050635",
+      "markers": {
+        "htmlClass": "dark",
+        "workspace": "canvas-first",
+        "konlingContextStatus": "no-selection",
+        "appShellNavigationState": "collapsed",
+        "appShellPreference": "collapsed",
+        "canvas": {
+          "selectedNodeId": "",
+          "visibleNodeCount": "590",
+          "visibleLinkCount": "1285",
+          "layoutVersion": "0",
+          "pinnedNodeCount": "0"
+        },
+        "desktopToolState": "closed",
+        "desktopActiveTool": "closed",
+        "mobileToolState": "closed",
+        "mobileActiveTool": "chapter-directory",
+        "inspectorMode": null,
+        "inspectorSections": [],
+        "dockState": "collapsed",
+        "effectiveDockState": "collapsed",
+        "expandedDockVisible": false,
+        "rects": {
+          "desktopTools": {
+            "left": 112,
+            "top": 109,
+            "right": 670,
+            "bottom": 194,
+            "width": 558,
+            "height": 85
+          },
+          "mobileTools": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "inspector": null,
+          "dock": {
+            "left": 1376,
+            "top": 904,
+            "right": 1416,
+            "bottom": 944,
+            "width": 40,
+            "height": 40
+          },
+          "expandedDock": null
+        },
+        "overlaps": {
+          "dockOverlapsDesktopTools": false,
+          "expandedDockOverlapsDesktopTools": false,
+          "dockOverlapsMobileTools": false,
+          "expandedDockOverlapsMobileTools": false,
+          "dockOverlapsInspector": false,
+          "expandedDockOverlapsInspector": false
+        }
+      }
+    },
+    {
+      "name": "desktop-konling-degraded-dark",
+      "route": "/knowledge",
+      "url": "http://localhost:3002/knowledge?node=missing-node&qa=knowledge-product",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "navigationState": "collapsed",
+      "dockState": "expanded",
+      "localToolState": "closed",
+      "selectedNode": "missing-node",
+      "interactionState": "konling degraded unresolved node context",
+      "result": "passed",
+      "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-konling-degraded-dark.png",
+      "screenshotSha256": "195637f20c31299511aa669193de313333f1228155f8efa2909e33d134557df8",
+      "markers": {
+        "htmlClass": "dark",
+        "workspace": "canvas-first",
+        "konlingContextStatus": "no-selection",
+        "appShellNavigationState": "collapsed",
+        "appShellPreference": "collapsed",
+        "canvas": {
+          "selectedNodeId": "",
+          "visibleNodeCount": "590",
+          "visibleLinkCount": "1285",
+          "layoutVersion": "0",
+          "pinnedNodeCount": "0"
+        },
+        "desktopToolState": "closed",
+        "desktopActiveTool": "closed",
+        "mobileToolState": "closed",
+        "mobileActiveTool": "chapter-directory",
+        "inspectorMode": null,
+        "inspectorSections": [],
+        "dockState": "collapsed",
+        "effectiveDockState": "expanded",
+        "expandedDockVisible": true,
+        "rects": {
+          "desktopTools": {
+            "left": 112,
+            "top": 109,
+            "right": 670,
+            "bottom": 194,
+            "width": 558,
+            "height": 85
+          },
+          "mobileTools": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "inspector": null,
+          "dock": {
+            "left": 1192,
+            "top": 830,
+            "right": 1416,
+            "bottom": 944,
+            "width": 224,
+            "height": 114
+          },
+          "expandedDock": {
+            "left": 1192,
+            "top": 830,
+            "right": 1416,
+            "bottom": 892,
+            "width": 224,
+            "height": 62
+          }
+        },
+        "overlaps": {
+          "dockOverlapsDesktopTools": false,
+          "expandedDockOverlapsDesktopTools": false,
+          "dockOverlapsMobileTools": false,
+          "expandedDockOverlapsMobileTools": false,
+          "dockOverlapsInspector": false,
+          "expandedDockOverlapsInspector": false
+        }
+      }
+    },
+    {
+      "name": "desktop-stress-expanded-tool-inspector-konling-dark",
+      "route": "/knowledge",
+      "url": "http://localhost:3002/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077&qa=knowledge-product",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "navigationState": "expanded",
+      "dockState": "expanded",
+      "localToolState": "relation-filters",
+      "selectedNode": "z反变换_7_7959c077",
+      "interactionState": "expanded shell local tool inspector konling stress state",
+      "result": "passed",
+      "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-stress-expanded-tool-inspector-konling-dark.png",
+      "screenshotSha256": "b1ddd11a4a0c72fa9fdf9407106ac0865112832909f6caeb6282a1495fb61232",
+      "markers": {
+        "htmlClass": "dark",
+        "workspace": "canvas-first",
+        "konlingContextStatus": "selected-node",
+        "appShellNavigationState": "expanded",
+        "appShellPreference": "expanded",
+        "canvas": {
+          "selectedNodeId": "z反变换_7_7959c077",
+          "visibleNodeCount": "590",
+          "visibleLinkCount": "1285",
+          "layoutVersion": "0",
+          "pinnedNodeCount": "0"
+        },
+        "desktopToolState": "open",
+        "desktopActiveTool": "relation-filters",
+        "mobileToolState": "closed",
+        "mobileActiveTool": "chapter-directory",
+        "inspectorMode": "stable-rail",
+        "inspectorSections": [
+          "header",
+          "semantic-metadata",
+          "summary",
+          "relation-overview",
+          "evidence-sources",
+          "learning-actions"
+        ],
+        "dockState": "collapsed",
+        "effectiveDockState": "expanded",
+        "expandedDockVisible": true,
+        "rects": {
+          "desktopTools": {
+            "left": 288,
+            "top": 16,
+            "right": 892,
+            "bottom": 101,
+            "width": 604,
+            "height": 85
+          },
+          "mobileTools": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "inspector": {
+            "left": 984,
+            "top": 0,
+            "right": 1416,
+            "bottom": 960,
+            "width": 432,
+            "height": 960
+          },
+          "dock": {
+            "left": 760,
+            "top": 830,
+            "right": 984,
+            "bottom": 944,
+            "width": 224,
+            "height": 114
+          },
+          "expandedDock": {
+            "left": 760,
+            "top": 830,
+            "right": 984,
+            "bottom": 892,
+            "width": 224,
+            "height": 62
+          }
+        },
+        "overlaps": {
+          "dockOverlapsDesktopTools": false,
+          "expandedDockOverlapsDesktopTools": false,
+          "dockOverlapsMobileTools": false,
+          "expandedDockOverlapsMobileTools": false,
+          "dockOverlapsInspector": false,
+          "expandedDockOverlapsInspector": false
+        }
+      }
+    },
+    {
+      "name": "mobile-320-local-tools-dark",
+      "route": "/knowledge",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
+      "theme": "dark",
+      "viewport": {
+        "width": 320,
+        "height": 800
+      },
+      "navigationState": "mobile",
+      "dockState": "collapsed",
+      "localToolState": "view-layout",
+      "selectedNode": null,
+      "interactionState": "mobile local tools sheet",
+      "result": "passed",
+      "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/mobile-320-local-tools-dark.png",
+      "screenshotSha256": "6ae06ddf82288aeb3a8d6471fde98ee788d0f0ffa425ca800c7e4784843b6715",
+      "markers": {
+        "htmlClass": "dark",
+        "workspace": "canvas-first",
+        "konlingContextStatus": "no-selection",
+        "appShellNavigationState": "collapsed",
+        "appShellPreference": "collapsed",
+        "canvas": {
+          "selectedNodeId": "",
+          "visibleNodeCount": "590",
+          "visibleLinkCount": "1285",
+          "layoutVersion": "0",
+          "pinnedNodeCount": "0"
+        },
+        "desktopToolState": "closed",
+        "desktopActiveTool": "closed",
+        "mobileToolState": "open",
+        "mobileActiveTool": "view-layout",
+        "inspectorMode": null,
+        "inspectorSections": [],
+        "dockState": "collapsed",
+        "effectiveDockState": "collapsed",
+        "expandedDockVisible": false,
+        "rects": {
+          "desktopTools": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "mobileTools": {
+            "left": 28,
+            "top": 290,
+            "right": 292,
+            "bottom": 623,
+            "width": 264,
+            "height": 333
+          },
+          "inspector": null,
+          "dock": {
+            "left": 256,
+            "top": 744,
+            "right": 296,
+            "bottom": 784,
+            "width": 40,
+            "height": 40
+          },
+          "expandedDock": null
+        },
+        "overlaps": {
+          "dockOverlapsDesktopTools": false,
+          "expandedDockOverlapsDesktopTools": false,
+          "dockOverlapsMobileTools": false,
+          "expandedDockOverlapsMobileTools": false,
+          "dockOverlapsInspector": false,
+          "expandedDockOverlapsInspector": false
+        }
+      }
+    },
+    {
+      "name": "mobile-320-selected-inspector-dark",
+      "route": "/knowledge",
+      "url": "http://localhost:3002/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077&qa=knowledge-product",
+      "theme": "dark",
+      "viewport": {
+        "width": 320,
+        "height": 800
+      },
+      "navigationState": "mobile",
+      "dockState": "collapsed",
+      "localToolState": "closed",
+      "selectedNode": "z反变换_7_7959c077",
+      "interactionState": "mobile selected inspector sheet",
+      "result": "passed",
+      "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/mobile-320-selected-inspector-dark.png",
+      "screenshotSha256": "2816fb28f78f3307b4c6418644c3ebff508cc50714cdf1aee899d025a5bc726e",
+      "markers": {
+        "htmlClass": "dark",
+        "workspace": "canvas-first",
+        "konlingContextStatus": "selected-node",
+        "appShellNavigationState": "collapsed",
+        "appShellPreference": "collapsed",
+        "canvas": {
+          "selectedNodeId": "z反变换_7_7959c077",
+          "visibleNodeCount": "590",
+          "visibleLinkCount": "1285",
+          "layoutVersion": "0",
+          "pinnedNodeCount": "0"
+        },
+        "desktopToolState": "closed",
+        "desktopActiveTool": "closed",
+        "mobileToolState": "closed",
+        "mobileActiveTool": "chapter-directory",
+        "inspectorMode": "stable-rail",
+        "inspectorSections": [
+          "header",
+          "semantic-metadata",
+          "summary",
+          "relation-overview",
+          "evidence-sources",
+          "learning-actions"
+        ],
+        "dockState": "collapsed",
+        "effectiveDockState": "collapsed",
+        "expandedDockVisible": false,
+        "rects": {
+          "desktopTools": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "mobileTools": {
+            "left": 28,
+            "top": 12,
+            "right": 292,
+            "bottom": 97,
+            "width": 264,
+            "height": 85
+          },
+          "inspector": {
+            "left": 8,
+            "top": 216,
+            "right": 312,
+            "bottom": 792,
+            "width": 304,
+            "height": 576
+          },
+          "dock": {
+            "left": 256,
+            "top": 100,
+            "right": 296,
+            "bottom": 140,
+            "width": 40,
+            "height": 40
+          },
+          "expandedDock": null
+        },
+        "overlaps": {
+          "dockOverlapsDesktopTools": false,
+          "expandedDockOverlapsDesktopTools": false,
+          "dockOverlapsMobileTools": false,
+          "expandedDockOverlapsMobileTools": false,
+          "dockOverlapsInspector": false,
+          "expandedDockOverlapsInspector": false
+        }
+      }
+    },
+    {
+      "name": "mobile-320-konling-expanded-dark",
+      "route": "/knowledge",
+      "url": "http://localhost:3002/knowledge?node=z%E5%8F%8D%E5%8F%98%E6%8D%A2_7_7959c077&qa=knowledge-product",
+      "theme": "dark",
+      "viewport": {
+        "width": 320,
+        "height": 800
+      },
+      "navigationState": "mobile",
+      "dockState": "expanded",
+      "localToolState": "closed",
+      "selectedNode": "z反变换_7_7959c077",
+      "interactionState": "mobile konling expanded",
+      "result": "passed",
+      "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/mobile-320-konling-expanded-dark.png",
+      "screenshotSha256": "f0c5e5ddc6bd3e4bcfc110ecae98c35c914c1ccf178d49ad9df18d38efca5fc8",
+      "markers": {
+        "htmlClass": "dark",
+        "workspace": "canvas-first",
+        "konlingContextStatus": "selected-node",
+        "appShellNavigationState": "collapsed",
+        "appShellPreference": "collapsed",
+        "canvas": {
+          "selectedNodeId": "z反变换_7_7959c077",
+          "visibleNodeCount": "590",
+          "visibleLinkCount": "1285",
+          "layoutVersion": "0",
+          "pinnedNodeCount": "0"
+        },
+        "desktopToolState": "closed",
+        "desktopActiveTool": "closed",
+        "mobileToolState": "closed",
+        "mobileActiveTool": "chapter-directory",
+        "inspectorMode": "stable-rail",
+        "inspectorSections": [
+          "header",
+          "semantic-metadata",
+          "summary",
+          "relation-overview",
+          "evidence-sources",
+          "learning-actions"
+        ],
+        "dockState": "collapsed",
+        "effectiveDockState": "expanded",
+        "expandedDockVisible": true,
+        "rects": {
+          "desktopTools": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "mobileTools": {
+            "left": 28,
+            "top": 12,
+            "right": 292,
+            "bottom": 97,
+            "width": 264,
+            "height": 85
+          },
+          "inspector": {
+            "left": 8,
+            "top": 216,
+            "right": 312,
+            "bottom": 792,
+            "width": 304,
+            "height": 576
+          },
+          "dock": {
+            "left": 72,
+            "top": 100,
+            "right": 296,
+            "bottom": 214,
+            "width": 224,
+            "height": 114
+          },
+          "expandedDock": {
+            "left": 72,
+            "top": 100,
+            "right": 296,
+            "bottom": 162,
+            "width": 224,
+            "height": 62
+          }
+        },
+        "overlaps": {
+          "dockOverlapsDesktopTools": false,
+          "expandedDockOverlapsDesktopTools": false,
+          "dockOverlapsMobileTools": false,
+          "expandedDockOverlapsMobileTools": false,
+          "dockOverlapsInspector": false,
+          "expandedDockOverlapsInspector": false
+        }
+      }
+    },
+    {
+      "name": "light-theme-default",
+      "route": "/knowledge",
+      "url": "http://localhost:3002/knowledge?qa=knowledge-product",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "navigationState": "collapsed",
+      "dockState": "collapsed",
+      "localToolState": "closed",
+      "selectedNode": null,
+      "interactionState": "light theme default graph",
+      "result": "passed",
+      "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/light-theme-default.png",
+      "screenshotSha256": "af6a84d36b776b560ee06d1c33985a8e2f67eb28fd461c5f07d46eb0211d92c7",
+      "markers": {
+        "htmlClass": "light",
+        "workspace": "canvas-first",
+        "konlingContextStatus": "no-selection",
+        "appShellNavigationState": "collapsed",
+        "appShellPreference": "collapsed",
+        "canvas": {
+          "selectedNodeId": "",
+          "visibleNodeCount": "590",
+          "visibleLinkCount": "1285",
+          "layoutVersion": "0",
+          "pinnedNodeCount": "0"
+        },
+        "desktopToolState": "closed",
+        "desktopActiveTool": "closed",
+        "mobileToolState": "closed",
+        "mobileActiveTool": "chapter-directory",
+        "inspectorMode": null,
+        "inspectorSections": [],
+        "dockState": "collapsed",
+        "effectiveDockState": "collapsed",
+        "expandedDockVisible": false,
+        "rects": {
+          "desktopTools": {
+            "left": 112,
+            "top": 109,
+            "right": 670,
+            "bottom": 194,
+            "width": 558,
+            "height": 85
+          },
+          "mobileTools": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "inspector": null,
+          "dock": {
+            "left": 1376,
+            "top": 904,
+            "right": 1416,
+            "bottom": 944,
+            "width": 40,
+            "height": 40
+          },
+          "expandedDock": null
+        },
+        "overlaps": {
+          "dockOverlapsDesktopTools": false,
+          "expandedDockOverlapsDesktopTools": false,
+          "dockOverlapsMobileTools": false,
+          "expandedDockOverlapsMobileTools": false,
+          "dockOverlapsInspector": false,
+          "expandedDockOverlapsInspector": false
+        }
+      }
+    }
+  ],
+  "focusEvidence": [
+    {
+      "target": "desktop-local-tools",
+      "openedFocusManaged": true,
+      "escapeOrCloseReturnsFocus": true,
+      "keyboardReachable": true
+    },
+    {
+      "target": "mobile-local-sheet",
+      "openedFocusManaged": true,
+      "escapeOrCloseReturnsFocus": true,
+      "keyboardReachable": true
+    },
+    {
+      "target": "mobile-inspector",
+      "openedFocusManaged": true,
+      "escapeOrCloseReturnsFocus": true,
+      "keyboardReachable": true
+    },
+    {
+      "target": "konling-expanded",
+      "openedFocusManaged": true,
+      "escapeOrCloseReturnsFocus": true,
+      "keyboardReachable": true
+    }
+  ],
+  "handoffMatrix": {
+    "path": "artifacts/knowledge-workspace-product-qa-489/handoff-implementation-matrix.md",
+    "adopted": [
+      "layered graph organization",
+      "premium dark visual tone",
+      "light-mode clarity"
+    ],
+    "rejected": [
+      "standalone shell duplication",
+      "generated role switchers",
+      "exact mock labels",
+      "exact node positions",
+      "duplicate assistant regions"
+    ],
+    "merged": [
+      "shared AppShell + local graph tools + right-bottom Konling dock"
+    ]
+  },
+  "independentVisualReview": {
+    "path": "artifacts/knowledge-workspace-product-qa-489/visual-review.md",
+    "reviewer": "ui-flow-reviewer",
+    "finalResult": "passed",
+    "blockingFindings": [],
+    "dimensions": {
+      "handoffAlignment": "PASS",
+      "conceptAdoptionRejection": "PASS",
+      "appShellContinuity": "PASS",
+      "localTools": "PASS",
+      "semanticMap": "PASS",
+      "inspectorHierarchy": "PASS",
+      "konlingDock": "PASS",
+      "interactionStability": "PASS",
+      "keyboardFocus": "PASS",
+      "themeParity": "PASS",
+      "mobileBehavior": "PASS",
+      "stressNonOverlap": "PASS"
+    }
+  },
+  "temporaryExceptions": []
+}

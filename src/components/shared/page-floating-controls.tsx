@@ -98,6 +98,8 @@ function PageFloatingControls({
   behavior: PageFloatingDockBehavior;
 }) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const { mounted, theme, toggleTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menu = buildFloatingControlMenu(registrations);
@@ -105,6 +107,9 @@ function PageFloatingControls({
 
   useEffect(() => {
     if (!isMenuOpen) return;
+    window.requestAnimationFrame(() => {
+      panelRef.current?.querySelector<HTMLButtonElement>('button:not([disabled])')?.focus();
+    });
 
     const handleOutsideClick = (event: MouseEvent) => {
       if (!menuRef.current?.contains(event.target as Node)) {
@@ -114,6 +119,9 @@ function PageFloatingControls({
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsMenuOpen(false);
+        window.requestAnimationFrame(() => {
+          triggerRef.current?.focus();
+        });
       }
     };
 
@@ -159,6 +167,7 @@ function PageFloatingControls({
     >
       {isMenuOpen ? (
         <div
+          ref={panelRef}
           className="mb-3 max-h-[min(70vh,28rem)] w-56 overflow-y-auto rounded-2xl border border-border/70 bg-background/95 p-2 text-sm text-foreground shadow-2xl backdrop-blur"
           data-platform-floating-dock-expanded-panel
         >
@@ -184,6 +193,7 @@ function PageFloatingControls({
       ) : null}
 
       <Button
+        ref={triggerRef}
         type="button"
         variant="ghost"
         onClick={() => setIsMenuOpen((prev) => !prev)}

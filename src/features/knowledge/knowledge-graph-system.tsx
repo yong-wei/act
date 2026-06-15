@@ -48,6 +48,7 @@ import {
   removeKnowledgeGraphNodePin,
   storeKnowledgeGraphNodePosition,
 } from './graph/layout-state';
+import { applyRadialLayout } from './graph/layout-engine';
 // import { getAllLessonCards, getAllLessonCardLinks } from './data/lesson-knowledge-cards'; // Removed static import
 
 // 动态导入 3D 图谱组件（客户端专用）
@@ -219,6 +220,8 @@ export function KnowledgeGraphSystem({
   const desktopToolPanelRef = useRef<HTMLDivElement | null>(null);
   const desktopToolTriggerRefs = useRef<Partial<Record<KnowledgeDesktopTool, HTMLButtonElement | null>>>({});
   const previousDesktopToolRef = useRef<KnowledgeDesktopTool | null>(null);
+  const mobileToolPanelRef = useRef<HTMLDivElement | null>(null);
+  const mobileToolToggleRef = useRef<HTMLButtonElement | null>(null);
 
   // 视图模式：默认 2D
   const [viewMode, setViewMode] = useState<'2D' | '3D'>('2D');
@@ -535,9 +538,15 @@ export function KnowledgeGraphSystem({
 
   const displayNodes = graphWithChapterNodes.nodes;
   const displayLinks = graphWithChapterNodes.links;
-  const visibleSelectedNode = selectedNode && displayNodes.some((node) => node.id === selectedNode.id)
-    ? selectedNode
+  const displaySelectedNode = selectedNode
+    ? displayNodes.find((node) => node.id === selectedNode.id) ?? null
     : null;
+  const visibleSelectedNode = useMemo(
+    () => selectedNode && displaySelectedNode
+      ? { ...displaySelectedNode, ...selectedNode }
+      : null,
+    [displaySelectedNode, selectedNode]
+  );
   const visiblePanelOpen = isPanelOpen && Boolean(visibleSelectedNode);
   const pinnedNodeCount = Object.keys(layoutState.positionsByNodeId).length;
   const pinnedLayoutSignature = Object.entries(layoutState.positionsByNodeId)
@@ -547,9 +556,17 @@ export function KnowledgeGraphSystem({
     .sort()
     .join('|');
   const selectedNodePinned = isKnowledgeGraphNodePinned(layoutState, visibleSelectedNode?.id);
+  const selectedNodeFallbackLayoutPosition = useMemo(() => {
+    if (!visibleSelectedNode) return null;
+    const positionedNode = applyRadialLayout(displayNodes, displayLinks, undefined, 180)
+      .find((node) => node.id === visibleSelectedNode.id);
+    return getKnowledgeGraphRuntimeNodePosition(
+      positionedNode as (KnowledgeNodeData & { x?: number; y?: number; z?: number }) | null | undefined
+    );
+  }, [displayLinks, displayNodes, visibleSelectedNode]);
   const selectedNodeRuntimePosition = getKnowledgeGraphRuntimeNodePosition(
     visibleSelectedNode as (KnowledgeNodeData & { x?: number; y?: number; z?: number }) | null
-  );
+  ) ?? selectedNodeFallbackLayoutPosition;
   const selectedNodePinUnavailable = Boolean(visibleSelectedNode && !selectedNodePinned && !selectedNodeRuntimePosition);
   const selectedNodeFocused = Boolean(visibleSelectedNode && graphFilterFocusNodeId === visibleSelectedNode.id);
   const selectedNodeRelationCount = visibleSelectedNode
@@ -651,6 +668,22 @@ export function KnowledgeGraphSystem({
     event.stopPropagation();
     closeDesktopTool();
   }, [closeDesktopTool]);
+
+  useEffect(() => {
+    if (!mobileToolPanelOpen) return;
+    window.requestAnimationFrame(() => {
+      mobileToolPanelRef.current?.focus();
+    });
+  }, [mobileActiveTool, mobileToolPanelOpen]);
+
+  const handleMobileToolPanelKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
+    if (event.key !== 'Escape') return;
+    event.stopPropagation();
+    setMobileToolPanelOpen(false);
+    window.requestAnimationFrame(() => {
+      mobileToolToggleRef.current?.focus();
+    });
+  }, []);
 
   const hoveredBloomLabel = hoveredNode?.bloomLevel ? getBloomLabel(hoveredNode.bloomLevel) : '';
   const hoveredKnowledgeDimLabel = hoveredNode?.knowledgeDim
@@ -988,6 +1021,7 @@ export function KnowledgeGraphSystem({
               {activeFilterSummary}
             </span>
             <button
+              ref={mobileToolToggleRef}
               type="button"
               aria-expanded={mobileToolPanelOpen}
               onClick={() => setMobileToolPanelOpen((open) => !open)}
@@ -1000,6 +1034,9 @@ export function KnowledgeGraphSystem({
 
           {mobileToolPanelOpen && (
             <div
+              ref={mobileToolPanelRef}
+              tabIndex={-1}
+              onKeyDown={handleMobileToolPanelKeyDown}
               className="max-h-[min(28rem,calc(100vh-7rem))] overflow-y-auto rounded-xl border border-platform-border bg-platform-surface/95 p-3 text-xs text-platform-fg-primary shadow-xl backdrop-blur"
               data-knowledge-mobile-tool-panel={mobileActiveTool}
               data-state="open"

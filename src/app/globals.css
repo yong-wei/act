@@ -203,7 +203,7 @@
 
   @media (max-width: 1023px) {
     body:has([data-knowledge-inspector="stable-rail"]) [data-page-floating-controls] {
-      top: 7rem;
+      top: 6.25rem;
       bottom: auto !important;
     }
   }
