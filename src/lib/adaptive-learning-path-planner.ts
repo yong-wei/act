@@ -493,6 +493,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     displayName: '控制系统校正设计',
     allowedResourceMix: [
       'knowledge_card',
+      'quiz',
       'adaptive_quiz',
       'control_workbench',
       'simulation',

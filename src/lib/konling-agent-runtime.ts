@@ -23,8 +23,17 @@ import {
 import { persistSimulationAgentEvidenceMaterialization } from '@/lib/data-governance/simulation-agent-evidence-materialization';
 import {
   CONTROL_CORRECTION_PATH_ROUND_GOAL_ID,
+  persistLearningPathRound,
+  recordPathChoiceEvidence,
   recordPathIntervention,
 } from '@/lib/control-correction-path-rounds';
+import {
+  buildAdaptiveLearningPathPlan,
+  getRegisteredAdaptiveLearningPathGoal,
+  type AdaptiveLearningPathPlan,
+  type AdaptiveLearningPathPlanNode,
+} from '@/lib/adaptive-learning-path-planner';
+import { buildControlCorrectionResourceNodeRegistry } from '@/lib/control-correction-resource-seed';
 import type { PageContext, UserProfile, AbilityVector } from '@/types/ai-context';
 import type { InterventionDecision, StudentState } from '@/features/ai/companion/intervention-engine';
 import { generateIntervention, shouldIntervene } from '@/features/ai/companion/intervention-engine';
@@ -64,6 +73,12 @@ export type KonlingToolName =
   | 'propose_controller_patch'
   | 'apply_controller_patch'
   | 'record_intervention_result'
+  | 'generate_learning_path'
+  | 'revise_learning_path_options'
+  | 'select_learning_path'
+  | 'reject_learning_path_option'
+  | 'explain_learning_path_tradeoff'
+  | 'record_path_adjustment_outcome'
   | 'analyze_attempt';
 
 export type KonlingMemoryType = 'working-summary' | 'session-summary' | 'episodic' | 'intervention-outcome';
@@ -257,7 +272,19 @@ export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAss
     mountingSurfaces: ['student-path-center'],
     requiredContext: ['path-execution-context', 'learner-state-summary', 'evidence-citations'],
     optionalContext: ['diagnosis-view', 'resource-node'],
-    permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
+    permittedTools: [
+      'get_page_context',
+      'get_learner_state',
+      'get_plan_context',
+      'search_knowledge_graph',
+      'recommend_next_action',
+      'generate_learning_path',
+      'revise_learning_path_options',
+      'select_learning_path',
+      'reject_learning_path_option',
+      'explain_learning_path_tradeoff',
+      'record_path_adjustment_outcome',
+    ],
     citationClasses: ['path-execution', 'learner-state', 'content', 'intervention'],
     payload: 'aggregate-and-redacted-only',
     outputStatus: 'advisory-only',
@@ -777,6 +804,9 @@ export interface KonlingRuntimeDb {
   };
   learningPath?: {
     findMany?: (args: any) => Promise<unknown[]>;
+    findFirst?: (args: any) => Promise<any | null>;
+    upsert?: (args: any) => Promise<any>;
+    update?: (args: any) => Promise<any>;
   };
   learningPathIntervention?: {
     findFirst: (args: any) => Promise<any | null>;
@@ -867,6 +897,12 @@ const DEFAULT_TOOLS: KonlingToolName[] = [
   'propose_controller_patch',
   'apply_controller_patch',
   'record_intervention_result',
+  'generate_learning_path',
+  'revise_learning_path_options',
+  'select_learning_path',
+  'reject_learning_path_option',
+  'explain_learning_path_tradeoff',
+  'record_path_adjustment_outcome',
   'analyze_attempt',
 ];
 
@@ -889,6 +925,12 @@ export const KONLING_TOOL_REGISTRY: Record<KonlingToolName, KonlingToolRegistryE
   propose_controller_patch: toolRegistryEntry('propose_controller_patch', 'analyze'),
   apply_controller_patch: toolRegistryEntry('apply_controller_patch', 'write', 'required', 'reuse'),
   record_intervention_result: toolRegistryEntry('record_intervention_result', 'write', 'required', 'reuse'),
+  generate_learning_path: toolRegistryEntry('generate_learning_path', 'write', 'none', 'reuse'),
+  revise_learning_path_options: toolRegistryEntry('revise_learning_path_options', 'write', 'none', 'reuse'),
+  select_learning_path: toolRegistryEntry('select_learning_path', 'write', 'none', 'reuse'),
+  reject_learning_path_option: toolRegistryEntry('reject_learning_path_option', 'write', 'none', 'reuse'),
+  explain_learning_path_tradeoff: toolRegistryEntry('explain_learning_path_tradeoff', 'analyze', 'none', 'reuse'),
+  record_path_adjustment_outcome: toolRegistryEntry('record_path_adjustment_outcome', 'write', 'none', 'reuse'),
   analyze_attempt: toolRegistryEntry('analyze_attempt', 'analyze'),
 };
 
@@ -897,6 +939,21 @@ const KONLING_REQUIRED_IDEMPOTENCY_KEY_PARAMETER = z.string().min(1).max(128);
 const KONLING_IDEMPOTENCY_REQUIRED_TOOLS = new Set<KonlingToolName>([
   'run_virtual_simulation',
   'apply_controller_patch',
+  'generate_learning_path',
+  'revise_learning_path_options',
+  'select_learning_path',
+  'reject_learning_path_option',
+  'explain_learning_path_tradeoff',
+  'record_path_adjustment_outcome',
+]);
+
+const KONLING_ADAPTIVE_PATH_TOOLS = new Set<KonlingToolName>([
+  'generate_learning_path',
+  'revise_learning_path_options',
+  'select_learning_path',
+  'reject_learning_path_option',
+  'explain_learning_path_tradeoff',
+  'record_path_adjustment_outcome',
 ]);
 
 const simulationTaskSpecParameters = z.object({
@@ -957,6 +1014,49 @@ const applyControllerPatchParameters = z.object({
   simulationRunId: z.string().min(1),
   patch: controllerPatchParameters,
   rationale: z.string().min(1).optional(),
+});
+
+const adaptivePathToolBaseParameters = z.object({
+  idempotencyKey: KONLING_REQUIRED_IDEMPOTENCY_KEY_PARAMETER,
+  goalId: z.string().min(1).optional(),
+  pathId: z.string().min(1).optional(),
+  routeIntent: z.string().min(1).optional(),
+  naturalLanguageIntent: z.string().max(500).optional(),
+});
+
+const generateLearningPathParameters = adaptivePathToolBaseParameters.extend({
+  timeBudgetMinutes: z.number().int().min(5).max(240).optional(),
+  difficultyRhythm: z.enum(['gentle', 'steady', 'challenge']).optional(),
+  resourcePreference: z.array(z.string().min(1)).max(8).optional(),
+  checkpointPreference: z.enum(['light', 'standard', 'dense']).optional(),
+  allowExternalResources: z.boolean().optional(),
+});
+
+const reviseLearningPathOptionsParameters = generateLearningPathParameters.extend({
+  priorRequestId: z.string().min(1).optional(),
+  rejectedStyleIds: z.array(z.string().min(1)).max(8).optional(),
+  selectedStyleId: z.string().min(1).optional(),
+});
+
+const selectLearningPathParameters = adaptivePathToolBaseParameters.extend({
+  selectedStyleId: z.string().min(1),
+  helpful: z.boolean().optional(),
+});
+
+const rejectLearningPathOptionParameters = adaptivePathToolBaseParameters.extend({
+  rejectedStyleId: z.string().min(1),
+  reason: z.string().max(240).optional(),
+});
+
+const explainLearningPathTradeoffParameters = adaptivePathToolBaseParameters.extend({
+  styleId: z.string().min(1).optional(),
+  compareWithStyleId: z.string().min(1).optional(),
+});
+
+const recordPathAdjustmentOutcomeParameters = adaptivePathToolBaseParameters.extend({
+  outcome: z.enum(['adopted', 'ignored', 'helpful', 'not-helpful', 'switched']),
+  selectedStyleId: z.string().min(1).optional(),
+  rejectedStyleIds: z.array(z.string().min(1)).max(8).optional(),
 });
 
 export async function verifyKonlingRuntimeScope(
@@ -1194,9 +1294,445 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
       helpful: args.helpful,
       studentResponse: args.studentResponse,
     })),
+    generateLearningPath: async (args: z.infer<typeof generateLearningPathParameters>) =>
+      runKonlingRuntimeTool(input, 'generate_learning_path', args, async () => buildAdaptivePathToolOutput(input, 'generated', args)),
+    reviseLearningPathOptions: async (args: z.infer<typeof reviseLearningPathOptionsParameters>) =>
+      runKonlingRuntimeTool(input, 'revise_learning_path_options', args, async () => buildAdaptivePathToolOutput(input, 'revised', args)),
+    selectLearningPath: async (args: z.infer<typeof selectLearningPathParameters>) =>
+      runKonlingRuntimeTool(input, 'select_learning_path', args, async () => buildAdaptivePathToolOutcome(input, 'selected', args)),
+    rejectLearningPathOption: async (args: z.infer<typeof rejectLearningPathOptionParameters>) =>
+      runKonlingRuntimeTool(input, 'reject_learning_path_option', args, async () => buildAdaptivePathToolOutcome(input, 'rejected', args)),
+    explainLearningPathTradeoff: async (args: z.infer<typeof explainLearningPathTradeoffParameters>) =>
+      runKonlingRuntimeTool(input, 'explain_learning_path_tradeoff', args, async () => buildAdaptivePathTradeoffOutput(input, args)),
+    recordPathAdjustmentOutcome: async (args: z.infer<typeof recordPathAdjustmentOutcomeParameters>) =>
+      runKonlingRuntimeTool(input, 'record_path_adjustment_outcome', args, async () => buildAdaptivePathToolOutcome(input, args.outcome, args)),
     analyzeAttempt: async (args: { studentState: StudentState }) =>
       runKonlingRuntimeTool(input, 'analyze_attempt', args, async () => analyzeKonlingAttempt(args.studentState)),
   };
+}
+
+async function buildAdaptivePathToolOutput(
+  input: KonlingToolRuntimeInput,
+  operation: 'generated' | 'revised',
+  args: z.infer<typeof generateLearningPathParameters> | z.infer<typeof reviseLearningPathOptionsParameters>,
+) {
+  const goalId = resolveScopedAdaptivePathGoalId(input, args.goalId);
+  const registeredGoal = getRegisteredAdaptiveLearningPathGoal(goalId);
+  if (!registeredGoal) {
+    throw new KonlingRuntimeScopeError(404, '当前页面目标没有可生成的学习路径。');
+  }
+  const timeBudget = resolveAdaptivePathTimeBudget(registeredGoal, args.timeBudgetMinutes);
+  const resourcePreferences = normalizeAdaptivePathResourcePreferences(args.resourcePreference)
+    ?? registeredGoal.starterPathPolicy.preferredResourceTypes;
+  const plan = buildAdaptiveLearningPathPlan({
+    studentId: input.scope.targetUserId,
+    goal: registeredGoal.goal,
+    learnerState: (input.context.learnerState as any) ?? buildColdStartAdaptivePathLearnerState(registeredGoal.goal.knowledgeTargets),
+    registry: buildControlCorrectionResourceNodeRegistry(),
+    constraints: {
+      timeBudgetMinutes: timeBudget.effectiveMinutes,
+      privacyScopes: ['student-visible'],
+      completedNodeIds: input.context.planContext?.completedNodeIds ?? [],
+    },
+    difficultyRhythm: args.difficultyRhythm ?? registeredGoal.starterPathPolicy.difficultyRhythm,
+    resourcePreferences,
+    allowExternalResources: args.allowExternalResources ?? registeredGoal.starterPathPolicy.allowExternalResources,
+    now: new Date(),
+  });
+  await persistLearningPathRound(input.db as any, {
+    plan,
+    classId: input.scope.classId ?? null,
+    learnerStateRef: input.context.learnerState ? `adaptive-learner-state:${input.scope.targetUserId}` : null,
+    inputSnapshot: {
+      source: 'konling-tool',
+      operation,
+      toolScope: buildAdaptivePathToolScope(input, goalId, args.pathId),
+      request: redactSensitivePayload({
+        requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
+        effectiveTimeBudgetMinutes: timeBudget.effectiveMinutes,
+        difficultyRhythm: args.difficultyRhythm ?? null,
+        resourcePreference: resourcePreferences,
+        checkpointPreference: args.checkpointPreference ?? null,
+        allowExternalResources: args.allowExternalResources ?? false,
+        intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
+      }),
+    },
+  });
+  if (operation === 'revised') {
+    await recordPathChoiceEvidence(input.db as any, {
+      pathId: args.pathId ?? input.context.planContext?.currentPathId ?? plan.id,
+      userId: input.scope.targetUserId,
+      goalId,
+      action: 'switch',
+      selectedStyleId: 'selectedStyleId' in args ? args.selectedStyleId ?? null : null,
+      rejectedStyleIds: 'rejectedStyleIds' in args ? args.rejectedStyleIds ?? [] : [],
+      resourceMix: buildPathResourceMix(plan.mainPath),
+      rationaleMetadata: {
+        outcome: 'revised',
+        priorRequestId: 'priorRequestId' in args ? args.priorRequestId ?? null : null,
+        checkpointPreference: args.checkpointPreference ?? null,
+        intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
+      },
+      idempotencyKey: `${args.idempotencyKey}:revision`,
+      actorUserId: input.scope.authenticatedUserId,
+      actorRole: input.scope.role,
+    });
+  }
+  return {
+    operation,
+    scope: buildAdaptivePathToolScope(input, goalId, args.pathId),
+    request: {
+      requestedTimeBudgetMinutes: args.timeBudgetMinutes ?? null,
+      effectiveTimeBudgetMinutes: timeBudget.effectiveMinutes,
+      timeBudgetAdjusted: timeBudget.adjusted,
+      difficultyRhythm: args.difficultyRhythm ?? null,
+      resourcePreference: resourcePreferences,
+      checkpointPreference: args.checkpointPreference ?? null,
+      allowExternalResources: args.allowExternalResources ?? false,
+      intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
+    },
+    pathId: plan.id,
+    pathOptions: buildStudentSafePathOptions(plan),
+    comparison: {
+      optionCount: Math.max(1, plan.alternatives.length + 1),
+      message: '已根据你的学习证据生成可比较的路径方案。',
+    },
+    studentSafeRationale: [
+      '路径会依据你的当前目标、学习证据和可用时间生成。',
+      '证据不足时会先给出可开始的基础路径，并提示需要补充的学习记录。',
+      ...(timeBudget.adjusted ? ['当前目标需要包含终端验证，系统已按最小可行学习时长生成路径。'] : []),
+    ],
+  };
+}
+
+function resolveAdaptivePathTimeBudget(
+  registeredGoal: NonNullable<ReturnType<typeof getRegisteredAdaptiveLearningPathGoal>>,
+  requestedMinutes: number | undefined,
+) {
+  const minimumMinutes = registeredGoal.checkpointPolicy.requiresTerminalValidation ? 90 : 45;
+  const effectiveMinutes = Math.max(requestedMinutes ?? minimumMinutes, minimumMinutes);
+  return {
+    effectiveMinutes,
+    adjusted: typeof requestedMinutes === 'number' && requestedMinutes < minimumMinutes,
+  };
+}
+
+function buildColdStartAdaptivePathLearnerState(knowledgeTargets: string[]) {
+  const tags = Object.fromEntries(knowledgeTargets.map((target) => [target, {
+    posteriorMastery: 0.35,
+    confidence: 0.25,
+    evidenceCount: 0,
+  }]));
+  return {
+    knowledgeMastery: {
+      coverage: 'partial',
+      tags,
+    },
+    evidence: {
+      confidence: {
+        level: 'low',
+        score: 0.25,
+        evidenceCount: 0,
+        sourceCompleteness: 0.2,
+      },
+      sourceCoverage: {
+        knowledgeMastery: 'partial',
+      },
+    },
+    resourcePreference: {
+      preferredModalities: [],
+    },
+    risks: {
+      riskLevel: 'low',
+      activeFlags: [],
+    },
+  };
+}
+
+function normalizeAdaptivePathResourcePreferences(value: string[] | undefined): AdaptiveLearningPathPlanNode['type'][] | undefined {
+  if (!value || value.length === 0) return undefined;
+  const allowed = new Set<AdaptiveLearningPathPlanNode['type']>([
+    'lesson_step',
+    'knowledge_node',
+    'knowledge_card',
+    'video',
+    'audio',
+    'handout',
+    'quiz',
+    'adaptive_quiz',
+    'control_workbench',
+    'simulation',
+    'arena_task',
+    'external_resource',
+    'checkpoint',
+    'ai_intervention',
+    'konling',
+    'reflection',
+    'project',
+  ]);
+  return value.filter((item): item is AdaptiveLearningPathPlanNode['type'] =>
+    allowed.has(item as AdaptiveLearningPathPlanNode['type']));
+}
+
+function buildStudentSafePathOptions(plan: AdaptiveLearningPathPlan) {
+  if (plan.policyBundle?.paths.length) {
+    return plan.policyBundle.paths.map((path) => ({
+      styleId: path.styleId,
+      label: path.label,
+      estimatedMinutes: path.effort.estimatedMinutes,
+      effort: path.effort.relative,
+      nodeSummaries: path.nodeSummaries.map((node) => ({
+        nodeId: node.nodeId,
+        title: node.title,
+        resourceType: node.pathNodeType,
+        estimatedTimeMinutes: node.estimatedTimeMinutes,
+        knowledgeCoverage: [],
+      })),
+      targetDeficits: path.targetDeficits.map((target) => target.targetId),
+      evidenceBasis: buildStudentSafeEvidenceBasis(path.evidenceBasis),
+      limitations: path.limitations,
+      terminalValidation: path.terminalValidationStrategy.nodeIds.length > 0
+        ? {
+            required: true,
+            nodeIds: path.terminalValidationStrategy.nodeIds,
+          }
+        : { required: false, nodeIds: [] },
+    }));
+  }
+  const estimatedMinutes = plan.mainPath.reduce((sum, node) => sum + node.estimatedTimeMinutes, 0);
+  return [{
+    styleId: 'recommended',
+    label: '推荐学习路径',
+    estimatedMinutes,
+    nodeSummaries: plan.mainPath.map((node) => ({
+      nodeId: node.nodeId,
+      title: node.title,
+      resourceType: node.type,
+      estimatedTimeMinutes: node.estimatedTimeMinutes,
+      knowledgeCoverage: node.knowledgeCoverage,
+    })),
+    targetDeficits: plan.goal.knowledgeTargets,
+    evidenceBasis: plan.confidence.level === 'low'
+      ? ['当前证据较少，路径会从基础资源开始。']
+      : ['路径已结合你的近期学习证据。'],
+    limitations: plan.status === 'fallback'
+      ? ['当前可用证据或资源不足，建议先完成基础节点。']
+      : [],
+  }];
+}
+
+function buildStudentSafeEvidenceBasis(values: string[]) {
+  const labels = new Set<string>();
+  for (const value of values) {
+    if (/path|execution/i.test(value)) {
+      labels.add('已参考学习路径进度。');
+    } else if (/learner|mastery|evidence|state/i.test(value)) {
+      labels.add('已参考当前学习记录。');
+    } else {
+      labels.add('已参考可用学习资源。');
+    }
+  }
+  return [...labels];
+}
+
+function buildPathResourceMix(nodes: AdaptiveLearningPathPlanNode[]) {
+  return nodes.reduce<Record<string, number>>((mix, node) => {
+    mix[node.type] = (mix[node.type] ?? 0) + 1;
+    return mix;
+  }, {});
+}
+
+async function buildAdaptivePathToolOutcome(
+  input: KonlingToolRuntimeInput,
+  outcome: string,
+  args: z.infer<typeof selectLearningPathParameters> | z.infer<typeof rejectLearningPathOptionParameters> | z.infer<typeof recordPathAdjustmentOutcomeParameters>,
+) {
+  const goalId = resolveScopedAdaptivePathGoalId(input, args.goalId);
+  const pathId = args.pathId ?? input.context.planContext?.currentPathId ?? null;
+  if (!pathId) {
+    throw new KonlingRuntimeScopeError(400, '记录路径反馈需要有效的学习路径。');
+  }
+  const activity = {
+    selectedStyleId: 'selectedStyleId' in args ? args.selectedStyleId ?? null : null,
+    rejectedStyleIds: 'rejectedStyleIds' in args
+      ? args.rejectedStyleIds ?? []
+      : 'rejectedStyleId' in args ? [args.rejectedStyleId] : [],
+    helpful: 'helpful' in args ? args.helpful ?? null : null,
+  };
+  const action = resolveAdaptivePathChoiceAction(outcome, activity.helpful);
+  const evidence = await recordPathChoiceEvidence(input.db as any, {
+    pathId,
+    userId: input.scope.targetUserId,
+    goalId,
+    action,
+    selectedStyleId: activity.selectedStyleId,
+    rejectedStyleIds: activity.rejectedStyleIds,
+    helpful: activity.helpful,
+    rationaleMetadata: {
+      outcome,
+      intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
+      routeIntent: args.routeIntent ?? null,
+    },
+    idempotencyKey: args.idempotencyKey,
+    actorUserId: input.scope.authenticatedUserId,
+    actorRole: input.scope.role,
+  });
+  return {
+    outcome,
+    scope: buildAdaptivePathToolScope(input, goalId, pathId),
+    activity,
+    evidence,
+    studentSafeRationale: '已记录你的路径反馈。选择记录会用于调整路径，不会被当作掌握度证据。',
+  };
+}
+
+function resolveAdaptivePathChoiceAction(outcome: string, helpful: boolean | null) {
+  if (outcome === 'selected' || outcome === 'adopted') return 'selection' as const;
+  if (outcome === 'rejected' || outcome === 'ignored') return 'rejection' as const;
+  if (outcome === 'switched') return 'switch' as const;
+  if (outcome === 'helpful' || outcome === 'not-helpful' || typeof helpful === 'boolean') return 'helpfulness' as const;
+  return 'selection' as const;
+}
+
+function buildAdaptivePathTradeoffOutput(
+  input: KonlingToolRuntimeInput,
+  args: z.infer<typeof explainLearningPathTradeoffParameters>,
+) {
+  const goalId = resolveScopedAdaptivePathGoalId(input, args.goalId);
+  return {
+    operation: 'explained',
+    scope: buildAdaptivePathToolScope(input, goalId, args.pathId),
+    styleId: args.styleId ?? null,
+    compareWithStyleId: args.compareWithStyleId ?? null,
+    studentSafeRationale: [
+      '路径差异主要来自学习时间、资源类型、检查点密度和当前证据覆盖。',
+      '你可以选择更稳妥的路径，也可以选择挑战更高的路径；系统会保留选择和调整记录。',
+    ],
+  };
+}
+
+function resolveScopedAdaptivePathGoalId(input: KonlingToolRuntimeInput, requestedGoalId?: string | null) {
+  const activeGoalId = input.context.planContext?.currentPathId ? CONTROL_CORRECTION_PATH_ROUND_GOAL_ID : CONTROL_CORRECTION_PATH_ROUND_GOAL_ID;
+  if (!requestedGoalId) return activeGoalId;
+  if (requestedGoalId !== activeGoalId) {
+    throw new KonlingRuntimeScopeError(403, 'Konling 路径工具不能扩展到当前页面目标之外。');
+  }
+  return requestedGoalId;
+}
+
+async function assertScopedAdaptivePathToolPath(
+  input: KonlingToolRuntimeInput,
+  requestedPathId: string | null | undefined,
+  options: { requirePath: boolean; requireExisting: boolean },
+) {
+  const currentPathId = input.context.planContext?.currentPathId ?? null;
+  const knownPathIds = new Set([
+    currentPathId,
+    ...(input.context.planContext?.recentPathIds ?? []),
+  ].filter((pathId): pathId is string => typeof pathId === 'string' && pathId.length > 0));
+  if (requestedPathId && (knownPathIds.size === 0 || !knownPathIds.has(requestedPathId))) {
+    throw new KonlingRuntimeScopeError(403, 'Konling 路径工具不能扩展到当前学习路径之外。');
+  }
+  const pathId = requestedPathId ?? currentPathId;
+  if (options.requirePath && !pathId) {
+    throw new KonlingRuntimeScopeError(400, '当前没有可记录的学习路径。');
+  }
+  if (!pathId || !options.requireExisting) return;
+  if (!input.db.learningPath?.findFirst) {
+    throw new KonlingRuntimeScopeError(404, '学习路径存储不可用。');
+  }
+  const path = await input.db.learningPath.findFirst({
+    where: {
+      id: pathId,
+      userId: input.scope.targetUserId,
+      goalId: CONTROL_CORRECTION_PATH_ROUND_GOAL_ID,
+      ...(input.scope.classId ? { classId: input.scope.classId } : {}),
+    },
+    select: { id: true },
+  });
+  if (!path) {
+    throw new KonlingRuntimeScopeError(403, 'Konling 路径工具不能访问不属于当前学生的学习路径。');
+  }
+}
+
+function buildAdaptivePathToolScope(input: KonlingToolRuntimeInput, goalId: string, pathId?: string | null) {
+  return {
+    targetUserId: input.scope.targetUserId,
+    actorUserId: input.scope.authenticatedUserId,
+    role: input.scope.role,
+    classId: input.scope.classId ?? null,
+    courseId: input.scope.courseId,
+    pageId: input.scope.pageId,
+    resourceId: input.scope.resourceId ?? null,
+    pathNodeId: input.scope.pathNodeId ?? null,
+    pathId: pathId ?? input.context.planContext?.currentPathId ?? null,
+    goalId,
+    privacyScopes: input.scope.privacyScopes.filter((scope) => scope === 'student-visible' || scope === 'teacher-scoped'),
+  };
+}
+
+function summarizeStudentIntent(intent?: string | null) {
+  const value = typeof intent === 'string' ? intent.trim() : '';
+  if (!value) return null;
+  return 'student-provided-natural-language-path-intent';
+}
+
+function isKonlingAdaptivePathTool(toolName: KonlingToolName) {
+  return KONLING_ADAPTIVE_PATH_TOOLS.has(toolName);
+}
+
+function buildKonlingToolInputSummary(toolName: KonlingToolName, input: unknown) {
+  if (!isKonlingAdaptivePathTool(toolName)) {
+    return redactSensitivePayload(input ?? {});
+  }
+  const record = readRecord(input);
+  const base = {
+    idempotencyKey: getString(record, 'idempotencyKey') || null,
+    goalId: getString(record, 'goalId') || null,
+    pathId: getString(record, 'pathId') || null,
+    routeIntentProvided: Boolean(getString(record, 'routeIntent')),
+    naturalLanguageIntent: summarizeStudentIntent(getString(record, 'naturalLanguageIntent')),
+  };
+  if (toolName === 'generate_learning_path' || toolName === 'revise_learning_path_options') {
+    return redactSensitivePayload({
+      ...base,
+      timeBudgetMinutes: getNumber(record, 'timeBudgetMinutes') || null,
+      difficultyRhythm: getString(record, 'difficultyRhythm') || null,
+      resourcePreference: arrayOfStrings(record.resourcePreference),
+      checkpointPreference: getString(record, 'checkpointPreference') || null,
+      allowExternalResources: typeof record.allowExternalResources === 'boolean' ? record.allowExternalResources : null,
+      priorRequestId: getString(record, 'priorRequestId') || null,
+      rejectedStyleIds: arrayOfStrings(record.rejectedStyleIds),
+      selectedStyleId: getString(record, 'selectedStyleId') || null,
+    });
+  }
+  if (toolName === 'reject_learning_path_option') {
+    return redactSensitivePayload({
+      ...base,
+      rejectedStyleId: getString(record, 'rejectedStyleId') || null,
+      reasonSummary: getString(record, 'reason') ? 'student-provided-path-option-rejection-reason' : null,
+    });
+  }
+  if (toolName === 'select_learning_path') {
+    return redactSensitivePayload({
+      ...base,
+      selectedStyleId: getString(record, 'selectedStyleId') || null,
+      helpful: typeof record.helpful === 'boolean' ? record.helpful : null,
+    });
+  }
+  if (toolName === 'record_path_adjustment_outcome') {
+    return redactSensitivePayload({
+      ...base,
+      outcome: getString(record, 'outcome') || null,
+      selectedStyleId: getString(record, 'selectedStyleId') || null,
+      rejectedStyleIds: arrayOfStrings(record.rejectedStyleIds),
+    });
+  }
+  return redactSensitivePayload({
+    ...base,
+    styleId: getString(record, 'styleId') || null,
+    compareWithStyleId: getString(record, 'compareWithStyleId') || null,
+  });
 }
 
 export async function createKonlingAgentSession(
@@ -1356,7 +1892,7 @@ export async function startKonlingToolRun(
         permissionTier: registryEntry.permissionTier,
         approvalState,
         status,
-        inputSummary: redactSensitivePayload(input.input ?? {}),
+        inputSummary: buildKonlingToolInputSummary(input.toolName, input.input),
         outputSummary: null,
         errorSummary: null,
         idempotencyKey: input.idempotencyKey ?? null,
@@ -1439,6 +1975,9 @@ async function runKonlingRuntimeTool<T>(
 ) {
   const agentSessionId = runtimeInput.agentSessionId;
   if (!agentSessionId) {
+    if (isKonlingAdaptivePathTool(toolName)) {
+      throw new KonlingRuntimeScopeError(403, '自适应路径工具必须通过 AgentSession 执行。');
+    }
     return assertToolResult(runtimeInput.scope, toolName, await effect());
   }
 
@@ -1521,6 +2060,42 @@ async function validateKonlingToolPreflight(
   toolInput: unknown,
 ) {
   requireIdempotencyKeyForTool(toolName, toolInput);
+  if (toolName === 'generate_learning_path') {
+    const parsed = generateLearningPathParameters.parse(toolInput);
+    resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
+    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { requirePath: false, requireExisting: false });
+    return;
+  }
+  if (toolName === 'revise_learning_path_options') {
+    const parsed = reviseLearningPathOptionsParameters.parse(toolInput);
+    resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
+    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { requirePath: true, requireExisting: true });
+    return;
+  }
+  if (toolName === 'select_learning_path') {
+    const parsed = selectLearningPathParameters.parse(toolInput);
+    resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
+    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { requirePath: true, requireExisting: true });
+    return;
+  }
+  if (toolName === 'reject_learning_path_option') {
+    const parsed = rejectLearningPathOptionParameters.parse(toolInput);
+    resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
+    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { requirePath: true, requireExisting: true });
+    return;
+  }
+  if (toolName === 'explain_learning_path_tradeoff') {
+    const parsed = explainLearningPathTradeoffParameters.parse(toolInput);
+    resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
+    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { requirePath: false, requireExisting: Boolean(parsed.pathId) });
+    return;
+  }
+  if (toolName === 'record_path_adjustment_outcome') {
+    const parsed = recordPathAdjustmentOutcomeParameters.parse(toolInput);
+    resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
+    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { requirePath: true, requireExisting: true });
+    return;
+  }
   if (toolName === 'set_simulation_params') {
     assertSimulationScope(runtimeInput.scope, Boolean(runtimeInput.scopedSimulationState));
     buildSimulationParamChangeRequest(readRecord(toolInput) as SimulationParamChangeInput);
@@ -2556,6 +3131,36 @@ export function buildScopedKonlingAiTools(runtime: ReturnType<typeof buildKonlin
       }),
       execute: (args) => runtime.recordInterventionResult(args),
     }),
+    generate_learning_path: tool({
+      description: '基于服务端学习者状态和当前页面目标生成受治理的自适应学习路径方案。',
+      inputSchema: generateLearningPathParameters,
+      execute: (args) => runtime.generateLearningPath(args),
+    }),
+    revise_learning_path_options: tool({
+      description: '在不扩大用户、班级、课程、目标或隐私范围的前提下调整学习路径方案。',
+      inputSchema: reviseLearningPathOptionsParameters,
+      execute: (args) => runtime.reviseLearningPathOptions(args),
+    }),
+    select_learning_path: tool({
+      description: '记录学生选择某个学习路径方案的结果，选择记录不作为掌握度证据。',
+      inputSchema: selectLearningPathParameters,
+      execute: (args) => runtime.selectLearningPath(args),
+    }),
+    reject_learning_path_option: tool({
+      description: '记录学生拒绝某个学习路径方案及学生可见原因。',
+      inputSchema: rejectLearningPathOptionParameters,
+      execute: (args) => runtime.rejectLearningPathOption(args),
+    }),
+    explain_learning_path_tradeoff: tool({
+      description: '用学生可理解的语言解释路径方案之间的时间、资源和检查点取舍。',
+      inputSchema: explainLearningPathTradeoffParameters,
+      execute: (args) => runtime.explainLearningPathTradeoff(args),
+    }),
+    record_path_adjustment_outcome: tool({
+      description: '记录路径调整、采纳、忽略或有用性反馈，保留审计链但不写入掌握度。',
+      inputSchema: recordPathAdjustmentOutcomeParameters,
+      execute: (args) => runtime.recordPathAdjustmentOutcome(args),
+    }),
     analyze_attempt: tool({
       description: '分析最近尝试并判断是否需要纠偏或补救干预。',
       inputSchema: z.object({
@@ -3038,7 +3643,6 @@ function buildToolRunScopeWhere(scope: KonlingRuntimeScope, toolRunId: string) {
 
 function buildAgentToolRunIdempotencyWhere(input: KonlingToolRunStartInput) {
   return {
-    agentSessionId: input.agentSessionId,
     ownerUserId: input.scope.targetUserId,
     toolName: input.toolName,
     idempotencyKey: input.idempotencyKey,
