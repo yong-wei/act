@@ -291,6 +291,38 @@ describe('adaptive learning path planner', () => {
     expect(sprint.policyMetadata.constraints).toContain('time-budget-first');
   });
 
+  it('applies requested resource, difficulty, and checkpoint preferences to path scoring', () => {
+    const preferredSimulation = buildAdaptiveLearningPathPlan(plannerInput({
+      resourcePreferences: ['simulation', 'arena_task'],
+      difficultyRhythm: 'challenge',
+    }));
+    const denseCheckpoint = buildAdaptiveLearningPathPlan({
+      studentId: 'student-1',
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
+      learnerState: null,
+      registry: buildControlCorrectionResourceNodeRegistry(),
+      constraints: {
+        timeBudgetMinutes: 120,
+        privacyScopes: ['student-visible'],
+        completedNodeIds: [],
+      },
+      checkpointPreference: 'dense',
+      now: new Date('2026-05-27T08:00:00.000Z'),
+    });
+
+    expect(preferredSimulation.explanations.selectedReasons).toContain('matches-resource-preference');
+    expect(preferredSimulation.explanations.selectedReasons).toContain('matches-challenge-rhythm');
+    expect(preferredSimulation.mainPath.some((node) =>
+      (node.type === 'simulation' || node.type === 'arena_task') &&
+      node.reasonCodes.includes('matches-resource-preference')
+    )).toBe(true);
+    expect(denseCheckpoint.explanations.selectedReasons).toContain('matches-dense-checkpoint-preference');
+    expect(denseCheckpoint.mainPath.some((node) =>
+      node.terminalConstraints.includes('terminal-validation') &&
+      node.reasonCodes.includes('matches-dense-checkpoint-preference')
+    )).toBe(true);
+  });
+
   it('prioritizes teacher-assigned resources only when teacher policy allows them', () => {
     const input = plannerInput({
       constraints: {

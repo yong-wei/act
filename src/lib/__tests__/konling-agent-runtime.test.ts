@@ -4499,10 +4499,10 @@ describe('konling agent runtime', () => {
     });
     await expect(runtime.recordPathAdjustmentOutcome({
       idempotencyKey: 'outcome-path-1',
-      outcome: 'ignored',
+      outcome: 'not-helpful',
       rejectedStyleIds: ['preference-matched-route'],
     })).resolves.toMatchObject({
-      outcome: 'ignored',
+      outcome: 'not-helpful',
       evidence: {
         emitted: true,
         dedupeKey: 'control-correction-path:choice:path-1:outcome-path-1',
@@ -4548,12 +4548,25 @@ describe('konling agent runtime', () => {
           selectionHistory: [
             expect.objectContaining({
               id: 'control-correction-path:choice:path-1:outcome-path-1',
-              type: 'rejection',
+              type: 'helpfulness',
+              helpful: false,
               rejectedStyleIds: ['preference-matched-route'],
             }),
           ],
         }),
       }),
+    }));
+    expect(db.evidenceOutbox.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.arrayContaining([
+        expect.objectContaining({
+          dedupeKey: 'control-correction-path:choice:path-1:outcome-path-1',
+          payload: expect.objectContaining({
+            preferenceEvidence: expect.objectContaining({
+              helpful: false,
+            }),
+          }),
+        }),
+      ]),
     }));
     expect(JSON.stringify(db.evidenceOutbox.createMany.mock.calls)).not.toContain('我想先做仿真');
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我想先做仿真');

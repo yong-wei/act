@@ -1333,6 +1333,7 @@ async function buildAdaptivePathToolOutput(
     },
     difficultyRhythm: args.difficultyRhythm ?? registeredGoal.starterPathPolicy.difficultyRhythm,
     resourcePreferences,
+    checkpointPreference: args.checkpointPreference ?? 'standard',
     allowExternalResources: args.allowExternalResources ?? registeredGoal.starterPathPolicy.allowExternalResources,
     now: new Date(),
   });
@@ -1554,7 +1555,7 @@ async function buildAdaptivePathToolOutcome(
     rejectedStyleIds: 'rejectedStyleIds' in args
       ? args.rejectedStyleIds ?? []
       : 'rejectedStyleId' in args ? [args.rejectedStyleId] : [],
-    helpful: 'helpful' in args ? args.helpful ?? null : null,
+    helpful: 'helpful' in args ? args.helpful ?? null : helpfulFromPathAdjustmentOutcome(outcome),
   };
   const action = resolveAdaptivePathChoiceAction(outcome, activity.helpful);
   const evidence = await recordPathChoiceEvidence(input.db as any, {
@@ -1581,6 +1582,12 @@ async function buildAdaptivePathToolOutcome(
     evidence,
     studentSafeRationale: '已记录你的路径反馈。选择记录会用于调整路径，不会被当作掌握度证据。',
   };
+}
+
+function helpfulFromPathAdjustmentOutcome(outcome: string) {
+  if (outcome === 'helpful') return true;
+  if (outcome === 'not-helpful') return false;
+  return null;
 }
 
 function resolveAdaptivePathChoiceAction(outcome: string, helpful: boolean | null) {
