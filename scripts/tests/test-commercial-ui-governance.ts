@@ -1481,6 +1481,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const resourcePanelSourcePath = 'src/features/knowledge/resource-panel/resource-panel.tsx';
   const globalAiButtonSourcePath = 'src/components/ai/global-ai-button.tsx';
   const globalAiSidebarSourcePath = 'src/components/ai/global-ai-sidebar.tsx';
+  const globalAiProviderSourcePath = 'src/components/providers/global-ai-provider.tsx';
   const appShellSourcePath = 'src/components/platform/app-shell.tsx';
   const floatingControlsSourcePath = 'src/components/shared/page-floating-controls.tsx';
   const globalsSourcePath = 'src/app/globals.css';
@@ -1494,6 +1495,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     resourcePanelSourcePath,
     globalAiButtonSourcePath,
     globalAiSidebarSourcePath,
+    globalAiProviderSourcePath,
     appShellSourcePath,
     floatingControlsSourcePath,
     globalsSourcePath,

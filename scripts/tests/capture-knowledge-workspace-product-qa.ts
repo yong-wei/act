@@ -16,6 +16,7 @@ const sourceFiles = [
   'src/features/knowledge/resource-panel/resource-panel.tsx',
   'src/components/ai/global-ai-button.tsx',
   'src/components/ai/global-ai-sidebar.tsx',
+  'src/components/providers/global-ai-provider.tsx',
   'src/components/platform/app-shell.tsx',
   'src/components/shared/page-floating-controls.tsx',
   'src/app/globals.css',

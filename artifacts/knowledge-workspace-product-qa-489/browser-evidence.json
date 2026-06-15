@@ -38,12 +38,13 @@
     "src/features/knowledge/resource-panel/resource-panel.tsx": "4c08e93de251a008117c62d60c9182bd302ff96dd659cf475f4c5dd0b4278ebd",
     "src/components/ai/global-ai-button.tsx": "0cde032f4f0a1e6eb5cdfb4a195fb2ce3e4a0cf1d22e4e04a2a81f239d518e2b",
     "src/components/ai/global-ai-sidebar.tsx": "a05fb1275e5f8357c9e8c08a0244d6a741ebd83ba4b718204cc01ddce245fbd3",
+    "src/components/providers/global-ai-provider.tsx": "5b7703d37cc6be9fbae080cec062d12c27ccd0381976045031b0400095fa42e8",
     "src/components/platform/app-shell.tsx": "1abea3e563227ff8164bec4f7b785946efcc90646832de9fe4921a4ba18da935",
     "src/components/shared/page-floating-controls.tsx": "80259a5ee995e3818c188a3c4923f32ded8b07e42953b6617bd296bdf91e7422",
     "src/app/globals.css": "3fd64a92a3700febcb5b7cac0350f092dc38fb7f75a12d959288d52979552b30",
     "src/lib/konling-agent-runtime.ts": "8e1be9c1416d72df8d0c0837492256fd6f6b391856708e389ba0ab93b95f1a65",
-    "scripts/tests/capture-knowledge-workspace-product-qa.ts": "2e49539d11daa0ca9b424c72ff40996a24e48a9892e5b8a0bfb9f5376d13fbd3",
-    "scripts/tests/test-commercial-ui-governance.ts": "f09074384223be3bfc98aac4852b01247165b80829e792d5be3b79f5cad455e0"
+    "scripts/tests/capture-knowledge-workspace-product-qa.ts": "c3838eb2b09c6977cff6b285d89d535031ac9f5116719a1131820fc73e670904",
+    "scripts/tests/test-commercial-ui-governance.ts": "3c58b5dee4de5a0633da8de31b9ec29932aef112f0e67d3b3702e2a1684f67da"
   },
   "stateMatrix": [
     {
@@ -1444,12 +1445,13 @@
       "src/features/knowledge/resource-panel/resource-panel.tsx": "4c08e93de251a008117c62d60c9182bd302ff96dd659cf475f4c5dd0b4278ebd",
       "src/components/ai/global-ai-button.tsx": "0cde032f4f0a1e6eb5cdfb4a195fb2ce3e4a0cf1d22e4e04a2a81f239d518e2b",
       "src/components/ai/global-ai-sidebar.tsx": "a05fb1275e5f8357c9e8c08a0244d6a741ebd83ba4b718204cc01ddce245fbd3",
+      "src/components/providers/global-ai-provider.tsx": "5b7703d37cc6be9fbae080cec062d12c27ccd0381976045031b0400095fa42e8",
       "src/components/platform/app-shell.tsx": "1abea3e563227ff8164bec4f7b785946efcc90646832de9fe4921a4ba18da935",
       "src/components/shared/page-floating-controls.tsx": "80259a5ee995e3818c188a3c4923f32ded8b07e42953b6617bd296bdf91e7422",
       "src/app/globals.css": "3fd64a92a3700febcb5b7cac0350f092dc38fb7f75a12d959288d52979552b30",
       "src/lib/konling-agent-runtime.ts": "8e1be9c1416d72df8d0c0837492256fd6f6b391856708e389ba0ab93b95f1a65",
-      "scripts/tests/capture-knowledge-workspace-product-qa.ts": "2e49539d11daa0ca9b424c72ff40996a24e48a9892e5b8a0bfb9f5376d13fbd3",
-      "scripts/tests/test-commercial-ui-governance.ts": "f09074384223be3bfc98aac4852b01247165b80829e792d5be3b79f5cad455e0"
+      "scripts/tests/capture-knowledge-workspace-product-qa.ts": "c3838eb2b09c6977cff6b285d89d535031ac9f5116719a1131820fc73e670904",
+      "scripts/tests/test-commercial-ui-governance.ts": "3c58b5dee4de5a0633da8de31b9ec29932aef112f0e67d3b3702e2a1684f67da"
     },
     "notes": [
       "Re-reviewed after merging origin/integration and recapturing /knowledge QA evidence.",

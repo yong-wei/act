@@ -2725,12 +2725,14 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('const productQaSourcePaths = [');
     expect(scriptSource).toContain('globalAiButtonSourcePath');
     expect(scriptSource).toContain('globalAiSidebarSourcePath');
+    expect(scriptSource).toContain('globalAiProviderSourcePath');
     expect(scriptSource).toContain('graph2dSourcePath');
     expect(scriptSource).toContain('floatingControlsSourcePath');
     expect(scriptSource).toContain('captureScriptSourcePath');
     expect(scriptSource).toContain('governanceScriptSourcePath');
     expect(captureScriptSource).toContain("'scripts/tests/capture-knowledge-workspace-product-qa.ts'");
     expect(captureScriptSource).toContain("'scripts/tests/test-commercial-ui-governance.ts'");
+    expect(captureScriptSource).toContain("'src/components/providers/global-ai-provider.tsx'");
     expect(scriptSource).toContain("['desktop-local-tools-directory-dark', 'dark', 1440, 'collapsed', 'collapsed']");
     expect(scriptSource).toContain("markers.konlingAssistantSurface === 'global-sidebar'");
     expect(captureScriptSource).toContain('openedFocusManaged');
