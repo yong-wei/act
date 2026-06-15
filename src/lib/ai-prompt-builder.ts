@@ -18,6 +18,30 @@ interface KonlingPromptRuntimeContext {
     memoryType: string;
     summary: string;
   }>;
+  knowledgeWorkspace?: {
+    source?: string;
+    route?: string;
+    status?: string;
+    selected_node?: {
+      id?: string;
+      name?: string;
+      node_type?: string;
+      chapter?: string | null;
+      knowledge_dim?: string | null;
+      description?: string;
+      tags?: string[];
+    } | null;
+    relation_summary?: {
+      density_mode?: string | null;
+      view_mode?: string | null;
+      active_filters?: string[];
+      visible_relation_count?: number;
+      selected_node_relation_count?: number;
+    };
+    available_learning_actions?: string[];
+    hover_policy?: string;
+    missing_context?: string[];
+  } | null;
   citationContext?: {
     required?: boolean;
     contentCitations?: Array<{
@@ -110,6 +134,30 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
     runtime.memory.slice(0, 3).forEach((memory, index) => {
       lines.push(`  ${index + 1}. [${memory.memoryType}] ${memory.summary}`);
     });
+  }
+  if (runtime.knowledgeWorkspace) {
+    const workspace = runtime.knowledgeWorkspace;
+    lines.push('- 知识工作区上下文:');
+    lines.push(`  - 状态: ${workspace.status ?? 'unknown'}`);
+    lines.push(`  - 悬浮策略: ${workspace.hover_policy ?? 'preview-only-not-durable-context'}`);
+    if (workspace.selected_node) {
+      lines.push(`  - 当前选中节点: ${workspace.selected_node.name ?? workspace.selected_node.id ?? '未命名'} (${workspace.selected_node.id ?? 'unknown'})`);
+      if (workspace.selected_node.chapter || workspace.selected_node.knowledge_dim) {
+        lines.push(`  - 节点语义: ${[workspace.selected_node.chapter, workspace.selected_node.knowledge_dim].filter(Boolean).join(' / ')}`);
+      }
+      if (workspace.selected_node.description) {
+        lines.push(`  - 节点说明: ${workspace.selected_node.description}`);
+      }
+    }
+    if (workspace.relation_summary) {
+      lines.push(`  - 图谱视图: ${workspace.relation_summary.view_mode ?? 'unknown'} / ${workspace.relation_summary.density_mode ?? 'unknown'}；关系 ${workspace.relation_summary.selected_node_relation_count ?? 0}/${workspace.relation_summary.visible_relation_count ?? 0}`);
+      if (workspace.relation_summary.active_filters?.length) {
+        lines.push(`  - 当前筛选: ${workspace.relation_summary.active_filters.join('；')}`);
+      }
+    }
+    if (workspace.available_learning_actions?.length) {
+      lines.push(`  - 可用学习动作: ${workspace.available_learning_actions.join(', ')}`);
+    }
   }
   if (runtime.citationContext?.required) {
     lines.push('- 引用协议: 概念解释、个性化建议、仿真/Arena 失败分析、路径纠偏和报告解释必须至少使用 1 个内容引用；有学习者、路径、仿真、Arena 或干预证据时还必须使用 1 个证据引用。');

@@ -247,6 +247,10 @@ describe('knowledge graph interaction state stability', () => {
       path.join(process.cwd(), 'src/features/knowledge/graph/knowledge-graph-canvas.tsx'),
       'utf8'
     );
+    const globalStylesSource = readFileSync(
+      path.join(process.cwd(), 'src/app/globals.css'),
+      'utf8'
+    );
 
     expect(systemSource).toContain('const [explicitFocusNodeId, setExplicitFocusNodeId] = useState<string | null>(null);');
     expect(systemSource).toContain('hoverAnimationFrameRef');
@@ -261,6 +265,19 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).toContain('data-knowledge-pinned-node-count={pinnedNodeCount}');
     expect(systemSource).toContain('data-knowledge-pinned-layout-signature={pinnedLayoutSignature}');
     expect(systemSource).toContain("data-knowledge-selected-node-id={visibleSelectedNode?.id ?? ''}");
+    expect(systemSource).toContain('data-knowledge-konling-context-source="server-owned"');
+    expect(systemSource).toContain("data-knowledge-konling-context-status={visibleSelectedNode ? 'selected-node' : 'no-selection'}");
+    expect(systemSource).toContain('updatePageContext({');
+    expect(systemSource).toContain('knowledgeWorkspaceHint: {');
+    expect(systemSource).toContain("selectedNodeId: visibleSelectedNode?.id ?? null");
+    expect(systemSource).toContain("searchQuery.trim() ? '搜索词已启用' : ''");
+    expect(systemSource).toContain('activeFilters: [knowledgeWorkspaceFilterSummary]');
+    expect(systemSource).not.toContain('activeFilters: [activeFilterSummary]');
+    expect(systemSource).toContain('selectedNodeRelationCount,');
+    expect(systemSource).toContain('data-knowledge-hover-context-policy="preview-only-not-durable-context"');
+    expect(systemSource).toContain('data-knowledge-shared-dock-collision-policy="avoid-local-tools-and-inspector"');
+    expect(globalStylesSource).toContain('body:has([data-knowledge-inspector="stable-rail"]) [data-page-floating-controls]');
+    expect(globalStylesSource).toContain('right: calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem)) !important;');
     expect(systemSource).toContain('data-knowledge-layout-control="relayout"');
     expect(systemSource).toContain('data-knowledge-layout-control="clear-pins"');
     expect(systemSource).toContain("data-knowledge-layout-control={selectedNodeFocused ? 'clear-focus-node' : 'set-focus-node'}");
@@ -330,6 +347,42 @@ describe('knowledge graph interaction state stability', () => {
     expect(systemSource).not.toContain('desktopRelationFiltersOpen');
     expect(systemSource).not.toContain('data-knowledge-local-panel="view-mode-switch"');
     expect(systemSource).not.toContain('data-knowledge-local-panel="layout-controls"');
+  });
+
+  it('registers the knowledge route with the shared AI floating dock inventory', () => {
+    const navigationSource = readFileSync(
+      path.join(process.cwd(), 'src/lib/platform-role-navigation.ts'),
+      'utf8'
+    );
+
+    expect(navigationSource).toContain("href: '/knowledge'");
+    expect(navigationSource).toContain("floatingDock: 'collapsed'");
+    expect(navigationSource).toContain("component: 'GlobalAIFloatingButton'");
+    expect(navigationSource).toContain("disposition: 'registered-shared-dock'");
+    expect(navigationSource).toContain('Konling knowledge workspace entry registers through PageFloatingControlsProvider');
+  });
+
+  it('passes knowledge workspace hints through the real Konling chat routes', () => {
+    const globalSidebarSource = readFileSync(
+      path.join(process.cwd(), 'src/components/ai/global-ai-sidebar.tsx'),
+      'utf8'
+    );
+    const chatRouteSource = readFileSync(
+      path.join(process.cwd(), 'src/app/api/ai/chat/route.ts'),
+      'utf8'
+    );
+    const sessionMessagesRouteSource = readFileSync(
+      path.join(process.cwd(), 'src/app/api/ai/sessions/[id]/messages/route.ts'),
+      'utf8'
+    );
+
+    expect(globalSidebarSource).toContain('knowledgeWorkspaceHint: knowledgeWorkspaceHint ?? assistantEntryPoint?.serverContext');
+    expect(chatRouteSource).toContain('knowledgeWorkspaceHint,');
+    expect(chatRouteSource).toContain('normalizeKonlingKnowledgeWorkspaceHint');
+    expect(chatRouteSource).toContain('knowledgeWorkspaceHint ?? modeClientContextHints');
+    expect(sessionMessagesRouteSource).toContain('knowledgeWorkspaceHint');
+    expect(sessionMessagesRouteSource).toContain('normalizeKonlingKnowledgeWorkspaceHint');
+    expect(sessionMessagesRouteSource).toContain('knowledgeWorkspaceHint ?? modeClientContextHints');
   });
 
   it('renders selected knowledge nodes through a stable inspector hierarchy', () => {
