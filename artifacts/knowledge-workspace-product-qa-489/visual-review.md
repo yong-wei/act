@@ -4,7 +4,9 @@
 
 PASS.
 
-本轮复核由 `ui-flow-reviewer:019ecb62-ef76-7af0-903f-8a1f2e4adc52` 基于合并最新 `origin/integration` 后重新捕获的 15 张截图与 `browser-evidence.json` 完成。审查结果通过 `independentVisualReview.reviewedStateSha256` 与 `independentVisualReview.reviewedSourceSha256` 绑定当前截图和源码哈希；后续截图、生产源码、采集脚本或治理脚本变化都不能复用本次 PASS。
+本轮复核由 `ui-flow-reviewer:019ecb90-a0e7-7600-acbd-37b092c16800` 基于 `2026-06-15T13:53:36.290Z` 重新捕获的 15 张截图与 `browser-evidence.json` 完成。审查结果通过 `independentVisualReview.reviewedStateSha256` 与 `independentVisualReview.reviewedSourceSha256` 绑定当前截图和源码哈希；后续截图、生产源码、采集脚本或治理脚本变化都不能复用本次 PASS。
+
+This pass includes the review-thread fix that adds `src/components/providers/global-ai-provider.tsx` to the product QA source hash contract. The current source hash set now covers `GlobalAIProvider`, which owns `knowledgeWorkspaceHint`, assistant button visibility, and sidebar open/close behavior.
 
 This pass was refreshed after the Konling runtime fix that keeps degraded requested-node contexts unresolved instead of upgrading `requestedNodeId` to a selected node. The refreshed `desktop-konling-degraded-dark.png` evidence still shows the unresolved request state rather than selected-node context.
 
