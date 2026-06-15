@@ -34,6 +34,10 @@ import {
   hydrateInteractiveLearningProductQaEvidence,
   interactiveLearningReviewHasNoUnresolvedBlocks,
 } from '../../../scripts/tests/test-commercial-ui-governance';
+import {
+  resolveSimulationSceneThemeMode,
+  SIMULATION_SCENE_THEMES,
+} from '@/resources/simulations/components/simulation-theme';
 
 const today = '2026-05-31';
 
@@ -176,21 +180,51 @@ function simulationHandoffBaselineFor(href: string) {
     '/simulations/destroyer': {
       handoffSection: 'Command-deck shell',
       conceptImage: handoffConcepts.commandDeck,
-      implementationScreenshot: `${handoffRoot}/implementation-screenshots/destroyer-dark-1440.png`,
+      implementationScreenshot:
+        'artifacts/commercial-ui/simulation-internal-theme-534/simulations-destroyer-dark-1440-desktop-expanded-collapsed-collapsed.png',
+      evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
+    },
+    '/simulations/lng': {
+      handoffSection: 'Command-deck shell',
+      conceptImage: handoffConcepts.commandDeck,
+      implementationScreenshot:
+        'artifacts/commercial-ui/simulation-internal-theme-534/simulations-lng-dark-1440-desktop-expanded-collapsed-collapsed.png',
+      evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
+    },
+    '/simulations/container': {
+      handoffSection: 'Command-deck shell',
+      conceptImage: handoffConcepts.commandDeck,
+      implementationScreenshot:
+        'artifacts/commercial-ui/simulation-internal-theme-534/simulations-container-dark-1440-desktop-expanded-collapsed-collapsed.png',
       evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
     },
     '/simulations/drilling': {
       handoffSection: 'Command-deck shell',
       conceptImage: handoffConcepts.commandDeck,
-      implementationScreenshot: `${handoffRoot}/implementation-screenshots/drilling-dark-1440.png`,
+      implementationScreenshot:
+        'artifacts/commercial-ui/simulation-internal-theme-534/simulations-drilling-dark-1440-desktop-expanded-collapsed-collapsed.png',
       evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
     },
     '/simulations/cruise': {
       handoffSection: 'Command-deck shell',
       conceptImage: handoffConcepts.commandDeck,
       implementationScreenshot:
-        'artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-expanded-collapsed-collapsed.png',
+        'artifacts/commercial-ui/simulation-internal-theme-534/simulations-cruise-dark-1440-desktop-expanded-collapsed-collapsed.png',
       evidenceHook: 'data-simulation-panel-restore-handle',
+    },
+    '/simulations/icebreaker': {
+      handoffSection: 'Command-deck shell',
+      conceptImage: handoffConcepts.commandDeck,
+      implementationScreenshot:
+        'artifacts/commercial-ui/simulation-internal-theme-534/simulations-icebreaker-dark-1440-desktop-expanded-collapsed-collapsed.png',
+      evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
+    },
+    '/simulations/dredger': {
+      handoffSection: 'Command-deck shell',
+      conceptImage: handoffConcepts.commandDeck,
+      implementationScreenshot:
+        'artifacts/commercial-ui/simulation-internal-theme-534/simulations-dredger-dark-1440-desktop-expanded-collapsed-collapsed.png',
+      evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
     },
     '/interactive-learning/control-workbench': {
       handoffSection: 'Learning mission semantics',
@@ -347,6 +381,20 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
     localControlCollisionFree: true,
     routeInventoryCompatible: true,
     modelLibraryCompatible: true,
+    resourceInternalTheme: {
+      sharedPrimitives: true,
+      panelThemeParity: true,
+      localControlsThemeParity: true,
+      restoreHandlesThemeParity: true,
+      hardCodedPaletteFindings: 0,
+    },
+    sceneThemeParameters: {
+      lightTemplate: true,
+      darkTemplate: true,
+      skyWaterGridFogThemeAware: true,
+      labelHudContrastChecked: true,
+      unchangedLightSceneInDarkTheme: false,
+    },
     reactDoctorErrorCheck: {
       localOnly: true,
       ciRequired: false,
@@ -1112,8 +1160,12 @@ describe('commercial UI governance', () => {
       '/simulations',
       '/virtual-lab',
       '/simulations/destroyer',
+      '/simulations/lng',
+      '/simulations/container',
       '/simulations/drilling',
       '/simulations/cruise',
+      '/simulations/icebreaker',
+      '/simulations/dredger',
       '/interactive-learning/control-workbench',
     ]);
     expect(SIMULATION_VISUAL_QA_ROUTE_MATRIX.find((route) => route.href === '/virtual-lab')).toMatchObject({
@@ -1126,15 +1178,40 @@ describe('commercial UI governance', () => {
       expect(route.requiredNavigationStates).toEqual(expect.arrayContaining(['desktop-expanded', 'desktop-collapsed']));
       expect(route.reactDoctorCommand).toBe('rtk npm run test:react-doctor:owned-errors');
     }
-    expect(SIMULATION_VISUAL_QA_ROUTE_MATRIX.filter((route) => route.requiresNonblankScene).map((route) => route.href)).toEqual([
+    const nonblankSimulationRoutes = SIMULATION_VISUAL_QA_ROUTE_MATRIX
+      .filter((route) => route.requiresNonblankScene)
+      .map((route) => route.href);
+    expect(nonblankSimulationRoutes).toEqual(expect.arrayContaining([
       '/simulations/destroyer',
-      '/simulations/drilling',
+      '/simulations/lng',
+      '/simulations/container',
       '/simulations/cruise',
-    ]);
+      '/simulations/drilling',
+      '/simulations/icebreaker',
+      '/simulations/dredger',
+    ]));
+    expect(nonblankSimulationRoutes).toHaveLength(7);
     expect(SIMULATION_VISUAL_QA_ROUTE_MATRIX.find((route) => route.href === '/simulations/destroyer')?.requiredDockStates).toEqual([
       'collapsed',
       'expanded',
     ]);
+  });
+
+  it('keeps simulation scene theme fallback stable before theme hydration', () => {
+    expect(resolveSimulationSceneThemeMode('light', false)).toBe('dark');
+    expect(resolveSimulationSceneThemeMode('dark', false)).toBe('dark');
+    expect(resolveSimulationSceneThemeMode('light', true)).toBe('light');
+    expect(SIMULATION_SCENE_THEMES[resolveSimulationSceneThemeMode('light', false)].mode).toBe('dark');
+  });
+
+  it('keeps shared simulation assessment panels on theme primitives instead of local light palettes', () => {
+    const source = readFileSync(join(process.cwd(), 'src/resources/simulations/components/simulation-ui.tsx'), 'utf8');
+
+    expect(source).not.toContain('border border-slate-300 bg-white');
+    expect(source).not.toContain('bg-sky-700');
+    expect(source).toContain('useSimulationSceneTheme');
+    expect(source).toContain('sceneTheme.labelSurface');
+    expect(source).toContain('sceneTheme.hudOverlay');
   });
 
   it('accepts complete simulation visual QA evidence for required routes', () => {
@@ -1276,6 +1353,52 @@ describe('commercial UI governance', () => {
         evidence: expect.arrayContaining([
           'reactDoctorErrorCheck.ownedDiagnostics=0',
           'reactDoctorErrorCheck.selectedDiagnostics=0',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when simulation QA does not prove resource-internal theme and scene parameter parity', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          resourceInternalTheme: {
+            sharedPrimitives: false,
+            panelThemeParity: false,
+            localControlsThemeParity: true,
+            restoreHandlesThemeParity: true,
+            hardCodedPaletteFindings: 2,
+          },
+          sceneThemeParameters: {
+            lightTemplate: true,
+            darkTemplate: false,
+            skyWaterGridFogThemeAware: false,
+            labelHudContrastChecked: true,
+            unchangedLightSceneInDarkTheme: true,
+          },
+        } as CommercialSimulationVisualQaEvidence & Record<string, unknown>,
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining([
+          'resourceInternalTheme.sharedPrimitives',
+          'resourceInternalTheme.panelThemeParity',
+          'resourceInternalTheme.hardCodedPaletteFindings=0',
+          'sceneThemeParameters.darkTemplate',
+          'sceneThemeParameters.skyWaterGridFogThemeAware',
+          'sceneThemeParameters.unchangedLightSceneInDarkTheme=false',
         ]),
       }),
     ]));
@@ -2628,6 +2751,66 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).not.toContain('parsed.currentSourceSha256');
     expect(scriptSource).toContain('visual-review:stale-screenshot-review');
     expect(scriptSource).toContain('visual-review:stale-source-review');
+  });
+
+  it('keeps general commercial source palette governance limited to added lines', () => {
+    const scriptSource = readFileSync(join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'), 'utf8');
+    const scanSource = scriptSource.slice(
+      scriptSource.indexOf('function buildSourceViolations'),
+      scriptSource.indexOf('function buildSimulationResourcePaletteViolations'),
+    );
+
+    expect(scanSource).toContain("lineEvidence(source, /#[0-9a-fA-F]{3,8}\\b/g, 'raw-color', file)");
+    expect(scanSource).toContain("lineEvidence(source, /\\brgba\\(\\s*\\d+\\s*,\\s*\\d+\\s*,\\s*\\d+\\s*,/g, 'raw-rgba', file)");
+    expect(scanSource).toContain("'tailwind-color-family',\n      file");
+  });
+
+  it('keeps simulation resource palette governance on full-file scan after migration', () => {
+    const scriptSource = readFileSync(join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'), 'utf8');
+    const scanSource = scriptSource.slice(
+      scriptSource.indexOf('function buildSimulationResourcePaletteViolations'),
+      scriptSource.indexOf('function buildShellInventory'),
+    );
+
+    expect(scriptSource).toContain("file !== 'src/resources/simulations/components/simulation-theme.ts'");
+    expect(scriptSource).toContain("src/resources/simulations/components/camera-view-switcher.tsx");
+    expect(scriptSource).toContain("src/resources/simulations/components/model-loading-placeholder.tsx");
+    expect(scriptSource).toContain("/^src\\/resources\\/simulations\\/simulations\\/[^/]+-simulation\\.tsx$/.test(file)");
+    expect(scanSource).toContain("lineEvidence(source, /#[0-9a-fA-F]{3,8}\\b/g, 'raw-color')");
+    expect(scanSource).toContain("lineEvidence(source, /\\brgba\\(\\s*\\d+\\s*,\\s*\\d+\\s*,\\s*\\d+\\s*,/g, 'raw-rgba')");
+    expect(scanSource).toMatch(/'tailwind-color-family',\s*\);/);
+    expect(scanSource).not.toContain("'raw-color', file");
+    expect(scanSource).not.toContain("'raw-rgba', file");
+    expect(scanSource).not.toContain("'tailwind-color-family',\n      file");
+  });
+
+  it('keeps migrated simulation resources free of local palette literals outside the theme contract', () => {
+    const migratedFiles = [
+      'src/resources/simulations/components/camera-view-switcher.tsx',
+      'src/resources/simulations/components/model-loading-placeholder.tsx',
+      'src/resources/simulations/components/simulation-ui.tsx',
+      'src/resources/simulations/environment/maritime-environment.tsx',
+      'src/resources/simulations/simulations/lng-simulation.tsx',
+      'src/resources/simulations/simulations/container-simulation.tsx',
+      'src/resources/simulations/simulations/cruise-simulation.tsx',
+      'src/resources/simulations/simulations/destroyer-simulation.tsx',
+      'src/resources/simulations/simulations/dredger-simulation.tsx',
+      'src/resources/simulations/simulations/drilling-simulation.tsx',
+      'src/resources/simulations/simulations/icebreaker-simulation.tsx',
+    ];
+    const forbiddenPalette = /#[0-9a-fA-F]{3,8}\b|\brgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,|\b(?:bg|text|border|shadow|ring|from|via|to)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|black|white)(?:-\d{2,3})?(?:\/\d{1,3})?\b/;
+
+    for (const file of migratedFiles) {
+      const source = readFileSync(join(process.cwd(), file), 'utf8');
+      expect(source, file).not.toMatch(forbiddenPalette);
+    }
+
+    const themeContract = readFileSync(
+      join(process.cwd(), 'src/resources/simulations/components/simulation-theme.ts'),
+      'utf8',
+    );
+    expect(themeContract).toContain('simulationScenePalette');
+    expect(themeContract).toMatch(/#[0-9a-fA-F]{3,8}\b/);
   });
 
   it('requires final interactive learning product QA when referenced evidence artifacts change', () => {

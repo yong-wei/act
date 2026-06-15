@@ -39,6 +39,14 @@ const resourceRendererSource = readFileSync(
   join(process.cwd(), 'src/features/lesson-engine/resource-renderer.tsx'),
   'utf8',
 );
+const adaptivePracticeLayoutSource = readFileSync(
+  join(process.cwd(), 'src/app/assessment/adaptive-practice/layout.tsx'),
+  'utf8',
+);
+const pathAdvisorEntryPointBridgeSource = readFileSync(
+  join(process.cwd(), 'src/features/adaptive/path-advisor-entrypoint-bridge.tsx'),
+  'utf8',
+);
 const aiContextResolverSource = readFileSync(
   join(process.cwd(), 'src/lib/ai-context-resolver.ts'),
   'utf8',
@@ -165,6 +173,12 @@ describe('AI chat route Konling runtime guard', () => {
     expect(documentGradingUiSource).toContain('entryPoint={view.konlingEntryPoint}');
     expect(resourceRendererSource).toContain("mode: 'resource-coach'");
     expect(resourceRendererSource).toContain('assistantEntryPoint: {');
+    expect(adaptivePracticeLayoutSource).toContain('createKonlingTeachingAssistantServerContextToken');
+    expect(adaptivePracticeLayoutSource).toContain("mode: 'path-advisor'");
+    expect(adaptivePracticeLayoutSource).toContain("'student-path-center': true");
+    expect(pathAdvisorEntryPointBridgeSource).toContain("mode: 'path-advisor'");
+    expect(pathAdvisorEntryPointBridgeSource).toContain('modeContextToken');
+    expect(pathAdvisorEntryPointBridgeSource).toContain('assistantEntryPoint: {');
   });
 
   it('clears explicit assistant entry points when page context changes without a new entry point', () => {

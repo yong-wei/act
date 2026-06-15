@@ -4,7 +4,7 @@
 
 PASS.
 
-本轮复核由 `ui-flow-reviewer:019ecb20-d6ae-75a0-a83e-9ea2e4741139` 基于当前 `artifacts/knowledge-workspace-product-qa-489/` 下的 15 张截图与 `browser-evidence.json` 完成。审查结果通过 `independentVisualReview.reviewedStateSha256` 与 `independentVisualReview.reviewedSourceSha256` 绑定当前截图和源码哈希；后续截图、生产源码、采集脚本或治理脚本变化都不能复用本次 PASS。
+本轮复核由 `ui-flow-reviewer:019ecb62-ef76-7af0-903f-8a1f2e4adc52` 基于合并最新 `origin/integration` 后重新捕获的 15 张截图与 `browser-evidence.json` 完成。审查结果通过 `independentVisualReview.reviewedStateSha256` 与 `independentVisualReview.reviewedSourceSha256` 绑定当前截图和源码哈希；后续截图、生产源码、采集脚本或治理脚本变化都不能复用本次 PASS。
 
 This pass was refreshed after the Konling runtime fix that keeps degraded requested-node contexts unresolved instead of upgrading `requestedNodeId` to a selected node. The refreshed `desktop-konling-degraded-dark.png` evidence still shows the unresolved request state rather than selected-node context.
 

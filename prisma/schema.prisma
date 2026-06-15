@@ -1350,6 +1350,9 @@ model AgentToolRun {
   actorUser    User         @relation("AgentToolRunActor", fields: [actorUserId], references: [id], onDelete: Cascade)
   targetUser   User         @relation("AgentToolRunTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
 
+  // Scope-level idempotency is enforced by raw migration
+  // 20260615111000_add_agent_tool_run_scope_idempotency because nullable
+  // scope columns require COALESCE semantics that Prisma schema cannot express.
   @@unique([agentSessionId, toolName, idempotencyKey])
   @@index([agentSessionId, startedAt])
   @@index([ownerUserId, toolName, startedAt])

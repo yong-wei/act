@@ -157,7 +157,7 @@ export function CameraViewSwitcher({
       {showFreeLabel && currentMode === 'free' && (
         <Badge
           variant="outline"
-          className="border-sky-300 bg-sky-50 text-sky-700 backdrop-blur-sm"
+          className="border-platform-action-primary bg-platform-action-subtle text-platform-action-primary backdrop-blur-sm"
         >
           <Move3d className="h-3 w-3 mr-1" />
           自由视角
@@ -170,7 +170,7 @@ export function CameraViewSwitcher({
           size={size}
           onClick={onToggleGrid}
           className={cn(
-            'rounded-xl border border-platform-border-strong bg-platform-surface-overlay/86 shadow-lg shadow-slate-950/20 backdrop-blur-sm transition-all',
+            'rounded-xl border border-platform-border-strong bg-platform-surface-overlay/86 shadow-lg backdrop-blur-sm transition-all',
             gridEnabled
               ? 'bg-platform-fg-primary text-platform-fg-inverse'
               : commandButtonInactiveClass
@@ -244,7 +244,7 @@ export function CameraViewSwitcherCompact({
         );
       })}
       {currentMode === 'free' && (
-        <div className="p-1.5 text-sky-700" title="自由视角">
+        <div className="p-1.5 text-platform-action-primary" title="自由视角">
           <Move3d className="h-4 w-4" />
         </div>
       )}

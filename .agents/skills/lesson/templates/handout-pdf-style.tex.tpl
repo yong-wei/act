@@ -20,7 +20,7 @@
 \usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning,calc}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds}
 
 \geometry{a4paper, top=24mm, bottom=24mm, left=22mm, right=22mm, headsep=8mm, footskip=10mm}
 \raggedbottom
@@ -64,6 +64,31 @@
 \definecolor{MatlabNumber}{RGB}{128,0,128}
 \definecolor{MatlabCodeBg}{HTML}{F7FAFC}
 \definecolor{MatlabCodeFrame}{HTML}{C9D7E8}
+\definecolor{blockblue}{HTML}{4A90D9}
+\definecolor{sumgreen}{HTML}{5CB85C}
+\definecolor{taporange}{HTML}{F0AD4E}
+\definecolor{linegray}{HTML}{333333}
+\definecolor{sfgpurple}{HTML}{9B59B6}
+\definecolor{sfggreen}{HTML}{2ECC71}
+\definecolor{sfgred}{HTML}{E74C3C}
+\tikzset{
+  block/.style={rectangle, draw=blockblue, fill=none, line width=1.2pt, minimum height=0.75cm, minimum width=1.4cm, inner sep=2pt, font=\bfseries, align=center},
+  wideblock/.style={block, minimum width=2.4cm},
+  sum/.style={circle, draw=sumgreen, fill=none, line width=1.2pt, minimum size=0.34cm, inner sep=0pt, path picture={\draw[line width=0.8pt, linegray] (path picture bounding box.south west) -- (path picture bounding box.north east); \draw[line width=0.8pt, linegray] (path picture bounding box.north west) -- (path picture bounding box.south east);}},
+  tap/.style={circle, draw=taporange, fill=none, line width=1.2pt, minimum size=4pt, inner sep=0pt},
+  signal/.style={-{Latex[length=2.2mm]}, line width=1.2pt, draw=linegray},
+  plain/.style={line width=1.2pt, draw=linegray},
+  signal label above/.style={fill=none, above=4pt},
+  signal label below/.style={fill=none, below=4pt},
+  neg sign/.style={fill=none, very near end},
+  note/.style={align=center},
+  sfgsource/.style={circle, draw=sfggreen, fill=none, line width=1.2pt, minimum size=0.86cm, font=\bfseries},
+  sfgnode/.style={circle, draw=sfgpurple, fill=none, line width=1.2pt, minimum size=0.86cm, font=\bfseries},
+  sfgsink/.style={circle, draw=sfgred, fill=none, line width=1.2pt, minimum size=0.86cm, font=\bfseries},
+  sfgedge/.style={-{Latex[length=2.2mm]}, line width=1.2pt, draw={rgb,255:red,44;green,62;blue,80}},
+  gain label above/.style={fill=none, above=3pt, font=\itshape},
+  gain label below/.style={fill=none, below=3pt, font=\itshape}
+}
 
 \titleformat{\section}
   {\fontsize{16pt}{20pt}\selectfont\sffamily\bfseries\color{TitleBlue}}
@@ -103,6 +128,9 @@
   commandchars=\\\{\}
 }
 
+\makeatletter
+\@ifundefined{Shaded}{\newenvironment{Shaded}{}{}}{}
+\makeatother
 \renewenvironment{Shaded}
   {\begin{tcolorbox}[
     enhanced,
@@ -119,6 +147,17 @@
     after skip=0.75em
   ]}
   {\end{tcolorbox}}
+\providecommand{\KeywordTok}[1]{#1}
+\providecommand{\ControlFlowTok}[1]{#1}
+\providecommand{\BuiltInTok}[1]{#1}
+\providecommand{\FunctionTok}[1]{#1}
+\providecommand{\CommentTok}[1]{#1}
+\providecommand{\CommentVarTok}[1]{#1}
+\providecommand{\StringTok}[1]{#1}
+\providecommand{\VerbatimStringTok}[1]{#1}
+\providecommand{\CharTok}[1]{#1}
+\providecommand{\DecValTok}[1]{#1}
+\providecommand{\FloatTok}[1]{#1}
 \renewcommand{\KeywordTok}[1]{\textcolor{MatlabKeyword}{\textbf{#1}}}
 \renewcommand{\ControlFlowTok}[1]{\textcolor{MatlabKeyword}{\textbf{#1}}}
 \renewcommand{\BuiltInTok}[1]{\textcolor{MatlabKeyword}{#1}}

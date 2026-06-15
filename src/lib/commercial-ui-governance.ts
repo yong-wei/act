@@ -166,7 +166,10 @@ export type CommercialSimulationVisualQaArchetype =
   | 'legacy-redirect'
   | 'heading-control'
   | 'dp-positioning'
+  | 'course-keeping'
   | 'cruise-roll'
+  | 'ice-propulsion'
+  | 'dredging-positioning'
   | 'control-workbench-regression';
 export type CommercialSimulationVisualQaDockState = 'collapsed' | 'expanded' | 'hidden' | 'required';
 export type CommercialSimulationVisualQaLocalToolState = 'collapsed' | 'expanded' | 'not-applicable';
@@ -228,6 +231,22 @@ export interface CommercialSimulationReactDoctorEvidence {
   selectedDiagnostics?: number;
 }
 
+export interface CommercialSimulationResourceThemeEvidence {
+  sharedPrimitives: boolean;
+  panelThemeParity: boolean;
+  localControlsThemeParity: boolean;
+  restoreHandlesThemeParity: boolean;
+  hardCodedPaletteFindings: number;
+}
+
+export interface CommercialSimulationSceneThemeEvidence {
+  lightTemplate: boolean;
+  darkTemplate: boolean;
+  skyWaterGridFogThemeAware: boolean;
+  labelHudContrastChecked: boolean;
+  unchangedLightSceneInDarkTheme: boolean;
+}
+
 export type CommercialSimulationHandoffReviewStatus = 'passed' | 'failed' | 'not-run';
 
 export interface CommercialSimulationHandoffBaselineEvidence {
@@ -259,6 +278,8 @@ export interface CommercialSimulationVisualQaEvidence {
   localControlCollisionFree?: boolean;
   routeInventoryCompatible?: boolean;
   modelLibraryCompatible?: boolean;
+  resourceInternalTheme?: CommercialSimulationResourceThemeEvidence;
+  sceneThemeParameters?: CommercialSimulationSceneThemeEvidence;
   reactDoctorErrorCheck?: CommercialSimulationReactDoctorEvidence;
   viewports: readonly CommercialSimulationViewportEvidence[];
 }
@@ -786,7 +807,23 @@ const SIMULATION_PRODUCT_DESIGN_HANDOFF_BASELINE_BY_ROUTE: Record<string, Commer
     conceptImage:
       'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
     implementationScreenshot:
-      'artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/destroyer-dark-1440.png',
+      'artifacts/commercial-ui/simulation-internal-theme-534/simulations-destroyer-dark-1440-desktop-expanded-collapsed-collapsed.png',
+    evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
+  },
+  '/simulations/lng': {
+    handoffSection: 'Command-deck shell',
+    conceptImage:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
+    implementationScreenshot:
+      'artifacts/commercial-ui/simulation-internal-theme-534/simulations-lng-dark-1440-desktop-expanded-collapsed-collapsed.png',
+    evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
+  },
+  '/simulations/container': {
+    handoffSection: 'Command-deck shell',
+    conceptImage:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
+    implementationScreenshot:
+      'artifacts/commercial-ui/simulation-internal-theme-534/simulations-container-dark-1440-desktop-expanded-collapsed-collapsed.png',
     evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
   },
   '/simulations/drilling': {
@@ -794,7 +831,23 @@ const SIMULATION_PRODUCT_DESIGN_HANDOFF_BASELINE_BY_ROUTE: Record<string, Commer
     conceptImage:
       'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
     implementationScreenshot:
-      'artifacts/product-design-audits/virtual-simulation-2026-06-13/implementation-screenshots/drilling-dark-1440.png',
+      'artifacts/commercial-ui/simulation-internal-theme-534/simulations-drilling-dark-1440-desktop-expanded-collapsed-collapsed.png',
+    evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
+  },
+  '/simulations/icebreaker': {
+    handoffSection: 'Command-deck shell',
+    conceptImage:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
+    implementationScreenshot:
+      'artifacts/commercial-ui/simulation-internal-theme-534/simulations-icebreaker-dark-1440-desktop-expanded-collapsed-collapsed.png',
+    evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
+  },
+  '/simulations/dredger': {
+    handoffSection: 'Command-deck shell',
+    conceptImage:
+      'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
+    implementationScreenshot:
+      'artifacts/commercial-ui/simulation-internal-theme-534/simulations-dredger-dark-1440-desktop-expanded-collapsed-collapsed.png',
     evidenceHook: 'data-command-deck-composition="scene-primary-glass-panels-bottom-tools"',
   },
   '/simulations/cruise': {
@@ -802,7 +855,7 @@ const SIMULATION_PRODUCT_DESIGN_HANDOFF_BASELINE_BY_ROUTE: Record<string, Commer
     conceptImage:
       'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
     implementationScreenshot:
-      'artifacts/commercial-ui/simulation-experience-visual-qa/simulations-cruise-dark-1440-desktop-expanded-collapsed-collapsed.png',
+      'artifacts/commercial-ui/simulation-internal-theme-534/simulations-cruise-dark-1440-desktop-expanded-collapsed-collapsed.png',
     evidenceHook: 'data-simulation-panel-restore-handle',
   },
   '/interactive-learning/control-workbench': {
@@ -865,6 +918,34 @@ export const SIMULATION_VISUAL_QA_ROUTE_MATRIX: CommercialSimulationVisualQaRout
     reactDoctorCommand: SIMULATION_REACT_DOCTOR_COMMAND,
   },
   {
+    href: '/simulations/lng',
+    routeFile: 'src/app/simulations/lng/page.tsx',
+    archetype: 'course-keeping',
+    requiredThemes: SIMULATION_VISUAL_QA_REQUIRED_THEMES,
+    requiredWidths: SIMULATION_VISUAL_QA_REQUIRED_WIDTHS,
+    requiredNavigationStates: SIMULATION_APP_SHELL_NAVIGATION_STATES,
+    requiredDockStates: SIMULATION_SCENE_DOCK_STATES,
+    requiredLocalToolStates: SIMULATION_SCENE_LOCAL_TOOL_STATES,
+    role: 'student',
+    acceptedAuthState: 'public',
+    requiresNonblankScene: true,
+    reactDoctorCommand: SIMULATION_REACT_DOCTOR_COMMAND,
+  },
+  {
+    href: '/simulations/container',
+    routeFile: 'src/app/simulations/container/page.tsx',
+    archetype: 'course-keeping',
+    requiredThemes: SIMULATION_VISUAL_QA_REQUIRED_THEMES,
+    requiredWidths: SIMULATION_VISUAL_QA_REQUIRED_WIDTHS,
+    requiredNavigationStates: SIMULATION_APP_SHELL_NAVIGATION_STATES,
+    requiredDockStates: SIMULATION_SCENE_DOCK_STATES,
+    requiredLocalToolStates: SIMULATION_SCENE_LOCAL_TOOL_STATES,
+    role: 'student',
+    acceptedAuthState: 'public',
+    requiresNonblankScene: true,
+    reactDoctorCommand: SIMULATION_REACT_DOCTOR_COMMAND,
+  },
+  {
     href: '/simulations/drilling',
     routeFile: 'src/app/simulations/drilling/page.tsx',
     archetype: 'dp-positioning',
@@ -882,6 +963,34 @@ export const SIMULATION_VISUAL_QA_ROUTE_MATRIX: CommercialSimulationVisualQaRout
     href: '/simulations/cruise',
     routeFile: 'src/app/simulations/cruise/page.tsx',
     archetype: 'cruise-roll',
+    requiredThemes: SIMULATION_VISUAL_QA_REQUIRED_THEMES,
+    requiredWidths: SIMULATION_VISUAL_QA_REQUIRED_WIDTHS,
+    requiredNavigationStates: SIMULATION_APP_SHELL_NAVIGATION_STATES,
+    requiredDockStates: SIMULATION_SCENE_DOCK_STATES,
+    requiredLocalToolStates: SIMULATION_SCENE_LOCAL_TOOL_STATES,
+    role: 'student',
+    acceptedAuthState: 'public',
+    requiresNonblankScene: true,
+    reactDoctorCommand: SIMULATION_REACT_DOCTOR_COMMAND,
+  },
+  {
+    href: '/simulations/icebreaker',
+    routeFile: 'src/app/simulations/icebreaker/page.tsx',
+    archetype: 'ice-propulsion',
+    requiredThemes: SIMULATION_VISUAL_QA_REQUIRED_THEMES,
+    requiredWidths: SIMULATION_VISUAL_QA_REQUIRED_WIDTHS,
+    requiredNavigationStates: SIMULATION_APP_SHELL_NAVIGATION_STATES,
+    requiredDockStates: SIMULATION_SCENE_DOCK_STATES,
+    requiredLocalToolStates: SIMULATION_SCENE_LOCAL_TOOL_STATES,
+    role: 'student',
+    acceptedAuthState: 'public',
+    requiresNonblankScene: true,
+    reactDoctorCommand: SIMULATION_REACT_DOCTOR_COMMAND,
+  },
+  {
+    href: '/simulations/dredger',
+    routeFile: 'src/app/simulations/dredger/page.tsx',
+    archetype: 'dredging-positioning',
     requiredThemes: SIMULATION_VISUAL_QA_REQUIRED_THEMES,
     requiredWidths: SIMULATION_VISUAL_QA_REQUIRED_WIDTHS,
     requiredNavigationStates: SIMULATION_APP_SHELL_NAVIGATION_STATES,
@@ -1834,6 +1943,36 @@ function buildSimulationVisualQaViolations(
       simulationEvidence.localControlCollisionFree !== true ? 'localControlCollisionFree' : '',
       simulationEvidence.routeInventoryCompatible !== true ? 'routeInventoryCompatible' : '',
       simulationEvidence.modelLibraryCompatible !== true ? 'modelLibraryCompatible' : '',
+      route.requiresNonblankScene && simulationEvidence.resourceInternalTheme?.sharedPrimitives !== true
+        ? 'resourceInternalTheme.sharedPrimitives'
+        : '',
+      route.requiresNonblankScene && simulationEvidence.resourceInternalTheme?.panelThemeParity !== true
+        ? 'resourceInternalTheme.panelThemeParity'
+        : '',
+      route.requiresNonblankScene && simulationEvidence.resourceInternalTheme?.localControlsThemeParity !== true
+        ? 'resourceInternalTheme.localControlsThemeParity'
+        : '',
+      route.requiresNonblankScene && simulationEvidence.resourceInternalTheme?.restoreHandlesThemeParity !== true
+        ? 'resourceInternalTheme.restoreHandlesThemeParity'
+        : '',
+      route.requiresNonblankScene && simulationEvidence.resourceInternalTheme?.hardCodedPaletteFindings !== 0
+        ? 'resourceInternalTheme.hardCodedPaletteFindings=0'
+        : '',
+      route.requiresNonblankScene && simulationEvidence.sceneThemeParameters?.lightTemplate !== true
+        ? 'sceneThemeParameters.lightTemplate'
+        : '',
+      route.requiresNonblankScene && simulationEvidence.sceneThemeParameters?.darkTemplate !== true
+        ? 'sceneThemeParameters.darkTemplate'
+        : '',
+      route.requiresNonblankScene && simulationEvidence.sceneThemeParameters?.skyWaterGridFogThemeAware !== true
+        ? 'sceneThemeParameters.skyWaterGridFogThemeAware'
+        : '',
+      route.requiresNonblankScene && simulationEvidence.sceneThemeParameters?.labelHudContrastChecked !== true
+        ? 'sceneThemeParameters.labelHudContrastChecked'
+        : '',
+      route.requiresNonblankScene && simulationEvidence.sceneThemeParameters?.unchangedLightSceneInDarkTheme !== false
+        ? 'sceneThemeParameters.unchangedLightSceneInDarkTheme=false'
+        : '',
       simulationEvidence.reactDoctorErrorCheck?.localOnly !== true ? 'reactDoctorErrorCheck.localOnly' : '',
       simulationEvidence.reactDoctorErrorCheck?.ciRequired !== false ? 'reactDoctorErrorCheck.ciRequired=false' : '',
       simulationEvidence.reactDoctorErrorCheck?.command !== route.reactDoctorCommand

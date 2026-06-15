@@ -27,6 +27,7 @@ import {
 import { CameraViewSwitcher } from '../components/camera-view-switcher';
 import { ModelLoadingPlaceholder } from '../components/model-loading-placeholder';
 import { SimulationTopBar, SimulationDock, SimulationAssessmentPanel, simulationUi } from '../components/simulation-ui';
+import { useSimulationSceneTheme, simulationScenePalette, type SimulationSceneTheme } from '../components/simulation-theme';
 
 import type {
   ControlMode,
@@ -70,7 +71,7 @@ interface LNGSimulationState {
 
 // ============ 海面组件 ============
 
-function Ocean() {
+function Ocean({ sceneTheme }: { sceneTheme: SimulationSceneTheme }) {
   const meshRef = useRef<THREE.Mesh>(null);
 
   useFrame(({ clock }) => {
@@ -83,8 +84,8 @@ function Ocean() {
     return new THREE.ShaderMaterial({
       uniforms: {
         time: { value: 0 },
-        waterColor: { value: new THREE.Color('#0077be') },
-        foamColor: { value: new THREE.Color('#ffffff') },
+        waterColor: { value: new THREE.Color(sceneTheme.waterColor) },
+        foamColor: { value: new THREE.Color(simulationScenePalette.white) },
       },
       vertexShader: `
         uniform float time;
@@ -117,7 +118,7 @@ function Ocean() {
       transparent: true,
       side: THREE.DoubleSide,
     });
-  }, []);
+  }, [sceneTheme.waterColor]);
 
   return (
     <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} material={shaderMaterial}>
@@ -191,7 +192,7 @@ function LNGShipModel({
       {/* 船艏标记 */}
       <mesh position={[0, modelHeight * 0.6, 0]}>
         <sphereGeometry args={[5, 16, 16]} />
-        <meshBasicMaterial color="#3b82f6" />
+        <meshBasicMaterial color={simulationScenePalette.headingPrimary} />
       </mesh>
     </group>
   );
@@ -212,7 +213,7 @@ function TrajectoryLine({ points }: { points: Vector2[] }) {
   return (
     <Line
       points={linePoints}
-      color="#3b82f6"
+      color={simulationScenePalette.headingPrimary}
       lineWidth={2}
       dashed={false}
     />
@@ -266,22 +267,22 @@ function HeadingIndicator({
       {/* 目标航向 (浅蓝虚线箭头) */}
       <Line
         points={[[position.x, 5, position.z], targetEnd]}
-        color="#60a5fa"
+        color={simulationScenePalette.headingSecondary}
         lineWidth={2}
         dashed
         dashSize={20}
         gapSize={10}
       />
-      <Line points={[targetWings.left, targetEnd]} color="#60a5fa" lineWidth={2} />
-      <Line points={[targetWings.right, targetEnd]} color="#60a5fa" lineWidth={2} />
+      <Line points={[targetWings.left, targetEnd]} color={simulationScenePalette.headingSecondary} lineWidth={2} />
+      <Line points={[targetWings.right, targetEnd]} color={simulationScenePalette.headingSecondary} lineWidth={2} />
       {/* 当前航向 (深蓝实线箭头) */}
       <Line
         points={[[position.x, 5, position.z], currentEnd]}
-        color="#3b82f6"
+        color={simulationScenePalette.headingPrimary}
         lineWidth={3}
       />
-      <Line points={[currentWings.left, currentEnd]} color="#3b82f6" lineWidth={3} />
-      <Line points={[currentWings.right, currentEnd]} color="#3b82f6" lineWidth={3} />
+      <Line points={[currentWings.left, currentEnd]} color={simulationScenePalette.headingPrimary} lineWidth={3} />
+      <Line points={[currentWings.right, currentEnd]} color={simulationScenePalette.headingPrimary} lineWidth={3} />
     </group>
   );
 }
@@ -297,50 +298,50 @@ function StatusPanel({
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-        <span className="text-slate-700">时间:</span>
+        <span className="text-platform-fg-secondary">时间:</span>
         <span>{state.time.toFixed(1)}s</span>
 
-        <span className="text-slate-700">航向:</span>
+        <span className="text-platform-fg-secondary">航向:</span>
         <span>{state.heading.toFixed(1)}°</span>
 
-        <span className="text-slate-700">目标航向:</span>
-        <span className="text-green-700">{state.targetHeading.toFixed(1)}°</span>
+        <span className="text-platform-fg-secondary">目标航向:</span>
+        <span className="text-[hsl(var(--platform-brand-success))]">{state.targetHeading.toFixed(1)}°</span>
 
-        <span className="text-slate-700">航向误差:</span>
-        <span className={Math.abs(state.heading - state.targetHeading) > 5 ? 'text-amber-700' : 'text-green-700'}>
+        <span className="text-platform-fg-secondary">航向误差:</span>
+        <span className={Math.abs(state.heading - state.targetHeading) > 5 ? 'text-[hsl(var(--platform-brand-evidence))]' : 'text-[hsl(var(--platform-brand-success))]'}>
           {(state.heading - state.targetHeading).toFixed(1)}°
         </span>
 
-        <span className="text-slate-700">转艏率:</span>
+        <span className="text-platform-fg-secondary">转艏率:</span>
         <span>{state.yawRate.toFixed(2)}°/s</span>
 
-        <span className="text-slate-700">舵角:</span>
+        <span className="text-platform-fg-secondary">舵角:</span>
         <span>{state.rudder.toFixed(1)}°</span>
 
-        <span className="text-slate-700">航速:</span>
+        <span className="text-platform-fg-secondary">航速:</span>
         <span>{(state.speed * 1.944).toFixed(1)} kn</span>
       </div>
 
-      <div className="border-t border-slate-300"></div>
+      <div className="border-t border-platform-border"></div>
 
       <div className="text-sm">
         <div className="mb-1 flex items-center justify-between">
-          <span className="text-slate-700">液货晃荡:</span>
-          <span className={state.sloshingAngle > 5 ? 'text-red-600' : 'text-sky-700'}>
+          <span className="text-platform-fg-secondary">液货晃荡:</span>
+          <span className={state.sloshingAngle > 5 ? 'text-[hsl(var(--platform-brand-danger))]' : 'text-platform-action-primary'}>
             {state.sloshingAngle.toFixed(2)}°
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-slate-700">货舱压力:</span>
-          <span className={state.tankPressure > 150 ? 'text-red-600' : 'text-sky-700'}>
+          <span className="text-platform-fg-secondary">货舱压力:</span>
+          <span className={state.tankPressure > 150 ? 'text-[hsl(var(--platform-brand-danger))]' : 'text-platform-action-primary'}>
             {state.tankPressure.toFixed(0)} kPa
           </span>
         </div>
       </div>
 
-      <div className="border-t border-slate-300"></div>
+      <div className="border-t border-platform-border"></div>
 
-      <div className="rounded border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
+      <div className="rounded border border-[hsl(var(--platform-brand-evidence)/0.35)] bg-[hsl(var(--platform-brand-evidence)/0.14)] p-2 text-xs text-[hsl(var(--platform-brand-evidence))]">
         ⚠️ 时滞: 25秒 | 晃荡周期: ~12s
       </div>
     </div>
@@ -365,11 +366,11 @@ function ControlPanel({
   return (
     <div className="space-y-3">
       <div>
-        <label htmlFor="lng-simulation-control-1" className="mb-1 block text-sm text-slate-700">控制模式</label>
+        <label htmlFor="lng-simulation-control-1" className="mb-1 block text-sm text-platform-fg-secondary">控制模式</label>
         <select id="lng-simulation-control-1"
           value={state.controlMode}
           onChange={(e) => onControlModeChange(e.target.value as ControlMode)}
-          className="w-full rounded border border-slate-300 bg-white p-2 text-slate-900"
+          className="w-full rounded border border-platform-border bg-platform-surface-overlay/86 p-2 text-platform-fg-primary"
         >
           <option value="manual">手动</option>
           <option value="p">P 控制</option>
@@ -380,7 +381,7 @@ function ControlPanel({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm text-slate-700">
+        <label className="mb-1 block text-sm text-platform-fg-secondary">
           目标航向: {state.targetHeading}°
         </label>
         <input aria-label="LNG 船仿真参数"
@@ -399,11 +400,11 @@ function ControlPanel({
             type="checkbox"
             checked={state.smithEnabled}
             onChange={onSmithToggle}
-            className="h-4 w-4 accent-sky-700"
+            className="h-4 w-4 accent-[hsl(var(--platform-action-primary))]"
           />
           <span className="text-sm">启用 Smith 预估器</span>
         </label>
-        <p className="mt-1 text-xs text-slate-600">消除25秒时滞影响</p>
+        <p className="mt-1 text-xs text-platform-fg-secondary">消除25秒时滞影响</p>
       </div>
 
       <div className="flex gap-2">
@@ -434,6 +435,7 @@ function Scene({
   state,
   trajectory,
   showGrid,
+  sceneTheme,
   cameraMode,
   onCameraModeChange,
   controlsRef,
@@ -441,6 +443,7 @@ function Scene({
   state: LNGSimulationState;
   trajectory: Vector2[];
   showGrid: boolean;
+  sceneTheme: SimulationSceneTheme;
   cameraMode: CameraMode;
   onCameraModeChange: (mode: CameraMode) => void;
   controlsRef: React.RefObject<OrbitControlsImpl | null>;
@@ -449,20 +452,20 @@ function Scene({
     <>
       <PerspectiveCamera makeDefault position={[-400, 300, 400]} fov={60} near={1} far={50000} />
 
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[200, 300, 200]} intensity={1.5} castShadow />
+      <ambientLight intensity={sceneTheme.ambientLightIntensity} />
+      <directionalLight position={[200, 300, 200]} intensity={sceneTheme.directionalLightIntensity} castShadow />
 
-      <MaritimeEnvironment shipPosition={state.position} seaState={3} />
+      <MaritimeEnvironment shipPosition={state.position} seaState={3} sceneTheme={sceneTheme} />
 
       {showGrid ? (
         <Grid
           args={[10000, 10000]}
           cellSize={100}
           cellThickness={0.5}
-          cellColor="#1e3a5f"
+          cellColor={sceneTheme.gridCellColor}
           sectionSize={500}
           sectionThickness={1}
-          sectionColor="#2563eb"
+          sectionColor={sceneTheme.gridSectionColor}
           fadeDistance={9000}
           fadeStrength={1}
           position={[0, 0.35, 0]}
@@ -529,6 +532,7 @@ export function LNGSimulation() {
   const [cameraMode, setCameraMode] = useState<CameraMode>('chase');
   const [showGrid, setShowGrid] = useState(true);
   const [speedScale, setSpeedScale] = useState(1);
+  const sceneTheme = useSimulationSceneTheme();
   const [state, setState] = useState<LNGSimulationState>({
     isRunning: false,
     isPaused: false,
@@ -692,6 +696,7 @@ export function LNGSimulation() {
           state={state}
           trajectory={trajectory}
           showGrid={showGrid}
+          sceneTheme={sceneTheme}
           cameraMode={cameraMode}
           onCameraModeChange={setCameraMode}
           controlsRef={controlsRef}

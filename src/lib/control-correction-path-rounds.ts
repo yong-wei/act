@@ -160,11 +160,20 @@ export async function persistLearningPathRound(
   const record = serializeLearningPathPlan(input.plan);
   const existing = await db.learningPath.findFirst({
     where: { id: record.id },
-    select: { id: true, userId: true, goalId: true },
+    select: { id: true, userId: true, goalId: true, pathPayload: true },
   });
   if (existing && (existing.userId !== record.userId || existing.goalId !== input.plan.goal.id)) {
     throw new ControlCorrectionPathRoundConflictError();
   }
+  const existingPathPayload = toRecord(existing?.pathPayload);
+  const selectionHistory = mergePathPayloadEntries(
+    existingPathPayload.selectionHistory,
+    buildPathSelectionHistory(record.payload.feedbackEvents),
+  );
+  const activity = mergePathPayloadEntries(
+    existingPathPayload.activity,
+    buildGenericPathActivity(input.plan),
+  );
   const terminalValidation = resolveTerminalValidation(
     input.plan.mainPath,
     getRegisteredAdaptiveLearningPathGoal(input.plan.goal.id)?.checkpointPolicy.requiresTerminalValidation ?? false,
@@ -179,8 +188,8 @@ export async function persistLearningPathRound(
     confidence: record.payload.confidence,
     policyBundle: record.payload.policyBundle ?? null,
     feedbackEvents: record.payload.feedbackEvents,
-    selectionHistory: buildPathSelectionHistory(record.payload.feedbackEvents),
-    activity: buildGenericPathActivity(input.plan),
+    selectionHistory,
+    activity,
     visualization: record.payload.visualization,
   };
   const explanationPayload = {
@@ -280,6 +289,24 @@ function buildGenericPathActivity(plan: AdaptiveLearningPathPlan): Array<Record<
       createdAt: plan.executionStatus.updatedAt,
     })),
   ];
+}
+
+function mergePathPayloadEntries(
+  existingValue: unknown,
+  nextEntries: Array<Record<string, unknown>>,
+): Array<Record<string, unknown>> {
+  const merged: Array<Record<string, unknown>> = [];
+  const seen = new Set<string>();
+  for (const entry of [
+    ...arrayOfRecords(existingValue),
+    ...nextEntries,
+  ]) {
+    const id = typeof entry.id === 'string' ? entry.id : null;
+    if (id && seen.has(id)) continue;
+    if (id) seen.add(id);
+    merged.push(entry);
+  }
+  return merged;
 }
 
 export function validateLearningPathPlanForPersistence(plan: AdaptiveLearningPathPlan): void {
@@ -1369,4 +1396,12 @@ function toRecord(value: unknown): Record<string, any> {
 
 function arrayOfStrings(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
+function arrayOfRecords(value: unknown): Array<Record<string, unknown>> {
+  return Array.isArray(value)
+    ? value.filter((item): item is Record<string, unknown> =>
+      Boolean(item) && typeof item === 'object' && !Array.isArray(item)
+    )
+    : [];
 }

@@ -124,6 +124,7 @@ export interface AdaptiveLearningPathPlannerInput {
   };
   difficultyRhythm?: 'gentle' | 'steady' | 'challenge';
   resourcePreferences?: ResourceNode['type'][];
+  checkpointPreference?: 'light' | 'standard' | 'dense';
   allowExternalResources?: boolean;
   now?: Date;
 }
@@ -493,6 +494,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     displayName: '控制系统校正设计',
     allowedResourceMix: [
       'knowledge_card',
+      'quiz',
       'adaptive_quiz',
       'control_workbench',
       'simulation',
@@ -603,6 +605,7 @@ function buildAdaptiveLearningPathPlanInternal(
   const confidence = resolvePlanConfidence(input.learnerState);
   const sourceCoverage = input.learnerState?.evidence?.sourceCoverage ?? {};
   const requestedCompletedNodeIds = input.constraints.completedNodeIds ?? [];
+  const preferenceContext = buildPlannerPreferenceContext(input);
   const { eligible, blocked } = partitionResourceNodes(input.registry.nodes, input.constraints);
   const pathEligible = eligible
     .filter((node) => policyAllowsNode(node, policyFamily, input.constraints))
@@ -614,7 +617,7 @@ function buildAdaptiveLearningPathPlanInternal(
       nodeMatchesGoal(node, input.goal, deficits) ||
       (input.constraints.requireRiskIntervention && isRiskInterventionNode(node))
     )
-    .map((node) => scoreNode(node, deficits, input.learnerState, input.constraints, policyFamily))
+    .map((node) => scoreNode(node, deficits, input.learnerState, input.constraints, policyFamily, preferenceContext))
     .sort((left, right) => right.score - left.score || left.node.id.localeCompare(right.node.id));
   const mainPathNodes = buildFeasiblePath(
     scored,
@@ -928,6 +931,7 @@ function scoreNode(
   learnerState: AdaptiveLearningPathLearnerState | null,
   constraints: AdaptiveLearningPathConstraints,
   policyFamily: AdaptiveLearningPathPolicyFamily,
+  preferenceContext: AdaptiveLearningPathPreferenceContext,
 ): ScoredNode {
   const coverageGain = node.planningMetadata.knowledgeCoverage.reduce((sum, tag) => {
     const deficit = deficits.find((item) => item.targetId === tag);
@@ -943,19 +947,80 @@ function scoreNode(
     if (!deficit || !competencyTargets.has(dimension)) return sum;
     return sum + impact * (1 - deficit.value);
   }, 0);
-  const modalityBoost = learnerState?.resourcePreference?.preferredModalities?.includes(node.type) ? 0.2 : 0;
+  const modalityBoost = preferenceContext.resourceTypes.has(node.type) ? 0.45 : 0;
+  const learnerModalityBoost = learnerState?.resourcePreference?.preferredModalities?.includes(node.type) ? 0.2 : 0;
   const fatiguePenalty = Math.max(0, (node.planningMetadata.estimatedTimeMinutes ?? 0) - constraints.timeBudgetMinutes / 2) / 100;
   const riskBoost = constraints.requireRiskIntervention && (node.type === 'ai_intervention' || node.type === 'reflection') ? 0.25 : 0;
-  const policyBoost = policyScoreBoost(node, policyFamily, constraints, learnerState);
-  const score = round(coverageGain + abilityGain + modalityBoost + riskBoost + policyBoost - fatiguePenalty, 3);
+  const difficultyBoost = difficultyRhythmScoreBoost(node, preferenceContext.difficultyRhythm, constraints);
+  const checkpointBoost = checkpointPreferenceScoreBoost(node, preferenceContext.checkpointPreference);
+  const policyBoost = policyScoreBoost(node, policyFamily, constraints, learnerState, preferenceContext);
+  const score = round(coverageGain + abilityGain + modalityBoost + learnerModalityBoost + riskBoost + difficultyBoost + checkpointBoost + policyBoost - fatiguePenalty, 3);
   const reasonCodes = [
     coverageGain > 0 ? 'matches-knowledge-deficit' : null,
     abilityGain > 0 ? 'matches-competency-deficit' : null,
-    modalityBoost > 0 ? 'matches-resource-preference' : null,
+    modalityBoost + learnerModalityBoost > 0 ? 'matches-resource-preference' : null,
     riskBoost > 0 ? 'risk-intervention-fit' : null,
+    difficultyBoost > 0 ? `matches-${preferenceContext.difficultyRhythm}-rhythm` : null,
+    checkpointBoost > 0 ? `matches-${preferenceContext.checkpointPreference}-checkpoint-preference` : null,
     policyBoost > 0 ? policyReasonCode(policyFamily) : null,
   ].filter((item): item is string => Boolean(item));
   return { node, score, reasonCodes };
+}
+
+interface AdaptiveLearningPathPreferenceContext {
+  resourceTypes: Set<ResourceNode['type']>;
+  difficultyRhythm: NonNullable<AdaptiveLearningPathPlannerInput['difficultyRhythm']>;
+  checkpointPreference: NonNullable<AdaptiveLearningPathPlannerInput['checkpointPreference']>;
+}
+
+function buildPlannerPreferenceContext(input: AdaptiveLearningPathPlannerInput): AdaptiveLearningPathPreferenceContext {
+  const resourceTypes = unique([
+    ...(input.learnerState?.resourcePreference?.preferredModalities ?? []),
+    ...(input.resourcePreferences ?? []),
+  ]).filter((type): type is ResourceNode['type'] =>
+    input.registry.supportedTypes.includes(type as ResourceNode['type'])
+  );
+  return {
+    resourceTypes: new Set(resourceTypes),
+    difficultyRhythm: input.difficultyRhythm ?? 'steady',
+    checkpointPreference: input.checkpointPreference ?? 'standard',
+  };
+}
+
+function difficultyRhythmScoreBoost(
+  node: ResourceNode,
+  rhythm: AdaptiveLearningPathPreferenceContext['difficultyRhythm'],
+  constraints: AdaptiveLearningPathConstraints,
+): number {
+  const estimatedMinutes = node.planningMetadata.estimatedTimeMinutes ?? 0;
+  const highImpact = Math.max(...Object.values(node.planningMetadata.abilityImpact), 0);
+  if (rhythm === 'gentle') {
+    const lowLoadBoost = node.planningMetadata.cognitiveLoad === 'low' ? 0.3 : 0;
+    const shortResourceBoost = estimatedMinutes <= Math.max(12, constraints.timeBudgetMinutes / 5) ? 0.18 : 0;
+    return lowLoadBoost + shortResourceBoost;
+  }
+  if (rhythm === 'challenge') {
+    const highLoadBoost = node.planningMetadata.cognitiveLoad === 'high' ? 0.25 : 0;
+    const highImpactBoost = highImpact >= 0.3 ? 0.25 : 0;
+    const authenticTaskBoost = node.type === 'simulation' || node.type === 'arena_task' ? 0.2 : 0;
+    return highLoadBoost + highImpactBoost + authenticTaskBoost;
+  }
+  return node.planningMetadata.cognitiveLoad === 'medium' ? 0.12 : 0;
+}
+
+function checkpointPreferenceScoreBoost(
+  node: ResourceNode,
+  preference: AdaptiveLearningPathPreferenceContext['checkpointPreference'],
+): number {
+  const isCheckpoint = Boolean(node.checkpoint) || node.type === 'checkpoint';
+  const isTerminalValidation = node.planningMetadata.terminalConstraints.includes('terminal-validation');
+  if (preference === 'dense') {
+    return (isCheckpoint ? 0.45 : 0) + (isTerminalValidation ? 0.25 : 0);
+  }
+  if (preference === 'light') {
+    return isTerminalValidation ? 0.08 : isCheckpoint ? -0.25 : 0.08;
+  }
+  return isCheckpoint ? 0.16 : 0;
 }
 
 function policyScoreBoost(
@@ -963,6 +1028,7 @@ function policyScoreBoost(
   policyFamily: AdaptiveLearningPathPolicyFamily,
   constraints: AdaptiveLearningPathConstraints,
   learnerState: AdaptiveLearningPathLearnerState | null,
+  preferenceContext: AdaptiveLearningPathPreferenceContext,
 ): number {
   const estimatedMinutes = node.planningMetadata.estimatedTimeMinutes ?? 0;
   if (policyFamily === 'foundation-remediation') {
@@ -989,7 +1055,10 @@ function policyScoreBoost(
     return shortPathBoost + highImpactBoost;
   }
   if (policyFamily === 'preference-matched') {
-    const preferenceBoost = learnerState?.resourcePreference?.preferredModalities?.includes(node.type) ? 0.75 : 0;
+    const preferenceBoost = preferenceContext.resourceTypes.has(node.type) ||
+      learnerState?.resourcePreference?.preferredModalities?.includes(node.type)
+      ? 0.75
+      : 0;
     const pacingBoost = estimatedMinutes <= Math.max(15, constraints.timeBudgetMinutes / 3) ? 0.18 : 0;
     return preferenceBoost + pacingBoost;
   }

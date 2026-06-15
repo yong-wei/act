@@ -520,6 +520,47 @@ describe('control-correction path rounds', () => {
     expect(db.learningPath.upsert).not.toHaveBeenCalled();
   });
 
+  it('preserves existing path selection history and activity when upserting a revised round', async () => {
+    const db = mockDb();
+    const plan = samplePlan();
+    db.learningPath.findFirst = vi.fn(async () => ({
+      id: plan.id,
+      userId: plan.userId,
+      goalId: plan.goal.id,
+      pathPayload: {
+        selectionHistory: [{
+          id: 'choice-before-revision',
+          type: 'selection',
+          selectedStyleId: 'foundation-remediation',
+        }],
+        activity: [{
+          id: 'activity-before-revision',
+          type: 'choice:selection',
+          selectedStyleId: 'foundation-remediation',
+        }],
+      },
+    })) as any;
+
+    await persistLearningPathRound(db, {
+      plan,
+      inputSnapshot: { goalId: 'control-correction', operation: 'revised' },
+    });
+
+    expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      update: expect.objectContaining({
+        pathPayload: expect.objectContaining({
+          selectionHistory: expect.arrayContaining([
+            expect.objectContaining({ id: 'choice-before-revision' }),
+          ]),
+          activity: expect.arrayContaining([
+            expect.objectContaining({ id: 'activity-before-revision' }),
+            expect.objectContaining({ id: `${plan.id}:generation` }),
+          ]),
+        }),
+      }),
+    }));
+  });
+
   it('rejects registered generic path rounds that point students outside student-visible targets', async () => {
     const forbiddenTargets = [
       '/teacher/resources',
