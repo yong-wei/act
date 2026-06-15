@@ -891,12 +891,6 @@ describe('learning path round API routes', () => {
     expect(forgedHistoryResponse.status).toBe(409);
     expect(mocks.recordPathDeviation).not.toHaveBeenCalled();
 
-    mocks.recordPathDeviation.mockResolvedValueOnce({
-      id: 'dev-3',
-      deviationType: 'skip',
-      targetNodeId: 'node-3',
-      context: { ignored: true },
-    });
     const futureSkipResponse = await deviatePath(post('http://localhost/api/learning-paths/path-1/deviations', {
       deviationType: 'skip',
       priorNodeId: 'node-2',
@@ -905,17 +899,9 @@ describe('learning path round API routes', () => {
       context: { returnEligible: false, rawClientClaim: 'ignored' },
     }), params);
 
-    expect(futureSkipResponse.status).toBe(200);
-    expect(mocks.recordPathDeviation).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-      targetNodeId: 'node-3',
-      context: {
-        consequence: '跳过后该资源不会计入完成进度，但会记录为路径偏离，可稍后返回。',
-        returnEligible: true,
-      },
-    }));
-    expect(await futureSkipResponse.json()).toMatchObject({
-      pathUpdate: null,
-    });
+    expect(futureSkipResponse.status).toBe(409);
+    expect(await futureSkipResponse.json()).toMatchObject({ error: '只能跳过当前路径节点' });
+    expect(mocks.recordPathDeviation).not.toHaveBeenCalled();
     expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
 

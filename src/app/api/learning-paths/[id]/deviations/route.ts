@@ -137,6 +137,9 @@ function validateAndBuildSkipContext(path: any, body: any): Record<string, unkno
   if (typeof path.currentNodeId === 'string' && body.priorNodeId !== path.currentNodeId) {
     return NextResponse.json({ error: '跳过路径偏离必须从当前节点发起' }, { status: 409 });
   }
+  if (typeof path.currentNodeId === 'string' && body.targetNodeId !== path.currentNodeId) {
+    return NextResponse.json({ error: '只能跳过当前路径节点' }, { status: 409 });
+  }
   const metadata = toRecord(path.lastExecutionMetadata);
   const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
   if (completedNodeIds.has(body.targetNodeId)) {
