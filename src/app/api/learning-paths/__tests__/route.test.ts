@@ -841,10 +841,7 @@ describe('learning path round API routes', () => {
       },
     });
 
-    const response = await launchPathNode(
-      new Request('http://localhost/api/learning-paths/path-1/execute?nodeId=external-resource%3Aocw-bode&intent=path-execution'),
-      params,
-    );
+    const response = await launchPathNode();
 
     expect(response.status).toBe(405);
     expect(mocks.recordPathNodeExecution).not.toHaveBeenCalled();

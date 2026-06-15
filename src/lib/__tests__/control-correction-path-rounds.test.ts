@@ -1370,6 +1370,52 @@ describe('control-correction path rounds', () => {
     expect(view?.interventions[0]).not.toHaveProperty('citedEvidence');
   });
 
+  it('derives plan node status from current node and completed execution metadata', () => {
+    const view = toControlCorrectionPathRoundView({
+      id: 'path-1',
+      userId: 'student-1',
+      goalId: 'control-correction',
+      currentNodeId: 'node-2',
+      pathPayload: {
+        planNodes: [
+          { nodeId: 'node-1', status: 'current', type: 'external_resource' },
+          { nodeId: 'node-2', status: 'next', type: 'knowledge_node' },
+        ],
+        executionStatus: {
+          activeNodeId: 'node-1',
+          completedNodeIds: [],
+        },
+        visualization: {
+          map: {
+            currentNodeId: 'node-1',
+            completedNodeIds: [],
+          },
+        },
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: ['node-1'],
+      },
+    });
+    const pathPayload = view?.pathPayload as {
+      planNodes: Array<Record<string, unknown>>;
+      executionStatus: Record<string, unknown>;
+      visualization: { map: Record<string, unknown> };
+    };
+
+    expect(pathPayload.planNodes).toEqual([
+      expect.objectContaining({ nodeId: 'node-1', status: 'completed' }),
+      expect.objectContaining({ nodeId: 'node-2', status: 'current' }),
+    ]);
+    expect(pathPayload.executionStatus).toMatchObject({
+      activeNodeId: 'node-2',
+      completedNodeIds: ['node-1'],
+    });
+    expect(pathPayload.visualization.map).toMatchObject({
+      currentNodeId: 'node-2',
+      completedNodeIds: ['node-1'],
+    });
+  });
+
   it('completes terminal validation only with governed simulation plus official Arena replay evidence', async () => {
     const db = mockDb();
     const path = {

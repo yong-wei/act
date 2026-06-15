@@ -178,6 +178,15 @@ export interface ControlCorrectionCenterNextAction {
   nodeId: string | null;
   title: string;
   href: string;
+  method: 'GET' | 'POST';
+  body?: Record<string, unknown>;
+  redirectHref?: string;
+  completionAction?: {
+    href: string;
+    label: string;
+    method: 'POST';
+    body: Record<string, unknown>;
+  };
   confidence: PlatformConfidenceStatus;
   evidenceLimitation: PlatformSourceCoverageStatus;
 }
@@ -232,6 +241,12 @@ export interface RecommendedPathNodeView {
     method: 'GET' | 'POST';
     body?: Record<string, unknown>;
     redirectHref?: string;
+    completionAction?: {
+      href: string;
+      label: string;
+      method: 'POST';
+      body: Record<string, unknown>;
+    };
   };
   state: RecommendedPathNodeState;
 }
@@ -268,6 +283,12 @@ export interface PracticeEntryRouteNode {
     method: 'GET' | 'POST';
     body?: Record<string, unknown>;
     redirectHref?: string;
+    completionAction?: {
+      href: string;
+      label: string;
+      method: 'POST';
+      body: Record<string, unknown>;
+    };
   };
 }
 
@@ -548,6 +569,10 @@ export function buildControlCorrectionLearningCenterView(
       nodeId: nextNode?.nodeId ?? null,
       title: nextNode?.title ?? '生成控制校正学习路径',
       href: nextNode?.action.href ?? `/assessment/adaptive-practice?goal=control-correction&intent=${routeIntent}`,
+      method: nextNode?.action.method ?? 'GET',
+      body: nextNode?.action.body,
+      redirectHref: nextNode?.action.redirectHref,
+      completionAction: nextNode?.action.completionAction,
       confidence: nextNode?.confidence ?? 'unknown',
       evidenceLimitation: nextNode?.evidenceLimitation ?? 'missing',
     },
@@ -754,6 +779,21 @@ function pathNodeLaunchAction(
         idempotencyKey: `external-resource-access:${launchContext.pathId}:${nodeId}`,
         liftMetadata: {
           launchIntent: launchContext.routeIntent,
+        },
+      },
+      completionAction: {
+        href: `/api/learning-paths/${encodeURIComponent(launchContext.pathId)}/execute`,
+        label: '已学习该资料，继续路径',
+        method: 'POST',
+        body: {
+          nodeId,
+          resourceType: 'external_resource',
+          status: 'completed',
+          idempotencyKey: `external-resource-completion:${launchContext.pathId}:${nodeId}`,
+          liftMetadata: {
+            launchIntent: launchContext.routeIntent,
+            completionIntent: 'learner-confirmed-external-resource',
+          },
         },
       },
     };

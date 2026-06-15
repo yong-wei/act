@@ -872,6 +872,21 @@ describe('adaptive learning center UI contracts', () => {
           launchIntent: 'path-execution',
         },
       },
+      completionAction: {
+        href: '/api/learning-paths/path-1/execute',
+        label: '已学习该资料，继续路径',
+        method: 'POST',
+        body: {
+          nodeId: 'external-resource:ocw-bode',
+          resourceType: 'external_resource',
+          status: 'completed',
+          idempotencyKey: 'external-resource-completion:path-1:external-resource:ocw-bode',
+          liftMetadata: {
+            launchIntent: 'path-execution',
+            completionIntent: 'learner-confirmed-external-resource',
+          },
+        },
+      },
     });
     expect(node.action.href).not.toContain('https://ocw.mit.edu/control/bode');
   });
@@ -956,6 +971,67 @@ describe('adaptive learning center UI contracts', () => {
         routeIntent: 'path-execution',
       },
     ]);
+  });
+
+  it('exposes external resource completion on the control-correction next action', () => {
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState({ missingEvidence: [] }),
+      pathPlan: pathPlan({
+        goal: {
+          id: 'control-correction',
+          title: '控制校正路径',
+          knowledgeTargets: ['phase-margin'],
+        },
+        mainPath: [
+          {
+            ...pathPlan().mainPath[0],
+            nodeId: 'external-resource:ocw-bode',
+            title: '外部伯德图资料',
+            type: 'external_resource',
+            ...pathNodeSemantics('external_resource'),
+            sourceKind: 'external_resource',
+            sourceRef: 'ocw-bode',
+            target: 'https://ocw.mit.edu/control/bode',
+            externalResource: {
+              source: 'MIT OCW',
+              url: 'https://ocw.mit.edu/control/bode',
+              estimatedTimeMinutes: 15,
+              knowledgeCoverage: ['phase-margin'],
+              applicableGoalId: 'control-correction',
+              evidenceUseStatus: 'explicit-access-required',
+              privacyPolicy: 'student-visible',
+            },
+            evidenceStatus: 'explicit-access-required',
+          },
+        ],
+        currentNodeId: 'external-resource:ocw-bode',
+      }),
+      routeIntent: 'path-execution',
+    });
+
+    expect(view.nextAction).toMatchObject({
+      nodeId: 'external-resource:ocw-bode',
+      href: '/api/learning-paths/path-1/execute',
+      method: 'POST',
+      redirectHref: 'https://ocw.mit.edu/control/bode',
+      body: {
+        nodeId: 'external-resource:ocw-bode',
+        resourceType: 'external_resource',
+        status: 'started',
+      },
+      completionAction: {
+        href: '/api/learning-paths/path-1/execute',
+        label: '已学习该资料，继续路径',
+        method: 'POST',
+        body: {
+          nodeId: 'external-resource:ocw-bode',
+          resourceType: 'external_resource',
+          status: 'completed',
+          idempotencyKey: 'external-resource-completion:path-1:external-resource:ocw-bode',
+        },
+      },
+    });
   });
 
   it('renders actionable control-correction fallback states without private internals', () => {

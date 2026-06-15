@@ -18,6 +18,29 @@ import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-plan
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
 import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 
+type PostLearningPathNodeAction = {
+  href: string;
+  method: 'POST';
+  body?: Record<string, unknown>;
+  redirectHref?: string;
+};
+
+type LearningPathNodeCompletionAction = {
+  href: string;
+  label: string;
+  method: 'POST';
+  body: Record<string, unknown>;
+};
+
+function isPostLearningPathNodeAction(action: {
+  method: 'GET' | 'POST';
+  href: string;
+  body?: Record<string, unknown>;
+  redirectHref?: string;
+}): action is PostLearningPathNodeAction {
+  return action.method === 'POST';
+}
+
 interface DiagnosticResponse {
   knowledgeDimensions: {
     computational: number;
@@ -473,6 +496,7 @@ export default function AdaptivePracticePage() {
   const [controlCorrectionPathRound, setControlCorrectionPathRound] = useState<LearningPathRoundView | null>(null);
   const [pathChoicePending, setPathChoicePending] = useState<string | null>(null);
   const [pathChoiceMessage, setPathChoiceMessage] = useState<string | null>(null);
+  const [pathNodeCompletionPending, setPathNodeCompletionPending] = useState<string | null>(null);
   const practiceRouteNodes = useMemo(() => buildPracticeEntryRouteNodes({
     recommendedFocus: diagnostic?.recommendedFocus ?? [],
     weakAreas: diagnostic?.weakAreas ?? [],
@@ -682,25 +706,69 @@ export default function AdaptivePracticePage() {
     reloadControlCorrectionPath,
   ]);
 
-  const launchPathNode = useCallback(async (node: PracticeEntryRouteNode) => {
-    if (node.action.method !== 'POST' || !node.action.body || !node.action.redirectHref) {
-      return;
-    }
+  const launchPathNodeAction = useCallback(async (action: PostLearningPathNodeAction) => {
+    if (!action.body || !action.redirectHref) return;
     try {
-      const response = await fetch(node.action.href, {
+      const response = await fetch(action.href, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(node.action.body),
+        body: JSON.stringify(action.body),
       });
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
         throw new Error(typeof payload.error === 'string' ? payload.error : '路径节点启动失败');
       }
-      window.location.assign(node.action.redirectHref);
+      window.location.assign(action.redirectHref);
     } catch (launchError) {
       setError(launchError instanceof Error ? launchError.message : '路径节点启动失败');
     }
   }, []);
+
+  const launchPathNode = useCallback(async (node: PracticeEntryRouteNode) => {
+    if (!isPostLearningPathNodeAction(node.action)) return;
+    await launchPathNodeAction(node.action);
+  }, [launchPathNodeAction]);
+
+  const launchNextAction = useCallback(async () => {
+    const nextAction = controlCorrectionCenter?.nextAction;
+    if (!nextAction || !isPostLearningPathNodeAction(nextAction)) return;
+    await launchPathNodeAction(nextAction);
+  }, [controlCorrectionCenter, launchPathNodeAction]);
+
+  const completePathNodeAction = useCallback(async (
+    nodeId: string,
+    completionAction?: LearningPathNodeCompletionAction,
+  ) => {
+    if (!completionAction) return;
+    setPathNodeCompletionPending(nodeId);
+    try {
+      const response = await fetch(completionAction.href, {
+        method: completionAction.method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(completionAction.body),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(typeof payload.error === 'string' ? payload.error : '路径节点完成确认失败');
+      }
+      await reloadControlCorrectionPath();
+      setError(null);
+    } catch (completionError) {
+      setError(completionError instanceof Error ? completionError.message : '路径节点完成确认失败');
+    } finally {
+      setPathNodeCompletionPending(null);
+    }
+  }, [reloadControlCorrectionPath]);
+
+  const completePathNode = useCallback(async (node: PracticeEntryRouteNode) => {
+    await completePathNodeAction(node.nodeId, node.action.completionAction);
+  }, [completePathNodeAction]);
+
+  const completeNextAction = useCallback(async () => {
+    const nextAction = controlCorrectionCenter?.nextAction;
+    if (!nextAction?.nodeId) return;
+    await completePathNodeAction(nextAction.nodeId, nextAction.completionAction);
+  }, [completePathNodeAction, controlCorrectionCenter]);
 
   useEffect(() => {
     if (isDemoMode) {
@@ -883,13 +951,37 @@ export default function AdaptivePracticePage() {
                   {controlCorrectionCenter.readinessGate.ready ? '路径可继续' : '需要补齐上下文'}
                 </p>
               </div>
-              <Link
-                href={controlCorrectionCenter.nextAction.href}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
-                data-learner-record-next-action="control-correction"
-              >
-                {controlCorrectionCenter.nextAction.title}
-              </Link>
+              {controlCorrectionCenter.nextAction.method === 'POST' ? (
+                <div className="flex flex-wrap gap-2" data-learner-record-next-action="control-correction">
+                  <button
+                    type="button"
+                    onClick={() => void launchNextAction()}
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+                  >
+                    {controlCorrectionCenter.nextAction.title}
+                  </button>
+                  {controlCorrectionCenter.nextAction.completionAction && controlCorrectionCenter.nextAction.nodeId ? (
+                    <button
+                      type="button"
+                      onClick={() => void completeNextAction()}
+                      disabled={pathNodeCompletionPending === controlCorrectionCenter.nextAction.nodeId}
+                      className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary disabled:cursor-wait disabled:text-subtle"
+                    >
+                      {pathNodeCompletionPending === controlCorrectionCenter.nextAction.nodeId
+                        ? '正在确认完成'
+                        : controlCorrectionCenter.nextAction.completionAction.label}
+                    </button>
+                  ) : null}
+                </div>
+              ) : (
+                <Link
+                  href={controlCorrectionCenter.nextAction.href}
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+                  data-learner-record-next-action="control-correction"
+                >
+                  {controlCorrectionCenter.nextAction.title}
+                </Link>
+              )}
             </div>
 
             <div className="mt-4 grid gap-3 md:grid-cols-3">
@@ -1169,13 +1261,25 @@ export default function AdaptivePracticePage() {
                       </p>
                     ) : null}
                     {node.action.method === 'POST' ? (
-                      <button
-                        type="button"
-                        onClick={() => void launchPathNode(node)}
-                        className="mt-2 inline-flex text-xs text-emerald-300 hover:text-emerald-200"
-                      >
-                        {node.action.label}
-                      </button>
+                      <div className="mt-2 flex flex-wrap gap-3">
+                        <button
+                          type="button"
+                          onClick={() => void launchPathNode(node)}
+                          className="inline-flex text-xs text-emerald-300 hover:text-emerald-200"
+                        >
+                          {node.action.label}
+                        </button>
+                        {node.action.completionAction ? (
+                          <button
+                            type="button"
+                            onClick={() => void completePathNode(node)}
+                            disabled={pathNodeCompletionPending === node.nodeId}
+                            className="inline-flex text-xs text-sky-300 hover:text-sky-200 disabled:cursor-wait disabled:text-slate-500"
+                          >
+                            {pathNodeCompletionPending === node.nodeId ? '正在确认完成' : node.action.completionAction.label}
+                          </button>
+                        ) : null}
+                      </div>
                     ) : (
                       <Link href={node.action.href} className="mt-2 inline-flex text-xs text-emerald-300 hover:text-emerald-200">
                         {node.action.label}

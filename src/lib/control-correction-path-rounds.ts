@@ -780,7 +780,7 @@ export function toControlCorrectionPathRoundView(path: any) {
     pathStatus: path.pathStatus,
     currentNodeId: path.currentNodeId,
     classId: path.classId,
-    pathPayload: path.pathPayload,
+    pathPayload: derivePathPayloadExecutionState(path),
     explanationPayload: path.explanationPayload,
     alternativePayload: path.alternativePayload,
     entryNodeId: path.entryNodeId,
@@ -819,6 +819,56 @@ export function toControlCorrectionPathRoundView(path: any) {
           createdAt: intervention.createdAt,
         }))
       : [],
+  };
+}
+
+function derivePathPayloadExecutionState(path: any): unknown {
+  const payload = toRecord(path.pathPayload);
+  const planNodes = Array.isArray(payload.planNodes) ? payload.planNodes : null;
+  if (!planNodes) return path.pathPayload;
+
+  const currentNodeId = typeof path.currentNodeId === 'string' ? path.currentNodeId : null;
+  const metadata = toRecord(path.lastExecutionMetadata);
+  const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
+  const failedNodeIds = new Set(arrayOfStrings(metadata.failedNodeIds));
+
+  return {
+    ...payload,
+    planNodes: planNodes.map((node) => {
+      const record = toRecord(node);
+      const nodeId = typeof record.nodeId === 'string' ? record.nodeId : null;
+      if (!nodeId) return node;
+      if (completedNodeIds.has(nodeId)) return { ...record, status: 'completed' };
+      if (currentNodeId === nodeId) return { ...record, status: 'current' };
+      if (record.status === 'current') return { ...record, status: 'next' };
+      if (failedNodeIds.has(nodeId)) return { ...record, status: 'blocked' };
+      return node;
+    }),
+    executionStatus: {
+      ...toRecord(payload.executionStatus),
+      activeNodeId: currentNodeId,
+      completedNodeIds: [...completedNodeIds],
+      failedNodeIds: [...failedNodeIds],
+    },
+    visualization: derivePathVisualizationExecutionState(payload.visualization, currentNodeId, completedNodeIds),
+  };
+}
+
+function derivePathVisualizationExecutionState(
+  visualization: unknown,
+  currentNodeId: string | null,
+  completedNodeIds: Set<string>,
+): unknown {
+  const visualizationRecord = toRecord(visualization);
+  const mapRecord = toRecord(visualizationRecord.map);
+  if (Object.keys(visualizationRecord).length === 0 || Object.keys(mapRecord).length === 0) return visualization;
+  return {
+    ...visualizationRecord,
+    map: {
+      ...mapRecord,
+      currentNodeId,
+      completedNodeIds: [...completedNodeIds],
+    },
   };
 }
 
