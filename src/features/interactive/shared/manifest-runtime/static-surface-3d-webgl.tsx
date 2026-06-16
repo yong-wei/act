@@ -131,7 +131,7 @@ function SurfaceMesh({
   const geometry = useMemo(() => buildSurfaceGeometry(dataset, colorScale), [dataset, colorScale]);
 
   return (
-    <mesh geometry={geometry} rotation={[-Math.PI / 2, 0, 0]}>
+    <mesh geometry={geometry}>
       <meshStandardMaterial vertexColors side={THREE.DoubleSide} roughness={0.62} metalness={0.08} />
     </mesh>
   );
