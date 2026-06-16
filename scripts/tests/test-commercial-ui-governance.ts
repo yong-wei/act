@@ -658,8 +658,9 @@ function simulationReactDoctorReport(pathname: string | undefined) {
   };
 }
 
-function runtimeNoiseMessages(entries: unknown[] | undefined, fallbackKey: 'message' | 'text') {
-  return (entries ?? []).map((entry) => {
+function runtimeNoiseMessages(entries: unknown, fallbackKey: 'message' | 'text') {
+  if (!Array.isArray(entries)) return undefined;
+  return entries.map((entry) => {
     if (typeof entry === 'string') return entry;
     if (!entry || typeof entry !== 'object') return JSON.stringify(entry);
     const record = entry as Record<string, unknown>;
@@ -714,10 +715,13 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
                   ...route.simulationVisualQa.runtimeNoise,
                   reportSha256: runtimeNoiseReport?.sha256,
                   routesChecked: runtimeNoiseReport?.routesChecked ?? route.simulationVisualQa.runtimeNoise.routesChecked,
-                  pageErrors: runtimeNoiseReport?.pageErrors ?? route.simulationVisualQa.runtimeNoise.pageErrors,
+                  pageErrors: runtimeNoiseReport
+                    ? runtimeNoiseReport.pageErrors
+                    : route.simulationVisualQa.runtimeNoise.pageErrors,
                   trackedConsoleWarnings:
-                    runtimeNoiseReport?.trackedConsoleWarnings
-                    ?? route.simulationVisualQa.runtimeNoise.trackedConsoleWarnings,
+                    runtimeNoiseReport
+                      ? runtimeNoiseReport.trackedConsoleWarnings
+                      : route.simulationVisualQa.runtimeNoise.trackedConsoleWarnings,
                 }
               : undefined,
             handoffBaseline: route.simulationVisualQa.handoffBaseline

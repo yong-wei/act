@@ -3310,8 +3310,11 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('function simulationRuntimeNoiseReport');
     expect(scriptSource).toContain('const runtimeNoiseReport = simulationRuntimeNoiseReport');
     expect(scriptSource).toContain('reportSha256: runtimeNoiseReport?.sha256');
-    expect(scriptSource).toContain('pageErrors: runtimeNoiseReport?.pageErrors');
+    expect(scriptSource).toContain('if (!Array.isArray(entries)) return undefined;');
+    expect(scriptSource).toContain('pageErrors: runtimeNoiseReport');
+    expect(scriptSource).toContain('? runtimeNoiseReport.pageErrors');
     expect(scriptSource).toContain('trackedConsoleWarnings:');
+    expect(scriptSource).toContain('? runtimeNoiseReport.trackedConsoleWarnings');
     expect(scriptSource).toContain('designHandoffSha256:');
     expect(scriptSource).toContain('route.simulationVisualQa.handoffBaseline.designHandoff');
     expect(scriptSource).toContain('implementationMatrixSha256:');

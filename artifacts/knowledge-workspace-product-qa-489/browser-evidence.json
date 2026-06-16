@@ -1,7 +1,7 @@
 {
   "change": "govern-knowledge-workspace-product-qa",
   "issue": 489,
-  "capturedAt": "2026-06-16T01:08:18.548Z",
+  "capturedAt": "2026-06-16T01:29:32.367Z",
   "baseUrl": "http://127.0.0.1:3002",
   "selectedNodeId": "z反变换_7_7959c077",
   "designSourceOfTruth": {
@@ -44,7 +44,7 @@
     "src/app/globals.css": "82e9624b19b1b84721e68ec966ef9a2ce5563d896d1045deeaeac88ca6170c6c",
     "src/lib/konling-agent-runtime.ts": "bf18a797efc8cb5f91aeb4feea5c128342eef06fc8c7d3342ddd227f11bc0b1f",
     "scripts/tests/capture-knowledge-workspace-product-qa.ts": "69d45018e2377f8dbe17012ea6f7d991ff175426bd79cd4e92bdf9098e86e2a3",
-    "scripts/tests/test-commercial-ui-governance.ts": "e099a76f8ea49947636b65d288c16c5ffc8456dd78e82a33ef86c7a1ee7c900f"
+    "scripts/tests/test-commercial-ui-governance.ts": "d84c9c00abed8dab13a71b1bc3c01f511b2101955b9f1182fa4203443703c201"
   },
   "stateMatrix": [
     {
@@ -63,7 +63,7 @@
       "interactionState": "default graph",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-default-collapsed-dark.png",
-      "screenshotSha256": "0ad50edcb0558e569d8594fee1c80d228b6837a22a0c4d1620f696428ea6ae5a",
+      "screenshotSha256": "7ec2b828270419cdae2b37cb3a5dbadf0810b419ae9c54d2b677c034e31d2c52",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -137,7 +137,7 @@
       "interactionState": "navigation preference persisted",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-expanded-persisted-dark.png",
-      "screenshotSha256": "2d9519df6020c22ebe71a220720a6da8e2988d49f4235f17f1328728d6e1e217",
+      "screenshotSha256": "313e93235975aa59b93ec1f153a7ed24a63cecbae4ae045e7ba0a298eca17b74",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -359,7 +359,7 @@
       "interactionState": "selected inspector",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-selected-inspector-light.png",
-      "screenshotSha256": "1e3db981476ad7ae8ecbaa90e3104a1b1a77ea594f28866babc583e07a936e14",
+      "screenshotSha256": "1cc2505fdaef37f345c27e042527d5597c41b47cc1fae4c82cd80c1819b17843",
       "markers": {
         "htmlClass": "light",
         "workspace": "canvas-first",
@@ -447,7 +447,7 @@
       "interactionState": "hover click drag persistence evidence",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-hover-click-drag-dark.png",
-      "screenshotSha256": "e0f5ffc0352e1e8826b7e8cca22a69f121386cd815b07ab59ae606f885fd02bd",
+      "screenshotSha256": "fe18ac822c487544074a9af24e0dea5e05fbffbce7ae474baebe871de2ba9530",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -906,7 +906,7 @@
       "interactionState": "expanded shell local tool inspector konling stress state",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/desktop-stress-expanded-tool-inspector-konling-dark.png",
-      "screenshotSha256": "ab47a2e97beb88bd169b44a359028f75741ec41e60d3a6e9717630346a195b28",
+      "screenshotSha256": "eef2cf0c1c20fe36494af264dda3323e25605b5b0fe404a39e38a02f4fce2412",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1075,7 +1075,7 @@
       "interactionState": "mobile selected inspector sheet",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/mobile-320-selected-inspector-dark.png",
-      "screenshotSha256": "a62ee1c8ea8b6fef407a63d4002b84bfc694da96e06c1abfff2f7f517a472e3e",
+      "screenshotSha256": "4f251467937033843765e457cd2e88784744ecbf894a63ec61042ba9f30659bc",
       "markers": {
         "htmlClass": "dark",
         "workspace": "canvas-first",
@@ -1311,7 +1311,7 @@
       "interactionState": "light theme default graph",
       "result": "passed",
       "screenshotPath": "artifacts/knowledge-workspace-product-qa-489/light-theme-default.png",
-      "screenshotSha256": "fd676c02834a91d98fac95db350c21498c1b0f112ab0c2411ae8d7d371784ba5",
+      "screenshotSha256": "2958fa1bf3f68c49f2c80e529f85fc0efe986bedae4d8045596f4fe07f03ae3e",
       "markers": {
         "htmlClass": "light",
         "workspace": "canvas-first",
@@ -1434,22 +1434,22 @@
       "stressNonOverlap": "PASS"
     },
     "reviewedStateSha256": {
-      "desktop-default-collapsed-dark": "0ad50edcb0558e569d8594fee1c80d228b6837a22a0c4d1620f696428ea6ae5a",
-      "desktop-expanded-persisted-dark": "2d9519df6020c22ebe71a220720a6da8e2988d49f4235f17f1328728d6e1e217",
+      "desktop-default-collapsed-dark": "7ec2b828270419cdae2b37cb3a5dbadf0810b419ae9c54d2b677c034e31d2c52",
+      "desktop-expanded-persisted-dark": "313e93235975aa59b93ec1f153a7ed24a63cecbae4ae045e7ba0a298eca17b74",
       "desktop-local-tools-legend-dark": "950af1da77a94652b8157c377d484046ed1991b032d479f39769be8edc957264",
       "desktop-local-tools-directory-dark": "75fa2b0cda1a1f638a7aff7872512aa427fed793f978891fc9d293dbe00152c0",
-      "desktop-selected-inspector-light": "1e3db981476ad7ae8ecbaa90e3104a1b1a77ea594f28866babc583e07a936e14",
-      "desktop-hover-click-drag-dark": "e0f5ffc0352e1e8826b7e8cca22a69f121386cd815b07ab59ae606f885fd02bd",
+      "desktop-selected-inspector-light": "1cc2505fdaef37f345c27e042527d5597c41b47cc1fae4c82cd80c1819b17843",
+      "desktop-hover-click-drag-dark": "fe18ac822c487544074a9af24e0dea5e05fbffbce7ae474baebe871de2ba9530",
       "desktop-explicit-relayout-dark": "ed68af8f00c1cea26c029a49a44ce5b23f9ccd748453fd6d2991f0d2123aff30",
       "desktop-konling-selected-expanded-dark": "f3d3b841ec7243ff684410925cfc6920317864b598905d8d29f8665b0ef30010",
       "desktop-konling-no-selection-dark": "b7e37ff2e2c8dabfd3fbc259de26a8cca4b1a145d936f77d23d828deba553dcb",
       "desktop-konling-degraded-dark": "54c72744fa50bd4287137b03490536582f0dfc04d6f590cddea5f7853f217d8c",
-      "desktop-stress-expanded-tool-inspector-konling-dark": "ab47a2e97beb88bd169b44a359028f75741ec41e60d3a6e9717630346a195b28",
+      "desktop-stress-expanded-tool-inspector-konling-dark": "eef2cf0c1c20fe36494af264dda3323e25605b5b0fe404a39e38a02f4fce2412",
       "mobile-320-local-tools-dark": "0c846e5d4a17929f8c7a4f4f2084949a6fe8a66baff2a494e901f42f4845c2c0",
-      "mobile-320-selected-inspector-dark": "a62ee1c8ea8b6fef407a63d4002b84bfc694da96e06c1abfff2f7f517a472e3e",
+      "mobile-320-selected-inspector-dark": "4f251467937033843765e457cd2e88784744ecbf894a63ec61042ba9f30659bc",
       "mobile-320-konling-expanded-dark": "4242a9f8f19ec535ffc16c68e99f746331d33c5fb36de1a81a6ca316cb0ce863",
       "mobile-320-inspector-konling-stress-dark": "5515718e4ba8a10690b5712684cf8d6f1d7a109e223984bd90bee14a9708b3a7",
-      "light-theme-default": "fd676c02834a91d98fac95db350c21498c1b0f112ab0c2411ae8d7d371784ba5"
+      "light-theme-default": "2958fa1bf3f68c49f2c80e529f85fc0efe986bedae4d8045596f4fe07f03ae3e"
     },
     "reviewedSourceSha256": {
       "src/features/knowledge/knowledge-graph-system.tsx": "06aee2d32617c7fc486d50beeb147f3f49c14bc3148a695a9745d955ba6296fb",
@@ -1464,7 +1464,7 @@
       "src/app/globals.css": "82e9624b19b1b84721e68ec966ef9a2ce5563d896d1045deeaeac88ca6170c6c",
       "src/lib/konling-agent-runtime.ts": "bf18a797efc8cb5f91aeb4feea5c128342eef06fc8c7d3342ddd227f11bc0b1f",
       "scripts/tests/capture-knowledge-workspace-product-qa.ts": "69d45018e2377f8dbe17012ea6f7d991ff175426bd79cd4e92bdf9098e86e2a3",
-      "scripts/tests/test-commercial-ui-governance.ts": "e099a76f8ea49947636b65d288c16c5ffc8456dd78e82a33ef86c7a1ee7c900f"
+      "scripts/tests/test-commercial-ui-governance.ts": "d84c9c00abed8dab13a71b1bc3c01f511b2101955b9f1182fa4203443703c201"
     }
   },
   "temporaryExceptions": []
