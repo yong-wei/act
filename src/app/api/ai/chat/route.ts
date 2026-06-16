@@ -7,7 +7,6 @@
  */
 
 import { consumeStream, createUIMessageStreamResponse, streamText, stepCountIs } from 'ai';
-import { createHash } from 'node:crypto';
 import { getConfiguredAIModel, isConfiguredAIServiceAvailable, SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai-client';
 import { toLegacyMessage, toModelMessages, toUIMessage, type IncomingMessage } from '@/lib/ai-message-compat';
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
@@ -38,10 +37,6 @@ import {
 import { AIProviderCapabilityUnavailableError } from '@/lib/ai/provider-settings';
 import { redactProviderError, type ModelProviderCapabilityRequirements } from '@/lib/ai/model-provider-compatibility';
 import type { AIContext, PageContext, UserProfile } from '@/types/ai-context';
-
-const PATH_ADVISOR_GENERATION_VERB = '(?:生成|创建|新建|制定|规划|重建|重新生成|重新规划)';
-const PATH_ADVISOR_PATH_NOUN = '(?:学习路径|路径方案|学习方案|学习计划|路径规划)';
-const PATH_ADVISOR_NEGATION = '(?:不要|别|无需|不需要|禁止|暂不|先不要|先别|不用)';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -326,17 +321,6 @@ export async function POST(request: Request) {
         permittedTools: modeContract.permittedTools,
         scopedSimulationState: simulationState as Parameters<typeof updateSimulationState>[0] | undefined,
       });
-      const proactivePathGeneration = await maybeGeneratePathAdvisorPlan({
-        modeId: modeContract.mode.id,
-        permittedTools: modeContract.permittedTools,
-        scope: scope.scope,
-        agentSessionId: agentSession.id,
-        messages,
-        runtime: toolRuntime,
-      });
-      if (proactivePathGeneration) {
-        systemPrompt = `${systemPrompt}\n\n${proactivePathGeneration}`;
-      }
       agentSessionResponseHeaders = {
         'X-Konling-Agent-Session-Id': agentSession.id,
         'X-Konling-Citation-Guard': citationGuardMetadata.status,
@@ -426,131 +410,4 @@ export async function POST(request: Request) {
     console.error('AI Chat API 错误:', summarizeAIChatError(error));
     return buildAIChatErrorResponse(error);
   }
-}
-
-async function maybeGeneratePathAdvisorPlan(input: {
-  modeId: string;
-  permittedTools: string[];
-  scope: {
-    authenticatedUserId: string;
-    targetUserId: string;
-    courseId: string;
-    pageId: string;
-  };
-  agentSessionId: string;
-  messages: Array<{ role?: string; content?: unknown }>;
-  runtime: ReturnType<typeof buildKonlingToolRuntime>;
-}) {
-  if (input.modeId !== 'path-advisor') return null;
-  if (!input.permittedTools.includes('generate_learning_path')) return null;
-  if (input.scope.authenticatedUserId !== input.scope.targetUserId) return null;
-
-  const text = getLastUserMessageText(input.messages);
-  if (!isLearningPathGenerationRequest(text)) return null;
-
-  const generationOptions = extractPathAdvisorGenerationOptions(text);
-  const result = await input.runtime.generateLearningPath({
-    idempotencyKey: buildPathAdvisorGenerationIdempotencyKey(input.scope, {
-      agentSessionId: input.agentSessionId,
-      lastUserMessageIndex: findLastUserMessageIndex(input.messages),
-      text,
-    }),
-    goalId: input.scope.courseId,
-    routeIntent: 'path-advisor-chat-generation',
-    naturalLanguageIntent: text,
-    ...generationOptions,
-  }) as {
-    pathId?: string;
-    pathOptions?: Array<{ label?: string; estimatedMinutes?: number; limitations?: string[] }>;
-    comparison?: { optionCount?: number; message?: string };
-  };
-
-  const optionSummaries = (result.pathOptions ?? []).slice(0, 3).map((option, index) =>
-    `${index + 1}. ${option.label ?? '学习路径'}${typeof option.estimatedMinutes === 'number' ? `，约 ${option.estimatedMinutes} 分钟` : ''}`
-  );
-
-  return [
-    '**已执行路径生成工具**:',
-    `- 工具: generate_learning_path`,
-    `- 路径ID: ${result.pathId ?? 'unknown'}`,
-    `- 方案数量: ${result.comparison?.optionCount ?? result.pathOptions?.length ?? 0}`,
-    optionSummaries.length ? `- 方案摘要: ${optionSummaries.join('；')}` : null,
-    '- 回答要求: 直接说明路径已经生成，可提示学生在页面的路径比较区选择方案；不要再口头虚构未持久化的新路径。',
-  ].filter((line): line is string => Boolean(line)).join('\n');
-}
-
-function getLastUserMessageText(messages: Array<{ role?: string; content?: unknown }>) {
-  const lastUserMessageIndex = findLastUserMessageIndex(messages);
-  const lastUserMessage = lastUserMessageIndex >= 0 ? messages[lastUserMessageIndex] : null;
-  if (!lastUserMessage) return '';
-  return typeof lastUserMessage.content === 'string' ? lastUserMessage.content.trim() : '';
-}
-
-function findLastUserMessageIndex(messages: Array<{ role?: string; content?: unknown }>) {
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    if (messages[index]?.role === 'user') return index;
-  }
-  return -1;
-}
-
-function isLearningPathGenerationRequest(text: string) {
-  if (!text) return false;
-  const compactText = text.replace(/\s+/g, '');
-  const negatedGeneration = new RegExp(
-    `(?:${PATH_ADVISOR_NEGATION}.{0,12}${PATH_ADVISOR_GENERATION_VERB}.{0,24}${PATH_ADVISOR_PATH_NOUN}|${PATH_ADVISOR_NEGATION}.{0,12}${PATH_ADVISOR_PATH_NOUN}.{0,24}${PATH_ADVISOR_GENERATION_VERB})`,
-  );
-  if (negatedGeneration.test(compactText)) return false;
-  return new RegExp(
-    `(?:${PATH_ADVISOR_GENERATION_VERB}.{0,24}${PATH_ADVISOR_PATH_NOUN}|${PATH_ADVISOR_PATH_NOUN}.{0,24}${PATH_ADVISOR_GENERATION_VERB})`,
-  ).test(compactText);
-}
-
-function extractPathAdvisorGenerationOptions(text: string) {
-  const compactText = text.replace(/\s+/g, '');
-  const timeBudgetMinutes = extractPathAdvisorTimeBudgetMinutes(compactText);
-  const resourcePreference = extractPathAdvisorResourcePreference(compactText);
-  return {
-    ...(typeof timeBudgetMinutes === 'number' ? { timeBudgetMinutes } : {}),
-    ...(resourcePreference.length > 0 ? { resourcePreference } : {}),
-  };
-}
-
-function extractPathAdvisorTimeBudgetMinutes(compactText: string) {
-  const hourMatch = compactText.match(/(\d{1,2}(?:\.\d+)?)小时/);
-  if (hourMatch) {
-    return Math.round(Number(hourMatch[1]) * 60);
-  }
-  const minuteMatch = compactText.match(/(\d{1,3})分钟/);
-  if (minuteMatch) {
-    return Number(minuteMatch[1]);
-  }
-  return null;
-}
-
-function extractPathAdvisorResourcePreference(compactText: string) {
-  const preferences: string[] = [];
-  if (/仿真|虚拟实验|实验/.test(compactText)) preferences.push('simulation');
-  if (/练习|题目|自适应题|测验/.test(compactText)) preferences.push('adaptive_quiz');
-  if (/竞技场|挑战|任务/.test(compactText)) preferences.push('arena_task');
-  if (/知识卡|知识点|讲义|资料/.test(compactText)) preferences.push('knowledge_card');
-  return [...new Set(preferences)];
-}
-
-function buildPathAdvisorGenerationIdempotencyKey(
-  scope: { authenticatedUserId: string; targetUserId: string; courseId: string; pageId: string },
-  request: { agentSessionId: string; lastUserMessageIndex: number; text: string },
-) {
-  const digest = createHash('sha256')
-    .update([
-      scope.authenticatedUserId,
-      scope.targetUserId,
-      scope.courseId,
-      scope.pageId,
-      request.agentSessionId,
-      String(request.lastUserMessageIndex),
-      request.text,
-    ].join('\0'))
-    .digest('hex')
-    .slice(0, 24);
-  return `path-advisor:auto-generate:${digest}`;
 }
