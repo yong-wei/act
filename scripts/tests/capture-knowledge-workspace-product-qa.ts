@@ -300,7 +300,7 @@ async function openMobileTool(page: Page, tool: string) {
 }
 
 async function expandDock(page: Page) {
-  await clickIfPresent(page, '[data-platform-floating-dock] button[aria-label="打开页面工具菜单"]');
+  await clickIfPresent(page, '[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]');
   await page.waitForSelector('[data-platform-floating-dock-expanded-panel]', { timeout: 8000 });
   await clickIfPresent(page, '[data-platform-floating-dock-expanded-panel] button[aria-label="呼出控灵 AI助手"]');
   await page.waitForSelector('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]', { timeout: 8000 });
@@ -436,7 +436,7 @@ async function captureFocusEvidence(browser: Browser) {
       expandDock,
       '[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]',
       (page) => page.keyboard.press('Escape'),
-      '[data-platform-floating-dock] button[aria-label="打开页面工具菜单"]',
+      '[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]',
     ),
   ];
 }

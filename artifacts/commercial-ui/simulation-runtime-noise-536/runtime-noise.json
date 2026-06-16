@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-06-15T16:53:14.672Z",
+  "capturedAt": "2026-06-16T00:38:24.072Z",
   "baseUrl": "http://localhost:3002",
   "routes": [
     "/simulations/destroyer",
@@ -19,7 +19,7 @@
         "height": 1000
       },
       "screenshotPath": "artifacts/commercial-ui/simulation-runtime-noise-536/simulations-destroyer-dark-1440.png",
-      "screenshotSha256": "8b32c4caac8993f0884e7a078518300b47a794fc13d65de67b5739521c99cc35",
+      "screenshotSha256": "663f4552e2790aeaa0081f9c00ae5606cb7fe584c76fba42b8581c4103feca52",
       "pageErrors": [],
       "trackedConsoleWarnings": [],
       "themeState": {
@@ -36,7 +36,7 @@
         "height": 1000
       },
       "screenshotPath": "artifacts/commercial-ui/simulation-runtime-noise-536/simulations-lng-dark-1440.png",
-      "screenshotSha256": "5d4c650ca529d048b98b1cfce0498e86735c7b9f796c4cd55b35f3986d8cced3",
+      "screenshotSha256": "bb11a729c034fe10f71f95ed341c092695d1442c4993107903438a7be69201a7",
       "pageErrors": [],
       "trackedConsoleWarnings": [],
       "themeState": {
@@ -53,7 +53,7 @@
         "height": 1000
       },
       "screenshotPath": "artifacts/commercial-ui/simulation-runtime-noise-536/simulations-container-dark-1440.png",
-      "screenshotSha256": "3fb40eb2d492f8f79ee721d9b80b49b15f2ea2ca6cd460a1d5f5bb07e43d9ec8",
+      "screenshotSha256": "cd02e25547d518dd38e883b137124b466d97d45d7da7a6a1d044d96a99ccd89d",
       "pageErrors": [],
       "trackedConsoleWarnings": [],
       "themeState": {
@@ -70,7 +70,7 @@
         "height": 1000
       },
       "screenshotPath": "artifacts/commercial-ui/simulation-runtime-noise-536/simulations-drilling-dark-1440.png",
-      "screenshotSha256": "c3c2464d49d17001d4363eaa016863ec0531ef2a42baa9d85859f57b293e651c",
+      "screenshotSha256": "a963a6ee719f4ace3a1099a7ea638fffc54a2aa5ad82acae9b3237f67ce301f0",
       "pageErrors": [],
       "trackedConsoleWarnings": [],
       "themeState": {
@@ -87,7 +87,7 @@
         "height": 1000
       },
       "screenshotPath": "artifacts/commercial-ui/simulation-runtime-noise-536/simulations-cruise-dark-1440.png",
-      "screenshotSha256": "fa653d37c9436204392a0d19e837e78d3ab0315eba8099d79f6b1e2f71f3337f",
+      "screenshotSha256": "e06c2d44cdb7346a4b2a78e9b500c31274a1f4879edfc044f130f3eb42bb6de8",
       "pageErrors": [],
       "trackedConsoleWarnings": [],
       "themeState": {
@@ -104,7 +104,7 @@
         "height": 1000
       },
       "screenshotPath": "artifacts/commercial-ui/simulation-runtime-noise-536/simulations-icebreaker-dark-1440.png",
-      "screenshotSha256": "a394227e000ea4488011793030753217fb95b39b000f6cacf684bd053b33f0f8",
+      "screenshotSha256": "0b05ead511939228bfa0cca110b4cda9c852759e0d3ce52d274ec96dd3fde4fc",
       "pageErrors": [],
       "trackedConsoleWarnings": [],
       "themeState": {
@@ -121,7 +121,7 @@
         "height": 1000
       },
       "screenshotPath": "artifacts/commercial-ui/simulation-runtime-noise-536/simulations-dredger-dark-1440.png",
-      "screenshotSha256": "d1d283cc23121c40e8882e7c0aeb1a8861735bf09760adc180b3b45227d7cbb3",
+      "screenshotSha256": "7b6f3f0d5c284a89d0bb5431542681e8ac2225a477410e11f34a2912edf24646",
       "pageErrors": [],
       "trackedConsoleWarnings": [],
       "themeState": {

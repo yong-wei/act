@@ -23,6 +23,10 @@ import { buildPlatformStatusViewModel } from '@/components/platform/platform-ui-
 import type { AdaptiveLearnerState } from '@/lib/data-governance/adaptive-learner-state-service';
 import { ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES } from '@/lib/adaptive-learning-path-planner';
 import type { AdaptiveLearningPathPlan } from '@/lib/adaptive-learning-path-planner';
+import {
+  buildAdaptivePathOptionDisplays,
+  type AdaptivePathOptionWriteOption,
+} from '@/lib/adaptive-path-option-display';
 import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '@/lib/platform-role-navigation';
 import {
   getPathNodeSemanticsForResourceType,
@@ -397,6 +401,68 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("submitPathChoice('helpfulness'");
   });
 
+  it('does not fall back static starter path actions to the first real option', () => {
+    const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(source).not.toContain('realPathOption');
+    expect(source).not.toContain('pathOptions[index] ??');
+    expect(source).not.toContain('pathOptions[index]');
+    expect(source).toContain('const visiblePathOptions = useMemo(() => buildAdaptivePathOptionDisplays(pathOptions), [pathOptions]);');
+    expect(source).toContain('const optionForWrite = option.writeOption;');
+    expect(source).toContain('disabled={!option.writeOption || Boolean(pathChoicePending)}');
+    expect(source).toContain("setPathChoiceMessage('请先登录并生成路径后再记录选择。')");
+  });
+
+  it('binds displayed real path options to their own writable option payload', () => {
+    const options: AdaptivePathOptionWriteOption[] = [
+      {
+        optionId: 'rules-plus-graph-search-route',
+        label: '规则图谱推荐路线',
+        targetDeficits: [{ targetId: 'phase-margin' }],
+        evidenceBasis: ['adaptive-learner-state'],
+        resourceMix: { knowledge_card: 1, arena_task: 1 },
+        effort: { estimatedMinutes: 42, relative: 'medium' },
+        terminalValidationNodeIds: ['arena-task:terminal'],
+        terminalValidationStrategy: { summary: 'official Arena validation' },
+        limitations: [],
+      },
+      {
+        optionId: 'foundation-remediation-route',
+        label: '基础补救路线',
+        targetDeficits: [],
+        evidenceBasis: ['LearningFact'],
+        resourceMix: { adaptive_quiz: 1 },
+        effort: { estimatedMinutes: 18, relative: 'short' },
+        terminalValidationNodeIds: [],
+        terminalValidationStrategy: {},
+        limitations: [],
+      },
+    ];
+
+    const displays = buildAdaptivePathOptionDisplays(options);
+    const preview = buildAdaptivePathOptionDisplays([]);
+
+    expect(displays.map((option) => option.title)).toEqual(['规则图谱推荐路线', '基础补救路线']);
+    expect(displays[0].writeOption).toBe(options[0]);
+    expect(displays[1].writeOption).toBe(options[1]);
+    expect(displays[0].id).toBe('rules-plus-graph-search-route');
+    expect(displays[0].resources.map((resource) => resource.label)).toEqual(['知识卡', 'Arena']);
+    expect(preview).toHaveLength(3);
+    expect(preview.every((option) => option.writeOption === undefined)).toBe(true);
+  });
+
+  it('keeps productized path option writes compatible with server style evidence', () => {
+    const routeSource = readFileSync(join(repoRoot, 'src/app/api/learning-paths/[id]/choices/route.ts'), 'utf8');
+
+    expect(routeSource).toContain('selectedOptionId');
+    expect(routeSource).toContain('rejectedOptionIds');
+    expect(routeSource).toContain('resolveChoiceOption');
+    expect(routeSource).toContain('path-option-${index + 1}');
+    expect(routeSource).toContain('selectedStyleId');
+    expect(routeSource).toContain('selectedPolicyFamily');
+    expect(routeSource).toContain('rejectedStyleIds');
+  });
+
   it('prioritizes current path, next action, evidence confidence, and missing source on dashboard and profile', () => {
     const dashboard = readFileSync(join(repoRoot, 'src/app/(main)/dashboard/page.tsx'), 'utf8');
     const profile = readFileSync(join(repoRoot, 'src/app/(main)/profile/page.tsx'), 'utf8');
@@ -458,6 +524,64 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('practiceRouteNodes');
     expect(source).toContain('证据覆盖');
     expect(source).toContain('缺失证据');
+    expect(source).toContain('formatCompletedPathLearningTime');
+    expect(source).toContain('已完成节点时长');
+    expect(source).not.toContain("diagnostic ? '42 分钟' : '尚未开始'");
+    expect(source).toContain('data-adaptive-path-current-node-actions="launch-complete"');
+    expect(source).toContain('onClick={launchNextAction}');
+    expect(source).toContain('onClick={completeNextAction}');
+    expect(source).toContain("const canOpenNextPathAction = nextPathAction?.method === 'GET';");
+    expect(source).toContain('当前节点暂不可启动');
+  });
+
+  it('keeps adaptive practice failures recoverable from the resource card', () => {
+    const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(source).toContain('data-adaptive-practice-error-state="recoverable"');
+    expect(source).toContain('练习加载未完成');
+    expect(source).toContain('onClick={bootstrapPractice}');
+    expect(source).toContain('const retryNextQuestion = useCallback(async () =>');
+    expect(source).toContain('onClick={retryNextQuestion}');
+    expect(source).not.toContain('onClick={loadNextQuestion}');
+  });
+
+  it('keeps default adaptive path generation generic before entering a registered goal context', () => {
+    const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(source).toContain("const controlCorrectionGenerationHref = '/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation';");
+    expect(source).toContain("const frequencyResponseGenerationHref = '/assessment/adaptive-practice?goal=frequency-response-foundations&intent=contextual-recommendation';");
+    expect(source).toContain("const genericPathGenerationHref = '#adaptive-path-generation-goals';");
+    expect(source).toContain('useGlobalAI');
+    expect(source).toContain('openPathGenerationAdvisor');
+    expect(source).toContain("data-adaptive-path-generation-action=\"open-in-page-path-advisor\"");
+    expect(source).toContain("data-adaptive-path-generation-action=\"choose-generation-goal\"");
+    expect(source).toContain('data-adaptive-path-generation-goal-list="generic"');
+    expect(source).toContain('data-adaptive-path-generation-goal="control-correction"');
+    expect(source).toContain('data-adaptive-path-generation-goal="frequency-response-foundations"');
+    expect(source).toContain("data-adaptive-path-generation-action=\"enter-registered-goal-context\"");
+    expect(source).toContain('请控灵生成路径');
+    expect(source).toContain('生成学习路径');
+    expect(source).toContain('生成该目标路径');
+    expect(source).toContain('路径顾问准备中');
+    expect(source).not.toContain('data-adaptive-path-generation-action="enter-control-correction-context"');
+    expect(source).not.toContain('review-frequency-response-evidence');
+    expect(source).not.toContain('/ai/copilot?mode=path-advisor');
+    expect(source).not.toContain("setPathChoiceMessage('控灵已准备好根据你的目标生成路径。')");
+  });
+
+  it('registers path-advisor entry point only after an explicit control-correction goal is selected', () => {
+    const source = readFileSync(join(repoRoot, 'src/features/adaptive/path-advisor-entrypoint-bridge.tsx'), 'utf8');
+    const layoutSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/layout.tsx'), 'utf8');
+
+    expect(source).toContain("import { useSearchParams } from 'next/navigation';");
+    expect(source).toContain("value === 'control-correction' || value === 'frequency-response-foundations'");
+    expect(source).toContain('const modeContextToken = explicitGoal ? modeContextTokens[explicitGoal] ?? null : null;');
+    expect(source).toContain('if (!explicitGoal || !classId || !modeContextToken) {');
+    expect(source).toContain('updatePageContext({ assistantEntryPoint: null });');
+    expect(source).toContain('return () => updatePageContext({ assistantEntryPoint: null });');
+    expect(source).toContain('promptContext: `student-path-center:${explicitGoal}:adaptive-path-center`');
+    expect(source).toContain('goalId: explicitGoal');
+    expect(layoutSource).toContain("'frequency-response-foundations': createKonlingTeachingAssistantServerContextToken");
   });
 
   it('binds growth center to grouped learner timeline and stable chart containers', () => {
@@ -1088,17 +1212,47 @@ describe('adaptive learning center UI contracts', () => {
     );
   });
 
-  it('does not relabel non-control-correction paths as control-correction launch contexts', () => {
+  it('keeps registered non-control paths visible without relabeling launch contexts', () => {
     const view = buildControlCorrectionLearningCenterView({
       featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
       learnerState: learnerState({ missingEvidence: [] }),
-      pathPlan: pathPlan(),
+      pathPlan: pathPlan({
+        goal: {
+          id: 'frequency-response-foundations',
+          title: '频率响应基础',
+          knowledgeTargets: ['kn-bode'],
+        },
+      }),
     });
 
-    expect(view.launchContexts).toEqual([]);
-    expect(view.nextAction.nodeId).toBeNull();
-    expect(view.readinessGate.ready).toBe(false);
-    expect(view.readinessGate.missing).toContain('no-path');
+    expect(view.goalId).toBe('frequency-response-foundations');
+    expect(view.launchContexts).toEqual([
+      expect.objectContaining({
+        goalId: 'frequency-response-foundations',
+        pathId: 'path-1',
+        nodeId: 'node-1',
+      }),
+    ]);
+    expect(view.nextAction.nodeId).toBe('node-1');
+    expect(view.nextAction.href).toContain('goal=frequency-response-foundations');
+    expect(JSON.stringify(view.fallbackStates)).toContain('goal=frequency-response-foundations');
+    expect(JSON.stringify(view.fallbackStates)).not.toContain('goal=control-correction');
+    expect(view.readinessGate.missing).not.toContain('no-path');
+  });
+
+  it('keeps explicit registered goal context when no path is loaded yet', () => {
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      goalId: 'frequency-response-foundations',
+      goalLabel: '频率响应基础',
+      learnerState: null,
+      pathPlan: null,
+    });
+
+    expect(view.goalId).toBe('frequency-response-foundations');
+    expect(view.nextAction.href).toContain('goal=frequency-response-foundations');
+    expect(JSON.stringify(view.fallbackStates)).toContain('goal=frequency-response-foundations');
+    expect(JSON.stringify(view.fallbackStates)).not.toContain('goal=control-correction');
   });
 
   it('binds the adaptive practice page to control-correction query context', () => {
@@ -1106,27 +1260,38 @@ describe('adaptive learning center UI contracts', () => {
 
     expect(source).toContain('buildControlCorrectionLearningCenterView');
     expect(source).toContain("searchParams.get('goal')");
+    expect(source).toContain('isAdaptivePracticeGoalId');
+    expect(source).toContain("value === 'control-correction' || value === 'frequency-response-foundations'");
     expect(source).toContain("searchParams.get('intent')");
     expect(source).toContain("searchParams.get('pathId')");
     expect(source).toContain("searchParams.get('nodeId')");
+    expect(source).toContain('new URLSearchParams({ goal: activeGoal, intent: routeIntent })');
     expect(source).toContain("controlCorrectionQuery.set('pathId', activePathId)");
     expect(source).toContain("controlCorrectionQuery.set('nodeId', activeNodeId)");
     expect(source).toContain('data-control-correction-center="adaptive-practice"');
-    expect(source).toContain("fetch('/api/adaptive/learner-state?goal=control-correction')");
+    expect(source).toContain('fetch(`/api/adaptive/learner-state?goal=${encodeURIComponent(goalToLoad)}`)');
     expect(source).toContain("authStatus === 'loading'");
     expect(source).toContain("authStatus === 'unauthenticated'");
     expect(source).toContain("setControlCorrectionLearnerState(null)");
     expect(source).toContain("setControlCorrectionPathPlan(null)");
+    expect(source).toContain("goalToLoad === 'control-correction'");
     expect(source).toContain('learnerState?.pathContext.activeControlCorrectionPath.pathId');
+    expect(source).toContain('learnerState?.pathContext.recentPathIds ?? []');
+    expect(source).toContain('uniquePathIds([activePathId, ...fallbackPathIds])');
+    expect(source).toContain('payload.path?.goalId === goalToLoad && restoredPlan');
     expect(source).toContain('fetch(`/api/learning-paths/${encodeURIComponent(pathIdToLoad)}`)');
+    expect(source).toContain("if (!round || !isAdaptivePracticeGoalId(round.goalId)) return null;");
+    expect(source).toContain('id: round.goalId');
     expect(source).toContain('Array.isArray(round.alternativePayload)');
     expect(source).toContain('data-control-correction-alternative-count');
     expect(source).toContain('goalId: activeGoal');
     expect(source).toContain('routeIntent: activeGoal ? routeIntent : null');
     expect(source).toContain('fetch(`/api/learning-paths/${encodeURIComponent(pathId)}/choices`');
-    expect(source).toContain("submitPathChoice('helpfulness', option, true)");
-    expect(source).toContain("rejectedStyleIds: action === 'helpfulness'");
-    expect(source).toContain('? []');
+    expect(source).toContain("submitPathChoice('helpfulness'");
+    expect(source).toContain('selectedOptionId');
+    expect(source).toContain('rejectedOptionIds');
+    expect(source).toContain('option.optionId');
+    expect(source).toContain("setPathChoiceMessage('请先登录并生成路径后再记录选择。')");
   });
 
   it('keeps next main-path nodes distinct from optional alternatives', () => {

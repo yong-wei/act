@@ -35,6 +35,7 @@ import {
   type AdaptiveLearningPathPlanNode,
 } from '@/lib/adaptive-learning-path-planner';
 import { buildControlCorrectionResourceNodeRegistry } from '@/lib/control-correction-resource-seed';
+import { buildFrequencyResponseFoundationsResourceNodeRegistry } from '@/lib/frequency-response-resource-seed';
 import type { PageContext, UserProfile, AbilityVector } from '@/types/ai-context';
 import type { InterventionDecision, StudentState } from '@/features/ai/companion/intervention-engine';
 import { generateIntervention, shouldIntervene } from '@/features/ai/companion/intervention-engine';
@@ -1748,7 +1749,13 @@ function buildAdaptivePathTradeoffOutput(
 }
 
 function resolveScopedAdaptivePathGoalId(input: KonlingToolRuntimeInput, requestedGoalId?: string | null) {
-  const goalId = requestedGoalId || CONTROL_CORRECTION_PATH_ROUND_GOAL_ID;
+  const serverScopedGoalId = getRegisteredAdaptiveLearningPathGoal(input.scope.courseId)
+    ? input.scope.courseId
+    : null;
+  if (requestedGoalId && serverScopedGoalId && requestedGoalId !== serverScopedGoalId) {
+    throw new KonlingRuntimeScopeError(403, 'Konling 路径工具不能扩展到服务端授权目标之外。');
+  }
+  const goalId = requestedGoalId || serverScopedGoalId || CONTROL_CORRECTION_PATH_ROUND_GOAL_ID;
   if (!getRegisteredAdaptiveLearningPathGoal(goalId)) {
     throw new KonlingRuntimeScopeError(403, 'Konling 路径工具不能扩展到未登记的学习目标。');
   }
@@ -1758,6 +1765,9 @@ function resolveScopedAdaptivePathGoalId(input: KonlingToolRuntimeInput, request
 function resolveAdaptivePathGenerationRegistry(goalId: string) {
   if (goalId === CONTROL_CORRECTION_PATH_ROUND_GOAL_ID) {
     return buildControlCorrectionResourceNodeRegistry();
+  }
+  if (goalId === 'frequency-response-foundations') {
+    return buildFrequencyResponseFoundationsResourceNodeRegistry();
   }
   throw new KonlingRuntimeScopeError(403, '当前学习目标还没有可生成的路径资源注册表。');
 }
@@ -2244,6 +2254,7 @@ async function runKonlingRuntimeTool<T>(
 
   const inputRecord = readRecord(toolInput);
   const idempotencyKey = typeof inputRecord.idempotencyKey === 'string' ? inputRecord.idempotencyKey : null;
+  const adaptivePathGoalId = resolveAdaptivePathGoalLock(runtimeInput, toolName, toolInput);
   const toolRun = await startKonlingToolRun(runtimeInput.db, {
     scope: runtimeInput.scope,
     agentSessionId,
@@ -2273,6 +2284,7 @@ async function runKonlingRuntimeTool<T>(
     });
   }
   if (toolRun.reused) {
+    assertReusedAdaptivePathToolRunMatchesGoal(toolName, toolRun, adaptivePathGoalId);
     if (toolRun.status === 'succeeded') {
       return assertToolResult(runtimeInput, toolName, toolRun.outputSummary ?? {
         toolRunReused: true,
@@ -2312,6 +2324,33 @@ async function runKonlingRuntimeTool<T>(
       error: summarizeRuntimeToolError(error),
     });
     throw error;
+  }
+}
+
+function resolveAdaptivePathGoalLock(
+  runtimeInput: KonlingToolRuntimeInput,
+  toolName: KonlingToolName,
+  toolInput: unknown,
+): string | null {
+  if (!isKonlingAdaptivePathTool(toolName)) return null;
+  const requestedGoalId = getString(readRecord(toolInput), 'goalId') || null;
+  return resolveScopedAdaptivePathGoalId(runtimeInput, requestedGoalId);
+}
+
+function assertReusedAdaptivePathToolRunMatchesGoal(
+  toolName: KonlingToolName,
+  toolRun: KonlingToolRunView,
+  goalId: string | null,
+): void {
+  if (!goalId || !isKonlingAdaptivePathTool(toolName)) return;
+  const inputGoalId = getString(readRecord(toolRun.inputSummary), 'goalId') || null;
+  if (inputGoalId && inputGoalId !== goalId) {
+    throw new KonlingRuntimeScopeError(403, '幂等 Konling 工具请求不属于当前页面目标。');
+  }
+  const outputScope = readRecord(getValue(readRecord(toolRun.outputSummary), 'scope'));
+  const outputGoalId = getString(outputScope, 'goalId') || null;
+  if (outputGoalId && outputGoalId !== goalId) {
+    throw new KonlingRuntimeScopeError(403, '幂等 Konling 工具结果不属于当前页面目标。');
   }
 }
 

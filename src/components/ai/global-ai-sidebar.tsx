@@ -116,7 +116,7 @@ export function GlobalAISidebar() {
         opener.focus();
         return;
       }
-      document.querySelector<HTMLElement>('[data-platform-floating-dock] button[aria-label="打开页面工具菜单"]')?.focus();
+      document.querySelector<HTMLElement>('[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]')?.focus();
     });
   }, [isOpen]);
 
@@ -188,19 +188,18 @@ export function GlobalAISidebar() {
   const knowledgeWorkspaceContext = useMemo(() => {
     if (!pageContext || (pageContext.courseId !== 'knowledge' && pageContext.stepId !== '/knowledge')) return null;
     const status = knowledgeWorkspaceHint?.status ?? 'no-selection';
-    const nodeId = knowledgeWorkspaceHint?.selectedNodeId ?? knowledgeWorkspaceHint?.requestedNodeId ?? null;
     if (status === 'selected-node') {
       return {
         status,
         label: '已选知识节点',
-        description: nodeId ? `当前节点: ${nodeId}` : '当前节点已进入控灵上下文。',
+        description: '当前选中的知识节点已进入控灵上下文。',
       };
     }
     if (status === 'degraded') {
       return {
         status,
         label: '节点未解析',
-        description: nodeId ? `请求节点 ${nodeId} 暂不可用。` : '请求节点暂不可用。',
+        description: '请求的知识节点暂不可用，控灵将仅使用当前筛选与视图状态。',
       };
     }
     return {

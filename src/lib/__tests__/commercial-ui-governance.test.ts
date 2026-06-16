@@ -2791,9 +2791,13 @@ describe('commercial UI governance', () => {
     expect(globalAiSidebarSource).toContain('openerElementRef');
     expect(globalAiSidebarSource).toContain('wasOpenRef');
     expect(globalAiSidebarSource).toContain('opener.focus();');
-    expect(globalAiSidebarSource).toContain('[data-platform-floating-dock] button[aria-label="打开页面工具菜单"]');
+    expect(globalAiSidebarSource).toContain('[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]');
     expect(globalAiSidebarSource).toContain('knowledgeInspectorAvoidanceActive');
     expect(globalAiSidebarSource).toContain('data-konling-inspector-avoidance');
+    expect(globalAiSidebarSource).toContain('当前选中的知识节点已进入控灵上下文。');
+    expect(globalAiSidebarSource).toContain('请求的知识节点暂不可用，控灵将仅使用当前筛选与视图状态。');
+    expect(globalAiSidebarSource).not.toContain('当前节点: ${nodeId}');
+    expect(globalAiSidebarSource).not.toContain('请求节点 ${nodeId} 暂不可用。');
     expect(globalAiSidebarSource).toContain("document.querySelector('[data-knowledge-inspector=\"stable-rail\"]')");
     expect(globalAiSidebarSource).toContain("right: 'calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem))'");
     expect(globalsSource).toContain('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
@@ -2830,7 +2834,7 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain('openedFocusManaged');
     expect(captureScriptSource).toContain('keyboardReachable');
     expect(captureScriptSource).toContain('panelClosed && await activeElementWithin(page, returnSelector)');
-    expect(captureScriptSource).toContain("'[data-platform-floating-dock] button[aria-label=\"打开页面工具菜单\"]'");
+    expect(captureScriptSource).toContain("'[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]'");
     expect(captureScriptSource).not.toContain('returnSelector?: string');
     expect(captureScriptSource).not.toContain(': panelClosed;');
     expect(captureScriptSource).toContain("'[data-knowledge-canvas-primary=\"true\"]'");
@@ -2857,6 +2861,20 @@ describe('commercial UI governance', () => {
     expect(scanSource).toContain("lineEvidence(source, /#[0-9a-fA-F]{3,8}\\b/g, 'raw-color', file)");
     expect(scanSource).toContain("lineEvidence(source, /\\brgba\\(\\s*\\d+\\s*,\\s*\\d+\\s*,\\s*\\d+\\s*,/g, 'raw-rgba', file)");
     expect(scanSource).toContain("'tailwind-color-family',\n      file");
+  });
+
+  it('keeps the adaptive path center default student branch free of internal status strings', () => {
+    const pageSource = readFileSync(join(process.cwd(), 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(pageSource).toContain('自适应学习路径中心');
+    expect(pageSource).toContain('生成学习路径');
+    expect(pageSource).toContain('告诉控灵你想达成什么');
+    expect(pageSource).toContain('data-adaptive-path-comparison-state="information-grid"');
+    expect(pageSource).toContain('data-learning-path-options-layout="comparable-information-grid"');
+    expect(pageSource).toContain("label: '控灵助手'");
+    expect(pageSource).toContain("label: '路径管理'");
+    const studentVisibleSource = pageSource.replaceAll('data-learner-record-missing-source', '');
+    expect(studentVisibleSource).not.toMatch(/自适应跨域题库|Control Correction Center|Readiness Gate|missing-[a-z-]+|terminal-validation-unavailable|strategy unavailable|no-path|low-evidence/);
   });
 
   it('keeps simulation resource palette governance on full-file scan after migration', () => {
