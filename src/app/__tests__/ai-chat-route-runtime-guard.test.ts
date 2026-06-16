@@ -113,9 +113,14 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain('lastUserMessageIndex: findLastUserMessageIndex(input.messages)');
     expect(chatRouteSource).toContain('request.agentSessionId');
     expect(chatRouteSource).toContain('String(request.lastUserMessageIndex)');
-    expect(chatRouteSource).toContain("const generationVerb = '(?:生成|创建|新建|制定|规划|重建|重新生成|重新规划)'");
-    expect(chatRouteSource).toContain("const pathNoun = '(?:学习路径|路径方案|学习方案|学习计划|路径规划)'");
-    expect(chatRouteSource).toContain('new RegExp(`(?:${generationVerb}.{0,24}${pathNoun}|${pathNoun}.{0,24}${generationVerb})`)');
+    expect(chatRouteSource).toContain("const PATH_ADVISOR_GENERATION_VERB = '(?:生成|创建|新建|制定|规划|重建|重新生成|重新规划)'");
+    expect(chatRouteSource).toContain("const PATH_ADVISOR_PATH_NOUN = '(?:学习路径|路径方案|学习方案|学习计划|路径规划)'");
+    expect(chatRouteSource).toContain("const PATH_ADVISOR_NEGATION = '(?:不要|别|无需|不需要|禁止|暂不|先不要|先别|不用)'");
+    expect(chatRouteSource).toContain('const generationOptions = extractPathAdvisorGenerationOptions(text)');
+    expect(chatRouteSource).toContain('...generationOptions');
+    expect(chatRouteSource).toContain('timeBudgetMinutes');
+    expect(chatRouteSource).toContain('resourcePreference');
+    expect(chatRouteSource).toContain('extractPathAdvisorResourcePreference');
     expect(chatRouteSource.indexOf('const proactivePathGeneration = await maybeGeneratePathAdvisorPlan'))
       .toBeLessThan(chatRouteSource.indexOf('tools = buildScopedKonlingAiTools(toolRuntime)'));
     expect(chatRouteSource.indexOf('isConfiguredAIServiceAvailable(modelRequirements)'))
@@ -130,16 +135,23 @@ describe('AI chat route Konling runtime guard', () => {
   it('keeps path-advisor auto generation intent narrow but accepts explicit path creation requests', () => {
     const generationVerb = '(?:生成|创建|新建|制定|规划|重建|重新生成|重新规划)';
     const pathNoun = '(?:学习路径|路径方案|学习方案|学习计划|路径规划)';
+    const negation = '(?:不要|别|无需|不需要|禁止|暂不|先不要|先别|不用)';
     const matcher = new RegExp(`(?:${generationVerb}.{0,24}${pathNoun}|${pathNoun}.{0,24}${generationVerb})`);
-    const matches = (value: string) => matcher.test(value.replace(/\s+/g, ''));
+    const negatedMatcher = new RegExp(`(?:${negation}.{0,12}${generationVerb}.{0,24}${pathNoun}|${negation}.{0,12}${pathNoun}.{0,24}${generationVerb})`);
+    const matches = (value: string) => {
+      const compactText = value.replace(/\s+/g, '');
+      return !negatedMatcher.test(compactText) && matcher.test(compactText);
+    };
 
     expect(matches('生成学习路径')).toBe(true);
     expect(matches('请生成学习路径')).toBe(true);
     expect(matches('规划路径方案')).toBe(true);
     expect(matches('重建路径方案')).toBe(true);
     expect(matches('制定学习计划')).toBe(true);
+    expect(matches('请在120分钟内生成仿真优先的学习路径')).toBe(true);
     expect(matches('推荐我按当前路径下一步做什么')).toBe(false);
     expect(matches('请推荐学习路径')).toBe(false);
+    expect(matches('不要生成学习路径，只解释当前状态')).toBe(false);
   });
 
   it('attaches audited agent sessions before exposing scoped Konling tools', () => {

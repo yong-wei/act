@@ -39,6 +39,10 @@ import { AIProviderCapabilityUnavailableError } from '@/lib/ai/provider-settings
 import { redactProviderError, type ModelProviderCapabilityRequirements } from '@/lib/ai/model-provider-compatibility';
 import type { AIContext, PageContext, UserProfile } from '@/types/ai-context';
 
+const PATH_ADVISOR_GENERATION_VERB = '(?:生成|创建|新建|制定|规划|重建|重新生成|重新规划)';
+const PATH_ADVISOR_PATH_NOUN = '(?:学习路径|路径方案|学习方案|学习计划|路径规划)';
+const PATH_ADVISOR_NEGATION = '(?:不要|别|无需|不需要|禁止|暂不|先不要|先别|不用)';
+
 export const runtime = 'nodejs';
 export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
@@ -444,6 +448,7 @@ async function maybeGeneratePathAdvisorPlan(input: {
   const text = getLastUserMessageText(input.messages);
   if (!isLearningPathGenerationRequest(text)) return null;
 
+  const generationOptions = extractPathAdvisorGenerationOptions(text);
   const result = await input.runtime.generateLearningPath({
     idempotencyKey: buildPathAdvisorGenerationIdempotencyKey(input.scope, {
       agentSessionId: input.agentSessionId,
@@ -453,6 +458,7 @@ async function maybeGeneratePathAdvisorPlan(input: {
     goalId: input.scope.courseId,
     routeIntent: 'path-advisor-chat-generation',
     naturalLanguageIntent: text,
+    ...generationOptions,
   }) as {
     pathId?: string;
     pathOptions?: Array<{ label?: string; estimatedMinutes?: number; limitations?: string[] }>;
@@ -490,9 +496,44 @@ function findLastUserMessageIndex(messages: Array<{ role?: string; content?: unk
 function isLearningPathGenerationRequest(text: string) {
   if (!text) return false;
   const compactText = text.replace(/\s+/g, '');
-  const generationVerb = '(?:生成|创建|新建|制定|规划|重建|重新生成|重新规划)';
-  const pathNoun = '(?:学习路径|路径方案|学习方案|学习计划|路径规划)';
-  return new RegExp(`(?:${generationVerb}.{0,24}${pathNoun}|${pathNoun}.{0,24}${generationVerb})`).test(compactText);
+  const negatedGeneration = new RegExp(
+    `(?:${PATH_ADVISOR_NEGATION}.{0,12}${PATH_ADVISOR_GENERATION_VERB}.{0,24}${PATH_ADVISOR_PATH_NOUN}|${PATH_ADVISOR_NEGATION}.{0,12}${PATH_ADVISOR_PATH_NOUN}.{0,24}${PATH_ADVISOR_GENERATION_VERB})`,
+  );
+  if (negatedGeneration.test(compactText)) return false;
+  return new RegExp(
+    `(?:${PATH_ADVISOR_GENERATION_VERB}.{0,24}${PATH_ADVISOR_PATH_NOUN}|${PATH_ADVISOR_PATH_NOUN}.{0,24}${PATH_ADVISOR_GENERATION_VERB})`,
+  ).test(compactText);
+}
+
+function extractPathAdvisorGenerationOptions(text: string) {
+  const compactText = text.replace(/\s+/g, '');
+  const timeBudgetMinutes = extractPathAdvisorTimeBudgetMinutes(compactText);
+  const resourcePreference = extractPathAdvisorResourcePreference(compactText);
+  return {
+    ...(typeof timeBudgetMinutes === 'number' ? { timeBudgetMinutes } : {}),
+    ...(resourcePreference.length > 0 ? { resourcePreference } : {}),
+  };
+}
+
+function extractPathAdvisorTimeBudgetMinutes(compactText: string) {
+  const hourMatch = compactText.match(/(\d{1,2}(?:\.\d+)?)小时/);
+  if (hourMatch) {
+    return Math.round(Number(hourMatch[1]) * 60);
+  }
+  const minuteMatch = compactText.match(/(\d{1,3})分钟/);
+  if (minuteMatch) {
+    return Number(minuteMatch[1]);
+  }
+  return null;
+}
+
+function extractPathAdvisorResourcePreference(compactText: string) {
+  const preferences: string[] = [];
+  if (/仿真|虚拟实验|实验/.test(compactText)) preferences.push('simulation');
+  if (/练习|题目|自适应题|测验/.test(compactText)) preferences.push('adaptive_quiz');
+  if (/竞技场|挑战|任务/.test(compactText)) preferences.push('arena_task');
+  if (/知识卡|知识点|讲义|资料/.test(compactText)) preferences.push('knowledge_card');
+  return [...new Set(preferences)];
 }
 
 function buildPathAdvisorGenerationIdempotencyKey(
