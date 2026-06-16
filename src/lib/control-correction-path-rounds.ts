@@ -563,14 +563,20 @@ export async function updateControlCorrectionPathRoundAfterExecution(
   const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
   const failedNodeIds = new Set(arrayOfStrings(metadata.failedNodeIds));
   const skippedNodeIds = new Set(arrayOfStrings(metadata.skippedNodeIds));
-  const nextNodeId = isHistoricalActivity && activityKind !== 'return-to-skipped'
-    ? pathCurrentNodeId
-    : input.status === 'completed' && currentIndex >= 0
-      ? findNextPendingMainPathNodeId(mainPathNodeIds, currentIndex, completedNodeIds, skippedNodeIds) ?? input.nodeId
-      : input.nodeId;
   const nonCompletionPathActivity = isNonCompletionPathActivity(activityKind);
   if (input.status === 'completed' && !nonCompletionPathActivity) completedNodeIds.add(input.nodeId);
   if (input.status === 'failed') failedNodeIds.add(input.nodeId);
+  const refreshedPlanNodes = refreshPlanNodesForExecution(
+    toRecord(path.pathPayload).planNodes,
+    completedNodeIds,
+    failedNodeIds,
+    null,
+  );
+  const nextNodeId = isHistoricalActivity && activityKind !== 'return-to-skipped'
+    ? pathCurrentNodeId
+    : input.status === 'completed' && currentIndex >= 0
+      ? findNextPendingMainPathNodeId(mainPathNodeIds, currentIndex, completedNodeIds, skippedNodeIds, refreshedPlanNodes) ?? input.nodeId
+      : input.nodeId;
 
   const terminalValidation = nonCompletionPathActivity
     ? toRecord(path.terminalValidation)
@@ -595,6 +601,19 @@ export async function updateControlCorrectionPathRoundAfterExecution(
       currentNodeId: nextNodeId,
       pathStatus: nextPathStatus,
       terminalValidation,
+      pathPayload: derivePathPayloadExecutionState({
+        ...path,
+        currentNodeId: nextNodeId,
+        lastExecutionMetadata: {
+          ...metadata,
+          completedNodeIds: [...completedNodeIds],
+          failedNodeIds: [...failedNodeIds],
+        },
+        pathPayload: {
+          ...toRecord(path.pathPayload),
+          planNodes: refreshedPlanNodes,
+        },
+      }),
       lastExecutionMetadata: {
         ...metadata,
         activeNodeId: nextNodeId,
@@ -623,9 +642,12 @@ function findNextPendingMainPathNodeId(
   currentIndex: number,
   completedNodeIds: Set<string>,
   skippedNodeIds: Set<string>,
+  planNodes: Array<Record<string, unknown>>,
 ): string | null {
   for (const nodeId of mainPathNodeIds.slice(currentIndex + 1)) {
     if (completedNodeIds.has(nodeId) || skippedNodeIds.has(nodeId)) continue;
+    const node = planNodes.find((item) => item.nodeId === nodeId);
+    if (node && isLockedPlanNodeRecord(node)) continue;
     return nodeId;
   }
   return null;
@@ -908,19 +930,11 @@ function derivePathPayloadExecutionState(path: any): unknown {
   const metadata = toRecord(path.lastExecutionMetadata);
   const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
   const failedNodeIds = new Set(arrayOfStrings(metadata.failedNodeIds));
+  const refreshedPlanNodes = refreshPlanNodesForExecution(planNodes, completedNodeIds, failedNodeIds, currentNodeId);
 
   return {
     ...payload,
-    planNodes: planNodes.map((node) => {
-      const record = toRecord(node);
-      const nodeId = typeof record.nodeId === 'string' ? record.nodeId : null;
-      if (!nodeId) return node;
-      if (completedNodeIds.has(nodeId)) return { ...record, status: 'completed' };
-      if (failedNodeIds.has(nodeId)) return { ...record, status: 'blocked' };
-      if (currentNodeId === nodeId) return { ...record, status: 'current' };
-      if (record.status === 'current') return { ...record, status: 'next' };
-      return node;
-    }),
+    planNodes: refreshedPlanNodes,
     executionStatus: {
       ...toRecord(payload.executionStatus),
       activeNodeId: currentNodeId,
@@ -929,6 +943,80 @@ function derivePathPayloadExecutionState(path: any): unknown {
     },
     visualization: derivePathVisualizationExecutionState(payload.visualization, currentNodeId, completedNodeIds),
   };
+}
+
+function refreshPlanNodesForExecution(
+  planNodes: unknown,
+  completedNodeIds: Set<string>,
+  failedNodeIds: Set<string>,
+  currentNodeId: string | null,
+): Array<Record<string, unknown>> {
+  if (!Array.isArray(planNodes)) return [];
+  return planNodes.map((node) => {
+    const record = toRecord(node);
+    const nodeId = typeof record.nodeId === 'string' ? record.nodeId : null;
+    if (!nodeId) return record;
+    const readiness = refreshReadinessRecord(toRecord(record.readiness), completedNodeIds);
+    const readinessState = typeof readiness.state === 'string' ? readiness.state : null;
+    if (completedNodeIds.has(nodeId)) return { ...record, readiness, status: 'completed' };
+    if (failedNodeIds.has(nodeId)) return { ...record, readiness, status: 'blocked' };
+    if (currentNodeId === nodeId && readinessState !== 'locked' && readinessState !== 'evidence-needed' && readinessState !== 'needs-preparation') {
+      return { ...record, readiness, status: 'current' };
+    }
+    if (readinessState === 'locked' || readinessState === 'evidence-needed' || readinessState === 'needs-preparation') {
+      return { ...record, readiness, status: 'locked' };
+    }
+    if (record.status === 'current' || record.status === 'locked') return { ...record, readiness, status: 'next' };
+    return { ...record, readiness };
+  });
+}
+
+function refreshReadinessRecord(
+  readiness: Record<string, unknown>,
+  completedNodeIds: Set<string>,
+): Record<string, unknown> {
+  const state = typeof readiness.state === 'string' ? readiness.state : null;
+  if (!state || state === 'ready') return readiness;
+  const missingCompletedNodeIds = arrayOfStrings(readiness.missingCompletedNodeIds)
+    .filter((nodeId) => !completedNodeIds.has(nodeId));
+  const missingCompetencies = arrayOfStrings(readiness.missingCompetencies);
+  const missingOutcomeRefs = arrayOfStrings(readiness.missingOutcomeRefs);
+  const missingEvidenceCount = typeof readiness.missingEvidenceCount === 'number'
+    ? Math.max(0, readiness.missingEvidenceCount)
+    : 0;
+  const ready = missingCompletedNodeIds.length === 0 &&
+    missingCompetencies.length === 0 &&
+    missingOutcomeRefs.length === 0 &&
+    missingEvidenceCount === 0;
+  if (ready) {
+    return {
+      state: 'ready',
+      message: '可以开始。',
+      unlockMessage: null,
+      reasonCodes: [],
+      fallbackNodeIds: [],
+      missingCompetencies: [],
+      missingEvidenceCount: 0,
+      missingCompletedNodeIds: [],
+      missingOutcomeRefs: [],
+    };
+  }
+  return {
+    ...readiness,
+    missingCompletedNodeIds,
+    missingCompetencies,
+    missingOutcomeRefs,
+    missingEvidenceCount,
+  };
+}
+
+function isLockedPlanNodeRecord(node: Record<string, unknown>): boolean {
+  const readiness = toRecord(node.readiness);
+  const readinessState = typeof readiness.state === 'string' ? readiness.state : null;
+  return node.status === 'locked' ||
+    readinessState === 'locked' ||
+    readinessState === 'evidence-needed' ||
+    readinessState === 'needs-preparation';
 }
 
 function derivePathVisualizationExecutionState(

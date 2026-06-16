@@ -244,6 +244,36 @@ describe('adaptive learning optimization experiments', () => {
       });
   });
 
+  it('keeps high-load nodes without readiness metadata executable until they are migrated', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry: buildResourceNodeRegistry({
+        simulations: [
+          {
+            id: 'legacy-simulation',
+            title: '旧式仿真实验',
+            launchTarget: '/simulations/legacy',
+            knowledgeNodeIds: ['kn-goal'],
+            planningOverride: {
+              cognitiveLoad: 'high',
+              evidenceInstrumentation: ['simulation_run'],
+            },
+          },
+        ],
+      }),
+      constraints: {
+        timeBudgetMinutes: 40,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
+    expect(plan.currentNodeId).toBe('simulation:legacy-simulation');
+    expect(plan.mainPath[0]).toMatchObject({
+      nodeId: 'simulation:legacy-simulation',
+      status: 'current',
+      readiness: expect.objectContaining({ state: 'ready' }),
+    });
+  });
+
   it('reranks only feasible local alternatives after deterministic path generation', () => {
     const basePlan = buildAdaptiveLearningPathPlan(plannerInput());
     const plan = {

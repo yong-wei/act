@@ -1544,18 +1544,7 @@ function evaluateNodeReadiness(
 ): AdaptiveLearningPathNodeReadiness {
   const readiness = node.planningMetadata.readiness;
   if (!readiness) {
-    if (!requiresImmediateReadinessGate(node)) return readyNodeReadiness();
-    return {
-      state: 'locked',
-      message: '完成准备节点后会自动解锁。',
-      unlockMessage: '完成准备节点后会自动解锁。',
-      reasonCodes: ['readiness-metadata-missing'],
-      fallbackNodeIds: [],
-      missingCompetencies: [],
-      missingEvidenceCount: 0,
-      missingCompletedNodeIds: [],
-      missingOutcomeRefs: [],
-    };
+    return readyNodeReadiness();
   }
 
   const completed = new Set([...completedNodeIds, ...(constraints.completedNodeIds ?? [])]);
@@ -1588,15 +1577,6 @@ function evaluateNodeReadiness(
     missingCompletedNodeIds,
     missingOutcomeRefs,
   };
-}
-
-function requiresImmediateReadinessGate(node: ResourceNode): boolean {
-  if (node.planningMetadata.cognitiveLoad !== 'high') return false;
-  return node.type === 'simulation' ||
-    node.type === 'arena_task' ||
-    node.type === 'control_workbench' ||
-    node.type === 'checkpoint' ||
-    node.planningMetadata.terminalConstraints.length > 0;
 }
 
 function learnerCompetencyScore(

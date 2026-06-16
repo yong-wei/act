@@ -1183,6 +1183,75 @@ describe('control-correction path rounds', () => {
     }));
   });
 
+  it('refreshes locked readiness in persisted path payload after completing a preparation node', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'registry:lesson09-correction-precheck',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'registry:lesson09-correction-precheck',
+          'simulation:control-correction-step-response-lab',
+        ],
+        planNodes: [
+          {
+            nodeId: 'registry:lesson09-correction-precheck',
+            status: 'current',
+          },
+          {
+            nodeId: 'simulation:control-correction-step-response-lab',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: '完成控制校正目标前测后进入仿真验证。',
+              unlockMessage: '完成控制校正目标前测后进入仿真验证。',
+              reasonCodes: ['readiness-required-completion'],
+              fallbackNodeIds: ['registry:lesson09-correction-precheck'],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingCompletedNodeIds: ['registry:lesson09-correction-precheck'],
+              missingOutcomeRefs: [],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: [],
+        failedNodeIds: [],
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'registry:lesson09-correction-precheck',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'complete-precheck',
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'simulation:control-correction-step-response-lab',
+        pathPayload: expect.objectContaining({
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'registry:lesson09-correction-precheck',
+              status: 'completed',
+            }),
+            expect.objectContaining({
+              nodeId: 'simulation:control-correction-step-response-lab',
+              status: 'current',
+              readiness: expect.objectContaining({ state: 'ready' }),
+            }),
+          ]),
+        }),
+      }),
+    }));
+  });
+
   it('preserves completed terminal validation when reviewing the terminal node', async () => {
     const db = mockDb();
     const completedTerminalValidation = {
