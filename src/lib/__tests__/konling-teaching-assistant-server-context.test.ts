@@ -3,6 +3,7 @@ import { createHmac } from 'node:crypto';
 
 import {
   createKonlingTeachingAssistantServerContextToken,
+  resolveKonlingTeachingAssistantScopeOverride,
   resolveKonlingTeachingAssistantServerModeContext,
 } from '@/lib/konling-teaching-assistant-server-context';
 import type { KonlingRuntimeContext, KonlingRuntimeScope } from '@/lib/konling-agent-runtime';
@@ -173,6 +174,60 @@ describe('Konling teaching-assistant server context', () => {
       }),
       runtimeContext,
       clientContextHints: { modeContextToken },
+    })).resolves.toEqual({});
+  });
+
+  it('does not sign server context tokens with the documented placeholder secret', () => {
+    process.env.KONLING_SERVER_MODE_CONTEXT_SECRET = 'replace-with-strong-konling-context-secret';
+    delete process.env.KONLING_MODE_CONTEXT_SECRET;
+
+    expect(createKonlingTeachingAssistantServerContextToken({
+      mode: 'path-advisor',
+      classId: 'class-1',
+      context: { 'student-path-center': true },
+    })).toBeNull();
+  });
+
+  it('uses signed path-advisor context to bind the student class before scope verification', async () => {
+    const modeContextToken = createKonlingTeachingAssistantServerContextToken({
+      mode: 'path-advisor',
+      classId: 'class-1',
+      courseId: 'control-correction',
+      pageId: 'adaptive-path-center',
+      goalId: 'control-correction',
+      context: {
+        'student-path-center': true,
+        'learner-state-summary': true,
+        'evidence-citations': true,
+      },
+    });
+
+    await expect(resolveKonlingTeachingAssistantScopeOverride({
+      db: {},
+      modeId: 'path-advisor',
+      authenticatedUserId: 'student-1',
+      role: 'STUDENT',
+      clientContextHints: {
+        classId: 'class-1',
+        courseId: 'control-correction',
+        goalId: 'control-correction',
+        pageId: 'adaptive-path-center',
+        modeContextToken,
+      },
+    })).resolves.toEqual({ classId: 'class-1' });
+
+    await expect(resolveKonlingTeachingAssistantScopeOverride({
+      db: {},
+      modeId: 'path-advisor',
+      authenticatedUserId: 'student-1',
+      role: 'STUDENT',
+      clientContextHints: {
+        classId: 'class-1',
+        courseId: 'frequency-response-foundations',
+        goalId: 'frequency-response-foundations',
+        pageId: 'adaptive-path-center',
+        modeContextToken,
+      },
     })).resolves.toEqual({});
   });
 

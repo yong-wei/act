@@ -182,6 +182,10 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
     lines.push(`  - 状态: ${mode.status}`);
     lines.push(`  - 输出合同: ${mode.outputContract.status}`);
     lines.push(`  - 隐私策略: ${mode.privacyPolicy.payload}`);
+    if (mode.mode.id === 'path-advisor') {
+      lines.push('  - 路径工具调用边界: 只有用户明确要求生成、重建、重新规划或调整学习路径时，才调用 generate_learning_path 或 revise_learning_path_options。解释失败原因、回顾生成依据、咨询生成条件、推荐当前路径下一步、比较既有方案或查看路径状态时，不得调用路径写入工具；应优先使用 get_learner_state、get_plan_context、recommend_next_action 或 explain_learning_path_tradeoff。');
+      lines.push('  - 路径工具参数: 调用 generate_learning_path 或 revise_learning_path_options 时，将用户自然语言约束写入 naturalLanguageIntent，并尽量结构化 timeBudgetMinutes、resourcePreference、difficultyRhythm、checkpointPreference 与 allowExternalResources。');
+    }
     if (mode.privacyPolicy.forbiddenContent.length) {
       lines.push(`  - 禁止内容: ${mode.privacyPolicy.forbiddenContent.join(', ')}`);
     }

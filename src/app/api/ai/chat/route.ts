@@ -293,6 +293,18 @@ export async function POST(request: Request) {
         streaming: true,
         citationNormalization: true,
       };
+      if (!(await isConfiguredAIServiceAvailable(modelRequirements))) {
+        return new Response(
+          JSON.stringify({
+            error: 'AI 服务未配置',
+            message: '请在环境变量中配置 AI_API_KEY',
+          }),
+          {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
       const agentSession = await getOrCreateKonlingAgentSession(prisma, {
         scope: scope.scope,
         agentSessionId,
@@ -301,20 +313,21 @@ export async function POST(request: Request) {
         state: { route: '/api/ai/chat', teachingAssistantMode: modeContract.mode.id, modeStatus: modeContract.status },
         permittedTools: modeContract.permittedTools,
       });
-      agentSessionResponseHeaders = {
-        'X-Konling-Agent-Session-Id': agentSession.id,
-        'X-Konling-Citation-Guard': citationGuardMetadata.status,
-        'X-Konling-Assistant-Mode': modeContract.mode.id,
-        'X-Konling-Assistant-Mode-Status': modeContract.status,
-      };
-      tools = buildScopedKonlingAiTools(buildKonlingToolRuntime({
+      const toolRuntime = buildKonlingToolRuntime({
         db: prisma,
         scope: scope.scope,
         context: { ...runtimeContext, permittedTools: modeContract.permittedTools },
         agentSessionId: agentSession.id,
         permittedTools: modeContract.permittedTools,
         scopedSimulationState: simulationState as Parameters<typeof updateSimulationState>[0] | undefined,
-      }));
+      });
+      agentSessionResponseHeaders = {
+        'X-Konling-Agent-Session-Id': agentSession.id,
+        'X-Konling-Citation-Guard': citationGuardMetadata.status,
+        'X-Konling-Assistant-Mode': modeContract.mode.id,
+        'X-Konling-Assistant-Mode-Status': modeContract.status,
+      };
+      tools = buildScopedKonlingAiTools(toolRuntime);
     } else if (pageContext && userProfile) {
       const aiContext: AIContext = {
         page: pageContext,

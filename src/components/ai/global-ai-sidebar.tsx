@@ -77,6 +77,16 @@ export function GlobalAISidebar() {
     onError: (err) => {
       console.error('Global AI chat error:', err);
     },
+    onFinish: () => {
+      if (assistantEntryPoint?.mode !== 'path-advisor') return;
+      window.dispatchEvent(new CustomEvent('konling:adaptive-path-updated', {
+        detail: {
+          mode: assistantEntryPoint.mode,
+          courseId: pageContext?.courseId ?? null,
+          pageId: pageContext?.stepId ?? null,
+        },
+      }));
+    },
   });
 
   // 自动滚动到底部

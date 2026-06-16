@@ -4,6 +4,8 @@ import { PathAdvisorEntryPointBridge } from '@/features/adaptive/path-advisor-en
 import { getServerAuthSession } from '@/lib/auth';
 import { createKonlingTeachingAssistantServerContextToken } from '@/lib/konling-teaching-assistant-server-context';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdaptivePracticeLayout({
   children,
 }: {

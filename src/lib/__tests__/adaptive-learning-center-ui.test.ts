@@ -806,6 +806,25 @@ describe('adaptive learning center UI contracts', () => {
           status: 'ready',
           paths: [
             {
+              styleId: 'empty-low-resource',
+              policyFamily: 'preference-matched',
+              label: '空资源方案',
+              nodeIds: [],
+              nodeSummaries: [],
+              targetDeficits: [],
+              evidenceBasis: ['adaptive-learner-state'],
+              estimatedMinutes: 0,
+              modalityMix: {},
+              resourceMix: {},
+              overlap: { maxWithOtherOptions: 1 },
+              effort: { estimatedMinutes: 0, relative: 'short' },
+              expectedTargetLift: 0,
+              terminalValidationNodeIds: [],
+              terminalValidationStrategy: { nodeIds: [], summary: 'terminal validation unavailable' },
+              checkpointNodeIds: [],
+              limitations: ['policy-path-resource-missing'],
+            },
+            {
               styleId: 'foundation-remediation',
               policyFamily: 'foundation-remediation',
               label: '基础补救',
@@ -894,7 +913,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(currentPath?.payload).toMatchObject({
       pathOptions: [
         {
-          optionId: 'path-option-1',
+          optionId: 'path-option-2',
           label: '基础补救',
           nodeSummaries: [
             expect.objectContaining({
@@ -941,7 +960,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(JSON.stringify(currentPath?.payload)).not.toContain('terminal-validation-');
   });
 
-  it('does not expose cosmetic path options when the policy bundle is low-resource fallback', () => {
+  it('exposes governed fallback path options while keeping fallback limitations visible', () => {
     const view = buildAdaptiveLearningCenterView({
       featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
       learnerState: learnerState(),
@@ -1014,7 +1033,15 @@ describe('adaptive learning center UI contracts', () => {
 
     const currentPath = view.panels.find((panel) => panel.region === 'current-path');
     expect(currentPath?.payload).toMatchObject({
-      pathOptions: [],
+      pathOptions: [
+        {
+          optionId: 'path-option-1',
+          label: '基础补救',
+          evidenceBasis: ['学习证据'],
+          terminalValidationNodeIds: [],
+          limitations: ['需要完成终点检验'],
+        },
+      ],
       pathOptionFallback: {
         status: 'low-resource-fallback',
         fallbackReasons: ['路径差异不足', '终点检验差异不足'],
@@ -1026,6 +1053,8 @@ describe('adaptive learning center UI contracts', () => {
       },
     });
     expect(JSON.stringify(currentPath?.payload)).not.toContain('rules-plus-graph-search');
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('空资源方案');
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('policy-path-resource-missing');
     expect(JSON.stringify(currentPath?.payload)).not.toContain('foundation-remediation');
     expect(JSON.stringify(currentPath?.payload)).not.toContain('arena-simulation-sprint');
     expect(JSON.stringify(currentPath?.payload)).not.toContain('terminal-validation-diversity-insufficient');
@@ -1371,8 +1400,18 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('learnerState?.pathContext.activeControlCorrectionPath.pathId');
     expect(source).toContain('learnerState?.pathContext.recentPathIds ?? []');
     expect(source).toContain('uniquePathIds([activePathId, ...fallbackPathIds])');
-    expect(source).toContain('payload.path?.goalId === goalToLoad && restoredPlan');
-    expect(source).toContain('fetch(`/api/learning-paths/${encodeURIComponent(pathIdToLoad)}`)');
+    expect(source).toContain('uniquePathIds(fallbackPathIds)');
+    expect(source).toContain('fetchLearningPathRound(pathIdToLoad, goalToLoad)');
+    expect(source).toContain('fetchLatestLearningPathRound(goalToLoad)');
+    expect(source).toContain('fetchLatestLearningPathRound(activeGoal)');
+    const generationRefreshBlock = source.slice(
+      source.indexOf('const refreshLatestLearningPathAfterKonling = useCallback'),
+      source.indexOf('useEffect(() => {\n    const handleAdaptivePathUpdated'),
+    );
+    expect(generationRefreshBlock.indexOf('const latest = await fetchLatestLearningPathRound(activeGoal)'))
+      .toBeLessThan(generationRefreshBlock.indexOf('const pathIdsToTry = uniquePathIds(fallbackPathIds)'));
+    expect(source).toContain('fetch(`/api/learning-paths/${encodeURIComponent(pathId)}`)');
+    expect(source).toContain('fetch(`/api/learning-paths/latest?goal=${encodeURIComponent(goalId)}`)');
     expect(source).toContain("if (!round || !isAdaptivePracticeGoalId(round.goalId)) return null;");
     expect(source).toContain('id: round.goalId');
     expect(source).toContain('Array.isArray(round.alternativePayload)');

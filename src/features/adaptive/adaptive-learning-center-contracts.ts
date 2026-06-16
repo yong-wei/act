@@ -1092,10 +1092,13 @@ function currentPathPanel(pathPlan: AdaptiveLearningPathPlan | null): AdaptiveLe
 }
 
 function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
-  if (pathPlan.policyBundle?.status !== 'ready') {
+  const actionablePaths = pathPlan.policyBundle?.paths
+    .map((path, index) => ({ path, index }))
+    .filter(({ path }) => path.nodeIds.length > 0) ?? [];
+  if (!actionablePaths.length) {
     return [];
   }
-  return pathPlan.policyBundle?.paths.map((path, index) => ({
+  return actionablePaths.map(({ path, index }) => ({
     optionId: `path-option-${index + 1}`,
     label: path.label,
     nodeIds: path.nodeIds,

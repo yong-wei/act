@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   prisma: {
     learningPath: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       update: vi.fn(),
     },
     learningPathExecution: {
@@ -67,6 +68,7 @@ vi.mock('@/lib/data-governance/student-evidence-feature-cache', () => ({
 }));
 
 import { POST as planPath } from '../plan/route';
+import { GET as readLatestPath } from '../latest/route';
 import { GET as readPath } from '../[id]/route';
 import { GET as launchPathNode, POST as executePath } from '../[id]/execute/route';
 import { POST as deviatePath } from '../[id]/deviations/route';
@@ -144,6 +146,7 @@ describe('learning path round API routes', () => {
             {
               styleId: 'foundation-remediation',
               policyFamily: 'foundation-remediation',
+              nodeIds: ['knowledge-card:targets', 'arena-task:terminal'],
               resourceMix: { knowledge_card: 1, arena_task: 1 },
               evidenceBasis: ['adaptive-learner-state'],
               limitations: ['terminal-validation-required'],
@@ -152,6 +155,7 @@ describe('learning path round API routes', () => {
             {
               styleId: 'simulation-driven',
               policyFamily: 'simulation-driven',
+              nodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:terminal'],
               resourceMix: { simulation: 1, arena_task: 1 },
               evidenceBasis: ['simulation-run'],
             },
@@ -162,6 +166,12 @@ describe('learning path round API routes', () => {
       inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
       terminalValidation: { nodeId: 'node-1', state: 'pending' },
       lastExecutionMetadata: { completedNodeIds: [] },
+    });
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
     });
     mocks.prisma.studentProfile.findUnique.mockResolvedValue({ userId: 'student-1', classId: 'class-1' });
     mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
@@ -376,6 +386,78 @@ describe('learning path round API routes', () => {
       classId: 'class-1',
     }));
     expect(mocks.persistControlCorrectionPathRound).not.toHaveBeenCalled();
+  });
+
+  it('returns the latest authenticated student path for a registered goal', async () => {
+    const response = await readLatestPath(new Request('http://localhost/api/learning-paths/latest?goal=control-correction'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.path.id).toBe('path-1');
+    expect(mocks.prisma.learningPath.findFirst).toHaveBeenCalledWith({
+      where: {
+        userId: 'student-1',
+        goalId: 'control-correction',
+        isAiGenerated: true,
+        pathStatus: { in: ['active', 'fallback', 'completed'] },
+      },
+      select: {
+        id: true,
+        userId: true,
+        classId: true,
+        goalId: true,
+      },
+      orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
+    });
+    expect(mocks.readControlCorrectionPathRound).toHaveBeenCalledWith(expect.anything(), {
+      pathId: 'path-1',
+      userId: 'student-1',
+    });
+  });
+
+  it('prevents a student from reading another learner latest path', async () => {
+    const response = await readLatestPath(
+      new Request('http://localhost/api/learning-paths/latest?goal=control-correction&userId=student-2'),
+    );
+
+    expect(response.status).toBe(403);
+    expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('allows a teacher to read the latest path only after class ownership is proven', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+
+    const response = await readLatestPath(
+      new Request('http://localhost/api/learning-paths/latest?goal=control-correction&userId=student-1'),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.studentProfile.findUnique).toHaveBeenCalledWith({
+      where: { userId: 'student-1' },
+      select: { userId: true, classId: true },
+    });
+    expect(mocks.prisma.class.findUnique).toHaveBeenCalledWith({
+      where: { id: 'class-1' },
+      select: { id: true, teacherId: true },
+    });
+    expect(mocks.prisma.learningPath.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        userId: 'student-1',
+        goalId: 'control-correction',
+        classId: 'class-1',
+      }),
+    }));
+  });
+
+  it('rejects teacher latest path reads outside the authorized class before querying paths', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-2', role: 'TEACHER' } });
+
+    const response = await readLatestPath(
+      new Request('http://localhost/api/learning-paths/latest?goal=control-correction&userId=student-1'),
+    );
+
+    expect(response.status).toBe(403);
+    expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
   });
 
   it('rejects unknown learning goals during plan creation', async () => {
@@ -1143,6 +1225,67 @@ describe('learning path round API routes', () => {
         terminalValidationNodeIds: ['arena-task:terminal'],
       }),
       idempotencyKey: 'choice-option-key',
+    }));
+  });
+
+  it('rejects empty path options while preserving original option ids for valid choices', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1'],
+        policyBundle: {
+          status: 'low-resource-fallback',
+          paths: [
+            {
+              styleId: 'empty-low-resource',
+              policyFamily: 'preference-matched',
+              nodeIds: [],
+              resourceMix: {},
+              evidenceBasis: ['adaptive-learner-state'],
+              limitations: ['policy-path-resource-missing'],
+            },
+            {
+              styleId: 'foundation-remediation',
+              policyFamily: 'foundation-remediation',
+              nodeIds: ['knowledge-card:targets', 'arena-task:terminal'],
+              resourceMix: { knowledge_card: 1, arena_task: 1 },
+              evidenceBasis: ['adaptive-learner-state'],
+              limitations: ['terminal-validation-required'],
+              terminalValidationNodeIds: ['arena-task:terminal'],
+            },
+          ],
+        },
+      },
+      learnerStateRef: 'diagnosis-snapshot:server-owned',
+      inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
+      terminalValidation: { nodeId: 'node-1', state: 'pending' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+
+    const emptyResponse = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'empty-choice-key',
+    }), params);
+    const validResponse = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-2',
+      idempotencyKey: 'valid-choice-key',
+    }), params);
+
+    expect(emptyResponse.status).toBe(400);
+    expect(validResponse.status).toBe(200);
+    expect(mocks.recordPathChoiceEvidence).toHaveBeenCalledTimes(1);
+    expect(mocks.recordPathChoiceEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      selectedStyleId: 'foundation-remediation',
+      selectedPolicyFamily: 'foundation-remediation',
+      idempotencyKey: 'valid-choice-key',
     }));
   });
 
