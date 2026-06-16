@@ -689,13 +689,51 @@ function simulationRuntimeNoiseReport(pathname: string | undefined) {
   };
 }
 
+function simulationFullMatrixReviewReport(pathname: string | undefined) {
+  const artifact = simulationViewportArtifact(pathname);
+  if (!artifact) return undefined;
+  const content = readFileSync(path.join(repoRoot, artifact.pathname), 'utf8');
+  const blockersMatch = content.match(/Unresolved blockers:\s*(\d+)/i);
+  return {
+    ...artifact,
+    status: /Final result:\s*PASS/i.test(content) ? 'passed' as const : 'failed' as const,
+    unresolvedBlockers: blockersMatch ? Number(blockersMatch[1]) : 1,
+  };
+}
+
 function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
   const manifestPath = path.join(repoRoot, 'artifacts/commercial-ui/evidence.json');
   if (!existsSync(manifestPath)) return [];
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { routes?: CommercialVisualAcceptanceEvidence[] };
   return (manifest.routes ?? []).map((route) => ({
-    ...route,
-    simulationVisualQa: route.simulationVisualQa
+	    ...route,
+	    simulationFullMatrixVisualQa: route.simulationFullMatrixVisualQa
+	      ? {
+	          ...route.simulationFullMatrixVisualQa,
+	          independentReview: (() => {
+	            const reviewReport = simulationFullMatrixReviewReport(
+	              route.simulationFullMatrixVisualQa.independentReview.report,
+	            );
+	            return {
+	              ...route.simulationFullMatrixVisualQa.independentReview,
+	              currentReportSha256: reviewReport?.sha256,
+	              currentStatus: reviewReport?.status ?? 'failed',
+	              currentUnresolvedBlockers: reviewReport?.unresolvedBlockers ?? 1,
+	            };
+	          })(),
+	          entries: route.simulationFullMatrixVisualQa.entries.map((entry) => {
+	            const screenshot = simulationViewportArtifact(entry.screenshot);
+	            return {
+	              ...entry,
+	              screenshot: entry.screenshot,
+	              screenshotSha256: screenshot?.sha256,
+	              screenshotWidth: screenshot?.width,
+	              screenshotHeight: screenshot?.height,
+	            };
+	          }),
+	        }
+	      : undefined,
+	    simulationVisualQa: route.simulationVisualQa
       ? (() => {
           const reactDoctorReport = simulationReactDoctorReport(route.simulationVisualQa.reactDoctorErrorCheck?.report);
           const runtimeNoiseReport = simulationRuntimeNoiseReport(route.simulationVisualQa.runtimeNoise?.report);
@@ -1226,6 +1264,18 @@ function simulationVisualQaEvidenceArtifactPaths(
 ) {
   const paths = new Set<string>();
   for (const route of visualEvidence) {
+    const fullMatrixVisualQa = route.simulationFullMatrixVisualQa;
+    if (fullMatrixVisualQa) {
+      paths.add(fullMatrixVisualQa.independentReview.report);
+      paths.add(fullMatrixVisualQa.independentReview.inputs.designHandoff);
+      paths.add(fullMatrixVisualQa.independentReview.inputs.audit);
+      for (const conceptImage of fullMatrixVisualQa.independentReview.inputs.conceptImages) paths.add(conceptImage);
+      for (const contactSheet of fullMatrixVisualQa.independentReview.inputs.contactSheets) paths.add(contactSheet);
+      for (const screenshot of fullMatrixVisualQa.independentReview.inputs.implementationScreenshots) {
+        paths.add(screenshot);
+      }
+      for (const entry of fullMatrixVisualQa.entries) paths.add(entry.screenshot);
+    }
     const simulationVisualQa = route.simulationVisualQa;
     if (!simulationVisualQa) continue;
     if (simulationVisualQa.reactDoctorErrorCheck?.report) {
@@ -1265,6 +1315,7 @@ function requiresFullSimulationVisualQaMatrix(
       || file === 'artifacts/commercial-ui/simulation-experience-visual-qa/manifest.json'
       || file.startsWith('artifacts/commercial-ui/simulation-experience-visual-qa/')
       || file.startsWith('artifacts/commercial-ui/simulation-command-deck-535/')
+      || file.startsWith('artifacts/commercial-ui/simulation-full-matrix-qa-537/')
       || /^src\/app\/simulations\/[^/]+\/page\.tsx$/.test(file)
       || file.startsWith('src/app/simulations/_components/')
       || file.startsWith('src/resources/simulations/')

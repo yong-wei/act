@@ -10,6 +10,7 @@ import {
   DEFAULT_SECONDARY_NAVIGATION_ROUTE_GOVERNANCE_MATRIX,
   DEFAULT_COMMERCIAL_VISUAL_ACCEPTANCE_ROUTES,
   PREMIUM_PLATFORM_VISUAL_QA_ROUTE_MATRIX,
+  SIMULATION_FULL_MATRIX_VISUAL_QA_DETAIL_ROUTES,
   SIMULATION_VISUAL_QA_ROUTE_MATRIX,
   evaluateCommercialUiGovernance,
   type CommercialAccessibilityTextFitEvidence,
@@ -401,6 +402,9 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
             screenshotSha256: `${href}:command-deck:${theme}:${width}`,
             screenshotWidth: width,
             screenshotHeight: width === 320 ? 900 : 900,
+            themeApplied: true,
+            htmlClassName: theme,
+            bodyBackground: theme === 'dark' ? 'rgb(2, 8, 23)' : 'rgb(248, 250, 252)',
             sceneChromeRemoved: true,
             inSceneBackControlCount: 0,
             inSceneAbbreviationCount: 0,
@@ -509,6 +513,79 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
   };
 }
 
+function simulationFullMatrixVisualQa() {
+  const entries = SIMULATION_FULL_MATRIX_VISUAL_QA_DETAIL_ROUTES.flatMap((route) => {
+    const geometry = simulationVisualQaFor(route.href).commandDeckGeometry;
+    if (!geometry) return [];
+    return geometry.viewports
+      .filter((viewport) => viewport.width === 1440 || viewport.width === 320)
+      .map((viewport) => ({
+        requestedRoute: route.href,
+        finalUrl: `http://localhost:3000${route.href}`,
+        theme: viewport.theme,
+        viewport: {
+          width: viewport.width as 1440 | 320,
+          height: viewport.screenshotHeight,
+        },
+        role: route.role,
+        authState: route.acceptedAuthState,
+        screenshot: viewport.screenshot,
+        screenshotSha256: viewport.screenshotSha256,
+        screenshotWidth: viewport.screenshotWidth,
+        screenshotHeight: viewport.screenshotHeight,
+        runtimeErrors: [],
+        trackedWarnings: [],
+        checklist: {
+          sceneFirstGeometry: true,
+          themeParity: true,
+          panelsTopAligned: true,
+          duplicateSceneChromeAbsent: true,
+          mobileReachability: true,
+          dockNonOverlap: true,
+          contrastChecked: true,
+          runtimeNoiseClear: true,
+          inSceneBackControlAbsent: true,
+          inSceneAbbreviationAbsent: true,
+        },
+      }));
+  });
+  return {
+    change: 'govern-simulation-full-matrix-visual-qa' as const,
+    generatedAt: '2026-06-15T00:00:00.000Z',
+    activeRouteSource: 'SIMULATION_VISUAL_QA_ROUTE_MATRIX.requiresNonblankScene' as const,
+    routeCount: 7 as const,
+    requiredThemes: ['light', 'dark'] as const,
+    requiredWidths: [1440, 320] as const,
+    entries,
+    cruiseComparison: simulationVisualQaFor('/simulations/cruise').commandDeckGeometry?.cruiseComparison,
+    independentReview: {
+      status: 'passed' as const,
+      reviewer: 'ui-flow-reviewer',
+      reviewedAt: '2026-06-15T00:00:00.000Z',
+      report: 'artifacts/commercial-ui/simulation-full-matrix-qa-537/independent-review.md',
+      reportSha256: 'simulation-full-matrix-review',
+      currentReportSha256: 'simulation-full-matrix-review',
+      currentStatus: 'passed' as const,
+      currentUnresolvedBlockers: 0,
+      unresolvedBlockers: 0,
+      inputs: {
+        designHandoff: 'artifacts/product-design-audits/virtual-simulation-2026-06-13/design-handoff.md',
+        audit: 'artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/audit.md',
+        conceptImages: [
+          'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
+        ],
+        contactSheets: [
+          'artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/contact-light-desktop.jpg',
+          'artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/contact-dark-desktop.jpg',
+          'artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/contact-light-mobile.jpg',
+          'artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/contact-dark-mobile.jpg',
+        ],
+        implementationScreenshots: entries.map((entry) => entry.screenshot),
+      },
+    },
+  };
+}
+
 function completeSimulationVisualEvidence(): CommercialVisualAcceptanceEvidence[] {
   return SIMULATION_VISUAL_QA_ROUTE_MATRIX.map((route) => ({
     href: route.href,
@@ -549,6 +626,9 @@ function completeSimulationVisualEvidence(): CommercialVisualAcceptanceEvidence[
       ))
     )),
     simulationVisualQa: simulationVisualQaFor(route.href),
+    simulationFullMatrixVisualQa: route.href === '/simulations'
+      ? simulationFullMatrixVisualQa()
+      : undefined,
   }));
 }
 
@@ -558,7 +638,11 @@ function completeVisualEvidenceWithSimulationQa(): CommercialVisualAcceptanceEvi
   for (const evidence of completeSimulationVisualEvidence()) {
     const existing = routes.get(evidence.href);
     routes.set(evidence.href, existing
-      ? { ...existing, simulationVisualQa: evidence.simulationVisualQa }
+      ? {
+          ...existing,
+          simulationVisualQa: evidence.simulationVisualQa,
+          simulationFullMatrixVisualQa: evidence.simulationFullMatrixVisualQa,
+        }
       : evidence);
   }
   return [...routes.values()];
@@ -1871,6 +1955,296 @@ describe('commercial UI governance', () => {
         rule: 'simulation-visual-qa.incomplete-evidence',
         path: '/simulations/destroyer',
         evidence: expect.arrayContaining(['handoffBaseline']),
+      }),
+    ]));
+  });
+
+  it('fails when final simulation full-matrix QA evidence is missing', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations') return entry;
+      const { simulationFullMatrixVisualQa: _simulationFullMatrixVisualQa, ...rest } = entry;
+      return rest;
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining(['simulationFullMatrixVisualQa']),
+      }),
+    ]));
+  });
+
+  it('fails when final simulation full-matrix QA has unresolved review blockers', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations' || !entry.simulationFullMatrixVisualQa) return entry;
+      return {
+        ...entry,
+        simulationFullMatrixVisualQa: {
+          ...entry.simulationFullMatrixVisualQa,
+          independentReview: {
+            ...entry.simulationFullMatrixVisualQa.independentReview,
+            status: 'failed' as const,
+            unresolvedBlockers: 1,
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining([
+          'simulationFullMatrixVisualQa.independentReview.status=passed',
+          'simulationFullMatrixVisualQa.independentReview.unresolvedBlockers=0',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when final simulation full-matrix QA report text no longer matches the stored review status', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations' || !entry.simulationFullMatrixVisualQa) return entry;
+      return {
+        ...entry,
+        simulationFullMatrixVisualQa: {
+          ...entry.simulationFullMatrixVisualQa,
+          independentReview: {
+            ...entry.simulationFullMatrixVisualQa.independentReview,
+            currentStatus: 'failed' as const,
+            currentUnresolvedBlockers: 1,
+            currentReportSha256: 'changed-failed-report',
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining([
+          'simulationFullMatrixVisualQa.independentReview.reportSha256=current',
+          'simulationFullMatrixVisualQa.independentReview.currentStatus=passed',
+          'simulationFullMatrixVisualQa.independentReview.status=current',
+          'simulationFullMatrixVisualQa.independentReview.currentUnresolvedBlockers=0',
+          'simulationFullMatrixVisualQa.independentReview.unresolvedBlockers=current',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when final simulation full-matrix QA current review report evidence is missing', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations' || !entry.simulationFullMatrixVisualQa) return entry;
+      const {
+        currentReportSha256: _currentReportSha256,
+        currentStatus: _currentStatus,
+        currentUnresolvedBlockers: _currentUnresolvedBlockers,
+        ...independentReview
+      } = entry.simulationFullMatrixVisualQa.independentReview;
+      return {
+        ...entry,
+        simulationFullMatrixVisualQa: {
+          ...entry.simulationFullMatrixVisualQa,
+          independentReview,
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining([
+          'simulationFullMatrixVisualQa.independentReview.currentReportSha256',
+          'simulationFullMatrixVisualQa.independentReview.currentStatus=passed',
+          'simulationFullMatrixVisualQa.independentReview.status=current',
+          'simulationFullMatrixVisualQa.independentReview.currentUnresolvedBlockers=0',
+          'simulationFullMatrixVisualQa.independentReview.unresolvedBlockers=current',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when final simulation full-matrix QA review screenshots do not match current matrix', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations' || !entry.simulationFullMatrixVisualQa) return entry;
+      const staleScreenshots = entry.simulationFullMatrixVisualQa.independentReview.inputs.implementationScreenshots.map((
+        screenshot,
+        index,
+      ) => (index === 0 ? 'artifacts/commercial-ui/old-simulation-matrix.png' : screenshot));
+      return {
+        ...entry,
+        simulationFullMatrixVisualQa: {
+          ...entry.simulationFullMatrixVisualQa,
+          independentReview: {
+            ...entry.simulationFullMatrixVisualQa.independentReview,
+            inputs: {
+              ...entry.simulationFullMatrixVisualQa.independentReview.inputs,
+              implementationScreenshots: staleScreenshots,
+            },
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining([
+          'simulationFullMatrixVisualQa.independentReview.inputs.implementationScreenshots=full-detail-matrix',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when final simulation full-matrix QA includes extra non-detail routes', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations' || !entry.simulationFullMatrixVisualQa) return entry;
+      return {
+        ...entry,
+        simulationFullMatrixVisualQa: {
+          ...entry.simulationFullMatrixVisualQa,
+          entries: [
+            ...entry.simulationFullMatrixVisualQa.entries,
+            {
+              ...entry.simulationFullMatrixVisualQa.entries[0],
+              requestedRoute: '/virtual-lab',
+              finalUrl: 'http://localhost:3000/virtual-lab',
+            },
+          ],
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining([
+          'simulationFullMatrixVisualQa.entries=28',
+          'simulationFullMatrixVisualQa.unexpectedRoute=/virtual-lab',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when final simulation full-matrix QA misses mobile scene or dock checks', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations' || !entry.simulationFullMatrixVisualQa) return entry;
+      return {
+        ...entry,
+        simulationFullMatrixVisualQa: {
+          ...entry.simulationFullMatrixVisualQa,
+          entries: entry.simulationFullMatrixVisualQa.entries.map((matrixEntry) => (
+            matrixEntry.requestedRoute === '/simulations/cruise'
+              && matrixEntry.theme === 'dark'
+              && matrixEntry.viewport.width === 320
+              ? {
+                  ...matrixEntry,
+                  runtimeErrors: ['runtime page error'],
+                  checklist: {
+                    ...matrixEntry.checklist,
+                    sceneFirstGeometry: false,
+                    mobileReachability: false,
+                    dockNonOverlap: false,
+                    inSceneBackControlAbsent: false,
+                  },
+                }
+              : matrixEntry
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining([
+          'simulationFullMatrixVisualQa:/simulations/cruise:theme=dark:width=320:runtimeErrors=0',
+          'simulationFullMatrixVisualQa:/simulations/cruise:theme=dark:width=320:checklist.sceneFirstGeometry',
+          'simulationFullMatrixVisualQa:/simulations/cruise:theme=dark:width=320:checklist.mobileReachability',
+          'simulationFullMatrixVisualQa:/simulations/cruise:theme=dark:width=320:checklist.dockNonOverlap',
+          'simulationFullMatrixVisualQa:/simulations/cruise:theme=dark:width=320:checklist.inSceneBackControlAbsent',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails when final simulation full-matrix QA omits a required checklist key', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations' || !entry.simulationFullMatrixVisualQa) return entry;
+      return {
+        ...entry,
+        simulationFullMatrixVisualQa: {
+          ...entry.simulationFullMatrixVisualQa,
+          entries: entry.simulationFullMatrixVisualQa.entries.map((matrixEntry) => (
+            matrixEntry.requestedRoute === '/simulations/destroyer'
+              && matrixEntry.theme === 'light'
+              && matrixEntry.viewport.width === 1440
+              ? {
+                  ...matrixEntry,
+                  checklist: Object.fromEntries(
+                    Object.entries(matrixEntry.checklist).filter(([key]) => key !== 'contrastChecked'),
+                  ) as typeof matrixEntry.checklist,
+                }
+              : matrixEntry
+          )),
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations',
+        evidence: expect.arrayContaining([
+          'simulationFullMatrixVisualQa:/simulations/destroyer:theme=light:width=1440:checklist.contrastChecked',
+        ]),
       }),
     ]));
   });
@@ -3280,9 +3654,32 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain("file === 'src/lib/platform-role-navigation.ts'");
     expect(scriptSource).toContain("file.startsWith('artifacts/commercial-ui/simulation-experience-visual-qa/')");
     expect(scriptSource).toContain("file.startsWith('artifacts/commercial-ui/simulation-command-deck-535/')");
+    expect(scriptSource).toContain("file.startsWith('artifacts/commercial-ui/simulation-full-matrix-qa-537/')");
     expect(scriptSource).toContain('/^src\\/app\\/simulations\\/[^/]+\\/page\\.tsx$/.test(file)');
     expect(scriptSource).toContain('? SIMULATION_VISUAL_QA_ROUTE_MATRIX');
     expect(scriptSource).not.toContain('visualEvidence.some((entry) => entry.href === route.href && entry.simulationVisualQa)');
+    expect(scriptSource).toContain('route.simulationFullMatrixVisualQa.entries.map');
+    expect(scriptSource).toContain('route.simulationFullMatrixVisualQa.independentReview.report');
+    expect(scriptSource).toContain('function simulationFullMatrixReviewReport');
+    expect(scriptSource).toContain('Final result:\\s*PASS');
+    expect(scriptSource).toContain('Unresolved blockers:\\s*(\\d+)');
+    expect(scriptSource).toContain('currentStatus:');
+    expect(scriptSource).toContain('currentUnresolvedBlockers:');
+    expect(scriptSource).toContain("currentStatus: reviewReport?.status ?? 'failed'");
+    expect(scriptSource).toContain('currentUnresolvedBlockers: reviewReport?.unresolvedBlockers ?? 1');
+    expect(scriptSource).toContain('const reviewReport = simulationFullMatrixReviewReport');
+    expect(scriptSource).not.toContain('reportSha256:\n\t              simulationFullMatrixReviewReport');
+    expect(scriptSource).toContain('paths.add(fullMatrixVisualQa.independentReview.inputs.designHandoff)');
+    expect(governanceSource).toContain('SIMULATION_FULL_MATRIX_VISUAL_QA_DETAIL_ROUTES');
+    expect(governanceSource).toContain('SIMULATION_FULL_MATRIX_REQUIRED_CHECKLIST_KEYS');
+    expect(governanceSource).toContain('for (const check of SIMULATION_FULL_MATRIX_REQUIRED_CHECKLIST_KEYS)');
+    expect(governanceSource).toContain('simulationFullMatrixVisualQa.independentReview.status=passed');
+    expect(governanceSource).toContain('simulationFullMatrixVisualQa.independentReview.status=current');
+    expect(governanceSource).toContain('reviewImplementationScreenshotsMatch');
+    expect(governanceSource).toContain('simulationFullMatrixVisualQa.entries=28');
+    expect(governanceSource).toContain('simulationFullMatrixVisualQa.unexpectedRoute=');
+    expect(governanceSource).toContain('simulationFullMatrixVisualQa.cruiseComparison.comparedRoutes.destroyer');
+    expect(governanceSource).toContain('inSceneBackControlAbsent');
     expect(scriptSource).toContain('route.simulationVisualQa.viewports.map');
     expect(scriptSource).toContain('const screenshot = simulationViewportArtifact(viewport.screenshot)');
     expect(scriptSource).toContain('screenshot: viewport.screenshot');
@@ -3296,11 +3693,22 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain("'src/resources/simulations/components/camera-view-switcher.tsx'");
     expect(scriptSource).toContain("'scripts/tests/capture-simulation-command-deck-qa.ts'");
     expect(governanceSource).toContain('bottomToolsWithinViewport');
+    expect(governanceSource).toContain('themeApplied');
     expect(governanceSource).toContain('bottomToolSegmentRoles');
     expect(governanceSource).toContain("['view-switcher', 'grid-toggle', 'speed-controls']");
     expect(governanceSource).toContain('bottomToolSegmentRoles.${role}');
     expect(simulationCaptureScriptSource).toContain('[data-simulation-local-bottom-tool-segment]');
     expect(simulationCaptureScriptSource).toContain('bottomToolSegmentRoles');
+    expect(simulationCaptureScriptSource).toContain('waitForThemeApplied');
+    expect(simulationCaptureScriptSource).toContain('inspectCommandDeck(page, theme)');
+    expect(simulationCaptureScriptSource).toContain('root.classList.contains(expectedTheme) && root.style.colorScheme === expectedTheme');
+    expect(simulationCaptureScriptSource).toContain('themeApplied: metrics.themeApplied');
+    expect(simulationCaptureScriptSource).toContain('finalUrl: page.url()');
+    expect(simulationCaptureScriptSource).toContain('finalUrl: viewport.finalUrl');
+    expect(simulationCaptureScriptSource).toContain('function buildSimulationFullMatrixVisualQa');
+    expect(simulationCaptureScriptSource).toContain('fullMatrixReviewReport');
+    expect(simulationCaptureScriptSource).toContain('Final result: PASS');
+    expect(simulationCaptureScriptSource).toContain('Unresolved blockers: 0');
     expect(simulationCaptureScriptSource).not.toContain('[data-simulation-local-bottom-toolbar], [data-simulation-local-hint-strip]');
     expect(scriptSource).toContain('simulationVisualQa.commandDeckGeometry?.viewports');
     expect(scriptSource).toContain('function simulationReactDoctorReport');

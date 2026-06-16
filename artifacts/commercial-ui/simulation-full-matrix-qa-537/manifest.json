@@ -1,0 +1,894 @@
+{
+  "generatedAt": "2026-06-16T03:34:08.038Z",
+  "change": "govern-simulation-full-matrix-visual-qa",
+  "baseUrl": "http://127.0.0.1:3002",
+  "simulationFullMatrixVisualQa": {
+    "change": "govern-simulation-full-matrix-visual-qa",
+    "generatedAt": "2026-06-16T03:34:08.038Z",
+    "activeRouteSource": "SIMULATION_VISUAL_QA_ROUTE_MATRIX.requiresNonblankScene",
+    "routeCount": 7,
+    "requiredThemes": [
+      "light",
+      "dark"
+    ],
+    "requiredWidths": [
+      1440,
+      320
+    ],
+    "entries": [
+      {
+        "requestedRoute": "/simulations/destroyer",
+        "finalUrl": "http://127.0.0.1:3002/simulations/destroyer",
+        "theme": "light",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-light-1440.png",
+        "screenshotSha256": "e913da2a5f4eb6cd16731dcecd93d344f3a8f2713ac1064b64e245b68e08b4c4",
+        "screenshotWidth": 1440,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/destroyer",
+        "finalUrl": "http://127.0.0.1:3002/simulations/destroyer",
+        "theme": "light",
+        "viewport": {
+          "width": 320,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-light-320.png",
+        "screenshotSha256": "225f09005ab7f4d640ae657817159e7b4a19d3c55cc18ce9b0eaf89cb6356c11",
+        "screenshotWidth": 320,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/destroyer",
+        "finalUrl": "http://127.0.0.1:3002/simulations/destroyer",
+        "theme": "dark",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-dark-1440.png",
+        "screenshotSha256": "ac791adc9f83ccd46e917c8536cb20c9997f2bb4f5b9cbc46f8854c8c68580b2",
+        "screenshotWidth": 1440,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/destroyer",
+        "finalUrl": "http://127.0.0.1:3002/simulations/destroyer",
+        "theme": "dark",
+        "viewport": {
+          "width": 320,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-dark-320.png",
+        "screenshotSha256": "bbb4918c1b2bac2908d811fc6c91c5df695348915a6848b5a639874acea0323e",
+        "screenshotWidth": 320,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/lng",
+        "finalUrl": "http://127.0.0.1:3002/simulations/lng",
+        "theme": "light",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-light-1440.png",
+        "screenshotSha256": "5c41a0ba10566b0d12525018415e9cd4fa48a8d6a5f9895994e925cef4af5955",
+        "screenshotWidth": 1440,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/lng",
+        "finalUrl": "http://127.0.0.1:3002/simulations/lng",
+        "theme": "light",
+        "viewport": {
+          "width": 320,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-light-320.png",
+        "screenshotSha256": "6d61381bb84497088acedea9e5be68b39d7ed39ea06d1acd23465a9187760d67",
+        "screenshotWidth": 320,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/lng",
+        "finalUrl": "http://127.0.0.1:3002/simulations/lng",
+        "theme": "dark",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-dark-1440.png",
+        "screenshotSha256": "6fae8db42a310c1a1fc4164ad0c8d5bdad476e006943c0b18b975c037ebc6a2a",
+        "screenshotWidth": 1440,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/lng",
+        "finalUrl": "http://127.0.0.1:3002/simulations/lng",
+        "theme": "dark",
+        "viewport": {
+          "width": 320,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-dark-320.png",
+        "screenshotSha256": "392b328367c5ebc3b1e3f0e3dfb61300a01af6bcfb66a3870158d8cb73766471",
+        "screenshotWidth": 320,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/container",
+        "finalUrl": "http://127.0.0.1:3002/simulations/container",
+        "theme": "light",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-light-1440.png",
+        "screenshotSha256": "a0d30f23e7e72a19e70b314a7c5970dd68482314a500c6d8e71e1e4bd3e731d8",
+        "screenshotWidth": 1440,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/container",
+        "finalUrl": "http://127.0.0.1:3002/simulations/container",
+        "theme": "light",
+        "viewport": {
+          "width": 320,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-light-320.png",
+        "screenshotSha256": "6559bdaaf164dbccf8c16f4c09be7fffa8e6fb20d70f19d7e8abcdd12643f27c",
+        "screenshotWidth": 320,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/container",
+        "finalUrl": "http://127.0.0.1:3002/simulations/container",
+        "theme": "dark",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-dark-1440.png",
+        "screenshotSha256": "acd4e5975d0efbe9bb1ea29a9ebfed56a9957754dd9c0b232acd3639f63d76c4",
+        "screenshotWidth": 1440,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/container",
+        "finalUrl": "http://127.0.0.1:3002/simulations/container",
+        "theme": "dark",
+        "viewport": {
+          "width": 320,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-dark-320.png",
+        "screenshotSha256": "a8b7b12c6e95e72dfd8d0d4f132f7379d3386fbda2f7e5c3a20c3180aadac093",
+        "screenshotWidth": 320,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/cruise",
+        "finalUrl": "http://127.0.0.1:3002/simulations/cruise",
+        "theme": "light",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-light-1440.png",
+        "screenshotSha256": "9df2d00dedb3404afe20237ff68be17fb817a71746d4b3ace59b857d0a385a3e",
+        "screenshotWidth": 1440,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/cruise",
+        "finalUrl": "http://127.0.0.1:3002/simulations/cruise",
+        "theme": "light",
+        "viewport": {
+          "width": 320,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-light-320.png",
+        "screenshotSha256": "960e23b8795e21b5470dbf46f76357190a8769321ca8d945ad12494df720a086",
+        "screenshotWidth": 320,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/cruise",
+        "finalUrl": "http://127.0.0.1:3002/simulations/cruise",
+        "theme": "dark",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-dark-1440.png",
+        "screenshotSha256": "c81f09abc3f9936e6d3fba1234714d23711b696a9e48ed77bc1a887faf270a31",
+        "screenshotWidth": 1440,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/cruise",
+        "finalUrl": "http://127.0.0.1:3002/simulations/cruise",
+        "theme": "dark",
+        "viewport": {
+          "width": 320,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-dark-320.png",
+        "screenshotSha256": "5be08691df3855b22cd52e8a83c99dcb1b4b01f5dc200e78c2a04678b86ba696",
+        "screenshotWidth": 320,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/drilling",
+        "finalUrl": "http://127.0.0.1:3002/simulations/drilling",
+        "theme": "light",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-light-1440.png",
+        "screenshotSha256": "c6b264cb51bd647d51ca65523b48297017a584d7b656e31565ac0fea7ab32325",
+        "screenshotWidth": 1440,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/drilling",
+        "finalUrl": "http://127.0.0.1:3002/simulations/drilling",
+        "theme": "light",
+        "viewport": {
+          "width": 320,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-light-320.png",
+        "screenshotSha256": "4b93aa13c9705f79987e85e8a72fccbb548f60c3c60cc7c7daa5420ce602135f",
+        "screenshotWidth": 320,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/drilling",
+        "finalUrl": "http://127.0.0.1:3002/simulations/drilling",
+        "theme": "dark",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-dark-1440.png",
+        "screenshotSha256": "bcd314dad6f847acbe889b1435111b785975e849518fdfb9a181d1270ad2fe70",
+        "screenshotWidth": 1440,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/drilling",
+        "finalUrl": "http://127.0.0.1:3002/simulations/drilling",
+        "theme": "dark",
+        "viewport": {
+          "width": 320,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-dark-320.png",
+        "screenshotSha256": "3078ec96c96a2e7f5922b3288a9d93d785f2e08fa7adf1abeacadb303b3f2eca",
+        "screenshotWidth": 320,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/icebreaker",
+        "finalUrl": "http://127.0.0.1:3002/simulations/icebreaker",
+        "theme": "light",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-light-1440.png",
+        "screenshotSha256": "f7b54b468af9d3b787d9a3211af7abc2f33056c78d221129ebc0e4b50bbd8390",
+        "screenshotWidth": 1440,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/icebreaker",
+        "finalUrl": "http://127.0.0.1:3002/simulations/icebreaker",
+        "theme": "light",
+        "viewport": {
+          "width": 320,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-light-320.png",
+        "screenshotSha256": "36825b7172a3fff3e5065e534fcde1f75759c9fddee673f236327b00e2d59a2b",
+        "screenshotWidth": 320,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/icebreaker",
+        "finalUrl": "http://127.0.0.1:3002/simulations/icebreaker",
+        "theme": "dark",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-dark-1440.png",
+        "screenshotSha256": "f58d15ef51816cb7ceec9c44bf51a43e38b3018fd0a4854eaa1bcc34f1b61026",
+        "screenshotWidth": 1440,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/icebreaker",
+        "finalUrl": "http://127.0.0.1:3002/simulations/icebreaker",
+        "theme": "dark",
+        "viewport": {
+          "width": 320,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-dark-320.png",
+        "screenshotSha256": "6a82162e7af0f219c8a6fb81cb70865dc7b52e25f29dd154eaaf518008e8ee76",
+        "screenshotWidth": 320,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/dredger",
+        "finalUrl": "http://127.0.0.1:3002/simulations/dredger",
+        "theme": "light",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-light-1440.png",
+        "screenshotSha256": "20884e3f49755dafd00f63c1b59fdbd25503c4ad42d6ca09f140d94c7ddbaea1",
+        "screenshotWidth": 1440,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/dredger",
+        "finalUrl": "http://127.0.0.1:3002/simulations/dredger",
+        "theme": "light",
+        "viewport": {
+          "width": 320,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-light-320.png",
+        "screenshotSha256": "750e680d3e60185cbfceee1afdab48df6b7936ff11f5a80316585cc49d1bd9b1",
+        "screenshotWidth": 320,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/dredger",
+        "finalUrl": "http://127.0.0.1:3002/simulations/dredger",
+        "theme": "dark",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-dark-1440.png",
+        "screenshotSha256": "dedc9bf4e2d44892eaa20e9e9a5baa7744cf44237ecbe9de8df3b67488f38b35",
+        "screenshotWidth": 1440,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      },
+      {
+        "requestedRoute": "/simulations/dredger",
+        "finalUrl": "http://127.0.0.1:3002/simulations/dredger",
+        "theme": "dark",
+        "viewport": {
+          "width": 320,
+          "height": 900
+        },
+        "role": "student",
+        "authState": "public",
+        "screenshot": "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-dark-320.png",
+        "screenshotSha256": "90b662cecf5d7b8decf1100481e3cb9d48516e675c28ebc81c987a59490ddda2",
+        "screenshotWidth": 320,
+        "screenshotHeight": 900,
+        "runtimeErrors": [],
+        "trackedWarnings": [],
+        "checklist": {
+          "sceneFirstGeometry": true,
+          "themeParity": true,
+          "panelsTopAligned": true,
+          "duplicateSceneChromeAbsent": true,
+          "mobileReachability": true,
+          "dockNonOverlap": true,
+          "contrastChecked": true,
+          "runtimeNoiseClear": true,
+          "inSceneBackControlAbsent": true,
+          "inSceneAbbreviationAbsent": true
+        }
+      }
+    ],
+    "cruiseComparison": {
+      "comparedRoutes": [
+        "/simulations/destroyer",
+        "/simulations/lng"
+      ],
+      "desktopSceneWidthRatioToMedian": 1,
+      "desktopSceneHeightRatioToMedian": 1,
+      "contextPlacement": "below-primary-scene",
+      "mobileSceneFirst": true
+    },
+    "independentReview": {
+      "status": "passed",
+      "reviewer": "ui-flow-reviewer",
+      "reviewedAt": "2026-06-16T03:34:08.038Z",
+      "report": "artifacts/commercial-ui/simulation-full-matrix-qa-537/independent-review.md",
+      "reportSha256": "1a3bf7a2efaac1552271263c84df01ad17745749f9ed38ce7717437199ed2805",
+      "unresolvedBlockers": 0,
+      "inputs": {
+        "designHandoff": "artifacts/product-design-audits/virtual-simulation-2026-06-13/design-handoff.md",
+        "audit": "artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/audit.md",
+        "conceptImages": [
+          "artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png"
+        ],
+        "contactSheets": [
+          "artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/contact-light-desktop.jpg",
+          "artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/contact-dark-desktop.jpg",
+          "artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/contact-light-mobile.jpg",
+          "artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/contact-dark-mobile.jpg"
+        ],
+        "implementationScreenshots": [
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-light-1440.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-light-320.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-dark-1440.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-destroyer-dark-320.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-light-1440.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-light-320.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-dark-1440.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-lng-dark-320.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-light-1440.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-light-320.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-dark-1440.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-container-dark-320.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-light-1440.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-light-320.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-dark-1440.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-cruise-dark-320.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-light-1440.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-light-320.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-dark-1440.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-drilling-dark-320.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-light-1440.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-light-320.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-dark-1440.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-icebreaker-dark-320.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-light-1440.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-light-320.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-dark-1440.png",
+          "artifacts/commercial-ui/simulation-command-deck-535/simulations-dredger-dark-320.png"
+        ]
+      }
+    }
+  }
+}

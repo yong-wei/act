@@ -240,6 +240,9 @@ export interface CommercialSimulationCommandDeckViewportEvidence {
   screenshotSha256?: string;
   screenshotWidth?: number;
   screenshotHeight?: number;
+  themeApplied?: boolean;
+  htmlClassName?: string;
+  bodyBackground?: string;
   sceneChromeRemoved: boolean;
   inSceneBackControlCount: number;
   inSceneAbbreviationCount: number;
@@ -291,8 +294,8 @@ export interface CommercialSimulationRuntimeNoiseEvidence {
   report?: string;
   reportSha256?: string;
   routesChecked: number;
-  pageErrors: readonly string[];
-  trackedConsoleWarnings: readonly string[];
+  pageErrors?: readonly string[];
+  trackedConsoleWarnings?: readonly string[];
 }
 
 export interface CommercialSimulationResourceThemeEvidence {
@@ -329,6 +332,82 @@ export interface CommercialSimulationHandoffBaselineEvidence {
   evidenceHook?: string;
   independentReviewStatus: CommercialSimulationHandoffReviewStatus;
   compatibilityRole?: 'redirect-to-simulations';
+}
+
+export interface CommercialSimulationFullMatrixChecklistEvidence {
+  sceneFirstGeometry: boolean;
+  themeParity: boolean;
+  panelsTopAligned: boolean;
+  duplicateSceneChromeAbsent: boolean;
+  mobileReachability: boolean;
+  dockNonOverlap: boolean;
+  contrastChecked: boolean;
+  runtimeNoiseClear: boolean;
+  inSceneBackControlAbsent: boolean;
+  inSceneAbbreviationAbsent: boolean;
+}
+
+const SIMULATION_FULL_MATRIX_REQUIRED_CHECKLIST_KEYS = [
+  'sceneFirstGeometry',
+  'themeParity',
+  'panelsTopAligned',
+  'duplicateSceneChromeAbsent',
+  'mobileReachability',
+  'dockNonOverlap',
+  'contrastChecked',
+  'runtimeNoiseClear',
+  'inSceneBackControlAbsent',
+  'inSceneAbbreviationAbsent',
+] as const satisfies readonly (keyof CommercialSimulationFullMatrixChecklistEvidence)[];
+
+export interface CommercialSimulationFullMatrixViewportEvidence {
+  requestedRoute: string;
+  finalUrl?: string;
+  theme: CommercialVisualQaTheme;
+  viewport: {
+    width: 1440 | 320;
+    height?: number;
+  };
+  role: CommercialVisualQaRole;
+  authState: CommercialVisualQaAuthState;
+  screenshot: string;
+  screenshotSha256?: string;
+  screenshotWidth?: number;
+  screenshotHeight?: number;
+  runtimeErrors: readonly string[];
+  trackedWarnings: readonly string[];
+  checklist: CommercialSimulationFullMatrixChecklistEvidence;
+}
+
+export interface CommercialSimulationFullMatrixReviewEvidence {
+  status: CommercialSimulationHandoffReviewStatus;
+  reviewer: string;
+  reviewedAt?: string;
+  report: string;
+  reportSha256?: string;
+  currentStatus?: CommercialSimulationHandoffReviewStatus;
+  currentUnresolvedBlockers?: number;
+  currentReportSha256?: string;
+  unresolvedBlockers: number;
+  inputs: {
+    designHandoff: string;
+    audit: string;
+    conceptImages: readonly string[];
+    contactSheets: readonly string[];
+    implementationScreenshots: readonly string[];
+  };
+}
+
+export interface CommercialSimulationFullMatrixQaEvidence {
+  change: 'govern-simulation-full-matrix-visual-qa';
+  generatedAt?: string;
+  activeRouteSource: 'SIMULATION_VISUAL_QA_ROUTE_MATRIX.requiresNonblankScene';
+  routeCount: 7;
+  requiredThemes: readonly CommercialVisualQaTheme[];
+  requiredWidths: readonly [1440, 320];
+  entries: readonly CommercialSimulationFullMatrixViewportEvidence[];
+  cruiseComparison?: CommercialSimulationCommandDeckCruiseComparisonEvidence;
+  independentReview: CommercialSimulationFullMatrixReviewEvidence;
 }
 
 export interface CommercialSimulationVisualQaEvidence {
@@ -419,6 +498,7 @@ export interface CommercialVisualAcceptanceEvidence {
   href: string;
   viewports: readonly CommercialViewportVisualEvidence[];
   simulationVisualQa?: CommercialSimulationVisualQaEvidence;
+  simulationFullMatrixVisualQa?: CommercialSimulationFullMatrixQaEvidence;
   secondaryRouteGovernance?: readonly CommercialSecondaryRouteGovernanceEntry[];
 }
 
@@ -1164,6 +1244,25 @@ export const SIMULATION_VISUAL_QA_ROUTE_MATRIX: CommercialSimulationVisualQaRout
     reactDoctorCommand: SIMULATION_REACT_DOCTOR_COMMAND,
   },
 ] as const;
+
+export const SIMULATION_FULL_MATRIX_VISUAL_QA_DETAIL_ROUTES = SIMULATION_VISUAL_QA_ROUTE_MATRIX.filter((route) => (
+  route.href.startsWith('/simulations/') && route.requiresNonblankScene === true
+));
+
+const SIMULATION_FULL_MATRIX_VISUAL_QA_CHANGE = 'govern-simulation-full-matrix-visual-qa';
+const SIMULATION_FULL_MATRIX_VISUAL_QA_SOURCE = 'SIMULATION_VISUAL_QA_ROUTE_MATRIX.requiresNonblankScene';
+const SIMULATION_FULL_MATRIX_VISUAL_QA_REQUIRED_WIDTHS = [1440, 320] as const;
+const SIMULATION_FULL_MATRIX_VISUAL_QA_REVIEW_INPUTS = {
+  designHandoff: SIMULATION_PRODUCT_DESIGN_HANDOFF_SOURCE,
+  audit: 'artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/audit.md',
+  conceptImage: 'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
+  contactSheets: [
+    'artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/contact-light-desktop.jpg',
+    'artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/contact-dark-desktop.jpg',
+    'artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/contact-light-mobile.jpg',
+    'artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/contact-dark-mobile.jpg',
+  ],
+} as const;
 
 const REQUIRED_COMMERCIAL_STUDENT_INTENTS = ['learn', 'practice', 'challenge', 'experiment', 'review', 'account-profile'];
 const REQUIRED_STUDENT_CORE_ENTRY_IDS = [
@@ -2068,6 +2167,195 @@ function rectWithinRect(rect: CommercialRectEvidence, container: CommercialRectE
   );
 }
 
+function simulationFinalUrlPath(finalUrl: string | undefined) {
+  if (!finalUrl) return '';
+  try {
+    return new URL(finalUrl).pathname;
+  } catch {
+    return finalUrl;
+  }
+}
+
+function buildSimulationFullMatrixVisualQaViolations(
+  requiredRoutes: readonly CommercialSimulationVisualQaRoute[],
+  visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
+) {
+  const requiredDetailRoutes = requiredRoutes.filter((route) => (
+    route.href.startsWith('/simulations/') && route.requiresNonblankScene === true
+  ));
+  if (requiredDetailRoutes.length === 0) return [];
+
+  const fullMatrixEvidence = visualEvidence.find((entry) => entry.simulationFullMatrixVisualQa)
+    ?.simulationFullMatrixVisualQa;
+  if (!fullMatrixEvidence) {
+    return [withCategory({
+      path: '/simulations',
+      rule: 'simulation-visual-qa.incomplete-evidence',
+      message: 'Simulation full-matrix final QA evidence is missing.',
+      evidence: ['simulationFullMatrixVisualQa'],
+    })];
+  }
+
+  const expectedImplementationScreenshots = fullMatrixEvidence.entries
+    .map((entry) => entry.screenshot)
+    .sort();
+  const reviewImplementationScreenshots = [
+    ...fullMatrixEvidence.independentReview.inputs.implementationScreenshots,
+  ].sort();
+  const reviewImplementationScreenshotsMatch = reviewImplementationScreenshots.length === expectedImplementationScreenshots.length
+    && reviewImplementationScreenshots.every((screenshot, index) => screenshot === expectedImplementationScreenshots[index]);
+
+  const missing = [
+    fullMatrixEvidence.change !== SIMULATION_FULL_MATRIX_VISUAL_QA_CHANGE
+      ? `simulationFullMatrixVisualQa.change=${SIMULATION_FULL_MATRIX_VISUAL_QA_CHANGE}`
+      : '',
+    fullMatrixEvidence.activeRouteSource !== SIMULATION_FULL_MATRIX_VISUAL_QA_SOURCE
+      ? `simulationFullMatrixVisualQa.activeRouteSource=${SIMULATION_FULL_MATRIX_VISUAL_QA_SOURCE}`
+      : '',
+    fullMatrixEvidence.routeCount !== SIMULATION_FULL_MATRIX_VISUAL_QA_DETAIL_ROUTES.length
+      ? `simulationFullMatrixVisualQa.routeCount=${SIMULATION_FULL_MATRIX_VISUAL_QA_DETAIL_ROUTES.length}`
+      : '',
+    fullMatrixEvidence.requiredThemes.join(',') !== SIMULATION_VISUAL_QA_REQUIRED_THEMES.join(',')
+      ? 'simulationFullMatrixVisualQa.requiredThemes=light,dark'
+      : '',
+    fullMatrixEvidence.requiredWidths.join(',') !== SIMULATION_FULL_MATRIX_VISUAL_QA_REQUIRED_WIDTHS.join(',')
+      ? 'simulationFullMatrixVisualQa.requiredWidths=1440,320'
+      : '',
+    fullMatrixEvidence.independentReview.status !== 'passed'
+      ? 'simulationFullMatrixVisualQa.independentReview.status=passed'
+      : '',
+    fullMatrixEvidence.independentReview.unresolvedBlockers !== 0
+      ? 'simulationFullMatrixVisualQa.independentReview.unresolvedBlockers=0'
+      : '',
+    !fullMatrixEvidence.independentReview.report
+      ? 'simulationFullMatrixVisualQa.independentReview.report'
+      : '',
+    !fullMatrixEvidence.independentReview.reportSha256
+      ? 'simulationFullMatrixVisualQa.independentReview.reportSha256'
+      : '',
+    !fullMatrixEvidence.independentReview.currentReportSha256
+      ? 'simulationFullMatrixVisualQa.independentReview.currentReportSha256'
+      : fullMatrixEvidence.independentReview.reportSha256 !== fullMatrixEvidence.independentReview.currentReportSha256
+      ? 'simulationFullMatrixVisualQa.independentReview.reportSha256=current'
+      : '',
+    fullMatrixEvidence.independentReview.currentStatus !== 'passed'
+      ? 'simulationFullMatrixVisualQa.independentReview.currentStatus=passed'
+      : '',
+    fullMatrixEvidence.independentReview.status !== fullMatrixEvidence.independentReview.currentStatus
+      ? 'simulationFullMatrixVisualQa.independentReview.status=current'
+      : '',
+    fullMatrixEvidence.independentReview.currentUnresolvedBlockers !== 0
+      ? 'simulationFullMatrixVisualQa.independentReview.currentUnresolvedBlockers=0'
+      : '',
+    fullMatrixEvidence.independentReview.unresolvedBlockers
+      !== fullMatrixEvidence.independentReview.currentUnresolvedBlockers
+      ? 'simulationFullMatrixVisualQa.independentReview.unresolvedBlockers=current'
+      : '',
+    fullMatrixEvidence.independentReview.inputs.designHandoff !== SIMULATION_FULL_MATRIX_VISUAL_QA_REVIEW_INPUTS.designHandoff
+      ? `simulationFullMatrixVisualQa.independentReview.inputs.designHandoff=${SIMULATION_FULL_MATRIX_VISUAL_QA_REVIEW_INPUTS.designHandoff}`
+      : '',
+    fullMatrixEvidence.independentReview.inputs.audit !== SIMULATION_FULL_MATRIX_VISUAL_QA_REVIEW_INPUTS.audit
+      ? `simulationFullMatrixVisualQa.independentReview.inputs.audit=${SIMULATION_FULL_MATRIX_VISUAL_QA_REVIEW_INPUTS.audit}`
+      : '',
+    !fullMatrixEvidence.independentReview.inputs.conceptImages.includes(
+      SIMULATION_FULL_MATRIX_VISUAL_QA_REVIEW_INPUTS.conceptImage,
+    )
+      ? `simulationFullMatrixVisualQa.independentReview.inputs.conceptImages=${SIMULATION_FULL_MATRIX_VISUAL_QA_REVIEW_INPUTS.conceptImage}`
+      : '',
+    SIMULATION_FULL_MATRIX_VISUAL_QA_REVIEW_INPUTS.contactSheets.some((sheet) => (
+      !fullMatrixEvidence.independentReview.inputs.contactSheets.includes(sheet)
+    ))
+      ? 'simulationFullMatrixVisualQa.independentReview.inputs.contactSheets=full-audit-contact-sheets'
+      : '',
+    !reviewImplementationScreenshotsMatch
+      ? 'simulationFullMatrixVisualQa.independentReview.inputs.implementationScreenshots=full-detail-matrix'
+      : '',
+    fullMatrixEvidence.entries.length
+      !== requiredDetailRoutes.length * SIMULATION_FULL_MATRIX_VISUAL_QA_REQUIRED_WIDTHS.length
+        * SIMULATION_VISUAL_QA_REQUIRED_THEMES.length
+      ? 'simulationFullMatrixVisualQa.entries=28'
+      : '',
+  ].filter(Boolean);
+
+  const allowedDetailRouteHrefs = new Set(requiredDetailRoutes.map((route) => route.href));
+  for (const entry of fullMatrixEvidence.entries) {
+    if (!allowedDetailRouteHrefs.has(entry.requestedRoute)) {
+      missing.push(`simulationFullMatrixVisualQa.unexpectedRoute=${entry.requestedRoute}`);
+    }
+  }
+
+  const cruiseComparison = fullMatrixEvidence.cruiseComparison;
+  if (!cruiseComparison) {
+    missing.push('simulationFullMatrixVisualQa.cruiseComparison');
+  } else {
+    if (!cruiseComparison.comparedRoutes.includes('/simulations/destroyer')) {
+      missing.push('simulationFullMatrixVisualQa.cruiseComparison.comparedRoutes.destroyer');
+    }
+    if (!cruiseComparison.comparedRoutes.includes('/simulations/lng')) {
+      missing.push('simulationFullMatrixVisualQa.cruiseComparison.comparedRoutes.lng');
+    }
+    if (cruiseComparison.desktopSceneWidthRatioToMedian < 0.9) {
+      missing.push('simulationFullMatrixVisualQa.cruiseComparison.desktopSceneWidthRatioToMedian>=0.9');
+    }
+    if (cruiseComparison.desktopSceneHeightRatioToMedian > 1.25) {
+      missing.push('simulationFullMatrixVisualQa.cruiseComparison.desktopSceneHeightRatioToMedian<=1.25');
+    }
+    if (cruiseComparison.contextPlacement !== 'below-primary-scene') {
+      missing.push('simulationFullMatrixVisualQa.cruiseComparison.contextPlacement=below-primary-scene');
+    }
+    if (cruiseComparison.mobileSceneFirst !== true) {
+      missing.push('simulationFullMatrixVisualQa.cruiseComparison.mobileSceneFirst');
+    }
+  }
+
+  for (const route of requiredDetailRoutes) {
+    for (const theme of SIMULATION_VISUAL_QA_REQUIRED_THEMES) {
+      for (const width of SIMULATION_FULL_MATRIX_VISUAL_QA_REQUIRED_WIDTHS) {
+        const entry = fullMatrixEvidence.entries.find((candidate) => (
+          candidate.requestedRoute === route.href
+          && candidate.theme === theme
+          && candidate.viewport.width === width
+        ));
+        const key = `simulationFullMatrixVisualQa:${route.href}:theme=${theme}:width=${width}`;
+        if (!entry) {
+          missing.push(key);
+          continue;
+        }
+        if (simulationFinalUrlPath(entry.finalUrl) !== route.href) missing.push(`${key}:finalUrl=${route.href}`);
+        if (entry.role !== route.role) missing.push(`${key}:role=${route.role}`);
+        if (entry.authState !== route.acceptedAuthState) missing.push(`${key}:authState=${route.acceptedAuthState}`);
+        if (!entry.screenshot) missing.push(`${key}:screenshot`);
+        if (!entry.screenshotSha256) missing.push(`${key}:screenshotSha256`);
+        if (entry.screenshotWidth !== width) missing.push(`${key}:screenshotWidth=${width}`);
+        if (
+          entry.screenshotHeight === undefined
+          || entry.screenshotHeight < COMMERCIAL_SIMULATION_MIN_SCREENSHOT_HEIGHT
+        ) {
+          missing.push(`${key}:screenshotHeight>=${COMMERCIAL_SIMULATION_MIN_SCREENSHOT_HEIGHT}`);
+        }
+        if (entry.runtimeErrors.length !== 0) missing.push(`${key}:runtimeErrors=0`);
+        if (entry.trackedWarnings.length !== 0) missing.push(`${key}:trackedWarnings=0`);
+        const checklist = entry.checklist as Partial<Record<
+          keyof CommercialSimulationFullMatrixChecklistEvidence,
+          boolean
+        >> | undefined;
+        for (const check of SIMULATION_FULL_MATRIX_REQUIRED_CHECKLIST_KEYS) {
+          if (checklist?.[check] !== true) missing.push(`${key}:checklist.${check}`);
+        }
+      }
+    }
+  }
+
+  return missing.length > 0
+    ? [withCategory({
+        path: '/simulations',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        message: 'Simulation full-matrix final QA evidence is incomplete or not independently cleared.',
+        evidence: missing,
+      })]
+    : [];
+}
+
 function buildSimulationVisualQaViolations(
   requiredRoutes: readonly CommercialSimulationVisualQaRoute[],
   visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
@@ -2376,6 +2664,7 @@ function buildSimulationVisualQaViolations(
             ) {
               missing.push(`${key}:screenshotHeight>=${COMMERCIAL_SIMULATION_MIN_SCREENSHOT_HEIGHT}`);
             }
+            if (viewport.themeApplied !== true) missing.push(`${key}:themeApplied`);
             if (viewport.sceneChromeRemoved !== true) missing.push(`${key}:sceneChromeRemoved`);
             if (viewport.inSceneBackControlCount !== 0) missing.push(`${key}:inSceneBackControlCount=0`);
             if (viewport.inSceneAbbreviationCount !== 0) missing.push(`${key}:inSceneAbbreviationCount=0`);
@@ -3305,6 +3594,7 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
     ...buildVisualManifestMetadataViolations(visualRouteInventory, premiumVisualQaMatrix, input.visualEvidence),
     ...buildNavigationStateViolations(visualRouteInventory, input.visualEvidence),
     ...buildMobileStructureViolations(input.visualEvidence),
+    ...buildSimulationFullMatrixVisualQaViolations(simulationVisualQaMatrix, input.visualEvidence),
     ...buildSimulationVisualQaViolations(simulationVisualQaMatrix, input.visualEvidence),
     ...buildInteractiveLearningProductQaViolations(
       input.interactiveLearningProductQa,

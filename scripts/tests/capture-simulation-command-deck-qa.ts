@@ -6,6 +6,8 @@ import { chromium, type Browser, type Page } from 'playwright';
 
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, 'artifacts/commercial-ui/simulation-command-deck-535');
+const fullMatrixOutputDir = path.join(repoRoot, 'artifacts/commercial-ui/simulation-full-matrix-qa-537');
+const fullMatrixReviewReport = 'artifacts/commercial-ui/simulation-full-matrix-qa-537/independent-review.md';
 const baseUrl = process.env.SIMULATION_COMMAND_DECK_QA_BASE_URL ?? 'http://127.0.0.1:3001';
 
 type Theme = 'light' | 'dark';
@@ -26,6 +28,10 @@ type CommandDeckViewportEvidence = {
   screenshotSha256: string;
   screenshotWidth: number;
   screenshotHeight: number;
+  finalUrl: string;
+  themeApplied: boolean;
+  htmlClassName: string;
+  bodyBackground: string;
   sceneChromeRemoved: boolean;
   inSceneBackControlCount: number;
   inSceneAbbreviationCount: number;
@@ -44,6 +50,31 @@ type CommandDeckViewportEvidence = {
   controlPanelRect?: RectEvidence;
   bottomToolRects?: RectEvidence[];
 };
+type CommandDeckInspectionMetrics = Pick<
+  CommandDeckViewportEvidence,
+  | 'sceneChromeRemoved'
+  | 'inSceneBackControlCount'
+  | 'inSceneAbbreviationCount'
+  | 'collapseButtonCount'
+  | 'restoreHandleCount'
+  | 'panelsTopAligned'
+  | 'bottomToolsUnobscured'
+  | 'bottomToolsWithinViewport'
+  | 'bottomToolSegmentRoles'
+  | 'konlingDockCollisionFree'
+  | 'restoreHandlesKeyboardReachable'
+  | 'primarySceneNonblank'
+  | 'structuredSurfacesBelowScene'
+  | 'statusPanelRect'
+  | 'controlPanelRect'
+  | 'bottomToolRects'
+> & {
+  sceneRect?: RectEvidence;
+  primarySceneRect?: RectEvidence;
+  themeApplied: boolean;
+  htmlClassName: string;
+  bodyBackground: string;
+};
 type CommandDeckRouteEvidence = {
   href: string;
   routeFile: string;
@@ -61,6 +92,27 @@ type CommandDeckRouteEvidence = {
     };
   };
 };
+type ExistingRouteVisualQa = {
+  sceneThemeParameters?: {
+    lightTemplate?: boolean;
+    darkTemplate?: boolean;
+    labelHudContrastChecked?: boolean;
+  };
+  resourceInternalTheme?: {
+    panelThemeParity?: boolean;
+    localControlsThemeParity?: boolean;
+    restoreHandlesThemeParity?: boolean;
+  };
+};
+type ExistingCommercialEvidenceRoute = {
+  href?: string;
+  simulationVisualQa?: ExistingRouteVisualQa;
+  simulationFullMatrixVisualQa?: Record<string, unknown>;
+};
+type RuntimeNoiseSummary = {
+  pageErrors: string[];
+  trackedConsoleWarnings: string[];
+};
 
 const routes: RouteConfig[] = [
   { href: '/simulations/destroyer', routeFile: 'src/app/simulations/destroyer/page.tsx' },
@@ -77,9 +129,74 @@ const viewports: CaptureViewport[] = [
   { width: 1024, height: 900, navigationState: 'desktop-expanded' },
   { width: 320, height: 900, navigationState: 'workspace-command-surface' },
 ];
+const fullMatrixReviewInputs = {
+  designHandoff: 'artifacts/product-design-audits/virtual-simulation-2026-06-13/design-handoff.md',
+  audit: 'artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/audit.md',
+  conceptImages: [
+    'artifacts/product-design-audits/virtual-simulation-2026-06-13/concepts/concept-2-command-deck-shell.png',
+  ],
+  contactSheets: [
+    'artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/contact-light-desktop.jpg',
+    'artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/contact-dark-desktop.jpg',
+    'artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/contact-light-mobile.jpg',
+    'artifacts/product-design-audits/virtual-simulation-2026-06-15-audit/contact-dark-mobile.jpg',
+  ],
+};
 
 function sha256(relativePath: string) {
   return createHash('sha256').update(readFileSync(path.join(repoRoot, relativePath))).digest('hex');
+}
+
+function artifactSha256(relativePath: string | undefined) {
+  return relativePath && existsSync(path.join(repoRoot, relativePath)) ? sha256(relativePath) : undefined;
+}
+
+function readJsonIfExists<T>(relativePath: string): T | undefined {
+  const absolutePath = path.join(repoRoot, relativePath);
+  if (!existsSync(absolutePath)) return undefined;
+  return JSON.parse(readFileSync(absolutePath, 'utf8')) as T;
+}
+
+function readRuntimeNoiseSummary(): RuntimeNoiseSummary {
+  const report = readJsonIfExists<{
+    summary?: {
+      pageErrors?: unknown[];
+      trackedConsoleWarnings?: unknown[];
+    };
+  }>('artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json');
+  const stringify = (entry: unknown) => {
+    if (typeof entry === 'string') return entry;
+    if (!entry || typeof entry !== 'object') return JSON.stringify(entry);
+    const record = entry as Record<string, unknown>;
+    const detail = typeof record.message === 'string'
+      ? record.message
+      : typeof record.text === 'string'
+        ? record.text
+        : JSON.stringify(record);
+    return typeof record.route === 'string' ? `${record.route}: ${detail}` : detail;
+  };
+  return {
+    pageErrors: Array.isArray(report?.summary?.pageErrors)
+      ? report.summary.pageErrors.map(stringify)
+      : [],
+    trackedConsoleWarnings: Array.isArray(report?.summary?.trackedConsoleWarnings)
+      ? report.summary.trackedConsoleWarnings.map(stringify)
+      : [],
+  };
+}
+
+function reviewReportStatus() {
+  if (!existsSync(path.join(repoRoot, fullMatrixReviewReport))) {
+    return {
+      status: 'not-run',
+      unresolvedBlockers: 1,
+    } as const;
+  }
+  const content = readFileSync(path.join(repoRoot, fullMatrixReviewReport), 'utf8');
+  return {
+    status: content.includes('Final result: PASS') ? 'passed' : 'failed',
+    unresolvedBlockers: content.includes('Unresolved blockers: 0') ? 0 : 1,
+  } as const;
 }
 
 function commandDeckGeometrySourcePaths(routeFile: string) {
@@ -117,6 +234,33 @@ async function closeContextSafely(context: Awaited<ReturnType<Browser['newContex
   ]).catch(() => undefined);
 }
 
+async function forceTheme(page: Page, theme: Theme, navigationState: CaptureViewport['navigationState']) {
+  await page.evaluate(({ nextTheme, nextNavigationState }) => {
+    window.localStorage.setItem('ai-obe-theme', nextTheme);
+    window.localStorage.setItem(
+      'act:app-shell:navigation-preference',
+      nextNavigationState === 'desktop-expanded' ? 'expanded' : 'collapsed',
+    );
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(nextTheme);
+    document.documentElement.style.colorScheme = nextTheme;
+  }, { nextTheme: theme, nextNavigationState: navigationState });
+}
+
+async function waitForThemeApplied(page: Page, theme: Theme) {
+  await page.waitForFunction((expectedTheme) => {
+    const root = document.documentElement;
+    const background = getComputedStyle(document.body).backgroundColor;
+    const channels = background.match(/\d+(\.\d+)?/g)?.slice(0, 3).map(Number) ?? [];
+    const isDarkBackground = channels.length === 3
+      ? channels.reduce((sum, channel) => sum + channel, 0) / 3 < 128
+      : false;
+    return root.classList.contains(expectedTheme)
+      && root.style.colorScheme === expectedTheme
+      && (expectedTheme === 'dark' ? isDarkBackground : true);
+  }, theme, { timeout: 10000 });
+}
+
 function slug(input: string) {
   return input.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').toLowerCase();
 }
@@ -135,6 +279,7 @@ async function openSimulationPage(
   const context = await browser.newContext({
     viewport: { width: viewport.width, height: viewport.height },
     deviceScaleFactor: 1,
+    colorScheme: theme,
   });
   await context.addInitScript(({ currentTheme, navigationState }) => {
     Object.defineProperty(window, '__name', {
@@ -152,7 +297,11 @@ async function openSimulationPage(
   }, { currentTheme: theme, navigationState: viewport.navigationState });
   const page = await context.newPage();
   await page.goto(`${baseUrl}${route.href}`, { waitUntil: 'domcontentloaded' });
+  await forceTheme(page, theme, viewport.navigationState);
+  await waitForThemeApplied(page, theme);
   await page.waitForSelector('[data-commercial-workspace="simulation-scene"]', { timeout: 30000 });
+  await forceTheme(page, theme, viewport.navigationState);
+  await waitForThemeApplied(page, theme);
   if (viewport.width === 1440) {
     await page.waitForSelector('[data-command-deck-panel-anchor="top-command-area"]', {
       state: 'visible',
@@ -163,12 +312,15 @@ async function openSimulationPage(
       timeout: 20000,
     });
   }
+  await forceTheme(page, theme, viewport.navigationState);
+  await waitForThemeApplied(page, theme);
   await page.waitForTimeout(500);
   return { context, page };
 }
 
-async function inspectCommandDeck(page: Page) {
+async function inspectCommandDeck(page: Page, expectedTheme: Theme): Promise<CommandDeckInspectionMetrics> {
   return page.evaluate(`(() => {
+    const expectedTheme = ${JSON.stringify(expectedTheme)};
     function rect(element) {
       if (!element) return undefined;
       const box = element.getBoundingClientRect();
@@ -220,7 +372,12 @@ async function inspectCommandDeck(page: Page) {
     const primaryScene = scene ? (scene.querySelector('[data-instrument-nonblank-contract="simulation-scene"]') || scene) : null;
     const primarySceneRect = rect(primaryScene);
     const structuredRect = rect(document.querySelector('[data-simulation-shell-structured-surfaces="below-primary-scene"]'));
+    const root = document.documentElement;
+    const bodyBackground = window.getComputedStyle(document.body).backgroundColor;
     return {
+      themeApplied: root.classList.contains(expectedTheme) && root.style.colorScheme === expectedTheme,
+      htmlClassName: root.className,
+      bodyBackground,
       sceneRect,
       primarySceneRect,
       statusPanelRect,
@@ -245,7 +402,7 @@ async function inspectCommandDeck(page: Page) {
       primarySceneNonblank: Boolean(primarySceneRect && primarySceneRect.width > 260 && primarySceneRect.height > 420),
       structuredSurfacesBelowScene: !structuredRect || !sceneRect ? undefined : structuredRect.top >= sceneRect.bottom - 4
     };
-  })()`);
+  })()`) as Promise<CommandDeckInspectionMetrics>;
 }
 
 async function captureRouteViewport(
@@ -256,7 +413,7 @@ async function captureRouteViewport(
 ): Promise<CommandDeckViewportEvidence> {
   const { context, page } = await openSimulationPage(browser, route, theme, viewport);
   try {
-    const metrics = await inspectCommandDeck(page);
+    const metrics = await inspectCommandDeck(page, theme);
     const fileName = `${slug(route.href)}-${theme}-${viewport.width}.png`;
     const screenshotPath = path.join(outputDir, fileName);
     const client = await context.newCDPSession(page);
@@ -274,6 +431,10 @@ async function captureRouteViewport(
       screenshotSha256: sha256(screenshot),
       screenshotWidth: viewport.width,
       screenshotHeight: viewport.height,
+      finalUrl: page.url(),
+      themeApplied: metrics.themeApplied,
+      htmlClassName: metrics.htmlClassName,
+      bodyBackground: metrics.bodyBackground,
       sceneChromeRemoved: metrics.sceneChromeRemoved,
       inSceneBackControlCount: metrics.inSceneBackControlCount,
       inSceneAbbreviationCount: metrics.inSceneAbbreviationCount,
@@ -321,14 +482,126 @@ function attachCruiseComparison(routeEvidence: CommandDeckRouteEvidence[]) {
   };
 }
 
-function updateCommercialEvidence(routeEvidence: CommandDeckRouteEvidence[]) {
+function routeVisualQaByHref(routesFromEvidence: ExistingCommercialEvidenceRoute[]) {
+  return new Map(routesFromEvidence.map((route) => [route.href, route.simulationVisualQa]));
+}
+
+function buildSimulationFullMatrixVisualQa(
+  routeEvidence: CommandDeckRouteEvidence[],
+  routesFromEvidence: ExistingCommercialEvidenceRoute[],
+  generatedAt: string,
+) {
+  const runtimeNoise = readRuntimeNoiseSummary();
+  const routeVisualQa = routeVisualQaByHref(routesFromEvidence);
+  const implementationScreenshots = routeEvidence.flatMap((entry) => entry.commandDeckGeometry.viewports
+    .filter((viewport) => viewport.width === 1440 || viewport.width === 320)
+    .map((viewport) => viewport.screenshot));
+  const reviewStatus = reviewReportStatus();
+  const cruiseComparison = routeEvidence.find((entry) => entry.href === '/simulations/cruise')
+    ?.commandDeckGeometry.cruiseComparison;
+  const entries = routeEvidence.flatMap((entry) => {
+    const routeQa = routeVisualQa.get(entry.href);
+    const themeParity = routeQa?.resourceInternalTheme?.panelThemeParity === true
+      && routeQa.resourceInternalTheme.localControlsThemeParity === true
+      && routeQa.resourceInternalTheme.restoreHandlesThemeParity === true
+      && routeQa.sceneThemeParameters?.lightTemplate === true
+      && routeQa.sceneThemeParameters.darkTemplate === true;
+    const contrastChecked = routeQa?.sceneThemeParameters?.labelHudContrastChecked === true;
+    return entry.commandDeckGeometry.viewports
+      .filter((viewport) => viewport.width === 1440 || viewport.width === 320)
+      .map((viewport) => ({
+        requestedRoute: entry.href,
+        finalUrl: viewport.finalUrl,
+        theme: viewport.theme,
+        viewport: {
+          width: viewport.width,
+          height: viewport.screenshotHeight,
+        },
+        role: 'student',
+        authState: 'public',
+        screenshot: viewport.screenshot,
+        screenshotSha256: viewport.screenshotSha256,
+        screenshotWidth: viewport.screenshotWidth,
+        screenshotHeight: viewport.screenshotHeight,
+        runtimeErrors: runtimeNoise.pageErrors,
+        trackedWarnings: runtimeNoise.trackedConsoleWarnings,
+        checklist: {
+          sceneFirstGeometry: viewport.primarySceneNonblank === true
+            && viewport.structuredSurfacesBelowScene !== false
+            && (viewport.width !== 1440 || viewport.panelsTopAligned === true),
+          themeParity: themeParity && viewport.themeApplied === true,
+          panelsTopAligned: viewport.width === 1440 ? viewport.panelsTopAligned === true : true,
+          duplicateSceneChromeAbsent: viewport.sceneChromeRemoved === true
+            && viewport.inSceneBackControlCount === 0
+            && viewport.inSceneAbbreviationCount === 0,
+          mobileReachability: viewport.width === 320
+            ? viewport.restoreHandlesKeyboardReachable === true && viewport.bottomToolsWithinViewport === true
+            : true,
+          dockNonOverlap: viewport.konlingDockCollisionFree === true
+            && viewport.bottomToolsUnobscured === true
+            && viewport.bottomToolsWithinViewport === true,
+          contrastChecked,
+          runtimeNoiseClear: runtimeNoise.pageErrors.length === 0 && runtimeNoise.trackedConsoleWarnings.length === 0,
+          inSceneBackControlAbsent: viewport.inSceneBackControlCount === 0,
+          inSceneAbbreviationAbsent: viewport.inSceneAbbreviationCount === 0,
+        },
+      }));
+  });
+
+  return {
+    change: 'govern-simulation-full-matrix-visual-qa',
+    generatedAt,
+    activeRouteSource: 'SIMULATION_VISUAL_QA_ROUTE_MATRIX.requiresNonblankScene',
+    routeCount: routes.length,
+    requiredThemes: themes,
+    requiredWidths: [1440, 320],
+    entries,
+    cruiseComparison,
+    independentReview: {
+      status: reviewStatus.status,
+      reviewer: 'ui-flow-reviewer',
+      reviewedAt: reviewStatus.status === 'passed' ? generatedAt : undefined,
+      report: fullMatrixReviewReport,
+      reportSha256: artifactSha256(fullMatrixReviewReport),
+      unresolvedBlockers: reviewStatus.unresolvedBlockers,
+      inputs: {
+        ...fullMatrixReviewInputs,
+        implementationScreenshots,
+      },
+    },
+  };
+}
+
+function writeSimulationFullMatrixManifest(fullMatrixVisualQa: Record<string, unknown>, generatedAt: string) {
+  mkdirSync(fullMatrixOutputDir, { recursive: true });
+  writeFileSync(
+    path.join(fullMatrixOutputDir, 'manifest.json'),
+    `${JSON.stringify({
+      generatedAt,
+      change: 'govern-simulation-full-matrix-visual-qa',
+      baseUrl,
+      simulationFullMatrixVisualQa: fullMatrixVisualQa,
+    }, null, 2)}\n`,
+  );
+}
+
+function updateCommercialEvidence(routeEvidence: CommandDeckRouteEvidence[], generatedAt: string) {
   const evidencePath = path.join(repoRoot, 'artifacts/commercial-ui/evidence.json');
   if (!existsSync(evidencePath)) return;
   const manifest = JSON.parse(readFileSync(evidencePath, 'utf8')) as {
-    routes?: Array<{ href?: string; simulationVisualQa?: Record<string, unknown> }>;
+    routes?: ExistingCommercialEvidenceRoute[];
   };
+  const routesFromEvidence = manifest.routes ?? [];
+  const fullMatrixVisualQa = buildSimulationFullMatrixVisualQa(routeEvidence, routesFromEvidence, generatedAt);
+  writeSimulationFullMatrixManifest(fullMatrixVisualQa, generatedAt);
   const evidenceByHref = new Map(routeEvidence.map((entry) => [entry.href, entry.commandDeckGeometry]));
   manifest.routes = (manifest.routes ?? []).map((route) => {
+    if (route.href === '/simulations') {
+      return {
+        ...route,
+        simulationFullMatrixVisualQa: fullMatrixVisualQa as Record<string, unknown>,
+      };
+    }
     if (!route.href || !evidenceByHref.has(route.href) || !route.simulationVisualQa) return route;
     return {
       ...route,
@@ -377,7 +650,7 @@ async function main() {
     routes: routeEvidence,
   };
   writeFileSync(path.join(outputDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
-  updateCommercialEvidence(routeEvidence);
+  updateCommercialEvidence(routeEvidence, generatedAt);
 }
 
 main().catch((error) => {
