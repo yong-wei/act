@@ -847,6 +847,7 @@ const CONTROL_CORRECTION_PATH_EXECUTION_SELECT = {
   startedAt: true,
   completedAt: true,
   failedAt: true,
+  liftMetadata: true,
   idempotencyKey: true,
   createdAt: true,
   path: { select: { goalId: true, terminalValidation: true } },
@@ -926,6 +927,8 @@ function pathExecutionToEvent(row: Record<string, any>): PathEvidenceEvent | nul
   const status = stringValue(row.status) ?? 'unknown';
   const resourceType = stringValue(row.resourceType) ?? 'unknown';
   const nodeId = stringValue(row.nodeId);
+  const activityKind = readPathExecutionActivityKind(row);
+  const nonCompletionActivity = activityKind !== null && NON_COMPLETION_PATH_ACTIVITY_KINDS.has(activityKind);
   const terminalValidation = readPathTerminalValidation(row);
   const terminalValidationState = stringValue(terminalValidation.state);
   const terminalValidationLowConfidenceMarkers = arrayOfStrings(terminalValidation.lowConfidenceMarkers);
@@ -953,7 +956,7 @@ function pathExecutionToEvent(row: Record<string, any>): PathEvidenceEvent | nul
       } : {}),
     },
     adoption: status === 'started',
-    completion: status === 'completed',
+    completion: status === 'completed' && !nonCompletionActivity,
     deviation: false,
     fallback: terminalExecution && terminalFallbackRequired,
     terminalValidation: terminalExecution,
@@ -968,6 +971,22 @@ function pathExecutionToEvent(row: Record<string, any>): PathEvidenceEvent | nul
       terminalValidationLowConfidenceMarkers.length > 0
     ),
   };
+}
+
+const NON_COMPLETION_PATH_ACTIVITY_KINDS = new Set([
+  'continued-interaction',
+  'review',
+  'return-to-skipped',
+  'external-resource-reference',
+  'konling-support',
+]);
+
+function readPathExecutionActivityKind(row: Record<string, any>): string | null {
+  const metadata = row.liftMetadata && typeof row.liftMetadata === 'object' && !Array.isArray(row.liftMetadata)
+    ? row.liftMetadata as Record<string, unknown>
+    : {};
+  const value = metadata.pathActivityKind ?? metadata.activityKind;
+  return typeof value === 'string' ? value : null;
 }
 
 function isTerminalPathExecution(row: Record<string, any>, nodeId: string | null): boolean {

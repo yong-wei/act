@@ -45,6 +45,8 @@ export type CommercialUiGovernanceRule =
   | 'simulation-visual-qa.incomplete-evidence'
   | 'interactive-learning-product-qa.missing-evidence'
   | 'interactive-learning-product-qa.incomplete-evidence'
+  | 'adaptive-path-product-qa.missing-evidence'
+  | 'adaptive-path-product-qa.incomplete-evidence'
   | 'allowlist.invalid-entry';
 
 export type CommercialUiGovernanceCategory =
@@ -61,6 +63,7 @@ export type CommercialUiGovernanceCategory =
   | 'accessibility-text-fit'
   | 'simulation-visual-qa'
   | 'interactive-learning-product-qa'
+  | 'adaptive-path-product-qa'
   | 'allowlist';
 
 export interface CommercialUiGovernanceViolation {
@@ -160,6 +163,7 @@ const COMMERCIAL_VISUAL_QA_NAVIGATION_STATES: readonly CommercialVisualQaNavigat
 const COMMERCIAL_VISUAL_QA_MOBILE_WIDTHS = [320, 390] as const;
 
 const COMMERCIAL_SIMULATION_MIN_SCREENSHOT_HEIGHT = 640;
+const COMMERCIAL_SIMULATION_COMMAND_DECK_GEOMETRY_WIDTHS = [1440, 1024, 320] as const;
 
 export type CommercialSimulationVisualQaArchetype =
   | 'catalog'
@@ -218,6 +222,57 @@ export interface CommercialSimulationViewportEvidence {
   screenshotHeight?: number;
   artifact?: string;
   artifactSha256?: string;
+}
+
+export interface CommercialRectEvidence {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+}
+
+export interface CommercialSimulationCommandDeckViewportEvidence {
+  width: number;
+  theme: CommercialVisualQaTheme;
+  screenshot: string;
+  screenshotSha256?: string;
+  screenshotWidth?: number;
+  screenshotHeight?: number;
+  sceneChromeRemoved: boolean;
+  inSceneBackControlCount: number;
+  inSceneAbbreviationCount: number;
+  collapseButtonCount?: number;
+  restoreHandleCount?: number;
+  panelsTopAligned: boolean;
+  bottomToolsUnobscured: boolean;
+  bottomToolsWithinViewport?: boolean;
+  bottomToolSegmentRoles?: readonly string[];
+  konlingDockCollisionFree: boolean;
+  restoreHandlesKeyboardReachable: boolean;
+  primarySceneNonblank: boolean;
+  structuredSurfacesBelowScene?: boolean;
+  sceneRect?: CommercialRectEvidence;
+  statusPanelRect?: CommercialRectEvidence;
+  controlPanelRect?: CommercialRectEvidence;
+}
+
+export interface CommercialSimulationCommandDeckCruiseComparisonEvidence {
+  comparedRoutes: readonly string[];
+  desktopSceneWidthRatioToMedian: number;
+  desktopSceneHeightRatioToMedian: number;
+  contextPlacement: 'below-primary-scene';
+  mobileSceneFirst: boolean;
+}
+
+export interface CommercialSimulationCommandDeckGeometryEvidence {
+  change: 'normalize-simulation-command-deck-layout';
+  generatedAt?: string;
+  sourceSha256?: Record<string, string>;
+  currentSourceSha256?: Record<string, string>;
+  viewports: readonly CommercialSimulationCommandDeckViewportEvidence[];
+  cruiseComparison?: CommercialSimulationCommandDeckCruiseComparisonEvidence;
 }
 
 export interface CommercialSimulationReactDoctorEvidence {
@@ -289,6 +344,7 @@ export interface CommercialSimulationVisualQaEvidence {
   modelLibraryCompatible?: boolean;
   resourceInternalTheme?: CommercialSimulationResourceThemeEvidence;
   sceneThemeParameters?: CommercialSimulationSceneThemeEvidence;
+  commandDeckGeometry?: CommercialSimulationCommandDeckGeometryEvidence;
   reactDoctorErrorCheck?: CommercialSimulationReactDoctorEvidence;
   runtimeNoise?: CommercialSimulationRuntimeNoiseEvidence;
   viewports: readonly CommercialSimulationViewportEvidence[];
@@ -501,6 +557,85 @@ export interface CommercialInteractiveLearningProductQaEvidence {
   }[];
 }
 
+export type CommercialAdaptivePathProductQaResult = 'passed' | 'blocked' | 'missing';
+
+export interface CommercialAdaptivePathProductQaChildValidationEvidence {
+  change: string;
+  validationCommand: string;
+  result: CommercialAdaptivePathProductQaResult;
+  archivedTasksComplete: boolean;
+}
+
+export interface CommercialAdaptivePathProductQaMatrixEntry {
+  id: string;
+  route: string;
+  goal: string;
+  role: CommercialVisualQaRole;
+  theme: CommercialVisualQaTheme;
+  viewport: 'desktop' | 'mobile';
+  authState: CommercialVisualQaAuthState;
+  navigationState: CommercialVisualQaNavigationState;
+  dockState: 'collapsed' | 'expanded' | 'hidden';
+  pageState: string;
+  selectedPath?: string;
+  selectedNode?: string;
+  sourceConcept: string;
+  screenshot?: string;
+  screenshotSha256?: string;
+  result: CommercialAdaptivePathProductQaResult;
+}
+
+export interface CommercialAdaptivePathProductQaReviewEvidence {
+  status: 'passed' | 'blocked' | 'not-run';
+  reviewer: string;
+  report: string;
+  reportSha256?: string;
+  currentReportSha256?: string;
+  reportHasPassVerdict?: boolean;
+  reportHasNoUnresolvedBlocks?: boolean;
+}
+
+export interface CommercialAdaptivePathProductQaCaptureStateEvidence {
+  id: string;
+  goal: string;
+  theme: CommercialVisualQaTheme;
+  viewport: 'desktop' | 'mobile';
+  screenshot: string;
+  screenshotSha256: string;
+}
+
+export interface CommercialAdaptivePathProductQaEvidence {
+  change: 'govern-adaptive-path-product-qa';
+  parseError?: string;
+  generatedAt?: string;
+  sourceCommit?: string;
+  designHandoff: string;
+  designHandoffSha256?: string;
+  currentDesignHandoffSha256?: string;
+  handoffMatrix: string;
+  handoffMatrixSha256?: string;
+  currentHandoffMatrixSha256?: string;
+  captureManifest: string;
+  captureManifestSha256?: string;
+  currentCaptureManifestSha256?: string;
+  visualSignals: string;
+  visualSignalsSha256?: string;
+  currentVisualSignalsSha256?: string;
+  conceptImages: readonly string[];
+  conceptImageSha256?: Record<string, string>;
+  currentConceptImageSha256?: Record<string, string>;
+  childChangeValidations: readonly CommercialAdaptivePathProductQaChildValidationEvidence[];
+  routeMatrix: readonly CommercialAdaptivePathProductQaMatrixEntry[];
+  captureStates: readonly CommercialAdaptivePathProductQaCaptureStateEvidence[];
+  independentVisualReview: CommercialAdaptivePathProductQaReviewEvidence;
+  functionalGates: Record<string, boolean>;
+  temporaryExceptions: readonly {
+    id: string;
+    owner: string;
+    removalCondition: string;
+  }[];
+}
+
 export interface CommercialUiGovernanceInput {
   mode: CommercialUiGovernanceMode;
   today?: string;
@@ -524,6 +659,10 @@ export interface CommercialUiGovernanceInput {
   interactiveLearningProductQa?: CommercialInteractiveLearningProductQaEvidence;
   interactiveLearningProductQaSourceRefreshRequired?: boolean;
   interactiveLearningProductQaEvidenceRefreshed?: boolean;
+  adaptivePathProductQaRequired?: boolean;
+  adaptivePathProductQa?: CommercialAdaptivePathProductQaEvidence;
+  adaptivePathProductQaSourceRefreshRequired?: boolean;
+  adaptivePathProductQaEvidenceRefreshed?: boolean;
 }
 
 export interface CommercialUiGovernanceResult {
@@ -1898,7 +2037,35 @@ function buildMobileStructureViolations(visualEvidence: readonly CommercialVisua
             evidence: [`width=${viewport.width}`, ...missing],
           })]
         : [];
-    }));
+	    }));
+}
+
+function commandDeckGeometrySourcePaths(routeFile: string) {
+  return [
+    routeFile,
+    'src/app/simulations/_components/simulation-shell.tsx',
+    'src/resources/simulations/components/simulation-ui.tsx',
+    'src/resources/simulations/components/camera-view-switcher.tsx',
+    'scripts/tests/capture-simulation-command-deck-qa.ts',
+  ] as const;
+}
+
+function rectWithinViewport(
+  rect: CommercialRectEvidence,
+  width: number,
+  height: number | undefined,
+) {
+  if (height === undefined) return false;
+  return rect.left >= 0 && rect.top >= 0 && rect.right <= width && rect.bottom <= height;
+}
+
+function rectWithinRect(rect: CommercialRectEvidence, container: CommercialRectEvidence) {
+  return (
+    rect.left >= container.left
+    && rect.top >= container.top
+    && rect.right <= container.right
+    && rect.bottom <= container.bottom
+  );
 }
 
 function buildSimulationVisualQaViolations(
@@ -2081,6 +2248,7 @@ function buildSimulationVisualQaViolations(
 
     const themeArtifactFingerprintsByState = new Map<string, Map<CommercialVisualQaTheme, string>>();
     const artifactFingerprintsByWidth = new Map<number, Map<string, string>>();
+    const commandDeckGeometry = simulationEvidence.commandDeckGeometry;
 
     for (const theme of route.requiredThemes) {
       for (const width of route.requiredWidths) {
@@ -2168,6 +2336,115 @@ function buildSimulationVisualQaViolations(
         }
       }
     }
+
+    if (route.requiresNonblankScene) {
+      if (!commandDeckGeometry) {
+        missing.push('commandDeckGeometry');
+      } else {
+        if (commandDeckGeometry.change !== 'normalize-simulation-command-deck-layout') {
+          missing.push('commandDeckGeometry.change=normalize-simulation-command-deck-layout');
+        }
+        for (const sourcePath of commandDeckGeometrySourcePaths(route.routeFile)) {
+          if (!commandDeckGeometry.sourceSha256?.[sourcePath]) {
+            missing.push(`commandDeckGeometry.sourceSha256.${sourcePath}`);
+            continue;
+          }
+          if (!commandDeckGeometry.currentSourceSha256?.[sourcePath]) {
+            missing.push(`commandDeckGeometry.currentSourceSha256.${sourcePath}`);
+            continue;
+          }
+          if (commandDeckGeometry.sourceSha256[sourcePath] !== commandDeckGeometry.currentSourceSha256[sourcePath]) {
+            missing.push(`commandDeckGeometry.sourceSha256.${sourcePath}=current`);
+          }
+        }
+        for (const theme of route.requiredThemes) {
+          for (const width of COMMERCIAL_SIMULATION_COMMAND_DECK_GEOMETRY_WIDTHS) {
+            const viewport = commandDeckGeometry.viewports.find((entry) => (
+              entry.theme === theme && entry.width === width
+            ));
+            const key = `commandDeckGeometry:theme=${theme}:width=${width}`;
+            if (!viewport) {
+              missing.push(key);
+              continue;
+            }
+            if (!viewport.screenshot) missing.push(`${key}:screenshot`);
+            if (!viewport.screenshotSha256) missing.push(`${key}:screenshotSha256`);
+            if (viewport.screenshotWidth !== width) missing.push(`${key}:screenshotWidth=${width}`);
+            if (
+              viewport.screenshotHeight === undefined
+              || viewport.screenshotHeight < COMMERCIAL_SIMULATION_MIN_SCREENSHOT_HEIGHT
+            ) {
+              missing.push(`${key}:screenshotHeight>=${COMMERCIAL_SIMULATION_MIN_SCREENSHOT_HEIGHT}`);
+            }
+            if (viewport.sceneChromeRemoved !== true) missing.push(`${key}:sceneChromeRemoved`);
+            if (viewport.inSceneBackControlCount !== 0) missing.push(`${key}:inSceneBackControlCount=0`);
+            if (viewport.inSceneAbbreviationCount !== 0) missing.push(`${key}:inSceneAbbreviationCount=0`);
+            if (width === 1440 && (viewport.collapseButtonCount ?? 0) < 2) {
+              missing.push(`${key}:collapseButtonCount>=2`);
+            }
+            if (width !== 1440 && (viewport.restoreHandleCount ?? 0) < 2) {
+              missing.push(`${key}:restoreHandleCount>=2`);
+            }
+            if (width === 1440 && viewport.panelsTopAligned !== true) missing.push(`${key}:panelsTopAligned`);
+            if (width === 1440) {
+              for (const [rectKey, panelRect] of [
+                ['statusPanelRect', viewport.statusPanelRect],
+                ['controlPanelRect', viewport.controlPanelRect],
+              ] as const) {
+                if (!panelRect) {
+                  missing.push(`${key}:${rectKey}`);
+                  continue;
+                }
+                if (!rectWithinViewport(panelRect, width, viewport.screenshotHeight)) {
+                  missing.push(`${key}:${rectKey}WithinViewport`);
+                }
+                if (!viewport.sceneRect || !rectWithinRect(panelRect, viewport.sceneRect)) {
+                  missing.push(`${key}:${rectKey}WithinScene`);
+                }
+              }
+            }
+            if (viewport.bottomToolsUnobscured !== true) missing.push(`${key}:bottomToolsUnobscured`);
+            if (viewport.bottomToolsWithinViewport !== true) missing.push(`${key}:bottomToolsWithinViewport`);
+            for (const role of ['view-switcher', 'grid-toggle', 'speed-controls']) {
+              if (!viewport.bottomToolSegmentRoles?.includes(role)) {
+                missing.push(`${key}:bottomToolSegmentRoles.${role}`);
+              }
+            }
+            if (viewport.konlingDockCollisionFree !== true) missing.push(`${key}:konlingDockCollisionFree`);
+            if (viewport.restoreHandlesKeyboardReachable !== true) {
+              missing.push(`${key}:restoreHandlesKeyboardReachable`);
+            }
+            if (viewport.primarySceneNonblank !== true) missing.push(`${key}:primarySceneNonblank`);
+          }
+        }
+        if (route.href === '/simulations/cruise') {
+          const comparison = commandDeckGeometry.cruiseComparison;
+          if (!comparison) {
+            missing.push('commandDeckGeometry.cruiseComparison');
+          } else {
+            if (!comparison.comparedRoutes.includes('/simulations/destroyer')) {
+              missing.push('commandDeckGeometry.cruiseComparison.comparedRoutes.destroyer');
+            }
+            if (!comparison.comparedRoutes.includes('/simulations/lng')) {
+              missing.push('commandDeckGeometry.cruiseComparison.comparedRoutes.lng');
+            }
+            if (comparison.desktopSceneWidthRatioToMedian < 0.9) {
+              missing.push('commandDeckGeometry.cruiseComparison.desktopSceneWidthRatioToMedian>=0.9');
+            }
+            if (comparison.desktopSceneHeightRatioToMedian > 1.25) {
+              missing.push('commandDeckGeometry.cruiseComparison.desktopSceneHeightRatioToMedian<=1.25');
+            }
+            if (comparison.contextPlacement !== 'below-primary-scene') {
+              missing.push('commandDeckGeometry.cruiseComparison.contextPlacement=below-primary-scene');
+            }
+            if (comparison.mobileSceneFirst !== true) {
+              missing.push('commandDeckGeometry.cruiseComparison.mobileSceneFirst');
+            }
+          }
+        }
+      }
+    }
+
     for (const [stateKey, themedFingerprints] of themeArtifactFingerprintsByState) {
       const seen = new Map<string, CommercialVisualQaTheme>();
       for (const theme of route.requiredThemes) {
@@ -2196,6 +2473,14 @@ const INTERACTIVE_LEARNING_PRODUCT_QA_HANDOFF =
   'artifacts/product-design-audits/interactive-learning-2026-06-14/design-handoff.md';
 const INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX =
   'artifacts/product-design-audits/interactive-learning-2026-06-14/evidence/govern-interactive-learning-product-qa/handoff-to-implementation-matrix.md';
+const ADAPTIVE_PATH_PRODUCT_QA_HANDOFF =
+  'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md';
+const ADAPTIVE_PATH_PRODUCT_QA_MATRIX =
+  'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/handoff-to-implementation-matrix.md';
+const ADAPTIVE_PATH_PRODUCT_QA_CAPTURE_MANIFEST =
+  'artifacts/commercial-ui/adaptive-path-product-qa-516/capture-manifest.json';
+const ADAPTIVE_PATH_PRODUCT_QA_VISUAL_SIGNALS =
+  'artifacts/commercial-ui/adaptive-path-product-qa-516/visual-signals.json';
 
 const REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_CHILD_CHANGES = [
   'unify-interactive-learning-atlas-shell',
@@ -2203,6 +2488,20 @@ const REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_CHILD_CHANGES = [
   'standardize-interactive-classroom-entry',
   'standardize-lesson-runtime-shell',
   'define-interactive-module-visual-standards',
+] as const;
+const REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CHILD_CHANGES = [
+  'generalize-adaptive-learning-path-generation',
+  'govern-adaptive-path-resource-nodes',
+  'add-konling-path-generation-tools',
+  'redesign-adaptive-path-generation-selection-ui',
+  'build-adaptive-path-execution-history-ui',
+] as const;
+
+const REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CONCEPT_IMAGES = [
+  'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png',
+  'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/02-path-selection-comparison.png',
+  'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png',
+  'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/04-history-evidence-record.png',
 ] as const;
 
 const REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_IDS = [
@@ -2219,6 +2518,21 @@ const REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_IDS = [
   'module-chrome-student-choice-mobile',
   'konling-dock-collapsed-desktop',
   'focus-management-keyboard',
+] as const;
+const REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_MATRIX_IDS = [
+  'generation-main-desktop-light',
+  'generation-main-mobile-dark',
+  'konling-parameter-panel-desktop-dark',
+  'cold-start-starter-paths-mobile-light',
+  'path-comparison-desktop-light',
+  'path-comparison-mobile-dark',
+  'active-path-execution-desktop-light',
+  'active-path-execution-mobile-dark',
+  'node-detail-desktop-light',
+  'skip-warning-desktop-light',
+  'history-evidence-desktop-light',
+  'history-evidence-mobile-dark',
+  'app-shell-expanded-dock-desktop-dark',
 ] as const;
 
 const REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_METADATA = {
@@ -2317,6 +2631,157 @@ const REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_METADATA = {
   typeof REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_MATRIX_IDS[number],
   Pick<CommercialInteractiveLearningProductQaMatrixEntry, 'route' | 'role' | 'theme' | 'viewport' | 'sourceConcept'>
 >;
+const REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_MATRIX_METADATA = {
+  'generation-main-desktop-light': {
+    route: '/assessment/adaptive-practice',
+    goal: 'frequency-response-foundations',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    authState: 'authenticated',
+    navigationState: 'desktop-collapsed',
+    dockState: 'collapsed',
+    sourceConcept: REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CONCEPT_IMAGES[0],
+  },
+  'generation-main-mobile-dark': {
+    route: '/assessment/adaptive-practice',
+    goal: 'frequency-response-foundations',
+    role: 'student',
+    theme: 'dark',
+    viewport: 'mobile',
+    authState: 'authenticated',
+    navigationState: 'workspace-command-surface',
+    dockState: 'collapsed',
+    sourceConcept: REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CONCEPT_IMAGES[0],
+  },
+  'konling-parameter-panel-desktop-dark': {
+    route: '/assessment/adaptive-practice',
+    goal: 'frequency-response-foundations',
+    role: 'student',
+    theme: 'dark',
+    viewport: 'desktop',
+    authState: 'authenticated',
+    navigationState: 'desktop-collapsed',
+    dockState: 'expanded',
+    sourceConcept: REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CONCEPT_IMAGES[0],
+  },
+  'cold-start-starter-paths-mobile-light': {
+    route: '/assessment/adaptive-practice',
+    goal: 'frequency-response-foundations',
+    role: 'student',
+    theme: 'light',
+    viewport: 'mobile',
+    authState: 'authenticated',
+    navigationState: 'workspace-command-surface',
+    dockState: 'collapsed',
+    sourceConcept: REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CONCEPT_IMAGES[0],
+  },
+  'path-comparison-desktop-light': {
+    route: '/assessment/adaptive-practice',
+    goal: 'frequency-response-foundations',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    authState: 'authenticated',
+    navigationState: 'desktop-collapsed',
+    dockState: 'collapsed',
+    sourceConcept: REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CONCEPT_IMAGES[1],
+  },
+  'path-comparison-mobile-dark': {
+    route: '/assessment/adaptive-practice',
+    goal: 'frequency-response-foundations',
+    role: 'student',
+    theme: 'dark',
+    viewport: 'mobile',
+    authState: 'authenticated',
+    navigationState: 'workspace-command-surface',
+    dockState: 'collapsed',
+    sourceConcept: REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CONCEPT_IMAGES[1],
+  },
+  'active-path-execution-desktop-light': {
+    route: '/assessment/adaptive-practice',
+    goal: 'control-correction',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    authState: 'authenticated',
+    navigationState: 'desktop-collapsed',
+    dockState: 'collapsed',
+    sourceConcept: REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CONCEPT_IMAGES[2],
+  },
+  'active-path-execution-mobile-dark': {
+    route: '/assessment/adaptive-practice',
+    goal: 'control-correction',
+    role: 'student',
+    theme: 'dark',
+    viewport: 'mobile',
+    authState: 'authenticated',
+    navigationState: 'workspace-command-surface',
+    dockState: 'collapsed',
+    sourceConcept: REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CONCEPT_IMAGES[2],
+  },
+  'node-detail-desktop-light': {
+    route: '/assessment/adaptive-practice',
+    goal: 'control-correction',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    authState: 'authenticated',
+    navigationState: 'desktop-collapsed',
+    dockState: 'collapsed',
+    sourceConcept: REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CONCEPT_IMAGES[2],
+  },
+  'skip-warning-desktop-light': {
+    route: '/assessment/adaptive-practice',
+    goal: 'control-correction',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    authState: 'authenticated',
+    navigationState: 'desktop-collapsed',
+    dockState: 'collapsed',
+    sourceConcept: REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CONCEPT_IMAGES[2],
+  },
+  'history-evidence-desktop-light': {
+    route: '/assessment/adaptive-practice',
+    goal: 'control-correction',
+    role: 'student',
+    theme: 'light',
+    viewport: 'desktop',
+    authState: 'authenticated',
+    navigationState: 'desktop-collapsed',
+    dockState: 'collapsed',
+    sourceConcept: REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CONCEPT_IMAGES[3],
+  },
+  'history-evidence-mobile-dark': {
+    route: '/assessment/adaptive-practice',
+    goal: 'control-correction',
+    role: 'student',
+    theme: 'dark',
+    viewport: 'mobile',
+    authState: 'authenticated',
+    navigationState: 'workspace-command-surface',
+    dockState: 'collapsed',
+    sourceConcept: REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CONCEPT_IMAGES[3],
+  },
+  'app-shell-expanded-dock-desktop-dark': {
+    route: '/assessment/adaptive-practice',
+    goal: 'control-correction',
+    role: 'student',
+    theme: 'dark',
+    viewport: 'desktop',
+    authState: 'authenticated',
+    navigationState: 'desktop-expanded',
+    dockState: 'expanded',
+    sourceConcept: REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CONCEPT_IMAGES[2],
+  },
+} as const satisfies Record<
+  typeof REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_MATRIX_IDS[number],
+  Pick<
+    CommercialAdaptivePathProductQaMatrixEntry,
+    'route' | 'goal' | 'role' | 'theme' | 'viewport' | 'authState' | 'navigationState' | 'dockState' | 'sourceConcept'
+  >
+>;
 
 const REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_REGRESSION_CHECKS = [
   'sharedShellNavigationDock',
@@ -2328,6 +2793,24 @@ const REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_REGRESSION_CHECKS = [
   'studentGuestNoTeacherStats',
   'courseShellNoPrimaryPremiumLessonShell',
   'standardModuleChromeRegistered',
+] as const;
+const REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_FUNCTIONAL_GATES = [
+  'coldStartGeneratesSelectablePaths',
+  'generationSupportsGenericGoals',
+  'governedResourceNodes',
+  'atLeastOneCheckpoint',
+  'forbiddenStudentVisibleStringsAbsent',
+  'generationSelectionRejectionSwitchRecorded',
+  'startCompletionReviewContinuedInteractionRecorded',
+  'skipReturnDeviationCheckpointRecorded',
+  'konlingAdjustmentRecorded',
+  'externalResourceAccessGoverned',
+  'noCompletedNodeDoubleCount',
+  'desktopFluidWorkspace',
+  'mobileTaskFirstPanels',
+  'comparisonNotMarketingCards',
+  'appShellBreadcrumbsAccountControls',
+  'rightBottomKonlingDock',
 ] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -2516,6 +2999,198 @@ function buildInteractiveLearningProductQaViolations(
     : [];
 }
 
+function buildAdaptivePathProductQaViolations(
+  evidence: CommercialAdaptivePathProductQaEvidence | undefined,
+  required = false,
+  sourceRefreshRequired = false,
+  evidenceRefreshed = false,
+) {
+  if (!evidence) {
+    return required ? [withCategory({
+      path: ADAPTIVE_PATH_PRODUCT_QA_MATRIX,
+      rule: 'adaptive-path-product-qa.missing-evidence' as const,
+      message: 'Adaptive path product QA evidence is missing.',
+      evidence: ['govern-adaptive-path-product-qa'],
+    })] : [];
+  }
+
+  const rawConceptImages = Array.isArray(evidence.conceptImages) ? evidence.conceptImages : [];
+  const conceptImages = rawConceptImages.filter((entry): entry is string => typeof entry === 'string');
+  const rawChildChangeValidations = Array.isArray(evidence.childChangeValidations) ? evidence.childChangeValidations : [];
+  const childChangeValidations = rawChildChangeValidations.filter(isRecord) as Partial<CommercialAdaptivePathProductQaChildValidationEvidence>[];
+  const rawRouteMatrix = Array.isArray(evidence.routeMatrix) ? evidence.routeMatrix : [];
+  const routeMatrix = rawRouteMatrix.filter(isRecord) as Partial<CommercialAdaptivePathProductQaMatrixEntry>[];
+  const rawCaptureStates = Array.isArray(evidence.captureStates) ? evidence.captureStates : [];
+  const captureStates = rawCaptureStates.filter(isRecord) as Partial<CommercialAdaptivePathProductQaCaptureStateEvidence>[];
+  const rawTemporaryExceptions = Array.isArray(evidence.temporaryExceptions) ? evidence.temporaryExceptions : [];
+  const temporaryExceptions = rawTemporaryExceptions.filter(isRecord) as Array<Partial<{ owner: string; removalCondition: string }>>;
+  const independentVisualReview = isRecord(evidence.independentVisualReview) ? evidence.independentVisualReview : {
+    status: 'not-run',
+    reviewer: '',
+    report: '',
+  } as Partial<CommercialAdaptivePathProductQaReviewEvidence>;
+  const acceptedConceptImages = new Set(conceptImages);
+  const missing = [
+    evidence.parseError ? `parseError=${evidence.parseError}` : '',
+    evidence.change !== 'govern-adaptive-path-product-qa' ? 'change=govern-adaptive-path-product-qa' : '',
+    !evidence.generatedAt ? 'generatedAt' : '',
+    !evidence.sourceCommit ? 'sourceCommit' : '',
+    sourceRefreshRequired && !evidenceRefreshed ? 'sourceCommit=refreshed-for-current-source-change' : '',
+    evidence.designHandoff !== ADAPTIVE_PATH_PRODUCT_QA_HANDOFF
+      ? `designHandoff=${ADAPTIVE_PATH_PRODUCT_QA_HANDOFF}`
+      : '',
+    !evidence.designHandoffSha256 ? 'designHandoffSha256' : '',
+    evidence.designHandoffSha256 && evidence.designHandoffSha256 !== evidence.currentDesignHandoffSha256
+      ? 'designHandoffSha256=current'
+      : '',
+    evidence.handoffMatrix !== ADAPTIVE_PATH_PRODUCT_QA_MATRIX
+      ? `handoffMatrix=${ADAPTIVE_PATH_PRODUCT_QA_MATRIX}`
+      : '',
+    !evidence.handoffMatrixSha256 ? 'handoffMatrixSha256' : '',
+    evidence.handoffMatrixSha256 && evidence.handoffMatrixSha256 !== evidence.currentHandoffMatrixSha256
+      ? 'handoffMatrixSha256=current'
+      : '',
+    evidence.captureManifest !== ADAPTIVE_PATH_PRODUCT_QA_CAPTURE_MANIFEST
+      ? `captureManifest=${ADAPTIVE_PATH_PRODUCT_QA_CAPTURE_MANIFEST}`
+      : '',
+    !evidence.captureManifestSha256 ? 'captureManifestSha256' : '',
+    evidence.captureManifestSha256 && evidence.captureManifestSha256 !== evidence.currentCaptureManifestSha256
+      ? 'captureManifestSha256=current'
+      : '',
+    evidence.visualSignals !== ADAPTIVE_PATH_PRODUCT_QA_VISUAL_SIGNALS
+      ? `visualSignals=${ADAPTIVE_PATH_PRODUCT_QA_VISUAL_SIGNALS}`
+      : '',
+    !evidence.visualSignalsSha256 ? 'visualSignalsSha256' : '',
+    evidence.visualSignalsSha256 && evidence.visualSignalsSha256 !== evidence.currentVisualSignalsSha256
+      ? 'visualSignalsSha256=current'
+      : '',
+    independentVisualReview.status !== 'passed' ? 'independentVisualReview.status=passed' : '',
+    independentVisualReview.reviewer !== 'ui-flow-reviewer' ? 'independentVisualReview.reviewer=ui-flow-reviewer' : '',
+    !independentVisualReview.report ? 'independentVisualReview.report' : '',
+    !independentVisualReview.reportSha256 ? 'independentVisualReview.reportSha256' : '',
+    independentVisualReview.reportSha256
+      && independentVisualReview.reportSha256 !== independentVisualReview.currentReportSha256
+      ? 'independentVisualReview.reportSha256=current'
+      : '',
+    independentVisualReview.reportHasPassVerdict !== true
+      ? 'independentVisualReview.reportHasPassVerdict=true'
+      : '',
+    independentVisualReview.reportHasNoUnresolvedBlocks !== true
+      ? 'independentVisualReview.reportHasNoUnresolvedBlocks=true'
+      : '',
+    temporaryExceptions.length > 0
+      && temporaryExceptions.some((entry) => !entry.owner || !entry.removalCondition)
+      ? 'temporaryExceptions.owner/removalCondition'
+      : '',
+    !Array.isArray(evidence.conceptImages) ? 'conceptImages=array' : '',
+    !Array.isArray(evidence.childChangeValidations) ? 'childChangeValidations=array' : '',
+    !Array.isArray(evidence.routeMatrix) ? 'routeMatrix=array' : '',
+    !Array.isArray(evidence.captureStates) ? 'captureStates=array' : '',
+    !Array.isArray(evidence.temporaryExceptions) ? 'temporaryExceptions=array' : '',
+    rawConceptImages.length !== conceptImages.length ? 'conceptImages.entry=string' : '',
+    rawChildChangeValidations.length !== childChangeValidations.length ? 'childChangeValidations.entry=object' : '',
+    rawRouteMatrix.length !== routeMatrix.length ? 'routeMatrix.entry=object' : '',
+    rawCaptureStates.length !== captureStates.length ? 'captureStates.entry=object' : '',
+    rawTemporaryExceptions.length !== temporaryExceptions.length ? 'temporaryExceptions.entry=object' : '',
+    !isRecord(evidence.independentVisualReview) ? 'independentVisualReview=object' : '',
+  ].filter(Boolean);
+
+  for (const conceptImage of REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CONCEPT_IMAGES) {
+    if (!acceptedConceptImages.has(conceptImage)) missing.push(`conceptImages.${conceptImage}`);
+  }
+  for (const conceptImage of conceptImages) {
+    if (!evidence.conceptImageSha256?.[conceptImage]) {
+      missing.push(`conceptImageSha256.${conceptImage}`);
+    }
+    if (
+      evidence.conceptImageSha256?.[conceptImage]
+      && evidence.conceptImageSha256[conceptImage] !== evidence.currentConceptImageSha256?.[conceptImage]
+    ) {
+      missing.push(`conceptImageSha256.${conceptImage}=current`);
+    }
+  }
+
+  for (const change of REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_CHILD_CHANGES) {
+    const validation = childChangeValidations.find((entry) => entry.change === change);
+    if (!validation) {
+      missing.push(`childChangeValidations.${change}`);
+      continue;
+    }
+    if (validation.result !== 'passed') missing.push(`childChangeValidations.${change}.result=passed`);
+    if (!validation.validationCommand) missing.push(`childChangeValidations.${change}.validationCommand`);
+    if (validation.archivedTasksComplete !== true) {
+      missing.push(`childChangeValidations.${change}.archivedTasksComplete=true`);
+    }
+  }
+
+  for (const id of REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_MATRIX_IDS) {
+    const entry = routeMatrix.find((item) => item.id === id);
+    const expected = REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_MATRIX_METADATA[id];
+    if (!entry) {
+      missing.push(`routeMatrix.${id}`);
+      continue;
+    }
+    if (entry.result !== 'passed') missing.push(`routeMatrix.${id}.result=passed`);
+    if (entry.route !== expected.route) missing.push(`routeMatrix.${id}.route=${expected.route}`);
+    if (entry.goal !== expected.goal) missing.push(`routeMatrix.${id}.goal=${expected.goal}`);
+    if (entry.role !== expected.role) missing.push(`routeMatrix.${id}.role=${expected.role}`);
+    if (entry.theme !== expected.theme) missing.push(`routeMatrix.${id}.theme=${expected.theme}`);
+    if (entry.viewport !== expected.viewport) missing.push(`routeMatrix.${id}.viewport=${expected.viewport}`);
+    if (entry.authState !== expected.authState) missing.push(`routeMatrix.${id}.authState=${expected.authState}`);
+    if (entry.navigationState !== expected.navigationState) {
+      missing.push(`routeMatrix.${id}.navigationState=${expected.navigationState}`);
+    }
+    if (entry.dockState !== expected.dockState) missing.push(`routeMatrix.${id}.dockState=${expected.dockState}`);
+    if (!entry.pageState) missing.push(`routeMatrix.${id}.pageState`);
+    if (entry.sourceConcept !== expected.sourceConcept) missing.push(`routeMatrix.${id}.sourceConcept=${expected.sourceConcept}`);
+    if (entry.sourceConcept && !acceptedConceptImages.has(entry.sourceConcept)) {
+      missing.push(`routeMatrix.${id}.sourceConcept=accepted-concept-image`);
+    }
+    if (entry.sourceConcept && !evidence.conceptImageSha256?.[entry.sourceConcept]) {
+      missing.push(`routeMatrix.${id}.sourceConceptSha256`);
+    }
+    if (
+      entry.sourceConcept
+      && evidence.conceptImageSha256?.[entry.sourceConcept]
+      && evidence.conceptImageSha256[entry.sourceConcept] !== evidence.currentConceptImageSha256?.[entry.sourceConcept]
+    ) {
+      missing.push(`routeMatrix.${id}.sourceConceptSha256=current`);
+    }
+    if (!entry.screenshot) missing.push(`routeMatrix.${id}.screenshot`);
+    if (!entry.screenshotSha256) missing.push(`routeMatrix.${id}.screenshotSha256`);
+
+    const captureState = captureStates.find((item) => item.id === id);
+    if (!captureState) {
+      missing.push(`captureStates.${id}`);
+      continue;
+    }
+    if (captureState.goal !== entry.goal) missing.push(`captureStates.${id}.goal=routeMatrix.goal`);
+    if (captureState.theme !== entry.theme) missing.push(`captureStates.${id}.theme=routeMatrix.theme`);
+    if (captureState.viewport !== entry.viewport) missing.push(`captureStates.${id}.viewport=routeMatrix.viewport`);
+    if (captureState.screenshot !== entry.screenshot) {
+      missing.push(`captureStates.${id}.screenshot=routeMatrix.screenshot`);
+    }
+    if (captureState.screenshotSha256 !== entry.screenshotSha256) {
+      missing.push(`captureStates.${id}.screenshotSha256=routeMatrix.screenshotSha256`);
+    }
+  }
+
+  for (const gate of REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_FUNCTIONAL_GATES) {
+    if (evidence.functionalGates[gate] !== true) {
+      missing.push(`functionalGates.${gate}=true`);
+    }
+  }
+
+  return missing.length > 0
+    ? [withCategory({
+        path: evidence.handoffMatrix || ADAPTIVE_PATH_PRODUCT_QA_MATRIX,
+        rule: 'adaptive-path-product-qa.incomplete-evidence' as const,
+        message: 'Adaptive path product QA evidence is incomplete or blocked.',
+        evidence: missing,
+      })]
+    : [];
+}
+
 function buildReportExportViolations(
   reportSurfaceInventory: readonly PlatformReportSurfaceInventoryEntry[],
   visualEvidence: readonly CommercialVisualAcceptanceEvidence[],
@@ -2636,6 +3311,12 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
       input.interactiveLearningProductQaRequired,
       input.interactiveLearningProductQaSourceRefreshRequired,
       input.interactiveLearningProductQaEvidenceRefreshed,
+    ),
+    ...buildAdaptivePathProductQaViolations(
+      input.adaptivePathProductQa,
+      input.adaptivePathProductQaRequired,
+      input.adaptivePathProductQaSourceRefreshRequired,
+      input.adaptivePathProductQaEvidenceRefreshed,
     ),
     ...buildReportExportViolations(reportSurfaceInventory, input.visualEvidence),
     ...buildAccessibilityViolations(

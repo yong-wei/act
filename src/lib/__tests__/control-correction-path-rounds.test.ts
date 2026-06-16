@@ -951,6 +951,237 @@ describe('control-correction path rounds', () => {
     }));
   });
 
+  it('records governed path activity kind without exposing raw lift metadata in the student path view', async () => {
+    const db = mockDb();
+
+    const execution = await recordPathNodeExecution(db, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'continue-key',
+      liftMetadata: {
+        pathActivityKind: 'continued-interaction',
+        rawPrompt: 'do-not-expose',
+      },
+    });
+
+    expect(execution).toMatchObject({
+      liftMetadata: expect.objectContaining({ pathActivityKind: 'continued-interaction' }),
+    });
+    expect(db.evidenceOutbox.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: [
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            relatedRefs: expect.objectContaining({
+              activityKind: 'continued-interaction',
+            }),
+          }),
+        }),
+      ],
+      skipDuplicates: true,
+    }));
+
+    const view = toControlCorrectionPathRoundView({
+      id: 'path-1',
+      userId: 'student-1',
+      pathPayload: { planNodes: [] },
+      executions: [execution],
+      deviations: [],
+      interventions: [],
+    });
+    expect(view?.executions[0]).toMatchObject({
+      id: 'exec-created',
+      activityKind: 'continued-interaction',
+    });
+    expect(view?.executions[0]).not.toHaveProperty('liftMetadata');
+    expect(JSON.stringify(view)).not.toContain('do-not-expose');
+  });
+
+  it('keeps completed-node continued interaction from double-counting first completion', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'node-2',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2'],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: ['node-1'],
+        failedNodeIds: [],
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'continue-key',
+      liftMetadata: { pathActivityKind: 'continued-interaction' },
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'node-2',
+        lastExecutionMetadata: expect.objectContaining({
+          completedNodeIds: ['node-1'],
+          lastExecution: expect.objectContaining({
+            nodeId: 'node-1',
+            status: 'completed',
+          }),
+        }),
+      }),
+    }));
+  });
+
+  it('preserves completed terminal validation when reviewing the terminal node', async () => {
+    const db = mockDb();
+    const completedTerminalValidation = {
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      state: 'completed',
+      fallbackRequired: false,
+      evidence: {
+        arena: {
+          id: 'arena-submission-1',
+          provenance: 'official',
+          valid: true,
+        },
+      },
+      failureReasons: [],
+      lowConfidenceMarkers: [],
+    };
+    const path = {
+      id: 'path-1',
+      pathStatus: 'completed',
+      currentNodeId: 'arena-task:task-second-order-lead-pid',
+      nodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:task-second-order-lead-pid'],
+      pathPayload: {
+        mainPathNodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:task-second-order-lead-pid'],
+      },
+      terminalValidation: completedTerminalValidation,
+      lastExecutionMetadata: {
+        activeNodeId: 'arena-task:task-second-order-lead-pid',
+        completedNodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:task-second-order-lead-pid'],
+        terminalValidationState: 'completed',
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      resourceType: 'arena_task',
+      status: 'started',
+      startedAt: '2026-06-15T06:00:00.000Z',
+      liftMetadata: { pathActivityKind: 'review' },
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        pathStatus: 'completed',
+        terminalValidation: completedTerminalValidation,
+        lastExecutionMetadata: expect.objectContaining({
+          activeNodeId: 'arena-task:task-second-order-lead-pid',
+          completedNodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:task-second-order-lead-pid'],
+          terminalValidationState: 'completed',
+          lastExecution: expect.objectContaining({
+            nodeId: 'arena-task:task-second-order-lead-pid',
+            status: 'started',
+          }),
+        }),
+      }),
+    }));
+  });
+
+  it('does not roll back current path position when historical activity is appended to an older completed node', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'node-3',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3'],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: ['node-1', 'node-2'],
+        failedNodeIds: [],
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'node-1',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'continue-key',
+      liftMetadata: { pathActivityKind: 'continued-interaction' },
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'node-3',
+        lastExecutionMetadata: expect.objectContaining({
+          completedNodeIds: ['node-1', 'node-2'],
+          lastExecution: expect.objectContaining({
+            nodeId: 'node-1',
+            status: 'completed',
+          }),
+        }),
+      }),
+    }));
+  });
+
+  it('skips already handled nodes when completing a returned skipped node', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'node-2',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: ['node-1', 'node-2', 'node-3', 'node-4'],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: ['node-1', 'node-3'],
+        failedNodeIds: [],
+        skippedNodeIds: ['node-2'],
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'node-2',
+      resourceType: 'simulation',
+      status: 'completed',
+      completedAt: '2026-06-15T08:00:00.000Z',
+      idempotencyKey: 'complete-returned-skipped-node',
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'node-4',
+        lastExecutionMetadata: expect.objectContaining({
+          activeNodeId: 'node-4',
+          completedNodeIds: ['node-1', 'node-3', 'node-2'],
+          failedNodeIds: [],
+          lastExecution: expect.objectContaining({
+            nodeId: 'node-2',
+            status: 'completed',
+          }),
+        }),
+      }),
+    }));
+  });
+
   it('records path style selection evidence for preference writeback without raw rationale leakage', async () => {
     const db = mockDb();
 

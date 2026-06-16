@@ -120,11 +120,12 @@ export function CameraViewSwitcher({
   };
 
   return (
-    <div className={cn('flex items-center gap-1', className)}>
+    <div className={cn('flex items-center gap-1 max-[360px]:gap-0', className)} data-simulation-local-bottom-tool-strip="camera-controls">
       {/* 视角按钮组 */}
       <div
-        className="simulation-command-restore-handle flex p-1"
+        className="simulation-command-restore-handle flex shrink-0 p-1"
         data-simulation-local-bottom-toolbar
+        data-simulation-local-bottom-tool-segment="view-switcher"
         data-command-deck-bottom-tools="edge-adjacent"
       >
         {viewModes.map((mode) => {
@@ -145,9 +146,9 @@ export function CameraViewSwitcher({
               )}
               title={`${mode.label} - ${mode.description}`}
             >
-              <Icon className="h-4 w-4 mr-1" />
+              <Icon className="h-4 w-4 mr-1 max-[360px]:mr-0" />
               <span className="hidden sm:inline">{mode.label}</span>
-              <span className="sm:hidden">{mode.shortLabel}</span>
+              <span className="sm:hidden max-[360px]:hidden">{mode.shortLabel}</span>
             </Button>
           );
         })}
@@ -170,13 +171,14 @@ export function CameraViewSwitcher({
           size={size}
           onClick={onToggleGrid}
           className={cn(
-            'rounded-xl border border-platform-border-strong bg-platform-surface-overlay/86 shadow-lg backdrop-blur-sm transition-all',
+            'shrink-0 rounded-xl border border-platform-border-strong bg-platform-surface-overlay/86 shadow-lg backdrop-blur-sm transition-all max-[360px]:px-2',
             gridEnabled
               ? 'bg-platform-fg-primary text-platform-fg-inverse'
               : commandButtonInactiveClass
           )}
           title={gridEnabled ? '关闭网格' : '开启网格'}
           aria-label={gridEnabled ? '关闭网格' : '开启网格'}
+          data-simulation-local-bottom-tool-segment="grid-toggle"
         >
           <span className="mr-1 text-xs">#</span>
           <span className="hidden sm:inline">{gridEnabled ? '网格开' : '网格关'}</span>
@@ -185,7 +187,10 @@ export function CameraViewSwitcher({
       ) : null}
 
       {onSpeedChange ? (
-        <div className="simulation-command-restore-handle flex items-center gap-1 p-1">
+        <div
+          className="simulation-command-restore-handle flex shrink-0 items-center gap-1 p-1 max-[360px]:gap-0 max-[360px]:p-0"
+          data-simulation-local-bottom-tool-segment="speed-controls"
+        >
           <Button
             variant="ghost"
             size={size}
@@ -196,7 +201,7 @@ export function CameraViewSwitcher({
           >
             <Minus className="h-4 w-4" />
           </Button>
-          <span className={cn('min-w-11 text-center text-xs font-semibold', commandValueClass)}>{speedScale.toFixed(1)}x</span>
+          <span className={cn('min-w-11 text-center text-xs font-semibold max-[360px]:min-w-8', commandValueClass)}>{speedScale.toFixed(1)}x</span>
           <Button
             variant="ghost"
             size={size}

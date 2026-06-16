@@ -291,8 +291,11 @@ describe('knowledge graph interaction state stability', () => {
     expect(globalStylesSource).toContain('right: calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem)) !important;');
     expect(globalStylesSource).toContain('body:has([data-knowledge-inspector="stable-rail"]) [data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
     expect(globalStylesSource).toContain('height: calc(100vh - 8rem) !important;');
+    expect(globalStylesSource).toContain('[data-knowledge-mobile-inspector-policy="suspend"]');
+    expect(globalStylesSource).toContain('display: none !important;');
     expect(globalSidebarSource).toContain('knowledgeInspectorAvoidanceActive');
     expect(globalSidebarSource).toContain('data-konling-inspector-avoidance');
+    expect(globalSidebarSource).toContain('data-knowledge-mobile-inspector-policy');
     expect(globalSidebarSource).toContain("document.querySelector('[data-knowledge-inspector=\"stable-rail\"]')");
     expect(globalSidebarSource).toContain("height: 'calc(100vh - 8rem)'");
     expect(systemSource).toContain('data-knowledge-layout-control="relayout"');

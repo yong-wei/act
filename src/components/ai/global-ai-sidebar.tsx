@@ -246,6 +246,11 @@ export function GlobalAISidebar() {
         data-global-ai-sidebar={isOpen ? 'open' : 'closed'}
         data-konling-assistant-surface="global-sidebar"
         data-konling-inspector-avoidance={knowledgeInspectorAvoidanceActive ? 'active' : 'inactive'}
+        data-knowledge-mobile-inspector-policy={
+          pageContext?.courseId === 'knowledge' || pageContext?.stepId === '/knowledge'
+            ? 'suspend'
+            : undefined
+        }
       >
         {/* 头部 */}
         <div className={`flex items-center justify-between border-b px-4 py-3 ${styles.header}`}>

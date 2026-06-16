@@ -537,16 +537,25 @@ export async function updateControlCorrectionPathRoundAfterExecution(
 
   const mainPathNodeIds = readMainPathNodeIds(path);
   const currentIndex = mainPathNodeIds.indexOf(input.nodeId);
-  const nextNodeId = input.status === 'completed' && currentIndex >= 0
-    ? mainPathNodeIds[currentIndex + 1] ?? input.nodeId
-    : input.nodeId;
+  const pathCurrentNodeId = typeof path.currentNodeId === 'string' ? path.currentNodeId : null;
+  const activityKind = readPathActivityKind(input.liftMetadata);
+  const isHistoricalActivity = Boolean(pathCurrentNodeId && pathCurrentNodeId !== input.nodeId);
   const metadata = toRecord(path.lastExecutionMetadata);
   const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
   const failedNodeIds = new Set(arrayOfStrings(metadata.failedNodeIds));
-  if (input.status === 'completed') completedNodeIds.add(input.nodeId);
+  const skippedNodeIds = new Set(arrayOfStrings(metadata.skippedNodeIds));
+  const nextNodeId = isHistoricalActivity && activityKind !== 'return-to-skipped'
+    ? pathCurrentNodeId
+    : input.status === 'completed' && currentIndex >= 0
+      ? findNextPendingMainPathNodeId(mainPathNodeIds, currentIndex, completedNodeIds, skippedNodeIds) ?? input.nodeId
+      : input.nodeId;
+  const nonCompletionPathActivity = isNonCompletionPathActivity(activityKind);
+  if (input.status === 'completed' && !nonCompletionPathActivity) completedNodeIds.add(input.nodeId);
   if (input.status === 'failed') failedNodeIds.add(input.nodeId);
 
-  const terminalValidation = updateTerminalValidationState(path.terminalValidation, input);
+  const terminalValidation = nonCompletionPathActivity
+    ? toRecord(path.terminalValidation)
+    : updateTerminalValidationState(path.terminalValidation, input);
   const terminalNodeId = typeof terminalValidation.nodeId === 'string' ? terminalValidation.nodeId : null;
   const isTerminalExecution = terminalNodeId === input.nodeId;
   const terminalState = typeof terminalValidation.state === 'string' ? terminalValidation.state : null;
@@ -588,6 +597,27 @@ export async function updateControlCorrectionPathRoundAfterExecution(
       },
     },
   });
+}
+
+function findNextPendingMainPathNodeId(
+  mainPathNodeIds: string[],
+  currentIndex: number,
+  completedNodeIds: Set<string>,
+  skippedNodeIds: Set<string>,
+): string | null {
+  for (const nodeId of mainPathNodeIds.slice(currentIndex + 1)) {
+    if (completedNodeIds.has(nodeId) || skippedNodeIds.has(nodeId)) continue;
+    return nodeId;
+  }
+  return null;
+}
+
+function isNonCompletionPathActivity(activityKind: string | undefined): boolean {
+  return activityKind === 'review' ||
+    activityKind === 'continued-interaction' ||
+    activityKind === 'return-to-skipped' ||
+    activityKind === 'external-resource-reference' ||
+    activityKind === 'konling-support';
 }
 
 export async function recordPathDeviation(
@@ -821,6 +851,7 @@ export function toControlCorrectionPathRoundView(path: any) {
           nodeId: execution.nodeId,
           resourceType: execution.resourceType,
           status: execution.status,
+          activityKind: readPathActivityKind(execution.liftMetadata),
           startedAt: execution.startedAt,
           completedAt: execution.completedAt,
           failedAt: execution.failedAt,
@@ -1302,6 +1333,7 @@ async function emitPathEvidenceEvent(
       targetNodeId: typeof row?.targetNodeId === 'string' ? row.targetNodeId : undefined,
       resourceType: typeof row?.resourceType === 'string' ? row.resourceType : undefined,
       status: typeof row?.status === 'string' ? row.status : undefined,
+      activityKind: readPathActivityKind(row?.liftMetadata),
       deviationType: typeof row?.deviationType === 'string' ? row.deviationType : undefined,
       interventionKind: typeof row?.interventionKind === 'string' ? row.interventionKind : undefined,
       studentOutcome: typeof row?.studentOutcome === 'string' ? row.studentOutcome : undefined,
@@ -1320,6 +1352,12 @@ async function emitPathEvidenceEvent(
     }],
     skipDuplicates: true,
   });
+}
+
+function readPathActivityKind(value: unknown): string | undefined {
+  const metadata = toRecord(value);
+  const activityKind = metadata.pathActivityKind ?? metadata.activityKind;
+  return typeof activityKind === 'string' ? activityKind : undefined;
 }
 
 function resolvePathEvidenceOccurredAt(kind: PathEvidenceEventKind, row: any): string {

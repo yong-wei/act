@@ -13,6 +13,7 @@ import {
   SIMULATION_VISUAL_QA_ROUTE_MATRIX,
   evaluateCommercialUiGovernance,
   type CommercialAccessibilityTextFitEvidence,
+  type CommercialAdaptivePathProductQaEvidence,
   type CommercialInteractiveLearningProductQaEvidence,
   type CommercialNavigationCoverageInput,
   type CommercialSimulationVisualQaEvidence,
@@ -40,6 +41,7 @@ import {
 } from '@/resources/simulations/components/simulation-theme';
 
 const today = '2026-05-31';
+const commandDeckGeometryWidths = [1440, 1024, 320] as const;
 
 const fullNavigationCoverage: CommercialNavigationCoverageInput = {
   intents: COMMERCIAL_STUDENT_ENTRY_INTENT_GROUPS.map((group) => group.intent),
@@ -370,6 +372,68 @@ function completeAccessibilityEvidence(): CommercialAccessibilityTextFitEvidence
 function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEvidence {
   const scenario = SIMULATION_VISUAL_QA_ROUTE_MATRIX.find((entry) => entry.href === href);
   if (!scenario) throw new Error(`Missing simulation visual QA scenario for ${href}`);
+  const commandDeckGeometry = scenario.requiresNonblankScene
+    ? {
+        change: 'normalize-simulation-command-deck-layout' as const,
+        generatedAt: '2026-06-15T00:00:00.000Z',
+        sourceSha256: Object.fromEntries([
+          scenario.routeFile,
+          'src/app/simulations/_components/simulation-shell.tsx',
+          'src/resources/simulations/components/simulation-ui.tsx',
+          'src/resources/simulations/components/camera-view-switcher.tsx',
+          'scripts/tests/capture-simulation-command-deck-qa.ts',
+        ].map((sourcePath) => [sourcePath, `${sourcePath}:sha256`])),
+        currentSourceSha256: Object.fromEntries([
+          scenario.routeFile,
+          'src/app/simulations/_components/simulation-shell.tsx',
+          'src/resources/simulations/components/simulation-ui.tsx',
+          'src/resources/simulations/components/camera-view-switcher.tsx',
+          'scripts/tests/capture-simulation-command-deck-qa.ts',
+        ].map((sourcePath) => [sourcePath, `${sourcePath}:sha256`])),
+        viewports: scenario.requiredThemes.flatMap((theme) => commandDeckGeometryWidths.map((width) => {
+          const sceneRect = width === 320
+            ? { left: 16, top: 295, right: 304, bottom: 855, width: 288, height: 560 }
+            : { left: width === 1440 ? 96 : 17, top: 110, right: width === 1440 ? 1416 : 1007, bottom: 850, width: width === 1440 ? 1320 : 990, height: 740 };
+          return {
+            width,
+            theme,
+            screenshot: `artifacts/commercial-ui/simulation-command-deck-535/${href.replace(/[^a-z0-9]+/gi, '-')}-${theme}-${width}.png`,
+            screenshotSha256: `${href}:command-deck:${theme}:${width}`,
+            screenshotWidth: width,
+            screenshotHeight: width === 320 ? 900 : 900,
+            sceneChromeRemoved: true,
+            inSceneBackControlCount: 0,
+            inSceneAbbreviationCount: 0,
+            collapseButtonCount: width === 1440 ? 2 : 0,
+            restoreHandleCount: width === 1440 ? 0 : 2,
+            panelsTopAligned: true,
+            bottomToolsUnobscured: true,
+            bottomToolsWithinViewport: true,
+            bottomToolSegmentRoles: ['view-switcher', 'grid-toggle', 'speed-controls'],
+            konlingDockCollisionFree: true,
+            restoreHandlesKeyboardReachable: true,
+            primarySceneNonblank: true,
+            structuredSurfacesBelowScene: scenario.href === '/simulations/cruise' ? true : undefined,
+            sceneRect,
+            statusPanelRect: width === 1440
+              ? { left: 112, top: 126, right: 432, bottom: 754, width: 320, height: 628 }
+              : undefined,
+            controlPanelRect: width === 1440
+              ? { left: 1048, top: 126, right: 1400, bottom: 754, width: 352, height: 628 }
+              : undefined,
+          };
+        })),
+        cruiseComparison: scenario.href === '/simulations/cruise'
+          ? {
+              comparedRoutes: ['/simulations/destroyer', '/simulations/lng'],
+              desktopSceneWidthRatioToMedian: 0.98,
+              desktopSceneHeightRatioToMedian: 1.03,
+              contextPlacement: 'below-primary-scene' as const,
+              mobileSceneFirst: true,
+            }
+          : undefined,
+      }
+    : undefined;
   return {
     archetype: scenario.archetype,
     availabilityConsistentWith: scenario.href === '/virtual-lab' ? '/simulations' : undefined,
@@ -395,6 +459,7 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
       labelHudContrastChecked: true,
       unchangedLightSceneInDarkTheme: false,
     },
+    commandDeckGeometry,
     reactDoctorErrorCheck: {
       localOnly: true,
       ciRequired: false,
@@ -700,6 +765,134 @@ function completeInteractiveLearningProductQaEvidence(
   };
 }
 
+const adaptivePathProductQaConceptImages = [
+  'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png',
+  'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/02-path-selection-comparison.png',
+  'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png',
+  'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/04-history-evidence-record.png',
+] as const;
+
+const adaptivePathProductQaMatrixMetadata = {
+  'generation-main-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[0], 'frequency-response-foundations'],
+  'generation-main-mobile-dark': ['dark', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[0], 'frequency-response-foundations'],
+  'konling-parameter-panel-desktop-dark': ['dark', 'desktop', 'desktop-collapsed', 'expanded', adaptivePathProductQaConceptImages[0], 'frequency-response-foundations'],
+  'cold-start-starter-paths-mobile-light': ['light', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[0], 'frequency-response-foundations'],
+  'path-comparison-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[1], 'frequency-response-foundations'],
+  'path-comparison-mobile-dark': ['dark', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[1], 'frequency-response-foundations'],
+  'active-path-execution-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[2], 'control-correction'],
+  'active-path-execution-mobile-dark': ['dark', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[2], 'control-correction'],
+  'node-detail-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[2], 'control-correction'],
+  'skip-warning-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[2], 'control-correction'],
+  'history-evidence-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[3], 'control-correction'],
+  'history-evidence-mobile-dark': ['dark', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[3], 'control-correction'],
+  'app-shell-expanded-dock-desktop-dark': ['dark', 'desktop', 'desktop-expanded', 'expanded', adaptivePathProductQaConceptImages[2], 'control-correction'],
+} as const;
+
+const adaptivePathFunctionalGates = [
+  'coldStartGeneratesSelectablePaths',
+  'generationSupportsGenericGoals',
+  'governedResourceNodes',
+  'atLeastOneCheckpoint',
+  'forbiddenStudentVisibleStringsAbsent',
+  'generationSelectionRejectionSwitchRecorded',
+  'startCompletionReviewContinuedInteractionRecorded',
+  'skipReturnDeviationCheckpointRecorded',
+  'konlingAdjustmentRecorded',
+  'externalResourceAccessGoverned',
+  'noCompletedNodeDoubleCount',
+  'desktopFluidWorkspace',
+  'mobileTaskFirstPanels',
+  'comparisonNotMarketingCards',
+  'appShellBreadcrumbsAccountControls',
+  'rightBottomKonlingDock',
+] as const;
+
+function completeAdaptivePathProductQaEvidence(
+  overrides: Partial<CommercialAdaptivePathProductQaEvidence> = {},
+): CommercialAdaptivePathProductQaEvidence {
+  const reportSha256 = 'adaptive-report-sha';
+  return {
+    change: 'govern-adaptive-path-product-qa',
+    generatedAt: '2026-06-16T10:00:00+08:00',
+    sourceCommit: 'c2702c206',
+    designHandoff: 'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md',
+    designHandoffSha256: 'adaptive-handoff-sha',
+    currentDesignHandoffSha256: 'adaptive-handoff-sha',
+    handoffMatrix: 'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/handoff-to-implementation-matrix.md',
+    handoffMatrixSha256: 'adaptive-matrix-sha',
+    currentHandoffMatrixSha256: 'adaptive-matrix-sha',
+    captureManifest: 'artifacts/commercial-ui/adaptive-path-product-qa-516/capture-manifest.json',
+    captureManifestSha256: 'adaptive-capture-manifest-sha',
+    currentCaptureManifestSha256: 'adaptive-capture-manifest-sha',
+    visualSignals: 'artifacts/commercial-ui/adaptive-path-product-qa-516/visual-signals.json',
+    visualSignalsSha256: 'adaptive-visual-signals-sha',
+    currentVisualSignalsSha256: 'adaptive-visual-signals-sha',
+    conceptImages: adaptivePathProductQaConceptImages,
+    conceptImageSha256: Object.fromEntries(adaptivePathProductQaConceptImages.map((conceptImage) => [
+      conceptImage,
+      'adaptive-concept-sha',
+    ])),
+    currentConceptImageSha256: Object.fromEntries(adaptivePathProductQaConceptImages.map((conceptImage) => [
+      conceptImage,
+      'adaptive-concept-sha',
+    ])),
+    childChangeValidations: [
+      'generalize-adaptive-learning-path-generation',
+      'govern-adaptive-path-resource-nodes',
+      'add-konling-path-generation-tools',
+      'redesign-adaptive-path-generation-selection-ui',
+      'build-adaptive-path-execution-history-ui',
+    ].map((change) => ({
+      change,
+      validationCommand: `rtk openspec validate ${change} --strict`,
+      result: 'passed',
+      archivedTasksComplete: true,
+    })),
+    routeMatrix: Object.entries(adaptivePathProductQaMatrixMetadata).map(([
+      id,
+      [theme, viewport, navigationState, dockState, sourceConcept, goal],
+    ]) => ({
+      id,
+      route: '/assessment/adaptive-practice',
+      goal,
+      role: 'student',
+      theme,
+      viewport,
+      authState: 'authenticated',
+      navigationState,
+      dockState,
+      pageState: 'covered',
+      sourceConcept,
+      screenshot: `artifacts/commercial-ui/adaptive-path-product-qa/${id}.png`,
+      screenshotSha256: 'screenshot-sha',
+      result: 'passed',
+    })),
+    captureStates: Object.entries(adaptivePathProductQaMatrixMetadata).map(([
+      id,
+      [theme, viewport, , , , goal],
+    ]) => ({
+      id,
+      goal,
+      theme,
+      viewport,
+      screenshot: `artifacts/commercial-ui/adaptive-path-product-qa/${id}.png`,
+      screenshotSha256: 'screenshot-sha',
+    })),
+    independentVisualReview: {
+      status: 'passed',
+      reviewer: 'ui-flow-reviewer',
+      report: 'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/independent-visual-review.md',
+      reportSha256,
+      currentReportSha256: reportSha256,
+      reportHasPassVerdict: true,
+      reportHasNoUnresolvedBlocks: true,
+    },
+    functionalGates: Object.fromEntries(adaptivePathFunctionalGates.map((gate) => [gate, true])),
+    temporaryExceptions: [],
+    ...overrides,
+  };
+}
+
 describe('commercial UI governance', () => {
   it('does not require final interactive learning product QA evidence outside the scoped change', () => {
     const result = evaluateCommercialUiGovernance(baseInput());
@@ -724,6 +917,167 @@ describe('commercial UI governance', () => {
         expect.objectContaining({
           category: 'interactive-learning-product-qa',
           rule: 'interactive-learning-product-qa.missing-evidence',
+        }),
+      ]),
+    );
+  });
+
+  it('requires final adaptive path product QA evidence when the scoped change is under review', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      adaptivePathProductQaRequired: true,
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'adaptive-path-product-qa',
+          rule: 'adaptive-path-product-qa.missing-evidence',
+        }),
+      ]),
+    );
+  });
+
+  it('passes final adaptive path product QA evidence when the integrated matrix is complete', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      adaptivePathProductQaRequired: true,
+      adaptivePathProductQa: completeAdaptivePathProductQaEvidence(),
+    }));
+
+    expect(result.blockingViolations).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'adaptive-path-product-qa',
+        }),
+      ]),
+    );
+  });
+
+  it('fails final adaptive path product QA evidence when source changes do not refresh final evidence', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      adaptivePathProductQaRequired: true,
+      adaptivePathProductQaSourceRefreshRequired: true,
+      adaptivePathProductQaEvidenceRefreshed: false,
+      adaptivePathProductQa: completeAdaptivePathProductQaEvidence(),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'adaptive-path-product-qa',
+          rule: 'adaptive-path-product-qa.incomplete-evidence',
+          evidence: expect.arrayContaining(['sourceCommit=refreshed-for-current-source-change']),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final adaptive path product QA evidence when visual review or functional gates are incomplete', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      adaptivePathProductQaRequired: true,
+      adaptivePathProductQa: completeAdaptivePathProductQaEvidence({
+        independentVisualReview: {
+          ...completeAdaptivePathProductQaEvidence().independentVisualReview,
+          status: 'blocked',
+          reportSha256: 'old-review-sha',
+          currentReportSha256: 'new-review-sha',
+          reportHasNoUnresolvedBlocks: false,
+        },
+        functionalGates: {
+          ...completeAdaptivePathProductQaEvidence().functionalGates,
+          comparisonNotMarketingCards: false,
+        },
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'adaptive-path-product-qa',
+          evidence: expect.arrayContaining([
+            'independentVisualReview.status=passed',
+            'independentVisualReview.reportSha256=current',
+            'independentVisualReview.reportHasNoUnresolvedBlocks=true',
+            'functionalGates.comparisonNotMarketingCards=true',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final adaptive path product QA evidence when route matrix and capture manifest states diverge', () => {
+    const completeEvidence = completeAdaptivePathProductQaEvidence();
+    const result = evaluateCommercialUiGovernance(baseInput({
+      adaptivePathProductQaRequired: true,
+      adaptivePathProductQa: completeAdaptivePathProductQaEvidence({
+        routeMatrix: completeEvidence.routeMatrix.map((entry) => (
+          entry.id === 'cold-start-starter-paths-mobile-light'
+            ? { ...entry, goal: 'starter-path' }
+            : entry
+        )),
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'adaptive-path-product-qa',
+          evidence: expect.arrayContaining([
+            'routeMatrix.cold-start-starter-paths-mobile-light.goal=frequency-response-foundations',
+            'captureStates.cold-start-starter-paths-mobile-light.goal=routeMatrix.goal',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final adaptive path product QA evidence when capture evidence hashes are stale', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      adaptivePathProductQaRequired: true,
+      adaptivePathProductQa: completeAdaptivePathProductQaEvidence({
+        captureManifestSha256: 'old-capture-manifest-sha',
+        currentCaptureManifestSha256: 'new-capture-manifest-sha',
+        visualSignalsSha256: 'old-visual-signals-sha',
+        currentVisualSignalsSha256: 'new-visual-signals-sha',
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'adaptive-path-product-qa',
+          evidence: expect.arrayContaining([
+            'captureManifestSha256=current',
+            'visualSignalsSha256=current',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails final adaptive path product QA evidence when a required state or child validation is missing', () => {
+    const completeEvidence = completeAdaptivePathProductQaEvidence();
+    const result = evaluateCommercialUiGovernance(baseInput({
+      adaptivePathProductQaRequired: true,
+      adaptivePathProductQa: completeAdaptivePathProductQaEvidence({
+        childChangeValidations: completeEvidence.childChangeValidations.slice(1),
+        routeMatrix: completeEvidence.routeMatrix.filter((entry) => entry.id !== 'path-comparison-desktop-light'),
+      }),
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'adaptive-path-product-qa',
+          evidence: expect.arrayContaining([
+            'childChangeValidations.generalize-adaptive-learning-path-generation',
+            'routeMatrix.path-comparison-desktop-light',
+          ]),
         }),
       ]),
     );
@@ -1222,12 +1576,229 @@ describe('commercial UI governance', () => {
     expect(source).toContain('sceneTheme.hudOverlay');
   });
 
+  it('keeps simulation command-deck geometry scene-first without resource-local chrome', () => {
+    const shellSource = readFileSync(join(process.cwd(), 'src/app/simulations/_components/simulation-shell.tsx'), 'utf8');
+    const localToolsSource = readFileSync(join(process.cwd(), 'src/app/simulations/_components/simulation-local-tools.tsx'), 'utf8');
+    const resourceUiSource = readFileSync(join(process.cwd(), 'src/resources/simulations/components/simulation-ui.tsx'), 'utf8');
+
+    expect(shellSource).toContain('data-simulation-shell-structured-surfaces="below-primary-scene"');
+    expect(shellSource).toContain('data-command-deck-context-placement="below-primary-scene"');
+    expect(shellSource).toContain('panelLayout="side-rails"');
+    expect(shellSource).not.toContain('workspaceSlots={hasStructuredSlots');
+    expect(localToolsSource).toContain('data-command-deck-scene-primacy="true"');
+    expect(resourceUiSource).toContain('data-simulation-scene-local-chrome="removed"');
+    expect(resourceUiSource).toContain('data-command-deck-panel-anchor="top-command-area"');
+    expect(resourceUiSource).not.toContain('返回上一层');
+    expect(resourceUiSource).not.toContain('<Link');
+  });
+
   it('accepts complete simulation visual QA evidence for required routes', () => {
     const result = evaluateCommercialUiGovernance(baseInput({
       visualEvidence: completeVisualEvidenceWithSimulationQa(),
     }));
 
     expect(result.passed).toBe(true);
+  });
+
+  it('fails when command-deck simulation evidence keeps scene chrome or loses top-aligned panels', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa?.commandDeckGeometry) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          commandDeckGeometry: {
+            ...entry.simulationVisualQa.commandDeckGeometry,
+            viewports: entry.simulationVisualQa.commandDeckGeometry.viewports.map((viewport) => (
+              viewport.theme === 'dark' && viewport.width === 1440
+                ? {
+                    ...viewport,
+                    sceneChromeRemoved: false,
+                    inSceneBackControlCount: 1,
+                    inSceneAbbreviationCount: 1,
+                    panelsTopAligned: false,
+                    controlPanelRect: { left: 1048, top: 126, right: 1400, bottom: 946, width: 352, height: 820 },
+                    bottomToolsWithinViewport: false,
+                  }
+                : viewport
+            )),
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.violations.flatMap((violation) => violation.evidence)).toEqual(expect.arrayContaining([
+      'commandDeckGeometry:theme=dark:width=1440:sceneChromeRemoved',
+      'commandDeckGeometry:theme=dark:width=1440:inSceneBackControlCount=0',
+      'commandDeckGeometry:theme=dark:width=1440:inSceneAbbreviationCount=0',
+      'commandDeckGeometry:theme=dark:width=1440:panelsTopAligned',
+      'commandDeckGeometry:theme=dark:width=1440:controlPanelRectWithinViewport',
+      'commandDeckGeometry:theme=dark:width=1440:controlPanelRectWithinScene',
+      'commandDeckGeometry:theme=dark:width=1440:bottomToolsWithinViewport',
+    ]));
+  });
+
+  it('fails when command-deck screenshot proof is missing, stale, or dimensionally invalid', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa?.commandDeckGeometry) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          commandDeckGeometry: {
+            ...entry.simulationVisualQa.commandDeckGeometry,
+            viewports: entry.simulationVisualQa.commandDeckGeometry.viewports.map((viewport) => (
+              viewport.theme === 'dark' && viewport.width === 1440
+                ? {
+                    ...viewport,
+                    screenshotSha256: undefined,
+                    screenshotWidth: 1024,
+                    screenshotHeight: 500,
+                  }
+                : viewport
+            )),
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.violations.flatMap((violation) => violation.evidence)).toEqual(expect.arrayContaining([
+      'commandDeckGeometry:theme=dark:width=1440:screenshotSha256',
+      'commandDeckGeometry:theme=dark:width=1440:screenshotWidth=1440',
+      'commandDeckGeometry:theme=dark:width=1440:screenshotHeight>=640',
+    ]));
+  });
+
+  it('fails when command-deck source hashes are missing or stale', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa?.commandDeckGeometry) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          commandDeckGeometry: {
+            ...entry.simulationVisualQa.commandDeckGeometry,
+            sourceSha256: {
+              ...entry.simulationVisualQa.commandDeckGeometry.sourceSha256,
+              'src/app/simulations/_components/simulation-shell.tsx': 'stale-shell-source',
+            },
+            currentSourceSha256: {
+              ...entry.simulationVisualQa.commandDeckGeometry.currentSourceSha256,
+              'scripts/tests/capture-simulation-command-deck-qa.ts': undefined as never,
+            },
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.violations.flatMap((violation) => violation.evidence)).toEqual(expect.arrayContaining([
+      'commandDeckGeometry.sourceSha256.src/app/simulations/_components/simulation-shell.tsx=current',
+      'commandDeckGeometry.currentSourceSha256.scripts/tests/capture-simulation-command-deck-qa.ts',
+    ]));
+  });
+
+  it('fails when command-deck collapse or restore controls are absent from evidence', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa?.commandDeckGeometry) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          commandDeckGeometry: {
+            ...entry.simulationVisualQa.commandDeckGeometry,
+            viewports: entry.simulationVisualQa.commandDeckGeometry.viewports.map((viewport) => {
+              if (viewport.theme !== 'dark') return viewport;
+              return viewport.width === 1440
+                ? { ...viewport, collapseButtonCount: 0 }
+                : { ...viewport, restoreHandleCount: 0 };
+            }),
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.violations.flatMap((violation) => violation.evidence)).toEqual(expect.arrayContaining([
+      'commandDeckGeometry:theme=dark:width=1440:collapseButtonCount>=2',
+      'commandDeckGeometry:theme=dark:width=1024:restoreHandleCount>=2',
+      'commandDeckGeometry:theme=dark:width=320:restoreHandleCount>=2',
+    ]));
+  });
+
+  it('fails when command-deck evidence does not cover all bottom tool segments', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa?.commandDeckGeometry) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          commandDeckGeometry: {
+            ...entry.simulationVisualQa.commandDeckGeometry,
+            viewports: entry.simulationVisualQa.commandDeckGeometry.viewports.map((viewport) => (
+              viewport.theme === 'dark' && viewport.width === 320
+                ? { ...viewport, bottomToolSegmentRoles: ['view-switcher', 'grid-toggle'] }
+                : viewport
+            )),
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.violations.flatMap((violation) => violation.evidence)).toEqual(expect.arrayContaining([
+      'commandDeckGeometry:theme=dark:width=320:bottomToolSegmentRoles.speed-controls',
+    ]));
+  });
+
+  it('fails when cruise command-deck evidence does not compare scene-first geometry', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/cruise' || !entry.simulationVisualQa?.commandDeckGeometry) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          commandDeckGeometry: {
+            ...entry.simulationVisualQa.commandDeckGeometry,
+            cruiseComparison: {
+              comparedRoutes: ['/simulations/destroyer'],
+              desktopSceneWidthRatioToMedian: 0.72,
+              desktopSceneHeightRatioToMedian: 1.42,
+              contextPlacement: 'below-primary-scene' as const,
+              mobileSceneFirst: false,
+            },
+          },
+        },
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.violations.flatMap((violation) => violation.evidence)).toEqual(expect.arrayContaining([
+      'commandDeckGeometry.cruiseComparison.comparedRoutes.lng',
+      'commandDeckGeometry.cruiseComparison.desktopSceneWidthRatioToMedian>=0.9',
+      'commandDeckGeometry.cruiseComparison.desktopSceneHeightRatioToMedian<=1.25',
+      'commandDeckGeometry.cruiseComparison.mobileSceneFirst',
+    ]));
   });
 
   it('fails when simulation visual QA evidence omits route, scene, dock, or React Doctor proof', () => {
@@ -2693,6 +3264,11 @@ describe('commercial UI governance', () => {
 
   it('keeps simulation QA matrix scoped and verifies nested visual artifacts in the governance script', () => {
     const scriptSource = readFileSync(join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'), 'utf8');
+    const governanceSource = readFileSync(join(process.cwd(), 'src/lib/commercial-ui-governance.ts'), 'utf8');
+    const simulationCaptureScriptSource = readFileSync(
+      join(process.cwd(), 'scripts/tests/capture-simulation-command-deck-qa.ts'),
+      'utf8',
+    );
 
     expect(scriptSource).toContain('SIMULATION_VISUAL_QA_ROUTE_MATRIX.filter');
     expect(scriptSource).toContain('simulationSharedDetailRouteAffected(route.href, files)');
@@ -2703,6 +3279,7 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain("route.href === '/interactive-learning/control-workbench'");
     expect(scriptSource).toContain("file === 'src/lib/platform-role-navigation.ts'");
     expect(scriptSource).toContain("file.startsWith('artifacts/commercial-ui/simulation-experience-visual-qa/')");
+    expect(scriptSource).toContain("file.startsWith('artifacts/commercial-ui/simulation-command-deck-535/')");
     expect(scriptSource).toContain('/^src\\/app\\/simulations\\/[^/]+\\/page\\.tsx$/.test(file)');
     expect(scriptSource).toContain('? SIMULATION_VISUAL_QA_ROUTE_MATRIX');
     expect(scriptSource).not.toContain('visualEvidence.some((entry) => entry.href === route.href && entry.simulationVisualQa)');
@@ -2711,6 +3288,21 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('screenshot: viewport.screenshot');
     expect(scriptSource).toContain('screenshotSha256: screenshot?.sha256');
     expect(scriptSource).toContain('screenshotWidth: screenshot?.width');
+    expect(scriptSource).toContain('route.simulationVisualQa.commandDeckGeometry.viewports.map');
+    expect(scriptSource).toContain('currentSourceSha256: commandDeckGeometryCurrentSourceSha256(simulationRoute?.routeFile ?? \'\')');
+    expect(scriptSource).toContain('function commandDeckGeometrySourcePaths(routeFile: string)');
+    expect(scriptSource).toContain("'src/app/simulations/_components/simulation-shell.tsx'");
+    expect(scriptSource).toContain("'src/resources/simulations/components/simulation-ui.tsx'");
+    expect(scriptSource).toContain("'src/resources/simulations/components/camera-view-switcher.tsx'");
+    expect(scriptSource).toContain("'scripts/tests/capture-simulation-command-deck-qa.ts'");
+    expect(governanceSource).toContain('bottomToolsWithinViewport');
+    expect(governanceSource).toContain('bottomToolSegmentRoles');
+    expect(governanceSource).toContain("['view-switcher', 'grid-toggle', 'speed-controls']");
+    expect(governanceSource).toContain('bottomToolSegmentRoles.${role}');
+    expect(simulationCaptureScriptSource).toContain('[data-simulation-local-bottom-tool-segment]');
+    expect(simulationCaptureScriptSource).toContain('bottomToolSegmentRoles');
+    expect(simulationCaptureScriptSource).not.toContain('[data-simulation-local-bottom-toolbar], [data-simulation-local-hint-strip]');
+    expect(scriptSource).toContain('simulationVisualQa.commandDeckGeometry?.viewports');
     expect(scriptSource).toContain('function simulationReactDoctorReport');
     expect(scriptSource).toContain('reportSha256: reactDoctorReport?.sha256');
     expect(scriptSource).toContain('ownedDiagnostics: reactDoctorReport?.ownedDiagnostics');
@@ -2794,6 +3386,7 @@ describe('commercial UI governance', () => {
     expect(globalAiSidebarSource).toContain('[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]');
     expect(globalAiSidebarSource).toContain('knowledgeInspectorAvoidanceActive');
     expect(globalAiSidebarSource).toContain('data-konling-inspector-avoidance');
+    expect(globalAiSidebarSource).toContain('data-knowledge-mobile-inspector-policy');
     expect(globalAiSidebarSource).toContain('当前选中的知识节点已进入控灵上下文。');
     expect(globalAiSidebarSource).toContain('请求的知识节点暂不可用，控灵将仅使用当前筛选与视图状态。');
     expect(globalAiSidebarSource).not.toContain('当前节点: ${nodeId}');
@@ -2802,12 +3395,15 @@ describe('commercial UI governance', () => {
     expect(globalAiSidebarSource).toContain("right: 'calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem))'");
     expect(globalsSource).toContain('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
     expect(globalsSource).toContain('height: calc(100vh - 8rem) !important;');
+    expect(globalsSource).toContain('[data-knowledge-mobile-inspector-policy="suspend"]');
+    expect(globalsSource).toContain('display: none !important;');
     expect(captureScriptSource).toContain("'desktop-local-tools-directory-dark'");
     expect(captureScriptSource).toContain("openDesktopTool(page, 'chapter-directory')");
     expect(captureScriptSource).toContain('button[aria-label="呼出控灵 AI助手"]');
     expect(captureScriptSource).toContain('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
     expect(captureScriptSource).toContain('konlingAssistantSurface');
     expect(captureScriptSource).toContain('konlingInspectorAvoidance');
+    expect(captureScriptSource).toContain('konlingMobileInspectorPolicy');
     expect(captureScriptSource).toContain('data-konling-knowledge-context');
     expect(captureScriptSource).toContain("await page.waitForSelector('[data-knowledge-inspector=\"stable-rail\"]'");
     expect(captureScriptSource).not.toMatch(
@@ -2825,12 +3421,16 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('graph2dSourcePath');
     expect(scriptSource).toContain('floatingControlsSourcePath');
     expect(scriptSource).toContain('captureScriptSourcePath');
-    expect(scriptSource).toContain('governanceScriptSourcePath');
+    expect(scriptSource).toContain('stringRecordsEqualForPaths(visualReviewSourceSha256, currentSourceSha256, productQaSourcePaths)');
+    expect(scriptSource).not.toContain('const governanceScriptSourcePath');
     expect(captureScriptSource).toContain("'scripts/tests/capture-knowledge-workspace-product-qa.ts'");
     expect(captureScriptSource).toContain("'scripts/tests/test-commercial-ui-governance.ts'");
     expect(captureScriptSource).toContain("'src/components/providers/global-ai-provider.tsx'");
     expect(scriptSource).toContain("['desktop-local-tools-directory-dark', 'dark', 1440, 'collapsed', 'collapsed']");
+    expect(scriptSource).toContain("['mobile-320-inspector-konling-stress-dark', 'dark', 320, 'mobile', 'expanded']");
     expect(scriptSource).toContain("markers.konlingAssistantSurface === 'global-sidebar'");
+    expect(scriptSource).toContain('mobile-inspector-not-suspended');
+    expect(scriptSource).toContain('mobile-inspector-policy-missing');
     expect(captureScriptSource).toContain('openedFocusManaged');
     expect(captureScriptSource).toContain('keyboardReachable');
     expect(captureScriptSource).toContain('panelClosed && await activeElementWithin(page, returnSelector)');

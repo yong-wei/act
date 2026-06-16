@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, PanelLeft, PanelRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { PanelLeft, PanelRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSimulationSceneTheme } from './simulation-theme';
@@ -19,9 +18,10 @@ export const simulationUi = {
   badge:
     'rounded-md border border-platform-border bg-platform-surface-overlay/86 px-2.5 py-1 text-[11px] font-medium text-platform-fg-secondary shadow-sm backdrop-blur',
   panel: 'simulation-light-panel',
-  controlPanelPosition: 'absolute inset-x-4 bottom-20 z-20 max-h-[46vh] overflow-y-auto pointer-events-auto lg:inset-auto lg:right-4 lg:top-20 lg:bottom-auto lg:w-[22rem] lg:max-h-[calc(100vh-7rem)]',
-  statusPanelPosition: 'absolute inset-x-4 top-4 z-20 max-h-[30vh] overflow-y-auto pointer-events-auto sm:top-20 lg:inset-auto lg:left-4 lg:top-20 lg:w-[20rem] lg:max-h-[calc(100vh-7rem)]',
-  cameraSwitcherPosition: 'absolute bottom-4 left-4 right-4 z-20 justify-center lg:left-1/2 lg:right-auto lg:-translate-x-1/2',
+  controlPanelPosition: 'absolute inset-x-4 bottom-20 z-20 max-h-[46vh] overflow-y-auto pointer-events-auto lg:inset-auto lg:right-4 lg:top-4 lg:bottom-24 lg:w-[22rem] lg:max-h-none',
+  statusPanelPosition: 'absolute inset-x-4 top-4 z-20 max-h-[30vh] overflow-y-auto pointer-events-auto lg:inset-auto lg:left-4 lg:top-4 lg:bottom-24 lg:w-[20rem] lg:max-h-none',
+  cameraSwitcherPosition:
+    'absolute bottom-4 left-4 right-4 z-20 max-w-[calc(100vw-2rem)] justify-center lg:left-1/2 lg:right-auto lg:max-w-none lg:-translate-x-1/2',
   sectionTitle: 'text-xs font-semibold tracking-wide text-platform-fg-primary',
   mutedText: 'text-xs text-platform-fg-secondary',
   valueText: 'font-mono text-platform-fg-primary',
@@ -38,7 +38,7 @@ export const simulationUi = {
   dockToggle:
     'inline-flex h-7 w-7 items-center justify-center rounded-md border border-platform-border bg-platform-surface-overlay/86 text-platform-fg-primary transition hover:bg-platform-action-hover',
   collapsedDockButton:
-    'simulation-command-restore-handle absolute top-4 z-20 flex h-9 w-9 items-center justify-center sm:top-20 lg:top-20',
+    'simulation-command-restore-handle absolute top-4 z-20 flex h-9 w-9 items-center justify-center',
   slider:
     '[&_.bg-secondary]:bg-platform-canvas-muted [&_.bg-primary]:bg-platform-action-primary [&_.bg-background]:bg-platform-surface [&_.border-primary]:border-platform-action-primary [&_.ring-offset-background]:ring-offset-platform-canvas',
   nativeRange: 'w-full cursor-pointer accent-[hsl(var(--platform-action-primary))]',
@@ -50,30 +50,23 @@ export function SimulationTopBar({
   title,
   subtitle,
   badge,
-  backHref = '/simulations',
   className,
 }: {
   title: string;
   subtitle?: string;
   badge?: string;
-  backHref?: string;
   className?: string;
 }) {
   return (
-    <div className={cn(simulationUi.topBar, className)}>
-      <Link href={backHref} className={simulationUi.backButton}>
-        <ArrowLeft className="h-3.5 w-3.5" />
-        返回上一层
-      </Link>
-
-      <div className={simulationUi.topBarTitleWrap}>
-        <h1 className={simulationUi.topBarTitle}>{title}</h1>
-        {subtitle ? <p className={simulationUi.topBarSubtitle}>{subtitle}</p> : null}
-      </div>
-
-      <div className={cn(simulationUi.badge, 'max-w-[40%] truncate text-right')}>
-        {badge ?? 'AI-OBE 船舶仿真'}
-      </div>
+    <div
+      className={cn('sr-only', className)}
+      data-simulation-scene-local-chrome="removed"
+      data-simulation-scene-title={title}
+      data-simulation-scene-subtitle={subtitle}
+      data-simulation-scene-identity={badge ?? 'AI-OBE 船舶仿真'}
+    >
+      {title}
+      {subtitle ? ` · ${subtitle}` : ''}
     </div>
   );
 }
@@ -108,7 +101,7 @@ export function SimulationDock({
       : 'right-4';
 
   useEffect(() => {
-    const mobileMedia = window.matchMedia('(max-width: 1023px)');
+    const mobileMedia = window.matchMedia('(max-width: 1353px)');
     const applyResponsiveDefault = () => setCollapsed(mobileMedia.matches);
 
     applyResponsiveDefault();
@@ -135,6 +128,7 @@ export function SimulationDock({
       className={cn(simulationUi.panel, dockPosition, dockTheme, 'p-3 text-sm', className)}
       data-simulation-local-panel={side}
       data-simulation-panel-collapsible="true"
+      data-command-deck-panel-anchor="top-command-area"
       data-command-deck-glass-surface="true"
       data-task-workspace-zone={side === 'left' ? 'status-rail' : 'local-tools'}
     >
@@ -145,6 +139,8 @@ export function SimulationDock({
           className={simulationUi.dockToggle}
           onClick={() => setCollapsed(true)}
           aria-label={`收起${title}`}
+          title={`收起${title}`}
+          data-simulation-panel-collapse-button={side}
         >
           {side === 'left' ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>

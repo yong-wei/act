@@ -11,6 +11,7 @@ import {
   SIMULATION_VISUAL_QA_ROUTE_MATRIX,
   evaluateCommercialUiGovernance,
   type CommercialAccessibilityTextFitEvidence,
+  type CommercialAdaptivePathProductQaEvidence,
   type CommercialVisualAcceptanceRoute,
   type CommercialInteractiveLearningProductQaEvidence,
   type CommercialModuleChromeInventoryEntry,
@@ -505,6 +506,25 @@ function affectedVisualRoutes(files: string[]): CommercialVisualAcceptanceRoute[
   return [...routes.values()];
 }
 
+const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
+  [
+    'src/app/(main)/teacher/students/[studentId]/diagnosis/page.tsx',
+    'redirect-only compatibility route; teacher diagnosis is covered by registered teacher student surfaces',
+  ],
+  [
+    'src/app/(main)/teacher/students/[studentId]/evidence/page.tsx',
+    'redirect-only compatibility route; teacher evidence is covered by registered teacher student surfaces',
+  ],
+  [
+    'src/app/interactive-learning/lessons/[lessonId]/handout-print/page.tsx',
+    'lesson handout print is an export view launched from registered interactive learning routes',
+  ],
+  [
+    'src/app/review/adaptive-assessment-figures/page.tsx',
+    'adaptive assessment figures is an internal review preview launched from the review hub',
+  ],
+]);
+
 function appPageRouteHref(file: string) {
   if (!/^src\/app\/(?:.*\/)?page\.tsx$/.test(file)) return undefined;
   const route = file
@@ -678,6 +698,7 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
       ? (() => {
           const reactDoctorReport = simulationReactDoctorReport(route.simulationVisualQa.reactDoctorErrorCheck?.report);
           const runtimeNoiseReport = simulationRuntimeNoiseReport(route.simulationVisualQa.runtimeNoise?.report);
+          const simulationRoute = SIMULATION_VISUAL_QA_ROUTE_MATRIX.find((entry) => entry.href === route.href);
           return {
             ...route.simulationVisualQa,
             reactDoctorErrorCheck: route.simulationVisualQa.reactDoctorErrorCheck
@@ -712,6 +733,22 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
                     simulationViewportArtifact(route.simulationVisualQa.handoffBaseline.implementationScreenshot)?.sha256,
                 }
               : undefined,
+	            commandDeckGeometry: route.simulationVisualQa.commandDeckGeometry
+	              ? {
+	                  ...route.simulationVisualQa.commandDeckGeometry,
+	                  currentSourceSha256: commandDeckGeometryCurrentSourceSha256(simulationRoute?.routeFile ?? ''),
+                  viewports: route.simulationVisualQa.commandDeckGeometry.viewports.map((viewport) => {
+                    const screenshot = simulationViewportArtifact(viewport.screenshot);
+                    return {
+                      ...viewport,
+                      screenshot: viewport.screenshot,
+                      screenshotSha256: screenshot?.sha256,
+                      screenshotWidth: screenshot?.width,
+                      screenshotHeight: screenshot?.height,
+                    };
+                  }),
+                }
+              : undefined,
             viewports: route.simulationVisualQa.viewports.map((viewport) => {
               const artifact = simulationViewportArtifact(viewport.artifact);
               const screenshot = simulationViewportArtifact(viewport.screenshot);
@@ -734,6 +771,24 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
       screenshot: viewport.screenshot && existsSync(path.join(repoRoot, viewport.screenshot)) ? viewport.screenshot : undefined,
     })),
   }));
+}
+
+function commandDeckGeometrySourcePaths(routeFile: string) {
+  return [
+    routeFile,
+    'src/app/simulations/_components/simulation-shell.tsx',
+    'src/resources/simulations/components/simulation-ui.tsx',
+    'src/resources/simulations/components/camera-view-switcher.tsx',
+    'scripts/tests/capture-simulation-command-deck-qa.ts',
+  ] as const;
+}
+
+function commandDeckGeometryCurrentSourceSha256(routeFile: string) {
+  return Object.fromEntries(
+    commandDeckGeometrySourcePaths(routeFile)
+      .filter((sourcePath) => sourcePath.length > 0 && existsSync(path.join(repoRoot, sourcePath)))
+      .map((sourcePath) => [sourcePath, fileSha256(sourcePath)]),
+  );
 }
 
 const INTERACTIVE_LEARNING_PRODUCT_QA_EVIDENCE_PATH =
@@ -944,6 +999,214 @@ function interactiveLearningProductQaEvidenceCoversLatestSource(files: readonly 
   ));
 }
 
+const ADAPTIVE_PATH_PRODUCT_QA_EVIDENCE_PATH =
+  'artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/final-product-qa.json';
+const ADAPTIVE_PATH_PRODUCT_QA_CAPTURE_MANIFEST =
+  'artifacts/commercial-ui/adaptive-path-product-qa-516/capture-manifest.json';
+const ADAPTIVE_PATH_PRODUCT_QA_VISUAL_SIGNALS =
+  'artifacts/commercial-ui/adaptive-path-product-qa-516/visual-signals.json';
+const ADAPTIVE_PATH_PRODUCT_QA_SOURCE_PREFIXES = [
+  'src/app/assessment/adaptive-practice/',
+  'src/app/api/learning-paths/',
+  'src/features/adaptive/',
+  'src/lib/adaptive-learning-path-planner.ts',
+  'src/lib/adaptive-path-option-display.ts',
+  'src/lib/control-correction-path-rounds.ts',
+  'src/lib/konling-agent-runtime.ts',
+] as const;
+
+function adaptivePathSourceFileChanged(file: string) {
+  return ADAPTIVE_PATH_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => (
+    prefix.endsWith('.ts') || prefix.endsWith('.tsx')
+      ? file === prefix
+      : file.startsWith(prefix)
+  ));
+}
+
+function readAdaptivePathProductQaEvidence(): CommercialAdaptivePathProductQaEvidence | undefined {
+  const evidencePath = path.join(repoRoot, ADAPTIVE_PATH_PRODUCT_QA_EVIDENCE_PATH);
+  if (!existsSync(evidencePath)) return undefined;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(readFileSync(evidencePath, 'utf8'));
+  } catch (error) {
+    return {
+      change: 'govern-adaptive-path-product-qa',
+      parseError: error instanceof Error ? error.message : 'invalid JSON',
+      designHandoff: '',
+      handoffMatrix: '',
+      captureManifest: '',
+      visualSignals: '',
+      conceptImages: [],
+      childChangeValidations: [],
+      routeMatrix: [],
+      captureStates: [],
+      independentVisualReview: {
+        status: 'not-run',
+        reviewer: '',
+        report: '',
+      },
+      functionalGates: {},
+      temporaryExceptions: [],
+    };
+  }
+  return hydrateAdaptivePathProductQaEvidence(parsed);
+}
+
+export function hydrateAdaptivePathProductQaEvidence(
+  parsed: unknown,
+): CommercialAdaptivePathProductQaEvidence {
+  const evidence = typeof parsed === 'object' && parsed !== null
+    ? parsed as Partial<CommercialAdaptivePathProductQaEvidence>
+    : {};
+  const conceptImages = Array.isArray(evidence.conceptImages) ? evidence.conceptImages : [];
+  const childChangeValidations = Array.isArray(evidence.childChangeValidations) ? evidence.childChangeValidations : [];
+  const routeMatrix = Array.isArray(evidence.routeMatrix) ? evidence.routeMatrix : [];
+  const temporaryExceptions = Array.isArray(evidence.temporaryExceptions) ? evidence.temporaryExceptions : [];
+  const independentVisualReview = isPlainObject(evidence.independentVisualReview)
+    ? evidence.independentVisualReview
+    : undefined;
+  const conceptImageSha256 = Object.fromEntries(
+    conceptImages.filter((conceptImage): conceptImage is string => typeof conceptImage === 'string').map((conceptImage) => [
+      conceptImage,
+      simulationViewportArtifact(conceptImage)?.sha256 ?? '',
+    ]),
+  );
+  const independentReviewPath = typeof independentVisualReview?.report === 'string'
+    && independentVisualReview.report.trim()
+    ? independentVisualReview.report
+    : undefined;
+  const independentReviewReport = independentReviewPath
+    ? readOptionalText(independentReviewPath)
+    : '';
+  return {
+    ...evidence,
+    change: evidence.change ?? 'govern-adaptive-path-product-qa',
+    designHandoff: evidence.designHandoff ?? '',
+    currentDesignHandoffSha256: evidence.designHandoff
+      ? simulationViewportArtifact(evidence.designHandoff)?.sha256
+      : undefined,
+    handoffMatrix: evidence.handoffMatrix ?? '',
+    currentHandoffMatrixSha256: evidence.handoffMatrix
+      ? simulationViewportArtifact(evidence.handoffMatrix)?.sha256
+      : undefined,
+    captureManifest: evidence.captureManifest ?? ADAPTIVE_PATH_PRODUCT_QA_CAPTURE_MANIFEST,
+    currentCaptureManifestSha256: simulationViewportArtifact(
+      evidence.captureManifest ?? ADAPTIVE_PATH_PRODUCT_QA_CAPTURE_MANIFEST,
+    )?.sha256,
+    visualSignals: evidence.visualSignals ?? ADAPTIVE_PATH_PRODUCT_QA_VISUAL_SIGNALS,
+    currentVisualSignalsSha256: simulationViewportArtifact(
+      evidence.visualSignals ?? ADAPTIVE_PATH_PRODUCT_QA_VISUAL_SIGNALS,
+    )?.sha256,
+    conceptImages,
+    currentConceptImageSha256: conceptImageSha256,
+    childChangeValidations,
+    routeMatrix: routeMatrix.map((entry) => {
+      if (!isPlainObject(entry)) return entry;
+      return {
+        ...entry,
+        screenshotSha256: typeof entry.screenshot === 'string'
+          ? simulationViewportArtifact(entry.screenshot)?.sha256
+          : entry.screenshotSha256,
+      };
+    }),
+    captureStates: Array.isArray(evidence.captureStates) ? evidence.captureStates : [],
+    independentVisualReview: independentVisualReview
+      ? {
+          ...independentVisualReview,
+          currentReportSha256: independentReviewPath
+            ? simulationViewportArtifact(independentReviewPath)?.sha256
+            : undefined,
+          reportHasPassVerdict: /final verdict:\s*pass/i.test(independentReviewReport),
+          reportHasNoUnresolvedBlocks: interactiveLearningReviewHasNoUnresolvedBlocks(independentReviewReport),
+        }
+      : Object.hasOwn(evidence, 'independentVisualReview')
+        ? evidence.independentVisualReview
+        : {
+            status: 'not-run',
+            reviewer: '',
+            report: '',
+          },
+    functionalGates: evidence.functionalGates ?? {},
+    temporaryExceptions,
+  } as CommercialAdaptivePathProductQaEvidence;
+}
+
+function adaptivePathProductQaEvidenceArtifactPaths() {
+  const paths = new Set<string>([ADAPTIVE_PATH_PRODUCT_QA_EVIDENCE_PATH]);
+  const evidencePath = path.join(repoRoot, ADAPTIVE_PATH_PRODUCT_QA_EVIDENCE_PATH);
+  if (!existsSync(evidencePath)) return paths;
+
+  let evidence: unknown;
+  try {
+    evidence = JSON.parse(readFileSync(evidencePath, 'utf8'));
+  } catch {
+    return paths;
+  }
+  if (!isPlainObject(evidence)) return paths;
+
+  const addPath = (value: unknown) => {
+    if (typeof value === 'string' && value.trim()) paths.add(value);
+  };
+  addPath(evidence.designHandoff);
+  addPath(evidence.handoffMatrix);
+  addPath(evidence.captureManifest);
+  addPath(evidence.visualSignals);
+  if (Array.isArray(evidence.conceptImages)) {
+    for (const conceptImage of evidence.conceptImages) addPath(conceptImage);
+  }
+  if (Array.isArray(evidence.routeMatrix)) {
+    for (const route of evidence.routeMatrix) {
+      if (!isPlainObject(route)) continue;
+      addPath(route.sourceConcept);
+      addPath(route.screenshot);
+    }
+  }
+  if (Array.isArray(evidence.captureStates)) {
+    for (const state of evidence.captureStates) {
+      if (!isPlainObject(state)) continue;
+      addPath(state.screenshot);
+    }
+  }
+  if (isPlainObject(evidence.independentVisualReview)) {
+    addPath(evidence.independentVisualReview.report);
+  }
+  return paths;
+}
+
+function shouldRequireAdaptivePathProductQa(files: readonly string[]) {
+  const referencedProductQaArtifacts = adaptivePathProductQaEvidenceArtifactPaths();
+  return files.some((file) => (
+    file.startsWith('openspec/changes/govern-adaptive-path-product-qa/')
+    || (file.startsWith('openspec/changes/archive/')
+      && file.includes('/govern-adaptive-path-product-qa/'))
+    || file.startsWith('artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/')
+    || referencedProductQaArtifacts.has(file)
+    || adaptivePathSourceFileChanged(file)
+    || file === 'src/lib/commercial-ui-governance.ts'
+    || file === 'scripts/tests/test-commercial-ui-governance.ts'
+  ));
+}
+
+function latestAdaptivePathProductQaSourceCommits(files: readonly string[]) {
+  return Array.from(new Set(files
+    .filter(adaptivePathSourceFileChanged)
+    .map(latestCommitForPath)
+    .filter(Boolean)));
+}
+
+function adaptivePathProductQaEvidenceCoversLatestSource(files: readonly string[]) {
+  const sourceFiles = files.filter(adaptivePathSourceFileChanged);
+  const hasUncommittedSourceChange = sourceFiles.some(hasUncommittedPathChange);
+  if (hasUncommittedSourceChange) return hasUncommittedPathChange(ADAPTIVE_PATH_PRODUCT_QA_EVIDENCE_PATH);
+  const latestSourceCommits = latestAdaptivePathProductQaSourceCommits(files);
+  if (latestSourceCommits.length === 0) return true;
+  const evidenceCommit = latestCommitForPath(ADAPTIVE_PATH_PRODUCT_QA_EVIDENCE_PATH);
+  return Boolean(evidenceCommit) && latestSourceCommits.every((sourceCommit) => (
+    isAncestorCommit(sourceCommit, evidenceCommit)
+  ));
+}
+
 function simulationSharedDetailRouteAffected(routeHref: string, files: readonly string[]) {
   if (!routeHref.startsWith('/simulations/')) return false;
   return files.some((file) => (
@@ -974,6 +1237,9 @@ function simulationVisualQaEvidenceArtifactPaths(
       if (viewport.screenshot) paths.add(viewport.screenshot);
       if (viewport.artifact) paths.add(viewport.artifact);
     }
+    for (const viewport of simulationVisualQa.commandDeckGeometry?.viewports ?? []) {
+      if (viewport.screenshot) paths.add(viewport.screenshot);
+    }
   }
   return paths;
 }
@@ -994,6 +1260,7 @@ function requiresFullSimulationVisualQaMatrix(
       || file === 'artifacts/commercial-ui/evidence.json'
       || file === 'artifacts/commercial-ui/simulation-experience-visual-qa/manifest.json'
       || file.startsWith('artifacts/commercial-ui/simulation-experience-visual-qa/')
+      || file.startsWith('artifacts/commercial-ui/simulation-command-deck-535/')
       || /^src\/app\/simulations\/[^/]+\/page\.tsx$/.test(file)
       || file.startsWith('src/app/simulations/_components/')
       || file.startsWith('src/resources/simulations/')
@@ -1042,6 +1309,18 @@ function stringRecordsEqual(left: Record<string, string>, right: Record<string, 
   const rightKeys = Object.keys(right).sort();
   return leftKeys.length === rightKeys.length
     && leftKeys.every((key, index) => key === rightKeys[index] && left[key] === right[key]);
+}
+
+function stringRecordsEqualForPaths(
+  left: Record<string, string>,
+  right: Record<string, string>,
+  paths: readonly string[],
+) {
+  return paths.every((sourcePath) => (
+    typeof left[sourcePath] === 'string'
+    && typeof right[sourcePath] === 'string'
+    && left[sourcePath] === right[sourcePath]
+  ));
 }
 
 function readRuntimeKnowledgeRelationCounts() {
@@ -1529,7 +1808,6 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
   const globalsSourcePath = 'src/app/globals.css';
   const konlingRuntimeSourcePath = 'src/lib/konling-agent-runtime.ts';
   const captureScriptSourcePath = 'scripts/tests/capture-knowledge-workspace-product-qa.ts';
-  const governanceScriptSourcePath = 'scripts/tests/test-commercial-ui-governance.ts';
   const productQaSourcePaths = [
     graphSourcePath,
     graph2dSourcePath,
@@ -1543,7 +1821,6 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     globalsSourcePath,
     konlingRuntimeSourcePath,
     captureScriptSourcePath,
-    governanceScriptSourcePath,
   ];
   const graphSource = existsSync(path.join(repoRoot, graphSourcePath))
     ? readFileSync(path.join(repoRoot, graphSourcePath), 'utf8')
@@ -1610,6 +1887,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     ['mobile-320-local-tools-dark', 'dark', 320, 'mobile', 'collapsed'],
     ['mobile-320-selected-inspector-dark', 'dark', 320, 'mobile', 'collapsed'],
     ['mobile-320-konling-expanded-dark', 'dark', 320, 'mobile', 'expanded'],
+    ['mobile-320-inspector-konling-stress-dark', 'dark', 320, 'mobile', 'expanded'],
     ['light-theme-default', 'light', 1440, 'collapsed', 'collapsed'],
   ] as const;
   const stateProblems = requiredStates.flatMap(([name, theme, width, navigationState, dockState]) => {
@@ -1688,17 +1966,32 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
               : `${name}:layout-persistence-interaction-proof-missing`
           )
         : null,
-      name.includes('stress')
+      name === 'desktop-stress-expanded-tool-inspector-konling-dark'
         ? (markerRects.inspector ? null : `${name}:inspector-rect-missing`)
         : null,
-      name.includes('stress')
+      name === 'desktop-stress-expanded-tool-inspector-konling-dark'
         ? (markers.konlingInspectorAvoidance === 'active' ? null : `${name}:konling-inspector-avoidance-missing`)
         : null,
-      name.includes('stress')
+      name === 'desktop-stress-expanded-tool-inspector-konling-dark'
         ? (booleanFromEvidence(overlaps.expandedDockOverlapsInspector) === false ? null : `${name}:expanded-dock-overlaps-inspector`)
         : null,
-      name.includes('stress')
+      name === 'desktop-stress-expanded-tool-inspector-konling-dark'
         ? (booleanFromEvidence(overlaps.expandedDockOverlapsDesktopTools) === false ? null : `${name}:expanded-dock-overlaps-tools`)
+        : null,
+      name === 'mobile-320-inspector-konling-stress-dark'
+        ? (!markerRects.inspector ? null : `${name}:mobile-inspector-not-suspended`)
+        : null,
+      name === 'mobile-320-inspector-konling-stress-dark'
+        ? (markers.konlingMobileInspectorPolicy === 'suspend' ? null : `${name}:mobile-inspector-policy-missing`)
+        : null,
+      name === 'mobile-320-inspector-konling-stress-dark'
+        ? (booleanFromEvidence(overlaps.expandedDockOverlapsInspector) === false ? null : `${name}:expanded-dock-overlaps-inspector`)
+        : null,
+      name === 'mobile-320-inspector-konling-stress-dark'
+        ? (booleanFromEvidence(overlaps.dockOverlapsInspector) === false ? null : `${name}:dock-overlaps-inspector`)
+        : null,
+      name === 'mobile-320-inspector-konling-stress-dark'
+        ? (booleanFromEvidence(overlaps.expandedDockOverlapsMobileTools) === false ? null : `${name}:expanded-dock-overlaps-mobile-tools`)
         : null,
       name.startsWith('mobile-320-konling')
         ? (booleanFromEvidence(overlaps.expandedDockOverlapsInspector) === false ? null : `${name}:expanded-dock-overlaps-inspector`)
@@ -1831,7 +2124,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     stringRecordsEqual(visualReviewStateSha256, stateScreenshotSha256)
       ? null
       : 'visual-review:stale-screenshot-review',
-    stringRecordsEqual(visualReviewSourceSha256, currentSourceSha256)
+    stringRecordsEqualForPaths(visualReviewSourceSha256, currentSourceSha256, productQaSourcePaths)
       ? null
       : 'visual-review:stale-source-review',
     ...[
@@ -2228,17 +2521,18 @@ function readAccessibilityEvidenceManifest(routes: readonly CommercialVisualAcce
   });
 }
 
-const files = changedFiles();
-const commercialUiBehaviorFiles = files.filter(hasNonAccessibilityOnlyDiff);
-const requiredVisualRoutes = affectedVisualRoutes(commercialUiBehaviorFiles);
-const visualEvidence = readVisualEvidenceManifest();
-const trackedFiles = git(['ls-files']).split('\n').filter(Boolean);
-interface ChangedPrimaryRouteInventoryBlock {
-  href: string;
-  routeFile?: string;
-  coveredRouteGlob?: string;
-  deleted: boolean;
-}
+function runCommercialUiGovernanceScript() {
+  const files = changedFiles();
+  const commercialUiBehaviorFiles = files.filter(hasNonAccessibilityOnlyDiff);
+  const requiredVisualRoutes = affectedVisualRoutes(commercialUiBehaviorFiles);
+  const visualEvidence = readVisualEvidenceManifest();
+  const trackedFiles = git(['ls-files']).split('\n').filter(Boolean);
+  interface ChangedPrimaryRouteInventoryBlock {
+    href: string;
+    routeFile?: string;
+    coveredRouteGlob?: string;
+    deleted: boolean;
+  }
 
 function primaryRouteBlockStillCoversFiles(block: ChangedPrimaryRouteInventoryBlock) {
   if (block.routeFile && existsSync(path.join(repoRoot, block.routeFile))) return true;
@@ -2312,24 +2606,6 @@ function changedPrimaryRouteInventoryBlocks() {
 const changedPrimaryRouteBlocks = changedPrimaryRouteInventoryBlocks();
 const changedPrimaryRouteHrefs = new Set(changedPrimaryRouteBlocks.map((block) => block.href));
 const currentPrimaryRouteHrefs = new Set(PLATFORM_PRIMARY_ROUTE_INVENTORY.map((route) => route.href));
-const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
-  [
-    'src/app/(main)/teacher/students/[studentId]/diagnosis/page.tsx',
-    'redirect-only compatibility route; teacher diagnosis is covered by registered teacher student surfaces',
-  ],
-  [
-    'src/app/(main)/teacher/students/[studentId]/evidence/page.tsx',
-    'redirect-only compatibility route; teacher evidence is covered by registered teacher student surfaces',
-  ],
-  [
-    'src/app/interactive-learning/lessons/[lessonId]/handout-print/page.tsx',
-    'lesson handout print is an export view launched from registered interactive learning routes',
-  ],
-  [
-    'src/app/review/adaptive-assessment-figures/page.tsx',
-    'adaptive assessment figures is an internal review preview launched from the review hub',
-  ],
-]);
 assertCoveredRouteGlobDoesNotHideStaticPages();
 const missingChangedPrimaryRouteLedgerViolations: CommercialUiGovernanceViolation[] = changedPrimaryRouteBlocks
   .filter((block) => !currentPrimaryRouteHrefs.has(block.href))
@@ -2373,6 +2649,9 @@ const interactiveLearningProductQaSourceRefreshRequired = files.some((file) => (
   INTERACTIVE_LEARNING_PRODUCT_QA_SOURCE_PREFIXES.some((prefix) => file.startsWith(prefix))
 ));
 const interactiveLearningProductQaEvidenceRefreshed = interactiveLearningProductQaEvidenceCoversLatestSource(files);
+const adaptivePathProductQaRequired = shouldRequireAdaptivePathProductQa(files);
+const adaptivePathProductQaSourceRefreshRequired = files.some(adaptivePathSourceFileChanged);
+const adaptivePathProductQaEvidenceRefreshed = adaptivePathProductQaEvidenceCoversLatestSource(files);
 const result = evaluateCommercialUiGovernance({
   mode: 'blocking',
   today,
@@ -2403,6 +2682,12 @@ const result = evaluateCommercialUiGovernance({
   interactiveLearningProductQa: interactiveLearningProductQaRequired
     ? readInteractiveLearningProductQaEvidence()
     : undefined,
+  adaptivePathProductQaRequired,
+  adaptivePathProductQaSourceRefreshRequired,
+  adaptivePathProductQaEvidenceRefreshed,
+  adaptivePathProductQa: adaptivePathProductQaRequired
+    ? readAdaptivePathProductQaEvidence()
+    : undefined,
   reportSurfaceInventory: PLATFORM_REPORT_SURFACE_INVENTORY.filter((surface) => (
     requiredVisualRoutes.some((visualRoute) => visualRoute.href === surface.ownerRoute)
   )),
@@ -2414,4 +2699,9 @@ assert.equal(
   `commercial UI governance gate failed:\n${JSON.stringify(result.blockingViolations, null, 2)}`,
 );
 
-console.log(`test-commercial-ui-governance passed (${files.length} changed files scanned, ${today})`);
+  console.log(`test-commercial-ui-governance passed (${files.length} changed files scanned, ${today})`);
+}
+
+if (require.main === module) {
+  runCommercialUiGovernanceScript();
+}

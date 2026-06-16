@@ -16,6 +16,7 @@ export const dynamic = 'force-dynamic';
 
 const DEVIATION_TYPES = new Set(['skip', 'timeout', 'manual-jump', 'resource-failure', 'abandonment', 'help-request']);
 const EVIDENCE_CONFIDENCE = new Set(['low', 'medium', 'high', 'unknown']);
+const SKIP_WARNING_TEXT = '跳过后该资源不会计入完成进度，但会记录为路径偏离，可稍后返回。';
 
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
@@ -30,6 +31,23 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     const body = await request.json();
     const missingIdempotencyKey = requireIdempotencyKey(body.idempotencyKey);
     if (missingIdempotencyKey) return missingIdempotencyKey;
+    const existingDeviation = await readExistingDeviation(params.id, body.idempotencyKey);
+    if (existingDeviation) {
+      let pathUpdate: { currentNodeId: string | null } | null = {
+        currentNodeId: typeof path.currentNodeId === 'string' ? path.currentNodeId : null,
+      };
+      if (shouldRepairExistingCurrentSkip(path, body, existingDeviation)) {
+        const skipContext = validateAndBuildSkipContext(path, body);
+        if (skipContext instanceof NextResponse) return skipContext;
+        pathUpdate = await advanceCurrentNodeAfterCurrentSkip(path, body.targetNodeId) ?? pathUpdate;
+      }
+      const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
+      return NextResponse.json({
+        deviation: toDeviationWriteView(existingDeviation),
+        pathUpdate,
+        cacheRefresh,
+      });
+    }
     const nodeIds = new Set(readPathNodeIds(path));
     if (
       typeof body.deviationType !== 'string' ||
@@ -49,6 +67,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     ) {
       return NextResponse.json({ error: '路径偏离事件不符合枚举或节点契约' }, { status: 400 });
     }
+    const skipContext = validateAndBuildSkipContext(path, body);
+    if (skipContext instanceof NextResponse) return skipContext;
     const deviation = await recordPathDeviation(prisma as any, {
       pathId: params.id,
       userId: path.userId,
@@ -56,20 +76,36 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       deviationType: body.deviationType,
       priorNodeId: body.priorNodeId ?? null,
       targetNodeId: body.targetNodeId ?? null,
-      context: body.context ?? {},
+      context: skipContext ?? body.context ?? {},
       evidenceConfidence: body.evidenceConfidence ?? 'unknown',
       idempotencyKey: body.idempotencyKey ?? null,
       actorUserId: requester.userId,
       actorRole: requester.role,
     });
+    const pathUpdate = skipContext
+      ? await advanceCurrentNodeAfterCurrentSkip(path, body.targetNodeId)
+      : null;
     const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
 
-    return NextResponse.json({ deviation: toDeviationWriteView(deviation), cacheRefresh });
+    return NextResponse.json({
+      deviation: toDeviationWriteView(deviation),
+      pathUpdate,
+      cacheRefresh,
+    });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('[LearningPathDeviation] Error:', error);
     return NextResponse.json({ error: '记录路径偏离失败' }, { status: 500 });
   }
+}
+
+function shouldRepairExistingCurrentSkip(path: any, body: any, existingDeviation: any): boolean {
+  if (existingDeviation.deviationType !== 'skip' || body.deviationType !== 'skip') return false;
+  if (typeof path.currentNodeId !== 'string') return false;
+  return body.priorNodeId === path.currentNodeId &&
+    body.targetNodeId === path.currentNodeId &&
+    existingDeviation.priorNodeId === path.currentNodeId &&
+    existingDeviation.targetNodeId === path.currentNodeId;
 }
 
 function toDeviationWriteView(deviation: any) {
@@ -81,4 +117,84 @@ function toDeviationWriteView(deviation: any) {
     evidenceConfidence: deviation.evidenceConfidence ?? 'unknown',
     createdAt: deviation.createdAt ?? null,
   };
+}
+
+async function readExistingDeviation(pathId: string, idempotencyKey: unknown): Promise<any | null> {
+  if (typeof idempotencyKey !== 'string' || idempotencyKey.length === 0) return null;
+  return await prisma.learningPathDeviation?.findFirst?.({
+    where: {
+      pathId,
+      idempotencyKey,
+    },
+  }) ?? null;
+}
+
+function validateAndBuildSkipContext(path: any, body: any): Record<string, unknown> | NextResponse | null {
+  if (body.deviationType !== 'skip') return null;
+  if (typeof body.targetNodeId !== 'string') {
+    return NextResponse.json({ error: '跳过路径偏离必须指定目标节点' }, { status: 400 });
+  }
+  if (typeof path.currentNodeId === 'string' && body.priorNodeId !== path.currentNodeId) {
+    return NextResponse.json({ error: '跳过路径偏离必须从当前节点发起' }, { status: 409 });
+  }
+  if (typeof path.currentNodeId === 'string' && body.targetNodeId !== path.currentNodeId) {
+    return NextResponse.json({ error: '只能跳过当前路径节点' }, { status: 409 });
+  }
+  const metadata = toRecord(path.lastExecutionMetadata);
+  const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
+  if (completedNodeIds.has(body.targetNodeId)) {
+    return NextResponse.json({ error: '已完成节点不能写入跳过偏离' }, { status: 409 });
+  }
+  const payload = toRecord(path.pathPayload);
+  const mainPathNodeIds = arrayOfStrings(payload.mainPathNodeIds);
+  if (typeof path.currentNodeId === 'string' && mainPathNodeIds.length > 0) {
+    const currentIndex = mainPathNodeIds.indexOf(path.currentNodeId);
+    const targetIndex = mainPathNodeIds.indexOf(body.targetNodeId);
+    if (currentIndex >= 0 && targetIndex >= 0 && targetIndex < currentIndex) {
+      return NextResponse.json({ error: '历史节点不能写入跳过偏离' }, { status: 409 });
+    }
+  }
+  return {
+    consequence: SKIP_WARNING_TEXT,
+    returnEligible: true,
+  };
+}
+
+async function advanceCurrentNodeAfterCurrentSkip(path: any, targetNodeId: unknown): Promise<{ currentNodeId: string | null } | null> {
+  if (!prisma.learningPath.update) return null;
+  if (typeof path.currentNodeId !== 'string' || targetNodeId !== path.currentNodeId) return null;
+  const metadata = toRecord(path.lastExecutionMetadata);
+  const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
+  const skippedNodeIds = new Set(arrayOfStrings(metadata.skippedNodeIds));
+  skippedNodeIds.add(path.currentNodeId);
+  const mainPathNodeIds = arrayOfStrings(toRecord(path.pathPayload).mainPathNodeIds);
+  const currentIndex = mainPathNodeIds.indexOf(path.currentNodeId);
+  const nextNodeId = currentIndex >= 0
+    ? mainPathNodeIds
+        .slice(currentIndex + 1)
+        .find((nodeId) => !completedNodeIds.has(nodeId) && !skippedNodeIds.has(nodeId)) ?? null
+    : null;
+
+  await prisma.learningPath.update({
+    where: { id: path.id },
+    data: {
+      currentNodeId: nextNodeId,
+      lastExecutionMetadata: {
+        ...metadata,
+        activeNodeId: nextNodeId,
+        skippedNodeIds: [...skippedNodeIds],
+        updatedAt: new Date().toISOString(),
+      },
+    },
+  });
+
+  return { currentNodeId: nextNodeId };
+}
+
+function toRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function arrayOfStrings(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }

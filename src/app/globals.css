@@ -212,6 +212,27 @@
       top: 6.25rem;
       bottom: auto !important;
     }
+
+    body:has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"][data-knowledge-mobile-inspector-policy="suspend"]) [data-knowledge-inspector="stable-rail"] {
+      display: none !important;
+    }
+  }
+
+  @media (max-width: 640px) {
+    body:has([data-adaptive-path-dock-collision-policy="avoid-learning-record"]) [data-page-floating-controls] {
+      display: none !important;
+    }
+
+    [data-adaptive-path-dock-collision-policy="avoid-learning-record"] {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem !important;
+    }
+
+    [data-adaptive-path-execution-surface],
+    [data-adaptive-path-history-surface] {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
   }
 
   .surface-topbar {

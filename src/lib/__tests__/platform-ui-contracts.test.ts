@@ -452,6 +452,7 @@ describe('platform UI contracts', () => {
     const simulationsCatalogSource = readSource('src/app/simulations/page.tsx');
     const simulationShellSource = readSource('src/app/simulations/_components/simulation-shell.tsx');
     const simulationLocalToolsSource = readSource('src/app/simulations/_components/simulation-local-tools.tsx');
+    const simulationResourceUiSource = readSource('src/resources/simulations/components/simulation-ui.tsx');
     const teacherAnalyticsSource = readSource('src/app/teacher/classes/[classId]/analytics-v2/page.tsx');
     const teacherLayoutSource = readSource('src/app/teacher/layout.tsx');
     const teacherOperationsNavSource = readSource('src/features/teacher/teacher-operations-nav.tsx');
@@ -486,7 +487,10 @@ describe('platform UI contracts', () => {
     expect(simulationShellSource).toContain('data-simulation-scene-color-policy="feature-owned"');
     expect(simulationShellSource).toContain('data-simulation-shell-profile-action');
     expect(simulationShellSource).toContain('SimulationLocalToolWorkspace');
-    expect(simulationShellSource).toContain('panelLayout="stacked"');
+    expect(simulationShellSource).toContain('panelLayout="side-rails"');
+    expect(simulationShellSource).toContain('data-simulation-shell-structured-surfaces="below-primary-scene"');
+    expect(simulationShellSource).toContain('data-command-deck-context-placement="below-primary-scene"');
+    expect(simulationShellSource).not.toContain('workspaceSlots={hasStructuredSlots');
     expect(simulationsCatalogSource).toContain('data-simulation-theme-template="catalog"');
     expect(simulationsCatalogSource).toContain('data-simulation-visual-world="instrument-atlas"');
     expect(simulationsCatalogSource).toContain('data-simulation-state-role="preview"');
@@ -519,6 +523,10 @@ describe('platform UI contracts', () => {
     expect(simulationLocalToolsSource.indexOf('data-simulation-local-primary-column')).toBeLessThan(
       simulationLocalToolsSource.indexOf('<SimulationLocalPanel side="left"'),
     );
+    expect(simulationResourceUiSource).toContain('data-simulation-scene-local-chrome="removed"');
+    expect(simulationResourceUiSource).toContain('data-command-deck-panel-anchor="top-command-area"');
+    expect(simulationResourceUiSource).not.toContain('返回上一层');
+    expect(simulationResourceUiSource).not.toContain('<Link');
     expect(manifestRuntimeSource).toContain('data-commercial-module-chrome');
     expect(manifestRuntimeSource).not.toContain("'data-task-workspace-archetype': 'lesson-runtime'");
     expect(unit41StudentRuntimeSource).toContain('data-task-workspace-archetype="lesson-runtime"');

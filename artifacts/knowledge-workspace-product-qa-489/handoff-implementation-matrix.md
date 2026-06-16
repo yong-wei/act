@@ -40,6 +40,7 @@ Design source of truth: `artifacts/product-design-audits/knowledge-graph-2026-06
 - Hover, click, drag, pinned coordinates, and explicit relayout state.
 - Konling selected context, no-selection context, and degraded unresolved-node context.
 - Mobile 320px local tools, selected-node inspector, and expanded Konling dock.
+- Mobile 320px inspector-to-Konling stress state: start from selected-node inspector, expand Konling, and verify the mobile inspector is suspended rather than overlapped.
 - Combined stress state with expanded AppShell, open local tool, selected inspector, and expanded Konling dock.
 
 ## Evidence
