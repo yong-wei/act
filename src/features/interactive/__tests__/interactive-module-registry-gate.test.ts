@@ -996,6 +996,120 @@ describe('interactive module registry gate', () => {
     ]);
   });
 
+  it('validates static 3D surface compute panel payloads', () => {
+    const validResult = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'static-surface',
+              kind: 'compute.panel',
+              mustBeVisible: true,
+              payload: staticSurfacePayloadFixture(),
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(validResult.passed).toBe(true);
+    expect(validResult.violations).toEqual([]);
+
+    const inlineDataResult = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'static-surface-inline-data',
+              kind: 'compute.panel',
+              mustBeVisible: true,
+              payload: {
+                ...staticSurfacePayloadFixture(),
+                data: {
+                  regularGrid: {
+                    x: [-2, 0, 2],
+                    y: [-1, 1],
+                    values: [
+                      [8, 18, 8],
+                      [6, 12, 6],
+                    ],
+                  },
+                },
+              },
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(inlineDataResult.passed).toBe(true);
+    expect(inlineDataResult.violations).toEqual([]);
+
+    const invalidResult = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'static-surface-missing-contract',
+              kind: 'compute.panel',
+              mustBeVisible: true,
+              payload: {
+                capabilityRef: 'static-surface-3d',
+                data: { url: '/course-runtime/lessons/1-2/media/generated-data/pole-magnitude-surface.json' },
+              },
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(invalidResult.passed).toBe(false);
+    expect(invalidResult.violations).toEqual([
+      expect.objectContaining({
+        lessonId: 'fixture-lesson',
+        stepId: 'step-01',
+        moduleId: 'static-surface-missing-contract',
+        kind: 'compute.panel',
+        code: 'compute-static-surface-payload-invalid',
+        capabilityRef: 'static-surface-3d',
+      }),
+    ]);
+
+    const unsupportedInlineDataResult = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'static-surface-values-only',
+              kind: 'compute.panel',
+              mustBeVisible: true,
+              payload: {
+                ...staticSurfacePayloadFixture(),
+                data: { values: [[1, 2], [3, 4]] },
+              },
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(unsupportedInlineDataResult.passed).toBe(false);
+    expect(unsupportedInlineDataResult.violations).toEqual([
+      expect.objectContaining({
+        lessonId: 'fixture-lesson',
+        stepId: 'step-01',
+        moduleId: 'static-surface-values-only',
+        kind: 'compute.panel',
+        code: 'compute-static-surface-payload-invalid',
+        capabilityRef: 'static-surface-3d',
+      }),
+    ]);
+  });
+
   it('rejects content.code modules without code text', () => {
     const result = evaluateInteractiveModuleRegistryGate({
       manifests: [
@@ -1501,6 +1615,24 @@ function manifestFixture({
         acceptanceChecks: [],
       },
     ],
+  };
+}
+
+function staticSurfacePayloadFixture(): Record<string, unknown> {
+  return {
+    capabilityRef: 'static-surface-3d',
+    data: { url: '/course-runtime/lessons/1-2/media/generated-data/pole-magnitude-surface.json' },
+    axes: {
+      x: { label: '实部 σ' },
+      y: { label: '虚部 jω' },
+      z: { label: '20log10|G(s)|' },
+    },
+    colorScale: { label: '幅值 dB', min: -20, max: 60 },
+    defaultCamera: { position: [3, 3, 2], target: [0, 0, 0], zoom: 1 },
+    fallback: {
+      image: '/course-runtime/lessons/1-2/media/1-2-fig-08-magnitude-surface.png',
+      alt: '船舶传递函数极点幅值曲面的静态图',
+    },
   };
 }
 

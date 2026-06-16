@@ -10,6 +10,7 @@ import {
   INTERACTIVE_MODULE_RESPONSE_KINDS,
   INTERACTIVE_MODULE_SEMANTIC_ROLES,
   LEGACY_INTERACTIVE_MODULE_KIND_ALIASES,
+  INTERACTIVE_MODULE_COMPUTE_CAPABILITY_DEFINITIONS,
   OBSERVED_LEGACY_INTERACTIVE_MODULE_KINDS,
 } from '@/features/interactive/shared/manifest-runtime/module-taxonomy';
 
@@ -137,6 +138,12 @@ describe('interactive module taxonomy', () => {
     expect(LEGACY_INTERACTIVE_MODULE_KIND_ALIASES['stage-map']).toMatchObject({
       canonicalClass: 'content.stageMap',
       migrationOnly: true,
+    });
+  });
+
+  it('registers static 3D surfaces as a dedicated compute capability', () => {
+    expect(INTERACTIVE_MODULE_COMPUTE_CAPABILITY_DEFINITIONS['static-surface-3d']).toMatchObject({
+      capabilityRef: 'static-surface-3d',
     });
   });
 

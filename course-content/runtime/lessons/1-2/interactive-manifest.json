@@ -1387,12 +1387,66 @@
           "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
-            "capabilityRef": "interactive-figure",
+            "capabilityRef": "static-surface-3d",
             "panel_id": "pole-magnitude-3d",
             "legacyKind": "compute-panel",
             "presentation": "single",
             "block_key": "magnitude-surface",
-            "spec_key": "pole_magnitude_3d"
+            "spec_key": "pole_magnitude_3d",
+            "data": {
+              "url": "generated-data/pole-magnitude-surface.json"
+            },
+            "axes": {
+              "x": {
+                "label": "实部 σ"
+              },
+              "y": {
+                "label": "虚部 jω"
+              },
+              "z": {
+                "label": "20log₁₀|G(s)|"
+              }
+            },
+            "colorScale": {
+              "label": "幅值 dB",
+              "min": -12,
+              "max": 48
+            },
+            "defaultCamera": {
+              "position": [
+                3.2,
+                3.1,
+                2.4
+              ],
+              "target": [
+                0,
+                0,
+                0.7
+              ],
+              "zoom": 1
+            },
+            "fallback": {
+              "image": "1-2-fig-08-magnitude-surface.png",
+              "alt": "船舶传递函数极点幅值曲面的静态图"
+            },
+            "markers": [
+              {
+                "label": "s=0",
+                "position": [
+                  0,
+                  0,
+                  1.7
+                ]
+              },
+              {
+                "label": "s=-B/J",
+                "position": [
+                  -1,
+                  0,
+                  1.4
+                ]
+              }
+            ]
           }
         },
         {

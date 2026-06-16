@@ -5,14 +5,15 @@
     "1-2-media.md"
   ],
   "generated_assets": [
-    "1-2-handout.pdf",
     "1-2-media.md"
   ],
-  "missing_assets": [],
+  "missing_assets": [
+    "1-2-handout.pdf"
+  ],
   "executed_scripts": [],
   "processed_dir": "course-content/authoring/lessons/1-2/media/processed",
   "media_index_path": "course-content/runtime/lessons/1-2/media/1-2-media.md",
-  "handout_pdf_source": "course-content/authoring/lessons/1-2/design/1-2-handout.pdf",
+  "handout_pdf_source": null,
   "formula_contract_issues": [],
   "formula_media": []
 }
