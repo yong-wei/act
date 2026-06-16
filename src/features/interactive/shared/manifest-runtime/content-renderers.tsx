@@ -11,6 +11,7 @@ import type {
   InteractiveRuntimeModuleManifest,
   InteractiveRuntimeStepManifest,
 } from './layout-renderer';
+import { StaticSurface3DPanel, type StaticSurface3DPanelProps, type StaticSurfaceDataset } from './static-surface-3d-panel';
 
 type ContentRecord = Record<string, unknown>;
 type TableCell = string | { kind: 'math'; value: string };
@@ -543,6 +544,139 @@ function imageItemsFromPayload(manifest: InteractiveRuntimeManifest, payload: Co
       return { src: runtimeMediaPath(manifest, path), caption };
     })
     .filter((item): item is { src: string; caption: string } => Boolean(item));
+}
+
+function staticSurfacePanelProps(
+  manifest: InteractiveRuntimeManifest,
+  step: InteractiveRuntimeStepManifest,
+  module: InteractiveRuntimeModuleManifest,
+): StaticSurface3DPanelProps {
+  const payload = module.payload;
+  const block = asRecord(blockFor(step, payload));
+  const data = asRecord(payload.data ?? payload.dataSource ?? payload.surfaceData);
+  const axes = asRecord(payload.axes);
+  const colorScale = asRecord(payload.colorScale ?? payload.color_scale);
+  const defaultCamera = asRecord(payload.defaultCamera ?? payload.default_camera);
+  const fallback = asRecord(payload.fallback);
+  const fallbackImage = stringField(fallback, ['image', 'src', 'path'])
+    || stringField(payload, ['fallback_image', 'fallbackImage']);
+  const dataUrl = stringField(data, ['url', 'src', 'path']);
+
+  return {
+    moduleId: module.id,
+    title: titleFromModule(module),
+    caption: stringField(payload, ['caption', 'description', 'text'])
+      || stringField(block, ['description', 'body', 'text']),
+    dataUrl: dataUrl ? runtimeMediaPath(manifest, dataUrl) : undefined,
+    dataset: staticSurfaceDataset(data),
+    axes: {
+      x: { label: axisLabel(axes.x, '实部 σ') },
+      y: { label: axisLabel(axes.y, '虚部 jω') },
+      z: { label: axisLabel(axes.z, '幅值') },
+    },
+    colorScale: {
+      label: stringField(colorScale, ['label', 'title']) || '幅值',
+      min: numberField(colorScale, ['min']),
+      max: numberField(colorScale, ['max']),
+    },
+    defaultCamera: {
+      position: numberTuple3(defaultCamera.position, [3, 3, 2]),
+      target: numberTuple3(defaultCamera.target, [0, 0, 0]),
+      zoom: numberField(defaultCamera, ['zoom']) ?? 1,
+    },
+    fallback: {
+      image: runtimeMediaPath(manifest, fallbackImage),
+      alt: stringField(fallback, ['alt', 'description'])
+        || stringField(block, ['description', 'body', 'text'])
+        || `${titleFromModule(module)}静态图`,
+      note: stringField(fallback, ['note']),
+    },
+    markers: markerConfigs(payload.markers ?? block.markers),
+  };
+}
+
+function axisLabel(value: unknown, fallback: string) {
+  const axis = asRecord(value);
+  return stringField(axis, ['label', 'title', 'name']) || fallback;
+}
+
+function numberField(source: ContentRecord, keys: string[]) {
+  for (const key of keys) {
+    const value = source[key];
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+  }
+  return undefined;
+}
+
+function numberTuple3(value: unknown, fallback: [number, number, number]): [number, number, number] {
+  if (!Array.isArray(value) || value.length < 3) return fallback;
+  const tuple = value.slice(0, 3).map((item) => Number(item));
+  return tuple.every((item) => Number.isFinite(item))
+    ? tuple as [number, number, number]
+    : fallback;
+}
+
+function markerConfigs(value: unknown): StaticSurface3DPanelProps['markers'] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      const marker = asRecord(item);
+      const label = stringField(marker, ['label', 'title']);
+      if (!label) return null;
+      return {
+        label,
+        position: numberTuple3(marker.position, [0, 0, 0]),
+      };
+    })
+    .filter((item): item is NonNullable<StaticSurface3DPanelProps['markers']>[number] => Boolean(item));
+}
+
+function staticSurfaceDataset(data: ContentRecord): StaticSurfaceDataset | undefined {
+  const regularGrid = asRecord(data.regularGrid);
+  if (regularGrid.x || regularGrid.y || regularGrid.values) {
+    return {
+      regularGrid: {
+        x: numericArray(regularGrid.x),
+        y: numericArray(regularGrid.y),
+        values: numericRows(regularGrid.values),
+      },
+      markers: markerConfigs(data.markers),
+    };
+  }
+
+  if (Array.isArray(data.vertices)) {
+    return {
+      vertices: pointRows(data.vertices),
+      indices: triangleRows(data.indices) ?? numericArray(data.indices),
+      markers: markerConfigs(data.markers),
+    };
+  }
+
+  return undefined;
+}
+
+function numericArray(value: unknown): number[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((item) => Number(item)).filter((item) => Number.isFinite(item));
+}
+
+function numericRows(value: unknown): number[][] {
+  if (!Array.isArray(value)) return [];
+  return value.map(numericArray);
+}
+
+function pointRows(value: unknown): Array<[number, number, number]> {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => numericArray(item).slice(0, 3))
+    .filter((item): item is [number, number, number] => item.length === 3);
+}
+
+function triangleRows(value: unknown): Array<[number, number, number]> | undefined {
+  if (!Array.isArray(value) || !Array.isArray(value[0])) return undefined;
+  return value
+    .map((item) => numericArray(item).slice(0, 3))
+    .filter((item): item is [number, number, number] => item.length === 3);
 }
 
 function textFromRecord(value: unknown) {
@@ -1276,7 +1410,10 @@ export function createManifestContentModuleRegistry(extra: {
       const content = summaryContent(step, module);
       return <SummaryCard title={title} text={content.text} bullets={content.bullets} />;
     },
-    'compute.panel': ({ step, module }) => {
+    'compute.panel': ({ manifest, step, module }) => {
+      if (module.payload.capabilityRef === 'static-surface-3d' || module.payload.capability_ref === 'static-surface-3d') {
+        return <StaticSurface3DPanel {...staticSurfacePanelProps(manifest, step, module)} />;
+      }
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
     },

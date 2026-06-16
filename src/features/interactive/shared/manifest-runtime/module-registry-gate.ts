@@ -30,6 +30,7 @@ export type InteractiveModuleRegistryGateViolationCode =
   | 'code-like-content-outside-code-module'
   | 'code-module-missing-source'
   | 'compute-missing-capability-ref'
+  | 'compute-static-surface-payload-invalid'
   | 'compute-unregistered-capability-ref'
   | 'course-local-module-chrome'
   | 'invalid-runtime-manifest'
@@ -445,6 +446,20 @@ function evaluateRuntimeModule({
         capabilityRef,
         message: `${lessonId} ${step.id} ${module.id} uses unregistered compute capability ${capabilityRef}.`,
       }));
+    } else if (capabilityRef === 'static-surface-3d') {
+      const missingFields = missingStaticSurfacePayloadFields(module.payload);
+      if (missingFields.length) {
+        violations.push(violation({
+          lessonId,
+          manifestPath,
+          step,
+          module,
+          code: 'compute-static-surface-payload-invalid',
+          canonicalClass: resolution.canonicalClass,
+          capabilityRef,
+          message: `${lessonId} ${step.id} ${module.id} static-surface-3d payload is missing ${missingFields.join(', ')}.`,
+        }));
+      }
     }
   }
 
@@ -688,6 +703,81 @@ function capabilityRefForModule(
   return stringValue(module.payload.capabilityRef)
     ?? stringValue(module.payload.capability_ref)
     ?? stringValue(module.payload.capability);
+}
+
+function missingStaticSurfacePayloadFields(payload: Record<string, unknown>): string[] {
+  const missing: string[] = [];
+  const data = objectValue(payload.data) ?? objectValue(payload.dataSource) ?? objectValue(payload.surfaceData);
+  const axes = objectValue(payload.axes);
+  const colorScale = objectValue(payload.colorScale) ?? objectValue(payload.color_scale);
+  const defaultCamera = objectValue(payload.defaultCamera) ?? objectValue(payload.default_camera);
+  const fallback = objectValue(payload.fallback);
+
+  if (!data || !hasStaticSurfaceData(data)) {
+    missing.push('data');
+  }
+  if (!axes || !axisHasLabel(axes.x) || !axisHasLabel(axes.y) || !axisHasLabel(axes.z)) {
+    missing.push('axes.x/y/z.label');
+  }
+  if (!colorScale || !stringValue(colorScale.label)) {
+    missing.push('colorScale.label');
+  }
+  if (!defaultCamera || !Array.isArray(defaultCamera.position) || !Array.isArray(defaultCamera.target)) {
+    missing.push('defaultCamera.position/target');
+  }
+  if (!fallback || !stringValue(fallback.image) || !stringValue(fallback.alt)) {
+    missing.push('fallback.image/alt');
+  }
+  return missing;
+}
+
+function objectValue(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+
+function axisHasLabel(value: unknown): boolean {
+  const axis = objectValue(value);
+  return Boolean(axis && stringValue(axis.label));
+}
+
+function hasStaticSurfaceData(data: Record<string, unknown>): boolean {
+  return Boolean(
+    stringValue(data.url)
+      || stringValue(data.src)
+      || stringValue(data.path)
+      || hasStaticSurfaceRegularGrid(objectValue(data.regularGrid))
+      || hasStaticSurfaceMesh(data),
+  );
+}
+
+function hasStaticSurfaceRegularGrid(grid: Record<string, unknown> | null): boolean {
+  if (!grid) return false;
+  const x = numericArray(grid.x);
+  const y = numericArray(grid.y);
+  if (x.length < 2 || y.length < 2) return false;
+  if (!Array.isArray(grid.values) || grid.values.length !== y.length) return false;
+  return grid.values.every((row) => numericArray(row).length === x.length);
+}
+
+function hasStaticSurfaceMesh(data: Record<string, unknown>): boolean {
+  if (!Array.isArray(data.vertices) || data.vertices.length < 3) return false;
+  if (!data.vertices.every((vertex) => numericTuple3(vertex))) return false;
+  if (!Array.isArray(data.indices) || !data.indices.length) return false;
+  if (Array.isArray(data.indices[0])) {
+    return data.indices.every((triangle) => numericTuple3(triangle));
+  }
+  return data.indices.every((index) => Number.isInteger(index)) && data.indices.length % 3 === 0;
+}
+
+function numericArray(value: unknown): number[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is number => typeof item === 'number' && Number.isFinite(item));
+}
+
+function numericTuple3(value: unknown): boolean {
+  return Array.isArray(value)
+    && value.length === 3
+    && value.every((item) => typeof item === 'number' && Number.isFinite(item));
 }
 
 function isNonInteractiveStep(step: InteractiveRuntimeStepManifest) {

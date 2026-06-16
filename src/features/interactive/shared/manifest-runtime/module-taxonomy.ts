@@ -255,6 +255,10 @@ export const INTERACTIVE_MODULE_COMPUTE_CAPABILITY_DEFINITIONS: Record<string, I
     capabilityRef: 'interactive-figure',
     description: 'Runtime interactive figure backed by a shared renderer.',
   },
+  'static-surface-3d': {
+    capabilityRef: 'static-surface-3d',
+    description: 'Precomputed static 3D surface panel with shared rotate and zoom controls.',
+  },
   'rust-analysis': {
     capabilityRef: 'rust-analysis',
     description: 'Rust or WASM-backed analysis panel.',
