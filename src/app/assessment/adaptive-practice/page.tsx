@@ -1368,6 +1368,19 @@ export default function AdaptivePracticePage() {
       learnerState = null;
     }
 
+    if (activePathId) {
+      try {
+        const loaded = await fetchLearningPathRound(activePathId, activeGoal);
+        if (loaded) {
+          setControlCorrectionPathRound(loaded.round);
+          setControlCorrectionPathPlan(loaded.plan);
+        }
+      } catch {
+        // Keep the explicit URL path stable instead of switching to latest.
+      }
+      return;
+    }
+
     try {
       const latest = await fetchLatestLearningPathRound(activeGoal);
       if (latest) {
@@ -1397,7 +1410,7 @@ export default function AdaptivePracticePage() {
         // Try the next path id.
       }
     }
-  }, [activeGoal, authStatus, isDemoMode]);
+  }, [activeGoal, activePathId, authStatus, isDemoMode]);
 
   useEffect(() => {
     const handleAdaptivePathUpdated = () => {
