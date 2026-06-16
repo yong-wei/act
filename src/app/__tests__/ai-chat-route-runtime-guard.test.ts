@@ -108,6 +108,11 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain("input.permittedTools.includes('generate_learning_path')");
     expect(chatRouteSource).toContain('input.runtime.generateLearningPath');
     expect(chatRouteSource).toContain('path-advisor:auto-generate');
+    expect(chatRouteSource).toContain('agentSessionId: agentSession.id');
+    expect(chatRouteSource).toContain('agentSessionId: input.agentSessionId');
+    expect(chatRouteSource).toContain('lastUserMessageIndex: findLastUserMessageIndex(input.messages)');
+    expect(chatRouteSource).toContain('request.agentSessionId');
+    expect(chatRouteSource).toContain('String(request.lastUserMessageIndex)');
     expect(chatRouteSource).toContain("const generationVerb = '(?:生成|创建|新建|制定|规划|重建|重新生成|重新规划)'");
     expect(chatRouteSource).toContain("const pathNoun = '(?:学习路径|路径方案|学习方案|学习计划|路径规划)'");
     expect(chatRouteSource).toContain('new RegExp(`(?:${generationVerb}.{0,24}${pathNoun}|${pathNoun}.{0,24}${generationVerb})`)');

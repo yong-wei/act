@@ -326,6 +326,7 @@ export async function POST(request: Request) {
         modeId: modeContract.mode.id,
         permittedTools: modeContract.permittedTools,
         scope: scope.scope,
+        agentSessionId: agentSession.id,
         messages,
         runtime: toolRuntime,
       });
@@ -432,6 +433,7 @@ async function maybeGeneratePathAdvisorPlan(input: {
     courseId: string;
     pageId: string;
   };
+  agentSessionId: string;
   messages: Array<{ role?: string; content?: unknown }>;
   runtime: ReturnType<typeof buildKonlingToolRuntime>;
 }) {
@@ -443,7 +445,11 @@ async function maybeGeneratePathAdvisorPlan(input: {
   if (!isLearningPathGenerationRequest(text)) return null;
 
   const result = await input.runtime.generateLearningPath({
-    idempotencyKey: buildPathAdvisorGenerationIdempotencyKey(input.scope, text),
+    idempotencyKey: buildPathAdvisorGenerationIdempotencyKey(input.scope, {
+      agentSessionId: input.agentSessionId,
+      lastUserMessageIndex: findLastUserMessageIndex(input.messages),
+      text,
+    }),
     goalId: input.scope.courseId,
     routeIntent: 'path-advisor-chat-generation',
     naturalLanguageIntent: text,
@@ -468,9 +474,17 @@ async function maybeGeneratePathAdvisorPlan(input: {
 }
 
 function getLastUserMessageText(messages: Array<{ role?: string; content?: unknown }>) {
-  const lastUserMessage = [...messages].reverse().find((message) => message.role === 'user');
+  const lastUserMessageIndex = findLastUserMessageIndex(messages);
+  const lastUserMessage = lastUserMessageIndex >= 0 ? messages[lastUserMessageIndex] : null;
   if (!lastUserMessage) return '';
   return typeof lastUserMessage.content === 'string' ? lastUserMessage.content.trim() : '';
+}
+
+function findLastUserMessageIndex(messages: Array<{ role?: string; content?: unknown }>) {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    if (messages[index]?.role === 'user') return index;
+  }
+  return -1;
 }
 
 function isLearningPathGenerationRequest(text: string) {
@@ -483,7 +497,7 @@ function isLearningPathGenerationRequest(text: string) {
 
 function buildPathAdvisorGenerationIdempotencyKey(
   scope: { authenticatedUserId: string; targetUserId: string; courseId: string; pageId: string },
-  text: string,
+  request: { agentSessionId: string; lastUserMessageIndex: number; text: string },
 ) {
   const digest = createHash('sha256')
     .update([
@@ -491,7 +505,9 @@ function buildPathAdvisorGenerationIdempotencyKey(
       scope.targetUserId,
       scope.courseId,
       scope.pageId,
-      text,
+      request.agentSessionId,
+      String(request.lastUserMessageIndex),
+      request.text,
     ].join('\0'))
     .digest('hex')
     .slice(0, 24);
