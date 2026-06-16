@@ -1400,9 +1400,16 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('learnerState?.pathContext.activeControlCorrectionPath.pathId');
     expect(source).toContain('learnerState?.pathContext.recentPathIds ?? []');
     expect(source).toContain('uniquePathIds([activePathId, ...fallbackPathIds])');
+    expect(source).toContain('uniquePathIds(fallbackPathIds)');
     expect(source).toContain('fetchLearningPathRound(pathIdToLoad, goalToLoad)');
     expect(source).toContain('fetchLatestLearningPathRound(goalToLoad)');
     expect(source).toContain('fetchLatestLearningPathRound(activeGoal)');
+    const generationRefreshBlock = source.slice(
+      source.indexOf('const refreshLatestLearningPathAfterKonling = useCallback'),
+      source.indexOf('useEffect(() => {\n    const handleAdaptivePathUpdated'),
+    );
+    expect(generationRefreshBlock.indexOf('const latest = await fetchLatestLearningPathRound(activeGoal)'))
+      .toBeLessThan(generationRefreshBlock.indexOf('const pathIdsToTry = uniquePathIds(fallbackPathIds)'));
     expect(source).toContain('fetch(`/api/learning-paths/${encodeURIComponent(pathId)}`)');
     expect(source).toContain('fetch(`/api/learning-paths/latest?goal=${encodeURIComponent(goalId)}`)');
     expect(source).toContain("if (!round || !isAdaptivePracticeGoalId(round.goalId)) return null;");

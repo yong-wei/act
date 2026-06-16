@@ -1368,10 +1368,22 @@ export default function AdaptivePracticePage() {
       learnerState = null;
     }
 
+    try {
+      const latest = await fetchLatestLearningPathRound(activeGoal);
+      if (latest) {
+        setControlCorrectionPathRound(latest.round);
+        setControlCorrectionPathPlan(latest.plan);
+        setPathChoiceMessage('学习路径已生成，请选择一个方案开始执行。');
+        return;
+      }
+    } catch {
+      // Fall back to learner-state hints when the latest path is not readable yet.
+    }
+
     const fallbackPathIds = activeGoal === 'control-correction'
       ? [learnerState?.pathContext.activeControlCorrectionPath.pathId ?? null]
       : learnerState?.pathContext.recentPathIds ?? [];
-    const pathIdsToTry = uniquePathIds([activePathId, ...fallbackPathIds]);
+    const pathIdsToTry = uniquePathIds(fallbackPathIds);
     for (const pathIdToLoad of pathIdsToTry) {
       try {
         const loaded = await fetchLearningPathRound(pathIdToLoad, activeGoal);
@@ -1385,17 +1397,7 @@ export default function AdaptivePracticePage() {
         // Try the next path id.
       }
     }
-    try {
-      const latest = await fetchLatestLearningPathRound(activeGoal);
-      if (latest) {
-        setControlCorrectionPathRound(latest.round);
-        setControlCorrectionPathPlan(latest.plan);
-        setPathChoiceMessage('学习路径已生成，请选择一个方案开始执行。');
-      }
-    } catch {
-      // Keep the starter path preview if the latest path is still not readable.
-    }
-  }, [activeGoal, activePathId, authStatus, isDemoMode]);
+  }, [activeGoal, authStatus, isDemoMode]);
 
   useEffect(() => {
     const handleAdaptivePathUpdated = () => {
