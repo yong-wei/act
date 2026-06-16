@@ -212,6 +212,10 @@
       top: 6.25rem;
       bottom: auto !important;
     }
+
+    body:has([data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"][data-knowledge-mobile-inspector-policy="suspend"]) [data-knowledge-inspector="stable-rail"] {
+      display: none !important;
+    }
   }
 
   @media (max-width: 640px) {

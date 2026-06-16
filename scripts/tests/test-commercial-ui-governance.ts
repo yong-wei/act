@@ -658,17 +658,49 @@ function simulationReactDoctorReport(pathname: string | undefined) {
   };
 }
 
+function runtimeNoiseMessages(entries: unknown, fallbackKey: 'message' | 'text') {
+  if (!Array.isArray(entries)) return undefined;
+  return entries.map((entry) => {
+    if (typeof entry === 'string') return entry;
+    if (!entry || typeof entry !== 'object') return JSON.stringify(entry);
+    const record = entry as Record<string, unknown>;
+    const detail = typeof record[fallbackKey] === 'string'
+      ? record[fallbackKey]
+      : JSON.stringify(record);
+    return typeof record.route === 'string' ? `${record.route}: ${detail}` : String(detail);
+  });
+}
+
+function simulationRuntimeNoiseReport(pathname: string | undefined) {
+  const artifact = simulationViewportArtifact(pathname);
+  if (!artifact) return undefined;
+  const content = JSON.parse(readFileSync(path.join(repoRoot, artifact.pathname), 'utf8')) as {
+    summary?: {
+      routesChecked?: number;
+      pageErrors?: unknown[];
+      trackedConsoleWarnings?: unknown[];
+    };
+  };
+  return {
+    ...artifact,
+    routesChecked: content.summary?.routesChecked,
+    pageErrors: runtimeNoiseMessages(content.summary?.pageErrors, 'message'),
+    trackedConsoleWarnings: runtimeNoiseMessages(content.summary?.trackedConsoleWarnings, 'text'),
+  };
+}
+
 function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
   const manifestPath = path.join(repoRoot, 'artifacts/commercial-ui/evidence.json');
   if (!existsSync(manifestPath)) return [];
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as { routes?: CommercialVisualAcceptanceEvidence[] };
   return (manifest.routes ?? []).map((route) => ({
     ...route,
-	    simulationVisualQa: route.simulationVisualQa
-	      ? (() => {
-	          const reactDoctorReport = simulationReactDoctorReport(route.simulationVisualQa.reactDoctorErrorCheck?.report);
-	          const simulationRoute = SIMULATION_VISUAL_QA_ROUTE_MATRIX.find((entry) => entry.href === route.href);
-	          return {
+    simulationVisualQa: route.simulationVisualQa
+      ? (() => {
+          const reactDoctorReport = simulationReactDoctorReport(route.simulationVisualQa.reactDoctorErrorCheck?.report);
+          const runtimeNoiseReport = simulationRuntimeNoiseReport(route.simulationVisualQa.runtimeNoise?.report);
+          const simulationRoute = SIMULATION_VISUAL_QA_ROUTE_MATRIX.find((entry) => entry.href === route.href);
+          return {
             ...route.simulationVisualQa,
             reactDoctorErrorCheck: route.simulationVisualQa.reactDoctorErrorCheck
               ? {
@@ -676,6 +708,20 @@ function readVisualEvidenceManifest(): CommercialVisualAcceptanceEvidence[] {
                   reportSha256: reactDoctorReport?.sha256,
                   ownedDiagnostics: reactDoctorReport?.ownedDiagnostics,
                   selectedDiagnostics: reactDoctorReport?.selectedDiagnostics,
+                }
+              : undefined,
+            runtimeNoise: route.simulationVisualQa.runtimeNoise
+              ? {
+                  ...route.simulationVisualQa.runtimeNoise,
+                  reportSha256: runtimeNoiseReport?.sha256,
+                  routesChecked: runtimeNoiseReport?.routesChecked ?? route.simulationVisualQa.runtimeNoise.routesChecked,
+                  pageErrors: runtimeNoiseReport
+                    ? runtimeNoiseReport.pageErrors
+                    : route.simulationVisualQa.runtimeNoise.pageErrors,
+                  trackedConsoleWarnings:
+                    runtimeNoiseReport
+                      ? runtimeNoiseReport.trackedConsoleWarnings
+                      : route.simulationVisualQa.runtimeNoise.trackedConsoleWarnings,
                 }
               : undefined,
             handoffBaseline: route.simulationVisualQa.handoffBaseline
@@ -1845,6 +1891,7 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
     ['mobile-320-local-tools-dark', 'dark', 320, 'mobile', 'collapsed'],
     ['mobile-320-selected-inspector-dark', 'dark', 320, 'mobile', 'collapsed'],
     ['mobile-320-konling-expanded-dark', 'dark', 320, 'mobile', 'expanded'],
+    ['mobile-320-inspector-konling-stress-dark', 'dark', 320, 'mobile', 'expanded'],
     ['light-theme-default', 'light', 1440, 'collapsed', 'collapsed'],
   ] as const;
   const stateProblems = requiredStates.flatMap(([name, theme, width, navigationState, dockState]) => {
@@ -1923,17 +1970,32 @@ function validateKnowledgeWorkspaceProductQaEvidence(): CommercialUiGovernanceVi
               : `${name}:layout-persistence-interaction-proof-missing`
           )
         : null,
-      name.includes('stress')
+      name === 'desktop-stress-expanded-tool-inspector-konling-dark'
         ? (markerRects.inspector ? null : `${name}:inspector-rect-missing`)
         : null,
-      name.includes('stress')
+      name === 'desktop-stress-expanded-tool-inspector-konling-dark'
         ? (markers.konlingInspectorAvoidance === 'active' ? null : `${name}:konling-inspector-avoidance-missing`)
         : null,
-      name.includes('stress')
+      name === 'desktop-stress-expanded-tool-inspector-konling-dark'
         ? (booleanFromEvidence(overlaps.expandedDockOverlapsInspector) === false ? null : `${name}:expanded-dock-overlaps-inspector`)
         : null,
-      name.includes('stress')
+      name === 'desktop-stress-expanded-tool-inspector-konling-dark'
         ? (booleanFromEvidence(overlaps.expandedDockOverlapsDesktopTools) === false ? null : `${name}:expanded-dock-overlaps-tools`)
+        : null,
+      name === 'mobile-320-inspector-konling-stress-dark'
+        ? (!markerRects.inspector ? null : `${name}:mobile-inspector-not-suspended`)
+        : null,
+      name === 'mobile-320-inspector-konling-stress-dark'
+        ? (markers.konlingMobileInspectorPolicy === 'suspend' ? null : `${name}:mobile-inspector-policy-missing`)
+        : null,
+      name === 'mobile-320-inspector-konling-stress-dark'
+        ? (booleanFromEvidence(overlaps.expandedDockOverlapsInspector) === false ? null : `${name}:expanded-dock-overlaps-inspector`)
+        : null,
+      name === 'mobile-320-inspector-konling-stress-dark'
+        ? (booleanFromEvidence(overlaps.dockOverlapsInspector) === false ? null : `${name}:dock-overlaps-inspector`)
+        : null,
+      name === 'mobile-320-inspector-konling-stress-dark'
+        ? (booleanFromEvidence(overlaps.expandedDockOverlapsMobileTools) === false ? null : `${name}:expanded-dock-overlaps-mobile-tools`)
         : null,
       name.startsWith('mobile-320-konling')
         ? (booleanFromEvidence(overlaps.expandedDockOverlapsInspector) === false ? null : `${name}:expanded-dock-overlaps-inspector`)

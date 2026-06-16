@@ -691,7 +691,7 @@ export function LNGSimulation() {
 
   return (
     <div className={simulationUi.root} data-sim-ui>
-      <Canvas shadows>
+      <Canvas shadows={{ type: THREE.PCFShadowMap }}>
         <Scene
           state={state}
           trajectory={trajectory}

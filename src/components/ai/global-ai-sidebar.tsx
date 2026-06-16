@@ -116,7 +116,7 @@ export function GlobalAISidebar() {
         opener.focus();
         return;
       }
-      document.querySelector<HTMLElement>('[data-platform-floating-dock] button[aria-label*="页面工具菜单"]')?.focus();
+      document.querySelector<HTMLElement>('[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]')?.focus();
     });
   }, [isOpen]);
 
@@ -198,8 +198,8 @@ export function GlobalAISidebar() {
     if (status === 'degraded') {
       return {
         status,
-        label: '节点暂不可用',
-        description: '当前节点暂时无法解析，控灵仍可根据图谱视图提供帮助。',
+        label: '节点未解析',
+        description: '请求的知识节点暂不可用，控灵将仅使用当前筛选与视图状态。',
       };
     }
     return {
@@ -246,6 +246,11 @@ export function GlobalAISidebar() {
         data-global-ai-sidebar={isOpen ? 'open' : 'closed'}
         data-konling-assistant-surface="global-sidebar"
         data-konling-inspector-avoidance={knowledgeInspectorAvoidanceActive ? 'active' : 'inactive'}
+        data-knowledge-mobile-inspector-policy={
+          pageContext?.courseId === 'knowledge' || pageContext?.stepId === '/knowledge'
+            ? 'suspend'
+            : undefined
+        }
       >
         {/* 头部 */}
         <div className={`flex items-center justify-between border-b px-4 py-3 ${styles.header}`}>

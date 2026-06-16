@@ -22,6 +22,12 @@ The audit captured screenshots successfully, but every route produced the same p
 - Treat deprecation warnings as planned maintenance. They may not break rendering now, but keeping them creates future upgrade debt and obscures real warnings.
 - Store console/page-error results with screenshot manifests. Visual pass/fail should know whether the screenshot was captured under a clean runtime.
 
+## Implementation Disposition
+
+- The reproduced `classList` null error was traced to the local screenshot harness setting the theme by touching `document.documentElement.classList` inside `addInitScript`, which can run before the document root exists. The product shell/theme/dock code did not require a defensive runtime catch. The fixed capture path only seeds `localStorage['ai-obe-theme']` before navigation and lets the app's normal theme bridge apply the document class.
+- The `THREE.Clock` warning comes from `@react-three/fiber@9.6.1` constructing the deprecated class internally when paired with the current `three@0.184` baseline. The compatibility layer replaces that constructor with an API-compatible clock class while preserving the rest of the Three package entry.
+- The `PCFSoftShadowMap` warning comes from boolean `<Canvas shadows>` defaults. The final implementation does not globally rewrite the Three constant; each simulation scene opts into `shadows={{ type: THREE.PCFShadowMap }}` so the shadow-map behavior change stays scoped to the simulation routes covered by this change.
+
 ## Risks / Trade-offs
 
 - [Risk] Three.js API changes may differ by installed version. Mitigation: verify against the repository lockfile and current runtime before changing usage.

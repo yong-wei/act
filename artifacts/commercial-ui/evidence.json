@@ -11510,6 +11510,14 @@
             "contextPlacement": "below-primary-scene",
             "mobileSceneFirst": true
           }
+        },
+        "runtimeNoise": {
+          "captureCommand": "rtk npm run test:simulation-runtime-noise",
+          "report": "artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json",
+          "routesChecked": 7,
+          "pageErrors": [],
+          "trackedConsoleWarnings": [],
+          "reportSha256": "5d22da63019a028a7bdb2d16ce8112173a84ac6e2357417a40d6311b3f7b8db7"
         }
       }
     },
@@ -12536,6 +12544,14 @@
               ]
             }
           ]
+        },
+        "runtimeNoise": {
+          "captureCommand": "rtk npm run test:simulation-runtime-noise",
+          "report": "artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json",
+          "routesChecked": 7,
+          "pageErrors": [],
+          "trackedConsoleWarnings": [],
+          "reportSha256": "5d22da63019a028a7bdb2d16ce8112173a84ac6e2357417a40d6311b3f7b8db7"
         }
       }
     },
@@ -13569,6 +13585,14 @@
               ]
             }
           ]
+        },
+        "runtimeNoise": {
+          "captureCommand": "rtk npm run test:simulation-runtime-noise",
+          "report": "artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json",
+          "routesChecked": 7,
+          "pageErrors": [],
+          "trackedConsoleWarnings": [],
+          "reportSha256": "5d22da63019a028a7bdb2d16ce8112173a84ac6e2357417a40d6311b3f7b8db7"
         }
       }
     },
@@ -14602,6 +14626,14 @@
               ]
             }
           ]
+        },
+        "runtimeNoise": {
+          "captureCommand": "rtk npm run test:simulation-runtime-noise",
+          "report": "artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json",
+          "routesChecked": 7,
+          "pageErrors": [],
+          "trackedConsoleWarnings": [],
+          "reportSha256": "5d22da63019a028a7bdb2d16ce8112173a84ac6e2357417a40d6311b3f7b8db7"
         }
       }
     },
@@ -15628,6 +15660,14 @@
               ]
             }
           ]
+        },
+        "runtimeNoise": {
+          "captureCommand": "rtk npm run test:simulation-runtime-noise",
+          "report": "artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json",
+          "routesChecked": 7,
+          "pageErrors": [],
+          "trackedConsoleWarnings": [],
+          "reportSha256": "5d22da63019a028a7bdb2d16ce8112173a84ac6e2357417a40d6311b3f7b8db7"
         }
       }
     },
@@ -16654,6 +16694,14 @@
               ]
             }
           ]
+        },
+        "runtimeNoise": {
+          "captureCommand": "rtk npm run test:simulation-runtime-noise",
+          "report": "artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json",
+          "routesChecked": 7,
+          "pageErrors": [],
+          "trackedConsoleWarnings": [],
+          "reportSha256": "5d22da63019a028a7bdb2d16ce8112173a84ac6e2357417a40d6311b3f7b8db7"
         }
       }
     },
@@ -17680,6 +17728,14 @@
               ]
             }
           ]
+        },
+        "runtimeNoise": {
+          "captureCommand": "rtk npm run test:simulation-runtime-noise",
+          "report": "artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json",
+          "routesChecked": 7,
+          "pageErrors": [],
+          "trackedConsoleWarnings": [],
+          "reportSha256": "5d22da63019a028a7bdb2d16ce8112173a84ac6e2357417a40d6311b3f7b8db7"
         }
       }
     },

@@ -1417,7 +1417,7 @@ export default function DestroyerSimulation() {
 
   return (
     <div className={simulationUi.root} data-sim-ui>
-      <Canvas shadows>
+      <Canvas shadows={{ type: THREE.PCFShadowMap }}>
         <PerspectiveCamera makeDefault position={[0, 200, 500]} fov={60} near={1} far={50000} />
 
         <ambientLight intensity={sceneTheme.ambientLightIntensity} />

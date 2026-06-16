@@ -470,6 +470,14 @@ function simulationVisualQaFor(href: string): CommercialSimulationVisualQaEviden
       ownedDiagnostics: 0,
       selectedDiagnostics: 0,
     },
+    runtimeNoise: {
+      captureCommand: 'rtk npm run test:simulation-runtime-noise',
+      report: 'artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json',
+      reportSha256: 'runtime-noise-report-content',
+      routesChecked: 7,
+      pageErrors: [],
+      trackedConsoleWarnings: [],
+    },
     viewports: scenario.requiredThemes.flatMap((theme) => scenario.requiredWidths.flatMap((width) => (
       simulationNavigationStatesForWidth(width, scenario.requiredNavigationStates).flatMap((navigationState) => (
         scenario.requiredDockStates.flatMap((dockState) => (
@@ -1929,6 +1937,85 @@ describe('commercial UI governance', () => {
     ]));
   });
 
+  it('fails when simulation runtime-noise evidence contains page errors or tracked Three warnings', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          runtimeNoise: {
+            captureCommand: 'rtk npm run test:simulation-runtime-noise',
+            report: 'artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json',
+            reportSha256: 'runtime-noise-report-content',
+            routesChecked: 7,
+            pageErrors: [
+              "Cannot read properties of null (reading 'classList')",
+            ],
+            trackedConsoleWarnings: [
+              'THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.',
+              'THREE.WebGLShadowMap: PCFSoftShadowMap has been deprecated. Using PCFShadowMap instead.',
+            ],
+          },
+        } as CommercialSimulationVisualQaEvidence & Record<string, unknown>,
+      };
+    });
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining([
+          'runtimeNoise.pageErrors=0',
+          'runtimeNoise.trackedConsoleWarnings=0',
+        ]),
+      }),
+    ]));
+  });
+
+  it('fails instead of throwing when simulation runtime-noise arrays are missing', () => {
+    const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
+      if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
+      return {
+        ...entry,
+        simulationVisualQa: {
+          ...entry.simulationVisualQa,
+          runtimeNoise: {
+            captureCommand: 'rtk npm run test:simulation-runtime-noise',
+            report: 'artifacts/commercial-ui/simulation-runtime-noise-536/runtime-noise.json',
+            reportSha256: 'runtime-noise-report-content',
+            routesChecked: 7,
+          },
+        } as CommercialSimulationVisualQaEvidence & Record<string, unknown>,
+      };
+    });
+
+    expect(() => evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }))).not.toThrow();
+
+    const result = evaluateCommercialUiGovernance(baseInput({
+      visualEvidence: visualEvidence as CommercialVisualAcceptanceEvidence[],
+    }));
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        category: 'simulation-visual-qa',
+        rule: 'simulation-visual-qa.incomplete-evidence',
+        path: '/simulations/destroyer',
+        evidence: expect.arrayContaining([
+          'runtimeNoise.pageErrors=0',
+          'runtimeNoise.trackedConsoleWarnings=0',
+        ]),
+      }),
+    ]));
+  });
+
   it('fails when simulation QA does not prove resource-internal theme and scene parameter parity', () => {
     const visualEvidence = completeVisualEvidenceWithSimulationQa().map((entry) => {
       if (entry.href !== '/simulations/destroyer' || !entry.simulationVisualQa) return entry;
@@ -3220,6 +3307,14 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain('reportSha256: reactDoctorReport?.sha256');
     expect(scriptSource).toContain('ownedDiagnostics: reactDoctorReport?.ownedDiagnostics');
     expect(scriptSource).toContain('selectedDiagnostics: reactDoctorReport?.selectedDiagnostics');
+    expect(scriptSource).toContain('function simulationRuntimeNoiseReport');
+    expect(scriptSource).toContain('const runtimeNoiseReport = simulationRuntimeNoiseReport');
+    expect(scriptSource).toContain('reportSha256: runtimeNoiseReport?.sha256');
+    expect(scriptSource).toContain('if (!Array.isArray(entries)) return undefined;');
+    expect(scriptSource).toContain('pageErrors: runtimeNoiseReport');
+    expect(scriptSource).toContain('? runtimeNoiseReport.pageErrors');
+    expect(scriptSource).toContain('trackedConsoleWarnings:');
+    expect(scriptSource).toContain('? runtimeNoiseReport.trackedConsoleWarnings');
     expect(scriptSource).toContain('designHandoffSha256:');
     expect(scriptSource).toContain('route.simulationVisualQa.handoffBaseline.designHandoff');
     expect(scriptSource).toContain('implementationMatrixSha256:');
@@ -3291,19 +3386,27 @@ describe('commercial UI governance', () => {
     expect(globalAiSidebarSource).toContain('openerElementRef');
     expect(globalAiSidebarSource).toContain('wasOpenRef');
     expect(globalAiSidebarSource).toContain('opener.focus();');
-    expect(globalAiSidebarSource).toContain('[data-platform-floating-dock] button[aria-label*="页面工具菜单"]');
+    expect(globalAiSidebarSource).toContain('[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]');
     expect(globalAiSidebarSource).toContain('knowledgeInspectorAvoidanceActive');
     expect(globalAiSidebarSource).toContain('data-konling-inspector-avoidance');
+    expect(globalAiSidebarSource).toContain('data-knowledge-mobile-inspector-policy');
+    expect(globalAiSidebarSource).toContain('当前选中的知识节点已进入控灵上下文。');
+    expect(globalAiSidebarSource).toContain('请求的知识节点暂不可用，控灵将仅使用当前筛选与视图状态。');
+    expect(globalAiSidebarSource).not.toContain('当前节点: ${nodeId}');
+    expect(globalAiSidebarSource).not.toContain('请求节点 ${nodeId} 暂不可用。');
     expect(globalAiSidebarSource).toContain("document.querySelector('[data-knowledge-inspector=\"stable-rail\"]')");
     expect(globalAiSidebarSource).toContain("right: 'calc(1.5rem + clamp(22.5rem, 30vw, 28.75rem))'");
     expect(globalsSource).toContain('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
     expect(globalsSource).toContain('height: calc(100vh - 8rem) !important;');
+    expect(globalsSource).toContain('[data-knowledge-mobile-inspector-policy="suspend"]');
+    expect(globalsSource).toContain('display: none !important;');
     expect(captureScriptSource).toContain("'desktop-local-tools-directory-dark'");
     expect(captureScriptSource).toContain("openDesktopTool(page, 'chapter-directory')");
     expect(captureScriptSource).toContain('button[aria-label="呼出控灵 AI助手"]');
     expect(captureScriptSource).toContain('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]');
     expect(captureScriptSource).toContain('konlingAssistantSurface');
     expect(captureScriptSource).toContain('konlingInspectorAvoidance');
+    expect(captureScriptSource).toContain('konlingMobileInspectorPolicy');
     expect(captureScriptSource).toContain('data-konling-knowledge-context');
     expect(captureScriptSource).toContain("await page.waitForSelector('[data-knowledge-inspector=\"stable-rail\"]'");
     expect(captureScriptSource).not.toMatch(
@@ -3327,11 +3430,14 @@ describe('commercial UI governance', () => {
     expect(captureScriptSource).toContain("'scripts/tests/test-commercial-ui-governance.ts'");
     expect(captureScriptSource).toContain("'src/components/providers/global-ai-provider.tsx'");
     expect(scriptSource).toContain("['desktop-local-tools-directory-dark', 'dark', 1440, 'collapsed', 'collapsed']");
+    expect(scriptSource).toContain("['mobile-320-inspector-konling-stress-dark', 'dark', 320, 'mobile', 'expanded']");
     expect(scriptSource).toContain("markers.konlingAssistantSurface === 'global-sidebar'");
+    expect(scriptSource).toContain('mobile-inspector-not-suspended');
+    expect(scriptSource).toContain('mobile-inspector-policy-missing');
     expect(captureScriptSource).toContain('openedFocusManaged');
     expect(captureScriptSource).toContain('keyboardReachable');
     expect(captureScriptSource).toContain('panelClosed && await activeElementWithin(page, returnSelector)');
-    expect(captureScriptSource).toContain("'[data-platform-floating-dock] button[aria-label*=\"页面工具菜单\"]'");
+    expect(captureScriptSource).toContain("'[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]'");
     expect(captureScriptSource).not.toContain('returnSelector?: string');
     expect(captureScriptSource).not.toContain(': panelClosed;');
     expect(captureScriptSource).toContain("'[data-knowledge-canvas-primary=\"true\"]'");

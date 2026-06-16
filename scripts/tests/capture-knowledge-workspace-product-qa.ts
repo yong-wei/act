@@ -300,7 +300,7 @@ async function openMobileTool(page: Page, tool: string) {
 }
 
 async function expandDock(page: Page) {
-  await clickIfPresent(page, '[data-platform-floating-dock] button[aria-label*="页面工具菜单"]');
+  await clickIfPresent(page, '[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]');
   await page.waitForSelector('[data-platform-floating-dock-expanded-panel]', { timeout: 8000 });
   await clickIfPresent(page, '[data-platform-floating-dock-expanded-panel] button[aria-label="呼出控灵 AI助手"]');
   await page.waitForSelector('[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]', { timeout: 8000 });
@@ -436,7 +436,7 @@ async function captureFocusEvidence(browser: Browser) {
       expandDock,
       '[data-global-ai-sidebar="open"][data-konling-assistant-surface="global-sidebar"]',
       (page) => page.keyboard.press('Escape'),
-      '[data-platform-floating-dock] button[aria-label*="页面工具菜单"]',
+      '[data-platform-floating-dock] button[data-platform-floating-dock-trigger-label]',
     ),
   ];
 }
@@ -454,7 +454,9 @@ async function captureMarkers(page: Page) {
      const appShell = document.querySelector('[data-app-shell-layout]');
     const rectFor = (element) => {
       if (!element) return null;
+      if (window.getComputedStyle(element).display === 'none') return null;
       const rect = element.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) return null;
       return {
         left: Math.round(rect.left),
         top: Math.round(rect.top),
@@ -487,15 +489,16 @@ async function captureMarkers(page: Page) {
       desktopActiveTool: desktopTools?.dataset.knowledgeLocalTool ?? null,
       mobileToolState: mobileTools?.dataset.state ?? null,
       mobileActiveTool: mobileTools?.dataset.knowledgeLocalTool ?? null,
-      inspectorMode: inspector?.dataset.knowledgeInspector ?? null,
-      inspectorSections: Array.from(document.querySelectorAll('[data-knowledge-inspector-section]'))
+      inspectorMode: inspectorRect ? (inspector?.dataset.knowledgeInspector ?? null) : null,
+      inspectorSections: inspectorRect ? Array.from(document.querySelectorAll('[data-knowledge-inspector-section]'))
         .map((element) => element.dataset.knowledgeInspectorSection ?? '')
-        .filter(Boolean),
+        .filter(Boolean) : [],
       dockState: dock?.getAttribute('data-platform-floating-dock') ?? null,
        effectiveDockState: konlingSidebar || expandedDock ? 'expanded' : (dock?.getAttribute('data-platform-floating-dock') ?? null),
        expandedDockVisible: Boolean(konlingSidebar || expandedDock),
        konlingAssistantSurface: konlingSidebar?.getAttribute('data-konling-assistant-surface') ?? null,
        konlingInspectorAvoidance: konlingSidebar?.getAttribute('data-konling-inspector-avoidance') ?? null,
+       konlingMobileInspectorPolicy: konlingSidebar?.getAttribute('data-knowledge-mobile-inspector-policy') ?? null,
        konlingKnowledgeContext: konlingKnowledgeContext?.getAttribute('data-konling-knowledge-context') ?? null,
       rects: {
         desktopTools: desktopToolsRect,
@@ -775,6 +778,23 @@ async function main() {
       query: `?node=${encodeURIComponent(selectedNodeId)}`,
       beforeShot: async (page) => {
         await closeInspectorIfPresent(page);
+        await expandDock(page);
+      },
+    },
+    {
+      name: 'mobile-320-inspector-konling-stress-dark',
+      theme: 'dark',
+      width: 320,
+      height: 800,
+      navigationPreference: 'collapsed',
+      navigationState: 'mobile',
+      dockState: 'expanded',
+      localToolState: 'closed',
+      selectedNode: selectedNodeId,
+      interactionState: 'mobile inspector suspended while konling is expanded',
+      query: `?node=${encodeURIComponent(selectedNodeId)}`,
+      beforeShot: async (page) => {
+        await page.waitForSelector('[data-knowledge-inspector="stable-rail"]', { timeout: 8000 });
         await expandDock(page);
       },
     },

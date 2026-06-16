@@ -1350,7 +1350,7 @@ function VisualizationLayer({
   onRequestFreeMode: () => void;
 }) {
   return (
-    <Canvas shadows camera={{ position: [-500, 300, 800], fov: 60, near: 1, far: 50000 }}>
+    <Canvas shadows={{ type: THREE.PCFShadowMap }} camera={{ position: [-500, 300, 800], fov: 60, near: 1, far: 50000 }}>
       <ambientLight intensity={sceneTheme.ambientLightIntensity} />
       <directionalLight position={[200, 300, 200]} intensity={sceneTheme.directionalLightIntensity} castShadow />
       <MaritimeEnvironment
