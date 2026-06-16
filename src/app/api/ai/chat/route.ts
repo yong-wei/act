@@ -475,7 +475,10 @@ function getLastUserMessageText(messages: Array<{ role?: string; content?: unkno
 
 function isLearningPathGenerationRequest(text: string) {
   if (!text) return false;
-  return /生成|制定|规划|创建|推荐/.test(text) && /学习路径|路径方案|路径/.test(text);
+  const compactText = text.replace(/\s+/g, '');
+  const generationVerb = '(?:生成|创建|新建|制定|规划|重建|重新生成|重新规划)';
+  const pathNoun = '(?:学习路径|路径方案|学习方案|学习计划|路径规划)';
+  return new RegExp(`(?:${generationVerb}.{0,24}${pathNoun}|${pathNoun}.{0,24}${generationVerb})`).test(compactText);
 }
 
 function buildPathAdvisorGenerationIdempotencyKey(

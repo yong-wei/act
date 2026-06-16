@@ -108,10 +108,33 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource).toContain("input.permittedTools.includes('generate_learning_path')");
     expect(chatRouteSource).toContain('input.runtime.generateLearningPath');
     expect(chatRouteSource).toContain('path-advisor:auto-generate');
+    expect(chatRouteSource).toContain("const generationVerb = '(?:生成|创建|新建|制定|规划|重建|重新生成|重新规划)'");
+    expect(chatRouteSource).toContain("const pathNoun = '(?:学习路径|路径方案|学习方案|学习计划|路径规划)'");
+    expect(chatRouteSource).toContain('new RegExp(`(?:${generationVerb}.{0,24}${pathNoun}|${pathNoun}.{0,24}${generationVerb})`)');
     expect(chatRouteSource.indexOf('const proactivePathGeneration = await maybeGeneratePathAdvisorPlan'))
       .toBeLessThan(chatRouteSource.indexOf('tools = buildScopedKonlingAiTools(toolRuntime)'));
     expect(chatRouteSource.indexOf('isConfiguredAIServiceAvailable(modelRequirements)'))
       .toBeLessThan(chatRouteSource.indexOf('const proactivePathGeneration = await maybeGeneratePathAdvisorPlan'));
+    const generationRequestBlock = chatRouteSource.slice(
+      chatRouteSource.indexOf('function isLearningPathGenerationRequest'),
+      chatRouteSource.indexOf('function buildPathAdvisorGenerationIdempotencyKey'),
+    );
+    expect(generationRequestBlock).not.toContain('推荐');
+  });
+
+  it('keeps path-advisor auto generation intent narrow but accepts explicit path creation requests', () => {
+    const generationVerb = '(?:生成|创建|新建|制定|规划|重建|重新生成|重新规划)';
+    const pathNoun = '(?:学习路径|路径方案|学习方案|学习计划|路径规划)';
+    const matcher = new RegExp(`(?:${generationVerb}.{0,24}${pathNoun}|${pathNoun}.{0,24}${generationVerb})`);
+    const matches = (value: string) => matcher.test(value.replace(/\s+/g, ''));
+
+    expect(matches('生成学习路径')).toBe(true);
+    expect(matches('请生成学习路径')).toBe(true);
+    expect(matches('规划路径方案')).toBe(true);
+    expect(matches('重建路径方案')).toBe(true);
+    expect(matches('制定学习计划')).toBe(true);
+    expect(matches('推荐我按当前路径下一步做什么')).toBe(false);
+    expect(matches('请推荐学习路径')).toBe(false);
   });
 
   it('attaches audited agent sessions before exposing scoped Konling tools', () => {
