@@ -806,6 +806,25 @@ describe('adaptive learning center UI contracts', () => {
           status: 'ready',
           paths: [
             {
+              styleId: 'empty-low-resource',
+              policyFamily: 'preference-matched',
+              label: '空资源方案',
+              nodeIds: [],
+              nodeSummaries: [],
+              targetDeficits: [],
+              evidenceBasis: ['adaptive-learner-state'],
+              estimatedMinutes: 0,
+              modalityMix: {},
+              resourceMix: {},
+              overlap: { maxWithOtherOptions: 1 },
+              effort: { estimatedMinutes: 0, relative: 'short' },
+              expectedTargetLift: 0,
+              terminalValidationNodeIds: [],
+              terminalValidationStrategy: { nodeIds: [], summary: 'terminal validation unavailable' },
+              checkpointNodeIds: [],
+              limitations: ['policy-path-resource-missing'],
+            },
+            {
               styleId: 'foundation-remediation',
               policyFamily: 'foundation-remediation',
               label: '基础补救',
@@ -894,7 +913,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(currentPath?.payload).toMatchObject({
       pathOptions: [
         {
-          optionId: 'path-option-1',
+          optionId: 'path-option-2',
           label: '基础补救',
           nodeSummaries: [
             expect.objectContaining({
@@ -1034,6 +1053,8 @@ describe('adaptive learning center UI contracts', () => {
       },
     });
     expect(JSON.stringify(currentPath?.payload)).not.toContain('rules-plus-graph-search');
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('空资源方案');
+    expect(JSON.stringify(currentPath?.payload)).not.toContain('policy-path-resource-missing');
     expect(JSON.stringify(currentPath?.payload)).not.toContain('foundation-remediation');
     expect(JSON.stringify(currentPath?.payload)).not.toContain('arena-simulation-sprint');
     expect(JSON.stringify(currentPath?.payload)).not.toContain('terminal-validation-diversity-insufficient');

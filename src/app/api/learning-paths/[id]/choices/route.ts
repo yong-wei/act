@@ -108,6 +108,7 @@ function readPathOptions(pathPayload: unknown): Map<string, ServerPathChoiceOpti
     const option = readRecord(item);
     const styleId = nullableString(option.styleId);
     if (!styleId) return;
+    if (readStringArray(option.nodeIds).length === 0) return;
     const optionId = nullableString(option.optionId) ?? `path-option-${index + 1}`;
     const serverOption = {
       optionId,

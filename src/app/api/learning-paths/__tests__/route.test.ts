@@ -146,6 +146,7 @@ describe('learning path round API routes', () => {
             {
               styleId: 'foundation-remediation',
               policyFamily: 'foundation-remediation',
+              nodeIds: ['knowledge-card:targets', 'arena-task:terminal'],
               resourceMix: { knowledge_card: 1, arena_task: 1 },
               evidenceBasis: ['adaptive-learner-state'],
               limitations: ['terminal-validation-required'],
@@ -154,6 +155,7 @@ describe('learning path round API routes', () => {
             {
               styleId: 'simulation-driven',
               policyFamily: 'simulation-driven',
+              nodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:terminal'],
               resourceMix: { simulation: 1, arena_task: 1 },
               evidenceBasis: ['simulation-run'],
             },
@@ -1223,6 +1225,67 @@ describe('learning path round API routes', () => {
         terminalValidationNodeIds: ['arena-task:terminal'],
       }),
       idempotencyKey: 'choice-option-key',
+    }));
+  });
+
+  it('rejects empty path options while preserving original option ids for valid choices', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1'],
+        policyBundle: {
+          status: 'low-resource-fallback',
+          paths: [
+            {
+              styleId: 'empty-low-resource',
+              policyFamily: 'preference-matched',
+              nodeIds: [],
+              resourceMix: {},
+              evidenceBasis: ['adaptive-learner-state'],
+              limitations: ['policy-path-resource-missing'],
+            },
+            {
+              styleId: 'foundation-remediation',
+              policyFamily: 'foundation-remediation',
+              nodeIds: ['knowledge-card:targets', 'arena-task:terminal'],
+              resourceMix: { knowledge_card: 1, arena_task: 1 },
+              evidenceBasis: ['adaptive-learner-state'],
+              limitations: ['terminal-validation-required'],
+              terminalValidationNodeIds: ['arena-task:terminal'],
+            },
+          ],
+        },
+      },
+      learnerStateRef: 'diagnosis-snapshot:server-owned',
+      inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
+      terminalValidation: { nodeId: 'node-1', state: 'pending' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+
+    const emptyResponse = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'empty-choice-key',
+    }), params);
+    const validResponse = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-2',
+      idempotencyKey: 'valid-choice-key',
+    }), params);
+
+    expect(emptyResponse.status).toBe(400);
+    expect(validResponse.status).toBe(200);
+    expect(mocks.recordPathChoiceEvidence).toHaveBeenCalledTimes(1);
+    expect(mocks.recordPathChoiceEvidence).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      selectedStyleId: 'foundation-remediation',
+      selectedPolicyFamily: 'foundation-remediation',
+      idempotencyKey: 'valid-choice-key',
     }));
   });
 
