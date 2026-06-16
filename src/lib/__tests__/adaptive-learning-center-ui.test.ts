@@ -795,6 +795,94 @@ describe('adaptive learning center UI contracts', () => {
     });
   });
 
+  it('keeps locked recommended path nodes visible without a launch action', () => {
+    const baseNode = pathPlan().mainPath[0];
+    const nodes = buildRecommendedPathNodeView(pathPlan({
+      mainPath: [
+        baseNode,
+        {
+          ...baseNode,
+          nodeId: 'arena-task:task-second-order-lead-pid',
+          title: '二阶对象超前校正 Arena',
+          type: 'arena_task',
+          ...pathNodeSemantics('arena_task'),
+          sourceKind: 'arena_task',
+          sourceRef: 'task-second-order-lead-pid',
+          target: '/arena/challenges/task-second-order-lead-pid',
+          estimatedTimeMinutes: 18,
+          prerequisiteNodeIds: ['simulation:control-correction-step-response-lab'],
+          terminalConstraints: ['terminal-node', 'terminal-validation'],
+          status: 'locked',
+          readiness: {
+            state: 'locked',
+            message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+            unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+            reasonCodes: ['readiness-minimum-competency'],
+            fallbackNodeIds: ['simulation:control-correction-step-response-lab'],
+          },
+        },
+      ],
+    })).nodes;
+
+    expect(nodes[1]).toMatchObject({
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      state: 'locked',
+      statusLabel: '稍后解锁',
+      unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+    });
+    expect(nodes[1].action).toBeUndefined();
+  });
+
+  it('does not use a locked path node as the control-correction next action fallback', () => {
+    const baseNode = pathPlan().mainPath[0];
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState(),
+      pathPlan: pathPlan({
+        currentNodeId: null,
+        mainPath: [
+          {
+            ...baseNode,
+            nodeId: 'simulation:control-correction-step-response-lab',
+            title: '控制校正阶跃响应验证实验',
+            type: 'simulation',
+            ...pathNodeSemantics('simulation'),
+            sourceKind: 'simulation_resource',
+            sourceRef: 'control-correction-step-response-lab',
+            target: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: '完成控制校正目标前测后进入仿真验证。',
+              unlockMessage: '完成控制校正目标前测后进入仿真验证。',
+              reasonCodes: ['readiness-required-completion'],
+              fallbackNodeIds: ['registry:lesson09-correction-precheck'],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingCompletedNodeIds: ['registry:lesson09-correction-precheck'],
+              missingOutcomeRefs: [],
+            },
+          },
+          {
+            ...baseNode,
+            nodeId: 'registry:lesson09-correction-precheck',
+            title: '控制校正目标前测',
+            type: 'quiz',
+            ...pathNodeSemantics('quiz'),
+            sourceKind: 'resource_registry',
+            sourceRef: 'lesson09-correction-precheck',
+            target: '/interactive-learning/resources/lesson09-correction-precheck',
+            status: 'next',
+          },
+        ],
+      }),
+    });
+
+    expect(view.nextAction.nodeId).toBe('registry:lesson09-correction-precheck');
+    expect(view.nextAction.href).toContain('lesson09-correction-precheck');
+    expect(view.nextAction.href).not.toContain('control-correction-step-response-lab');
+  });
+
   it('surfaces three-style path options and selection history for diagnosis panels', () => {
     const view = buildAdaptiveLearningCenterView({
       featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],

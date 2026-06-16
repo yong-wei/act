@@ -13,6 +13,7 @@ import {
   recordLearningPathFeedback,
   type AdaptiveLearningPathPlannerInput,
 } from '../adaptive-learning-path-planner';
+import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
 import { buildResourceNodeRegistry } from '../resource-node-registry';
 
 function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {}): AdaptiveLearningPathPlannerInput {
@@ -88,6 +89,161 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
 }
 
 describe('adaptive learning optimization experiments', () => {
+  it('keeps Arena locked for a zero-competency learner until preparation evidence is available', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: {
+        id: 'control-correction',
+        title: '控制校正',
+        knowledgeTargets: [
+          'control-correction:time-domain-targets',
+          'control-correction:root-locus-design',
+          'control-correction:simulation-validation',
+          'control-correction:arena-transfer',
+        ],
+        competencyTargets: ['controlModeling', 'parameterDesign'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.1, confidence: 0.4, evidenceCount: 1 },
+            'control-correction:root-locus-design': { posteriorMastery: 0.1, confidence: 0.4, evidenceCount: 1 },
+            'control-correction:simulation-validation': { posteriorMastery: 0, confidence: 0.2, evidenceCount: 0 },
+            'control-correction:arena-transfer': { posteriorMastery: 0, confidence: 0.2, evidenceCount: 0 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            controlModeling: { score: 0, confidence: 0.2, evidenceCount: 0 },
+            parameterDesign: { score: 0, confidence: 0.2, evidenceCount: 0 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'low',
+            score: 0.2,
+            evidenceCount: 1,
+            sourceCompleteness: 0.2,
+          },
+          sourceCoverage: {
+            LearningFact: 'partial',
+          },
+        },
+      },
+      registry: buildControlCorrectionResourceNodeRegistry(),
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+        completedNodeIds: [],
+        availableOutcomeRefs: [],
+      },
+      policyBundle: {
+        families: ['simulation-driven'],
+      },
+    }));
+
+    const arenaNode = plan.mainPath.find((node) => node.nodeId === 'arena-task:task-second-order-lead-pid');
+    const simulationNode = plan.mainPath.find((node) => node.nodeId === 'simulation:control-correction-step-response-lab');
+
+    expect(plan.currentNodeId).not.toBe('arena-task:task-second-order-lead-pid');
+    expect(plan.currentNodeId).not.toBe('simulation:control-correction-step-response-lab');
+    expect(simulationNode).toMatchObject({
+      status: 'locked',
+      readiness: expect.objectContaining({
+        state: 'locked',
+        unlockMessage: expect.stringContaining('仿真验证'),
+      }),
+    });
+    expect(arenaNode).toMatchObject({
+      status: 'locked',
+      readiness: expect.objectContaining({
+        state: 'locked',
+        unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+      }),
+    });
+    expect(plan.policyBundle?.paths[0]).toMatchObject({
+      activeNodeIds: expect.not.arrayContaining(['arena-task:task-second-order-lead-pid']),
+      lockedNodeIds: expect.arrayContaining([
+        'simulation:control-correction-step-response-lab',
+        'arena-task:task-second-order-lead-pid',
+      ]),
+      readinessSummary: expect.arrayContaining([
+        expect.objectContaining({
+          nodeId: 'arena-task:task-second-order-lead-pid',
+          message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+        }),
+      ]),
+      unlockMessages: expect.arrayContaining([
+        expect.objectContaining({
+          nodeId: 'arena-task:task-second-order-lead-pid',
+          message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+        }),
+      ]),
+    });
+  });
+
+  it('unlocks dependent readiness nodes after their preparation node is completed', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: {
+        id: 'control-correction',
+        title: '控制校正',
+        knowledgeTargets: [
+          'control-correction:time-domain-targets',
+          'control-correction:root-locus-design',
+          'control-correction:simulation-validation',
+        ],
+        competencyTargets: ['controlModeling', 'parameterDesign'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.4, confidence: 0.8, evidenceCount: 4 },
+            'control-correction:root-locus-design': { posteriorMastery: 0.4, confidence: 0.8, evidenceCount: 4 },
+            'control-correction:simulation-validation': { posteriorMastery: 0.2, confidence: 0.7, evidenceCount: 3 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            controlModeling: { score: 0.6, confidence: 0.8, evidenceCount: 4 },
+            parameterDesign: { score: 0.6, confidence: 0.8, evidenceCount: 4 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'high',
+            score: 0.85,
+            evidenceCount: 4,
+            sourceCompleteness: 0.85,
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+          },
+        },
+      },
+      registry: buildControlCorrectionResourceNodeRegistry(),
+      constraints: {
+        timeBudgetMinutes: 70,
+        privacyScopes: ['student-visible'],
+        completedNodeIds: [],
+      },
+    }));
+    const simulationNode = plan.mainPath.find((node) => node.nodeId === 'simulation:control-correction-step-response-lab');
+    expect(plan.currentNodeId).toBe('registry:lesson09-correction-precheck');
+    expect(simulationNode?.status).toBe('locked');
+
+    const updated = recordLearningPathFeedback(plan, {
+      id: 'complete-precheck',
+      type: 'completion',
+      nodeId: 'registry:lesson09-correction-precheck',
+      createdAt: '2026-06-16T10:00:00Z',
+    });
+
+    expect(updated.mainPath.find((node) => node.nodeId === 'simulation:control-correction-step-response-lab'))
+      .toMatchObject({
+        status: expect.not.stringMatching('locked'),
+        readiness: expect.objectContaining({ state: 'ready' }),
+      });
+  });
+
   it('reranks only feasible local alternatives after deterministic path generation', () => {
     const basePlan = buildAdaptiveLearningPathPlan(plannerInput());
     const plan = {

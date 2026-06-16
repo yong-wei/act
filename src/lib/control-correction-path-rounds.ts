@@ -356,13 +356,22 @@ export function validateLearningPathPlanForPersistence(plan: AdaptiveLearningPat
         : !isStudentVisiblePathTarget(node.target)) ||
       !Number.isFinite(node.estimatedTimeMinutes) ||
       !Number.isFinite(node.score) ||
-      !['completed', 'current', 'next', 'blocked'].includes(node.status)
+      !['completed', 'current', 'next', 'blocked', 'locked'].includes(node.status)
     ) {
       throw new ControlCorrectionPathRoundValidationError();
     }
     seen.add(node.nodeId);
   }
   if (plan.currentNodeId && !seen.has(plan.currentNodeId)) {
+    throw new ControlCorrectionPathRoundValidationError();
+  }
+  if (
+    plan.currentNodeId &&
+    plan.mainPath.some((node) =>
+      node.nodeId === plan.currentNodeId &&
+      (node.status === 'locked' || (node.readiness?.state ?? 'ready') !== 'ready')
+    )
+  ) {
     throw new ControlCorrectionPathRoundValidationError();
   }
 }
@@ -448,6 +457,7 @@ export function validateControlCorrectionPathPlanForPersistence(plan: AdaptiveLe
       seen.has(node.nodeId) ||
       ![
         'knowledge_card',
+        'quiz',
         'adaptive_quiz',
         'control_workbench',
         'simulation',
@@ -468,7 +478,7 @@ export function validateControlCorrectionPathPlanForPersistence(plan: AdaptiveLe
         : !isStudentVisiblePathTarget(node.target)) ||
       !Number.isFinite(node.estimatedTimeMinutes) ||
       !Number.isFinite(node.score) ||
-      !['completed', 'current', 'next', 'blocked'].includes(node.status)
+      !['completed', 'current', 'next', 'blocked', 'locked'].includes(node.status)
     ) {
       throw new ControlCorrectionPathRoundValidationError();
     }
@@ -482,6 +492,15 @@ export function validateControlCorrectionPathPlanForPersistence(plan: AdaptiveLe
     throw new ControlCorrectionPathRoundValidationError();
   }
   if (plan.currentNodeId && !seen.has(plan.currentNodeId)) {
+    throw new ControlCorrectionPathRoundValidationError();
+  }
+  if (
+    plan.currentNodeId &&
+    plan.mainPath.some((node) =>
+      node.nodeId === plan.currentNodeId &&
+      (node.status === 'locked' || (node.readiness?.state ?? 'ready') !== 'ready')
+    )
+  ) {
     throw new ControlCorrectionPathRoundValidationError();
   }
 }

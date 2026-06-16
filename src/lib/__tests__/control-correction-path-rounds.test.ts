@@ -2,8 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES,
+  buildAdaptiveLearningPathPlan,
   type AdaptiveLearningPathPlan,
 } from '../adaptive-learning-path-planner';
+import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
 import {
   getPathNodeSemanticsForResourceType,
   type ResourceNodeType,
@@ -845,6 +847,148 @@ describe('control-correction path rounds', () => {
         }),
       }),
     }));
+  });
+
+  it('persists locked future milestones but rejects locked current nodes', async () => {
+    const db = mockDb();
+    const plan = samplePlan();
+    plan.mainPath[1] = {
+      ...plan.mainPath[1],
+      status: 'locked',
+      readiness: {
+        state: 'locked',
+        message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+        unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+        reasonCodes: ['readiness-required-outcome'],
+        fallbackNodeIds: ['simulation:control-correction-step-response-lab'],
+        missingCompetencies: [],
+        missingEvidenceCount: 0,
+        missingCompletedNodeIds: ['simulation:control-correction-step-response-lab'],
+        missingOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
+      },
+    };
+
+    await persistControlCorrectionPathRound(db, { plan });
+
+    expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        currentNodeId: 'knowledge-card:control-correction-time-domain-targets',
+      }),
+    }));
+
+    const invalid = samplePlan();
+    invalid.currentNodeId = 'arena-task:task-second-order-lead-pid';
+    invalid.mainPath[1] = {
+      ...invalid.mainPath[1],
+      status: 'locked',
+      readiness: plan.mainPath[1].readiness,
+    };
+
+    await expect(persistControlCorrectionPathRound(mockDb(), {
+      plan: invalid,
+    })).rejects.toBeInstanceOf(ControlCorrectionPathRoundValidationError);
+  });
+
+  it('persists the real readiness-gated control-correction planner output', async () => {
+    const db = mockDb();
+    const plan = buildAdaptiveLearningPathPlan({
+      studentId: 'student-1',
+      goal: {
+        id: 'control-correction',
+        title: '控制校正',
+        knowledgeTargets: [
+          'control-correction:time-domain-targets',
+          'control-correction:root-locus-design',
+          'control-correction:simulation-validation',
+          'control-correction:arena-transfer',
+        ],
+        competencyTargets: ['controlModeling', 'parameterDesign'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.1, confidence: 0.4, evidenceCount: 1 },
+            'control-correction:root-locus-design': { posteriorMastery: 0.1, confidence: 0.4, evidenceCount: 1 },
+            'control-correction:simulation-validation': { posteriorMastery: 0, confidence: 0.2, evidenceCount: 0 },
+            'control-correction:arena-transfer': { posteriorMastery: 0, confidence: 0.2, evidenceCount: 0 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            controlModeling: { score: 0, confidence: 0.2, evidenceCount: 0 },
+            parameterDesign: { score: 0, confidence: 0.2, evidenceCount: 0 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'low',
+            score: 0.2,
+            evidenceCount: 1,
+            sourceCompleteness: 0.2,
+          },
+          sourceCoverage: {
+            LearningFact: 'partial',
+          },
+        },
+      },
+      registry: buildControlCorrectionResourceNodeRegistry(),
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+        completedNodeIds: [],
+        availableOutcomeRefs: [],
+      },
+    });
+
+    expect(plan.mainPath).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        nodeId: 'registry:lesson09-correction-precheck',
+        type: 'quiz',
+        status: 'current',
+      }),
+      expect.objectContaining({
+        nodeId: 'simulation:control-correction-step-response-lab',
+        status: 'locked',
+      }),
+    ]));
+
+    await persistControlCorrectionPathRound(db, { plan });
+
+    expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        currentNodeId: 'registry:lesson09-correction-precheck',
+        pathPayload: expect.objectContaining({
+          mainPathNodeIds: expect.arrayContaining([
+            'registry:lesson09-correction-precheck',
+            'simulation:control-correction-step-response-lab',
+          ]),
+        }),
+      }),
+    }));
+  });
+
+  it('rejects a current node whose readiness state is not ready', async () => {
+    const plan = samplePlan();
+    plan.currentNodeId = 'knowledge-card:control-correction-time-domain-targets';
+    plan.mainPath[0] = {
+      ...plan.mainPath[0],
+      status: 'current',
+      readiness: {
+        state: 'locked',
+        message: '完成准备节点后会自动解锁。',
+        unlockMessage: '完成准备节点后会自动解锁。',
+        reasonCodes: ['readiness-required-completion'],
+        fallbackNodeIds: [],
+        missingCompetencies: [],
+        missingEvidenceCount: 0,
+        missingCompletedNodeIds: ['registry:lesson09-correction-precheck'],
+        missingOutcomeRefs: [],
+      },
+    };
+
+    await expect(persistControlCorrectionPathRound(mockDb(), {
+      plan,
+    })).rejects.toBeInstanceOf(ControlCorrectionPathRoundValidationError);
   });
 
   it('rejects control-correction external resources scoped to another goal', async () => {

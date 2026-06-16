@@ -5,6 +5,7 @@ import type {
   ResourceNodePathSemantics,
   ResourceNodePrivacyLevel,
   ResourceNodeRegistry,
+  ResourceNodeReadinessMetadata,
 } from './resource-node-registry';
 
 export type AdaptiveLearningPathStatus = 'ready' | 'fallback';
@@ -107,8 +108,23 @@ export interface AdaptiveLearningPathConstraints {
   device?: 'desktop' | 'tablet' | 'mobile';
   timelineWindowDays?: 3 | 7 | 14;
   completedNodeIds?: string[];
+  availableOutcomeRefs?: string[];
   teacherAssignedNodeIds?: string[];
   requireRiskIntervention?: boolean;
+}
+
+export type AdaptiveLearningPathReadinessState = 'ready' | 'needs-preparation' | 'locked' | 'evidence-needed';
+
+export interface AdaptiveLearningPathNodeReadiness {
+  state: AdaptiveLearningPathReadinessState;
+  message: string;
+  unlockMessage: string | null;
+  reasonCodes: string[];
+  fallbackNodeIds: string[];
+  missingCompetencies: string[];
+  missingEvidenceCount: number;
+  missingCompletedNodeIds: string[];
+  missingOutcomeRefs: string[];
 }
 
 export interface AdaptiveLearningPathPlannerInput {
@@ -152,7 +168,8 @@ export interface AdaptiveLearningPathPlanNode {
   terminalConstraints: string[];
   score: number;
   reasonCodes: string[];
-  status: 'current' | 'next' | 'completed' | 'blocked' | 'alternative';
+  status: 'current' | 'next' | 'completed' | 'blocked' | 'alternative' | 'locked';
+  readiness?: AdaptiveLearningPathNodeReadiness;
 }
 
 export interface AdaptiveLearningPathAlternative {
@@ -234,6 +251,17 @@ export interface AdaptiveLearningPathPolicyBundle {
     policyFamily: AdaptiveLearningPathPolicyFamily;
     label: string;
     nodeIds: string[];
+    activeNodeIds: string[];
+    lockedNodeIds: string[];
+    readinessSummary: Array<{
+      nodeId: string;
+      state: AdaptiveLearningPathReadinessState;
+      message: string;
+    }>;
+    unlockMessages: Array<{
+      nodeId: string;
+      message: string;
+    }>;
     nodeSummaries: AdaptiveLearningPathOptionNodeSummary[];
     targetDeficits: AdaptiveLearningPathDeficit[];
     evidenceBasis: string[];
@@ -643,11 +671,15 @@ function buildAdaptiveLearningPathPlanInternal(
   const mainPathNodeIds = new Set(plannedEntries.map((entry) => entry.node.id));
   const completedNodeIds = requestedCompletedNodeIds.filter((nodeId) => mainPathNodeIds.has(nodeId));
   const planningCompletedNodeIds = requestedCompletedNodeIds.filter((nodeId) => eligibleIds.has(nodeId));
+  const readinessByNodeId = new Map(plannedEntries.map((entry) => [
+    entry.node.id,
+    evaluateNodeReadiness(entry.node, input.learnerState, input.constraints, completedNodeIds),
+  ]));
   const currentNodeId = plannedEntries.length > 0
-    ? resolveCurrentNodeId(plannedEntries, completedNodeIds)
+    ? resolveCurrentNodeId(plannedEntries, completedNodeIds, readinessByNodeId)
     : null;
   const mainPath = plannedEntries.length > 0
-    ? plannedEntries.map((entry) => toPlanNode(entry, currentNodeId, completedNodeIds))
+    ? plannedEntries.map((entry) => toPlanNode(entry, currentNodeId, completedNodeIds, readinessByNodeId.get(entry.node.id)))
     : [];
   const alternatives = buildAlternatives(
     scored,
@@ -736,12 +768,15 @@ export function recordLearningPathFeedback(
   }
   if (safeEvent.type === 'completion' && safeEvent.nodeId && plan.mainPath.some((node) => node.nodeId === safeEvent.nodeId)) {
     const completedNodeIds = unique([...executionStatus.completedNodeIds, safeEvent.nodeId]);
-    currentNodeId = resolveCurrentPlanNodeId(mainPath, completedNodeIds);
-    mainPath = mainPath.map((node) => ({
+    const refreshedPath = refreshPathReadinessAfterFeedback(mainPath, completedNodeIds, safeEvent.context);
+    currentNodeId = resolveCurrentPlanNodeId(refreshedPath, completedNodeIds);
+    mainPath = refreshedPath.map((node) => ({
       ...node,
       status: completedNodeIds.includes(node.nodeId)
         ? 'completed'
-        : node.nodeId === currentNodeId ? 'current' : 'next',
+        : node.nodeId === currentNodeId
+          ? 'current'
+          : node.readiness && node.readiness.state !== 'ready' ? 'locked' : 'next',
     }));
     const riskNodeIds = visualization.map.riskNodeIds.length > 0 && currentNodeId ? [currentNodeId] : [];
     visualization = {
@@ -1392,9 +1427,16 @@ function prerequisiteDepth(node: ResourceNode, nodesById: Map<string, ResourceNo
   );
 }
 
-function resolveCurrentNodeId(entries: ScoredNode[], completedNodeIds: string[]): string | null {
+function resolveCurrentNodeId(
+  entries: ScoredNode[],
+  completedNodeIds: string[],
+  readinessByNodeId: Map<string, AdaptiveLearningPathNodeReadiness>,
+): string | null {
   const completed = new Set(completedNodeIds);
-  return entries.find((entry) => !completed.has(entry.node.id))?.node.id ?? null;
+  return entries.find((entry) =>
+    !completed.has(entry.node.id) &&
+    (readinessByNodeId.get(entry.node.id)?.state ?? 'ready') === 'ready'
+  )?.node.id ?? null;
 }
 
 function resolveCurrentPlanNodeId(
@@ -1402,16 +1444,21 @@ function resolveCurrentPlanNodeId(
   completedNodeIds: string[],
 ): string | null {
   const completed = new Set(completedNodeIds);
-  return nodes.find((node) => !completed.has(node.nodeId))?.nodeId ?? null;
+  return nodes.find((node) =>
+    !completed.has(node.nodeId) &&
+    (node.readiness?.state ?? 'ready') === 'ready'
+  )?.nodeId ?? null;
 }
 
 function toPlanNode(
   entry: ScoredNode,
   currentNodeId: string | null,
   completedNodeIds: string[],
+  readiness: AdaptiveLearningPathNodeReadiness = readyNodeReadiness(),
 ): AdaptiveLearningPathPlanNode {
   const target = entry.node.launchTarget ?? entry.node.renderTarget ?? '';
   const isCompleted = completedNodeIds.includes(entry.node.id);
+  const locked = !isCompleted && readiness.state !== 'ready';
   return {
     nodeId: entry.node.id,
     title: entry.node.title,
@@ -1435,7 +1482,8 @@ function toPlanNode(
     terminalConstraints: entry.node.planningMetadata.terminalConstraints,
     score: entry.score,
     reasonCodes: entry.reasonCodes,
-    status: isCompleted ? 'completed' : entry.node.id === currentNodeId ? 'current' : 'next',
+    status: isCompleted ? 'completed' : locked ? 'locked' : entry.node.id === currentNodeId ? 'current' : 'next',
+    readiness,
   };
 }
 
@@ -1445,6 +1493,134 @@ function pathNodeEvidenceStatus(node: ResourceNode): AdaptiveLearningPathPlanNod
     if (node.externalResource?.evidenceUseStatus === 'reference-only') return 'reference-only';
   }
   return node.planningMetadata.evidenceInstrumentation.length > 0 ? 'instrumented' : 'missing';
+}
+
+function readyNodeReadiness(): AdaptiveLearningPathNodeReadiness {
+  return {
+    state: 'ready',
+    message: '可以开始。',
+    unlockMessage: null,
+    reasonCodes: [],
+    fallbackNodeIds: [],
+    missingCompetencies: [],
+    missingEvidenceCount: 0,
+    missingCompletedNodeIds: [],
+    missingOutcomeRefs: [],
+  };
+}
+
+function refreshPathReadinessAfterFeedback(
+  nodes: AdaptiveLearningPathPlanNode[],
+  completedNodeIds: string[],
+  context: Record<string, unknown> | undefined,
+): AdaptiveLearningPathPlanNode[] {
+  const completed = new Set(completedNodeIds);
+  const availableOutcomeRefs = new Set(readStringArray(context?.availableOutcomeRefs));
+  return nodes.map((node) => {
+    if (!node.readiness || node.readiness.state === 'ready') return node;
+    const missingCompletedNodeIds = node.readiness.missingCompletedNodeIds.filter((id) => !completed.has(id));
+    const missingOutcomeRefs = node.readiness.missingOutcomeRefs.filter((ref) => !availableOutcomeRefs.has(ref));
+    const readiness = {
+      ...node.readiness,
+      missingCompletedNodeIds,
+      missingOutcomeRefs,
+    };
+    const ready = readiness.missingCompetencies.length === 0 &&
+      readiness.missingEvidenceCount === 0 &&
+      readiness.missingCompletedNodeIds.length === 0 &&
+      readiness.missingOutcomeRefs.length === 0;
+    return {
+      ...node,
+      readiness: ready ? readyNodeReadiness() : readiness,
+    };
+  });
+}
+
+function evaluateNodeReadiness(
+  node: ResourceNode,
+  learnerState: AdaptiveLearningPathLearnerState | null,
+  constraints: AdaptiveLearningPathConstraints,
+  completedNodeIds: string[],
+): AdaptiveLearningPathNodeReadiness {
+  const readiness = node.planningMetadata.readiness;
+  if (!readiness) {
+    if (!requiresImmediateReadinessGate(node)) return readyNodeReadiness();
+    return {
+      state: 'locked',
+      message: '完成准备节点后会自动解锁。',
+      unlockMessage: '完成准备节点后会自动解锁。',
+      reasonCodes: ['readiness-metadata-missing'],
+      fallbackNodeIds: [],
+      missingCompetencies: [],
+      missingEvidenceCount: 0,
+      missingCompletedNodeIds: [],
+      missingOutcomeRefs: [],
+    };
+  }
+
+  const completed = new Set([...completedNodeIds, ...(constraints.completedNodeIds ?? [])]);
+  const availableOutcomeRefs = new Set(constraints.availableOutcomeRefs ?? []);
+  const missingCompetencies = Object.entries(readiness.minimumCompetency)
+    .filter(([dimension, minimum]) => learnerCompetencyScore(learnerState, dimension) < minimum)
+    .map(([dimension]) => dimension);
+  const missingEvidenceCount = Math.max(0, readiness.minimumEvidenceCount - learnerEvidenceCount(learnerState, readiness));
+  const missingCompletedNodeIds = readiness.requiredCompletedNodeIds.filter((nodeId) => !completed.has(nodeId));
+  const missingOutcomeRefs = readiness.requiredOutcomeRefs.filter((ref) => !availableOutcomeRefs.has(ref));
+  const reasonCodes = [
+    missingCompetencies.length > 0 ? 'readiness-minimum-competency' : null,
+    missingEvidenceCount > 0 ? 'readiness-minimum-evidence' : null,
+    missingCompletedNodeIds.length > 0 ? 'readiness-required-completion' : null,
+    missingOutcomeRefs.length > 0 ? 'readiness-required-outcome' : null,
+  ].filter((code): code is string => Boolean(code));
+
+  if (reasonCodes.length === 0) return readyNodeReadiness();
+
+  return {
+    state: missingCompletedNodeIds.length > 0 || missingOutcomeRefs.length > 0 || missingCompetencies.length > 0
+      ? 'locked'
+      : 'evidence-needed',
+    message: readiness.unlockMessage,
+    unlockMessage: readiness.unlockMessage,
+    reasonCodes,
+    fallbackNodeIds: readiness.fallbackNodeIds,
+    missingCompetencies,
+    missingEvidenceCount,
+    missingCompletedNodeIds,
+    missingOutcomeRefs,
+  };
+}
+
+function requiresImmediateReadinessGate(node: ResourceNode): boolean {
+  if (node.planningMetadata.cognitiveLoad !== 'high') return false;
+  return node.type === 'simulation' ||
+    node.type === 'arena_task' ||
+    node.type === 'control_workbench' ||
+    node.type === 'checkpoint' ||
+    node.planningMetadata.terminalConstraints.length > 0;
+}
+
+function learnerCompetencyScore(
+  learnerState: AdaptiveLearningPathLearnerState | null,
+  dimension: string,
+): number {
+  return learnerState?.primaryCompetencies?.vector?.[dimension]?.score ?? 0;
+}
+
+function learnerEvidenceCount(
+  learnerState: AdaptiveLearningPathLearnerState | null,
+  readiness: ResourceNodeReadinessMetadata,
+): number {
+  const competencyEvidence = Object.keys(readiness.minimumCompetency)
+    .map((dimension) => learnerState?.primaryCompetencies?.vector?.[dimension]?.evidenceCount ?? 0);
+  return Math.max(
+    learnerState?.evidence?.confidence?.evidenceCount ?? 0,
+    ...competencyEvidence,
+    0,
+  );
+}
+
+function readStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }
 
 function buildAlternatives(
@@ -1700,6 +1876,25 @@ function buildPolicyBundle(
       policyFamily,
       label: styleLabelForPolicyFamily(policyFamily),
       nodeIds: mainPath.map((node) => node.nodeId),
+      activeNodeIds: mainPath
+        .filter((node) => node.status !== 'locked' && node.status !== 'blocked')
+        .map((node) => node.nodeId),
+      lockedNodeIds: mainPath
+        .filter((node) => node.status === 'locked')
+        .map((node) => node.nodeId),
+      readinessSummary: mainPath
+        .filter((node) => (node.readiness?.state ?? 'ready') !== 'ready')
+        .map((node) => ({
+          nodeId: node.nodeId,
+          state: node.readiness?.state ?? 'locked',
+          message: node.readiness?.message ?? '完成准备节点后会自动解锁。',
+        })),
+      unlockMessages: mainPath
+        .filter((node) => Boolean(node.readiness?.unlockMessage))
+        .map((node) => ({
+          nodeId: node.nodeId,
+          message: node.readiness?.unlockMessage ?? '完成准备节点后会自动解锁。',
+        })),
       nodeSummaries: mainPath.map(toPathOptionNodeSummary),
       targetDeficits: deficitsForPath(mainPath, deficits),
       evidenceBasis: buildPathEvidenceBasis(plan, sourceCoverage),

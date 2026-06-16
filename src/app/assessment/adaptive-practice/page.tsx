@@ -153,12 +153,13 @@ interface PathExecutionNodeView {
   title: string;
   type: string;
   resourceLabel: string;
-  status: 'current' | 'completed' | 'skipped' | 'blocked' | 'next' | 'optional';
+  status: 'current' | 'completed' | 'skipped' | 'blocked' | 'locked' | 'next' | 'optional';
   target: string;
   estimatedMinutes: number;
   reason: string;
   evidence: string;
   checkpoint: string;
+  unlockMessage?: string;
 }
 
 interface PathActivityTimelineItem {
@@ -338,7 +339,18 @@ const DEMO_CONTROL_CORRECTION_PATH_NODES = [
     terminalConstraints: [],
     score: 0.8,
     reasonCodes: ['policy-simulation-driven'],
-    status: 'next',
+    status: 'locked',
+    readiness: {
+      state: 'locked',
+      message: '完成检查题后会自动解锁仿真验证。',
+      unlockMessage: '完成检查题后会自动解锁仿真验证。',
+      reasonCodes: ['readiness-required-completion'],
+      fallbackNodeIds: ['demo-current-quiz'],
+      missingCompetencies: [],
+      missingEvidenceCount: 0,
+      missingCompletedNodeIds: ['demo-current-quiz'],
+      missingOutcomeRefs: [],
+    },
   },
 ] as unknown as AdaptiveLearningPathPlan['mainPath'];
 
@@ -804,20 +816,29 @@ function getPathExecutionNodes(plan: AdaptiveLearningPathPlan | null, round: Lea
     const nodeId = typeof node.nodeId === 'string' ? node.nodeId : `path-node-${index + 1}`;
     const type = typeof node.type === 'string' ? node.type : typeof node.sourceKind === 'string' ? node.sourceKind : 'resource';
     const rawStatus = typeof node.status === 'string' ? node.status : 'optional';
+    const readiness = getRecord(node.readiness);
+    const readinessState = typeof readiness.state === 'string' ? readiness.state : 'ready';
+    const unlockMessage = typeof readiness.unlockMessage === 'string'
+      ? readiness.unlockMessage
+      : typeof readiness.message === 'string' && readinessState !== 'ready'
+        ? readiness.message
+        : undefined;
     const status: PathExecutionNodeView['status'] = completedNodeIds.has(nodeId) || rawStatus === 'completed'
       ? 'completed'
       : failedNodeIds.has(nodeId) || rawStatus === 'blocked'
         ? 'blocked'
-        : currentNodeId === nodeId || rawStatus === 'current'
-          ? 'current'
-          : skippedNodeIds.has(nodeId)
-            ? 'skipped'
-            : rawStatus === 'next'
-              ? 'next'
-              : 'optional';
+        : rawStatus === 'locked' || readinessState === 'locked' || readinessState === 'evidence-needed' || readinessState === 'needs-preparation'
+          ? 'locked'
+          : currentNodeId === nodeId || rawStatus === 'current'
+            ? 'current'
+            : skippedNodeIds.has(nodeId)
+              ? 'skipped'
+              : rawStatus === 'next'
+                ? 'next'
+                : 'optional';
     const knowledgeCoverage = getStringArray(node.knowledgeCoverage);
     const reasonCodes = getStringArray(node.reasonCodes);
-    return {
+    const viewNode: PathExecutionNodeView = {
       nodeId,
       title: typeof node.title === 'string' ? node.title : `学习节点 ${index + 1}`,
       type,
@@ -830,7 +851,11 @@ function getPathExecutionNodes(plan: AdaptiveLearningPathPlan | null, round: Lea
       checkpoint: type === 'checkpoint' || type === 'arena_task' || type === 'simulation'
         ? '完成后用于判断是否进入下一段路径。'
         : '完成学习动作并留下可复核记录。',
+      unlockMessage,
     };
+    return status === 'locked' && unlockMessage
+      ? { ...viewNode, reason: unlockMessage, checkpoint: unlockMessage }
+      : viewNode;
   });
   if (nodes.some((node) => node.status === 'current')) return nodes;
   const currentIndex = currentNodeId ? nodes.findIndex((node) => node.nodeId === currentNodeId) : -1;
@@ -2384,7 +2409,9 @@ export default function AdaptivePracticePage() {
                                   ? 'border-platform-evidence-eligible/40 bg-platform-evidence-eligible/10'
                                   : node.status === 'skipped' || node.status === 'blocked'
                                     ? 'border-platform-evidence-context/40 bg-platform-evidence-context/10'
-                                    : 'border-border bg-muted/25'
+                                    : node.status === 'locked'
+                                      ? 'border-border bg-muted/45'
+                                      : 'border-border bg-muted/25'
                             } ${focusedPathNode?.nodeId === node.nodeId ? 'ring-2 ring-primary/30' : ''}`}
                           >
                             <div className="flex items-start gap-3">
@@ -2406,7 +2433,9 @@ export default function AdaptivePracticePage() {
                                       ? '已跳过'
                                       : node.status === 'blocked'
                                         ? '待复核'
-                                        : '等待前置节点'}
+                                        : node.status === 'locked'
+                                          ? '稍后解锁'
+                                          : '等待前置节点'}
                               </span>
                               <span>预计 {formatMinutes(node.estimatedMinutes)}</span>
                             </div>
@@ -2481,6 +2510,10 @@ export default function AdaptivePracticePage() {
                               </button>
                             ) : null}
                           </>
+                        ) : focusedPathNode.status === 'locked' ? (
+                          <span className="rounded-lg border border-border px-3 py-2 text-xs text-subtle">
+                            {focusedPathNode.unlockMessage ?? '稍后解锁'}
+                          </span>
                         ) : (
                           <span className="rounded-lg border border-border px-3 py-2 text-xs text-subtle">等待前置节点</span>
                         )}
