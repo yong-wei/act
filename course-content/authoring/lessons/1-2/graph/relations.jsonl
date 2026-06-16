@@ -1,10 +1,10 @@
 {"source": "建模", "target": "机理建模", "description": "建模的两条主要路径之一：从物理定律出发推导模型", "source_id": "建模_1_2", "target_id": "机理建模_1_2", "relation_type": "contains"}
 {"source": "建模", "target": "数据驱动建模", "description": "建模的两条主要路径之一：从数据出发学习模型", "source_id": "建模_1_2", "target_id": "数据驱动建模_1_2", "relation_type": "contains"}
 {"source": "机理建模", "target": "数据驱动建模", "description": "机理建模依赖物理定律，数据驱动建模依赖观测数据——两条互补路径，各有适用边界", "source_id": "机理建模_1_2", "target_id": "数据驱动建模_1_2", "relation_type": "contrasts_with"}
-{"source": "机理建模", "target": "微分方程", "description": "机理建模的第一步：从物理定律写出描述对象动态的微分方程", "source_id": "机理建模_1_2", "target_id": "微分方程_1_2", "relation_type": "leads_to"}
-{"source": "微分方程", "target": "拉氏变换", "description": "微分方程不便串联、比较和频域分析，驱动了引入拉氏变换将微分化为代数的工程需求", "source_id": "微分方程_1_2", "target_id": "拉氏变换_1_2", "relation_type": "leads_to"}
+{"source": "机理建模", "target": "微分方程建模", "description": "机理建模的第一步：从物理定律写出描述对象动态的微分方程", "source_id": "机理建模_1_2", "target_id": "微分方程_1_2", "relation_type": "leads_to"}
+{"source": "微分方程建模", "target": "拉氏变换", "description": "微分方程不便串联、比较和频域分析，驱动了引入拉氏变换将微分化为代数的工程需求", "source_id": "微分方程_1_2", "target_id": "拉氏变换_1_2", "relation_type": "leads_to"}
 {"source": "拉氏变换", "target": "传递函数", "description": "拉氏变换将对时间的求导变为乘以s，使微分方程转化为传递函数这一代数对象", "source_id": "拉氏变换_1_2", "target_id": "传递函数_1_2", "relation_type": "enables"}
-{"source": "微分方程", "target": "传递函数", "description": "对微分方程做拉氏变换（零初值），提取输出与输入的比值，得到传递函数", "source_id": "微分方程_1_2", "target_id": "传递函数_1_2", "relation_type": "derives"}
+{"source": "微分方程建模", "target": "传递函数", "description": "对微分方程做拉氏变换（零初值），提取输出与输入的比值，得到传递函数", "source_id": "微分方程_1_2", "target_id": "传递函数_1_2", "relation_type": "derives"}
 {"source": "传递函数", "target": "方框图", "description": "传递函数给出整体输入输出关系，方框图进一步展示系统内部各环节的连接结构", "source_id": "传递函数_1_2", "target_id": "方框图_1_2", "relation_type": "complements"}
 {"source": "方框图", "target": "信号流图", "description": "方框图以环节或元件组织结构，信号流图以变量节点组织结构，两者描述同一系统的不同组织方式", "source_id": "方框图_1_2", "target_id": "信号流图_1_2", "relation_type": "complements"}
 {"source": "传递函数", "target": "特征方程", "description": "令传递函数分母等于零即得特征方程", "source_id": "传递函数_1_2", "target_id": "特征方程_1_2", "relation_type": "derives"}

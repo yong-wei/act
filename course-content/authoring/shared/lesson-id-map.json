@@ -625,6 +625,23 @@
       "runtime_lesson_dir": "1-2",
       "legacy_source_ids": [],
       "notes": "v4.0 模块1第二轮速通：模型与复平面极点的第一轮速通。当前为主线草稿，待 runtime、路由与 identity registry 完整落地后切换为 mainline。"
+    },
+    {
+      "request_ids": [
+        "1-3"
+      ],
+      "canonical_id": "1-3",
+      "display_id": "1-3",
+      "status": "mainline",
+      "generation_allowed": true,
+      "mapped_target_id": "1-3",
+      "source_group": null,
+      "authoring_lesson_dir": "1-3",
+      "authoring_cards_dir": "1-3",
+      "authoring_overlays_dir": "1-3",
+      "runtime_lesson_dir": "1-3",
+      "legacy_source_ids": [],
+      "notes": "v4.0 模块1第三轮速通：根轨迹与时域响应的第一轮速通"
     }
   ]
 }

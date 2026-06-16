@@ -16,6 +16,8 @@ ACTIVITY_RENDERER_PATH = REPO_ROOT / "src" / "features" / "interactive" / "share
 LAYOUT_RENDERER_PATH = REPO_ROOT / "src" / "features" / "interactive" / "shared" / "manifest-runtime" / "layout-renderer.tsx"
 
 ACTIVITY_MODULE_KINDS = {
+    "activity.panel",
+    "activity.workspace",
     "activity-card",
     "activity-card-set",
     "single-choice-card",

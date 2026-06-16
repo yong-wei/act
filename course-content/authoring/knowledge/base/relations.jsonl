@@ -16745,3 +16745,24 @@
 {"relation_id": "rel-a50ac543959ca198", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "课程总图", "target": "系统观念", "relation_type": "embodies", "strength": 1.0, "source_id": "课程总图_1_1", "target_id": "系统观念_1_1"}
 {"relation_id": "rel-58bf92720adecb0a", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "时域响应", "target": "频域响应", "relation_type": "complements", "strength": 1.0, "source_id": "时域响应_1_1", "target_id": "频域响应_1_1"}
 {"relation_id": "rel-fd892abe9b167d80", "source_chapter": 1, "target_chapter": 1, "run_id": "1-1", "source": "根轨迹", "target": "稳定性", "relation_type": "informs", "strength": 1.0, "source_id": "根轨迹_1_1", "target_id": "稳定性_1_1"}
+{"relation_id": "rel-1fd446ee53607744", "relation_type": "contains", "source": "建模", "source_chapter": 1, "strength": 1.0, "target": "机理建模", "target_chapter": 1}
+{"relation_id": "rel-03690d65e4dfba5d", "relation_type": "contains", "source": "建模", "source_chapter": 1, "strength": 1.0, "target": "数据驱动建模", "target_chapter": 1}
+{"relation_id": "rel-912fa9ce51a0189e", "relation_type": "contrasts_with", "source": "机理建模", "source_chapter": 1, "strength": 1.0, "target": "数据驱动建模", "target_chapter": 1}
+{"relation_id": "rel-cb3570886d273b95", "relation_type": "leads_to", "source": "机理建模", "source_chapter": 1, "strength": 1.0, "target": "微分方程建模", "target_chapter": 1}
+{"relation_id": "rel-2c5f6e4837689de8", "relation_type": "leads_to", "source": "微分方程建模", "source_chapter": 1, "strength": 1.0, "target": "拉氏变换", "target_chapter": 1}
+{"relation_id": "rel-17a912b87dbc89f4", "relation_type": "enables", "source": "拉氏变换", "source_chapter": 1, "strength": 1.0, "target": "传递函数", "target_chapter": 1}
+{"relation_id": "rel-ed23b756d73a0201", "relation_type": "derives", "source": "微分方程建模", "source_chapter": 1, "strength": 1.0, "target": "传递函数", "target_chapter": 1}
+{"relation_id": "rel-9cd715ee34b27ccd", "relation_type": "complements", "source": "传递函数", "source_chapter": 1, "strength": 1.0, "target": "方框图", "target_chapter": 1}
+{"relation_id": "rel-29ba078276efee70", "relation_type": "complements", "source": "方框图", "source_chapter": 1, "strength": 1.0, "target": "信号流图", "target_chapter": 1}
+{"relation_id": "rel-53476581303be9d6", "relation_type": "derives", "source": "传递函数", "source_chapter": 1, "strength": 1.0, "target": "特征方程", "target_chapter": 1}
+{"relation_id": "rel-39c1fa58f6d1d1e1", "relation_type": "derives", "source": "特征方程", "source_chapter": 1, "strength": 1.0, "target": "特征根", "target_chapter": 1}
+{"relation_id": "rel-bd74af059ba1b6a7", "relation_type": "instance_of", "source": "特征根", "source_chapter": 1, "strength": 1.0, "target": "极点", "target_chapter": 1}
+{"relation_id": "rel-94283a1b58563c0b", "relation_type": "visualized_by", "source": "极点", "source_chapter": 1, "strength": 1.0, "target": "复平面", "target_chapter": 1}
+{"relation_id": "rel-6402718cc30e74b5", "relation_type": "contains", "source": "复平面", "source_chapter": 1, "strength": 1.0, "target": "稳定区", "target_chapter": 1}
+{"relation_id": "rel-a5846e7d650a958c", "relation_type": "contains", "source": "复平面", "source_chapter": 1, "strength": 1.0, "target": "稳定边界", "target_chapter": 1}
+{"relation_id": "rel-aa56698ed83d04c4", "relation_type": "contrasts_with", "source": "稳定区", "source_chapter": 1, "strength": 1.0, "target": "稳定边界", "target_chapter": 1}
+{"relation_id": "rel-d860778a9d97f777", "relation_type": "leads_to", "source": "传递函数", "source_chapter": 1, "strength": 1.0, "target": "模型结构相似性", "target_chapter": 1}
+{"relation_id": "rel-f025d3a2cf0be823", "relation_type": "supports", "source": "极点", "source_chapter": 1, "strength": 1.0, "target": "模型结构相似性", "target_chapter": 1}
+{"relation_id": "rel-d88b2f9cac1f9203", "relation_type": "visualized_by", "source": "闭环控制", "source_chapter": 1, "strength": 1.0, "target": "方框图", "target_chapter": 1}
+{"relation_id": "rel-5238cff17d3dc15c", "relation_type": "visualized_by", "source": "反馈", "source_chapter": 1, "strength": 1.0, "target": "方框图", "target_chapter": 1}
+{"relation_id": "rel-7e1ba46b0dea54f1", "relation_type": "contains", "source": "课程总图", "source_chapter": 1, "strength": 1.0, "target": "建模", "target_chapter": 1}

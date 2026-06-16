@@ -1,0 +1,134 @@
+{
+  "lesson_id": "1-2",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/1-2/sequence.json",
+  "infograph_root": "course-content/authoring/knowledge/infographs/lessons/1-2/nodes",
+  "card_order": [
+    "建模_1_2",
+    "机理建模_1_2",
+    "数据驱动建模_1_2",
+    "微分方程_1_2",
+    "拉氏变换_1_2",
+    "传递函数_1_2",
+    "方框图_1_2",
+    "信号流图_1_2",
+    "特征方程_1_2",
+    "特征根_1_2",
+    "极点_1_2",
+    "复平面_1_2",
+    "稳定区_1_2",
+    "稳定边界_1_2",
+    "模型结构相似性_1_2"
+  ],
+  "accepted_infographs": [],
+  "missing_infographs": [
+    "建模_1_2",
+    "机理建模_1_2",
+    "数据驱动建模_1_2",
+    "微分方程_1_2",
+    "拉氏变换_1_2",
+    "传递函数_1_2",
+    "方框图_1_2",
+    "信号流图_1_2",
+    "特征方程_1_2",
+    "特征根_1_2",
+    "极点_1_2",
+    "复平面_1_2",
+    "稳定区_1_2",
+    "稳定边界_1_2",
+    "模型结构相似性_1_2"
+  ],
+  "missing_source_files": {
+    "建模_1_2": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "机理建模_1_2": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "数据驱动建模_1_2": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "微分方程_1_2": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "拉氏变换_1_2": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "传递函数_1_2": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "方框图_1_2": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "信号流图_1_2": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "特征方程_1_2": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "特征根_1_2": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "极点_1_2": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "复平面_1_2": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "稳定区_1_2": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "稳定边界_1_2": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ],
+    "模型结构相似性_1_2": [
+      "source.json",
+      "prompt.md",
+      "generation.json",
+      "review.json"
+    ]
+  },
+  "pending_review": [],
+  "broken_review_files": {}
+}

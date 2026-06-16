@@ -1,0 +1,2589 @@
+{
+  "contract_version": "2.0",
+  "lesson_id": "1-2",
+  "course_title": "1-2：建模——从真实对象到可分析的系统",
+  "course_route_segment": "unit-1-2-modeling-rapid-pass",
+  "preview_mode": {
+    "default_entry": "student_demo",
+    "student_demo_base_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo"
+  },
+  "telemetry_strategy": "lightweight_high_value",
+  "teacher_insight_strategy": "step_level_aggregation_only",
+  "required_step_fields": [
+    "layout",
+    "modules",
+    "content_blocks",
+    "interaction_spec",
+    "teacher_controls",
+    "telemetry_spec",
+    "teacher_insight_spec",
+    "ai_context_spec",
+    "preview_contract",
+    "acceptance_checks"
+  ],
+  "steps": {
+    "step-01": {
+      "title": "导入——不同对象的行为差异与共性",
+      "layout": {
+        "template": "cover_top_dual_column",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "lead",
+            "width": "half",
+            "order": 2
+          },
+          {
+            "id": "media",
+            "width": "half",
+            "order": 3
+          },
+          {
+            "id": "closing",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "problem-points",
+          "region": "lead",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "problem-points",
+            "title": "两种现象"
+          }
+        },
+        {
+          "id": "intro-comic",
+          "region": "media",
+          "kind": "content.figure",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "intro-comic",
+            "title": "从真实对象到行为地图"
+          }
+        },
+        {
+          "id": "closing-question",
+          "region": "closing",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "closing-question",
+            "title": "本课问题"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "problem-points",
+          "type": "bullet_list",
+          "title": "两种现象",
+          "items": [
+            "船舶航向修正：平稳靠近 / 先冲后摆 / 越调越偏。电机调速、液位控制、温度调节也会出现相似响应形态。",
+            "反向证据：RC 电路与热水箱物理机理完全不同，却都可能表现为一阶惯性响应。"
+          ]
+        },
+        {
+          "id": "intro-comic",
+          "type": "media",
+          "asset": "1-2-cover-comic.png",
+          "caption": "图中同一艘船既是工程对象，也是方程和极点地图的来源；本课要把真实对象到可分析模型的转换链写清楚。"
+        },
+        {
+          "id": "closing-question",
+          "type": "plain_text",
+          "body": "在工程对象的差异之下，是否存在一套统一的描述语言？→ 建模"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "只阅读，不提交。"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "用两种现象对比引出建模的必要性。",
+        "allowed_scope": [
+          "工程现象观察",
+          "对象行为差异",
+          "建模问题引出"
+        ],
+        "forbidden_scope": [
+          "提前定义传递函数",
+          "展开极点概念"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-01"
+      },
+      "acceptance_checks": [
+        "学生能看到两种现象对比",
+        "底部收束句引出建模"
+      ],
+      "evidence_sequence": [
+        "problem-points",
+        "intro-comic",
+        "closing-question"
+      ],
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false
+      }
+    },
+    "step-02": {
+      "title": "课程目标",
+      "layout": {
+        "template": "goal_cards_grid",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "goals",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "goal-cards",
+          "region": "goals",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "goal-cards",
+            "title": "完成本次课程后，你应当能够："
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "goal-cards",
+          "type": "bullet_list",
+          "title": "完成本次课程后，你应当能够：",
+          "items": [
+            "区分机理建模和数据驱动建模，说出各自优势与边界",
+            "写出简单物理对象的微分方程，解释其作为建模起点的优势与局限",
+            "说出传递函数的核心思想——把微分运算变成代数运算",
+            "读懂方框图和信号流图，识别串联、并联、反馈",
+            "把模型→极点→复平面→行为连成完整判断链"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "展示本课五个能力目标。",
+        "allowed_scope": [
+          "课程目标陈述"
+        ],
+        "forbidden_scope": [
+          "提前讲授新概念"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-02"
+      },
+      "acceptance_checks": [
+        "五项布鲁姆动词目标完整展示"
+      ],
+      "evidence_sequence": [
+        "goal-cards"
+      ],
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false
+      }
+    },
+    "step-03": {
+      "title": "前测——进入建模专题前的准备",
+      "layout": {
+        "template": "quiz_battery",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "quiz",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "pre-test-battery",
+          "region": "quiz",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "payload": {
+            "interaction_kind": "quiz_group",
+            "response_kind": "choice.single",
+            "title": "前测题组"
+          }
+        }
+      ],
+      "content_blocks": [],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "activity_cards": [
+          {
+            "id": "pre-1",
+            "prompt": "闭环控制与开环控制的根本区别是什么？",
+            "response_kind": "choice.single",
+            "options": [
+              {
+                "key": "A",
+                "text": "闭环控制使用更多传感器"
+              },
+              {
+                "key": "B",
+                "text": "闭环控制利用输出信息持续修正控制动作"
+              },
+              {
+                "key": "C",
+                "text": "闭环控制的控制器更复杂"
+              },
+              {
+                "key": "D",
+                "text": "闭环控制不需要执行器"
+              }
+            ],
+            "reference_answer": "B",
+            "submit_scope": "per_card"
+          },
+          {
+            "id": "pre-2",
+            "prompt": "若一个物理量随时间变化，通常需要同时说明变化率和当前数值，才能描述它的动态过程。",
+            "response_kind": "choice.binary",
+            "options": [
+              {
+                "key": "A",
+                "text": "正确"
+              },
+              {
+                "key": "B",
+                "text": "错误"
+              }
+            ],
+            "reference_answer": "A",
+            "submit_scope": "per_card"
+          },
+          {
+            "id": "pre-3",
+            "prompt": "在平面直角坐标系中，点 (-2, 3) 的横坐标是多少？",
+            "response_kind": "choice.single",
+            "options": [
+              {
+                "key": "A",
+                "text": "-2"
+              },
+              {
+                "key": "B",
+                "text": "3"
+              },
+              {
+                "key": "C",
+                "text": "2"
+              },
+              {
+                "key": "D",
+                "text": "-3"
+              }
+            ],
+            "reference_answer": "A",
+            "submit_scope": "per_card"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedOptions",
+          "resultStates",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "open_loop_confusion",
+          "dynamic_quantity_readiness_gap",
+          "coordinate_reading_gap"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "option_distribution",
+          "correct_rate_per_question"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "检测 1-1 基础概念掌握程度。",
+        "allowed_scope": [
+          "1-1 反馈概念",
+          "时间变化量的基本描述",
+          "平面坐标读取"
+        ],
+        "forbidden_scope": [
+          "传递函数属性",
+          "极点概念",
+          "复平面行为规则"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-03"
+      },
+      "acceptance_checks": [
+        "三题均为客观题",
+        "全部考察进入 1-2 所需基础",
+        "不提前考察传递函数、极点或复平面行为规则",
+        "每题独立提交"
+      ],
+      "evidence_sequence": [],
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false
+      }
+    },
+    "step-04": {
+      "title": "建模的两条路径",
+      "layout": {
+        "template": "comparison_split",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "left-col",
+            "width": "half",
+            "order": 2
+          },
+          {
+            "id": "right-col",
+            "width": "half",
+            "order": 3
+          },
+          {
+            "id": "svg-figure",
+            "width": "full",
+            "order": 4
+          },
+          {
+            "id": "positioning",
+            "width": "full",
+            "order": 5
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "mechanism-card",
+          "region": "left-col",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "mechanism-card",
+            "title": "机理建模（白箱）"
+          }
+        },
+        {
+          "id": "data-driven-card",
+          "region": "right-col",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "data-driven-card",
+            "title": "数据驱动建模（黑箱）"
+          }
+        },
+        {
+          "id": "svg-comparison",
+          "region": "svg-figure",
+          "kind": "content.figure",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "svg-comparison",
+            "title": "svg-comparison"
+          }
+        },
+        {
+          "id": "course-positioning",
+          "region": "positioning",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "course-positioning",
+            "title": "course-positioning"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "mechanism-card",
+          "type": "bullet_list",
+          "title": "机理建模（白箱）",
+          "items": [
+            "从物理定律出发 → 微分方程 → 传递函数",
+            "例：舵角→力矩→角速度→航向角，每步有物理定律",
+            "✅ 可解释，每项有物理含义",
+            "❌ 对象太复杂时方程难写"
+          ]
+        },
+        {
+          "id": "data-driven-card",
+          "type": "bullet_list",
+          "title": "数据驱动建模（黑箱）",
+          "items": [
+            "给输入、记输出 → 算法学习映射关系",
+            "✅ 不需先验知识",
+            "❌ 缺乏物理可解释性，超出训练范围可能失效"
+          ]
+        },
+        {
+          "id": "svg-comparison",
+          "type": "media",
+          "asset": "1-2-fig-01-modeling-paths.svg",
+          "caption": "左侧机理链（物理定律→微分方程→传递函数），右侧数据驱动链（数据→算法→预测模型），中间标注各自优势与适用边界。"
+        },
+        {
+          "id": "course-positioning",
+          "type": "plain_text",
+          "body": "本课程以机理建模为主线。数据驱动在模块 5 再见。"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立机理建模 vs 数据驱动建模的对比框架。",
+        "allowed_scope": [
+          "建模路径概念",
+          "各自优势与边界"
+        ],
+        "forbidden_scope": [
+          "深入系统辨识算法",
+          "展开神经网络建模"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-04"
+      },
+      "acceptance_checks": [
+        "两列概念卡对比清晰",
+        "SVG 原生图展示两条路径",
+        "课程定位句明确"
+      ],
+      "evidence_sequence": [
+        "mechanism-card",
+        "data-driven-card",
+        "svg-comparison",
+        "course-positioning"
+      ],
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false
+      }
+    },
+    "step-05": {
+      "title": "微分方程——物理对象的第一次翻译",
+      "layout": {
+        "template": "formula_reveal_chain",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "equation",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "reveal",
+            "width": "full",
+            "order": 4
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 5
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "ship-de",
+          "region": "equation",
+          "kind": "content.formula",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "ship-de",
+            "title": "船舶航向动力学方程"
+          }
+        },
+        {
+          "id": "ship-physics-img",
+          "region": "media",
+          "kind": "content.figure",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "ship-physics-img",
+            "title": "ship-physics-img"
+          }
+        },
+        {
+          "id": "solve-reveal",
+          "region": "reveal",
+          "kind": "content.reveal",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "solve-reveal",
+            "title": "直接求解演示（J=1, B=2, K=5，单位阶跃，零初值）"
+          }
+        },
+        {
+          "id": "four-inconveniences",
+          "region": "summary",
+          "kind": "content.cardSet",
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "four-inconveniences",
+            "title": "微分方程的四个不便"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "ship-de",
+          "type": "formula",
+          "title": "船舶航向动力学方程",
+          "value": "J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)",
+          "symbols": [
+            {
+              "symbol": "\\theta(t)",
+              "meaning": "航向角（输出）"
+            },
+            {
+              "symbol": "u(t)",
+              "meaning": "舵机控制（输入）"
+            },
+            {
+              "symbol": "J",
+              "meaning": "转动惯量（抵抗角加速度）"
+            },
+            {
+              "symbol": "B",
+              "meaning": "阻尼系数（抵抗角速度）"
+            },
+            {
+              "symbol": "K",
+              "meaning": "控制力矩系数（控制效率）"
+            }
+          ]
+        },
+        {
+          "id": "ship-physics-img",
+          "type": "media",
+          "asset": "1-2-fig-02-ship-heading-physics.png",
+          "caption": "船体俯视图，舵角→力矩→角速度→航向角，阻尼反向。四个物理量的因果箭头对应微分方程中的四项。"
+        },
+        {
+          "id": "solve-reveal",
+          "type": "reveal_chain",
+          "title": "直接求解演示（J=1, B=2, K=5，单位阶跃，零初值）",
+          "static_hint": "仅为了回答「对阶跃输入怎么响应」，需要走多远？",
+          "layers": [
+            {
+              "layer": 1,
+              "label": "齐次解",
+              "content": "特征方程 r²+2r=0 → r₁=0, r₂=−2 → θ_h(t)=C₁+C₂e^(−2t)"
+            },
+            {
+              "layer": 2,
+              "label": "特解",
+              "content": "输入为常数 5，猜 θ_p(t)=At，代入得 A=5/2 → θ_p(t)=(5/2)t"
+            },
+            {
+              "layer": 3,
+              "label": "定系数",
+              "content": "θ(0)=0, θ̇(0)=0 → C₁=−5/4, C₂=5/4 → θ(t)=(5/2)t−5/4+(5/4)e^(−2t)"
+            },
+            {
+              "layer": 4,
+              "label": "响应曲线与四个不便",
+              "content": "图 1-2-3：输出持续增长，不收敛。四个不便：①求解与对象/输入绑定——换输入重来 ②多环节串联联立繁琐 ③不同对象不易比较 ④天然时间轴，频域需重架桥",
+              "media": "1-2-fig-03-direct-solve-response.png"
+            }
+          ]
+        },
+        {
+          "id": "four-inconveniences",
+          "type": "bullet_list",
+          "title": "微分方程的四个不便",
+          "items": [
+            "求解步骤与对象、输入绑定——换输入需重来",
+            "多环节串联时联立求解极为繁琐",
+            "不同对象即使结构相似，不易从求解中认出",
+            "天然在时间轴工作，做频域分析需重新架桥"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "step_reveal",
+        "reveal_policy": "teacher_step",
+        "student_task": "跟随教师逐层展开，理解每步求解逻辑。",
+        "activity_cards": [
+          {
+            "id": "step-05-reveal-check",
+            "prompt": "写下你认为微分方程直接求解最不方便的一点。",
+            "response_kind": "text.short",
+            "submit_scope": "per_card"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "teacher_toggle",
+        "teacher_step_reveal": "teacher_toggle",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "revealLayersViewed",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "layer_view_progression"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生体验微分方程直接求解的繁琐，建立对传递函数的需求。",
+        "allowed_scope": [
+          "二阶常系数微分方程求解",
+          "阶跃输入"
+        ],
+        "forbidden_scope": [
+          "拉氏变换",
+          "传递函数定义"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-05"
+      },
+      "acceptance_checks": [
+        "方程+符号表完整",
+        "显影链 4 层全部列出且含公式",
+        "第四层出图",
+        "四不便在第四层后出现"
+      ],
+      "evidence_sequence": [
+        "ship-de",
+        "ship-physics-img",
+        "solve-reveal",
+        "four-inconveniences"
+      ],
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": true
+      }
+    },
+    "step-06": {
+      "title": "传递函数——从微分运算到代数运算",
+      "layout": {
+        "template": "formula_reveal_chain_with_quiz",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "laplace-table",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "reveal",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "media",
+            "width": "full",
+            "order": 4
+          },
+          {
+            "id": "key-points",
+            "width": "full",
+            "order": 5
+          },
+          {
+            "id": "interaction",
+            "width": "half",
+            "order": 6
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "laplace-rules",
+          "region": "laplace-table",
+          "kind": "content.table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "laplace-rules",
+            "title": "拉氏变换基本规则"
+          }
+        },
+        {
+          "id": "tf-reveal",
+          "region": "reveal",
+          "kind": "content.reveal",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "tf-reveal",
+            "title": "三步法推导（船舶 Jθ̈+Bθ̇=Ku，零初值）"
+          }
+        },
+        {
+          "id": "transform-chain-img",
+          "region": "media",
+          "kind": "content.figure",
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "transform-chain-img",
+            "title": "transform-chain-img"
+          }
+        },
+        {
+          "id": "tf-meanings",
+          "region": "key-points",
+          "kind": "content.cardSet",
+          "must_be_visible": false,
+          "payload": {
+            "block_key": "tf-meanings",
+            "title": "传递函数的两个核心含义"
+          }
+        },
+        {
+          "id": "tf-quiz",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "payload": {
+            "interaction_kind": "single_choice",
+            "response_kind": "choice.single",
+            "title": "拉氏变换判断"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "laplace-rules",
+          "type": "table",
+          "title": "拉氏变换基本规则",
+          "columns": [
+            "f(t)",
+            "F(s)",
+            "说明"
+          ],
+          "rows": [
+            [
+              "1(t)（单位阶跃）",
+              "1/s",
+              "常数 1 的变换"
+            ],
+            [
+              "ḟ(t)",
+              "sF(s)−f(0)",
+              "一阶导 → ×s"
+            ],
+            [
+              "f̈(t)",
+              "s²F(s)−sf(0)−ḟ(0)",
+              "二阶导 → ×s²"
+            ]
+          ],
+          "footer": "核心规律：对 t 求一次导 → 在 s 域多乘一个 s"
+        },
+        {
+          "id": "tf-reveal",
+          "type": "reveal_chain",
+          "title": "三步法推导（船舶 Jθ̈+Bθ̇=Ku，零初值）",
+          "static_hint": "写微分方程 → 拉氏变换 → 提取比值。三步得到 G(s)。",
+          "layers": [
+            {
+              "layer": 1,
+              "label": "第一步：拉氏变换",
+              "content": "𝓛{Jθ̈}=Js²Θ, 𝓛{Bθ̇}=BsΘ, 𝓛{Ku}=KU → Js²Θ+BsΘ=KU"
+            },
+            {
+              "layer": 2,
+              "label": "第二步：提取公因子",
+              "content": "Θ(Js²+Bs)=KU"
+            },
+            {
+              "layer": 3,
+              "label": "第三步：写出比值",
+              "content": "G(s)=Θ/U=K/(Js²+Bs)"
+            },
+            {
+              "layer": 4,
+              "label": "分解分母",
+              "content": "G(s)=(K/J)/[s(s+B/J)]——s：积分效应；s+B/J：阻尼决定的衰减因素",
+              "media": "1-2-fig-04-transform-chain.png"
+            }
+          ]
+        },
+        {
+          "id": "transform-chain-img",
+          "type": "media",
+          "asset": "1-2-fig-04-transform-chain.png",
+          "caption": "三列并排——时域 DE → s 域代数方程 → G(s)。三步走完，二阶微分方程压缩为代数分式。"
+        },
+        {
+          "id": "tf-meanings",
+          "type": "bullet_list",
+          "title": "传递函数的两个核心含义",
+          "items": [
+            "G(s) 描述系统本身固有的 I/O 关系——同一 G(s)，配阶跃得阶跃响应，配正弦得频率响应",
+            "分母结构暴露内在信息——分子和分母是极点、零点、型别、阻尼比的共同源头"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "single_choice",
+        "reveal_policy": "teacher_step",
+        "activity_cards": [
+          {
+            "id": "tf-quiz-1",
+            "prompt": "拉氏变换的核心效果是什么？",
+            "response_kind": "choice.single",
+            "options": [
+              {
+                "key": "A",
+                "text": "把代数运算变成微分运算"
+              },
+              {
+                "key": "B",
+                "text": "把对时间的求导变为乘以 s，将微分方程化为代数方程"
+              },
+              {
+                "key": "C",
+                "text": "把复数变成实数"
+              },
+              {
+                "key": "D",
+                "text": "把输入信号变成输出信号"
+              }
+            ],
+            "reference_answer": "B",
+            "submit_scope": "per_card"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "teacher_toggle",
+        "teacher_step_reveal": "teacher_toggle",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "revealLayersViewed",
+          "selectedOption",
+          "resultState",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "laplace_effect_misunderstanding"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "layer_view_progression",
+          "option_distribution"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生理解拉氏变换→传递函数的三步法转换链。",
+        "allowed_scope": [
+          "拉氏变换基本规则",
+          "传递函数定义"
+        ],
+        "forbidden_scope": [
+          "拉氏反变换技巧",
+          "部分分式展开",
+          "零极点机理深入"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-06"
+      },
+      "acceptance_checks": [
+        "拉氏变换表完整",
+        "显影链 4 层含完整公式",
+        "图在第四层后出现",
+        "客观题验证核心效果"
+      ],
+      "evidence_sequence": [
+        "laplace-rules",
+        "tf-reveal",
+        "transform-chain-img",
+        "tf-meanings"
+      ],
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": true
+      }
+    },
+    "step-07": {
+      "title": "方框图——系统的结构表达",
+      "layout": {
+        "template": "concept_with_figures",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "concept",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "figure-1",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "connections",
+            "width": "full",
+            "order": 4
+          },
+          {
+            "id": "figure-2",
+            "width": "full",
+            "order": 5
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "five-elements",
+          "region": "concept",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "five-elements",
+            "title": "方框图五要素"
+          }
+        },
+        {
+          "id": "closed-loop-fig",
+          "region": "figure-1",
+          "kind": "content.figure",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "closed-loop-fig",
+            "title": "closed-loop-fig"
+          }
+        },
+        {
+          "id": "three-connections",
+          "region": "connections",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "three-connections",
+            "title": "三种基本连接"
+          }
+        },
+        {
+          "id": "connections-fig",
+          "region": "figure-2",
+          "kind": "content.figure",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "connections-fig",
+            "title": "connections-fig"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "five-elements",
+          "type": "bullet_list",
+          "title": "方框图五要素",
+          "items": [
+            "比较点：r−yₘ=e（期望与测量相遇，算出误差）",
+            "控制器：根据误差做出控制决策",
+            "执行器：把决策变成真实物理作用",
+            "被控对象：被控制的过程，输出在此产生",
+            "传感器：采集输出，送回比较点"
+          ]
+        },
+        {
+          "id": "closed-loop-fig",
+          "type": "media",
+          "asset": "1-2-fig-05-closed-loop-block.png",
+          "caption": "从 r 出发→比较点→e→控制器→执行器→对象→y。传感器从 y 取 yₘ 反馈回比较点。闭环标准结构图。"
+        },
+        {
+          "id": "three-connections",
+          "type": "bullet_list",
+          "title": "三种基本连接",
+          "items": [
+            "串联：A 输出→B 输入，总 TF = G₁·G₂",
+            "并联：同输入，输出相加，总 TF = G₁+G₂",
+            "反馈：输出通过反馈通路回输入端，核心结构"
+          ]
+        },
+        {
+          "id": "connections-fig",
+          "type": "media",
+          "asset": "1-2-fig-06-basic-connections.png",
+          "caption": "三行并排——串联（乘积）、并联（求和）、反馈（闭环）。反馈行注意比较点——期望与反馈信号在此相减。"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立方框图作为系统结构表达工具的认识。",
+        "allowed_scope": [
+          "方框图五要素",
+          "三种基本连接"
+        ],
+        "forbidden_scope": [
+          "方框图化简技巧",
+          "引出点/综合点移动"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-07"
+      },
+      "acceptance_checks": [
+        "五要素完整",
+        "闭环图标注清晰",
+        "三种连接各配 TF 规则"
+      ],
+      "evidence_sequence": [
+        "five-elements",
+        "closed-loop-fig",
+        "three-connections",
+        "connections-fig"
+      ],
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false
+      }
+    },
+    "step-08": {
+      "title": "信号流图——变量间的决定关系",
+      "layout": {
+        "template": "concept_with_figure_and_quiz",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "concept",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "figure",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "interaction",
+            "width": "half",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "sfg-concepts",
+          "region": "concept",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "sfg-concepts",
+            "title": "信号流图四概念"
+          }
+        },
+        {
+          "id": "sfg-block-compare",
+          "region": "figure",
+          "kind": "content.figure",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "sfg-block-compare",
+            "title": "sfg-block-compare"
+          }
+        },
+        {
+          "id": "sfg-quiz",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "payload": {
+            "interaction_kind": "single_choice",
+            "response_kind": "choice.single",
+            "title": "信号流图判断"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "sfg-concepts",
+          "type": "bullet_list",
+          "title": "信号流图四概念",
+          "items": [
+            "节点：系统中的信号变量",
+            "支路：变量间的传递关系，标注传递函数",
+            "前向通路：输入→输出，不重复经过任何节点",
+            "回路：起点=终点的闭合路径"
+          ],
+          "footer": "方框图以「谁对谁做什么」组织。信号流图以「变量之间怎样互相决定」组织。同一系统，两种视角。"
+        },
+        {
+          "id": "sfg-block-compare",
+          "type": "media",
+          "asset": "1-2-fig-07-block-to-sfg.png",
+          "caption": "上方方框图，下方信号流图。三种对应：方框→支路，比较点→多输入节点，引出点→多输出节点。"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "single_choice",
+        "activity_cards": [
+          {
+            "id": "sfg-quiz-1",
+            "prompt": "方框图与信号流图的核心区别是什么？",
+            "response_kind": "choice.single",
+            "options": [
+              {
+                "key": "A",
+                "text": "方框图用箭头，信号流图用支路"
+              },
+              {
+                "key": "B",
+                "text": "前者以「谁对谁做什么」组织，后者以「变量间怎样互相决定」组织"
+              },
+              {
+                "key": "C",
+                "text": "方框图只能串联，信号流图只能反馈"
+              },
+              {
+                "key": "D",
+                "text": "描述的是不同系统"
+              }
+            ],
+            "reference_answer": "B",
+            "submit_scope": "per_card"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedOption",
+          "resultState",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "sfg_block_confusion"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "option_distribution"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "建立信号流图作为方框图互补工具的认识。",
+        "allowed_scope": [
+          "信号流图四概念",
+          "与方框图的三种对应"
+        ],
+        "forbidden_scope": [
+          "梅森公式",
+          "复杂回路枚举"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-08"
+      },
+      "acceptance_checks": [
+        "四概念完整",
+        "对照图含三种对应标注",
+        "客观题验证视角差异"
+      ],
+      "evidence_sequence": [
+        "sfg-concepts",
+        "sfg-block-compare"
+      ],
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false
+      }
+    },
+    "step-09": {
+      "title": "极点的几何来源——三维幅值曲面",
+      "layout": {
+        "template": "compute_panel_with_text",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "explanation",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "compute",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "summary",
+            "width": "full",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "pole-origin-text",
+          "region": "explanation",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "pole-origin-text",
+            "title": "pole-origin-text"
+          }
+        },
+        {
+          "id": "magnitude-surface",
+          "region": "compute",
+          "kind": "compute.panel",
+          "must_be_visible": true,
+          "payload": {
+            "capabilityRef": "interactive-figure",
+            "panel_id": "pole-magnitude-3d",
+            "legacyKind": "compute-panel",
+            "presentation": "single",
+            "block_key": "magnitude-surface",
+            "spec_key": "pole_magnitude_3d"
+          }
+        },
+        {
+          "id": "phase-surface-ref",
+          "region": "compute",
+          "kind": "content.figure",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "phase-surface-ref",
+            "title": "相位方向曲面参照"
+          }
+        },
+        {
+          "id": "pole-summary",
+          "region": "summary",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "pole-summary",
+            "title": "极点两个属性"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "pole-origin-text",
+          "type": "plain_text",
+          "body": "极点名称来自几何直观——传递函数 G(s) 是复变函数。以 s 平面为底，|G(s)| 为高画成三维曲面，在分母根处 |G(s)|→∞，曲面竖起「极柱」。\n\n船舶 G(s)=(K/J)/[s(s+B/J)]，分母根：s=0，s=−B/J。这两个点就是系统的极点。"
+        },
+        {
+          "id": "magnitude-surface",
+          "type": "compute_spec",
+          "spec_key": "pole_magnitude_3d",
+          "description": "船舶 G(s) 对数幅值曲面 20log₁₀|G(s)| 在 s 平面上的三维图。s 平面为底（横 σ，纵 jω），高度=对数幅值(dB)。s=0 和 s=−B/J 处高峰（截顶处理）。",
+          "default_view": "倾斜 45°视角，可看到两根极柱",
+          "controls": [
+            "水平拖拽旋转",
+            "滚轮缩放",
+            "俯视按钮（切换顶视图，标注极点 × 位置）"
+          ],
+          "reading_instruction": "找最高两根柱 → 切换俯视 → 看到两个 × 的坐标：s=0（原点，虚轴上），s=−B/J（左半平面实轴上）",
+          "default_params": {
+            "K": 5,
+            "J": 1,
+            "B": 2
+          }
+        },
+        {
+          "id": "phase-surface-ref",
+          "type": "media",
+          "asset": "1-2-fig-09-phase-surface.png",
+          "caption": "相位方向函数 sin(arg G(s)) 随 s 平面位置改变，用来补充幅值曲面只显示极柱高度的局限；本页只观察方向变化，不展开复变函数主值分支。"
+        },
+        {
+          "id": "pole-summary",
+          "type": "bullet_list",
+          "title": "极点两个属性",
+          "items": [
+            "极点位置由系统参数决定——J 和 B 决定 −B/J 在实轴的位置",
+            "极点位置反过来决定系统行为——|G(s)| 的「柱」在哪里，响应就被哪里左右"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none",
+        "student_task": "自由拖动、旋转、缩放三维曲面，探索极点位置与曲面形态的关系。"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "interactionEvents",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "interaction_count"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "用三维几何直观解释极点名称来源。",
+        "allowed_scope": [
+          "复变函数幅值曲面",
+          "极点几何意义"
+        ],
+        "forbidden_scope": [
+          "相位曲面",
+          "复变函数理论深入"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-09"
+      },
+      "acceptance_checks": [
+        "三维曲面可拖动旋转/缩放",
+        "俯视按钮标注极点 ×",
+        "极柱在 s=0 和 s=−B/J"
+      ],
+      "evidence_sequence": [
+        "pole-origin-text",
+        "magnitude-surface",
+        "phase-surface-ref",
+        "pole-summary"
+      ],
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false
+      }
+    },
+    "step-10": {
+      "title": "拖动极点看响应——行为地图的互动验证",
+      "layout": {
+        "template": "compute_panel_with_text",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "zones",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "compute",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "rules",
+            "width": "full",
+            "order": 4
+          },
+          {
+            "id": "ref-img",
+            "width": "full",
+            "order": 5
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "five-zones",
+          "region": "zones",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "five-zones",
+            "title": "复平面五区地名"
+          }
+        },
+        {
+          "id": "drag-pole-panel",
+          "region": "compute",
+          "kind": "compute.panel",
+          "must_be_visible": true,
+          "payload": {
+            "capabilityRef": "interactive-figure",
+            "panel_id": "drag-pole-s-plane",
+            "legacyKind": "compute-panel",
+            "presentation": "single",
+            "block_key": "drag-pole-panel",
+            "spec_key": "drag_pole_s_plane"
+          }
+        },
+        {
+          "id": "reading-rules",
+          "region": "rules",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "reading-rules",
+            "title": "reading-rules"
+          }
+        },
+        {
+          "id": "s-plane-static",
+          "region": "ref-img",
+          "kind": "content.figure",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "s-plane-static",
+            "title": "s-plane-static"
+          }
+        },
+        {
+          "id": "response-static",
+          "region": "ref-img",
+          "kind": "content.figure",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "response-static",
+            "title": "极点位置与典型响应对照"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "five-zones",
+          "type": "bullet_list",
+          "title": "复平面五区地名",
+          "items": [
+            "稳定区（左半平面，σ<0）：所有极点在此 → 偏差消失",
+            "不稳定区（右半平面，σ>0）：任一极点在此 → 偏差放大",
+            "振荡走廊（|ω| 大）：摆动密集",
+            "单调走廊（|ω| 小）：接近无摆动",
+            "稳定边界（虚轴，σ=0）：等幅振荡，分界线"
+          ]
+        },
+        {
+          "id": "drag-pole-panel",
+          "type": "compute_spec",
+          "spec_key": "drag_pole_s_plane",
+          "description": "Rust 驱动。左区：s 平面（五区着色——稳定区蓝、不稳定区红、虚轴加粗），可拖动极点 ×。右区：对应时域响应曲线实时更新。",
+          "default_params": {
+            "sigma": -1,
+            "omega": 2,
+            "mode": "conjugate_pair"
+          },
+          "controls": [
+            {
+              "type": "slider",
+              "param": "sigma",
+              "range": [
+                -5,
+                2
+              ],
+              "label": "σ（实部）"
+            },
+            {
+              "type": "slider",
+              "param": "omega",
+              "range": [
+                0,
+                5
+              ],
+              "label": "ω（虚部）"
+            },
+            {
+              "type": "toggle",
+              "param": "mode",
+              "options": [
+                "conjugate_pair",
+                "single_real"
+              ],
+              "label": "极点模式"
+            },
+            {
+              "type": "button",
+              "action": "reset",
+              "label": "复位"
+            },
+            {
+              "type": "button",
+              "action": "submit",
+              "label": "提交当前参数"
+            }
+          ],
+          "reading_instruction": "默认 s=−1±2j（稳定区，振荡走廊）——边摆边收。σ 右拖近虚轴→拖尾变长；过虚轴→收敛变发散。ω 左拖到 0→振荡消失变单调；右拖大→振荡变密。停在 σ=0→等幅振荡。",
+          "submit_format": "极点位置：σ=___，ω=___；行为特征：___（≤50字）"
+        },
+        {
+          "id": "reading-rules",
+          "type": "plain_text",
+          "body": "读图规则：左半平面=收敛，右半平面=发散；离虚轴越远越快；离实轴越远越密。"
+        },
+        {
+          "id": "s-plane-static",
+          "type": "media",
+          "asset": "1-2-fig-10-s-plane-map.png",
+          "caption": "复平面行为地图静图——五区着色+地名+典型极点位置行为关键词。拖动探索时可对照此图。"
+        },
+        {
+          "id": "response-static",
+          "type": "media",
+          "asset": "1-2-fig-11-poles-responses.png",
+          "caption": "先看左侧极点位置，再看右侧响应曲线，把单调收敛、边摆边收、等幅振荡、发散与坐标区域对应起来。"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "interactive_figure_submit",
+        "student_task": "拖动极点探索，选择一个位置后提交极点坐标和观察到的行为特征。",
+        "submit_fields": [
+          "sigma",
+          "omega",
+          "observation_text"
+        ],
+        "activity_cards": [
+          {
+            "id": "drag-pole-submit",
+            "prompt": "拖动极点后，提交当前极点坐标和你观察到的行为特征。",
+            "response_kind": "parameter.set",
+            "parameter_fields": [
+              {
+                "key": "sigma",
+                "label": "σ（实部）"
+              },
+              {
+                "key": "omega",
+                "label": "ω（虚部）"
+              },
+              {
+                "key": "observation_text",
+                "label": "行为特征"
+              }
+            ],
+            "reference_answer": "左半平面对应收敛，右半平面对应发散；|σ| 越大收敛或发散越快，|ω| 越大摆动越密。",
+            "submit_scope": "per_card"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "sigma",
+          "omega",
+          "mode",
+          "observationText",
+          "timeOnStep"
+        ],
+        "result_policy": "submission_required"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "sigma_omega_distribution",
+          "observation_wordcloud"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生亲手验证极点位置决定行为这条核心规律。",
+        "allowed_scope": [
+          "极点坐标与行为对应",
+          "五区地名"
+        ],
+        "forbidden_scope": [
+          "根轨迹法则",
+          "频率响应"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-10"
+      },
+      "acceptance_checks": [
+        "五区着色+地名标注",
+        "σ/ω 滑块在图形下方",
+        "响应曲线实时更新",
+        "提交含坐标+观察记录"
+      ],
+      "evidence_sequence": [
+        "five-zones",
+        "drag-pole-panel",
+        "reading-rules",
+        "s-plane-static",
+        "response-static"
+      ],
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false
+      }
+    },
+    "step-11": {
+      "title": "案例——三艘船，三种行为",
+      "layout": {
+        "template": "case_with_simulation_and_quiz",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "table",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "simulation",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "analysis",
+            "width": "full",
+            "order": 4
+          },
+          {
+            "id": "interaction",
+            "width": "half",
+            "order": 5
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "three-ships-table",
+          "region": "table",
+          "kind": "content.table",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "three-ships-table",
+            "title": "三艘船极点对比"
+          }
+        },
+        {
+          "id": "ship-simulation",
+          "region": "simulation",
+          "kind": "compute.panel",
+          "must_be_visible": true,
+          "payload": {
+            "capabilityRef": "interactive-figure",
+            "panel_id": "three-ships-case",
+            "legacyKind": "compute-panel",
+            "presentation": "single",
+            "block_key": "ship-simulation",
+            "spec_key": "three_ships_case"
+          }
+        },
+        {
+          "id": "ship-analysis",
+          "region": "analysis",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "ship-analysis",
+            "title": "逐个读图"
+          }
+        },
+        {
+          "id": "case-quiz",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "payload": {
+            "interaction_kind": "single_choice",
+            "response_kind": "choice.single",
+            "title": "三艘船案例判断"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "three-ships-table",
+          "type": "table",
+          "title": "三艘船极点对比",
+          "columns": [
+            "模型",
+            "极点位置",
+            "读图判断"
+          ],
+          "rows": [
+            [
+              "A",
+              "−1.5±2.2j",
+              "左半平面+明显虚部：边摆边收"
+            ],
+            [
+              "B",
+              "−3.0, −0.8",
+              "两实极点均在左：单调收敛，−0.8 更近虚轴→主导慢衰减"
+            ],
+            [
+              "C",
+              "0.3±1.4j",
+              "右半平面+明显虚部：摆动着发散"
+            ]
+          ]
+        },
+        {
+          "id": "ship-simulation",
+          "type": "compute_spec",
+          "spec_key": "three_ships_case",
+          "description": "三艘船航向响应仿真。控件：A/B/C/全部切换按钮、时间轴缩放、单船高亮。默认三线并排——A 蓝（边摆边收）、B 绿（单调收敛）、C 红（发散）。",
+          "controls": [
+            {
+              "type": "toggle_group",
+              "options": [
+                "A",
+                "B",
+                "C",
+                "全部"
+              ],
+              "label": "船型选择"
+            },
+            {
+              "type": "slider",
+              "param": "time_scale",
+              "range": [
+                1,
+                5
+              ],
+              "label": "时间轴缩放"
+            }
+          ],
+          "reading_instruction": "先看全部三条——同样指令，三种响应。看 A——先冲后收。看 B——无摆动，但未必更快。看 C——失控。"
+        },
+        {
+          "id": "ship-analysis",
+          "type": "bullet_list",
+          "title": "逐个读图",
+          "items": [
+            "A：左半平面保证衰减，虚部→可见摆动。先冲过目标，再边摆边收。",
+            "B：两实极点无摆动。−0.8 离虚轴更近→衰减更慢，拖住整体收敛。不一定比 A 快。",
+            "C：实部为正→幅度放大。开始也许还在修正，但后续偏差越来越大，航向控制失效。"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "single_choice",
+        "activity_cards": [
+          {
+            "id": "case-quiz-1",
+            "prompt": "模型 B 的收敛速度主要由哪个极点主导？",
+            "response_kind": "choice.single",
+            "options": [
+              {
+                "key": "A",
+                "text": "−3.0，离虚轴更远"
+              },
+              {
+                "key": "B",
+                "text": "−0.8，离虚轴更近，衰减更慢"
+              },
+              {
+                "key": "C",
+                "text": "两极点平均值 −1.9"
+              },
+              {
+                "key": "D",
+                "text": "无法判断"
+              }
+            ],
+            "reference_answer": "B",
+            "submit_scope": "per_card"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "simulationInteractions",
+          "selectedOption",
+          "resultState",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "dominant_pole_misconception"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "option_distribution",
+          "simulation_interaction_count"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "用三种极点分布验证复平面读图规则。",
+        "allowed_scope": [
+          "极点位置读图",
+          "行为预判"
+        ],
+        "forbidden_scope": [
+          "主导极点正式理论",
+          "控制器设计"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-11"
+      },
+      "acceptance_checks": [
+        "对比表完整",
+        "仿真可切换 A/B/C",
+        "逐个分析引用具体 σ、ω",
+        "客观题验证主导衰减直觉"
+      ],
+      "evidence_sequence": [
+        "three-ships-table",
+        "ship-simulation",
+        "ship-analysis"
+      ],
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false
+      }
+    },
+    "step-12": {
+      "title": "例题——从特征方程到行为判断",
+      "layout": {
+        "template": "worked_example_reveal_with_quiz",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "problem",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "reveal",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "interaction",
+            "width": "half",
+            "order": 4
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "example-problem",
+          "region": "problem",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "example-problem",
+            "title": "例题 1-2-1"
+          }
+        },
+        {
+          "id": "example-reveal",
+          "region": "reveal",
+          "kind": "content.reveal",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "example-reveal",
+            "title": "求解过程"
+          }
+        },
+        {
+          "id": "layered-practice",
+          "region": "reveal",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "layered-practice",
+            "title": "分层练习"
+          }
+        },
+        {
+          "id": "example-quiz",
+          "region": "interaction",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "payload": {
+            "interaction_kind": "single_choice",
+            "response_kind": "choice.single",
+            "title": "极点读图判断"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "example-problem",
+          "type": "plain_text",
+          "title": "例题 1-2-1",
+          "body": "系统模型 ÿ+2ẏ+5y=5r，r 为期望位置，y 为实际位置。请根据极点位置判断行为特征。"
+        },
+        {
+          "id": "example-reveal",
+          "type": "reveal_chain",
+          "title": "求解过程",
+          "static_hint": "分三步——写出特征方程、解出极点、在复平面上读图翻译为行为描述。",
+          "layers": [
+            {
+              "layer": 1,
+              "label": "特征方程",
+              "content": "s²+2s+5=0",
+              "card": "特征方程_1_2"
+            },
+            {
+              "layer": 2,
+              "label": "解极点",
+              "content": "Δ=4−20=−16，s₁,₂=(−2±4j)/2=−1±2j。一对共轭复数。",
+              "card": "特征根_1_2"
+            },
+            {
+              "layer": 3,
+              "label": "读图",
+              "content": "σ=−1（左半平面→衰减），ω=±2（不为零→有摆动成分）"
+            },
+            {
+              "layer": 4,
+              "label": "行为描述",
+              "content": "边摆动边收敛。位置先越过目标，再边摆边收回，几个周期内稳定。粗粒度判断——方向感已建立；精确数值指标在模块 2 引入。"
+            }
+          ]
+        },
+        {
+          "id": "layered-practice",
+          "type": "bullet_list",
+          "title": "分层练习",
+          "items": [
+            "基础辨认：给定左半平面实极点、左半平面共轭极点、右半平面极点，写出第一轮行为描述。",
+            "反向读图：给定缓慢单调收敛、边摆边收、越调越偏，推断极点大致落在复平面的哪个区域。",
+            "迁移应用：电机转速、房间温度、船舶航向若具有相近极点分布，可用同一条对象→模型→极点→行为链讨论动态品质。"
+          ]
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "single_choice",
+        "reveal_policy": "teacher_step",
+        "activity_cards": [
+          {
+            "id": "example-quiz-1",
+            "prompt": "极点 s=−3（单实极点）的系统行为是？",
+            "response_kind": "choice.single",
+            "options": [
+              {
+                "key": "A",
+                "text": "边摆边收，摆动密"
+              },
+              {
+                "key": "B",
+                "text": "单调收敛，较快"
+              },
+              {
+                "key": "C",
+                "text": "等幅振荡"
+              },
+              {
+                "key": "D",
+                "text": "单调发散"
+              }
+            ],
+            "reference_answer": "B",
+            "submit_scope": "per_card"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "teacher_toggle",
+        "teacher_step_reveal": "teacher_toggle",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "revealLayersViewed",
+          "selectedOption",
+          "resultState",
+          "timeOnStep"
+        ],
+        "misconception_tags": [
+          "pole_reading_reversal"
+        ]
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "layer_view_progression",
+          "option_distribution"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "让学生亲手走完特征方程→极点→读图→行为的完整判断链。",
+        "allowed_scope": [
+          "特征方程求解",
+          "极点读图",
+          "分层练习迁移"
+        ],
+        "forbidden_scope": [
+          "高阶系统",
+          "零点影响"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-12"
+      },
+      "acceptance_checks": [
+        "题面完整常显",
+        "显影链 4 层含完整公式",
+        "客观题验证反向读图"
+      ],
+      "evidence_sequence": [
+        "example-problem",
+        "example-reveal",
+        "layered-practice"
+      ],
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": true
+      }
+    },
+    "step-13": {
+      "title": "后测——检验本次课程目标达成",
+      "layout": {
+        "template": "quiz_battery",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "quiz",
+            "width": "full",
+            "order": 2
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "post-test-battery",
+          "region": "quiz",
+          "kind": "activity.panel",
+          "must_be_visible": true,
+          "payload": {
+            "interaction_kind": "quiz_group",
+            "response_kind": "choice.single",
+            "title": "后测题组"
+          }
+        }
+      ],
+      "content_blocks": [],
+      "interaction_spec": {
+        "interaction_kind": "quiz_group",
+        "activity_cards": [
+          {
+            "id": "post-1",
+            "prompt": "机理建模与数据驱动建模的主要区别是什么？",
+            "response_kind": "choice.single",
+            "options": [
+              {
+                "key": "A",
+                "text": "机理建模更快，数据驱动建模更慢"
+              },
+              {
+                "key": "B",
+                "text": "机理建模从物理定律出发（可解释），数据驱动建模从数据出发（不依赖先验知识）"
+              },
+              {
+                "key": "C",
+                "text": "机理建模只用于船舶，数据驱动建模只用于电路"
+              },
+              {
+                "key": "D",
+                "text": "两者没有本质区别"
+              }
+            ],
+            "reference_answer": "B",
+            "submit_scope": "per_card"
+          },
+          {
+            "id": "post-2",
+            "prompt": "极点在复平面上越靠近虚轴，系统衰减越慢，拖尾越长。",
+            "response_kind": "choice.binary",
+            "options": [
+              {
+                "key": "A",
+                "text": "正确"
+              },
+              {
+                "key": "B",
+                "text": "错误"
+              }
+            ],
+            "reference_answer": "A",
+            "submit_scope": "per_card"
+          },
+          {
+            "id": "post-3",
+            "prompt": "用「微分方程→传递函数→极点→复平面→行为」这条链，不超过五句话简述控制系统建模的完整流程。",
+            "response_kind": "text.short",
+            "reference_answer": "物理定律→微分方程；拉氏变换→G(s)；分母=0→极点(σ,jω)；标注于s平面——σ管收放，ω管摆动；读极点位置→判断行为。",
+            "submit_scope": "per_card"
+          }
+        ]
+      },
+      "teacher_controls": {
+        "release_activity": "teacher_toggle",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "teacher_toggle"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "selectedOptions",
+          "shortAnswer",
+          "resultStates",
+          "timeOnStep"
+        ],
+        "result_policy": "submission_required"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "option_distribution",
+          "short_answer_samples",
+          "correct_rate_per_question"
+        ],
+        "aggregation": "step_level"
+      },
+      "ai_context_spec": {
+        "page_goal": "验证五个课程目标的达成度。",
+        "allowed_scope": [
+          "本课全部知识点"
+        ],
+        "forbidden_scope": [
+          "模块 2 内容"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-13"
+      },
+      "acceptance_checks": [
+        "2 客观+1 主观",
+        "总题数≤3",
+        "与目标页五项呼应",
+        "主观题不超过五句话"
+      ],
+      "evidence_sequence": [],
+      "student_access": {
+        "default_visibility": "hidden",
+        "release_required": true,
+        "browse_required": false
+      }
+    },
+    "step-14": {
+      "title": "总结——建模专题的局部地图",
+      "layout": {
+        "template": "summary_dashboard",
+        "regions": [
+          {
+            "id": "header",
+            "width": "full",
+            "order": 1
+          },
+          {
+            "id": "info-image",
+            "width": "full",
+            "order": 2
+          },
+          {
+            "id": "landmarks",
+            "width": "full",
+            "order": 3
+          },
+          {
+            "id": "limitations",
+            "width": "full",
+            "order": 4
+          },
+          {
+            "id": "extend-think",
+            "width": "full",
+            "order": 5
+          },
+          {
+            "id": "stats",
+            "width": "full",
+            "order": 6
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "info-graphic",
+          "region": "info-image",
+          "kind": "content.figure",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "info-graphic",
+            "title": "info-graphic"
+          }
+        },
+        {
+          "id": "five-landmarks",
+          "region": "landmarks",
+          "kind": "content.cardSet",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "five-landmarks",
+            "title": "建模专题——五个地标"
+          }
+        },
+        {
+          "id": "limitations-text",
+          "region": "limitations",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "limitations-text",
+            "title": "本讲的边界"
+          }
+        },
+        {
+          "id": "extend-think-text",
+          "region": "extend-think",
+          "kind": "content.rich",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "extend-think-text",
+            "title": "拓展思考"
+          }
+        },
+        {
+          "id": "student-stats",
+          "region": "stats",
+          "kind": "analytics.summary",
+          "must_be_visible": true,
+          "payload": {
+            "block_key": "student-stats",
+            "title": "课堂学习统计"
+          }
+        }
+      ],
+      "content_blocks": [
+        {
+          "id": "info-graphic",
+          "type": "media",
+          "asset": "1-2-info.png"
+        },
+        {
+          "id": "five-landmarks",
+          "type": "bullet_list",
+          "title": "建模专题——五个地标",
+          "items": [
+            "微分方程：建模起点，直接翻译物理定律。不便串联/比较/频域。",
+            "传递函数：拉氏变换→导数变乘法。G(s) 紧凑代数对象。不同对象进入同一语言。",
+            "方框图：内部结构——五要素，三种连接（串联·并联·反馈）。",
+            "信号流图：变量视角——节点·支路·前向通路·回路。与方框图互补。",
+            "极点与复平面：分母根→行为坐标。s 平面五区——横轴管收放，纵轴管摆动。"
+          ]
+        },
+        {
+          "id": "limitations-text",
+          "type": "plain_text",
+          "title": "本讲的边界",
+          "body": "粗粒度行为地图——知脾气（收敛/发散/摆动/单调/快慢），不知精确指标值（超调量、调节时间）。精确指标在模块 2。高阶系统和零点影响在模块 3。"
+        },
+        {
+          "id": "extend-think-text",
+          "type": "plain_text",
+          "title": "拓展思考",
+          "body": "两工程对象物理结构差别很大，但极点分布相近。能否用同一语言讨论它们的动态品质？哪些细节可省略，哪些必须保留？"
+        },
+        {
+          "id": "student-stats",
+          "type": "summary",
+          "title": "课堂学习统计",
+          "metrics": [
+            "前测正确率",
+            "关键互动提交率",
+            "复平面判断正确率",
+            "模型结构辨析完成率"
+          ],
+          "body": "本页向教师汇总本课关键互动的班级层面数据，不展示学生个人明细。"
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "none"
+      },
+      "teacher_controls": {
+        "release_activity": "not_applicable",
+        "open_browse": "page_load_open",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "not_applicable"
+      },
+      "telemetry_spec": {
+        "summary_fields": [
+          "viewed",
+          "timeOnStep"
+        ],
+        "result_policy": "no_submission"
+      },
+      "teacher_insight_spec": {
+        "widgets": [
+          "view_count",
+          "student_stats_summary"
+        ],
+        "aggregation": "lesson_level",
+        "student_stats": {
+          "metrics": [
+            "submission_count",
+            "objective_correct_rate",
+            "pre_post_comparison",
+            "step_10_exploration_count"
+          ]
+        },
+        "teacher_stats": {
+          "metrics": [
+            "class_submission_rate",
+            "class_correct_rate",
+            "common_misconceptions"
+          ]
+        }
+      },
+      "ai_context_spec": {
+        "page_goal": "收束全课，回顾五个地标并明确边界。",
+        "allowed_scope": [
+          "本课全部内容",
+          "模块 2 预告"
+        ],
+        "forbidden_scope": [
+          "提前展开模块 2 推导"
+        ]
+      },
+      "preview_contract": {
+        "route_kind": "student_demo",
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-14"
+      },
+      "acceptance_checks": [
+        "信息图在顶部",
+        "五地标回顾完整",
+        "局限性讨论存在",
+        "拓展思考存在",
+        "学生统计面板存在"
+      ],
+      "evidence_sequence": [
+        "info-graphic",
+        "five-landmarks",
+        "limitations-text",
+        "extend-think-text",
+        "student-stats"
+      ],
+      "student_access": {
+        "default_visibility": "visible",
+        "release_required": false,
+        "browse_required": false
+      }
+    }
+  },
+  "layout": {
+    "source": "steps[].layout"
+  },
+  "modules": {
+    "source": "steps[].modules"
+  },
+  "content_blocks": {
+    "source": "steps[].content_blocks"
+  },
+  "evidence_sequence": {
+    "source": "steps[].evidence_sequence"
+  },
+  "interaction_spec": {
+    "source": "steps[].interaction_spec"
+  },
+  "teacher_controls": {
+    "source": "steps[].teacher_controls"
+  },
+  "preview_contract": {
+    "source": "steps[].preview_contract"
+  }
+}

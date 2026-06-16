@@ -1,0 +1,24 @@
+{
+  "lesson_id": "1-2",
+  "sequence_path": "course-content/authoring/knowledge/cards/lessons/1-2/sequence.json",
+  "card_order": [
+    "建模_1_2",
+    "机理建模_1_2",
+    "数据驱动建模_1_2",
+    "微分方程_1_2",
+    "拉氏变换_1_2",
+    "传递函数_1_2",
+    "方框图_1_2",
+    "信号流图_1_2",
+    "特征方程_1_2",
+    "特征根_1_2",
+    "极点_1_2",
+    "复平面_1_2",
+    "稳定区_1_2",
+    "稳定边界_1_2",
+    "模型结构相似性_1_2"
+  ],
+  "missing_cards": [],
+  "missing_frontmatter_keys": {},
+  "missing_sections": {}
+}
