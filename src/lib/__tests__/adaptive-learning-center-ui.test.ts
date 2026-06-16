@@ -941,7 +941,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(JSON.stringify(currentPath?.payload)).not.toContain('terminal-validation-');
   });
 
-  it('does not expose cosmetic path options when the policy bundle is low-resource fallback', () => {
+  it('exposes governed fallback path options while keeping fallback limitations visible', () => {
     const view = buildAdaptiveLearningCenterView({
       featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
       learnerState: learnerState(),
@@ -1014,7 +1014,15 @@ describe('adaptive learning center UI contracts', () => {
 
     const currentPath = view.panels.find((panel) => panel.region === 'current-path');
     expect(currentPath?.payload).toMatchObject({
-      pathOptions: [],
+      pathOptions: [
+        {
+          optionId: 'path-option-1',
+          label: '基础补救',
+          evidenceBasis: ['学习证据'],
+          terminalValidationNodeIds: [],
+          limitations: ['需要完成终点检验'],
+        },
+      ],
       pathOptionFallback: {
         status: 'low-resource-fallback',
         fallbackReasons: ['路径差异不足', '终点检验差异不足'],
@@ -1371,8 +1379,11 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('learnerState?.pathContext.activeControlCorrectionPath.pathId');
     expect(source).toContain('learnerState?.pathContext.recentPathIds ?? []');
     expect(source).toContain('uniquePathIds([activePathId, ...fallbackPathIds])');
-    expect(source).toContain('payload.path?.goalId === goalToLoad && restoredPlan');
-    expect(source).toContain('fetch(`/api/learning-paths/${encodeURIComponent(pathIdToLoad)}`)');
+    expect(source).toContain('fetchLearningPathRound(pathIdToLoad, goalToLoad)');
+    expect(source).toContain('fetchLatestLearningPathRound(goalToLoad)');
+    expect(source).toContain('fetchLatestLearningPathRound(activeGoal)');
+    expect(source).toContain('fetch(`/api/learning-paths/${encodeURIComponent(pathId)}`)');
+    expect(source).toContain('fetch(`/api/learning-paths/latest?goal=${encodeURIComponent(goalId)}`)');
     expect(source).toContain("if (!round || !isAdaptivePracticeGoalId(round.goalId)) return null;");
     expect(source).toContain('id: round.goalId');
     expect(source).toContain('Array.isArray(round.alternativePayload)');

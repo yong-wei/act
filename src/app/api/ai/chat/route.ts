@@ -7,6 +7,7 @@
  */
 
 import { consumeStream, createUIMessageStreamResponse, streamText, stepCountIs } from 'ai';
+import { createHash } from 'node:crypto';
 import { getConfiguredAIModel, isConfiguredAIServiceAvailable, SYSTEM_PROMPT, buildContextAwarePrompt, type LessonContext } from '@/lib/ai-client';
 import { toLegacyMessage, toModelMessages, toUIMessage, type IncomingMessage } from '@/lib/ai-message-compat';
 import { aiTools, updateSimulationState } from '@/lib/ai-tools';
@@ -293,6 +294,18 @@ export async function POST(request: Request) {
         streaming: true,
         citationNormalization: true,
       };
+      if (!(await isConfiguredAIServiceAvailable(modelRequirements))) {
+        return new Response(
+          JSON.stringify({
+            error: 'AI 服务未配置',
+            message: '请在环境变量中配置 AI_API_KEY',
+          }),
+          {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
       const agentSession = await getOrCreateKonlingAgentSession(prisma, {
         scope: scope.scope,
         agentSessionId,
@@ -301,20 +314,31 @@ export async function POST(request: Request) {
         state: { route: '/api/ai/chat', teachingAssistantMode: modeContract.mode.id, modeStatus: modeContract.status },
         permittedTools: modeContract.permittedTools,
       });
-      agentSessionResponseHeaders = {
-        'X-Konling-Agent-Session-Id': agentSession.id,
-        'X-Konling-Citation-Guard': citationGuardMetadata.status,
-        'X-Konling-Assistant-Mode': modeContract.mode.id,
-        'X-Konling-Assistant-Mode-Status': modeContract.status,
-      };
-      tools = buildScopedKonlingAiTools(buildKonlingToolRuntime({
+      const toolRuntime = buildKonlingToolRuntime({
         db: prisma,
         scope: scope.scope,
         context: { ...runtimeContext, permittedTools: modeContract.permittedTools },
         agentSessionId: agentSession.id,
         permittedTools: modeContract.permittedTools,
         scopedSimulationState: simulationState as Parameters<typeof updateSimulationState>[0] | undefined,
-      }));
+      });
+      const proactivePathGeneration = await maybeGeneratePathAdvisorPlan({
+        modeId: modeContract.mode.id,
+        permittedTools: modeContract.permittedTools,
+        scope: scope.scope,
+        messages,
+        runtime: toolRuntime,
+      });
+      if (proactivePathGeneration) {
+        systemPrompt = `${systemPrompt}\n\n${proactivePathGeneration}`;
+      }
+      agentSessionResponseHeaders = {
+        'X-Konling-Agent-Session-Id': agentSession.id,
+        'X-Konling-Citation-Guard': citationGuardMetadata.status,
+        'X-Konling-Assistant-Mode': modeContract.mode.id,
+        'X-Konling-Assistant-Mode-Status': modeContract.status,
+      };
+      tools = buildScopedKonlingAiTools(toolRuntime);
     } else if (pageContext && userProfile) {
       const aiContext: AIContext = {
         page: pageContext,
@@ -397,4 +421,76 @@ export async function POST(request: Request) {
     console.error('AI Chat API 错误:', summarizeAIChatError(error));
     return buildAIChatErrorResponse(error);
   }
+}
+
+async function maybeGeneratePathAdvisorPlan(input: {
+  modeId: string;
+  permittedTools: string[];
+  scope: {
+    authenticatedUserId: string;
+    targetUserId: string;
+    courseId: string;
+    pageId: string;
+  };
+  messages: Array<{ role?: string; content?: unknown }>;
+  runtime: ReturnType<typeof buildKonlingToolRuntime>;
+}) {
+  if (input.modeId !== 'path-advisor') return null;
+  if (!input.permittedTools.includes('generate_learning_path')) return null;
+  if (input.scope.authenticatedUserId !== input.scope.targetUserId) return null;
+
+  const text = getLastUserMessageText(input.messages);
+  if (!isLearningPathGenerationRequest(text)) return null;
+
+  const result = await input.runtime.generateLearningPath({
+    idempotencyKey: buildPathAdvisorGenerationIdempotencyKey(input.scope, text),
+    goalId: input.scope.courseId,
+    routeIntent: 'path-advisor-chat-generation',
+    naturalLanguageIntent: text,
+  }) as {
+    pathId?: string;
+    pathOptions?: Array<{ label?: string; estimatedMinutes?: number; limitations?: string[] }>;
+    comparison?: { optionCount?: number; message?: string };
+  };
+
+  const optionSummaries = (result.pathOptions ?? []).slice(0, 3).map((option, index) =>
+    `${index + 1}. ${option.label ?? '学习路径'}${typeof option.estimatedMinutes === 'number' ? `，约 ${option.estimatedMinutes} 分钟` : ''}`
+  );
+
+  return [
+    '**已执行路径生成工具**:',
+    `- 工具: generate_learning_path`,
+    `- 路径ID: ${result.pathId ?? 'unknown'}`,
+    `- 方案数量: ${result.comparison?.optionCount ?? result.pathOptions?.length ?? 0}`,
+    optionSummaries.length ? `- 方案摘要: ${optionSummaries.join('；')}` : null,
+    '- 回答要求: 直接说明路径已经生成，可提示学生在页面的路径比较区选择方案；不要再口头虚构未持久化的新路径。',
+  ].filter((line): line is string => Boolean(line)).join('\n');
+}
+
+function getLastUserMessageText(messages: Array<{ role?: string; content?: unknown }>) {
+  const lastUserMessage = [...messages].reverse().find((message) => message.role === 'user');
+  if (!lastUserMessage) return '';
+  return typeof lastUserMessage.content === 'string' ? lastUserMessage.content.trim() : '';
+}
+
+function isLearningPathGenerationRequest(text: string) {
+  if (!text) return false;
+  return /生成|制定|规划|创建|推荐/.test(text) && /学习路径|路径方案|路径/.test(text);
+}
+
+function buildPathAdvisorGenerationIdempotencyKey(
+  scope: { authenticatedUserId: string; targetUserId: string; courseId: string; pageId: string },
+  text: string,
+) {
+  const digest = createHash('sha256')
+    .update([
+      scope.authenticatedUserId,
+      scope.targetUserId,
+      scope.courseId,
+      scope.pageId,
+      text,
+    ].join('\0'))
+    .digest('hex')
+    .slice(0, 24);
+  return `path-advisor:auto-generate:${digest}`;
 }

@@ -4207,6 +4207,8 @@ async function buildKonlingCitationContext(
         confidence: normalizeCitationConfidence(input.learnerState.evidence?.confidence?.level),
       }),
     });
+  } else if (isKonlingStudentPathCenterScope(input.scope)) {
+    evidenceCitations.push(buildColdStartLearnerStateCitation(input.scope));
   }
   if (input.planContext.currentPathId) {
     evidenceCitations.push({
@@ -4252,9 +4254,10 @@ async function buildKonlingCitationContext(
   });
   evidenceCitations.push(...buildFeatureCacheCitations(featureCache, input.scope, input.planContext));
 
+  const hasLearnerStateCitation = evidenceCitations.some((citation) => citation.sourceType === 'learner-state');
   const missingCitationClasses = [
     contentCitations.length === 0 ? 'content' : null,
-    input.learnerState ? null : 'learner-state',
+    hasLearnerStateCitation ? null : 'learner-state',
     input.planContext.status === 'available' ? null : 'path-execution',
     evidenceCitations.length > 0 ? null : 'evidence',
   ].filter((item): item is string => Boolean(item));
@@ -4284,7 +4287,7 @@ async function buildKonlingCitationContext(
 
 function buildContentCitations(pageContext: PageContext): KonlingCitation[] {
   const stepContext = getStepAIContext(pageContext.courseId, pageContext.stepId);
-  if (!stepContext) return [];
+  if (!stepContext) return buildAdaptivePathCenterContentCitations(pageContext);
   return [{
     id: `content:${pageContext.courseId}:${pageContext.stepId}`,
     sourceType: 'content',
@@ -4301,6 +4304,48 @@ function buildContentCitations(pageContext: PageContext): KonlingCitation[] {
       confidence: 'high',
     }),
   }];
+}
+
+function buildAdaptivePathCenterContentCitations(pageContext: PageContext): KonlingCitation[] {
+  if (pageContext.stepId !== 'adaptive-path-center' && pageContext.stepId !== 'student-path-center') return [];
+  const registeredGoal = getRegisteredAdaptiveLearningPathGoal(pageContext.courseId);
+  if (!registeredGoal) return [];
+
+  return [{
+    id: `content:${registeredGoal.goal.id}:adaptive-path-center`,
+    sourceType: 'content',
+    displayTitle: `${registeredGoal.displayName}学习路径中心`,
+    href: '/assessment/adaptive-practice',
+    confidence: 'high',
+    evidenceBasis: 'adaptive-learning-path-goal-registry',
+    owner: 'answer',
+    citationChip: buildKonlingCitationChip({
+      id: `content:${registeredGoal.goal.id}:adaptive-path-center`,
+      sourceType: 'content',
+      displayTitle: `${registeredGoal.displayName}学习路径中心`,
+      href: '/assessment/adaptive-practice',
+      confidence: 'high',
+    }),
+  }];
+}
+
+function buildColdStartLearnerStateCitation(scope: KonlingRuntimeScope): KonlingCitation {
+  return {
+    id: `learner-state:${scope.targetUserId}:cold-start`,
+    sourceType: 'learner-state',
+    displayTitle: '冷启动学习状态',
+    href: null,
+    confidence: 'low',
+    evidenceBasis: 'ColdStartAdaptiveLearnerStateFallback',
+    owner: 'recommendation',
+    citationChip: buildKonlingCitationChip({
+      id: `learner-state:${scope.targetUserId}:cold-start`,
+      sourceType: 'learner-state',
+      displayTitle: '冷启动学习状态',
+      href: null,
+      confidence: 'low',
+    }),
+  };
 }
 
 function buildFeatureCacheCitations(

@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   prisma: {
     learningPath: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       update: vi.fn(),
     },
     learningPathExecution: {
@@ -67,6 +68,7 @@ vi.mock('@/lib/data-governance/student-evidence-feature-cache', () => ({
 }));
 
 import { POST as planPath } from '../plan/route';
+import { GET as readLatestPath } from '../latest/route';
 import { GET as readPath } from '../[id]/route';
 import { GET as launchPathNode, POST as executePath } from '../[id]/execute/route';
 import { POST as deviatePath } from '../[id]/deviations/route';
@@ -162,6 +164,12 @@ describe('learning path round API routes', () => {
       inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
       terminalValidation: { nodeId: 'node-1', state: 'pending' },
       lastExecutionMetadata: { completedNodeIds: [] },
+    });
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
     });
     mocks.prisma.studentProfile.findUnique.mockResolvedValue({ userId: 'student-1', classId: 'class-1' });
     mocks.prisma.class.findUnique.mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' });
@@ -376,6 +384,78 @@ describe('learning path round API routes', () => {
       classId: 'class-1',
     }));
     expect(mocks.persistControlCorrectionPathRound).not.toHaveBeenCalled();
+  });
+
+  it('returns the latest authenticated student path for a registered goal', async () => {
+    const response = await readLatestPath(new Request('http://localhost/api/learning-paths/latest?goal=control-correction'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.path.id).toBe('path-1');
+    expect(mocks.prisma.learningPath.findFirst).toHaveBeenCalledWith({
+      where: {
+        userId: 'student-1',
+        goalId: 'control-correction',
+        isAiGenerated: true,
+        pathStatus: { in: ['active', 'fallback', 'completed'] },
+      },
+      select: {
+        id: true,
+        userId: true,
+        classId: true,
+        goalId: true,
+      },
+      orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
+    });
+    expect(mocks.readControlCorrectionPathRound).toHaveBeenCalledWith(expect.anything(), {
+      pathId: 'path-1',
+      userId: 'student-1',
+    });
+  });
+
+  it('prevents a student from reading another learner latest path', async () => {
+    const response = await readLatestPath(
+      new Request('http://localhost/api/learning-paths/latest?goal=control-correction&userId=student-2'),
+    );
+
+    expect(response.status).toBe(403);
+    expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('allows a teacher to read the latest path only after class ownership is proven', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-1', role: 'TEACHER' } });
+
+    const response = await readLatestPath(
+      new Request('http://localhost/api/learning-paths/latest?goal=control-correction&userId=student-1'),
+    );
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.studentProfile.findUnique).toHaveBeenCalledWith({
+      where: { userId: 'student-1' },
+      select: { userId: true, classId: true },
+    });
+    expect(mocks.prisma.class.findUnique).toHaveBeenCalledWith({
+      where: { id: 'class-1' },
+      select: { id: true, teacherId: true },
+    });
+    expect(mocks.prisma.learningPath.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        userId: 'student-1',
+        goalId: 'control-correction',
+        classId: 'class-1',
+      }),
+    }));
+  });
+
+  it('rejects teacher latest path reads outside the authorized class before querying paths', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({ user: { id: 'teacher-2', role: 'TEACHER' } });
+
+    const response = await readLatestPath(
+      new Request('http://localhost/api/learning-paths/latest?goal=control-correction&userId=student-1'),
+    );
+
+    expect(response.status).toBe(403);
+    expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
   });
 
   it('rejects unknown learning goals during plan creation', async () => {

@@ -14,9 +14,10 @@ interface UseLegacyChatOptions {
   api: string;
   body?: Record<string, unknown>;
   onError?: (error: Error) => void;
+  onFinish?: (event: unknown) => void;
 }
 
-export function useChat({ api, body, onError }: UseLegacyChatOptions) {
+export function useChat({ api, body, onError, onFinish }: UseLegacyChatOptions) {
   const [input, setInput] = useState('');
   const bodyRef = useRef(body);
 
@@ -36,6 +37,7 @@ export function useChat({ api, body, onError }: UseLegacyChatOptions) {
   const chat = useAiSdkChat({
     transport,
     onError,
+    onFinish,
   });
 
   const handleInputChange = useCallback(

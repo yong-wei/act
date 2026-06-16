@@ -165,6 +165,22 @@ export async function resolveKonlingTeachingAssistantScopeOverride(input: {
   clientContextHints?: Record<string, unknown> | null;
 }): Promise<{ targetUserId?: string; classId?: string }> {
   const mode = resolveKonlingTeachingAssistantMode(input.modeId);
+  if (mode.id === 'path-advisor') {
+    const payload = verifySignedModeContextSignature(input.clientContextHints);
+    const role = normalizeKonlingRole(input.role?.toUpperCase());
+    if (
+      role === 'student' &&
+      payload?.mode === 'path-advisor' &&
+      payload.classId &&
+      payload.context['student-path-center'] === true &&
+      (!payload.courseId || payload.courseId === stringHint(input.clientContextHints, 'courseId')) &&
+      (!payload.pageId || payload.pageId === 'adaptive-path-center' || payload.pageId === 'student-path-center') &&
+      (!payload.goalId || payload.goalId === stringHint(input.clientContextHints, 'goalId'))
+    ) {
+      return { classId: payload.classId };
+    }
+    return {};
+  }
   if (mode.id !== 'grading-assistant' && mode.id !== 'feedback-explainer') return {};
 
   const resolved = await resolveDocumentGradingDraft(input);
@@ -369,26 +385,8 @@ function verifySignedModeContext(
   const token = stringHint(hints, 'modeContextToken');
   if (!token) return null;
 
-  const [encoded, signature] = token.split('.');
-  if (!encoded || !signature) return null;
-  const secret = resolveModeContextSigningSecret();
-  if (!secret) return null;
-  const expectedSignature = signModeContext(encoded, secret);
-  const signatureBuffer = Buffer.from(signature);
-  const expectedBuffer = Buffer.from(expectedSignature);
-  if (
-    signatureBuffer.length !== expectedBuffer.length ||
-    !timingSafeEqual(signatureBuffer, expectedBuffer)
-  ) {
-    return null;
-  }
-
-  let payload: SignedModeContextPayload;
-  try {
-    payload = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8')) as SignedModeContextPayload;
-  } catch {
-    return null;
-  }
+  const payload = verifySignedModeContextSignature(hints);
+  if (!payload) return null;
   if (payload.mode !== input.modeId) return null;
   if (!payload.classId || payload.classId !== input.scope.classId) return null;
   if (payload.courseId && payload.courseId !== input.scope.courseId) return null;
@@ -410,6 +408,38 @@ function verifySignedModeContext(
   return payload as VerifiedModeContextPayload;
 }
 
+function verifySignedModeContextSignature(
+  hints: Record<string, unknown> | null | undefined,
+): SignedModeContextPayload | null {
+  const token = stringHint(hints, 'modeContextToken');
+  if (!token) return null;
+
+  const [encoded, signature] = token.split('.');
+  if (!encoded || !signature) return null;
+  const secret = resolveModeContextSigningSecret();
+  if (!secret) return null;
+  const expectedSignature = signModeContext(encoded, secret);
+  const signatureBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expectedSignature);
+  if (
+    signatureBuffer.length !== expectedBuffer.length ||
+    !timingSafeEqual(signatureBuffer, expectedBuffer)
+  ) {
+    return null;
+  }
+
+  let payload: SignedModeContextPayload;
+  try {
+    payload = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8')) as SignedModeContextPayload;
+  } catch {
+    return null;
+  }
+  if (!payload.expiresAt) return null;
+  const expiresAt = Date.parse(payload.expiresAt);
+  if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) return null;
+  return payload;
+}
+
 function resolveModeContextSigningSecret(): string | null {
   const secret = process.env.KONLING_SERVER_MODE_CONTEXT_SECRET ||
     process.env.KONLING_MODE_CONTEXT_SECRET ||
@@ -422,6 +452,7 @@ function resolveModeContextSigningSecret(): string | null {
 function isPlaceholderSigningSecret(secret: string): boolean {
   const normalized = secret.toLowerCase();
   return normalized === 'konling-mode-context-development-secret' ||
+    normalized === 'replace-with-strong-konling-context-secret' ||
     normalized === 'development-secret' ||
     normalized === 'your-secret-key' ||
     normalized === 'changeme' ||

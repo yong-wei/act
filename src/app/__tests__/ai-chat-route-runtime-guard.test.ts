@@ -69,7 +69,8 @@ describe('AI chat route Konling runtime guard', () => {
   });
 
   it('keeps the scoped get_simulation_status tool contract compatible with legacy tools', () => {
-    expect(chatRouteSource).toContain('tools = buildScopedKonlingAiTools(buildKonlingToolRuntime');
+    expect(chatRouteSource).toContain('const toolRuntime = buildKonlingToolRuntime');
+    expect(chatRouteSource).toContain('tools = buildScopedKonlingAiTools(toolRuntime)');
     expect(chatRouteSource).not.toContain('...buildScopedKonlingAiTools');
   });
 
@@ -92,12 +93,25 @@ describe('AI chat route Konling runtime guard', () => {
   });
 
   it('keeps scoped Konling simulation parameter tools available without restoring legacy tools', () => {
-    expect(chatRouteSource).toContain('buildScopedKonlingAiTools(buildKonlingToolRuntime');
+    expect(chatRouteSource).toContain('const toolRuntime = buildKonlingToolRuntime');
+    expect(chatRouteSource).toContain('tools = buildScopedKonlingAiTools(toolRuntime)');
     expect(konlingRuntimeSource).toContain('set_simulation_params: tool');
     expect(konlingRuntimeSource).toContain('analyze_result: tool');
     expect(konlingRuntimeSource).not.toContain('setSimulationParamsTool.execute');
     expect(konlingRuntimeSource).toContain('inputSchema: setSimulationParamsInputSchema.extend');
     expect(chatRouteSource).toContain('scopedSimulationState: simulationState');
+  });
+
+  it('runs path-advisor generation through the audited Konling tool before streaming a reply', () => {
+    expect(chatRouteSource).toContain('maybeGeneratePathAdvisorPlan');
+    expect(chatRouteSource).toContain("input.modeId !== 'path-advisor'");
+    expect(chatRouteSource).toContain("input.permittedTools.includes('generate_learning_path')");
+    expect(chatRouteSource).toContain('input.runtime.generateLearningPath');
+    expect(chatRouteSource).toContain('path-advisor:auto-generate');
+    expect(chatRouteSource.indexOf('const proactivePathGeneration = await maybeGeneratePathAdvisorPlan'))
+      .toBeLessThan(chatRouteSource.indexOf('tools = buildScopedKonlingAiTools(toolRuntime)'));
+    expect(chatRouteSource.indexOf('isConfiguredAIServiceAvailable(modelRequirements)'))
+      .toBeLessThan(chatRouteSource.indexOf('const proactivePathGeneration = await maybeGeneratePathAdvisorPlan'));
   });
 
   it('attaches audited agent sessions before exposing scoped Konling tools', () => {

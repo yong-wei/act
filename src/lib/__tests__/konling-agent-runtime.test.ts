@@ -490,6 +490,58 @@ describe('konling agent runtime', () => {
     expect(contract.permittedTools).toContain('generate_learning_path');
   });
 
+  it('keeps path-advisor generation available for cold-start students with signed path-center context', async () => {
+    mocks.readAdaptiveLearnerState.mockResolvedValueOnce(null);
+    const runtime = await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      targetUserId: 'student-1',
+      classId: 'class-1',
+      courseId: 'control-correction',
+      pageId: 'adaptive-path-center',
+      pageContextHint: {
+        pageType: 'practice',
+        courseId: 'control-correction',
+        courseTitle: '控制系统校正设计',
+        stepId: 'adaptive-path-center',
+        topic: '控制系统校正学习路径',
+        learningObjectives: ['生成、比较和调整学习路径'],
+        knowledgeType: 'C',
+      },
+      trustedContentContext: true,
+    });
+
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'path-advisor',
+      runtimeContext: runtime,
+      scope: createScope({
+        role: 'student',
+        authenticatedUserId: 'student-1',
+        targetUserId: 'student-1',
+        classId: 'class-1',
+        courseId: 'control-correction',
+        pageId: 'adaptive-path-center',
+        pathNodeId: null,
+      }),
+      serverModeContext: {
+        'student-path-center': true,
+        'learner-state-summary': true,
+        'evidence-citations': true,
+      },
+    });
+
+    expect(contract.status).not.toBe('unavailable');
+    expect(contract.unavailableReasons).toEqual([]);
+    expect(contract.degradedReasons).toEqual(expect.arrayContaining(['low-confidence-learner-state']));
+    expect(contract.citationRequirements.missingClasses).not.toEqual(expect.arrayContaining(['learner-state', 'content']));
+    expect(contract.permittedTools).toContain('generate_learning_path');
+  });
+
   it('does not expose path-advisor write tools from forged page ids without server context', () => {
     const runtime = createRuntimeContext({
       learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],

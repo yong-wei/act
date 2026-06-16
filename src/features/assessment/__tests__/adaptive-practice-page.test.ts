@@ -20,10 +20,10 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('/login?callbackUrl=');
   });
 
-  it('shows a retryable question loading failure instead of only the pending placeholder', () => {
+  it('shows a retryable question loading fallback instead of only the pending placeholder', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
-    expect(source).toContain('题目加载失败');
+    expect(source).toContain('练习加载未完成');
     expect(source).toContain('重新加载');
     expect(source).toContain('void bootstrapPractice()');
   });

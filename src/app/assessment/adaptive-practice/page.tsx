@@ -106,6 +106,15 @@ interface SubmitAnswerResponse {
   recommendedFocus: string[];
 }
 
+interface PathAdvisorContextResponse {
+  goalId: AdaptivePracticeGoalId;
+  classId: string;
+  modeContextToken: string;
+  courseTitle: string;
+  topic: string;
+  learningObjectives: string[];
+}
+
 interface LearningPathRoundResponse {
   path?: {
     id: string;
@@ -620,6 +629,29 @@ function restoreLearningPathPlan(round: LearningPathRoundResponse['path']): Adap
   };
 }
 
+async function fetchLearningPathRound(
+  pathId: string,
+  goalId: AdaptivePracticeGoalId,
+): Promise<{ round: LearningPathRoundView; plan: AdaptiveLearningPathPlan } | null> {
+  const pathResponse = await fetch(`/api/learning-paths/${encodeURIComponent(pathId)}`);
+  if (!pathResponse.ok) return null;
+  const payload = (await pathResponse.json()) as LearningPathRoundResponse;
+  const restoredPlan = restoreLearningPathPlan(payload.path ?? null);
+  if (payload.path?.goalId !== goalId || !restoredPlan) return null;
+  return { round: payload.path, plan: restoredPlan };
+}
+
+async function fetchLatestLearningPathRound(
+  goalId: AdaptivePracticeGoalId,
+): Promise<{ round: LearningPathRoundView; plan: AdaptiveLearningPathPlan } | null> {
+  const pathResponse = await fetch(`/api/learning-paths/latest?goal=${encodeURIComponent(goalId)}`);
+  if (!pathResponse.ok) return null;
+  const payload = (await pathResponse.json()) as LearningPathRoundResponse;
+  const restoredPlan = restoreLearningPathPlan(payload.path ?? null);
+  if (payload.path?.goalId !== goalId || !restoredPlan) return null;
+  return { round: payload.path, plan: restoredPlan };
+}
+
 function controlCorrectionAlternativeCount(view: ControlCorrectionLearningCenterView): number {
   const currentPath = view.panels.find((panel) => panel.region === 'current-path');
   const payload = currentPath?.payload;
@@ -1005,7 +1037,7 @@ export default function AdaptivePracticePage() {
   const genericPathGenerationHref = '#adaptive-path-generation-goals';
   const loginHref = `/login?callbackUrl=${encodeURIComponent(activeGoalContextHref)}`;
   const entryIntents = getCommercialStudentEntryIntentGroups();
-  const { assistantEntryPoint, openAssistantEntryPoint } = useGlobalAI();
+  const { assistantEntryPoint, openAssistantEntryPoint, updatePageContext } = useGlobalAI();
 
   const sessionId = useMemo(() => `practice-${Math.random().toString(36).slice(2, 10)}`, []);
 
@@ -1098,6 +1130,73 @@ export default function AdaptivePracticePage() {
     if (!assistantEntryPoint || assistantEntryPoint.mode !== 'path-advisor') return;
     openAssistantEntryPoint(assistantEntryPoint);
   }, [assistantEntryPoint, openAssistantEntryPoint]);
+
+  useEffect(() => {
+    if (!activeGoal || isDemoMode) {
+      updatePageContext({ assistantEntryPoint: null });
+      return;
+    }
+
+    if (authStatus === 'loading') return;
+
+    if (authStatus !== 'authenticated') {
+      updatePageContext({ assistantEntryPoint: null });
+      return;
+    }
+
+    const pathAdvisorGoal = activeGoal;
+    let cancelled = false;
+    async function registerPathAdvisorEntryPoint() {
+      try {
+        const response = await fetch(`/api/adaptive/path-advisor-context?goal=${encodeURIComponent(pathAdvisorGoal)}`);
+        if (!response.ok) {
+          if (!cancelled) updatePageContext({ assistantEntryPoint: null });
+          return;
+        }
+        const payload = (await response.json()) as PathAdvisorContextResponse;
+        if (cancelled) return;
+        updatePageContext({
+          pageType: 'practice',
+          stepId: 'adaptive-path-center',
+          knowledgeType: 'C',
+          url: '/assessment/adaptive-practice',
+          courseId: payload.goalId,
+          courseTitle: payload.courseTitle,
+          topic: payload.topic,
+          learningObjectives: payload.learningObjectives,
+          quickQuestions: [
+            {
+              label: '生成路径',
+              question: `请为我生成一组${payload.courseTitle}学习路径，优先给出 2 到 3 条可比较方案。`,
+            },
+            {
+              label: '按时间调整',
+              question: `我希望在 90 分钟内完成${payload.courseTitle}的关键补强，请调整学习路径。`,
+            },
+          ],
+          assistantEntryPoint: {
+            mode: 'path-advisor',
+            promptContext: `student-path-center:${payload.goalId}:adaptive-path-center`,
+            serverContext: {
+              classId: payload.classId,
+              courseId: payload.goalId,
+              goalId: payload.goalId,
+              pageId: 'adaptive-path-center',
+              modeContextToken: payload.modeContextToken,
+            },
+          },
+        });
+      } catch {
+        if (!cancelled) updatePageContext({ assistantEntryPoint: null });
+      }
+    }
+
+    void registerPathAdvisorEntryPoint();
+    return () => {
+      cancelled = true;
+      updatePageContext({ assistantEntryPoint: null });
+    };
+  }, [activeGoal, authStatus, isDemoMode, updatePageContext]);
 
   const applyDemoScene = useCallback((scene: DemoScene) => {
     const demoData = DEMO_SCENES[scene];
@@ -1204,31 +1303,31 @@ export default function AdaptivePracticePage() {
         ? [learnerState?.pathContext.activeControlCorrectionPath.pathId ?? null]
         : learnerState?.pathContext.recentPathIds ?? [];
       const pathIdsToTry = uniquePathIds([activePathId, ...fallbackPathIds]);
-      if (pathIdsToTry.length === 0) {
-        if (!cancelled) {
-          setControlCorrectionPathPlan(null);
-          setControlCorrectionPathRound(null);
-        }
-        return;
-      }
-
       let loadedMatchingPath = false;
       for (const pathIdToLoad of pathIdsToTry) {
         if (cancelled) return;
         try {
-          const pathResponse = await fetch(`/api/learning-paths/${encodeURIComponent(pathIdToLoad)}`);
-          if (!cancelled && pathResponse.ok) {
-            const payload = (await pathResponse.json()) as LearningPathRoundResponse;
-            const restoredPlan = restoreLearningPathPlan(payload.path ?? null);
-            if (payload.path?.goalId === goalToLoad && restoredPlan) {
-              setControlCorrectionPathRound(payload.path ?? null);
-              setControlCorrectionPathPlan(restoredPlan);
-              loadedMatchingPath = true;
-              break;
-            }
+          const loaded = await fetchLearningPathRound(pathIdToLoad, goalToLoad);
+          if (!cancelled && loaded) {
+            setControlCorrectionPathRound(loaded.round);
+            setControlCorrectionPathPlan(loaded.plan);
+            loadedMatchingPath = true;
+            break;
           }
         } catch {
           // Try the next recent path before falling back to an empty center.
+        }
+      }
+      if (!loadedMatchingPath && !activePathId && !cancelled) {
+        try {
+          const latest = await fetchLatestLearningPathRound(goalToLoad);
+          if (!cancelled && latest) {
+            setControlCorrectionPathRound(latest.round);
+            setControlCorrectionPathPlan(latest.plan);
+            loadedMatchingPath = true;
+          }
+        } catch {
+          // Keep the center in cold-start mode when no latest path is available.
         }
       }
       if (!loadedMatchingPath && !cancelled) {
@@ -1254,6 +1353,57 @@ export default function AdaptivePracticePage() {
     setControlCorrectionPathRound(payload.path ?? null);
     setControlCorrectionPathPlan(restoreLearningPathPlan(payload.path ?? null));
   }, [activePathId, controlCorrectionLearnerState, controlCorrectionPathRound]);
+
+  const refreshLatestLearningPathAfterKonling = useCallback(async () => {
+    if (!activeGoal || isDemoMode || authStatus !== 'authenticated') return;
+
+    let learnerState: AdaptiveLearnerState | null = null;
+    try {
+      const learnerResponse = await fetch(`/api/adaptive/learner-state?goal=${encodeURIComponent(activeGoal)}`);
+      if (learnerResponse.ok) {
+        learnerState = (await learnerResponse.json()) as AdaptiveLearnerState;
+        setControlCorrectionLearnerState(learnerState);
+      }
+    } catch {
+      learnerState = null;
+    }
+
+    const fallbackPathIds = activeGoal === 'control-correction'
+      ? [learnerState?.pathContext.activeControlCorrectionPath.pathId ?? null]
+      : learnerState?.pathContext.recentPathIds ?? [];
+    const pathIdsToTry = uniquePathIds([activePathId, ...fallbackPathIds]);
+    for (const pathIdToLoad of pathIdsToTry) {
+      try {
+        const loaded = await fetchLearningPathRound(pathIdToLoad, activeGoal);
+        if (loaded) {
+          setControlCorrectionPathRound(loaded.round);
+          setControlCorrectionPathPlan(loaded.plan);
+          setPathChoiceMessage('学习路径已生成，请选择一个方案开始执行。');
+          return;
+        }
+      } catch {
+        // Try the next path id.
+      }
+    }
+    try {
+      const latest = await fetchLatestLearningPathRound(activeGoal);
+      if (latest) {
+        setControlCorrectionPathRound(latest.round);
+        setControlCorrectionPathPlan(latest.plan);
+        setPathChoiceMessage('学习路径已生成，请选择一个方案开始执行。');
+      }
+    } catch {
+      // Keep the starter path preview if the latest path is still not readable.
+    }
+  }, [activeGoal, activePathId, authStatus, isDemoMode]);
+
+  useEffect(() => {
+    const handleAdaptivePathUpdated = () => {
+      void refreshLatestLearningPathAfterKonling();
+    };
+    window.addEventListener('konling:adaptive-path-updated', handleAdaptivePathUpdated);
+    return () => window.removeEventListener('konling:adaptive-path-updated', handleAdaptivePathUpdated);
+  }, [refreshLatestLearningPathAfterKonling]);
 
   const submitPathChoice = useCallback(async (
     action: 'selection' | 'rejection' | 'switch' | 'helpfulness',
@@ -1922,34 +2072,41 @@ export default function AdaptivePracticePage() {
               </span>
             </div>
 
-            <div className="mt-4 hidden gap-3 lg:grid lg:grid-cols-[minmax(180px,0.55fr)_repeat(3,minmax(0,1fr))]">
-              <div className="hidden rounded-lg border border-border bg-muted/35 p-3 text-xs font-medium text-subtle lg:block">比较字段</div>
-              {visiblePathOptions.map((option) => (
-                <div key={option.id} className="rounded-lg border border-border bg-muted/35 p-3" data-learning-path-option={option.id}>
-                  <h3 className="text-base font-semibold text-foreground">{option.title}</h3>
-                  <p className="mt-1 text-sm text-subtle">{option.scenario}</p>
-                </div>
-              ))}
-
-              {[
-                ['预计时长', (option: AdaptivePathOptionDisplay) => option.estimatedTime],
-                ['已匹配资源', (option: AdaptivePathOptionDisplay) => option.resources.map((resource) => resource.label).join('、')],
-                ['检查节点', (option: AdaptivePathOptionDisplay) => option.checkpoints],
-                ['适合场景', (option: AdaptivePathOptionDisplay) => option.scenario],
-                ['当前建议理由', (option: AdaptivePathOptionDisplay) => option.reason],
-                ['预期结果', (option: AdaptivePathOptionDisplay) => option.outcome],
-              ].map(([label, resolve]) => (
-                <div key={label as string} className="contents">
-                  <div className="rounded-lg border border-border bg-background/45 p-3 text-sm font-medium text-foreground">
-                    {label as string}
+            <div className="mt-4 hidden overflow-x-auto lg:block">
+              <div
+                className="grid min-w-max gap-3"
+                style={{
+                  gridTemplateColumns: `minmax(180px,0.55fr) repeat(${Math.max(visiblePathOptions.length, 1)}, minmax(220px,1fr))`,
+                }}
+              >
+                <div className="rounded-lg border border-border bg-muted/35 p-3 text-xs font-medium text-subtle">比较字段</div>
+                {visiblePathOptions.map((option) => (
+                  <div key={option.id} className="rounded-lg border border-border bg-muted/35 p-3" data-learning-path-option={option.id}>
+                    <h3 className="text-base font-semibold text-foreground">{option.title}</h3>
+                    <p className="mt-1 text-sm text-subtle">{option.scenario}</p>
                   </div>
-                  {visiblePathOptions.map((option) => (
-                    <div key={`${option.id}:${label}`} className="rounded-lg border border-border bg-background/45 p-3 text-sm leading-6 text-subtle">
-                      {(resolve as (option: AdaptivePathOptionDisplay) => string)(option)}
+                ))}
+
+                {[
+                  ['预计时长', (option: AdaptivePathOptionDisplay) => option.estimatedTime],
+                  ['已匹配资源', (option: AdaptivePathOptionDisplay) => option.resources.map((resource) => resource.label).join('、')],
+                  ['检查节点', (option: AdaptivePathOptionDisplay) => option.checkpoints],
+                  ['适合场景', (option: AdaptivePathOptionDisplay) => option.scenario],
+                  ['当前建议理由', (option: AdaptivePathOptionDisplay) => option.reason],
+                  ['预期结果', (option: AdaptivePathOptionDisplay) => option.outcome],
+                ].map(([label, resolve]) => (
+                  <div key={label as string} className="contents">
+                    <div className="rounded-lg border border-border bg-background/45 p-3 text-sm font-medium text-foreground">
+                      {label as string}
                     </div>
-                  ))}
-                </div>
-              ))}
+                    {visiblePathOptions.map((option) => (
+                      <div key={`${option.id}:${label}`} className="rounded-lg border border-border bg-background/45 p-3 text-sm leading-6 text-subtle">
+                        {(resolve as (option: AdaptivePathOptionDisplay) => string)(option)}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="mt-4 space-y-2 lg:hidden">
@@ -2067,7 +2224,7 @@ export default function AdaptivePracticePage() {
               ))}
             </div>
 
-            <div className="mt-4 hidden gap-3 lg:grid lg:grid-cols-3">
+            <div className="mt-4 hidden gap-3 lg:grid lg:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]">
               {visiblePathOptions.map((option) => (
                 <div key={`${option.id}:actions`} className="rounded-lg border border-border bg-muted/30 p-3">
                   <div className="flex flex-wrap gap-1.5">
