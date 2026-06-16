@@ -247,6 +247,63 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('内联曲面的静态图');
   });
 
+  it('routes static 3D compute panels that use the canonical capability payload field', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'fixture-lesson',
+      steps: {
+        'step-01': {
+          title: '能力字段测试',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'canonical-capability-surface',
+              region: 'main',
+              kind: 'compute.panel',
+              must_be_visible: true,
+              payload: {
+                capability: 'static-surface-3d',
+                title: 'canonical capability surface',
+                data: { url: '/course-runtime/lessons/1-2/media/generated-data/pole-magnitude-surface.json' },
+                axes: {
+                  x: { label: '实部 σ' },
+                  y: { label: '虚部 jω' },
+                  z: { label: '20log10|G(s)|' },
+                },
+                colorScale: { label: '幅值 dB', min: -20, max: 60 },
+                defaultCamera: { position: [3, 3, 2], target: [0, 0, 0], zoom: 1 },
+                fallback: {
+                  image: '/course-runtime/lessons/1-2/media/1-2-fig-08-magnitude-surface.png',
+                  alt: 'canonical capability surface fallback',
+                },
+              },
+            },
+          ],
+          content_blocks: {},
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: manifest!,
+        step: step!,
+        moduleRegistry: createManifestContentModuleRegistry({
+          revealProgress: 0,
+          allowInlineReveal: false,
+        }),
+        extra: {
+          revealProgress: 0,
+          allowInlineReveal: false,
+        },
+      }),
+    );
+
+    expect(html).toContain('data-static-surface-3d-panel="canonical-capability-surface"');
+    expect(html).toContain('canonical capability surface fallback');
+  });
+
   it('routes Unit 1-2 pole magnitude surface to the static 3D compute capability with fallback media', async () => {
     const runtime = await loadLessonRuntimeEntry('1-2');
     const manifest = runtime.interactiveManifest!;

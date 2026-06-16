@@ -1411,7 +1411,7 @@ export function createManifestContentModuleRegistry(extra: {
       return <SummaryCard title={title} text={content.text} bullets={content.bullets} />;
     },
     'compute.panel': ({ manifest, step, module }) => {
-      if (module.payload.capabilityRef === 'static-surface-3d' || module.payload.capability_ref === 'static-surface-3d') {
+      if (computeCapabilityRef(module.payload) === 'static-surface-3d') {
         return <StaticSurface3DPanel {...staticSurfacePanelProps(manifest, step, module)} />;
       }
       const content = summaryContent(step, module);
@@ -1802,4 +1802,8 @@ export function createManifestContentModuleRegistry(extra: {
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
     },
   };
+}
+
+function computeCapabilityRef(payload: ContentRecord) {
+  return stringField(payload, ['capabilityRef', 'capability_ref', 'capability']);
 }
