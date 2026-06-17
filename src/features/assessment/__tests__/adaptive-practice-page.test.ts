@@ -73,6 +73,8 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("showPracticeWorkspace || showExecutionWorkspace ? (");
     expect(source).toContain("showEvidenceWorkspace ? (");
     expect(source).toContain("intent: 'path-selection'");
+    expect(source).toContain('const generatedPathId = typeof payload.result?.pathId ===');
+    expect(source).toContain("if (generatedPathId) selectionQuery.set('pathId', generatedPathId)");
     expect(source).toContain("intent: 'path-execution'");
     expect(source).toContain("optionId: option.optionId");
   });

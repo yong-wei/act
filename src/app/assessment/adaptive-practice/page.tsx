@@ -1772,7 +1772,10 @@ export default function AdaptivePracticePage() {
           goal: pathGenerationPanel.goalId,
           intent: 'path-selection',
         });
-        if (currentPathId) selectionQuery.set('pathId', currentPathId);
+        const generatedPathId = typeof payload.result?.pathId === 'string' && payload.result.pathId.length > 0
+          ? payload.result.pathId
+          : currentPathId;
+        if (generatedPathId) selectionQuery.set('pathId', generatedPathId);
         window.location.assign(`/assessment/adaptive-practice?${selectionQuery.toString()}`);
         return;
       }

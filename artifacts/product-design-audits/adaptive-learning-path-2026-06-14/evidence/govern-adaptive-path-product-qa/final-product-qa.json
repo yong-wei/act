@@ -1,13 +1,13 @@
 {
   "change": "govern-adaptive-path-product-qa",
-  "generatedAt": "2026-06-17T12:50:00.618Z",
-  "sourceCommit": "worktree:bdff58a8bb41a419d844dc35",
+  "generatedAt": "2026-06-17T13:41:36.522Z",
+  "sourceCommit": "worktree:77d3cc8da7f27b400894e50d",
   "designHandoff": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md",
   "designHandoffSha256": "9fab1b0d68434d2d025fa170daaabbb22852126995759c24ab145dfee57c30af",
   "handoffMatrix": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/handoff-to-implementation-matrix.md",
-  "handoffMatrixSha256": "d03a3acafb7b3c922e3b88c2fda2000ad238e5f2dfbc2209898168f84bddd6fe",
+  "handoffMatrixSha256": "e1f27e07a86a8b9c1699b7d9ec9b6a10ecc04c6d656fabae94177d8e01bc44bd",
   "captureManifest": "artifacts/commercial-ui/adaptive-path-product-qa-516/capture-manifest.json",
-  "captureManifestSha256": "54ff70e8371fa153a701ff4a3bbc126a348a64788be922c0e5dbecb0c1bce97c",
+  "captureManifestSha256": "37fff0f15b236dc60270e9eb771831350e9b8eeeb508cbb00fa2fc71dd318ec9",
   "visualSignals": "artifacts/commercial-ui/adaptive-path-product-qa-516/visual-signals.json",
   "visualSignalsSha256": "e227ff0d848046479d1325666868ce95c5b32249011402bbcb06283bcd606db6",
   "conceptImages": [
@@ -122,7 +122,7 @@
     {
       "id": "path-comparison-desktop-light",
       "route": "/assessment/adaptive-practice",
-      "goal": "frequency-response-foundations",
+      "goal": "control-correction",
       "role": "student",
       "theme": "light",
       "viewport": "desktop",
@@ -133,13 +133,13 @@
       "selectedPath": "path-option-foundation",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/02-path-selection-comparison.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/path-comparison-desktop-light.png",
-      "screenshotSha256": "9f6f95d7fc5d5437264ec24fce2a055a90d8293c11489128543510fc3ef9d296",
+      "screenshotSha256": "2add60a90f01ccd1616a2d827dfb675b1ee8071485698b84fa79c1a9ed61caf7",
       "result": "passed"
     },
     {
       "id": "path-comparison-mobile-dark",
       "route": "/assessment/adaptive-practice",
-      "goal": "frequency-response-foundations",
+      "goal": "control-correction",
       "role": "student",
       "theme": "dark",
       "viewport": "mobile",
@@ -303,15 +303,15 @@
     },
     {
       "id": "path-comparison-desktop-light",
-      "goal": "frequency-response-foundations",
+      "goal": "control-correction",
       "theme": "light",
       "viewport": "desktop",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/path-comparison-desktop-light.png",
-      "screenshotSha256": "9f6f95d7fc5d5437264ec24fce2a055a90d8293c11489128543510fc3ef9d296"
+      "screenshotSha256": "2add60a90f01ccd1616a2d827dfb675b1ee8071485698b84fa79c1a9ed61caf7"
     },
     {
       "id": "path-comparison-mobile-dark",
-      "goal": "frequency-response-foundations",
+      "goal": "control-correction",
       "theme": "dark",
       "viewport": "mobile",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/path-comparison-mobile-dark.png",
