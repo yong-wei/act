@@ -179,7 +179,14 @@ async function adoptSelectedPathOption(
   path: any,
   option: ServerPathChoiceOption,
 ): Promise<{ selectedOptionId: string; selectedStyleId: string; currentNodeId: string | null; nodeIds: string[] }> {
-  const pathPayload = readRecord(path.pathPayload);
+  const latestPath = await prisma.learningPath.findUnique({
+    where: { id: path.id },
+    select: {
+      pathPayload: true,
+      lastExecutionMetadata: true,
+    },
+  });
+  const pathPayload = readRecord(latestPath?.pathPayload ?? path.pathPayload);
   const currentNodeId = option.activeNodeIds.find((nodeId) => option.nodeIds.includes(nodeId)) ?? option.nodeIds[0] ?? null;
   const selectedPlanNodes = normalizeSelectedPlanNodes(option.planNodes, currentNodeId);
   const updatedAt = new Date().toISOString();
@@ -199,7 +206,7 @@ async function adoptSelectedPathOption(
     visualization: updateSelectedPathVisualization(pathPayload.visualization, option.nodeIds, currentNodeId),
   };
   const lastExecutionMetadata = updateSelectedPathExecutionMetadata(
-    path.lastExecutionMetadata,
+    latestPath?.lastExecutionMetadata ?? path.lastExecutionMetadata,
     option.nodeIds,
     currentNodeId,
     option,

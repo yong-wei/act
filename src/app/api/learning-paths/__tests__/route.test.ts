@@ -1756,6 +1756,75 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('preserves the latest path choice history when adopting the selected option', async () => {
+    const initialPathPayload = {
+      mainPathNodeIds: ['node-1'],
+      planNodes: [{ nodeId: 'node-1', type: 'simulation', target: '/simulations/current' }],
+      policyBundle: {
+        status: 'ready',
+        paths: [
+          {
+            styleId: 'simulation-driven',
+            policyFamily: 'simulation-driven',
+            nodeIds: ['simulation:selected', 'arena-task:terminal'],
+            activeNodeIds: ['simulation:selected'],
+            planNodes: [
+              { nodeId: 'simulation:selected', type: 'simulation', target: '/simulations/selected' },
+              { nodeId: 'arena-task:terminal', type: 'arena_task', target: '/arena/tasks/terminal' },
+            ],
+            resourceMix: { simulation: 1, arena_task: 1 },
+            evidenceBasis: ['simulation-run'],
+            limitations: [],
+          },
+        ],
+      },
+    };
+    const latestSelectionHistory = [{ id: 'choice-history-1', type: 'selection', selectedStyleId: 'simulation-driven' }];
+    const latestActivity = [{ id: 'choice-history-1', type: 'choice:selection', selectedStyleId: 'simulation-driven' }];
+    mocks.prisma.learningPath.findUnique
+      .mockResolvedValueOnce({
+        id: 'path-1',
+        userId: 'student-1',
+        classId: 'class-1',
+        goalId: 'control-correction',
+        pathStatus: 'active',
+        currentNodeId: 'node-1',
+        nodeIds: ['node-1'],
+        pathPayload: initialPathPayload,
+        learnerStateRef: 'diagnosis-snapshot:server-owned',
+        inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
+        terminalValidation: { nodeId: 'node-1', state: 'pending' },
+        lastExecutionMetadata: { completedNodeIds: [] },
+      })
+      .mockResolvedValueOnce({
+        pathPayload: {
+          ...initialPathPayload,
+          selectionHistory: latestSelectionHistory,
+          activity: latestActivity,
+        },
+        lastExecutionMetadata: { completedNodeIds: [], activeNodeId: 'node-1' },
+      });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'choice-history-preserved-key',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'path-1' },
+      data: expect.objectContaining({
+        pathPayload: expect.objectContaining({
+          selectionHistory: latestSelectionHistory,
+          activity: latestActivity,
+          currentNodeId: 'simulation:selected',
+          mainPathNodeIds: ['simulation:selected', 'arena-task:terminal'],
+        }),
+      }),
+    }));
+  });
+
   it('rejects product option adoption when selected plan nodes are not executable', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1',
