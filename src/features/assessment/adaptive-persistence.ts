@@ -316,6 +316,7 @@ function buildAssessmentLearningEvent(params: {
       masteryConfidence: params.masteryConfidence,
       confidence: params.masteryConfidence,
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
+      ...(params.details.pathContext ? { pathExecution: params.details.pathContext } : {}),
       privacyLevel: 'restricted',
     },
     source: 'web',
@@ -467,6 +468,9 @@ async function persistAdaptiveAssessmentSubmission(
       dimensions: {
         source: 'adaptive-assessment',
         answerCount: answerHistory.length,
+        ...(details.pathContext ? {
+          pathExecution: details.pathContext,
+        } : {}),
       },
       algorithmVersion: ADAPTIVE_ASSESSMENT_ALGORITHM_VERSION,
       estimatedAt: answeredAt,

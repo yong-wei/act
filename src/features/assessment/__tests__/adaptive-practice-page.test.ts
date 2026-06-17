@@ -43,4 +43,17 @@ describe('adaptive practice page entry states', () => {
     expect(refreshBlock.indexOf('fetchLearningPathRound(activePathId, activeGoal)')).toBeLessThan(refreshBlock.indexOf('fetchLatestLearningPathRound(activeGoal)'));
     expect(refreshBlock).toContain('}, [activeGoal, activePathId, authStatus, isDemoMode]);');
   });
+
+  it('binds adaptive quiz outcomes into path result cards', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain('PathNodeResultCardView');
+    expect(source).toContain('readPathNodeResultSummary');
+    expect(source).toContain('data-adaptive-path-result-card');
+    expect(source).toContain('结果待同步');
+    expect(source).toContain('syncAdaptiveAssessmentPathResult');
+    expect(source).toContain('adaptiveAssessmentRef');
+    expect(source).toContain('durableAnswerId');
+    expect(source).toContain("await syncAdaptiveAssessmentPathResult(data)");
+  });
 });

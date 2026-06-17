@@ -86,6 +86,10 @@ describe('assessment API auth boundaries', () => {
       questionId: 'preset-q-01',
       selectedOption: 'A',
       timeSpent: 12,
+      goalId: 'control-correction',
+      routeIntent: 'path-execution',
+      pathId: 'path-1',
+      nodeId: 'adaptive-quiz:control-target-check',
     });
 
     expect(response.status).toBe(401);
@@ -103,12 +107,22 @@ describe('assessment API auth boundaries', () => {
       questionId: 'preset-q-01',
       selectedOption: 'A',
       timeSpent: 12,
+      goalId: 'control-correction',
+      routeIntent: 'path-execution',
+      pathId: 'path-1',
+      nodeId: 'adaptive-quiz:control-target-check',
     });
 
     expect(response.status).toBe(200);
     expect(mocks.submitAnswerWithPersistenceFallback).toHaveBeenCalledWith(expect.objectContaining({
       userId: 'student-1',
       sessionId: 'session-1',
+      pathContext: {
+        pathId: 'path-1',
+        nodeId: 'adaptive-quiz:control-target-check',
+        goalId: 'control-correction',
+        routeIntent: 'path-execution',
+      },
     }));
   });
 

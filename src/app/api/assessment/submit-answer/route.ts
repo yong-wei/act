@@ -11,6 +11,10 @@ interface SubmitAnswerRequest {
   questionId: string;
   selectedOption: string;
   timeSpent: number;
+  goalId?: string | null;
+  routeIntent?: string | null;
+  pathId?: string | null;
+  nodeId?: string | null;
 }
 
 export async function POST(request: Request) {
@@ -34,6 +38,7 @@ export async function POST(request: Request) {
       questionId: body.questionId,
       selectedOption: body.selectedOption,
       timeSpent: body.timeSpent,
+      pathContext: readPathContext(body),
     });
 
     return NextResponse.json(result);
@@ -47,4 +52,15 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+}
+
+function readPathContext(body: SubmitAnswerRequest) {
+  if (typeof body.pathId !== 'string' || !body.pathId.trim()) return undefined;
+  if (typeof body.nodeId !== 'string' || !body.nodeId.trim()) return undefined;
+  return {
+    pathId: body.pathId.trim(),
+    nodeId: body.nodeId.trim(),
+    goalId: typeof body.goalId === 'string' && body.goalId.trim() ? body.goalId.trim() : null,
+    routeIntent: typeof body.routeIntent === 'string' && body.routeIntent.trim() ? body.routeIntent.trim() : null,
+  };
 }

@@ -52,6 +52,7 @@ import {
   type GenerationDifficultyRhythm,
   type PathGenerationPanelState,
 } from '@/lib/adaptive-path-generation-panel';
+import { resolveAdaptivePathExecutionNodeStatus } from '@/lib/adaptive-path-execution-state';
 import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 
 type PostLearningPathNodeAction = {
@@ -113,6 +114,9 @@ interface SubmitAnswerResponse {
   explanation: string;
   estimatedAbility: number;
   recommendedFocus: string[];
+  durableAnswerId?: string;
+  durableSessionId?: string;
+  algorithmVersion?: string;
 }
 
 interface PathAdvisorContextResponse {
@@ -173,6 +177,17 @@ interface PathExecutionNodeView {
   evidence: string;
   checkpoint: string;
   unlockMessage?: string;
+  result?: PathNodeResultCardView | null;
+}
+
+interface PathNodeResultCardView {
+  state: 'available' | 'pending';
+  label: string;
+  evidenceSource: string;
+  reviewState: string;
+  primaryMetric?: string;
+  outcomeId?: string;
+  occurredAt?: string;
 }
 
 interface PathActivityTimelineItem {
@@ -184,6 +199,7 @@ interface PathActivityTimelineItem {
   nodeTitle: string;
   sourceLabel: string;
   stateLabel: '已记录' | '待复核' | '可用于推荐' | '仅作参考';
+  resultLabel?: string;
   createdAt: string;
   sortTime: number;
 }
@@ -434,7 +450,7 @@ const DEMO_CONTROL_CORRECTION_PATH_ROUND = {
   pathStatus: 'active',
   currentNodeId: 'demo-current-quiz',
   lastExecutionMetadata: {
-    completedNodeIds: ['demo-foundation-card'],
+    completedNodeIds: ['demo-foundation-card', 'demo-current-quiz', 'demo-simulation'],
     failedNodeIds: [],
   },
   terminalValidation: { state: 'pending' },
@@ -454,6 +470,36 @@ const DEMO_CONTROL_CORRECTION_PATH_ROUND = {
       status: 'completed',
       resourceType: 'knowledge_card',
       createdAt: '2026-06-16T09:24:00+08:00',
+    },
+    {
+      id: 'demo-exec-quiz-result',
+      nodeId: 'demo-current-quiz',
+      activityKind: 'initial-completion',
+      status: 'completed',
+      resourceType: 'adaptive_quiz',
+      resultSummary: {
+        state: 'available',
+        label: '自适应练习结果',
+        evidenceSource: 'AdaptiveAssessmentAnswer',
+        reviewState: 'ready',
+        primaryMetric: '得分 100',
+        outcomeId: 'demo-answer-1',
+      },
+      createdAt: '2026-06-16T09:30:00+08:00',
+    },
+    {
+      id: 'demo-exec-simulation-pending',
+      nodeId: 'demo-simulation',
+      activityKind: 'initial-completion',
+      status: 'completed',
+      resourceType: 'simulation',
+      resultSummary: {
+        state: 'pending',
+        label: '仿真结果',
+        evidenceSource: 'learning-path-execution',
+        reviewState: 'pending-sync',
+      },
+      createdAt: '2026-06-16T09:32:00+08:00',
     },
     {
       id: 'demo-exec-external',
@@ -872,6 +918,46 @@ function getEstimatedMinutes(node: Record<string, unknown>): number {
   return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0;
 }
 
+function isComplexOutcomeNode(type: string): boolean {
+  return type === 'adaptive_quiz' ||
+    type === 'control_workbench' ||
+    type === 'simulation' ||
+    type === 'arena_task';
+}
+
+function readPathNodeResultSummary(record: Record<string, unknown>, type: string): PathNodeResultCardView | null {
+  const summary = getRecord(record.resultSummary);
+  const state = summary.state === 'available' ? 'available' : summary.state === 'pending' ? 'pending' : null;
+  if (!state) return null;
+  return {
+    state,
+    label: typeof summary.label === 'string' ? summary.label : `${formatResourceType(type)}结果`,
+    evidenceSource: typeof summary.evidenceSource === 'string' ? summary.evidenceSource : 'learning-path-execution',
+    reviewState: typeof summary.reviewState === 'string' ? summary.reviewState : state === 'available' ? 'ready' : 'pending-sync',
+    primaryMetric: typeof summary.primaryMetric === 'string' ? summary.primaryMetric : undefined,
+    outcomeId: typeof summary.outcomeId === 'string' ? summary.outcomeId : undefined,
+    occurredAt: typeof summary.occurredAt === 'string' ? summary.occurredAt : undefined,
+  };
+}
+
+function buildPathNodeResultCards(round: LearningPathRoundView | null): Map<string, PathNodeResultCardView> {
+  const results = new Map<string, PathNodeResultCardView>();
+  for (const execution of round?.executions ?? []) {
+    const record = getRecord(execution);
+    const nodeId = typeof record.nodeId === 'string' ? record.nodeId : null;
+    const type = typeof record.resourceType === 'string' ? record.resourceType : 'resource';
+    if (!nodeId || record.status !== 'completed' || !isComplexOutcomeNode(type)) continue;
+    const result = readPathNodeResultSummary(record, type) ?? {
+      state: 'pending',
+      label: `${formatResourceType(type)}结果`,
+      evidenceSource: 'learning-path-execution',
+      reviewState: 'pending-sync',
+    };
+    results.set(nodeId, result);
+  }
+  return results;
+}
+
 function getPathExecutionNodes(plan: AdaptiveLearningPathPlan | null, round: LearningPathRoundView | null): PathExecutionNodeView[] {
   if (!plan) return [];
   const metadata = getRecord(round?.lastExecutionMetadata);
@@ -882,6 +968,7 @@ function getPathExecutionNodes(plan: AdaptiveLearningPathPlan | null, round: Lea
     .map((item) => getRecord(item).targetNodeId)
     .filter((value): value is string => typeof value === 'string'));
   const currentNodeId = plan.currentNodeId ?? round?.currentNodeId ?? null;
+  const resultCards = buildPathNodeResultCards(round);
 
   const nodes = plan.mainPath.map((item, index) => {
     const node = getRecord(item);
@@ -895,19 +982,24 @@ function getPathExecutionNodes(plan: AdaptiveLearningPathPlan | null, round: Lea
       : typeof readiness.message === 'string' && readinessState !== 'ready'
         ? readiness.message
         : undefined;
-    const status: PathExecutionNodeView['status'] = completedNodeIds.has(nodeId) || rawStatus === 'completed'
-      ? 'completed'
-      : failedNodeIds.has(nodeId) || rawStatus === 'blocked'
-        ? 'blocked'
-        : rawStatus === 'locked' || readinessState === 'locked' || readinessState === 'evidence-needed' || readinessState === 'needs-preparation'
-          ? 'locked'
-          : currentNodeId === nodeId || rawStatus === 'current'
-            ? 'current'
-            : skippedNodeIds.has(nodeId)
-              ? 'skipped'
-              : rawStatus === 'next'
-                ? 'next'
-                : 'optional';
+    const completed = completedNodeIds.has(nodeId) || rawStatus === 'completed';
+    const result = resultCards.get(nodeId) ?? (completed && isComplexOutcomeNode(type)
+      ? {
+          state: 'pending' as const,
+          label: `${formatResourceType(type)}结果`,
+          evidenceSource: 'learning-path-execution',
+          reviewState: 'pending-sync',
+        }
+      : null);
+    const status: PathExecutionNodeView['status'] = resolveAdaptivePathExecutionNodeStatus({
+      completed,
+      failed: failedNodeIds.has(nodeId),
+      skipped: skippedNodeIds.has(nodeId),
+      current: currentNodeId === nodeId,
+      rawStatus,
+      readinessState,
+      pendingResult: result?.state === 'pending',
+    });
     const knowledgeCoverage = getStringArray(node.knowledgeCoverage);
     const reasonCodes = getStringArray(node.reasonCodes);
     const viewNode: PathExecutionNodeView = {
@@ -924,6 +1016,7 @@ function getPathExecutionNodes(plan: AdaptiveLearningPathPlan | null, round: Lea
         ? '完成后用于判断是否进入下一段路径。'
         : '完成学习动作并留下可复核记录。',
       unlockMessage,
+      result,
     };
     return status === 'locked' && unlockMessage
       ? { ...viewNode, reason: unlockMessage, checkpoint: unlockMessage }
@@ -1009,16 +1102,20 @@ function getPathActivityTimeline(nodes: PathExecutionNodeView[], round: Learning
     const activityKind = typeof record.activityKind === 'string' ? record.activityKind : typeof record.status === 'string' ? record.status : 'started';
     const status = typeof record.status === 'string' ? record.status : 'started';
     const resourceType = typeof record.resourceType === 'string' ? record.resourceType : 'resource';
+    const result = readPathNodeResultSummary(record, resourceType);
     const timelineTime = readTimelineTime(record.createdAt ?? record.completedAt ?? record.startedAt);
     items.push({
       id: typeof record.id === 'string' ? record.id : `execution:${items.length}`,
       nodeId,
       type: activityKind,
       title: getPathActivityTitle(activityKind),
-      detail: activityKind === 'review' ? '回顾不会重复计算完成进度。' : '节点活动已进入学习路径记录。',
+      detail: result?.state === 'pending'
+        ? '结果待同步，后续节点会在绑定完成后解锁。'
+        : activityKind === 'review' ? '回顾不会重复计算完成进度。' : '节点活动已进入学习路径记录。',
       nodeTitle: nodeTitle.get(nodeId) ?? nodeId,
       sourceLabel: formatResourceType(resourceType),
       stateLabel: getPathActivityStateLabel(activityKind, status, resourceType),
+      resultLabel: result?.state === 'available' ? result.label : result?.state === 'pending' ? '结果待同步' : undefined,
       createdAt: timelineTime.label,
       sortTime: timelineTime.sortTime,
     });
@@ -1781,6 +1878,7 @@ export default function AdaptivePracticePage() {
     node: PathExecutionNodeView,
     activityKind: string,
     status: 'started' | 'completed' | 'failed' = 'started',
+    outcomeMetadata?: Record<string, unknown>,
   ): Promise<boolean> => {
     const pathId = controlCorrectionPathRound?.id ?? controlCorrectionPathPlan?.id;
     if (!pathId) return false;
@@ -1797,7 +1895,7 @@ export default function AdaptivePracticePage() {
           completedAt: status === 'completed' ? new Date().toISOString() : null,
           failedAt: status === 'failed' ? new Date().toISOString() : null,
           idempotencyKey: `${activityKind}:${pathId}:${node.nodeId}:${Date.now()}`,
-          liftMetadata: { pathActivityKind: activityKind },
+          liftMetadata: { pathActivityKind: activityKind, ...(outcomeMetadata ?? {}) },
         }),
       });
       if (!response.ok) {
@@ -1814,6 +1912,17 @@ export default function AdaptivePracticePage() {
       setPathActivityPending(null);
     }
   }, [controlCorrectionPathPlan, controlCorrectionPathRound, reloadControlCorrectionPath]);
+
+  const syncAdaptiveAssessmentPathResult = useCallback(async (result: SubmitAnswerResponse) => {
+    if (!activePathId || !activeNodeId || !result.durableAnswerId) return;
+    const targetNode = pathExecutionNodes.find((node) => node.nodeId === activeNodeId);
+    if (!targetNode || targetNode.type !== 'adaptive_quiz') return;
+    await writePathNodeActivity(targetNode, 'initial-completion', 'completed', {
+      adaptiveAssessmentRef: {
+        id: result.durableAnswerId,
+      },
+    });
+  }, [activeNodeId, activePathId, pathExecutionNodes, writePathNodeActivity]);
 
   const skipPathNode = useCallback(async (node: PathExecutionNodeView) => {
     const pathId = controlCorrectionPathRound?.id ?? controlCorrectionPathPlan?.id;
@@ -1945,6 +2054,7 @@ export default function AdaptivePracticePage() {
 
       const data = (await response.json()) as SubmitAnswerResponse;
       setFeedback(data);
+      await syncAdaptiveAssessmentPathResult(data);
       await loadDiagnostic();
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : '提交失败');
@@ -2867,6 +2977,56 @@ export default function AdaptivePracticePage() {
                           <dd className="mt-1 text-foreground">{focusedPathNode.checkpoint}</dd>
                         </div>
                       </dl>
+                      {focusedPathNode.result ? (
+                        <div
+                          className={`mt-4 rounded-lg border p-3 text-sm ${
+                            focusedPathNode.result.state === 'available'
+                              ? 'border-platform-evidence-eligible/45 bg-platform-evidence-eligible/10'
+                              : 'border-platform-evidence-context/45 bg-platform-evidence-context/10'
+                          }`}
+                          data-adaptive-path-result-card={focusedPathNode.result.state}
+                        >
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <div>
+                              <p className="text-xs text-subtle">节点结果</p>
+                              <h4 className="mt-1 text-sm font-semibold text-foreground">
+                                {focusedPathNode.result.state === 'available' ? focusedPathNode.result.label : '结果待同步'}
+                              </h4>
+                            </div>
+                            <span className="rounded-md border border-border bg-background/70 px-2 py-1 text-xs text-subtle">
+                              {focusedPathNode.result.reviewState === 'ready' ? '可复核' : '等待绑定'}
+                            </span>
+                          </div>
+                          <dl className="mt-3 grid gap-2 sm:grid-cols-2">
+                            <div>
+                              <dt className="text-xs text-subtle">证据来源</dt>
+                              <dd className="mt-1 text-foreground">{focusedPathNode.result.evidenceSource}</dd>
+                            </div>
+                            <div>
+                              <dt className="text-xs text-subtle">关键指标</dt>
+                              <dd className="mt-1 text-foreground">{focusedPathNode.result.primaryMetric ?? '等待结果写入'}</dd>
+                            </div>
+                          </dl>
+                          {focusedPathNode.result.state === 'pending' ? (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                onClick={() => void reloadControlCorrectionPath()}
+                                className="rounded-lg border border-border px-3 py-2 text-xs text-foreground"
+                              >
+                                刷新结果
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedPathNodeId(currentPathNode?.nodeId ?? focusedPathNode.nodeId)}
+                                className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+                              >
+                                返回当前节点
+                              </button>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
                       <div className="mt-4 flex flex-wrap gap-2">
                         {focusedPathNode.status === 'completed' ? (
                           <>
@@ -2980,6 +3140,11 @@ export default function AdaptivePracticePage() {
                           <p className="text-xs text-primary">{item.sourceLabel} · {item.stateLabel}</p>
                           <h3 className="mt-1 text-sm font-semibold text-foreground">{item.title}</h3>
                           <p className="mt-1 text-xs text-subtle">{item.nodeTitle} · {item.detail}</p>
+                          {item.resultLabel ? (
+                            <p className="mt-2 inline-flex rounded-md border border-border bg-muted/40 px-2 py-1 text-xs text-foreground">
+                              {item.resultLabel}
+                            </p>
+                          ) : null}
                         </div>
                         <div className="flex flex-col items-start gap-2 sm:items-end">
                           <span className="text-xs text-subtle">{item.createdAt}</span>

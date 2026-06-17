@@ -129,8 +129,11 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
           }
           const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, existingPathNode, executionInput);
           if (governedExternalInput instanceof NextResponse) return governedExternalInput;
-          const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedExternalInput);
-          const governedExecutionInput = await resolveGovernedTerminalEvidence(prisma as any, path, governedSimulationInput);
+          const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedExternalInput);
+          const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
+          const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
+          const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(prisma as any, path, governedWorkbenchInput);
+          const governedExecutionInput = await resolveGovernedTerminalEvidence(prisma as any, path, governedArenaInput);
           execution = await recordPathNodeExecution(prisma as any, governedExecutionInput);
           if (shouldUpdatePathAfterExecution(path, existingPathNode, governedExecutionInput, existingActivityKind, existingHistoricalActivity)) {
             await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, governedExecutionInput);
@@ -168,8 +171,11 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     };
     const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, pathNode, externalExecutionInput);
     if (governedExternalInput instanceof NextResponse) return governedExternalInput;
-    const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedExternalInput);
-    const executionInput = await resolveGovernedTerminalEvidence(prisma as any, path, governedSimulationInput);
+    const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedExternalInput);
+    const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
+    const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
+    const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(prisma as any, path, governedWorkbenchInput);
+    const executionInput = await resolveGovernedTerminalEvidence(prisma as any, path, governedArenaInput);
     const execution = await recordPathNodeExecution(prisma as any, executionInput);
     if (shouldUpdatePathAfterExecution(path, pathNode, executionInput, activityKind, isHistoricalActivity)) {
       await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, executionInput);
@@ -242,7 +248,19 @@ function readPathActivityKind(value: unknown): string | null {
 
 function normalizeExecutionLiftMetadata(value: unknown): Record<string, unknown> {
   const activityKind = readPathActivityKind(value);
-  return activityKind ? { pathActivityKind: activityKind } : {};
+  const metadata = toRecord(value);
+  return {
+    ...(activityKind ? { pathActivityKind: activityKind } : {}),
+    ...sanitizeLiftOutcomeRef('adaptiveAssessmentRef', metadata.adaptiveAssessmentRef),
+    ...sanitizeLiftOutcomeRef('controlWorkbenchRef', metadata.controlWorkbenchRef),
+  };
+}
+
+function sanitizeLiftOutcomeRef(key: 'adaptiveAssessmentRef' | 'controlWorkbenchRef', value: unknown): Record<string, unknown> {
+  const record = toRecord(value);
+  const id = readRefId(record, ['id', 'answerId', 'runId', 'simulationRunId', 'ref', 'sourceId']);
+  if (!id) return {};
+  return { [key]: compactObject({ id }) };
 }
 
 async function canWriteHistoricalPathActivity(
@@ -466,6 +484,85 @@ async function resolveGovernedTerminalEvidence<T extends {
   };
 }
 
+async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
+  pathId: string;
+  nodeId: string;
+  userId: string;
+  goalId?: string | null;
+  resourceType: string;
+  status: string;
+  liftMetadata?: Record<string, unknown>;
+  evidenceRefs?: unknown[];
+}>(
+  db: any,
+  input: T,
+): Promise<T> {
+  if (input.resourceType !== 'adaptive_quiz' || input.status !== 'completed') return input;
+  const ref = toRecord(input.liftMetadata?.adaptiveAssessmentRef);
+  const id = readRefId(ref, ['id', 'answerId', 'sourceId', 'ref']);
+  if (!id) {
+    return {
+      ...input,
+      liftMetadata: {
+        ...(input.liftMetadata ?? {}),
+        adaptiveAssessmentRef: pendingOutcomeRef('AdaptiveAssessmentAnswer'),
+      },
+      evidenceRefs: sanitizeAdaptiveAssessmentEvidenceRefs(input.evidenceRefs, null),
+    };
+  }
+  const answer = await db.adaptiveAssessmentAnswer?.findFirst?.({
+    where: {
+      id,
+      userId: input.userId,
+    },
+    select: {
+      id: true,
+      questionId: true,
+      score: true,
+      abilityEstimate: true,
+      answeredAt: true,
+      questionRef: {
+        select: {
+          knowledgeTags: true,
+          questionType: true,
+          difficulty: true,
+        },
+      },
+      abilityEstimateSnapshot: {
+        select: {
+          dimensions: true,
+        },
+      },
+    },
+  });
+  const adaptiveAssessmentRef = answer
+    ? matchesAdaptiveAssessmentPathContext(answer, input)
+      ? compactObject({
+        kind: 'AdaptiveAssessmentAnswer',
+        id: answer.id,
+        provenance: 'official',
+        questionId: answer.questionId,
+        score: readFinite(answer.score),
+        abilityEstimate: readFinite(answer.abilityEstimate),
+        knowledgeTags: Array.isArray(answer.questionRef?.knowledgeTags)
+          ? answer.questionRef.knowledgeTags.filter((value: unknown): value is string => typeof value === 'string')
+          : undefined,
+        questionType: typeof answer.questionRef?.questionType === 'string' ? answer.questionRef.questionType : undefined,
+        difficulty: readFinite(answer.questionRef?.difficulty),
+        answeredAt: answer.answeredAt instanceof Date ? answer.answeredAt.toISOString() : undefined,
+      })
+      : unknownEvidenceRef('AdaptiveAssessmentAnswer', id, 'adaptive-assessment-path-mismatch')
+    : unknownEvidenceRef('AdaptiveAssessmentAnswer', id);
+  return {
+    ...input,
+    liftMetadata: {
+      ...(input.liftMetadata ?? {}),
+      adaptiveAssessmentRef,
+    },
+    evidenceRefs: sanitizeAdaptiveAssessmentEvidenceRefs(input.evidenceRefs, adaptiveAssessmentRef),
+  };
+}
+
 async function resolveGovernedSimulationOutcomeEvidence<T extends {
   nodeId: string;
   userId: string;
@@ -485,6 +582,86 @@ async function resolveGovernedSimulationOutcomeEvidence<T extends {
     ...input,
     simulationRef,
     evidenceRefs: sanitizeSimulationOutcomeEvidenceRefs(input.evidenceRefs, simulationRef),
+  };
+}
+
+function matchesAdaptiveAssessmentPathContext(
+  answer: Record<string, any>,
+  input: { pathId: string; nodeId: string; goalId?: string | null },
+): boolean {
+  const dimensions = toRecord(answer.abilityEstimateSnapshot?.dimensions);
+  const pathExecution = toRecord(dimensions.pathExecution);
+  if (pathExecution.pathId !== input.pathId || pathExecution.nodeId !== input.nodeId) return false;
+  if (typeof input.goalId === 'string' && typeof pathExecution.goalId === 'string' && pathExecution.goalId !== input.goalId) return false;
+  return true;
+}
+
+async function resolveGovernedControlWorkbenchOutcomeEvidence<T extends {
+  nodeId: string;
+  userId: string;
+  resourceType: string;
+  status: string;
+  liftMetadata?: Record<string, unknown>;
+  simulationRef?: Record<string, unknown> | null;
+  evidenceRefs?: unknown[];
+}>(
+  db: any,
+  path: any,
+  input: T,
+): Promise<T> {
+  if (input.resourceType !== 'control_workbench' || input.status !== 'completed') return input;
+  const scope = readSimulationOutcomeEvidenceScope(path, input.nodeId);
+  const clientRef = toRecord(input.liftMetadata?.controlWorkbenchRef);
+  const fallbackSimulationRef = Object.keys(clientRef).length > 0 ? clientRef : input.simulationRef;
+  const simulationRef = await resolveServerSimulationRef(db, input.userId, fallbackSimulationRef, scope);
+  const controlWorkbenchRef = isTrustedSimulationOutcomeRef(simulationRef)
+    ? compactObject({
+        kind: 'ControlWorkbenchOutcome',
+        id: simulationRef?.id,
+        simulationRunId: simulationRef?.id,
+        sourceRefId: simulationRef?.sourceRefId,
+        resourceId: simulationRef?.resourceId,
+        taskSpecId: simulationRef?.taskSpecId,
+        provenance: simulationRef?.provenance,
+        status: simulationRef?.status,
+        replayConfidence: simulationRef?.replayConfidence,
+        protocolVersion: simulationRef?.protocolVersion,
+        completedAt: simulationRef?.completedAt,
+        summaryMetrics: simulationRef?.summaryMetrics,
+      })
+    : simulationRef
+      ? unknownEvidenceRef('ControlWorkbenchOutcome', readRefId(simulationRef, ['id', 'runId', 'ref', 'sourceId']) ?? 'unknown', firstString(simulationRef.mismatchReason) ?? 'control-workbench-outcome-unverified')
+      : pendingOutcomeRef('ControlWorkbenchOutcome');
+  return {
+    ...input,
+    simulationRef,
+    liftMetadata: {
+      ...(input.liftMetadata ?? {}),
+      controlWorkbenchRef,
+    },
+    evidenceRefs: sanitizeControlWorkbenchOutcomeEvidenceRefs(input.evidenceRefs, controlWorkbenchRef, simulationRef),
+  };
+}
+
+async function resolveGovernedArenaOutcomeEvidence<T extends {
+  nodeId: string;
+  userId: string;
+  resourceType: string;
+  status: string;
+  arenaRef?: Record<string, unknown> | null;
+  evidenceRefs?: unknown[];
+}>(
+  db: any,
+  path: any,
+  input: T,
+): Promise<T> {
+  if (input.resourceType !== 'arena_task' || input.status !== 'completed') return input;
+  const scope = readArenaOutcomeEvidenceScope(path, input.nodeId);
+  const arenaRef = await resolveServerArenaRef(db, input.userId, input.arenaRef, scope);
+  return {
+    ...input,
+    arenaRef,
+    evidenceRefs: sanitizeArenaOutcomeEvidenceRefs(input.evidenceRefs, arenaRef),
   };
 }
 
@@ -672,6 +849,19 @@ function readSimulationOutcomeEvidenceScope(path: any, nodeId: string): Terminal
   return { arenaTaskId: null, simulationRefs };
 }
 
+function readArenaOutcomeEvidenceScope(path: any, nodeId: string): TerminalEvidenceScope {
+  const pathPayload = toRecord(path.pathPayload);
+  const planNodes = Array.isArray(pathPayload.planNodes) ? pathPayload.planNodes.map(toRecord) : [];
+  const node = planNodes.find((item) => item.nodeId === nodeId) ?? {};
+  const arenaTaskId = firstString(
+    node.taskId,
+    node.sourceRef,
+    node.target,
+    stripNodePrefix(nodeId, 'arena-task:'),
+  );
+  return { arenaTaskId, simulationRefs: new Set() };
+}
+
 function matchesExpectedArenaEvidence(record: Record<string, unknown>, scope: TerminalEvidenceScope): boolean {
   if (!scope.arenaTaskId) return true;
   return record.taskId === scope.arenaTaskId;
@@ -724,6 +914,69 @@ function unknownEvidenceRef(kind: string, id: string, reason?: string): Record<s
     status: kind === 'SimulationRun' ? 'unverified' : undefined,
     mismatchReason: reason,
   });
+}
+
+function pendingOutcomeRef(kind: string): Record<string, unknown> {
+  return {
+    kind,
+    provenance: 'pending',
+    status: 'pending-sync',
+    mismatchReason: 'outcome-ref-missing',
+  };
+}
+
+function sanitizeAdaptiveAssessmentEvidenceRefs(
+  refs: unknown[] | undefined,
+  adaptiveAssessmentRef: Record<string, unknown> | null,
+): Array<{ kind: string; id: string }> {
+  const safeRefs = Array.isArray(refs)
+    ? refs
+        .map((item) => {
+          const ref = toRecord(item);
+          const kind = typeof ref.kind === 'string' ? ref.kind : typeof ref.sourceType === 'string' ? ref.sourceType : null;
+          const id = readRefId(ref, ['id', 'ref', 'sourceId', 'answerId']);
+          if (!kind || !id || kind !== 'LearningFact') return null;
+          return { kind, id };
+        })
+        .filter((item): item is { kind: string; id: string } => Boolean(item))
+    : [];
+  if (typeof adaptiveAssessmentRef?.id === 'string' && adaptiveAssessmentRef.provenance !== 'unknown') {
+    safeRefs.push({ kind: 'AdaptiveAssessmentAnswer', id: adaptiveAssessmentRef.id });
+  }
+  return safeRefs;
+}
+
+function sanitizeControlWorkbenchOutcomeEvidenceRefs(
+  refs: unknown[] | undefined,
+  controlWorkbenchRef: Record<string, unknown> | null,
+  simulationRef: Record<string, unknown> | null,
+): Array<{ kind: string; id: string }> {
+  const safeRefs = sanitizeSimulationOutcomeEvidenceRefs(refs, simulationRef);
+  if (typeof controlWorkbenchRef?.id === 'string' && controlWorkbenchRef.provenance !== 'unknown') {
+    safeRefs.push({ kind: 'ControlWorkbenchOutcome', id: controlWorkbenchRef.id });
+  }
+  return safeRefs;
+}
+
+function sanitizeArenaOutcomeEvidenceRefs(
+  refs: unknown[] | undefined,
+  arenaRef: Record<string, unknown> | null,
+): Array<{ kind: string; id: string }> {
+  const safeRefs = Array.isArray(refs)
+    ? refs
+        .map((item) => {
+          const ref = toRecord(item);
+          const kind = typeof ref.kind === 'string' ? ref.kind : typeof ref.sourceType === 'string' ? ref.sourceType : null;
+          const id = readRefId(ref, ['id', 'ref', 'sourceId', 'submissionId', 'runId']);
+          if (!kind || !id || kind !== 'LearningFact') return null;
+          return { kind, id };
+        })
+        .filter((item): item is { kind: string; id: string } => Boolean(item))
+    : [];
+  if (typeof arenaRef?.id === 'string' && arenaRef.provenance !== 'unknown') {
+    safeRefs.push({ kind: typeof arenaRef.kind === 'string' ? arenaRef.kind : 'ArenaSubmission', id: arenaRef.id });
+  }
+  return safeRefs;
 }
 
 function sanitizeTerminalEvidenceRefs(
