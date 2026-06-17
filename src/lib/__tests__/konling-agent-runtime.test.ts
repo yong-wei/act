@@ -4839,6 +4839,91 @@ describe('konling agent runtime', () => {
     expect(db.agentToolRun.create).not.toHaveBeenCalled();
   });
 
+  it('allows tradeoff explanations for fallback policy bundle options', async () => {
+    const createdRun = {
+      id: 'tool-run-path-tradeoff-fallback',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'explain_learning_path_tradeoff',
+      permissionTier: 'analyze',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-tradeoff-fallback',
+      correlationId: 'corr-path-tradeoff-fallback',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['explain_learning_path_tradeoff'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'frequency-path-1',
+          pathPayload: {
+            policyBundle: {
+              status: 'low-resource-fallback',
+              paths: [
+                { styleId: 'guided', nodeIds: ['node-1'], resourceMix: {} },
+                { styleId: 'sprint', nodeIds: ['node-2'], resourceMix: {} },
+              ],
+            },
+          },
+        }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['explain_learning_path_tradeoff'],
+        planContext: {
+          currentPathId: 'frequency-path-1',
+          activeNodeId: 'node-1',
+          nextNodeIds: [],
+          recentPathIds: ['frequency-path-1'],
+          completedNodeIds: [],
+          status: 'available',
+        },
+      }),
+    });
+
+    await expect(runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'path-tradeoff-fallback',
+      goalId: 'frequency-response-foundations',
+      pathId: 'frequency-path-1',
+      styleId: 'guided',
+      compareWithStyleId: 'sprint',
+    })).resolves.toMatchObject({
+      operation: 'explained',
+      styleId: 'guided',
+      compareWithStyleId: 'sprint',
+    });
+    expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        toolName: 'explain_learning_path_tradeoff',
+        idempotencyKey: 'path-tradeoff-fallback',
+      }),
+    }));
+  });
+
   it('records path-bound choices for registered non-control adaptive path goals', async () => {
     const createdRun = {
       id: 'tool-run-frequency-select-1',

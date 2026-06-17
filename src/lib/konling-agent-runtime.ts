@@ -1834,6 +1834,7 @@ function assertAdaptivePathOptionIds(
   path: unknown,
   selectedStyleId: string | null | undefined,
   rejectedStyleIds: string[],
+  options: { allowPolicyFallback?: boolean } = {},
 ) {
   if (selectedStyleId && rejectedStyleIds.includes(selectedStyleId)) {
     throw new KonlingRuntimeScopeError(400, '路径选择不能同时选择并拒绝同一 styleId。');
@@ -1843,7 +1844,7 @@ function assertAdaptivePathOptionIds(
     ...rejectedStyleIds,
   ].filter((styleId): styleId is string => typeof styleId === 'string' && styleId.length > 0);
   if (requestedStyleIds.length === 0) return;
-  const validOptions = readStoredAdaptivePathOptions(readRecord(getValue(path, 'pathPayload')));
+  const validOptions = readStoredAdaptivePathOptions(readRecord(getValue(path, 'pathPayload')), options);
   if (validOptions.size === 0) {
     throw new KonlingRuntimeScopeError(403, '当前学习路径没有可记录的路径选项。');
   }
@@ -1852,10 +1853,15 @@ function assertAdaptivePathOptionIds(
   }
 }
 
-function readStoredAdaptivePathOptions(pathPayload: Record<string, unknown>) {
+function readStoredAdaptivePathOptions(
+  pathPayload: Record<string, unknown>,
+  readOptions: { allowPolicyFallback?: boolean } = {},
+) {
   const policyBundle = readRecord(getValue(pathPayload, 'policyBundle'));
   const policyBundleStatus = getString(policyBundle, 'status') || 'ready';
-  const policyBundlePaths = policyBundleStatus === 'ready' ? arrayOfRecords(getValue(policyBundle, 'paths')) : [];
+  const policyBundlePaths = policyBundleStatus === 'ready' || readOptions.allowPolicyFallback === true
+    ? arrayOfRecords(getValue(policyBundle, 'paths'))
+    : [];
   const options = policyBundlePaths.length > 0
     ? policyBundlePaths
     : arrayOfRecords(getValue(pathPayload, 'pathOptions'));
@@ -2390,7 +2396,7 @@ async function validateKonlingToolPreflight(
     const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
     resolveAdaptivePathGenerationRegistry(goalId);
     const path = await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
-    assertAdaptivePathOptionIds(path, parsed.selectedStyleId, parsed.rejectedStyleIds ?? []);
+    assertAdaptivePathOptionIds(path, parsed.selectedStyleId, parsed.rejectedStyleIds ?? [], { allowPolicyFallback: true });
     return;
   }
   if (toolName === 'select_learning_path') {
@@ -2421,6 +2427,7 @@ async function validateKonlingToolPreflight(
         path,
         parsed.styleId,
         [parsed.compareWithStyleId].filter((styleId): styleId is string => Boolean(styleId)),
+        { allowPolicyFallback: true },
       );
     }
     return;
