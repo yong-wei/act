@@ -3224,7 +3224,7 @@ export default function AdaptivePracticePage() {
             </section>
           ) : null}
 
-          {showPracticeWorkspace || showExecutionWorkspace || showEvidenceWorkspace ? (
+          {showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showEvidenceWorkspace ? (
           <section className="grid gap-4">
             {showPracticeWorkspace || showExecutionWorkspace ? (
             <div className="surface-card p-5" data-adaptive-practice-resource="path-node">

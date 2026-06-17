@@ -1,7 +1,7 @@
 {
   "change": "govern-adaptive-path-product-qa",
-  "generatedAt": "2026-06-17T15:18:14.436Z",
-  "sourceCommit": "worktree:bd3368c7549a5c6773ddf5f7",
+  "generatedAt": "2026-06-17T15:43:10.605Z",
+  "sourceCommit": "worktree:eeef7f7b6516be9fda00b523",
   "designHandoff": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md",
   "designHandoffSha256": "9fab1b0d68434d2d025fa170daaabbb22852126995759c24ab145dfee57c30af",
   "handoffMatrix": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/handoff-to-implementation-matrix.md",
