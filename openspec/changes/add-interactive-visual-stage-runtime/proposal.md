@@ -24,3 +24,9 @@
 - 后续推导显影、方框图、信号流图、注释媒体、画布内活动都依赖此底座。
 - 不替代现有 `compute.panel` 和控制工作台。
 - 需要新增浏览器视觉验收和 manifest audit。
+
+## GitHub Coordination
+
+- Parent issue: `#559`
+- Executable issue: `#561`
+- Planned dependency: after `#560` and `#565`.

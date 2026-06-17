@@ -25,3 +25,9 @@
 - 依赖 `add-interactive-visual-stage-runtime`。
 - 影响 manifest runtime、KaTeX/LaTeX 渲染、教师同步、学生提交证据和浏览器视觉验收。
 - 不允许用图片、纯文本或纵向卡片列表替代公式推导。
+
+## GitHub Coordination
+
+- Parent issue: `#559`
+- Executable issue: `#562`
+- Planned dependency: after `#560`, `#565`, and `#561`.

@@ -12,3 +12,8 @@ Responses collected from block diagrams and signal-flow graphs SHALL preserve gr
 - **WHEN** a student drags or creates graph elements
 - **THEN** the response payload SHALL include element positions, connections, unmatched elements, missing reference elements, and extra elements
 - **AND** teacher review SHALL be able to display the structural difference.
+
+#### Scenario: Structure diagram feedback is generated
+- **WHEN** feedback is generated for a block diagram or signal-flow graph response
+- **THEN** the response payload SHALL support misconception tag ids, student feedback mode, teacher next prompt, and retry or review action
+- **AND** the feedback SHALL reference teaching labels for affected nodes, paths, loops, or branches.

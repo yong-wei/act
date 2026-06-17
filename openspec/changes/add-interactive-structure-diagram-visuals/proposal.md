@@ -25,3 +25,9 @@
 - 依赖 `add-interactive-visual-stage-runtime`。
 - 影响互动课程图形类页面、manifest 审计、学生提交证据和教师统计。
 - 不重做数值计算，不替代控制工作台。
+
+## GitHub Coordination
+
+- Parent issue: `#559`
+- Executable issue: `#563`
+- Planned dependency: after `#560`, `#565`, and `#561`.

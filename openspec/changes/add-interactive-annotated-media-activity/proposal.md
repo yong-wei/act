@@ -7,7 +7,7 @@
 ## What Changes
 
 - 新增 `visual.annotatedMedia` 组件合同与共享 runtime。
-- 新增 `visual.embeddedActivity` 或等价嵌入式活动层合同。
+- 新增 `visual.embedded-activity` 嵌入式活动层合同。
 - 支持图片热点、标注线、局部放大、遮罩、证据标签和图上任务锚点。
 - 图上选择、图上排序、连线、路径选择、局部判断和证据标注必须使用共享 response/evidence 合同。
 - 教师端聚合热点选择、遗漏热点、画布内任务提交和误判分布。
@@ -25,3 +25,9 @@
 - 依赖 `add-interactive-visual-stage-runtime`。
 - 影响图片/媒体类互动课程页面、后台证据、教师诊断和工程语义泄露门禁。
 - 不允许继续显示内部文件名、模块名、payload key 或未翻译图片标题。
+
+## GitHub Coordination
+
+- Parent issue: `#559`
+- Executable issue: `#564`
+- Planned dependency: after `#560`, `#565`, and `#561`.

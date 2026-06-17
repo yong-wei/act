@@ -14,9 +14,9 @@ The interactive module taxonomy SHALL support `visual.annotatedMedia` for eviden
 - **AND** the failure SHALL identify the visible text source.
 
 ### Requirement: Embedded activity is a registered visual activity layer
-Interactive course visuals SHALL support embedded activity anchors that collect answers inside the visual surface.
+Interactive course visuals SHALL support `visual.embedded-activity` anchors that collect answers inside the visual surface.
 
 #### Scenario: Activity is embedded in a visual surface
-- **WHEN** a visual stage or annotated media module includes an embedded activity
+- **WHEN** a visual stage or annotated media module includes `visual.embedded-activity`
 - **THEN** the activity SHALL declare a canonical response contract
 - **AND** it SHALL use shared activity submission evidence rather than a course-private data path.

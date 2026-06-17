@@ -19,13 +19,20 @@
 - [ ] 3.2 Record teacher-revealed paths, loops, and feedback structures.
 - [ ] 3.3 Surface teacher diagnostics for node/path/loop misconception distribution and graph-construction mismatch heatmaps.
 - [ ] 3.4 Ensure diagnostics use teaching labels instead of raw ids.
+- [ ] 3.5 Persist selection, construction, submission, teacher reveal, answer reveal, and diagnostic aggregation states across refresh.
+- [ ] 3.6 Record evidence with `clientEventId`, `attemptKey`, trusted `sourceLogId`, `schemaVersion`, and explicit `InteractionLog` / `StudentStepResponse` / `LearningFact` classification.
+- [ ] 3.7 Record feedback fields for misconception tags, student feedback mode, teacher next prompt, and retry or review action.
+- [ ] 3.8 Use the unified evidence sample fields: `eventType`, `clientEventId`, `attemptKey`, trusted `sourceLogId`, `lessonKey`, `stepId`, `moduleId`, `componentKind`, `componentId`, `actorRole`, `clientEventAt`, `schemaVersion`, and `payload`.
+- [ ] 3.9 Define diagnostics denominator, dedupe key, latest-vs-all-attempt policy, resubmission display, unreleased-student inclusion, default free-text redaction, and teacher/admin-only access.
 
 ## 4. Visual QA
 
 - [ ] 4.1 Capture student and teacher screenshots in light and dark themes.
-- [ ] 4.2 Capture non-default screenshots for highlighted path, constructed graph, and teacher reveal.
-- [ ] 4.3 Add tests that Mason formula terms map back to graph paths or loops.
-- [ ] 4.4 Add tests that tables cannot replace required graph highlighting.
+- [ ] 4.2 Capture required state-matrix screenshots for student unreleased, student released, student constructed graph, submitted state, teacher reveal, answer reveal, and diagnostic aggregation.
+- [ ] 4.3 Capture mobile, desktop, and projection screenshots with no horizontal overflow and no controls covering the graph.
+- [ ] 4.4 Add tests that Mason formula terms map back to graph paths or loops.
+- [ ] 4.5 Add tests that tables cannot replace required graph highlighting.
+- [ ] 4.6 Add keyboard and focus tests for selecting nodes, branches, paths, loops, and reveal controls.
 
 ## 5. Validation
 

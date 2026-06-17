@@ -1,7 +1,7 @@
 ## 1. Manifest Contract
 
 - [ ] 1.1 Register `visual.annotatedMedia`.
-- [ ] 1.2 Register `visual.embeddedActivity` or an equivalent stage activity layer.
+- [ ] 1.2 Register `visual.embedded-activity` as the canonical embedded visual activity layer.
 - [ ] 1.3 Validate media src, alt, annotations, regions, evidence roles, reveal references, selectable annotations, and activity anchors.
 - [ ] 1.4 Reject visible captions, titles, fallback text, or labels that expose file names, renderer names, module names, payload keys, or internal ids.
 
@@ -18,11 +18,16 @@
 - [ ] 3.2 Reuse ordinary activity submission evidence for canvas-embedded answers.
 - [ ] 3.3 Surface teacher diagnostics for most selected hotspots, missing hotspots, evidence-role confusion, and submission coverage.
 - [ ] 3.4 Ensure teacher diagnostics do not expose student answer inputs.
+- [ ] 3.5 Persist selected hotspot, submitted, teacher reveal, and diagnostic aggregation states across refresh.
+- [ ] 3.6 Add student feedback fields for misconception tags, feedback mode, retry/review action, and teacher next prompt.
+- [ ] 3.7 Record evidence samples with `eventType`, `clientEventId`, `attemptKey`, trusted `sourceLogId`, `lessonKey`, `stepId`, `moduleId`, `componentKind`, `componentId`, `actorRole`, `clientEventAt`, `schemaVersion`, and `payload`.
+- [ ] 3.8 Classify each annotated-media and embedded-activity event as `InteractionLog` only, `StudentStepResponse`, or `LearningFact` materialization input.
+- [ ] 3.9 Define diagnostics denominator, dedupe key, latest-vs-all-attempt policy, resubmission display, unreleased-student inclusion, default free-text redaction, and teacher/admin-only access.
 
 ## 4. Visual QA
 
 - [ ] 4.1 Capture student and teacher screenshots in light and dark themes.
-- [ ] 4.2 Capture non-default screenshots for selected hotspot, teacher reveal, submitted state, and diagnostic aggregation.
+- [ ] 4.2 Capture required state-matrix screenshots for student unreleased, student released, selected hotspot, submitted state, teacher reveal, and diagnostic aggregation.
 - [ ] 4.3 Add tests that annotated media cannot pass when hotspots are unrecorded.
 - [ ] 4.4 Add tests that internal naming leaks in media frames fail the gate.
 

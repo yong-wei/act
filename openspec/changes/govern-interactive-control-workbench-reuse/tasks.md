@@ -15,13 +15,18 @@
 - [ ] 3.1 Record student parameter changes, visible panel ids, compute capability id, selected design state, and submission payload through the shared interactive evidence path.
 - [ ] 3.2 Surface teacher diagnostics for parameter exploration coverage, submitted judgments, release state, and unsupported/fallback states.
 - [ ] 3.3 Ensure visible UI text does not expose Rust, WASM, renderer names, payload keys, file paths, or internal capability names to students.
+- [ ] 3.4 Persist parameter draft, submitted, teacher reveal, fallback, and diagnostic states across refresh.
+- [ ] 3.5 Record evidence with `clientEventId`, `attemptKey`, trusted `sourceLogId`, `schemaVersion`, and explicit `InteractionLog` / `StudentStepResponse` / `LearningFact` classification.
+- [ ] 3.6 Use the unified evidence sample fields: `eventType`, `clientEventId`, `attemptKey`, trusted `sourceLogId`, `lessonKey`, `stepId`, `moduleId`, `componentKind`, `componentId`, `actorRole`, `clientEventAt`, `schemaVersion`, and `payload`.
+- [ ] 3.7 Define diagnostics denominator, dedupe key, latest-vs-all-attempt policy, resubmission display, unreleased-student inclusion, default free-text redaction, and teacher/admin-only access.
 
 ## 4. Visual QA
 
 - [ ] 4.1 Capture student and teacher screenshots in light and dark themes.
-- [ ] 4.2 Capture at least one non-default state screenshot.
-- [ ] 4.3 Save screenshot paths and visual source paths in the implementation acceptance artifact.
-- [ ] 4.4 Run browser audit for both student and teacher roles.
+- [ ] 4.2 Capture required state-matrix screenshots for student unreleased, student released, student submitted, teacher reveal, fallback or unsupported state, and teacher diagnostics.
+- [ ] 4.3 Capture mobile, desktop, and projection viewport screenshots with no horizontal overflow and no teacher controls covering the control workbench.
+- [ ] 4.4 Save screenshot paths and visual source paths in the implementation acceptance artifact using the shared screenshot schema.
+- [ ] 4.5 Run browser audit for both student and teacher roles.
 
 ## 5. Validation
 

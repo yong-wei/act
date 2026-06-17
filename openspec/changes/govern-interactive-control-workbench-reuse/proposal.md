@@ -24,3 +24,9 @@
 - 影响 manifest runtime 的 compute capability 注册、课程实现门禁和控制工作台嵌入方式。
 - 不重做 Rust/WASM 数值内核，不重写已有控制工作台面板。
 - 阻塞后续所有需要控制分析面板的互动课程视觉组件改造。
+
+## GitHub Coordination
+
+- Parent issue: `#559`
+- Executable issue: `#560`
+- Planned dependency: first executable change in the series.

@@ -28,3 +28,11 @@ Derivation stage formula blocks SHALL support semantic color roles for local tea
 - **WHEN** a formula block has `colorRole: cancel`
 - **THEN** only that formula block SHALL receive the cancel visual treatment
 - **AND** adjacent formula blocks SHALL remain independently addressable and readable in light and dark themes.
+
+### Requirement: Derivation stage controls cognitive load
+Derivation stage authoring SHALL define cognitive load limits for reveal density, long-formula splitting, semantic color usage, and default release pace.
+
+#### Scenario: Reveal step is overloaded
+- **WHEN** a derivation reveal step introduces too many formula blocks, too many simultaneous color roles, or an undeclared long-formula split strategy
+- **THEN** validation SHALL fail or require an explicit teaching-load exception
+- **AND** the acceptance artifact SHALL explain the intended learner reasoning step.

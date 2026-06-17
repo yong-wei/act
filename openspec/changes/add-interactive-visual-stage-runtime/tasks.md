@@ -16,13 +16,17 @@
 - [ ] 3.1 Record stage view, release state, visible layer ids, active reveal state, and role.
 - [ ] 3.2 Attach embedded activity anchors to the shared response path when a layer contains an activity target.
 - [ ] 3.3 Expose teacher diagnostics for viewed count, release count, and current reveal state.
+- [ ] 3.4 Record evidence samples with `eventType`, `clientEventId`, `attemptKey`, trusted `sourceLogId`, `lessonKey`, `stepId`, `moduleId`, `componentKind`, `componentId`, `actorRole`, `clientEventAt`, `schemaVersion`, and `payload`.
+- [ ] 3.5 Classify each stage event as `InteractionLog` only, `StudentStepResponse`, or `LearningFact` materialization input.
+- [ ] 3.6 Define diagnostics denominator, dedupe key, latest-vs-all-attempt policy, resubmission display, unreleased-student inclusion, default free-text redaction, and teacher/admin-only access.
 
 ## 4. Visual QA
 
 - [ ] 4.1 Capture student and teacher screenshots in light and dark themes.
-- [ ] 4.2 Capture a non-default release or reveal state screenshot.
-- [ ] 4.3 Add a browser assertion that the stage does not render as a vertical list of cards.
-- [ ] 4.4 Save screenshot paths and visual source paths in the implementation acceptance artifact.
+- [ ] 4.2 Capture required state-matrix screenshots for student unreleased, student released, student submitted or browsed, teacher reveal, teacher answer reveal, and teacher diagnostic aggregation.
+- [ ] 4.3 Capture mobile, desktop, and projection viewport screenshots with no horizontal overflow and no teacher controls covering the main stage.
+- [ ] 4.4 Add a browser assertion that the stage does not render as a vertical list of cards.
+- [ ] 4.5 Save screenshot paths and visual source paths in the implementation acceptance artifact using the shared screenshot naming schema.
 
 ## 5. Validation
 
