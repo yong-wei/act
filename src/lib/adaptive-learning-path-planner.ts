@@ -1433,10 +1433,13 @@ function resolveCurrentNodeId(
   readinessByNodeId: Map<string, AdaptiveLearningPathNodeReadiness>,
 ): string | null {
   const completed = new Set(completedNodeIds);
-  return entries.find((entry) =>
-    !completed.has(entry.node.id) &&
-    (readinessByNodeId.get(entry.node.id)?.state ?? 'ready') === 'ready'
-  )?.node.id ?? null;
+  for (const entry of entries) {
+    if (completed.has(entry.node.id)) continue;
+    return (readinessByNodeId.get(entry.node.id)?.state ?? 'ready') === 'ready'
+      ? entry.node.id
+      : null;
+  }
+  return null;
 }
 
 function resolveCurrentPlanNodeId(
@@ -1444,10 +1447,11 @@ function resolveCurrentPlanNodeId(
   completedNodeIds: string[],
 ): string | null {
   const completed = new Set(completedNodeIds);
-  return nodes.find((node) =>
-    !completed.has(node.nodeId) &&
-    (node.readiness?.state ?? 'ready') === 'ready'
-  )?.nodeId ?? null;
+  for (const node of nodes) {
+    if (completed.has(node.nodeId)) continue;
+    return (node.readiness?.state ?? 'ready') === 'ready' ? node.nodeId : null;
+  }
+  return null;
 }
 
 function toPlanNode(

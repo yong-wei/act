@@ -765,10 +765,11 @@ function recommendedNodeState(
   status: AdaptiveLearningPathPlan['mainPath'][number]['status'],
   readinessState?: string,
 ): RecommendedPathNodeState {
-  if (readinessState && readinessState !== 'ready') return 'locked';
-  if (status === 'current' || status === 'completed' || status === 'blocked' || status === 'next' || status === 'locked') {
+  if (status === 'completed' || status === 'blocked' || status === 'locked') {
     return status;
   }
+  if (readinessState && readinessState !== 'ready') return 'locked';
+  if (status === 'current' || status === 'next') return status;
   return 'optional';
 }
 

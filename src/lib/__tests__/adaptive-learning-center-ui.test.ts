@@ -833,6 +833,60 @@ describe('adaptive learning center UI contracts', () => {
     expect(nodes[1].action).toBeUndefined();
   });
 
+  it('keeps completed recommended path nodes completed when stale readiness is locked', () => {
+    const baseNode = pathPlan().mainPath[0];
+    const node = buildRecommendedPathNodeView(pathPlan({
+      currentNodeId: null,
+      mainPath: [
+        {
+          ...baseNode,
+          status: 'completed',
+          readiness: {
+            state: 'locked',
+            message: '旧 readiness 尚未刷新。',
+            unlockMessage: '旧 readiness 尚未刷新。',
+            reasonCodes: ['readiness-required-outcome'],
+            fallbackNodeIds: [],
+          },
+        },
+      ],
+    })).nodes[0];
+
+    expect(node).toMatchObject({
+      nodeId: 'node-1',
+      state: 'completed',
+      statusLabel: undefined,
+    });
+    expect(node.action).toBeDefined();
+  });
+
+  it('does not launch next recommended nodes when readiness is stale locked', () => {
+    const baseNode = pathPlan().mainPath[0];
+    const node = buildRecommendedPathNodeView(pathPlan({
+      currentNodeId: null,
+      mainPath: [
+        {
+          ...baseNode,
+          status: 'next',
+          readiness: {
+            state: 'locked',
+            message: '等待仿真证据。',
+            unlockMessage: '等待仿真证据。',
+            reasonCodes: ['readiness-required-outcome'],
+            fallbackNodeIds: [],
+          },
+        },
+      ],
+    })).nodes[0];
+
+    expect(node).toMatchObject({
+      nodeId: 'node-1',
+      state: 'locked',
+      statusLabel: '稍后解锁',
+    });
+    expect(node.action).toBeUndefined();
+  });
+
   it('does not use a locked path node as the control-correction next action fallback', () => {
     const baseNode = pathPlan().mainPath[0];
     const view = buildControlCorrectionLearningCenterView({

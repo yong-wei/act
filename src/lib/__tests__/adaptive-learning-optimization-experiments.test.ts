@@ -89,6 +89,73 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
 }
 
 describe('adaptive learning optimization experiments', () => {
+  it('does not skip a locked prerequisite to make a later ready node current', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry: buildResourceNodeRegistry({
+        registeredResources: [
+          {
+            id: 'locked-prep',
+            label: '锁定准备资源',
+            type: 'INTERACTIVE_COMP',
+            renderTarget: '/interactive-learning/resources/locked-prep',
+            knowledgeNodeIds: ['kn-goal'],
+            planningOverride: {
+              readiness: {
+                minimumCompetency: { controlModeling: 0.9 },
+                minimumEvidenceCount: 0,
+                requiredCompletedNodeIds: [],
+                requiredOutcomeRefs: [],
+                unlockMessage: '先补齐控制建模能力。',
+                fallbackNodeIds: [],
+              },
+            },
+          },
+          {
+            id: 'dependent-ready',
+            label: '后续可执行资源',
+            type: 'INTERACTIVE_COMP',
+            renderTarget: '/interactive-learning/resources/dependent-ready',
+            knowledgeNodeIds: ['kn-goal'],
+            prerequisiteNodeIds: ['registry:locked-prep'],
+          },
+        ],
+      }),
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-goal': { posteriorMastery: 0.2, confidence: 0.7, evidenceCount: 6 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            controlModeling: { score: 0.2, confidence: 0.7, evidenceCount: 6 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.72,
+            evidenceCount: 8,
+            sourceCompleteness: 0.8,
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+          },
+        },
+      },
+    }));
+
+    expect(plan.currentNodeId).toBeNull();
+    expect(plan.mainPath.map((node) => [node.nodeId, node.status])).toContainEqual([
+      'registry:locked-prep',
+      'locked',
+    ]);
+    expect(plan.mainPath.map((node) => [node.nodeId, node.status])).not.toContainEqual([
+      'registry:dependent-ready',
+      'current',
+    ]);
+  });
+
   it('keeps Arena locked for a zero-competency learner until preparation evidence is available', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput({
       goal: {
