@@ -32,6 +32,7 @@ function resourceNodeView(overrides: Partial<TeacherResourceNodeView> = {}): Tea
     availability: 'available',
     teacherPolicy: 'allowed',
     privacyLevel: 'student-visible',
+    readiness: null,
     evidenceInstrumentationConfigured: true,
     pathEligible: true,
     pathExclusionReasons: [],

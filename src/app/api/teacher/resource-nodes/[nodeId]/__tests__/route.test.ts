@@ -284,6 +284,121 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
     }));
   });
 
+  it('persists readiness metadata and returns it in the updated node view', async () => {
+    mocks.prisma.teachingResource.update.mockResolvedValue({
+      ...ownedResource,
+      config: {
+        existing: true,
+        resourceNodePlanning: {
+          estimatedTimeMinutes: 18,
+          readiness: {
+            minimumCompetency: {
+              'control.correction': 0.7,
+            },
+            minimumEvidenceCount: 2,
+            requiredCompletedNodeIds: ['teaching-resource:owned-prerequisite'],
+            requiredOutcomeRefs: ['sim:step-response'],
+            unlockMessage: '完成准备资源后解锁。',
+            fallbackNodeIds: ['knowledge-card:kn-bode'],
+          },
+        },
+      },
+    });
+
+    const response = await PATCH(
+      new Request('http://localhost/api/teacher/resource-nodes/teaching-resource%3Aowned-quiz', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          planningMetadata: {
+            readiness: {
+              minimumCompetency: {
+                'control.correction': 0.7,
+              },
+              minimumEvidenceCount: 2,
+              requiredCompletedNodeIds: ['teaching-resource:owned-prerequisite'],
+              requiredOutcomeRefs: ['sim:step-response'],
+              unlockMessage: '完成准备资源后解锁。',
+              fallbackNodeIds: ['knowledge-card:kn-bode'],
+            },
+          },
+        }),
+      }),
+      { params: Promise.resolve({ nodeId: 'teaching-resource:owned-quiz' }) }
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.teachingResource.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        config: {
+          existing: true,
+          resourceNodePlanning: {
+            estimatedTimeMinutes: 18,
+            readiness: {
+              minimumCompetency: {
+                'control.correction': 0.7,
+              },
+              minimumEvidenceCount: 2,
+              requiredCompletedNodeIds: ['teaching-resource:owned-prerequisite'],
+              requiredOutcomeRefs: ['sim:step-response'],
+              unlockMessage: '完成准备资源后解锁。',
+              fallbackNodeIds: ['knowledge-card:kn-bode'],
+            },
+          },
+        },
+      }),
+    }));
+    expect(payload.node.readiness).toEqual({
+      minimumCompetency: {
+        'control.correction': 0.7,
+      },
+      minimumEvidenceCount: 2,
+      requiredCompletedNodeIds: ['teaching-resource:owned-prerequisite'],
+      requiredOutcomeRefs: ['sim:step-response'],
+      unlockMessage: '完成准备资源后解锁。',
+      fallbackNodeIds: ['knowledge-card:kn-bode'],
+    });
+  });
+
+  it('handles malformed planning metadata as a safe no-op instead of a 500', async () => {
+    mocks.prisma.teachingResource.update.mockResolvedValue({
+      ...ownedResource,
+      config: {
+        existing: true,
+        resourceNodePlanning: {
+          estimatedTimeMinutes: 18,
+        },
+      },
+    });
+
+    const response = await PATCH(
+      new Request('http://localhost/api/teacher/resource-nodes/teaching-resource%3Aowned-quiz', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          planningMetadata: 'not-an-object',
+        }),
+      }),
+      { params: Promise.resolve({ nodeId: 'teaching-resource:owned-quiz' }) }
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.teachingResource.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        config: {
+          existing: true,
+          resourceNodePlanning: {
+            estimatedTimeMinutes: 18,
+          },
+        },
+      }),
+    }));
+    expect(payload.node).toEqual(expect.objectContaining({
+      id: 'teaching-resource:owned-quiz',
+      estimatedTimeMinutes: 18,
+    }));
+  });
+
   it('rejects immutable fields without updating the resource', async () => {
     const response = await PATCH(
       new Request('http://localhost/api/teacher/resource-nodes/teaching-resource%3Aowned-quiz', {

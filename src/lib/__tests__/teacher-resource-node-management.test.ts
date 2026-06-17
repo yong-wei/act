@@ -137,6 +137,17 @@ describe('teacher ResourceNode management contracts', () => {
         availability: 'available',
         teacherPolicy: 'teacher-assigned',
         privacyLevel: 'teacher-scoped',
+        readiness: {
+          minimumCompetency: {
+            'control.correction': 1.2,
+            'control.modeling': 0.55,
+          },
+          minimumEvidenceCount: 2,
+          requiredCompletedNodeIds: ['simulation:step-lab', 'simulation:step-lab'],
+          requiredOutcomeRefs: ['arena:lead-lag', 'sim:step-response'],
+          unlockMessage: '先完成准备任务。',
+          fallbackNodeIds: ['knowledge-card:kn-bode'],
+        },
         pathEligible: false,
       },
     };
@@ -160,8 +171,92 @@ describe('teacher ResourceNode management contracts', () => {
         availability: 'available',
         teacherPolicy: 'blocked',
         privacyLevel: 'teacher-scoped',
+        readiness: {
+          minimumCompetency: {
+            'control.correction': 1,
+            'control.modeling': 0.55,
+          },
+          minimumEvidenceCount: 2,
+          requiredCompletedNodeIds: ['simulation:step-lab'],
+          requiredOutcomeRefs: ['arena:lead-lag', 'sim:step-response'],
+          unlockMessage: '先完成准备任务。',
+          fallbackNodeIds: ['knowledge-card:kn-bode'],
+        },
       },
     });
+  });
+
+  it('exposes readiness metadata in teacher views without leaking immutable planning internals', () => {
+    const node = registry().nodes.find((candidate) => candidate.id === 'teaching-resource:owned-quiz')!;
+    const view = createTeacherResourceNodeView({
+      ...node,
+      planningMetadata: {
+        ...node.planningMetadata,
+        readiness: {
+          minimumCompetency: { 'control.correction': 0.6 },
+          minimumEvidenceCount: 1,
+          requiredCompletedNodeIds: ['knowledge-card:kn-bode'],
+          requiredOutcomeRefs: ['sim:step-response'],
+          unlockMessage: '完成预备练习后解锁。',
+          fallbackNodeIds: ['knowledge-card:kn-bode'],
+        },
+      },
+    }, teacherScope);
+
+    expect(view.readiness).toEqual({
+      minimumCompetency: { 'control.correction': 0.6 },
+      minimumEvidenceCount: 1,
+      requiredCompletedNodeIds: ['knowledge-card:kn-bode'],
+      requiredOutcomeRefs: ['sim:step-response'],
+      unlockMessage: '完成预备练习后解锁。',
+      fallbackNodeIds: ['knowledge-card:kn-bode'],
+    });
+    expect(JSON.stringify(view)).not.toContain('abilityImpact');
+    expect(JSON.stringify(view)).not.toContain('terminalConstraints');
+  });
+
+  it('normalizes malformed readiness patch values instead of throwing', () => {
+    const result = applyTeacherResourceNodePatch({
+      node: registry().nodes.find((node) => node.id === 'teaching-resource:owned-quiz')!,
+      scope: teacherScope,
+      patch: {
+        planningMetadata: {
+          readiness: {
+            minimumCompetency: ['not-a-record'],
+            minimumEvidenceCount: 'many',
+            requiredCompletedNodeIds: 'teaching-resource:owned-prerequisite',
+            requiredOutcomeRefs: [12, 'sim:step-response'],
+            fallbackNodeIds: null,
+            unlockMessage: 42,
+          },
+        },
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error);
+    expect(result.persistablePatch.resourceNodePlanning.readiness).toEqual({
+      minimumCompetency: {},
+      minimumEvidenceCount: 0,
+      requiredCompletedNodeIds: [],
+      requiredOutcomeRefs: ['sim:step-response'],
+      unlockMessage: '完成准备节点后会自动解锁。',
+      fallbackNodeIds: [],
+    });
+  });
+
+  it('treats malformed planning metadata patches as safe no-ops', () => {
+    const result = applyTeacherResourceNodePatch({
+      node: registry().nodes.find((node) => node.id === 'teaching-resource:owned-quiz')!,
+      scope: teacherScope,
+      patch: {
+        planningMetadata: 'not-an-object',
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error);
+    expect(result.persistablePatch.resourceNodePlanning).toEqual({});
   });
 
   it('treats teacher policy blocking as path exclusion in management views and filters', () => {
