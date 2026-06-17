@@ -3876,12 +3876,15 @@ describe('commercial UI governance', () => {
 
   it('keeps the adaptive path center default student branch free of internal status strings', () => {
     const pageSource = readFileSync(join(process.cwd(), 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+    const captureScriptSource = readFileSync(join(process.cwd(), 'scripts/tests/capture-adaptive-path-product-qa.ts'), 'utf8');
 
     expect(pageSource).toContain('自适应学习路径中心');
     expect(pageSource).toContain('生成学习路径');
     expect(pageSource).toContain('告诉控灵你想达成什么');
     expect(pageSource).toContain('data-adaptive-path-comparison-state="information-grid"');
     expect(pageSource).toContain('data-learning-path-options-layout="comparable-information-grid"');
+    expect(captureScriptSource).toMatch(/name: 'path-comparison-desktop-light',[\s\S]*?query: '\?demo=1&goal=frequency-response-foundations&intent=path-selection'/);
+    expect(captureScriptSource).toMatch(/name: 'path-comparison-mobile-dark',[\s\S]*?query: '\?demo=1&goal=frequency-response-foundations&intent=path-selection'/);
     expect(pageSource).toContain("label: '控灵助手'");
     expect(pageSource).toContain("label: '路径管理'");
     const studentVisibleSource = pageSource.replaceAll('data-learner-record-missing-source', '');
