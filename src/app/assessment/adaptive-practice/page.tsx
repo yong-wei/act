@@ -1225,7 +1225,6 @@ export default function AdaptivePracticePage() {
   const requestedGoal = searchParams.get('goal');
   const activeGoal = isAdaptivePracticeGoalId(requestedGoal) ? requestedGoal : null;
   const activeGoalLabel = activeGoal ? adaptivePracticeGoalLabel(activeGoal) : '自适应学习';
-  const activePathAdvisorGoal = activeGoal;
   const requestedIntent = searchParams.get('intent');
   const routeIntent = resolveControlCorrectionIntent(requestedIntent);
   const workspaceIntent = routeIntent === 'contextual-recommendation'
@@ -1291,6 +1290,7 @@ export default function AdaptivePracticePage() {
   const [pathGenerationPanel, setPathGenerationPanel] = useState<PathGenerationPanelState>(restoredPathGenerationPanel);
   const [pathGenerationPending, setPathGenerationPending] = useState<PathGenerationOperation | null>(null);
   const [pathAdvisorAgentSessionId, setPathAdvisorAgentSessionId] = useState<string | null>(null);
+  const pathAdvisorContextGoal = activeGoal ?? (showGenerationWorkspace ? pathGenerationPanel.goalId : null);
   const [pathNodeCompletionPending, setPathNodeCompletionPending] = useState<string | null>(null);
   const [skipCandidateNode, setSkipCandidateNode] = useState<PathExecutionNodeView | null>(null);
   const [pathActivityPending, setPathActivityPending] = useState<string | null>(null);
@@ -1347,6 +1347,8 @@ export default function AdaptivePracticePage() {
     pathExecutionNodes[0] ??
     null
   ), [pathExecutionNodes, selectedPathNodeId]);
+  const activeExecutionPathId = controlCorrectionPathRound?.id ?? controlCorrectionPathPlan?.id ?? activePathId;
+  const activeExecutionGoalId = activeGoal ?? resolveAdaptivePracticeGoalId(controlCorrectionPathPlan?.goal.id ?? controlCorrectionPathRound?.goalId ?? null);
   const pathExecutionSummary = useMemo(
     () => getPathExecutionSummary(pathExecutionNodes, controlCorrectionPathRound),
     [controlCorrectionPathRound, pathExecutionNodes],
@@ -1387,7 +1389,7 @@ export default function AdaptivePracticePage() {
   }, [assistantEntryPoint, openAssistantEntryPoint]);
 
   useEffect(() => {
-    if (!activeGoal || isDemoMode) {
+    if (!pathAdvisorContextGoal || isDemoMode) {
       updatePageContext({ assistantEntryPoint: null });
       return;
     }
@@ -1399,11 +1401,10 @@ export default function AdaptivePracticePage() {
       return;
     }
 
-    const pathAdvisorGoal = activeGoal;
     let cancelled = false;
     async function registerPathAdvisorEntryPoint() {
       try {
-        const response = await fetch(`/api/adaptive/path-advisor-context?goal=${encodeURIComponent(pathAdvisorGoal)}`);
+        const response = await fetch(`/api/adaptive/path-advisor-context?goal=${encodeURIComponent(pathAdvisorContextGoal)}`);
         if (!response.ok) {
           if (!cancelled) updatePageContext({ assistantEntryPoint: null });
           return;
@@ -1451,7 +1452,7 @@ export default function AdaptivePracticePage() {
       cancelled = true;
       updatePageContext({ assistantEntryPoint: null });
     };
-  }, [activeGoal, authStatus, isDemoMode, updatePageContext]);
+  }, [authStatus, isDemoMode, pathAdvisorContextGoal, updatePageContext]);
 
   const applyDemoScene = useCallback((scene: DemoScene) => {
     const demoData = DEMO_SCENES[scene];
@@ -1695,11 +1696,6 @@ export default function AdaptivePracticePage() {
       setPathChoiceMessage('请先登录后再生成学习路径。');
       return;
     }
-    if (!activeGoal || pathGenerationPanel.goalId !== activeGoal) {
-      setPathChoiceMessage('请先进入选定目标，再生成路径。');
-      window.location.assign(`/assessment/adaptive-practice?goal=${pathGenerationPanel.goalId}&intent=contextual-recommendation`);
-      return;
-    }
     const modeContextToken = assistantEntryPoint?.mode === 'path-advisor'
       ? assistantEntryPoint.serverContext.modeContextToken
       : null;
@@ -1793,7 +1789,6 @@ export default function AdaptivePracticePage() {
       setPathGenerationPending(null);
     }
   }, [
-    activeGoal,
     activePathId,
     assistantEntryPoint,
     authStatus,
@@ -2185,7 +2180,7 @@ export default function AdaptivePracticePage() {
             id: 'adaptive-path-konling',
             label: '控灵助手',
             control: 'konling',
-            href: activePathAdvisorGoal ? `/assessment/adaptive-practice?goal=${activePathAdvisorGoal}&intent=contextual-recommendation` : genericPathGenerationHref,
+            href: pathAdvisorContextGoal ? `/assessment/adaptive-practice?goal=${pathAdvisorContextGoal}&intent=contextual-recommendation` : genericPathGenerationHref,
             icon: <BrainCircuit className="h-4 w-4 text-primary" />,
           },
           {
@@ -2241,7 +2236,7 @@ export default function AdaptivePracticePage() {
                 </p>
               </div>
               <div className="mt-5 flex flex-wrap gap-2">
-                {activePathAdvisorGoal ? (
+                {pathAdvisorContextGoal ? (
                   <button
                     type="button"
                     onClick={openPathGenerationAdvisor}
@@ -3208,14 +3203,13 @@ export default function AdaptivePracticePage() {
                         </div>
                         <div className="flex flex-col items-start gap-2 sm:items-end">
                           <span className="text-xs text-subtle">{item.createdAt}</span>
-                          {item.nodeId && pathExecutionNodes.some((node) => node.nodeId === item.nodeId) ? (
-                            <button
-                              type="button"
-                              onClick={() => setSelectedPathNodeId(item.nodeId)}
+                          {item.nodeId && activeExecutionPathId && pathExecutionNodes.some((node) => node.nodeId === item.nodeId) ? (
+                            <Link
+                              href={`/assessment/adaptive-practice?goal=${encodeURIComponent(activeExecutionGoalId)}&intent=path-execution&pathId=${encodeURIComponent(activeExecutionPathId)}&nodeId=${encodeURIComponent(item.nodeId)}`}
                               className="rounded-md border border-border px-2 py-1 text-xs text-foreground hover:border-primary"
                             >
                               查看节点
-                            </button>
+                            </Link>
                           ) : null}
                         </div>
                       </div>

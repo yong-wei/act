@@ -571,6 +571,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('const showPresetGoalCards = false');
     expect(source).toContain('useGlobalAI');
     expect(source).toContain('openPathGenerationAdvisor');
+    expect(source).toContain('const pathAdvisorContextGoal = activeGoal ?? (showGenerationWorkspace ? pathGenerationPanel.goalId : null)');
+    expect(source).toContain('pathAdvisorContextGoal || isDemoMode');
     expect(source).toContain("data-adaptive-path-generation-action=\"open-in-page-path-advisor\"");
     expect(source).toContain("data-adaptive-path-generation-action=\"choose-generation-goal\"");
     expect(source).toContain('data-adaptive-path-workspace-intent={workspaceIntent}');
@@ -718,7 +720,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('data-adaptive-path-route-connector="true"');
     expect(source).toContain('data-adaptive-path-node-selectable="true"');
     expect(source).toContain('aria-pressed={focusedPathNode?.nodeId === node.nodeId}');
-    expect(source).toContain('setSelectedPathNodeId(item.nodeId)');
+    expect(source).toContain('activeExecutionPathId');
+    expect(source).toContain('intent=path-execution&pathId=');
     expect(source).toContain('currentPathNode?.title');
     expect(source).toContain('promotedCurrentNode');
     expect(source).toContain('findNextPromotableExecutionNode(nodes, currentIndex)');
