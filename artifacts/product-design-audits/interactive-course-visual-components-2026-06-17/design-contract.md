@@ -1,8 +1,8 @@
 # 互动课程视觉组件 Product Design 合同
 
-日期: 2026-06-17  
-状态: draft-for-implementation  
-适用范围: 互动课程 manifest runtime、课程运行态视觉组件、教师投影端、学生端、课程设计与实现验收  
+日期: 2026-06-17
+状态: draft-for-implementation
+适用范围: 互动课程 manifest runtime、课程运行态视觉组件、教师投影端、学生端、课程设计与实现验收
 设计来源: 当前会话 Creative Production 视觉方向、现有控制工作台实现、互动课程 1-1 至 5-6 runtime 调查
 
 ## 1. 合同目标
