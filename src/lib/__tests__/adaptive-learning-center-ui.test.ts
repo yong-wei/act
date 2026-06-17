@@ -397,7 +397,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('/api/learning-paths/${encodeURIComponent(pathId)}/choices');
     expect(source).toContain("submitPathChoice('selection'");
     expect(source).toContain("submitPathChoice('rejection'");
-    expect(source).toContain("submitPathChoice('switch'");
+    expect(source).toContain("submitPathGeneration('revise'");
+    expect(source).toContain("submitPathGeneration('explain'");
     expect(source).toContain("submitPathChoice('helpfulness'");
   });
 
@@ -567,6 +568,40 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).not.toContain('review-frequency-response-evidence');
     expect(source).not.toContain('/ai/copilot?mode=path-advisor');
     expect(source).not.toContain("setPathChoiceMessage('控灵已准备好根据你的目标生成路径。')");
+  });
+
+  it('builds editable path generation requests from panel controls', () => {
+    const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+    const routeSource = readFileSync(join(repoRoot, 'src/app/api/adaptive/path-advisor-tool/route.ts'), 'utf8');
+
+    expect(pageSource).toContain('data-adaptive-path-generation-panel="editable"');
+    expect(pageSource).toContain('data-adaptive-path-generation-mobile-sheet="bottom-sheet"');
+    expect(pageSource).toContain('data-adaptive-path-generation-request="structured-panel"');
+    expect(pageSource).toContain('value={pathGenerationPanel.goalId}');
+    expect(pageSource).toContain('value={pathGenerationPanel.timeBudgetMinutes}');
+    expect(pageSource).toContain('difficultyRhythm: pathGenerationPanel.difficultyRhythm');
+    expect(pageSource).toContain('resourcePreference: pathGenerationPanel.resourcePreference');
+    expect(pageSource).toContain('checkpointPreference: pathGenerationPanel.checkpointPreference');
+    expect(pageSource).toContain('allowExternalResources: pathGenerationPanel.allowExternalResources');
+    expect(pageSource).toContain('naturalLanguageIntent: pathGenerationPanel.naturalLanguageIntent');
+    expect(pageSource).toContain('excludedNodeIds: operation ===');
+    expect(pageSource).toContain('preferredOptionId: operation !==');
+    expect(pageSource).toContain('requestedAt: new Date().toISOString()');
+    expect(pageSource).toContain("fetch('/api/adaptive/path-advisor-tool'");
+    expect(pageSource).toContain('data-adaptive-path-generation-intent="editable"');
+    expect(pageSource).toContain("submitPathGeneration('revise', optionForWrite)");
+    expect(pageSource).toContain('selectedOptionId');
+    expect(pageSource).toContain('rejectedOptionIds');
+    expect(pageSource).not.toContain('Konling parameters');
+
+    expect(routeSource).toContain('runtime.generateLearningPath(toolInput)');
+    expect(routeSource).toContain('runtime.reviseLearningPathOptions(toolInput)');
+    expect(routeSource).toContain('runtime.explainLearningPathTradeoff(toolInput)');
+    expect(routeSource).toContain('modeContextToken');
+    expect(routeSource).toContain('readPathOptionStyleLookup');
+    expect(routeSource).toContain('resolveOptionalCurrentPathStyleId(pathOptionLookup');
+    expect(routeSource).toContain('throw new KonlingRuntimeScopeError(403, `路径选项不属于当前学习路径: ${fieldName}`)');
+    expect(routeSource).toContain('requestedAt: typeof body.requestedAt');
   });
 
   it('registers path-advisor entry point only after an explicit control-correction goal is selected', () => {

@@ -1120,6 +1120,9 @@ const generateLearningPathParameters = adaptivePathToolBaseParameters.extend({
   resourcePreference: z.array(z.string().min(1)).max(8).optional(),
   checkpointPreference: z.enum(['light', 'standard', 'dense']).optional(),
   allowExternalResources: z.boolean().optional(),
+  excludedNodeIds: z.array(z.string().min(1)).max(24).optional(),
+  preferredStyleId: z.string().min(1).optional(),
+  requestedAt: z.string().datetime().optional(),
 });
 
 const reviseLearningPathOptionsParameters = generateLearningPathParameters.extend({
@@ -1435,6 +1438,9 @@ async function buildAdaptivePathToolOutput(
     resourcePreferences,
     checkpointPreference: args.checkpointPreference ?? 'standard',
     allowExternalResources: args.allowExternalResources ?? registeredGoal.starterPathPolicy.allowExternalResources,
+    excludedNodeIds: args.excludedNodeIds,
+    preferredStyleId: args.preferredStyleId,
+    requestedAt: args.requestedAt,
     now: new Date(),
   });
   await persistLearningPathRound(input.db as any, {
@@ -1453,6 +1459,9 @@ async function buildAdaptivePathToolOutput(
         checkpointPreference: args.checkpointPreference ?? null,
         allowExternalResources: args.allowExternalResources ?? false,
         intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
+        excludedNodeIds: args.excludedNodeIds ?? [],
+        preferredStyleId: args.preferredStyleId ?? null,
+        requestedAt: args.requestedAt ?? null,
       }),
     },
   });
@@ -1470,6 +1479,9 @@ async function buildAdaptivePathToolOutput(
         priorRequestId: 'priorRequestId' in args ? args.priorRequestId ?? null : null,
         checkpointPreference: args.checkpointPreference ?? null,
         intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
+        excludedNodeIds: args.excludedNodeIds ?? [],
+        preferredStyleId: args.preferredStyleId ?? null,
+        requestedAt: args.requestedAt ?? null,
       },
       idempotencyKey: `${args.idempotencyKey}:revision`,
       actorUserId: input.scope.authenticatedUserId,
@@ -1488,6 +1500,9 @@ async function buildAdaptivePathToolOutput(
       checkpointPreference: args.checkpointPreference ?? null,
       allowExternalResources: args.allowExternalResources ?? false,
       intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
+      excludedNodeIds: args.excludedNodeIds ?? [],
+      preferredStyleId: args.preferredStyleId ?? null,
+      requestedAt: args.requestedAt ?? null,
     },
     pathId: plan.id,
     pathOptions: buildStudentSafePathOptions(plan),
@@ -1955,6 +1970,9 @@ function buildKonlingToolInputSummary(toolName: KonlingToolName, input: unknown)
       resourcePreference: arrayOfStrings(record.resourcePreference),
       checkpointPreference: getString(record, 'checkpointPreference') || null,
       allowExternalResources: typeof record.allowExternalResources === 'boolean' ? record.allowExternalResources : null,
+      excludedNodeIds: arrayOfStrings(record.excludedNodeIds),
+      preferredStyleId: getString(record, 'preferredStyleId') || null,
+      requestedAt: getString(record, 'requestedAt') || null,
       priorRequestId: getString(record, 'priorRequestId') || null,
       rejectedStyleIds: arrayOfStrings(record.rejectedStyleIds),
       selectedStyleId: getString(record, 'selectedStyleId') || null,
@@ -2392,7 +2410,19 @@ async function validateKonlingToolPreflight(
   if (toolName === 'explain_learning_path_tradeoff') {
     const parsed = explainLearningPathTradeoffParameters.parse(toolInput);
     const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: false, requireExisting: Boolean(parsed.pathId) });
+    const requiresPathOptionValidation = Boolean(parsed.pathId || parsed.styleId || parsed.compareWithStyleId);
+    const path = await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, {
+      goalId,
+      requirePath: Boolean(parsed.styleId || parsed.compareWithStyleId),
+      requireExisting: requiresPathOptionValidation,
+    });
+    if (path) {
+      assertAdaptivePathOptionIds(
+        path,
+        parsed.styleId,
+        [parsed.compareWithStyleId].filter((styleId): styleId is string => Boolean(styleId)),
+      );
+    }
     return;
   }
   if (toolName === 'record_path_adjustment_outcome') {

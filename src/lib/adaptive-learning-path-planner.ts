@@ -142,6 +142,9 @@ export interface AdaptiveLearningPathPlannerInput {
   resourcePreferences?: ResourceNode['type'][];
   checkpointPreference?: 'light' | 'standard' | 'dense';
   allowExternalResources?: boolean;
+  excludedNodeIds?: string[];
+  preferredStyleId?: string;
+  requestedAt?: string;
   now?: Date;
 }
 
@@ -625,7 +628,7 @@ function buildAdaptiveLearningPathPlanInternal(
   input: AdaptiveLearningPathPlannerInput,
   includePolicyBundle: boolean,
 ): AdaptiveLearningPathPlan {
-  const now = (input.now ?? new Date()).toISOString();
+  const now = input.requestedAt ?? (input.now ?? new Date()).toISOString();
   const policyFamily = input.policyFamily ?? 'rules-plus-graph-search';
   const policyMetadata = ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES[policyFamily];
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
@@ -634,8 +637,10 @@ function buildAdaptiveLearningPathPlanInternal(
   const sourceCoverage = input.learnerState?.evidence?.sourceCoverage ?? {};
   const requestedCompletedNodeIds = input.constraints.completedNodeIds ?? [];
   const preferenceContext = buildPlannerPreferenceContext(input);
+  const excludedNodeIds = new Set(input.excludedNodeIds ?? []);
   const { eligible, blocked } = partitionResourceNodes(input.registry.nodes, input.constraints);
   const pathEligible = eligible
+    .filter((node) => !excludedNodeIds.has(node.id))
     .filter((node) => policyAllowsNode(node, policyFamily, input.constraints))
     .filter((node) => externalResourceAllowed(node, input, registeredGoal));
   const eligibleIds = new Set(pathEligible.map((node) => node.id));

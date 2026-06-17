@@ -138,13 +138,29 @@ interface LearningPathRoundResponse {
 type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
 
 type PathOptionView = AdaptivePathOptionWriteOption;
+type PathGenerationOperation = 'generate' | 'revise' | 'explain';
+type GenerationDifficultyRhythm = 'gentle' | 'steady' | 'challenge';
+type GenerationCheckpointPreference = 'light' | 'standard' | 'dense';
+
+interface PathGenerationPanelState {
+  goalId: AdaptivePracticeGoalId;
+  timeBudgetMinutes: number;
+  difficultyRhythm: GenerationDifficultyRhythm;
+  resourcePreference: AdaptivePathResourceKind[];
+  checkpointPreference: GenerationCheckpointPreference;
+  allowExternalResources: boolean;
+  naturalLanguageIntent: string;
+}
 
 interface PathSelectionHistoryView {
   type: string;
   createdAt?: string;
   selectedStyleId?: string | null;
+  selectedOptionLabel?: string | null;
   previousStyleId?: string | null;
+  previousOptionLabel?: string | null;
   rejectedStyleIds?: string[];
+  rejectedOptionLabels?: string[];
   helpful?: boolean | null;
 }
 
@@ -483,14 +499,38 @@ const adaptivePathResourceIcons: Record<AdaptivePathResourceKind, LucideIcon> = 
   konling: MessageSquare,
 };
 
-const adaptiveGenerationFields = [
-  { label: '学习目标', value: '自动控制原理核心能力' },
-  { label: '可用时间', value: '本周 3 小时' },
-  { label: '难度节奏', value: '先稳固，再加速' },
-  { label: '资源偏好', value: '互动课程、练习、仿真' },
-  { label: '检查节点', value: '每 45 分钟一次' },
-  { label: '站外资源', value: '允许受治理资料' },
+const generationGoalOptions: Array<{ id: AdaptivePracticeGoalId; label: string; detail: string }> = [
+  {
+    id: 'control-correction',
+    label: '控制系统校正设计',
+    detail: '面向时域指标、根轨迹设计、仿真验证和 Arena 迁移。',
+  },
+  {
+    id: 'frequency-response-foundations',
+    label: '频率响应基础',
+    detail: '面向 Bode 图、频域稳定性和基础练习。',
+  },
 ];
+
+const generationResourceOptions: Array<{ id: AdaptivePathResourceKind; label: string }> = [
+  { id: 'knowledge_card', label: '知识卡' },
+  { id: 'adaptive_quiz', label: '练习' },
+  { id: 'control_workbench', label: '控制工作台' },
+  { id: 'simulation', label: '仿真' },
+  { id: 'arena_task', label: 'Arena' },
+  { id: 'external_resource', label: '外部资源' },
+  { id: 'konling', label: '控灵辅导' },
+];
+
+const defaultPathGenerationPanel: PathGenerationPanelState = {
+  goalId: 'control-correction',
+  timeBudgetMinutes: 90,
+  difficultyRhythm: 'steady',
+  resourcePreference: ['knowledge_card', 'adaptive_quiz', 'simulation'],
+  checkpointPreference: 'standard',
+  allowExternalResources: false,
+  naturalLanguageIntent: '',
+};
 
 function percentLabel(value: number): string {
   return `${Math.round(value)}%`;
@@ -725,8 +765,11 @@ function getPathSelectionHistory(view: ControlCorrectionLearningCenterView | nul
       type: typeof history.type === 'string' ? history.type : 'unknown',
       createdAt: typeof history.createdAt === 'string' ? history.createdAt : undefined,
       selectedStyleId: typeof history.selectedStyleId === 'string' ? history.selectedStyleId : null,
+      selectedOptionLabel: typeof history.selectedOptionLabel === 'string' ? history.selectedOptionLabel : null,
       previousStyleId: typeof history.previousStyleId === 'string' ? history.previousStyleId : null,
+      previousOptionLabel: typeof history.previousOptionLabel === 'string' ? history.previousOptionLabel : null,
       rejectedStyleIds: getStringArray(history.rejectedStyleIds),
+      rejectedOptionLabels: getStringArray(history.rejectedOptionLabels),
       helpful: typeof history.helpful === 'boolean' ? history.helpful : null,
     };
   });
@@ -1090,6 +1133,12 @@ export default function AdaptivePracticePage() {
   const [controlCorrectionPathRound, setControlCorrectionPathRound] = useState<LearningPathRoundView | null>(null);
   const [pathChoicePending, setPathChoicePending] = useState<string | null>(null);
   const [pathChoiceMessage, setPathChoiceMessage] = useState<string | null>(null);
+  const [pathGenerationPanel, setPathGenerationPanel] = useState<PathGenerationPanelState>({
+    ...defaultPathGenerationPanel,
+    goalId: activeGoal ?? defaultPathGenerationPanel.goalId,
+  });
+  const [pathGenerationPending, setPathGenerationPending] = useState<PathGenerationOperation | null>(null);
+  const [pathAdvisorAgentSessionId, setPathAdvisorAgentSessionId] = useState<string | null>(null);
   const [pathNodeCompletionPending, setPathNodeCompletionPending] = useState<string | null>(null);
   const [skipCandidateNode, setSkipCandidateNode] = useState<PathExecutionNodeView | null>(null);
   const [pathActivityPending, setPathActivityPending] = useState<string | null>(null);
@@ -1158,6 +1207,10 @@ export default function AdaptivePracticePage() {
     () => buildEvidenceSourceSummary(pathExecutionNodes),
     [pathExecutionNodes],
   );
+  useEffect(() => {
+    if (!activeGoal) return;
+    setPathGenerationPanel((current) => ({ ...current, goalId: activeGoal }));
+  }, [activeGoal]);
 
   const setPathChoiceUnavailable = useCallback(() => {
     setPathChoiceMessage('请先登录并生成路径后再记录选择。');
@@ -1456,6 +1509,128 @@ export default function AdaptivePracticePage() {
     window.addEventListener('konling:adaptive-path-updated', handleAdaptivePathUpdated);
     return () => window.removeEventListener('konling:adaptive-path-updated', handleAdaptivePathUpdated);
   }, [refreshLatestLearningPathAfterKonling]);
+
+  const toggleGenerationResource = useCallback((resource: AdaptivePathResourceKind) => {
+    setPathGenerationPanel((current) => {
+      const selected = current.resourcePreference.includes(resource);
+      return {
+        ...current,
+        resourcePreference: selected
+          ? current.resourcePreference.filter((item) => item !== resource)
+          : [...current.resourcePreference, resource],
+      };
+    });
+  }, []);
+
+  const submitPathGeneration = useCallback(async (
+    operation: PathGenerationOperation,
+    option?: PathOptionView,
+  ) => {
+    if (authStatus !== 'authenticated') {
+      setPathChoiceMessage('请先登录后再生成学习路径。');
+      return;
+    }
+    if (!activeGoal || pathGenerationPanel.goalId !== activeGoal) {
+      setPathChoiceMessage('请先进入选定目标，再生成路径。');
+      window.location.assign(`/assessment/adaptive-practice?goal=${pathGenerationPanel.goalId}&intent=contextual-recommendation`);
+      return;
+    }
+    const modeContextToken = assistantEntryPoint?.mode === 'path-advisor'
+      ? assistantEntryPoint.serverContext.modeContextToken
+      : null;
+    if (!modeContextToken) {
+      setPathChoiceMessage('路径生成上下文还在准备，请稍后重试。');
+      return;
+    }
+    const currentPathId = controlCorrectionPathRound?.id ?? controlCorrectionPathPlan?.id ?? activePathId;
+    if (operation !== 'generate' && !currentPathId) {
+      setPathChoiceMessage('请先生成路径后再请求调整或解释。');
+      return;
+    }
+    setPathGenerationPending(operation);
+    setPathChoiceMessage(null);
+    try {
+      const response = await fetch('/api/adaptive/path-advisor-tool', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          operation,
+          goalId: pathGenerationPanel.goalId,
+          pathId: operation !== 'generate' ? currentPathId : undefined,
+          routeIntent,
+          timeBudgetMinutes: pathGenerationPanel.timeBudgetMinutes,
+          difficultyRhythm: pathGenerationPanel.difficultyRhythm,
+          resourcePreference: pathGenerationPanel.resourcePreference,
+          checkpointPreference: pathGenerationPanel.checkpointPreference,
+          allowExternalResources: pathGenerationPanel.allowExternalResources,
+          naturalLanguageIntent: pathGenerationPanel.naturalLanguageIntent,
+          excludedNodeIds: operation === 'revise'
+            ? pathExecutionNodes
+                .filter((node) => node.status === 'skipped' || node.status === 'blocked')
+                .map((node) => node.nodeId)
+            : [],
+          preferredOptionId: operation !== 'generate' ? option?.optionId : undefined,
+          requestedAt: new Date().toISOString(),
+          modeContextToken,
+          agentSessionId: pathAdvisorAgentSessionId ?? undefined,
+          priorRequestId: operation === 'revise' ? currentPathId ?? undefined : undefined,
+          selectedOptionId: operation !== 'generate' ? option?.optionId : undefined,
+          compareWithOptionId: operation === 'explain'
+            ? pathOptions.find((item) => item.optionId !== option?.optionId)?.optionId
+            : undefined,
+          rejectedOptionIds: operation === 'revise'
+            ? pathOptions
+                .filter((item) => item.optionId !== option?.optionId)
+                .map((item) => item.optionId)
+            : undefined,
+          idempotencyKey: `path-generation-panel:${operation}:${pathGenerationPanel.goalId}:${Date.now()}`,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(typeof payload.error === 'string' ? payload.error : '学习路径生成失败');
+      }
+      if (typeof payload.agentSessionId === 'string') {
+        setPathAdvisorAgentSessionId(payload.agentSessionId);
+      }
+      if (operation !== 'explain') {
+        await refreshLatestLearningPathAfterKonling();
+        window.dispatchEvent(new CustomEvent('konling:adaptive-path-updated', {
+          detail: {
+            mode: 'path-advisor',
+            courseId: pathGenerationPanel.goalId,
+            pageId: 'adaptive-path-center',
+            source: 'generation-panel',
+          },
+        }));
+      }
+      const rationale = Array.isArray(payload.result?.studentSafeRationale)
+        ? payload.result.studentSafeRationale.filter((item: unknown): item is string => typeof item === 'string').join(' ')
+        : null;
+      setPathChoiceMessage(
+        operation === 'explain'
+          ? rationale ?? '已生成路径差异说明。'
+          : operation === 'revise' ? '路径方案已按新参数调整。' : '学习路径已生成，请比较后选择方案。',
+      );
+    } catch (generationError) {
+      setPathChoiceMessage(generationError instanceof Error ? generationError.message : '学习路径生成失败');
+    } finally {
+      setPathGenerationPending(null);
+    }
+  }, [
+    activeGoal,
+    activePathId,
+    assistantEntryPoint,
+    authStatus,
+    controlCorrectionPathPlan,
+    controlCorrectionPathRound,
+    pathAdvisorAgentSessionId,
+    pathExecutionNodes,
+    pathGenerationPanel,
+    pathOptions,
+    refreshLatestLearningPathAfterKonling,
+    routeIntent,
+  ]);
 
   const submitPathChoice = useCallback(async (
     action: 'selection' | 'rejection' | 'switch' | 'helpfulness',
@@ -2005,30 +2180,172 @@ export default function AdaptivePracticePage() {
             <div
               className="surface-card p-5"
               data-konling-generation-parameters="adaptive-path"
+              data-adaptive-path-generation-panel="editable"
+              data-adaptive-path-generation-mobile-sheet="bottom-sheet"
               data-konling-citation-slot="cited-explanation"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-normal text-primary">Konling parameters</p>
-                  <h2 className="mt-1 text-xl font-semibold text-foreground">控灵生成参数</h2>
-                  <p className="mt-2 text-sm text-subtle">告诉控灵你想达成什么，系统会把目标、时间和资源偏好转成可执行路径。</p>
+                  <p className="text-xs font-medium uppercase tracking-normal text-primary">生成设置</p>
+                  <h2 className="mt-1 text-xl font-semibold text-foreground">调整路径生成方案</h2>
+                  <p className="mt-2 text-sm text-subtle">选择目标和可用时间，系统会生成可比较的学习路径。</p>
                 </div>
                 <MessageSquare className="size-5 text-primary" aria-hidden="true" />
               </div>
-              <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {adaptiveGenerationFields.map((field) => (
-                  <label key={field.label} className="rounded-lg border border-border bg-background/45 p-3">
-                    <span className="text-xs text-subtle">{field.label}</span>
-                    <span className="mt-1 block text-sm font-medium text-foreground">{field.value}</span>
+              <div className="mt-4 grid gap-3" data-adaptive-path-generation-request="structured-panel">
+                <label className="block rounded-lg border border-border bg-background/45 p-3">
+                  <span className="text-xs text-subtle">学习目标</span>
+                  <select
+                    value={pathGenerationPanel.goalId}
+                    onChange={(event) => setPathGenerationPanel((current) => ({
+                      ...current,
+                      goalId: resolveAdaptivePracticeGoalId(event.target.value),
+                    }))}
+                    className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+                  >
+                    {generationGoalOptions.map((goal) => (
+                      <option key={goal.id} value={goal.id}>{goal.label}</option>
+                    ))}
+                  </select>
+                  <span className="mt-2 block text-xs leading-5 text-subtle">
+                    {generationGoalOptions.find((goal) => goal.id === pathGenerationPanel.goalId)?.detail}
+                  </span>
+                </label>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="block rounded-lg border border-border bg-background/45 p-3">
+                    <span className="text-xs text-subtle">可用时间</span>
+                    <div className="mt-2 flex items-center gap-3">
+                      <input
+                        type="range"
+                        min={30}
+                        max={180}
+                        step={15}
+                        value={pathGenerationPanel.timeBudgetMinutes}
+                        onChange={(event) => setPathGenerationPanel((current) => ({
+                          ...current,
+                          timeBudgetMinutes: Number(event.target.value),
+                        }))}
+                        className="w-full"
+                        aria-label="可用时间"
+                      />
+                      <span className="w-16 text-right text-sm font-medium text-foreground">
+                        {pathGenerationPanel.timeBudgetMinutes} 分钟
+                      </span>
+                    </div>
                   </label>
-                ))}
+
+                  <label className="block rounded-lg border border-border bg-background/45 p-3">
+                    <span className="text-xs text-subtle">难度节奏</span>
+                    <select
+                      value={pathGenerationPanel.difficultyRhythm}
+                      onChange={(event) => setPathGenerationPanel((current) => ({
+                        ...current,
+                        difficultyRhythm: event.target.value as GenerationDifficultyRhythm,
+                      }))}
+                      className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+                    >
+                      <option value="gentle">先稳固基础</option>
+                      <option value="steady">稳步推进</option>
+                      <option value="challenge">提高挑战密度</option>
+                    </select>
+                  </label>
+                </div>
+
+                <fieldset className="rounded-lg border border-border bg-background/45 p-3">
+                  <legend className="px-1 text-xs text-subtle">资源偏好</legend>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {generationResourceOptions.map((resource) => {
+                      const selected = pathGenerationPanel.resourcePreference.includes(resource.id);
+                      return (
+                        <button
+                          key={resource.id}
+                          type="button"
+                          onClick={() => toggleGenerationResource(resource.id)}
+                          aria-pressed={selected}
+                          className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${
+                            selected
+                              ? 'border-primary bg-primary text-primary-foreground'
+                              : 'border-border bg-muted/40 text-subtle'
+                          }`}
+                        >
+                          {resource.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="block rounded-lg border border-border bg-background/45 p-3">
+                    <span className="text-xs text-subtle">检查点密度</span>
+                    <select
+                      value={pathGenerationPanel.checkpointPreference}
+                      onChange={(event) => setPathGenerationPanel((current) => ({
+                        ...current,
+                        checkpointPreference: event.target.value as GenerationCheckpointPreference,
+                      }))}
+                      className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+                    >
+                      <option value="light">减少检查点</option>
+                      <option value="standard">标准检查点</option>
+                      <option value="dense">增加检查点</option>
+                    </select>
+                  </label>
+
+                  <label className="flex items-center justify-between gap-3 rounded-lg border border-border bg-background/45 p-3">
+                    <span>
+                      <span className="block text-xs text-subtle">站外资源</span>
+                      <span className="mt-1 block text-sm text-foreground">允许受治理的外部材料</span>
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={pathGenerationPanel.allowExternalResources}
+                      onChange={(event) => setPathGenerationPanel((current) => ({
+                        ...current,
+                        allowExternalResources: event.target.checked,
+                      }))}
+                      className="size-4"
+                    />
+                  </label>
+                </div>
               </div>
               <label className="mt-3 block rounded-lg border border-border bg-background/45 p-3">
                 <span className="text-xs text-subtle">告诉控灵你想达成什么</span>
-                <span className="mt-2 block min-h-16 rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm text-subtle">
-                  例如：我想在本周完成根轨迹和频域稳定性的复习，并用一次仿真检查理解。
-                </span>
+                <textarea
+                  value={pathGenerationPanel.naturalLanguageIntent}
+                  onChange={(event) => setPathGenerationPanel((current) => ({
+                    ...current,
+                    naturalLanguageIntent: event.target.value,
+                  }))}
+                  maxLength={500}
+                  rows={3}
+                  placeholder="告诉控灵你想达成什么"
+                  data-adaptive-path-generation-intent="editable"
+                  className="mt-2 min-h-20 w-full resize-y rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
+                />
               </label>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => submitPathGeneration('generate')}
+                  disabled={pathGenerationPending !== null || !activeGoal}
+                  data-adaptive-path-generation-action="submit-panel-request"
+                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
+                >
+                  <Sparkles className="size-4" aria-hidden="true" />
+                  {pathGenerationPending === 'generate' ? '正在生成' : '生成路径'}
+                </button>
+                <button
+                  type="button"
+                  onClick={openPathGenerationAdvisor}
+                  disabled={assistantEntryPoint?.mode !== 'path-advisor'}
+                  className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:border-primary disabled:opacity-60"
+                >
+                  <MessageSquare className="size-4" aria-hidden="true" />
+                  打开控灵
+                </button>
+              </div>
             </div>
           </section>
 
@@ -2142,10 +2459,12 @@ export default function AdaptivePracticePage() {
                 {[
                   ['预计时长', (option: AdaptivePathOptionDisplay) => option.estimatedTime],
                   ['已匹配资源', (option: AdaptivePathOptionDisplay) => option.resources.map((resource) => resource.label).join('、')],
+                  ['准备度', (option: AdaptivePathOptionDisplay) => option.readiness],
                   ['检查节点', (option: AdaptivePathOptionDisplay) => option.checkpoints],
                   ['适合场景', (option: AdaptivePathOptionDisplay) => option.scenario],
                   ['当前建议理由', (option: AdaptivePathOptionDisplay) => option.reason],
                   ['预期结果', (option: AdaptivePathOptionDisplay) => option.outcome],
+                  ['风险提示', (option: AdaptivePathOptionDisplay) => option.riskNote],
                 ].map(([label, resolve]) => (
                   <div key={label as string} className="contents">
                     <div className="rounded-lg border border-border bg-background/45 p-3 text-sm font-medium text-foreground">
@@ -2186,11 +2505,13 @@ export default function AdaptivePracticePage() {
                     <p className="leading-6 text-foreground">{option.reason}</p>
                     <div className="flex flex-wrap gap-1.5 text-xs text-subtle">
                       <span className="rounded-md border border-border bg-muted/40 px-2 py-1">{option.checkpoints}</span>
+                      <span className="rounded-md border border-border bg-muted/40 px-2 py-1">{option.readiness}</span>
                       <span className="rounded-md border border-border bg-muted/40 px-2 py-1">
                         {option.resources.slice(0, 2).map((resource) => resource.label).join('、')}
                       </span>
                     </div>
                     <p className="text-xs leading-5 text-subtle">{option.outcome}</p>
+                    <p className="text-xs leading-5 text-subtle">{option.riskNote}</p>
                   </div>
                   <details className="mt-3 rounded-lg border border-border bg-background/50 px-3 py-2 text-xs text-subtle">
                     <summary className="cursor-pointer font-medium text-foreground">查看资源组合</summary>
@@ -2227,11 +2548,11 @@ export default function AdaptivePracticePage() {
                       <button
                         type="button"
                         className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-60"
-                        disabled={!option.writeOption || Boolean(pathChoicePending)}
+                        disabled={!option.writeOption || Boolean(pathGenerationPending)}
                         onClick={() => {
                           const optionForWrite = option.writeOption;
                           if (optionForWrite) {
-                            submitPathChoice('switch', optionForWrite);
+                            submitPathGeneration('revise', optionForWrite);
                             return;
                           }
                           setPathChoiceUnavailable();
@@ -2239,6 +2560,21 @@ export default function AdaptivePracticePage() {
                       >
                         <RefreshCw className="size-3.5" aria-hidden="true" />
                         调整
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
+                        disabled={!option.writeOption || Boolean(pathGenerationPending)}
+                        onClick={() => {
+                          const optionForWrite = option.writeOption;
+                          if (optionForWrite) {
+                            submitPathGeneration('explain', optionForWrite);
+                            return;
+                          }
+                          setPathChoiceUnavailable();
+                        }}
+                      >
+                        解释差异
                       </button>
                       <button
                         type="button"
@@ -2310,11 +2646,11 @@ export default function AdaptivePracticePage() {
                     <button
                       type="button"
                       className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-60"
-                      disabled={!option.writeOption || Boolean(pathChoicePending)}
+                      disabled={!option.writeOption || Boolean(pathGenerationPending)}
                       onClick={() => {
                         const optionForWrite = option.writeOption;
                         if (optionForWrite) {
-                          submitPathChoice('switch', optionForWrite);
+                          submitPathGeneration('revise', optionForWrite);
                           return;
                         }
                         setPathChoiceUnavailable();
@@ -2322,6 +2658,21 @@ export default function AdaptivePracticePage() {
                     >
                       <RefreshCw className="size-3.5" aria-hidden="true" />
                       请控灵调整
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
+                      disabled={!option.writeOption || Boolean(pathGenerationPending)}
+                      onClick={() => {
+                        const optionForWrite = option.writeOption;
+                        if (optionForWrite) {
+                          submitPathGeneration('explain', optionForWrite);
+                          return;
+                        }
+                        setPathChoiceUnavailable();
+                      }}
+                    >
+                      解释差异
                     </button>
                     <button
                       type="button"
@@ -2790,7 +3141,11 @@ export default function AdaptivePracticePage() {
                       <span className="text-xs text-subtle">{history.createdAt ?? '刚刚'}</span>
                     </div>
                     <p className="mt-1 text-subtle">
-                      {history.selectedStyleId ? `已选择 ${history.selectedStyleId}` : '已记录路径偏好'}
+                      {history.selectedOptionLabel
+                        ? `已选择 ${history.selectedOptionLabel}`
+                        : history.rejectedOptionLabels?.length
+                          ? `未采用 ${history.rejectedOptionLabels.join('、')}`
+                          : '已记录路径偏好'}
                     </p>
                   </div>
                 )) : (

@@ -4727,7 +4727,18 @@ describe('konling agent runtime', () => {
         updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       },
       learningPath: {
-        findFirst: vi.fn().mockResolvedValue({ id: 'frequency-path-1' }),
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'frequency-path-1',
+          pathPayload: {
+            policyBundle: {
+              status: 'ready',
+              paths: [
+                { styleId: 'guided', nodeIds: ['node-1'], resourceMix: {} },
+                { styleId: 'sprint', nodeIds: ['node-2'], resourceMix: {} },
+              ],
+            },
+          },
+        }),
       },
     };
     const runtime = buildKonlingToolRuntime({
@@ -4773,6 +4784,59 @@ describe('konling agent runtime', () => {
         approvalState: 'not_required',
       }),
     }));
+  });
+
+  it('rejects path tradeoff explanations for options outside the scoped path', async () => {
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['explain_learning_path_tradeoff'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn(),
+        create: vi.fn(),
+        updateMany: vi.fn(),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'frequency-path-1',
+          pathPayload: {
+            policyBundle: {
+              status: 'ready',
+              paths: [
+                { styleId: 'guided', nodeIds: ['node-1'], resourceMix: {} },
+              ],
+            },
+          },
+        }),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['explain_learning_path_tradeoff'],
+        planContext: {
+          currentPathId: 'frequency-path-1',
+          activeNodeId: 'node-1',
+          nextNodeIds: [],
+          recentPathIds: ['frequency-path-1'],
+          completedNodeIds: [],
+          status: 'available',
+        },
+      }),
+    });
+
+    await expect(runtime.explainLearningPathTradeoff({
+      idempotencyKey: 'path-tradeoff-forged',
+      goalId: 'frequency-response-foundations',
+      pathId: 'frequency-path-1',
+      styleId: 'hallucinated-style',
+    })).rejects.toThrow('路径选项不属于当前学习路径');
+    expect(db.agentToolRun.create).not.toHaveBeenCalled();
   });
 
   it('records path-bound choices for registered non-control adaptive path goals', async () => {
