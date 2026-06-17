@@ -1226,7 +1226,8 @@ export default function AdaptivePracticePage() {
   const activeGoal = isAdaptivePracticeGoalId(requestedGoal) ? requestedGoal : null;
   const activeGoalLabel = activeGoal ? adaptivePracticeGoalLabel(activeGoal) : '自适应学习';
   const activePathAdvisorGoal = activeGoal;
-  const routeIntent = resolveControlCorrectionIntent(searchParams.get('intent'));
+  const requestedIntent = searchParams.get('intent');
+  const routeIntent = resolveControlCorrectionIntent(requestedIntent);
   const workspaceIntent = routeIntent === 'contextual-recommendation'
     ? 'generation'
     : routeIntent === 'path-selection'
@@ -1235,8 +1236,11 @@ export default function AdaptivePracticePage() {
         ? 'execution'
         : routeIntent === 'evidence-review' || routeIntent === 'learner-state-review'
           ? 'evidence-review'
+        : requestedIntent === 'practice'
+          ? 'practice'
           : 'landing';
   const showLandingWorkspace = workspaceIntent === 'landing';
+  const showPracticeWorkspace = workspaceIntent === 'practice';
   const showGenerationWorkspace = workspaceIntent === 'generation';
   const showSelectionWorkspace = workspaceIntent === 'selection';
   const showExecutionWorkspace = workspaceIntent === 'execution';
@@ -3223,15 +3227,21 @@ export default function AdaptivePracticePage() {
             </section>
           ) : null}
 
-          {showExecutionWorkspace || showEvidenceWorkspace ? (
+          {showPracticeWorkspace || showExecutionWorkspace || showEvidenceWorkspace ? (
           <section className="grid gap-4">
-            {showExecutionWorkspace ? (
+            {showPracticeWorkspace || showExecutionWorkspace ? (
             <div className="surface-card p-5" data-adaptive-practice-resource="path-node">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-medium uppercase tracking-normal text-primary">Practice resource</p>
-                  <h2 className="mt-1 text-xl font-semibold text-foreground">路径资源入口</h2>
-                  <p className="mt-2 text-sm text-subtle">自适应练习保留为检查节点，选择路径后再展开题面和反馈。</p>
+                  <h2 className="mt-1 text-xl font-semibold text-foreground">
+                    {showPracticeWorkspace ? '自适应练习' : '路径资源入口'}
+                  </h2>
+                  <p className="mt-2 text-sm text-subtle">
+                    {showPracticeWorkspace
+                      ? '诊断与练习题在这里继续，完成后会更新推荐重点。'
+                      : '自适应练习保留为检查节点，选择路径后再展开题面和反馈。'}
+                  </p>
                 </div>
                 <button
                   type="button"

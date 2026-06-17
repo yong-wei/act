@@ -61,11 +61,16 @@ describe('adaptive practice page entry states', () => {
     const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
 
     expect(source).toContain("intentParam === 'path-selection'");
+    expect(source).toContain("const requestedIntent = searchParams.get('intent')");
     expect(source).toContain("const workspaceIntent = routeIntent === 'contextual-recommendation'");
+    expect(source).toContain("requestedIntent === 'practice'");
     expect(source).toContain("data-adaptive-path-workspace-intent={workspaceIntent}");
+    expect(source).toContain("const showPracticeWorkspace = workspaceIntent === 'practice'");
     expect(source).toContain("const showPresetGoalCards = false");
     expect(source).toContain("showSelectionWorkspace ? (");
     expect(source).toContain("(showExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
+    expect(source).toContain("showPracticeWorkspace || showExecutionWorkspace || showEvidenceWorkspace");
+    expect(source).toContain("showPracticeWorkspace || showExecutionWorkspace ? (");
     expect(source).toContain("showEvidenceWorkspace ? (");
     expect(source).toContain("intent: 'path-selection'");
     expect(source).toContain("intent: 'path-execution'");
