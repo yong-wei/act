@@ -2687,4 +2687,101 @@ describe('adaptive learning path planner', () => {
       state: 'locked',
     }));
   });
+
+  it('preserves non-overlapping policy option node states after feedback refresh', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'prep-card',
+          label: '准备知识卡',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/prep-card',
+          knowledgeNodeIds: ['kn-prep'],
+        },
+      ],
+      simulations: [
+        {
+          id: 'ungated-with-prereq',
+          title: '缺 readiness 的前置仿真',
+          launchTarget: '/simulations/ungated-with-prereq',
+          knowledgeNodeIds: ['kn-ungated-sim'],
+          prerequisiteNodeIds: ['registry:prep-card'],
+        },
+      ],
+    });
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'goal-partial-overlap-policy',
+        title: '部分重叠策略路径',
+        knowledgeTargets: ['kn-ungated-sim'],
+        competencyTargets: [],
+      },
+      constraints: {
+        timeBudgetMinutes: 60,
+        privacyScopes: ['student-visible'],
+      },
+      policyBundle: {
+        families: ['simulation-driven'],
+        overlapThreshold: 0.6,
+      },
+    }));
+    const baseOption = plan.policyBundle?.paths[0];
+    expect(baseOption).toBeDefined();
+    const planWithPartialOption = {
+      ...plan,
+      policyBundle: {
+        ...plan.policyBundle!,
+        paths: [
+          ...plan.policyBundle!.paths,
+          {
+            ...baseOption!,
+            styleId: 'preference-matched-route' as const,
+            policyFamily: 'preference-matched' as const,
+            label: '部分重叠备选路径',
+            nodeIds: ['registry:prep-card', 'external-resource:non-overlap', 'simulation:non-overlap-locked'],
+            activeNodeIds: ['registry:prep-card', 'external-resource:non-overlap'],
+            lockedNodeIds: ['simulation:non-overlap-locked'],
+            readinessSummary: [
+              {
+                nodeId: 'simulation:non-overlap-locked',
+                state: 'locked' as const,
+                message: '备选路径仍有锁定节点。',
+              },
+            ],
+            unlockMessages: [
+              {
+                nodeId: 'simulation:non-overlap-locked',
+                message: '备选路径仍有锁定节点。',
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const updated = recordLearningPathFeedback(planWithPartialOption, {
+      id: 'complete-prep-card-partial-policy',
+      type: 'completion',
+      nodeId: 'registry:prep-card',
+      createdAt: '2026-06-17T10:30:00.000Z',
+    });
+    const partialOption = updated.policyBundle?.paths.find((path) => path.label === '部分重叠备选路径');
+
+    expect(partialOption?.activeNodeIds).toEqual(['external-resource:non-overlap']);
+    expect(partialOption?.lockedNodeIds).toEqual(['simulation:non-overlap-locked']);
+    expect(partialOption?.readinessSummary).toEqual([
+      {
+        nodeId: 'simulation:non-overlap-locked',
+        state: 'locked',
+        message: '备选路径仍有锁定节点。',
+      },
+    ]);
+    expect(partialOption?.unlockMessages).toEqual([
+      {
+        nodeId: 'simulation:non-overlap-locked',
+        message: '备选路径仍有锁定节点。',
+      },
+    ]);
+  });
 });

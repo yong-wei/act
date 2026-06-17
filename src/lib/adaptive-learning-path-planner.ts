@@ -1984,7 +1984,6 @@ function refreshPolicyBundlePathStates(
   mainPath: AdaptiveLearningPathPlanNode[],
 ): AdaptiveLearningPathPolicyBundle | undefined {
   if (!policyBundle) return undefined;
-  const pathNodeIds = new Set(mainPath.map((node) => node.nodeId));
   const pathByNodeId = new Map(mainPath.map((node) => [node.nodeId, node]));
   return {
     ...policyBundle,
@@ -1992,13 +1991,26 @@ function refreshPolicyBundlePathStates(
       const optionNodes = path.nodeIds
         .map((nodeId) => pathByNodeId.get(nodeId))
         .filter((node): node is AdaptiveLearningPathPlanNode => Boolean(node));
-      if (optionNodes.length === 0 && !path.nodeIds.some((nodeId) => pathNodeIds.has(nodeId))) return path;
+      if (optionNodes.length === 0) return path;
+      const refreshedNodeIds = new Set(optionNodes.map((node) => node.nodeId));
       return {
         ...path,
-        activeNodeIds: activePolicyNodeIds(optionNodes),
-        lockedNodeIds: lockedPolicyNodeIds(optionNodes),
-        readinessSummary: policyReadinessSummary(optionNodes),
-        unlockMessages: policyUnlockMessages(optionNodes),
+        activeNodeIds: [
+          ...path.activeNodeIds.filter((nodeId) => !refreshedNodeIds.has(nodeId)),
+          ...activePolicyNodeIds(optionNodes),
+        ],
+        lockedNodeIds: [
+          ...path.lockedNodeIds.filter((nodeId) => !refreshedNodeIds.has(nodeId)),
+          ...lockedPolicyNodeIds(optionNodes),
+        ],
+        readinessSummary: [
+          ...path.readinessSummary.filter((item) => !refreshedNodeIds.has(item.nodeId)),
+          ...policyReadinessSummary(optionNodes),
+        ],
+        unlockMessages: [
+          ...path.unlockMessages.filter((item) => !refreshedNodeIds.has(item.nodeId)),
+          ...policyUnlockMessages(optionNodes),
+        ],
         nodeSummaries: path.nodeSummaries.map((summary) => {
           const node = pathByNodeId.get(summary.nodeId);
           return node ? toPathOptionNodeSummary(node) : summary;
