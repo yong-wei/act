@@ -12,6 +12,7 @@ import {
   evaluateCommercialUiGovernance,
   type CommercialAccessibilityTextFitEvidence,
   type CommercialAdaptivePathProductQaEvidence,
+  type CommercialInteractiveVisualAcceptanceArtifact,
   type CommercialVisualAcceptanceRoute,
   type CommercialInteractiveLearningProductQaEvidence,
   type CommercialModuleChromeInventoryEntry,
@@ -2584,11 +2585,103 @@ function readAccessibilityEvidenceManifest(routes: readonly CommercialVisualAcce
   });
 }
 
+const INTERACTIVE_VISUAL_ACCEPTANCE_ARTIFACT_PATTERN =
+  /^artifacts\/interactive-learning\/.+\/implementation-acceptance\.json$/;
+const INTERACTIVE_VISUAL_COMPONENT_SOURCE_PATTERNS = [
+  /^src\/features\/interactive\/shared\/manifest-runtime\/(?:.*visual.*|static-surface-3d.*|activity-renderers|content-renderers|layout-renderer|module-registry-gate|module-taxonomy|.*evidence.*)\.tsx?$/,
+  /^src\/features\/interactive\/unit-/,
+  /^src\/app\/interactive-learning\/courses\//,
+  /^src\/resources\/control-system\/charts\//,
+  /^src\/resources\/control-system\/analysis\//,
+] as const;
+
+function shouldRequireInteractiveVisualComponentArtifacts(files: readonly string[]) {
+  return files.some((file) => (
+    INTERACTIVE_VISUAL_COMPONENT_SOURCE_PATTERNS.some((pattern) => pattern.test(file))
+  ));
+}
+
+function normalizeInteractiveVisualComponentArtifacts(
+  raw: unknown,
+): CommercialInteractiveVisualAcceptanceArtifact[] {
+  const record = objectRecord(raw);
+  const directArtifacts = Array.isArray(record.interactiveVisualComponentArtifacts)
+    ? record.interactiveVisualComponentArtifacts
+    : Array.isArray(record.components)
+      ? record.components
+      : [];
+  const nested = objectRecord(record.interactiveVisualComponentArtifact);
+  const candidates = [
+    ...(directArtifacts as unknown[]),
+    ...(Object.keys(nested).length > 0 ? [nested] : []),
+    ...(typeof record.componentId === 'string' && typeof record.componentKind === 'string' ? [record] : []),
+  ];
+  return candidates
+    .map((candidate) => objectRecord(candidate))
+    .filter((candidate) => typeof candidate.componentId === 'string' && typeof candidate.componentKind === 'string')
+    .map((candidate) => candidate as unknown as CommercialInteractiveVisualAcceptanceArtifact);
+}
+
+function interactiveVisualArtifactPathChecks(
+  artifact: CommercialInteractiveVisualAcceptanceArtifact,
+): NonNullable<CommercialInteractiveVisualAcceptanceArtifact['artifactPaths']> {
+  const paths = [
+    artifact.designContractPath,
+    artifact.visualSourcePath,
+    artifact.manifestAuditPath,
+    artifact.testResultPath,
+    artifact.browserAuditPath,
+    artifact.evidenceSamplePath,
+    artifact.reviewerEvidencePath,
+    artifact.browserAudit?.path,
+    artifact.evidenceSample?.path,
+    ...(artifact.screenshots ?? []).flatMap((screenshot) => [screenshot.path, screenshot.artifact]),
+  ].filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+  const existing = artifact.artifactPaths ?? [];
+  return [
+    ...existing,
+    ...paths.map((artifactPath) => ({
+      path: artifactPath,
+      exists: existsSync(path.join(repoRoot, artifactPath)),
+      current: true,
+      componentId: artifact.componentId,
+    })),
+  ];
+}
+
+function readInteractiveVisualComponentAcceptanceArtifacts(
+  files: readonly string[],
+): CommercialInteractiveVisualAcceptanceArtifact[] {
+  return files
+    .filter((file) => INTERACTIVE_VISUAL_ACCEPTANCE_ARTIFACT_PATTERN.test(file))
+    .filter((file) => existsSync(path.join(repoRoot, file)))
+    .flatMap((file) => {
+      try {
+        return normalizeInteractiveVisualComponentArtifacts(
+          JSON.parse(readFileSync(path.join(repoRoot, file), 'utf8')),
+        ).map((artifact) => ({
+          ...artifact,
+          artifactPaths: interactiveVisualArtifactPathChecks(artifact),
+        }));
+      } catch {
+        return [{
+          componentId: file,
+          componentKind: 'visual.stage',
+          route: file,
+          artifactPaths: [{ path: file, exists: true, current: false, componentId: file }],
+          blockingFindings: [`${file}:parse-error`],
+        } satisfies CommercialInteractiveVisualAcceptanceArtifact];
+      }
+    });
+}
+
 function runCommercialUiGovernanceScript() {
   const files = changedFiles();
   const commercialUiBehaviorFiles = files.filter(hasNonAccessibilityOnlyDiff);
   const requiredVisualRoutes = affectedVisualRoutes(commercialUiBehaviorFiles);
   const visualEvidence = readVisualEvidenceManifest();
+  const interactiveVisualComponentArtifacts = readInteractiveVisualComponentAcceptanceArtifacts(files);
+  const interactiveVisualComponentArtifactsRequired = shouldRequireInteractiveVisualComponentArtifacts(files);
   const trackedFiles = git(['ls-files']).split('\n').filter(Boolean);
   interface ChangedPrimaryRouteInventoryBlock {
     href: string;
@@ -2745,6 +2838,8 @@ const result = evaluateCommercialUiGovernance({
   interactiveLearningProductQa: interactiveLearningProductQaRequired
     ? readInteractiveLearningProductQaEvidence()
     : undefined,
+  interactiveVisualComponentArtifactsRequired,
+  interactiveVisualComponentArtifacts,
   adaptivePathProductQaRequired,
   adaptivePathProductQaSourceRefreshRequired,
   adaptivePathProductQaEvidenceRefreshed,
