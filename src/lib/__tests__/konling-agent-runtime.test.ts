@@ -4489,6 +4489,77 @@ describe('konling agent runtime', () => {
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我想先补相位裕度');
   });
 
+  it('preserves an explicitly empty adaptive path resource preference', async () => {
+    const createdRun = {
+      id: 'tool-run-path-empty-resources',
+      ownerUserId: 'student-1',
+      actorUserId: 'student-1',
+      targetUserId: 'student-1',
+      agentSessionId: 'agent-session-1',
+      toolName: 'generate_learning_path',
+      permissionTier: 'write',
+      approvalState: 'not_required',
+      status: 'running',
+      inputSummary: {},
+      outputSummary: null,
+      errorSummary: null,
+      idempotencyKey: 'path-gen-empty-resources',
+      correlationId: 'corr-path-empty-resources',
+      startedAt: new Date('2026-05-28T00:00:00Z'),
+      completedAt: null,
+      latencyMs: null,
+    };
+    const db = {
+      agentSession: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'agent-session-1',
+          permittedTools: ['generate_learning_path'],
+        }),
+      },
+      agentToolRun: {
+        findFirst: vi.fn()
+          .mockResolvedValueOnce(null)
+          .mockResolvedValueOnce(createdRun),
+        create: vi.fn().mockResolvedValue(createdRun),
+        updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        upsert: vi.fn().mockImplementation(async ({ create }) => create),
+      },
+    };
+    const runtime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ resourceId: null, pathNodeId: null, pageId: 'adaptive-path-center' }),
+      agentSessionId: 'agent-session-1',
+      context: createRuntimeContext({
+        permittedTools: ['generate_learning_path'],
+        planContext: {
+          currentPathId: null,
+          activeNodeId: null,
+          nextNodeIds: [],
+          recentPathIds: [],
+          completedNodeIds: [],
+          status: 'missing',
+        },
+      }),
+    });
+
+    await runtime.generateLearningPath({
+      idempotencyKey: 'path-gen-empty-resources',
+      goalId: 'control-correction',
+      resourcePreference: [],
+    });
+
+    const createdPath = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(createdPath.inputSnapshot.request.resourcePreference).toEqual([]);
+    expect(createdPath.inputSnapshot.request.resourcePreference).not.toEqual([
+      'knowledge_card',
+      'adaptive_quiz',
+      'simulation',
+    ]);
+  });
+
   it('hides policy bundle options from Konling output when bundle is in fallback status', () => {
     const options = buildStudentSafePathOptions({
       status: 'ready',

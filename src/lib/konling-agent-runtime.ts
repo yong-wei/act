@@ -1636,7 +1636,8 @@ function normalizePlannerScore(value: unknown) {
 }
 
 function normalizeAdaptivePathResourcePreferences(value: string[] | undefined): AdaptiveLearningPathPlanNode['type'][] | undefined {
-  if (!value || value.length === 0) return undefined;
+  if (!value) return undefined;
+  if (value.length === 0) return [];
   const allowed = new Set<AdaptiveLearningPathPlanNode['type']>([
     'lesson_step',
     'knowledge_node',

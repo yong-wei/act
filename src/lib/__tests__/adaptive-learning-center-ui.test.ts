@@ -598,6 +598,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain('value={pathGenerationPanel.timeBudgetMinutes}');
     expect(pageSource).toContain('difficultyRhythm: pathGenerationPanel.difficultyRhythm');
     expect(pageSource).toContain('resourcePreference: pathGenerationPanel.resourcePreference');
+    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
+      .toContain('if (value.length === 0) return [];');
     expect(pageSource).toContain('checkpointPreference: pathGenerationPanel.checkpointPreference');
     expect(pageSource).toContain('allowExternalResources: pathGenerationPanel.allowExternalResources');
     expect(pageSource).toContain('naturalLanguageIntent: pathGenerationPanel.naturalLanguageIntent');
