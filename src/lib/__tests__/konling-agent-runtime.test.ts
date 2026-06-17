@@ -5561,7 +5561,13 @@ describe('konling agent runtime', () => {
       operation: 'revised',
       pathOptions: expect.any(Array),
     });
-    expect(db.learningPath.upsert).toHaveBeenCalled();
+    const revisedCreate = db.learningPath.upsert.mock.calls[0][0].create;
+    expect(revisedCreate.explanationPayload.selectedReasons).toEqual(
+      expect.arrayContaining(['policy-simulation-driven']),
+    );
+    expect(revisedCreate.pathPayload.policyBundle.paths[0].policyFamily).toBe('simulation-driven');
+    expect(revisedCreate.pathPayload.policyBundle.paths.map((path: { policyFamily: string }) => path.policyFamily))
+      .not.toContain('foundation-remediation');
     expect(db.agentToolRun.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         inputSummary: expect.objectContaining({

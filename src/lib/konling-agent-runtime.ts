@@ -30,6 +30,7 @@ import {
 import {
   buildAdaptiveLearningPathPlan,
   getRegisteredAdaptiveLearningPathGoal,
+  type AdaptiveLearningPathPolicyFamily,
   type AdaptiveLearningPathLearnerState,
   type AdaptiveLearningPathPlan,
   type AdaptiveLearningPathPlanNode,
@@ -1423,6 +1424,9 @@ async function buildAdaptivePathToolOutput(
   const timeBudget = resolveAdaptivePathTimeBudget(registeredGoal, args.timeBudgetMinutes);
   const resourcePreferences = normalizeAdaptivePathResourcePreferences(args.resourcePreference)
     ?? registeredGoal.starterPathPolicy.preferredResourceTypes;
+  const plannerRevisionPreference = operation === 'revised'
+    ? buildAdaptivePathRevisionPlannerPreference(args)
+    : {};
   const plan = buildAdaptiveLearningPathPlan({
     studentId: input.scope.targetUserId,
     goal: registeredGoal.goal,
@@ -1438,6 +1442,7 @@ async function buildAdaptivePathToolOutput(
     resourcePreferences,
     checkpointPreference: args.checkpointPreference ?? 'standard',
     allowExternalResources: args.allowExternalResources ?? registeredGoal.starterPathPolicy.allowExternalResources,
+    ...plannerRevisionPreference,
     excludedNodeIds: args.excludedNodeIds,
     preferredStyleId: args.preferredStyleId,
     requestedAt: args.requestedAt,
@@ -1516,6 +1521,42 @@ async function buildAdaptivePathToolOutput(
       ...(timeBudget.adjusted ? ['当前目标需要包含终端验证，系统已按最小可行学习时长生成路径。'] : []),
     ],
   };
+}
+
+function buildAdaptivePathRevisionPlannerPreference(
+  args: z.infer<typeof generateLearningPathParameters> | z.infer<typeof reviseLearningPathOptionsParameters>,
+): Pick<Parameters<typeof buildAdaptiveLearningPathPlan>[0], 'policyFamily' | 'policyBundle'> {
+  if (!('rejectedStyleIds' in args)) return {};
+  const preferredFamily = adaptivePathPolicyFamilyFromStyleId(args.preferredStyleId ?? args.selectedStyleId ?? null);
+  const rejectedFamilies = new Set((args.rejectedStyleIds ?? [])
+    .map((styleId) => adaptivePathPolicyFamilyFromStyleId(styleId))
+    .filter((family): family is AdaptiveLearningPathPolicyFamily => Boolean(family)));
+  const candidateFamilies = [
+    preferredFamily,
+    'simulation-driven',
+    'preference-matched',
+    'foundation-remediation',
+    'sprint-correction',
+  ].filter((family): family is AdaptiveLearningPathPolicyFamily => Boolean(family));
+  const families = Array.from(new Set(candidateFamilies.filter((family) => !rejectedFamilies.has(family))));
+  if (!preferredFamily && rejectedFamilies.size === 0) return {};
+  return {
+    policyFamily: preferredFamily ?? families[0] ?? 'rules-plus-graph-search',
+    policyBundle: families.length > 0
+      ? { families, overlapThreshold: 0.6 }
+      : undefined,
+  };
+}
+
+function adaptivePathPolicyFamilyFromStyleId(styleId: string | null | undefined): AdaptiveLearningPathPolicyFamily | null {
+  if (!styleId) return null;
+  if (styleId === 'foundation-remediation') return 'foundation-remediation';
+  if (styleId === 'arena-simulation-sprint' || styleId === 'simulation-driven') return 'simulation-driven';
+  if (styleId === 'preference-matched-route' || styleId === 'preference-matched') return 'preference-matched';
+  if (styleId === 'sprint-correction-route' || styleId === 'sprint-correction') return 'sprint-correction';
+  if (styleId === 'teacher-assigned-route' || styleId === 'teacher-assigned') return 'teacher-assigned';
+  if (styleId === 'rules-graph-search-route' || styleId === 'rules-plus-graph-search') return 'rules-plus-graph-search';
+  return null;
 }
 
 function resolveAdaptivePathTimeBudget(

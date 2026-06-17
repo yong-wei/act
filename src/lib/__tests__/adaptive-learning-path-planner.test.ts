@@ -321,6 +321,17 @@ describe('adaptive learning path planner', () => {
     expect(sprint.policyMetadata.constraints).toContain('time-budget-first');
   });
 
+  it('uses server time instead of client requestedAt for authoritative path timestamps', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      requestedAt: '2035-01-01T00:00:00.000Z',
+      now: new Date('2026-05-27T08:00:00.000Z'),
+    }));
+
+    expect(plan.executionStatus.updatedAt).toBe('2026-05-27T08:00:00.000Z');
+    expect(plan.visualization.timeline.generatedAt).toBe('2026-05-27T08:00:00.000Z');
+    expect(JSON.stringify(plan)).not.toContain('2035-01-01T00:00:00.000Z');
+  });
+
   it('applies requested resource, difficulty, and checkpoint preferences to path scoring', () => {
     const preferredSimulation = buildAdaptiveLearningPathPlan(plannerInput({
       resourcePreferences: ['simulation', 'arena_task'],

@@ -628,7 +628,7 @@ function buildAdaptiveLearningPathPlanInternal(
   input: AdaptiveLearningPathPlannerInput,
   includePolicyBundle: boolean,
 ): AdaptiveLearningPathPlan {
-  const now = input.requestedAt ?? (input.now ?? new Date()).toISOString();
+  const now = (input.now ?? new Date()).toISOString();
   const policyFamily = input.policyFamily ?? 'rules-plus-graph-search';
   const policyMetadata = ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES[policyFamily];
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
