@@ -1208,6 +1208,7 @@ export default function AdaptivePracticePage() {
     [pathExecutionNodes],
   );
   useEffect(() => {
+    setPathAdvisorAgentSessionId(null);
     if (!activeGoal) return;
     setPathGenerationPanel((current) => ({ ...current, goalId: activeGoal }));
   }, [activeGoal]);

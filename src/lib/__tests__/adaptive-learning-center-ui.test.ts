@@ -587,6 +587,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain('excludedNodeIds: operation ===');
     expect(pageSource).toContain('preferredOptionId: operation !==');
     expect(pageSource).toContain('requestedAt: new Date().toISOString()');
+    expect(pageSource).toContain('setPathAdvisorAgentSessionId(null)');
     expect(pageSource).toContain("fetch('/api/adaptive/path-advisor-tool'");
     expect(pageSource).toContain('data-adaptive-path-generation-intent="editable"');
     expect(pageSource).toContain("submitPathGeneration('revise', optionForWrite)");
@@ -599,6 +600,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain('runtime.explainLearningPathTradeoff(toolInput)');
     expect(routeSource).toContain('modeContextToken');
     expect(routeSource).toContain('readPathOptionStyleLookup');
+    expect(routeSource).toContain('.filter(({ option }) => readStringArray(option.nodeIds).length > 0)');
     expect(routeSource).toContain('resolveOptionalCurrentPathStyleId(pathOptionLookup');
     expect(routeSource).toContain('throw new KonlingRuntimeScopeError(403, `路径选项不属于当前学习路径: ${fieldName}`)');
     expect(routeSource).toContain('requestedAt: typeof body.requestedAt');

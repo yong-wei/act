@@ -242,14 +242,20 @@ async function readPathOptionStyleLookup(pathId: string, goalId: string, userId:
   const policyBundle = readRecord(readRecord(path?.pathPayload).policyBundle);
   const paths = Array.isArray(policyBundle.paths) ? policyBundle.paths : [];
   const lookup = new Map<string, string>();
-  paths.forEach((item, index) => {
-    const option = readRecord(item);
-    const styleId = readString(option.styleId);
-    if (!styleId) return;
-    lookup.set(styleId, styleId);
-    lookup.set(readString(option.optionId) ?? `path-option-${index + 1}`, styleId);
-  });
+  paths
+    .map((item, index) => ({ option: readRecord(item), index }))
+    .filter(({ option }) => readStringArray(option.nodeIds).length > 0)
+    .forEach(({ option, index }) => {
+      const styleId = readString(option.styleId);
+      if (!styleId) return;
+      lookup.set(styleId, styleId);
+      lookup.set(readString(option.optionId) ?? `path-option-${index + 1}`, styleId);
+    });
   return lookup;
+}
+
+function readStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string' && item.length > 0) : [];
 }
 
 function readRecord(value: unknown): Record<string, unknown> {
