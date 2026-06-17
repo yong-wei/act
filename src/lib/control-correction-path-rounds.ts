@@ -654,7 +654,7 @@ function findNextPendingMainPathNodeId(
   for (const nodeId of mainPathNodeIds.slice(currentIndex + 1)) {
     if (completedNodeIds.has(nodeId) || skippedNodeIds.has(nodeId)) continue;
     const node = planNodes.find((item) => item.nodeId === nodeId);
-    if (node && isLockedPlanNodeRecord(node)) continue;
+    if (node && isLockedPlanNodeRecord(node)) return null;
     return nodeId;
   }
   return null;

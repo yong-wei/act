@@ -547,10 +547,7 @@ export function buildControlCorrectionLearningCenterView(
         routeIntent,
       }).nodes
     : [];
-  const nextNode = pathNodes.find((node) => node.state === 'current' && node.action) ??
-    pathNodes.find((node) => node.action && node.state !== 'locked' && node.state !== 'blocked' && node.state !== 'completed') ??
-    pathNodes.find((node) => node.action) ??
-    null;
+  const nextNode = selectNextRecommendedPathActionNode(pathNodes);
   const evidencePanel = baseView.panels.find((panel) => panel.region === 'evidence') ?? fallbackPanel('evidence');
   const konlingDock = baseView.panels.find((panel) => panel.region === 'konling') ?? konlingPanel(input.konling ?? null);
   const currentPath = baseView.panels.find((panel) => panel.region === 'current-path') ?? currentPathPanel(pathPlan);
@@ -619,6 +616,17 @@ export function buildControlCorrectionLearningCenterView(
         }))
       : [],
   };
+}
+
+function selectNextRecommendedPathActionNode(
+  nodes: RecommendedPathNodeView[],
+): RecommendedPathNodeView | null {
+  for (const node of nodes) {
+    if (node.state === 'completed') continue;
+    if (node.state === 'locked' || node.state === 'blocked') return null;
+    if (node.action) return node;
+  }
+  return null;
 }
 
 function formatAdaptivePathGoalLabel(goalId: string): string {

@@ -859,10 +859,22 @@ function getPathExecutionNodes(plan: AdaptiveLearningPathPlan | null, round: Lea
   });
   if (nodes.some((node) => node.status === 'current')) return nodes;
   const currentIndex = currentNodeId ? nodes.findIndex((node) => node.nodeId === currentNodeId) : -1;
-  const promotedCurrentNode = nodes.find((node, index) => index > currentIndex && (node.status === 'next' || node.status === 'optional'));
+  const promotedCurrentNode = findNextPromotableExecutionNode(nodes, currentIndex);
   return promotedCurrentNode
     ? nodes.map((node) => node.nodeId === promotedCurrentNode.nodeId ? { ...node, status: 'current' } : node)
     : nodes;
+}
+
+function findNextPromotableExecutionNode(
+  nodes: PathExecutionNodeView[],
+  currentIndex: number,
+): PathExecutionNodeView | null {
+  for (const node of nodes.slice(currentIndex + 1)) {
+    if (node.status === 'completed' || node.status === 'skipped') continue;
+    if (node.status === 'locked' || node.status === 'blocked') return null;
+    if (node.status === 'next' || node.status === 'optional') return node;
+  }
+  return null;
 }
 
 function getPathExecutionSummary(nodes: PathExecutionNodeView[], round: LearningPathRoundView | null) {

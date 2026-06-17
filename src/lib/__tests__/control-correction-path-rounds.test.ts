@@ -1252,6 +1252,80 @@ describe('control-correction path rounds', () => {
     }));
   });
 
+  it('does not advance currentNodeId beyond a locked pending path node', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'registry:lesson09-correction-precheck',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'registry:lesson09-correction-precheck',
+          'simulation:control-correction-step-response-lab',
+          'registry:later-ready-practice',
+        ],
+        planNodes: [
+          {
+            nodeId: 'registry:lesson09-correction-precheck',
+            status: 'current',
+          },
+          {
+            nodeId: 'simulation:control-correction-step-response-lab',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: '等待仿真证据。',
+              unlockMessage: '等待仿真证据。',
+              reasonCodes: ['readiness-required-outcome'],
+              fallbackNodeIds: ['registry:lesson09-correction-precheck'],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
+            },
+          },
+          {
+            nodeId: 'registry:later-ready-practice',
+            status: 'next',
+            readiness: { state: 'ready' },
+          },
+        ],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: [],
+        failedNodeIds: [],
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'registry:lesson09-correction-precheck',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'complete-precheck-before-locked-node',
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'registry:lesson09-correction-precheck',
+        pathPayload: expect.objectContaining({
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'simulation:control-correction-step-response-lab',
+              status: 'locked',
+            }),
+            expect.objectContaining({
+              nodeId: 'registry:later-ready-practice',
+              status: 'next',
+            }),
+          ]),
+        }),
+      }),
+    }));
+  });
+
   it('refreshes outcome-gated readiness after simulation evidence is produced', async () => {
     const db = mockDb();
     const path = {
