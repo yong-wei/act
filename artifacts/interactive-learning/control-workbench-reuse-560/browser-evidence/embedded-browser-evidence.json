@@ -1,0 +1,145 @@
+{
+  "status": "pass",
+  "checkedAt": "2026-06-17T17:06:31.804Z",
+  "baseUrl": "http://localhost:3001",
+  "states": [
+    {
+      "name": "embedded-student-unreleased-light",
+      "role": "student",
+      "state": "unreleased",
+      "theme": "light",
+      "width": 1440,
+      "height": 980,
+      "route": "/review/control-workbench-reuse-560?role=student&state=unreleased&theme=light",
+      "screenshotPath": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/embedded-student-unreleased-light.png",
+      "screenshotSha256": "78dc1f204dd2f690f6508e2b77d075e8a305a9edddcba409f12024369bd756bb",
+      "metrics": {
+        "htmlClass": "light",
+        "colorScheme": "light",
+        "horizontalOverflow": false,
+        "reviewVisible": true,
+        "timeDomain": true,
+        "rootLocus": true,
+        "nyquist": false,
+        "teacherDiagnostics": false,
+        "scrollWidth": 1440,
+        "clientWidth": 1440
+      }
+    },
+    {
+      "name": "embedded-student-released-dark",
+      "role": "student",
+      "state": "released",
+      "theme": "dark",
+      "width": 1440,
+      "height": 980,
+      "route": "/review/control-workbench-reuse-560?role=student&state=released&theme=dark",
+      "screenshotPath": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/embedded-student-released-dark.png",
+      "screenshotSha256": "33c189b604741823cc5ec8697af8280276e02d323deb7e9c42116bab41e546a5",
+      "metrics": {
+        "htmlClass": "dark",
+        "colorScheme": "dark",
+        "horizontalOverflow": false,
+        "reviewVisible": true,
+        "timeDomain": true,
+        "rootLocus": true,
+        "nyquist": false,
+        "teacherDiagnostics": false,
+        "scrollWidth": 1440,
+        "clientWidth": 1440
+      }
+    },
+    {
+      "name": "embedded-student-fallback-light",
+      "role": "student",
+      "state": "fallback",
+      "theme": "light",
+      "width": 1440,
+      "height": 980,
+      "route": "/review/control-workbench-reuse-560?role=student&state=fallback&theme=light",
+      "screenshotPath": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/embedded-student-fallback-light.png",
+      "screenshotSha256": "2d35e972fdae569a41f59edbe3f7ee17737ca9b38126a6400dc711a3075da023",
+      "metrics": {
+        "htmlClass": "light",
+        "colorScheme": "light",
+        "horizontalOverflow": false,
+        "reviewVisible": true,
+        "timeDomain": true,
+        "rootLocus": true,
+        "nyquist": false,
+        "teacherDiagnostics": false,
+        "scrollWidth": 1440,
+        "clientWidth": 1440
+      }
+    },
+    {
+      "name": "embedded-teacher-diagnostics-light",
+      "role": "teacher",
+      "state": "diagnostics",
+      "theme": "light",
+      "width": 1440,
+      "height": 980,
+      "route": "/review/control-workbench-reuse-560?role=teacher&state=diagnostics&theme=light",
+      "screenshotPath": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/embedded-teacher-diagnostics-light.png",
+      "screenshotSha256": "d5ac4751af33b724efb3020ba58ab50ae4b705d7ef82bba4de54c30f9f22f2bf",
+      "metrics": {
+        "htmlClass": "light",
+        "colorScheme": "light",
+        "horizontalOverflow": false,
+        "reviewVisible": true,
+        "timeDomain": true,
+        "rootLocus": true,
+        "nyquist": false,
+        "teacherDiagnostics": true,
+        "scrollWidth": 1440,
+        "clientWidth": 1440
+      }
+    },
+    {
+      "name": "embedded-teacher-diagnostics-dark",
+      "role": "teacher",
+      "state": "diagnostics",
+      "theme": "dark",
+      "width": 1440,
+      "height": 980,
+      "route": "/review/control-workbench-reuse-560?role=teacher&state=diagnostics&theme=dark",
+      "screenshotPath": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/embedded-teacher-diagnostics-dark.png",
+      "screenshotSha256": "b57593df8241ba60bbc92c690258b140c6837086c744d060b2357ddf118ed45c",
+      "metrics": {
+        "htmlClass": "dark",
+        "colorScheme": "dark",
+        "horizontalOverflow": false,
+        "reviewVisible": true,
+        "timeDomain": true,
+        "rootLocus": true,
+        "nyquist": false,
+        "teacherDiagnostics": true,
+        "scrollWidth": 1440,
+        "clientWidth": 1440
+      }
+    },
+    {
+      "name": "embedded-student-mobile-dark",
+      "role": "student",
+      "state": "released",
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "route": "/review/control-workbench-reuse-560?role=student&state=released&theme=dark",
+      "screenshotPath": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/embedded-student-mobile-dark.png",
+      "screenshotSha256": "39f9d4f5a370a4bd26ad23d3e85fc2d4aeb46aebc0ec74b943a3526cca5a7e73",
+      "metrics": {
+        "htmlClass": "dark",
+        "colorScheme": "dark",
+        "horizontalOverflow": false,
+        "reviewVisible": true,
+        "timeDomain": true,
+        "rootLocus": true,
+        "nyquist": false,
+        "teacherDiagnostics": false,
+        "scrollWidth": 390,
+        "clientWidth": 390
+      }
+    }
+  ]
+}

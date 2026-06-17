@@ -2,10 +2,12 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
 import {
+  CONTROL_WORKBENCH_COMPUTE_CAPABILITY_REFS,
   INTERACTIVE_MODULE_CANONICAL_CLASSES,
   INTERACTIVE_MODULE_COMPUTE_CAPABILITY_DEFINITIONS,
   INTERACTIVE_MODULE_DEFINITIONS,
   LEGACY_INTERACTIVE_MODULE_KIND_ALIASES,
+  isControlWorkbenchComputeCapabilityRef,
   type InteractiveModuleCanonicalClass,
   type LegacyInteractiveModuleKindAlias,
 } from './module-taxonomy';
@@ -30,8 +32,12 @@ export type InteractiveModuleRegistryGateViolationCode =
   | 'code-like-content-outside-code-module'
   | 'code-module-missing-source'
   | 'compute-missing-capability-ref'
+  | 'compute-generic-control-analysis-carrier'
+  | 'compute-control-migration-exception-invalid'
   | 'compute-static-surface-payload-invalid'
   | 'compute-unregistered-capability-ref'
+  | 'course-private-control-panel-duplicate'
+  | 'course-private-control-panel-exception-invalid'
   | 'course-local-module-chrome'
   | 'invalid-runtime-manifest'
   | 'lesson-missing-from-standard-module-inventory'
@@ -115,6 +121,8 @@ const NON_INTERACTIVE_STATUS_PATTERNS = [
 ];
 
 const CODE_LIKE_CONTENT_PATTERN = /\b(tf|step|rlocus|bode|margin|feedback|isstable|figure|grid|legend)\s*\(|(^|\n)\s*%|;\s*%/i;
+const CONTROL_ANALYSIS_CARRIER_PATTERN = /\b(control|bode|nyquist|root[\s_-]?locus|phase[\s_-]?plane|frequency|rust|wasm|pid|rl|training|parameter|response|ship|pole|radius|gain|risk|prediction|route|harmonic|relay|nonlinear|inverse|mpc|compare)\b/i;
+const COURSE_PRIVATE_CONTROL_PANEL_SOURCE_PATTERN = /\b(ControlFigureWorkspace|CONTROL_ANALYSIS_PANELS|TimeDomainPanel|BodePanel|NyquistPanel|RootLocusPanel|StepResponsePanel|ControlPerformanceBar|useControlEngine|ControlAnalysisRequest|fallbackResult|Rust\/WASM|WASM|wasm|root[\s_-]?locus|Nyquist|Bode|time[\s_-]?domain|frequency[\s_-]?domain|performance metric)\b/i;
 const COURSE_LOCAL_CHROME_KEYS = [
   'className',
   'class_name',
@@ -163,6 +171,81 @@ export const STANDARD_MODULE_ENFORCED_LESSON_IDS = [
 ] as const;
 
 export const STANDARD_MODULE_MIGRATED_LESSON_IDS = STANDARD_MODULE_ENFORCED_LESSON_IDS;
+
+type ControlWorkbenchMigrationException = {
+  issueId: string;
+  owner: string;
+  removalCondition: string;
+  expiresOn: string;
+};
+
+type InteractiveCoursePrivateControlPanelSourceInput = {
+  path: string;
+  source: string;
+};
+
+const CONTROL_ANALYSIS_INTERACTIVE_FIGURE_MIGRATION_EXCEPTIONS: Record<string, ControlWorkbenchMigrationException> = {
+  '1-2/step-10/drag-pole-panel': migrationException('560', 'interactive-course-visual-components', 'replace with control-root-locus-design-map or a shared non-control visual panel'),
+  '1-2/step-11/ship-simulation': migrationException('560', 'interactive-course-visual-components', 'replace with control-linked-comparison or a shared response-comparison panel'),
+  '3-8/step-18/compare-2x2-figure': migrationException('560', 'interactive-course-visual-components', 'replace with control-linked-comparison'),
+  '4-1/step-04/ship-quad-figure': migrationException('560', 'interactive-course-visual-components', 'replace with control-linked-comparison'),
+  '4-2/step-14/example-5-4-panel': migrationException('560', 'interactive-course-visual-components', 'replace with control-frequency-reading-workbench'),
+  '4-2/step-17/ship-compare-panel': migrationException('560', 'interactive-course-visual-components', 'replace with control-linked-comparison'),
+  '5-2/step-06/phase-rust-tabs': migrationException('560', 'interactive-course-visual-components', 'replace with nonlinear-analysis-workbench'),
+  '5-2/step-07/harmonic-rust-panel': migrationException('560', 'interactive-course-visual-components', 'replace with nonlinear-analysis-workbench'),
+  '5-2/step-08/memoryless-rust-panel': migrationException('560', 'interactive-course-visual-components', 'replace with nonlinear-analysis-workbench'),
+  '5-2/step-09/relay-rust-panel': migrationException('560', 'interactive-course-visual-components', 'replace with nonlinear-analysis-workbench'),
+  '5-2/step-12/negative-inverse-rust-panel': migrationException('560', 'interactive-course-visual-components', 'replace with nonlinear-analysis-workbench'),
+  '5-3/step-11/turning-rust-panel': migrationException('560', 'interactive-course-visual-components', 'replace with nonlinear-analysis-workbench'),
+  '5-4/step-06/prediction-panel': migrationException('560', 'interactive-course-visual-components', 'replace with control-linked-comparison'),
+  '5-4/step-14/route-compare-panel': migrationException('560', 'interactive-course-visual-components', 'replace with control-linked-comparison'),
+  '5-5/step-08/toy-training-panel': migrationException('560', 'interactive-course-visual-components', 'replace with training-workbench'),
+  '5-5/step-15/heading-rl-training-panel': migrationException('560', 'interactive-course-visual-components', 'replace with training-workbench'),
+  '5-6/step-11/route-panel': migrationException('560', 'interactive-course-visual-components', 'replace with control-linked-comparison'),
+};
+
+const COURSE_PRIVATE_CONTROL_PANEL_SOURCE_MIGRATION_EXCEPTIONS: Record<string, ControlWorkbenchMigrationException> = {
+  'src/features/interactive/unit-1-1-see-the-full-picture/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local control visuals with shared workbench capability modules'),
+  'src/features/interactive/unit-2-3-frequency-response/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local frequency visuals with control-frequency-reading-workbench'),
+  'src/features/interactive/unit-2-4-nyquist-margin-entry/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local Nyquist visuals with control-frequency-reading-workbench'),
+  'src/features/interactive/unit-2-4-nyquist-margin-entry/workspace.ts': migrationException('560', 'interactive-course-visual-components', 'replace course-local Nyquist workspace with control-frequency-reading-workbench'),
+  'src/features/interactive/unit-3-1-pure-pole-stability-and-dynamics/interactive-exploration-panel.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local pole exploration with control-root-locus-design-map'),
+  'src/features/interactive/unit-3-1-pure-pole-stability-and-dynamics/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local pole panels with control-root-locus-design-map'),
+  'src/features/interactive/unit-3-2-routh-stability-boundary/analysis-workspace.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local stability workspace with shared control workbench capability modules'),
+  'src/features/interactive/unit-3-2-routh-stability-boundary/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local stability panels with shared control workbench capability modules'),
+  'src/features/interactive/unit-3-3-root-locus-rules/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local root-locus panels with control-root-locus-design-map'),
+  'src/features/interactive/unit-3-4-root-locus-reading-validation/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local root-locus reading panels with control-root-locus-design-map'),
+  'src/features/interactive/unit-3-4-root-locus-reading-validation/workspace.ts': migrationException('560', 'interactive-course-visual-components', 'replace course-local root-locus reading workspace with control-root-locus-design-map'),
+  'src/features/interactive/unit-3-5-zero-dynamic-improvement/root-locus-workspace.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local root-locus workspace with control-root-locus-design-map'),
+  'src/features/interactive/unit-3-5-zero-dynamic-improvement/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local zero-design panels with control-root-locus-design-map'),
+  'src/features/interactive/unit-3-5-zero-dynamic-improvement/workspace.ts': migrationException('560', 'interactive-course-visual-components', 'replace course-local zero-design workspace with control-root-locus-design-map'),
+  'src/features/interactive/unit-3-6-zero-design-workshop/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local zero-design panels with control-root-locus-design-map'),
+  'src/features/interactive/unit-3-6-zero-design-workshop/submission-telemetry.ts': migrationException('560', 'interactive-course-visual-components', 'replace course-local telemetry payload with shared workbench evidence contract'),
+  'src/features/interactive/unit-3-6-zero-design-workshop/workspace.ts': migrationException('560', 'interactive-course-visual-components', 'replace course-local zero-design workspace with control-root-locus-design-map'),
+  'src/features/interactive/unit-3-7-steady-error-low-frequency-compensation/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local steady-error panels with shared control workbench capability modules'),
+  'src/features/interactive/unit-3-7-steady-error-low-frequency-compensation/workspace.ts': migrationException('560', 'interactive-course-visual-components', 'replace course-local steady-error workspace with shared control workbench capability modules'),
+  'src/features/interactive/unit-3-8-frequency-domain-translation-judgment/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local frequency panels with control-frequency-reading-workbench'),
+  'src/features/interactive/unit-3-8-frequency-domain-translation-judgment/workspace.ts': migrationException('560', 'interactive-course-visual-components', 'replace course-local frequency workspace with control-frequency-reading-workbench'),
+  'src/features/interactive/unit-3-9-cross-domain-mapping-lab/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local mapping panels with control-linked-comparison'),
+  'src/features/interactive/unit-3-9-cross-domain-mapping-lab/workspace.ts': migrationException('560', 'interactive-course-visual-components', 'replace course-local mapping workspace with control-linked-comparison'),
+  'src/features/interactive/unit-4-1-design-task-expression/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local design-task panels with control-linked-comparison'),
+  'src/features/interactive/unit-4-2-controller-selection-first-start/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local controller-selection panels with control-frequency-reading-workbench'),
+  'src/features/interactive/unit-4-3-initial-scheme-practice-first-validation/step-panels.tsx': migrationException('560', 'interactive-course-visual-components', 'replace course-local scheme-validation panels with shared control workbench capability modules'),
+  'src/features/interactive/unit-5-5-policy-learning-entry-risk/rl-training-runtime.ts': migrationException('560', 'interactive-course-visual-components', 'replace course-local training runtime with training-workbench'),
+};
+
+function migrationException(
+  issueId: string,
+  owner: string,
+  removalCondition: string,
+): ControlWorkbenchMigrationException {
+  return {
+    issueId,
+    owner,
+    removalCondition,
+    expiresOn: '2026-12-31',
+  };
+}
 
 export function evaluateInteractiveModuleRegistryGate({
   manifests,
@@ -284,15 +367,48 @@ export function scanRuntimeInteractiveModuleRegistry({
     standardModuleLessonIds: enforcedLessonIds,
   });
   const inventoryViolations = missingStandardModuleInventoryViolations(validManifests, enforcedLessonIds);
+  const sourceViolations = evaluateInteractiveCoursePrivateControlPanelSourceGate(
+    collectCoursePrivateControlPanelSourceFiles(join(rootDir, 'src/features/interactive'), rootDir),
+  );
 
   return {
     passed: result.violations.length === 0
       && invalidViolations.length === 0
       && inventoryViolations.length === 0
-      && rawLocalChromeViolations.length === 0,
+      && rawLocalChromeViolations.length === 0
+      && sourceViolations.length === 0,
     scannedModules: result.scannedModules,
-    violations: [...invalidViolations, ...rawLocalChromeViolations, ...inventoryViolations, ...result.violations],
+    violations: [
+      ...invalidViolations,
+      ...rawLocalChromeViolations,
+      ...inventoryViolations,
+      ...sourceViolations,
+      ...result.violations,
+    ],
   };
+}
+
+export function evaluateInteractiveCoursePrivateControlPanelSourceGate(
+  files: readonly InteractiveCoursePrivateControlPanelSourceInput[],
+): InteractiveModuleRegistryGateViolation[] {
+  return files.flatMap((file): InteractiveModuleRegistryGateViolation[] => {
+    if (!isCoursePrivateInteractiveSourcePath(file.path)) return [];
+    if (!COURSE_PRIVATE_CONTROL_PANEL_SOURCE_PATTERN.test(file.source)) return [];
+    const registeredException = sourceMigrationExceptionForPath(file.path);
+    if (hasCompleteMigrationException(registeredException)) return [];
+    if (sourceHasValidMigrationException(file.source)) return [];
+    return [{
+      lessonId: lessonIdFromInteractiveSourcePath(file.path),
+      stepId: '',
+      moduleId: '',
+      kind: '',
+      code: sourceHasMigrationExceptionMarker(file.source)
+        ? 'course-private-control-panel-exception-invalid'
+        : 'course-private-control-panel-duplicate',
+      message: `${file.path} duplicates shared control workbench panel behavior; use ${CONTROL_WORKBENCH_COMPUTE_CAPABILITY_REFS.join(', ')} or document a migration exception with issue id, owner, removal condition, and expiry.`,
+      manifestPath: file.path,
+    }];
+  });
 }
 
 function evaluateRuntimeModule({
@@ -446,6 +562,36 @@ function evaluateRuntimeModule({
         capabilityRef,
         message: `${lessonId} ${step.id} ${module.id} uses unregistered compute capability ${capabilityRef}.`,
       }));
+    } else if (capabilityRef === 'interactive-figure' && isGenericControlAnalysisCarrier(lessonId, step, module)) {
+      const exception = controlAnalysisCarrierMigrationException(lessonId, step, module);
+      if (!hasCompleteMigrationException(exception)) {
+        violations.push(violation({
+          lessonId,
+          manifestPath,
+          step,
+          module,
+          code: exception
+            ? 'compute-control-migration-exception-invalid'
+            : 'compute-generic-control-analysis-carrier',
+          canonicalClass: resolution.canonicalClass,
+          capabilityRef,
+          message: `${lessonId} ${step.id} ${module.id} uses interactive-figure as a generic control-analysis carrier; use a registered shared capability such as ${CONTROL_WORKBENCH_COMPUTE_CAPABILITY_REFS.join(', ')} or add a complete migration exception.`,
+        }));
+      }
+    } else if (isControlWorkbenchComputeCapabilityRef(capabilityRef)) {
+      const missingFields = missingControlWorkbenchPayloadFields(module.payload);
+      if (missingFields.length) {
+        violations.push(violation({
+          lessonId,
+          manifestPath,
+          step,
+          module,
+          code: 'compute-control-migration-exception-invalid',
+          canonicalClass: resolution.canonicalClass,
+          capabilityRef,
+          message: `${lessonId} ${step.id} ${module.id} shared control workbench payload is missing ${missingFields.join(', ')}.`,
+        }));
+      }
     } else if (capabilityRef === 'static-surface-3d') {
       const missingFields = missingStaticSurfacePayloadFields(module.payload);
       if (missingFields.length) {
@@ -492,6 +638,92 @@ function evaluateRuntimeModule({
   }
 
   return violations;
+}
+
+function isGenericControlAnalysisCarrier(
+  lessonId: string,
+  step: InteractiveRuntimeStepManifest,
+  module: InteractiveRuntimeModuleManifest,
+): boolean {
+  const candidateText = [
+    lessonId,
+    step.id,
+    step.title,
+    module.id,
+    module.title ?? '',
+    visibleTextFromUnknown(module.payload),
+  ].join('\n');
+  return CONTROL_ANALYSIS_CARRIER_PATTERN.test(candidateText);
+}
+
+function controlAnalysisCarrierMigrationException(
+  lessonId: string,
+  step: InteractiveRuntimeStepManifest,
+  module: InteractiveRuntimeModuleManifest,
+): ControlWorkbenchMigrationException | undefined {
+  const payloadException = recordValue(module.payload.migrationException ?? module.payload.migration_exception);
+  const key = `${lessonId}/${step.id}/${module.id}`;
+  const registeredException = CONTROL_ANALYSIS_INTERACTIVE_FIGURE_MIGRATION_EXCEPTIONS[key];
+  if (Object.keys(payloadException).length === 0) return registeredException;
+  return {
+    issueId: stringValue(payloadException.issueId ?? payloadException.issue_id ?? payloadException.issue),
+    owner: stringValue(payloadException.owner),
+    removalCondition: stringValue(payloadException.removalCondition ?? payloadException.removal_condition),
+    expiresOn: stringValue(payloadException.expiresOn ?? payloadException.expires_on ?? payloadException.expiry),
+  } as ControlWorkbenchMigrationException;
+}
+
+function hasCompleteMigrationException(exception: ControlWorkbenchMigrationException | undefined): boolean {
+  if (!exception) return false;
+  const { issueId, owner, removalCondition, expiresOn } = exception;
+  return Boolean(
+    typeof issueId === 'string'
+      && /^#?\d+$/.test(issueId)
+      && typeof owner === 'string'
+      && owner.trim()
+      && typeof removalCondition === 'string'
+      && removalCondition.trim()
+      && typeof expiresOn === 'string'
+      && /^\d{4}-\d{2}-\d{2}$/.test(expiresOn),
+  );
+}
+
+function missingControlWorkbenchPayloadFields(payload: Record<string, unknown>): string[] {
+  const missing: string[] = [];
+  if (!Array.isArray(payload.visiblePanelIds) && !Array.isArray(payload.visible_panel_ids) && !Array.isArray(payload.panels)) {
+    missing.push('visiblePanelIds');
+  }
+  if (!stringValue(payload.responseContractId ?? payload.response_contract_id ?? payload.responseKind ?? payload.response_kind)) {
+    missing.push('responseContractId');
+  }
+  if (!objectValue(payload.request ?? payload.analysisRequest ?? payload.analysis_request)) {
+    missing.push('request');
+  }
+  return missing;
+}
+
+function sourceMigrationExceptionForPath(path: string): ControlWorkbenchMigrationException | undefined {
+  return COURSE_PRIVATE_CONTROL_PANEL_SOURCE_MIGRATION_EXCEPTIONS[path.replace(/^\.\//, '')];
+}
+
+function collectCoursePrivateControlPanelSourceFiles(
+  root: string,
+  baseDir = process.cwd(),
+): InteractiveCoursePrivateControlPanelSourceInput[] {
+  if (!existsSync(root)) return [];
+  const result: InteractiveCoursePrivateControlPanelSourceInput[] = [];
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    const fullPath = join(root, entry.name);
+    if (entry.isDirectory()) {
+      result.push(...collectCoursePrivateControlPanelSourceFiles(fullPath, baseDir));
+    } else if (entry.isFile() && /\.(ts|tsx)$/.test(entry.name)) {
+      result.push({
+        path: relative(baseDir, fullPath),
+        source: readFileSync(fullPath, 'utf8'),
+      });
+    }
+  }
+  return result.sort((left, right) => left.path.localeCompare(right.path));
 }
 
 function evaluateNoInteractionStatusModules({
@@ -748,6 +980,28 @@ function hasStaticSurfaceData(data: Record<string, unknown>): boolean {
       || hasStaticSurfaceRegularGrid(objectValue(data.regularGrid))
       || hasStaticSurfaceMesh(data),
   );
+}
+
+function isCoursePrivateInteractiveSourcePath(path: string): boolean {
+  return /(^|\/)src\/features\/interactive\/unit-[^/]+\/.+\.(ts|tsx)$/.test(path)
+    && !/(^|\/)__tests__\//.test(path);
+}
+
+function lessonIdFromInteractiveSourcePath(path: string): string {
+  const match = path.match(/src\/features\/interactive\/(unit-[^/]+)/);
+  return match?.[1] ?? '(unknown-lesson)';
+}
+
+function sourceHasMigrationExceptionMarker(source: string): boolean {
+  return /controlWorkbenchMigrationException|control-workbench-migration-exception/i.test(source);
+}
+
+function sourceHasValidMigrationException(source: string): boolean {
+  if (!sourceHasMigrationExceptionMarker(source)) return false;
+  return /issue(?:Id)?\s*[:=]\s*['"]#?\d+['"]/i.test(source)
+    && /owner\s*[:=]\s*['"][^'"]+['"]/i.test(source)
+    && /removalCondition\s*[:=]\s*['"][^'"]+['"]/i.test(source)
+    && /(expiresOn|expiry)\s*[:=]\s*['"]\d{4}-\d{2}-\d{2}['"]/i.test(source);
 }
 
 function hasStaticSurfaceRegularGrid(grid: Record<string, unknown> | null): boolean {

@@ -523,6 +523,10 @@ const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
     'src/app/review/adaptive-assessment-figures/page.tsx',
     'adaptive assessment figures is an internal review preview launched from the review hub',
   ],
+  [
+    'src/app/review/control-workbench-reuse-560/page.tsx',
+    'issue 560 control workbench reuse is an internal visual acceptance surface launched from the review hub',
+  ],
 ]);
 
 function appPageRouteHref(file: string) {
@@ -574,6 +578,10 @@ function assertCoveredRouteGlobDoesNotHideStaticPages() {
     'src/app/interactive-learning/courses/*/teacher/[sessionId]/page.tsx',
   )) {
     throw new Error('coveredRouteGlob * must match exactly one route segment');
+  }
+  const issue560ReviewHref = appPageRouteHref('src/app/review/control-workbench-reuse-560/page.tsx');
+  if (issue560ReviewHref !== undefined) {
+    throw new Error('issue 560 review page must remain a non-primary route-ledger exception');
   }
 }
 

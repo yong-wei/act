@@ -1,0 +1,112 @@
+{
+  "lesson_id": "control-workbench-reuse-fixture",
+  "course_title": "Shared Control Workbench Fixture",
+  "course_route_segment": "control-workbench-reuse-fixture",
+  "preview_mode": {},
+  "media_policy": {},
+  "telemetry_strategy": "fixture",
+  "teacher_insight_strategy": "fixture",
+  "required_step_fields": [],
+  "step_order": ["step-01"],
+  "steps": {
+    "step-01": {
+      "title": "Shared control workbench capability",
+      "layout": {
+        "template": "stacked_regions",
+        "regions": [{ "id": "main", "width": "full", "order": 1 }]
+      },
+      "modules": [
+        {
+          "id": "shared-control-workbench",
+          "kind": "compute.panel",
+          "region": "main",
+          "must_be_visible": true,
+          "payload": {
+            "capabilityRef": "control-workbench",
+            "panel_id": "shared-control-workbench-fixture",
+            "visiblePanelIds": ["time-domain", "bode", "root-locus"],
+            "responseContractId": "parameter.set",
+            "releaseState": "released",
+            "fallbackState": "supported",
+            "request": {
+              "runtimeMode": "analysis",
+              "caseId": "shared-control-workbench-fixture",
+              "plant": {
+                "numerator": [1],
+                "denominator": [1, 2, 1],
+                "coefficientOrder": "descending",
+                "label": "G(s)"
+              },
+              "structures": [
+                {
+                  "kind": "gain",
+                  "enabled": true,
+                  "params": { "k": 1 },
+                  "label": "K"
+                }
+              ],
+              "outputs": ["step_response", "bode", "root_locus", "nyquist"],
+              "responseType": "step",
+              "timeRange": { "start": 0, "end": 10, "samples": 64 },
+              "frequencyRange": { "min": 0.1, "max": 10, "samples": 64 },
+              "rootLocus": { "minGain": 0, "maxGain": 10, "samples": 64, "currentGain": 1 }
+            },
+            "fallbackResult": {
+              "metrics": {
+                "overshootPct": 0,
+                "riseTimeSec": 1,
+                "settlingTimeSec": 2,
+                "peakTimeSec": 1,
+                "finalValue": 1,
+                "phaseMarginDeg": 45,
+                "gainMarginDb": 12,
+                "gainCrossoverRadPerSec": 1,
+                "phaseCrossoverRadPerSec": 2,
+                "bandwidthRadPerSec": 3
+              },
+              "stepResponse": { "points": [{ "x": 0, "y": 0 }, { "x": 1, "y": 1 }] },
+              "magnitude": { "points": [{ "x": 0, "y": 0 }, { "x": 1, "y": 1 }] },
+              "phase": { "points": [{ "x": 0, "y": 0 }, { "x": 1, "y": 1 }] },
+              "nyquist": { "points": [{ "re": 0, "im": 0 }, { "re": 1, "im": -1 }] },
+              "rootLocus": {
+                "branches": [[{ "re": -1, "im": 0 }, { "re": -2, "im": 0 }]],
+                "currentPoles": [{ "re": -1, "im": 0 }],
+                "openLoopPoles": [{ "re": -1, "im": 0 }],
+                "openLoopZeros": []
+              },
+              "isFallback": true
+            },
+            "text": "共享控制分析工作台 fixture。"
+          }
+        }
+      ],
+      "content_blocks": {},
+      "evidence_sequence": ["shared-control-workbench"],
+      "interaction_spec": {
+        "interaction_kind": "interactive_figure_submit",
+        "submit_fields": ["kp", "ki", "judgment"]
+      },
+      "teacher_controls": {
+        "release_activity": "manual",
+        "open_browse": "not_applicable",
+        "teacher_step_reveal": "not_applicable",
+        "reveal_reference_answer": "manual"
+      },
+      "student_access": {},
+      "teacher_insight_spec": {
+        "widgets": ["control-workbench-diagnostics"]
+      },
+      "telemetry_spec": {
+        "summary_fields": ["visiblePanelIds", "parameterSnapshot", "judgment"],
+        "misconception_tags": []
+      },
+      "ai_context_spec": {
+        "page_goal": "Validate shared control workbench capability routing.",
+        "delivery_mode": "fixture"
+      },
+      "interactive_figure_spec": {},
+      "preview_contract": { "demo_path": "" },
+      "acceptance_checks": []
+    }
+  }
+}
