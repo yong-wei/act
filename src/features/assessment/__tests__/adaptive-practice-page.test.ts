@@ -63,7 +63,7 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("intentParam === 'path-selection'");
     expect(source).toContain("const requestedIntent = searchParams.get('intent')");
     expect(source).toContain("const workspaceIntent = routeIntent === 'contextual-recommendation'");
-    expect(source).toContain("requestedIntent === 'practice'");
+    expect(source).toContain("requestedIntent !== null && requestedIntent.trim().length > 0 && routeIntent === 'practice'");
     expect(source).toContain("data-adaptive-path-workspace-intent={workspaceIntent}");
     expect(source).toContain("const showPracticeWorkspace = workspaceIntent === 'practice'");
     expect(source).toContain("const showPresetGoalCards = false");

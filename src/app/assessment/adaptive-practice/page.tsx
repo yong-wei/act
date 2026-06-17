@@ -1235,7 +1235,7 @@ export default function AdaptivePracticePage() {
         ? 'execution'
         : routeIntent === 'evidence-review' || routeIntent === 'learner-state-review'
           ? 'evidence-review'
-        : requestedIntent === 'practice'
+        : requestedIntent !== null && requestedIntent.trim().length > 0 && routeIntent === 'practice'
           ? 'practice'
           : 'landing';
   const showLandingWorkspace = workspaceIntent === 'landing';
