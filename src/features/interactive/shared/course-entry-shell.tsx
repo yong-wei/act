@@ -38,6 +38,7 @@ export interface CourseEntryShellConfig {
   overviewKicker?: string;
   overviewNote?: ReactNode;
   overviewTags?: string[];
+  estimatedDuration?: string;
   teacherDescription?: string;
   demoDescription?: string;
   mediaCourseLabel?: string;
@@ -221,7 +222,7 @@ export function CourseEntryShell({
         <section className="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
           <PlatformSurface variant="raised" className="min-w-0 p-5 sm:p-6" data-course-entry-region="identity">
             <div className="text-xs font-semibold uppercase tracking-[0.18em] text-platform-fg-muted">
-              {config.overviewKicker ?? config.mediaCourseLabel ?? lessonRuntime?.lesson.lesson_id ?? 'Course Entry'}
+              {config.overviewKicker ?? config.mediaCourseLabel ?? lessonRuntime?.lesson.lesson_id ?? '课程入口'}
             </div>
             <h2 className="mt-3 text-2xl font-semibold text-platform-fg-primary sm:text-3xl">
               {config.title}
@@ -250,9 +251,9 @@ export function CourseEntryShell({
             ) : null}
             <div className="mt-6 grid gap-3 sm:grid-cols-3" data-course-entry-region="course-stats">
               {[
-                { icon: Clock3, label: '预计时长', value: manifestSteps.length ? `${manifestSteps.length * 5} 分钟` : '90 分钟' },
-                { icon: ClipboardList, label: '互动内容', value: manifestSteps.length ? `${manifestSteps.length} 页` : '按 runtime 载入' },
-                { icon: Layers3, label: '互动模块', value: manifestModuleCount ? `${manifestModuleCount} 个` : '按 runtime 载入' },
+                { icon: Clock3, label: '预计时长', value: config.estimatedDuration ?? (manifestSteps.length ? `${manifestSteps.length * 5} 分钟` : '90 分钟') },
+                { icon: ClipboardList, label: '互动内容', value: manifestSteps.length ? `${manifestSteps.length} 页` : '课程内容加载中' },
+                { icon: Layers3, label: '互动模块', value: manifestModuleCount ? `${manifestModuleCount} 个` : '课程内容加载中' },
               ].map((item) => {
                 const Icon = item.icon;
                 return (

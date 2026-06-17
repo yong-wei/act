@@ -2,10 +2,10 @@
   "contract_version": "2.0",
   "lesson_id": "1-2",
   "course_title": "1-2：建模——从真实对象到可分析的系统",
-  "course_route_segment": "unit-1-2-modeling-rapid-pass",
+  "course_route_segment": "unit-1-2-modeling-from-object-to-system",
   "preview_mode": {
     "default_entry": "student_demo",
-    "student_demo_base_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo"
+    "student_demo_base_path": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo"
   },
   "telemetry_strategy": "lightweight_high_value",
   "teacher_insight_strategy": "step_level_aggregation_only",
@@ -140,7 +140,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-01"
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-01"
       },
       "acceptance_checks": [
         "学生能看到两种现象对比",
@@ -232,7 +232,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-02"
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-02"
       },
       "acceptance_checks": [
         "五项布鲁姆动词目标完整展示"
@@ -389,7 +389,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-03"
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-03"
       },
       "acceptance_checks": [
         "三题均为客观题",
@@ -428,11 +428,6 @@
             "id": "svg-figure",
             "width": "full",
             "order": 4
-          },
-          {
-            "id": "positioning",
-            "width": "full",
-            "order": 5
           }
         ]
       },
@@ -464,17 +459,8 @@
           "must_be_visible": true,
           "payload": {
             "block_key": "svg-comparison",
-            "title": "svg-comparison"
-          }
-        },
-        {
-          "id": "course-positioning",
-          "region": "positioning",
-          "kind": "content.rich",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "course-positioning",
-            "title": "course-positioning"
+            "figure_kind": "modeling_paths_comparison",
+            "title": "建模路径对照图"
           }
         }
       ],
@@ -503,13 +489,8 @@
         {
           "id": "svg-comparison",
           "type": "media",
-          "asset": "1-2-fig-01-modeling-paths.svg",
+          "figure_kind": "modeling_paths_comparison",
           "caption": "左侧机理链（物理定律→微分方程→传递函数），右侧数据驱动链（数据→算法→预测模型），中间标注各自优势与适用边界。"
-        },
-        {
-          "id": "course-positioning",
-          "type": "plain_text",
-          "body": "本课程以机理建模为主线。数据驱动在模块 5 再见。"
         }
       ],
       "interaction_spec": {
@@ -547,18 +528,16 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-04"
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-04"
       },
       "acceptance_checks": [
         "两列概念卡对比清晰",
-        "SVG 原生图展示两条路径",
-        "课程定位句明确"
+        "页面本地重绘的建模路径图展示两条路径"
       ],
       "evidence_sequence": [
         "mechanism-card",
         "data-driven-card",
-        "svg-comparison",
-        "course-positioning"
+        "svg-comparison"
       ],
       "student_access": {
         "default_visibility": "visible",
@@ -616,7 +595,7 @@
           "must_be_visible": true,
           "payload": {
             "block_key": "ship-physics-img",
-            "title": "ship-physics-img"
+            "title": "船舶航向物理因果图"
           }
         },
         {
@@ -684,17 +663,17 @@
             {
               "layer": 1,
               "label": "齐次解",
-              "content": "特征方程 r²+2r=0 → r₁=0, r₂=−2 → θ_h(t)=C₁+C₂e^(−2t)"
+              "content": "特征方程 $r^2+2r=0 \\rightarrow r_1=0, r_2=-2 \\rightarrow \\theta_h(t)=C_1+C_2e^{-2t}$"
             },
             {
               "layer": 2,
               "label": "特解",
-              "content": "输入为常数 5，猜 θ_p(t)=At，代入得 A=5/2 → θ_p(t)=(5/2)t"
+              "content": "输入为常数 5，猜 $\\theta_p(t)=At$，代入得 $A=\\frac{5}{2} \\rightarrow \\theta_p(t)=\\frac{5}{2}t$"
             },
             {
               "layer": 3,
               "label": "定系数",
-              "content": "θ(0)=0, θ̇(0)=0 → C₁=−5/4, C₂=5/4 → θ(t)=(5/2)t−5/4+(5/4)e^(−2t)"
+              "content": "$\\theta(0)=0, \\dot{\\theta}(0)=0 \\rightarrow C_1=-\\frac{5}{4}, C_2=\\frac{5}{4} \\rightarrow \\theta(t)=\\frac{5}{2}t-\\frac{5}{4}+\\frac{5}{4}e^{-2t}$"
             },
             {
               "layer": 4,
@@ -761,7 +740,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-05"
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-05"
       },
       "acceptance_checks": [
         "方程+符号表完整",
@@ -846,7 +825,7 @@
           "must_be_visible": false,
           "payload": {
             "block_key": "transform-chain-img",
-            "title": "transform-chain-img"
+            "title": "从时域方程到传递函数"
           }
         },
         {
@@ -883,22 +862,22 @@
           ],
           "rows": [
             [
-              "1(t)（单位阶跃）",
-              "1/s",
+              "$1(t)$（单位阶跃）",
+              "$\\frac{1}{s}$",
               "常数 1 的变换"
             ],
             [
-              "ḟ(t)",
-              "sF(s)−f(0)",
-              "一阶导 → ×s"
+              "$\\dot f(t)$",
+              "$sF(s)-f(0)$",
+              "一阶导 $\\rightarrow \\times s$"
             ],
             [
-              "f̈(t)",
-              "s²F(s)−sf(0)−ḟ(0)",
-              "二阶导 → ×s²"
+              "$\\ddot f(t)$",
+              "$s^2F(s)-sf(0)-\\dot f(0)$",
+              "二阶导 $\\rightarrow \\times s^2$"
             ]
           ],
-          "footer": "核心规律：对 t 求一次导 → 在 s 域多乘一个 s"
+          "footer": "核心规律：对 $t$ 求一次导 $\\rightarrow$ 在 $s$ 域多乘一个 $s$"
         },
         {
           "id": "tf-reveal",
@@ -909,22 +888,22 @@
             {
               "layer": 1,
               "label": "第一步：拉氏变换",
-              "content": "𝓛{Jθ̈}=Js²Θ, 𝓛{Bθ̇}=BsΘ, 𝓛{Ku}=KU → Js²Θ+BsΘ=KU"
+              "content": "$\\mathcal{L}\\{J\\ddot{\\theta}\\}=Js^2\\Theta, \\mathcal{L}\\{B\\dot{\\theta}\\}=Bs\\Theta, \\mathcal{L}\\{Ku\\}=KU \\rightarrow Js^2\\Theta+Bs\\Theta=KU$"
             },
             {
               "layer": 2,
               "label": "第二步：提取公因子",
-              "content": "Θ(Js²+Bs)=KU"
+              "content": "$\\Theta(Js^2+Bs)=KU$"
             },
             {
               "layer": 3,
               "label": "第三步：写出比值",
-              "content": "G(s)=Θ/U=K/(Js²+Bs)"
+              "content": "$G(s)=\\frac{\\Theta}{U}=\\frac{K}{Js^2+Bs}$"
             },
             {
               "layer": 4,
               "label": "分解分母",
-              "content": "G(s)=(K/J)/[s(s+B/J)]——s：积分效应；s+B/J：阻尼决定的衰减因素",
+              "content": "$G(s)=\\frac{K/J}{s(s+B/J)}$——$s$：积分效应；$s+B/J$：阻尼决定的衰减因素",
               "media": "1-2-fig-04-transform-chain.png"
             }
           ]
@@ -1014,7 +993,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-06"
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-06"
       },
       "acceptance_checks": [
         "拉氏变换表完整",
@@ -1084,7 +1063,7 @@
           "must_be_visible": true,
           "payload": {
             "block_key": "closed-loop-fig",
-            "title": "closed-loop-fig"
+            "title": "闭环控制标准结构图"
           }
         },
         {
@@ -1104,7 +1083,7 @@
           "must_be_visible": true,
           "payload": {
             "block_key": "connections-fig",
-            "title": "connections-fig"
+            "title": "三种基本连接图"
           }
         }
       ],
@@ -1114,7 +1093,7 @@
           "type": "bullet_list",
           "title": "方框图五要素",
           "items": [
-            "比较点：r−yₘ=e（期望与测量相遇，算出误差）",
+            "比较点：$r-y_m=e$（期望与测量相遇，算出误差）",
             "控制器：根据误差做出控制决策",
             "执行器：把决策变成真实物理作用",
             "被控对象：被控制的过程，输出在此产生",
@@ -1132,8 +1111,8 @@
           "type": "bullet_list",
           "title": "三种基本连接",
           "items": [
-            "串联：A 输出→B 输入，总 TF = G₁·G₂",
-            "并联：同输入，输出相加，总 TF = G₁+G₂",
+            "串联：A 输出→B 输入，总 TF = $G_1\\cdot G_2$",
+            "并联：同输入，输出相加，总 TF = $G_1+G_2$",
             "反馈：输出通过反馈通路回输入端，核心结构"
           ]
         },
@@ -1179,7 +1158,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-07"
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-07"
       },
       "acceptance_checks": [
         "五要素完整",
@@ -1243,7 +1222,8 @@
           "must_be_visible": true,
           "payload": {
             "block_key": "sfg-block-compare",
-            "title": "sfg-block-compare"
+            "title": "方框图与信号流图对照",
+            "display_width": "medium"
           }
         },
         {
@@ -1343,7 +1323,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-08"
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-08"
       },
       "acceptance_checks": [
         "四概念完整",
@@ -1395,7 +1375,7 @@
           "must_be_visible": true,
           "payload": {
             "block_key": "pole-origin-text",
-            "title": "pole-origin-text"
+            "title": "极点名称来源"
           }
         },
         {
@@ -1409,6 +1389,7 @@
             "legacyKind": "compute-panel",
             "presentation": "single",
             "block_key": "magnitude-surface",
+            "title": "极点幅值曲面",
             "spec_key": "pole_magnitude_3d",
             "data": {
               "url": "generated-data/pole-magnitude-surface.json"
@@ -1424,17 +1405,17 @@
               "max": 48
             },
             "defaultCamera": {
-              "position": [3.2, 3.1, 2.4],
-              "target": [0, 0, 0.7],
-              "zoom": 1
+              "position": [3.7, -5.5, 3.4],
+              "target": [-1, 0, 0.75],
+              "zoom": 1.05
             },
             "fallback": {
               "image": "1-2-fig-08-magnitude-surface.png",
               "alt": "船舶传递函数极点幅值曲面的静态图"
             },
             "markers": [
-              { "label": "s=0", "position": [0, 0, 1.7] },
-              { "label": "s=-B/J", "position": [-1, 0, 1.4] }
+              { "label": "s=0", "position": [0, 0, 2.15] },
+              { "label": "s=-B/J", "position": [-2, 0, 2.15] }
             ]
           }
         },
@@ -1470,11 +1451,11 @@
           "type": "compute_spec",
           "spec_key": "pole_magnitude_3d",
           "description": "船舶 G(s) 对数幅值曲面 20log₁₀|G(s)| 在 s 平面上的三维图。s 平面为底（横 σ，纵 jω），高度=对数幅值(dB)。s=0 和 s=−B/J 处高峰（截顶处理）。",
-          "default_view": "倾斜 45°视角，可看到两根极柱",
+          "default_view": "MATLAB 默认视角（方位角约 -37.5°、俯仰角约 30°），可看到两根极柱",
           "controls": [
             "水平拖拽旋转",
             "滚轮缩放",
-            "俯视按钮（切换顶视图，标注极点 × 位置）"
+            "俯视按钮（切换顶视图，查看极点红色标记与标签）"
           ],
           "reading_instruction": "找最高两根柱 → 切换俯视 → 看到两个 × 的坐标：s=0（原点，虚轴上），s=−B/J（左半平面实轴上）",
           "default_params": {
@@ -1536,11 +1517,11 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-09"
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-09"
       },
       "acceptance_checks": [
         "三维曲面可拖动旋转/缩放",
-        "俯视按钮标注极点 ×",
+        "俯视按钮可查看极点红色标记与标签",
         "极柱在 s=0 和 s=−B/J"
       ],
       "evidence_sequence": [
@@ -1619,7 +1600,7 @@
           "must_be_visible": true,
           "payload": {
             "block_key": "reading-rules",
-            "title": "reading-rules"
+            "title": "复平面读图规则"
           }
         },
         {
@@ -1629,7 +1610,7 @@
           "must_be_visible": true,
           "payload": {
             "block_key": "s-plane-static",
-            "title": "s-plane-static"
+            "title": "复平面行为地图"
           }
         },
         {
@@ -1653,14 +1634,14 @@
             "不稳定区（右半平面，σ>0）：任一极点在此 → 偏差放大",
             "振荡走廊（|ω| 大）：摆动密集",
             "单调走廊（|ω| 小）：接近无摆动",
-            "稳定边界（虚轴，σ=0）：等幅振荡，分界线"
+            "稳定边界（虚轴，σ=0）：非零纯虚共轭极点对应等幅振荡；原点极点需结合输入和重数另行判断"
           ]
         },
         {
           "id": "drag-pole-panel",
           "type": "compute_spec",
           "spec_key": "drag_pole_s_plane",
-          "description": "Rust 驱动。左区：s 平面（五区着色——稳定区蓝、不稳定区红、虚轴加粗），可拖动极点 ×。右区：对应时域响应曲线实时更新。",
+          "description": "互动计算面板。左区：s 平面（五区着色——稳定区蓝、不稳定区红、虚轴加粗），可拖动极点 ×。右区：对应时域响应曲线实时更新。",
           "default_params": {
             "sigma": -1,
             "omega": 2,
@@ -1705,7 +1686,7 @@
               "label": "提交当前参数"
             }
           ],
-          "reading_instruction": "默认 s=−1±2j（稳定区，振荡走廊）——边摆边收。σ 右拖近虚轴→拖尾变长；过虚轴→收敛变发散。ω 左拖到 0→振荡消失变单调；右拖大→振荡变密。停在 σ=0→等幅振荡。",
+          "reading_instruction": "默认 s=−1±2j（稳定区，振荡走廊）——边摆边收。σ 右拖近虚轴→拖尾变长；过虚轴→临界边界，再过虚轴→收敛变发散。ω 左拖到 0→振荡消失变单调；右拖大→振荡变密。停在非零纯虚极点处→等幅振荡；停在原点极点处需结合输入和重数另行判断。",
           "submit_format": "极点位置：σ=___，ω=___；行为特征：___（≤50字）"
         },
         {
@@ -1794,7 +1775,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-10"
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-10"
       },
       "acceptance_checks": [
         "五区着色+地名标注",
@@ -1907,17 +1888,17 @@
           "rows": [
             [
               "A",
-              "−1.5±2.2j",
+              "$-1.5\\pm2.2j$",
               "左半平面+明显虚部：边摆边收"
             ],
             [
               "B",
-              "−3.0, −0.8",
+              "$-3.0, -0.8$",
               "两实极点均在左：单调收敛，−0.8 更近虚轴→主导慢衰减"
             ],
             [
               "C",
-              "0.3±1.4j",
+              "$0.3\\pm1.4j$",
               "右半平面+明显虚部：摆动着发散"
             ]
           ]
@@ -1956,7 +1937,7 @@
           "title": "逐个读图",
           "items": [
             "A：左半平面保证衰减，虚部→可见摆动。先冲过目标，再边摆边收。",
-            "B：两实极点无摆动。−0.8 离虚轴更近→衰减更慢，拖住整体收敛。不一定比 A 快。",
+            "B：两实极点无摆动。$-0.8$ 离虚轴更近→衰减更慢，拖住整体收敛。不一定比 A 快。",
             "C：实部为正→幅度放大。开始也许还在修正，但后续偏差越来越大，航向控制失效。"
           ]
         }
@@ -2028,7 +2009,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-11"
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-11"
       },
       "acceptance_checks": [
         "对比表完整",
@@ -2122,7 +2103,7 @@
           "id": "example-problem",
           "type": "plain_text",
           "title": "例题 1-2-1",
-          "body": "系统模型 ÿ+2ẏ+5y=5r，r 为期望位置，y 为实际位置。请根据极点位置判断行为特征。"
+          "body": "系统模型 $\\ddot y+2\\dot y+5y=5r$，$r$ 为期望位置，$y$ 为实际位置。请根据极点位置判断行为特征。"
         },
         {
           "id": "example-reveal",
@@ -2133,19 +2114,19 @@
             {
               "layer": 1,
               "label": "特征方程",
-              "content": "s²+2s+5=0",
+              "content": "$s^2+2s+5=0$",
               "card": "特征方程_1_2"
             },
             {
               "layer": 2,
               "label": "解极点",
-              "content": "Δ=4−20=−16，s₁,₂=(−2±4j)/2=−1±2j。一对共轭复数。",
+              "content": "$\\Delta=4-20=-16$，$s_{1,2}=\\frac{-2\\pm4j}{2}=-1\\pm2j$。一对共轭复数。",
               "card": "特征根_1_2"
             },
             {
               "layer": 3,
               "label": "读图",
-              "content": "σ=−1（左半平面→衰减），ω=±2（不为零→有摆动成分）"
+              "content": "$\\sigma=-1$（左半平面→衰减），$\\omega=\\pm2$（不为零→有摆动成分）"
             },
             {
               "layer": 4,
@@ -2234,7 +2215,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-12"
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-12"
       },
       "acceptance_checks": [
         "题面完整常显",
@@ -2371,7 +2352,7 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-13"
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-13"
       },
       "acceptance_checks": [
         "2 客观+1 主观",
@@ -2415,11 +2396,6 @@
             "id": "extend-think",
             "width": "full",
             "order": 5
-          },
-          {
-            "id": "stats",
-            "width": "full",
-            "order": 6
           }
         ]
       },
@@ -2431,7 +2407,7 @@
           "must_be_visible": true,
           "payload": {
             "block_key": "info-graphic",
-            "title": "info-graphic"
+            "title": "建模专题局部地图"
           }
         },
         {
@@ -2462,16 +2438,6 @@
           "payload": {
             "block_key": "extend-think-text",
             "title": "拓展思考"
-          }
-        },
-        {
-          "id": "student-stats",
-          "region": "stats",
-          "kind": "analytics.summary",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "student-stats",
-            "title": "课堂学习统计"
           }
         }
       ],
@@ -2504,18 +2470,6 @@
           "type": "plain_text",
           "title": "拓展思考",
           "body": "两工程对象物理结构差别很大，但极点分布相近。能否用同一语言讨论它们的动态品质？哪些细节可省略，哪些必须保留？"
-        },
-        {
-          "id": "student-stats",
-          "type": "summary",
-          "title": "课堂学习统计",
-          "metrics": [
-            "前测正确率",
-            "关键互动提交率",
-            "复平面判断正确率",
-            "模型结构辨析完成率"
-          ],
-          "body": "本页向教师汇总本课关键互动的班级层面数据，不展示学生个人明细。"
         }
       ],
       "interaction_spec": {
@@ -2536,25 +2490,9 @@
       },
       "teacher_insight_spec": {
         "widgets": [
-          "view_count",
-          "student_stats_summary"
+          "view_count"
         ],
-        "aggregation": "lesson_level",
-        "student_stats": {
-          "metrics": [
-            "submission_count",
-            "objective_correct_rate",
-            "pre_post_comparison",
-            "step_10_exploration_count"
-          ]
-        },
-        "teacher_stats": {
-          "metrics": [
-            "class_submission_rate",
-            "class_correct_rate",
-            "common_misconceptions"
-          ]
-        }
+        "aggregation": "lesson_level"
       },
       "ai_context_spec": {
         "page_goal": "收束全课，回顾五个地标并明确边界。",
@@ -2568,21 +2506,19 @@
       },
       "preview_contract": {
         "route_kind": "student_demo",
-        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-rapid-pass/student/demo?step=step-14"
+        "demo_path": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo?step=step-14"
       },
       "acceptance_checks": [
         "信息图在顶部",
         "五地标回顾完整",
         "局限性讨论存在",
-        "拓展思考存在",
-        "学生统计面板存在"
+        "拓展思考存在"
       ],
       "evidence_sequence": [
         "info-graphic",
         "five-landmarks",
         "limitations-text",
-        "extend-think-text",
-        "student-stats"
+        "extend-think-text"
       ],
       "student_access": {
         "default_visibility": "visible",

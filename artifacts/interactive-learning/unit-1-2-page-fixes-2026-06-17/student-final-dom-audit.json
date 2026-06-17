@@ -1,0 +1,80 @@
+[
+  {
+    "forbiddenTextMatches": [],
+    "h2": "建模的两条路径",
+    "hasActivitySlot": false,
+    "hasGenericLearningContent": false,
+    "hasLocalModelingFigure": true,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "hasStep12Reveal": false,
+    "katexCount": 0,
+    "renderErrors": [],
+    "stepId": "step-04"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "传递函数——从微分运算到代数运算",
+    "hasActivitySlot": false,
+    "hasGenericLearningContent": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "hasStep12Reveal": false,
+    "katexCount": 9,
+    "renderErrors": [],
+    "stepId": "step-06"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "信号流图——变量间的决定关系",
+    "hasActivitySlot": false,
+    "hasGenericLearningContent": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "hasStep12Reveal": false,
+    "katexCount": 0,
+    "renderErrors": [],
+    "stepId": "step-08"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "极点的几何来源——三维幅值曲面",
+    "hasActivitySlot": false,
+    "hasGenericLearningContent": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": true,
+    "hasStaticSurfaceWebGL": true,
+    "hasStep12Reveal": false,
+    "katexCount": 0,
+    "renderErrors": [],
+    "stepId": "step-09"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "例题——从特征方程到行为判断",
+    "hasActivitySlot": false,
+    "hasGenericLearningContent": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "hasStep12Reveal": true,
+    "katexCount": 4,
+    "renderErrors": [],
+    "stepId": "step-12"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "总结——建模专题的局部地图",
+    "hasActivitySlot": false,
+    "hasGenericLearningContent": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "hasStep12Reveal": false,
+    "katexCount": 0,
+    "renderErrors": [],
+    "stepId": "step-14"
+  }
+]

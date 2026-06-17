@@ -415,6 +415,13 @@ INTERACTIVE_CONTRACT_REQUIRED_STEP_FIELDS = [
 ]
 
 IMPLEMENTATION_CONTRACT_REGISTRY: dict[str, dict[str, Any]] = {
+    '1-2': {
+        'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-1-2-course.ts',
+        'runtime_manifest_path': REPO_ROOT / 'course-content' / 'runtime' / 'lessons' / '1-2' / 'interactive-manifest.json',
+        'lesson_steps_from_runtime_manifest': True,
+        'lesson_steps_const': 'UNIT_1_2_LESSON_STEPS',
+        'source_path': 'src/lib/unit-1-2-course.ts',
+    },
     '3-2': {
         'course_lib_path': REPO_ROOT / 'src' / 'lib' / 'unit-3-2-course.ts',
         'page_contracts_const': 'UNIT_3_2_PAGE_CONTRACTS',

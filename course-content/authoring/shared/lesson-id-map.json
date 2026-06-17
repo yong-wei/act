@@ -615,7 +615,7 @@
       ],
       "canonical_id": "1-2",
       "display_id": "1-2",
-      "status": "mainline_draft",
+      "status": "mainline",
       "generation_allowed": true,
       "mapped_target_id": "1-2",
       "source_group": null,
@@ -624,7 +624,7 @@
       "authoring_overlays_dir": "1-2",
       "runtime_lesson_dir": "1-2",
       "legacy_source_ids": [],
-      "notes": "v4.0 模块1第二轮速通：模型与复平面极点的第一轮速通。当前为主线草稿，待 runtime、路由与 identity registry 完整落地后切换为 mainline。"
+      "notes": "v4.0 模块1第二轮主线：建模——从真实对象到可分析的系统。runtime、路由、preset、identity registry 与实现验收合同已落地。"
     },
     {
       "request_ids": [

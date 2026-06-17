@@ -1,0 +1,380 @@
+[
+  {
+    "forbiddenTextMatches": [],
+    "h2": "前测——进入建模专题前的准备",
+    "hasActivitySlot": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "imageCount": 2,
+    "images": [
+      {
+        "alt": "控灵",
+        "height": 44,
+        "src": "/_next/image?url=%2Fimages%2FAI64.png&w=96&q=75",
+        "width": 44
+      },
+      {
+        "alt": "控灵",
+        "height": 28,
+        "src": "/_next/image?url=%2Fimages%2FAI32.png&w=64&q=75",
+        "width": 28
+      }
+    ],
+    "katexCount": 0,
+    "renderErrors": [],
+    "stepId": "step-03",
+    "textSample": "返回\nMODELING FROM OBJECT TO SYSTEM\n1-2：建模——从真实对象到可分析的系统\nP1 · 前测\n6 min\n检测 1-1 基础概念掌握程度。\n环节\n第 01 页 · 导入——不同对象的行为差异与共性\n第 02 页 · 课程目标\n第 03 页 · 前测——进入建模专题前的准备\n第 04 页 · 建模的两条路径\n第 05 页 · 微分方程——物理对象的第一次翻译\n第 06 页 · 传递函数——从微分运算到代数运算\n第 07 页 · 方框图——系统的结构表达\n第 08 页 · 信号流图——变量间的决定关系\n第 09 页 · 极点的几何来源——三维幅值曲面\n第 10 页 · 拖动极点看响应——行为地图的互动验证\n第 11 页 · 案例——三艘船，三种行为\n第 12 页 · 例题——从特征方程到行为判断\n第 13 页 · 后测——检验本次课程目标达成\n第 14 页 · 总结——建模专题的局部地图\n3 / 14\n学生课堂台\n演示模式已开启\n演示模式不会写入课堂状态。\n第 03 页\n前测——进入建模专题前的准备\n\n检测 1-1 基础概念掌握程度。\n\n作答1：闭环控制与开"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "建模的两条路径",
+    "hasActivitySlot": false,
+    "hasLocalModelingFigure": true,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "imageCount": 2,
+    "images": [
+      {
+        "alt": "控灵",
+        "height": 44,
+        "src": "/_next/image?url=%2Fimages%2FAI64.png&w=96&q=75",
+        "width": 44
+      },
+      {
+        "alt": "控灵",
+        "height": 28,
+        "src": "/_next/image?url=%2Fimages%2FAI32.png&w=64&q=75",
+        "width": 28
+      }
+    ],
+    "katexCount": 0,
+    "renderErrors": [],
+    "stepId": "step-04",
+    "textSample": "返回\nMODELING FROM OBJECT TO SYSTEM\n1-2：建模——从真实对象到可分析的系统\nP2 · 参与式学习\n6 min\n建立机理建模 vs 数据驱动建模的对比框架。\n环节\n第 01 页 · 导入——不同对象的行为差异与共性\n第 02 页 · 课程目标\n第 03 页 · 前测——进入建模专题前的准备\n第 04 页 · 建模的两条路径\n第 05 页 · 微分方程——物理对象的第一次翻译\n第 06 页 · 传递函数——从微分运算到代数运算\n第 07 页 · 方框图——系统的结构表达\n第 08 页 · 信号流图——变量间的决定关系\n第 09 页 · 极点的几何来源——三维幅值曲面\n第 10 页 · 拖动极点看响应——行为地图的互动验证\n第 11 页 · 案例——三艘船，三种行为\n第 12 页 · 例题——从特征方程到行为判断\n第 13 页 · 后测——检验本次课程目标达成\n第 14 页 · 总结——建模专题的局部地图\n4 / 14\n学生课堂台\n演示模式已开启\n演示模式不会写入课堂状态。\n第 04 页\n建模的两条路径\n\n建立机理建模 vs 数据驱动建模的对比框架。\n\n机理"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "微分方程——物理对象的第一次翻译",
+    "hasActivitySlot": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "imageCount": 3,
+    "images": [
+      {
+        "alt": "船舶航向物理因果图",
+        "height": 598,
+        "src": "/course-runtime/lessons/1-2/media/1-2-fig-02-ship-heading-physics.png",
+        "width": 1062
+      },
+      {
+        "alt": "控灵",
+        "height": 44,
+        "src": "/_next/image?url=%2Fimages%2FAI64.png&w=96&q=75",
+        "width": 44
+      },
+      {
+        "alt": "控灵",
+        "height": 28,
+        "src": "/_next/image?url=%2Fimages%2FAI32.png&w=64&q=75",
+        "width": 28
+      }
+    ],
+    "katexCount": 6,
+    "renderErrors": [],
+    "stepId": "step-05",
+    "textSample": "返回\nMODELING FROM OBJECT TO SYSTEM\n1-2：建模——从真实对象到可分析的系统\nP2 · 参与式学习\n6 min\n让学生体验微分方程直接求解的繁琐，建立对传递函数的需求。\n环节\n第 01 页 · 导入——不同对象的行为差异与共性\n第 02 页 · 课程目标\n第 03 页 · 前测——进入建模专题前的准备\n第 04 页 · 建模的两条路径\n第 05 页 · 微分方程——物理对象的第一次翻译\n第 06 页 · 传递函数——从微分运算到代数运算\n第 07 页 · 方框图——系统的结构表达\n第 08 页 · 信号流图——变量间的决定关系\n第 09 页 · 极点的几何来源——三维幅值曲面\n第 10 页 · 拖动极点看响应——行为地图的互动验证\n第 11 页 · 案例——三艘船，三种行为\n第 12 页 · 例题——从特征方程到行为判断\n第 13 页 · 后测——检验本次课程目标达成\n第 14 页 · 总结——建模专题的局部地图\n5 / 14\n学生课堂台\n演示模式已开启\n演示模式不会写入课堂状态。\n第 05 页\n微分方程——物理对象的第一次翻译\n\n让学生体验微分方程直接"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "传递函数——从微分运算到代数运算",
+    "hasActivitySlot": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "imageCount": 3,
+    "images": [
+      {
+        "alt": "从时域方程到传递函数",
+        "height": 180,
+        "src": "/course-runtime/lessons/1-2/media/1-2-fig-04-transform-chain.png",
+        "width": 1062
+      },
+      {
+        "alt": "控灵",
+        "height": 44,
+        "src": "/_next/image?url=%2Fimages%2FAI64.png&w=96&q=75",
+        "width": 44
+      },
+      {
+        "alt": "控灵",
+        "height": 28,
+        "src": "/_next/image?url=%2Fimages%2FAI32.png&w=64&q=75",
+        "width": 28
+      }
+    ],
+    "katexCount": 8,
+    "renderErrors": [],
+    "stepId": "step-06",
+    "textSample": "返回\nMODELING FROM OBJECT TO SYSTEM\n1-2：建模——从真实对象到可分析的系统\nP2 · 参与式学习\n6 min\n让学生理解拉氏变换到传递函数的三步法转换链。\n环节\n第 01 页 · 导入——不同对象的行为差异与共性\n第 02 页 · 课程目标\n第 03 页 · 前测——进入建模专题前的准备\n第 04 页 · 建模的两条路径\n第 05 页 · 微分方程——物理对象的第一次翻译\n第 06 页 · 传递函数——从微分运算到代数运算\n第 07 页 · 方框图——系统的结构表达\n第 08 页 · 信号流图——变量间的决定关系\n第 09 页 · 极点的几何来源——三维幅值曲面\n第 10 页 · 拖动极点看响应——行为地图的互动验证\n第 11 页 · 案例——三艘船，三种行为\n第 12 页 · 例题——从特征方程到行为判断\n第 13 页 · 后测——检验本次课程目标达成\n第 14 页 · 总结——建模专题的局部地图\n6 / 14\n学生课堂台\n演示模式已开启\n演示模式不会写入课堂状态。\n第 06 页\n传递函数——从微分运算到代数运算\n\n让学生理解拉氏变换→传递函数的三步"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "方框图——系统的结构表达",
+    "hasActivitySlot": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "imageCount": 4,
+    "images": [
+      {
+        "alt": "闭环控制标准结构图",
+        "height": 294,
+        "src": "/course-runtime/lessons/1-2/media/1-2-fig-05-closed-loop-block.png",
+        "width": 1062
+      },
+      {
+        "alt": "三种基本连接图",
+        "height": 812,
+        "src": "/course-runtime/lessons/1-2/media/1-2-fig-06-basic-connections.png",
+        "width": 1062
+      },
+      {
+        "alt": "控灵",
+        "height": 44,
+        "src": "/_next/image?url=%2Fimages%2FAI64.png&w=96&q=75",
+        "width": 44
+      },
+      {
+        "alt": "控灵",
+        "height": 28,
+        "src": "/_next/image?url=%2Fimages%2FAI32.png&w=64&q=75",
+        "width": 28
+      }
+    ],
+    "katexCount": 3,
+    "renderErrors": [],
+    "stepId": "step-07",
+    "textSample": "返回\nMODELING FROM OBJECT TO SYSTEM\n1-2：建模——从真实对象到可分析的系统\nP2 · 参与式学习\n6 min\n建立方框图作为系统结构表达工具的认识。\n环节\n第 01 页 · 导入——不同对象的行为差异与共性\n第 02 页 · 课程目标\n第 03 页 · 前测——进入建模专题前的准备\n第 04 页 · 建模的两条路径\n第 05 页 · 微分方程——物理对象的第一次翻译\n第 06 页 · 传递函数——从微分运算到代数运算\n第 07 页 · 方框图——系统的结构表达\n第 08 页 · 信号流图——变量间的决定关系\n第 09 页 · 极点的几何来源——三维幅值曲面\n第 10 页 · 拖动极点看响应——行为地图的互动验证\n第 11 页 · 案例——三艘船，三种行为\n第 12 页 · 例题——从特征方程到行为判断\n第 13 页 · 后测——检验本次课程目标达成\n第 14 页 · 总结——建模专题的局部地图\n7 / 14\n学生课堂台\n演示模式已开启\n演示模式不会写入课堂状态。\n第 07 页\n方框图——系统的结构表达\n\n建立方框图作为系统结构表达工具的认识。\n\n方框图"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "信号流图——变量间的决定关系",
+    "hasActivitySlot": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "imageCount": 3,
+    "images": [
+      {
+        "alt": "方框图与信号流图对照",
+        "height": 629,
+        "src": "/course-runtime/lessons/1-2/media/1-2-fig-07-block-to-sfg.png",
+        "width": 900
+      },
+      {
+        "alt": "控灵",
+        "height": 44,
+        "src": "/_next/image?url=%2Fimages%2FAI64.png&w=96&q=75",
+        "width": 44
+      },
+      {
+        "alt": "控灵",
+        "height": 28,
+        "src": "/_next/image?url=%2Fimages%2FAI32.png&w=64&q=75",
+        "width": 28
+      }
+    ],
+    "katexCount": 0,
+    "renderErrors": [],
+    "stepId": "step-08",
+    "textSample": "返回\nMODELING FROM OBJECT TO SYSTEM\n1-2：建模——从真实对象到可分析的系统\nP2 · 参与式学习\n6 min\n建立信号流图作为方框图互补工具的认识。\n环节\n第 01 页 · 导入——不同对象的行为差异与共性\n第 02 页 · 课程目标\n第 03 页 · 前测——进入建模专题前的准备\n第 04 页 · 建模的两条路径\n第 05 页 · 微分方程——物理对象的第一次翻译\n第 06 页 · 传递函数——从微分运算到代数运算\n第 07 页 · 方框图——系统的结构表达\n第 08 页 · 信号流图——变量间的决定关系\n第 09 页 · 极点的几何来源——三维幅值曲面\n第 10 页 · 拖动极点看响应——行为地图的互动验证\n第 11 页 · 案例——三艘船，三种行为\n第 12 页 · 例题——从特征方程到行为判断\n第 13 页 · 后测——检验本次课程目标达成\n第 14 页 · 总结——建模专题的局部地图\n8 / 14\n学生课堂台\n演示模式已开启\n演示模式不会写入课堂状态。\n第 08 页\n信号流图——变量间的决定关系\n\n建立信号流图作为方框图互补工具的认识。\n\n信"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "极点的几何来源——三维幅值曲面",
+    "hasActivitySlot": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": true,
+    "hasStaticSurfaceWebGL": true,
+    "imageCount": 3,
+    "images": [
+      {
+        "alt": "相位方向曲面参照",
+        "height": 803,
+        "src": "/course-runtime/lessons/1-2/media/1-2-fig-09-phase-surface.png",
+        "width": 1062
+      },
+      {
+        "alt": "控灵",
+        "height": 44,
+        "src": "/_next/image?url=%2Fimages%2FAI64.png&w=96&q=75",
+        "width": 44
+      },
+      {
+        "alt": "控灵",
+        "height": 28,
+        "src": "/_next/image?url=%2Fimages%2FAI32.png&w=64&q=75",
+        "width": 28
+      }
+    ],
+    "katexCount": 0,
+    "renderErrors": [],
+    "stepId": "step-09",
+    "textSample": "返回\nMODELING FROM OBJECT TO SYSTEM\n1-2：建模——从真实对象到可分析的系统\nP2 · 参与式学习\n6 min\n用三维几何直观解释极点名称来源。\n环节\n第 01 页 · 导入——不同对象的行为差异与共性\n第 02 页 · 课程目标\n第 03 页 · 前测——进入建模专题前的准备\n第 04 页 · 建模的两条路径\n第 05 页 · 微分方程——物理对象的第一次翻译\n第 06 页 · 传递函数——从微分运算到代数运算\n第 07 页 · 方框图——系统的结构表达\n第 08 页 · 信号流图——变量间的决定关系\n第 09 页 · 极点的几何来源——三维幅值曲面\n第 10 页 · 拖动极点看响应——行为地图的互动验证\n第 11 页 · 案例——三艘船，三种行为\n第 12 页 · 例题——从特征方程到行为判断\n第 13 页 · 后测——检验本次课程目标达成\n第 14 页 · 总结——建模专题的局部地图\n9 / 14\n学生课堂台\n演示模式已开启\n演示模式不会写入课堂状态。\n第 09 页\n极点的几何来源——三维幅值曲面\n\n用三维几何直观解释极点名称来源。\n\n极点名称来源"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "拖动极点看响应——行为地图的互动验证",
+    "hasActivitySlot": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "imageCount": 4,
+    "images": [
+      {
+        "alt": "复平面行为地图",
+        "height": 725,
+        "src": "/course-runtime/lessons/1-2/media/1-2-fig-10-s-plane-map.png",
+        "width": 1062
+      },
+      {
+        "alt": "极点位置与典型响应对照",
+        "height": 558,
+        "src": "/course-runtime/lessons/1-2/media/1-2-fig-11-poles-responses.png",
+        "width": 1062
+      },
+      {
+        "alt": "控灵",
+        "height": 44,
+        "src": "/_next/image?url=%2Fimages%2FAI64.png&w=96&q=75",
+        "width": 44
+      },
+      {
+        "alt": "控灵",
+        "height": 28,
+        "src": "/_next/image?url=%2Fimages%2FAI32.png&w=64&q=75",
+        "width": 28
+      }
+    ],
+    "katexCount": 0,
+    "renderErrors": [],
+    "stepId": "step-10",
+    "textSample": "返回\nMODELING FROM OBJECT TO SYSTEM\n1-2：建模——从真实对象到可分析的系统\nP2 · 参与式学习\n6 min\n让学生亲手验证极点位置决定行为这条核心规律。\n环节\n第 01 页 · 导入——不同对象的行为差异与共性\n第 02 页 · 课程目标\n第 03 页 · 前测——进入建模专题前的准备\n第 04 页 · 建模的两条路径\n第 05 页 · 微分方程——物理对象的第一次翻译\n第 06 页 · 传递函数——从微分运算到代数运算\n第 07 页 · 方框图——系统的结构表达\n第 08 页 · 信号流图——变量间的决定关系\n第 09 页 · 极点的几何来源——三维幅值曲面\n第 10 页 · 拖动极点看响应——行为地图的互动验证\n第 11 页 · 案例——三艘船，三种行为\n第 12 页 · 例题——从特征方程到行为判断\n第 13 页 · 后测——检验本次课程目标达成\n第 14 页 · 总结——建模专题的局部地图\n10 / 14\n学生课堂台\n演示模式已开启\n演示模式不会写入课堂状态。\n第 10 页\n拖动极点看响应——行为地图的互动验证\n\n让学生亲手验证极点位置决定行"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "案例——三艘船，三种行为",
+    "hasActivitySlot": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "imageCount": 2,
+    "images": [
+      {
+        "alt": "控灵",
+        "height": 44,
+        "src": "/_next/image?url=%2Fimages%2FAI64.png&w=96&q=75",
+        "width": 44
+      },
+      {
+        "alt": "控灵",
+        "height": 28,
+        "src": "/_next/image?url=%2Fimages%2FAI32.png&w=64&q=75",
+        "width": 28
+      }
+    ],
+    "katexCount": 4,
+    "renderErrors": [],
+    "stepId": "step-11",
+    "textSample": "返回\nMODELING FROM OBJECT TO SYSTEM\n1-2：建模——从真实对象到可分析的系统\nP2 · 参与式学习\n6 min\n用三种极点分布验证复平面读图规则。\n环节\n第 01 页 · 导入——不同对象的行为差异与共性\n第 02 页 · 课程目标\n第 03 页 · 前测——进入建模专题前的准备\n第 04 页 · 建模的两条路径\n第 05 页 · 微分方程——物理对象的第一次翻译\n第 06 页 · 传递函数——从微分运算到代数运算\n第 07 页 · 方框图——系统的结构表达\n第 08 页 · 信号流图——变量间的决定关系\n第 09 页 · 极点的几何来源——三维幅值曲面\n第 10 页 · 拖动极点看响应——行为地图的互动验证\n第 11 页 · 案例——三艘船，三种行为\n第 12 页 · 例题——从特征方程到行为判断\n第 13 页 · 后测——检验本次课程目标达成\n第 14 页 · 总结——建模专题的局部地图\n11 / 14\n学生课堂台\n演示模式已开启\n演示模式不会写入课堂状态。\n第 11 页\n案例——三艘船，三种行为\n\n用三种极点分布验证复平面读图规则。\n\n三艘船极点对"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "例题——从特征方程到行为判断",
+    "hasActivitySlot": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "imageCount": 2,
+    "images": [
+      {
+        "alt": "控灵",
+        "height": 44,
+        "src": "/_next/image?url=%2Fimages%2FAI64.png&w=96&q=75",
+        "width": 44
+      },
+      {
+        "alt": "控灵",
+        "height": 28,
+        "src": "/_next/image?url=%2Fimages%2FAI32.png&w=64&q=75",
+        "width": 28
+      }
+    ],
+    "katexCount": 3,
+    "renderErrors": [],
+    "stepId": "step-12",
+    "textSample": "返回\nMODELING FROM OBJECT TO SYSTEM\n1-2：建模——从真实对象到可分析的系统\nP2 · 参与式学习\n6 min\n让学生亲手走完特征方程、极点、读图、行为的完整判断链。\n环节\n第 01 页 · 导入——不同对象的行为差异与共性\n第 02 页 · 课程目标\n第 03 页 · 前测——进入建模专题前的准备\n第 04 页 · 建模的两条路径\n第 05 页 · 微分方程——物理对象的第一次翻译\n第 06 页 · 传递函数——从微分运算到代数运算\n第 07 页 · 方框图——系统的结构表达\n第 08 页 · 信号流图——变量间的决定关系\n第 09 页 · 极点的几何来源——三维幅值曲面\n第 10 页 · 拖动极点看响应——行为地图的互动验证\n第 11 页 · 案例——三艘船，三种行为\n第 12 页 · 例题——从特征方程到行为判断\n第 13 页 · 后测——检验本次课程目标达成\n第 14 页 · 总结——建模专题的局部地图\n12 / 14\n学生课堂台\n演示模式已开启\n演示模式不会写入课堂状态。\n第 12 页\n例题——从特征方程到行为判断\n\n让学生亲手走完特征方程→极"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "后测——检验本次课程目标达成",
+    "hasActivitySlot": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "imageCount": 2,
+    "images": [
+      {
+        "alt": "控灵",
+        "height": 44,
+        "src": "/_next/image?url=%2Fimages%2FAI64.png&w=96&q=75",
+        "width": 44
+      },
+      {
+        "alt": "控灵",
+        "height": 28,
+        "src": "/_next/image?url=%2Fimages%2FAI32.png&w=64&q=75",
+        "width": 28
+      }
+    ],
+    "katexCount": 0,
+    "renderErrors": [],
+    "stepId": "step-13",
+    "textSample": "返回\nMODELING FROM OBJECT TO SYSTEM\n1-2：建模——从真实对象到可分析的系统\nP3 · 后测\n6 min\n验证五个课程目标的达成度。\n环节\n第 01 页 · 导入——不同对象的行为差异与共性\n第 02 页 · 课程目标\n第 03 页 · 前测——进入建模专题前的准备\n第 04 页 · 建模的两条路径\n第 05 页 · 微分方程——物理对象的第一次翻译\n第 06 页 · 传递函数——从微分运算到代数运算\n第 07 页 · 方框图——系统的结构表达\n第 08 页 · 信号流图——变量间的决定关系\n第 09 页 · 极点的几何来源——三维幅值曲面\n第 10 页 · 拖动极点看响应——行为地图的互动验证\n第 11 页 · 案例——三艘船，三种行为\n第 12 页 · 例题——从特征方程到行为判断\n第 13 页 · 后测——检验本次课程目标达成\n第 14 页 · 总结——建模专题的局部地图\n13 / 14\n学生课堂台\n演示模式已开启\n演示模式不会写入课堂状态。\n第 13 页\n后测——检验本次课程目标达成\n\n验证五个课程目标的达成度。\n\n作答1：机理建模与数据驱动建模"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "总结——建模专题的局部地图",
+    "hasActivitySlot": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "imageCount": 3,
+    "images": [
+      {
+        "alt": "建模专题局部地图",
+        "height": 598,
+        "src": "/course-runtime/lessons/1-2/media/1-2-info.png",
+        "width": 1062
+      },
+      {
+        "alt": "控灵",
+        "height": 44,
+        "src": "/_next/image?url=%2Fimages%2FAI64.png&w=96&q=75",
+        "width": 44
+      },
+      {
+        "alt": "控灵",
+        "height": 28,
+        "src": "/_next/image?url=%2Fimages%2FAI32.png&w=64&q=75",
+        "width": 28
+      }
+    ],
+    "katexCount": 0,
+    "renderErrors": [],
+    "stepId": "step-14",
+    "textSample": "返回\nMODELING FROM OBJECT TO SYSTEM\n1-2：建模——从真实对象到可分析的系统\nS · 总结\n6 min\n收束全课，回顾五个地标并明确边界。\n环节\n第 01 页 · 导入——不同对象的行为差异与共性\n第 02 页 · 课程目标\n第 03 页 · 前测——进入建模专题前的准备\n第 04 页 · 建模的两条路径\n第 05 页 · 微分方程——物理对象的第一次翻译\n第 06 页 · 传递函数——从微分运算到代数运算\n第 07 页 · 方框图——系统的结构表达\n第 08 页 · 信号流图——变量间的决定关系\n第 09 页 · 极点的几何来源——三维幅值曲面\n第 10 页 · 拖动极点看响应——行为地图的互动验证\n第 11 页 · 案例——三艘船，三种行为\n第 12 页 · 例题——从特征方程到行为判断\n第 13 页 · 后测——检验本次课程目标达成\n第 14 页 · 总结——建模专题的局部地图\n14 / 14\n学生课堂台\n演示模式已开启\n演示模式不会写入课堂状态。\n第 14 页\n总结——建模专题的局部地图\n\n收束全课，回顾五个地标并明确边界。\n\n建模专题局部地图\n"
+  }
+]
