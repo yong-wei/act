@@ -562,24 +562,27 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).not.toContain('onClick={loadNextQuestion}');
   });
 
-  it('keeps default adaptive path generation generic before entering a registered goal context', () => {
+  it('keeps landing generation entry route-based without preset goal cards', () => {
     const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
 
     expect(source).toContain("const controlCorrectionGenerationHref = '/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation';");
     expect(source).toContain("const frequencyResponseGenerationHref = '/assessment/adaptive-practice?goal=frequency-response-foundations&intent=contextual-recommendation';");
-    expect(source).toContain("const genericPathGenerationHref = '#adaptive-path-generation-goals';");
+    expect(source).toContain("const genericPathGenerationHref = '/assessment/adaptive-practice?intent=contextual-recommendation';");
+    expect(source).toContain('const showPresetGoalCards = false');
     expect(source).toContain('useGlobalAI');
     expect(source).toContain('openPathGenerationAdvisor');
     expect(source).toContain("data-adaptive-path-generation-action=\"open-in-page-path-advisor\"");
     expect(source).toContain("data-adaptive-path-generation-action=\"choose-generation-goal\"");
-    expect(source).toContain('data-adaptive-path-generation-goal-list="generic"');
-    expect(source).toContain('data-adaptive-path-generation-goal="control-correction"');
-    expect(source).toContain('data-adaptive-path-generation-goal="frequency-response-foundations"');
-    expect(source).toContain("data-adaptive-path-generation-action=\"enter-registered-goal-context\"");
+    expect(source).toContain('data-adaptive-path-workspace-intent={workspaceIntent}');
+    expect(source).toContain("showGenerationWorkspace ? (");
+    expect(source).toContain('{showPresetGoalCards ? (');
+    expect(source).toContain('value={pathGenerationPanel.goalId}');
+    expect(source).toContain('onChange={(event) => handlePathGenerationGoalChange(event.target.value)}');
+    expect(source).toContain('window.location.assign(buildPathGenerationGoalHref(nextGoal, nextPanel))');
     expect(source).toContain('请控灵生成路径');
     expect(source).toContain('生成学习路径');
-    expect(source).toContain('生成该目标路径');
     expect(source).toContain('路径顾问准备中');
+    expect(source).toContain('选择目标和可用时间，系统会生成可比较的学习路径。');
     expect(source).not.toContain('data-adaptive-path-generation-action="enter-control-correction-context"');
     expect(source).not.toContain('review-frequency-response-evidence');
     expect(source).not.toContain('/ai/copilot?mode=path-advisor');
@@ -722,6 +725,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("node.status === 'locked' || node.status === 'blocked'");
     expect(source).toContain('return null');
     expect(source).toContain("? { ...node, status: 'current' }");
+    expect(source).toContain('resolveAdaptivePathExecutionNodeStatus({');
     expect(source).not.toContain("selectedNode?.status === 'skipped'");
     expect(source).not.toContain('setSelectedPathNodeId(currentPathNode.nodeId)');
     expect(source).toContain('查看节点');
@@ -753,10 +757,6 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("'continued-interaction'");
     expect(source).toContain("pathActivityKind: activityKind");
     expect(source).toContain("deviationType: 'skip'");
-    expect(source.indexOf("failedNodeIds.has(nodeId) || rawStatus === 'blocked'"))
-      .toBeLessThan(source.indexOf("currentNodeId === nodeId || rawStatus === 'current'"));
-    expect(source.indexOf("currentNodeId === nodeId || rawStatus === 'current'"))
-      .toBeLessThan(source.indexOf('skippedNodeIds.has(nodeId)'));
     expect(source).toContain('function formatPathNodeReason');
     expect(source).toContain("'matches-knowledge-deficit': '针对当前薄弱知识点安排。'");
     expect(source).toContain("'matches-competency-deficit': '针对当前能力短板安排。'");

@@ -599,6 +599,7 @@ function resolveDemoScene(sceneParam: string | null): DemoScene {
 function resolveControlCorrectionIntent(intentParam: string | null): ControlCorrectionCenterRouteIntent {
   if (
     intentParam === 'learner-state-review' ||
+    intentParam === 'path-selection' ||
     intentParam === 'path-execution' ||
     intentParam === 'evidence-review' ||
     intentParam === 'contextual-recommendation'
@@ -1226,6 +1227,21 @@ export default function AdaptivePracticePage() {
   const activeGoalLabel = activeGoal ? adaptivePracticeGoalLabel(activeGoal) : '自适应学习';
   const activePathAdvisorGoal = activeGoal;
   const routeIntent = resolveControlCorrectionIntent(searchParams.get('intent'));
+  const workspaceIntent = routeIntent === 'contextual-recommendation'
+    ? 'generation'
+    : routeIntent === 'path-selection'
+      ? 'selection'
+      : routeIntent === 'path-execution'
+        ? 'execution'
+        : routeIntent === 'evidence-review' || routeIntent === 'learner-state-review'
+          ? 'evidence-review'
+          : 'landing';
+  const showLandingWorkspace = workspaceIntent === 'landing';
+  const showGenerationWorkspace = workspaceIntent === 'generation';
+  const showSelectionWorkspace = workspaceIntent === 'selection';
+  const showExecutionWorkspace = workspaceIntent === 'execution';
+  const showEvidenceWorkspace = workspaceIntent === 'evidence-review';
+  const showPresetGoalCards = false;
   const activePathId = searchParams.get('pathId');
   const activeNodeId = searchParams.get('nodeId');
   const activeGoalQuery = activeGoal ? new URLSearchParams({ goal: activeGoal, intent: routeIntent }) : null;
@@ -1240,7 +1256,7 @@ export default function AdaptivePracticePage() {
   const controlCorrectionContextHref = `/assessment/adaptive-practice?${controlCorrectionQuery.toString()}`;
   const controlCorrectionGenerationHref = '/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation';
   const frequencyResponseGenerationHref = '/assessment/adaptive-practice?goal=frequency-response-foundations&intent=contextual-recommendation';
-  const genericPathGenerationHref = '#adaptive-path-generation-goals';
+  const genericPathGenerationHref = '/assessment/adaptive-practice?intent=contextual-recommendation';
   const loginHref = `/login?callbackUrl=${encodeURIComponent(activeGoalContextHref)}`;
   const entryIntents = getCommercialStudentEntryIntentGroups();
   const { assistantEntryPoint, openAssistantEntryPoint, updatePageContext } = useGlobalAI();
@@ -1748,6 +1764,13 @@ export default function AdaptivePracticePage() {
             source: 'generation-panel',
           },
         }));
+        const selectionQuery = new URLSearchParams({
+          goal: pathGenerationPanel.goalId,
+          intent: 'path-selection',
+        });
+        if (currentPathId) selectionQuery.set('pathId', currentPathId);
+        window.location.assign(`/assessment/adaptive-practice?${selectionQuery.toString()}`);
+        return;
       }
       const rationale = Array.isArray(payload.result?.studentSafeRationale)
         ? payload.result.studentSafeRationale.filter((item: unknown): item is string => typeof item === 'string').join(' ')
@@ -1800,6 +1823,18 @@ export default function AdaptivePracticePage() {
         throw new Error(typeof payload.error === 'string' ? payload.error : '路径选择写入失败');
       }
       await reloadControlCorrectionPath();
+      if (action === 'selection' || action === 'switch') {
+        const executionQuery = new URLSearchParams({
+          goal: activeGoal ?? controlCorrectionPathPlan?.goal.id ?? 'control-correction',
+          intent: 'path-execution',
+          pathId,
+          optionId: option.optionId,
+        });
+        const currentNodeId = controlCorrectionPathPlan?.currentNodeId ?? controlCorrectionPathRound?.currentNodeId;
+        if (currentNodeId) executionQuery.set('nodeId', currentNodeId);
+        window.location.assign(`/assessment/adaptive-practice?${executionQuery.toString()}`);
+        return;
+      }
       setPathChoiceMessage('路径选择证据已记录。');
     } catch (choiceError) {
       setPathChoiceMessage(choiceError instanceof Error ? choiceError.message : '路径选择写入失败');
@@ -1807,6 +1842,7 @@ export default function AdaptivePracticePage() {
       setPathChoicePending(null);
     }
   }, [
+    activeGoal,
     controlCorrectionPathPlan,
     controlCorrectionPathRound,
     pathOptions,
@@ -2159,6 +2195,7 @@ export default function AdaptivePracticePage() {
           className="space-y-5"
           data-commercial-workspace="adaptive-path-center"
           data-adaptive-path-center="generation-selection"
+          data-adaptive-path-workspace-intent={workspaceIntent}
           data-commercial-student-entry-route="/assessment/adaptive-practice"
           data-commercial-entry-intent="practice"
           data-student-entry-evidence-return="/profile/evidence"
@@ -2171,7 +2208,7 @@ export default function AdaptivePracticePage() {
           data-learner-record-priority="current-path"
           data-learner-record-next-action="generate-and-compare-path"
           data-learner-record-evidence-confidence={controlCorrectionCenter?.nextAction.confidence ?? 'unknown'}
-          data-learner-record-missing-source={controlCorrectionCenter?.readinessGate.missing.length ? 'learning-task-evidence-needed' : 'generic-path-center'}
+          data-learner-record-evidence-need={controlCorrectionCenter?.readinessGate.missing.length ? 'learning-task-evidence-needed' : 'generic-path-center'}
         >
           {controlCorrectionCenter ? (
             <span
@@ -2254,7 +2291,9 @@ export default function AdaptivePracticePage() {
             </aside>
           </header>
 
-          <section className="grid gap-4 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          {showLandingWorkspace || showGenerationWorkspace ? (
+          <section className={`grid gap-4 ${showLandingWorkspace && showGenerationWorkspace ? 'xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]' : ''}`}>
+            {showLandingWorkspace ? (
             <div className="surface-card p-5" data-adaptive-path-overview="learning-overview">
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -2334,7 +2373,9 @@ export default function AdaptivePracticePage() {
                 </div>
               ) : null}
             </div>
+            ) : null}
 
+            {showGenerationWorkspace ? (
             <div
               className="surface-card p-5"
               data-konling-generation-parameters="adaptive-path"
@@ -2484,7 +2525,7 @@ export default function AdaptivePracticePage() {
                 <button
                   type="button"
                   onClick={() => submitPathGeneration('generate')}
-                  disabled={pathGenerationPending !== null || !activeGoal}
+                  disabled={pathGenerationPending !== null}
                   data-adaptive-path-generation-action="submit-panel-request"
                   className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
                 >
@@ -2502,8 +2543,11 @@ export default function AdaptivePracticePage() {
                 </button>
               </div>
             </div>
+            ) : null}
           </section>
+          ) : null}
 
+          {showPresetGoalCards ? (
           <section
             id="adaptive-path-generation-goals"
             className="surface-card scroll-mt-24 p-5"
@@ -2578,7 +2622,9 @@ export default function AdaptivePracticePage() {
               </div>
             </div>
           </section>
+          ) : null}
 
+          {showSelectionWorkspace ? (
           <section
             className="surface-card p-5"
             data-learning-path-product-surface="path-options-selection-history-terminal-validation"
@@ -2870,9 +2916,11 @@ export default function AdaptivePracticePage() {
               </p>
             ) : null}
           </section>
+          ) : null}
 
-          {pathExecutionNodes.length > 0 ? (
-            <section className="grid gap-4 xl:grid-cols-[minmax(0,0.62fr)_minmax(0,0.38fr)]">
+          {(showExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (
+            <section className="grid gap-4">
+              {showExecutionWorkspace ? (
               <div className="surface-card p-5" data-adaptive-path-execution-surface="active-route">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
@@ -2901,16 +2949,16 @@ export default function AdaptivePracticePage() {
                   ))}
                 </div>
 
-                <div className="mt-4 grid gap-3 lg:grid-cols-[1.15fr_0.85fr]">
+                <div className="mt-4 grid gap-3">
                   <div className="rounded-lg border border-border bg-background/55 p-3" data-adaptive-path-route-map="complete">
                     <span className="sr-only" data-adaptive-path-route-connector="true" />
-                    <ol className="grid gap-3 lg:grid-cols-3" data-adaptive-path-route-flow="connected">
+                    <ol className="grid gap-3" data-adaptive-path-route-flow="connected">
                       {pathExecutionNodes.map((node, index) => (
-                        <li key={node.nodeId} className="relative pl-8 lg:pl-0">
+                        <li key={node.nodeId} className="relative sm:pl-8">
                           {index < pathExecutionNodes.length - 1 ? (
                             <span
                               aria-hidden="true"
-                              className="absolute left-4 top-12 h-[calc(100%+0.75rem)] w-px bg-border lg:left-[calc(100%-0.25rem)] lg:top-14 lg:h-px lg:w-[calc(100%+0.5rem)]"
+                              className="absolute left-4 top-12 hidden h-[calc(100%+0.75rem)] w-px bg-border sm:block"
                             />
                           ) : null}
                           <button
@@ -2932,7 +2980,7 @@ export default function AdaptivePracticePage() {
                                       : 'border-border bg-muted/25'
                             } ${focusedPathNode?.nodeId === node.nodeId ? 'ring-2 ring-primary/30' : ''}`}
                           >
-                            <div className="flex items-start gap-3">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
                               <span className="grid size-10 shrink-0 place-items-center rounded-full border border-border bg-background text-sm font-semibold text-foreground">
                                 {resourceGlyph(node.type)}
                               </span>
@@ -3114,6 +3162,7 @@ export default function AdaptivePracticePage() {
                   </div>
                 ) : null}
               </div>
+              ) : null}
 
               <aside
                 className="surface-card p-5"
@@ -3174,7 +3223,9 @@ export default function AdaptivePracticePage() {
             </section>
           ) : null}
 
-          <section className="grid gap-4 xl:grid-cols-[minmax(0,0.58fr)_minmax(0,0.42fr)]">
+          {showExecutionWorkspace || showEvidenceWorkspace ? (
+          <section className="grid gap-4">
+            {showExecutionWorkspace ? (
             <div className="surface-card p-5" data-adaptive-practice-resource="path-node">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -3329,7 +3380,9 @@ export default function AdaptivePracticePage() {
                 </div>
               )}
             </div>
+            ) : null}
 
+            {showEvidenceWorkspace ? (
             <aside
               className="surface-card p-5"
               data-learning-path-history="selection-history"
@@ -3372,7 +3425,9 @@ export default function AdaptivePracticePage() {
                 )}
               </div>
             </aside>
+            ) : null}
           </section>
+          ) : null}
         </section>
       </AppShell>
     );

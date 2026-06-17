@@ -56,4 +56,19 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('durableAnswerId');
     expect(source).toContain("await syncAdaptiveAssessmentPathResult(data)");
   });
+
+  it('isolates adaptive path workspaces by route intent', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain("intentParam === 'path-selection'");
+    expect(source).toContain("const workspaceIntent = routeIntent === 'contextual-recommendation'");
+    expect(source).toContain("data-adaptive-path-workspace-intent={workspaceIntent}");
+    expect(source).toContain("const showPresetGoalCards = false");
+    expect(source).toContain("showSelectionWorkspace ? (");
+    expect(source).toContain("(showExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
+    expect(source).toContain("showEvidenceWorkspace ? (");
+    expect(source).toContain("intent: 'path-selection'");
+    expect(source).toContain("intent: 'path-execution'");
+    expect(source).toContain("optionId: option.optionId");
+  });
 });
