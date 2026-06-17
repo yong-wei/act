@@ -72,6 +72,7 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showEvidenceWorkspace");
     expect(source).toContain("showPracticeWorkspace || showExecutionWorkspace ? (");
     expect(source).toContain("showSelectionWorkspace || showEvidenceWorkspace ? (");
+    expect(source).toContain("pathChoiceMessage && (showGenerationWorkspace || showSelectionWorkspace)");
     expect(source).toContain("showEvidenceWorkspace ? (");
     expect(source).toContain("intent: 'path-selection'");
     expect(source).toContain('const generatedPathId = typeof payload.result?.pathId ===');

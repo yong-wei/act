@@ -2626,6 +2626,12 @@ export default function AdaptivePracticePage() {
           </section>
           ) : null}
 
+          {pathChoiceMessage && (showGenerationWorkspace || showSelectionWorkspace) ? (
+            <p className="rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground">
+              {pathChoiceMessage}
+            </p>
+          ) : null}
+
           {showSelectionWorkspace ? (
           <section
             className="surface-card p-5"
@@ -2912,11 +2918,6 @@ export default function AdaptivePracticePage() {
               ))}
             </div>
 
-            {pathChoiceMessage ? (
-              <p className="mt-3 rounded-lg border border-border bg-background/60 px-3 py-2 text-sm text-foreground">
-                {pathChoiceMessage}
-              </p>
-            ) : null}
           </section>
           ) : null}
 
