@@ -2619,6 +2619,66 @@ describe('adaptive learning path planner', () => {
     expect(option?.lockedNodeIds).toContain('simulation:ungated-sim');
   });
 
+  it('evaluates readiness for policy support nodes before marking them active', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'foundation-card',
+          label: '基础知识卡',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/foundation-card',
+          knowledgeNodeIds: ['kn-foundation'],
+        },
+      ],
+      simulations: [
+        {
+          id: 'support-sim',
+          title: '缺 readiness 的偏好仿真',
+          launchTarget: '/simulations/support',
+          knowledgeNodeIds: ['kn-support'],
+        },
+      ],
+      knowledgeNodes: [
+        { id: 'kn-foundation', name: '基础知识' },
+        { id: 'kn-support', name: '支持仿真' },
+      ],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'control-correction',
+        title: '控制校正',
+        knowledgeTargets: ['kn-foundation'],
+        competencyTargets: ['parameterDesign'],
+      },
+      learnerState: {
+        ...plannerInput().learnerState!,
+        resourcePreference: {
+          preferredModalities: ['simulation'],
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 80,
+        privacyScopes: ['student-visible'],
+      },
+      policyBundle: {
+        families: ['preference-matched'],
+        overlapThreshold: 0.6,
+      },
+    }));
+
+    const preferenceOption = plan.policyBundle?.paths.find((path) => path.policyFamily === 'preference-matched');
+
+    expect(preferenceOption?.nodeIds).toContain('simulation:support-sim');
+    expect(preferenceOption?.activeNodeIds).not.toContain('simulation:support-sim');
+    expect(preferenceOption?.lockedNodeIds).toContain('simulation:support-sim');
+    expect(preferenceOption?.readinessSummary).toContainEqual(expect.objectContaining({
+      nodeId: 'simulation:support-sim',
+      state: 'locked',
+    }));
+  });
+
   it('does not unlock readiness-metadata-missing nodes after prerequisite feedback', () => {
     const registry = buildResourceNodeRegistry({
       registeredResources: [
@@ -2685,6 +2745,158 @@ describe('adaptive learning path planner', () => {
     expect(option?.readinessSummary).toContainEqual(expect.objectContaining({
       nodeId: 'simulation:ungated-with-prereq',
       state: 'locked',
+    }));
+  });
+
+  it('deducts evidence readiness gaps after completion feedback supplies evidence delta', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'prep-card',
+          label: '准备知识卡',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/prep-card',
+          knowledgeNodeIds: ['kn-prep'],
+        },
+      ],
+      simulations: [
+        {
+          id: 'evidence-gated-sim',
+          title: '证据门槛仿真',
+          launchTarget: '/simulations/evidence-gated',
+          knowledgeNodeIds: ['kn-evidence-sim'],
+          prerequisiteNodeIds: ['registry:prep-card'],
+          planningOverride: {
+            readiness: {
+              minimumCompetency: {},
+              minimumEvidenceCount: 1,
+              requiredCompletedNodeIds: ['registry:prep-card'],
+              requiredOutcomeRefs: [],
+              unlockMessage: '完成准备证据后解锁。',
+              fallbackNodeIds: ['registry:prep-card'],
+            },
+          },
+        },
+      ],
+    });
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'goal-evidence-gated-sim',
+        title: '证据门槛仿真目标',
+        knowledgeTargets: ['kn-evidence-sim'],
+        competencyTargets: [],
+      },
+      learnerState: {
+        ...plannerInput().learnerState!,
+        evidence: {
+          confidence: { evidenceCount: 0 },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 60,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
+    expect(plan.currentNodeId).toBe('registry:prep-card');
+    expect(plan.mainPath.find((node) => node.nodeId === 'simulation:evidence-gated-sim')?.readiness)
+      .toEqual(expect.objectContaining({
+        state: 'locked',
+        missingEvidenceCount: 1,
+        missingCompletedNodeIds: ['registry:prep-card'],
+      }));
+
+    const updated = recordLearningPathFeedback(plan, {
+      id: 'complete-prep-with-evidence',
+      type: 'completion',
+      nodeId: 'registry:prep-card',
+      createdAt: '2026-06-17T11:40:00.000Z',
+      context: {
+        evidenceReadinessDelta: 1,
+      },
+    });
+
+    expect(updated.currentNodeId).toBe('simulation:evidence-gated-sim');
+    expect(updated.mainPath.find((node) => node.nodeId === 'simulation:evidence-gated-sim')).toEqual(expect.objectContaining({
+      status: 'current',
+      readiness: expect.objectContaining({
+        state: 'ready',
+        missingEvidenceCount: 0,
+      }),
+    }));
+  });
+
+  it('keeps feedback evidence delta from clearing unsatisfied outcome gates', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'prep-card',
+          label: '准备知识卡',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/prep-card',
+          knowledgeNodeIds: ['kn-prep'],
+        },
+      ],
+      simulations: [
+        {
+          id: 'outcome-and-evidence-gated-sim',
+          title: '证据与结果门槛仿真',
+          launchTarget: '/simulations/outcome-evidence-gated',
+          knowledgeNodeIds: ['kn-outcome-sim'],
+          prerequisiteNodeIds: ['registry:prep-card'],
+          planningOverride: {
+            readiness: {
+              minimumCompetency: {},
+              minimumEvidenceCount: 1,
+              requiredCompletedNodeIds: ['registry:prep-card'],
+              requiredOutcomeRefs: ['simulation_run:prep-card'],
+              unlockMessage: '完成准备证据与结果后解锁。',
+              fallbackNodeIds: ['registry:prep-card'],
+            },
+          },
+        },
+      ],
+    });
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'goal-outcome-evidence-gated-sim',
+        title: '证据与结果门槛仿真目标',
+        knowledgeTargets: ['kn-outcome-sim'],
+        competencyTargets: [],
+      },
+      learnerState: {
+        ...plannerInput().learnerState!,
+        evidence: {
+          confidence: { evidenceCount: 0 },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 60,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
+    const updated = recordLearningPathFeedback(plan, {
+      id: 'complete-prep-with-evidence-but-no-outcome',
+      type: 'completion',
+      nodeId: 'registry:prep-card',
+      createdAt: '2026-06-17T11:45:00.000Z',
+      context: {
+        evidenceReadinessDelta: 1,
+      },
+    });
+    const gatedNode = updated.mainPath.find((node) => node.nodeId === 'simulation:outcome-and-evidence-gated-sim');
+
+    expect(updated.currentNodeId).toBeNull();
+    expect(gatedNode).toEqual(expect.objectContaining({
+      status: 'locked',
+      readiness: expect.objectContaining({
+        state: 'locked',
+        missingEvidenceCount: 0,
+        missingOutcomeRefs: ['simulation_run:prep-card'],
+      }),
     }));
   });
 

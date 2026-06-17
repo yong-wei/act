@@ -679,7 +679,7 @@ function buildAdaptiveLearningPathPlanInternal(
     ? resolveCurrentNodeId(plannedEntries, completedNodeIds, readinessByNodeId)
     : null;
   const mainPath = plannedEntries.length > 0
-    ? plannedEntries.map((entry) => toPlanNode(entry, currentNodeId, completedNodeIds, readinessByNodeId.get(entry.node.id)))
+    ? plannedEntries.map((entry) => toPlanNode(entry, currentNodeId, completedNodeIds, readinessByNodeId.get(entry.node.id)!))
     : [];
   const alternatives = buildAlternatives(
     scored,
@@ -1461,7 +1461,7 @@ function toPlanNode(
   entry: ScoredNode,
   currentNodeId: string | null,
   completedNodeIds: string[],
-  readiness: AdaptiveLearningPathNodeReadiness = readyNodeReadiness(),
+  readiness: AdaptiveLearningPathNodeReadiness,
 ): AdaptiveLearningPathPlanNode {
   const target = entry.node.launchTarget ?? entry.node.renderTarget ?? '';
   const isCompleted = completedNodeIds.includes(entry.node.id);
@@ -1523,13 +1523,16 @@ function refreshPathReadinessAfterFeedback(
 ): AdaptiveLearningPathPlanNode[] {
   const completed = new Set(completedNodeIds);
   const availableOutcomeRefs = new Set(readStringArray(context?.availableOutcomeRefs));
+  const evidenceReadinessDelta = readNonNegativeNumber(context?.evidenceReadinessDelta);
   return nodes.map((node) => {
     if (!node.readiness || node.readiness.state === 'ready') return node;
     if (node.readiness.reasonCodes.includes('readiness-metadata-missing')) return node;
     const missingCompletedNodeIds = node.readiness.missingCompletedNodeIds.filter((id) => !completed.has(id));
     const missingOutcomeRefs = node.readiness.missingOutcomeRefs.filter((ref) => !availableOutcomeRefs.has(ref));
+    const missingEvidenceCount = Math.max(0, node.readiness.missingEvidenceCount - evidenceReadinessDelta);
     const readiness = {
       ...node.readiness,
+      missingEvidenceCount,
       missingCompletedNodeIds,
       missingOutcomeRefs,
     };
@@ -1631,6 +1634,10 @@ function learnerEvidenceCount(
 
 function readStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
+function readNonNegativeNumber(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, value) : 0;
 }
 
 function buildAlternatives(
@@ -2075,11 +2082,15 @@ function shapePolicyBundlePath(
   if (supportNodes.length === 0) {
     return mainPath;
   }
+  const completedNodeIds = unique([
+    ...(input.constraints.completedNodeIds ?? []),
+    ...mainPath.filter((node) => node.status === 'completed').map((node) => node.nodeId),
+  ]);
   const supportPlanNodes = supportNodes.map((node) => toPlanNode({
     node,
     score: 0.35,
     reasonCodes: [`policy-${policyFamily}-support`],
-  }, null, []));
+  }, null, completedNodeIds, evaluateNodeReadiness(node, input.learnerState, input.constraints, completedNodeIds)));
   const validationIndex = mainPath.findIndex((node) => node.terminalConstraints.length > 0);
   if (validationIndex < 0) {
     return [...supportPlanNodes, ...mainPath];
