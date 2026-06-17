@@ -3389,7 +3389,7 @@ export default function AdaptivePracticePage() {
             </div>
             ) : null}
 
-            {showEvidenceWorkspace ? (
+            {showSelectionWorkspace || showEvidenceWorkspace ? (
             <aside
               className="surface-card p-5"
               data-learning-path-history="selection-history"
