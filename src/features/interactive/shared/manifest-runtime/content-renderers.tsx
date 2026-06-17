@@ -11,15 +11,25 @@ import type {
   InteractiveRuntimeModuleManifest,
   InteractiveRuntimeStepManifest,
 } from './layout-renderer';
+import { buildControlWorkbenchClientEvidenceDraft } from './control-workbench-evidence';
+import { isControlWorkbenchComputeCapabilityRef } from './module-taxonomy';
+import type { ControlAnalysisRequest, ControlAnalysisResult } from '@/resources/control-system/analysis/types';
+import { ControlFigureWorkspace } from '@/resources/control-system/charts/control-figure-workspace';
 import { StaticSurface3DPanel, type StaticSurface3DPanelProps, type StaticSurfaceDataset } from './static-surface-3d-panel';
 
 type ContentRecord = Record<string, unknown>;
+type ManifestComputePanelSubmission = {
+  stepId: string;
+  submittedAt: number;
+  answers: Record<string, string>;
+};
 type TableCell = string | { kind: 'math'; value: string };
 type NativeTableData = { columns: string[]; rows: TableCell[][] };
 type RevealItem = { body: string; formula?: string; title?: string };
 type FormulaSymbol = { symbol: string; meaning: string };
 type CodeTokenKind = 'keyword' | 'function' | 'number' | 'string' | 'comment' | 'operator' | 'plain';
 type CodeToken = { value: string; kind: CodeTokenKind };
+type InteractiveFigureKind = 'drag_pole_s_plane' | 'three_ships_case';
 
 const MATLAB_KEYWORDS = new Set([
   'break',
@@ -167,9 +177,38 @@ const MODULE_KIND_TITLE: Record<string, string> = {
   'summary-card-grid': '要点',
 };
 
-function titleFromModule(module: InteractiveRuntimeModuleManifest) {
+function isInternalTitleCandidate(value: string, module: InteractiveRuntimeModuleManifest) {
+  const title = value.trim();
+  if (!title) return true;
+  if (/[\u4e00-\u9fff]/.test(title)) return false;
+  if (title === module.id || title === module.id.replace(/-/g, '_')) return true;
+  const payloadKeys = [
+    module.payload.block_key,
+    module.payload.blockKey,
+    module.payload.image_key,
+    module.payload.imageKey,
+    module.payload.panel_id,
+    module.payload.panelId,
+    module.payload.spec_key,
+    module.payload.specKey,
+  ].filter((item): item is string => typeof item === 'string' && Boolean(item.trim()));
+  if (payloadKeys.includes(title)) return true;
+  return false;
+}
+
+function titleFromBlock(value: unknown) {
+  const record = asRecord(value);
+  return [record.title, record.caption, record.alt, record.name, record.label]
+    .find((item): item is string => typeof item === 'string' && Boolean(item.trim()));
+}
+
+function titleFromModule(module: InteractiveRuntimeModuleManifest, step?: InteractiveRuntimeStepManifest) {
   const title = module.title ?? module.payload.title ?? module.payload.caption;
-  if (typeof title === 'string' && title.trim()) return title;
+  if (typeof title === 'string' && title.trim() && !isInternalTitleCandidate(title, module)) return title;
+  if (step) {
+    const blockTitle = titleFromBlock(blockFor(step, module.payload) ?? blockByModuleId(step, module));
+    if (blockTitle && !isInternalTitleCandidate(blockTitle, module)) return blockTitle;
+  }
   return MODULE_KIND_TITLE[module.kind] ?? '学习内容';
 }
 
@@ -364,7 +403,7 @@ function formulaItemsFromSource(source: unknown): string[] {
     ...asStringArray(record.math),
     ...asStringArray(record.values),
   );
-  for (const key of ['formula', 'latex', 'math'] as const) {
+  for (const key of ['formula', 'latex', 'math', 'value'] as const) {
     const value = record[key];
     if (typeof value === 'string') directItems.push(value);
   }
@@ -386,12 +425,14 @@ function getFormulaItems(step: InteractiveRuntimeStepManifest, module: Interacti
     ?? valueAtField(keyedBlock, 'formulas')
     ?? valueAtField(keyedBlock, 'latex')
     ?? valueAtField(keyedBlock, 'math')
+    ?? valueAtField(keyedBlock, 'value')
     ?? valueAtField(keyedBlock, 'items')
     ?? keyedBlock
     ?? valueAtField(moduleBlock, requestedField)
     ?? valueAtField(moduleBlock, 'formula')
     ?? valueAtField(moduleBlock, 'latex')
     ?? valueAtField(moduleBlock, 'math')
+    ?? valueAtField(moduleBlock, 'value')
     ?? valueAtField(moduleBlock, 'formulas')
     ?? valueAtField(moduleBlock, 'items')
     ?? moduleBlock
@@ -564,7 +605,7 @@ function staticSurfacePanelProps(
 
   return {
     moduleId: module.id,
-    title: titleFromModule(module),
+    title: titleFromModule(module, step),
     caption: stringField(payload, ['caption', 'description', 'text'])
       || stringField(block, ['description', 'body', 'text']),
     dataUrl: dataUrl ? runtimeMediaPath(manifest, dataUrl) : undefined,
@@ -588,7 +629,7 @@ function staticSurfacePanelProps(
       image: runtimeMediaPath(manifest, fallbackImage),
       alt: stringField(fallback, ['alt', 'description'])
         || stringField(block, ['description', 'body', 'text'])
-        || `${titleFromModule(module)}静态图`,
+        || `${titleFromModule(module, step)}静态图`,
       note: stringField(fallback, ['note']),
     },
     markers: markerConfigs(payload.markers ?? block.markers),
@@ -653,6 +694,389 @@ function staticSurfaceDataset(data: ContentRecord): StaticSurfaceDataset | undef
   }
 
   return undefined;
+}
+
+function interactiveFigureSpecKey(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
+  const block = asRecord(blockFor(step, module.payload));
+  return stringField(module.payload, ['spec_key', 'specKey'])
+    || stringField(block, ['spec_key', 'specKey']);
+}
+
+function isInteractiveFigureKind(value: string): value is InteractiveFigureKind {
+  return value === 'drag_pole_s_plane' || value === 'three_ships_case';
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function svgPath(points: Array<{ x: number; y: number }>) {
+  return points
+    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`)
+    .join(' ');
+}
+
+function responsePoints({
+  sigma,
+  omega,
+  mode,
+  width,
+  height,
+  timeScale = 1,
+}: {
+  sigma: number;
+  omega: number;
+  mode: 'conjugate_pair' | 'single_real';
+  width: number;
+  height: number;
+  timeScale?: number;
+}) {
+  const points: Array<{ x: number; raw: number }> = [];
+  const horizon = 8 / Math.max(1, timeScale);
+  for (let index = 0; index <= 96; index += 1) {
+    const t = (index / 96) * horizon;
+    const envelope = Math.exp(sigma * t);
+    const raw = mode === 'single_real'
+      ? 1 - envelope
+      : 1 - envelope * Math.cos(Math.max(0.05, omega) * t);
+    points.push({ x: (index / 96) * width, raw });
+  }
+  const rawValues = points.map((point) => point.raw);
+  const minY = Math.min(-1.5, ...rawValues);
+  const maxY = Math.max(2.5, ...rawValues);
+  return points.map((point) => ({
+    x: point.x,
+    y: height - ((point.raw - minY) / Math.max(1e-6, maxY - minY)) * height,
+  }));
+}
+
+function PoleResponseComputePanel({
+  step,
+  module,
+  onPanelSubmit,
+}: {
+  step: InteractiveRuntimeStepManifest;
+  module: InteractiveRuntimeModuleManifest;
+  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void;
+}) {
+  const [sigma, setSigma] = useState(-1);
+  const [omega, setOmega] = useState(2);
+  const [mode, setMode] = useState<'conjugate_pair' | 'single_real'>('conjugate_pair');
+  const [observationText, setObservationText] = useState('左半平面对应收敛，虚部越大摆动越密。');
+  const plotWidth = 320;
+  const plotHeight = 180;
+  const planeX = ((clamp(sigma, -5, 2) + 5) / 7) * plotWidth;
+  const planeY = plotHeight - (clamp(omega, 0, 5) / 5) * plotHeight;
+  const curve = responsePoints({ sigma, omega, mode, width: plotWidth, height: plotHeight });
+  const cardId = step.interactionSpec.activityCards?.[0]?.id ?? 'drag-pole-submit';
+
+  const submitCurrent = () => {
+    if (!onPanelSubmit) return;
+    onPanelSubmit?.({
+      stepId: step.id,
+      submittedAt: Date.now(),
+      answers: {
+        [cardId]: JSON.stringify({
+          sigma: sigma.toFixed(2),
+          omega: mode === 'single_real' ? '0.00' : omega.toFixed(2),
+          observation_text: observationText,
+        }),
+      },
+    });
+  };
+
+  return (
+    <section className="premium-lesson-panel space-y-4" data-interactive-figure-panel="drag_pole_s_plane" data-module-id={module.id}>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="premium-lesson-kicker">极点行为地图</div>
+          <h3 className="premium-lesson-title mt-1 text-lg font-semibold">拖动极点看响应</h3>
+          <p className="premium-lesson-muted mt-1 text-sm leading-6">左侧记录极点坐标，右侧实时显示对应的响应走势。</p>
+        </div>
+        <button
+          type="button"
+          onClick={submitCurrent}
+          disabled={!onPanelSubmit}
+          className="premium-lesson-action-primary px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {onPanelSubmit ? '提交当前参数' : '等待教师发放'}
+        </button>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="premium-lesson-surface-elevated p-3">
+          <svg viewBox={`0 0 ${plotWidth} ${plotHeight}`} className="h-[220px] w-full" role="img" aria-label="极点复平面">
+            <rect x="0" y="0" width={plotWidth / 7 * 5} height={plotHeight} fill="hsl(var(--platform-action-primary) / 0.10)" />
+            <rect x={plotWidth / 7 * 5} y="0" width={plotWidth / 7 * 2} height={plotHeight} fill="hsl(var(--platform-evidence-unsupported) / 0.10)" />
+            <line x1={plotWidth / 7 * 5} y1="0" x2={plotWidth / 7 * 5} y2={plotHeight} stroke="hsl(var(--platform-fg-secondary))" strokeWidth="2" />
+            <line x1="0" y1={plotHeight} x2={plotWidth} y2={plotHeight} stroke="hsl(var(--platform-border-strong))" />
+            <line x1="0" y1={plotHeight} x2="0" y2="0" stroke="hsl(var(--platform-border-strong))" />
+            <text x="10" y="20" fill="hsl(var(--platform-fg-secondary))" className="text-[11px]">稳定区</text>
+            <text x={plotWidth - 60} y="20" fill="hsl(var(--platform-fg-secondary))" className="text-[11px]">不稳定区</text>
+            <text x={plotWidth / 7 * 5 + 6} y={plotHeight - 8} fill="hsl(var(--platform-fg-muted))" className="text-[10px]">虚轴</text>
+            <circle cx={planeX} cy={planeY} r="8" fill="hsl(var(--platform-action-primary))" />
+            <line x1={planeX - 12} y1={planeY} x2={planeX + 12} y2={planeY} stroke="hsl(var(--platform-fg-inverse))" strokeWidth="2" />
+            <line x1={planeX} y1={planeY - 12} x2={planeX} y2={planeY + 12} stroke="hsl(var(--platform-fg-inverse))" strokeWidth="2" />
+          </svg>
+        </div>
+        <div className="premium-lesson-surface-elevated p-3">
+          <svg viewBox={`0 0 ${plotWidth} ${plotHeight}`} className="h-[220px] w-full" role="img" aria-label="极点对应的时域响应">
+            <line x1="0" y1={plotHeight * 0.58} x2={plotWidth} y2={plotHeight * 0.58} stroke="hsl(var(--platform-border))" strokeDasharray="4 4" />
+            <path d={svgPath(curve)} fill="none" stroke="hsl(var(--platform-action-primary))" strokeWidth="3" />
+            <text x="10" y="20" fill="hsl(var(--platform-fg-secondary))" className="text-[11px]">响应曲线</text>
+          </svg>
+        </div>
+      </div>
+
+      <div className="grid gap-3 lg:grid-cols-4">
+        <label className="premium-lesson-control flex flex-col gap-2 px-3 py-2 text-sm">
+          <span>σ（实部）</span>
+          <input className="accent-[hsl(var(--platform-action-primary))]" type="range" min="-5" max="2" step="0.1" value={sigma} onChange={(event) => setSigma(Number(event.target.value))} />
+          <span className="premium-lesson-caption">{sigma.toFixed(1)}</span>
+        </label>
+        <label className="premium-lesson-control flex flex-col gap-2 px-3 py-2 text-sm">
+          <span>ω（虚部）</span>
+          <input className="accent-[hsl(var(--platform-action-primary))]" type="range" min="0" max="5" step="0.1" value={omega} disabled={mode === 'single_real'} onChange={(event) => setOmega(Number(event.target.value))} />
+          <span className="premium-lesson-caption">{mode === 'single_real' ? '0.0' : omega.toFixed(1)}</span>
+        </label>
+        <label className="premium-lesson-control flex flex-col gap-2 px-3 py-2 text-sm">
+          <span>极点模式</span>
+          <select className="premium-lesson-select" value={mode} onChange={(event) => setMode(event.target.value as typeof mode)}>
+            <option value="conjugate_pair">共轭极点</option>
+            <option value="single_real">单实极点</option>
+          </select>
+        </label>
+        <button type="button" className="premium-lesson-action-tone premium-tone-slate self-end px-4 py-2 text-sm" onClick={() => { setSigma(-1); setOmega(2); setMode('conjugate_pair'); }}>
+          复位
+        </button>
+      </div>
+
+      <label className="premium-lesson-control block px-3 py-2 text-sm">
+        <span className="premium-lesson-title font-medium">行为特征</span>
+        <textarea value={observationText} onChange={(event) => setObservationText(event.target.value)} className="premium-lesson-input mt-2 min-h-[76px] w-full" />
+      </label>
+    </section>
+  );
+}
+
+function ThreeShipsCaseComputePanel({
+  step,
+  module,
+  onPanelSubmit,
+}: {
+  step: InteractiveRuntimeStepManifest;
+  module: InteractiveRuntimeModuleManifest;
+  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void;
+}) {
+  const [selectedShip, setSelectedShip] = useState<'A' | 'B' | 'C' | 'all'>('all');
+  const [timeScale, setTimeScale] = useState(1.5);
+  const [interactionCount, setInteractionCount] = useState(0);
+  const plotWidth = 360;
+  const plotHeight = 190;
+  const shipSeries = [
+    { id: 'A', label: 'A：边摆边收', sigma: -1.5, omega: 2.2, stroke: 'hsl(var(--platform-action-primary))' },
+    { id: 'B', label: 'B：单调收敛', sigma: -0.8, omega: 0, stroke: 'hsl(var(--platform-evidence-eligible))' },
+    { id: 'C', label: 'C：摆动发散', sigma: 0.3, omega: 1.4, stroke: 'hsl(var(--platform-evidence-unsupported))' },
+  ] as const;
+  const visible = shipSeries.filter((ship) => selectedShip === 'all' || ship.id === selectedShip);
+  const updateSelectedShip = (ship: 'A' | 'B' | 'C' | 'all') => {
+    setSelectedShip(ship);
+    setInteractionCount((value) => value + 1);
+  };
+  const updateTimeScale = (value: number) => {
+    setTimeScale(value);
+    setInteractionCount((current) => current + 1);
+  };
+  const submitSimulationRecord = () => {
+    if (!onPanelSubmit) return;
+    onPanelSubmit({
+      stepId: step.id,
+      submittedAt: Date.now(),
+      answers: {
+        [module.id]: JSON.stringify({
+          selected_ship: selectedShip,
+          time_scale: timeScale.toFixed(1),
+          simulation_interaction_count: interactionCount,
+          compared_ships: selectedShip === 'all' ? ['A', 'B', 'C'] : [selectedShip],
+        }),
+      },
+    });
+  };
+
+  return (
+    <section className="premium-lesson-panel space-y-4" data-interactive-figure-panel="three_ships_case" data-module-id={module.id}>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="premium-lesson-kicker">三艘船响应仿真</div>
+          <h3 className="premium-lesson-title mt-1 text-lg font-semibold">同样指令下的三种极点行为</h3>
+          <p className="premium-lesson-muted mt-1 text-sm leading-6">切换船型，观察“边摆边收、单调收敛、摆动发散”与极点位置的对应关系。</p>
+        </div>
+        <button
+          type="button"
+          onClick={submitSimulationRecord}
+          disabled={!onPanelSubmit}
+          className="premium-lesson-action-primary px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {onPanelSubmit ? '记录比较' : '等待教师发放'}
+        </button>
+      </div>
+      <div className="premium-lesson-surface-elevated p-3">
+        <svg viewBox={`0 0 ${plotWidth} ${plotHeight}`} className="h-[240px] w-full" role="img" aria-label="三艘船航向响应曲线">
+          <line x1="0" y1={plotHeight * 0.55} x2={plotWidth} y2={plotHeight * 0.55} stroke="hsl(var(--platform-border))" strokeDasharray="4 4" />
+          {visible.map((ship) => (
+            <path
+              key={ship.id}
+              d={svgPath(responsePoints({
+                sigma: ship.sigma,
+                omega: ship.omega,
+                mode: ship.omega === 0 ? 'single_real' : 'conjugate_pair',
+                width: plotWidth,
+                height: plotHeight,
+                timeScale,
+              }))}
+              fill="none"
+              stroke={ship.stroke}
+              strokeWidth="3"
+            />
+          ))}
+          {visible.map((ship, index) => (
+            <g key={ship.id} transform={`translate(18, ${22 + index * 20})`}>
+              <line x1="0" y1="0" x2="24" y2="0" stroke={ship.stroke} strokeWidth="3" />
+              <text x="32" y="4" fill="hsl(var(--platform-fg-secondary))" className="text-[11px]">{ship.label}</text>
+            </g>
+          ))}
+        </svg>
+      </div>
+      <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_220px]">
+        <div className="flex flex-wrap gap-2">
+          {(['all', 'A', 'B', 'C'] as const).map((ship) => (
+            <button
+              key={ship}
+              type="button"
+              onClick={() => updateSelectedShip(ship)}
+              className={`premium-lesson-action-tone ${selectedShip === ship ? 'premium-tone-cyan' : 'premium-tone-slate'}`}
+            >
+              {ship === 'all' ? '全部' : `船 ${ship}`}
+            </button>
+          ))}
+        </div>
+        <label className="premium-lesson-control flex flex-col gap-2 px-3 py-2 text-sm">
+          <span>时间轴缩放</span>
+          <input className="accent-[hsl(var(--platform-action-primary))]" type="range" min="1" max="5" step="0.5" value={timeScale} onChange={(event) => updateTimeScale(Number(event.target.value))} />
+        </label>
+      </div>
+    </section>
+  );
+}
+
+function InteractiveFigureComputePanel({
+  step,
+  module,
+  onPanelSubmit,
+}: {
+  step: InteractiveRuntimeStepManifest;
+  module: InteractiveRuntimeModuleManifest;
+  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void;
+}) {
+  const specKey = interactiveFigureSpecKey(step, module);
+  if (isInteractiveFigureKind(specKey)) {
+    return specKey === 'drag_pole_s_plane'
+      ? <PoleResponseComputePanel step={step} module={module} onPanelSubmit={onPanelSubmit} />
+      : <ThreeShipsCaseComputePanel step={step} module={module} onPanelSubmit={onPanelSubmit} />;
+  }
+  const content = summaryContent(step, module);
+  return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+}
+
+function SharedControlWorkbenchComputePanel({
+  manifest,
+  step,
+  module,
+  onPanelSubmit,
+}: {
+  manifest: InteractiveRuntimeManifest;
+  step: InteractiveRuntimeStepManifest;
+  module: InteractiveRuntimeModuleManifest;
+  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void;
+}) {
+  const capabilityRef = computeCapabilityRef(module.payload);
+  const visiblePanelIds = stringArrayField(module.payload, ['visiblePanelIds', 'visible_panel_ids', 'panels']);
+  const responseContractId = stringField(module.payload, ['responseContractId', 'response_contract_id', 'responseKind', 'response_kind']);
+  const releaseState = stringField(module.payload, ['releaseState', 'release_state']) || 'course-controlled';
+  const fallbackState = stringField(module.payload, ['fallbackState', 'fallback_state']) || 'supported';
+  const request = controlAnalysisRequestFromPayload(module.payload);
+  const fallbackResult = controlAnalysisResultFromPayload(module.payload);
+  const layout = controlWorkbenchLayoutFromPayload(module.payload);
+  const content = summaryContent(step, module);
+  const bullets = [
+    visiblePanelIds.length ? '课程已声明本页需要的分析视图。' : '分析视图由课程配置选择。',
+    responseContractId ? '提交会保存当前参数、图形状态和判断。' : '提交方式由课程活动设置提供。',
+    fallbackState === 'unsupported' ? '当前状态仅提供替代说明。' : '本次参数探索可用于课后复盘。',
+    ...content.bullets,
+  ];
+  const submitCurrent = () => {
+    if (!onPanelSubmit || !capabilityRef) return;
+    const submittedAt = Date.now();
+    const eventDraft = buildControlWorkbenchClientEvidenceDraft({
+      eventType: 'lesson_submit',
+      clientEventId: `${step.id}:${module.id}:${submittedAt}`,
+      attemptKey: `${step.id}:response:${submittedAt}`,
+      lessonKey: manifest.lessonId,
+      stepId: step.id,
+      moduleId: module.id,
+      componentId: module.id,
+      actorRole: 'student',
+      clientEventAt: new Date(submittedAt).toISOString(),
+      capabilityId: capabilityRef,
+      visiblePanelIds,
+      parameterSnapshot: parameterSnapshotFromRequest(request),
+      selectedDesignState: { releaseState, fallbackState },
+      answerPayload: { responseContractId: responseContractId ?? 'parameter.set' },
+      releaseState: releaseState === 'released' || releaseState === 'revealed' ? releaseState : 'released',
+      fallbackState: fallbackState === 'fallback' || fallbackState === 'unsupported' ? fallbackState : 'supported',
+    });
+    onPanelSubmit({
+      stepId: step.id,
+      submittedAt,
+      answers: {
+        [responseContractId ?? `${module.id}:control-workbench`]: JSON.stringify(eventDraft),
+      },
+    });
+  };
+
+  return (
+    <section
+      className="premium-lesson-panel space-y-4"
+      data-control-workbench-capability={capabilityRef}
+      data-control-workbench-module-id={module.id}
+      data-control-workbench-release-state={releaseState}
+      data-control-workbench-fallback-state={fallbackState}
+    >
+      <SummaryCard
+        title={titleFromModule(module, step)}
+        text={content.text || '本页使用控制分析工具观察参数变化、曲线响应和设计判断。'}
+        bullets={bullets}
+      />
+      {request ? (
+        <>
+          <ControlFigureWorkspace
+            request={request}
+            fallbackResult={fallbackResult}
+            layout={layout}
+            allowedPanelIds={visiblePanelIds}
+          />
+          <button
+            type="button"
+            onClick={submitCurrent}
+            disabled={!onPanelSubmit}
+            className="premium-lesson-action-primary px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {onPanelSubmit ? '提交当前观察' : '等待教师发放'}
+          </button>
+        </>
+      ) : null}
+    </section>
+  );
 }
 
 function numericArray(value: unknown): number[] {
@@ -772,7 +1196,7 @@ function revealItemFromValue(value: unknown): RevealItem | null {
     return { body: String(value) };
   }
   const record = asRecord(value);
-  const body = record.body ?? record.text ?? record.prompt ?? record.explanation ?? record.note ?? record.value;
+  const body = record.body ?? record.text ?? record.content ?? record.prompt ?? record.explanation ?? record.note ?? record.value;
   const formula = record.formula ?? record.latex ?? record.math;
   const title = record.title ?? record.label ?? record.name;
   if (typeof body !== 'string' && typeof formula !== 'string') return null;
@@ -1203,12 +1627,71 @@ function NativeTable({
   );
 }
 
-function ImagePanel({ title, src, notes }: { title: string; src: string; notes: string[] }) {
+type ImageDisplayMode = 'default' | 'medium' | 'compact';
+
+function imageDisplayMode(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest): ImageDisplayMode {
+  const block = asRecord(blockFor(step, module.payload) ?? blockByModuleId(step, module));
+  const value = stringField(module.payload, ['display_width', 'displayWidth', 'image_size', 'imageSize'])
+    || stringField(block, ['display_width', 'displayWidth', 'image_size', 'imageSize']);
+  if (value === 'compact' || value === 'small' || value === 'narrow') return 'compact';
+  if (value === 'medium') return 'medium';
+  return 'default';
+}
+
+function imageClassFor(mode: ImageDisplayMode) {
+  if (mode === 'compact') return 'mx-auto h-auto w-full max-w-[680px]';
+  if (mode === 'medium') return 'mx-auto h-auto w-full max-w-[900px]';
+  return 'h-auto w-full';
+}
+
+function figureKind(step: InteractiveRuntimeStepManifest, module: InteractiveRuntimeModuleManifest) {
+  const block = asRecord(blockFor(step, module.payload) ?? blockByModuleId(step, module));
+  return stringField(module.payload, ['figure_kind', 'figureKind'])
+    || stringField(block, ['figure_kind', 'figureKind']);
+}
+
+function ModelingPathsComparisonFigure({ title }: { title: string }) {
+  const nodeClass = 'rounded-xl border border-slate-200 bg-white px-4 py-3 text-center shadow-sm';
+  const arrowClass = 'text-slate-400';
+  return (
+    <div className="premium-lesson-panel" data-local-modeling-paths-figure="true">
+      <ManifestContentTitle>{title}</ManifestContentTitle>
+      <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <div className="space-y-3">
+            <div className="premium-lesson-kicker">机理建模路径</div>
+            <div className={nodeClass}>真实对象</div>
+            <div className={arrowClass}>↓</div>
+            <div className={nodeClass}>物理定律</div>
+            <div className={arrowClass}>↓</div>
+            <div className={nodeClass}>微分方程</div>
+            <div className={arrowClass}>↓</div>
+            <div className="rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-3 text-center text-cyan-950 shadow-sm">传递函数</div>
+            <p className="premium-lesson-muted text-sm leading-6">优势：结构清楚、物理含义明确；边界：对象过复杂时建方程成本高。</p>
+          </div>
+          <div className="space-y-3">
+            <div className="premium-lesson-kicker">数据驱动路径</div>
+            <div className={nodeClass}>真实对象</div>
+            <div className={arrowClass}>↓</div>
+            <div className={nodeClass}>采集输入输出数据</div>
+            <div className={arrowClass}>↓</div>
+            <div className={nodeClass}>算法学习映射</div>
+            <div className={arrowClass}>↓</div>
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-emerald-950 shadow-sm">预测模型</div>
+            <p className="premium-lesson-muted text-sm leading-6">优势：先验要求低；边界：解释性弱，训练范围外可靠性下降。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ImagePanel({ title, src, notes, displayMode = 'default' }: { title: string; src: string; notes: string[]; displayMode?: ImageDisplayMode }) {
   return (
     <div className="premium-lesson-panel">
       <ManifestContentTitle>{title}</ManifestContentTitle>
       <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <Image src={src} alt={title} width={1600} height={960} className="h-auto w-full" unoptimized />
+        <Image src={src} alt={title} width={1600} height={960} className={imageClassFor(displayMode)} unoptimized />
       </div>
       {notes.length ? (
         <ul className="premium-lesson-muted mt-3 space-y-2 text-sm leading-7">
@@ -1331,21 +1814,22 @@ export function createManifestContentModuleRegistry(extra: {
   revealProgress: number;
   allowInlineReveal: boolean;
   onInlineReveal?: () => void;
+  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void;
 }): InteractiveModuleRegistry<typeof extra> {
   return {
     'content.rich': ({ step, module }) => {
       const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+      return <SummaryCard title={titleFromModule(module, step)} text={content.text} bullets={content.bullets} />;
     },
     'content.cardSet': ({ step, module }) => {
       const items = cardGridItems(step, module);
-      if (items.length) return <CardGrid title={titleFromModule(module)} items={items} />;
+      if (items.length) return <CardGrid title={titleFromModule(module, step)} items={items} />;
       const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+      return <SummaryCard title={titleFromModule(module, step)} text={content.text} bullets={content.bullets} />;
     },
     'content.formula': ({ step, module }) => (
       <FormulaCard
-        title={titleFromModule(module)}
+        title={titleFromModule(module, step)}
         formulas={getFormulaItems(step, module)}
         notes={formulaNotes(step, module)}
         symbols={formulaSymbols(step, module)}
@@ -1355,7 +1839,7 @@ export function createManifestContentModuleRegistry(extra: {
       const content = codePayload(step, module);
       return (
         <ManifestCodeBlock
-          title={titleFromModule(module)}
+          title={titleFromModule(module, step)}
           code={content.code}
           language={content.language}
           note={content.note}
@@ -1364,22 +1848,26 @@ export function createManifestContentModuleRegistry(extra: {
     },
     'content.table': ({ step, module }) => {
       const table = tableFor(step, module);
-      if (table) return <NativeTable title={titleFromModule(module)} columns={table.columns} rows={table.rows} notes={textFieldsFromPayload(module.payload, ['text', 'note', 'explanation'])} />;
+      if (table) return <NativeTable title={titleFromModule(module, step)} columns={table.columns} rows={table.rows} notes={textFieldsFromPayload(module.payload, ['text', 'note', 'explanation'])} />;
       const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+      return <SummaryCard title={titleFromModule(module, step)} text={content.text} bullets={content.bullets} />;
     },
     'content.figure': ({ manifest, step, module }) => {
+      if (figureKind(step, module) === 'modeling_paths_comparison') {
+        return <ModelingPathsComparisonFigure title={titleFromModule(module, step)} />;
+      }
       const galleryItems = imageItemsFromPayload(manifest, module.payload);
-      if (galleryItems.length > 1) return <ImageGallery title={titleFromModule(module)} items={galleryItems} />;
+      const displayMode = imageDisplayMode(step, module);
+      if (galleryItems.length > 1) return <ImageGallery title={titleFromModule(module, step)} items={galleryItems} />;
       if (galleryItems.length === 1) {
         const [item] = galleryItems;
         const notes = [item.caption, ...imageNotes(step, module)].filter((value) => value.trim());
-        return <ImagePanel title={titleFromModule(module)} src={item.src} notes={notes} />;
+        return <ImagePanel title={titleFromModule(module, step)} src={item.src} notes={notes} displayMode={displayMode} />;
       }
       const src = getImageSrc(manifest, step, module);
-      if (src) return <ImagePanel title={titleFromModule(module)} src={src} notes={imageNotes(step, module)} />;
+      if (src) return <ImagePanel title={titleFromModule(module, step)} src={src} notes={imageNotes(step, module)} displayMode={displayMode} />;
       const content = summaryContent(step, module);
-      return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
+      return <SummaryCard title={titleFromModule(module, step)} text={content.text} bullets={content.bullets} />;
     },
     'content.reveal': ({ step, module, extra: renderExtra }) => {
       const items = revealItems(step, module);
@@ -1387,7 +1875,7 @@ export function createManifestContentModuleRegistry(extra: {
         return (
           <StepReveal
             key={stepRevealIdentityKey(step, module, renderExtra.revealProgress)}
-            title={titleFromModule(module)}
+            title={titleFromModule(module, step)}
             items={items}
             revealProgress={renderExtra.revealProgress}
             allowInlineReveal={renderExtra.allowInlineReveal}
@@ -1413,6 +1901,12 @@ export function createManifestContentModuleRegistry(extra: {
     'compute.panel': ({ manifest, step, module }) => {
       if (computeCapabilityRef(module.payload) === 'static-surface-3d') {
         return <StaticSurface3DPanel {...staticSurfacePanelProps(manifest, step, module)} />;
+      }
+      if (isControlWorkbenchComputeCapabilityRef(computeCapabilityRef(module.payload))) {
+        return <SharedControlWorkbenchComputePanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} />;
+      }
+      if (computeCapabilityRef(module.payload) === 'interactive-figure') {
+        return <InteractiveFigureComputePanel step={step} module={module} onPanelSubmit={extra.onPanelSubmit} />;
       }
       const content = summaryContent(step, module);
       return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
@@ -1806,4 +2300,55 @@ export function createManifestContentModuleRegistry(extra: {
 
 function computeCapabilityRef(payload: ContentRecord) {
   return stringField(payload, ['capabilityRef', 'capability_ref', 'capability']);
+}
+
+function stringArrayField(payload: ContentRecord, keys: string[]) {
+  for (const key of keys) {
+    const value = payload[key];
+    if (Array.isArray(value)) {
+      return value.filter((item): item is string => typeof item === 'string' && Boolean(item.trim()));
+    }
+  }
+  return [];
+}
+
+function controlAnalysisRequestFromPayload(payload: ContentRecord): ControlAnalysisRequest | undefined {
+  const request = asRecord(payload.request ?? payload.analysisRequest ?? payload.analysis_request);
+  return isControlAnalysisRequest(request) ? request as unknown as ControlAnalysisRequest : undefined;
+}
+
+function controlAnalysisResultFromPayload(payload: ContentRecord): ControlAnalysisResult | undefined {
+  const fallback = asRecord(payload.fallbackResult ?? payload.fallback_result);
+  return isControlAnalysisResult(fallback) ? fallback as unknown as ControlAnalysisResult : undefined;
+}
+
+function controlWorkbenchLayoutFromPayload(payload: ContentRecord): 'quad' | 'platform' | 'standard-quad' {
+  const layout = stringField(payload, ['layout', 'workbenchLayout', 'workbench_layout']);
+  return layout === 'platform' || layout === 'standard-quad' ? layout : 'quad';
+}
+
+function isControlAnalysisRequest(value: ContentRecord): boolean {
+  return value.runtimeMode === 'analysis'
+    && typeof value.plant === 'object'
+    && Array.isArray(value.structures)
+    && Array.isArray(value.outputs)
+    && typeof value.timeRange === 'object'
+    && typeof value.frequencyRange === 'object'
+    && typeof value.rootLocus === 'object';
+}
+
+function isControlAnalysisResult(value: ContentRecord): boolean {
+  return typeof value.metrics === 'object'
+    && typeof value.stepResponse === 'object'
+    && typeof value.rootLocus === 'object'
+    && typeof value.magnitude === 'object'
+    && typeof value.phase === 'object'
+    && typeof value.nyquist === 'object';
+}
+
+function parameterSnapshotFromRequest(request: ControlAnalysisRequest | undefined): Record<string, unknown> {
+  if (!request) return {};
+  return Object.fromEntries(
+    request.structures.flatMap((structure) => Object.entries(structure.params).map(([key, value]) => [`${structure.kind}.${key}`, value])),
+  );
 }

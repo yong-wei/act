@@ -1,0 +1,267 @@
+{
+  "acceptance_version": 1,
+  "lesson_id": "1-2",
+  "status": "accepted",
+  "accepted_at": "2026-06-17T18:45:56+08:00",
+  "updated_at": "2026-06-17T18:45:56+08:00",
+  "review_mode": "implementation+targeted-tests+subagent-recheck+student-teacher-browser-audit",
+  "implementation_contract_source": "src/lib/unit-1-2-course.ts",
+  "reviewed_runtime_artifacts": [
+    "course-content/runtime/lessons/1-2/review/review-report.md",
+    "course-content/runtime/lessons/1-2/review/interactive-page-check.json",
+    "course-content/runtime/lessons/1-2/review/interactive-manifest-audit.json",
+    "course-content/runtime/lessons/1-2/interactive-manifest.json"
+  ],
+  "course": {
+    "title": "1-2：建模——从真实对象到可分析的系统",
+    "route_segment": "unit-1-2-modeling-from-object-to-system",
+    "preset_key": "unit-1-2-modeling-from-object-to-system-v1",
+    "resource_key": "unit-1-2-modeling-from-object-to-system",
+    "step_count": 14,
+    "response_producing_steps": [
+      "step-03",
+      "step-05",
+      "step-06",
+      "step-08",
+      "step-10",
+      "step-11",
+      "step-12",
+      "step-13"
+    ]
+  },
+  "runtime_source": {
+    "manifest": "course-content/runtime/lessons/1-2/interactive-manifest.json",
+    "runtime_media_dir": "course-content/runtime/lessons/1-2/media",
+    "surface_data": "course-content/runtime/lessons/1-2/media/generated-data/pole-magnitude-surface.json"
+  },
+  "implementation_sources": [
+    "course-content/authoring/lessons/1-2/design/1-2-interactive-contract.yaml",
+    "course-content/authoring/lessons/1-2/media/raw/generated-data/pole-magnitude-surface.json",
+    "src/features/interactive/__tests__/interactive-manifest-runtime.test.tsx",
+    "src/features/interactive/__tests__/unit-1-2-course.test.ts",
+    "src/features/interactive/shared/manifest-runtime/content-renderers.tsx",
+    "src/features/interactive/shared/manifest-runtime/layout-renderer.tsx",
+    "src/features/interactive/shared/manifest-runtime/static-surface-3d-webgl.tsx",
+    "src/features/interactive/unit-1-2-modeling-from-object-to-system/entry-page.tsx",
+    "src/features/interactive/unit-1-2-modeling-from-object-to-system/step-panels.tsx",
+    "src/features/interactive/unit-1-2-modeling-from-object-to-system/student-page.tsx",
+    "src/features/interactive/unit-1-2-modeling-from-object-to-system/teacher-page.tsx",
+    "src/features/teacher/preset-lessons/presets/unit-1-2-modeling-from-object-to-system.ts",
+    "src/lib/unit-1-2-ai-contexts.ts",
+    "src/lib/unit-1-2-course.ts"
+  ],
+  "expected_visual_sources": [
+    "course-content/authoring/lessons/1-2/design/1-2-interactive-page.md",
+    "course-content/authoring/lessons/1-2/design/1-2-interactive-contract.yaml",
+    "course-content/authoring/lessons/1-2/design/1-2-interactive-design-acceptance.json"
+  ],
+  "current_screenshot_locations": {
+    "directory": "artifacts/interactive-learning/unit-1-2-page-fixes-2026-06-17/",
+    "expected_files": [
+      "student-final-step-09.png",
+      "student-final-step-12.png",
+      "student-final-dom-audit.json",
+      "teacher-final-step-09.png",
+      "teacher-final-dom-audit.json",
+      "student-dom-audit.json",
+      "teacher-dom-audit.json"
+    ],
+    "status": "captured",
+    "previous_full_classroom_evidence_directory": "artifacts/interactive-learning/unit-1-2-implementation-acceptance-2026-06-17/"
+  },
+  "checks": {
+    "inline_ai_visibility": {
+      "status": "pass",
+      "step_ids": [
+        "step-01",
+        "step-09",
+        "step-10",
+        "step-14"
+      ],
+      "evidence": [
+        "src/lib/unit-1-2-ai-contexts.ts registers page goals and quick questions for the global assistant surface.",
+        "src/features/interactive/unit-1-2-modeling-from-object-to-system/student-page.tsx updates the shared global AI context through getUnit12StepAIContext.",
+        "The 1-2 page implementation does not add visible engineering AI panels or module-missing diagnostics."
+      ]
+    },
+    "content_source_completeness": {
+      "status": "pass",
+      "step_ids": [
+        "step-01",
+        "step-09",
+        "step-10",
+        "step-11",
+        "step-14"
+      ],
+      "evidence": [
+        "course-content/runtime/lessons/1-2/interactive-manifest.json is the composition source for all 14 steps.",
+        "src/features/interactive/unit-1-2-modeling-from-object-to-system/step-panels.tsx delegates content, student activity and teacher activity rendering to shared manifest registries.",
+        "src/lib/unit-1-2-course.ts aligns the route segment, preset key, step order, interaction kinds, teacher sync state and evidence identity with the runtime manifest."
+      ]
+    },
+    "static_media_downgrade": {
+      "status": "pass",
+      "step_ids": [
+        "step-09",
+        "step-10",
+        "step-11"
+      ],
+      "evidence": [
+        "step-09 renders the shared static-surface-3d panel and only uses 1-2-fig-08-magnitude-surface.png as fallback.",
+        "step-10 renders data-interactive-figure-panel=\"drag_pole_s_plane\" with live sigma/omega controls and parameter submission.",
+        "step-11 renders data-interactive-figure-panel=\"three_ships_case\" with runtime response curves and case controls."
+      ]
+    },
+    "runtime_manifest_audit": {
+      "status": "pass",
+      "command": "rtk python3 .agents/skills/interactive-design/scripts/audit_interactive_manifest.py --lesson 1-2",
+      "evidence": "manifest audit pass: 14 steps, 46 modules, 0 issues"
+    },
+    "runtime_export": {
+      "status": "pass",
+      "command": "rtk python3 course-content/scripts/export_runtime.py 1-2",
+      "evidence": "exported runtime for 1-2"
+    },
+    "module_registry_gates": {
+      "status": "pass",
+      "command": "rtk npm run test:unit -- src/features/interactive/__tests__/interactive-module-taxonomy.test.ts src/features/interactive/__tests__/interactive-module-registry-gate.test.ts",
+      "evidence": "2 files, 52 tests passed"
+    },
+    "targeted_course_tests": {
+      "status": "pass",
+      "command": "rtk npm run test:unit -- src/features/interactive/__tests__/unit-1-2-course.test.ts src/features/interactive/__tests__/interactive-manifest-runtime.test.tsx src/features/interactive/__tests__/interactive-module-taxonomy.test.ts src/features/interactive/__tests__/interactive-module-registry-gate.test.ts src/features/interactive/__tests__/learning-catalog.test.ts",
+      "evidence": "5 files, 133 tests passed; includes activity slot removal, p12 reveal content fields, internal title fallback, legal English title preservation, p9 49x49 sampling and marker contract."
+    },
+    "course_data_quality_gates": {
+      "status": "pass",
+      "command": "rtk npm run test:course-data-quality-gates",
+      "evidence": "4 files, 69 tests passed"
+    },
+    "session_data_quality": {
+      "status": "pass",
+      "command": "rtk npm run db:session-data-quality -- --session-id=cmqhiqwqg001cz7yfugvac2f8",
+      "evidence": "qualityStatus green; requiredEvidenceCoverage=1; closure captured/materialized/summarized/cached all true; sync severity none"
+    },
+    "static_surface_3d": {
+      "status": "pass",
+      "step_id": "step-09",
+      "dom_contract": "data-static-surface-3d-panel=\"magnitude-surface\"",
+      "runtime_data_contract": "49x49 regular grid, x=[-4,2], y=[-3,3], dx=dy=0.125, markers s=0 and s=-B/J at z=2.15",
+      "fallback_image": "/course-runtime/lessons/1-2/media/1-2-fig-08-magnitude-surface.png"
+    },
+    "interactive_figures": {
+      "status": "pass",
+      "step_ids": [
+        "step-10",
+        "step-11"
+      ],
+      "dom_contracts": [
+        "data-interactive-figure-panel=\"drag_pole_s_plane\"",
+        "data-interactive-figure-panel=\"three_ships_case\""
+      ]
+    },
+    "retired_legacy_1_2": {
+      "status": "pass",
+      "evidence": "unit-1-2-block-diagram-simplification-v1 remains absent from preset, premium catalog and session route resolution."
+    },
+    "strict_implementation_contract": {
+      "status": "pass",
+      "command": "rtk python3 course-content/scripts/review_lesson_content.py --lesson 1-2 --skip-export --strict-implementation-contract",
+      "evidence": "passed after regenerating review artifacts from current authoring contract"
+    },
+    "page_fix_contract": {
+      "status": "pass",
+      "step_ids": [
+        "step-03",
+        "step-04",
+        "step-05",
+        "step-06",
+        "step-07",
+        "step-08",
+        "step-09",
+        "step-10",
+        "step-11",
+        "step-12",
+        "step-13",
+        "step-14"
+      ],
+      "evidence": [
+        "Activity runtime modules are no longer rendered as static content title blocks.",
+        "Step-04 modeling path figure is locally redrawn and exposes data-local-modeling-paths-figure=\"true\".",
+        "Image frame titles are Chinese where requested and internal module keys do not appear as visible titles or alt text.",
+        "Step-06 transform table formulas render through KaTeX; step-12 reveal layers render content fields instead of blank panels.",
+        "Step-09 static-surface-3d uses 49x49 sampled data, MATLAB-like jet colormap, wireframe, floor grid and axes frame; markers use s=0 and s=-B/J=-2.",
+        "Step-14 no longer renders the blank analytics.summary module."
+      ]
+    }
+  },
+  "browser_acceptance": {
+    "status": "pass",
+    "checked_at": "2026-06-17T18:45:56+08:00",
+    "current_page_fix_report": {
+      "student_dom_audit": "artifacts/interactive-learning/unit-1-2-page-fixes-2026-06-17/student-final-dom-audit.json",
+      "teacher_dom_audit": "artifacts/interactive-learning/unit-1-2-page-fixes-2026-06-17/teacher-final-dom-audit.json",
+      "student_screenshots": [
+        "artifacts/interactive-learning/unit-1-2-page-fixes-2026-06-17/student-final-step-09.png",
+        "artifacts/interactive-learning/unit-1-2-page-fixes-2026-06-17/student-final-step-12.png"
+      ],
+      "teacher_screenshots": [
+        "artifacts/interactive-learning/unit-1-2-page-fixes-2026-06-17/teacher-final-step-09.png"
+      ],
+      "evidence": [
+        "Student final audit for steps 04/06/08/09/12/14 found no activity slot, no render errors, no forbidden internal titles, no generic Learning Content title, step-09 WebGL loaded, and step-12 reveal content visible.",
+        "Teacher final audit for steps 04/09/12/14 found no activity slot, no render errors, no forbidden internal titles, no generic Learning Content title, step-09 WebGL loaded, and step-12 reveal content visible."
+      ]
+    },
+    "previous_full_classroom_acceptance": {
+      "status": "pass",
+      "report": "artifacts/interactive-learning/unit-1-2-implementation-acceptance-2026-06-17/reports/browser-acceptance-report.json",
+      "session_id": "cmqhiqwqg001cz7yfugvac2f8",
+      "join_code": "782960",
+      "ended": true,
+      "note": "This earlier full classroom run validates release/submission/aggregation/end-session closure; current p3-p14 visual/page-fix acceptance is recorded separately above for the 46-module manifest."
+    },
+    "blocking_log_issues": [],
+    "benign_log_issues": []
+  },
+  "subagent_reviews": [
+    {
+      "agent": "course-pedagogy-reviewer",
+      "status": "pass_after_fixes",
+      "evidence": [
+        "Flagged p10 stable-boundary wording and p9 marker height; both were fixed in the authoring contract and runtime export.",
+        "Remaining PDF absence is outside this page-fix scope and remains a known non-blocking packaging prerequisite.",
+        "p10 stable-boundary wording now distinguishes non-zero pure imaginary poles from origin-pole cases; p9 marker height and contract wording were corrected."
+      ]
+    },
+    {
+      "agent": "ui-flow-reviewer",
+      "status": "pass_after_recheck",
+      "evidence": [
+        "Initial review flagged p12 blank reveal and p9 MATLAB-like visual quality; both were addressed with renderer and 3D frame changes, followed by student/teacher browser final audits.",
+        "Final recheck found p12 blank reveal fixed and p9 WebGL visual no longer blocking; student/teacher final DOM audits passed."
+      ]
+    },
+    {
+      "agent": "test-engineer",
+      "status": "pass_after_recheck",
+      "evidence": [
+        "Initial review requested stronger p9 and shared title tests; added exact surface sampling/marker contract and Root-Locus preservation/internal-title fallback tests.",
+        "Final recheck found no blocking test gaps after p9 exact sampling, p12 reveal, and shared title tests were added."
+      ]
+    },
+    {
+      "agent": "critical-reviewer",
+      "status": "pass_after_recheck",
+      "evidence": [
+        "Initial review blocked on stale acceptance and raised shared title/activity/p14 evidence risks; acceptance is refreshed here against the current 46-module runtime and latest browser artifacts.",
+        "Final recheck found no code-level blockers; WebGL disposal stress and cross-course activity smoke remain non-blocking hardening items."
+      ]
+    }
+  ],
+  "issues": [],
+  "known_residuals": [
+    "Static 1-2-handout.pdf is still not generated in this scope; entry/runtime must continue avoiding broken static PDF links until the file is produced.",
+    "A future hardening item remains for explicit WebGL geometry/texture disposal under repeated static-surface-3d reset/top-view stress; current browser acceptance verified render correctness, not GPU memory pressure."
+  ]
+}

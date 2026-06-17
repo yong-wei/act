@@ -1,0 +1,91 @@
+{
+  "status": "pass",
+  "checkedAt": "2026-06-17T16:41:43.358Z",
+  "baseUrl": "http://localhost:3001",
+  "states": [
+    {
+      "name": "shared-workbench-desktop-light",
+      "theme": "light",
+      "viewport": {
+        "width": 1440,
+        "height": 980
+      },
+      "route": "/interactive-learning/control-workbench?mode=explore&preset=classic-four-view",
+      "screenshotPath": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/shared-workbench-desktop-light.png",
+      "screenshotSha256": "d70a4ab8caa7b3f996ce73c0a2e9bf10c3c305804199b2e0997f3802a5c5011e",
+      "metrics": {
+        "title": "AI-OBE船舶控制平台",
+        "bodyTextIncludesWorkbench": true,
+        "horizontalOverflow": false,
+        "workspaceVisible": true,
+        "viewportWidth": 1440,
+        "viewportHeight": 980,
+        "scrollWidth": 1440,
+        "clientWidth": 1440
+      }
+    },
+    {
+      "name": "shared-workbench-desktop-dark",
+      "theme": "dark",
+      "viewport": {
+        "width": 1440,
+        "height": 980
+      },
+      "route": "/interactive-learning/control-workbench?mode=explore&preset=classic-four-view",
+      "screenshotPath": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/shared-workbench-desktop-dark.png",
+      "screenshotSha256": "e5abfe1f4baf809faaf12e9b29bcfc5d31b1056c40a6d675f15061df4c925fa6",
+      "metrics": {
+        "title": "AI-OBE船舶控制平台",
+        "bodyTextIncludesWorkbench": true,
+        "horizontalOverflow": false,
+        "workspaceVisible": true,
+        "viewportWidth": 1440,
+        "viewportHeight": 980,
+        "scrollWidth": 1440,
+        "clientWidth": 1440
+      }
+    },
+    {
+      "name": "shared-workbench-mobile-light",
+      "theme": "light",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/interactive-learning/control-workbench?mode=explore&preset=classic-four-view",
+      "screenshotPath": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/shared-workbench-mobile-light.png",
+      "screenshotSha256": "040357b4e8d71046da94c1e3927ce0b79aeec2b2a80a9bb07fcbde9535bfce44",
+      "metrics": {
+        "title": "AI-OBE船舶控制平台",
+        "bodyTextIncludesWorkbench": true,
+        "horizontalOverflow": false,
+        "workspaceVisible": true,
+        "viewportWidth": 390,
+        "viewportHeight": 844,
+        "scrollWidth": 390,
+        "clientWidth": 390
+      }
+    },
+    {
+      "name": "shared-workbench-mobile-dark",
+      "theme": "dark",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/interactive-learning/control-workbench?mode=explore&preset=classic-four-view",
+      "screenshotPath": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/shared-workbench-mobile-dark.png",
+      "screenshotSha256": "4c1bd41aae698c76465ecb47e6e034977710dfe9f715c77c71f3ecf820a294b4",
+      "metrics": {
+        "title": "AI-OBE船舶控制平台",
+        "bodyTextIncludesWorkbench": true,
+        "horizontalOverflow": false,
+        "workspaceVisible": true,
+        "viewportWidth": 390,
+        "viewportHeight": 844,
+        "scrollWidth": 390,
+        "clientWidth": 390
+      }
+    }
+  ]
+}

@@ -63,12 +63,14 @@ type WebGLSurfaceComponent = ComponentType<{
   axes: StaticSurface3DPanelProps['axes'];
   colorScale: StaticSurface3DPanelProps['colorScale'];
   defaultCamera: StaticSurfaceCameraConfig;
+  viewMode: StaticSurfaceViewMode;
   markers: StaticSurfaceMarkerConfig[];
   resetSignal: number;
   onDataLoadFailed: () => void;
 }>;
 
 type StaticSurfaceUnavailableReason = 'data' | 'webgl';
+type StaticSurfaceViewMode = 'default' | 'top';
 
 export function StaticSurface3DPanel({
   moduleId,
@@ -83,6 +85,7 @@ export function StaticSurface3DPanel({
   markers = [],
 }: StaticSurface3DPanelProps) {
   const [resetSignal, setResetSignal] = useState(0);
+  const [viewMode, setViewMode] = useState<StaticSurfaceViewMode>('default');
   const [WebGLSurface, setWebGLSurface] = useState<WebGLSurfaceComponent | null>(null);
   const [unavailableReason, setUnavailableReason] = useState<StaticSurfaceUnavailableReason | null>(null);
   const axisLabels = useMemo(() => [axes.x.label, axes.y.label, axes.z.label].filter(Boolean), [axes]);
@@ -116,13 +119,30 @@ export function StaticSurface3DPanel({
           <h3 className="premium-lesson-title text-lg font-semibold leading-7">{title}</h3>
           {caption ? <p className="premium-lesson-muted text-sm leading-6">{caption}</p> : null}
         </div>
-        <button
-          type="button"
-          className="inline-flex h-9 items-center justify-center rounded-md border border-platform-border bg-platform-panel px-3 text-sm font-medium text-platform-strong transition hover:bg-platform-panel-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-focus"
-          onClick={() => setResetSignal((value) => value + 1)}
-        >
-          重置视角
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            data-static-surface-view-action="default"
+            className="inline-flex h-9 items-center justify-center rounded-md border border-platform-border bg-platform-panel px-3 text-sm font-medium text-platform-strong transition hover:bg-platform-panel-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-focus"
+            onClick={() => {
+              setViewMode('default');
+              setResetSignal((value) => value + 1);
+            }}
+          >
+            重置视角
+          </button>
+          <button
+            type="button"
+            data-static-surface-view-action="top"
+            className="inline-flex h-9 items-center justify-center rounded-md border border-platform-border bg-platform-panel px-3 text-sm font-medium text-platform-strong transition hover:bg-platform-panel-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-focus"
+            onClick={() => {
+              setViewMode('top');
+              setResetSignal((value) => value + 1);
+            }}
+          >
+            俯视极点
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-3 text-xs text-platform-muted sm:grid-cols-2 lg:grid-cols-4">
@@ -139,12 +159,13 @@ export function StaticSurface3DPanel({
       <div className="relative min-h-[320px] overflow-hidden rounded-lg border border-platform-border bg-platform-canvas">
         {WebGLSurface && !unavailableReason ? (
           <WebGLSurface
-            key={`surface-${resetSignal}`}
+            key={`surface-${resetSignal}-${viewMode}`}
             dataUrl={dataUrl}
             initialDataset={dataset}
             axes={axes}
             colorScale={colorScale}
             defaultCamera={defaultCamera}
+            viewMode={viewMode}
             markers={markers}
             resetSignal={resetSignal}
             onDataLoadFailed={handleDataLoadFailed}

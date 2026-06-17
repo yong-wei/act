@@ -12,9 +12,10 @@ import { UNIT_3_1_PURE_POLE_STABILITY_AND_DYNAMICS_PRESET } from '@/features/tea
 const repoRoot = process.cwd();
 
 describe('INTERACTIVE_COURSE_MODULES', () => {
-  it('keeps the new 1-1 overview and cruise comfort in the premium section', () => {
+  it('keeps the current module 1 mainline and cruise comfort in the premium section', () => {
     expect(PREMIUM_LESSONS.map((lesson) => lesson.id)).toEqual([
       'unit-1-1-see-the-full-picture',
+      'unit-1-2-modeling-from-object-to-system',
       'cruise-comfort-boppps',
     ]);
   });
@@ -29,7 +30,7 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
     ]);
   });
 
-  it('exposes the new unit 1-1 overview in module 1', () => {
+  it('exposes the current unit 1 mainline in module 1', () => {
     const module1 = INTERACTIVE_COURSE_MODULES.find((module) => module.id === 'module-1');
 
     expect(module1?.lessons.map((lesson) => ({
@@ -40,6 +41,11 @@ describe('INTERACTIVE_COURSE_MODULES', () => {
       {
         id: 'unit-1-1-see-the-full-picture',
         unitLabel: '1-1',
+        legacySourceLabel: null,
+      },
+      {
+        id: 'unit-1-2-modeling-from-object-to-system',
+        unitLabel: '1-2',
         legacySourceLabel: null,
       },
     ]);

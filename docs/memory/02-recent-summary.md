@@ -1,8 +1,8 @@
 # 最近摘要
 
 状态: active
-最后更新: 2026-06-13
-摘要: 初始化时优先读取的最近上下文入口。当前项目已经从早期精品互动课制作阶段，推进到统一平台壳层、标准互动课、控制工作台、Arena、数据治理、智能助教和 React Doctor 治理并行建设阶段；`act-resource` 是永久资源工作树，不再为同一任务嵌套创建工作树。
+最后更新: 2026-06-17
+摘要: 初始化时优先读取的最近上下文入口。当前项目已经从早期精品互动课制作阶段，推进到统一平台壳层、标准互动课、控制工作台、Arena、数据治理、智能助教和 React Doctor 治理并行建设阶段；`act-resource` 是永久资源工作树，不再为同一任务嵌套创建工作树；1-2 新主线互动课已完成实现验收。
 上游:
 - [00-index.md](00-index.md)
 - [README.md](README.md)
@@ -15,6 +15,8 @@
 - [docs/ProjectDescription.md](../ProjectDescription.md)
 
 ## 最近最重要的稳定变化
+
+- 2026-06-17 `1-2` 新主线互动课当前路由是 `/interactive-learning/courses/unit-1-2-modeling-from-object-to-system`，预设键是 `unit-1-2-modeling-from-object-to-system-v1`，资源键是 `unit-1-2-modeling-from-object-to-system`。该实现以 `course-content/runtime/lessons/1-2/interactive-manifest.json` 为真源，14 步 manifest-first 闭环已完成；第 9 步通过共享 `static-surface-3d` 显示三维幅值曲面，第 10/11 步通过共享 `interactive-figure` 保持交互节点，不恢复旧版 `unit-1-2-block-diagram-simplification`。实现合同位于 `course-content/authoring/lessons/1-2/notes/interactive-implementation-acceptance.json`，浏览器证据位于 `artifacts/interactive-learning/unit-1-2-implementation-acceptance-2026-06-17/`。
 
 - 2026-06-12 当前工作树 `act-resource` 绑定本地 `resource` 分支并跟踪 `origin/integration`，用于课程资源制作和资源相关开发。它是永久隔离工作树，在其中工作时不要再为同一任务创建第二层 worktree。
 

@@ -1,0 +1,54 @@
+[
+  {
+    "forbiddenTextMatches": [],
+    "h2": "建模的两条路径",
+    "hasActivitySlot": false,
+    "hasGenericLearningContent": false,
+    "hasLocalModelingFigure": true,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "hasStep12Reveal": false,
+    "renderErrors": [],
+    "selectedValue": "step-04",
+    "stepId": "step-04"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "极点的几何来源——三维幅值曲面",
+    "hasActivitySlot": false,
+    "hasGenericLearningContent": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": true,
+    "hasStaticSurfaceWebGL": true,
+    "hasStep12Reveal": false,
+    "renderErrors": [],
+    "selectedValue": "step-09",
+    "stepId": "step-09"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "例题——从特征方程到行为判断",
+    "hasActivitySlot": false,
+    "hasGenericLearningContent": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "hasStep12Reveal": true,
+    "renderErrors": [],
+    "selectedValue": "step-12",
+    "stepId": "step-12"
+  },
+  {
+    "forbiddenTextMatches": [],
+    "h2": "总结——建模专题的局部地图",
+    "hasActivitySlot": false,
+    "hasGenericLearningContent": false,
+    "hasLocalModelingFigure": false,
+    "hasStaticSurfacePanel": false,
+    "hasStaticSurfaceWebGL": false,
+    "hasStep12Reveal": false,
+    "renderErrors": [],
+    "selectedValue": "step-14",
+    "stepId": "step-14"
+  }
+]

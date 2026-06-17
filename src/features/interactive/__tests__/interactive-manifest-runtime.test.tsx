@@ -867,7 +867,7 @@ describe('interactive runtime manifest', () => {
     expect(html).not.toContain('$|\\delta|\\le 12^\\circ$');
   });
 
-  it('renders required activity runtime module slots without duplicating activity prompts in static content', () => {
+  it('keeps activity runtime modules out of static content', () => {
     const manifest = normalizeInteractiveRuntimeManifest({
       lesson_id: 'test-lesson',
       steps: {
@@ -924,8 +924,8 @@ describe('interactive runtime manifest', () => {
     );
 
     expect(html).toContain('正文只保留静态内容。');
-    expect(html).toContain('data-manifest-activity-module="activity-a"');
-    expect(html).toContain('data-manifest-activity-kind="activity-card"');
+    expect(html).not.toContain('data-manifest-activity-module="activity-a"');
+    expect(html).not.toContain('data-manifest-activity-kind="activity-card"');
     expect(html).not.toContain('本页作答');
     expect(html).not.toContain('这个题面只能出现在活动作答区。');
     expect(html).not.toContain('data-manifest-render-error');
@@ -983,6 +983,133 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('第一层推导');
     expect(html).toContain('第二层结论');
     expect(html).not.toContain('第 1 层');
+    expect(html).not.toContain('data-manifest-render-error');
+  });
+
+  it('renders reveal layer objects that store visible text in a content field', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-reveal-content-field': {
+          title: '显影对象测试页',
+          layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
+          modules: [
+            {
+              id: 'example-reveal',
+              title: '求解过程',
+              region: 'main',
+              kind: 'content.reveal',
+              must_be_visible: true,
+              payload: { block_key: 'example-reveal' },
+            },
+          ],
+          content_blocks: {
+            'example-reveal': {
+              type: 'reveal_chain',
+              layers: [
+                { label: '特征方程', content: '$s^2+2s+5=0$' },
+                { label: '行为描述', content: '边摆动边收敛。' },
+              ],
+            },
+          },
+          interaction_spec: { interaction_kind: 'display', activity_cards: [] },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: manifest!,
+        step: step!,
+        moduleRegistry: createManifestContentModuleRegistry({
+          revealProgress: 1,
+          allowInlineReveal: true,
+        }),
+        extra: {
+          revealProgress: 1,
+          allowInlineReveal: true,
+        },
+      }),
+    );
+
+    expect(html).toContain('求解过程');
+    expect(html).toContain('特征方程');
+    expect(html).toContain('s^2+2s+5=0');
+    expect(html).toContain('行为描述');
+    expect(html).toContain('边摆动边收敛');
+    expect(html).not.toContain('data-manifest-render-error');
+  });
+
+  it('falls back from internal figure keys to content block titles while preserving valid English titles', () => {
+    const manifest = normalizeInteractiveRuntimeManifest({
+      lesson_id: 'test-lesson',
+      steps: {
+        'step-figures': {
+          title: '标题过滤测试页',
+          layout: {
+            template: 'stacked_regions',
+            regions: [
+              { id: 'main', width: 'full', order: 1 },
+            ],
+          },
+          modules: [
+            {
+              id: 'internal-figure',
+              region: 'main',
+              kind: 'content.figure',
+              must_be_visible: true,
+              payload: {
+                block_key: 'internal-figure',
+                title: 'internal-figure',
+              },
+            },
+            {
+              id: 'english-figure',
+              region: 'main',
+              kind: 'content.figure',
+              must_be_visible: true,
+              payload: {
+                block_key: 'english-figure',
+                title: 'Root-Locus',
+              },
+            },
+          ],
+          content_blocks: {
+            'internal-figure': {
+              title: '中文图题',
+              body: '内部标题应回退到内容块标题。',
+            },
+            'english-figure': {
+              body: '合法英文标题应保留。',
+            },
+          },
+          interaction_spec: { interaction_kind: 'display', activity_cards: [] },
+        },
+      },
+    });
+    const step = manifest?.steps[0];
+    expect(step).toBeDefined();
+
+    const html = renderToStaticMarkup(
+      renderInteractiveManifestStep({
+        manifest: manifest!,
+        step: step!,
+        moduleRegistry: createManifestContentModuleRegistry({
+          revealProgress: 0,
+          allowInlineReveal: true,
+        }),
+        extra: {
+          revealProgress: 0,
+          allowInlineReveal: true,
+        },
+      }),
+    );
+
+    expect(html).toContain('中文图题');
+    expect(html).toContain('Root-Locus');
+    expect(html).not.toContain('>internal-figure<');
     expect(html).not.toContain('data-manifest-render-error');
   });
 

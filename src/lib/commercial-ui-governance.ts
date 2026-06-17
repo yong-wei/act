@@ -45,6 +45,11 @@ export type CommercialUiGovernanceRule =
   | 'simulation-visual-qa.incomplete-evidence'
   | 'interactive-learning-product-qa.missing-evidence'
   | 'interactive-learning-product-qa.incomplete-evidence'
+  | 'interactive-visual-component.missing-acceptance-artifact'
+  | 'interactive-visual-component.incomplete-acceptance-artifact'
+  | 'interactive-visual-component.blocking-finding'
+  | 'interactive-visual-component.semantic-leak'
+  | 'interactive-visual-component.diagnostics-exposure'
   | 'adaptive-path-product-qa.missing-evidence'
   | 'adaptive-path-product-qa.incomplete-evidence'
   | 'allowlist.invalid-entry';
@@ -63,6 +68,7 @@ export type CommercialUiGovernanceCategory =
   | 'accessibility-text-fit'
   | 'simulation-visual-qa'
   | 'interactive-learning-product-qa'
+  | 'interactive-visual-component'
   | 'adaptive-path-product-qa'
   | 'allowlist';
 
@@ -502,6 +508,137 @@ export interface CommercialVisualAcceptanceEvidence {
   secondaryRouteGovernance?: readonly CommercialSecondaryRouteGovernanceEntry[];
 }
 
+export type CommercialInteractiveVisualComponentKind =
+  | 'visual.stage'
+  | 'visual.derivationStage'
+  | 'visual.blockDiagram'
+  | 'visual.signalFlowGraph'
+  | 'visual.annotatedMedia'
+  | 'visual.embeddedActivity'
+  | 'control-workbench';
+
+export type CommercialInteractiveVisualComponentRole = 'student' | 'teacher';
+export type CommercialInteractiveVisualComponentTheme = 'light' | 'dark';
+export type CommercialInteractiveVisualComponentViewport = 'mobile' | 'desktop' | 'projection';
+export type CommercialInteractiveVisualComponentState =
+  | 'student-unreleased'
+  | 'student-released'
+  | 'student-submitted'
+  | 'teacher-reveal'
+  | 'teacher-derivation-in-progress'
+  | 'teacher-answer-reveal'
+  | 'teacher-diagnostics'
+  | 'graph-constructed'
+  | 'selected-hotspot';
+
+export interface CommercialInteractiveVisualTeachingMapping {
+  lessonId?: string;
+  stepId?: string;
+  learningGoalId?: string;
+  handoutAnchor?: string;
+  evidenceUnitId?: string;
+  bopppsPhase?: string;
+  interactiveContractStepId?: string;
+}
+
+export interface CommercialInteractiveVisualScreenshotEvidence {
+  componentId?: string;
+  route?: string;
+  role?: CommercialInteractiveVisualComponentRole;
+  theme?: CommercialInteractiveVisualComponentTheme;
+  viewport?: CommercialInteractiveVisualComponentViewport;
+  state?: CommercialInteractiveVisualComponentState | string;
+  path?: string;
+  artifact?: string;
+  sha256?: string;
+  intentionalReuseReason?: string;
+  horizontalOverflow?: boolean;
+  teacherControlsCoverPrimaryStage?: boolean;
+  keyboardReachable?: boolean;
+  visibleFocus?: boolean;
+  teachingSemanticLabels?: boolean;
+}
+
+export interface CommercialInteractiveVisualBrowserAuditEvidence {
+  path?: string;
+  roles?: readonly CommercialInteractiveVisualComponentRole[];
+  routes?: readonly string[];
+  themes?: readonly CommercialInteractiveVisualComponentTheme[];
+  viewports?: readonly CommercialInteractiveVisualComponentViewport[];
+  states?: readonly string[];
+  noHorizontalOverflow?: boolean;
+  teacherControlsClearPrimaryStage?: boolean;
+}
+
+export interface CommercialInteractiveVisualEvidenceSample {
+  path?: string;
+  eventType?: string;
+  clientEventId?: string;
+  attemptKey?: string;
+  sourceLogId?: string;
+  lessonKey?: string;
+  stepId?: string;
+  moduleId?: string;
+  componentKind?: string;
+  componentId?: string;
+  actorRole?: string;
+  clientEventAt?: string;
+  schemaVersion?: string;
+  serverRecordedAt?: string;
+  payload?: unknown;
+  classification?: readonly ('InteractionLog' | 'StudentStepResponse' | 'LearningFact')[];
+  affectsTeacherDiagnostics?: boolean;
+  affectsAbilitySnapshots?: boolean;
+  affectsRecommendationInputs?: boolean;
+}
+
+export interface CommercialInteractiveVisualDiagnosticPolicy {
+  denominator?: string;
+  dedupeKey?: string;
+  attemptPolicy?: string;
+  resubmissionDisplay?: string;
+  unreleasedStudentInclusion?: string;
+  freeTextRedaction?: string;
+  access?: 'teacher-admin-only' | 'public' | 'student' | 'guest';
+  labelsUseTeachingSemantics?: boolean;
+}
+
+export interface CommercialInteractiveVisualAcceptanceArtifact {
+  componentId: string;
+  componentKind: CommercialInteractiveVisualComponentKind;
+  route: string;
+  designContractPath?: string;
+  visualSourcePath?: string;
+  manifestAuditPath?: string;
+  testResultPath?: string;
+  browserAuditPath?: string;
+  evidenceSamplePath?: string;
+  reviewerEvidencePath?: string;
+  artifactPaths?: readonly {
+    path: string;
+    exists?: boolean;
+    current?: boolean;
+    componentId?: string;
+    state?: string;
+  }[];
+  teachingMapping?: CommercialInteractiveVisualTeachingMapping;
+  screenshots?: readonly CommercialInteractiveVisualScreenshotEvidence[];
+  browserAudit?: CommercialInteractiveVisualBrowserAuditEvidence;
+  evidenceSample?: CommercialInteractiveVisualEvidenceSample;
+  diagnosticPolicy?: CommercialInteractiveVisualDiagnosticPolicy;
+  visibleTextSamples?: readonly string[];
+  blockingFindings?: readonly string[];
+  semanticLeakFindings?: readonly string[];
+  teacherDiagnostics?: boolean;
+  stateRecoverability?: {
+    studentVisualState?: boolean;
+    submittedState?: boolean;
+    teacherRevealState?: boolean;
+    answerRevealState?: boolean;
+    diagnosticsAggregationState?: boolean;
+  };
+}
+
 export type CommercialSecondaryRouteShellType =
   | 'app-shell'
   | 'approved-workspace-shell'
@@ -739,6 +876,8 @@ export interface CommercialUiGovernanceInput {
   interactiveLearningProductQa?: CommercialInteractiveLearningProductQaEvidence;
   interactiveLearningProductQaSourceRefreshRequired?: boolean;
   interactiveLearningProductQaEvidenceRefreshed?: boolean;
+  interactiveVisualComponentArtifactsRequired?: boolean;
+  interactiveVisualComponentArtifacts?: readonly CommercialInteractiveVisualAcceptanceArtifact[];
   adaptivePathProductQaRequired?: boolean;
   adaptivePathProductQa?: CommercialAdaptivePathProductQaEvidence;
   adaptivePathProductQaSourceRefreshRequired?: boolean;
@@ -2771,6 +2910,393 @@ const ADAPTIVE_PATH_PRODUCT_QA_CAPTURE_MANIFEST =
 const ADAPTIVE_PATH_PRODUCT_QA_VISUAL_SIGNALS =
   'artifacts/commercial-ui/adaptive-path-product-qa-516/visual-signals.json';
 
+const INTERACTIVE_VISUAL_REQUIRED_PATH_FIELDS = [
+  'designContractPath',
+  'visualSourcePath',
+  'manifestAuditPath',
+  'testResultPath',
+  'browserAuditPath',
+  'evidenceSamplePath',
+  'reviewerEvidencePath',
+] as const satisfies readonly (keyof CommercialInteractiveVisualAcceptanceArtifact)[];
+
+const INTERACTIVE_VISUAL_REQUIRED_TEACHING_FIELDS = [
+  'lessonId',
+  'stepId',
+  'learningGoalId',
+  'bopppsPhase',
+  'interactiveContractStepId',
+] as const satisfies readonly (keyof CommercialInteractiveVisualTeachingMapping)[];
+
+const INTERACTIVE_VISUAL_REQUIRED_EVIDENCE_FIELDS = [
+  'eventType',
+  'clientEventId',
+  'attemptKey',
+  'sourceLogId',
+  'lessonKey',
+  'stepId',
+  'moduleId',
+  'componentKind',
+  'componentId',
+  'actorRole',
+  'clientEventAt',
+  'schemaVersion',
+  'serverRecordedAt',
+  'payload',
+] as const satisfies readonly (keyof CommercialInteractiveVisualEvidenceSample)[];
+
+const INTERACTIVE_VISUAL_REQUIRED_STATES: readonly CommercialInteractiveVisualComponentState[] = [
+  'student-unreleased',
+  'student-released',
+  'student-submitted',
+  'teacher-answer-reveal',
+  'teacher-diagnostics',
+];
+
+const INTERACTIVE_VISUAL_REQUIRED_ROLES: readonly CommercialInteractiveVisualComponentRole[] = ['student', 'teacher'];
+const INTERACTIVE_VISUAL_REQUIRED_THEMES: readonly CommercialInteractiveVisualComponentTheme[] = ['light', 'dark'];
+const INTERACTIVE_VISUAL_REQUIRED_VIEWPORTS: readonly CommercialInteractiveVisualComponentViewport[] = ['mobile', 'desktop', 'projection'];
+const INTERACTIVE_VISUAL_ENGINEERING_LEAK_PATTERNS = [
+  /\b(?:renderer|payload|moduleId|capabilityRef|debug)\b/i,
+  /\bunsupported[- ]module\b/i,
+  /\b(?:sourceLogId|userId|studentId|studentAnswer|answerText|rawFreeText|rawAnswer)\b/i,
+  /\b(?:cuid|uuid|database id|internal id)\b/i,
+  /\bsrc\/|\.tsx?\b/i,
+  /\bvisual\.(?:stage|derivationStage|blockDiagram|signalFlowGraph|annotatedMedia)\b/i,
+  /\bcontrol-workbench\b/i,
+] as const;
+const INTERACTIVE_VISUAL_EVIDENCE_CLASSIFICATIONS = [
+  'InteractionLog',
+  'StudentStepResponse',
+  'LearningFact',
+] as const satisfies readonly NonNullable<CommercialInteractiveVisualEvidenceSample['classification']>[number][];
+
+function nonEmptyString(value: unknown) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function validIsoDate(value: unknown) {
+  if (typeof value !== 'string' || !value.trim()) return false;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed);
+}
+
+function isoDateTime(value: string | undefined) {
+  if (!value || !validIsoDate(value)) return undefined;
+  return Date.parse(value);
+}
+
+function interactiveVisualViolation(
+  artifact: CommercialInteractiveVisualAcceptanceArtifact,
+  rule: Extract<CommercialUiGovernanceRule, `interactive-visual-component.${string}`>,
+  message: string,
+  evidence: readonly string[],
+): CommercialUiGovernanceViolation {
+  return withCategory({
+    path: artifact.route || artifact.componentId,
+    rule,
+    message,
+    evidence: [`component=${artifact.componentId}`, `kind=${artifact.componentKind}`, ...evidence],
+  });
+}
+
+function screenshotArtifactPath(screenshot: CommercialInteractiveVisualScreenshotEvidence) {
+  return screenshot.path ?? screenshot.artifact ?? '';
+}
+
+function screenshotCellKey(screenshot: CommercialInteractiveVisualScreenshotEvidence) {
+  return [
+    screenshot.componentId,
+    screenshot.route,
+    screenshot.role,
+    screenshot.theme,
+    screenshot.viewport,
+    screenshot.state,
+  ].join('|');
+}
+
+function hasInteractiveVisualState(
+  screenshots: readonly CommercialInteractiveVisualScreenshotEvidence[],
+  state: CommercialInteractiveVisualComponentState,
+) {
+  return screenshots.some((screenshot) => screenshot.state === state);
+}
+
+function buildInteractiveVisualComponentAcceptanceViolations(
+  artifacts: readonly CommercialInteractiveVisualAcceptanceArtifact[] = [],
+  required = false,
+) {
+  if (required && artifacts.length === 0) {
+    return [withCategory({
+      path: 'interactive-visual-components',
+      rule: 'interactive-visual-component.missing-acceptance-artifact',
+      message: 'Interactive visual component changes require a standard implementation acceptance artifact.',
+      evidence: ['interactiveVisualComponentArtifacts'],
+    })];
+  }
+  return artifacts.flatMap((artifact) => {
+    const screenshots = artifact.screenshots ?? [];
+    const missingAcceptance = [
+      ...INTERACTIVE_VISUAL_REQUIRED_PATH_FIELDS
+        .filter((field) => !nonEmptyString(artifact[field]))
+        .map((field) => String(field)),
+      !artifact.teachingMapping ? 'teachingMapping' : '',
+      screenshots.length === 0 ? 'screenshots' : '',
+      !artifact.browserAudit ? 'browserAudit' : '',
+      !artifact.evidenceSample ? 'evidenceSample' : '',
+      !artifact.diagnosticPolicy ? 'diagnosticPolicy' : '',
+    ].filter(Boolean);
+    const violations: CommercialUiGovernanceViolation[] = missingAcceptance.length > 0
+      ? [interactiveVisualViolation(
+          artifact,
+          'interactive-visual-component.incomplete-acceptance-artifact',
+          'Interactive visual component acceptance artifact is missing required sections.',
+          missingAcceptance,
+        )]
+      : [];
+
+    const pathProblems = (artifact.artifactPaths ?? []).flatMap((entry) => [
+      entry.exists === false ? `${entry.path}:missing` : '',
+      entry.current === false ? `${entry.path}:stale` : '',
+      entry.componentId && entry.componentId !== artifact.componentId ? `${entry.path}:componentId` : '',
+    ].filter(Boolean));
+    if (pathProblems.length > 0) {
+      violations.push(interactiveVisualViolation(
+        artifact,
+        'interactive-visual-component.incomplete-acceptance-artifact',
+        'Interactive visual component artifact paths are missing, stale, or not traceable.',
+        pathProblems,
+      ));
+    }
+
+    const teaching = artifact.teachingMapping;
+    if (teaching) {
+      const missingTeaching = [
+        ...INTERACTIVE_VISUAL_REQUIRED_TEACHING_FIELDS
+          .filter((field) => !nonEmptyString(teaching[field]))
+          .map((field) => `teachingMapping.${field}`),
+        !nonEmptyString(teaching.handoutAnchor) && !nonEmptyString(teaching.evidenceUnitId)
+          ? 'teachingMapping.handoutAnchor|evidenceUnitId'
+          : '',
+      ].filter(Boolean);
+      if (missingTeaching.length > 0) {
+        violations.push(interactiveVisualViolation(
+          artifact,
+          'interactive-visual-component.incomplete-acceptance-artifact',
+          'Interactive visual component teaching mapping is incomplete.',
+          missingTeaching,
+        ));
+      }
+    }
+
+    const screenshotProblems = screenshots.flatMap((screenshot, index) => [
+      screenshot.componentId !== artifact.componentId ? `screenshot[${index}].componentId` : '',
+      screenshot.route !== artifact.route ? `screenshot[${index}].route` : '',
+      !screenshot.role ? `screenshot[${index}].role` : '',
+      !screenshot.theme ? `screenshot[${index}].theme` : '',
+      !screenshot.viewport ? `screenshot[${index}].viewport` : '',
+      !screenshot.state ? `screenshot[${index}].state` : '',
+      !screenshotArtifactPath(screenshot) ? `screenshot[${index}].path` : '',
+      screenshot.horizontalOverflow === true ? `screenshot[${index}].horizontalOverflow` : '',
+      screenshot.teacherControlsCoverPrimaryStage === true ? `screenshot[${index}].teacherControlsCoverPrimaryStage` : '',
+      screenshot.keyboardReachable !== true ? `screenshot[${index}].keyboardReachable` : '',
+      screenshot.visibleFocus !== true ? `screenshot[${index}].visibleFocus` : '',
+      screenshot.teachingSemanticLabels !== true ? `screenshot[${index}].teachingSemanticLabels` : '',
+    ].filter(Boolean));
+    const missingMatrix = [
+      ...INTERACTIVE_VISUAL_REQUIRED_ROLES
+        .filter((role) => !screenshots.some((screenshot) => screenshot.role === role))
+        .map((role) => `role=${role}`),
+      ...INTERACTIVE_VISUAL_REQUIRED_THEMES
+        .filter((theme) => !screenshots.some((screenshot) => screenshot.theme === theme))
+        .map((theme) => `theme=${theme}`),
+      ...INTERACTIVE_VISUAL_REQUIRED_VIEWPORTS
+        .filter((viewport) => !screenshots.some((screenshot) => screenshot.viewport === viewport))
+        .map((viewport) => `viewport=${viewport}`),
+      ...INTERACTIVE_VISUAL_REQUIRED_STATES
+        .filter((state) => !hasInteractiveVisualState(screenshots, state))
+        .map((state) => `state=${state}`),
+      !hasInteractiveVisualState(screenshots, 'teacher-reveal')
+        && !hasInteractiveVisualState(screenshots, 'teacher-derivation-in-progress')
+        ? 'state=teacher-reveal|teacher-derivation-in-progress'
+        : '',
+      ['visual.blockDiagram', 'visual.signalFlowGraph'].includes(artifact.componentKind)
+        && !hasInteractiveVisualState(screenshots, 'graph-constructed')
+        ? 'state=graph-constructed'
+        : '',
+      artifact.componentKind === 'visual.annotatedMedia'
+        && !hasInteractiveVisualState(screenshots, 'selected-hotspot')
+        ? 'state=selected-hotspot'
+        : '',
+    ].filter(Boolean);
+    const screenshotReuse = new Map<string, string>();
+    const duplicateProblems: string[] = [];
+    for (const screenshot of screenshots) {
+      const artifactPath = screenshotArtifactPath(screenshot);
+      if (!artifactPath || screenshot.intentionalReuseReason) continue;
+      const previous = screenshotReuse.get(artifactPath);
+      const current = screenshotCellKey(screenshot);
+      if (previous && previous !== current) {
+        duplicateProblems.push(`${artifactPath}:duplicate`);
+      }
+      screenshotReuse.set(artifactPath, current);
+    }
+    if (screenshotProblems.length > 0 || missingMatrix.length > 0 || duplicateProblems.length > 0) {
+      violations.push(interactiveVisualViolation(
+        artifact,
+        'interactive-visual-component.incomplete-acceptance-artifact',
+        'Interactive visual component screenshot, state, role, theme, or viewport matrix is incomplete.',
+        [...screenshotProblems, ...missingMatrix, ...duplicateProblems],
+      ));
+    }
+
+    const browserAudit = artifact.browserAudit;
+    if (browserAudit) {
+      const browserAuditProblems = [
+        !nonEmptyString(browserAudit.path) ? 'browserAudit.path' : '',
+        ...INTERACTIVE_VISUAL_REQUIRED_ROLES
+          .filter((role) => !browserAudit.roles?.includes(role))
+          .map((role) => `browserAudit.role=${role}`),
+        ...INTERACTIVE_VISUAL_REQUIRED_THEMES
+          .filter((theme) => !browserAudit.themes?.includes(theme))
+          .map((theme) => `browserAudit.theme=${theme}`),
+        ...INTERACTIVE_VISUAL_REQUIRED_VIEWPORTS
+          .filter((viewport) => !browserAudit.viewports?.includes(viewport))
+          .map((viewport) => `browserAudit.viewport=${viewport}`),
+        ...INTERACTIVE_VISUAL_REQUIRED_STATES
+          .filter((state) => !browserAudit.states?.includes(state))
+          .map((state) => `browserAudit.state=${state}`),
+        !browserAudit.states?.includes('teacher-reveal')
+          && !browserAudit.states?.includes('teacher-derivation-in-progress')
+          ? 'browserAudit.state=teacher-reveal|teacher-derivation-in-progress'
+          : '',
+        !browserAudit.routes?.includes(artifact.route) ? `browserAudit.route=${artifact.route}` : '',
+        browserAudit.noHorizontalOverflow !== true ? 'browserAudit.noHorizontalOverflow' : '',
+        browserAudit.teacherControlsClearPrimaryStage !== true ? 'browserAudit.teacherControlsClearPrimaryStage' : '',
+      ].filter(Boolean);
+      if (browserAuditProblems.length > 0) {
+        violations.push(interactiveVisualViolation(
+          artifact,
+          'interactive-visual-component.incomplete-acceptance-artifact',
+          'Interactive visual component browser audit is missing role, route, theme, viewport, or responsive evidence.',
+          browserAuditProblems,
+        ));
+      }
+    }
+
+    const sample = artifact.evidenceSample;
+    if (sample) {
+      const invalidClassifications = (sample.classification ?? []).filter((classification) => (
+        !INTERACTIVE_VISUAL_EVIDENCE_CLASSIFICATIONS.includes(classification)
+      ));
+      const clientEventAtMs = isoDateTime(sample.clientEventAt);
+      const serverRecordedAtMs = isoDateTime(sample.serverRecordedAt);
+      const evidenceProblems = [
+        ...INTERACTIVE_VISUAL_REQUIRED_EVIDENCE_FIELDS
+          .filter((field) => sample[field] === undefined || sample[field] === null || sample[field] === '')
+          .map((field) => `evidenceSample.${field}`),
+        !sample.classification?.length ? 'evidenceSample.classification' : '',
+        invalidClassifications.length > 0 ? `evidenceSample.classification=${invalidClassifications.join(',')}` : '',
+        !validIsoDate(sample.clientEventAt) ? 'evidenceSample.clientEventAt=iso' : '',
+        !validIsoDate(sample.serverRecordedAt) ? 'evidenceSample.serverRecordedAt=iso' : '',
+        clientEventAtMs !== undefined
+          && serverRecordedAtMs !== undefined
+          && serverRecordedAtMs < clientEventAtMs
+          ? 'evidenceSample.serverRecordedAt>=clientEventAt'
+          : '',
+        sample.affectsTeacherDiagnostics !== true ? 'evidenceSample.affectsTeacherDiagnostics' : '',
+        typeof sample.affectsAbilitySnapshots !== 'boolean' ? 'evidenceSample.affectsAbilitySnapshots' : '',
+        typeof sample.affectsRecommendationInputs !== 'boolean' ? 'evidenceSample.affectsRecommendationInputs' : '',
+      ].filter(Boolean);
+      if (evidenceProblems.length > 0) {
+        violations.push(interactiveVisualViolation(
+          artifact,
+          'interactive-visual-component.incomplete-acceptance-artifact',
+          'Interactive visual component backend evidence sample is incomplete.',
+          evidenceProblems,
+        ));
+      }
+    }
+
+    const diagnostics = artifact.diagnosticPolicy;
+    if (diagnostics) {
+      const diagnosticsProblems = [
+        artifact.teacherDiagnostics !== true ? 'teacherDiagnostics' : '',
+        !nonEmptyString(diagnostics.denominator) ? 'diagnosticPolicy.denominator' : '',
+        !nonEmptyString(diagnostics.dedupeKey) ? 'diagnosticPolicy.dedupeKey' : '',
+        !nonEmptyString(diagnostics.attemptPolicy) ? 'diagnosticPolicy.attemptPolicy' : '',
+        !nonEmptyString(diagnostics.resubmissionDisplay) ? 'diagnosticPolicy.resubmissionDisplay' : '',
+        !nonEmptyString(diagnostics.unreleasedStudentInclusion) ? 'diagnosticPolicy.unreleasedStudentInclusion' : '',
+        diagnostics.freeTextRedaction !== 'redact-by-default' ? 'diagnosticPolicy.freeTextRedaction=redact-by-default' : '',
+        diagnostics.labelsUseTeachingSemantics !== true ? 'diagnosticPolicy.labelsUseTeachingSemantics' : '',
+      ].filter(Boolean);
+      if (diagnosticsProblems.length > 0) {
+        violations.push(interactiveVisualViolation(
+          artifact,
+          'interactive-visual-component.incomplete-acceptance-artifact',
+          'Interactive visual component teacher diagnostics contract is incomplete.',
+          diagnosticsProblems,
+        ));
+      }
+      if (diagnostics.access !== 'teacher-admin-only') {
+        violations.push(interactiveVisualViolation(
+          artifact,
+          'interactive-visual-component.diagnostics-exposure',
+          'Interactive visual component diagnostics must be restricted to teacher/admin roles.',
+          [`diagnosticPolicy.access=${diagnostics.access ?? 'missing'}`],
+        ));
+      }
+    }
+
+    const recoverability = artifact.stateRecoverability;
+    if (recoverability) {
+      const recoveryProblems = [
+        recoverability.studentVisualState !== true ? 'stateRecoverability.studentVisualState' : '',
+        recoverability.submittedState !== true ? 'stateRecoverability.submittedState' : '',
+        recoverability.teacherRevealState !== true ? 'stateRecoverability.teacherRevealState' : '',
+        recoverability.answerRevealState !== true ? 'stateRecoverability.answerRevealState' : '',
+        recoverability.diagnosticsAggregationState !== true ? 'stateRecoverability.diagnosticsAggregationState' : '',
+      ].filter(Boolean);
+      if (recoveryProblems.length > 0) {
+        violations.push(interactiveVisualViolation(
+          artifact,
+          'interactive-visual-component.incomplete-acceptance-artifact',
+          'Interactive visual component state must recover across refresh for student, teacher, answer, and diagnostics states.',
+          recoveryProblems,
+        ));
+      }
+    }
+
+    const semanticLeakEvidence = [
+      ...(artifact.semanticLeakFindings ?? []),
+      ...(artifact.visibleTextSamples ?? []).flatMap((text, index) => (
+        INTERACTIVE_VISUAL_ENGINEERING_LEAK_PATTERNS.some((pattern) => pattern.test(text))
+          ? [`visibleTextSamples[${index}]`]
+          : []
+      )),
+    ];
+    if (semanticLeakEvidence.length > 0) {
+      violations.push(interactiveVisualViolation(
+        artifact,
+        'interactive-visual-component.semantic-leak',
+        'Interactive visual component visible text leaks internal engineering semantics.',
+        semanticLeakEvidence,
+      ));
+    }
+
+    if (artifact.blockingFindings?.length) {
+      violations.push(interactiveVisualViolation(
+        artifact,
+        'interactive-visual-component.blocking-finding',
+        'Interactive visual component has unresolved blocking Product Design or governance findings.',
+        artifact.blockingFindings,
+      ));
+    }
+
+    return violations;
+  });
+}
+
 const REQUIRED_INTERACTIVE_LEARNING_PRODUCT_QA_CHILD_CHANGES = [
   'unify-interactive-learning-atlas-shell',
   'migrate-interactive-course-entry-shell',
@@ -3601,6 +4127,10 @@ export function evaluateCommercialUiGovernance(input: CommercialUiGovernanceInpu
       input.interactiveLearningProductQaRequired,
       input.interactiveLearningProductQaSourceRefreshRequired,
       input.interactiveLearningProductQaEvidenceRefreshed,
+    ),
+    ...buildInteractiveVisualComponentAcceptanceViolations(
+      input.interactiveVisualComponentArtifacts,
+      input.interactiveVisualComponentArtifactsRequired,
     ),
     ...buildAdaptivePathProductQaViolations(
       input.adaptivePathProductQa,

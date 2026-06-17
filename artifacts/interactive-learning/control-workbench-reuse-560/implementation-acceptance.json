@@ -1,0 +1,276 @@
+{
+  "changeId": "govern-interactive-control-workbench-reuse",
+  "issue": 560,
+  "status": "implemented",
+  "designContract": "artifacts/product-design-audits/interactive-course-visual-components-2026-06-17/design-contract.md",
+  "sharedVisualSources": [
+    "src/resources/control-system/charts/control-figure-workspace.tsx",
+    "src/resources/control-system/charts/control-analysis-panels.tsx",
+    "src/resources/control-system/analysis/use-control-engine.ts"
+  ],
+  "sharedCapabilityRefs": [
+    "control-workbench",
+    "control-linked-comparison",
+    "control-root-locus-design-map",
+    "control-frequency-reading-workbench",
+    "nonlinear-analysis-workbench",
+    "training-workbench"
+  ],
+  "runtimeFixture": "artifacts/interactive-learning/control-workbench-reuse-560/shared-control-workbench-fixture.interactive-manifest.json",
+  "screenshotSchema": "shared-screenshot-schema-v1",
+  "screenshots": [
+    {
+      "name": "shared-workbench-desktop-light",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "state": "shared-workbench-live-route",
+      "path": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/shared-workbench-desktop-light.png",
+      "sha256": "d70a4ab8caa7b3f996ce73c0a2e9bf10c3c305804199b2e0997f3802a5c5011e",
+      "source": "captured for issue 560 from /interactive-learning/control-workbench?mode=explore&preset=classic-four-view",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "shared-workbench-desktop-dark",
+      "role": "student",
+      "theme": "dark",
+      "viewport": "desktop",
+      "state": "shared-workbench-live-route",
+      "path": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/shared-workbench-desktop-dark.png",
+      "sha256": "e5abfe1f4baf809faaf12e9b29bcfc5d31b1056c40a6d675f15061df4c925fa6",
+      "source": "captured for issue 560 from /interactive-learning/control-workbench?mode=explore&preset=classic-four-view",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "shared-workbench-mobile-light",
+      "role": "student",
+      "theme": "light",
+      "viewport": "mobile",
+      "state": "shared-workbench-live-route",
+      "path": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/shared-workbench-mobile-light.png",
+      "sha256": "040357b4e8d71046da94c1e3927ce0b79aeec2b2a80a9bb07fcbde9535bfce44",
+      "source": "captured for issue 560 from /interactive-learning/control-workbench?mode=explore&preset=classic-four-view",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "shared-workbench-mobile-dark",
+      "role": "student",
+      "theme": "dark",
+      "viewport": "mobile",
+      "state": "shared-workbench-live-route",
+      "path": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/shared-workbench-mobile-dark.png",
+      "sha256": "4c1bd41aae698c76465ecb47e6e034977710dfe9f715c77c71f3ecf820a294b4",
+      "source": "captured for issue 560 from /interactive-learning/control-workbench?mode=explore&preset=classic-four-view",
+      "horizontalOverflow": false
+    },
+    {
+      "name": "course-student-submitted",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "state": "submitted",
+      "path": "artifacts/interactive-learning/unit-1-2-implementation-acceptance-2026-06-17/screenshots/student-classroom-submission.png",
+      "source": "existing interactive course evidence path baseline"
+    },
+    {
+      "name": "course-teacher-diagnostics",
+      "role": "teacher",
+      "theme": "light",
+      "viewport": "desktop",
+      "state": "teacher-diagnostics",
+      "path": "artifacts/interactive-learning/unit-1-2-implementation-acceptance-2026-06-17/screenshots/teacher-classroom-aggregation.png",
+      "source": "existing interactive teacher aggregation baseline"
+    },
+    {
+      "name": "course-teacher-controls",
+      "role": "teacher",
+      "theme": "light",
+      "viewport": "projection",
+      "state": "teacher-reveal",
+      "path": "artifacts/interactive-learning/unit-1-2-implementation-acceptance-2026-06-17/screenshots/teacher-step-10-controls.png",
+      "source": "existing interactive teacher release baseline"
+    }
+  ],
+  "stateMatrix": [
+    {
+      "state": "student-unreleased-light-desktop",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "route": "/review/control-workbench-reuse-560?role=student&state=unreleased&theme=light",
+      "path": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/embedded-student-unreleased-light.png",
+      "sha256": "78dc1f204dd2f690f6508e2b77d075e8a305a9edddcba409f12024369bd756bb",
+      "horizontalOverflow": false,
+      "allowedPanelsVerified": {
+        "timeDomain": true,
+        "rootLocus": true,
+        "nyquistExcluded": true
+      }
+    },
+    {
+      "state": "student-released-dark-desktop",
+      "role": "student",
+      "theme": "dark",
+      "viewport": "desktop",
+      "route": "/review/control-workbench-reuse-560?role=student&state=released&theme=dark",
+      "path": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/embedded-student-released-dark.png",
+      "sha256": "33c189b604741823cc5ec8697af8280276e02d323deb7e9c42116bab41e546a5",
+      "horizontalOverflow": false,
+      "allowedPanelsVerified": {
+        "timeDomain": true,
+        "rootLocus": true,
+        "nyquistExcluded": true
+      }
+    },
+    {
+      "state": "student-fallback-light-desktop",
+      "role": "student",
+      "theme": "light",
+      "viewport": "desktop",
+      "route": "/review/control-workbench-reuse-560?role=student&state=fallback&theme=light",
+      "path": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/embedded-student-fallback-light.png",
+      "sha256": "2d35e972fdae569a41f59edbe3f7ee17737ca9b38126a6400dc711a3075da023",
+      "horizontalOverflow": false,
+      "allowedPanelsVerified": {
+        "timeDomain": true,
+        "rootLocus": true,
+        "nyquistExcluded": true
+      }
+    },
+    {
+      "state": "teacher-diagnostics-light-desktop",
+      "role": "teacher",
+      "theme": "light",
+      "viewport": "desktop",
+      "route": "/review/control-workbench-reuse-560?role=teacher&state=diagnostics&theme=light",
+      "path": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/embedded-teacher-diagnostics-light.png",
+      "sha256": "d5ac4751af33b724efb3020ba58ab50ae4b705d7ef82bba4de54c30f9f22f2bf",
+      "horizontalOverflow": false,
+      "allowedPanelsVerified": {
+        "timeDomain": true,
+        "rootLocus": true,
+        "nyquistExcluded": true
+      },
+      "teacherDiagnostics": true
+    },
+    {
+      "state": "teacher-diagnostics-dark-desktop",
+      "role": "teacher",
+      "theme": "dark",
+      "viewport": "desktop",
+      "route": "/review/control-workbench-reuse-560?role=teacher&state=diagnostics&theme=dark",
+      "path": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/embedded-teacher-diagnostics-dark.png",
+      "sha256": "b57593df8241ba60bbc92c690258b140c6837086c744d060b2357ddf118ed45c",
+      "horizontalOverflow": false,
+      "allowedPanelsVerified": {
+        "timeDomain": true,
+        "rootLocus": true,
+        "nyquistExcluded": true
+      },
+      "teacherDiagnostics": true
+    },
+    {
+      "state": "student-released-dark-mobile",
+      "role": "student",
+      "theme": "dark",
+      "viewport": "mobile",
+      "route": "/review/control-workbench-reuse-560?role=student&state=released&theme=dark",
+      "path": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/embedded-student-mobile-dark.png",
+      "sha256": "39f9d4f5a370a4bd26ad23d3e85fc2d4aeb46aebc0ec74b943a3526cca5a7e73",
+      "horizontalOverflow": false,
+      "allowedPanelsVerified": {
+        "timeDomain": true,
+        "rootLocus": true,
+        "nyquistExcluded": true
+      }
+    }
+  ],
+  "evidenceSample": {
+    "eventType": "lesson_submit",
+    "clientEventId": "client-control-workbench-sample",
+    "attemptKey": "step-01:attempt-1",
+    "sourceLogId": "trusted-interaction-log-id",
+    "lessonKey": "control-workbench-reuse-fixture",
+    "stepId": "step-01",
+    "moduleId": "shared-control-workbench",
+    "componentKind": "compute.panel",
+    "componentId": "shared-control-workbench",
+    "actorRole": "student",
+    "clientEventAt": "2026-06-18T00:00:00.000Z",
+    "schemaVersion": "control-workbench-evidence-v1",
+    "payload": {
+      "capabilityId": "control-workbench",
+      "visiblePanelIds": [
+        "time-domain",
+        "bode",
+        "root-locus"
+      ],
+      "parameterSnapshot": {
+        "kp": 1.2,
+        "ki": 0.1,
+        "observationText": "[redacted]"
+      },
+      "selectedDesignState": {
+        "candidate": "lead"
+      },
+      "derivedResultRefs": [
+        {
+          "kind": "InteractionLog",
+          "id": "trusted-interaction-log-id"
+        }
+      ],
+      "answerPayload": {
+        "judgment": "safe-margin",
+        "answerText": "[redacted]"
+      },
+      "releaseState": "released",
+      "fallbackState": "supported",
+      "classification": [
+        "InteractionLog",
+        "StudentStepResponse",
+        "LearningFact"
+      ],
+      "serverRecordedAt": "2026-06-18T00:00:01.000Z"
+    }
+  },
+  "diagnosticPolicy": {
+    "denominator": "released-or-viewed-participants",
+    "dedupeKey": "actorRole:lessonKey:stepId:moduleId:attemptKey:clientEventId",
+    "attemptPolicy": "latest-submission-and-all-exploration",
+    "resubmissionDisplay": "latest-with-history-count",
+    "unreleasedStudentInclusion": "exclude-from-coverage-denominator",
+    "freeTextRedaction": "redact-by-default",
+    "access": "teacher-admin-only"
+  },
+  "browserAudit": {
+    "status": "pass",
+    "student": "captured embedded student unreleased, released dark, fallback, and mobile states for issue 560",
+    "teacher": "captured embedded teacher diagnostics in light and dark themes for issue 560",
+    "horizontalOverflow": "none in embedded review matrix",
+    "teacherControlsCoverWorkbench": false,
+    "allowedPanelContract": true
+  },
+  "browserEvidence": {
+    "standaloneWorkbench": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/browser-evidence.json",
+    "embeddedReviewMatrix": "artifacts/interactive-learning/control-workbench-reuse-560/browser-evidence/embedded-browser-evidence.json"
+  },
+  "serverEvidencePath": {
+    "eventApi": "src/app/api/interactive/events/route.ts",
+    "materialization": "StudentStepResponse.responseData.controlWorkbenchEvidence",
+    "teacherDiagnosticsQuery": "/api/interactive/events?diagnostics=control-workbench&resourceKey=<lessonKey>",
+    "access": "teacher-admin-only"
+  },
+  "allowedPanelContract": {
+    "renderer": "src/resources/control-system/charts/control-figure-workspace.tsx",
+    "manifestField": "visiblePanelIds",
+    "verifiedBy": "src/features/interactive/__tests__/interactive-module-registry-gate.test.ts"
+  },
+  "validation": {
+    "typecheck": "rtk npx tsc --noEmit --pretty false: pass",
+    "focusedUnit": "rtk npm run test:unit -- src/features/interactive/__tests__/unit-1-2-course.test.ts src/features/interactive/__tests__/interactive-module-taxonomy.test.ts src/features/interactive/__tests__/interactive-module-registry-gate.test.ts src/features/interactive/__tests__/control-workbench-evidence.test.ts src/app/api/interactive/events/__tests__/route.test.ts: 5 files / 88 tests passed",
+    "lint": "rtk npm run lint: pass",
+    "manifestAudit": "rtk python3 .agents/skills/interactive-design/scripts/audit_interactive_manifest.py --manifest artifacts/interactive-learning/control-workbench-reuse-560/shared-control-workbench-fixture.interactive-manifest.json: pass",
+    "openspec": "rtk openspec validate --changes --strict: 7 passed",
+    "fullTest": "rtk npm run test: smoke and arena passed; existing commercial UI governance evidence failure remains for /knowledge and interactive-learning product QA"
+  }
+}

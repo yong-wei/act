@@ -20,13 +20,22 @@ interface StaticSurface3DWebGLProps {
   axes: StaticSurface3DPanelProps['axes'];
   colorScale: StaticSurface3DPanelProps['colorScale'];
   defaultCamera: StaticSurfaceCameraConfig;
+  viewMode: 'default' | 'top';
   markers: StaticSurfaceMarkerConfig[];
   resetSignal: number;
   onDataLoadFailed: () => void;
 }
 
-const SURFACE_CANVAS_BACKGROUND = 0xf8fafc;
+type SurfaceBounds = {
+  x: [number, number];
+  y: [number, number];
+  z: [number, number];
+};
+
+const SURFACE_CANVAS_BACKGROUND = 0xffffff;
 const SURFACE_AXIS_COLOR = 0x475569;
+const SURFACE_GRID_COLOR = 0xcbd5e1;
+const SURFACE_WIREFRAME_COLOR = 0x1f2937;
 const SURFACE_MARKER_COLOR = 0xdc2626;
 const TEXT_SPRITE_FOREGROUND = [15, 23, 42] as const;
 const TEXT_SPRITE_BACKGROUND = [255, 255, 255] as const;
@@ -38,6 +47,7 @@ export function StaticSurface3DWebGL({
   axes,
   colorScale,
   defaultCamera,
+  viewMode,
   markers,
   onDataLoadFailed,
 }: StaticSurface3DWebGLProps) {
@@ -69,28 +79,33 @@ export function StaticSurface3DWebGL({
   if (!dataset) return null;
 
   const markerList = dataset.markers?.length ? dataset.markers : markers;
+  const bounds = surfaceBoundsFromDataset(dataset);
+  const cameraConfig = viewMode === 'top'
+    ? { position: [boundsCenter(bounds)[0], boundsCenter(bounds)[1], 8] as [number, number, number], target: [...boundsCenter(bounds), 0.6] as [number, number, number], zoom: 1.2 }
+    : defaultCamera;
 
   return (
     <div className="h-[320px] w-full" data-static-surface-webgl="loaded">
       <Canvas
         dpr={[1, 1.5]}
         camera={{
-          position: defaultCamera.position,
+          position: cameraConfig.position,
           fov: 45,
-          zoom: defaultCamera.zoom ?? 1,
+          zoom: cameraConfig.zoom ?? 1,
         }}
       >
         <color attach="background" args={[SURFACE_CANVAS_BACKGROUND]} />
         <ambientLight intensity={0.72} />
         <directionalLight position={[4, 6, 5]} intensity={0.9} />
+        <SurfaceReferenceFrame bounds={bounds} />
         <SurfaceMesh dataset={dataset} colorScale={colorScale} />
-        <AxesLabels axes={axes} />
+        <AxesLabels axes={axes} bounds={bounds} />
         {markerList.map((marker) => (
           <PoleMarker key={`${marker.label}-${marker.position.join(',')}`} marker={marker} />
         ))}
         <OrbitControls
           makeDefault
-          target={defaultCamera.target}
+          target={cameraConfig.target}
           enablePan={false}
           minDistance={2}
           maxDistance={10}
@@ -131,21 +146,67 @@ function SurfaceMesh({
   const geometry = useMemo(() => buildSurfaceGeometry(dataset, colorScale), [dataset, colorScale]);
 
   return (
-    <mesh geometry={geometry}>
-      <meshStandardMaterial vertexColors side={THREE.DoubleSide} roughness={0.62} metalness={0.08} />
-    </mesh>
+    <group>
+      <mesh geometry={geometry}>
+        <meshStandardMaterial vertexColors side={THREE.DoubleSide} roughness={0.48} metalness={0.02} />
+      </mesh>
+      <SurfaceWireframe geometry={geometry} />
+    </group>
   );
 }
 
-function AxesLabels({ axes }: { axes: StaticSurface3DPanelProps['axes'] }) {
+function SurfaceWireframe({ geometry }: { geometry: THREE.BufferGeometry }) {
+  const wireframeGeometry = useMemo(() => new THREE.WireframeGeometry(geometry), [geometry]);
+  return (
+    <lineSegments geometry={wireframeGeometry}>
+      <lineBasicMaterial color={SURFACE_WIREFRAME_COLOR} transparent opacity={0.18} />
+    </lineSegments>
+  );
+}
+
+function SurfaceReferenceFrame({ bounds }: { bounds: SurfaceBounds }) {
+  const points = useMemo(() => {
+    const floor = bounds.z[0];
+    const result: THREE.Vector3[] = [];
+    const add = (start: StaticSurfacePoint, end: StaticSurfacePoint) => {
+      result.push(new THREE.Vector3(...start), new THREE.Vector3(...end));
+    };
+    const xStart = Math.ceil(bounds.x[0]);
+    const xEnd = Math.floor(bounds.x[1]);
+    const yStart = Math.ceil(bounds.y[0]);
+    const yEnd = Math.floor(bounds.y[1]);
+    for (let x = xStart; x <= xEnd; x += 1) add([x, bounds.y[0], floor], [x, bounds.y[1], floor]);
+    for (let y = yStart; y <= yEnd; y += 1) add([bounds.x[0], y, floor], [bounds.x[1], y, floor]);
+    add([bounds.x[0], bounds.y[0], floor], [bounds.x[1], bounds.y[0], floor]);
+    add([bounds.x[1], bounds.y[0], floor], [bounds.x[1], bounds.y[1], floor]);
+    add([bounds.x[1], bounds.y[1], floor], [bounds.x[0], bounds.y[1], floor]);
+    add([bounds.x[0], bounds.y[1], floor], [bounds.x[0], bounds.y[0], floor]);
+    add([bounds.x[0], bounds.y[0], floor], [bounds.x[0], bounds.y[0], bounds.z[1]]);
+    add([bounds.x[1], bounds.y[0], floor], [bounds.x[1], bounds.y[0], bounds.z[1]]);
+    add([bounds.x[0], bounds.y[1], floor], [bounds.x[0], bounds.y[1], bounds.z[1]]);
+    return result;
+  }, [bounds]);
+  const geometry = useMemo(() => new THREE.BufferGeometry().setFromPoints(points), [points]);
+  return (
+    <lineSegments geometry={geometry}>
+      <lineBasicMaterial color={SURFACE_GRID_COLOR} transparent opacity={0.72} />
+    </lineSegments>
+  );
+}
+
+function AxesLabels({ axes, bounds }: { axes: StaticSurface3DPanelProps['axes']; bounds: SurfaceBounds }) {
+  const floor = bounds.z[0];
+  const xLabelPosition: StaticSurfacePoint = [bounds.x[1] + 0.35, bounds.y[0], floor];
+  const yLabelPosition: StaticSurfacePoint = [bounds.x[0], bounds.y[1] + 0.35, floor];
+  const zLabelPosition: StaticSurfacePoint = [bounds.x[0], bounds.y[0], bounds.z[1] + 0.35];
   return (
     <group>
-      <AxisLine start={[-2.4, 0, 0]} end={[2.4, 0, 0]} />
-      <AxisLine start={[0, -2.4, 0]} end={[0, 2.4, 0]} />
-      <AxisLine start={[0, 0, 0]} end={[0, 0, 2.4]} />
-      <TextSprite text={axes.x.label} position={[2.7, 0, 0]} />
-      <TextSprite text={axes.y.label} position={[0, 2.7, 0]} />
-      <TextSprite text={axes.z.label} position={[0, 0, 2.7]} />
+      <AxisLine start={[bounds.x[0], bounds.y[0], floor]} end={[bounds.x[1], bounds.y[0], floor]} />
+      <AxisLine start={[bounds.x[0], bounds.y[0], floor]} end={[bounds.x[0], bounds.y[1], floor]} />
+      <AxisLine start={[bounds.x[0], bounds.y[0], floor]} end={[bounds.x[0], bounds.y[0], bounds.z[1]]} />
+      <TextSprite text={axes.x.label} position={xLabelPosition} />
+      <TextSprite text={axes.y.label} position={yLabelPosition} />
+      <TextSprite text={axes.z.label} position={zLabelPosition} />
     </group>
   );
 }
@@ -191,7 +252,27 @@ function buildSurfaceGeometry(
   geometry.setIndex(indices.flat());
   geometry.setAttribute('color', new THREE.Float32BufferAttribute(vertexColors(values, colorScale), 3));
   geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
   return geometry;
+}
+
+function surfaceBoundsFromDataset(dataset: StaticSurfaceDataset): SurfaceBounds {
+  const { vertices } = normalizeDataset(dataset);
+  const xs = vertices.map((vertex) => vertex[0]);
+  const ys = vertices.map((vertex) => vertex[1]);
+  const zs = vertices.map((vertex) => vertex[2]);
+  return {
+    x: [Math.min(...xs), Math.max(...xs)],
+    y: [Math.min(...ys), Math.max(...ys)],
+    z: [Math.min(...zs), Math.max(...zs)],
+  };
+}
+
+function boundsCenter(bounds: SurfaceBounds): [number, number] {
+  return [
+    (bounds.x[0] + bounds.x[1]) / 2,
+    (bounds.y[0] + bounds.y[1]) / 2,
+  ];
 }
 
 function normalizeDataset(dataset: StaticSurfaceDataset): {
@@ -244,8 +325,17 @@ function vertexColors(values: number[], colorScale: StaticSurface3DPanelProps['c
   const span = Math.max(1e-6, max - min);
   return values.flatMap((value) => {
     const ratio = Math.max(0, Math.min(1, (value - min) / span));
-    return [0.08 + ratio * 0.78, 0.32 + ratio * 0.42, 0.78 - ratio * 0.54];
+    return matlabJetColor(ratio);
   });
+}
+
+function matlabJetColor(ratio: number) {
+  const fourValue = 4 * ratio;
+  return [
+    Math.max(0, Math.min(1, Math.min(fourValue - 1.5, -fourValue + 4.5))),
+    Math.max(0, Math.min(1, Math.min(fourValue - 0.5, -fourValue + 3.5))),
+    Math.max(0, Math.min(1, Math.min(fourValue + 0.5, -fourValue + 2.5))),
+  ];
 }
 
 function isRenderableSurfaceDataset(dataset: StaticSurfaceDataset): boolean {

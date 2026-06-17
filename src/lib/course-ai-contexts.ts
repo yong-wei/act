@@ -14,6 +14,11 @@
 import type { AIContextConfig } from '@/types/ai-context';
 import { resolveInteractiveLessonIdentity } from './interactive-lesson-identity';
 import {
+  getUnit12StepAIContextLocal,
+  getUnit12StepQuickQuestionsLocal,
+  UNIT_1_2_COURSE_META,
+} from './unit-1-2-ai-contexts';
+import {
   getUnit21StepAIContext as getUnit21StepAIContextLocal,
   getUnit21StepQuickQuestions as getUnit21StepQuickQuestionsLocal,
 } from './unit-2-1-ai-contexts';
@@ -373,6 +378,18 @@ export {
   getUnit11StepQuickQuestions as getUNIT_1_1StepQuickQuestions,
 } from './lesson-1-1-ai-contexts';
 
+// 1-2 课程 AI 上下文
+export {
+  UNIT_1_2_COURSE_META,
+  UNIT_1_2_STEP_AI_CONTEXTS,
+  getUNIT_1_2StepAIContext,
+  getUNIT_1_2StepQuickQuestions,
+  getUnit12StepAIContext,
+  getUnit12StepQuickQuestions,
+  getUnit12StepAIContextLocal,
+  getUnit12StepQuickQuestionsLocal,
+} from './unit-1-2-ai-contexts';
+
 /**
  * 课程AI上下文注册表
  * key: courseId, value: 步骤配置映射
@@ -408,6 +425,11 @@ export const COURSE_AI_CONTEXT_REGISTRY: Record<
       courseDescription:
         '用一条船为贯穿对象，90分钟闪电遍历自动控制原理全部核心主题——从建模、时域响应、稳定性、根轨迹、频域分析到反馈与校正，走完诊断-校正-验证的完整闭环。',
     },
+  },
+  'unit-1-2-modeling-from-object-to-system-v1': {
+    getStepContext: (stepId: string) => getUnit12StepAIContextLocal(stepId),
+    getQuickQuestions: (stepId: string) => getUnit12StepQuickQuestionsLocal(stepId),
+    courseMeta: UNIT_1_2_COURSE_META,
   },
 
   'unit-2-1-modeling-language-v1': {

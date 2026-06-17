@@ -1,0 +1,66 @@
+{
+  "status": "pass",
+  "baseUrl": "http://localhost:3001",
+  "checkedAt": "2026-06-17T03:35:56.513Z",
+  "screenshots": {
+    "entry": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-implementation-acceptance-2026-06-17/screenshots/entry-page.png",
+    "studentStep09": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-implementation-acceptance-2026-06-17/screenshots/student-step-09-static-surface-3d.png",
+    "studentStep10": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-implementation-acceptance-2026-06-17/screenshots/student-step-10-interactive-figure.png",
+    "studentStep11": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-implementation-acceptance-2026-06-17/screenshots/student-step-11-interactive-figure.png",
+    "teacherStep10": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-implementation-acceptance-2026-06-17/screenshots/teacher-step-10-controls.png",
+    "studentClassroomSubmission": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-implementation-acceptance-2026-06-17/screenshots/student-classroom-submission.png",
+    "teacherClassroomAggregation": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-implementation-acceptance-2026-06-17/screenshots/teacher-classroom-aggregation.png"
+  },
+  "classroom": {
+    "sessionId": "cmqhiqwqg001cz7yfugvac2f8",
+    "joinCode": "782960",
+    "planTitle": "1-2：建模——从真实对象到可分析的系统 (副本)",
+    "studentHref": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/cmqhiqwqg001cz7yfugvac2f8",
+    "ended": true,
+    "endTime": "2026-06-17T03:36:08.866Z"
+  },
+  "logs": [
+    {
+      "label": "demo-student-entry",
+      "consoleErrors": [],
+      "pageErrors": [
+        "Failed to set the 'domain' property on 'Document': Assignment is forbidden for sandboxed iframes."
+      ],
+      "failedRequests": [
+        "GET https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=df4fe30d9de41b561cf982cd6f628aac&v=1781514689371&puid=26652392&enc=3fd5ef31f71c78b8ef8a0911e727c76f&wps=04882e9ff8826be5b6d16d9c5344058fd70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=-1446584633&timestamp=1781514689371&signature=e85923429ae3848a62d9f32a33e072b1 net::ERR_ABORTED",
+        "GET https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=df4fe30d9de41b561cf982cd6f628aac&v=1781514689371&puid=26652392&enc=3fd5ef31f71c78b8ef8a0911e727c76f&wps=04882e9ff8826be5b6d16d9c5344058fd70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=-1446584633&timestamp=1781514689371&signature=e85923429ae3848a62d9f32a33e072b1 net::ERR_ABORTED",
+        "GET https://s2.cldisk.com/sv-w8/video/2d/32/7c/df4fe30d9de41b561cf982cd6f628aac/sd.mp4?at_=1781667180953&ak_=727bd83c8508c7111920cd935495480c&ad_=b2ee6a3ff413e92ae4b1564574611342 net::ERR_BLOCKED_BY_ORB"
+      ]
+    },
+    {
+      "label": "teacher-demo",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": []
+    },
+    {
+      "label": "teacher-live",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": []
+    },
+    {
+      "label": "student-live",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": []
+    }
+  ],
+  "checks": [
+    "entry and student demo step-09/10/11 passed",
+    "teacher demo step-10 controls passed",
+    "live teacher/student classroom submission and aggregation passed"
+  ],
+  "benignLogIssues": [
+    "demo-student-entry: page error: Failed to set the 'domain' property on 'Document': Assignment is forbidden for sandboxed iframes.",
+    "demo-student-entry: request failed: GET https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=df4fe30d9de41b561cf982cd6f628aac&v=1781514689371&puid=26652392&enc=3fd5ef31f71c78b8ef8a0911e727c76f&wps=04882e9ff8826be5b6d16d9c5344058fd70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=-1446584633&timestamp=1781514689371&signature=e85923429ae3848a62d9f32a33e072b1 net::ERR_ABORTED",
+    "demo-student-entry: request failed: GET https://pan-yz.cldisk.com/preview/v2/objectshowpreview.html?objectid=df4fe30d9de41b561cf982cd6f628aac&v=1781514689371&puid=26652392&enc=3fd5ef31f71c78b8ef8a0911e727c76f&wps=04882e9ff8826be5b6d16d9c5344058fd70d687fb84ea7b5&appid=1D734FA7-035A-4DEC-AA1C-DD63331D9267&nonce=-1446584633&timestamp=1781514689371&signature=e85923429ae3848a62d9f32a33e072b1 net::ERR_ABORTED",
+    "demo-student-entry: request failed: GET https://s2.cldisk.com/sv-w8/video/2d/32/7c/df4fe30d9de41b561cf982cd6f628aac/sd.mp4?at_=1781667180953&ak_=727bd83c8508c7111920cd935495480c&ad_=b2ee6a3ff413e92ae4b1564574611342 net::ERR_BLOCKED_BY_ORB"
+  ],
+  "blockingLogIssues": []
+}
