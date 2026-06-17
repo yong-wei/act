@@ -27,6 +27,11 @@ import {
   buildAdaptivePathOptionDisplays,
   type AdaptivePathOptionWriteOption,
 } from '@/lib/adaptive-path-option-display';
+import {
+  buildPathGenerationGoalHref,
+  defaultPathGenerationPanel,
+  pathGenerationPanelFromSearchParams,
+} from '@/lib/adaptive-path-generation-panel';
 import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '@/lib/platform-role-navigation';
 import {
   getPathNodeSemanticsForResourceType,
@@ -573,6 +578,7 @@ describe('adaptive learning center UI contracts', () => {
   it('builds editable path generation requests from panel controls', () => {
     const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
     const routeSource = readFileSync(join(repoRoot, 'src/app/api/adaptive/path-advisor-tool/route.ts'), 'utf8');
+    const helperSource = readFileSync(join(repoRoot, 'src/lib/adaptive-path-generation-panel.ts'), 'utf8');
 
     expect(pageSource).toContain('data-adaptive-path-generation-panel="editable"');
     expect(pageSource).toContain('data-adaptive-path-generation-mobile-sheet="bottom-sheet"');
@@ -588,6 +594,15 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain('preferredOptionId: operation !==');
     expect(pageSource).toContain('requestedAt: new Date().toISOString()');
     expect(pageSource).toContain('setPathAdvisorAgentSessionId(null)');
+    expect(pageSource).toContain('const handlePathGenerationGoalChange = useCallback');
+    expect(pageSource).toContain('pathGenerationPanelFromSearchParams(new URLSearchParams(searchParamsKey), activeGoal)');
+    expect(pageSource).toContain('window.location.assign(buildPathGenerationGoalHref(nextGoal, nextPanel))');
+    expect(helperSource).toContain('pathTime: String(panel.timeBudgetMinutes)');
+    expect(helperSource).toContain('pathResources: panel.resourcePreference.join');
+    expect(helperSource).toContain("query.set('pathExternal', '1')");
+    expect(helperSource).toContain("query.set('pathIntent', panel.naturalLanguageIntent.trim())");
+    expect(pageSource).not.toContain("window.location.assign(`/assessment/adaptive-practice?goal=${nextGoal}&intent=contextual-recommendation`)");
+    expect(pageSource).toContain('onChange={(event) => handlePathGenerationGoalChange(event.target.value)}');
     expect(pageSource).toContain("fetch('/api/adaptive/path-advisor-tool'");
     expect(pageSource).toContain('data-adaptive-path-generation-intent="editable"');
     expect(pageSource).toContain("submitPathGeneration('revise', optionForWrite)");
@@ -604,6 +619,32 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain('resolveOptionalCurrentPathStyleId(pathOptionLookup');
     expect(routeSource).toContain('throw new KonlingRuntimeScopeError(403, `路径选项不属于当前学习路径: ${fieldName}`)');
     expect(routeSource).toContain('requestedAt: typeof body.requestedAt');
+  });
+
+  it('preserves empty path generation resource preference through goal-change URLs', () => {
+    const panel = {
+      ...defaultPathGenerationPanel,
+      goalId: 'control-correction' as const,
+      timeBudgetMinutes: 45,
+      resourcePreference: [],
+      allowExternalResources: true,
+      naturalLanguageIntent: '先补频域证据',
+    };
+    const href = buildPathGenerationGoalHref('frequency-response-foundations', panel);
+    const query = new URLSearchParams(href.split('?')[1] ?? '');
+
+    expect(query.get('pathTime')).toBe('45');
+    expect(query.has('pathResources')).toBe(true);
+    expect(query.get('pathResources')).toBe('');
+    expect(query.get('pathExternal')).toBe('1');
+    expect(query.get('pathIntent')).toBe('先补频域证据');
+    expect(pathGenerationPanelFromSearchParams(query, 'frequency-response-foundations')).toMatchObject({
+      goalId: 'frequency-response-foundations',
+      timeBudgetMinutes: 45,
+      resourcePreference: [],
+      allowExternalResources: true,
+      naturalLanguageIntent: '先补频域证据',
+    });
   });
 
   it('registers path-advisor entry point only after an explicit control-correction goal is selected', () => {

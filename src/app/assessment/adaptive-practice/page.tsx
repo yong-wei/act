@@ -43,6 +43,15 @@ import {
   type AdaptivePathOptionWriteOption,
   type AdaptivePathResourceKind,
 } from '@/lib/adaptive-path-option-display';
+import {
+  buildPathGenerationGoalHref,
+  defaultPathGenerationPanel,
+  generationResourceOptions,
+  pathGenerationPanelFromSearchParams,
+  type GenerationCheckpointPreference,
+  type GenerationDifficultyRhythm,
+  type PathGenerationPanelState,
+} from '@/lib/adaptive-path-generation-panel';
 import { getCommercialStudentEntryIntentGroups } from '@/lib/platform-role-navigation';
 
 type PostLearningPathNodeAction = {
@@ -139,18 +148,6 @@ type LearningPathRoundView = NonNullable<LearningPathRoundResponse['path']>;
 
 type PathOptionView = AdaptivePathOptionWriteOption;
 type PathGenerationOperation = 'generate' | 'revise' | 'explain';
-type GenerationDifficultyRhythm = 'gentle' | 'steady' | 'challenge';
-type GenerationCheckpointPreference = 'light' | 'standard' | 'dense';
-
-interface PathGenerationPanelState {
-  goalId: AdaptivePracticeGoalId;
-  timeBudgetMinutes: number;
-  difficultyRhythm: GenerationDifficultyRhythm;
-  resourcePreference: AdaptivePathResourceKind[];
-  checkpointPreference: GenerationCheckpointPreference;
-  allowExternalResources: boolean;
-  naturalLanguageIntent: string;
-}
 
 interface PathSelectionHistoryView {
   type: string;
@@ -511,26 +508,6 @@ const generationGoalOptions: Array<{ id: AdaptivePracticeGoalId; label: string; 
     detail: '面向 Bode 图、频域稳定性和基础练习。',
   },
 ];
-
-const generationResourceOptions: Array<{ id: AdaptivePathResourceKind; label: string }> = [
-  { id: 'knowledge_card', label: '知识卡' },
-  { id: 'adaptive_quiz', label: '练习' },
-  { id: 'control_workbench', label: '控制工作台' },
-  { id: 'simulation', label: '仿真' },
-  { id: 'arena_task', label: 'Arena' },
-  { id: 'external_resource', label: '外部资源' },
-  { id: 'konling', label: '控灵辅导' },
-];
-
-const defaultPathGenerationPanel: PathGenerationPanelState = {
-  goalId: 'control-correction',
-  timeBudgetMinutes: 90,
-  difficultyRhythm: 'steady',
-  resourcePreference: ['knowledge_card', 'adaptive_quiz', 'simulation'],
-  checkpointPreference: 'standard',
-  allowExternalResources: false,
-  naturalLanguageIntent: '',
-};
 
 function percentLabel(value: number): string {
   return `${Math.round(value)}%`;
@@ -1118,6 +1095,11 @@ export default function AdaptivePracticePage() {
   const loginHref = `/login?callbackUrl=${encodeURIComponent(activeGoalContextHref)}`;
   const entryIntents = getCommercialStudentEntryIntentGroups();
   const { assistantEntryPoint, openAssistantEntryPoint, updatePageContext } = useGlobalAI();
+  const searchParamsKey = searchParams.toString();
+  const restoredPathGenerationPanel = useMemo(
+    () => pathGenerationPanelFromSearchParams(new URLSearchParams(searchParamsKey), activeGoal),
+    [activeGoal, searchParamsKey],
+  );
 
   const sessionId = useMemo(() => `practice-${Math.random().toString(36).slice(2, 10)}`, []);
 
@@ -1133,10 +1115,7 @@ export default function AdaptivePracticePage() {
   const [controlCorrectionPathRound, setControlCorrectionPathRound] = useState<LearningPathRoundView | null>(null);
   const [pathChoicePending, setPathChoicePending] = useState<string | null>(null);
   const [pathChoiceMessage, setPathChoiceMessage] = useState<string | null>(null);
-  const [pathGenerationPanel, setPathGenerationPanel] = useState<PathGenerationPanelState>({
-    ...defaultPathGenerationPanel,
-    goalId: activeGoal ?? defaultPathGenerationPanel.goalId,
-  });
+  const [pathGenerationPanel, setPathGenerationPanel] = useState<PathGenerationPanelState>(restoredPathGenerationPanel);
   const [pathGenerationPending, setPathGenerationPending] = useState<PathGenerationOperation | null>(null);
   const [pathAdvisorAgentSessionId, setPathAdvisorAgentSessionId] = useState<string | null>(null);
   const [pathNodeCompletionPending, setPathNodeCompletionPending] = useState<string | null>(null);
@@ -1209,8 +1188,19 @@ export default function AdaptivePracticePage() {
   );
   useEffect(() => {
     setPathAdvisorAgentSessionId(null);
-    if (!activeGoal) return;
-    setPathGenerationPanel((current) => ({ ...current, goalId: activeGoal }));
+    setPathGenerationPanel(restoredPathGenerationPanel);
+  }, [restoredPathGenerationPanel]);
+
+  const handlePathGenerationGoalChange = useCallback((value: string) => {
+    const nextGoal = resolveAdaptivePracticeGoalId(value);
+    setPathAdvisorAgentSessionId(null);
+    setPathGenerationPanel((current) => {
+      const nextPanel = { ...current, goalId: nextGoal };
+      if (nextGoal !== activeGoal) {
+        window.location.assign(buildPathGenerationGoalHref(nextGoal, nextPanel));
+      }
+      return nextPanel;
+    });
   }, [activeGoal]);
 
   const setPathChoiceUnavailable = useCallback(() => {
@@ -2198,10 +2188,7 @@ export default function AdaptivePracticePage() {
                   <span className="text-xs text-subtle">学习目标</span>
                   <select
                     value={pathGenerationPanel.goalId}
-                    onChange={(event) => setPathGenerationPanel((current) => ({
-                      ...current,
-                      goalId: resolveAdaptivePracticeGoalId(event.target.value),
-                    }))}
+                    onChange={(event) => handlePathGenerationGoalChange(event.target.value)}
                     className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
                   >
                     {generationGoalOptions.map((goal) => (
