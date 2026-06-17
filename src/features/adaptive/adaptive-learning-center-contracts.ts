@@ -1130,6 +1130,8 @@ function buildPathOptionSummaries(pathPlan: AdaptiveLearningPathPlan) {
     label: path.label,
     nodeIds: path.nodeIds,
     nodeSummaries: path.nodeSummaries,
+    lockedNodeIds: path.lockedNodeIds,
+    readinessSummary: path.readinessSummary,
     targetDeficits: path.targetDeficits.map(toStudentDeficit),
     evidenceBasis: path.evidenceBasis.map(toStudentPathReason),
     resourceMix: path.resourceMix,

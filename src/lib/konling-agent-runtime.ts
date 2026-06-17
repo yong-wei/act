@@ -30,6 +30,7 @@ import {
 import {
   buildAdaptiveLearningPathPlan,
   getRegisteredAdaptiveLearningPathGoal,
+  type AdaptiveLearningPathPolicyFamily,
   type AdaptiveLearningPathLearnerState,
   type AdaptiveLearningPathPlan,
   type AdaptiveLearningPathPlanNode,
@@ -655,6 +656,12 @@ export interface KonlingPathOptionContext {
   label: string;
   nodeIds: string[];
   evidenceBasis: string[];
+  lockedNodeIds: string[];
+  readinessSummary: Array<{
+    nodeId: string;
+    state: string;
+    message: string;
+  }>;
   resourceMix: Record<string, number>;
   effort: {
     estimatedMinutes: number;
@@ -1120,6 +1127,9 @@ const generateLearningPathParameters = adaptivePathToolBaseParameters.extend({
   resourcePreference: z.array(z.string().min(1)).max(8).optional(),
   checkpointPreference: z.enum(['light', 'standard', 'dense']).optional(),
   allowExternalResources: z.boolean().optional(),
+  excludedNodeIds: z.array(z.string().min(1)).max(24).optional(),
+  preferredStyleId: z.string().min(1).optional(),
+  requestedAt: z.string().datetime().optional(),
 });
 
 const reviseLearningPathOptionsParameters = generateLearningPathParameters.extend({
@@ -1420,6 +1430,9 @@ async function buildAdaptivePathToolOutput(
   const timeBudget = resolveAdaptivePathTimeBudget(registeredGoal, args.timeBudgetMinutes);
   const resourcePreferences = normalizeAdaptivePathResourcePreferences(args.resourcePreference)
     ?? registeredGoal.starterPathPolicy.preferredResourceTypes;
+  const plannerRevisionPreference = operation === 'revised'
+    ? buildAdaptivePathRevisionPlannerPreference(args)
+    : {};
   const plan = buildAdaptiveLearningPathPlan({
     studentId: input.scope.targetUserId,
     goal: registeredGoal.goal,
@@ -1430,11 +1443,16 @@ async function buildAdaptivePathToolOutput(
       timeBudgetMinutes: timeBudget.effectiveMinutes,
       privacyScopes: ['student-visible'],
       completedNodeIds: input.context.planContext?.completedNodeIds ?? [],
+      currentNodeId: input.context.planContext?.activeNodeId ?? null,
     },
     difficultyRhythm: args.difficultyRhythm ?? registeredGoal.starterPathPolicy.difficultyRhythm,
     resourcePreferences,
     checkpointPreference: args.checkpointPreference ?? 'standard',
     allowExternalResources: args.allowExternalResources ?? registeredGoal.starterPathPolicy.allowExternalResources,
+    ...plannerRevisionPreference,
+    excludedNodeIds: args.excludedNodeIds,
+    preferredStyleId: args.preferredStyleId,
+    requestedAt: args.requestedAt,
     now: new Date(),
   });
   await persistLearningPathRound(input.db as any, {
@@ -1453,6 +1471,9 @@ async function buildAdaptivePathToolOutput(
         checkpointPreference: args.checkpointPreference ?? null,
         allowExternalResources: args.allowExternalResources ?? false,
         intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
+        excludedNodeIds: args.excludedNodeIds ?? [],
+        preferredStyleId: args.preferredStyleId ?? null,
+        requestedAt: args.requestedAt ?? null,
       }),
     },
   });
@@ -1470,6 +1491,9 @@ async function buildAdaptivePathToolOutput(
         priorRequestId: 'priorRequestId' in args ? args.priorRequestId ?? null : null,
         checkpointPreference: args.checkpointPreference ?? null,
         intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
+        excludedNodeIds: args.excludedNodeIds ?? [],
+        preferredStyleId: args.preferredStyleId ?? null,
+        requestedAt: args.requestedAt ?? null,
       },
       idempotencyKey: `${args.idempotencyKey}:revision`,
       actorUserId: input.scope.authenticatedUserId,
@@ -1488,6 +1512,9 @@ async function buildAdaptivePathToolOutput(
       checkpointPreference: args.checkpointPreference ?? null,
       allowExternalResources: args.allowExternalResources ?? false,
       intentSummary: summarizeStudentIntent(args.naturalLanguageIntent),
+      excludedNodeIds: args.excludedNodeIds ?? [],
+      preferredStyleId: args.preferredStyleId ?? null,
+      requestedAt: args.requestedAt ?? null,
     },
     pathId: plan.id,
     pathOptions: buildStudentSafePathOptions(plan),
@@ -1501,6 +1528,42 @@ async function buildAdaptivePathToolOutput(
       ...(timeBudget.adjusted ? ['当前目标需要包含终端验证，系统已按最小可行学习时长生成路径。'] : []),
     ],
   };
+}
+
+function buildAdaptivePathRevisionPlannerPreference(
+  args: z.infer<typeof generateLearningPathParameters> | z.infer<typeof reviseLearningPathOptionsParameters>,
+): Pick<Parameters<typeof buildAdaptiveLearningPathPlan>[0], 'policyFamily' | 'policyBundle'> {
+  if (!('rejectedStyleIds' in args)) return {};
+  const preferredFamily = adaptivePathPolicyFamilyFromStyleId(args.preferredStyleId ?? args.selectedStyleId ?? null);
+  const rejectedFamilies = new Set((args.rejectedStyleIds ?? [])
+    .map((styleId) => adaptivePathPolicyFamilyFromStyleId(styleId))
+    .filter((family): family is AdaptiveLearningPathPolicyFamily => Boolean(family)));
+  const candidateFamilies = [
+    preferredFamily,
+    'simulation-driven',
+    'preference-matched',
+    'foundation-remediation',
+    'sprint-correction',
+  ].filter((family): family is AdaptiveLearningPathPolicyFamily => Boolean(family));
+  const families = Array.from(new Set(candidateFamilies.filter((family) => !rejectedFamilies.has(family))));
+  if (!preferredFamily && rejectedFamilies.size === 0) return {};
+  return {
+    policyFamily: preferredFamily ?? families[0] ?? 'rules-plus-graph-search',
+    policyBundle: families.length > 0
+      ? { families, overlapThreshold: 0.6 }
+      : undefined,
+  };
+}
+
+function adaptivePathPolicyFamilyFromStyleId(styleId: string | null | undefined): AdaptiveLearningPathPolicyFamily | null {
+  if (!styleId) return null;
+  if (styleId === 'foundation-remediation') return 'foundation-remediation';
+  if (styleId === 'arena-simulation-sprint' || styleId === 'simulation-driven') return 'simulation-driven';
+  if (styleId === 'preference-matched-route' || styleId === 'preference-matched') return 'preference-matched';
+  if (styleId === 'sprint-correction-route' || styleId === 'sprint-correction') return 'sprint-correction';
+  if (styleId === 'teacher-assigned-route' || styleId === 'teacher-assigned') return 'teacher-assigned';
+  if (styleId === 'rules-graph-search-route' || styleId === 'rules-plus-graph-search') return 'rules-plus-graph-search';
+  return null;
 }
 
 function resolveAdaptivePathTimeBudget(
@@ -1573,7 +1636,8 @@ function normalizePlannerScore(value: unknown) {
 }
 
 function normalizeAdaptivePathResourcePreferences(value: string[] | undefined): AdaptiveLearningPathPlanNode['type'][] | undefined {
-  if (!value || value.length === 0) return undefined;
+  if (!value) return undefined;
+  if (value.length === 0) return [];
   const allowed = new Set<AdaptiveLearningPathPlanNode['type']>([
     'lesson_step',
     'knowledge_node',
@@ -1613,6 +1677,8 @@ export function buildStudentSafePathOptions(plan: AdaptiveLearningPathPlan) {
       })),
       targetDeficits: path.targetDeficits.map((target) => target.targetId),
       evidenceBasis: buildStudentSafeEvidenceBasis(path.evidenceBasis),
+      lockedNodeIds: path.lockedNodeIds,
+      readinessSummary: path.readinessSummary,
       limitations: path.limitations,
       terminalValidation: path.terminalValidationStrategy.nodeIds.length > 0
         ? {
@@ -1638,6 +1704,14 @@ export function buildStudentSafePathOptions(plan: AdaptiveLearningPathPlan) {
     evidenceBasis: plan.confidence.level === 'low'
       ? ['当前证据较少，路径会从基础资源开始。']
       : ['路径已结合你的近期学习证据。'],
+    lockedNodeIds: plan.mainPath
+      .filter((node) => node.readiness?.state !== 'ready')
+      .map((node) => node.nodeId),
+    readinessSummary: plan.mainPath.map((node) => ({
+      nodeId: node.nodeId,
+      state: node.readiness?.state ?? 'unknown',
+      message: node.readiness?.message ?? '准备条件待确认。',
+    })),
     limitations: plan.status === 'fallback'
       ? ['当前可用证据或资源不足，建议先完成基础节点。']
       : [],
@@ -1819,6 +1893,7 @@ function assertAdaptivePathOptionIds(
   path: unknown,
   selectedStyleId: string | null | undefined,
   rejectedStyleIds: string[],
+  options: { allowPolicyFallback?: boolean } = {},
 ) {
   if (selectedStyleId && rejectedStyleIds.includes(selectedStyleId)) {
     throw new KonlingRuntimeScopeError(400, '路径选择不能同时选择并拒绝同一 styleId。');
@@ -1828,7 +1903,7 @@ function assertAdaptivePathOptionIds(
     ...rejectedStyleIds,
   ].filter((styleId): styleId is string => typeof styleId === 'string' && styleId.length > 0);
   if (requestedStyleIds.length === 0) return;
-  const validOptions = readStoredAdaptivePathOptions(readRecord(getValue(path, 'pathPayload')));
+  const validOptions = readStoredAdaptivePathOptions(readRecord(getValue(path, 'pathPayload')), options);
   if (validOptions.size === 0) {
     throw new KonlingRuntimeScopeError(403, '当前学习路径没有可记录的路径选项。');
   }
@@ -1837,10 +1912,15 @@ function assertAdaptivePathOptionIds(
   }
 }
 
-function readStoredAdaptivePathOptions(pathPayload: Record<string, unknown>) {
+function readStoredAdaptivePathOptions(
+  pathPayload: Record<string, unknown>,
+  readOptions: { allowPolicyFallback?: boolean } = {},
+) {
   const policyBundle = readRecord(getValue(pathPayload, 'policyBundle'));
   const policyBundleStatus = getString(policyBundle, 'status') || 'ready';
-  const policyBundlePaths = policyBundleStatus === 'ready' ? arrayOfRecords(getValue(policyBundle, 'paths')) : [];
+  const policyBundlePaths = policyBundleStatus === 'ready' || readOptions.allowPolicyFallback === true
+    ? arrayOfRecords(getValue(policyBundle, 'paths'))
+    : [];
   const options = policyBundlePaths.length > 0
     ? policyBundlePaths
     : arrayOfRecords(getValue(pathPayload, 'pathOptions'));
@@ -1955,6 +2035,9 @@ function buildKonlingToolInputSummary(toolName: KonlingToolName, input: unknown)
       resourcePreference: arrayOfStrings(record.resourcePreference),
       checkpointPreference: getString(record, 'checkpointPreference') || null,
       allowExternalResources: typeof record.allowExternalResources === 'boolean' ? record.allowExternalResources : null,
+      excludedNodeIds: arrayOfStrings(record.excludedNodeIds),
+      preferredStyleId: getString(record, 'preferredStyleId') || null,
+      requestedAt: getString(record, 'requestedAt') || null,
       priorRequestId: getString(record, 'priorRequestId') || null,
       rejectedStyleIds: arrayOfStrings(record.rejectedStyleIds),
       selectedStyleId: getString(record, 'selectedStyleId') || null,
@@ -2372,7 +2455,7 @@ async function validateKonlingToolPreflight(
     const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
     resolveAdaptivePathGenerationRegistry(goalId);
     const path = await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
-    assertAdaptivePathOptionIds(path, parsed.selectedStyleId, parsed.rejectedStyleIds ?? []);
+    assertAdaptivePathOptionIds(path, parsed.selectedStyleId, parsed.rejectedStyleIds ?? [], { allowPolicyFallback: true });
     return;
   }
   if (toolName === 'select_learning_path') {
@@ -2392,7 +2475,20 @@ async function validateKonlingToolPreflight(
   if (toolName === 'explain_learning_path_tradeoff') {
     const parsed = explainLearningPathTradeoffParameters.parse(toolInput);
     const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: false, requireExisting: Boolean(parsed.pathId) });
+    const requiresPathOptionValidation = Boolean(parsed.pathId || parsed.styleId || parsed.compareWithStyleId);
+    const path = await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, {
+      goalId,
+      requirePath: Boolean(parsed.styleId || parsed.compareWithStyleId),
+      requireExisting: requiresPathOptionValidation,
+    });
+    if (path) {
+      assertAdaptivePathOptionIds(
+        path,
+        parsed.styleId,
+        [parsed.compareWithStyleId].filter((styleId): styleId is string => Boolean(styleId)),
+        { allowPolicyFallback: true },
+      );
+    }
     return;
   }
   if (toolName === 'record_path_adjustment_outcome') {
@@ -4142,6 +4238,12 @@ function readPathOptionContext(pathPayload: Record<string, unknown>): KonlingPat
       label: getString(path, 'label'),
       nodeIds: arrayOfStrings(getValue(path, 'nodeIds')),
       evidenceBasis: arrayOfStrings(getValue(path, 'evidenceBasis')),
+      lockedNodeIds: arrayOfStrings(getValue(path, 'lockedNodeIds')),
+      readinessSummary: arrayOfRecords(getValue(path, 'readinessSummary')).map((item) => ({
+        nodeId: getString(item, 'nodeId'),
+        state: getString(item, 'state') || 'ready',
+        message: getString(item, 'message') || '',
+      })).filter((item) => item.nodeId),
       resourceMix: readNumberRecord(getValue(path, 'resourceMix')),
       effort: {
         estimatedMinutes: getNumber(effort, 'estimatedMinutes'),

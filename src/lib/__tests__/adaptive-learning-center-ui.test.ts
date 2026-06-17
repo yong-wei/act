@@ -27,6 +27,11 @@ import {
   buildAdaptivePathOptionDisplays,
   type AdaptivePathOptionWriteOption,
 } from '@/lib/adaptive-path-option-display';
+import {
+  buildPathGenerationGoalHref,
+  defaultPathGenerationPanel,
+  pathGenerationPanelFromSearchParams,
+} from '@/lib/adaptive-path-generation-panel';
 import { PLATFORM_PRIMARY_ROUTE_INVENTORY } from '@/lib/platform-role-navigation';
 import {
   getPathNodeSemanticsForResourceType,
@@ -397,7 +402,8 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('/api/learning-paths/${encodeURIComponent(pathId)}/choices');
     expect(source).toContain("submitPathChoice('selection'");
     expect(source).toContain("submitPathChoice('rejection'");
-    expect(source).toContain("submitPathChoice('switch'");
+    expect(source).toContain("submitPathGeneration('revise'");
+    expect(source).toContain("submitPathGeneration('explain'");
     expect(source).toContain("submitPathChoice('helpfulness'");
   });
 
@@ -418,6 +424,8 @@ describe('adaptive learning center UI contracts', () => {
       {
         optionId: 'rules-plus-graph-search-route',
         label: '规则图谱推荐路线',
+        lockedNodeIds: [],
+        readinessSummary: [],
         targetDeficits: [{ targetId: 'phase-margin' }],
         evidenceBasis: ['adaptive-learner-state'],
         resourceMix: { knowledge_card: 1, arena_task: 1 },
@@ -429,6 +437,14 @@ describe('adaptive learning center UI contracts', () => {
       {
         optionId: 'foundation-remediation-route',
         label: '基础补救路线',
+        lockedNodeIds: ['simulation:locked-later'],
+        readinessSummary: [
+          {
+            nodeId: 'simulation:locked-later',
+            state: 'locked',
+            message: '完成前置练习后解锁。',
+          },
+        ],
         targetDeficits: [],
         evidenceBasis: ['LearningFact'],
         resourceMix: { adaptive_quiz: 1 },
@@ -447,6 +463,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(displays[1].writeOption).toBe(options[1]);
     expect(displays[0].id).toBe('rules-plus-graph-search-route');
     expect(displays[0].resources.map((resource) => resource.label)).toEqual(['知识卡', 'Arena']);
+    expect(displays[1].readiness).toBe('包含后续解锁节点');
     expect(preview).toHaveLength(3);
     expect(preview.every((option) => option.writeOption === undefined)).toBe(true);
   });
@@ -567,6 +584,89 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).not.toContain('review-frequency-response-evidence');
     expect(source).not.toContain('/ai/copilot?mode=path-advisor');
     expect(source).not.toContain("setPathChoiceMessage('控灵已准备好根据你的目标生成路径。')");
+  });
+
+  it('builds editable path generation requests from panel controls', () => {
+    const pageSource = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+    const routeSource = readFileSync(join(repoRoot, 'src/app/api/adaptive/path-advisor-tool/route.ts'), 'utf8');
+    const helperSource = readFileSync(join(repoRoot, 'src/lib/adaptive-path-generation-panel.ts'), 'utf8');
+
+    expect(pageSource).toContain('data-adaptive-path-generation-panel="editable"');
+    expect(pageSource).toContain('data-adaptive-path-generation-mobile-sheet="bottom-sheet"');
+    expect(pageSource).toContain('data-adaptive-path-generation-request="structured-panel"');
+    expect(pageSource).toContain('value={pathGenerationPanel.goalId}');
+    expect(pageSource).toContain('value={pathGenerationPanel.timeBudgetMinutes}');
+    expect(pageSource).toContain('difficultyRhythm: pathGenerationPanel.difficultyRhythm');
+    expect(pageSource).toContain('resourcePreference: pathGenerationPanel.resourcePreference');
+    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
+      .toContain('if (value.length === 0) return [];');
+    expect(pageSource).toContain('checkpointPreference: pathGenerationPanel.checkpointPreference');
+    expect(pageSource).toContain('allowExternalResources: pathGenerationPanel.allowExternalResources');
+    expect(pageSource).toContain('naturalLanguageIntent: pathGenerationPanel.naturalLanguageIntent');
+    expect(pageSource).toContain('excludedNodeIds: operation ===');
+    expect(pageSource).toContain('preferredOptionId: operation !==');
+    expect(pageSource).toContain('requestedAt: new Date().toISOString()');
+    expect(pageSource).toContain('setPathAdvisorAgentSessionId(null)');
+    expect(pageSource).toContain('const handlePathGenerationGoalChange = useCallback');
+    expect(pageSource).toContain('pathGenerationPanelFromSearchParams(new URLSearchParams(searchParamsKey), activeGoal)');
+    expect(pageSource).toContain('window.location.assign(buildPathGenerationGoalHref(nextGoal, nextPanel))');
+    expect(pageSource).toContain('storePathGenerationPanelForGoal(nextGoal, nextPanel)');
+    expect(pageSource).toContain('takeStoredPathGenerationPanel(activeGoal) ?? restoredPathGenerationPanel');
+    expect(helperSource).toContain('pathTime: String(panel.timeBudgetMinutes)');
+    expect(helperSource).toContain('pathResources: panel.resourcePreference.join');
+    expect(helperSource).toContain("query.set('pathExternal', '1')");
+    expect(helperSource).not.toContain('pathIntent');
+    expect(pageSource).not.toContain("window.location.assign(`/assessment/adaptive-practice?goal=${nextGoal}&intent=contextual-recommendation`)");
+    expect(pageSource).toContain('onChange={(event) => handlePathGenerationGoalChange(event.target.value)}');
+    expect(pageSource).toContain("fetch('/api/adaptive/path-advisor-tool'");
+    expect(pageSource).toContain('data-adaptive-path-generation-intent="editable"');
+    expect(pageSource).toContain("submitPathGeneration('revise', optionForWrite)");
+    expect(pageSource).toContain('selectedOptionId');
+    expect(pageSource).toContain('rejectedOptionIds');
+    expect(pageSource).not.toContain('Konling parameters');
+
+    expect(routeSource).toContain('runtime.generateLearningPath(toolInput)');
+    expect(routeSource).toContain('runtime.reviseLearningPathOptions(toolInput)');
+    expect(routeSource).toContain('runtime.explainLearningPathTradeoff(toolInput)');
+    expect(routeSource).toContain('modeContextToken');
+    expect(routeSource).toContain('readPathOptionStyleLookup');
+    expect(routeSource).toContain('.filter(({ option }) => readStringArray(option.nodeIds).length > 0)');
+    expect(routeSource).toContain('resolveOptionalCurrentPathStyleId(pathOptionLookup');
+    expect(routeSource).toContain('throw new KonlingRuntimeScopeError(403, `路径选项不属于当前学习路径: ${fieldName}`)');
+    expect(routeSource).toContain('requestedAt: typeof body.requestedAt');
+    expect(routeSource).toContain('const pathPlanContext = toolInput.pathId');
+    expect(routeSource).toContain('readPathAdvisorPlanContext(toolInput.pathId, goalId, session.user.id, classId)');
+    expect(routeSource).toContain('? { ...baseRuntimeContext, planContext: pathPlanContext }');
+    expect(routeSource).toContain('lastExecutionMetadata: true');
+    expect(routeSource).toContain('...readStringArray(executionMetadata.completedNodeIds)');
+    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
+      .toContain('currentNodeId: input.context.planContext?.activeNodeId ?? null');
+  });
+
+  it('preserves empty path generation resource preference through goal-change URLs', () => {
+    const panel = {
+      ...defaultPathGenerationPanel,
+      goalId: 'control-correction' as const,
+      timeBudgetMinutes: 45,
+      resourcePreference: [],
+      allowExternalResources: true,
+      naturalLanguageIntent: '先补频域证据',
+    };
+    const href = buildPathGenerationGoalHref('frequency-response-foundations', panel);
+    const query = new URLSearchParams(href.split('?')[1] ?? '');
+
+    expect(query.get('pathTime')).toBe('45');
+    expect(query.has('pathResources')).toBe(true);
+    expect(query.get('pathResources')).toBe('');
+    expect(query.get('pathExternal')).toBe('1');
+    expect(query.has('pathIntent')).toBe(false);
+    expect(pathGenerationPanelFromSearchParams(query, 'frequency-response-foundations')).toMatchObject({
+      goalId: 'frequency-response-foundations',
+      timeBudgetMinutes: 45,
+      resourcePreference: [],
+      allowExternalResources: true,
+      naturalLanguageIntent: '',
+    });
   });
 
   it('registers path-advisor entry point only after an explicit control-correction goal is selected', () => {
@@ -1000,8 +1100,14 @@ describe('adaptive learning center UI contracts', () => {
               label: '基础补救',
               nodeIds: ['knowledge-card:targets', 'arena-task:terminal'],
               activeNodeIds: ['knowledge-card:targets'],
-              lockedNodeIds: [],
-              readinessSummary: [],
+              lockedNodeIds: ['arena-task:terminal'],
+              readinessSummary: [
+                {
+                  nodeId: 'arena-task:terminal',
+                  state: 'locked',
+                  message: '完成目标知识卡后解锁。',
+                },
+              ],
               unlockMessages: [],
               nodeSummaries: [
                 {
@@ -1104,6 +1210,14 @@ describe('adaptive learning center UI contracts', () => {
             }),
           ],
           evidenceBasis: ['学习证据', '练习记录'],
+          lockedNodeIds: ['arena-task:terminal'],
+          readinessSummary: [
+            {
+              nodeId: 'arena-task:terminal',
+              state: 'locked',
+              message: '完成目标知识卡后解锁。',
+            },
+          ],
           terminalValidationNodeIds: ['arena-task:terminal'],
           limitations: ['部分目标还缺少直接证据'],
         },
