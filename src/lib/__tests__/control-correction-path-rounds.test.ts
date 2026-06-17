@@ -1304,8 +1304,14 @@ describe('control-correction path rounds', () => {
       resourceType: 'simulation',
       status: 'completed',
       idempotencyKey: 'complete-simulation',
-      evidenceRefs: ['simulation_run:control-correction-step-response-lab'],
-      simulationRef: { id: 'control-correction-step-response-lab' },
+      evidenceRefs: [{ kind: 'SimulationRun', id: 'sim-run-1' }],
+      simulationRef: {
+        kind: 'SimulationRun',
+        id: 'sim-run-1',
+        sourceRefId: 'control-correction-step-response-lab',
+        provenance: 'official',
+        status: 'completed',
+      },
     });
 
     expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
@@ -1327,7 +1333,7 @@ describe('control-correction path rounds', () => {
     }));
   });
 
-  it('keeps outcome-gated Arena locked without simulation evidence refs', async () => {
+  it('keeps outcome-gated Arena locked with ungoverned client simulation refs', async () => {
     const db = mockDb();
     const path = {
       id: 'path-1',
@@ -1378,7 +1384,9 @@ describe('control-correction path rounds', () => {
       nodeId: 'simulation:control-correction-step-response-lab',
       resourceType: 'simulation',
       status: 'completed',
-      idempotencyKey: 'complete-simulation-without-evidence',
+      idempotencyKey: 'complete-simulation-with-ungoverned-evidence',
+      evidenceRefs: ['simulation_run:control-correction-step-response-lab'],
+      simulationRef: { id: 'control-correction-step-response-lab' },
     });
 
     const updateArg = vi.mocked(db.learningPath.update).mock.calls[0]?.[0];

@@ -1031,13 +1031,16 @@ function refreshReadinessRecord(
 function collectExecutionOutcomeRefs(input: PathNodeExecutionInput): string[] {
   const refs = new Set<string>();
   for (const ref of input.evidenceRefs ?? []) {
-    addOutcomeRef(refs, ref);
+    addTrustedOutcomeRef(refs, ref);
   }
-  addOutcomeRef(refs, input.simulationRef);
-  addOutcomeRef(refs, input.arenaRef);
+  addTrustedOutcomeRef(refs, input.simulationRef);
+  addTrustedOutcomeRef(refs, input.arenaRef);
 
-  if (input.resourceType === 'simulation') {
+  if (input.resourceType === 'simulation' && isTrustedSimulationOutcomeRef(input.simulationRef)) {
     const simulationId = firstString(
+      input.simulationRef?.sourceRefId,
+      input.simulationRef?.resourceId,
+      input.simulationRef?.taskSpecId,
       input.simulationRef?.id,
       input.simulationRef?.ref,
       input.simulationRef?.runId,
@@ -1046,7 +1049,7 @@ function collectExecutionOutcomeRefs(input: PathNodeExecutionInput): string[] {
     if (simulationId) refs.add(`simulation_run:${normalizeValidationRef(simulationId)}`);
   }
 
-  if (input.resourceType === 'arena_task') {
+  if (input.resourceType === 'arena_task' && isTrustedArenaOutcomeRef(input.arenaRef)) {
     const arenaId = firstString(
       input.arenaRef?.id,
       input.arenaRef?.ref,
@@ -1060,14 +1063,31 @@ function collectExecutionOutcomeRefs(input: PathNodeExecutionInput): string[] {
   return [...refs];
 }
 
-function addOutcomeRef(refs: Set<string>, value: unknown): void {
-  if (typeof value === 'string' && value.length > 0) {
-    refs.add(value);
-    return;
-  }
+function addTrustedOutcomeRef(refs: Set<string>, value: unknown): void {
+  if (!isTrustedSimulationOutcomeRef(value) && !isTrustedArenaOutcomeRef(value)) return;
   const record = toRecord(value);
   const ref = firstString(record.ref, record.id, record.runId, record.submissionId, record.sourceId, record.sourceEventId);
   if (ref) refs.add(ref);
+}
+
+function isTrustedSimulationOutcomeRef(value: unknown): boolean {
+  const record = toRecord(value);
+  const kind = firstString(record.kind, record.sourceType);
+  const provenance = readProvenance(record);
+  return kind === 'SimulationRun' &&
+    (provenance === 'official' || provenance === 'preview') &&
+    firstString(record.mismatchReason) === undefined &&
+    firstString(record.status, record.outcome) === 'completed';
+}
+
+function isTrustedArenaOutcomeRef(value: unknown): boolean {
+  const record = toRecord(value);
+  const kind = firstString(record.kind, record.sourceType);
+  const provenance = readProvenance(record);
+  return (kind === 'ArenaSubmission' || kind === 'ArenaVirtualSimulationRun') &&
+    (provenance === 'official' || provenance === 'preview') &&
+    firstString(record.mismatchReason) === undefined &&
+    readBoolean(record.valid) !== false;
 }
 
 function isLockedPlanNodeRecord(node: Record<string, unknown>): boolean {
