@@ -592,7 +592,7 @@ function matchesAdaptiveAssessmentPathContext(
   const dimensions = toRecord(answer.abilityEstimateSnapshot?.dimensions);
   const pathExecution = toRecord(dimensions.pathExecution);
   if (pathExecution.pathId !== input.pathId || pathExecution.nodeId !== input.nodeId) return false;
-  if (typeof input.goalId === 'string' && typeof pathExecution.goalId === 'string' && pathExecution.goalId !== input.goalId) return false;
+  if (typeof input.goalId === 'string' && pathExecution.goalId !== input.goalId) return false;
   return true;
 }
 

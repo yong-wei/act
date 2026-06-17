@@ -983,6 +983,63 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('keeps adaptive outcome gates locked when the answer path context omits the path goal', async () => {
+    useStructuredAdaptiveAssessmentPath();
+    mocks.prisma.adaptiveAssessmentAnswer.findFirst.mockResolvedValue({
+      id: 'answer-1',
+      questionId: 'preset-q-01',
+      score: 100,
+      abilityEstimate: 0.62,
+      answeredAt: new Date('2026-06-04T09:59:00.000Z'),
+      questionRef: {
+        knowledgeTags: ['control-correction:time-domain-targets'],
+        questionType: 'pole-to-behavior',
+        difficulty: 0.58,
+      },
+      abilityEstimateSnapshot: {
+        dimensions: {
+          pathExecution: {
+            pathId: 'path-1',
+            nodeId: 'adaptive-quiz:control-target-check',
+          },
+        },
+      },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'adaptive-quiz:control-target-check',
+      resourceType: 'adaptive_quiz',
+      status: 'completed',
+      idempotencyKey: 'missing-goal-adaptive-outcome',
+      liftMetadata: {
+        adaptiveAssessmentRef: {
+          id: 'answer-1',
+        },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      liftMetadata: expect.objectContaining({
+        adaptiveAssessmentRef: expect.objectContaining({
+          kind: 'AdaptiveAssessmentAnswer',
+          id: 'answer-1',
+          provenance: 'unknown',
+          mismatchReason: 'adaptive-assessment-path-mismatch',
+        }),
+      }),
+      evidenceRefs: [],
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'adaptive-quiz:control-target-check',
+        lastExecutionMetadata: expect.objectContaining({
+          availableOutcomeRefs: [],
+        }),
+      }),
+    }));
+  });
+
   it('unlocks simulation outcome gates from server-owned simulation runs', async () => {
     useStructuredSimulationPath();
     mocks.prisma.simulationRun.findFirst.mockResolvedValue({

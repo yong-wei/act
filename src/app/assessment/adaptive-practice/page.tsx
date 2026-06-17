@@ -1250,7 +1250,11 @@ export default function AdaptivePracticePage() {
     [activeGoal, searchParamsKey],
   );
 
-  const sessionId = useMemo(() => `practice-${Math.random().toString(36).slice(2, 10)}`, []);
+  const practiceSessionId = useMemo(() => `practice-${Math.random().toString(36).slice(2, 10)}`, []);
+  const pathAssessmentSessionId = activePathId && activeNodeId
+    ? `adaptive-path:${activePathId}:${activeNodeId}`
+    : null;
+  const sessionId = pathAssessmentSessionId ?? practiceSessionId;
 
   const [diagnostic, setDiagnostic] = useState<DiagnosticResponse | null>(null);
   const [questionState, setQuestionState] = useState<NextQuestionResponse | null>(null);
