@@ -201,11 +201,7 @@ async function adoptSelectedPathOption(
     currentNodeId,
     mainPathNodeIds: option.nodeIds,
     planNodes: selectedPlanNodes,
-    executionStatus: {
-      ...readRecord(pathPayload.executionStatus),
-      activeNodeId: currentNodeId,
-      updatedAt,
-    },
+    executionStatus: updateSelectedPathExecutionStatus(pathPayload.executionStatus, option.nodeIds, currentNodeId, updatedAt),
     visualization: updateSelectedPathVisualization(pathPayload.visualization, option.nodeIds, currentNodeId),
   };
   const lastExecutionMetadata = updateSelectedPathExecutionMetadata(
@@ -358,16 +354,32 @@ function updateSelectedPathExecutionMetadata(
   option: ServerPathChoiceOption,
 ): Record<string, unknown> {
   const metadata = readRecord(value);
-  const selectedNodeIds = new Set(nodeIds);
   return {
     ...metadata,
     activeNodeId: currentNodeId,
     selectedOptionId: option.optionId,
     selectedStyleId: option.styleId,
     selectedPolicyFamily: option.policyFamily,
-    completedNodeIds: readStringArray(metadata.completedNodeIds).filter((nodeId) => selectedNodeIds.has(nodeId)),
-    failedNodeIds: readStringArray(metadata.failedNodeIds).filter((nodeId) => selectedNodeIds.has(nodeId)),
-    skippedNodeIds: readStringArray(metadata.skippedNodeIds).filter((nodeId) => selectedNodeIds.has(nodeId)),
+    completedNodeIds: filterSelectedNodeIds(metadata.completedNodeIds, nodeIds),
+    failedNodeIds: filterSelectedNodeIds(metadata.failedNodeIds, nodeIds),
+    skippedNodeIds: filterSelectedNodeIds(metadata.skippedNodeIds, nodeIds),
+  };
+}
+
+function updateSelectedPathExecutionStatus(
+  value: unknown,
+  nodeIds: string[],
+  currentNodeId: string | null,
+  updatedAt: string,
+): Record<string, unknown> {
+  const executionStatus = readRecord(value);
+  return {
+    ...executionStatus,
+    activeNodeId: currentNodeId,
+    updatedAt,
+    completedNodeIds: filterSelectedNodeIds(executionStatus.completedNodeIds, nodeIds),
+    failedNodeIds: filterSelectedNodeIds(executionStatus.failedNodeIds, nodeIds),
+    skippedNodeIds: filterSelectedNodeIds(executionStatus.skippedNodeIds, nodeIds),
   };
 }
 
@@ -384,8 +396,16 @@ function updateSelectedPathVisualization(
       ...map,
       mainPathNodeIds: nodeIds,
       currentNodeId,
+      completedNodeIds: filterSelectedNodeIds(map.completedNodeIds, nodeIds),
+      failedNodeIds: filterSelectedNodeIds(map.failedNodeIds, nodeIds),
+      skippedNodeIds: filterSelectedNodeIds(map.skippedNodeIds, nodeIds),
     },
   };
+}
+
+function filterSelectedNodeIds(value: unknown, nodeIds: string[]): string[] {
+  const selectedNodeIds = new Set(nodeIds);
+  return readStringArray(value).filter((nodeId) => selectedNodeIds.has(nodeId));
 }
 
 function resolveServerDiagnosisSnapshotRef(path: { learnerStateRef?: unknown; inputSnapshot?: unknown }): string | null {

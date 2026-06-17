@@ -217,6 +217,21 @@ describe('learning path round API routes', () => {
             target: '/simulations/cruise',
           },
         ],
+        executionStatus: {
+          activeNodeId: 'node-1',
+          completedNodeIds: ['node-1', 'arena-task:terminal'],
+          failedNodeIds: ['node-failed', 'simulation:control-correction-step-response-lab'],
+          skippedNodeIds: ['node-skipped'],
+        },
+        visualization: {
+          map: {
+            currentNodeId: 'node-1',
+            mainPathNodeIds: ['node-1'],
+            completedNodeIds: ['node-1', 'arena-task:terminal'],
+            failedNodeIds: ['node-failed', 'simulation:control-correction-step-response-lab'],
+            skippedNodeIds: ['node-skipped'],
+          },
+        },
         policyBundle: {
           status: 'ready',
           paths: [
@@ -1736,6 +1751,21 @@ describe('learning path round API routes', () => {
           selectedPolicyFamily: 'simulation-driven',
           currentNodeId: 'arena-task:terminal',
           mainPathNodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:terminal'],
+          executionStatus: expect.objectContaining({
+            activeNodeId: 'arena-task:terminal',
+            completedNodeIds: ['arena-task:terminal'],
+            failedNodeIds: ['simulation:control-correction-step-response-lab'],
+            skippedNodeIds: [],
+          }),
+          visualization: expect.objectContaining({
+            map: expect.objectContaining({
+              currentNodeId: 'arena-task:terminal',
+              mainPathNodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:terminal'],
+              completedNodeIds: ['arena-task:terminal'],
+              failedNodeIds: ['simulation:control-correction-step-response-lab'],
+              skippedNodeIds: [],
+            }),
+          }),
           planNodes: [
             expect.objectContaining({
               nodeId: 'simulation:control-correction-step-response-lab',
