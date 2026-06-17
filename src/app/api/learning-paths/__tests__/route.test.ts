@@ -245,6 +245,7 @@ describe('learning path round API routes', () => {
               ],
               resourceMix: { simulation: 1, arena_task: 1 },
               evidenceBasis: ['simulation-run'],
+              terminalValidationNodeIds: ['arena-task:terminal'],
             },
           ],
         },
@@ -1751,6 +1752,13 @@ describe('learning path round API routes', () => {
           activeNodeId: 'arena-task:terminal',
           selectedOptionId: 'path-option-2',
           selectedStyleId: 'simulation-driven',
+        }),
+        terminalValidation: expect.objectContaining({
+          nodeId: 'arena-task:terminal',
+          resourceType: 'arena_task',
+          state: 'pending',
+          target: '/arena/tasks/terminal',
+          taskId: 'terminal',
         }),
       }),
     }));

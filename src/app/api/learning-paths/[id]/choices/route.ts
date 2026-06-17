@@ -108,6 +108,7 @@ interface ServerPathChoiceOption {
   nodeIds: string[];
   activeNodeIds: string[];
   planNodes: Array<Record<string, unknown>>;
+  terminalValidationNodeIds: string[];
   resourceMix: Record<string, number>;
   rationaleMetadata: Record<string, unknown>;
 }
@@ -136,6 +137,7 @@ function readPathOptions(pathPayload: unknown): Map<string, ServerPathChoiceOpti
       nodeIds,
       activeNodeIds: readStringArray(option.activeNodeIds),
       planNodes,
+      terminalValidationNodeIds: readStringArray(option.terminalValidationNodeIds),
       resourceMix: readNumberRecord(option.resourceMix),
       rationaleMetadata: compactRecord({
         evidenceBasis: readStringArray(option.evidenceBasis),
@@ -184,6 +186,7 @@ async function adoptSelectedPathOption(
     select: {
       pathPayload: true,
       lastExecutionMetadata: true,
+      terminalValidation: true,
     },
   });
   const pathPayload = readRecord(latestPath?.pathPayload ?? path.pathPayload);
@@ -211,6 +214,11 @@ async function adoptSelectedPathOption(
     currentNodeId,
     option,
   );
+  const terminalValidation = buildSelectedPathTerminalValidation(
+    latestPath?.terminalValidation ?? path.terminalValidation,
+    option,
+    selectedPlanNodes,
+  );
   await prisma.learningPath.update({
     where: { id: path.id },
     data: {
@@ -218,6 +226,7 @@ async function adoptSelectedPathOption(
       currentNodeId,
       pathPayload: pathPayloadUpdate as unknown as Prisma.InputJsonValue,
       lastExecutionMetadata: lastExecutionMetadata as unknown as Prisma.InputJsonValue,
+      terminalValidation: terminalValidation as unknown as Prisma.InputJsonValue,
     },
   });
   return {
@@ -226,6 +235,38 @@ async function adoptSelectedPathOption(
     currentNodeId,
     nodeIds: option.nodeIds,
   };
+}
+
+function buildSelectedPathTerminalValidation(
+  value: unknown,
+  option: ServerPathChoiceOption,
+  selectedPlanNodes: Array<Record<string, unknown>>,
+): Record<string, unknown> {
+  const terminalNodeId = option.terminalValidationNodeIds.find((nodeId) => option.nodeIds.includes(nodeId)) ?? null;
+  if (!terminalNodeId) {
+    return {
+      nodeId: null,
+      resourceType: null,
+      state: 'not-required',
+    };
+  }
+
+  const current = readRecord(value);
+  const terminalNode = selectedPlanNodes.find((node) => nullableString(node.nodeId) === terminalNodeId);
+  const resourceType = nullableString(terminalNode?.type) ?? inferResourceTypeFromOptionNode(terminalNodeId, null);
+  const target = nullableString(terminalNode?.target) ?? inferTargetFromOptionNode(terminalNodeId);
+  const sourceRef = nullableString(terminalNode?.sourceRef);
+  const policy = readRecord(current.policy);
+
+  return compactRecord({
+    nodeId: terminalNodeId,
+    resourceType,
+    state: 'pending',
+    target,
+    sourceRef,
+    taskId: terminalNodeId.startsWith('arena-task:') ? terminalNodeId.slice('arena-task:'.length) : null,
+    policy,
+  });
 }
 
 function readOptionPlanNodes(
