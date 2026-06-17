@@ -311,7 +311,7 @@ describe('adaptive learning optimization experiments', () => {
       });
   });
 
-  it('keeps high-load nodes without readiness metadata executable until they are migrated', () => {
+  it('keeps high-load nodes without readiness metadata as locked future milestones', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput({
       registry: buildResourceNodeRegistry({
         simulations: [
@@ -333,11 +333,14 @@ describe('adaptive learning optimization experiments', () => {
       },
     }));
 
-    expect(plan.currentNodeId).toBe('simulation:legacy-simulation');
+    expect(plan.currentNodeId).toBeNull();
     expect(plan.mainPath[0]).toMatchObject({
       nodeId: 'simulation:legacy-simulation',
-      status: 'current',
-      readiness: expect.objectContaining({ state: 'ready' }),
+      status: 'locked',
+      readiness: expect.objectContaining({
+        state: 'locked',
+        reasonCodes: ['readiness-metadata-missing'],
+      }),
     });
   });
 

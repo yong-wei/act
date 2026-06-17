@@ -762,6 +762,7 @@ export function recordLearningPathFeedback(
   let currentNodeId = plan.currentNodeId;
   let mainPath = plan.mainPath;
   let visualization = plan.visualization;
+  let policyBundle = plan.policyBundle;
 
   if (safeEvent.type === 'adoption') {
     executionStatus = { ...executionStatus, adopted: true, updatedAt: safeEvent.createdAt };
@@ -806,6 +807,7 @@ export function recordLearningPathFeedback(
       activeNodeId: currentNodeId,
       updatedAt: safeEvent.createdAt,
     };
+    policyBundle = refreshPolicyBundlePathStates(policyBundle, mainPath);
   }
   if (safeEvent.type === 'deviation') {
     const correctionId = `${plan.id}:correction:${corrections.length + 1}`;
@@ -833,6 +835,7 @@ export function recordLearningPathFeedback(
     corrections,
     feedbackEvents,
     visualization,
+    policyBundle,
   };
 }
 
@@ -1522,6 +1525,7 @@ function refreshPathReadinessAfterFeedback(
   const availableOutcomeRefs = new Set(readStringArray(context?.availableOutcomeRefs));
   return nodes.map((node) => {
     if (!node.readiness || node.readiness.state === 'ready') return node;
+    if (node.readiness.reasonCodes.includes('readiness-metadata-missing')) return node;
     const missingCompletedNodeIds = node.readiness.missingCompletedNodeIds.filter((id) => !completed.has(id));
     const missingOutcomeRefs = node.readiness.missingOutcomeRefs.filter((ref) => !availableOutcomeRefs.has(ref));
     const readiness = {
@@ -1548,6 +1552,19 @@ function evaluateNodeReadiness(
 ): AdaptiveLearningPathNodeReadiness {
   const readiness = node.planningMetadata.readiness;
   if (!readiness) {
+    if (requiresReadinessMetadataForImmediateExecution(node)) {
+      return {
+        state: 'locked',
+        message: '该节点需要完成准备条件后才能解锁。',
+        unlockMessage: '该节点需要完成准备条件后才能解锁。',
+        reasonCodes: ['readiness-metadata-missing'],
+        fallbackNodeIds: node.planningMetadata.prerequisites,
+        missingCompetencies: [],
+        missingEvidenceCount: 0,
+        missingCompletedNodeIds: [],
+        missingOutcomeRefs: [],
+      };
+    }
     return readyNodeReadiness();
   }
 
@@ -1581,6 +1598,15 @@ function evaluateNodeReadiness(
     missingCompletedNodeIds,
     missingOutcomeRefs,
   };
+}
+
+function requiresReadinessMetadataForImmediateExecution(node: ResourceNode): boolean {
+  if (node.planningMetadata.cognitiveLoad !== 'high') return false;
+  return node.type === 'simulation' ||
+    node.type === 'arena_task' ||
+    node.type === 'control_workbench' ||
+    node.type === 'checkpoint' ||
+    node.planningMetadata.terminalConstraints.length > 0;
 }
 
 function learnerCompetencyScore(
@@ -1860,25 +1886,10 @@ function buildPolicyBundle(
       policyFamily,
       label: styleLabelForPolicyFamily(policyFamily),
       nodeIds: mainPath.map((node) => node.nodeId),
-      activeNodeIds: mainPath
-        .filter((node) => node.status !== 'locked' && node.status !== 'blocked')
-        .map((node) => node.nodeId),
-      lockedNodeIds: mainPath
-        .filter((node) => node.status === 'locked')
-        .map((node) => node.nodeId),
-      readinessSummary: mainPath
-        .filter((node) => (node.readiness?.state ?? 'ready') !== 'ready')
-        .map((node) => ({
-          nodeId: node.nodeId,
-          state: node.readiness?.state ?? 'locked',
-          message: node.readiness?.message ?? '完成准备节点后会自动解锁。',
-        })),
-      unlockMessages: mainPath
-        .filter((node) => Boolean(node.readiness?.unlockMessage))
-        .map((node) => ({
-          nodeId: node.nodeId,
-          message: node.readiness?.unlockMessage ?? '完成准备节点后会自动解锁。',
-        })),
+      activeNodeIds: activePolicyNodeIds(mainPath),
+      lockedNodeIds: lockedPolicyNodeIds(mainPath),
+      readinessSummary: policyReadinessSummary(mainPath),
+      unlockMessages: policyUnlockMessages(mainPath),
       nodeSummaries: mainPath.map(toPathOptionNodeSummary),
       targetDeficits: deficitsForPath(mainPath, deficits),
       evidenceBasis: buildPathEvidenceBasis(plan, sourceCoverage),
@@ -1966,6 +1977,73 @@ function buildPolicyBundle(
     },
     fallbackReasons,
   };
+}
+
+function refreshPolicyBundlePathStates(
+  policyBundle: AdaptiveLearningPathPolicyBundle | undefined,
+  mainPath: AdaptiveLearningPathPlanNode[],
+): AdaptiveLearningPathPolicyBundle | undefined {
+  if (!policyBundle) return undefined;
+  const pathNodeIds = new Set(mainPath.map((node) => node.nodeId));
+  const pathByNodeId = new Map(mainPath.map((node) => [node.nodeId, node]));
+  return {
+    ...policyBundle,
+    paths: policyBundle.paths.map((path) => {
+      const optionNodes = path.nodeIds
+        .map((nodeId) => pathByNodeId.get(nodeId))
+        .filter((node): node is AdaptiveLearningPathPlanNode => Boolean(node));
+      if (optionNodes.length === 0 && !path.nodeIds.some((nodeId) => pathNodeIds.has(nodeId))) return path;
+      return {
+        ...path,
+        activeNodeIds: activePolicyNodeIds(optionNodes),
+        lockedNodeIds: lockedPolicyNodeIds(optionNodes),
+        readinessSummary: policyReadinessSummary(optionNodes),
+        unlockMessages: policyUnlockMessages(optionNodes),
+        nodeSummaries: path.nodeSummaries.map((summary) => {
+          const node = pathByNodeId.get(summary.nodeId);
+          return node ? toPathOptionNodeSummary(node) : summary;
+        }),
+      };
+    }),
+  };
+}
+
+function activePolicyNodeIds(path: AdaptiveLearningPathPlanNode[]): string[] {
+  return path
+    .filter((node) => node.status !== 'completed' && node.status !== 'locked' && node.status !== 'blocked')
+    .map((node) => node.nodeId);
+}
+
+function lockedPolicyNodeIds(path: AdaptiveLearningPathPlanNode[]): string[] {
+  return path
+    .filter((node) => node.status === 'locked')
+    .map((node) => node.nodeId);
+}
+
+function policyReadinessSummary(path: AdaptiveLearningPathPlanNode[]): Array<{
+  nodeId: string;
+  state: AdaptiveLearningPathReadinessState;
+  message: string;
+}> {
+  return path
+    .filter((node) => (node.readiness?.state ?? 'ready') !== 'ready')
+    .map((node) => ({
+      nodeId: node.nodeId,
+      state: node.readiness?.state ?? 'locked',
+      message: node.readiness?.message ?? '完成准备节点后会自动解锁。',
+    }));
+}
+
+function policyUnlockMessages(path: AdaptiveLearningPathPlanNode[]): Array<{
+  nodeId: string;
+  message: string;
+}> {
+  return path
+    .filter((node) => Boolean(node.readiness?.unlockMessage))
+    .map((node) => ({
+      nodeId: node.nodeId,
+      message: node.readiness?.unlockMessage ?? '完成准备节点后会自动解锁。',
+    }));
 }
 
 function shapePolicyBundlePath(

@@ -27,6 +27,16 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
         type: 'SIMULATION_APP',
         launchTarget: '/simulations/bode',
         knowledgeNodeIds: ['kn-bode'],
+        planningOverride: {
+          readiness: {
+            minimumCompetency: {},
+            minimumEvidenceCount: 0,
+            requiredCompletedNodeIds: ['registry:bode-card'],
+            requiredOutcomeRefs: [],
+            unlockMessage: '完成伯德图知识卡后解锁仿真。',
+            fallbackNodeIds: ['registry:bode-card'],
+          },
+        },
       },
       {
         id: 'hidden-admin',
@@ -42,6 +52,16 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
         title: '邮轮舒适度仿真',
         launchTarget: '/simulations/cruise',
         knowledgeNodeIds: ['kn-cruise'],
+        planningOverride: {
+          readiness: {
+            minimumCompetency: {},
+            minimumEvidenceCount: 0,
+            requiredCompletedNodeIds: ['registry:bode-card'],
+            requiredOutcomeRefs: [],
+            unlockMessage: '完成伯德图知识卡后解锁仿真。',
+            fallbackNodeIds: ['registry:bode-card'],
+          },
+        },
       },
     ],
     arenaTasks: [
@@ -52,6 +72,16 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
         knowledgeNodeIds: ['kn-cruise'],
         prerequisiteNodeIds: ['simulation:cruise'],
         official: true,
+        planningOverride: {
+          readiness: {
+            minimumCompetency: {},
+            minimumEvidenceCount: 0,
+            requiredCompletedNodeIds: ['simulation:cruise'],
+            requiredOutcomeRefs: [],
+            unlockMessage: '完成邮轮舒适度仿真后解锁 Arena。',
+            fallbackNodeIds: ['simulation:cruise'],
+          },
+        },
       },
     ],
     reflectionPrompts: [
@@ -1556,6 +1586,16 @@ describe('adaptive learning path planner', () => {
           launchTarget: '/missions?project=goal',
           knowledgeNodeIds: ['kn-goal'],
           prerequisiteNodeIds: ['simulation:pre'],
+          planningOverride: {
+            readiness: {
+              minimumCompetency: {},
+              minimumEvidenceCount: 0,
+              requiredCompletedNodeIds: ['simulation:pre'],
+              requiredOutcomeRefs: [],
+              unlockMessage: '完成前置仿真后解锁项目。',
+              fallbackNodeIds: ['simulation:pre'],
+            },
+          },
         },
       ],
     });
@@ -2044,6 +2084,16 @@ describe('adaptive learning path planner', () => {
           launchTarget: '/missions?project=goal',
           knowledgeNodeIds: ['kn-goal'],
           prerequisiteNodeIds: ['simulation:pre'],
+          planningOverride: {
+            readiness: {
+              minimumCompetency: {},
+              minimumEvidenceCount: 0,
+              requiredCompletedNodeIds: ['simulation:pre'],
+              requiredOutcomeRefs: [],
+              unlockMessage: '完成前置仿真后解锁项目。',
+              fallbackNodeIds: ['simulation:pre'],
+            },
+          },
         },
       ],
     });
@@ -2522,5 +2572,119 @@ describe('adaptive learning path planner', () => {
     expect(plan.currentNodeId).toBeNull();
     expect(plan.executionStatus.activeNodeId).toBeNull();
     expect(plan.mainPath.every((node) => node.status === 'completed')).toBe(true);
+  });
+
+  it('keeps high-load nodes without readiness metadata as locked future milestones', () => {
+    const registry = buildResourceNodeRegistry({
+      simulations: [
+        {
+          id: 'ungated-sim',
+          title: '缺 readiness 的高负载仿真',
+          launchTarget: '/simulations/ungated',
+          knowledgeNodeIds: ['kn-ungated-sim'],
+        },
+      ],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'goal-ungated-sim',
+        title: '缺 readiness 仿真目标',
+        knowledgeTargets: ['kn-ungated-sim'],
+        competencyTargets: [],
+      },
+      constraints: {
+        timeBudgetMinutes: 60,
+        privacyScopes: ['student-visible'],
+      },
+      policyBundle: {
+        families: ['simulation-driven'],
+        overlapThreshold: 0.6,
+      },
+    }));
+
+    expect(plan.currentNodeId).toBeNull();
+    expect(plan.executionStatus.activeNodeId).toBeNull();
+    expect(plan.mainPath).toContainEqual(expect.objectContaining({
+      nodeId: 'simulation:ungated-sim',
+      status: 'locked',
+      readiness: expect.objectContaining({
+        state: 'locked',
+        reasonCodes: ['readiness-metadata-missing'],
+      }),
+    }));
+    const option = plan.policyBundle?.paths.find((path) => path.nodeIds.includes('simulation:ungated-sim'));
+    expect(option?.activeNodeIds).not.toContain('simulation:ungated-sim');
+    expect(option?.lockedNodeIds).toContain('simulation:ungated-sim');
+  });
+
+  it('does not unlock readiness-metadata-missing nodes after prerequisite feedback', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'prep-card',
+          label: '准备知识卡',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/prep-card',
+          knowledgeNodeIds: ['kn-prep'],
+        },
+      ],
+      simulations: [
+        {
+          id: 'ungated-with-prereq',
+          title: '缺 readiness 的前置仿真',
+          launchTarget: '/simulations/ungated-with-prereq',
+          knowledgeNodeIds: ['kn-ungated-sim'],
+          prerequisiteNodeIds: ['registry:prep-card'],
+        },
+      ],
+    });
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'goal-ungated-prereq-sim',
+        title: '缺 readiness 前置仿真目标',
+        knowledgeTargets: ['kn-ungated-sim'],
+        competencyTargets: [],
+      },
+      constraints: {
+        timeBudgetMinutes: 60,
+        privacyScopes: ['student-visible'],
+      },
+      policyBundle: {
+        families: ['simulation-driven'],
+        overlapThreshold: 0.6,
+      },
+    }));
+
+    expect(plan.currentNodeId).toBe('registry:prep-card');
+
+    const updated = recordLearningPathFeedback(plan, {
+      id: 'complete-prep-card',
+      type: 'completion',
+      nodeId: 'registry:prep-card',
+      createdAt: '2026-06-17T10:20:00.000Z',
+    });
+
+    expect(updated.currentNodeId).toBeNull();
+    expect(updated.executionStatus.activeNodeId).toBeNull();
+    expect(updated.mainPath).toContainEqual(expect.objectContaining({
+      nodeId: 'simulation:ungated-with-prereq',
+      status: 'locked',
+      readiness: expect.objectContaining({
+        state: 'locked',
+        reasonCodes: ['readiness-metadata-missing'],
+      }),
+    }));
+    const option = updated.policyBundle?.paths.find((path) => path.nodeIds.includes('simulation:ungated-with-prereq'));
+    expect(option?.activeNodeIds).toEqual([]);
+    expect(option?.activeNodeIds).not.toContain('simulation:ungated-with-prereq');
+    expect(option?.activeNodeIds).not.toContain('registry:prep-card');
+    expect(option?.lockedNodeIds).toContain('simulation:ungated-with-prereq');
+    expect(option?.readinessSummary).toContainEqual(expect.objectContaining({
+      nodeId: 'simulation:ungated-with-prereq',
+      state: 'locked',
+    }));
   });
 });
