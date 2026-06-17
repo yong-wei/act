@@ -2028,9 +2028,13 @@ function refreshPolicyBundlePathStates(
 }
 
 function activePolicyNodeIds(path: AdaptiveLearningPathPlanNode[]): string[] {
-  return path
-    .filter((node) => node.status !== 'completed' && node.status !== 'locked' && node.status !== 'blocked')
-    .map((node) => node.nodeId);
+  const activeNodeIds: string[] = [];
+  for (const node of path) {
+    if (node.status === 'completed') continue;
+    if (node.status === 'locked' || node.status === 'blocked') break;
+    activeNodeIds.push(node.nodeId);
+  }
+  return activeNodeIds;
 }
 
 function lockedPolicyNodeIds(path: AdaptiveLearningPathPlanNode[]): string[] {

@@ -2679,6 +2679,71 @@ describe('adaptive learning path planner', () => {
     }));
   });
 
+  it('stops policy active node collection at locked readiness gates', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'prep',
+          label: '准备资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/prep',
+          knowledgeNodeIds: ['kn-prep'],
+        },
+      ],
+      simulations: [
+        {
+          id: 'locked-sim',
+          title: '缺 readiness 的锁定仿真',
+          launchTarget: '/simulations/locked',
+          knowledgeNodeIds: ['kn-sim'],
+          prerequisiteNodeIds: ['registry:prep'],
+        },
+      ],
+      reflectionPrompts: [
+        {
+          id: 'reflect',
+          title: '后续反思',
+          renderTarget: '/profile/growth?prompt=reflect',
+          knowledgeNodeIds: ['kn-reflect'],
+          prerequisiteNodeIds: ['simulation:locked-sim'],
+        },
+      ],
+      knowledgeNodes: [
+        { id: 'kn-prep', name: '准备资源' },
+        { id: 'kn-sim', name: '锁定仿真' },
+        { id: 'kn-reflect', name: '后续反思' },
+      ],
+    });
+
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'goal-locked-gate-active-policy',
+        title: '锁定门后的 active 状态',
+        knowledgeTargets: ['kn-sim', 'kn-reflect'],
+        competencyTargets: [],
+      },
+      constraints: {
+        timeBudgetMinutes: 120,
+        privacyScopes: ['student-visible'],
+      },
+      policyBundle: {
+        families: ['rules-plus-graph-search'],
+        overlapThreshold: 0.6,
+      },
+    }));
+    const option = plan.policyBundle?.paths.find((path) => path.policyFamily === 'rules-plus-graph-search');
+
+    expect(plan.mainPath.map((node) => [node.nodeId, node.status])).toEqual([
+      ['registry:prep', 'current'],
+      ['simulation:locked-sim', 'locked'],
+      ['reflection_prompt:reflect', 'next'],
+    ]);
+    expect(option?.activeNodeIds).toEqual(['registry:prep']);
+    expect(option?.activeNodeIds).not.toContain('reflection_prompt:reflect');
+    expect(option?.lockedNodeIds).toContain('simulation:locked-sim');
+  });
+
   it('does not unlock readiness-metadata-missing nodes after prerequisite feedback', () => {
     const registry = buildResourceNodeRegistry({
       registeredResources: [
