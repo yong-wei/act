@@ -6,6 +6,11 @@ const mocks = vi.hoisted(() => ({
   selectNextQuestionWithPersistenceFallback: vi.fn(),
   getDiagnosticWithPersistenceFallback: vi.fn(),
   getAbilityReportWithPersistenceFallback: vi.fn(),
+  prisma: {
+    learningPath: {
+      findFirst: vi.fn(),
+    },
+  },
 }));
 
 vi.mock('@/lib/auth', () => ({
@@ -17,6 +22,10 @@ vi.mock('@/features/assessment/adaptive-persistence', () => ({
   selectNextQuestionWithPersistenceFallback: mocks.selectNextQuestionWithPersistenceFallback,
   getDiagnosticWithPersistenceFallback: mocks.getDiagnosticWithPersistenceFallback,
   getAbilityReportWithPersistenceFallback: mocks.getAbilityReportWithPersistenceFallback,
+}));
+
+vi.mock('@/lib/prisma', () => ({
+  prisma: mocks.prisma,
 }));
 
 import { POST as submitAnswer } from '@/app/api/assessment/submit-answer/route';
@@ -75,6 +84,7 @@ describe('assessment API auth boundaries', () => {
         designTheta: 0,
       },
     });
+    mocks.prisma.learningPath.findFirst.mockResolvedValue(null);
   });
 
   it('rejects unauthenticated adaptive answer submissions before persistence', async () => {
@@ -86,6 +96,10 @@ describe('assessment API auth boundaries', () => {
       questionId: 'preset-q-01',
       selectedOption: 'A',
       timeSpent: 12,
+      goalId: 'control-correction',
+      routeIntent: 'path-execution',
+      pathId: 'path-1',
+      nodeId: 'adaptive-quiz:control-target-check',
     });
 
     expect(response.status).toBe(401);
@@ -96,6 +110,43 @@ describe('assessment API auth boundaries', () => {
     mocks.getServerAuthSession.mockResolvedValue({
       user: { id: 'student-1', role: 'STUDENT' },
     });
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      nodeIds: ['adaptive-quiz:control-target-check'],
+      pathPayload: {
+        mainPathNodeIds: ['adaptive-quiz:control-target-check'],
+        planNodes: [{ nodeId: 'adaptive-quiz:control-target-check', type: 'adaptive_quiz' }],
+      },
+    });
+
+    const response = await submitRequest({
+      userId: 'victim-user',
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      questionId: 'preset-q-01',
+      selectedOption: 'A',
+      timeSpent: 12,
+      goalId: 'control-correction',
+      routeIntent: 'path-execution',
+      pathId: 'path-1',
+      nodeId: 'adaptive-quiz:control-target-check',
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.submitAnswerWithPersistenceFallback).toHaveBeenCalledWith(expect.objectContaining({
+      userId: 'student-1',
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      pathContext: {
+        pathId: 'path-1',
+        nodeId: 'adaptive-quiz:control-target-check',
+        goalId: 'control-correction',
+        routeIntent: 'path-execution',
+      },
+    }));
+  });
+
+  it('does not persist submitted path context when the assessment session is not path scoped', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
 
     const response = await submitRequest({
       userId: 'victim-user',
@@ -103,12 +154,69 @@ describe('assessment API auth boundaries', () => {
       questionId: 'preset-q-01',
       selectedOption: 'A',
       timeSpent: 12,
+      goalId: 'control-correction',
+      routeIntent: 'path-execution',
+      pathId: 'path-1',
+      nodeId: 'adaptive-quiz:control-target-check',
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
+    expect(mocks.submitAnswerWithPersistenceFallback).toHaveBeenCalledWith(expect.objectContaining({
+      userId: 'student-1',
+      sessionId: 'session-1',
+      pathContext: undefined,
+    }));
+  });
+
+  it('does not persist path context when goal id is missing', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+
+    const response = await submitRequest({
+      sessionId: 'adaptive-path:path-1:adaptive-quiz:control-target-check',
+      questionId: 'preset-q-01',
+      selectedOption: 'A',
+      timeSpent: 12,
+      routeIntent: 'path-execution',
+      pathId: 'path-1',
+      nodeId: 'adaptive-quiz:control-target-check',
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningPath.findFirst).not.toHaveBeenCalled();
+    expect(mocks.submitAnswerWithPersistenceFallback).toHaveBeenCalledWith(expect.objectContaining({
+      pathContext: undefined,
+    }));
+  });
+
+  it('does not persist path context when the current path node is not an adaptive quiz', async () => {
+    mocks.getServerAuthSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+    mocks.prisma.learningPath.findFirst.mockResolvedValue({
+      nodeIds: ['simulation:cruise'],
+      pathPayload: {
+        mainPathNodeIds: ['simulation:cruise'],
+        planNodes: [{ nodeId: 'simulation:cruise', type: 'simulation' }],
+      },
+    });
+
+    const response = await submitRequest({
+      sessionId: 'adaptive-path:path-1:simulation:cruise',
+      questionId: 'preset-q-01',
+      selectedOption: 'A',
+      timeSpent: 12,
+      goalId: 'control-correction',
+      routeIntent: 'path-execution',
+      pathId: 'path-1',
+      nodeId: 'simulation:cruise',
     });
 
     expect(response.status).toBe(200);
     expect(mocks.submitAnswerWithPersistenceFallback).toHaveBeenCalledWith(expect.objectContaining({
-      userId: 'student-1',
-      sessionId: 'session-1',
+      pathContext: undefined,
     }));
   });
 

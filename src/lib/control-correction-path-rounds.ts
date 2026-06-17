@@ -66,6 +66,17 @@ export interface PathNodeExecutionInput {
   actorRole?: string | null;
 }
 
+export interface PathExecutionResultSummary {
+  state: 'available' | 'pending';
+  kind: 'adaptive-assessment' | 'simulation' | 'control-workbench' | 'arena';
+  label: string;
+  outcomeId?: string;
+  evidenceSource: string;
+  reviewState: 'ready' | 'pending-sync';
+  primaryMetric?: string;
+  occurredAt?: string;
+}
+
 export interface PathDeviationInput {
   pathId: string;
   userId: string;
@@ -906,6 +917,7 @@ export function toControlCorrectionPathRoundView(path: any) {
           resourceType: execution.resourceType,
           status: execution.status,
           activityKind: readPathActivityKind(execution.liftMetadata),
+          resultSummary: buildExecutionResultSummary(execution),
           startedAt: execution.startedAt,
           completedAt: execution.completedAt,
           failedAt: execution.failedAt,
@@ -1045,6 +1057,20 @@ function collectExecutionOutcomeRefs(input: PathNodeExecutionInput): string[] {
   }
   addTrustedOutcomeRef(refs, input.simulationRef);
   addTrustedOutcomeRef(refs, input.arenaRef);
+  const liftMetadata = toRecord(input.liftMetadata);
+  const adaptiveAssessmentRef = toRecord(liftMetadata.adaptiveAssessmentRef);
+  const controlWorkbenchRef = toRecord(liftMetadata.controlWorkbenchRef);
+  addTrustedOutcomeRef(refs, adaptiveAssessmentRef);
+  addTrustedOutcomeRef(refs, controlWorkbenchRef);
+
+  if (input.resourceType === 'adaptive_quiz' && isTrustedAdaptiveAssessmentOutcomeRef(adaptiveAssessmentRef)) {
+    const assessmentId = firstString(
+      adaptiveAssessmentRef.id,
+      adaptiveAssessmentRef.answerId,
+      adaptiveAssessmentRef.sourceId,
+    );
+    if (assessmentId) refs.add(`adaptive_assessment:${normalizeValidationRef(assessmentId)}`);
+  }
 
   if (input.resourceType === 'simulation' && isTrustedSimulationOutcomeRef(input.simulationRef)) {
     const simulationId = firstString(
@@ -1057,6 +1083,20 @@ function collectExecutionOutcomeRefs(input: PathNodeExecutionInput): string[] {
       input.simulationRef?.sourceId,
     );
     if (simulationId) refs.add(`simulation_run:${normalizeValidationRef(simulationId)}`);
+  }
+
+  if (input.resourceType === 'control_workbench' && isTrustedControlWorkbenchOutcomeRef(controlWorkbenchRef)) {
+    const workbenchId = firstString(
+      controlWorkbenchRef.sourceRefId,
+      controlWorkbenchRef.resourceId,
+      controlWorkbenchRef.taskSpecId,
+      controlWorkbenchRef.simulationRunId,
+      controlWorkbenchRef.id,
+      controlWorkbenchRef.ref,
+      controlWorkbenchRef.runId,
+      controlWorkbenchRef.sourceId,
+    );
+    if (workbenchId) refs.add(`control_workbench:${normalizeValidationRef(workbenchId)}`);
   }
 
   if (input.resourceType === 'arena_task' && isTrustedArenaOutcomeRef(input.arenaRef)) {
@@ -1074,10 +1114,35 @@ function collectExecutionOutcomeRefs(input: PathNodeExecutionInput): string[] {
 }
 
 function addTrustedOutcomeRef(refs: Set<string>, value: unknown): void {
-  if (!isTrustedSimulationOutcomeRef(value) && !isTrustedArenaOutcomeRef(value)) return;
+  if (
+    !isTrustedSimulationOutcomeRef(value) &&
+    !isTrustedArenaOutcomeRef(value) &&
+    !isTrustedAdaptiveAssessmentOutcomeRef(value) &&
+    !isTrustedControlWorkbenchOutcomeRef(value)
+  ) return;
   const record = toRecord(value);
   const ref = firstString(record.ref, record.id, record.runId, record.submissionId, record.sourceId, record.sourceEventId);
   if (ref) refs.add(ref);
+}
+
+function isTrustedAdaptiveAssessmentOutcomeRef(value: unknown): boolean {
+  const record = toRecord(value);
+  const kind = firstString(record.kind, record.sourceType);
+  const provenance = readProvenance(record);
+  return kind === 'AdaptiveAssessmentAnswer' &&
+    provenance === 'official' &&
+    firstString(record.id, record.answerId, record.sourceId) !== undefined &&
+    firstString(record.mismatchReason) === undefined;
+}
+
+function isTrustedControlWorkbenchOutcomeRef(value: unknown): boolean {
+  const record = toRecord(value);
+  const kind = firstString(record.kind, record.sourceType);
+  const provenance = readProvenance(record);
+  return kind === 'ControlWorkbenchOutcome' &&
+    (provenance === 'official' || provenance === 'preview') &&
+    firstString(record.mismatchReason) === undefined &&
+    firstString(record.status, record.outcome) === 'completed';
 }
 
 function isTrustedSimulationOutcomeRef(value: unknown): boolean {
@@ -1125,6 +1190,88 @@ function derivePathVisualizationExecutionState(
       completedNodeIds: [...completedNodeIds],
     },
   };
+}
+
+function buildExecutionResultSummary(execution: any): PathExecutionResultSummary | null {
+  if (execution?.status !== 'completed') return null;
+  const resourceType = typeof execution.resourceType === 'string' ? execution.resourceType : '';
+  const metadata = toRecord(execution.liftMetadata);
+  if (resourceType === 'adaptive_quiz') {
+    const ref = toRecord(metadata.adaptiveAssessmentRef);
+    if (!isTrustedAdaptiveAssessmentOutcomeRef(ref)) return pendingResultSummary('adaptive-assessment', '自适应练习结果');
+    return compactObject({
+      state: 'available',
+      kind: 'adaptive-assessment',
+      label: '自适应练习结果',
+      outcomeId: firstString(ref.id, ref.answerId, ref.sourceId),
+      evidenceSource: 'AdaptiveAssessmentAnswer',
+      reviewState: 'ready',
+      primaryMetric: formatResultMetric('得分', readNumber(ref.score)),
+      occurredAt: firstString(ref.answeredAt, ref.completedAt, ref.createdAt),
+    }) as unknown as PathExecutionResultSummary;
+  }
+  if (resourceType === 'control_workbench') {
+    const ref = toRecord(metadata.controlWorkbenchRef);
+    if (!isTrustedControlWorkbenchOutcomeRef(ref)) return pendingResultSummary('control-workbench', '控制工作台结果');
+    return compactObject({
+      state: 'available',
+      kind: 'control-workbench',
+      label: '控制工作台结果',
+      outcomeId: firstString(ref.id, ref.simulationRunId, ref.runId, ref.sourceId),
+      evidenceSource: 'ControlWorkbenchOutcome',
+      reviewState: 'ready',
+      primaryMetric: formatResultMetric('回放可信度', readConfidence(ref.replayConfidence ?? ref.confidence)),
+      occurredAt: firstString(ref.completedAt, ref.createdAt),
+    }) as unknown as PathExecutionResultSummary;
+  }
+  if (resourceType === 'simulation') {
+    const ref = toRecord(execution.simulationRef);
+    if (!isTrustedSimulationOutcomeRef(ref)) return pendingResultSummary('simulation', '仿真结果');
+    return compactObject({
+      state: 'available',
+      kind: 'simulation',
+      label: '仿真结果',
+      outcomeId: firstString(ref.id, ref.runId, ref.sourceId),
+      evidenceSource: 'SimulationRun',
+      reviewState: 'ready',
+      primaryMetric: formatResultMetric('回放可信度', readConfidence(ref.replayConfidence ?? ref.confidence)),
+      occurredAt: firstString(ref.completedAt, ref.createdAt),
+    }) as unknown as PathExecutionResultSummary;
+  }
+  if (resourceType === 'arena_task') {
+    const ref = toRecord(execution.arenaRef);
+    if (!isTrustedArenaOutcomeRef(ref)) return pendingResultSummary('arena', 'Arena 结果');
+    return compactObject({
+      state: 'available',
+      kind: 'arena',
+      label: 'Arena 结果',
+      outcomeId: firstString(ref.id, ref.submissionId, ref.runId, ref.sourceId),
+      evidenceSource: firstString(ref.kind, ref.sourceType) ?? 'ArenaSubmission',
+      reviewState: 'ready',
+      primaryMetric: formatResultMetric('得分', readNumber(ref.score)),
+      occurredAt: firstString(ref.submittedAt, ref.completedAt, ref.createdAt),
+    }) as unknown as PathExecutionResultSummary;
+  }
+  return null;
+}
+
+function pendingResultSummary(
+  kind: PathExecutionResultSummary['kind'],
+  label: string,
+): PathExecutionResultSummary {
+  return {
+    state: 'pending',
+    kind,
+    label,
+    evidenceSource: 'learning-path-execution',
+    reviewState: 'pending-sync',
+  };
+}
+
+function formatResultMetric(label: string, value: number | undefined): string | undefined {
+  if (value === undefined) return undefined;
+  if (value >= 0 && value <= 1) return `${label} ${Math.round(value * 100)}%`;
+  return `${label} ${Math.round(value)}`;
 }
 
 function resolveTerminalValidation(nodes: AdaptiveLearningPathPlanNode[], required = true) {
