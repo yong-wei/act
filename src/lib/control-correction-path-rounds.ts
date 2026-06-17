@@ -564,13 +564,18 @@ export async function updateControlCorrectionPathRoundAfterExecution(
   const failedNodeIds = new Set(arrayOfStrings(metadata.failedNodeIds));
   const skippedNodeIds = new Set(arrayOfStrings(metadata.skippedNodeIds));
   const nonCompletionPathActivity = isNonCompletionPathActivity(activityKind);
+  const availableOutcomeRefs = new Set(arrayOfStrings(metadata.availableOutcomeRefs));
   if (input.status === 'completed' && !nonCompletionPathActivity) completedNodeIds.add(input.nodeId);
+  if (input.status === 'completed' && !nonCompletionPathActivity) {
+    for (const outcomeRef of collectExecutionOutcomeRefs(input)) availableOutcomeRefs.add(outcomeRef);
+  }
   if (input.status === 'failed') failedNodeIds.add(input.nodeId);
   const refreshedPlanNodes = refreshPlanNodesForExecution(
     toRecord(path.pathPayload).planNodes,
     completedNodeIds,
     failedNodeIds,
     null,
+    availableOutcomeRefs,
   );
   const nextNodeId = isHistoricalActivity && activityKind !== 'return-to-skipped'
     ? pathCurrentNodeId
@@ -608,6 +613,7 @@ export async function updateControlCorrectionPathRoundAfterExecution(
           ...metadata,
           completedNodeIds: [...completedNodeIds],
           failedNodeIds: [...failedNodeIds],
+          availableOutcomeRefs: [...availableOutcomeRefs],
         },
         pathPayload: {
           ...toRecord(path.pathPayload),
@@ -619,6 +625,7 @@ export async function updateControlCorrectionPathRoundAfterExecution(
         activeNodeId: nextNodeId,
         completedNodeIds: [...completedNodeIds],
         failedNodeIds: [...failedNodeIds],
+        availableOutcomeRefs: [...availableOutcomeRefs],
         lastExecution: {
           nodeId: input.nodeId,
           status: input.status,
@@ -930,7 +937,14 @@ function derivePathPayloadExecutionState(path: any): unknown {
   const metadata = toRecord(path.lastExecutionMetadata);
   const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
   const failedNodeIds = new Set(arrayOfStrings(metadata.failedNodeIds));
-  const refreshedPlanNodes = refreshPlanNodesForExecution(planNodes, completedNodeIds, failedNodeIds, currentNodeId);
+  const availableOutcomeRefs = new Set(arrayOfStrings(metadata.availableOutcomeRefs));
+  const refreshedPlanNodes = refreshPlanNodesForExecution(
+    planNodes,
+    completedNodeIds,
+    failedNodeIds,
+    currentNodeId,
+    availableOutcomeRefs,
+  );
 
   return {
     ...payload,
@@ -940,6 +954,7 @@ function derivePathPayloadExecutionState(path: any): unknown {
       activeNodeId: currentNodeId,
       completedNodeIds: [...completedNodeIds],
       failedNodeIds: [...failedNodeIds],
+      availableOutcomeRefs: [...availableOutcomeRefs],
     },
     visualization: derivePathVisualizationExecutionState(payload.visualization, currentNodeId, completedNodeIds),
   };
@@ -950,13 +965,14 @@ function refreshPlanNodesForExecution(
   completedNodeIds: Set<string>,
   failedNodeIds: Set<string>,
   currentNodeId: string | null,
+  availableOutcomeRefs: Set<string> = new Set(),
 ): Array<Record<string, unknown>> {
   if (!Array.isArray(planNodes)) return [];
   return planNodes.map((node) => {
     const record = toRecord(node);
     const nodeId = typeof record.nodeId === 'string' ? record.nodeId : null;
     if (!nodeId) return record;
-    const readiness = refreshReadinessRecord(toRecord(record.readiness), completedNodeIds);
+    const readiness = refreshReadinessRecord(toRecord(record.readiness), completedNodeIds, availableOutcomeRefs);
     const readinessState = typeof readiness.state === 'string' ? readiness.state : null;
     if (completedNodeIds.has(nodeId)) return { ...record, readiness, status: 'completed' };
     if (failedNodeIds.has(nodeId)) return { ...record, readiness, status: 'blocked' };
@@ -974,13 +990,15 @@ function refreshPlanNodesForExecution(
 function refreshReadinessRecord(
   readiness: Record<string, unknown>,
   completedNodeIds: Set<string>,
+  availableOutcomeRefs: Set<string>,
 ): Record<string, unknown> {
   const state = typeof readiness.state === 'string' ? readiness.state : null;
   if (!state || state === 'ready') return readiness;
   const missingCompletedNodeIds = arrayOfStrings(readiness.missingCompletedNodeIds)
     .filter((nodeId) => !completedNodeIds.has(nodeId));
   const missingCompetencies = arrayOfStrings(readiness.missingCompetencies);
-  const missingOutcomeRefs = arrayOfStrings(readiness.missingOutcomeRefs);
+  const missingOutcomeRefs = arrayOfStrings(readiness.missingOutcomeRefs)
+    .filter((outcomeRef) => !availableOutcomeRefs.has(outcomeRef));
   const missingEvidenceCount = typeof readiness.missingEvidenceCount === 'number'
     ? Math.max(0, readiness.missingEvidenceCount)
     : 0;
@@ -1008,6 +1026,48 @@ function refreshReadinessRecord(
     missingOutcomeRefs,
     missingEvidenceCount,
   };
+}
+
+function collectExecutionOutcomeRefs(input: PathNodeExecutionInput): string[] {
+  const refs = new Set<string>();
+  for (const ref of input.evidenceRefs ?? []) {
+    addOutcomeRef(refs, ref);
+  }
+  addOutcomeRef(refs, input.simulationRef);
+  addOutcomeRef(refs, input.arenaRef);
+
+  if (input.resourceType === 'simulation') {
+    const simulationId = firstString(
+      input.simulationRef?.id,
+      input.simulationRef?.ref,
+      input.simulationRef?.runId,
+      input.simulationRef?.sourceId,
+    );
+    if (simulationId) refs.add(`simulation_run:${normalizeValidationRef(simulationId)}`);
+  }
+
+  if (input.resourceType === 'arena_task') {
+    const arenaId = firstString(
+      input.arenaRef?.id,
+      input.arenaRef?.ref,
+      input.arenaRef?.submissionId,
+      input.arenaRef?.runId,
+      input.arenaRef?.sourceId,
+    );
+    if (arenaId) refs.add(`arena_submission:${normalizeValidationRef(arenaId)}`);
+  }
+
+  return [...refs];
+}
+
+function addOutcomeRef(refs: Set<string>, value: unknown): void {
+  if (typeof value === 'string' && value.length > 0) {
+    refs.add(value);
+    return;
+  }
+  const record = toRecord(value);
+  const ref = firstString(record.ref, record.id, record.runId, record.submissionId, record.sourceId, record.sourceEventId);
+  if (ref) refs.add(ref);
 }
 
 function isLockedPlanNodeRecord(node: Record<string, unknown>): boolean {

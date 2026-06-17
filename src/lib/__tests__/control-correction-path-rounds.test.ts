@@ -1252,6 +1252,152 @@ describe('control-correction path rounds', () => {
     }));
   });
 
+  it('refreshes outcome-gated readiness after simulation evidence is produced', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'simulation:control-correction-step-response-lab',
+      terminalValidation: { nodeId: 'arena-task:task-second-order-lead-pid', state: 'pending' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'registry:lesson09-correction-precheck',
+          'simulation:control-correction-step-response-lab',
+          'arena-task:task-second-order-lead-pid',
+        ],
+        planNodes: [
+          {
+            nodeId: 'registry:lesson09-correction-precheck',
+            status: 'completed',
+          },
+          {
+            nodeId: 'simulation:control-correction-step-response-lab',
+            status: 'current',
+          },
+          {
+            nodeId: 'arena-task:task-second-order-lead-pid',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+              unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+              reasonCodes: ['readiness-required-outcome'],
+              fallbackNodeIds: ['simulation:control-correction-step-response-lab'],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: ['registry:lesson09-correction-precheck'],
+        failedNodeIds: [],
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'simulation:control-correction-step-response-lab',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'complete-simulation',
+      evidenceRefs: ['simulation_run:control-correction-step-response-lab'],
+      simulationRef: { id: 'control-correction-step-response-lab' },
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'arena-task:task-second-order-lead-pid',
+        pathPayload: expect.objectContaining({
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'arena-task:task-second-order-lead-pid',
+              status: 'current',
+              readiness: expect.objectContaining({ state: 'ready' }),
+            }),
+          ]),
+        }),
+        lastExecutionMetadata: expect.objectContaining({
+          availableOutcomeRefs: expect.arrayContaining(['simulation_run:control-correction-step-response-lab']),
+        }),
+      }),
+    }));
+  });
+
+  it('keeps outcome-gated Arena locked without simulation evidence refs', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'simulation:control-correction-step-response-lab',
+      terminalValidation: { nodeId: 'arena-task:task-second-order-lead-pid', state: 'pending' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'registry:lesson09-correction-precheck',
+          'simulation:control-correction-step-response-lab',
+          'arena-task:task-second-order-lead-pid',
+        ],
+        planNodes: [
+          {
+            nodeId: 'registry:lesson09-correction-precheck',
+            status: 'completed',
+          },
+          {
+            nodeId: 'simulation:control-correction-step-response-lab',
+            status: 'current',
+          },
+          {
+            nodeId: 'arena-task:task-second-order-lead-pid',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+              unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+              reasonCodes: ['readiness-required-outcome'],
+              fallbackNodeIds: ['simulation:control-correction-step-response-lab'],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: ['registry:lesson09-correction-precheck'],
+        failedNodeIds: [],
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'simulation:control-correction-step-response-lab',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'complete-simulation-without-evidence',
+    });
+
+    const updateArg = vi.mocked(db.learningPath.update).mock.calls[0]?.[0];
+    const arenaNode = updateArg.data.pathPayload.planNodes.find((node: any) =>
+      node.nodeId === 'arena-task:task-second-order-lead-pid'
+    );
+
+    expect(updateArg.data.currentNodeId).toBe('simulation:control-correction-step-response-lab');
+    expect(arenaNode).toEqual(expect.objectContaining({
+      status: 'locked',
+      readiness: expect.objectContaining({
+        state: 'locked',
+        missingOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
+      }),
+    }));
+    expect(updateArg.data.lastExecutionMetadata.availableOutcomeRefs ?? [])
+      .not.toContain('simulation_run:control-correction-step-response-lab');
+  });
+
   it('preserves completed terminal validation when reviewing the terminal node', async () => {
     const db = mockDb();
     const completedTerminalValidation = {
