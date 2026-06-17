@@ -738,6 +738,70 @@ describe('adaptive learning path planner', () => {
     );
   });
 
+  it('does not reinsert excluded nodes as control-correction policy support', () => {
+    const bundle = buildControlCorrectionThreeStylePathBundle(plannerInput({
+      registry: buildControlCorrectionResourceNodeRegistry(),
+      goal: {
+        id: 'control-correction',
+        title: '控制系统校正设计',
+        knowledgeTargets: [
+          'control-correction:time-domain-targets',
+          'control-correction:root-locus-design',
+          'control-correction:simulation-validation',
+          'control-correction:arena-transfer',
+        ],
+        competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.3, confidence: 0.7, evidenceCount: 2 },
+            'control-correction:root-locus-design': { posteriorMastery: 0.25, confidence: 0.65, evidenceCount: 2 },
+            'control-correction:simulation-validation': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+            'control-correction:arena-transfer': { posteriorMastery: 0.1, confidence: 0.5, evidenceCount: 0 },
+          },
+        },
+        resourcePreference: {
+          preferredModalities: ['knowledge_card', 'ai_intervention', 'simulation'],
+        },
+        evidence: {
+          confidence: { level: 'medium', score: 0.68, evidenceCount: 8, sourceCompleteness: 0.7 },
+          sourceCoverage: { LearningFact: 'available' },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 100,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+      },
+      excludedNodeIds: ['knowledge-card:control-correction-time-domain-targets'],
+    }));
+
+    expect(bundle.paths.flatMap((path) => path.nodeIds)).not.toContain(
+      'knowledge-card:control-correction-time-domain-targets',
+    );
+  });
+
+  it('keeps persisted current node after skipped nodes during revision planning', () => {
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      constraints: {
+        timeBudgetMinutes: 120,
+        privacyScopes: ['student-visible'],
+        completedNodeIds: ['registry:bode-card'],
+        currentNodeId: 'simulation:cruise',
+      },
+    }));
+
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(expect.arrayContaining([
+      'registry:bode-card',
+      'simulation:cruise',
+    ]));
+    expect(plan.currentNodeId).toBe('simulation:cruise');
+    expect(plan.mainPath.find((node) => node.nodeId === 'simulation:cruise')?.status).toBe('current');
+    expect(plan.mainPath.find((node) => node.nodeId === 'registry:bode-card')?.status).toBe('completed');
+  });
+
   it('does not expose external resources as preference support nodes when the policy disallows them', () => {
     const registry = buildControlCorrectionResourceNodeRegistry();
     const externalSupportNode = buildResourceNodeRegistry({

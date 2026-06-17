@@ -108,6 +108,7 @@ export interface AdaptiveLearningPathConstraints {
   device?: 'desktop' | 'tablet' | 'mobile';
   timelineWindowDays?: 3 | 7 | 14;
   completedNodeIds?: string[];
+  currentNodeId?: string | null;
   availableOutcomeRefs?: string[];
   teacherAssignedNodeIds?: string[];
   requireRiskIntervention?: boolean;
@@ -681,7 +682,7 @@ function buildAdaptiveLearningPathPlanInternal(
     evaluateNodeReadiness(entry.node, input.learnerState, input.constraints, completedNodeIds),
   ]));
   const currentNodeId = plannedEntries.length > 0
-    ? resolveCurrentNodeId(plannedEntries, completedNodeIds, readinessByNodeId)
+    ? resolveCurrentNodeId(plannedEntries, completedNodeIds, readinessByNodeId, input.constraints.currentNodeId)
     : null;
   const mainPath = plannedEntries.length > 0
     ? plannedEntries.map((entry) => toPlanNode(entry, currentNodeId, completedNodeIds, readinessByNodeId.get(entry.node.id)!))
@@ -1439,8 +1440,17 @@ function resolveCurrentNodeId(
   entries: ScoredNode[],
   completedNodeIds: string[],
   readinessByNodeId: Map<string, AdaptiveLearningPathNodeReadiness>,
+  preferredCurrentNodeId?: string | null,
 ): string | null {
   const completed = new Set(completedNodeIds);
+  if (
+    preferredCurrentNodeId &&
+    !completed.has(preferredCurrentNodeId) &&
+    entries.some((entry) => entry.node.id === preferredCurrentNodeId) &&
+    (readinessByNodeId.get(preferredCurrentNodeId)?.state ?? 'ready') === 'ready'
+  ) {
+    return preferredCurrentNodeId;
+  }
   for (const entry of entries) {
     if (completed.has(entry.node.id)) continue;
     return (readinessByNodeId.get(entry.node.id)?.state ?? 'ready') === 'ready'
@@ -2120,7 +2130,9 @@ function selectPolicySupportNodes(
   let remaining = Math.max(0, remainingBudget);
   const deficits = inferDeficits(input.goal, input.learnerState);
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(input.goal.id);
+  const excludedNodeIds = new Set(input.excludedNodeIds ?? []);
   const eligibleIds = new Set(partitionResourceNodes(input.registry.nodes, input.constraints).eligible
+    .filter((node) => !excludedNodeIds.has(node.id))
     .filter((node) => externalResourceAllowed(node, input, registeredGoal))
     .map((node) => node.id));
   const picked: ResourceNode[] = [];
@@ -2128,6 +2140,7 @@ function selectPolicySupportNodes(
     for (const node of candidates) {
       if (picked.length >= limit) break;
       if (selectedIds.has(node.id) || picked.some((item) => item.id === node.id)) continue;
+      if (excludedNodeIds.has(node.id)) continue;
       if (!eligibleIds.has(node.id)) continue;
       if (node.planningMetadata.terminalConstraints.length > 0) continue;
       if (node.planningMetadata.prerequisites.length > 0) continue;

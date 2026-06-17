@@ -6,6 +6,7 @@ import {
   buildKonlingTeachingAssistantRuntimeContract,
   buildKonlingToolRuntime,
   getOrCreateKonlingAgentSession,
+  type KonlingPlanContext,
   KonlingRuntimeScopeError,
   verifyKonlingRuntimeScope,
 } from '@/lib/konling-agent-runtime';
@@ -67,7 +68,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: scopeResult.error }, { status: scopeResult.status });
     }
 
-    const runtimeContext = await buildKonlingRuntimeContext(prisma, {
+    const toolInput = await buildPathAdvisorToolInput(body, goalId, session.user.id);
+    const pathPlanContext = toolInput.pathId
+      ? await readPathAdvisorPlanContext(toolInput.pathId, goalId, session.user.id, classId)
+      : null;
+    const baseRuntimeContext = await buildKonlingRuntimeContext(prisma, {
       authenticatedUserId: session.user.id,
       authenticatedUserName: session.user.name,
       role: session.user.role,
@@ -82,6 +87,9 @@ export async function POST(request: Request) {
       },
       trustedContentContext: true,
     });
+    const runtimeContext = pathPlanContext
+      ? { ...baseRuntimeContext, planContext: pathPlanContext }
+      : baseRuntimeContext;
     const clientContextHints = {
       modeContextToken,
       goalId,
@@ -107,7 +115,6 @@ export async function POST(request: Request) {
       }, { status: 409 });
     }
 
-    const toolInput = await buildPathAdvisorToolInput(body, goalId, session.user.id);
     const agentSession = await getOrCreateKonlingAgentSession(prisma, {
       scope: scopeResult.scope,
       agentSessionId: typeof body.agentSessionId === 'string' ? body.agentSessionId : null,
@@ -205,6 +212,57 @@ async function buildPathAdvisorToolInput(body: Record<string, unknown>, goalId: 
   };
 }
 
+async function readPathAdvisorPlanContext(
+  pathId: string,
+  goalId: string,
+  userId: string,
+  classId: string,
+): Promise<KonlingPlanContext | null> {
+  const path = await (prisma as any).learningPath?.findFirst?.({
+    where: {
+      id: pathId,
+      goalId,
+      userId,
+      classId,
+    },
+    select: {
+      id: true,
+      currentNodeId: true,
+      nodeIds: true,
+      pathPayload: true,
+      lastExecutionMetadata: true,
+    },
+  });
+  if (!path) return null;
+
+  const nodeIds = readStringArray(path.nodeIds);
+  const pathPayload = readRecord(path.pathPayload);
+  const executionStatus = readRecord(pathPayload.executionStatus);
+  const executionMetadata = readRecord(path.lastExecutionMetadata);
+  const completedNodeIds = uniqueStrings([
+    ...readStringArray(executionStatus.completedNodeIds),
+    ...readStringArray(executionMetadata.completedNodeIds),
+  ]).filter((nodeId) => nodeIds.includes(nodeId));
+  const activeNodeId = readString(path.currentNodeId) ??
+    readString(executionStatus.activeNodeId) ??
+    nodeIds.find((nodeId) => !completedNodeIds.includes(nodeId)) ??
+    nodeIds[0] ??
+    null;
+  const activeIndex = activeNodeId ? nodeIds.indexOf(activeNodeId) : -1;
+  const nextNodeIds = activeIndex >= 0
+    ? nodeIds.slice(activeIndex, activeIndex + 3)
+    : nodeIds.slice(0, 3);
+
+  return {
+    currentPathId: readString(path.id) ?? pathId,
+    activeNodeId,
+    nextNodeIds,
+    recentPathIds: [readString(path.id) ?? pathId],
+    completedNodeIds,
+    status: 'available',
+  };
+}
+
 function resolveOptionalCurrentPathStyleId(
   lookup: Map<string, string>,
   styleId: unknown,
@@ -264,4 +322,8 @@ function readRecord(value: unknown): Record<string, unknown> {
 
 function readString(value: unknown): string | null {
   return typeof value === 'string' && value.length > 0 ? value : null;
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return Array.from(new Set(values));
 }

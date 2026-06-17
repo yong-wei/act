@@ -1443,6 +1443,7 @@ async function buildAdaptivePathToolOutput(
       timeBudgetMinutes: timeBudget.effectiveMinutes,
       privacyScopes: ['student-visible'],
       completedNodeIds: input.context.planContext?.completedNodeIds ?? [],
+      currentNodeId: input.context.planContext?.activeNodeId ?? null,
     },
     difficultyRhythm: args.difficultyRhythm ?? registeredGoal.starterPathPolicy.difficultyRhythm,
     resourcePreferences,

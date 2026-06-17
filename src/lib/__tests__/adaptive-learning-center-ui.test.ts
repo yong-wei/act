@@ -632,6 +632,13 @@ describe('adaptive learning center UI contracts', () => {
     expect(routeSource).toContain('resolveOptionalCurrentPathStyleId(pathOptionLookup');
     expect(routeSource).toContain('throw new KonlingRuntimeScopeError(403, `路径选项不属于当前学习路径: ${fieldName}`)');
     expect(routeSource).toContain('requestedAt: typeof body.requestedAt');
+    expect(routeSource).toContain('const pathPlanContext = toolInput.pathId');
+    expect(routeSource).toContain('readPathAdvisorPlanContext(toolInput.pathId, goalId, session.user.id, classId)');
+    expect(routeSource).toContain('? { ...baseRuntimeContext, planContext: pathPlanContext }');
+    expect(routeSource).toContain('lastExecutionMetadata: true');
+    expect(routeSource).toContain('...readStringArray(executionMetadata.completedNodeIds)');
+    expect(readFileSync(join(repoRoot, 'src/lib/konling-agent-runtime.ts'), 'utf8'))
+      .toContain('currentNodeId: input.context.planContext?.activeNodeId ?? null');
   });
 
   it('preserves empty path generation resource preference through goal-change URLs', () => {
