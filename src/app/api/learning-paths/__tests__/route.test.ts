@@ -1825,6 +1825,145 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('adopts legacy product options from node summaries when option plan nodes are absent', async () => {
+    mocks.prisma.learningPath.findUnique
+      .mockResolvedValueOnce({
+        id: 'path-1',
+        userId: 'student-1',
+        classId: 'class-1',
+        goalId: 'control-correction',
+        pathStatus: 'active',
+        currentNodeId: 'node-1',
+        nodeIds: ['node-1'],
+        pathPayload: {
+          mainPathNodeIds: ['node-1'],
+          planNodes: [{ nodeId: 'node-1', type: 'simulation', target: '/simulations/current' }],
+          policyBundle: {
+            status: 'ready',
+            paths: [
+              {
+                styleId: 'legacy-simulation-option',
+                policyFamily: 'simulation-driven',
+                nodeIds: ['simulation:legacy-step-lab', 'arena-task:legacy-terminal'],
+                activeNodeIds: ['simulation:legacy-step-lab'],
+                nodeSummaries: [
+                  {
+                    nodeId: 'simulation:legacy-step-lab',
+                    title: '旧路径仿真节点',
+                    pathNodeType: 'practice',
+                    estimatedTimeMinutes: 20,
+                  },
+                  {
+                    nodeId: 'arena-task:legacy-terminal',
+                    title: '旧路径终端验证',
+                    pathNodeType: 'checkpoint',
+                    estimatedTimeMinutes: 15,
+                  },
+                ],
+                resourceMix: { simulation: 1, arena_task: 1 },
+                evidenceBasis: ['simulation-run'],
+                limitations: [],
+              },
+            ],
+          },
+        },
+        learnerStateRef: 'diagnosis-snapshot:server-owned',
+        inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
+        terminalValidation: { nodeId: 'node-1', state: 'pending' },
+        lastExecutionMetadata: { completedNodeIds: [] },
+      })
+      .mockResolvedValueOnce({
+        pathPayload: {
+          mainPathNodeIds: ['node-1'],
+          planNodes: [{ nodeId: 'node-1', type: 'simulation', target: '/simulations/current' }],
+        },
+        lastExecutionMetadata: { completedNodeIds: [] },
+      });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'choice-legacy-option-key',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'path-1' },
+      data: expect.objectContaining({
+        nodeIds: ['simulation:legacy-step-lab', 'arena-task:legacy-terminal'],
+        currentNodeId: 'simulation:legacy-step-lab',
+        pathPayload: expect.objectContaining({
+          mainPathNodeIds: ['simulation:legacy-step-lab', 'arena-task:legacy-terminal'],
+          planNodes: [
+            expect.objectContaining({
+              nodeId: 'simulation:legacy-step-lab',
+              type: 'simulation',
+              target: '/simulations/legacy-step-lab',
+              status: 'current',
+            }),
+            expect.objectContaining({
+              nodeId: 'arena-task:legacy-terminal',
+              type: 'arena_task',
+              target: '/arena/challenges/legacy-terminal',
+            }),
+          ],
+        }),
+      }),
+    }));
+  });
+
+  it('rejects legacy option summaries when node type cannot be recovered', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1'],
+        planNodes: [{ nodeId: 'node-1', type: 'simulation', target: '/simulations/current' }],
+        policyBundle: {
+          status: 'ready',
+          paths: [
+            {
+              styleId: 'legacy-unknown-option',
+              policyFamily: 'simulation-driven',
+              nodeIds: ['legacy:unknown'],
+              activeNodeIds: ['legacy:unknown'],
+              nodeSummaries: [
+                {
+                  nodeId: 'legacy:unknown',
+                  title: '无法恢复类型的旧节点',
+                  pathNodeType: 'practice',
+                  estimatedTimeMinutes: 10,
+                },
+              ],
+              resourceMix: { simulation: 1 },
+              evidenceBasis: ['simulation-run'],
+              limitations: [],
+            },
+          ],
+        },
+      },
+      learnerStateRef: 'diagnosis-snapshot:server-owned',
+      inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
+      terminalValidation: { nodeId: 'node-1', state: 'pending' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'choice-legacy-unknown-option-key',
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathChoiceEvidence).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
   it('rejects product option adoption when selected plan nodes are not executable', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1',

@@ -128,7 +128,7 @@ function readPathOptions(pathPayload: unknown): Map<string, ServerPathChoiceOpti
     const nodeIds = readStringArray(option.nodeIds);
     if (nodeIds.length === 0) return;
     const optionId = nullableString(option.optionId) ?? `path-option-${index + 1}`;
-    const planNodes = readOptionPlanNodes(option.planNodes, nodeIds, payloadPlanNodesById);
+    const planNodes = readOptionPlanNodes(option, nodeIds, payloadPlanNodesById);
     const serverOption = {
       optionId,
       styleId,
@@ -229,18 +229,66 @@ async function adoptSelectedPathOption(
 }
 
 function readOptionPlanNodes(
-  value: unknown,
+  option: Record<string, unknown>,
   nodeIds: string[],
   fallbackPlanNodesById: Map<string, Record<string, unknown>>,
 ): Array<Record<string, unknown>> {
-  const directPlanNodes = readRecordArray(value);
+  const directPlanNodes = readRecordArray(option.planNodes);
   const directPlanNodesById = new Map(directPlanNodes
     .map((node) => [nullableString(node.nodeId), node] as const)
     .filter((entry): entry is [string, Record<string, unknown>] => Boolean(entry[0])));
   const planNodesById = directPlanNodesById.size > 0 ? directPlanNodesById : fallbackPlanNodesById;
-  return nodeIds
-    .map((nodeId) => planNodesById.get(nodeId))
-    .filter((node): node is Record<string, unknown> => Boolean(node));
+  const summariesByNodeId = new Map(readRecordArray(option.nodeSummaries)
+    .map((summary) => [nullableString(summary.nodeId), summary] as const)
+    .filter((entry): entry is [string, Record<string, unknown>] => Boolean(entry[0])));
+  return nodeIds.map((nodeId, index) => {
+    const existingNode = planNodesById.get(nodeId);
+    if (existingNode) return existingNode;
+    const summary = summariesByNodeId.get(nodeId);
+    return summary ? buildPlanNodeFromOptionSummary(nodeId, summary, index) : null;
+  }).filter((node): node is Record<string, unknown> => Boolean(node));
+}
+
+function buildPlanNodeFromOptionSummary(
+  nodeId: string,
+  summary: Record<string, unknown>,
+  index: number,
+): Record<string, unknown> | null {
+  const inferredType = inferResourceTypeFromOptionNode(nodeId, nullableString(summary.pathNodeType));
+  if (!inferredType) return null;
+  return {
+    nodeId,
+    title: nullableString(summary.title) ?? nullableString(summary.displayName) ?? `学习节点 ${index + 1}`,
+    type: inferredType,
+    pathNodeType: nullableString(summary.pathNodeType) ?? inferredType,
+    target: inferTargetFromOptionNode(nodeId),
+    estimatedTimeMinutes: typeof summary.estimatedTimeMinutes === 'number' ? summary.estimatedTimeMinutes : 0,
+    status: nullableString(summary.status) ?? (index === 0 ? 'current' : 'next'),
+    knowledgeCoverage: [],
+    reasonCodes: ['legacy-option-summary'],
+  };
+}
+
+function inferResourceTypeFromOptionNode(nodeId: string, pathNodeType: string | null): string | null {
+  if (nodeId.startsWith('simulation:')) return 'simulation';
+  if (nodeId.startsWith('arena-task:')) return 'arena_task';
+  if (nodeId.startsWith('adaptive-quiz:')) return 'adaptive_quiz';
+  if (nodeId.startsWith('quiz:')) return 'quiz';
+  if (nodeId.startsWith('control-workbench:')) return 'control_workbench';
+  if (nodeId.startsWith('knowledge-card:')) return 'knowledge_card';
+  if (nodeId.startsWith('knowledge-node:')) return 'knowledge_card';
+  if (nodeId.startsWith('external-resource:')) return 'external_resource';
+  if (nodeId.startsWith('konling:')) return 'konling';
+  if (pathNodeType === 'checkpoint') return 'checkpoint';
+  return null;
+}
+
+function inferTargetFromOptionNode(nodeId: string): string {
+  if (nodeId.startsWith('simulation:')) return `/simulations/${encodeURIComponent(nodeId.slice('simulation:'.length))}`;
+  if (nodeId.startsWith('arena-task:')) return `/arena/challenges/${encodeURIComponent(nodeId.slice('arena-task:'.length))}`;
+  if (nodeId.startsWith('knowledge-card:')) return `/knowledge?node=${encodeURIComponent(nodeId.slice('knowledge-card:'.length))}`;
+  if (nodeId.startsWith('knowledge-node:')) return `/knowledge?node=${encodeURIComponent(nodeId.slice('knowledge-node:'.length))}`;
+  return '/assessment/adaptive-practice';
 }
 
 function normalizeSelectedPlanNodes(
