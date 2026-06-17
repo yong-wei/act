@@ -802,7 +802,7 @@ function pathNodeLaunchAction(
   nodeId: string,
   pathNodeType: string,
   launchContext?: RecommendedPathLaunchContext,
-): Omit<RecommendedPathNodeView['action'], 'label'> {
+): Omit<NonNullable<RecommendedPathNodeView['action']>, 'label'> {
   const href = normalizePathNodeTarget(target);
   if (!launchContext) return { href, method: 'GET' };
   if (pathNodeType === 'external_resource') {

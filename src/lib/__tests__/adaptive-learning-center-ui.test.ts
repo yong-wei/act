@@ -821,6 +821,10 @@ describe('adaptive learning center UI contracts', () => {
             unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
             reasonCodes: ['readiness-minimum-competency'],
             fallbackNodeIds: ['simulation:control-correction-step-response-lab'],
+            missingCompetencies: ['controlModeling'],
+            missingEvidenceCount: 0,
+            missingCompletedNodeIds: [],
+            missingOutcomeRefs: [],
           },
         },
       ],
@@ -849,6 +853,10 @@ describe('adaptive learning center UI contracts', () => {
             unlockMessage: '旧 readiness 尚未刷新。',
             reasonCodes: ['readiness-required-outcome'],
             fallbackNodeIds: [],
+            missingCompetencies: [],
+            missingEvidenceCount: 0,
+            missingCompletedNodeIds: [],
+            missingOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
           },
         },
       ],
@@ -876,6 +884,10 @@ describe('adaptive learning center UI contracts', () => {
             unlockMessage: '等待仿真证据。',
             reasonCodes: ['readiness-required-outcome'],
             fallbackNodeIds: [],
+            missingCompetencies: [],
+            missingEvidenceCount: 0,
+            missingCompletedNodeIds: [],
+            missingOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
           },
         },
       ],
@@ -960,10 +972,14 @@ describe('adaptive learning center UI contracts', () => {
           status: 'ready',
           paths: [
             {
-              styleId: 'empty-low-resource',
+              styleId: 'preference-matched-route',
               policyFamily: 'preference-matched',
               label: '空资源方案',
               nodeIds: [],
+              activeNodeIds: [],
+              lockedNodeIds: [],
+              readinessSummary: [],
+              unlockMessages: [],
               nodeSummaries: [],
               targetDeficits: [],
               evidenceBasis: ['adaptive-learner-state'],
@@ -983,6 +999,10 @@ describe('adaptive learning center UI contracts', () => {
               policyFamily: 'foundation-remediation',
               label: '基础补救',
               nodeIds: ['knowledge-card:targets', 'arena-task:terminal'],
+              activeNodeIds: ['knowledge-card:targets'],
+              lockedNodeIds: [],
+              readinessSummary: [],
+              unlockMessages: [],
               nodeSummaries: [
                 {
                   nodeId: 'knowledge-card:targets',
@@ -1129,6 +1149,10 @@ describe('adaptive learning center UI contracts', () => {
               policyFamily: 'foundation-remediation',
               label: '基础补救',
               nodeIds: ['node-1'],
+              activeNodeIds: ['node-1'],
+              lockedNodeIds: [],
+              readinessSummary: [],
+              unlockMessages: [],
               nodeSummaries: [{
                 nodeId: 'node-1',
                 title: '相位裕度映射练习',
@@ -1223,7 +1247,7 @@ describe('adaptive learning center UI contracts', () => {
       routeIntent: 'path-execution',
     }).nodes[0];
 
-    expect(node.action.href).toBe(
+    expect(node.action?.href).toBe(
       '/assessment/adaptive-practice?pathId=path-1&nodeId=node-1&goal=control-correction&intent=path-execution',
     );
   });
@@ -1288,7 +1312,7 @@ describe('adaptive learning center UI contracts', () => {
         },
       },
     });
-    expect(node.action.href).not.toContain('https://ocw.mit.edu/control/bode');
+    expect(node.action?.href).not.toContain('https://ocw.mit.edu/control/bode');
   });
 
   it('normalizes persisted knowledge card targets before adding control-correction launch context', () => {
@@ -1310,7 +1334,7 @@ describe('adaptive learning center UI contracts', () => {
       routeIntent: 'path-execution',
     }).nodes[0];
 
-    expect(node.action.href).toBe(
+    expect(node.action?.href).toBe(
       '/course-runtime/knowledge/cards/nodes/时域指标到目标极点区域_3_36001.md?pathId=path-1&nodeId=node-1&goal=control-correction&intent=path-execution',
     );
   });

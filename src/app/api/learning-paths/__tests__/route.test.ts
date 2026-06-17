@@ -836,6 +836,78 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('rejects server-owned simulation runs from a different path simulation node', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'simulation:simulation-a',
+      nodeIds: ['simulation:simulation-a', 'simulation:simulation-b', 'arena-task:task-second-order-lead-pid'],
+      pathPayload: {
+        mainPathNodeIds: ['simulation:simulation-a', 'simulation:simulation-b', 'arena-task:task-second-order-lead-pid'],
+        planNodes: [
+          {
+            nodeId: 'simulation:simulation-a',
+            type: 'simulation',
+            target: 'simulation-a',
+            sourceRef: 'simulation-a',
+          },
+          {
+            nodeId: 'simulation:simulation-b',
+            type: 'simulation',
+            target: 'simulation-b',
+            sourceRef: 'simulation-b',
+          },
+          {
+            nodeId: 'arena-task:task-second-order-lead-pid',
+            type: 'arena_task',
+            target: '/arena/challenges/task-second-order-lead-pid',
+          },
+        ],
+      },
+      terminalValidation: {
+        nodeId: 'arena-task:task-second-order-lead-pid',
+        state: 'pending',
+        target: '/arena/challenges/task-second-order-lead-pid',
+      },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue({
+      id: 'sim-run-b',
+      ownerUserId: 'student-1',
+      runKind: 'course_validation',
+      sourceDomain: 'control_workbench',
+      sourceRefId: 'simulation-b',
+      resourceId: 'simulation-b',
+      taskSpecId: null,
+      status: 'completed',
+      summary: { replayConfidence: 0.84 },
+      protocolVersion: '1.0',
+      completedAt: new Date('2026-06-04T09:59:00.000Z'),
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'simulation:simulation-a',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'wrong-simulation-node-outcome',
+      simulationRef: { id: 'sim-run-b' },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      simulationRef: expect.objectContaining({
+        id: 'sim-run-b',
+        provenance: 'unknown',
+        official: false,
+        mismatchReason: 'simulation-scope-mismatch',
+      }),
+      evidenceRefs: [],
+    }));
+  });
+
   it('records completed-node continue and return-to-skipped as governed path activity without opening arbitrary nodes', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1',

@@ -285,6 +285,10 @@ describe('control-correction path rounds', () => {
           policyFamily: 'foundation-remediation',
           label: '基础补救',
           nodeIds: ['knowledge-card:control-correction-time-domain-targets', 'arena-task:task-second-order-lead-pid'],
+          activeNodeIds: ['knowledge-card:control-correction-time-domain-targets'],
+          lockedNodeIds: [],
+          readinessSummary: [],
+          unlockMessages: [],
           nodeSummaries: [
             {
               nodeId: 'knowledge-card:control-correction-time-domain-targets',
@@ -1319,6 +1323,225 @@ describe('control-correction path rounds', () => {
             expect.objectContaining({
               nodeId: 'registry:later-ready-practice',
               status: 'next',
+            }),
+          ]),
+        }),
+      }),
+    }));
+  });
+
+  it('refreshes evidence-count readiness in persisted path payload after a completed evidence event', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'registry:lesson09-correction-precheck',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'registry:lesson09-correction-precheck',
+          'simulation:control-correction-step-response-lab',
+        ],
+        planNodes: [
+          {
+            nodeId: 'registry:lesson09-correction-precheck',
+            status: 'current',
+          },
+          {
+            nodeId: 'simulation:control-correction-step-response-lab',
+            status: 'locked',
+            readiness: {
+              state: 'evidence-needed',
+              message: '还需要一条学习证据。',
+              unlockMessage: '还需要一条学习证据。',
+              reasonCodes: ['readiness-minimum-evidence'],
+              fallbackNodeIds: ['registry:lesson09-correction-precheck'],
+              missingCompetencies: [],
+              missingEvidenceCount: 1,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: [],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: [],
+        failedNodeIds: [],
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'registry:lesson09-correction-precheck',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'complete-evidence-precheck',
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'simulation:control-correction-step-response-lab',
+        lastExecutionMetadata: expect.objectContaining({
+          availableEvidenceCount: 1,
+        }),
+        pathPayload: expect.objectContaining({
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'simulation:control-correction-step-response-lab',
+              status: 'current',
+              readiness: expect.objectContaining({
+                state: 'ready',
+                missingEvidenceCount: 0,
+              }),
+            }),
+          ]),
+        }),
+      }),
+    }));
+  });
+
+  it('does not double-count cumulative evidence when refreshing multi-evidence readiness', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'registry:lesson09-second-evidence',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'registry:lesson09-first-evidence',
+          'registry:lesson09-second-evidence',
+          'arena-task:task-second-order-lead-pid',
+        ],
+        planNodes: [
+          {
+            nodeId: 'registry:lesson09-first-evidence',
+            status: 'completed',
+          },
+          {
+            nodeId: 'registry:lesson09-second-evidence',
+            status: 'current',
+          },
+          {
+            nodeId: 'arena-task:task-second-order-lead-pid',
+            status: 'locked',
+            readiness: {
+              state: 'evidence-needed',
+              message: '还需要两条学习证据。',
+              unlockMessage: '还需要两条学习证据。',
+              reasonCodes: ['readiness-minimum-evidence'],
+              fallbackNodeIds: ['registry:lesson09-second-evidence'],
+              missingCompetencies: [],
+              missingEvidenceCount: 2,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: [],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: ['registry:lesson09-first-evidence'],
+        failedNodeIds: [],
+        availableEvidenceCount: 1,
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'registry:lesson09-second-evidence',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'complete-second-evidence',
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        lastExecutionMetadata: expect.objectContaining({
+          availableEvidenceCount: 2,
+        }),
+        pathPayload: expect.objectContaining({
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'arena-task:task-second-order-lead-pid',
+              status: 'locked',
+              readiness: expect.objectContaining({
+                state: 'evidence-needed',
+                missingEvidenceCount: 1,
+              }),
+            }),
+          ]),
+        }),
+      }),
+    }));
+  });
+
+  it('does not decrement evidence readiness when replaying an already completed node', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'registry:lesson09-second-evidence',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'registry:lesson09-second-evidence',
+          'arena-task:task-second-order-lead-pid',
+        ],
+        planNodes: [
+          {
+            nodeId: 'registry:lesson09-second-evidence',
+            status: 'completed',
+          },
+          {
+            nodeId: 'arena-task:task-second-order-lead-pid',
+            status: 'locked',
+            readiness: {
+              state: 'evidence-needed',
+              message: '还需要一条学习证据。',
+              unlockMessage: '还需要一条学习证据。',
+              reasonCodes: ['readiness-minimum-evidence'],
+              fallbackNodeIds: ['registry:lesson09-second-evidence'],
+              missingCompetencies: [],
+              missingEvidenceCount: 1,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: [],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: ['registry:lesson09-second-evidence'],
+        failedNodeIds: [],
+        availableEvidenceCount: 2,
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'registry:lesson09-second-evidence',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'complete-second-evidence',
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'registry:lesson09-second-evidence',
+        lastExecutionMetadata: expect.objectContaining({
+          availableEvidenceCount: 2,
+        }),
+        pathPayload: expect.objectContaining({
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'arena-task:task-second-order-lead-pid',
+              status: 'locked',
+              readiness: expect.objectContaining({
+                state: 'evidence-needed',
+                missingEvidenceCount: 1,
+              }),
             }),
           ]),
         }),

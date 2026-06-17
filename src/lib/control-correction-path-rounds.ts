@@ -565,6 +565,9 @@ export async function updateControlCorrectionPathRoundAfterExecution(
   const skippedNodeIds = new Set(arrayOfStrings(metadata.skippedNodeIds));
   const nonCompletionPathActivity = isNonCompletionPathActivity(activityKind);
   const availableOutcomeRefs = new Set(arrayOfStrings(metadata.availableOutcomeRefs));
+  const wasCompleted = completedNodeIds.has(input.nodeId);
+  const evidenceReadinessDelta = input.status === 'completed' && !nonCompletionPathActivity && !wasCompleted ? 1 : 0;
+  const availableEvidenceCount = readNonNegativeNumber(metadata.availableEvidenceCount) + evidenceReadinessDelta;
   if (input.status === 'completed' && !nonCompletionPathActivity) completedNodeIds.add(input.nodeId);
   if (input.status === 'completed' && !nonCompletionPathActivity) {
     for (const outcomeRef of collectExecutionOutcomeRefs(input)) availableOutcomeRefs.add(outcomeRef);
@@ -576,6 +579,7 @@ export async function updateControlCorrectionPathRoundAfterExecution(
     failedNodeIds,
     null,
     availableOutcomeRefs,
+    evidenceReadinessDelta,
   );
   const nextNodeId = isHistoricalActivity && activityKind !== 'return-to-skipped'
     ? pathCurrentNodeId
@@ -614,6 +618,7 @@ export async function updateControlCorrectionPathRoundAfterExecution(
           completedNodeIds: [...completedNodeIds],
           failedNodeIds: [...failedNodeIds],
           availableOutcomeRefs: [...availableOutcomeRefs],
+          availableEvidenceCount,
         },
         pathPayload: {
           ...toRecord(path.pathPayload),
@@ -626,6 +631,7 @@ export async function updateControlCorrectionPathRoundAfterExecution(
         completedNodeIds: [...completedNodeIds],
         failedNodeIds: [...failedNodeIds],
         availableOutcomeRefs: [...availableOutcomeRefs],
+        availableEvidenceCount,
         lastExecution: {
           nodeId: input.nodeId,
           status: input.status,
@@ -938,6 +944,7 @@ function derivePathPayloadExecutionState(path: any): unknown {
   const completedNodeIds = new Set(arrayOfStrings(metadata.completedNodeIds));
   const failedNodeIds = new Set(arrayOfStrings(metadata.failedNodeIds));
   const availableOutcomeRefs = new Set(arrayOfStrings(metadata.availableOutcomeRefs));
+  const availableEvidenceCount = readNonNegativeNumber(metadata.availableEvidenceCount);
   const refreshedPlanNodes = refreshPlanNodesForExecution(
     planNodes,
     completedNodeIds,
@@ -955,6 +962,7 @@ function derivePathPayloadExecutionState(path: any): unknown {
       completedNodeIds: [...completedNodeIds],
       failedNodeIds: [...failedNodeIds],
       availableOutcomeRefs: [...availableOutcomeRefs],
+      availableEvidenceCount,
     },
     visualization: derivePathVisualizationExecutionState(payload.visualization, currentNodeId, completedNodeIds),
   };
@@ -966,13 +974,14 @@ function refreshPlanNodesForExecution(
   failedNodeIds: Set<string>,
   currentNodeId: string | null,
   availableOutcomeRefs: Set<string> = new Set(),
+  evidenceReadinessDelta = 0,
 ): Array<Record<string, unknown>> {
   if (!Array.isArray(planNodes)) return [];
   return planNodes.map((node) => {
     const record = toRecord(node);
     const nodeId = typeof record.nodeId === 'string' ? record.nodeId : null;
     if (!nodeId) return record;
-    const readiness = refreshReadinessRecord(toRecord(record.readiness), completedNodeIds, availableOutcomeRefs);
+    const readiness = refreshReadinessRecord(toRecord(record.readiness), completedNodeIds, availableOutcomeRefs, evidenceReadinessDelta);
     const readinessState = typeof readiness.state === 'string' ? readiness.state : null;
     if (completedNodeIds.has(nodeId)) return { ...record, readiness, status: 'completed' };
     if (failedNodeIds.has(nodeId)) return { ...record, readiness, status: 'blocked' };
@@ -991,6 +1000,7 @@ function refreshReadinessRecord(
   readiness: Record<string, unknown>,
   completedNodeIds: Set<string>,
   availableOutcomeRefs: Set<string>,
+  evidenceReadinessDelta: number,
 ): Record<string, unknown> {
   const state = typeof readiness.state === 'string' ? readiness.state : null;
   if (!state || state === 'ready') return readiness;
@@ -1000,7 +1010,7 @@ function refreshReadinessRecord(
   const missingOutcomeRefs = arrayOfStrings(readiness.missingOutcomeRefs)
     .filter((outcomeRef) => !availableOutcomeRefs.has(outcomeRef));
   const missingEvidenceCount = typeof readiness.missingEvidenceCount === 'number'
-    ? Math.max(0, readiness.missingEvidenceCount)
+    ? Math.max(0, readiness.missingEvidenceCount - evidenceReadinessDelta)
     : 0;
   const ready = missingCompletedNodeIds.length === 0 &&
     missingCompetencies.length === 0 &&
@@ -1466,6 +1476,11 @@ function normalizeValidationRef(value: string): string {
 
 function readNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function readNonNegativeNumber(value: unknown): number {
+  const number = readNumber(value);
+  return number === undefined ? 0 : Math.max(0, number);
 }
 
 function readConfidence(value: unknown): number | undefined {

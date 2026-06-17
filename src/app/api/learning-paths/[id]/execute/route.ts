@@ -467,6 +467,7 @@ async function resolveGovernedTerminalEvidence<T extends {
 }
 
 async function resolveGovernedSimulationOutcomeEvidence<T extends {
+  nodeId: string;
   userId: string;
   resourceType: string;
   status: string;
@@ -478,9 +479,7 @@ async function resolveGovernedSimulationOutcomeEvidence<T extends {
   input: T,
 ): Promise<T> {
   if (input.resourceType !== 'simulation' || input.status !== 'completed') return input;
-  const scope = readTerminalEvidenceScope(path, typeof path.terminalValidation?.nodeId === 'string'
-    ? path.terminalValidation.nodeId
-    : input.resourceType);
+  const scope = readSimulationOutcomeEvidenceScope(path, input.nodeId);
   const simulationRef = await resolveServerSimulationRef(db, input.userId, input.simulationRef, scope);
   return {
     ...input,
@@ -658,6 +657,19 @@ function readTerminalEvidenceScope(path: any, nodeId: string): TerminalEvidenceS
     if (id.startsWith('simulation:')) addScopeRef(simulationRefs, id);
   }
   return { arenaTaskId, simulationRefs };
+}
+
+function readSimulationOutcomeEvidenceScope(path: any, nodeId: string): TerminalEvidenceScope {
+  const pathPayload = toRecord(path.pathPayload);
+  const planNodes = Array.isArray(pathPayload.planNodes) ? pathPayload.planNodes.map(toRecord) : [];
+  const node = planNodes.find((item) => item.nodeId === nodeId) ?? {};
+  const simulationRefs = new Set<string>();
+  addScopeRef(simulationRefs, nodeId);
+  addScopeRef(simulationRefs, node.target);
+  addScopeRef(simulationRefs, node.resourceId);
+  addScopeRef(simulationRefs, node.taskSpecId);
+  addScopeRef(simulationRefs, node.sourceRef);
+  return { arenaTaskId: null, simulationRefs };
 }
 
 function matchesExpectedArenaEvidence(record: Record<string, unknown>, scope: TerminalEvidenceScope): boolean {

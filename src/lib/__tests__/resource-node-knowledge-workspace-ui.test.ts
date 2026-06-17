@@ -54,6 +54,7 @@ function resourceNode(overrides: Partial<ResourceNode> = {}): ResourceNode {
       privacyLevel: 'student-visible',
       terminalConstraints: [],
       evidenceInstrumentation: ['simulation-run'],
+      readiness: null,
     },
     sourceOfRecord: {
       content: 'simulation',
