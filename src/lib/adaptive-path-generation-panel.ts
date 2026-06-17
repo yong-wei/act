@@ -61,7 +61,7 @@ export function pathGenerationPanelFromSearchParams(
       ? checkpointPreference
       : defaultPathGenerationPanel.checkpointPreference,
     allowExternalResources: searchParams.get('pathExternal') === '1',
-    naturalLanguageIntent: searchParams.get('pathIntent') ?? '',
+    naturalLanguageIntent: '',
   };
 }
 
@@ -75,6 +75,5 @@ export function buildPathGenerationGoalHref(nextGoal: AdaptivePracticeGoalId, pa
     pathCheckpoint: panel.checkpointPreference,
   });
   if (panel.allowExternalResources) query.set('pathExternal', '1');
-  if (panel.naturalLanguageIntent.trim()) query.set('pathIntent', panel.naturalLanguageIntent.trim());
   return `/assessment/adaptive-practice?${query.toString()}`;
 }

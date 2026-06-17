@@ -656,6 +656,12 @@ export interface KonlingPathOptionContext {
   label: string;
   nodeIds: string[];
   evidenceBasis: string[];
+  lockedNodeIds: string[];
+  readinessSummary: Array<{
+    nodeId: string;
+    state: string;
+    message: string;
+  }>;
   resourceMix: Record<string, number>;
   effort: {
     estimatedMinutes: number;
@@ -1669,6 +1675,8 @@ export function buildStudentSafePathOptions(plan: AdaptiveLearningPathPlan) {
       })),
       targetDeficits: path.targetDeficits.map((target) => target.targetId),
       evidenceBasis: buildStudentSafeEvidenceBasis(path.evidenceBasis),
+      lockedNodeIds: path.lockedNodeIds,
+      readinessSummary: path.readinessSummary,
       limitations: path.limitations,
       terminalValidation: path.terminalValidationStrategy.nodeIds.length > 0
         ? {
@@ -1694,6 +1702,14 @@ export function buildStudentSafePathOptions(plan: AdaptiveLearningPathPlan) {
     evidenceBasis: plan.confidence.level === 'low'
       ? ['当前证据较少，路径会从基础资源开始。']
       : ['路径已结合你的近期学习证据。'],
+    lockedNodeIds: plan.mainPath
+      .filter((node) => node.readiness?.state !== 'ready')
+      .map((node) => node.nodeId),
+    readinessSummary: plan.mainPath.map((node) => ({
+      nodeId: node.nodeId,
+      state: node.readiness?.state ?? 'unknown',
+      message: node.readiness?.message ?? '准备条件待确认。',
+    })),
     limitations: plan.status === 'fallback'
       ? ['当前可用证据或资源不足，建议先完成基础节点。']
       : [],
@@ -4220,6 +4236,12 @@ function readPathOptionContext(pathPayload: Record<string, unknown>): KonlingPat
       label: getString(path, 'label'),
       nodeIds: arrayOfStrings(getValue(path, 'nodeIds')),
       evidenceBasis: arrayOfStrings(getValue(path, 'evidenceBasis')),
+      lockedNodeIds: arrayOfStrings(getValue(path, 'lockedNodeIds')),
+      readinessSummary: arrayOfRecords(getValue(path, 'readinessSummary')).map((item) => ({
+        nodeId: getString(item, 'nodeId'),
+        state: getString(item, 'state') || 'ready',
+        message: getString(item, 'message') || '',
+      })).filter((item) => item.nodeId),
       resourceMix: readNumberRecord(getValue(path, 'resourceMix')),
       effort: {
         estimatedMinutes: getNumber(effort, 'estimatedMinutes'),

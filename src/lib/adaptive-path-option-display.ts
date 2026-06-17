@@ -13,6 +13,12 @@ export type AdaptivePathResourceKind =
 export interface AdaptivePathOptionWriteOption {
   optionId: string;
   label: string;
+  lockedNodeIds: string[];
+  readinessSummary: Array<{
+    nodeId: string;
+    state: string;
+    message: string;
+  }>;
   targetDeficits: Array<Record<string, unknown>>;
   evidenceBasis: string[];
   resourceMix: Record<string, number>;
@@ -119,7 +125,7 @@ export function buildAdaptivePathOptionDisplays(
     estimatedTime: formatEstimatedTime(option),
     resources: buildResourceDisplays(option.resourceMix),
     checkpoints: formatCheckpoints(option),
-    readiness: option.limitations.length > 0 ? '需要先处理限制' : '可立即开始',
+    readiness: formatReadiness(option),
     scenario: option.evidenceBasis.length > 0
       ? `依据 ${option.evidenceBasis.slice(0, 2).join('、')} 生成。`
       : '按当前学习记录生成。',
@@ -154,4 +160,11 @@ function buildResourceDisplays(resourceMix: Record<string, number>): AdaptivePat
 function formatCheckpoints(option: AdaptivePathOptionWriteOption): string {
   const count = option.terminalValidationNodeIds.length;
   return count > 0 ? `${count} 个检查节点` : '检查节点待确认';
+}
+
+function formatReadiness(option: AdaptivePathOptionWriteOption): string {
+  if (option.lockedNodeIds.length > 0) return '包含后续解锁节点';
+  if (option.readinessSummary.some((item) => item.state !== 'ready')) return '需要先满足准备条件';
+  if (option.limitations.length > 0) return '需要先处理限制';
+  return '可立即开始';
 }

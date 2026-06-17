@@ -581,6 +581,47 @@ function resolveAdaptivePracticeGoalId(
   return isAdaptivePracticeGoalId(candidate) ? candidate : fallback;
 }
 
+const pathGenerationPanelSessionPrefix = 'adaptive-path-generation-panel:';
+
+function pathGenerationPanelSessionKey(goalId: AdaptivePracticeGoalId): string {
+  return `${pathGenerationPanelSessionPrefix}${goalId}`;
+}
+
+function storePathGenerationPanelForGoal(goalId: AdaptivePracticeGoalId, panel: PathGenerationPanelState): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.setItem(pathGenerationPanelSessionKey(goalId), JSON.stringify(panel));
+  } catch {
+    // Session storage is best-effort; structured URL fields still survive.
+  }
+}
+
+function takeStoredPathGenerationPanel(goalId: AdaptivePracticeGoalId | null): PathGenerationPanelState | null {
+  if (!goalId || typeof window === 'undefined') return null;
+  const key = pathGenerationPanelSessionKey(goalId);
+  try {
+    const raw = window.sessionStorage.getItem(key);
+    window.sessionStorage.removeItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<PathGenerationPanelState>;
+    if (parsed.goalId !== goalId) return null;
+    return {
+      ...defaultPathGenerationPanel,
+      ...parsed,
+      goalId,
+      resourcePreference: Array.isArray(parsed.resourcePreference)
+        ? parsed.resourcePreference.filter((item): item is AdaptivePathResourceKind =>
+            generationResourceOptions.some((option) => option.id === item))
+        : defaultPathGenerationPanel.resourcePreference,
+      naturalLanguageIntent: typeof parsed.naturalLanguageIntent === 'string'
+        ? parsed.naturalLanguageIntent
+        : '',
+    };
+  } catch {
+    return null;
+  }
+}
+
 function uniquePathIds(pathIds: Array<string | null | undefined>): string[] {
   return Array.from(new Set(pathIds.filter((pathId): pathId is string => Boolean(pathId))));
 }
@@ -714,6 +755,17 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
     return {
       optionId: typeof option.optionId === 'string' ? option.optionId : 'unknown-option',
       label: typeof option.label === 'string' ? option.label : '未命名路径',
+      lockedNodeIds: getStringArray(option.lockedNodeIds),
+      readinessSummary: Array.isArray(option.readinessSummary)
+        ? option.readinessSummary.map((item) => {
+            const readiness = getRecord(item);
+            return {
+              nodeId: typeof readiness.nodeId === 'string' ? readiness.nodeId : 'unknown-node',
+              state: typeof readiness.state === 'string' ? readiness.state : 'ready',
+              message: typeof readiness.message === 'string' ? readiness.message : '',
+            };
+          })
+        : [],
       targetDeficits: Array.isArray(option.targetDeficits)
         ? option.targetDeficits.map(getRecord)
         : [],
@@ -1188,8 +1240,8 @@ export default function AdaptivePracticePage() {
   );
   useEffect(() => {
     setPathAdvisorAgentSessionId(null);
-    setPathGenerationPanel(restoredPathGenerationPanel);
-  }, [restoredPathGenerationPanel]);
+    setPathGenerationPanel(takeStoredPathGenerationPanel(activeGoal) ?? restoredPathGenerationPanel);
+  }, [activeGoal, restoredPathGenerationPanel]);
 
   const handlePathGenerationGoalChange = useCallback((value: string) => {
     const nextGoal = resolveAdaptivePracticeGoalId(value);
@@ -1197,6 +1249,7 @@ export default function AdaptivePracticePage() {
     setPathGenerationPanel((current) => {
       const nextPanel = { ...current, goalId: nextGoal };
       if (nextGoal !== activeGoal) {
+        storePathGenerationPanelForGoal(nextGoal, nextPanel);
         window.location.assign(buildPathGenerationGoalHref(nextGoal, nextPanel));
       }
       return nextPanel;

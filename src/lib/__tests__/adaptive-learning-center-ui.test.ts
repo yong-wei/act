@@ -424,6 +424,8 @@ describe('adaptive learning center UI contracts', () => {
       {
         optionId: 'rules-plus-graph-search-route',
         label: '规则图谱推荐路线',
+        lockedNodeIds: [],
+        readinessSummary: [],
         targetDeficits: [{ targetId: 'phase-margin' }],
         evidenceBasis: ['adaptive-learner-state'],
         resourceMix: { knowledge_card: 1, arena_task: 1 },
@@ -435,6 +437,14 @@ describe('adaptive learning center UI contracts', () => {
       {
         optionId: 'foundation-remediation-route',
         label: '基础补救路线',
+        lockedNodeIds: ['simulation:locked-later'],
+        readinessSummary: [
+          {
+            nodeId: 'simulation:locked-later',
+            state: 'locked',
+            message: '完成前置练习后解锁。',
+          },
+        ],
         targetDeficits: [],
         evidenceBasis: ['LearningFact'],
         resourceMix: { adaptive_quiz: 1 },
@@ -453,6 +463,7 @@ describe('adaptive learning center UI contracts', () => {
     expect(displays[1].writeOption).toBe(options[1]);
     expect(displays[0].id).toBe('rules-plus-graph-search-route');
     expect(displays[0].resources.map((resource) => resource.label)).toEqual(['知识卡', 'Arena']);
+    expect(displays[1].readiness).toBe('包含后续解锁节点');
     expect(preview).toHaveLength(3);
     expect(preview.every((option) => option.writeOption === undefined)).toBe(true);
   });
@@ -597,10 +608,12 @@ describe('adaptive learning center UI contracts', () => {
     expect(pageSource).toContain('const handlePathGenerationGoalChange = useCallback');
     expect(pageSource).toContain('pathGenerationPanelFromSearchParams(new URLSearchParams(searchParamsKey), activeGoal)');
     expect(pageSource).toContain('window.location.assign(buildPathGenerationGoalHref(nextGoal, nextPanel))');
+    expect(pageSource).toContain('storePathGenerationPanelForGoal(nextGoal, nextPanel)');
+    expect(pageSource).toContain('takeStoredPathGenerationPanel(activeGoal) ?? restoredPathGenerationPanel');
     expect(helperSource).toContain('pathTime: String(panel.timeBudgetMinutes)');
     expect(helperSource).toContain('pathResources: panel.resourcePreference.join');
     expect(helperSource).toContain("query.set('pathExternal', '1')");
-    expect(helperSource).toContain("query.set('pathIntent', panel.naturalLanguageIntent.trim())");
+    expect(helperSource).not.toContain('pathIntent');
     expect(pageSource).not.toContain("window.location.assign(`/assessment/adaptive-practice?goal=${nextGoal}&intent=contextual-recommendation`)");
     expect(pageSource).toContain('onChange={(event) => handlePathGenerationGoalChange(event.target.value)}');
     expect(pageSource).toContain("fetch('/api/adaptive/path-advisor-tool'");
@@ -637,13 +650,13 @@ describe('adaptive learning center UI contracts', () => {
     expect(query.has('pathResources')).toBe(true);
     expect(query.get('pathResources')).toBe('');
     expect(query.get('pathExternal')).toBe('1');
-    expect(query.get('pathIntent')).toBe('先补频域证据');
+    expect(query.has('pathIntent')).toBe(false);
     expect(pathGenerationPanelFromSearchParams(query, 'frequency-response-foundations')).toMatchObject({
       goalId: 'frequency-response-foundations',
       timeBudgetMinutes: 45,
       resourcePreference: [],
       allowExternalResources: true,
-      naturalLanguageIntent: '先补频域证据',
+      naturalLanguageIntent: '',
     });
   });
 
@@ -1078,8 +1091,14 @@ describe('adaptive learning center UI contracts', () => {
               label: '基础补救',
               nodeIds: ['knowledge-card:targets', 'arena-task:terminal'],
               activeNodeIds: ['knowledge-card:targets'],
-              lockedNodeIds: [],
-              readinessSummary: [],
+              lockedNodeIds: ['arena-task:terminal'],
+              readinessSummary: [
+                {
+                  nodeId: 'arena-task:terminal',
+                  state: 'locked',
+                  message: '完成目标知识卡后解锁。',
+                },
+              ],
               unlockMessages: [],
               nodeSummaries: [
                 {
@@ -1182,6 +1201,14 @@ describe('adaptive learning center UI contracts', () => {
             }),
           ],
           evidenceBasis: ['学习证据', '练习记录'],
+          lockedNodeIds: ['arena-task:terminal'],
+          readinessSummary: [
+            {
+              nodeId: 'arena-task:terminal',
+              state: 'locked',
+              message: '完成目标知识卡后解锁。',
+            },
+          ],
           terminalValidationNodeIds: ['arena-task:terminal'],
           limitations: ['部分目标还缺少直接证据'],
         },
