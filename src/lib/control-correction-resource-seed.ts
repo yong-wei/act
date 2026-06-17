@@ -18,6 +18,7 @@ const CONTROL_CORRECTION_KNOWLEDGE = {
 } as const;
 
 const CONTROL_CORRECTION_ABILITY_IMPACT = {
+  controlModeling: 0.3,
   parameterDesign: 0.35,
   engineeringDecision: 0.25,
   crossDomainTransfer: 0.25,
@@ -120,6 +121,20 @@ export function buildControlCorrectionResourceSeedInput(
           terminalConstraints: ['transfer-validation'],
           evidenceInstrumentation: ['simulation_run', 'simulation_trace_verified'],
           abilityImpact: CONTROL_CORRECTION_ABILITY_IMPACT,
+          readiness: {
+            minimumCompetency: {
+              controlModeling: 0.35,
+              parameterDesign: 0.25,
+            },
+            minimumEvidenceCount: 2,
+            requiredCompletedNodeIds: ['registry:lesson09-correction-precheck'],
+            requiredOutcomeRefs: [],
+            unlockMessage: '完成控制校正目标前测后进入仿真验证。',
+            fallbackNodeIds: [
+              'registry:lesson09-correction-precheck',
+              'knowledge-card:control-correction-time-domain-targets',
+            ],
+          },
         },
       },
     ],
@@ -140,6 +155,20 @@ export function buildControlCorrectionResourceSeedInput(
           terminalConstraints: ['terminal-node', 'terminal-validation'],
           evidenceInstrumentation: ['arena_evaluation_complete', 'arena_submission_valid'],
           abilityImpact: CONTROL_CORRECTION_ABILITY_IMPACT,
+          readiness: {
+            minimumCompetency: {
+              controlModeling: 0.55,
+              parameterDesign: 0.45,
+            },
+            minimumEvidenceCount: 3,
+            requiredCompletedNodeIds: ['simulation:control-correction-step-response-lab'],
+            requiredOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
+            unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+            fallbackNodeIds: [
+              'simulation:control-correction-step-response-lab',
+              'registry:lesson09-correction-precheck',
+            ],
+          },
         },
       },
     ],

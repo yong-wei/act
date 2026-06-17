@@ -27,4 +27,13 @@ describe('teacher ResourceNode management component safeguards', () => {
     expect(componentSource).toContain('<option value="mapped">已映射</option>');
     expect(componentSource).toContain('<option value="unmapped">未映射</option>');
   });
+
+  it('keeps readiness metadata editable in the teacher planning form', () => {
+    expect(componentSource).toContain('readiness: {');
+    expect(componentSource).toContain("parseNumericRecord(form.get('readinessMinimumCompetency'))");
+    expect(componentSource).toContain("splitCsv(form.get('readinessRequiredCompletedNodeIds'))");
+    expect(componentSource).toContain("splitCsv(form.get('readinessRequiredOutcomeRefs'))");
+    expect(componentSource).toContain('name="readinessUnlockMessage"');
+    expect(componentSource).toContain('Readiness 解锁条件');
+  });
 });

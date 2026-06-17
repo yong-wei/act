@@ -129,7 +129,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
           }
           const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, existingPathNode, executionInput);
           if (governedExternalInput instanceof NextResponse) return governedExternalInput;
-          const governedExecutionInput = await resolveGovernedTerminalEvidence(prisma as any, path, governedExternalInput);
+          const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedExternalInput);
+          const governedExecutionInput = await resolveGovernedTerminalEvidence(prisma as any, path, governedSimulationInput);
           execution = await recordPathNodeExecution(prisma as any, governedExecutionInput);
           if (shouldUpdatePathAfterExecution(path, existingPathNode, governedExecutionInput, existingActivityKind, existingHistoricalActivity)) {
             await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, governedExecutionInput);
@@ -167,7 +168,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     };
     const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, pathNode, externalExecutionInput);
     if (governedExternalInput instanceof NextResponse) return governedExternalInput;
-    const executionInput = await resolveGovernedTerminalEvidence(prisma as any, path, governedExternalInput);
+    const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedExternalInput);
+    const executionInput = await resolveGovernedTerminalEvidence(prisma as any, path, governedSimulationInput);
     const execution = await recordPathNodeExecution(prisma as any, executionInput);
     if (shouldUpdatePathAfterExecution(path, pathNode, executionInput, activityKind, isHistoricalActivity)) {
       await updateControlCorrectionPathRoundAfterExecution(prisma as any, path, executionInput);
@@ -464,6 +466,28 @@ async function resolveGovernedTerminalEvidence<T extends {
   };
 }
 
+async function resolveGovernedSimulationOutcomeEvidence<T extends {
+  nodeId: string;
+  userId: string;
+  resourceType: string;
+  status: string;
+  simulationRef?: Record<string, unknown> | null;
+  evidenceRefs?: unknown[];
+}>(
+  db: any,
+  path: any,
+  input: T,
+): Promise<T> {
+  if (input.resourceType !== 'simulation' || input.status !== 'completed') return input;
+  const scope = readSimulationOutcomeEvidenceScope(path, input.nodeId);
+  const simulationRef = await resolveServerSimulationRef(db, input.userId, input.simulationRef, scope);
+  return {
+    ...input,
+    simulationRef,
+    evidenceRefs: sanitizeSimulationOutcomeEvidenceRefs(input.evidenceRefs, simulationRef),
+  };
+}
+
 async function resolveServerSimulationRef(
   db: any,
   userId: string,
@@ -503,6 +527,9 @@ async function resolveServerSimulationRef(
     id: run.id,
     provenance: run.sourceDomain === 'arena_virtual_preview' || run.runKind === 'arena_preview' ? 'preview' : 'official',
     status: typeof run.status === 'string' ? run.status : undefined,
+    sourceRefId: typeof run.sourceRefId === 'string' ? run.sourceRefId : undefined,
+    resourceId: typeof run.resourceId === 'string' ? run.resourceId : undefined,
+    taskSpecId: typeof run.taskSpecId === 'string' ? run.taskSpecId : undefined,
     replayConfidence: readFinite(summary.replayConfidence ?? summary.confidence),
     protocolVersion: typeof run.protocolVersion === 'string' ? run.protocolVersion : undefined,
     completedAt: run.completedAt instanceof Date ? run.completedAt.toISOString() : undefined,
@@ -632,6 +659,19 @@ function readTerminalEvidenceScope(path: any, nodeId: string): TerminalEvidenceS
   return { arenaTaskId, simulationRefs };
 }
 
+function readSimulationOutcomeEvidenceScope(path: any, nodeId: string): TerminalEvidenceScope {
+  const pathPayload = toRecord(path.pathPayload);
+  const planNodes = Array.isArray(pathPayload.planNodes) ? pathPayload.planNodes.map(toRecord) : [];
+  const node = planNodes.find((item) => item.nodeId === nodeId) ?? {};
+  const simulationRefs = new Set<string>();
+  addScopeRef(simulationRefs, nodeId);
+  addScopeRef(simulationRefs, node.target);
+  addScopeRef(simulationRefs, node.resourceId);
+  addScopeRef(simulationRefs, node.taskSpecId);
+  addScopeRef(simulationRefs, node.sourceRef);
+  return { arenaTaskId: null, simulationRefs };
+}
+
 function matchesExpectedArenaEvidence(record: Record<string, unknown>, scope: TerminalEvidenceScope): boolean {
   if (!scope.arenaTaskId) return true;
   return record.taskId === scope.arenaTaskId;
@@ -709,6 +749,36 @@ function sanitizeTerminalEvidenceRefs(
     safeRefs.push({ kind: typeof arenaRef.kind === 'string' ? arenaRef.kind : 'ArenaSubmission', id: arenaRef.id });
   }
   return safeRefs;
+}
+
+function sanitizeSimulationOutcomeEvidenceRefs(
+  refs: unknown[] | undefined,
+  simulationRef: Record<string, unknown> | null,
+): Array<{ kind: string; id: string }> {
+  const safeRefs = Array.isArray(refs)
+    ? refs
+        .map((item) => {
+          const ref = toRecord(item);
+          const kind = typeof ref.kind === 'string' ? ref.kind : typeof ref.sourceType === 'string' ? ref.sourceType : null;
+          const id = readRefId(ref, ['id', 'ref', 'sourceId']);
+          if (!kind || !id || kind !== 'LearningFact') return null;
+          return { kind, id };
+        })
+        .filter((item): item is { kind: string; id: string } => Boolean(item))
+    : [];
+  if (isTrustedSimulationOutcomeRef(simulationRef) && typeof simulationRef?.id === 'string') {
+    safeRefs.push({ kind: 'SimulationRun', id: simulationRef.id });
+  }
+  return safeRefs;
+}
+
+function isTrustedSimulationOutcomeRef(value: unknown): boolean {
+  const record = toRecord(value);
+  const provenance = firstString(record.provenance, record.evaluationVisibility, record.visibility, record.sourceKind);
+  return firstString(record.kind, record.sourceType) === 'SimulationRun' &&
+    (provenance === 'official' || provenance === 'preview') &&
+    firstString(record.mismatchReason) === null &&
+    firstString(record.status, record.outcome) === 'completed';
 }
 
 function readRefId(ref: Record<string, unknown> | null | undefined, keys: string[]): string | null {

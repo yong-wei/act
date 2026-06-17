@@ -67,7 +67,7 @@ export type LearnerDataRouteIdentity =
   | 'growth-center'
   | 'evidence-browser'
   | 'adaptive-practice';
-export type RecommendedPathNodeState = 'current' | 'completed' | 'blocked' | 'next' | 'optional';
+export type RecommendedPathNodeState = 'current' | 'completed' | 'blocked' | 'next' | 'optional' | 'locked';
 
 export interface AdaptiveLearningCenterStateInput {
   featureFlags: readonly string[];
@@ -237,7 +237,9 @@ export interface RecommendedPathNodeView {
   evidenceLimitation: PlatformSourceCoverageStatus;
   expectedEffort: string;
   sourceContext: string;
-  action: {
+  statusLabel?: string;
+  unlockMessage?: string;
+  action?: {
     href: string;
     label: string;
     method: 'GET' | 'POST';
@@ -499,25 +501,32 @@ export function buildRecommendedPathNodeView(
 ): RecommendedPathNodeViewModel {
   return {
     pathId: pathPlan.id,
-    nodes: pathPlan.mainPath.map((node, index) => ({
-      stage: pathPlan.stage,
-      nodeId: node.nodeId,
-      title: node.title,
-      priority: index + 1,
-      confidence: pathPlan.confidence.level,
-      evidenceLimitation: pathPlan.confidence.sourceCoverage <= 0
-        ? 'missing'
-        : pathPlan.confidence.sourceCoverage >= 0.75
-          ? 'complete'
-          : 'partial',
-      expectedEffort: `${node.estimatedTimeMinutes} 分钟`,
-      sourceContext: `${node.sourceKind}:${node.sourceRef}`,
-      action: {
-        ...pathNodeLaunchAction(node.target, node.nodeId, node.pathNodeType, launchContext),
-        label: pathPlan.currentNodeId === node.nodeId ? '继续当前节点' : '打开路径节点',
-      },
-      state: recommendedNodeState(node.status),
-    })),
+    nodes: pathPlan.mainPath.map((node, index) => {
+      const state = recommendedNodeState(node.status, node.readiness?.state);
+      return {
+        stage: pathPlan.stage,
+        nodeId: node.nodeId,
+        title: node.title,
+        priority: index + 1,
+        confidence: pathPlan.confidence.level,
+        evidenceLimitation: pathPlan.confidence.sourceCoverage <= 0
+          ? 'missing'
+          : pathPlan.confidence.sourceCoverage >= 0.75
+            ? 'complete'
+            : 'partial',
+        expectedEffort: `${node.estimatedTimeMinutes} 分钟`,
+        sourceContext: `${node.sourceKind}:${node.sourceRef}`,
+        statusLabel: state === 'locked' ? '稍后解锁' : undefined,
+        unlockMessage: node.readiness?.unlockMessage ?? undefined,
+        action: state === 'locked'
+          ? undefined
+          : {
+              ...pathNodeLaunchAction(node.target, node.nodeId, node.pathNodeType, launchContext),
+              label: pathPlan.currentNodeId === node.nodeId ? '继续当前节点' : '打开路径节点',
+            },
+        state,
+      };
+    }),
   };
 }
 
@@ -538,7 +547,7 @@ export function buildControlCorrectionLearningCenterView(
         routeIntent,
       }).nodes
     : [];
-  const nextNode = pathNodes.find((node) => node.state === 'current') ?? pathNodes[0] ?? null;
+  const nextNode = selectNextRecommendedPathActionNode(pathNodes);
   const evidencePanel = baseView.panels.find((panel) => panel.region === 'evidence') ?? fallbackPanel('evidence');
   const konlingDock = baseView.panels.find((panel) => panel.region === 'konling') ?? konlingPanel(input.konling ?? null);
   const currentPath = baseView.panels.find((panel) => panel.region === 'current-path') ?? currentPathPanel(pathPlan);
@@ -574,11 +583,11 @@ export function buildControlCorrectionLearningCenterView(
     nextAction: {
       nodeId: nextNode?.nodeId ?? null,
       title: nextNode?.title ?? `生成${goalLabel}学习路径`,
-      href: nextNode?.action.href ?? `/assessment/adaptive-practice?goal=${encodeURIComponent(goalId)}&intent=${routeIntent}`,
-      method: nextNode?.action.method ?? 'GET',
-      body: nextNode?.action.body,
-      redirectHref: nextNode?.action.redirectHref,
-      completionAction: nextNode?.action.completionAction,
+      href: nextNode?.action?.href ?? `/assessment/adaptive-practice?goal=${encodeURIComponent(goalId)}&intent=${routeIntent}`,
+      method: nextNode?.action?.method ?? 'GET',
+      body: nextNode?.action?.body,
+      redirectHref: nextNode?.action?.redirectHref,
+      completionAction: nextNode?.action?.completionAction,
       confidence: nextNode?.confidence ?? 'unknown',
       evidenceLimitation: nextNode?.evidenceLimitation ?? 'missing',
     },
@@ -607,6 +616,17 @@ export function buildControlCorrectionLearningCenterView(
         }))
       : [],
   };
+}
+
+function selectNextRecommendedPathActionNode(
+  nodes: RecommendedPathNodeView[],
+): RecommendedPathNodeView | null {
+  for (const node of nodes) {
+    if (node.state === 'completed') continue;
+    if (node.state === 'locked' || node.state === 'blocked') return null;
+    if (node.action) return node;
+  }
+  return null;
 }
 
 function formatAdaptivePathGoalLabel(goalId: string): string {
@@ -749,8 +769,15 @@ function adaptiveStatusSummary(input: AdaptiveClaimStatusInput): string {
   return limits.length > 0 ? limits.join('；') : '自适应声明证据完整且可展示。';
 }
 
-function recommendedNodeState(status: AdaptiveLearningPathPlan['mainPath'][number]['status']): RecommendedPathNodeState {
-  if (status === 'current' || status === 'completed' || status === 'blocked' || status === 'next') return status;
+function recommendedNodeState(
+  status: AdaptiveLearningPathPlan['mainPath'][number]['status'],
+  readinessState?: string,
+): RecommendedPathNodeState {
+  if (status === 'completed' || status === 'blocked' || status === 'locked') {
+    return status;
+  }
+  if (readinessState && readinessState !== 'ready') return 'locked';
+  if (status === 'current' || status === 'next') return status;
   return 'optional';
 }
 
@@ -775,7 +802,7 @@ function pathNodeLaunchAction(
   nodeId: string,
   pathNodeType: string,
   launchContext?: RecommendedPathLaunchContext,
-): Omit<RecommendedPathNodeView['action'], 'label'> {
+): Omit<NonNullable<RecommendedPathNodeView['action']>, 'label'> {
   const href = normalizePathNodeTarget(target);
   if (!launchContext) return { href, method: 'GET' };
   if (pathNodeType === 'external_resource') {

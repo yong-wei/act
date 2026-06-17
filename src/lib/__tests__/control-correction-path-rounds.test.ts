@@ -2,8 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 
 import {
   ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES,
+  buildAdaptiveLearningPathPlan,
   type AdaptiveLearningPathPlan,
 } from '../adaptive-learning-path-planner';
+import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
 import {
   getPathNodeSemanticsForResourceType,
   type ResourceNodeType,
@@ -283,6 +285,10 @@ describe('control-correction path rounds', () => {
           policyFamily: 'foundation-remediation',
           label: '基础补救',
           nodeIds: ['knowledge-card:control-correction-time-domain-targets', 'arena-task:task-second-order-lead-pid'],
+          activeNodeIds: ['knowledge-card:control-correction-time-domain-targets'],
+          lockedNodeIds: [],
+          readinessSummary: [],
+          unlockMessages: [],
           nodeSummaries: [
             {
               nodeId: 'knowledge-card:control-correction-time-domain-targets',
@@ -847,6 +853,148 @@ describe('control-correction path rounds', () => {
     }));
   });
 
+  it('persists locked future milestones but rejects locked current nodes', async () => {
+    const db = mockDb();
+    const plan = samplePlan();
+    plan.mainPath[1] = {
+      ...plan.mainPath[1],
+      status: 'locked',
+      readiness: {
+        state: 'locked',
+        message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+        unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+        reasonCodes: ['readiness-required-outcome'],
+        fallbackNodeIds: ['simulation:control-correction-step-response-lab'],
+        missingCompetencies: [],
+        missingEvidenceCount: 0,
+        missingCompletedNodeIds: ['simulation:control-correction-step-response-lab'],
+        missingOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
+      },
+    };
+
+    await persistControlCorrectionPathRound(db, { plan });
+
+    expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        currentNodeId: 'knowledge-card:control-correction-time-domain-targets',
+      }),
+    }));
+
+    const invalid = samplePlan();
+    invalid.currentNodeId = 'arena-task:task-second-order-lead-pid';
+    invalid.mainPath[1] = {
+      ...invalid.mainPath[1],
+      status: 'locked',
+      readiness: plan.mainPath[1].readiness,
+    };
+
+    await expect(persistControlCorrectionPathRound(mockDb(), {
+      plan: invalid,
+    })).rejects.toBeInstanceOf(ControlCorrectionPathRoundValidationError);
+  });
+
+  it('persists the real readiness-gated control-correction planner output', async () => {
+    const db = mockDb();
+    const plan = buildAdaptiveLearningPathPlan({
+      studentId: 'student-1',
+      goal: {
+        id: 'control-correction',
+        title: '控制校正',
+        knowledgeTargets: [
+          'control-correction:time-domain-targets',
+          'control-correction:root-locus-design',
+          'control-correction:simulation-validation',
+          'control-correction:arena-transfer',
+        ],
+        competencyTargets: ['controlModeling', 'parameterDesign'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.1, confidence: 0.4, evidenceCount: 1 },
+            'control-correction:root-locus-design': { posteriorMastery: 0.1, confidence: 0.4, evidenceCount: 1 },
+            'control-correction:simulation-validation': { posteriorMastery: 0, confidence: 0.2, evidenceCount: 0 },
+            'control-correction:arena-transfer': { posteriorMastery: 0, confidence: 0.2, evidenceCount: 0 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            controlModeling: { score: 0, confidence: 0.2, evidenceCount: 0 },
+            parameterDesign: { score: 0, confidence: 0.2, evidenceCount: 0 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'low',
+            score: 0.2,
+            evidenceCount: 1,
+            sourceCompleteness: 0.2,
+          },
+          sourceCoverage: {
+            LearningFact: 'partial',
+          },
+        },
+      },
+      registry: buildControlCorrectionResourceNodeRegistry(),
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+        completedNodeIds: [],
+        availableOutcomeRefs: [],
+      },
+    });
+
+    expect(plan.mainPath).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        nodeId: 'registry:lesson09-correction-precheck',
+        type: 'quiz',
+        status: 'current',
+      }),
+      expect.objectContaining({
+        nodeId: 'simulation:control-correction-step-response-lab',
+        status: 'locked',
+      }),
+    ]));
+
+    await persistControlCorrectionPathRound(db, { plan });
+
+    expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      create: expect.objectContaining({
+        currentNodeId: 'registry:lesson09-correction-precheck',
+        pathPayload: expect.objectContaining({
+          mainPathNodeIds: expect.arrayContaining([
+            'registry:lesson09-correction-precheck',
+            'simulation:control-correction-step-response-lab',
+          ]),
+        }),
+      }),
+    }));
+  });
+
+  it('rejects a current node whose readiness state is not ready', async () => {
+    const plan = samplePlan();
+    plan.currentNodeId = 'knowledge-card:control-correction-time-domain-targets';
+    plan.mainPath[0] = {
+      ...plan.mainPath[0],
+      status: 'current',
+      readiness: {
+        state: 'locked',
+        message: '完成准备节点后会自动解锁。',
+        unlockMessage: '完成准备节点后会自动解锁。',
+        reasonCodes: ['readiness-required-completion'],
+        fallbackNodeIds: [],
+        missingCompetencies: [],
+        missingEvidenceCount: 0,
+        missingCompletedNodeIds: ['registry:lesson09-correction-precheck'],
+        missingOutcomeRefs: [],
+      },
+    };
+
+    await expect(persistControlCorrectionPathRound(mockDb(), {
+      plan,
+    })).rejects.toBeInstanceOf(ControlCorrectionPathRoundValidationError);
+  });
+
   it('rejects control-correction external resources scoped to another goal', async () => {
     const db = mockDb();
     const plan = samplePlan();
@@ -1037,6 +1185,522 @@ describe('control-correction path rounds', () => {
         }),
       }),
     }));
+  });
+
+  it('refreshes locked readiness in persisted path payload after completing a preparation node', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'registry:lesson09-correction-precheck',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'registry:lesson09-correction-precheck',
+          'simulation:control-correction-step-response-lab',
+        ],
+        planNodes: [
+          {
+            nodeId: 'registry:lesson09-correction-precheck',
+            status: 'current',
+          },
+          {
+            nodeId: 'simulation:control-correction-step-response-lab',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: '完成控制校正目标前测后进入仿真验证。',
+              unlockMessage: '完成控制校正目标前测后进入仿真验证。',
+              reasonCodes: ['readiness-required-completion'],
+              fallbackNodeIds: ['registry:lesson09-correction-precheck'],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingCompletedNodeIds: ['registry:lesson09-correction-precheck'],
+              missingOutcomeRefs: [],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: [],
+        failedNodeIds: [],
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'registry:lesson09-correction-precheck',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'complete-precheck',
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'simulation:control-correction-step-response-lab',
+        pathPayload: expect.objectContaining({
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'registry:lesson09-correction-precheck',
+              status: 'completed',
+            }),
+            expect.objectContaining({
+              nodeId: 'simulation:control-correction-step-response-lab',
+              status: 'current',
+              readiness: expect.objectContaining({ state: 'ready' }),
+            }),
+          ]),
+        }),
+      }),
+    }));
+  });
+
+  it('does not advance currentNodeId beyond a locked pending path node', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'registry:lesson09-correction-precheck',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'registry:lesson09-correction-precheck',
+          'simulation:control-correction-step-response-lab',
+          'registry:later-ready-practice',
+        ],
+        planNodes: [
+          {
+            nodeId: 'registry:lesson09-correction-precheck',
+            status: 'current',
+          },
+          {
+            nodeId: 'simulation:control-correction-step-response-lab',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: '等待仿真证据。',
+              unlockMessage: '等待仿真证据。',
+              reasonCodes: ['readiness-required-outcome'],
+              fallbackNodeIds: ['registry:lesson09-correction-precheck'],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
+            },
+          },
+          {
+            nodeId: 'registry:later-ready-practice',
+            status: 'next',
+            readiness: { state: 'ready' },
+          },
+        ],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: [],
+        failedNodeIds: [],
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'registry:lesson09-correction-precheck',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'complete-precheck-before-locked-node',
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'registry:lesson09-correction-precheck',
+        pathPayload: expect.objectContaining({
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'simulation:control-correction-step-response-lab',
+              status: 'locked',
+            }),
+            expect.objectContaining({
+              nodeId: 'registry:later-ready-practice',
+              status: 'next',
+            }),
+          ]),
+        }),
+      }),
+    }));
+  });
+
+  it('refreshes evidence-count readiness in persisted path payload after a completed evidence event', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'registry:lesson09-correction-precheck',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'registry:lesson09-correction-precheck',
+          'simulation:control-correction-step-response-lab',
+        ],
+        planNodes: [
+          {
+            nodeId: 'registry:lesson09-correction-precheck',
+            status: 'current',
+          },
+          {
+            nodeId: 'simulation:control-correction-step-response-lab',
+            status: 'locked',
+            readiness: {
+              state: 'evidence-needed',
+              message: '还需要一条学习证据。',
+              unlockMessage: '还需要一条学习证据。',
+              reasonCodes: ['readiness-minimum-evidence'],
+              fallbackNodeIds: ['registry:lesson09-correction-precheck'],
+              missingCompetencies: [],
+              missingEvidenceCount: 1,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: [],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: [],
+        failedNodeIds: [],
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'registry:lesson09-correction-precheck',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'complete-evidence-precheck',
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'simulation:control-correction-step-response-lab',
+        lastExecutionMetadata: expect.objectContaining({
+          availableEvidenceCount: 1,
+        }),
+        pathPayload: expect.objectContaining({
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'simulation:control-correction-step-response-lab',
+              status: 'current',
+              readiness: expect.objectContaining({
+                state: 'ready',
+                missingEvidenceCount: 0,
+              }),
+            }),
+          ]),
+        }),
+      }),
+    }));
+  });
+
+  it('does not double-count cumulative evidence when refreshing multi-evidence readiness', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'registry:lesson09-second-evidence',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'registry:lesson09-first-evidence',
+          'registry:lesson09-second-evidence',
+          'arena-task:task-second-order-lead-pid',
+        ],
+        planNodes: [
+          {
+            nodeId: 'registry:lesson09-first-evidence',
+            status: 'completed',
+          },
+          {
+            nodeId: 'registry:lesson09-second-evidence',
+            status: 'current',
+          },
+          {
+            nodeId: 'arena-task:task-second-order-lead-pid',
+            status: 'locked',
+            readiness: {
+              state: 'evidence-needed',
+              message: '还需要两条学习证据。',
+              unlockMessage: '还需要两条学习证据。',
+              reasonCodes: ['readiness-minimum-evidence'],
+              fallbackNodeIds: ['registry:lesson09-second-evidence'],
+              missingCompetencies: [],
+              missingEvidenceCount: 2,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: [],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: ['registry:lesson09-first-evidence'],
+        failedNodeIds: [],
+        availableEvidenceCount: 1,
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'registry:lesson09-second-evidence',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'complete-second-evidence',
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        lastExecutionMetadata: expect.objectContaining({
+          availableEvidenceCount: 2,
+        }),
+        pathPayload: expect.objectContaining({
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'arena-task:task-second-order-lead-pid',
+              status: 'locked',
+              readiness: expect.objectContaining({
+                state: 'evidence-needed',
+                missingEvidenceCount: 1,
+              }),
+            }),
+          ]),
+        }),
+      }),
+    }));
+  });
+
+  it('does not decrement evidence readiness when replaying an already completed node', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'registry:lesson09-second-evidence',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'registry:lesson09-second-evidence',
+          'arena-task:task-second-order-lead-pid',
+        ],
+        planNodes: [
+          {
+            nodeId: 'registry:lesson09-second-evidence',
+            status: 'completed',
+          },
+          {
+            nodeId: 'arena-task:task-second-order-lead-pid',
+            status: 'locked',
+            readiness: {
+              state: 'evidence-needed',
+              message: '还需要一条学习证据。',
+              unlockMessage: '还需要一条学习证据。',
+              reasonCodes: ['readiness-minimum-evidence'],
+              fallbackNodeIds: ['registry:lesson09-second-evidence'],
+              missingCompetencies: [],
+              missingEvidenceCount: 1,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: [],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: ['registry:lesson09-second-evidence'],
+        failedNodeIds: [],
+        availableEvidenceCount: 2,
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'registry:lesson09-second-evidence',
+      resourceType: 'quiz',
+      status: 'completed',
+      idempotencyKey: 'complete-second-evidence',
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'registry:lesson09-second-evidence',
+        lastExecutionMetadata: expect.objectContaining({
+          availableEvidenceCount: 2,
+        }),
+        pathPayload: expect.objectContaining({
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'arena-task:task-second-order-lead-pid',
+              status: 'locked',
+              readiness: expect.objectContaining({
+                state: 'evidence-needed',
+                missingEvidenceCount: 1,
+              }),
+            }),
+          ]),
+        }),
+      }),
+    }));
+  });
+
+  it('refreshes outcome-gated readiness after simulation evidence is produced', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'simulation:control-correction-step-response-lab',
+      terminalValidation: { nodeId: 'arena-task:task-second-order-lead-pid', state: 'pending' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'registry:lesson09-correction-precheck',
+          'simulation:control-correction-step-response-lab',
+          'arena-task:task-second-order-lead-pid',
+        ],
+        planNodes: [
+          {
+            nodeId: 'registry:lesson09-correction-precheck',
+            status: 'completed',
+          },
+          {
+            nodeId: 'simulation:control-correction-step-response-lab',
+            status: 'current',
+          },
+          {
+            nodeId: 'arena-task:task-second-order-lead-pid',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+              unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+              reasonCodes: ['readiness-required-outcome'],
+              fallbackNodeIds: ['simulation:control-correction-step-response-lab'],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: ['registry:lesson09-correction-precheck'],
+        failedNodeIds: [],
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'simulation:control-correction-step-response-lab',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'complete-simulation',
+      evidenceRefs: [{ kind: 'SimulationRun', id: 'sim-run-1' }],
+      simulationRef: {
+        kind: 'SimulationRun',
+        id: 'sim-run-1',
+        sourceRefId: 'control-correction-step-response-lab',
+        provenance: 'official',
+        status: 'completed',
+      },
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'arena-task:task-second-order-lead-pid',
+        pathPayload: expect.objectContaining({
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'arena-task:task-second-order-lead-pid',
+              status: 'current',
+              readiness: expect.objectContaining({ state: 'ready' }),
+            }),
+          ]),
+        }),
+        lastExecutionMetadata: expect.objectContaining({
+          availableOutcomeRefs: expect.arrayContaining(['simulation_run:control-correction-step-response-lab']),
+        }),
+      }),
+    }));
+  });
+
+  it('keeps outcome-gated Arena locked with ungoverned client simulation refs', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'simulation:control-correction-step-response-lab',
+      terminalValidation: { nodeId: 'arena-task:task-second-order-lead-pid', state: 'pending' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'registry:lesson09-correction-precheck',
+          'simulation:control-correction-step-response-lab',
+          'arena-task:task-second-order-lead-pid',
+        ],
+        planNodes: [
+          {
+            nodeId: 'registry:lesson09-correction-precheck',
+            status: 'completed',
+          },
+          {
+            nodeId: 'simulation:control-correction-step-response-lab',
+            status: 'current',
+          },
+          {
+            nodeId: 'arena-task:task-second-order-lead-pid',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+              unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+              reasonCodes: ['readiness-required-outcome'],
+              fallbackNodeIds: ['simulation:control-correction-step-response-lab'],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingCompletedNodeIds: [],
+              missingOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: ['registry:lesson09-correction-precheck'],
+        failedNodeIds: [],
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'simulation:control-correction-step-response-lab',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'complete-simulation-with-ungoverned-evidence',
+      evidenceRefs: ['simulation_run:control-correction-step-response-lab'],
+      simulationRef: { id: 'control-correction-step-response-lab' },
+    });
+
+    const updateArg = vi.mocked(db.learningPath.update).mock.calls[0]?.[0];
+    const arenaNode = updateArg.data.pathPayload.planNodes.find((node: any) =>
+      node.nodeId === 'arena-task:task-second-order-lead-pid'
+    );
+
+    expect(updateArg.data.currentNodeId).toBe('simulation:control-correction-step-response-lab');
+    expect(arenaNode).toEqual(expect.objectContaining({
+      status: 'locked',
+      readiness: expect.objectContaining({
+        state: 'locked',
+        missingOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
+      }),
+    }));
+    expect(updateArg.data.lastExecutionMetadata.availableOutcomeRefs ?? [])
+      .not.toContain('simulation_run:control-correction-step-response-lab');
   });
 
   it('preserves completed terminal validation when reviewing the terminal node', async () => {

@@ -227,6 +227,26 @@ describe('resource node registry', () => {
       .toContain('transfer-validation');
     expect(registry.nodes.find((node) => node.id === 'arena-task:task-second-order-lead-pid')?.planningMetadata.terminalConstraints)
       .toContain('terminal-validation');
+    expect(registry.nodes.find((node) => node.id === 'simulation:control-correction-step-response-lab')?.planningMetadata.readiness)
+      .toMatchObject({
+        minimumCompetency: {
+          controlModeling: expect.any(Number),
+          parameterDesign: expect.any(Number),
+        },
+        minimumEvidenceCount: expect.any(Number),
+        requiredCompletedNodeIds: ['registry:lesson09-correction-precheck'],
+      });
+    expect(registry.nodes.find((node) => node.id === 'arena-task:task-second-order-lead-pid')?.planningMetadata.readiness)
+      .toMatchObject({
+        minimumCompetency: {
+          controlModeling: expect.any(Number),
+          parameterDesign: expect.any(Number),
+        },
+        minimumEvidenceCount: expect.any(Number),
+        requiredCompletedNodeIds: ['simulation:control-correction-step-response-lab'],
+        requiredOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
+        unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+      });
   });
 
   it('keeps incomplete control-correction seed fixtures out of path eligibility', () => {
@@ -243,6 +263,30 @@ describe('resource node registry', () => {
     }));
     expect(registry.nodes.find((node) => node.id === 'registry:control-correction-invalid-quiz')?.eligibility.pathEligible)
       .toBe(false);
+  });
+
+  it('audits empty readiness metadata on high-complexity path nodes as missing', () => {
+    const registry = buildResourceNodeRegistry({
+      simulations: [
+        {
+          id: 'empty-readiness',
+          title: '空 readiness 仿真',
+          launchTarget: '/simulations/empty-readiness',
+          knowledgeNodeIds: ['kn-bode'],
+          planningOverride: {
+            cognitiveLoad: 'high',
+            evidenceInstrumentation: ['simulation_run'],
+            readiness: {} as any,
+          },
+        },
+      ],
+    });
+
+    expect(registry.nodes.find((node) => node.id === 'simulation:empty-readiness')?.eligibility.auditIssues)
+      .toContainEqual(expect.objectContaining({
+        code: 'missing-readiness-metadata',
+        severity: 'warning',
+      }));
   });
 
   it('can require evidence instrumentation as a blocking audit gate without changing the default registry policy', () => {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import type { Prisma } from '@prisma/client';
 
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -112,7 +113,7 @@ export async function PATCH(
         ...(patchResult.persistablePatch.description !== undefined
           ? { description: patchResult.persistablePatch.description }
           : {}),
-        config: nextConfig,
+        config: nextConfig as Prisma.InputJsonValue,
       },
       include: {
         knowledgeNodes: {

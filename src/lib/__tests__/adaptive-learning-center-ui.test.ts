@@ -618,7 +618,9 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('setSelectedPathNodeId(item.nodeId)');
     expect(source).toContain('currentPathNode?.title');
     expect(source).toContain('promotedCurrentNode');
-    expect(source).toContain("index > currentIndex");
+    expect(source).toContain('findNextPromotableExecutionNode(nodes, currentIndex)');
+    expect(source).toContain("node.status === 'locked' || node.status === 'blocked'");
+    expect(source).toContain('return null');
     expect(source).toContain("? { ...node, status: 'current' }");
     expect(source).not.toContain("selectedNode?.status === 'skipped'");
     expect(source).not.toContain('setSelectedPathNodeId(currentPathNode.nodeId)');
@@ -795,6 +797,170 @@ describe('adaptive learning center UI contracts', () => {
     });
   });
 
+  it('keeps locked recommended path nodes visible without a launch action', () => {
+    const baseNode = pathPlan().mainPath[0];
+    const nodes = buildRecommendedPathNodeView(pathPlan({
+      mainPath: [
+        baseNode,
+        {
+          ...baseNode,
+          nodeId: 'arena-task:task-second-order-lead-pid',
+          title: '二阶对象超前校正 Arena',
+          type: 'arena_task',
+          ...pathNodeSemantics('arena_task'),
+          sourceKind: 'arena_task',
+          sourceRef: 'task-second-order-lead-pid',
+          target: '/arena/challenges/task-second-order-lead-pid',
+          estimatedTimeMinutes: 18,
+          prerequisiteNodeIds: ['simulation:control-correction-step-response-lab'],
+          terminalConstraints: ['terminal-node', 'terminal-validation'],
+          status: 'locked',
+          readiness: {
+            state: 'locked',
+            message: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+            unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+            reasonCodes: ['readiness-minimum-competency'],
+            fallbackNodeIds: ['simulation:control-correction-step-response-lab'],
+            missingCompetencies: ['controlModeling'],
+            missingEvidenceCount: 0,
+            missingCompletedNodeIds: [],
+            missingOutcomeRefs: [],
+          },
+        },
+      ],
+    })).nodes;
+
+    expect(nodes[1]).toMatchObject({
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      state: 'locked',
+      statusLabel: '稍后解锁',
+      unlockMessage: 'Arena 暂未解锁，完成仿真验证后会自动进入。',
+    });
+    expect(nodes[1].action).toBeUndefined();
+  });
+
+  it('keeps completed recommended path nodes completed when stale readiness is locked', () => {
+    const baseNode = pathPlan().mainPath[0];
+    const node = buildRecommendedPathNodeView(pathPlan({
+      currentNodeId: null,
+      mainPath: [
+        {
+          ...baseNode,
+          status: 'completed',
+          readiness: {
+            state: 'locked',
+            message: '旧 readiness 尚未刷新。',
+            unlockMessage: '旧 readiness 尚未刷新。',
+            reasonCodes: ['readiness-required-outcome'],
+            fallbackNodeIds: [],
+            missingCompetencies: [],
+            missingEvidenceCount: 0,
+            missingCompletedNodeIds: [],
+            missingOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
+          },
+        },
+      ],
+    })).nodes[0];
+
+    expect(node).toMatchObject({
+      nodeId: 'node-1',
+      state: 'completed',
+      statusLabel: undefined,
+    });
+    expect(node.action).toBeDefined();
+  });
+
+  it('does not launch next recommended nodes when readiness is stale locked', () => {
+    const baseNode = pathPlan().mainPath[0];
+    const node = buildRecommendedPathNodeView(pathPlan({
+      currentNodeId: null,
+      mainPath: [
+        {
+          ...baseNode,
+          status: 'next',
+          readiness: {
+            state: 'locked',
+            message: '等待仿真证据。',
+            unlockMessage: '等待仿真证据。',
+            reasonCodes: ['readiness-required-outcome'],
+            fallbackNodeIds: [],
+            missingCompetencies: [],
+            missingEvidenceCount: 0,
+            missingCompletedNodeIds: [],
+            missingOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
+          },
+        },
+      ],
+    })).nodes[0];
+
+    expect(node).toMatchObject({
+      nodeId: 'node-1',
+      state: 'locked',
+      statusLabel: '稍后解锁',
+    });
+    expect(node.action).toBeUndefined();
+  });
+
+  it('does not select a ready node after a locked gate as the control-correction next action', () => {
+    const baseNode = pathPlan().mainPath[0];
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState(),
+      pathPlan: pathPlan({
+        currentNodeId: 'registry:lesson09-correction-precheck',
+        mainPath: [
+          {
+            ...baseNode,
+            nodeId: 'registry:lesson09-correction-precheck',
+            title: '控制校正目标前测',
+            type: 'quiz',
+            ...pathNodeSemantics('quiz'),
+            sourceKind: 'resource_registry',
+            sourceRef: 'lesson09-correction-precheck',
+            target: '/interactive-learning/resources/lesson09-correction-precheck',
+            status: 'completed',
+          },
+          {
+            ...baseNode,
+            nodeId: 'simulation:control-correction-step-response-lab',
+            title: '控制校正阶跃响应验证实验',
+            type: 'simulation',
+            ...pathNodeSemantics('simulation'),
+            sourceKind: 'simulation_resource',
+            sourceRef: 'control-correction-step-response-lab',
+            target: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: '完成控制校正目标前测后进入仿真验证。',
+              unlockMessage: '完成控制校正目标前测后进入仿真验证。',
+              reasonCodes: ['readiness-required-completion'],
+              fallbackNodeIds: ['registry:lesson09-correction-precheck'],
+              missingCompetencies: [],
+              missingEvidenceCount: 0,
+              missingCompletedNodeIds: ['registry:lesson09-correction-precheck'],
+              missingOutcomeRefs: [],
+            },
+          },
+          {
+            ...baseNode,
+            nodeId: 'registry:later-ready-practice',
+            title: '后续就绪练习',
+            type: 'quiz',
+            ...pathNodeSemantics('quiz'),
+            sourceKind: 'resource_registry',
+            sourceRef: 'later-ready-practice',
+            target: '/interactive-learning/resources/later-ready-practice',
+            status: 'next',
+          },
+        ],
+      }),
+    });
+
+    expect(view.nextAction.nodeId).toBeNull();
+    expect(view.nextAction.href).not.toContain('later-ready-practice');
+  });
+
   it('surfaces three-style path options and selection history for diagnosis panels', () => {
     const view = buildAdaptiveLearningCenterView({
       featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
@@ -806,10 +972,14 @@ describe('adaptive learning center UI contracts', () => {
           status: 'ready',
           paths: [
             {
-              styleId: 'empty-low-resource',
+              styleId: 'preference-matched-route',
               policyFamily: 'preference-matched',
               label: '空资源方案',
               nodeIds: [],
+              activeNodeIds: [],
+              lockedNodeIds: [],
+              readinessSummary: [],
+              unlockMessages: [],
               nodeSummaries: [],
               targetDeficits: [],
               evidenceBasis: ['adaptive-learner-state'],
@@ -829,6 +999,10 @@ describe('adaptive learning center UI contracts', () => {
               policyFamily: 'foundation-remediation',
               label: '基础补救',
               nodeIds: ['knowledge-card:targets', 'arena-task:terminal'],
+              activeNodeIds: ['knowledge-card:targets'],
+              lockedNodeIds: [],
+              readinessSummary: [],
+              unlockMessages: [],
               nodeSummaries: [
                 {
                   nodeId: 'knowledge-card:targets',
@@ -975,6 +1149,10 @@ describe('adaptive learning center UI contracts', () => {
               policyFamily: 'foundation-remediation',
               label: '基础补救',
               nodeIds: ['node-1'],
+              activeNodeIds: ['node-1'],
+              lockedNodeIds: [],
+              readinessSummary: [],
+              unlockMessages: [],
               nodeSummaries: [{
                 nodeId: 'node-1',
                 title: '相位裕度映射练习',
@@ -1069,7 +1247,7 @@ describe('adaptive learning center UI contracts', () => {
       routeIntent: 'path-execution',
     }).nodes[0];
 
-    expect(node.action.href).toBe(
+    expect(node.action?.href).toBe(
       '/assessment/adaptive-practice?pathId=path-1&nodeId=node-1&goal=control-correction&intent=path-execution',
     );
   });
@@ -1134,7 +1312,7 @@ describe('adaptive learning center UI contracts', () => {
         },
       },
     });
-    expect(node.action.href).not.toContain('https://ocw.mit.edu/control/bode');
+    expect(node.action?.href).not.toContain('https://ocw.mit.edu/control/bode');
   });
 
   it('normalizes persisted knowledge card targets before adding control-correction launch context', () => {
@@ -1156,7 +1334,7 @@ describe('adaptive learning center UI contracts', () => {
       routeIntent: 'path-execution',
     }).nodes[0];
 
-    expect(node.action.href).toBe(
+    expect(node.action?.href).toBe(
       '/course-runtime/knowledge/cards/nodes/时域指标到目标极点区域_3_36001.md?pathId=path-1&nodeId=node-1&goal=control-correction&intent=path-execution',
     );
   });

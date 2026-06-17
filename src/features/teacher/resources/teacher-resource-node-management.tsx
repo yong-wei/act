@@ -23,6 +23,7 @@ import type {
   ResourceNodeAvailability,
   ResourceNodeCognitiveLoad,
   ResourceNodePrivacyLevel,
+  ResourceNodeReadinessMetadata,
   ResourceNodeTeacherPolicy,
   ResourceNodeType,
 } from '@/lib/resource-node-registry';
@@ -134,6 +135,14 @@ export function TeacherResourceNodeManagement({
           availability: form.get('availability'),
           teacherPolicy: form.get('teacherPolicy'),
           privacyLevel: form.get('privacyLevel'),
+          readiness: {
+            minimumCompetency: parseNumericRecord(form.get('readinessMinimumCompetency')),
+            minimumEvidenceCount: numberOrZero(form.get('readinessMinimumEvidenceCount')),
+            requiredCompletedNodeIds: splitCsv(form.get('readinessRequiredCompletedNodeIds')),
+            requiredOutcomeRefs: splitCsv(form.get('readinessRequiredOutcomeRefs')),
+            unlockMessage: valueOrUndefined(form.get('readinessUnlockMessage')) ?? '',
+            fallbackNodeIds: splitCsv(form.get('readinessFallbackNodeIds')),
+          },
           pathEligible: form.get('pathEligible') === 'true',
         },
       }),
@@ -365,6 +374,48 @@ function NodeDetail({
         <FormSelect name="privacyLevel" label="隐私级别" defaultValue={node.privacyLevel} disabled={!node.editable}>
           {PRIVACY_OPTIONS.filter((value) => value !== 'all').map((value) => <option key={value} value={value}>{value}</option>)}
         </FormSelect>
+        <div className="rounded-md border border-slate-800 bg-slate-950/60 p-3">
+          <div className="mb-3 text-sm font-medium text-slate-300">Readiness 解锁条件</div>
+          <div className="space-y-3">
+            <Field
+              name="readinessMinimumCompetency"
+              label="最低能力阈值"
+              defaultValue={formatNumericRecord(node.readiness?.minimumCompetency)}
+              disabled={!node.editable}
+            />
+            <Field
+              name="readinessMinimumEvidenceCount"
+              label="最低证据数量"
+              type="number"
+              defaultValue={node.readiness?.minimumEvidenceCount.toString() ?? ''}
+              disabled={!node.editable}
+            />
+            <Field
+              name="readinessRequiredCompletedNodeIds"
+              label="必须完成节点"
+              defaultValue={node.readiness?.requiredCompletedNodeIds.join(', ') ?? ''}
+              disabled={!node.editable}
+            />
+            <Field
+              name="readinessRequiredOutcomeRefs"
+              label="必须具备证据引用"
+              defaultValue={node.readiness?.requiredOutcomeRefs.join(', ') ?? ''}
+              disabled={!node.editable}
+            />
+            <Field
+              name="readinessFallbackNodeIds"
+              label="补救节点"
+              defaultValue={node.readiness?.fallbackNodeIds.join(', ') ?? ''}
+              disabled={!node.editable}
+            />
+            <Field
+              name="readinessUnlockMessage"
+              label="解锁提示"
+              defaultValue={node.readiness?.unlockMessage ?? ''}
+              disabled={!node.editable}
+            />
+          </div>
+        </div>
         <FormSelect name="pathEligible" label="路径资格" defaultValue={node.pathEligible ? 'true' : 'false'} disabled={!node.editable}>
           <option value="true">允许</option>
           <option value="false">排除</option>
@@ -517,6 +568,33 @@ function numberOrNull(value: FormDataEntryValue | null): number | null {
   if (typeof value !== 'string' || !value.trim()) return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function numberOrZero(value: FormDataEntryValue | null): number {
+  const parsed = numberOrNull(value);
+  return parsed === null ? 0 : parsed;
+}
+
+function parseNumericRecord(value: FormDataEntryValue | null): ResourceNodeReadinessMetadata['minimumCompetency'] {
+  if (typeof value !== 'string') return {};
+  return Object.fromEntries(
+    value
+      .split(/[\n,]/)
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .map((item) => item.split(/[:=]/, 2).map((part) => part.trim()))
+      .filter((entry): entry is [string, string] => entry.length === 2 && entry[0].length > 0)
+      .map(([key, rawScore]) => [key, Number(rawScore)] as const)
+      .filter((entry): entry is readonly [string, number] => Number.isFinite(entry[1])),
+  );
+}
+
+function formatNumericRecord(record: ResourceNodeReadinessMetadata['minimumCompetency'] | undefined): string {
+  if (!record) return '';
+  return Object.entries(record)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, value]) => `${key}: ${value}`)
+    .join(', ');
 }
 
 function valueOrUndefined(value: FormDataEntryValue | null): string | undefined {

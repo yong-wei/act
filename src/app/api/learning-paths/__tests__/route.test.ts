@@ -118,6 +118,45 @@ function useStructuredTerminalPath() {
   });
 }
 
+function useStructuredSimulationPath() {
+  mocks.prisma.learningPath.findUnique.mockResolvedValue({
+    id: 'path-1',
+    userId: 'student-1',
+    classId: 'class-1',
+    goalId: 'control-correction',
+    pathStatus: 'active',
+    currentNodeId: 'simulation:control-correction-step-response-lab',
+    nodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:task-second-order-lead-pid'],
+    pathPayload: {
+      mainPathNodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:task-second-order-lead-pid'],
+      planNodes: [
+        {
+          nodeId: 'simulation:control-correction-step-response-lab',
+          type: 'simulation',
+          target: 'control-correction-step-response-lab',
+        },
+        {
+          nodeId: 'arena-task:task-second-order-lead-pid',
+          type: 'arena_task',
+          target: '/arena/challenges/task-second-order-lead-pid',
+          status: 'locked',
+          readiness: {
+            state: 'locked',
+            missingCompletedNodeIds: ['simulation:control-correction-step-response-lab'],
+            missingOutcomeRefs: ['simulation_run:control-correction-step-response-lab'],
+          },
+        },
+      ],
+    },
+    terminalValidation: {
+      nodeId: 'arena-task:task-second-order-lead-pid',
+      state: 'pending',
+      target: '/arena/challenges/task-second-order-lead-pid',
+    },
+    lastExecutionMetadata: { completedNodeIds: [] },
+  });
+}
+
 describe('learning path round API routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -685,6 +724,188 @@ describe('learning path round API routes', () => {
       },
       cacheRefresh: 'completed',
     });
+  });
+
+  it('does not unlock simulation outcome gates from forged client evidence refs', async () => {
+    useStructuredSimulationPath();
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue(null);
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'simulation:control-correction-step-response-lab',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'forged-simulation-outcome',
+      evidenceRefs: ['simulation_run:control-correction-step-response-lab'],
+      simulationRef: { id: 'sim-run-forged' },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      simulationRef: expect.objectContaining({
+        id: 'sim-run-forged',
+        provenance: 'unknown',
+        official: false,
+        status: 'unverified',
+      }),
+      evidenceRefs: [],
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'simulation:control-correction-step-response-lab',
+        lastExecutionMetadata: expect.objectContaining({
+          availableOutcomeRefs: [],
+        }),
+      }),
+    }));
+  });
+
+  it('does not unlock simulation outcome gates from forged structured evidence refs', async () => {
+    useStructuredSimulationPath();
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue(null);
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'simulation:control-correction-step-response-lab',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'forged-structured-simulation-outcome',
+      evidenceRefs: [{
+        kind: 'SimulationRun',
+        id: 'sim-run-forged',
+        provenance: 'official',
+        status: 'completed',
+      }],
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      simulationRef: null,
+      evidenceRefs: [],
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'simulation:control-correction-step-response-lab',
+        lastExecutionMetadata: expect.objectContaining({
+          availableOutcomeRefs: [],
+        }),
+      }),
+    }));
+  });
+
+  it('unlocks simulation outcome gates from server-owned simulation runs', async () => {
+    useStructuredSimulationPath();
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue({
+      id: 'sim-run-1',
+      ownerUserId: 'student-1',
+      runKind: 'course_validation',
+      sourceDomain: 'control_workbench',
+      sourceRefId: 'control-correction-step-response-lab',
+      resourceId: 'control-correction-step-response-lab',
+      taskSpecId: null,
+      status: 'completed',
+      summary: { replayConfidence: 0.84 },
+      protocolVersion: '1.0',
+      completedAt: new Date('2026-06-04T09:59:00.000Z'),
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'simulation:control-correction-step-response-lab',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'server-owned-simulation-outcome',
+      evidenceRefs: ['simulation_run:control-correction-step-response-lab'],
+      simulationRef: { id: 'sim-run-1' },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      simulationRef: expect.objectContaining({
+        id: 'sim-run-1',
+        sourceRefId: 'control-correction-step-response-lab',
+        provenance: 'official',
+        status: 'completed',
+      }),
+      evidenceRefs: [{ kind: 'SimulationRun', id: 'sim-run-1' }],
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'arena-task:task-second-order-lead-pid',
+        lastExecutionMetadata: expect.objectContaining({
+          availableOutcomeRefs: expect.arrayContaining(['simulation_run:control-correction-step-response-lab']),
+        }),
+      }),
+    }));
+  });
+
+  it('rejects server-owned simulation runs from a different path simulation node', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'simulation:simulation-a',
+      nodeIds: ['simulation:simulation-a', 'simulation:simulation-b', 'arena-task:task-second-order-lead-pid'],
+      pathPayload: {
+        mainPathNodeIds: ['simulation:simulation-a', 'simulation:simulation-b', 'arena-task:task-second-order-lead-pid'],
+        planNodes: [
+          {
+            nodeId: 'simulation:simulation-a',
+            type: 'simulation',
+            target: 'simulation-a',
+            sourceRef: 'simulation-a',
+          },
+          {
+            nodeId: 'simulation:simulation-b',
+            type: 'simulation',
+            target: 'simulation-b',
+            sourceRef: 'simulation-b',
+          },
+          {
+            nodeId: 'arena-task:task-second-order-lead-pid',
+            type: 'arena_task',
+            target: '/arena/challenges/task-second-order-lead-pid',
+          },
+        ],
+      },
+      terminalValidation: {
+        nodeId: 'arena-task:task-second-order-lead-pid',
+        state: 'pending',
+        target: '/arena/challenges/task-second-order-lead-pid',
+      },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+    mocks.prisma.simulationRun.findFirst.mockResolvedValue({
+      id: 'sim-run-b',
+      ownerUserId: 'student-1',
+      runKind: 'course_validation',
+      sourceDomain: 'control_workbench',
+      sourceRefId: 'simulation-b',
+      resourceId: 'simulation-b',
+      taskSpecId: null,
+      status: 'completed',
+      summary: { replayConfidence: 0.84 },
+      protocolVersion: '1.0',
+      completedAt: new Date('2026-06-04T09:59:00.000Z'),
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'simulation:simulation-a',
+      resourceType: 'simulation',
+      status: 'completed',
+      idempotencyKey: 'wrong-simulation-node-outcome',
+      simulationRef: { id: 'sim-run-b' },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      simulationRef: expect.objectContaining({
+        id: 'sim-run-b',
+        provenance: 'unknown',
+        official: false,
+        mismatchReason: 'simulation-scope-mismatch',
+      }),
+      evidenceRefs: [],
+    }));
   });
 
   it('records completed-node continue and return-to-skipped as governed path activity without opening arbitrary nodes', async () => {

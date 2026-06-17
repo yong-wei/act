@@ -3,6 +3,7 @@ import type {
   ResourceNodeAvailability,
   ResourceNodeCognitiveLoad,
   ResourceNodePrivacyLevel,
+  ResourceNodeReadinessMetadata,
   ResourceNodeTeacherPolicy,
   ResourceNodeType,
 } from './resource-node-registry';
@@ -53,6 +54,7 @@ export interface TeacherResourceNodeView {
   availability: ResourceNodeAvailability;
   teacherPolicy: ResourceNodeTeacherPolicy;
   privacyLevel: ResourceNodePrivacyLevel;
+  readiness: ResourceNodeReadinessMetadata | null;
   evidenceInstrumentationConfigured: boolean;
   pathEligible: boolean;
   pathExclusionReasons: string[];
@@ -106,7 +108,10 @@ export interface TeacherResourceNodeOperationsReadiness {
 export interface TeacherResourceNodePatch {
   displayName?: string;
   description?: string;
-  planningMetadata?: {
+  planningMetadata?: unknown;
+}
+
+interface TeacherResourceNodePlanningPatch {
     prerequisites?: string[];
     knowledgeCoverage?: string[];
     estimatedTimeMinutes?: number | null;
@@ -114,14 +119,14 @@ export interface TeacherResourceNodePatch {
     availability?: ResourceNodeAvailability;
     teacherPolicy?: ResourceNodeTeacherPolicy;
     privacyLevel?: ResourceNodePrivacyLevel;
+    readiness?: unknown;
     pathEligible?: boolean;
-  };
 }
 
 export interface TeacherResourceNodePersistablePatch {
   displayName?: string;
   description?: string;
-  resourceNodePlanning: NonNullable<TeacherResourceNodePatch['planningMetadata']>;
+  resourceNodePlanning: TeacherResourceNodePlanningPatch;
 }
 
 export type TeacherResourceNodePatchErrorCode =
@@ -153,6 +158,7 @@ export const TEACHER_RESOURCE_NODE_PERMITTED_EDIT_FIELDS = [
   'planningMetadata.availability',
   'planningMetadata.teacherPolicy',
   'planningMetadata.privacyLevel',
+  'planningMetadata.readiness',
   'planningMetadata.pathEligible',
 ] as const;
 
@@ -231,6 +237,7 @@ export function createTeacherResourceNodeView(
     availability: node.planningMetadata.availability,
     teacherPolicy: node.planningMetadata.teacherPolicy,
     privacyLevel: node.planningMetadata.privacyLevel,
+    readiness: copyReadinessMetadata(node.planningMetadata.readiness),
     evidenceInstrumentationConfigured: node.planningMetadata.evidenceInstrumentation.length > 0,
     pathEligible: node.eligibility.pathEligible,
     pathExclusionReasons: [...node.eligibility.reasons],
@@ -388,16 +395,42 @@ export function canEditNode(node: ResourceNode, scope: TeacherResourceNodeScope)
 }
 
 function sanitizePlanningPatch(
-  patch: NonNullable<TeacherResourceNodePatch['planningMetadata']>,
-): NonNullable<TeacherResourceNodePatch['planningMetadata']> {
-  const result: NonNullable<TeacherResourceNodePatch['planningMetadata']> = {};
-  if (patch.prerequisites) result.prerequisites = uniqueSorted(patch.prerequisites);
-  if (patch.knowledgeCoverage) result.knowledgeCoverage = uniqueSorted(patch.knowledgeCoverage);
-  if (patch.estimatedTimeMinutes !== undefined) result.estimatedTimeMinutes = patch.estimatedTimeMinutes;
-  if (patch.cognitiveLoad) result.cognitiveLoad = patch.cognitiveLoad;
-  if (patch.availability) result.availability = patch.availability;
-  if (patch.teacherPolicy) result.teacherPolicy = patch.teacherPolicy;
-  if (patch.privacyLevel) result.privacyLevel = patch.privacyLevel;
+  patch: unknown,
+): TeacherResourceNodePlanningPatch {
+  const result: TeacherResourceNodePlanningPatch = {};
+  if (!isRecord(patch)) return result;
+  if (Array.isArray(patch.prerequisites)) result.prerequisites = uniqueSorted(patch.prerequisites.filter(isString));
+  if (Array.isArray(patch.knowledgeCoverage)) result.knowledgeCoverage = uniqueSorted(patch.knowledgeCoverage.filter(isString));
+  if (typeof patch.estimatedTimeMinutes === 'number' || patch.estimatedTimeMinutes === null) {
+    result.estimatedTimeMinutes = patch.estimatedTimeMinutes;
+  }
+  if (patch.cognitiveLoad === 'low' || patch.cognitiveLoad === 'medium' || patch.cognitiveLoad === 'high') {
+    result.cognitiveLoad = patch.cognitiveLoad;
+  }
+  if (
+    patch.availability === 'available' ||
+    patch.availability === 'draft' ||
+    patch.availability === 'archived' ||
+    patch.availability === 'teacher_only'
+  ) {
+    result.availability = patch.availability;
+  }
+  if (
+    patch.teacherPolicy === 'allowed' ||
+    patch.teacherPolicy === 'teacher-assigned' ||
+    patch.teacherPolicy === 'teacher-only' ||
+    patch.teacherPolicy === 'blocked'
+  ) {
+    result.teacherPolicy = patch.teacherPolicy;
+  }
+  if (
+    patch.privacyLevel === 'student-visible' ||
+    patch.privacyLevel === 'teacher-scoped' ||
+    patch.privacyLevel === 'admin-scoped'
+  ) {
+    result.privacyLevel = patch.privacyLevel;
+  }
+  if ('readiness' in patch) result.readiness = sanitizeReadinessPatch(patch.readiness);
   if (patch.pathEligible === false) result.teacherPolicy = 'blocked';
   if (patch.pathEligible === true) result.teacherPolicy = result.teacherPolicy === 'blocked'
     ? 'allowed'
@@ -433,6 +466,67 @@ function uniqueSorted(values: readonly string[]): string[] {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean))).sort((left, right) =>
     left.localeCompare(right)
   );
+}
+
+function copyReadinessMetadata(readiness: ResourceNodeReadinessMetadata | null): ResourceNodeReadinessMetadata | null {
+  if (!readiness) return null;
+  return {
+    minimumCompetency: { ...readiness.minimumCompetency },
+    minimumEvidenceCount: readiness.minimumEvidenceCount,
+    requiredCompletedNodeIds: [...readiness.requiredCompletedNodeIds],
+    requiredOutcomeRefs: [...readiness.requiredOutcomeRefs],
+    unlockMessage: readiness.unlockMessage,
+    fallbackNodeIds: [...readiness.fallbackNodeIds],
+  };
+}
+
+function sanitizeReadinessPatch(
+  readiness: unknown,
+): ResourceNodeReadinessMetadata | null {
+  if (!readiness || typeof readiness !== 'object' || Array.isArray(readiness)) return null;
+  const record = readiness as Record<string, unknown>;
+  const minimumCompetency = Object.fromEntries(
+    Object.entries(isRecord(record.minimumCompetency) ? record.minimumCompetency : {})
+      .filter((entry): entry is [string, number] => entry[0].trim().length > 0 && Number.isFinite(entry[1]))
+      .map(([key, value]): [string, number] => [key.trim(), Math.max(0, Math.min(1, value))])
+      .sort(([left], [right]) => left.localeCompare(right)),
+  );
+  const minimumEvidenceCount = typeof record.minimumEvidenceCount === 'number' && Number.isFinite(record.minimumEvidenceCount)
+    ? Math.max(0, record.minimumEvidenceCount)
+    : 0;
+  const requiredCompletedNodeIds = uniqueSorted(readStringArray(record.requiredCompletedNodeIds));
+  const requiredOutcomeRefs = uniqueSorted(readStringArray(record.requiredOutcomeRefs));
+  const fallbackNodeIds = uniqueSorted(readStringArray(record.fallbackNodeIds));
+  const hasGate = Object.keys(minimumCompetency).length > 0 ||
+    minimumEvidenceCount > 0 ||
+    requiredCompletedNodeIds.length > 0 ||
+    requiredOutcomeRefs.length > 0;
+  if (!hasGate) return null;
+  const unlockMessage = typeof record.unlockMessage === 'string' && record.unlockMessage.trim().length > 0
+    ? record.unlockMessage.trim()
+    : '完成准备节点后会自动解锁。';
+  return {
+    minimumCompetency,
+    minimumEvidenceCount,
+    requiredCompletedNodeIds,
+    requiredOutcomeRefs,
+    unlockMessage,
+    fallbackNodeIds,
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isString(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
+function readStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string')
+    : [];
 }
 
 function round(value: number, digits: number): number {

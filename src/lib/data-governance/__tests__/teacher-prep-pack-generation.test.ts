@@ -62,6 +62,7 @@ function resourceNode(input: Partial<ResourceNode> & { id: string; title: string
       privacyLevel: 'student-visible',
       terminalConstraints: [],
       evidenceInstrumentation: ['learning-fact'],
+      readiness: null,
     },
     sourceOfRecord: {
       content: 'resource_registry',

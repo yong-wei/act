@@ -187,6 +187,16 @@ export interface ResourceNodePlanningMetadata {
   privacyLevel: ResourceNodePrivacyLevel;
   terminalConstraints: string[];
   evidenceInstrumentation: string[];
+  readiness: ResourceNodeReadinessMetadata | null;
+}
+
+export interface ResourceNodeReadinessMetadata {
+  minimumCompetency: Record<string, number>;
+  minimumEvidenceCount: number;
+  requiredCompletedNodeIds: string[];
+  requiredOutcomeRefs: string[];
+  unlockMessage: string;
+  fallbackNodeIds: string[];
 }
 
 export interface ResourceNodeAuditIssue {
@@ -208,7 +218,8 @@ export interface ResourceNodeAuditIssue {
     | 'missing-checkpoint-assessment-purpose'
     | 'missing-checkpoint-criteria'
     | 'missing-checkpoint-required-evidence'
-    | 'missing-checkpoint-remediation';
+    | 'missing-checkpoint-remediation'
+    | 'missing-readiness-metadata';
   message: string;
   severity: 'blocking' | 'warning';
 }
@@ -316,6 +327,7 @@ export type ResourceNodePlanningOverride = Partial<Pick<
   | 'privacyLevel'
   | 'terminalConstraints'
   | 'evidenceInstrumentation'
+  | 'readiness'
 >>;
 
 export interface RegisteredResourceNodeInput {
@@ -536,6 +548,17 @@ export function auditResourceNode(
       code: 'missing-evidence-instrumentation',
       severity: options.strictEvidenceInstrumentation ? 'blocking' : 'warning',
       message: 'ResourceNode has no evidence instrumentation mapping.',
+    });
+  }
+  if (
+    !issues.some((issue) => issue.severity === 'blocking') &&
+    requiresReadinessMetadata(node) &&
+    !node.planningMetadata.readiness
+  ) {
+    issues.push({
+      code: 'missing-readiness-metadata',
+      severity: 'warning',
+      message: 'High-complexity path node lacks readiness metadata for immediate execution gating.',
     });
   }
   issues.push(...auditExternalResourceNode(node));
@@ -1036,6 +1059,7 @@ function createNode(input: {
       privacyLevel: planningOverride.privacyLevel ?? privacyLevel,
       terminalConstraints: uniqueSorted(planningOverride.terminalConstraints ?? (input.type === 'project' ? ['terminal-node'] : [])),
       evidenceInstrumentation: uniqueSorted(planningOverride.evidenceInstrumentation ?? input.evidenceInstrumentation),
+      readiness: normalizeReadinessMetadata(planningOverride.readiness),
     },
     sourceOfRecord: input.sourceOfRecord,
     eligibility: {
@@ -1100,6 +1124,10 @@ function parsePlanningOverride(config?: Record<string, unknown> | null): Resourc
   ) {
     override.privacyLevel = raw.privacyLevel;
   }
+  const readiness = normalizeReadinessMetadata(raw.readiness);
+  if (readiness) {
+    override.readiness = readiness;
+  }
 
   return Object.keys(override).length > 0 ? override : undefined;
 }
@@ -1127,6 +1155,7 @@ function mergeOverlappingSources(nodes: ResourceNode[]): Map<string, ResourceNod
           ...existing.planningMetadata.evidenceInstrumentation,
           ...node.planningMetadata.evidenceInstrumentation,
         ]),
+        readiness: existing.planningMetadata.readiness ?? node.planningMetadata.readiness,
       },
       sourceOfRecord: {
         content: existing.sourceOfRecord.content,
@@ -1198,6 +1227,56 @@ function pathSemanticsForResourceType(type: ResourceNodeType): ResourceNodePathS
 
 export function getPathNodeSemanticsForResourceType(type: ResourceNodeType): ResourceNodePathSemantics {
   return pathSemanticsForResourceType(type);
+}
+
+function requiresReadinessMetadata(node: ResourceNode): boolean {
+  if (node.planningMetadata.cognitiveLoad !== 'high') return false;
+  return node.type === 'simulation' ||
+    node.type === 'arena_task' ||
+    node.type === 'control_workbench' ||
+    node.type === 'checkpoint' ||
+    node.planningMetadata.terminalConstraints.length > 0;
+}
+
+function normalizeReadinessMetadata(value: unknown): ResourceNodeReadinessMetadata | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const raw = value as Record<string, unknown>;
+  const minimumCompetency = normalizeNumericRecord(raw.minimumCompetency);
+  const minimumEvidenceCount = typeof raw.minimumEvidenceCount === 'number' && Number.isFinite(raw.minimumEvidenceCount)
+    ? Math.max(0, raw.minimumEvidenceCount)
+    : 0;
+  const requiredCompletedNodeIds = uniqueStableStrings(readStringArray(raw.requiredCompletedNodeIds));
+  const requiredOutcomeRefs = uniqueStableStrings(readStringArray(raw.requiredOutcomeRefs));
+  const fallbackNodeIds = uniqueStableStrings(readStringArray(raw.fallbackNodeIds));
+  const hasReadinessGate = Object.keys(minimumCompetency).length > 0 ||
+    minimumEvidenceCount > 0 ||
+    requiredCompletedNodeIds.length > 0 ||
+    requiredOutcomeRefs.length > 0;
+  if (!hasReadinessGate) return null;
+  const unlockMessage = typeof raw.unlockMessage === 'string' && raw.unlockMessage.trim().length > 0
+    ? raw.unlockMessage.trim()
+    : '完成准备节点后会自动解锁。';
+  return {
+    minimumCompetency,
+    minimumEvidenceCount,
+    requiredCompletedNodeIds,
+    requiredOutcomeRefs,
+    unlockMessage,
+    fallbackNodeIds,
+  };
+}
+
+function normalizeNumericRecord(value: unknown): Record<string, number> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter((entry): entry is [string, number] => typeof entry[1] === 'number' && Number.isFinite(entry[1]))
+      .map(([key, score]) => [key, Math.max(0, Math.min(1, score))]),
+  );
+}
+
+function readStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
 }
 
 function safeExternalUrl(value: string | null | undefined): string | null {
