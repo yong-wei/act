@@ -79,5 +79,12 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("if (generatedPathId) selectionQuery.set('pathId', generatedPathId)");
     expect(source).toContain("intent: 'path-execution'");
     expect(source).toContain("optionId: option.optionId");
+    expect(source).toContain("const activeOptionId = searchParams.get('optionId')");
+    expect(source).toContain("const selectedExecutionOption = useMemo");
+    expect(source).toContain("option.optionId === activeOptionId");
+    expect(source).toContain("getPathExecutionNodes(controlCorrectionPathPlan, controlCorrectionPathRound, selectedExecutionOption)");
+    expect(source).toContain("const pathUpdate = getRecord(payload.pathUpdate)");
+    expect(source).toContain("typeof pathUpdate.currentNodeId === 'string'");
+    expect(source).toContain("option.activeNodeIds?.[0] ?? option.nodeIds?.[0]");
   });
 });

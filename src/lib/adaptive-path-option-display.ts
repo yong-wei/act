@@ -13,6 +13,20 @@ export type AdaptivePathResourceKind =
 export interface AdaptivePathOptionWriteOption {
   optionId: string;
   label: string;
+  nodeIds?: string[];
+  activeNodeIds?: string[];
+  nodeSummaries?: Array<{
+    nodeId: string;
+    title: string;
+    pathNodeType?: string;
+    displayName?: string;
+    iconKey?: string;
+    shapeHint?: string;
+    evidenceBehavior?: string;
+    evidenceStatus?: string;
+    estimatedTimeMinutes?: number;
+    status?: string;
+  }>;
   lockedNodeIds: string[];
   readinessSummary: Array<{
     nodeId: string;

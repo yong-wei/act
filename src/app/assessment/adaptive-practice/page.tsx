@@ -802,6 +802,25 @@ function getPathOptions(view: ControlCorrectionLearningCenterView | null): PathO
     return {
       optionId: typeof option.optionId === 'string' ? option.optionId : 'unknown-option',
       label: typeof option.label === 'string' ? option.label : '未命名路径',
+      nodeIds: getStringArray(option.nodeIds),
+      activeNodeIds: getStringArray(option.activeNodeIds),
+      nodeSummaries: Array.isArray(option.nodeSummaries)
+        ? option.nodeSummaries.map((item) => {
+            const summary = getRecord(item);
+            return {
+              nodeId: typeof summary.nodeId === 'string' ? summary.nodeId : 'unknown-node',
+              title: typeof summary.title === 'string' ? summary.title : '学习节点',
+              pathNodeType: typeof summary.pathNodeType === 'string' ? summary.pathNodeType : undefined,
+              displayName: typeof summary.displayName === 'string' ? summary.displayName : undefined,
+              iconKey: typeof summary.iconKey === 'string' ? summary.iconKey : undefined,
+              shapeHint: typeof summary.shapeHint === 'string' ? summary.shapeHint : undefined,
+              evidenceBehavior: typeof summary.evidenceBehavior === 'string' ? summary.evidenceBehavior : undefined,
+              evidenceStatus: typeof summary.evidenceStatus === 'string' ? summary.evidenceStatus : undefined,
+              estimatedTimeMinutes: typeof summary.estimatedTimeMinutes === 'number' ? summary.estimatedTimeMinutes : undefined,
+              status: typeof summary.status === 'string' ? summary.status : undefined,
+            };
+          })
+        : [],
       lockedNodeIds: getStringArray(option.lockedNodeIds),
       readinessSummary: Array.isArray(option.readinessSummary)
         ? option.readinessSummary.map((item) => {
@@ -959,7 +978,59 @@ function buildPathNodeResultCards(round: LearningPathRoundView | null): Map<stri
   return results;
 }
 
-function getPathExecutionNodes(plan: AdaptiveLearningPathPlan | null, round: LearningPathRoundView | null): PathExecutionNodeView[] {
+function getPathExecutionSourceNodes(
+  plan: AdaptiveLearningPathPlan,
+  selectedOption: PathOptionView | null,
+): Array<Record<string, unknown>> {
+  const optionNodeIds = selectedOption?.nodeIds ?? [];
+  if (optionNodeIds.length === 0) return plan.mainPath.map(getRecord);
+  const mainPathByNodeId = new Map(plan.mainPath.map((item) => {
+    const node = getRecord(item);
+    return [typeof node.nodeId === 'string' ? node.nodeId : '', node] as const;
+  }).filter(([nodeId]) => nodeId.length > 0));
+  const selectedNodes = optionNodeIds
+    .map((nodeId) => mainPathByNodeId.get(nodeId))
+    .filter((node): node is Record<string, unknown> => Boolean(node));
+  if (selectedNodes.length === optionNodeIds.length) return selectedNodes;
+  const summariesByNodeId = new Map((selectedOption?.nodeSummaries ?? []).map((summary) => [summary.nodeId, summary]));
+  return optionNodeIds.map((nodeId, index) => {
+    const node = mainPathByNodeId.get(nodeId);
+    if (node) return node;
+    const summary = summariesByNodeId.get(nodeId);
+    return {
+      nodeId,
+      title: summary?.title ?? summary?.displayName ?? `学习节点 ${index + 1}`,
+      type: inferResourceTypeFromOptionNode(nodeId, summary?.pathNodeType),
+      target: '/assessment/adaptive-practice',
+      estimatedTimeMinutes: summary?.estimatedTimeMinutes ?? 0,
+      status: index === 0 ? 'current' : summary?.status ?? 'locked',
+      reasonCodes: ['selected-path-option-summary'],
+      knowledgeCoverage: [],
+      readiness: {
+        state: 'ready',
+      },
+    };
+  });
+}
+
+function inferResourceTypeFromOptionNode(nodeId: string, pathNodeType?: string): string {
+  if (nodeId.startsWith('simulation:')) return 'simulation';
+  if (nodeId.startsWith('arena-task:')) return 'arena_task';
+  if (nodeId.startsWith('adaptive-quiz:')) return 'adaptive_quiz';
+  if (nodeId.startsWith('quiz:')) return 'quiz';
+  if (nodeId.startsWith('control-workbench:')) return 'control_workbench';
+  if (nodeId.startsWith('knowledge-card:')) return 'knowledge_card';
+  if (nodeId.startsWith('knowledge-node:')) return 'knowledge_card';
+  if (nodeId.startsWith('external-resource:')) return 'external_resource';
+  if (pathNodeType === 'checkpoint') return 'checkpoint';
+  return 'checkpoint';
+}
+
+function getPathExecutionNodes(
+  plan: AdaptiveLearningPathPlan | null,
+  round: LearningPathRoundView | null,
+  selectedOption: PathOptionView | null = null,
+): PathExecutionNodeView[] {
   if (!plan) return [];
   const metadata = getRecord(round?.lastExecutionMetadata);
   const completedNodeIds = new Set(getStringArray(metadata.completedNodeIds));
@@ -968,10 +1039,17 @@ function getPathExecutionNodes(plan: AdaptiveLearningPathPlan | null, round: Lea
     .filter((item) => getRecord(item).deviationType === 'skip')
     .map((item) => getRecord(item).targetNodeId)
     .filter((value): value is string => typeof value === 'string'));
-  const currentNodeId = plan.currentNodeId ?? round?.currentNodeId ?? null;
+  const sourceNodes = getPathExecutionSourceNodes(plan, selectedOption);
+  const sourceNodeIds = sourceNodes
+    .map((item) => typeof item.nodeId === 'string' ? item.nodeId : null)
+    .filter((nodeId): nodeId is string => Boolean(nodeId));
+  const preferredCurrentNodeId = plan.currentNodeId ?? round?.currentNodeId ?? null;
+  const currentNodeId = preferredCurrentNodeId && sourceNodeIds.includes(preferredCurrentNodeId)
+    ? preferredCurrentNodeId
+    : sourceNodeIds[0] ?? null;
   const resultCards = buildPathNodeResultCards(round);
 
-  const nodes = plan.mainPath.map((item, index) => {
+  const nodes = sourceNodes.map((item, index) => {
     const node = getRecord(item);
     const nodeId = typeof node.nodeId === 'string' ? node.nodeId : `path-node-${index + 1}`;
     const type = typeof node.type === 'string' ? node.type : typeof node.sourceKind === 'string' ? node.sourceKind : 'resource';
@@ -1247,15 +1325,18 @@ export default function AdaptivePracticePage() {
   const showPresetGoalCards = false;
   const activePathId = searchParams.get('pathId');
   const activeNodeId = searchParams.get('nodeId');
+  const activeOptionId = searchParams.get('optionId');
   const activeGoalQuery = activeGoal ? new URLSearchParams({ goal: activeGoal, intent: routeIntent }) : null;
   if (activeGoalQuery && activePathId) activeGoalQuery.set('pathId', activePathId);
   if (activeGoalQuery && activeNodeId) activeGoalQuery.set('nodeId', activeNodeId);
+  if (activeGoalQuery && activeOptionId) activeGoalQuery.set('optionId', activeOptionId);
   const activeGoalContextHref = activeGoal
     ? `/assessment/adaptive-practice?${activeGoalQuery?.toString() ?? ''}`
     : '/assessment/adaptive-practice';
   const controlCorrectionQuery = new URLSearchParams({ goal: 'control-correction', intent: routeIntent });
   if (activePathId) controlCorrectionQuery.set('pathId', activePathId);
   if (activeNodeId) controlCorrectionQuery.set('nodeId', activeNodeId);
+  if (activeOptionId) controlCorrectionQuery.set('optionId', activeOptionId);
   const controlCorrectionContextHref = `/assessment/adaptive-practice?${controlCorrectionQuery.toString()}`;
   const controlCorrectionGenerationHref = '/assessment/adaptive-practice?goal=control-correction&intent=contextual-recommendation';
   const frequencyResponseGenerationHref = '/assessment/adaptive-practice?goal=frequency-response-foundations&intent=contextual-recommendation';
@@ -1318,11 +1399,15 @@ export default function AdaptivePracticePage() {
     : null, [activeGoal, activeGoalLabel, controlCorrectionLearnerState, controlCorrectionPathPlan, error, questionState, routeIntent]);
   const pathOptions = useMemo(() => getPathOptions(controlCorrectionCenter), [controlCorrectionCenter]);
   const visiblePathOptions = useMemo(() => buildAdaptivePathOptionDisplays(pathOptions), [pathOptions]);
+  const selectedExecutionOption = useMemo(
+    () => pathOptions.find((option) => option.optionId === activeOptionId) ?? null,
+    [activeOptionId, pathOptions],
+  );
   const pathSelectionHistory = useMemo(() => getPathSelectionHistory(controlCorrectionCenter), [controlCorrectionCenter]);
   const pathOptionFallback = useMemo(() => getPathOptionFallback(controlCorrectionCenter), [controlCorrectionCenter]);
   const pathExecutionNodes = useMemo(
-    () => getPathExecutionNodes(controlCorrectionPathPlan, controlCorrectionPathRound),
-    [controlCorrectionPathPlan, controlCorrectionPathRound],
+    () => getPathExecutionNodes(controlCorrectionPathPlan, controlCorrectionPathRound, selectedExecutionOption),
+    [controlCorrectionPathPlan, controlCorrectionPathRound, selectedExecutionOption],
   );
   useEffect(() => {
     if (activeNodeId) setSelectedPathNodeId(activeNodeId);
@@ -1393,6 +1478,7 @@ export default function AdaptivePracticePage() {
       updatePageContext({ assistantEntryPoint: null });
       return;
     }
+    const contextGoal = pathAdvisorContextGoal;
 
     if (authStatus === 'loading') return;
 
@@ -1404,7 +1490,7 @@ export default function AdaptivePracticePage() {
     let cancelled = false;
     async function registerPathAdvisorEntryPoint() {
       try {
-        const response = await fetch(`/api/adaptive/path-advisor-context?goal=${encodeURIComponent(pathAdvisorContextGoal)}`);
+        const response = await fetch(`/api/adaptive/path-advisor-context?goal=${encodeURIComponent(contextGoal)}`);
         if (!response.ok) {
           if (!cancelled) updatePageContext({ assistantEntryPoint: null });
           return;
@@ -1820,10 +1906,11 @@ export default function AdaptivePracticePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(buildChoiceBody(action, option, pathOptions, pathSelectionHistory, helpful)),
       });
+      const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const payload = await response.json().catch(() => ({}));
         throw new Error(typeof payload.error === 'string' ? payload.error : '路径选择写入失败');
       }
+      const pathUpdate = getRecord(payload.pathUpdate);
       await reloadControlCorrectionPath();
       if (action === 'selection' || action === 'switch') {
         const executionQuery = new URLSearchParams({
@@ -1832,7 +1919,9 @@ export default function AdaptivePracticePage() {
           pathId,
           optionId: option.optionId,
         });
-        const currentNodeId = controlCorrectionPathPlan?.currentNodeId ?? controlCorrectionPathRound?.currentNodeId;
+        const currentNodeId = typeof pathUpdate.currentNodeId === 'string'
+          ? pathUpdate.currentNodeId
+          : option.activeNodeIds?.[0] ?? option.nodeIds?.[0] ?? controlCorrectionPathPlan?.currentNodeId ?? controlCorrectionPathRound?.currentNodeId;
         if (currentNodeId) executionQuery.set('nodeId', currentNodeId);
         window.location.assign(`/assessment/adaptive-practice?${executionQuery.toString()}`);
         return;

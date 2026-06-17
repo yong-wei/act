@@ -224,6 +224,11 @@ describe('learning path round API routes', () => {
               styleId: 'foundation-remediation',
               policyFamily: 'foundation-remediation',
               nodeIds: ['knowledge-card:targets', 'arena-task:terminal'],
+              activeNodeIds: ['knowledge-card:targets', 'arena-task:terminal'],
+              planNodes: [
+                { nodeId: 'knowledge-card:targets', type: 'knowledge_card', target: '/knowledge/cards/targets' },
+                { nodeId: 'arena-task:terminal', type: 'arena_task', target: '/arena/tasks/terminal' },
+              ],
               resourceMix: { knowledge_card: 1, arena_task: 1 },
               evidenceBasis: ['adaptive-learner-state'],
               limitations: ['terminal-validation-required'],
@@ -233,6 +238,11 @@ describe('learning path round API routes', () => {
               styleId: 'simulation-driven',
               policyFamily: 'simulation-driven',
               nodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:terminal'],
+              activeNodeIds: ['arena-task:terminal'],
+              planNodes: [
+                { nodeId: 'simulation:control-correction-step-response-lab', type: 'simulation', target: '/simulations/control-correction-step-response-lab' },
+                { nodeId: 'arena-task:terminal', type: 'arena_task', target: '/arena/tasks/terminal' },
+              ],
               resourceMix: { simulation: 1, arena_task: 1 },
               evidenceBasis: ['simulation-run'],
             },
@@ -1698,6 +1708,99 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('adopts the selected product option as the executable path', async () => {
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-2',
+      rejectedOptionIds: ['path-option-1'],
+      idempotencyKey: 'choice-adopt-option-key',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.pathUpdate).toMatchObject({
+      selectedOptionId: 'path-option-2',
+      selectedStyleId: 'simulation-driven',
+      currentNodeId: 'arena-task:terminal',
+      nodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:terminal'],
+    });
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'path-1' },
+      data: expect.objectContaining({
+        nodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:terminal'],
+        currentNodeId: 'arena-task:terminal',
+        pathPayload: expect.objectContaining({
+          selectedOptionId: 'path-option-2',
+          selectedStyleId: 'simulation-driven',
+          selectedPolicyFamily: 'simulation-driven',
+          currentNodeId: 'arena-task:terminal',
+          mainPathNodeIds: ['simulation:control-correction-step-response-lab', 'arena-task:terminal'],
+          planNodes: [
+            expect.objectContaining({
+              nodeId: 'simulation:control-correction-step-response-lab',
+              type: 'simulation',
+            }),
+            expect.objectContaining({
+              nodeId: 'arena-task:terminal',
+              type: 'arena_task',
+              status: 'current',
+            }),
+          ],
+        }),
+        lastExecutionMetadata: expect.objectContaining({
+          activeNodeId: 'arena-task:terminal',
+          selectedOptionId: 'path-option-2',
+          selectedStyleId: 'simulation-driven',
+        }),
+      }),
+    }));
+  });
+
+  it('rejects product option adoption when selected plan nodes are not executable', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1'],
+        planNodes: [{ nodeId: 'node-1', type: 'simulation', target: '/simulations/current' }],
+        policyBundle: {
+          status: 'ready',
+          paths: [
+            {
+              styleId: 'broken-option',
+              policyFamily: 'simulation-driven',
+              nodeIds: ['simulation:broken'],
+              activeNodeIds: ['simulation:broken'],
+              planNodes: [{ nodeId: 'simulation:broken', target: '/simulations/broken' }],
+              resourceMix: { simulation: 1 },
+              evidenceBasis: ['simulation-run'],
+              limitations: [],
+            },
+          ],
+        },
+      },
+      learnerStateRef: 'diagnosis-snapshot:server-owned',
+      inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
+      terminalValidation: { nodeId: 'node-1', state: 'pending' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'choice-broken-option-key',
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathChoiceEvidence).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
   it('rejects empty path options while preserving original option ids for valid choices', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1',
@@ -1724,6 +1827,11 @@ describe('learning path round API routes', () => {
               styleId: 'foundation-remediation',
               policyFamily: 'foundation-remediation',
               nodeIds: ['knowledge-card:targets', 'arena-task:terminal'],
+              activeNodeIds: ['knowledge-card:targets', 'arena-task:terminal'],
+              planNodes: [
+                { nodeId: 'knowledge-card:targets', type: 'knowledge_card', target: '/knowledge/cards/targets' },
+                { nodeId: 'arena-task:terminal', type: 'arena_task', target: '/arena/tasks/terminal' },
+              ],
               resourceMix: { knowledge_card: 1, arena_task: 1 },
               evidenceBasis: ['adaptive-learner-state'],
               limitations: ['terminal-validation-required'],
