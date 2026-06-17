@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-06-17T13:32:40.947Z",
+  "capturedAt": "2026-06-17T14:57:30.315Z",
   "baseUrl": "http://localhost:3001",
   "captures": [
     {
@@ -56,7 +56,7 @@
       "url": "http://localhost:3001/assessment/adaptive-practice?demo=1&goal=control-correction&intent=path-selection",
       "selector": "[data-learning-path-product-surface]",
       "file": "artifacts/commercial-ui/adaptive-path-product-qa-516/path-comparison-mobile-dark.png",
-      "sha256": "aef9301327c9bc2e66c2e2c328fdff8a1d927e4fec7037d7e57c890c1b00db01"
+      "sha256": "6e4dca3c0581354aa1a65d15212917cbed65d5abe4f39ec7fecdcfe89466dcf8"
     },
     {
       "name": "active-path-execution-desktop-light",
