@@ -15,6 +15,7 @@ import {
   evaluateCommercialUiGovernance,
   type CommercialAccessibilityTextFitEvidence,
   type CommercialAdaptivePathProductQaEvidence,
+  type CommercialInteractiveVisualAcceptanceArtifact,
   type CommercialInteractiveLearningProductQaEvidence,
   type CommercialNavigationCoverageInput,
   type CommercialSimulationVisualQaEvidence,
@@ -657,6 +658,125 @@ function baseInput(overrides: Partial<CommercialUiGovernanceInput> = {}): Commer
     accessibilityEvidence: completeAccessibilityEvidence(),
     ...overrides,
   };
+}
+
+function completeInteractiveVisualAcceptanceArtifact(
+  overrides: Partial<CommercialInteractiveVisualAcceptanceArtifact> = {},
+): CommercialInteractiveVisualAcceptanceArtifact {
+  const componentId = overrides.componentId ?? 'derivation-stage-fixture';
+  const route = overrides.route ?? '/interactive-learning/courses/unit-2-1-modeling-language/student/session-fixture';
+  const componentKind = overrides.componentKind ?? 'visual.derivationStage';
+  const screenshot = (
+    role: 'student' | 'teacher',
+    theme: 'light' | 'dark',
+    viewport: 'mobile' | 'desktop' | 'projection',
+    state: string,
+  ) => ({
+    componentId,
+    route,
+    role,
+    theme,
+    viewport,
+    state,
+    path: `artifacts/interactive-learning/visual-gates/${componentId}-${role}-${theme}-${viewport}-${state}.png`,
+    sha256: `${role}-${theme}-${viewport}-${state}-sha`,
+    horizontalOverflow: false,
+    teacherControlsCoverPrimaryStage: false,
+    keyboardReachable: true,
+    visibleFocus: true,
+    teachingSemanticLabels: true,
+  });
+
+  const artifact: CommercialInteractiveVisualAcceptanceArtifact = {
+    componentId,
+    componentKind,
+    route,
+    designContractPath: 'artifacts/product-design-audits/interactive-course-visual-components-2026-06-17/design-contract.md',
+    visualSourcePath: 'artifacts/product-design-audits/interactive-course-visual-components-2026-06-17/concepts/derivation-stage.png',
+    manifestAuditPath: 'artifacts/interactive-learning/visual-gates/manifest-audit.json',
+    testResultPath: 'artifacts/interactive-learning/visual-gates/test-result.json',
+    browserAuditPath: 'artifacts/interactive-learning/visual-gates/browser-audit.json',
+    evidenceSamplePath: 'artifacts/interactive-learning/visual-gates/evidence-sample.json',
+    reviewerEvidencePath: 'artifacts/interactive-learning/visual-gates/product-design-review.md',
+    artifactPaths: [
+      { path: 'artifacts/interactive-learning/visual-gates/browser-audit.json', exists: true, current: true, componentId },
+    ],
+    teachingMapping: {
+      lessonId: 'unit-2-1',
+      stepId: 'step-03',
+      learningGoalId: 'lg-derive-transfer-function',
+      handoutAnchor: 'handout-derive-transfer-function',
+      bopppsPhase: 'participatory-learning',
+      interactiveContractStepId: 'contract-step-03',
+    },
+    screenshots: [
+      screenshot('student', 'light', 'desktop', 'student-unreleased'),
+      screenshot('student', 'dark', 'mobile', 'student-released'),
+      screenshot('student', 'light', 'projection', 'student-submitted'),
+      screenshot('teacher', 'dark', 'desktop', 'teacher-reveal'),
+      screenshot('teacher', 'light', 'desktop', 'teacher-answer-reveal'),
+      screenshot('teacher', 'dark', 'projection', 'teacher-diagnostics'),
+    ],
+    browserAudit: {
+      path: 'artifacts/interactive-learning/visual-gates/browser-audit.json',
+      roles: ['student', 'teacher'],
+      routes: [route],
+      themes: ['light', 'dark'],
+      viewports: ['mobile', 'desktop', 'projection'],
+      states: [
+        'student-unreleased',
+        'student-released',
+        'student-submitted',
+        'teacher-reveal',
+        'teacher-answer-reveal',
+        'teacher-diagnostics',
+      ],
+      noHorizontalOverflow: true,
+      teacherControlsClearPrimaryStage: true,
+    },
+    evidenceSample: {
+      path: 'artifacts/interactive-learning/visual-gates/evidence-sample.json',
+      eventType: 'visual_reveal',
+      clientEventId: 'client-visual-stage-001',
+      attemptKey: 'step-03:attempt-1',
+      sourceLogId: 'trusted-interaction-log-id',
+      lessonKey: 'unit-2-1',
+      stepId: 'step-03',
+      moduleId: componentId,
+      componentKind,
+      componentId,
+      actorRole: 'student',
+      clientEventAt: '2026-06-18T00:00:00.000Z',
+      schemaVersion: 'interactive-visual-component-evidence-v1',
+      serverRecordedAt: '2026-06-18T00:00:01.000Z',
+      payload: { revealIndex: 2, formulaBlockId: 'block-a' },
+      classification: ['InteractionLog', 'StudentStepResponse', 'LearningFact'],
+      affectsTeacherDiagnostics: true,
+      affectsAbilitySnapshots: false,
+      affectsRecommendationInputs: false,
+    },
+    diagnosticPolicy: {
+      denominator: 'released-participants',
+      dedupeKey: 'lessonKey:stepId:moduleId:attemptKey:clientEventId',
+      attemptPolicy: 'latest-submission-and-all-reveals',
+      resubmissionDisplay: 'latest-with-history-count',
+      unreleasedStudentInclusion: 'exclude-from-coverage-denominator',
+      freeTextRedaction: 'redact-by-default',
+      access: 'teacher-admin-only',
+      labelsUseTeachingSemantics: true,
+    },
+    visibleTextSamples: ['拉普拉斯变换步骤', '教师可查看推导进度分布'],
+    teacherDiagnostics: true,
+    stateRecoverability: {
+      studentVisualState: true,
+      submittedState: true,
+      teacherRevealState: true,
+      answerRevealState: true,
+      diagnosticsAggregationState: true,
+    },
+    ...overrides,
+  };
+  return artifact;
 }
 
 const interactiveLearningProductQaMatrixIds = [
@@ -3085,6 +3205,248 @@ describe('commercial UI governance', () => {
     );
   });
 
+  it('accepts a complete interactive visual component acceptance artifact', () => {
+    const artifact = completeInteractiveVisualAcceptanceArtifact();
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveVisualComponentArtifactsRequired: true,
+      interactiveVisualComponentArtifacts: [artifact],
+    }));
+
+    expect(result.blockingViolations.filter((violation) => (
+      violation.category === 'interactive-visual-component'
+    ))).toEqual([]);
+  });
+
+  it('fails when interactive visual component changes require an acceptance artifact but none is provided', () => {
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveVisualComponentArtifactsRequired: true,
+      interactiveVisualComponentArtifacts: [],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-visual-component',
+          rule: 'interactive-visual-component.missing-acceptance-artifact',
+          path: 'interactive-visual-components',
+          evidence: expect.arrayContaining(['interactiveVisualComponentArtifacts']),
+        }),
+      ]),
+    );
+  });
+
+  it('fails complete-looking interactive visual artifacts when referenced paths are missing or stale', () => {
+    const artifact = completeInteractiveVisualAcceptanceArtifact({
+      artifactPaths: [
+        {
+          path: 'artifacts/interactive-learning/visual-gates/missing-browser-audit.json',
+          exists: false,
+          current: true,
+          componentId: 'derivation-stage-fixture',
+        },
+        {
+          path: 'artifacts/interactive-learning/visual-gates/stale-evidence-sample.json',
+          exists: true,
+          current: false,
+          componentId: 'derivation-stage-fixture',
+        },
+      ],
+    });
+
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveVisualComponentArtifacts: [artifact],
+    }));
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-visual-component',
+          rule: 'interactive-visual-component.incomplete-acceptance-artifact',
+          evidence: expect.arrayContaining([
+            'artifacts/interactive-learning/visual-gates/missing-browser-audit.json:missing',
+            'artifacts/interactive-learning/visual-gates/stale-evidence-sample.json:stale',
+          ]),
+        }),
+      ]),
+    );
+  });
+
+  it('fails incomplete interactive visual component state, role, theme, viewport, and evidence matrices', () => {
+    const artifact = completeInteractiveVisualAcceptanceArtifact({
+      browserAuditPath: undefined,
+      teachingMapping: {
+        lessonId: 'unit-2-1',
+        stepId: 'step-03',
+        learningGoalId: '',
+        bopppsPhase: 'participatory-learning',
+        interactiveContractStepId: 'contract-step-03',
+      },
+      screenshots: [
+        {
+          componentId: 'derivation-stage-fixture',
+          route: '/interactive-learning/courses/unit-2-1-modeling-language/student/session-fixture',
+          role: 'student',
+          theme: 'light',
+          viewport: 'desktop',
+          state: 'student-released',
+          path: 'artifacts/interactive-learning/visual-gates/derivation-stage-fixture-student-light-desktop-student-released.png',
+          horizontalOverflow: false,
+          teacherControlsCoverPrimaryStage: false,
+          keyboardReachable: false,
+          visibleFocus: true,
+          teachingSemanticLabels: true,
+        },
+      ],
+      browserAudit: {
+        path: 'artifacts/interactive-learning/visual-gates/browser-audit.json',
+        roles: ['student'],
+        routes: ['/interactive-learning/courses/unit-2-1-modeling-language/student/session-fixture'],
+        themes: ['light'],
+        viewports: ['desktop'],
+        noHorizontalOverflow: true,
+        teacherControlsClearPrimaryStage: true,
+      },
+      evidenceSample: {
+        eventType: 'visual_reveal',
+        clientEventId: 'client-visual-stage-001',
+        attemptKey: 'step-03:attempt-1',
+        lessonKey: 'unit-2-1',
+        stepId: 'step-03',
+        moduleId: 'derivation-stage-fixture',
+        componentKind: 'visual.derivationStage',
+        componentId: 'derivation-stage-fixture',
+        actorRole: 'student',
+        clientEventAt: '2026-06-18T00:00:00.000Z',
+        schemaVersion: 'interactive-visual-component-evidence-v1',
+        serverRecordedAt: '2026-06-18T00:00:01.000Z',
+        payload: { revealIndex: 2 },
+      },
+    });
+
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveVisualComponentArtifacts: [artifact],
+    }));
+    const interactiveEvidence = result.blockingViolations
+      .filter((violation) => violation.category === 'interactive-visual-component')
+      .flatMap((violation) => violation.evidence ?? []);
+
+    expect(result.passed).toBe(false);
+    expect(result.blockingViolations.map((violation) => violation.rule)).toContain(
+      'interactive-visual-component.incomplete-acceptance-artifact',
+    );
+    expect(interactiveEvidence).toEqual(expect.arrayContaining([
+      'component=derivation-stage-fixture',
+      'browserAuditPath',
+      'teachingMapping.learningGoalId',
+      'teachingMapping.handoutAnchor|evidenceUnitId',
+      'screenshot[0].keyboardReachable',
+      'role=teacher',
+      'theme=dark',
+      'viewport=mobile',
+      'viewport=projection',
+      'state=student-unreleased',
+      'state=student-submitted',
+      'state=teacher-answer-reveal',
+      'state=teacher-diagnostics',
+      'state=teacher-reveal|teacher-derivation-in-progress',
+      'browserAudit.role=teacher',
+      'browserAudit.theme=dark',
+      'browserAudit.viewport=mobile',
+      'browserAudit.viewport=projection',
+      'browserAudit.state=student-unreleased',
+      'browserAudit.state=student-submitted',
+      'browserAudit.state=teacher-answer-reveal',
+      'browserAudit.state=teacher-diagnostics',
+      'browserAudit.state=teacher-reveal|teacher-derivation-in-progress',
+      'evidenceSample.sourceLogId',
+      'evidenceSample.classification',
+      'evidenceSample.affectsTeacherDiagnostics',
+      'evidenceSample.affectsAbilitySnapshots',
+      'evidenceSample.affectsRecommendationInputs',
+    ]));
+  });
+
+  it('fails component-specific states, duplicate screenshots, stale artifact paths, semantic leaks, and diagnostics exposure', () => {
+    const sharedPath = 'artifacts/interactive-learning/visual-gates/reused.png';
+    const artifact = completeInteractiveVisualAcceptanceArtifact({
+      componentKind: 'visual.blockDiagram',
+      artifactPaths: [
+        { path: 'artifacts/interactive-learning/visual-gates/browser-audit.json', exists: false, current: false, componentId: 'other-component' },
+      ],
+      screenshots: completeInteractiveVisualAcceptanceArtifact().screenshots?.map((screenshot, index) => ({
+        ...screenshot,
+        path: index < 2 ? sharedPath : screenshot.path,
+      })),
+      diagnosticPolicy: {
+        denominator: 'released-participants',
+        dedupeKey: 'lessonKey:stepId:moduleId:attemptKey:clientEventId',
+        attemptPolicy: 'latest-submission-and-all-reveals',
+        resubmissionDisplay: 'latest-with-history-count',
+        unreleasedStudentInclusion: 'exclude-from-coverage-denominator',
+        freeTextRedaction: 'show-raw-free-text',
+        access: 'student',
+        labelsUseTeachingSemantics: false,
+      },
+      evidenceSample: {
+        ...completeInteractiveVisualAcceptanceArtifact().evidenceSample,
+        classification: ['RawLayer' as never],
+        clientEventAt: '2026-06-18T00:00:02.000Z',
+        serverRecordedAt: '2026-06-18T00:00:01.000Z',
+      },
+      visibleTextSamples: ['visual.blockDiagram renderer payload debug label', 'sourceLogId raw answerText'],
+      blockingFindings: ['derivation-card-list-fallback'],
+      stateRecoverability: {
+        studentVisualState: true,
+        submittedState: true,
+        teacherRevealState: false,
+        answerRevealState: true,
+        diagnosticsAggregationState: true,
+      },
+    });
+
+    const result = evaluateCommercialUiGovernance(baseInput({
+      interactiveVisualComponentArtifacts: [artifact],
+    }));
+    const interactiveEvidence = result.blockingViolations
+      .filter((violation) => violation.category === 'interactive-visual-component')
+      .flatMap((violation) => violation.evidence ?? []);
+
+    expect(result.passed).toBe(false);
+    expect(interactiveEvidence).toEqual(expect.arrayContaining([
+      'artifacts/interactive-learning/visual-gates/browser-audit.json:missing',
+      'artifacts/interactive-learning/visual-gates/browser-audit.json:stale',
+      'artifacts/interactive-learning/visual-gates/browser-audit.json:componentId',
+      `${sharedPath}:duplicate`,
+      'state=graph-constructed',
+      'diagnosticPolicy.labelsUseTeachingSemantics',
+      'diagnosticPolicy.freeTextRedaction=redact-by-default',
+      'evidenceSample.classification=RawLayer',
+      'evidenceSample.serverRecordedAt>=clientEventAt',
+      'stateRecoverability.teacherRevealState',
+    ]));
+    expect(result.blockingViolations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: 'interactive-visual-component',
+          rule: 'interactive-visual-component.diagnostics-exposure',
+          evidence: expect.arrayContaining(['diagnosticPolicy.access=student']),
+        }),
+        expect.objectContaining({
+          category: 'interactive-visual-component',
+          rule: 'interactive-visual-component.semantic-leak',
+          evidence: expect.arrayContaining(['visibleTextSamples[0]', 'visibleTextSamples[1]']),
+        }),
+        expect.objectContaining({
+          category: 'interactive-visual-component',
+          rule: 'interactive-visual-component.blocking-finding',
+          evidence: expect.arrayContaining(['derivation-card-list-fallback']),
+        }),
+      ]),
+    );
+  });
+
   it('detects drift between primary route inventory and visual QA route inputs', () => {
     const driftSentinels = ['/arena', '/assessment/adaptive-practice', '/profile', '/data-center'];
 
@@ -3959,6 +4321,17 @@ describe('commercial UI governance', () => {
     expect(scriptSource).toContain("execFileSync('git', ['merge-base', '--is-ancestor', ancestor, descendant]");
     expect(scriptSource).toContain('latestSourceCommits.every((sourceCommit)');
     expect(scriptSource).toContain('interactiveLearningProductQaEvidenceCoversLatestSource(files)');
+  });
+
+  it('keeps interactive visual acceptance script triggers and real artifact path checks wired', () => {
+    const scriptSource = readFileSync(join(process.cwd(), 'scripts/tests/test-commercial-ui-governance.ts'), 'utf8');
+
+    expect(scriptSource).toContain('activity-renderers');
+    expect(scriptSource).toContain('static-surface-3d.*');
+    expect(scriptSource).toContain('layout-renderer');
+    expect(scriptSource).toContain('.*evidence.*');
+    expect(scriptSource).toContain('interactiveVisualArtifactPathChecks');
+    expect(scriptSource).toContain('existsSync(path.join(repoRoot, artifactPath))');
   });
 
   it('rejects stale final interactive learning product QA evidence across source commit topology', () => {
