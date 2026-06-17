@@ -11,6 +11,10 @@ import type {
   InteractiveRuntimeModuleManifest,
   InteractiveRuntimeStepManifest,
 } from './layout-renderer';
+import { buildControlWorkbenchClientEvidenceDraft } from './control-workbench-evidence';
+import { isControlWorkbenchComputeCapabilityRef } from './module-taxonomy';
+import type { ControlAnalysisRequest, ControlAnalysisResult } from '@/resources/control-system/analysis/types';
+import { ControlFigureWorkspace } from '@/resources/control-system/charts/control-figure-workspace';
 import { StaticSurface3DPanel, type StaticSurface3DPanelProps, type StaticSurfaceDataset } from './static-surface-3d-panel';
 
 type ContentRecord = Record<string, unknown>;
@@ -984,6 +988,97 @@ function InteractiveFigureComputePanel({
   return <SummaryCard title={titleFromModule(module)} text={content.text} bullets={content.bullets} />;
 }
 
+function SharedControlWorkbenchComputePanel({
+  manifest,
+  step,
+  module,
+  onPanelSubmit,
+}: {
+  manifest: InteractiveRuntimeManifest;
+  step: InteractiveRuntimeStepManifest;
+  module: InteractiveRuntimeModuleManifest;
+  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void;
+}) {
+  const capabilityRef = computeCapabilityRef(module.payload);
+  const visiblePanelIds = stringArrayField(module.payload, ['visiblePanelIds', 'visible_panel_ids', 'panels']);
+  const responseContractId = stringField(module.payload, ['responseContractId', 'response_contract_id', 'responseKind', 'response_kind']);
+  const releaseState = stringField(module.payload, ['releaseState', 'release_state']) || 'course-controlled';
+  const fallbackState = stringField(module.payload, ['fallbackState', 'fallback_state']) || 'supported';
+  const request = controlAnalysisRequestFromPayload(module.payload);
+  const fallbackResult = controlAnalysisResultFromPayload(module.payload);
+  const layout = controlWorkbenchLayoutFromPayload(module.payload);
+  const content = summaryContent(step, module);
+  const bullets = [
+    visiblePanelIds.length ? '课程已声明本页需要的分析视图。' : '分析视图由课程配置选择。',
+    responseContractId ? '提交会保存当前参数、图形状态和判断。' : '提交方式由课程活动设置提供。',
+    fallbackState === 'unsupported' ? '当前状态仅提供替代说明。' : '本次参数探索可用于课后复盘。',
+    ...content.bullets,
+  ];
+  const submitCurrent = () => {
+    if (!onPanelSubmit || !capabilityRef) return;
+    const submittedAt = Date.now();
+    const eventDraft = buildControlWorkbenchClientEvidenceDraft({
+      eventType: 'lesson_submit',
+      clientEventId: `${step.id}:${module.id}:${submittedAt}`,
+      attemptKey: `${step.id}:response:${submittedAt}`,
+      lessonKey: manifest.lessonId,
+      stepId: step.id,
+      moduleId: module.id,
+      componentId: module.id,
+      actorRole: 'student',
+      clientEventAt: new Date(submittedAt).toISOString(),
+      capabilityId: capabilityRef,
+      visiblePanelIds,
+      parameterSnapshot: parameterSnapshotFromRequest(request),
+      selectedDesignState: { releaseState, fallbackState },
+      answerPayload: { responseContractId: responseContractId ?? 'parameter.set' },
+      releaseState: releaseState === 'released' || releaseState === 'revealed' ? releaseState : 'released',
+      fallbackState: fallbackState === 'fallback' || fallbackState === 'unsupported' ? fallbackState : 'supported',
+    });
+    onPanelSubmit({
+      stepId: step.id,
+      submittedAt,
+      answers: {
+        [responseContractId ?? `${module.id}:control-workbench`]: JSON.stringify(eventDraft),
+      },
+    });
+  };
+
+  return (
+    <section
+      className="premium-lesson-panel space-y-4"
+      data-control-workbench-capability={capabilityRef}
+      data-control-workbench-module-id={module.id}
+      data-control-workbench-release-state={releaseState}
+      data-control-workbench-fallback-state={fallbackState}
+    >
+      <SummaryCard
+        title={titleFromModule(module, step)}
+        text={content.text || '本页使用控制分析工具观察参数变化、曲线响应和设计判断。'}
+        bullets={bullets}
+      />
+      {request ? (
+        <>
+          <ControlFigureWorkspace
+            request={request}
+            fallbackResult={fallbackResult}
+            layout={layout}
+            allowedPanelIds={visiblePanelIds}
+          />
+          <button
+            type="button"
+            onClick={submitCurrent}
+            disabled={!onPanelSubmit}
+            className="premium-lesson-action-primary px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {onPanelSubmit ? '提交当前观察' : '等待教师发放'}
+          </button>
+        </>
+      ) : null}
+    </section>
+  );
+}
+
 function numericArray(value: unknown): number[] {
   if (!Array.isArray(value)) return [];
   return value.map((item) => Number(item)).filter((item) => Number.isFinite(item));
@@ -1807,6 +1902,9 @@ export function createManifestContentModuleRegistry(extra: {
       if (computeCapabilityRef(module.payload) === 'static-surface-3d') {
         return <StaticSurface3DPanel {...staticSurfacePanelProps(manifest, step, module)} />;
       }
+      if (isControlWorkbenchComputeCapabilityRef(computeCapabilityRef(module.payload))) {
+        return <SharedControlWorkbenchComputePanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} />;
+      }
       if (computeCapabilityRef(module.payload) === 'interactive-figure') {
         return <InteractiveFigureComputePanel step={step} module={module} onPanelSubmit={extra.onPanelSubmit} />;
       }
@@ -2202,4 +2300,55 @@ export function createManifestContentModuleRegistry(extra: {
 
 function computeCapabilityRef(payload: ContentRecord) {
   return stringField(payload, ['capabilityRef', 'capability_ref', 'capability']);
+}
+
+function stringArrayField(payload: ContentRecord, keys: string[]) {
+  for (const key of keys) {
+    const value = payload[key];
+    if (Array.isArray(value)) {
+      return value.filter((item): item is string => typeof item === 'string' && Boolean(item.trim()));
+    }
+  }
+  return [];
+}
+
+function controlAnalysisRequestFromPayload(payload: ContentRecord): ControlAnalysisRequest | undefined {
+  const request = asRecord(payload.request ?? payload.analysisRequest ?? payload.analysis_request);
+  return isControlAnalysisRequest(request) ? request as unknown as ControlAnalysisRequest : undefined;
+}
+
+function controlAnalysisResultFromPayload(payload: ContentRecord): ControlAnalysisResult | undefined {
+  const fallback = asRecord(payload.fallbackResult ?? payload.fallback_result);
+  return isControlAnalysisResult(fallback) ? fallback as unknown as ControlAnalysisResult : undefined;
+}
+
+function controlWorkbenchLayoutFromPayload(payload: ContentRecord): 'quad' | 'platform' | 'standard-quad' {
+  const layout = stringField(payload, ['layout', 'workbenchLayout', 'workbench_layout']);
+  return layout === 'platform' || layout === 'standard-quad' ? layout : 'quad';
+}
+
+function isControlAnalysisRequest(value: ContentRecord): boolean {
+  return value.runtimeMode === 'analysis'
+    && typeof value.plant === 'object'
+    && Array.isArray(value.structures)
+    && Array.isArray(value.outputs)
+    && typeof value.timeRange === 'object'
+    && typeof value.frequencyRange === 'object'
+    && typeof value.rootLocus === 'object';
+}
+
+function isControlAnalysisResult(value: ContentRecord): boolean {
+  return typeof value.metrics === 'object'
+    && typeof value.stepResponse === 'object'
+    && typeof value.rootLocus === 'object'
+    && typeof value.magnitude === 'object'
+    && typeof value.phase === 'object'
+    && typeof value.nyquist === 'object';
+}
+
+function parameterSnapshotFromRequest(request: ControlAnalysisRequest | undefined): Record<string, unknown> {
+  if (!request) return {};
+  return Object.fromEntries(
+    request.structures.flatMap((structure) => Object.entries(structure.params).map(([key, value]) => [`${structure.kind}.${key}`, value])),
+  );
 }

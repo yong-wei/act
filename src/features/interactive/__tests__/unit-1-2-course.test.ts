@@ -191,8 +191,8 @@ describe('unit 1-2 modeling from object to system course', () => {
     ];
 
     for (const step of manifest.steps) {
-      for (const module of step.modules.filter((item) => item.kind === 'content.figure')) {
-        const title = module.payload.title;
+      for (const runtimeModule of step.modules.filter((item) => item.kind === 'content.figure')) {
+        const title = runtimeModule.payload.title;
         expect(typeof title === 'string' ? forbiddenVisibleNames.includes(title) : false).toBe(false);
       }
     }

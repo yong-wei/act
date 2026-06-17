@@ -130,6 +130,17 @@ export interface InteractiveModuleComputeCapabilityDefinition {
   description: string;
 }
 
+export const CONTROL_WORKBENCH_COMPUTE_CAPABILITY_REFS = [
+  'control-workbench',
+  'control-linked-comparison',
+  'control-root-locus-design-map',
+  'control-frequency-reading-workbench',
+  'nonlinear-analysis-workbench',
+  'training-workbench',
+] as const;
+
+export type ControlWorkbenchComputeCapabilityRef = typeof CONTROL_WORKBENCH_COMPUTE_CAPABILITY_REFS[number];
+
 export const INTERACTIVE_MODULE_DEFINITIONS: Record<InteractiveModuleCanonicalClass, InteractiveModuleDefinition> = {
   'content.rich': {
     canonicalClass: 'content.rich',
@@ -275,7 +286,38 @@ export const INTERACTIVE_MODULE_COMPUTE_CAPABILITY_DEFINITIONS: Record<string, I
     capabilityRef: 'parametric-risk',
     description: 'Parametric risk visualization panel.',
   },
+  'control-workbench': {
+    capabilityRef: 'control-workbench',
+    description: 'Shared control workbench embedded in an interactive course.',
+  },
+  'control-linked-comparison': {
+    capabilityRef: 'control-linked-comparison',
+    description: 'Shared linked comparison workbench for baseline and parameter variants.',
+  },
+  'control-root-locus-design-map': {
+    capabilityRef: 'control-root-locus-design-map',
+    description: 'Shared root locus design map and handle-based design surface.',
+  },
+  'control-frequency-reading-workbench': {
+    capabilityRef: 'control-frequency-reading-workbench',
+    description: 'Shared Bode and Nyquist reading workbench.',
+  },
+  'nonlinear-analysis-workbench': {
+    capabilityRef: 'nonlinear-analysis-workbench',
+    description: 'Shared nonlinear phase plane and describing-function workbench.',
+  },
+  'training-workbench': {
+    capabilityRef: 'training-workbench',
+    description: 'Shared training and policy-learning workbench.',
+  },
 };
+
+export function isControlWorkbenchComputeCapabilityRef(
+  capabilityRef: string | null | undefined,
+): capabilityRef is ControlWorkbenchComputeCapabilityRef {
+  return typeof capabilityRef === 'string'
+    && (CONTROL_WORKBENCH_COMPUTE_CAPABILITY_REFS as readonly string[]).includes(capabilityRef);
+}
 
 export interface LegacyInteractiveModuleKindAlias {
   canonicalClass: InteractiveModuleCanonicalClass;

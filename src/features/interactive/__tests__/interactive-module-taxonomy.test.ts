@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import {
+  CONTROL_WORKBENCH_COMPUTE_CAPABILITY_REFS,
   INTERACTIVE_MODULE_CANONICAL_CLASSES,
   INTERACTIVE_MODULE_INTERACTION_KINDS,
   INTERACTIVE_MODULE_PRESENTATION_LAYOUTS,
@@ -145,6 +146,22 @@ describe('interactive module taxonomy', () => {
     expect(INTERACTIVE_MODULE_COMPUTE_CAPABILITY_DEFINITIONS['static-surface-3d']).toMatchObject({
       capabilityRef: 'static-surface-3d',
     });
+  });
+
+  it('registers shared control workbench compute capabilities', () => {
+    expect(CONTROL_WORKBENCH_COMPUTE_CAPABILITY_REFS).toEqual([
+      'control-workbench',
+      'control-linked-comparison',
+      'control-root-locus-design-map',
+      'control-frequency-reading-workbench',
+      'nonlinear-analysis-workbench',
+      'training-workbench',
+    ]);
+    for (const capabilityRef of CONTROL_WORKBENCH_COMPUTE_CAPABILITY_REFS) {
+      expect(INTERACTIVE_MODULE_COMPUTE_CAPABILITY_DEFINITIONS[capabilityRef]).toMatchObject({
+        capabilityRef,
+      });
+    }
   });
 
   it('marks legacy aliases as migration-only canonical mappings', () => {

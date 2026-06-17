@@ -1,13 +1,16 @@
 import { mkdtempSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { createElement } from 'react';
 import type { ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
 import { describe, expect, it } from 'vitest';
 
+import { ThemeProvider } from '@/components/providers/theme-provider';
 import { createManifestContentModuleRegistry } from '@/features/interactive/shared/manifest-runtime/content-renderers';
 import {
+  evaluateInteractiveCoursePrivateControlPanelSourceGate,
   evaluateInteractiveModuleRegistryGate,
   scanRuntimeInteractiveModuleRegistry,
   STANDARD_MODULE_ENFORCED_LESSON_IDS,
@@ -90,6 +93,43 @@ describe('interactive module registry gate', () => {
     expect(registry['compute.panel']).toBeTypeOf('function');
     expect(registry['analytics.summary']).toBeTypeOf('function');
     expect(registry['layout.support']).toBeTypeOf('function');
+  });
+
+  it('routes shared control workbench compute capabilities through the shared renderer', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'control-workbench-module',
+        kind: 'compute.panel',
+        mustBeVisible: true,
+        payload: {
+          capabilityRef: 'control-workbench',
+          visiblePanelIds: ['time-domain', 'root-locus'],
+          responseContractId: 'parameter.set',
+          releaseState: 'released',
+          request: controlAnalysisRequestFixture(),
+          fallbackResult: controlAnalysisResultFixture(),
+        },
+      },
+    });
+    const step = manifest.steps[0];
+    const node = registry['compute.panel']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 0, allowInlineReveal: false },
+    }) as ReactElement;
+    const html = renderToStaticMarkup(createElement(ThemeProvider, null, node));
+
+    expect(html).toContain('data-control-workbench-capability="control-workbench"');
+    expect(html).toContain('data-control-workbench-module-id="control-workbench-module"');
+    expect(html).toContain('data-control-workbench-panel="time-domain"');
+    expect(html).toContain('data-control-workbench-panel="root-locus"');
+    expect(html).not.toContain('data-control-workbench-panel="nyquist"');
+    expect(html).toContain('提交会保存当前参数、图形状态和判断');
   });
 
   it('renders MATLAB code with the canonical content.code module renderer', () => {
@@ -996,6 +1036,95 @@ describe('interactive module registry gate', () => {
     ]);
   });
 
+  it('accepts registered shared control workbench capabilities with response and panel contracts', () => {
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'control-workbench',
+              kind: 'compute.panel',
+              mustBeVisible: true,
+              payload: {
+                capabilityRef: 'control-linked-comparison',
+                visiblePanelIds: ['time-domain', 'bode'],
+                responseContractId: 'parameter.set',
+                request: controlAnalysisRequestFixture(),
+              },
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(result.passed).toBe(true);
+    expect(result.violations).toEqual([]);
+  });
+
+  it('rejects shared control workbench capabilities without visible panel and response contracts', () => {
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'control-workbench-missing-contract',
+              kind: 'compute.panel',
+              mustBeVisible: true,
+              payload: { capabilityRef: 'control-workbench' },
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.violations).toEqual([
+      expect.objectContaining({
+        lessonId: 'fixture-lesson',
+        moduleId: 'control-workbench-missing-contract',
+        code: 'compute-control-migration-exception-invalid',
+        capabilityRef: 'control-workbench',
+      }),
+    ]);
+  });
+
+  it('rejects interactive-figure as a generic control-analysis carrier without a complete migration exception', () => {
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'private-bode-panel',
+              kind: 'compute.panel',
+              mustBeVisible: true,
+              payload: {
+                capabilityRef: 'interactive-figure',
+                panel_id: 'rust_bode_private_panel',
+                migrationException: {
+                  issueId: '560',
+                  owner: 'interactive-course-visual-components',
+                },
+              },
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(result.passed).toBe(false);
+    expect(result.violations).toEqual([
+      expect.objectContaining({
+        lessonId: 'fixture-lesson',
+        moduleId: 'private-bode-panel',
+        code: 'compute-control-migration-exception-invalid',
+        capabilityRef: 'interactive-figure',
+      }),
+    ]);
+  });
+
   it('validates static 3D surface compute panel payloads', () => {
     const validResult = evaluateInteractiveModuleRegistryGate({
       manifests: [
@@ -1449,6 +1578,91 @@ describe('interactive module registry gate', () => {
     expect(offenders.map((filePath) => filePath.replace(`${process.cwd()}/`, ''))).toEqual([]);
   });
 
+  it('rejects course-private duplicate control panel source unless a complete migration exception is documented', () => {
+    const invalidSource = evaluateInteractiveCoursePrivateControlPanelSourceGate([
+      {
+        path: 'src/features/interactive/unit-9-9-demo/step-panels.tsx',
+        source: 'import { BodePanel } from "@/resources/control-system/charts/control-analysis-panels"; export function LocalBodePanel() { return null; }',
+      },
+    ]);
+    expect(invalidSource).toEqual([
+      expect.objectContaining({
+        lessonId: 'unit-9-9-demo',
+        code: 'course-private-control-panel-duplicate',
+      }),
+    ]);
+
+    const validSource = evaluateInteractiveCoursePrivateControlPanelSourceGate([
+      {
+        path: 'src/features/interactive/unit-9-9-demo/step-panels.tsx',
+        source: `
+          const controlWorkbenchMigrationException = {
+            issueId: '#560',
+            owner: 'interactive-course-visual-components',
+            removalCondition: 'replace with shared control workbench capability',
+            expiresOn: '2026-12-31',
+          };
+          import { BodePanel } from "@/resources/control-system/charts/control-analysis-panels";
+        `,
+      },
+    ]);
+    expect(validSource).toEqual([]);
+  });
+
+  it('scans course-private duplicate control panel source by default', () => {
+    const rootDir = mkdtempSync(join(tmpdir(), 'interactive-module-gate-'));
+    try {
+      const lessonDir = join(rootDir, 'course-content/runtime/lessons/source-gate-lesson');
+      const sourceDir = join(rootDir, 'src/features/interactive/unit-9-9-demo');
+      mkdirSync(lessonDir, { recursive: true });
+      mkdirSync(sourceDir, { recursive: true });
+      writeFileSync(
+        join(lessonDir, 'interactive-manifest.json'),
+        JSON.stringify({
+          lesson_id: 'source-gate-lesson',
+          steps: {
+            'step-01': {
+              title: 'Step 01',
+              layout: { regions: [{ id: 'main', width: 'full', order: 1 }] },
+              modules: [
+                {
+                  id: 'intro',
+                  kind: 'content.rich',
+                  region: 'main',
+                  must_be_visible: true,
+                  payload: {},
+                },
+              ],
+              interaction_spec: { interaction_kind: 'display' },
+            },
+          },
+        }),
+        'utf8',
+      );
+      writeFileSync(
+        join(sourceDir, 'step-panels.tsx'),
+        'import { BodePanel } from "@/resources/control-system/charts/control-analysis-panels"; export function LocalBodePanel() { return null; }',
+        'utf8',
+      );
+
+      const result = scanRuntimeInteractiveModuleRegistry({
+        rootDir,
+        standardModuleLessonIds: ['source-gate-lesson'],
+      });
+
+      expect(result.passed).toBe(false);
+      expect(result.violations).toEqual([
+        expect.objectContaining({
+          lessonId: 'unit-9-9-demo',
+          code: 'course-private-control-panel-duplicate',
+          manifestPath: 'src/features/interactive/unit-9-9-demo/step-panels.tsx',
+        }),
+      ]);
+    } finally {
+      rmSync(rootDir, { recursive: true, force: true });
+    }
+  });
+
   it('passes the standard module lesson group with canonical modules on every step', () => {
     const standardModuleLessonIds = [...STANDARD_MODULE_ENFORCED_LESSON_IDS];
     const result = scanRuntimeInteractiveModuleRegistry({ standardModuleLessonIds });
@@ -1650,6 +1864,64 @@ function activityCardFixture({
     submitScope: 'step',
     layoutSpan: 'full',
     options: [],
+  };
+}
+
+function controlAnalysisRequestFixture(): Record<string, unknown> {
+  return {
+    runtimeMode: 'analysis',
+    caseId: 'fixture-control-workbench',
+    plant: {
+      numerator: [1],
+      denominator: [1, 2, 1],
+      coefficientOrder: 'descending',
+      label: 'G(s)',
+    },
+    structures: [
+      {
+        kind: 'gain',
+        enabled: true,
+        params: { k: 1 },
+        label: 'K',
+      },
+    ],
+    outputs: ['step_response', 'bode', 'root_locus', 'nyquist'],
+    responseType: 'step',
+    timeRange: { start: 0, end: 10, samples: 64 },
+    frequencyRange: { min: 0.1, max: 10, samples: 64 },
+    rootLocus: { minGain: 0, maxGain: 10, samples: 64, currentGain: 1 },
+  };
+}
+
+function controlAnalysisResultFixture(): Record<string, unknown> {
+  const line = [
+    { x: 0, y: 0 },
+    { x: 1, y: 1 },
+  ];
+  return {
+    metrics: {
+      overshootPct: 0,
+      riseTimeSec: 1,
+      settlingTimeSec: 2,
+      peakTimeSec: 1,
+      finalValue: 1,
+      phaseMarginDeg: 45,
+      gainMarginDb: 12,
+      gainCrossoverRadPerSec: 1,
+      phaseCrossoverRadPerSec: 2,
+      bandwidthRadPerSec: 3,
+    },
+    stepResponse: { points: line },
+    magnitude: { points: line },
+    phase: { points: line },
+    nyquist: { points: [{ re: 0, im: 0 }, { re: 1, im: -1 }] },
+    rootLocus: {
+      branches: [[{ re: -1, im: 0 }, { re: -2, im: 0 }]],
+      currentPoles: [{ re: -1, im: 0 }],
+      openLoopPoles: [{ re: -1, im: 0 }],
+      openLoopZeros: [],
+    },
+    isFallback: true,
   };
 }
 

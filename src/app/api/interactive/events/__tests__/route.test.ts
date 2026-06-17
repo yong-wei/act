@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
     },
     studentStepResponse: {
       createMany: vi.fn(),
+      findMany: vi.fn(),
     },
   },
   eventRateLimiter: {
@@ -60,7 +61,7 @@ vi.mock('@/lib/nextjs-dynamic-error', () => ({
   rethrowIfNextDynamicError: vi.fn(),
 }));
 
-import { POST } from '../route';
+import { GET, POST } from '../route';
 
 function createPostRequest(body: unknown): NextRequest {
   return new NextRequest('http://localhost/api/interactive/events', {
@@ -72,6 +73,7 @@ function createPostRequest(body: unknown): NextRequest {
 
 describe('POST /api/interactive/events', () => {
   beforeEach(() => {
+    vi.useRealTimers();
     vi.clearAllMocks();
     mocks.getServerSession.mockResolvedValue({
       user: { id: 'student-1', role: 'STUDENT' },
@@ -92,6 +94,7 @@ describe('POST /api/interactive/events', () => {
       { id: 'log-invalid', clientEventId: 'client-invalid-session', eventData: { clientEventId: 'client-invalid-session' } },
     ]);
     mocks.prisma.studentStepResponse.createMany.mockResolvedValue({ count: 0 });
+    mocks.prisma.studentStepResponse.findMany.mockResolvedValue([]);
     mocks.routeEvent.mockResolvedValue({ destination: 'postgresql' });
     mocks.persistCoreLearningFact.mockResolvedValue({ created: 0, actionType: 'page_view' });
     mocks.generateSessionSummaryReports.mockResolvedValue({
@@ -487,5 +490,117 @@ describe('POST /api/interactive/events', () => {
       sourceLogId: 'actual-log-id',
     });
     expect(learningEvent.payload.sourceLogId).not.toBe('forged-log-id');
+  });
+
+  it('materializes control workbench evidence with trusted source log fields', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-18T01:00:00.000Z'));
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      { id: 'actual-workbench-log-id', clientEventId: 'client-workbench', eventData: { clientEventId: 'client-workbench' } },
+    ]);
+
+    const workbenchDraft = {
+      eventType: 'lesson_submit',
+      clientEventId: 'client-workbench',
+      attemptKey: 'step-04:response:1',
+      lessonKey: 'unit-4-2-controller-selection-first-start-v1',
+      stepId: 'step-04',
+      moduleId: 'frequency-workbench',
+      componentKind: 'compute.panel',
+      componentId: 'frequency-workbench',
+      actorRole: 'student',
+      clientEventAt: '2026-06-18T00:00:00.000Z',
+      schemaVersion: 'control-workbench-evidence-v1',
+      payload: {
+        capabilityId: 'control-frequency-reading-workbench',
+        visiblePanelIds: ['bode', 'root-locus'],
+        parameterSnapshot: { 'gain.k': 1 },
+        selectedDesignState: null,
+        derivedResultRefs: [],
+        answerPayload: { responseContractId: 'parameter.set' },
+        releaseState: 'released',
+        fallbackState: 'supported',
+        classification: ['InteractionLog', 'StudentStepResponse'],
+        serverRecordedAt: null,
+      },
+    };
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          id: 'client-workbench',
+          type: 'submit',
+          timestamp: Date.parse('2026-06-18T00:00:00.000Z'),
+          resourceKey: 'unit-4-2-controller-selection-first-start-v1',
+          lessonKey: 'unit-4-2-controller-selection-first-start-v1',
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+          stepId: 'step-04',
+          data: {
+            clientEventId: 'client-workbench',
+            eventType: 'lesson_submit',
+            answerDigest: {
+              'parameter.set': JSON.stringify(workbenchDraft),
+            },
+          },
+        },
+      ],
+    }));
+
+    const createArg = mocks.prisma.studentStepResponse.createMany.mock.calls[0][0];
+    expect(response.status).toBe(200);
+    expect(createArg.data[0].responseData.controlWorkbenchEvidence).toMatchObject({
+      sourceLogId: 'actual-workbench-log-id',
+      lessonKey: 'unit-4-2-controller-selection-first-start-v1',
+      payload: {
+        capabilityId: 'control-frequency-reading-workbench',
+        serverRecordedAt: '2026-06-18T01:00:00.000Z',
+      },
+    });
+    vi.useRealTimers();
+  });
+
+  it('returns teacher-only control workbench diagnostics from materialized responses', async () => {
+    mocks.getServerSession.mockResolvedValue({
+      user: { id: 'teacher-1', role: 'TEACHER' },
+    });
+    mocks.prisma.studentStepResponse.findMany.mockResolvedValue([
+      {
+        userId: 'student-1',
+        responseData: {
+          controlWorkbenchEvidence: {
+            eventType: 'lesson_submit',
+            clientEventId: 'client-workbench',
+            attemptKey: 'step-04:response:1',
+            sourceLogId: 'actual-workbench-log-id',
+            lessonKey: 'unit-4-2-controller-selection-first-start-v1',
+            stepId: 'step-04',
+            moduleId: 'frequency-workbench',
+            payload: {
+              capabilityId: 'control-frequency-reading-workbench',
+              parameterSnapshot: { 'gain.k': 1 },
+              answerPayload: { judgment: 'safe-margin' },
+              releaseState: 'released',
+              fallbackState: 'supported',
+              serverRecordedAt: '2026-06-18T00:00:00.000Z',
+            },
+          },
+        },
+      },
+    ]);
+
+    const response = await GET(new NextRequest(
+      'http://localhost/api/interactive/events?diagnostics=control-workbench&resourceKey=unit-4-2-controller-selection-first-start-v1',
+    ));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.diagnostics).toMatchObject({
+      viewedCount: 1,
+      submittedCount: 1,
+      releasedCount: 1,
+      parameterCoverage: [{ parameterId: 'gain.k', count: 1 }],
+      judgmentOutcomes: [{ outcome: 'safe-margin', count: 1 }],
+    });
   });
 });

@@ -24,6 +24,11 @@ import {
 } from '@/lib/data-governance/submission-evidence-quality';
 import type { NormalizedInteractionEvent } from '@/lib/data-governance/interactive-event-ingestion';
 import type { PageType } from '@/lib/data-governance/event-protocol';
+import {
+  buildControlWorkbenchTeacherDiagnostics,
+  materializeControlWorkbenchEvidenceFromSubmissionPayload,
+  type ControlWorkbenchDiagnosticEvent,
+} from '@/features/interactive/shared/manifest-runtime/control-workbench-evidence';
 
 export const dynamic = 'force-dynamic';
 
@@ -117,6 +122,10 @@ function readPayloadString(payload: Record<string, unknown>, key: string): strin
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
 
+function readRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
 function withSubmissionEvidenceQuality(
   payload: Record<string, unknown>,
   canonicalEventType: string,
@@ -135,6 +144,7 @@ function withSubmissionEvidenceQuality(
 function buildStudentStepResponseRows(
   events: NormalizedInteractionEvent[],
   userId: string,
+  serverRecordedAt: Date,
 ): Prisma.StudentStepResponseCreateManyInput[] {
   const rows: Prisma.StudentStepResponseCreateManyInput[] = [];
 
@@ -160,6 +170,13 @@ function buildStudentStepResponseRows(
     }
 
     const clientEventId = resolveClientEventId(eventData.event);
+    const controlWorkbenchEvidence = materializeControlWorkbenchEvidenceFromSubmissionPayload(
+      normalizedPayload,
+      {
+        trustedSourceLogId: sourceLogId,
+        serverRecordedAt: serverRecordedAt.toISOString(),
+      },
+    );
 
     rows.push({
       userId,
@@ -172,6 +189,7 @@ function buildStudentStepResponseRows(
       submittedAt,
       responseData: {
         ...normalizedPayload,
+        ...(controlWorkbenchEvidence ? { controlWorkbenchEvidence } : {}),
         eventType: canonicalEventType,
         resourceKey: eventData.event.resourceKey,
         lessonKey: eventData.event.lessonKey ?? null,
@@ -179,7 +197,7 @@ function buildStudentStepResponseRows(
         attemptKey: eventData.event.attemptKey ?? readPayloadString(payload, 'attemptKey'),
         clientEventId,
         learningContext: eventData.learningContext,
-      },
+      } as Prisma.InputJsonValue,
     });
   }
 
@@ -394,7 +412,8 @@ export async function POST(request: NextRequest) {
       })),
     );
 
-    const studentStepResponseRows = buildStudentStepResponseRows(sourceLinkedEvents, session.user.id);
+    const serverRecordedAt = new Date();
+    const studentStepResponseRows = buildStudentStepResponseRows(sourceLinkedEvents, session.user.id, serverRecordedAt);
     if (studentStepResponseRows.length > 0) {
       try {
         await prisma.studentStepResponse.createMany({
@@ -523,7 +542,34 @@ export async function GET(request: NextRequest) {
     const sessionId = searchParams.get('sessionId');
     const userId = searchParams.get('userId');
     const eventType = searchParams.get('eventType');
+    const diagnostics = searchParams.get('diagnostics');
     const limit = parseInt(searchParams.get('limit') || '100', 10);
+
+    if (diagnostics === 'control-workbench') {
+      if (!isTeacherOrAdmin) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+      const responses = await prisma.studentStepResponse.findMany({
+        where: {
+          ...(sessionId ? { sessionId } : {}),
+          ...(resourceKey ? { lessonKey: resourceKey } : {}),
+          ...(userId ? { userId } : {}),
+        },
+        orderBy: { submittedAt: 'desc' },
+        take: limit,
+        select: {
+          userId: true,
+          responseData: true,
+        },
+      });
+      return NextResponse.json({
+        diagnostics: buildControlWorkbenchTeacherDiagnostics(
+          responses
+            .map((response) => controlWorkbenchDiagnosticEventFromResponse(response.userId, response.responseData))
+            .filter((event): event is ControlWorkbenchDiagnosticEvent => Boolean(event)),
+        ),
+      });
+    }
 
     if (!resourceId && !resourceKey) {
       return NextResponse.json({ error: 'resourceId or resourceKey is required' }, { status: 400 });
@@ -597,4 +643,53 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+function controlWorkbenchDiagnosticEventFromResponse(
+  userId: string,
+  responseData: unknown,
+): ControlWorkbenchDiagnosticEvent | null {
+  const data = readRecord(responseData);
+  const evidence = readRecord(data.controlWorkbenchEvidence);
+  const payload = readRecord(evidence.payload);
+  if (!evidence.eventType || !payload.capabilityId) return null;
+  const parameterSnapshot = readRecord(payload.parameterSnapshot);
+  const answerPayload = readRecord(payload.answerPayload);
+  const selectedDesignState = readRecord(payload.selectedDesignState);
+  const releaseState = readPayloadString(payload, 'releaseState');
+  const fallbackState = readPayloadString(payload, 'fallbackState');
+  if (
+    releaseState !== 'unreleased'
+    && releaseState !== 'released'
+    && releaseState !== 'revealed'
+  ) {
+    return null;
+  }
+  if (
+    fallbackState !== 'supported'
+    && fallbackState !== 'fallback'
+    && fallbackState !== 'unsupported'
+  ) {
+    return null;
+  }
+  return {
+    actorId: userId,
+    actorRole: 'student',
+    lessonKey: readPayloadString(evidence, 'lessonKey') ?? '',
+    stepId: readPayloadString(evidence, 'stepId') ?? '',
+    moduleId: readPayloadString(evidence, 'moduleId') ?? '',
+    viewed: true,
+    submitted: true,
+    releaseState,
+    fallbackState,
+    touchedParameterIds: Object.keys(parameterSnapshot),
+    judgmentOutcome: readPayloadString(answerPayload, 'judgment')
+      ?? readPayloadString(answerPayload, 'responseContractId')
+      ?? readPayloadString(selectedDesignState, 'judgment')
+      ?? null,
+    attemptKey: readPayloadString(evidence, 'attemptKey') ?? '',
+    clientEventId: readPayloadString(evidence, 'clientEventId') ?? '',
+    clientEventAt: readPayloadString(evidence, 'clientEventAt') ?? undefined,
+    serverRecordedAt: readPayloadString(payload, 'serverRecordedAt') ?? undefined,
+  };
 }
