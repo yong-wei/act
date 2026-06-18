@@ -1,0 +1,11 @@
+{
+  "changeId": "add-interactive-visual-stage-runtime",
+  "componentId": "root-locus-stage",
+  "componentKind": "visual.stage",
+  "stageId": "root-locus-reading-stage",
+  "canonicalRegistry": true,
+  "validatedFields": ["stageId", "aspectRatio", "layers", "region", "zIndex", "revealState"],
+  "layerKinds": ["diagram", "formula", "annotation", "media", "activity", "control"],
+  "layout": "normalized-freeform-stage",
+  "verticalCardList": false
+}

@@ -48,7 +48,7 @@ import { relationPassesActiveFilters } from '../../src/features/knowledge/graph/
 
 const repoRoot = path.resolve(__dirname, '../..');
 const today = new Date().toISOString().slice(0, 10);
-const allowedModuleNamespaces = new Set(['activity', 'analytics', 'compute', 'content', 'layout']);
+const allowedModuleNamespaces = new Set(['activity', 'analytics', 'compute', 'content', 'layout', 'visual']);
 
 function git(args: string[]) {
   try {
@@ -528,6 +528,10 @@ const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
     'src/app/review/control-workbench-reuse-560/page.tsx',
     'issue 560 control workbench reuse is an internal visual acceptance surface launched from the review hub',
   ],
+  [
+    'src/app/review/visual-stage-runtime-561/page.tsx',
+    'issue 561 visual stage runtime is an internal visual acceptance surface launched from the review hub',
+  ],
 ]);
 
 function appPageRouteHref(file: string) {
@@ -583,6 +587,10 @@ function assertCoveredRouteGlobDoesNotHideStaticPages() {
   const issue560ReviewHref = appPageRouteHref('src/app/review/control-workbench-reuse-560/page.tsx');
   if (issue560ReviewHref !== undefined) {
     throw new Error('issue 560 review page must remain a non-primary route-ledger exception');
+  }
+  const issue561ReviewHref = appPageRouteHref('src/app/review/visual-stage-runtime-561/page.tsx');
+  if (issue561ReviewHref !== undefined) {
+    throw new Error('issue 561 review page must remain a non-primary route-ledger exception');
   }
 }
 

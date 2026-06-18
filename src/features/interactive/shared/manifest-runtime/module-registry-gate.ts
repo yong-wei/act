@@ -41,7 +41,8 @@ export type InteractiveModuleRegistryGateViolationCode =
   | 'course-local-module-chrome'
   | 'invalid-runtime-manifest'
   | 'lesson-missing-from-standard-module-inventory'
-  | 'non-interactive-status-module';
+  | 'non-interactive-status-module'
+  | 'visual-stage-payload-invalid';
 
 export interface InteractiveModuleRegistryGateViolation {
   lessonId: string;
@@ -539,6 +540,21 @@ function evaluateRuntimeModule({
     }
   }
 
+  if (resolution.canonicalClass === 'visual.stage') {
+    const missingFields = invalidVisualStagePayloadFields(module.payload);
+    if (missingFields.length) {
+      violations.push(violation({
+        lessonId,
+        manifestPath,
+        step,
+        module,
+        code: 'visual-stage-payload-invalid',
+        canonicalClass: resolution.canonicalClass,
+        message: `${lessonId} ${step.id} ${module.id} visual.stage payload is invalid: ${missingFields.join(', ')}.`,
+      }));
+    }
+  }
+
   if (definition.requiresCapabilityRef) {
     const capabilityRef = capabilityRefForModule(module);
     if (!capabilityRef) {
@@ -698,6 +714,75 @@ function missingControlWorkbenchPayloadFields(payload: Record<string, unknown>):
   }
   if (!objectValue(payload.request ?? payload.analysisRequest ?? payload.analysis_request)) {
     missing.push('request');
+  }
+  return missing;
+}
+
+const VISUAL_STAGE_ASPECT_RATIOS = new Set(['16:9', '4:3', 'fluid']);
+const VISUAL_STAGE_LAYER_KINDS = new Set(['diagram', 'formula', 'annotation', 'media', 'activity', 'control']);
+const VISUAL_STAGE_RELEASE_STATES = new Set(['unavailable', 'unreleased', 'released', 'revealed']);
+const VISUAL_STAGE_BUILT_IN_REVEAL_STATES = new Set(['all', 'released', 'revealed']);
+
+function normalizedStageNumber(value: unknown) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1;
+}
+
+function visualStageRevealStates(payload: Record<string, unknown>) {
+  const values = payload.revealStates ?? payload.reveal_states;
+  if (!Array.isArray(values)) return [];
+  return values
+    .filter((item): item is string => typeof item === 'string' && Boolean(item.trim()))
+    .map((item) => item.trim());
+}
+
+function invalidVisualStagePayloadFields(payload: Record<string, unknown>): string[] {
+  const missing: string[] = [];
+  const stageId = stringValue(payload.stageId ?? payload.stage_id);
+  const stageLabel = stageId ?? '(missing)';
+  if (!stageId) missing.push(`stage=${stageLabel}.stageId`);
+  const aspectRatio = stringValue(payload.aspectRatio ?? payload.aspect_ratio);
+  if (!aspectRatio || !VISUAL_STAGE_ASPECT_RATIOS.has(aspectRatio)) missing.push(`stage=${stageLabel}.aspectRatio`);
+  const releaseState = stringValue(payload.releaseState ?? payload.release_state);
+  if (releaseState && !VISUAL_STAGE_RELEASE_STATES.has(releaseState)) missing.push(`stage=${stageLabel}.releaseState`);
+  const revealStates = visualStageRevealStates(payload);
+  const allowedRevealStates = new Set([...VISUAL_STAGE_BUILT_IN_REVEAL_STATES, ...revealStates]);
+  const activeRevealState = stringValue(payload.activeRevealState ?? payload.active_reveal_state);
+  if (activeRevealState && !allowedRevealStates.has(activeRevealState)) missing.push(`stage=${stageLabel}.activeRevealState`);
+  const layers = Array.isArray(payload.layers) ? payload.layers : [];
+  if (layers.length === 0) missing.push(`stage=${stageLabel}.layers`);
+  const seenIds = new Set<string>();
+  for (const [index, rawLayer] of layers.entries()) {
+    const layer = recordValue(rawLayer);
+    const id = stringValue(layer.id);
+    const layerLabel = `${index}:${id ?? '(missing)'}`;
+    if (!id) {
+      missing.push(`stage=${stageLabel}.layers[${layerLabel}].id`);
+    } else if (seenIds.has(id)) {
+      missing.push(`stage=${stageLabel}.layers[${layerLabel}].id:duplicate`);
+    } else {
+      seenIds.add(id);
+    }
+    const kind = stringValue(layer.kind);
+    if (!kind || !VISUAL_STAGE_LAYER_KINDS.has(kind)) missing.push(`stage=${stageLabel}.layers[${layerLabel}].kind`);
+    const revealState = stringValue(layer.revealState ?? layer.reveal_state);
+    if (revealState && !allowedRevealStates.has(revealState)) {
+      missing.push(`stage=${stageLabel}.layers[${layerLabel}].revealState`);
+    }
+    const region = recordValue(layer.region);
+    const x = region.x;
+    const y = region.y;
+    const width = region.width ?? region.w;
+    const height = region.height ?? region.h;
+    if (!normalizedStageNumber(x)) missing.push(`stage=${stageLabel}.layers[${layerLabel}].region.x`);
+    if (!normalizedStageNumber(y)) missing.push(`stage=${stageLabel}.layers[${layerLabel}].region.y`);
+    if (!normalizedStageNumber(width) || Number(width) <= 0) missing.push(`stage=${stageLabel}.layers[${layerLabel}].region.width`);
+    if (!normalizedStageNumber(height) || Number(height) <= 0) missing.push(`stage=${stageLabel}.layers[${layerLabel}].region.height`);
+    if (Number(x) + Number(width) > 1) missing.push(`stage=${stageLabel}.layers[${layerLabel}].region.right`);
+    if (Number(y) + Number(height) > 1) missing.push(`stage=${stageLabel}.layers[${layerLabel}].region.bottom`);
+    const zIndex = layer.zIndex ?? layer.z_index;
+    if (zIndex !== undefined && (!Number.isInteger(Number(zIndex)) || Number(zIndex) < 0)) {
+      missing.push(`stage=${stageLabel}.layers[${layerLabel}].zIndex`);
+    }
   }
   return missing;
 }

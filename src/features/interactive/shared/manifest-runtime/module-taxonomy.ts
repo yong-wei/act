@@ -12,6 +12,7 @@ export const INTERACTIVE_MODULE_CANONICAL_CLASSES = [
   'content.figure',
   'content.reveal',
   'content.stageMap',
+  'visual.stage',
   'activity.panel',
   'activity.workspace',
   'compute.panel',
@@ -196,6 +197,13 @@ export const INTERACTIVE_MODULE_DEFINITIONS: Record<InteractiveModuleCanonicalCl
     renderBehavior: 'renderer',
     configShape: 'stage map payload',
     producesEvidence: false,
+    allowedInNewAuthoring: true,
+  },
+  'visual.stage': {
+    canonicalClass: 'visual.stage',
+    renderBehavior: 'renderer',
+    configShape: 'normalized 2D stage payload with layers, regions, reveal state, and evidence anchors',
+    producesEvidence: true,
     allowedInNewAuthoring: true,
   },
   'activity.panel': {
