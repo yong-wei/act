@@ -984,11 +984,20 @@ function countControlCorrectionCapabilityObservableEvidence(
   target: AdaptiveLearningCapabilityTarget,
   sourceEvidence: ControlCorrectionSourceEvidence,
 ): number {
+  if (target.observableEvidenceType === 'question') {
+    return sourceEvidence.assessmentCount;
+  }
   if (target.observableEvidenceType === 'simulation-run') {
     return sourceEvidence.simulationCount;
   }
   if (target.observableEvidenceType === 'arena-official-evaluation') {
     return sourceEvidence.officialArenaCount;
+  }
+  if (target.observableEvidenceType === 'reflection') {
+    return sourceEvidence.reflectionCount;
+  }
+  if (target.observableEvidenceType === 'agent-interaction') {
+    return sourceEvidence.aiCollaborationCount;
   }
   return 0;
 }

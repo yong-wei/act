@@ -1586,6 +1586,42 @@ describe('adaptive learner state service', () => {
     ]));
   });
 
+  it('uses governed question facts as capability target evidence without mastery updates', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      adaptiveMasteryUpdate: { findMany: async () => [] },
+      learningFact: {
+        findMany: async () => [
+          controlCorrectionFact('question', '2026-05-19T00:00:00.000Z', 92),
+        ],
+      },
+      arenaSubmission: { findMany: async () => [] },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const slice = state.goalSlices?.controlCorrection;
+    expect(slice).toBeDefined();
+    if (!slice) throw new Error('expected control-correction goal slice');
+    expect(slice.capabilityTargets).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        target: expect.objectContaining({
+          id: 'control-correction:root-locus-design:analyze',
+          observableEvidenceType: 'question',
+        }),
+        observedEvidence: expect.objectContaining({
+          state: 'observed',
+          knowledgeMastery: null,
+          confidence: 0.7,
+          directEvidenceCount: 1,
+          recommendationBias: 'targeted-practice',
+        }),
+      }),
+    ]));
+  });
+
   it('exposes governed path execution features through prerequisite feature groups', async () => {
     const state = await readAdaptiveLearnerState(createDb({
       studentEvidenceFeatureCache: {
