@@ -1,0 +1,94 @@
+{
+  "lesson_id": "annotated-media-activity-fixture",
+  "course_title": "Annotated Media Activity Fixture",
+  "course_route_segment": "annotated-media-activity-fixture",
+  "steps": {
+    "step-05": {
+      "title": "图上证据与嵌入式任务",
+      "layout": {
+        "regions": [
+          { "id": "main", "width": "full", "order": 1 }
+        ]
+      },
+      "modules": [
+        {
+          "id": "annotated-media",
+          "kind": "visual.annotatedMedia",
+          "region": "main",
+          "must_be_visible": true,
+          "payload": {
+            "mediaId": "closed-loop-media",
+            "activeRevealState": "evidence-reveal",
+            "media": {
+              "src": "/assets/lesson-05/structure-intro.svg",
+              "alt": "闭环控制结构证据图"
+            },
+            "annotations": [
+              {
+                "id": "input-hotspot",
+                "region": { "x": 0.08, "y": 0.36, "width": 0.18, "height": 0.16 },
+                "label": "输入信号",
+                "body": "系统外部给定量",
+                "evidenceRole": "input",
+                "revealStepIds": ["evidence-reveal"],
+                "required": true
+              },
+              {
+                "id": "output-hotspot",
+                "region": { "x": 0.72, "y": 0.36, "width": 0.18, "height": 0.16 },
+                "label": "输出响应",
+                "body": "被控对象响应",
+                "evidenceRole": "output",
+                "revealStepIds": ["evidence-reveal"],
+                "required": true
+              },
+              {
+                "id": "risk-hotspot",
+                "region": { "x": 0.48, "y": 0.62, "width": 0.2, "height": 0.18 },
+                "label": "反馈风险",
+                "body": "反馈符号或测量环节可能引入误判",
+                "evidenceRole": "risk",
+                "revealStepIds": ["diagnostic-reveal"],
+                "required": true
+              }
+            ],
+            "interactions": {
+              "selectableAnnotations": ["input-hotspot", "output-hotspot", "risk-hotspot"],
+              "requireEvidenceSelection": true
+            },
+            "revealPlan": [
+              { "id": "evidence-reveal", "label": "证据热点", "annotationIds": ["input-hotspot", "output-hotspot"] },
+              { "id": "diagnostic-reveal", "label": "风险热点", "annotationIds": ["risk-hotspot"] },
+              { "id": "answer-reveal", "label": "完整答案显影", "annotationIds": ["input-hotspot", "output-hotspot", "risk-hotspot"] }
+            ]
+          }
+        },
+        {
+          "id": "embedded-activity",
+          "kind": "visual.embedded-activity",
+          "region": "main",
+          "must_be_visible": true,
+          "payload": {
+            "activityId": "media-choice",
+            "anchorId": "media-choice-anchor",
+            "visualModuleId": "annotated-media",
+            "responseContractId": "choice.single",
+            "prompt": "哪一个热点最能说明输出证据？",
+            "position": { "x": 0.62, "y": 0.32 },
+            "answerOptions": [
+              { "id": "input-hotspot", "label": "输入信号" },
+              { "id": "output-hotspot", "label": "输出响应" },
+              { "id": "risk-hotspot", "label": "反馈风险" }
+            ]
+          }
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "interactive_figure_submit",
+        "student_task": "在图中选择关键证据并完成图上判断。",
+        "activity_cards": [],
+        "submit_fields": ["annotated-media", "embedded-activity"]
+      }
+    }
+  }
+}

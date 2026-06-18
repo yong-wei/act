@@ -11,6 +11,7 @@ import type {
   InteractiveRuntimeModuleManifest,
   InteractiveRuntimeStepManifest,
 } from './layout-renderer';
+import { buildAnnotatedMediaClientEvidenceDraft } from './annotated-media-evidence';
 import { buildControlWorkbenchClientEvidenceDraft } from './control-workbench-evidence';
 import { buildStructureDiagramClientEvidenceDraft } from './structure-diagram-evidence';
 import { isControlWorkbenchComputeCapabilityRef } from './module-taxonomy';
@@ -153,6 +154,41 @@ type SignalFlowPayload = {
   revealPlan: Array<{ id: string; targetIds: string[]; emphasis: string; label: string }>;
   masonTerms: Array<{ id: string; latex: string; relatedIds: string[] }>;
 };
+type AnnotatedMediaEvidenceRole = 'input' | 'output' | 'structure' | 'parameter' | 'risk' | 'result';
+type AnnotatedMediaRegion = { x: number; y: number; width: number; height: number };
+type AnnotatedMediaAnnotation = {
+  id: string;
+  region: AnnotatedMediaRegion;
+  label: string;
+  body: string;
+  evidenceRole: AnnotatedMediaEvidenceRole;
+  revealStepIds: string[];
+  required: boolean;
+};
+type AnnotatedMediaPayload = {
+  mediaId: string;
+  media: { src: string; alt: string };
+  activeRevealState: string;
+  annotations: AnnotatedMediaAnnotation[];
+  initialSelectedAnnotationIds: string[];
+  selectableAnnotations: string[];
+  requireEvidenceSelection: boolean;
+  revealPlan: Array<{ id: string; label: string; annotationIds: string[] }>;
+};
+type EmbeddedActivityPayload = {
+  activityId: string;
+  anchorId: string;
+  visualModuleId: string;
+  responseContractId: string;
+  prompt: string;
+  answerOptions: Array<{ id: string; label: string }>;
+  position: StructureDiagramPoint;
+};
+type AnnotatedMediaSharedState = {
+  selectedAnnotationIds: string[];
+  selectedAnswerId: string | null;
+};
+type AnnotatedMediaSharedStateStore = Map<string, AnnotatedMediaSharedState>;
 
 const MATLAB_KEYWORDS = new Set([
   'break',
@@ -862,6 +898,114 @@ function signalFlowLoopGroups(value: unknown): SignalFlowLoopGroup[] {
     .filter((item): item is SignalFlowLoopGroup => Boolean(item));
 }
 
+function annotatedMediaPayload(module: InteractiveRuntimeModuleManifest): AnnotatedMediaPayload {
+  const payload = module.payload;
+  const media = asRecord(payload.media);
+  const interaction = asRecord(payload.interactions ?? payload.interaction);
+  return {
+    mediaId: String(payload.mediaId ?? payload.media_id ?? payload.id ?? module.id),
+    media: {
+      src: stringFromFields(media, ['src', 'url', 'path'], '/assets/lesson-05/structure-intro.svg'),
+      alt: stringFromFields(media, ['alt', 'label'], '控制系统结构示意图'),
+    },
+    activeRevealState: visualStageString(payload.activeRevealState ?? payload.active_reveal_state, 'all'),
+    annotations: annotatedMediaAnnotations(payload.annotations),
+    initialSelectedAnnotationIds: asStringArray(payload.initialSelectedAnnotationIds ?? payload.initial_selected_annotation_ids),
+    selectableAnnotations: asStringArray(interaction.selectableAnnotations ?? interaction.selectable_annotations),
+    requireEvidenceSelection: Boolean(interaction.requireEvidenceSelection ?? interaction.require_evidence_selection),
+    revealPlan: annotatedMediaRevealPlan(payload.revealPlan ?? payload.reveal_plan),
+  };
+}
+
+function annotatedMediaAnnotations(value: unknown): AnnotatedMediaAnnotation[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index): AnnotatedMediaAnnotation | null => {
+      const annotation = asRecord(item);
+      const id = String(annotation.id ?? '').trim();
+      if (!id) return null;
+      const evidenceRole = annotatedMediaEvidenceRole(String(annotation.evidenceRole ?? annotation.evidence_role ?? 'structure'));
+      return {
+        id,
+        region: annotatedMediaRegion(annotation.region),
+        label: stringFromFields(annotation, ['label', 'title'], `证据热点 ${index + 1}`),
+        body: stringFromFields(annotation, ['body', 'description', 'note']),
+        evidenceRole,
+        revealStepIds: asStringArray(annotation.revealStepIds ?? annotation.reveal_step_ids),
+        required: annotation.required !== false,
+      };
+    })
+    .filter((item): item is AnnotatedMediaAnnotation => Boolean(item));
+}
+
+function annotatedMediaEvidenceRole(value: string): AnnotatedMediaEvidenceRole {
+  if (value === 'input' || value === 'output' || value === 'structure' || value === 'parameter' || value === 'risk' || value === 'result') return value;
+  return 'structure';
+}
+
+function annotatedMediaRegion(value: unknown): AnnotatedMediaRegion {
+  const region = asRecord(value);
+  return {
+    x: numberInRange(region.x, 0.1),
+    y: numberInRange(region.y, 0.1),
+    width: numberInRange(region.width ?? region.w, 0.16, 0.04, 0.6),
+    height: numberInRange(region.height ?? region.h, 0.14, 0.04, 0.6),
+  };
+}
+
+function annotatedMediaRevealPlan(value: unknown): Array<{ id: string; label: string; annotationIds: string[] }> {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index) => {
+      const reveal = asRecord(item);
+      const id = String(reveal.id ?? '').trim();
+      if (!id) return null;
+      return {
+        id,
+        label: stringFromFields(reveal, ['label', 'title'], `显影 ${index + 1}`),
+        annotationIds: asStringArray(reveal.annotationIds ?? reveal.annotation_ids ?? reveal.targetIds ?? reveal.target_ids),
+      };
+    })
+    .filter((item): item is { id: string; label: string; annotationIds: string[] } => Boolean(item));
+}
+
+function embeddedActivityPayload(module: InteractiveRuntimeModuleManifest): EmbeddedActivityPayload {
+  const payload = module.payload;
+  const rawOptions = Array.isArray(payload.answerOptions ?? payload.options) ? payload.answerOptions ?? payload.options : [];
+  return {
+    activityId: String(payload.activityId ?? payload.activity_id ?? module.id),
+    anchorId: String(payload.anchorId ?? payload.anchor_id ?? 'media-anchor'),
+    visualModuleId: String(payload.visualModuleId ?? payload.visual_module_id ?? ''),
+    responseContractId: String(payload.responseContractId ?? payload.response_contract_id ?? payload.responseKind ?? payload.response_kind ?? 'choice.single'),
+    prompt: stringFromFields(payload, ['prompt', 'question'], '请选择图中最能支持判断的证据。'),
+    answerOptions: (rawOptions as unknown[])
+      .map((option, index) => {
+        const record = asRecord(option);
+        const id = String(record.id ?? record.value ?? '').trim() || `option-${index + 1}`;
+        return {
+          id,
+          label: stringFromFields(record, ['label', 'title'], `选项 ${index + 1}`),
+        };
+      })
+      .filter((option) => option.label),
+    position: structurePoint(payload.position),
+  };
+}
+
+function annotatedMediaVisibleAnnotations(graph: AnnotatedMediaPayload) {
+  if (graph.activeRevealState === 'all' || graph.revealPlan.length === 0) return new Set(graph.annotations.map((item) => item.id));
+  const activeIndex = graph.revealPlan.findIndex((item) => item.id === graph.activeRevealState);
+  const visible = activeIndex >= 0 ? graph.revealPlan.slice(0, activeIndex + 1) : graph.revealPlan.slice(0, 1);
+  return new Set(visible.flatMap((item) => item.annotationIds));
+}
+
+function annotatedMediaTeachingLabels(graph: AnnotatedMediaPayload) {
+  return Object.fromEntries([
+    ...graph.annotations.map((annotation) => [annotation.id, annotation.label] as const),
+    ...graph.revealPlan.map((item) => [item.id, item.label] as const),
+  ]);
+}
+
 function visibleStructureTargets(activeRevealState: string, revealPlan: Array<{ id: string; targetIds: string[] }>) {
   if (activeRevealState === 'all' || revealPlan.length === 0) return new Set<string>();
   const activeIndex = revealPlan.findIndex((item) => item.id === activeRevealState);
@@ -905,6 +1049,8 @@ type StructureDiagramPanelProps = {
   step: InteractiveRuntimeStepManifest;
   module: InteractiveRuntimeModuleManifest;
   onPanelSubmit?: (response: ManifestComputePanelSubmission) => void;
+  interactionMode?: 'active' | 'readonly';
+  annotatedMediaSharedState?: AnnotatedMediaSharedStateStore;
 };
 
 function structurePointForId(nodes: Array<{ id: string; position: StructureDiagramPoint }>, id: string) {
@@ -2701,6 +2847,320 @@ function SignalFlowGraphPanel({ manifest, step, module, onPanelSubmit }: Structu
   );
 }
 
+function annotatedMediaStateFor(
+  store: AnnotatedMediaSharedStateStore | undefined,
+  visualModuleId: string,
+  initialSelectedAnnotationIds: string[],
+  initialSelectedAnswerId: string | null,
+) {
+  if (!store) return { selectedAnnotationIds: [...initialSelectedAnnotationIds], selectedAnswerId: initialSelectedAnswerId };
+  const existing = store.get(visualModuleId);
+  if (existing) return existing;
+  const next = { selectedAnnotationIds: [...initialSelectedAnnotationIds], selectedAnswerId: initialSelectedAnswerId };
+  store.set(visualModuleId, next);
+  return next;
+}
+
+function embeddedActivityForVisualModule(step: InteractiveRuntimeStepManifest, visualModuleId: string): EmbeddedActivityPayload | null {
+  const embeddedModule = step.modules.find((item) => item.kind === 'visual.embedded-activity' && String(item.payload.visualModuleId ?? item.payload.visual_module_id ?? '') === visualModuleId);
+  return embeddedModule ? embeddedActivityPayload(embeddedModule) : null;
+}
+
+function annotatedMediaModuleForEmbeddedActivity(step: InteractiveRuntimeStepManifest, activity: EmbeddedActivityPayload): InteractiveRuntimeModuleManifest | null {
+  return step.modules.find((item) => item.id === activity.visualModuleId && item.kind === 'visual.annotatedMedia') ?? null;
+}
+
+function buildAnnotatedMediaSubmissionDraft({
+  manifest,
+  step,
+  module,
+  graph,
+  activity,
+  selectedAnnotationIds,
+  selectedAnswerId,
+  eventType,
+}: {
+  manifest: InteractiveRuntimeManifest;
+  step: InteractiveRuntimeStepManifest;
+  module: InteractiveRuntimeModuleManifest;
+  graph: AnnotatedMediaPayload;
+  activity: EmbeddedActivityPayload | null;
+  selectedAnnotationIds: string[];
+  selectedAnswerId: string | null;
+  eventType: 'media_submit' | 'activity_answer';
+}) {
+  const submittedAt = Date.now();
+  const selectable = graph.selectableAnnotations.length ? new Set(graph.selectableAnnotations) : new Set(graph.annotations.map((item) => item.id));
+  const selected = selectedAnnotationIds.filter((annotationId) => selectable.has(annotationId));
+  const omittedRequired = graph.annotations
+    .filter((annotation) => annotation.required && selectable.has(annotation.id) && !selected.includes(annotation.id))
+    .map((annotation) => annotation.id);
+  const answerPayload = activity
+    ? {
+      responseContractId: activity.responseContractId,
+      selectedAnswerId,
+      visualModuleId: activity.visualModuleId,
+    }
+    : null;
+  const draft = buildAnnotatedMediaClientEvidenceDraft({
+    eventType,
+    clientEventId: `${step.id}:${module.id}:${graph.mediaId}:${submittedAt}`,
+    attemptKey: `${step.id}:${module.id}:${graph.mediaId}:${submittedAt}`,
+    lessonKey: manifest.lessonId,
+    stepId: step.id,
+    moduleId: module.id,
+    componentKind: eventType === 'activity_answer' ? 'visual.embedded-activity' : 'visual.annotatedMedia',
+    componentId: eventType === 'activity_answer' && activity ? activity.activityId : graph.mediaId,
+    actorRole: 'student',
+    clientEventAt: new Date(submittedAt).toISOString(),
+    mediaId: graph.mediaId,
+    activeRevealState: graph.activeRevealState,
+    selectedAnnotationIds: selected,
+    omittedRequiredAnnotationIds: omittedRequired,
+    evidenceRoles: Object.fromEntries(graph.annotations.map((annotation) => [annotation.id, annotation.evidenceRole])),
+    embeddedActivityAnchorId: activity?.anchorId ?? null,
+    answerPayload,
+    teachingLabels: {
+      ...annotatedMediaTeachingLabels(graph),
+      ...(activity ? { [activity.anchorId]: activity.prompt } : {}),
+    },
+    feedback: {
+      misconceptionTagIds: omittedRequired.length ? ['omitted-required-hotspot'] : [],
+      studentFeedbackMode: omittedRequired.length ? 'hint' : 'none',
+      teacherNextPrompt: omittedRequired.length ? '请学生补充遗漏的图上证据。' : null,
+      reviewAction: omittedRequired.length ? 'review' : 'advance',
+    },
+  });
+  return { draft, submittedAt };
+}
+
+function AnnotatedMediaPanel({ manifest, step, module, onPanelSubmit, interactionMode = 'active', annotatedMediaSharedState }: StructureDiagramPanelProps) {
+  const graph = annotatedMediaPayload(module);
+  const embeddedActivity = embeddedActivityForVisualModule(step, module.id);
+  const sharedState = annotatedMediaStateFor(
+    annotatedMediaSharedState,
+    module.id,
+    graph.initialSelectedAnnotationIds,
+    embeddedActivity?.answerOptions[0]?.id ?? null,
+  );
+  const visibleAnnotations = annotatedMediaVisibleAnnotations(graph);
+  const selectable = graph.selectableAnnotations.length ? new Set(graph.selectableAnnotations) : new Set(graph.annotations.map((item) => item.id));
+  const canInteract = Boolean(onPanelSubmit) && interactionMode === 'active';
+  const [selectedAnnotationIds, setSelectedAnnotationIds] = useState<string[]>(sharedState.selectedAnnotationIds);
+  const selectedSet = new Set(selectedAnnotationIds);
+  const toggleAnnotation = (annotationId: string) => {
+    if (!canInteract || !selectable.has(annotationId)) return;
+    setSelectedAnnotationIds((current) => {
+      const next = current.includes(annotationId)
+        ? current.filter((item) => item !== annotationId)
+        : [...current, annotationId];
+      sharedState.selectedAnnotationIds = next;
+      return next;
+    });
+  };
+  const submitCurrent = () => {
+    if (!canInteract || !onPanelSubmit) return;
+    const { draft, submittedAt } = buildAnnotatedMediaSubmissionDraft({
+      manifest,
+      step,
+      module,
+      graph,
+      activity: embeddedActivity,
+      selectedAnnotationIds,
+      selectedAnswerId: sharedState.selectedAnswerId,
+      eventType: 'media_submit',
+    });
+    onPanelSubmit({
+      stepId: step.id,
+      submittedAt,
+      answers: {
+        annotatedMediaEvidenceDraft: JSON.stringify(draft),
+        [module.id]: JSON.stringify(draft),
+      },
+    });
+  };
+
+  return (
+    <section
+      className="premium-lesson-panel grid gap-4"
+      data-annotated-media-kind="visual.annotatedMedia"
+      data-annotated-media-id={graph.mediaId}
+      data-annotated-media-active-reveal={graph.activeRevealState}
+      data-annotated-media-selected-count={selectedAnnotationIds.length}
+      data-annotated-media-interaction-mode={canInteract ? 'active' : 'readonly'}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <ManifestContentTitle>{titleFromModule(module)}</ManifestContentTitle>
+          <p className="premium-lesson-muted text-sm leading-6">在图中选择输入、输出、结构、参数、风险和结果证据。</p>
+        </div>
+        <span className="premium-lesson-badge">{selectedAnnotationIds.length} 项证据</span>
+      </div>
+      <div
+        className="relative min-h-[420px] overflow-hidden rounded-2xl border border-[var(--platform-border)] bg-[var(--platform-surface)] md:aspect-video md:min-h-0"
+        data-annotated-media-canvas="normalized"
+      >
+        <Image src={graph.media.src} alt={graph.media.alt} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" unoptimized />
+        <div className="absolute inset-0 bg-platform-surface-muted/35" data-annotated-media-mask="visible" />
+        {graph.annotations.map((annotation) => {
+          const visible = visibleAnnotations.has(annotation.id);
+          return (
+            <button
+              key={annotation.id}
+              type="button"
+              className={[
+                'absolute rounded-xl border px-2 py-1 text-left text-xs font-semibold shadow-[var(--platform-shadow-xs)] outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]',
+                selectedSet.has(annotation.id) ? 'border-platform-accent bg-platform-accent text-accent-foreground' : 'border-platform-border bg-platform-panel/90 text-[var(--platform-text-primary)]',
+                visible ? 'opacity-100' : 'opacity-45',
+              ].join(' ')}
+              style={{
+                left: `${annotation.region.x * 100}%`,
+                top: `${annotation.region.y * 100}%`,
+                width: `${annotation.region.width * 100}%`,
+                minHeight: `${annotation.region.height * 100}%`,
+              }}
+              data-annotated-media-annotation-id={annotation.id}
+              data-annotated-media-evidence-role={annotation.evidenceRole}
+              data-annotated-media-selected={selectedSet.has(annotation.id) ? 'true' : 'false'}
+              data-annotated-media-required={annotation.required ? 'true' : 'false'}
+              aria-pressed={selectedSet.has(annotation.id)}
+              disabled={!canInteract}
+              onClick={() => toggleAnnotation(annotation.id)}
+            >
+              <span className="block">{annotation.label}</span>
+              {annotation.body ? <span className="block text-[11px] font-normal opacity-85">{annotation.body}</span> : null}
+            </button>
+          );
+        })}
+        {embeddedActivity ? (
+          <div
+            className="absolute max-w-[44%] rounded-xl border border-platform-accent bg-platform-panel/95 px-3 py-2 text-xs font-semibold text-[var(--platform-text-primary)] shadow-[var(--platform-shadow-xs)]"
+            style={{
+              left: `${embeddedActivity.position.x * 100}%`,
+              top: `${embeddedActivity.position.y * 100}%`,
+            }}
+            data-annotated-media-activity-anchor={embeddedActivity.anchorId}
+            data-annotated-media-activity-id={embeddedActivity.activityId}
+          >
+            {embeddedActivity.prompt}
+          </div>
+        ) : null}
+      </div>
+      <div className="grid gap-2 md:grid-cols-3" data-annotated-media-reveal-plan="visible">
+        {graph.revealPlan.map((item) => (
+          <div key={item.id} className="premium-lesson-card" data-annotated-media-reveal-id={item.id}>
+            <p className="premium-lesson-caption">{item.id}</p>
+            <p className="premium-lesson-title text-sm">{item.label}</p>
+          </div>
+        ))}
+      </div>
+      {graph.activeRevealState === 'answer-reveal' ? (
+        <div className="premium-lesson-card border-platform-accent" data-annotated-media-answer-reveal="visible">
+          <p className="premium-lesson-caption">答案显影</p>
+          <p className="premium-lesson-body text-sm">
+            {graph.annotations
+              .filter((annotation) => annotation.required)
+              .map((annotation) => annotation.label)
+              .join('、')}
+          </p>
+        </div>
+      ) : null}
+      <button
+        type="button"
+        className="premium-lesson-action-tone premium-tone-cyan justify-self-start"
+        data-annotated-media-submit={graph.mediaId}
+        onClick={submitCurrent}
+        disabled={!canInteract}
+      >
+        提交图上证据
+      </button>
+    </section>
+  );
+}
+
+function EmbeddedActivityPanel({ manifest, step, module, onPanelSubmit, interactionMode = 'active', annotatedMediaSharedState }: StructureDiagramPanelProps) {
+  const activity = embeddedActivityPayload(module);
+  const graphModule = annotatedMediaModuleForEmbeddedActivity(step, activity);
+  const graph = graphModule ? annotatedMediaPayload(graphModule) : null;
+  const sharedState = annotatedMediaStateFor(
+    annotatedMediaSharedState,
+    activity.visualModuleId,
+    graph?.initialSelectedAnnotationIds ?? [],
+    activity.answerOptions[0]?.id ?? null,
+  );
+  const canInteract = Boolean(onPanelSubmit && graphModule && graph) && interactionMode === 'active';
+  const [selectedAnswerId, setSelectedAnswerId] = useState<string | null>(sharedState.selectedAnswerId);
+  const submitCurrent = () => {
+    if (!canInteract || !onPanelSubmit || !graphModule || !graph) return;
+    const { draft, submittedAt } = buildAnnotatedMediaSubmissionDraft({
+      manifest,
+      step,
+      module,
+      graph,
+      activity,
+      selectedAnnotationIds: sharedState.selectedAnnotationIds,
+      selectedAnswerId,
+      eventType: 'activity_answer',
+    });
+    onPanelSubmit({
+      stepId: step.id,
+      submittedAt,
+      answers: {
+        annotatedMediaEvidenceDraft: JSON.stringify(draft),
+        [module.id]: JSON.stringify(draft),
+      },
+    });
+  };
+
+  return (
+    <section
+      className="premium-lesson-panel grid gap-4"
+      data-embedded-activity-kind="visual.embedded-activity"
+      data-embedded-activity-id={activity.activityId}
+      data-embedded-activity-anchor={activity.anchorId}
+      data-embedded-activity-response-contract={activity.responseContractId}
+    >
+      <div>
+        <ManifestContentTitle>{titleFromModule(module)}</ManifestContentTitle>
+        <p className="premium-lesson-muted text-sm leading-6">{activity.prompt}</p>
+      </div>
+      <div className="grid gap-2 md:grid-cols-3" data-embedded-activity-options="visible" role="radiogroup" aria-label={activity.prompt}>
+        {activity.answerOptions.map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            role="radio"
+            className={[
+              'premium-lesson-card text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]',
+              selectedAnswerId === option.id ? 'border-platform-accent bg-platform-accent/10' : '',
+            ].join(' ')}
+            data-embedded-activity-option-id={option.id}
+            data-embedded-activity-option-selected={selectedAnswerId === option.id ? 'true' : 'false'}
+            aria-checked={selectedAnswerId === option.id}
+            disabled={!canInteract}
+            onClick={() => {
+              if (!canInteract) return;
+              sharedState.selectedAnswerId = option.id;
+              setSelectedAnswerId(option.id);
+            }}
+          >
+            <span className="premium-lesson-title text-sm">{option.label}</span>
+          </button>
+        ))}
+      </div>
+      <button
+        type="button"
+        className="premium-lesson-action-tone premium-tone-cyan justify-self-start"
+        data-embedded-activity-submit={activity.activityId}
+        onClick={submitCurrent}
+        disabled={!canInteract}
+      >
+        提交图上任务
+      </button>
+    </section>
+  );
+}
+
 export function ManifestCodeBlock({
   title,
   code,
@@ -3113,7 +3573,9 @@ export function createManifestContentModuleRegistry(extra: {
   allowInlineReveal: boolean;
   onInlineReveal?: () => void;
   onPanelSubmit?: (response: ManifestComputePanelSubmission) => void;
+  interactionMode?: 'active' | 'readonly';
 }): InteractiveModuleRegistry<typeof extra> {
+  const annotatedMediaSharedState: AnnotatedMediaSharedStateStore = new Map();
   return {
     'content.rich': ({ step, module }) => {
       const content = summaryContent(step, module);
@@ -3200,6 +3662,8 @@ export function createManifestContentModuleRegistry(extra: {
     'visual.derivationStage': ({ module }) => <DerivationStagePanel module={module} />,
     'visual.blockDiagram': ({ manifest, step, module }) => <BlockDiagramPanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} />,
     'visual.signalFlowGraph': ({ manifest, step, module }) => <SignalFlowGraphPanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} />,
+    'visual.annotatedMedia': ({ manifest, step, module }) => <AnnotatedMediaPanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} interactionMode={extra.interactionMode} annotatedMediaSharedState={annotatedMediaSharedState} />,
+    'visual.embedded-activity': ({ manifest, step, module }) => <EmbeddedActivityPanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} interactionMode={extra.interactionMode} annotatedMediaSharedState={annotatedMediaSharedState} />,
     'compute.panel': ({ manifest, step, module }) => {
       if (computeCapabilityRef(module.payload) === 'static-surface-3d') {
         return <StaticSurface3DPanel {...staticSurfacePanelProps(manifest, step, module)} />;

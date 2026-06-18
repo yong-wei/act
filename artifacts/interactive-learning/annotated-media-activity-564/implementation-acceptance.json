@@ -1,0 +1,510 @@
+{
+  "changeId": "add-interactive-annotated-media-activity",
+  "issue": 564,
+  "route": "/review/annotated-media-activity-564",
+  "interactiveVisualComponentArtifacts": [
+    {
+      "changeId": "add-interactive-annotated-media-activity",
+      "issue": 564,
+      "componentId": "closed-loop-media",
+      "componentKind": "visual.annotatedMedia",
+      "route": "/review/annotated-media-activity-564",
+      "designContractPath": "artifacts/product-design-audits/interactive-course-visual-components-2026-06-17/design-contract.md",
+      "visualSourcePath": "artifacts/interactive-learning/annotated-media-activity-564/visual-source.md",
+      "manifestAuditPath": "artifacts/interactive-learning/annotated-media-activity-564/manifest-audit.json",
+      "testResultPath": "artifacts/interactive-learning/annotated-media-activity-564/test-result.json",
+      "browserAuditPath": "artifacts/interactive-learning/annotated-media-activity-564/browser-audit.json",
+      "evidenceSamplePath": "artifacts/interactive-learning/annotated-media-activity-564/evidence-sample.json",
+      "reviewerEvidencePath": "artifacts/interactive-learning/annotated-media-activity-564/reviewer-evidence.md",
+      "teachingMapping": {
+        "lessonId": "annotated-media-activity-fixture",
+        "stepId": "step-05",
+        "learningGoalId": "lg-map-closed-loop-evidence",
+        "handoutAnchor": "handout-annotated-media-activity",
+        "bopppsPhase": "participatory-learning",
+        "interactiveContractStepId": "contract-step-05"
+      },
+      "screenshots": [
+        {
+          "componentId": "closed-loop-media",
+          "route": "/review/annotated-media-activity-564",
+          "role": "student",
+          "theme": "light",
+          "viewport": "desktop",
+          "state": "student-unreleased",
+          "path": "artifacts/interactive-learning/annotated-media-activity-564/browser-evidence/student-unreleased-desktop-light.png",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "closed-loop-media",
+          "route": "/review/annotated-media-activity-564",
+          "role": "student",
+          "theme": "dark",
+          "viewport": "desktop",
+          "state": "student-released",
+          "path": "artifacts/interactive-learning/annotated-media-activity-564/browser-evidence/student-released-desktop-dark.png",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "closed-loop-media",
+          "route": "/review/annotated-media-activity-564",
+          "role": "student",
+          "theme": "light",
+          "viewport": "mobile",
+          "state": "selected-hotspot",
+          "path": "artifacts/interactive-learning/annotated-media-activity-564/browser-evidence/selected-hotspot-mobile-light.png",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "closed-loop-media",
+          "route": "/review/annotated-media-activity-564",
+          "role": "student",
+          "theme": "light",
+          "viewport": "desktop",
+          "state": "student-submitted",
+          "path": "artifacts/interactive-learning/annotated-media-activity-564/browser-evidence/student-submitted-desktop-light.png",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "closed-loop-media",
+          "route": "/review/annotated-media-activity-564",
+          "role": "teacher",
+          "theme": "dark",
+          "viewport": "projection",
+          "state": "teacher-reveal",
+          "path": "artifacts/interactive-learning/annotated-media-activity-564/browser-evidence/teacher-reveal-projection-dark.png",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "closed-loop-media",
+          "route": "/review/annotated-media-activity-564",
+          "role": "teacher",
+          "theme": "light",
+          "viewport": "desktop",
+          "state": "teacher-answer-reveal",
+          "path": "artifacts/interactive-learning/annotated-media-activity-564/browser-evidence/teacher-answer-reveal-desktop-light.png",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "closed-loop-media",
+          "route": "/review/annotated-media-activity-564",
+          "role": "teacher",
+          "theme": "light",
+          "viewport": "desktop",
+          "state": "teacher-diagnostics",
+          "path": "artifacts/interactive-learning/annotated-media-activity-564/browser-evidence/teacher-diagnostics-desktop-light.png",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "closed-loop-media",
+          "route": "/review/annotated-media-activity-564",
+          "role": "guest",
+          "theme": "dark",
+          "viewport": "mobile",
+          "state": "guest-readonly",
+          "path": "artifacts/interactive-learning/annotated-media-activity-564/browser-evidence/guest-readonly-mobile-dark.png",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        }
+      ],
+      "browserAudit": {
+        "path": "artifacts/interactive-learning/annotated-media-activity-564/browser-audit.json",
+        "roles": [
+          "student",
+          "teacher",
+          "guest"
+        ],
+        "routes": [
+          "/review/annotated-media-activity-564"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "viewports": [
+          "mobile",
+          "desktop",
+          "projection"
+        ],
+        "states": [
+          "student-unreleased",
+          "student-released",
+          "selected-hotspot",
+          "student-submitted",
+          "teacher-reveal",
+          "teacher-answer-reveal",
+          "teacher-diagnostics",
+          "guest-readonly",
+          "student-diagnostics-denied"
+        ],
+        "matrix": {
+          "expectedCoreCaptures": 36,
+          "actualCoreCaptures": 36
+        },
+        "captures": 39,
+        "noHorizontalOverflow": true,
+        "teacherControlsClearPrimaryStage": true,
+        "hotspotSelectionVerified": true,
+        "embeddedActivityVerified": true,
+        "keyboardSelectionVerified": true,
+        "teacherAnswerRevealDistinct": true,
+        "diagnosticsUseTeachingLabels": true
+      },
+      "evidenceSample": {
+        "path": "artifacts/interactive-learning/annotated-media-activity-564/evidence-sample.json",
+        "eventType": "media_submit",
+        "clientEventId": "client-annotated-media-564-001",
+        "attemptKey": "step-05:student-a:attempt-1",
+        "sourceLogId": "trusted-annotated-media-log-564-001",
+        "lessonKey": "annotated-media-activity-fixture",
+        "stepId": "step-05",
+        "moduleId": "annotated-media",
+        "componentKind": "visual.annotatedMedia",
+        "componentId": "closed-loop-media",
+        "actorRole": "student",
+        "clientEventAt": "2026-06-18T01:00:00.000Z",
+        "theme": "light",
+        "viewport": "desktop",
+        "schemaVersion": "annotated-media-evidence-v1",
+        "serverRecordedAt": "2026-06-18T01:00:01.000Z",
+        "classification": [
+          "InteractionLog",
+          "StudentStepResponse",
+          "LearningFact"
+        ],
+        "payload": {
+          "mediaId": "closed-loop-media",
+          "activeRevealState": "diagnostic-reveal",
+          "selectedAnnotationIds": [
+            "input-hotspot",
+            "output-hotspot"
+          ],
+          "omittedRequiredAnnotationIds": [
+            "risk-hotspot"
+          ],
+          "evidenceRoles": {
+            "input-hotspot": "input",
+            "output-hotspot": "output",
+            "risk-hotspot": "risk"
+          },
+          "embeddedActivityAnchorId": "media-choice-anchor",
+          "answerPayload": {
+            "responseContractId": "choice.single",
+            "selectedAnswerId": "output-hotspot",
+            "visualModuleId": "annotated-media"
+          },
+          "teachingLabels": {
+            "input-hotspot": "输入信号",
+            "output-hotspot": "输出响应",
+            "risk-hotspot": "反馈风险"
+          },
+          "feedback": {
+            "misconceptionTagIds": [
+              "missed-risk-hotspot"
+            ],
+            "studentFeedbackMode": "hint",
+            "teacherNextPrompt": "请学生补充遗漏的图上证据。",
+            "reviewAction": "review"
+          },
+          "classification": [
+            "InteractionLog",
+            "StudentStepResponse",
+            "LearningFact"
+          ],
+          "serverRecordedAt": "2026-06-18T01:00:01.000Z"
+        },
+        "affectsTeacherDiagnostics": true,
+        "affectsAbilitySnapshots": true,
+        "affectsRecommendationInputs": true
+      },
+      "diagnosticPolicy": {
+        "denominator": "latest-attempt-per-student",
+        "dedupeKey": "actorId:lessonKey:stepId:moduleId:attemptKey",
+        "attemptPolicy": "latest-visible-media-state-with-resubmission-history",
+        "resubmissionDisplay": "latest-with-history-count",
+        "unreleasedStudentInclusion": "include-as-unreleased-unvisited",
+        "freeTextRedaction": "redact-by-default",
+        "access": "teacher-admin-only",
+        "labelsUseTeachingSemantics": true
+      },
+      "teacherDiagnostics": true,
+      "blockingFindings": []
+    },
+    {
+      "changeId": "add-interactive-annotated-media-activity",
+      "issue": 564,
+      "componentId": "media-choice",
+      "componentKind": "visual.embedded-activity",
+      "route": "/review/annotated-media-activity-564",
+      "designContractPath": "artifacts/product-design-audits/interactive-course-visual-components-2026-06-17/design-contract.md",
+      "visualSourcePath": "artifacts/interactive-learning/annotated-media-activity-564/visual-source.md",
+      "manifestAuditPath": "artifacts/interactive-learning/annotated-media-activity-564/manifest-audit.json",
+      "testResultPath": "artifacts/interactive-learning/annotated-media-activity-564/test-result.json",
+      "browserAuditPath": "artifacts/interactive-learning/annotated-media-activity-564/browser-audit.json",
+      "evidenceSamplePath": "artifacts/interactive-learning/annotated-media-activity-564/embedded-activity-evidence-sample.json",
+      "reviewerEvidencePath": "artifacts/interactive-learning/annotated-media-activity-564/reviewer-evidence.md",
+      "teachingMapping": {
+        "lessonId": "annotated-media-activity-fixture",
+        "stepId": "step-05",
+        "learningGoalId": "lg-map-closed-loop-evidence",
+        "handoutAnchor": "handout-annotated-media-activity",
+        "bopppsPhase": "participatory-learning",
+        "interactiveContractStepId": "contract-step-05"
+      },
+      "screenshots": [
+        {
+          "componentId": "media-choice",
+          "route": "/review/annotated-media-activity-564",
+          "role": "student",
+          "theme": "light",
+          "viewport": "desktop",
+          "state": "student-unreleased",
+          "path": "artifacts/interactive-learning/annotated-media-activity-564/browser-evidence/student-unreleased-desktop-light.png",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "media-choice",
+          "route": "/review/annotated-media-activity-564",
+          "role": "student",
+          "theme": "dark",
+          "viewport": "desktop",
+          "state": "student-released",
+          "path": "artifacts/interactive-learning/annotated-media-activity-564/browser-evidence/student-released-desktop-dark.png",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "media-choice",
+          "route": "/review/annotated-media-activity-564",
+          "role": "student",
+          "theme": "light",
+          "viewport": "desktop",
+          "state": "student-submitted",
+          "path": "artifacts/interactive-learning/annotated-media-activity-564/browser-evidence/student-submitted-desktop-light.png",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "media-choice",
+          "route": "/review/annotated-media-activity-564",
+          "role": "teacher",
+          "theme": "dark",
+          "viewport": "projection",
+          "state": "teacher-reveal",
+          "path": "artifacts/interactive-learning/annotated-media-activity-564/browser-evidence/teacher-reveal-projection-dark.png",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "media-choice",
+          "route": "/review/annotated-media-activity-564",
+          "role": "teacher",
+          "theme": "light",
+          "viewport": "desktop",
+          "state": "teacher-answer-reveal",
+          "path": "artifacts/interactive-learning/annotated-media-activity-564/browser-evidence/teacher-answer-reveal-desktop-light.png",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "media-choice",
+          "route": "/review/annotated-media-activity-564",
+          "role": "teacher",
+          "theme": "light",
+          "viewport": "desktop",
+          "state": "teacher-diagnostics",
+          "path": "artifacts/interactive-learning/annotated-media-activity-564/browser-evidence/teacher-diagnostics-desktop-light.png",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        },
+        {
+          "componentId": "media-choice",
+          "route": "/review/annotated-media-activity-564",
+          "role": "guest",
+          "theme": "dark",
+          "viewport": "mobile",
+          "state": "guest-readonly",
+          "path": "artifacts/interactive-learning/annotated-media-activity-564/browser-evidence/guest-readonly-mobile-dark.png",
+          "horizontalOverflow": false,
+          "teacherControlsCoverPrimaryStage": false,
+          "keyboardReachable": true,
+          "visibleFocus": true,
+          "teachingSemanticLabels": true
+        }
+      ],
+      "browserAudit": {
+        "path": "artifacts/interactive-learning/annotated-media-activity-564/browser-audit.json",
+        "roles": [
+          "student",
+          "teacher",
+          "guest"
+        ],
+        "routes": [
+          "/review/annotated-media-activity-564"
+        ],
+        "themes": [
+          "light",
+          "dark"
+        ],
+        "viewports": [
+          "mobile",
+          "desktop",
+          "projection"
+        ],
+        "states": [
+          "student-unreleased",
+          "student-released",
+          "selected-hotspot",
+          "student-submitted",
+          "teacher-reveal",
+          "teacher-answer-reveal",
+          "teacher-diagnostics",
+          "guest-readonly",
+          "student-diagnostics-denied"
+        ],
+        "matrix": {
+          "expectedCoreCaptures": 36,
+          "actualCoreCaptures": 36
+        },
+        "captures": 39,
+        "noHorizontalOverflow": true,
+        "teacherControlsClearPrimaryStage": true,
+        "hotspotSelectionVerified": true,
+        "embeddedActivityVerified": true,
+        "keyboardSelectionVerified": true,
+        "teacherAnswerRevealDistinct": true,
+        "diagnosticsUseTeachingLabels": true
+      },
+      "evidenceSample": {
+        "path": "artifacts/interactive-learning/annotated-media-activity-564/embedded-activity-evidence-sample.json",
+        "eventType": "activity_answer",
+        "clientEventId": "client-annotated-media-564-activity-001",
+        "attemptKey": "step-05:student-a:attempt-1",
+        "sourceLogId": "trusted-annotated-media-log-564-activity-001",
+        "lessonKey": "annotated-media-activity-fixture",
+        "stepId": "step-05",
+        "moduleId": "embedded-activity",
+        "componentKind": "visual.embedded-activity",
+        "componentId": "media-choice",
+        "actorRole": "student",
+        "clientEventAt": "2026-06-18T01:00:00.000Z",
+        "theme": "light",
+        "viewport": "desktop",
+        "schemaVersion": "annotated-media-evidence-v1",
+        "serverRecordedAt": "2026-06-18T01:00:01.000Z",
+        "classification": [
+          "InteractionLog",
+          "StudentStepResponse",
+          "LearningFact"
+        ],
+        "payload": {
+          "mediaId": "closed-loop-media",
+          "activeRevealState": "diagnostic-reveal",
+          "selectedAnnotationIds": [
+            "input-hotspot",
+            "output-hotspot"
+          ],
+          "omittedRequiredAnnotationIds": [
+            "risk-hotspot"
+          ],
+          "evidenceRoles": {
+            "input-hotspot": "input",
+            "output-hotspot": "output",
+            "risk-hotspot": "risk"
+          },
+          "embeddedActivityAnchorId": "media-choice-anchor",
+          "answerPayload": {
+            "responseContractId": "choice.single",
+            "selectedAnswerId": "output-hotspot",
+            "visualModuleId": "annotated-media"
+          },
+          "teachingLabels": {
+            "input-hotspot": "输入信号",
+            "output-hotspot": "输出响应",
+            "risk-hotspot": "反馈风险",
+            "media-choice-anchor": "哪一个热点最能说明输出证据？"
+          },
+          "feedback": {
+            "misconceptionTagIds": [
+              "missed-risk-hotspot"
+            ],
+            "studentFeedbackMode": "hint",
+            "teacherNextPrompt": "请学生补充遗漏的图上证据。",
+            "reviewAction": "review"
+          },
+          "classification": [
+            "InteractionLog",
+            "StudentStepResponse",
+            "LearningFact"
+          ],
+          "serverRecordedAt": "2026-06-18T01:00:01.000Z"
+        },
+        "affectsTeacherDiagnostics": true,
+        "affectsAbilitySnapshots": true,
+        "affectsRecommendationInputs": true
+      },
+      "diagnosticPolicy": {
+        "denominator": "latest-attempt-per-student",
+        "dedupeKey": "actorId:lessonKey:stepId:moduleId:attemptKey",
+        "attemptPolicy": "latest-visible-media-state-with-resubmission-history",
+        "resubmissionDisplay": "latest-with-history-count",
+        "unreleasedStudentInclusion": "include-as-unreleased-unvisited",
+        "freeTextRedaction": "redact-by-default",
+        "access": "teacher-admin-only",
+        "labelsUseTeachingSemantics": true
+      },
+      "teacherDiagnostics": true,
+      "blockingFindings": []
+    }
+  ]
+}

@@ -66,3 +66,20 @@ Responses collected from block diagrams and signal-flow graphs SHALL preserve gr
 - **WHEN** feedback is generated for a block diagram or signal-flow graph response
 - **THEN** the response payload SHALL support misconception tag ids, student feedback mode, teacher next prompt, and retry or review action
 - **AND** the feedback SHALL reference teaching labels for affected nodes, paths, loops, or branches.
+### Requirement: Annotated media responses preserve selected evidence
+Responses collected from annotated media and embedded visual activities SHALL preserve selected visual evidence and activity context.
+
+#### Scenario: Student selects image evidence
+- **WHEN** a student selects annotations or hotspots in annotated media
+- **THEN** the response payload SHALL include annotation ids, evidence roles, active reveal state, and any embedded activity answer
+- **AND** scoring SHALL be able to distinguish correct evidence from plausible but wrong hotspots.
+
+#### Scenario: Embedded activity submits from a visual surface
+- **WHEN** a student submits an answer from inside a visual stage or annotated media surface
+- **THEN** the response payload SHALL conform to the canonical activity response contract
+- **AND** it SHALL include the visual module id and anchor id.
+
+#### Scenario: Annotated media feedback is shown
+- **WHEN** annotated media or embedded visual activity feedback is generated
+- **THEN** the response payload SHALL support misconception tag ids, student feedback mode, teacher next prompt, and retry or review action
+- **AND** the feedback fields SHALL be suitable for immediate feedback, teacher-led feedback, or post-class review.

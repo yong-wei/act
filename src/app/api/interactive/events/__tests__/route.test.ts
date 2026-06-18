@@ -560,6 +560,102 @@ describe('POST /api/interactive/events', () => {
     vi.useRealTimers();
   });
 
+  it('materializes annotated media evidence with trusted source log fields', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-18T01:00:00.000Z'));
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      { id: 'actual-annotated-media-log-id', clientEventId: 'client-annotated-media', eventData: { clientEventId: 'client-annotated-media' } },
+    ]);
+
+    const annotatedMediaDraft = {
+      eventType: 'media_submit',
+      clientEventId: 'client-annotated-media',
+      attemptKey: 'step-05:response:1',
+      lessonKey: 'annotated-media-activity-fixture',
+      stepId: 'step-05',
+      moduleId: 'annotated-media',
+      componentKind: 'visual.annotatedMedia',
+      componentId: 'closed-loop-media',
+      actorRole: 'student',
+      clientEventAt: '2026-06-18T00:00:00.000Z',
+      schemaVersion: 'annotated-media-evidence-v1',
+      serverRecordedAt: null,
+      classification: ['InteractionLog', 'StudentStepResponse'],
+      affectsTeacherDiagnostics: true,
+      affectsAbilitySnapshots: false,
+      affectsRecommendationInputs: false,
+      payload: {
+        mediaId: 'closed-loop-media',
+        activeRevealState: 'diagnostic-reveal',
+        selectedAnnotationIds: ['input-hotspot', 'output-hotspot'],
+        omittedRequiredAnnotationIds: ['risk-hotspot'],
+        evidenceRoles: {
+          'input-hotspot': 'input',
+          'output-hotspot': 'output',
+          'risk-hotspot': 'risk',
+        },
+        embeddedActivityAnchorId: 'media-choice-anchor',
+        answerPayload: {
+          responseContractId: 'choice.single',
+          selectedAnswerId: 'output-hotspot',
+          visualModuleId: 'annotated-media',
+        },
+        teachingLabels: {
+          'input-hotspot': '输入信号',
+          'output-hotspot': '输出响应',
+          'risk-hotspot': '反馈风险',
+        },
+        feedback: {
+          misconceptionTagIds: ['missed-risk-hotspot'],
+          studentFeedbackMode: 'hint',
+          teacherNextPrompt: '请学生补充遗漏的图上证据。',
+          reviewAction: 'review',
+        },
+        classification: ['InteractionLog', 'StudentStepResponse'],
+        serverRecordedAt: null,
+      },
+    };
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          id: 'client-annotated-media',
+          type: 'submit',
+          timestamp: Date.parse('2026-06-18T00:00:00.000Z'),
+          resourceKey: 'annotated-media-activity-fixture',
+          lessonKey: 'annotated-media-activity-fixture',
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+          stepId: 'step-05',
+          data: {
+            clientEventId: 'client-annotated-media',
+            eventType: 'lesson_submit',
+            answers: {
+              annotatedMediaEvidenceDraft: JSON.stringify(annotatedMediaDraft),
+            },
+          },
+        },
+      ],
+    }));
+
+    const createArg = mocks.prisma.studentStepResponse.createMany.mock.calls[0][0];
+    expect(response.status).toBe(200);
+    expect(createArg.data[0].responseData.annotatedMediaEvidence).toMatchObject({
+      sourceLogId: 'actual-annotated-media-log-id',
+      lessonKey: 'annotated-media-activity-fixture',
+      payload: {
+        mediaId: 'closed-loop-media',
+        selectedAnnotationIds: ['input-hotspot', 'output-hotspot'],
+        embeddedActivityAnchorId: 'media-choice-anchor',
+        answerPayload: {
+          selectedAnswerId: 'output-hotspot',
+        },
+        serverRecordedAt: '2026-06-18T01:00:00.000Z',
+      },
+    });
+    vi.useRealTimers();
+  });
+
   it('returns teacher-only control workbench diagnostics from materialized responses', async () => {
     mocks.getServerSession.mockResolvedValue({
       user: { id: 'teacher-1', role: 'TEACHER' },
@@ -602,5 +698,74 @@ describe('POST /api/interactive/events', () => {
       parameterCoverage: [{ parameterId: 'gain.k', count: 1 }],
       judgmentOutcomes: [{ outcome: 'safe-margin', count: 1 }],
     });
+  });
+
+  it('returns teacher-only annotated media diagnostics from materialized responses', async () => {
+    mocks.getServerSession.mockResolvedValue({
+      user: { id: 'teacher-1', role: 'TEACHER' },
+    });
+    mocks.prisma.studentStepResponse.findMany.mockResolvedValue([
+      {
+        userId: 'student-1',
+        responseData: {
+          annotatedMediaEvidence: {
+            eventType: 'media_submit',
+            clientEventId: 'client-annotated-media',
+            attemptKey: 'step-05:response:1',
+            sourceLogId: 'actual-annotated-media-log-id',
+            lessonKey: 'annotated-media-activity-fixture',
+            stepId: 'step-05',
+            moduleId: 'annotated-media',
+            actorRole: 'student',
+            payload: {
+              mediaId: 'closed-loop-media',
+              activeRevealState: 'diagnostic-reveal',
+              selectedAnnotationIds: ['input-hotspot', 'output-hotspot'],
+              omittedRequiredAnnotationIds: ['risk-hotspot'],
+              evidenceRoles: {
+                'input-hotspot': 'input',
+                'output-hotspot': 'output',
+                'risk-hotspot': 'risk',
+              },
+              teachingLabels: {
+                'input-hotspot': '输入信号',
+                'output-hotspot': '输出响应',
+                'risk-hotspot': '反馈风险',
+              },
+              feedback: {
+                misconceptionTagIds: ['missed-risk-hotspot'],
+              },
+              serverRecordedAt: '2026-06-18T00:00:00.000Z',
+            },
+          },
+        },
+      },
+    ]);
+
+    const response = await GET(new NextRequest(
+      'http://localhost/api/interactive/events?diagnostics=annotated-media&resourceKey=annotated-media-activity-fixture',
+    ));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.diagnostics).toMatchObject({
+      viewedCount: 1,
+      submittedCount: 1,
+      selectedAnnotationDistribution: [
+        { annotationId: 'input-hotspot', label: '输入信号', count: 1 },
+        { annotationId: 'output-hotspot', label: '输出响应', count: 1 },
+      ],
+      omittedRequiredAnnotationDistribution: [
+        { annotationId: 'risk-hotspot', label: '反馈风险', count: 1 },
+      ],
+    });
+
+    mocks.getServerSession.mockResolvedValue({
+      user: { id: 'student-1', role: 'STUDENT' },
+    });
+    const forbidden = await GET(new NextRequest(
+      'http://localhost/api/interactive/events?diagnostics=annotated-media&resourceKey=annotated-media-activity-fixture',
+    ));
+    expect(forbidden.status).toBe(403);
   });
 });
