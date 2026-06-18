@@ -770,6 +770,33 @@ describe('adaptive learner state service', () => {
       payloadVersion: 'control-correction-goal-slice.v1',
       targetLevels: ['foundation', 'developing', 'proficient', 'advanced'],
     });
+    expect(resolveAdaptiveGoalSliceDefinition('control-correction')?.capabilityTargets).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        knowledgeNodeRef: 'control-correction:root-locus-design',
+        capabilityLevel: 'analyze',
+        behaviorVerb: 'compare',
+        observableEvidenceType: 'question',
+        evaluationMethod: expect.any(String),
+        competencyDimensions: expect.arrayContaining(['parameterDesign']),
+        learnerStateFeatureGroups: expect.arrayContaining(['knowledgeMastery']),
+      }),
+    ]));
+    expect(slice.capabilityTargets).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        target: expect.objectContaining({
+          knowledgeNodeRef: 'control-correction:arena-transfer',
+          capabilityLevel: 'create',
+          observableEvidenceType: 'arena-official-evaluation',
+        }),
+        observedEvidence: expect.objectContaining({
+          state: 'missing',
+          directEvidenceCount: 0,
+          supportingEvidenceCount: expect.any(Number),
+          source: 'adaptive-learner-state',
+          recommendationBias: 'starter-or-evidence-gathering',
+        }),
+      }),
+    ]));
     expect(slice.dimensions.map((dimension) => dimension.id)).toEqual(
       CONTROL_CORRECTION_GOAL_DIMENSIONS,
     );

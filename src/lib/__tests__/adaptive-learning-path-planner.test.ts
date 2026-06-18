@@ -649,6 +649,62 @@ describe('adaptive learning path planner', () => {
       },
     });
 
+    expect(ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal.capabilityTargets).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        knowledgeNodeRef: 'control-correction:simulation-validation',
+        capabilityLevel: 'evaluate',
+        behaviorVerb: 'validate',
+        observableEvidenceType: 'simulation-run',
+        goalSliceId: 'control-correction',
+        competencyDimensions: expect.arrayContaining(['parameterDesign']),
+        learnerStateFeatureGroups: expect.arrayContaining(['simulationArena']),
+      }),
+      expect.objectContaining({
+        knowledgeNodeRef: 'control-correction:arena-transfer',
+        capabilityLevel: 'create',
+        observableEvidenceType: 'arena-official-evaluation',
+        prerequisiteKnowledgeRefs: ['control-correction:simulation-validation'],
+      }),
+    ]));
+    const plan = buildAdaptiveLearningPathPlan(input);
+    expect(plan.visualization.evidence.capabilityEvidence).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        target: expect.objectContaining({
+          knowledgeNodeRef: 'control-correction:arena-transfer',
+          capabilityLevel: 'create',
+        }),
+        observedEvidence: expect.objectContaining({
+          state: 'missing',
+          directEvidenceCount: 0,
+          supportingEvidenceCount: 3,
+          source: 'adaptive-learner-state',
+          recommendationBias: 'starter-or-evidence-gathering',
+        }),
+      }),
+    ]));
+    expect(plan.visualization.evidence.capabilityEvidence.find((item) =>
+      item.target.knowledgeNodeRef === 'control-correction:arena-transfer'
+    )?.observedEvidence.knowledgeMastery).toBe(0.1);
+    const lowConfidencePlan = buildAdaptiveLearningPathPlan(plannerInput({
+      ...input,
+      learnerState: {
+        ...input.learnerState!,
+        knowledgeMastery: {
+          tags: {
+            ...input.learnerState!.knowledgeMastery!.tags,
+            'control-correction:arena-transfer': { posteriorMastery: 0.24, confidence: 0.42, evidenceCount: 1 },
+          },
+        },
+      },
+    }));
+    expect(lowConfidencePlan.visualization.evidence.capabilityEvidence.find((item) =>
+      item.target.knowledgeNodeRef === 'control-correction:arena-transfer'
+    )?.observedEvidence).toEqual(expect.objectContaining({
+      state: 'low-confidence',
+      directEvidenceCount: 1,
+      recommendationBias: 'starter-or-evidence-gathering',
+    }));
+
     const bundle = buildControlCorrectionThreeStylePathBundle(input);
 
     expect(bundle.status).toBe('ready');

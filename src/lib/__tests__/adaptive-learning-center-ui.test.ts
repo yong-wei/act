@@ -262,6 +262,7 @@ function pathPlan(overrides: Partial<AdaptiveLearningPathPlan> = {}): AdaptiveLe
             reasonCode: 'low-mastery-target',
           },
         ],
+        capabilityEvidence: [],
         prerequisiteReasons: [],
         teacherPolicy: [{ nodeId: 'node-1', policy: 'allowed' }],
         alternatives: [],

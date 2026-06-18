@@ -12,7 +12,11 @@ import {
   type StudentEvidenceStatusMarker,
   type StudentEvidenceWindow,
 } from './student-evidence-feature-cache';
-import { isRegisteredAdaptiveLearningPathGoal } from '../adaptive-learning-path-planner';
+import {
+  CONTROL_CORRECTION_CAPABILITY_TARGETS,
+  isRegisteredAdaptiveLearningPathGoal,
+  type AdaptiveLearningCapabilityTarget,
+} from '../adaptive-learning-path-planner';
 
 export const ADAPTIVE_LEARNER_STATE_PAYLOAD_VERSION = 'adaptive-learner-state.v1';
 export const ADAPTIVE_LEARNER_STATE_FEATURE_FLAG = 'ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED';
@@ -130,6 +134,7 @@ export interface AdaptiveGoalSliceDefinition {
   payloadVersion: typeof CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION;
   dimensions: AdaptiveGoalSliceDimensionDefinition[];
   targetLevels: ControlCorrectionTargetLevel[];
+  capabilityTargets: AdaptiveLearningCapabilityTarget[];
   evidenceSourceFamilies: string[];
   privacyClasses: ControlCorrectionGoalSlice['privacyClasses'];
   confidencePolicy: string;
@@ -265,9 +270,24 @@ export interface ControlCorrectionGoalSlice {
   payloadVersion: typeof CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION;
   generatedAt: string;
   targetLevels: ControlCorrectionTargetLevel[];
+  capabilityTargets: ControlCorrectionCapabilityTargetEvidence[];
   dimensions: ControlCorrectionGoalSliceDimension[];
   pathContext: ControlCorrectionGoalSlicePathContext;
   privacyClasses: Record<'student' | 'teacher' | 'admin' | 'audit' | 'internal', AdaptiveLearnerStatePrivacyScope>;
+}
+
+export interface ControlCorrectionCapabilityTargetEvidence {
+  target: AdaptiveLearningCapabilityTarget;
+  observedEvidence: {
+    state: 'missing' | 'low-confidence' | 'observed';
+    knowledgeMastery: number | null;
+    competencyScore: number | null;
+    confidence: number;
+    directEvidenceCount: number;
+    supportingEvidenceCount: number;
+    source: 'adaptive-learner-state';
+    recommendationBias: 'starter-or-evidence-gathering' | 'targeted-practice';
+  };
 }
 
 export interface ControlCorrectionGoalSlicePathContext {
@@ -515,6 +535,7 @@ export const ADAPTIVE_GOAL_SLICE_REGISTRY: Record<AdaptiveLearnerStateGoalId, Ad
     payloadVersion: CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION,
     dimensions: CONTROL_CORRECTION_DIMENSION_DEFINITIONS,
     targetLevels: CONTROL_CORRECTION_TARGET_LEVELS,
+    capabilityTargets: CONTROL_CORRECTION_CAPABILITY_TARGETS,
     evidenceSourceFamilies: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice.sourceFamilies,
     privacyClasses: CONTROL_CORRECTION_PRIVACY_CLASSES,
     confidencePolicy: ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS.controlCorrectionGoalSlice.confidencePolicy,
@@ -911,12 +932,49 @@ function buildControlCorrectionGoalSlice(input: {
     payloadVersion: CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION,
     generatedAt: input.now.toISOString(),
     targetLevels: CONTROL_CORRECTION_TARGET_LEVELS,
+    capabilityTargets: buildControlCorrectionCapabilityTargets(input.knowledgeMastery, input.vector),
     dimensions,
     pathContext: buildControlCorrectionPathContext(input.paths, input.activeControlCorrectionPath),
     privacyClasses: CONTROL_CORRECTION_PRIVACY_CLASSES,
   };
   validateControlCorrectionGoalSliceContract(slice);
   return slice;
+}
+
+function buildControlCorrectionCapabilityTargets(
+  knowledgeMastery: AdaptiveLearnerState['knowledgeMastery'],
+  vector: CompetencyVector,
+): ControlCorrectionCapabilityTargetEvidence[] {
+  return CONTROL_CORRECTION_CAPABILITY_TARGETS.map((target) => {
+    const knowledge = knowledgeMastery.tags[target.knowledgeNodeRef];
+    const competencies = target.competencyDimensions
+      .map((dimension) => vector[dimension as CompetencyDimension])
+      .filter((value): value is NonNullable<typeof value> => Boolean(value));
+    const competencyScore = competencies.length > 0
+      ? round(competencies.reduce((sum, competency) => sum + competency.score, 0) / competencies.length)
+      : null;
+    const directConfidence = knowledge?.confidence ?? 0;
+    const knowledgeEvidenceCount = knowledge?.evidenceCount ?? 0;
+    const supportingEvidenceCount = Math.max(0, ...competencies.map((competency) => competency.evidenceCount));
+    const state = knowledgeEvidenceCount === 0
+      ? 'missing'
+      : directConfidence < 0.5
+        ? 'low-confidence'
+        : 'observed';
+    return {
+      target,
+      observedEvidence: {
+        state,
+        knowledgeMastery: knowledge?.posteriorMastery ?? null,
+        competencyScore,
+        confidence: round(directConfidence, 2),
+        directEvidenceCount: knowledgeEvidenceCount,
+        supportingEvidenceCount,
+        source: 'adaptive-learner-state',
+        recommendationBias: state === 'observed' ? 'targeted-practice' : 'starter-or-evidence-gathering',
+      },
+    };
+  });
 }
 
 export function validateControlCorrectionGoalSliceContract(value: unknown): asserts value is ControlCorrectionGoalSlice {
@@ -930,6 +988,35 @@ export function validateControlCorrectionGoalSliceContract(value: unknown): asse
   }
   if (!sameStringSet(arrayOfStrings(slice.targetLevels), CONTROL_CORRECTION_TARGET_LEVELS)) {
     throw new Error('control-correction goal slice missing target levels');
+  }
+  const capabilityTargets = Array.isArray(slice.capabilityTargets) ? slice.capabilityTargets : [];
+  if (capabilityTargets.length !== CONTROL_CORRECTION_CAPABILITY_TARGETS.length) {
+    throw new Error('control-correction goal slice missing capability targets');
+  }
+  for (const targetValue of capabilityTargets) {
+    const item = getObject(targetValue);
+    const target = getObject(item.target);
+    const observedEvidence = getObject(item.observedEvidence);
+    if (
+      typeof target.knowledgeNodeRef !== 'string' ||
+      typeof target.capabilityLevel !== 'string' ||
+      typeof target.behaviorVerb !== 'string' ||
+      !Array.isArray(target.successCriteria) ||
+      typeof target.observableEvidenceType !== 'string' ||
+      typeof target.evaluationMethod !== 'string'
+    ) {
+      throw new Error('control-correction capability target missing required metadata');
+    }
+    if (
+      observedEvidence.state !== 'missing' &&
+      observedEvidence.state !== 'low-confidence' &&
+      observedEvidence.state !== 'observed'
+    ) {
+      throw new Error('control-correction capability target missing observed evidence state');
+    }
+    if (observedEvidence.state === 'missing' && observedEvidence.recommendationBias !== 'starter-or-evidence-gathering') {
+      throw new Error('control-correction capability target overstates missing evidence');
+    }
   }
   const privacyClasses = getObject(slice.privacyClasses);
   if (

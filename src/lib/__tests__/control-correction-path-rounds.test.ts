@@ -150,6 +150,7 @@ function samplePlan(): AdaptiveLearningPathPlan {
         },
         sourceCoverage: { LearningFact: 'available' },
         learnerStateDeficits: [],
+        capabilityEvidence: [],
         prerequisiteReasons: [],
         teacherPolicy: [],
         alternatives: [],

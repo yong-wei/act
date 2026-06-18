@@ -34,12 +34,35 @@ export type AdaptiveLearningPathFeedbackType =
   | 'correction-success'
   | 'explanation-click'
   | 'helpfulness';
+export type AdaptiveLearningPathEvidenceType =
+  | 'question'
+  | 'simulation-run'
+  | 'arena-official-evaluation'
+  | 'reflection'
+  | 'agent-interaction';
 
 export interface AdaptiveLearningPathGoal {
   id: string;
   title: string;
   knowledgeTargets: string[];
   competencyTargets?: string[];
+  capabilityTargets?: AdaptiveLearningCapabilityTarget[];
+}
+
+export type AdaptiveLearningCapabilityLevel = 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate' | 'create';
+
+export interface AdaptiveLearningCapabilityTarget {
+  id: string;
+  knowledgeNodeRef: string;
+  capabilityLevel: AdaptiveLearningCapabilityLevel;
+  behaviorVerb: string;
+  successCriteria: string[];
+  observableEvidenceType: AdaptiveLearningPathEvidenceType;
+  evaluationMethod: string;
+  goalSliceId: string;
+  competencyDimensions: string[];
+  learnerStateFeatureGroups: string[];
+  prerequisiteKnowledgeRefs?: string[];
 }
 
 export interface AdaptiveLearningPathRegisteredGoalDefinition {
@@ -227,6 +250,7 @@ export interface AdaptiveLearningPathEvidencePayload {
   confidence: AdaptiveLearningPathPlan['confidence'];
   sourceCoverage: Record<string, string>;
   learnerStateDeficits: AdaptiveLearningPathDeficit[];
+  capabilityEvidence: AdaptiveLearningPathCapabilityEvidence[];
   prerequisiteReasons: Array<{ nodeId: string; prerequisiteNodeIds: string[] }>;
   teacherPolicy: Array<{ nodeId: string; policy: ResourceNode['planningMetadata']['teacherPolicy'] }>;
   alternatives: AdaptiveLearningPathAlternative[];
@@ -341,6 +365,20 @@ export interface AdaptiveLearningPathDeficit {
   confidence: number;
   evidenceCount: number;
   reasonCode: string;
+}
+
+export interface AdaptiveLearningPathCapabilityEvidence {
+  target: AdaptiveLearningCapabilityTarget;
+  observedEvidence: {
+    state: 'missing' | 'low-confidence' | 'observed';
+    knowledgeMastery: number | null;
+    competencyScore: number | null;
+    confidence: number;
+    directEvidenceCount: number;
+    supportingEvidenceCount: number;
+    source: 'adaptive-learner-state';
+    recommendationBias: 'starter-or-evidence-gathering' | 'targeted-practice';
+  };
 }
 
 export interface AdaptiveLearningPathFeedbackEvent {
@@ -511,6 +549,72 @@ export const ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES: Record<
   },
 };
 
+export const CONTROL_CORRECTION_CAPABILITY_TARGETS: AdaptiveLearningCapabilityTarget[] = [
+  {
+    id: 'control-correction:time-domain-targets:apply',
+    knowledgeNodeRef: 'control-correction:time-domain-targets',
+    capabilityLevel: 'apply',
+    behaviorVerb: 'translate',
+    successCriteria: [
+      'Translate overshoot, settling-time, and steady-state requirements into a target pole-region constraint.',
+      'Explain which time-domain target drives the dominant pole placement decision.',
+    ],
+    observableEvidenceType: 'simulation-run',
+    evaluationMethod: 'governed step-response simulation with target-region justification',
+    goalSliceId: 'control-correction',
+    competencyDimensions: ['controlModeling', 'parameterDesign'],
+    learnerStateFeatureGroups: ['knowledgeMastery', 'primaryCompetencies', 'simulationArena'],
+  },
+  {
+    id: 'control-correction:root-locus-design:analyze',
+    knowledgeNodeRef: 'control-correction:root-locus-design',
+    capabilityLevel: 'analyze',
+    behaviorVerb: 'compare',
+    successCriteria: [
+      'Compare feasible compensator choices against root-locus movement and design constraints.',
+      'Identify why a candidate correction improves or violates the target dynamic behavior.',
+    ],
+    observableEvidenceType: 'question',
+    evaluationMethod: 'assessment-backed root-locus reasoning item plus governed simulation evidence',
+    goalSliceId: 'control-correction',
+    competencyDimensions: ['parameterDesign', 'engineeringDecision'],
+    learnerStateFeatureGroups: ['knowledgeMastery', 'primaryCompetencies', 'simulationArena'],
+    prerequisiteKnowledgeRefs: ['control-correction:time-domain-targets'],
+  },
+  {
+    id: 'control-correction:simulation-validation:evaluate',
+    knowledgeNodeRef: 'control-correction:simulation-validation',
+    capabilityLevel: 'evaluate',
+    behaviorVerb: 'validate',
+    successCriteria: [
+      'Validate the corrected response against declared constraints using governed replay evidence.',
+      'State whether failures are caused by model, parameter, or constraint assumptions.',
+    ],
+    observableEvidenceType: 'simulation-run',
+    evaluationMethod: 'course-launched simulation replay with confidence and constraint coverage',
+    goalSliceId: 'control-correction',
+    competencyDimensions: ['parameterDesign', 'engineeringDecision'],
+    learnerStateFeatureGroups: ['simulationArena', 'pathExecution', 'primaryCompetencies'],
+    prerequisiteKnowledgeRefs: ['control-correction:root-locus-design'],
+  },
+  {
+    id: 'control-correction:arena-transfer:create',
+    knowledgeNodeRef: 'control-correction:arena-transfer',
+    capabilityLevel: 'create',
+    behaviorVerb: 'transfer',
+    successCriteria: [
+      'Transfer a correction strategy to the official Arena task without relying on preview-only evidence.',
+      'Justify controller changes with traceable design and validation evidence.',
+    ],
+    observableEvidenceType: 'arena-official-evaluation',
+    evaluationMethod: 'official Arena evaluation protocol with governed controller artifact evidence',
+    goalSliceId: 'control-correction',
+    competencyDimensions: ['crossDomainTransfer', 'engineeringDecision'],
+    learnerStateFeatureGroups: ['simulationArena', 'pathExecution', 'primaryCompetencies'],
+    prerequisiteKnowledgeRefs: ['control-correction:simulation-validation'],
+  },
+];
+
 export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearningPathRegisteredGoalDefinition> = {
   'control-correction': {
     goal: {
@@ -523,6 +627,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
         'control-correction:arena-transfer',
       ],
       competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
+      capabilityTargets: CONTROL_CORRECTION_CAPABILITY_TARGETS,
     },
     displayName: '控制系统校正设计',
     allowedResourceMix: [
@@ -705,6 +810,7 @@ function buildAdaptiveLearningPathPlanInternal(
     fallbackReasons,
   };
   const policyBundleRequest = resolvePolicyBundleRequest(input, confidence, registeredGoal);
+  const capabilityTargets = resolveCapabilityTargets(input.goal, registeredGoal);
 
   return {
     id: `adaptive-path:${input.studentId}:${input.goal.id}`,
@@ -741,6 +847,8 @@ function buildAdaptiveLearningPathPlanInternal(
       currentNodeId,
       completedNodeIds,
       deficits,
+      capabilityTargets,
+      learnerState: input.learnerState,
       sourceCoverage,
       confidence,
       status,
@@ -913,6 +1021,49 @@ function inferDeficits(
       })
       .filter((item) => item.value < 0.85),
   ];
+}
+
+function resolveCapabilityTargets(
+  goal: AdaptiveLearningPathGoal,
+  registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
+): AdaptiveLearningCapabilityTarget[] {
+  return goal.capabilityTargets ?? registeredGoal?.goal.capabilityTargets ?? [];
+}
+
+function buildCapabilityEvidence(
+  targets: AdaptiveLearningCapabilityTarget[],
+  learnerState: AdaptiveLearningPathLearnerState | null,
+): AdaptiveLearningPathCapabilityEvidence[] {
+  return targets.map((target) => {
+    const knowledge = learnerState?.knowledgeMastery?.tags?.[target.knowledgeNodeRef];
+    const competencies = target.competencyDimensions
+      .map((dimension) => learnerState?.primaryCompetencies?.vector?.[dimension])
+      .filter((value): value is NonNullable<typeof value> => Boolean(value));
+    const competencyScore = competencies.length > 0
+      ? round(competencies.reduce((sum, competency) => sum + (competency.score ?? 0), 0) / competencies.length, 2)
+      : null;
+    const directConfidence = knowledge?.confidence ?? 0;
+    const knowledgeEvidenceCount = knowledge?.evidenceCount ?? 0;
+    const supportingEvidenceCount = Math.max(0, ...competencies.map((competency) => competency.evidenceCount ?? 0));
+    const state = knowledgeEvidenceCount === 0
+      ? 'missing'
+      : directConfidence < 0.5
+        ? 'low-confidence'
+        : 'observed';
+    return {
+      target,
+      observedEvidence: {
+        state,
+        knowledgeMastery: knowledge?.posteriorMastery ?? null,
+        competencyScore,
+        confidence: round(directConfidence, 2),
+        directEvidenceCount: knowledgeEvidenceCount,
+        supportingEvidenceCount,
+        source: 'adaptive-learner-state',
+        recommendationBias: state === 'observed' ? 'targeted-practice' : 'starter-or-evidence-gathering',
+      },
+    };
+  });
 }
 
 function partitionResourceNodes(
@@ -2407,6 +2558,8 @@ function buildVisualization(input: {
   currentNodeId: string | null;
   completedNodeIds: string[];
   deficits: AdaptiveLearningPathDeficit[];
+  capabilityTargets: AdaptiveLearningCapabilityTarget[];
+  learnerState: AdaptiveLearningPathLearnerState | null;
   sourceCoverage: Record<string, string>;
   confidence: AdaptiveLearningPathPlan['confidence'];
   status: AdaptiveLearningPathStatus;
@@ -2436,6 +2589,7 @@ function buildVisualization(input: {
       confidence: input.confidence,
       sourceCoverage: input.sourceCoverage,
       learnerStateDeficits: input.deficits,
+      capabilityEvidence: buildCapabilityEvidence(input.capabilityTargets, input.learnerState),
       prerequisiteReasons: input.mainPath
         .filter((node) => node.prerequisiteNodeIds.length > 0)
         .map((node) => ({ nodeId: node.nodeId, prerequisiteNodeIds: node.prerequisiteNodeIds })),
