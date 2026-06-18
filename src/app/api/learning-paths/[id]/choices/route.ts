@@ -409,12 +409,14 @@ function buildPlanNodeFromOptionSummary(
   const inferredType = inferResourceTypeFromOptionNode(nodeId, nullableString(summary.pathNodeType));
   if (!inferredType) return null;
   if (inferredType === 'external_resource') return null;
+  const target = resolveTargetFromOptionSummary(nodeId, summary, inferredType);
+  if (!target) return null;
   return {
     nodeId,
     title: nullableString(summary.title) ?? nullableString(summary.displayName) ?? `学习节点 ${index + 1}`,
     type: inferredType,
     pathNodeType: nullableString(summary.pathNodeType) ?? inferredType,
-    target: inferTargetFromOptionNode(nodeId),
+    target,
     estimatedTimeMinutes: typeof summary.estimatedTimeMinutes === 'number' ? summary.estimatedTimeMinutes : 0,
     status: nullableString(summary.status) ?? (index === 0 ? 'current' : 'next'),
     knowledgeCoverage: [],
@@ -436,8 +438,30 @@ function inferResourceTypeFromOptionNode(nodeId: string, pathNodeType: string | 
   return null;
 }
 
+function resolveTargetFromOptionSummary(
+  nodeId: string,
+  summary: Record<string, unknown>,
+  resourceType: string,
+): string | null {
+  const explicitTarget = [
+    summary.launchTarget,
+    summary.renderTarget,
+    summary.target,
+    summary.actionUrl,
+    summary.href,
+  ].map(nullableString).find((target) => target && isNavigableTarget(target));
+  if (explicitTarget) return explicitTarget;
+  if (resourceType === 'simulation') return null;
+  return inferTargetFromOptionNode(nodeId);
+}
+
+function isNavigableTarget(target: string): boolean {
+  return (target.startsWith('/') && !target.startsWith('//')) ||
+    target.startsWith('http://') ||
+    target.startsWith('https://');
+}
+
 function inferTargetFromOptionNode(nodeId: string): string {
-  if (nodeId.startsWith('simulation:')) return `/simulations/${encodeURIComponent(nodeId.slice('simulation:'.length))}`;
   if (nodeId.startsWith('arena-task:')) return `/arena/challenges/${encodeURIComponent(nodeId.slice('arena-task:'.length))}`;
   if (nodeId.startsWith('knowledge-card:')) return `/knowledge?node=${encodeURIComponent(nodeId.slice('knowledge-card:'.length))}`;
   if (nodeId.startsWith('knowledge-node:')) return `/knowledge?node=${encodeURIComponent(nodeId.slice('knowledge-node:'.length))}`;

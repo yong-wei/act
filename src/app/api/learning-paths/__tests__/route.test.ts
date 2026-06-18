@@ -2225,6 +2225,7 @@ describe('learning path round API routes', () => {
                     nodeId: 'simulation:legacy-step-lab',
                     title: '旧路径仿真节点',
                     pathNodeType: 'practice',
+                    launchTarget: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11',
                     estimatedTimeMinutes: 20,
                   },
                   {
@@ -2284,7 +2285,7 @@ describe('learning path round API routes', () => {
             expect.objectContaining({
               nodeId: 'simulation:legacy-step-lab',
               type: 'simulation',
-              target: '/simulations/legacy-step-lab',
+              target: '/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo?step=step-11',
               status: 'current',
             }),
             expect.objectContaining({
@@ -2308,6 +2309,59 @@ describe('learning path round API routes', () => {
         }),
       }),
     }));
+  });
+
+  it('rejects summary-only legacy simulation options without a governed launch target', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1'],
+        planNodes: [{ nodeId: 'node-1', type: 'simulation', target: '/simulations/current' }],
+        policyBundle: {
+          status: 'ready',
+          paths: [
+            {
+              styleId: 'legacy-simulation-option',
+              policyFamily: 'simulation-driven',
+              nodeIds: ['simulation:control-correction-step-response-lab'],
+              activeNodeIds: ['simulation:control-correction-step-response-lab'],
+              nodeSummaries: [
+                {
+                  nodeId: 'simulation:control-correction-step-response-lab',
+                  title: '旧路径仿真节点',
+                  pathNodeType: 'practice',
+                  launchTarget: '//example.invalid/simulation',
+                  estimatedTimeMinutes: 20,
+                },
+              ],
+              resourceMix: { simulation: 1 },
+              evidenceBasis: ['simulation-run'],
+              limitations: [],
+            },
+          ],
+        },
+      },
+      learnerStateRef: 'diagnosis-snapshot:server-owned',
+      inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
+      terminalValidation: { nodeId: 'node-1', state: 'pending' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'choice-legacy-simulation-without-launch-target-key',
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathChoiceEvidence).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
 
   it('rejects legacy option summaries when node type cannot be recovered', async () => {
