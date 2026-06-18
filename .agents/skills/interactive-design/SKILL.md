@@ -115,6 +115,12 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 | `content.figure` | 图片、静态图、SVG 图、媒体图组、结构图、曲线截图 | `src`、`assets`、`image_key`、`caption`、`explanation`；图题必须是学科对象标题 |
 | `content.reveal` | 推导链、例题步骤、逐步显影解释、分层判断链 | `items` 或 `block_key`，每一层必须有完整文本，必要时含公式 |
 | `content.stageMap` | 课程路径、阶段图、模块地图、学习路线提示 | `items`、`stages`、`current`、`block_key` |
+| `visual.stage` | 非线性二维视觉舞台、路径对照、证据地图、局部显影、图形与活动共存的综合页面 | `stageId`、`aspectRatio`、`layers`、规范化 `region`、`zIndex`、`revealState`、教学标题、证据锚点；不得退化为纵向卡片列表 |
+| `visual.derivationStage` | 二维公式推导、例题演算、非线性显影、长公式分块显影、语义变色 | `stageId`、`formulas`、`formula.blocks`、LaTeX 源、`textBlocks`、`connectors`、`revealSteps.targetIds`、`teacherControls`、`cognitiveLoad` |
+| `visual.blockDiagram` | 控制系统方框图展示、路径高亮、结构构造、错误诊断、反馈回路识别 | `graphId`、`nodes`、`edges`、节点位置、标签、端口/求和点类型、`interactions.mode`、`revealPlan`；互动模式不得只给静态图 |
+| `visual.signalFlowGraph` | 信号流图读图、前向通路、回路、不接触回路、梅森项映射 | `graphId`、`nodes`、`branches`、`forwardPaths`、`loops`、`nonTouchingLoopGroups`、`masonTerms`、`revealPlan`；公式项必须能回指图中路径或回路 |
+| `visual.annotatedMedia` | 带热点和标注的图片/媒体证据选择、图上诊断、教师热点聚合 | `media.src`、`media.alt`、`annotations`、规范化热点 `region`、`evidenceRole`、`selectableAnnotations`、`revealPlan`、教学标签；不得显示文件名或模块名 |
+| `visual.embedded-activity` | 嵌入视觉舞台或注释媒体中的图上选择、判断、定位任务 | `visualModuleId`、`activityId`、`anchorId`、`position`、`prompt`、`responseContractId`、`answerOptions`；必须接 canonical response contract |
 | `activity.panel` | 单选、多选、判断、排序、配对、题组、短答、提交型活动的作答槽 | 必须在 `interaction_spec.activity_cards[]` 写 `prompt`、`response_kind`、选项/匹配项、答案、提交粒度 |
 | `activity.workspace` | 结构化工作区、表单式工作区、案例记录、参数记录、需要学生填写多字段的活动 | 必须给 `response_kind`，通常为 `text.structured`、`parameter.set` 或 `table.builder`；字段结构必须显式 |
 | `compute.panel` | Rust/WASM 或共享能力驱动的互动图形、根轨迹、Bode、参数扫描、训练面板 | 必须给 `capabilityRef` 与能力入口字段（如 `panel_id`、`spec_key`、`case_id`、`resolver`、`src/path` 或等价引用）；若页面要求学生调参或提交图形观察，还必须写清控件、默认参数和提交字段 |
@@ -126,6 +132,21 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 禁止把 `image-panel`、`formula-card`、`quiz-card`、`single-choice-card`、`drag-match`、`stage-map` 等旧组件名写入 `modules[].kind`。
 - 禁止因标准组件不足而在课程契约中新增 `kind`；必须先提出组件库扩展或收窄设计。
 - 禁止把关键内容放入 renderer 不可审计的私有字段；若审计脚本不能识别为非空，契约必须改写为 `text`、`items`、`columns/rows`、`formula(s)`、`src/assets`、`block_key` 等可审计字段。
+
+1.8 **新增视觉组件的使用原则**
+
+新增 `visual.*` 组件用于解决“卡片堆叠无法表达空间关系”的问题，不用于给普通正文换皮。选择时按教学对象判断：
+
+- 若页面需要在同一二维空间组织图片、公式、标注、路径、局部活动或教师显影，使用 `visual.stage`。
+- 若页面核心是推导、例题演算、公式项来源和变换关系，使用 `visual.derivationStage`；不得用普通 `content.reveal` 代替需要空间布局、非线性显影、LaTeX 分块或语义变色的推导。
+- 若页面要求学生识别控制结构、反馈支路、比较点、执行器、对象或传感器，使用 `visual.blockDiagram`；不得把可交互结构图降级为 `content.figure`。
+- 若页面要求学生识别变量节点、支路、前向通路、回路、不接触回路或梅森公式项，使用 `visual.signalFlowGraph`；公式表不得替代图中路径/回路高亮。
+- 若页面要求学生在图中选择输入、输出、参数、风险、结果或证据位置，使用 `visual.annotatedMedia`，必要时叠加 `visual.embedded-activity`。
+- 若页面核心是数值计算、参数扫描、响应曲线、Bode/Nyquist、根轨迹、训练或已有控制工作台能力，优先使用 `compute.panel` 和注册 capability；不得为课程另写数值面板。
+
+视觉组件的设计稿必须写清学生端与教师端差异：未释放、已释放、显影中、答案揭示、学生提交后、教师诊断聚合至少哪些状态存在。所有可见标题、热点、节点、路径和错误说明必须使用教学语义，不得暴露 `stageId`、`graphId`、payload key、renderer 名、文件路径或 capability id。
+
+视觉组件默认产生学习证据或交互证据。设计契约必须说明哪些事件只进入 `InteractionLog`，哪些提交进入 `StudentStepResponse`，哪些可作为 `LearningFact` 物化输入；浏览、聚焦、显影查看不能在没有作答或评分规则时被当作掌握证据。
 
 2. **问题、原理、例题、作答必须拆开写清**
    - 原理/定理模块与例题模块必须分离。
@@ -343,6 +364,11 @@ description: Use when authoring or revising `interactive-page.md` and `interacti
 - 含曲线图章节是否优先设计 Rust 驱动互动图形面板，默认布局是否复现讲义静态图，控件是否位于图形下方
 - 有互动图形的页面是否取消普通互动题目，改为参数调节后提交
 - 无互动图形的普通页面互动题是否不超过 2 题且允许单独提交
+- 需要二维空间组织、非线性显影、结构图、信号流图、图上热点或图中活动的页面是否已升级为合适的 `visual.*` 组件，而不是继续使用静态截图、纵向卡片或普通 reveal
+- `visual.derivationStage` 是否保留 LaTeX 源、公式分块、非线性 `targetIds`、语义变色和长公式分块策略
+- `visual.blockDiagram` / `visual.signalFlowGraph` 是否提供结构化节点、边/支路、路径、回路、显影计划和教学标签，且能产生结构证据
+- `visual.annotatedMedia` / `visual.embedded-activity` 是否提供热点、证据角色、图上任务、教师诊断口径和 canonical response contract
+- 视觉组件是否写明深浅色、学生/教师、未释放/已释放/显影/提交/揭示/诊断聚合等状态矩阵
 - 页面蓝图 prose 中没有把 teacher controls、验收点、实现门槛直接写成自然段主干
 
 ### 学生面文本语义校准

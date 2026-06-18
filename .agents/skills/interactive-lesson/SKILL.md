@@ -21,10 +21,11 @@ description: Use when implementing or optimizing this repository's interactive l
 
 当前默认基线不再是单一 `L-2c`，而是综合以下已落地课程能力：
 - `1-1`：理论型精品互动课的入口页、教师/学生双端、提交闭环、教师统计与答案揭示、统一事件链。
-- `1-2`：17 步课堂蓝图、词云/回复列表、runtime 首页与课堂双线协同。
+- `1-2`：14 步 manifest-first 新主线课程、静态 3D 曲面、共享 `compute.panel`、runtime 首页与课堂双线协同。
 - `1-3`：增强型工作区、步骤级 AI 上下文、知识卡抽屉、浏览器验收、review/runtime 联动。
 - `2-1`：课前预习台统一入口模板、runtime 媒体文案装配、页内音视频容器、讲义在线阅读/下载，以及课堂外资源互动追踪链路。
 - `4-1`：统一 `useControlEngine -> control-analysis.worker.ts -> Rust/WASM compute_analysis -> ControlFigureWorkspace` 的曲线联动基线、固定面板组合、固定坐标范围、指标覆盖层与共享夹具回退。
+- 视觉组件系列：`visual.stage`、`visual.derivationStage`、`visual.blockDiagram`、`visual.signalFlowGraph`、`visual.annotatedMedia`、`visual.embedded-activity` 已进入共享 manifest runtime，用于二维舞台、非线性公式显影、结构图/信号流图、图上热点和嵌入活动。
 
 后续课程若涉及参数联动曲线，默认沿用 `4-1` 的 Rust/WASM 曲线联动基线；除非设计稿显式声明例外，不再回退到旧的单课内联图表实现。
 
@@ -133,12 +134,33 @@ npm run test:unit -- src/features/interactive/__tests__/interactive-module-taxon
 
 硬约束：
 
-- 不得用课程私有组件绕过标准组件库。新课和已迁移课程的 `modules[].kind` 只能来自标准组件类：`content.rich`、`content.cardSet`、`content.formula`、`content.code`、`content.table`、`content.figure`、`content.reveal`、`content.stageMap`、`activity.panel`、`activity.workspace`、`compute.panel`、`analytics.summary`、`layout.support`。
+- 不得用课程私有组件绕过标准组件库。新课和已迁移课程的 `modules[].kind` 只能来自标准组件类：`content.rich`、`content.cardSet`、`content.formula`、`content.code`、`content.table`、`content.figure`、`content.reveal`、`content.stageMap`、`visual.stage`、`visual.derivationStage`、`visual.blockDiagram`、`visual.signalFlowGraph`、`visual.annotatedMedia`、`visual.embedded-activity`、`activity.panel`、`activity.workspace`、`compute.panel`、`analytics.summary`、`layout.support`。
 - MATLAB/Octave 代码示例必须使用 `content.code` 与标准代码渲染组件，payload/content block 写 `language: matlab` 和 `code`；不得作为 `content.rich`、markdown fenced code 或 `content.formula` 处理。
 - 旧组件名只能作为 `payload.legacyKind` 保留迁移提示，不得重新写入 `modules[].kind`。
 - 若设计需要标准组件库不存在的能力，先停下并提出组件库扩展或 OpenSpec 变更；不得在单课 `step-panels.tsx`、共享 renderer 或课程常量中临时发明新 kind。
 - 若 `audit_interactive_manifest.py` 无法判断模块非空，先修 `interactive-contract.yaml` 的 payload 或 `content_blocks`；只有 payload 已完整但共享 renderer 不支持时，才修改共享 renderer。
 - `compute.panel` 是计算/互动图形能力的标准入口；新实现应采用 `compute.panel + capabilityRef`。`rust-analysis-panel`、`interactive-figure-panel`、`shared-engine-root-locus-panel` 等旧名只能作为迁移兼容或 `payload.legacyKind`。
+
+### 3.2 视觉组件实现规则
+
+`visual.*` 组件是共享 manifest runtime 能力，不是课程私有页面分支。实现或优化课程时按以下规则处理：
+
+- `visual.stage`：用于二维舞台、路径对照、证据地图、局部显影和图形/活动共存页面。实现必须消费 `stageId`、`aspectRatio`、`layers`、规范化 `region`、`zIndex`、`revealState` 和证据锚点；不得渲染成普通纵向卡片列表。
+- `visual.derivationStage`：用于公式推导、例题演算、非线性显影、长公式分块和语义变色。实现必须保留 LaTeX 源、公式块 id、文本块 id、连接线、`revealSteps.targetIds`、`teacherControls` 和 `cognitiveLoad`；不得把公式改成图片或纯文本。
+- `visual.blockDiagram`：用于控制方框图展示、高亮、构造和诊断。实现必须消费结构化 `nodes`、`edges`、节点位置、标签、端口/求和点类型、`interactions.mode` 和 `revealPlan`；互动模式为 highlight/construct/diagnose 时，静态图片或表格不能满足契约。
+- `visual.signalFlowGraph`：用于信号流图、前向通路、回路、不接触回路和梅森项映射。实现必须消费 `nodes`、`branches`、`forwardPaths`、`loops`、`nonTouchingLoopGroups`、`masonTerms` 和 `revealPlan`；公式项必须能回指图中路径或回路。
+- `visual.annotatedMedia`：用于图片/媒体热点、图上证据选择和教师热点诊断。实现必须消费 `media.src`、`media.alt`、`annotations`、规范化热点 `region`、`evidenceRole`、`selectableAnnotations` 和 `revealPlan`；可见文本不得暴露文件名、模块名或 payload key。
+- `visual.embedded-activity`：用于视觉舞台或注释媒体内的作答锚点。实现必须消费 `visualModuleId`、`activityId`、`anchorId`、`position`、`prompt`、`responseContractId` 和 `answerOptions`，并通过 canonical response contract 提交。
+
+实现边界：
+
+- 若 payload 已完整但共享 renderer 不支持，修改 `src/features/interactive/shared/manifest-runtime/`，同时补 module taxonomy / registry gate / evidence 测试；不得在 `src/features/interactive/unit-*` 下创建平行实现。
+- 若课程需要时域、频域、根轨迹、Nyquist、性能指标、Rust/WASM 请求、训练或参数扫描，优先扩展或嵌入共享控制工作台 capability；不得复制控制工作台已有面板。
+- `interactive-figure` 只能作为迁移兼容或非控制分析的临时载体。新设计若表达控制分析，应使用注册的共享控制 workbench capability，例如 `control-workbench`、`control-linked-comparison`、`control-root-locus-design-map`、`control-frequency-reading-workbench`、`nonlinear-analysis-workbench` 或 `training-workbench`。
+- 所有视觉组件必须支持浅色、深色、学生端、教师端、移动端、桌面端和投影端的可读状态；不允许在组件内部写死十六进制色、页面局部 palette 或 `dark:` 分支来绕过平台 token。
+- 所有视觉组件可见标题、节点、热点、路径、按钮、fallback 和诊断文案必须使用教学语义；工程语义泄露属于阻塞问题。
+- 教师控制必须附着到对应视觉组件或目标层，不得集中到遮挡主体内容的全局抽屉。
+- 学生提交必须进入共享 manifest 提交路径；视觉浏览、显影查看和焦点事件只能作为交互证据，不能在缺少作答或评分规则时物化为掌握证据。
 
 ### 4. 媒体资源缺失处理
 
@@ -285,6 +307,7 @@ npm run test:unit -- src/features/interactive/__tests__/interactive-module-taxon
 - 浏览器闭环验收、双子代理逐页流程、测试账号与详细覆盖项见 [references/closed-loop-browser-validation.md](references/closed-loop-browser-validation.md)
 - 入口页模式与 runtime 媒体索引契约见 [references/runtime-entry-page-pattern.md](references/runtime-entry-page-pattern.md) 与 [references/runtime-media-index-contract.md](references/runtime-media-index-contract.md)
 - 实现完成后必须通过该脚本测试：`python3 .agents/skills/interactive-lesson/scripts/check_contract_alignment.py`
+- 对 `1-2` 这类无本地 `UNIT_*_PAGE_CONTRACTS` 常量、完全由 `interactive-contract.yaml -> export_runtime.py -> interactive-manifest.json` 驱动的 manifest-first 课程，旧式 `check_contract_alignment.py` 可能没有课次预设，不能为了通过脚本伪造私有页面常量。此时以 `export_runtime.py <lesson>`、`audit_interactive_manifest.py --lesson <lesson>`、module taxonomy / registry gate、课次 manifest runtime 测试和 `review_lesson_content.py --strict-implementation-contract` 共同作为对齐闸门，并在课程笔记和验收合同中明确记录“不适用”的原因。
 - 内容导出和作者态契约审查必须运行 `review_lesson_content.py --strict-implementation-contract`，不能忽略作者态契约与本地实现漂移
 - 标准组件库存闸门必须运行 `npm run test:unit -- src/features/interactive/__tests__/interactive-module-taxonomy.test.ts src/features/interactive/__tests__/interactive-module-registry-gate.test.ts`，不能只跑浏览器验收
 - 子代理审查必须发生在严格脚本前；主代理只收集审查结论、修复问题并写入 `notes/interactive-implementation-acceptance.json`，不把长篇浏览器过程塞回主上下文
@@ -426,6 +449,11 @@ useEffect(() => {
 - [ ] 已确保非首页页面的知识卡片入口位于标题模块右上角，按钮文案统一为"知识卡片"
 - [ ] 已核对选择题统计、答案揭示、文本词云与在线学生折叠等教师端联动要求
 - [ ] 已检查浅色/深色模式都可读，并避免硬编码模块样式
+- [ ] 若使用 `visual.*` 组件，已确认 payload 通过 registry gate，且没有课程私有 visual renderer
+- [ ] 若使用 `visual.derivationStage`，已确认 LaTeX 源、公式分块、非线性显影、教师跳转和语义变色均可渲染
+- [ ] 若使用 `visual.blockDiagram` / `visual.signalFlowGraph`，已确认节点、边/支路、路径、回路、构图/选择提交和教师诊断证据可用
+- [ ] 若使用 `visual.annotatedMedia` / `visual.embedded-activity`，已确认热点选择、图上任务、遗漏热点诊断和 canonical response contract 可用
+- [ ] 已为视觉组件保存学生端、教师端、浅色、深色、移动端、桌面端、投影端和非默认状态截图或记录无法捕获的阻塞原因
 - [ ] 已重新执行设计稿对照验证
 - [ ] 已在设计对齐后按浏览器闭环参考完成双子代理逐页验收
 - [ ] 已写入 `notes/interactive-implementation-acceptance.json`

@@ -2,7 +2,7 @@
   "status": "pass",
   "summary": {
     "steps": 14,
-    "modules": 46,
+    "modules": 43,
     "issues": 0
   },
   "implementation_sources": {
@@ -89,6 +89,12 @@
       "teacher-strip",
       "template-card",
       "title-card",
+      "visual.annotatedMedia",
+      "visual.blockDiagram",
+      "visual.derivationStage",
+      "visual.embedded-activity",
+      "visual.signalFlowGraph",
+      "visual.stage",
       "worked-example-card"
     ],
     "student_activity_kinds": [
@@ -222,41 +228,21 @@
     },
     {
       "step_id": "step-04",
-      "module_id": "mechanism-card",
-      "kind": "content.cardSet",
+      "module_id": "modeling-path-stage",
+      "kind": "visual.stage",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.mechanism-card",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "summary",
-      "is_empty": false,
-      "diagnostic": null
-    },
-    {
-      "step_id": "step-04",
-      "module_id": "data-driven-card",
-      "kind": "content.cardSet",
-      "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.data-driven-card",
-      "resolved_content_type": "summary",
-      "is_empty": false,
-      "diagnostic": null
-    },
-    {
-      "step_id": "step-04",
-      "module_id": "svg-comparison",
-      "kind": "content.figure",
-      "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.svg-comparison",
-      "resolved_content_type": "image",
       "is_empty": false,
       "diagnostic": null
     },
     {
       "step_id": "step-05",
-      "module_id": "ship-de",
-      "kind": "content.formula",
+      "module_id": "ship-equation-stage",
+      "kind": "visual.derivationStage",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.ship-de",
-      "resolved_content_type": "formula",
+      "resolved_content_source": "module.payload",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
@@ -272,11 +258,11 @@
     },
     {
       "step_id": "step-05",
-      "module_id": "solve-reveal",
-      "kind": "content.reveal",
+      "module_id": "direct-response-img",
+      "kind": "content.figure",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.solve-reveal",
-      "resolved_content_type": "reveal",
+      "resolved_content_source": "content_blocks.direct-response-img",
+      "resolved_content_type": "image",
       "is_empty": false,
       "diagnostic": null
     },
@@ -302,11 +288,11 @@
     },
     {
       "step_id": "step-06",
-      "module_id": "tf-reveal",
-      "kind": "content.reveal",
+      "module_id": "tf-derivation-stage",
+      "kind": "visual.derivationStage",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.tf-reveal",
-      "resolved_content_type": "reveal",
+      "resolved_content_source": "module.payload",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
@@ -342,21 +328,21 @@
     },
     {
       "step_id": "step-07",
-      "module_id": "five-elements",
-      "kind": "content.cardSet",
+      "module_id": "closed-loop-structure",
+      "kind": "visual.blockDiagram",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.five-elements",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
     {
       "step_id": "step-07",
-      "module_id": "closed-loop-fig",
-      "kind": "content.figure",
+      "module_id": "five-elements",
+      "kind": "content.cardSet",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.closed-loop-fig",
-      "resolved_content_type": "image",
+      "resolved_content_source": "content_blocks.five-elements",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
@@ -372,11 +358,21 @@
     },
     {
       "step_id": "step-07",
-      "module_id": "connections-fig",
-      "kind": "content.figure",
+      "module_id": "structure-evidence-task",
+      "kind": "activity.panel",
+      "renderer_owner": "activity",
+      "resolved_content_source": "interaction_spec.activity_cards",
+      "resolved_content_type": "activity",
+      "is_empty": false,
+      "diagnostic": null
+    },
+    {
+      "step_id": "step-08",
+      "module_id": "signal-flow-graph",
+      "kind": "visual.signalFlowGraph",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.connections-fig",
-      "resolved_content_type": "image",
+      "resolved_content_source": "module.payload",
+      "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
     },
@@ -387,16 +383,6 @@
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.sfg-concepts",
       "resolved_content_type": "summary",
-      "is_empty": false,
-      "diagnostic": null
-    },
-    {
-      "step_id": "step-08",
-      "module_id": "sfg-block-compare",
-      "kind": "content.figure",
-      "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.sfg-block-compare",
-      "resolved_content_type": "image",
       "is_empty": false,
       "diagnostic": null
     },
@@ -522,10 +508,10 @@
     },
     {
       "step_id": "step-11",
-      "module_id": "ship-analysis",
-      "kind": "content.cardSet",
+      "module_id": "ship-response-hotspots",
+      "kind": "visual.annotatedMedia",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.ship-analysis",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
@@ -542,30 +528,10 @@
     },
     {
       "step_id": "step-12",
-      "module_id": "example-problem",
-      "kind": "content.rich",
+      "module_id": "example-derivation-stage",
+      "kind": "visual.derivationStage",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.example-problem",
-      "resolved_content_type": "summary",
-      "is_empty": false,
-      "diagnostic": null
-    },
-    {
-      "step_id": "step-12",
-      "module_id": "example-reveal",
-      "kind": "content.reveal",
-      "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.example-reveal",
-      "resolved_content_type": "reveal",
-      "is_empty": false,
-      "diagnostic": null
-    },
-    {
-      "step_id": "step-12",
-      "module_id": "layered-practice",
-      "kind": "content.cardSet",
-      "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.layered-practice",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
@@ -602,10 +568,10 @@
     },
     {
       "step_id": "step-14",
-      "module_id": "five-landmarks",
-      "kind": "content.cardSet",
+      "module_id": "modeling-summary-stage",
+      "kind": "visual.stage",
       "renderer_owner": "content",
-      "resolved_content_source": "content_blocks.five-landmarks",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null
@@ -626,6 +592,16 @@
       "kind": "content.rich",
       "renderer_owner": "content",
       "resolved_content_source": "content_blocks.extend-think-text",
+      "resolved_content_type": "summary",
+      "is_empty": false,
+      "diagnostic": null
+    },
+    {
+      "step_id": "step-14",
+      "module_id": "lesson-stat-summary",
+      "kind": "analytics.summary",
+      "renderer_owner": "content",
+      "resolved_content_source": "module.payload",
       "resolved_content_type": "summary",
       "is_empty": false,
       "diagnostic": null

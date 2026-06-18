@@ -406,109 +406,144 @@
     "step-04": {
       "title": "建模的两条路径",
       "layout": {
-        "template": "comparison_split",
+        "template": "visual_stage_dual_path",
         "regions": [
           {
-            "id": "header",
+            "id": "main",
             "width": "full",
             "order": 1
-          },
-          {
-            "id": "left-col",
-            "width": "half",
-            "order": 2
-          },
-          {
-            "id": "right-col",
-            "width": "half",
-            "order": 3
-          },
-          {
-            "id": "svg-figure",
-            "width": "full",
-            "order": 4
           }
         ]
       },
       "modules": [
         {
-          "id": "mechanism-card",
-          "region": "left-col",
-          "kind": "content.cardSet",
+          "id": "modeling-path-stage",
+          "region": "main",
+          "kind": "visual.stage",
           "must_be_visible": true,
+          "title": "建模的两条路径",
           "payload": {
-            "block_key": "mechanism-card",
-            "title": "机理建模（白箱）"
-          }
-        },
-        {
-          "id": "data-driven-card",
-          "region": "right-col",
-          "kind": "content.cardSet",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "data-driven-card",
-            "title": "数据驱动建模（黑箱）"
-          }
-        },
-        {
-          "id": "svg-comparison",
-          "region": "svg-figure",
-          "kind": "content.figure",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "svg-comparison",
-            "figure_kind": "modeling_paths_comparison",
-            "title": "建模路径对照图"
+            "stageId": "modeling-paths",
+            "aspectRatio": "16:9",
+            "releaseState": "released",
+            "activeRevealState": "all",
+            "revealStates": [
+              "mechanism-path",
+              "data-path",
+              "course-position"
+            ],
+            "layers": [
+              {
+                "id": "real-object",
+                "kind": "media",
+                "title": "真实对象",
+                "body": "船舶航向修正是两条建模路径的共同起点。",
+                "region": {
+                  "x": 0.38,
+                  "y": 0.08,
+                  "width": 0.24,
+                  "height": 0.16
+                },
+                "zIndex": 1
+              },
+              {
+                "id": "mechanism-path",
+                "kind": "diagram",
+                "title": "机理建模",
+                "body": "物理定律 → 微分方程 → 传递函数；每一项保留可解释物理含义。",
+                "region": {
+                  "x": 0.06,
+                  "y": 0.34,
+                  "width": 0.38,
+                  "height": 0.22
+                },
+                "zIndex": 2,
+                "revealState": "mechanism-path"
+              },
+              {
+                "id": "data-path",
+                "kind": "diagram",
+                "title": "数据驱动建模",
+                "body": "输入输出记录 → 数据集 → 算法学习 → 预测模型；依赖数据覆盖范围。",
+                "region": {
+                  "x": 0.56,
+                  "y": 0.34,
+                  "width": 0.38,
+                  "height": 0.22
+                },
+                "zIndex": 3,
+                "revealState": "data-path"
+              },
+              {
+                "id": "mechanism-boundary",
+                "kind": "annotation",
+                "title": "机理建模边界",
+                "body": "优势是结构清楚、含义明确；对象复杂时建方程成本高。",
+                "region": {
+                  "x": 0.07,
+                  "y": 0.66,
+                  "width": 0.34,
+                  "height": 0.18
+                },
+                "zIndex": 4,
+                "revealState": "mechanism-path"
+              },
+              {
+                "id": "data-boundary",
+                "kind": "annotation",
+                "title": "数据驱动边界",
+                "body": "优势是不依赖完整机理；超出数据覆盖范围时预测可能失效。",
+                "region": {
+                  "x": 0.59,
+                  "y": 0.66,
+                  "width": 0.34,
+                  "height": 0.18
+                },
+                "zIndex": 5,
+                "revealState": "data-path"
+              },
+              {
+                "id": "course-position",
+                "kind": "annotation",
+                "title": "本课定位",
+                "body": "本课以机理建模为主线，数据驱动在模块 5 再展开。",
+                "region": {
+                  "x": 0.32,
+                  "y": 0.84,
+                  "width": 0.36,
+                  "height": 0.1
+                },
+                "zIndex": 6,
+                "revealState": "course-position"
+              }
+            ]
           }
         }
       ],
-      "content_blocks": {
-        "mechanism-card": {
-          "type": "bullet_list",
-          "title": "机理建模（白箱）",
-          "items": [
-            "从物理定律出发 → 微分方程 → 传递函数",
-            "例：舵角→力矩→角速度→航向角，每步有物理定律",
-            "✅ 可解释，每项有物理含义",
-            "❌ 对象太复杂时方程难写"
-          ]
-        },
-        "data-driven-card": {
-          "type": "bullet_list",
-          "title": "数据驱动建模（黑箱）",
-          "items": [
-            "给输入、记输出 → 算法学习映射关系",
-            "✅ 不需先验知识",
-            "❌ 缺乏物理可解释性，超出训练范围可能失效"
-          ]
-        },
-        "svg-comparison": {
-          "type": "media",
-          "figure_kind": "modeling_paths_comparison",
-          "caption": "左侧机理链（物理定律→微分方程→传递函数），右侧数据驱动链（数据→算法→预测模型），中间标注各自优势与适用边界。"
-        }
-      },
+      "content_blocks": {},
       "interaction_spec": {
         "interaction_kind": "none",
+        "student_task": "观察同一对象如何进入机理建模和数据驱动两条路径。",
         "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
         "open_browse": "page_load_open",
         "teacher_step_reveal": "not_applicable",
-        "reveal_reference_answer": "not_applicable"
+        "reveal_reference_answer": "not_applicable",
+        "visual_layer_reveal": "teacher_direct"
       },
       "telemetry_spec": {
         "summary_fields": [
           "viewed",
-          "timeOnStep"
+          "visualStageViewed"
         ],
         "result_policy": "no_submission"
       },
       "teacher_insight_spec": {
         "widgets": [
-          "view_count"
+          "view_count",
+          "visual_stage_reveal_state"
         ],
         "aggregation": "step_level"
       },
@@ -529,90 +564,333 @@
       },
       "acceptance_checks": [
         "两列概念卡对比清晰",
-        "页面本地重绘的建模路径图展示两条路径"
+        "页面本地重绘的建模路径图展示两条路径",
+        "step-04 视觉组件状态矩阵覆盖浅色、深色、移动端和投影端"
       ],
       "evidence_sequence": [
-        "mechanism-card",
-        "data-driven-card",
-        "svg-comparison"
+        "modeling-path-stage"
       ],
       "student_access": {
         "default_visibility": "visible",
         "release_required": false,
         "browse_required": false
+      },
+      "visual_state_contract": {
+        "theme_modes": [
+          "light",
+          "dark",
+          "projection"
+        ],
+        "responsive_modes": [
+          "desktop",
+          "tablet",
+          "mobile"
+        ],
+        "requirements": [
+          "all visible labels use teaching language only; no module id, payload key, file name, unsupported-module text, or fallback engineering wording may be visible",
+          "semantic colors must resolve through platform design tokens and remain distinguishable in light, dark, and projection modes",
+          "mobile layout may stack or scale the visual stage but must not degrade into plain card lists when the module kind is visual.*",
+          "teacher reveal controls must target the visual layer, derivation block, path, branch, or hotspot without covering the main visual object",
+          "path comparison must remain spatial: mechanism path and data path appear as two coordinated routes from the same real object",
+          "derivation blocks preserve LaTeX source, formula chunk ids, semantic roles, and non-linear reveal targets",
+          "block diagram nodes, summing junctions, ports, and feedback edges remain visually distinct on all themes",
+          "forward paths, loops, non-touching loops, and Mason terms remain visually cross-referenced",
+          "annotated media hotspots remain keyboard/focus reachable and visible after teacher release",
+          "long formulas reveal by semantic chunk and color roles without clipping in mobile width",
+          "summary map preserves the five conceptual landmarks as a spatial map, not a blank analytics placeholder"
+        ],
+        "unavailable_state": {
+          "student_copy": "当前视觉组件暂时无法加载，请先依据页面文字证据完成判断；教师端会保留本页为未完整展示。",
+          "teacher_copy": "视觉组件未完整加载，请暂停释放作答或切换到文字证据讲解；不要把该状态计为学生掌握证据。",
+          "evidence_policy": "unavailable visual-view events are diagnostic only and must not be materialized as mastery evidence"
+        }
       }
     },
     "step-05": {
       "title": "微分方程——物理对象的第一次翻译",
       "layout": {
-        "template": "formula_reveal_chain",
+        "template": "derivation_stage_with_figure",
         "regions": [
           {
-            "id": "header",
+            "id": "main",
             "width": "full",
             "order": 1
           },
           {
-            "id": "equation",
+            "id": "support",
             "width": "full",
             "order": 2
-          },
-          {
-            "id": "media",
-            "width": "full",
-            "order": 3
-          },
-          {
-            "id": "reveal",
-            "width": "full",
-            "order": 4
-          },
-          {
-            "id": "summary",
-            "width": "full",
-            "order": 5
           }
         ]
       },
       "modules": [
         {
-          "id": "ship-de",
-          "region": "equation",
-          "kind": "content.formula",
+          "id": "ship-equation-stage",
+          "region": "main",
+          "kind": "visual.derivationStage",
           "must_be_visible": true,
+          "title": "船舶航向微分方程推导舞台",
           "payload": {
-            "block_key": "ship-de",
-            "title": "船舶航向动力学方程"
+            "stageId": "ship-equation-derivation",
+            "aspectRatio": "16:9",
+            "releaseState": "released",
+            "activeRevealStepId": "physical-terms",
+            "formulas": [
+              {
+                "id": "ship-equation",
+                "title": "船舶航向方程",
+                "latex": "J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)",
+                "region": {
+                  "x": 0.38,
+                  "y": 0.08,
+                  "width": 0.34,
+                  "height": 0.2
+                },
+                "blocks": [
+                  {
+                    "id": "inertia-term",
+                    "latex": "J\\ddot{\\theta}(t)",
+                    "title": "惯性项",
+                    "colorRole": "known"
+                  },
+                  {
+                    "id": "damping-term",
+                    "latex": "B\\dot{\\theta}(t)",
+                    "title": "阻尼项",
+                    "colorRole": "known"
+                  },
+                  {
+                    "id": "input-term",
+                    "latex": "Ku(t)",
+                    "title": "控制输入项",
+                    "colorRole": "target"
+                  }
+                ]
+              },
+              {
+                "id": "homogeneous-solution",
+                "title": "齐次解",
+                "latex": "r^2+2r=0\\Rightarrow\\theta_h(t)=C_1+C_2e^{-2t}",
+                "region": {
+                  "x": 0.55,
+                  "y": 0.38,
+                  "width": 0.38,
+                  "height": 0.16
+                },
+                "blocks": [
+                  {
+                    "id": "characteristic-equation",
+                    "latex": "r^2+2r=0",
+                    "title": "特征方程",
+                    "colorRole": "transform"
+                  },
+                  {
+                    "id": "theta-h",
+                    "latex": "\\theta_h(t)=C_1+C_2e^{-2t}",
+                    "title": "齐次解",
+                    "colorRole": "result"
+                  }
+                ]
+              },
+              {
+                "id": "particular-solution",
+                "title": "特解",
+                "latex": "\\theta_p(t)=\\frac{5}{2}t",
+                "region": {
+                  "x": 0.55,
+                  "y": 0.57,
+                  "width": 0.26,
+                  "height": 0.13
+                },
+                "blocks": [
+                  {
+                    "id": "theta-p",
+                    "latex": "\\theta_p(t)=\\frac{5}{2}t",
+                    "title": "特解",
+                    "colorRole": "result"
+                  }
+                ]
+              },
+              {
+                "id": "complete-solution",
+                "title": "完整响应",
+                "latex": "\\theta(t)=\\frac{5}{2}t-\\frac{5}{4}+\\frac{5}{4}e^{-2t}",
+                "region": {
+                  "x": 0.43,
+                  "y": 0.73,
+                  "width": 0.42,
+                  "height": 0.13
+                },
+                "blocks": [
+                  {
+                    "id": "theta-complete",
+                    "latex": "\\theta(t)=\\frac{5}{2}t-\\frac{5}{4}+\\frac{5}{4}e^{-2t}",
+                    "title": "零初值响应",
+                    "colorRole": "risk"
+                  }
+                ]
+              }
+            ],
+            "textBlocks": [
+              {
+                "id": "physical-object",
+                "title": "物理对象",
+                "body": "舵角产生力矩，惯性与阻尼共同约束航向角变化。",
+                "region": {
+                  "x": 0.05,
+                  "y": 0.1,
+                  "width": 0.25,
+                  "height": 0.22
+                }
+              },
+              {
+                "id": "symbols",
+                "title": "符号说明",
+                "body": "θ(t) 为航向角，u(t) 为舵机控制作用，J 为转动惯量，B 为阻尼系数，K 为控制力矩系数。",
+                "region": {
+                  "x": 0.05,
+                  "y": 0.37,
+                  "width": 0.3,
+                  "height": 0.22
+                }
+              },
+              {
+                "id": "solve-cost",
+                "title": "直接求解代价",
+                "body": "换输入要重来，多环节串联要联立求解，不易识别跨对象动态结构，天然停留在时间轴。",
+                "region": {
+                  "x": 0.08,
+                  "y": 0.68,
+                  "width": 0.28,
+                  "height": 0.2
+                }
+              }
+            ],
+            "connectors": [
+              {
+                "id": "object-to-equation",
+                "kind": "arrow",
+                "from": "physical-object",
+                "to": "ship-equation",
+                "revealStepIds": [
+                  "physical-terms"
+                ]
+              },
+              {
+                "id": "equation-to-homogeneous",
+                "kind": "arrow",
+                "from": "ship-equation",
+                "to": "characteristic-equation",
+                "revealStepIds": [
+                  "homogeneous"
+                ]
+              },
+              {
+                "id": "particular-to-complete",
+                "kind": "therefore",
+                "from": "theta-p",
+                "to": "theta-complete",
+                "revealStepIds": [
+                  "complete-response"
+                ]
+              }
+            ],
+            "revealSteps": [
+              {
+                "id": "physical-terms",
+                "title": "物理项定位",
+                "targetIds": [
+                  "physical-object",
+                  "ship-equation",
+                  "inertia-term",
+                  "damping-term",
+                  "input-term",
+                  "symbols"
+                ],
+                "reasoning": "先把真实对象中的惯性、阻尼和输入对应到方程项。"
+              },
+              {
+                "id": "homogeneous",
+                "title": "齐次解",
+                "targetIds": [
+                  "characteristic-equation",
+                  "theta-h"
+                ],
+                "reasoning": "从无输入部分得到系统自身模态。"
+              },
+              {
+                "id": "particular",
+                "title": "特解",
+                "targetIds": [
+                  "theta-p"
+                ],
+                "reasoning": "单位阶跃输入导致线性增长特解。"
+              },
+              {
+                "id": "complete-response",
+                "title": "定系数与响应",
+                "targetIds": [
+                  "theta-complete"
+                ],
+                "reasoning": "零初值条件给出完整响应，显示直接求解成本。"
+              },
+              {
+                "id": "solve-cost",
+                "title": "四个不便",
+                "targetIds": [
+                  "solve-cost"
+                ],
+                "reasoning": "用求解代价引出传递函数需求。"
+              }
+            ],
+            "teacherControls": {
+              "enabled": [
+                "next",
+                "previous",
+                "jump",
+                "highlight",
+                "answerReveal",
+                "reset"
+              ]
+            },
+            "answerVisible": false,
+            "cognitiveLoad": {
+              "maxNewFormulaBlocksPerStep": 3,
+              "maxSimultaneousColorRoles": 3,
+              "longFormulaSplitStrategy": "长公式拆成特征方程、特解、完整响应三块。",
+              "teachingLoadException": "teacher-paced"
+            }
           }
         },
         {
           "id": "ship-physics-img",
-          "region": "media",
+          "region": "support",
           "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "ship-physics-img",
-            "title": "船舶航向物理因果图"
+            "title": "船舶航向物理示意图"
           }
         },
         {
-          "id": "solve-reveal",
-          "region": "reveal",
-          "kind": "content.reveal",
+          "id": "direct-response-img",
+          "region": "support",
+          "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
-            "block_key": "solve-reveal",
-            "title": "直接求解演示（J=1, B=2, K=5，单位阶跃，零初值）"
+            "block_key": "direct-response-img",
+            "title": "直接求解得到的航向响应曲线",
+            "display_width": "medium"
           }
         },
         {
           "id": "four-inconveniences",
-          "region": "summary",
+          "region": "support",
           "kind": "content.cardSet",
-          "must_be_visible": false,
+          "must_be_visible": true,
           "payload": {
             "block_key": "four-inconveniences",
-            "title": "微分方程的四个不便"
+            "title": "直接求解的四个不便"
           }
         }
       ],
@@ -648,6 +926,12 @@
           "type": "media",
           "asset": "1-2-fig-02-ship-heading-physics.png",
           "caption": "船体俯视图，舵角→力矩→角速度→航向角，阻尼反向。四个物理量的因果箭头对应微分方程中的四项。"
+        },
+        "direct-response-img": {
+          "type": "media",
+          "asset": "1-2-fig-03-direct-solve-response.png",
+          "caption": "单位阶跃输入下，直接求解得到的航向响应持续增长，用来说明时间域求解只能回答当前输入下的具体响应。",
+          "display_width": "medium"
         },
         "solve-reveal": {
           "type": "reveal_chain",
@@ -689,34 +973,33 @@
         }
       },
       "interaction_spec": {
-        "interaction_kind": "step_reveal",
-        "reveal_policy": "teacher_step",
-        "student_task": "跟随教师逐层展开，理解每步求解逻辑。",
-        "activity_cards": [
-          {
-            "id": "step-05-reveal-check",
-            "prompt": "写下你认为微分方程直接求解最不方便的一点。",
-            "response_kind": "text.short",
-            "submit_scope": "per_card"
-          }
-        ]
+        "interaction_kind": "teacher_reveal_only",
+        "student_task": "跟随教师显影观察方程项、求解链和不便结论。",
+        "step_reveal_policy": {
+          "default_state": "collapsed",
+          "independent_per_step": true
+        },
+        "activity_cards": []
       },
       "teacher_controls": {
         "release_activity": "not_applicable",
         "open_browse": "teacher_toggle",
         "teacher_step_reveal": "teacher_toggle",
-        "reveal_reference_answer": "not_applicable"
+        "reveal_reference_answer": "not_applicable",
+        "visual_layer_reveal": "teacher_direct"
       },
       "telemetry_spec": {
         "summary_fields": [
-          "revealLayersViewed",
-          "timeOnStep"
+          "viewed",
+          "maxRevealLayer",
+          "visualStageViewed"
         ],
         "result_policy": "no_submission"
       },
       "teacher_insight_spec": {
         "widgets": [
-          "layer_view_progression"
+          "view_count",
+          "reveal_progress"
         ],
         "aggregation": "step_level"
       },
@@ -739,61 +1022,82 @@
         "方程+符号表完整",
         "显影链 4 层全部列出且含公式",
         "第四层出图",
-        "四不便在第四层后出现"
+        "四不便在第四层后出现",
+        "step-05 视觉组件状态矩阵覆盖浅色、深色、移动端和投影端"
       ],
       "evidence_sequence": [
-        "ship-de",
+        "ship-equation-stage",
         "ship-physics-img",
-        "solve-reveal",
+        "direct-response-img",
         "four-inconveniences"
       ],
       "student_access": {
         "default_visibility": "visible",
         "release_required": false,
         "browse_required": true
+      },
+      "visual_state_contract": {
+        "theme_modes": [
+          "light",
+          "dark",
+          "projection"
+        ],
+        "responsive_modes": [
+          "desktop",
+          "tablet",
+          "mobile"
+        ],
+        "requirements": [
+          "all visible labels use teaching language only; no module id, payload key, file name, unsupported-module text, or fallback engineering wording may be visible",
+          "semantic colors must resolve through platform design tokens and remain distinguishable in light, dark, and projection modes",
+          "mobile layout may stack or scale the visual stage but must not degrade into plain card lists when the module kind is visual.*",
+          "teacher reveal controls must target the visual layer, derivation block, path, branch, or hotspot without covering the main visual object",
+          "path comparison must remain spatial: mechanism path and data path appear as two coordinated routes from the same real object",
+          "derivation blocks preserve LaTeX source, formula chunk ids, semantic roles, and non-linear reveal targets",
+          "block diagram nodes, summing junctions, ports, and feedback edges remain visually distinct on all themes",
+          "forward paths, loops, non-touching loops, and Mason terms remain visually cross-referenced",
+          "annotated media hotspots remain keyboard/focus reachable and visible after teacher release",
+          "long formulas reveal by semantic chunk and color roles without clipping in mobile width",
+          "summary map preserves the five conceptual landmarks as a spatial map, not a blank analytics placeholder"
+        ],
+        "unavailable_state": {
+          "student_copy": "当前视觉组件暂时无法加载，请先依据页面文字证据完成判断；教师端会保留本页为未完整展示。",
+          "teacher_copy": "视觉组件未完整加载，请暂停释放作答或切换到文字证据讲解；不要把该状态计为学生掌握证据。",
+          "evidence_policy": "unavailable visual-view events are diagnostic only and must not be materialized as mastery evidence"
+        }
       }
     },
     "step-06": {
       "title": "传递函数——从微分运算到代数运算",
       "layout": {
-        "template": "formula_reveal_chain_with_quiz",
+        "template": "derivation_stage_with_table_and_quiz",
         "regions": [
           {
-            "id": "header",
+            "id": "table",
             "width": "full",
             "order": 1
           },
           {
-            "id": "laplace-table",
+            "id": "main",
             "width": "full",
             "order": 2
           },
           {
-            "id": "reveal",
+            "id": "support",
             "width": "full",
             "order": 3
           },
           {
-            "id": "media",
+            "id": "quiz",
             "width": "full",
             "order": 4
-          },
-          {
-            "id": "key-points",
-            "width": "full",
-            "order": 5
-          },
-          {
-            "id": "interaction",
-            "width": "half",
-            "order": 6
           }
         ]
       },
       "modules": [
         {
           "id": "laplace-rules",
-          "region": "laplace-table",
+          "region": "table",
           "kind": "content.table",
           "must_be_visible": true,
           "payload": {
@@ -802,30 +1106,240 @@
           }
         },
         {
-          "id": "tf-reveal",
-          "region": "reveal",
-          "kind": "content.reveal",
+          "id": "tf-derivation-stage",
+          "region": "main",
+          "kind": "visual.derivationStage",
           "must_be_visible": true,
+          "title": "从微分方程到传递函数",
           "payload": {
-            "block_key": "tf-reveal",
-            "title": "三步法推导（船舶 Jθ̈+Bθ̇=Ku，零初值）"
+            "stageId": "transfer-function-derivation",
+            "aspectRatio": "16:9",
+            "releaseState": "released",
+            "activeRevealStepId": "derivative-to-multiply",
+            "formulas": [
+              {
+                "id": "time-equation",
+                "title": "时域方程",
+                "latex": "J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)",
+                "region": {
+                  "x": 0.05,
+                  "y": 0.14,
+                  "width": 0.28,
+                  "height": 0.18
+                },
+                "blocks": [
+                  {
+                    "id": "time-de",
+                    "latex": "J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)",
+                    "title": "时域微分方程",
+                    "colorRole": "known"
+                  }
+                ]
+              },
+              {
+                "id": "laplace-rules-used",
+                "title": "变换规则",
+                "latex": "\\mathcal{L}\\{\\ddot{\\theta}\\}=s^2\\Theta(s),\\quad \\mathcal{L}\\{\\dot{\\theta}\\}=s\\Theta(s),\\quad \\mathcal{L}\\{u(t)\\}=U(s)",
+                "region": {
+                  "x": 0.36,
+                  "y": 0.08,
+                  "width": 0.36,
+                  "height": 0.22
+                },
+                "blocks": [
+                  {
+                    "id": "ddot-rule",
+                    "latex": "\\mathcal{L}\\{\\ddot{\\theta}\\}=s^2\\Theta(s)",
+                    "title": "二阶导数",
+                    "colorRole": "transform"
+                  },
+                  {
+                    "id": "dot-rule",
+                    "latex": "\\mathcal{L}\\{\\dot{\\theta}\\}=s\\Theta(s)",
+                    "title": "一阶导数",
+                    "colorRole": "transform"
+                  },
+                  {
+                    "id": "input-rule",
+                    "latex": "\\mathcal{L}\\{u(t)\\}=U(s)",
+                    "title": "输入变换",
+                    "colorRole": "known"
+                  }
+                ]
+              },
+              {
+                "id": "s-domain-equation",
+                "title": "代数方程",
+                "latex": "Js^2\\Theta(s)+Bs\\Theta(s)=KU(s)",
+                "region": {
+                  "x": 0.39,
+                  "y": 0.38,
+                  "width": 0.34,
+                  "height": 0.14
+                },
+                "blocks": [
+                  {
+                    "id": "algebra-equation",
+                    "latex": "Js^2\\Theta(s)+Bs\\Theta(s)=KU(s)",
+                    "title": "代数方程",
+                    "colorRole": "transform"
+                  }
+                ]
+              },
+              {
+                "id": "transfer-function",
+                "title": "传递函数",
+                "latex": "G(s)=\\frac{\\Theta(s)}{U(s)}=\\frac{K}{Js^2+Bs}=\\frac{K/J}{s(s+B/J)}",
+                "region": {
+                  "x": 0.55,
+                  "y": 0.62,
+                  "width": 0.39,
+                  "height": 0.2
+                },
+                "blocks": [
+                  {
+                    "id": "io-ratio",
+                    "latex": "G(s)=\\frac{\\Theta(s)}{U(s)}",
+                    "title": "输出输入比",
+                    "colorRole": "target"
+                  },
+                  {
+                    "id": "tf-denominator",
+                    "latex": "\\frac{K/J}{s(s+B/J)}",
+                    "title": "分母结构",
+                    "colorRole": "result"
+                  }
+                ]
+              }
+            ],
+            "textBlocks": [
+              {
+                "id": "structure-meaning",
+                "title": "结构解释",
+                "body": "$G(s)$ 与输入无关，分母结构暴露积分效应和阻尼衰减因素。",
+                "region": {
+                  "x": 0.08,
+                  "y": 0.66,
+                  "width": 0.34,
+                  "height": 0.17
+                }
+              }
+            ],
+            "connectors": [
+              {
+                "id": "de-to-rules",
+                "kind": "arrow",
+                "from": "time-de",
+                "to": "ddot-rule",
+                "revealStepIds": [
+                  "derivative-to-multiply"
+                ]
+              },
+              {
+                "id": "rules-to-algebra",
+                "kind": "therefore",
+                "from": "ddot-rule",
+                "to": "algebra-equation",
+                "revealStepIds": [
+                  "equation-to-algebra"
+                ]
+              },
+              {
+                "id": "algebra-to-ratio",
+                "kind": "therefore",
+                "from": "algebra-equation",
+                "to": "io-ratio",
+                "revealStepIds": [
+                  "input-output-ratio"
+                ]
+              },
+              {
+                "id": "ratio-to-denominator",
+                "kind": "highlight-line",
+                "from": "io-ratio",
+                "to": "tf-denominator",
+                "revealStepIds": [
+                  "denominator-structure"
+                ]
+              }
+            ],
+            "revealSteps": [
+              {
+                "id": "derivative-to-multiply",
+                "title": "导数变乘法",
+                "targetIds": [
+                  "time-equation",
+                  "time-de",
+                  "laplace-rules-used",
+                  "ddot-rule",
+                  "dot-rule",
+                  "input-rule"
+                ],
+                "reasoning": "导数在 s 域变成乘以 s。"
+              },
+              {
+                "id": "equation-to-algebra",
+                "title": "方程变代数式",
+                "targetIds": [
+                  "s-domain-equation",
+                  "algebra-equation"
+                ],
+                "reasoning": "微分方程变成关于 Θ(s)、U(s) 的代数方程。"
+              },
+              {
+                "id": "input-output-ratio",
+                "title": "输出输入比值",
+                "targetIds": [
+                  "transfer-function",
+                  "io-ratio"
+                ],
+                "reasoning": "把系统本身写成输出与输入之比。"
+              },
+              {
+                "id": "denominator-structure",
+                "title": "分母结构",
+                "targetIds": [
+                  "tf-denominator",
+                  "structure-meaning"
+                ],
+                "reasoning": "分母中的 s 与 s+B/J 暴露后续极点信息。"
+              }
+            ],
+            "teacherControls": {
+              "enabled": [
+                "next",
+                "previous",
+                "jump",
+                "highlight",
+                "answerReveal",
+                "reset"
+              ]
+            },
+            "answerVisible": false,
+            "cognitiveLoad": {
+              "maxNewFormulaBlocksPerStep": 3,
+              "maxSimultaneousColorRoles": 3,
+              "longFormulaSplitStrategy": "长公式拆成规则、代数方程、输出输入比和分母结构。",
+              "teachingLoadException": "teacher-paced"
+            }
           }
         },
         {
           "id": "transform-chain-img",
-          "region": "media",
+          "region": "support",
           "kind": "content.figure",
-          "must_be_visible": false,
+          "must_be_visible": true,
           "payload": {
             "block_key": "transform-chain-img",
-            "title": "从时域方程到传递函数"
+            "title": "时域方程到传递函数的转换链",
+            "display_width": "medium"
           }
         },
         {
           "id": "tf-meanings",
-          "region": "key-points",
+          "region": "support",
           "kind": "content.cardSet",
-          "must_be_visible": false,
+          "must_be_visible": true,
           "payload": {
             "block_key": "tf-meanings",
             "title": "传递函数的两个核心含义"
@@ -833,13 +1347,13 @@
         },
         {
           "id": "tf-quiz",
-          "region": "interaction",
+          "region": "quiz",
           "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "interaction_kind": "single_choice",
             "response_kind": "choice.single",
-            "title": "拉氏变换判断"
+            "title": "拉氏变换效果判断"
           }
         }
       ],
@@ -948,7 +1462,8 @@
         "release_activity": "teacher_toggle",
         "open_browse": "teacher_toggle",
         "teacher_step_reveal": "teacher_toggle",
-        "reveal_reference_answer": "teacher_toggle"
+        "reveal_reference_answer": "teacher_toggle",
+        "visual_layer_reveal": "teacher_direct"
       },
       "telemetry_spec": {
         "summary_fields": [
@@ -992,9 +1507,10 @@
       ],
       "evidence_sequence": [
         "laplace-rules",
-        "tf-reveal",
+        "tf-derivation-stage",
         "transform-chain-img",
-        "tf-meanings"
+        "tf-meanings",
+        "tf-quiz"
       ],
       "student_access": {
         "default_visibility": "hidden",
@@ -1005,59 +1521,266 @@
     "step-07": {
       "title": "方框图——系统的结构表达",
       "layout": {
-        "template": "concept_with_figures",
+        "template": "block_diagram_workspace",
         "regions": [
           {
-            "id": "header",
+            "id": "main",
             "width": "full",
             "order": 1
           },
           {
-            "id": "concept",
+            "id": "support",
             "width": "full",
             "order": 2
           },
           {
-            "id": "figure-1",
+            "id": "activity",
             "width": "full",
             "order": 3
-          },
-          {
-            "id": "connections",
-            "width": "full",
-            "order": 4
-          },
-          {
-            "id": "figure-2",
-            "width": "full",
-            "order": 5
           }
         ]
       },
       "modules": [
         {
+          "id": "closed-loop-structure",
+          "region": "main",
+          "kind": "visual.blockDiagram",
+          "must_be_visible": true,
+          "title": "闭环控制方框图",
+          "payload": {
+            "graphId": "closed-loop-block-diagram",
+            "interactions": {
+              "mode": "diagnose"
+            },
+            "activeRevealState": "all",
+            "nodes": [
+              {
+                "id": "ref",
+                "type": "input",
+                "label": "r",
+                "position": {
+                  "x": 0.08,
+                  "y": 0.42
+                },
+                "size": {
+                  "width": 0.07,
+                  "height": 0.07
+                }
+              },
+              {
+                "id": "sum",
+                "type": "sum",
+                "label": "Σ",
+                "position": {
+                  "x": 0.2,
+                  "y": 0.42
+                },
+                "size": {
+                  "width": 0.07,
+                  "height": 0.07
+                }
+              },
+              {
+                "id": "error",
+                "type": "branch",
+                "label": "e",
+                "position": {
+                  "x": 0.31,
+                  "y": 0.42
+                },
+                "size": {
+                  "width": 0.06,
+                  "height": 0.06
+                }
+              },
+              {
+                "id": "controller",
+                "type": "block",
+                "label": "控制器",
+                "position": {
+                  "x": 0.43,
+                  "y": 0.42
+                },
+                "size": {
+                  "width": 0.15,
+                  "height": 0.1
+                }
+              },
+              {
+                "id": "actuator",
+                "type": "block",
+                "label": "执行器",
+                "position": {
+                  "x": 0.6,
+                  "y": 0.42
+                },
+                "size": {
+                  "width": 0.14,
+                  "height": 0.1
+                }
+              },
+              {
+                "id": "plant",
+                "type": "block",
+                "label": "被控对象",
+                "position": {
+                  "x": 0.77,
+                  "y": 0.42
+                },
+                "size": {
+                  "width": 0.15,
+                  "height": 0.1
+                }
+              },
+              {
+                "id": "output",
+                "type": "output",
+                "label": "y",
+                "position": {
+                  "x": 0.92,
+                  "y": 0.42
+                },
+                "size": {
+                  "width": 0.07,
+                  "height": 0.07
+                }
+              },
+              {
+                "id": "sensor",
+                "type": "sensor",
+                "label": "传感器",
+                "position": {
+                  "x": 0.62,
+                  "y": 0.72
+                },
+                "size": {
+                  "width": 0.14,
+                  "height": 0.1
+                }
+              },
+              {
+                "id": "measure",
+                "type": "branch",
+                "label": "y_m",
+                "position": {
+                  "x": 0.32,
+                  "y": 0.72
+                },
+                "size": {
+                  "width": 0.07,
+                  "height": 0.07
+                }
+              }
+            ],
+            "edges": [
+              {
+                "id": "r-to-sum",
+                "from": "ref",
+                "to": "sum",
+                "label": "r"
+              },
+              {
+                "id": "sum-to-error",
+                "from": "sum",
+                "to": "error",
+                "label": "e=r-y_m"
+              },
+              {
+                "id": "error-to-controller",
+                "from": "error",
+                "to": "controller",
+                "label": "e"
+              },
+              {
+                "id": "controller-to-actuator",
+                "from": "controller",
+                "to": "actuator",
+                "label": "u_c"
+              },
+              {
+                "id": "actuator-to-plant",
+                "from": "actuator",
+                "to": "plant",
+                "label": "u"
+              },
+              {
+                "id": "plant-to-output",
+                "from": "plant",
+                "to": "output",
+                "label": "y"
+              },
+              {
+                "id": "output-to-sensor",
+                "from": "output",
+                "to": "sensor",
+                "label": "y"
+              },
+              {
+                "id": "sensor-to-measure",
+                "from": "sensor",
+                "to": "measure",
+                "label": "y_m"
+              },
+              {
+                "id": "measure-to-sum",
+                "from": "measure",
+                "to": "sum",
+                "label": "-y_m"
+              }
+            ],
+            "revealPlan": [
+              {
+                "id": "forward-path",
+                "label": "前向通路",
+                "targetIds": [
+                  "r-to-sum",
+                  "sum-to-error",
+                  "error-to-controller",
+                  "controller-to-actuator",
+                  "actuator-to-plant",
+                  "plant-to-output"
+                ]
+              },
+              {
+                "id": "output-node",
+                "label": "输出",
+                "targetIds": [
+                  "output"
+                ]
+              },
+              {
+                "id": "feedback-loop",
+                "label": "反馈支路",
+                "targetIds": [
+                  "output-to-sensor",
+                  "sensor-to-measure",
+                  "measure-to-sum"
+                ]
+              },
+              {
+                "id": "error-node",
+                "label": "误差节点",
+                "targetIds": [
+                  "sum",
+                  "sum-to-error"
+                ]
+              }
+            ]
+          }
+        },
+        {
           "id": "five-elements",
-          "region": "concept",
+          "region": "support",
           "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "five-elements",
-            "title": "方框图五要素"
-          }
-        },
-        {
-          "id": "closed-loop-fig",
-          "region": "figure-1",
-          "kind": "content.figure",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "closed-loop-fig",
-            "title": "闭环控制标准结构图"
+            "title": "闭环方框图五要素"
           }
         },
         {
           "id": "three-connections",
-          "region": "connections",
+          "region": "support",
           "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
@@ -1066,13 +1789,14 @@
           }
         },
         {
-          "id": "connections-fig",
-          "region": "figure-2",
-          "kind": "content.figure",
+          "id": "structure-evidence-task",
+          "region": "activity",
+          "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
-            "block_key": "connections-fig",
-            "title": "三种基本连接图"
+            "interaction_kind": "structured_compare",
+            "response_kind": "text.structured",
+            "title": "结构证据提交"
           }
         }
       ],
@@ -1109,25 +1833,45 @@
         }
       },
       "interaction_spec": {
-        "interaction_kind": "none",
-        "activity_cards": []
+        "interaction_kind": "structured_compare",
+        "student_task": "选择反馈闭合所需的关键支路，并说明产生误差的节点。",
+        "activity_cards": [
+          {
+            "id": "block-diagram-structure-submit",
+            "prompt": "选择反馈闭合所需的关键支路，并写出产生误差的节点。",
+            "response_kind": "text.structured",
+            "structured_fields": [
+              "selected_feedback_branch",
+              "error_node",
+              "reason"
+            ],
+            "submit_scope": "per_card",
+            "reference_answer": "反馈支路是输出 y 经传感器回到比较点的支路；误差在比较点形成，e=r-y_m。"
+          }
+        ]
       },
       "teacher_controls": {
-        "release_activity": "not_applicable",
+        "release_activity": "teacher_toggle",
         "open_browse": "page_load_open",
         "teacher_step_reveal": "not_applicable",
-        "reveal_reference_answer": "not_applicable"
+        "reveal_reference_answer": "teacher_toggle",
+        "visual_layer_reveal": "teacher_direct"
       },
       "telemetry_spec": {
         "summary_fields": [
           "viewed",
+          "selectedFeedbackBranch",
+          "selectedErrorNode",
+          "reason",
+          "resultState",
           "timeOnStep"
         ],
-        "result_policy": "no_submission"
+        "result_policy": "submission_required"
       },
       "teacher_insight_spec": {
         "widgets": [
-          "view_count"
+          "structure_misconception_summary",
+          "response_count"
         ],
         "aggregation": "step_level"
       },
@@ -1149,78 +1893,302 @@
       "acceptance_checks": [
         "五要素完整",
         "闭环图标注清晰",
-        "三种连接各配 TF 规则"
+        "三种连接各配 TF 规则",
+        "step-07 视觉组件状态矩阵覆盖浅色、深色、移动端和投影端",
+        "structured_compare 提交步骤必须使用 submission_required，释放前锁定作答，释放后记录 selected_feedback_branch、error_node、reason"
       ],
       "evidence_sequence": [
+        "closed-loop-structure",
         "five-elements",
-        "closed-loop-fig",
         "three-connections",
-        "connections-fig"
+        "structure-evidence-task"
       ],
       "student_access": {
-        "default_visibility": "visible",
-        "release_required": false,
+        "default_visibility": "hidden",
+        "release_required": true,
         "browse_required": false
+      },
+      "visual_state_contract": {
+        "theme_modes": [
+          "light",
+          "dark",
+          "projection"
+        ],
+        "responsive_modes": [
+          "desktop",
+          "tablet",
+          "mobile"
+        ],
+        "requirements": [
+          "all visible labels use teaching language only; no module id, payload key, file name, unsupported-module text, or fallback engineering wording may be visible",
+          "semantic colors must resolve through platform design tokens and remain distinguishable in light, dark, and projection modes",
+          "mobile layout may stack or scale the visual stage but must not degrade into plain card lists when the module kind is visual.*",
+          "teacher reveal controls must target the visual layer, derivation block, path, branch, or hotspot without covering the main visual object",
+          "path comparison must remain spatial: mechanism path and data path appear as two coordinated routes from the same real object",
+          "derivation blocks preserve LaTeX source, formula chunk ids, semantic roles, and non-linear reveal targets",
+          "block diagram nodes, summing junctions, ports, and feedback edges remain visually distinct on all themes",
+          "forward paths, loops, non-touching loops, and Mason terms remain visually cross-referenced",
+          "annotated media hotspots remain keyboard/focus reachable and visible after teacher release",
+          "long formulas reveal by semantic chunk and color roles without clipping in mobile width",
+          "summary map preserves the five conceptual landmarks as a spatial map, not a blank analytics placeholder"
+        ],
+        "unavailable_state": {
+          "student_copy": "当前视觉组件暂时无法加载，请先依据页面文字证据完成判断；教师端会保留本页为未完整展示。",
+          "teacher_copy": "视觉组件未完整加载，请暂停释放作答或切换到文字证据讲解；不要把该状态计为学生掌握证据。",
+          "evidence_policy": "unavailable visual-view events are diagnostic only and must not be materialized as mastery evidence"
+        }
+      },
+      "release_contract": {
+        "before_release": {
+          "student_visible_state": "content_preview_only",
+          "submission_state": "locked",
+          "student_copy": "先观察方框图结构；教师释放后再提交反馈支路和误差节点判断。"
+        },
+        "after_release": {
+          "student_visible_state": "content_and_activity",
+          "submission_state": "enabled",
+          "required_response_contract": "text.structured",
+          "required_fields": [
+            "selected_feedback_branch",
+            "error_node",
+            "reason"
+          ]
+        },
+        "teacher_statistics": [
+          "selectedFeedbackBranch",
+          "selectedErrorNode",
+          "reason"
+        ],
+        "evidence_policy": "only submitted structured_compare responses become StudentStepResponse evidence; visual browsing remains diagnostic interaction evidence"
       }
     },
     "step-08": {
       "title": "信号流图——变量间的决定关系",
       "layout": {
-        "template": "concept_with_figure_and_quiz",
+        "template": "signal_flow_graph_with_quiz",
         "regions": [
           {
-            "id": "header",
+            "id": "main",
             "width": "full",
             "order": 1
           },
           {
-            "id": "concept",
+            "id": "support",
             "width": "full",
             "order": 2
           },
           {
-            "id": "figure",
+            "id": "quiz",
             "width": "full",
             "order": 3
-          },
-          {
-            "id": "interaction",
-            "width": "half",
-            "order": 4
           }
         ]
       },
       "modules": [
         {
+          "id": "signal-flow-graph",
+          "region": "main",
+          "kind": "visual.signalFlowGraph",
+          "must_be_visible": true,
+          "title": "闭环系统信号流图",
+          "payload": {
+            "graphId": "closed-loop-signal-flow",
+            "interactions": {
+              "mode": "diagnose"
+            },
+            "activeRevealState": "all",
+            "nodes": [
+              {
+                "id": "R",
+                "labelLatex": "R(s)",
+                "position": {
+                  "x": 0.08,
+                  "y": 0.46
+                }
+              },
+              {
+                "id": "E",
+                "labelLatex": "E(s)",
+                "position": {
+                  "x": 0.26,
+                  "y": 0.46
+                }
+              },
+              {
+                "id": "U",
+                "labelLatex": "U(s)",
+                "position": {
+                  "x": 0.46,
+                  "y": 0.46
+                }
+              },
+              {
+                "id": "Y",
+                "labelLatex": "Y(s)",
+                "position": {
+                  "x": 0.68,
+                  "y": 0.46
+                }
+              },
+              {
+                "id": "Ym",
+                "labelLatex": "Y_m(s)",
+                "position": {
+                  "x": 0.46,
+                  "y": 0.74
+                }
+              }
+            ],
+            "branches": [
+              {
+                "id": "b-r-e",
+                "from": "R",
+                "to": "E",
+                "gainLatex": "1"
+              },
+              {
+                "id": "b-ym-e",
+                "from": "Ym",
+                "to": "E",
+                "gainLatex": "-1"
+              },
+              {
+                "id": "b-e-u",
+                "from": "E",
+                "to": "U",
+                "gainLatex": "G_c(s)"
+              },
+              {
+                "id": "b-u-y",
+                "from": "U",
+                "to": "Y",
+                "gainLatex": "G_p(s)"
+              },
+              {
+                "id": "b-y-ym",
+                "from": "Y",
+                "to": "Ym",
+                "gainLatex": "H(s)"
+              }
+            ],
+            "pathSets": {
+              "forwardPaths": [
+                {
+                  "id": "P1",
+                  "label": "前向通路 P1",
+                  "branchIds": [
+                    "b-r-e",
+                    "b-e-u",
+                    "b-u-y"
+                  ]
+                }
+              ],
+              "loops": [
+                {
+                  "id": "L1",
+                  "label": "反馈回路 L1",
+                  "branchIds": [
+                    "b-e-u",
+                    "b-u-y",
+                    "b-y-ym",
+                    "b-ym-e"
+                  ]
+                }
+              ],
+              "nonTouchingLoopGroups": [
+                {
+                  "id": "none",
+                  "label": "本图无不接触回路组",
+                  "loopIds": [
+                    "L1"
+                  ]
+                }
+              ]
+            },
+            "revealPlan": [
+              {
+                "id": "nodes",
+                "label": "变量节点",
+                "targetIds": [
+                  "R",
+                  "E",
+                  "U",
+                  "Y",
+                  "Ym"
+                ],
+                "emphasis": "path"
+              },
+              {
+                "id": "branches",
+                "label": "支路增益",
+                "targetIds": [
+                  "b-r-e",
+                  "b-ym-e",
+                  "b-e-u",
+                  "b-u-y",
+                  "b-y-ym"
+                ],
+                "emphasis": "path"
+              },
+              {
+                "id": "forward-path",
+                "label": "输入到输出的前向通路",
+                "targetIds": [
+                  "b-r-e",
+                  "b-e-u",
+                  "b-u-y"
+                ],
+                "emphasis": "path"
+              },
+              {
+                "id": "feedback-loop",
+                "label": "反馈回路",
+                "targetIds": [
+                  "b-e-u",
+                  "b-u-y",
+                  "b-y-ym",
+                  "b-ym-e"
+                ],
+                "emphasis": "loop"
+              }
+            ],
+            "masonTerms": [
+              {
+                "id": "P1-term",
+                "latex": "P_1=G_c(s)G_p(s)",
+                "relatedIds": [
+                  "P1"
+                ]
+              },
+              {
+                "id": "L1-term",
+                "latex": "L_1=-G_c(s)G_p(s)H(s)",
+                "relatedIds": [
+                  "L1"
+                ]
+              }
+            ]
+          }
+        },
+        {
           "id": "sfg-concepts",
-          "region": "concept",
+          "region": "support",
           "kind": "content.cardSet",
           "must_be_visible": true,
           "payload": {
             "block_key": "sfg-concepts",
-            "title": "信号流图四概念"
-          }
-        },
-        {
-          "id": "sfg-block-compare",
-          "region": "figure",
-          "kind": "content.figure",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "sfg-block-compare",
-            "title": "方框图与信号流图对照",
-            "display_width": "medium"
+            "title": "信号流图四个概念"
           }
         },
         {
           "id": "sfg-quiz",
-          "region": "interaction",
+          "region": "quiz",
           "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "interaction_kind": "single_choice",
             "response_kind": "choice.single",
-            "title": "信号流图判断"
+            "title": "结构表达视角判断"
           }
         }
       ],
@@ -1276,7 +2244,8 @@
         "release_activity": "teacher_toggle",
         "open_browse": "page_load_open",
         "teacher_step_reveal": "not_applicable",
-        "reveal_reference_answer": "teacher_toggle"
+        "reveal_reference_answer": "teacher_toggle",
+        "visual_layer_reveal": "teacher_direct"
       },
       "telemetry_spec": {
         "summary_fields": [
@@ -1290,7 +2259,8 @@
       },
       "teacher_insight_spec": {
         "widgets": [
-          "option_distribution"
+          "path_loop_misconception_summary",
+          "choice_distribution"
         ],
         "aggregation": "step_level"
       },
@@ -1312,16 +2282,48 @@
       "acceptance_checks": [
         "四概念完整",
         "对照图含三种对应标注",
-        "客观题验证视角差异"
+        "客观题验证视角差异",
+        "step-08 视觉组件状态矩阵覆盖浅色、深色、移动端和投影端"
       ],
       "evidence_sequence": [
+        "signal-flow-graph",
         "sfg-concepts",
-        "sfg-block-compare"
+        "sfg-quiz"
       ],
       "student_access": {
         "default_visibility": "hidden",
         "release_required": true,
         "browse_required": false
+      },
+      "visual_state_contract": {
+        "theme_modes": [
+          "light",
+          "dark",
+          "projection"
+        ],
+        "responsive_modes": [
+          "desktop",
+          "tablet",
+          "mobile"
+        ],
+        "requirements": [
+          "all visible labels use teaching language only; no module id, payload key, file name, unsupported-module text, or fallback engineering wording may be visible",
+          "semantic colors must resolve through platform design tokens and remain distinguishable in light, dark, and projection modes",
+          "mobile layout may stack or scale the visual stage but must not degrade into plain card lists when the module kind is visual.*",
+          "teacher reveal controls must target the visual layer, derivation block, path, branch, or hotspot without covering the main visual object",
+          "path comparison must remain spatial: mechanism path and data path appear as two coordinated routes from the same real object",
+          "derivation blocks preserve LaTeX source, formula chunk ids, semantic roles, and non-linear reveal targets",
+          "block diagram nodes, summing junctions, ports, and feedback edges remain visually distinct on all themes",
+          "forward paths, loops, non-touching loops, and Mason terms remain visually cross-referenced",
+          "annotated media hotspots remain keyboard/focus reachable and visible after teacher release",
+          "long formulas reveal by semantic chunk and color roles without clipping in mobile width",
+          "summary map preserves the five conceptual landmarks as a spatial map, not a blank analytics placeholder"
+        ],
+        "unavailable_state": {
+          "student_copy": "当前视觉组件暂时无法加载，请先依据页面文字证据完成判断；教师端会保留本页为未完整展示。",
+          "teacher_copy": "视觉组件未完整加载，请暂停释放作答或切换到文字证据讲解；不要把该状态计为学生掌握证据。",
+          "evidence_policy": "unavailable visual-view events are diagnostic only and must not be materialized as mastery evidence"
+        }
       }
     },
     "step-09": {
@@ -1594,13 +2596,247 @@
           "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
-            "capabilityRef": "interactive-figure",
-            "panel_id": "drag-pole-s-plane",
-            "legacyKind": "compute-panel",
-            "presentation": "single",
-            "block_key": "drag-pole-panel",
-            "spec_key": "drag_pole_s_plane"
-          }
+            "capabilityRef": "control-root-locus-design-map",
+            "visiblePanelIds": [
+              "root-locus",
+              "step-response",
+              "performance"
+            ],
+            "responseContractId": "drag-pole-submit",
+            "releaseState": "released",
+            "fallbackState": "supported",
+            "title": "极点位置与响应工作台",
+            "request": {
+              "runtimeMode": "analysis",
+              "caseId": "unit-1-2-pole-map",
+              "plant": {
+                "numerator": [
+                  1
+                ],
+                "denominator": [
+                  1,
+                  2,
+                  0
+                ],
+                "coefficientOrder": "descending",
+                "label": "G(s)"
+              },
+              "structures": [
+                {
+                  "kind": "gain",
+                  "enabled": true,
+                  "params": {
+                    "k": 1
+                  },
+                  "label": "K"
+                }
+              ],
+              "outputs": [
+                "step_response",
+                "bode",
+                "root_locus",
+                "nyquist"
+              ],
+              "responseType": "step",
+              "timeRange": {
+                "start": 0,
+                "end": 12,
+                "samples": 96
+              },
+              "frequencyRange": {
+                "min": 0.1,
+                "max": 20,
+                "samples": 96
+              },
+              "rootLocus": {
+                "minGain": 0,
+                "maxGain": 10,
+                "samples": 96,
+                "currentGain": 1
+              }
+            },
+            "fallbackResult": {
+              "metrics": {
+                "overshootPct": 12,
+                "riseTimeSec": 1.2,
+                "settlingTimeSec": 5.4,
+                "peakTimeSec": 2.0,
+                "finalValue": 1,
+                "phaseMarginDeg": 48,
+                "gainMarginDb": 10,
+                "gainCrossoverRadPerSec": 1.4,
+                "phaseCrossoverRadPerSec": 3.2,
+                "bandwidthRadPerSec": 2.8
+              },
+              "stepResponse": {
+                "points": [
+                  {
+                    "x": 0,
+                    "y": 0
+                  },
+                  {
+                    "x": 1,
+                    "y": 0.46
+                  },
+                  {
+                    "x": 3,
+                    "y": 1.08
+                  },
+                  {
+                    "x": 6,
+                    "y": 0.98
+                  },
+                  {
+                    "x": 10,
+                    "y": 1.0
+                  }
+                ]
+              },
+              "magnitude": {
+                "points": [
+                  {
+                    "x": 0.1,
+                    "y": -6
+                  },
+                  {
+                    "x": 1,
+                    "y": -1
+                  },
+                  {
+                    "x": 10,
+                    "y": -18
+                  }
+                ]
+              },
+              "phase": {
+                "points": [
+                  {
+                    "x": 0.1,
+                    "y": -8
+                  },
+                  {
+                    "x": 1,
+                    "y": -72
+                  },
+                  {
+                    "x": 10,
+                    "y": -160
+                  }
+                ]
+              },
+              "nyquist": {
+                "points": [
+                  {
+                    "re": 0.9,
+                    "im": -0.1
+                  },
+                  {
+                    "re": 0.2,
+                    "im": -0.6
+                  },
+                  {
+                    "re": -0.15,
+                    "im": -0.2
+                  }
+                ]
+              },
+              "rootLocus": {
+                "branches": [
+                  [
+                    {
+                      "re": -1,
+                      "im": 2
+                    },
+                    {
+                      "re": -1,
+                      "im": -2
+                    }
+                  ]
+                ],
+                "currentPoles": [
+                  {
+                    "re": -1,
+                    "im": 2
+                  },
+                  {
+                    "re": -1,
+                    "im": -2
+                  }
+                ],
+                "openLoopPoles": [
+                  {
+                    "re": -1,
+                    "im": 2
+                  },
+                  {
+                    "re": -1,
+                    "im": -2
+                  }
+                ],
+                "openLoopZeros": []
+              },
+              "isFallback": true
+            },
+            "studentTask": "调整增益并观察根轨迹、响应曲线和性能指标的联动。",
+            "panel_id": "pole-response-control-workbench",
+            "spec_key": "control_root_locus_design_map",
+            "fallbackUi": {
+              "loadingCopy": "正在准备极点位置与响应工作台。",
+              "unavailableCopy": "极点工作台暂时无法计算，请使用复平面行为地图和典型响应对照完成观察。",
+              "errorCopy": "本次参数探索未能完成计算，请保留当前坐标并改用静态对照图判断行为。",
+              "studentActionCopy": "提交文字观察",
+              "teacherActionCopy": "暂停释放作答"
+            },
+            "visualAccessibility": {
+              "zoneEncoding": "semantic-role-plus-label",
+              "colorContract": "theme-token-only; stable and unstable regions must also be labeled by text/pattern, not color alone",
+              "projectionContrast": "axis, zone labels, selected poles and response curves must meet projection contrast in both themes",
+              "mobileContract": "root-locus, step-response and performance panels may stack but remain accessible before submit"
+            },
+            "submissionFields": [
+              {
+                "key": "sigma",
+                "label": "σ（实部）",
+                "input": "slider",
+                "min": -5,
+                "max": 2,
+                "step": 0.1,
+                "defaultValue": -1
+              },
+              {
+                "key": "omega",
+                "label": "ω（虚部）",
+                "input": "slider",
+                "min": 0,
+                "max": 5,
+                "step": 0.1,
+                "defaultValue": 2
+              },
+              {
+                "key": "pole_mode",
+                "label": "极点模式",
+                "input": "select",
+                "options": [
+                  "共轭极点",
+                  "单实极点"
+                ],
+                "defaultValue": "共轭极点"
+              },
+              {
+                "key": "observation_text",
+                "label": "行为特征",
+                "input": "text",
+                "defaultValue": "左半平面共轭极点，响应边摆边收。"
+              }
+            ],
+            "submissionDefaults": {
+              "sigma": -1,
+              "omega": 2,
+              "pole_mode": "共轭极点",
+              "observation_text": "左半平面共轭极点，响应边摆边收。"
+            }
+          },
+          "title": "极点位置与响应工作台"
         },
         {
           "id": "reading-rules",
@@ -1648,7 +2884,7 @@
         "drag-pole-panel": {
           "type": "compute_spec",
           "spec_key": "drag_pole_s_plane",
-          "description": "互动计算面板。左区：s 平面（五区着色——稳定区蓝、不稳定区红、虚轴加粗），可拖动极点 ×。右区：对应时域响应曲线实时更新。",
+          "description": "互动计算面板。左区为 s 平面五区语义区域，可拖动极点 ×；右区为对应时域响应曲线，实时更新。区域区分依赖语义标签、线型或纹理与主题 token，不把稳定/不稳定只绑定到固定颜色。",
           "default_params": {
             "sigma": -1,
             "omega": 2,
@@ -1694,7 +2930,12 @@
             }
           ],
           "reading_instruction": "默认 s=−1±2j（稳定区，振荡走廊）——边摆边收。σ 右拖近虚轴→拖尾变长；过虚轴→临界边界，再过虚轴→收敛变发散。ω 左拖到 0→振荡消失变单调；右拖大→振荡变密。停在非零纯虚极点处→等幅振荡；停在原点极点处需结合输入和重数另行判断。",
-          "submit_format": "极点位置：σ=___，ω=___；行为特征：___（≤50字）"
+          "submit_format": "极点位置：σ=___，ω=___；行为特征：___（≤50字）",
+          "fallback_ui": {
+            "loading_copy": "正在准备极点位置与响应工作台。",
+            "unavailable_copy": "极点工作台暂时无法计算，请使用复平面行为地图和典型响应对照完成观察。",
+            "error_copy": "本次参数探索未能完成计算，请保留当前坐标并改用静态对照图判断行为。"
+          }
         },
         "reading-rules": {
           "type": "plain_text",
@@ -1717,7 +2958,8 @@
         "submit_fields": [
           "sigma",
           "omega",
-          "observation_text"
+          "observation_text",
+          "pole_mode"
         ],
         "activity_cards": [
           {
@@ -1732,6 +2974,10 @@
               {
                 "key": "omega",
                 "label": "ω（虚部）"
+              },
+              {
+                "key": "pole_mode",
+                "label": "极点模式"
               },
               {
                 "key": "observation_text",
@@ -1785,7 +3031,9 @@
         "五区着色+地名标注",
         "σ/ω 滑块在图形下方",
         "响应曲线实时更新",
-        "提交含坐标+观察记录"
+        "提交含坐标+观察记录",
+        "step-10 视觉组件状态矩阵覆盖浅色、深色、移动端和投影端",
+        "共享控制工作台提交 payload 必须包含当前 sigma、omega、pole_mode、observation_text，而不是仅包含默认 gain.k"
       ],
       "evidence_sequence": [
         "five-zones",
@@ -1798,37 +3046,55 @@
         "default_visibility": "hidden",
         "release_required": true,
         "browse_required": false
+      },
+      "visual_state_contract": {
+        "theme_modes": [
+          "light",
+          "dark",
+          "projection"
+        ],
+        "responsive_modes": [
+          "desktop",
+          "tablet",
+          "mobile"
+        ],
+        "requirements": [
+          "stable/unstable/oscillatory/monotonic/boundary regions use semantic zone roles rather than fixed blue/red color wording",
+          "zone labels, axis labels, curve legend, sliders, and submit button remain legible in light, dark, mobile, and projection modes",
+          "mobile layout may stack plane, response, and performance panels but must preserve same parameter controls and submit action",
+          "fallback, loading, and error states use course-facing wording and never expose capabilityRef, spec_key, request payload, Rust, WASM, or unsupported-module text"
+        ],
+        "unavailable_state": {
+          "student_copy": "极点工作台暂时无法计算。请根据复平面五区地名和静态对照图写出当前位置的行为判断。",
+          "teacher_copy": "极点工作台未完整加载，请暂缓把本页作为参数操作证据；可先讲解五区读图规则。",
+          "evidence_policy": "fallback viewing is diagnostic; only explicit parameter.set submission with sigma, omega and observation_text becomes learning evidence"
+        }
       }
     },
     "step-11": {
       "title": "案例——三艘船，三种行为",
       "layout": {
-        "template": "case_with_simulation_and_quiz",
+        "template": "control_comparison_with_annotated_media",
         "regions": [
           {
-            "id": "header",
+            "id": "table",
             "width": "full",
             "order": 1
           },
           {
-            "id": "table",
+            "id": "compute",
             "width": "full",
             "order": 2
           },
           {
-            "id": "simulation",
+            "id": "media",
             "width": "full",
             "order": 3
           },
           {
-            "id": "analysis",
+            "id": "quiz",
             "width": "full",
             "order": 4
-          },
-          {
-            "id": "interaction",
-            "width": "half",
-            "order": 5
           }
         ]
       },
@@ -1845,31 +3111,391 @@
         },
         {
           "id": "ship-simulation",
-          "region": "simulation",
+          "region": "compute",
           "kind": "compute.panel",
           "must_be_visible": true,
           "payload": {
-            "capabilityRef": "interactive-figure",
-            "panel_id": "three-ships-case",
-            "legacyKind": "compute-panel",
-            "presentation": "single",
-            "block_key": "ship-simulation",
-            "spec_key": "three_ships_case"
-          }
+            "capabilityRef": "control-linked-comparison",
+            "visiblePanelIds": [
+              "step-response",
+              "root-locus",
+              "performance"
+            ],
+            "responseContractId": "ship-comparison-submit",
+            "releaseState": "released",
+            "fallbackState": "supported",
+            "title": "三艘船响应对比工作台",
+            "request": {
+              "runtimeMode": "analysis",
+              "caseId": "unit-1-2-three-ships",
+              "plant": {
+                "numerator": [
+                  1
+                ],
+                "denominator": [
+                  1,
+                  3,
+                  5
+                ],
+                "coefficientOrder": "descending",
+                "label": "G(s)"
+              },
+              "structures": [
+                {
+                  "kind": "gain",
+                  "enabled": true,
+                  "params": {
+                    "k": 1
+                  },
+                  "label": "K"
+                }
+              ],
+              "outputs": [
+                "step_response",
+                "bode",
+                "root_locus",
+                "nyquist"
+              ],
+              "responseType": "step",
+              "timeRange": {
+                "start": 0,
+                "end": 12,
+                "samples": 96
+              },
+              "frequencyRange": {
+                "min": 0.1,
+                "max": 20,
+                "samples": 96
+              },
+              "rootLocus": {
+                "minGain": 0,
+                "maxGain": 10,
+                "samples": 96,
+                "currentGain": 1
+              }
+            },
+            "fallbackResult": {
+              "metrics": {
+                "overshootPct": 12,
+                "riseTimeSec": 1.2,
+                "settlingTimeSec": 5.4,
+                "peakTimeSec": 2.0,
+                "finalValue": 1,
+                "phaseMarginDeg": 48,
+                "gainMarginDb": 10,
+                "gainCrossoverRadPerSec": 1.4,
+                "phaseCrossoverRadPerSec": 3.2,
+                "bandwidthRadPerSec": 2.8
+              },
+              "stepResponse": {
+                "points": [
+                  {
+                    "x": 0,
+                    "y": 0
+                  },
+                  {
+                    "x": 2,
+                    "y": 0.74
+                  },
+                  {
+                    "x": 4,
+                    "y": 1.12
+                  },
+                  {
+                    "x": 8,
+                    "y": 0.98
+                  },
+                  {
+                    "x": 12,
+                    "y": 1.0
+                  }
+                ]
+              },
+              "magnitude": {
+                "points": [
+                  {
+                    "x": 0.1,
+                    "y": -6
+                  },
+                  {
+                    "x": 1,
+                    "y": -1
+                  },
+                  {
+                    "x": 10,
+                    "y": -18
+                  }
+                ]
+              },
+              "phase": {
+                "points": [
+                  {
+                    "x": 0.1,
+                    "y": -8
+                  },
+                  {
+                    "x": 1,
+                    "y": -72
+                  },
+                  {
+                    "x": 10,
+                    "y": -160
+                  }
+                ]
+              },
+              "nyquist": {
+                "points": [
+                  {
+                    "re": 0.9,
+                    "im": -0.1
+                  },
+                  {
+                    "re": 0.2,
+                    "im": -0.6
+                  },
+                  {
+                    "re": -0.15,
+                    "im": -0.2
+                  }
+                ]
+              },
+              "rootLocus": {
+                "branches": [
+                  [
+                    {
+                      "re": -1.5,
+                      "im": 2.2
+                    },
+                    {
+                      "re": -1.5,
+                      "im": -2.2
+                    },
+                    {
+                      "re": -0.8,
+                      "im": 0
+                    },
+                    {
+                      "re": 0.3,
+                      "im": 1.4
+                    }
+                  ]
+                ],
+                "currentPoles": [
+                  {
+                    "re": -1.5,
+                    "im": 2.2
+                  },
+                  {
+                    "re": -1.5,
+                    "im": -2.2
+                  }
+                ],
+                "openLoopPoles": [
+                  {
+                    "re": -1.5,
+                    "im": 2.2
+                  },
+                  {
+                    "re": -1.5,
+                    "im": -2.2
+                  }
+                ],
+                "openLoopZeros": []
+              },
+              "isFallback": true
+            },
+            "studentTask": "比较三组极点对应的航向响应。",
+            "panel_id": "three-ships-control-comparison",
+            "spec_key": "control_linked_comparison",
+            "fallbackUi": {
+              "loadingCopy": "正在准备三艘船响应对比工作台。",
+              "unavailableCopy": "三艘船对比工作台暂时无法计算，请使用极点表和响应证据热点完成判断。",
+              "errorCopy": "本次对比计算未能完成，请改用极点表和热点图判断模型 B 的主导极点。",
+              "studentActionCopy": "提交证据判断",
+              "teacherActionCopy": "切换到热点讲解"
+            },
+            "visualAccessibility": {
+              "seriesEncoding": "semantic-series-plus-label-line-style-marker",
+              "colorContract": "theme-token-only; A/B/C must be distinguishable without relying on blue/green/red alone",
+              "projectionContrast": "series labels, selected curve, hotspots and quiz controls remain readable in projection mode",
+              "mobileContract": "comparison panels may stack, but hotspot selection and quiz remain reachable before submit"
+            },
+            "submissionFields": [
+              {
+                "key": "selected_ship",
+                "label": "对比对象",
+                "input": "select",
+                "options": [
+                  "全部",
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "defaultValue": "全部"
+              },
+              {
+                "key": "time_scale",
+                "label": "时间轴倍率",
+                "input": "slider",
+                "min": 1,
+                "max": 5,
+                "step": 1,
+                "defaultValue": 1
+              },
+              {
+                "key": "simulation_interaction_count",
+                "label": "已完成对比操作次数",
+                "input": "number",
+                "min": 1,
+                "max": 20,
+                "step": 1,
+                "defaultValue": 1
+              }
+            ],
+            "submissionDefaults": {
+              "selected_ship": "全部",
+              "time_scale": 1,
+              "simulation_interaction_count": 1
+            }
+          },
+          "title": "三艘船响应对比工作台"
         },
         {
-          "id": "ship-analysis",
-          "region": "analysis",
-          "kind": "content.cardSet",
+          "id": "ship-response-hotspots",
+          "region": "media",
+          "kind": "visual.annotatedMedia",
           "must_be_visible": true,
+          "title": "三艘船响应证据热点",
           "payload": {
-            "block_key": "ship-analysis",
-            "title": "逐个读图"
+            "mediaId": "three-ships-response-evidence",
+            "title": "三艘船响应证据热点",
+            "media": {
+              "src": "1-2-fig-11-poles-responses.png",
+              "alt": "三艘船航向响应对比"
+            },
+            "activeRevealState": "all",
+            "annotations": [
+              {
+                "id": "ship-a-overshoot",
+                "region": {
+                  "x": 0.12,
+                  "y": 0.18,
+                  "width": 0.2,
+                  "height": 0.22
+                },
+                "label": "A 的超调与衰减",
+                "body": "曲线越过目标后逐步回落，说明左半平面共轭极点带来边摆边收。",
+                "evidenceRole": "result",
+                "revealStepIds": [
+                  "ship-a"
+                ],
+                "required": true
+              },
+              {
+                "id": "ship-b-tail",
+                "region": {
+                  "x": 0.38,
+                  "y": 0.48,
+                  "width": 0.22,
+                  "height": 0.2
+                },
+                "label": "B 的慢尾部",
+                "body": "靠近虚轴的 -0.8 极点主导慢衰减。",
+                "evidenceRole": "parameter",
+                "revealStepIds": [
+                  "ship-b"
+                ],
+                "required": true
+              },
+              {
+                "id": "ship-c-growth",
+                "region": {
+                  "x": 0.67,
+                  "y": 0.2,
+                  "width": 0.22,
+                  "height": 0.26
+                },
+                "label": "C 的发散包络",
+                "body": "实部为正的共轭极点使幅度随时间放大。",
+                "evidenceRole": "risk",
+                "revealStepIds": [
+                  "ship-c"
+                ],
+                "required": true
+              },
+              {
+                "id": "ship-b-near-axis",
+                "region": {
+                  "x": 0.43,
+                  "y": 0.7,
+                  "width": 0.18,
+                  "height": 0.18
+                },
+                "label": "B 的近虚轴极点",
+                "body": "-0.8 比 -3.0 更接近虚轴，因此决定主要拖尾。",
+                "evidenceRole": "parameter",
+                "revealStepIds": [
+                  "ship-b"
+                ],
+                "required": true
+              }
+            ],
+            "interactions": {
+              "requireEvidenceSelection": true,
+              "selectableAnnotations": [
+                "ship-a-overshoot",
+                "ship-b-tail",
+                "ship-c-growth",
+                "ship-b-near-axis"
+              ]
+            },
+            "initialSelectedAnnotationIds": [],
+            "selectableAnnotations": [
+              "ship-a-overshoot",
+              "ship-b-tail",
+              "ship-c-growth",
+              "ship-b-near-axis"
+            ],
+            "requireEvidenceSelection": true,
+            "revealPlan": [
+              {
+                "id": "ship-a",
+                "label": "A 边摆边收证据",
+                "annotationIds": [
+                  "ship-a-overshoot"
+                ]
+              },
+              {
+                "id": "ship-b",
+                "label": "B 主导极点证据",
+                "annotationIds": [
+                  "ship-b-tail",
+                  "ship-b-near-axis"
+                ]
+              },
+              {
+                "id": "ship-c",
+                "label": "C 发散证据",
+                "annotationIds": [
+                  "ship-c-growth"
+                ]
+              }
+            ],
+            "fallbackUi": {
+              "loadingCopy": "正在准备响应证据热点。",
+              "unavailableCopy": "热点图暂时无法加载，请依据极点表判断 B 的主导极点。",
+              "errorCopy": "热点选择暂不可用，请使用文字作答说明证据。"
+            },
+            "accessibility": {
+              "focusableHotspots": true,
+              "projectionContrast": "hotspot rings and labels remain visible on projected screens",
+              "mobileContract": "hotspot callouts may open as bottom sheets but must keep the selected evidence visible"
+            }
           }
         },
         {
           "id": "case-quiz",
-          "region": "interaction",
+          "region": "quiz",
           "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
@@ -1909,7 +3535,7 @@
         "ship-simulation": {
           "type": "compute_spec",
           "spec_key": "three_ships_case",
-          "description": "三艘船航向响应仿真。控件：A/B/C/全部切换按钮、时间轴缩放、单船高亮。默认三线并排——A 蓝（边摆边收）、B 绿（单调收敛）、C 红（发散）。",
+          "description": "三艘船航向响应对比工作台。控件：A/B/C/全部切换按钮、时间轴缩放、单船高亮。A/B/C 使用语义系列标签、线型或标记区分，颜色只来自主题 token，不能依赖固定蓝/绿/红。",
           "controls": [
             {
               "type": "toggle_group",
@@ -1931,7 +3557,12 @@
               "label": "时间轴缩放"
             }
           ],
-          "reading_instruction": "先看全部三条——同样指令，三种响应。看 A——先冲后收。看 B——无摆动，但未必更快。看 C——失控。"
+          "reading_instruction": "先看全部三条——同样指令，三种响应。看 A——先冲后收。看 B——无摆动，但未必更快。看 C——失控。",
+          "fallback_ui": {
+            "loading_copy": "正在准备三艘船响应对比工作台。",
+            "unavailable_copy": "三艘船对比工作台暂时无法计算，请使用极点表和响应证据热点完成判断。",
+            "error_copy": "本次对比计算未能完成，请改用极点表和热点图判断模型 B 的主导极点。"
+          }
         },
         "ship-analysis": {
           "type": "bullet_list",
@@ -1971,29 +3602,40 @@
             "reference_answer": "B",
             "submit_scope": "per_card"
           }
+        ],
+        "submit_fields": [
+          "selected_ship",
+          "time_scale",
+          "simulation_interaction_count"
         ]
       },
       "teacher_controls": {
         "release_activity": "teacher_toggle",
         "open_browse": "page_load_open",
         "teacher_step_reveal": "not_applicable",
-        "reveal_reference_answer": "teacher_toggle"
+        "reveal_reference_answer": "teacher_toggle",
+        "visual_layer_reveal": "teacher_direct"
       },
       "telemetry_spec": {
         "summary_fields": [
           "simulationInteractions",
+          "selectedShip",
+          "timeScale",
           "selectedOption",
+          "selectedHotspots",
           "resultState",
           "timeOnStep"
         ],
         "misconception_tags": [
           "dominant_pole_misconception"
-        ]
+        ],
+        "result_policy": "submission_required"
       },
       "teacher_insight_spec": {
         "widgets": [
-          "option_distribution",
-          "simulation_interaction_count"
+          "hotspot_miss_summary",
+          "choice_distribution",
+          "response_count"
         ],
         "aggregation": "step_level"
       },
@@ -2016,86 +3658,324 @@
         "对比表完整",
         "仿真可切换 A/B/C",
         "逐个分析引用具体 σ、ω",
-        "客观题验证主导衰减直觉"
+        "客观题验证主导衰减直觉",
+        "step-11 视觉组件状态矩阵覆盖浅色、深色、移动端和投影端",
+        "共享控制工作台提交 payload 必须区分 selected_ship、time_scale、simulation_interaction_count；热点证据与单选答案分别统计"
       ],
       "evidence_sequence": [
         "three-ships-table",
         "ship-simulation",
-        "ship-analysis"
+        "ship-response-hotspots",
+        "case-quiz"
       ],
       "student_access": {
         "default_visibility": "hidden",
         "release_required": true,
         "browse_required": false
+      },
+      "visual_state_contract": {
+        "theme_modes": [
+          "light",
+          "dark",
+          "projection"
+        ],
+        "responsive_modes": [
+          "desktop",
+          "tablet",
+          "mobile"
+        ],
+        "requirements": [
+          "ship A/B/C curves use semantic series roles with labels, line style, and markers; color alone cannot distinguish models",
+          "hotspots remain visible, focusable, and selectable after teacher release in light, dark, mobile, and projection modes",
+          "shared comparison workbench fallback must preserve the comparison task with course-facing copy and must not expose capabilityRef, spec_key, request payload, Rust, WASM, or unsupported-module text",
+          "teacher diagnostics must distinguish missed required hotspots, wrong dominant-pole reasoning, and single-choice answer distribution"
+        ],
+        "unavailable_state": {
+          "student_copy": "三艘船对比工作台暂时无法计算。请依据极点表和响应证据热点完成主导极点判断。",
+          "teacher_copy": "三艘船对比工作台未完整加载，请使用极点表和热点图讲解；不要把工作台浏览计为掌握证据。",
+          "evidence_policy": "hotspot selections and single-choice submissions can become task evidence after release; visual browsing/fallback viewing remains diagnostic"
+        }
+      },
+      "release_contract": {
+        "before_release": {
+          "student_visible_state": "table_and_visual_preview",
+          "hotspot_state": "preview_only",
+          "quiz_state": "locked",
+          "student_copy": "先观察三艘船极点与响应差异；教师释放后再选择热点并提交判断。"
+        },
+        "after_release": {
+          "student_visible_state": "workbench_hotspots_and_quiz",
+          "hotspot_state": "selectable",
+          "quiz_state": "enabled",
+          "required_evidence": [
+            "ship-b-tail",
+            "ship-b-near-axis",
+            "case-quiz-1"
+          ]
+        },
+        "teacher_statistics": [
+          "selectedOption",
+          "selectedHotspots",
+          "missedRequiredHotspots",
+          "dominantPoleMisconception"
+        ],
+        "evidence_policy": "hotspot selection and single-choice answer belong to the released visual task; passive panel viewing is diagnostic only"
       }
     },
     "step-12": {
       "title": "例题——从特征方程到行为判断",
       "layout": {
-        "template": "worked_example_reveal_with_quiz",
+        "template": "worked_example_derivation_stage",
         "regions": [
           {
-            "id": "header",
+            "id": "main",
             "width": "full",
             "order": 1
           },
           {
-            "id": "problem",
+            "id": "support",
             "width": "full",
             "order": 2
           },
           {
-            "id": "reveal",
+            "id": "quiz",
             "width": "full",
             "order": 3
-          },
-          {
-            "id": "interaction",
-            "width": "half",
-            "order": 4
           }
         ]
       },
       "modules": [
         {
-          "id": "example-problem",
-          "region": "problem",
-          "kind": "content.rich",
+          "id": "example-derivation-stage",
+          "region": "main",
+          "kind": "visual.derivationStage",
           "must_be_visible": true,
+          "title": "从特征方程到行为判断",
           "payload": {
-            "block_key": "example-problem",
-            "title": "例题 1-2-1"
-          }
-        },
-        {
-          "id": "example-reveal",
-          "region": "reveal",
-          "kind": "content.reveal",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "example-reveal",
-            "title": "求解过程"
-          }
-        },
-        {
-          "id": "layered-practice",
-          "region": "reveal",
-          "kind": "content.cardSet",
-          "must_be_visible": true,
-          "payload": {
-            "block_key": "layered-practice",
-            "title": "分层练习"
+            "stageId": "characteristic-equation-worked-example",
+            "aspectRatio": "16:9",
+            "releaseState": "released",
+            "activeRevealStepId": "problem",
+            "formulas": [
+              {
+                "id": "problem-equation",
+                "title": "题面",
+                "latex": "\\ddot{y}+2\\dot{y}+5y=5r",
+                "region": {
+                  "x": 0.05,
+                  "y": 0.1,
+                  "width": 0.32,
+                  "height": 0.16
+                },
+                "blocks": [
+                  {
+                    "id": "problem-model",
+                    "latex": "\\ddot{y}+2\\dot{y}+5y=5r",
+                    "title": "系统模型",
+                    "colorRole": "known"
+                  }
+                ]
+              },
+              {
+                "id": "characteristic-equation",
+                "title": "特征方程",
+                "latex": "s^2+2s+5=0",
+                "region": {
+                  "x": 0.45,
+                  "y": 0.1,
+                  "width": 0.28,
+                  "height": 0.13
+                },
+                "blocks": [
+                  {
+                    "id": "char-eq",
+                    "latex": "s^2+2s+5=0",
+                    "title": "特征方程",
+                    "colorRole": "transform"
+                  }
+                ]
+              },
+              {
+                "id": "root-solving",
+                "title": "求根",
+                "latex": "\\Delta=4-20=-16,\\quad s_{1,2}=\\frac{-2\\pm4j}{2}=-1\\pm2j",
+                "region": {
+                  "x": 0.45,
+                  "y": 0.32,
+                  "width": 0.42,
+                  "height": 0.18
+                },
+                "blocks": [
+                  {
+                    "id": "delta",
+                    "latex": "\\Delta=4-20=-16",
+                    "title": "判别式",
+                    "colorRole": "transform"
+                  },
+                  {
+                    "id": "root-formula",
+                    "latex": "s_{1,2}=\\frac{-2\\pm4j}{2}",
+                    "title": "根公式",
+                    "colorRole": "target"
+                  },
+                  {
+                    "id": "final-poles",
+                    "latex": "s_{1,2}=-1\\pm2j",
+                    "title": "最终极点",
+                    "colorRole": "result"
+                  }
+                ]
+              }
+            ],
+            "textBlocks": [
+              {
+                "id": "s-plane-reading",
+                "title": "复平面读图",
+                "body": "σ=-1 在左半平面，说明包络衰减；ω=±2 不为零，说明响应会摆动。",
+                "region": {
+                  "x": 0.08,
+                  "y": 0.52,
+                  "width": 0.34,
+                  "height": 0.2
+                }
+              },
+              {
+                "id": "behavior-conclusion",
+                "title": "行为结论",
+                "body": "系统边摆动边收敛。位置先越过目标，再边摆边收回。",
+                "region": {
+                  "x": 0.55,
+                  "y": 0.62,
+                  "width": 0.34,
+                  "height": 0.18
+                }
+              },
+              {
+                "id": "layered-practice",
+                "title": "分层练习",
+                "body": "基础辨认、反向读图、迁移应用分别检查极点区域与行为语言的互译。",
+                "region": {
+                  "x": 0.12,
+                  "y": 0.78,
+                  "width": 0.5,
+                  "height": 0.12
+                }
+              }
+            ],
+            "connectors": [
+              {
+                "id": "problem-to-char",
+                "kind": "arrow",
+                "from": "problem-model",
+                "to": "char-eq",
+                "revealStepIds": [
+                  "characteristic"
+                ]
+              },
+              {
+                "id": "char-to-root",
+                "kind": "therefore",
+                "from": "char-eq",
+                "to": "delta",
+                "revealStepIds": [
+                  "solve-roots"
+                ]
+              },
+              {
+                "id": "root-to-reading",
+                "kind": "reference",
+                "from": "final-poles",
+                "to": "s-plane-reading",
+                "revealStepIds": [
+                  "s-plane"
+                ]
+              },
+              {
+                "id": "reading-to-behavior",
+                "kind": "therefore",
+                "from": "s-plane-reading",
+                "to": "behavior-conclusion",
+                "revealStepIds": [
+                  "behavior"
+                ]
+              }
+            ],
+            "revealSteps": [
+              {
+                "id": "problem",
+                "title": "题面常显",
+                "targetIds": [
+                  "problem-equation",
+                  "problem-model"
+                ],
+                "reasoning": "题面不受显影隐藏。"
+              },
+              {
+                "id": "characteristic",
+                "title": "写出特征方程",
+                "targetIds": [
+                  "characteristic-equation",
+                  "char-eq"
+                ],
+                "reasoning": "把齐次部分写成特征方程。"
+              },
+              {
+                "id": "solve-roots",
+                "title": "解出极点",
+                "targetIds": [
+                  "root-solving",
+                  "delta",
+                  "root-formula",
+                  "final-poles"
+                ],
+                "reasoning": "判别式和根公式分块显影。"
+              },
+              {
+                "id": "s-plane",
+                "title": "复平面读图",
+                "targetIds": [
+                  "s-plane-reading"
+                ],
+                "reasoning": "σ 判断收放，ω 判断摆动。"
+              },
+              {
+                "id": "behavior",
+                "title": "行为结论",
+                "targetIds": [
+                  "behavior-conclusion",
+                  "layered-practice"
+                ],
+                "reasoning": "把极点位置翻译成行为语言。"
+              }
+            ],
+            "teacherControls": {
+              "enabled": [
+                "next",
+                "previous",
+                "jump",
+                "highlight",
+                "answerReveal",
+                "reset"
+              ]
+            },
+            "answerVisible": false,
+            "cognitiveLoad": {
+              "maxNewFormulaBlocksPerStep": 3,
+              "maxSimultaneousColorRoles": 3,
+              "longFormulaSplitStrategy": "长公式拆成判别式、根公式、最终极点。",
+              "teachingLoadException": "teacher-paced"
+            }
           }
         },
         {
           "id": "example-quiz",
-          "region": "interaction",
+          "region": "quiz",
           "kind": "activity.panel",
           "must_be_visible": true,
           "payload": {
             "interaction_kind": "single_choice",
             "response_kind": "choice.single",
-            "title": "极点读图判断"
+            "title": "极点行为判断"
           }
         }
       ],
@@ -2179,7 +4059,8 @@
         "release_activity": "teacher_toggle",
         "open_browse": "teacher_toggle",
         "teacher_step_reveal": "teacher_toggle",
-        "reveal_reference_answer": "teacher_toggle"
+        "reveal_reference_answer": "teacher_toggle",
+        "visual_layer_reveal": "teacher_direct"
       },
       "telemetry_spec": {
         "summary_fields": [
@@ -2218,17 +4099,47 @@
       "acceptance_checks": [
         "题面完整常显",
         "显影链 4 层含完整公式",
-        "客观题验证反向读图"
+        "客观题验证反向读图",
+        "step-12 视觉组件状态矩阵覆盖浅色、深色、移动端和投影端"
       ],
       "evidence_sequence": [
-        "example-problem",
-        "example-reveal",
-        "layered-practice"
+        "example-derivation-stage",
+        "example-quiz"
       ],
       "student_access": {
         "default_visibility": "hidden",
         "release_required": true,
         "browse_required": true
+      },
+      "visual_state_contract": {
+        "theme_modes": [
+          "light",
+          "dark",
+          "projection"
+        ],
+        "responsive_modes": [
+          "desktop",
+          "tablet",
+          "mobile"
+        ],
+        "requirements": [
+          "all visible labels use teaching language only; no module id, payload key, file name, unsupported-module text, or fallback engineering wording may be visible",
+          "semantic colors must resolve through platform design tokens and remain distinguishable in light, dark, and projection modes",
+          "mobile layout may stack or scale the visual stage but must not degrade into plain card lists when the module kind is visual.*",
+          "teacher reveal controls must target the visual layer, derivation block, path, branch, or hotspot without covering the main visual object",
+          "path comparison must remain spatial: mechanism path and data path appear as two coordinated routes from the same real object",
+          "derivation blocks preserve LaTeX source, formula chunk ids, semantic roles, and non-linear reveal targets",
+          "block diagram nodes, summing junctions, ports, and feedback edges remain visually distinct on all themes",
+          "forward paths, loops, non-touching loops, and Mason terms remain visually cross-referenced",
+          "annotated media hotspots remain keyboard/focus reachable and visible after teacher release",
+          "long formulas reveal by semantic chunk and color roles without clipping in mobile width",
+          "summary map preserves the five conceptual landmarks as a spatial map, not a blank analytics placeholder"
+        ],
+        "unavailable_state": {
+          "student_copy": "当前视觉组件暂时无法加载，请先依据页面文字证据完成判断；教师端会保留本页为未完整展示。",
+          "teacher_copy": "视觉组件未完整加载，请暂停释放作答或切换到文字证据讲解；不要把该状态计为学生掌握证据。",
+          "evidence_policy": "unavailable visual-view events are diagnostic only and must not be materialized as mastery evidence"
+        }
       }
     },
     "step-13": {
@@ -2368,74 +4279,188 @@
     "step-14": {
       "title": "总结——建模专题的局部地图",
       "layout": {
-        "template": "summary_dashboard",
+        "template": "summary_visual_stage",
         "regions": [
           {
-            "id": "header",
+            "id": "media",
             "width": "full",
             "order": 1
           },
           {
-            "id": "info-image",
+            "id": "main",
             "width": "full",
             "order": 2
           },
           {
-            "id": "landmarks",
+            "id": "support",
             "width": "full",
             "order": 3
           },
           {
-            "id": "limitations",
+            "id": "analytics",
             "width": "full",
             "order": 4
-          },
-          {
-            "id": "extend-think",
-            "width": "full",
-            "order": 5
           }
         ]
       },
       "modules": [
         {
           "id": "info-graphic",
-          "region": "info-image",
+          "region": "media",
           "kind": "content.figure",
           "must_be_visible": true,
           "payload": {
             "block_key": "info-graphic",
-            "title": "建模专题局部地图"
+            "title": "建模专题局部地图信息图",
+            "display_width": "medium"
           }
         },
         {
-          "id": "five-landmarks",
-          "region": "landmarks",
-          "kind": "content.cardSet",
+          "id": "modeling-summary-stage",
+          "region": "main",
+          "kind": "visual.stage",
           "must_be_visible": true,
+          "title": "建模专题局部地图",
           "payload": {
-            "block_key": "five-landmarks",
-            "title": "建模专题——五个地标"
+            "stageId": "modeling-summary-map",
+            "aspectRatio": "16:9",
+            "releaseState": "released",
+            "activeRevealState": "all",
+            "revealStates": [
+              "object",
+              "differential-equation",
+              "transfer-function",
+              "structure-expression",
+              "poles-plane",
+              "behavior"
+            ],
+            "layers": [
+              {
+                "id": "object",
+                "kind": "media",
+                "title": "真实对象",
+                "body": "工程对象具体不同，行为可进入同一语言。",
+                "region": {
+                  "x": 0.04,
+                  "y": 0.38,
+                  "width": 0.15,
+                  "height": 0.18
+                },
+                "zIndex": 1,
+                "revealState": "object"
+              },
+              {
+                "id": "differential-equation",
+                "kind": "formula",
+                "title": "微分方程",
+                "body": "建模起点，直接翻译物理定律，但不便串联、比较和频域分析。",
+                "region": {
+                  "x": 0.21,
+                  "y": 0.25,
+                  "width": 0.15,
+                  "height": 0.24
+                },
+                "zIndex": 2,
+                "revealState": "differential-equation"
+              },
+              {
+                "id": "transfer-function",
+                "kind": "formula",
+                "title": "传递函数",
+                "body": "拉氏变换把导数变乘法，G(s) 成为紧凑代数对象。",
+                "region": {
+                  "x": 0.39,
+                  "y": 0.25,
+                  "width": 0.15,
+                  "height": 0.24
+                },
+                "zIndex": 3,
+                "revealState": "transfer-function"
+              },
+              {
+                "id": "structure-expression",
+                "kind": "diagram",
+                "title": "方框图 / 信号流图",
+                "body": "方框图表达环节结构，信号流图表达变量关系。",
+                "region": {
+                  "x": 0.57,
+                  "y": 0.25,
+                  "width": 0.16,
+                  "height": 0.24
+                },
+                "zIndex": 4,
+                "revealState": "structure-expression"
+              },
+              {
+                "id": "poles-plane",
+                "kind": "diagram",
+                "title": "极点与复平面",
+                "body": "分母根进入 s 平面，横轴管收放，纵轴管摆动。",
+                "region": {
+                  "x": 0.75,
+                  "y": 0.25,
+                  "width": 0.16,
+                  "height": 0.24
+                },
+                "zIndex": 5,
+                "revealState": "poles-plane"
+              },
+              {
+                "id": "behavior",
+                "kind": "annotation",
+                "title": "行为判断",
+                "body": "收敛、发散、摆动、单调和快慢可从同一张地图读取。",
+                "region": {
+                  "x": 0.42,
+                  "y": 0.66,
+                  "width": 0.2,
+                  "height": 0.18
+                },
+                "zIndex": 6,
+                "revealState": "behavior"
+              }
+            ]
           }
         },
         {
           "id": "limitations-text",
-          "region": "limitations",
+          "region": "support",
           "kind": "content.rich",
           "must_be_visible": true,
           "payload": {
             "block_key": "limitations-text",
-            "title": "本讲的边界"
+            "title": "本讲边界"
           }
         },
         {
           "id": "extend-think-text",
-          "region": "extend-think",
+          "region": "support",
           "kind": "content.rich",
           "must_be_visible": true,
           "payload": {
             "block_key": "extend-think-text",
             "title": "拓展思考"
+          }
+        },
+        {
+          "id": "lesson-stat-summary",
+          "region": "analytics",
+          "kind": "analytics.summary",
+          "must_be_visible": true,
+          "payload": {
+            "title": "课堂表现统计",
+            "metrics": [
+              "submission_count",
+              "objective_accuracy",
+              "pre_post_delta",
+              "visual_component_coverage"
+            ],
+            "items": [
+              "提交次数",
+              "客观题正确率",
+              "前测/后测对比",
+              "视觉组件提交覆盖"
+            ]
           }
         }
       ],
@@ -2474,7 +4499,8 @@
         "release_activity": "not_applicable",
         "open_browse": "page_load_open",
         "teacher_step_reveal": "not_applicable",
-        "reveal_reference_answer": "not_applicable"
+        "reveal_reference_answer": "not_applicable",
+        "visual_layer_reveal": "teacher_direct"
       },
       "telemetry_spec": {
         "summary_fields": [
@@ -2485,7 +4511,9 @@
       },
       "teacher_insight_spec": {
         "widgets": [
-          "view_count"
+          "class_accuracy",
+          "visual_component_submission_coverage",
+          "hotspot_misconception_summary"
         ],
         "aggregation": "lesson_level"
       },
@@ -2507,18 +4535,50 @@
         "信息图在顶部",
         "五地标回顾完整",
         "局限性讨论存在",
-        "拓展思考存在"
+        "拓展思考存在",
+        "step-14 视觉组件状态矩阵覆盖浅色、深色、移动端和投影端"
       ],
       "evidence_sequence": [
         "info-graphic",
-        "five-landmarks",
+        "modeling-summary-stage",
         "limitations-text",
-        "extend-think-text"
+        "extend-think-text",
+        "lesson-stat-summary"
       ],
       "student_access": {
         "default_visibility": "visible",
         "release_required": false,
         "browse_required": false
+      },
+      "visual_state_contract": {
+        "theme_modes": [
+          "light",
+          "dark",
+          "projection"
+        ],
+        "responsive_modes": [
+          "desktop",
+          "tablet",
+          "mobile"
+        ],
+        "requirements": [
+          "all visible labels use teaching language only; no module id, payload key, file name, unsupported-module text, or fallback engineering wording may be visible",
+          "semantic colors must resolve through platform design tokens and remain distinguishable in light, dark, and projection modes",
+          "mobile layout may stack or scale the visual stage but must not degrade into plain card lists when the module kind is visual.*",
+          "teacher reveal controls must target the visual layer, derivation block, path, branch, or hotspot without covering the main visual object",
+          "path comparison must remain spatial: mechanism path and data path appear as two coordinated routes from the same real object",
+          "derivation blocks preserve LaTeX source, formula chunk ids, semantic roles, and non-linear reveal targets",
+          "block diagram nodes, summing junctions, ports, and feedback edges remain visually distinct on all themes",
+          "forward paths, loops, non-touching loops, and Mason terms remain visually cross-referenced",
+          "annotated media hotspots remain keyboard/focus reachable and visible after teacher release",
+          "long formulas reveal by semantic chunk and color roles without clipping in mobile width",
+          "summary map preserves the five conceptual landmarks as a spatial map, not a blank analytics placeholder"
+        ],
+        "unavailable_state": {
+          "student_copy": "当前视觉组件暂时无法加载，请先依据页面文字证据完成判断；教师端会保留本页为未完整展示。",
+          "teacher_copy": "视觉组件未完整加载，请暂停释放作答或切换到文字证据讲解；不要把该状态计为学生掌握证据。",
+          "evidence_policy": "unavailable visual-view events are diagnostic only and must not be materialized as mastery evidence"
+        }
       }
     }
   }

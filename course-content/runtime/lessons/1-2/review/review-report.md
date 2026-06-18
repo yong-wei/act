@@ -16,7 +16,7 @@
 - 已覆盖讲义中的核心公式与静态承载内容。
 - 已检测到 `1-2` 的 V2 互动契约，步骤字段完整。
 - 已检测到 `1-2` 的本地实现契约与作者态互动契约一致。
-- manifest audit pass: 14 steps, 46 modules, 0 issues
+- manifest audit pass: 14 steps, 43 modules, 0 issues
 - 互动设计接受文件已通过校验。
 - 互动实现接受文件已通过校验。
 

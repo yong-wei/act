@@ -1,0 +1,53 @@
+{
+  "status": "pass",
+  "baseUrl": "http://localhost:3001",
+  "checkedAt": "2026-06-18T09:53:53.868Z",
+  "student": {
+    "steps": [
+      "step-04",
+      "step-05",
+      "step-07",
+      "step-08",
+      "step-09",
+      "step-10",
+      "step-11",
+      "step-12",
+      "step-14"
+    ],
+    "screenshots": {
+      "step04": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/student-step-04-visual-stage.png",
+      "step09": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/student-step-09-static-surface-3d.png",
+      "step11": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/student-step-11-control-and-hotspots.png"
+    }
+  },
+  "teacher": {
+    "steps": [
+      "step-04",
+      "step-07",
+      "step-09",
+      "step-10",
+      "step-11",
+      "step-12"
+    ],
+    "screenshots": {
+      "step09": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/teacher-step-09-static-surface-3d.png",
+      "step10": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/teacher-step-10-control-workbench.png"
+    }
+  },
+  "logs": [
+    {
+      "label": "student-demo",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": []
+    },
+    {
+      "label": "teacher-demo",
+      "consoleErrors": [],
+      "pageErrors": [],
+      "failedRequests": []
+    }
+  ],
+  "blockingLogIssues": [],
+  "benignLogIssues": []
+}

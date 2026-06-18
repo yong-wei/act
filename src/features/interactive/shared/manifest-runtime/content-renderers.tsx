@@ -25,6 +25,16 @@ type ManifestComputePanelSubmission = {
   submittedAt: number;
   answers: Record<string, string>;
 };
+type ControlWorkbenchSubmissionField = {
+  key: string;
+  label: string;
+  input: 'text' | 'number' | 'slider' | 'select' | 'toggle';
+  min?: number;
+  max?: number;
+  step?: number;
+  options?: string[];
+  defaultValue?: string | number | boolean;
+};
 type TableCell = string | { kind: 'math'; value: string };
 type NativeTableData = { columns: string[]; rows: TableCell[][] };
 type RevealItem = { body: string; formula?: string; title?: string };
@@ -1843,6 +1853,10 @@ function SharedControlWorkbenchComputePanel({
   const request = controlAnalysisRequestFromPayload(module.payload);
   const fallbackResult = controlAnalysisResultFromPayload(module.payload);
   const layout = controlWorkbenchLayoutFromPayload(module.payload);
+  const submissionFields = controlWorkbenchSubmissionFieldsFromPayload(module.payload);
+  const [submissionValues, setSubmissionValues] = useState<Record<string, string | number | boolean>>(() =>
+    initialControlWorkbenchSubmissionValues(module.payload, request),
+  );
   const content = summaryContent(step, module);
   const bullets = [
     visiblePanelIds.length ? '课程已声明本页需要的分析视图。' : '分析视图由课程配置选择。',
@@ -1853,24 +1867,14 @@ function SharedControlWorkbenchComputePanel({
   const submitCurrent = () => {
     if (!onPanelSubmit || !capabilityRef) return;
     const submittedAt = Date.now();
-    const eventDraft = buildControlWorkbenchClientEvidenceDraft({
-      eventType: 'lesson_submit',
-      clientEventId: `${step.id}:${module.id}:${submittedAt}`,
-      attemptKey: `${step.id}:response:${submittedAt}`,
-      lessonKey: manifest.lessonId,
-      stepId: step.id,
-      moduleId: module.id,
-      componentId: module.id,
-      actorRole: 'student',
-      clientEventAt: new Date(submittedAt).toISOString(),
-      capabilityId: capabilityRef,
-      visiblePanelIds,
-      parameterSnapshot: parameterSnapshotFromRequest(request),
-      selectedDesignState: { releaseState, fallbackState },
-      answerPayload: { responseContractId: responseContractId ?? 'parameter.set' },
-      releaseState: releaseState === 'released' || releaseState === 'revealed' ? releaseState : 'released',
-      fallbackState: fallbackState === 'fallback' || fallbackState === 'unsupported' ? fallbackState : 'supported',
+    const eventDraft = buildSharedControlWorkbenchEvidenceDraft({
+      manifest,
+      step,
+      module,
+      submittedAt,
+      submissionValues,
     });
+    if (!eventDraft) return;
     onPanelSubmit({
       stepId: step.id,
       submittedAt,
@@ -1901,6 +1905,53 @@ function SharedControlWorkbenchComputePanel({
             layout={layout}
             allowedPanelIds={visiblePanelIds}
           />
+          {submissionFields.length > 0 ? (
+            <div className="premium-lesson-panel-soft grid gap-3 p-4 sm:grid-cols-2">
+              {submissionFields.map((field) => (
+                <label key={field.key} className="space-y-1 text-sm">
+                  <span className="premium-lesson-muted block">{field.label}</span>
+                  {field.input === 'select' || field.input === 'toggle' ? (
+                    <select
+                      className="premium-lesson-select w-full"
+                      value={String(submissionValues[field.key] ?? '')}
+                      onChange={(event) => {
+                        setSubmissionValues((prev) => ({ ...prev, [field.key]: event.currentTarget.value }));
+                      }}
+                    >
+                      {(field.options ?? []).map((option) => (
+                        <option key={option} value={option}>{option}</option>
+                      ))}
+                    </select>
+                  ) : field.input === 'slider' ? (
+                    <input
+                      className="w-full accent-current"
+                      type="range"
+                      min={field.min}
+                      max={field.max}
+                      step={field.step ?? 0.1}
+                      value={Number(submissionValues[field.key] ?? field.defaultValue ?? field.min ?? 0)}
+                      onChange={(event) => {
+                        setSubmissionValues((prev) => ({ ...prev, [field.key]: Number(event.currentTarget.value) }));
+                      }}
+                    />
+                  ) : (
+                    <input
+                      className="premium-lesson-input w-full"
+                      type={field.input === 'number' ? 'number' : 'text'}
+                      min={field.min}
+                      max={field.max}
+                      step={field.step}
+                      value={String(submissionValues[field.key] ?? '')}
+                      onChange={(event) => {
+                        const value = field.input === 'number' ? Number(event.currentTarget.value) : event.currentTarget.value;
+                        setSubmissionValues((prev) => ({ ...prev, [field.key]: value }));
+                      }}
+                    />
+                  )}
+                </label>
+              ))}
+            </div>
+          ) : null}
           <button
             type="button"
             onClick={submitCurrent}
@@ -4091,6 +4142,118 @@ function controlAnalysisResultFromPayload(payload: ContentRecord): ControlAnalys
 function controlWorkbenchLayoutFromPayload(payload: ContentRecord): 'quad' | 'platform' | 'standard-quad' {
   const layout = stringField(payload, ['layout', 'workbenchLayout', 'workbench_layout']);
   return layout === 'platform' || layout === 'standard-quad' ? layout : 'quad';
+}
+
+function controlWorkbenchSubmissionFieldsFromPayload(payload: ContentRecord): ControlWorkbenchSubmissionField[] {
+  const fields = payload.submissionFields ?? payload.submission_fields;
+  if (!Array.isArray(fields)) return [];
+  return fields
+    .map((item): ControlWorkbenchSubmissionField | null => {
+      const record = asRecord(item);
+      const key = typeof record.key === 'string' ? record.key.trim() : '';
+      const label = typeof record.label === 'string' ? record.label.trim() : key;
+      if (!key || !label) return null;
+      const input = typeof record.input === 'string' ? record.input : typeof record.type === 'string' ? record.type : 'text';
+      const normalizedInput = ['text', 'number', 'slider', 'select', 'toggle'].includes(input) ? input as ControlWorkbenchSubmissionField['input'] : 'text';
+      return {
+        key,
+        label,
+        input: normalizedInput,
+        min: Number.isFinite(Number(record.min)) ? Number(record.min) : undefined,
+        max: Number.isFinite(Number(record.max)) ? Number(record.max) : undefined,
+        step: Number.isFinite(Number(record.step)) ? Number(record.step) : undefined,
+        options: stringArrayField(record, ['options']),
+        defaultValue: scalarSubmissionValue(record.defaultValue ?? record.default_value),
+      };
+    })
+    .filter((item): item is ControlWorkbenchSubmissionField => Boolean(item));
+}
+
+function scalarSubmissionValue(value: unknown): string | number | boolean | undefined {
+  if (typeof value === 'string' || typeof value === 'boolean') return value;
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  return undefined;
+}
+
+function submissionDefaultsFromPayload(payload: ContentRecord) {
+  return asRecord(payload.submissionDefaults ?? payload.submission_defaults ?? payload.defaultSubmission ?? payload.default_submission);
+}
+
+function initialControlWorkbenchSubmissionValues(
+  payload: ContentRecord,
+  request: ControlAnalysisRequest | undefined,
+): Record<string, string | number | boolean> {
+  const fields = controlWorkbenchSubmissionFieldsFromPayload(payload);
+  const defaults = submissionDefaultsFromPayload(payload);
+  if (fields.length === 0) {
+    return parameterSnapshotFromRequest(request) as Record<string, string | number | boolean>;
+  }
+  return Object.fromEntries(fields.map((field) => {
+    const direct = scalarSubmissionValue(defaults[field.key]);
+    if (direct !== undefined) return [field.key, direct];
+    if (field.defaultValue !== undefined) return [field.key, field.defaultValue];
+    if (field.input === 'slider' || field.input === 'number') return [field.key, field.min ?? 0];
+    if ((field.input === 'select' || field.input === 'toggle') && field.options?.[0]) return [field.key, field.options[0]];
+    return [field.key, ''];
+  }));
+}
+
+function parameterSnapshotFromSubmissionValues(
+  payload: ContentRecord,
+  request: ControlAnalysisRequest | undefined,
+  values?: Record<string, string | number | boolean>,
+) {
+  const fields = controlWorkbenchSubmissionFieldsFromPayload(payload);
+  if (fields.length === 0) return parameterSnapshotFromRequest(request);
+  const currentValues = values ?? initialControlWorkbenchSubmissionValues(payload, request);
+  return Object.fromEntries(
+    fields
+      .map((field) => [field.key, currentValues[field.key]] as const)
+      .filter(([, value]) => value !== undefined && value !== null && value !== ''),
+  );
+}
+
+export function buildSharedControlWorkbenchEvidenceDraft({
+  manifest,
+  step,
+  module,
+  submittedAt,
+  submissionValues,
+}: {
+  manifest: InteractiveRuntimeManifest;
+  step: InteractiveRuntimeStepManifest;
+  module: InteractiveRuntimeModuleManifest;
+  submittedAt: number;
+  submissionValues?: Record<string, string | number | boolean>;
+}) {
+  const capabilityRef = computeCapabilityRef(module.payload);
+  if (!capabilityRef) return null;
+  const visiblePanelIds = stringArrayField(module.payload, ['visiblePanelIds', 'visible_panel_ids', 'panels']);
+  const responseContractId = stringField(module.payload, ['responseContractId', 'response_contract_id', 'responseKind', 'response_kind']);
+  const releaseState = stringField(module.payload, ['releaseState', 'release_state']) || 'course-controlled';
+  const fallbackState = stringField(module.payload, ['fallbackState', 'fallback_state']) || 'supported';
+  const request = controlAnalysisRequestFromPayload(module.payload);
+  return buildControlWorkbenchClientEvidenceDraft({
+    eventType: 'lesson_submit',
+    clientEventId: `${step.id}:${module.id}:${submittedAt}`,
+    attemptKey: `${step.id}:response:${submittedAt}`,
+    lessonKey: manifest.lessonId,
+    stepId: step.id,
+    moduleId: module.id,
+    componentId: module.id,
+    actorRole: 'student',
+    clientEventAt: new Date(submittedAt).toISOString(),
+    capabilityId: capabilityRef,
+    visiblePanelIds,
+    parameterSnapshot: parameterSnapshotFromSubmissionValues(module.payload, request, submissionValues),
+    selectedDesignState: { releaseState, fallbackState },
+    answerPayload: {
+      responseContractId: responseContractId ?? 'parameter.set',
+      submissionFieldKeys: controlWorkbenchSubmissionFieldsFromPayload(module.payload).map((field) => field.key),
+    },
+    releaseState: releaseState === 'released' || releaseState === 'revealed' ? releaseState : 'released',
+    fallbackState: fallbackState === 'fallback' || fallbackState === 'unsupported' ? fallbackState : 'supported',
+  });
 }
 
 function isControlAnalysisRequest(value: ContentRecord): boolean {

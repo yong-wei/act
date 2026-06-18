@@ -5,8 +5,10 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
+import { ThemeProvider } from '@/components/providers/theme-provider';
 import { COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY } from '@/features/interactive/course-submission-gate-inventory';
 import { FEATURED_LESSONS, INTERACTIVE_COURSE_MODULES, PREMIUM_LESSONS } from '@/features/interactive/learning-catalog';
+import { buildSharedControlWorkbenchEvidenceDraft } from '@/features/interactive/shared/manifest-runtime/content-renderers';
 import { buildManifestSubmissionTelemetry } from '@/features/interactive/shared/manifest-runtime/submission-telemetry';
 import { UNIT_1_2StepContentPanel } from '@/features/interactive/unit-1-2-modeling-from-object-to-system/step-panels';
 import { ALL_PRESETS } from '@/features/teacher/preset-lessons/presets';
@@ -34,6 +36,19 @@ function readManifest() {
   return manifest;
 }
 
+function readAuthoringContract() {
+  return JSON.parse(
+    readFileSync(join(repoRoot, 'course-content/authoring/lessons/1-2/design/1-2-interactive-contract.yaml'), 'utf8'),
+  ) as {
+    steps: Record<string, {
+      telemetry_spec?: { result_policy?: string };
+      visual_state_contract?: unknown;
+      release_contract?: unknown;
+      interaction_spec?: { submit_fields?: string[] };
+    }>;
+  };
+}
+
 function responseProducingStepIds() {
   const manifest = readManifest();
   return manifest.steps
@@ -48,11 +63,19 @@ function responseProducingStepIds() {
 function renderUnit12StepHtml(stepIndex: number) {
   const manifest = readManifest();
   return renderToStaticMarkup(
-    createElement(UNIT_1_2StepContentPanel, {
-      step: UNIT_1_2_LESSON_STEPS[stepIndex],
-      manifest,
-    }),
+    createElement(ThemeProvider, null,
+      createElement(UNIT_1_2StepContentPanel, {
+        step: UNIT_1_2_LESSON_STEPS[stepIndex],
+        manifest,
+      }),
+    ),
   );
+}
+
+function renderedHtmlWithoutEngineeringTerms() {
+  return [3, 4, 5, 6, 7, 8, 9, 10, 11, 13]
+    .map(renderUnit12StepHtml)
+    .join('\n');
 }
 
 describe('unit 1-2 modeling from object to system course', () => {
@@ -68,20 +91,26 @@ describe('unit 1-2 modeling from object to system course', () => {
 
   it('normalizes the current runtime manifest to the new mainline route and response contract', () => {
     const manifest = readManifest();
+    const authoringContract = readAuthoringContract();
 
     expect(manifest.lessonId).toBe('1-2');
     expect(manifest.courseRouteSegment).toBe(UNIT_1_2_ROUTE_SEGMENT);
     expect(manifest.steps.map((step) => step.id)).toEqual(UNIT_1_2_LESSON_STEPS.map((step) => step.id));
     expect(responseProducingStepIds()).toEqual([
       'step-03',
-      'step-05',
       'step-06',
+      'step-07',
       'step-08',
       'step-10',
       'step-11',
       'step-12',
       'step-13',
     ]);
+    for (const stepId of responseProducingStepIds()) {
+      expect(authoringContract.steps[stepId]?.telemetry_spec?.result_policy).not.toBe('no_submission');
+    }
+    expect(authoringContract.steps['step-05']?.telemetry_spec?.result_policy).toBe('no_submission');
+    expect(authoringContract.steps['step-07']?.release_contract).toBeDefined();
   });
 
   it('registers the new 1-2 course across catalog, presets, AI context and route identity', () => {
@@ -116,10 +145,12 @@ describe('unit 1-2 modeling from object to system course', () => {
   it('renders step 09 through the shared static-surface-3d compute capability with fallback media', () => {
     const manifest = readManifest();
     const html = renderToStaticMarkup(
-      createElement(UNIT_1_2StepContentPanel, {
-        step: UNIT_1_2_LESSON_STEPS[8],
-        manifest,
-      }),
+      createElement(ThemeProvider, null,
+        createElement(UNIT_1_2StepContentPanel, {
+          step: UNIT_1_2_LESSON_STEPS[8],
+          manifest,
+        }),
+      ),
     );
 
     expect(html).toContain('data-static-surface-3d-panel="magnitude-surface"');
@@ -156,17 +187,116 @@ describe('unit 1-2 modeling from object to system course', () => {
     expect(dampingMarker?.position[2]).toBe(2.15);
   });
 
-  it('renders the modeling-path comparison as local page art and removes the course-positioning block', () => {
+  it('renders the modeling-path comparison through the shared visual stage contract', () => {
     const manifest = readManifest();
     const step04 = manifest.steps.find((step) => step.id === 'step-04');
     if (!step04) throw new Error('step-04 missing');
     const html = renderUnit12StepHtml(3);
+    const stagePayload = step04.modules.find((module) => module.id === 'modeling-path-stage')?.payload as {
+      layers?: Array<{ id: string; title: string; body: string }>;
+    };
 
     expect(step04.modules.map((module) => module.id)).not.toContain('course-positioning');
-    expect(html).toContain('data-local-modeling-paths-figure="true"');
-    expect(html).toContain('建模路径对照图');
+    expect(step04.modules.map((module) => module.kind)).toContain('visual.stage');
+    expect(stagePayload.layers?.map((layer) => layer.id)).toEqual(expect.arrayContaining([
+      'real-object',
+      'mechanism-path',
+      'data-path',
+      'mechanism-boundary',
+      'data-boundary',
+      'course-position',
+    ]));
+    expect(JSON.stringify(stagePayload)).toContain('机理建模');
+    expect(JSON.stringify(stagePayload)).toContain('数据驱动建模');
+    expect(JSON.stringify(stagePayload)).toContain('本课以机理建模为主线');
+    expect(html).toContain('data-visual-stage-id="modeling-paths"');
+    expect(html).toContain('data-visual-stage-layer-id="mechanism-path"');
+    expect(html).toContain('data-visual-stage-layer-id="data-path"');
+    expect(html).toContain('data-visual-stage-layer-id="course-position"');
     expect(html).not.toContain('course-positioning');
     expect(html).not.toContain('svg-comparison');
+  });
+
+  it('keeps the new visual component contracts complete for steps 05, 07, 08, 12 and 14', () => {
+    const manifest = readManifest();
+    const contract = readAuthoringContract();
+    for (const stepId of ['step-04', 'step-05', 'step-07', 'step-08', 'step-11', 'step-12', 'step-14']) {
+      expect(contract.steps[stepId]?.visual_state_contract).toBeDefined();
+    }
+
+    const step05 = manifest.steps.find((step) => step.id === 'step-05');
+    const step07 = manifest.steps.find((step) => step.id === 'step-07');
+    const step08 = manifest.steps.find((step) => step.id === 'step-08');
+    const step12 = manifest.steps.find((step) => step.id === 'step-12');
+    const step14 = manifest.steps.find((step) => step.id === 'step-14');
+    if (!step05 || !step07 || !step08 || !step12 || !step14) throw new Error('missing visual contract step');
+
+    const step05Stage = step05.modules.find((module) => module.id === 'ship-equation-stage')?.payload as {
+      revealSteps?: unknown[];
+      formulas?: unknown[];
+    };
+    expect(step05Stage.revealSteps).toHaveLength(5);
+    expect(step05.modules.map((module) => module.id)).toEqual(expect.arrayContaining([
+      'ship-physics-img',
+      'direct-response-img',
+      'four-inconveniences',
+    ]));
+
+    const step07Diagram = step07.modules.find((module) => module.id === 'closed-loop-structure')?.payload as {
+      nodes?: unknown[];
+      edges?: unknown[];
+    };
+    expect(step07.interactionSpec.interactionKind).toBe('structured_compare');
+    expect(step07.interactionSpec.activityCards?.[0]?.structuredFields).toEqual([
+      'selected_feedback_branch',
+      'error_node',
+      'reason',
+    ]);
+    expect(step07Diagram.nodes?.length).toBeGreaterThanOrEqual(7);
+    expect(step07Diagram.edges?.length).toBeGreaterThanOrEqual(7);
+    expect(step07.modules.map((module) => module.id)).toEqual(expect.arrayContaining(['five-elements', 'three-connections']));
+
+    const step08Graph = step08.modules.find((module) => module.id === 'signal-flow-graph')?.payload as {
+      branches?: unknown[];
+      pathSets?: unknown[];
+      masonTerms?: unknown[];
+    };
+    expect(step08Graph.branches?.length).toBeGreaterThanOrEqual(5);
+    expect(JSON.stringify(step08Graph.pathSets)).toContain('forward');
+    expect(JSON.stringify(step08Graph.masonTerms)).toContain('P_1');
+    expect(step08.contentBlocks['sfg-concepts']).toBeDefined();
+
+    const step12Stage = step12.modules.find((module) => module.id === 'example-derivation-stage')?.payload as {
+      revealSteps?: Array<{ id: string }>;
+      formulas?: unknown[];
+    };
+    expect(step12Stage.revealSteps?.map((item) => item.id)).toEqual(expect.arrayContaining([
+      'problem',
+      'characteristic',
+      'solve-roots',
+      's-plane',
+      'behavior',
+    ]));
+    expect(JSON.stringify(step12Stage.formulas)).toContain('s^2+2s+5=0');
+
+    const step14Stage = step14.modules.find((module) => module.id === 'modeling-summary-stage')?.payload as {
+      layers?: Array<{ id: string }>;
+    };
+    expect(step14.modules.map((module) => module.id)).toEqual(expect.arrayContaining([
+      'info-graphic',
+      'modeling-summary-stage',
+      'limitations-text',
+      'extend-think-text',
+      'lesson-stat-summary',
+    ]));
+    expect(step14Stage.layers?.map((layer) => layer.id)).toEqual(expect.arrayContaining([
+      'object',
+      'differential-equation',
+      'transfer-function',
+      'structure-expression',
+      'poles-plane',
+      'behavior',
+    ]));
   });
 
   it('does not render activity manifest modules as duplicate content title blocks', () => {
@@ -210,63 +340,145 @@ describe('unit 1-2 modeling from object to system course', () => {
     const step08 = manifest.steps.find((step) => step.id === 'step-08');
     if (!step06 || !step08) throw new Error('step-06 or step-08 missing');
     const laplaceRows = step06.contentBlocks['laplace-rules'] as { rows: string[][] };
-    const compareModule = step08.modules.find((module) => module.id === 'sfg-block-compare');
+    const signalFlowModule = step08.modules.find((module) => module.id === 'signal-flow-graph');
 
     for (const row of laplaceRows.rows) {
       expect(row[0]).toContain('$');
       expect(row[1]).toContain('$');
     }
-    expect(compareModule?.payload.display_width).toBe('medium');
-    expect(renderUnit12StepHtml(7)).toContain('max-w-[900px]');
+    expect(signalFlowModule?.kind).toBe('visual.signalFlowGraph');
+    expect(renderUnit12StepHtml(7)).toContain('data-structure-diagram-id="closed-loop-signal-flow"');
   });
 
-  it('renders step 12 reveal layers from content fields instead of leaving an empty required module', () => {
+  it('renders step 12 as a nonlinear derivation stage instead of a blank reveal module', () => {
     const html = renderUnit12StepHtml(11);
 
-    expect(html).toContain('求解过程');
+    expect(html).toContain('data-derivation-stage-id="characteristic-equation-worked-example"');
     expect(html).toContain('特征方程');
-    expect(html).toContain('s^2+2s+5=0');
+    expect(html).toContain('data-derivation-stage-reveal-step-id="characteristic"');
     expect(html).not.toContain('data-manifest-render-error');
   });
 
-  it('renders steps 10 and 11 as shared interactive figures instead of static screenshots', () => {
+  it('renders steps 10 and 11 through shared control workbench capabilities instead of static screenshots', () => {
     const manifest = readManifest();
+    const step10 = manifest.steps.find((step) => step.id === 'step-10');
+    const step11 = manifest.steps.find((step) => step.id === 'step-11');
+    if (!step10 || !step11) throw new Error('step-10 or step-11 missing');
     const lockedStep10Html = renderToStaticMarkup(
-      createElement(UNIT_1_2StepContentPanel, {
-        step: UNIT_1_2_LESSON_STEPS[9],
-        manifest,
-      }),
+      createElement(ThemeProvider, null,
+        createElement(UNIT_1_2StepContentPanel, {
+          step: UNIT_1_2_LESSON_STEPS[9],
+          manifest,
+        }),
+      ),
     );
     const releasedStep10Html = renderToStaticMarkup(
-      createElement(UNIT_1_2StepContentPanel, {
-        step: UNIT_1_2_LESSON_STEPS[9],
-        manifest,
-        onPanelSubmit: () => undefined,
-      }),
+      createElement(ThemeProvider, null,
+        createElement(UNIT_1_2StepContentPanel, {
+          step: UNIT_1_2_LESSON_STEPS[9],
+          manifest,
+          onPanelSubmit: () => undefined,
+        }),
+      ),
     );
     const lockedStep11Html = renderToStaticMarkup(
-      createElement(UNIT_1_2StepContentPanel, {
-        step: UNIT_1_2_LESSON_STEPS[10],
-        manifest,
-      }),
+      createElement(ThemeProvider, null,
+        createElement(UNIT_1_2StepContentPanel, {
+          step: UNIT_1_2_LESSON_STEPS[10],
+          manifest,
+        }),
+      ),
     );
     const releasedStep11Html = renderToStaticMarkup(
-      createElement(UNIT_1_2StepContentPanel, {
-        step: UNIT_1_2_LESSON_STEPS[10],
-        manifest,
-        onPanelSubmit: () => undefined,
-      }),
+      createElement(ThemeProvider, null,
+        createElement(UNIT_1_2StepContentPanel, {
+          step: UNIT_1_2_LESSON_STEPS[10],
+          manifest,
+          onPanelSubmit: () => undefined,
+        }),
+      ),
     );
 
-    expect(lockedStep10Html).toContain('data-interactive-figure-panel="drag_pole_s_plane"');
-    expect(lockedStep10Html).toContain('data-module-id="drag-pole-panel"');
-    expect(lockedStep10Html).toContain('等待教师发放');
-    expect(releasedStep10Html).toContain('提交当前参数');
-    expect(lockedStep11Html).toContain('data-interactive-figure-panel="three_ships_case"');
-    expect(lockedStep11Html).toContain('data-module-id="ship-simulation"');
-    expect(lockedStep11Html).toContain('三艘船响应仿真');
-    expect(lockedStep11Html).toContain('等待教师发放');
-    expect(releasedStep11Html).toContain('记录比较');
+    expect(lockedStep10Html).toContain('data-control-workbench-capability="control-root-locus-design-map"');
+    expect(lockedStep10Html).toContain('data-control-workbench-module-id="drag-pole-panel"');
+    expect(lockedStep10Html).toContain('data-control-workbench-panel="root-locus"');
+    expect(lockedStep10Html).toContain('复平面五区地名');
+    expect(lockedStep10Html).toContain('读图规则');
+    expect(lockedStep10Html).toContain('σ（实部）');
+    expect(lockedStep10Html).toContain('ω（虚部）');
+    expect(step10.modules.find((module) => module.id === 's-plane-static')?.kind).toBe('content.figure');
+    expect(step10.modules.find((module) => module.id === 'response-static')?.kind).toBe('content.figure');
+    expect(releasedStep10Html).toContain('提交当前观察');
+    expect(lockedStep11Html).toContain('data-control-workbench-capability="control-linked-comparison"');
+    expect(lockedStep11Html).toContain('data-control-workbench-module-id="ship-simulation"');
+    expect(lockedStep11Html).toContain('data-annotated-media-id="three-ships-response-evidence"');
+    expect(lockedStep11Html).toContain('三艘船极点对比');
+    expect(lockedStep11Html).toContain('对比对象');
+    expect(lockedStep11Html).toContain('B 的近虚轴极点');
+    const annotations = (step11.modules.find((module) => module.id === 'ship-response-hotspots')?.payload as {
+      annotations?: unknown[];
+    }).annotations;
+    expect(annotations).toHaveLength(4);
+    expect(`${lockedStep10Html}\n${lockedStep11Html}`).not.toContain('data-interactive-figure-panel');
+    expect(releasedStep11Html).toContain('提交当前观察');
+  });
+
+  it('builds real shared control workbench submission payloads for step 10 and 11', () => {
+    const manifest = readManifest();
+    const step10 = manifest.steps.find((step) => step.id === 'step-10');
+    const step11 = manifest.steps.find((step) => step.id === 'step-11');
+    const step10Module = step10?.modules.find((module) => module.id === 'drag-pole-panel');
+    const step11Module = step11?.modules.find((module) => module.id === 'ship-simulation');
+    if (!step10 || !step11 || !step10Module || !step11Module) throw new Error('missing shared workbench module');
+
+    const step10Draft = buildSharedControlWorkbenchEvidenceDraft({
+      manifest,
+      step: step10,
+      module: step10Module,
+      submittedAt: 1778550644900,
+      submissionValues: {
+        sigma: -1.2,
+        omega: 2.4,
+        pole_mode: '共轭极点',
+        observation_text: '左半平面收敛，虚部越大摆动越密。',
+      },
+    });
+    expect(step10Draft?.payload.parameterSnapshot).toMatchObject({
+      sigma: -1.2,
+      omega: 2.4,
+      pole_mode: '共轭极点',
+      observation_text: '[redacted]',
+    });
+    expect(step10Draft?.payload.parameterSnapshot).not.toHaveProperty('gain.k');
+
+    const step10Snapshots = buildUNIT_1_2ParameterSnapshots({
+      answers: { 'drag-pole-submit': JSON.stringify(step10Draft) },
+      submitFields: step10.interactionSpec.submitFields ?? [],
+    });
+    expect(step10Snapshots).toEqual({
+      sigma: -1.2,
+      omega: 2.4,
+      pole_mode: '共轭极点',
+      observation_text: '[redacted]',
+    });
+
+    const step11Draft = buildSharedControlWorkbenchEvidenceDraft({
+      manifest,
+      step: step11,
+      module: step11Module,
+      submittedAt: 1778550644901,
+      submissionValues: {
+        selected_ship: 'B',
+        time_scale: 3,
+        simulation_interaction_count: 4,
+      },
+    });
+    expect(step11Draft?.payload.parameterSnapshot).toEqual({
+      selected_ship: 'B',
+      time_scale: 3,
+      simulation_interaction_count: 4,
+    });
+    expect(step11Draft?.payload.parameterSnapshot).not.toHaveProperty('gain.k');
   });
 
   it('records step 10 pole parameters as data-governance parameter snapshots', () => {
@@ -310,16 +522,16 @@ describe('unit 1-2 modeling from object to system course', () => {
     const lessonMap = JSON.parse(readFileSync(join(repoRoot, 'course-content/authoring/shared/lesson-id-map.json'), 'utf8')) as {
       entries: Array<{ canonical_id: string; status: string }>;
     };
-    const authoringPage = readFileSync(join(repoRoot, 'course-content/authoring/lessons/1-2/design/1-2-interactive-page.md'), 'utf8');
-    const authoringContract = readFileSync(join(repoRoot, 'course-content/authoring/lessons/1-2/design/1-2-interactive-contract.yaml'), 'utf8');
-    const runtimeManifest = readFileSync(manifestPath, 'utf8');
     const studentPageSource = readFileSync(
       join(repoRoot, 'src/features/interactive/unit-1-2-modeling-from-object-to-system/student-page.tsx'),
       'utf8',
     );
 
     expect(lessonMap.entries.find((entry) => entry.canonical_id === '1-2')?.status).toBe('mainline');
-    expect(`${authoringPage}\n${authoringContract}\n${runtimeManifest}`).not.toContain('Rust');
+    const renderedHtml = renderedHtmlWithoutEngineeringTerms();
+    expect(renderedHtml).not.toContain('Rust');
+    expect(renderedHtml).not.toContain('WASM');
+    expect(renderedHtml).not.toContain('capabilityRef');
     expect(studentPageSource).toContain('onPanelSubmit={released ? handleSubmitResponse : undefined}');
     expect(studentPageSource).toContain("step.pageType === 'interactive_figure_submit' ? null");
   });

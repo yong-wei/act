@@ -22,6 +22,8 @@ export type UNIT_1_2PageType =
   | 'summary'
   | 'quiz_group'
   | 'step_reveal'
+  | 'teacher_reveal_only'
+  | 'structured_compare'
   | 'single_choice'
   | 'interactive_figure_submit';
 
@@ -132,6 +134,8 @@ function pageTypeFromInteraction(stepId: string, interactionKind: string): UNIT_
   if (
     interactionKind === 'quiz_group' ||
     interactionKind === 'step_reveal' ||
+    interactionKind === 'teacher_reveal_only' ||
+    interactionKind === 'structured_compare' ||
     interactionKind === 'single_choice' ||
     interactionKind === 'interactive_figure_submit'
   ) {
@@ -145,9 +149,9 @@ const STEP_SOURCE = [
   ['step-02', 'O', '课程目标', '展示本课五个能力目标。', 'none'],
   ['step-03', 'P1', '前测——进入建模专题前的准备', '检测 1-1 基础概念掌握程度。', 'quiz_group'],
   ['step-04', 'P2', '建模的两条路径', '建立机理建模 vs 数据驱动建模的对比框架。', 'none'],
-  ['step-05', 'P2', '微分方程——物理对象的第一次翻译', '让学生体验微分方程直接求解的繁琐，建立对传递函数的需求。', 'step_reveal'],
+  ['step-05', 'P2', '微分方程——物理对象的第一次翻译', '让学生体验微分方程直接求解的繁琐，建立对传递函数的需求。', 'teacher_reveal_only'],
   ['step-06', 'P2', '传递函数——从微分运算到代数运算', '让学生理解拉氏变换到传递函数的三步法转换链。', 'single_choice'],
-  ['step-07', 'P2', '方框图——系统的结构表达', '建立方框图作为系统结构表达工具的认识。', 'none'],
+  ['step-07', 'P2', '方框图——系统的结构表达', '建立方框图作为系统结构表达工具的认识。', 'structured_compare'],
   ['step-08', 'P2', '信号流图——变量间的决定关系', '建立信号流图作为方框图互补工具的认识。', 'single_choice'],
   ['step-09', 'P2', '极点的几何来源——三维幅值曲面', '用三维几何直观解释极点名称来源。', 'none'],
   ['step-10', 'P2', '拖动极点看响应——行为地图的互动验证', '让学生亲手验证极点位置决定行为这条核心规律。', 'interactive_figure_submit'],
@@ -176,6 +180,8 @@ function normalizeUNIT_1_2InteractionKind(kind: string): InteractiveInteractionK
   if (
     kind === 'quiz_group' ||
     kind === 'step_reveal' ||
+    kind === 'teacher_reveal_only' ||
+    kind === 'structured_compare' ||
     kind === 'single_choice' ||
     kind === 'interactive_figure_submit'
   ) {
@@ -248,6 +254,19 @@ function parseUNIT_1_2StructuredAnswer(value: string | undefined): unknown {
   }
 }
 
+function extractUNIT_1_2ParameterSource(parsed: unknown): Record<string, unknown> | null {
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
+  const record = parsed as Record<string, unknown>;
+  const payload = record.payload;
+  if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+    const parameterSnapshot = (payload as Record<string, unknown>).parameterSnapshot;
+    if (parameterSnapshot && typeof parameterSnapshot === 'object' && !Array.isArray(parameterSnapshot)) {
+      return parameterSnapshot as Record<string, unknown>;
+    }
+  }
+  return record;
+}
+
 export function buildUNIT_1_2ParameterSnapshots({
   answers,
   submitFields,
@@ -261,9 +280,10 @@ export function buildUNIT_1_2ParameterSnapshots({
   }
   for (const value of Object.values(answers)) {
     const parsed = parseUNIT_1_2StructuredAnswer(value);
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) continue;
+    const source = extractUNIT_1_2ParameterSource(parsed);
+    if (!source) continue;
     for (const field of submitFields) {
-      const fieldValue = (parsed as Record<string, unknown>)[field];
+      const fieldValue = source[field];
       if (fieldValue !== undefined && fieldValue !== null && fieldValue !== '') {
         snapshots[field] = fieldValue;
       }
