@@ -87,4 +87,27 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("typeof pathUpdate.currentNodeId === 'string'");
     expect(source).toContain("option.activeNodeIds?.[0] ?? option.nodeIds?.[0]");
   });
+
+  it('keeps demo path state available for execution and visual QA routes', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    const learnerStateEffectStart = source.indexOf("if (!activeGoal) {\n      setControlCorrectionLearnerState(null);");
+    const learnerStateEffect = source.slice(
+      learnerStateEffectStart,
+      source.indexOf("if (authStatus === 'loading')", learnerStateEffectStart),
+    );
+
+    expect(learnerStateEffectStart).toBeGreaterThan(-1);
+    expect(learnerStateEffect).toContain('if (isDemoMode) {\n      setControlCorrectionLearnerState(null);\n      return;\n    }');
+    expect(source).not.toContain('if (!activeGoal || isDemoMode) {\n      setControlCorrectionLearnerState(null);');
+    expect(learnerStateEffect).not.toContain('if (isDemoMode) {\n      setControlCorrectionPathPlan(null);');
+    expect(learnerStateEffect).not.toContain('if (isDemoMode) {\n      setControlCorrectionPathRound(null);');
+  });
+
+  it('keeps demo execution fixture with an actionable current node for visual QA', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain("completedNodeIds: ['demo-foundation-card'],");
+    expect(source).not.toContain("completedNodeIds: ['demo-foundation-card', 'demo-current-quiz', 'demo-simulation']");
+  });
 });

@@ -450,7 +450,7 @@ const DEMO_CONTROL_CORRECTION_PATH_ROUND = {
   pathStatus: 'active',
   currentNodeId: 'demo-current-quiz',
   lastExecutionMetadata: {
-    completedNodeIds: ['demo-foundation-card', 'demo-current-quiz', 'demo-simulation'],
+    completedNodeIds: ['demo-foundation-card'],
     failedNodeIds: [],
   },
   terminalValidation: { state: 'pending' },
@@ -1605,10 +1605,15 @@ export default function AdaptivePracticePage() {
   }, [loadDiagnostic, loadNextQuestion]);
 
   useEffect(() => {
-    if (!activeGoal || isDemoMode) {
+    if (!activeGoal) {
       setControlCorrectionLearnerState(null);
       setControlCorrectionPathPlan(null);
       setControlCorrectionPathRound(null);
+      return;
+    }
+
+    if (isDemoMode) {
+      setControlCorrectionLearnerState(null);
       return;
     }
 
@@ -2722,12 +2727,12 @@ export default function AdaptivePracticePage() {
           ) : null}
 
           {showSelectionWorkspace ? (
-          <section
-            className="surface-card p-5"
-            data-learning-path-product-surface="path-options-selection-history-terminal-validation"
-            data-learning-path-options-slot="three-style"
-            data-learning-path-options-layout="comparable-information-grid"
-          >
+            <section
+              className="surface-card p-5"
+              data-learning-path-product-surface="path-options-selection-history-terminal-validation"
+              data-learning-path-options-slot="three-style"
+              data-learning-path-options-layout="route-modules"
+            >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-medium uppercase tracking-normal text-primary">Path comparison</p>
@@ -2739,43 +2744,133 @@ export default function AdaptivePracticePage() {
               </span>
             </div>
 
-            <div className="mt-4 hidden overflow-x-auto lg:block">
-              <div
-                className="grid min-w-max gap-3"
-                style={{
-                  gridTemplateColumns: `minmax(180px,0.55fr) repeat(${Math.max(visiblePathOptions.length, 1)}, minmax(220px,1fr))`,
-                }}
-              >
-                <div className="rounded-lg border border-border bg-muted/35 p-3 text-xs font-medium text-subtle">比较字段</div>
-                {visiblePathOptions.map((option) => (
-                  <div key={option.id} className="rounded-lg border border-border bg-muted/35 p-3" data-learning-path-option={option.id}>
+            <div className="mt-4 hidden gap-3 lg:grid lg:grid-cols-[repeat(auto-fit,minmax(240px,1fr))]" data-learning-path-desktop-modules="attached-actions">
+              {visiblePathOptions.map((option) => (
+                <article
+                  key={option.id}
+                  className="flex min-h-full flex-col rounded-lg border border-border bg-muted/30 p-3"
+                  data-learning-path-option={option.id}
+                  data-learning-path-option-module="route"
+                >
+                  <div>
                     <h3 className="text-base font-semibold text-foreground">{option.title}</h3>
-                    <p className="mt-1 text-sm text-subtle">{option.scenario}</p>
+                    <p className="mt-1 text-sm leading-6 text-subtle">{option.scenario}</p>
                   </div>
-                ))}
-
-                {[
-                  ['预计时长', (option: AdaptivePathOptionDisplay) => option.estimatedTime],
-                  ['已匹配资源', (option: AdaptivePathOptionDisplay) => option.resources.map((resource) => resource.label).join('、')],
-                  ['准备度', (option: AdaptivePathOptionDisplay) => option.readiness],
-                  ['检查节点', (option: AdaptivePathOptionDisplay) => option.checkpoints],
-                  ['适合场景', (option: AdaptivePathOptionDisplay) => option.scenario],
-                  ['当前建议理由', (option: AdaptivePathOptionDisplay) => option.reason],
-                  ['预期结果', (option: AdaptivePathOptionDisplay) => option.outcome],
-                  ['风险提示', (option: AdaptivePathOptionDisplay) => option.riskNote],
-                ].map(([label, resolve]) => (
-                  <div key={label as string} className="contents">
-                    <div className="rounded-lg border border-border bg-background/45 p-3 text-sm font-medium text-foreground">
-                      {label as string}
-                    </div>
-                    {visiblePathOptions.map((option) => (
-                      <div key={`${option.id}:${label}`} className="rounded-lg border border-border bg-background/45 p-3 text-sm leading-6 text-subtle">
-                        {(resolve as (option: AdaptivePathOptionDisplay) => string)(option)}
+                  <div className="mt-3 grid gap-2 text-sm">
+                    {[
+                      ['预计时长', option.estimatedTime],
+                      ['已匹配资源', option.resources.map((resource) => resource.label).join('、')],
+                      ['准备度', option.readiness],
+                      ['检查节点', option.checkpoints],
+                      ['当前建议理由', option.reason],
+                      ['预期结果', option.outcome],
+                      ['风险提示', option.riskNote],
+                    ].map(([label, value]) => (
+                      <div key={`${option.id}:${label}`} className="rounded-lg border border-border bg-background/55 p-3">
+                        <p className="text-xs font-medium text-foreground">{label}</p>
+                        <p className="mt-1 leading-6 text-subtle">{value}</p>
                       </div>
                     ))}
                   </div>
-                ))}
-              </div>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {option.resources.map((resource) => {
+                      const Icon = adaptivePathResourceIcons[resource.kind];
+                      return (
+                        <span key={`${option.id}:${resource.kind}`} className="inline-flex items-center gap-1 rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-subtle">
+                          <Icon className="size-3.5" aria-hidden="true" />
+                          {resource.label}
+                        </span>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-auto grid gap-2 pt-3" data-learning-path-option-actions="attached">
+                    <button
+                      type="button"
+                      className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                      aria-label={`选择${option.title}`}
+                      disabled={!option.writeOption || Boolean(pathChoicePending)}
+                      onClick={() => {
+                        const optionForWrite = option.writeOption;
+                        if (optionForWrite) {
+                          submitPathChoice('selection', optionForWrite);
+                          return;
+                        }
+                        setPathChoiceUnavailable();
+                      }}
+                    >
+                      <CheckCircle2 className="size-3.5" aria-hidden="true" />
+                      选择路径
+                    </button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-60"
+                        aria-label={`请控灵调整${option.title}`}
+                        disabled={!option.writeOption || Boolean(pathGenerationPending)}
+                        onClick={() => {
+                          const optionForWrite = option.writeOption;
+                          if (optionForWrite) {
+                            submitPathGeneration('revise', optionForWrite);
+                            return;
+                          }
+                          setPathChoiceUnavailable();
+                        }}
+                      >
+                        <RefreshCw className="size-3.5" aria-hidden="true" />
+                        调整
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
+                        aria-label={`解释${option.title}差异`}
+                        disabled={!option.writeOption || Boolean(pathGenerationPending)}
+                        onClick={() => {
+                          const optionForWrite = option.writeOption;
+                          if (optionForWrite) {
+                            submitPathGeneration('explain', optionForWrite);
+                            return;
+                          }
+                          setPathChoiceUnavailable();
+                        }}
+                      >
+                        解释差异
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
+                        aria-label={`暂不采用${option.title}`}
+                        disabled={!option.writeOption || Boolean(pathChoicePending)}
+                        onClick={() => {
+                          const optionForWrite = option.writeOption;
+                          if (optionForWrite) {
+                            submitPathChoice('rejection', optionForWrite);
+                            return;
+                          }
+                          setPathChoiceUnavailable();
+                        }}
+                      >
+                        暂不采用
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
+                        aria-label={`标记${option.title}有帮助`}
+                        disabled={!option.writeOption || Boolean(pathChoicePending)}
+                        onClick={() => {
+                          const optionForWrite = option.writeOption;
+                          if (optionForWrite) {
+                            submitPathChoice('helpfulness', optionForWrite, true);
+                            return;
+                          }
+                          setPathChoiceUnavailable();
+                        }}
+                      >
+                        有帮助
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              ))}
             </div>
 
             <div className="mt-4 space-y-2 lg:hidden">
@@ -2789,7 +2884,12 @@ export default function AdaptivePracticePage() {
                 ))}
               </div>
               {visiblePathOptions.map((option) => (
-                <section key={`${option.id}:mobile`} className="rounded-lg border border-border bg-muted/30 p-3" data-learning-path-option={option.id}>
+                <section
+                  key={`${option.id}:mobile`}
+                  className="rounded-lg border border-border bg-muted/30 p-3"
+                  data-learning-path-option={option.id}
+                  data-learning-path-option-module="route"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="text-base font-semibold text-foreground">{option.title}</h3>
@@ -2825,10 +2925,11 @@ export default function AdaptivePracticePage() {
                       })}
                     </div>
                   </details>
-                  <div className="mt-3 grid gap-2" data-learning-path-mobile-actions="primary-then-secondary">
+                  <div className="mt-3 grid gap-2" data-learning-path-mobile-actions="primary-then-secondary" data-learning-path-option-actions="attached">
                     <button
                       type="button"
                       className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                      aria-label={`选择${option.title}`}
                       disabled={!option.writeOption || Boolean(pathChoicePending)}
                       onClick={() => {
                         const optionForWrite = option.writeOption;
@@ -2846,6 +2947,7 @@ export default function AdaptivePracticePage() {
                       <button
                         type="button"
                         className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-60"
+                        aria-label={`请控灵调整${option.title}`}
                         disabled={!option.writeOption || Boolean(pathGenerationPending)}
                         onClick={() => {
                           const optionForWrite = option.writeOption;
@@ -2862,6 +2964,7 @@ export default function AdaptivePracticePage() {
                       <button
                         type="button"
                         className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
+                        aria-label={`解释${option.title}差异`}
                         disabled={!option.writeOption || Boolean(pathGenerationPending)}
                         onClick={() => {
                           const optionForWrite = option.writeOption;
@@ -2877,6 +2980,7 @@ export default function AdaptivePracticePage() {
                       <button
                         type="button"
                         className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
+                        aria-label={`暂不采用${option.title}`}
                         disabled={!option.writeOption || Boolean(pathChoicePending)}
                         onClick={() => {
                           const optionForWrite = option.writeOption;
@@ -2892,6 +2996,7 @@ export default function AdaptivePracticePage() {
                       <button
                         type="button"
                         className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
+                        aria-label={`标记${option.title}有帮助`}
                         disabled={!option.writeOption || Boolean(pathChoicePending)}
                         onClick={() => {
                           const optionForWrite = option.writeOption;
@@ -2907,103 +3012,6 @@ export default function AdaptivePracticePage() {
                     </div>
                   </div>
                 </section>
-              ))}
-            </div>
-
-            <div className="mt-4 hidden gap-3 lg:grid lg:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]">
-              {visiblePathOptions.map((option) => (
-                <div key={`${option.id}:actions`} className="rounded-lg border border-border bg-muted/30 p-3">
-                  <div className="flex flex-wrap gap-1.5">
-                    {option.resources.map((resource) => {
-                      const Icon = adaptivePathResourceIcons[resource.kind];
-                      return (
-                        <span key={`${option.id}:${resource.kind}`} className="inline-flex items-center gap-1 rounded-md border border-border bg-background/60 px-2 py-1 text-xs text-subtle">
-                          <Icon className="size-3.5" aria-hidden="true" />
-                          {resource.label}
-                        </span>
-                      );
-                    })}
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-60"
-                      disabled={!option.writeOption || Boolean(pathChoicePending)}
-                      onClick={() => {
-                        const optionForWrite = option.writeOption;
-                        if (optionForWrite) {
-                          submitPathChoice('selection', optionForWrite);
-                          return;
-                        }
-                        setPathChoiceUnavailable();
-                      }}
-                    >
-                      <CheckCircle2 className="size-3.5" aria-hidden="true" />
-                      选择路径
-                    </button>
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground disabled:opacity-60"
-                      disabled={!option.writeOption || Boolean(pathGenerationPending)}
-                      onClick={() => {
-                        const optionForWrite = option.writeOption;
-                        if (optionForWrite) {
-                          submitPathGeneration('revise', optionForWrite);
-                          return;
-                        }
-                        setPathChoiceUnavailable();
-                      }}
-                    >
-                      <RefreshCw className="size-3.5" aria-hidden="true" />
-                      请控灵调整
-                    </button>
-                    <button
-                      type="button"
-                      className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
-                      disabled={!option.writeOption || Boolean(pathGenerationPending)}
-                      onClick={() => {
-                        const optionForWrite = option.writeOption;
-                        if (optionForWrite) {
-                          submitPathGeneration('explain', optionForWrite);
-                          return;
-                        }
-                        setPathChoiceUnavailable();
-                      }}
-                    >
-                      解释差异
-                    </button>
-                    <button
-                      type="button"
-                      className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
-                      disabled={!option.writeOption || Boolean(pathChoicePending)}
-                      onClick={() => {
-                        const optionForWrite = option.writeOption;
-                        if (optionForWrite) {
-                          submitPathChoice('rejection', optionForWrite);
-                          return;
-                        }
-                        setPathChoiceUnavailable();
-                      }}
-                    >
-                      暂不采用
-                    </button>
-                    <button
-                      type="button"
-                      className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-subtle disabled:opacity-60"
-                      disabled={!option.writeOption || Boolean(pathChoicePending)}
-                      onClick={() => {
-                        const optionForWrite = option.writeOption;
-                        if (optionForWrite) {
-                          submitPathChoice('helpfulness', optionForWrite, true);
-                          return;
-                        }
-                        setPathChoiceUnavailable();
-                      }}
-                    >
-                      有帮助
-                    </button>
-                  </div>
-                </div>
               ))}
             </div>
 

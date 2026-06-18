@@ -1,15 +1,15 @@
 {
   "change": "govern-adaptive-path-product-qa",
-  "generatedAt": "2026-06-17T15:58:26.882Z",
-  "sourceCommit": "worktree:1fc8dc3eb020a2d6eeba4126",
+  "generatedAt": "2026-06-18T10:27:13.456Z",
+  "sourceCommit": "worktree:3db4f7bf6f02ede8d0467b24",
   "designHandoff": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/design-handoff.md",
   "designHandoffSha256": "9fab1b0d68434d2d025fa170daaabbb22852126995759c24ab145dfee57c30af",
   "handoffMatrix": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/evidence/govern-adaptive-path-product-qa/handoff-to-implementation-matrix.md",
   "handoffMatrixSha256": "e1f27e07a86a8b9c1699b7d9ec9b6a10ecc04c6d656fabae94177d8e01bc44bd",
   "captureManifest": "artifacts/commercial-ui/adaptive-path-product-qa-516/capture-manifest.json",
-  "captureManifestSha256": "9c831a784344cbdf2051c11e2e3cac87ee972d92b6be18e250810911f465a178",
+  "captureManifestSha256": "03bf61dad8ea89b01b5eec8365b57da2f6798555b55563c17de1d02c4be68362",
   "visualSignals": "artifacts/commercial-ui/adaptive-path-product-qa-516/visual-signals.json",
-  "visualSignalsSha256": "e227ff0d848046479d1325666868ce95c5b32249011402bbcb06283bcd606db6",
+  "visualSignalsSha256": "b2f2fd2db89253922352c6759698defad8131465aabca5517dca9bd18948fcdd",
   "conceptImages": [
     "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png",
     "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/02-path-selection-comparison.png",
@@ -68,7 +68,7 @@
       "pageState": "generation main",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/generation-main-desktop-light.png",
-      "screenshotSha256": "1c949865179b4ee34623e2f07b8dbafcafd9bd83bcadafd407b99d3187a29987",
+      "screenshotSha256": "6178f2e3fa0aae85ed31ef38e622dc73ae88885a235386f5ae6fe8c3ff137328",
       "result": "passed"
     },
     {
@@ -84,7 +84,7 @@
       "pageState": "generation main",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/generation-main-mobile-dark.png",
-      "screenshotSha256": "1f9655b9be55521c15459d9461bcc9c9a23f5ff7f9faeef4a18783f73028e235",
+      "screenshotSha256": "08984a96882559f00d08a4b6a3a88427ba82fa29994ad781dfcb74b17f63f86c",
       "result": "passed"
     },
     {
@@ -100,7 +100,7 @@
       "pageState": "Konling parameter panel",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/konling-parameter-panel-desktop-dark.png",
-      "screenshotSha256": "7aa515ab5637b97e11f3368530d63079c94e2a9b1a981e3463cc45e293e693d4",
+      "screenshotSha256": "656761757edd0cffe41fa63a8272232e2ff655e13e3ba623a9874529af1760d0",
       "result": "passed"
     },
     {
@@ -116,7 +116,7 @@
       "pageState": "cold-start starter paths",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/01-path-generation-main.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/cold-start-starter-paths-mobile-light.png",
-      "screenshotSha256": "b08104db4dd15943e936e76332825b10e178cea40b46a754344a67302d6e3991",
+      "screenshotSha256": "60fedb6890d7fdf55515de4fde982aa1774f145e44a8e296c43945eba3510705",
       "result": "passed"
     },
     {
@@ -133,7 +133,7 @@
       "selectedPath": "path-option-foundation",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/02-path-selection-comparison.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/path-comparison-desktop-light.png",
-      "screenshotSha256": "2add60a90f01ccd1616a2d827dfb675b1ee8071485698b84fa79c1a9ed61caf7",
+      "screenshotSha256": "023b20235d42a6da2fb151642cf969c29f762bfeca1115e6e3b6a0fe92587147",
       "result": "passed"
     },
     {
@@ -166,7 +166,7 @@
       "pageState": "active path execution",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/active-path-execution-desktop-light.png",
-      "screenshotSha256": "35333af48ac23e8f7dbe6f3485a6c9e0512e2126bd3a2bfcb339d45f358030ad",
+      "screenshotSha256": "e5d019cff202f8342ccd249b3c05156063c4a6bcc41f2c6295472c7764676e33",
       "result": "passed"
     },
     {
@@ -182,7 +182,7 @@
       "pageState": "active path execution",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/active-path-execution-mobile-dark.png",
-      "screenshotSha256": "25d6090d3a4a3472ef9dc87c017dd9c98300860482f06a72595c91bda193e0a1",
+      "screenshotSha256": "a1821c42bc34fcab5a06209aeeb6ade0d9de845103e70d413b758170e8162c2c",
       "result": "passed"
     },
     {
@@ -199,7 +199,7 @@
       "selectedNode": "freq-response-checkpoint",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/node-detail-desktop-light.png",
-      "screenshotSha256": "02fb682d2c87362bad6385a22e425f70119c01e7e4c75e155c56ce88efdf05f6",
+      "screenshotSha256": "9c4672a3da47bde2b8e980e35b612a77b9529ab2d30754aac0b1f171adc7d291",
       "result": "passed"
     },
     {
@@ -216,7 +216,7 @@
       "selectedNode": "freq-response-checkpoint",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/skip-warning-desktop-light.png",
-      "screenshotSha256": "f018b92426ba85fa1cb74ba3d5904893bd7aa4a99dc5c0ce8e55278c08109b5a",
+      "screenshotSha256": "6362484933558857ad9b651b21ab9dd1ed8c9fde6225857f496f08120b70e8ca",
       "result": "passed"
     },
     {
@@ -232,7 +232,7 @@
       "pageState": "history and evidence timeline",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/04-history-evidence-record.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/history-evidence-desktop-light.png",
-      "screenshotSha256": "5c1c20b84ab33a37534cc80a42bc68d55dce8d34456d269bac88aecddb6115fb",
+      "screenshotSha256": "b2d37167bb22b7509a129d104c4dab75a5384094d1fac35ab73e908f304a3117",
       "result": "passed"
     },
     {
@@ -248,7 +248,7 @@
       "pageState": "history and evidence timeline",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/04-history-evidence-record.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/history-evidence-mobile-dark.png",
-      "screenshotSha256": "e71a6832634f57b79e6631dbed523f7d47915092975d6eac9668d334b343a3d4",
+      "screenshotSha256": "8d6232e0d0a0ca168efb070b5929d03fb511633da2bb90736cff634ad338580f",
       "result": "passed"
     },
     {
@@ -264,7 +264,7 @@
       "pageState": "AppShell and dock stress state",
       "sourceConcept": "artifacts/product-design-audits/adaptive-learning-path-2026-06-14/concepts/03-active-path-execution.png",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/app-shell-expanded-dock-desktop-dark.png",
-      "screenshotSha256": "69f08ae9694012fb04221753a83b72f7ef13cbc383952e7972ac6d13994d9f24",
+      "screenshotSha256": "85ca6486e417f7b76d0346d9bc234b35b8d03612c571a3986cfd364cabae0c07",
       "result": "passed"
     }
   ],
@@ -275,7 +275,7 @@
       "theme": "light",
       "viewport": "desktop",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/generation-main-desktop-light.png",
-      "screenshotSha256": "1c949865179b4ee34623e2f07b8dbafcafd9bd83bcadafd407b99d3187a29987"
+      "screenshotSha256": "6178f2e3fa0aae85ed31ef38e622dc73ae88885a235386f5ae6fe8c3ff137328"
     },
     {
       "id": "generation-main-mobile-dark",
@@ -283,7 +283,7 @@
       "theme": "dark",
       "viewport": "mobile",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/generation-main-mobile-dark.png",
-      "screenshotSha256": "1f9655b9be55521c15459d9461bcc9c9a23f5ff7f9faeef4a18783f73028e235"
+      "screenshotSha256": "08984a96882559f00d08a4b6a3a88427ba82fa29994ad781dfcb74b17f63f86c"
     },
     {
       "id": "konling-parameter-panel-desktop-dark",
@@ -291,7 +291,7 @@
       "theme": "dark",
       "viewport": "desktop",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/konling-parameter-panel-desktop-dark.png",
-      "screenshotSha256": "7aa515ab5637b97e11f3368530d63079c94e2a9b1a981e3463cc45e293e693d4"
+      "screenshotSha256": "656761757edd0cffe41fa63a8272232e2ff655e13e3ba623a9874529af1760d0"
     },
     {
       "id": "cold-start-starter-paths-mobile-light",
@@ -299,7 +299,7 @@
       "theme": "light",
       "viewport": "mobile",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/cold-start-starter-paths-mobile-light.png",
-      "screenshotSha256": "b08104db4dd15943e936e76332825b10e178cea40b46a754344a67302d6e3991"
+      "screenshotSha256": "60fedb6890d7fdf55515de4fde982aa1774f145e44a8e296c43945eba3510705"
     },
     {
       "id": "path-comparison-desktop-light",
@@ -307,7 +307,7 @@
       "theme": "light",
       "viewport": "desktop",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/path-comparison-desktop-light.png",
-      "screenshotSha256": "2add60a90f01ccd1616a2d827dfb675b1ee8071485698b84fa79c1a9ed61caf7"
+      "screenshotSha256": "023b20235d42a6da2fb151642cf969c29f762bfeca1115e6e3b6a0fe92587147"
     },
     {
       "id": "path-comparison-mobile-dark",
@@ -323,7 +323,7 @@
       "theme": "light",
       "viewport": "desktop",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/active-path-execution-desktop-light.png",
-      "screenshotSha256": "35333af48ac23e8f7dbe6f3485a6c9e0512e2126bd3a2bfcb339d45f358030ad"
+      "screenshotSha256": "e5d019cff202f8342ccd249b3c05156063c4a6bcc41f2c6295472c7764676e33"
     },
     {
       "id": "active-path-execution-mobile-dark",
@@ -331,7 +331,7 @@
       "theme": "dark",
       "viewport": "mobile",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/active-path-execution-mobile-dark.png",
-      "screenshotSha256": "25d6090d3a4a3472ef9dc87c017dd9c98300860482f06a72595c91bda193e0a1"
+      "screenshotSha256": "a1821c42bc34fcab5a06209aeeb6ade0d9de845103e70d413b758170e8162c2c"
     },
     {
       "id": "node-detail-desktop-light",
@@ -339,7 +339,7 @@
       "theme": "light",
       "viewport": "desktop",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/node-detail-desktop-light.png",
-      "screenshotSha256": "02fb682d2c87362bad6385a22e425f70119c01e7e4c75e155c56ce88efdf05f6"
+      "screenshotSha256": "9c4672a3da47bde2b8e980e35b612a77b9529ab2d30754aac0b1f171adc7d291"
     },
     {
       "id": "skip-warning-desktop-light",
@@ -347,7 +347,7 @@
       "theme": "light",
       "viewport": "desktop",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/skip-warning-desktop-light.png",
-      "screenshotSha256": "f018b92426ba85fa1cb74ba3d5904893bd7aa4a99dc5c0ce8e55278c08109b5a"
+      "screenshotSha256": "6362484933558857ad9b651b21ab9dd1ed8c9fde6225857f496f08120b70e8ca"
     },
     {
       "id": "history-evidence-desktop-light",
@@ -355,7 +355,7 @@
       "theme": "light",
       "viewport": "desktop",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/history-evidence-desktop-light.png",
-      "screenshotSha256": "5c1c20b84ab33a37534cc80a42bc68d55dce8d34456d269bac88aecddb6115fb"
+      "screenshotSha256": "b2d37167bb22b7509a129d104c4dab75a5384094d1fac35ab73e908f304a3117"
     },
     {
       "id": "history-evidence-mobile-dark",
@@ -363,7 +363,7 @@
       "theme": "dark",
       "viewport": "mobile",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/history-evidence-mobile-dark.png",
-      "screenshotSha256": "e71a6832634f57b79e6631dbed523f7d47915092975d6eac9668d334b343a3d4"
+      "screenshotSha256": "8d6232e0d0a0ca168efb070b5929d03fb511633da2bb90736cff634ad338580f"
     },
     {
       "id": "app-shell-expanded-dock-desktop-dark",
@@ -371,7 +371,7 @@
       "theme": "dark",
       "viewport": "desktop",
       "screenshot": "artifacts/commercial-ui/adaptive-path-product-qa-516/app-shell-expanded-dock-desktop-dark.png",
-      "screenshotSha256": "69f08ae9694012fb04221753a83b72f7ef13cbc383952e7972ac6d13994d9f24"
+      "screenshotSha256": "85ca6486e417f7b76d0346d9bc234b35b8d03612c571a3986cfd364cabae0c07"
     }
   ],
   "independentVisualReview": {

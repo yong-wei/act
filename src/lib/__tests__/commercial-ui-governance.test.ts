@@ -4248,7 +4248,9 @@ describe('commercial UI governance', () => {
     expect(pageSource).toContain('生成学习路径');
     expect(pageSource).toContain('告诉控灵你想达成什么');
     expect(pageSource).toContain('data-adaptive-path-comparison-state="information-grid"');
-    expect(pageSource).toContain('data-learning-path-options-layout="comparable-information-grid"');
+    expect(pageSource).toContain('data-learning-path-options-layout="route-modules"');
+    expect(captureScriptSource).toContain('assertPathComparisonSignals');
+    expect(captureScriptSource).toContain('routeModulesAttached=false');
     expect(captureScriptSource).toMatch(/name: 'path-comparison-desktop-light',[\s\S]*?query: '\?demo=1&goal=control-correction&intent=path-selection'/);
     expect(captureScriptSource).toMatch(/name: 'path-comparison-mobile-dark',[\s\S]*?query: '\?demo=1&goal=control-correction&intent=path-selection'/);
     expect(pageSource).toContain("label: '控灵助手'");
