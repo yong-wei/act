@@ -42,6 +42,18 @@ describe('interactive module registry gate', () => {
       requiresCapabilityRef: true,
       allowedInNewAuthoring: true,
     });
+    expect(INTERACTIVE_MODULE_DEFINITIONS['visual.stage']).toMatchObject({
+      canonicalClass: 'visual.stage',
+      renderBehavior: 'renderer',
+      producesEvidence: true,
+      allowedInNewAuthoring: true,
+    });
+    expect(INTERACTIVE_MODULE_DEFINITIONS['visual.derivationStage']).toMatchObject({
+      canonicalClass: 'visual.derivationStage',
+      renderBehavior: 'renderer',
+      producesEvidence: true,
+      allowedInNewAuthoring: true,
+    });
     expect(INTERACTIVE_MODULE_DEFINITIONS['legacy.adapter']).toMatchObject({
       canonicalClass: 'legacy.adapter',
       migrationOnly: true,
@@ -91,8 +103,243 @@ describe('interactive module registry gate', () => {
     expect(registry['content.reveal']).toBeTypeOf('function');
     expect(registry['content.stageMap']).toBeTypeOf('function');
     expect(registry['compute.panel']).toBeTypeOf('function');
+    expect(registry['visual.stage']).toBeTypeOf('function');
+    expect(registry['visual.derivationStage']).toBeTypeOf('function');
     expect(registry['analytics.summary']).toBeTypeOf('function');
     expect(registry['layout.support']).toBeTypeOf('function');
+  });
+
+  it('renders visual.stage as a normalized freeform stage instead of a vertical card list', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 1,
+      allowInlineReveal: true,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'root-locus-stage',
+        kind: 'visual.stage',
+        mustBeVisible: true,
+        payload: visualStagePayloadFixture(),
+      },
+    });
+    const step = manifest.steps[0];
+    const node = registry['visual.stage']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 1, allowInlineReveal: true },
+    }) as ReactElement;
+    const html = renderToStaticMarkup(createElement(ThemeProvider, null, node));
+
+    expect(html).toContain('data-visual-stage-id="root-locus-reading-stage"');
+    expect(html).toContain('data-visual-stage-canvas="normalized"');
+    expect(html).toContain('data-visual-stage-layout="freeform"');
+    expect(html).toContain('data-visual-stage-layer-id="plant-diagram"');
+    expect(html).toContain('data-visual-stage-layer-id="activity-anchor-layer"');
+    expect(html).toContain('data-visual-stage-activity-anchor="stability-observation"');
+    expect(html).not.toContain('space-y-4');
+  });
+
+  it('does not hide all visual.stage layers when activeRevealState is omitted', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 1,
+      allowInlineReveal: true,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'root-locus-stage',
+        kind: 'visual.stage',
+        mustBeVisible: true,
+        payload: {
+          ...visualStagePayloadFixture(),
+          activeRevealState: undefined,
+        },
+      },
+    });
+    const step = manifest.steps[0];
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [{ lessonId: 'fixture-lesson', manifest }],
+    });
+    const node = registry['visual.stage']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 1, allowInlineReveal: true },
+    }) as ReactElement;
+    const html = renderToStaticMarkup(createElement(ThemeProvider, null, node));
+
+    expect(result.passed).toBe(true);
+    expect(html).toContain('data-visual-stage-active-reveal-state="all"');
+    expect(html).toContain('data-visual-stage-layer-id="plant-diagram"');
+    expect(html).toContain('data-visual-stage-layer-id="activity-anchor-layer"');
+  });
+
+  it('does not hide all visual.stage layers when activeRevealState is blank', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 1,
+      allowInlineReveal: true,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'root-locus-stage',
+        kind: 'visual.stage',
+        mustBeVisible: true,
+        payload: {
+          ...visualStagePayloadFixture(),
+          activeRevealState: '   ',
+        },
+      },
+    });
+    const step = manifest.steps[0];
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [{ lessonId: 'fixture-lesson', manifest }],
+    });
+    const node = registry['visual.stage']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 1, allowInlineReveal: true },
+    }) as ReactElement;
+    const html = renderToStaticMarkup(createElement(ThemeProvider, null, node));
+
+    expect(result.passed).toBe(true);
+    expect(html).toContain('data-visual-stage-active-reveal-state="all"');
+    expect(html).toContain('data-visual-stage-layer-id="plant-diagram"');
+    expect(html).toContain('data-visual-stage-layer-id="activity-anchor-layer"');
+  });
+
+  it('normalizes visual.stage layer revealState before rendering', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 1,
+      allowInlineReveal: true,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'root-locus-stage',
+        kind: 'visual.stage',
+        mustBeVisible: true,
+        payload: {
+          ...visualStagePayloadFixture(),
+          activeRevealState: 'intro',
+          layers: [
+            {
+              id: 'trimmed-layer',
+              kind: 'diagram',
+              title: 'Trimmed reveal',
+              body: 'trimmed reveal state layer',
+              region: { x: 0, y: 0, width: 0.45, height: 0.45 },
+              zIndex: 1,
+              revealState: ' intro ',
+            },
+            {
+              id: 'always-layer',
+              kind: 'annotation',
+              title: 'Blank reveal',
+              body: 'blank reveal state layer',
+              region: { x: 0.5, y: 0, width: 0.45, height: 0.45 },
+              zIndex: 2,
+              revealState: '   ',
+            },
+          ],
+        },
+      },
+    });
+    const step = manifest.steps[0];
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [{ lessonId: 'fixture-lesson', manifest }],
+    });
+    const node = registry['visual.stage']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 1, allowInlineReveal: true },
+    }) as ReactElement;
+    const html = renderToStaticMarkup(createElement(ThemeProvider, null, node));
+
+    expect(result.passed).toBe(true);
+    expect(html).toContain('data-visual-stage-layer-id="trimmed-layer"');
+    expect(html).toContain('data-visual-stage-layer-reveal-state="intro"');
+    expect(html).toContain('data-visual-stage-layer-id="always-layer"');
+    expect(html).toContain('data-visual-stage-layer-reveal-state="always"');
+  });
+
+  it('renders visual.derivationStage as a freeform LaTeX derivation with non-linear reveal targets', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 1,
+      allowInlineReveal: true,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'derivation-stage',
+        kind: 'visual.derivationStage',
+        mustBeVisible: true,
+        payload: derivationStagePayloadFixture(),
+      },
+    });
+    const step = manifest.steps[0];
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [{ lessonId: 'fixture-lesson', manifest }],
+    });
+    const node = registry['visual.derivationStage']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 1, allowInlineReveal: true },
+    }) as ReactElement;
+    const html = renderToStaticMarkup(createElement(ThemeProvider, null, node));
+
+    expect(result.passed).toBe(true);
+    expect(html).toContain('data-derivation-stage-id="nonlinear-derivation-stage"');
+    expect(html).toContain('data-derivation-stage-canvas="normalized"');
+    expect(html).toContain('data-derivation-stage-layout="freeform"');
+    expect(html).toContain('data-katex-rendered="true"');
+    expect(html).toContain('data-derivation-stage-formula-id="definition-formula"');
+    expect(html).toContain('data-derivation-stage-formula-block-id="cancel-term"');
+    expect(html).toContain('data-derivation-stage-color-role="cancel"');
+    expect(html).toContain('data-derivation-stage-formula-block-id="result-block"');
+    expect(html).toContain('data-derivation-stage-color-role="result"');
+    expect(html).toContain('data-derivation-stage-connector-id="definition-to-target"');
+    expect(html).toContain('data-derivation-stage-connector-from="known-g"');
+    expect(html).toContain('data-derivation-stage-connector-to="result-block"');
+    expect(html).toContain('x1="26"');
+    expect(html).toContain('x2="71"');
+    expect(html).toContain('data-derivation-stage-reveal-step-id="step-lower-left"');
+    expect(html).toContain('data-derivation-stage-reveal-step-id="step-upper-right"');
+    expect(html).not.toContain('space-y-4');
+  });
+
+  it('renders visual.derivationStage teacher controls from the controls alias', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 1,
+      allowInlineReveal: true,
+    });
+    const payload = derivationStagePayloadFixture();
+    payload.teacherControls = { controls: ['next', 'previous', 'jump', 'highlight', 'answerReveal', 'reset'] };
+    const manifest = manifestFixture({
+      module: {
+        id: 'derivation-stage',
+        kind: 'visual.derivationStage',
+        mustBeVisible: true,
+        payload,
+      },
+    });
+    const step = manifest.steps[0];
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [{ lessonId: 'fixture-lesson', manifest }],
+    });
+    const node = registry['visual.derivationStage']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 1, allowInlineReveal: true },
+    }) as ReactElement;
+    const html = renderToStaticMarkup(createElement(ThemeProvider, null, node));
+
+    expect(result.passed).toBe(true);
+    expect(html).toContain('data-derivation-stage-teacher-control="jump"');
+    expect(html).toContain('跳转');
+    expect(html).toContain('data-derivation-stage-teacher-control="answerReveal"');
+    expect(html).toContain('答案');
   });
 
   it('routes shared control workbench compute capabilities through the shared renderer', () => {
@@ -1062,6 +1309,188 @@ describe('interactive module registry gate', () => {
     expect(result.violations).toEqual([]);
   });
 
+  it('validates visual.stage payload contracts before runtime rendering', () => {
+    const validResult = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'root-locus-stage',
+              kind: 'visual.stage',
+              mustBeVisible: true,
+              payload: visualStagePayloadFixture(),
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(validResult.passed).toBe(true);
+    expect(validResult.violations).toEqual([]);
+
+    const invalidResult = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'broken-stage',
+              kind: 'visual.stage',
+              mustBeVisible: true,
+              payload: {
+                stageId: '',
+                aspectRatio: 'square',
+                releaseState: 'floating',
+                revealStates: ['intro'],
+                activeRevealState: 'missing',
+                layers: [
+                  {
+                    id: 'duplicate-layer',
+                    kind: 'diagram',
+                    region: { x: 0, y: 0, width: 0.6, height: 0.6 },
+                    zIndex: 0,
+                    revealState: 'intro',
+                  },
+                  {
+                    id: 'duplicate-layer',
+                    kind: 'private-widget',
+                    region: { x: 0.7, y: 0.5, width: 0.5, height: 0.8 },
+                    zIndex: -1,
+                    revealState: 'missing',
+                  },
+                  {
+                    kind: 'activity',
+                    region: { x: -0.1, y: 0, width: 0, height: 1.2 },
+                  },
+                ],
+              },
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(invalidResult.passed).toBe(false);
+    expect(invalidResult.violations).toEqual([
+      expect.objectContaining({
+        lessonId: 'fixture-lesson',
+        stepId: 'step-01',
+        moduleId: 'broken-stage',
+        kind: 'visual.stage',
+        code: 'visual-stage-payload-invalid',
+        canonicalClass: 'visual.stage',
+      }),
+    ]);
+    expect(invalidResult.violations[0]?.message).toContain('stageId');
+    expect(invalidResult.violations[0]?.message).toContain('stage=(missing)');
+    expect(invalidResult.violations[0]?.message).toContain('aspectRatio');
+    expect(invalidResult.violations[0]?.message).toContain('releaseState');
+    expect(invalidResult.violations[0]?.message).toContain('activeRevealState');
+    expect(invalidResult.violations[0]?.message).toContain('layers[1:duplicate-layer].id:duplicate');
+    expect(invalidResult.violations[0]?.message).toContain('layers[1:duplicate-layer].kind');
+    expect(invalidResult.violations[0]?.message).toContain('layers[1:duplicate-layer].revealState');
+    expect(invalidResult.violations[0]?.message).toContain('layers[1:duplicate-layer].region.right');
+    expect(invalidResult.violations[0]?.message).toContain('layers[1:duplicate-layer].region.bottom');
+    expect(invalidResult.violations[0]?.message).toContain('layers[1:duplicate-layer].zIndex');
+    expect(invalidResult.violations[0]?.message).toContain('layers[2:(missing)].id');
+    expect(invalidResult.violations[0]?.message).toContain('layers[2:(missing)].region.x');
+    expect(invalidResult.violations[0]?.message).toContain('layers[2:(missing)].region.width');
+    expect(invalidResult.violations[0]?.message).toContain('layers[2:(missing)].region.height');
+  });
+
+  it('validates visual.derivationStage payload contracts before runtime rendering', () => {
+    const validResult = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'derivation-stage',
+              kind: 'visual.derivationStage',
+              mustBeVisible: true,
+              payload: derivationStagePayloadFixture(),
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(validResult.passed).toBe(true);
+    expect(validResult.violations).toEqual([]);
+
+    const invalidResult = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'broken-derivation-stage',
+              kind: 'visual.derivationStage',
+              mustBeVisible: true,
+              payload: {
+                stageId: '',
+                aspectRatio: 'square',
+                releaseState: 'floating',
+                formulas: [
+                  {
+                    id: 'formula-a',
+                    latex: 'plain words only',
+                    region: { x: 0, y: 0, width: 0.5, height: 0.5 },
+                    blocks: [
+                      { id: 'duplicate-block', latex: '\\\\alpha', colorRole: 'known' },
+                      { id: 'duplicate-block', latex: 'plain', colorRole: 'purple' },
+                    ],
+                  },
+                ],
+                textBlocks: [
+                  { id: 'note-a', body: 'note', region: { x: 0.8, y: 0.8, width: 0.4, height: 0.4 } },
+                ],
+                connectors: [
+                  { id: 'bad-connector', kind: 'curve', from: 'missing-source', to: 'missing-target', revealStepIds: ['missing-step'] },
+                ],
+                revealSteps: [
+                  { id: 'reveal-a', targetIds: ['missing-target'] },
+                  { id: 'reveal-a', targetIds: ['duplicate-block', 'missing-target'] },
+                ],
+                cognitiveLoad: {},
+                activeRevealStepId: 'missing-active-step',
+                teacherControls: { enabled: ['next'] },
+              },
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(invalidResult.passed).toBe(false);
+    expect(invalidResult.violations).toEqual([
+      expect.objectContaining({
+        lessonId: 'fixture-lesson',
+        stepId: 'step-01',
+        moduleId: 'broken-derivation-stage',
+        kind: 'visual.derivationStage',
+        code: 'derivation-stage-payload-invalid',
+        canonicalClass: 'visual.derivationStage',
+      }),
+    ]);
+    expect(invalidResult.violations[0]?.message).toContain('stageId');
+    expect(invalidResult.violations[0]?.message).toContain('aspectRatio');
+    expect(invalidResult.violations[0]?.message).toContain('releaseState');
+    expect(invalidResult.violations[0]?.message).toContain('formulas[0:formula-a].latex');
+    expect(invalidResult.violations[0]?.message).toContain('blocks[1:duplicate-block].id:duplicate');
+    expect(invalidResult.violations[0]?.message).toContain('blocks[1:duplicate-block].colorRole');
+    expect(invalidResult.violations[0]?.message).toContain('textBlocks[0:note-a].region.right');
+    expect(invalidResult.violations[0]?.message).toContain('connectors[0:bad-connector].kind');
+    expect(invalidResult.violations[0]?.message).toContain('connectors[0:bad-connector].from');
+    expect(invalidResult.violations[0]?.message).toContain('connectors[0:bad-connector].revealStepIds:missing-step');
+    expect(invalidResult.violations[0]?.message).toContain('revealSteps[1:reveal-a].id:duplicate');
+    expect(invalidResult.violations[0]?.message).toContain('activeRevealStepId');
+    expect(invalidResult.violations[0]?.message).toContain('cognitiveLoad.longFormulaSplitStrategy');
+    expect(invalidResult.violations[0]?.message).toContain('teacherControls.previous');
+    expect(invalidResult.violations[0]?.message).toContain('teacherControls.answerReveal');
+  });
+
   it('rejects shared control workbench capabilities without visible panel and response contracts', () => {
     const result = evaluateInteractiveModuleRegistryGate({
       manifests: [
@@ -1847,6 +2276,118 @@ function staticSurfacePayloadFixture(): Record<string, unknown> {
       image: '/course-runtime/lessons/1-2/media/1-2-fig-08-magnitude-surface.png',
       alt: '船舶传递函数极点幅值曲面的静态图',
     },
+  };
+}
+
+function visualStagePayloadFixture(): Record<string, unknown> {
+  return {
+    stageId: 'root-locus-reading-stage',
+    aspectRatio: '16:9',
+    releaseState: 'released',
+    activeRevealState: 'intro',
+    revealStates: ['intro', 'answer'],
+    layers: [
+      {
+        id: 'plant-diagram',
+        kind: 'diagram',
+        title: '对象关系',
+        body: '把开环对象、闭环反馈和观察量放在同一坐标中。',
+        region: { x: 0.04, y: 0.08, width: 0.58, height: 0.5 },
+        zIndex: 1,
+        revealState: 'intro',
+      },
+      {
+        id: 'formula-callout',
+        kind: 'formula',
+        title: '闭环式',
+        body: '$T(s)=\\frac{G(s)}{1+G(s)H(s)}$',
+        region: { x: 0.64, y: 0.1, width: 0.3, height: 0.22 },
+        zIndex: 2,
+        revealState: 'intro',
+      },
+      {
+        id: 'activity-anchor-layer',
+        kind: 'activity',
+        title: '判断锚点',
+        body: '记录稳定性观察。',
+        region: { x: 0.58, y: 0.62, width: 0.36, height: 0.24 },
+        zIndex: 3,
+        revealState: 'intro',
+        activityAnchor: 'stability-observation',
+      },
+    ],
+  };
+}
+
+function derivationStagePayloadFixture(): Record<string, unknown> {
+  return {
+    stageId: 'nonlinear-derivation-stage',
+    aspectRatio: '16:9',
+    releaseState: 'revealed',
+    activeRevealStepId: 'step-middle-block',
+    formulas: [
+      {
+        id: 'definition-formula',
+        title: '闭环定义',
+        latex: 'T(s)=\\\\frac{G(s)}{1+G(s)H(s)}',
+        region: { x: 0.05, y: 0.08, width: 0.42, height: 0.32 },
+        blocks: [
+          { id: 'known-g', title: '对象', latex: 'G(s)', colorRole: 'known' },
+          { id: 'cancel-term', title: '抵消项', latex: '1+G(s)H(s)', colorRole: 'cancel' },
+        ],
+      },
+      {
+        id: 'result-formula',
+        title: '目标式',
+        latex: '\\\\Phi(s)=\\\\frac{C(s)}{R(s)}',
+        region: { x: 0.52, y: 0.48, width: 0.38, height: 0.28 },
+        blocks: [
+          { id: 'result-block', title: '结论', latex: '\\\\Phi(s)', colorRole: 'result' },
+        ],
+      },
+    ],
+    textBlocks: [
+      {
+        id: 'upper-right-note',
+        title: '观察',
+        body: '先保留定义，再移动到右侧目标表达。',
+        region: { x: 0.56, y: 0.08, width: 0.35, height: 0.18 },
+      },
+    ],
+    connectors: [
+      { id: 'definition-to-target', kind: 'arrow', from: 'known-g', to: 'result-block', revealStepIds: ['step-middle-block'] },
+    ],
+    revealSteps: [
+      {
+        id: 'step-lower-left',
+        title: '下方定义',
+        targetIds: ['definition-formula', 'known-g'],
+        reasoning: '先定位对象关系。',
+      },
+      {
+        id: 'step-upper-right',
+        title: '右上说明',
+        targetIds: ['upper-right-note'],
+        reasoning: '再解释推导意图。',
+      },
+      {
+        id: 'step-middle-block',
+        title: '中部公式块',
+        targetIds: ['cancel-term', 'result-formula', 'result-block'],
+        reasoning: '最后显影变形和结论。',
+      },
+    ],
+    cognitiveLoad: {
+      maxNewFormulaBlocksPerStep: 2,
+      maxSimultaneousColorRoles: 2,
+      longFormulaSplitStrategy: 'block-by-term',
+      defaultTeacherReleasePace: 'teacher-paced',
+      studentSelfStudyVisibleRange: 'released-through-active',
+    },
+    teacherControls: {
+      enabled: ['next', 'previous', 'jump', 'highlight', 'answerReveal', 'reset'],
+    },
+    answerVisible: true,
   };
 }
 

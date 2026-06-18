@@ -30,6 +30,72 @@ type FormulaSymbol = { symbol: string; meaning: string };
 type CodeTokenKind = 'keyword' | 'function' | 'number' | 'string' | 'comment' | 'operator' | 'plain';
 type CodeToken = { value: string; kind: CodeTokenKind };
 type InteractiveFigureKind = 'drag_pole_s_plane' | 'three_ships_case';
+type VisualStageAspectRatio = '16:9' | '4:3' | 'fluid';
+type VisualStageLayerKind = 'diagram' | 'formula' | 'annotation' | 'media' | 'activity' | 'control';
+type VisualStageRegion = { x: number; y: number; width: number; height: number };
+type VisualStageLayer = {
+  id: string;
+  kind: VisualStageLayerKind;
+  title: string;
+  body: string;
+  region: VisualStageRegion;
+  zIndex: number;
+  revealState?: string;
+  activityAnchor?: string;
+};
+type VisualStagePayload = {
+  stageId: string;
+  aspectRatio: VisualStageAspectRatio;
+  releaseState: string;
+  activeRevealState: string;
+  layers: VisualStageLayer[];
+};
+type DerivationFormulaBlockColorRole = 'known' | 'transform' | 'cancel' | 'target' | 'risk' | 'result';
+type DerivationStageRegion = VisualStageRegion;
+type DerivationFormulaBlock = {
+  id: string;
+  latex: string;
+  title: string;
+  colorRole?: DerivationFormulaBlockColorRole;
+};
+type DerivationFormula = {
+  id: string;
+  title: string;
+  latex: string;
+  region: DerivationStageRegion;
+  blocks: DerivationFormulaBlock[];
+};
+type DerivationTextBlock = {
+  id: string;
+  title: string;
+  body: string;
+  region: DerivationStageRegion;
+};
+type DerivationConnector = {
+  id: string;
+  kind: string;
+  from: string;
+  to: string;
+  revealStepIds: string[];
+};
+type DerivationRevealStep = {
+  id: string;
+  title: string;
+  targetIds: string[];
+  reasoning: string;
+};
+type DerivationStagePayload = {
+  stageId: string;
+  aspectRatio: VisualStageAspectRatio;
+  releaseState: string;
+  activeRevealStepId: string;
+  formulas: DerivationFormula[];
+  textBlocks: DerivationTextBlock[];
+  connectors: DerivationConnector[];
+  revealSteps: DerivationRevealStep[];
+  teacherControls: string[];
+  answerVisible: boolean;
+};
 
 const MATLAB_KEYWORDS = new Set([
   'break',
@@ -219,6 +285,295 @@ function uniqueStrings(items: string[]) {
     if (trimmed && !result.includes(trimmed)) result.push(trimmed);
   }
   return result;
+}
+
+function numberInRange(value: unknown, fallback: number, min = 0, max = 1) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return clamp(numeric, min, max);
+}
+
+function visualStageAspectRatio(value: unknown): VisualStageAspectRatio {
+  return value === '4:3' || value === 'fluid' ? value : '16:9';
+}
+
+function visualStageString(value: unknown, fallback: string) {
+  if (typeof value === 'string' && value.trim()) return value.trim();
+  return fallback;
+}
+
+function visualStageOptionalString(value: unknown) {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed || undefined;
+}
+
+function visualStageRegion(value: unknown): VisualStageRegion {
+  const region = asRecord(value);
+  return {
+    x: numberInRange(region.x, 0),
+    y: numberInRange(region.y, 0),
+    width: numberInRange(region.width ?? region.w, 1, 0.05, 1),
+    height: numberInRange(region.height ?? region.h, 1, 0.05, 1),
+  };
+}
+
+function visualStageLayers(value: unknown): VisualStageLayer[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index): VisualStageLayer | null => {
+      const layer = asRecord(item);
+      const id = String(layer.id ?? '').trim();
+      if (!id) return null;
+      const kind = ['diagram', 'formula', 'annotation', 'media', 'activity', 'control'].includes(String(layer.kind))
+        ? String(layer.kind) as VisualStageLayerKind
+        : 'annotation';
+      return {
+        id,
+        kind,
+        title: String(layer.title ?? layer.label ?? `Layer ${index + 1}`),
+        body: String(layer.body ?? layer.text ?? layer.description ?? ''),
+        region: visualStageRegion(layer.region),
+        zIndex: Number.isFinite(Number(layer.zIndex ?? layer.z_index)) ? Number(layer.zIndex ?? layer.z_index) : index,
+        revealState: visualStageOptionalString(layer.revealState ?? layer.reveal_state),
+        activityAnchor: typeof layer.activityAnchor === 'string'
+          ? layer.activityAnchor
+          : typeof layer.activity_anchor === 'string'
+            ? layer.activity_anchor
+            : undefined,
+      };
+    })
+    .filter((item): item is VisualStageLayer => Boolean(item))
+    .sort((left, right) => left.zIndex - right.zIndex);
+}
+
+function visualStagePayload(module: InteractiveRuntimeModuleManifest): VisualStagePayload {
+  const payload = module.payload;
+  return {
+    stageId: String(payload.stageId ?? payload.stage_id ?? module.id),
+    aspectRatio: visualStageAspectRatio(payload.aspectRatio ?? payload.aspect_ratio),
+    releaseState: visualStageString(payload.releaseState ?? payload.release_state, 'released'),
+    activeRevealState: visualStageString(payload.activeRevealState ?? payload.active_reveal_state, 'all'),
+    layers: visualStageLayers(payload.layers),
+  };
+}
+
+function visualStageReleaseLabel(releaseState: string) {
+  if (releaseState === 'unavailable') return '当前舞台暂不可用。';
+  if (releaseState === 'unreleased') return '等待教师发放后查看舞台内容。';
+  if (releaseState === 'revealed') return '教师已展开当前显影步骤。';
+  return '在同一画布中观察对象、关系和显影步骤。';
+}
+
+function visualStageLayerKindLabel(kind: VisualStageLayerKind) {
+  const labels: Record<VisualStageLayerKind, string> = {
+    diagram: '关系图',
+    formula: '公式',
+    annotation: '标注',
+    media: '媒体',
+    activity: '活动锚点',
+    control: '控制对象',
+  };
+  return labels[kind];
+}
+
+function derivationColorRole(value: unknown): DerivationFormulaBlockColorRole | undefined {
+  return ['known', 'transform', 'cancel', 'target', 'risk', 'result'].includes(String(value))
+    ? String(value) as DerivationFormulaBlockColorRole
+    : undefined;
+}
+
+function derivationFormulaBlocks(value: unknown, fallbackLatex: string): DerivationFormulaBlock[] {
+  if (!Array.isArray(value)) {
+    return [{ id: 'formula', latex: fallbackLatex, title: '完整公式' }];
+  }
+  return value
+    .map((item, index): DerivationFormulaBlock | null => {
+      const block = asRecord(item);
+      const id = String(block.id ?? '').trim();
+      if (!id) return null;
+      return {
+        id,
+        latex: visualStageString(block.latex ?? block.latexSource ?? block.latex_source, fallbackLatex),
+        title: String(block.title ?? block.label ?? `公式块 ${index + 1}`),
+        colorRole: derivationColorRole(block.colorRole ?? block.color_role),
+      };
+    })
+    .filter((item): item is DerivationFormulaBlock => Boolean(item));
+}
+
+function derivationFormulas(value: unknown): DerivationFormula[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index): DerivationFormula | null => {
+      const formula = asRecord(item);
+      const id = String(formula.id ?? '').trim();
+      const latex = visualStageString(formula.latex ?? formula.latexSource ?? formula.latex_source, '');
+      if (!id || !latex) return null;
+      return {
+        id,
+        title: String(formula.title ?? formula.label ?? `公式 ${index + 1}`),
+        latex,
+        region: visualStageRegion(formula.region),
+        blocks: derivationFormulaBlocks(formula.blocks, latex),
+      };
+    })
+    .filter((item): item is DerivationFormula => Boolean(item));
+}
+
+function derivationTextBlocks(value: unknown): DerivationTextBlock[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index): DerivationTextBlock | null => {
+      const textBlock = asRecord(item);
+      const id = String(textBlock.id ?? '').trim();
+      if (!id) return null;
+      return {
+        id,
+        title: String(textBlock.title ?? textBlock.label ?? `说明 ${index + 1}`),
+        body: String(textBlock.body ?? textBlock.text ?? textBlock.description ?? ''),
+        region: visualStageRegion(textBlock.region),
+      };
+    })
+    .filter((item): item is DerivationTextBlock => Boolean(item));
+}
+
+function derivationConnectors(value: unknown): DerivationConnector[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index): DerivationConnector | null => {
+      const connector = asRecord(item);
+      const id = String(connector.id ?? '').trim();
+      const from = String(connector.from ?? connector.fromId ?? connector.from_id ?? '').trim();
+      const to = String(connector.to ?? connector.toId ?? connector.to_id ?? '').trim();
+      if (!id || !from || !to) return null;
+      return {
+        id,
+        from,
+        to,
+        kind: String(connector.kind ?? `connector-${index + 1}`),
+        revealStepIds: asStringArray(connector.revealStepIds ?? connector.reveal_step_ids),
+      };
+    })
+    .filter((item): item is DerivationConnector => Boolean(item));
+}
+
+function derivationRevealSteps(value: unknown): DerivationRevealStep[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index): DerivationRevealStep | null => {
+      const step = asRecord(item);
+      const id = String(step.id ?? '').trim();
+      if (!id) return null;
+      return {
+        id,
+        title: String(step.title ?? step.label ?? `显影 ${index + 1}`),
+        targetIds: asStringArray(step.targetIds ?? step.target_ids ?? step.targets),
+        reasoning: String(step.reasoning ?? step.teachingNote ?? step.teaching_note ?? ''),
+      };
+    })
+    .filter((item): item is DerivationRevealStep => Boolean(item));
+}
+
+function derivationStagePayload(module: InteractiveRuntimeModuleManifest): DerivationStagePayload {
+  const payload = module.payload;
+  const revealSteps = derivationRevealSteps(payload.revealSteps ?? payload.reveal_steps);
+  const activeRevealStepId = visualStageString(
+    payload.activeRevealStepId ?? payload.active_reveal_step_id,
+    revealSteps[0]?.id ?? 'all',
+  );
+  const teacherControlsPayload = asRecord(payload.teacherControls ?? payload.teacher_controls);
+  const teacherControls = asStringArray(teacherControlsPayload.enabled ?? teacherControlsPayload.controls);
+  return {
+    stageId: String(payload.stageId ?? payload.stage_id ?? module.id),
+    aspectRatio: visualStageAspectRatio(payload.aspectRatio ?? payload.aspect_ratio),
+    releaseState: visualStageString(payload.releaseState ?? payload.release_state, 'released'),
+    activeRevealStepId,
+    formulas: derivationFormulas(payload.formulas),
+    textBlocks: derivationTextBlocks(payload.textBlocks ?? payload.text_blocks),
+    connectors: derivationConnectors(payload.connectors),
+    revealSteps,
+    teacherControls,
+    answerVisible: Boolean(payload.answerVisible ?? payload.answer_visible),
+  };
+}
+
+function derivationStageReleaseLabel(releaseState: string) {
+  if (releaseState === 'unavailable') return '当前推导暂不可用。';
+  if (releaseState === 'unreleased') return '等待教师发放后查看推导。';
+  if (releaseState === 'revealed') return '教师已展开当前推导位置。';
+  return '按显影步骤观察公式块、说明和关联线。';
+}
+
+function derivationStageVisibleTargetIds(stage: DerivationStagePayload) {
+  if (stage.releaseState === 'unavailable' || stage.releaseState === 'unreleased') return new Set<string>();
+  if (stage.activeRevealStepId === 'all') {
+    return new Set([
+      ...stage.formulas.flatMap((formula) => [formula.id, ...formula.blocks.map((block) => block.id)]),
+      ...stage.textBlocks.map((block) => block.id),
+    ]);
+  }
+  const activeIndex = stage.revealSteps.findIndex((step) => step.id === stage.activeRevealStepId);
+  const visibleSteps = activeIndex >= 0 ? stage.revealSteps.slice(0, activeIndex + 1) : stage.revealSteps.slice(0, 1);
+  return new Set(visibleSteps.flatMap((step) => step.targetIds));
+}
+
+function derivationVisibleRevealStepIds(stage: DerivationStagePayload) {
+  if (stage.releaseState === 'unavailable' || stage.releaseState === 'unreleased') return new Set<string>();
+  if (stage.activeRevealStepId === 'all') return new Set(stage.revealSteps.map((step) => step.id));
+  const activeIndex = stage.revealSteps.findIndex((step) => step.id === stage.activeRevealStepId);
+  const visibleSteps = activeIndex >= 0 ? stage.revealSteps.slice(0, activeIndex + 1) : stage.revealSteps.slice(0, 1);
+  return new Set(visibleSteps.map((step) => step.id));
+}
+
+function derivationTargetRegionMap(stage: DerivationStagePayload) {
+  const entries = new Map<string, DerivationStageRegion>();
+  for (const formula of stage.formulas) {
+    entries.set(formula.id, formula.region);
+    const blockHeight = formula.region.height / Math.max(formula.blocks.length, 1);
+    formula.blocks.forEach((block, index) => {
+      entries.set(block.id, {
+        x: formula.region.x,
+        y: formula.region.y + (blockHeight * index),
+        width: formula.region.width,
+        height: blockHeight,
+      });
+    });
+  }
+  for (const textBlock of stage.textBlocks) {
+    entries.set(textBlock.id, textBlock.region);
+  }
+  return entries;
+}
+
+function derivationConnectorEndpoint(region: DerivationStageRegion | undefined, fallback: { x: number; y: number }) {
+  if (!region) return fallback;
+  return {
+    x: (region.x + region.width / 2) * 100,
+    y: (region.y + region.height / 2) * 100,
+  };
+}
+
+function derivationColorRoleClass(role?: DerivationFormulaBlockColorRole) {
+  if (role === 'known') return 'border-platform-border bg-platform-surface';
+  if (role === 'transform') return 'border-platform-accent/45 bg-platform-action-subtle';
+  if (role === 'cancel') return 'border-platform-evidence-unsupported/45 bg-platform-evidence-unsupported/10';
+  if (role === 'target') return 'border-platform-evidence-eligible/45 bg-platform-evidence-eligible/10';
+  if (role === 'risk') return 'border-platform-evidence-context/45 bg-platform-evidence-context/10';
+  if (role === 'result') return 'border-platform-accent/50 bg-platform-accent/10';
+  return 'border-platform-border bg-platform-panel';
+}
+
+function derivationTeacherControlLabel(control: string) {
+  const labels: Record<string, string> = {
+    next: '下一步',
+    previous: '上一步',
+    jump: '跳转',
+    highlight: '高亮',
+    answerReveal: '答案',
+    reset: '重置',
+  };
+  return labels[control] ?? control;
 }
 
 function textFieldsFromPayload(payload: ContentRecord, fields: string[]) {
@@ -1403,6 +1758,263 @@ function FormulaCard({
   );
 }
 
+function VisualStagePanel({
+  module,
+}: {
+  module: InteractiveRuntimeModuleManifest;
+}) {
+  const stage = visualStagePayload(module);
+  const visibleLayers = stage.layers.filter((layer) => (
+    stage.releaseState !== 'unavailable'
+    && stage.releaseState !== 'unreleased'
+    && (!layer.revealState || layer.revealState === stage.activeRevealState || stage.activeRevealState === 'all')
+  ));
+  const aspectClass = stage.aspectRatio === '4:3'
+    ? 'min-h-[420px] md:aspect-[4/3] md:min-h-0'
+    : stage.aspectRatio === 'fluid'
+      ? 'min-h-[420px]'
+      : 'min-h-[420px] md:aspect-video md:min-h-0';
+
+  return (
+    <section
+      className="premium-lesson-panel grid gap-4"
+      data-visual-stage-id={stage.stageId}
+      data-visual-stage-release-state={stage.releaseState}
+      data-visual-stage-active-reveal-state={stage.activeRevealState}
+      data-visual-stage-layer-count={stage.layers.length}
+      data-visual-stage-visible-layer-ids={visibleLayers.map((layer) => layer.id).join(' ')}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <ManifestContentTitle>{titleFromModule(module)}</ManifestContentTitle>
+          <p className="premium-lesson-muted text-sm leading-6">
+            {visualStageReleaseLabel(stage.releaseState)}
+          </p>
+        </div>
+        <span className="premium-lesson-badge" data-visual-stage-layer-summary>
+          {visibleLayers.length}/{stage.layers.length}
+        </span>
+      </div>
+      <div
+        className={[
+          'relative w-full overflow-hidden rounded-2xl border border-[var(--platform-border)] bg-[var(--platform-surface)]',
+          'shadow-[var(--platform-shadow-sm)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]',
+          aspectClass,
+        ].join(' ')}
+        tabIndex={0}
+        role="group"
+        aria-label={`${stage.stageId} 视觉舞台`}
+        data-visual-stage-canvas="normalized"
+        data-visual-stage-layout="freeform"
+      >
+        {stage.releaseState === 'unavailable' || stage.releaseState === 'unreleased' ? (
+          <div className="absolute inset-0 grid place-items-center px-6 text-center">
+            <p className="premium-lesson-body text-sm">{visualStageReleaseLabel(stage.releaseState)}</p>
+          </div>
+        ) : null}
+        {visibleLayers.map((layer) => (
+          <article
+            key={layer.id}
+            className={[
+              'absolute overflow-hidden rounded-xl border border-[var(--platform-border)]',
+              'bg-[var(--platform-panel)]/95 p-3 shadow-[var(--platform-shadow-xs)]',
+              layer.kind === 'formula' ? 'premium-lesson-formula-surface' : '',
+            ].join(' ')}
+            style={{
+              left: `${layer.region.x * 100}%`,
+              top: `${layer.region.y * 100}%`,
+              width: `${layer.region.width * 100}%`,
+              height: `${layer.region.height * 100}%`,
+              zIndex: layer.zIndex,
+            }}
+            data-visual-stage-layer-id={layer.id}
+            data-visual-stage-layer-kind={layer.kind}
+            data-visual-stage-layer-reveal-state={layer.revealState ?? 'always'}
+            data-visual-stage-activity-anchor={layer.activityAnchor ?? undefined}
+          >
+            <div className="premium-lesson-caption">{visualStageLayerKindLabel(layer.kind)}</div>
+            <h3 className="premium-lesson-title text-sm">{layer.title}</h3>
+            <p className="premium-lesson-body mt-2 text-sm leading-6">{renderInlineContent(layer.body)}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function DerivationStagePanel({
+  module,
+}: {
+  module: InteractiveRuntimeModuleManifest;
+}) {
+  const stage = derivationStagePayload(module);
+  const visibleTargetIds = derivationStageVisibleTargetIds(stage);
+  const visibleRevealStepIds = derivationVisibleRevealStepIds(stage);
+  const targetRegions = derivationTargetRegionMap(stage);
+  const visibleFormulas = stage.formulas.filter((formula) => (
+    visibleTargetIds.has(formula.id) || formula.blocks.some((block) => visibleTargetIds.has(block.id))
+  ));
+  const visibleTextBlocks = stage.textBlocks.filter((block) => visibleTargetIds.has(block.id));
+  const visibleConnectors = stage.connectors.filter((connector) => (
+    visibleTargetIds.has(connector.from) && visibleTargetIds.has(connector.to)
+    && connector.revealStepIds.some((stepId) => visibleRevealStepIds.has(stepId))
+  ));
+  const aspectClass = stage.aspectRatio === '4:3'
+    ? 'min-h-[520px] md:aspect-[4/3] md:min-h-0'
+    : stage.aspectRatio === 'fluid'
+      ? 'min-h-[520px]'
+      : 'min-h-[520px] md:aspect-video md:min-h-0';
+
+  return (
+    <section
+      className="premium-lesson-panel grid gap-4"
+      data-derivation-stage-id={stage.stageId}
+      data-derivation-stage-release-state={stage.releaseState}
+      data-derivation-stage-active-reveal-step={stage.activeRevealStepId}
+      data-derivation-stage-visible-target-ids={[...visibleTargetIds].join(' ')}
+      data-derivation-stage-answer-visible={stage.answerVisible ? 'true' : 'false'}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <ManifestContentTitle>{titleFromModule(module)}</ManifestContentTitle>
+          <p className="premium-lesson-muted text-sm leading-6">
+            {derivationStageReleaseLabel(stage.releaseState)}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {stage.teacherControls.map((control) => (
+            <span key={control} className="premium-lesson-badge" data-derivation-stage-teacher-control={control}>
+              {derivationTeacherControlLabel(control)}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div
+        className={[
+          'relative w-full overflow-hidden rounded-2xl border border-[var(--platform-border)] bg-[var(--platform-surface)]',
+          'shadow-[var(--platform-shadow-sm)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]',
+          aspectClass,
+        ].join(' ')}
+        tabIndex={0}
+        role="group"
+        aria-label={`${stage.stageId} 推导舞台`}
+        data-derivation-stage-canvas="normalized"
+        data-derivation-stage-layout="freeform"
+        data-katex-rendered="true"
+      >
+        {stage.releaseState === 'unavailable' || stage.releaseState === 'unreleased' ? (
+          <div className="absolute inset-0 grid place-items-center px-6 text-center">
+            <p className="premium-lesson-body text-sm">{derivationStageReleaseLabel(stage.releaseState)}</p>
+          </div>
+        ) : null}
+        <svg
+          className="pointer-events-none absolute inset-0 h-full w-full"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          data-derivation-stage-connectors="visible"
+        >
+          {visibleConnectors.map((connector) => {
+            const from = derivationConnectorEndpoint(targetRegions.get(connector.from), { x: 12, y: 18 });
+            const to = derivationConnectorEndpoint(targetRegions.get(connector.to), { x: 88, y: 72 });
+            return (
+              <line
+                key={connector.id}
+                x1={from.x}
+                y1={from.y}
+                x2={to.x}
+                y2={to.y}
+                stroke="hsl(var(--platform-accent))"
+                strokeWidth="0.4"
+                strokeDasharray={connector.kind === 'reference' || connector.kind === 'dependency' ? '2 2' : undefined}
+                data-derivation-stage-connector-id={connector.id}
+                data-derivation-stage-connector-kind={connector.kind}
+                data-derivation-stage-connector-from={connector.from}
+                data-derivation-stage-connector-to={connector.to}
+              />
+            );
+          })}
+        </svg>
+        {visibleFormulas.map((formula) => {
+          const visibleBlocks = formula.blocks.filter((block) => visibleTargetIds.has(block.id));
+          const renderFullFormula = visibleTargetIds.has(formula.id) || visibleBlocks.length === 0;
+          return (
+            <article
+              key={formula.id}
+              className="absolute overflow-auto rounded-xl border border-[var(--platform-border)] bg-[var(--platform-panel)]/95 p-3 shadow-[var(--platform-shadow-xs)]"
+              style={{
+                left: `${formula.region.x * 100}%`,
+                top: `${formula.region.y * 100}%`,
+                width: `${formula.region.width * 100}%`,
+                height: `${formula.region.height * 100}%`,
+              }}
+              data-derivation-stage-formula-id={formula.id}
+            >
+              <div className="premium-lesson-caption">LaTeX 公式</div>
+              <h3 className="premium-lesson-title text-sm">{formula.title}</h3>
+              {renderFullFormula ? (
+                <div className="mt-2 overflow-x-auto" data-derivation-stage-formula-latex-source={formula.latex}>
+                  <BlockMath math={normalizeMath(formula.latex)} />
+                </div>
+              ) : null}
+              <div className="mt-2 grid gap-2">
+                {visibleBlocks.map((block) => (
+                  <div
+                    key={block.id}
+                    className={[
+                      'rounded-lg border px-2 py-1',
+                      derivationColorRoleClass(block.colorRole),
+                    ].join(' ')}
+                    data-derivation-stage-formula-block-id={block.id}
+                    data-derivation-stage-color-role={block.colorRole ?? 'none'}
+                    data-derivation-stage-block-latex-source={block.latex}
+                  >
+                    <div className="premium-lesson-caption">{block.title}</div>
+                    <BlockMath math={normalizeMath(block.latex)} />
+                  </div>
+                ))}
+              </div>
+            </article>
+          );
+        })}
+        {visibleTextBlocks.map((block) => (
+          <article
+            key={block.id}
+            className="absolute overflow-auto rounded-xl border border-[var(--platform-border)] bg-[var(--platform-panel)]/95 p-3 shadow-[var(--platform-shadow-xs)]"
+            style={{
+              left: `${block.region.x * 100}%`,
+              top: `${block.region.y * 100}%`,
+              width: `${block.region.width * 100}%`,
+              height: `${block.region.height * 100}%`,
+            }}
+            data-derivation-stage-text-block-id={block.id}
+          >
+            <div className="premium-lesson-caption">推导说明</div>
+            <h3 className="premium-lesson-title text-sm">{block.title}</h3>
+            <p className="premium-lesson-body mt-2 text-sm leading-6">{renderInlineContent(block.body)}</p>
+          </article>
+        ))}
+      </div>
+      {stage.releaseState === 'unavailable' || stage.releaseState === 'unreleased' ? null : (
+        <div className="grid gap-2 md:grid-cols-3" data-derivation-stage-reveal-steps="visible">
+          {stage.revealSteps.map((step) => (
+            <div
+              key={step.id}
+              className="premium-lesson-card"
+              data-derivation-stage-reveal-step-id={step.id}
+              data-derivation-stage-reveal-step-active={step.id === stage.activeRevealStepId ? 'true' : 'false'}
+            >
+              <p className="premium-lesson-caption">{step.id}</p>
+              <p className="premium-lesson-title text-sm">{step.title}</p>
+              <p className="premium-lesson-muted mt-1 text-xs leading-5">{step.reasoning}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function ManifestCodeBlock({
   title,
   code,
@@ -1898,6 +2510,8 @@ export function createManifestContentModuleRegistry(extra: {
       const content = summaryContent(step, module);
       return <SummaryCard title={title} text={content.text} bullets={content.bullets} />;
     },
+    'visual.stage': ({ module }) => <VisualStagePanel module={module} />,
+    'visual.derivationStage': ({ module }) => <DerivationStagePanel module={module} />,
     'compute.panel': ({ manifest, step, module }) => {
       if (computeCapabilityRef(module.payload) === 'static-surface-3d') {
         return <StaticSurface3DPanel {...staticSurfacePanelProps(manifest, step, module)} />;

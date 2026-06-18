@@ -1,0 +1,11 @@
+{
+  "changeId": "add-interactive-derivation-stage",
+  "status": "pass",
+  "commands": [
+    "rtk npm run test:unit -- src/features/interactive/__tests__/interactive-module-registry-gate.test.ts src/features/interactive/__tests__/derivation-stage-evidence.test.ts src/features/interactive/__tests__/visual-stage-evidence.test.ts src/lib/__tests__/commercial-ui-governance.test.ts",
+    "rtk npx tsc --noEmit --pretty false",
+    "rtk openspec validate add-interactive-derivation-stage --strict",
+    "rtk node artifacts/interactive-learning/derivation-stage-runtime-562/browser-acceptance.mjs"
+  ],
+  "notes": "Derivation stage runtime, manifest gate, evidence contract, commercial visual artifact unit tests, TypeScript, OpenSpec validation, and browser acceptance passed. Browser acceptance captures 7 states including guest unavailable and blocks unreleased reveal-step leakage."
+}

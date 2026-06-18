@@ -153,3 +153,49 @@ Interactive visual components that collect or imply student interaction SHALL pr
 - **WHEN** a student or teacher refreshes a page after release, reveal, answer reveal, selection, submission, or diagnostics aggregation
 - **THEN** the relevant visual component state SHALL be recoverable according to the component contract
 - **AND** unrecoverable state SHALL fail acceptance for evidence-producing components.
+
+### Requirement: Visual stage lifecycle evidence is recorded
+Visual stage modules SHALL record enough lifecycle evidence for teacher diagnostics and implementation audit.
+
+#### Scenario: Student views a visual stage
+- **WHEN** a student opens a stage module
+- **THEN** evidence SHALL include event type, client event id, attempt key, trusted source log id, lesson key, step id, module id, component kind, component id, actor role, client event time, schema version, payload, visible layer ids, release state, reveal state, theme, viewport, and server timestamp
+- **AND** this evidence SHALL be available to teacher diagnostics.
+
+#### Scenario: Stage event layer is classified
+- **WHEN** a visual stage records view, release, reveal, highlight, or embedded-activity anchor evidence
+- **THEN** the component contract SHALL declare whether the event is `InteractionLog` only, `StudentStepResponse`, or `LearningFact` materialization input
+- **AND** view and reveal events SHALL NOT be treated as mastery evidence unless a declared activity response is submitted.
+
+#### Scenario: Teacher changes stage reveal state
+- **WHEN** a teacher releases, hides, reveals, jumps, or highlights a stage layer
+- **THEN** the event SHALL be recorded with stage id, target layer ids, previous state, next state, actor role, and timestamp
+- **AND** student-visible state SHALL be recoverable after refresh.
+
+#### Scenario: Stage diagnostics are aggregated
+- **WHEN** teacher diagnostics summarize a visual stage
+- **THEN** the diagnostic contract SHALL define denominator, dedupe key, latest-vs-all-attempt policy, resubmission display, unreleased-student inclusion, and free-text redaction policy
+- **AND** diagnostic routes and APIs SHALL be accessible only to teacher or admin roles.
+
+### Requirement: Derivation stage evidence supports teacher diagnostics
+Derivation stage interactions SHALL produce backend evidence for reveal progress, formula focus, and misconception analysis.
+
+#### Scenario: Student views and submits a derivation stage
+- **WHEN** a student interacts with a derivation stage
+- **THEN** evidence SHALL include event type, client event id, attempt key, trusted source log id, lesson key, step id, module id, component kind, component id, actor role, client event time, schema version, payload, stage id, max reveal step seen, visited reveal steps, formula block focus events, active highlight ids, student answers by reveal step, and server timestamp
+- **AND** the evidence SHALL be associated with the declared `InteractionLog`, `StudentStepResponse`, or `LearningFact` classification.
+
+#### Scenario: Derivation event layer is classified
+- **WHEN** derivation stage records reveal browsing, formula focus, answer submission, feedback, or teacher reveal evidence
+- **THEN** the component contract SHALL declare whether the event is `InteractionLog` only, `StudentStepResponse`, or `LearningFact` materialization input
+- **AND** browsing and focus events SHALL NOT be treated as mastery evidence without a declared response or scoring rule.
+
+#### Scenario: Teacher reviews derivation diagnostics
+- **WHEN** the teacher opens diagnostics for a derivation stage
+- **THEN** the system SHALL show reveal step distribution, unvisited step counts, formula block focus distribution, submitted count, and common misconceptions by reveal step
+- **AND** teacher diagnostics SHALL NOT expose implementation-only ids as visible teaching labels.
+
+#### Scenario: Derivation diagnostics are aggregated
+- **WHEN** teacher diagnostics summarize a derivation stage
+- **THEN** the diagnostic contract SHALL define denominator, dedupe key, latest-vs-all-attempt policy, resubmission display, unreleased-student inclusion, and free-text redaction policy
+- **AND** diagnostic routes and APIs SHALL be accessible only to teacher or admin roles.

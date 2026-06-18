@@ -583,6 +583,8 @@ export interface CommercialInteractiveVisualEvidenceSample {
   componentId?: string;
   actorRole?: string;
   clientEventAt?: string;
+  theme?: CommercialInteractiveVisualComponentTheme;
+  viewport?: CommercialInteractiveVisualComponentViewport;
   schemaVersion?: string;
   serverRecordedAt?: string;
   payload?: unknown;
@@ -2940,6 +2942,8 @@ const INTERACTIVE_VISUAL_REQUIRED_EVIDENCE_FIELDS = [
   'componentId',
   'actorRole',
   'clientEventAt',
+  'theme',
+  'viewport',
   'schemaVersion',
   'serverRecordedAt',
   'payload',
