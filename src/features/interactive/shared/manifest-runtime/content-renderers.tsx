@@ -30,6 +30,26 @@ type FormulaSymbol = { symbol: string; meaning: string };
 type CodeTokenKind = 'keyword' | 'function' | 'number' | 'string' | 'comment' | 'operator' | 'plain';
 type CodeToken = { value: string; kind: CodeTokenKind };
 type InteractiveFigureKind = 'drag_pole_s_plane' | 'three_ships_case';
+type VisualStageAspectRatio = '16:9' | '4:3' | 'fluid';
+type VisualStageLayerKind = 'diagram' | 'formula' | 'annotation' | 'media' | 'activity' | 'control';
+type VisualStageRegion = { x: number; y: number; width: number; height: number };
+type VisualStageLayer = {
+  id: string;
+  kind: VisualStageLayerKind;
+  title: string;
+  body: string;
+  region: VisualStageRegion;
+  zIndex: number;
+  revealState?: string;
+  activityAnchor?: string;
+};
+type VisualStagePayload = {
+  stageId: string;
+  aspectRatio: VisualStageAspectRatio;
+  releaseState: string;
+  activeRevealState: string;
+  layers: VisualStageLayer[];
+};
 
 const MATLAB_KEYWORDS = new Set([
   'break',
@@ -219,6 +239,96 @@ function uniqueStrings(items: string[]) {
     if (trimmed && !result.includes(trimmed)) result.push(trimmed);
   }
   return result;
+}
+
+function numberInRange(value: unknown, fallback: number, min = 0, max = 1) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return clamp(numeric, min, max);
+}
+
+function visualStageAspectRatio(value: unknown): VisualStageAspectRatio {
+  return value === '4:3' || value === 'fluid' ? value : '16:9';
+}
+
+function visualStageString(value: unknown, fallback: string) {
+  if (typeof value === 'string' && value.trim()) return value.trim();
+  return fallback;
+}
+
+function visualStageOptionalString(value: unknown) {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed || undefined;
+}
+
+function visualStageRegion(value: unknown): VisualStageRegion {
+  const region = asRecord(value);
+  return {
+    x: numberInRange(region.x, 0),
+    y: numberInRange(region.y, 0),
+    width: numberInRange(region.width ?? region.w, 1, 0.05, 1),
+    height: numberInRange(region.height ?? region.h, 1, 0.05, 1),
+  };
+}
+
+function visualStageLayers(value: unknown): VisualStageLayer[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index): VisualStageLayer | null => {
+      const layer = asRecord(item);
+      const id = String(layer.id ?? '').trim();
+      if (!id) return null;
+      const kind = ['diagram', 'formula', 'annotation', 'media', 'activity', 'control'].includes(String(layer.kind))
+        ? String(layer.kind) as VisualStageLayerKind
+        : 'annotation';
+      return {
+        id,
+        kind,
+        title: String(layer.title ?? layer.label ?? `Layer ${index + 1}`),
+        body: String(layer.body ?? layer.text ?? layer.description ?? ''),
+        region: visualStageRegion(layer.region),
+        zIndex: Number.isFinite(Number(layer.zIndex ?? layer.z_index)) ? Number(layer.zIndex ?? layer.z_index) : index,
+        revealState: visualStageOptionalString(layer.revealState ?? layer.reveal_state),
+        activityAnchor: typeof layer.activityAnchor === 'string'
+          ? layer.activityAnchor
+          : typeof layer.activity_anchor === 'string'
+            ? layer.activity_anchor
+            : undefined,
+      };
+    })
+    .filter((item): item is VisualStageLayer => Boolean(item))
+    .sort((left, right) => left.zIndex - right.zIndex);
+}
+
+function visualStagePayload(module: InteractiveRuntimeModuleManifest): VisualStagePayload {
+  const payload = module.payload;
+  return {
+    stageId: String(payload.stageId ?? payload.stage_id ?? module.id),
+    aspectRatio: visualStageAspectRatio(payload.aspectRatio ?? payload.aspect_ratio),
+    releaseState: visualStageString(payload.releaseState ?? payload.release_state, 'released'),
+    activeRevealState: visualStageString(payload.activeRevealState ?? payload.active_reveal_state, 'all'),
+    layers: visualStageLayers(payload.layers),
+  };
+}
+
+function visualStageReleaseLabel(releaseState: string) {
+  if (releaseState === 'unavailable') return '当前舞台暂不可用。';
+  if (releaseState === 'unreleased') return '等待教师发放后查看舞台内容。';
+  if (releaseState === 'revealed') return '教师已展开当前显影步骤。';
+  return '在同一画布中观察对象、关系和显影步骤。';
+}
+
+function visualStageLayerKindLabel(kind: VisualStageLayerKind) {
+  const labels: Record<VisualStageLayerKind, string> = {
+    diagram: '关系图',
+    formula: '公式',
+    annotation: '标注',
+    media: '媒体',
+    activity: '活动锚点',
+    control: '控制对象',
+  };
+  return labels[kind];
 }
 
 function textFieldsFromPayload(payload: ContentRecord, fields: string[]) {
@@ -1403,6 +1513,90 @@ function FormulaCard({
   );
 }
 
+function VisualStagePanel({
+  module,
+}: {
+  module: InteractiveRuntimeModuleManifest;
+}) {
+  const stage = visualStagePayload(module);
+  const visibleLayers = stage.layers.filter((layer) => (
+    stage.releaseState !== 'unavailable'
+    && stage.releaseState !== 'unreleased'
+    && (!layer.revealState || layer.revealState === stage.activeRevealState || stage.activeRevealState === 'all')
+  ));
+  const aspectClass = stage.aspectRatio === '4:3'
+    ? 'min-h-[420px] md:aspect-[4/3] md:min-h-0'
+    : stage.aspectRatio === 'fluid'
+      ? 'min-h-[420px]'
+      : 'min-h-[420px] md:aspect-video md:min-h-0';
+
+  return (
+    <section
+      className="premium-lesson-panel grid gap-4"
+      data-visual-stage-id={stage.stageId}
+      data-visual-stage-release-state={stage.releaseState}
+      data-visual-stage-active-reveal-state={stage.activeRevealState}
+      data-visual-stage-layer-count={stage.layers.length}
+      data-visual-stage-visible-layer-ids={visibleLayers.map((layer) => layer.id).join(' ')}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <ManifestContentTitle>{titleFromModule(module)}</ManifestContentTitle>
+          <p className="premium-lesson-muted text-sm leading-6">
+            {visualStageReleaseLabel(stage.releaseState)}
+          </p>
+        </div>
+        <span className="premium-lesson-badge" data-visual-stage-layer-summary>
+          {visibleLayers.length}/{stage.layers.length}
+        </span>
+      </div>
+      <div
+        className={[
+          'relative w-full overflow-hidden rounded-2xl border border-[var(--platform-border)] bg-[var(--platform-surface)]',
+          'shadow-[var(--platform-shadow-sm)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]',
+          aspectClass,
+        ].join(' ')}
+        tabIndex={0}
+        role="group"
+        aria-label={`${stage.stageId} 视觉舞台`}
+        data-visual-stage-canvas="normalized"
+        data-visual-stage-layout="freeform"
+      >
+        {stage.releaseState === 'unavailable' || stage.releaseState === 'unreleased' ? (
+          <div className="absolute inset-0 grid place-items-center px-6 text-center">
+            <p className="premium-lesson-body text-sm">{visualStageReleaseLabel(stage.releaseState)}</p>
+          </div>
+        ) : null}
+        {visibleLayers.map((layer) => (
+          <article
+            key={layer.id}
+            className={[
+              'absolute overflow-hidden rounded-xl border border-[var(--platform-border)]',
+              'bg-[var(--platform-panel)]/95 p-3 shadow-[var(--platform-shadow-xs)]',
+              layer.kind === 'formula' ? 'premium-lesson-formula-surface' : '',
+            ].join(' ')}
+            style={{
+              left: `${layer.region.x * 100}%`,
+              top: `${layer.region.y * 100}%`,
+              width: `${layer.region.width * 100}%`,
+              height: `${layer.region.height * 100}%`,
+              zIndex: layer.zIndex,
+            }}
+            data-visual-stage-layer-id={layer.id}
+            data-visual-stage-layer-kind={layer.kind}
+            data-visual-stage-layer-reveal-state={layer.revealState ?? 'always'}
+            data-visual-stage-activity-anchor={layer.activityAnchor ?? undefined}
+          >
+            <div className="premium-lesson-caption">{visualStageLayerKindLabel(layer.kind)}</div>
+            <h3 className="premium-lesson-title text-sm">{layer.title}</h3>
+            <p className="premium-lesson-body mt-2 text-sm leading-6">{renderInlineContent(layer.body)}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function ManifestCodeBlock({
   title,
   code,
@@ -1898,6 +2092,7 @@ export function createManifestContentModuleRegistry(extra: {
       const content = summaryContent(step, module);
       return <SummaryCard title={title} text={content.text} bullets={content.bullets} />;
     },
+    'visual.stage': ({ module }) => <VisualStagePanel module={module} />,
     'compute.panel': ({ manifest, step, module }) => {
       if (computeCapabilityRef(module.payload) === 'static-surface-3d') {
         return <StaticSurface3DPanel {...staticSurfacePanelProps(manifest, step, module)} />;
