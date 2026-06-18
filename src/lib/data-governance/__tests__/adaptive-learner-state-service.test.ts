@@ -1612,11 +1612,58 @@ describe('adaptive learner state service', () => {
           observableEvidenceType: 'question',
         }),
         observedEvidence: expect.objectContaining({
-          state: 'observed',
+          state: 'low-confidence',
           knowledgeMastery: null,
-          confidence: 0.7,
+          confidence: 0.45,
           directEvidenceCount: 1,
-          recommendationBias: 'targeted-practice',
+          recommendationBias: 'starter-or-evidence-gathering',
+        }),
+      }),
+    ]));
+  });
+
+  it('keeps type-level simulation evidence below observed confidence for capability targets', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      adaptiveMasteryUpdate: { findMany: async () => [] },
+      learningFact: {
+        findMany: async () => [
+          controlCorrectionFact('simulation', '2026-05-19T00:00:00.000Z', 90),
+        ],
+      },
+      arenaSubmission: { findMany: async () => [] },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const slice = state.goalSlices?.controlCorrection;
+    expect(slice).toBeDefined();
+    if (!slice) throw new Error('expected control-correction goal slice');
+    expect(slice.capabilityTargets).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        target: expect.objectContaining({
+          id: 'control-correction:time-domain-targets:apply',
+          observableEvidenceType: 'simulation-run',
+        }),
+        observedEvidence: expect.objectContaining({
+          state: 'low-confidence',
+          confidence: 0.45,
+          directEvidenceCount: 1,
+          recommendationBias: 'starter-or-evidence-gathering',
+        }),
+      }),
+      expect.objectContaining({
+        target: expect.objectContaining({
+          id: 'control-correction:simulation-validation:evaluate',
+          observableEvidenceType: 'simulation-run',
+        }),
+        observedEvidence: expect.objectContaining({
+          state: 'low-confidence',
+          confidence: 0.45,
+          directEvidenceCount: 1,
+          recommendationBias: 'starter-or-evidence-gathering',
         }),
       }),
     ]));

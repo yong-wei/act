@@ -957,7 +957,8 @@ function buildControlCorrectionCapabilityTargets(
     const knowledgeEvidenceCount = knowledge?.evidenceCount ?? 0;
     const observableEvidenceCount = countControlCorrectionCapabilityObservableEvidence(target, sourceEvidence);
     const directEvidenceCount = knowledgeEvidenceCount + observableEvidenceCount;
-    const directConfidence = Math.max(knowledge?.confidence ?? 0, observableEvidenceCount > 0 ? 0.7 : 0);
+    const observableEvidenceConfidence = controlCorrectionCapabilityObservableEvidenceConfidence(target, observableEvidenceCount);
+    const directConfidence = Math.max(knowledge?.confidence ?? 0, observableEvidenceConfidence);
     const supportingEvidenceCount = Math.max(0, ...competencies.map((competency) => competency.evidenceCount));
     const state = directEvidenceCount === 0
       ? 'missing'
@@ -1000,6 +1001,19 @@ function countControlCorrectionCapabilityObservableEvidence(
     return sourceEvidence.aiCollaborationCount;
   }
   return 0;
+}
+
+function controlCorrectionCapabilityObservableEvidenceConfidence(
+  target: AdaptiveLearningCapabilityTarget,
+  evidenceCount: number,
+): number {
+  if (evidenceCount === 0) {
+    return 0;
+  }
+  if (target.observableEvidenceType === 'arena-official-evaluation') {
+    return 0.7;
+  }
+  return 0.45;
 }
 
 export function validateControlCorrectionGoalSliceContract(value: unknown): asserts value is ControlCorrectionGoalSlice {
