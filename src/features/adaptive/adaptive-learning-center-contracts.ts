@@ -285,6 +285,27 @@ export interface AdaptivePathLaunchContext extends AdaptivePathLaunchContextInpu
   returnHref: string;
 }
 
+export interface AdaptivePathCompletionRequestInput {
+  launchContext: AdaptivePathLaunchContext;
+  completedAt: string;
+  evidenceRefs?: readonly Record<string, unknown>[];
+  completionResult?: Record<string, unknown>;
+}
+
+export interface AdaptivePathCompletionRequest {
+  href: string;
+  method: 'POST';
+  body: {
+    nodeId: string;
+    resourceType: string;
+    status: 'completed';
+    completedAt: string;
+    idempotencyKey: string;
+    evidenceRefs?: readonly Record<string, unknown>[];
+    liftMetadata: Record<string, unknown>;
+  };
+}
+
 export interface PracticeEntryRouteNodeInput {
   recommendedFocus: readonly string[];
   weakAreas: readonly string[];
@@ -589,6 +610,45 @@ export function resolveAdaptivePathLaunchReturnContext(
     routeIntent,
     returnHref: normalizedReturnHref,
     resourceType,
+  };
+}
+
+export function isSimpleAdaptivePathCompletionResource(resourceType: string): boolean {
+  return [
+    'lesson_step',
+    'knowledge_node',
+    'knowledge_card',
+    'video',
+    'audio',
+    'handout',
+    'quiz',
+    'reflection',
+    'project',
+  ].includes(resourceType);
+}
+
+export function buildAdaptivePathCompletionRequest(
+  input: AdaptivePathCompletionRequestInput,
+): AdaptivePathCompletionRequest | null {
+  const { launchContext } = input;
+  if (!isSimpleAdaptivePathCompletionResource(launchContext.resourceType)) return null;
+
+  return {
+    href: `/api/learning-paths/${encodeURIComponent(launchContext.pathId)}/execute`,
+    method: 'POST',
+    body: {
+      nodeId: launchContext.nodeId,
+      resourceType: launchContext.resourceType,
+      status: 'completed',
+      completedAt: input.completedAt,
+      idempotencyKey: `path-resource-completion:${launchContext.pathId}:${launchContext.nodeId}:${launchContext.resourceType}`,
+      ...(input.evidenceRefs?.length ? { evidenceRefs: input.evidenceRefs } : {}),
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionSource: 'interactive-resource',
+        ...(input.completionResult ? { completionResult: input.completionResult } : {}),
+      },
+    },
   };
 }
 

@@ -7,7 +7,11 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import type { TeachingResource } from '@prisma/client';
 import { InteractiveLearningShell } from '@/features/interactive/interactive-learning-shell';
 import { ResourceRenderer } from '@/features/lesson-engine/resource-renderer';
-import { resolveAdaptivePathLaunchReturnContext } from '@/features/adaptive/adaptive-learning-center-contracts';
+import {
+  buildAdaptivePathCompletionRequest,
+  resolveAdaptivePathLaunchReturnContext,
+} from '@/features/adaptive/adaptive-learning-center-contracts';
+import type { WidgetResult } from '@/resources/widgets/widget-props';
 
 export default function InteractiveResourcePage() {
   const params = useParams() as { id?: string } | null;
@@ -67,6 +71,29 @@ export default function InteractiveResourcePage() {
     fetchResource();
   }, [resourceId]);
 
+  const handlePathResourceComplete = async (result?: WidgetResult) => {
+    if (!pathLaunchContext) return;
+    const request = buildAdaptivePathCompletionRequest({
+      launchContext: pathLaunchContext,
+      completedAt: new Date().toISOString(),
+      completionResult: result && typeof result === 'object' ? result as unknown as Record<string, unknown> : undefined,
+    });
+    if (!request) return;
+
+    try {
+      const response = await fetch(request.href, {
+        method: request.method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request.body),
+      });
+      if (!response.ok) {
+        throw new Error(`Path resource completion rejected with status ${response.status}`);
+      }
+    } catch (completionError) {
+      console.error('Failed to write path resource completion', completionError);
+    }
+  };
+
   return (
     <InteractiveLearningShell
       activeHref={resourceId ? `/interactive-learning/resources/${resourceId}` : '/interactive-learning/resources/[id]'}
@@ -105,7 +132,7 @@ export default function InteractiveResourcePage() {
             {error}
           </div>
         ) : resource ? (
-          <ResourceRenderer resource={resource} />
+          <ResourceRenderer resource={resource} onComplete={handlePathResourceComplete} />
         ) : (
           <div className="flex h-full min-h-[20rem] items-center justify-center text-platform-fg-secondary">
             资源未加载

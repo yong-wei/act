@@ -253,6 +253,7 @@ function normalizeExecutionLiftMetadata(value: unknown): Record<string, unknown>
     ...(activityKind ? { pathActivityKind: activityKind } : {}),
     ...sanitizeLiftOutcomeRef('adaptiveAssessmentRef', metadata.adaptiveAssessmentRef),
     ...sanitizeLiftOutcomeRef('controlWorkbenchRef', metadata.controlWorkbenchRef),
+    ...sanitizeCompletionResult(metadata.completionResult),
   };
 }
 
@@ -261,6 +262,20 @@ function sanitizeLiftOutcomeRef(key: 'adaptiveAssessmentRef' | 'controlWorkbench
   const id = readRefId(record, ['id', 'answerId', 'runId', 'simulationRunId', 'ref', 'sourceId']);
   if (!id) return {};
   return { [key]: compactObject({ id }) };
+}
+
+function sanitizeCompletionResult(value: unknown): Record<string, unknown> {
+  const result = toRecord(value);
+  const completionData = compactObject({
+    correct: readFinite(toRecord(result.data).correct),
+    total: readFinite(toRecord(result.data).total),
+  });
+  const completionResult = compactObject({
+    success: typeof result.success === 'boolean' ? result.success : undefined,
+    score: readFinite(result.score),
+    data: Object.keys(completionData).length > 0 ? completionData : undefined,
+  });
+  return Object.keys(completionResult).length > 0 ? { completionResult } : {};
 }
 
 async function canWriteHistoricalPathActivity(

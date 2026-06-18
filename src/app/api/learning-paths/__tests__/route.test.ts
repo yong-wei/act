@@ -502,7 +502,7 @@ describe('learning path round API routes', () => {
         userId: 'student-1',
         goalId: 'control-correction',
         isAiGenerated: true,
-        pathStatus: { in: ['active', 'fallback', 'completed'] },
+        pathStatus: 'active',
       },
       select: {
         id: true,
@@ -512,10 +512,46 @@ describe('learning path round API routes', () => {
       },
       orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
     });
+    expect(mocks.prisma.learningPath.findFirst).toHaveBeenCalledTimes(1);
     expect(mocks.readControlCorrectionPathRound).toHaveBeenCalledWith(expect.anything(), {
       pathId: 'path-1',
       userId: 'student-1',
     });
+  });
+
+  it('falls back to completed latest paths only when no active or fallback path exists', async () => {
+    mocks.prisma.learningPath.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        id: 'completed-path',
+        userId: 'student-1',
+        classId: 'class-1',
+        goalId: 'control-correction',
+      });
+    mocks.readControlCorrectionPathRound.mockResolvedValueOnce({
+      id: 'completed-path',
+      userId: 'student-1',
+      pathStatus: 'completed',
+      executions: [],
+      deviations: [],
+      interventions: [],
+    });
+
+    const response = await readLatestPath(new Request('http://localhost/api/learning-paths/latest?goal=control-correction'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.path.id).toBe('completed-path');
+    expect(mocks.prisma.learningPath.findFirst).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      where: expect.objectContaining({ pathStatus: 'active' }),
+    }));
+    expect(mocks.prisma.learningPath.findFirst).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: expect.objectContaining({ pathStatus: 'fallback' }),
+    }));
+    expect(mocks.prisma.learningPath.findFirst).toHaveBeenNthCalledWith(3, expect.objectContaining({
+      where: expect.objectContaining({ pathStatus: 'completed' }),
+    }));
   });
 
   it('prevents a student from reading another learner latest path', async () => {
@@ -788,6 +824,65 @@ describe('learning path round API routes', () => {
       },
       cacheRefresh: 'completed',
     });
+  });
+
+  it('keeps a sanitized simple resource completion result for governed path advancement', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValueOnce({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'registry:lesson09-correction-precheck',
+      nodeIds: ['registry:lesson09-correction-precheck', 'simulation:control-correction-step-response-lab'],
+      pathPayload: {
+        mainPathNodeIds: ['registry:lesson09-correction-precheck', 'simulation:control-correction-step-response-lab'],
+        planNodes: [
+          {
+            nodeId: 'registry:lesson09-correction-precheck',
+            type: 'quiz',
+            target: '/interactive-learning/resources/lesson09-correction-precheck',
+          },
+          {
+            nodeId: 'simulation:control-correction-step-response-lab',
+            type: 'simulation',
+            target: '/simulations/control-correction-step-response-lab',
+          },
+        ],
+      },
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:lesson09-correction-precheck',
+      resourceType: 'quiz',
+      status: 'completed',
+      completedAt: '2026-06-18T11:50:05.777Z',
+      idempotencyKey: 'path-resource-completion:path-1:registry:lesson09-correction-precheck:quiz',
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionSource: 'interactive-resource',
+        completionResult: {
+          success: true,
+          score: 100,
+          data: { correct: 5, total: 5, rawAnswer: 'discard-me' },
+          privateTrace: 'discard-me',
+        },
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionResult: {
+          success: true,
+          score: 100,
+          data: { correct: 5, total: 5 },
+        },
+      },
+    }));
   });
 
   it('does not unlock simulation outcome gates from forged client evidence refs', async () => {

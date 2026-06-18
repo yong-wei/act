@@ -1,0 +1,69 @@
+{
+  "issue": 575,
+  "changeId": "restore-adaptive-path-resume-completion-state",
+  "checkedAt": "2026-06-18T12:12:27.000Z",
+  "baseUrl": "http://127.0.0.1:3064",
+  "pathId": "redacted-local-control-correction-path",
+  "checks": [
+    {
+      "name": "no-parameter path center restores active path",
+      "result": "passed",
+      "beforeNodes": [
+        {
+          "nodeId": "registry:lesson09-correction-precheck",
+          "state": "current"
+        },
+        {
+          "nodeId": "simulation:control-correction-step-response-lab",
+          "state": "locked"
+        },
+        {
+          "nodeId": "arena-task:task-second-order-lead-pid",
+          "state": "locked"
+        }
+      ]
+    },
+    {
+      "name": "path-launched precheck completion writes governed completion",
+      "result": "passed",
+      "request": {
+        "nodeId": "registry:lesson09-correction-precheck",
+        "resourceType": "quiz",
+        "status": "completed",
+        "idempotencyKey": "path-resource-completion:redacted-local-control-correction-path:registry:lesson09-correction-precheck:quiz",
+        "liftMetadata": {
+          "pathActivityKind": "initial-completion",
+          "completionSource": "interactive-resource",
+          "completionResult": {
+            "success": true,
+            "score": 100,
+            "data": {
+              "correct": 5,
+              "total": 5
+            }
+          }
+        }
+      },
+      "responseStatus": 200
+    },
+    {
+      "name": "return to path center shows completed node and next current node",
+      "result": "passed",
+      "afterNodes": [
+        {
+          "nodeId": "registry:lesson09-correction-precheck",
+          "state": "completed"
+        },
+        {
+          "nodeId": "simulation:control-correction-step-response-lab",
+          "state": "current"
+        },
+        {
+          "nodeId": "arena-task:task-second-order-lead-pid",
+          "state": "locked"
+        }
+      ],
+      "screenshot": "omitted-to-avoid-local-student-identifiers"
+    }
+  ]
+}
