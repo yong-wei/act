@@ -2130,6 +2130,424 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('keeps an adopted option completed when every selected node is already complete', async () => {
+    const pathPayload = {
+      mainPathNodeIds: ['node-1'],
+      planNodes: [{ nodeId: 'node-1', type: 'simulation', target: '/simulations/current' }],
+      policyBundle: {
+        status: 'ready',
+        paths: [
+          {
+            styleId: 'completed-shared-route',
+            policyFamily: 'simulation-driven',
+            nodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
+            activeNodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
+            planNodes: [
+              { nodeId: 'simulation:shared-lab', type: 'simulation', target: '/simulations/shared-lab' },
+              { nodeId: 'arena-task:terminal', type: 'arena_task', target: '/arena/tasks/terminal' },
+            ],
+            resourceMix: { simulation: 1, arena_task: 1 },
+            evidenceBasis: ['simulation-run'],
+            terminalValidationNodeIds: ['arena-task:terminal'],
+          },
+        ],
+      },
+    };
+    mocks.prisma.learningPath.findUnique
+      .mockResolvedValueOnce({
+        id: 'path-1',
+        userId: 'student-1',
+        classId: 'class-1',
+        goalId: 'control-correction',
+        pathStatus: 'active',
+        currentNodeId: 'node-1',
+        nodeIds: ['node-1'],
+        pathPayload,
+        learnerStateRef: 'diagnosis-snapshot:server-owned',
+        inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
+        terminalValidation: { nodeId: 'node-1', state: 'pending' },
+        lastExecutionMetadata: { completedNodeIds: [] },
+      })
+      .mockResolvedValueOnce({
+        pathPayload: {
+          ...pathPayload,
+          executionStatus: { completedNodeIds: ['simulation:shared-lab'] },
+        },
+        lastExecutionMetadata: { completedNodeIds: ['simulation:shared-lab', 'arena-task:terminal'] },
+        terminalValidation: { nodeId: 'node-1', state: 'pending' },
+      });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'choice-completed-option-key',
+    }), params);
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.pathUpdate).toMatchObject({
+      selectedOptionId: 'path-option-1',
+      selectedStyleId: 'completed-shared-route',
+      currentNodeId: null,
+    });
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: null,
+        pathStatus: 'completed',
+        pathPayload: expect.objectContaining({
+          currentNodeId: null,
+          executionStatus: expect.objectContaining({
+            activeNodeId: null,
+            completedNodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
+          }),
+        }),
+        lastExecutionMetadata: expect.objectContaining({
+          activeNodeId: null,
+          completedNodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
+        }),
+        terminalValidation: expect.objectContaining({
+          nodeId: 'arena-task:terminal',
+          state: 'completed',
+        }),
+      }),
+    }));
+  });
+
+  it('keeps a completed selected option in fallback when terminal validation is low confidence', async () => {
+    const terminalValidation = {
+      nodeId: 'arena-task:terminal',
+      state: 'low-confidence',
+      evidenceRefs: ['arena:evidence:terminal'],
+      lowConfidenceMarkers: ['arena-terminal-evidence-missing'],
+      fallbackRequired: true,
+    };
+    const pathPayload = {
+      mainPathNodeIds: ['node-1'],
+      planNodes: [{ nodeId: 'node-1', type: 'simulation', target: '/simulations/current' }],
+      policyBundle: {
+        status: 'ready',
+        paths: [
+          {
+            styleId: 'completed-low-confidence-route',
+            policyFamily: 'simulation-driven',
+            nodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
+            activeNodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
+            planNodes: [
+              { nodeId: 'simulation:shared-lab', type: 'simulation', target: '/simulations/shared-lab' },
+              { nodeId: 'arena-task:terminal', type: 'arena_task', target: '/arena/tasks/terminal' },
+            ],
+            resourceMix: { simulation: 1, arena_task: 1 },
+            evidenceBasis: ['simulation-run'],
+            terminalValidationNodeIds: ['arena-task:terminal'],
+          },
+        ],
+      },
+    };
+    mocks.prisma.learningPath.findUnique
+      .mockResolvedValueOnce({
+        id: 'path-1',
+        userId: 'student-1',
+        classId: 'class-1',
+        goalId: 'control-correction',
+        pathStatus: 'active',
+        currentNodeId: 'node-1',
+        nodeIds: ['node-1'],
+        pathPayload,
+        learnerStateRef: 'diagnosis-snapshot:server-owned',
+        inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
+        terminalValidation,
+        lastExecutionMetadata: { completedNodeIds: [] },
+      })
+      .mockResolvedValueOnce({
+        pathPayload: {
+          ...pathPayload,
+          executionStatus: {
+            activeNodeId: null,
+            attemptCount: 2,
+            completedNodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
+          },
+        },
+        lastExecutionMetadata: {
+          completedNodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
+          terminalValidationState: 'low-confidence',
+        },
+        terminalValidation,
+      });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'choice-low-confidence-completed-option-key',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: null,
+        pathStatus: 'fallback',
+        pathPayload: expect.objectContaining({
+          currentNodeId: null,
+          executionStatus: expect.objectContaining({
+            activeNodeId: null,
+            attemptCount: 2,
+            completedNodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
+          }),
+        }),
+        terminalValidation: expect.objectContaining({
+          nodeId: 'arena-task:terminal',
+          state: 'low-confidence',
+          evidenceRefs: ['arena:evidence:terminal'],
+          lowConfidenceMarkers: ['arena-terminal-evidence-missing'],
+          fallbackRequired: true,
+        }),
+      }),
+    }));
+  });
+
+  it('does not carry stale terminal validation evidence to a newly selected terminal node', async () => {
+    const pathPayload = {
+      mainPathNodeIds: ['node-1'],
+      planNodes: [{ nodeId: 'node-1', type: 'arena_task', target: '/arena/tasks/old-terminal' }],
+      policyBundle: {
+        status: 'ready',
+        paths: [
+          {
+            styleId: 'new-completed-terminal-route',
+            policyFamily: 'simulation-driven',
+            nodeIds: ['simulation:shared-lab', 'arena-task:new-terminal'],
+            activeNodeIds: ['simulation:shared-lab', 'arena-task:new-terminal'],
+            planNodes: [
+              { nodeId: 'simulation:shared-lab', type: 'simulation', target: '/simulations/shared-lab' },
+              { nodeId: 'arena-task:new-terminal', type: 'arena_task', target: '/arena/tasks/new-terminal' },
+            ],
+            resourceMix: { simulation: 1, arena_task: 1 },
+            evidenceBasis: ['simulation-run'],
+            terminalValidationNodeIds: ['arena-task:new-terminal'],
+          },
+        ],
+      },
+    };
+    mocks.prisma.learningPath.findUnique
+      .mockResolvedValueOnce({
+        id: 'path-1',
+        userId: 'student-1',
+        classId: 'class-1',
+        goalId: 'control-correction',
+        pathStatus: 'fallback',
+        currentNodeId: null,
+        nodeIds: ['arena-task:old-terminal'],
+        pathPayload,
+        learnerStateRef: 'diagnosis-snapshot:server-owned',
+        inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
+        terminalValidation: {
+          nodeId: 'arena-task:old-terminal',
+          state: 'low-confidence',
+          evidenceRefs: ['arena:evidence:old-terminal'],
+          lowConfidenceMarkers: ['old-terminal-low-confidence'],
+          fallbackRequired: true,
+        },
+        lastExecutionMetadata: { completedNodeIds: [] },
+      })
+      .mockResolvedValueOnce({
+        pathPayload,
+        lastExecutionMetadata: {
+          completedNodeIds: ['simulation:shared-lab', 'arena-task:new-terminal'],
+          terminalValidationState: 'low-confidence',
+        },
+        terminalValidation: {
+          nodeId: 'arena-task:old-terminal',
+          state: 'low-confidence',
+          evidenceRefs: ['arena:evidence:old-terminal'],
+          lowConfidenceMarkers: ['old-terminal-low-confidence'],
+          fallbackRequired: true,
+        },
+      });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'choice-new-terminal-completed-option-key',
+    }), params);
+    const updateCall = mocks.prisma.learningPath.update.mock.calls.at(-1)?.[0];
+
+    expect(response.status).toBe(200);
+    expect(updateCall).toEqual(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: null,
+        pathStatus: 'completed',
+        terminalValidation: expect.objectContaining({
+          nodeId: 'arena-task:new-terminal',
+          state: 'completed',
+          target: '/arena/tasks/new-terminal',
+        }),
+      }),
+    }));
+    expect(updateCall?.data.terminalValidation).not.toMatchObject({
+      evidenceRefs: ['arena:evidence:old-terminal'],
+      lowConfidenceMarkers: ['old-terminal-low-confidence'],
+      fallbackRequired: true,
+    });
+  });
+
+  it('prefers failed terminal node state over stale completed validation on the same terminal', async () => {
+    const terminalValidation = {
+      nodeId: 'arena-task:terminal',
+      state: 'completed',
+      evidenceRefs: ['arena:evidence:terminal'],
+    };
+    const pathPayload = {
+      mainPathNodeIds: ['node-1'],
+      planNodes: [{ nodeId: 'node-1', type: 'simulation', target: '/simulations/current' }],
+      policyBundle: {
+        status: 'ready',
+        paths: [
+          {
+            styleId: 'failed-terminal-route',
+            policyFamily: 'simulation-driven',
+            nodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
+            activeNodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
+            planNodes: [
+              { nodeId: 'simulation:shared-lab', type: 'simulation', target: '/simulations/shared-lab' },
+              { nodeId: 'arena-task:terminal', type: 'arena_task', target: '/arena/tasks/terminal' },
+            ],
+            resourceMix: { simulation: 1, arena_task: 1 },
+            evidenceBasis: ['simulation-run'],
+            terminalValidationNodeIds: ['arena-task:terminal'],
+          },
+        ],
+      },
+    };
+    mocks.prisma.learningPath.findUnique
+      .mockResolvedValueOnce({
+        id: 'path-1',
+        userId: 'student-1',
+        classId: 'class-1',
+        goalId: 'control-correction',
+        pathStatus: 'completed',
+        currentNodeId: null,
+        nodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
+        pathPayload,
+        learnerStateRef: 'diagnosis-snapshot:server-owned',
+        inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
+        terminalValidation,
+        lastExecutionMetadata: { completedNodeIds: [] },
+      })
+      .mockResolvedValueOnce({
+        pathPayload,
+        lastExecutionMetadata: {
+          completedNodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
+          failedNodeIds: ['arena-task:terminal'],
+        },
+        terminalValidation,
+      });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'choice-failed-terminal-option-key',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: null,
+        pathStatus: 'fallback',
+        lastExecutionMetadata: expect.objectContaining({
+          completedNodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
+          failedNodeIds: ['arena-task:terminal'],
+        }),
+        terminalValidation: expect.objectContaining({
+          nodeId: 'arena-task:terminal',
+          state: 'failed',
+          evidenceRefs: ['arena:evidence:terminal'],
+        }),
+      }),
+    }));
+  });
+
+  it('keeps the selected path in fallback when a non-terminal selected node has failed', async () => {
+    const terminalValidation = {
+      nodeId: 'arena-task:terminal',
+      state: 'completed',
+      evidenceRefs: ['arena:evidence:terminal'],
+    };
+    const pathPayload = {
+      mainPathNodeIds: ['node-1'],
+      planNodes: [{ nodeId: 'node-1', type: 'simulation', target: '/simulations/current' }],
+      policyBundle: {
+        status: 'ready',
+        paths: [
+          {
+            styleId: 'partial-failed-route',
+            policyFamily: 'simulation-driven',
+            nodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
+            activeNodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
+            planNodes: [
+              { nodeId: 'simulation:shared-lab', type: 'simulation', target: '/simulations/shared-lab' },
+              { nodeId: 'arena-task:terminal', type: 'arena_task', target: '/arena/tasks/terminal' },
+            ],
+            resourceMix: { simulation: 1, arena_task: 1 },
+            evidenceBasis: ['simulation-run'],
+            terminalValidationNodeIds: ['arena-task:terminal'],
+          },
+        ],
+      },
+    };
+    mocks.prisma.learningPath.findUnique
+      .mockResolvedValueOnce({
+        id: 'path-1',
+        userId: 'student-1',
+        classId: 'class-1',
+        goalId: 'control-correction',
+        pathStatus: 'completed',
+        currentNodeId: null,
+        nodeIds: ['simulation:shared-lab', 'arena-task:terminal'],
+        pathPayload,
+        learnerStateRef: 'diagnosis-snapshot:server-owned',
+        inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
+        terminalValidation,
+        lastExecutionMetadata: { completedNodeIds: [] },
+      })
+      .mockResolvedValueOnce({
+        pathPayload,
+        lastExecutionMetadata: {
+          completedNodeIds: ['arena-task:terminal'],
+          failedNodeIds: ['simulation:shared-lab'],
+        },
+        terminalValidation,
+      });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'choice-partial-failed-option-key',
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: null,
+        pathStatus: 'fallback',
+        pathPayload: expect.objectContaining({
+          executionStatus: expect.objectContaining({
+            activeNodeId: null,
+            completedNodeIds: ['arena-task:terminal'],
+            failedNodeIds: ['simulation:shared-lab'],
+          }),
+        }),
+        lastExecutionMetadata: expect.objectContaining({
+          completedNodeIds: ['arena-task:terminal'],
+          failedNodeIds: ['simulation:shared-lab'],
+        }),
+        terminalValidation: expect.objectContaining({
+          nodeId: 'arena-task:terminal',
+          state: 'completed',
+          evidenceRefs: ['arena:evidence:terminal'],
+        }),
+      }),
+    }));
+  });
+
   it('preserves the latest path choice history when adopting the selected option', async () => {
     const initialPathPayload = {
       mainPathNodeIds: ['node-1'],

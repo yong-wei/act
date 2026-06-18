@@ -224,7 +224,8 @@ async function adoptSelectedPathOption(
     },
   });
   const pathPayload = readRecord(latestPath?.pathPayload ?? path.pathPayload);
-  const currentNodeId = resolveSelectedPathCurrentNodeId(option, latestPath ?? path, pathPayload);
+  const selectedNodeState = readSelectedExecutionNodeState(latestPath ?? path, pathPayload);
+  const currentNodeId = resolveSelectedPathCurrentNodeId(option, selectedNodeState);
   const selectedPlanNodes = normalizeSelectedPlanNodes(option.planNodes, currentNodeId);
   const updatedAt = new Date().toISOString();
   const pathPayloadUpdate = {
@@ -235,26 +236,29 @@ async function adoptSelectedPathOption(
     currentNodeId,
     mainPathNodeIds: option.nodeIds,
     planNodes: selectedPlanNodes,
-    executionStatus: updateSelectedPathExecutionStatus(pathPayload.executionStatus, option.nodeIds, currentNodeId, updatedAt),
-    visualization: updateSelectedPathVisualization(pathPayload.visualization, option.nodeIds, currentNodeId),
+    executionStatus: updateSelectedPathExecutionStatus(pathPayload.executionStatus, option.nodeIds, currentNodeId, updatedAt, selectedNodeState),
+    visualization: updateSelectedPathVisualization(pathPayload.visualization, option.nodeIds, currentNodeId, selectedNodeState),
   };
   const lastExecutionMetadata = updateSelectedPathExecutionMetadata(
     latestPath?.lastExecutionMetadata ?? path.lastExecutionMetadata,
     option.nodeIds,
     currentNodeId,
     option,
+    selectedNodeState,
   );
   const terminalValidation = buildSelectedPathTerminalValidation(
     latestPath?.terminalValidation ?? path.terminalValidation,
     option,
     selectedPlanNodes,
+    selectedNodeState,
   );
+  const pathStatus = resolveSelectedPathStatus(option.nodeIds, currentNodeId, selectedNodeState, terminalValidation);
   await prisma.learningPath.update({
     where: { id: path.id },
     data: {
       nodeIds: option.nodeIds,
       currentNodeId,
-      pathStatus: 'active',
+      pathStatus,
       pathPayload: pathPayloadUpdate as unknown as Prisma.InputJsonValue,
       lastExecutionMetadata: lastExecutionMetadata as unknown as Prisma.InputJsonValue,
       terminalValidation: terminalValidation as unknown as Prisma.InputJsonValue,
@@ -320,38 +324,77 @@ function sameStringSet(left: string[], right: string[]): boolean {
   return right.every((item) => leftSet.has(item));
 }
 
+interface SelectedExecutionNodeState {
+  completedNodeIds: Set<string>;
+  failedNodeIds: Set<string>;
+  skippedNodeIds: Set<string>;
+  unavailableNodeIds: Set<string>;
+}
+
 function resolveSelectedPathCurrentNodeId(
   option: ServerPathChoiceOption,
-  latestPath: Record<string, unknown>,
-  pathPayload: Record<string, unknown>,
+  selectedNodeState: SelectedExecutionNodeState,
 ): string | null {
-  const completedOrUnavailable = readSelectedUnavailableNodeIds(latestPath, pathPayload);
   const preferredNodeIds = option.activeNodeIds.length > 0 ? option.activeNodeIds : option.nodeIds;
   return [...preferredNodeIds, ...option.nodeIds]
-    .find((nodeId) => option.nodeIds.includes(nodeId) && !completedOrUnavailable.has(nodeId))
+    .find((nodeId) => option.nodeIds.includes(nodeId) && !selectedNodeState.unavailableNodeIds.has(nodeId))
     ?? null;
 }
 
-function readSelectedUnavailableNodeIds(
+function resolveSelectedPathStatus(
+  nodeIds: string[],
+  currentNodeId: string | null,
+  selectedNodeState: SelectedExecutionNodeState,
+  terminalValidation: Record<string, unknown>,
+): string {
+  if (currentNodeId) return 'active';
+  const terminalState = nullableString(terminalValidation.state);
+  if (terminalState === 'failed' || terminalState === 'low-confidence' || terminalState === 'skipped') {
+    return 'fallback';
+  }
+  if (nodeIds.some((nodeId) => selectedNodeState.failedNodeIds.has(nodeId) || selectedNodeState.skippedNodeIds.has(nodeId))) {
+    return 'fallback';
+  }
+  if (terminalState === 'completed') {
+    return 'completed';
+  }
+  if (nodeIds.length > 0 && nodeIds.every((nodeId) => selectedNodeState.completedNodeIds.has(nodeId))) {
+    return 'completed';
+  }
+  return 'fallback';
+}
+
+function readSelectedExecutionNodeState(
   latestPath: Record<string, unknown>,
   pathPayload: Record<string, unknown>,
-): Set<string> {
+): SelectedExecutionNodeState {
   const executionStatus = readRecord(pathPayload.executionStatus);
   const metadata = readRecord(latestPath.lastExecutionMetadata);
-  return new Set([
+  const completedNodeIds = new Set([
     ...readStringArray(metadata.completedNodeIds),
-    ...readStringArray(metadata.failedNodeIds),
-    ...readStringArray(metadata.skippedNodeIds),
     ...readStringArray(executionStatus.completedNodeIds),
+  ]);
+  const failedNodeIds = new Set([
+    ...readStringArray(metadata.failedNodeIds),
     ...readStringArray(executionStatus.failedNodeIds),
+  ]);
+  const skippedNodeIds = new Set([
+    ...readStringArray(metadata.skippedNodeIds),
     ...readStringArray(executionStatus.skippedNodeIds),
   ]);
+  return {
+    completedNodeIds,
+    failedNodeIds,
+    skippedNodeIds,
+    unavailableNodeIds: new Set([...completedNodeIds, ...failedNodeIds, ...skippedNodeIds]),
+  };
 }
 
 function buildSelectedPathTerminalValidation(
   value: unknown,
   option: ServerPathChoiceOption,
   selectedPlanNodes: Array<Record<string, unknown>>,
+  selectedNodeState: SelectedExecutionNodeState,
 ): Record<string, unknown> {
   const terminalNodeId = option.terminalValidationNodeIds.find((nodeId) => option.nodeIds.includes(nodeId)) ?? null;
   if (!terminalNodeId) {
@@ -367,12 +410,18 @@ function buildSelectedPathTerminalValidation(
   const resourceType = nullableString(terminalNode?.type) ?? inferResourceTypeFromOptionNode(terminalNodeId, null);
   const target = nullableString(terminalNode?.target) ?? inferTargetFromOptionNode(terminalNodeId);
   const sourceRef = nullableString(terminalNode?.sourceRef);
-  const policy = readRecord(current.policy);
+  const terminalBase = current.nodeId === terminalNodeId ? current : {};
+  const policy = readRecord(terminalBase.policy);
+  const existingTerminalState = current.nodeId === terminalNodeId
+    ? terminalOutcomeState(nullableString(current.state))
+    : null;
+  const state = terminalStateFromNodeState(selectedNodeState, terminalNodeId, existingTerminalState);
 
   return compactRecord({
+    ...terminalBase,
     nodeId: terminalNodeId,
     resourceType,
-    state: 'pending',
+    state,
     target,
     sourceRef,
     taskId: terminalNodeId.startsWith('arena-task:') ? terminalNodeId.slice('arena-task:'.length) : null,
@@ -492,6 +541,7 @@ function updateSelectedPathExecutionMetadata(
   nodeIds: string[],
   currentNodeId: string | null,
   option: ServerPathChoiceOption,
+  selectedNodeState: SelectedExecutionNodeState,
 ): Record<string, unknown> {
   const metadata = readRecord(value);
   return {
@@ -500,9 +550,9 @@ function updateSelectedPathExecutionMetadata(
     selectedOptionId: option.optionId,
     selectedStyleId: option.styleId,
     selectedPolicyFamily: option.policyFamily,
-    completedNodeIds: filterSelectedNodeIds(metadata.completedNodeIds, nodeIds),
-    failedNodeIds: filterSelectedNodeIds(metadata.failedNodeIds, nodeIds),
-    skippedNodeIds: filterSelectedNodeIds(metadata.skippedNodeIds, nodeIds),
+    completedNodeIds: filterSelectedNodeSet(selectedNodeState.completedNodeIds, nodeIds),
+    failedNodeIds: filterSelectedNodeSet(selectedNodeState.failedNodeIds, nodeIds),
+    skippedNodeIds: filterSelectedNodeSet(selectedNodeState.skippedNodeIds, nodeIds),
   };
 }
 
@@ -511,15 +561,16 @@ function updateSelectedPathExecutionStatus(
   nodeIds: string[],
   currentNodeId: string | null,
   updatedAt: string,
+  selectedNodeState: SelectedExecutionNodeState,
 ): Record<string, unknown> {
   const executionStatus = readRecord(value);
   return {
     ...executionStatus,
     activeNodeId: currentNodeId,
     updatedAt,
-    completedNodeIds: filterSelectedNodeIds(executionStatus.completedNodeIds, nodeIds),
-    failedNodeIds: filterSelectedNodeIds(executionStatus.failedNodeIds, nodeIds),
-    skippedNodeIds: filterSelectedNodeIds(executionStatus.skippedNodeIds, nodeIds),
+    completedNodeIds: filterSelectedNodeSet(selectedNodeState.completedNodeIds, nodeIds),
+    failedNodeIds: filterSelectedNodeSet(selectedNodeState.failedNodeIds, nodeIds),
+    skippedNodeIds: filterSelectedNodeSet(selectedNodeState.skippedNodeIds, nodeIds),
   };
 }
 
@@ -527,6 +578,7 @@ function updateSelectedPathVisualization(
   value: unknown,
   nodeIds: string[],
   currentNodeId: string | null,
+  selectedNodeState: SelectedExecutionNodeState,
 ): Record<string, unknown> {
   const visualization = readRecord(value);
   const map = readRecord(visualization.map);
@@ -536,16 +588,33 @@ function updateSelectedPathVisualization(
       ...map,
       mainPathNodeIds: nodeIds,
       currentNodeId,
-      completedNodeIds: filterSelectedNodeIds(map.completedNodeIds, nodeIds),
-      failedNodeIds: filterSelectedNodeIds(map.failedNodeIds, nodeIds),
-      skippedNodeIds: filterSelectedNodeIds(map.skippedNodeIds, nodeIds),
+      completedNodeIds: filterSelectedNodeSet(selectedNodeState.completedNodeIds, nodeIds),
+      failedNodeIds: filterSelectedNodeSet(selectedNodeState.failedNodeIds, nodeIds),
+      skippedNodeIds: filterSelectedNodeSet(selectedNodeState.skippedNodeIds, nodeIds),
     },
   };
 }
 
-function filterSelectedNodeIds(value: unknown, nodeIds: string[]): string[] {
-  const selectedNodeIds = new Set(nodeIds);
-  return readStringArray(value).filter((nodeId) => selectedNodeIds.has(nodeId));
+function filterSelectedNodeSet(value: Set<string>, nodeIds: string[]): string[] {
+  return nodeIds.filter((nodeId) => value.has(nodeId));
+}
+
+function terminalOutcomeState(value: string | null): string | null {
+  return value === 'completed' || value === 'failed' || value === 'low-confidence' || value === 'skipped'
+    ? value
+    : null;
+}
+
+function terminalStateFromNodeState(
+  selectedNodeState: SelectedExecutionNodeState,
+  terminalNodeId: string,
+  existingTerminalState: string | null,
+): string {
+  if (selectedNodeState.failedNodeIds.has(terminalNodeId)) return 'failed';
+  if (selectedNodeState.skippedNodeIds.has(terminalNodeId)) return 'skipped';
+  if (existingTerminalState) return existingTerminalState;
+  if (selectedNodeState.completedNodeIds.has(terminalNodeId)) return 'completed';
+  return 'pending';
 }
 
 function resolveServerDiagnosisSnapshotRef(path: { learnerStateRef?: unknown; inputSnapshot?: unknown }): string | null {
