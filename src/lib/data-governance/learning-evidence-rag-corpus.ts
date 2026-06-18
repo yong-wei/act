@@ -338,6 +338,7 @@ export function validateLearningEvidenceCorpusChunk(chunk: LearningEvidenceCorpu
     retrievalUseCases ? null : 'missing-retrieval-use-cases',
     sourceType && retrievalUseCases?.every((useCase) => isUseCaseSourceCompatible(useCase, sourceType)) ? null : 'source-use-case-mismatch',
     family && sourceType && LEARNING_EVIDENCE_CORPUS_FAMILY_SOURCE_TYPES[family]?.includes(sourceType) ? null : 'family-source-type-mismatch',
+    record.citationAddress === undefined || isCitationAddress(record.citationAddress) ? null : 'invalid-citation-address',
   ];
   if (!content.text && !content.redactedSummary) errors.push('missing-retrievable-text');
   return errors.filter((item): item is string => Boolean(item));
@@ -914,6 +915,50 @@ function isPrivacyClass(value: unknown): value is LearningEvidenceCorpusPrivacyC
 
 function isConfidence(value: unknown): value is LearningEvidenceConfidence {
   return value === 'none' || value === 'low' || value === 'medium' || value === 'high';
+}
+
+function isCitationAddressKind(value: unknown): value is LearningEvidenceCitationAddressKind {
+  return value === 'text' ||
+    value === 'image' ||
+    value === 'audio' ||
+    value === 'video' ||
+    value === 'interactive' ||
+    value === 'simulation' ||
+    value === 'arena' ||
+    value === 'external';
+}
+
+function isNullableString(value: unknown): value is string | null | undefined {
+  return value === undefined || value === null || typeof value === 'string';
+}
+
+function isNullableNumber(value: unknown): value is number | null | undefined {
+  return value === undefined || value === null || typeof value === 'number';
+}
+
+function isCitationImageRegion(value: unknown): boolean {
+  if (value === undefined || value === null) return true;
+  const record = readRecord(value);
+  return typeof record.x === 'number' &&
+    typeof record.y === 'number' &&
+    typeof record.width === 'number' &&
+    typeof record.height === 'number';
+}
+
+function isCitationAddress(value: unknown): value is LearningEvidenceCitationAddress {
+  const record = readRecord(value);
+  return isCitationAddressKind(record.kind) &&
+    typeof record.sourceRefId === 'string' &&
+    (typeof record.href === 'string' || record.href === null) &&
+    isNullableString(record.locator) &&
+    isNullableString(record.contentHash) &&
+    isNullableNumber(record.mediaStartSeconds) &&
+    isNullableNumber(record.mediaEndSeconds) &&
+    isCitationImageRegion(record.imageRegion) &&
+    isNullableString(record.interactiveStepId) &&
+    isNullableString(record.simulationRunId) &&
+    isNullableString(record.arenaTaskId) &&
+    isNullableString(record.externalUrl);
 }
 
 function isAuthorityLevel(value: unknown): value is LearningEvidenceAuthorityLevel {

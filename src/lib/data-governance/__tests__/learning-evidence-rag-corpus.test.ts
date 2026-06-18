@@ -926,6 +926,36 @@ describe('learning evidence RAG corpus contract', () => {
     ]));
   });
 
+  it('rejects runtime citation addresses with missing required fields', () => {
+    const incompleteAddress = chunk({
+      id: 'incomplete-address',
+      citationAddress: {
+        sourceRefId: 'broken-address',
+        href: '/broken-address',
+      } as LearningEvidenceCorpusChunk['citationAddress'],
+    });
+
+    expect(validateLearningEvidenceCorpusChunk(incompleteAddress)).toContain('invalid-citation-address');
+
+    const result = verifyLearningEvidenceCitations([incompleteAddress], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    }, [
+      { chunkId: 'incomplete-address', useCase: 'diagnosis' },
+    ]);
+
+    expect(result.status).toBe('rejected');
+    expect(result.verifiedRefs).toEqual([]);
+    expect(result.limitations).toContainEqual({
+      chunkId: 'incomplete-address',
+      reason: 'unsupported-source-type',
+    });
+  });
+
   it('downgrades restricted citations whose server-owned address cannot be opened', () => {
     const verification = verifyLearningEvidenceCitations(corpus, {
       role: 'teacher',
