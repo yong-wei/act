@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useState, type ReactNode } from 'react';
 import { BookOpen, ChevronLeft, ChevronRight, Loader2, PanelRightClose, Route } from 'lucide-react';
 
 import { AppShell, PlatformSurface, type AppBreadcrumbItem } from '@/components/platform/app-shell';
+import { resolveAdaptivePathLaunchReturnContext } from '@/features/adaptive/adaptive-learning-center-contracts';
 import { formatLessonStepMenuLabel } from '@/features/interactive/shared/course-step-labels';
 
 export type LessonRuntimeMode = 'student' | 'guest' | 'teacher' | 'invalid';
@@ -75,19 +77,31 @@ export function LessonRuntimeShell({
   invalidDescription = '请返回课程入口重新加入课堂，或联系教师确认课堂状态。',
   runtimeAttributes,
 }: LessonRuntimeShellProps) {
+  const searchParams = useSearchParams();
+  const pathLaunchContext = resolveAdaptivePathLaunchReturnContext(searchParams);
   const [toolsOpen, setToolsOpen] = useState(toolsDefaultState === 'expanded');
   const hasSteps = steps.length > 0;
   const safeActiveIndex = hasSteps ? Math.min(Math.max(activeIndex, 0), steps.length - 1) : 0;
   const currentStep = steps[safeActiveIndex];
   const activeHref = getRuntimeHref(routeSegment, mode, sessionId);
   const courseHref = `/interactive-learning/courses/${routeSegment}`;
-  const breadcrumbs: readonly AppBreadcrumbItem[] = [
-    { label: '学习', href: '/dashboard' },
-    { label: '互动学习', href: '/interactive-learning' },
-    { label: '互动课程', href: '/interactive-learning/courses' },
-    { label: title, href: courseHref },
-    { label: getModeLabel(mode) },
-  ];
+  const runtimeReturnHref = pathLaunchContext?.returnHref ?? courseHref;
+  const runtimeReturnLabel = pathLaunchContext ? '返回学习路径' : '返回课程入口';
+  const breadcrumbs: readonly AppBreadcrumbItem[] = pathLaunchContext
+    ? [
+        { label: '学习', href: '/dashboard' },
+        { label: '互动学习', href: '/interactive-learning' },
+        { label: runtimeReturnLabel, href: runtimeReturnHref },
+        { label: title },
+        { label: getModeLabel(mode) },
+      ]
+    : [
+        { label: '学习', href: '/dashboard' },
+        { label: '互动学习', href: '/interactive-learning' },
+        { label: '互动课程', href: '/interactive-learning/courses' },
+        { label: title, href: courseHref },
+        { label: getModeLabel(mode) },
+      ];
   const canGoPrevious = hasSteps && safeActiveIndex > 0;
   const canGoNext = hasSteps && safeActiveIndex < steps.length - 1;
   const currentStageLabel = currentStep ? stageLabel?.[currentStep.stage] ?? currentStep.stage : '未开始';
@@ -108,9 +122,11 @@ export function LessonRuntimeShell({
         navigationLayers: ['global-product', 'contextual-workspace', 'local-tool'],
         floatingDock: 'collapsed',
         contextualReturn: {
-          sourceContext: 'interactive-learning',
-          targetHint: 'Return to the course entry page from the lesson runtime.',
-          fallbackHref: courseHref,
+          sourceContext: pathLaunchContext ? 'adaptive-learning' : 'interactive-learning',
+          targetHint: pathLaunchContext
+            ? 'Return to the adaptive path execution workspace from the lesson runtime.'
+            : 'Return to the course entry page from the lesson runtime.',
+          fallbackHref: runtimeReturnHref,
         },
       }}
       actions={topActions}
@@ -133,10 +149,10 @@ export function LessonRuntimeShell({
             <h1 className="mt-5 text-2xl font-semibold text-platform-fg-primary">{invalidTitle}</h1>
             <p className="mt-3 max-w-xl text-sm leading-6 text-platform-fg-secondary">{invalidDescription}</p>
             <Link
-              href={courseHref}
+              href={runtimeReturnHref}
               className="mt-6 inline-flex h-10 items-center rounded-md bg-platform-action-primary px-4 text-sm font-medium text-platform-action-primary-fg"
             >
-              返回课程入口
+              {runtimeReturnLabel}
             </Link>
           </PlatformSurface>
         ) : (

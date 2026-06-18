@@ -8,9 +8,11 @@ import {
   ADAPTIVE_LEARNING_CENTER_REGIONS,
   LEARNER_DATA_SHELL_SEMANTICS,
   buildControlCorrectionLearningCenterView,
+  buildAdaptivePathLaunchContext,
   buildLearnerDataRouteShell,
   buildPracticeEntryRouteNodes,
   buildRecommendedPathNodeView,
+  resolveAdaptivePathLaunchReturnContext,
   type AdaptiveLearningCompatibilityRoute,
   buildAdaptiveClaimStatus,
   buildAdaptiveLearningCenterState,
@@ -1393,9 +1395,64 @@ describe('adaptive learning center UI contracts', () => {
       routeIntent: 'path-execution',
     }).nodes[0];
 
-    expect(node.action?.href).toBe(
-      '/assessment/adaptive-practice?pathId=path-1&nodeId=node-1&goal=control-correction&intent=path-execution',
+    const query = new URLSearchParams(node.action?.href.split('?')[1] ?? '');
+    expect(query.get('source')).toBe('adaptive-path-center');
+    expect(query.get('goal')).toBe('control-correction');
+    expect(query.get('goalId')).toBe('control-correction');
+    expect(query.get('pathId')).toBe('path-1');
+    expect(query.get('nodeId')).toBe('node-1');
+    expect(query.get('intent')).toBe('path-execution');
+    expect(query.get('resourceType')).toBe('quiz');
+    expect(query.get('returnHref')).toBe(
+      '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1&nodeId=node-1',
     );
+    expect(node.action?.href).toBe(
+      '/assessment/adaptive-practice?source=adaptive-path-center&goal=control-correction&goalId=control-correction&pathId=path-1&nodeId=node-1&intent=path-execution&returnHref=%2Fassessment%2Fadaptive-practice%3Fgoal%3Dcontrol-correction%26intent%3Dpath-execution%26pathId%3Dpath-1%26nodeId%3Dnode-1&resourceType=quiz',
+    );
+  });
+
+  it('parses valid path launch return hrefs and rejects non-path launches', () => {
+    const launchContext = buildAdaptivePathLaunchContext({
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      nodeId: 'node-1',
+      routeIntent: 'path-execution',
+      resourceType: 'quiz',
+    });
+    const params = new URLSearchParams({
+      source: launchContext.source,
+      goal: launchContext.goalId,
+      goalId: launchContext.goalId,
+      pathId: launchContext.pathId,
+      nodeId: launchContext.nodeId,
+      intent: launchContext.routeIntent,
+      returnHref: launchContext.returnHref,
+      resourceType: launchContext.resourceType,
+    });
+
+    expect(resolveAdaptivePathLaunchReturnContext(params)).toEqual({
+      source: 'adaptive-path-center',
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      nodeId: 'node-1',
+      routeIntent: 'path-execution',
+      returnHref: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1&nodeId=node-1',
+      resourceType: 'quiz',
+    });
+    expect(resolveAdaptivePathLaunchReturnContext(new URLSearchParams({
+      source: 'chapter-components',
+      category: 'time-domain',
+      returnHref: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1&nodeId=node-1',
+    }))).toBeNull();
+    expect(resolveAdaptivePathLaunchReturnContext(new URLSearchParams({
+      source: 'adaptive-path-center',
+      goal: 'control-correction',
+      pathId: 'path-1',
+      nodeId: 'node-1',
+      intent: 'path-execution',
+      resourceType: 'quiz',
+      returnHref: 'https://example.com/assessment/adaptive-practice',
+    }))).toBeNull();
   });
 
   it('launches external resource path nodes through governed access recording', () => {
@@ -1481,7 +1538,7 @@ describe('adaptive learning center UI contracts', () => {
     }).nodes[0];
 
     expect(node.action?.href).toBe(
-      '/course-runtime/knowledge/cards/nodes/时域指标到目标极点区域_3_36001.md?pathId=path-1&nodeId=node-1&goal=control-correction&intent=path-execution',
+      '/course-runtime/knowledge/cards/nodes/时域指标到目标极点区域_3_36001.md?source=adaptive-path-center&goal=control-correction&goalId=control-correction&pathId=path-1&nodeId=node-1&intent=path-execution&returnHref=%2Fassessment%2Fadaptive-practice%3Fgoal%3Dcontrol-correction%26intent%3Dpath-execution%26pathId%3Dpath-1%26nodeId%3Dnode-1&resourceType=quiz',
     );
   });
 
@@ -1525,7 +1582,7 @@ describe('adaptive learning center UI contracts', () => {
     });
     expect(view.nextAction).toMatchObject({
       nodeId: 'node-1',
-      href: '/assessment/adaptive-practice?pathId=path-1&nodeId=node-1&goal=control-correction&intent=path-execution',
+      href: '/assessment/adaptive-practice?source=adaptive-path-center&goal=control-correction&goalId=control-correction&pathId=path-1&nodeId=node-1&intent=path-execution&returnHref=%2Fassessment%2Fadaptive-practice%3Fgoal%3Dcontrol-correction%26intent%3Dpath-execution%26pathId%3Dpath-1%26nodeId%3Dnode-1&resourceType=quiz',
       confidence: 'medium',
       evidenceLimitation: 'complete',
     });
@@ -1539,8 +1596,73 @@ describe('adaptive learning center UI contracts', () => {
         pathId: 'path-1',
         nodeId: 'node-1',
         routeIntent: 'path-execution',
+        source: 'adaptive-path-center',
+        returnHref: '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1&nodeId=node-1',
+        resourceType: 'quiz',
       },
     ]);
+  });
+
+  it('keeps path node launches returnable to path execution from non-execution entries', () => {
+    const view = buildControlCorrectionLearningCenterView({
+      featureFlags: [ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG],
+      learnerState: learnerState({ missingEvidence: [] }),
+      pathPlan: pathPlan({
+        goal: {
+          id: 'control-correction',
+          title: '控制校正路径',
+          knowledgeTargets: ['phase-margin'],
+        },
+      }),
+      routeIntent: 'practice',
+    });
+    const query = new URLSearchParams(view.nextAction.href.split('?')[1] ?? '');
+    const returnContext = resolveAdaptivePathLaunchReturnContext(query);
+
+    expect(view.entry.routeIntent).toBe('practice');
+    expect(query.get('intent')).toBe('path-execution');
+    expect(returnContext).toMatchObject({
+      source: 'adaptive-path-center',
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      nodeId: 'node-1',
+      routeIntent: 'path-execution',
+      resourceType: 'quiz',
+    });
+    expect(returnContext?.returnHref).toBe(
+      '/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1&nodeId=node-1',
+    );
+  });
+
+  it('overwrites stale goal and intent query keys on path node launch targets', () => {
+    const node = buildRecommendedPathNodeView(pathPlan({
+      goal: {
+        id: 'control-correction',
+        title: '控制校正路径',
+        knowledgeTargets: ['phase-margin'],
+      },
+      mainPath: [
+        {
+          ...pathPlan().mainPath[0],
+          target: '/assessment/adaptive-practice?goal=frequency-response-foundations&intent=practice&focus=diagnostic',
+        },
+      ],
+    }), {
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      routeIntent: 'path-execution',
+    }).nodes[0];
+    const query = new URLSearchParams(node.action?.href.split('?')[1] ?? '');
+
+    expect(query.getAll('goal')).toEqual(['control-correction']);
+    expect(query.getAll('intent')).toEqual(['path-execution']);
+    expect(query.get('focus')).toBe('diagnostic');
+    expect(resolveAdaptivePathLaunchReturnContext(query)).toMatchObject({
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      nodeId: 'node-1',
+      routeIntent: 'path-execution',
+    });
   });
 
   it('exposes external resource completion on the control-correction next action', () => {

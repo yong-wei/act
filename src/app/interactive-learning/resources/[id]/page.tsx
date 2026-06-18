@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import type { TeachingResource } from '@prisma/client';
 import { InteractiveLearningShell } from '@/features/interactive/interactive-learning-shell';
 import { ResourceRenderer } from '@/features/lesson-engine/resource-renderer';
+import { resolveAdaptivePathLaunchReturnContext } from '@/features/adaptive/adaptive-learning-center-contracts';
 
 export default function InteractiveResourcePage() {
   const params = useParams() as { id?: string } | null;
@@ -14,11 +15,18 @@ export default function InteractiveResourcePage() {
   const resourceId = params?.id;
   const source = searchParams.get('source');
   const categorySlug = searchParams.get('category');
+  const pathLaunchContext = resolveAdaptivePathLaunchReturnContext(searchParams);
   const [resource, setResource] = useState<TeachingResource | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const sourceContext = source === 'cross-domain-exploration'
+  const sourceContext = pathLaunchContext
+    ? {
+        label: '学习路径',
+        href: pathLaunchContext.returnHref,
+        family: 'adaptive-path-execution',
+      }
+    : source === 'cross-domain-exploration'
     ? {
         label: '跨域探索',
         href: '/interactive-learning/cross-domain-exploration',
