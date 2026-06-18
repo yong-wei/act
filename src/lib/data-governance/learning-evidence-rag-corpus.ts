@@ -426,6 +426,9 @@ export function verifyLearningEvidenceCitations(
     if (!resolvedAddress.address.href) {
       limitations.push({ chunkId: chunk.id, reason: 'unresolved-address' });
     }
+    if (resolvedAddress.address.contentHash && resolvedAddress.address.contentHash !== chunk.content.hash) {
+      limitations.push({ chunkId: chunk.id, reason: 'stale-source' });
+    }
     verifiedRefs.push({
       chunkId: chunk.id,
       sourceType: chunk.sourceType,
@@ -506,17 +509,23 @@ export function buildLearningEvidenceCitationChips(
   return verification.verifiedRefs.map((ref) => {
     const shouldRedactHref = scope.role === 'student' && ref.privacyVisibility === 'privileged';
     const displayHref = shouldRedactHref ? null : ref.displayHref;
-    const citationAddress = ref.citationAddress ? {
-      ...ref.citationAddress,
+    const baseAddress = ref.citationAddress ?? {
+      kind: ref.addressKind ?? defaultCitationAddressKind(ref.sourceType),
+      sourceRefId: ref.chunkId,
+      href: ref.displayHref,
+      locator: null,
+    } satisfies LearningEvidenceCitationAddress;
+    const citationAddress = {
+      ...baseAddress,
       href: displayHref,
-      externalUrl: shouldRedactHref ? null : ref.citationAddress.externalUrl,
-    } : undefined;
+      externalUrl: shouldRedactHref ? null : baseAddress.externalUrl,
+    };
     return {
       chunkId: ref.chunkId,
       displayTitle: ref.displayTitle,
       displayHref,
       sourceType: ref.sourceType,
-      addressKind: ref.addressKind ?? citationAddress?.kind,
+      addressKind: ref.addressKind ?? citationAddress.kind,
       citationAddress,
       authorityLevel: ref.authorityLevel,
       confidence: ref.confidence,

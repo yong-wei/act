@@ -767,6 +767,39 @@ describe('learning evidence RAG corpus contract', () => {
         externalUrl: null,
       }),
     }));
+
+    const legacyVerification = {
+      status: 'verified',
+      verifiedRefs: [
+        {
+          chunkId: 'legacy-path-ref',
+          sourceType: 'path-summary',
+          displayTitle: '旧式诊断路径证据',
+          displayHref: '/learning-paths/path-1',
+          confidence: 'medium',
+          capsule: '终端验证已完成。',
+          authorityLevel: 'learner-evidence',
+          freshnessBucket: 'current',
+          privacyVisibility: 'redacted',
+        },
+      ],
+      limitations: [],
+    } satisfies ReturnType<typeof verifyLearningEvidenceCitations>;
+    expect(buildLearningEvidenceCitationChips(legacyVerification, {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    })[0]).toEqual(expect.objectContaining({
+      addressKind: 'interactive',
+      citationAddress: expect.objectContaining({
+        kind: 'interactive',
+        sourceRefId: 'legacy-path-ref',
+        href: '/learning-paths/path-1',
+      }),
+    }));
   });
 
   it('resolves citations through server-owned address payloads', () => {
@@ -953,6 +986,41 @@ describe('learning evidence RAG corpus contract', () => {
     expect(result.limitations).toContainEqual({
       chunkId: 'incomplete-address',
       reason: 'unsupported-source-type',
+    });
+  });
+
+  it('downgrades citation addresses with stale content hashes', () => {
+    const staleAddress = chunk({
+      id: 'stale-address',
+      citationAddress: {
+        kind: 'text',
+        sourceRefId: 'unit-4-1',
+        href: '/interactive-learning/courses/unit-4-1',
+        contentHash: 'old-hash',
+      },
+    });
+
+    const result = verifyLearningEvidenceCitations([staleAddress], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    }, [
+      { chunkId: 'stale-address', useCase: 'diagnosis' },
+    ]);
+
+    expect(result.status).toBe('downgraded');
+    expect(result.verifiedRefs).toEqual([
+      expect.objectContaining({
+        chunkId: 'stale-address',
+        citationAddress: expect.objectContaining({ contentHash: 'old-hash' }),
+      }),
+    ]);
+    expect(result.limitations).toContainEqual({
+      chunkId: 'stale-address',
+      reason: 'stale-source',
     });
   });
 
