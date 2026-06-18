@@ -70,6 +70,8 @@ export const INTERACTIVE_MODULE_VISUAL_STANDARDS: Record<InteractiveModuleCanoni
   'visual.derivationStage': standard('visual.derivationStage', 'interaction', 'commercial-module-chrome--visual-derivation-stage', 'module'),
   'visual.blockDiagram': standard('visual.blockDiagram', 'interaction', 'commercial-module-chrome--visual-block-diagram', 'module'),
   'visual.signalFlowGraph': standard('visual.signalFlowGraph', 'interaction', 'commercial-module-chrome--visual-signal-flow-graph', 'module'),
+  'visual.annotatedMedia': standard('visual.annotatedMedia', 'interaction', 'commercial-module-chrome--visual-annotated-media', 'module'),
+  'visual.embedded-activity': standard('visual.embedded-activity', 'interaction', 'commercial-module-chrome--visual-embedded-activity', 'module'),
   'activity.panel': standard('activity.panel', 'interaction', 'commercial-module-chrome--interaction', 'module'),
   'activity.workspace': standard('activity.workspace', 'interaction', 'commercial-module-chrome--workspace', 'module'),
   'compute.panel': standard('compute.panel', 'interaction', 'commercial-module-chrome--compute', 'module'),

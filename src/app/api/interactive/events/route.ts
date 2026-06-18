@@ -29,6 +29,12 @@ import {
   materializeControlWorkbenchEvidenceFromSubmissionPayload,
   type ControlWorkbenchDiagnosticEvent,
 } from '@/features/interactive/shared/manifest-runtime/control-workbench-evidence';
+import {
+  annotatedMediaDiagnosticEventFromEvidence,
+  buildAnnotatedMediaTeacherDiagnostics,
+  materializeAnnotatedMediaEvidenceFromSubmissionPayload,
+  type AnnotatedMediaDiagnosticEvent,
+} from '@/features/interactive/shared/manifest-runtime/annotated-media-evidence';
 
 export const dynamic = 'force-dynamic';
 
@@ -177,6 +183,13 @@ function buildStudentStepResponseRows(
         serverRecordedAt: serverRecordedAt.toISOString(),
       },
     );
+    const annotatedMediaEvidence = materializeAnnotatedMediaEvidenceFromSubmissionPayload(
+      normalizedPayload,
+      {
+        trustedSourceLogId: sourceLogId,
+        serverRecordedAt: serverRecordedAt.toISOString(),
+      },
+    );
 
     rows.push({
       userId,
@@ -190,6 +203,7 @@ function buildStudentStepResponseRows(
       responseData: {
         ...normalizedPayload,
         ...(controlWorkbenchEvidence ? { controlWorkbenchEvidence } : {}),
+        ...(annotatedMediaEvidence ? { annotatedMediaEvidence } : {}),
         eventType: canonicalEventType,
         resourceKey: eventData.event.resourceKey,
         lessonKey: eventData.event.lessonKey ?? null,
@@ -571,6 +585,32 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    if (diagnostics === 'annotated-media') {
+      if (!isTeacherOrAdmin) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+      const responses = await prisma.studentStepResponse.findMany({
+        where: {
+          ...(sessionId ? { sessionId } : {}),
+          ...(resourceKey ? { lessonKey: resourceKey } : {}),
+          ...(userId ? { userId } : {}),
+        },
+        orderBy: { submittedAt: 'desc' },
+        take: limit,
+        select: {
+          userId: true,
+          responseData: true,
+        },
+      });
+      return NextResponse.json({
+        diagnostics: buildAnnotatedMediaTeacherDiagnostics(
+          responses
+            .map((response) => annotatedMediaDiagnosticEventFromResponse(response.userId, response.responseData))
+            .filter((event): event is AnnotatedMediaDiagnosticEvent => Boolean(event)),
+        ),
+      });
+    }
+
     if (!resourceId && !resourceKey) {
       return NextResponse.json({ error: 'resourceId or resourceKey is required' }, { status: 400 });
     }
@@ -692,4 +732,12 @@ function controlWorkbenchDiagnosticEventFromResponse(
     clientEventAt: readPayloadString(evidence, 'clientEventAt') ?? undefined,
     serverRecordedAt: readPayloadString(payload, 'serverRecordedAt') ?? undefined,
   };
+}
+
+function annotatedMediaDiagnosticEventFromResponse(
+  userId: string,
+  responseData: unknown,
+): AnnotatedMediaDiagnosticEvent | null {
+  const data = readRecord(responseData);
+  return annotatedMediaDiagnosticEventFromEvidence(userId, data.annotatedMediaEvidence);
 }

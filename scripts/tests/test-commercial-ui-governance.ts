@@ -540,6 +540,10 @@ const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
     'src/app/review/structure-diagram-runtime-563/page.tsx',
     'issue 563 structure diagram runtime is an internal visual acceptance surface launched from the review hub',
   ],
+  [
+    'src/app/review/annotated-media-activity-564/page.tsx',
+    'issue 564 annotated media activity is an internal visual acceptance surface launched from the review hub',
+  ],
 ]);
 
 function appPageRouteHref(file: string) {

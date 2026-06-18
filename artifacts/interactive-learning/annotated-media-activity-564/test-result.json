@@ -1,0 +1,42 @@
+{
+  "status": "pass",
+  "commands": [
+    "rtk npm run test:unit -- src/features/interactive/__tests__/interactive-module-registry-gate.test.ts src/features/interactive/__tests__/annotated-media-evidence.test.ts src/features/interactive/__tests__/interactive-module-taxonomy.test.ts src/features/interactive/__tests__/visual-stage-evidence.test.ts src/features/interactive/__tests__/derivation-stage-evidence.test.ts src/features/interactive/__tests__/structure-diagram-evidence.test.ts src/app/api/interactive/events/__tests__/route.test.ts",
+    "rtk npx tsc --noEmit --pretty false",
+    "rtk npm run lint",
+    "rtk node artifacts/interactive-learning/annotated-media-activity-564/browser-acceptance.mjs",
+    "rtk openspec validate add-interactive-annotated-media-activity --strict",
+    "rtk openspec validate --changes --strict",
+    "rtk npm run test:commercial-ui-governance"
+  ],
+  "unitTests": {
+    "files": 7,
+    "tests": 106,
+    "passed": 106
+  },
+  "typecheck": {
+    "passed": true
+  },
+  "lint": {
+    "passed": true
+  },
+  "browserAcceptance": {
+    "passed": true,
+    "captures": 39,
+    "coreMatrixCaptures": "36/36",
+    "auditPath": "artifacts/interactive-learning/annotated-media-activity-564/browser-audit.json"
+  },
+  "openspec": {
+    "changeStrict": true,
+    "changesStrict": true
+  },
+  "commercialUiGovernance": {
+    "passed": false,
+    "newIssue564Violations": 0,
+    "knownExternalViolations": [
+      "/knowledge visual acceptance evidence is stale",
+      "interactive-learning product QA sourceCommit requires refresh outside this change"
+    ],
+    "lastVerified": "2026-06-18"
+  }
+}
