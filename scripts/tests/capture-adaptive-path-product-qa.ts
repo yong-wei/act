@@ -184,7 +184,21 @@ async function collectSignals(page: Page, state: CaptureState, screenshotPath: s
     const questionSummary = document.querySelector('[data-adaptive-practice-question="summary"]');
     const dock = document.querySelector('[data-page-floating-controls], [data-platform-floating-dock]');
     const routeFlow = document.querySelector('[data-adaptive-path-route-flow="connected"]');
-    const comparison = document.querySelector('[data-learning-path-options-layout="comparable-information-grid"]');
+    const comparison = document.querySelector('[data-learning-path-options-layout="route-modules"]');
+    const routeModules = Array.from(document.querySelectorAll('[data-learning-path-option-module="route"]'))
+      .filter((element) => {
+        const rect = element.getBoundingClientRect();
+        const style = window.getComputedStyle(element);
+        return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+      });
+    const attachedActionGroups = routeModules
+      .map((module) => module.querySelector('[data-learning-path-option-actions="attached"]'))
+      .filter((element): element is Element => {
+        if (!element) return false;
+        const rect = element.getBoundingClientRect();
+        const style = window.getComputedStyle(element);
+        return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+      });
     const forbiddenPatterns = [
       'Readiness Gate',
       'missing-rules-graph-path-payload',
@@ -212,6 +226,9 @@ async function collectSignals(page: Page, state: CaptureState, screenshotPath: s
       questionActive: Boolean(question),
       questionSummary: Boolean(questionSummary),
       comparisonLayout: comparison?.getAttribute('data-learning-path-options-layout') ?? '',
+      routeModuleCount: routeModules.length,
+      attachedActionGroupCount: attachedActionGroups.length,
+      routeModulesAttached: routeModules.length > 0 && routeModules.length === attachedActionGroups.length,
       dockPresent: Boolean(dock),
       dockRect: dock ? (() => {
         const rect = dock.getBoundingClientRect();
@@ -228,11 +245,48 @@ async function collectSignals(page: Page, state: CaptureState, screenshotPath: s
   }, { name: state.name, theme: state.theme, width: state.width, screenshotPath });
 }
 
+type CaptureSignal = Awaited<ReturnType<typeof collectSignals>>;
+
+function assertPathComparisonSignals(signals: CaptureSignal[]) {
+  const requiredStates = ['path-comparison-desktop-light', 'path-comparison-mobile-dark'];
+  const failures: Array<{ name: string; issues: string[]; signal?: CaptureSignal }> = [];
+
+  for (const stateName of requiredStates) {
+    const signal = signals.find((entry) => entry.name === stateName);
+    if (!signal) {
+      failures.push({ name: stateName, issues: ['missing-signal'] });
+      continue;
+    }
+
+    const issues: string[] = [];
+    if (signal.comparisonLayout !== 'route-modules') {
+      issues.push(`comparisonLayout=${signal.comparisonLayout || 'missing'}`);
+    }
+    if (signal.routeModuleCount < 3) {
+      issues.push(`routeModuleCount=${signal.routeModuleCount}`);
+    }
+    if (signal.attachedActionGroupCount !== signal.routeModuleCount) {
+      issues.push(`attachedActionGroupCount=${signal.attachedActionGroupCount}`);
+    }
+    if (!signal.routeModulesAttached) {
+      issues.push('routeModulesAttached=false');
+    }
+
+    if (issues.length > 0) {
+      failures.push({ name: stateName, issues, signal });
+    }
+  }
+
+  if (failures.length > 0) {
+    throw new Error(`Adaptive path comparison route modules failed validation:\n${JSON.stringify(failures, null, 2)}`);
+  }
+}
+
 async function main() {
   mkdirSync(outputDir, { recursive: true });
   const browser = await chromium.launch({ headless: true });
   const captures = [];
-  const signals = [];
+  const signals: CaptureSignal[] = [];
   try {
     for (const state of states) {
       const page = await browser.newPage({ viewport: { width: state.width, height: state.height } });
@@ -264,6 +318,8 @@ async function main() {
   } finally {
     await browser.close();
   }
+
+  assertPathComparisonSignals(signals);
 
   writeFileSync(path.join(outputDir, 'capture-manifest.json'), `${JSON.stringify({
     capturedAt: new Date().toISOString(),

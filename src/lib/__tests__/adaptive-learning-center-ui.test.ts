@@ -407,6 +407,35 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain("submitPathChoice('helpfulness'");
   });
 
+  it('keeps desktop path option actions inside each comparable option module', () => {
+    const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+
+    expect(source).toContain('data-learning-path-options-layout="route-modules"');
+    expect(source).toContain('data-learning-path-option-actions="attached"');
+    expect(source).toContain("key={`${option.id}:mobile`}");
+    expect(source).toContain('data-learning-path-option-module="route"');
+    expect(source).toContain('aria-label={`选择${option.title}`');
+    expect(source).toContain('aria-label={`请控灵调整${option.title}`');
+    expect(source).toContain('aria-label={`解释${option.title}差异`');
+    expect(source).toContain('aria-label={`暂不采用${option.title}`');
+    expect(source).not.toContain("key={`${option.id}:actions`}");
+    expect(source).not.toContain('lg:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]');
+  });
+
+  it('captures adaptive path visual signals for attached route modules', () => {
+    const source = readFileSync(join(repoRoot, 'scripts/tests/capture-adaptive-path-product-qa.ts'), 'utf8');
+
+    expect(source).toContain('routeModulesAttached');
+    expect(source).toContain('assertPathComparisonSignals');
+    expect(source).toContain('missing-signal');
+    expect(source).toContain("style.visibility !== 'hidden'");
+    expect(source).toContain('signal.routeModuleCount < 3');
+    expect(source).toContain('signal.attachedActionGroupCount !== signal.routeModuleCount');
+    expect(source).toContain('[data-learning-path-options-layout="route-modules"]');
+    expect(source).toContain('[data-learning-path-option-actions="attached"]');
+    expect(source).not.toContain('[data-learning-path-options-layout="comparable-information-grid"]');
+  });
+
   it('does not fall back static starter path actions to the first real option', () => {
     const source = readFileSync(join(repoRoot, 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
 
