@@ -34,6 +34,15 @@ export type LearningEvidenceConfidence = 'none' | 'low' | 'medium' | 'high';
 export type LearningEvidenceAuthorityLevel = 'canonical' | 'verified' | 'contextual' | 'learner-evidence' | 'teacher-authored' | 'service-internal';
 export type LearningEvidenceFreshnessBucket = 'current' | 'recent' | 'stale' | 'expired';
 export type LearningEvidenceConflictSignal = 'supports' | 'contradicts' | null;
+export type LearningEvidenceCitationAddressKind =
+  | 'text'
+  | 'image'
+  | 'audio'
+  | 'video'
+  | 'interactive'
+  | 'simulation'
+  | 'arena'
+  | 'external';
 
 export interface LearningEvidenceScopeRule {
   visibility: LearningEvidenceCorpusPrivacyClass;
@@ -51,6 +60,21 @@ export interface LearningEvidenceAuthorityMetadata {
   scopeRule: LearningEvidenceScopeRule;
   conflictGroup?: string | null;
   conflictSignal?: LearningEvidenceConflictSignal;
+}
+
+export interface LearningEvidenceCitationAddress {
+  kind: LearningEvidenceCitationAddressKind;
+  sourceRefId: string;
+  href: string | null;
+  locator?: string | null;
+  contentHash?: string | null;
+  mediaStartSeconds?: number | null;
+  mediaEndSeconds?: number | null;
+  imageRegion?: { x: number; y: number; width: number; height: number } | null;
+  interactiveStepId?: string | null;
+  simulationRunId?: string | null;
+  arenaTaskId?: string | null;
+  externalUrl?: string | null;
 }
 
 export type LearningEvidenceCorpusChunkInput =
@@ -82,6 +106,7 @@ export interface LearningEvidenceCorpusChunk {
     href: string | null;
     capsule: string;
   };
+  citationAddress?: LearningEvidenceCitationAddress;
   content: {
     text: string | null;
     redactedSummary: string | null;
@@ -126,6 +151,7 @@ export interface LearningEvidenceCitationRef {
   useCase: LearningEvidenceCitationUseCase;
   quoteHash?: string;
   spanRef?: LearningEvidenceCorpusChunk['spanRef'];
+  addressKind?: LearningEvidenceCitationAddressKind;
 }
 
 export interface LearningEvidenceCitationPolicy {
@@ -142,6 +168,8 @@ export interface LearningEvidenceCitationVerificationResult {
     sourceType: LearningEvidenceCorpusSourceType;
     displayTitle: string;
     displayHref: string | null;
+    addressKind?: LearningEvidenceCitationAddressKind;
+    citationAddress?: LearningEvidenceCitationAddress;
     confidence: LearningEvidenceConfidence;
     capsule: string;
     authorityLevel: LearningEvidenceAuthorityLevel;
@@ -164,7 +192,10 @@ export interface LearningEvidenceCitationVerificationResult {
       | 'privacy-redacted'
       | 'low-confidence-source'
       | 'stale-source'
-      | 'expired-source';
+      | 'expired-source'
+      | 'unresolved-address'
+      | 'unsafe-address'
+      | 'address-kind-mismatch';
   }>;
 }
 
@@ -173,6 +204,8 @@ export interface LearningEvidenceCitationChipPayload {
   displayTitle: string;
   displayHref: string | null;
   sourceType: LearningEvidenceCorpusSourceType;
+  addressKind?: LearningEvidenceCitationAddressKind;
+  citationAddress?: LearningEvidenceCitationAddress;
   authorityLevel: LearningEvidenceAuthorityLevel;
   confidence: LearningEvidenceConfidence;
   freshnessBucket: LearningEvidenceFreshnessBucket;
@@ -380,11 +413,25 @@ export function verifyLearningEvidenceCitations(
       limitations.push({ chunkId: citation.chunkId, reason: 'span-ref-mismatch' });
       continue;
     }
+    const resolvedAddress = resolveLearningEvidenceCitationAddress(chunk, citation);
+    if (citation.addressKind && citation.addressKind !== resolvedAddress.address.kind) {
+      limitations.push({ chunkId: citation.chunkId, reason: 'address-kind-mismatch' });
+      continue;
+    }
+    if (!isSafeCitationAddress(resolvedAddress.address)) {
+      limitations.push({ chunkId: citation.chunkId, reason: 'unsafe-address' });
+      continue;
+    }
+    if (!resolvedAddress.address.href) {
+      limitations.push({ chunkId: chunk.id, reason: 'unresolved-address' });
+    }
     verifiedRefs.push({
       chunkId: chunk.id,
       sourceType: chunk.sourceType,
       displayTitle: chunk.display.title,
-      displayHref: chunk.display.href,
+      displayHref: resolvedAddress.address.href,
+      addressKind: resolvedAddress.address.kind,
+      citationAddress: resolvedAddress.address,
       confidence: chunk.confidence,
       capsule: chunk.display.capsule,
       authorityLevel: chunk.authority.level,
@@ -429,14 +476,17 @@ export function verifyLearningEvidenceCitations(
     item.reason === 'privacy-violation' ||
     item.reason === 'source-type-mismatch' ||
     item.reason === 'quote-hash-mismatch' ||
-    item.reason === 'span-ref-mismatch'
+    item.reason === 'span-ref-mismatch' ||
+    item.reason === 'unsafe-address' ||
+    item.reason === 'address-kind-mismatch'
   );
   const hasDowngrade = limitations.some((item) =>
     item.reason === 'insufficient-authority' ||
     item.reason === 'missing-learner-evidence' ||
     item.reason === 'conflicting-source' ||
     item.reason === 'stale-source' ||
-    item.reason === 'expired-source'
+    item.reason === 'expired-source' ||
+    item.reason === 'unresolved-address'
   );
   const hasRedaction = limitations.some((item) => item.reason === 'privacy-redacted');
   const hasLowConfidence = verifiedRefs.some((ref) => ref.confidence === 'none' || ref.confidence === 'low');
@@ -452,17 +502,100 @@ export function buildLearningEvidenceCitationChips(
   scope: LearningEvidenceRetrievalScope,
 ): LearningEvidenceCitationChipPayload[] {
   const limitationsByChunk = limitationsByChunkId(verification);
-  return verification.verifiedRefs.map((ref) => ({
-    chunkId: ref.chunkId,
-    displayTitle: ref.displayTitle,
-    displayHref: scope.role === 'student' && ref.privacyVisibility === 'privileged' ? null : ref.displayHref,
-    sourceType: ref.sourceType,
-    authorityLevel: ref.authorityLevel,
-    confidence: ref.confidence,
-    freshnessBucket: ref.freshnessBucket,
-    privacyVisibility: ref.privacyVisibility,
-    limitationState: primaryCitationReason(ref, limitationsByChunk.get(ref.chunkId) ?? []),
-  }));
+  return verification.verifiedRefs.map((ref) => {
+    const shouldRedactHref = scope.role === 'student' && ref.privacyVisibility === 'privileged';
+    const displayHref = shouldRedactHref ? null : ref.displayHref;
+    const citationAddress = ref.citationAddress ? {
+      ...ref.citationAddress,
+      href: displayHref,
+      externalUrl: shouldRedactHref ? null : ref.citationAddress.externalUrl,
+    } : undefined;
+    return {
+      chunkId: ref.chunkId,
+      displayTitle: ref.displayTitle,
+      displayHref,
+      sourceType: ref.sourceType,
+      addressKind: ref.addressKind ?? citationAddress?.kind,
+      citationAddress,
+      authorityLevel: ref.authorityLevel,
+      confidence: ref.confidence,
+      freshnessBucket: ref.freshnessBucket,
+      privacyVisibility: ref.privacyVisibility,
+      limitationState: primaryCitationReason(ref, limitationsByChunk.get(ref.chunkId) ?? []),
+    };
+  });
+}
+
+export function resolveLearningEvidenceCitationAddress(
+  chunk: LearningEvidenceCorpusChunk,
+  citation: Pick<LearningEvidenceCitationRef, 'spanRef'> = {},
+): { address: LearningEvidenceCitationAddress; freshnessState: LearningEvidenceFreshnessBucket } {
+  const baseAddress = chunk.citationAddress ?? deriveCitationAddressFromChunk(chunk, citation.spanRef ?? chunk.spanRef);
+  return {
+    address: {
+      ...baseAddress,
+      contentHash: baseAddress.contentHash ?? chunk.content.hash,
+      href: baseAddress.href ?? chunk.display.href,
+    },
+    freshnessState: chunk.authority.freshnessBucket,
+  };
+}
+
+function deriveCitationAddressFromChunk(
+  chunk: LearningEvidenceCorpusChunk,
+  spanRef: LearningEvidenceCorpusChunk['spanRef'],
+): LearningEvidenceCitationAddress {
+  const kind = defaultCitationAddressKind(chunk.sourceType);
+  const base = {
+    kind,
+    sourceRefId: chunk.sourceRef.id,
+    href: chunk.display.href,
+    locator: spanRef.locator ?? chunk.authority.pageAnchor ?? null,
+    contentHash: chunk.content.hash,
+  } satisfies LearningEvidenceCitationAddress;
+  if (kind === 'interactive') {
+    return { ...base, interactiveStepId: spanRef.locator ?? chunk.sourceRef.resourceId ?? null };
+  }
+  if (kind === 'simulation') {
+    return { ...base, simulationRunId: chunk.sourceRef.id };
+  }
+  if (kind === 'arena') {
+    return { ...base, arenaTaskId: chunk.sourceRef.resourceId ?? chunk.sourceRef.id };
+  }
+  return base;
+}
+
+function defaultCitationAddressKind(sourceType: LearningEvidenceCorpusSourceType): LearningEvidenceCitationAddressKind {
+  if (sourceType === 'simulation-summary') return 'simulation';
+  if (sourceType === 'arena-summary') return 'arena';
+  if (sourceType === 'path-summary') return 'interactive';
+  return 'text';
+}
+
+function isSafeCitationAddress(address: LearningEvidenceCitationAddress): boolean {
+  if (address.kind === 'external') {
+    return isSafeHttpUrl(address.href) && (!address.externalUrl || isSafeHttpUrl(address.externalUrl));
+  }
+  if (address.externalUrl && !isSafeHttpUrl(address.externalUrl)) {
+    return false;
+  }
+  return !address.href || isSafeInternalOrHttpUrl(address.href);
+}
+
+function isSafeInternalOrHttpUrl(value: string | null | undefined): boolean {
+  if (!value) return true;
+  if (value.startsWith('/')) return !value.startsWith('//');
+  return isSafeHttpUrl(value);
+}
+
+function isSafeHttpUrl(value: string | null | undefined): boolean {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' || url.protocol === 'http:';
+  } catch {
+    return false;
+  }
 }
 
 export function buildLearningEvidenceCitationAuditPayloads(
@@ -537,7 +670,8 @@ function outcomeForCitationReason(
     reason === 'conflicting-source' ||
     reason === 'low-confidence-source' ||
     reason === 'stale-source' ||
-    reason === 'expired-source'
+    reason === 'expired-source' ||
+    reason === 'unresolved-address'
   ) return 'downgraded';
   return 'rejected';
 }
@@ -557,7 +691,9 @@ function citationReasonPriority(reason: LearningEvidenceCitationVerificationResu
     reason === 'privacy-violation' ||
     reason === 'source-type-mismatch' ||
     reason === 'quote-hash-mismatch' ||
-    reason === 'span-ref-mismatch'
+    reason === 'span-ref-mismatch' ||
+    reason === 'unsafe-address' ||
+    reason === 'address-kind-mismatch'
   ) return 0;
   if (
     reason === 'insufficient-authority' ||
@@ -565,7 +701,8 @@ function citationReasonPriority(reason: LearningEvidenceCitationVerificationResu
     reason === 'conflicting-source' ||
     reason === 'low-confidence-source' ||
     reason === 'stale-source' ||
-    reason === 'expired-source'
+    reason === 'expired-source' ||
+    reason === 'unresolved-address'
   ) return 1;
   if (reason === 'privacy-redacted') return 2;
   return 3;
