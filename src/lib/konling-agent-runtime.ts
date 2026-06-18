@@ -1235,6 +1235,7 @@ export async function buildKonlingRuntimeContext(
         userId: scope.targetUserId,
         role: scope.role,
         classId: scope.classId,
+        goal: getRegisteredAdaptiveLearningPathGoal(scope.courseId) ? scope.courseId : null,
         clientHints: input.pageContextHint ? { pageContext: input.pageContextHint } : undefined,
         now: input.now,
       }).catch(() => null)

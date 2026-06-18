@@ -116,6 +116,9 @@ export interface AdaptiveLearningPathLearnerState {
     };
     sourceCoverage?: Record<string, string>;
   };
+  goalSlices?: Record<string, {
+    capabilityTargets?: AdaptiveLearningPathCapabilityEvidence[];
+  } | undefined>;
   risks?: {
     riskLevel?: string;
     activeFlags?: Array<{
@@ -1034,7 +1037,15 @@ function buildCapabilityEvidence(
   targets: AdaptiveLearningCapabilityTarget[],
   learnerState: AdaptiveLearningPathLearnerState | null,
 ): AdaptiveLearningPathCapabilityEvidence[] {
+  const goalSliceEvidence = collectGoalSliceCapabilityEvidence(learnerState);
   return targets.map((target) => {
+    const existingEvidence = goalSliceEvidence.get(target.id);
+    if (existingEvidence) {
+      return {
+        target,
+        observedEvidence: existingEvidence.observedEvidence,
+      };
+    }
     const knowledge = learnerState?.knowledgeMastery?.tags?.[target.knowledgeNodeRef];
     const competencies = target.competencyDimensions
       .map((dimension) => learnerState?.primaryCompetencies?.vector?.[dimension])
@@ -1064,6 +1075,15 @@ function buildCapabilityEvidence(
       },
     };
   });
+}
+
+function collectGoalSliceCapabilityEvidence(
+  learnerState: AdaptiveLearningPathLearnerState | null,
+): Map<string, AdaptiveLearningPathCapabilityEvidence> {
+  const entries = Object.values(learnerState?.goalSlices ?? {})
+    .flatMap((slice) => Array.isArray(slice?.capabilityTargets) ? slice.capabilityTargets : [])
+    .filter((item) => typeof item.target.id === 'string');
+  return new Map(entries.map((item) => [item.target.id, item]));
 }
 
 function partitionResourceNodes(

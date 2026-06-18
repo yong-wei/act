@@ -516,6 +516,12 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
+    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      userId: 'student-1',
+      role: 'student',
+      classId: 'class-1',
+      goal: 'control-correction',
+    }));
     const contract = buildKonlingTeachingAssistantRuntimeContract({
       modeId: 'path-advisor',
       runtimeContext: runtime,
@@ -4722,6 +4728,20 @@ describe('konling agent runtime', () => {
         create: vi.fn().mockResolvedValue(createdRun),
         updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          pathPayload: {
+            pathOptions: [{
+              styleId: 'guided',
+              policyFamily: 'guided',
+              resourceMix: {},
+            }],
+          },
+          learnerStateRef: null,
+          inputSnapshot: {},
+        }),
+      },
     };
     const runtime = buildKonlingToolRuntime({
       db,
@@ -4730,12 +4750,12 @@ describe('konling agent runtime', () => {
       context: createRuntimeContext({
         permittedTools: ['explain_learning_path_tradeoff'],
         planContext: {
-          currentPathId: null,
+          currentPathId: 'path-1',
           activeNodeId: null,
           nextNodeIds: [],
-          recentPathIds: [],
+          recentPathIds: ['path-1'],
           completedNodeIds: [],
-          status: 'missing',
+          status: 'available',
         },
       }),
     });

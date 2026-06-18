@@ -685,6 +685,42 @@ describe('adaptive learning path planner', () => {
     expect(plan.visualization.evidence.capabilityEvidence.find((item) =>
       item.target.knowledgeNodeRef === 'control-correction:arena-transfer'
     )?.observedEvidence.knowledgeMastery).toBe(0.1);
+    const arenaTransferTarget = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal.capabilityTargets?.find((target) =>
+      target.id === 'control-correction:arena-transfer:create'
+    );
+    if (!arenaTransferTarget) throw new Error('expected arena transfer capability target');
+    const goalSliceEvidencePlan = buildAdaptiveLearningPathPlan(plannerInput({
+      ...input,
+      learnerState: {
+        ...input.learnerState!,
+        goalSlices: {
+          'control-correction': {
+            capabilityTargets: [{
+              target: arenaTransferTarget,
+              observedEvidence: {
+                state: 'observed',
+                knowledgeMastery: null,
+                competencyScore: 35,
+                confidence: 0.7,
+                directEvidenceCount: 1,
+                supportingEvidenceCount: 3,
+                source: 'adaptive-learner-state',
+                recommendationBias: 'targeted-practice',
+              },
+            }],
+          },
+        },
+      },
+    }));
+    expect(goalSliceEvidencePlan.visualization.evidence.capabilityEvidence.find((item) =>
+      item.target.knowledgeNodeRef === 'control-correction:arena-transfer'
+    )?.observedEvidence).toEqual(expect.objectContaining({
+      state: 'observed',
+      knowledgeMastery: null,
+      confidence: 0.7,
+      directEvidenceCount: 1,
+      recommendationBias: 'targeted-practice',
+    }));
     const lowConfidencePlan = buildAdaptiveLearningPathPlan(plannerInput({
       ...input,
       learnerState: {
