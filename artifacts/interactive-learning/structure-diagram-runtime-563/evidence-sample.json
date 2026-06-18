@@ -1,0 +1,56 @@
+{
+  "eventType": "graph_submit",
+  "clientEventId": "client-structure-563-001",
+  "attemptKey": "step-04:student-a:attempt-1",
+  "sourceLogId": "trusted-structure-log-563-001",
+  "lessonKey": "structure-diagram-runtime-fixture",
+  "stepId": "step-04",
+  "moduleId": "signal-flow-graph",
+  "componentKind": "visual.signalFlowGraph",
+  "componentId": "closed-loop-signal-flow",
+  "actorRole": "student",
+  "clientEventAt": "2026-06-18T00:00:00.000Z",
+  "theme": "light",
+  "viewport": "desktop",
+  "schemaVersion": "structure-diagram-evidence-v1",
+  "serverRecordedAt": "2026-06-18T00:00:01.000Z",
+  "classification": ["InteractionLog", "StudentStepResponse", "LearningFact"],
+  "payload": {
+    "theme": "light",
+    "viewport": "desktop",
+    "graphId": "closed-loop-signal-flow",
+    "activeRevealState": "loop-reveal",
+    "selectedNodeIds": ["theta"],
+    "selectedPathIds": ["forward-path-1"],
+    "selectedLoopIds": ["feedback-loop-1"],
+    "constructedPositions": [
+      { "nodeId": "input", "x": 0.1, "y": 0.5 },
+      { "nodeId": "theta", "x": 0.42, "y": 0.5 },
+      { "nodeId": "output", "x": 0.76, "y": 0.5 }
+    ],
+    "constructedConnections": [
+      { "from": "input", "to": "theta", "branchId": "g-forward", "gainLabel": "G(s)" },
+      { "from": "theta", "to": "output", "branchId": "unity-forward", "gainLabel": "1" },
+      { "from": "output", "to": "theta", "branchId": "h-feedback", "gainLabel": "-H(s)" }
+    ],
+    "connectionDifferences": [
+      {
+        "kind": "missing",
+        "from": "input",
+        "to": "theta",
+        "label": "漏连前向支路"
+      }
+    ],
+    "teachingLabels": {
+      "theta": "中间变量 θ",
+      "forward-path-1": "前向路径 P1",
+      "feedback-loop-1": "反馈环路 L1"
+    },
+    "feedback": null,
+    "classification": ["InteractionLog", "StudentStepResponse", "LearningFact"],
+    "serverRecordedAt": "2026-06-18T00:00:01.000Z"
+  },
+  "affectsTeacherDiagnostics": true,
+  "affectsAbilitySnapshots": false,
+  "affectsRecommendationInputs": false
+}

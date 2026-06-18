@@ -1,0 +1,102 @@
+{
+  "lesson_id": "structure-diagram-runtime-fixture",
+  "course_title": "Structure Diagram Runtime Fixture",
+  "course_route_segment": "structure-diagram-runtime-fixture",
+  "steps": {
+    "step-04": {
+      "title": "控制结构图与信号流图",
+      "layout": {
+        "regions": [
+          {
+            "id": "main",
+            "width": "full",
+            "order": 1
+          }
+        ]
+      },
+      "modules": [
+        {
+          "id": "block-diagram",
+          "kind": "visual.blockDiagram",
+          "region": "main",
+          "must_be_visible": true,
+          "payload": {
+            "graphId": "closed-loop-block-diagram",
+            "mode": "highlight",
+            "activeRevealState": "feedback-loop",
+            "nodes": [
+              { "id": "reference", "type": "input", "label": "R(s)", "position": { "x": 0.08, "y": 0.45 }, "size": { "width": 0.08, "height": 0.08 } },
+              { "id": "sum", "type": "sum", "label": "+/-", "position": { "x": 0.22, "y": 0.45 }, "size": { "width": 0.08, "height": 0.08 } },
+              { "id": "controller", "type": "block", "labelLatex": "C(s)", "position": { "x": 0.4, "y": 0.45 }, "size": { "width": 0.14, "height": 0.1 } },
+              { "id": "plant", "type": "block", "labelLatex": "G(s)", "position": { "x": 0.6, "y": 0.45 }, "size": { "width": 0.14, "height": 0.1 } },
+              { "id": "disturbance", "type": "disturbance", "labelLatex": "D(s)", "position": { "x": 0.6, "y": 0.2 }, "size": { "width": 0.1, "height": 0.08 } },
+              { "id": "output-branch", "type": "branch", "label": "●", "position": { "x": 0.75, "y": 0.45 }, "size": { "width": 0.06, "height": 0.06 } },
+              { "id": "output", "type": "output", "label": "Y(s)", "position": { "x": 0.88, "y": 0.45 }, "size": { "width": 0.08, "height": 0.08 } },
+              { "id": "sensor", "type": "sensor", "labelLatex": "H(s)", "position": { "x": 0.6, "y": 0.76 }, "size": { "width": 0.14, "height": 0.1 } }
+            ],
+            "edges": [
+              { "id": "reference-signal", "from": "reference", "to": "sum", "label": "r" },
+              { "id": "error-signal", "from": "sum", "to": "controller", "labelLatex": "e" },
+              { "id": "control-signal", "from": "controller", "to": "plant", "labelLatex": "u" },
+              { "id": "disturbance-input", "from": "disturbance", "to": "plant", "labelLatex": "d" },
+              { "id": "plant-output", "from": "plant", "to": "output-branch", "labelLatex": "y" },
+              { "id": "output-signal", "from": "output-branch", "to": "output", "labelLatex": "y" },
+              { "id": "feedback-signal", "from": "output-branch", "to": "sensor", "labelLatex": "y" },
+              { "id": "feedback-return", "from": "sensor", "to": "sum", "labelLatex": "-H(s)y" }
+            ],
+            "revealPlan": [
+              { "id": "forward-path", "label": "前向通道", "targetIds": ["reference-signal", "error-signal", "control-signal", "plant-output", "output-signal"] },
+              { "id": "feedback-loop", "label": "反馈回路", "targetIds": ["feedback-signal", "feedback-return", "sensor", "sum"] }
+            ]
+          }
+        },
+        {
+          "id": "signal-flow-graph",
+          "kind": "visual.signalFlowGraph",
+          "region": "main",
+          "must_be_visible": true,
+          "payload": {
+            "graphId": "closed-loop-signal-flow",
+            "mode": "diagnose",
+            "activeRevealState": "loop-reveal",
+            "nodes": [
+              { "id": "input", "labelLatex": "R", "position": { "x": 0.1, "y": 0.5 } },
+              { "id": "theta", "labelLatex": "\\\\Theta", "position": { "x": 0.42, "y": 0.5 } },
+              { "id": "output", "labelLatex": "Y", "position": { "x": 0.76, "y": 0.5 } }
+            ],
+            "branches": [
+              { "id": "g-forward", "from": "input", "to": "theta", "gainLatex": "G(s)" },
+              { "id": "unity-forward", "from": "theta", "to": "output", "gainLatex": "1" },
+              { "id": "h-feedback", "from": "output", "to": "theta", "gainLatex": "-H(s)" }
+            ],
+            "pathSets": {
+              "forwardPaths": [
+                { "id": "forward-path-1", "label": "前向路径 P1", "branchIds": ["g-forward", "unity-forward"] }
+              ],
+              "loops": [
+                { "id": "feedback-loop-1", "label": "反馈环路 L1", "branchIds": ["unity-forward", "h-feedback"] }
+              ],
+              "nonTouchingLoopGroups": [
+                { "id": "non-touching-loop-group-1", "label": "不接触回路组", "loopIds": ["feedback-loop-1"] }
+              ]
+            },
+            "revealPlan": [
+              { "id": "path-reveal", "label": "前向路径", "emphasis": "path", "targetIds": ["g-forward", "unity-forward"] },
+              { "id": "loop-reveal", "label": "反馈环路", "emphasis": "loop", "targetIds": ["h-feedback", "unity-forward"] },
+              { "id": "formula-reveal", "label": "Mason 公式", "emphasis": "formula", "targetIds": ["g-forward", "h-feedback"] }
+            ],
+            "masonTerms": [
+              { "id": "delta-term", "latex": "\\\\Delta=1+G(s)H(s)", "relatedIds": ["forward-path-1", "feedback-loop-1"] }
+            ]
+          }
+        }
+      ],
+      "interaction_spec": {
+        "interaction_kind": "interactive_figure_submit",
+        "student_task": "标出前向路径、反馈回路并提交结构图证据。",
+        "activity_cards": [],
+        "submit_fields": ["block-diagram", "signal-flow-graph"]
+      }
+    }
+  }
+}
