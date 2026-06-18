@@ -1557,7 +1557,7 @@
               {
                 "id": "ref",
                 "type": "input",
-                "label": "r",
+                "labelLatex": "R(s)",
                 "position": {
                   "x": 0.08,
                   "y": 0.42
@@ -1596,7 +1596,7 @@
               {
                 "id": "controller",
                 "type": "block",
-                "label": "控制器",
+                "labelLatex": "G_c(s)",
                 "position": {
                   "x": 0.43,
                   "y": 0.42
@@ -1609,7 +1609,7 @@
               {
                 "id": "actuator",
                 "type": "block",
-                "label": "执行器",
+                "labelLatex": "G_a(s)",
                 "position": {
                   "x": 0.6,
                   "y": 0.42
@@ -1622,7 +1622,7 @@
               {
                 "id": "plant",
                 "type": "block",
-                "label": "被控对象",
+                "labelLatex": "G_p(s)",
                 "position": {
                   "x": 0.77,
                   "y": 0.42
@@ -1635,7 +1635,7 @@
               {
                 "id": "output",
                 "type": "output",
-                "label": "y",
+                "labelLatex": "Y(s)",
                 "position": {
                   "x": 0.92,
                   "y": 0.42
@@ -1648,7 +1648,7 @@
               {
                 "id": "sensor",
                 "type": "sensor",
-                "label": "传感器",
+                "labelLatex": "H(s)",
                 "position": {
                   "x": 0.62,
                   "y": 0.72

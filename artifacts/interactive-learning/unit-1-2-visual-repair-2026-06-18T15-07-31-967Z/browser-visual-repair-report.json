@@ -1,0 +1,162 @@
+{
+  "outDir": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-repair-2026-06-18T15-07-31-967Z",
+  "stamp": "2026-06-18T15-07-31-967Z",
+  "baseUrl": "http://localhost:3001",
+  "checkedAt": "2026-06-18T15:07:31.968Z",
+  "desktop": {
+    "step-07": {
+      "leakage": [],
+      "step07": {
+        "sumCross": true,
+        "branchDots": 2,
+        "blockLatexCount": 6,
+        "visibleRevealCards": 0,
+        "strokeWidths": [
+          "0.34",
+          "0.34",
+          "0.34",
+          "0.34",
+          "0.34",
+          "0.34",
+          "0.34",
+          "0.34",
+          "0.34"
+        ],
+        "inputOutputNonBlock": true
+      },
+      "step08": null,
+      "step12": null
+    },
+    "step-08": {
+      "leakage": [],
+      "step07": null,
+      "step08": {
+        "bezier": true,
+        "strokeWidths": [
+          "0.34",
+          "0.34",
+          "0.34",
+          "0.34",
+          "0.34"
+        ],
+        "labelBorders": false
+      },
+      "step12": null
+    },
+    "step-12": {
+      "leakage": [],
+      "step07": null,
+      "step08": null,
+      "step12": {
+        "activeStep": "behavior",
+        "frames": [
+          "freeform",
+          "freeform",
+          "freeform"
+        ],
+        "formulaBlockFrames": [
+          "inline",
+          "inline",
+          "inline",
+          "inline",
+          "inline"
+        ],
+        "textFrames": [
+          "freeform",
+          "freeform",
+          "freeform"
+        ],
+        "visibleStepCards": 0,
+        "controls": [
+          "previous",
+          "next"
+        ],
+        "overlaps": [],
+        "toolOverlaps": []
+      }
+    }
+  },
+  "mobile": {
+    "step-07": {
+      "leakage": [],
+      "step07": {
+        "sumCross": true,
+        "branchDots": 2,
+        "blockLatexCount": 6,
+        "visibleRevealCards": 0,
+        "strokeWidths": [
+          "0.34",
+          "0.34",
+          "0.34",
+          "0.34",
+          "0.34",
+          "0.34",
+          "0.34",
+          "0.34",
+          "0.34"
+        ],
+        "inputOutputNonBlock": true
+      },
+      "step08": null,
+      "step12": null
+    },
+    "step-08": {
+      "leakage": [],
+      "step07": null,
+      "step08": {
+        "bezier": true,
+        "strokeWidths": [
+          "0.34",
+          "0.34",
+          "0.34",
+          "0.34",
+          "0.34"
+        ],
+        "labelBorders": false
+      },
+      "step12": null
+    },
+    "step-12": {
+      "leakage": [],
+      "step07": null,
+      "step08": null,
+      "step12": {
+        "activeStep": "behavior",
+        "frames": [
+          "freeform",
+          "freeform",
+          "freeform"
+        ],
+        "formulaBlockFrames": [
+          "inline",
+          "inline",
+          "inline",
+          "inline",
+          "inline"
+        ],
+        "textFrames": [
+          "freeform",
+          "freeform",
+          "freeform"
+        ],
+        "visibleStepCards": 0,
+        "controls": [
+          "previous",
+          "next"
+        ],
+        "overlaps": [],
+        "toolOverlaps": []
+      }
+    }
+  },
+  "screenshots": {
+    "desktop-step-07": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-repair-2026-06-18T15-07-31-967Z/screenshots/desktop-step-07-2026-06-18T15-07-31-967Z.png",
+    "desktop-step-08": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-repair-2026-06-18T15-07-31-967Z/screenshots/desktop-step-08-2026-06-18T15-07-31-967Z.png",
+    "desktop-step-12": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-repair-2026-06-18T15-07-31-967Z/screenshots/desktop-step-12-2026-06-18T15-07-31-967Z.png",
+    "mobile-step-07": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-repair-2026-06-18T15-07-31-967Z/screenshots/mobile-step-07-2026-06-18T15-07-31-967Z.png",
+    "mobile-step-08": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-repair-2026-06-18T15-07-31-967Z/screenshots/mobile-step-08-2026-06-18T15-07-31-967Z.png",
+    "mobile-step-12": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-repair-2026-06-18T15-07-31-967Z/screenshots/mobile-step-12-2026-06-18T15-07-31-967Z.png"
+  },
+  "failures": [],
+  "status": "pass"
+}

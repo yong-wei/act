@@ -308,7 +308,11 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-derivation-stage-layout="freeform"');
     expect(html).toContain('data-katex-rendered="true"');
     expect(html).toContain('data-derivation-stage-formula-id="definition-formula"');
+    expect(html).toContain('data-derivation-stage-formula-frame="freeform"');
+    expect(html).not.toContain('data-derivation-stage-formula-frame="card"');
+    expect(html).not.toContain('<h3 class="premium-lesson-caption mb-1">');
     expect(html).toContain('data-derivation-stage-formula-block-id="cancel-term"');
+    expect(html).toContain('data-derivation-stage-formula-block-frame="inline"');
     expect(html).toContain('data-derivation-stage-color-role="cancel"');
     expect(html).toContain('data-derivation-stage-formula-block-id="result-block"');
     expect(html).toContain('data-derivation-stage-color-role="result"');
@@ -319,10 +323,49 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('x2="71"');
     expect(html).toContain('data-derivation-stage-reveal-step-id="step-lower-left"');
     expect(html).toContain('data-derivation-stage-reveal-step-id="step-upper-right"');
+    expect(html).toContain('data-derivation-stage-control-button="previous"');
+    expect(html).toContain('data-derivation-stage-control-button="next"');
+    expect(html).toContain('第 3 / 3 步');
+    expect(html).toContain('data-derivation-stage-reveal-steps="metadata"');
+    expect(html).not.toContain('data-derivation-stage-reveal-steps="visible"');
+    expect(html).not.toContain('LaTeX 公式');
+    expect(html).not.toContain('公式块');
+    expect(html).not.toContain('<p class="premium-lesson-caption">step-lower-left</p>');
+    expect(html).not.toContain('<div class="premium-lesson-card" data-derivation-stage-reveal-step-id=');
     expect(html).not.toContain('space-y-4');
   });
 
-  it('renders visual.derivationStage teacher controls from the controls alias', () => {
+  it('renders visual.derivationStage text reveal as freeform content instead of a card', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 1,
+      allowInlineReveal: true,
+    });
+    const payload = derivationStagePayloadFixture();
+    payload.activeRevealStepId = 'step-upper-right';
+    const manifest = manifestFixture({
+      module: {
+        id: 'derivation-stage',
+        kind: 'visual.derivationStage',
+        mustBeVisible: true,
+        payload,
+      },
+    });
+    const step = manifest.steps[0];
+    const node = registry['visual.derivationStage']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 1, allowInlineReveal: true },
+    }) as ReactElement;
+    const html = renderToStaticMarkup(createElement(ThemeProvider, null, node));
+
+    expect(html).toContain('data-derivation-stage-text-block-id="upper-right-note"');
+    expect(html).toContain('data-derivation-stage-text-frame="freeform"');
+    expect(html).not.toContain('说明块');
+    expect(html).not.toContain('data-derivation-stage-text-frame="card"');
+  });
+
+  it('renders only supported visual.derivationStage controls from the controls alias', () => {
     const registry = createManifestContentModuleRegistry({
       revealProgress: 1,
       allowInlineReveal: true,
@@ -350,10 +393,12 @@ describe('interactive module registry gate', () => {
     const html = renderToStaticMarkup(createElement(ThemeProvider, null, node));
 
     expect(result.passed).toBe(true);
-    expect(html).toContain('data-derivation-stage-teacher-control="jump"');
-    expect(html).toContain('跳转');
-    expect(html).toContain('data-derivation-stage-teacher-control="answerReveal"');
-    expect(html).toContain('答案');
+    expect(html).toContain('data-derivation-stage-teacher-control="previous"');
+    expect(html).toContain('data-derivation-stage-teacher-control="next"');
+    expect(html).not.toContain('data-derivation-stage-teacher-control="jump"');
+    expect(html).not.toContain('data-derivation-stage-teacher-control="answerReveal"');
+    expect(html).not.toContain('跳转');
+    expect(html).not.toContain('答案');
   });
 
   it('renders visual.blockDiagram with normalized graph nodes, arrows, and reveal highlights', () => {
@@ -386,9 +431,26 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-structure-diagram-id="closed-loop-block-diagram"');
     expect(html).toContain('data-structure-diagram-node-id="plant"');
     expect(html).toContain('data-structure-diagram-node-type="block"');
+    expect(html).toContain('data-structure-diagram-node-visual-kind="block"');
+    expect(html).toContain('data-structure-diagram-node-id="reference"');
+    expect(html).toContain('data-structure-diagram-node-visual-kind="input"');
+    expect(html).toContain('data-structure-diagram-node-id="output"');
+    expect(html).toContain('data-structure-diagram-node-visual-kind="output"');
+    expect(html).toContain('border border-transparent bg-transparent');
+    expect(html).toContain('data-structure-diagram-node-label-rendering="latex"');
+    expect(html).toContain('data-structure-diagram-node-symbol-size="small-dot"');
+    expect(html).toContain('data-structure-diagram-summing-junction="cross"');
+    expect(html).toContain('katex');
+    expect(html).toContain('data-structure-diagram-label-chrome="plain"');
     expect(html).toContain('data-structure-diagram-edge-id="feedback-signal"');
     expect(html).toContain('data-structure-diagram-edge-highlighted="true"');
+    expect(html).toContain('data-structure-diagram-edge-selected="false"');
     expect(html).toContain('data-structure-diagram-reveal-id="feedback-loop"');
+    expect(html).toContain('data-structure-diagram-reveal-plan="metadata"');
+    expect(html).not.toContain('data-structure-diagram-reveal-plan="visible"');
+    expect(html).not.toContain('高亮项');
+    expect(html).toContain('data-structure-diagram-mode-label="visual"');
+    expect(html).not.toContain('<span class="premium-lesson-badge">highlight</span>');
     expect(html).not.toContain('space-y-4');
   });
 
@@ -422,6 +484,10 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-structure-diagram-id="closed-loop-signal-flow"');
     expect(html).toContain('data-structure-diagram-node-id="theta"');
     expect(html).toContain('data-structure-diagram-branch-id="g-forward"');
+    expect(html).toContain('data-structure-diagram-branch-selected="false"');
+    expect(html).toContain(' C ');
+    expect(html).toContain('data-structure-diagram-branch-label-id="g-forward"');
+    expect(html).toContain('data-structure-diagram-label-chrome="plain"');
     expect(html).toContain('data-structure-diagram-forward-path="g-forward unity-forward"');
     expect(html).toContain('data-structure-diagram-loop="unity-forward h-feedback"');
     expect(html).toContain('data-structure-diagram-path-id="forward-path-1"');
@@ -429,6 +495,8 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-structure-diagram-mason-term-id="delta-term"');
     expect(html).toContain('data-structure-diagram-related-ids="forward-path-1 feedback-loop-1"');
     expect(html).toContain('data-structure-diagram-submit="closed-loop-signal-flow"');
+    expect(html).toContain('data-structure-diagram-mode-label="visual"');
+    expect(html).not.toContain('<span class="premium-lesson-badge">diagnose</span>');
   });
 
   it('renders annotated media and embedded visual activity with shared submission hooks', () => {

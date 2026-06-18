@@ -359,6 +359,44 @@ describe('unit 1-2 modeling from object to system course', () => {
     expect(html).not.toContain('data-manifest-render-error');
   });
 
+  it('renders step 07 with standard control block-diagram symbols', () => {
+    const html = renderUnit12StepHtml(6);
+
+    expect(html).toContain('data-structure-diagram-id="closed-loop-block-diagram"');
+    expect(html).toContain('data-structure-diagram-node-visual-kind="input"');
+    expect(html).toContain('data-structure-diagram-node-visual-kind="output"');
+    expect(html).toContain('data-structure-diagram-node-symbol-size="small-dot"');
+    expect(html).toContain('data-structure-diagram-summing-junction="cross"');
+    expect(html).toContain('data-structure-diagram-node-label-rendering="latex"');
+    expect(html).toContain('G_c');
+    expect(html).toContain('G_a');
+    expect(html).toContain('G_p');
+    expect(html).toContain('H');
+  });
+
+  it('keeps visual component chrome instructional and hides contract identifiers on steps 05, 07, 08, and 12', () => {
+    const rendered = [4, 6, 7, 11].map(renderUnit12StepHtml).join('\n');
+
+    expect(rendered).toContain('data-derivation-stage-control-button="next"');
+    expect(rendered).toContain('data-derivation-stage-control-button="previous"');
+    expect(rendered).toContain('data-structure-diagram-mode-label="visual"');
+    for (const forbidden of [
+      'LaTeX 公式',
+      '公式块',
+      '高亮项',
+      '>diagnose<',
+      '>forward-path<',
+      '>feedback-loop<',
+      '>error-node<',
+      '>output-node<',
+      '>none<',
+      '>problem<',
+      '>solve-roots<',
+    ]) {
+      expect(rendered).not.toContain(forbidden);
+    }
+  });
+
   it('renders steps 10 and 11 through shared control workbench capabilities instead of static screenshots', () => {
     const manifest = readManifest();
     const step10 = manifest.steps.find((step) => step.id === 'step-10');
