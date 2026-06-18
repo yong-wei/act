@@ -222,7 +222,6 @@ Block diagram and signal-flow graph interactions SHALL produce backend evidence 
 - **WHEN** teacher diagnostics summarize block diagram or signal-flow graph interactions
 - **THEN** the diagnostic contract SHALL define denominator, dedupe key, latest-vs-all-attempt policy, resubmission display, unreleased-student inclusion, and free-text redaction policy
 - **AND** diagnostic routes and APIs SHALL be accessible only to teacher or admin roles.
-
 ### Requirement: Annotated media evidence supports hotspot diagnostics
 Annotated media and embedded activity interactions SHALL produce backend evidence for hotspot and evidence-role diagnostics.
 
@@ -245,4 +244,3 @@ Annotated media and embedded activity interactions SHALL produce backend evidenc
 - **WHEN** teacher diagnostics summarize annotated media or embedded visual activities
 - **THEN** the diagnostic contract SHALL define denominator, dedupe key, latest-vs-all-attempt policy, resubmission display, unreleased-student inclusion, and free-text redaction policy
 - **AND** diagnostic routes and APIs SHALL be accessible only to teacher or admin roles.
-

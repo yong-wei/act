@@ -37,6 +37,7 @@ export type AdaptiveLearningCompatibilityMigrationMode = 'legacy-surface' | 'cen
 export type ControlCorrectionCenterRouteIntent =
   | 'practice'
   | 'learner-state-review'
+  | 'path-selection'
   | 'path-execution'
   | 'evidence-review'
   | 'contextual-recommendation';

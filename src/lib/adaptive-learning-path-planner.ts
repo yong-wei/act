@@ -266,6 +266,7 @@ export interface AdaptiveLearningPathPolicyBundle {
       nodeId: string;
       message: string;
     }>;
+    planNodes?: AdaptiveLearningPathPlanNode[];
     nodeSummaries: AdaptiveLearningPathOptionNodeSummary[];
     targetDeficits: AdaptiveLearningPathDeficit[];
     evidenceBasis: string[];
@@ -1912,6 +1913,7 @@ function buildPolicyBundle(
       lockedNodeIds: lockedPolicyNodeIds(mainPath),
       readinessSummary: policyReadinessSummary(mainPath),
       unlockMessages: policyUnlockMessages(mainPath),
+      planNodes: mainPath,
       nodeSummaries: mainPath.map(toPathOptionNodeSummary),
       targetDeficits: deficitsForPath(mainPath, deficits),
       evidenceBasis: buildPathEvidenceBasis(plan, sourceCoverage),
@@ -2033,6 +2035,8 @@ function refreshPolicyBundlePathStates(
           ...path.unlockMessages.filter((item) => !refreshedNodeIds.has(item.nodeId)),
           ...policyUnlockMessages(optionNodes),
         ],
+        planNodes: (Array.isArray(path.planNodes) ? path.planNodes : optionNodes)
+          .map((node) => pathByNodeId.get(node.nodeId) ?? node),
         nodeSummaries: path.nodeSummaries.map((summary) => {
           const node = pathByNodeId.get(summary.nodeId);
           return node ? toPathOptionNodeSummary(node) : summary;

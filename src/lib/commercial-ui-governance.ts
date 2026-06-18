@@ -3497,7 +3497,7 @@ const REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_MATRIX_METADATA = {
   },
   'path-comparison-desktop-light': {
     route: '/assessment/adaptive-practice',
-    goal: 'frequency-response-foundations',
+    goal: 'control-correction',
     role: 'student',
     theme: 'light',
     viewport: 'desktop',
@@ -3508,7 +3508,7 @@ const REQUIRED_ADAPTIVE_PATH_PRODUCT_QA_MATRIX_METADATA = {
   },
   'path-comparison-mobile-dark': {
     route: '/assessment/adaptive-practice',
-    goal: 'frequency-response-foundations',
+    goal: 'control-correction',
     role: 'student',
     theme: 'dark',
     viewport: 'mobile',

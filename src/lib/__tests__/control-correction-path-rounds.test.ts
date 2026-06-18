@@ -2071,6 +2071,28 @@ describe('control-correction path rounds', () => {
     expect(JSON.stringify(db.learningFact.createMany.mock.calls)).not.toContain('sk-secret');
   });
 
+  it('reports duplicate path choice evidence without rewriting facts or selection history', async () => {
+    const db = mockDb();
+    db.evidenceOutbox.createMany.mockResolvedValueOnce({ count: 0 });
+
+    const result = await recordPathChoiceEvidence(db, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      action: 'selection',
+      selectedStyleId: 'arena-simulation-sprint',
+      selectedPolicyFamily: 'simulation-driven',
+      rejectedStyleIds: ['foundation-remediation'],
+      idempotencyKey: 'choice-key',
+    });
+
+    expect(result).toEqual({
+      emitted: false,
+      dedupeKey: 'control-correction-path:choice:path-1:choice-key',
+    });
+    expect(db.learningFact.createMany).not.toHaveBeenCalled();
+    expect(db.learningPath.update).not.toHaveBeenCalled();
+  });
+
   it('keeps repeated path choice interactions distinct when idempotency is not supplied', async () => {
     const db = mockDb();
 

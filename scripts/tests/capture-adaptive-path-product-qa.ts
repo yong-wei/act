@@ -100,7 +100,7 @@ const states: CaptureState[] = [
     theme: 'light',
     width: 1440,
     height: 1100,
-    query: '?demo=1&goal=frequency-response-foundations&intent=contextual-recommendation',
+    query: '?demo=1&goal=control-correction&intent=path-selection',
     selector: '[data-learning-path-product-surface]',
   },
   {
@@ -108,7 +108,7 @@ const states: CaptureState[] = [
     theme: 'dark',
     width: 320,
     height: 1100,
-    query: '?demo=1&goal=frequency-response-foundations&intent=contextual-recommendation',
+    query: '?demo=1&goal=control-correction&intent=path-selection',
     selector: '[data-learning-path-product-surface]',
   },
   {

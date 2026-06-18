@@ -56,4 +56,35 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain('durableAnswerId');
     expect(source).toContain("await syncAdaptiveAssessmentPathResult(data)");
   });
+
+  it('isolates adaptive path workspaces by route intent', () => {
+    const source = readRepoFile('src/app/assessment/adaptive-practice/page.tsx');
+
+    expect(source).toContain("intentParam === 'path-selection'");
+    expect(source).toContain("const requestedIntent = searchParams.get('intent')");
+    expect(source).toContain("const workspaceIntent = routeIntent === 'contextual-recommendation'");
+    expect(source).toContain("requestedIntent !== null && requestedIntent.trim().length > 0 && routeIntent === 'practice'");
+    expect(source).toContain("data-adaptive-path-workspace-intent={workspaceIntent}");
+    expect(source).toContain("const showPracticeWorkspace = workspaceIntent === 'practice'");
+    expect(source).toContain("const showPresetGoalCards = false");
+    expect(source).toContain("showSelectionWorkspace ? (");
+    expect(source).toContain("(showExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
+    expect(source).toContain("showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showEvidenceWorkspace");
+    expect(source).toContain("showPracticeWorkspace || showExecutionWorkspace ? (");
+    expect(source).toContain("showSelectionWorkspace || showEvidenceWorkspace ? (");
+    expect(source).toContain("pathChoiceMessage && (showGenerationWorkspace || showSelectionWorkspace)");
+    expect(source).toContain("showEvidenceWorkspace ? (");
+    expect(source).toContain("intent: 'path-selection'");
+    expect(source).toContain('const generatedPathId = typeof payload.result?.pathId ===');
+    expect(source).toContain("if (generatedPathId) selectionQuery.set('pathId', generatedPathId)");
+    expect(source).toContain("intent: 'path-execution'");
+    expect(source).toContain("optionId: option.optionId");
+    expect(source).toContain("const activeOptionId = searchParams.get('optionId')");
+    expect(source).toContain("const selectedExecutionOption = useMemo");
+    expect(source).toContain("option.optionId === activeOptionId");
+    expect(source).toContain("getPathExecutionNodes(controlCorrectionPathPlan, controlCorrectionPathRound, selectedExecutionOption)");
+    expect(source).toContain("const pathUpdate = getRecord(payload.pathUpdate)");
+    expect(source).toContain("typeof pathUpdate.currentNodeId === 'string'");
+    expect(source).toContain("option.activeNodeIds?.[0] ?? option.nodeIds?.[0]");
+  });
 });

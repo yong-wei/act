@@ -983,8 +983,8 @@ const adaptivePathProductQaMatrixMetadata = {
   'generation-main-mobile-dark': ['dark', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[0], 'frequency-response-foundations'],
   'konling-parameter-panel-desktop-dark': ['dark', 'desktop', 'desktop-collapsed', 'expanded', adaptivePathProductQaConceptImages[0], 'frequency-response-foundations'],
   'cold-start-starter-paths-mobile-light': ['light', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[0], 'frequency-response-foundations'],
-  'path-comparison-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[1], 'frequency-response-foundations'],
-  'path-comparison-mobile-dark': ['dark', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[1], 'frequency-response-foundations'],
+  'path-comparison-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[1], 'control-correction'],
+  'path-comparison-mobile-dark': ['dark', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[1], 'control-correction'],
   'active-path-execution-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[2], 'control-correction'],
   'active-path-execution-mobile-dark': ['dark', 'mobile', 'workspace-command-surface', 'collapsed', adaptivePathProductQaConceptImages[2], 'control-correction'],
   'node-detail-desktop-light': ['light', 'desktop', 'desktop-collapsed', 'collapsed', adaptivePathProductQaConceptImages[2], 'control-correction'],
@@ -4242,12 +4242,15 @@ describe('commercial UI governance', () => {
 
   it('keeps the adaptive path center default student branch free of internal status strings', () => {
     const pageSource = readFileSync(join(process.cwd(), 'src/app/assessment/adaptive-practice/page.tsx'), 'utf8');
+    const captureScriptSource = readFileSync(join(process.cwd(), 'scripts/tests/capture-adaptive-path-product-qa.ts'), 'utf8');
 
     expect(pageSource).toContain('自适应学习路径中心');
     expect(pageSource).toContain('生成学习路径');
     expect(pageSource).toContain('告诉控灵你想达成什么');
     expect(pageSource).toContain('data-adaptive-path-comparison-state="information-grid"');
     expect(pageSource).toContain('data-learning-path-options-layout="comparable-information-grid"');
+    expect(captureScriptSource).toMatch(/name: 'path-comparison-desktop-light',[\s\S]*?query: '\?demo=1&goal=control-correction&intent=path-selection'/);
+    expect(captureScriptSource).toMatch(/name: 'path-comparison-mobile-dark',[\s\S]*?query: '\?demo=1&goal=control-correction&intent=path-selection'/);
     expect(pageSource).toContain("label: '控灵助手'");
     expect(pageSource).toContain("label: '路径管理'");
     const studentVisibleSource = pageSource.replaceAll('data-learner-record-missing-source', '');
