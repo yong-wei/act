@@ -28,6 +28,7 @@ import { AppShell } from '@/components/platform/app-shell';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import {
   ADAPTIVE_LEARNING_CENTER_FEATURE_FLAG,
+  buildAdaptivePathLaunchHref,
   buildControlCorrectionLearningCenterView,
   buildLearnerDataRouteShell,
   buildPracticeEntryRouteNodes,
@@ -1249,11 +1250,19 @@ function pathNodeContextHref(node: PathExecutionNodeView, options: {
 }): string {
   const href = node.target || '/assessment/adaptive-practice';
   if (/^https?:\/\//.test(href)) return href;
-  const separator = href.includes('?') ? '&' : '?';
   const { goalId, pathId } = options;
-  const params = new URLSearchParams({ goal: goalId, intent: 'path-execution', nodeId: node.nodeId });
-  if (pathId) params.set('pathId', pathId);
-  return `${href}${separator}${params.toString()}`;
+  if (!pathId) {
+    const separator = href.includes('?') ? '&' : '?';
+    const params = new URLSearchParams({ goal: goalId, intent: 'path-execution', nodeId: node.nodeId });
+    return `${href}${separator}${params.toString()}`;
+  }
+  return buildAdaptivePathLaunchHref(href, {
+    goalId,
+    pathId,
+    nodeId: node.nodeId,
+    routeIntent: 'path-execution',
+    resourceType: node.type,
+  });
 }
 
 function formatPathHistoryType(type: string): string {

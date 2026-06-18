@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "checkedAt": "2026-06-18T11:02:48.887Z",
+  "baseUrl": "http://localhost:3063",
+  "scenarios": [
+    {
+      "name": "landing-entry",
+      "sourcePage": "/assessment/adaptive-practice?goal=control-correction",
+      "targetPage": "/interactive-learning/resources/lesson09-correction-precheck",
+      "returnLabel": "返回学习路径",
+      "href": "/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1&nodeId=node-1",
+      "finalUrl": "http://localhost:3063/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1&nodeId=node-1"
+    },
+    {
+      "name": "execution-entry",
+      "sourcePage": "/assessment/adaptive-practice?goal=control-correction&intent=path-execution",
+      "targetPage": "/interactive-learning/resources/lesson09-correction-precheck",
+      "returnLabel": "返回学习路径",
+      "href": "/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1&nodeId=node-1",
+      "finalUrl": "http://localhost:3063/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1&nodeId=node-1"
+    },
+    {
+      "name": "course-runtime-entry",
+      "sourcePage": "/assessment/adaptive-practice?goal=control-correction&intent=path-execution",
+      "targetPage": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
+      "returnLabel": "返回学习路径",
+      "href": "/assessment/adaptive-practice?goal=control-correction&intent=path-execution&pathId=path-1&nodeId=node-1",
+      "finalUrl": "http://localhost:3063/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo"
+    }
+  ]
+}

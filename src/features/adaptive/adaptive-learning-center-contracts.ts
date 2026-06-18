@@ -47,6 +47,8 @@ export type ControlCorrectionCenterEntrySource =
   | 'profile'
   | 'adaptive-practice'
   | 'contextual-recommendation';
+export const ADAPTIVE_PATH_LAUNCH_SOURCE = 'adaptive-path-center';
+export const ADAPTIVE_PATH_EXECUTION_RETURN_PATH = '/assessment/adaptive-practice';
 export type ControlCorrectionCenterStateKind =
   | 'path-ready'
   | 'loading'
@@ -199,10 +201,13 @@ export interface ControlCorrectionCenterReadinessGate {
 }
 
 export interface ControlCorrectionCenterLaunchContext {
+  source: typeof ADAPTIVE_PATH_LAUNCH_SOURCE;
   goalId: string;
   pathId: string;
   nodeId: string;
   routeIntent: ControlCorrectionCenterRouteIntent;
+  returnHref: string;
+  resourceType: string;
 }
 
 export interface ControlCorrectionLearningCenterView extends AdaptiveLearningCenterView {
@@ -265,6 +270,19 @@ export interface RecommendedPathLaunchContext {
   goalId: string;
   pathId: string;
   routeIntent: ControlCorrectionCenterRouteIntent;
+}
+
+export interface AdaptivePathLaunchContextInput {
+  goalId: string;
+  pathId: string;
+  nodeId: string;
+  routeIntent: ControlCorrectionCenterRouteIntent;
+  resourceType: string;
+}
+
+export interface AdaptivePathLaunchContext extends AdaptivePathLaunchContextInput {
+  source: typeof ADAPTIVE_PATH_LAUNCH_SOURCE;
+  returnHref: string;
 }
 
 export interface PracticeEntryRouteNodeInput {
@@ -496,6 +514,84 @@ export function buildLearnerDataRouteShell(href: LearnerDataSurfaceRoute['href']
   };
 }
 
+export function buildAdaptivePathLaunchContext(input: AdaptivePathLaunchContextInput): AdaptivePathLaunchContext {
+  const returnQuery = new URLSearchParams({
+    goal: input.goalId,
+    intent: input.routeIntent,
+    pathId: input.pathId,
+    nodeId: input.nodeId,
+  });
+  return {
+    source: ADAPTIVE_PATH_LAUNCH_SOURCE,
+    goalId: input.goalId,
+    pathId: input.pathId,
+    nodeId: input.nodeId,
+    routeIntent: input.routeIntent,
+    returnHref: `${ADAPTIVE_PATH_EXECUTION_RETURN_PATH}?${returnQuery.toString()}`,
+    resourceType: input.resourceType,
+  };
+}
+
+export function buildAdaptivePathLaunchHref(
+  targetHref: string,
+  input: AdaptivePathLaunchContextInput,
+): string {
+  const context = buildAdaptivePathLaunchContext(input);
+  const hashIndex = targetHref.indexOf('#');
+  const hrefWithoutHash = hashIndex >= 0 ? targetHref.slice(0, hashIndex) : targetHref;
+  const hash = hashIndex >= 0 ? targetHref.slice(hashIndex) : '';
+  const queryIndex = hrefWithoutHash.indexOf('?');
+  const targetPath = queryIndex >= 0 ? hrefWithoutHash.slice(0, queryIndex) : hrefWithoutHash;
+  const params = new URLSearchParams(queryIndex >= 0 ? hrefWithoutHash.slice(queryIndex + 1) : '');
+  for (const key of ['source', 'goal', 'goalId', 'pathId', 'nodeId', 'intent', 'returnHref', 'resourceType']) {
+    params.delete(key);
+  }
+  params.set('source', context.source);
+  params.set('goal', context.goalId);
+  params.set('goalId', context.goalId);
+  params.set('pathId', context.pathId);
+  params.set('nodeId', context.nodeId);
+  params.set('intent', context.routeIntent);
+  params.set('returnHref', context.returnHref);
+  params.set('resourceType', context.resourceType);
+
+  return `${targetPath}?${params.toString()}${hash}`;
+}
+
+export function resolveAdaptivePathLaunchReturnContext(
+  searchParams: Pick<URLSearchParams, 'get'>,
+): AdaptivePathLaunchContext | null {
+  const source = searchParams.get('source');
+  const goalId = searchParams.get('goalId') ?? searchParams.get('goal');
+  const pathId = searchParams.get('pathId');
+  const nodeId = searchParams.get('nodeId');
+  const routeIntent = searchParams.get('intent');
+  const returnHref = searchParams.get('returnHref');
+  const resourceType = searchParams.get('resourceType');
+
+  if (source !== ADAPTIVE_PATH_LAUNCH_SOURCE) return null;
+  if (!goalId || !pathId || !nodeId || !returnHref || !resourceType) return null;
+  if (routeIntent !== 'path-execution') return null;
+
+  const normalizedReturnHref = normalizeAdaptivePathReturnHref(returnHref, {
+    goalId,
+    pathId,
+    nodeId,
+    routeIntent,
+  });
+  if (!normalizedReturnHref) return null;
+
+  return {
+    source: ADAPTIVE_PATH_LAUNCH_SOURCE,
+    goalId,
+    pathId,
+    nodeId,
+    routeIntent,
+    returnHref: normalizedReturnHref,
+    resourceType,
+  };
+}
+
 export function buildRecommendedPathNodeView(
   pathPlan: AdaptiveLearningPathPlan,
   launchContext?: RecommendedPathLaunchContext,
@@ -522,7 +618,7 @@ export function buildRecommendedPathNodeView(
         action: state === 'locked'
           ? undefined
           : {
-              ...pathNodeLaunchAction(node.target, node.nodeId, node.pathNodeType, launchContext),
+              ...pathNodeLaunchAction(node.target, node.nodeId, node.type, launchContext),
               label: pathPlan.currentNodeId === node.nodeId ? '继续当前节点' : '打开路径节点',
             },
         state,
@@ -545,7 +641,7 @@ export function buildControlCorrectionLearningCenterView(
     ? buildRecommendedPathNodeView(pathPlan, {
         goalId,
         pathId: pathPlan.id,
-        routeIntent,
+        routeIntent: 'path-execution',
       }).nodes
     : [];
   const nextNode = selectNextRecommendedPathActionNode(pathNodes);
@@ -609,11 +705,12 @@ export function buildControlCorrectionLearningCenterView(
     },
     fallbackStates,
     launchContexts: pathPlan
-      ? pathPlan.mainPath.map((node) => ({
+      ? pathPlan.mainPath.map((node) => buildAdaptivePathLaunchContext({
           goalId,
           pathId: pathPlan.id,
           nodeId: node.nodeId,
-          routeIntent,
+          routeIntent: 'path-execution',
+          resourceType: node.type,
         }))
       : [],
   };
@@ -801,12 +898,12 @@ function practiceRouteNodeHref(actionHref: string, priority: number): string {
 function pathNodeLaunchAction(
   target: string,
   nodeId: string,
-  pathNodeType: string,
+  resourceType: string,
   launchContext?: RecommendedPathLaunchContext,
 ): Omit<NonNullable<RecommendedPathNodeView['action']>, 'label'> {
   const href = normalizePathNodeTarget(target);
   if (!launchContext) return { href, method: 'GET' };
-  if (pathNodeType === 'external_resource') {
+  if (resourceType === 'external_resource') {
     return {
       href: `/api/learning-paths/${encodeURIComponent(launchContext.pathId)}/execute`,
       method: 'POST',
@@ -838,14 +935,39 @@ function pathNodeLaunchAction(
     };
   }
 
-  const separator = href.includes('?') ? '&' : '?';
-  const params = new URLSearchParams({
-    pathId: launchContext.pathId,
-    nodeId,
-    goal: launchContext.goalId,
-    intent: launchContext.routeIntent,
-  });
-  return { href: `${href}${separator}${params.toString()}`, method: 'GET' };
+  return {
+    href: buildAdaptivePathLaunchHref(href, {
+      goalId: launchContext.goalId,
+      pathId: launchContext.pathId,
+      nodeId,
+      routeIntent: launchContext.routeIntent,
+      resourceType,
+    }),
+    method: 'GET',
+  };
+}
+
+function normalizeAdaptivePathReturnHref(
+  returnHref: string,
+  expected: Pick<AdaptivePathLaunchContext, 'goalId' | 'pathId' | 'nodeId' | 'routeIntent'>,
+): string | null {
+  if (!returnHref.startsWith('/') || returnHref.startsWith('//')) return null;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(returnHref, 'https://act.local');
+  } catch {
+    return null;
+  }
+
+  if (parsed.pathname !== ADAPTIVE_PATH_EXECUTION_RETURN_PATH) return null;
+  const goal = parsed.searchParams.get('goal') ?? parsed.searchParams.get('goalId');
+  if (goal !== expected.goalId) return null;
+  if (parsed.searchParams.get('pathId') !== expected.pathId) return null;
+  if (parsed.searchParams.get('nodeId') !== expected.nodeId) return null;
+  if (parsed.searchParams.get('intent') !== expected.routeIntent) return null;
+
+  return `${parsed.pathname}${parsed.search}`;
 }
 
 function normalizePathNodeTarget(target: string): string {

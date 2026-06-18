@@ -1021,8 +1021,16 @@ describe('platform role navigation', () => {
     expect(chapterCategorySource).toContain('source=chapter-components&category=');
     expect(crossDomainSource).toContain('source=cross-domain-exploration');
     expect(resourceSource).toContain('data-route-source={sourceContext.href}');
+    expect(resourceSource).toContain('resolveAdaptivePathLaunchReturnContext(searchParams)');
+    expect(resourceSource).toContain("label: '学习路径'");
     expect(resourceSource).toContain('breadcrumbs={[');
     expect(resourceSource).toContain('h-[calc(100vh-12rem)] min-h-[calc(100vh-12rem)]');
+    expect(readSource('src/features/interactive/shared/lesson-runtime-shell.tsx')).toContain(
+      'const runtimeReturnLabel = pathLaunchContext ?',
+    );
+    expect(readSource('src/features/interactive/shared/lesson-runtime-shell.tsx')).toContain(
+      '{ label: runtimeReturnLabel, href: runtimeReturnHref }',
+    );
     expect(coursesSource).toContain('data-learning-entry-map="course-module-progression"');
     expect(coursesSource).toContain('data-entry-current-work-priority="recommended-course"');
     expect(coursesSource).toContain('data-secondary-implementation-links="legacy-source-labels"');
