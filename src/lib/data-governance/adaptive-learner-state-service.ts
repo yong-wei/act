@@ -932,7 +932,7 @@ function buildControlCorrectionGoalSlice(input: {
     payloadVersion: CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION,
     generatedAt: input.now.toISOString(),
     targetLevels: CONTROL_CORRECTION_TARGET_LEVELS,
-    capabilityTargets: buildControlCorrectionCapabilityTargets(input.knowledgeMastery, input.vector),
+    capabilityTargets: buildControlCorrectionCapabilityTargets(input.knowledgeMastery, input.vector, sourceEvidence),
     dimensions,
     pathContext: buildControlCorrectionPathContext(input.paths, input.activeControlCorrectionPath),
     privacyClasses: CONTROL_CORRECTION_PRIVACY_CLASSES,
@@ -944,6 +944,7 @@ function buildControlCorrectionGoalSlice(input: {
 function buildControlCorrectionCapabilityTargets(
   knowledgeMastery: AdaptiveLearnerState['knowledgeMastery'],
   vector: CompetencyVector,
+  sourceEvidence: ControlCorrectionSourceEvidence,
 ): ControlCorrectionCapabilityTargetEvidence[] {
   return CONTROL_CORRECTION_CAPABILITY_TARGETS.map((target) => {
     const knowledge = knowledgeMastery.tags[target.knowledgeNodeRef];
@@ -953,10 +954,12 @@ function buildControlCorrectionCapabilityTargets(
     const competencyScore = competencies.length > 0
       ? round(competencies.reduce((sum, competency) => sum + competency.score, 0) / competencies.length)
       : null;
-    const directConfidence = knowledge?.confidence ?? 0;
     const knowledgeEvidenceCount = knowledge?.evidenceCount ?? 0;
+    const observableEvidenceCount = countControlCorrectionCapabilityObservableEvidence(target, sourceEvidence);
+    const directEvidenceCount = knowledgeEvidenceCount + observableEvidenceCount;
+    const directConfidence = Math.max(knowledge?.confidence ?? 0, observableEvidenceCount > 0 ? 0.7 : 0);
     const supportingEvidenceCount = Math.max(0, ...competencies.map((competency) => competency.evidenceCount));
-    const state = knowledgeEvidenceCount === 0
+    const state = directEvidenceCount === 0
       ? 'missing'
       : directConfidence < 0.5
         ? 'low-confidence'
@@ -968,13 +971,26 @@ function buildControlCorrectionCapabilityTargets(
         knowledgeMastery: knowledge?.posteriorMastery ?? null,
         competencyScore,
         confidence: round(directConfidence, 2),
-        directEvidenceCount: knowledgeEvidenceCount,
+        directEvidenceCount,
         supportingEvidenceCount,
         source: 'adaptive-learner-state',
         recommendationBias: state === 'observed' ? 'targeted-practice' : 'starter-or-evidence-gathering',
       },
     };
   });
+}
+
+function countControlCorrectionCapabilityObservableEvidence(
+  target: AdaptiveLearningCapabilityTarget,
+  sourceEvidence: ControlCorrectionSourceEvidence,
+): number {
+  if (target.observableEvidenceType === 'simulation-run') {
+    return sourceEvidence.simulationCount;
+  }
+  if (target.observableEvidenceType === 'arena-official-evaluation') {
+    return sourceEvidence.officialArenaCount;
+  }
+  return 0;
 }
 
 export function validateControlCorrectionGoalSliceContract(value: unknown): asserts value is ControlCorrectionGoalSlice {
@@ -993,11 +1009,20 @@ export function validateControlCorrectionGoalSliceContract(value: unknown): asse
   if (capabilityTargets.length !== CONTROL_CORRECTION_CAPABILITY_TARGETS.length) {
     throw new Error('control-correction goal slice missing capability targets');
   }
+  const capabilityTargetIds = capabilityTargets
+    .map((targetValue) => readString(getObject(getObject(targetValue).target).id))
+    .filter((id): id is string => Boolean(id));
+  if (!sameStringSet(capabilityTargetIds, CONTROL_CORRECTION_CAPABILITY_TARGETS.map((target) => target.id))) {
+    throw new Error('control-correction goal slice missing capability targets');
+  }
+  const registeredCapabilityTargets = new Map(CONTROL_CORRECTION_CAPABILITY_TARGETS.map((target) => [target.id, target]));
   for (const targetValue of capabilityTargets) {
     const item = getObject(targetValue);
     const target = getObject(item.target);
     const observedEvidence = getObject(item.observedEvidence);
+    const registeredTarget = registeredCapabilityTargets.get(readString(target.id) ?? '');
     if (
+      typeof target.id !== 'string' ||
       typeof target.knowledgeNodeRef !== 'string' ||
       typeof target.capabilityLevel !== 'string' ||
       typeof target.behaviorVerb !== 'string' ||
@@ -1006,6 +1031,15 @@ export function validateControlCorrectionGoalSliceContract(value: unknown): asse
       typeof target.evaluationMethod !== 'string'
     ) {
       throw new Error('control-correction capability target missing required metadata');
+    }
+    if (
+      !registeredTarget ||
+      target.knowledgeNodeRef !== registeredTarget.knowledgeNodeRef ||
+      target.capabilityLevel !== registeredTarget.capabilityLevel ||
+      target.observableEvidenceType !== registeredTarget.observableEvidenceType ||
+      target.goalSliceId !== registeredTarget.goalSliceId
+    ) {
+      throw new Error('control-correction goal slice missing capability targets');
     }
     if (
       observedEvidence.state !== 'missing' &&

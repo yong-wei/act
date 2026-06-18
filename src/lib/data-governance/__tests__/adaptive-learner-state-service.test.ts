@@ -899,6 +899,31 @@ describe('adaptive learner state service', () => {
     })).toThrow('control-correction goal slice missing required dimensions');
   });
 
+  it('rejects undeclared control-correction capability targets before consumers can use them', async () => {
+    const state = await readAdaptiveLearnerState(createDb(), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+    const slice = state.goalSlices?.controlCorrection;
+    if (!slice) throw new Error('expected control-correction goal slice');
+
+    expect(() => validateControlCorrectionGoalSliceContract({
+      ...slice,
+      capabilityTargets: slice.capabilityTargets.map((capability, index) => (
+        index === 0 ? {
+          ...capability,
+          target: {
+            ...capability.target,
+            id: slice.capabilityTargets[1]?.target.id,
+            knowledgeNodeRef: 'undeclared-capability',
+          },
+        } : capability
+      )),
+    })).toThrow('control-correction goal slice missing capability targets');
+  });
+
   it('preserves path context field families for registered control-correction slices', async () => {
     const state = await readAdaptiveLearnerState(createDb({
       learningPath: {
@@ -1544,6 +1569,21 @@ describe('adaptive learner state service', () => {
       evidenceProvenance: expect.objectContaining({ arena: 'official' }),
       confidence: expect.objectContaining({ state: 'high' }),
     });
+    expect(slice.capabilityTargets).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        target: expect.objectContaining({
+          id: 'control-correction:arena-transfer:create',
+          observableEvidenceType: 'arena-official-evaluation',
+        }),
+        observedEvidence: expect.objectContaining({
+          state: 'observed',
+          knowledgeMastery: null,
+          confidence: 0.7,
+          directEvidenceCount: 1,
+          recommendationBias: 'targeted-practice',
+        }),
+      }),
+    ]));
   });
 
   it('exposes governed path execution features through prerequisite feature groups', async () => {
