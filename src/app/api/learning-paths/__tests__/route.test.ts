@@ -1882,7 +1882,7 @@ describe('learning path round API routes', () => {
               {
                 styleId: 'legacy-simulation-option',
                 policyFamily: 'simulation-driven',
-                nodeIds: ['simulation:legacy-step-lab', 'teaching-resource:legacy-card', 'arena-task:legacy-terminal'],
+                nodeIds: ['simulation:legacy-step-lab', 'teaching-resource:legacy-card', 'lesson-step:legacy-lesson', 'arena-task:legacy-terminal'],
                 activeNodeIds: ['simulation:legacy-step-lab'],
                 nodeSummaries: [
                   {
@@ -1896,6 +1896,12 @@ describe('learning path round API routes', () => {
                     title: '旧路径知识卡',
                     pathNodeType: 'knowledge_card',
                     estimatedTimeMinutes: 8,
+                  },
+                  {
+                    nodeId: 'lesson-step:legacy-lesson',
+                    title: '旧路径互动课',
+                    pathNodeType: 'interactive_lesson',
+                    estimatedTimeMinutes: 12,
                   },
                   {
                     nodeId: 'arena-task:legacy-terminal',
@@ -1934,10 +1940,10 @@ describe('learning path round API routes', () => {
     expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'path-1' },
       data: expect.objectContaining({
-        nodeIds: ['simulation:legacy-step-lab', 'teaching-resource:legacy-card', 'arena-task:legacy-terminal'],
+        nodeIds: ['simulation:legacy-step-lab', 'teaching-resource:legacy-card', 'lesson-step:legacy-lesson', 'arena-task:legacy-terminal'],
         currentNodeId: 'simulation:legacy-step-lab',
         pathPayload: expect.objectContaining({
-          mainPathNodeIds: ['simulation:legacy-step-lab', 'teaching-resource:legacy-card', 'arena-task:legacy-terminal'],
+          mainPathNodeIds: ['simulation:legacy-step-lab', 'teaching-resource:legacy-card', 'lesson-step:legacy-lesson', 'arena-task:legacy-terminal'],
           planNodes: [
             expect.objectContaining({
               nodeId: 'simulation:legacy-step-lab',
@@ -1949,6 +1955,12 @@ describe('learning path round API routes', () => {
               nodeId: 'teaching-resource:legacy-card',
               type: 'knowledge_card',
               pathNodeType: 'knowledge_card',
+              target: '/assessment/adaptive-practice',
+            }),
+            expect.objectContaining({
+              nodeId: 'lesson-step:legacy-lesson',
+              type: 'lesson_step',
+              pathNodeType: 'interactive_lesson',
               target: '/assessment/adaptive-practice',
             }),
             expect.objectContaining({

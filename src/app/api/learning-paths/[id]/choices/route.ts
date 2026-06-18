@@ -18,18 +18,18 @@ import {
 export const dynamic = 'force-dynamic';
 
 const CHOICE_ACTIONS = new Set(['selection', 'rejection', 'switch', 'helpfulness']);
-const LEGACY_OPTION_PATH_NODE_TYPES = new Set([
-  'interactive_lesson',
-  'knowledge_card',
-  'adaptive_quiz',
-  'control_workbench',
-  'simulation',
-  'arena_task',
-  'external_resource',
-  'reflection',
-  'checkpoint',
-  'konling',
-]);
+const LEGACY_OPTION_PATH_NODE_TYPE_TO_RESOURCE_TYPE: Record<string, string> = {
+  interactive_lesson: 'lesson_step',
+  knowledge_card: 'knowledge_card',
+  adaptive_quiz: 'adaptive_quiz',
+  control_workbench: 'control_workbench',
+  simulation: 'simulation',
+  arena_task: 'arena_task',
+  external_resource: 'external_resource',
+  reflection: 'reflection',
+  checkpoint: 'checkpoint',
+  konling: 'konling',
+};
 
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
@@ -328,7 +328,7 @@ function inferResourceTypeFromOptionNode(nodeId: string, pathNodeType: string | 
   if (nodeId.startsWith('knowledge-node:')) return 'knowledge_card';
   if (nodeId.startsWith('external-resource:')) return 'external_resource';
   if (nodeId.startsWith('konling:')) return 'konling';
-  if (pathNodeType && LEGACY_OPTION_PATH_NODE_TYPES.has(pathNodeType)) return pathNodeType;
+  if (pathNodeType) return LEGACY_OPTION_PATH_NODE_TYPE_TO_RESOURCE_TYPE[pathNodeType] ?? null;
   return null;
 }
 
