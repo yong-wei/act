@@ -1024,6 +1024,67 @@ describe('learning evidence RAG corpus contract', () => {
     });
   });
 
+  it('preserves explicit null hrefs on server-owned citation addresses', () => {
+    const unresolvedAddress = chunk({
+      id: 'explicit-null-address',
+      citationAddress: {
+        kind: 'text',
+        sourceRefId: 'unit-4-1',
+        href: null,
+        locator: 'handout#missing-anchor',
+      },
+    });
+
+    const result = verifyLearningEvidenceCitations([unresolvedAddress], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    }, [
+      { chunkId: 'explicit-null-address', useCase: 'diagnosis' },
+    ]);
+
+    expect(result.status).toBe('downgraded');
+    expect(result.verifiedRefs).toEqual([
+      expect.objectContaining({
+        displayHref: null,
+        citationAddress: expect.objectContaining({ href: null }),
+      }),
+    ]);
+    expect(result.limitations).toContainEqual({
+      chunkId: 'explicit-null-address',
+      reason: 'unresolved-address',
+    });
+  });
+
+  it('rejects invalid media timestamp ranges in citation addresses', () => {
+    const invalidVideoRange = chunk({
+      id: 'invalid-video-range',
+      citationAddress: {
+        kind: 'video',
+        sourceRefId: 'video-1',
+        href: '/course-media/unit-4-1.mp4?t=-10',
+        mediaStartSeconds: -10,
+        mediaEndSeconds: 2,
+      },
+    });
+    const reversedAudioRange = chunk({
+      id: 'reversed-audio-range',
+      citationAddress: {
+        kind: 'audio',
+        sourceRefId: 'audio-1',
+        href: '/course-media/unit-4-1.mp3?t=24',
+        mediaStartSeconds: 24,
+        mediaEndSeconds: 12,
+      },
+    });
+
+    expect(validateLearningEvidenceCorpusChunk(invalidVideoRange)).toContain('invalid-citation-address');
+    expect(validateLearningEvidenceCorpusChunk(reversedAudioRange)).toContain('invalid-citation-address');
+  });
+
   it('downgrades restricted citations whose server-owned address cannot be opened', () => {
     const verification = verifyLearningEvidenceCitations(corpus, {
       role: 'teacher',

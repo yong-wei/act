@@ -545,7 +545,7 @@ export function resolveLearningEvidenceCitationAddress(
     address: {
       ...baseAddress,
       contentHash: baseAddress.contentHash ?? chunk.content.hash,
-      href: baseAddress.href ?? chunk.display.href,
+      href: chunk.citationAddress ? baseAddress.href : baseAddress.href ?? chunk.display.href,
     },
     freshnessState: chunk.authority.freshnessBucket,
   };
@@ -941,8 +941,8 @@ function isNullableString(value: unknown): value is string | null | undefined {
   return value === undefined || value === null || typeof value === 'string';
 }
 
-function isNullableNumber(value: unknown): value is number | null | undefined {
-  return value === undefined || value === null || typeof value === 'number';
+function isNullableFiniteNumber(value: unknown): value is number | null | undefined {
+  return value === undefined || value === null || (typeof value === 'number' && Number.isFinite(value));
 }
 
 function isCitationImageRegion(value: unknown): boolean {
@@ -956,13 +956,23 @@ function isCitationImageRegion(value: unknown): boolean {
 
 function isCitationAddress(value: unknown): value is LearningEvidenceCitationAddress {
   const record = readRecord(value);
+  const mediaStartSeconds = record.mediaStartSeconds;
+  const mediaEndSeconds = record.mediaEndSeconds;
+  const hasValidMediaRange =
+    record.kind !== 'audio' && record.kind !== 'video' ||
+    (typeof mediaStartSeconds === 'number' &&
+      Number.isFinite(mediaStartSeconds) &&
+      mediaStartSeconds >= 0 &&
+      (mediaEndSeconds === undefined || mediaEndSeconds === null ||
+        typeof mediaEndSeconds === 'number' && Number.isFinite(mediaEndSeconds) && mediaEndSeconds >= mediaStartSeconds));
   return isCitationAddressKind(record.kind) &&
     typeof record.sourceRefId === 'string' &&
     (typeof record.href === 'string' || record.href === null) &&
     isNullableString(record.locator) &&
     isNullableString(record.contentHash) &&
-    isNullableNumber(record.mediaStartSeconds) &&
-    isNullableNumber(record.mediaEndSeconds) &&
+    isNullableFiniteNumber(record.mediaStartSeconds) &&
+    isNullableFiniteNumber(record.mediaEndSeconds) &&
+    hasValidMediaRange &&
     isCitationImageRegion(record.imageRegion) &&
     isNullableString(record.interactiveStepId) &&
     isNullableString(record.simulationRunId) &&
