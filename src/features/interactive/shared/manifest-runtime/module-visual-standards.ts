@@ -67,6 +67,7 @@ export const INTERACTIVE_MODULE_VISUAL_STANDARDS: Record<InteractiveModuleCanoni
   'content.reveal': standard('content.reveal', 'student-state', 'commercial-module-chrome--reveal', 'module'),
   'content.stageMap': standard('content.stageMap', 'content', 'commercial-module-chrome--stage-map', 'none'),
   'visual.stage': standard('visual.stage', 'interaction', 'commercial-module-chrome--visual-stage', 'module'),
+  'visual.derivationStage': standard('visual.derivationStage', 'interaction', 'commercial-module-chrome--visual-derivation-stage', 'module'),
   'activity.panel': standard('activity.panel', 'interaction', 'commercial-module-chrome--interaction', 'module'),
   'activity.workspace': standard('activity.workspace', 'interaction', 'commercial-module-chrome--workspace', 'module'),
   'compute.panel': standard('compute.panel', 'interaction', 'commercial-module-chrome--compute', 'module'),

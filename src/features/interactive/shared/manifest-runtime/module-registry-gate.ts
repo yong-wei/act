@@ -42,6 +42,7 @@ export type InteractiveModuleRegistryGateViolationCode =
   | 'invalid-runtime-manifest'
   | 'lesson-missing-from-standard-module-inventory'
   | 'non-interactive-status-module'
+  | 'derivation-stage-payload-invalid'
   | 'visual-stage-payload-invalid';
 
 export interface InteractiveModuleRegistryGateViolation {
@@ -555,6 +556,21 @@ function evaluateRuntimeModule({
     }
   }
 
+  if (resolution.canonicalClass === 'visual.derivationStage') {
+    const missingFields = invalidDerivationStagePayloadFields(module.payload);
+    if (missingFields.length) {
+      violations.push(violation({
+        lessonId,
+        manifestPath,
+        step,
+        module,
+        code: 'derivation-stage-payload-invalid',
+        canonicalClass: resolution.canonicalClass,
+        message: `${lessonId} ${step.id} ${module.id} visual.derivationStage payload is invalid: ${missingFields.join(', ')}.`,
+      }));
+    }
+  }
+
   if (definition.requiresCapabilityRef) {
     const capabilityRef = capabilityRefForModule(module);
     if (!capabilityRef) {
@@ -722,6 +738,9 @@ const VISUAL_STAGE_ASPECT_RATIOS = new Set(['16:9', '4:3', 'fluid']);
 const VISUAL_STAGE_LAYER_KINDS = new Set(['diagram', 'formula', 'annotation', 'media', 'activity', 'control']);
 const VISUAL_STAGE_RELEASE_STATES = new Set(['unavailable', 'unreleased', 'released', 'revealed']);
 const VISUAL_STAGE_BUILT_IN_REVEAL_STATES = new Set(['all', 'released', 'revealed']);
+const DERIVATION_STAGE_BLOCK_COLOR_ROLES = new Set(['known', 'transform', 'cancel', 'target', 'risk', 'result']);
+const DERIVATION_STAGE_CONNECTOR_KINDS = new Set(['arrow', 'brace', 'equals', 'therefore', 'reference', 'highlight-line', 'dependency']);
+const DERIVATION_STAGE_LOAD_EXCEPTION_VALUES = new Set(['teacher-paced', 'worked-example', 'review-only']);
 
 function normalizedStageNumber(value: unknown) {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1;
@@ -785,6 +804,192 @@ function invalidVisualStagePayloadFields(payload: Record<string, unknown>): stri
     }
   }
   return missing;
+}
+
+function invalidDerivationStagePayloadFields(payload: Record<string, unknown>): string[] {
+  const missing: string[] = [];
+  const stageId = stringValue(payload.stageId ?? payload.stage_id);
+  const stageLabel = stageId ?? '(missing)';
+  if (!stageId) missing.push(`stage=${stageLabel}.stageId`);
+  const aspectRatio = stringValue(payload.aspectRatio ?? payload.aspect_ratio);
+  if (!aspectRatio || !VISUAL_STAGE_ASPECT_RATIOS.has(aspectRatio)) missing.push(`stage=${stageLabel}.aspectRatio`);
+  const releaseState = stringValue(payload.releaseState ?? payload.release_state);
+  if (releaseState && !VISUAL_STAGE_RELEASE_STATES.has(releaseState)) missing.push(`stage=${stageLabel}.releaseState`);
+
+  const formulas = Array.isArray(payload.formulas) ? payload.formulas : [];
+  const formulaIds = new Set<string>();
+  const blockIds = new Set<string>();
+  if (formulas.length === 0) missing.push(`stage=${stageLabel}.formulas`);
+  for (const [index, rawFormula] of formulas.entries()) {
+    const formula = recordValue(rawFormula);
+    const formulaId = stringValue(formula.id);
+    const formulaLabel = `${index}:${formulaId ?? '(missing)'}`;
+    if (!formulaId) {
+      missing.push(`stage=${stageLabel}.formulas[${formulaLabel}].id`);
+    } else if (formulaIds.has(formulaId)) {
+      missing.push(`stage=${stageLabel}.formulas[${formulaLabel}].id:duplicate`);
+    } else {
+      formulaIds.add(formulaId);
+    }
+    const latex = stringValue(formula.latex ?? formula.latexSource ?? formula.latex_source);
+    if (!latex || !looksLikeLatexSource(latex)) missing.push(`stage=${stageLabel}.formulas[${formulaLabel}].latex`);
+    validateDerivationRegion(stageLabel, `formulas[${formulaLabel}].region`, formula.region, missing);
+    const blocks = Array.isArray(formula.blocks) ? formula.blocks : [];
+    if (blocks.length === 0) missing.push(`stage=${stageLabel}.formulas[${formulaLabel}].blocks`);
+    for (const [blockIndex, rawBlock] of blocks.entries()) {
+      const block = recordValue(rawBlock);
+      const blockId = stringValue(block.id);
+      const blockLabel = `${formulaLabel}.blocks[${blockIndex}:${blockId ?? '(missing)'}]`;
+      if (!blockId) {
+        missing.push(`stage=${stageLabel}.${blockLabel}.id`);
+      } else if (blockIds.has(blockId)) {
+        missing.push(`stage=${stageLabel}.${blockLabel}.id:duplicate`);
+      } else {
+        blockIds.add(blockId);
+      }
+      const blockLatex = stringValue(block.latex ?? block.latexSource ?? block.latex_source ?? latex);
+      if (!blockLatex || !looksLikeLatexSource(blockLatex)) missing.push(`stage=${stageLabel}.${blockLabel}.latex`);
+      const colorRole = stringValue(block.colorRole ?? block.color_role);
+      if (colorRole && !DERIVATION_STAGE_BLOCK_COLOR_ROLES.has(colorRole)) missing.push(`stage=${stageLabel}.${blockLabel}.colorRole`);
+    }
+  }
+
+  const rawTextBlocks = payload.textBlocks ?? payload.text_blocks;
+  const textBlocks = Array.isArray(rawTextBlocks) ? rawTextBlocks : [];
+  const textBlockIds = new Set<string>();
+  for (const [index, rawTextBlock] of textBlocks.entries()) {
+    const textBlock = recordValue(rawTextBlock);
+    const textBlockId = stringValue(textBlock.id);
+    const textBlockLabel = `${index}:${textBlockId ?? '(missing)'}`;
+    if (!textBlockId) {
+      missing.push(`stage=${stageLabel}.textBlocks[${textBlockLabel}].id`);
+    } else if (textBlockIds.has(textBlockId)) {
+      missing.push(`stage=${stageLabel}.textBlocks[${textBlockLabel}].id:duplicate`);
+    } else {
+      textBlockIds.add(textBlockId);
+    }
+    validateDerivationRegion(stageLabel, `textBlocks[${textBlockLabel}].region`, textBlock.region, missing);
+  }
+
+  const allTargetIds = new Set([...formulaIds, ...blockIds, ...textBlockIds]);
+  const rawRevealSteps = payload.revealSteps ?? payload.reveal_steps;
+  const revealSteps = Array.isArray(rawRevealSteps) ? rawRevealSteps : [];
+  const revealStepIds = new Set<string>();
+  const loadPolicy = recordValue(payload.cognitiveLoad ?? payload.cognitive_load);
+  const maxBlocksPerStep = numberValue(loadPolicy.maxNewFormulaBlocksPerStep ?? loadPolicy.max_new_formula_blocks_per_step) ?? 3;
+  const maxColorRoles = numberValue(loadPolicy.maxSimultaneousColorRoles ?? loadPolicy.max_simultaneous_color_roles) ?? 3;
+  const splitStrategy = stringValue(loadPolicy.longFormulaSplitStrategy ?? loadPolicy.long_formula_split_strategy);
+  const loadException = stringValue(loadPolicy.teachingLoadException ?? loadPolicy.teaching_load_exception);
+  if (!splitStrategy) missing.push(`stage=${stageLabel}.cognitiveLoad.longFormulaSplitStrategy`);
+  if (loadException && !DERIVATION_STAGE_LOAD_EXCEPTION_VALUES.has(loadException)) {
+    missing.push(`stage=${stageLabel}.cognitiveLoad.teachingLoadException`);
+  }
+  if (revealSteps.length === 0) missing.push(`stage=${stageLabel}.revealSteps`);
+  for (const [index, rawStep] of revealSteps.entries()) {
+    const revealStep = recordValue(rawStep);
+    const revealStepId = stringValue(revealStep.id);
+    const revealStepLabel = `${index}:${revealStepId ?? '(missing)'}`;
+    if (!revealStepId) {
+      missing.push(`stage=${stageLabel}.revealSteps[${revealStepLabel}].id`);
+    } else if (revealStepIds.has(revealStepId)) {
+      missing.push(`stage=${stageLabel}.revealSteps[${revealStepLabel}].id:duplicate`);
+    } else {
+      revealStepIds.add(revealStepId);
+    }
+    const targets = stringArrayValue(revealStep.targetIds ?? revealStep.target_ids ?? revealStep.targets);
+    if (targets.length === 0) missing.push(`stage=${stageLabel}.revealSteps[${revealStepLabel}].targetIds`);
+    const missingTargets = targets.filter((targetId) => !allTargetIds.has(targetId));
+    for (const targetId of missingTargets) {
+      missing.push(`stage=${stageLabel}.revealSteps[${revealStepLabel}].targetIds:${targetId}`);
+    }
+    const newFormulaBlocks = targets.filter((targetId) => blockIds.has(targetId));
+    if (newFormulaBlocks.length > maxBlocksPerStep && !loadException) {
+      missing.push(`stage=${stageLabel}.revealSteps[${revealStepLabel}].cognitiveLoad.maxNewFormulaBlocksPerStep`);
+    }
+    const colorRoles = new Set<string>();
+    for (const rawFormula of formulas) {
+      const formula = recordValue(rawFormula);
+      const blocks = Array.isArray(formula.blocks) ? formula.blocks : [];
+      for (const rawBlock of blocks) {
+        const block = recordValue(rawBlock);
+        const blockId = stringValue(block.id);
+        const colorRole = stringValue(block.colorRole ?? block.color_role);
+        if (blockId && targets.includes(blockId) && colorRole) colorRoles.add(colorRole);
+      }
+    }
+    if (colorRoles.size > maxColorRoles && !loadException) {
+      missing.push(`stage=${stageLabel}.revealSteps[${revealStepLabel}].cognitiveLoad.maxSimultaneousColorRoles`);
+    }
+  }
+
+  const activeRevealStepId = stringValue(payload.activeRevealStepId ?? payload.active_reveal_step_id);
+  if (activeRevealStepId && activeRevealStepId !== 'all' && !revealStepIds.has(activeRevealStepId)) {
+    missing.push(`stage=${stageLabel}.activeRevealStepId`);
+  }
+
+  const connectors = Array.isArray(payload.connectors) ? payload.connectors : [];
+  for (const [index, rawConnector] of connectors.entries()) {
+    const connector = recordValue(rawConnector);
+    const connectorId = stringValue(connector.id);
+    const connectorLabel = `${index}:${connectorId ?? '(missing)'}`;
+    if (!connectorId) missing.push(`stage=${stageLabel}.connectors[${connectorLabel}].id`);
+    const kind = stringValue(connector.kind);
+    if (!kind || !DERIVATION_STAGE_CONNECTOR_KINDS.has(kind)) missing.push(`stage=${stageLabel}.connectors[${connectorLabel}].kind`);
+    const from = stringValue(connector.from ?? connector.fromId ?? connector.from_id);
+    const to = stringValue(connector.to ?? connector.toId ?? connector.to_id);
+    if (!from || !allTargetIds.has(from)) missing.push(`stage=${stageLabel}.connectors[${connectorLabel}].from`);
+    if (!to || !allTargetIds.has(to)) missing.push(`stage=${stageLabel}.connectors[${connectorLabel}].to`);
+    const connectorRevealStepIds = stringArrayValue(connector.revealStepIds ?? connector.reveal_step_ids);
+    if (connectorRevealStepIds.length === 0) missing.push(`stage=${stageLabel}.connectors[${connectorLabel}].revealStepIds`);
+    for (const revealStepId of connectorRevealStepIds) {
+      if (!revealStepIds.has(revealStepId)) {
+        missing.push(`stage=${stageLabel}.connectors[${connectorLabel}].revealStepIds:${revealStepId}`);
+      }
+    }
+  }
+
+  const teacherControls = recordValue(payload.teacherControls ?? payload.teacher_controls);
+  const enabledControls = stringArrayValue(teacherControls.enabled ?? teacherControls.controls);
+  for (const control of ['next', 'previous', 'jump', 'highlight', 'answerReveal', 'reset']) {
+    if (!enabledControls.includes(control)) missing.push(`stage=${stageLabel}.teacherControls.${control}`);
+  }
+  return missing;
+}
+
+function validateDerivationRegion(
+  stageLabel: string,
+  path: string,
+  rawRegion: unknown,
+  missing: string[],
+) {
+  const region = recordValue(rawRegion);
+  const x = region.x;
+  const y = region.y;
+  const width = region.width ?? region.w;
+  const height = region.height ?? region.h;
+  if (!normalizedStageNumber(x)) missing.push(`stage=${stageLabel}.${path}.x`);
+  if (!normalizedStageNumber(y)) missing.push(`stage=${stageLabel}.${path}.y`);
+  if (!normalizedStageNumber(width) || Number(width) <= 0) missing.push(`stage=${stageLabel}.${path}.width`);
+  if (!normalizedStageNumber(height) || Number(height) <= 0) missing.push(`stage=${stageLabel}.${path}.height`);
+  if (Number(x) + Number(width) > 1) missing.push(`stage=${stageLabel}.${path}.right`);
+  if (Number(y) + Number(height) > 1) missing.push(`stage=${stageLabel}.${path}.bottom`);
+}
+
+function looksLikeLatexSource(value: string) {
+  const trimmed = value.trim();
+  return Boolean(trimmed && (/\\[a-zA-Z]+/.test(trimmed) || /[{}_^=+\-*/()]/.test(trimmed)));
+}
+
+function numberValue(value: unknown): number | undefined {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : undefined;
+}
+
+function stringArrayValue(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is string => typeof item === 'string' && Boolean(item.trim()))
+    .map((item) => item.trim());
 }
 
 function sourceMigrationExceptionForPath(path: string): ControlWorkbenchMigrationException | undefined {
