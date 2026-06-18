@@ -770,6 +770,33 @@ describe('adaptive learner state service', () => {
       payloadVersion: 'control-correction-goal-slice.v1',
       targetLevels: ['foundation', 'developing', 'proficient', 'advanced'],
     });
+    expect(resolveAdaptiveGoalSliceDefinition('control-correction')?.capabilityTargets).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        knowledgeNodeRef: 'control-correction:root-locus-design',
+        capabilityLevel: 'analyze',
+        behaviorVerb: 'compare',
+        observableEvidenceType: 'question',
+        evaluationMethod: expect.any(String),
+        competencyDimensions: expect.arrayContaining(['parameterDesign']),
+        learnerStateFeatureGroups: expect.arrayContaining(['knowledgeMastery']),
+      }),
+    ]));
+    expect(slice.capabilityTargets).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        target: expect.objectContaining({
+          knowledgeNodeRef: 'control-correction:arena-transfer',
+          capabilityLevel: 'create',
+          observableEvidenceType: 'arena-official-evaluation',
+        }),
+        observedEvidence: expect.objectContaining({
+          state: 'missing',
+          directEvidenceCount: 0,
+          supportingEvidenceCount: expect.any(Number),
+          source: 'adaptive-learner-state',
+          recommendationBias: 'starter-or-evidence-gathering',
+        }),
+      }),
+    ]));
     expect(slice.dimensions.map((dimension) => dimension.id)).toEqual(
       CONTROL_CORRECTION_GOAL_DIMENSIONS,
     );
@@ -870,6 +897,31 @@ describe('adaptive learner state service', () => {
         },
       ],
     })).toThrow('control-correction goal slice missing required dimensions');
+  });
+
+  it('rejects undeclared control-correction capability targets before consumers can use them', async () => {
+    const state = await readAdaptiveLearnerState(createDb(), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+    const slice = state.goalSlices?.controlCorrection;
+    if (!slice) throw new Error('expected control-correction goal slice');
+
+    expect(() => validateControlCorrectionGoalSliceContract({
+      ...slice,
+      capabilityTargets: slice.capabilityTargets.map((capability, index) => (
+        index === 0 ? {
+          ...capability,
+          target: {
+            ...capability.target,
+            id: slice.capabilityTargets[1]?.target.id,
+            knowledgeNodeRef: 'undeclared-capability',
+          },
+        } : capability
+      )),
+    })).toThrow('control-correction goal slice missing capability targets');
   });
 
   it('preserves path context field families for registered control-correction slices', async () => {
@@ -1517,6 +1569,104 @@ describe('adaptive learner state service', () => {
       evidenceProvenance: expect.objectContaining({ arena: 'official' }),
       confidence: expect.objectContaining({ state: 'high' }),
     });
+    expect(slice.capabilityTargets).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        target: expect.objectContaining({
+          id: 'control-correction:arena-transfer:create',
+          observableEvidenceType: 'arena-official-evaluation',
+        }),
+        observedEvidence: expect.objectContaining({
+          state: 'observed',
+          knowledgeMastery: null,
+          confidence: 0.7,
+          directEvidenceCount: 1,
+          recommendationBias: 'targeted-practice',
+        }),
+      }),
+    ]));
+  });
+
+  it('uses governed question facts as capability target evidence without mastery updates', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      adaptiveMasteryUpdate: { findMany: async () => [] },
+      learningFact: {
+        findMany: async () => [
+          controlCorrectionFact('question', '2026-05-19T00:00:00.000Z', 92),
+        ],
+      },
+      arenaSubmission: { findMany: async () => [] },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const slice = state.goalSlices?.controlCorrection;
+    expect(slice).toBeDefined();
+    if (!slice) throw new Error('expected control-correction goal slice');
+    expect(slice.capabilityTargets).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        target: expect.objectContaining({
+          id: 'control-correction:root-locus-design:analyze',
+          observableEvidenceType: 'question',
+        }),
+        observedEvidence: expect.objectContaining({
+          state: 'low-confidence',
+          knowledgeMastery: null,
+          confidence: 0.45,
+          directEvidenceCount: 1,
+          recommendationBias: 'starter-or-evidence-gathering',
+        }),
+      }),
+    ]));
+  });
+
+  it('keeps type-level simulation evidence below observed confidence for capability targets', async () => {
+    const state = await readAdaptiveLearnerState(createDb({
+      adaptiveMasteryUpdate: { findMany: async () => [] },
+      learningFact: {
+        findMany: async () => [
+          controlCorrectionFact('simulation', '2026-05-19T00:00:00.000Z', 90),
+        ],
+      },
+      arenaSubmission: { findMany: async () => [] },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const slice = state.goalSlices?.controlCorrection;
+    expect(slice).toBeDefined();
+    if (!slice) throw new Error('expected control-correction goal slice');
+    expect(slice.capabilityTargets).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        target: expect.objectContaining({
+          id: 'control-correction:time-domain-targets:apply',
+          observableEvidenceType: 'simulation-run',
+        }),
+        observedEvidence: expect.objectContaining({
+          state: 'low-confidence',
+          confidence: 0.45,
+          directEvidenceCount: 1,
+          recommendationBias: 'starter-or-evidence-gathering',
+        }),
+      }),
+      expect.objectContaining({
+        target: expect.objectContaining({
+          id: 'control-correction:simulation-validation:evaluate',
+          observableEvidenceType: 'simulation-run',
+        }),
+        observedEvidence: expect.objectContaining({
+          state: 'low-confidence',
+          confidence: 0.45,
+          directEvidenceCount: 1,
+          recommendationBias: 'starter-or-evidence-gathering',
+        }),
+      }),
+    ]));
   });
 
   it('exposes governed path execution features through prerequisite feature groups', async () => {

@@ -695,6 +695,7 @@ export function buildControlCorrectionDemoPlanPostBody(
             evidenceCount: 3,
             reasonCode: 'demo-parameter-design-gap',
           }],
+          capabilityEvidence: [],
           prerequisiteReasons: [],
           teacherPolicy: mainPath.map((node) => ({ nodeId: node.nodeId, policy: node.teacherPolicy })),
           alternatives: [],

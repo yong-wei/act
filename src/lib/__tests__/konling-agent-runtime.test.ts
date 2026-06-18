@@ -516,6 +516,12 @@ describe('konling agent runtime', () => {
       trustedContentContext: true,
     });
 
+    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      userId: 'student-1',
+      role: 'student',
+      classId: 'class-1',
+      goal: 'control-correction',
+    }));
     const contract = buildKonlingTeachingAssistantRuntimeContract({
       modeId: 'path-advisor',
       runtimeContext: runtime,
@@ -540,6 +546,41 @@ describe('konling agent runtime', () => {
     expect(contract.degradedReasons).toEqual(expect.arrayContaining(['low-confidence-learner-state']));
     expect(contract.citationRequirements.missingClasses).not.toEqual(expect.arrayContaining(['learner-state', 'content']));
     expect(contract.permittedTools).toContain('generate_learning_path');
+  });
+
+  it('resolves control-correction course aliases before reading learner goal slices', async () => {
+    await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      targetUserId: 'student-1',
+      classId: 'class-1',
+      courseId: 'unit-3-6-zero-design-workshop-v1',
+      pageId: 'adaptive-path-center',
+      pageContextHint: {
+        courseId: 'unit-3-6-zero-design-workshop-v1',
+        stepId: 'adaptive-path-center',
+        pageType: 'practice',
+      },
+      trustedContentContext: true,
+    });
+
+    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      userId: 'student-1',
+      role: 'student',
+      classId: 'class-1',
+      goal: 'control-correction',
+    }));
   });
 
   it('does not expose path-advisor write tools from forged page ids without server context', () => {
@@ -4722,6 +4763,20 @@ describe('konling agent runtime', () => {
         create: vi.fn().mockResolvedValue(createdRun),
         updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       },
+      learningPath: {
+        findFirst: vi.fn().mockResolvedValue({
+          id: 'path-1',
+          pathPayload: {
+            pathOptions: [{
+              styleId: 'guided',
+              policyFamily: 'guided',
+              resourceMix: {},
+            }],
+          },
+          learnerStateRef: null,
+          inputSnapshot: {},
+        }),
+      },
     };
     const runtime = buildKonlingToolRuntime({
       db,
@@ -4730,12 +4785,12 @@ describe('konling agent runtime', () => {
       context: createRuntimeContext({
         permittedTools: ['explain_learning_path_tradeoff'],
         planContext: {
-          currentPathId: null,
+          currentPathId: 'path-1',
           activeNodeId: null,
           nextNodeIds: [],
-          recentPathIds: [],
+          recentPathIds: ['path-1'],
           completedNodeIds: [],
-          status: 'missing',
+          status: 'available',
         },
       }),
     });
