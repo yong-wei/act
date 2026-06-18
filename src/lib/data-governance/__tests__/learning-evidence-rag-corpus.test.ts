@@ -5,6 +5,7 @@ import {
   buildLearningEvidenceCitationChips,
   createLearningEvidenceCorpusChunk,
   retrieveLearningEvidenceCorpus,
+  resolveLearningEvidenceCitationAddress,
   validateLearningEvidenceCorpusChunk,
   verifyLearningEvidenceCitations,
   type LearningEvidenceCorpusChunk,
@@ -679,6 +680,15 @@ describe('learning evidence RAG corpus contract', () => {
   });
 
   it('builds shared CitationChip payloads without leaking privileged scope diagnostics to students', () => {
+    const privilegedExternal = chunk({
+      id: 'privileged-external',
+      citationAddress: {
+        kind: 'external',
+        sourceRefId: 'private-external-1',
+        href: 'https://private.example/path',
+        externalUrl: 'https://private.example/path',
+      },
+    });
     const verification = verifyLearningEvidenceCitations(corpus, {
       role: 'student',
       userId: 'student-1',
@@ -723,6 +733,389 @@ describe('learning evidence RAG corpus contract', () => {
     expect(JSON.stringify(chips)).not.toContain('classRequired');
     expect(JSON.stringify(chips)).not.toContain('allowedRoles');
     expect(JSON.stringify(chips)).not.toContain('raw answer body');
+
+    const privilegedVerification = {
+      status: 'verified',
+      verifiedRefs: [
+        {
+          chunkId: 'privileged-external',
+          sourceType: privilegedExternal.sourceType,
+          displayTitle: privilegedExternal.display.title,
+          displayHref: privilegedExternal.display.href,
+          addressKind: privilegedExternal.citationAddress?.kind,
+          citationAddress: privilegedExternal.citationAddress,
+          confidence: privilegedExternal.confidence,
+          capsule: privilegedExternal.display.capsule,
+          authorityLevel: privilegedExternal.authority.level,
+          freshnessBucket: privilegedExternal.authority.freshnessBucket,
+          privacyVisibility: 'privileged',
+        },
+      ],
+      limitations: [],
+    } satisfies ReturnType<typeof verifyLearningEvidenceCitations>;
+    expect(buildLearningEvidenceCitationChips(privilegedVerification, {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    })[0]).toEqual(expect.objectContaining({
+      displayHref: null,
+      citationAddress: expect.objectContaining({
+        href: null,
+        externalUrl: null,
+      }),
+    }));
+
+    const legacyVerification = {
+      status: 'verified',
+      verifiedRefs: [
+        {
+          chunkId: 'legacy-path-ref',
+          sourceType: 'path-summary',
+          displayTitle: '旧式诊断路径证据',
+          displayHref: '/learning-paths/path-1',
+          confidence: 'medium',
+          capsule: '终端验证已完成。',
+          authorityLevel: 'learner-evidence',
+          freshnessBucket: 'current',
+          privacyVisibility: 'redacted',
+        },
+      ],
+      limitations: [],
+    } satisfies ReturnType<typeof verifyLearningEvidenceCitations>;
+    expect(buildLearningEvidenceCitationChips(legacyVerification, {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    })[0]).toEqual(expect.objectContaining({
+      addressKind: 'interactive',
+      citationAddress: expect.objectContaining({
+        kind: 'interactive',
+        sourceRefId: 'legacy-path-ref',
+        href: '/learning-paths/path-1',
+      }),
+    }));
+  });
+
+  it('resolves citations through server-owned address payloads', () => {
+    const imageChunk = chunk({
+      id: 'image-address',
+      citationAddress: {
+        kind: 'image',
+        sourceRefId: 'image-1',
+        href: '/course-assets/unit-4-1/root-locus.png#region=a',
+        locator: 'figure.root-locus',
+        imageRegion: { x: 12, y: 20, width: 180, height: 96 },
+      },
+    });
+    const videoChunk = chunk({
+      id: 'video-address',
+      citationAddress: {
+        kind: 'video',
+        sourceRefId: 'video-1',
+        href: '/course-media/unit-4-1.mp4?t=42',
+        locator: 'video#lead-compensator',
+        mediaStartSeconds: 42,
+        mediaEndSeconds: 58,
+      },
+    });
+    const audioChunk = chunk({
+      id: 'audio-address',
+      citationAddress: {
+        kind: 'audio',
+        sourceRefId: 'audio-1',
+        href: '/course-media/unit-4-1-explain.mp3?t=12',
+        locator: 'audio#margin-explanation',
+        mediaStartSeconds: 12,
+        mediaEndSeconds: 24,
+      },
+    });
+    const interactiveChunk = chunk({
+      id: 'interactive-address',
+      family: 'path-evidence',
+      sourceType: 'path-summary',
+      sourceRef: { id: 'path-1', ownerUserId: 'student-1', classId: 'class-1', goalId: 'control-correction' },
+      spanRef: { kind: 'record', locator: 'path.step.simulation' },
+      display: { title: '路径仿真步骤', href: '/learning-paths/path-1?step=simulation', capsule: '仿真步骤已完成。' },
+      privacyClass: 'student-visible',
+      authority: {
+        ...chunk().authority,
+        level: 'learner-evidence',
+        knowledgeTags: [],
+        scopeRule: {
+          visibility: 'student-visible',
+          allowedRoles: ['student', 'teacher', 'admin', 'service'],
+          ownerRequired: true,
+          classRequired: true,
+        },
+      },
+      retrieval: { tags: ['path-step'], goals: ['control-correction'], useCases: ['diagnosis', 'konling', 'recommendation'] },
+      citationAddress: {
+        kind: 'interactive',
+        sourceRefId: 'path-1',
+        href: '/learning-paths/path-1?step=simulation',
+        locator: 'path.step.simulation',
+        interactiveStepId: 'simulation',
+      },
+    });
+
+    const result = verifyLearningEvidenceCitations([
+      imageChunk,
+      videoChunk,
+      audioChunk,
+      interactiveChunk,
+    ], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    }, [
+      { chunkId: 'image-address', useCase: 'diagnosis', addressKind: 'image' },
+      { chunkId: 'video-address', useCase: 'diagnosis', addressKind: 'video' },
+      { chunkId: 'audio-address', useCase: 'diagnosis', addressKind: 'audio' },
+      { chunkId: 'interactive-address', useCase: 'diagnosis', addressKind: 'interactive' },
+    ]);
+
+    expect(result.status).toBe('verified');
+    expect(result.verifiedRefs.map((ref) => ref.addressKind)).toEqual(['image', 'video', 'audio', 'interactive']);
+    expect(resolveLearningEvidenceCitationAddress(videoChunk).address).toEqual(expect.objectContaining({
+      kind: 'video',
+      mediaStartSeconds: 42,
+      mediaEndSeconds: 58,
+      contentHash: 'hash-course-1',
+    }));
+    expect(buildLearningEvidenceCitationChips(result, {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    })).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        chunkId: 'image-address',
+        addressKind: 'image',
+        citationAddress: expect.objectContaining({
+          imageRegion: { x: 12, y: 20, width: 180, height: 96 },
+        }),
+      }),
+      expect.objectContaining({
+        chunkId: 'interactive-address',
+        addressKind: 'interactive',
+        citationAddress: expect.objectContaining({ interactiveStepId: 'simulation' }),
+      }),
+    ]));
+  });
+
+  it('rejects unsafe or kind-incompatible citation addresses', () => {
+    const unsafeExternal = chunk({
+      id: 'unsafe-external',
+      citationAddress: {
+        kind: 'external',
+        sourceRefId: 'external-1',
+        href: 'javascript:alert(1)',
+        externalUrl: 'javascript:alert(1)',
+      },
+    });
+    const unsafeHrefWithSafeExternalUrl = chunk({
+      id: 'unsafe-href-with-safe-external-url',
+      citationAddress: {
+        kind: 'external',
+        sourceRefId: 'external-2',
+        href: 'javascript:alert(1)',
+        externalUrl: 'https://example.com/resource',
+      },
+    });
+    const textChunk = chunk({
+      id: 'text-address',
+    });
+
+    const result = verifyLearningEvidenceCitations([unsafeExternal, unsafeHrefWithSafeExternalUrl, textChunk], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    }, [
+      { chunkId: 'unsafe-external', useCase: 'diagnosis', addressKind: 'external' },
+      { chunkId: 'unsafe-href-with-safe-external-url', useCase: 'diagnosis', addressKind: 'external' },
+      { chunkId: 'text-address', useCase: 'diagnosis', addressKind: 'image' },
+    ]);
+
+    expect(result.status).toBe('rejected');
+    expect(result.verifiedRefs).toEqual([]);
+    expect(result.limitations).toEqual(expect.arrayContaining([
+      { chunkId: 'unsafe-external', reason: 'unsafe-address' },
+      { chunkId: 'unsafe-href-with-safe-external-url', reason: 'unsafe-address' },
+      { chunkId: 'text-address', reason: 'address-kind-mismatch' },
+    ]));
+  });
+
+  it('rejects runtime citation addresses with missing required fields', () => {
+    const incompleteAddress = chunk({
+      id: 'incomplete-address',
+      citationAddress: {
+        sourceRefId: 'broken-address',
+        href: '/broken-address',
+      } as LearningEvidenceCorpusChunk['citationAddress'],
+    });
+
+    expect(validateLearningEvidenceCorpusChunk(incompleteAddress)).toContain('invalid-citation-address');
+
+    const result = verifyLearningEvidenceCitations([incompleteAddress], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    }, [
+      { chunkId: 'incomplete-address', useCase: 'diagnosis' },
+    ]);
+
+    expect(result.status).toBe('rejected');
+    expect(result.verifiedRefs).toEqual([]);
+    expect(result.limitations).toContainEqual({
+      chunkId: 'incomplete-address',
+      reason: 'unsupported-source-type',
+    });
+  });
+
+  it('downgrades citation addresses with stale content hashes', () => {
+    const staleAddress = chunk({
+      id: 'stale-address',
+      citationAddress: {
+        kind: 'text',
+        sourceRefId: 'unit-4-1',
+        href: '/interactive-learning/courses/unit-4-1',
+        contentHash: 'old-hash',
+      },
+    });
+
+    const result = verifyLearningEvidenceCitations([staleAddress], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    }, [
+      { chunkId: 'stale-address', useCase: 'diagnosis' },
+    ]);
+
+    expect(result.status).toBe('downgraded');
+    expect(result.verifiedRefs).toEqual([
+      expect.objectContaining({
+        chunkId: 'stale-address',
+        citationAddress: expect.objectContaining({ contentHash: 'old-hash' }),
+      }),
+    ]);
+    expect(result.limitations).toContainEqual({
+      chunkId: 'stale-address',
+      reason: 'stale-source',
+    });
+  });
+
+  it('preserves explicit null hrefs on server-owned citation addresses', () => {
+    const unresolvedAddress = chunk({
+      id: 'explicit-null-address',
+      citationAddress: {
+        kind: 'text',
+        sourceRefId: 'unit-4-1',
+        href: null,
+        locator: 'handout#missing-anchor',
+      },
+    });
+
+    const result = verifyLearningEvidenceCitations([unresolvedAddress], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'diagnosis',
+    }, [
+      { chunkId: 'explicit-null-address', useCase: 'diagnosis' },
+    ]);
+
+    expect(result.status).toBe('downgraded');
+    expect(result.verifiedRefs).toEqual([
+      expect.objectContaining({
+        displayHref: null,
+        citationAddress: expect.objectContaining({ href: null }),
+      }),
+    ]);
+    expect(result.limitations).toContainEqual({
+      chunkId: 'explicit-null-address',
+      reason: 'unresolved-address',
+    });
+  });
+
+  it('rejects invalid media timestamp ranges in citation addresses', () => {
+    const invalidVideoRange = chunk({
+      id: 'invalid-video-range',
+      citationAddress: {
+        kind: 'video',
+        sourceRefId: 'video-1',
+        href: '/course-media/unit-4-1.mp4?t=-10',
+        mediaStartSeconds: -10,
+        mediaEndSeconds: 2,
+      },
+    });
+    const reversedAudioRange = chunk({
+      id: 'reversed-audio-range',
+      citationAddress: {
+        kind: 'audio',
+        sourceRefId: 'audio-1',
+        href: '/course-media/unit-4-1.mp3?t=24',
+        mediaStartSeconds: 24,
+        mediaEndSeconds: 12,
+      },
+    });
+
+    expect(validateLearningEvidenceCorpusChunk(invalidVideoRange)).toContain('invalid-citation-address');
+    expect(validateLearningEvidenceCorpusChunk(reversedAudioRange)).toContain('invalid-citation-address');
+  });
+
+  it('downgrades restricted citations whose server-owned address cannot be opened', () => {
+    const verification = verifyLearningEvidenceCitations(corpus, {
+      role: 'teacher',
+      userId: 'teacher-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'grading',
+    }, [
+      { chunkId: 'chunk-grading', useCase: 'grading' },
+    ]);
+
+    expect(verification.status).toBe('downgraded');
+    expect(verification.limitations).toEqual(expect.arrayContaining([
+      { chunkId: 'chunk-grading', reason: 'unresolved-address' },
+    ]));
+    expect(buildLearningEvidenceCitationChips(verification, {
+      role: 'teacher',
+      userId: 'teacher-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'grading',
+    })).toEqual([
+      expect.objectContaining({
+        chunkId: 'chunk-grading',
+        displayHref: null,
+        addressKind: 'text',
+        limitationState: 'unresolved-address',
+      }),
+    ]);
   });
 
   it('builds citation audit payloads for verified, rejected, redacted, and degraded citations', () => {
@@ -1125,7 +1518,7 @@ describe('learning evidence RAG corpus contract', () => {
     }, { tags: ['teacher-report'] }).map((item) => item.id)).not.toContain('incompatible-use-case');
   });
 
-  it('covers diagnosis, grading, and Konling citation use cases with verified refs', () => {
+  it('covers diagnosis, grading, and Konling citation use cases with citation refs', () => {
     const diagnosis = verifyLearningEvidenceCitations(corpus, {
       role: 'student',
       userId: 'student-1',
@@ -1146,7 +1539,10 @@ describe('learning evidence RAG corpus contract', () => {
     }, [
       { chunkId: 'chunk-grading', useCase: 'grading' },
     ]);
-    expect(grading.status).toBe('verified');
+    expect(grading.status).toBe('downgraded');
+    expect(grading.limitations).toEqual(expect.arrayContaining([
+      { chunkId: 'chunk-grading', reason: 'unresolved-address' },
+    ]));
 
     const konling = verifyLearningEvidenceCitations(corpus, {
       role: 'service',
@@ -1156,6 +1552,9 @@ describe('learning evidence RAG corpus contract', () => {
     }, [
       { chunkId: 'chunk-service-memory', useCase: 'konling' },
     ]);
-    expect(konling.status).toBe('verified');
+    expect(konling.status).toBe('downgraded');
+    expect(konling.limitations).toEqual(expect.arrayContaining([
+      { chunkId: 'chunk-service-memory', reason: 'unresolved-address' },
+    ]));
   });
 });

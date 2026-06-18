@@ -34,6 +34,15 @@ export type LearningEvidenceConfidence = 'none' | 'low' | 'medium' | 'high';
 export type LearningEvidenceAuthorityLevel = 'canonical' | 'verified' | 'contextual' | 'learner-evidence' | 'teacher-authored' | 'service-internal';
 export type LearningEvidenceFreshnessBucket = 'current' | 'recent' | 'stale' | 'expired';
 export type LearningEvidenceConflictSignal = 'supports' | 'contradicts' | null;
+export type LearningEvidenceCitationAddressKind =
+  | 'text'
+  | 'image'
+  | 'audio'
+  | 'video'
+  | 'interactive'
+  | 'simulation'
+  | 'arena'
+  | 'external';
 
 export interface LearningEvidenceScopeRule {
   visibility: LearningEvidenceCorpusPrivacyClass;
@@ -51,6 +60,21 @@ export interface LearningEvidenceAuthorityMetadata {
   scopeRule: LearningEvidenceScopeRule;
   conflictGroup?: string | null;
   conflictSignal?: LearningEvidenceConflictSignal;
+}
+
+export interface LearningEvidenceCitationAddress {
+  kind: LearningEvidenceCitationAddressKind;
+  sourceRefId: string;
+  href: string | null;
+  locator?: string | null;
+  contentHash?: string | null;
+  mediaStartSeconds?: number | null;
+  mediaEndSeconds?: number | null;
+  imageRegion?: { x: number; y: number; width: number; height: number } | null;
+  interactiveStepId?: string | null;
+  simulationRunId?: string | null;
+  arenaTaskId?: string | null;
+  externalUrl?: string | null;
 }
 
 export type LearningEvidenceCorpusChunkInput =
@@ -82,6 +106,7 @@ export interface LearningEvidenceCorpusChunk {
     href: string | null;
     capsule: string;
   };
+  citationAddress?: LearningEvidenceCitationAddress;
   content: {
     text: string | null;
     redactedSummary: string | null;
@@ -126,6 +151,7 @@ export interface LearningEvidenceCitationRef {
   useCase: LearningEvidenceCitationUseCase;
   quoteHash?: string;
   spanRef?: LearningEvidenceCorpusChunk['spanRef'];
+  addressKind?: LearningEvidenceCitationAddressKind;
 }
 
 export interface LearningEvidenceCitationPolicy {
@@ -142,6 +168,8 @@ export interface LearningEvidenceCitationVerificationResult {
     sourceType: LearningEvidenceCorpusSourceType;
     displayTitle: string;
     displayHref: string | null;
+    addressKind?: LearningEvidenceCitationAddressKind;
+    citationAddress?: LearningEvidenceCitationAddress;
     confidence: LearningEvidenceConfidence;
     capsule: string;
     authorityLevel: LearningEvidenceAuthorityLevel;
@@ -164,7 +192,10 @@ export interface LearningEvidenceCitationVerificationResult {
       | 'privacy-redacted'
       | 'low-confidence-source'
       | 'stale-source'
-      | 'expired-source';
+      | 'expired-source'
+      | 'unresolved-address'
+      | 'unsafe-address'
+      | 'address-kind-mismatch';
   }>;
 }
 
@@ -173,6 +204,8 @@ export interface LearningEvidenceCitationChipPayload {
   displayTitle: string;
   displayHref: string | null;
   sourceType: LearningEvidenceCorpusSourceType;
+  addressKind?: LearningEvidenceCitationAddressKind;
+  citationAddress?: LearningEvidenceCitationAddress;
   authorityLevel: LearningEvidenceAuthorityLevel;
   confidence: LearningEvidenceConfidence;
   freshnessBucket: LearningEvidenceFreshnessBucket;
@@ -305,6 +338,7 @@ export function validateLearningEvidenceCorpusChunk(chunk: LearningEvidenceCorpu
     retrievalUseCases ? null : 'missing-retrieval-use-cases',
     sourceType && retrievalUseCases?.every((useCase) => isUseCaseSourceCompatible(useCase, sourceType)) ? null : 'source-use-case-mismatch',
     family && sourceType && LEARNING_EVIDENCE_CORPUS_FAMILY_SOURCE_TYPES[family]?.includes(sourceType) ? null : 'family-source-type-mismatch',
+    record.citationAddress === undefined || isCitationAddress(record.citationAddress) ? null : 'invalid-citation-address',
   ];
   if (!content.text && !content.redactedSummary) errors.push('missing-retrievable-text');
   return errors.filter((item): item is string => Boolean(item));
@@ -380,11 +414,28 @@ export function verifyLearningEvidenceCitations(
       limitations.push({ chunkId: citation.chunkId, reason: 'span-ref-mismatch' });
       continue;
     }
+    const resolvedAddress = resolveLearningEvidenceCitationAddress(chunk, citation);
+    if (citation.addressKind && citation.addressKind !== resolvedAddress.address.kind) {
+      limitations.push({ chunkId: citation.chunkId, reason: 'address-kind-mismatch' });
+      continue;
+    }
+    if (!isSafeCitationAddress(resolvedAddress.address)) {
+      limitations.push({ chunkId: citation.chunkId, reason: 'unsafe-address' });
+      continue;
+    }
+    if (!resolvedAddress.address.href) {
+      limitations.push({ chunkId: chunk.id, reason: 'unresolved-address' });
+    }
+    if (resolvedAddress.address.contentHash && resolvedAddress.address.contentHash !== chunk.content.hash) {
+      limitations.push({ chunkId: chunk.id, reason: 'stale-source' });
+    }
     verifiedRefs.push({
       chunkId: chunk.id,
       sourceType: chunk.sourceType,
       displayTitle: chunk.display.title,
-      displayHref: chunk.display.href,
+      displayHref: resolvedAddress.address.href,
+      addressKind: resolvedAddress.address.kind,
+      citationAddress: resolvedAddress.address,
       confidence: chunk.confidence,
       capsule: chunk.display.capsule,
       authorityLevel: chunk.authority.level,
@@ -429,14 +480,17 @@ export function verifyLearningEvidenceCitations(
     item.reason === 'privacy-violation' ||
     item.reason === 'source-type-mismatch' ||
     item.reason === 'quote-hash-mismatch' ||
-    item.reason === 'span-ref-mismatch'
+    item.reason === 'span-ref-mismatch' ||
+    item.reason === 'unsafe-address' ||
+    item.reason === 'address-kind-mismatch'
   );
   const hasDowngrade = limitations.some((item) =>
     item.reason === 'insufficient-authority' ||
     item.reason === 'missing-learner-evidence' ||
     item.reason === 'conflicting-source' ||
     item.reason === 'stale-source' ||
-    item.reason === 'expired-source'
+    item.reason === 'expired-source' ||
+    item.reason === 'unresolved-address'
   );
   const hasRedaction = limitations.some((item) => item.reason === 'privacy-redacted');
   const hasLowConfidence = verifiedRefs.some((ref) => ref.confidence === 'none' || ref.confidence === 'low');
@@ -452,17 +506,106 @@ export function buildLearningEvidenceCitationChips(
   scope: LearningEvidenceRetrievalScope,
 ): LearningEvidenceCitationChipPayload[] {
   const limitationsByChunk = limitationsByChunkId(verification);
-  return verification.verifiedRefs.map((ref) => ({
-    chunkId: ref.chunkId,
-    displayTitle: ref.displayTitle,
-    displayHref: scope.role === 'student' && ref.privacyVisibility === 'privileged' ? null : ref.displayHref,
-    sourceType: ref.sourceType,
-    authorityLevel: ref.authorityLevel,
-    confidence: ref.confidence,
-    freshnessBucket: ref.freshnessBucket,
-    privacyVisibility: ref.privacyVisibility,
-    limitationState: primaryCitationReason(ref, limitationsByChunk.get(ref.chunkId) ?? []),
-  }));
+  return verification.verifiedRefs.map((ref) => {
+    const shouldRedactHref = scope.role === 'student' && ref.privacyVisibility === 'privileged';
+    const displayHref = shouldRedactHref ? null : ref.displayHref;
+    const baseAddress = ref.citationAddress ?? {
+      kind: ref.addressKind ?? defaultCitationAddressKind(ref.sourceType),
+      sourceRefId: ref.chunkId,
+      href: ref.displayHref,
+      locator: null,
+    } satisfies LearningEvidenceCitationAddress;
+    const citationAddress = {
+      ...baseAddress,
+      href: displayHref,
+      externalUrl: shouldRedactHref ? null : baseAddress.externalUrl,
+    };
+    return {
+      chunkId: ref.chunkId,
+      displayTitle: ref.displayTitle,
+      displayHref,
+      sourceType: ref.sourceType,
+      addressKind: ref.addressKind ?? citationAddress.kind,
+      citationAddress,
+      authorityLevel: ref.authorityLevel,
+      confidence: ref.confidence,
+      freshnessBucket: ref.freshnessBucket,
+      privacyVisibility: ref.privacyVisibility,
+      limitationState: primaryCitationReason(ref, limitationsByChunk.get(ref.chunkId) ?? []),
+    };
+  });
+}
+
+export function resolveLearningEvidenceCitationAddress(
+  chunk: LearningEvidenceCorpusChunk,
+  citation: Pick<LearningEvidenceCitationRef, 'spanRef'> = {},
+): { address: LearningEvidenceCitationAddress; freshnessState: LearningEvidenceFreshnessBucket } {
+  const baseAddress = chunk.citationAddress ?? deriveCitationAddressFromChunk(chunk, citation.spanRef ?? chunk.spanRef);
+  return {
+    address: {
+      ...baseAddress,
+      contentHash: baseAddress.contentHash ?? chunk.content.hash,
+      href: chunk.citationAddress ? baseAddress.href : baseAddress.href ?? chunk.display.href,
+    },
+    freshnessState: chunk.authority.freshnessBucket,
+  };
+}
+
+function deriveCitationAddressFromChunk(
+  chunk: LearningEvidenceCorpusChunk,
+  spanRef: LearningEvidenceCorpusChunk['spanRef'],
+): LearningEvidenceCitationAddress {
+  const kind = defaultCitationAddressKind(chunk.sourceType);
+  const base = {
+    kind,
+    sourceRefId: chunk.sourceRef.id,
+    href: chunk.display.href,
+    locator: spanRef.locator ?? chunk.authority.pageAnchor ?? null,
+    contentHash: chunk.content.hash,
+  } satisfies LearningEvidenceCitationAddress;
+  if (kind === 'interactive') {
+    return { ...base, interactiveStepId: spanRef.locator ?? chunk.sourceRef.resourceId ?? null };
+  }
+  if (kind === 'simulation') {
+    return { ...base, simulationRunId: chunk.sourceRef.id };
+  }
+  if (kind === 'arena') {
+    return { ...base, arenaTaskId: chunk.sourceRef.resourceId ?? chunk.sourceRef.id };
+  }
+  return base;
+}
+
+function defaultCitationAddressKind(sourceType: LearningEvidenceCorpusSourceType): LearningEvidenceCitationAddressKind {
+  if (sourceType === 'simulation-summary') return 'simulation';
+  if (sourceType === 'arena-summary') return 'arena';
+  if (sourceType === 'path-summary') return 'interactive';
+  return 'text';
+}
+
+function isSafeCitationAddress(address: LearningEvidenceCitationAddress): boolean {
+  if (address.kind === 'external') {
+    return isSafeHttpUrl(address.href) && (!address.externalUrl || isSafeHttpUrl(address.externalUrl));
+  }
+  if (address.externalUrl && !isSafeHttpUrl(address.externalUrl)) {
+    return false;
+  }
+  return !address.href || isSafeInternalOrHttpUrl(address.href);
+}
+
+function isSafeInternalOrHttpUrl(value: string | null | undefined): boolean {
+  if (!value) return true;
+  if (value.startsWith('/')) return !value.startsWith('//');
+  return isSafeHttpUrl(value);
+}
+
+function isSafeHttpUrl(value: string | null | undefined): boolean {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' || url.protocol === 'http:';
+  } catch {
+    return false;
+  }
 }
 
 export function buildLearningEvidenceCitationAuditPayloads(
@@ -537,7 +680,8 @@ function outcomeForCitationReason(
     reason === 'conflicting-source' ||
     reason === 'low-confidence-source' ||
     reason === 'stale-source' ||
-    reason === 'expired-source'
+    reason === 'expired-source' ||
+    reason === 'unresolved-address'
   ) return 'downgraded';
   return 'rejected';
 }
@@ -557,7 +701,9 @@ function citationReasonPriority(reason: LearningEvidenceCitationVerificationResu
     reason === 'privacy-violation' ||
     reason === 'source-type-mismatch' ||
     reason === 'quote-hash-mismatch' ||
-    reason === 'span-ref-mismatch'
+    reason === 'span-ref-mismatch' ||
+    reason === 'unsafe-address' ||
+    reason === 'address-kind-mismatch'
   ) return 0;
   if (
     reason === 'insufficient-authority' ||
@@ -565,7 +711,8 @@ function citationReasonPriority(reason: LearningEvidenceCitationVerificationResu
     reason === 'conflicting-source' ||
     reason === 'low-confidence-source' ||
     reason === 'stale-source' ||
-    reason === 'expired-source'
+    reason === 'expired-source' ||
+    reason === 'unresolved-address'
   ) return 1;
   if (reason === 'privacy-redacted') return 2;
   return 3;
@@ -777,6 +924,60 @@ function isPrivacyClass(value: unknown): value is LearningEvidenceCorpusPrivacyC
 
 function isConfidence(value: unknown): value is LearningEvidenceConfidence {
   return value === 'none' || value === 'low' || value === 'medium' || value === 'high';
+}
+
+function isCitationAddressKind(value: unknown): value is LearningEvidenceCitationAddressKind {
+  return value === 'text' ||
+    value === 'image' ||
+    value === 'audio' ||
+    value === 'video' ||
+    value === 'interactive' ||
+    value === 'simulation' ||
+    value === 'arena' ||
+    value === 'external';
+}
+
+function isNullableString(value: unknown): value is string | null | undefined {
+  return value === undefined || value === null || typeof value === 'string';
+}
+
+function isNullableFiniteNumber(value: unknown): value is number | null | undefined {
+  return value === undefined || value === null || (typeof value === 'number' && Number.isFinite(value));
+}
+
+function isCitationImageRegion(value: unknown): boolean {
+  if (value === undefined || value === null) return true;
+  const record = readRecord(value);
+  return typeof record.x === 'number' &&
+    typeof record.y === 'number' &&
+    typeof record.width === 'number' &&
+    typeof record.height === 'number';
+}
+
+function isCitationAddress(value: unknown): value is LearningEvidenceCitationAddress {
+  const record = readRecord(value);
+  const mediaStartSeconds = record.mediaStartSeconds;
+  const mediaEndSeconds = record.mediaEndSeconds;
+  const hasValidMediaRange =
+    record.kind !== 'audio' && record.kind !== 'video' ||
+    (typeof mediaStartSeconds === 'number' &&
+      Number.isFinite(mediaStartSeconds) &&
+      mediaStartSeconds >= 0 &&
+      (mediaEndSeconds === undefined || mediaEndSeconds === null ||
+        typeof mediaEndSeconds === 'number' && Number.isFinite(mediaEndSeconds) && mediaEndSeconds >= mediaStartSeconds));
+  return isCitationAddressKind(record.kind) &&
+    typeof record.sourceRefId === 'string' &&
+    (typeof record.href === 'string' || record.href === null) &&
+    isNullableString(record.locator) &&
+    isNullableString(record.contentHash) &&
+    isNullableFiniteNumber(record.mediaStartSeconds) &&
+    isNullableFiniteNumber(record.mediaEndSeconds) &&
+    hasValidMediaRange &&
+    isCitationImageRegion(record.imageRegion) &&
+    isNullableString(record.interactiveStepId) &&
+    isNullableString(record.simulationRunId) &&
+    isNullableString(record.arenaTaskId) &&
+    isNullableString(record.externalUrl);
 }
 
 function isAuthorityLevel(value: unknown): value is LearningEvidenceAuthorityLevel {
