@@ -42,6 +42,7 @@ export type InteractiveModuleRegistryGateViolationCode =
   | 'invalid-runtime-manifest'
   | 'lesson-missing-from-standard-module-inventory'
   | 'non-interactive-status-module'
+  | 'structure-diagram-payload-invalid'
   | 'derivation-stage-payload-invalid'
   | 'visual-stage-payload-invalid';
 
@@ -571,6 +572,21 @@ function evaluateRuntimeModule({
     }
   }
 
+  if (resolution.canonicalClass === 'visual.blockDiagram' || resolution.canonicalClass === 'visual.signalFlowGraph') {
+    const missingFields = invalidStructureDiagramPayloadFields(resolution.canonicalClass, module.payload);
+    if (missingFields.length) {
+      violations.push(violation({
+        lessonId,
+        manifestPath,
+        step,
+        module,
+        code: 'structure-diagram-payload-invalid',
+        canonicalClass: resolution.canonicalClass,
+        message: `${lessonId} ${step.id} ${module.id} ${resolution.canonicalClass} payload is invalid: ${missingFields.join(', ')}.`,
+      }));
+    }
+  }
+
   if (definition.requiresCapabilityRef) {
     const capabilityRef = capabilityRefForModule(module);
     if (!capabilityRef) {
@@ -741,6 +757,9 @@ const VISUAL_STAGE_BUILT_IN_REVEAL_STATES = new Set(['all', 'released', 'reveale
 const DERIVATION_STAGE_BLOCK_COLOR_ROLES = new Set(['known', 'transform', 'cancel', 'target', 'risk', 'result']);
 const DERIVATION_STAGE_CONNECTOR_KINDS = new Set(['arrow', 'brace', 'equals', 'therefore', 'reference', 'highlight-line', 'dependency']);
 const DERIVATION_STAGE_LOAD_EXCEPTION_VALUES = new Set(['teacher-paced', 'worked-example', 'review-only']);
+const BLOCK_DIAGRAM_NODE_TYPES = new Set(['block', 'sum', 'branch', 'input', 'output', 'disturbance', 'sensor']);
+const STRUCTURE_DIAGRAM_INTERACTION_MODES = new Set(['read', 'highlight', 'construct', 'diagnose']);
+const SIGNAL_FLOW_REVEAL_EMPHASIS = new Set(['path', 'loop', 'formula', 'warning']);
 
 function normalizedStageNumber(value: unknown) {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1;
@@ -954,6 +973,306 @@ function invalidDerivationStagePayloadFields(payload: Record<string, unknown>): 
     if (!enabledControls.includes(control)) missing.push(`stage=${stageLabel}.teacherControls.${control}`);
   }
   return missing;
+}
+
+function invalidStructureDiagramPayloadFields(
+  kind: InteractiveModuleCanonicalClass,
+  payload: Record<string, unknown>,
+): string[] {
+  return kind === 'visual.blockDiagram'
+    ? invalidBlockDiagramPayloadFields(payload)
+    : invalidSignalFlowGraphPayloadFields(payload);
+}
+
+function invalidBlockDiagramPayloadFields(payload: Record<string, unknown>): string[] {
+  const missing: string[] = [];
+  const graphId = stringValue(payload.graphId ?? payload.graph_id ?? payload.diagramId ?? payload.diagram_id);
+  const graphLabel = graphId ?? '(missing)';
+  if (!graphId) missing.push(`graph=${graphLabel}.graphId`);
+  const interaction = recordValue(payload.interactions ?? payload.interaction);
+  const mode = stringValue(interaction.mode ?? payload.mode);
+  if (!mode || !STRUCTURE_DIAGRAM_INTERACTION_MODES.has(mode)) missing.push(`graph=${graphLabel}.interactions.mode`);
+  if ((mode === 'highlight' || mode === 'construct' || mode === 'diagnose') && hasStaticImageOnlyPayload(payload)) {
+    missing.push(`graph=${graphLabel}.staticImageOnly`);
+  }
+  if ((mode === 'highlight' || mode === 'construct' || mode === 'diagnose') && hasStaticTableOnlyPayload(payload)) {
+    missing.push(`graph=${graphLabel}.tableOnly`);
+  }
+
+  const nodes = Array.isArray(payload.nodes) ? payload.nodes : [];
+  const nodeIds = new Set<string>();
+  if (nodes.length === 0) missing.push(`graph=${graphLabel}.nodes`);
+  for (const [index, rawNode] of nodes.entries()) {
+    const node = recordValue(rawNode);
+    const id = stringValue(node.id);
+    const label = `${index}:${id ?? '(missing)'}`;
+    if (!id) {
+      missing.push(`graph=${graphLabel}.nodes[${label}].id`);
+    } else if (nodeIds.has(id)) {
+      missing.push(`graph=${graphLabel}.nodes[${label}].id:duplicate`);
+    } else {
+      nodeIds.add(id);
+    }
+    const type = stringValue(node.type);
+    if (!type || !BLOCK_DIAGRAM_NODE_TYPES.has(type)) missing.push(`graph=${graphLabel}.nodes[${label}].type`);
+    const labelText = stringValue(node.label ?? node.labelLatex ?? node.label_latex);
+    if (!labelText) missing.push(`graph=${graphLabel}.nodes[${label}].label`);
+    validatePoint(graphLabel, `nodes[${label}].position`, node.position, missing);
+  }
+
+  const edges = Array.isArray(payload.edges) ? payload.edges : [];
+  const edgeIds = new Set<string>();
+  if (edges.length === 0) missing.push(`graph=${graphLabel}.edges`);
+  for (const [index, rawEdge] of edges.entries()) {
+    const edge = recordValue(rawEdge);
+    const id = stringValue(edge.id);
+    const label = `${index}:${id ?? '(missing)'}`;
+    if (!id) {
+      missing.push(`graph=${graphLabel}.edges[${label}].id`);
+    } else if (edgeIds.has(id)) {
+      missing.push(`graph=${graphLabel}.edges[${label}].id:duplicate`);
+    } else {
+      edgeIds.add(id);
+    }
+    const from = stringValue(edge.from ?? edge.fromId ?? edge.from_id);
+    const to = stringValue(edge.to ?? edge.toId ?? edge.to_id);
+    if (!from || !nodeIds.has(from)) missing.push(`graph=${graphLabel}.edges[${label}].from`);
+    if (!to || !nodeIds.has(to)) missing.push(`graph=${graphLabel}.edges[${label}].to`);
+    if (!stringValue(edge.label ?? edge.labelLatex ?? edge.label_latex)) missing.push(`graph=${graphLabel}.edges[${label}].label`);
+  }
+
+  const rawRevealPlan = payload.revealPlan ?? payload.reveal_plan;
+  const revealPlan: unknown[] = Array.isArray(rawRevealPlan) ? rawRevealPlan : [];
+  const revealIds = new Set<string>();
+  if ((mode === 'highlight' || mode === 'construct' || mode === 'diagnose') && revealPlan.length === 0) {
+    missing.push(`graph=${graphLabel}.revealPlan`);
+  }
+  for (const [index, rawReveal] of revealPlan.entries()) {
+    const reveal = recordValue(rawReveal);
+    const id = stringValue(reveal.id);
+    const label = `${index}:${id ?? '(missing)'}`;
+    if (!id) {
+      missing.push(`graph=${graphLabel}.revealPlan[${label}].id`);
+    } else if (revealIds.has(id)) {
+      missing.push(`graph=${graphLabel}.revealPlan[${label}].id:duplicate`);
+    } else {
+      revealIds.add(id);
+    }
+    const targetIds = stringArrayValue(reveal.targetIds ?? reveal.target_ids ?? reveal.targets);
+    if (targetIds.length === 0) missing.push(`graph=${graphLabel}.revealPlan[${label}].targetIds`);
+    for (const targetId of targetIds) {
+      if (!nodeIds.has(targetId) && !edgeIds.has(targetId)) missing.push(`graph=${graphLabel}.revealPlan[${label}].targetIds:${targetId}`);
+    }
+  }
+  const activeRevealState = stringValue(payload.activeRevealState ?? payload.active_reveal_state);
+  if (activeRevealState && activeRevealState !== 'all' && !revealIds.has(activeRevealState)) {
+    missing.push(`graph=${graphLabel}.activeRevealState`);
+  }
+  return missing;
+}
+
+function invalidSignalFlowGraphPayloadFields(payload: Record<string, unknown>): string[] {
+  const missing: string[] = [];
+  const graphId = stringValue(payload.graphId ?? payload.graph_id);
+  const graphLabel = graphId ?? '(missing)';
+  if (!graphId) missing.push(`graph=${graphLabel}.graphId`);
+  const interaction = recordValue(payload.interactions ?? payload.interaction);
+  const mode = stringValue(interaction.mode ?? payload.mode);
+  if (!mode || !STRUCTURE_DIAGRAM_INTERACTION_MODES.has(mode)) missing.push(`graph=${graphLabel}.interactions.mode`);
+  if ((mode === 'highlight' || mode === 'construct' || mode === 'diagnose') && hasStaticImageOnlyPayload(payload)) {
+    missing.push(`graph=${graphLabel}.staticImageOnly`);
+  }
+  if ((mode === 'highlight' || mode === 'construct' || mode === 'diagnose') && hasStaticTableOnlyPayload(payload)) {
+    missing.push(`graph=${graphLabel}.tableOnly`);
+  }
+
+  const nodes = Array.isArray(payload.nodes) ? payload.nodes : [];
+  const nodeIds = new Set<string>();
+  if (nodes.length === 0) missing.push(`graph=${graphLabel}.nodes`);
+  for (const [index, rawNode] of nodes.entries()) {
+    const node = recordValue(rawNode);
+    const id = stringValue(node.id);
+    const label = `${index}:${id ?? '(missing)'}`;
+    if (!id) {
+      missing.push(`graph=${graphLabel}.nodes[${label}].id`);
+    } else if (nodeIds.has(id)) {
+      missing.push(`graph=${graphLabel}.nodes[${label}].id:duplicate`);
+    } else {
+      nodeIds.add(id);
+    }
+    if (!stringValue(node.labelLatex ?? node.label_latex ?? node.label)) missing.push(`graph=${graphLabel}.nodes[${label}].labelLatex`);
+    validatePoint(graphLabel, `nodes[${label}].position`, node.position, missing);
+  }
+
+  const branches = Array.isArray(payload.branches) ? payload.branches : [];
+  const branchIds = new Set<string>();
+  if (branches.length === 0) missing.push(`graph=${graphLabel}.branches`);
+  for (const [index, rawBranch] of branches.entries()) {
+    const branch = recordValue(rawBranch);
+    const id = stringValue(branch.id);
+    const label = `${index}:${id ?? '(missing)'}`;
+    if (!id) {
+      missing.push(`graph=${graphLabel}.branches[${label}].id`);
+    } else if (branchIds.has(id)) {
+      missing.push(`graph=${graphLabel}.branches[${label}].id:duplicate`);
+    } else {
+      branchIds.add(id);
+    }
+    const from = stringValue(branch.from ?? branch.fromId ?? branch.from_id);
+    const to = stringValue(branch.to ?? branch.toId ?? branch.to_id);
+    if (!from || !nodeIds.has(from)) missing.push(`graph=${graphLabel}.branches[${label}].from`);
+    if (!to || !nodeIds.has(to)) missing.push(`graph=${graphLabel}.branches[${label}].to`);
+    if (!stringValue(branch.gainLatex ?? branch.gain_latex ?? branch.labelLatex ?? branch.label_latex)) {
+      missing.push(`graph=${graphLabel}.branches[${label}].gainLatex`);
+    }
+  }
+
+  const pathSets = recordValue(payload.pathSets ?? payload.path_sets);
+  const forwardPaths = structurePathSetItems(pathSets.forwardPaths ?? pathSets.forward_paths, 'forward-path');
+  const loops = structurePathSetItems(pathSets.loops, 'feedback-loop');
+  const nonTouchingLoopGroups = structureLoopGroupItems(pathSets.nonTouchingLoopGroups ?? pathSets.non_touching_loop_groups);
+  const pathIds = new Set<string>();
+  const loopIds = new Set<string>();
+  if (forwardPaths.length === 0) missing.push(`graph=${graphLabel}.pathSets.forwardPaths`);
+  if (loops.length === 0) missing.push(`graph=${graphLabel}.pathSets.loops`);
+  for (const [index, path] of forwardPaths.entries()) {
+    if (!path.id) missing.push(`graph=${graphLabel}.pathSets.forwardPaths[${index}].id`);
+    if (path.id && pathIds.has(path.id)) missing.push(`graph=${graphLabel}.pathSets.forwardPaths[${index}:${path.id}].id:duplicate`);
+    if (path.id) pathIds.add(path.id);
+    if (!path.label) missing.push(`graph=${graphLabel}.pathSets.forwardPaths[${index}:${path.id || '(missing)'}].label`);
+    for (const branchId of path.branchIds) {
+      if (!branchIds.has(branchId)) missing.push(`graph=${graphLabel}.pathSets.forwardPaths[${index}]:${branchId}`);
+    }
+  }
+  for (const [index, loop] of loops.entries()) {
+    if (!loop.id) missing.push(`graph=${graphLabel}.pathSets.loops[${index}].id`);
+    if (loop.id && loopIds.has(loop.id)) missing.push(`graph=${graphLabel}.pathSets.loops[${index}:${loop.id}].id:duplicate`);
+    if (loop.id) loopIds.add(loop.id);
+    if (!loop.label) missing.push(`graph=${graphLabel}.pathSets.loops[${index}:${loop.id || '(missing)'}].label`);
+    for (const branchId of loop.branchIds) {
+      if (!branchIds.has(branchId)) missing.push(`graph=${graphLabel}.pathSets.loops[${index}]:${branchId}`);
+    }
+  }
+  for (const [index, group] of nonTouchingLoopGroups.entries()) {
+    if (!group.id) missing.push(`graph=${graphLabel}.pathSets.nonTouchingLoopGroups[${index}].id`);
+    if (!group.label) missing.push(`graph=${graphLabel}.pathSets.nonTouchingLoopGroups[${index}:${group.id || '(missing)'}].label`);
+    if (group.loopIds.length === 0) missing.push(`graph=${graphLabel}.pathSets.nonTouchingLoopGroups[${index}:${group.id || '(missing)'}].loopIds`);
+    for (const loopId of group.loopIds) {
+      if (!loopIds.has(loopId)) missing.push(`graph=${graphLabel}.pathSets.nonTouchingLoopGroups[${index}]:${loopId}`);
+    }
+  }
+
+  const rawRevealPlan = payload.revealPlan ?? payload.reveal_plan;
+  const revealPlan: unknown[] = Array.isArray(rawRevealPlan) ? rawRevealPlan : [];
+  if (revealPlan.length === 0) missing.push(`graph=${graphLabel}.revealPlan`);
+  const revealIds = new Set<string>();
+  for (const [index, rawReveal] of revealPlan.entries()) {
+    const reveal = recordValue(rawReveal);
+    const id = stringValue(reveal.id);
+    const label = `${index}:${id ?? '(missing)'}`;
+    if (!id) {
+      missing.push(`graph=${graphLabel}.revealPlan[${label}].id`);
+    } else if (revealIds.has(id)) {
+      missing.push(`graph=${graphLabel}.revealPlan[${label}].id:duplicate`);
+    } else {
+      revealIds.add(id);
+    }
+    const emphasis = stringValue(reveal.emphasis);
+    if (!emphasis || !SIGNAL_FLOW_REVEAL_EMPHASIS.has(emphasis)) missing.push(`graph=${graphLabel}.revealPlan[${label}].emphasis`);
+    const targetIds = stringArrayValue(reveal.targetIds ?? reveal.target_ids ?? reveal.targets);
+    if (targetIds.length === 0) missing.push(`graph=${graphLabel}.revealPlan[${label}].targetIds`);
+    for (const targetId of targetIds) {
+      if (!branchIds.has(targetId) && !nodeIds.has(targetId)) missing.push(`graph=${graphLabel}.revealPlan[${label}].targetIds:${targetId}`);
+    }
+  }
+  const rawMasonTerms = payload.masonTerms ?? payload.mason_terms;
+  const masonTerms: unknown[] = Array.isArray(rawMasonTerms) ? rawMasonTerms : [];
+  if (masonTerms.length === 0) missing.push(`graph=${graphLabel}.masonTerms`);
+  for (const [index, rawTerm] of masonTerms.entries()) {
+    const term = recordValue(rawTerm);
+    const termId = stringValue(term.id);
+    const label = `${index}:${termId ?? '(missing)'}`;
+    if (!termId) missing.push(`graph=${graphLabel}.masonTerms[${label}].id`);
+    const related = stringArrayValue(
+      term.relatedIds
+        ?? term.related_ids
+        ?? term.pathIds
+        ?? term.path_ids
+        ?? term.loopIds
+        ?? term.loop_ids
+        ?? term.branchIds
+        ?? term.branch_ids,
+    );
+    if (related.length === 0) missing.push(`graph=${graphLabel}.masonTerms[${label}].relatedIds`);
+    for (const relatedId of related) {
+      if (!pathIds.has(relatedId) && !loopIds.has(relatedId)) missing.push(`graph=${graphLabel}.masonTerms[${label}].relatedIds:${relatedId}`);
+    }
+  }
+  const activeRevealState = stringValue(payload.activeRevealState ?? payload.active_reveal_state);
+  if (activeRevealState && activeRevealState !== 'all' && !revealIds.has(activeRevealState)) {
+    missing.push(`graph=${graphLabel}.activeRevealState`);
+  }
+  return missing;
+}
+
+function hasStaticImageOnlyPayload(payload: Record<string, unknown>) {
+  return Boolean(payload.staticImageOnly ?? payload.static_image_only)
+    || (Boolean(stringValue(payload.src ?? payload.image ?? payload.path)) && !Array.isArray(payload.nodes));
+}
+
+function hasStaticTableOnlyPayload(payload: Record<string, unknown>) {
+  return Boolean(payload.tableOnly ?? payload.table_only)
+    || (Boolean(payload.table ?? payload.tableRows ?? payload.table_rows ?? payload.rows) && !Array.isArray(payload.nodes));
+}
+
+function validatePoint(graphLabel: string, path: string, rawPoint: unknown, missing: string[]) {
+  const point = recordValue(rawPoint);
+  if (!normalizedStageNumber(point.x)) missing.push(`graph=${graphLabel}.${path}.x`);
+  if (!normalizedStageNumber(point.y)) missing.push(`graph=${graphLabel}.${path}.y`);
+}
+
+function structurePathSetItems(value: unknown, fallbackPrefix: string): Array<{ id: string; label: string; branchIds: string[] }> {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index) => {
+      if (Array.isArray(item)) {
+        return {
+          id: `${fallbackPrefix}-${index + 1}`,
+          label: `${fallbackPrefix}-${index + 1}`,
+          branchIds: stringArrayValue(item),
+        };
+      }
+      const path = recordValue(item);
+      return {
+        id: stringValue(path.id) ?? '',
+        label: stringValue(path.label ?? path.title) ?? '',
+        branchIds: stringArrayValue(path.branchIds ?? path.branch_ids ?? path.branches),
+      };
+    })
+    .filter((item) => item.branchIds.length > 0 || item.id || item.label);
+}
+
+function structureLoopGroupItems(value: unknown): Array<{ id: string; label: string; loopIds: string[] }> {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index) => {
+      if (Array.isArray(item)) {
+        return {
+          id: `non-touching-loop-group-${index + 1}`,
+          label: `non-touching-loop-group-${index + 1}`,
+          loopIds: item
+            .filter((loop): loop is unknown[] => Array.isArray(loop))
+            .map((_loop, loopIndex) => `feedback-loop-${loopIndex + 1}`),
+        };
+      }
+      const group = recordValue(item);
+      return {
+        id: stringValue(group.id) ?? '',
+        label: stringValue(group.label ?? group.title) ?? '',
+        loopIds: stringArrayValue(group.loopIds ?? group.loop_ids ?? group.loops),
+      };
+    })
+    .filter((item) => item.loopIds.length > 0 || item.id || item.label);
 }
 
 function validateDerivationRegion(

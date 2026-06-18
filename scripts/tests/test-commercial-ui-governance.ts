@@ -536,6 +536,10 @@ const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
     'src/app/review/derivation-stage-runtime-562/page.tsx',
     'issue 562 derivation stage runtime is an internal visual acceptance surface launched from the review hub',
   ],
+  [
+    'src/app/review/structure-diagram-runtime-563/page.tsx',
+    'issue 563 structure diagram runtime is an internal visual acceptance surface launched from the review hub',
+  ],
 ]);
 
 function appPageRouteHref(file: string) {

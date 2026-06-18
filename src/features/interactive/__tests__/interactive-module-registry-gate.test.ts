@@ -54,6 +54,18 @@ describe('interactive module registry gate', () => {
       producesEvidence: true,
       allowedInNewAuthoring: true,
     });
+    expect(INTERACTIVE_MODULE_DEFINITIONS['visual.blockDiagram']).toMatchObject({
+      canonicalClass: 'visual.blockDiagram',
+      renderBehavior: 'renderer',
+      producesEvidence: true,
+      allowedInNewAuthoring: true,
+    });
+    expect(INTERACTIVE_MODULE_DEFINITIONS['visual.signalFlowGraph']).toMatchObject({
+      canonicalClass: 'visual.signalFlowGraph',
+      renderBehavior: 'renderer',
+      producesEvidence: true,
+      allowedInNewAuthoring: true,
+    });
     expect(INTERACTIVE_MODULE_DEFINITIONS['legacy.adapter']).toMatchObject({
       canonicalClass: 'legacy.adapter',
       migrationOnly: true,
@@ -105,6 +117,8 @@ describe('interactive module registry gate', () => {
     expect(registry['compute.panel']).toBeTypeOf('function');
     expect(registry['visual.stage']).toBeTypeOf('function');
     expect(registry['visual.derivationStage']).toBeTypeOf('function');
+    expect(registry['visual.blockDiagram']).toBeTypeOf('function');
+    expect(registry['visual.signalFlowGraph']).toBeTypeOf('function');
     expect(registry['analytics.summary']).toBeTypeOf('function');
     expect(registry['layout.support']).toBeTypeOf('function');
   });
@@ -340,6 +354,81 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('跳转');
     expect(html).toContain('data-derivation-stage-teacher-control="answerReveal"');
     expect(html).toContain('答案');
+  });
+
+  it('renders visual.blockDiagram with normalized graph nodes, arrows, and reveal highlights', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 1,
+      allowInlineReveal: true,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'block-diagram',
+        kind: 'visual.blockDiagram',
+        mustBeVisible: true,
+        payload: blockDiagramPayloadFixture(),
+      },
+    });
+    const step = manifest.steps[0];
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [{ lessonId: 'fixture-lesson', manifest }],
+    });
+    const node = registry['visual.blockDiagram']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 1, allowInlineReveal: true },
+    }) as ReactElement;
+    const html = renderToStaticMarkup(createElement(ThemeProvider, null, node));
+
+    expect(result.passed).toBe(true);
+    expect(html).toContain('data-structure-diagram-kind="visual.blockDiagram"');
+    expect(html).toContain('data-structure-diagram-id="closed-loop-block-diagram"');
+    expect(html).toContain('data-structure-diagram-node-id="plant"');
+    expect(html).toContain('data-structure-diagram-node-type="block"');
+    expect(html).toContain('data-structure-diagram-edge-id="feedback-signal"');
+    expect(html).toContain('data-structure-diagram-edge-highlighted="true"');
+    expect(html).toContain('data-structure-diagram-reveal-id="feedback-loop"');
+    expect(html).not.toContain('space-y-4');
+  });
+
+  it('renders visual.signalFlowGraph with branch labels, path sets, and Mason formula traceability', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 1,
+      allowInlineReveal: true,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'signal-flow-graph',
+        kind: 'visual.signalFlowGraph',
+        mustBeVisible: true,
+        payload: signalFlowGraphPayloadFixture(),
+      },
+    });
+    const step = manifest.steps[0];
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [{ lessonId: 'fixture-lesson', manifest }],
+    });
+    const node = registry['visual.signalFlowGraph']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 1, allowInlineReveal: true },
+    }) as ReactElement;
+    const html = renderToStaticMarkup(createElement(ThemeProvider, null, node));
+
+    expect(result.passed).toBe(true);
+    expect(html).toContain('data-structure-diagram-kind="visual.signalFlowGraph"');
+    expect(html).toContain('data-structure-diagram-id="closed-loop-signal-flow"');
+    expect(html).toContain('data-structure-diagram-node-id="theta"');
+    expect(html).toContain('data-structure-diagram-branch-id="g-forward"');
+    expect(html).toContain('data-structure-diagram-forward-path="g-forward unity-forward"');
+    expect(html).toContain('data-structure-diagram-loop="unity-forward h-feedback"');
+    expect(html).toContain('data-structure-diagram-path-id="forward-path-1"');
+    expect(html).toContain('data-structure-diagram-loop-id="feedback-loop-1"');
+    expect(html).toContain('data-structure-diagram-mason-term-id="delta-term"');
+    expect(html).toContain('data-structure-diagram-related-ids="forward-path-1 feedback-loop-1"');
+    expect(html).toContain('data-structure-diagram-submit="closed-loop-signal-flow"');
   });
 
   it('routes shared control workbench compute capabilities through the shared renderer', () => {
@@ -1491,6 +1580,152 @@ describe('interactive module registry gate', () => {
     expect(invalidResult.violations[0]?.message).toContain('teacherControls.answerReveal');
   });
 
+  it('validates structure diagram payload contracts before runtime rendering', () => {
+    const validBlockResult = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'block-diagram',
+              kind: 'visual.blockDiagram',
+              mustBeVisible: true,
+              payload: blockDiagramPayloadFixture(),
+            },
+          }),
+        },
+      ],
+    });
+    const validSignalFlowResult = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'signal-flow-graph',
+              kind: 'visual.signalFlowGraph',
+              mustBeVisible: true,
+              payload: signalFlowGraphPayloadFixture(),
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(validBlockResult.passed).toBe(true);
+    expect(validSignalFlowResult.passed).toBe(true);
+
+    const invalidBlockResult = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'broken-block-diagram',
+              kind: 'visual.blockDiagram',
+              mustBeVisible: true,
+              payload: {
+                graphId: '',
+                mode: 'diagnose',
+                image: '/static/fallback.png',
+                staticImageOnly: true,
+                nodes: [
+                  { id: 'plant', type: 'block', label: 'G(s)', position: { x: 0.5, y: 0.5 } },
+                  { id: 'plant', type: 'private-widget', position: { x: 1.4, y: 0.5 } },
+                ],
+                edges: [
+                  { id: 'edge-a', from: 'plant', to: 'missing-node' },
+                  { id: 'edge-a', from: 'missing-node', to: 'plant' },
+                ],
+                revealPlan: [],
+                activeRevealState: 'missing-reveal',
+              },
+            },
+          }),
+        },
+      ],
+    });
+    const invalidSignalResult = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'broken-signal-flow',
+              kind: 'visual.signalFlowGraph',
+              mustBeVisible: true,
+              payload: {
+                graphId: 'broken-signal-flow',
+                mode: 'highlight',
+                nodes: [
+                  { id: 'input', labelLatex: 'R', position: { x: 0.1, y: 0.5 } },
+                ],
+                branches: [
+                  { id: 'g-forward', from: 'input', to: 'missing-output', gainLatex: 'G' },
+                ],
+                pathSets: {
+                  forwardPaths: [{ id: 'forward-path-1', label: '前向路径 P1', branchIds: ['missing-branch'] }],
+                  loops: [],
+                },
+                revealPlan: [
+                  { id: 'loop-reveal', emphasis: 'loop', targetIds: ['missing-target'] },
+                ],
+                masonTerms: [
+                  { id: 'delta-term', latex: '\\\\Delta', relatedIds: ['missing-branch'] },
+                ],
+                activeRevealState: 'missing-reveal',
+              },
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(invalidBlockResult.passed).toBe(false);
+    expect(invalidBlockResult.violations[0]?.message).toContain('graph=(missing).graphId');
+    expect(invalidBlockResult.violations[0]?.message).toContain('staticImageOnly');
+    expect(invalidBlockResult.violations[0]?.message).toContain('nodes[1:plant].id:duplicate');
+    expect(invalidBlockResult.violations[0]?.message).toContain('nodes[1:plant].type');
+    expect(invalidBlockResult.violations[0]?.message).toContain('nodes[1:plant].label');
+    expect(invalidBlockResult.violations[0]?.message).toContain('nodes[1:plant].position.x');
+    expect(invalidBlockResult.violations[0]?.message).toContain('edges[0:edge-a].to');
+    expect(invalidBlockResult.violations[0]?.message).toContain('edges[0:edge-a].label');
+    expect(invalidBlockResult.violations[0]?.message).toContain('edges[1:edge-a].id:duplicate');
+    expect(invalidBlockResult.violations[0]?.message).toContain('revealPlan');
+    expect(invalidBlockResult.violations[0]?.message).toContain('activeRevealState');
+
+    expect(invalidSignalResult.passed).toBe(false);
+    expect(invalidSignalResult.violations[0]?.message).toContain('branches[0:g-forward].to');
+    expect(invalidSignalResult.violations[0]?.message).toContain('pathSets.forwardPaths[0]:missing-branch');
+    expect(invalidSignalResult.violations[0]?.message).toContain('pathSets.loops');
+    expect(invalidSignalResult.violations[0]?.message).toContain('revealPlan[0:loop-reveal].targetIds:missing-target');
+    expect(invalidSignalResult.violations[0]?.message).toContain('masonTerms[0:delta-term].relatedIds:missing-branch');
+    expect(invalidSignalResult.violations[0]?.message).toContain('activeRevealState');
+
+    const tableOnlyResult = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'table-only-graph',
+              kind: 'visual.signalFlowGraph',
+              mustBeVisible: true,
+              payload: {
+                graphId: 'table-only-graph',
+                mode: 'highlight',
+                tableRows: [{ path: 'P1', gain: 'G(s)' }],
+              },
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(tableOnlyResult.passed).toBe(false);
+    expect(tableOnlyResult.violations[0]?.message).toContain('tableOnly');
+  });
+
   it('rejects shared control workbench capabilities without visible panel and response contracts', () => {
     const result = evaluateInteractiveModuleRegistryGate({
       manifests: [
@@ -2388,6 +2623,75 @@ function derivationStagePayloadFixture(): Record<string, unknown> {
       enabled: ['next', 'previous', 'jump', 'highlight', 'answerReveal', 'reset'],
     },
     answerVisible: true,
+  };
+}
+
+function blockDiagramPayloadFixture(): Record<string, unknown> {
+  return {
+    graphId: 'closed-loop-block-diagram',
+    mode: 'highlight',
+    activeRevealState: 'feedback-loop',
+    nodes: [
+      { id: 'reference', type: 'input', label: 'R(s)', position: { x: 0.08, y: 0.45 }, size: { width: 0.08, height: 0.08 } },
+      { id: 'sum', type: 'sum', label: '+/-', position: { x: 0.22, y: 0.45 }, size: { width: 0.08, height: 0.08 } },
+      { id: 'controller', type: 'block', labelLatex: 'C(s)', position: { x: 0.4, y: 0.45 }, size: { width: 0.14, height: 0.1 } },
+      { id: 'plant', type: 'block', labelLatex: 'G(s)', position: { x: 0.6, y: 0.45 }, size: { width: 0.14, height: 0.1 } },
+      { id: 'disturbance', type: 'disturbance', labelLatex: 'D(s)', position: { x: 0.6, y: 0.2 }, size: { width: 0.1, height: 0.08 } },
+      { id: 'output-branch', type: 'branch', label: '●', position: { x: 0.75, y: 0.45 }, size: { width: 0.06, height: 0.06 } },
+      { id: 'output', type: 'output', label: 'Y(s)', position: { x: 0.88, y: 0.45 }, size: { width: 0.08, height: 0.08 } },
+      { id: 'sensor', type: 'sensor', labelLatex: 'H(s)', position: { x: 0.6, y: 0.76 }, size: { width: 0.14, height: 0.1 } },
+    ],
+    edges: [
+      { id: 'reference-signal', from: 'reference', to: 'sum', label: 'r' },
+      { id: 'error-signal', from: 'sum', to: 'controller', labelLatex: 'e' },
+      { id: 'control-signal', from: 'controller', to: 'plant', labelLatex: 'u' },
+      { id: 'disturbance-input', from: 'disturbance', to: 'plant', labelLatex: 'd' },
+      { id: 'plant-output', from: 'plant', to: 'output-branch', labelLatex: 'y' },
+      { id: 'output-signal', from: 'output-branch', to: 'output', labelLatex: 'y' },
+      { id: 'feedback-signal', from: 'output-branch', to: 'sensor', labelLatex: 'y' },
+      { id: 'feedback-return', from: 'sensor', to: 'sum', labelLatex: '-H(s)y' },
+    ],
+    revealPlan: [
+      { id: 'forward-path', label: '前向通道', targetIds: ['reference-signal', 'error-signal', 'control-signal', 'plant-output', 'output-signal'] },
+      { id: 'feedback-loop', label: '反馈回路', targetIds: ['feedback-signal', 'feedback-return', 'sensor', 'sum'] },
+    ],
+  };
+}
+
+function signalFlowGraphPayloadFixture(): Record<string, unknown> {
+  return {
+    graphId: 'closed-loop-signal-flow',
+    mode: 'diagnose',
+    activeRevealState: 'loop-reveal',
+    nodes: [
+      { id: 'input', labelLatex: 'R', position: { x: 0.1, y: 0.5 } },
+      { id: 'theta', labelLatex: '\\\\Theta', position: { x: 0.42, y: 0.5 } },
+      { id: 'output', labelLatex: 'Y', position: { x: 0.76, y: 0.5 } },
+    ],
+    branches: [
+      { id: 'g-forward', from: 'input', to: 'theta', gainLatex: 'G(s)' },
+      { id: 'unity-forward', from: 'theta', to: 'output', gainLatex: '1' },
+      { id: 'h-feedback', from: 'output', to: 'theta', gainLatex: '-H(s)' },
+    ],
+    pathSets: {
+      forwardPaths: [
+        { id: 'forward-path-1', label: '前向路径 P1', branchIds: ['g-forward', 'unity-forward'] },
+      ],
+      loops: [
+        { id: 'feedback-loop-1', label: '反馈环路 L1', branchIds: ['unity-forward', 'h-feedback'] },
+      ],
+      nonTouchingLoopGroups: [
+        { id: 'non-touching-loop-group-1', label: '不接触回路组', loopIds: ['feedback-loop-1'] },
+      ],
+    },
+    revealPlan: [
+      { id: 'path-reveal', label: '前向路径', emphasis: 'path', targetIds: ['g-forward', 'unity-forward'] },
+      { id: 'loop-reveal', label: '反馈环路', emphasis: 'loop', targetIds: ['h-feedback', 'unity-forward'] },
+      { id: 'formula-reveal', label: 'Mason 公式', emphasis: 'formula', targetIds: ['g-forward', 'h-feedback'] },
+    ],
+    masonTerms: [
+      { id: 'delta-term', latex: '\\\\Delta=1+G(s)H(s)', relatedIds: ['forward-path-1', 'feedback-loop-1'] },
+    ],
   };
 }
 
