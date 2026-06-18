@@ -56,7 +56,7 @@ export type ControlCorrectionDimensionId =
 
 export const CONTROL_CORRECTION_GOAL_ID: AdaptiveLearnerStateGoalId = 'control-correction';
 export const CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION = 'control-correction-goal-slice.v1';
-const CONTROL_CORRECTION_COURSE_ID_VALUES = [
+export const CONTROL_CORRECTION_COURSE_ID_VALUES = [
   '3-6',
   'unit-3-6-zero-design-workshop',
   'unit-3-6-zero-design-workshop-v1',

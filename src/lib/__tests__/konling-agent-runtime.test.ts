@@ -548,6 +548,41 @@ describe('konling agent runtime', () => {
     expect(contract.permittedTools).toContain('generate_learning_path');
   });
 
+  it('resolves control-correction course aliases before reading learner goal slices', async () => {
+    await buildKonlingRuntimeContext({
+      studentProfile: {
+        findFirst: vi.fn().mockResolvedValue({ userId: 'student-1', classId: 'class-1' }),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      targetUserId: 'student-1',
+      classId: 'class-1',
+      courseId: 'unit-3-6-zero-design-workshop-v1',
+      pageId: 'adaptive-path-center',
+      pageContextHint: {
+        courseId: 'unit-3-6-zero-design-workshop-v1',
+        stepId: 'adaptive-path-center',
+        pageType: 'practice',
+      },
+      trustedContentContext: true,
+    });
+
+    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      userId: 'student-1',
+      role: 'student',
+      classId: 'class-1',
+      goal: 'control-correction',
+    }));
+  });
+
   it('does not expose path-advisor write tools from forged page ids without server context', () => {
     const runtime = createRuntimeContext({
       learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],

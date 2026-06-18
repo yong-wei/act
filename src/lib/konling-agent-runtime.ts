@@ -14,6 +14,7 @@ import {
 } from '@/resources/simulations/core/run-contract';
 import {
   ADAPTIVE_LEARNER_STATE_FEATURE_FLAG,
+  CONTROL_CORRECTION_COURSE_ID_VALUES,
   isAdaptiveLearnerStateServiceEnabled,
   readAdaptiveLearnerState,
   type AdaptiveLearnerState,
@@ -1219,6 +1220,19 @@ export async function verifyKonlingRuntimeScope(
   };
 }
 
+function resolveAdaptiveLearnerStateGoal(...candidates: Array<string | null | undefined>): string | null {
+  for (const candidate of candidates) {
+    if (!candidate) continue;
+    if (getRegisteredAdaptiveLearningPathGoal(candidate)) {
+      return candidate;
+    }
+    if (CONTROL_CORRECTION_COURSE_ID_VALUES.includes(candidate as typeof CONTROL_CORRECTION_COURSE_ID_VALUES[number])) {
+      return 'control-correction';
+    }
+  }
+  return null;
+}
+
 export async function buildKonlingRuntimeContext(
   db: KonlingRuntimeDb,
   input: KonlingRuntimeInput,
@@ -1230,12 +1244,13 @@ export async function buildKonlingRuntimeContext(
 
   const scope = scopeResult.scope;
   const learnerStateEnabled = isAdaptiveLearnerStateServiceEnabled();
+  const learnerStateGoal = resolveAdaptiveLearnerStateGoal(scope.courseId, input.pageContextHint?.courseId);
   const learnerState = learnerStateEnabled
     ? await readAdaptiveLearnerState(db, {
         userId: scope.targetUserId,
         role: scope.role,
         classId: scope.classId,
-        goal: getRegisteredAdaptiveLearningPathGoal(scope.courseId) ? scope.courseId : null,
+        goal: learnerStateGoal,
         clientHints: input.pageContextHint ? { pageContext: input.pageContextHint } : undefined,
         now: input.now,
       }).catch(() => null)
