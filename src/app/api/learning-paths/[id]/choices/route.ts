@@ -18,6 +18,18 @@ import {
 export const dynamic = 'force-dynamic';
 
 const CHOICE_ACTIONS = new Set(['selection', 'rejection', 'switch', 'helpfulness']);
+const LEGACY_OPTION_PATH_NODE_TYPES = new Set([
+  'interactive_lesson',
+  'knowledge_card',
+  'adaptive_quiz',
+  'control_workbench',
+  'simulation',
+  'arena_task',
+  'external_resource',
+  'reflection',
+  'checkpoint',
+  'konling',
+]);
 
 export async function POST(request: Request, props: { params: Promise<{ id: string }> }) {
   try {
@@ -316,7 +328,7 @@ function inferResourceTypeFromOptionNode(nodeId: string, pathNodeType: string | 
   if (nodeId.startsWith('knowledge-node:')) return 'knowledge_card';
   if (nodeId.startsWith('external-resource:')) return 'external_resource';
   if (nodeId.startsWith('konling:')) return 'konling';
-  if (pathNodeType === 'checkpoint') return 'checkpoint';
+  if (pathNodeType && LEGACY_OPTION_PATH_NODE_TYPES.has(pathNodeType)) return pathNodeType;
   return null;
 }
 

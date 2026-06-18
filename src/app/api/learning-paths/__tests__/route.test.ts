@@ -1882,7 +1882,7 @@ describe('learning path round API routes', () => {
               {
                 styleId: 'legacy-simulation-option',
                 policyFamily: 'simulation-driven',
-                nodeIds: ['simulation:legacy-step-lab', 'arena-task:legacy-terminal'],
+                nodeIds: ['simulation:legacy-step-lab', 'teaching-resource:legacy-card', 'arena-task:legacy-terminal'],
                 activeNodeIds: ['simulation:legacy-step-lab'],
                 nodeSummaries: [
                   {
@@ -1890,6 +1890,12 @@ describe('learning path round API routes', () => {
                     title: '旧路径仿真节点',
                     pathNodeType: 'practice',
                     estimatedTimeMinutes: 20,
+                  },
+                  {
+                    nodeId: 'teaching-resource:legacy-card',
+                    title: '旧路径知识卡',
+                    pathNodeType: 'knowledge_card',
+                    estimatedTimeMinutes: 8,
                   },
                   {
                     nodeId: 'arena-task:legacy-terminal',
@@ -1928,16 +1934,22 @@ describe('learning path round API routes', () => {
     expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'path-1' },
       data: expect.objectContaining({
-        nodeIds: ['simulation:legacy-step-lab', 'arena-task:legacy-terminal'],
+        nodeIds: ['simulation:legacy-step-lab', 'teaching-resource:legacy-card', 'arena-task:legacy-terminal'],
         currentNodeId: 'simulation:legacy-step-lab',
         pathPayload: expect.objectContaining({
-          mainPathNodeIds: ['simulation:legacy-step-lab', 'arena-task:legacy-terminal'],
+          mainPathNodeIds: ['simulation:legacy-step-lab', 'teaching-resource:legacy-card', 'arena-task:legacy-terminal'],
           planNodes: [
             expect.objectContaining({
               nodeId: 'simulation:legacy-step-lab',
               type: 'simulation',
               target: '/simulations/legacy-step-lab',
               status: 'current',
+            }),
+            expect.objectContaining({
+              nodeId: 'teaching-resource:legacy-card',
+              type: 'knowledge_card',
+              pathNodeType: 'knowledge_card',
+              target: '/assessment/adaptive-practice',
             }),
             expect.objectContaining({
               nodeId: 'arena-task:legacy-terminal',
