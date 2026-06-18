@@ -1390,7 +1390,7 @@ function buildStudentGradingFeedbackActionCards(
       criterionId: grade.criterionId,
       label: '练习相关任务',
       destinationType: 'practice',
-      href: `/assessment/adaptive-practice?mode=practice&${query}`,
+      href: `/assessment/adaptive-practice?intent=practice&${query}`,
       evidenceRefCount: grade.evidenceRefs.length,
     },
     {

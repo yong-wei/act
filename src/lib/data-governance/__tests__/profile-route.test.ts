@@ -565,6 +565,11 @@ describe('GET /api/user/profile', () => {
           href: '/interactive-learning/courses/unit-2-1-modeling-language',
           badge: '资源完成',
         }),
+        expect.objectContaining({
+          title: '完成自适应练习',
+          href: '/assessment/adaptive-practice?intent=practice',
+          badge: '评测',
+        }),
       ])
     );
     expect(body.personalizedReinforcement.resources).toHaveLength(2);
@@ -599,7 +604,7 @@ describe('GET /api/user/profile', () => {
       estimatedAbility: 0.64,
       weakAreas: ['phase-margin', 'controller-tuning'],
       recommendedFocus: ['优先练习“相位裕度-超调量”映射题', '加强 PID 参数因果调节训练'],
-      actionUrl: '/assessment/adaptive-practice',
+      actionUrl: '/assessment/adaptive-practice?intent=practice',
     });
     expect(body.arenaPortfolio.submissionSummary.total).toBe(2);
     expect(body.arenaPortfolio.growth).toMatchObject({

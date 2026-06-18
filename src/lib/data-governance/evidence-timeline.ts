@@ -535,7 +535,7 @@ function inferLearnerRecordNextAction(
   if (sourceScope === 'simulation-workbench-completion') {
     return { href: '/interactive-learning/control-workbench', label: '继续工作台验证' };
   }
-  return { href: '/assessment/adaptive-practice', label: '继续自适应练习' };
+  return { href: '/assessment/adaptive-practice?intent=practice', label: '继续自适应练习' };
 }
 
 function readLearnerRecordPrivacyScope(value: unknown): EvidenceTimelineLearnerRecord['privacyScope'] {

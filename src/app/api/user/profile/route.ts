@@ -493,7 +493,9 @@ export async function GET() {
             : '完成一次题目练习',
         description: `${describeFactOutcome(fact.outcome)}${typeof fact.score === 'number' ? ` · 得分 ${formatFactScore(fact.score)}` : ''}`,
         timestamp: fact.startedAt.toISOString(),
-        href: '/assessment/adaptive-practice',
+        href: isAdaptiveAssessmentModule(fact.moduleId)
+          ? '/assessment/adaptive-practice?intent=practice'
+          : '/assessment/adaptive-practice',
         badge: '评测',
         dedupeKey: `${fact.factType}|${fact.moduleId ?? ''}|${fact.startedAt.toISOString()}`,
       }));

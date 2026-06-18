@@ -412,7 +412,7 @@ export default function GrowthPage() {
               <div className="flex min-h-[320px] min-w-0 flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-muted/30 p-6 text-center">
                 <p className="text-sm text-subtle">暂无足够证据生成能力雷达。</p>
                 <Link
-                  href="/assessment/adaptive-practice"
+                  href="/assessment/adaptive-practice?intent=practice"
                   className="btn-ghost-themed mt-4 rounded-lg px-4 py-2 text-sm"
                   data-learner-record-next-action="adaptive-practice"
                 >

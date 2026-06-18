@@ -217,7 +217,7 @@ describe('evidence timeline browser', () => {
                 confidence: 'low',
                 freshness: 'stale',
                 missingSourceState: 'low-confidence',
-                nextAction: { href: '/assessment/adaptive-practice', label: '继续自适应练习' },
+                nextAction: { href: '/assessment/adaptive-practice?intent=practice', label: '继续自适应练习' },
               },
             },
           }),
@@ -354,7 +354,7 @@ describe('evidence timeline browser', () => {
       nextAction: { href: '/interactive-learning/control-workbench', label: '继续工作台验证' },
     });
     expect(page.items[4].learnerRecord).toMatchObject({
-      nextAction: { href: '/assessment/adaptive-practice', label: '继续自适应练习' },
+      nextAction: { href: '/assessment/adaptive-practice?intent=practice', label: '继续自适应练习' },
     });
   });
 
@@ -474,7 +474,7 @@ describe('evidence timeline browser', () => {
                 freshness: 'fresh',
                 missingSourceState: 'complete',
                 privacyScope: 'student-visible',
-                nextAction: { href: '/assessment/adaptive-practice', label: '继续自适应练习' },
+                nextAction: { href: '/assessment/adaptive-practice?intent=practice', label: '继续自适应练习' },
               },
             },
           }),

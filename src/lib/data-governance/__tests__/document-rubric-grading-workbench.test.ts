@@ -876,6 +876,8 @@ describe('document rubric grading workbench', () => {
     ]));
     expect(visibleStudentView.actionCards.find((card) => card.destinationType === 'resource')?.href)
       .toContain('/interactive-learning/resources/lesson09-correction-precheck');
+    expect(visibleStudentView.actionCards.find((card) => card.destinationType === 'practice')?.href)
+      .toContain('/assessment/adaptive-practice?intent=practice');
     expect(visibleStudentView.konlingEntryPoint?.mode).toBe('feedback-explainer');
     expect(visibleStudentView.konlingEntryPoint?.serverContext).toEqual(expect.objectContaining({
       gradingRunId: approved.id,
