@@ -7,7 +7,11 @@ import {
   PATH_NODE_SEMANTICS,
   RESOURCE_NODE_TYPES,
   auditResourceNode,
+  buildResourceSemanticProjection,
   buildResourceNodeRegistry,
+  validateResourceSemanticProjection,
+  RESOURCE_SEMANTIC_SOURCE_OWNERSHIP,
+  type Resource,
   type ResourceNode,
 } from '../resource-node-registry';
 import { getRegisteredResourceMetadata } from '../resource-registry-metadata';
@@ -125,6 +129,16 @@ function sampleRegistry() {
         knowledgeNodeIds: ['kn-bode'],
         prerequisiteNodeIds: ['simulation:cruise'],
         official: true,
+        planningOverride: {
+          readiness: {
+            minimumCompetency: { controlModeling: 0.6 },
+            minimumEvidenceCount: 1,
+            requiredCompletedNodeIds: ['simulation:cruise'],
+            requiredOutcomeRefs: ['simulation_run:cruise'],
+            unlockMessage: '完成邮轮仿真后解锁 Arena。',
+            fallbackNodeIds: ['simulation:cruise'],
+          },
+        },
       },
     ],
     externalResources: [
@@ -565,6 +579,221 @@ describe('resource node registry', () => {
       { kind: 'runtime_lesson_media', ref: 'unit-2-3-frequency-response-bode-intro:intro-video' },
       { kind: 'teaching_resource', ref: 'tr-video' },
     ]);
+  });
+
+  it('projects unified resource semantics without taking ownership of source content or catalog metadata', () => {
+    const registry = sampleRegistry();
+    const teachingQuiz = registry.nodes.find((node) => node.id === 'teaching-resource:tr-quiz') as ResourceNode;
+    const runtimeVideo = registry.nodes.find((node) =>
+      node.id === 'runtime-media:unit-2-3-frequency-response-bode-intro:intro-video'
+    ) as ResourceNode;
+
+    const teachingQuizProjection = buildResourceSemanticProjection(teachingQuiz);
+    const projection = buildResourceSemanticProjection(runtimeVideo);
+
+    expect(RESOURCE_SEMANTIC_SOURCE_OWNERSHIP.runtime_lesson_media).toMatchObject({
+      contentOwner: 'runtime_lesson_media',
+      catalogMetadataOwner: 'runtime_lesson_media',
+    });
+    expect(RESOURCE_SEMANTIC_SOURCE_OWNERSHIP.teaching_resource).toMatchObject({
+      contentOwner: 'TeachingResource',
+      catalogMetadataOwner: 'TeachingResource',
+    });
+    expect(RESOURCE_SEMANTIC_SOURCE_OWNERSHIP.grading_artifact).toMatchObject({
+      contentOwner: 'grading',
+      rawSubmissionOwner: 'grading',
+    });
+    expect(projection.resource).toMatchObject({
+      id: 'resource:runtime-media:unit-2-3-frequency-response-bode-intro:intro-video',
+      resourceNodeId: runtimeVideo.id,
+      sourceOfRecord: {
+        content: 'runtime_lesson_media',
+        catalogMetadata: 'TeachingResource',
+        planningMetadata: 'ResourceNode',
+      },
+      sourceRefs: [
+        { kind: 'runtime_lesson_media', ref: 'unit-2-3-frequency-response-bode-intro:intro-video' },
+        { kind: 'teaching_resource', ref: 'tr-video' },
+      ],
+    });
+    expect(projection.resource).not.toHaveProperty('rawContent');
+    expect(projection.resource).not.toHaveProperty('teacherEditableCatalogMetadata');
+    expect(validateResourceSemanticProjection({
+      ...projection.resource,
+      rawContent: 'copied transcript',
+      teacherEditableCatalogMetadata: { title: 'copied teacher title' },
+    } as any)).toEqual([
+      'rawContent',
+      'teacherEditableCatalogMetadata',
+    ]);
+    expect(validateResourceSemanticProjection({
+      sourceKind: 'runtime_lesson_media',
+      segments: [{ rawContent: 'nested transcript' }],
+      governance: { teacherEditableCatalogMetadata: { title: 'nested teacher title' } },
+    } as any)).toEqual([
+      'segments.0.rawContent',
+      'governance.teacherEditableCatalogMetadata',
+    ]);
+    const handoutProjectionFindings = validateResourceSemanticProjection({
+      ...projection,
+      markdownBody: 'copied projection-level handout markdown',
+      resource: {
+        ...projection.resource,
+        sourceKind: 'runtime_handout',
+        markdownBody: 'copied handout markdown',
+        pdfBytes: 'copied handout bytes',
+      },
+      segments: [{
+        ...projection.segments[0],
+        markdownBody: 'copied sibling handout markdown',
+      }],
+    } as any);
+    expect(handoutProjectionFindings).toEqual(expect.arrayContaining([
+      'markdownBody',
+      'resource.markdownBody',
+      'resource.pdfBytes',
+      'segments.0.markdownBody',
+    ]));
+    expect(handoutProjectionFindings).toHaveLength(4);
+    expect(validateResourceSemanticProjection({
+      resource: {
+        sourceKind: 'toString',
+        markdownBody: 'ignored for unknown source kind',
+      },
+    } as any)).toEqual([]);
+    expect(teachingQuizProjection.resource.sourceRefs).toEqual(expect.arrayContaining([
+      { kind: 'teaching_resource', ref: 'tr-quiz' },
+      { kind: 'resource_registry', ref: 'lesson12-bode-post-quiz' },
+    ]));
+    expect(teachingQuizProjection.segments[0].sourceRef).toEqual({ kind: 'teaching_resource', ref: 'tr-quiz' });
+    expect(teachingQuizProjection.citationTargets[0].sourceRef).toEqual({ kind: 'teaching_resource', ref: 'tr-quiz' });
+    expect(validateResourceSemanticProjection({
+      ...teachingQuizProjection,
+      resource: {
+        ...teachingQuizProjection.resource,
+        defaultConfig: { copied: true },
+      },
+    } as any)).toEqual(['resource.defaultConfig']);
+    expect(validateResourceSemanticProjection({
+      segments: [{
+        sourceRef: { kind: 'runtime_handout', ref: 'runtime-handout:lesson-1' },
+        markdownBody: 'copied handout markdown',
+      }],
+    } as any)).toEqual(['segments.0.markdownBody']);
+    const gradingArtifactResource: Resource = {
+      id: 'resource:grading-artifact:essay-1',
+      resourceNodeId: 'grading-artifact:essay-1',
+      title: '作业批改证据',
+      type: 'reflection',
+      sourceKind: 'grading_artifact',
+      sourceRefs: [{ kind: 'grading_artifact', ref: 'submission:essay-1' }],
+      contentHash: null,
+      knowledgeNodeIds: ['kn-bode'],
+      capabilityTargetIds: ['inquiryReflection'],
+      sourceOfRecord: {
+        content: 'grading',
+        catalogMetadata: 'grading',
+        planningMetadata: 'ResourceNode',
+      },
+      projectionStatus: {
+        retrieval: 'mapped',
+        planning: 'blocked',
+      },
+      governance: {
+        availability: 'teacher_only',
+        teacherPolicy: 'teacher-only',
+        privacyLevel: 'teacher-scoped',
+        auditIssueCodes: [],
+      },
+    };
+    expect(validateResourceSemanticProjection({
+      ...gradingArtifactResource,
+      rawSubmission: 'student private answer',
+    } as any)).toEqual(['rawSubmission']);
+  });
+
+  it('maps path-eligible ResourceNodes into PlanningUnits through audited planning metadata', () => {
+    const registry = sampleRegistry();
+    const arenaTask = registry.nodes.find((node) => node.id === 'arena-task:roll-control') as ResourceNode;
+    const brokenExternal = buildResourceNodeRegistry({
+      externalResources: [
+        {
+          id: 'missing-citation',
+          title: '缺失引用地址',
+          source: 'External',
+          estimatedTimeMinutes: 10,
+          knowledgeNodeIds: ['kn-bode'],
+          applicableGoalId: 'frequency-response-foundations',
+          evidenceUseStatus: 'explicit-access-required',
+          privacyPolicy: 'student-visible',
+        },
+      ],
+    }).nodes[0];
+    const lockedSimulation = buildResourceNodeRegistry({
+      simulations: [
+        {
+          id: 'terminal-sim',
+          title: '终端仿真',
+          launchTarget: '/simulations/terminal',
+          knowledgeNodeIds: ['kn-bode'],
+          planningOverride: {
+            cognitiveLoad: 'high',
+            evidenceInstrumentation: ['simulation_run'],
+          },
+        },
+      ],
+    }).nodes[0];
+
+    const projection = buildResourceSemanticProjection(arenaTask);
+    const brokenProjection = buildResourceSemanticProjection(brokenExternal);
+    const lockedProjection = buildResourceSemanticProjection(lockedSimulation);
+
+    expect(projection.planningUnit).toMatchObject({
+      id: 'planning-unit:arena-task:roll-control',
+      resourceNodeId: 'arena-task:roll-control',
+      pathEligible: true,
+      target: '/arena/challenges/roll-control',
+      prerequisites: ['simulation:cruise'],
+      knowledgeCoverage: ['kn-bode'],
+      evidenceInstrumentation: ['arena_evaluation_complete'],
+      privacyLevel: 'student-visible',
+      teacherPolicy: 'allowed',
+      pathSemantics: {
+        type: 'arena_task',
+        evidenceBehavior: 'judged_submission',
+      },
+    });
+    expect(projection.citationTargets).toContainEqual(expect.objectContaining({
+      id: 'citation-target:arena-task:roll-control:primary',
+      resourceSegmentId: 'resource-segment:arena-task:roll-control:primary',
+      target: '/arena/challenges/roll-control',
+      status: 'resolvable',
+    }));
+    expect(projection.retrievalChunks).toContainEqual(expect.objectContaining({
+      id: 'retrieval-chunk:arena-task:roll-control:primary',
+      resourceSegmentId: 'resource-segment:arena-task:roll-control:primary',
+      citationTargetId: 'citation-target:arena-task:roll-control:primary',
+      projectionStatus: 'not-indexed',
+    }));
+    expect(brokenProjection.planningUnit).toBeNull();
+    expect(brokenProjection.citationTargets).toContainEqual(expect.objectContaining({
+      id: 'citation-target:external-resource:missing-citation:primary',
+      status: 'missing-target',
+    }));
+    expect(brokenProjection.retrievalChunks).toContainEqual(expect.objectContaining({
+      id: 'retrieval-chunk:external-resource:missing-citation:primary',
+      citationTargetId: 'citation-target:external-resource:missing-citation:primary',
+      projectionStatus: 'blocked',
+    }));
+    expect(lockedSimulation.eligibility).toMatchObject({
+      pathEligible: true,
+      reasons: expect.arrayContaining(['missing-readiness-metadata']),
+    });
+    expect(lockedProjection.planningUnit).toBeNull();
+    expect(lockedProjection.resource.projectionStatus).toMatchObject({
+      retrieval: 'mapped',
+      planning: 'blocked',
+    });
   });
 
   it('builds deterministic edges and payloads for unchanged source resources', () => {

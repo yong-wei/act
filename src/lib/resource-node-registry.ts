@@ -236,6 +236,206 @@ export interface ResourceNodeSourceOfRecord {
   planningMetadata: 'ResourceNode';
 }
 
+export type ResourceSemanticSourceOwner = ResourceNodeSourceOwner | 'grading';
+export type ResourceSemanticSourceKind = ResourceNodeSourceKind | 'grading_artifact';
+export type ResourceSemanticProjectionStatus = 'mapped' | 'blocked' | 'not-indexed';
+
+export interface ResourceSemanticSourceReference {
+  kind: ResourceSemanticSourceKind;
+  ref: string;
+}
+
+export interface ResourceSemanticSourceOfRecord {
+  content: ResourceSemanticSourceOwner;
+  catalogMetadata: ResourceSemanticSourceOwner;
+  planningMetadata: 'ResourceNode';
+}
+
+export interface ResourceSemanticSourceOwnership {
+  contentOwner: ResourceSemanticSourceOwner;
+  catalogMetadataOwner: ResourceSemanticSourceOwner;
+  rawSubmissionOwner?: ResourceSemanticSourceOwner;
+  semanticLayerStores: readonly string[];
+  forbiddenProjectionFields: readonly string[];
+}
+
+export const RESOURCE_SEMANTIC_SOURCE_OWNERSHIP: Record<
+  ResourceSemanticSourceKind,
+  ResourceSemanticSourceOwnership
+> = {
+  teaching_resource: {
+    contentOwner: 'TeachingResource',
+    catalogMetadataOwner: 'TeachingResource',
+    semanticLayerStores: ['identity', 'sourceRefs', 'contentHash', 'projectionStatus', 'governance'],
+    forbiddenProjectionFields: ['rawContent', 'renderablePayload', 'teacherEditableCatalogMetadata', 'config'],
+  },
+  resource_registry: {
+    contentOwner: 'resource_registry',
+    catalogMetadataOwner: 'resource_registry',
+    semanticLayerStores: ['identity', 'sourceRefs', 'projectionStatus', 'governance'],
+    forbiddenProjectionFields: ['rawContent', 'renderablePayload', 'defaultConfig'],
+  },
+  knowledge_graph: {
+    contentOwner: 'knowledge_graph',
+    catalogMetadataOwner: 'knowledge_graph',
+    semanticLayerStores: ['identity', 'sourceRefs', 'knowledgeMapping', 'projectionStatus'],
+    forbiddenProjectionFields: ['rawContent', 'cardMarkdown', 'renderablePayload'],
+  },
+  runtime_lesson_step: {
+    contentOwner: 'runtime_lesson_media',
+    catalogMetadataOwner: 'runtime_lesson_media',
+    semanticLayerStores: ['identity', 'sourceRefs', 'knowledgeMapping', 'citationRefs', 'projectionStatus'],
+    forbiddenProjectionFields: ['rawContent', 'renderablePayload', 'scriptBody'],
+  },
+  runtime_lesson_media: {
+    contentOwner: 'runtime_lesson_media',
+    catalogMetadataOwner: 'runtime_lesson_media',
+    semanticLayerStores: ['identity', 'sourceRefs', 'contentHash', 'citationRefs', 'projectionStatus'],
+    forbiddenProjectionFields: ['rawContent', 'renderablePayload', 'transcript', 'teacherEditableCatalogMetadata'],
+  },
+  runtime_handout: {
+    contentOwner: 'runtime_lesson_media',
+    catalogMetadataOwner: 'runtime_lesson_media',
+    semanticLayerStores: ['identity', 'sourceRefs', 'contentHash', 'citationRefs', 'projectionStatus'],
+    forbiddenProjectionFields: ['rawContent', 'renderablePayload', 'markdownBody', 'pdfBytes'],
+  },
+  simulation_resource: {
+    contentOwner: 'simulation',
+    catalogMetadataOwner: 'simulation',
+    semanticLayerStores: ['identity', 'sourceRefs', 'knowledgeMapping', 'projectionStatus', 'governance'],
+    forbiddenProjectionFields: ['rawContent', 'simulationInternals', 'hiddenState'],
+  },
+  arena_task: {
+    contentOwner: 'arena',
+    catalogMetadataOwner: 'arena',
+    semanticLayerStores: ['identity', 'sourceRefs', 'knowledgeMapping', 'projectionStatus', 'governance'],
+    forbiddenProjectionFields: ['rawContent', 'hiddenEvaluationInternals', 'officialAnswer'],
+  },
+  external_resource: {
+    contentOwner: 'external_resource',
+    catalogMetadataOwner: 'external_resource',
+    semanticLayerStores: ['identity', 'sourceRefs', 'citationRefs', 'projectionStatus', 'governance'],
+    forbiddenProjectionFields: ['rawContent', 'scrapedPageBody', 'teacherEditableCatalogMetadata'],
+  },
+  control_workbench: {
+    contentOwner: 'ResourceNode',
+    catalogMetadataOwner: 'ResourceNode',
+    semanticLayerStores: ['identity', 'sourceRefs', 'knowledgeMapping', 'projectionStatus', 'governance'],
+    forbiddenProjectionFields: ['rawContent', 'workspaceState'],
+  },
+  checkpoint: {
+    contentOwner: 'checkpoint',
+    catalogMetadataOwner: 'checkpoint',
+    semanticLayerStores: ['identity', 'sourceRefs', 'assessmentRefs', 'projectionStatus', 'governance'],
+    forbiddenProjectionFields: ['rawContent', 'rawSubmission', 'teacherEditableCatalogMetadata'],
+  },
+  reflection_prompt: {
+    contentOwner: 'ResourceNode',
+    catalogMetadataOwner: 'ResourceNode',
+    semanticLayerStores: ['identity', 'sourceRefs', 'projectionStatus', 'governance'],
+    forbiddenProjectionFields: ['rawContent', 'rawSubmission'],
+  },
+  ai_intervention: {
+    contentOwner: 'ResourceNode',
+    catalogMetadataOwner: 'ResourceNode',
+    semanticLayerStores: ['identity', 'sourceRefs', 'projectionStatus', 'governance'],
+    forbiddenProjectionFields: ['rawContent', 'assistantNarrative'],
+  },
+  konling: {
+    contentOwner: 'ResourceNode',
+    catalogMetadataOwner: 'ResourceNode',
+    semanticLayerStores: ['identity', 'sourceRefs', 'projectionStatus', 'governance'],
+    forbiddenProjectionFields: ['rawContent', 'assistantNarrative'],
+  },
+  project: {
+    contentOwner: 'ResourceNode',
+    catalogMetadataOwner: 'ResourceNode',
+    semanticLayerStores: ['identity', 'sourceRefs', 'projectionStatus', 'governance'],
+    forbiddenProjectionFields: ['rawContent', 'rawSubmission'],
+  },
+  grading_artifact: {
+    contentOwner: 'grading',
+    catalogMetadataOwner: 'grading',
+    rawSubmissionOwner: 'grading',
+    semanticLayerStores: ['identity', 'sourceRefs', 'citationRefs', 'projectionStatus', 'governance'],
+    forbiddenProjectionFields: ['rawContent', 'rawSubmission', 'rubricPrivateNotes', 'teacherEditableCatalogMetadata'],
+  },
+};
+
+export interface Resource {
+  id: string;
+  resourceNodeId: string;
+  title: string;
+  type: ResourceNodeType;
+  sourceKind: ResourceSemanticSourceKind;
+  sourceRefs: ResourceSemanticSourceReference[];
+  contentHash: string | null;
+  knowledgeNodeIds: string[];
+  capabilityTargetIds: string[];
+  sourceOfRecord: ResourceSemanticSourceOfRecord;
+  projectionStatus: {
+    retrieval: ResourceSemanticProjectionStatus;
+    planning: ResourceSemanticProjectionStatus;
+  };
+  governance: {
+    availability: ResourceNodeAvailability;
+    teacherPolicy: ResourceNodeTeacherPolicy;
+    privacyLevel: ResourceNodePrivacyLevel;
+    auditIssueCodes: string[];
+  };
+}
+
+export interface ResourceSegment {
+  id: string;
+  resourceId: string;
+  sourceRef: ResourceSemanticSourceReference;
+  kind: 'primary' | 'step' | 'media' | 'checkpoint';
+  contentHash: string | null;
+}
+
+export interface CitationTarget {
+  id: string;
+  resourceId: string;
+  resourceSegmentId: string;
+  sourceRef: ResourceSemanticSourceReference;
+  target: string | null;
+  status: 'resolvable' | 'missing-target';
+}
+
+export interface RetrievalChunk {
+  id: string;
+  resourceId: string;
+  resourceSegmentId: string;
+  citationTargetId: string | null;
+  textHash: string | null;
+  projectionStatus: ResourceSemanticProjectionStatus;
+}
+
+export interface PlanningUnit {
+  id: string;
+  resourceId: string;
+  resourceNodeId: string;
+  title: string;
+  target: string;
+  pathEligible: true;
+  pathSemantics: ResourceNodePathSemantics;
+  prerequisites: string[];
+  knowledgeCoverage: string[];
+  abilityImpact: Record<string, number>;
+  evidenceInstrumentation: string[];
+  privacyLevel: ResourceNodePrivacyLevel;
+  teacherPolicy: ResourceNodeTeacherPolicy;
+  readiness: ResourceNodeReadinessMetadata | null;
+}
+
+export interface ResourceSemanticProjection {
+  resource: Resource;
+  segments: ResourceSegment[];
+  citationTargets: CitationTarget[];
+  retrievalChunks: RetrievalChunk[];
+  planningUnit: PlanningUnit | null;
+}
+
 export type ExternalResourceEvidenceUseStatus = 'explicit-access-required' | 'reference-only';
 export type CheckpointReviewState = 'pending' | 'passed' | 'failed' | 'review';
 
@@ -570,6 +770,88 @@ export function auditResourceNode(
     reasons: issues.map((issue) => issue.code),
     auditIssues: issues,
   };
+}
+
+export function buildResourceSemanticProjection(node: ResourceNode): ResourceSemanticProjection {
+  const resourceId = `resource:${node.id}`;
+  const primarySourceRef = { kind: node.sourceKind, ref: node.sourceRef };
+  const segmentId = `resource-segment:${node.id}:primary`;
+  const target = node.launchTarget ?? node.renderTarget;
+  const citationTargetId = `citation-target:${node.id}:primary`;
+  const auditIssueCodes = node.eligibility.auditIssues.map((issue) => issue.code);
+  const resource: Resource = {
+    id: resourceId,
+    resourceNodeId: node.id,
+    title: node.title,
+    type: node.type,
+    sourceKind: node.sourceKind,
+    sourceRefs: node.sourceRefs,
+    contentHash: null,
+    knowledgeNodeIds: node.planningMetadata.knowledgeCoverage,
+    capabilityTargetIds: Object.keys(node.planningMetadata.abilityImpact).sort((left, right) => left.localeCompare(right)),
+    sourceOfRecord: node.sourceOfRecord,
+    projectionStatus: {
+      retrieval: target ? 'mapped' : 'blocked',
+      planning: isPlanningUnitEligible(node, target) ? 'mapped' : 'blocked',
+    },
+    governance: {
+      availability: node.planningMetadata.availability,
+      teacherPolicy: node.planningMetadata.teacherPolicy,
+      privacyLevel: node.planningMetadata.privacyLevel,
+      auditIssueCodes,
+    },
+  };
+  const segments: ResourceSegment[] = [{
+    id: segmentId,
+    resourceId,
+    sourceRef: primarySourceRef,
+    kind: segmentKindForNode(node),
+    contentHash: null,
+  }];
+  const citationTargets: CitationTarget[] = [{
+    id: citationTargetId,
+    resourceId,
+    resourceSegmentId: segmentId,
+    sourceRef: primarySourceRef,
+    target,
+    status: target ? 'resolvable' : 'missing-target',
+  }];
+  const retrievalChunks: RetrievalChunk[] = [{
+    id: `retrieval-chunk:${node.id}:primary`,
+    resourceId,
+    resourceSegmentId: segmentId,
+    citationTargetId,
+    textHash: null,
+    projectionStatus: target ? 'not-indexed' : 'blocked',
+  }];
+  return {
+    resource,
+    segments,
+    citationTargets,
+    retrievalChunks,
+    planningUnit: buildPlanningUnit(node, resourceId, target),
+  };
+}
+
+export function validateResourceSemanticProjection(value: Record<string, unknown>): string[] {
+  const forbiddenFields = new Set([
+    'rawContent',
+    'renderablePayload',
+    'teacherEditableCatalogMetadata',
+    'rawSubmission',
+    'hiddenEvaluationInternals',
+    'officialAnswer',
+    'transcript',
+    'config',
+  ]);
+  for (const sourceKind of collectProjectionSourceKinds(value)) {
+    const ownership = semanticOwnershipForSourceKind(sourceKind);
+    if (!ownership) continue;
+    for (const field of ownership.forbiddenProjectionFields) {
+      forbiddenFields.add(field);
+    }
+  }
+  return collectForbiddenProjectionFields(value, forbiddenFields);
 }
 
 function auditExternalResourceNode(node: ResourceNode): ResourceNodeAuditIssue[] {
@@ -1227,6 +1509,94 @@ function pathSemanticsForResourceType(type: ResourceNodeType): ResourceNodePathS
 
 export function getPathNodeSemanticsForResourceType(type: ResourceNodeType): ResourceNodePathSemantics {
   return pathSemanticsForResourceType(type);
+}
+
+function segmentKindForNode(node: ResourceNode): ResourceSegment['kind'] {
+  if (node.sourceKind === 'runtime_lesson_step') return 'step';
+  if (node.sourceKind === 'runtime_lesson_media' || node.type === 'video' || node.type === 'audio') return 'media';
+  if (node.type === 'checkpoint') return 'checkpoint';
+  return 'primary';
+}
+
+function buildPlanningUnit(node: ResourceNode, resourceId: string, target: string | null): PlanningUnit | null {
+  if (!isPlanningUnitEligible(node, target)) return null;
+  return {
+    id: `planning-unit:${node.id}`,
+    resourceId,
+    resourceNodeId: node.id,
+    title: node.title,
+    target,
+    pathEligible: true,
+    pathSemantics: node.pathSemantics,
+    prerequisites: node.planningMetadata.prerequisites,
+    knowledgeCoverage: node.planningMetadata.knowledgeCoverage,
+    abilityImpact: node.planningMetadata.abilityImpact,
+    evidenceInstrumentation: node.planningMetadata.evidenceInstrumentation,
+    privacyLevel: node.planningMetadata.privacyLevel,
+    teacherPolicy: node.planningMetadata.teacherPolicy,
+    readiness: node.planningMetadata.readiness,
+  };
+}
+
+function isPlanningUnitEligible(node: ResourceNode, target: string | null): target is string {
+  if (!target || !node.eligibility.pathEligible) return false;
+  return !node.eligibility.auditIssues.some((issue) => issue.code === 'missing-readiness-metadata');
+}
+
+function collectForbiddenProjectionFields(value: unknown, forbiddenFields: Set<string>, path = ''): string[] {
+  if (!value || typeof value !== 'object') return [];
+  const entries = Array.isArray(value)
+    ? value.map((item, index) => [String(index), item] as const)
+    : Object.entries(value as Record<string, unknown>);
+  const findings: string[] = [];
+  for (const [key, child] of entries) {
+    const childPath = path ? `${path}.${key}` : key;
+    if (forbiddenFields.has(key)) {
+      findings.push(childPath);
+    }
+    findings.push(...collectForbiddenProjectionFields(child, forbiddenFields, childPath));
+  }
+  return findings;
+}
+
+function collectProjectionSourceKinds(value: unknown): unknown[] {
+  if (!value || typeof value !== 'object') return [];
+  const sourceKinds: unknown[] = [];
+  if (!Array.isArray(value)) {
+    const record = value as Record<string, unknown>;
+    sourceKinds.push(
+      record.sourceKind,
+      extractSourceRefKind(record.sourceRef),
+      ...extractSourceRefKinds(record.sourceRefs),
+    );
+  }
+  const children = Array.isArray(value)
+    ? value
+    : Object.values(value as Record<string, unknown>);
+  for (const child of children) {
+    sourceKinds.push(...collectProjectionSourceKinds(child));
+  }
+  return sourceKinds;
+}
+
+function extractSourceRefKind(sourceRef: unknown): unknown {
+  if (!sourceRef || typeof sourceRef !== 'object') return null;
+  return (sourceRef as Record<string, unknown>).kind;
+}
+
+function extractSourceRefKinds(sourceRefs: unknown): unknown[] {
+  if (!Array.isArray(sourceRefs)) return [];
+  return sourceRefs.map((sourceRef) => extractSourceRefKind(sourceRef));
+}
+
+function semanticOwnershipForSourceKind(sourceKind: unknown): ResourceSemanticSourceOwnership | null {
+  if (
+    typeof sourceKind !== 'string' ||
+    !Object.prototype.hasOwnProperty.call(RESOURCE_SEMANTIC_SOURCE_OWNERSHIP, sourceKind)
+  ) {
+    return null;
+  }
+  return RESOURCE_SEMANTIC_SOURCE_OWNERSHIP[sourceKind as ResourceSemanticSourceKind];
 }
 
 function requiresReadinessMetadata(node: ResourceNode): boolean {
