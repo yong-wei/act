@@ -772,9 +772,8 @@ export async function recordPathChoiceEvidence(
     }),
   };
 
-  const writes: Array<Promise<unknown>> = [];
   if (db.evidenceOutbox?.createMany) {
-    writes.push(db.evidenceOutbox.createMany({
+    const result = await db.evidenceOutbox.createMany({
       data: [{
         eventType,
         correlationId: input.pathId,
@@ -785,10 +784,13 @@ export async function recordPathChoiceEvidence(
         createdAt: occurredAtIso,
       }],
       skipDuplicates: true,
-    }));
+    });
+    if (typeof result?.count === 'number' && result.count === 0) {
+      return { emitted: false, dedupeKey };
+    }
   }
   if (db.learningFact?.createMany) {
-    writes.push(db.learningFact.createMany({
+    const result = await db.learningFact.createMany({
       data: [{
         userId: input.userId,
         factType: eventType,
@@ -807,7 +809,10 @@ export async function recordPathChoiceEvidence(
         contextJson: payload,
       }],
       skipDuplicates: true,
-    }));
+    });
+    if (!db.evidenceOutbox?.createMany && typeof result?.count === 'number' && result.count === 0) {
+      return { emitted: false, dedupeKey };
+    }
   }
   if (db.learningPath.update) {
     const path = await db.learningPath.findFirst({
@@ -825,9 +830,10 @@ export async function recordPathChoiceEvidence(
         ? pathPayload.activity
         : [];
       const hasHistoryEntry = existingHistory.some((entry) => toRecord(entry).id === dedupeKey);
+      if (hasHistoryEntry) return { emitted: false, dedupeKey };
       if (!hasHistoryEntry) {
         const historyEntry = buildPathChoiceSelectionHistoryEntry(input, payload, dedupeKey);
-        writes.push(db.learningPath.update({
+        await db.learningPath.update({
           where: { id: input.pathId },
           data: {
             pathPayload: {
@@ -846,12 +852,10 @@ export async function recordPathChoiceEvidence(
               ],
             },
           },
-        }));
+        });
       }
     }
   }
-  if (writes.length === 0) return { emitted: false, dedupeKey };
-  await Promise.all(writes);
   return { emitted: true, dedupeKey };
 }
 

@@ -82,6 +82,26 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     ) {
       return NextResponse.json({ error: '所选路径缺少可执行节点，请重新生成学习路径后再选择' }, { status: 409 });
     }
+    const existingChoice = findExistingChoiceByIdempotencyKey(
+      path,
+      body.idempotencyKey,
+      body.action,
+      selectedStyleId,
+      rejectedStyleIds,
+      previousStyleId,
+      typeof body.helpful === 'boolean' ? body.helpful : null,
+    );
+    if (existingChoice.conflict) {
+      return NextResponse.json({ error: '路径选择幂等键已被其他选择请求使用' }, { status: 409 });
+    }
+    if (existingChoice.dedupeKey) {
+      const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
+      return NextResponse.json({
+        choice: { emitted: false, dedupeKey: existingChoice.dedupeKey },
+        pathUpdate: null,
+        cacheRefresh,
+      });
+    }
     const choice = await recordPathChoiceEvidence(prisma as any, {
       pathId: params.id,
       userId: path.userId,
@@ -101,7 +121,9 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
       actorRole: requester.role,
     });
     const pathUpdate = shouldAdoptSelectedOption(body.action) && selectedOption
-      ? await adoptSelectedPathOption(path, selectedOption)
+      ? choice.emitted
+        ? await adoptSelectedPathOption(path, selectedOption)
+        : null
       : null;
     const cacheRefresh = await refreshPathEvidenceFeatureCache(path.userId);
 
@@ -202,7 +224,7 @@ async function adoptSelectedPathOption(
     },
   });
   const pathPayload = readRecord(latestPath?.pathPayload ?? path.pathPayload);
-  const currentNodeId = option.activeNodeIds.find((nodeId) => option.nodeIds.includes(nodeId)) ?? option.nodeIds[0] ?? null;
+  const currentNodeId = resolveSelectedPathCurrentNodeId(option, latestPath ?? path, pathPayload);
   const selectedPlanNodes = normalizeSelectedPlanNodes(option.planNodes, currentNodeId);
   const updatedAt = new Date().toISOString();
   const pathPayloadUpdate = {
@@ -232,6 +254,7 @@ async function adoptSelectedPathOption(
     data: {
       nodeIds: option.nodeIds,
       currentNodeId,
+      pathStatus: 'active',
       pathPayload: pathPayloadUpdate as unknown as Prisma.InputJsonValue,
       lastExecutionMetadata: lastExecutionMetadata as unknown as Prisma.InputJsonValue,
       terminalValidation: terminalValidation as unknown as Prisma.InputJsonValue,
@@ -243,6 +266,86 @@ async function adoptSelectedPathOption(
     currentNodeId,
     nodeIds: option.nodeIds,
   };
+}
+
+function findExistingChoiceByIdempotencyKey(
+  path: any,
+  idempotencyKey: unknown,
+  action: unknown,
+  selectedStyleId: string | null,
+  rejectedStyleIds: string[],
+  previousStyleId: string | null,
+  helpful: boolean | null,
+): { dedupeKey: string | null; conflict: boolean } {
+  const eventKey = nullableString(idempotencyKey);
+  if (!eventKey) return { dedupeKey: null, conflict: false };
+  const dedupeKey = buildChoiceDedupeKey(path.goalId, path.id, eventKey);
+  const existingEntry = readRecordArray(readRecord(path.pathPayload).selectionHistory)
+    .find((entry) => nullableString(entry.id) === dedupeKey);
+  if (!existingEntry) return { dedupeKey: null, conflict: false };
+  const relatedRefs = readRecord(existingEntry.relatedRefs);
+  const preferenceEvidence = readRecord(existingEntry.preferenceEvidence);
+  const actionValue = nullableString(existingEntry.type) ?? nullableString(preferenceEvidence.action);
+  const existingSelectedStyleId = nullableString(existingEntry.selectedStyleId) ?? nullableString(relatedRefs.selectedStyleId) ?? null;
+  const existingPreviousStyleId = nullableString(existingEntry.previousStyleId) ?? nullableString(relatedRefs.previousStyleId) ?? null;
+  const existingHelpful = typeof existingEntry.helpful === 'boolean'
+    ? existingEntry.helpful
+    : typeof preferenceEvidence.helpful === 'boolean'
+      ? preferenceEvidence.helpful
+      : null;
+  const existingRejectedStyleIds = readStringArray(existingEntry.rejectedStyleIds).length > 0
+    ? readStringArray(existingEntry.rejectedStyleIds)
+    : readStringArray(relatedRefs.rejectedStyleIds);
+  return {
+    dedupeKey,
+    conflict:
+      actionValue !== action ||
+      existingSelectedStyleId !== selectedStyleId ||
+      existingPreviousStyleId !== previousStyleId ||
+      existingHelpful !== helpful ||
+      !sameStringSet(existingRejectedStyleIds, rejectedStyleIds),
+  };
+}
+
+function buildChoiceDedupeKey(goalId: unknown, pathId: unknown, eventKey: string): string {
+  const prefix = !goalId || goalId === 'control-correction'
+    ? 'control-correction-path'
+    : 'learning-path';
+  return `${prefix}:choice:${nullableString(pathId) ?? 'unknown-path'}:${eventKey}`;
+}
+
+function sameStringSet(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) return false;
+  const leftSet = new Set(left);
+  return right.every((item) => leftSet.has(item));
+}
+
+function resolveSelectedPathCurrentNodeId(
+  option: ServerPathChoiceOption,
+  latestPath: Record<string, unknown>,
+  pathPayload: Record<string, unknown>,
+): string | null {
+  const completedOrUnavailable = readSelectedUnavailableNodeIds(latestPath, pathPayload);
+  const preferredNodeIds = option.activeNodeIds.length > 0 ? option.activeNodeIds : option.nodeIds;
+  return [...preferredNodeIds, ...option.nodeIds]
+    .find((nodeId) => option.nodeIds.includes(nodeId) && !completedOrUnavailable.has(nodeId))
+    ?? null;
+}
+
+function readSelectedUnavailableNodeIds(
+  latestPath: Record<string, unknown>,
+  pathPayload: Record<string, unknown>,
+): Set<string> {
+  const executionStatus = readRecord(pathPayload.executionStatus);
+  const metadata = readRecord(latestPath.lastExecutionMetadata);
+  return new Set([
+    ...readStringArray(metadata.completedNodeIds),
+    ...readStringArray(metadata.failedNodeIds),
+    ...readStringArray(metadata.skippedNodeIds),
+    ...readStringArray(executionStatus.completedNodeIds),
+    ...readStringArray(executionStatus.failedNodeIds),
+    ...readStringArray(executionStatus.skippedNodeIds),
+  ]);
 }
 
 function buildSelectedPathTerminalValidation(
