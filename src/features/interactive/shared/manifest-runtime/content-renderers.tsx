@@ -12,6 +12,7 @@ import type {
   InteractiveRuntimeStepManifest,
 } from './layout-renderer';
 import { buildControlWorkbenchClientEvidenceDraft } from './control-workbench-evidence';
+import { buildStructureDiagramClientEvidenceDraft } from './structure-diagram-evidence';
 import { isControlWorkbenchComputeCapabilityRef } from './module-taxonomy';
 import type { ControlAnalysisRequest, ControlAnalysisResult } from '@/resources/control-system/analysis/types';
 import { ControlFigureWorkspace } from '@/resources/control-system/charts/control-figure-workspace';
@@ -95,6 +96,62 @@ type DerivationStagePayload = {
   revealSteps: DerivationRevealStep[];
   teacherControls: string[];
   answerVisible: boolean;
+};
+type StructureDiagramPoint = { x: number; y: number };
+type BlockDiagramNodeType = 'block' | 'sum' | 'branch' | 'input' | 'output' | 'disturbance' | 'sensor';
+type BlockDiagramNode = {
+  id: string;
+  type: BlockDiagramNodeType;
+  label: string;
+  position: StructureDiagramPoint;
+  size: { width: number; height: number };
+};
+type BlockDiagramEdge = {
+  id: string;
+  from: string;
+  to: string;
+  label: string;
+};
+type BlockDiagramPayload = {
+  graphId: string;
+  mode: string;
+  activeRevealState: string;
+  nodes: BlockDiagramNode[];
+  edges: BlockDiagramEdge[];
+  revealPlan: Array<{ id: string; targetIds: string[]; label: string }>;
+};
+type SignalFlowNode = {
+  id: string;
+  labelLatex: string;
+  position: StructureDiagramPoint;
+};
+type SignalFlowBranch = {
+  id: string;
+  from: string;
+  to: string;
+  gainLatex: string;
+};
+type SignalFlowPathSet = {
+  id: string;
+  label: string;
+  branchIds: string[];
+};
+type SignalFlowLoopGroup = {
+  id: string;
+  label: string;
+  loopIds: string[];
+};
+type SignalFlowPayload = {
+  graphId: string;
+  mode: string;
+  activeRevealState: string;
+  nodes: SignalFlowNode[];
+  branches: SignalFlowBranch[];
+  forwardPaths: SignalFlowPathSet[];
+  loops: SignalFlowPathSet[];
+  nonTouchingLoopGroups: SignalFlowLoopGroup[];
+  revealPlan: Array<{ id: string; targetIds: string[]; emphasis: string; label: string }>;
+  masonTerms: Array<{ id: string; latex: string; relatedIds: string[] }>;
 };
 
 const MATLAB_KEYWORDS = new Set([
@@ -291,6 +348,22 @@ function numberInRange(value: unknown, fallback: number, min = 0, max = 1) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return fallback;
   return clamp(numeric, min, max);
+}
+
+function structurePoint(value: unknown): StructureDiagramPoint {
+  const point = asRecord(value);
+  return {
+    x: numberInRange(point.x, 0.5),
+    y: numberInRange(point.y, 0.5),
+  };
+}
+
+function stringFromFields(source: ContentRecord, fields: string[], fallback = '') {
+  for (const field of fields) {
+    const value = source[field];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+  }
+  return fallback;
 }
 
 function visualStageAspectRatio(value: unknown): VisualStageAspectRatio {
@@ -574,6 +647,268 @@ function derivationTeacherControlLabel(control: string) {
     reset: '重置',
   };
   return labels[control] ?? control;
+}
+
+function blockDiagramPayload(module: InteractiveRuntimeModuleManifest): BlockDiagramPayload {
+  const payload = module.payload;
+  const interaction = asRecord(payload.interactions ?? payload.interaction);
+  return {
+    graphId: String(payload.graphId ?? payload.graph_id ?? payload.diagramId ?? payload.diagram_id ?? module.id),
+    mode: visualStageString(interaction.mode ?? payload.mode, 'read'),
+    activeRevealState: visualStageString(payload.activeRevealState ?? payload.active_reveal_state, 'all'),
+    nodes: blockDiagramNodes(payload.nodes),
+    edges: blockDiagramEdges(payload.edges),
+    revealPlan: structureRevealPlan(payload.revealPlan ?? payload.reveal_plan),
+  };
+}
+
+function blockDiagramNodes(value: unknown): BlockDiagramNode[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index): BlockDiagramNode | null => {
+      const node = asRecord(item);
+      const id = String(node.id ?? '').trim();
+      if (!id) return null;
+      const type = ['block', 'sum', 'branch', 'input', 'output', 'disturbance', 'sensor'].includes(String(node.type))
+        ? String(node.type) as BlockDiagramNodeType
+        : 'block';
+      const size = asRecord(node.size);
+      return {
+        id,
+        type,
+        label: stringFromFields(node, ['labelLatex', 'label_latex', 'label', 'title'], `节点 ${index + 1}`),
+        position: structurePoint(node.position),
+        size: {
+          width: numberInRange(size.width, type === 'block' ? 0.16 : 0.07, 0.03, 0.4),
+          height: numberInRange(size.height, type === 'block' ? 0.1 : 0.07, 0.03, 0.25),
+        },
+      };
+    })
+    .filter((item): item is BlockDiagramNode => Boolean(item));
+}
+
+function blockDiagramEdges(value: unknown): BlockDiagramEdge[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item): BlockDiagramEdge | null => {
+      const edge = asRecord(item);
+      const id = String(edge.id ?? '').trim();
+      const from = String(edge.from ?? edge.fromId ?? edge.from_id ?? '').trim();
+      const to = String(edge.to ?? edge.toId ?? edge.to_id ?? '').trim();
+      if (!id || !from || !to) return null;
+      return {
+        id,
+        from,
+        to,
+        label: stringFromFields(edge, ['labelLatex', 'label_latex', 'label']),
+      };
+    })
+    .filter((item): item is BlockDiagramEdge => Boolean(item));
+}
+
+function structureRevealPlan(value: unknown): Array<{ id: string; targetIds: string[]; label: string }> {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index) => {
+      const reveal = asRecord(item);
+      const id = String(reveal.id ?? '').trim();
+      if (!id) return null;
+      return {
+        id,
+        targetIds: asStringArray(reveal.targetIds ?? reveal.target_ids ?? reveal.targets),
+        label: stringFromFields(reveal, ['label', 'title'], `显影 ${index + 1}`),
+      };
+    })
+    .filter((item): item is { id: string; targetIds: string[]; label: string } => Boolean(item));
+}
+
+function signalFlowPayload(module: InteractiveRuntimeModuleManifest): SignalFlowPayload {
+  const payload = module.payload;
+  const interaction = asRecord(payload.interactions ?? payload.interaction);
+  const pathSets = asRecord(payload.pathSets ?? payload.path_sets);
+  return {
+    graphId: String(payload.graphId ?? payload.graph_id ?? module.id),
+    mode: visualStageString(interaction.mode ?? payload.mode, 'read'),
+    activeRevealState: visualStageString(payload.activeRevealState ?? payload.active_reveal_state, 'all'),
+    nodes: signalFlowNodes(payload.nodes),
+    branches: signalFlowBranches(payload.branches),
+    forwardPaths: signalFlowPathSets(pathSets.forwardPaths ?? pathSets.forward_paths, 'forward-path', '前向路径'),
+    loops: signalFlowPathSets(pathSets.loops, 'feedback-loop', '反馈环路'),
+    nonTouchingLoopGroups: signalFlowLoopGroups(pathSets.nonTouchingLoopGroups ?? pathSets.non_touching_loop_groups),
+    revealPlan: signalFlowRevealPlan(payload.revealPlan ?? payload.reveal_plan),
+    masonTerms: masonTerms(payload.masonTerms ?? payload.mason_terms),
+  };
+}
+
+function signalFlowNodes(value: unknown): SignalFlowNode[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item): SignalFlowNode | null => {
+      const node = asRecord(item);
+      const id = String(node.id ?? '').trim();
+      if (!id) return null;
+      return {
+        id,
+        labelLatex: stringFromFields(node, ['labelLatex', 'label_latex', 'label'], id),
+        position: structurePoint(node.position),
+      };
+    })
+    .filter((item): item is SignalFlowNode => Boolean(item));
+}
+
+function signalFlowBranches(value: unknown): SignalFlowBranch[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item): SignalFlowBranch | null => {
+      const branch = asRecord(item);
+      const id = String(branch.id ?? '').trim();
+      const from = String(branch.from ?? branch.fromId ?? branch.from_id ?? '').trim();
+      const to = String(branch.to ?? branch.toId ?? branch.to_id ?? '').trim();
+      if (!id || !from || !to) return null;
+      return {
+        id,
+        from,
+        to,
+        gainLatex: stringFromFields(branch, ['gainLatex', 'gain_latex', 'labelLatex', 'label_latex'], '1'),
+      };
+    })
+    .filter((item): item is SignalFlowBranch => Boolean(item));
+}
+
+function signalFlowRevealPlan(value: unknown): Array<{ id: string; targetIds: string[]; emphasis: string; label: string }> {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index) => {
+      const reveal = asRecord(item);
+      const id = String(reveal.id ?? '').trim();
+      if (!id) return null;
+      return {
+        id,
+        targetIds: asStringArray(reveal.targetIds ?? reveal.target_ids ?? reveal.targets),
+        emphasis: stringFromFields(reveal, ['emphasis'], 'path'),
+        label: stringFromFields(reveal, ['label', 'title'], `路径 ${index + 1}`),
+      };
+    })
+    .filter((item): item is { id: string; targetIds: string[]; emphasis: string; label: string } => Boolean(item));
+}
+
+function masonTerms(value: unknown): Array<{ id: string; latex: string; relatedIds: string[] }> {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item): { id: string; latex: string; relatedIds: string[] } | null => {
+      const term = asRecord(item);
+      const id = String(term.id ?? '').trim();
+      if (!id) return null;
+      return {
+        id,
+        latex: stringFromFields(term, ['latex', 'labelLatex', 'label_latex'], id),
+        relatedIds: asStringArray(
+          term.relatedIds
+            ?? term.related_ids
+            ?? term.pathIds
+            ?? term.path_ids
+            ?? term.loopIds
+            ?? term.loop_ids
+            ?? term.branchIds
+            ?? term.branch_ids,
+        ),
+      };
+    })
+    .filter((item): item is { id: string; latex: string; relatedIds: string[] } => Boolean(item));
+}
+
+function signalFlowPathSets(value: unknown, idPrefix: string, labelPrefix: string): SignalFlowPathSet[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index): SignalFlowPathSet | null => {
+      if (Array.isArray(item)) {
+        const branchIds = asStringArray(item);
+        if (!branchIds.length) return null;
+        return { id: `${idPrefix}-${index + 1}`, label: `${labelPrefix} ${index + 1}`, branchIds };
+      }
+      const path = asRecord(item);
+      const id = String(path.id ?? '').trim() || `${idPrefix}-${index + 1}`;
+      const branchIds = asStringArray(path.branchIds ?? path.branch_ids ?? path.branches);
+      if (!branchIds.length) return null;
+      return {
+        id,
+        label: stringFromFields(path, ['label', 'title'], `${labelPrefix} ${index + 1}`),
+        branchIds,
+      };
+    })
+    .filter((item): item is SignalFlowPathSet => Boolean(item));
+}
+
+function signalFlowLoopGroups(value: unknown): SignalFlowLoopGroup[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item, index): SignalFlowLoopGroup | null => {
+      if (Array.isArray(item)) {
+        const loopIds = item
+          .filter((loop): loop is unknown[] => Array.isArray(loop))
+          .map((_loop, loopIndex) => `feedback-loop-${loopIndex + 1}`);
+        if (!loopIds.length) return null;
+        return { id: `non-touching-loop-group-${index + 1}`, label: `不接触回路组 ${index + 1}`, loopIds };
+      }
+      const group = asRecord(item);
+      const loopIds = asStringArray(group.loopIds ?? group.loop_ids ?? group.loops);
+      if (!loopIds.length) return null;
+      return {
+        id: String(group.id ?? '').trim() || `non-touching-loop-group-${index + 1}`,
+        label: stringFromFields(group, ['label', 'title'], `不接触回路组 ${index + 1}`),
+        loopIds,
+      };
+    })
+    .filter((item): item is SignalFlowLoopGroup => Boolean(item));
+}
+
+function visibleStructureTargets(activeRevealState: string, revealPlan: Array<{ id: string; targetIds: string[] }>) {
+  if (activeRevealState === 'all' || revealPlan.length === 0) return new Set<string>();
+  const activeIndex = revealPlan.findIndex((item) => item.id === activeRevealState);
+  const visible = activeIndex >= 0 ? revealPlan.slice(0, activeIndex + 1) : revealPlan.slice(0, 1);
+  return new Set(visible.flatMap((item) => item.targetIds));
+}
+
+function structureEvidenceTheme(): 'light' | 'dark' {
+  if (typeof document === 'undefined') return 'light';
+  return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+}
+
+function structureEvidenceViewport(): 'mobile' | 'desktop' | 'projection' {
+  if (typeof window === 'undefined') return 'desktop';
+  if (window.innerWidth >= 1800) return 'projection';
+  return window.innerWidth < 768 ? 'mobile' : 'desktop';
+}
+
+function blockDiagramTeachingLabels(graph: BlockDiagramPayload) {
+  return Object.fromEntries([
+    ...graph.nodes.map((node) => [node.id, node.label] as const),
+    ...graph.edges.map((edge) => [edge.id, edge.label || edge.id] as const),
+    ...graph.revealPlan.map((item) => [item.id, item.label] as const),
+  ]);
+}
+
+function signalFlowTeachingLabels(graph: SignalFlowPayload) {
+  return Object.fromEntries([
+    ...graph.nodes.map((node) => [node.id, node.labelLatex] as const),
+    ...graph.branches.map((branch) => [branch.id, branch.gainLatex] as const),
+    ...graph.forwardPaths.map((path) => [path.id, path.label] as const),
+    ...graph.loops.map((loop) => [loop.id, loop.label] as const),
+    ...graph.nonTouchingLoopGroups.map((group) => [group.id, group.label] as const),
+    ...graph.revealPlan.map((item) => [item.id, item.label] as const),
+    ...graph.masonTerms.map((term) => [term.id, term.latex] as const),
+  ]);
+}
+
+type StructureDiagramPanelProps = {
+  manifest: InteractiveRuntimeManifest;
+  step: InteractiveRuntimeStepManifest;
+  module: InteractiveRuntimeModuleManifest;
+  onPanelSubmit?: (response: ManifestComputePanelSubmission) => void;
+};
+
+function structurePointForId(nodes: Array<{ id: string; position: StructureDiagramPoint }>, id: string) {
+  return nodes.find((node) => node.id === id)?.position ?? { x: 0.5, y: 0.5 };
 }
 
 function textFieldsFromPayload(payload: ContentRecord, fields: string[]) {
@@ -2015,6 +2350,357 @@ function DerivationStagePanel({
   );
 }
 
+function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureDiagramPanelProps) {
+  const graph = blockDiagramPayload(module);
+  const visibleTargets = visibleStructureTargets(graph.activeRevealState, graph.revealPlan);
+  const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
+  const highlighted = (id: string) => visibleTargets.size === 0 || visibleTargets.has(id);
+  const submitCurrent = () => {
+    if (!onPanelSubmit) return;
+    const submittedAt = Date.now();
+    const selectedReveal = graph.revealPlan.find((item) => item.id === selectedTargetId);
+    const draft = buildStructureDiagramClientEvidenceDraft({
+      eventType: 'graph_submit',
+      clientEventId: `${step.id}:${module.id}:${graph.graphId}:${submittedAt}`,
+      attemptKey: `${step.id}:${module.id}:${graph.graphId}:${submittedAt}`,
+      lessonKey: manifest.lessonId,
+      stepId: step.id,
+      moduleId: module.id,
+      componentKind: 'visual.blockDiagram',
+      componentId: graph.graphId,
+      actorRole: 'student',
+      clientEventAt: new Date(submittedAt).toISOString(),
+      theme: structureEvidenceTheme(),
+      viewport: structureEvidenceViewport(),
+      graphId: graph.graphId,
+      activeRevealState: graph.activeRevealState,
+      selectedNodeIds: graph.nodes.some((node) => node.id === selectedTargetId) && selectedTargetId ? [selectedTargetId] : [],
+      selectedPathIds: selectedReveal && selectedReveal.id.includes('path') ? [selectedReveal.id] : [],
+      selectedLoopIds: selectedReveal && selectedReveal.id.includes('loop') ? [selectedReveal.id] : [],
+      constructedPositions: graph.nodes.map((node) => ({ nodeId: node.id, x: node.position.x, y: node.position.y })),
+      constructedConnections: graph.edges.map((edge) => ({ from: edge.from, to: edge.to, branchId: edge.id, gainLabel: edge.label })),
+      connectionDifferences: [],
+      teachingLabels: blockDiagramTeachingLabels(graph),
+    });
+    onPanelSubmit({
+      stepId: step.id,
+      submittedAt,
+      answers: {
+        [module.id]: JSON.stringify(draft),
+      },
+    });
+  };
+  return (
+    <section
+      className="premium-lesson-panel grid gap-4"
+      data-structure-diagram-kind="visual.blockDiagram"
+      data-structure-diagram-id={graph.graphId}
+      data-structure-diagram-mode={graph.mode}
+      data-structure-diagram-active-reveal={graph.activeRevealState}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <ManifestContentTitle>{titleFromModule(module)}</ManifestContentTitle>
+          <p className="premium-lesson-muted text-sm leading-6">用结构节点、信号线和反馈回路表达控制系统关系。</p>
+        </div>
+        <span className="premium-lesson-badge">{graph.mode}</span>
+      </div>
+      <div
+        className="relative min-h-[420px] overflow-hidden rounded-2xl border border-[var(--platform-border)] bg-[var(--platform-surface)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)] md:aspect-video md:min-h-0"
+        tabIndex={0}
+        role="group"
+        aria-label={`${graph.graphId} 方框图`}
+        data-structure-diagram-canvas="normalized"
+      >
+        <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" data-structure-diagram-svg="block">
+          <defs>
+            <marker id={`${graph.graphId}-arrow`} markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="hsl(var(--platform-accent))" />
+            </marker>
+          </defs>
+          {graph.edges.map((edge) => {
+            const from = structurePointForId(graph.nodes, edge.from);
+            const to = structurePointForId(graph.nodes, edge.to);
+            return (
+              <g key={edge.id} data-structure-diagram-edge-id={edge.id} data-structure-diagram-edge-highlighted={highlighted(edge.id) ? 'true' : 'false'}>
+                <line
+                  x1={from.x * 100}
+                  y1={from.y * 100}
+                  x2={to.x * 100}
+                  y2={to.y * 100}
+                  stroke={highlighted(edge.id) ? 'hsl(var(--platform-accent))' : 'hsl(var(--platform-border))'}
+                  strokeWidth={highlighted(edge.id) ? 0.9 : 0.45}
+                  markerEnd={`url(#${graph.graphId}-arrow)`}
+                />
+                {edge.label ? (
+                  <text x={(from.x + to.x) * 50} y={(from.y + to.y) * 50 - 3} textAnchor="middle" className="fill-[var(--platform-text-secondary)] text-[4.5px] font-semibold">
+                    {edge.label}
+                  </text>
+                ) : null}
+              </g>
+            );
+          })}
+        </svg>
+        {graph.nodes.map((node) => (
+          <button
+            type="button"
+            key={node.id}
+            className={[
+              'absolute grid place-items-center border text-center shadow-[var(--platform-shadow-xs)] outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]',
+              node.type === 'sum' || node.type === 'branch' ? 'rounded-full' : 'rounded-xl',
+              highlighted(node.id) || selectedTargetId === node.id ? 'border-platform-accent bg-platform-accent/10' : 'border-platform-border bg-platform-panel',
+            ].join(' ')}
+            style={{
+              left: `${(node.position.x - node.size.width / 2) * 100}%`,
+              top: `${(node.position.y - node.size.height / 2) * 100}%`,
+              width: `${node.size.width * 100}%`,
+              height: `${node.size.height * 100}%`,
+            }}
+            data-structure-diagram-node-id={node.id}
+            data-structure-diagram-node-type={node.type}
+            data-structure-diagram-node-highlighted={highlighted(node.id) ? 'true' : 'false'}
+            data-structure-diagram-node-selected={selectedTargetId === node.id ? 'true' : 'false'}
+            onClick={() => setSelectedTargetId(node.id)}
+          >
+            {node.label.includes('\\') ? <InlineMath math={normalizeMath(node.label)} /> : <span className="premium-lesson-title text-sm">{node.label}</span>}
+          </button>
+        ))}
+        {graph.edges.map((edge) => {
+          const from = structurePointForId(graph.nodes, edge.from);
+          const to = structurePointForId(graph.nodes, edge.to);
+          return (
+            <button
+              key={`${edge.id}-target`}
+              type="button"
+              className="absolute h-9 min-w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border border-transparent bg-transparent outline-none focus-visible:border-platform-accent focus-visible:bg-platform-accent/15 focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
+              style={{ left: `${(from.x + to.x) * 50}%`, top: `${(from.y + to.y) * 50}%` }}
+              aria-label={`选择支路 ${edge.label || edge.id}`}
+              data-structure-diagram-edge-select-id={edge.id}
+              data-structure-diagram-edge-selected={selectedTargetId === edge.id ? 'true' : 'false'}
+              onClick={() => setSelectedTargetId(edge.id)}
+            />
+          );
+        })}
+      </div>
+      <div className="grid gap-2 md:grid-cols-3" data-structure-diagram-reveal-plan="visible">
+        {graph.revealPlan.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className="premium-lesson-card text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
+            data-structure-diagram-reveal-id={item.id}
+            data-structure-diagram-reveal-selected={selectedTargetId === item.id ? 'true' : 'false'}
+            onClick={() => setSelectedTargetId(item.id)}
+          >
+            <p className="premium-lesson-caption">{item.id}</p>
+            <p className="premium-lesson-title text-sm">{item.label}</p>
+          </button>
+        ))}
+      </div>
+      <button
+        type="button"
+        className="premium-lesson-action-tone premium-tone-cyan justify-self-start"
+        data-structure-diagram-submit={graph.graphId}
+        onClick={submitCurrent}
+        disabled={!onPanelSubmit}
+      >
+        提交结构图证据
+      </button>
+    </section>
+  );
+}
+
+function SignalFlowGraphPanel({ manifest, step, module, onPanelSubmit }: StructureDiagramPanelProps) {
+  const graph = signalFlowPayload(module);
+  const visibleTargets = visibleStructureTargets(graph.activeRevealState, graph.revealPlan);
+  const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
+  const highlighted = (id: string) => visibleTargets.size === 0 || visibleTargets.has(id);
+  const submitCurrent = () => {
+    if (!onPanelSubmit) return;
+    const submittedAt = Date.now();
+    const draft = buildStructureDiagramClientEvidenceDraft({
+      eventType: 'graph_submit',
+      clientEventId: `${step.id}:${module.id}:${graph.graphId}:${submittedAt}`,
+      attemptKey: `${step.id}:${module.id}:${graph.graphId}:${submittedAt}`,
+      lessonKey: manifest.lessonId,
+      stepId: step.id,
+      moduleId: module.id,
+      componentKind: 'visual.signalFlowGraph',
+      componentId: graph.graphId,
+      actorRole: 'student',
+      clientEventAt: new Date(submittedAt).toISOString(),
+      theme: structureEvidenceTheme(),
+      viewport: structureEvidenceViewport(),
+      graphId: graph.graphId,
+      activeRevealState: graph.activeRevealState,
+      selectedNodeIds: graph.nodes.some((node) => node.id === selectedTargetId) && selectedTargetId ? [selectedTargetId] : [],
+      selectedPathIds: graph.forwardPaths.some((path) => path.id === selectedTargetId) && selectedTargetId ? [selectedTargetId] : [],
+      selectedLoopIds: graph.loops.some((loop) => loop.id === selectedTargetId) && selectedTargetId ? [selectedTargetId] : [],
+      constructedPositions: graph.nodes.map((node) => ({ nodeId: node.id, x: node.position.x, y: node.position.y })),
+      constructedConnections: graph.branches.map((branch) => ({ from: branch.from, to: branch.to, branchId: branch.id, gainLabel: branch.gainLatex })),
+      connectionDifferences: [],
+      teachingLabels: signalFlowTeachingLabels(graph),
+    });
+    onPanelSubmit({
+      stepId: step.id,
+      submittedAt,
+      answers: {
+        [module.id]: JSON.stringify(draft),
+      },
+    });
+  };
+  return (
+    <section
+      className="premium-lesson-panel grid gap-4"
+      data-structure-diagram-kind="visual.signalFlowGraph"
+      data-structure-diagram-id={graph.graphId}
+      data-structure-diagram-mode={graph.mode}
+      data-structure-diagram-active-reveal={graph.activeRevealState}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <ManifestContentTitle>{titleFromModule(module)}</ManifestContentTitle>
+          <p className="premium-lesson-muted text-sm leading-6">把 Mason 公式中的路径与回路直接映射到图中支路。</p>
+        </div>
+        <span className="premium-lesson-badge">Mason 映射</span>
+      </div>
+      <div
+        className="relative min-h-[420px] overflow-hidden rounded-2xl border border-[var(--platform-border)] bg-[var(--platform-surface)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)] md:aspect-video md:min-h-0"
+        tabIndex={0}
+        role="group"
+        aria-label={`${graph.graphId} 信号流图`}
+        data-structure-diagram-canvas="normalized"
+      >
+        <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" data-structure-diagram-svg="signal-flow">
+          <defs>
+            <marker id={`${graph.graphId}-branch-arrow`} markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 z" fill="hsl(var(--platform-accent))" />
+            </marker>
+          </defs>
+          {graph.branches.map((branch) => {
+            const from = structurePointForId(graph.nodes, branch.from);
+            const to = structurePointForId(graph.nodes, branch.to);
+            return (
+              <g key={branch.id} data-structure-diagram-branch-id={branch.id} data-structure-diagram-branch-highlighted={highlighted(branch.id) ? 'true' : 'false'}>
+                <line
+                  x1={from.x * 100}
+                  y1={from.y * 100}
+                  x2={to.x * 100}
+                  y2={to.y * 100}
+                  stroke={highlighted(branch.id) ? 'hsl(var(--platform-accent))' : 'hsl(var(--platform-border))'}
+                  strokeWidth={highlighted(branch.id) ? 0.9 : 0.45}
+                  markerEnd={`url(#${graph.graphId}-branch-arrow)`}
+                />
+                <text x={(from.x + to.x) * 50} y={(from.y + to.y) * 50 - 3} textAnchor="middle" className="fill-[var(--platform-text-secondary)] text-[4.5px] font-semibold">
+                  {branch.gainLatex}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+        {graph.nodes.map((node) => (
+          <button
+            type="button"
+            key={node.id}
+            className="absolute grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-platform-accent bg-platform-panel shadow-[var(--platform-shadow-xs)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)] md:h-14 md:w-14"
+            style={{ left: `${node.position.x * 100}%`, top: `${node.position.y * 100}%` }}
+            data-structure-diagram-node-id={node.id}
+            data-structure-diagram-node-selected={selectedTargetId === node.id ? 'true' : 'false'}
+            onClick={() => setSelectedTargetId(node.id)}
+          >
+            <InlineMath math={normalizeMath(node.labelLatex)} />
+          </button>
+        ))}
+        {graph.branches.map((branch) => {
+          const from = structurePointForId(graph.nodes, branch.from);
+          const to = structurePointForId(graph.nodes, branch.to);
+          return (
+            <button
+              key={`${branch.id}-target`}
+              type="button"
+              className="absolute h-9 min-w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border border-transparent bg-transparent outline-none focus-visible:border-platform-accent focus-visible:bg-platform-accent/15 focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
+              style={{ left: `${(from.x + to.x) * 50}%`, top: `${(from.y + to.y) * 50}%` }}
+              aria-label={`选择支路 ${branch.gainLatex}`}
+              data-structure-diagram-branch-select-id={branch.id}
+              data-structure-diagram-branch-selected={selectedTargetId === branch.id ? 'true' : 'false'}
+              onClick={() => setSelectedTargetId(branch.id)}
+            />
+          );
+        })}
+      </div>
+      <div className="grid gap-2 md:grid-cols-3" data-structure-diagram-path-sets="visible">
+        {graph.forwardPaths.map((path) => (
+          <button
+            key={path.id}
+            type="button"
+            className="premium-lesson-card text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
+            data-structure-diagram-forward-path={path.branchIds.join(' ')}
+            data-structure-diagram-path-id={path.id}
+            data-structure-diagram-path-selected={selectedTargetId === path.id ? 'true' : 'false'}
+            onClick={() => setSelectedTargetId(path.id)}
+          >
+            <span className="premium-lesson-caption">{path.id}</span>
+            <span className="premium-lesson-title block text-sm">{path.label}</span>
+          </button>
+        ))}
+        {graph.loops.map((loop) => (
+          <button
+            key={loop.id}
+            type="button"
+            className="premium-lesson-card text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
+            data-structure-diagram-loop={loop.branchIds.join(' ')}
+            data-structure-diagram-loop-id={loop.id}
+            data-structure-diagram-loop-selected={selectedTargetId === loop.id ? 'true' : 'false'}
+            onClick={() => setSelectedTargetId(loop.id)}
+          >
+            <span className="premium-lesson-caption">{loop.id}</span>
+            <span className="premium-lesson-title block text-sm">{loop.label}</span>
+          </button>
+        ))}
+        {graph.nonTouchingLoopGroups.map((group) => (
+          <button
+            key={group.id}
+            type="button"
+            className="premium-lesson-card text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
+            data-structure-diagram-non-touching-loop-group={group.loopIds.join(' ')}
+            data-structure-diagram-loop-group-id={group.id}
+            data-structure-diagram-loop-group-selected={selectedTargetId === group.id ? 'true' : 'false'}
+            onClick={() => setSelectedTargetId(group.id)}
+          >
+            <span className="premium-lesson-caption">{group.id}</span>
+            <span className="premium-lesson-title block text-sm">{group.label}</span>
+          </button>
+        ))}
+      </div>
+      <div className="grid gap-2 md:grid-cols-3" data-structure-diagram-mason-map="visible">
+        {graph.masonTerms.map((term) => (
+          <button
+            key={term.id}
+            type="button"
+            className="premium-lesson-card text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
+            data-structure-diagram-mason-term-id={term.id}
+            data-structure-diagram-related-ids={term.relatedIds.join(' ')}
+            data-structure-diagram-mason-term-selected={selectedTargetId === term.id ? 'true' : 'false'}
+            onClick={() => setSelectedTargetId(term.id)}
+          >
+            <p className="premium-lesson-caption">{term.relatedIds.join(' + ')}</p>
+            <BlockMath math={normalizeMath(term.latex)} />
+          </button>
+        ))}
+      </div>
+      <button
+        type="button"
+        className="premium-lesson-action-tone premium-tone-cyan justify-self-start"
+        data-structure-diagram-submit={graph.graphId}
+        onClick={submitCurrent}
+        disabled={!onPanelSubmit}
+      >
+        提交结构图证据
+      </button>
+    </section>
+  );
+}
+
 export function ManifestCodeBlock({
   title,
   code,
@@ -2512,6 +3198,8 @@ export function createManifestContentModuleRegistry(extra: {
     },
     'visual.stage': ({ module }) => <VisualStagePanel module={module} />,
     'visual.derivationStage': ({ module }) => <DerivationStagePanel module={module} />,
+    'visual.blockDiagram': ({ manifest, step, module }) => <BlockDiagramPanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} />,
+    'visual.signalFlowGraph': ({ manifest, step, module }) => <SignalFlowGraphPanel manifest={manifest} step={step} module={module} onPanelSubmit={extra.onPanelSubmit} />,
     'compute.panel': ({ manifest, step, module }) => {
       if (computeCapabilityRef(module.payload) === 'static-surface-3d') {
         return <StaticSurface3DPanel {...staticSurfacePanelProps(manifest, step, module)} />;
