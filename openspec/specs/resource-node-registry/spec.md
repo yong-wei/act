@@ -13,17 +13,22 @@ The system SHALL provide ResourceNode contracts and a registry builder that repr
 - **AND** the builder SHALL NOT invent a render or launch target when the source record does not provide a verified target.
 
 ### Requirement: ResourceNode metadata follows source-of-record ownership
-The system SHALL keep planning metadata separate from records that own renderable content and teacher-editable resource metadata.
+The system SHALL keep planning metadata, semantic resource mappings, and projection status separate from records that own renderable content and teacher-editable resource metadata.
 
-#### Scenario: Runtime lesson media is mapped
-- **WHEN** authored video, audio, handout, or media index content is mapped
-- **THEN** ResourceNode SHALL store planning metadata and a `sourceKind`/`sourceRef` pointer
-- **AND** runtime lesson media SHALL remain the authored source until promoted into managed TeachingResource metadata.
+#### Scenario: Unified resource semantics are mapped
+- **WHEN** a runtime lesson, TeachingResource, knowledge card, media asset, simulation, Arena task, grading artifact, or external resource is mapped into unified resource semantics
+- **THEN** the semantic layer SHALL store stable identity, source references, content hash where available, knowledge mapping, ability mapping, citation target references, projection status, and governance metadata
+- **AND** the original source record SHALL remain the source of record for raw content, renderable payload, teacher-editable catalog fields, hidden evaluation internals, and raw learner submissions.
 
-#### Scenario: TeachingResource and runtime source overlap
-- **WHEN** the same asset has both a TeachingResource record and a runtime lesson media reference
-- **THEN** teacher-editable catalog metadata SHALL be owned by TeachingResource
-- **AND** ResourceNode SHALL link to both references without copying raw content or claiming duplicate ownership.
+#### Scenario: Planning unit is path eligible
+- **WHEN** a PlanningUnit is considered for adaptive path generation
+- **THEN** it SHALL be represented through an audited ResourceNode or generated checkpoint contract before it can become a PathNode
+- **AND** ResourceNode audit, eligibility, launch target, privacy policy, evidence instrumentation, readiness metadata, and path semantics SHALL remain authoritative.
+
+#### Scenario: Retrieval chunk is indexed
+- **WHEN** a ResourceSegment produces a RetrievalChunk
+- **THEN** the chunk SHALL reference the ResourceSegment and CitationTarget
+- **AND** the chunk SHALL NOT become a path-plannable node unless a separate PlanningUnit and ResourceNode audit exist.
 
 ### Requirement: ResourceNode graph supports planning constraints
 The system SHALL expose graph edges and metadata needed by downstream adaptive path planning.
