@@ -2026,6 +2026,58 @@ describe('learning path round API routes', () => {
     expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
   });
 
+  it('rejects summary-only legacy external resource options without governed metadata', async () => {
+    mocks.prisma.learningPath.findUnique.mockResolvedValue({
+      id: 'path-1',
+      userId: 'student-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      pathStatus: 'active',
+      currentNodeId: 'node-1',
+      nodeIds: ['node-1'],
+      pathPayload: {
+        mainPathNodeIds: ['node-1'],
+        planNodes: [{ nodeId: 'node-1', type: 'simulation', target: '/simulations/current' }],
+        policyBundle: {
+          status: 'ready',
+          paths: [
+            {
+              styleId: 'legacy-external-resource-option',
+              policyFamily: 'simulation-driven',
+              nodeIds: ['external-resource:legacy-paper'],
+              activeNodeIds: ['external-resource:legacy-paper'],
+              nodeSummaries: [
+                {
+                  nodeId: 'external-resource:legacy-paper',
+                  title: '旧路径外部资料',
+                  pathNodeType: 'external_resource',
+                  estimatedTimeMinutes: 10,
+                },
+              ],
+              resourceMix: { external_resource: 1 },
+              evidenceBasis: ['external-resource-access'],
+              limitations: [],
+            },
+          ],
+        },
+      },
+      learnerStateRef: 'diagnosis-snapshot:server-owned',
+      inputSnapshot: { diagnosisSnapshotRef: 'diagnosis-snapshot:input' },
+      terminalValidation: { nodeId: 'node-1', state: 'pending' },
+      lastExecutionMetadata: { completedNodeIds: [] },
+    });
+
+    const response = await choosePath(post('http://localhost/api/learning-paths/path-1/choices', {
+      action: 'selection',
+      selectedOptionId: 'path-option-1',
+      idempotencyKey: 'choice-legacy-external-resource-key',
+    }), params);
+
+    expect(response.status).toBe(409);
+    expect(mocks.recordPathChoiceEvidence).not.toHaveBeenCalled();
+    expect(mocks.prisma.learningPath.update).not.toHaveBeenCalled();
+  });
+
   it('rejects product option adoption when selected plan nodes are not executable', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1',

@@ -305,6 +305,7 @@ function buildPlanNodeFromOptionSummary(
 ): Record<string, unknown> | null {
   const inferredType = inferResourceTypeFromOptionNode(nodeId, nullableString(summary.pathNodeType));
   if (!inferredType) return null;
+  if (inferredType === 'external_resource') return null;
   return {
     nodeId,
     title: nullableString(summary.title) ?? nullableString(summary.displayName) ?? `学习节点 ${index + 1}`,
