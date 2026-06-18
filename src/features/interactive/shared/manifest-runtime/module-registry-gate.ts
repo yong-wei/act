@@ -42,6 +42,7 @@ export type InteractiveModuleRegistryGateViolationCode =
   | 'invalid-runtime-manifest'
   | 'lesson-missing-from-standard-module-inventory'
   | 'non-interactive-status-module'
+  | 'annotated-media-payload-invalid'
   | 'structure-diagram-payload-invalid'
   | 'derivation-stage-payload-invalid'
   | 'visual-stage-payload-invalid';
@@ -587,6 +588,21 @@ function evaluateRuntimeModule({
     }
   }
 
+  if (resolution.canonicalClass === 'visual.annotatedMedia' || resolution.canonicalClass === 'visual.embedded-activity') {
+    const missingFields = invalidAnnotatedMediaPayloadFields(resolution.canonicalClass, module);
+    if (missingFields.length) {
+      violations.push(violation({
+        lessonId,
+        manifestPath,
+        step,
+        module,
+        code: 'annotated-media-payload-invalid',
+        canonicalClass: resolution.canonicalClass,
+        message: `${lessonId} ${step.id} ${module.id} ${resolution.canonicalClass} payload is invalid: ${missingFields.join(', ')}.`,
+      }));
+    }
+  }
+
   if (definition.requiresCapabilityRef) {
     const capabilityRef = capabilityRefForModule(module);
     if (!capabilityRef) {
@@ -760,6 +776,7 @@ const DERIVATION_STAGE_LOAD_EXCEPTION_VALUES = new Set(['teacher-paced', 'worked
 const BLOCK_DIAGRAM_NODE_TYPES = new Set(['block', 'sum', 'branch', 'input', 'output', 'disturbance', 'sensor']);
 const STRUCTURE_DIAGRAM_INTERACTION_MODES = new Set(['read', 'highlight', 'construct', 'diagnose']);
 const SIGNAL_FLOW_REVEAL_EMPHASIS = new Set(['path', 'loop', 'formula', 'warning']);
+const ANNOTATED_MEDIA_EVIDENCE_ROLES = new Set(['input', 'output', 'structure', 'parameter', 'risk', 'result']);
 
 function normalizedStageNumber(value: unknown) {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1;
@@ -1215,6 +1232,121 @@ function invalidSignalFlowGraphPayloadFields(payload: Record<string, unknown>): 
   return missing;
 }
 
+function invalidAnnotatedMediaPayloadFields(
+  kind: InteractiveModuleCanonicalClass,
+  module: InteractiveRuntimeModuleManifest,
+): string[] {
+  const visibleTextIssues = invalidModuleVisibleTeachingTextFields(module);
+  const payloadIssues = kind === 'visual.annotatedMedia'
+    ? invalidAnnotatedMediaSurfacePayloadFields(module.payload)
+    : invalidEmbeddedActivityPayloadFields(module.payload);
+  return [...visibleTextIssues, ...payloadIssues];
+}
+
+function invalidModuleVisibleTeachingTextFields(module: InteractiveRuntimeModuleManifest): string[] {
+  const missing: string[] = [];
+  const label = module.id || '(module)';
+  validateVisibleTeachingText(label, 'module.title', stringValue(module.title), missing);
+  validateVisibleTeachingText(label, 'payload.title', stringValue(module.payload.title), missing);
+  validateVisibleTeachingText(label, 'payload.caption', stringValue(module.payload.caption), missing);
+  validateVisibleTeachingText(label, 'payload.fallback', stringValue(module.payload.fallback), missing);
+  validateVisibleTeachingText(label, 'payload.fallbackText', stringValue(module.payload.fallbackText ?? module.payload.fallback_text), missing);
+  return missing;
+}
+
+function invalidAnnotatedMediaSurfacePayloadFields(payload: Record<string, unknown>): string[] {
+  const missing: string[] = [];
+  const media = recordValue(payload.media);
+  const mediaId = stringValue(payload.mediaId ?? payload.media_id ?? payload.id) ?? '(missing)';
+  const src = stringValue(media.src ?? media.url ?? media.path);
+  const alt = stringValue(media.alt ?? media.label);
+  if (!src) missing.push(`media=${mediaId}.media.src`);
+  if (!alt) missing.push(`media=${mediaId}.media.alt`);
+  validateVisibleTeachingText(mediaId, 'media.alt', alt, missing);
+
+  const annotations = Array.isArray(payload.annotations) ? payload.annotations : [];
+  const annotationIds = new Set<string>();
+  if (annotations.length === 0) missing.push(`media=${mediaId}.annotations`);
+  for (const [index, rawAnnotation] of annotations.entries()) {
+    const annotation = recordValue(rawAnnotation);
+    const id = stringValue(annotation.id);
+    const label = `${index}:${id ?? '(missing)'}`;
+    if (!id) {
+      missing.push(`media=${mediaId}.annotations[${label}].id`);
+    } else if (annotationIds.has(id)) {
+      missing.push(`media=${mediaId}.annotations[${label}].id:duplicate`);
+    } else {
+      annotationIds.add(id);
+    }
+    validateMediaRegion(mediaId, `annotations[${label}].region`, annotation.region, missing);
+    const annotationLabel = stringValue(annotation.label ?? annotation.title);
+    if (!annotationLabel) missing.push(`media=${mediaId}.annotations[${label}].label`);
+    validateVisibleTeachingText(mediaId, `annotations[${label}].label`, annotationLabel, missing);
+    validateVisibleTeachingText(mediaId, `annotations[${label}].body`, stringValue(annotation.body ?? annotation.description ?? annotation.note), missing);
+    const evidenceRole = stringValue(annotation.evidenceRole ?? annotation.evidence_role);
+    if (!evidenceRole || !ANNOTATED_MEDIA_EVIDENCE_ROLES.has(evidenceRole)) missing.push(`media=${mediaId}.annotations[${label}].evidenceRole`);
+  }
+
+  const interaction = recordValue(payload.interactions ?? payload.interaction);
+  const selectable = stringArrayValue(interaction.selectableAnnotations ?? interaction.selectable_annotations);
+  if (Boolean(interaction.requireEvidenceSelection ?? interaction.require_evidence_selection) && selectable.length === 0) {
+    missing.push(`media=${mediaId}.interactions.selectableAnnotations`);
+  }
+  for (const annotationId of selectable) {
+    if (!annotationIds.has(annotationId)) missing.push(`media=${mediaId}.interactions.selectableAnnotations:${annotationId}`);
+  }
+
+  const rawRevealPlan = payload.revealPlan ?? payload.reveal_plan;
+  const revealPlan: unknown[] = Array.isArray(rawRevealPlan) ? rawRevealPlan : [];
+  const revealIds = new Set<string>();
+  for (const [index, rawReveal] of revealPlan.entries()) {
+    const reveal = recordValue(rawReveal);
+    const id = stringValue(reveal.id);
+    const label = `${index}:${id ?? '(missing)'}`;
+    if (!id) {
+      missing.push(`media=${mediaId}.revealPlan[${label}].id`);
+    } else if (revealIds.has(id)) {
+      missing.push(`media=${mediaId}.revealPlan[${label}].id:duplicate`);
+    } else {
+      revealIds.add(id);
+    }
+    validateVisibleTeachingText(mediaId, `revealPlan[${label}].label`, stringValue(reveal.label ?? reveal.title), missing);
+    const annotationRefs = stringArrayValue(reveal.annotationIds ?? reveal.annotation_ids ?? reveal.targetIds ?? reveal.target_ids);
+    for (const annotationId of annotationRefs) {
+      if (!annotationIds.has(annotationId)) missing.push(`media=${mediaId}.revealPlan[${label}].annotationIds:${annotationId}`);
+    }
+  }
+  const activeRevealState = stringValue(payload.activeRevealState ?? payload.active_reveal_state);
+  if (activeRevealState && activeRevealState !== 'all' && !revealIds.has(activeRevealState)) {
+    missing.push(`media=${mediaId}.activeRevealState`);
+  }
+  return missing;
+}
+
+function invalidEmbeddedActivityPayloadFields(payload: Record<string, unknown>): string[] {
+  const missing: string[] = [];
+  const activityId = stringValue(payload.activityId ?? payload.activity_id ?? payload.id) ?? '(missing)';
+  if (!stringValue(payload.anchorId ?? payload.anchor_id)) missing.push(`activity=${activityId}.anchorId`);
+  if (!stringValue(payload.visualModuleId ?? payload.visual_module_id)) missing.push(`activity=${activityId}.visualModuleId`);
+  if (!stringValue(payload.responseContractId ?? payload.response_contract_id ?? payload.responseKind ?? payload.response_kind)) {
+    missing.push(`activity=${activityId}.responseContractId`);
+  }
+  const prompt = stringValue(payload.prompt ?? payload.question);
+  if (!prompt) missing.push(`activity=${activityId}.prompt`);
+  validateVisibleTeachingText(activityId, 'prompt', prompt, missing);
+  validatePoint(activityId, 'position', payload.position, missing);
+  const rawOptions = payload.answerOptions ?? payload.options;
+  const options: unknown[] = Array.isArray(rawOptions) ? rawOptions : [];
+  if (options.length === 0) missing.push(`activity=${activityId}.answerOptions`);
+  for (const [index, rawOption] of (options as unknown[]).entries()) {
+    const option = recordValue(rawOption);
+    const label = stringValue(option.label ?? option.title);
+    if (!label) missing.push(`activity=${activityId}.answerOptions[${index}].label`);
+    validateVisibleTeachingText(activityId, `answerOptions[${index}].label`, label, missing);
+  }
+  return missing;
+}
+
 function hasStaticImageOnlyPayload(payload: Record<string, unknown>) {
   return Boolean(payload.staticImageOnly ?? payload.static_image_only)
     || (Boolean(stringValue(payload.src ?? payload.image ?? payload.path)) && !Array.isArray(payload.nodes));
@@ -1229,6 +1361,26 @@ function validatePoint(graphLabel: string, path: string, rawPoint: unknown, miss
   const point = recordValue(rawPoint);
   if (!normalizedStageNumber(point.x)) missing.push(`graph=${graphLabel}.${path}.x`);
   if (!normalizedStageNumber(point.y)) missing.push(`graph=${graphLabel}.${path}.y`);
+}
+
+function validateMediaRegion(mediaId: string, path: string, rawRegion: unknown, missing: string[]) {
+  const region = recordValue(rawRegion);
+  const width = region.width ?? region.w;
+  const height = region.height ?? region.h;
+  if (!normalizedStageNumber(region.x)) missing.push(`media=${mediaId}.${path}.x`);
+  if (!normalizedStageNumber(region.y)) missing.push(`media=${mediaId}.${path}.y`);
+  if (!normalizedStageNumber(width) || Number(width) <= 0) missing.push(`media=${mediaId}.${path}.width`);
+  if (!normalizedStageNumber(height) || Number(height) <= 0) missing.push(`media=${mediaId}.${path}.height`);
+  if (Number(region.x) + Number(width) > 1) missing.push(`media=${mediaId}.${path}.right`);
+  if (Number(region.y) + Number(height) > 1) missing.push(`media=${mediaId}.${path}.bottom`);
+}
+
+function validateVisibleTeachingText(scope: string, path: string, value: string | undefined, missing: string[]) {
+  if (!value) return;
+  const text = value.trim();
+  if (/[/\\][\w.-]+/.test(text) || /\b(payload|renderer|module|visual\.|src|kind)\b/i.test(text) || /^[a-z0-9_-]+(\.[a-z0-9_-]+)+$/i.test(text)) {
+    missing.push(`text=${scope}.${path}:internal-leak`);
+  }
 }
 
 function structurePathSetItems(value: unknown, fallbackPrefix: string): Array<{ id: string; label: string; branchIds: string[] }> {
@@ -1500,6 +1652,8 @@ function collectResponseKindChecks(
     ...[
       stringValue(module.payload.responseKind),
       stringValue(module.payload.response_kind),
+      stringValue(module.payload.responseContractId),
+      stringValue(module.payload.response_contract_id),
     ]
       .filter((kind): kind is string => Boolean(kind))
       .map((raw) => ({ raw, source: 'module' as const })),

@@ -1,0 +1,16 @@
+{
+  "status": "pass",
+  "fixture": "artifacts/interactive-learning/annotated-media-activity-564/annotated-media-fixture.interactive-manifest.json",
+  "lessonId": "annotated-media-activity-fixture",
+  "components": [
+    "visual.annotatedMedia",
+    "visual.embedded-activity"
+  ],
+  "checks": {
+    "nativePayloads": true,
+    "hotspotsRecorded": true,
+    "embeddedActivityUsesResponseContract": true,
+    "visibleTextLeakGate": true,
+    "teacherDiagnosticsEvidence": true
+  }
+}

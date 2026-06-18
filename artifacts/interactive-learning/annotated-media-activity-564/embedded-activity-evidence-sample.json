@@ -1,0 +1,50 @@
+{
+  "eventType": "activity_answer",
+  "clientEventId": "client-annotated-media-564-activity-001",
+  "attemptKey": "step-05:student-a:attempt-1",
+  "sourceLogId": "trusted-annotated-media-log-564-activity-001",
+  "lessonKey": "annotated-media-activity-fixture",
+  "stepId": "step-05",
+  "moduleId": "embedded-activity",
+  "componentKind": "visual.embedded-activity",
+  "componentId": "media-choice",
+  "actorRole": "student",
+  "clientEventAt": "2026-06-18T01:00:00.000Z",
+  "schemaVersion": "annotated-media-evidence-v1",
+  "serverRecordedAt": "2026-06-18T01:00:01.000Z",
+  "classification": ["InteractionLog", "StudentStepResponse", "LearningFact"],
+  "affectsTeacherDiagnostics": true,
+  "affectsAbilitySnapshots": true,
+  "affectsRecommendationInputs": true,
+  "payload": {
+    "mediaId": "closed-loop-media",
+    "activeRevealState": "diagnostic-reveal",
+    "selectedAnnotationIds": ["input-hotspot", "output-hotspot"],
+    "omittedRequiredAnnotationIds": ["risk-hotspot"],
+    "evidenceRoles": {
+      "input-hotspot": "input",
+      "output-hotspot": "output",
+      "risk-hotspot": "risk"
+    },
+    "embeddedActivityAnchorId": "media-choice-anchor",
+    "answerPayload": {
+      "responseContractId": "choice.single",
+      "selectedAnswerId": "output-hotspot",
+      "visualModuleId": "annotated-media"
+    },
+    "teachingLabels": {
+      "input-hotspot": "输入信号",
+      "output-hotspot": "输出响应",
+      "risk-hotspot": "反馈风险",
+      "media-choice-anchor": "哪一个热点最能说明输出证据？"
+    },
+    "feedback": {
+      "misconceptionTagIds": ["missed-risk-hotspot"],
+      "studentFeedbackMode": "hint",
+      "teacherNextPrompt": "请学生补充遗漏的图上证据。",
+      "reviewAction": "review"
+    },
+    "classification": ["InteractionLog", "StudentStepResponse", "LearningFact"],
+    "serverRecordedAt": "2026-06-18T01:00:01.000Z"
+  }
+}

@@ -431,6 +431,143 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-structure-diagram-submit="closed-loop-signal-flow"');
   });
 
+  it('renders annotated media and embedded visual activity with shared submission hooks', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 1,
+      allowInlineReveal: true,
+      onPanelSubmit: () => undefined,
+    });
+    const manifest = manifestFixture({
+      modules: [
+        {
+          id: 'annotated-media',
+          kind: 'visual.annotatedMedia',
+          mustBeVisible: true,
+          payload: annotatedMediaPayloadFixture(),
+        },
+        {
+          id: 'embedded-activity',
+          kind: 'visual.embedded-activity',
+          mustBeVisible: true,
+          payload: embeddedActivityPayloadFixture(),
+        },
+      ],
+    });
+    const step = manifest.steps[0];
+    const result = evaluateInteractiveModuleRegistryGate({
+      manifests: [{ lessonId: 'fixture-lesson', manifest }],
+    });
+    const html = renderToStaticMarkup(createElement(ThemeProvider, null, createElement('div', null,
+      registry['visual.annotatedMedia']({
+        manifest,
+        step,
+        module: step.modules[0],
+        extra: { revealProgress: 1, allowInlineReveal: true, onPanelSubmit: () => undefined },
+      }) as ReactElement,
+      registry['visual.embedded-activity']({
+        manifest,
+        step,
+        module: step.modules[1],
+        extra: { revealProgress: 1, allowInlineReveal: true, onPanelSubmit: () => undefined },
+      }) as ReactElement,
+    )));
+
+    expect(result.passed).toBe(true);
+    expect(html).toContain('data-annotated-media-kind="visual.annotatedMedia"');
+    expect(html).toContain('data-annotated-media-annotation-id="input-hotspot"');
+    expect(html).toContain('data-annotated-media-evidence-role="input"');
+    expect(html).toContain('data-annotated-media-submit="closed-loop-media"');
+    expect(html).toContain('data-annotated-media-activity-anchor="media-choice-anchor"');
+    expect(html).toContain('aria-pressed="false"');
+    expect(html).toContain('data-embedded-activity-kind="visual.embedded-activity"');
+    expect(html).toContain('data-embedded-activity-response-contract="choice.single"');
+    expect(html).toContain('role="radiogroup"');
+    expect(html).toContain('role="radio"');
+    expect(html).toContain('data-embedded-activity-submit="media-choice"');
+  });
+
+  it('rejects annotated media without recorded hotspots and visible internal naming leaks', () => {
+    const missingHotspotResult = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'broken-annotated-media',
+              kind: 'visual.annotatedMedia',
+              mustBeVisible: true,
+              payload: {
+                ...annotatedMediaPayloadFixture(),
+                interactions: { requireEvidenceSelection: true, selectableAnnotations: [] },
+              },
+            },
+          }),
+        },
+      ],
+    });
+    const leakResult = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'leaky-embedded-activity',
+              kind: 'visual.embedded-activity',
+              mustBeVisible: true,
+              payload: {
+                ...embeddedActivityPayloadFixture(),
+                prompt: 'visual.embedded-activity payload renderer name',
+              },
+            },
+          }),
+        },
+      ],
+    });
+    const titleLeakResult = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'leaky-annotated-media-title',
+              kind: 'visual.annotatedMedia',
+              title: 'visual.annotatedMedia renderer payload title',
+              mustBeVisible: true,
+              payload: annotatedMediaPayloadFixture(),
+            },
+          }),
+        },
+      ],
+    });
+    const fallbackLeakResult = evaluateInteractiveModuleRegistryGate({
+      manifests: [
+        {
+          lessonId: 'fixture-lesson',
+          manifest: manifestFixture({
+            module: {
+              id: 'leaky-annotated-media-fallback',
+              kind: 'visual.annotatedMedia',
+              mustBeVisible: true,
+              payload: {
+                ...annotatedMediaPayloadFixture(),
+                fallback: 'visual.annotatedMedia renderer fallback',
+              },
+            },
+          }),
+        },
+      ],
+    });
+
+    expect(missingHotspotResult.passed).toBe(false);
+    expect(missingHotspotResult.violations[0]?.message).toContain('interactions.selectableAnnotations');
+    expect(leakResult.passed).toBe(false);
+    expect(leakResult.violations[0]?.message).toContain('prompt:internal-leak');
+    expect(titleLeakResult.passed).toBe(false);
+    expect(titleLeakResult.violations[0]?.message).toContain('module.title:internal-leak');
+    expect(fallbackLeakResult.passed).toBe(false);
+    expect(fallbackLeakResult.violations[0]?.message).toContain('payload.fallback:internal-leak');
+  });
+
   it('routes shared control workbench compute capabilities through the shared renderer', () => {
     const registry = createManifestContentModuleRegistry({
       revealProgress: 0,
@@ -2438,15 +2575,18 @@ describe('interactive module registry gate', () => {
 
 function manifestFixture({
   module,
+  modules,
   interactionKind = 'display',
   activityCards,
   submitFields,
 }: {
-  module: { id: string; kind: string; mustBeVisible: boolean; payload?: Record<string, unknown> };
+  module?: { id: string; kind: string; title?: string; mustBeVisible: boolean; payload?: Record<string, unknown> };
+  modules?: Array<{ id: string; kind: string; title?: string; mustBeVisible: boolean; payload?: Record<string, unknown> }>;
   interactionKind?: InteractiveRuntimeManifest['steps'][number]['interactionSpec']['interactionKind'];
   activityCards?: InteractiveRuntimeManifest['steps'][number]['interactionSpec']['activityCards'];
   submitFields?: InteractiveRuntimeManifest['steps'][number]['interactionSpec']['submitFields'];
 }): InteractiveRuntimeManifest {
+  const runtimeModules = modules ?? (module ? [module] : []);
   return {
     lessonId: 'fixture-lesson',
     courseTitle: 'Fixture Lesson',
@@ -2462,15 +2602,14 @@ function manifestFixture({
         id: 'step-01',
         title: 'Step 01',
         layout: { template: 'stacked_regions', regions: [{ id: 'main', width: 'full', order: 1 }] },
-        modules: [
-          {
-            id: module.id,
-            kind: module.kind,
-            region: 'main',
-            mustBeVisible: module.mustBeVisible,
-            payload: module.payload ?? {},
-          },
-        ],
+        modules: runtimeModules.map((runtimeModule) => ({
+          id: runtimeModule.id,
+          kind: runtimeModule.kind,
+          title: runtimeModule.title,
+          region: 'main',
+          mustBeVisible: runtimeModule.mustBeVisible,
+          payload: runtimeModule.payload ?? {},
+        })),
         contentBlocks: {},
         evidenceSequence: [],
         interactionSpec: {
@@ -2691,6 +2830,70 @@ function signalFlowGraphPayloadFixture(): Record<string, unknown> {
     ],
     masonTerms: [
       { id: 'delta-term', latex: '\\\\Delta=1+G(s)H(s)', relatedIds: ['forward-path-1', 'feedback-loop-1'] },
+    ],
+  };
+}
+
+function annotatedMediaPayloadFixture(): Record<string, unknown> {
+  return {
+    mediaId: 'closed-loop-media',
+    activeRevealState: 'evidence-reveal',
+    media: {
+      src: '/assets/lesson-05/structure-intro.svg',
+      alt: '闭环控制结构证据图',
+    },
+    annotations: [
+      {
+        id: 'input-hotspot',
+        region: { x: 0.08, y: 0.36, width: 0.18, height: 0.16 },
+        label: '输入信号',
+        body: '系统外部给定量。',
+        evidenceRole: 'input',
+        revealStepIds: ['evidence-reveal'],
+        required: true,
+      },
+      {
+        id: 'output-hotspot',
+        region: { x: 0.72, y: 0.36, width: 0.18, height: 0.16 },
+        label: '输出响应',
+        body: '系统被控结果。',
+        evidenceRole: 'output',
+        revealStepIds: ['evidence-reveal'],
+        required: true,
+      },
+      {
+        id: 'risk-hotspot',
+        region: { x: 0.48, y: 0.62, width: 0.2, height: 0.18 },
+        label: '反馈风险',
+        body: '反馈符号或测量环节可能引入误判。',
+        evidenceRole: 'risk',
+        revealStepIds: ['diagnostic-reveal'],
+        required: true,
+      },
+    ],
+    interactions: {
+      selectableAnnotations: ['input-hotspot', 'output-hotspot', 'risk-hotspot'],
+      requireEvidenceSelection: true,
+    },
+    revealPlan: [
+      { id: 'evidence-reveal', label: '证据热点', annotationIds: ['input-hotspot', 'output-hotspot'] },
+      { id: 'diagnostic-reveal', label: '风险热点', annotationIds: ['risk-hotspot'] },
+    ],
+  };
+}
+
+function embeddedActivityPayloadFixture(): Record<string, unknown> {
+  return {
+    activityId: 'media-choice',
+    anchorId: 'media-choice-anchor',
+    visualModuleId: 'annotated-media',
+    responseContractId: 'choice.single',
+    prompt: '哪一个热点最能说明输出证据？',
+    position: { x: 0.62, y: 0.32 },
+    answerOptions: [
+      { id: 'input-hotspot', label: '输入信号' },
+      { id: 'output-hotspot', label: '输出响应' },
+      { id: 'risk-hotspot', label: '反馈风险' },
     ],
   };
 }
