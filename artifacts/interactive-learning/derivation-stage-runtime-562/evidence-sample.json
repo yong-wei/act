@@ -1,0 +1,53 @@
+{
+  "eventType": "derivation_answer",
+  "clientEventId": "client-derivation-562-001",
+  "attemptKey": "step-03:student-a:attempt-1",
+  "sourceLogId": "trusted-derivation-log-562-001",
+  "lessonKey": "derivation-stage-runtime-fixture",
+  "stepId": "step-03",
+  "moduleId": "derivation-stage",
+  "componentKind": "visual.derivationStage",
+  "componentId": "nonlinear-derivation-stage",
+  "actorRole": "student",
+  "clientEventAt": "2026-06-18T00:00:00.000Z",
+  "theme": "light",
+  "viewport": "desktop",
+  "schemaVersion": "derivation-stage-evidence-v1",
+  "serverRecordedAt": "2026-06-18T00:00:01.000Z",
+  "payload": {
+    "theme": "light",
+    "viewport": "desktop",
+    "stageId": "nonlinear-derivation-stage",
+    "activeRevealStepId": "step-middle-block",
+    "maxRevealStepSeen": 3,
+    "visitedRevealStepIds": ["step-lower-left", "step-upper-right", "step-middle-block"],
+    "formulaBlockFocusEvents": [
+      {
+        "formulaBlockId": "cancel-term",
+        "revealStepId": "step-middle-block",
+        "focusedAt": "2026-06-18T00:00:00.200Z"
+      }
+    ],
+    "activeHighlightIds": ["cancel-term"],
+    "answersByRevealStep": [
+      {
+        "revealStepId": "step-middle-block",
+        "formulaBlockIds": ["cancel-term", "result-block"],
+        "answerText": "分母项决定闭环极点条件。",
+        "submittedAt": "2026-06-18T00:00:00.500Z",
+        "feedback": {
+          "misconceptionTagIds": ["missed-denominator"],
+          "studentFeedbackMode": "hint",
+          "teacherNextPrompt": "回到闭环分母。",
+          "reviewAction": "retry"
+        }
+      }
+    ],
+    "classification": ["InteractionLog", "StudentStepResponse", "LearningFact"],
+    "serverRecordedAt": "2026-06-18T00:00:01.000Z"
+  },
+  "classification": ["InteractionLog", "StudentStepResponse", "LearningFact"],
+  "affectsTeacherDiagnostics": true,
+  "affectsAbilitySnapshots": false,
+  "affectsRecommendationInputs": false
+}

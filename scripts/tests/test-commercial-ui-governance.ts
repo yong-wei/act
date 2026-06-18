@@ -532,6 +532,10 @@ const NON_PRIMARY_APP_PAGE_LEDGER_EXEMPTIONS = new Map<string, string>([
     'src/app/review/visual-stage-runtime-561/page.tsx',
     'issue 561 visual stage runtime is an internal visual acceptance surface launched from the review hub',
   ],
+  [
+    'src/app/review/derivation-stage-runtime-562/page.tsx',
+    'issue 562 derivation stage runtime is an internal visual acceptance surface launched from the review hub',
+  ],
 ]);
 
 function appPageRouteHref(file: string) {
@@ -591,6 +595,10 @@ function assertCoveredRouteGlobDoesNotHideStaticPages() {
   const issue561ReviewHref = appPageRouteHref('src/app/review/visual-stage-runtime-561/page.tsx');
   if (issue561ReviewHref !== undefined) {
     throw new Error('issue 561 review page must remain a non-primary route-ledger exception');
+  }
+  const issue562ReviewHref = appPageRouteHref('src/app/review/derivation-stage-runtime-562/page.tsx');
+  if (issue562ReviewHref !== undefined) {
+    throw new Error('issue 562 review page must remain a non-primary route-ledger exception');
   }
 }
 

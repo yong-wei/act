@@ -1,0 +1,20 @@
+{
+  "changeId": "add-interactive-derivation-stage",
+  "issue": 562,
+  "componentKind": "visual.derivationStage",
+  "fixture": "artifacts/interactive-learning/derivation-stage-runtime-562/derivation-stage-fixture.interactive-manifest.json",
+  "manifestFirst": true,
+  "checks": {
+    "registeredModuleKind": true,
+    "normalizedTwoDimensionalRegions": true,
+    "nonLinearRevealOrder": true,
+    "latexSourceRequired": true,
+    "formulaBlocks": true,
+    "semanticColorRoles": true,
+    "connectorRevealSteps": true,
+    "connectorEndpointsFromTargetRegions": true,
+    "teacherControls": ["next", "previous", "jump", "highlight", "answerReveal", "reset"],
+    "cognitiveLoadPolicy": true,
+    "responseEvidenceRevealContext": true
+  }
+}
