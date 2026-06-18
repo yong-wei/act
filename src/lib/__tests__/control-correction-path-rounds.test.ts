@@ -1401,6 +1401,182 @@ describe('control-correction path rounds', () => {
     }));
   });
 
+  it('advances to the next path node when a simple precheck completion satisfies competency readiness', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'registry:lesson09-correction-precheck',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'registry:lesson09-correction-precheck',
+          'simulation:control-correction-step-response-lab',
+        ],
+        planNodes: [
+          {
+            nodeId: 'registry:lesson09-correction-precheck',
+            status: 'current',
+          },
+          {
+            nodeId: 'simulation:control-correction-step-response-lab',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: '完成控制校正目标前测后进入仿真验证。',
+              unlockMessage: '完成控制校正目标前测后进入仿真验证。',
+              reasonCodes: [
+                'readiness-minimum-competency',
+                'readiness-minimum-evidence',
+                'readiness-required-completion',
+              ],
+              fallbackNodeIds: [
+                'registry:lesson09-correction-precheck',
+                'knowledge-card:control-correction-time-domain-targets',
+              ],
+              missingCompetencies: ['controlModeling', 'parameterDesign'],
+              missingEvidenceCount: 1,
+              missingCompletedNodeIds: ['registry:lesson09-correction-precheck'],
+              missingOutcomeRefs: [],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: [],
+        failedNodeIds: [],
+        availableEvidenceCount: 0,
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'registry:lesson09-correction-precheck',
+      resourceType: 'quiz',
+      status: 'completed',
+      completedAt: '2026-06-18T11:50:05.777Z',
+      idempotencyKey: 'path-resource-completion:path-1:registry:lesson09-correction-precheck:quiz',
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionSource: 'interactive-resource',
+        completionResult: { success: true, score: 100 },
+      },
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'simulation:control-correction-step-response-lab',
+        lastExecutionMetadata: expect.objectContaining({
+          completedNodeIds: ['registry:lesson09-correction-precheck'],
+          availableEvidenceCount: 1,
+        }),
+        pathPayload: expect.objectContaining({
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'registry:lesson09-correction-precheck',
+              status: 'completed',
+            }),
+            expect.objectContaining({
+              nodeId: 'simulation:control-correction-step-response-lab',
+              status: 'current',
+              readiness: expect.objectContaining({
+                state: 'ready',
+                missingCompetencies: [],
+                missingEvidenceCount: 0,
+                missingCompletedNodeIds: [],
+              }),
+            }),
+          ]),
+        }),
+      }),
+    }));
+  });
+
+  it('does not clear competency readiness for a simple completion without a passing result', async () => {
+    const db = mockDb();
+    const path = {
+      id: 'path-1',
+      pathStatus: 'active',
+      currentNodeId: 'registry:lesson09-correction-precheck',
+      terminalValidation: { nodeId: null, state: 'not-required' },
+      pathPayload: {
+        mainPathNodeIds: [
+          'registry:lesson09-correction-precheck',
+          'simulation:control-correction-step-response-lab',
+        ],
+        planNodes: [
+          {
+            nodeId: 'registry:lesson09-correction-precheck',
+            status: 'current',
+          },
+          {
+            nodeId: 'simulation:control-correction-step-response-lab',
+            status: 'locked',
+            readiness: {
+              state: 'locked',
+              message: '完成控制校正目标前测后进入仿真验证。',
+              unlockMessage: '完成控制校正目标前测后进入仿真验证。',
+              reasonCodes: [
+                'readiness-minimum-competency',
+                'readiness-minimum-evidence',
+                'readiness-required-completion',
+              ],
+              fallbackNodeIds: ['registry:lesson09-correction-precheck'],
+              missingCompetencies: ['controlModeling'],
+              missingEvidenceCount: 1,
+              missingCompletedNodeIds: ['registry:lesson09-correction-precheck'],
+              missingOutcomeRefs: [],
+            },
+          },
+        ],
+      },
+      lastExecutionMetadata: {
+        completedNodeIds: [],
+        failedNodeIds: [],
+        availableEvidenceCount: 0,
+      },
+    };
+
+    await updateControlCorrectionPathRoundAfterExecution(db, path, {
+      pathId: 'path-1',
+      userId: 'student-1',
+      nodeId: 'registry:lesson09-correction-precheck',
+      resourceType: 'quiz',
+      status: 'completed',
+      completedAt: '2026-06-18T11:50:05.777Z',
+      idempotencyKey: 'path-resource-completion:path-1:registry:lesson09-correction-precheck:quiz',
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionSource: 'interactive-resource',
+      },
+    });
+
+    expect(db.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        currentNodeId: 'registry:lesson09-correction-precheck',
+        lastExecutionMetadata: expect.objectContaining({
+          completedNodeIds: ['registry:lesson09-correction-precheck'],
+          availableEvidenceCount: 1,
+        }),
+        pathPayload: expect.objectContaining({
+          planNodes: expect.arrayContaining([
+            expect.objectContaining({
+              nodeId: 'simulation:control-correction-step-response-lab',
+              status: 'locked',
+              readiness: expect.objectContaining({
+                state: 'locked',
+                missingCompetencies: ['controlModeling'],
+                missingEvidenceCount: 0,
+                missingCompletedNodeIds: [],
+              }),
+            }),
+          ]),
+        }),
+      }),
+    }));
+  });
+
   it('does not double-count cumulative evidence when refreshing multi-evidence readiness', async () => {
     const db = mockDb();
     const path = {

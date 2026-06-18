@@ -68,9 +68,9 @@ describe('adaptive practice page entry states', () => {
     expect(source).toContain("const showPracticeWorkspace = workspaceIntent === 'practice'");
     expect(source).toContain("const showPresetGoalCards = false");
     expect(source).toContain("showSelectionWorkspace ? (");
-    expect(source).toContain("(showExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
-    expect(source).toContain("showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showEvidenceWorkspace");
-    expect(source).toContain("showPracticeWorkspace || showExecutionWorkspace ? (");
+    expect(source).toContain("(showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0");
+    expect(source).toContain("showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace");
+    expect(source).toContain("showPracticeWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (");
     expect(source).toContain("showSelectionWorkspace || showEvidenceWorkspace ? (");
     expect(source).toContain("pathChoiceMessage && (showGenerationWorkspace || showSelectionWorkspace)");
     expect(source).toContain("showEvidenceWorkspace ? (");

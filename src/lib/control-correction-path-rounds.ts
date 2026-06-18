@@ -578,6 +578,9 @@ export async function updateControlCorrectionPathRoundAfterExecution(
   const availableOutcomeRefs = new Set(arrayOfStrings(metadata.availableOutcomeRefs));
   const wasCompleted = completedNodeIds.has(input.nodeId);
   const evidenceReadinessDelta = input.status === 'completed' && !nonCompletionPathActivity && !wasCompleted ? 1 : 0;
+  const evidenceReadinessSourceNodeId = evidenceReadinessDelta > 0 ? input.nodeId : null;
+  const evidenceReadinessCanSatisfyCompetencies = evidenceReadinessDelta > 0 &&
+    isPassingPathCompletionResult(input.liftMetadata);
   const availableEvidenceCount = readNonNegativeNumber(metadata.availableEvidenceCount) + evidenceReadinessDelta;
   if (input.status === 'completed' && !nonCompletionPathActivity) completedNodeIds.add(input.nodeId);
   if (input.status === 'completed' && !nonCompletionPathActivity) {
@@ -591,6 +594,8 @@ export async function updateControlCorrectionPathRoundAfterExecution(
     null,
     availableOutcomeRefs,
     evidenceReadinessDelta,
+    evidenceReadinessSourceNodeId,
+    evidenceReadinessCanSatisfyCompetencies,
   );
   const nextNodeId = isHistoricalActivity && activityKind !== 'return-to-skipped'
     ? pathCurrentNodeId
@@ -991,13 +996,22 @@ function refreshPlanNodesForExecution(
   currentNodeId: string | null,
   availableOutcomeRefs: Set<string> = new Set(),
   evidenceReadinessDelta = 0,
+  evidenceReadinessSourceNodeId: string | null = null,
+  evidenceReadinessCanSatisfyCompetencies = false,
 ): Array<Record<string, unknown>> {
   if (!Array.isArray(planNodes)) return [];
   return planNodes.map((node) => {
     const record = toRecord(node);
     const nodeId = typeof record.nodeId === 'string' ? record.nodeId : null;
     if (!nodeId) return record;
-    const readiness = refreshReadinessRecord(toRecord(record.readiness), completedNodeIds, availableOutcomeRefs, evidenceReadinessDelta);
+    const readiness = refreshReadinessRecord(
+      toRecord(record.readiness),
+      completedNodeIds,
+      availableOutcomeRefs,
+      evidenceReadinessDelta,
+      evidenceReadinessSourceNodeId,
+      evidenceReadinessCanSatisfyCompetencies,
+    );
     const readinessState = typeof readiness.state === 'string' ? readiness.state : null;
     if (completedNodeIds.has(nodeId)) return { ...record, readiness, status: 'completed' };
     if (failedNodeIds.has(nodeId)) return { ...record, readiness, status: 'blocked' };
@@ -1017,17 +1031,28 @@ function refreshReadinessRecord(
   completedNodeIds: Set<string>,
   availableOutcomeRefs: Set<string>,
   evidenceReadinessDelta: number,
+  evidenceReadinessSourceNodeId: string | null,
+  evidenceReadinessCanSatisfyCompetencies: boolean,
 ): Record<string, unknown> {
   const state = typeof readiness.state === 'string' ? readiness.state : null;
   if (!state || state === 'ready') return readiness;
   const missingCompletedNodeIds = arrayOfStrings(readiness.missingCompletedNodeIds)
     .filter((nodeId) => !completedNodeIds.has(nodeId));
-  const missingCompetencies = arrayOfStrings(readiness.missingCompetencies);
+  const competencyEvidenceSourceMatched = evidenceReadinessCanSatisfyCompetencies &&
+    Boolean(evidenceReadinessSourceNodeId) &&
+    arrayOfStrings(readiness.fallbackNodeIds).includes(evidenceReadinessSourceNodeId as string);
+  const rawMissingCompetencies = arrayOfStrings(readiness.missingCompetencies);
   const missingOutcomeRefs = arrayOfStrings(readiness.missingOutcomeRefs)
     .filter((outcomeRef) => !availableOutcomeRefs.has(outcomeRef));
   const missingEvidenceCount = typeof readiness.missingEvidenceCount === 'number'
     ? Math.max(0, readiness.missingEvidenceCount - evidenceReadinessDelta)
     : 0;
+  const missingCompetencies = competencyEvidenceSourceMatched &&
+    missingEvidenceCount === 0 &&
+    missingCompletedNodeIds.length === 0 &&
+    missingOutcomeRefs.length === 0
+      ? []
+      : rawMissingCompetencies;
   const ready = missingCompletedNodeIds.length === 0 &&
     missingCompetencies.length === 0 &&
     missingOutcomeRefs.length === 0 &&
@@ -1052,6 +1077,18 @@ function refreshReadinessRecord(
     missingOutcomeRefs,
     missingEvidenceCount,
   };
+}
+
+function isPassingPathCompletionResult(value: unknown): boolean {
+  const metadata = toRecord(value);
+  const result = toRecord(metadata.completionResult);
+  if (typeof result.success === 'boolean') return result.success;
+  const score = readNumber(result.score);
+  if (score !== undefined) return score <= 1 ? score >= 0.6 : score >= 60;
+  const data = toRecord(result.data);
+  const correct = readNumber(data.correct);
+  const total = readNumber(data.total);
+  return correct !== undefined && total !== undefined && total > 0 && correct / total >= 0.6;
 }
 
 function collectExecutionOutcomeRefs(input: PathNodeExecutionInput): string[] {

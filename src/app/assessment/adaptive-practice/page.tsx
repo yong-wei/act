@@ -1138,6 +1138,18 @@ function getPathExecutionSummary(nodes: PathExecutionNodeView[], round: Learning
   };
 }
 
+function formatPathCompletionTime(round: LearningPathRoundView | null): string {
+  const completionTimes = (round?.executions ?? [])
+    .map((item) => {
+      const record = getRecord(item);
+      return record.completedAt ?? record.createdAt;
+    })
+    .map(readTimelineTime)
+    .filter((item) => Number.isFinite(item.sortTime))
+    .sort((left, right) => right.sortTime - left.sortTime);
+  return completionTimes[0]?.label ?? '完成时间待记录';
+}
+
 function readTimelineTime(value: unknown): { label: string; sortTime: number } {
   if (typeof value !== 'string' && !(value instanceof Date)) return { label: '时间待记录', sortTime: Number.POSITIVE_INFINITY };
   const date = value instanceof Date ? value : new Date(value);
@@ -1310,9 +1322,15 @@ export default function AdaptivePracticePage() {
   const demoScene = resolveDemoScene(searchParams.get('scene'));
   const activePracticeFocus = searchParams.get('focus');
   const requestedGoal = searchParams.get('goal');
-  const activeGoal = isAdaptivePracticeGoalId(requestedGoal) ? requestedGoal : null;
-  const activeGoalLabel = activeGoal ? adaptivePracticeGoalLabel(activeGoal) : '自适应学习';
   const requestedIntent = searchParams.get('intent');
+  const explicitGoal = isAdaptivePracticeGoalId(requestedGoal) ? requestedGoal : null;
+  const shouldRecoverDefaultPath = !explicitGoal &&
+    !requestedGoal &&
+    !requestedIntent &&
+    !searchParams.get('pathId') &&
+    !searchParams.get('nodeId');
+  const activeGoal = explicitGoal ?? (shouldRecoverDefaultPath ? 'control-correction' : null);
+  const activeGoalLabel = activeGoal ? adaptivePracticeGoalLabel(activeGoal) : '自适应学习';
   const routeIntent = resolveControlCorrectionIntent(requestedIntent);
   const workspaceIntent = routeIntent === 'contextual-recommendation'
     ? 'generation'
@@ -1447,6 +1465,12 @@ export default function AdaptivePracticePage() {
     () => getPathExecutionSummary(pathExecutionNodes, controlCorrectionPathRound),
     [controlCorrectionPathRound, pathExecutionNodes],
   );
+  const showRecoveredExecutionWorkspace = showLandingWorkspace &&
+    controlCorrectionPathRound?.pathStatus === 'active' &&
+    pathExecutionNodes.length > 0;
+  const showCompletedPathSummary = showLandingWorkspace &&
+    controlCorrectionPathRound?.pathStatus === 'completed' &&
+    pathExecutionNodes.length > 0;
   const pathActivityTimeline = useMemo(
     () => getPathActivityTimeline(pathExecutionNodes, controlCorrectionPathRound),
     [controlCorrectionPathRound, pathExecutionNodes],
@@ -3027,9 +3051,47 @@ export default function AdaptivePracticePage() {
           </section>
           ) : null}
 
-          {(showExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (
+          {showCompletedPathSummary ? (
+            <section
+              className="surface-card p-5"
+              data-adaptive-path-completed-summary="latest-restored"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-normal text-primary">Completed route</p>
+                  <h2 className="mt-1 text-xl font-semibold text-foreground">已完成的学习路径</h2>
+                  <p className="mt-2 text-sm text-subtle">
+                    最近完成的路径已恢复，可复看完成节点、证据状态，并按需要生成新路径。
+                  </p>
+                </div>
+                <Link
+                  href={buildPathGenerationGoalHref(activeExecutionGoalId, pathGenerationPanel)}
+                  className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground hover:border-primary"
+                >
+                  <RefreshCw className="size-4" aria-hidden="true" />
+                  生成新路径
+                </Link>
+              </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+                {[
+                  ['路径名称', controlCorrectionPathRound?.title ?? controlCorrectionPathPlan?.goal.title ?? '学习路径'],
+                  ['完成节点', pathExecutionSummary.completed],
+                  ['完成时间', formatPathCompletionTime(controlCorrectionPathRound)],
+                  ['证据状态', pathExecutionNodes.some((node) => node.result?.state === 'pending') ? '结果待同步' : '已记录'],
+                  ['下一步', '生成新路径或切换目标'],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-lg border border-border bg-muted/30 p-3">
+                    <p className="text-xs text-subtle">{label}</p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">{value}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {(showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace) && pathExecutionNodes.length > 0 ? (
             <section className="grid gap-4">
-              {showExecutionWorkspace ? (
+              {showExecutionWorkspace || showRecoveredExecutionWorkspace ? (
               <div className="surface-card p-5" data-adaptive-path-execution-surface="active-route">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
@@ -3331,9 +3393,9 @@ export default function AdaptivePracticePage() {
             </section>
           ) : null}
 
-          {showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showEvidenceWorkspace ? (
+          {showPracticeWorkspace || showSelectionWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace || showEvidenceWorkspace ? (
           <section className="grid gap-4">
-            {showPracticeWorkspace || showExecutionWorkspace ? (
+            {showPracticeWorkspace || showExecutionWorkspace || showRecoveredExecutionWorkspace ? (
             <div className="surface-card p-5" data-adaptive-practice-resource="path-node">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>

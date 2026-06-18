@@ -9,9 +9,11 @@ import {
   LEARNER_DATA_SHELL_SEMANTICS,
   buildControlCorrectionLearningCenterView,
   buildAdaptivePathLaunchContext,
+  buildAdaptivePathCompletionRequest,
   buildLearnerDataRouteShell,
   buildPracticeEntryRouteNodes,
   buildRecommendedPathNodeView,
+  isSimpleAdaptivePathCompletionResource,
   resolveAdaptivePathLaunchReturnContext,
   type AdaptiveLearningCompatibilityRoute,
   buildAdaptiveClaimStatus,
@@ -1455,6 +1457,44 @@ describe('adaptive learning center UI contracts', () => {
     }))).toBeNull();
   });
 
+  it('builds simple path resource completion write-back requests and keeps complex nodes pending', () => {
+    const launchContext = buildAdaptivePathLaunchContext({
+      goalId: 'control-correction',
+      pathId: 'path-1',
+      nodeId: 'registry:lesson09-correction-precheck',
+      routeIntent: 'path-execution',
+      resourceType: 'quiz',
+    });
+    const request = buildAdaptivePathCompletionRequest({
+      launchContext,
+      completedAt: '2026-06-18T11:40:00.000Z',
+      completionResult: { score: 100, success: true },
+    });
+
+    expect(isSimpleAdaptivePathCompletionResource('quiz')).toBe(true);
+    expect(request).toEqual({
+      href: '/api/learning-paths/path-1/execute',
+      method: 'POST',
+      body: {
+        nodeId: 'registry:lesson09-correction-precheck',
+        resourceType: 'quiz',
+        status: 'completed',
+        completedAt: '2026-06-18T11:40:00.000Z',
+        idempotencyKey: 'path-resource-completion:path-1:registry:lesson09-correction-precheck:quiz',
+        liftMetadata: {
+          pathActivityKind: 'initial-completion',
+          completionSource: 'interactive-resource',
+          completionResult: { score: 100, success: true },
+        },
+      },
+    });
+    expect(isSimpleAdaptivePathCompletionResource('simulation')).toBe(false);
+    expect(buildAdaptivePathCompletionRequest({
+      launchContext: { ...launchContext, resourceType: 'simulation' },
+      completedAt: '2026-06-18T11:40:00.000Z',
+    })).toBeNull();
+  });
+
   it('launches external resource path nodes through governed access recording', () => {
     const node = buildRecommendedPathNodeView(pathPlan({
       mainPath: [
@@ -1828,6 +1868,8 @@ describe('adaptive learning center UI contracts', () => {
 
     expect(source).toContain('buildControlCorrectionLearningCenterView');
     expect(source).toContain("searchParams.get('goal')");
+    expect(source).toContain('const shouldRecoverDefaultPath = !explicitGoal');
+    expect(source).toContain("shouldRecoverDefaultPath ? 'control-correction' : null");
     expect(source).toContain('isAdaptivePracticeGoalId');
     expect(source).toContain("value === 'control-correction' || value === 'frequency-response-foundations'");
     expect(source).toContain("searchParams.get('intent')");
@@ -1849,6 +1891,9 @@ describe('adaptive learning center UI contracts', () => {
     expect(source).toContain('uniquePathIds(fallbackPathIds)');
     expect(source).toContain('fetchLearningPathRound(pathIdToLoad, goalToLoad)');
     expect(source).toContain('fetchLatestLearningPathRound(goalToLoad)');
+    expect(source).toContain('showRecoveredExecutionWorkspace');
+    expect(source).toContain('data-adaptive-path-completed-summary="latest-restored"');
+    expect(source).toContain('formatPathCompletionTime(controlCorrectionPathRound)');
     expect(source).toContain('fetchLatestLearningPathRound(activeGoal)');
     const generationRefreshBlock = source.slice(
       source.indexOf('const refreshLatestLearningPathAfterKonling = useCallback'),

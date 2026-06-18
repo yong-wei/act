@@ -36,21 +36,10 @@ export async function GET(request: Request) {
     const authorizedClassId = await resolveLatestPathClassScope(requester, requestedUserId);
     if (authorizedClassId instanceof NextResponse) return authorizedClassId;
 
-    const latest = await prisma.learningPath.findFirst({
-      where: {
-        userId: requestedUserId,
-        goalId,
-        isAiGenerated: true,
-        pathStatus: { in: ['active', 'fallback', 'completed'] },
-        ...(authorizedClassId ? { classId: authorizedClassId } : {}),
-      },
-      select: {
-        id: true,
-        userId: true,
-        classId: true,
-        goalId: true,
-      },
-      orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
+    const latest = await readLatestPathByStatusPriority({
+      requestedUserId,
+      goalId,
+      authorizedClassId,
     });
     if (!latest) {
       return NextResponse.json({ path: null });
@@ -70,6 +59,33 @@ export async function GET(request: Request) {
     console.error('[LearningPathLatest] Error:', error);
     return NextResponse.json({ error: '读取最新学习路径失败' }, { status: 500 });
   }
+}
+
+async function readLatestPathByStatusPriority(input: {
+  requestedUserId: string;
+  goalId: string;
+  authorizedClassId: string | null;
+}) {
+  for (const pathStatus of ['active', 'fallback', 'completed'] as const) {
+    const latest = await prisma.learningPath.findFirst({
+      where: {
+        userId: input.requestedUserId,
+        goalId: input.goalId,
+        isAiGenerated: true,
+        pathStatus,
+        ...(input.authorizedClassId ? { classId: input.authorizedClassId } : {}),
+      },
+      select: {
+        id: true,
+        userId: true,
+        classId: true,
+        goalId: true,
+      },
+      orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
+    });
+    if (latest) return latest;
+  }
+  return null;
 }
 
 async function resolveLatestPathClassScope(
