@@ -444,6 +444,7 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-structure-diagram-node-label-rendering="latex"');
     expect(html).toContain('data-structure-diagram-node-symbol-size="takeoff-dot"');
     expect(html).toContain('data-structure-diagram-output-label-position="above-line"');
+    expect(html).toContain('data-structure-diagram-node-selected="false"');
     expect(html).toContain('data-structure-diagram-edge-from-port="right"');
     expect(html).toContain('data-structure-diagram-edge-to-port="bottom"');
     expect(html).toContain('data-structure-diagram-edge-route="-|"');
@@ -453,6 +454,12 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('katex');
     expect(html).toContain('data-structure-diagram-label-chrome="plain"');
     expect(html).toContain('data-structure-diagram-edge-id="feedback-signal"');
+    expect(html).toContain('data-structure-diagram-edge-id="feedback-return"');
+    expect(html).toContain('data-structure-diagram-terminal-sign-id="feedback-return"');
+    expect(html).toContain('data-structure-diagram-terminal-sign="-"');
+    expect(html).toContain('data-structure-diagram-edge-main-line="true"');
+    expect(html).toContain('data-structure-diagram-edge-hit-target="feedback-return"');
+    expect(html).toContain('data-structure-diagram-edge-halo="highlighted"');
     expect(html).toContain('data-structure-diagram-edge-highlighted="true"');
     expect(html).toContain('data-structure-diagram-edge-selected="false"');
     expect(html).toContain('data-structure-diagram-reveal-id="feedback-loop"');
@@ -464,7 +471,7 @@ describe('interactive module registry gate', () => {
     expect(html).not.toContain('space-y-4');
   });
 
-  it('renders block diagram default and diagonal anchors as real geometry', () => {
+  it('renders block diagram default anchors and summing junction connectors as standard geometry', () => {
     const registry = createManifestContentModuleRegistry({
       revealProgress: 1,
       allowInlineReveal: true,
@@ -507,7 +514,9 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-structure-diagram-edge-id="sum-diagonal"');
     expect(html).toContain('data-structure-diagram-edge-from-port="top-right"');
     expect(html).toContain('data-structure-diagram-edge-to-port="bottom-left"');
-    expect(html).toContain('d="M 64 46 L 35 55"');
+    expect(html).toContain('data-structure-diagram-edge-hit-target="sum-diagonal"');
+    expect(html).toContain('data-structure-diagram-edge-main-line="true"');
+    expect(html).toContain('d="M 60 50 L 35 55"');
   });
 
   it('renders visual.signalFlowGraph with branch labels, path sets, and Mason formula traceability', () => {
@@ -1906,7 +1915,7 @@ describe('interactive module registry gate', () => {
                 edges: [
                   { id: 'edge-a', from: 'plant', to: 'missing-node' },
                   { id: 'edge-a', from: 'missing-node', to: 'plant' },
-                  { id: 'edge-ne', from: 'plant.NE', to: 'future.SW', route: 'diagonal', label: 'x' },
+                  { id: 'edge-ne', from: 'plant.NE', to: 'future.SW', route: 'diagonal', label: 'x', terminalSign: 'negative' },
                 ],
                 revealPlan: [],
                 activeRevealState: 'missing-reveal',
@@ -1970,6 +1979,7 @@ describe('interactive module registry gate', () => {
     expect(invalidBlockResult.violations[0]?.message).toContain('edges[0:edge-a].label');
     expect(invalidBlockResult.violations[0]?.message).toContain('edges[1:edge-a].id:duplicate');
     expect(invalidBlockResult.violations[0]?.message).toContain('edges[2:edge-ne].route');
+    expect(invalidBlockResult.violations[0]?.message).toContain('edges[2:edge-ne].terminalSign');
     expect(invalidBlockResult.violations[0]?.message).toContain('revealPlan');
     expect(invalidBlockResult.violations[0]?.message).toContain('activeRevealState');
 
@@ -2938,7 +2948,7 @@ function blockDiagramPayloadFixture(): Record<string, unknown> {
       { id: 'plant-output', from: 'plant.E', to: 'output-branch.C', route: '--', labelLatex: 'y' },
       { id: 'output-signal', from: 'output-branch.C', to: 'output.W', route: '--', display: 'terminal', label: '' },
       { id: 'feedback-signal', from: 'output-branch.C', to: 'sensor.E', route: '|-', labelLatex: 'y' },
-      { id: 'feedback-return', from: 'sensor.W', to: 'sum.S', route: '-|', labelLatex: '-H(s)y' },
+      { id: 'feedback-return', from: 'sensor.W', to: 'sum.S', route: '-|', labelLatex: 'H(s)y', terminalSign: '-' },
     ],
     revealPlan: [
       { id: 'forward-path', label: '前向通道', targetIds: ['reference-signal', 'error-signal', 'control-signal', 'plant-output', 'output-signal'] },

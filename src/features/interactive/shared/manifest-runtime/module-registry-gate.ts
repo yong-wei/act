@@ -780,6 +780,7 @@ const BLOCK_DIAGRAM_PORTS = new Set([
   'N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'C',
 ]);
 const BLOCK_DIAGRAM_ROUTES = new Set(['--', '-|', '|-']);
+const BLOCK_DIAGRAM_TERMINAL_SIGNS = new Set(['+', '-']);
 const SIGNAL_FLOW_ROUTES = new Set(['straight', 'auto-bezier']);
 const STRUCTURE_DIAGRAM_PLACEMENTS = new Set(['left', 'right', 'above', 'below']);
 const STRUCTURE_DIAGRAM_TEXT_SCALES = new Set(['uniform']);
@@ -1073,6 +1074,10 @@ function invalidBlockDiagramPayloadFields(payload: Record<string, unknown>): str
     if (toPort && !BLOCK_DIAGRAM_PORTS.has(toPort)) missing.push(`graph=${graphLabel}.edges[${label}].toPort`);
     const route = stringValue(edge.route ?? edge.path);
     if (route && !BLOCK_DIAGRAM_ROUTES.has(route)) missing.push(`graph=${graphLabel}.edges[${label}].route`);
+    const terminalSign = stringValue(edge.terminalSign ?? edge.terminal_sign ?? edge.inputSign ?? edge.input_sign);
+    if (terminalSign && !BLOCK_DIAGRAM_TERMINAL_SIGNS.has(terminalSign)) {
+      missing.push(`graph=${graphLabel}.edges[${label}].terminalSign`);
+    }
     const waypoints = edge.waypoints ?? edge.via ?? edge.points;
     if (Array.isArray(waypoints)) {
       for (const [waypointIndex, waypoint] of waypoints.entries()) {

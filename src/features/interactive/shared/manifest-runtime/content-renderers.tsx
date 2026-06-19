@@ -129,6 +129,7 @@ type BlockDiagramEdge = {
   from: string;
   to: string;
   display: string;
+  terminalSign: string;
   fromPort: string;
   toPort: string;
   waypoints: StructureDiagramPoint[];
@@ -850,6 +851,7 @@ function blockDiagramEdges(value: unknown): BlockDiagramEdge[] {
         from,
         to,
         display: stringFromFields(edge, ['display', 'renderAs', 'render_as']),
+        terminalSign: stringFromFields(edge, ['terminalSign', 'terminal_sign', 'inputSign', 'input_sign']),
         fromPort: fromRef.port,
         toPort: toRef.port,
         waypoints,
@@ -1215,7 +1217,7 @@ function blockDiagramNodeUsesEdgeInset(visualKind: string) {
 
 function blockDiagramNodePortPoint(node: BlockDiagramNode, port: string): StructureDiagramPoint {
   const visualKind = blockDiagramNodeVisualKind(node);
-  if (visualKind === 'branch' || visualKind === 'takeoff') return node.position;
+  if (visualKind === 'branch' || visualKind === 'takeoff' || visualKind === 'sum') return node.position;
   const halfWidth = node.size.width / 2;
   const halfHeight = node.size.height / 2;
   if (port === 'left') return { x: node.position.x - halfWidth, y: node.position.y };
@@ -1310,6 +1312,26 @@ function blockEdgePath(nodes: readonly BlockDiagramNode[], edge: BlockDiagramEdg
   return {
     d: `M ${structureSvgPoint(from)} L ${structureSvgPoint(to)}`,
     label: { x: ((from.x + to.x) / 2) * 100, y: ((from.y + to.y) / 2) * 100 - 3 },
+  };
+}
+
+function blockEdgeTerminalSignPosition(nodes: readonly BlockDiagramNode[], edge: BlockDiagramEdge) {
+  const { to, toPort } = blockEdgeEndpoints(nodes, edge);
+  const offsets: Record<string, StructureDiagramPoint> = {
+    left: { x: -3.2, y: -2.8 },
+    right: { x: 2.5, y: -2.8 },
+    top: { x: 1.8, y: -3.8 },
+    bottom: { x: 1.8, y: 4.2 },
+    'top-left': { x: -3.2, y: -3.8 },
+    'top-right': { x: 2.5, y: -3.8 },
+    'bottom-right': { x: 2.5, y: 4.2 },
+    'bottom-left': { x: -3.2, y: 4.2 },
+    center: { x: 1.8, y: 4.2 },
+  };
+  const offset = offsets[toPort] ?? offsets.center;
+  return {
+    x: clamp(to.x * 100 + offset.x, 0, 100),
+    y: clamp(to.y * 100 + offset.y, 0, 100),
   };
 }
 
@@ -3047,26 +3069,68 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
                 data-structure-diagram-edge-highlighted={highlighted(edge.id) ? 'true' : 'false'}
                 data-structure-diagram-edge-selected={selected(edge.id) ? 'true' : 'false'}
               >
+                {highlighted(edge.id) || selected(edge.id) ? (
+                  <path
+                    d={path.d}
+                    fill="none"
+                    stroke="hsl(var(--platform-action-primary))"
+                    strokeWidth={selected(edge.id) ? 1.05 : 0.62}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    opacity={selected(edge.id) ? 0.28 : 0.16}
+                    data-structure-diagram-edge-halo={selected(edge.id) ? 'selected' : 'highlighted'}
+                  />
+                ) : null}
                 <path
                   d={path.d}
                   fill="none"
                   stroke={highlighted(edge.id) ? 'hsl(var(--platform-action-primary))' : 'hsl(var(--platform-border-strong))'}
-                  strokeWidth={selected(edge.id) ? 0.48 : highlighted(edge.id) ? 0.34 : 0.24}
+                  strokeWidth={0.3}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   markerEnd={`url(#${graph.graphId}-arrow)`}
+                  data-structure-diagram-edge-main-line="true"
+                />
+                <path
+                  d={path.d}
+                  fill="none"
+                  stroke="transparent"
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="cursor-pointer"
+                  pointerEvents="stroke"
+                  onClick={() => setSelectedTargetId(edge.id)}
+                  data-structure-diagram-edge-hit-target={edge.id}
                 />
               </g>
             );
           })}
         </svg>
         {graph.edges.map((edge) => {
+          if (!edge.terminalSign) return null;
+          const signPosition = blockEdgeTerminalSignPosition(graph.nodes, edge);
+          return (
+            <button
+              key={`${edge.id}-terminal-sign`}
+              type="button"
+              className="absolute -translate-x-1/2 -translate-y-1/2 premium-lesson-title rounded-full px-1 text-[13px] leading-none text-[var(--platform-action-primary)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
+              style={{ left: `${signPosition.x}%`, top: `${signPosition.y}%` }}
+              data-structure-diagram-terminal-sign-id={edge.id}
+              data-structure-diagram-terminal-sign={edge.terminalSign}
+              onClick={() => setSelectedTargetId(edge.id)}
+            >
+              {edge.terminalSign}
+            </button>
+          );
+        })}
+        {graph.edges.map((edge) => {
           if (!edge.label) return null;
           const path = blockEdgePath(graph.nodes, edge);
           return (
             <div
               key={`${edge.id}-label`}
-              className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 bg-[var(--platform-surface)]/80 px-1.5 py-0.5 text-[13px] font-semibold"
+              className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 premium-lesson-title bg-[var(--platform-surface)]/80 px-1.5 py-0.5 text-[13px] leading-none"
               style={{ left: `${path.label.x}%`, top: `${path.label.y}%` }}
               data-structure-diagram-edge-label-id={edge.id}
               data-structure-diagram-label-chrome="plain"
@@ -3090,6 +3154,7 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
               blockDiagramNodeVisualKind(node) === 'block' || blockDiagramNodeVisualKind(node) === 'sum'
                 ? (highlighted(node.id) || selectedTargetId === node.id ? 'border-platform-action-primary' : 'border-platform-border')
                 : '',
+              selectedTargetId === node.id ? 'ring-2 ring-[var(--platform-focus-ring)]' : '',
             ].join(' ')}
             style={blockNodeBounds(node)}
             data-structure-diagram-node-id={node.id}

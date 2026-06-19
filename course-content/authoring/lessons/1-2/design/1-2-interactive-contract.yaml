@@ -1561,11 +1561,11 @@
             "layout": {
               "mode": "relative",
               "origin": {
-                "x": 0.08,
+                "x": 0.06,
                 "y": 0.42
               },
               "spacing": {
-                "x": 0.12,
+                "x": 0.115,
                 "y": 0.3
               }
             },
@@ -1653,7 +1653,7 @@
                 "label": "y",
                 "relativeTo": "plant",
                 "placement": "right",
-                "distance": 0.65,
+                "distance": 0.9,
                 "size": {
                   "width": 0.04,
                   "height": 0.04
@@ -1665,7 +1665,7 @@
                 "labelLatex": "Y(s)",
                 "relativeTo": "output-takeoff",
                 "placement": "right",
-                "distance": 0.62,
+                "distance": 0.9,
                 "size": {
                   "width": 0.07,
                   "height": 0.07
@@ -1680,18 +1680,6 @@
                 "size": {
                   "width": 0.14,
                   "height": 0.1
-                }
-              },
-              {
-                "id": "measure",
-                "type": "branch",
-                "label": "y_m",
-                "relativeTo": "sensor",
-                "placement": "left",
-                "distance": 2.5,
-                "size": {
-                  "width": 0.07,
-                  "height": 0.07
                 }
               }
             ],
@@ -1754,18 +1742,12 @@
                 "label": "y"
               },
               {
-                "id": "sensor-to-measure",
+                "id": "sensor-to-sum",
                 "from": "sensor.W",
-                "to": "measure.C",
-                "route": "--",
-                "label": "y_m"
-              },
-              {
-                "id": "measure-to-sum",
-                "from": "measure.C",
                 "to": "sum.S",
                 "route": "-|",
-                "label": "-y_m"
+                "label": "y_m",
+                "terminalSign": "-"
               }
             ],
             "revealPlan": [
@@ -1797,8 +1779,7 @@
                 "targetIds": [
                   "output-takeoff",
                   "output-to-sensor",
-                  "sensor-to-measure",
-                  "measure-to-sum"
+                  "sensor-to-sum"
                 ]
               },
               {
