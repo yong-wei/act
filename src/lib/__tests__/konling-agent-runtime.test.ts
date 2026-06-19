@@ -467,6 +467,9 @@ describe('konling agent runtime', () => {
     });
     expect(prompt).toContain('回答意图: path-advice');
     expect(prompt).toContain('capability:root-locus-design');
+    expect(prompt).toContain('引用锚点: content:1, path-execution:1, learner-state:1, intervention:1');
+    expect(prompt).not.toContain('path:path-1');
+    expect(prompt).not.toContain('learner:student-1');
 
     const toolRuntime = buildKonlingToolRuntime({
       db: {},
@@ -478,6 +481,7 @@ describe('konling agent runtime', () => {
       knowledgeCapabilityContext: {
         answerIntent: 'path-advice',
         capabilityTargetRefs: ['capability:root-locus-design'],
+        citationRefs: ['content:1', 'path-execution:1', 'learner-state:1', 'intervention:1'],
         scope: {
           role: 'student',
           courseId: 'unit-4-5',
@@ -493,6 +497,8 @@ describe('konling agent runtime', () => {
     expect(pageContextOutput.knowledgeCapabilityContext.scope).not.toHaveProperty('authenticatedUserId');
     expect(pageContextOutput.knowledgeCapabilityContext.scope).not.toHaveProperty('classId');
     expect(pageContextOutput.knowledgeCapabilityContext.scope).not.toHaveProperty('privacyScopes');
+    expect(pageContextOutput.knowledgeCapabilityContext.citationRefs).not.toContain('path:path-1');
+    expect(pageContextOutput.knowledgeCapabilityContext.citationRefs).not.toContain('learner:student-1');
   });
 
   it('keeps path-advisor generation available when a student has no existing path yet', () => {
@@ -1183,7 +1189,7 @@ describe('konling agent runtime', () => {
         capabilityTargetRefs: ['capability:second-order-modeling'],
         resourceRefs: [],
         pathNodeRefs: [],
-        citationRefs: ['content:knowledge-node:node-second-order'],
+        citationRefs: ['content:1'],
         scope: createScope({ pageId: '/knowledge', resourceId: null, pathNodeId: null }),
         missingContext: [],
       },
@@ -2173,7 +2179,7 @@ describe('konling agent runtime', () => {
     expect(modeContract.answerIntent).toBe('fact-explanation');
     expect(modeContract.groundingContext.knowledgeNodeRefs).toEqual([]);
     expect(modeContract.groundingContext.resourceRefs).toEqual([]);
-    expect(modeContract.groundingContext.citationRefs).toContain('content:unit:step');
+    expect(modeContract.groundingContext.citationRefs).toContain('content:1');
     expect(guard.lowConfidenceReasons).not.toContain('missing-grounding:knowledge-or-resource');
     expect(guard.status).toBe('verified');
   });

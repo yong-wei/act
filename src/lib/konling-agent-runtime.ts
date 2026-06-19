@@ -639,7 +639,7 @@ function buildKonlingKnowledgeCapabilityContext(input: {
   const citationRefs = [
     ...(input.runtimeContext.citationContext?.contentCitations ?? []),
     ...(input.runtimeContext.citationContext?.evidenceCitations ?? []),
-  ].map((citation) => citation.id);
+  ];
   const missingContext = [
     knowledgeNodeRefs.length === 0 ? 'knowledge-node-context-missing' : null,
     capabilityTargetRefs.length === 0 ? 'capability-target-context-missing' : null,
@@ -654,7 +654,7 @@ function buildKonlingKnowledgeCapabilityContext(input: {
     capabilityTargetRefs: [...new Set(capabilityTargetRefs)],
     resourceRefs: [...new Set(resourceRefs)],
     pathNodeRefs: [...new Set(pathNodeRefs)],
-    citationRefs: [...new Set(citationRefs)],
+    citationRefs: buildGroundingCitationRefs(citationRefs),
     scope: {
       authenticatedUserId: input.scope.authenticatedUserId,
       targetUserId: input.scope.targetUserId,
@@ -668,6 +668,15 @@ function buildKonlingKnowledgeCapabilityContext(input: {
     },
     missingContext,
   };
+}
+
+function buildGroundingCitationRefs(citations: KonlingCitation[]): string[] {
+  const counts: Partial<Record<KonlingCitation['sourceType'], number>> = {};
+  return citations.map((citation) => {
+    const nextIndex = (counts[citation.sourceType] ?? 0) + 1;
+    counts[citation.sourceType] = nextIndex;
+    return `${citation.sourceType}:${nextIndex}`;
+  });
 }
 
 function buildKonlingKnowledgeCapabilityToolContext(
