@@ -778,7 +778,7 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
   const segmentId = `resource-segment:${node.id}:primary`;
   const target = node.launchTarget ?? node.renderTarget;
   const citationTargetId = `citation-target:${node.id}:primary`;
-  const auditIssueCodes = node.eligibility.auditIssues.map((issue) => issue.code);
+  const auditIssueCodes = buildProjectionAuditIssueCodes(node);
   const resource: Resource = {
     id: resourceId,
     resourceNodeId: node.id,
@@ -1516,6 +1516,14 @@ function segmentKindForNode(node: ResourceNode): ResourceSegment['kind'] {
   if (node.sourceKind === 'runtime_lesson_media' || node.type === 'video' || node.type === 'audio') return 'media';
   if (node.type === 'checkpoint') return 'checkpoint';
   return 'primary';
+}
+
+function buildProjectionAuditIssueCodes(node: ResourceNode): string[] {
+  return uniqueSorted([
+    ...node.eligibility.auditIssues.map((issue) => issue.code),
+    ...(Object.keys(node.planningMetadata.abilityImpact).length === 0 ? ['missing-capability-mapping'] : []),
+    ...(node.planningMetadata.evidenceInstrumentation.length === 0 ? ['missing-evidence-instrumentation'] : []),
+  ]);
 }
 
 function buildPlanningUnit(node: ResourceNode, resourceId: string, target: string | null): PlanningUnit | null {

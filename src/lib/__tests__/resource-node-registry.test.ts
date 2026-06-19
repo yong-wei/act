@@ -836,12 +836,20 @@ describe('resource node registry', () => {
         retrieval: 'mapped',
         planning: 'blocked',
       },
+      governance: {
+        auditIssueCodes: ['missing-capability-mapping'],
+      },
     });
     expect(auditBlockedEvidenceResource.eligibility.pathEligible).toBe(true);
     expect(auditBlockedEvidenceProjection.planningUnit).toBeNull();
-    expect(auditBlockedEvidenceProjection.resource.projectionStatus).toMatchObject({
-      retrieval: 'mapped',
-      planning: 'blocked',
+    expect(auditBlockedEvidenceProjection.resource).toMatchObject({
+      projectionStatus: {
+        retrieval: 'mapped',
+        planning: 'blocked',
+      },
+      governance: {
+        auditIssueCodes: ['missing-evidence-instrumentation'],
+      },
     });
   });
 
