@@ -780,7 +780,7 @@ const BLOCK_DIAGRAM_PORTS = new Set([
   'N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'C',
 ]);
 const BLOCK_DIAGRAM_ROUTES = new Set(['--', '-|', '|-']);
-const BLOCK_DIAGRAM_TERMINAL_SIGNS = new Set(['+', '-']);
+const BLOCK_DIAGRAM_TERMINAL_SIGNS = new Set(['+', '-', '−']);
 const SIGNAL_FLOW_ROUTES = new Set(['straight', 'auto-bezier']);
 const STRUCTURE_DIAGRAM_PLACEMENTS = new Set(['left', 'right', 'above', 'below']);
 const STRUCTURE_DIAGRAM_TEXT_SCALES = new Set(['uniform']);

@@ -1552,12 +1552,12 @@
             "layout": {
               "mode": "relative",
               "origin": {
-                "x": 0.06,
+                "x": 0.05,
                 "y": 0.42
               },
               "spacing": {
-                "x": 0.115,
-                "y": 0.3
+                "x": 0.15,
+                "y": 0.15
               }
             },
             "interactions": {
@@ -1568,6 +1568,7 @@
               {
                 "id": "ref",
                 "type": "input",
+                "display": "anchor",
                 "labelLatex": "R(s)",
                 "grid": {
                   "column": 0,
@@ -1595,9 +1596,9 @@
                 "labelLatex": "G_c(s)",
                 "relativeTo": "sum",
                 "placement": "right",
-                "distance": 1.9,
+                "distance": 0.9,
                 "size": {
-                  "width": 0.15,
+                  "width": 0.1125,
                   "height": 0.1
                 }
               },
@@ -1607,9 +1608,9 @@
                 "labelLatex": "G_a(s)",
                 "relativeTo": "controller",
                 "placement": "right",
-                "distance": 1.4,
+                "distance": 1.15,
                 "size": {
-                  "width": 0.14,
+                  "width": 0.105,
                   "height": 0.1
                 }
               },
@@ -1619,9 +1620,9 @@
                 "labelLatex": "G_p(s)",
                 "relativeTo": "actuator",
                 "placement": "right",
-                "distance": 1.4,
+                "distance": 1.15,
                 "size": {
-                  "width": 0.15,
+                  "width": 0.1125,
                   "height": 0.1
                 }
               },
@@ -1632,7 +1633,6 @@
                 "label": "输出引出点",
                 "relativeTo": "plant",
                 "placement": "right",
-                "distance": 0.95,
                 "size": {
                   "width": 0.04,
                   "height": 0.04
@@ -1641,10 +1641,11 @@
               {
                 "id": "output",
                 "type": "output",
+                "display": "anchor",
                 "labelLatex": "Y(s)",
                 "relativeTo": "plant",
                 "placement": "right",
-                "distance": 1.9,
+                "distance": 1.25,
                 "size": {
                   "width": 0.07,
                   "height": 0.07
@@ -1656,8 +1657,9 @@
                 "labelLatex": "H(s)",
                 "relativeTo": "actuator",
                 "placement": "below",
+                "distance": 1.25,
                 "size": {
-                  "width": 0.14,
+                  "width": 0.105,
                   "height": 0.1
                 }
               }
@@ -1668,15 +1670,14 @@
                 "from": "ref.E",
                 "to": "sum.W",
                 "route": "--",
-                "display": "unlabeled",
-                "label": ""
+                "labelLatex": "R(s)"
               },
               {
                 "id": "sum-to-controller",
                 "from": "sum.E",
                 "to": "controller.W",
                 "route": "--",
-                "labelLatex": "E(s)=R(s)-Y_m(s)"
+                "labelLatex": "E(s)"
               },
               {
                 "id": "controller-to-actuator",
@@ -1698,7 +1699,7 @@
                 "to": "output.W",
                 "route": "--",
                 "display": "terminal",
-                "label": ""
+                "labelLatex": "Y(s)"
               },
               {
                 "id": "output-to-sensor",
@@ -1714,7 +1715,7 @@
                 "to": "sum.S",
                 "route": "-|",
                 "labelLatex": "Y_m(s)",
-                "terminalSign": "-"
+                "terminalSign": "−"
               }
             ],
             "revealPlan": [
@@ -1989,8 +1990,8 @@
                 "y": 0.46
               },
               "spacing": {
-                "x": 0.2,
-                "y": 0.28
+                "x": 0.24,
+                "y": 0.14
               }
             },
             "interactions": {

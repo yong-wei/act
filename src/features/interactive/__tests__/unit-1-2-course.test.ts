@@ -365,11 +365,22 @@ describe('unit 1-2 modeling from object to system course', () => {
   });
 
   it('renders step 07 with standard control block-diagram symbols', () => {
+    const manifest = readManifest();
+    const blockModule = manifest.steps[6].modules.find((module) => module.kind === 'visual.blockDiagram');
+    const blockNodes = (blockModule?.payload?.nodes ?? []) as Array<Record<string, unknown>>;
+    const controllerNode = blockNodes.find((node) => node.id === 'controller');
+    const takeoffNode = blockNodes.find((node) => node.id === 'output-takeoff');
+    const outputNode = blockNodes.find((node) => node.id === 'output');
     const html = renderUnit12StepHtml(6);
 
+    expect(controllerNode?.distance).toBe(0.9);
+    expect(takeoffNode?.display).toBe('takeoff');
+    expect(takeoffNode).not.toHaveProperty('distance');
+    expect(outputNode?.display).toBe('anchor');
     expect(html).toContain('data-structure-diagram-id="closed-loop-block-diagram"');
     expect(html).toContain('data-structure-diagram-layout-mode="relative"');
-    expect(html).toContain('data-structure-diagram-layout-spacing-x="0.115"');
+    expect(html).toContain('data-structure-diagram-layout-spacing-x="0.15"');
+    expect(html).toContain('data-structure-diagram-layout-spacing-y="0.15"');
     expect(html).toContain('data-structure-diagram-text-scale="uniform"');
     expect(html).toContain('data-structure-diagram-node-anchors="N E S W"');
     expect(html).toContain('data-structure-diagram-node-visual-kind="input"');
@@ -378,18 +389,18 @@ describe('unit 1-2 modeling from object to system course', () => {
     expect(html).toContain('data-structure-diagram-node-visual-kind="takeoff"');
     expect(html).toContain('data-structure-diagram-node-selected="false"');
     expect(html).toContain('data-structure-diagram-node-symbol-size="takeoff-dot"');
-    expect(html).toContain('data-structure-diagram-output-label-position="above-line"');
     expect(html).toContain('data-structure-diagram-edge-id="sensor-to-sum"');
     expect(html).toContain('data-structure-diagram-edge-hit-target="sensor-to-sum"');
     expect(html).toContain('data-structure-diagram-edge-main-line="true"');
     expect(html).toContain('vector-effect="non-scaling-stroke"');
     expect(html).toContain('data-structure-diagram-terminal-sign-id="sensor-to-sum"');
-    expect(html).toContain('data-structure-diagram-terminal-sign="-"');
+    expect(html).toContain('data-structure-diagram-terminal-sign="−"');
     expect(html).not.toContain('data-structure-diagram-edge-id="sensor-to-measure"');
     expect(html).not.toContain('data-structure-diagram-edge-id="measure-to-sum"');
     expect(html).toContain('data-structure-diagram-edge-id="sum-to-controller"');
     expect(html).toContain('data-structure-diagram-edge-id="plant-to-output"');
-    expect(html).not.toContain('data-structure-diagram-edge-label-id="plant-to-output"');
+    expect(html).toContain('data-structure-diagram-edge-label-id="r-to-sum"');
+    expect(html).toContain('data-structure-diagram-edge-label-id="plant-to-output"');
     expect(html).not.toContain('data-structure-diagram-edge-label-id="output-to-sensor"');
     expect(html).not.toContain('data-structure-diagram-edge-id="sum-to-error"');
     expect(html).not.toContain('data-structure-diagram-edge-id="error-to-controller"');
@@ -407,14 +418,18 @@ describe('unit 1-2 modeling from object to system course', () => {
     expect(html).toContain('G_a');
     expect(html).toContain('G_p');
     expect(html).toContain('H');
-    expect(html).toContain('E(s)=R(s)-Y_m(s)');
+    expect(html).toContain('E(s)');
+    expect(html).toContain('R(s)-Y_m(s)=E(s)');
     expect(html).toContain('U_c(s)');
     expect(html).toContain('Y_m(s)');
 
     const edgeLabelFragments = html.match(/data-structure-diagram-edge-label-id="[^"]+"[\s\S]*?(?=<\/div>)/g) ?? [];
-    expect(edgeLabelFragments.some((fragment) => fragment.includes('Y(s)'))).toBe(false);
+    expect(edgeLabelFragments.some((fragment) => fragment.includes('R(s)'))).toBe(true);
+    expect(edgeLabelFragments.some((fragment) => fragment.includes('Y(s)'))).toBe(true);
     const outputNodeFragment = html.match(/data-structure-diagram-node-id="output"[\s\S]*?<\/button>/)?.[0] ?? '';
     expect(outputNodeFragment).toContain('Y(s)');
+    expect(outputNodeFragment).toContain('sr-only');
+    expect(outputNodeFragment).not.toContain('data-structure-diagram-output-label-position="above-line"');
     const takeoffNodeFragment = html.match(/data-structure-diagram-node-id="output-takeoff"[\s\S]*?<\/button>/)?.[0] ?? '';
     expect(takeoffNodeFragment).not.toContain('Y(s)');
   });

@@ -456,8 +456,16 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-structure-diagram-edge-id="feedback-signal"');
     expect(html).toContain('data-structure-diagram-edge-id="feedback-return"');
     expect(html).toContain('data-structure-diagram-terminal-sign-id="feedback-return"');
-    expect(html).toContain('data-structure-diagram-terminal-sign="-"');
+    expect(html).toContain('data-structure-diagram-terminal-sign="−"');
+    const terminalSignFragment = html.match(/<button[^>]*data-structure-diagram-terminal-sign-id="feedback-return"[^>]*>/)?.[0] ?? '';
+    expect(terminalSignFragment).toContain('text-[19.5px]');
+    expect(terminalSignFragment).toContain('bg-[var(--platform-surface)]/80');
+    expect(terminalSignFragment).not.toContain('platform-brand-evidence');
     expect(html).toContain('data-structure-diagram-edge-main-line="true"');
+    expect(html).toContain('data-structure-diagram-arrowhead-id="feedback-return"');
+    expect(html).toContain('data-structure-diagram-arrow-style="fixed-pixel"');
+    expect(html).toContain('width="13.5"');
+    expect(html).toContain('height="9"');
     expect(html).toContain('data-structure-diagram-edge-hit-target="feedback-return"');
     expect(html).toContain('data-structure-diagram-edge-keyboard-selectable="true"');
     expect(html).toContain('aria-label="选择信号线 H(s)y"');
@@ -473,8 +481,94 @@ describe('interactive module registry gate', () => {
     expect(html).not.toContain('data-structure-diagram-edge-select-id=');
     expect(html).not.toContain('<span class="premium-lesson-badge">highlight</span>');
     expect(html).not.toContain('space-y-4');
-    expect(html).toContain('x1="5" y1="5" x2="35" y2="35"');
-    expect(html).toContain('x1="35" y1="5" x2="5" y2="35"');
+    expect(html).toContain('x1="4" y1="4" x2="36" y2="36"');
+    expect(html).toContain('x1="36" y1="4" x2="4" y2="36"');
+    expect(html).toContain('stroke-width="3"');
+  });
+
+  it('applies the standard visual defaults for structure diagrams', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 1,
+      allowInlineReveal: true,
+    });
+    const manifest = manifestFixture({
+      modules: [
+        {
+          id: 'default-block-diagram',
+          kind: 'visual.blockDiagram',
+          mustBeVisible: true,
+          payload: {
+            graphId: 'default-block-style',
+            layout: { mode: 'relative' },
+            nodes: [
+              { id: 'sum', type: 'sum', label: 'Σ', grid: { column: 0, row: 0 } },
+              { id: 'plant', type: 'block', labelLatex: 'G(s)', relativeTo: 'sum', placement: 'right' },
+              { id: 'tap', type: 'branch', display: 'takeoff', label: '输出引出点', relativeTo: 'plant', placement: 'right' },
+              { id: 'sensor', type: 'sensor', labelLatex: 'H(s)', relativeTo: 'plant', placement: 'below' },
+            ],
+            edges: [
+              { id: 'forward', from: 'sum.E', to: 'plant.W', route: '--', labelLatex: 'E(s)' },
+              { id: 'feedback', from: 'sensor.W', to: 'sum.S', route: '-|', labelLatex: 'Y_m(s)', terminalSign: '-' },
+            ],
+          },
+        },
+        {
+          id: 'default-signal-flow',
+          kind: 'visual.signalFlowGraph',
+          mustBeVisible: true,
+          payload: {
+            graphId: 'default-signal-flow-style',
+            layout: { mode: 'relative' },
+            nodes: [
+              { id: 'r', labelLatex: 'R(s)', grid: { column: 0, row: 0 } },
+              { id: 'y', labelLatex: 'Y(s)', relativeTo: 'r', placement: 'right' },
+            ],
+            branches: [
+              { id: 'r-y', from: 'r', to: 'y', route: 'straight', gainLatex: 'G(s)' },
+            ],
+            pathSets: { forwardPaths: [['r-y']], loops: [], nonTouchingLoopGroups: [] },
+          },
+        },
+      ],
+    });
+    const step = manifest.steps[0];
+    const blockNode = registry['visual.blockDiagram']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 1, allowInlineReveal: true },
+    }) as ReactElement;
+    const signalNode = registry['visual.signalFlowGraph']({
+      manifest,
+      step,
+      module: step.modules[1],
+      extra: { revealProgress: 1, allowInlineReveal: true },
+    }) as ReactElement;
+    const blockHtml = renderToStaticMarkup(createElement(ThemeProvider, null, blockNode));
+    const signalHtml = renderToStaticMarkup(createElement(ThemeProvider, null, signalNode));
+
+    expect(blockHtml).toContain('data-structure-diagram-layout-spacing-x="0.24"');
+    expect(blockHtml).toContain('data-structure-diagram-layout-spacing-y="0.14"');
+    expect(blockHtml).toContain('width:12%');
+    expect(blockHtml).toContain('border-[3px] bg-platform-panel');
+    expect(blockHtml).toContain('rounded-full border-[3px] bg-platform-panel');
+    expect(blockHtml).toContain('border-[hsl(var(--platform-action-primary))]');
+    expect(blockHtml).toContain('text-[hsl(var(--platform-action-primary))]');
+    expect(blockHtml).toContain('data-structure-diagram-node-id="tap"');
+    expect(blockHtml).toContain('data-structure-diagram-node-visual-kind="takeoff"');
+    expect(blockHtml).toContain('left:46%');
+    expect(blockHtml).toContain('stroke-width="1.6"');
+    expect(blockHtml).toContain('data-structure-diagram-arrowhead-id="forward"');
+    expect(blockHtml).toContain('data-structure-diagram-arrow-state="default"');
+    expect(blockHtml).toContain('text-[19.5px]');
+    expect(blockHtml).toContain('data-structure-diagram-terminal-sign="−"');
+    expect(signalHtml).toContain('data-structure-diagram-layout-spacing-x="0.24"');
+    expect(signalHtml).toContain('data-structure-diagram-layout-spacing-y="0.14"');
+    expect(signalHtml).toContain('stroke-width="1.6"');
+    expect(signalHtml).toContain('data-structure-diagram-arrowhead-id="r-y"');
+    expect(signalHtml).toContain('vector-effect="non-scaling-stroke"');
+    expect(signalHtml).toContain('data-structure-diagram-arrow-style="fixed-pixel"');
+    expect(signalHtml).toContain('text-[19.5px]');
   });
 
   it('renders block diagram default anchors and summing junction connectors as standard geometry', () => {
