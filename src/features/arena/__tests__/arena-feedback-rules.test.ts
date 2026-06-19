@@ -404,8 +404,8 @@ describe('arena personal feedback component', () => {
     expect(apiSource).toContain('const session = await getServerAuthSession()');
     expect(apiSource).toContain('viewerUserId: session?.user?.id');
     expect(mountSource).toContain('viewerUserId?: string');
-    expect(mountSource).toContain('setViewerUserId');
-    expect(mountSource).toContain('viewerUserId={viewerUserId}');
+    expect(mountSource).toContain('viewerUserId: response.ok ? payload.viewerUserId : undefined');
+    expect(mountSource).toContain('viewerUserId={loadedSubmissionState.viewerUserId}');
     expect(cruiseSource).toContain('viewerUserId={session?.user?.id}');
   });
 });

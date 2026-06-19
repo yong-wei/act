@@ -107,8 +107,9 @@ describe('platform entrypoint smoke contracts', () => {
       expect(source).toContain('data-commercial-student-entry-route');
       expect(source).toContain('data-commercial-entry-intent');
     }
-    expect(routeSources[2]).toContain("['practice', 'learn', 'challenge', 'review']");
-    expect(routeSources[2]).toContain('返回竞技场');
+    expect(routeSources[2]).toContain('resolveControlCorrectionIntent');
+    expect(routeSources[2]).toContain("routeIntent === 'contextual-recommendation'");
+    expect(routeSources[2]).toContain('data-learner-record-surface={learnerDataShell.archetype}');
     expect(courseCatalogSource).toContain('data-learning-entry-map="course-module-progression"');
     expect(courseCatalogSource).toContain('data-course-entry-action="launch"');
   });

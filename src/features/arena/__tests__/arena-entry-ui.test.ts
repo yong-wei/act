@@ -100,7 +100,7 @@ describe('arena student entry UI boundaries', () => {
     expect(navigationSource).toContain("'竞技场'");
     expect(navigationSource).toContain("'知识资源'");
     expect(navigationSource).toContain("'控制工作台'");
-    expect(navigationSource).toContain("'自适应学习'");
+    expect(navigationSource).toContain("'学习路径'");
     expect(navigationSource).toContain("'互动学习'");
     expect(navigationSource).toContain("'个人中心'");
     expect(shellSource).not.toContain("'我的方案'");

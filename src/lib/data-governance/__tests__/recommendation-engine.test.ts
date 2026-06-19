@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CompetencyVector } from '../competency-model';
 
 const mocks = vi.hoisted(() => ({
@@ -329,6 +329,8 @@ function previewOnlySimulationArenaFeature() {
 
 describe('generateRecommendations', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-20T12:00:00.000Z'));
     vi.clearAllMocks();
     delete process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED;
     mocks.prisma.studentCompetencySnapshot.findFirst.mockResolvedValue({
@@ -342,6 +344,10 @@ describe('generateRecommendations', () => {
     mocks.prisma.userProgress.count.mockImplementation(async (args?: { where?: { status?: string } }) =>
       args?.where?.status === 'COMPLETED' ? 6 : 8
     );
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('uses the governed feature cache as the recommendation evidence source', async () => {

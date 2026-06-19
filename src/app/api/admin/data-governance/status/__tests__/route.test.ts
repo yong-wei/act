@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { STUDENT_EVIDENCE_FEATURE_PAYLOAD_VERSION } from '@/lib/data-governance/student-evidence-feature-cache';
 
@@ -105,6 +105,8 @@ function createRequest() {
 
 describe('GET /api/admin/data-governance/status', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-05-20T12:00:00.000Z'));
     vi.resetAllMocks();
     mocks.getServerSession.mockResolvedValue({
       user: { id: 'admin-1', role: 'ADMIN' },
@@ -281,6 +283,10 @@ describe('GET /api/admin/data-governance/status', () => {
     mocks.prisma.user.findMany.mockResolvedValue([
       { id: 'student-1', name: '张三', email: 'student@example.test' },
     ]);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('returns the evidence source catalog for admins', async () => {

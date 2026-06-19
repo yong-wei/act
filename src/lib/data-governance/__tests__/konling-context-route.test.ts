@@ -35,10 +35,16 @@ vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
 }));
 
-vi.mock('@/lib/data-governance/adaptive-learner-state-service', () => ({
-  isAdaptiveLearnerStateServiceEnabled: mocks.isAdaptiveLearnerStateServiceEnabled,
-  readAdaptiveLearnerState: mocks.readAdaptiveLearnerState,
-}));
+vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/data-governance/adaptive-learner-state-service')>(
+    '@/lib/data-governance/adaptive-learner-state-service',
+  );
+  return {
+    ...actual,
+    isAdaptiveLearnerStateServiceEnabled: mocks.isAdaptiveLearnerStateServiceEnabled,
+    readAdaptiveLearnerState: mocks.readAdaptiveLearnerState,
+  };
+});
 
 import { GET } from '@/app/api/ai/konling-context/route';
 

@@ -90,6 +90,10 @@ interface TextbookSectionSemanticOverride {
 
 const TEXTBOOK_RUNTIME_ROOT = path.join(process.cwd(), 'course-content/runtime/resources/textbooks');
 
+function resolveTextbookRuntimeRoot() {
+  return process.env.ACT_TEXTBOOK_RUNTIME_ROOT || TEXTBOOK_RUNTIME_ROOT;
+}
+
 const TEXTBOOK_SECTION_SEMANTIC_OVERRIDES: Record<string, Record<string, TextbookSectionSemanticOverride>> = {
   'dorf-modern-control-systems': {
     'ch01-preview-001': controlIntro(['selfDirectedLearning']),
@@ -205,7 +209,7 @@ const TEXTBOOK_SECTION_SEMANTIC_OVERRIDES: Record<string, Record<string, Textboo
 };
 
 export async function loadAllTextbookRuntimeResourceCatalogEntries(
-  root = TEXTBOOK_RUNTIME_ROOT,
+  root = resolveTextbookRuntimeRoot(),
 ): Promise<TextbookRuntimeResourceCatalogEntry[]> {
   const bookDirs = await safeReadDir(root);
   const entries = await Promise.all(bookDirs.map((dirent) =>
@@ -215,7 +219,7 @@ export async function loadAllTextbookRuntimeResourceCatalogEntries(
 }
 
 export async function loadAllTextbookRuntimeSearchDocuments(
-  root = TEXTBOOK_RUNTIME_ROOT,
+  root = resolveTextbookRuntimeRoot(),
 ): Promise<TextbookRuntimeSearchDocument[]> {
   const bookDirs = await safeReadDir(root);
   const entries = await Promise.all(bookDirs.map((dirent) =>

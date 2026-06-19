@@ -241,6 +241,7 @@ describe('simulation arena workbench experience UI contracts', () => {
     const simulationShellSource = readRepoFile('src/app/simulations/_components/simulation-shell.tsx');
     const workbenchSource = readRepoFile('src/features/control-workbench/shell/control-workbench-shell.tsx');
     const arenaDetailSource = readRepoFile('src/features/arena/challenge-detail.tsx');
+    const lessonRuntimeShellSource = readRepoFile('src/features/interactive/shared/lesson-runtime-shell.tsx');
     const manifestRuntimeSource = readRepoFile('src/features/interactive/shared/manifest-runtime/layout-renderer.tsx');
     const premiumLessonEntrySource = readRepoFile('src/features/interactive/shared/premium-lesson-entry-page.tsx');
     const unit41StudentRuntimeSource = readRepoFile('src/features/interactive/unit-4-1-design-task-expression/student-page.tsx');
@@ -275,11 +276,12 @@ describe('simulation arena workbench experience UI contracts', () => {
     expect(manifestRuntimeSource).toContain("'data-commercial-workspace-zone': 'context-strip'");
     expect(premiumLessonEntrySource).toContain('data-task-workspace-archetype="lesson-runtime"');
     expect(premiumLessonEntrySource).toContain('data-return-target="/interactive-learning/courses"');
-    expect(unit41StudentRuntimeSource).toContain('data-task-workspace-archetype="lesson-runtime"');
-    expect(unit41StudentRuntimeSource).toContain('data-return-target="/interactive-learning/courses/unit-4-1-design-task-expression"');
-    expect(unit41StudentRuntimeSource).toContain('data-runtime-manifest-truth={runtimeManifestTruth}');
-    expect(unit41StudentRuntimeSource).toContain('data-activity-submission-contract="manifest-runtime"');
-    expect(unit41StudentRuntimeSource).toContain('data-evidence-flow-target="/profile/evidence"');
+    expect(unit41StudentRuntimeSource).toContain('<LessonRuntimeShell');
+    expect(lessonRuntimeShellSource).toContain('data-task-workspace-archetype="lesson-runtime"');
+    expect(unit41StudentRuntimeSource).toContain("'data-return-target': `/interactive-learning/courses/${UNIT_4_1_ROUTE_SEGMENT}`");
+    expect(unit41StudentRuntimeSource).toContain("'data-runtime-manifest-truth': runtimeManifestTruth");
+    expect(unit41StudentRuntimeSource).toContain("'data-activity-submission-contract': 'manifest-runtime'");
+    expect(unit41StudentRuntimeSource).toContain("'data-evidence-flow-target': '/profile/evidence'");
     expect(unit41StudentRuntimeSource).toContain('data-evidence-flow-state={isDemo ?');
     expect(unit41StudentRuntimeSource).toContain('data-task-workspace-zone="floating-dock-safe-area"');
     expect(globalsSource).toContain('[data-task-workspace-archetype]');
