@@ -203,6 +203,7 @@ export interface ResourceNodeAuditIssue {
   code:
     | 'missing-render-or-launch-target'
     | 'missing-knowledge-mapping'
+    | 'missing-capability-mapping'
     | 'invalid-prerequisite'
     | 'unavailable-resource'
     | 'teacher-policy-blocked'
@@ -674,6 +675,10 @@ export function buildResourceNodeRegistry(input: ResourceNodeRegistryInput): Res
   const auditedNodes = Array.from(nodesById.values())
     .map((node) => ({ ...node, eligibility: auditResourceNode(node, nodesById, input.auditOptions) }))
     .sort((left, right) => left.id.localeCompare(right.id));
+  const highConfidenceAudits = new Map(auditedNodes.map((node) => [
+    node.id,
+    buildResourceNodeHighConfidencePlanningAudit(node),
+  ]));
 
   return {
     nodes: auditedNodes,
@@ -681,14 +686,16 @@ export function buildResourceNodeRegistry(input: ResourceNodeRegistryInput): Res
     supportedTypes: RESOURCE_NODE_TYPES,
     audit: {
       totalNodes: auditedNodes.length,
-      pathEligibleNodes: auditedNodes.filter((node) => node.eligibility.pathEligible).length,
+      pathEligibleNodes: auditedNodes
+        .filter((node) => highConfidenceAudits.get(node.id)?.pathEligible)
+        .length,
       ineligibleNodes: auditedNodes
-        .filter((node) => !node.eligibility.pathEligible)
+        .filter((node) => !highConfidenceAudits.get(node.id)?.pathEligible)
         .map((node) => ({
           id: node.id,
           title: node.title,
           type: node.type,
-          reasons: node.eligibility.reasons,
+          reasons: uniqueSorted(highConfidenceAudits.get(node.id)?.issues.map((issue) => issue.code) ?? []),
         })),
     },
   };
@@ -778,7 +785,7 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
   const segmentId = `resource-segment:${node.id}:primary`;
   const target = node.launchTarget ?? node.renderTarget;
   const citationTargetId = `citation-target:${node.id}:primary`;
-  const auditIssueCodes = node.eligibility.auditIssues.map((issue) => issue.code);
+  const auditIssueCodes = buildProjectionAuditIssueCodes(node);
   const resource: Resource = {
     id: resourceId,
     resourceNodeId: node.id,
@@ -1518,6 +1525,45 @@ function segmentKindForNode(node: ResourceNode): ResourceSegment['kind'] {
   return 'primary';
 }
 
+export function buildResourceNodeHighConfidencePlanningAudit(node: ResourceNode): {
+  pathEligible: boolean;
+  issues: ResourceNodeAuditIssue[];
+  hasBlockingIssue: boolean;
+} {
+  const hasCapabilityMapping = Object.keys(node.planningMetadata.abilityImpact).length > 0;
+  const hasEvidenceInstrumentation = node.planningMetadata.evidenceInstrumentation.length > 0;
+  const issues = node.eligibility.auditIssues.map((issue) => (
+    !hasEvidenceInstrumentation && issue.code === 'missing-evidence-instrumentation'
+      ? { ...issue, severity: 'blocking' as const }
+      : issue
+  ));
+
+  if (!hasCapabilityMapping && !issues.some((issue) => issue.code === 'missing-capability-mapping')) {
+    issues.push({
+      code: 'missing-capability-mapping',
+      message: 'ResourceNode has no capability target mapping for high-confidence path planning.',
+      severity: 'blocking',
+    });
+  }
+  if (!hasEvidenceInstrumentation && !issues.some((issue) => issue.code === 'missing-evidence-instrumentation')) {
+    issues.push({
+      code: 'missing-evidence-instrumentation',
+      message: 'ResourceNode has no evidence instrumentation mapping.',
+      severity: 'blocking',
+    });
+  }
+
+  return {
+    pathEligible: node.eligibility.pathEligible && hasCapabilityMapping && hasEvidenceInstrumentation,
+    issues,
+    hasBlockingIssue: issues.some((issue) => issue.severity === 'blocking'),
+  };
+}
+
+function buildProjectionAuditIssueCodes(node: ResourceNode): string[] {
+  return uniqueSorted(buildResourceNodeHighConfidencePlanningAudit(node).issues.map((issue) => issue.code));
+}
+
 function buildPlanningUnit(node: ResourceNode, resourceId: string, target: string | null): PlanningUnit | null {
   if (!isPlanningUnitEligible(node, target)) return null;
   return {
@@ -1539,7 +1585,7 @@ function buildPlanningUnit(node: ResourceNode, resourceId: string, target: strin
 }
 
 function isPlanningUnitEligible(node: ResourceNode, target: string | null): target is string {
-  if (!target || !node.eligibility.pathEligible) return false;
+  if (!target || !buildResourceNodeHighConfidencePlanningAudit(node).pathEligible) return false;
   return !node.eligibility.auditIssues.some((issue) => issue.code === 'missing-readiness-metadata');
 }
 

@@ -521,7 +521,7 @@ function buildTeacherGovernanceNode(
       {
         id: 'path-eligibility',
         label: '路径资格',
-        value: node.pathEligible ? '可规划' : `已排除：${node.pathExclusionReasons.join(', ') || '无公开原因'}`,
+        value: node.audit.pathEligible ? '可规划' : `已排除：${node.audit.exclusionReasons.join(', ') || '无公开原因'}`,
         roleScope: 'teacher-scoped',
       },
     ],

@@ -75,6 +75,12 @@ describe('teacher ResourceNode management contracts', () => {
       totalNodes: 1,
       pathEligibleNodes: 1,
       warningNodes: 0,
+      mappedNodes: 1,
+      unmappedNodes: 0,
+      capabilityMappedNodes: 1,
+      citationReadyNodes: 1,
+      evidenceCapabilityNodes: 1,
+      blockedNodes: 0,
     });
   });
 
@@ -89,15 +95,100 @@ describe('teacher ResourceNode management contracts', () => {
       courseModule: 'SYSTEM_MODELING',
       editable: true,
       pathEligible: false,
-      pathExclusionReasons: ['missing-render-or-launch-target', 'missing-knowledge-mapping'],
     });
-    expect(view.warnings.map((warning) => warning.code)).toEqual([
+    expect(view.pathExclusionReasons).toEqual(expect.arrayContaining([
       'missing-render-or-launch-target',
       'missing-knowledge-mapping',
-    ]);
+    ]));
+    expect(view.audit).toMatchObject({
+      knowledgeCoveragePresent: false,
+      capabilityMappingPresent: true,
+      citationTargetReady: false,
+      evidenceCapabilityConfigured: true,
+      pathEligible: false,
+      sourceOwnership: {
+        content: 'TeachingResource',
+        catalogMetadata: 'TeachingResource',
+        planningMetadata: 'ResourceNode',
+      },
+    });
+    expect(view.warnings.map((warning) => warning.code)).toEqual(expect.arrayContaining([
+      'missing-render-or-launch-target',
+      'missing-knowledge-mapping',
+    ]));
     expect(JSON.stringify(view)).not.toContain('abilityImpact');
     expect(JSON.stringify(view)).not.toContain('terminalConstraints');
     expect(JSON.stringify(view)).not.toContain('hiddenEvaluationInternals');
+  });
+
+  it('surfaces capability and evidence gaps as high-confidence path blockers', () => {
+    const node = registry().nodes.find((candidate) => candidate.id === 'teaching-resource:owned-quiz')!;
+    const auditBlockedNode = {
+      ...node,
+      planningMetadata: {
+        ...node.planningMetadata,
+        abilityImpact: {},
+        evidenceInstrumentation: [],
+      },
+    };
+    const view = createTeacherResourceNodeView(auditBlockedNode, teacherScope);
+
+    expect(view.audit).toMatchObject({
+      knowledgeCoveragePresent: true,
+      capabilityMappingPresent: false,
+      citationTargetReady: true,
+      evidenceCapabilityConfigured: false,
+      pathEligible: false,
+    });
+    expect(view.pathEligible).toBe(true);
+    expect(view.pathExclusionReasons).toEqual([]);
+    expect(view.audit.exclusionReasons).toEqual(expect.arrayContaining([
+      'missing-capability-mapping',
+      'missing-evidence-instrumentation',
+    ]));
+    expect(view.warnings).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'missing-capability-mapping', severity: 'blocking' }),
+      expect.objectContaining({ code: 'missing-evidence-instrumentation', severity: 'blocking' }),
+    ]));
+    expect(filterTeacherResourceNodes([auditBlockedNode], { pathEligibility: 'eligible' })).toEqual([]);
+    expect(filterTeacherResourceNodes([auditBlockedNode], { pathEligibility: 'excluded' })).toEqual([auditBlockedNode]);
+    expect(buildTeacherResourceNodeManagementSummary([auditBlockedNode])).toMatchObject({
+      totalNodes: 1,
+      pathEligibleNodes: 0,
+      warningNodes: 1,
+      excludedNodes: 1,
+      mappedNodes: 1,
+      capabilityMappedNodes: 0,
+      evidenceCapabilityNodes: 0,
+      blockedNodes: 1,
+    });
+  });
+
+  it('does not persist audit-only high-confidence blockers as teacher policy changes', () => {
+    const node = registry().nodes.find((candidate) => candidate.id === 'teaching-resource:owned-quiz')!;
+    const result = applyTeacherResourceNodePatch({
+      node: {
+        ...node,
+        planningMetadata: {
+          ...node.planningMetadata,
+          abilityImpact: {},
+          evidenceInstrumentation: [],
+        },
+      },
+      scope: teacherScope,
+      patch: {
+        displayName: '只改显示名称',
+        description: '不应因为 audit 缺口改写教师策略。',
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(result.error);
+    expect(result.persistablePatch).toEqual({
+      displayName: '只改显示名称',
+      description: '不应因为 audit 缺口改写教师策略。',
+      resourceNodePlanning: {},
+    });
   });
 
   it('keeps related knowledge cards readable for teacher-owned knowledge mappings', () => {
@@ -382,8 +473,18 @@ describe('teacher ResourceNode management contracts', () => {
   });
 
   it('reports coverage dashboards, policy review counts, and system-owned issue triage markers', () => {
+    const baseNode = registry().nodes.find((node) => node.id === 'teaching-resource:owned-quiz')!;
+    const auditOnlyBlockedNode = {
+      ...baseNode,
+      id: 'teaching-resource:audit-only-blocked',
+      planningMetadata: {
+        ...baseNode.planningMetadata,
+        abilityImpact: {},
+        evidenceInstrumentation: [],
+      },
+    };
     const warningOnlyNode = {
-      ...registry().nodes.find((node) => node.id === 'teaching-resource:owned-quiz')!,
+      ...baseNode,
       eligibility: {
         pathEligible: true,
         reasons: [],
@@ -396,19 +497,21 @@ describe('teacher ResourceNode management contracts', () => {
         ],
       },
     };
-    const readiness = buildTeacherResourceNodeOperationsReadiness([...registry().nodes, warningOnlyNode], {
+    const readiness = buildTeacherResourceNodeOperationsReadiness([auditOnlyBlockedNode, warningOnlyNode], {
       bulkMappingEnabled: true,
     });
 
     expect(readiness.bulkMappingEnabled).toBe(true);
-    expect(readiness.coverage.totalNodes).toBeGreaterThan(0);
-    expect(readiness.coverage.mappedNodes).toBeGreaterThan(0);
+    expect(readiness.coverage).toMatchObject({
+      totalNodes: 2,
+      mappedNodes: 2,
+      pathEligibleNodes: 1,
+    });
     expect(readiness.coverage.coverageRatio).toBeGreaterThan(0);
     expect(readiness.policyReviewRequiredCount).toBeGreaterThan(0);
     expect(readiness.systemIssues.map((issue) => issue.code)).toEqual(
       expect.arrayContaining([
-        expect.stringContaining('missing-render-or-launch-target'),
-        expect.stringContaining('missing-knowledge-mapping'),
+        expect.stringContaining('missing-capability-mapping'),
         expect.stringContaining('missing-evidence-instrumentation'),
       ]),
     );

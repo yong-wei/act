@@ -37,6 +37,20 @@ export interface TeacherResourceNodeWarningView {
   severity: 'blocking' | 'warning';
 }
 
+export interface TeacherResourceNodeAuditView {
+  knowledgeCoveragePresent: boolean;
+  capabilityMappingPresent: boolean;
+  citationTargetReady: boolean;
+  evidenceCapabilityConfigured: boolean;
+  pathEligible: boolean;
+  exclusionReasons: string[];
+  sourceOwnership: {
+    content: ResourceNode['sourceOfRecord']['content'];
+    catalogMetadata: ResourceNode['sourceOfRecord']['catalogMetadata'];
+    planningMetadata: ResourceNode['sourceOfRecord']['planningMetadata'];
+  };
+}
+
 export interface TeacherResourceNodeView {
   id: string;
   title: string;
@@ -55,6 +69,7 @@ export interface TeacherResourceNodeView {
   teacherPolicy: ResourceNodeTeacherPolicy;
   privacyLevel: ResourceNodePrivacyLevel;
   readiness: ResourceNodeReadinessMetadata | null;
+  audit: TeacherResourceNodeAuditView;
   evidenceInstrumentationConfigured: boolean;
   pathEligible: boolean;
   pathExclusionReasons: string[];
@@ -67,6 +82,12 @@ export interface TeacherResourceNodeSummary {
   pathEligibleNodes: number;
   warningNodes: number;
   excludedNodes: number;
+  mappedNodes: number;
+  unmappedNodes: number;
+  capabilityMappedNodes: number;
+  citationReadyNodes: number;
+  evidenceCapabilityNodes: number;
+  blockedNodes: number;
 }
 
 export interface TeacherResourceNodeBulkPatchInput {
@@ -210,8 +231,8 @@ export function filterTeacherResourceNodes(
     if (filters.privacyLevel && filters.privacyLevel !== 'all' && node.planningMetadata.privacyLevel !== filters.privacyLevel) {
       return false;
     }
-    if (filters.pathEligibility === 'eligible' && !node.eligibility.pathEligible) return false;
-    if (filters.pathEligibility === 'excluded' && node.eligibility.pathEligible) return false;
+    if (filters.pathEligibility === 'eligible' && !buildTeacherResourceNodeAudit(node).pathEligible) return false;
+    if (filters.pathEligibility === 'excluded' && buildTeacherResourceNodeAudit(node).pathEligible) return false;
     return true;
   });
 }
@@ -220,6 +241,7 @@ export function createTeacherResourceNodeView(
   node: ResourceNode,
   scope: TeacherResourceNodeScope,
 ): TeacherResourceNodeView {
+  const audit = buildTeacherResourceNodeAudit(node);
   return {
     id: node.id,
     title: node.title,
@@ -238,14 +260,11 @@ export function createTeacherResourceNodeView(
     teacherPolicy: node.planningMetadata.teacherPolicy,
     privacyLevel: node.planningMetadata.privacyLevel,
     readiness: copyReadinessMetadata(node.planningMetadata.readiness),
+    audit,
     evidenceInstrumentationConfigured: node.planningMetadata.evidenceInstrumentation.length > 0,
     pathEligible: node.eligibility.pathEligible,
     pathExclusionReasons: [...node.eligibility.reasons],
-    warnings: node.eligibility.auditIssues.map((issue) => ({
-      code: issue.code,
-      message: issue.message,
-      severity: issue.severity,
-    })),
+    warnings: buildTeacherResourceNodeAuditWarnings(node, audit),
     editable: canEditNode(node, scope),
   };
 }
@@ -255,9 +274,15 @@ export function buildTeacherResourceNodeManagementSummary(
 ): TeacherResourceNodeSummary {
   return {
     totalNodes: nodes.length,
-    pathEligibleNodes: nodes.filter((node) => node.eligibility.pathEligible).length,
-    warningNodes: nodes.filter((node) => node.eligibility.auditIssues.length > 0).length,
-    excludedNodes: nodes.filter((node) => !node.eligibility.pathEligible).length,
+    pathEligibleNodes: nodes.filter((node) => buildTeacherResourceNodeAudit(node).pathEligible).length,
+    warningNodes: nodes.filter((node) => buildTeacherResourceNodeAuditWarnings(node, buildTeacherResourceNodeAudit(node)).length > 0).length,
+    excludedNodes: nodes.filter((node) => !buildTeacherResourceNodeAudit(node).pathEligible).length,
+    mappedNodes: nodes.filter((node) => node.planningMetadata.knowledgeCoverage.length > 0).length,
+    unmappedNodes: nodes.filter((node) => node.planningMetadata.knowledgeCoverage.length === 0).length,
+    capabilityMappedNodes: nodes.filter((node) => Object.keys(node.planningMetadata.abilityImpact).length > 0).length,
+    citationReadyNodes: nodes.filter(hasCitationTarget).length,
+    evidenceCapabilityNodes: nodes.filter((node) => node.planningMetadata.evidenceInstrumentation.length > 0).length,
+    blockedNodes: nodes.filter((node) => !buildTeacherResourceNodeAudit(node).pathEligible).length,
   };
 }
 
@@ -358,13 +383,18 @@ export function buildTeacherResourceNodeOperationsReadiness(
 ): TeacherResourceNodeOperationsReadiness {
   const mappedNodes = nodes.filter((node) => node.planningMetadata.knowledgeCoverage.length > 0).length;
   const totalNodes = nodes.length;
+  const auditByNodeId = new Map(nodes.map((node) => [node.id, buildTeacherResourceNodeAudit(node)]));
+  const warningsByNodeId = new Map(nodes.map((node) => [
+    node.id,
+    buildTeacherResourceNodeAuditWarnings(node, auditByNodeId.get(node.id)!),
+  ]));
   const policyReviewRequired = nodes.filter((node) =>
     node.planningMetadata.teacherPolicy === 'blocked' ||
     node.planningMetadata.teacherPolicy === 'teacher-only' ||
-    node.eligibility.auditIssues.some((issue) => issue.severity === 'blocking')
+    warningsByNodeId.get(node.id)!.some((issue) => issue.severity === 'blocking')
   );
   const systemIssues = nodes.flatMap((node) =>
-    node.eligibility.auditIssues.map((issue) => ({
+    warningsByNodeId.get(node.id)!.map((issue) => ({
       code: `${node.id}:${issue.code}`,
       message: issue.message,
       severity: issue.severity,
@@ -377,7 +407,7 @@ export function buildTeacherResourceNodeOperationsReadiness(
     coverage: {
       totalNodes,
       mappedNodes,
-      pathEligibleNodes: nodes.filter((node) => node.eligibility.pathEligible).length,
+      pathEligibleNodes: nodes.filter((node) => auditByNodeId.get(node.id)!.pathEligible).length,
       coverageRatio: totalNodes > 0 ? round(mappedNodes / totalNodes, 4) : 0,
     },
     systemIssues,
@@ -460,6 +490,64 @@ function textMatchesNode(node: ResourceNode, query: string): boolean {
     ...node.planningMetadata.knowledgeCoverage,
   ].join(' ').toLowerCase();
   return haystack.includes(query);
+}
+
+function buildTeacherResourceNodeAudit(node: ResourceNode): TeacherResourceNodeAuditView {
+  const knowledgeCoveragePresent = node.planningMetadata.knowledgeCoverage.length > 0;
+  const capabilityMappingPresent = Object.keys(node.planningMetadata.abilityImpact).length > 0;
+  const citationTargetReady = hasCitationTarget(node);
+  const evidenceCapabilityConfigured = node.planningMetadata.evidenceInstrumentation.length > 0;
+  const exclusionReasons = uniqueSorted([
+    ...node.eligibility.reasons,
+    ...(!capabilityMappingPresent ? ['missing-capability-mapping'] : []),
+    ...(!evidenceCapabilityConfigured ? ['missing-evidence-instrumentation'] : []),
+  ]);
+  return {
+    knowledgeCoveragePresent,
+    capabilityMappingPresent,
+    citationTargetReady,
+    evidenceCapabilityConfigured,
+    pathEligible: node.eligibility.pathEligible && capabilityMappingPresent && evidenceCapabilityConfigured,
+    exclusionReasons,
+    sourceOwnership: {
+      content: node.sourceOfRecord.content,
+      catalogMetadata: node.sourceOfRecord.catalogMetadata,
+      planningMetadata: node.sourceOfRecord.planningMetadata,
+    },
+  };
+}
+
+function buildTeacherResourceNodeAuditWarnings(
+  node: ResourceNode,
+  audit: TeacherResourceNodeAuditView,
+): TeacherResourceNodeWarningView[] {
+  const warnings: TeacherResourceNodeWarningView[] = node.eligibility.auditIssues.map((issue) => ({
+    code: issue.code,
+    message: issue.message,
+    severity: issue.severity,
+  }));
+  if (!audit.capabilityMappingPresent && !warnings.some((warning) => warning.code === 'missing-capability-mapping')) {
+    warnings.push({
+      code: 'missing-capability-mapping',
+      message: 'ResourceNode has no capability target mapping for high-confidence path planning.',
+      severity: 'blocking',
+    });
+  }
+  const evidenceWarning = warnings.find((warning) => warning.code === 'missing-evidence-instrumentation');
+  if (evidenceWarning) {
+    evidenceWarning.severity = 'blocking';
+  } else if (!audit.evidenceCapabilityConfigured) {
+    warnings.push({
+      code: 'missing-evidence-instrumentation',
+      message: 'ResourceNode has no evidence instrumentation mapping.',
+      severity: 'blocking',
+    });
+  }
+  return warnings;
+}
+
+function hasCitationTarget(node: ResourceNode): boolean {
+  return Boolean(node.launchTarget || node.renderTarget);
 }
 
 function uniqueSorted(values: readonly string[]): string[] {

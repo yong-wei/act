@@ -33,6 +33,19 @@ function resourceNodeView(overrides: Partial<TeacherResourceNodeView> = {}): Tea
     teacherPolicy: 'allowed',
     privacyLevel: 'student-visible',
     readiness: null,
+    audit: {
+      knowledgeCoveragePresent: true,
+      capabilityMappingPresent: true,
+      citationTargetReady: true,
+      evidenceCapabilityConfigured: true,
+      pathEligible: true,
+      exclusionReasons: [],
+      sourceOwnership: {
+        content: 'TeachingResource',
+        catalogMetadata: 'TeachingResource',
+        planningMetadata: 'ResourceNode',
+      },
+    },
     evidenceInstrumentationConfigured: true,
     pathEligible: true,
     pathExclusionReasons: [],
@@ -198,6 +211,12 @@ describe('teacher and admin governance workspace contracts', () => {
         pathEligibleNodes: 1,
         warningNodes: 0,
         excludedNodes: 0,
+        mappedNodes: 1,
+        unmappedNodes: 0,
+        capabilityMappedNodes: 1,
+        citationReadyNodes: 1,
+        evidenceCapabilityNodes: 1,
+        blockedNodes: 0,
       },
     });
 
@@ -239,6 +258,12 @@ describe('teacher and admin governance workspace contracts', () => {
         pathEligibleNodes: 0,
         warningNodes: 1,
         excludedNodes: 1,
+        mappedNodes: 1,
+        unmappedNodes: 0,
+        capabilityMappedNodes: 1,
+        citationReadyNodes: 1,
+        evidenceCapabilityNodes: 0,
+        blockedNodes: 1,
       },
     });
 
@@ -263,6 +288,63 @@ describe('teacher and admin governance workspace contracts', () => {
     );
   });
 
+  it('uses audit path eligibility for governance path status without mutating edit policy', () => {
+    const view = buildTeacherGovernanceWorkspace({
+      role: 'teacher',
+      nodes: [
+        resourceNodeView({
+          pathEligible: true,
+          pathExclusionReasons: [],
+          audit: {
+            knowledgeCoveragePresent: true,
+            capabilityMappingPresent: false,
+            citationTargetReady: true,
+            evidenceCapabilityConfigured: false,
+            pathEligible: false,
+            exclusionReasons: ['missing-capability-mapping', 'missing-evidence-instrumentation'],
+            sourceOwnership: {
+              content: 'TeachingResource',
+              catalogMetadata: 'TeachingResource',
+              planningMetadata: 'ResourceNode',
+            },
+          },
+          warnings: [
+            {
+              code: 'missing-capability-mapping',
+              message: '缺少能力目标映射。',
+              severity: 'blocking',
+            },
+          ],
+        }),
+      ],
+      summary: {
+        totalNodes: 1,
+        pathEligibleNodes: 0,
+        warningNodes: 1,
+        excludedNodes: 1,
+        mappedNodes: 1,
+        unmappedNodes: 0,
+        capabilityMappedNodes: 0,
+        citationReadyNodes: 1,
+        evidenceCapabilityNodes: 0,
+        blockedNodes: 1,
+      },
+    });
+
+    expect(view.nodes[0]?.fields).toContainEqual(
+      expect.objectContaining({
+        id: 'path-eligibility',
+        value: '已排除：missing-capability-mapping, missing-evidence-instrumentation',
+      }),
+    );
+    expect(view.nodes[0]?.fields).toContainEqual(
+      expect.objectContaining({
+        id: 'teacher-policy',
+        value: 'allowed',
+      }),
+    );
+  });
+
   it('redacts restricted payload categories for teacher and admin governance views', () => {
     const teacher = buildTeacherGovernanceWorkspace({
       role: 'teacher',
@@ -272,6 +354,12 @@ describe('teacher and admin governance workspace contracts', () => {
         pathEligibleNodes: 1,
         warningNodes: 0,
         excludedNodes: 0,
+        mappedNodes: 1,
+        unmappedNodes: 0,
+        capabilityMappedNodes: 1,
+        citationReadyNodes: 1,
+        evidenceCapabilityNodes: 1,
+        blockedNodes: 0,
       },
     });
 

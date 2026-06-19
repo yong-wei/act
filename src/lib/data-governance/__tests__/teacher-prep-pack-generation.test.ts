@@ -577,6 +577,32 @@ describe('teacher prep pack generation', () => {
     expect(pack.candidates[0].insertionTarget.type).toBe('draft-resource-request');
   });
 
+  it('does not link audit-only blocked resources into prep pack candidates', () => {
+    const auditBlocked = resourceNode({
+      id: 'audit-blocked-quiz',
+      title: '控制建模互动题',
+      type: 'quiz',
+      planningMetadata: {
+        ...resourceNode({ id: 'template', title: 'template', type: 'quiz' }).planningMetadata,
+        abilityImpact: {},
+      },
+      eligibility: { pathEligible: true, reasons: [], auditIssues: [] },
+    });
+    const pack = generateTeacherPrepPack({
+      teacherId: 'teacher-1',
+      classId: 'class-1',
+      goalId: 'control-correction',
+      nextLesson: { lessonId: 'lesson-2', title: '根轨迹校正', plannedAt: now.toISOString() },
+      diagnosis: diagnosis(),
+      resourceNodes: [auditBlocked],
+      now,
+    });
+
+    expect(pack.candidates[0].linkedResource).toBeUndefined();
+    expect(pack.candidates[0].insertionTarget.type).toBe('draft-resource-request');
+    expect(pack.candidates[0].draftResourceRequest?.reason).toContain('No governed ResourceNode matched');
+  });
+
   it('sanitizes review patches and blocks invalid approved exports', () => {
     const pack = generateTeacherPrepPack({
       teacherId: 'teacher-1',
