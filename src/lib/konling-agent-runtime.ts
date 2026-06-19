@@ -713,7 +713,10 @@ function buildKonlingGroundingFallbackReasons(
   groundingContext: KonlingKnowledgeCapabilityContext,
 ): string[] {
   if (answerIntent === 'fact-explanation') {
-    return groundingContext.knowledgeNodeRefs.length === 0 && groundingContext.resourceRefs.length === 0
+    const hasTeachingKnowledgeSupport = groundingContext.knowledgeNodeRefs.length > 0
+      || groundingContext.resourceRefs.length > 0
+      || groundingContext.citationRefs.some((citationRef) => citationRef.startsWith('content:'));
+    return !hasTeachingKnowledgeSupport
       ? ['missing-grounding:knowledge-or-resource']
       : [];
   }

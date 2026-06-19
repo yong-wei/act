@@ -2134,6 +2134,50 @@ describe('konling agent runtime', () => {
     expect(guard.fallbackRequired).toBe(true);
   });
 
+  it('treats verified content citations as fact-explanation teaching knowledge support', () => {
+    const citationContext: KonlingCitationContext = {
+      required: true,
+      contentCitations: [{
+        id: 'content:unit:step',
+        sourceType: 'content',
+        displayTitle: 'PID 参数整定',
+        href: null,
+        confidence: 'high',
+        evidenceBasis: 'course-ai-context',
+        owner: 'answer',
+      }],
+      evidenceCitations: [],
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      responseProtocol: {
+        requiredOwners: ['answer'],
+        minimum: { content: 1, evidenceWhenAvailable: 1 },
+        fallbackWhenMissing: 'low-confidence',
+      },
+    };
+    const runtime = createRuntimeContext({
+      citationContext,
+      permittedTools: ['get_page_context', 'search_knowledge_graph'],
+    });
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: runtime,
+      scope: createScope({ resourceId: null, pathNodeId: null }),
+    });
+
+    const guard = buildKonlingCitationGuard({
+      citationContext,
+      teachingAssistantMode: modeContract,
+    }, '根据 citation(content:unit:step, content, PID 参数整定, high, course-ai-context) 解释 PID 参数整定。');
+
+    expect(modeContract.answerIntent).toBe('fact-explanation');
+    expect(modeContract.groundingContext.knowledgeNodeRefs).toEqual([]);
+    expect(modeContract.groundingContext.resourceRefs).toEqual([]);
+    expect(modeContract.groundingContext.citationRefs).toContain('content:unit:step');
+    expect(guard.lowConfidenceReasons).not.toContain('missing-grounding:knowledge-or-resource');
+    expect(guard.status).toBe('verified');
+  });
+
   it('requires content citations when content is available even if evidence is cited', () => {
     const guard = buildKonlingCitationGuard({
       citationContext: {
