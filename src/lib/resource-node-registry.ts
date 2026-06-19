@@ -1540,6 +1540,8 @@ function buildPlanningUnit(node: ResourceNode, resourceId: string, target: strin
 
 function isPlanningUnitEligible(node: ResourceNode, target: string | null): target is string {
   if (!target || !node.eligibility.pathEligible) return false;
+  if (Object.keys(node.planningMetadata.abilityImpact).length === 0) return false;
+  if (node.planningMetadata.evidenceInstrumentation.length === 0) return false;
   return !node.eligibility.auditIssues.some((issue) => issue.code === 'missing-readiness-metadata');
 }
 

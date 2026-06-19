@@ -743,10 +743,44 @@ describe('resource node registry', () => {
         },
       ],
     }).nodes[0];
+    const auditBlockedRegistry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'audit-blocked-resource',
+          label: '缺少能力映射的路径资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/audit-blocked-resource',
+          knowledgeNodeIds: ['kn-bode'],
+          planningOverride: {
+            abilityImpact: {},
+            evidenceInstrumentation: ['resource_interaction'],
+          },
+        },
+        {
+          id: 'audit-blocked-evidence-resource',
+          label: '缺少证据配置的路径资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/audit-blocked-evidence-resource',
+          knowledgeNodeIds: ['kn-bode'],
+          planningOverride: {
+            evidenceInstrumentation: [],
+          },
+        },
+      ],
+      knowledgeNodes: [
+        { id: 'kn-bode', name: '伯德图' },
+      ],
+    });
+    const auditBlockedResource = auditBlockedRegistry.nodes
+      .find((node) => node.id === 'registry:audit-blocked-resource') as ResourceNode;
+    const auditBlockedEvidenceResource = auditBlockedRegistry.nodes
+      .find((node) => node.id === 'registry:audit-blocked-evidence-resource') as ResourceNode;
 
     const projection = buildResourceSemanticProjection(arenaTask);
     const brokenProjection = buildResourceSemanticProjection(brokenExternal);
     const lockedProjection = buildResourceSemanticProjection(lockedSimulation);
+    const auditBlockedProjection = buildResourceSemanticProjection(auditBlockedResource);
+    const auditBlockedEvidenceProjection = buildResourceSemanticProjection(auditBlockedEvidenceResource);
 
     expect(projection.planningUnit).toMatchObject({
       id: 'planning-unit:arena-task:roll-control',
@@ -791,6 +825,21 @@ describe('resource node registry', () => {
     });
     expect(lockedProjection.planningUnit).toBeNull();
     expect(lockedProjection.resource.projectionStatus).toMatchObject({
+      retrieval: 'mapped',
+      planning: 'blocked',
+    });
+    expect(auditBlockedResource.eligibility.pathEligible).toBe(true);
+    expect(auditBlockedProjection.planningUnit).toBeNull();
+    expect(auditBlockedProjection.resource).toMatchObject({
+      capabilityTargetIds: [],
+      projectionStatus: {
+        retrieval: 'mapped',
+        planning: 'blocked',
+      },
+    });
+    expect(auditBlockedEvidenceResource.eligibility.pathEligible).toBe(true);
+    expect(auditBlockedEvidenceProjection.planningUnit).toBeNull();
+    expect(auditBlockedEvidenceProjection.resource.projectionStatus).toMatchObject({
       retrieval: 'mapped',
       planning: 'blocked',
     });
