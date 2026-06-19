@@ -359,6 +359,345 @@ describe('learning evidence RAG corpus contract', () => {
     ]);
   });
 
+  it('validates resource projection metadata for governed retrieval chunks', () => {
+    const projectedHandout = chunk({
+      id: 'resource-handout-segment',
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-4-1',
+        segmentRef: 'unit-4-1#section-steady-state-error',
+        citationTargetRef: 'handout#p1',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: 'hash-course-1',
+      },
+    });
+    const projectedVideo = chunk({
+      id: 'resource-video-segment',
+      sourceType: 'runtime-handout',
+      family: 'runtime-handout',
+      spanRef: { kind: 'text-range', locator: 'video-transcript#steady-state-error', start: 120, end: 180 },
+      citationAddress: {
+        kind: 'video',
+        sourceRefId: 'unit-4-1-video',
+        href: '/interactive-learning/courses/unit-4-1#video',
+        mediaStartSeconds: 120,
+        mediaEndSeconds: 180,
+      },
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-4-1',
+        segmentRef: 'video-transcript#steady-state-error',
+        citationTargetRef: 'video@120-180',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        mediaTimeRange: { startSeconds: 120, endSeconds: 180 },
+        exerciseAnchor: null,
+        contentHash: 'hash-course-1',
+      },
+    });
+    const malformedProjection = chunk({
+      id: 'malformed-resource-projection',
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-4-1',
+        segmentRef: '',
+        citationTargetRef: 'handout#p1',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: 'capability:steady-state-error-analysis',
+        mediaTimeRange: { startSeconds: 20, endSeconds: 10 },
+        exerciseAnchor: null,
+        contentHash: 'hash-course-1',
+      } as unknown as LearningEvidenceCorpusChunk['resourceProjection'],
+    });
+
+    expect(validateLearningEvidenceCorpusChunk(projectedHandout)).toEqual([]);
+    expect(validateLearningEvidenceCorpusChunk(projectedVideo)).toEqual([]);
+    expect(validateLearningEvidenceCorpusChunk(malformedProjection)).toContain('invalid-resource-projection');
+  });
+
+  it('keeps exact lexical resource matches eligible when semantic scores are weak', () => {
+    const exactFormula = chunk({
+      id: 'formula-resource-segment',
+      display: { title: '稳态误差公式', href: '/unit#ess', capsule: '包含 e_ss = 1 / (1 + Kp)。' },
+      content: { text: '单位阶跃输入下 e_ss = 1 / (1 + Kp)。', redactedSummary: '稳态误差公式。', hash: 'hash-formula' },
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-4-1',
+        segmentRef: 'formula#steady-state-error',
+        citationTargetRef: 'formula#ess',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: 'hash-formula',
+      },
+    });
+    const semanticOnly = chunk({
+      id: 'semantic-only-resource',
+      display: { title: '误差分析拓展', href: '/unit#semantic', capsule: '语义相关但不含查询公式。' },
+      content: { text: '分析系统型别和输入信号之间的关系。', redactedSummary: '误差分析拓展。', hash: 'hash-semantic' },
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-4-1',
+        segmentRef: 'section#error-analysis',
+        citationTargetRef: 'handout#semantic',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: 'hash-semantic',
+      },
+    });
+
+    const results = retrieveLearningEvidenceCorpus([semanticOnly, exactFormula], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, {
+      text: 'e_ss = 1 / (1 + Kp)',
+      semanticScores: { 'semantic-only-resource': 0.92, 'formula-resource-segment': 0.05 },
+    });
+
+    expect(results.map((item) => item.id)).toEqual([
+      'formula-resource-segment',
+      'semantic-only-resource',
+    ]);
+  });
+
+  it('uses capability context without bypassing privacy scope', () => {
+    const matchingCapability = chunk({
+      id: 'matching-capability-resource',
+      retrieval: { tags: ['steady-state-error'], goals: ['control-correction'], useCases: ['recommendation'] },
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-4-1',
+        segmentRef: 'exercise#ess-1',
+        citationTargetRef: 'exercise#ess-1',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        mediaTimeRange: null,
+        exerciseAnchor: 'exercise#ess-1',
+        contentHash: 'hash-course-1',
+      },
+    });
+    const unrelatedCapability = chunk({
+      id: 'unrelated-capability-resource',
+      display: { title: '频域裕度', href: '/unit#margin', capsule: '相角裕度练习。' },
+      content: { text: '相角裕度和幅值裕度。', redactedSummary: '频域裕度练习。', hash: 'hash-margin' },
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-5-1',
+        segmentRef: 'exercise#margin-1',
+        citationTargetRef: 'exercise#margin-1',
+        knowledgeNodeRefs: ['knowledge:stability-margin'],
+        capabilityTargetRefs: ['capability:stability-margin-analysis'],
+        mediaTimeRange: null,
+        exerciseAnchor: 'exercise#margin-1',
+        contentHash: 'hash-margin',
+      },
+    });
+    const privateLearnerEvidence = chunk({
+      id: 'private-learner-capability',
+      family: 'path-evidence',
+      sourceType: 'path-summary',
+      sourceRef: { id: 'private-path', ownerUserId: 'student-2', classId: 'class-1', goalId: 'control-correction' },
+      spanRef: { kind: 'record', locator: 'terminalValidation' },
+      display: { title: '其他学生证据', href: null, capsule: '其他学生的能力证据。' },
+      content: { text: '其他学生原始证据', redactedSummary: '其他学生证据。', hash: 'hash-private-learner' },
+      privacyClass: 'student-visible',
+      confidence: 'high',
+      authority: {
+        level: 'learner-evidence',
+        knowledgeTags: [],
+        pageAnchor: 'terminalValidation',
+        freshnessBucket: 'current',
+        scopeRule: {
+          visibility: 'student-visible',
+          allowedRoles: ['student', 'teacher', 'admin', 'service'],
+          ownerRequired: true,
+          classRequired: true,
+        },
+        conflictGroup: null,
+        conflictSignal: null,
+      },
+      retrieval: { tags: ['steady-state-error'], goals: ['control-correction'], useCases: ['recommendation'] },
+      resourceProjection: {
+        resourceId: 'learner-path/private-path',
+        segmentRef: 'terminalValidation',
+        citationTargetRef: 'terminalValidation',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: 'hash-private-learner',
+      },
+    });
+
+    const results = retrieveLearningEvidenceCorpus([
+      unrelatedCapability,
+      privateLearnerEvidence,
+      matchingCapability,
+    ], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'recommendation',
+    }, {
+      capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+    });
+
+    expect(results.map((item) => item.id)).toEqual(['matching-capability-resource']);
+  });
+
+  it('keeps legacy unprojected chunks compatible while reranking projected context matches', () => {
+    const projectedMatch = chunk({
+      id: 'projected-capability-match',
+      retrieval: { tags: ['steady-state-error'], goals: ['control-correction'], useCases: ['recommendation'] },
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-4-1',
+        segmentRef: 'exercise#ess-2',
+        citationTargetRef: 'exercise#ess-2',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        mediaTimeRange: null,
+        exerciseAnchor: 'exercise#ess-2',
+        contentHash: 'hash-course-1',
+      },
+    });
+    const legacyKnowledge = chunk({
+      id: 'legacy-unprojected-knowledge',
+      retrieval: { tags: ['steady-state-error'], goals: ['control-correction'], useCases: ['recommendation'] },
+      resourceProjection: undefined,
+    });
+
+    const results = retrieveLearningEvidenceCorpus([legacyKnowledge, projectedMatch], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'recommendation',
+    }, {
+      capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+    });
+
+    expect(results.map((item) => item.id)).toEqual([
+      'projected-capability-match',
+      'legacy-unprojected-knowledge',
+    ]);
+  });
+
+  it('does not admit weak semantic scores without lexical or context support', () => {
+    const exactFormula = chunk({
+      id: 'formula-resource-segment',
+      display: { title: '稳态误差公式', href: '/unit#ess', capsule: '包含 e_ss = 1 / (1 + Kp)。' },
+      content: { text: '单位阶跃输入下 e_ss = 1 / (1 + Kp)。', redactedSummary: '稳态误差公式。', hash: 'hash-formula-weak' },
+    });
+    const weakSemantic = chunk({
+      id: 'weak-semantic-resource',
+      display: { title: '误差分析拓展', href: '/unit#semantic-weak', capsule: '语义较弱且不含查询公式。' },
+      content: { text: '分析系统型别和输入信号之间的关系。', redactedSummary: '误差分析拓展。', hash: 'hash-semantic-weak' },
+    });
+
+    const results = retrieveLearningEvidenceCorpus([weakSemantic, exactFormula], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, {
+      text: 'e_ss = 1 / (1 + Kp)',
+      semanticScores: { 'weak-semantic-resource': 0.05 },
+    });
+
+    expect(results.map((item) => item.id)).toEqual(['formula-resource-segment']);
+  });
+
+  it('prioritizes teaching knowledge for concepts while including authorized learner evidence in recommendations', () => {
+    const teachingKnowledge = chunk({
+      id: 'concept-teaching-knowledge',
+      display: { title: '稳态误差概念解释', href: '/unit#concept', capsule: '稳态误差由系统型别和输入决定。' },
+      content: { text: '稳态误差由系统型别和输入决定。', redactedSummary: '稳态误差概念。', hash: 'hash-concept' },
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-4-1',
+        segmentRef: 'concept#steady-state-error',
+        citationTargetRef: 'handout#concept',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: 'hash-concept',
+      },
+    });
+    const learnerEvidence = chunk({
+      id: 'recommendation-learner-evidence',
+      family: 'path-evidence',
+      sourceType: 'path-summary',
+      sourceRef: { id: 'path-recommendation', ownerUserId: 'student-1', classId: 'class-1', goalId: 'control-correction' },
+      spanRef: { kind: 'record', locator: 'terminalValidation' },
+      display: { title: '个人能力证据', href: '/learning-paths/path-recommendation', capsule: '稳态误差终端验证仍需复习。' },
+      content: { text: '学生在稳态误差终端验证中仍需复习。', redactedSummary: '稳态误差终端验证仍需复习。', hash: 'hash-recommendation-learner' },
+      privacyClass: 'student-visible',
+      confidence: 'medium',
+      authority: {
+        level: 'learner-evidence',
+        knowledgeTags: [],
+        pageAnchor: 'terminalValidation',
+        freshnessBucket: 'current',
+        scopeRule: {
+          visibility: 'student-visible',
+          allowedRoles: ['student', 'teacher', 'admin', 'service'],
+          ownerRequired: true,
+          classRequired: true,
+        },
+        conflictGroup: null,
+        conflictSignal: null,
+      },
+      retrieval: { tags: ['steady-state-error'], goals: ['control-correction'], useCases: ['recommendation'] },
+      resourceProjection: {
+        resourceId: 'learner-path/path-recommendation',
+        segmentRef: 'terminalValidation',
+        citationTargetRef: 'terminalValidation',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: 'hash-recommendation-learner',
+      },
+    });
+
+    const conceptResults = retrieveLearningEvidenceCorpus([learnerEvidence, teachingKnowledge], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, {
+      text: '稳态误差',
+      knowledgeNodeRefs: ['knowledge:steady-state-error'],
+      capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+    });
+    const recommendationResults = retrieveLearningEvidenceCorpus([teachingKnowledge, learnerEvidence], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'recommendation',
+    }, {
+      text: '稳态误差',
+      knowledgeNodeRefs: ['knowledge:steady-state-error'],
+      capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+    });
+
+    expect(conceptResults[0]?.id).toBe('concept-teaching-knowledge');
+    expect(recommendationResults.map((item) => item.id)).toContain('recommendation-learner-evidence');
+    expect(recommendationResults.find((item) => item.id === 'recommendation-learner-evidence')?.content.text).toBeNull();
+  });
+
   it('builds authority metadata for every supported corpus source type', () => {
     const cases: Array<Pick<LearningEvidenceCorpusChunk, 'family' | 'sourceType' | 'privacyClass'> & { id: string }> = [
       { id: 'builder-course', family: 'course-content', sourceType: 'course-content', privacyClass: 'public' },
