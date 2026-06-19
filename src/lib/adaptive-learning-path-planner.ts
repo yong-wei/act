@@ -1,11 +1,12 @@
-import type {
-  ResourceNode,
-  ResourceNodeCheckpointMetadata,
-  ResourceNodeExternalResourceMetadata,
-  ResourceNodePathSemantics,
-  ResourceNodePrivacyLevel,
-  ResourceNodeRegistry,
-  ResourceNodeReadinessMetadata,
+import {
+  buildResourceNodeHighConfidencePlanningAudit,
+  type ResourceNode,
+  type ResourceNodeCheckpointMetadata,
+  type ResourceNodeExternalResourceMetadata,
+  type ResourceNodePathSemantics,
+  type ResourceNodePrivacyLevel,
+  type ResourceNodeRegistry,
+  type ResourceNodeReadinessMetadata,
 } from './resource-node-registry';
 
 export type AdaptiveLearningPathStatus = 'ready' | 'fallback';
@@ -1112,9 +1113,11 @@ function partitionResourceNodes(
 
 function blockingReasonCodes(node: ResourceNode, constraints: AdaptiveLearningPathConstraints): string[] {
   const reasons: string[] = [];
+  const planningAudit = buildResourceNodeHighConfidencePlanningAudit(node);
   if (!node.eligibility.pathEligible) reasons.push(...node.eligibility.reasons);
-  if (Object.keys(node.planningMetadata.abilityImpact).length === 0) reasons.push('missing-capability-mapping');
-  if (node.planningMetadata.evidenceInstrumentation.length === 0) reasons.push('missing-evidence-instrumentation');
+  reasons.push(...planningAudit.issues
+    .filter((issue) => issue.severity === 'blocking')
+    .map((issue) => issue.code));
   if (!constraints.privacyScopes.includes(node.planningMetadata.privacyLevel)) reasons.push('privacy-scope-blocked');
   if (node.planningMetadata.teacherPolicy === 'blocked') reasons.push('teacher-policy-blocked');
   if (node.planningMetadata.teacherPolicy === 'teacher-only') reasons.push('teacher-policy-teacher-only');

@@ -1,5 +1,8 @@
 import type { Prisma } from '@prisma/client';
-import type { ResourceNode } from '@/lib/resource-node-registry';
+import {
+  buildResourceNodeHighConfidencePlanningAudit,
+  type ResourceNode,
+} from '@/lib/resource-node-registry';
 import type { KonlingTeachingAssistantEntryPoint } from '@/lib/konling-agent-runtime';
 import { createKonlingTeachingAssistantServerContextToken } from '@/lib/konling-teaching-assistant-server-context';
 
@@ -1167,18 +1170,19 @@ function candidate(input: {
 
 function matchResource(input: TeacherPrepPackInput, dimensionOrNeedle: string, preferredTypes: Array<ResourceNode['type']>): ResourceNode | null {
   const normalizedNeedle = dimensionOrNeedle.toLowerCase();
-  return (input.resourceNodes ?? []).find((node) =>
-    preferredTypes.includes(node.type) &&
-    (node.courseModule === null || node.courseModule === input.goalId) &&
-    node.planningMetadata.availability === 'available' &&
-    node.planningMetadata.teacherPolicy !== 'blocked' &&
-    node.planningMetadata.privacyLevel !== 'admin-scoped' &&
-    node.eligibility.pathEligible &&
-    !node.eligibility.auditIssues.some((issue) => issue.severity === 'blocking') &&
-    (node.planningMetadata.knowledgeCoverage.some((item) => item.toLowerCase().includes(normalizedNeedle)) ||
-      node.title.toLowerCase().includes(normalizedNeedle) ||
-      Object.keys(node.planningMetadata.abilityImpact).some((key) => key.toLowerCase().includes(normalizedNeedle)))
-  ) ?? null;
+  return (input.resourceNodes ?? []).find((node) => {
+    const planningAudit = buildResourceNodeHighConfidencePlanningAudit(node);
+    return preferredTypes.includes(node.type) &&
+      (node.courseModule === null || node.courseModule === input.goalId) &&
+      node.planningMetadata.availability === 'available' &&
+      node.planningMetadata.teacherPolicy !== 'blocked' &&
+      node.planningMetadata.privacyLevel !== 'admin-scoped' &&
+      planningAudit.pathEligible &&
+      !planningAudit.hasBlockingIssue &&
+      (node.planningMetadata.knowledgeCoverage.some((item) => item.toLowerCase().includes(normalizedNeedle)) ||
+        node.title.toLowerCase().includes(normalizedNeedle) ||
+        Object.keys(node.planningMetadata.abilityImpact).some((key) => key.toLowerCase().includes(normalizedNeedle)));
+  }) ?? null;
 }
 
 function targetForResource(

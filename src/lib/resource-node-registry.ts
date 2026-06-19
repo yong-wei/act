@@ -1519,12 +1519,43 @@ function segmentKindForNode(node: ResourceNode): ResourceSegment['kind'] {
   return 'primary';
 }
 
+export function buildResourceNodeHighConfidencePlanningAudit(node: ResourceNode): {
+  pathEligible: boolean;
+  issues: ResourceNodeAuditIssue[];
+  hasBlockingIssue: boolean;
+} {
+  const hasCapabilityMapping = Object.keys(node.planningMetadata.abilityImpact).length > 0;
+  const hasEvidenceInstrumentation = node.planningMetadata.evidenceInstrumentation.length > 0;
+  const issues = node.eligibility.auditIssues.map((issue) => (
+    !hasEvidenceInstrumentation && issue.code === 'missing-evidence-instrumentation'
+      ? { ...issue, severity: 'blocking' as const }
+      : issue
+  ));
+
+  if (!hasCapabilityMapping && !issues.some((issue) => issue.code === 'missing-capability-mapping')) {
+    issues.push({
+      code: 'missing-capability-mapping',
+      message: 'ResourceNode has no capability target mapping for high-confidence path planning.',
+      severity: 'blocking',
+    });
+  }
+  if (!hasEvidenceInstrumentation && !issues.some((issue) => issue.code === 'missing-evidence-instrumentation')) {
+    issues.push({
+      code: 'missing-evidence-instrumentation',
+      message: 'ResourceNode has no evidence instrumentation mapping.',
+      severity: 'blocking',
+    });
+  }
+
+  return {
+    pathEligible: node.eligibility.pathEligible && hasCapabilityMapping && hasEvidenceInstrumentation,
+    issues,
+    hasBlockingIssue: issues.some((issue) => issue.severity === 'blocking'),
+  };
+}
+
 function buildProjectionAuditIssueCodes(node: ResourceNode): string[] {
-  return uniqueSorted([
-    ...node.eligibility.auditIssues.map((issue) => issue.code),
-    ...(Object.keys(node.planningMetadata.abilityImpact).length === 0 ? ['missing-capability-mapping'] : []),
-    ...(node.planningMetadata.evidenceInstrumentation.length === 0 ? ['missing-evidence-instrumentation'] : []),
-  ]);
+  return uniqueSorted(buildResourceNodeHighConfidencePlanningAudit(node).issues.map((issue) => issue.code));
 }
 
 function buildPlanningUnit(node: ResourceNode, resourceId: string, target: string | null): PlanningUnit | null {
@@ -1548,9 +1579,7 @@ function buildPlanningUnit(node: ResourceNode, resourceId: string, target: strin
 }
 
 function isPlanningUnitEligible(node: ResourceNode, target: string | null): target is string {
-  if (!target || !node.eligibility.pathEligible) return false;
-  if (Object.keys(node.planningMetadata.abilityImpact).length === 0) return false;
-  if (node.planningMetadata.evidenceInstrumentation.length === 0) return false;
+  if (!target || !buildResourceNodeHighConfidencePlanningAudit(node).pathEligible) return false;
   return !node.eligibility.auditIssues.some((issue) => issue.code === 'missing-readiness-metadata');
 }
 

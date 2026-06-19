@@ -9,6 +9,7 @@ import type {
   ResourceNodeSourceKind,
   ResourceNodeSourceOwner,
 } from '@/lib/resource-node-registry';
+import { buildResourceNodeHighConfidencePlanningAudit } from '@/lib/resource-node-registry';
 
 export type ResourceNodeWorkspaceRegion =
   | 'graph-stage'
@@ -201,7 +202,7 @@ export function getResourceNodeWorkspaceMigrationContracts(): ResourceNodeWorksp
 }
 
 function buildDetailFields(node: ResourceNode, role: PlatformRole): ResourceNodeDetailField[] {
-  const audit = buildWorkspaceAudit(node);
+  const audit = buildResourceNodeHighConfidencePlanningAudit(node);
   const fields: ResourceNodeDetailField[] = [
     {
       id: 'source-reference',
@@ -270,7 +271,7 @@ function buildDetailFields(node: ResourceNode, role: PlatformRole): ResourceNode
 }
 
 function buildWarnings(node: ResourceNode, role: PlatformRole): ResourceNodeWorkspaceWarning[] {
-  return buildWorkspaceAudit(node).issues
+  return buildResourceNodeHighConfidencePlanningAudit(node).issues
     .map((issue) => ({
       code: issue.code,
       message: issue.message,
@@ -300,7 +301,7 @@ function resourceNodeStatus(node: ResourceNode | null): PlatformStatusPayload {
     };
   }
 
-  const audit = buildWorkspaceAudit(node);
+  const audit = buildResourceNodeHighConfidencePlanningAudit(node);
   const hasWarnings = audit.issues.length > 0;
   const hasCleanCoverage = audit.pathEligible && !hasWarnings;
   return {
@@ -324,41 +325,6 @@ function resourceNodeStatus(node: ResourceNode | null): PlatformStatusPayload {
       readiness: audit.hasBlockingIssue ? 'blocked' : hasCleanCoverage ? 'ready' : 'degraded',
       fallback: hasCleanCoverage ? 'none' : 'fallback-missing-context',
     },
-  };
-}
-
-function buildWorkspaceAudit(node: ResourceNode): {
-  pathEligible: boolean;
-  issues: ResourceNodeAuditIssue[];
-  hasBlockingIssue: boolean;
-} {
-  const hasCapabilityMapping = Object.keys(node.planningMetadata.abilityImpact).length > 0;
-  const hasEvidenceInstrumentation = node.planningMetadata.evidenceInstrumentation.length > 0;
-  const issues = node.eligibility.auditIssues.map((issue) => (
-    !hasEvidenceInstrumentation && issue.code === 'missing-evidence-instrumentation'
-      ? { ...issue, severity: 'blocking' as const }
-      : issue
-  ));
-
-  if (!hasCapabilityMapping && !issues.some((issue) => issue.code === 'missing-capability-mapping')) {
-    issues.push({
-      code: 'missing-capability-mapping',
-      message: 'ResourceNode has no capability target mapping for high-confidence path planning.',
-      severity: 'blocking',
-    });
-  }
-  if (!hasEvidenceInstrumentation && !issues.some((issue) => issue.code === 'missing-evidence-instrumentation')) {
-    issues.push({
-      code: 'missing-evidence-instrumentation',
-      message: 'ResourceNode has no evidence instrumentation mapping.',
-      severity: 'blocking',
-    });
-  }
-
-  return {
-    pathEligible: node.eligibility.pathEligible && hasCapabilityMapping && hasEvidenceInstrumentation,
-    issues,
-    hasBlockingIssue: issues.some((issue) => issue.severity === 'blocking'),
   };
 }
 
