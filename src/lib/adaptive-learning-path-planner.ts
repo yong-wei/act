@@ -1113,6 +1113,8 @@ function partitionResourceNodes(
 function blockingReasonCodes(node: ResourceNode, constraints: AdaptiveLearningPathConstraints): string[] {
   const reasons: string[] = [];
   if (!node.eligibility.pathEligible) reasons.push(...node.eligibility.reasons);
+  if (Object.keys(node.planningMetadata.abilityImpact).length === 0) reasons.push('missing-capability-mapping');
+  if (node.planningMetadata.evidenceInstrumentation.length === 0) reasons.push('missing-evidence-instrumentation');
   if (!constraints.privacyScopes.includes(node.planningMetadata.privacyLevel)) reasons.push('privacy-scope-blocked');
   if (node.planningMetadata.teacherPolicy === 'blocked') reasons.push('teacher-policy-blocked');
   if (node.planningMetadata.teacherPolicy === 'teacher-only') reasons.push('teacher-policy-teacher-only');

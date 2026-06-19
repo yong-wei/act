@@ -43,6 +43,7 @@ describe('teacher ResourceNode management component safeguards', () => {
     expect(componentSource).toContain('node.audit.citationTargetReady');
     expect(componentSource).toContain('node.audit.evidenceCapabilityConfigured');
     expect(componentSource).toContain('node.audit.sourceOwnership');
+    expect(componentSource).toContain('!node.audit.pathEligible && node.audit.exclusionReasons.length > 0');
     expect(componentSource).not.toContain('name="sourceOwnership"');
     expect(componentSource).not.toContain('name="capabilityMapping"');
   });

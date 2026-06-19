@@ -321,6 +321,31 @@ describe('adaptive learning path planner', () => {
     expect(sprint.policyMetadata.constraints).toContain('time-budget-first');
   });
 
+  it('excludes audit-only resource mapping blockers from high-confidence paths', () => {
+    const input = plannerInput();
+    const blockedResource = input.registry.nodes.find((node) => node.id === 'registry:bode-card');
+    expect(blockedResource).toBeDefined();
+    blockedResource!.planningMetadata = {
+      ...blockedResource!.planningMetadata,
+      abilityImpact: {},
+      evidenceInstrumentation: [],
+    };
+
+    const plan = buildAdaptiveLearningPathPlan(input);
+
+    expect(plan.mainPath.map((node) => node.nodeId)).not.toContain('registry:bode-card');
+    expect(plan.alternatives).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        nodeId: 'registry:bode-card',
+        blocked: true,
+        reasonCodes: expect.arrayContaining([
+          'missing-capability-mapping',
+          'missing-evidence-instrumentation',
+        ]),
+      }),
+    ]));
+  });
+
   it('uses server time instead of client requestedAt for authoritative path timestamps', () => {
     const plan = buildAdaptiveLearningPathPlan(plannerInput({
       requestedAt: '2035-01-01T00:00:00.000Z',

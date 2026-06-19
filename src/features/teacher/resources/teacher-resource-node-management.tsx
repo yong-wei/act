@@ -270,7 +270,7 @@ export function TeacherResourceNodeManagement({
                   <Metric label="引用目标" value={node.audit.citationTargetReady ? '可解析' : '缺失'} />
                   <Metric label="证据能力" value={node.audit.evidenceCapabilityConfigured ? '已配置' : '未配置'} />
                 </div>
-                {node.audit.exclusionReasons.length > 0 && (
+                {!node.audit.pathEligible && node.audit.exclusionReasons.length > 0 && (
                   <div className="mt-3 text-xs text-slate-400">
                     阻断原因：{node.audit.exclusionReasons.join(', ')}
                   </div>
