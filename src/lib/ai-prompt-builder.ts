@@ -42,6 +42,15 @@ interface KonlingPromptRuntimeContext {
     hover_policy?: string;
     missing_context?: string[];
   } | null;
+  knowledgeCapabilityContext?: {
+    answerIntent?: string;
+    knowledgeNodeRefs?: string[];
+    capabilityTargetRefs?: string[];
+    resourceRefs?: string[];
+    pathNodeRefs?: string[];
+    citationRefs?: string[];
+    missingContext?: string[];
+  };
   citationContext?: {
     required?: boolean;
     contentCitations?: Array<{
@@ -157,6 +166,29 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
     }
     if (workspace.available_learning_actions?.length) {
       lines.push(`  - 可用学习动作: ${workspace.available_learning_actions.join(', ')}`);
+    }
+  }
+  if (runtime.knowledgeCapabilityContext) {
+    const grounding = runtime.knowledgeCapabilityContext;
+    lines.push('- 知识与能力 grounding:');
+    lines.push(`  - 回答意图: ${grounding.answerIntent ?? 'unknown'}`);
+    if (grounding.knowledgeNodeRefs?.length) {
+      lines.push(`  - 知识节点: ${grounding.knowledgeNodeRefs.slice(0, 5).join(', ')}`);
+    }
+    if (grounding.capabilityTargetRefs?.length) {
+      lines.push(`  - 能力目标: ${grounding.capabilityTargetRefs.slice(0, 5).join(', ')}`);
+    }
+    if (grounding.resourceRefs?.length) {
+      lines.push(`  - 资源范围: ${grounding.resourceRefs.slice(0, 5).join(', ')}`);
+    }
+    if (grounding.pathNodeRefs?.length) {
+      lines.push(`  - 路径节点: ${grounding.pathNodeRefs.slice(0, 5).join(', ')}`);
+    }
+    if (grounding.citationRefs?.length) {
+      lines.push(`  - 引用锚点: ${grounding.citationRefs.slice(0, 6).join(', ')}`);
+    }
+    if (grounding.missingContext?.length) {
+      lines.push(`  - grounding 限制: ${grounding.missingContext.join(', ')}`);
     }
   }
   if (runtime.citationContext?.required) {

@@ -348,7 +348,7 @@ describe('konling agent runtime', () => {
     expect(contract.permittedTools).not.toContain('record_intervention_result');
   });
 
-  it('exposes adaptive path tools in ready path-advisor mode', () => {
+  it('exposes adaptive path tools in ready path-advisor mode', async () => {
     const runtime = createRuntimeContext({
       learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],
       permittedTools: [
@@ -370,6 +370,23 @@ describe('konling agent runtime', () => {
         nextNodeIds: ['node-2'],
         recentPathIds: ['path-1'],
         completedNodeIds: [],
+        pathOptions: [{
+          styleId: 'recommended',
+          policyFamily: 'rules-plus-graph-search',
+          label: '推荐路径',
+          nodeIds: ['node-1', 'node-2'],
+          targetDeficits: ['capability:root-locus-design'],
+          evidenceBasis: ['AdaptiveLearnerState'],
+          lockedNodeIds: [],
+          readinessSummary: [],
+          resourceMix: { lesson_step: 1 },
+          effort: {
+            estimatedMinutes: 45,
+            relative: 'medium',
+          },
+          terminalValidationNodeIds: [],
+          limitations: [],
+        }],
         status: 'available',
       },
       citationContext: {
@@ -426,6 +443,9 @@ describe('konling agent runtime', () => {
     });
 
     expect(contract.status).toBe('ready');
+    expect(contract.answerIntent).toBe('path-advice');
+    expect(contract.groundingContext.capabilityTargetRefs).toContain('capability:root-locus-design');
+    expect(contract.groundingContext.missingContext).not.toContain('capability-target-context-missing');
     expect(contract.permittedTools).toEqual(expect.arrayContaining([
       'generate_learning_path',
       'revise_learning_path_options',
@@ -434,6 +454,45 @@ describe('konling agent runtime', () => {
       'explain_learning_path_tradeoff',
       'record_path_adjustment_outcome',
     ]));
+
+    const modeRuntimeContext = {
+      ...runtime,
+      knowledgeCapabilityContext: contract.groundingContext,
+      teachingAssistantMode: contract,
+    };
+    const prompt = buildKonlingSystemPrompt({
+      page: runtime.pageContext,
+      user: runtime.userProfile,
+      adaptiveRuntime: modeRuntimeContext,
+    });
+    expect(prompt).toContain('回答意图: path-advice');
+    expect(prompt).toContain('capability:root-locus-design');
+
+    const toolRuntime = buildKonlingToolRuntime({
+      db: {},
+      scope: createScope({ role: 'student', pageId: 'adaptive-path-center' }),
+      context: { ...modeRuntimeContext, permittedTools: contract.permittedTools },
+    });
+    const pageContextOutput = await toolRuntime.getPageContext();
+    expect(pageContextOutput).toMatchObject({
+      knowledgeCapabilityContext: {
+        answerIntent: 'path-advice',
+        capabilityTargetRefs: ['capability:root-locus-design'],
+        scope: {
+          role: 'student',
+          courseId: 'unit-4-5',
+          pageId: 'adaptive-path-center',
+          resourceId: 'resource-1',
+          pathNodeId: 'node-1',
+          classScoped: true,
+          privacyLabel: 'student-visible',
+        },
+      },
+    });
+    expect(pageContextOutput.knowledgeCapabilityContext.scope).not.toHaveProperty('targetUserId');
+    expect(pageContextOutput.knowledgeCapabilityContext.scope).not.toHaveProperty('authenticatedUserId');
+    expect(pageContextOutput.knowledgeCapabilityContext.scope).not.toHaveProperty('classId');
+    expect(pageContextOutput.knowledgeCapabilityContext.scope).not.toHaveProperty('privacyScopes');
   });
 
   it('keeps path-advisor generation available when a student has no existing path yet', () => {
@@ -1008,8 +1067,87 @@ describe('konling agent runtime', () => {
       clientContextHints: { targetUserId: 'other-student' },
     });
     expect(withSelectedKnowledgeNode.status).toBe('ready');
+    expect(withSelectedKnowledgeNode.answerIntent).toBe('fact-explanation');
+    expect(withSelectedKnowledgeNode.groundingContext).toMatchObject({
+      source: 'server-owned',
+      knowledgeNodeRefs: ['knowledge-node:node-second-order'],
+      resourceRefs: [],
+      scope: expect.objectContaining({
+        targetUserId: 'student-1',
+        role: 'student',
+        pageId: '/knowledge',
+      }),
+    });
+    expect(withSelectedKnowledgeNode.groundingContext.missingContext).toContain('capability-target-context-missing');
     expect(withSelectedKnowledgeNode.clientHintsAccepted).toEqual([]);
     expect(withSelectedKnowledgeNode.clientHintsRejected).toEqual(['targetUserId']);
+  });
+
+  it('builds answer intent and grounding metadata from server-owned knowledge capability context', async () => {
+    const db = {
+      knowledgeNode: {
+        findMany: vi.fn().mockResolvedValue([{
+          id: 'node-root-locus',
+          name: '根轨迹设计',
+          nodeType: 'THEORY',
+          description: '根轨迹设计用于分析闭环极点随增益变化的轨迹。',
+          knowledgeDim: 'CONCEPTUAL',
+          metadata: {
+            chapterName: '根轨迹法',
+            capabilityTargetRefs: ['capability:root-locus-design'],
+          },
+          tags: ['根轨迹'],
+        }]),
+      },
+    };
+
+    const runtime = await buildKonlingRuntimeContext(db, {
+      authenticatedUserId: 'student-1',
+      role: 'STUDENT',
+      courseId: 'unit-4-5',
+      pageId: '/knowledge',
+      knowledgeWorkspaceHint: {
+        status: 'selected-node',
+        selectedNodeId: 'node-root-locus',
+      },
+      trustedContentContext: true,
+    });
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'generic-chat',
+      runtimeContext: runtime,
+      scope: createScope({ pageId: '/knowledge', resourceId: null, pathNodeId: null }),
+    });
+
+    expect(contract.status).toBe('ready');
+    expect(contract.answerIntent).toBe('fact-explanation');
+    expect(contract.groundingContext).toMatchObject({
+      source: 'server-owned',
+      knowledgeNodeRefs: ['knowledge-node:node-root-locus'],
+      capabilityTargetRefs: ['capability:root-locus-design'],
+      resourceRefs: [],
+      pathNodeRefs: [],
+    });
+    expect(contract.groundingContext.missingContext).toEqual([]);
+    expect(runtime.citationContext?.contentCitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'content:knowledge-node:node-root-locus',
+        sourceType: 'content',
+        owner: 'answer',
+        evidenceBasis: 'knowledge-workspace-selected-node',
+      }),
+    ]));
+
+    const toolRuntime = buildKonlingToolRuntime({
+      db,
+      scope: createScope({ pageId: '/knowledge', resourceId: null, pathNodeId: null }),
+      context: runtime,
+    });
+    await expect(toolRuntime.getPageContext()).resolves.toMatchObject({
+      knowledgeCapabilityContext: {
+        knowledgeNodeRefs: ['knowledge-node:node-root-locus'],
+        capabilityTargetRefs: ['capability:root-locus-design'],
+      },
+    });
   });
 
   it('exposes selected knowledge workspace context to prompts and page-context tools', async () => {
@@ -1038,6 +1176,17 @@ describe('konling agent runtime', () => {
         hover_policy: 'preview-only-not-durable-context',
         missing_context: [],
       },
+      knowledgeCapabilityContext: {
+        source: 'server-owned',
+        answerIntent: 'fact-explanation',
+        knowledgeNodeRefs: ['knowledge-node:node-second-order'],
+        capabilityTargetRefs: ['capability:second-order-modeling'],
+        resourceRefs: [],
+        pathNodeRefs: [],
+        citationRefs: ['content:knowledge-node:node-second-order'],
+        scope: createScope({ pageId: '/knowledge', resourceId: null, pathNodeId: null }),
+        missingContext: [],
+      },
       permittedTools: ['get_page_context'],
     });
 
@@ -1050,6 +1199,8 @@ describe('konling agent runtime', () => {
     expect(prompt).toContain('二阶系统标准型');
     expect(prompt).toContain('selected-node');
     expect(prompt).toContain('preview-only-not-durable-context');
+    expect(prompt).toContain('知识与能力 grounding');
+    expect(prompt).toContain('capability:second-order-modeling');
 
     const toolRuntime = buildKonlingToolRuntime({
       db: {},
@@ -1062,6 +1213,10 @@ describe('konling agent runtime', () => {
         selected_node: {
           id: 'node-second-order',
         },
+      },
+      knowledgeCapabilityContext: {
+        knowledgeNodeRefs: ['knowledge-node:node-second-order'],
+        capabilityTargetRefs: ['capability:second-order-modeling'],
       },
     });
   });
@@ -1869,42 +2024,114 @@ describe('konling agent runtime', () => {
   });
 
   it('requires evidence citations when evidence is available even if content is cited', () => {
-    const guard = buildKonlingCitationGuard({
-      citationContext: {
-        required: true,
-        contentCitations: [{
-          id: 'content:unit:step',
-          sourceType: 'content',
-          displayTitle: '根轨迹设计',
-          href: null,
-          confidence: 'high',
-          evidenceBasis: 'course-ai-context',
-          owner: 'answer',
-        }],
-        evidenceCitations: [{
-          id: 'path:path-1',
-          sourceType: 'path-execution',
-          displayTitle: '当前控制校正学习路径',
-          href: null,
-          confidence: 'medium',
-          evidenceBasis: 'LearningPath',
-          owner: 'recommendation',
-        }],
-        missingCitationClasses: [],
-        lowConfidenceReasons: [],
-        responseProtocol: {
-          requiredOwners: ['answer', 'recommendation', 'intervention', 'report-explanation'],
-          minimum: { content: 1, evidenceWhenAvailable: 1 },
-          fallbackWhenMissing: 'low-confidence',
-        },
+    const pathCitationContext: KonlingCitationContext = {
+      required: true,
+      contentCitations: [{
+        id: 'content:unit:step',
+        sourceType: 'content',
+        displayTitle: '根轨迹设计',
+        href: null,
+        confidence: 'high',
+        evidenceBasis: 'course-ai-context',
+        owner: 'answer',
+      }],
+      evidenceCitations: [{
+        id: 'path:path-1',
+        sourceType: 'path-execution',
+        displayTitle: '当前控制校正学习路径',
+        href: null,
+        confidence: 'medium',
+        evidenceBasis: 'LearningPath',
+        owner: 'recommendation',
+      }],
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      responseProtocol: {
+        requiredOwners: ['answer', 'recommendation', 'intervention', 'report-explanation'],
+        minimum: { content: 1, evidenceWhenAvailable: 1 },
+        fallbackWhenMissing: 'low-confidence',
       },
+    };
+    const runtime = createRuntimeContext({
+      learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],
+      planContext: {
+        currentPathId: 'path-1',
+        activeNodeId: 'node-1',
+        nextNodeIds: ['node-2'],
+        recentPathIds: ['path-1'],
+        completedNodeIds: [],
+        status: 'available',
+      },
+      permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
+      citationContext: pathCitationContext,
+    });
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'path-advisor',
+      runtimeContext: runtime,
+      scope: createScope({ pageId: 'student-path-center' }),
+      serverModeContext: { 'student-path-center': true },
+    });
+    const guard = buildKonlingCitationGuard({
+      citationContext: pathCitationContext,
+      teachingAssistantMode: modeContract,
     }, '建议先根据 citation(content:unit:step, content, 根轨迹设计, high, course-ai-context) 复习闭环极点迁移，再进入下一步。');
 
     expect(guard).toMatchObject({
       status: 'low-confidence',
       fallbackRequired: true,
-      lowConfidenceReasons: ['assistant-evidence-citations-missing'],
+      lowConfidenceReasons: expect.arrayContaining([
+        'assistant-evidence-citations-missing',
+        'answer-intent-evidence-citation-missing:path-advice',
+      ]),
     });
+  });
+
+  it('requires verified content citations for fact explanations', () => {
+    const runtime = createRuntimeContext({
+      permittedTools: ['get_page_context', 'search_knowledge_graph'],
+      citationContext: {
+        required: true,
+        contentCitations: [],
+        evidenceCitations: [{
+          id: 'learner-state:student-1',
+          sourceType: 'learner-state',
+          displayTitle: '学生学习状态',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'AdaptiveLearnerState',
+          owner: 'recommendation',
+        }],
+        missingCitationClasses: ['content'],
+        lowConfidenceReasons: ['missing-content'],
+        responseProtocol: {
+          requiredOwners: ['answer'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    });
+    const modeContract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'resource-coach',
+      runtimeContext: runtime,
+      scope: createScope(),
+      serverModeContext: {
+        'resource-node': true,
+        'path-execution-context': true,
+        'evidence-citations': true,
+      },
+    });
+
+    const guard = buildKonlingCitationGuard({
+      citationContext: runtime.citationContext,
+      teachingAssistantMode: modeContract,
+    }, '依据学生学习状态 (learner-state, medium) 解释 PID 参数整定。');
+
+    expect(modeContract.answerIntent).toBe('fact-explanation');
+    expect(guard.lowConfidenceReasons).toEqual(expect.arrayContaining([
+      'answer-intent-content-citation-missing:fact-explanation',
+    ]));
+    expect(guard.missingCitationClasses).toContain('content');
+    expect(guard.fallbackRequired).toBe(true);
   });
 
   it('requires content citations when content is available even if evidence is cited', () => {

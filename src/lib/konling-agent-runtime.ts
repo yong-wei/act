@@ -140,6 +140,12 @@ export type KonlingTeachingAssistantContextKey =
   | 'class-report'
   | 'prep-pack';
 export type KonlingTeachingAssistantStatus = 'ready' | 'degraded' | 'unavailable';
+export type KonlingAnswerIntent =
+  | 'fact-explanation'
+  | 'personalized-diagnosis'
+  | 'path-advice'
+  | 'grading-explanation'
+  | 'media-guidance';
 
 export interface KonlingTeachingAssistantModeContract {
   id: KonlingTeachingAssistantModeId;
@@ -172,9 +178,11 @@ export interface KonlingTeachingAssistantMountContract {
 
 export interface KonlingTeachingAssistantRuntimeContract {
   mode: KonlingTeachingAssistantModeContract;
+  answerIntent: KonlingAnswerIntent;
   status: KonlingTeachingAssistantStatus;
   unavailableReasons: string[];
   degradedReasons: string[];
+  groundingContext: KonlingKnowledgeCapabilityContext;
   scope: Pick<KonlingRuntimeScope, 'authenticatedUserId' | 'targetUserId' | 'role' | 'classId' | 'courseId' | 'pageId' | 'resourceId' | 'pathNodeId' | 'privacyScopes'>;
   permittedTools: KonlingToolName[];
   citationRequirements: {
@@ -216,6 +224,7 @@ export interface KonlingRuntimeContext {
   planContext: KonlingPlanContext;
   memory: KonlingMemoryView[];
   knowledgeWorkspace?: KonlingKnowledgeWorkspaceContext | null;
+  knowledgeCapabilityContext?: KonlingKnowledgeCapabilityContext;
   citationContext?: KonlingCitationContext;
   permittedTools: KonlingToolName[];
   missingContext: string[];
@@ -287,6 +296,7 @@ export interface KonlingKnowledgeWorkspaceContext {
     knowledge_dim: string | null;
     description: string;
     tags: string[];
+    capability_target_refs?: string[];
   } | null;
   relation_summary: {
     density_mode: string | null;
@@ -298,6 +308,30 @@ export interface KonlingKnowledgeWorkspaceContext {
   available_learning_actions: string[];
   hover_policy: 'preview-only-not-durable-context';
   missing_context: string[];
+}
+
+export interface KonlingKnowledgeCapabilityContext {
+  source: 'server-owned';
+  answerIntent: KonlingAnswerIntent;
+  knowledgeNodeRefs: string[];
+  capabilityTargetRefs: string[];
+  resourceRefs: string[];
+  pathNodeRefs: string[];
+  citationRefs: string[];
+  scope: Pick<KonlingRuntimeScope, 'authenticatedUserId' | 'targetUserId' | 'role' | 'classId' | 'courseId' | 'pageId' | 'resourceId' | 'pathNodeId' | 'privacyScopes'>;
+  missingContext: string[];
+}
+
+interface KonlingKnowledgeCapabilityToolContext extends Omit<KonlingKnowledgeCapabilityContext, 'scope'> {
+  scope: {
+    role: AdaptiveLearnerStateRole;
+    courseId: string;
+    pageId: string;
+    resourceId: string | null | undefined;
+    pathNodeId: string | null | undefined;
+    classScoped: boolean;
+    privacyLabel: 'student-visible' | 'teacher-scoped' | 'admin-scoped';
+  };
 }
 
 export const KONLING_TEACHING_ASSISTANT_MODE_REGISTRY: Record<KonlingTeachingAssistantModeId, KonlingTeachingAssistantModeContract> = {
@@ -478,6 +512,12 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
   const normalizedModeId = normalizeKonlingTeachingAssistantModeId(input.modeId);
   const mode = resolveKonlingTeachingAssistantMode(input.modeId);
   const clientHintsRejected = Object.keys(input.clientContextHints ?? {});
+  const answerIntent = classifyKonlingAnswerIntent(mode, input.runtimeContext, input.scope);
+  const groundingContext = buildKonlingKnowledgeCapabilityContext({
+    runtimeContext: input.runtimeContext,
+    scope: input.scope,
+    answerIntent,
+  });
   const roleSupported = mode.supportedRoles.includes(input.scope.role);
   const unknownModeReasons = input.modeId && !normalizedModeId ? [`unknown-mode:${input.modeId}`] : [];
   const missingRequiredContext = mode.id === 'generic-chat'
@@ -525,9 +565,11 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
 
   return {
     mode,
+    answerIntent,
     status,
     unavailableReasons,
     degradedReasons,
+    groundingContext,
     scope: {
       authenticatedUserId: input.scope.authenticatedUserId,
       targetUserId: input.scope.targetUserId,
@@ -551,6 +593,140 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
     clientHintsAccepted: [],
     clientHintsRejected,
   };
+}
+
+function classifyKonlingAnswerIntent(
+  mode: KonlingTeachingAssistantModeContract,
+  runtimeContext: KonlingRuntimeContext,
+  scope: KonlingRuntimeScope,
+): KonlingAnswerIntent {
+  if (mode.id === 'diagnosis-explainer' || mode.id === 'class-summarizer') return 'personalized-diagnosis';
+  if (mode.id === 'path-advisor') return 'path-advice';
+  if (mode.id === 'grading-assistant' || mode.id === 'feedback-explainer') return 'grading-explanation';
+  if (mode.id === 'resource-coach' || mode.id === 'generic-chat') {
+    return isKonlingMediaGuidanceScope(runtimeContext, scope) ? 'media-guidance' : 'fact-explanation';
+  }
+  return 'fact-explanation';
+}
+
+function isKonlingMediaGuidanceScope(runtimeContext: KonlingRuntimeContext, scope: KonlingRuntimeScope): boolean {
+  const pageType = runtimeContext.pageContext.pageType?.toLowerCase?.() ?? '';
+  const resourceId = scope.resourceId?.toLowerCase?.() ?? '';
+  return ['video', 'audio', 'image', 'media', 'interactive'].some((marker) =>
+    pageType.includes(marker) || resourceId.includes(marker)
+  );
+}
+
+function buildKonlingKnowledgeCapabilityContext(input: {
+  runtimeContext: KonlingRuntimeContext;
+  scope: KonlingRuntimeScope;
+  answerIntent: KonlingAnswerIntent;
+}): KonlingKnowledgeCapabilityContext {
+  const selectedNode = input.runtimeContext.knowledgeWorkspace?.selected_node ?? null;
+  const knowledgeNodeRefs = selectedNode?.id ? [`knowledge-node:${selectedNode.id}`] : [];
+  const capabilityTargetRefs = [
+    ...(selectedNode?.capability_target_refs ?? []),
+    ...extractCapabilityTargetRefs(input.runtimeContext.planContext),
+  ];
+  const resourceRefs = [
+    input.scope.resourceId ? `resource:${input.scope.resourceId}` : null,
+  ].filter((item): item is string => Boolean(item));
+  const pathNodeRefs = [
+    input.scope.pathNodeId ? `path-node:${input.scope.pathNodeId}` : null,
+    input.runtimeContext.planContext.activeNodeId ? `path-node:${input.runtimeContext.planContext.activeNodeId}` : null,
+    ...input.runtimeContext.planContext.nextNodeIds.map((nodeId) => `path-node:${nodeId}`),
+  ].filter((item): item is string => Boolean(item));
+  const citationRefs = [
+    ...(input.runtimeContext.citationContext?.contentCitations ?? []),
+    ...(input.runtimeContext.citationContext?.evidenceCitations ?? []),
+  ].map((citation) => citation.id);
+  const missingContext = [
+    knowledgeNodeRefs.length === 0 ? 'knowledge-node-context-missing' : null,
+    capabilityTargetRefs.length === 0 ? 'capability-target-context-missing' : null,
+    input.answerIntent === 'media-guidance' && resourceRefs.length === 0 ? 'resource-context-missing' : null,
+    input.answerIntent === 'path-advice' && pathNodeRefs.length === 0 ? 'path-node-context-missing' : null,
+  ].filter((item): item is string => Boolean(item));
+
+  return {
+    source: 'server-owned',
+    answerIntent: input.answerIntent,
+    knowledgeNodeRefs: [...new Set(knowledgeNodeRefs)],
+    capabilityTargetRefs: [...new Set(capabilityTargetRefs)],
+    resourceRefs: [...new Set(resourceRefs)],
+    pathNodeRefs: [...new Set(pathNodeRefs)],
+    citationRefs: [...new Set(citationRefs)],
+    scope: {
+      authenticatedUserId: input.scope.authenticatedUserId,
+      targetUserId: input.scope.targetUserId,
+      role: input.scope.role,
+      classId: input.scope.classId,
+      courseId: input.scope.courseId,
+      pageId: input.scope.pageId,
+      resourceId: input.scope.resourceId,
+      pathNodeId: input.scope.pathNodeId,
+      privacyScopes: input.scope.privacyScopes,
+    },
+    missingContext,
+  };
+}
+
+function buildKonlingKnowledgeCapabilityToolContext(
+  context: KonlingKnowledgeCapabilityContext,
+): KonlingKnowledgeCapabilityToolContext {
+  return {
+    source: context.source,
+    answerIntent: context.answerIntent,
+    knowledgeNodeRefs: context.knowledgeNodeRefs,
+    capabilityTargetRefs: context.capabilityTargetRefs,
+    resourceRefs: context.resourceRefs,
+    pathNodeRefs: context.pathNodeRefs,
+    citationRefs: context.citationRefs,
+    missingContext: context.missingContext,
+    scope: {
+      role: context.scope.role,
+      courseId: context.scope.courseId,
+      pageId: context.scope.pageId,
+      resourceId: context.scope.resourceId,
+      pathNodeId: context.scope.pathNodeId,
+      classScoped: Boolean(context.scope.classId),
+      privacyLabel: context.scope.role === 'admin'
+        ? 'admin-scoped'
+        : context.scope.role === 'teacher'
+          ? 'teacher-scoped'
+          : 'student-visible',
+    },
+  };
+}
+
+function extractCapabilityTargetRefs(planContext: KonlingPlanContext): string[] {
+  return [
+    ...(planContext.pathOptions ?? []).flatMap((option) => option.targetDeficits),
+    ...(planContext.pathOptions ?? []).flatMap((option) =>
+      option.evidenceBasis
+        .filter((item) => item.startsWith('capability:') || item.startsWith('target:'))
+    ),
+  ];
+}
+
+function buildKonlingGroundingFallbackReasons(
+  answerIntent: KonlingAnswerIntent,
+  groundingContext: KonlingKnowledgeCapabilityContext,
+): string[] {
+  if (answerIntent === 'fact-explanation') {
+    return groundingContext.knowledgeNodeRefs.length === 0 && groundingContext.resourceRefs.length === 0
+      ? ['missing-grounding:knowledge-or-resource']
+      : [];
+  }
+  if (answerIntent === 'path-advice') {
+    return [
+      groundingContext.capabilityTargetRefs.length === 0 ? 'missing-grounding:capability-targets' : null,
+      groundingContext.pathNodeRefs.length === 0 ? 'missing-grounding:path-context' : null,
+    ].filter((item): item is string => Boolean(item));
+  }
+  if (answerIntent === 'media-guidance') {
+    return groundingContext.resourceRefs.length === 0 ? ['missing-grounding:resource'] : [];
+  }
+  return [];
 }
 
 function teachingAssistantMode(input: {
@@ -656,6 +832,7 @@ export interface KonlingPathOptionContext {
   policyFamily: string;
   label: string;
   nodeIds: string[];
+  targetDeficits: string[];
   evidenceBasis: string[];
   lockedNodeIds: string[];
   readinessSummary: Array<{
@@ -1266,18 +1443,40 @@ export async function buildKonlingRuntimeContext(
     buildKnowledgeWorkspaceContext(db, scope, input.knowledgeWorkspaceHint),
   ]);
   const pageContext = buildServerOwnedPageContext(scope, input.pageContextHint);
+  const userProfile = buildServerOwnedUserProfile({
+    userId: scope.targetUserId,
+    name: input.authenticatedUserName || '同学',
+    learnerState,
+  });
   const citationContext = await buildKonlingCitationContext(db, {
     scope,
     pageContext,
     learnerState,
     planContext,
     memory,
+    knowledgeWorkspace,
     trustedContentContext: input.trustedContentContext === true,
   });
-  const userProfile = buildServerOwnedUserProfile({
-    userId: scope.targetUserId,
-    name: input.authenticatedUserName || '同学',
+  const baseRuntimeContext: KonlingRuntimeContext = {
+    pageContext,
+    userProfile,
     learnerState,
+    planContext,
+    memory,
+    knowledgeWorkspace,
+    citationContext,
+    permittedTools: DEFAULT_TOOLS,
+    missingContext: [],
+    featureFlags: {
+      learnerState: learnerStateEnabled,
+      semanticMemory: process.env.KONLING_SEMANTIC_MEMORY_ENABLED === 'true',
+      strategyMemory: process.env.KONLING_STRATEGY_MEMORY_ENABLED === 'true',
+    },
+  };
+  const knowledgeCapabilityContext = buildKonlingKnowledgeCapabilityContext({
+    runtimeContext: baseRuntimeContext,
+    scope,
+    answerIntent: classifyKonlingAnswerIntent(resolveKonlingTeachingAssistantMode('generic-chat'), baseRuntimeContext, scope),
   });
 
   return {
@@ -1287,6 +1486,7 @@ export async function buildKonlingRuntimeContext(
     planContext,
     memory,
     knowledgeWorkspace,
+    knowledgeCapabilityContext,
     citationContext,
     permittedTools: DEFAULT_TOOLS,
     missingContext: buildMissingContext({ learnerStateEnabled, learnerState, planContext, memory, citationContext, pageContext, knowledgeWorkspace }),
@@ -1304,6 +1504,14 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
     getPageContext: async () => runKonlingRuntimeTool(input, 'get_page_context', {}, async () => ({
       pageContext: input.context.pageContext,
       knowledgeWorkspace: input.context.knowledgeWorkspace ?? null,
+      knowledgeCapabilityContext: buildKonlingKnowledgeCapabilityToolContext(
+        input.context.knowledgeCapabilityContext
+        ?? buildKonlingKnowledgeCapabilityContext({
+          runtimeContext: input.context,
+          scope: input.scope,
+          answerIntent: classifyKonlingAnswerIntent(resolveKonlingTeachingAssistantMode('generic-chat'), input.context, input.scope),
+        })
+      ),
     })),
     getLearnerState: async () => runKonlingRuntimeTool(input, 'get_learner_state', {}, async () => input.context.learnerState),
     getPlanContext: async () => runKonlingRuntimeTool(input, 'get_plan_context', {}, async () => input.context.planContext),
@@ -4253,6 +4461,7 @@ function readPathOptionContext(pathPayload: Record<string, unknown>): KonlingPat
       policyFamily: getString(path, 'policyFamily'),
       label: getString(path, 'label'),
       nodeIds: arrayOfStrings(getValue(path, 'nodeIds')),
+      targetDeficits: readPathOptionTargetDeficits(path),
       evidenceBasis: arrayOfStrings(getValue(path, 'evidenceBasis')),
       lockedNodeIds: arrayOfStrings(getValue(path, 'lockedNodeIds')),
       readinessSummary: arrayOfRecords(getValue(path, 'readinessSummary')).map((item) => ({
@@ -4269,6 +4478,14 @@ function readPathOptionContext(pathPayload: Record<string, unknown>): KonlingPat
       limitations: arrayOfStrings(getValue(path, 'limitations')),
     };
   }).filter((path) => path.styleId && path.nodeIds.length > 0);
+}
+
+function readPathOptionTargetDeficits(path: Record<string, unknown>): string[] {
+  const targetDeficits = getValue(path, 'targetDeficits');
+  return [
+    ...arrayOfStrings(targetDeficits),
+    ...arrayOfRecords(targetDeficits).map((target) => getString(target, 'targetId')),
+  ].filter((target): target is string => Boolean(target));
 }
 
 function readPathOptionFallbackContext(pathPayload: Record<string, unknown>): KonlingPathOptionFallbackContext | null {
@@ -4302,10 +4519,16 @@ async function buildKonlingCitationContext(
     learnerState: AdaptiveLearnerState | null;
     planContext: KonlingPlanContext;
     memory: KonlingMemoryView[];
+    knowledgeWorkspace?: KonlingKnowledgeWorkspaceContext | null;
     trustedContentContext: boolean;
   },
 ): Promise<KonlingCitationContext> {
-  const contentCitations = input.trustedContentContext ? buildContentCitations(input.pageContext) : [];
+  const contentCitations = input.trustedContentContext
+    ? [
+        ...buildContentCitations(input.pageContext),
+        ...buildKnowledgeWorkspaceContentCitations(input.knowledgeWorkspace),
+      ]
+    : [];
   const evidenceCitations: KonlingCitation[] = [];
 
   if (input.learnerState) {
@@ -4446,6 +4669,31 @@ function buildAdaptivePathCenterContentCitations(pageContext: PageContext): Konl
     }),
   }];
 }
+
+function buildKnowledgeWorkspaceContentCitations(
+  knowledgeWorkspace: KonlingKnowledgeWorkspaceContext | null | undefined,
+): KonlingCitation[] {
+  const selectedNode = knowledgeWorkspace?.selected_node;
+  if (!selectedNode) return [];
+  const id = `content:knowledge-node:${selectedNode.id}`;
+  return [{
+    id,
+    sourceType: 'content',
+    displayTitle: selectedNode.name,
+    href: null,
+    confidence: 'high',
+    evidenceBasis: 'knowledge-workspace-selected-node',
+    owner: 'answer',
+    citationChip: buildKonlingCitationChip({
+      id,
+      sourceType: 'content',
+      displayTitle: selectedNode.name,
+      href: null,
+      confidence: 'high',
+    }),
+  }];
+}
+
 
 function buildColdStartLearnerStateCitation(scope: KonlingRuntimeScope): KonlingCitation {
   return {
@@ -4673,6 +4921,8 @@ export function buildKonlingCitationGuard(
     if (modeContract.status === 'unavailable') {
       lowConfidenceReasons.push(`assistant-mode-unavailable:${modeContract.mode.id}`);
     }
+    lowConfidenceReasons.push(...modeContract.degradedReasons);
+    lowConfidenceReasons.push(...buildKonlingGroundingFallbackReasons(modeContract.answerIntent, modeContract.groundingContext));
     for (const missingClass of modeContract.citationRequirements.missingClasses) {
       if (!missingCitationClasses.includes(missingClass)) {
         missingCitationClasses.push(missingClass);
@@ -4682,6 +4932,9 @@ export function buildKonlingCitationGuard(
       if (!citations.some((citation) => citation.owner === requiredOwner)) {
         lowConfidenceReasons.push(`assistant-required-citation-owner-missing:${requiredOwner}`);
       }
+    }
+    for (const intentCitationReason of buildAnswerIntentCitationFallbackReasons(modeContract.answerIntent, citationContext, assistantMessage)) {
+      lowConfidenceReasons.push(intentCitationReason);
     }
   }
   if (assistantMessage !== undefined && citations.length > 0) {
@@ -4722,10 +4975,48 @@ export function buildKonlingCitationGuard(
   return {
     status: fallbackRequired ? 'low-confidence' : 'verified',
     citations,
-    missingCitationClasses,
+    missingCitationClasses: [...new Set(missingCitationClasses)],
     lowConfidenceReasons: uniqueLowConfidenceReasons,
     fallbackRequired,
   };
+}
+
+function buildAnswerIntentCitationFallbackReasons(
+  answerIntent: KonlingAnswerIntent,
+  citationContext: KonlingCitationContext,
+  assistantMessage?: string,
+): string[] {
+  const reasons: string[] = [];
+  if (requiresContentCitation(answerIntent)) {
+    if (citationContext.contentCitations.length === 0) {
+      reasons.push(`answer-intent-content-citation-missing:${answerIntent}`);
+    } else if (
+      assistantMessage !== undefined &&
+      assistantMentionsCitation(assistantMessage, citationContext.contentCitations) === false
+    ) {
+      reasons.push(`answer-intent-content-citation-missing:${answerIntent}`);
+    }
+  }
+  if (requiresEvidenceCitation(answerIntent) && citationContext.evidenceCitations.length > 0) {
+    if (
+      assistantMessage !== undefined &&
+      assistantMentionsCitation(assistantMessage, citationContext.evidenceCitations) === false
+    ) {
+      reasons.push(`answer-intent-evidence-citation-missing:${answerIntent}`);
+    }
+  }
+  return reasons;
+}
+
+function requiresContentCitation(answerIntent: KonlingAnswerIntent): boolean {
+  return answerIntent === 'fact-explanation'
+    || answerIntent === 'grading-explanation'
+    || answerIntent === 'media-guidance'
+    || answerIntent === 'path-advice';
+}
+
+function requiresEvidenceCitation(answerIntent: KonlingAnswerIntent): boolean {
+  return answerIntent === 'personalized-diagnosis' || answerIntent === 'path-advice';
 }
 
 export function buildKonlingStreamingCitationGuard(
@@ -4909,6 +5200,7 @@ async function buildKnowledgeWorkspaceContext(
       knowledge_dim: getString(selectedNode, 'knowledgeDim') || null,
       description: summarizeText(getString(selectedNode, 'description'), 220),
       tags: arrayOfStrings(getValue(selectedNode, 'tags')),
+      capability_target_refs: readKnowledgeWorkspaceCapabilityTargetRefs(selectedNode),
     },
     relation_summary: relationSummary,
     available_learning_actions: ['open-knowledge-card', 'search-related-resources', 'continue-learning-path'],
@@ -4923,6 +5215,18 @@ function resolveKnowledgeWorkspaceChapter(node: unknown): string | null {
   if (typeof chapterName === 'string' && chapterName.trim()) return chapterName.trim();
   if (typeof chapterName === 'number' && Number.isFinite(chapterName)) return `第 ${chapterName} 章`;
   return null;
+}
+
+function readKnowledgeWorkspaceCapabilityTargetRefs(node: unknown): string[] {
+  const metadata = readRecord(getValue(node, 'metadata'));
+  return [
+    ...arrayOfStrings(metadata.capabilityTargetRefs),
+    ...arrayOfStrings(metadata.capabilityTargets),
+    ...arrayOfStrings(metadata.capability_target_refs),
+    ...arrayOfStrings(metadata.targetDeficits),
+    ...arrayOfStrings(metadata.knowledgeTargets),
+  ].map((item) => sanitizeKnowledgeWorkspaceText(item))
+    .filter((item): item is string => Boolean(item));
 }
 
 function sanitizeKnowledgeWorkspaceText(value: unknown): string | null {

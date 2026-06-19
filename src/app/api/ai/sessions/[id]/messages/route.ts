@@ -167,6 +167,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
     const modeRuntimeContext = {
       ...runtimeContext,
+      knowledgeCapabilityContext: modeContract.groundingContext,
       teachingAssistantMode: modeContract,
     };
 
@@ -209,7 +210,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       tools: buildScopedKonlingAiTools(buildKonlingToolRuntime({
         db: prisma,
         scope: scope.scope,
-        context: { ...runtimeContext, permittedTools: modeContract.permittedTools },
+        context: { ...modeRuntimeContext, permittedTools: modeContract.permittedTools },
         agentSessionId: agentSession.id,
         permittedTools: modeContract.permittedTools,
       })),
