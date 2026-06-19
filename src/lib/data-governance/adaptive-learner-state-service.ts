@@ -57,6 +57,7 @@ export type ControlCorrectionDimensionId =
 export const CONTROL_CORRECTION_GOAL_ID: AdaptiveLearnerStateGoalId = 'control-correction';
 export const CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION = 'control-correction-goal-slice.v1';
 export const CONTROL_CORRECTION_COURSE_ID_VALUES = [
+  CONTROL_CORRECTION_GOAL_ID,
   '3-6',
   'unit-3-6-zero-design-workshop',
   'unit-3-6-zero-design-workshop-v1',
@@ -223,7 +224,7 @@ export const ADAPTIVE_LEARNER_STATE_FIELD_CONTRACTS: Record<AdaptiveLearnerState
   },
   controlCorrectionGoalSlice: {
     valueRange: 'stable governed dimensions for the control-correction goal',
-    sourceFamilies: ['StudentCompetencySnapshot', 'LearningFact', 'AdaptiveMasteryUpdate', 'StudentEvidenceFeatureCache', 'ArenaSubmission'],
+    sourceFamilies: ['StudentCompetencySnapshot', 'LearningFact', 'AdaptiveMasteryUpdate', 'StudentEvidenceFeatureCache', 'ArenaSubmission', 'AgentToolRun'],
     algorithmVersion: CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION,
     evidenceThreshold: 'each dimension declares sufficient, partial, stale, or missing governed evidence',
     confidencePolicy: 'dimension confidence is capped by source coverage and fallback markers',
@@ -265,6 +266,32 @@ export interface ControlCorrectionGoalSliceDimension {
   fallbackMarkers: string[];
 }
 
+export type MasteryEvidenceSourceType =
+  | 'AdaptiveMasteryUpdate'
+  | 'LearningFact'
+  | 'ArenaSubmission'
+  | 'AgentToolRun'
+  | 'StudentEvidenceFeatureCache';
+
+export interface MasteryEvidenceReference {
+  sourceType: MasteryEvidenceSourceType;
+  sourceId: string;
+  evidenceAt: string | null;
+  privacyLevel: Extract<AdaptiveLearnerStatePrivacyScope, 'student-visible' | 'teacher-scoped' | 'audit-only'>;
+  confidence: 'low' | 'medium' | 'high' | 'unknown';
+}
+
+export interface MasteryTraceabilityEntry {
+  targetId: string;
+  targetKind: 'knowledge' | 'capability';
+  masteryLevel: number | null;
+  confidence: number;
+  freshness: 'current' | 'stale' | 'missing' | 'partial';
+  supportingEvidenceRefs: MasteryEvidenceReference[];
+  sourceCoverage: Record<MasteryEvidenceSourceType, StudentEvidenceCoverageState>;
+  limitations: string[];
+}
+
 export interface ControlCorrectionGoalSlice {
   goalId: typeof CONTROL_CORRECTION_GOAL_ID;
   payloadVersion: typeof CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION;
@@ -285,6 +312,10 @@ export interface ControlCorrectionCapabilityTargetEvidence {
     confidence: number;
     directEvidenceCount: number;
     supportingEvidenceCount: number;
+    supportingEvidenceRefs?: MasteryEvidenceReference[];
+    sourceCoverage?: MasteryTraceabilityEntry['sourceCoverage'];
+    freshness?: MasteryTraceabilityEntry['freshness'];
+    limitations?: string[];
     source: 'adaptive-learner-state';
     recommendationBias: 'starter-or-evidence-gathering' | 'targeted-practice';
   };
@@ -346,7 +377,15 @@ export interface AdaptiveLearnerState {
       source: 'adaptive-assessment';
       algorithmVersion: string;
       lastUpdatedAt: string;
+      freshness?: MasteryTraceabilityEntry['freshness'];
+      supportingEvidenceRefs?: MasteryEvidenceReference[];
+      sourceCoverage?: MasteryTraceabilityEntry['sourceCoverage'];
+      limitations?: string[];
     }>;
+  };
+  masteryTraceability?: {
+    knowledgeTargets: Record<string, MasteryTraceabilityEntry>;
+    capabilityTargets: Record<string, MasteryTraceabilityEntry>;
   };
   resourcePreference: {
     preferredModalities: string[];
@@ -429,6 +468,12 @@ interface AdaptiveLearnerStateDb {
   };
   arenaSubmission?: {
     findMany?: (args: any) => Promise<Array<any>>;
+  };
+  agentToolRun?: {
+    findMany?: (args: any) => Promise<Array<any>>;
+    findFirst?: (args: any) => Promise<unknown>;
+    create?: (args: any) => Promise<unknown>;
+    updateMany?: (args: any) => Promise<unknown>;
   };
   adaptiveMasteryUpdate?: {
     findMany?: (args: any) => Promise<Array<any>>;
@@ -619,6 +664,7 @@ export async function readAdaptiveLearnerState(
     activeControlCorrectionPaths,
     controlCorrectionFacts,
     controlCorrectionArenaSubmissions,
+    controlCorrectionAgentToolRuns,
   ] = await Promise.all([
     db.studentCompetencySnapshot?.findFirst?.({
       where: { userId: input.userId },
@@ -696,11 +742,32 @@ export async function readAdaptiveLearnerState(
           take: 200,
         }) ?? Promise.resolve([])
       : Promise.resolve([]),
+    shouldBuildControlCorrectionGoalSlice
+      ? db.agentToolRun?.findMany?.({
+          where: {
+            targetUserId: input.userId,
+            courseId: { in: [...CONTROL_CORRECTION_COURSE_ID_VALUES] },
+            status: { in: ['completed', 'succeeded', 'success'] },
+          },
+          orderBy: [{ completedAt: 'desc' }, { id: 'desc' }],
+          take: 100,
+        }) ?? Promise.resolve([])
+      : Promise.resolve([]),
   ]);
 
   const { vector, source } = resolvePrimaryCompetencyVector(latestSnapshot, featureSnapshot);
-  const knowledgeMastery = buildKnowledgeMastery(masteryUpdates);
+  const knowledgeMastery = buildKnowledgeMastery(masteryUpdates, now);
   const evidence = buildEvidenceSummary(featureRead, featureCache);
+  const masteryTraceability = filterMasteryTraceabilityForRole(buildMasteryTraceability({
+    knowledgeMastery,
+    vector,
+    facts: controlCorrectionFacts,
+    arenaSubmissions: controlCorrectionArenaSubmissions,
+    agentToolRuns: controlCorrectionAgentToolRuns,
+    featureRead,
+    evidence,
+    now,
+  }), input.role, now);
   const secondaryDimensions = buildSecondaryDimensions(vector);
   const prerequisiteFeatureGroups = {
     simulationArena: Object.keys(featureSimulationArena).length > 0
@@ -724,6 +791,7 @@ export async function readAdaptiveLearnerState(
     vector,
     evidence,
     knowledgeMastery,
+    masteryTraceability,
     facts: controlCorrectionFacts,
     arenaSubmissions: controlCorrectionArenaSubmissions,
     prerequisiteFeatureGroups,
@@ -757,6 +825,7 @@ export async function readAdaptiveLearnerState(
     },
     secondaryDimensions,
     knowledgeMastery,
+    masteryTraceability,
     resourcePreference: buildResourcePreference(facts),
     mediaAbsorption: buildMediaAbsorption(facts),
     pathContext: buildPathContext(paths, activeControlCorrectionPaths[0] ?? null),
@@ -835,6 +904,7 @@ function buildAdaptiveGoalSlices(input: {
   vector: CompetencyVector;
   evidence: AdaptiveLearnerState['evidence'];
   knowledgeMastery: AdaptiveLearnerState['knowledgeMastery'];
+  masteryTraceability: AdaptiveLearnerState['masteryTraceability'];
   facts: Array<Record<string, unknown>>;
   arenaSubmissions: Array<Record<string, unknown>>;
   prerequisiteFeatureGroups: AdaptiveLearnerState['prerequisiteFeatureGroups'];
@@ -863,6 +933,7 @@ function buildAdaptiveGoalSlices(input: {
         vector: input.vector,
         evidence: input.evidence,
         knowledgeMastery: input.knowledgeMastery,
+        masteryTraceability: input.masteryTraceability,
         facts: input.facts,
         arenaSubmissions: input.arenaSubmissions,
         prerequisiteFeatureGroups: input.prerequisiteFeatureGroups,
@@ -880,6 +951,7 @@ function buildControlCorrectionGoalSlice(input: {
   vector: CompetencyVector;
   evidence: AdaptiveLearnerState['evidence'];
   knowledgeMastery: AdaptiveLearnerState['knowledgeMastery'];
+  masteryTraceability: AdaptiveLearnerState['masteryTraceability'];
   facts: Array<Record<string, unknown>>;
   arenaSubmissions: Array<Record<string, unknown>>;
   prerequisiteFeatureGroups: AdaptiveLearnerState['prerequisiteFeatureGroups'];
@@ -890,6 +962,7 @@ function buildControlCorrectionGoalSlice(input: {
   const sourceEvidence = buildControlCorrectionSourceEvidence({
     facts: input.facts,
     arenaSubmissions: input.arenaSubmissions,
+    masteryTraceability: input.masteryTraceability,
     simulationArena,
   });
   const dimensions = CONTROL_CORRECTION_GOAL_DIMENSIONS.map((id) => {
@@ -932,7 +1005,12 @@ function buildControlCorrectionGoalSlice(input: {
     payloadVersion: CONTROL_CORRECTION_GOAL_SLICE_PAYLOAD_VERSION,
     generatedAt: input.now.toISOString(),
     targetLevels: CONTROL_CORRECTION_TARGET_LEVELS,
-    capabilityTargets: buildControlCorrectionCapabilityTargets(input.knowledgeMastery, input.vector, sourceEvidence),
+    capabilityTargets: buildControlCorrectionCapabilityTargets(
+      input.knowledgeMastery,
+      input.masteryTraceability,
+      input.vector,
+      sourceEvidence,
+    ),
     dimensions,
     pathContext: buildControlCorrectionPathContext(input.paths, input.activeControlCorrectionPath),
     privacyClasses: CONTROL_CORRECTION_PRIVACY_CLASSES,
@@ -943,11 +1021,13 @@ function buildControlCorrectionGoalSlice(input: {
 
 function buildControlCorrectionCapabilityTargets(
   knowledgeMastery: AdaptiveLearnerState['knowledgeMastery'],
+  masteryTraceability: AdaptiveLearnerState['masteryTraceability'],
   vector: CompetencyVector,
   sourceEvidence: ControlCorrectionSourceEvidence,
 ): ControlCorrectionCapabilityTargetEvidence[] {
   return CONTROL_CORRECTION_CAPABILITY_TARGETS.map((target) => {
     const knowledge = knowledgeMastery.tags[target.knowledgeNodeRef];
+    const traceability = masteryTraceability?.capabilityTargets[target.id];
     const competencies = target.competencyDimensions
       .map((dimension) => vector[dimension as CompetencyDimension])
       .filter((value): value is NonNullable<typeof value> => Boolean(value));
@@ -956,9 +1036,15 @@ function buildControlCorrectionCapabilityTargets(
       : null;
     const knowledgeEvidenceCount = knowledge?.evidenceCount ?? 0;
     const observableEvidenceCount = countControlCorrectionCapabilityObservableEvidence(target, sourceEvidence);
-    const directEvidenceCount = knowledgeEvidenceCount + observableEvidenceCount;
+    const traceabilityRefs = traceability?.supportingEvidenceRefs ?? [];
+    const agentToolEvidenceCount = traceabilityRefs.filter((ref) => ref.sourceType === 'AgentToolRun').length;
+    const directEvidenceCount = knowledgeEvidenceCount + observableEvidenceCount + agentToolEvidenceCount;
     const observableEvidenceConfidence = controlCorrectionCapabilityObservableEvidenceConfidence(target, observableEvidenceCount);
-    const directConfidence = Math.max(knowledge?.confidence ?? 0, observableEvidenceConfidence);
+    const agentToolEvidenceConfidence = agentToolEvidenceCount > 0 ? confidenceForVisibleRefs(
+      traceabilityRefs.filter((ref) => ref.sourceType === 'AgentToolRun'),
+      traceability?.confidence ?? 0.6,
+    ) : 0;
+    const directConfidence = Math.max(knowledge?.confidence ?? 0, observableEvidenceConfidence, agentToolEvidenceConfidence);
     const supportingEvidenceCount = Math.max(0, ...competencies.map((competency) => competency.evidenceCount));
     const state = directEvidenceCount === 0
       ? 'missing'
@@ -974,6 +1060,10 @@ function buildControlCorrectionCapabilityTargets(
         confidence: round(directConfidence, 2),
         directEvidenceCount,
         supportingEvidenceCount,
+        supportingEvidenceRefs: traceability?.supportingEvidenceRefs ?? [],
+        sourceCoverage: traceability?.sourceCoverage ?? emptyMasterySourceCoverage(),
+        freshness: traceability?.freshness ?? 'missing',
+        limitations: traceability?.limitations ?? ['missing-governed-evidence'],
         source: 'adaptive-learner-state',
         recommendationBias: state === 'observed' ? 'targeted-practice' : 'starter-or-evidence-gathering',
       },
@@ -1141,26 +1231,512 @@ export function validateControlCorrectionGoalSliceContract(value: unknown): asse
   }
 }
 
-function buildKnowledgeMastery(rows: Array<Record<string, unknown>>): AdaptiveLearnerState['knowledgeMastery'] {
+function buildKnowledgeMastery(rows: Array<Record<string, unknown>>, now: Date): AdaptiveLearnerState['knowledgeMastery'] {
   const tags: AdaptiveLearnerState['knowledgeMastery']['tags'] = {};
   for (const row of rows) {
     const knowledgeTag = readString(row.knowledgeTag);
     if (!knowledgeTag || tags[knowledgeTag]) {
       continue;
     }
+    const confidence = round(numberValue(row.confidence), 2);
+    const evidenceRef = masteryEvidenceRef(
+      'AdaptiveMasteryUpdate',
+      readString(row.id),
+      row.createdAt,
+      'student-visible',
+      confidenceLevel(confidence),
+    );
+    const limitations = [
+      ...(evidenceRef ? [] : ['missing-privacy-safe-evidence-ref']),
+      ...(evidenceRef && isStaleEvidenceRef(evidenceRef, now) ? ['stale-evidence'] : []),
+      ...(confidence < 0.45 ? ['low-confidence'] : []),
+    ];
     tags[knowledgeTag] = {
       posteriorMastery: round(numberValue(row.posteriorMastery), 2),
-      confidence: round(numberValue(row.confidence), 2),
+      confidence,
       evidenceCount: 1,
       source: 'adaptive-assessment',
       algorithmVersion: readString(row.algorithmVersion) ?? 'unknown',
       lastUpdatedAt: dateToIso(row.createdAt),
+      freshness: freshnessForMastery(evidenceRef ? [evidenceRef] : [], limitations),
+      supportingEvidenceRefs: evidenceRef ? [evidenceRef] : [],
+      sourceCoverage: {
+        ...emptyMasterySourceCoverage(),
+        AdaptiveMasteryUpdate: 'available',
+      },
+      limitations: unique(limitations),
     };
   }
   return {
     coverage: Object.keys(tags).length > 0 ? 'available' : 'missing',
     tags,
   };
+}
+
+function buildMasteryTraceability(input: {
+  knowledgeMastery: AdaptiveLearnerState['knowledgeMastery'];
+  vector: CompetencyVector;
+  facts: Array<Record<string, unknown>>;
+  arenaSubmissions: Array<Record<string, unknown>>;
+  agentToolRuns: Array<Record<string, unknown>>;
+  featureRead: StudentEvidenceFeatureReadResult;
+  evidence: AdaptiveLearnerState['evidence'];
+  now: Date;
+}): NonNullable<AdaptiveLearnerState['masteryTraceability']> {
+  const knowledgeTargets = Object.fromEntries(Object.entries(input.knowledgeMastery.tags).map(([targetId, mastery]) => [
+    targetId,
+    {
+      targetId,
+      targetKind: 'knowledge' as const,
+      masteryLevel: mastery.posteriorMastery,
+      confidence: mastery.confidence,
+      freshness: mastery.freshness ?? 'missing',
+      supportingEvidenceRefs: mastery.supportingEvidenceRefs ?? [],
+      sourceCoverage: mastery.sourceCoverage ?? emptyMasterySourceCoverage(),
+      limitations: mastery.limitations ?? ['missing-governed-evidence'],
+    },
+  ]));
+
+  const capabilityTargets = Object.fromEntries(CONTROL_CORRECTION_CAPABILITY_TARGETS.map((target) => {
+    const refs = refsForCapabilityTarget(target, input);
+    const competencies = target.competencyDimensions
+      .map((dimension) => input.vector[dimension as CompetencyDimension])
+      .filter((value): value is NonNullable<typeof value> => Boolean(value));
+    const score = competencies.length > 0
+      ? round(competencies.reduce((sum, competency) => sum + competency.score, 0) / competencies.length)
+      : null;
+    const confidence = refs.length === 0
+      ? 0
+      : round(Math.max(...competencies.map((competency) => competency.confidence), 0.45), 2);
+  const sourceCoverage = sourceCoverageForRefs(refs);
+    const limitations = buildMasteryLimitations({
+      target,
+      refs,
+      sourceCoverage,
+      featureRead: input.featureRead,
+      evidenceStatusMarkers: input.evidence.statusMarkers,
+      evidenceConfidenceLevel: input.evidence.confidence.level,
+      now: input.now,
+    });
+
+    return [target.id, {
+      targetId: target.id,
+      targetKind: 'capability' as const,
+      masteryLevel: score,
+      confidence,
+      freshness: freshnessForMastery(refs, limitations),
+      supportingEvidenceRefs: refs,
+      sourceCoverage,
+      limitations,
+    }];
+  }));
+
+  return { knowledgeTargets, capabilityTargets };
+}
+
+function filterMasteryTraceabilityForRole(
+  traceability: NonNullable<AdaptiveLearnerState['masteryTraceability']>,
+  role: AdaptiveLearnerStateRole,
+  now: Date,
+): NonNullable<AdaptiveLearnerState['masteryTraceability']> {
+  const allowedScopes = new Set(privacyScopesForRole(role));
+  return {
+    knowledgeTargets: filterTraceabilityEntries(traceability.knowledgeTargets, allowedScopes, now),
+    capabilityTargets: filterTraceabilityEntries(traceability.capabilityTargets, allowedScopes, now),
+  };
+}
+
+function filterTraceabilityEntries(
+  entries: Record<string, MasteryTraceabilityEntry>,
+  allowedScopes: Set<AdaptiveLearnerStatePrivacyScope>,
+  now: Date,
+): Record<string, MasteryTraceabilityEntry> {
+  return Object.fromEntries(Object.entries(entries).map(([id, entry]) => {
+    const refs = entry.supportingEvidenceRefs.filter((ref) => allowedScopes.has(ref.privacyLevel));
+    const limitations = refs.length === entry.supportingEvidenceRefs.length
+      ? entry.limitations
+      : buildRoleFilteredMasteryLimitations(entry.limitations, refs, now);
+    return [id, {
+      ...entry,
+      masteryLevel: refs.length === 0 ? null : entry.masteryLevel,
+      confidence: confidenceForVisibleRefs(refs, entry.confidence),
+      supportingEvidenceRefs: refs,
+      sourceCoverage: sourceCoverageForRefs(refs),
+      freshness: freshnessForMastery(refs, limitations),
+      limitations,
+    }];
+  }));
+}
+
+function buildRoleFilteredMasteryLimitations(
+  limitations: string[],
+  refs: MasteryEvidenceReference[],
+  now: Date,
+): string[] {
+  return unique([
+    ...limitations.filter((limitation) => (
+      limitation !== 'stale-evidence' &&
+      limitation !== 'missing-governed-evidence' &&
+      limitation !== 'low-confidence-source' &&
+      limitation !== 'restricted-evidence-hidden'
+    )),
+    ...(refs.length === 0 ? ['missing-governed-evidence'] : []),
+    ...(refs.some((ref) => ref.confidence === 'low') ? ['low-confidence-source'] : []),
+    ...(refs.some((ref) => isStaleEvidenceRef(ref, now)) ? ['stale-evidence'] : []),
+    'restricted-evidence-hidden',
+  ]);
+}
+
+function refsForCapabilityTarget(
+  target: AdaptiveLearningCapabilityTarget,
+  input: {
+    facts: Array<Record<string, unknown>>;
+    arenaSubmissions: Array<Record<string, unknown>>;
+    agentToolRuns: Array<Record<string, unknown>>;
+    featureRead: StudentEvidenceFeatureReadResult;
+  },
+): MasteryEvidenceReference[] {
+  const featureRefs = refsFromFeatureCache(target, input.featureRead);
+  const agentToolRunRefs = refsFromAgentToolRunsForTarget(input.agentToolRuns, target);
+  if (target.observableEvidenceType === 'question') {
+    return [...refsFromFacts(input.facts, ['assessment']), ...agentToolRunRefs, ...featureRefs];
+  }
+  if (target.observableEvidenceType === 'simulation-run') {
+    return [...refsFromFacts(input.facts, ['simulation']), ...agentToolRunRefs, ...featureRefs];
+  }
+  if (target.observableEvidenceType === 'arena-official-evaluation') {
+    return [
+      ...input.arenaSubmissions
+        .filter(isOfficialControlCorrectionArenaSubmission)
+        .map((submission) => masteryEvidenceRef('ArenaSubmission', readString(submission.id), submission.submittedAt, 'student-visible', 'high'))
+        .filter((ref): ref is MasteryEvidenceReference => Boolean(ref)),
+      ...agentToolRunRefs,
+      ...featureRefs,
+    ];
+  }
+  if (target.observableEvidenceType === 'reflection') {
+    return [...refsFromFacts(input.facts, ['reflection']), ...agentToolRunRefs, ...featureRefs];
+  }
+  if (target.observableEvidenceType === 'agent-interaction') {
+    return [
+      ...refsFromFacts(input.facts, ['ai', 'ai-collaboration', 'konling']),
+      ...agentToolRunRefs,
+      ...featureRefs,
+    ].filter((ref): ref is MasteryEvidenceReference => Boolean(ref));
+  }
+  return [...agentToolRunRefs, ...featureRefs];
+}
+
+function refsFromAgentToolRunsForTarget(
+  agentToolRuns: Array<Record<string, unknown>>,
+  target: AdaptiveLearningCapabilityTarget,
+): MasteryEvidenceReference[] {
+  return agentToolRuns
+    .filter(isAcceptedAgentToolRun)
+    .filter((run) => agentToolRunTargetsCapability(run, target))
+    .map((run) => masteryEvidenceRef('AgentToolRun', readString(run.id), run.completedAt ?? run.updatedAt ?? run.createdAt, 'teacher-scoped', 'medium'))
+    .filter((ref): ref is MasteryEvidenceReference => Boolean(ref));
+}
+
+function refsFromFeatureCache(
+  target: AdaptiveLearningCapabilityTarget,
+  featureRead: StudentEvidenceFeatureReadResult,
+): MasteryEvidenceReference[] {
+  if (!featureRead.cache || !target.learnerStateFeatureGroups?.includes('pathExecution')) {
+    return [];
+  }
+  const cache = asRecord(featureRead.cache);
+  const cacheId = readString(cache.id);
+  const pathExecution = getObject(getObject(getObject(cache.features).pathExecution).allTime);
+  const sourceReferences = Array.isArray(pathExecution.sourceReferences) ? pathExecution.sourceReferences : [];
+  return sourceReferences
+    .filter((entry) => pathExecutionReferenceMatchesCapability(getObject(entry), target))
+    .map((entry) => {
+      const reference = getObject(entry);
+      const sourceId = readString(reference.sourceId);
+      return masteryEvidenceRef(
+        'StudentEvidenceFeatureCache',
+        cacheId && sourceId ? `${cacheId}:${sourceId}` : cacheId ?? sourceId,
+        reference.occurredAt,
+        readString(reference.privacyLevel) === 'teacher-scoped' ? 'teacher-scoped' : 'student-visible',
+        confidenceLevelFromString(readString(reference.confidence)),
+      );
+    })
+    .filter((ref): ref is MasteryEvidenceReference => Boolean(ref));
+}
+
+function pathExecutionReferenceMatchesCapability(
+  reference: Record<string, unknown>,
+  target: AdaptiveLearningCapabilityTarget,
+): boolean {
+  const status = readString(reference.status);
+  const terminalValidationState = readString(reference.terminalValidationState);
+  const completed = status === 'completed' ||
+    status === 'success' ||
+    status === 'validated' ||
+    terminalValidationState === 'completed';
+  if (!completed) return false;
+  const resourceType = readString(reference.resourceType);
+  if (target.observableEvidenceType === 'simulation-run') {
+    return resourceType === 'simulation' || resourceType === 'control_workbench';
+  }
+  if (target.observableEvidenceType === 'arena-official-evaluation') {
+    return resourceType === 'arena_task';
+  }
+  if (target.observableEvidenceType === 'question') {
+    return resourceType === 'quiz' || resourceType === 'adaptive_quiz' || resourceType === 'checkpoint';
+  }
+  if (target.observableEvidenceType === 'reflection') {
+    return resourceType === 'reflection';
+  }
+  if (target.observableEvidenceType === 'agent-interaction') {
+    return resourceType === 'ai_intervention' || resourceType === 'konling';
+  }
+  return false;
+}
+
+function refsFromFacts(facts: Array<Record<string, unknown>>, modalities: string[]): MasteryEvidenceReference[] {
+  return facts
+    .filter((fact) => {
+      const modality = factTypeToModality(readString(fact.factType));
+      if (!modality || !modalities.includes(modality)) return false;
+      if (modality === 'ai' || modality === 'ai-collaboration' || modality === 'konling') {
+        return isGovernedAiLearningFact(fact);
+      }
+      return true;
+    })
+    .map((fact) => masteryEvidenceRef('LearningFact', readString(fact.id), fact.startedAt, 'student-visible', confidenceFromFact(fact)))
+    .filter((ref): ref is MasteryEvidenceReference => Boolean(ref));
+}
+
+function masteryEvidenceRef(
+  sourceType: MasteryEvidenceSourceType,
+  sourceId: string | null,
+  evidenceAt: unknown,
+  privacyLevel: MasteryEvidenceReference['privacyLevel'],
+  confidence: MasteryEvidenceReference['confidence'],
+): MasteryEvidenceReference | null {
+  if (!sourceId) return null;
+  return {
+    sourceType,
+    sourceId,
+    evidenceAt: dateToIsoOrNull(evidenceAt),
+    privacyLevel,
+    confidence,
+  };
+}
+
+function emptyMasterySourceCoverage(): MasteryTraceabilityEntry['sourceCoverage'] {
+  return {
+    AdaptiveMasteryUpdate: 'missing',
+    LearningFact: 'missing',
+    ArenaSubmission: 'missing',
+    AgentToolRun: 'missing',
+    StudentEvidenceFeatureCache: 'missing',
+  };
+}
+
+function sourceCoverageForRefs(refs: MasteryEvidenceReference[]): MasteryTraceabilityEntry['sourceCoverage'] {
+  const coverage = emptyMasterySourceCoverage();
+  for (const ref of refs) {
+    coverage[ref.sourceType] = 'available';
+  }
+  return coverage;
+}
+
+function buildMasteryLimitations(input: {
+  target: AdaptiveLearningCapabilityTarget;
+  refs: MasteryEvidenceReference[];
+  sourceCoverage: MasteryTraceabilityEntry['sourceCoverage'];
+  featureRead: StudentEvidenceFeatureReadResult;
+  evidenceStatusMarkers: StudentEvidenceStatusMarker[];
+  evidenceConfidenceLevel: AdaptiveLearnerState['evidence']['confidence']['level'];
+  now: Date;
+}): string[] {
+  const limitations: string[] = [];
+  if (input.refs.length === 0) limitations.push('missing-governed-evidence');
+  if (input.featureRead.state === 'missing') limitations.push('missing-feature-cache');
+  if (input.featureRead.state === 'stale' || input.evidenceStatusMarkers.includes('stale')) limitations.push('stale-evidence');
+  if (input.evidenceStatusMarkers.includes('partial')) limitations.push('partial-evidence');
+  if (input.evidenceStatusMarkers.includes('missing-source')) limitations.push('missing-source');
+  if (input.evidenceConfidenceLevel === 'none' || input.evidenceConfidenceLevel === 'low') limitations.push('low-confidence');
+  if (input.refs.some((ref) => ref.confidence === 'low')) limitations.push('low-confidence-source');
+  if (
+    input.target.observableEvidenceType === 'arena-official-evaluation' &&
+    input.sourceCoverage.ArenaSubmission === 'missing'
+  ) {
+    limitations.push('non-official-or-preview-only-evidence');
+  }
+  if (input.refs.some((ref) => isStaleEvidenceRef(ref, input.now))) limitations.push('stale-evidence');
+  return unique(limitations);
+}
+
+function freshnessForMastery(
+  refs: MasteryEvidenceReference[],
+  limitations: string[],
+): MasteryTraceabilityEntry['freshness'] {
+  if (refs.length === 0) return 'missing';
+  if (limitations.includes('stale-evidence')) return 'stale';
+  if (limitations.some((limitation) => limitation !== 'restricted-evidence-hidden')) return 'partial';
+  return 'current';
+}
+
+function confidenceFromFact(fact: Record<string, unknown>): MasteryEvidenceReference['confidence'] {
+  return confidenceLevel(finiteNumber(fact.score) ?? (readString(fact.outcome) === 'success' ? 0.8 : 0.45));
+}
+
+function confidenceForVisibleRefs(refs: MasteryEvidenceReference[], fallback: number): number {
+  if (refs.length === 0) return 0;
+  const refConfidence = Math.max(...refs.map((ref) => confidenceScoreFromReference(ref.confidence)));
+  return round(Math.min(fallback, refConfidence), 2);
+}
+
+function confidenceScoreFromReference(value: MasteryEvidenceReference['confidence']): number {
+  if (value === 'high') return 0.85;
+  if (value === 'medium') return 0.6;
+  if (value === 'low') return 0.35;
+  return 0.45;
+}
+
+function isGovernedAiLearningFact(fact: Record<string, unknown>): boolean {
+  const context = getObject(fact.contextJson);
+  const agentTool = getObject(context.agentTool);
+  const agentToolGovernance = getObject(agentTool.governanceContext);
+  const interventionOutcome = getObject(context.interventionOutcome);
+  const evidenceSummary = getObject(context.evidenceSummary);
+  return Boolean(
+    context.materializedEvidence === true ||
+    context.verifiedCitationSummary === true ||
+    evidenceSummary.materialized === true ||
+    evidenceSummary.verifiedCitations === true ||
+    readString(evidenceSummary.reviewerState) === 'approved' ||
+    readString(evidenceSummary.reviewerState) === 'auto_approved' ||
+    interventionOutcome.approved === true ||
+    readString(interventionOutcome.approvalState) === 'approved' ||
+    readString(agentTool.reviewerState) === 'approved' ||
+    readString(agentTool.reviewerState) === 'auto_approved' ||
+    readString(agentToolGovernance.reviewerState) === 'approved' ||
+    readString(agentToolGovernance.reviewerState) === 'auto_approved' ||
+    readString(context.reviewerState) === 'approved' ||
+    readString(context.reviewerState) === 'auto_approved',
+  );
+}
+
+function confidenceLevel(value: number): MasteryEvidenceReference['confidence'] {
+  if (!Number.isFinite(value)) return 'unknown';
+  if (value >= 0.7) return 'high';
+  if (value >= 0.45) return 'medium';
+  return 'low';
+}
+
+function confidenceLevelFromString(value: string | null): MasteryEvidenceReference['confidence'] {
+  if (value === 'low' || value === 'medium' || value === 'high' || value === 'unknown') {
+    return value;
+  }
+  return 'unknown';
+}
+
+function isAcceptedAgentToolRun(run: Record<string, unknown>): boolean {
+  const status = readString(run.status);
+  const approvalState = readString(run.approvalState) ?? 'not_required';
+  if (!status || !['completed', 'succeeded', 'success'].includes(status)) return false;
+  if (!['not_required', 'approved', 'teacher_approved', 'reviewed'].includes(approvalState)) return false;
+  return agentToolRunHasGovernedEvidenceSummary(run);
+}
+
+function agentToolRunHasGovernedEvidenceSummary(run: Record<string, unknown>): boolean {
+  const output = getObject(run.outputSummary);
+  const evidenceSummary = getObject(output.evidenceSummary);
+  const materializedEvidence = getObject(output.materializedEvidence);
+  return Boolean(
+    output.materializedEvidence === true ||
+    output.verifiedCitationSummary === true ||
+    evidenceSummary.materialized === true ||
+    evidenceSummary.verifiedCitations === true ||
+    readString(evidenceSummary.reviewerState) === 'approved' ||
+    readString(evidenceSummary.reviewerState) === 'auto_approved' ||
+    materializedEvidence.status === 'approved' ||
+    materializedEvidence.reviewed === true,
+  );
+}
+
+function agentToolRunHasStructuredTarget(run: Record<string, unknown>): boolean {
+  const structuredContainers = [
+    run,
+    getObject(run.outputSummary),
+    getObject(getObject(run.outputSummary).evidenceSummary),
+    getObject(getObject(run.outputSummary).materializedEvidence),
+  ];
+  return structuredContainers.some((container) => [
+    container.capabilityTargetRef,
+    container.capabilityTargetRefs,
+    container.capabilityTargetId,
+    container.capabilityTargetIds,
+    container.targetCapabilityId,
+    container.targetCapabilityIds,
+    container.knowledgeNodeRef,
+    container.knowledgeNodeRefs,
+    container.knowledgeTag,
+    container.knowledgeTags,
+  ].some((value) => typeof value === 'string' || Array.isArray(value)));
+}
+
+function agentToolRunTargetsCapability(
+  run: Record<string, unknown>,
+  target: AdaptiveLearningCapabilityTarget,
+): boolean {
+  const structuredContainers = [
+    run,
+    getObject(run.outputSummary),
+    getObject(getObject(run.outputSummary).evidenceSummary),
+    getObject(getObject(run.outputSummary).materializedEvidence),
+  ];
+  return structuredContainers.some((container) => structuredContainerTargetsCapability(container, target));
+}
+
+function structuredContainerTargetsCapability(
+  value: Record<string, unknown>,
+  target: AdaptiveLearningCapabilityTarget,
+): boolean {
+  const targetValues = new Set([
+    target.id,
+    target.knowledgeNodeRef,
+    `capability:${target.knowledgeNodeRef.replace(/^control-correction:/, '')}`,
+  ]);
+  const structuredValues = [
+    value.capabilityTargetRef,
+    value.capabilityTargetRefs,
+    value.capabilityTargetId,
+    value.capabilityTargetIds,
+    value.targetCapabilityId,
+    value.targetCapabilityIds,
+    value.knowledgeNodeRef,
+    value.knowledgeNodeRefs,
+    value.knowledgeTag,
+    value.knowledgeTags,
+  ];
+  return structuredValues.some((entry) => structuredTargetValueMatches(entry, targetValues));
+}
+
+function structuredTargetValueMatches(value: unknown, targetValues: Set<string>): boolean {
+  if (typeof value === 'string') {
+    return targetValues.has(normalizeCapabilityTargetRef(value));
+  }
+  if (Array.isArray(value)) {
+    return value.some((entry) => structuredTargetValueMatches(entry, targetValues));
+  }
+  return false;
+}
+
+function normalizeCapabilityTargetRef(value: string): string {
+  return value.trim();
+}
+
+function isStaleEvidenceRef(ref: MasteryEvidenceReference, now: Date): boolean {
+  if (!ref.evidenceAt) return false;
+  const evidenceAt = new Date(ref.evidenceAt);
+  if (Number.isNaN(evidenceAt.getTime())) return false;
+  return now.getTime() - evidenceAt.getTime() > 90 * 86400000;
 }
 
 function buildResourcePreference(facts: Array<Record<string, unknown>>): AdaptiveLearnerState['resourcePreference'] {
@@ -1383,6 +1959,7 @@ interface ControlCorrectionSourceEvidence {
   simulationArenaQualityMarkers: string[];
   reflectionCount: number;
   aiCollaborationCount: number;
+  agentToolRunCount: number;
 }
 
 interface ControlCorrectionFactCounts {
@@ -1399,14 +1976,14 @@ interface ControlCorrectionScopedFactSummary {
 }
 
 function summarizeControlCorrectionFacts(facts: Array<Record<string, unknown>>): ControlCorrectionScopedFactSummary {
-	  const scopedFacts = facts.filter(isControlCorrectionFact);
-	  const counts = scopedFacts.reduce<ControlCorrectionFactCounts>((counts, fact) => {
-	    if (isControlCorrectionArenaFact(fact)) {
-	      counts.arena += 1;
-	      counts.previewArena += 1;
-	      return counts;
-	    }
-	    const modality = factTypeToModality(readString(fact.factType));
+  const scopedFacts = facts.filter(isControlCorrectionFact);
+  const counts = scopedFacts.reduce<ControlCorrectionFactCounts>((counts, fact) => {
+    if (isControlCorrectionArenaFact(fact)) {
+      counts.arena += 1;
+      counts.previewArena += 1;
+      return counts;
+    }
+    const modality = factTypeToModality(readString(fact.factType));
     if (modality === 'assessment') counts.assessment += 1;
     if (modality === 'simulation') counts.simulation += 1;
     if (modality === 'arena') {
@@ -1414,7 +1991,9 @@ function summarizeControlCorrectionFacts(facts: Array<Record<string, unknown>>):
       counts.previewArena += 1;
     }
     if (modality === 'reflection') counts.reflection += 1;
-    if (modality === 'ai' || modality === 'ai-collaboration' || modality === 'konling') counts.aiCollaboration += 1;
+    if ((modality === 'ai' || modality === 'ai-collaboration' || modality === 'konling') && isGovernedAiLearningFact(fact)) {
+      counts.aiCollaboration += 1;
+    }
     return counts;
   }, {
     assessment: 0,
@@ -1424,8 +2003,8 @@ function summarizeControlCorrectionFacts(facts: Array<Record<string, unknown>>):
     reflection: 0,
     aiCollaboration: 0,
   });
-	  return { counts };
-	}
+  return { counts };
+}
 
 async function readControlCorrectionLearningFacts(
   db: AdaptiveLearnerStateDb,
@@ -1621,46 +2200,62 @@ function uniqueFactsById(facts: Array<Record<string, unknown>>): Array<Record<st
 }
 
 function countOfficialControlCorrectionArenaSubmissions(submissions: Array<Record<string, unknown>>): number {
-  return submissions.filter((submission) => {
-    if (submission.valid !== true) return false;
-    const evaluationRun = getObject(submission.evaluationRun);
-    const controllerArtifact = getObject(submission.controllerArtifact);
-    const artifactPayload = getObject(controllerArtifact.payload);
-    const taskId = readString(submission.taskId);
-    if (!taskId) return false;
-    if (!CONTROL_CORRECTION_ARENA_TASK_IDS.has(taskId)) return false;
-    const method = readString(submission.method) ?? readString(artifactPayload.method);
-    return readString(evaluationRun.protocolVersion) === getArenaEvaluationProtocolVersion({
-      taskId,
-      ...(method ? { method: method as Parameters<typeof getArenaEvaluationProtocolVersion>[0]['method'] } : {}),
-    });
-  }).length;
+  return submissions.filter(isOfficialControlCorrectionArenaSubmission).length;
+}
+
+function isOfficialControlCorrectionArenaSubmission(submission: Record<string, unknown>): boolean {
+  if (submission.valid !== true) return false;
+  const evaluationRun = getObject(submission.evaluationRun);
+  const controllerArtifact = getObject(submission.controllerArtifact);
+  const artifactPayload = getObject(controllerArtifact.payload);
+  const taskId = readString(submission.taskId);
+  if (!taskId) return false;
+  if (!CONTROL_CORRECTION_ARENA_TASK_IDS.has(taskId)) return false;
+  const method = readString(submission.method) ?? readString(artifactPayload.method);
+  return readString(evaluationRun.protocolVersion) === getArenaEvaluationProtocolVersion({
+    taskId,
+    ...(method ? { method: method as Parameters<typeof getArenaEvaluationProtocolVersion>[0]['method'] } : {}),
+  });
 }
 
 function buildControlCorrectionSourceEvidence(input: {
   facts: Array<Record<string, unknown>>;
   arenaSubmissions: Array<Record<string, unknown>>;
+  masteryTraceability: AdaptiveLearnerState['masteryTraceability'];
   simulationArena: Record<string, unknown>;
 }): ControlCorrectionSourceEvidence {
   const factSummary = summarizeControlCorrectionFacts(input.facts);
   const factCounts = factSummary.counts;
   const officialArenaCount = countOfficialControlCorrectionArenaSubmissions(input.arenaSubmissions);
+  const agentToolRunCount = countVisibleAgentToolRunRefs(input.masteryTraceability);
   const simulationArenaCoverage = getObject(input.simulationArena.sourceCoverage);
   return {
     assessmentCoverage: factCounts.assessment > 0 ? 'available' : 'missing',
     assessmentCount: factCounts.assessment,
     simulationCoverage: factCounts.simulation > 0 ? normalizeCoverageState(simulationArenaCoverage.simulation) : 'missing',
     simulationCount: factCounts.simulation,
-	    arenaCoverage: officialArenaCount > 0
-	      ? 'available'
-	      : factCounts.arena > 0 ? previewArenaCoverage(simulationArenaCoverage.arena) : 'missing',
+    arenaCoverage: officialArenaCount > 0
+      ? 'available'
+      : factCounts.arena > 0 ? previewArenaCoverage(simulationArenaCoverage.arena) : 'missing',
     officialArenaCount,
     previewArenaCount: factCounts.previewArena,
     simulationArenaQualityMarkers: arrayOfStrings(input.simulationArena.qualityMarkers),
     reflectionCount: factCounts.reflection,
-    aiCollaborationCount: factCounts.aiCollaboration,
+    aiCollaborationCount: factCounts.aiCollaboration + agentToolRunCount,
+    agentToolRunCount,
   };
-	}
+}
+
+function countVisibleAgentToolRunRefs(masteryTraceability: AdaptiveLearnerState['masteryTraceability']): number {
+  if (!masteryTraceability) return 0;
+  const sourceIds = new Set<string>();
+  for (const entry of Object.values(masteryTraceability.capabilityTargets)) {
+    for (const ref of entry.supportingEvidenceRefs) {
+      if (ref.sourceType === 'AgentToolRun') sourceIds.add(ref.sourceId);
+    }
+  }
+  return sourceIds.size;
+}
 
 function previewArenaCoverage(value: unknown): StudentEvidenceCoverageState {
   const coverage = normalizeCoverageState(value);
@@ -1693,9 +2288,9 @@ function buildControlCorrectionDimensionEvidenceCount(
   return CONTROL_CORRECTION_DIMENSION_REQUIRED_SOURCES[id].reduce((count, source) => {
     if (source === 'assessment') return count + sourceEvidence.assessmentCount;
     if (source === 'simulation') return count + sourceEvidence.simulationCount;
-	    if (source === 'arena') return count + (sourceEvidence.officialArenaCount > 0
-	      ? sourceEvidence.officialArenaCount
-	      : sourceEvidence.previewArenaCount);
+    if (source === 'arena') return count + (sourceEvidence.officialArenaCount > 0
+      ? sourceEvidence.officialArenaCount
+      : sourceEvidence.previewArenaCount);
     if (source === 'reflection') return count + sourceEvidence.reflectionCount;
     return count + sourceEvidence.aiCollaborationCount;
   }, 0);
@@ -1976,6 +2571,15 @@ function finiteNumber(value: unknown): number | null {
 
 function dateToIso(value: unknown): string {
   return value instanceof Date ? value.toISOString() : new Date(0).toISOString();
+}
+
+function dateToIsoOrNull(value: unknown): string | null {
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === 'string' || typeof value === 'number') {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date.toISOString();
+  }
+  return null;
 }
 
 function unique<T>(values: T[]): T[] {

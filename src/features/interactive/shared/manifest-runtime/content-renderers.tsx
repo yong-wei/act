@@ -1443,7 +1443,7 @@ type StructureDiagramPanelProps = {
   annotatedMediaSharedState?: AnnotatedMediaSharedStateStore;
 };
 
-function structurePointForId(nodes: Array<{ id: string; position: StructureDiagramPoint }>, id: string) {
+function structurePointForId(nodes: readonly { id: string; position: StructureDiagramPoint }[], id: string) {
   return nodes.find((node) => node.id === id)?.position ?? { x: 0.5, y: 0.5 };
 }
 

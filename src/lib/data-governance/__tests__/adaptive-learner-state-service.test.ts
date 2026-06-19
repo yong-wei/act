@@ -9,6 +9,7 @@ import {
   resolveAdaptiveGoalSliceDefinition,
   validateControlCorrectionGoalSliceContract,
 } from '../adaptive-learner-state-service';
+import { buildSimulationAgentEvidenceMaterialization } from '../simulation-agent-evidence-materialization';
 
 const snapshotVector: CompetencyVector = {
   controlModeling: { score: 78, trend: 'up', confidence: 0.82, evidenceCount: 8, lastUpdated: '2026-05-20T00:00:00.000Z' },
@@ -1205,9 +1206,10 @@ describe('adaptive learner state service', () => {
       where: {
         userId: 'student-1',
         OR: expect.arrayContaining([
-          { courseId: { in: ['3-6', 'unit-3-6-zero-design-workshop', 'unit-3-6-zero-design-workshop-v1'] } },
-          { lessonId: { in: ['3-6', 'unit-3-6-zero-design-workshop', 'unit-3-6-zero-design-workshop-v1'] } },
-          { moduleId: { in: ['3-6', 'unit-3-6-zero-design-workshop', 'unit-3-6-zero-design-workshop-v1'] } },
+          { courseId: { in: expect.arrayContaining(['control-correction', '3-6', 'unit-3-6-zero-design-workshop', 'unit-3-6-zero-design-workshop-v1']) } },
+          { lessonId: { in: expect.arrayContaining(['control-correction', '3-6', 'unit-3-6-zero-design-workshop', 'unit-3-6-zero-design-workshop-v1']) } },
+          { moduleId: { in: expect.arrayContaining(['control-correction', '3-6', 'unit-3-6-zero-design-workshop', 'unit-3-6-zero-design-workshop-v1']) } },
+          { contextJson: { path: ['agentTool', 'courseId'], equals: 'control-correction' } },
           { contextJson: { path: ['adaptiveAssessment', 'courseId'], equals: 'unit-3-6-zero-design-workshop-v1' } },
           { contextJson: { path: ['arena', 'taskId'], equals: 'task-second-order-lead-pid' } },
           { contextJson: { path: ['simulation', 'summary', 'sourceId'], equals: 'unit-3-6-zero-design-workshop' } },
@@ -1245,10 +1247,17 @@ describe('adaptive learner state service', () => {
             contextJson: {},
           }),
           controlCorrectionFact('ai_intervention', '2026-05-16T00:00:00.000Z', 84, {
-            contextJson: { agentTool: { courseId: 'unit-3-6-zero-design-workshop-v1' } },
+            contextJson: {
+              agentTool: { courseId: 'unit-3-6-zero-design-workshop-v1' },
+              evidenceSummary: { materialized: true },
+            },
           }),
           controlCorrectionFact('prompt_design', '2026-05-15T00:00:00.000Z', 82, {
-            contextJson: { goalId: 'control-correction', agentTool: { taskId: 'task-second-order-lead-pid' } },
+            contextJson: {
+              goalId: 'control-correction',
+              agentTool: { taskId: 'task-second-order-lead-pid' },
+              evidenceSummary: { materialized: true },
+            },
           }),
         ],
       },
@@ -1276,6 +1285,70 @@ describe('adaptive learner state service', () => {
     });
     expect(slice.dimensions.find((dimension) => dimension.id === 'ai-collaboration')).toMatchObject({
       evidenceCount: 2,
+      sourceCoverage: expect.objectContaining({ aiCollaboration: 'available' }),
+      evidenceProvenance: expect.objectContaining({ aiCollaboration: 'governed-ai-collaboration' }),
+    });
+  });
+
+  it('counts approved materialized AgentToolRun learning facts from the simulation agent materializer', async () => {
+    const materialized = buildSimulationAgentEvidenceMaterialization({
+      agentToolRuns: [
+        {
+          id: 'tool-run-1',
+          agentSessionId: 'agent-session-1',
+          ownerUserId: 'student-1',
+          actorUserId: 'student-1',
+          targetUserId: 'student-1',
+          classId: 'class-1',
+          courseId: 'control-correction',
+          pageId: 'adaptive-path-center',
+          resourceId: 'resource-1',
+          pathNodeId: 'node-1',
+          toolName: 'record_intervention_result',
+          permissionTier: 'write',
+          approvalState: 'approved',
+          status: 'completed',
+          inputSummary: {},
+          outputSummary: {
+            simulationRunId: 'run-1',
+            traceRef: { traceId: 'trace-1' },
+            metrics: { interventionOutcome: 0.78 },
+          },
+          idempotencyKey: 'analysis-1',
+          correlationId: 'correlation-1',
+          startedAt: new Date('2026-05-16T00:00:00.000Z'),
+          completedAt: new Date('2026-05-16T00:05:00.000Z'),
+          createdAt: new Date('2026-05-16T00:00:00.000Z'),
+          updatedAt: new Date('2026-05-16T00:05:00.000Z'),
+        },
+      ],
+      now: new Date('2026-05-20T03:00:00.000Z'),
+    });
+    expect(materialized.learningFacts).toHaveLength(1);
+
+    const fact = materialized.learningFacts[0] as Record<string, unknown>;
+    const state = await readAdaptiveLearnerState(createDb({
+      learningFact: {
+        findMany: async () => [
+          {
+            ...fact,
+            id: 'materialized-agent-fact',
+            startedAt: fact.startedAt ?? new Date('2026-05-16T00:05:00.000Z'),
+          },
+        ],
+      },
+    }), {
+      userId: 'student-1',
+      role: 'student',
+      now: new Date('2026-05-20T03:00:00.000Z'),
+      goal: 'control-correction',
+    });
+
+    const slice = state.goalSlices?.controlCorrection;
+    expect(slice).toBeDefined();
+    if (!slice) throw new Error('expected control-correction goal slice');
+    expect(slice.dimensions.find((dimension) => dimension.id === 'ai-collaboration')).toMatchObject({
+      evidenceCount: 1,
       sourceCoverage: expect.objectContaining({ aiCollaboration: 'available' }),
       evidenceProvenance: expect.objectContaining({ aiCollaboration: 'governed-ai-collaboration' }),
     });
@@ -1519,7 +1592,9 @@ describe('adaptive learner state service', () => {
           controlCorrectionFact('simulation', '2026-05-18T00:00:00.000Z', 90),
           controlCorrectionFact('arena', '2026-05-17T00:00:00.000Z', 88),
           controlCorrectionFact('reflection', '2026-05-16T00:00:00.000Z', 86),
-          controlCorrectionFact('konling', '2026-05-15T00:00:00.000Z', 84),
+          controlCorrectionFact('konling', '2026-05-15T00:00:00.000Z', 84, {
+            contextJson: { goalId: 'control-correction', evidenceSummary: { materialized: true } },
+          }),
         ],
       },
 	      arenaSubmission: {
@@ -1755,6 +1830,26 @@ describe('adaptive learner state service', () => {
                     interventionKind: 'hint',
                     studentOutcome: 'accepted',
                   },
+                  {
+                    sourceType: 'LearningPathExecution',
+                    sourceId: 'exec-in-progress',
+                    pathId: 'path-1',
+                    nodeId: 'draft-node',
+                    occurredAt: '2026-06-04T10:28:00.000Z',
+                    privacyLevel: 'student-visible',
+                    status: 'in_progress',
+                    resourceType: 'arena_task',
+                  },
+                  {
+                    sourceType: 'LearningPathExecution',
+                    sourceId: 'exec-wrong-resource',
+                    pathId: 'path-1',
+                    nodeId: 'media-node',
+                    occurredAt: '2026-06-04T10:32:00.000Z',
+                    privacyLevel: 'student-visible',
+                    status: 'completed',
+                    resourceType: 'media',
+                  },
                 ],
               }),
             }),
@@ -1772,14 +1867,13 @@ describe('adaptive learner state service', () => {
       evidenceCount: 3,
       completionCount: 1,
       terminalValidationCount: 1,
-      sourceReferences: [
-        expect.objectContaining({
-          sourceType: 'LearningPathExecution',
-          sourceId: 'exec-1',
-        }),
-      ],
+      sourceReferences: expect.arrayContaining([
+        expect.objectContaining({ sourceType: 'LearningPathExecution', sourceId: 'exec-1' }),
+        expect.objectContaining({ sourceType: 'LearningPathExecution', sourceId: 'exec-in-progress' }),
+        expect.objectContaining({ sourceType: 'LearningPathExecution', sourceId: 'exec-wrong-resource' }),
+      ]),
     });
-    expect((state.prerequisiteFeatureGroups.pathExecution as any).sourceReferences).toHaveLength(1);
+    expect((state.prerequisiteFeatureGroups.pathExecution as any).sourceReferences).toHaveLength(3);
     expect(JSON.stringify(state.prerequisiteFeatureGroups.pathExecution)).not.toContain('int-1');
     expect(state.evidence.readState).toBe('ready');
   });
@@ -2302,7 +2396,9 @@ describe('adaptive learner state service', () => {
           controlCorrectionFact('simulation', '2026-03-18T00:00:00.000Z', 90),
           controlCorrectionFact('arena', '2026-03-17T00:00:00.000Z', 88),
           controlCorrectionFact('reflection', '2026-03-16T00:00:00.000Z', 86),
-          controlCorrectionFact('konling', '2026-03-15T00:00:00.000Z', 84),
+          controlCorrectionFact('konling', '2026-03-15T00:00:00.000Z', 84, {
+            contextJson: { goalId: 'control-correction', evidenceSummary: { materialized: true } },
+          }),
         ],
       },
     }), {
@@ -2392,7 +2488,9 @@ describe('adaptive learner state service', () => {
           controlCorrectionFact('simulation', '2026-05-18T00:00:00.000Z', 90),
           controlCorrectionFact('arena', '2026-05-17T00:00:00.000Z', 88),
           controlCorrectionFact('reflection', '2026-05-16T00:00:00.000Z', 86),
-          controlCorrectionFact('konling', '2026-05-15T00:00:00.000Z', 84),
+          controlCorrectionFact('konling', '2026-05-15T00:00:00.000Z', 84, {
+            contextJson: { goalId: 'control-correction', evidenceSummary: { materialized: true } },
+          }),
         ],
       },
     }), {
@@ -2472,7 +2570,9 @@ describe('adaptive learner state service', () => {
           controlCorrectionFact('simulation', '2026-05-18T00:00:00.000Z', 90),
           controlCorrectionFact('arena', '2026-05-17T00:00:00.000Z', 88),
           controlCorrectionFact('reflection', '2026-05-16T00:00:00.000Z', 86),
-          controlCorrectionFact('konling', '2026-05-15T00:00:00.000Z', 84),
+          controlCorrectionFact('konling', '2026-05-15T00:00:00.000Z', 84, {
+            contextJson: { goalId: 'control-correction', evidenceSummary: { materialized: true } },
+          }),
         ],
       },
     }), {
