@@ -3,9 +3,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => {
   const getServerSession = vi.fn();
   const teachingResourceFindMany = vi.fn();
+  const loadAllLessonRuntimeResourceCatalogEntries = vi.fn();
 
   return {
     getServerSession,
+    loadAllLessonRuntimeResourceCatalogEntries,
     prisma: {
       teachingResource: {
         findMany: teachingResourceFindMany,
@@ -24,6 +26,10 @@ vi.mock('@/lib/auth', () => ({
 
 vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
+}));
+
+vi.mock('@/lib/course-runtime', () => ({
+  loadAllLessonRuntimeResourceCatalogEntries: mocks.loadAllLessonRuntimeResourceCatalogEntries,
 }));
 
 vi.mock('@/lib/resource-registry-metadata', () => ({
@@ -73,6 +79,7 @@ describe('GET /api/teacher/resource-nodes', () => {
       user: { id: 'teacher-1', role: 'TEACHER' },
     });
     mocks.prisma.teachingResource.findMany.mockResolvedValue([ownedResource]);
+    mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([]);
   });
 
   it('rejects non-teacher users', async () => {
@@ -129,6 +136,131 @@ describe('GET /api/teacher/resource-nodes', () => {
         editable: false,
       }),
     ]);
+  });
+
+  it('includes runtime lesson media and handouts as read-only resource nodes', async () => {
+    mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([
+      {
+        lesson: { lesson_id: '2-4', title: '频域课' },
+        graphOverlay: {
+          lesson_id: '2-4',
+          focus_node_ids: ['kn-bode'],
+          card_order: ['kn-bode'],
+          nodes: [{ id: 'kn-bode', name: '伯德图' }],
+          groups: [],
+        },
+        handoutPath: '/course-runtime/lessons/2-4/2-4-handout.md',
+        handoutSourcePath: 'course-content/runtime/lessons/2-4/2-4-handout.md',
+        handoutPdfPath: '/course-runtime/lessons/2-4/2-4-handout.pdf',
+        mediaResources: [
+          {
+            id: 'slides',
+            title: '频域课件',
+            filename: '2-4-slides.pdf',
+            kind: 'slides',
+            url: 'https://example.test/2-4-slides.pdf',
+            accessMode: 'new_tab',
+            embedMode: 'none',
+            status: 'ready',
+            featured: false,
+          },
+          {
+            id: 'intro-video',
+            title: '频域导入视频',
+            filename: '2-4-intro-video.mp4',
+            kind: 'video',
+            url: null,
+            accessMode: 'dialog',
+            embedMode: 'iframe',
+            status: 'pending',
+            featured: false,
+          },
+        ],
+      },
+    ]);
+
+    const response = await GET(
+      new Request('http://localhost/api/teacher/resource-nodes?courseModule=2-4')
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'runtime-handout:2-4',
+        type: 'handout',
+        editable: false,
+      }),
+      expect.objectContaining({
+        id: 'runtime-media:2-4:slides',
+        type: 'slides',
+        editable: false,
+        renderTarget: 'https://example.test/2-4-slides.pdf',
+      }),
+      expect.objectContaining({
+        id: 'runtime-media:2-4:intro-video',
+        type: 'video',
+        editable: false,
+        renderTarget: null,
+      }),
+    ]));
+  });
+
+  it('keeps registry, runtime, and knowledge nodes read-only for admins', async () => {
+    mocks.getServerSession.mockResolvedValue({
+      user: { id: 'admin-1', role: 'ADMIN' },
+    });
+    mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([
+      {
+        lesson: { lesson_id: '2-4', title: '频域课' },
+        graphOverlay: {
+          lesson_id: '2-4',
+          focus_node_ids: ['kn-bode'],
+          card_order: ['kn-bode'],
+          nodes: [{ id: 'kn-bode', name: '伯德图' }],
+          groups: [],
+        },
+        handoutPath: '/course-runtime/lessons/2-4/2-4-handout.md',
+        handoutSourcePath: 'course-content/runtime/lessons/2-4/2-4-handout.md',
+        handoutPdfPath: '/course-runtime/lessons/2-4/2-4-handout.pdf',
+        mediaResources: [
+          {
+            id: 'slides',
+            title: '频域课件',
+            filename: '2-4-slides.pdf',
+            kind: 'slides',
+            url: 'https://example.test/2-4-slides.pdf',
+            accessMode: 'new_tab',
+            embedMode: 'none',
+            status: 'ready',
+            featured: false,
+          },
+        ],
+      },
+    ]);
+
+    const response = await GET(new Request('http://localhost/api/teacher/resource-nodes'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'registry:registered-quiz',
+        editable: false,
+      }),
+      expect.objectContaining({
+        id: 'runtime-media:2-4:slides',
+        editable: false,
+      }),
+      expect.objectContaining({
+        id: 'knowledge-node:kn-bode',
+        editable: false,
+      }),
+      expect.objectContaining({
+        id: 'teaching-resource:owned-quiz',
+        editable: true,
+      }),
+    ]));
   });
 
   it('includes knowledge cards and filters by course/module metadata', async () => {

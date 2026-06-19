@@ -110,6 +110,12 @@ function sampleRegistry() {
             kind: 'audio',
             url: 'https://example.test/audio.mp3',
           },
+          {
+            id: 'slide-deck',
+            title: '频域课件',
+            kind: 'slides',
+            url: 'https://example.test/slides.pdf',
+          },
         ],
       },
     ],
@@ -368,6 +374,12 @@ describe('resource node registry', () => {
           knowledgeNodeIds: ['kn-demo'],
           renderTarget: '/interactive-learning/courses/unit-demo/student/demo?step=step-1',
         }],
+        mediaResources: [{
+          id: 'slides',
+          title: '课件',
+          kind: 'slides',
+          url: 'https://example.test/unit-demo-slides.pdf',
+        }],
       }],
       knowledgeCards: [{
         id: 'demo-card',
@@ -440,6 +452,7 @@ describe('resource node registry', () => {
     expect(GOVERNED_PATH_NODE_TYPES).toEqual([
       'interactive_lesson',
       'knowledge_card',
+      'slides',
       'adaptive_quiz',
       'control_workbench',
       'simulation',
@@ -469,6 +482,15 @@ describe('resource node registry', () => {
         requiredEvidenceRefs: ['learning_path.execution.completed'],
         remediationBehavior: 'retry-prerequisite-node',
         reviewState: 'pending',
+      },
+    });
+    expect(registry.nodes.find((node) => node.id === 'runtime-media:unit-demo:slides')).toMatchObject({
+      type: 'slides',
+      pathSemantics: {
+        type: 'slides',
+        iconKey: 'slides',
+        shapeHint: 'card',
+        evidenceBehavior: 'explicit_access',
       },
     });
   });

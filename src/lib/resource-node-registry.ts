@@ -4,6 +4,7 @@ export const RESOURCE_NODE_TYPES = [
   'knowledge_card',
   'video',
   'audio',
+  'slides',
   'handout',
   'quiz',
   'adaptive_quiz',
@@ -23,6 +24,7 @@ export type ResourceNodeType = typeof RESOURCE_NODE_TYPES[number];
 export const GOVERNED_PATH_NODE_TYPES = [
   'interactive_lesson',
   'knowledge_card',
+  'slides',
   'adaptive_quiz',
   'control_workbench',
   'simulation',
@@ -69,6 +71,13 @@ export const PATH_NODE_SEMANTICS: Record<GovernedPathNodeType, ResourceNodePathS
     iconKey: 'knowledge-card',
     shapeHint: 'card',
     evidenceBehavior: 'view',
+  },
+  slides: {
+    type: 'slides',
+    displayName: '课件',
+    iconKey: 'slides',
+    shapeHint: 'card',
+    evidenceBehavior: 'explicit_access',
   },
   adaptive_quiz: {
     type: 'adaptive_quiz',
@@ -564,6 +573,7 @@ export interface KnowledgeCardResourceNodeInput extends LightweightResourceNodeI
 export interface RuntimeLessonNodeInput {
   lessonId: string;
   title: string;
+  knowledgeNodeIds?: string[];
   steps?: Array<{
     id: string;
     title: string;
@@ -574,7 +584,7 @@ export interface RuntimeLessonNodeInput {
   mediaResources?: Array<{
     id: string;
     title: string;
-    kind: 'video' | 'audio' | 'pdf' | 'other' | string;
+    kind: 'video' | 'audio' | 'slides' | 'pdf' | 'other' | string;
     url?: string | null;
     filename?: string | null;
     teachingResourceId?: string | null;
@@ -1134,7 +1144,9 @@ function buildRuntimeLessonNodes(lessons: RuntimeLessonNodeInput[]): ResourceNod
         id: `runtime-media:${lesson.lessonId}:${media.id}`,
         title: media.title,
         courseModule: lesson.lessonId,
-        type: media.kind === 'video' || media.kind === 'audio' ? media.kind : 'handout',
+        type: media.kind === 'video' || media.kind === 'audio' || media.kind === 'slides'
+          ? media.kind
+          : 'handout',
         sourceKind: 'runtime_lesson_media',
         sourceRef: `${lesson.lessonId}:${media.id}`,
         sourceRefs,
@@ -1490,12 +1502,14 @@ function inferMediaNodeType(value: string): ResourceNodeType {
   const lower = value.toLowerCase();
   if (/\.(mp4|webm|mov)$/.test(lower)) return 'video';
   if (/\.(mp3|wav|m4a)$/.test(lower)) return 'audio';
+  if (/(^|[-_])slides(?:[-_.]|$)/.test(lower)) return 'slides';
   if (/\.(pdf|md|markdown)$/.test(lower)) return 'handout';
   return 'lesson_step';
 }
 
 function inferRegisteredNodeType(value: string): ResourceNodeType {
   const lower = value.toLowerCase();
+  if (lower.includes('slides') || lower.includes('slide-deck') || lower.includes('courseware')) return 'slides';
   if (lower.includes('quiz') || lower.includes('precheck') || lower.includes('posttest') || lower.includes('assessment')) {
     return 'quiz';
   }
@@ -1511,6 +1525,7 @@ function inferRegisteredNodeType(value: string): ResourceNodeType {
 
 function pathSemanticsForResourceType(type: ResourceNodeType): ResourceNodePathSemantics {
   if (type === 'knowledge_card' || type === 'knowledge_node') return PATH_NODE_SEMANTICS.knowledge_card;
+  if (type === 'slides') return PATH_NODE_SEMANTICS.slides;
   if (type === 'quiz' || type === 'adaptive_quiz') return PATH_NODE_SEMANTICS.adaptive_quiz;
   if (type === 'control_workbench') return PATH_NODE_SEMANTICS.control_workbench;
   if (type === 'simulation') return PATH_NODE_SEMANTICS.simulation;
@@ -1528,7 +1543,12 @@ export function getPathNodeSemanticsForResourceType(type: ResourceNodeType): Res
 
 function segmentKindForNode(node: ResourceNode): ResourceSegment['kind'] {
   if (node.sourceKind === 'runtime_lesson_step') return 'step';
-  if (node.sourceKind === 'runtime_lesson_media' || node.type === 'video' || node.type === 'audio') return 'media';
+  if (
+    node.sourceKind === 'runtime_lesson_media' ||
+    node.type === 'video' ||
+    node.type === 'audio' ||
+    node.type === 'slides'
+  ) return 'media';
   if (node.type === 'checkpoint') return 'checkpoint';
   return 'primary';
 }
@@ -1732,12 +1752,15 @@ function normalizeOptionalString(value: unknown): string | null {
 }
 
 function collectLessonKnowledgeCoverage(lesson: RuntimeLessonNodeInput): string[] {
-  return uniqueSorted((lesson.steps ?? []).flatMap((step) => step.knowledgeNodeIds ?? []));
+  return uniqueSorted([
+    ...(lesson.knowledgeNodeIds ?? []),
+    ...(lesson.steps ?? []).flatMap((step) => step.knowledgeNodeIds ?? []),
+  ]);
 }
 
 function defaultEstimatedTime(type: ResourceNodeType): number {
   if (type === 'video' || type === 'audio') return 8;
-  if (type === 'handout' || type === 'knowledge_card') return 10;
+  if (type === 'slides' || type === 'handout' || type === 'knowledge_card') return 10;
   if (type === 'quiz' || type === 'adaptive_quiz' || type === 'reflection' || type === 'checkpoint') return 12;
   if (type === 'simulation' || type === 'arena_task' || type === 'control_workbench') return 25;
   if (type === 'external_resource') return 15;
@@ -1748,7 +1771,14 @@ function defaultEstimatedTime(type: ResourceNodeType): number {
 
 function defaultCognitiveLoad(type: ResourceNodeType): ResourceNodeCognitiveLoad {
   if (type === 'project' || type === 'arena_task' || type === 'simulation' || type === 'control_workbench') return 'high';
-  if (type === 'video' || type === 'audio' || type === 'knowledge_card' || type === 'external_resource' || type === 'konling') return 'low';
+  if (
+    type === 'video' ||
+    type === 'audio' ||
+    type === 'slides' ||
+    type === 'knowledge_card' ||
+    type === 'external_resource' ||
+    type === 'konling'
+  ) return 'low';
   return 'medium';
 }
 

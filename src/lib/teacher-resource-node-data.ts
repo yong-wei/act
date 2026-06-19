@@ -3,8 +3,10 @@ import {
   type KnowledgeNodeResourceInput,
   type RegisteredResourceNodeInput,
   type ResourceNodeRegistry,
+  type RuntimeLessonNodeInput,
   type TeachingResourceNodeInput,
 } from './resource-node-registry';
+import type { RuntimeLessonResourceCatalogEntry } from './course-runtime';
 
 interface ResourceWithKnowledgeNodes {
   id: string;
@@ -28,6 +30,7 @@ interface ResourceWithKnowledgeNodes {
 export function buildResourceNodeRegistryFromTeachingResources(
   resources: readonly ResourceWithKnowledgeNodes[],
   registeredResources: readonly RegisteredResourceNodeInput[] = [],
+  runtimeLessons: readonly RuntimeLessonResourceCatalogEntry[] = [],
 ): ResourceNodeRegistry {
   const knowledgeNodesById = new Map<string, KnowledgeNodeResourceInput>();
 
@@ -60,6 +63,7 @@ export function buildResourceNodeRegistryFromTeachingResources(
     teachingResources,
     registeredResources: [...registeredResources],
     knowledgeNodes: Array.from(knowledgeNodesById.values()),
+    runtimeLessons: runtimeLessons.map(toRuntimeLessonNodeInput),
   });
 }
 
@@ -68,4 +72,30 @@ export function asRecord(value: unknown): Record<string, unknown> {
     return {};
   }
   return { ...(value as Record<string, unknown>) };
+}
+
+function toRuntimeLessonNodeInput(entry: RuntimeLessonResourceCatalogEntry): RuntimeLessonNodeInput {
+  const lessonId = entry.lesson.lesson_id || entry.graphOverlay.lesson_id;
+  return {
+    lessonId,
+    title: entry.lesson.title,
+    knowledgeNodeIds: uniqueSorted([
+      ...entry.graphOverlay.focus_node_ids,
+      ...entry.graphOverlay.card_order,
+      ...entry.graphOverlay.nodes.map((node) => node.id),
+    ]),
+    handoutPath: entry.handoutPath,
+    handoutPdfPath: entry.handoutPdfPath,
+    mediaResources: entry.mediaResources.map((resource) => ({
+      id: resource.id,
+      title: resource.title,
+      kind: resource.kind,
+      url: resource.url,
+      filename: resource.filename,
+    })),
+  };
+}
+
+function uniqueSorted(values: string[]): string[] {
+  return Array.from(new Set(values.filter(Boolean))).sort((left, right) => left.localeCompare(right));
 }

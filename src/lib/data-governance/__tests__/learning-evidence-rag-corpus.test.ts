@@ -1406,6 +1406,15 @@ describe('learning evidence RAG corpus contract', () => {
         mediaEndSeconds: 24,
       },
     });
+    const slidesChunk = chunk({
+      id: 'slides-address',
+      citationAddress: {
+        kind: 'slides',
+        sourceRefId: 'slides-1',
+        href: '/course-runtime/lessons/4-1/media/4-1-slides.pdf#page=8',
+        locator: 'slides#page-8',
+      },
+    });
     const interactiveChunk = chunk({
       id: 'interactive-address',
       family: 'path-evidence',
@@ -1439,6 +1448,7 @@ describe('learning evidence RAG corpus contract', () => {
       imageChunk,
       videoChunk,
       audioChunk,
+      slidesChunk,
       interactiveChunk,
     ], {
       role: 'student',
@@ -1451,15 +1461,22 @@ describe('learning evidence RAG corpus contract', () => {
       { chunkId: 'image-address', useCase: 'diagnosis', addressKind: 'image' },
       { chunkId: 'video-address', useCase: 'diagnosis', addressKind: 'video' },
       { chunkId: 'audio-address', useCase: 'diagnosis', addressKind: 'audio' },
+      { chunkId: 'slides-address', useCase: 'diagnosis', addressKind: 'slides' },
       { chunkId: 'interactive-address', useCase: 'diagnosis', addressKind: 'interactive' },
     ]);
 
     expect(result.status).toBe('verified');
-    expect(result.verifiedRefs.map((ref) => ref.addressKind)).toEqual(['image', 'video', 'audio', 'interactive']);
+    expect(result.verifiedRefs.map((ref) => ref.addressKind)).toEqual(['image', 'video', 'audio', 'slides', 'interactive']);
     expect(resolveLearningEvidenceCitationAddress(videoChunk).address).toEqual(expect.objectContaining({
       kind: 'video',
       mediaStartSeconds: 42,
       mediaEndSeconds: 58,
+      contentHash: 'hash-course-1',
+    }));
+    expect(resolveLearningEvidenceCitationAddress(slidesChunk).address).toEqual(expect.objectContaining({
+      kind: 'slides',
+      href: '/course-runtime/lessons/4-1/media/4-1-slides.pdf#page=8',
+      locator: 'slides#page-8',
       contentHash: 'hash-course-1',
     }));
     expect(buildLearningEvidenceCitationChips(result, {
@@ -1475,6 +1492,13 @@ describe('learning evidence RAG corpus contract', () => {
         addressKind: 'image',
         citationAddress: expect.objectContaining({
           imageRegion: { x: 12, y: 20, width: 180, height: 96 },
+        }),
+      }),
+      expect.objectContaining({
+        chunkId: 'slides-address',
+        addressKind: 'slides',
+        citationAddress: expect.objectContaining({
+          href: '/course-runtime/lessons/4-1/media/4-1-slides.pdf#page=8',
         }),
       }),
       expect.objectContaining({

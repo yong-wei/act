@@ -367,7 +367,7 @@ describe('unit 4-1 interactive course', () => {
       title: '别再盲目修改K值了',
     });
     expect(resources[2]).toMatchObject({
-      kind: 'pdf',
+      kind: 'slides',
       accessMode: 'new_tab',
       embedMode: 'none',
       status: 'ready',

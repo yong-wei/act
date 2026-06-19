@@ -39,6 +39,7 @@ export type LearningEvidenceCitationAddressKind =
   | 'image'
   | 'audio'
   | 'video'
+  | 'slides'
   | 'interactive'
   | 'simulation'
   | 'arena'
@@ -1020,6 +1021,7 @@ function isCitationAddressKind(value: unknown): value is LearningEvidenceCitatio
     value === 'image' ||
     value === 'audio' ||
     value === 'video' ||
+    value === 'slides' ||
     value === 'interactive' ||
     value === 'simulation' ||
     value === 'arena' ||

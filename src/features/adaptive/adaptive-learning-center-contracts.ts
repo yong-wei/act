@@ -620,6 +620,7 @@ export function isSimpleAdaptivePathCompletionResource(resourceType: string): bo
     'knowledge_card',
     'video',
     'audio',
+    'slides',
     'handout',
     'quiz',
     'reflection',

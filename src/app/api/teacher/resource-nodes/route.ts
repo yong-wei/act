@@ -4,6 +4,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import {
+  loadAllLessonRuntimeResourceCatalogEntries,
+  type RuntimeLessonResourceCatalogEntry,
+} from '@/lib/course-runtime';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { RESOURCE_NODE_TYPES, type ResourceNodeType } from '@/lib/resource-node-registry';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
@@ -46,8 +50,9 @@ export async function GET(request: Request) {
     });
 
     const registeredResources = getAllRegisteredResourceMetadata();
-    const registry = buildResourceNodeRegistryFromTeachingResources(resources, registeredResources);
-    const scope = createScope(session.user.role, session.user.id, resources, registeredResources);
+    const runtimeLessons = await loadAllLessonRuntimeResourceCatalogEntries();
+    const registry = buildResourceNodeRegistryFromTeachingResources(resources, registeredResources, runtimeLessons);
+    const scope = createScope(session.user.role, session.user.id, resources, registeredResources, runtimeLessons);
     const { searchParams } = new URL(request.url);
     const scopedNodes = registry.nodes.filter((node) => canReadNode(node, scope));
     const filteredNodes = filterTeacherResourceNodes(scopedNodes, {
@@ -79,15 +84,37 @@ function createScope(
   teacherId: string,
   resources: ReadonlyArray<{ id: string; knowledgeNodes?: Array<{ id: string }> }>,
   registeredResources: ReadonlyArray<{ id: string }>,
+  runtimeLessons: ReadonlyArray<RuntimeLessonResourceCatalogEntry>,
 ): TeacherResourceNodeScope {
   const resourceIds = resources.map((resource) => resource.id);
   const registeredResourceIds = registeredResources.map((resource) => resource.id);
   const knowledgeNodeIds = resources.flatMap((resource) => resource.knowledgeNodes?.map((node) => node.id) ?? []);
   const knowledgeCardIds = knowledgeNodeIds.map((id) => `${id}:card`);
+  const runtimeSourceRefs = runtimeLessons.flatMap((lesson) => {
+    const lessonId = lesson.lesson.lesson_id || lesson.graphOverlay.lesson_id;
+    return [
+      lessonId,
+      ...lesson.mediaResources.map((resource) => `${lessonId}:${resource.id}`),
+    ];
+  });
+  const runtimeKnowledgeNodeIds = runtimeLessons.flatMap((lesson) => [
+    ...lesson.graphOverlay.focus_node_ids,
+    ...lesson.graphOverlay.card_order,
+    ...lesson.graphOverlay.nodes.map((node) => node.id),
+  ]);
+  const runtimeKnowledgeCardIds = runtimeKnowledgeNodeIds.map((id) => `${id}:card`);
   return {
     role: role === 'ADMIN' ? 'ADMIN' : 'TEACHER',
     teacherId,
-    readableSourceRefs: new Set([...resourceIds, ...registeredResourceIds, ...knowledgeNodeIds, ...knowledgeCardIds]),
+    readableSourceRefs: new Set([
+      ...resourceIds,
+      ...registeredResourceIds,
+      ...knowledgeNodeIds,
+      ...knowledgeCardIds,
+      ...runtimeSourceRefs,
+      ...runtimeKnowledgeNodeIds,
+      ...runtimeKnowledgeCardIds,
+    ]),
     editableSourceRefs: new Set(resourceIds),
   };
 }

@@ -699,6 +699,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       'reflection',
       'checkpoint',
       'handout',
+      'slides',
       'lesson_step',
       'konling',
     ],
@@ -2389,8 +2390,9 @@ function selectPolicySupportNodes(
     const typeRank = new Map<ResourceNode['type'], number>([
       ['knowledge_card', 0],
       ['handout', 1],
-      ['lesson_step', 2],
-      ['quiz', 3],
+      ['slides', 2],
+      ['lesson_step', 3],
+      ['quiz', 4],
     ]);
     addCandidates(input.registry.nodes
       .filter((node) => typeRank.has(node.type))

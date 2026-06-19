@@ -1,5 +1,6 @@
 import 'server-only';
 
+import type { Dirent } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -89,7 +90,7 @@ export interface RuntimeLessonEntryNode extends RuntimeNode {
   frontContent: string;
 }
 
-export type RuntimeLessonMediaKind = 'video' | 'audio' | 'pdf' | 'other';
+export type RuntimeLessonMediaKind = 'video' | 'audio' | 'slides' | 'pdf' | 'other';
 export type RuntimeLessonMediaAccessMode = 'dialog' | 'new_tab';
 export type RuntimeLessonMediaEmbedMode = 'iframe' | 'none';
 export type RuntimeLessonMediaStatus = 'ready' | 'pending';
@@ -132,6 +133,26 @@ export interface RuntimeLessonEntryBundle {
   interactiveManifest: InteractiveRuntimeManifest | null;
 }
 
+export interface RuntimeLessonResourceCatalogEntry {
+  lesson: {
+    lesson_id: string;
+    title: string;
+  };
+  graphOverlay: {
+    lesson_id: string;
+    focus_node_ids: string[];
+    entry_nodes?: string[];
+    summary_nodes?: string[];
+    card_order: string[];
+    groups: RuntimeKnowledgeGroup[];
+    nodes: Array<Pick<RuntimeNode, 'id' | 'name'>>;
+  };
+  handoutPath: string;
+  handoutSourcePath: string;
+  handoutPdfPath: string | null;
+  mediaResources: RuntimeLessonMediaResource[];
+}
+
 const LESSON_ID_MAP_PATH = path.join(
   process.cwd(),
   'course-content',
@@ -139,6 +160,7 @@ const LESSON_ID_MAP_PATH = path.join(
   'shared',
   'lesson-id-map.json',
 );
+const RUNTIME_LESSONS_DIR = path.join(process.cwd(), 'course-content', 'runtime', 'lessons');
 
 let runtimeLessonDirIndexPromise: Promise<Record<string, string>> | null = null;
 
@@ -195,6 +217,44 @@ async function loadRuntimeLessonDirIndex() {
   return runtimeLessonDirIndexPromise;
 }
 
+async function loadRuntimeLessonFragmentsFromContent(): Promise<string[]> {
+  let entries: Dirent[];
+  try {
+    entries = await fs.readdir(RUNTIME_LESSONS_DIR, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+
+  const candidates = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+  const lessonJsonChecks = await Promise.all(
+    candidates.map(async (candidate) => {
+      const lessonJsonPath = path.join(RUNTIME_LESSONS_DIR, candidate, 'lesson.json');
+      return await fileExists(lessonJsonPath) ? candidate : null;
+    }),
+  );
+  return lessonJsonChecks.filter((candidate): candidate is string => Boolean(candidate));
+}
+
+async function loadRuntimeLessonFragments(): Promise<string[]> {
+  const [index, filesystemFragments] = await Promise.all([
+    loadRuntimeLessonDirIndex(),
+    loadRuntimeLessonFragmentsFromContent(),
+  ]);
+  const fragments = Array.from(new Set([
+    ...Object.values(index),
+    ...filesystemFragments,
+  ]));
+  const existingFragments = await Promise.all(
+    fragments.map(async (fragment) => {
+      const lessonJsonPath = path.join(RUNTIME_LESSONS_DIR, fragment, 'lesson.json');
+      return await fileExists(lessonJsonPath) ? fragment : null;
+    }),
+  );
+  return existingFragments
+    .filter((fragment): fragment is string => Boolean(fragment))
+    .sort((left, right) => left.localeCompare(right));
+}
+
 async function resolveLessonRuntimeFragment(lessonId: string) {
   const resolved = resolveInteractiveLessonIdentity(lessonId);
   if (resolved.status === 'resolved') {
@@ -249,6 +309,7 @@ function inferRuntimeMediaKind(filename: string): RuntimeLessonMediaKind {
   const ext = path.extname(filename).toLowerCase();
   if (ext === '.mp4' || ext === '.webm') return 'video';
   if (ext === '.m4a' || ext === '.mp3' || ext === '.wav') return 'audio';
+  if (ext === '.pdf' && /(^|[-_])slides(?:[-_.]|$)/i.test(path.basename(filename))) return 'slides';
   if (ext === '.pdf') return 'pdf';
   return 'other';
 }
@@ -285,8 +346,8 @@ export function parseRuntimeLessonMediaDocument(markdown: string): RuntimeLesson
       filename: currentFilename,
       kind,
       url: currentUrl,
-      accessMode: kind === 'pdf' ? 'new_tab' : 'dialog',
-      embedMode: kind === 'pdf' ? 'none' : 'iframe',
+      accessMode: kind === 'pdf' || kind === 'slides' ? 'new_tab' : 'dialog',
+      embedMode: kind === 'pdf' || kind === 'slides' ? 'none' : 'iframe',
       status: currentUrl ? 'ready' : 'pending',
       featured: currentFilename.includes('-course.'),
     });
@@ -433,4 +494,83 @@ export async function loadLessonRuntimeEntry(lessonId: string): Promise<RuntimeL
     mediaResources,
     interactiveManifest,
   };
+}
+
+export async function loadLessonRuntimeResourceCatalogEntry(
+  lessonId: string,
+): Promise<RuntimeLessonResourceCatalogEntry> {
+  const runtimeLessonFragment = await resolveLessonRuntimeFragment(lessonId);
+  const lessonDir = resolveRuntimeContentPath(`lessons/${runtimeLessonFragment}`);
+  const [lesson, graphOverlay] = await Promise.all([
+    readJson<RuntimeLessonJson>(resolveRuntimeContentPath(`${lessonDir.runtimePath}/lesson.json`).absolutePath),
+    readJson<RuntimeGraphOverlay>(resolveRuntimeContentPath(`${lessonDir.runtimePath}/graph-overlay.json`).absolutePath),
+  ]);
+  const canonicalLessonId = lesson.lesson_id || graphOverlay.lesson_id || lessonId;
+  const handoutFilename = buildLessonHandoutMarkdownFilename(canonicalLessonId);
+  const handoutPdfFilename = buildLessonHandoutPdfFilename(canonicalLessonId);
+  const preferredHandoutSourcePath =
+    lesson.handout_source_path ?? `course-content/runtime/lessons/${runtimeLessonFragment}/${handoutFilename}`;
+  const fallbackHandoutSourcePath = `course-content/runtime/lessons/${runtimeLessonFragment}/handout.md`;
+  const handoutSourcePath = await resolveExistingSourcePath([
+    preferredHandoutSourcePath,
+    `course-content/runtime/lessons/${runtimeLessonFragment}/${handoutFilename}`,
+    fallbackHandoutSourcePath,
+  ]);
+  const handoutPath = lesson.handout_path && handoutSourcePath === preferredHandoutSourcePath
+    ? lesson.handout_path
+    : `/course-runtime/lessons/${runtimeLessonFragment}/${path.basename(handoutSourcePath)}`;
+  const preferredHandoutPdfSourcePath =
+    lesson.handout_pdf_source_path ?? `course-content/runtime/lessons/${runtimeLessonFragment}/${handoutPdfFilename}`;
+  const handoutPdfSourcePath = await resolveExistingSourcePath([
+    preferredHandoutPdfSourcePath,
+    `course-content/runtime/lessons/${runtimeLessonFragment}/${handoutPdfFilename}`,
+    `course-content/runtime/lessons/${runtimeLessonFragment}/handout.pdf`,
+  ]);
+  const handoutPdfPathCandidate =
+    lesson.handout_pdf_path && handoutPdfSourcePath === preferredHandoutPdfSourcePath
+      ? lesson.handout_pdf_path
+      : `/course-runtime/lessons/${runtimeLessonFragment}/${path.basename(handoutPdfSourcePath)}`;
+  const mediaIndexSourcePath =
+    lesson.media_index_source_path
+    ?? `course-content/runtime/lessons/${runtimeLessonFragment}/media/${canonicalLessonId}-media.md`;
+  const [handoutPdfExists, mediaIndexExists] = await Promise.all([
+    fileExists(resolveRuntimeContentPath(handoutPdfSourcePath).absolutePath),
+    fileExists(resolveRuntimeContentPath(mediaIndexSourcePath).absolutePath),
+  ]);
+  const mediaDocument = mediaIndexExists
+    ? parseRuntimeLessonMediaDocument(await readReadableContentText(mediaIndexSourcePath))
+    : { handoutSummary: null, mediaResources: [] };
+
+  return {
+    lesson: {
+      lesson_id: canonicalLessonId,
+      title: lesson.title,
+    },
+    graphOverlay: {
+      lesson_id: graphOverlay.lesson_id,
+      focus_node_ids: graphOverlay.focus_node_ids,
+      entry_nodes: graphOverlay.entry_nodes ?? [],
+      summary_nodes: graphOverlay.summary_nodes ?? [],
+      card_order: graphOverlay.card_order ?? lesson.card_order ?? [],
+      groups: graphOverlay.groups ?? lesson.sequence?.groups ?? [],
+      nodes: graphOverlay.nodes.map((node) => ({
+        id: node.id,
+        name: node.name,
+      })),
+    },
+    handoutPath,
+    handoutSourcePath,
+    handoutPdfPath: handoutPdfExists ? handoutPdfPathCandidate : null,
+    mediaResources: mediaDocument.mediaResources,
+  };
+}
+
+export async function loadAllLessonRuntimeEntries(): Promise<RuntimeLessonEntryBundle[]> {
+  const lessonIds = await loadRuntimeLessonFragments();
+  return Promise.all(lessonIds.map((lessonId) => loadLessonRuntimeEntry(lessonId)));
+}
+
+export async function loadAllLessonRuntimeResourceCatalogEntries(): Promise<RuntimeLessonResourceCatalogEntry[]> {
+  const lessonIds = await loadRuntimeLessonFragments();
+  return Promise.all(lessonIds.map((lessonId) => loadLessonRuntimeResourceCatalogEntry(lessonId)));
 }

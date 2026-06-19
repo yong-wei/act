@@ -82,7 +82,7 @@ function buildLessonEntryResourceKey(lessonId: string, targetId: string) {
 function getResourceIcon(resource: RuntimeLessonMediaResource) {
   if (resource.kind === 'video') return Video;
   if (resource.kind === 'audio') return FileAudio2;
-  if (resource.kind === 'pdf') return FileText;
+  if (resource.kind === 'pdf' || resource.kind === 'slides') return FileText;
   return Video;
 }
 

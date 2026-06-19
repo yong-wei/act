@@ -5,9 +5,11 @@ const mocks = vi.hoisted(() => {
   const teachingResourceFindFirst = vi.fn();
   const teachingResourceFindMany = vi.fn();
   const teachingResourceUpdate = vi.fn();
+  const loadAllLessonRuntimeResourceCatalogEntries = vi.fn();
 
   return {
     getServerSession,
+    loadAllLessonRuntimeResourceCatalogEntries,
     prisma: {
       teachingResource: {
         findFirst: teachingResourceFindFirst,
@@ -28,6 +30,10 @@ vi.mock('@/lib/auth', () => ({
 
 vi.mock('@/lib/prisma', () => ({
   prisma: mocks.prisma,
+}));
+
+vi.mock('@/lib/course-runtime', () => ({
+  loadAllLessonRuntimeResourceCatalogEntries: mocks.loadAllLessonRuntimeResourceCatalogEntries,
 }));
 
 vi.mock('@/lib/resource-registry-metadata', () => ({
@@ -99,6 +105,7 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
     });
     mocks.prisma.teachingResource.findFirst.mockResolvedValue(ownedResource);
     mocks.prisma.teachingResource.findMany.mockResolvedValue([ownedResource, prerequisiteResource]);
+    mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([]);
     mocks.prisma.teachingResource.update.mockResolvedValue({
       ...ownedResource,
       displayName: '课堂使用的 Bode 后测',
@@ -231,6 +238,64 @@ describe('PATCH /api/teacher/resource-nodes/[nodeId]', () => {
     expect(response.status).toBe(200);
     expect(payload.node).toEqual(expect.objectContaining({
       prerequisites: ['registry:registered-quiz'],
+      pathExclusionReasons: [],
+    }));
+  });
+
+  it('audits patched prerequisites against runtime resource nodes', async () => {
+    mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([
+      {
+        lesson: { lesson_id: '2-4', title: '频域课' },
+        graphOverlay: {
+          lesson_id: '2-4',
+          focus_node_ids: ['kn-bode'],
+          card_order: ['kn-bode'],
+          nodes: [{ id: 'kn-bode', name: '伯德图' }],
+          groups: [],
+        },
+        handoutPath: '/course-runtime/lessons/2-4/2-4-handout.md',
+        handoutSourcePath: 'course-content/runtime/lessons/2-4/2-4-handout.md',
+        handoutPdfPath: '/course-runtime/lessons/2-4/2-4-handout.pdf',
+        mediaResources: [
+          {
+            id: 'slides',
+            title: '频域课件',
+            filename: '2-4-slides.pdf',
+            kind: 'slides',
+            url: 'https://example.test/2-4-slides.pdf',
+            accessMode: 'new_tab',
+            embedMode: 'none',
+            status: 'ready',
+            featured: false,
+          },
+        ],
+      },
+    ]);
+    mocks.prisma.teachingResource.update.mockResolvedValue({
+      ...ownedResource,
+      config: {
+        resourceNodePlanning: {
+          prerequisites: ['runtime-media:2-4:slides'],
+        },
+      },
+    });
+
+    const response = await PATCH(
+      new Request('http://localhost/api/teacher/resource-nodes/teaching-resource%3Aowned-quiz', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          planningMetadata: {
+            prerequisites: ['runtime-media:2-4:slides'],
+          },
+        }),
+      }),
+      { params: Promise.resolve({ nodeId: 'teaching-resource:owned-quiz' }) }
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.node).toEqual(expect.objectContaining({
+      prerequisites: ['runtime-media:2-4:slides'],
       pathExclusionReasons: [],
     }));
   });

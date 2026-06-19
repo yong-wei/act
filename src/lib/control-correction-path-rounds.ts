@@ -344,6 +344,7 @@ export function validateLearningPathPlanForPersistence(plan: AdaptiveLearningPat
         'knowledge_card',
         'video',
         'audio',
+        'slides',
         'handout',
         'quiz',
         'adaptive_quiz',

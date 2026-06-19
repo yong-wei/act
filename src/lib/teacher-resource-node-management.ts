@@ -420,7 +420,6 @@ export function canReadNode(node: ResourceNode, scope: TeacherResourceNodeScope)
 }
 
 export function canEditNode(node: ResourceNode, scope: TeacherResourceNodeScope): boolean {
-  if (scope.role === 'ADMIN') return true;
   return node.sourceKind === 'teaching_resource' && scope.editableSourceRefs.has(node.sourceRef);
 }
 
