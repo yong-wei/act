@@ -459,6 +459,8 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-structure-diagram-terminal-sign="-"');
     expect(html).toContain('data-structure-diagram-edge-main-line="true"');
     expect(html).toContain('data-structure-diagram-edge-hit-target="feedback-return"');
+    expect(html).toContain('data-structure-diagram-edge-keyboard-selectable="true"');
+    expect(html).toContain('aria-label="选择信号线 H(s)y"');
     expect(html).toContain('data-structure-diagram-edge-halo="highlighted"');
     expect(html).toContain('data-structure-diagram-edge-highlighted="true"');
     expect(html).toContain('data-structure-diagram-edge-selected="false"');
@@ -466,9 +468,13 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-structure-diagram-reveal-plan="metadata"');
     expect(html).not.toContain('data-structure-diagram-reveal-plan="visible"');
     expect(html).not.toContain('高亮项');
-    expect(html).toContain('data-structure-diagram-mode-label="visual"');
+    expect(html).not.toContain('data-structure-diagram-mode-label="visual"');
+    expect(html).not.toContain('data-structure-diagram-submit="closed-loop-block-diagram"');
+    expect(html).not.toContain('data-structure-diagram-edge-select-id=');
     expect(html).not.toContain('<span class="premium-lesson-badge">highlight</span>');
     expect(html).not.toContain('space-y-4');
+    expect(html).toContain('x1="5" y1="5" x2="35" y2="35"');
+    expect(html).toContain('x1="35" y1="5" x2="5" y2="35"');
   });
 
   it('renders block diagram default anchors and summing junction connectors as standard geometry', () => {
@@ -516,7 +522,8 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-structure-diagram-edge-to-port="bottom-left"');
     expect(html).toContain('data-structure-diagram-edge-hit-target="sum-diagonal"');
     expect(html).toContain('data-structure-diagram-edge-main-line="true"');
-    expect(html).toContain('d="M 60 50 L 35 55"');
+    expect(html).toContain('vector-effect="non-scaling-stroke"');
+    expect(html).toContain('d="M 62.828 47.172 L 35 55"');
   });
 
   it('renders visual.signalFlowGraph with branch labels, path sets, and Mason formula traceability', () => {
@@ -564,7 +571,7 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-structure-diagram-loop-id="feedback-loop-1"');
     expect(html).toContain('data-structure-diagram-mason-term-id="delta-term"');
     expect(html).toContain('data-structure-diagram-related-ids="forward-path-1 feedback-loop-1"');
-    expect(html).toContain('data-structure-diagram-submit="closed-loop-signal-flow"');
+    expect(html).not.toContain('data-structure-diagram-submit="closed-loop-signal-flow"');
     expect(html).toContain('data-structure-diagram-mode-label="visual"');
     expect(html).not.toContain('<span class="premium-lesson-badge">diagnose</span>');
   });

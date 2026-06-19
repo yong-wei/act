@@ -1,7 +1,7 @@
 {
   "status": "pass",
   "baseUrl": "http://localhost:3001",
-  "checkedAt": "2026-06-18T09:53:53.868Z",
+  "checkedAt": "2026-06-19T10:43:59.421Z",
   "student": {
     "steps": [
       "step-04",
@@ -16,8 +16,107 @@
     ],
     "screenshots": {
       "step04": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/student-step-04-visual-stage.png",
+      "step07": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/student-step-07-block-diagram.png",
+      "step08": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/student-step-08-signal-flow.png",
       "step09": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/student-step-09-static-surface-3d.png",
       "step11": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/student-step-11-control-and-hotspots.png"
+    },
+    "blockDiagram": {
+      "geometry": {
+        "pass": true,
+        "checks": {
+          "noModeLabel": true,
+          "noSubmit": true,
+          "noOutputEdgeLabel": true,
+          "chromeTransparent": true,
+          "rToSumLeftRim": true,
+          "sumToControllerRightRim": true,
+          "feedbackToSumBottomRim": true,
+          "allEdgesNonScaling": true,
+          "allEdgesDefaultUnselected": true,
+          "allEdgesDefaultPrimary": true,
+          "keyboardTargets": true
+        },
+        "endpoints": {
+          "rEndPx": {
+            "x": 348.746,
+            "y": 748.5125
+          },
+          "eStartPx": {
+            "x": 382.754,
+            "y": 748.5125
+          },
+          "feedbackEndPx": {
+            "x": 365.75,
+            "y": 765.51445625
+          },
+          "sumRect": {
+            "left": 348.75,
+            "right": 382.75,
+            "top": 731.5,
+            "bottom": 765.5,
+            "width": 34,
+            "height": 34
+          }
+        },
+        "defaultEdges": [
+          {
+            "id": "r-to-sum",
+            "selected": "false",
+            "highlighted": "false",
+            "stroke": "hsl(var(--platform-action-primary))",
+            "vectorEffect": "non-scaling-stroke"
+          },
+          {
+            "id": "sum-to-controller",
+            "selected": "false",
+            "highlighted": "false",
+            "stroke": "hsl(var(--platform-action-primary))",
+            "vectorEffect": "non-scaling-stroke"
+          },
+          {
+            "id": "controller-to-actuator",
+            "selected": "false",
+            "highlighted": "false",
+            "stroke": "hsl(var(--platform-action-primary))",
+            "vectorEffect": "non-scaling-stroke"
+          },
+          {
+            "id": "actuator-to-plant",
+            "selected": "false",
+            "highlighted": "false",
+            "stroke": "hsl(var(--platform-action-primary))",
+            "vectorEffect": "non-scaling-stroke"
+          },
+          {
+            "id": "plant-to-output",
+            "selected": "false",
+            "highlighted": "false",
+            "stroke": "hsl(var(--platform-action-primary))",
+            "vectorEffect": "non-scaling-stroke"
+          },
+          {
+            "id": "output-to-sensor",
+            "selected": "false",
+            "highlighted": "false",
+            "stroke": "hsl(var(--platform-action-primary))",
+            "vectorEffect": "non-scaling-stroke"
+          },
+          {
+            "id": "sensor-to-sum",
+            "selected": "false",
+            "highlighted": "false",
+            "stroke": "hsl(var(--platform-action-primary))",
+            "vectorEffect": "non-scaling-stroke"
+          }
+        ]
+      },
+      "keyboardSelection": {
+        "selected": "true",
+        "highlighted": "true",
+        "stroke": "hsl(var(--platform-brand-evidence))",
+        "haloStroke": "hsl(var(--platform-brand-evidence))"
+      }
     }
   },
   "teacher": {
@@ -30,8 +129,107 @@
       "step-12"
     ],
     "screenshots": {
+      "step07": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/teacher-step-07-block-diagram.png",
+      "step08": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/teacher-step-08-signal-flow.png",
       "step09": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/teacher-step-09-static-surface-3d.png",
       "step10": "/Users/YW/.codex/worktrees/39ff/act.just.edu.cn/artifacts/interactive-learning/unit-1-2-visual-contract-2026-06-18/screenshots/teacher-step-10-control-workbench.png"
+    },
+    "blockDiagram": {
+      "geometry": {
+        "pass": true,
+        "checks": {
+          "noModeLabel": true,
+          "noSubmit": true,
+          "noOutputEdgeLabel": true,
+          "chromeTransparent": true,
+          "rToSumLeftRim": true,
+          "sumToControllerRightRim": true,
+          "feedbackToSumBottomRim": true,
+          "allEdgesNonScaling": true,
+          "allEdgesDefaultUnselected": true,
+          "allEdgesDefaultPrimary": true,
+          "keyboardTargets": true
+        },
+        "endpoints": {
+          "rEndPx": {
+            "x": 348.746,
+            "y": 748.5125
+          },
+          "eStartPx": {
+            "x": 382.754,
+            "y": 748.5125
+          },
+          "feedbackEndPx": {
+            "x": 365.75,
+            "y": 765.51445625
+          },
+          "sumRect": {
+            "left": 348.75,
+            "right": 382.75,
+            "top": 731.5,
+            "bottom": 765.5,
+            "width": 34,
+            "height": 34
+          }
+        },
+        "defaultEdges": [
+          {
+            "id": "r-to-sum",
+            "selected": "false",
+            "highlighted": "false",
+            "stroke": "hsl(var(--platform-action-primary))",
+            "vectorEffect": "non-scaling-stroke"
+          },
+          {
+            "id": "sum-to-controller",
+            "selected": "false",
+            "highlighted": "false",
+            "stroke": "hsl(var(--platform-action-primary))",
+            "vectorEffect": "non-scaling-stroke"
+          },
+          {
+            "id": "controller-to-actuator",
+            "selected": "false",
+            "highlighted": "false",
+            "stroke": "hsl(var(--platform-action-primary))",
+            "vectorEffect": "non-scaling-stroke"
+          },
+          {
+            "id": "actuator-to-plant",
+            "selected": "false",
+            "highlighted": "false",
+            "stroke": "hsl(var(--platform-action-primary))",
+            "vectorEffect": "non-scaling-stroke"
+          },
+          {
+            "id": "plant-to-output",
+            "selected": "false",
+            "highlighted": "false",
+            "stroke": "hsl(var(--platform-action-primary))",
+            "vectorEffect": "non-scaling-stroke"
+          },
+          {
+            "id": "output-to-sensor",
+            "selected": "false",
+            "highlighted": "false",
+            "stroke": "hsl(var(--platform-action-primary))",
+            "vectorEffect": "non-scaling-stroke"
+          },
+          {
+            "id": "sensor-to-sum",
+            "selected": "false",
+            "highlighted": "false",
+            "stroke": "hsl(var(--platform-action-primary))",
+            "vectorEffect": "non-scaling-stroke"
+          }
+        ]
+      },
+      "keyboardSelection": {
+        "selected": "true",
+        "highlighted": "true",
+        "stroke": "hsl(var(--platform-brand-evidence))",
+        "haloStroke": "hsl(var(--platform-brand-evidence))"
+      }
     }
   },
   "logs": [

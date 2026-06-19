@@ -79,6 +79,109 @@ async function screenshot(page, name) {
   return path;
 }
 
+async function assertStep07BlockDiagram(page, report, scope) {
+  const result = await page.evaluate(() => {
+    const q = (selector) => document.querySelector(selector);
+    const edgeGroup = (id) => q(`[data-structure-diagram-edge-id="${id}"]`);
+    const edgePath = (id) => edgeGroup(id)?.querySelector('[data-structure-diagram-edge-main-line="true"]');
+    const parseLastPoint = (d) => {
+      const matches = [...d.matchAll(/(?:M|L)\s+([0-9.]+)\s+([0-9.]+)/g)];
+      const last = matches.at(-1);
+      if (!last) return null;
+      return { x: Number(last[1]), y: Number(last[2]) };
+    };
+    const parseFirstPoint = (d) => {
+      const match = d.match(/(?:M|L)\s+([0-9.]+)\s+([0-9.]+)/);
+      if (!match) return null;
+      return { x: Number(match[1]), y: Number(match[2]) };
+    };
+    const toPx = (point, svgRect) => ({
+      x: svgRect.left + (point.x / 100) * svgRect.width,
+      y: svgRect.top + (point.y / 100) * svgRect.height,
+    });
+    const close = (actual, expected, tolerance = 2.5) => Math.abs(actual - expected) <= tolerance;
+
+    const diagram = q('[data-structure-diagram-id="closed-loop-block-diagram"]');
+    const svg = q('[data-structure-diagram-svg="block"]');
+    const sum = q('[data-structure-diagram-node-id="sum"]');
+    const chrome = diagram?.closest('[data-commercial-module-chrome]');
+    if (!diagram || !svg || !sum || !chrome) return { pass: false, reason: 'missing diagram, svg, sum, or chrome' };
+
+    const svgRect = svg.getBoundingClientRect();
+    const sumRect = sum.getBoundingClientRect();
+    const sumCenter = { x: sumRect.left + sumRect.width / 2, y: sumRect.top + sumRect.height / 2 };
+    const rEnd = parseLastPoint(edgePath('r-to-sum')?.getAttribute('d') ?? '');
+    const eStart = parseFirstPoint(edgePath('sum-to-controller')?.getAttribute('d') ?? '');
+    const feedbackEnd = parseLastPoint(edgePath('sensor-to-sum')?.getAttribute('d') ?? '');
+    if (!rEnd || !eStart || !feedbackEnd) return { pass: false, reason: 'missing parsed endpoints' };
+
+    const rEndPx = toPx(rEnd, svgRect);
+    const eStartPx = toPx(eStart, svgRect);
+    const feedbackEndPx = toPx(feedbackEnd, svgRect);
+    const chromeStyle = getComputedStyle(chrome);
+    const outputEdgeLabel = q('[data-structure-diagram-edge-label-id="output-to-sensor"]');
+    const plantOutputLabel = q('[data-structure-diagram-edge-label-id="plant-to-output"]');
+    const defaultEdges = [...document.querySelectorAll('[data-structure-diagram-edge-id]')].map((group) => ({
+      id: group.getAttribute('data-structure-diagram-edge-id'),
+      selected: group.getAttribute('data-structure-diagram-edge-selected'),
+      highlighted: group.getAttribute('data-structure-diagram-edge-highlighted'),
+      stroke: group.querySelector('[data-structure-diagram-edge-main-line="true"]')?.getAttribute('stroke'),
+      vectorEffect: group.querySelector('[data-structure-diagram-edge-main-line="true"]')?.getAttribute('vector-effect'),
+    }));
+
+    const checks = {
+      noModeLabel: !q('[data-structure-diagram-mode-label="visual"]'),
+      noSubmit: !q('[data-structure-diagram-submit="closed-loop-block-diagram"]'),
+      noOutputEdgeLabel: !outputEdgeLabel && !plantOutputLabel,
+      chromeTransparent: chromeStyle.padding === '0px' && chromeStyle.borderLeftWidth === '0px' && chromeStyle.backgroundImage === 'none',
+      rToSumLeftRim: close(rEndPx.x, sumRect.left) && close(rEndPx.y, sumCenter.y),
+      sumToControllerRightRim: close(eStartPx.x, sumRect.right) && close(eStartPx.y, sumCenter.y),
+      feedbackToSumBottomRim: close(feedbackEndPx.x, sumCenter.x) && close(feedbackEndPx.y, sumRect.bottom),
+      allEdgesNonScaling: defaultEdges.every((edge) => edge.vectorEffect === 'non-scaling-stroke'),
+      allEdgesDefaultUnselected: defaultEdges.every((edge) => edge.selected === 'false' && edge.highlighted === 'false'),
+      allEdgesDefaultPrimary: defaultEdges.every((edge) => edge.stroke === 'hsl(var(--platform-action-primary))'),
+      keyboardTargets: document.querySelectorAll('[data-structure-diagram-edge-keyboard-selectable="true"][role="button"][tabindex="0"]').length >= 7,
+    };
+    return {
+      pass: Object.values(checks).every(Boolean),
+      checks,
+      endpoints: {
+        rEndPx,
+        eStartPx,
+        feedbackEndPx,
+        sumRect: { left: sumRect.left, right: sumRect.right, top: sumRect.top, bottom: sumRect.bottom, width: sumRect.width, height: sumRect.height },
+      },
+      defaultEdges,
+    };
+  });
+  if (!result.pass) {
+    throw new Error(`${scope} step-07 block diagram geometry failed: ${JSON.stringify(result, null, 2)}`);
+  }
+
+  await page.locator('[data-structure-diagram-edge-hit-target="sensor-to-sum"]').focus();
+  await page.keyboard.press('Enter');
+  const selected = await page.evaluate(() => {
+    const group = document.querySelector('[data-structure-diagram-edge-id="sensor-to-sum"]');
+    const main = group?.querySelector('[data-structure-diagram-edge-main-line="true"]');
+    const halo = group?.querySelector('[data-structure-diagram-edge-halo]');
+    return {
+      selected: group?.getAttribute('data-structure-diagram-edge-selected'),
+      highlighted: group?.getAttribute('data-structure-diagram-edge-highlighted'),
+      stroke: main?.getAttribute('stroke'),
+      haloStroke: halo?.getAttribute('stroke'),
+    };
+  });
+  if (
+    selected.selected !== 'true'
+    || selected.highlighted !== 'true'
+    || selected.stroke !== 'hsl(var(--platform-brand-evidence))'
+    || selected.haloStroke !== 'hsl(var(--platform-brand-evidence))'
+  ) {
+    throw new Error(`${scope} step-07 keyboard edge selection failed: ${JSON.stringify(selected, null, 2)}`);
+  }
+  report[scope].blockDiagram = { geometry: result, keyboardSelection: selected };
+}
+
 async function assertVisible(page, selector, label) {
   await page.locator(selector).first().waitFor({ state: 'visible', timeout: 20000 });
   return label;
@@ -122,6 +225,8 @@ async function studentAudit(browser, report) {
     'unsupported',
     'Learning Content',
     '互动任务',
+    '结构证据提交',
+    '提交结构图证据',
   ];
 
   const steps = [
@@ -133,7 +238,7 @@ async function studentAudit(browser, report) {
     {
       id: 'step-05',
       selectors: ['[data-derivation-stage-id="ship-equation-derivation"]'],
-      texts: ['微分方程', '船舶航向方程', '惯性项'],
+      texts: ['微分方程', '物理对象的第一次翻译'],
     },
     {
       id: 'step-07',
@@ -186,6 +291,11 @@ async function studentAudit(browser, report) {
     report.student.steps.push(step.id);
   }
   report.student.screenshots.step04 = await screenshot(page, 'student-step-04-visual-stage.png');
+  await gotoStable(page, `${route}/student/demo?step=step-07`);
+  await assertStep07BlockDiagram(page, report, 'student');
+  report.student.screenshots.step07 = await screenshot(page, 'student-step-07-block-diagram.png');
+  await gotoStable(page, `${route}/student/demo?step=step-08`);
+  report.student.screenshots.step08 = await screenshot(page, 'student-step-08-signal-flow.png');
   await gotoStable(page, `${route}/student/demo?step=step-09`);
   report.student.screenshots.step09 = await screenshot(page, 'student-step-09-static-surface-3d.png');
   await gotoStable(page, `${route}/student/demo?step=step-11`);
@@ -200,7 +310,7 @@ async function teacherAudit(browser, report) {
   await login(page);
   await gotoStable(page, `${route}/teacher/demo`);
 
-  const forbidden = ['svg-comparison', 'interactive-figure', 'payload', 'capabilityRef', 'unsupported', 'Learning Content'];
+  const forbidden = ['svg-comparison', 'interactive-figure', 'payload', 'capabilityRef', 'unsupported', 'Learning Content', '结构证据提交', '提交结构图证据'];
   const select = page.locator('select[name="lessonStep"]').first();
   const steps = [
     {
@@ -243,6 +353,12 @@ async function teacherAudit(browser, report) {
     await assertBodyExcludes(page, forbidden);
     report.teacher.steps.push(step.id);
   }
+  await select.selectOption('step-07');
+  await assertStep07BlockDiagram(page, report, 'teacher');
+  report.teacher.screenshots.step07 = await screenshot(page, 'teacher-step-07-block-diagram.png');
+  await select.selectOption('step-08');
+  report.teacher.screenshots.step08 = await screenshot(page, 'teacher-step-08-signal-flow.png');
+  await select.selectOption('step-09');
   report.teacher.screenshots.step09 = await screenshot(page, 'teacher-step-09-static-surface-3d.png');
   await select.selectOption('step-10');
   report.teacher.screenshots.step10 = await screenshot(page, 'teacher-step-10-control-workbench.png');
@@ -254,8 +370,8 @@ async function main() {
     status: 'pass',
     baseUrl,
     checkedAt: new Date().toISOString(),
-    student: { steps: [], screenshots: {} },
-    teacher: { steps: [], screenshots: {} },
+    student: { steps: [], screenshots: {}, blockDiagram: null },
+    teacher: { steps: [], screenshots: {}, blockDiagram: null },
     logs: [],
     blockingLogIssues: [],
     benignLogIssues: [],

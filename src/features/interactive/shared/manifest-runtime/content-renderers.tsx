@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Fragment, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { BlockMath, InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
@@ -144,6 +144,11 @@ type BlockDiagramPayload = {
   nodes: BlockDiagramNode[];
   edges: BlockDiagramEdge[];
   revealPlan: Array<{ id: string; targetIds: string[]; label: string }>;
+};
+type BlockDiagramCanvasMetrics = {
+  width: number;
+  height: number;
+  sumSizePx: number;
 };
 type SignalFlowNode = {
   id: string;
@@ -1215,11 +1220,35 @@ function blockDiagramNodeUsesEdgeInset(visualKind: string) {
   return visualKind === 'block' || visualKind === 'sum';
 }
 
-function blockDiagramNodePortPoint(node: BlockDiagramNode, port: string): StructureDiagramPoint {
+function blockDiagramSumPortRadius(node: BlockDiagramNode, metrics?: BlockDiagramCanvasMetrics): StructureDiagramPoint {
+  if (metrics && metrics.width > 0 && metrics.height > 0) {
+    return {
+      x: (metrics.sumSizePx / 2) / metrics.width,
+      y: (metrics.sumSizePx / 2) / metrics.height,
+    };
+  }
+  const radius = Math.min(node.size.width, node.size.height) / 2;
+  return { x: radius, y: radius };
+}
+
+function blockDiagramNodePortPoint(node: BlockDiagramNode, port: string, metrics?: BlockDiagramCanvasMetrics): StructureDiagramPoint {
   const visualKind = blockDiagramNodeVisualKind(node);
-  if (visualKind === 'branch' || visualKind === 'takeoff' || visualKind === 'sum') return node.position;
+  if (visualKind === 'branch' || visualKind === 'takeoff') return node.position;
   const halfWidth = node.size.width / 2;
   const halfHeight = node.size.height / 2;
+  if (visualKind === 'sum') {
+    const radius = blockDiagramSumPortRadius(node, metrics);
+    const diagonal = { x: radius.x / Math.SQRT2, y: radius.y / Math.SQRT2 };
+    if (port === 'left') return { x: node.position.x - radius.x, y: node.position.y };
+    if (port === 'right') return { x: node.position.x + radius.x, y: node.position.y };
+    if (port === 'top') return { x: node.position.x, y: node.position.y - radius.y };
+    if (port === 'bottom') return { x: node.position.x, y: node.position.y + radius.y };
+    if (port === 'top-right') return { x: node.position.x + diagonal.x, y: node.position.y - diagonal.y };
+    if (port === 'bottom-right') return { x: node.position.x + diagonal.x, y: node.position.y + diagonal.y };
+    if (port === 'bottom-left') return { x: node.position.x - diagonal.x, y: node.position.y + diagonal.y };
+    if (port === 'top-left') return { x: node.position.x - diagonal.x, y: node.position.y - diagonal.y };
+    return node.position;
+  }
   if (port === 'left') return { x: node.position.x - halfWidth, y: node.position.y };
   if (port === 'right') return { x: node.position.x + halfWidth, y: node.position.y };
   if (port === 'top') return { x: node.position.x, y: node.position.y - halfHeight };
@@ -1242,7 +1271,7 @@ function blockDiagramAutoPort(node: BlockDiagramNode, otherPoint: StructureDiagr
   return dy >= 0 ? 'bottom' : 'top';
 }
 
-function blockEdgeEndpoints(nodes: readonly BlockDiagramNode[], edge: BlockDiagramEdge) {
+function blockEdgeEndpoints(nodes: readonly BlockDiagramNode[], edge: BlockDiagramEdge, metrics?: BlockDiagramCanvasMetrics) {
   const fromNode = structureNodeForId(nodes, edge.from);
   const toNode = structureNodeForId(nodes, edge.to);
   const fromCenter = fromNode?.position ?? structurePointForId(nodes, edge.from);
@@ -1252,8 +1281,8 @@ function blockEdgeEndpoints(nodes: readonly BlockDiagramNode[], edge: BlockDiagr
   const fromPort = edge.fromPort || (fromNode ? blockDiagramAutoPort(fromNode, firstTarget) : 'center');
   const toPort = edge.toPort || (toNode ? blockDiagramAutoPort(toNode, lastSource) : 'center');
   return {
-    from: fromNode ? blockDiagramNodePortPoint(fromNode, fromPort) : fromCenter,
-    to: toNode ? blockDiagramNodePortPoint(toNode, toPort) : toCenter,
+    from: fromNode ? blockDiagramNodePortPoint(fromNode, fromPort, metrics) : fromCenter,
+    to: toNode ? blockDiagramNodePortPoint(toNode, toPort, metrics) : toCenter,
     fromPort,
     toPort,
   };
@@ -1267,8 +1296,8 @@ function structureSvgPoint(point: StructureDiagramPoint) {
   return `${structureSvgValue(point.x * 100)} ${structureSvgValue(point.y * 100)}`;
 }
 
-function blockEdgePath(nodes: readonly BlockDiagramNode[], edge: BlockDiagramEdge) {
-  const { from, to } = blockEdgeEndpoints(nodes, edge);
+function blockEdgePath(nodes: readonly BlockDiagramNode[], edge: BlockDiagramEdge, metrics?: BlockDiagramCanvasMetrics) {
+  const { from, to } = blockEdgeEndpoints(nodes, edge, metrics);
   if (edge.waypoints.length > 0) {
     const points = [from, ...edge.waypoints, to];
     const longestSegment = points.slice(1).reduce((best, point, index) => {
@@ -1315,8 +1344,8 @@ function blockEdgePath(nodes: readonly BlockDiagramNode[], edge: BlockDiagramEdg
   };
 }
 
-function blockEdgeTerminalSignPosition(nodes: readonly BlockDiagramNode[], edge: BlockDiagramEdge) {
-  const { to, toPort } = blockEdgeEndpoints(nodes, edge);
+function blockEdgeTerminalSignPosition(nodes: readonly BlockDiagramNode[], edge: BlockDiagramEdge, metrics?: BlockDiagramCanvasMetrics) {
+  const { to, toPort } = blockEdgeEndpoints(nodes, edge, metrics);
   const offsets: Record<string, StructureDiagramPoint> = {
     left: { x: -3.2, y: -2.8 },
     right: { x: 2.5, y: -2.8 },
@@ -1380,6 +1409,39 @@ function blockNodeBounds(node: BlockDiagramNode) {
     height: `${node.size.height * 100}%`,
     transform: undefined,
   };
+}
+
+function blockDiagramSelectionColor() {
+  return 'hsl(var(--platform-brand-evidence))';
+}
+
+function useBlockDiagramCanvasMetrics() {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [size, setSize] = useState<{ width: number; height: number } | null>(null);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return undefined;
+
+    const update = () => {
+      const rect = element.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+      setSize((current) => {
+        if (current && Math.abs(current.width - rect.width) < 0.5 && Math.abs(current.height - rect.height) < 0.5) {
+          return current;
+        }
+        return { width: rect.width, height: rect.height };
+      });
+    };
+
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  const metrics = size ? { width: size.width, height: size.height, sumSizePx: 34 } : undefined;
+  return { ref, metrics };
 }
 
 function blockDiagramNodeAnchors(node: BlockDiagramNode) {
@@ -2985,9 +3047,15 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
   const graph = blockDiagramPayload(module);
   const visibleTargets = visibleStructureTargets(graph.activeRevealState, graph.revealPlan);
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
+  const { ref: canvasRef, metrics: canvasMetrics } = useBlockDiagramCanvasMetrics();
   const selectedTargets = selectedStructureTargets(selectedTargetId, graph.revealPlan);
-  const highlighted = (id: string) => visibleTargets.size === 0 || visibleTargets.has(id) || selectedTargets.has(id);
+  const highlighted = (id: string) => visibleTargets.has(id) || selectedTargets.has(id);
   const selected = (id: string) => selectedTargets.has(id);
+  const selectEdgeFromKeyboard = (event: KeyboardEvent<SVGPathElement>, edgeId: string) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    setSelectedTargetId(edgeId);
+  };
   const submitCurrent = () => {
     if (!onPanelSubmit) return;
     const submittedAt = Date.now();
@@ -3040,10 +3108,13 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
           <ManifestContentTitle>{titleFromModule(module)}</ManifestContentTitle>
           <p className="premium-lesson-muted text-sm leading-6">用结构节点、信号线和反馈回路表达控制系统关系。</p>
         </div>
-        <span className="premium-lesson-badge" data-structure-diagram-mode-label="visual">{structureModeLabel(graph.mode)}</span>
+        {graph.mode === 'construct' ? (
+          <span className="premium-lesson-badge" data-structure-diagram-mode-label="visual">{structureModeLabel(graph.mode)}</span>
+        ) : null}
       </div>
       <div
-        className="relative min-h-[420px] overflow-hidden rounded-2xl border border-[var(--platform-border)] bg-[var(--platform-surface)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)] md:aspect-video md:min-h-0"
+        ref={canvasRef}
+        className="relative min-h-[420px] overflow-hidden bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)] md:aspect-video md:min-h-0"
         tabIndex={0}
         role="group"
         aria-label={`${graph.graphId} 方框图`}
@@ -3056,8 +3127,8 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
             </marker>
           </defs>
           {graph.edges.map((edge) => {
-            const path = blockEdgePath(graph.nodes, edge);
-            const endpoints = blockEdgeEndpoints(graph.nodes, edge);
+            const path = blockEdgePath(graph.nodes, edge, canvasMetrics);
+            const endpoints = blockEdgeEndpoints(graph.nodes, edge, canvasMetrics);
             return (
               <g
                 key={edge.id}
@@ -3073,22 +3144,24 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
                   <path
                     d={path.d}
                     fill="none"
-                    stroke="hsl(var(--platform-action-primary))"
-                    strokeWidth={selected(edge.id) ? 1.05 : 0.62}
+                    stroke={blockDiagramSelectionColor()}
+                    strokeWidth={selected(edge.id) ? 1.35 : 0.72}
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    opacity={selected(edge.id) ? 0.28 : 0.16}
+                    opacity={selected(edge.id) ? 0.62 : 0.26}
+                    vectorEffect="non-scaling-stroke"
                     data-structure-diagram-edge-halo={selected(edge.id) ? 'selected' : 'highlighted'}
                   />
                 ) : null}
                 <path
                   d={path.d}
                   fill="none"
-                  stroke={highlighted(edge.id) ? 'hsl(var(--platform-action-primary))' : 'hsl(var(--platform-border-strong))'}
+                  stroke={selected(edge.id) ? blockDiagramSelectionColor() : 'hsl(var(--platform-action-primary))'}
                   strokeWidth={0.3}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   markerEnd={`url(#${graph.graphId}-arrow)`}
+                  vectorEffect="non-scaling-stroke"
                   data-structure-diagram-edge-main-line="true"
                 />
                 <path
@@ -3098,10 +3171,16 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
                   strokeWidth={3}
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="cursor-pointer"
+                  className="cursor-pointer outline-none focus-visible:stroke-[hsl(var(--platform-brand-evidence))]"
                   pointerEvents="stroke"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`选择信号线 ${edge.label || edge.id}`}
+                  vectorEffect="non-scaling-stroke"
                   onClick={() => setSelectedTargetId(edge.id)}
+                  onKeyDown={(event) => selectEdgeFromKeyboard(event, edge.id)}
                   data-structure-diagram-edge-hit-target={edge.id}
+                  data-structure-diagram-edge-keyboard-selectable="true"
                 />
               </g>
             );
@@ -3109,12 +3188,12 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
         </svg>
         {graph.edges.map((edge) => {
           if (!edge.terminalSign) return null;
-          const signPosition = blockEdgeTerminalSignPosition(graph.nodes, edge);
+          const signPosition = blockEdgeTerminalSignPosition(graph.nodes, edge, canvasMetrics);
           return (
             <button
               key={`${edge.id}-terminal-sign`}
               type="button"
-              className="absolute -translate-x-1/2 -translate-y-1/2 premium-lesson-title rounded-full px-1 text-[13px] leading-none text-[var(--platform-action-primary)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
+              className="absolute -translate-x-1/2 -translate-y-1/2 premium-lesson-title rounded-full px-1 text-[13px] leading-none text-[hsl(var(--platform-brand-evidence))] outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
               style={{ left: `${signPosition.x}%`, top: `${signPosition.y}%` }}
               data-structure-diagram-terminal-sign-id={edge.id}
               data-structure-diagram-terminal-sign={edge.terminalSign}
@@ -3126,7 +3205,7 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
         })}
         {graph.edges.map((edge) => {
           if (!edge.label) return null;
-          const path = blockEdgePath(graph.nodes, edge);
+          const path = blockEdgePath(graph.nodes, edge, canvasMetrics);
           return (
             <div
               key={`${edge.id}-label`}
@@ -3145,16 +3224,16 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
             type="button"
             key={node.id}
             className={[
-              'absolute grid place-items-center text-center outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]',
+              'absolute grid place-items-center text-center outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)] [&_*]:pointer-events-none',
               blockDiagramNodeVisualKind(node) === 'block' ? 'border bg-platform-panel shadow-[var(--platform-shadow-xs)]' : '',
               blockDiagramNodeVisualKind(node) === 'sum' ? 'rounded-full border bg-platform-panel' : '',
               blockDiagramNodeVisualKind(node) === 'branch' ? 'border border-transparent bg-transparent' : '',
               blockDiagramNodeVisualKind(node) === 'takeoff' ? 'rounded-full border border-platform-action-primary bg-platform-action-primary' : '',
               blockDiagramNodeVisualKind(node) === 'input' || blockDiagramNodeVisualKind(node) === 'output' ? 'border border-transparent bg-transparent' : '',
               blockDiagramNodeVisualKind(node) === 'block' || blockDiagramNodeVisualKind(node) === 'sum'
-                ? (highlighted(node.id) || selectedTargetId === node.id ? 'border-platform-action-primary' : 'border-platform-border')
+                ? (highlighted(node.id) || selectedTargetId === node.id ? 'border-[hsl(var(--platform-brand-evidence))]' : 'border-platform-border')
                 : '',
-              selectedTargetId === node.id ? 'ring-2 ring-[var(--platform-focus-ring)]' : '',
+              selectedTargetId === node.id ? 'ring-2 ring-[hsl(var(--platform-brand-evidence))] ring-offset-2 ring-offset-[hsl(var(--platform-surface))]' : '',
             ].join(' ')}
             style={blockNodeBounds(node)}
             data-structure-diagram-node-id={node.id}
@@ -3184,8 +3263,8 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
                 aria-hidden="true"
                 data-structure-diagram-summing-junction="cross"
               >
-                <line x1="13" y1="13" x2="27" y2="27" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-                <line x1="27" y1="13" x2="13" y2="27" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                <line x1="5" y1="5" x2="35" y2="35" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+                <line x1="35" y1="5" x2="5" y2="35" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
               </svg>
             ) : blockDiagramNodeVisualKind(node) === 'branch' ? (
               <span className="sr-only">{node.label}</span>
@@ -3205,21 +3284,6 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
             )}
           </button>
         ))}
-        {graph.edges.map((edge) => {
-          const { label } = blockEdgePath(graph.nodes, edge);
-          return (
-            <button
-              key={`${edge.id}-target`}
-              type="button"
-              className="absolute h-9 min-w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border border-transparent bg-transparent outline-none focus-visible:border-platform-action-primary focus-visible:bg-platform-action-primary/15 focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
-              style={{ left: `${label.x}%`, top: `${label.y}%` }}
-              aria-label={`选择支路 ${edge.label || edge.id}`}
-              data-structure-diagram-edge-select-id={edge.id}
-              data-structure-diagram-edge-selected={selectedTargetId === edge.id ? 'true' : 'false'}
-              onClick={() => setSelectedTargetId(edge.id)}
-            />
-          );
-        })}
       </div>
       <div className="hidden" data-structure-diagram-reveal-plan="metadata" aria-hidden="true">
         {graph.revealPlan.map((item) => (
@@ -3231,15 +3295,17 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
           />
         ))}
       </div>
-      <button
-        type="button"
-        className="premium-lesson-action-tone premium-tone-cyan justify-self-start"
-        data-structure-diagram-submit={graph.graphId}
-        onClick={submitCurrent}
-        disabled={!onPanelSubmit}
-      >
-        提交结构图证据
-      </button>
+      {graph.mode === 'construct' ? (
+        <button
+          type="button"
+          className="premium-lesson-action-tone premium-tone-cyan justify-self-start"
+          data-structure-diagram-submit={graph.graphId}
+          onClick={submitCurrent}
+          disabled={!onPanelSubmit}
+        >
+          提交构图结果
+        </button>
+      ) : null}
     </section>
   );
 }
@@ -3249,7 +3315,7 @@ function SignalFlowGraphPanel({ manifest, step, module, onPanelSubmit }: Structu
   const visibleTargets = visibleStructureTargets(graph.activeRevealState, graph.revealPlan);
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
   const selectedTargets = selectedSignalFlowTargets(selectedTargetId, graph);
-  const highlighted = (id: string) => visibleTargets.size === 0 || visibleTargets.has(id) || selectedTargets.has(id);
+  const highlighted = (id: string) => visibleTargets.has(id) || selectedTargets.has(id);
   const selected = (id: string) => selectedTargets.has(id);
   const submitCurrent = () => {
     if (!onPanelSubmit) return;
@@ -3330,7 +3396,7 @@ function SignalFlowGraphPanel({ manifest, step, module, onPanelSubmit }: Structu
                 <path
                   d={path.d}
                   fill="none"
-                  stroke={highlighted(branch.id) ? 'hsl(var(--platform-action-primary))' : 'hsl(var(--platform-border-strong))'}
+                  stroke={selected(branch.id) ? blockDiagramSelectionColor() : 'hsl(var(--platform-action-primary))'}
                   strokeWidth={selected(branch.id) ? 0.48 : highlighted(branch.id) ? 0.34 : 0.24}
                   strokeLinecap="round"
                   markerEnd={`url(#${graph.graphId}-branch-arrow)`}
@@ -3445,15 +3511,17 @@ function SignalFlowGraphPanel({ manifest, step, module, onPanelSubmit }: Structu
           </button>
         ))}
       </div>
-      <button
-        type="button"
-        className="premium-lesson-action-tone premium-tone-cyan justify-self-start"
-        data-structure-diagram-submit={graph.graphId}
-        onClick={submitCurrent}
-        disabled={!onPanelSubmit}
-      >
-        提交结构图证据
-      </button>
+      {graph.mode === 'construct' ? (
+        <button
+          type="button"
+          className="premium-lesson-action-tone premium-tone-cyan justify-self-start"
+          data-structure-diagram-submit={graph.graphId}
+          onClick={submitCurrent}
+          disabled={!onPanelSubmit}
+        >
+          提交构图结果
+        </button>
+      ) : null}
     </section>
   );
 }

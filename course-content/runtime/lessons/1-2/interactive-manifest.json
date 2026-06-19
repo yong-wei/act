@@ -1590,24 +1590,12 @@
                 }
               },
               {
-                "id": "error",
-                "type": "branch",
-                "label": "e",
-                "relativeTo": "sum",
-                "placement": "right",
-                "distance": 0.9,
-                "size": {
-                  "width": 0.06,
-                  "height": 0.06
-                }
-              },
-              {
                 "id": "controller",
                 "type": "block",
                 "labelLatex": "G_c(s)",
-                "relativeTo": "error",
+                "relativeTo": "sum",
                 "placement": "right",
-                "distance": 1.2,
+                "distance": 1.9,
                 "size": {
                   "width": 0.15,
                   "height": 0.1
@@ -1641,10 +1629,10 @@
                 "id": "output-takeoff",
                 "type": "branch",
                 "display": "takeoff",
-                "label": "y",
+                "label": "输出引出点",
                 "relativeTo": "plant",
                 "placement": "right",
-                "distance": 0.9,
+                "distance": 0.95,
                 "size": {
                   "width": 0.04,
                   "height": 0.04
@@ -1654,9 +1642,9 @@
                 "id": "output",
                 "type": "output",
                 "labelLatex": "Y(s)",
-                "relativeTo": "output-takeoff",
+                "relativeTo": "plant",
                 "placement": "right",
-                "distance": 0.9,
+                "distance": 1.9,
                 "size": {
                   "width": 0.07,
                   "height": 0.07
@@ -1680,46 +1668,33 @@
                 "from": "ref.E",
                 "to": "sum.W",
                 "route": "--",
-                "label": "r"
+                "display": "unlabeled",
+                "label": ""
               },
               {
-                "id": "sum-to-error",
+                "id": "sum-to-controller",
                 "from": "sum.E",
-                "to": "error.C",
-                "route": "--",
-                "label": "e=r-y_m"
-              },
-              {
-                "id": "error-to-controller",
-                "from": "error.C",
                 "to": "controller.W",
                 "route": "--",
-                "label": "e"
+                "labelLatex": "E(s)=R(s)-Y_m(s)"
               },
               {
                 "id": "controller-to-actuator",
                 "from": "controller.E",
                 "to": "actuator.W",
                 "route": "--",
-                "label": "u_c"
+                "labelLatex": "U_c(s)"
               },
               {
                 "id": "actuator-to-plant",
                 "from": "actuator.E",
                 "to": "plant.W",
                 "route": "--",
-                "label": "u"
+                "labelLatex": "U(s)"
               },
               {
                 "id": "plant-to-output",
                 "from": "plant.E",
-                "to": "output-takeoff.C",
-                "route": "--",
-                "label": "y"
-              },
-              {
-                "id": "takeoff-to-output",
-                "from": "output-takeoff.C",
                 "to": "output.W",
                 "route": "--",
                 "display": "terminal",
@@ -1730,14 +1705,15 @@
                 "from": "output-takeoff.C",
                 "to": "sensor.E",
                 "route": "|-",
-                "label": "y"
+                "display": "unlabeled",
+                "label": ""
               },
               {
                 "id": "sensor-to-sum",
                 "from": "sensor.W",
                 "to": "sum.S",
                 "route": "-|",
-                "label": "y_m",
+                "labelLatex": "Y_m(s)",
                 "terminalSign": "-"
               }
             ],
@@ -1747,12 +1723,10 @@
                 "label": "前向通路",
                 "targetIds": [
                   "r-to-sum",
-                  "sum-to-error",
-                  "error-to-controller",
+                  "sum-to-controller",
                   "controller-to-actuator",
                   "actuator-to-plant",
-                  "plant-to-output",
-                  "takeoff-to-output"
+                  "plant-to-output"
                 ]
               },
               {
@@ -1760,7 +1734,6 @@
                 "label": "输出",
                 "targetIds": [
                   "output-takeoff",
-                  "takeoff-to-output",
                   "output"
                 ]
               },
@@ -1778,7 +1751,7 @@
                 "label": "误差节点",
                 "targetIds": [
                   "sum",
-                  "sum-to-error"
+                  "sum-to-controller"
                 ]
               }
             ]
@@ -1821,7 +1794,7 @@
           "type": "bullet_list",
           "title": "方框图五要素",
           "items": [
-            "比较点：$r-y_m=e$（期望与测量相遇，算出误差）",
+            "比较点：$R(s)-Y_m(s)=E(s)$（期望与测量相遇，算出误差）",
             "控制器：根据误差做出控制决策",
             "执行器：把决策变成真实物理作用",
             "被控对象：被控制的过程，输出在此产生",
@@ -1831,7 +1804,7 @@
         "closed-loop-fig": {
           "type": "media",
           "asset": "1-2-fig-05-closed-loop-block.png",
-          "caption": "从 r 出发→比较点→e→控制器→执行器→对象→y。传感器从 y 取 yₘ 反馈回比较点。闭环标准结构图。"
+          "caption": "从 R(s) 出发→比较点→E(s)→控制器→执行器→对象→Y(s)。传感器从 Y(s) 取 Y_m(s) 反馈回比较点。闭环标准结构图。"
         },
         "three-connections": {
           "type": "bullet_list",
@@ -1862,7 +1835,7 @@
               "reason"
             ],
             "submit_scope": "per_card",
-            "reference_answer": "反馈支路是输出 y 经传感器回到比较点的支路；误差在比较点形成，e=r-y_m。"
+            "reference_answer": "反馈支路是输出 Y(s) 经传感器回到比较点的支路；误差在比较点形成，E(s)=R(s)-Y_m(s)。"
           }
         ]
       },

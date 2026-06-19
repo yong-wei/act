@@ -285,6 +285,15 @@
     @apply border-primary/30 bg-primary/8 shadow-primary/10;
   }
 
+  .commercial-module-chrome--visual-stage,
+  .commercial-module-chrome--visual-derivation-stage,
+  .commercial-module-chrome--visual-block-diagram,
+  .commercial-module-chrome--visual-signal-flow-graph,
+  .commercial-module-chrome--visual-annotated-media,
+  .commercial-module-chrome--visual-embedded-activity {
+    @apply border-primary/30 bg-primary/8 shadow-primary/10;
+  }
+
   .commercial-module-chrome--teacher-summary {
     @apply border-platform-evidence-eligible/35 bg-platform-evidence-eligible/10;
   }
@@ -312,6 +321,19 @@
 
   .commercial-module-chrome[data-interactive-module-teacher-controls="module"] {
     @apply border-l-4 border-l-primary/55;
+  }
+
+  .commercial-module-chrome--visual-block-diagram,
+  .commercial-module-chrome--visual-signal-flow-graph {
+    @apply border-0 bg-transparent p-0 shadow-none;
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .commercial-module-chrome--visual-block-diagram[data-interactive-module-teacher-controls="module"],
+  .commercial-module-chrome--visual-signal-flow-graph[data-interactive-module-teacher-controls="module"] {
+    @apply border-l-0;
   }
 
   .teacher-insight-shell {

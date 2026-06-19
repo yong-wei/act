@@ -377,21 +377,29 @@ describe('unit 1-2 modeling from object to system course', () => {
     expect(html).toContain('data-structure-diagram-node-id="output-takeoff"');
     expect(html).toContain('data-structure-diagram-node-visual-kind="takeoff"');
     expect(html).toContain('data-structure-diagram-node-selected="false"');
-    expect(html).toContain('data-structure-diagram-node-symbol-size="route-point"');
     expect(html).toContain('data-structure-diagram-node-symbol-size="takeoff-dot"');
     expect(html).toContain('data-structure-diagram-output-label-position="above-line"');
     expect(html).toContain('data-structure-diagram-edge-id="sensor-to-sum"');
     expect(html).toContain('data-structure-diagram-edge-hit-target="sensor-to-sum"');
     expect(html).toContain('data-structure-diagram-edge-main-line="true"');
+    expect(html).toContain('vector-effect="non-scaling-stroke"');
     expect(html).toContain('data-structure-diagram-terminal-sign-id="sensor-to-sum"');
     expect(html).toContain('data-structure-diagram-terminal-sign="-"');
     expect(html).not.toContain('data-structure-diagram-edge-id="sensor-to-measure"');
     expect(html).not.toContain('data-structure-diagram-edge-id="measure-to-sum"');
-    expect(html).toContain('data-structure-diagram-edge-id="takeoff-to-output"');
+    expect(html).toContain('data-structure-diagram-edge-id="sum-to-controller"');
+    expect(html).toContain('data-structure-diagram-edge-id="plant-to-output"');
+    expect(html).not.toContain('data-structure-diagram-edge-label-id="plant-to-output"');
+    expect(html).not.toContain('data-structure-diagram-edge-label-id="output-to-sensor"');
+    expect(html).not.toContain('data-structure-diagram-edge-id="sum-to-error"');
+    expect(html).not.toContain('data-structure-diagram-edge-id="error-to-controller"');
+    expect(html).not.toContain('data-structure-diagram-edge-id="takeoff-to-output"');
+    expect(html).not.toContain('data-structure-diagram-submit="closed-loop-block-diagram"');
     expect(html).toContain('data-structure-diagram-edge-from-port="right"');
     expect(html).toContain('data-structure-diagram-edge-to-port="bottom"');
     expect(html).toContain('data-structure-diagram-edge-route="-|"');
     expect(html).toContain('data-structure-diagram-edge-waypoint-count="1"');
+    expect(html).toContain('data-structure-diagram-edge-keyboard-selectable="true"');
     expect(html).not.toContain('data-structure-diagram-node-symbol-size="small-dot"');
     expect(html).toContain('data-structure-diagram-summing-junction="cross"');
     expect(html).toContain('data-structure-diagram-node-label-rendering="latex"');
@@ -399,6 +407,16 @@ describe('unit 1-2 modeling from object to system course', () => {
     expect(html).toContain('G_a');
     expect(html).toContain('G_p');
     expect(html).toContain('H');
+    expect(html).toContain('E(s)=R(s)-Y_m(s)');
+    expect(html).toContain('U_c(s)');
+    expect(html).toContain('Y_m(s)');
+
+    const edgeLabelFragments = html.match(/data-structure-diagram-edge-label-id="[^"]+"[\s\S]*?(?=<\/div>)/g) ?? [];
+    expect(edgeLabelFragments.some((fragment) => fragment.includes('Y(s)'))).toBe(false);
+    const outputNodeFragment = html.match(/data-structure-diagram-node-id="output"[\s\S]*?<\/button>/)?.[0] ?? '';
+    expect(outputNodeFragment).toContain('Y(s)');
+    const takeoffNodeFragment = html.match(/data-structure-diagram-node-id="output-takeoff"[\s\S]*?<\/button>/)?.[0] ?? '';
+    expect(takeoffNodeFragment).not.toContain('Y(s)');
   });
 
   it('keeps visual component chrome instructional and hides contract identifiers on steps 05, 07, 08, and 12', () => {

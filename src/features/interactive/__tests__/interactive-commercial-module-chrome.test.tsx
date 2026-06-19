@@ -9,28 +9,28 @@ import { INTERACTIVE_MODULE_VISUAL_STANDARDS } from '@/features/interactive/shar
 import { normalizeInteractiveRuntimeManifest } from '@/lib/interactive-lesson-manifest';
 
 describe('interactive commercial module chrome', () => {
-  it('wraps standard activity runtime modules in commercial module chrome', () => {
+  it('wraps standard renderer modules in commercial module chrome', () => {
     const manifest = normalizeInteractiveRuntimeManifest({
       lesson_id: 'test-lesson',
       steps: {
         'step-01': {
-          title: '互动模块商业壳测试',
+          title: '渲染模块商业壳测试',
           layout: {
             template: 'stacked_regions',
             regions: [{ id: 'main', width: 'full', order: 1 }],
           },
           modules: [
             {
-              id: 'activity-quiz',
-              kind: 'quiz-card',
+              id: 'compute-workspace',
+              kind: 'compute.panel',
               region: 'main',
               must_be_visible: true,
-              title: '课中判断',
+              payload: { compute_ref: 'fixture' },
             },
           ],
           content_blocks: {},
           interaction_spec: {},
-          ai_context_spec: { page_goal: '检查 activity 模块商业壳。' },
+          ai_context_spec: { page_goal: '检查 renderer 模块商业壳。' },
         },
       },
       step_order: ['step-01'],
@@ -41,21 +41,23 @@ describe('interactive commercial module chrome', () => {
       renderInteractiveManifestStep({
         manifest,
         step: manifest.steps[0]!,
-        moduleRegistry: {},
+        moduleRegistry: {
+          'compute.panel': () => createElement('div', { 'data-fixture-compute-panel': 'true' }, 'compute panel'),
+        },
         extra: undefined,
       }),
     );
 
-    expect(html).toContain('data-commercial-module-chrome="quiz-card"');
+    expect(html).toContain('data-commercial-module-chrome="compute.panel"');
     expect(html).toContain('data-commercial-module-state="required"');
-    expect(html).toContain('data-manifest-activity-kind="quiz-card"');
-    expect(html).toContain('data-interactive-module-standard-class="activity.panel"');
+    expect(html).toContain('data-fixture-compute-panel="true"');
+    expect(html).toContain('data-interactive-module-standard-class="compute.panel"');
     expect(html).toContain('data-interactive-module-chrome-category="interaction"');
     expect(html).toContain('data-interactive-module-teacher-controls="module"');
-    expect(html).toContain('data-interactive-module-control-scope="activity-quiz"');
+    expect(html).toContain('data-interactive-module-control-scope="compute-workspace"');
     expect(html).toContain('data-interactive-module-projection-safe="true"');
     expect(html).toContain('data-interactive-module-geometry="stable-panel"');
-    expect(html).toContain('commercial-module-chrome--interaction');
+    expect(html).toContain('commercial-module-chrome--compute');
   });
 
   it('keeps teacher controls scoped to each visible interaction module', () => {
@@ -71,17 +73,17 @@ describe('interactive commercial module chrome', () => {
           modules: [
             {
               id: 'choice-check',
-              kind: 'quiz-card',
+              kind: 'compute.panel',
               region: 'main',
               must_be_visible: true,
-              title: '判断题',
+              payload: { compute_ref: 'choice' },
             },
             {
               id: 'ordering-check',
-              kind: 'card-sort',
+              kind: 'visual.stage',
               region: 'main',
               must_be_visible: true,
-              title: '排序题',
+              payload: { stage_id: 'ordering' },
             },
           ],
           content_blocks: {},
@@ -97,7 +99,10 @@ describe('interactive commercial module chrome', () => {
       renderInteractiveManifestStep({
         manifest,
         step: manifest.steps[0]!,
-        moduleRegistry: {},
+        moduleRegistry: {
+          'compute.panel': () => createElement('div', { 'data-fixture-compute-panel': 'true' }, 'compute panel'),
+          'visual.stage': () => createElement('div', { 'data-fixture-visual-stage': 'true' }, 'visual stage'),
+        },
         extra: undefined,
       }),
     );
@@ -205,5 +210,12 @@ describe('interactive commercial module chrome', () => {
     for (const className of emittedClasses) {
       expect(globalsCss).toContain(`.${className}`);
     }
+
+    expect(globalsCss).toContain('.commercial-module-chrome--visual-block-diagram,');
+    expect(globalsCss).toContain('.commercial-module-chrome--visual-signal-flow-graph {');
+    expect(globalsCss).toContain('@apply border-0 bg-transparent p-0 shadow-none;');
+    expect(globalsCss).toContain('backdrop-filter: none;');
+    expect(globalsCss).toContain('.commercial-module-chrome--visual-block-diagram[data-interactive-module-teacher-controls="module"],');
+    expect(globalsCss).toContain('@apply border-l-0;');
   });
 });
