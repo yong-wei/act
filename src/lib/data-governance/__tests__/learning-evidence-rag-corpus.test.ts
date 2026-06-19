@@ -465,6 +465,54 @@ describe('learning evidence RAG corpus contract', () => {
     ]);
   });
 
+  it('keeps resource projection context matches eligible when text does not fully match', () => {
+    const projectedExercise = chunk({
+      id: 'projected-exercise-context-match',
+      display: { title: '稳态误差练习', href: '/unit#exercise-ess', capsule: '计算单位阶跃稳态误差。' },
+      content: { text: '计算单位阶跃稳态误差。', redactedSummary: '稳态误差练习。', hash: 'hash-projected-exercise' },
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-4-1',
+        segmentRef: 'exercise#ess-3',
+        citationTargetRef: 'exercise#ess-3',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        mediaTimeRange: null,
+        exerciseAnchor: 'exercise#ess-3',
+        contentHash: 'hash-projected-exercise',
+      },
+    });
+    const unrelatedProjection = chunk({
+      id: 'unrelated-projection-context',
+      display: { title: '频域裕度练习', href: '/unit#margin-exercise', capsule: '计算相角裕度。' },
+      content: { text: '计算相角裕度。', redactedSummary: '频域裕度练习。', hash: 'hash-unrelated-projection' },
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-5-1',
+        segmentRef: 'exercise#margin-3',
+        citationTargetRef: 'exercise#margin-3',
+        knowledgeNodeRefs: ['knowledge:stability-margin'],
+        capabilityTargetRefs: ['capability:stability-margin-analysis'],
+        mediaTimeRange: null,
+        exerciseAnchor: 'exercise#margin-3',
+        contentHash: 'hash-unrelated-projection',
+      },
+    });
+
+    const results = retrieveLearningEvidenceCorpus([unrelatedProjection, projectedExercise], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, {
+      text: 'Routh 判据',
+      knowledgeNodeRefs: ['knowledge:steady-state-error'],
+      capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+    });
+
+    expect(results.map((item) => item.id)).toEqual(['projected-exercise-context-match']);
+  });
+
   it('uses capability context without bypassing privacy scope', () => {
     const matchingCapability = chunk({
       id: 'matching-capability-resource',

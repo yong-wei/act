@@ -377,7 +377,7 @@ export function retrieveLearningEvidenceCorpus(
     .filter((chunk) => matchesRetrievalScope(chunk, scope))
     .filter((chunk) => matchesSemanticOnlyQuery(chunk, query, text, tags))
     .filter((chunk) => tags.size === 0 || chunk.retrieval.tags.some((tag) => tags.has(tag.toLowerCase())))
-    .filter((chunk) => !text || visibleSearchText(chunk, scope).includes(text) || isSemanticCandidate(chunk, query))
+    .filter((chunk) => !text || visibleSearchText(chunk, scope).includes(text) || isSemanticCandidate(chunk, query) || matchesResourceProjectionQueryContext(chunk, query))
     .filter((chunk) => matchesResourceProjectionContext(chunk, query))
     .sort((left, right) => rankChunk(right, scope, query) - rankChunk(left, scope, query))
     .slice(0, limit)
@@ -882,6 +882,13 @@ function matchesResourceProjectionContext(chunk: LearningEvidenceCorpusChunk, qu
   if (hasKnowledgeQuery && hasAnyReference(projection.knowledgeNodeRefs, query.knowledgeNodeRefs)) return true;
   if (hasCapabilityQuery && hasAnyReference(projection.capabilityTargetRefs, query.capabilityTargetRefs)) return true;
   return false;
+}
+
+function matchesResourceProjectionQueryContext(chunk: LearningEvidenceCorpusChunk, query: LearningEvidenceRetrievalQuery) {
+  const projection = chunk.resourceProjection;
+  if (!projection) return false;
+  return hasAnyReference(projection.knowledgeNodeRefs, query.knowledgeNodeRefs) ||
+    hasAnyReference(projection.capabilityTargetRefs, query.capabilityTargetRefs);
 }
 
 function rankChunk(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRetrievalScope, query: LearningEvidenceRetrievalQuery) {
