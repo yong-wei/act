@@ -615,6 +615,40 @@ describe('learning evidence RAG corpus contract', () => {
     expect(results.map((item) => item.id)).toEqual(['formula-resource-segment']);
   });
 
+  it('uses the semantic threshold as the candidate gate for pure vector retrieval', () => {
+    const strongSemantic = chunk({
+      id: 'strong-semantic-resource',
+      display: { title: '强语义候选', href: '/unit#strong-semantic', capsule: '语义向量命中稳态误差。' },
+      content: { text: '系统型别决定阶跃输入下的稳态误差。', redactedSummary: '稳态误差语义命中。', hash: 'hash-strong-semantic' },
+    });
+    const unscoredCanonical = chunk({
+      id: 'unscored-canonical-resource',
+      display: { title: '未评分权威资料', href: '/unit#unscored', capsule: '权威但未进入向量候选。' },
+      content: { text: '权威资料内容。', redactedSummary: '权威资料。', hash: 'hash-unscored-canonical' },
+    });
+    const weakSemantic = chunk({
+      id: 'weak-semantic-resource',
+      display: { title: '弱语义候选', href: '/unit#weak-semantic', capsule: '语义分数低于候选门槛。' },
+      content: { text: '低相关内容。', redactedSummary: '低相关内容。', hash: 'hash-weak-semantic-only' },
+    });
+
+    const results = retrieveLearningEvidenceCorpus([unscoredCanonical, weakSemantic, strongSemantic], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, {
+      semanticScores: {
+        'strong-semantic-resource': 0.72,
+        'weak-semantic-resource': 0.05,
+      },
+    });
+
+    expect(results.map((item) => item.id)).toEqual(['strong-semantic-resource']);
+  });
+
   it('prioritizes teaching knowledge for concepts while including authorized learner evidence in recommendations', () => {
     const teachingKnowledge = chunk({
       id: 'concept-teaching-knowledge',
