@@ -851,6 +851,17 @@ describe('resource node registry', () => {
         auditIssueCodes: ['missing-evidence-instrumentation'],
       },
     });
+    expect(auditBlockedRegistry.audit.pathEligibleNodes).toBe(0);
+    expect(auditBlockedRegistry.audit.ineligibleNodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'registry:audit-blocked-resource',
+        reasons: ['missing-capability-mapping'],
+      }),
+      expect.objectContaining({
+        id: 'registry:audit-blocked-evidence-resource',
+        reasons: ['missing-evidence-instrumentation'],
+      }),
+    ]));
   });
 
   it('builds deterministic edges and payloads for unchanged source resources', () => {
@@ -893,8 +904,8 @@ describe('resource node registry', () => {
         title: '缺失资源',
         type: 'lesson_step',
         reasons: [
-          'missing-render-or-launch-target',
           'missing-knowledge-mapping',
+          'missing-render-or-launch-target',
         ],
       },
     ]);

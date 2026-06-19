@@ -675,6 +675,10 @@ export function buildResourceNodeRegistry(input: ResourceNodeRegistryInput): Res
   const auditedNodes = Array.from(nodesById.values())
     .map((node) => ({ ...node, eligibility: auditResourceNode(node, nodesById, input.auditOptions) }))
     .sort((left, right) => left.id.localeCompare(right.id));
+  const highConfidenceAudits = new Map(auditedNodes.map((node) => [
+    node.id,
+    buildResourceNodeHighConfidencePlanningAudit(node),
+  ]));
 
   return {
     nodes: auditedNodes,
@@ -682,14 +686,16 @@ export function buildResourceNodeRegistry(input: ResourceNodeRegistryInput): Res
     supportedTypes: RESOURCE_NODE_TYPES,
     audit: {
       totalNodes: auditedNodes.length,
-      pathEligibleNodes: auditedNodes.filter((node) => node.eligibility.pathEligible).length,
+      pathEligibleNodes: auditedNodes
+        .filter((node) => highConfidenceAudits.get(node.id)?.pathEligible)
+        .length,
       ineligibleNodes: auditedNodes
-        .filter((node) => !node.eligibility.pathEligible)
+        .filter((node) => !highConfidenceAudits.get(node.id)?.pathEligible)
         .map((node) => ({
           id: node.id,
           title: node.title,
           type: node.type,
-          reasons: node.eligibility.reasons,
+          reasons: uniqueSorted(highConfidenceAudits.get(node.id)?.issues.map((issue) => issue.code) ?? []),
         })),
     },
   };
