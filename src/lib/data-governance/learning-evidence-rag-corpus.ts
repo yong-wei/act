@@ -376,7 +376,7 @@ export function retrieveLearningEvidenceCorpus(
     .filter((chunk) => validateLearningEvidenceCorpusChunk(chunk).length === 0)
     .filter((chunk) => matchesRetrievalScope(chunk, scope))
     .filter((chunk) => matchesSemanticOnlyQuery(chunk, query, text, tags))
-    .filter((chunk) => tags.size === 0 || chunk.retrieval.tags.some((tag) => tags.has(tag.toLowerCase())) || matchesHybridContext(chunk, query))
+    .filter((chunk) => tags.size === 0 || chunk.retrieval.tags.some((tag) => tags.has(tag.toLowerCase())))
     .filter((chunk) => !text || visibleSearchText(chunk, scope).includes(text) || isSemanticCandidate(chunk, query))
     .filter((chunk) => matchesResourceProjectionContext(chunk, query))
     .sort((left, right) => rankChunk(right, scope, query) - rankChunk(left, scope, query))
@@ -856,12 +856,6 @@ function visibleSearchText(chunk: LearningEvidenceCorpusChunk, scope: LearningEv
     visibleChunk.content.text,
     visibleChunk.content.redactedSummary,
   ].filter(Boolean).join(' ').toLowerCase();
-}
-
-function matchesHybridContext(chunk: LearningEvidenceCorpusChunk, query: LearningEvidenceRetrievalQuery) {
-  return isSemanticCandidate(chunk, query) ||
-    hasAnyReference(chunk.resourceProjection?.knowledgeNodeRefs, query.knowledgeNodeRefs) ||
-    hasAnyReference(chunk.resourceProjection?.capabilityTargetRefs, query.capabilityTargetRefs);
 }
 
 function matchesSemanticOnlyQuery(

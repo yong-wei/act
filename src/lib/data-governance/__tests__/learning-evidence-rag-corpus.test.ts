@@ -550,6 +550,74 @@ describe('learning evidence RAG corpus contract', () => {
     expect(results.map((item) => item.id)).toEqual(['matching-capability-resource']);
   });
 
+  it('keeps explicit tags as hard filters even when hybrid context matches', () => {
+    const taggedLearnerEvidence = chunk({
+      id: 'tagged-terminal-validation',
+      family: 'path-evidence',
+      sourceType: 'path-summary',
+      sourceRef: { id: 'tagged-path', ownerUserId: 'student-1', classId: 'class-1', goalId: 'control-correction' },
+      spanRef: { kind: 'record', locator: 'terminalValidation' },
+      display: { title: '终端验证证据', href: '/learning-paths/tagged-path', capsule: '终端验证证据。' },
+      content: { text: '终端验证显示稳态误差仍需复习。', redactedSummary: '终端验证证据。', hash: 'hash-tagged-terminal-validation' },
+      privacyClass: 'student-visible',
+      confidence: 'medium',
+      authority: {
+        level: 'learner-evidence',
+        knowledgeTags: [],
+        pageAnchor: 'terminalValidation',
+        freshnessBucket: 'current',
+        scopeRule: {
+          visibility: 'student-visible',
+          allowedRoles: ['student', 'teacher', 'admin', 'service'],
+          ownerRequired: true,
+          classRequired: true,
+        },
+        conflictGroup: null,
+        conflictSignal: null,
+      },
+      retrieval: { tags: ['terminal-validation'], goals: ['control-correction'], useCases: ['recommendation'] },
+      resourceProjection: {
+        resourceId: 'learner-path/tagged-path',
+        segmentRef: 'terminalValidation',
+        citationTargetRef: 'terminalValidation',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: 'hash-tagged-terminal-validation',
+      },
+    });
+    const untaggedCanonical = chunk({
+      id: 'untagged-canonical-context-match',
+      retrieval: { tags: ['steady-state-error'], goals: ['control-correction'], useCases: ['recommendation'] },
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-4-1',
+        segmentRef: 'concept#steady-state-error',
+        citationTargetRef: 'handout#concept',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: 'hash-course-1',
+      },
+    });
+
+    const results = retrieveLearningEvidenceCorpus([untaggedCanonical, taggedLearnerEvidence], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'recommendation',
+    }, {
+      tags: ['terminal-validation'],
+      capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+      semanticScores: { 'untagged-canonical-context-match': 0.9 },
+    });
+
+    expect(results.map((item) => item.id)).toEqual(['tagged-terminal-validation']);
+  });
+
   it('keeps legacy unprojected chunks compatible while reranking projected context matches', () => {
     const projectedMatch = chunk({
       id: 'projected-capability-match',
