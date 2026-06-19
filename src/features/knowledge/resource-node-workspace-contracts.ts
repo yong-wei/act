@@ -201,6 +201,7 @@ export function getResourceNodeWorkspaceMigrationContracts(): ResourceNodeWorksp
 }
 
 function buildDetailFields(node: ResourceNode, role: PlatformRole): ResourceNodeDetailField[] {
+  const audit = buildWorkspaceAudit(node);
   const fields: ResourceNodeDetailField[] = [
     {
       id: 'source-reference',
@@ -247,7 +248,7 @@ function buildDetailFields(node: ResourceNode, role: PlatformRole): ResourceNode
     {
       id: 'path-eligibility',
       label: '路径可规划',
-      value: node.eligibility.pathEligible ? '可纳入路径' : '暂不可纳入路径；可见告警会说明当前角色可处理的原因。',
+      value: audit.pathEligible ? '可纳入路径' : '暂不可纳入路径；可见告警会说明当前角色可处理的原因。',
       roleScope: 'student-visible',
     },
   ];
@@ -269,7 +270,7 @@ function buildDetailFields(node: ResourceNode, role: PlatformRole): ResourceNode
 }
 
 function buildWarnings(node: ResourceNode, role: PlatformRole): ResourceNodeWorkspaceWarning[] {
-  return node.eligibility.auditIssues
+  return buildWorkspaceAudit(node).issues
     .map((issue) => ({
       code: issue.code,
       message: issue.message,
@@ -299,14 +300,14 @@ function resourceNodeStatus(node: ResourceNode | null): PlatformStatusPayload {
     };
   }
 
-  const hasBlockingIssue = node.eligibility.auditIssues.some((issue) => issue.severity === 'blocking');
-  const hasWarnings = node.eligibility.auditIssues.length > 0;
-  const hasCleanCoverage = node.eligibility.pathEligible && !hasWarnings;
+  const audit = buildWorkspaceAudit(node);
+  const hasWarnings = audit.issues.length > 0;
+  const hasCleanCoverage = audit.pathEligible && !hasWarnings;
   return {
     id: `${node.id}:resource-node-workspace-status`,
     label: 'ResourceNode 映射',
     source: { domain: 'resource-node', capability: 'knowledge-workspace' },
-    summary: node.eligibility.pathEligible
+    summary: audit.pathEligible
       ? '该资源可进入学习路径规划。'
       : '该资源暂不可进入学习路径规划；可见告警会说明当前角色可处理的原因。',
     details: [
@@ -320,9 +321,44 @@ function resourceNodeStatus(node: ResourceNode | null): PlatformStatusPayload {
       replay: 'ready',
       protocol: 'current',
       evaluation: 'not-evaluated',
-      readiness: hasBlockingIssue ? 'blocked' : hasCleanCoverage ? 'ready' : 'degraded',
+      readiness: audit.hasBlockingIssue ? 'blocked' : hasCleanCoverage ? 'ready' : 'degraded',
       fallback: hasCleanCoverage ? 'none' : 'fallback-missing-context',
     },
+  };
+}
+
+function buildWorkspaceAudit(node: ResourceNode): {
+  pathEligible: boolean;
+  issues: ResourceNodeAuditIssue[];
+  hasBlockingIssue: boolean;
+} {
+  const hasCapabilityMapping = Object.keys(node.planningMetadata.abilityImpact).length > 0;
+  const hasEvidenceInstrumentation = node.planningMetadata.evidenceInstrumentation.length > 0;
+  const issues = node.eligibility.auditIssues.map((issue) => (
+    !hasEvidenceInstrumentation && issue.code === 'missing-evidence-instrumentation'
+      ? { ...issue, severity: 'blocking' as const }
+      : issue
+  ));
+
+  if (!hasCapabilityMapping && !issues.some((issue) => issue.code === 'missing-capability-mapping')) {
+    issues.push({
+      code: 'missing-capability-mapping',
+      message: 'ResourceNode has no capability target mapping for high-confidence path planning.',
+      severity: 'blocking',
+    });
+  }
+  if (!hasEvidenceInstrumentation && !issues.some((issue) => issue.code === 'missing-evidence-instrumentation')) {
+    issues.push({
+      code: 'missing-evidence-instrumentation',
+      message: 'ResourceNode has no evidence instrumentation mapping.',
+      severity: 'blocking',
+    });
+  }
+
+  return {
+    pathEligible: node.eligibility.pathEligible && hasCapabilityMapping && hasEvidenceInstrumentation,
+    issues,
+    hasBlockingIssue: issues.some((issue) => issue.severity === 'blocking'),
   };
 }
 

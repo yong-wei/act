@@ -123,6 +123,35 @@ describe('resource node knowledge workspace UI contracts', () => {
     });
   });
 
+  it('blocks ResourceNode workspace planning status for audit-only capability gaps', () => {
+    const node = resourceNode({
+      planningMetadata: {
+        ...resourceNode().planningMetadata,
+        abilityImpact: {},
+      },
+      eligibility: {
+        pathEligible: true,
+        reasons: [],
+        auditIssues: [],
+      },
+    });
+
+    const detail = buildResourceNodeDetailView(node, 'student');
+    const pathEligibility = detail.fields.find((field) => field.id === 'path-eligibility');
+
+    expect(pathEligibility?.value).toContain('暂不可纳入路径');
+    expect(detail.status.summary).toContain('暂不可进入学习路径规划');
+    expect(detail.status.categories.readiness).toBe('blocked');
+    expect(detail.status.categories.sourceCoverage).toBe('partial');
+    expect(detail.warnings).toEqual([
+      expect.objectContaining({
+        code: 'missing-capability-mapping',
+        roleScope: 'student-visible',
+        severity: 'blocking',
+      }),
+    ]);
+  });
+
   it('represents partial coverage and role-scoped audit warnings without hiding student actions', () => {
     const node = resourceNode({
       launchTarget: null,

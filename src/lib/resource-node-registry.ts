@@ -203,6 +203,7 @@ export interface ResourceNodeAuditIssue {
   code:
     | 'missing-render-or-launch-target'
     | 'missing-knowledge-mapping'
+    | 'missing-capability-mapping'
     | 'invalid-prerequisite'
     | 'unavailable-resource'
     | 'teacher-policy-blocked'
