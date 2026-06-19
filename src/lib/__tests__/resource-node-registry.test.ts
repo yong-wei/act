@@ -789,7 +789,15 @@ describe('resource node registry', () => {
       target: '/arena/challenges/roll-control',
       prerequisites: ['simulation:cruise'],
       knowledgeCoverage: ['kn-bode'],
+      estimatedTimeMinutes: 25,
+      cognitiveLoad: 'high',
+      effort: 'high',
       evidenceInstrumentation: ['arena_evaluation_complete'],
+      launchBinding: {
+        kind: 'resource-node',
+        target: '/arena/challenges/roll-control',
+        sourceRef: { kind: 'arena_task', ref: 'roll-control' },
+      },
       privacyLevel: 'student-visible',
       teacherPolicy: 'allowed',
       pathSemantics: {
@@ -823,10 +831,16 @@ describe('resource node registry', () => {
       pathEligible: true,
       reasons: expect.arrayContaining(['missing-readiness-metadata']),
     });
-    expect(lockedProjection.planningUnit).toBeNull();
+    expect(lockedProjection.planningUnit).toMatchObject({
+      id: 'planning-unit:simulation:terminal-sim',
+      resourceNodeId: 'simulation:terminal-sim',
+      target: '/simulations/terminal',
+      cognitiveLoad: 'high',
+      readiness: null,
+    });
     expect(lockedProjection.resource.projectionStatus).toMatchObject({
       retrieval: 'mapped',
-      planning: 'blocked',
+      planning: 'mapped',
     });
     expect(auditBlockedResource.eligibility.pathEligible).toBe(true);
     expect(auditBlockedProjection.planningUnit).toBeNull();

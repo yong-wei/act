@@ -9,7 +9,7 @@ import {
   type AdaptiveLearningPathPlannerInput,
 } from '../adaptive-learning-path-planner';
 import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
-import { buildResourceNodeRegistry } from '../resource-node-registry';
+import { buildResourceNodeRegistry, buildResourceSemanticProjection } from '../resource-node-registry';
 
 function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {}): AdaptiveLearningPathPlannerInput {
   const registry = buildResourceNodeRegistry({
@@ -342,6 +342,44 @@ describe('adaptive learning path planner', () => {
           'missing-capability-mapping',
           'missing-evidence-instrumentation',
         ]),
+      }),
+    ]));
+  });
+
+  it('generates path nodes from PlanningUnit projections instead of retrieval chunks', () => {
+    const input = plannerInput();
+    const sourceNode = input.registry.nodes.find((node) => node.id === 'registry:bode-card');
+    expect(sourceNode).toBeDefined();
+    const projection = buildResourceSemanticProjection(sourceNode!);
+
+    const plan = buildAdaptiveLearningPathPlan(input);
+    const serialized = serializeLearningPathPlan(plan);
+    const pathNode = plan.mainPath.find((node) => node.nodeId === 'registry:bode-card');
+
+    expect(projection.planningUnit).toBeDefined();
+    expect(pathNode).toMatchObject({
+      nodeId: 'registry:bode-card',
+      planningUnitId: projection.planningUnit!.id,
+      resourceId: projection.planningUnit!.resourceId,
+      resourceNodeId: projection.planningUnit!.resourceNodeId,
+      knowledgeCoverage: ['kn-bode'],
+      capabilityTargets: ['controlModeling'],
+      cognitiveLoad: 'medium',
+      effort: 'medium',
+      launchBinding: {
+        kind: 'resource-node',
+        target: '/teacher/resources',
+        sourceRef: { kind: 'resource_registry', ref: 'bode-card' },
+      },
+      evidenceBehavior: projection.planningUnit!.pathSemantics.evidenceBehavior,
+    });
+    expect(plan.mainPath.map((node) => node.nodeId)).not.toContain(projection.retrievalChunks[0].id);
+    expect(serialized.payload.planNodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        nodeId: 'registry:bode-card',
+        planningUnitId: projection.planningUnit!.id,
+        capabilityTargets: ['controlModeling'],
+        evidenceBehavior: projection.planningUnit!.pathSemantics.evidenceBehavior,
       }),
     ]));
   });
