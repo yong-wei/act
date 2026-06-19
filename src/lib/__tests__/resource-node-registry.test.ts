@@ -14,7 +14,7 @@ import {
   type Resource,
   type ResourceNode,
 } from '../resource-node-registry';
-import { getRegisteredResourceMetadata } from '../resource-registry-metadata';
+import { getAllRegisteredResourceMetadata, getRegisteredResourceMetadata } from '../resource-registry-metadata';
 import {
   CONTROL_CORRECTION_RESOURCE_GRAPH_VERSION,
   buildControlCorrectionResourceNodeRegistry,
@@ -117,6 +117,25 @@ function sampleRegistry() {
             url: 'https://example.test/slides.pdf',
           },
         ],
+      },
+    ],
+    textbooks: [
+      {
+        bookId: 'dorf-modern-control-systems',
+        title: 'Modern Control Systems',
+        sourceHref: '/course-content/runtime/resources/textbooks/dorf-modern-control-systems',
+        knowledgeNodeIds: ['kn-bode'],
+      },
+    ],
+    textbookSections: [
+      {
+        bookId: 'dorf-modern-control-systems',
+        sectionId: 'ch10-sec01',
+        title: '根轨迹校正设计',
+        citationHref: '/course-content/runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01',
+        knowledgeNodeIds: ['kn-bode'],
+        capabilityTargetIds: ['parameterDesign'],
+        estimatedTimeMinutes: 18,
       },
     ],
     simulations: [
@@ -363,6 +382,127 @@ describe('resource node registry', () => {
     expect(registry.nodes.every((node) => 'renderTarget' in node && 'launchTarget' in node)).toBe(true);
   });
 
+  it('keeps curated registered resource semantics in the central metadata export', () => {
+    const registeredResources = getAllRegisteredResourceMetadata();
+    const registry = buildResourceNodeRegistry({ registeredResources });
+    const unmapped = registry.nodes.filter((node) => node.eligibility.reasons.includes('missing-knowledge-mapping'));
+
+    expect(registeredResources.length).toBeGreaterThanOrEqual(133);
+    expect(unmapped).toEqual([]);
+    expect(registry.nodes.find((node) => node.id === 'registry:lesson09-correction-precheck')).toMatchObject({
+      renderTarget: '/interactive-learning/resources/lesson09-correction-precheck',
+      planningMetadata: {
+        knowledgeCoverage: [
+          'control-correction:root-locus-design',
+          'control-correction:time-domain-targets',
+        ],
+        abilityImpact: {
+          diagnosticAssessment: expect.any(Number),
+          parameterDesign: expect.any(Number),
+        },
+      },
+      eligibility: { pathEligible: true },
+    });
+    expect(registry.nodes.find((node) => node.id === 'registry:lesson02-legacy-pretest-v1')).toMatchObject({
+      planningMetadata: {
+        availability: 'archived',
+        teacherPolicy: 'blocked',
+      },
+      eligibility: {
+        pathEligible: false,
+        reasons: expect.arrayContaining(['unavailable-resource', 'teacher-policy-blocked']),
+      },
+    });
+    expect(registry.nodes.find((node) => node.id === 'registry:classroom-video')).toMatchObject({
+      planningMetadata: {
+        availability: 'teacher_only',
+        teacherPolicy: 'teacher-only',
+        privacyLevel: 'teacher-scoped',
+      },
+      eligibility: {
+        pathEligible: false,
+        reasons: expect.arrayContaining(['unavailable-resource']),
+      },
+    });
+  });
+
+  it('registers textbook sections as path-plannable resources without turning textbook containers into path nodes', () => {
+    const registry = buildResourceNodeRegistry({
+      textbooks: [
+        {
+          bookId: 'dorf-modern-control-systems',
+          title: 'Modern Control Systems',
+          sourceHref: '/course-content/runtime/resources/textbooks/dorf-modern-control-systems',
+          knowledgeNodeIds: ['kn-root-locus'],
+        },
+      ],
+      textbookSections: [
+        {
+          bookId: 'dorf-modern-control-systems',
+          sectionId: 'ch10-sec01',
+          title: '根轨迹校正设计',
+          citationHref: '/course-content/runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01',
+          knowledgeNodeIds: ['kn-root-locus'],
+          capabilityTargetIds: ['parameterDesign', 'controlModeling'],
+          estimatedTimeMinutes: 18,
+          prerequisiteNodeIds: ['knowledge-card:kn-root-locus'],
+        },
+      ],
+      knowledgeCards: [
+        {
+          id: 'kn-root-locus',
+          title: '根轨迹知识卡',
+          sourceRef: 'kn-root-locus:card',
+          renderTarget: '/knowledge/cards/kn-root-locus',
+          knowledgeNodeIds: ['kn-root-locus'],
+        },
+      ],
+    });
+
+    const textbook = registry.nodes.find((node) => node.id === 'textbook:dorf-modern-control-systems');
+    const section = registry.nodes.find((node) =>
+      node.id === 'textbook-section:dorf-modern-control-systems:ch10-sec01'
+    );
+
+    expect(textbook).toMatchObject({
+      type: 'textbook',
+      sourceKind: 'textbook',
+      eligibility: {
+        pathEligible: false,
+        reasons: expect.arrayContaining(['textbook-container-not-path-node']),
+      },
+    });
+    expect(section).toMatchObject({
+      type: 'textbook_section',
+      sourceKind: 'textbook_section',
+      renderTarget: '/course-content/runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01',
+      sourceRefs: expect.arrayContaining([
+        { kind: 'textbook', ref: 'dorf-modern-control-systems' },
+        { kind: 'textbook_section', ref: 'dorf-modern-control-systems:ch10-sec01' },
+      ]),
+      pathSemantics: {
+        type: 'textbook_section',
+        displayName: '教材节',
+        evidenceBehavior: 'explicit_access',
+      },
+      planningMetadata: {
+        knowledgeCoverage: ['kn-root-locus'],
+        abilityImpact: {
+          controlModeling: expect.any(Number),
+          parameterDesign: expect.any(Number),
+        },
+        estimatedTimeMinutes: 18,
+        evidenceInstrumentation: ['textbook_section_open'],
+      },
+      eligibility: { pathEligible: true },
+    });
+    expect(registry.edges).toContainEqual(expect.objectContaining({
+      fromNodeId: 'knowledge-card:kn-root-locus',
+      toNodeId: 'textbook-section:dorf-modern-control-systems:ch10-sec01',
+      kind: 'prerequisite',
+    }));
+  });
+
   it('exposes central governed path semantics for every accepted path node type', () => {
     const registry = buildResourceNodeRegistry({
       runtimeLessons: [{
@@ -447,11 +587,20 @@ describe('resource node registry', () => {
         renderTarget: '/ai/copilot?context=demo',
         knowledgeNodeIds: ['kn-demo'],
       }],
+      textbookSections: [{
+        bookId: 'demo-book',
+        sectionId: 'sec-1',
+        title: '教材节',
+        citationHref: '/course-content/runtime/resources/textbooks/demo-book/sections/sec-1',
+        knowledgeNodeIds: ['kn-demo'],
+        capabilityTargetIds: ['controlModeling'],
+      }],
     });
 
     expect(GOVERNED_PATH_NODE_TYPES).toEqual([
       'interactive_lesson',
       'knowledge_card',
+      'textbook_section',
       'slides',
       'adaptive_quiz',
       'control_workbench',
@@ -491,6 +640,14 @@ describe('resource node registry', () => {
         iconKey: 'slides',
         shapeHint: 'card',
         evidenceBehavior: 'explicit_access',
+      },
+    });
+    expect(registry.nodes.find((node) => node.id === 'textbook-section:demo-book:sec-1')).toMatchObject({
+      type: 'textbook_section',
+      pathSemantics: {
+        type: 'textbook_section',
+        iconKey: 'textbook-section',
+        shapeHint: 'card',
       },
     });
   });

@@ -8,6 +8,10 @@ import {
   loadAllLessonRuntimeResourceCatalogEntries,
   type RuntimeLessonResourceCatalogEntry,
 } from '@/lib/course-runtime';
+import {
+  loadAllTextbookRuntimeResourceCatalogEntries,
+  type TextbookRuntimeResourceCatalogEntry,
+} from '@/lib/textbook-runtime-resources';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { RESOURCE_NODE_TYPES, type ResourceNodeType } from '@/lib/resource-node-registry';
 import { buildResourceNodeRegistryFromTeachingResources } from '@/lib/teacher-resource-node-data';
@@ -51,8 +55,9 @@ export async function GET(request: Request) {
 
     const registeredResources = getAllRegisteredResourceMetadata();
     const runtimeLessons = await loadAllLessonRuntimeResourceCatalogEntries();
-    const registry = buildResourceNodeRegistryFromTeachingResources(resources, registeredResources, runtimeLessons);
-    const scope = createScope(session.user.role, session.user.id, resources, registeredResources, runtimeLessons);
+    const runtimeTextbooks = await loadAllTextbookRuntimeResourceCatalogEntries();
+    const registry = buildResourceNodeRegistryFromTeachingResources(resources, registeredResources, runtimeLessons, runtimeTextbooks);
+    const scope = createScope(session.user.role, session.user.id, resources, registeredResources, runtimeLessons, runtimeTextbooks);
     const { searchParams } = new URL(request.url);
     const scopedNodes = registry.nodes.filter((node) => canReadNode(node, scope));
     const filteredNodes = filterTeacherResourceNodes(scopedNodes, {
@@ -85,6 +90,7 @@ function createScope(
   resources: ReadonlyArray<{ id: string; knowledgeNodes?: Array<{ id: string }> }>,
   registeredResources: ReadonlyArray<{ id: string }>,
   runtimeLessons: ReadonlyArray<RuntimeLessonResourceCatalogEntry>,
+  runtimeTextbooks: ReadonlyArray<TextbookRuntimeResourceCatalogEntry>,
 ): TeacherResourceNodeScope {
   const resourceIds = resources.map((resource) => resource.id);
   const registeredResourceIds = registeredResources.map((resource) => resource.id);
@@ -103,6 +109,14 @@ function createScope(
     ...lesson.graphOverlay.nodes.map((node) => node.id),
   ]);
   const runtimeKnowledgeCardIds = runtimeKnowledgeNodeIds.map((id) => `${id}:card`);
+  const textbookSourceRefs = runtimeTextbooks.flatMap((entry) => [
+    entry.textbook.bookId,
+    ...entry.sections.map((section) => `${entry.textbook.bookId}:${section.sectionId}`),
+  ]);
+  const textbookKnowledgeNodeIds = runtimeTextbooks.flatMap((entry) =>
+    entry.sections.flatMap((section) => section.knowledgeNodeIds ?? [])
+  );
+  const textbookKnowledgeCardIds = textbookKnowledgeNodeIds.map((id) => `${id}:card`);
   return {
     role: role === 'ADMIN' ? 'ADMIN' : 'TEACHER',
     teacherId,
@@ -114,6 +128,9 @@ function createScope(
       ...runtimeSourceRefs,
       ...runtimeKnowledgeNodeIds,
       ...runtimeKnowledgeCardIds,
+      ...textbookSourceRefs,
+      ...textbookKnowledgeNodeIds,
+      ...textbookKnowledgeCardIds,
     ]),
     editableSourceRefs: new Set(resourceIds),
   };

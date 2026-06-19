@@ -29,6 +29,10 @@ import {
   recordPathIntervention,
 } from '@/lib/control-correction-path-rounds';
 import {
+  loadAllTextbookRuntimeSearchDocuments,
+  type TextbookRuntimeSearchDocument,
+} from '@/lib/textbook-runtime-resources';
+import {
   buildAdaptiveLearningPathPlan,
   getRegisteredAdaptiveLearningPathGoal,
   type AdaptiveLearningPathPolicyFamily,
@@ -4547,6 +4551,7 @@ async function buildKonlingCitationContext(
     ? [
         ...buildContentCitations(input.pageContext),
         ...buildKnowledgeWorkspaceContentCitations(input.knowledgeWorkspace),
+        ...await buildTextbookRuntimeContentCitations(),
       ]
     : [];
   const evidenceCitations: KonlingCitation[] = [];
@@ -4712,6 +4717,51 @@ function buildKnowledgeWorkspaceContentCitations(
       confidence: 'high',
     }),
   }];
+}
+
+async function buildTextbookRuntimeContentCitations(): Promise<KonlingCitation[]> {
+  const documents = await loadAllTextbookRuntimeSearchDocuments().catch(() => []);
+  const selectedDocuments = [
+    ...documents.filter((document) => document.kind === 'chunk').slice(0, 3),
+    ...documents.filter((document) => document.kind === 'figure').slice(0, 3),
+  ];
+  return selectedDocuments.map((document) => buildTextbookRuntimeContentCitation(document));
+}
+
+function buildTextbookRuntimeContentCitation(
+  document: TextbookRuntimeSearchDocument,
+): KonlingCitation {
+  const citationTargetRef = document.resourceProjection.citationTargetRef ?? document.id;
+  const href = document.citationAddress?.href ?? document.href;
+  const evidenceBasis = document.kind === 'figure'
+    ? 'textbook-figure-description'
+    : 'textbook-section';
+  const id = `content:${document.resourceProjection.resourceId}:${citationTargetRef}`;
+  const title = document.kind === 'figure'
+    ? `${document.title} 图像描述`
+    : document.title;
+  return {
+    id,
+    sourceType: 'content',
+    displayTitle: title,
+    href,
+    confidence: 'high',
+    evidenceBasis,
+    owner: 'answer',
+    citationChip: {
+      chunkId: id,
+      displayTitle: title,
+      displayHref: href,
+      sourceType: 'course-content',
+      addressKind: document.citationAddress?.kind,
+      citationAddress: document.citationAddress,
+      authorityLevel: 'canonical',
+      confidence: 'high',
+      freshnessBucket: 'current',
+      privacyVisibility: 'public',
+      limitationState: null,
+    },
+  };
 }
 
 

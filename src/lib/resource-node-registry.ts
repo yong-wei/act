@@ -2,6 +2,8 @@ export const RESOURCE_NODE_TYPES = [
   'lesson_step',
   'knowledge_node',
   'knowledge_card',
+  'textbook',
+  'textbook_section',
   'video',
   'audio',
   'slides',
@@ -24,6 +26,7 @@ export type ResourceNodeType = typeof RESOURCE_NODE_TYPES[number];
 export const GOVERNED_PATH_NODE_TYPES = [
   'interactive_lesson',
   'knowledge_card',
+  'textbook_section',
   'slides',
   'adaptive_quiz',
   'control_workbench',
@@ -71,6 +74,13 @@ export const PATH_NODE_SEMANTICS: Record<GovernedPathNodeType, ResourceNodePathS
     iconKey: 'knowledge-card',
     shapeHint: 'card',
     evidenceBehavior: 'view',
+  },
+  textbook_section: {
+    type: 'textbook_section',
+    displayName: '教材节',
+    iconKey: 'textbook-section',
+    shapeHint: 'card',
+    evidenceBehavior: 'explicit_access',
   },
   slides: {
     type: 'slides',
@@ -141,6 +151,8 @@ export type ResourceNodeSourceKind =
   | 'teaching_resource'
   | 'resource_registry'
   | 'knowledge_graph'
+  | 'textbook'
+  | 'textbook_section'
   | 'runtime_lesson_step'
   | 'runtime_lesson_media'
   | 'runtime_handout'
@@ -170,6 +182,7 @@ export type ResourceNodeSourceOwner =
   | 'runtime_lesson_media'
   | 'resource_registry'
   | 'knowledge_graph'
+  | 'textbook'
   | 'simulation'
   | 'arena'
   | 'external_resource'
@@ -229,7 +242,8 @@ export interface ResourceNodeAuditIssue {
     | 'missing-checkpoint-criteria'
     | 'missing-checkpoint-required-evidence'
     | 'missing-checkpoint-remediation'
-    | 'missing-readiness-metadata';
+    | 'missing-readiness-metadata'
+    | 'textbook-container-not-path-node';
   message: string;
   severity: 'blocking' | 'warning';
 }
@@ -290,6 +304,18 @@ export const RESOURCE_SEMANTIC_SOURCE_OWNERSHIP: Record<
     catalogMetadataOwner: 'knowledge_graph',
     semanticLayerStores: ['identity', 'sourceRefs', 'knowledgeMapping', 'projectionStatus'],
     forbiddenProjectionFields: ['rawContent', 'cardMarkdown', 'renderablePayload'],
+  },
+  textbook: {
+    contentOwner: 'textbook',
+    catalogMetadataOwner: 'textbook',
+    semanticLayerStores: ['identity', 'sourceRefs', 'knowledgeMapping', 'citationRefs', 'projectionStatus', 'governance'],
+    forbiddenProjectionFields: ['rawContent', 'markdownBody', 'figureAssetBytes', 'teacherEditableCatalogMetadata'],
+  },
+  textbook_section: {
+    contentOwner: 'textbook',
+    catalogMetadataOwner: 'textbook',
+    semanticLayerStores: ['identity', 'sourceRefs', 'contentHash', 'knowledgeMapping', 'citationRefs', 'projectionStatus', 'governance'],
+    forbiddenProjectionFields: ['rawContent', 'markdownBody', 'chunkText', 'figureAssetBytes', 'teacherEditableCatalogMetadata'],
   },
   runtime_lesson_step: {
     contentOwner: 'runtime_lesson_media',
@@ -593,6 +619,26 @@ export interface RuntimeLessonNodeInput {
   handoutPdfPath?: string | null;
 }
 
+export interface TextbookResourceNodeInput {
+  bookId: string;
+  title: string;
+  sourceHref?: string | null;
+  knowledgeNodeIds?: string[];
+  planningOverride?: ResourceNodePlanningOverride;
+}
+
+export interface TextbookSectionResourceNodeInput {
+  bookId: string;
+  sectionId: string;
+  title: string;
+  citationHref: string;
+  knowledgeNodeIds?: string[];
+  capabilityTargetIds?: string[];
+  prerequisiteNodeIds?: string[];
+  estimatedTimeMinutes?: number | null;
+  planningOverride?: ResourceNodePlanningOverride;
+}
+
 export interface SimulationResourceNodeInput {
   id: string;
   title: string;
@@ -660,6 +706,8 @@ export interface ResourceNodeRegistryInput {
   knowledgeNodes?: KnowledgeNodeResourceInput[];
   knowledgeCards?: KnowledgeCardResourceNodeInput[];
   runtimeLessons?: RuntimeLessonNodeInput[];
+  textbooks?: TextbookResourceNodeInput[];
+  textbookSections?: TextbookSectionResourceNodeInput[];
   simulations?: SimulationResourceNodeInput[];
   arenaTasks?: ArenaTaskResourceNodeInput[];
   externalResources?: ExternalResourceNodeInput[];
@@ -678,6 +726,8 @@ export function buildResourceNodeRegistry(input: ResourceNodeRegistryInput): Res
     ...buildKnowledgeResourceNodes(input.knowledgeNodes ?? []),
     ...buildKnowledgeCardNodes(input.knowledgeCards ?? []),
     ...buildRuntimeLessonNodes(input.runtimeLessons ?? []),
+    ...buildTextbookNodes(input.textbooks ?? []),
+    ...buildTextbookSectionNodes(input.textbookSections ?? []),
     ...buildLightweightNodes(input.controlWorkbenchTasks ?? [], 'control_workbench', 'control_workbench'),
     ...buildSimulationNodes(input.simulations ?? []),
     ...buildArenaTaskNodes(input.arenaTasks ?? []),
@@ -725,6 +775,13 @@ export function auditResourceNode(
   options: ResourceNodeAuditOptions = {},
 ): ResourceNodeEligibility {
   const issues: ResourceNodeAuditIssue[] = [];
+  if (node.type === 'textbook') {
+    issues.push({
+      code: 'textbook-container-not-path-node',
+      severity: 'blocking',
+      message: 'Textbook containers are catalog resources; path planning uses audited textbook sections.',
+    });
+  }
   if (!node.renderTarget && !node.launchTarget) {
     issues.push({
       code: 'missing-render-or-launch-target',
@@ -1014,7 +1071,7 @@ function buildRegisteredResourceNodes(resources: RegisteredResourceNodeInput[]):
     id: `registry:${resource.id}`,
     title: resource.label,
     type: resource.type === 'SIMULATION_APP'
-      ? 'simulation'
+      ? inferRegisteredNodeType(resource.id)
       : resource.type === 'ADAPTIVE_QUIZ'
         ? 'adaptive_quiz'
         : inferRegisteredNodeType(resource.id),
@@ -1162,6 +1219,62 @@ function buildRuntimeLessonNodes(lessons: RuntimeLessonNodeInput[]): ResourceNod
     }
     return nodes;
   });
+}
+
+function buildTextbookNodes(textbooks: TextbookResourceNodeInput[]): ResourceNode[] {
+  return textbooks.map((textbook) => createNode({
+    id: `textbook:${textbook.bookId}`,
+    title: textbook.title,
+    type: 'textbook',
+    courseModule: textbook.bookId,
+    sourceKind: 'textbook',
+    sourceRef: textbook.bookId,
+    renderTarget: textbook.sourceHref ?? null,
+    knowledgeCoverage: textbook.knowledgeNodeIds ?? [],
+    sourceOfRecord: {
+      content: 'textbook',
+      catalogMetadata: 'textbook',
+      planningMetadata: 'ResourceNode',
+    },
+    evidenceInstrumentation: [],
+    planningOverride: {
+      ...textbook.planningOverride,
+      teacherPolicy: 'blocked',
+      terminalConstraints: uniqueSorted([
+        'container-resource',
+        ...(textbook.planningOverride?.terminalConstraints ?? []),
+      ]),
+    },
+  }));
+}
+
+function buildTextbookSectionNodes(sections: TextbookSectionResourceNodeInput[]): ResourceNode[] {
+  return sections.map((section) => createNode({
+    id: `textbook-section:${section.bookId}:${section.sectionId}`,
+    title: section.title,
+    type: 'textbook_section',
+    courseModule: section.bookId,
+    sourceKind: 'textbook_section',
+    sourceRef: `${section.bookId}:${section.sectionId}`,
+    sourceRefs: [
+      { kind: 'textbook', ref: section.bookId },
+      { kind: 'textbook_section', ref: `${section.bookId}:${section.sectionId}` },
+    ],
+    renderTarget: section.citationHref,
+    knowledgeCoverage: section.knowledgeNodeIds ?? [],
+    sourceOfRecord: {
+      content: 'textbook',
+      catalogMetadata: 'textbook',
+      planningMetadata: 'ResourceNode',
+    },
+    prerequisites: section.prerequisiteNodeIds ?? [],
+    evidenceInstrumentation: ['textbook_section_open'],
+    planningOverride: {
+      ...section.planningOverride,
+      estimatedTimeMinutes: section.estimatedTimeMinutes ?? section.planningOverride?.estimatedTimeMinutes,
+      abilityImpact: section.planningOverride?.abilityImpact ?? abilityImpactFromTargets(section.capabilityTargetIds ?? []),
+    },
+  }));
 }
 
 function buildSimulationNodes(simulations: SimulationResourceNodeInput[]): ResourceNode[] {
@@ -1509,6 +1622,7 @@ function inferMediaNodeType(value: string): ResourceNodeType {
 
 function inferRegisteredNodeType(value: string): ResourceNodeType {
   const lower = value.toLowerCase();
+  if (lower.includes('arena')) return 'arena_task';
   if (lower.includes('slides') || lower.includes('slide-deck') || lower.includes('courseware')) return 'slides';
   if (lower.includes('quiz') || lower.includes('precheck') || lower.includes('posttest') || lower.includes('assessment')) {
     return 'quiz';
@@ -1525,6 +1639,7 @@ function inferRegisteredNodeType(value: string): ResourceNodeType {
 
 function pathSemanticsForResourceType(type: ResourceNodeType): ResourceNodePathSemantics {
   if (type === 'knowledge_card' || type === 'knowledge_node') return PATH_NODE_SEMANTICS.knowledge_card;
+  if (type === 'textbook_section') return PATH_NODE_SEMANTICS.textbook_section;
   if (type === 'slides') return PATH_NODE_SEMANTICS.slides;
   if (type === 'quiz' || type === 'adaptive_quiz') return PATH_NODE_SEMANTICS.adaptive_quiz;
   if (type === 'control_workbench') return PATH_NODE_SEMANTICS.control_workbench;
@@ -1760,7 +1875,7 @@ function collectLessonKnowledgeCoverage(lesson: RuntimeLessonNodeInput): string[
 
 function defaultEstimatedTime(type: ResourceNodeType): number {
   if (type === 'video' || type === 'audio') return 8;
-  if (type === 'slides' || type === 'handout' || type === 'knowledge_card') return 10;
+  if (type === 'slides' || type === 'handout' || type === 'knowledge_card' || type === 'textbook_section') return 10;
   if (type === 'quiz' || type === 'adaptive_quiz' || type === 'reflection' || type === 'checkpoint') return 12;
   if (type === 'simulation' || type === 'arena_task' || type === 'control_workbench') return 25;
   if (type === 'external_resource') return 15;
@@ -1775,6 +1890,7 @@ function defaultCognitiveLoad(type: ResourceNodeType): ResourceNodeCognitiveLoad
     type === 'video' ||
     type === 'audio' ||
     type === 'slides' ||
+    type === 'textbook_section' ||
     type === 'knowledge_card' ||
     type === 'external_resource' ||
     type === 'konling'
@@ -1793,6 +1909,12 @@ function defaultAbilityImpact(type: ResourceNodeType): Record<string, number> {
     return { diagnosticAssessment: 0.25 };
   }
   return { controlModeling: 0.2 };
+}
+
+function abilityImpactFromTargets(targets: string[]): Record<string, number> {
+  const uniqueTargets = uniqueSorted(targets);
+  if (uniqueTargets.length === 0) return defaultAbilityImpact('textbook_section');
+  return Object.fromEntries(uniqueTargets.map((target) => [target, 0.25]));
 }
 
 function uniqueSourceRefs(refs: ResourceNodeSourceReference[]): ResourceNodeSourceReference[] {

@@ -4,9 +4,12 @@ import {
   type RegisteredResourceNodeInput,
   type ResourceNodeRegistry,
   type RuntimeLessonNodeInput,
+  type TextbookResourceNodeInput,
+  type TextbookSectionResourceNodeInput,
   type TeachingResourceNodeInput,
 } from './resource-node-registry';
 import type { RuntimeLessonResourceCatalogEntry } from './course-runtime';
+import type { TextbookRuntimeResourceCatalogEntry } from './textbook-runtime-resources';
 
 interface ResourceWithKnowledgeNodes {
   id: string;
@@ -31,10 +34,16 @@ export function buildResourceNodeRegistryFromTeachingResources(
   resources: readonly ResourceWithKnowledgeNodes[],
   registeredResources: readonly RegisteredResourceNodeInput[] = [],
   runtimeLessons: readonly RuntimeLessonResourceCatalogEntry[] = [],
+  runtimeTextbooks: readonly TextbookRuntimeResourceCatalogEntry[] = [],
 ): ResourceNodeRegistry {
   const knowledgeNodesById = new Map<string, KnowledgeNodeResourceInput>();
+  const registeredResourceById = new Map(registeredResources.map((resource) => [resource.id, resource]));
 
   const teachingResources: TeachingResourceNodeInput[] = resources.map((resource) => {
+    const registeredResource = resource.registryId
+      ? registeredResourceById.get(resource.registryId)
+      : undefined;
+    const dbKnowledgeNodeIds = (resource.knowledgeNodes ?? []).map((node) => node.id);
     for (const node of resource.knowledgeNodes ?? []) {
       knowledgeNodesById.set(node.id, {
         id: node.id,
@@ -54,8 +63,10 @@ export function buildResourceNodeRegistryFromTeachingResources(
       content: resource.content,
       category: resource.category,
       teacherOnly: resource.teacherOnly,
-      knowledgeNodeIds: (resource.knowledgeNodes ?? []).map((node) => node.id),
-      config: asRecord(resource.config),
+      knowledgeNodeIds: dbKnowledgeNodeIds.length > 0
+        ? dbKnowledgeNodeIds
+        : registeredResource?.knowledgeNodeIds ?? [],
+      config: mergeRegisteredPlanningOverride(asRecord(resource.config), registeredResource),
     };
   });
 
@@ -64,6 +75,8 @@ export function buildResourceNodeRegistryFromTeachingResources(
     registeredResources: [...registeredResources],
     knowledgeNodes: Array.from(knowledgeNodesById.values()),
     runtimeLessons: runtimeLessons.map(toRuntimeLessonNodeInput),
+    textbooks: runtimeTextbooks.map((entry) => entry.textbook),
+    textbookSections: runtimeTextbooks.flatMap(toTextbookSectionNodeInputs),
   });
 }
 
@@ -98,4 +111,28 @@ function toRuntimeLessonNodeInput(entry: RuntimeLessonResourceCatalogEntry): Run
 
 function uniqueSorted(values: string[]): string[] {
   return Array.from(new Set(values.filter(Boolean))).sort((left, right) => left.localeCompare(right));
+}
+
+function mergeRegisteredPlanningOverride(
+  config: Record<string, unknown>,
+  registeredResource: RegisteredResourceNodeInput | undefined,
+): Record<string, unknown> {
+  if (!registeredResource?.planningOverride) return config;
+  const existingPlanning = asRecord(config.resourceNodePlanning);
+  return {
+    ...config,
+    resourceNodePlanning: {
+      ...registeredResource.planningOverride,
+      ...existingPlanning,
+    },
+  };
+}
+
+function toTextbookSectionNodeInputs(
+  entry: TextbookRuntimeResourceCatalogEntry,
+): Array<TextbookSectionResourceNodeInput & { bookId: TextbookResourceNodeInput['bookId'] }> {
+  return entry.sections.map((section) => ({
+    ...section,
+    bookId: entry.textbook.bookId,
+  }));
 }

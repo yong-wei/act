@@ -2328,6 +2328,128 @@ describe('konling agent runtime', () => {
     });
   });
 
+  it('builds Konling content citations from real textbook runtime search documents', async () => {
+    const runtime = await buildKonlingRuntimeContext({}, {
+      authenticatedUserId: 'student-1',
+      authenticatedUserName: '张三',
+      role: 'STUDENT',
+      courseId: 'control-correction',
+      pageId: 'student-path-center',
+      trustedContentContext: true,
+    });
+
+    const textbookCitations = runtime.citationContext?.contentCitations.filter((citation) =>
+      citation.id.startsWith('content:textbook-section:dorf-modern-control-systems:')
+    ) ?? [];
+    const textbookText = textbookCitations.find((citation) =>
+      citation.evidenceBasis === 'textbook-section' &&
+      citation.citationChip?.citationAddress?.kind === 'text'
+    );
+    const textbookFigure = textbookCitations.find((citation) =>
+      citation.evidenceBasis === 'textbook-figure-description' &&
+      citation.citationChip?.citationAddress?.kind === 'image'
+    );
+
+    expect(textbookText).toMatchObject({
+      sourceType: 'content',
+      href: expect.stringContaining('/course-runtime/resources/textbooks/dorf-modern-control-systems/'),
+      confidence: 'high',
+      owner: 'answer',
+      citationChip: expect.objectContaining({
+        sourceType: 'course-content',
+        authorityLevel: 'canonical',
+        privacyVisibility: 'public',
+      }),
+    });
+    expect(textbookFigure).toMatchObject({
+      sourceType: 'content',
+      href: expect.stringContaining('/course-runtime/resources/textbooks/dorf-modern-control-systems/'),
+      confidence: 'high',
+      owner: 'answer',
+      citationChip: expect.objectContaining({
+        addressKind: 'image',
+      }),
+    });
+    expect(textbookCitations.every((citation) => !citation.id.includes('content:textbook:dorf-modern-control-systems:')))
+      .toBe(true);
+  });
+
+  it('verifies Konling answers against textbook, figure, video timestamp, and slides citations', () => {
+    const citationContext = {
+      required: true,
+      contentCitations: [
+        {
+          id: 'content:textbook-section:dorf-modern-control-systems:ch10-sec01',
+          sourceType: 'content',
+          displayTitle: 'Modern Control Systems 第 10 章 10.1 节',
+          href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md#chunk-001',
+          confidence: 'high',
+          evidenceBasis: 'textbook-section',
+          owner: 'answer',
+        },
+        {
+          id: 'content:textbook-figure:fig-10-03',
+          sourceType: 'content',
+          displayTitle: '图 10-3 根轨迹校正示意',
+          href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md#fig-10-03',
+          confidence: 'high',
+          evidenceBasis: 'textbook-figure-description',
+          owner: 'answer',
+        },
+        {
+          id: 'content:runtime-video:unit-4-1:180',
+          sourceType: 'content',
+          displayTitle: '超前校正视频 03:00',
+          href: '/interactive-learning/courses/unit-4-1/student/demo?media=lead-correction-video&t=180',
+          confidence: 'high',
+          evidenceBasis: 'video-transcript-timestamp',
+          owner: 'answer',
+        },
+        {
+          id: 'content:slides:unit-4-1:p12',
+          sourceType: 'content',
+          displayTitle: '控制校正课件第 12 页',
+          href: '/course-runtime/lessons/unit-4-1/slides.pdf#page=12',
+          confidence: 'high',
+          evidenceBasis: 'slides-page-anchor',
+          owner: 'answer',
+        },
+      ],
+      evidenceCitations: [],
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      responseProtocol: {
+        requiredOwners: ['answer'],
+        minimum: { content: 1, evidenceWhenAvailable: 0 },
+        fallbackWhenMissing: 'low-confidence',
+      },
+    } satisfies KonlingCitationContext;
+
+    const verified = buildKonlingCitationGuard({ citationContext }, [
+      '引用 content / Modern Control Systems 第 10 章 10.1 节 / high / textbook-section / /course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md#chunk-001。',
+      '引用 content / 图 10-3 根轨迹校正示意 / high / textbook-figure-description / /course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md#fig-10-03。',
+      '引用 content / 超前校正视频 03:00 / high / video-transcript-timestamp / /interactive-learning/courses/unit-4-1/student/demo?media=lead-correction-video&t=180。',
+      '引用 content / 控制校正课件第 12 页 / high / slides-page-anchor / /course-runtime/lessons/unit-4-1/slides.pdf#page=12。',
+    ].join('\n'));
+    const videoOnlyCitationContext = {
+      ...citationContext,
+      contentCitations: [citationContext.contentCitations[2]],
+    } satisfies KonlingCitationContext;
+    const missingVideoHref = buildKonlingCitationGuard({ citationContext: videoOnlyCitationContext }, [
+      '引用 content / 超前校正视频 03:00 / high / video-transcript-timestamp。',
+    ].join('\n'));
+
+    expect(verified).toMatchObject({
+      status: 'verified',
+      fallbackRequired: false,
+    });
+    expect(missingVideoHref).toMatchObject({
+      status: 'low-confidence',
+      fallbackRequired: true,
+      lowConfidenceReasons: ['assistant-citations-missing'],
+    });
+  });
+
   it('marks streaming citation guard as low-confidence until final assistant text is verified', () => {
     const guard = buildKonlingStreamingCitationGuard({
       citationContext: {

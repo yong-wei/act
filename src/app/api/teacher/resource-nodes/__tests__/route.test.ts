@@ -4,10 +4,12 @@ const mocks = vi.hoisted(() => {
   const getServerSession = vi.fn();
   const teachingResourceFindMany = vi.fn();
   const loadAllLessonRuntimeResourceCatalogEntries = vi.fn();
+  const loadAllTextbookRuntimeResourceCatalogEntries = vi.fn();
 
   return {
     getServerSession,
     loadAllLessonRuntimeResourceCatalogEntries,
+    loadAllTextbookRuntimeResourceCatalogEntries,
     prisma: {
       teachingResource: {
         findMany: teachingResourceFindMany,
@@ -30,6 +32,10 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('@/lib/course-runtime', () => ({
   loadAllLessonRuntimeResourceCatalogEntries: mocks.loadAllLessonRuntimeResourceCatalogEntries,
+}));
+
+vi.mock('@/lib/textbook-runtime-resources', () => ({
+  loadAllTextbookRuntimeResourceCatalogEntries: mocks.loadAllTextbookRuntimeResourceCatalogEntries,
 }));
 
 vi.mock('@/lib/resource-registry-metadata', () => ({
@@ -80,6 +86,7 @@ describe('GET /api/teacher/resource-nodes', () => {
     });
     mocks.prisma.teachingResource.findMany.mockResolvedValue([ownedResource]);
     mocks.loadAllLessonRuntimeResourceCatalogEntries.mockResolvedValue([]);
+    mocks.loadAllTextbookRuntimeResourceCatalogEntries.mockResolvedValue([]);
   });
 
   it('rejects non-teacher users', async () => {
@@ -134,6 +141,36 @@ describe('GET /api/teacher/resource-nodes', () => {
         id: 'registry:registered-quiz',
         title: '注册后测组件',
         editable: false,
+      }),
+    ]);
+  });
+
+  it('uses registered resource semantics when a DB TeachingResource has no direct knowledge mapping', async () => {
+    mocks.prisma.teachingResource.findMany.mockResolvedValue([{
+      ...ownedResource,
+      id: 'owned-registry-quiz',
+      title: '资源库后测实例',
+      registryId: 'registered-quiz',
+      knowledgeNodes: [],
+      config: {},
+    }]);
+
+    const response = await GET(
+      new Request('http://localhost/api/teacher/resource-nodes?q=资源库后测实例')
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.nodes).toEqual([
+      expect.objectContaining({
+        id: 'teaching-resource:owned-registry-quiz',
+        knowledgeCoverage: ['kn-bode'],
+        pathEligible: true,
+        audit: expect.objectContaining({
+          knowledgeCoveragePresent: true,
+          capabilityMappingPresent: true,
+          evidenceCapabilityConfigured: true,
+        }),
       }),
     ]);
   });
@@ -202,6 +239,68 @@ describe('GET /api/teacher/resource-nodes', () => {
         type: 'video',
         editable: false,
         renderTarget: null,
+      }),
+    ]));
+  });
+
+  it('includes runtime textbook containers and sections as read-only resource nodes', async () => {
+    mocks.loadAllTextbookRuntimeResourceCatalogEntries.mockResolvedValue([
+      {
+        textbook: {
+          bookId: 'dorf-modern-control-systems',
+          title: 'Modern Control Systems',
+          sourceHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems',
+        },
+        sections: [
+          {
+            bookId: 'dorf-modern-control-systems',
+            sectionId: 'ch10-sec01',
+            title: '根轨迹校正设计',
+            citationHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md',
+            knowledgeNodeIds: ['kn-bode'],
+            capabilityTargetIds: ['parameterDesign'],
+            estimatedTimeMinutes: 18,
+          },
+          {
+            bookId: 'dorf-modern-control-systems',
+            sectionId: 'ch01-preview-001',
+            title: 'Preview',
+            citationHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch01-preview-001.md',
+            knowledgeNodeIds: [],
+            capabilityTargetIds: [],
+            estimatedTimeMinutes: 2,
+            planningOverride: {
+              teacherPolicy: 'blocked',
+              terminalConstraints: ['textbook-section-not-path-eligible'],
+            },
+          },
+        ],
+      },
+    ]);
+
+    const response = await GET(
+      new Request('http://localhost/api/teacher/resource-nodes?courseModule=dorf-modern-control-systems')
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'textbook:dorf-modern-control-systems',
+        type: 'textbook',
+        editable: false,
+        pathEligible: false,
+      }),
+      expect.objectContaining({
+        id: 'textbook-section:dorf-modern-control-systems:ch10-sec01',
+        type: 'textbook_section',
+        editable: false,
+        pathEligible: true,
+        renderTarget: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md',
+      }),
+      expect.objectContaining({
+        id: 'textbook-section:dorf-modern-control-systems:ch01-preview-001',
+        pathEligible: false,
       }),
     ]));
   });

@@ -652,6 +652,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     displayName: '控制系统校正设计',
     allowedResourceMix: [
       'knowledge_card',
+      'textbook_section',
       'quiz',
       'adaptive_quiz',
       'control_workbench',
@@ -668,7 +669,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       minOptions: 2,
       difficultyRhythm: 'steady',
       allowExternalResources: false,
-      preferredResourceTypes: ['knowledge_card', 'control_workbench', 'simulation', 'arena_task'],
+      preferredResourceTypes: ['knowledge_card', 'textbook_section', 'control_workbench', 'simulation', 'arena_task'],
     },
     checkpointPolicy: {
       minCheckpoints: 1,
@@ -692,6 +693,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     displayName: '频率响应基础',
     allowedResourceMix: [
       'knowledge_card',
+      'textbook_section',
       'simulation',
       'quiz',
       'adaptive_quiz',
@@ -708,7 +710,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       minOptions: 2,
       difficultyRhythm: 'gentle',
       allowExternalResources: false,
-      preferredResourceTypes: ['knowledge_card', 'simulation', 'quiz', 'adaptive_quiz'],
+      preferredResourceTypes: ['knowledge_card', 'textbook_section', 'simulation', 'quiz', 'adaptive_quiz'],
     },
     checkpointPolicy: {
       minCheckpoints: 1,
@@ -1289,6 +1291,7 @@ function policyScoreBoost(
   const estimatedMinutes = planningUnit.estimatedTimeMinutes;
   if (policyFamily === 'foundation-remediation') {
     const conceptBoost = node.type === 'knowledge_card' ||
+      node.type === 'textbook_section' ||
       node.type === 'lesson_step' ||
       node.type === 'quiz' ||
       node.type === 'handout'
@@ -2389,10 +2392,11 @@ function selectPolicySupportNodes(
   if (policyFamily === 'foundation-remediation') {
     const typeRank = new Map<ResourceNode['type'], number>([
       ['knowledge_card', 0],
-      ['handout', 1],
-      ['slides', 2],
-      ['lesson_step', 3],
-      ['quiz', 4],
+      ['textbook_section', 1],
+      ['handout', 2],
+      ['slides', 3],
+      ['lesson_step', 4],
+      ['quiz', 5],
     ]);
     addCandidates(input.registry.nodes
       .filter((node) => typeRank.has(node.type))

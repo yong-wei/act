@@ -10,6 +10,7 @@ import {
 } from '../adaptive-learning-path-planner';
 import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
 import { buildResourceNodeRegistry, buildResourceSemanticProjection } from '../resource-node-registry';
+import { getAllRegisteredResourceMetadata } from '../resource-registry-metadata';
 
 function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {}): AdaptiveLearningPathPlannerInput {
   const registry = buildResourceNodeRegistry({
@@ -382,6 +383,67 @@ describe('adaptive learning path planner', () => {
         evidenceBehavior: projection.planningUnit!.pathSemantics.evidenceBehavior,
       }),
     ]));
+  });
+
+  it('can select textbook sections as foundation-remediation path resources', () => {
+    const registry = buildResourceNodeRegistry({
+      knowledgeCards: [{
+        id: 'kn-bode-card',
+        title: '伯德图知识卡',
+        sourceRef: 'kn-bode:card',
+        renderTarget: '/knowledge/cards/kn-bode',
+        knowledgeNodeIds: ['kn-bode'],
+      }],
+      textbookSections: [{
+        bookId: 'dorf-modern-control-systems',
+        sectionId: 'ch10-sec01',
+        title: 'Modern Control Systems 根轨迹校正节',
+        citationHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md',
+        knowledgeNodeIds: ['kn-bode'],
+        capabilityTargetIds: ['controlModeling'],
+        estimatedTimeMinutes: 9,
+      }],
+    });
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
+      registry,
+      policyFamily: 'foundation-remediation',
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-bode': { posteriorMastery: 0.18, confidence: 0.7, evidenceCount: 2 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            controlModeling: { score: 0.25, confidence: 0.6, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.6,
+            evidenceCount: 3,
+            sourceCompleteness: 0.6,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
+    expect(plan.mainPath).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        nodeId: 'textbook-section:dorf-modern-control-systems:ch10-sec01',
+        type: 'textbook_section',
+        pathNodeType: 'textbook_section',
+        evidenceBehavior: 'explicit_access',
+        target: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md',
+      }),
+    ]));
+    expect(JSON.stringify(plan)).not.toContain('retrieval-chunk:');
   });
 
   it('uses server time instead of client requestedAt for authoritative path timestamps', () => {
@@ -1080,6 +1142,62 @@ describe('adaptive learning path planner', () => {
     expect(mainIds.at(-1)).toBe('arena-task:task-second-order-lead-pid');
     expect(plan.mainPath.at(-1)?.terminalConstraints).toContain('terminal-validation');
     expect(mainIds).not.toContain('registry:control-correction-invalid-quiz');
+  });
+
+  it('generates a control-correction terminal validation path from central registered resources', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: getAllRegisteredResourceMetadata(),
+    });
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.3, confidence: 0.7, evidenceCount: 2 },
+            'control-correction:root-locus-design': { posteriorMastery: 0.25, confidence: 0.65, evidenceCount: 2 },
+            'control-correction:simulation-validation': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+            'control-correction:arena-transfer': { posteriorMastery: 0.1, confidence: 0.5, evidenceCount: 0 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            parameterDesign: { score: 0.35, confidence: 0.7, evidenceCount: 4 },
+            engineeringDecision: { score: 0.42, confidence: 0.6, evidenceCount: 3 },
+            crossDomainTransfer: { score: 0.28, confidence: 0.5, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.68,
+            evidenceCount: 8,
+            sourceCompleteness: 0.7,
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+            ArenaSubmission: 'partial',
+          },
+        },
+      },
+    }));
+
+    expect(plan.explanations.fallbackReasons).not.toContain('terminal-validation-resource-missing');
+    expect(plan.mainPath.at(-1)).toMatchObject({
+      type: 'arena_task',
+      target: '/arena/challenges/task-second-order-lead-pid',
+      terminalConstraints: expect.arrayContaining(['terminal-validation']),
+    });
+    expect(plan.mainPath.at(-1)?.target).not.toBe('/interactive-learning/resources/arena-challenge-workbench');
+    expect(plan.mainPath.map((node) => node.nodeId)).toEqual(expect.arrayContaining([
+      'registry:arena-challenge-workbench',
+    ]));
   });
 
   it('falls back when a control-correction path lacks terminal validation evidence', () => {

@@ -10,6 +10,7 @@ import {
   verifyLearningEvidenceCitations,
   type LearningEvidenceCorpusChunk,
 } from '../learning-evidence-rag-corpus';
+import { loadAllTextbookRuntimeSearchDocuments } from '../../textbook-runtime-resources';
 
 function chunk(overrides: Partial<LearningEvidenceCorpusChunk> = {}): LearningEvidenceCorpusChunk {
   return {
@@ -291,6 +292,210 @@ describe('learning evidence RAG corpus contract', () => {
       useCase: 'konling',
     }, { tags: ['terminal-validation'] });
     expect(missingClassScopeResults).toEqual([]);
+  });
+
+  it('verifies real textbook citations and media citation fixtures with precise anchors for Konling answers', async () => {
+    const textbookDocuments = await loadAllTextbookRuntimeSearchDocuments();
+    const textbookChunk = textbookDocuments.find((document) => document.kind === 'chunk');
+    const textbookFigure = textbookDocuments.find((document) => document.kind === 'figure');
+    expect(textbookChunk).toBeDefined();
+    expect(textbookFigure).toBeDefined();
+
+    const textbookAndMedia = [
+      chunk({
+        id: textbookChunk?.id,
+        family: 'course-content',
+        sourceType: 'course-content',
+        sourceRef: {
+          id: textbookChunk?.id,
+          goalId: 'root-locus-correction',
+          resourceId: textbookChunk?.resourceProjection.resourceId,
+        },
+        spanRef: { kind: 'text-range', start: 0, end: textbookChunk?.text?.length ?? 0, locator: textbookChunk?.citationAddress?.locator },
+        display: {
+          title: textbookChunk?.title ?? 'Modern Control Systems 教材段落',
+          href: textbookChunk?.href ?? null,
+          capsule: textbookChunk?.text?.slice(0, 120) ?? 'Modern Control Systems 教材段落。',
+        },
+        citationAddress: textbookChunk?.citationAddress,
+        content: {
+          text: textbookChunk?.text ?? null,
+          redactedSummary: textbookChunk?.text?.slice(0, 160) ?? null,
+          hash: textbookChunk?.contentHash ?? 'hash-textbook-section',
+        },
+        resourceProjection: textbookChunk?.resourceProjection,
+        retrieval: {
+          tags: ['textbook-section'],
+          goals: ['root-locus-correction'],
+          useCases: ['konling', 'recommendation'],
+        },
+      }),
+      chunk({
+        id: textbookFigure?.id,
+        family: 'course-content',
+        sourceType: 'course-content',
+        sourceRef: {
+          id: textbookFigure?.id,
+          goalId: 'root-locus-correction',
+          resourceId: textbookFigure?.resourceProjection.resourceId,
+        },
+        spanRef: { kind: 'node', locator: textbookFigure?.citationAddress?.locator },
+        display: {
+          title: textbookFigure?.title ?? 'Modern Control Systems 教材图片',
+          href: textbookFigure?.href ?? null,
+          capsule: textbookFigure?.text?.slice(0, 120) ?? 'Modern Control Systems 教材图片描述。',
+        },
+        citationAddress: textbookFigure?.citationAddress,
+        content: {
+          text: textbookFigure?.text ?? null,
+          redactedSummary: textbookFigure?.text?.slice(0, 160) ?? null,
+          hash: textbookFigure?.contentHash ?? 'hash-figure-description',
+        },
+        resourceProjection: textbookFigure?.resourceProjection,
+        retrieval: {
+          tags: ['figure-description'],
+          goals: ['root-locus-correction'],
+          useCases: ['konling'],
+        },
+      }),
+      chunk({
+        id: 'chunk-video-transcript',
+        family: 'course-content',
+        sourceType: 'course-content',
+        sourceRef: {
+          id: 'unit-4-1:lead-correction-video:ts-180',
+          goalId: 'root-locus-correction',
+          resourceId: 'runtime-media:unit-4-1:lead-correction-video',
+        },
+        spanRef: { kind: 'text-range', start: 180, end: 222, locator: '00:03:00-00:03:42' },
+        display: {
+          title: '超前校正视频 03:00',
+          href: '/interactive-learning/courses/unit-4-1/student/demo?media=lead-correction-video&t=180',
+          capsule: '教师在 03:00 说明超前校正会提高相位裕度。',
+        },
+        citationAddress: {
+          kind: 'video',
+          sourceRefId: 'unit-4-1:lead-correction-video:ts-180',
+          href: '/interactive-learning/courses/unit-4-1/student/demo?media=lead-correction-video&t=180',
+          locator: '00:03:00-00:03:42',
+          mediaStartSeconds: 180,
+          mediaEndSeconds: 222,
+        },
+        content: {
+          text: '教师在 03:00 说明超前校正会提高相位裕度。',
+          redactedSummary: '超前校正视频时间点。',
+          hash: 'hash-video-ts-180',
+        },
+        resourceProjection: {
+          resourceId: 'runtime-media:unit-4-1:lead-correction-video',
+          segmentRef: 'transcript:00:03:00-00:03:42',
+          citationTargetRef: 'citation:runtime-media:unit-4-1:lead-correction-video:180',
+          knowledgeNodeRefs: ['kn-phase-margin'],
+          capabilityTargetRefs: ['parameterDesign'],
+          mediaTimeRange: { startSeconds: 180, endSeconds: 222 },
+          contentHash: 'hash-video-ts-180',
+        },
+        retrieval: {
+          tags: ['phase-margin', 'video-transcript'],
+          goals: ['root-locus-correction'],
+          useCases: ['konling'],
+        },
+      }),
+      chunk({
+        id: 'chunk-slides-anchor',
+        family: 'runtime-handout',
+        sourceType: 'runtime-handout',
+        sourceRef: {
+          id: 'unit-4-1:slides:p12',
+          goalId: 'root-locus-correction',
+          resourceId: 'runtime-media:unit-4-1:slides',
+        },
+        spanRef: { kind: 'node', locator: 'slides#p12' },
+        display: {
+          title: '控制校正课件第 12 页',
+          href: '/course-runtime/lessons/unit-4-1/slides.pdf#page=12',
+          capsule: '第 12 页给出相位裕度与截止频率的设计取舍。',
+        },
+        citationAddress: {
+          kind: 'slides',
+          sourceRefId: 'unit-4-1:slides:p12',
+          href: '/course-runtime/lessons/unit-4-1/slides.pdf#page=12',
+          locator: 'slides#p12',
+        },
+        content: {
+          text: '第 12 页给出相位裕度与截止频率的设计取舍。',
+          redactedSummary: '控制校正课件页锚。',
+          hash: 'hash-slides-p12',
+        },
+        resourceProjection: {
+          resourceId: 'runtime-media:unit-4-1:slides',
+          segmentRef: 'slides#p12',
+          citationTargetRef: 'citation:runtime-media:unit-4-1:slides:p12',
+          knowledgeNodeRefs: ['kn-phase-margin'],
+          capabilityTargetRefs: ['engineeringDecision'],
+          contentHash: 'hash-slides-p12',
+        },
+        retrieval: {
+          tags: ['phase-margin', 'slides'],
+          goals: ['root-locus-correction'],
+          useCases: ['konling', 'recommendation'],
+        },
+      }),
+    ];
+
+    const scope = {
+      role: 'student' as const,
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      goalId: 'root-locus-correction',
+      useCase: 'konling' as const,
+    };
+    const retrieved = retrieveLearningEvidenceCorpus(textbookAndMedia, scope, {
+      tags: ['textbook-section', 'figure-description', 'video-transcript', 'slides'],
+      knowledgeNodeRefs: [
+        ...(textbookChunk?.resourceProjection.knowledgeNodeRefs ?? []),
+        ...(textbookFigure?.resourceProjection.knowledgeNodeRefs ?? []),
+        'kn-phase-margin',
+      ],
+      capabilityTargetRefs: [
+        ...(textbookChunk?.resourceProjection.capabilityTargetRefs ?? []),
+        ...(textbookFigure?.resourceProjection.capabilityTargetRefs ?? []),
+        'parameterDesign',
+      ],
+      limit: 8,
+    });
+    const verification = verifyLearningEvidenceCitations(textbookAndMedia, scope, retrieved.map((item) => ({
+      chunkId: item.id,
+      sourceType: item.sourceType,
+      useCase: 'konling',
+      addressKind: item.citationAddress?.kind,
+      spanRef: item.spanRef,
+    })));
+
+    expect(retrieved.map((item) => item.id)).toEqual(expect.arrayContaining([
+      textbookChunk?.id,
+      textbookFigure?.id,
+      'chunk-video-transcript',
+      'chunk-slides-anchor',
+    ]));
+    expect(textbookChunk?.resourceProjection.resourceId).toMatch(/^textbook-section:dorf-modern-control-systems:/);
+    expect(textbookFigure?.resourceProjection.resourceId).toMatch(/^textbook-section:dorf-modern-control-systems:/);
+    expect(textbookChunk?.href).toContain('/course-runtime/resources/textbooks/dorf-modern-control-systems/');
+    expect(textbookFigure?.href).toContain('/course-runtime/resources/textbooks/dorf-modern-control-systems/');
+    expect(verification.status).toBe('verified');
+    expect(verification.limitations).toEqual([]);
+    expect(new Set(verification.verifiedRefs.map((ref) => ref.addressKind))).toEqual(new Set([
+      'text',
+      'image',
+      'video',
+      'slides',
+    ]));
+    expect(verification.verifiedRefs.find((ref) => ref.chunkId === 'chunk-video-transcript')?.citationAddress)
+      .toMatchObject({
+        mediaStartSeconds: 180,
+        mediaEndSeconds: 222,
+      });
+    expect(verification.verifiedRefs.every((ref) => ref.displayHref?.startsWith('/'))).toBe(true);
   });
 
   it('ranks by authority, freshness, scope, use case, and query match before raw confidence', () => {
