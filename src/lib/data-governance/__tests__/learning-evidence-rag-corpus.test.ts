@@ -848,6 +848,88 @@ describe('learning evidence RAG corpus contract', () => {
     expect(recommendationResults.find((item) => item.id === 'recommendation-learner-evidence')?.content.text).toBeNull();
   });
 
+  it('keeps one authorized learner evidence candidate inside the recommendation limit', () => {
+    const canonicalMatches = Array.from({ length: 8 }, (_, index) => chunk({
+      id: `canonical-resource-${index + 1}`,
+      display: {
+        title: `稳态误差讲义片段 ${index + 1}`,
+        href: `/unit#canonical-${index + 1}`,
+        capsule: '稳态误差 推荐复习资料。',
+      },
+      content: {
+        text: '稳态误差 推荐复习资料。',
+        redactedSummary: '稳态误差资料。',
+        hash: `hash-canonical-${index + 1}`,
+      },
+      retrieval: { tags: ['steady-state-error'], goals: ['control-correction'], useCases: ['recommendation'] },
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-4-1',
+        segmentRef: `concept#steady-state-error-${index + 1}`,
+        citationTargetRef: `handout#canonical-${index + 1}`,
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: `hash-canonical-${index + 1}`,
+      },
+    }));
+    const learnerEvidence = chunk({
+      id: 'limited-recommendation-learner-evidence',
+      family: 'path-evidence',
+      sourceType: 'path-summary',
+      sourceRef: { id: 'path-limited-recommendation', ownerUserId: 'student-1', classId: 'class-1', goalId: 'control-correction' },
+      spanRef: { kind: 'record', locator: 'terminalValidation' },
+      display: { title: '个人稳态误差证据', href: '/learning-paths/path-limited-recommendation', capsule: '个人终端验证显示仍需复习。' },
+      content: { text: '学生在稳态误差终端验证中仍需复习。', redactedSummary: '稳态误差终端验证仍需复习。', hash: 'hash-limited-recommendation-learner' },
+      privacyClass: 'student-visible',
+      confidence: 'high',
+      authority: {
+        level: 'learner-evidence',
+        knowledgeTags: [],
+        pageAnchor: 'terminalValidation',
+        freshnessBucket: 'current',
+        scopeRule: {
+          visibility: 'student-visible',
+          allowedRoles: ['student', 'teacher', 'admin', 'service'],
+          ownerRequired: true,
+          classRequired: true,
+        },
+        conflictGroup: null,
+        conflictSignal: null,
+      },
+      retrieval: { tags: ['steady-state-error'], goals: ['control-correction'], useCases: ['recommendation'] },
+      resourceProjection: {
+        resourceId: 'learner-path/path-limited-recommendation',
+        segmentRef: 'terminalValidation',
+        citationTargetRef: 'terminalValidation',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: 'hash-limited-recommendation-learner',
+      },
+    });
+
+    const results = retrieveLearningEvidenceCorpus([...canonicalMatches, learnerEvidence], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'recommendation',
+    }, {
+      text: '稳态误差',
+      tags: ['steady-state-error'],
+      knowledgeNodeRefs: ['knowledge:steady-state-error'],
+      capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+      limit: 8,
+    });
+
+    expect(results).toHaveLength(8);
+    expect(results.map((item) => item.id)).toContain('limited-recommendation-learner-evidence');
+    expect(results.find((item) => item.id === 'limited-recommendation-learner-evidence')?.content.text).toBeNull();
+  });
+
   it('builds authority metadata for every supported corpus source type', () => {
     const cases: Array<Pick<LearningEvidenceCorpusChunk, 'family' | 'sourceType' | 'privacyClass'> & { id: string }> = [
       { id: 'builder-course', family: 'course-content', sourceType: 'course-content', privacyClass: 'public' },

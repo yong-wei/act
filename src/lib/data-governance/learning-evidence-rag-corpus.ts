@@ -372,15 +372,15 @@ export function retrieveLearningEvidenceCorpus(
   const limit = Math.max(1, Math.min(query.limit ?? 8, 25));
   const tags = new Set((query.tags ?? []).map((item) => item.toLowerCase()));
   const text = query.text?.toLowerCase().trim();
-  return chunks
+  const ranked = chunks
     .filter((chunk) => validateLearningEvidenceCorpusChunk(chunk).length === 0)
     .filter((chunk) => matchesRetrievalScope(chunk, scope))
     .filter((chunk) => matchesSemanticOnlyQuery(chunk, query, text, tags))
     .filter((chunk) => tags.size === 0 || chunk.retrieval.tags.some((tag) => tags.has(tag.toLowerCase())))
     .filter((chunk) => !text || visibleSearchText(chunk, scope).includes(text) || isSemanticCandidate(chunk, query) || matchesResourceProjectionQueryContext(chunk, query))
     .filter((chunk) => matchesResourceProjectionContext(chunk, query))
-    .sort((left, right) => rankChunk(right, scope, query) - rankChunk(left, scope, query))
-    .slice(0, limit)
+    .sort((left, right) => rankChunk(right, scope, query) - rankChunk(left, scope, query));
+  return limitRecommendationLearnerEvidence(ranked, scope, limit)
     .map((chunk) => redactChunkForScope(chunk, scope));
 }
 
@@ -889,6 +889,23 @@ function matchesResourceProjectionQueryContext(chunk: LearningEvidenceCorpusChun
   if (!projection) return false;
   return hasAnyReference(projection.knowledgeNodeRefs, query.knowledgeNodeRefs) ||
     hasAnyReference(projection.capabilityTargetRefs, query.capabilityTargetRefs);
+}
+
+function limitRecommendationLearnerEvidence(
+  chunks: LearningEvidenceCorpusChunk[],
+  scope: LearningEvidenceRetrievalScope,
+  limit: number,
+) {
+  const limited = chunks.slice(0, limit);
+  if (scope.useCase !== 'recommendation' || limited.some(isLearnerEvidenceChunk)) return limited;
+  const learnerEvidence = chunks.find(isLearnerEvidenceChunk);
+  if (!learnerEvidence) return limited;
+  if (limited.length < limit) return [...limited, learnerEvidence];
+  return [...limited.slice(0, Math.max(0, limit - 1)), learnerEvidence];
+}
+
+function isLearnerEvidenceChunk(chunk: LearningEvidenceCorpusChunk) {
+  return LEARNER_EVIDENCE_SOURCE_TYPES.has(chunk.sourceType);
 }
 
 function rankChunk(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRetrievalScope, query: LearningEvidenceRetrievalQuery) {
