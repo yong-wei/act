@@ -77,6 +77,20 @@ export interface LearningEvidenceCitationAddress {
   externalUrl?: string | null;
 }
 
+export interface LearningEvidenceResourceProjectionMetadata {
+  resourceId?: string | null;
+  segmentRef: string;
+  citationTargetRef?: string | null;
+  knowledgeNodeRefs: string[];
+  capabilityTargetRefs: string[];
+  mediaTimeRange?: {
+    startSeconds: number;
+    endSeconds?: number | null;
+  } | null;
+  exerciseAnchor?: string | null;
+  contentHash?: string | null;
+}
+
 export type LearningEvidenceCorpusChunkInput =
   Omit<LearningEvidenceCorpusChunk, 'authority'> & {
     authority?: Partial<Omit<LearningEvidenceAuthorityMetadata, 'scopeRule'>> & {
@@ -112,6 +126,7 @@ export interface LearningEvidenceCorpusChunk {
     redactedSummary: string | null;
     hash: string;
   };
+  resourceProjection?: LearningEvidenceResourceProjectionMetadata;
   privacyClass: LearningEvidenceCorpusPrivacyClass;
   confidence: LearningEvidenceConfidence;
   freshness: {
@@ -142,6 +157,9 @@ export interface LearningEvidenceRetrievalScope {
 export interface LearningEvidenceRetrievalQuery {
   text?: string;
   tags?: string[];
+  knowledgeNodeRefs?: string[];
+  capabilityTargetRefs?: string[];
+  semanticScores?: Record<string, number>;
   limit?: number;
 }
 
@@ -285,6 +303,7 @@ const FRESHNESS_BUCKET_SCORE: Record<LearningEvidenceFreshnessBucket, number> = 
   stale: 2,
   expired: 0,
 };
+const MIN_SEMANTIC_ELIGIBILITY_SCORE = 0.2;
 
 export function createLearningEvidenceCorpusChunk(input: LearningEvidenceCorpusChunkInput): LearningEvidenceCorpusChunk {
   const fallback = defaultAuthorityForChunk(input);
@@ -339,6 +358,7 @@ export function validateLearningEvidenceCorpusChunk(chunk: LearningEvidenceCorpu
     sourceType && retrievalUseCases?.every((useCase) => isUseCaseSourceCompatible(useCase, sourceType)) ? null : 'source-use-case-mismatch',
     family && sourceType && LEARNING_EVIDENCE_CORPUS_FAMILY_SOURCE_TYPES[family]?.includes(sourceType) ? null : 'family-source-type-mismatch',
     record.citationAddress === undefined || isCitationAddress(record.citationAddress) ? null : 'invalid-citation-address',
+    record.resourceProjection === undefined || isResourceProjectionMetadata(record.resourceProjection) ? null : 'invalid-resource-projection',
   ];
   if (!content.text && !content.redactedSummary) errors.push('missing-retrievable-text');
   return errors.filter((item): item is string => Boolean(item));
@@ -352,13 +372,15 @@ export function retrieveLearningEvidenceCorpus(
   const limit = Math.max(1, Math.min(query.limit ?? 8, 25));
   const tags = new Set((query.tags ?? []).map((item) => item.toLowerCase()));
   const text = query.text?.toLowerCase().trim();
-  return chunks
+  const ranked = chunks
     .filter((chunk) => validateLearningEvidenceCorpusChunk(chunk).length === 0)
     .filter((chunk) => matchesRetrievalScope(chunk, scope))
+    .filter((chunk) => matchesSemanticOnlyQuery(chunk, query, text, tags))
     .filter((chunk) => tags.size === 0 || chunk.retrieval.tags.some((tag) => tags.has(tag.toLowerCase())))
-    .filter((chunk) => !text || visibleSearchText(chunk, scope).includes(text))
-    .sort((left, right) => rankChunk(right, scope, query) - rankChunk(left, scope, query))
-    .slice(0, limit)
+    .filter((chunk) => !text || visibleSearchText(chunk, scope).includes(text) || isSemanticCandidate(chunk, query) || matchesResourceProjectionQueryContext(chunk, query))
+    .filter((chunk) => matchesResourceProjectionContext(chunk, query))
+    .sort((left, right) => rankChunk(right, scope, query) - rankChunk(left, scope, query));
+  return limitRecommendationLearnerEvidence(ranked, scope, limit)
     .map((chunk) => redactChunkForScope(chunk, scope));
 }
 
@@ -836,6 +858,56 @@ function visibleSearchText(chunk: LearningEvidenceCorpusChunk, scope: LearningEv
   ].filter(Boolean).join(' ').toLowerCase();
 }
 
+function matchesSemanticOnlyQuery(
+  chunk: LearningEvidenceCorpusChunk,
+  query: LearningEvidenceRetrievalQuery,
+  text: string | undefined,
+  tags: Set<string>,
+) {
+  const hasSemanticScores = Boolean(query.semanticScores && Object.keys(query.semanticScores).length > 0);
+  const hasLexicalOrContext = Boolean(text) ||
+    tags.size > 0 ||
+    Boolean(query.knowledgeNodeRefs?.length) ||
+    Boolean(query.capabilityTargetRefs?.length);
+  if (!hasSemanticScores || hasLexicalOrContext) return true;
+  return isSemanticCandidate(chunk, query);
+}
+
+function matchesResourceProjectionContext(chunk: LearningEvidenceCorpusChunk, query: LearningEvidenceRetrievalQuery) {
+  const projection = chunk.resourceProjection;
+  const hasKnowledgeQuery = Boolean(query.knowledgeNodeRefs?.length);
+  const hasCapabilityQuery = Boolean(query.capabilityTargetRefs?.length);
+  if (!hasKnowledgeQuery && !hasCapabilityQuery) return true;
+  if (!projection) return true;
+  if (hasKnowledgeQuery && hasAnyReference(projection.knowledgeNodeRefs, query.knowledgeNodeRefs)) return true;
+  if (hasCapabilityQuery && hasAnyReference(projection.capabilityTargetRefs, query.capabilityTargetRefs)) return true;
+  return false;
+}
+
+function matchesResourceProjectionQueryContext(chunk: LearningEvidenceCorpusChunk, query: LearningEvidenceRetrievalQuery) {
+  const projection = chunk.resourceProjection;
+  if (!projection) return false;
+  return hasAnyReference(projection.knowledgeNodeRefs, query.knowledgeNodeRefs) ||
+    hasAnyReference(projection.capabilityTargetRefs, query.capabilityTargetRefs);
+}
+
+function limitRecommendationLearnerEvidence(
+  chunks: LearningEvidenceCorpusChunk[],
+  scope: LearningEvidenceRetrievalScope,
+  limit: number,
+) {
+  const limited = chunks.slice(0, limit);
+  if (scope.useCase !== 'recommendation' || limited.some(isLearnerEvidenceChunk)) return limited;
+  const learnerEvidence = chunks.find(isLearnerEvidenceChunk);
+  if (!learnerEvidence) return limited;
+  if (limited.length < limit) return [...limited, learnerEvidence];
+  return [...limited.slice(0, Math.max(0, limit - 1)), learnerEvidence];
+}
+
+function isLearnerEvidenceChunk(chunk: LearningEvidenceCorpusChunk) {
+  return LEARNER_EVIDENCE_SOURCE_TYPES.has(chunk.sourceType);
+}
+
 function rankChunk(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRetrievalScope, query: LearningEvidenceRetrievalQuery) {
   const text = query.text?.toLowerCase().trim();
   const confidence = { high: 4, medium: 3, low: 2, none: 1 }[chunk.confidence];
@@ -846,8 +918,25 @@ function rankChunk(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRe
     chunk.sourceRef.goalId && chunk.sourceRef.goalId === scope.goalId ? 1 : 0,
   ].reduce((sum, item) => sum + item, 0);
   const useCase = scope.useCase && chunk.retrieval.useCases.includes(scope.useCase) ? 3 : 0;
-  const queryMatch = text && visibleSearchText(chunk, scope).includes(text) ? 2 : 0;
-  return AUTHORITY_SCORE[chunk.authority.level] + confidence * 4 + freshness + scopeSpecificity + useCase + queryMatch;
+  const queryMatch = text && visibleSearchText(chunk, scope).includes(text) ? 14 : 0;
+  const semantic = Math.max(0, Math.min(1, semanticScoreFor(chunk, query))) * 8;
+  const knowledgeContext = hasAnyReference(chunk.resourceProjection?.knowledgeNodeRefs, query.knowledgeNodeRefs) ? 8 : 0;
+  const capabilityContext = hasAnyReference(chunk.resourceProjection?.capabilityTargetRefs, query.capabilityTargetRefs) ? 10 : 0;
+  const learnerContext = scope.useCase === 'recommendation' &&
+    LEARNER_EVIDENCE_SOURCE_TYPES.has(chunk.sourceType) &&
+    (!chunk.sourceRef.ownerUserId || chunk.sourceRef.ownerUserId === scope.targetUserId)
+    ? 14
+    : 0;
+  return AUTHORITY_SCORE[chunk.authority.level] +
+    confidence * 4 +
+    freshness +
+    scopeSpecificity +
+    useCase +
+    queryMatch +
+    semantic +
+    knowledgeContext +
+    capabilityContext +
+    learnerContext;
 }
 
 function conflictingGroups(
@@ -978,6 +1067,45 @@ function isCitationAddress(value: unknown): value is LearningEvidenceCitationAdd
     isNullableString(record.simulationRunId) &&
     isNullableString(record.arenaTaskId) &&
     isNullableString(record.externalUrl);
+}
+
+function isResourceProjectionMetadata(value: unknown): value is LearningEvidenceResourceProjectionMetadata {
+  const record = readRecord(value);
+  const mediaTimeRange = readRecord(record.mediaTimeRange);
+  const hasValidMediaTimeRange = record.mediaTimeRange === undefined ||
+    record.mediaTimeRange === null ||
+    typeof mediaTimeRange.startSeconds === 'number' &&
+      Number.isFinite(mediaTimeRange.startSeconds) &&
+      mediaTimeRange.startSeconds >= 0 &&
+      (mediaTimeRange.endSeconds === undefined ||
+        mediaTimeRange.endSeconds === null ||
+        typeof mediaTimeRange.endSeconds === 'number' &&
+          Number.isFinite(mediaTimeRange.endSeconds) &&
+          mediaTimeRange.endSeconds >= mediaTimeRange.startSeconds);
+  return isNullableString(record.resourceId) &&
+    typeof record.segmentRef === 'string' &&
+    record.segmentRef.length > 0 &&
+    isNullableString(record.citationTargetRef) &&
+    isStringArray(record.knowledgeNodeRefs) &&
+    isStringArray(record.capabilityTargetRefs) &&
+    hasValidMediaTimeRange &&
+    isNullableString(record.exerciseAnchor) &&
+    isNullableString(record.contentHash);
+}
+
+function semanticScoreFor(chunk: LearningEvidenceCorpusChunk, query: LearningEvidenceRetrievalQuery) {
+  const score = query.semanticScores?.[chunk.id] ?? 0;
+  return typeof score === 'number' && Number.isFinite(score) ? score : 0;
+}
+
+function isSemanticCandidate(chunk: LearningEvidenceCorpusChunk, query: LearningEvidenceRetrievalQuery) {
+  return semanticScoreFor(chunk, query) >= MIN_SEMANTIC_ELIGIBILITY_SCORE;
+}
+
+function hasAnyReference(candidateRefs: string[] | undefined, requestedRefs: string[] | undefined) {
+  if (!candidateRefs?.length || !requestedRefs?.length) return false;
+  const requested = new Set(requestedRefs);
+  return candidateRefs.some((ref) => requested.has(ref));
 }
 
 function isAuthorityLevel(value: unknown): value is LearningEvidenceAuthorityLevel {
