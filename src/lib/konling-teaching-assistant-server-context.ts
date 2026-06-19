@@ -55,8 +55,8 @@ interface ClassReader {
 interface TeachingResourceReader {
   findUnique(input: {
     where: { id: string };
-    select: { id: true; teacherOnly: true };
-  }): Promise<{ id: string; teacherOnly: boolean } | null>;
+    select: { id: true; teacherOnly: true; type: true };
+  }): Promise<{ id: string; teacherOnly: boolean; type: string } | null>;
 }
 
 interface CourseEnhancementPackReader {
@@ -353,11 +353,14 @@ async function resolveResourceCoachModeContext(input: {
   if (!input.scope.resourceId || !input.db.teachingResource) return {};
   const resource = await input.db.teachingResource.findUnique({
     where: { id: input.scope.resourceId },
-    select: { id: true, teacherOnly: true },
+    select: { id: true, teacherOnly: true, type: true },
   });
   if (!resource) return {};
   if (resource.teacherOnly && input.scope.role !== 'teacher' && input.scope.role !== 'admin') return {};
-  return { 'resource-node': true };
+  return {
+    'resource-node': true,
+    ...(resource.type === 'STATIC_MEDIA' ? { 'media-resource': true } : {}),
+  };
 }
 
 function resolvePathAdvisorModeContext(input: {

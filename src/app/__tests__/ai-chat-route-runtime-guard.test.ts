@@ -157,7 +157,8 @@ describe('AI chat route Konling runtime guard', () => {
     expect(chatRouteSource.indexOf("if (modeContract.status === 'unavailable'"))
       .toBeLessThan(chatRouteSource.indexOf('const agentSession = await getOrCreateKonlingAgentSession'));
     expect(chatRouteSource).toContain('permittedTools: modeContract.permittedTools');
-    expect(chatRouteSource).toContain('context: { ...runtimeContext, permittedTools: modeContract.permittedTools }');
+    expect(chatRouteSource).toContain('context: { ...modeRuntimeContext, permittedTools: modeContract.permittedTools }');
+    expect(chatRouteSource).toContain('knowledgeCapabilityContext: modeContract.groundingContext');
     expect(chatRouteSource).toContain('teachingAssistantMode: modeContract');
     expect(chatRouteSource).toContain('serverModeContext: await resolveKonlingTeachingAssistantServerModeContext');
     expect(chatRouteSource).toContain('targetUserId: runtimeTargetUserId');
@@ -174,7 +175,8 @@ describe('AI chat route Konling runtime guard', () => {
     expect(sessionMessagesRouteSource.indexOf("if (modeContract.status === 'unavailable'"))
       .toBeLessThan(sessionMessagesRouteSource.indexOf('const agentSession = await getOrCreateKonlingAgentSession'));
     expect(sessionMessagesRouteSource).toContain('permittedTools: modeContract.permittedTools');
-    expect(sessionMessagesRouteSource).toContain('context: { ...runtimeContext, permittedTools: modeContract.permittedTools }');
+    expect(sessionMessagesRouteSource).toContain('context: { ...modeRuntimeContext, permittedTools: modeContract.permittedTools }');
+    expect(sessionMessagesRouteSource).toContain('knowledgeCapabilityContext: modeContract.groundingContext');
     expect(sessionMessagesRouteSource).toContain('teachingAssistantMode: modeContract');
     expect(sessionMessagesRouteSource).toContain('serverModeContext: await resolveKonlingTeachingAssistantServerModeContext');
     expect(sessionMessagesRouteSource).toContain('targetUserId: runtimeTargetUserId');
