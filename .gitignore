@@ -81,6 +81,7 @@ course-content/slides-ref
 *.mp4
 *.m4a
 *.pdf
+course-content/runtime/resources/
 
 # Local debugging and Rust build artifacts
 rust/control-engine/target/
