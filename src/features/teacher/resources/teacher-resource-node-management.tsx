@@ -78,8 +78,8 @@ export function TeacherResourceNodeManagement({
       if (availability !== 'all' && node.availability !== availability) return false;
       if (teacherPolicy !== 'all' && node.teacherPolicy !== teacherPolicy) return false;
       if (privacyLevel !== 'all' && node.privacyLevel !== privacyLevel) return false;
-      if (pathFilter === 'eligible' && !node.pathEligible) return false;
-      if (pathFilter === 'excluded' && node.pathEligible) return false;
+      if (pathFilter === 'eligible' && !node.audit.pathEligible) return false;
+      if (pathFilter === 'excluded' && node.audit.pathEligible) return false;
       if (knowledgeMapping === 'mapped' && node.knowledgeCoverage.length === 0) return false;
       if (knowledgeMapping === 'unmapped' && node.knowledgeCoverage.length > 0) return false;
       if (normalizedCourseModule && !node.courseModule?.toLowerCase().includes(normalizedCourseModule)) return false;
@@ -175,10 +175,12 @@ export function TeacherResourceNodeManagement({
             <h1 className="text-3xl font-bold text-white">ResourceNode 管理</h1>
             <p className="mt-2 text-slate-400">统一查看资源映射、路径资格、策略和治理告警。</p>
           </div>
-          <div className="grid grid-cols-4 gap-2 text-center text-sm">
+          <div className="grid grid-cols-3 gap-2 text-center text-sm md:grid-cols-6">
             <SummaryCell label="资源" value={catalogSummary.totalNodes} />
-            <SummaryCell label="当前" value={summary.totalNodes} />
+            <SummaryCell label="已映射" value={summary.mappedNodes} />
+            <SummaryCell label="未映射" value={summary.unmappedNodes} />
             <SummaryCell label="可规划" value={summary.pathEligibleNodes} />
+            <SummaryCell label="已阻断" value={summary.blockedNodes} />
             <SummaryCell label="告警" value={summary.warningNodes} />
           </div>
         </div>
@@ -260,14 +262,19 @@ export function TeacherResourceNodeManagement({
                     </div>
                     <p className="mt-1 break-all text-xs text-slate-500">{node.id}</p>
                   </div>
-                  <EligibilityBadge node={node} />
+                  <EligibilityBadge eligible={node.audit.pathEligible} />
                 </div>
                 <div className="mt-3 grid gap-2 text-sm text-slate-300 md:grid-cols-4">
                   <Metric label="知识映射" value={node.knowledgeCoverage.length ? node.knowledgeCoverage.join(', ') : '未映射'} />
-                  <Metric label="课程/模块" value={node.courseModule ?? '未标注'} />
-                  <Metric label="可用性" value={node.availability} />
-                  <Metric label="教师策略" value={node.teacherPolicy} />
+                  <Metric label="能力映射" value={node.audit.capabilityMappingPresent ? '已映射' : '未映射'} />
+                  <Metric label="引用目标" value={node.audit.citationTargetReady ? '可解析' : '缺失'} />
+                  <Metric label="证据能力" value={node.audit.evidenceCapabilityConfigured ? '已配置' : '未配置'} />
                 </div>
+                {node.audit.exclusionReasons.length > 0 && (
+                  <div className="mt-3 text-xs text-slate-400">
+                    阻断原因：{node.audit.exclusionReasons.join(', ')}
+                  </div>
+                )}
                 {node.warnings.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {node.warnings.map((warning) => (
@@ -311,7 +318,7 @@ function NodeDetail({
           <h2 className="text-xl font-semibold text-white">{node.title}</h2>
           <p className="mt-1 break-all text-xs text-slate-500">{node.id}</p>
         </div>
-        <EligibilityBadge node={node} />
+        <EligibilityBadge eligible={node.audit.pathEligible} />
       </div>
 
       <div className="mb-5 grid gap-2 text-sm text-slate-300">
@@ -320,6 +327,19 @@ function NodeDetail({
         <Metric label="渲染入口" value={node.renderTarget ?? '未配置'} />
         <Metric label="启动入口" value={node.launchTarget ?? '未配置'} />
         <Metric label="证据采集" value={node.evidenceInstrumentationConfigured ? '已配置' : '未配置'} />
+      </div>
+
+      <div className="mb-5 rounded-md border border-slate-800 bg-slate-950/60 p-3">
+        <div className="mb-3 text-sm font-medium text-slate-300">映射审计</div>
+        <div className="grid gap-2 text-sm text-slate-300">
+          <Metric label="知识覆盖" value={node.audit.knowledgeCoveragePresent ? node.knowledgeCoverage.join(', ') : '缺失'} />
+          <Metric label="能力目标" value={node.audit.capabilityMappingPresent ? '已配置' : '缺失'} />
+          <Metric label="引用目标" value={node.audit.citationTargetReady ? '可解析' : '缺失'} />
+          <Metric label="证据能力" value={node.audit.evidenceCapabilityConfigured ? '已配置' : '缺失'} />
+          <Metric label="路径资格" value={node.audit.pathEligible ? '可用于高置信路径' : '已从高置信路径排除'} />
+          <Metric label="来源所有权" value={`content:${node.audit.sourceOwnership.content}, catalog:${node.audit.sourceOwnership.catalogMetadata}, planning:${node.audit.sourceOwnership.planningMetadata}`} />
+          <Metric label="排除原因" value={node.audit.exclusionReasons.length ? node.audit.exclusionReasons.join(', ') : '无'} />
+        </div>
       </div>
 
       {(node.renderTarget || node.launchTarget) && (
@@ -536,8 +556,8 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function EligibilityBadge({ node }: { node: TeacherResourceNodeView }) {
-  return node.pathEligible ? (
+function EligibilityBadge({ eligible }: { eligible: boolean }) {
+  return eligible ? (
     <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 px-2 py-1 text-xs text-emerald-200">
       <CheckCircle2 className="h-3 w-3" />
       可规划
@@ -553,9 +573,15 @@ function EligibilityBadge({ node }: { node: TeacherResourceNodeView }) {
 function buildSummary(nodes: TeacherResourceNodeView[]): TeacherResourceNodeSummary {
   return {
     totalNodes: nodes.length,
-    pathEligibleNodes: nodes.filter((node) => node.pathEligible).length,
+    pathEligibleNodes: nodes.filter((node) => node.audit.pathEligible).length,
     warningNodes: nodes.filter((node) => node.warnings.length > 0).length,
-    excludedNodes: nodes.filter((node) => !node.pathEligible).length,
+    excludedNodes: nodes.filter((node) => !node.audit.pathEligible).length,
+    mappedNodes: nodes.filter((node) => node.audit.knowledgeCoveragePresent).length,
+    unmappedNodes: nodes.filter((node) => !node.audit.knowledgeCoveragePresent).length,
+    capabilityMappedNodes: nodes.filter((node) => node.audit.capabilityMappingPresent).length,
+    citationReadyNodes: nodes.filter((node) => node.audit.citationTargetReady).length,
+    evidenceCapabilityNodes: nodes.filter((node) => node.audit.evidenceCapabilityConfigured).length,
+    blockedNodes: nodes.filter((node) => !node.audit.pathEligible).length,
   };
 }
 

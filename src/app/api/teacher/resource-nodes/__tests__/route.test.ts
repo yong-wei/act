@@ -160,4 +160,46 @@ describe('GET /api/teacher/resource-nodes', () => {
     const modulePayload = await moduleResponse.json();
     expect(modulePayload.nodes.map((node: { id: string }) => node.id)).toEqual(['teaching-resource:owned-quiz']);
   });
+
+  it('filters path eligibility using high-confidence audit readiness', async () => {
+    mocks.prisma.teachingResource.findMany.mockResolvedValue([
+      {
+        ...ownedResource,
+        config: {
+          resourceNodePlanning: {
+            abilityImpact: {},
+            evidenceInstrumentation: [],
+          },
+        },
+      },
+    ]);
+
+    const eligibleResponse = await GET(
+      new Request('http://localhost/api/teacher/resource-nodes?pathEligibility=eligible')
+    );
+    const eligiblePayload = await eligibleResponse.json();
+    const excludedResponse = await GET(
+      new Request('http://localhost/api/teacher/resource-nodes?pathEligibility=excluded')
+    );
+    const excludedPayload = await excludedResponse.json();
+
+    expect(eligibleResponse.status).toBe(200);
+    expect(eligiblePayload.nodes.map((node: { id: string }) => node.id)).not.toContain('teaching-resource:owned-quiz');
+    expect(eligiblePayload.nodes).toEqual([
+      expect.objectContaining({ id: 'registry:registered-quiz' }),
+    ]);
+    expect(excludedPayload.nodes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'teaching-resource:owned-quiz',
+        pathEligible: true,
+        audit: expect.objectContaining({
+          pathEligible: false,
+          exclusionReasons: expect.arrayContaining([
+            'missing-capability-mapping',
+            'missing-evidence-instrumentation',
+          ]),
+        }),
+      }),
+    ]));
+  });
 });
