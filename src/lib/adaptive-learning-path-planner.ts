@@ -1,5 +1,7 @@
 import {
   buildResourceNodeHighConfidencePlanningAudit,
+  buildResourceSemanticProjection,
+  type PlanningUnit,
   type ResourceNode,
   type ResourceNodeCheckpointMetadata,
   type ResourceNodeExternalResourceMetadata,
@@ -178,6 +180,9 @@ export interface AdaptiveLearningPathPlannerInput {
 
 export interface AdaptiveLearningPathPlanNode {
   nodeId: string;
+  planningUnitId?: string;
+  resourceId?: string;
+  resourceNodeId?: string;
   title: string;
   type: ResourceNode['type'];
   pathNodeType: ResourceNodePathSemantics['type'];
@@ -192,8 +197,13 @@ export interface AdaptiveLearningPathPlanNode {
   sourceRef: string;
   target: string;
   estimatedTimeMinutes: number;
+  cognitiveLoad?: ResourceNode['planningMetadata']['cognitiveLoad'];
+  effort?: ResourceNode['planningMetadata']['cost']['effort'];
   prerequisiteNodeIds: string[];
+  prerequisiteBasis?: Array<{ nodeId: string; source: 'PlanningUnit' }>;
   knowledgeCoverage: string[];
+  capabilityTargets?: string[];
+  launchBinding?: PlanningUnit['launchBinding'];
   teacherPolicy: ResourceNode['planningMetadata']['teacherPolicy'];
   privacyLevel: ResourceNodePrivacyLevel;
   terminalConstraints: string[];
@@ -351,6 +361,7 @@ export interface AdaptiveLearningPathPolicyBundle {
 
 export interface AdaptiveLearningPathOptionNodeSummary {
   nodeId: string;
+  planningUnitId?: string;
   title: string;
   pathNodeType: AdaptiveLearningPathPlanNode['pathNodeType'];
   displayName: string;
@@ -359,6 +370,11 @@ export interface AdaptiveLearningPathOptionNodeSummary {
   evidenceBehavior: AdaptiveLearningPathPlanNode['evidenceBehavior'];
   evidenceStatus: AdaptiveLearningPathPlanNode['evidenceStatus'];
   estimatedTimeMinutes: number;
+  cognitiveLoad?: AdaptiveLearningPathPlanNode['cognitiveLoad'];
+  effort?: AdaptiveLearningPathPlanNode['effort'];
+  knowledgeCoverage?: string[];
+  capabilityTargets?: string[];
+  launchBinding?: AdaptiveLearningPathPlanNode['launchBinding'];
   status: AdaptiveLearningPathPlanNode['status'];
 }
 
@@ -1118,6 +1134,7 @@ function blockingReasonCodes(node: ResourceNode, constraints: AdaptiveLearningPa
   reasons.push(...planningAudit.issues
     .filter((issue) => issue.severity === 'blocking')
     .map((issue) => issue.code));
+  if (!planningUnitForNode(node)) reasons.push('missing-planning-unit-projection');
   if (!constraints.privacyScopes.includes(node.planningMetadata.privacyLevel)) reasons.push('privacy-scope-blocked');
   if (node.planningMetadata.teacherPolicy === 'blocked') reasons.push('teacher-policy-blocked');
   if (node.planningMetadata.teacherPolicy === 'teacher-only') reasons.push('teacher-policy-teacher-only');
@@ -1133,17 +1150,31 @@ function blockingReasonCodes(node: ResourceNode, constraints: AdaptiveLearningPa
   return unique(reasons);
 }
 
+function planningUnitForNode(node: ResourceNode): PlanningUnit | null {
+  return buildResourceSemanticProjection(node).planningUnit;
+}
+
+function requirePlanningUnit(node: ResourceNode): PlanningUnit {
+  const planningUnit = planningUnitForNode(node);
+  if (!planningUnit) {
+    throw new Error(`Path node ${node.id} does not have a PlanningUnit projection.`);
+  }
+  return planningUnit;
+}
+
 function nodeMatchesGoal(
   node: ResourceNode,
   goal: AdaptiveLearningPathGoal,
   deficits: AdaptiveLearningPathDeficit[],
 ): boolean {
+  const planningUnit = planningUnitForNode(node);
+  if (!planningUnit) return false;
   const targets = new Set([
     ...goal.knowledgeTargets,
     ...deficits.map((deficit) => deficit.targetId),
   ]);
-  return node.planningMetadata.knowledgeCoverage.some((tag) => targets.has(tag)) ||
-    Object.keys(node.planningMetadata.abilityImpact).some((key) => (goal.competencyTargets ?? []).includes(key));
+  return planningUnit.knowledgeCoverage.some((tag) => targets.has(tag)) ||
+    Object.keys(planningUnit.abilityImpact).some((key) => (goal.competencyTargets ?? []).includes(key));
 }
 
 function scoreNode(
@@ -1154,7 +1185,8 @@ function scoreNode(
   policyFamily: AdaptiveLearningPathPolicyFamily,
   preferenceContext: AdaptiveLearningPathPreferenceContext,
 ): ScoredNode {
-  const coverageGain = node.planningMetadata.knowledgeCoverage.reduce((sum, tag) => {
+  const planningUnit = requirePlanningUnit(node);
+  const coverageGain = planningUnit.knowledgeCoverage.reduce((sum, tag) => {
     const deficit = deficits.find((item) => item.targetId === tag);
     return sum + (deficit ? 1 - deficit.value : 0.1);
   }, 0);
@@ -1163,14 +1195,14 @@ function scoreNode(
       .filter((item) => item.kind === 'competency')
       .map((item) => item.targetId),
   );
-  const abilityGain = Object.entries(node.planningMetadata.abilityImpact).reduce((sum, [dimension, impact]) => {
+  const abilityGain = Object.entries(planningUnit.abilityImpact).reduce((sum, [dimension, impact]) => {
     const deficit = deficits.find((item) => item.kind === 'competency' && item.targetId === dimension);
     if (!deficit || !competencyTargets.has(dimension)) return sum;
     return sum + impact * (1 - deficit.value);
   }, 0);
   const modalityBoost = preferenceContext.resourceTypes.has(node.type) ? 0.45 : 0;
   const learnerModalityBoost = learnerState?.resourcePreference?.preferredModalities?.includes(node.type) ? 0.2 : 0;
-  const fatiguePenalty = Math.max(0, (node.planningMetadata.estimatedTimeMinutes ?? 0) - constraints.timeBudgetMinutes / 2) / 100;
+  const fatiguePenalty = Math.max(0, planningUnit.estimatedTimeMinutes - constraints.timeBudgetMinutes / 2) / 100;
   const riskBoost = constraints.requireRiskIntervention && (node.type === 'ai_intervention' || node.type === 'reflection') ? 0.25 : 0;
   const difficultyBoost = difficultyRhythmScoreBoost(node, preferenceContext.difficultyRhythm, constraints);
   const checkpointBoost = checkpointPreferenceScoreBoost(node, preferenceContext.checkpointPreference);
@@ -1213,20 +1245,21 @@ function difficultyRhythmScoreBoost(
   rhythm: AdaptiveLearningPathPreferenceContext['difficultyRhythm'],
   constraints: AdaptiveLearningPathConstraints,
 ): number {
-  const estimatedMinutes = node.planningMetadata.estimatedTimeMinutes ?? 0;
-  const highImpact = Math.max(...Object.values(node.planningMetadata.abilityImpact), 0);
+  const planningUnit = requirePlanningUnit(node);
+  const estimatedMinutes = planningUnit.estimatedTimeMinutes;
+  const highImpact = Math.max(...Object.values(planningUnit.abilityImpact), 0);
   if (rhythm === 'gentle') {
-    const lowLoadBoost = node.planningMetadata.cognitiveLoad === 'low' ? 0.3 : 0;
+    const lowLoadBoost = planningUnit.cognitiveLoad === 'low' ? 0.3 : 0;
     const shortResourceBoost = estimatedMinutes <= Math.max(12, constraints.timeBudgetMinutes / 5) ? 0.18 : 0;
     return lowLoadBoost + shortResourceBoost;
   }
   if (rhythm === 'challenge') {
-    const highLoadBoost = node.planningMetadata.cognitiveLoad === 'high' ? 0.25 : 0;
+    const highLoadBoost = planningUnit.cognitiveLoad === 'high' ? 0.25 : 0;
     const highImpactBoost = highImpact >= 0.3 ? 0.25 : 0;
     const authenticTaskBoost = node.type === 'simulation' || node.type === 'arena_task' ? 0.2 : 0;
     return highLoadBoost + highImpactBoost + authenticTaskBoost;
   }
-  return node.planningMetadata.cognitiveLoad === 'medium' ? 0.12 : 0;
+  return planningUnit.cognitiveLoad === 'medium' ? 0.12 : 0;
 }
 
 function checkpointPreferenceScoreBoost(
@@ -1251,7 +1284,8 @@ function policyScoreBoost(
   learnerState: AdaptiveLearningPathLearnerState | null,
   preferenceContext: AdaptiveLearningPathPreferenceContext,
 ): number {
-  const estimatedMinutes = node.planningMetadata.estimatedTimeMinutes ?? 0;
+  const planningUnit = requirePlanningUnit(node);
+  const estimatedMinutes = planningUnit.estimatedTimeMinutes;
   if (policyFamily === 'foundation-remediation') {
     const conceptBoost = node.type === 'knowledge_card' ||
       node.type === 'lesson_step' ||
@@ -1259,8 +1293,8 @@ function policyScoreBoost(
       node.type === 'handout'
       ? 1.1
       : 0;
-    const lowLoadBoost = node.planningMetadata.cognitiveLoad === 'low' ? 0.25 : 0;
-    const prerequisiteBoost = node.planningMetadata.prerequisites.length === 0 ? 0.12 : 0;
+    const lowLoadBoost = planningUnit.cognitiveLoad === 'low' ? 0.25 : 0;
+    const prerequisiteBoost = planningUnit.prerequisites.length === 0 ? 0.12 : 0;
     return conceptBoost + lowLoadBoost + prerequisiteBoost;
   }
   if (policyFamily === 'simulation-driven') {
@@ -1272,7 +1306,7 @@ function policyScoreBoost(
   if (policyFamily === 'sprint-correction') {
     const budgetRatio = estimatedMinutes / Math.max(constraints.timeBudgetMinutes, 1);
     const shortPathBoost = budgetRatio <= 0.3 ? 0.45 : budgetRatio <= 0.5 ? 0.25 : 0;
-    const highImpactBoost = Math.max(...Object.values(node.planningMetadata.abilityImpact), 0) >= 0.3 ? 0.2 : 0;
+    const highImpactBoost = Math.max(...Object.values(planningUnit.abilityImpact), 0) >= 0.3 ? 0.2 : 0;
     return shortPathBoost + highImpactBoost;
   }
   if (policyFamily === 'preference-matched') {
@@ -1410,7 +1444,7 @@ function addCandidateOptionToState(
   const newEstimatedMinutes = newEntries.reduce(
     (sum, candidate) => sum + (completed.has(candidate.node.id)
       ? 0
-      : (candidate.node.planningMetadata.estimatedTimeMinutes ?? 0)),
+      : requirePlanningUnit(candidate.node).estimatedTimeMinutes),
     0,
   );
   if (newEstimatedMinutes > state.remainingMinutes) {
@@ -1482,13 +1516,13 @@ function buildCandidateChain(
   const entries = expandPrerequisites(entry, nodesById, scoredById);
   const uniqueEntries = uniqueScoredEntries(entries);
   const missingPrerequisite = uniqueEntries.some((candidate) =>
-    candidate.node.planningMetadata.prerequisites.some((id) => !nodesById.has(id))
+    requirePlanningUnit(candidate.node).prerequisites.some((id) => !nodesById.has(id))
   );
   if (missingPrerequisite) return null;
   return {
     entries: uniqueEntries,
     estimatedMinutes: uniqueEntries.reduce((sum, candidate) =>
-      sum + (candidate.node.planningMetadata.estimatedTimeMinutes ?? 0), 0),
+      sum + requirePlanningUnit(candidate.node).estimatedTimeMinutes, 0),
     coversGoalTarget: uniqueEntries.some((candidate) => nodeCoversGoalTarget(candidate.node, goal)),
   };
 }
@@ -1504,8 +1538,10 @@ function uniqueScoredEntries(entries: ScoredNode[]): ScoredNode[] {
 }
 
 function nodeCoversGoalTarget(node: ResourceNode, goal: AdaptiveLearningPathGoal): boolean {
-  return node.planningMetadata.knowledgeCoverage.some((tag) => goal.knowledgeTargets.includes(tag)) ||
-    Object.keys(node.planningMetadata.abilityImpact).some((dimension) =>
+  const planningUnit = planningUnitForNode(node);
+  if (!planningUnit) return false;
+  return planningUnit.knowledgeCoverage.some((tag) => goal.knowledgeTargets.includes(tag)) ||
+    Object.keys(planningUnit.abilityImpact).some((dimension) =>
       (goal.competencyTargets ?? []).includes(dimension)
     );
 }
@@ -1513,13 +1549,15 @@ function nodeCoversGoalTarget(node: ResourceNode, goal: AdaptiveLearningPathGoal
 function goalTargetsCoveredByNodes(nodes: ResourceNode[], goal: AdaptiveLearningPathGoal): string[] {
   const covered = new Set<string>();
   for (const node of nodes) {
+    const planningUnit = planningUnitForNode(node);
+    if (!planningUnit) continue;
     for (const target of goal.knowledgeTargets) {
-      if (node.planningMetadata.knowledgeCoverage.includes(target)) {
+      if (planningUnit.knowledgeCoverage.includes(target)) {
         covered.add(target);
       }
     }
     for (const target of goal.competencyTargets ?? []) {
-      if (Object.prototype.hasOwnProperty.call(node.planningMetadata.abilityImpact, target)) {
+      if (Object.prototype.hasOwnProperty.call(planningUnit.abilityImpact, target)) {
         covered.add(target);
       }
     }
@@ -1536,7 +1574,7 @@ function hasCyclicPrerequisites(
   if (visiting.has(node.id)) return true;
   if (visited.has(node.id)) return false;
   visiting.add(node.id);
-  for (const prerequisiteId of node.planningMetadata.prerequisites) {
+  for (const prerequisiteId of planningUnitForNode(node)?.prerequisites ?? []) {
     const prerequisite = nodesById.get(prerequisiteId);
     if (prerequisite && hasCyclicPrerequisites(prerequisite, nodesById, visiting, visited)) {
       return true;
@@ -1565,8 +1603,11 @@ function chainHasTerminalViolation(entries: ScoredNode[]): boolean {
 }
 
 function uncoveredGoalTargets(nodes: ResourceNode[], goal: AdaptiveLearningPathGoal): string[] {
-  const coveredKnowledge = new Set(nodes.flatMap((node) => node.planningMetadata.knowledgeCoverage));
-  const coveredCompetencies = new Set(nodes.flatMap((node) => Object.keys(node.planningMetadata.abilityImpact)));
+  const planningUnits = nodes
+    .map((node) => planningUnitForNode(node))
+    .filter((unit): unit is PlanningUnit => Boolean(unit));
+  const coveredKnowledge = new Set(planningUnits.flatMap((unit) => unit.knowledgeCoverage));
+  const coveredCompetencies = new Set(planningUnits.flatMap((unit) => Object.keys(unit.abilityImpact)));
   return [
     ...goal.knowledgeTargets.filter((target) => !coveredKnowledge.has(target)),
     ...(goal.competencyTargets ?? []).filter((target) => !coveredCompetencies.has(target)),
@@ -1589,7 +1630,7 @@ function expandPrerequisites(
 ): ScoredNode[] {
   if (seen.has(entry.node.id)) return [];
   seen.add(entry.node.id);
-  const prerequisites = entry.node.planningMetadata.prerequisites
+  const prerequisites = requirePlanningUnit(entry.node).prerequisites
     .map((id) => nodesById.get(id))
     .filter((node): node is ResourceNode => Boolean(node))
     .flatMap((node) => expandPrerequisites(scoredById.get(node.id) ?? {
@@ -1603,9 +1644,10 @@ function expandPrerequisites(
 function prerequisiteDepth(node: ResourceNode, nodesById: Map<string, ResourceNode>, seen = new Set<string>()): number {
   if (seen.has(node.id)) return 0;
   seen.add(node.id);
-  if (node.planningMetadata.prerequisites.length === 0) return 0;
+  const planningUnit = planningUnitForNode(node);
+  if (!planningUnit || planningUnit.prerequisites.length === 0) return 0;
   return 1 + Math.max(
-    ...node.planningMetadata.prerequisites
+    ...planningUnit.prerequisites
       .map((id) => nodesById.get(id))
       .filter((item): item is ResourceNode => Boolean(item))
       .map((item) => prerequisiteDepth(item, nodesById, seen)),
@@ -1655,29 +1697,37 @@ function toPlanNode(
   completedNodeIds: string[],
   readiness: AdaptiveLearningPathNodeReadiness,
 ): AdaptiveLearningPathPlanNode {
-  const target = entry.node.launchTarget ?? entry.node.renderTarget ?? '';
+  const planningUnit = requirePlanningUnit(entry.node);
   const isCompleted = completedNodeIds.includes(entry.node.id);
   const locked = !isCompleted && readiness.state !== 'ready';
   return {
     nodeId: entry.node.id,
+    planningUnitId: planningUnit.id,
+    resourceId: planningUnit.resourceId,
+    resourceNodeId: planningUnit.resourceNodeId,
     title: entry.node.title,
     type: entry.node.type,
-    pathNodeType: entry.node.pathSemantics.type,
-    displayName: entry.node.pathSemantics.displayName,
-    iconKey: entry.node.pathSemantics.iconKey,
-    shapeHint: entry.node.pathSemantics.shapeHint,
-    evidenceBehavior: entry.node.pathSemantics.evidenceBehavior,
+    pathNodeType: planningUnit.pathSemantics.type,
+    displayName: planningUnit.pathSemantics.displayName,
+    iconKey: planningUnit.pathSemantics.iconKey,
+    shapeHint: planningUnit.pathSemantics.shapeHint,
+    evidenceBehavior: planningUnit.pathSemantics.evidenceBehavior,
     evidenceStatus: pathNodeEvidenceStatus(entry.node),
     externalResource: entry.node.externalResource,
     checkpoint: entry.node.checkpoint,
     sourceKind: entry.node.sourceKind,
     sourceRef: entry.node.sourceRef,
-    target,
-    estimatedTimeMinutes: entry.node.planningMetadata.estimatedTimeMinutes ?? 0,
-    prerequisiteNodeIds: entry.node.planningMetadata.prerequisites,
-    knowledgeCoverage: entry.node.planningMetadata.knowledgeCoverage,
-    teacherPolicy: entry.node.planningMetadata.teacherPolicy,
-    privacyLevel: entry.node.planningMetadata.privacyLevel,
+    target: planningUnit.target,
+    estimatedTimeMinutes: planningUnit.estimatedTimeMinutes,
+    cognitiveLoad: planningUnit.cognitiveLoad,
+    effort: planningUnit.effort,
+    prerequisiteNodeIds: planningUnit.prerequisites,
+    prerequisiteBasis: planningUnit.prerequisites.map((nodeId) => ({ nodeId, source: 'PlanningUnit' })),
+    knowledgeCoverage: planningUnit.knowledgeCoverage,
+    capabilityTargets: Object.keys(planningUnit.abilityImpact).sort((left, right) => left.localeCompare(right)),
+    launchBinding: planningUnit.launchBinding,
+    teacherPolicy: planningUnit.teacherPolicy,
+    privacyLevel: planningUnit.privacyLevel,
     terminalConstraints: entry.node.planningMetadata.terminalConstraints,
     score: entry.score,
     reasonCodes: entry.reasonCodes,
@@ -1691,7 +1741,7 @@ function pathNodeEvidenceStatus(node: ResourceNode): AdaptiveLearningPathPlanNod
     if (node.externalResource?.evidenceUseStatus === 'explicit-access-required') return 'explicit-access-required';
     if (node.externalResource?.evidenceUseStatus === 'reference-only') return 'reference-only';
   }
-  return node.planningMetadata.evidenceInstrumentation.length > 0 ? 'instrumented' : 'missing';
+  return (planningUnitForNode(node)?.evidenceInstrumentation.length ?? 0) > 0 ? 'instrumented' : 'missing';
 }
 
 function readyNodeReadiness(): AdaptiveLearningPathNodeReadiness {
@@ -1856,7 +1906,7 @@ function buildAlternatives(
       const remainingMinutes = chain?.entries.reduce(
         (sum, candidate) => sum + (completed.has(candidate.node.id)
           ? 0
-          : (candidate.node.planningMetadata.estimatedTimeMinutes ?? 0)),
+          : requirePlanningUnit(candidate.node).estimatedTimeMinutes),
         0,
       ) ?? 0;
       const blockedByBudget = !blockedByPrerequisite && !blockedByTerminal && remainingMinutes > constraints.timeBudgetMinutes;
@@ -2323,10 +2373,12 @@ function selectPolicySupportNodes(
       if (excludedNodeIds.has(node.id)) continue;
       if (!eligibleIds.has(node.id)) continue;
       if (node.planningMetadata.terminalConstraints.length > 0) continue;
-      if (node.planningMetadata.prerequisites.length > 0) continue;
+      const planningUnit = planningUnitForNode(node);
+      if (!planningUnit) continue;
+      if (planningUnit.prerequisites.length > 0) continue;
       if (!policyAllowsNode(node, policyFamily, input.constraints)) continue;
       if (!nodeMatchesGoal(node, input.goal, deficits)) continue;
-      const estimatedMinutes = node.planningMetadata.estimatedTimeMinutes ?? 0;
+      const estimatedMinutes = planningUnit.estimatedTimeMinutes;
       if (estimatedMinutes > remaining) continue;
       picked.push(node);
       remaining -= estimatedMinutes;
@@ -2344,7 +2396,7 @@ function selectPolicySupportNodes(
       .filter((node) => typeRank.has(node.type))
       .sort((left, right) =>
         (typeRank.get(left.type) ?? 99) - (typeRank.get(right.type) ?? 99) ||
-        (left.planningMetadata.estimatedTimeMinutes ?? 0) - (right.planningMetadata.estimatedTimeMinutes ?? 0) ||
+        (planningUnitForNode(left)?.estimatedTimeMinutes ?? 0) - (planningUnitForNode(right)?.estimatedTimeMinutes ?? 0) ||
         left.id.localeCompare(right.id)
       ), 2);
     return picked;
@@ -2353,16 +2405,16 @@ function selectPolicySupportNodes(
   const preferredTypes = input.learnerState?.resourcePreference?.preferredModalities ?? [];
   const preferenceRank = new Map(preferredTypes.map((type, index) => [type, index]));
   addCandidates(input.registry.nodes
-    .filter((node) => preferenceRank.has(node.type))
-    .sort((left, right) =>
-      (preferenceRank.get(left.type) ?? 99) - (preferenceRank.get(right.type) ?? 99) ||
-      (left.planningMetadata.estimatedTimeMinutes ?? 0) - (right.planningMetadata.estimatedTimeMinutes ?? 0) ||
-      left.id.localeCompare(right.id)
-    ), 2);
+      .filter((node) => preferenceRank.has(node.type))
+      .sort((left, right) =>
+        (preferenceRank.get(left.type) ?? 99) - (preferenceRank.get(right.type) ?? 99) ||
+        (planningUnitForNode(left)?.estimatedTimeMinutes ?? 0) - (planningUnitForNode(right)?.estimatedTimeMinutes ?? 0) ||
+        left.id.localeCompare(right.id)
+      ), 2);
   addCandidates(input.registry.nodes
     .filter((node) => node.type === 'ai_intervention' || node.type === 'reflection')
     .sort((left, right) =>
-      (left.planningMetadata.estimatedTimeMinutes ?? 0) - (right.planningMetadata.estimatedTimeMinutes ?? 0) ||
+      (planningUnitForNode(left)?.estimatedTimeMinutes ?? 0) - (planningUnitForNode(right)?.estimatedTimeMinutes ?? 0) ||
       left.id.localeCompare(right.id)
     ), 2);
   return picked;
@@ -2371,6 +2423,7 @@ function selectPolicySupportNodes(
 function toPathOptionNodeSummary(node: AdaptiveLearningPathPlanNode): AdaptiveLearningPathOptionNodeSummary {
   return {
     nodeId: node.nodeId,
+    planningUnitId: node.planningUnitId,
     title: node.title,
     pathNodeType: node.pathNodeType,
     displayName: node.displayName,
@@ -2379,6 +2432,11 @@ function toPathOptionNodeSummary(node: AdaptiveLearningPathPlanNode): AdaptiveLe
     evidenceBehavior: node.evidenceBehavior,
     evidenceStatus: node.evidenceStatus,
     estimatedTimeMinutes: node.estimatedTimeMinutes,
+    cognitiveLoad: node.cognitiveLoad,
+    effort: node.effort,
+    knowledgeCoverage: node.knowledgeCoverage,
+    capabilityTargets: node.capabilityTargets,
+    launchBinding: node.launchBinding,
     status: node.status,
   };
 }

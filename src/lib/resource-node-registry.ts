@@ -423,7 +423,15 @@ export interface PlanningUnit {
   prerequisites: string[];
   knowledgeCoverage: string[];
   abilityImpact: Record<string, number>;
+  estimatedTimeMinutes: number;
+  cognitiveLoad: ResourceNodeCognitiveLoad;
+  effort: ResourceNodePlanningMetadata['cost']['effort'];
   evidenceInstrumentation: string[];
+  launchBinding: {
+    kind: 'resource-node' | 'checkpoint-contract';
+    target: string;
+    sourceRef: ResourceNodeSourceReference;
+  };
   privacyLevel: ResourceNodePrivacyLevel;
   teacherPolicy: ResourceNodeTeacherPolicy;
   readiness: ResourceNodeReadinessMetadata | null;
@@ -1577,7 +1585,15 @@ function buildPlanningUnit(node: ResourceNode, resourceId: string, target: strin
     prerequisites: node.planningMetadata.prerequisites,
     knowledgeCoverage: node.planningMetadata.knowledgeCoverage,
     abilityImpact: node.planningMetadata.abilityImpact,
+    estimatedTimeMinutes: node.planningMetadata.estimatedTimeMinutes ?? defaultEstimatedTime(node.type),
+    cognitiveLoad: node.planningMetadata.cognitiveLoad,
+    effort: node.planningMetadata.cost.effort,
     evidenceInstrumentation: node.planningMetadata.evidenceInstrumentation,
+    launchBinding: {
+      kind: node.type === 'checkpoint' || node.sourceKind === 'checkpoint' ? 'checkpoint-contract' : 'resource-node',
+      target,
+      sourceRef: { kind: node.sourceKind, ref: node.sourceRef },
+    },
     privacyLevel: node.planningMetadata.privacyLevel,
     teacherPolicy: node.planningMetadata.teacherPolicy,
     readiness: node.planningMetadata.readiness,
@@ -1586,7 +1602,7 @@ function buildPlanningUnit(node: ResourceNode, resourceId: string, target: strin
 
 function isPlanningUnitEligible(node: ResourceNode, target: string | null): target is string {
   if (!target || !buildResourceNodeHighConfidencePlanningAudit(node).pathEligible) return false;
-  return !node.eligibility.auditIssues.some((issue) => issue.code === 'missing-readiness-metadata');
+  return true;
 }
 
 function collectForbiddenProjectionFields(value: unknown, forbiddenFields: Set<string>, path = ''): string[] {
