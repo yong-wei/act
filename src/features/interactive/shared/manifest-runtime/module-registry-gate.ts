@@ -774,6 +774,15 @@ const DERIVATION_STAGE_BLOCK_COLOR_ROLES = new Set(['known', 'transform', 'cance
 const DERIVATION_STAGE_CONNECTOR_KINDS = new Set(['arrow', 'brace', 'equals', 'therefore', 'reference', 'highlight-line', 'dependency']);
 const DERIVATION_STAGE_LOAD_EXCEPTION_VALUES = new Set(['teacher-paced', 'worked-example', 'review-only']);
 const BLOCK_DIAGRAM_NODE_TYPES = new Set(['block', 'sum', 'branch', 'input', 'output', 'disturbance', 'sensor']);
+const BLOCK_DIAGRAM_PORTS = new Set([
+  'left', 'right', 'top', 'bottom', 'center',
+  'top-right', 'bottom-right', 'bottom-left', 'top-left',
+  'N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'C',
+]);
+const BLOCK_DIAGRAM_ROUTES = new Set(['--', '-|', '|-']);
+const SIGNAL_FLOW_ROUTES = new Set(['straight', 'auto-bezier']);
+const STRUCTURE_DIAGRAM_PLACEMENTS = new Set(['left', 'right', 'above', 'below']);
+const STRUCTURE_DIAGRAM_TEXT_SCALES = new Set(['uniform']);
 const STRUCTURE_DIAGRAM_INTERACTION_MODES = new Set(['read', 'highlight', 'construct', 'diagnose']);
 const SIGNAL_FLOW_REVEAL_EMPHASIS = new Set(['path', 'loop', 'formula', 'warning']);
 const ANNOTATED_MEDIA_EVIDENCE_ROLES = new Set(['input', 'output', 'structure', 'parameter', 'risk', 'result']);
@@ -1006,6 +1015,8 @@ function invalidBlockDiagramPayloadFields(payload: Record<string, unknown>): str
   const graphId = stringValue(payload.graphId ?? payload.graph_id ?? payload.diagramId ?? payload.diagram_id);
   const graphLabel = graphId ?? '(missing)';
   if (!graphId) missing.push(`graph=${graphLabel}.graphId`);
+  const relativeLayout = structureUsesRelativeLayout(payload);
+  validateStructureLayout(graphLabel, payload.layout, missing);
   const interaction = recordValue(payload.interactions ?? payload.interaction);
   const mode = stringValue(interaction.mode ?? payload.mode);
   if (!mode || !STRUCTURE_DIAGRAM_INTERACTION_MODES.has(mode)) missing.push(`graph=${graphLabel}.interactions.mode`);
@@ -1021,6 +1032,7 @@ function invalidBlockDiagramPayloadFields(payload: Record<string, unknown>): str
   if (nodes.length === 0) missing.push(`graph=${graphLabel}.nodes`);
   for (const [index, rawNode] of nodes.entries()) {
     const node = recordValue(rawNode);
+    const declaredNodeIds = new Set(nodeIds);
     const id = stringValue(node.id);
     const label = `${index}:${id ?? '(missing)'}`;
     if (!id) {
@@ -1034,7 +1046,7 @@ function invalidBlockDiagramPayloadFields(payload: Record<string, unknown>): str
     if (!type || !BLOCK_DIAGRAM_NODE_TYPES.has(type)) missing.push(`graph=${graphLabel}.nodes[${label}].type`);
     const labelText = stringValue(node.label ?? node.labelLatex ?? node.label_latex);
     if (!labelText) missing.push(`graph=${graphLabel}.nodes[${label}].label`);
-    validatePoint(graphLabel, `nodes[${label}].position`, node.position, missing);
+    validateStructureNodePlacement(graphLabel, `nodes[${label}]`, node, relativeLayout, index, declaredNodeIds, missing);
   }
 
   const edges = Array.isArray(payload.edges) ? payload.edges : [];
@@ -1051,11 +1063,27 @@ function invalidBlockDiagramPayloadFields(payload: Record<string, unknown>): str
     } else {
       edgeIds.add(id);
     }
-    const from = stringValue(edge.from ?? edge.fromId ?? edge.from_id);
-    const to = stringValue(edge.to ?? edge.toId ?? edge.to_id);
+    const from = endpointNodeId(edge.from ?? edge.fromId ?? edge.from_id);
+    const to = endpointNodeId(edge.to ?? edge.toId ?? edge.to_id);
     if (!from || !nodeIds.has(from)) missing.push(`graph=${graphLabel}.edges[${label}].from`);
     if (!to || !nodeIds.has(to)) missing.push(`graph=${graphLabel}.edges[${label}].to`);
-    if (!stringValue(edge.label ?? edge.labelLatex ?? edge.label_latex)) missing.push(`graph=${graphLabel}.edges[${label}].label`);
+    const fromPort = endpointPort(edge.from ?? edge.fromId ?? edge.from_id, edge.fromPort ?? edge.from_port);
+    const toPort = endpointPort(edge.to ?? edge.toId ?? edge.to_id, edge.toPort ?? edge.to_port);
+    if (fromPort && !BLOCK_DIAGRAM_PORTS.has(fromPort)) missing.push(`graph=${graphLabel}.edges[${label}].fromPort`);
+    if (toPort && !BLOCK_DIAGRAM_PORTS.has(toPort)) missing.push(`graph=${graphLabel}.edges[${label}].toPort`);
+    const route = stringValue(edge.route ?? edge.path);
+    if (route && !BLOCK_DIAGRAM_ROUTES.has(route)) missing.push(`graph=${graphLabel}.edges[${label}].route`);
+    const waypoints = edge.waypoints ?? edge.via ?? edge.points;
+    if (Array.isArray(waypoints)) {
+      for (const [waypointIndex, waypoint] of waypoints.entries()) {
+        validatePoint(graphLabel, `edges[${label}].waypoints[${waypointIndex}]`, waypoint, missing);
+      }
+    }
+    const display = stringValue(edge.display ?? edge.renderAs ?? edge.render_as);
+    const labelOptional = display === 'terminal' || display === 'unlabeled';
+    if (!labelOptional && !stringValue(edge.label ?? edge.labelLatex ?? edge.label_latex)) {
+      missing.push(`graph=${graphLabel}.edges[${label}].label`);
+    }
   }
 
   const rawRevealPlan = payload.revealPlan ?? payload.reveal_plan;
@@ -1093,6 +1121,8 @@ function invalidSignalFlowGraphPayloadFields(payload: Record<string, unknown>): 
   const graphId = stringValue(payload.graphId ?? payload.graph_id);
   const graphLabel = graphId ?? '(missing)';
   if (!graphId) missing.push(`graph=${graphLabel}.graphId`);
+  const relativeLayout = structureUsesRelativeLayout(payload);
+  validateStructureLayout(graphLabel, payload.layout, missing);
   const interaction = recordValue(payload.interactions ?? payload.interaction);
   const mode = stringValue(interaction.mode ?? payload.mode);
   if (!mode || !STRUCTURE_DIAGRAM_INTERACTION_MODES.has(mode)) missing.push(`graph=${graphLabel}.interactions.mode`);
@@ -1108,6 +1138,7 @@ function invalidSignalFlowGraphPayloadFields(payload: Record<string, unknown>): 
   if (nodes.length === 0) missing.push(`graph=${graphLabel}.nodes`);
   for (const [index, rawNode] of nodes.entries()) {
     const node = recordValue(rawNode);
+    const declaredNodeIds = new Set(nodeIds);
     const id = stringValue(node.id);
     const label = `${index}:${id ?? '(missing)'}`;
     if (!id) {
@@ -1118,7 +1149,7 @@ function invalidSignalFlowGraphPayloadFields(payload: Record<string, unknown>): 
       nodeIds.add(id);
     }
     if (!stringValue(node.labelLatex ?? node.label_latex ?? node.label)) missing.push(`graph=${graphLabel}.nodes[${label}].labelLatex`);
-    validatePoint(graphLabel, `nodes[${label}].position`, node.position, missing);
+    validateStructureNodePlacement(graphLabel, `nodes[${label}]`, node, relativeLayout, index, declaredNodeIds, missing);
   }
 
   const branches = Array.isArray(payload.branches) ? payload.branches : [];
@@ -1139,6 +1170,8 @@ function invalidSignalFlowGraphPayloadFields(payload: Record<string, unknown>): 
     const to = stringValue(branch.to ?? branch.toId ?? branch.to_id);
     if (!from || !nodeIds.has(from)) missing.push(`graph=${graphLabel}.branches[${label}].from`);
     if (!to || !nodeIds.has(to)) missing.push(`graph=${graphLabel}.branches[${label}].to`);
+    const route = stringValue(branch.route ?? branch.path);
+    if (route && !SIGNAL_FLOW_ROUTES.has(route)) missing.push(`graph=${graphLabel}.branches[${label}].route`);
     if (!stringValue(branch.gainLatex ?? branch.gain_latex ?? branch.labelLatex ?? branch.label_latex)) {
       missing.push(`graph=${graphLabel}.branches[${label}].gainLatex`);
     }
@@ -1361,6 +1394,57 @@ function validatePoint(graphLabel: string, path: string, rawPoint: unknown, miss
   const point = recordValue(rawPoint);
   if (!normalizedStageNumber(point.x)) missing.push(`graph=${graphLabel}.${path}.x`);
   if (!normalizedStageNumber(point.y)) missing.push(`graph=${graphLabel}.${path}.y`);
+}
+
+function validateStructureLayout(graphLabel: string, rawLayout: unknown, missing: string[]) {
+  const layout = recordValue(rawLayout);
+  const textScale = stringValue(layout.textScale ?? layout.text_scale);
+  if (textScale && !STRUCTURE_DIAGRAM_TEXT_SCALES.has(textScale)) missing.push(`graph=${graphLabel}.layout.textScale`);
+}
+
+function structureUsesRelativeLayout(payload: Record<string, unknown>) {
+  const layout = recordValue(payload.layout);
+  return stringValue(layout.mode ?? layout.engine) === 'relative';
+}
+
+function validateStructureNodePlacement(
+  graphLabel: string,
+  path: string,
+  node: Record<string, unknown>,
+  relativeLayout: boolean,
+  index: number,
+  knownNodeIds: ReadonlySet<string>,
+  missing: string[],
+) {
+  if (node.position) {
+    validatePoint(graphLabel, `${path}.position`, node.position, missing);
+    return;
+  }
+  if (!relativeLayout) {
+    missing.push(`graph=${graphLabel}.${path}.position`);
+    return;
+  }
+  const grid = recordValue(node.grid ?? node.relativeGrid ?? node.relative_grid);
+  const hasGrid = grid.column !== undefined || grid.col !== undefined || grid.x !== undefined || grid.row !== undefined || grid.y !== undefined;
+  const relativeTo = stringValue(node.relativeTo ?? node.relative_to ?? node.of);
+  if (!hasGrid && !relativeTo && index > 0) missing.push(`graph=${graphLabel}.${path}.relativePlacement`);
+  if (relativeTo && !knownNodeIds.has(relativeTo)) missing.push(`graph=${graphLabel}.${path}.relativeTo`);
+  const placement = stringValue(node.placement ?? node.place ?? node.side);
+  if (placement && !STRUCTURE_DIAGRAM_PLACEMENTS.has(placement)) missing.push(`graph=${graphLabel}.${path}.placement`);
+}
+
+function endpointNodeId(rawEndpoint: unknown) {
+  const endpoint = stringValue(rawEndpoint);
+  if (!endpoint) return undefined;
+  return endpoint.split('.')[0]?.trim();
+}
+
+function endpointPort(rawEndpoint: unknown, rawPort: unknown) {
+  const port = stringValue(rawPort);
+  if (port) return port;
+  const endpoint = stringValue(rawEndpoint);
+  if (!endpoint || !endpoint.includes('.')) return undefined;
+  return endpoint.split('.').slice(1).join('.').trim();
 }
 
 function validateMediaRegion(mediaId: string, path: string, rawRegion: unknown, missing: string[]) {

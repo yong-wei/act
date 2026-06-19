@@ -1549,6 +1549,17 @@
           "title": "闭环控制方框图",
           "payload": {
             "graphId": "closed-loop-block-diagram",
+            "layout": {
+              "mode": "relative",
+              "origin": {
+                "x": 0.08,
+                "y": 0.42
+              },
+              "spacing": {
+                "x": 0.12,
+                "y": 0.3
+              }
+            },
             "interactions": {
               "mode": "diagnose"
             },
@@ -1558,9 +1569,9 @@
                 "id": "ref",
                 "type": "input",
                 "labelLatex": "R(s)",
-                "position": {
-                  "x": 0.08,
-                  "y": 0.42
+                "grid": {
+                  "column": 0,
+                  "row": 0
                 },
                 "size": {
                   "width": 0.07,
@@ -1571,10 +1582,8 @@
                 "id": "sum",
                 "type": "sum",
                 "label": "Σ",
-                "position": {
-                  "x": 0.2,
-                  "y": 0.42
-                },
+                "relativeTo": "ref",
+                "placement": "right",
                 "size": {
                   "width": 0.07,
                   "height": 0.07
@@ -1584,10 +1593,9 @@
                 "id": "error",
                 "type": "branch",
                 "label": "e",
-                "position": {
-                  "x": 0.31,
-                  "y": 0.42
-                },
+                "relativeTo": "sum",
+                "placement": "right",
+                "distance": 0.9,
                 "size": {
                   "width": 0.06,
                   "height": 0.06
@@ -1597,10 +1605,9 @@
                 "id": "controller",
                 "type": "block",
                 "labelLatex": "G_c(s)",
-                "position": {
-                  "x": 0.43,
-                  "y": 0.42
-                },
+                "relativeTo": "error",
+                "placement": "right",
+                "distance": 1.2,
                 "size": {
                   "width": 0.15,
                   "height": 0.1
@@ -1610,10 +1617,9 @@
                 "id": "actuator",
                 "type": "block",
                 "labelLatex": "G_a(s)",
-                "position": {
-                  "x": 0.6,
-                  "y": 0.42
-                },
+                "relativeTo": "controller",
+                "placement": "right",
+                "distance": 1.4,
                 "size": {
                   "width": 0.14,
                   "height": 0.1
@@ -1623,23 +1629,34 @@
                 "id": "plant",
                 "type": "block",
                 "labelLatex": "G_p(s)",
-                "position": {
-                  "x": 0.77,
-                  "y": 0.42
-                },
+                "relativeTo": "actuator",
+                "placement": "right",
+                "distance": 1.4,
                 "size": {
                   "width": 0.15,
                   "height": 0.1
                 }
               },
               {
+                "id": "output-takeoff",
+                "type": "branch",
+                "display": "takeoff",
+                "label": "y",
+                "relativeTo": "plant",
+                "placement": "right",
+                "distance": 0.65,
+                "size": {
+                  "width": 0.04,
+                  "height": 0.04
+                }
+              },
+              {
                 "id": "output",
                 "type": "output",
                 "labelLatex": "Y(s)",
-                "position": {
-                  "x": 0.92,
-                  "y": 0.42
-                },
+                "relativeTo": "output-takeoff",
+                "placement": "right",
+                "distance": 0.62,
                 "size": {
                   "width": 0.07,
                   "height": 0.07
@@ -1649,10 +1666,8 @@
                 "id": "sensor",
                 "type": "sensor",
                 "labelLatex": "H(s)",
-                "position": {
-                  "x": 0.62,
-                  "y": 0.72
-                },
+                "relativeTo": "actuator",
+                "placement": "below",
                 "size": {
                   "width": 0.14,
                   "height": 0.1
@@ -1662,10 +1677,9 @@
                 "id": "measure",
                 "type": "branch",
                 "label": "y_m",
-                "position": {
-                  "x": 0.32,
-                  "y": 0.72
-                },
+                "relativeTo": "sensor",
+                "placement": "left",
+                "distance": 2.5,
                 "size": {
                   "width": 0.07,
                   "height": 0.07
@@ -1675,56 +1689,73 @@
             "edges": [
               {
                 "id": "r-to-sum",
-                "from": "ref",
-                "to": "sum",
+                "from": "ref.E",
+                "to": "sum.W",
+                "route": "--",
                 "label": "r"
               },
               {
                 "id": "sum-to-error",
-                "from": "sum",
-                "to": "error",
+                "from": "sum.E",
+                "to": "error.C",
+                "route": "--",
                 "label": "e=r-y_m"
               },
               {
                 "id": "error-to-controller",
-                "from": "error",
-                "to": "controller",
+                "from": "error.C",
+                "to": "controller.W",
+                "route": "--",
                 "label": "e"
               },
               {
                 "id": "controller-to-actuator",
-                "from": "controller",
-                "to": "actuator",
+                "from": "controller.E",
+                "to": "actuator.W",
+                "route": "--",
                 "label": "u_c"
               },
               {
                 "id": "actuator-to-plant",
-                "from": "actuator",
-                "to": "plant",
+                "from": "actuator.E",
+                "to": "plant.W",
+                "route": "--",
                 "label": "u"
               },
               {
                 "id": "plant-to-output",
-                "from": "plant",
-                "to": "output",
+                "from": "plant.E",
+                "to": "output-takeoff.C",
+                "route": "--",
                 "label": "y"
               },
               {
+                "id": "takeoff-to-output",
+                "from": "output-takeoff.C",
+                "to": "output.W",
+                "route": "--",
+                "display": "terminal",
+                "label": ""
+              },
+              {
                 "id": "output-to-sensor",
-                "from": "output",
-                "to": "sensor",
+                "from": "output-takeoff.C",
+                "to": "sensor.E",
+                "route": "|-",
                 "label": "y"
               },
               {
                 "id": "sensor-to-measure",
-                "from": "sensor",
-                "to": "measure",
+                "from": "sensor.W",
+                "to": "measure.C",
+                "route": "--",
                 "label": "y_m"
               },
               {
                 "id": "measure-to-sum",
-                "from": "measure",
-                "to": "sum",
+                "from": "measure.C",
+                "to": "sum.S",
+                "route": "-|",
                 "label": "-y_m"
               }
             ],
@@ -1738,13 +1769,16 @@
                   "error-to-controller",
                   "controller-to-actuator",
                   "actuator-to-plant",
-                  "plant-to-output"
+                  "plant-to-output",
+                  "takeoff-to-output"
                 ]
               },
               {
                 "id": "output-node",
                 "label": "输出",
                 "targetIds": [
+                  "output-takeoff",
+                  "takeoff-to-output",
                   "output"
                 ]
               },
@@ -1752,6 +1786,7 @@
                 "id": "feedback-loop",
                 "label": "反馈支路",
                 "targetIds": [
+                  "output-takeoff",
                   "output-to-sensor",
                   "sensor-to-measure",
                   "measure-to-sum"
@@ -1993,6 +2028,17 @@
           "title": "闭环系统信号流图",
           "payload": {
             "graphId": "closed-loop-signal-flow",
+            "layout": {
+              "mode": "relative",
+              "origin": {
+                "x": 0.08,
+                "y": 0.46
+              },
+              "spacing": {
+                "x": 0.2,
+                "y": 0.28
+              }
+            },
             "interactions": {
               "mode": "diagnose"
             },
@@ -2001,42 +2047,36 @@
               {
                 "id": "R",
                 "labelLatex": "R(s)",
-                "position": {
-                  "x": 0.08,
-                  "y": 0.46
+                "grid": {
+                  "column": 0,
+                  "row": 0
                 }
               },
               {
                 "id": "E",
                 "labelLatex": "E(s)",
-                "position": {
-                  "x": 0.26,
-                  "y": 0.46
-                }
+                "relativeTo": "R",
+                "placement": "right",
+                "distance": 0.9
               },
               {
                 "id": "U",
                 "labelLatex": "U(s)",
-                "position": {
-                  "x": 0.46,
-                  "y": 0.46
-                }
+                "relativeTo": "E",
+                "placement": "right"
               },
               {
                 "id": "Y",
                 "labelLatex": "Y(s)",
-                "position": {
-                  "x": 0.68,
-                  "y": 0.46
-                }
+                "relativeTo": "U",
+                "placement": "right",
+                "distance": 1.1
               },
               {
                 "id": "Ym",
                 "labelLatex": "Y_m(s)",
-                "position": {
-                  "x": 0.46,
-                  "y": 0.74
-                }
+                "relativeTo": "U",
+                "placement": "below"
               }
             ],
             "branches": [
@@ -2044,30 +2084,35 @@
                 "id": "b-r-e",
                 "from": "R",
                 "to": "E",
+                "route": "straight",
                 "gainLatex": "1"
               },
               {
                 "id": "b-ym-e",
                 "from": "Ym",
                 "to": "E",
+                "route": "auto-bezier",
                 "gainLatex": "-1"
               },
               {
                 "id": "b-e-u",
                 "from": "E",
                 "to": "U",
+                "route": "straight",
                 "gainLatex": "G_c(s)"
               },
               {
                 "id": "b-u-y",
                 "from": "U",
                 "to": "Y",
+                "route": "straight",
                 "gainLatex": "G_p(s)"
               },
               {
                 "id": "b-y-ym",
                 "from": "Y",
                 "to": "Ym",
+                "route": "auto-bezier",
                 "gainLatex": "H(s)"
               }
             ],

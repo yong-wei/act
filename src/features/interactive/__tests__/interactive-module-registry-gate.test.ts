@@ -429,16 +429,26 @@ describe('interactive module registry gate', () => {
     expect(result.passed).toBe(true);
     expect(html).toContain('data-structure-diagram-kind="visual.blockDiagram"');
     expect(html).toContain('data-structure-diagram-id="closed-loop-block-diagram"');
+    expect(html).toContain('data-structure-diagram-layout-mode="relative"');
+    expect(html).toContain('data-structure-diagram-layout-spacing-x="0.12"');
     expect(html).toContain('data-structure-diagram-node-id="plant"');
     expect(html).toContain('data-structure-diagram-node-type="block"');
     expect(html).toContain('data-structure-diagram-node-visual-kind="block"');
+    expect(html).toContain('data-structure-diagram-node-anchors="N E S W"');
     expect(html).toContain('data-structure-diagram-node-id="reference"');
     expect(html).toContain('data-structure-diagram-node-visual-kind="input"');
     expect(html).toContain('data-structure-diagram-node-id="output"');
     expect(html).toContain('data-structure-diagram-node-visual-kind="output"');
+    expect(html).toContain('data-structure-diagram-text-scale="uniform"');
     expect(html).toContain('border border-transparent bg-transparent');
     expect(html).toContain('data-structure-diagram-node-label-rendering="latex"');
-    expect(html).toContain('data-structure-diagram-node-symbol-size="small-dot"');
+    expect(html).toContain('data-structure-diagram-node-symbol-size="takeoff-dot"');
+    expect(html).toContain('data-structure-diagram-output-label-position="above-line"');
+    expect(html).toContain('data-structure-diagram-edge-from-port="right"');
+    expect(html).toContain('data-structure-diagram-edge-to-port="bottom"');
+    expect(html).toContain('data-structure-diagram-edge-route="-|"');
+    expect(html).toContain('data-structure-diagram-edge-waypoint-count="1"');
+    expect(html).not.toContain('data-structure-diagram-node-symbol-size="small-dot"');
     expect(html).toContain('data-structure-diagram-summing-junction="cross"');
     expect(html).toContain('katex');
     expect(html).toContain('data-structure-diagram-label-chrome="plain"');
@@ -452,6 +462,52 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-structure-diagram-mode-label="visual"');
     expect(html).not.toContain('<span class="premium-lesson-badge">highlight</span>');
     expect(html).not.toContain('space-y-4');
+  });
+
+  it('renders block diagram default and diagonal anchors as real geometry', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 1,
+      allowInlineReveal: true,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'block-diagram-anchor-geometry',
+        kind: 'visual.blockDiagram',
+        mustBeVisible: true,
+        payload: {
+          graphId: 'anchor-geometry',
+          layout: { mode: 'relative', origin: { x: 0.2, y: 0.5 }, spacing: { x: 0.2, y: 0.2 } },
+          mode: 'diagnose',
+          nodes: [
+            { id: 'a', type: 'block', labelLatex: 'A', grid: { column: 0, row: 0 }, size: { width: 0.1, height: 0.1 } },
+            { id: 'b', type: 'block', labelLatex: 'B', relativeTo: 'a', placement: 'right', size: { width: 0.1, height: 0.1 } },
+            { id: 'sum', type: 'sum', label: 'Σ', relativeTo: 'b', placement: 'right', size: { width: 0.08, height: 0.08 } },
+          ],
+          edges: [
+            { id: 'auto-ab', from: 'a', to: 'b', route: '--', label: 'u' },
+            { id: 'sum-diagonal', from: 'sum.NE', to: 'b.SW', route: '--', label: 'd' },
+          ],
+          revealPlan: [{ id: 'all', label: '全部', targetIds: ['auto-ab', 'sum-diagonal'] }],
+          activeRevealState: 'all',
+        },
+      },
+    });
+    const step = manifest.steps[0];
+    const node = registry['visual.blockDiagram']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 1, allowInlineReveal: true },
+    }) as ReactElement;
+    const html = renderToStaticMarkup(createElement(ThemeProvider, null, node));
+
+    expect(html).toContain('data-structure-diagram-edge-id="auto-ab"');
+    expect(html).toContain('data-structure-diagram-edge-from-port="right"');
+    expect(html).toContain('data-structure-diagram-edge-to-port="left"');
+    expect(html).toContain('data-structure-diagram-edge-id="sum-diagonal"');
+    expect(html).toContain('data-structure-diagram-edge-from-port="top-right"');
+    expect(html).toContain('data-structure-diagram-edge-to-port="bottom-left"');
+    expect(html).toContain('d="M 64 46 L 35 55"');
   });
 
   it('renders visual.signalFlowGraph with branch labels, path sets, and Mason formula traceability', () => {
@@ -482,8 +538,13 @@ describe('interactive module registry gate', () => {
     expect(result.passed).toBe(true);
     expect(html).toContain('data-structure-diagram-kind="visual.signalFlowGraph"');
     expect(html).toContain('data-structure-diagram-id="closed-loop-signal-flow"');
+    expect(html).toContain('data-structure-diagram-layout-mode="relative"');
     expect(html).toContain('data-structure-diagram-node-id="theta"');
+    expect(html).toContain('data-structure-diagram-node-anchors="E W C"');
+    expect(html).toContain('data-structure-diagram-text-scale="uniform"');
     expect(html).toContain('data-structure-diagram-branch-id="g-forward"');
+    expect(html).toContain('data-structure-diagram-branch-route-kind="straight"');
+    expect(html).toContain('data-structure-diagram-branch-route-kind="auto-bezier"');
     expect(html).toContain('data-structure-diagram-branch-selected="false"');
     expect(html).toContain(' C ');
     expect(html).toContain('data-structure-diagram-branch-label-id="g-forward"');
@@ -1834,13 +1895,18 @@ describe('interactive module registry gate', () => {
                 mode: 'diagnose',
                 image: '/static/fallback.png',
                 staticImageOnly: true,
+                layout: { mode: 'relative', textScale: 'tiny' },
                 nodes: [
                   { id: 'plant', type: 'block', label: 'G(s)', position: { x: 0.5, y: 0.5 } },
                   { id: 'plant', type: 'private-widget', position: { x: 1.4, y: 0.5 } },
+                  { id: 'late', type: 'block', label: 'Late', relativeTo: 'future', placement: 'sideways' },
+                  { id: 'future', type: 'block', label: 'Future', relativeTo: 'late', placement: 'right' },
+                  { id: 'self', type: 'block', label: 'Self', relativeTo: 'self', placement: 'right' },
                 ],
                 edges: [
                   { id: 'edge-a', from: 'plant', to: 'missing-node' },
                   { id: 'edge-a', from: 'missing-node', to: 'plant' },
+                  { id: 'edge-ne', from: 'plant.NE', to: 'future.SW', route: 'diagonal', label: 'x' },
                 ],
                 revealPlan: [],
                 activeRevealState: 'missing-reveal',
@@ -1862,11 +1928,14 @@ describe('interactive module registry gate', () => {
               payload: {
                 graphId: 'broken-signal-flow',
                 mode: 'highlight',
+                layout: { mode: 'relative' },
                 nodes: [
                   { id: 'input', labelLatex: 'R', position: { x: 0.1, y: 0.5 } },
+                  { id: 'late', labelLatex: 'L', relativeTo: 'missing-node', placement: 'sideways' },
                 ],
                 branches: [
                   { id: 'g-forward', from: 'input', to: 'missing-output', gainLatex: 'G' },
+                  { id: 'bad-route', from: 'input', to: 'late', route: '-|', gainLatex: 'B' },
                 ],
                 pathSets: {
                   forwardPaths: [{ id: 'forward-path-1', label: '前向路径 P1', branchIds: ['missing-branch'] }],
@@ -1889,18 +1958,26 @@ describe('interactive module registry gate', () => {
     expect(invalidBlockResult.passed).toBe(false);
     expect(invalidBlockResult.violations[0]?.message).toContain('graph=(missing).graphId');
     expect(invalidBlockResult.violations[0]?.message).toContain('staticImageOnly');
+    expect(invalidBlockResult.violations[0]?.message).toContain('layout.textScale');
     expect(invalidBlockResult.violations[0]?.message).toContain('nodes[1:plant].id:duplicate');
     expect(invalidBlockResult.violations[0]?.message).toContain('nodes[1:plant].type');
     expect(invalidBlockResult.violations[0]?.message).toContain('nodes[1:plant].label');
     expect(invalidBlockResult.violations[0]?.message).toContain('nodes[1:plant].position.x');
+    expect(invalidBlockResult.violations[0]?.message).toContain('nodes[2:late].relativeTo');
+    expect(invalidBlockResult.violations[0]?.message).toContain('nodes[2:late].placement');
+    expect(invalidBlockResult.violations[0]?.message).toContain('nodes[4:self].relativeTo');
     expect(invalidBlockResult.violations[0]?.message).toContain('edges[0:edge-a].to');
     expect(invalidBlockResult.violations[0]?.message).toContain('edges[0:edge-a].label');
     expect(invalidBlockResult.violations[0]?.message).toContain('edges[1:edge-a].id:duplicate');
+    expect(invalidBlockResult.violations[0]?.message).toContain('edges[2:edge-ne].route');
     expect(invalidBlockResult.violations[0]?.message).toContain('revealPlan');
     expect(invalidBlockResult.violations[0]?.message).toContain('activeRevealState');
 
     expect(invalidSignalResult.passed).toBe(false);
     expect(invalidSignalResult.violations[0]?.message).toContain('branches[0:g-forward].to');
+    expect(invalidSignalResult.violations[0]?.message).toContain('branches[1:bad-route].route');
+    expect(invalidSignalResult.violations[0]?.message).toContain('nodes[1:late].relativeTo');
+    expect(invalidSignalResult.violations[0]?.message).toContain('nodes[1:late].placement');
     expect(invalidSignalResult.violations[0]?.message).toContain('pathSets.forwardPaths[0]:missing-branch');
     expect(invalidSignalResult.violations[0]?.message).toContain('pathSets.loops');
     expect(invalidSignalResult.violations[0]?.message).toContain('revealPlan[0:loop-reveal].targetIds:missing-target');
@@ -2836,27 +2913,32 @@ function derivationStagePayloadFixture(): Record<string, unknown> {
 function blockDiagramPayloadFixture(): Record<string, unknown> {
   return {
     graphId: 'closed-loop-block-diagram',
+    layout: {
+      mode: 'relative',
+      origin: { x: 0.1, y: 0.45 },
+      spacing: { x: 0.12, y: 0.31 },
+    },
     mode: 'highlight',
     activeRevealState: 'feedback-loop',
     nodes: [
-      { id: 'reference', type: 'input', label: 'R(s)', position: { x: 0.08, y: 0.45 }, size: { width: 0.08, height: 0.08 } },
-      { id: 'sum', type: 'sum', label: '+/-', position: { x: 0.22, y: 0.45 }, size: { width: 0.08, height: 0.08 } },
-      { id: 'controller', type: 'block', labelLatex: 'C(s)', position: { x: 0.4, y: 0.45 }, size: { width: 0.14, height: 0.1 } },
-      { id: 'plant', type: 'block', labelLatex: 'G(s)', position: { x: 0.6, y: 0.45 }, size: { width: 0.14, height: 0.1 } },
-      { id: 'disturbance', type: 'disturbance', labelLatex: 'D(s)', position: { x: 0.6, y: 0.2 }, size: { width: 0.1, height: 0.08 } },
-      { id: 'output-branch', type: 'branch', label: '●', position: { x: 0.75, y: 0.45 }, size: { width: 0.06, height: 0.06 } },
-      { id: 'output', type: 'output', label: 'Y(s)', position: { x: 0.88, y: 0.45 }, size: { width: 0.08, height: 0.08 } },
-      { id: 'sensor', type: 'sensor', labelLatex: 'H(s)', position: { x: 0.6, y: 0.76 }, size: { width: 0.14, height: 0.1 } },
+      { id: 'reference', type: 'input', label: 'R(s)', grid: { column: 0, row: 0 }, size: { width: 0.08, height: 0.08 } },
+      { id: 'sum', type: 'sum', label: '+/-', relativeTo: 'reference', placement: 'right', size: { width: 0.08, height: 0.08 } },
+      { id: 'controller', type: 'block', labelLatex: 'C(s)', relativeTo: 'sum', placement: 'right', distance: 1.5, size: { width: 0.14, height: 0.1 } },
+      { id: 'plant', type: 'block', labelLatex: 'G(s)', relativeTo: 'controller', placement: 'right', distance: 1.6, size: { width: 0.14, height: 0.1 } },
+      { id: 'disturbance', type: 'disturbance', labelLatex: 'D(s)', relativeTo: 'plant', placement: 'above', distance: 0.8, size: { width: 0.1, height: 0.08 } },
+      { id: 'output-branch', type: 'branch', display: 'takeoff', label: 'y', relativeTo: 'plant', placement: 'right', distance: 1.2, size: { width: 0.04, height: 0.04 } },
+      { id: 'output', type: 'output', label: 'Y(s)', relativeTo: 'output-branch', placement: 'right', distance: 1, size: { width: 0.08, height: 0.08 } },
+      { id: 'sensor', type: 'sensor', labelLatex: 'H(s)', relativeTo: 'plant', placement: 'below', distance: 1, size: { width: 0.14, height: 0.1 } },
     ],
     edges: [
-      { id: 'reference-signal', from: 'reference', to: 'sum', label: 'r' },
-      { id: 'error-signal', from: 'sum', to: 'controller', labelLatex: 'e' },
-      { id: 'control-signal', from: 'controller', to: 'plant', labelLatex: 'u' },
+      { id: 'reference-signal', from: 'reference.E', to: 'sum.W', route: '--', label: 'r' },
+      { id: 'error-signal', from: 'sum.E', to: 'controller.W', route: '--', labelLatex: 'e' },
+      { id: 'control-signal', from: 'controller.E', to: 'plant.W', route: '--', labelLatex: 'u' },
       { id: 'disturbance-input', from: 'disturbance', to: 'plant', labelLatex: 'd' },
-      { id: 'plant-output', from: 'plant', to: 'output-branch', labelLatex: 'y' },
-      { id: 'output-signal', from: 'output-branch', to: 'output', labelLatex: 'y' },
-      { id: 'feedback-signal', from: 'output-branch', to: 'sensor', labelLatex: 'y' },
-      { id: 'feedback-return', from: 'sensor', to: 'sum', labelLatex: '-H(s)y' },
+      { id: 'plant-output', from: 'plant.E', to: 'output-branch.C', route: '--', labelLatex: 'y' },
+      { id: 'output-signal', from: 'output-branch.C', to: 'output.W', route: '--', display: 'terminal', label: '' },
+      { id: 'feedback-signal', from: 'output-branch.C', to: 'sensor.E', route: '|-', labelLatex: 'y' },
+      { id: 'feedback-return', from: 'sensor.W', to: 'sum.S', route: '-|', labelLatex: '-H(s)y' },
     ],
     revealPlan: [
       { id: 'forward-path', label: '前向通道', targetIds: ['reference-signal', 'error-signal', 'control-signal', 'plant-output', 'output-signal'] },
@@ -2868,12 +2950,17 @@ function blockDiagramPayloadFixture(): Record<string, unknown> {
 function signalFlowGraphPayloadFixture(): Record<string, unknown> {
   return {
     graphId: 'closed-loop-signal-flow',
+    layout: {
+      mode: 'relative',
+      origin: { x: 0.16, y: 0.5 },
+      spacing: { x: 0.28, y: 0.24 },
+    },
     mode: 'diagnose',
     activeRevealState: 'loop-reveal',
     nodes: [
-      { id: 'input', labelLatex: 'R', position: { x: 0.1, y: 0.5 } },
-      { id: 'theta', labelLatex: '\\\\Theta', position: { x: 0.42, y: 0.5 } },
-      { id: 'output', labelLatex: 'Y', position: { x: 0.76, y: 0.5 } },
+      { id: 'input', labelLatex: 'R', grid: { column: 0, row: 0 } },
+      { id: 'theta', labelLatex: '\\\\Theta', relativeTo: 'input', placement: 'right' },
+      { id: 'output', labelLatex: 'Y', relativeTo: 'theta', placement: 'right' },
     ],
     branches: [
       { id: 'g-forward', from: 'input', to: 'theta', gainLatex: 'G(s)' },

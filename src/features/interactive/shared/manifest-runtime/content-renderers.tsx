@@ -109,10 +109,17 @@ type DerivationStagePayload = {
   answerVisible: boolean;
 };
 type StructureDiagramPoint = { x: number; y: number };
+type StructureDiagramLayout = {
+  mode: string;
+  origin: StructureDiagramPoint;
+  spacing: StructureDiagramPoint;
+  textScale: string;
+};
 type BlockDiagramNodeType = 'block' | 'sum' | 'branch' | 'input' | 'output' | 'disturbance' | 'sensor';
 type BlockDiagramNode = {
   id: string;
   type: BlockDiagramNodeType;
+  display: string;
   label: string;
   position: StructureDiagramPoint;
   size: { width: number; height: number };
@@ -121,10 +128,16 @@ type BlockDiagramEdge = {
   id: string;
   from: string;
   to: string;
+  display: string;
+  fromPort: string;
+  toPort: string;
+  waypoints: StructureDiagramPoint[];
+  route: string;
   label: string;
 };
 type BlockDiagramPayload = {
   graphId: string;
+  layout: StructureDiagramLayout;
   mode: string;
   activeRevealState: string;
   nodes: BlockDiagramNode[];
@@ -140,6 +153,7 @@ type SignalFlowBranch = {
   id: string;
   from: string;
   to: string;
+  route: string;
   gainLatex: string;
 };
 type SignalFlowPathSet = {
@@ -154,6 +168,7 @@ type SignalFlowLoopGroup = {
 };
 type SignalFlowPayload = {
   graphId: string;
+  layout: StructureDiagramLayout;
   mode: string;
   activeRevealState: string;
   nodes: SignalFlowNode[];
@@ -401,6 +416,61 @@ function structurePoint(value: unknown): StructureDiagramPoint {
   return {
     x: numberInRange(point.x, 0.5),
     y: numberInRange(point.y, 0.5),
+  };
+}
+
+function structureLayout(value: unknown): StructureDiagramLayout {
+  const layout = asRecord(value);
+  const spacing = asRecord(layout.spacing);
+  return {
+    mode: stringFromFields(layout, ['mode', 'engine'], 'absolute'),
+    origin: structurePoint(layout.origin ?? { x: 0.1, y: 0.45 }),
+    spacing: {
+      x: numberInRange(spacing.x ?? spacing.horizontal, 0.12, 0.02, 0.5),
+      y: numberInRange(spacing.y ?? spacing.vertical, 0.28, 0.02, 0.5),
+    },
+    textScale: stringFromFields(layout, ['textScale', 'text_scale'], 'uniform'),
+  };
+}
+
+function relativeDistance(value: unknown) {
+  return numberInRange(value, 1, -6, 6);
+}
+
+function relativeNodePosition(
+  node: Record<string, unknown>,
+  resolved: ReadonlyMap<string, StructureDiagramPoint>,
+  layout: StructureDiagramLayout,
+  fallbackIndex: number,
+) {
+  if (node.position) return structurePoint(node.position);
+  const grid = asRecord(node.grid ?? node.relativeGrid ?? node.relative_grid);
+  if (Object.keys(grid).length > 0) {
+    const column = relativeDistance(grid.column ?? grid.col ?? grid.x ?? 0);
+    const row = relativeDistance(grid.row ?? grid.y ?? 0);
+    return {
+      x: clamp(layout.origin.x + column * layout.spacing.x, 0, 1),
+      y: clamp(layout.origin.y + row * layout.spacing.y, 0, 1),
+    };
+  }
+  const relativeTo = String(node.relativeTo ?? node.relative_to ?? node.of ?? '').trim();
+  const anchor = relativeTo ? resolved.get(relativeTo) : undefined;
+  if (anchor) {
+    const placement = String(node.placement ?? node.place ?? node.side ?? 'right').trim();
+    const distance = relativeDistance(node.distance ?? node.gap ?? 1);
+    const offset = asRecord(node.offset);
+    const offsetX = relativeDistance(offset.x ?? 0) * layout.spacing.x;
+    const offsetY = relativeDistance(offset.y ?? 0) * layout.spacing.y;
+    const dx = (placement === 'right' ? distance : placement === 'left' ? -distance : 0) * layout.spacing.x + offsetX;
+    const dy = (placement === 'below' ? distance : placement === 'above' ? -distance : 0) * layout.spacing.y + offsetY;
+    return {
+      x: clamp(anchor.x + dx, 0, 1),
+      y: clamp(anchor.y + dy, 0, 1),
+    };
+  }
+  return {
+    x: clamp(layout.origin.x + fallbackIndex * layout.spacing.x, 0, 1),
+    y: layout.origin.y,
   };
 }
 
@@ -722,18 +792,21 @@ function isMathLabel(label: string) {
 function blockDiagramPayload(module: InteractiveRuntimeModuleManifest): BlockDiagramPayload {
   const payload = module.payload;
   const interaction = asRecord(payload.interactions ?? payload.interaction);
+  const layout = structureLayout(payload.layout);
   return {
     graphId: String(payload.graphId ?? payload.graph_id ?? payload.diagramId ?? payload.diagram_id ?? module.id),
+    layout,
     mode: visualStageString(interaction.mode ?? payload.mode, 'read'),
     activeRevealState: visualStageString(payload.activeRevealState ?? payload.active_reveal_state, 'all'),
-    nodes: blockDiagramNodes(payload.nodes),
+    nodes: blockDiagramNodes(payload.nodes, layout),
     edges: blockDiagramEdges(payload.edges),
     revealPlan: structureRevealPlan(payload.revealPlan ?? payload.reveal_plan),
   };
 }
 
-function blockDiagramNodes(value: unknown): BlockDiagramNode[] {
+function blockDiagramNodes(value: unknown, layout: StructureDiagramLayout): BlockDiagramNode[] {
   if (!Array.isArray(value)) return [];
+  const resolved = new Map<string, StructureDiagramPoint>();
   return value
     .map((item, index): BlockDiagramNode | null => {
       const node = asRecord(item);
@@ -743,16 +816,19 @@ function blockDiagramNodes(value: unknown): BlockDiagramNode[] {
         ? String(node.type) as BlockDiagramNodeType
         : 'block';
       const size = asRecord(node.size);
-      return {
+      const result = {
         id,
         type,
+        display: stringFromFields(node, ['display', 'renderAs', 'render_as']),
         label: stringFromFields(node, ['labelLatex', 'label_latex', 'label', 'title'], `节点 ${index + 1}`),
-        position: structurePoint(node.position),
+        position: relativeNodePosition(node, resolved, layout, index),
         size: {
           width: numberInRange(size.width, type === 'block' ? 0.16 : 0.07, 0.03, 0.4),
           height: numberInRange(size.height, type === 'block' ? 0.1 : 0.07, 0.03, 0.25),
         },
       };
+      resolved.set(id, result.position);
+      return result;
     })
     .filter((item): item is BlockDiagramNode => Boolean(item));
 }
@@ -763,17 +839,54 @@ function blockDiagramEdges(value: unknown): BlockDiagramEdge[] {
     .map((item): BlockDiagramEdge | null => {
       const edge = asRecord(item);
       const id = String(edge.id ?? '').trim();
-      const from = String(edge.from ?? edge.fromId ?? edge.from_id ?? '').trim();
-      const to = String(edge.to ?? edge.toId ?? edge.to_id ?? '').trim();
+      const fromRef = blockEndpointRef(edge.from ?? edge.fromId ?? edge.from_id, edge.fromPort ?? edge.from_port);
+      const toRef = blockEndpointRef(edge.to ?? edge.toId ?? edge.to_id, edge.toPort ?? edge.to_port);
+      const from = fromRef.nodeId;
+      const to = toRef.nodeId;
       if (!id || !from || !to) return null;
+      const waypoints = blockDiagramWaypoints(edge.waypoints ?? edge.via ?? edge.points);
       return {
         id,
         from,
         to,
+        display: stringFromFields(edge, ['display', 'renderAs', 'render_as']),
+        fromPort: fromRef.port,
+        toPort: toRef.port,
+        waypoints,
+        route: stringFromFields(edge, ['route', 'path'], '--'),
         label: stringFromFields(edge, ['labelLatex', 'label_latex', 'label']),
       };
     })
     .filter((item): item is BlockDiagramEdge => Boolean(item));
+}
+
+function normalizeBlockPort(value: unknown) {
+  const port = String(value ?? '').trim();
+  const upper = port.toUpperCase();
+  if (upper === 'N') return 'top';
+  if (upper === 'NE') return 'top-right';
+  if (upper === 'S') return 'bottom';
+  if (upper === 'SE') return 'bottom-right';
+  if (upper === 'E') return 'right';
+  if (upper === 'SW') return 'bottom-left';
+  if (upper === 'W') return 'left';
+  if (upper === 'NW') return 'top-left';
+  if (upper === 'C' || upper === 'CENTER') return 'center';
+  return port;
+}
+
+function blockEndpointRef(rawEndpoint: unknown, rawPort: unknown) {
+  const endpoint = String(rawEndpoint ?? '').trim();
+  const [nodeId, inlinePort] = endpoint.includes('.') ? endpoint.split('.') : [endpoint, ''];
+  return {
+    nodeId: nodeId.trim(),
+    port: normalizeBlockPort(rawPort || inlinePort),
+  };
+}
+
+function blockDiagramWaypoints(value: unknown): StructureDiagramPoint[] {
+  if (!Array.isArray(value)) return [];
+  return value.map(structurePoint);
 }
 
 function structureRevealPlan(value: unknown): Array<{ id: string; targetIds: string[]; label: string }> {
@@ -796,11 +909,13 @@ function signalFlowPayload(module: InteractiveRuntimeModuleManifest): SignalFlow
   const payload = module.payload;
   const interaction = asRecord(payload.interactions ?? payload.interaction);
   const pathSets = asRecord(payload.pathSets ?? payload.path_sets);
+  const layout = structureLayout(payload.layout);
   return {
     graphId: String(payload.graphId ?? payload.graph_id ?? module.id),
+    layout,
     mode: visualStageString(interaction.mode ?? payload.mode, 'read'),
     activeRevealState: visualStageString(payload.activeRevealState ?? payload.active_reveal_state, 'all'),
-    nodes: signalFlowNodes(payload.nodes),
+    nodes: signalFlowNodes(payload.nodes, layout),
     branches: signalFlowBranches(payload.branches),
     forwardPaths: signalFlowPathSets(pathSets.forwardPaths ?? pathSets.forward_paths, 'forward-path', '前向路径'),
     loops: signalFlowPathSets(pathSets.loops, 'feedback-loop', '反馈环路'),
@@ -810,18 +925,21 @@ function signalFlowPayload(module: InteractiveRuntimeModuleManifest): SignalFlow
   };
 }
 
-function signalFlowNodes(value: unknown): SignalFlowNode[] {
+function signalFlowNodes(value: unknown, layout: StructureDiagramLayout): SignalFlowNode[] {
   if (!Array.isArray(value)) return [];
+  const resolved = new Map<string, StructureDiagramPoint>();
   return value
-    .map((item): SignalFlowNode | null => {
+    .map((item, index): SignalFlowNode | null => {
       const node = asRecord(item);
       const id = String(node.id ?? '').trim();
       if (!id) return null;
-      return {
+      const result = {
         id,
         labelLatex: stringFromFields(node, ['labelLatex', 'label_latex', 'label'], id),
-        position: structurePoint(node.position),
+        position: relativeNodePosition(node, resolved, layout, index),
       };
+      resolved.set(id, result.position);
+      return result;
     })
     .filter((item): item is SignalFlowNode => Boolean(item));
 }
@@ -839,6 +957,7 @@ function signalFlowBranches(value: unknown): SignalFlowBranch[] {
         id,
         from,
         to,
+        route: stringFromFields(branch, ['route', 'path'], ''),
         gainLatex: stringFromFields(branch, ['gainLatex', 'gain_latex', 'labelLatex', 'label_latex'], '1'),
       };
     })
@@ -1086,49 +1205,110 @@ function structureNodeForId(nodes: readonly BlockDiagramNode[], id: string) {
 function blockDiagramNodeVisualKind(node: BlockDiagramNode) {
   if (node.type === 'sensor') return 'block';
   if (node.type === 'disturbance') return 'input';
+  if (node.type === 'branch' && node.display === 'takeoff') return 'takeoff';
   return node.type;
+}
+
+function blockDiagramNodeUsesEdgeInset(visualKind: string) {
+  return visualKind === 'block' || visualKind === 'sum';
+}
+
+function blockDiagramNodePortPoint(node: BlockDiagramNode, port: string): StructureDiagramPoint {
+  const visualKind = blockDiagramNodeVisualKind(node);
+  if (visualKind === 'branch' || visualKind === 'takeoff') return node.position;
+  const halfWidth = node.size.width / 2;
+  const halfHeight = node.size.height / 2;
+  if (port === 'left') return { x: node.position.x - halfWidth, y: node.position.y };
+  if (port === 'right') return { x: node.position.x + halfWidth, y: node.position.y };
+  if (port === 'top') return { x: node.position.x, y: node.position.y - halfHeight };
+  if (port === 'bottom') return { x: node.position.x, y: node.position.y + halfHeight };
+  if (port === 'top-right') return { x: node.position.x + halfWidth, y: node.position.y - halfHeight };
+  if (port === 'bottom-right') return { x: node.position.x + halfWidth, y: node.position.y + halfHeight };
+  if (port === 'bottom-left') return { x: node.position.x - halfWidth, y: node.position.y + halfHeight };
+  if (port === 'top-left') return { x: node.position.x - halfWidth, y: node.position.y - halfHeight };
+  return node.position;
+}
+
+function blockDiagramAutoPort(node: BlockDiagramNode, otherPoint: StructureDiagramPoint) {
+  const visualKind = blockDiagramNodeVisualKind(node);
+  if (!blockDiagramNodeUsesEdgeInset(visualKind)) return 'center';
+  const dx = otherPoint.x - node.position.x;
+  const dy = otherPoint.y - node.position.y;
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    return dx >= 0 ? 'right' : 'left';
+  }
+  return dy >= 0 ? 'bottom' : 'top';
 }
 
 function blockEdgeEndpoints(nodes: readonly BlockDiagramNode[], edge: BlockDiagramEdge) {
   const fromNode = structureNodeForId(nodes, edge.from);
   const toNode = structureNodeForId(nodes, edge.to);
-  const from = fromNode?.position ?? structurePointForId(nodes, edge.from);
-  const to = toNode?.position ?? structurePointForId(nodes, edge.to);
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const fromKind = fromNode ? blockDiagramNodeVisualKind(fromNode) : 'branch';
-  const toKind = toNode ? blockDiagramNodeVisualKind(toNode) : 'branch';
-  const fromInsetX = fromNode && fromKind !== 'input' && fromKind !== 'output' ? fromNode.size.width / 2 : 0;
-  const fromInsetY = fromNode && fromKind !== 'input' && fromKind !== 'output' ? fromNode.size.height / 2 : 0;
-  const toInsetX = toNode && toKind !== 'input' && toKind !== 'output' ? toNode.size.width / 2 : 0;
-  const toInsetY = toNode && toKind !== 'input' && toKind !== 'output' ? toNode.size.height / 2 : 0;
-  if (Math.abs(dx) >= Math.abs(dy)) {
-    const direction = dx >= 0 ? 1 : -1;
-    return {
-      from: { x: from.x + direction * fromInsetX, y: from.y },
-      to: { x: to.x - direction * toInsetX, y: to.y },
-    };
-  }
-  const direction = dy >= 0 ? 1 : -1;
+  const fromCenter = fromNode?.position ?? structurePointForId(nodes, edge.from);
+  const toCenter = toNode?.position ?? structurePointForId(nodes, edge.to);
+  const firstTarget = edge.waypoints[0] ?? toCenter;
+  const lastSource = edge.waypoints[edge.waypoints.length - 1] ?? fromCenter;
+  const fromPort = edge.fromPort || (fromNode ? blockDiagramAutoPort(fromNode, firstTarget) : 'center');
+  const toPort = edge.toPort || (toNode ? blockDiagramAutoPort(toNode, lastSource) : 'center');
   return {
-    from: { x: from.x, y: from.y + direction * fromInsetY },
-    to: { x: to.x, y: to.y - direction * toInsetY },
+    from: fromNode ? blockDiagramNodePortPoint(fromNode, fromPort) : fromCenter,
+    to: toNode ? blockDiagramNodePortPoint(toNode, toPort) : toCenter,
+    fromPort,
+    toPort,
   };
+}
+
+function structureSvgValue(value: number) {
+  return Number(value.toFixed(3)).toString();
+}
+
+function structureSvgPoint(point: StructureDiagramPoint) {
+  return `${structureSvgValue(point.x * 100)} ${structureSvgValue(point.y * 100)}`;
 }
 
 function blockEdgePath(nodes: readonly BlockDiagramNode[], edge: BlockDiagramEdge) {
   const { from, to } = blockEdgeEndpoints(nodes, edge);
+  if (edge.waypoints.length > 0) {
+    const points = [from, ...edge.waypoints, to];
+    const longestSegment = points.slice(1).reduce((best, point, index) => {
+      const previous = points[index];
+      const length = Math.hypot(point.x - previous.x, point.y - previous.y);
+      return length > best.length ? { from: previous, to: point, length } : best;
+    }, { from: points[0], to: points[1] ?? points[0], length: -1 });
+    return {
+      d: points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${structureSvgPoint(point)}`).join(' '),
+      label: {
+        x: ((longestSegment.from.x + longestSegment.to.x) / 2) * 100,
+        y: ((longestSegment.from.y + longestSegment.to.y) / 2) * 100 - 3,
+      },
+    };
+  }
+  if (edge.route === '-|' || edge.route === '|-') {
+    const elbow = edge.route === '-|' ? { x: to.x, y: from.y } : { x: from.x, y: to.y };
+    const points = [from, elbow, to];
+    const longestSegment = points.slice(1).reduce((best, point, index) => {
+      const previous = points[index];
+      const length = Math.hypot(point.x - previous.x, point.y - previous.y);
+      return length > best.length ? { from: previous, to: point, length } : best;
+    }, { from: points[0], to: points[1], length: -1 });
+    return {
+      d: points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${structureSvgPoint(point)}`).join(' '),
+      label: {
+        x: ((longestSegment.from.x + longestSegment.to.x) / 2) * 100,
+        y: ((longestSegment.from.y + longestSegment.to.y) / 2) * 100 - 3,
+      },
+    };
+  }
   const dx = Math.abs(to.x - from.x);
   const dy = Math.abs(to.y - from.y);
   if (dx > 0.03 && dy > 0.1) {
     const midY = Math.max(from.y, to.y) + 0.08;
     return {
-      d: `M ${from.x * 100} ${from.y * 100} L ${from.x * 100} ${midY * 100} L ${to.x * 100} ${midY * 100} L ${to.x * 100} ${to.y * 100}`,
+      d: `M ${structureSvgPoint(from)} L ${structureSvgValue(from.x * 100)} ${structureSvgValue(midY * 100)} L ${structureSvgValue(to.x * 100)} ${structureSvgValue(midY * 100)} L ${structureSvgPoint(to)}`,
       label: { x: ((from.x + to.x) / 2) * 100, y: (midY * 100) - 2 },
     };
   }
   return {
-    d: `M ${from.x * 100} ${from.y * 100} L ${to.x * 100} ${to.y * 100}`,
+    d: `M ${structureSvgPoint(from)} L ${structureSvgPoint(to)}`,
     label: { x: ((from.x + to.x) / 2) * 100, y: ((from.y + to.y) / 2) * 100 - 3 },
   };
 }
@@ -1148,8 +1328,17 @@ function blockNodeBounds(node: BlockDiagramNode) {
     return {
       left: `${node.position.x * 100}%`,
       top: `${node.position.y * 100}%`,
-      width: '14px',
-      height: '14px',
+      width: '28px',
+      height: '28px',
+      transform: 'translate(-50%, -50%)',
+    };
+  }
+  if (visualKind === 'takeoff') {
+    return {
+      left: `${node.position.x * 100}%`,
+      top: `${node.position.y * 100}%`,
+      width: '10px',
+      height: '10px',
       transform: 'translate(-50%, -50%)',
     };
   }
@@ -1171,28 +1360,46 @@ function blockNodeBounds(node: BlockDiagramNode) {
   };
 }
 
+function blockDiagramNodeAnchors(node: BlockDiagramNode) {
+  const visualKind = blockDiagramNodeVisualKind(node);
+  if (visualKind === 'sum') return 'N NE E SE S SW W NW C';
+  if (visualKind === 'block') return 'N E S W';
+  if (visualKind === 'takeoff') return 'C';
+  return 'E W C';
+}
+
 function signalBranchPath(nodes: readonly SignalFlowNode[], branch: SignalFlowBranch) {
   const from = structurePointForId(nodes, branch.from);
   const to = structurePointForId(nodes, branch.to);
-  const isFeedback = to.x < from.x || Math.abs(to.y - from.y) > 0.12;
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   const length = Math.max(0.001, Math.hypot(dx, dy));
   const nodeRadius = 0.035;
   const start = { x: from.x + (dx / length) * nodeRadius, y: from.y + (dy / length) * nodeRadius };
   const end = { x: to.x - (dx / length) * nodeRadius, y: to.y - (dy / length) * nodeRadius };
-  if (isFeedback) {
-    const controlY = Math.max(start.y, end.y) + 0.16;
+  const routeKind = branch.route || (Math.abs(start.y - end.y) < 0.03 && end.x > start.x ? 'straight' : 'auto-bezier');
+  if (routeKind === 'straight') {
     return {
-      d: `M ${start.x * 100} ${start.y * 100} C ${start.x * 100} ${controlY * 100}, ${end.x * 100} ${controlY * 100}, ${end.x * 100} ${end.y * 100}`,
+      d: `M ${structureSvgPoint(start)} L ${structureSvgPoint(end)}`,
+      label: { x: ((start.x + end.x) / 2) * 100, y: ((start.y + end.y) / 2) * 100 - 4 },
+      routeKind,
+    };
+  }
+  if (to.x < from.x || Math.abs(to.y - from.y) > 0.12) {
+    const verticalDirection = start.y <= end.y ? 1 : -1;
+    const controlY = (verticalDirection > 0 ? Math.max(start.y, end.y) : Math.min(start.y, end.y)) + verticalDirection * 0.16;
+    return {
+      d: `M ${structureSvgPoint(start)} C ${structureSvgValue(start.x * 100)} ${structureSvgValue(controlY * 100)}, ${structureSvgValue(end.x * 100)} ${structureSvgValue(controlY * 100)}, ${structureSvgPoint(end)}`,
       label: { x: ((start.x + end.x) / 2) * 100, y: controlY * 100 + 4 },
+      routeKind: 'auto-bezier',
     };
   }
   const controlX = ((start.x + end.x) / 2) * 100;
   const controlY = (((start.y + end.y) / 2) - 0.06) * 100;
   return {
-    d: `M ${start.x * 100} ${start.y * 100} C ${controlX} ${controlY}, ${controlX} ${controlY}, ${end.x * 100} ${end.y * 100}`,
+    d: `M ${structureSvgPoint(start)} C ${structureSvgValue(controlX)} ${structureSvgValue(controlY)}, ${structureSvgValue(controlX)} ${structureSvgValue(controlY)}, ${structureSvgPoint(end)}`,
     label: { x: ((start.x + end.x) / 2) * 100, y: controlY - 3 },
+    routeKind: 'auto-bezier',
   };
 }
 
@@ -2799,6 +3006,10 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
       className="premium-lesson-panel grid gap-4"
       data-structure-diagram-kind="visual.blockDiagram"
       data-structure-diagram-id={graph.graphId}
+      data-structure-diagram-layout-mode={graph.layout.mode}
+      data-structure-diagram-layout-spacing-x={graph.layout.spacing.x}
+      data-structure-diagram-layout-spacing-y={graph.layout.spacing.y}
+      data-structure-diagram-text-scale={graph.layout.textScale}
       data-structure-diagram-mode={graph.mode}
       data-structure-diagram-active-reveal={graph.activeRevealState}
     >
@@ -2824,10 +3035,15 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
           </defs>
           {graph.edges.map((edge) => {
             const path = blockEdgePath(graph.nodes, edge);
+            const endpoints = blockEdgeEndpoints(graph.nodes, edge);
             return (
               <g
                 key={edge.id}
                 data-structure-diagram-edge-id={edge.id}
+                data-structure-diagram-edge-from-port={endpoints.fromPort}
+                data-structure-diagram-edge-to-port={endpoints.toPort}
+                data-structure-diagram-edge-route={edge.route}
+                data-structure-diagram-edge-waypoint-count={edge.waypoints.length || (edge.route === '-|' || edge.route === '|-' ? 1 : 0)}
                 data-structure-diagram-edge-highlighted={highlighted(edge.id) ? 'true' : 'false'}
                 data-structure-diagram-edge-selected={selected(edge.id) ? 'true' : 'false'}
               >
@@ -2850,10 +3066,11 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
           return (
             <div
               key={`${edge.id}-label`}
-              className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 bg-[var(--platform-surface)]/80 px-1.5 py-0.5 text-xs font-semibold"
+              className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 bg-[var(--platform-surface)]/80 px-1.5 py-0.5 text-[13px] font-semibold"
               style={{ left: `${path.label.x}%`, top: `${path.label.y}%` }}
               data-structure-diagram-edge-label-id={edge.id}
               data-structure-diagram-label-chrome="plain"
+              data-structure-diagram-text-scale={graph.layout.textScale}
             >
               {isMathLabel(edge.label) ? <InlineMath math={normalizeMath(edge.label)} /> : edge.label}
             </div>
@@ -2867,7 +3084,8 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
               'absolute grid place-items-center text-center outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]',
               blockDiagramNodeVisualKind(node) === 'block' ? 'border bg-platform-panel shadow-[var(--platform-shadow-xs)]' : '',
               blockDiagramNodeVisualKind(node) === 'sum' ? 'rounded-full border bg-platform-panel' : '',
-              blockDiagramNodeVisualKind(node) === 'branch' ? 'rounded-full border bg-platform-action-primary' : '',
+              blockDiagramNodeVisualKind(node) === 'branch' ? 'border border-transparent bg-transparent' : '',
+              blockDiagramNodeVisualKind(node) === 'takeoff' ? 'rounded-full border border-platform-action-primary bg-platform-action-primary' : '',
               blockDiagramNodeVisualKind(node) === 'input' || blockDiagramNodeVisualKind(node) === 'output' ? 'border border-transparent bg-transparent' : '',
               blockDiagramNodeVisualKind(node) === 'block' || blockDiagramNodeVisualKind(node) === 'sum'
                 ? (highlighted(node.id) || selectedTargetId === node.id ? 'border-platform-action-primary' : 'border-platform-border')
@@ -2877,8 +3095,19 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
             data-structure-diagram-node-id={node.id}
             data-structure-diagram-node-type={node.type}
             data-structure-diagram-node-visual-kind={blockDiagramNodeVisualKind(node)}
+            data-structure-diagram-node-anchors={blockDiagramNodeAnchors(node)}
+            data-structure-diagram-text-scale={graph.layout.textScale}
             data-structure-diagram-node-label-rendering={isMathLabel(node.label) ? 'latex' : 'text'}
-            data-structure-diagram-node-symbol-size={blockDiagramNodeVisualKind(node) === 'branch' ? 'small-dot' : blockDiagramNodeVisualKind(node) === 'sum' ? 'junction' : 'label'}
+            data-structure-diagram-node-symbol-size={
+              blockDiagramNodeVisualKind(node) === 'branch'
+                ? 'route-point'
+                : blockDiagramNodeVisualKind(node) === 'takeoff'
+                  ? 'takeoff-dot'
+                  : blockDiagramNodeVisualKind(node) === 'sum'
+                    ? 'junction'
+                    : 'label'
+            }
+            data-structure-diagram-output-label-position={blockDiagramNodeVisualKind(node) === 'output' ? 'above-line' : undefined}
             data-structure-diagram-node-highlighted={highlighted(node.id) ? 'true' : 'false'}
             data-structure-diagram-node-selected={selectedTargetId === node.id ? 'true' : 'false'}
             onClick={() => setSelectedTargetId(node.id)}
@@ -2895,10 +3124,19 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
               </svg>
             ) : blockDiagramNodeVisualKind(node) === 'branch' ? (
               <span className="sr-only">{node.label}</span>
+            ) : blockDiagramNodeVisualKind(node) === 'takeoff' ? (
+              <span className="sr-only">{node.label}</span>
+            ) : blockDiagramNodeVisualKind(node) === 'output' ? (
+              <span
+                className="block -translate-y-4 premium-lesson-title text-[13px]"
+                data-structure-diagram-output-label-position="above-line"
+              >
+                {isMathLabel(node.label) ? <InlineMath math={normalizeMath(node.label)} /> : node.label}
+              </span>
             ) : isMathLabel(node.label) ? (
-              <InlineMath math={normalizeMath(node.label)} />
+              <span className="text-[13px]"><InlineMath math={normalizeMath(node.label)} /></span>
             ) : (
-              <span className="premium-lesson-title text-sm">{node.label}</span>
+              <span className="premium-lesson-title text-[13px]">{node.label}</span>
             )}
           </button>
         ))}
@@ -2987,6 +3225,10 @@ function SignalFlowGraphPanel({ manifest, step, module, onPanelSubmit }: Structu
       className="premium-lesson-panel grid gap-4"
       data-structure-diagram-kind="visual.signalFlowGraph"
       data-structure-diagram-id={graph.graphId}
+      data-structure-diagram-layout-mode={graph.layout.mode}
+      data-structure-diagram-layout-spacing-x={graph.layout.spacing.x}
+      data-structure-diagram-layout-spacing-y={graph.layout.spacing.y}
+      data-structure-diagram-text-scale={graph.layout.textScale}
       data-structure-diagram-mode={graph.mode}
       data-structure-diagram-active-reveal={graph.activeRevealState}
     >
@@ -3016,6 +3258,7 @@ function SignalFlowGraphPanel({ manifest, step, module, onPanelSubmit }: Structu
               <g
                 key={branch.id}
                 data-structure-diagram-branch-id={branch.id}
+                data-structure-diagram-branch-route-kind={path.routeKind}
                 data-structure-diagram-branch-highlighted={highlighted(branch.id) ? 'true' : 'false'}
                 data-structure-diagram-branch-selected={selected(branch.id) ? 'true' : 'false'}
               >
@@ -3036,10 +3279,11 @@ function SignalFlowGraphPanel({ manifest, step, module, onPanelSubmit }: Structu
           return (
             <div
               key={`${branch.id}-label`}
-              className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 bg-[var(--platform-surface)]/80 px-1.5 py-0.5 text-xs font-semibold"
+              className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 bg-[var(--platform-surface)]/80 px-1.5 py-0.5 text-[13px] font-semibold"
               style={{ left: `${path.label.x}%`, top: `${path.label.y}%` }}
               data-structure-diagram-branch-label-id={branch.id}
               data-structure-diagram-label-chrome="plain"
+              data-structure-diagram-text-scale={graph.layout.textScale}
             >
               <InlineMath math={normalizeMath(branch.gainLatex)} />
             </div>
@@ -3049,9 +3293,11 @@ function SignalFlowGraphPanel({ manifest, step, module, onPanelSubmit }: Structu
           <button
             type="button"
             key={node.id}
-            className="absolute grid h-8 w-8 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-platform-action-primary bg-platform-panel text-xs shadow-[var(--platform-shadow-xs)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)] md:h-9 md:w-9"
+            className="absolute grid h-8 w-8 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-platform-action-primary bg-platform-panel text-[13px] shadow-[var(--platform-shadow-xs)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)] md:h-9 md:w-9"
             style={{ left: `${node.position.x * 100}%`, top: `${node.position.y * 100}%` }}
             data-structure-diagram-node-id={node.id}
+            data-structure-diagram-node-anchors="E W C"
+            data-structure-diagram-text-scale={graph.layout.textScale}
             data-structure-diagram-node-selected={selectedTargetId === node.id ? 'true' : 'false'}
             onClick={() => setSelectedTargetId(node.id)}
           >

@@ -347,7 +347,12 @@ describe('unit 1-2 modeling from object to system course', () => {
       expect(row[1]).toContain('$');
     }
     expect(signalFlowModule?.kind).toBe('visual.signalFlowGraph');
-    expect(renderUnit12StepHtml(7)).toContain('data-structure-diagram-id="closed-loop-signal-flow"');
+    const signalFlowHtml = renderUnit12StepHtml(7);
+    expect(signalFlowHtml).toContain('data-structure-diagram-id="closed-loop-signal-flow"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-layout-mode="relative"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-text-scale="uniform"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-branch-route-kind="straight"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-branch-route-kind="auto-bezier"');
   });
 
   it('renders step 12 as a nonlinear derivation stage instead of a blank reveal module', () => {
@@ -363,9 +368,23 @@ describe('unit 1-2 modeling from object to system course', () => {
     const html = renderUnit12StepHtml(6);
 
     expect(html).toContain('data-structure-diagram-id="closed-loop-block-diagram"');
+    expect(html).toContain('data-structure-diagram-layout-mode="relative"');
+    expect(html).toContain('data-structure-diagram-layout-spacing-x="0.12"');
+    expect(html).toContain('data-structure-diagram-text-scale="uniform"');
+    expect(html).toContain('data-structure-diagram-node-anchors="N E S W"');
     expect(html).toContain('data-structure-diagram-node-visual-kind="input"');
     expect(html).toContain('data-structure-diagram-node-visual-kind="output"');
-    expect(html).toContain('data-structure-diagram-node-symbol-size="small-dot"');
+    expect(html).toContain('data-structure-diagram-node-id="output-takeoff"');
+    expect(html).toContain('data-structure-diagram-node-visual-kind="takeoff"');
+    expect(html).toContain('data-structure-diagram-node-symbol-size="route-point"');
+    expect(html).toContain('data-structure-diagram-node-symbol-size="takeoff-dot"');
+    expect(html).toContain('data-structure-diagram-output-label-position="above-line"');
+    expect(html).toContain('data-structure-diagram-edge-id="takeoff-to-output"');
+    expect(html).toContain('data-structure-diagram-edge-from-port="right"');
+    expect(html).toContain('data-structure-diagram-edge-to-port="bottom"');
+    expect(html).toContain('data-structure-diagram-edge-route="-|"');
+    expect(html).toContain('data-structure-diagram-edge-waypoint-count="1"');
+    expect(html).not.toContain('data-structure-diagram-node-symbol-size="small-dot"');
     expect(html).toContain('data-structure-diagram-summing-junction="cross"');
     expect(html).toContain('data-structure-diagram-node-label-rendering="latex"');
     expect(html).toContain('G_c');
