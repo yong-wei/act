@@ -1038,7 +1038,35 @@ describe('konling agent runtime', () => {
       serverModeContext: { 'resource-node': true },
     });
     expect(withServerContext.status).toBe('ready');
+    expect(withServerContext.answerIntent).toBe('fact-explanation');
     expect(withServerContext.permittedTools).toContain('analyze_attempt');
+
+    const withMediaServerContext = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'resource-coach',
+      runtimeContext: runtime,
+      scope: createScope({ resourceId: 'opaque-resource-id' }),
+      serverModeContext: { 'resource-node': true, 'media-resource': true },
+      clientContextHints: { resourceId: 'plain-client-id' },
+    });
+    expect(withMediaServerContext.status).toBe('ready');
+    expect(withMediaServerContext.answerIntent).toBe('media-guidance');
+    expect(withMediaServerContext.groundingContext.resourceRefs).toEqual(['resource:opaque-resource-id']);
+    expect(withMediaServerContext.groundingContext.missingContext).not.toContain('resource-context-missing');
+
+    const nonMediaResourceWithMediaPageType = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'resource-coach',
+      runtimeContext: {
+        ...runtime,
+        pageContext: {
+          ...runtime.pageContext,
+          pageType: 'video' as KonlingRuntimeContext['pageContext']['pageType'],
+        },
+      },
+      scope: createScope({ resourceId: 'ordinary-resource' }),
+      serverModeContext: { 'resource-node': true },
+    });
+    expect(nonMediaResourceWithMediaPageType.status).toBe('ready');
+    expect(nonMediaResourceWithMediaPageType.answerIntent).toBe('fact-explanation');
 
     const withSelectedKnowledgeNode = buildKonlingTeachingAssistantRuntimeContract({
       modeId: 'resource-coach',

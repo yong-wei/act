@@ -132,6 +132,7 @@ export type KonlingTeachingAssistantContextKey =
   | 'evidence-citations'
   | 'path-execution-context'
   | 'resource-node'
+  | 'media-resource'
   | 'rubric'
   | 'converted-document'
   | 'draft-grading-state'
@@ -512,7 +513,7 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
   const normalizedModeId = normalizeKonlingTeachingAssistantModeId(input.modeId);
   const mode = resolveKonlingTeachingAssistantMode(input.modeId);
   const clientHintsRejected = Object.keys(input.clientContextHints ?? {});
-  const answerIntent = classifyKonlingAnswerIntent(mode, input.runtimeContext, input.scope);
+  const answerIntent = classifyKonlingAnswerIntent(mode, input.runtimeContext, input.scope, input.serverModeContext);
   const groundingContext = buildKonlingKnowledgeCapabilityContext({
     runtimeContext: input.runtimeContext,
     scope: input.scope,
@@ -599,21 +600,26 @@ function classifyKonlingAnswerIntent(
   mode: KonlingTeachingAssistantModeContract,
   runtimeContext: KonlingRuntimeContext,
   scope: KonlingRuntimeScope,
+  serverModeContext?: KonlingTeachingAssistantServerModeContext | null,
 ): KonlingAnswerIntent {
   if (mode.id === 'diagnosis-explainer' || mode.id === 'class-summarizer') return 'personalized-diagnosis';
   if (mode.id === 'path-advisor') return 'path-advice';
   if (mode.id === 'grading-assistant' || mode.id === 'feedback-explainer') return 'grading-explanation';
-  if (mode.id === 'resource-coach' || mode.id === 'generic-chat') {
-    return isKonlingMediaGuidanceScope(runtimeContext, scope) ? 'media-guidance' : 'fact-explanation';
+  if (mode.id === 'resource-coach') {
+    return serverModeContext?.['media-resource'] === true ? 'media-guidance' : 'fact-explanation';
+  }
+  if (mode.id === 'generic-chat') {
+    return isKonlingMediaGuidanceScope(runtimeContext) ? 'media-guidance' : 'fact-explanation';
   }
   return 'fact-explanation';
 }
 
-function isKonlingMediaGuidanceScope(runtimeContext: KonlingRuntimeContext, scope: KonlingRuntimeScope): boolean {
+function isKonlingMediaGuidanceScope(
+  runtimeContext: KonlingRuntimeContext,
+): boolean {
   const pageType = runtimeContext.pageContext.pageType?.toLowerCase?.() ?? '';
-  const resourceId = scope.resourceId?.toLowerCase?.() ?? '';
   return ['video', 'audio', 'image', 'media', 'interactive'].some((marker) =>
-    pageType.includes(marker) || resourceId.includes(marker)
+    pageType.includes(marker)
   );
 }
 
@@ -807,6 +813,8 @@ function isKonlingModeContextAvailable(
     case 'resource-node':
       return runtimeContext.knowledgeWorkspace?.status === 'selected-node'
         && Boolean(runtimeContext.knowledgeWorkspace.selected_node);
+    case 'media-resource':
+      return false;
     case 'rubric':
     case 'converted-document':
     case 'draft-grading-state':

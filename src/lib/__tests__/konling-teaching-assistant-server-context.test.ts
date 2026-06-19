@@ -600,7 +600,7 @@ describe('Konling teaching-assistant server context', () => {
   it('requires a server-readable teaching resource before enabling resource coach context', async () => {
     const db = {
       teachingResource: {
-        findUnique: async () => ({ id: 'resource-1', teacherOnly: false }),
+        findUnique: async () => ({ id: 'resource-1', teacherOnly: false, type: 'STATIC_MEDIA' }),
       },
     };
 
@@ -611,6 +611,20 @@ describe('Konling teaching-assistant server context', () => {
       runtimeContext,
       clientContextHints: {
         resourceId: 'forged-resource',
+      },
+    })).resolves.toEqual({ 'resource-node': true, 'media-resource': true });
+
+    await expect(resolveKonlingTeachingAssistantServerModeContext({
+      db: {
+        teachingResource: {
+          findUnique: async () => ({ id: 'resource-2', teacherOnly: false, type: 'STATIC_TEXT' }),
+        },
+      },
+      modeId: 'resource-coach',
+      scope: scope({ role: 'student', resourceId: 'resource-2' }),
+      runtimeContext,
+      clientContextHints: {
+        resourceId: 'video-looking-client-hint',
       },
     })).resolves.toEqual({ 'resource-node': true });
 
@@ -631,7 +645,7 @@ describe('Konling teaching-assistant server context', () => {
     await expect(resolveKonlingTeachingAssistantServerModeContext({
       db: {
         teachingResource: {
-          findUnique: async () => ({ id: 'teacher-resource', teacherOnly: true }),
+          findUnique: async () => ({ id: 'teacher-resource', teacherOnly: true, type: 'STATIC_MEDIA' }),
         },
       },
       modeId: 'resource-coach',
