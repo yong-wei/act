@@ -109,9 +109,10 @@ export function buildGraphCenterPayload(input: GraphCenterPayloadInput = {}): Gr
   const activeDomain = resolveDomain(input.domain);
   const domainNodes = AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes.filter((node) => node.domain === activeDomain);
   const objectiveId = resolveObjectiveId(input.objectiveId, activeDomain);
+  const objective = objectiveId ? OBJECTIVE_BY_ID.get(objectiveId) ?? null : null;
   const portraitDimension = resolvePortraitDimension(input.portraitDimension);
   const filteredNodes = domainNodes.filter((node) => (
-    (!objectiveId || node.objectiveIds.includes(objectiveId)) &&
+    (!objective || nodeMatchesObjective(node, objective)) &&
     (!portraitDimension || node.portraitDimensions.includes(portraitDimension))
   ));
   const filteredNodeIds = new Set(filteredNodes.map((node) => node.id));
@@ -186,13 +187,6 @@ function buildDomains(): GraphCenterDomainOption[] {
 }
 
 function buildObjectiveOptions(domain: GraphCenterDomain, nodes: KaqGraphNode[]): GraphCenterObjectiveOption[] {
-  const nodeCountByObjectiveId = new Map<string, number>();
-  for (const node of nodes) {
-    for (const objectiveId of node.objectiveIds) {
-      nodeCountByObjectiveId.set(objectiveId, (nodeCountByObjectiveId.get(objectiveId) ?? 0) + 1);
-    }
-  }
-
   return OBJECTIVES
     .filter((objective) => objective.domain === domain)
     .map((objective) => ({
@@ -200,7 +194,7 @@ function buildObjectiveOptions(domain: GraphCenterDomain, nodes: KaqGraphNode[])
       title: objective.title,
       level: objective.level,
       parentId: objective.parentId,
-      nodeCount: nodeCountByObjectiveId.get(objective.id) ?? 0,
+      nodeCount: nodes.filter((node) => nodeMatchesObjective(node, objective)).length,
     }));
 }
 
@@ -265,4 +259,11 @@ function buildBoundResourceRefs(node: KaqGraphNode): string[] {
 
 function uniqueSorted(values: string[]): string[] {
   return [...new Set(values)].sort((a, b) => a.localeCompare(b));
+}
+
+function nodeMatchesObjective(node: KaqGraphNode, objective: KaqObjective): boolean {
+  if (node.domain !== objective.domain) return false;
+  if (node.objectiveIds.includes(objective.id)) return true;
+  const bindingRefs = objective.graphBinding?.bindingRefs ?? [];
+  return bindingRefs.includes(node.id);
 }

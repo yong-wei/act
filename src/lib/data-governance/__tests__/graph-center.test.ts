@@ -45,6 +45,31 @@ describe('graph center payload service', () => {
     ]));
   });
 
+  it('filters overall objectives through graph-binding refs instead of returning an empty graph', () => {
+    const knowledgePayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      objectiveId: 'knowledge:autocontrol',
+    });
+    const capabilityPayload = buildGraphCenterPayload({
+      domain: 'capability',
+      objectiveId: 'capability:autocontrol',
+    });
+    const qualityPayload = buildGraphCenterPayload({
+      domain: 'quality',
+      objectiveId: 'quality:autocontrol',
+    });
+
+    expect(knowledgePayload.objectives.find((objective) => objective.id === 'knowledge:autocontrol')?.nodeCount).toBe(
+      knowledgePayload.domains.find((domain) => domain.id === 'knowledge')?.nodeCount,
+    );
+    expect(knowledgePayload.graph.nodes.length).toBeGreaterThan(0);
+    expect(capabilityPayload.graph.nodes.length).toBeGreaterThan(0);
+    expect(qualityPayload.graph.nodes.length).toBeGreaterThan(0);
+    expect(knowledgePayload.graph.nodes.every((node) => node.domain === 'knowledge')).toBe(true);
+    expect(capabilityPayload.graph.nodes.every((node) => node.domain === 'capability')).toBe(true);
+    expect(qualityPayload.graph.nodes.every((node) => node.domain === 'quality')).toBe(true);
+  });
+
   it('drops invalid filters instead of leaking nodes across domains', () => {
     const payload = buildGraphCenterPayload({
       domain: 'quality',
