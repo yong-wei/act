@@ -1,0 +1,33 @@
+{
+  "generatedAt": "2026-06-20T03:17:16.589Z",
+  "entries": [
+    {
+      "route": "/teacher/arena/publications/audit-publication-full-system-2026-06-20",
+      "template": "/teacher/arena/publications/[publicationId]",
+      "role": "teacher",
+      "account": "201300000012",
+      "viewport": "desktop",
+      "requestedUrl": "http://localhost:3100/teacher/arena/publications/audit-publication-full-system-2026-06-20",
+      "finalUrl": "http://localhost:3100/teacher/arena/publications/audit-publication-full-system-2026-06-20",
+      "mainStatus": 200,
+      "flagged": [],
+      "with4xxSubrequests": [],
+      "screenshot": "artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/screenshots/35-teacher-arena-publication-report/teacher-arena-publication-report-desktop.png",
+      "note": "Audit fixture ArenaChallengePublication id audit-publication-full-system-2026-06-20."
+    },
+    {
+      "route": "/teacher/arena/publications/audit-publication-full-system-2026-06-20",
+      "template": "/teacher/arena/publications/[publicationId]",
+      "role": "teacher",
+      "account": "201300000012",
+      "viewport": "mobile",
+      "requestedUrl": "http://localhost:3100/teacher/arena/publications/audit-publication-full-system-2026-06-20",
+      "finalUrl": "http://localhost:3100/teacher/arena/publications/audit-publication-full-system-2026-06-20",
+      "mainStatus": 200,
+      "flagged": [],
+      "with4xxSubrequests": [],
+      "screenshot": "artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/screenshots/35-teacher-arena-publication-report/teacher-arena-publication-report-mobile.png",
+      "note": "Audit fixture ArenaChallengePublication id audit-publication-full-system-2026-06-20."
+    }
+  ]
+}

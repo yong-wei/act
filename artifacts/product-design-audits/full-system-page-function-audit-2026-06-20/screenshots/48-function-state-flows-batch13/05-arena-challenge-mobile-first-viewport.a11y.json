@@ -1,0 +1,375 @@
+{
+  "audit": {
+    "label": "student mobile arena challenge first viewport",
+    "path": "/arena/challenges/task-second-order-lead-pid",
+    "title": "AI-OBE船舶控制平台",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "竞技场"
+      },
+      {
+        "tag": "h1",
+        "text": "二阶对象快速稳定挑战"
+      },
+      {
+        "tag": "h2",
+        "text": "对象说明"
+      },
+      {
+        "tag": "h2",
+        "text": "训练意图"
+      },
+      {
+        "tag": "h2",
+        "text": "评价规则"
+      },
+      {
+        "tag": "h2",
+        "text": "相关知识点"
+      },
+      {
+        "tag": "h3",
+        "text": "二阶系统标准型"
+      },
+      {
+        "tag": "h2",
+        "text": "进入控制工作台"
+      },
+      {
+        "tag": "h2",
+        "text": "榜单摘要"
+      },
+      {
+        "tag": "h3",
+        "text": "当前榜单"
+      },
+      {
+        "tag": "h3",
+        "text": "优秀方案展示"
+      },
+      {
+        "tag": "h2",
+        "text": "支持与说明"
+      },
+      {
+        "tag": "h3",
+        "text": "控灵"
+      }
+    ],
+    "controls": [
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/",
+        "name": "首页",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/arena",
+        "name": "竞技场首页",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "切换到深色模式",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/profile",
+        "name": "个人中心",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "打开平台导航",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/interactive-learning/control-workbench?preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+        "name": "进入控制工作台",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "二阶系统标准型",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "欠阻尼二阶系统",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "根轨迹法",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "稳定裕度",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "打开知识卡片",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/interactive-learning/control-workbench?preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+        "name": "进入控制工作台",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "主榜",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "方法榜",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "指标榜",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "关闭 (ESC)",
+        "disabled": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "type": "text",
+        "href": "",
+        "name": "全局 AI 问题输入框",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "submit",
+        "href": "",
+        "name": "",
+        "disabled": true
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "打开控灵与页面工具菜单",
+        "disabled": false
+      }
+    ],
+    "ctaTexts": [
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/profile",
+        "name": "个人中心",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/interactive-learning/control-workbench?preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+        "name": "进入控制工作台",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/interactive-learning/control-workbench?preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+        "name": "进入控制工作台",
+        "disabled": false
+      }
+    ],
+    "controlsWithoutNames": [
+      {
+        "tag": "button",
+        "role": "",
+        "type": "submit",
+        "href": "",
+        "name": "",
+        "disabled": true
+      }
+    ],
+    "svgCanvasCount": 13,
+    "unlabeledSvgCanvas": [
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      }
+    ],
+    "liveRegions": [],
+    "errors": [],
+    "fixedOrSticky": [
+      {
+        "tag": "div",
+        "className": "\n          fixed right-0 top-0 z-50 flex flex-col\n          h-screen w-screen\n          sm:w-[380px]\n          lg:w-[420px]\n          bg-white border-slate-200\n          transition",
+        "text": "控灵 当前: task second ord... 你好，我是控灵。今天我们将探索「task second order lead pid」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板",
+        "rect": {
+          "x": 390,
+          "y": 0,
+          "w": 390,
+          "h": 844
+        }
+      },
+      {
+        "tag": "div",
+        "className": "no-print fixed bottom-4 right-6 z-[120] flex flex-col items-end",
+        "text": "控灵",
+        "rect": {
+          "x": 276,
+          "y": 788,
+          "w": 90,
+          "h": 40
+        }
+      }
+    ],
+    "profileLinks": [
+      {
+        "href": "/profile",
+        "text": "个人中心"
+      }
+    ],
+    "viewportTextHead": "首页 / 竞技场首页 / 二阶对象快速稳定挑战 学生 竞技场 Arena workspace 导航 自动控制竞技场 基础 二阶对象快速稳定挑战 缩短调节时间，同时限制超调量和稳态误差。 进入控制工作台 对象来源 典型对象 公开程度 白箱模型 工作台 综合仿真工作台 榜单规则 白箱默认榜单 对象说明 被控对象 二阶欠阻尼对象 章节关联 模块 2 / 模块 3 任务属性 可作为作业挑战 模型表达 𝐺 ( 𝑠 ) = 16 𝑠 2 + 2.4 𝑠 + 16 G(s)= s 2 +2.4s+16 16 ​ 二阶 欠阻尼 白箱 训练意图 用二阶对象建立调节时间、超调量和稳态误差的第一轮控制设计直觉。 训练阶段 基础起步 预计用时 25 分钟 隐藏评测信号 无隐藏评测 训练能力 时域整形 稳态精度 前置能力 无硬性前置能力 常见失误 • 只追求调节时间导致超调过大 • 忽略稳态误差是否已经进入目标范围 评价规则 基础目标 指标 目标或允许范围 说明 调节时间(s) 目标不高于 2.4s，高于 8s 视为不可接受 数值越小越好 超调量(%) 目标不高于 5%，高于 35% 视为不可接受 数值越小越好 稳态误差 目标不高于 0.01，高于 0.12 视为不可接受 数值越小越好 ITAE 目标不高于 1.8，高于 12 视为不可接受 数值越小越好 硬约束 闭环稳定 响应有限 控制器因果 任一硬约束未通过时，提交不进入正式排名。 相关知识点 二阶系统标准型 欠阻尼二阶系统 根轨迹法 稳定裕度 知识预览 二阶系统标准型 以无阻尼自然频率ωₙ和阻尼比ζ为参数的二阶系统传递函数标准形式：G(s) = ωₙ²/(s² + 2ζωₙs + ωₙ²)，用于统一描述和分析各类二阶动态系统。 章节：时域分析 二阶系统 标准型 传递函数 ωₙ ζ chapter-3 关联关系 无阻尼自然频率 自然频率 阻尼比 阶跃响应 打开知识卡片 进入控制工作台 推荐预设：综合仿真工作台。仿真调试与方案提交均在控制工作台内完成。 串联校正 PID 提交后通过真实指标验证的数据会自动进入已开放的榜单视图。 进入控制工作台 榜单摘要 当前最高分 100.0 参与人数 3 人 提交次数 8 次 榜单类型 主榜 / 方法榜 / 指标榜 同分决胜 硬约束通过 / 得分 / 控制能量 / 提交时间 荣誉记录 3 项 当前榜单 3 条记录 主榜 方法榜 指标榜 排名 姓名 / 学号 方法 得分 具体指标 提交时间 #1 蔡丽雯 20230010102601 PID 100.0 调节时间 1.362s 超调量 0.822% 稳态误差 0 06/16 11:28 #2 周兆康 20230010102608 PID 0.0 调节时间 10.938s 超调量 0% 稳态误差 0.15 05/21 16:04 #3 demo demo PID 0.0 调节时间 10.938s 超调量 0% 稳态误差 0.15 06/20 11:57 优秀方案展示 摘要展示 蔡丽雯 PID · 100.0 分 低能耗 最快响应 硬约束全部通过，提交进入正式排名。 调节时间 1.362s 超调量 0.822% 稳态误差 0 周兆康 PID · 0.0 分 首个达标 硬约束全部通过，提交进入正式排名。 调节时间 10.938s 超调量 0% 稳态误差 0.15 demo PID · 0.0 分 硬约束全部通过，提交进入正式排名。 调节时间 10.938s 超调量 0% 稳态误差 0.15 支持与说明 任务上下文、榜单状态和工作台入口来自 Arena 域数据；页面只组织挑战详情的专业工作区层级。 Arena 挑战入口避让全局浮动控件、榜单筛选和主工作台 CTA。 控灵 当前: task second ord... 你好，我是控灵。今",
+    "extra": {
+      "actions": [],
+      "screenshot": "screenshots/48-function-state-flows-batch13/05-arena-challenge-mobile-first-viewport.png",
+      "requestedUrl": "/arena/challenges/task-second-order-lead-pid"
+    }
+  },
+  "accessibilitySnapshotUnavailable": "Playwright page.accessibility.snapshot unavailable in this runtime"
+}

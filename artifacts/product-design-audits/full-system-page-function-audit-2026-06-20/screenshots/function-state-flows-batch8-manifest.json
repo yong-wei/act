@@ -1,0 +1,281 @@
+{
+  "capturedAt": "2026-06-20T04:43:22.698Z",
+  "baseUrl": "http://localhost:3100",
+  "flow": "function-state-flows-batch8",
+  "account": "audit_import_20260620044322",
+  "screenshots": [
+    {
+      "file": "screenshots/43-function-state-flows-batch8/admin-users-import-action-area-desktop.png",
+      "step": "import-action-area"
+    },
+    {
+      "file": "screenshots/43-function-state-flows-batch8/admin-users-valid-import-governance-gap-desktop.png",
+      "step": "valid-import-result"
+    },
+    {
+      "file": "screenshots/43-function-state-flows-batch8/admin-users-valid-import-search-result-desktop.png",
+      "step": "valid-import-search-result"
+    },
+    {
+      "file": "screenshots/43-function-state-flows-batch8/admin-users-create-modal-tab-order-after-tabs-desktop.png",
+      "step": "create-modal-tab-order"
+    },
+    {
+      "file": "screenshots/43-function-state-flows-batch8/admin-users-create-modal-after-escape-desktop.png",
+      "step": "create-modal-escape"
+    },
+    {
+      "file": "screenshots/43-function-state-flows-batch8/admin-users-delete-imported-student-not-found-desktop.png",
+      "step": "delete-imported-student-not-found"
+    },
+    {
+      "file": "screenshots/43-function-state-flows-batch8/register-short-password-error-current-desktop.png",
+      "step": "register-short-password-error"
+    }
+  ],
+  "observations": {
+    "generatedWorkbook": {
+      "file": "screenshots/43-function-state-flows-batch8/audit_import_20260620044322.xlsx",
+      "bytes": 3094
+    },
+    "loginAfterSubmit": {
+      "url": "http://localhost:3100/admin",
+      "bodySnippet": "管理总台\n管理员后台\n\n将后台操作分为四条明确通道：用户管理、系统使用量统计、数据治理、系统配置。入口统一放在这里，避免页面间跳转分散、权限职责混杂。\n\n当前登录：admin\n角色：管理员\nA\n\nadmin\n\nadmin\n\n管理员后台\n用户管理\n系统使用量统计\n数据治理\n系统配置\n\n运营判断\n\n先处理风险、配置和治理修复\n\n管理首页先呈现需要关注的对象、下一步动作和治理归宿；目录入口保留在下方作为稳定导航。\n\n用户管理\n系统配置\n系统使用量统计\n\n治理源检查\n\n需要持续刷新\naction\n\n检查学习事实、快照队列、来源覆盖和隐私范围。\n\n查看治理风险\n\n用户与角色\n\n导入/权限待确认\nacti"
+    },
+    "initialImportControls": [
+      "操作区",
+      "新建账号",
+      "下载模板",
+      "批量导入",
+      "打开系统配置",
+      "模板前三列必填：账号、姓名、角色。其余字段按角色选填。",
+      "当前页面",
+      "风险提示",
+      "账号详情"
+    ],
+    "hiddenFileInput": {
+      "ariaLabel": "搜索管理员功能",
+      "accept": ".xlsx",
+      "className": "hidden",
+      "tabIndex": null
+    },
+    "existingAuditImportRowsBefore": [
+      "审计导入学生0618audit_import_20260620040618@example.testaudit_import_20260620040618学生2026年6月20日 12:06查看改密删除"
+    ],
+    "postImportVisibleActions": [
+      "返回管理后台",
+      "刷新数据",
+      "Aadminadmin",
+      "管理员后台",
+      "用户管理",
+      "系统使用量统计",
+      "数据治理",
+      "系统配置",
+      "新建账号",
+      "下载模板",
+      "批量导入",
+      "打开系统配置",
+      "新建账号",
+      "查看",
+      "改密",
+      "删除",
+      "查看",
+      "改密",
+      "删除",
+      "查看",
+      "改密",
+      "删除",
+      "查看",
+      "改密",
+      "删除",
+      "查看",
+      "改密",
+      "删除",
+      "查看",
+      "改密",
+      "删除",
+      "查看",
+      "改密",
+      "删除",
+      "查看",
+      "改密",
+      "删除",
+      "查看",
+      "改密",
+      "删除",
+      "查看",
+      "改密",
+      "删除",
+      "查看",
+      "改密",
+      "删除",
+      "查看",
+      "改密",
+      "删除",
+      "上一页",
+      "下一页",
+      "控灵"
+    ],
+    "postImportGovernanceTerms": {
+      "hasNotify": true,
+      "hasRollback": true,
+      "hasNewImportFilter": false,
+      "bodyIncludesDefaultPassword": false
+    },
+    "createModalTabSequence": [
+      {
+        "tag": "BUTTON",
+        "text": "下载模板",
+        "ariaLabel": null,
+        "placeholder": null,
+        "insideModal": false,
+        "insideOverlay": false
+      },
+      {
+        "tag": "BUTTON",
+        "text": "批量导入",
+        "ariaLabel": null,
+        "placeholder": null,
+        "insideModal": false,
+        "insideOverlay": false
+      },
+      {
+        "tag": "A",
+        "text": "打开系统配置",
+        "ariaLabel": null,
+        "placeholder": null,
+        "insideModal": false,
+        "insideOverlay": false
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "ariaLabel": "搜索姓名/账号/学号",
+        "placeholder": "搜索姓名/账号/学号",
+        "insideModal": false,
+        "insideOverlay": false
+      },
+      {
+        "tag": "SELECT",
+        "text": "全部角色管理员教师学生",
+        "ariaLabel": null,
+        "placeholder": null,
+        "insideModal": false,
+        "insideOverlay": false
+      },
+      {
+        "tag": "BUTTON",
+        "text": "新建账号",
+        "ariaLabel": null,
+        "placeholder": null,
+        "insideModal": false,
+        "insideOverlay": false
+      },
+      {
+        "tag": "BUTTON",
+        "text": "查看",
+        "ariaLabel": null,
+        "placeholder": null,
+        "insideModal": false,
+        "insideOverlay": false
+      },
+      {
+        "tag": "BUTTON",
+        "text": "改密",
+        "ariaLabel": null,
+        "placeholder": null,
+        "insideModal": false,
+        "insideOverlay": false
+      },
+      {
+        "tag": "BUTTON",
+        "text": "删除",
+        "ariaLabel": null,
+        "placeholder": null,
+        "insideModal": false,
+        "insideOverlay": false
+      },
+      {
+        "tag": "BUTTON",
+        "text": "关闭",
+        "ariaLabel": null,
+        "placeholder": null,
+        "insideModal": true,
+        "insideOverlay": true
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "ariaLabel": "姓名 *",
+        "placeholder": "姓名 *",
+        "insideModal": true,
+        "insideOverlay": true
+      },
+      {
+        "tag": "SELECT",
+        "text": "学生教师管理员",
+        "ariaLabel": null,
+        "placeholder": null,
+        "insideModal": true,
+        "insideOverlay": true
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "ariaLabel": "账号邮箱（可选）",
+        "placeholder": "账号邮箱（可选）",
+        "insideModal": true,
+        "insideOverlay": true
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "ariaLabel": "学号 *",
+        "placeholder": "学号 *",
+        "insideModal": true,
+        "insideOverlay": true
+      }
+    ],
+    "createModalFocusLeftModal": true,
+    "createModalStillOpenAfterEscape": 1,
+    "registerShortPassword": {
+      "title": "",
+      "bodySnippet": "This page couldn’t load\n\nReload to try again, or go back.\n\nReload\nBack",
+      "hasRuntimeError": false,
+      "hasFieldErrorText": false,
+      "activeElement": {
+        "tag": "NEXTJS-PORTAL",
+        "name": null,
+        "ariaLabel": null
+      }
+    },
+    "postImportGovernanceActionAvailability": {
+      "visibleNotifyAction": false,
+      "visibleRollbackAction": false,
+      "visibleNewImportFilterAction": false,
+      "visibleDefaultPasswordAction": false
+    },
+    "registerShortPasswordVisualInspection": {
+      "screenshot": "screenshots/43-function-state-flows-batch8/register-short-password-error-current-desktop.png",
+      "showsNextRuntimeErrorOverlay": true,
+      "visibleError": "Objects are not valid as a React child (found: object with keys {formErrors, fieldErrors}).",
+      "normalFieldErrorRendered": false
+    }
+  },
+  "dialogs": [],
+  "cleanup": {
+    "apiCleanup": {
+      "ok": true,
+      "deleted": false,
+      "reason": "not-found"
+    },
+    "searchRowsBeforeUiDelete": 0,
+    "uiDeleteAttempted": false,
+    "afterDeleteApiCheck": {
+      "status": 200,
+      "total": 0,
+      "users": []
+    }
+  },
+  "completed": true
+}

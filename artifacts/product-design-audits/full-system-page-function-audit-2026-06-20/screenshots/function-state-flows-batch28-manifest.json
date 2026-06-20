@@ -1,0 +1,341 @@
+{
+  "generatedAt": "2026-06-20T10:45:52.674Z",
+  "baseUrl": "http://localhost:3100",
+  "batch": "function-state-flows-batch28",
+  "scope": "student evidence detail, classroom-answer review target, and adaptive remediation entry paths",
+  "routeResponses": [
+    {
+      "route": "/profile/evidence",
+      "status": 200,
+      "url": "http://localhost:3100/profile/evidence"
+    },
+    {
+      "route": "/profile/evidence?lessonId=unit-4-1-design-task-expression-v1",
+      "status": 200,
+      "url": "http://localhost:3100/profile/evidence?lessonId=unit-4-1-design-task-expression-v1"
+    },
+    {
+      "route": "/profile/evidence?lessonId=unit-4-1-design-task-expression-v1",
+      "status": 200,
+      "url": "http://localhost:3100/profile/evidence?lessonId=unit-4-1-design-task-expression-v1"
+    },
+    {
+      "route": "/assessment/adaptive-practice?intent=practice&goal=control-correction",
+      "status": 200,
+      "url": "http://localhost:3100/assessment/adaptive-practice?intent=practice&goal=control-correction"
+    },
+    {
+      "route": "/assessment/adaptive-practice?intent=evidence-review&goal=control-correction",
+      "status": 200,
+      "url": "http://localhost:3100/assessment/adaptive-practice?intent=evidence-review&goal=control-correction"
+    },
+    {
+      "route": "/profile/evidence?lessonId=unit-4-1-design-task-expression-v1",
+      "status": 200,
+      "url": "http://localhost:3100/profile/evidence?lessonId=unit-4-1-design-task-expression-v1"
+    },
+    {
+      "route": "/assessment/adaptive-practice?intent=practice&goal=control-correction",
+      "status": 200,
+      "url": "http://localhost:3100/assessment/adaptive-practice?intent=practice&goal=control-correction"
+    }
+  ],
+  "results": [
+    {
+      "step": 1,
+      "label": "student evidence default desktop",
+      "route": "/profile/evidence",
+      "screenshot": "screenshots/63-function-state-flows-batch28/01-student-evidence-default-desktop.png",
+      "screenshotBytes": 256525,
+      "a11y": "screenshots/63-function-state-flows-batch28/01-student-evidence-default-desktop.a11y.json",
+      "notes": {
+        "expected": "student evidence should expose item-level detail, source context, and next actions"
+      },
+      "auditSummary": {
+        "h1": [
+          "学习证据"
+        ],
+        "alerts": [],
+        "inputCount": 5,
+        "buttonCount": 16,
+        "unnamedButtons": 1,
+        "graphicsCount": 13,
+        "unnamedGraphics": 0,
+        "hits": {
+          "evidenceList": true,
+          "questionSummary": true,
+          "reviewAction": true,
+          "adaptivePractice": true,
+          "remediationAction": true,
+          "liveStatus": false
+        },
+        "cardSamples": [
+          "筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件 4-1 前测：同图异读预判 失败 丰富证据 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 系统已经稳定，下列哪项判断最准确？ 作答 A，参考 B，需修正 关于带宽，下列说法哪项更准确？ 作答 未作答，参考 B，需修正 关于“所有指标都重要”，下列说法最准确的是： 作答 未作答，参考 B，需修正 来源范围 互动课提交 新鲜度 最新 置信度 高 缺失来源 来源完整 复盘课堂作答 课堂作答 step-03 失败 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 来源范围 互动课提交 新鲜度 最新 置信度 低 缺失来源 来源完整 复盘课堂作答 课堂作答证据 失败 06/20 14:04 0 评分 来源范围 自适应练习提交 新鲜度 最新 置信度 低 缺失来源 来源完整 继续自适应练习 课堂作答 step-10 成功 重复低信号证据 5 条 部分证据 06/17 11:36 · unit-1-2-modeling-from-object-to-system-v1 · step-10 -- 评分 来源范围 互动课提交 新鲜度 最新 置信度 中 缺失来源 来源不完整 复盘课堂作答 课堂作答 step-10 成功 06/17 11:27 · unit-1-2-modeling-from-object-to-system-v1 · step-10 -- 评分 来源范围 互动课提交 新鲜度 最新 置信度 低 缺失来源 来源完整 复盘课堂作答 课堂作答 step-10 成功 部分证据 06/17 11:18 · unit-1-2-modeling-from-object-to-system-v1 · ",
+          "筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件",
+          "4-1 前测：同图异读预判 失败 丰富证据 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 系统已经稳定，下列哪项判断最准确？ 作答 A，参考 B，需修正 关于带宽，下列说法哪项更准确？ 作答 未作答，参考 B，需修正 关于“所有指标都重要”，下列说法最准确的是： 作答 未作答，参考 B，需修正 来源范围 互动课提交 新鲜度 最新 置信度 高 缺失来源 来源完整 复盘课堂作答 课堂作答 step-03 失败 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 来源范围 互动课提交 新鲜度 最新 置信度 低 缺失来源 来源完整 复盘课堂作答 课堂作答证据 失败 06/20 14:04 0 评分 来源范围 自适应练习提交 新鲜度 最新 置信度 低 缺失来源 来源完整 继续自适应练习 课堂作答 step-10 成功 重复低信号证据 5 条 部分证据 06/17 11:36 · unit-1-2-modeling-from-object-to-system-v1 · step-10 -- 评分 来源范围 互动课提交 新鲜度 最新 置信度 中 缺失来源 来源不完整 复盘课堂作答 课堂作答 step-10 成功 06/17 11:27 · unit-1-2-modeling-from-object-to-system-v1 · step-10 -- 评分 来源范围 互动课提交 新鲜度 最新 置信度 低 缺失来源 来源完整 复盘课堂作答 课堂作答 step-10 成功 部分证据 06/17 11:18 · unit-1-2-modeling-from-object-to-system-v1 · step-10 -- 评分 来源范围 互动课提交 新鲜度 最新 置信度 中 缺失来源 来源不完整 复盘课堂作答 课堂作答 step-10 成功 06/17 11:18 · unit-1-2-modeling-from-object-to-s",
+          "4-1 前测：同图异读预判 失败 丰富证据 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 系统已经稳定，下列哪项判断最准确？ 作答 A，参考 B，需修正 关于带宽，下列说法哪项更准确？ 作答 未作答，参考 B，需修正 关于“所有指标都重要”，下列说法最准确的是： 作答 未作答，参考 B，需修正 来源范围 互动课提交 新鲜度 最新 置信度 高 缺失来源 来源完整 复盘课堂作答"
+        ]
+      }
+    },
+    {
+      "step": 2,
+      "label": "student evidence lesson filter desktop",
+      "route": "/profile/evidence?lessonId=unit-4-1-design-task-expression-v1",
+      "screenshot": "screenshots/63-function-state-flows-batch28/02-student-evidence-lesson-filter-desktop.png",
+      "screenshotBytes": 130571,
+      "a11y": "screenshots/63-function-state-flows-batch28/02-student-evidence-lesson-filter-desktop.a11y.json",
+      "notes": {
+        "expected": "lesson-filtered classroom evidence should show original question, answer, reference, and next remediation path",
+        "reviewHref": "/profile/evidence?lessonId=unit-4-1-design-task-expression-v1"
+      },
+      "auditSummary": {
+        "h1": [
+          "学习证据"
+        ],
+        "alerts": [],
+        "inputCount": 5,
+        "buttonCount": 11,
+        "unnamedButtons": 1,
+        "graphicsCount": 8,
+        "unnamedGraphics": 0,
+        "hits": {
+          "evidenceList": true,
+          "questionSummary": true,
+          "reviewAction": true,
+          "adaptivePractice": false,
+          "remediationAction": false,
+          "liveStatus": false
+        },
+        "cardSamples": [
+          "筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件 4-1 前测：同图异读预判 失败 丰富证据 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 系统已经稳定，下列哪项判断最准确？ 作答 A，参考 B，需修正 关于带宽，下列说法哪项更准确？ 作答 未作答，参考 B，需修正 关于“所有指标都重要”，下列说法最准确的是： 作答 未作答，参考 B，需修正 来源范围 互动课提交 新鲜度 最新 置信度 高 缺失来源 来源完整 复盘课堂作答 课堂作答 step-03 失败 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 来源范围 互动课提交 新鲜度 最新 置信度 低 缺失来源 来源完整 复盘课堂作答",
+          "筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件",
+          "4-1 前测：同图异读预判 失败 丰富证据 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 系统已经稳定，下列哪项判断最准确？ 作答 A，参考 B，需修正 关于带宽，下列说法哪项更准确？ 作答 未作答，参考 B，需修正 关于“所有指标都重要”，下列说法最准确的是： 作答 未作答，参考 B，需修正 来源范围 互动课提交 新鲜度 最新 置信度 高 缺失来源 来源完整 复盘课堂作答 课堂作答 step-03 失败 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 来源范围 互动课提交 新鲜度 最新 置信度 低 缺失来源 来源完整 复盘课堂作答",
+          "4-1 前测：同图异读预判 失败 丰富证据 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 系统已经稳定，下列哪项判断最准确？ 作答 A，参考 B，需修正 关于带宽，下列说法哪项更准确？ 作答 未作答，参考 B，需修正 关于“所有指标都重要”，下列说法最准确的是： 作答 未作答，参考 B，需修正 来源范围 互动课提交 新鲜度 最新 置信度 高 缺失来源 来源完整 复盘课堂作答"
+        ]
+      }
+    },
+    {
+      "step": 3,
+      "label": "student evidence review link target desktop",
+      "route": "/profile/evidence?lessonId=unit-4-1-design-task-expression-v1",
+      "screenshot": "screenshots/63-function-state-flows-batch28/03-student-evidence-review-link-target-desktop.png",
+      "screenshotBytes": 130571,
+      "a11y": "screenshots/63-function-state-flows-batch28/03-student-evidence-review-link-target-desktop.a11y.json",
+      "notes": {
+        "expected": "review classroom answer should land on a question-level review surface, not only the same evidence list",
+        "reviewHref": "/profile/evidence?lessonId=unit-4-1-design-task-expression-v1"
+      },
+      "auditSummary": {
+        "h1": [
+          "学习证据"
+        ],
+        "alerts": [],
+        "inputCount": 5,
+        "buttonCount": 11,
+        "unnamedButtons": 1,
+        "graphicsCount": 8,
+        "unnamedGraphics": 0,
+        "hits": {
+          "evidenceList": true,
+          "questionSummary": true,
+          "reviewAction": true,
+          "adaptivePractice": false,
+          "remediationAction": false,
+          "liveStatus": false
+        },
+        "cardSamples": [
+          "筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件 4-1 前测：同图异读预判 失败 丰富证据 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 系统已经稳定，下列哪项判断最准确？ 作答 A，参考 B，需修正 关于带宽，下列说法哪项更准确？ 作答 未作答，参考 B，需修正 关于“所有指标都重要”，下列说法最准确的是： 作答 未作答，参考 B，需修正 来源范围 互动课提交 新鲜度 最新 置信度 高 缺失来源 来源完整 复盘课堂作答 课堂作答 step-03 失败 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 来源范围 互动课提交 新鲜度 最新 置信度 低 缺失来源 来源完整 复盘课堂作答",
+          "筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件",
+          "4-1 前测：同图异读预判 失败 丰富证据 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 系统已经稳定，下列哪项判断最准确？ 作答 A，参考 B，需修正 关于带宽，下列说法哪项更准确？ 作答 未作答，参考 B，需修正 关于“所有指标都重要”，下列说法最准确的是： 作答 未作答，参考 B，需修正 来源范围 互动课提交 新鲜度 最新 置信度 高 缺失来源 来源完整 复盘课堂作答 课堂作答 step-03 失败 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 来源范围 互动课提交 新鲜度 最新 置信度 低 缺失来源 来源完整 复盘课堂作答",
+          "4-1 前测：同图异读预判 失败 丰富证据 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 系统已经稳定，下列哪项判断最准确？ 作答 A，参考 B，需修正 关于带宽，下列说法哪项更准确？ 作答 未作答，参考 B，需修正 关于“所有指标都重要”，下列说法最准确的是： 作答 未作答，参考 B，需修正 来源范围 互动课提交 新鲜度 最新 置信度 高 缺失来源 来源完整 复盘课堂作答"
+        ]
+      }
+    },
+    {
+      "step": 4,
+      "label": "student adaptive practice remediation desktop",
+      "route": "/assessment/adaptive-practice?intent=practice&goal=control-correction",
+      "screenshot": "screenshots/63-function-state-flows-batch28/04-student-adaptive-practice-remediation-desktop.png",
+      "screenshotBytes": 146937,
+      "a11y": "screenshots/63-function-state-flows-batch28/04-student-adaptive-practice-remediation-desktop.a11y.json",
+      "notes": {
+        "expected": "adaptive practice should clearly connect evidence gaps to generated remedial questions or path actions"
+      },
+      "auditSummary": {
+        "h1": [
+          "自适应学习路径中心",
+          "自适应学习路径中心"
+        ],
+        "alerts": [],
+        "inputCount": 1,
+        "buttonCount": 24,
+        "unnamedButtons": 1,
+        "graphicsCount": 17,
+        "unnamedGraphics": 0,
+        "hits": {
+          "evidenceList": true,
+          "questionSummary": false,
+          "reviewAction": false,
+          "adaptivePractice": true,
+          "remediationAction": true,
+          "liveStatus": false
+        },
+        "cardSamples": [
+          "学习路径 控灵生成 可比较方案 自适应学习路径中心 证据还少，先从入门路径开始，系统会随学习过程调整。你可以让控灵按目标、时间和资源偏好生成路径，再比较后选择执行。 路径顾问准备中 查看学习证据 当前建议 先建立入门路径 这条路径更适合先补概念，再进入练习。完成检查点后，系统会把互动、练习和仿真记录纳入后续推荐。 当前节点 入门诊断 本周完成 24% PRACTICE RESOURCE 自适应练习 诊断与练习题在这里继续，完成后会更新推荐重点。 展开练习题 当前作用 检查理解并更新路径推荐 资源状态 已准备一组练习题 后续记录 完成后形成检查证据 检查节点练习已准备 题面会在选择路径或进入检查节点后展开，避免干扰路径生成与比较。 展开练习题"
+        ]
+      }
+    },
+    {
+      "step": 5,
+      "label": "student adaptive evidence review intent desktop",
+      "route": "/assessment/adaptive-practice?intent=evidence-review&goal=control-correction",
+      "screenshot": "screenshots/63-function-state-flows-batch28/05-student-adaptive-evidence-review-desktop.png",
+      "screenshotBytes": 122661,
+      "a11y": "screenshots/63-function-state-flows-batch28/05-student-adaptive-evidence-review-desktop.a11y.json",
+      "notes": {
+        "expected": "evidence-review intent should preserve evidence context and offer a clear remediation next step"
+      },
+      "auditSummary": {
+        "h1": [
+          "自适应学习路径中心",
+          "自适应学习路径中心"
+        ],
+        "alerts": [],
+        "inputCount": 1,
+        "buttonCount": 22,
+        "unnamedButtons": 1,
+        "graphicsCount": 16,
+        "unnamedGraphics": 0,
+        "hits": {
+          "evidenceList": true,
+          "questionSummary": false,
+          "reviewAction": false,
+          "adaptivePractice": false,
+          "remediationAction": true,
+          "liveStatus": false
+        },
+        "cardSamples": [
+          "学习路径 控灵生成 可比较方案 自适应学习路径中心 证据还少，先从入门路径开始，系统会随学习过程调整。你可以让控灵按目标、时间和资源偏好生成路径，再比较后选择执行。 路径顾问准备中 查看学习证据 当前建议 先建立入门路径 这条路径更适合先补概念，再进入练习。完成检查点后，系统会把互动、练习和仿真记录纳入后续推荐。 当前节点 入门诊断 本周完成 24% HISTORY 选择历史 待选择 选择、拒绝、切换和有用性反馈会在这里显示。 控灵调整 调整请求会作为路径生成偏好进入后续推荐。"
+        ]
+      }
+    },
+    {
+      "step": 6,
+      "label": "student evidence lesson filter mobile",
+      "route": "/profile/evidence?lessonId=unit-4-1-design-task-expression-v1",
+      "screenshot": "screenshots/63-function-state-flows-batch28/06-student-evidence-lesson-filter-mobile.png",
+      "screenshotBytes": 127057,
+      "a11y": "screenshots/63-function-state-flows-batch28/06-student-evidence-lesson-filter-mobile.a11y.json",
+      "notes": {
+        "expected": "mobile evidence review should keep source, answer, reference, and action visible without bottom-tool obstruction"
+      },
+      "auditSummary": {
+        "h1": [
+          "学习证据"
+        ],
+        "alerts": [],
+        "inputCount": 5,
+        "buttonCount": 11,
+        "unnamedButtons": 1,
+        "graphicsCount": 8,
+        "unnamedGraphics": 0,
+        "hits": {
+          "evidenceList": true,
+          "questionSummary": true,
+          "reviewAction": true,
+          "adaptivePractice": false,
+          "remediationAction": false,
+          "liveStatus": false
+        },
+        "cardSamples": [
+          "筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件 4-1 前测：同图异读预判 失败 丰富证据 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 系统已经稳定，下列哪项判断最准确？ 作答 A，参考 B，需修正 关于带宽，下列说法哪项更准确？ 作答 未作答，参考 B，需修正 关于“所有指标都重要”，下列说法最准确的是： 作答 未作答，参考 B，需修正 来源范围 互动课提交 新鲜度 最新 置信度 高 缺失来源 来源完整 复盘课堂作答 课堂作答 step-03 失败 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 来源范围 互动课提交 新鲜度 最新 置信度 低 缺失来源 来源完整 复盘课堂作答",
+          "筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件",
+          "4-1 前测：同图异读预判 失败 丰富证据 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 系统已经稳定，下列哪项判断最准确？ 作答 A，参考 B，需修正 关于带宽，下列说法哪项更准确？ 作答 未作答，参考 B，需修正 关于“所有指标都重要”，下列说法最准确的是： 作答 未作答，参考 B，需修正 来源范围 互动课提交 新鲜度 最新 置信度 高 缺失来源 来源完整 复盘课堂作答 课堂作答 step-03 失败 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 来源范围 互动课提交 新鲜度 最新 置信度 低 缺失来源 来源完整 复盘课堂作答",
+          "4-1 前测：同图异读预判 失败 丰富证据 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 系统已经稳定，下列哪项判断最准确？ 作答 A，参考 B，需修正 关于带宽，下列说法哪项更准确？ 作答 未作答，参考 B，需修正 关于“所有指标都重要”，下列说法最准确的是： 作答 未作答，参考 B，需修正 来源范围 互动课提交 新鲜度 最新 置信度 高 缺失来源 来源完整 复盘课堂作答"
+        ]
+      }
+    },
+    {
+      "step": 7,
+      "label": "student adaptive practice remediation mobile",
+      "route": "/assessment/adaptive-practice?intent=practice&goal=control-correction",
+      "screenshot": "screenshots/63-function-state-flows-batch28/07-student-adaptive-practice-remediation-mobile.png",
+      "screenshotBytes": 145416,
+      "a11y": "screenshots/63-function-state-flows-batch28/07-student-adaptive-practice-remediation-mobile.a11y.json",
+      "notes": {
+        "expected": "mobile remediation path should expose the active question/path action without excessive scrolling"
+      },
+      "auditSummary": {
+        "h1": [
+          "自适应学习路径中心",
+          "自适应学习路径中心"
+        ],
+        "alerts": [],
+        "inputCount": 1,
+        "buttonCount": 24,
+        "unnamedButtons": 1,
+        "graphicsCount": 17,
+        "unnamedGraphics": 0,
+        "hits": {
+          "evidenceList": true,
+          "questionSummary": false,
+          "reviewAction": false,
+          "adaptivePractice": true,
+          "remediationAction": true,
+          "liveStatus": false
+        },
+        "cardSamples": [
+          "学习路径 控灵生成 可比较方案 自适应学习路径中心 证据还少，先从入门路径开始，系统会随学习过程调整。你可以让控灵按目标、时间和资源偏好生成路径，再比较后选择执行。 路径顾问准备中 查看学习证据 当前建议 先建立入门路径 这条路径更适合先补概念，再进入练习。完成检查点后，系统会把互动、练习和仿真记录纳入后续推荐。 当前节点 入门诊断 本周完成 24% PRACTICE RESOURCE 自适应练习 诊断与练习题在这里继续，完成后会更新推荐重点。 展开练习题 当前作用 检查理解并更新路径推荐 资源状态 已准备一组练习题 后续记录 完成后形成检查证据 检查节点练习已准备 题面会在选择路径或进入检查节点后展开，避免干扰路径生成与比较。 展开练习题"
+        ]
+      }
+    }
+  ],
+  "apiChecks": [
+    {
+      "label": "student evidence default",
+      "route": "/api/student/evidence?limit=20",
+      "status": 200,
+      "ok": true,
+      "accepted": true,
+      "contentType": "application/json",
+      "summary": "{\"items\":[{\"id\":\"cmqlzzgkm000ok1yfr8lgq3xv\",\"factType\":\"question\",\"outcome\":\"failure\",\"score\":0,\"moduleId\":\"step-03\",\"lessonId\":\"unit-4-1-design-task-expression-v1\",\"sessionId\":\"cmqea1d3n001euwyfoi7b6pru\",\"sourceLogId\":\"cmqlzzgkb000ik1yfeq3fcn1v\",\"sourceEventId\":\"1781938181511_u839xow43\",\"startedAt\":\"2026-06-20T06:49:41.542Z\",\"finishedAt\":\"2026-06-20T06:49:41.542Z\",\"createdAt\":\"2026-06-20T06:49:41.542Z\",\"timeSpent\":null,\"competencyContribution\":{\"controlModeling\":0.5,\"crossDomainTransfer\":0.4,\"engineeringDecision\":0.5,\"selfDirectedLearning\":0.2},\"evidenceTitle\":\"4-1 前测：同图异读预判\",\"stepId\":\"step-03\",\"questionSummaries\":[{\"questionId\":\"pretest-q1\",\"prompt\":\"系统已经稳定，下列哪项判断最准确？\",\"studentAnswer\":\"A\",\"studentAnswerRedacted\":false,\"referenceAnswer\":\"B\",\"isCorrect\":false},{\"questionId\":\"pretest-q2\",\"prompt\":\"关于带宽，下列说法哪项更准确？\",\"studentAnswerRedacted\":false,\"referenceAnswer\":\"B\",\"isCorrect\":false},{\"questionId\":\"pretest-q3\",\"prompt\":\"关于“所有指标都重要”，下列说法最准确的是：\",\"studentAnswerRedacted\":false,\"referenceAnswer\":\"B\",\"isCorrect\":false}],\"quality\":\"rich\",\"qualityReason\":\"scoreable_objective_evidence\",\"sourceState\":\"manifest-submission-v2\",\"schemaVersion\":\"manifest-submission-v2\",\"learnerRecord\":{\"sourceScope\":\"interactive-lesson-submission\",\"freshness\":\"fresh\",\"confidence\":\"high\",\"missingSourceState\":\"complete\",\"privacyScope\":\"student-visible\",\"nextAction\":{\"href\":\"/profile/evidence?lessonId=unit-4-1-design-task-expression-v1\",\"label\":\"复盘课堂作答\"}},\"displayPriority\":\"normal\"},{\"id\":\"cmqlzzgkh000mk1yf88quzzqn\",\"factType\":\"question\",\"outcome\":\"failure\",\"score\":0,\"moduleId\":\"step-03\",\"lessonId\":\"unit-4-1-design-task-expression-v1\",\"sessionId\":\"cmqea1d3n001euwyfoi7b6pru\",\"sourceLogId\":null,\"sourceEventId\":\"1781938181509_i3qhnvfgh\",\"startedAt\":\"2026-06-20T06:49:41.536Z\",\"finishedAt\":\"2026-06-20T06:49:4"
+    },
+    {
+      "label": "student evidence 4-1 lesson filter",
+      "route": "/api/student/evidence?lessonId=unit-4-1-design-task-expression-v1&limit=20",
+      "status": 200,
+      "ok": true,
+      "accepted": true,
+      "contentType": "application/json",
+      "summary": "{\"items\":[{\"id\":\"cmqlzzgkm000ok1yfr8lgq3xv\",\"factType\":\"question\",\"outcome\":\"failure\",\"score\":0,\"moduleId\":\"step-03\",\"lessonId\":\"unit-4-1-design-task-expression-v1\",\"sessionId\":\"cmqea1d3n001euwyfoi7b6pru\",\"sourceLogId\":\"cmqlzzgkb000ik1yfeq3fcn1v\",\"sourceEventId\":\"1781938181511_u839xow43\",\"startedAt\":\"2026-06-20T06:49:41.542Z\",\"finishedAt\":\"2026-06-20T06:49:41.542Z\",\"createdAt\":\"2026-06-20T06:49:41.542Z\",\"timeSpent\":null,\"competencyContribution\":{\"controlModeling\":0.5,\"crossDomainTransfer\":0.4,\"engineeringDecision\":0.5,\"selfDirectedLearning\":0.2},\"evidenceTitle\":\"4-1 前测：同图异读预判\",\"stepId\":\"step-03\",\"questionSummaries\":[{\"questionId\":\"pretest-q1\",\"prompt\":\"系统已经稳定，下列哪项判断最准确？\",\"studentAnswer\":\"A\",\"studentAnswerRedacted\":false,\"referenceAnswer\":\"B\",\"isCorrect\":false},{\"questionId\":\"pretest-q2\",\"prompt\":\"关于带宽，下列说法哪项更准确？\",\"studentAnswerRedacted\":false,\"referenceAnswer\":\"B\",\"isCorrect\":false},{\"questionId\":\"pretest-q3\",\"prompt\":\"关于“所有指标都重要”，下列说法最准确的是：\",\"studentAnswerRedacted\":false,\"referenceAnswer\":\"B\",\"isCorrect\":false}],\"quality\":\"rich\",\"qualityReason\":\"scoreable_objective_evidence\",\"sourceState\":\"manifest-submission-v2\",\"schemaVersion\":\"manifest-submission-v2\",\"learnerRecord\":{\"sourceScope\":\"interactive-lesson-submission\",\"freshness\":\"fresh\",\"confidence\":\"high\",\"missingSourceState\":\"complete\",\"privacyScope\":\"student-visible\",\"nextAction\":{\"href\":\"/profile/evidence?lessonId=unit-4-1-design-task-expression-v1\",\"label\":\"复盘课堂作答\"}},\"displayPriority\":\"normal\"},{\"id\":\"cmqlzzgkh000mk1yf88quzzqn\",\"factType\":\"question\",\"outcome\":\"failure\",\"score\":0,\"moduleId\":\"step-03\",\"lessonId\":\"unit-4-1-design-task-expression-v1\",\"sessionId\":\"cmqea1d3n001euwyfoi7b6pru\",\"sourceLogId\":null,\"sourceEventId\":\"1781938181509_i3qhnvfgh\",\"startedAt\":\"2026-06-20T06:49:41.536Z\",\"finishedAt\":\"2026-06-20T06:49:4"
+    },
+    {
+      "label": "latest control-correction learning path",
+      "route": "/api/learning-paths/latest?goal=control-correction",
+      "status": 200,
+      "ok": true,
+      "accepted": true,
+      "contentType": "application/json",
+      "summary": "{\"path\":null}"
+    }
+  ],
+  "dialogs": [],
+  "downloads": [],
+  "errors": [],
+  "ignoredErrors": [],
+  "notes": {
+    "defaultEvidenceItems": 7,
+    "classroomEvidenceItems": 2,
+    "firstDefaultNextAction": {
+      "href": "/profile/evidence?lessonId=unit-4-1-design-task-expression-v1",
+      "label": "复盘课堂作答"
+    },
+    "firstClassroomNextAction": {
+      "href": "/profile/evidence?lessonId=unit-4-1-design-task-expression-v1",
+      "label": "复盘课堂作答"
+    },
+    "reviewHref": "/profile/evidence?lessonId=unit-4-1-design-task-expression-v1"
+  },
+  "pngCount": 7,
+  "jsonCount": 7
+}

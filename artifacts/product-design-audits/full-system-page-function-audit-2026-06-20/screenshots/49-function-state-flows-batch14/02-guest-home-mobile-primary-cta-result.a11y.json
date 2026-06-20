@@ -1,0 +1,538 @@
+{
+  "audit": {
+    "label": "guest mobile home primary CTA result",
+    "path": "/",
+    "title": "AI-OBE船舶控制平台",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "headings": [
+      {
+        "tag": "h1",
+        "text": "海上半潜平台动力定位"
+      },
+      {
+        "tag": "h2",
+        "text": "账号登录"
+      },
+      {
+        "tag": "h3",
+        "text": "控灵"
+      }
+    ],
+    "controls": [
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "打开平台入口菜单",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "",
+        "href": "",
+        "name": "进入驾驶舱",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/simulations/drilling",
+        "name": "开启任务链",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "课程设计 · 1/7",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "海上半潜平台动力定位",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "雪龙号破冰船航行控制",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "挖泥船精确定位作业",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "LNG船舶时滞控制",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "MSC Tessa 集装箱船变质量控制",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "爱达·魔都号邮轮舒适度控制",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "军用驱逐舰战术机动",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/knowledge",
+        "name": "学习 知识资源 课程、知识图谱与互动学习入口。",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/assessment/adaptive-practice",
+        "name": "练习 学习路径 自适应学习路径、诊断与补强建议。",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/arena",
+        "name": "挑战 竞技场 竞技场挑战、榜单与正式评价。",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/simulations",
+        "name": "实验 虚拟仿真 仿真对象、控制工作台与参数探索。",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/profile",
+        "name": "复盘 个人中心 个人证据、成长轨迹与学习报告。",
+        "disabled": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "href": "/profile",
+        "name": "账号与画像 个人中心 登录、账号、个人中心与回调目标。",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "关闭登录弹窗",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "",
+        "disabled": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "type": "text",
+        "href": "",
+        "name": "学号/工号",
+        "disabled": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "type": "password",
+        "href": "",
+        "name": "密码",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "submit",
+        "href": "",
+        "name": "登录",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "关闭 (ESC)",
+        "disabled": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "type": "text",
+        "href": "",
+        "name": "全局 AI 问题输入框",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "submit",
+        "href": "",
+        "name": "",
+        "disabled": true
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "打开工具与页面工具菜单",
+        "disabled": false
+      }
+    ],
+    "controlsWithoutNames": [
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "href": "",
+        "name": "",
+        "disabled": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "submit",
+        "href": "",
+        "name": "",
+        "disabled": true
+      }
+    ],
+    "svgCanvasCount": 31,
+    "unlabeledSvgCanvas": [
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      },
+      {
+        "tag": "svg",
+        "role": "",
+        "label": "",
+        "text": ""
+      }
+    ],
+    "liveRegions": [],
+    "errors": [],
+    "fixedOrSticky": [
+      {
+        "tag": "div",
+        "className": "fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm",
+        "text": "账号登录 请输入学号或工号 登录",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "w": 390,
+          "h": 844
+        }
+      },
+      {
+        "tag": "div",
+        "className": "\n          fixed right-0 top-0 z-50 flex flex-col\n          h-screen w-screen\n          sm:w-[380px]\n          lg:w-[420px]\n          bg-white border-slate-200\n          transition-all duration-300 ea",
+        "text": "控灵 AI-OBE 智能学习伴侣 你好，我是控灵，你的AI学习伴侣。有什么我可以帮助你的吗？ 你可以问我: 按 Enter 发送，ESC 关闭面板",
+        "rect": {
+          "x": 390,
+          "y": 0,
+          "w": 390,
+          "h": 844
+        }
+      },
+      {
+        "tag": "div",
+        "className": "no-print fixed bottom-4 right-6 z-[120] flex flex-col items-end",
+        "text": "工具",
+        "rect": {
+          "x": 292,
+          "y": 788,
+          "w": 74,
+          "h": 40
+        }
+      }
+    ],
+    "forms": [
+      {
+        "text": "登录",
+        "controls": [
+          "学号/工号",
+          "密码",
+          "登录"
+        ]
+      },
+      {
+        "text": "按 Enter 发送，ESC 关闭面板",
+        "controls": [
+          "全局 AI 问题输入框",
+          "BUTTON"
+        ]
+      }
+    ],
+    "tableLike": [],
+    "viewportTextHead": "AI-OBE船舶智控平台 Mission Control for Maritime Education 进入驾驶舱 定位控制 · 高级 · 2,847人参与 海上半潜平台动力定位 模拟半潜式钻井平台在复杂海况下的动力定位，学习多推进器协同与定点保持策略。 开启任务链 任务链覆盖 18类海事任务 仿真模型库 7种主力船型 AI分析维度 24项指标 静态模型预览 当前策略：静态模式 当前任务：定位控制 响应窗口：静态图直出 任务序列 课程设计 · 1/7 海上半潜平台动力定位 雪龙号破冰船航行控制 挖泥船精确定位作业 LNG船舶时滞控制 MSC Tessa 集装箱船变质量控制 爱达·魔都号邮轮舒适度控制 军用驱逐舰战术机动 平台入口矩阵 商业入口 · 学习意图 学习 知识资源 课程、知识图谱与互动学习入口。 练习 学习路径 自适应学习路径、诊断与补强建议。 挑战 竞技场 竞技场挑战、榜单与正式评价。 实验 虚拟仿真 仿真对象、控制工作台与参数探索。 复盘 个人中心 个人证据、成长轨迹与学习报告。 账号与画像 个人中心 登录、账号、个人中心与回调目标。 今日推荐任务：半潜平台动力定位挑战 · 预计时长 90 分钟 账号登录 请输入学号或工号 登录 控灵 AI-OBE 智能学习伴侣 你好，我是控灵，你的AI学习伴侣。有什么我可以帮助你的吗？ 你可以问我: 按 Enter 发送，ESC 关闭面板 工具",
+    "extra": {
+      "actions": [
+        "clicked button /开始|进入|学习|体验|登录|学生/i"
+      ],
+      "screenshot": "screenshots/49-function-state-flows-batch14/02-guest-home-mobile-primary-cta-result.png",
+      "requestedUrl": "/"
+    }
+  },
+  "accessibilitySnapshotUnavailable": "Playwright page.accessibility.snapshot unavailable in this runtime"
+}

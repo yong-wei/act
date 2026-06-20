@@ -1,0 +1,793 @@
+{
+  "id": "student-profile-growth-chart-a11y",
+  "role": "student",
+  "note": "学生成长中枢图表与诊断区结构抽查，检查能力图和建议卡的替代语义。",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "dom": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/profile/growth",
+    "visibleTextHead": "学生驾驶舱 个人中心 学生 成长中枢 能力趋势、证据覆盖与下一步路径 近7天 近30天 近90天 D demo demo@example.com 当前学习阶段 起步期 综合得分 3 分 · 8 条学习记录 本周学习热度 1 次活动 最近7天活跃记录 本周进步 稳步提升 各项能力均衡发展 控灵建议 提升参数设计能力 还有 2 条建议 个人诊断 控制校正个人诊断 把诊断快照转化为学生可理解的维度状态、证据引用和下一步行动。 维度 1 证据 0 限制 7 当前诊断处于降级状态 页面不会把缺失或低置信度内容伪装成真实分数；请结合证据覆盖、路径状态和后续采集结果判断。 Control Correction 当前 control-correction 维度处于 insufficient-evidence 状态，建议围绕证据覆盖不足的环节继续练习。 证据不足 得分 暂无 百分位 冷启动 成长 冷启动 置信度 无置信度 证据数 0 覆盖率 0% 证据抽屉 当前角色没有可展示的证据引用，或快照尚未生成。 no-active-path 限制说明 诊断快照缺失 路径结果不可用 目标切片缺失 维度证据缺失 引用缺失 低置信度 无活动路径 能力雷达 控制建模 参数设计 跨域迁移 工程决策 探究反思 自主学习 0 25 50 75 100 能力详情 0 25 50 75 100 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 下一步建议 本周 优先级 70 提升参数设计能力 这是你的薄弱领域（0分），建议本周重点练习相关任务。 本周 优先级 60 巩固基础能力 多维度能力有待提升，建议系统复习基础知识。 成长档案时间线 阶段性能力画像评价 你已掌握控制建模，但自主学习节奏需优化。建议制定每日固定复习计划，利用错题本巩固薄弱环节，确保持续进步。 3天前 能力证据链 查看全部证据 控制建模与分析 课堂作答 step-10 成功 课堂作答 step-10 成功 课堂作答 step-10 成功 参数设计与调优 探究反思与提示词 跨域迁移与联动 控灵 当前: growth 你好，我是控灵。今天我们将探索「growth」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵 控制建模与分析",
+    "headings": [
+      {
+        "level": "H1",
+        "text": "成长中枢"
+      },
+      {
+        "level": "H2",
+        "text": "控制校正个人诊断"
+      },
+      {
+        "level": "H3",
+        "text": "限制说明"
+      },
+      {
+        "level": "H3",
+        "text": "能力雷达"
+      },
+      {
+        "level": "H3",
+        "text": "能力详情"
+      },
+      {
+        "level": "H3",
+        "text": "下一步建议"
+      },
+      {
+        "level": "H3",
+        "text": "成长档案时间线"
+      },
+      {
+        "level": "H3",
+        "text": "能力证据链"
+      },
+      {
+        "level": "H3",
+        "text": "控灵"
+      }
+    ],
+    "focusables": [
+      {
+        "index": 0,
+        "tag": "a",
+        "role": "",
+        "label": "学生驾驶舱",
+        "disabled": false,
+        "path": "main > div > aside > nav > a"
+      },
+      {
+        "index": 1,
+        "tag": "a",
+        "role": "",
+        "label": "个人中心",
+        "disabled": false,
+        "path": "main > div > aside > nav > a"
+      },
+      {
+        "index": 2,
+        "tag": "button",
+        "role": "",
+        "label": "近7天",
+        "disabled": false,
+        "path": "header > div > div > div > button"
+      },
+      {
+        "index": 3,
+        "tag": "button",
+        "role": "",
+        "label": "近30天",
+        "disabled": false,
+        "path": "header > div > div > div > button"
+      },
+      {
+        "index": 4,
+        "tag": "button",
+        "role": "",
+        "label": "近90天",
+        "disabled": false,
+        "path": "header > div > div > div > button"
+      },
+      {
+        "index": 5,
+        "tag": "button",
+        "role": "",
+        "label": "切换到深色模式",
+        "disabled": false,
+        "path": "div > header > div > div > button"
+      },
+      {
+        "index": 6,
+        "tag": "button",
+        "role": "",
+        "label": "D demo demo@example.com",
+        "disabled": false,
+        "path": "header > div > div > div > button"
+      },
+      {
+        "index": 7,
+        "tag": "a",
+        "role": "",
+        "label": "学生驾驶舱",
+        "disabled": false,
+        "path": "div > div > nav > div > a"
+      },
+      {
+        "index": 8,
+        "tag": "a",
+        "role": "",
+        "label": "个人中心",
+        "disabled": false,
+        "path": "div > div > nav > div > a"
+      },
+      {
+        "index": 9,
+        "tag": "svg",
+        "role": "application",
+        "label": "控制建模参数设计跨域迁移工程决策探究反思自主学习0255075100",
+        "disabled": false,
+        "path": "div > div > div > div > svg[role=\"application\"]"
+      },
+      {
+        "index": 10,
+        "tag": "svg",
+        "role": "application",
+        "label": "0255075100控制建模与分析参数设计与调优跨域迁移与联动工程决策与约束探究反思与提示词自主学习进展",
+        "disabled": false,
+        "path": "div > div > div > div > svg[role=\"application\"]"
+      },
+      {
+        "index": 11,
+        "tag": "a",
+        "role": "",
+        "label": "本周 优先级 70 提升参数设计能力 这是你的薄弱领域（0分），建议本周重点练习相关任务。",
+        "disabled": false,
+        "path": "section > div > div > div > a"
+      },
+      {
+        "index": 12,
+        "tag": "a",
+        "role": "",
+        "label": "本周 优先级 60 巩固基础能力 多维度能力有待提升，建议系统复习基础知识。",
+        "disabled": false,
+        "path": "section > div > div > div > a"
+      },
+      {
+        "index": 13,
+        "tag": "a",
+        "role": "",
+        "label": "查看全部证据",
+        "disabled": false,
+        "path": "section > div > div > div > a"
+      },
+      {
+        "index": 14,
+        "tag": "button",
+        "role": "",
+        "label": "",
+        "disabled": false,
+        "path": "body > div > div > div > button"
+      },
+      {
+        "index": 15,
+        "tag": "input",
+        "role": "",
+        "label": "全局 AI 问题输入框",
+        "disabled": false,
+        "path": "body > div > form > div > input"
+      },
+      {
+        "index": 16,
+        "tag": "button",
+        "role": "",
+        "label": "",
+        "disabled": true,
+        "path": "body > div > form > div > button"
+      },
+      {
+        "index": 17,
+        "tag": "button",
+        "role": "",
+        "label": "打开控灵与页面工具菜单",
+        "disabled": false,
+        "path": "html > body > div > button"
+      }
+    ],
+    "controlsWithoutNames": [
+      {
+        "index": 14,
+        "tag": "button",
+        "role": "",
+        "label": "",
+        "disabled": false,
+        "path": "body > div > div > div > button"
+      },
+      {
+        "index": 16,
+        "tag": "button",
+        "role": "",
+        "label": "",
+        "disabled": true,
+        "path": "body > div > form > div > button"
+      }
+    ],
+    "charts": [
+      {
+        "index": 0,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "header > div > div > button > svg"
+      },
+      {
+        "index": 1,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > button > svg"
+      },
+      {
+        "index": 2,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 3,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 4,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 5,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 6,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > span > svg"
+      },
+      {
+        "index": 7,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > section > div > div > svg"
+      },
+      {
+        "index": 8,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > article > div > div > svg"
+      },
+      {
+        "index": 9,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > article > div > span > svg"
+      },
+      {
+        "index": 10,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > section > div > div > svg"
+      },
+      {
+        "index": 11,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > span > svg"
+      },
+      {
+        "index": 12,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > span > svg"
+      },
+      {
+        "index": 13,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > span > svg"
+      },
+      {
+        "index": 14,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > span > svg"
+      },
+      {
+        "index": 15,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > span > svg"
+      },
+      {
+        "index": 16,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > span > svg"
+      },
+      {
+        "index": 17,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > span > svg"
+      },
+      {
+        "index": 18,
+        "tag": "svg",
+        "role": "application",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "510",
+        "height": "320",
+        "path": "div > div > div > div > svg[role=\"application\"]"
+      },
+      {
+        "index": 19,
+        "tag": "svg",
+        "role": "application",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "510",
+        "height": "320",
+        "path": "div > div > div > div > svg[role=\"application\"]"
+      },
+      {
+        "index": 20,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "20",
+        "height": "20",
+        "path": "div > div > a > div > svg"
+      },
+      {
+        "index": 21,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "20",
+        "height": "20",
+        "path": "div > div > a > div > svg"
+      },
+      {
+        "index": 22,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "20",
+        "height": "20",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 23,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > button > svg"
+      },
+      {
+        "index": 24,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > p > svg"
+      },
+      {
+        "index": 25,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > form > div > button > svg"
+      }
+    ],
+    "unlabeledCharts": [
+      {
+        "index": 0,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "header > div > div > button > svg"
+      },
+      {
+        "index": 1,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > button > svg"
+      },
+      {
+        "index": 2,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 3,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 4,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 5,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 6,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > span > svg"
+      },
+      {
+        "index": 7,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > section > div > div > svg"
+      },
+      {
+        "index": 8,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > article > div > div > svg"
+      },
+      {
+        "index": 9,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > article > div > span > svg"
+      },
+      {
+        "index": 10,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > section > div > div > svg"
+      },
+      {
+        "index": 11,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > span > svg"
+      },
+      {
+        "index": 12,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > span > svg"
+      },
+      {
+        "index": 13,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > span > svg"
+      },
+      {
+        "index": 14,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > span > svg"
+      },
+      {
+        "index": 15,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > span > svg"
+      },
+      {
+        "index": 16,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > span > svg"
+      },
+      {
+        "index": 17,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > span > svg"
+      },
+      {
+        "index": 20,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "20",
+        "height": "20",
+        "path": "div > div > a > div > svg"
+      },
+      {
+        "index": 21,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "20",
+        "height": "20",
+        "path": "div > div > a > div > svg"
+      },
+      {
+        "index": 22,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "20",
+        "height": "20",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 23,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > button > svg"
+      },
+      {
+        "index": 24,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > p > svg"
+      },
+      {
+        "index": 25,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > form > div > button > svg"
+      }
+    ],
+    "fixedOrSticky": [
+      {
+        "tag": "div",
+        "role": "",
+        "label": "控灵 当前: growth 你好，我是控灵。今天我们将探索「growth」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板",
+        "position": "fixed",
+        "zIndex": "50",
+        "path": "html > body > div"
+      },
+      {
+        "tag": "div",
+        "role": "",
+        "label": "控灵",
+        "position": "fixed",
+        "zIndex": "120",
+        "path": "html > body > div"
+      }
+    ],
+    "liveRegions": [],
+    "errors": []
+  },
+  "accessibilitySnapshot": {
+    "error": "Cannot read properties of undefined (reading 'snapshot')"
+  }
+}

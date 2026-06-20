@@ -1,0 +1,3027 @@
+{
+  "id": "teacher-class-analytics-v2-chart-a11y",
+  "role": "teacher",
+  "note": "教师班级分析 v2 页结构抽查，检查更复杂分析面板的图表/读屏风险。",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "dom": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/teacher/classes/cmma7g0590004g9q2nl2jyzdf/analytics-v2",
+    "visibleTextHead": "返回首页 教师工作台 课程编排、班级管理、证据审核与课堂报告 张 张永韡 个人中心 教师总览 班级 教案 资源 课前包 课堂历史 班级分析 班级学情总览 治理结果部分可用 2024自动化 · 143 名学生 · 25 天前更新 刷新数据 从治理结果回看班级学情 这里不再展示孤立的技术分和伦理分，而是围绕能力矩阵、风险分层、治理覆盖度和重点学生，为教师提供可行动的班级判断依据。 治理覆盖进度 当前仅覆盖 135/143 名学生，需结合课堂记录综合判断。 135/143 已生成画像 班级总体指数 31.1 最新班级快照与学生画像聚合值 重点关注学生 135 中高风险或整体表现偏弱 高风险学生 0 建议优先一对一跟进 能力维度概览 六维能力均值与波动，可快速判断本班共性短板。 控制建模与分析 均值 40.4 / 波动 5.6 参数设计与调优 均值 30.1 / 波动 33.1 跨域迁移与联动 均值 25.5 / 波动 23.9 工程决策与约束 均值 38.3 / 波动 39.6 探究反思与提示词 均值 20.2 / 波动 28.4 自主学习进展 均值 32.2 / 波动 4 画像等级分布 基于当前治理结果的班级层级结构。 优秀 0 人 良好 0 人 中等 8 人 需提升 33 人 需关注 60 人 能力矩阵 按学生逐项查看能力分、变化趋势或风险等级，让教师先看到“谁需要关注”，再决定看哪一门能力。 能力分 近阶段变化 风险等级 学生 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 陈范洋 242210301105 41 0 0 0 0 34 陈凤荣 242210301106 45 0 0 0 0 36 韦俊宇 242210301324 50 0 0 0 0 30 魏延玺 242210301325 43 0 0 0 0 37 吴晓风 242210301326 36 60 0 70 0 31 肖毅 242210301327 36 63 47 74 60 31 徐慧聪 242210301328 44 0 40 50 0 35 薛鸣涛 242210301329 38 70 60 90 0 31 杨伊凡 242210301330 37 0 0 0 0 30 杨逸凡 242210301331 - - - - - - 袁泽安 242210301333 43 0 0 0 0 37 张池铖 242210301334 43 0 0 0 0 37 张迅 242210301335 42 69 53 89 60 34 智栋 242210301336 50 0 40 50 0 21 朱成锦 242210301337 39 63 46 71 60 35 丁至翰 242210301338 - - - - - - 陈李 242210301107 - - - - - - 赖梦雯 242210188402 45 0 0 0 0 36 沈越洋 242210288524 44 70 0 0 0 33 杜依轩 242210288602 50 0 0 0 0 30 黄韵茹 242210488104 - - - - - - 宋志远 242210488231 43 0 40 0 60 33 闵舒涵 242210488306 44 0 0 0 0 36 桑思甜 242210488308 43 0 0 0 0 38 张一诺 242210488414 - - - - - - 陈家骥 242210501111 42 68 47 75 60 38 沈俊杰 242210501123 41 70 60 90 0 36 吴宗保 242210501131 42 0 0 0 0 38 杨超逸 242210504234 42 0 40 50 60 35 张悦 242210",
+    "headings": [
+      {
+        "level": "H1",
+        "text": "教师工作台"
+      },
+      {
+        "level": "H1",
+        "text": "班级学情总览"
+      },
+      {
+        "level": "H2",
+        "text": "从治理结果回看班级学情"
+      },
+      {
+        "level": "H2",
+        "text": "能力维度概览"
+      },
+      {
+        "level": "H2",
+        "text": "画像等级分布"
+      },
+      {
+        "level": "H2",
+        "text": "能力矩阵"
+      },
+      {
+        "level": "H2",
+        "text": "重点学生"
+      },
+      {
+        "level": "H3",
+        "text": "控灵"
+      }
+    ],
+    "focusables": [
+      {
+        "index": 0,
+        "tag": "a",
+        "role": "",
+        "label": "返回首页",
+        "disabled": false,
+        "path": "header > div > div > div > a"
+      },
+      {
+        "index": 1,
+        "tag": "button",
+        "role": "",
+        "label": "张 张永韡 个人中心",
+        "disabled": false,
+        "path": "div > div > div > div > button"
+      },
+      {
+        "index": 2,
+        "tag": "a",
+        "role": "",
+        "label": "教师总览",
+        "disabled": false,
+        "path": "div > header > div > nav > a"
+      },
+      {
+        "index": 3,
+        "tag": "a",
+        "role": "",
+        "label": "班级",
+        "disabled": false,
+        "path": "div > header > div > nav > a"
+      },
+      {
+        "index": 4,
+        "tag": "a",
+        "role": "",
+        "label": "教案",
+        "disabled": false,
+        "path": "div > header > div > nav > a"
+      },
+      {
+        "index": 5,
+        "tag": "a",
+        "role": "",
+        "label": "资源",
+        "disabled": false,
+        "path": "div > header > div > nav > a"
+      },
+      {
+        "index": 6,
+        "tag": "a",
+        "role": "",
+        "label": "课前包",
+        "disabled": false,
+        "path": "div > header > div > nav > a"
+      },
+      {
+        "index": 7,
+        "tag": "a",
+        "role": "",
+        "label": "课堂历史",
+        "disabled": false,
+        "path": "div > header > div > nav > a"
+      },
+      {
+        "index": 8,
+        "tag": "a",
+        "role": "",
+        "label": "班级分析",
+        "disabled": false,
+        "path": "div > header > div > nav > a"
+      },
+      {
+        "index": 9,
+        "tag": "a",
+        "role": "",
+        "label": "",
+        "disabled": false,
+        "path": "div > header > div > div > a"
+      },
+      {
+        "index": 10,
+        "tag": "button",
+        "role": "",
+        "label": "刷新数据",
+        "disabled": false,
+        "path": "div > div > header > div > button"
+      },
+      {
+        "index": 11,
+        "tag": "button",
+        "role": "",
+        "label": "能力分",
+        "disabled": false,
+        "path": "main > section > div > div > button"
+      },
+      {
+        "index": 12,
+        "tag": "button",
+        "role": "",
+        "label": "近阶段变化",
+        "disabled": false,
+        "path": "main > section > div > div > button"
+      },
+      {
+        "index": 13,
+        "tag": "button",
+        "role": "",
+        "label": "风险等级",
+        "disabled": false,
+        "path": "main > section > div > div > button"
+      },
+      {
+        "index": 14,
+        "tag": "a",
+        "role": "",
+        "label": "陈范洋 242210301105",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 15,
+        "tag": "a",
+        "role": "",
+        "label": "陈凤荣 242210301106",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 16,
+        "tag": "a",
+        "role": "",
+        "label": "韦俊宇 242210301324",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 17,
+        "tag": "a",
+        "role": "",
+        "label": "魏延玺 242210301325",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 18,
+        "tag": "a",
+        "role": "",
+        "label": "吴晓风 242210301326",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 19,
+        "tag": "a",
+        "role": "",
+        "label": "肖毅 242210301327",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 20,
+        "tag": "a",
+        "role": "",
+        "label": "徐慧聪 242210301328",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 21,
+        "tag": "a",
+        "role": "",
+        "label": "薛鸣涛 242210301329",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 22,
+        "tag": "a",
+        "role": "",
+        "label": "杨伊凡 242210301330",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 23,
+        "tag": "a",
+        "role": "",
+        "label": "杨逸凡 242210301331",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 24,
+        "tag": "a",
+        "role": "",
+        "label": "袁泽安 242210301333",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 25,
+        "tag": "a",
+        "role": "",
+        "label": "张池铖 242210301334",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 26,
+        "tag": "a",
+        "role": "",
+        "label": "张迅 242210301335",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 27,
+        "tag": "a",
+        "role": "",
+        "label": "智栋 242210301336",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 28,
+        "tag": "a",
+        "role": "",
+        "label": "朱成锦 242210301337",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 29,
+        "tag": "a",
+        "role": "",
+        "label": "丁至翰 242210301338",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 30,
+        "tag": "a",
+        "role": "",
+        "label": "陈李 242210301107",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 31,
+        "tag": "a",
+        "role": "",
+        "label": "赖梦雯 242210188402",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 32,
+        "tag": "a",
+        "role": "",
+        "label": "沈越洋 242210288524",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 33,
+        "tag": "a",
+        "role": "",
+        "label": "杜依轩 242210288602",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 34,
+        "tag": "a",
+        "role": "",
+        "label": "黄韵茹 242210488104",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 35,
+        "tag": "a",
+        "role": "",
+        "label": "宋志远 242210488231",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 36,
+        "tag": "a",
+        "role": "",
+        "label": "闵舒涵 242210488306",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 37,
+        "tag": "a",
+        "role": "",
+        "label": "桑思甜 242210488308",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 38,
+        "tag": "a",
+        "role": "",
+        "label": "张一诺 242210488414",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 39,
+        "tag": "a",
+        "role": "",
+        "label": "陈家骥 242210501111",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 40,
+        "tag": "a",
+        "role": "",
+        "label": "沈俊杰 242210501123",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 41,
+        "tag": "a",
+        "role": "",
+        "label": "吴宗保 242210501131",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 42,
+        "tag": "a",
+        "role": "",
+        "label": "杨超逸 242210504234",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 43,
+        "tag": "a",
+        "role": "",
+        "label": "张悦 242210688609",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 44,
+        "tag": "a",
+        "role": "",
+        "label": "王誉轩 242210688934",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 45,
+        "tag": "a",
+        "role": "",
+        "label": "吴子恒 242210802122",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 46,
+        "tag": "a",
+        "role": "",
+        "label": "黄丹琳 242210901204",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 47,
+        "tag": "a",
+        "role": "",
+        "label": "刘壮举 242210901318",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 48,
+        "tag": "a",
+        "role": "",
+        "label": "罗圣琪 242210902206",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 49,
+        "tag": "a",
+        "role": "",
+        "label": "邹童乐 242211801234",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 50,
+        "tag": "a",
+        "role": "",
+        "label": "王浩宇 242211901234",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 51,
+        "tag": "a",
+        "role": "",
+        "label": "祁翔 242211904124",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 52,
+        "tag": "a",
+        "role": "",
+        "label": "孙远 242211904226",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 53,
+        "tag": "a",
+        "role": "",
+        "label": "朱邦威 242212188144",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 54,
+        "tag": "a",
+        "role": "",
+        "label": "李兆涵 242212188211",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 55,
+        "tag": "a",
+        "role": "",
+        "label": "吴卓文 242212188637",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 56,
+        "tag": "a",
+        "role": "",
+        "label": "左乔生 222210301333",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 57,
+        "tag": "a",
+        "role": "",
+        "label": "周守运 212241802339",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 58,
+        "tag": "a",
+        "role": "",
+        "label": "何倩 242210301101",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 59,
+        "tag": "a",
+        "role": "",
+        "label": "胡梦凡 242210301102",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 60,
+        "tag": "a",
+        "role": "",
+        "label": "张宁 242210301103",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 61,
+        "tag": "a",
+        "role": "",
+        "label": "赵璟铭 242210301104",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 62,
+        "tag": "a",
+        "role": "",
+        "label": "陈奕彬 242210301108",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 63,
+        "tag": "a",
+        "role": "",
+        "label": "顾福智 242210301109",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 64,
+        "tag": "a",
+        "role": "",
+        "label": "管梦航 242210301110",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 65,
+        "tag": "a",
+        "role": "",
+        "label": "郭子民 242210301112",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 66,
+        "tag": "a",
+        "role": "",
+        "label": "黄文涵 242210301113",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 67,
+        "tag": "a",
+        "role": "",
+        "label": "鞠周宇 242210301114",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 68,
+        "tag": "a",
+        "role": "",
+        "label": "孔泽霖 242210301115",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 69,
+        "tag": "a",
+        "role": "",
+        "label": "刘庆 242210301116",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 70,
+        "tag": "a",
+        "role": "",
+        "label": "罗俊豪 242210301117",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 71,
+        "tag": "a",
+        "role": "",
+        "label": "罗庆 242210301118",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 72,
+        "tag": "a",
+        "role": "",
+        "label": "宋文强 242210301119",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 73,
+        "tag": "a",
+        "role": "",
+        "label": "孙皓然 242210301120",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 74,
+        "tag": "a",
+        "role": "",
+        "label": "孙建潼 242210301121",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 75,
+        "tag": "a",
+        "role": "",
+        "label": "覃振宝 242210301124",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 76,
+        "tag": "a",
+        "role": "",
+        "label": "唐煜 242210301125",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 77,
+        "tag": "a",
+        "role": "",
+        "label": "王涵 242210301126",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 78,
+        "tag": "a",
+        "role": "",
+        "label": "王麒善 242210301127",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 79,
+        "tag": "a",
+        "role": "",
+        "label": "王润泽 242210301128",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 80,
+        "tag": "a",
+        "role": "",
+        "label": "王顺 242210301129",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 81,
+        "tag": "a",
+        "role": "",
+        "label": "王蕴博 242210301130",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 82,
+        "tag": "a",
+        "role": "",
+        "label": "韦汉昌 242210301131",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 83,
+        "tag": "a",
+        "role": "",
+        "label": "杨俊毅 242210301132",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 84,
+        "tag": "a",
+        "role": "",
+        "label": "朱育兴 242210301136",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 85,
+        "tag": "a",
+        "role": "",
+        "label": "曹思楠 242210301201",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 86,
+        "tag": "a",
+        "role": "",
+        "label": "刘佳妮 242210301202",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 87,
+        "tag": "a",
+        "role": "",
+        "label": "彭欣瑶 242210301203",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 88,
+        "tag": "a",
+        "role": "",
+        "label": "张欣格 242210301205",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 89,
+        "tag": "a",
+        "role": "",
+        "label": "高恒茂 242210301206",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 90,
+        "tag": "a",
+        "role": "",
+        "label": "耿昱杰 242210301207",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 91,
+        "tag": "a",
+        "role": "",
+        "label": "黄康杰 242210301208",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 92,
+        "tag": "a",
+        "role": "",
+        "label": "季言旭 242210301209",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 93,
+        "tag": "a",
+        "role": "",
+        "label": "蒋祖羲 242210301210",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 94,
+        "tag": "a",
+        "role": "",
+        "label": "李俊涛 242210301211",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 95,
+        "tag": "a",
+        "role": "",
+        "label": "李茂翼 242210301212",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 96,
+        "tag": "a",
+        "role": "",
+        "label": "梁冬旭 242210301213",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 97,
+        "tag": "a",
+        "role": "",
+        "label": "梁志豪 242210301214",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 98,
+        "tag": "a",
+        "role": "",
+        "label": "刘邦泰 242210301216",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 99,
+        "tag": "a",
+        "role": "",
+        "label": "柳越 242210301218",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 100,
+        "tag": "a",
+        "role": "",
+        "label": "龙凯 242210301219",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 101,
+        "tag": "a",
+        "role": "",
+        "label": "罗智杰 242210301220",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 102,
+        "tag": "a",
+        "role": "",
+        "label": "秦楷钦 242210301221",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 103,
+        "tag": "a",
+        "role": "",
+        "label": "孙超 242210301222",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 104,
+        "tag": "a",
+        "role": "",
+        "label": "唐英泽 242210301223",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 105,
+        "tag": "a",
+        "role": "",
+        "label": "唐泽 242210301224",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 106,
+        "tag": "a",
+        "role": "",
+        "label": "王熠乘 242210301226",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 107,
+        "tag": "a",
+        "role": "",
+        "label": "夏子俊 242210301228",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 108,
+        "tag": "a",
+        "role": "",
+        "label": "徐程程 242210301229",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 109,
+        "tag": "a",
+        "role": "",
+        "label": "薛木然 242210301230",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 110,
+        "tag": "a",
+        "role": "",
+        "label": "叶锦涛 242210301231",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 111,
+        "tag": "a",
+        "role": "",
+        "label": "余灿 242210301232",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 112,
+        "tag": "a",
+        "role": "",
+        "label": "张嘉誉 242210301233",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 113,
+        "tag": "a",
+        "role": "",
+        "label": "张智奥 242210301235",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 114,
+        "tag": "a",
+        "role": "",
+        "label": "宗济贤 242210301237",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 115,
+        "tag": "a",
+        "role": "",
+        "label": "郝心悦 242210301301",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 116,
+        "tag": "a",
+        "role": "",
+        "label": "刘惠君 242210301302",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 117,
+        "tag": "a",
+        "role": "",
+        "label": "王彩云 242210301303",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 118,
+        "tag": "a",
+        "role": "",
+        "label": "王雨湘 242210301304",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      },
+      {
+        "index": 119,
+        "tag": "a",
+        "role": "",
+        "label": "张心缘 242210301305",
+        "disabled": false,
+        "path": "main > section > div > div > a"
+      }
+    ],
+    "controlsWithoutNames": [
+      {
+        "index": 9,
+        "tag": "a",
+        "role": "",
+        "label": "",
+        "disabled": false,
+        "path": "div > header > div > div > a"
+      }
+    ],
+    "charts": [
+      {
+        "index": 0,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > a > svg"
+      },
+      {
+        "index": 1,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 2,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > button > svg"
+      },
+      {
+        "index": 3,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "header > div > div > a > svg"
+      },
+      {
+        "index": 4,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > header > div > button > svg"
+      },
+      {
+        "index": 5,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 6,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 7,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 8,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 9,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 10,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 11,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 12,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 13,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 14,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 15,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 16,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 17,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 18,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 19,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 20,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 21,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 22,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 23,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 24,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 25,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 26,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 27,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 28,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 29,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 30,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 31,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 32,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 33,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 34,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 35,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 36,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 37,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 38,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 39,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 40,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 41,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 42,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 43,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 44,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 45,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 46,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 47,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 48,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 49,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 50,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 51,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 52,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 53,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 54,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 55,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 56,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 57,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 58,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 59,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 60,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 61,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 62,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 63,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 64,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 65,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 66,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 67,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 68,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 69,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 70,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 71,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 72,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 73,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 74,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 75,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 76,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 77,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 78,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 79,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 80,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 81,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 82,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 83,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 84,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 85,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 86,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 87,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 88,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 89,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 90,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 91,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 92,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 93,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 94,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 95,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 96,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 97,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 98,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 99,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 100,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 101,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 102,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 103,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 104,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 105,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 106,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 107,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 108,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 109,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 110,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 111,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 112,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 113,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 114,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 115,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 116,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 117,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 118,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 119,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      }
+    ],
+    "unlabeledCharts": [
+      {
+        "index": 0,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > a > svg"
+      },
+      {
+        "index": 1,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 2,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > button > svg"
+      },
+      {
+        "index": 3,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "header > div > div > a > svg"
+      },
+      {
+        "index": 4,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > header > div > button > svg"
+      },
+      {
+        "index": 5,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 6,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 7,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 8,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > div > svg"
+      },
+      {
+        "index": 9,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 10,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 11,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 12,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 13,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 14,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 15,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 16,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 17,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 18,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 19,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 20,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 21,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 22,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 23,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 24,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 25,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 26,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 27,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 28,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 29,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 30,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 31,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 32,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 33,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 34,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 35,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 36,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 37,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 38,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 39,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 40,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 41,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 42,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 43,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 44,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 45,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 46,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 47,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 48,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 49,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 50,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 51,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 52,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 53,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 54,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 55,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 56,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 57,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 58,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      },
+      {
+        "index": 59,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "section > div > div > a > svg"
+      }
+    ],
+    "fixedOrSticky": [
+      {
+        "tag": "div",
+        "role": "",
+        "label": "控灵 当前: analytics v2 你好，我是控灵。今天我们将探索「analytics v2」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板",
+        "position": "fixed",
+        "zIndex": "50",
+        "path": "html > body > div"
+      },
+      {
+        "tag": "div",
+        "role": "",
+        "label": "控灵",
+        "position": "fixed",
+        "zIndex": "120",
+        "path": "html > body > div"
+      }
+    ],
+    "liveRegions": [],
+    "errors": []
+  },
+  "accessibilitySnapshot": {
+    "error": "Cannot read properties of undefined (reading 'snapshot')"
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "",
+    "url": "http://localhost:3100/teacher/prep-packs?classId=cmma7g0590004g9q2nl2jyzdf&source=batch51",
+    "h1": [
+      "This page couldn’t load"
+    ],
+    "h2": [],
+    "activeElement": {
+      "tag": "nextjs-portal",
+      "role": "",
+      "type": "",
+      "name": ""
+    },
+    "visibleControls": [
+      {
+        "tag": "button",
+        "role": "",
+        "type": "submit",
+        "name": "Reload",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      }
+    ],
+    "controls": [
+      {
+        "tag": "button",
+        "role": "",
+        "type": "submit",
+        "name": "Reload",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      }
+    ],
+    "alerts": [],
+    "dialogs": [],
+    "tables": [],
+    "bodyText": "This page couldn’t load A server error occurred. Reload to try again. Reload ERROR 3162691632",
+    "actionSignals": {
+      "success": false,
+      "loading": false,
+      "failure": false,
+      "report": false,
+      "governance": false,
+      "adaptive": false
+    },
+    "scroll": {
+      "width": 1440,
+      "height": 1100,
+      "viewportWidth": 1440,
+      "viewportHeight": 1100
+    }
+  }
+}

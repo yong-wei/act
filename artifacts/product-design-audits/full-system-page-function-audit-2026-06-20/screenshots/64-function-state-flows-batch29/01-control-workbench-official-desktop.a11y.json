@@ -1,0 +1,867 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/interactive-learning/control-workbench?preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+    "viewport": {
+      "width": 1440,
+      "height": 1100,
+      "scrollY": 0
+    },
+    "h1": [
+      "控制工作台",
+      "二阶对象快速稳定挑战"
+    ],
+    "alerts": [],
+    "zones": [
+      {
+        "commercialZone": "context-strip",
+        "taskZone": "",
+        "tag": "section",
+        "rect": {
+          "x": 96,
+          "y": 109,
+          "width": 1320,
+          "height": 157,
+          "bottom": 266,
+          "right": 1416,
+          "visible": true
+        },
+        "text": "挑战模式 · 综合仿真工作台 二阶对象快速稳定挑战 对象：二阶欠阻尼对象 官方评价 · 该体验连接官方评价或提交流程，隐藏评价边界必须保持可见。 返回挑战详情"
+      },
+      {
+        "commercialZone": "instrument-area",
+        "taskZone": "",
+        "tag": "div",
+        "rect": {
+          "x": 128,
+          "y": 286,
+          "width": 1256,
+          "height": 2384,
+          "bottom": 2670,
+          "right": 1384,
+          "visible": true
+        },
+        "text": "当前目标 确认对象可见性、模型来源、评价指标和可用视图。 任务链 对象分析 下一行动 确认对象、指标和允许方法，再进入控制器设计。 证据状态 可提交到官方评价，合格证据将回流学习记录 该页面已经解析竞技场任务、对象、指标、允许方法和提交策略。下方工作区按面板实例渲染。 K=1.000 | 极点 2 | 零点 0 | 校正装置 PID | 阶跃响应 竞技场官方提交 当前指标 根据当前工作台状态即时估算，正式成绩以提交后的官方评测为准。 调节时间 未达标 当前值 10.938s 达标度 0% 目标 目标 ≤ 2.400s 不可接受阈值 不可接受 ≥ 8.000s 超调量 已达标 当前值 0.000% 达标度 100% 目标 目标 ≤ 5.000% 不可接受阈值 不可接受 ≥ 35.000% 稳态误差 未达标 当前值 0.150 达标度 0% 目标 目标 ≤ 0.010 不可接受阈值 不可接受 ≥ 0.120 ITAE 待计算 当前值 暂不可计算 达标度 待计算 目标 目标 ≤ 1.800 不可接受阈值 不可接受 ≥ 12.000 提交官方评测 Mp 0.00% tr 7.51 s ts 10.94 s ess 0.15 PM 68.40° GM -- N 0 P 0 Z 0 ωc 5.25 rad/s ωg -- 闭环稳定性 稳定 时域响应 时域信号 参考输入 未校正输出 校正后输出 "
+      },
+      {
+        "commercialZone": "command-bar",
+        "taskZone": "",
+        "tag": "details",
+        "rect": {
+          "x": 128,
+          "y": 3040,
+          "width": 1256,
+          "height": 58,
+          "bottom": 3098,
+          "right": 1384,
+          "visible": false
+        },
+        "text": "面板布置与添加面板"
+      },
+      {
+        "commercialZone": "evidence-rail",
+        "taskZone": "",
+        "tag": "details",
+        "rect": {
+          "x": 128,
+          "y": 3110,
+          "width": 1256,
+          "height": 134,
+          "bottom": 3244,
+          "right": 1384,
+          "visible": false
+        },
+        "text": "会话状态与证据流 允许方法 串联校正、PID 指标 调节时间、超调量、稳态误差、ITAE 提交状态 提交结果进入 Arena 官方评价；可用证据将回流到学习记录。"
+      },
+      {
+        "commercialZone": "support-drawer",
+        "taskZone": "",
+        "tag": "details",
+        "rect": {
+          "x": 128,
+          "y": 3256,
+          "width": 1256,
+          "height": 58,
+          "bottom": 3314,
+          "right": 1384,
+          "visible": false
+        },
+        "text": "支持与说明"
+      },
+      {
+        "commercialZone": "",
+        "taskZone": "floating-dock-safe-area",
+        "tag": "div",
+        "rect": {
+          "x": 127,
+          "y": 285,
+          "width": 1,
+          "height": 1,
+          "bottom": 286,
+          "right": 128,
+          "visible": true
+        },
+        "text": "全局浮动控件避让主仪表、提交按钮和本地工具。"
+      }
+    ],
+    "missingZones": [
+      "bottom-tools"
+    ],
+    "docks": [
+      {
+        "tag": "div",
+        "attrs": {
+          "dock": "enabled",
+          "expanded": ""
+        },
+        "rect": {
+          "x": 1326,
+          "y": 1044,
+          "width": 90,
+          "height": 40,
+          "bottom": 1084,
+          "right": 1416,
+          "visible": true
+        },
+        "text": "控灵"
+      }
+    ],
+    "buttons": [
+      {
+        "tag": "button",
+        "name": "展开平台导航",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 12,
+          "y": 12,
+          "width": 40,
+          "height": 40,
+          "bottom": 52,
+          "right": 52,
+          "visible": true
+        }
+      },
+      {
+        "tag": "a",
+        "name": "首页",
+        "href": "/",
+        "disabled": false,
+        "rect": {
+          "x": 8,
+          "y": 81,
+          "width": 54,
+          "height": 40,
+          "bottom": 121,
+          "right": 62,
+          "visible": true
+        }
+      },
+      {
+        "tag": "a",
+        "name": "虚拟仿真",
+        "href": "/simulations",
+        "disabled": false,
+        "rect": {
+          "x": 8,
+          "y": 125,
+          "width": 54,
+          "height": 40,
+          "bottom": 165,
+          "right": 62,
+          "visible": true
+        }
+      },
+      {
+        "tag": "a",
+        "name": "知识资源",
+        "href": "/knowledge",
+        "disabled": false,
+        "rect": {
+          "x": 8,
+          "y": 169,
+          "width": 54,
+          "height": 40,
+          "bottom": 209,
+          "right": 62,
+          "visible": true
+        }
+      },
+      {
+        "tag": "a",
+        "name": "竞技场",
+        "href": "/arena",
+        "disabled": false,
+        "rect": {
+          "x": 8,
+          "y": 213,
+          "width": 54,
+          "height": 40,
+          "bottom": 253,
+          "right": 62,
+          "visible": true
+        }
+      },
+      {
+        "tag": "a",
+        "name": "控制工作台",
+        "href": "/interactive-learning/control-workbench",
+        "disabled": false,
+        "rect": {
+          "x": 8,
+          "y": 257,
+          "width": 54,
+          "height": 40,
+          "bottom": 297,
+          "right": 62,
+          "visible": true
+        }
+      },
+      {
+        "tag": "a",
+        "name": "学习路径",
+        "href": "/assessment/adaptive-practice",
+        "disabled": false,
+        "rect": {
+          "x": 8,
+          "y": 301,
+          "width": 54,
+          "height": 40,
+          "bottom": 341,
+          "right": 62,
+          "visible": true
+        }
+      },
+      {
+        "tag": "a",
+        "name": "互动学习",
+        "href": "/interactive-learning",
+        "disabled": false,
+        "rect": {
+          "x": 8,
+          "y": 345,
+          "width": 54,
+          "height": 40,
+          "bottom": 385,
+          "right": 62,
+          "visible": true
+        }
+      },
+      {
+        "tag": "a",
+        "name": "首页",
+        "href": "/",
+        "disabled": false,
+        "rect": {
+          "x": 96,
+          "y": 12,
+          "width": 24,
+          "height": 16,
+          "bottom": 28,
+          "right": 120,
+          "visible": true
+        }
+      },
+      {
+        "tag": "a",
+        "name": "竞技场",
+        "href": "/arena",
+        "disabled": false,
+        "rect": {
+          "x": 140,
+          "y": 12,
+          "width": 36,
+          "height": 16,
+          "bottom": 28,
+          "right": 176,
+          "visible": true
+        }
+      },
+      {
+        "tag": "a",
+        "name": "返回挑战详情",
+        "href": "/arena/challenges/task-second-order-lead-pid",
+        "disabled": false,
+        "rect": {
+          "x": 1262,
+          "y": 26,
+          "width": 110,
+          "height": 36,
+          "bottom": 62,
+          "right": 1372,
+          "visible": true
+        }
+      },
+      {
+        "tag": "button",
+        "name": "切换到深色模式",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 1380,
+          "y": 26,
+          "width": 36,
+          "height": 36,
+          "bottom": 62,
+          "right": 1416,
+          "visible": true
+        }
+      },
+      {
+        "tag": "button",
+        "name": "打开平台导航",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "bottom": 0,
+          "right": 0,
+          "visible": false
+        }
+      },
+      {
+        "tag": "a",
+        "name": "返回挑战详情",
+        "href": "/arena/challenges/task-second-order-lead-pid",
+        "disabled": false,
+        "rect": {
+          "x": 1274,
+          "y": 205,
+          "width": 118,
+          "height": 40,
+          "bottom": 245,
+          "right": 1392,
+          "visible": true
+        }
+      },
+      {
+        "tag": "button",
+        "name": "提交官方评测",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 174,
+          "y": 994,
+          "width": 130,
+          "height": 34,
+          "bottom": 1028,
+          "right": 304,
+          "visible": true
+        }
+      },
+      {
+        "tag": "button",
+        "name": "参考输入",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 222,
+          "y": 1200,
+          "width": 106,
+          "height": 32,
+          "bottom": 1232,
+          "right": 328,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "未校正输出",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 332,
+          "y": 1200,
+          "width": 118,
+          "height": 32,
+          "bottom": 1232,
+          "right": 450,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "校正后输出",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 454,
+          "y": 1200,
+          "width": 118,
+          "height": 32,
+          "bottom": 1232,
+          "right": 572,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "按当前时域范围刷新",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 690,
+          "y": 1265,
+          "width": 28,
+          "height": 28,
+          "bottom": 1293,
+          "right": 718,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "未校正开环",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 842,
+          "y": 1200,
+          "width": 118,
+          "height": 32,
+          "bottom": 1232,
+          "right": 960,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "校正后开环",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 964,
+          "y": 1200,
+          "width": 118,
+          "height": 32,
+          "bottom": 1232,
+          "right": 1082,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "校正装置",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 1086,
+          "y": 1200,
+          "width": 106,
+          "height": 32,
+          "bottom": 1232,
+          "right": 1192,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "按当前频率范围刷新",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 1301,
+          "y": 1265,
+          "width": 28,
+          "height": 28,
+          "bottom": 1293,
+          "right": 1329,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "未校正根轨迹",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 238,
+          "y": 1914,
+          "width": 94,
+          "height": 26,
+          "bottom": 1940,
+          "right": 332,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "校正后根轨迹",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 336,
+          "y": 1914,
+          "width": 94,
+          "height": 26,
+          "bottom": 1940,
+          "right": 430,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "未校正开环",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 859,
+          "y": 1914,
+          "width": 118,
+          "height": 26,
+          "bottom": 1940,
+          "right": 977,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "校正后开环",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 981,
+          "y": 1914,
+          "width": 118,
+          "height": 26,
+          "bottom": 1940,
+          "right": 1099,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "打开参数抽屉",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 1372,
+          "y": 912,
+          "width": 44,
+          "height": 44,
+          "bottom": 956,
+          "right": 1416,
+          "visible": true
+        }
+      },
+      {
+        "tag": "summary",
+        "name": "设计流程与边界",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 145,
+          "y": 2703,
+          "width": 1222,
+          "height": 24,
+          "bottom": 2727,
+          "right": 1367,
+          "visible": false
+        }
+      },
+      {
+        "tag": "summary",
+        "name": "面板布置与添加面板",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 145,
+          "y": 3057,
+          "width": 1222,
+          "height": 24,
+          "bottom": 3081,
+          "right": 1367,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "添加时域响应",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 701,
+          "y": 3097,
+          "width": 134,
+          "height": 38,
+          "bottom": 3135,
+          "right": 835,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "添加Bode 图",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 843,
+          "y": 3097,
+          "width": 129,
+          "height": 38,
+          "bottom": 3135,
+          "right": 972,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "添加根轨迹",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 980,
+          "y": 3097,
+          "width": 120,
+          "height": 38,
+          "bottom": 3135,
+          "right": 1100,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "添加Nyquist 图",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 1108,
+          "y": 3097,
+          "width": 145,
+          "height": 38,
+          "bottom": 3135,
+          "right": 1253,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "重置默认",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 1261,
+          "y": 3097,
+          "width": 106,
+          "height": 38,
+          "bottom": 3135,
+          "right": 1367,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "重置 时域响应",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 361,
+          "y": 3164,
+          "width": 32,
+          "height": 32,
+          "bottom": 3196,
+          "right": 393,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "删除 时域响应",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 397,
+          "y": 3164,
+          "width": 32,
+          "height": 32,
+          "bottom": 3196,
+          "right": 429,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "重置 Bode 图",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 669,
+          "y": 3164,
+          "width": 32,
+          "height": 32,
+          "bottom": 3196,
+          "right": 701,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "删除 Bode 图",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 705,
+          "y": 3164,
+          "width": 32,
+          "height": 32,
+          "bottom": 3196,
+          "right": 737,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "重置 根轨迹",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 978,
+          "y": 3164,
+          "width": 32,
+          "height": 32,
+          "bottom": 3196,
+          "right": 1010,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "删除 根轨迹",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 1014,
+          "y": 3164,
+          "width": 32,
+          "height": 32,
+          "bottom": 3196,
+          "right": 1046,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "重置 Nyquist 图",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 1286,
+          "y": 3164,
+          "width": 32,
+          "height": 32,
+          "bottom": 3196,
+          "right": 1318,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "删除 Nyquist 图",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 1322,
+          "y": 3164,
+          "width": 32,
+          "height": 32,
+          "bottom": 3196,
+          "right": 1354,
+          "visible": false
+        }
+      },
+      {
+        "tag": "summary",
+        "name": "会话状态与证据流",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 145,
+          "y": 3127,
+          "width": 1222,
+          "height": 24,
+          "bottom": 3151,
+          "right": 1367,
+          "visible": false
+        }
+      },
+      {
+        "tag": "summary",
+        "name": "支持与说明",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 145,
+          "y": 3273,
+          "width": 1222,
+          "height": 24,
+          "bottom": 3297,
+          "right": 1367,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "关闭 (ESC)",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 1808,
+          "y": 18,
+          "width": 36,
+          "height": 36,
+          "bottom": 54,
+          "right": 1844,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "",
+        "href": "",
+        "disabled": true,
+        "rect": {
+          "x": 1804,
+          "y": 1018,
+          "width": 40,
+          "height": 40,
+          "bottom": 1058,
+          "right": 1844,
+          "visible": false
+        }
+      },
+      {
+        "tag": "button",
+        "name": "打开控灵与页面工具菜单",
+        "href": "",
+        "disabled": false,
+        "rect": {
+          "x": 1326,
+          "y": 1044,
+          "width": 90,
+          "height": 40,
+          "bottom": 1084,
+          "right": 1416,
+          "visible": true
+        }
+      }
+    ],
+    "unnamedButtons": 1,
+    "bodyText": "展开导航 首页 / 竞技场 / 控制工作台 学生 控制工作台 二阶对象快速稳定挑战 返回挑战详情 挑战模式 · 综合仿真工作台 二阶对象快速稳定挑战 对象：二阶欠阻尼对象 官方评价 · 该体验连接官方评价或提交流程，隐藏评价边界必须保持可见。 返回挑战详情 当前目标 确认对象可见性、模型来源、评价指标和可用视图。 任务链 对象分析 下一行动 确认对象、指标和允许方法，再进入控制器设计。 证据状态 可提交到官方评价，合格证据将回流学习记录 该页面已经解析竞技场任务、对象、指标、允许方法和提交策略。下方工作区按面板实例渲染。 K=1.000 | 极点 2 | 零点 0 | 校正装置 PID | 阶跃响应 竞技场官方提交 当前指标 根据当前工作台状态即时估算，正式成绩以提交后的官方评测为准。 调节时间 未达标 当前值 10.938s 达标度 0% 目标 目标 ≤ 2.400s 不可接受阈值 不可接受 ≥ 8.000s 超调量 已达标 当前值 0.000% 达标度 100% 目标 目标 ≤ 5.000% 不可接受阈值 不可接受 ≥ 35.000% 稳态误差 未达标 当前值 0.150 达标度 0% 目标 目标 ≤ 0.010 不可接受阈值 不可接受 ≥ 0.120 ITAE 待计算 当前值 暂不可计算 达标度 待计算 目标 目标 ≤ 1.800 不可接受阈值 不可接受 ≥ 12.000 提交官方评测 Mp 0.00% tr 7.51 s ts 10.94 s ess 0.15 PM 68.40° GM -- N 0 P 0 Z 0 ωc 5.25 rad/s ωg -- 闭环稳定性 稳定 时域响应 时域信号 参考输入 未校正输出 校正后输出 独立面板 时域响应 参考输入 / 未校正输出 / 校正后输出 Bode 图 Bode 曲线 未校正开环 校正后开环 校正装置 独立面板 组合 Bode 图 未校正开环 / 校正后开环 / 校正装置 根轨迹 根轨迹来源 未校正根轨迹 校正后根轨迹 独立面板 根轨迹全览 当前开环增益：K=1.000 | p1=-1.20-j5.53 | p2=-1.20+j5.53 Nyquist 图 Nyquist 来源 未校正开环 校正后开环 独立面板 Nyquist 图 PM 50.29° | GM -- | ωc 5.12 rad/s | ωg -- | N/P/Z 0/0/0 · Z = P + N 联动已更新：四个表征共用同一组开环零极点与统一分析结果。 打开参数抽屉 设计流程与边界 挑战模式 · 竞技场挑战 · 白箱对象 设计流程 当前步骤 对象分析 下一行动 确认对象、指标和允许方法，再进入控制器设计。 对象边界 二阶欠阻尼对象 方法边界 串联校正、PID 1. 当前 对象分析 确认对象可见性、模型来源、评价指标和可用视图。 2. 可进入 控制器设计 在允许的方法边界内调整控制器结构和参数。 3. 可进入 性能对照 对照未校正、名义模型和当前方案的响应差异。 4. 可进入 约束检查 检查硬约束、控制量、隐藏场景或官方指标风险。 5. 可进入 官方提交 通过竞技场官方评价和榜单入口提交方案。 6. 待解锁 结果复盘 复查官方结果，定位下一轮设计应改进的位置。 面板布置与添加面板 会话状态与证据流 允许方法 串联校正、PID 指标 调节时间、超调量、稳态误差、ITAE 提交状态 提交结果进入 Arena 官方评价；可用证据将回流到学习记录。 支持与说明 全局浮动控件避让主仪表、提交按钮和本地工具。 控灵 当前: 互动学习 你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+    "hits": {
+      "controlWorkbench": true,
+      "arenaOfficial": true,
+      "contextHeader": true,
+      "instrumentArea": true,
+      "bottomTools": false,
+      "floatingDockSafeArea": true,
+      "endedCopy": false,
+      "liveTeachingCopy": false,
+      "reviewAction": true,
+      "liveStatus": false
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "generatedAt": "2026-06-20T04:06:26.912Z",
+  "baseUrl": "http://localhost:3100",
+  "screenshots": [
+    {
+      "file": "screenshots/40-function-state-flows-batch5/admin-users-valid-import-result-desktop.png",
+      "url": "http://localhost:3100/admin/users",
+      "title": "AI-OBE船舶控制平台",
+      "capturedAt": "2026-06-20T04:06:19.555Z",
+      "role": "admin",
+      "route": "/admin/users",
+      "viewport": "desktop",
+      "state": "valid-xlsx-import-result",
+      "fixture": {
+        "importedAccount": "audit_import_20260620040618"
+      },
+      "observation": "管理员批量导入官方列名 Excel 后的结果状态。"
+    },
+    {
+      "file": "screenshots/40-function-state-flows-batch5/admin-config-ai-model-test-loading-desktop.png",
+      "url": "http://localhost:3100/admin/config",
+      "title": "AI-OBE船舶控制平台",
+      "capturedAt": "2026-06-20T04:06:20.509Z",
+      "role": "admin",
+      "route": "/admin/config",
+      "viewport": "desktop",
+      "state": "ai-model-test-loading",
+      "observation": "管理员点击模型测试后的即时 loading 状态。"
+    },
+    {
+      "file": "screenshots/40-function-state-flows-batch5/teacher-empty-classroom-review-after-end-desktop.png",
+      "url": "http://localhost:3100/classroom/teacher/cmqltdhz50004vmyf76d2txz3/review",
+      "title": "AI-OBE船舶控制平台",
+      "capturedAt": "2026-06-20T04:06:23.373Z",
+      "role": "teacher",
+      "route": "/classroom/teacher/cmqltdhz50004vmyf76d2txz3/review",
+      "viewport": "desktop",
+      "state": "post-ended-classroom-review-route",
+      "fixture": {
+        "sessionId": "cmqltdhz50004vmyf76d2txz3"
+      },
+      "observation": "教师结束课堂后直接访问课后复盘页的状态。"
+    },
+    {
+      "file": "screenshots/40-function-state-flows-batch5/student-arena-official-submit-mobile-before-click.png",
+      "url": "http://localhost:3100/interactive-learning/control-workbench?publicationId=audit-publication-full-system-2026-06-20&preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+      "title": "AI-OBE船舶控制平台",
+      "capturedAt": "2026-06-20T04:08:29.813Z",
+      "role": "student",
+      "route": "/interactive-learning/control-workbench?publicationId=audit-publication-full-system-2026-06-20&preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+      "viewport": "mobile",
+      "state": "arena-official-submit-mobile-before-click",
+      "observation": "学生移动端滚动到官方提交区，提交按钮位于长页面较深位置。"
+    },
+    {
+      "file": "screenshots/40-function-state-flows-batch5/student-arena-official-submit-result-mobile.png",
+      "url": "http://localhost:3100/interactive-learning/control-workbench?publicationId=audit-publication-full-system-2026-06-20&preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+      "title": "AI-OBE船舶控制平台",
+      "capturedAt": "2026-06-20T04:08:29.813Z",
+      "role": "student",
+      "route": "/interactive-learning/control-workbench?publicationId=audit-publication-full-system-2026-06-20&preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+      "viewport": "mobile",
+      "state": "arena-official-submit-result-mobile",
+      "observation": "学生移动端点击提交官方评测后的结果。",
+      "bodyTextSample": "首页\n/\n竞技场\n/\n控制工作台\n学生\n控制工作台\n\n二阶对象快速稳定挑战\n\n导航\n\n作业模式 · 综合仿真工作台\n\n二阶对象快速稳定挑战\n\n对象：二阶欠阻尼对象\n\n官方评价 · 该体验连接官方评价或提交流程，隐藏评价边界必须保持可见。\n\n返回挑战详情\n\n当前目标\n\n确认对象可见性、模型来源、评价指标和可用视图。\n\n任务链\n\n对象分析\n\n下一行动\n\n确认对象、指标和允许方法，再进入控制器设计。\n\n证据状态\n\n可提交到官方评价，合格证据将回流学习记录\n\n该页面已经解析竞技场任务、对象、指标、允许方法和提交策略。下方工作区按面板实例渲染。\n\nK=1.000 | 极点 2 | 零点 0 | 校正装置 PID | 阶跃响应\n竞技场官方提交\n当前指标\n\n根据当前工作台状态即时估算，正式成绩以提交后的官方评测为准。\n\n调节时间\n未达标\n当前值\n10.938s\n达标度\n0%\n目标\n目标 ≤ 2.400s\n不可接受阈值\n不可接受 ≥ 8.000s\n超调量\n已达标\n当前值\n0.000%\n达标度\n100%\n目标\n目标 ≤ 5.000%\n不可接受阈值\n不可接受 ≥ 35.000%\n稳态误差\n未达标\n当前值\n0.150\n达标度\n0%\n目标\n目标 ≤ 0.010\n不可接受阈值\n不可接受 ≥ 0.120\nITAE\n待计算\n当前值\n暂不可计算\n达标度\n待计算\n目标\n目标 ≤ 1.800\n不可接受阈值\n不可接受 ≥ 12.000\n得分：0.0\n硬约束已通过\n基础分0.0\n惩罚0.0\n最终分0.0\n官方评测结果\n调节时间\n未达标\n实际值\n10.938s\n达标度\n0%\n目标\n目标 ≤ 2.400s\n不可接受阈值\n不可接受 ≥ 8.000s\n超调量\n已达标\n实际值\n0.000%\n达标度\n100%\n目标\n目标 ≤ 5.000%\n不可接受阈值\n不可接受 ≥ 35.000%\n稳态误差\n未达标\n实际值\n0.150\n达标度\n0%\n目标\n目标 ≤ 0.010\n不可接受阈值\n不可接受 ≥ 0.120\nITAE\n未达标\n实际值\n16.869\n达标度\n0%\n目标\n目标 ≤ 1.800\n不可接受阈值\n不可接受 ≥ 12.000\n闭环稳定\n响应有限\n控制器因果\n控制量未严重饱和\n\n硬约束已通过，但排名分为 0：评分聚合中存在达标度为 0 的排名指标，主要受 调节时间、稳态误差、ITAE 影响，因此最终分归零。\n\n硬约束全部通"
+    }
+  ]
+}

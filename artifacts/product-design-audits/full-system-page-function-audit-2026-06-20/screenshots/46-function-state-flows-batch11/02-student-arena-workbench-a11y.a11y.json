@@ -1,0 +1,1179 @@
+{
+  "id": "student-arena-workbench-a11y",
+  "note": "学生 Arena 官方工作台，检查图表/仿真区替代文本、提交控件和全局浮层读屏顺序。",
+  "dom": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/interactive-learning/control-workbench?publicationId=cmqluwvqo0001pmyf34og34jy&preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+    "visibleTextHead": "展开导航 首页 / 竞技场 / 控制工作台 学生 控制工作台 二阶对象快速稳定挑战 返回挑战详情 作业模式 · 综合仿真工作台 二阶对象快速稳定挑战 对象：二阶欠阻尼对象 官方评价 · 该体验连接官方评价或提交流程，隐藏评价边界必须保持可见。 返回挑战详情 当前目标 确认对象可见性、模型来源、评价指标和可用视图。 任务链 对象分析 下一行动 确认对象、指标和允许方法，再进入控制器设计。 证据状态 可提交到官方评价，合格证据将回流学习记录 该页面已经解析竞技场任务、对象、指标、允许方法和提交策略。下方工作区按面板实例渲染。 K=1.000 | 极点 2 | 零点 0 | 校正装置 PID | 阶跃响应 竞技场官方提交 当前指标 根据当前工作台状态即时估算，正式成绩以提交后的官方评测为准。 调节时间 未达标 当前值 10.938s 达标度 0% 目标 目标 ≤ 2.400s 不可接受阈值 不可接受 ≥ 8.000s 超调量 已达标 当前值 0.000% 达标度 100% 目标 目标 ≤ 5.000% 不可接受阈值 不可接受 ≥ 35.000% 稳态误差 未达标 当前值 0.150 达标度 0% 目标 目标 ≤ 0.010 不可接受阈值 不可接受 ≥ 0.120 ITAE 待计算 当前值 暂不可计算 达标度 待计算 目标 目标 ≤ 1.800 不可接受阈值 不可接受 ≥ 12.000 提交官方评测 Mp 0.00% tr 7.51 s ts 10.94 s ess 0.15 PM 68.40° GM -- N 0 P 0 Z 0 ωc 5.25 rad/s ωg -- 闭环稳定性 稳定 时域响应 时域信号 参考输入 未校正输出 校正后输出 独立面板 时域响应 参考输入 / 未校正输出 / 校正后输出 Bode 图 Bode 曲线 未校正开环 校正后开环 校正装置 独立面板 组合 Bode 图 未校正开环 / 校正后开环 / 校正装置 根轨迹 根轨迹来源 未校正根轨迹 校正后根轨迹 独立面板 根轨迹全览 当前开环增益：K=1.000 | p1=-1.20-j5.53 | p2=-1.20+j5.53 Nyquist 图 Nyquist 来源 未校正开环 校正后开环 独立面板 Nyquist 图 PM 50.29° | GM -- | ωc 5.12 rad/s | ωg -- | N/P/Z 0/0/0 · Z = P + N 联动已更新：四个表征共用同一组开环零极点与统一分析结果。 打开参数抽屉 设计流程与边界 作业模式 · 班级作业 · 白箱对象 设计流程 当前步骤 对象分析 下一行动 确认对象、指标和允许方法，再进入控制器设计。 对象边界 二阶欠阻尼对象 方法边界 串联校正、PID 1. 当前 对象分析 确认对象可见性、模型来源、评价指标和可用视图。 2. 可",
+    "headings": [
+      {
+        "level": "H1",
+        "text": "控制工作台"
+      },
+      {
+        "level": "H1",
+        "text": "二阶对象快速稳定挑战"
+      },
+      {
+        "level": "H3",
+        "text": "当前指标"
+      },
+      {
+        "level": "H3",
+        "text": "时域响应"
+      },
+      {
+        "level": "H3",
+        "text": "Bode 图"
+      },
+      {
+        "level": "H3",
+        "text": "根轨迹"
+      },
+      {
+        "level": "H3",
+        "text": "Nyquist 图"
+      },
+      {
+        "level": "H2",
+        "text": "设计流程"
+      },
+      {
+        "level": "H3",
+        "text": "控灵"
+      }
+    ],
+    "focusables": [
+      {
+        "index": 0,
+        "tag": "button",
+        "role": "",
+        "label": "展开平台导航",
+        "disabled": false,
+        "path": "main > div > div > div > button"
+      },
+      {
+        "index": 1,
+        "tag": "a",
+        "role": "",
+        "label": "首页",
+        "disabled": false,
+        "path": "div > div > aside > nav > a"
+      },
+      {
+        "index": 2,
+        "tag": "a",
+        "role": "",
+        "label": "虚拟仿真",
+        "disabled": false,
+        "path": "div > div > aside > nav > a"
+      },
+      {
+        "index": 3,
+        "tag": "a",
+        "role": "",
+        "label": "知识资源",
+        "disabled": false,
+        "path": "div > div > aside > nav > a"
+      },
+      {
+        "index": 4,
+        "tag": "a",
+        "role": "",
+        "label": "竞技场",
+        "disabled": false,
+        "path": "div > div > aside > nav > a"
+      },
+      {
+        "index": 5,
+        "tag": "a",
+        "role": "",
+        "label": "控制工作台",
+        "disabled": false,
+        "path": "div > div > aside > nav > a"
+      },
+      {
+        "index": 6,
+        "tag": "a",
+        "role": "",
+        "label": "学习路径",
+        "disabled": false,
+        "path": "div > div > aside > nav > a"
+      },
+      {
+        "index": 7,
+        "tag": "a",
+        "role": "",
+        "label": "互动学习",
+        "disabled": false,
+        "path": "div > div > aside > nav > a"
+      },
+      {
+        "index": 8,
+        "tag": "a",
+        "role": "",
+        "label": "首页",
+        "disabled": false,
+        "path": "div > div > nav > span > a"
+      },
+      {
+        "index": 9,
+        "tag": "a",
+        "role": "",
+        "label": "竞技场",
+        "disabled": false,
+        "path": "div > div > nav > span > a"
+      },
+      {
+        "index": 10,
+        "tag": "a",
+        "role": "",
+        "label": "返回挑战详情",
+        "disabled": false,
+        "path": "div > header > div > div > a"
+      },
+      {
+        "index": 11,
+        "tag": "button",
+        "role": "",
+        "label": "切换到深色模式",
+        "disabled": false,
+        "path": "div > header > div > div > button"
+      },
+      {
+        "index": 12,
+        "tag": "button",
+        "role": "",
+        "label": "打开平台导航",
+        "disabled": false,
+        "path": "main > div > div > div > button"
+      },
+      {
+        "index": 13,
+        "tag": "a",
+        "role": "",
+        "label": "返回挑战详情",
+        "disabled": false,
+        "path": "div > section > section > div > a"
+      },
+      {
+        "index": 14,
+        "tag": "button",
+        "role": "",
+        "label": "提交官方评测",
+        "disabled": false,
+        "path": "div > main > div > div > button"
+      },
+      {
+        "index": 15,
+        "tag": "button",
+        "role": "",
+        "label": "参考输入",
+        "disabled": false,
+        "path": "header > div > div > div[role=\"group\"] > button"
+      },
+      {
+        "index": 16,
+        "tag": "button",
+        "role": "",
+        "label": "未校正输出",
+        "disabled": false,
+        "path": "header > div > div > div[role=\"group\"] > button"
+      },
+      {
+        "index": 17,
+        "tag": "button",
+        "role": "",
+        "label": "校正后输出",
+        "disabled": false,
+        "path": "header > div > div > div[role=\"group\"] > button"
+      },
+      {
+        "index": 18,
+        "tag": "button",
+        "role": "",
+        "label": "按当前时域范围刷新",
+        "disabled": false,
+        "path": "div > div > div > div > button"
+      },
+      {
+        "index": 19,
+        "tag": "button",
+        "role": "",
+        "label": "未校正开环",
+        "disabled": false,
+        "path": "header > div > div > div[role=\"group\"] > button"
+      },
+      {
+        "index": 20,
+        "tag": "button",
+        "role": "",
+        "label": "校正后开环",
+        "disabled": false,
+        "path": "header > div > div > div[role=\"group\"] > button"
+      },
+      {
+        "index": 21,
+        "tag": "button",
+        "role": "",
+        "label": "校正装置",
+        "disabled": false,
+        "path": "header > div > div > div[role=\"group\"] > button"
+      },
+      {
+        "index": 22,
+        "tag": "button",
+        "role": "",
+        "label": "按当前频率范围刷新",
+        "disabled": false,
+        "path": "div > div > div > div > button"
+      },
+      {
+        "index": 23,
+        "tag": "button",
+        "role": "",
+        "label": "未校正根轨迹",
+        "disabled": false,
+        "path": "header > div > div > div[role=\"group\"] > button"
+      },
+      {
+        "index": 24,
+        "tag": "button",
+        "role": "",
+        "label": "校正后根轨迹",
+        "disabled": false,
+        "path": "header > div > div > div[role=\"group\"] > button"
+      },
+      {
+        "index": 25,
+        "tag": "button",
+        "role": "",
+        "label": "未校正开环",
+        "disabled": false,
+        "path": "header > div > div > div[role=\"group\"] > button"
+      },
+      {
+        "index": 26,
+        "tag": "button",
+        "role": "",
+        "label": "校正后开环",
+        "disabled": false,
+        "path": "header > div > div > div[role=\"group\"] > button"
+      },
+      {
+        "index": 27,
+        "tag": "button",
+        "role": "",
+        "label": "打开参数抽屉",
+        "disabled": false,
+        "path": "section > div > section > div > button"
+      },
+      {
+        "index": 28,
+        "tag": "button",
+        "role": "",
+        "label": "添加时域响应",
+        "disabled": false,
+        "path": "section > details > div > div > button"
+      },
+      {
+        "index": 29,
+        "tag": "button",
+        "role": "",
+        "label": "添加Bode 图",
+        "disabled": false,
+        "path": "section > details > div > div > button"
+      },
+      {
+        "index": 30,
+        "tag": "button",
+        "role": "",
+        "label": "添加根轨迹",
+        "disabled": false,
+        "path": "section > details > div > div > button"
+      },
+      {
+        "index": 31,
+        "tag": "button",
+        "role": "",
+        "label": "添加Nyquist 图",
+        "disabled": false,
+        "path": "section > details > div > div > button"
+      },
+      {
+        "index": 32,
+        "tag": "button",
+        "role": "",
+        "label": "重置默认",
+        "disabled": false,
+        "path": "section > details > div > div > button"
+      },
+      {
+        "index": 33,
+        "tag": "button",
+        "role": "",
+        "label": "重置 时域响应",
+        "disabled": false,
+        "path": "div > article > div > div > button"
+      },
+      {
+        "index": 34,
+        "tag": "button",
+        "role": "",
+        "label": "删除 时域响应",
+        "disabled": false,
+        "path": "div > article > div > div > button"
+      },
+      {
+        "index": 35,
+        "tag": "button",
+        "role": "",
+        "label": "重置 Bode 图",
+        "disabled": false,
+        "path": "div > article > div > div > button"
+      },
+      {
+        "index": 36,
+        "tag": "button",
+        "role": "",
+        "label": "删除 Bode 图",
+        "disabled": false,
+        "path": "div > article > div > div > button"
+      },
+      {
+        "index": 37,
+        "tag": "button",
+        "role": "",
+        "label": "重置 根轨迹",
+        "disabled": false,
+        "path": "div > article > div > div > button"
+      },
+      {
+        "index": 38,
+        "tag": "button",
+        "role": "",
+        "label": "删除 根轨迹",
+        "disabled": false,
+        "path": "div > article > div > div > button"
+      },
+      {
+        "index": 39,
+        "tag": "button",
+        "role": "",
+        "label": "重置 Nyquist 图",
+        "disabled": false,
+        "path": "div > article > div > div > button"
+      },
+      {
+        "index": 40,
+        "tag": "button",
+        "role": "",
+        "label": "删除 Nyquist 图",
+        "disabled": false,
+        "path": "div > article > div > div > button"
+      },
+      {
+        "index": 41,
+        "tag": "button",
+        "role": "",
+        "label": "",
+        "disabled": false,
+        "path": "body > div > div > div > button"
+      },
+      {
+        "index": 42,
+        "tag": "input",
+        "role": "",
+        "label": "全局 AI 问题输入框",
+        "disabled": false,
+        "path": "body > div > form > div > input"
+      },
+      {
+        "index": 43,
+        "tag": "button",
+        "role": "",
+        "label": "",
+        "disabled": true,
+        "path": "body > div > form > div > button"
+      },
+      {
+        "index": 44,
+        "tag": "button",
+        "role": "",
+        "label": "打开控灵与页面工具菜单",
+        "disabled": false,
+        "path": "html > body > div > button"
+      }
+    ],
+    "controlsWithoutNames": [
+      {
+        "index": 41,
+        "tag": "button",
+        "role": "",
+        "label": "",
+        "disabled": false,
+        "path": "body > div > div > div > button"
+      },
+      {
+        "index": 43,
+        "tag": "button",
+        "role": "",
+        "label": "",
+        "disabled": true,
+        "path": "body > div > form > div > button"
+      }
+    ],
+    "liveRegions": [],
+    "charts": [
+      {
+        "index": 0,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > button > svg"
+      },
+      {
+        "index": 1,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > aside > nav > a > svg"
+      },
+      {
+        "index": 2,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > aside > nav > a > svg"
+      },
+      {
+        "index": 3,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > aside > nav > a > svg"
+      },
+      {
+        "index": 4,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > aside > nav > a > svg"
+      },
+      {
+        "index": 5,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > aside > nav > a > svg"
+      },
+      {
+        "index": 6,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > aside > nav > a > svg"
+      },
+      {
+        "index": 7,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > aside > nav > a > svg"
+      },
+      {
+        "index": 8,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "header > div > div > button > svg"
+      },
+      {
+        "index": 9,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > button > svg"
+      },
+      {
+        "index": 10,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "main > div > div > button > svg"
+      },
+      {
+        "index": 11,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > button > svg"
+      },
+      {
+        "index": 12,
+        "tag": "canvas",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "533",
+        "height": "520",
+        "path": "div > div > div > div > canvas"
+      },
+      {
+        "index": 13,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > button > svg"
+      },
+      {
+        "index": 14,
+        "tag": "canvas",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "533",
+        "height": "520",
+        "path": "div > div > div > div > canvas"
+      },
+      {
+        "index": 15,
+        "tag": "canvas",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "533",
+        "height": "520",
+        "path": "div > div > div > div > canvas"
+      },
+      {
+        "index": 16,
+        "tag": "canvas",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "533",
+        "height": "520",
+        "path": "div > div > div > div > canvas"
+      },
+      {
+        "index": 17,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > section > div > button > svg"
+      },
+      {
+        "index": 18,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "details > div > div > button > svg"
+      },
+      {
+        "index": 19,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "details > div > div > button > svg"
+      },
+      {
+        "index": 20,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "details > div > div > button > svg"
+      },
+      {
+        "index": 21,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "details > div > div > button > svg"
+      },
+      {
+        "index": 22,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "details > div > div > button > svg"
+      },
+      {
+        "index": 23,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "article > div > div > button > svg"
+      },
+      {
+        "index": 24,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "article > div > div > button > svg"
+      },
+      {
+        "index": 25,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "article > div > div > button > svg"
+      },
+      {
+        "index": 26,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "article > div > div > button > svg"
+      },
+      {
+        "index": 27,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "article > div > div > button > svg"
+      },
+      {
+        "index": 28,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "article > div > div > button > svg"
+      },
+      {
+        "index": 29,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "article > div > div > button > svg"
+      },
+      {
+        "index": 30,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "article > div > div > button > svg"
+      },
+      {
+        "index": 31,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > button > svg"
+      },
+      {
+        "index": 32,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > p > svg"
+      },
+      {
+        "index": 33,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > form > div > button > svg"
+      }
+    ],
+    "unlabeledCharts": [
+      {
+        "index": 0,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > button > svg"
+      },
+      {
+        "index": 1,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > aside > nav > a > svg"
+      },
+      {
+        "index": 2,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > aside > nav > a > svg"
+      },
+      {
+        "index": 3,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > aside > nav > a > svg"
+      },
+      {
+        "index": 4,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > aside > nav > a > svg"
+      },
+      {
+        "index": 5,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > aside > nav > a > svg"
+      },
+      {
+        "index": 6,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > aside > nav > a > svg"
+      },
+      {
+        "index": 7,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > aside > nav > a > svg"
+      },
+      {
+        "index": 8,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "header > div > div > button > svg"
+      },
+      {
+        "index": 9,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > button > svg"
+      },
+      {
+        "index": 10,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "main > div > div > button > svg"
+      },
+      {
+        "index": 11,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > button > svg"
+      },
+      {
+        "index": 12,
+        "tag": "canvas",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "533",
+        "height": "520",
+        "path": "div > div > div > div > canvas"
+      },
+      {
+        "index": 13,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > div > div > button > svg"
+      },
+      {
+        "index": 14,
+        "tag": "canvas",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "533",
+        "height": "520",
+        "path": "div > div > div > div > canvas"
+      },
+      {
+        "index": 15,
+        "tag": "canvas",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "533",
+        "height": "520",
+        "path": "div > div > div > div > canvas"
+      },
+      {
+        "index": 16,
+        "tag": "canvas",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "533",
+        "height": "520",
+        "path": "div > div > div > div > canvas"
+      },
+      {
+        "index": 17,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "div > section > div > button > svg"
+      },
+      {
+        "index": 18,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "details > div > div > button > svg"
+      },
+      {
+        "index": 19,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "details > div > div > button > svg"
+      },
+      {
+        "index": 20,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "details > div > div > button > svg"
+      },
+      {
+        "index": 21,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "details > div > div > button > svg"
+      },
+      {
+        "index": 22,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "details > div > div > button > svg"
+      },
+      {
+        "index": 23,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "article > div > div > button > svg"
+      },
+      {
+        "index": 24,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "article > div > div > button > svg"
+      },
+      {
+        "index": 25,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "article > div > div > button > svg"
+      },
+      {
+        "index": 26,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "article > div > div > button > svg"
+      },
+      {
+        "index": 27,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "article > div > div > button > svg"
+      },
+      {
+        "index": 28,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "article > div > div > button > svg"
+      },
+      {
+        "index": 29,
+        "tag": "svg",
+        "role": "",
+        "ariaLabel": "",
+        "title": "",
+        "desc": "",
+        "width": "24",
+        "height": "24",
+        "path": "article > div > div > button > svg"
+      }
+    ],
+    "fixedOrSticky": [
+      {
+        "tag": "button",
+        "role": "",
+        "label": "打开参数抽屉",
+        "position": "fixed",
+        "zIndex": "40",
+        "path": "section > div > section > div > button"
+      },
+      {
+        "tag": "div",
+        "role": "",
+        "label": "控灵 当前: 互动学习 你好，我是控灵。让我协助你完成「互动学习」，遇到困难可以向我求助。 你可以问我: 按 Enter 发送，ESC 关闭面板",
+        "position": "fixed",
+        "zIndex": "50",
+        "path": "html > body > div"
+      },
+      {
+        "tag": "div",
+        "role": "",
+        "label": "控灵",
+        "position": "fixed",
+        "zIndex": "120",
+        "path": "html > body > div"
+      }
+    ],
+    "errors": [
+      {
+        "text": "未达标",
+        "role": "",
+        "ariaLive": "",
+        "path": "section > div > div > div > span"
+      },
+      {
+        "text": "未达标",
+        "role": "",
+        "ariaLive": "",
+        "path": "section > div > div > div > span"
+      }
+    ]
+  },
+  "accessibilitySnapshot": {
+    "error": "Cannot read properties of undefined (reading 'snapshot')"
+  }
+}

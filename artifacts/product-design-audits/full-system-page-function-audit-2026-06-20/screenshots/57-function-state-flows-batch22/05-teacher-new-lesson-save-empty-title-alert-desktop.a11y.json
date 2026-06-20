@@ -1,0 +1,1813 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/teacher/lesson-plans/new?returnTo=%2Fteacher%2Flesson-plans",
+    "h1": [
+      "教师工作台"
+    ],
+    "activeElement": {
+      "tag": "button",
+      "type": "button",
+      "name": "保存教案",
+      "placeholder": ""
+    },
+    "alerts": [],
+    "buttons": [
+      {
+        "tag": "a",
+        "name": "返回首页",
+        "href": "/",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "张 张永韡 个人中心",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "教师总览",
+        "href": "/teacher",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "班级",
+        "href": "/teacher/classes",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "教案",
+        "href": "/teacher/lesson-plans",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "资源",
+        "href": "/teacher/resources",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课前包",
+        "href": "/teacher/prep-packs",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂历史",
+        "href": "/teacher/history",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "班级分析",
+        "href": "/teacher/classes",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "返回教案列表",
+        "href": "/teacher/lesson-plans",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "全部",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "系统建模",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "时域分析",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "根轨迹分析",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "频域分析",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "系统校正",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "非线性",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "课堂组件",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览资源",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "预览知识卡片",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "placeholder": "搜索资源或知识卡片...",
+        "ariaLabel": "搜索资源或知识卡片...",
+        "value": "",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "placeholder": "输入教案标题...",
+        "ariaLabel": "输入教案标题...",
+        "value": "",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "global-ai-sidebar-input",
+        "placeholder": "请输入你的问题...",
+        "ariaLabel": "全局 AI 问题输入框",
+        "value": "",
+        "hidden": false
+      }
+    ],
+    "tables": [],
+    "unnamedButtons": 1,
+    "graphicsCount": 2734,
+    "unnamedGraphics": 0,
+    "bodyText": "返回首页 教师工作台 课程编排、班级管理、证据审核与课堂报告 张 张永韡 个人中心 教师总览 班级 教案 资源 课前包 课堂历史 班级分析 返回教案列表 资源库 全部 系统建模 时域分析 根轨迹分析 频域分析 系统校正 非线性 课堂组件 静态资源 二阶系统传递函数与分类 STATIC_MEDIA 单位阶跃响应与指标 STATIC_MEDIA 课程路线图：稳定与稳态误差 STATIC_MEDIA 稳定性的概念与充要条件 STATIC_MEDIA 劳斯表构造与判别步骤 STATIC_MEDIA 稳态误差计算流程 STATIC_MEDIA 课程路线图：根轨迹法 STATIC_MEDIA 根轨迹条件：模值与相角 STATIC_MEDIA 根轨迹基本法则 STATIC_MEDIA 根轨迹细节修正 STATIC_MEDIA 课程路线图：参数根轨迹 STATIC_MEDIA 等效开环变换步骤 STATIC_MEDIA 图形化思考到仿真验证 STATIC_MEDIA 课程路线图：频率特性与伯德图 STATIC_MEDIA 频率响应定义 STATIC_MEDIA 伯德图绘制步骤 STATIC_MEDIA 课程路线图：校正与时域综合 STATIC_MEDIA 比例-微分控制 vs 输出微分反馈 STATIC_MEDIA 前馈补偿与扰动补偿 STATIC_MEDIA 航向系统时域综合流程 STATIC_MEDIA L02-S-01: 知识回顾 STATIC_TEXT L02-P3-01: 导弹发射架建模挑战 STATIC_TEXT L02-P1-01: 前测-物理定律连线 STATIC_TEXT L02-O-01: 学习目标清单 STATIC_TEXT L02-B-01: 导入视频-舵机失控 STATIC_MEDIA 课后测验：稳定性分析 STATIC_TEXT 第2课：控制系统建模基础 (讲义) STATIC_TEXT 系统建模 机械系统建模 电气系统建模 机电类比映射 物理建模导论 课程导入：驱逐舰转向 学习目标展示 前测：建模基础 机械系统机理建模 电气系统机理建模 机电系统类比 后测：建模验证 课程总结 机械系统物理建模 电气系统物理建模 机电类比物理建模 物理建模实践 时域分析 阻尼调节实验 ISO 2631 舒适度映射 欠阻尼速判 二阶系统标准型知识卡 极点操纵者 衰减振荡实验室 参数匹配挑战 课程总结 稳定与误差前测 劳斯判据速览 劳斯判据练习 稳态误差知识卡 稳定与误差后测 课程总结 指标速判 指标裁判手册 裁判席计分器 邮轮舒适度导入视频 根轨迹分析 论证原理可视化 根轨迹规则工作坊 参数根轨迹知识卡 图形化思考工作坊 课程总结 频域分析 频率响应速判 伯德图绘制步骤 斜率叠加拼图 伯德图识别练习 伯德图后测 课程总结 系统校正 PID参数整定仿真 香槟塔保卫战 校正前测 校正手段速览 时域综合流程 课程总结 非线性 北极航行伦理决策 课堂组件 视频播放组件 教师专用 课堂投票组件 教师专用 学习目标展示 教师专用 后测评估探针 教师专用 伦理熔断触发器 教师专用 AI动态报告 教师专用 知识卡片 鞍点 THEORY 按扰动补偿前馈的对消条件 THEORY 按扰动控制 THEORY 按输入补偿前馈的无差度提升 THEORY 半稳定极限环 THEORY 饱和非线性 THEORY 饱和特性 THEORY 饱和效应 THEORY 保持器 THEORY 被控对象 THEORY 被控量 THEORY 比较元件 THEORY 比例-积分控制器 THEORY 比例-微分控制 THEORY 比例-微分控制器 THEORY 比例环节 THEORY 比例控制 THEORY 闭环传递函数 THEORY 闭环传递函数 THEORY 闭环极点 THEORY 闭环极点 THEORY 闭环极点 THEORY 闭环控制 THEORY 闭环零点 THEORY 闭环零点 THEORY 闭环零点 THEORY 闭环脉冲传递函数 THEORY 闭环频率特性 THEORY 闭环实数极点 THEORY 闭环特征方程 THEORY 闭环特征方程 THEORY 闭环系统脉冲传递函数 THEORY 闭环主导极点 THEORY 闭环主导极点 THEORY 避碰转弯半径可行域 THEORY 变分法 THEORY 变分预备定理 THEORY 变量平移判稳 THEORY 标准化闭环传递函数 THEORY 并联方框等效传递函数 THEORY 并联连接 THEORY 伯德图 THEORY 不稳定的极限环 THEORY 不稳定平衡状态 THEORY 部分分式法 THEORY 部分分式法（z反变换） THEORY 部分分式展开 THEORY 采样 THEORY 采样角频率 THEORY 采样控制系统 THEORY 采样拉氏变换 THEORY 采样器 THEORY 采样信号频谱 THEORY 采样周期 THEORY 采样周期与开环增益对稳定性的影响 THEORY 参考前馈与给定滤波分工 THEORY 参数窗口判断 THEORY 参数方向表达卡 THEORY 参数根轨迹 THEORY 参数约束翻译表 THEORY 测量元件 THEORY 测速发电机 THEORY 测速发电机 THEORY 测速发电机与无源网络组合 THEORY 测速反馈控制 THEORY 策略监督层调度 THEORY 策略学习安全外壳 THEORY 策略学习进入条件 THEORY 差分方程 THEORY 差分方程 THEORY 超调量 THEORY 超调量 THEORY 超调量 THEORY 超前补偿 THEORY 超前网络 THEORY 程序控制系统 THEORY 冲突指标下的经典试凑空可行域 THEORY 穿越 THEORY 穿越频率 THEORY 传递函数 THEORY 传递函数 THEORY 传递函数 THEORY 传递函数 THEORY 传递函数 THEORY 传递函数 THEORY 传递函数 THEORY 传递函数标准形式 THEORY 传递函数的零点和极点 THEORY 传递函数互为倒数 THEORY 传递函数矩阵 THEORY 传统控制结构局限 THEORY 传统设计四联图校正 THEORY 船舶航向控制对象 THEORY 串级控制 THEORY 串联补偿器 THEORY 串联超前校正 THEORY 串联连接 THEORY 串联无源滞后校正 THEORY 串联校正 THEORY 串联滞后-超前校正 THEORY 垂直陀螺仪 THEORY 纯延迟 THEORY 磁盘驱动读取系统 THEORY 磁盘驱动器 THEORY 催化式排气净化器 THEORY 大范围（全局）渐近稳定性 THEORY 大范围稳定 THEORY 带宽 THEORY 带宽 THEORY 带宽频率 THEORY 带宽频率 THEORY 单结构首轮起步卡 THEORY 单结构与复合结构分流条件 THEORY 单结构整定四类复核量 THEORY 单容水槽 THEORY 单位反馈控制系统 THEORY 单位加速度响应 THEORY 单位阶跃函数 THEORY 单位阶跃响应 THEORY 单位阶跃响应 THEORY 单位阶跃响应 THEORY 单位脉冲函数 THEORY 单位脉冲响应 THEORY 单位脉冲响应 THEORY 单位斜坡内模控制系统 THEORY 单位斜坡响应 THEORY 单位斜坡响应 THEORY 等倾线法 THEORY 等效开环传递函数 THEORY 等效增益 THEORY 低频补偿稳态改善路径 THEORY 典型非线性边界环节 THEORY 典型环节 THEORY 典型环节对象库 THEORY 典型输入信号 THEORY 电加热炉 THEORY 电枢控制直流伺服电动机 THEORY 电枢控制直流电机 THEORY 电位器 THEORY 电阻炉温度微分计算机控制系统 THEORY 调节器 THEORY 调节时间 THEORY 调节时间 THEORY 调节时间 THEORY 迭代法解差分方程 THEORY 叠加原理 THEORY 定常系统 THEORY 动态规划 THEORY 动态过程 THEORY 动态数学模型 THEORY 动态误差系数 THEORY 动态性能指标 THEORY 对角线规范型判据 THEORY 对偶系统 THEORY 对偶原理 THEORY 对数幅频渐近特性曲线 THEORY 对数幅频曲线 THEORY 对数幅相曲线 THEORY 对数频率特性曲线 THEORY 对数频率稳定判据 THEORY 对数频率坐标 THEORY 对数稳定判据 THEORY 对数相频曲线 THEORY 对象分析回收到设计入口 THEORY 对象化三域验证 THEORY 舵机死区饱和自振风险 THEORY 二阶微分环节 THEORY 二阶系统 THEORY 二阶系统标准型 THEORY 二状态冷链热模型 THEORY 发动机转速控制系统 THEORY 罚函数表达表 THEORY 反馈 THEORY 反馈保底与前馈补偿边界 THEORY 反馈补偿器 THEORY 反馈控制 THEORY 反馈控制系统 THEORY 反馈连接 THEORY 反馈线性化 THEORY 反馈校正 THEORY 反演积分法（留数法） THEORY 反演积分公式 THEORY 反z变换 THEORY 泛函 THEORY 泛函的变分 THEORY 泛函极值 THEORY 泛函算子 THEORY 方法迁移前边界说明 THEORY 方法选择说明卡 THEORY 方块图 THEORY 方框图 THEORY 放大元件 THEORY 飞机-自动驾驶仪系统 THEORY 非奇异线性变换 THEORY 非线性边界工具选择 THEORY 非线性环节的并联 THEORY 非线性环节的串联 THEORY 非线性环节的串联与并联 THEORY 非线性控制系统 THEORY 非线性控制系统设计 THEORY 非线性微分方程的线性化 THEORY 非线性系统 THEORY 非线性系统稳定性判据（描述函数法） THEORY 非周期信号频谱 THEORY 非最小相位环节 THEORY 非最小相位系统 THEORY 非最小相位系统 THEORY 非最小相与右半平面零点 THEORY 分段辨识模型组合 THEORY 分离定理 THEORY 分析法 THEORY 峰值时间 THEORY 幅角原理 THEORY 幅频特性 THEORY 幅相频率特性曲线 THEORY 幅值条件 THEORY 幅值裕度 THEORY 幅值裕度 THEORY 幅值裕度直觉 THEORY 辅助方程 THEORY 辅助方程 THEORY 辅助函数F(s) THEORY 负倒描述函数 THEORY 负反馈 THEORY 负反馈控制原理 THEORY 负载效应 THEORY 附加开环零点 THEORY 复合方案首轮记录表 THEORY 复合控制 THEORY 复合控制 THEORY 复合控制方式 THEORY 复合控制系统 THEORY 复合校正 THEORY 复合型性能指标 THEORY 复平面 THEORY 复平面可行域 THEORY 复数位移定理 THEORY 高保真任务降阶辨识 THEORY 高阶系统 THEORY 格拉姆矩阵判据 THEORY 隔离放大器 THEORY 铬氧化物传感器 THEORY 给定-扰动双通道误差分析 THEORY 给定元件 THEORY 根轨迹 THEORY 根轨迹 THEORY 根轨迹对称性 THEORY 根轨迹法 THEORY 根轨迹法 THEORY 根轨迹方程 THEORY 根轨迹分离点 THEORY 根轨迹分支数 THEORY 根轨迹绘制法则 THEORY 根轨迹绘制法则（零度） THEORY 根轨迹绘制规则 THEORY 根轨迹渐近线 THEORY 根轨迹连续性 THEORY 根轨迹图 THEORY 根轨迹完整法则 THEORY 根轨迹与虚轴的交点 THEORY 根轨迹与虚轴交点 THEORY 根轨迹增益换算 THEORY 工程指标代价函数翻译 THEORY 固定结构迁移失配信号 THEORY 固定结构优化中的指标分层 THEORY 固定结构自由目标项选择 THEORY 关键节点读图 THEORY 惯性环节 THEORY 广义根轨迹 THEORY 规划参考可实现性 THEORY 锅炉液位控制系统 THEORY 过阻尼二阶系统 THEORY 过阻尼响应 THEORY 哈密顿函数 TH"
+  }
+}

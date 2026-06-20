@@ -1,0 +1,159 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/profile/evidence?lessonId=unit-4-1-design-task-expression-v1",
+    "h1": [
+      "学习证据"
+    ],
+    "activeElement": {
+      "tag": "body",
+      "type": "",
+      "name": "学生 学习证据 来源质量、时间线与隐私范围 学生驾驶舱 个人中心 筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件 4-1 前测：同图异读预判 失败 丰富证据 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 系统已经稳定，下列哪项判断最准确？ 作答 A，参考 B，需修正 关于带宽，下列说法哪项更准确？ 作答 未作答，参考 B，需修正 关于“所有指标都重要”，下列说法最准确的是： 作答 未作答，参考 B，需修正 来源范围 互动课提交 新鲜度 最新 置信度 高 缺失来源 来源完整 复盘课堂作答 课堂作答 step-03 失败 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 来源范围 互动课提交 新鲜度 最新 置信度 低 缺失来源 来源完整 复盘课堂作答 控灵 当前: evidence 你好，我是控灵。今天我们将探索「evidence」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+      "placeholder": ""
+    },
+    "alerts": [],
+    "buttons": [
+      {
+        "tag": "a",
+        "name": "学生驾驶舱",
+        "href": "/dashboard",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "个人中心",
+        "href": "/profile",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "切换到深色模式",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "学生驾驶舱",
+        "href": "/dashboard",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "个人中心",
+        "href": "/profile",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "重置筛选条件",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "复盘课堂作答",
+        "href": "/profile/evidence?lessonId=unit-4-1-design-task-expression-v1",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "复盘课堂作答",
+        "href": "/profile/evidence?lessonId=unit-4-1-design-task-expression-v1",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "关闭 (ESC)",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "",
+        "href": "",
+        "disabled": true,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "打开控灵与页面工具菜单",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "select",
+        "type": "",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "",
+        "name": "",
+        "placeholder": "unit-5-2...",
+        "ariaLabel": "",
+        "value": "unit-4-1-design-task-expression-v1",
+        "hidden": false
+      },
+      {
+        "tag": "select",
+        "type": "",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "question",
+        "hidden": false
+      },
+      {
+        "tag": "select",
+        "type": "",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "",
+        "value": "",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "global-ai-sidebar-input",
+        "placeholder": "请输入你的问题...",
+        "ariaLabel": "全局 AI 问题输入框",
+        "value": "",
+        "hidden": false
+      }
+    ],
+    "tables": [],
+    "unnamedButtons": 1,
+    "graphicsCount": 8,
+    "unnamedGraphics": 0,
+    "bodyText": "学生 学习证据 来源质量、时间线与隐私范围 学生驾驶舱 个人中心 筛选 能力维度 全部维度 控制建模与分析 参数设计与调优 跨域迁移与联动 工程决策与约束 探究反思与提示词 自主学习进展 课次 事实类型 全部类型 课堂作答 仿真 AI 交互 工程伦理 结果 全部结果 成功 部分 失败 中止 重置筛选条件 4-1 前测：同图异读预判 失败 丰富证据 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 系统已经稳定，下列哪项判断最准确？ 作答 A，参考 B，需修正 关于带宽，下列说法哪项更准确？ 作答 未作答，参考 B，需修正 关于“所有指标都重要”，下列说法最准确的是： 作答 未作答，参考 B，需修正 来源范围 互动课提交 新鲜度 最新 置信度 高 缺失来源 来源完整 复盘课堂作答 课堂作答 step-03 失败 06/20 14:49 · unit-4-1-design-task-expression-v1 · step-03 0 评分 来源范围 互动课提交 新鲜度 最新 置信度 低 缺失来源 来源完整 复盘课堂作答 控灵 当前: evidence 你好，我是控灵。今天我们将探索「evidence」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵"
+  }
+}

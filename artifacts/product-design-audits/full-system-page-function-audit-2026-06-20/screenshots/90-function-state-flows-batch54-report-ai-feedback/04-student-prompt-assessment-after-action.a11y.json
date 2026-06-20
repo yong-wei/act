@@ -1,0 +1,382 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/evaluation/prompt-assessment?source=batch54&autodemo=1",
+    "h1": [
+      "元提示词评价与过程一致性"
+    ],
+    "h2": [
+      "结构化提示词编辑器",
+      "提示词预览",
+      "提示词质量仪表盘",
+      "一致性报告",
+      "常态化训练量化追踪",
+      "控灵"
+    ],
+    "activeElement": {
+      "tag": "button",
+      "role": "",
+      "type": "button",
+      "name": "刷新趋势数据"
+    },
+    "visibleControls": [
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "动力定位侧推系统",
+        "value": "动力定位侧推系统",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "定位偏差 < 0.4m，响应平稳",
+        "value": "定位偏差 < 0.4m，响应平稳",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "扰动峰值不超过阈值，控制能耗受限",
+        "value": "扰动峰值不超过阈值，控制能耗受限",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "风浪流耦合环境",
+        "value": "风浪流耦合环境",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "给出多目标权衡策略，明确输入、步骤和输出。",
+        "value": "给出多目标权衡策略，明确输入、步骤和输出。",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "评价提示词质量",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "过程一致性校验",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "生成常态化演示轨迹",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "刷新趋势数据",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "清空对话",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "关闭 (ESC)",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "type": "text",
+        "name": "全局 AI 问题输入框",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "submit",
+        "name": "",
+        "value": "",
+        "href": "",
+        "disabled": true,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "打开控灵与页面工具菜单",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": true
+      }
+    ],
+    "controls": [
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "动力定位侧推系统",
+        "value": "动力定位侧推系统",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "定位偏差 < 0.4m，响应平稳",
+        "value": "定位偏差 < 0.4m，响应平稳",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "扰动峰值不超过阈值，控制能耗受限",
+        "value": "扰动峰值不超过阈值，控制能耗受限",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "风浪流耦合环境",
+        "value": "风浪流耦合环境",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "textarea",
+        "role": "",
+        "type": "",
+        "name": "给出多目标权衡策略，明确输入、步骤和输出。",
+        "value": "给出多目标权衡策略，明确输入、步骤和输出。",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "评价提示词质量",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "过程一致性校验",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "生成常态化演示轨迹",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "刷新趋势数据",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "清空对话",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "关闭 (ESC)",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "type": "text",
+        "name": "全局 AI 问题输入框",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "submit",
+        "name": "",
+        "value": "",
+        "href": "",
+        "disabled": true,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "打开控灵与页面工具菜单",
+        "value": "",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inDialog": false,
+        "inFloating": true
+      }
+    ],
+    "alerts": [],
+    "dialogs": [],
+    "tables": [],
+    "bodyText": "STRUCTURE EVALUATED 元提示词评价与过程一致性 先评估提示词质量，再追踪“提示结构-设计行为-结果达成”的一致性，支持过程化反馈。 结构化提示词编辑器 控制对象 * 性能目标 * 约束条件 * 设计背景 额外说明 评价提示词质量过程一致性校验生成常态化演示轨迹 提示词预览 控制对象：动力定位侧推系统 性能目标：定位偏差 < 0.4m，响应平稳 约束条件：扰动峰值不超过阈值，控制能耗受限 设计背景：风浪流耦合环境 补充说明：给出多目标权衡策略，明确输入、步骤和输出。 提示词质量仪表盘 综合得分：90 完整性 100 精确性 85 结构化 90 可执行性 80 改进建议 当前提示词质量较高。 一致性报告 一致性得分：46 声明目标 实际优化方向 提高响应速度 抑制超调与振荡 减小稳态误差 不一致项 未发现明显不一致。 迭代次数：3； 收敛形态：steady； 探索广度：1 常态化训练量化追踪 刷新趋势数据 提示词版本数 3 最近提示词得分 90 一致性均值 69.3 能力值 θ -1.70 提示词质量版本轨迹 V1 06/21 02:07 综合评分：92 一致性：81 V2 06/21 02:07 综合评分：98 一致性：81 V3 06/21 02:07 综合评分：90 一致性：46 跨域能力成长轨迹 06/20 14:04 θ -1.7 准确率：0% 计算 θ 0.18 跨域 θ -1.8 设计 θ -1.8 提示：建议每次修改提示词后再次评价，形成版本迭代轨迹。 控灵 当前: prompt assessme... 请评价这个控制系统提示词：目标是让学生解释阻尼比对超调量的影响。 【控灵证据提示】本次流式回答尚未完成最终引用核验。缺少证据类型：content、learner-state、path-execution、evidence。低置信原因：missing-content；missing-learner-state；missing-path-execution；missing-evidence；missing-grounding:knowledge-or-resource；assistant-required-citation-owner-missing:answer；answer-intent-content-citation-missing:fact-explanation；assistant-citations-unverified-stream。 该提示词目标明确，直接指向“阻尼比”与“超调量”的因果关系，适合用于概念性知识的考查。✅ 优点： 聚焦核心控制理论概念。 要求学生进行解释，有助于深化理解。 改进建议： 增加定量约束：例如“结合公式 𝑀 𝑝 = 𝑒 − 𝜁 𝜋 / 1 − 𝜁 2 M p ​ =e −ζπ/ 1−ζ 2 ​ 说明”，避免回答过于笼统。 指定场景：如“以二阶系统为例”，使解释更具针对性。 优化后示例： “请以二阶系统为例，结合超调量公式，解释阻尼比 𝜁 ζ 增大时，系统超调量 𝑀 𝑝 M p ​ 的变化趋势及其物理意义。” 你觉得加入公式后，学生的回答会更精准吗？ 🤔 按 Enter 发送，ESC 关闭面板 控灵",
+    "actionSignals": {
+      "success": true,
+      "loading": false,
+      "failure": false,
+      "report": true,
+      "governance": true,
+      "adaptive": true
+    },
+    "scroll": {
+      "width": 1440,
+      "height": 1318,
+      "viewportWidth": 1440,
+      "viewportHeight": 1100
+    }
+  }
+}

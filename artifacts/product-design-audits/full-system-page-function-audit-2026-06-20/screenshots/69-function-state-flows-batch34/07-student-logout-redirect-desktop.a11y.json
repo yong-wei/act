@@ -1,0 +1,288 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/login",
+    "h1": [
+      "账号登录"
+    ],
+    "h2": [],
+    "activeElement": {
+      "tag": "body",
+      "type": "",
+      "role": "",
+      "name": "AI-OBE船舶智控平台 Mission Control for Maritime Education 互动学习 知识图谱 商业入口 · 账号与画像 账号登录 未指定回调目标，登录后进入角色驾驶舱。 个人中心回调 返回产品地图 浏览互动学习 登录继续 登录 学习 课程、知识图谱与互动学习入口。 练习 自适应学习路径、诊断与补强建议。 挑战 竞技场挑战、榜单与正式评价。 实验 仿真对象、控制工作台与参数探索。 复盘 个人证据、成长轨迹与学习报告。 账号与画像 登录、账号、个人中心与回调目标。 控灵 AI-OBE 智能学习伴侣 你好，我是控灵，你的AI学习伴侣。有什么我可以帮助你的吗？ 你可以问我: 按 Enter 发送，ESC 关闭面板 工具"
+    },
+    "controls": [
+      {
+        "tag": "a",
+        "role": "",
+        "name": "AI-OBE船舶智控平台 Mission Control for Maritime Education",
+        "type": "",
+        "href": "/",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "互动学习",
+        "type": "",
+        "href": "/interactive-learning",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "知识图谱",
+        "type": "",
+        "href": "/knowledge",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "个人中心回调",
+        "type": "",
+        "href": "/login?callbackUrl=%2Fprofile",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "返回产品地图",
+        "type": "",
+        "href": "/",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "浏览互动学习",
+        "type": "",
+        "href": "/interactive-learning",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "name": "",
+        "type": "text",
+        "href": "",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "name": "",
+        "type": "password",
+        "href": "",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "登录",
+        "type": "submit",
+        "href": "",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "学习 课程、知识图谱与互动学习入口。",
+        "type": "",
+        "href": "/knowledge",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "练习 自适应学习路径、诊断与补强建议。",
+        "type": "",
+        "href": "/assessment/adaptive-practice",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "挑战 竞技场挑战、榜单与正式评价。",
+        "type": "",
+        "href": "/arena",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "实验 仿真对象、控制工作台与参数探索。",
+        "type": "",
+        "href": "/simulations",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "复盘 个人证据、成长轨迹与学习报告。",
+        "type": "",
+        "href": "/profile/evidence",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "账号与画像 登录、账号、个人中心与回调目标。",
+        "type": "",
+        "href": "/login?callbackUrl=%2Fprofile",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "关闭 (ESC)",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "name": "全局 AI 问题输入框",
+        "type": "text",
+        "href": "",
+        "ariaLabel": "全局 AI 问题输入框",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "submit",
+        "href": "",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "ariaControls": "",
+        "disabled": true,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "打开工具与页面工具菜单",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "打开工具与页面工具菜单",
+        "ariaExpanded": "false",
+        "ariaControls": "",
+        "disabled": false,
+        "hidden": false
+      }
+    ],
+    "dialogs": [],
+    "alerts": [],
+    "inputs": [
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "account",
+        "placeholder": "学号/工号",
+        "ariaLabel": "",
+        "value": "",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "password",
+        "name": "password",
+        "placeholder": "密码",
+        "ariaLabel": "",
+        "value": "",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "global-ai-sidebar-input",
+        "placeholder": "请输入你的问题...",
+        "ariaLabel": "全局 AI 问题输入框",
+        "value": "",
+        "hidden": false
+      }
+    ],
+    "unnamedControls": 1,
+    "shell": {
+      "mobileDrawerOpen": false,
+      "floatingDock": "enabled",
+      "floatingDockOpen": false,
+      "aiSidebar": "closed",
+      "theme": "light",
+      "bodyDataTheme": ""
+    },
+    "bodyText": "AI-OBE船舶智控平台 Mission Control for Maritime Education 互动学习 知识图谱 商业入口 · 账号与画像 账号登录 未指定回调目标，登录后进入角色驾驶舱。 个人中心回调 返回产品地图 浏览互动学习 登录继续 登录 学习 课程、知识图谱与互动学习入口。 练习 自适应学习路径、诊断与补强建议。 挑战 竞技场挑战、榜单与正式评价。 实验 仿真对象、控制工作台与参数探索。 复盘 个人证据、成长轨迹与学习报告。 账号与画像 登录、账号、个人中心与回调目标。 控灵 AI-OBE 智能学习伴侣 你好，我是控灵，你的AI学习伴侣。有什么我可以帮助你的吗？ 你可以问我: 按 Enter 发送，ESC 关闭面板 工具"
+  }
+}

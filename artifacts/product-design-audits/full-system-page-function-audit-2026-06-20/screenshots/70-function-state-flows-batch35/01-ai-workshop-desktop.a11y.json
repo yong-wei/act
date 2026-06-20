@@ -1,0 +1,243 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/ai",
+    "h1": [
+      "AI工坊"
+    ],
+    "h2": [
+      "学海罗盘",
+      "成就徽章",
+      "学习任务",
+      "思政学习日志",
+      "实验档案",
+      "控灵"
+    ],
+    "activeElement": {
+      "tag": "button",
+      "type": "button",
+      "role": "",
+      "name": "查看日志 2"
+    },
+    "controls": [
+      {
+        "tag": "a",
+        "role": "",
+        "name": "返回首页",
+        "type": "",
+        "href": "/",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "PID 参数整定基础 入门 · 30分钟",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "船舶航向控制仿真 进阶 · 45分钟",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "北极航道伦理决策 挑战 · 60分钟 开始学习",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "动力定位系统设计 专家 · 90分钟",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "disabled": true,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "查看详情",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "查看详情",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "查看详情",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "查看日志 1",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "查看日志 1",
+        "ariaExpanded": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "查看日志 2",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "查看日志 2",
+        "ariaExpanded": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "查看日志 3",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "查看日志 3",
+        "ariaExpanded": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "查看完整档案",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "关闭 (ESC)",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "name": "全局 AI 问题输入框",
+        "type": "text",
+        "href": "",
+        "ariaLabel": "全局 AI 问题输入框",
+        "ariaExpanded": "",
+        "disabled": false,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "submit",
+        "href": "",
+        "ariaLabel": "",
+        "ariaExpanded": "",
+        "disabled": true,
+        "hidden": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "打开控灵与页面工具菜单",
+        "type": "button",
+        "href": "",
+        "ariaLabel": "打开控灵与页面工具菜单",
+        "ariaExpanded": "false",
+        "disabled": false,
+        "hidden": false
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "global-ai-sidebar-input",
+        "placeholder": "请输入你的问题...",
+        "ariaLabel": "全局 AI 问题输入框",
+        "labelText": "",
+        "value": "",
+        "hidden": false
+      }
+    ],
+    "alerts": [],
+    "dialogs": [],
+    "tables": [],
+    "unnamedControls": 3,
+    "graphicsCount": 40,
+    "unnamedGraphics": 0,
+    "bodyText": "返回首页 AI工坊 智 智航学员 智航舰队 L3 学习风格：视觉型 今日学习 120 分钟 实验时长 45 分钟 伦理学习 30 分钟 AI 推荐指数 85% 船舶解锁 12/36 学海罗盘 成长航线进度追踪 航线进度 40% 已完成 2 / 5 个里程碑 入门航标 完成基础控制理论学习 理论航线 掌握 PID 控制器原理 实践海域 当前 完成 5 次仿真实验 伦理灯塔 通过伦理决策考核 远航舰长 获得全部能力认证 学习提醒 距离下一个里程碑还需完成 2 个仿真任务，建议今日完成「船舶航向控制」实验。 成就徽章 ⚡ 快速响应 🌊 波浪征服者 🎯 精准舵手 待解锁 待解锁 待解锁 学习任务 PID 参数整定基础 入门 · 30分钟 船舶航向控制仿真 进阶 · 45分钟 北极航道伦理决策 挑战 · 60分钟 开始学习 动力定位系统设计 专家 · 90分钟 思政学习日志 1 / 3 北极航道伦理决策反思 伦理决策 评级：A 在紧急情况下，如何平衡安全与效率... 2026年6月20日 查看详情 实验档案 近期实验记录 3 实验总数 85 平均分 PID 调参 85 驱逐舰航向控制 #1 6月20日 20:39 kp: 1.2 ki: 0.1 kd: 0.5 伦理沙盘 78 北极冰区避障决策 6月20日 20:39 PID 调参 92 高海况稳定性测试 6月20日 20:39 kp: 1.5 ki: 0.08 kd: 0.6 查看完整档案 控灵 当前: ai 你好，我是控灵。今天我们将探索「ai」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵"
+  }
+}

@@ -1,0 +1,205 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "看见控制全貌 - 学生互动课",
+    "url": "http://localhost:3100/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
+    "h1": [
+      "1-1：看见整门课——从反馈思想到控制全景"
+    ],
+    "activeElement": {
+      "tag": "button",
+      "type": "button",
+      "name": "下一页",
+      "placeholder": ""
+    },
+    "alerts": [],
+    "inputs": [
+      {
+        "tag": "select",
+        "type": "",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "跳转课程页",
+        "valueLength": 7,
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "global-ai-sidebar-input",
+        "placeholder": "请输入你的问题...",
+        "ariaLabel": "全局 AI 问题输入框",
+        "valueLength": 0,
+        "hidden": false
+      }
+    ],
+    "buttons": [
+      {
+        "tag": "button",
+        "name": "展开平台导航",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "首页",
+        "disabled": false,
+        "href": "/"
+      },
+      {
+        "tag": "a",
+        "name": "虚拟仿真",
+        "disabled": false,
+        "href": "/simulations"
+      },
+      {
+        "tag": "a",
+        "name": "知识资源",
+        "disabled": false,
+        "href": "/knowledge"
+      },
+      {
+        "tag": "a",
+        "name": "竞技场",
+        "disabled": false,
+        "href": "/arena"
+      },
+      {
+        "tag": "a",
+        "name": "控制工作台",
+        "disabled": false,
+        "href": "/interactive-learning/control-workbench"
+      },
+      {
+        "tag": "a",
+        "name": "学习路径",
+        "disabled": false,
+        "href": "/assessment/adaptive-practice"
+      },
+      {
+        "tag": "a",
+        "name": "互动学习",
+        "disabled": false,
+        "href": "/interactive-learning"
+      },
+      {
+        "tag": "a",
+        "name": "学习",
+        "disabled": false,
+        "href": "/dashboard"
+      },
+      {
+        "tag": "a",
+        "name": "互动学习",
+        "disabled": false,
+        "href": "/interactive-learning"
+      },
+      {
+        "tag": "a",
+        "name": "互动课程",
+        "disabled": false,
+        "href": "/interactive-learning/courses"
+      },
+      {
+        "tag": "a",
+        "name": "1-1：看见整门课——从反馈思想到控制全景",
+        "disabled": false,
+        "href": "/interactive-learning/courses/unit-1-1-see-the-full-picture"
+      },
+      {
+        "tag": "button",
+        "name": "切换到深色模式",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "a",
+        "name": "首页",
+        "disabled": false,
+        "href": "/"
+      },
+      {
+        "tag": "a",
+        "name": "虚拟仿真",
+        "disabled": false,
+        "href": "/simulations"
+      },
+      {
+        "tag": "a",
+        "name": "知识资源",
+        "disabled": false,
+        "href": "/knowledge"
+      },
+      {
+        "tag": "a",
+        "name": "竞技场",
+        "disabled": false,
+        "href": "/arena"
+      },
+      {
+        "tag": "a",
+        "name": "控制工作台",
+        "disabled": false,
+        "href": "/interactive-learning/control-workbench"
+      },
+      {
+        "tag": "a",
+        "name": "学习路径",
+        "disabled": false,
+        "href": "/assessment/adaptive-practice"
+      },
+      {
+        "tag": "a",
+        "name": "互动学习",
+        "disabled": false,
+        "href": "/interactive-learning"
+      },
+      {
+        "tag": "button",
+        "name": "上一页",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "button",
+        "name": "下一页",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "button",
+        "name": "关闭 (ESC)",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "button",
+        "name": "目标层次",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "button",
+        "name": "学习锚点",
+        "disabled": false,
+        "href": ""
+      },
+      {
+        "tag": "button",
+        "name": "",
+        "disabled": true,
+        "href": ""
+      },
+      {
+        "tag": "button",
+        "name": "打开控灵与页面工具菜单",
+        "disabled": false,
+        "href": ""
+      }
+    ],
+    "unnamedButtons": 1,
+    "graphicsCount": 18,
+    "unnamedGraphics": 0,
+    "bodyText": "学习 / 互动学习 / 互动课程 / 1-1：看见整门课——从反馈思想到控制全景 / 访客演示 学生 1-1：看见整门课——从反馈思想到控制全景 A Lightning Tour of Control 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 访客演示 本次课程目标 五条布鲁姆能力目标：能用一条船说出全部核心主题，解释反馈是什么，说出六个核心函数名称和用途。 O · 目标 2 / 15 学生学习台 演示模式已开启 演示模式不会写入课堂状态。 O · 目标 ⏱ 3 min 第 02 页 本次课程目标 本次课程目标 本次课程目标 完成本次课程后，我们能够—— 本页工具 默认折叠 上一页 第 01 页 · 看见整门课 第 02 页 · 本次课程目标 第 03 页 · 前测——基础概念与数学准备 第 04 页 · 开环诊断的七个问题 第 05 页 · 闪电速通——建模与结构表达 第 06 页 · 闪电速通——时域响应与性能指标 第 07 页 · 闪电速通——稳定性与根轨迹 第 08 页 · 频域视角与诊断流程收束 第 09 页 · 反馈与校正——从诊断到干预 第 10 页 · 三域对比与诊断循环 第 11 页 · 课程地图与学习习惯 第 12 页 · 完整代码走通——开环诊断 第 13 页 · 闭环校正与里程碑 第 14 页 · 后测——核心概念检验 第 15 页 · 总结——信息图与拓展思考 下一页 控灵 当前: 本次课程目标 你好，我是控灵，你的AI学习伴侣。有什么我可以帮助你的吗？ 学习目标: 明确本课五条能力目标：能用一条船说出全部核心主题、解释反馈概念、区分开闭环控制、说出六个核心函数用途、对照课程地图说出模块主线 理解每条目标的认知层次和相互关联 你可以问我: 目标层次 学习锚点 按 Enter 发送，ESC 关闭面板 控灵"
+  }
+}

@@ -1,0 +1,582 @@
+[
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/cruise-comfort-boppps/student/demo",
+    "finalUrl": "/interactive-learning/courses/cruise-comfort-boppps/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-cruise-comfort-boppps-student-demo.png",
+    "textHead": "返回 CRUISE COMFORT BOPPPS 柔性之海：豪华邮轮舒适度控制 B - 导入 课前 教师发布课堂码，学生通过课堂码加入本次课堂。 环节 第 01 页 · 课堂码发放 第 02 页 · 开场导入：邮轮舒适度冲突 第 03 页 · 个性化目标：布鲁姆动词驱动 第 04 页 · 快速前测：2道自适应题 第 05 页 · 工程目标设定 第 06 页 · 第一轮参数探索 第 07 页 · NeuralODE嵌入（教师） 第 08 页 · AI介入分析 第 09 页 · 结构化提示词修改 第 10 页 · 暂停"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-1-1-see-the-full-picture-student-demo.png",
+    "textHead": "展开导航 学习 / 互动学习 / 互动课程 / 1-1：看见整门课——从反馈思想到控制全景 / 访客演示 学生 1-1：看见整门课——从反馈思想到控制全景 A Lightning Tour of Control 访客演示 看见整门课 用一条船贯穿全部八个问题，90分钟把自动控制原理全部核心主题走一遍。 B · 导入 1 / 15 学生学习台 演示模式已开启 演示模式不会写入课堂状态。 COURSE BRIDGE 从 1-1 到 2-1：先看见全景，再深入细节 1-1 看见整门课 从反馈思想出发，90 分钟闪电遍"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-1-2-modeling-from-object-to-system-student-demo.png",
+    "textHead": "返回 MODELING FROM OBJECT TO SYSTEM 1-2：建模——从真实对象到可分析的系统 B · 导入 6 min 用两种现象对比引出建模的必要性。 环节 第 01 页 · 导入——不同对象的行为差异与共性 第 02 页 · 课程目标 第 03 页 · 前测——进入建模专题前的准备 第 04 页 · 建模的两条路径 第 05 页 · 微分方程——物理对象的第一次翻译 第 06 页 · 传递函数——从微分运算到代数运算 第 07 页 · 方框图——系统的结构表达 第 08 页 · 信号流图——变量"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-2-1-modeling-language-student-demo.png",
+    "textHead": "返回 MODELING LANGUAGE 2-1：建模与变换语言——从真实对象到统一分析对象 B · 导入 ⏱ 3 min 从模块 1 的现象直觉，切换到模块 2 的对象语言。 环节 第 01 页 · 回到地图——为什么模块 2 先从建模语言开始 第 02 页 · 情境引入——为什么光有微分方程还不够 第 03 页 · 学习目标——今天要建哪条对象链 第 04 页 · 前测——对象、初值与结构的三个误区 第 05 页 · 拉氏变换的工程动机 第 06 页 · 零初值下传递函数怎样形成 第 07 页 · 非零初值为什"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-2-2-time-domain-response-student-demo.png",
+    "textHead": "返回 TIME-DOMAIN RESPONSE 2-2：时域响应基础——从响应曲线到动态性能指标 B · 导入 ⏱ 3 min 前两课解决系统怎么写出来，这一课开始解决系统会怎样表现。 环节 第 01 页 · 回到地图——从传函走向响应曲线 第 02 页 · 情境引入——稳定并不等于表现一样 第 03 页 · 学习目标——本课要建立哪套语言 第 04 页 · 前测——快、稳、冲分别看什么 第 05 页 · 时域分析对象与典型输入 第 06 页 · 一阶系统阶跃响应与时间常数 第 07 页 · 二阶系统标准型：ωn、"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-2-3-frequency-response-bode-intro-student-demo.png",
+    "textHead": "返回 FREQUENCY RESPONSE & BODE INTRO 2-3：频率响应基础与 Bode 图初步——从时域现象到频域图形入口 B · 导入 ⏱ 3 min 把 2-2 的时间响应语言推进到 2-3 的频率对象语言。 环节 第 01 页 · 回到地图——从时域对象走向频域对象 第 02 页 · 情境引入——系统为什么会挑节奏 第 03 页 · 学习目标——这节课要建立哪套频域语言 第 04 页 · 前测——低频、高频与正弦输入判断 第 05 页 · 从时域问题走向频域问题 第 06 页 · 方波、频率分"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-2-4-nyquist-margin-entry-student-demo.png",
+    "textHead": "返回 NYQUIST, MARGINS & REVERSE READING 2-4：Nyquist 图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别 B · 导入 ⏱ 3 min 把 2-3 的 Bode 图骨架推进到 2-4 的 Nyquist、裕度与反向识别。 环节 第 01 页 · 回到地图——从 Bode 骨架走向图形对象 第 02 页 · 情境引入——为什么同一条频率特性还要换一张图 第 03 页 · 学习目标与边界——本课负责什么、不负责什么 第 04 页 · 前测——起点、对象与指标三类"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-1-pure-pole-stability-and-dynamics-student-demo.png",
+    "textHead": "返回 PURE POLES, MODES & APPROXIMATION 3-1：纯极点视角下的稳定、模态与双域近似——为什么高阶系统仍能用低阶模型理解 B · 导入 ⏱ 4 min 先标定 3-1 在模块 3 中的位置，明确本课是从低阶直觉走向极点语言的入口。 环节 第 01 页 · 回到路径：从模块 2 的低阶直觉走向模块 3 的极点语言 第 02 页 · 情境引入：同主导极点，为什么响应仍会分家 第 03 页 · 学习目标与课堂边界：本课负责什么，不负责什么 第 04 页 · 前测：稳定、主导极点与“可忽略”"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-2-routh-stability-boundary-student-demo.png",
+    "textHead": "返回 ROUTH STABILITY BOUNDARY 3-2：劳斯判据——从高阶系统稳定判定到参数可行域 B · 导入 ⏱ 3 min 先把 3-2 放回模块 3 主线，明确本课处理高阶特征方程的稳定边界。 环节 第 01 页 · 回到地图——从纯极点语言走向稳定边界 第 02 页 · 先看主对象——极点迁移图提出了哪三个问题 第 03 页 · 前测——不求根判稳、特殊情况与区域收紧 第 04 页 · 普通劳斯表——固定 k=4 时怎样从第一列读出稳定性 第 05 页 · 带参数劳斯表——稳定区间怎样从第一列条件"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-3-root-locus-rules-student-demo.png",
+    "textHead": "返回 ROOT LOCUS RULES 3-3：根轨迹机制与完整法则——为什么参数变化会推动闭环极点迁移 B · 导入 ⏱ 3 min 把 3-3 放回 3-2 与 3-4 之间，说明为什么边界判断还不够。 环节 第 01 页 · 回到地图：为什么稳定边界还不等于迁移机制 第 02 页 · 问题引入：知道稳定区间为什么仍然不够 第 03 页 · 本课目标：完成本次课程后你应能做到什么 第 04 页 · 根轨迹定义与两大条件：从闭环方程到资格与参数 第 05 页 · 条件互动：拖动 s_0 检查相角条件与幅值条件 第"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-4-root-locus-reading-validation-student-demo.png",
+    "textHead": "返回 ROOT LOCUS READING VALIDATION 3-4：根轨迹读图与对象化验证——把法则真正用到主图、参数窗口与工程后果上 B · 导入 ⏱ 4 min 先标定本课在模块 3 里的位置，不重讲法则证明，只负责按图判断。 环节 第 01 页 · 回到地图：从 `3-3` 法则走向 `3-4` 判断 第 02 页 · 问题提出与三张记录表：稳定之后还要回答什么 第 03 页 · 固定对象与三个版本：先暴露“稳定=可用”的第一误判 第 04 页 · 固定读图顺序：先骨架，再关键节点，再窗口，再后果 第 "
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-5-zero-dynamic-improvement-student-demo.png",
+    "textHead": "返回 ZERO DYNAMIC IMPROVEMENT 3-5：零点引入与动态改善——为什么改变结构后，轨迹和响应会一起变 B · 导入 ⏱ 6 min 只阅读，不提交。 环节 第 01 页 · 回到地图：从沿轨迹读图转向结构改变 第 02 页 · 统一对象与观察框架：四个版本、三项产出、四个观察量 第 03 页 · 前测：三类起点误判先落地 第 04 页 · 二阶对象接入零点：先看哪条分支被拉走 第 05 页 · 三阶对象接入零点：零点位置怎样改写主导分支 第 06 页 · 第一收束：左半平面零点常改善动态，右半"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-6-zero-design-workshop-student-demo.png",
+    "textHead": "返回 ZERO DESIGN WORKSHOP 3-6：零点作用与动态改善实验——从性能目标到校正设计 B · 导入 ⏱ 2 min 先判断入口原则，再进入后续设计链。 环节 第 01 页 · 封面导入：目标必须先于工具 第 02 页 · 回到地图：从 3-5 的机理走向 3-6 的设计 第 03 页 · 五任务设计链与提交物总览 第 04 页 · 前测：三类目标分别从哪里进入 第 05 页 · 任务书：统一对象、三类装置与五任务入口 第 06 页 · 时域指标如何变成设计可行域 第 07 页 · 任务 A：PD "
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-7-steady-error-low-frequency-compensation-student-demo.png",
+    "textHead": "返回 STEADY ERROR AND LOW-FREQUENCY COMPENSATION 3-7：型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理 B · 导入 ⏱ 4 min 先把 3-7 放回 3-6 到 3-8 之间，明确“更快更稳”并没有自动回答“为什么更准”。 环节 第 01 页 · 回到地图：为什么动态改善之后还可能不够准 第 02 页 · 学习目标与边界：本课先回答“为什么更准” 第 03 页 · 前测：给定、扰动、型别三类混淆 第 04 页 · 双通道骨架：四类传函分卡命名 第 05 "
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-8-frequency-domain-translation-judgment-student-demo.png",
+    "textHead": "返回 FREQUENCY-DOMAIN TRANSLATION AND JUDGMENT 3-8：频域判别与跨域综合语言 B · 导入 ⏱ 4 min 建立 3-8 的问题入口。 环节 第 01 页 · 导入：三类结构变化为什么需要统一频域语言 第 02 页 · 课程目标：用频域语言解释结构变化与稳定边界 第 03 页 · 前测：四类典型误判先暴露出来 第 04 页 · 四类结构变化总表：先给开环传函与频率响应，再看频域指纹 第 05 页 · 2.2.1 增益提升：整条曲线一起被抬高 第 06 页 · 2.2.2 "
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-3-9-cross-domain-mapping-lab-student-demo.png",
+    "textHead": "返回 CROSS-DOMAIN MAPPING LAB 3-9：稳定—动态—稳态综合映射实验 B · 导入 ⏱ 5 min 用漫画和场景问题导入同一对象的跨域比较任务。 环节 第 01 页 · 导入：同一艘船的三种改进诉求 第 02 页 · 课程目标：跨域证据与任务标签 第 03 页 · 前测：任务标签与机制线判断 第 04 页 · 控制对象：本次课比较的同一艘船 第 05 页 · 基准版本：从四联图读出性能指标 第 06 页 · 超前校正的动态改善调节 第 07 页 · 积分校正的稳态误差调节 第 08 页 · "
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-4-1-design-task-expression-student-demo.png",
+    "textHead": "展开导航 学习 / 互动学习 / 互动课程 / 4-1：设计起点：性能指标体系、工程约束与可行域表达 / 访客演示 学生 4-1：设计起点：性能指标体系、工程约束与可行域表达 Design Task Expression 访客演示 任务表达入口：从跨域证据写出设计任务 用封面情境图、课程信息图和导入问题进入任务表达。 B · 导入 1 / 13 学生课堂台 演示模式已开启 演示模式不会写入课堂状态。 第 01 页 任务表达入口：从跨域证据写出设计任务 用封面情境图、课程信息图和导入问题，引出从跨域证据写出设计"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-4-2-controller-selection-first-start-student-demo.png",
+    "textHead": "返回 CONTROLLER SELECTION FIRST START 4-2：控制器选型原理：不同控制结构为何适合不同任务 B · 导入 ⏱ 4 min 用场景问题引出结构选型和单结构整定。 环节 第 01 页 · 控制器选型与整定任务的导入场景 第 02 页 · 本次课程目标 第 03 页 · 前置基础快测 第 04 页 · 单结构整定的四类复核量 第 05 页 · 典型控制结构的频域特性矩阵 第 06 页 · 控制器结构选型决策树 第 07 页 · 经验整定与临界比例整定步骤 第 08 页 · 频域 PI 与"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-4-3-initial-scheme-practice-first-validation-student-demo.png",
+    "textHead": "返回 INITIAL SCHEME PRACTICE 4-3：经典复合控制的初始方案落地：从单结构候选到工程可运行方案 B · 导入 ⏱ 4 min 把 4-3 固定为从单结构候选进入工程复合方案。 环节 第 01 页 · 单结构候选走向工程复合方案 第 02 页 · 本次课程目标 第 03 页 · 前置基础读图与信号判断 第 04 页 · 单结构候选留下的设计缺口 第 05 页 · 狭义复合控制与广义复合控制边界 第 06 页 · 反馈主结构与复合控制总表达 第 07 页 · 扰动前馈与反馈的分工关系 第 08 "
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-4-4-fixed-structure-optimization-modeling-student-demo.png",
+    "textHead": "返回 FIXED-STRUCTURE OPTIMIZATION MODELING 4-4：多目标权衡与控制器优化设计 B · 导入 ⏱ 5 min 先交代对象与拉扯，再固定本课只产出无约束候选族。 环节 第 01 页 · 客船航向保持对象与多目标拉扯：为什么经典试凑会停住 第 02 页 · 本次课程目标：这一课要把哪些判断写实 第 03 页 · 四组经典试凑结果：多目标拉扯先被证据看见 第 04 页 · 参数化入口：起点、参数向量与参数范围从哪里来 第 05 页 · 自由目标与归一化：怎样把偏好写成同一套比较语言 "
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-4-5-constraint-aware-parameter-optimization-student-demo.png",
+    "textHead": "返回 CONSTRAINT-AWARE PARAMETER OPTIMIZATION 4-5：约束下的优化设计实践：参数约束翻译与带约束参数优化 B · 导入 ⏱ 8 min 用对象、候选和失败图同屏固定“更优不等于可交付”。 环节 第 01 页 · 无约束候选越界：时间指标更好，为什么仍不可交付 第 02 页 · 本次课程目标：完成这轮实践后应能做到什么 第 03 页 · 自由目标收益与工程复核：更优为什么还不等于可用 第 04 页 · 三条硬约束第一次被显性提出 第 05 页 · 参数范围与硬约束分别在回答什么"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-4-6-fixed-structure-boundary-structural-encoding-student-demo.png",
+    "textHead": "返回 STRUCTURAL ENCODING BOUNDARY 4-6：场景迁移与方案比较：固定结构优化边界与结构编码入口 B · 导入 8 min 用表 1、旧解回收和失配图钉住问题写法失效。 环节 第 01 页 · 从场景配置对比到迁移问题：为什么这次不能只说“再调一调参数” 第 02 页 · 本次课程目标：完成这轮迁移判断后应能做到什么 第 03 页 · 迁移场景任务重排：客船与驱逐舰到底换了什么 第 04 页 · 固定结构迁移后的失配信号：拖尾、航迹偏离与职责过载如何同时出现 第 05 页 · 驱逐舰专用代"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-4-7-destroyer-hifi-design-closure/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-4-7-destroyer-hifi-design-closure/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-4-7-destroyer-hifi-design-closure-student-demo.png",
+    "textHead": "返回 DESTROYER HIFI DESIGN CLOSURE 4-7：高保真辨识、设计验证与扰动边界 B · 导入 5 min 从已有固定结构设计链提出高保真任务边界问题。 环节 第 01 页 · 从固定结构设计到高保真任务边界 第 02 页 · 前测 第 03 页 · 真实航迹任务与分段辨识模型结构 第 04 页 · 指标到代价函数：航迹、舵角和裕度怎样进入同一个判断 第 05 页 · 传统设计诊断四联图：为什么结构定型为 $PI+\\text{超前}$ 第 06 页 · 传统控制器参数计算与名义验证：控制值怎"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-5-1-linear-backbone-boundaries-student-demo.png",
+    "textHead": "返回 LINEAR BACKBONE BOUNDARIES 5-1：线性主干的边界：饱和、死区、滞回、切换与模型失配 B · 导入 4 min 从舵机大角度响应读出线性预测和真实边界的分离。 环节 第 01 页 · 舵机大角度响应中的线性边界显现 第 02 页 · 本次课程目标 第 03 页 · 前测：线性模型的预备判断 第 04 页 · 线性主干依赖的五个默认条件 第 05 页 · 典型非线性环节的假设破坏类型 第 06 页 · 合理局部线性化：平滑非线性的小扰动模型 第 07 页 · 继电器切换的伪线性化失真 "
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-5-2-nonlinear-analysis-entry/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-5-2-nonlinear-analysis-entry/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-5-2-nonlinear-analysis-entry-student-demo.png",
+    "textHead": "返回 NONLINEAR ANALYSIS ENTRY 5-2：非线性系统的最小分析入口 B · 导入 5 min 建立非线性边界下三种观察工具的分工。 环节 第 01 页 · 非线性边界现象与三种观察工具 第 02 页 · 本次课程目标 第 03 页 · 前置基础快测 第 04 页 · 工作点附近的局部线性化 第 05 页 · 动态系统线性化与局部结论 第 06 页 · 相平面中的状态轨迹与周期行为 第 07 页 · 描述函数的基波近似 第 08 页 · 饱和、死区与死区饱和的描述函数 第 09 页 · 继电、滞"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-5-3-mass-coordination-chain-student-demo.png",
+    "textHead": "返回 MASS COORDINATION CHAIN 5-3：从单回路控制到复杂自主系统链路 B · 导入 6 min 建立复杂自主系统中的控制位置与责任链问题。 环节 第 01 页 · 复杂自主系统链路中的控制位置 第 02 页 · 本次课程目标 第 03 页 · 前置基础快测 第 04 页 · MASS 协同链路与责任流 第 05 页 · 单回路控制在自主系统链路中的位置 第 06 页 · 上游信息质量与反馈可信度 第 07 页 · 规划参考可实现性 第 08 页 · 执行约束与可实现反馈 第 09 页 · 链"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-5-4-data-driven-mpc-transition-student-demo.png",
+    "textHead": "返回 DATA DRIVEN MPC TRANSITION 5-4：从模型驱动到数据驱动 B · 导入 6 min 从模型预测偏离真实对象的场景进入方法迁移判断。 环节 第 01 页 · 模型预测偏离真实对象的导入场景 第 02 页 · 本次课程目标 第 03 页 · 前置基础快测 第 04 页 · 模型驱动控制的可解释关系 第 05 页 · 单一模型在复杂链路中的压力 第 06 页 · 名义航向模型预测偏差读图 第 07 页 · MPC 的滚动预测与约束优化结构 第 08 页 · MPC 对模型质量和在线计算的依"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-5-5-policy-learning-entry-risk-student-demo.png",
+    "textHead": "返回 POLICY LEARNING ENTRY RISK 5-5：从显式控制器到策略学习 B · 导入 6 min 从复杂航行情境进入策略学习的入口条件和工程责任判断。 环节 第 01 页 · 策略学习进入控制问题的导入场景 第 02 页 · 本次课程目标 第 03 页 · 前置基础快测 第 04 页 · 显式控制律的结构证据 第 05 页 · 复杂自主系统中的动作选择压力 第 06 页 · 显式控制律与学习策略的证明责任 第 07 页 · 强化学习的序贯决策与长期回报 第 08 页 · 横向误差修正实时训练 第"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "desktop",
+    "route": "/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo",
+    "status": 200,
+    "file": "desktop-interactive-learning-courses-unit-5-6-method-comparison-cold-chain-student-demo.png",
+    "textHead": "返回 METHOD COMPARISON COLD CHAIN 5-6：方法迁移与前沿比较 B · 导入 5 min 从冷链仓库同题比较进入经典、预测补偿和策略监督层的路线选择压力。 环节 第 01 页 · 冷链方法选择压力的导入场景 第 02 页 · 本次课程目标 第 03 页 · 前置基础快测 第 04 页 · 冷链温控同题任务与约束证据 第 05 页 · 二状态热模型与实验场景 第 06 页 · 经典 PI/PID 冷链基线 第 07 页 · 热负荷预测补偿路线 第 08 页 · 策略学习监督层调度边界 第 "
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/cruise-comfort-boppps/student/demo",
+    "finalUrl": "/interactive-learning/courses/cruise-comfort-boppps/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-cruise-comfort-boppps-student-demo.png",
+    "textHead": "返回 CRUISE COMFORT BOPPPS 柔性之海：豪华邮轮舒适度控制 环节 第 01 页 · 课堂码发放 第 02 页 · 开场导入：邮轮舒适度冲突 第 03 页 · 个性化目标：布鲁姆动词驱动 第 04 页 · 快速前测：2道自适应题 第 05 页 · 工程目标设定 第 06 页 · 第一轮参数探索 第 07 页 · NeuralODE嵌入（教师） 第 08 页 · AI介入分析 第 09 页 · 结构化提示词修改 第 10 页 · 暂停反思 第 11 页 · 反思调整 第 12 页 · 一致性校验 第"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-1-1-see-the-full-picture/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-1-1-see-the-full-picture-student-demo.png",
+    "textHead": "学习 / 互动学习 / 互动课程 / 1-1：看见整门课——从反馈思想到控制全景 / 访客演示 学生 1-1：看见整门课——从反馈思想到控制全景 A Lightning Tour of Control 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 访客演示 看见整门课 用一条船贯穿全部八个问题，90分钟把自动控制原理全部核心主题走一遍。 B · 导入 1 / 15 学生学习台 演示模式已开启 演示模式不会写入课堂状态。 COURSE BRIDGE 从 1-1 到 2-1：先看见全景，再深入细"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-1-2-modeling-from-object-to-system/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-1-2-modeling-from-object-to-system-student-demo.png",
+    "textHead": "返回 MODELING FROM OBJECT TO SYSTEM 1-2：建模——从真实对象到可分析的系统 环节 第 01 页 · 导入——不同对象的行为差异与共性 第 02 页 · 课程目标 第 03 页 · 前测——进入建模专题前的准备 第 04 页 · 建模的两条路径 第 05 页 · 微分方程——物理对象的第一次翻译 第 06 页 · 传递函数——从微分运算到代数运算 第 07 页 · 方框图——系统的结构表达 第 08 页 · 信号流图——变量间的决定关系 第 09 页 · 极点的几何来源——三维幅值曲"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-2-1-modeling-language/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-2-1-modeling-language-student-demo.png",
+    "textHead": "返回 MODELING LANGUAGE 2-1：建模与变换语言——从真实对象到统一分析对象 环节 第 01 页 · 回到地图——为什么模块 2 先从建模语言开始 第 02 页 · 情境引入——为什么光有微分方程还不够 第 03 页 · 学习目标——今天要建哪条对象链 第 04 页 · 前测——对象、初值与结构的三个误区 第 05 页 · 拉氏变换的工程动机 第 06 页 · 零初值下传递函数怎样形成 第 07 页 · 非零初值为什么不能混进对象定义 第 08 页 · 典型环节对象库：先看清对象由什么组成 第 09"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-2-2-time-domain-response/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-2-2-time-domain-response-student-demo.png",
+    "textHead": "返回 TIME-DOMAIN RESPONSE 2-2：时域响应基础——从响应曲线到动态性能指标 环节 第 01 页 · 回到地图——从传函走向响应曲线 第 02 页 · 情境引入——稳定并不等于表现一样 第 03 页 · 学习目标——本课要建立哪套语言 第 04 页 · 前测——快、稳、冲分别看什么 第 05 页 · 时域分析对象与典型输入 第 06 页 · 一阶系统阶跃响应与时间常数 第 07 页 · 二阶系统标准型：ωn、ζ、ωd 第 08 页 · 四种响应家族对比 第 09 页 · 动态性能指标总览 第 1"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-2-3-frequency-response-bode-intro/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-2-3-frequency-response-bode-intro-student-demo.png",
+    "textHead": "返回 FREQUENCY RESPONSE & BODE INTRO 2-3：频率响应基础与 Bode 图初步——从时域现象到频域图形入口 环节 第 01 页 · 回到地图——从时域对象走向频域对象 第 02 页 · 情境引入——系统为什么会挑节奏 第 03 页 · 学习目标——这节课要建立哪套频域语言 第 04 页 · 前测——低频、高频与正弦输入判断 第 05 页 · 从时域问题走向频域问题 第 06 页 · 方波、频率分量与重构直觉 第 07 页 · 正弦输入为什么会导向同频输出 第 08 页 · 幅值变化与"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-2-4-nyquist-margin-entry/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-2-4-nyquist-margin-entry-student-demo.png",
+    "textHead": "返回 NYQUIST, MARGINS & REVERSE READING 2-4：Nyquist 图与频域指标入口——把 Bode 图收束为轨迹、裕度与反向识别 环节 第 01 页 · 回到地图——从 Bode 骨架走向图形对象 第 02 页 · 情境引入——为什么同一条频率特性还要换一张图 第 03 页 · 学习目标与边界——本课负责什么、不负责什么 第 04 页 · 前测——起点、对象与指标三类误区 第 05 页 · 同一个 G(jω)：Bode 拆开看，Nyquist 合起来看 第 06 页 · Nyqui"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-1-pure-pole-stability-and-dynamics/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-1-pure-pole-stability-and-dynamics-student-demo.png",
+    "textHead": "返回 PURE POLES, MODES & APPROXIMATION 3-1：纯极点视角下的稳定、模态与双域近似——为什么高阶系统仍能用低阶模型理解 环节 第 01 页 · 回到路径：从模块 2 的低阶直觉走向模块 3 的极点语言 第 02 页 · 情境引入：同主导极点，为什么响应仍会分家 第 03 页 · 学习目标与课堂边界：本课负责什么，不负责什么 第 04 页 · 前测：稳定、主导极点与“可忽略”直觉判断 第 05 页 · 稳定底线：先回答“能不能谈近似” 第 06 页 · 从极点到模态：极点为什么会直接"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-2-routh-stability-boundary/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-2-routh-stability-boundary-student-demo.png",
+    "textHead": "返回 ROUTH STABILITY BOUNDARY 3-2：劳斯判据——从高阶系统稳定判定到参数可行域 环节 第 01 页 · 回到地图——从纯极点语言走向稳定边界 第 02 页 · 先看主对象——极点迁移图提出了哪三个问题 第 03 页 · 前测——不求根判稳、特殊情况与区域收紧 第 04 页 · 普通劳斯表——固定 k=4 时怎样从第一列读出稳定性 第 05 页 · 带参数劳斯表——稳定区间怎样从第一列条件链中写出 第 06 页 · 边界点回到复平面——k=-2、18、22 分别对应什么根结构 第 07 页"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-3-root-locus-rules/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-3-root-locus-rules-student-demo.png",
+    "textHead": "返回 ROOT LOCUS RULES 3-3：根轨迹机制与完整法则——为什么参数变化会推动闭环极点迁移 环节 第 01 页 · 回到地图：为什么稳定边界还不等于迁移机制 第 02 页 · 问题引入：知道稳定区间为什么仍然不够 第 03 页 · 本课目标：完成本次课程后你应能做到什么 第 04 页 · 根轨迹定义与两大条件：从闭环方程到资格与参数 第 05 页 · 条件互动：拖动 s_0 检查相角条件与幅值条件 第 06 页 · 骨架法则：起点终点、实轴区段与渐近线 第 07 页 · 例题 1：先用骨架法则判断整体"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-4-root-locus-reading-validation/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-4-root-locus-reading-validation-student-demo.png",
+    "textHead": "返回 ROOT LOCUS READING VALIDATION 3-4：根轨迹读图与对象化验证——把法则真正用到主图、参数窗口与工程后果上 环节 第 01 页 · 回到地图：从 `3-3` 法则走向 `3-4` 判断 第 02 页 · 问题提出与三张记录表：稳定之后还要回答什么 第 03 页 · 固定对象与三个版本：先暴露“稳定=可用”的第一误判 第 04 页 · 固定读图顺序：先骨架，再关键节点，再窗口，再后果 第 05 页 · 关键节点证据板：分离点、虚轴交点与参考工作点 `B` 第 06 页 · 关键节点读"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-5-zero-dynamic-improvement/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-5-zero-dynamic-improvement-student-demo.png",
+    "textHead": "返回 ZERO DYNAMIC IMPROVEMENT 3-5：零点引入与动态改善——为什么改变结构后，轨迹和响应会一起变 环节 第 01 页 · 回到地图：从沿轨迹读图转向结构改变 第 02 页 · 统一对象与观察框架：四个版本、三项产出、四个观察量 第 03 页 · 前测：三类起点误判先落地 第 04 页 · 二阶对象接入零点：先看哪条分支被拉走 第 05 页 · 三阶对象接入零点：零点位置怎样改写主导分支 第 06 页 · 第一收束：左半平面零点常改善动态，右半平面零点需另看边界 第 07 页 · 结构辨认："
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-6-zero-design-workshop/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-6-zero-design-workshop-student-demo.png",
+    "textHead": "返回 ZERO DESIGN WORKSHOP 3-6：零点作用与动态改善实验——从性能目标到校正设计 环节 第 01 页 · 封面导入：目标必须先于工具 第 02 页 · 回到地图：从 3-5 的机理走向 3-6 的设计 第 03 页 · 五任务设计链与提交物总览 第 04 页 · 前测：三类目标分别从哪里进入 第 05 页 · 任务书：统一对象、三类装置与五任务入口 第 06 页 · 时域指标如何变成设计可行域 第 07 页 · 任务 A：PD 时域设计 第 08 页 · 任务 B 的证据板：测速反馈为何不是“"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-7-steady-error-low-frequency-compensation/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-7-steady-error-low-frequency-compensation-student-demo.png",
+    "textHead": "返回 STEADY ERROR AND LOW-FREQUENCY COMPENSATION 3-7：型别、积分环节与稳态改善——PI 与滞后校正的低频补偿机理 环节 第 01 页 · 回到地图：为什么动态改善之后还可能不够准 第 02 页 · 学习目标与边界：本课先回答“为什么更准” 第 03 页 · 前测：给定、扰动、型别三类混淆 第 04 页 · 双通道骨架：四类传函分卡命名 第 05 页 · 终值定理直接求：原理模块与例题 1 分离 第 06 页 · 型别与静态误差系数：双表并排快判 第 07 页 · 复合"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-8-frequency-domain-translation-judgment/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-8-frequency-domain-translation-judgment-student-demo.png",
+    "textHead": "返回 FREQUENCY-DOMAIN TRANSLATION AND JUDGMENT 3-8：频域判别与跨域综合语言 环节 第 01 页 · 导入：三类结构变化为什么需要统一频域语言 第 02 页 · 课程目标：用频域语言解释结构变化与稳定边界 第 03 页 · 前测：四类典型误判先暴露出来 第 04 页 · 四类结构变化总表：先给开环传函与频率响应，再看频域指纹 第 05 页 · 2.2.1 增益提升：整条曲线一起被抬高 第 06 页 · 2.2.2 左半平面零点：重点改写中频 第 07 页 · 2.2.3 "
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-3-9-cross-domain-mapping-lab/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-3-9-cross-domain-mapping-lab-student-demo.png",
+    "textHead": "返回 CROSS-DOMAIN MAPPING LAB 3-9：稳定—动态—稳态综合映射实验 环节 第 01 页 · 导入：同一艘船的三种改进诉求 第 02 页 · 课程目标：跨域证据与任务标签 第 03 页 · 前测：任务标签与机制线判断 第 04 页 · 控制对象：本次课比较的同一艘船 第 05 页 · 基准版本：从四联图读出性能指标 第 06 页 · 超前校正的动态改善调节 第 07 页 · 积分校正的稳态误差调节 第 08 页 · 积分补偿后的中频相位整理 第 09 页 · 滞后校正的低频收益调节 第 10"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-4-1-design-task-expression/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-4-1-design-task-expression-student-demo.png",
+    "textHead": "学习 / 互动学习 / 互动课程 / 4-1：设计起点：性能指标体系、工程约束与可行域表达 / 访客演示 学生 4-1：设计起点：性能指标体系、工程约束与可行域表达 Design Task Expression 首页 虚拟仿真 知识资源 竞技场 控制工作台 学习路径 互动学习 访客演示 任务表达入口：从跨域证据写出设计任务 用封面情境图、课程信息图和导入问题进入任务表达。 B · 导入 1 / 13 学生课堂台 演示模式已开启 演示模式不会写入课堂状态。 第 01 页 任务表达入口：从跨域证据写出设计任务 用"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-4-2-controller-selection-first-start/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-4-2-controller-selection-first-start-student-demo.png",
+    "textHead": "返回 CONTROLLER SELECTION FIRST START 4-2：控制器选型原理：不同控制结构为何适合不同任务 环节 第 01 页 · 控制器选型与整定任务的导入场景 第 02 页 · 本次课程目标 第 03 页 · 前置基础快测 第 04 页 · 单结构整定的四类复核量 第 05 页 · 典型控制结构的频域特性矩阵 第 06 页 · 控制器结构选型决策树 第 07 页 · 经验整定与临界比例整定步骤 第 08 页 · 频域 PI 与滞后整定步骤 第 09 页 · 频域 PD、超前与超前-滞后整定步骤"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-4-3-initial-scheme-practice-first-validation/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-4-3-initial-scheme-practice-first-validation-student-demo.png",
+    "textHead": "返回 INITIAL SCHEME PRACTICE 4-3：经典复合控制的初始方案落地：从单结构候选到工程可运行方案 环节 第 01 页 · 单结构候选走向工程复合方案 第 02 页 · 本次课程目标 第 03 页 · 前置基础读图与信号判断 第 04 页 · 单结构候选留下的设计缺口 第 05 页 · 狭义复合控制与广义复合控制边界 第 06 页 · 反馈主结构与复合控制总表达 第 07 页 · 扰动前馈与反馈的分工关系 第 08 页 · 参考前馈与给定通道塑形 第 09 页 · Bode 主环路分析的适用边界"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-4-4-fixed-structure-optimization-modeling/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-4-4-fixed-structure-optimization-modeling-student-demo.png",
+    "textHead": "返回 FIXED-STRUCTURE OPTIMIZATION MODELING 4-4：多目标权衡与控制器优化设计 环节 第 01 页 · 客船航向保持对象与多目标拉扯：为什么经典试凑会停住 第 02 页 · 本次课程目标：这一课要把哪些判断写实 第 03 页 · 四组经典试凑结果：多目标拉扯先被证据看见 第 04 页 · 参数化入口：起点、参数向量与参数范围从哪里来 第 05 页 · 自由目标与归一化：怎样把偏好写成同一套比较语言 第 06 页 · 数值优化到底在这门课里做什么 第 07 页 · 梯度下降最小例"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-4-5-constraint-aware-parameter-optimization/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-4-5-constraint-aware-parameter-optimization-student-demo.png",
+    "textHead": "返回 CONSTRAINT-AWARE PARAMETER OPTIMIZATION 4-5：约束下的优化设计实践：参数约束翻译与带约束参数优化 环节 第 01 页 · 无约束候选越界：时间指标更好，为什么仍不可交付 第 02 页 · 本次课程目标：完成这轮实践后应能做到什么 第 03 页 · 自由目标收益与工程复核：更优为什么还不等于可用 第 04 页 · 三条硬约束第一次被显性提出 第 05 页 · 参数范围与硬约束分别在回答什么 第 06 页 · 罚函数把边界写进模型 第 07 页 · 求解输入与六步求解链："
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-4-6-fixed-structure-boundary-structural-encoding/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-4-6-fixed-structure-boundary-structural-encoding-student-demo.png",
+    "textHead": "返回 STRUCTURAL ENCODING BOUNDARY 4-6：场景迁移与方案比较：固定结构优化边界与结构编码入口 环节 第 01 页 · 从场景配置对比到迁移问题：为什么这次不能只说“再调一调参数” 第 02 页 · 本次课程目标：完成这轮迁移判断后应能做到什么 第 03 页 · 迁移场景任务重排：客船与驱逐舰到底换了什么 第 04 页 · 固定结构迁移后的失配信号：拖尾、航迹偏离与职责过载如何同时出现 第 05 页 · 驱逐舰专用代价函数：为什么比较对象必须重写 第 06 页 · 何时把结构选择正式抬成"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-4-7-destroyer-hifi-design-closure/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-4-7-destroyer-hifi-design-closure/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-4-7-destroyer-hifi-design-closure-student-demo.png",
+    "textHead": "返回 DESTROYER HIFI DESIGN CLOSURE 4-7：高保真辨识、设计验证与扰动边界 环节 第 01 页 · 从固定结构设计到高保真任务边界 第 02 页 · 前测 第 03 页 · 真实航迹任务与分段辨识模型结构 第 04 页 · 指标到代价函数：航迹、舵角和裕度怎样进入同一个判断 第 05 页 · 传统设计诊断四联图：为什么结构定型为 $PI+\\text{超前}$ 第 06 页 · 传统控制器参数计算与名义验证：控制值怎样落成可复核公式 第 07 页 · 优化设计编码与解码：搜索结果怎样回到"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-5-1-linear-backbone-boundaries/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-5-1-linear-backbone-boundaries-student-demo.png",
+    "textHead": "返回 LINEAR BACKBONE BOUNDARIES 5-1：线性主干的边界：饱和、死区、滞回、切换与模型失配 环节 第 01 页 · 舵机大角度响应中的线性边界显现 第 02 页 · 本次课程目标 第 03 页 · 前测：线性模型的预备判断 第 04 页 · 线性主干依赖的五个默认条件 第 05 页 · 典型非线性环节的假设破坏类型 第 06 页 · 合理局部线性化：平滑非线性的小扰动模型 第 07 页 · 继电器切换的伪线性化失真 第 08 页 · 饱和执行器：大指令下前段响应变慢 第 09 页 · 死区"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-5-2-nonlinear-analysis-entry/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-5-2-nonlinear-analysis-entry/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-5-2-nonlinear-analysis-entry-student-demo.png",
+    "textHead": "返回 NONLINEAR ANALYSIS ENTRY 5-2：非线性系统的最小分析入口 环节 第 01 页 · 非线性边界现象与三种观察工具 第 02 页 · 本次课程目标 第 03 页 · 前置基础快测 第 04 页 · 工作点附近的局部线性化 第 05 页 · 动态系统线性化与局部结论 第 06 页 · 相平面中的状态轨迹与周期行为 第 07 页 · 描述函数的基波近似 第 08 页 · 饱和、死区与死区饱和的描述函数 第 09 页 · 继电、滞环继电与间隙的描述函数 第 10 页 · 负倒描述函数与候选自振"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-5-3-mass-coordination-chain/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-5-3-mass-coordination-chain-student-demo.png",
+    "textHead": "返回 MASS COORDINATION CHAIN 5-3：从单回路控制到复杂自主系统链路 环节 第 01 页 · 复杂自主系统链路中的控制位置 第 02 页 · 本次课程目标 第 03 页 · 前置基础快测 第 04 页 · MASS 协同链路与责任流 第 05 页 · 单回路控制在自主系统链路中的位置 第 06 页 · 上游信息质量与反馈可信度 第 07 页 · 规划参考可实现性 第 08 页 · 执行约束与可实现反馈 第 09 页 · 链路责任诊断顺序 第 10 页 · 自主避碰中的偏差传播场景 第 11 "
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-5-4-data-driven-mpc-transition/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-5-4-data-driven-mpc-transition-student-demo.png",
+    "textHead": "返回 DATA DRIVEN MPC TRANSITION 5-4：从模型驱动到数据驱动 环节 第 01 页 · 模型预测偏离真实对象的导入场景 第 02 页 · 本次课程目标 第 03 页 · 前置基础快测 第 04 页 · 模型驱动控制的可解释关系 第 05 页 · 单一模型在复杂链路中的压力 第 06 页 · 名义航向模型预测偏差读图 第 07 页 · MPC 的滚动预测与约束优化结构 第 08 页 · MPC 对模型质量和在线计算的依赖 第 09 页 · 数据驱动控制的信息来源变化 第 10 页 · 在线辨"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-5-5-policy-learning-entry-risk/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-5-5-policy-learning-entry-risk-student-demo.png",
+    "textHead": "返回 POLICY LEARNING ENTRY RISK 5-5：从显式控制器到策略学习 环节 第 01 页 · 策略学习进入控制问题的导入场景 第 02 页 · 本次课程目标 第 03 页 · 前置基础快测 第 04 页 · 显式控制律的结构证据 第 05 页 · 复杂自主系统中的动作选择压力 第 06 页 · 显式控制律与学习策略的证明责任 第 07 页 · 强化学习的序贯决策与长期回报 第 08 页 · 横向误差修正实时训练 第 09 页 · 策略学习进入控制任务的五项条件 第 10 页 · 进入条件与风险"
+  },
+  {
+    "group": "24-course-student-runtime-demo-all",
+    "role": "STUDENT",
+    "viewport": "mobile",
+    "route": "/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo",
+    "finalUrl": "/interactive-learning/courses/unit-5-6-method-comparison-cold-chain/student/demo",
+    "status": 200,
+    "file": "mobile-interactive-learning-courses-unit-5-6-method-comparison-cold-chain-student-demo.png",
+    "textHead": "返回 METHOD COMPARISON COLD CHAIN 5-6：方法迁移与前沿比较 环节 第 01 页 · 冷链方法选择压力的导入场景 第 02 页 · 本次课程目标 第 03 页 · 前置基础快测 第 04 页 · 冷链温控同题任务与约束证据 第 05 页 · 二状态热模型与实验场景 第 06 页 · 经典 PI/PID 冷链基线 第 07 页 · 热负荷预测补偿路线 第 08 页 · 策略学习监督层调度边界 第 09 页 · 同题实验数据与指标口径 第 10 页 · 常规日与经典控制优先判断 第 11 "
+  }
+]

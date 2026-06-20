@@ -1,0 +1,35 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "",
+    "url": "http://localhost:3100/api/teacher/classes/cmma7g0590004g9q2nl2jyzdf/assistant-effect-report?export=true",
+    "h1": [],
+    "h2": [],
+    "activeElement": {
+      "tag": "body",
+      "role": "",
+      "type": "",
+      "name": "{\"error\":\"演示效果报告不存在\"}"
+    },
+    "visibleControls": [],
+    "controls": [],
+    "alerts": [],
+    "dialogs": [],
+    "tables": [],
+    "bodyText": "{\"error\":\"演示效果报告不存在\"}",
+    "actionSignals": {
+      "success": false,
+      "loading": false,
+      "failure": false,
+      "report": true,
+      "governance": false,
+      "ai": false
+    },
+    "scroll": {
+      "width": 1440,
+      "height": 1100,
+      "viewportWidth": 1440,
+      "viewportHeight": 1100
+    }
+  }
+}

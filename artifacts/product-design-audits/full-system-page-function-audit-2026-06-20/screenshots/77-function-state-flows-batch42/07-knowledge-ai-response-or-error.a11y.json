@@ -1,0 +1,314 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/knowledge?node=Bode%E5%9B%BE_1_1",
+    "h1": [
+      "知识图谱"
+    ],
+    "h2": [
+      "控灵"
+    ],
+    "activeElement": {
+      "tag": "body",
+      "role": "",
+      "type": "",
+      "name": "展开导航 学生 知识图谱 知识关系、证据来源与学习路径入口 目录 598 个节点 筛选 3/21 类关系 图例 23 种语义 视图 2D · 0 固定 613 节点 1306 关系 结构优先 关系 3/21 · 强度 >= 0.8 · 仅连通节点 控灵 当前: 知识图谱 这个知识节点为什么没有解析？我应该怎么继续？ { \"pageContext\": { \"courseId\": \"knowledge\", \"courseTitle\": \"知识资源\", \"pageType\": \"workspace\", \"stepId\": \"/knowledge\", \"topic\": \"知识图谱\", \"learningObjectives\": [ \"结合知识图谱关系定位当前概念、资源和后续学习动作。\" ], \"knowledgeType\": \"C\", \"url\": \"/knowledge\" }, \"knowledgeWorkspace\": { \"source\": \"server-owned\", \"route\": \"/knowledge\", \"status\": \"degraded\", \"selected_node\": null, \"relation_summary\": { \"density_mode\": \"structure\", \"view_mode\": \"2D\", \"active_filters\": [ \"关系 3/21 · 强度 >= 0.8 · 仅连通节点\" ], \"visible_relation_count\": 1306, \"selected_node_relation_count\": 0 }, \"available_learning_actions\": [ \"search-knowledge-graph\", \"open-chapter-directory\" ], \"hover_policy\": \"preview-only-not-durable-context\", \"missing_context\": [ \"knowledge-workspace-selected-node-unresolved\" ] }, \"knowledgeCapabilityContext\": { \"source\": \"server-owned\", \"answerIntent\": \"fact-explanation\", \"knowledgeNodeRefs\": [], \"capabilityTargetRefs\": [], \"resourceRefs\": [], \"pathNodeRefs\": [], \"citationRefs\": [], \"missingContext\": [ \"knowledge-node-context-missing\", \"capability-target-context-missing\" ], \"scope\": { \"role\": \"student\", \"courseId\": \"knowledge\", \"pageId\": \"/knowledge\", \"resourceId\": null, \"pathNodeId\": null, \"classScoped\": false, \"privacyLabel\": \"student-visible\" } } } 【控灵证据提示】本次流式回答尚未完成最终引用核验。缺少证据类型：content、learner-state、path-execution、evidence。低置信原因：missing-content；missing-learner-state；missing-path-execution；missing-evidence；missing-grounding:knowledge-or-resource；assistant-required-citation-owner-missing:answer；answer-intent-content-citation-missing:fact-explanation；assistant-citations-unverified-stream。 你好！看来你当前的知识图谱视图因为缺少选定的节点，导致无法展示具体的解析内容。这通常是因为系统处于“预览”状态，或者之前的筛选条件（如强度 >= 0.8）过滤掉了当前可见的内容。 你可以尝试以下操作来继续： 选择节点：在图谱中点击一个你感兴趣的概念节点，系统会加载该节点的知识详情及关联关系。 调整筛选：如果点击后仍无反应，尝试降低强度阈值或取消“仅连通节点”的筛选，以显示更多潜在关联。 查阅目录：你可以点击侧边栏的章目录，从层级结构中找到目标知识点并直接跳转。 你想先探索哪个具体的知识点，或者需要我帮你梳理一下当前的学习路径吗？🤔 按 Enter 发送，ESC 关闭面板 工具",
+      "inAiSidebar": false,
+      "inFloating": false
+    },
+    "controls": [
+      {
+        "tag": "button",
+        "role": "",
+        "name": "展开平台导航",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "首页",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "虚拟仿真",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "知识资源",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "竞技场",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "控制工作台",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "学习路径",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "互动学习",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "切换到深色模式",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "首页",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "虚拟仿真",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "知识资源",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "竞技场",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "控制工作台",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "学习路径",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "互动学习",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "目录 598 个节点",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "筛选 3/21 类关系",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "图例 23 种语义",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "视图 2D · 0 固定",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "div",
+        "role": "button",
+        "name": "关闭 AI 侧栏",
+        "type": "",
+        "disabled": false,
+        "hidden": true,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "清空对话",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": true,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "关闭 (ESC)",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": true,
+        "inFloating": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "name": "全局 AI 问题输入框",
+        "type": "text",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": true,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "",
+        "type": "submit",
+        "disabled": true,
+        "hidden": false,
+        "inAiSidebar": true,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "打开工具与页面工具菜单",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": true
+      }
+    ],
+    "alerts": [],
+    "ai": {
+      "state": "open",
+      "role": "",
+      "surface": "global-sidebar",
+      "avoidance": "inactive",
+      "knowledgePolicy": "suspend",
+      "text": "控灵 当前: 知识图谱 这个知识节点为什么没有解析？我应该怎么继续？ { \"pageContext\": { \"courseId\": \"knowledge\", \"courseTitle\": \"知识资源\", \"pageType\": \"workspace\", \"stepId\": \"/knowledge\", \"topic\": \"知识图谱\", \"learningObjectives\": [ \"结合知识图谱关系定位当前概念、资源和后续学习动作。\" ], \"knowledgeType\": \"C\", \"url\": \"/knowledge\" }, \"knowledgeWorkspace\": { \"source\": \"server-owned\", \"route\": \"/knowledge\", \"status\": \"degraded\", \"selected_node\": null, \"relation_summary\": { \"density_mode\": \"structure\", \"view_mode\": \"2D\", \"active_filters\": [ \"关系 3/21 · 强度 >= 0.8 · 仅连通节点\" ], \"visible_relation_count\": 1306, \"selected_node_relation_count\": 0 }, \"available_learning_actions\": [ \"search-knowledge-graph\", \"open-chapter-directory\" ], \"hover_policy\": \"preview-only-not-durable-context\", \"missing_context\": [ \"knowledge-workspace-selected-node-unresolved\" ] }, \"knowledgeCapabilityContext\": { \"source\": \"server-owned\", \"answerIntent\": \"fact-explanation\", \"knowledgeNodeRefs\": [], \"capabilityTargetRefs\": [], \"resourceRefs\": [], \"pathNodeRefs\": [], \"citationRefs\": [], \"missingContext\": [ \"knowledge-node-context-missing\", \"capability-target-context-missing\" ], \"scope\": { \"role\": \"student\", \"courseId\": \"knowledge\", \"pageId\": \"/knowledge\", \"resourceId\": null, \"pathNodeId\": null, \"classScoped\": false, \"privacyLabel\": \"student-visible\" } } } 【控灵证据提示】本次流式回答尚未完成最终引用核验。缺少证据类型：content、learner-state、path-execution、evidence。低置信原因：missing-content；missing-learner-state；missing-path-execution；missing-evidence；missing-grounding:knowledge-or-resource；assistant-required-citation-owner-missing:answer；answer-intent-content-citation-missing:fact-explanation；assistant-citations-unverified-stream。 你好！看来你当前的知识图谱视图因为缺少选定的节点，导致无法展示具体的解析内容。这通常是因为系统处于“预览”状态，或者之前的筛选条件（如强度 >= 0.8）过滤掉了当前可见的内容。 你可以尝试以下操作来继续： 选择节点：在图谱中点击一个你感兴趣的概念节点，系统会加载该节点的知识详情及关联关系。 调整筛选：如果点击后仍无反应，尝试降低强度阈值或取消“仅连通节点”的筛选，以显示更多潜在关联。 查阅目录：你可以点击侧边栏的章目录，从层级结构中找到目标知识点并直接跳转。 你想先探索哪个具体的知识点，或者需要我帮你梳理一下当前的学习路径吗？🤔 按 Enter 发送，ESC 关闭面板",
+      "hasWelcome": false,
+      "hasKnowledgeContext": false,
+      "knowledgeContextState": "",
+      "hasError": false,
+      "hasRetry": false,
+      "hasLoading": false,
+      "messageCount": 2,
+      "messages": [
+        "这个知识节点为什么没有解析？我应该怎么继续？",
+        "【控灵证据提示】本次流式回答尚未完成最终引用核验。缺少证据类型：content、learner-state、path-execution、evidence。低置信原因：missing-content；missing-learner-state；missing-path-execution；missing-evidence；missing-grounding:knowledge-or-resource；assistant-required-citation-owner-missing:answer；answer-intent-content-citation-missing:fact-explanation；assistant-citations-unverified-stream。 你好！看来你当前的知识图谱视图因为缺少选定的节点，导致无法展示具体的解析内容。这通常是因为系统处于“预览”状态，或者之前的筛选条件（如强度 >= 0.8）过滤掉了当前可见的内容。 你可以尝试以下操作来继续： 选择节点：在图谱中点击一个你感兴趣的概念节点，系统会加载该节点的知识详情及关联关系。 调整筛选：如果点击后仍无反应，尝试降低强度阈值或取消“仅连通节点”的筛选，以显示更多潜在关联。 查阅目录：你可以点击侧边栏的章目录，从层级结构中找到目标知识点并直接跳转。 你想先探索哪个具体的知识点，或者需要我帮你梳理一下当前的学习路径吗？🤔"
+      ],
+      "quickQuestions": [],
+      "sendButtonName": "",
+      "sendButtonDisabled": true,
+      "stopButtonName": "",
+      "clearButtonName": "清空对话",
+      "inputDisabled": false
+    },
+    "routeMarkers": {
+      "routeFrame": "knowledge-data-map",
+      "floatingBehavior": "collapsed",
+      "mobileNavigation": "workspace-command-surface"
+    }
+  }
+}

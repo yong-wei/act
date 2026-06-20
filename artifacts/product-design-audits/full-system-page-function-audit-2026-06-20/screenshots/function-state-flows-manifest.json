@@ -1,0 +1,180 @@
+{
+  "generatedAt": "2026-06-20T03:35:28.987Z",
+  "entries": [
+    {
+      "id": "auth-login-invalid-desktop",
+      "flow": "auth-login",
+      "role": "anonymous",
+      "viewport": "desktop",
+      "action": "invalid credentials submitted",
+      "health": "visible error state captured",
+      "finalUrl": "http://localhost:3100/login",
+      "screenshot": "artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/screenshots/36-function-state-flows/auth-login-invalid-desktop.png",
+      "textHead": "AI-OBE船舶智控平台 Mission Control for Maritime Education 互动学习 知识图谱 商业入口 · 账号与画像 账号登录 未指定回调目标，登录后进入角色驾驶舱。 个人中心回调 返回产品地图 浏览互动学习 登录继续 账号或密码错误 登录 学习 课程、知识图谱与互动学习入口。 练习 自适应学习路径、诊断与补强建议。 挑战 竞技场挑战、榜单与正式评价。 实验 仿真对象、控制工作台与参数探索。 复盘 个人证据、成长轨迹与学习报告。 账号与画像 登录、账号、个人中心与回调目标。 控灵 AI-OBE 智能学习伴侣 你好，我是控灵，你的AI学习伴侣。有什么我可以帮助你的吗？ 你可以问我: 按 Enter 发送"
+    },
+    {
+      "id": "auth-login-invalid-mobile",
+      "flow": "auth-login",
+      "role": "anonymous",
+      "viewport": "mobile",
+      "action": "invalid credentials submitted",
+      "health": "visible error state captured",
+      "finalUrl": "http://localhost:3100/login",
+      "screenshot": "artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/screenshots/36-function-state-flows/auth-login-invalid-mobile.png",
+      "textHead": "AI-OBE船舶智控平台 Mission Control for Maritime Education 商业入口 · 账号与画像 账号登录 未指定回调目标，登录后进入角色驾驶舱。 个人中心回调 返回产品地图 浏览互动学习 登录继续 账号或密码错误 登录 学习 课程、知识图谱与互动学习入口。 练习 自适应学习路径、诊断与补强建议。 挑战 竞技场挑战、榜单与正式评价。 实验 仿真对象、控制工作台与参数探索。 复盘 个人证据、成长轨迹与学习报告。 账号与画像 登录、账号、个人中心与回调目标。 控灵 AI-OBE 智能学习伴侣 你好，我是控灵，你的AI学习伴侣。有什么我可以帮助你的吗？ 你可以问我: 按 Enter 发送，ESC 关闭面板 "
+    },
+    {
+      "id": "auth-register-short-password-desktop",
+      "flow": "auth-register",
+      "role": "anonymous",
+      "viewport": "desktop",
+      "action": "short password submitted",
+      "health": "validation state captured",
+      "finalUrl": "http://localhost:3100/register",
+      "screenshot": "artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/screenshots/36-function-state-flows/auth-register-short-password-desktop.png",
+      "textHead": "This page couldn’t load Reload to try again, or go back. Reload Back"
+    },
+    {
+      "id": "student-classroom-join-invalid-desktop",
+      "flow": "classroom-join",
+      "role": "student",
+      "viewport": "desktop",
+      "action": "invalid 6-digit code queried",
+      "health": "error or empty state captured",
+      "finalUrl": "http://localhost:3100/classroom/join",
+      "screenshot": "artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/screenshots/36-function-state-flows/student-classroom-join-invalid-desktop.png",
+      "textHead": "加入课堂 / 班级 输入教师提供的课堂码或班级加入码 加入课堂 加入班级 课堂码 未找到该入会码对应的课堂 查询课堂 课堂码用于进入一次课堂，班级加入码用于绑定长期班级 控灵 当前: join 你好，我是控灵。今天我们将探索「join」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵"
+    },
+    {
+      "id": "student-classroom-join-invalid-mobile",
+      "flow": "classroom-join",
+      "role": "student",
+      "viewport": "mobile",
+      "action": "invalid 6-digit code queried",
+      "health": "error or empty state captured",
+      "finalUrl": "http://localhost:3100/classroom/join",
+      "screenshot": "artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/screenshots/36-function-state-flows/student-classroom-join-invalid-mobile.png",
+      "textHead": "加入课堂 / 班级 输入教师提供的课堂码或班级加入码 加入课堂 加入班级 课堂码 未找到该入会码对应的课堂 查询课堂 课堂码用于进入一次课堂，班级加入码用于绑定长期班级 控灵 当前: join 你好，我是控灵。今天我们将探索「join」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵"
+    },
+    {
+      "id": "student-arena-method-leaderboard-desktop",
+      "flow": "arena-challenge",
+      "role": "student",
+      "viewport": "desktop",
+      "action": "method leaderboard tab selected",
+      "health": "tab state captured",
+      "finalUrl": "http://localhost:3100/arena/challenges/task-second-order-lead-pid",
+      "screenshot": "artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/screenshots/36-function-state-flows/student-arena-method-leaderboard-desktop.png",
+      "textHead": "展开导航 首页 / 竞技场首页 / 二阶对象快速稳定挑战 学生 竞技场 Arena workspace 个人中心 自动控制竞技场 基础 二阶对象快速稳定挑战 缩短调节时间，同时限制超调量和稳态误差。 对象来源 典型对象 公开程度 白箱模型 工作台 综合仿真工作台 榜单规则 白箱默认榜单 对象说明 被控对象 二阶欠阻尼对象 章节关联 模块 2 / 模块 3 任务属性 可作为作业挑战 模型表达 𝐺 ( 𝑠 ) = 16 𝑠 2 + 2.4 𝑠 + 16 G(s)= s 2 +2.4s+16 16 ​ 二阶 欠阻尼 白箱 训练意图 用二阶对象建立调节时间、超调量和稳态误差的第一轮控制设计直觉。 训练阶段 基础起步 预计用时 25 "
+    },
+    {
+      "id": "student-arena-knowledge-card-open-desktop",
+      "flow": "arena-challenge",
+      "role": "student",
+      "viewport": "desktop",
+      "action": "knowledge card opened",
+      "health": "support drawer state captured",
+      "finalUrl": "http://localhost:3100/arena/challenges/task-second-order-lead-pid",
+      "screenshot": "artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/screenshots/36-function-state-flows/student-arena-knowledge-card-open-desktop.png",
+      "textHead": "展开导航 首页 / 竞技场首页 / 二阶对象快速稳定挑战 学生 竞技场 Arena workspace 个人中心 自动控制竞技场 基础 二阶对象快速稳定挑战 缩短调节时间，同时限制超调量和稳态误差。 对象来源 典型对象 公开程度 白箱模型 工作台 综合仿真工作台 榜单规则 白箱默认榜单 对象说明 被控对象 二阶欠阻尼对象 章节关联 模块 2 / 模块 3 任务属性 可作为作业挑战 模型表达 𝐺 ( 𝑠 ) = 16 𝑠 2 + 2.4 𝑠 + 16 G(s)= s 2 +2.4s+16 16 ​ 二阶 欠阻尼 白箱 训练意图 用二阶对象建立调节时间、超调量和稳态误差的第一轮控制设计直觉。 训练阶段 基础起步 预计用时 25 "
+    },
+    {
+      "id": "teacher-create-class-success-desktop",
+      "flow": "teacher-class-create",
+      "role": "teacher",
+      "viewport": "desktop",
+      "action": "audit class created through UI",
+      "health": "post-submit state captured",
+      "fixture": true,
+      "finalUrl": "http://localhost:3100/teacher/classes/cmqlsyhhr0002vmyfdtov6ixx",
+      "screenshot": "artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/screenshots/36-function-state-flows/teacher-create-class-success-desktop.png",
+      "textHead": "返回首页 教师工作台 课程编排、班级管理、证据审核与课堂报告 张 张永韡 个人中心 教师总览 班级 教案 资源 课前包 课堂历史 班级分析 返回班级列表 审计功能流班级 378700 治理结果待生成 Product Design 功能状态审计本地夹具。 2026-2027 审计学期 0 名学生 暂无快照 班级学情治理进度 班级暂无学生，暂无可治理数据。 0/0 已覆盖学生 班级加入码 GKEYZT 开始上课 班级学情总览 查看能力矩阵、风险分层和治理覆盖情况。 课堂历史 回看已结束课堂、课堂记录与复盘入口。 学生清单 进入学生画像、成长档案与个体风险详情。 重点关注 0 名学生处于需重点跟进状态。 班级总体指数 0 来自最新班级快照"
+    },
+    {
+      "id": "teacher-lesson-plan-save-no-resource-desktop",
+      "flow": "teacher-lesson-plan-create",
+      "role": "teacher",
+      "viewport": "desktop",
+      "action": "save with title but no explicit resource selection",
+      "health": "post-save or validation state captured",
+      "finalUrl": "http://localhost:3100/teacher/lesson-plans",
+      "screenshot": "artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/screenshots/36-function-state-flows/teacher-lesson-plan-save-no-resource-desktop.png",
+      "textHead": "返回首页 教师工作台 课程编排、班级管理、证据审核与课堂报告 张 张永韡 个人中心 教师总览 班级 教案 资源 课前包 课堂历史 班级分析 返回教师工作台 我的教案 管理您的 BOPPPS 教学编排方案 新建教案 审计功能流教案 381469 2026/06/20 张永韡 0 个环节 编辑 开始上课 4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 2026/06/15 张永韡 13 个环节 编辑 开始上课 4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 2026/06/15 张永韡 13 个环节 编辑 开始上课 4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本) 2026/06/15 张永"
+    },
+    {
+      "id": "teacher-arena-preview-generated-desktop",
+      "flow": "teacher-arena-config",
+      "role": "teacher",
+      "viewport": "desktop",
+      "action": "generate publication preview",
+      "health": "preview state captured",
+      "finalUrl": "http://localhost:3100/teacher/arena",
+      "screenshot": "artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/screenshots/36-function-state-flows/teacher-arena-preview-generated-desktop.png",
+      "textHead": "返回首页 教师工作台 课程编排、班级管理、证据审核与课堂报告 张 张永韡 个人中心 教师总览 班级 教案 资源 课前包 课堂历史 班级分析 返回教师工作台 竞技场教师配置 竞技场挑战配置 教师从已有挑战任务中选择对象、班级范围、截止时间和榜单策略。作业评价不等同排行榜名次，名次只作为比较反馈。 配置模板 串联校正基础模板 PID 调参模板 复合校正模板 黑箱辨识控制模板 虚拟仿真闭环挑战模板 MPC 约束控制模板 挑战任务 二阶对象快速稳定挑战 · 基础起步 · 时域整形/稳态精度 · 二阶欠阻尼对象 低频误差与速度均衡挑战 · 分析整合 · 稳态精度/控制能量取舍 · 含积分环节对象 横摇舒适度白箱挑战 · 鲁棒进阶 · 频域舒适"
+    },
+    {
+      "id": "admin-users-search-demo-desktop",
+      "flow": "admin-users",
+      "role": "admin",
+      "viewport": "desktop",
+      "action": "search demo user",
+      "health": "filtered table state captured",
+      "finalUrl": "http://localhost:3100/admin/users",
+      "screenshot": "artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/screenshots/36-function-state-flows/admin-users-search-demo-desktop.png",
+      "textHead": "返回管理后台 账号体系 用户管理 账号资产、角色权限、密码重置和批量导入统一放在这里处理。页面颜色由全局后台样式控制，浅色模式不再回退到深色填充。 当前登录：admin 2026年6月20日 11:33 刷新数据 A admin admin 管理员后台 用户管理 系统使用量统计 数据治理 系统配置 用户资产总览 294 学生 289 · 教师 4 活跃会话 0 近7天新增 0 伦理风险 0 7日违规 0 操作区 新建账号 下载模板 批量导入 打开系统配置 模板前三列必填：账号、姓名、角色。其余字段按角色选填。 当前页面 用户管理 其他后台入口已收口至管理后台首页，避免在业务页里分散入口。 账号视图 账号列表 按角色、姓名、账号或学号"
+    },
+    {
+      "id": "admin-users-create-modal-desktop",
+      "flow": "admin-users",
+      "role": "admin",
+      "viewport": "desktop",
+      "action": "open create account modal",
+      "health": "modal state captured",
+      "finalUrl": "http://localhost:3100/admin/users",
+      "screenshot": "artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/screenshots/36-function-state-flows/admin-users-create-modal-desktop.png",
+      "textHead": "返回管理后台 账号体系 用户管理 账号资产、角色权限、密码重置和批量导入统一放在这里处理。页面颜色由全局后台样式控制，浅色模式不再回退到深色填充。 当前登录：admin 2026年6月20日 11:33 刷新数据 A admin admin 管理员后台 用户管理 系统使用量统计 数据治理 系统配置 用户资产总览 294 学生 289 · 教师 4 活跃会话 0 近7天新增 0 伦理风险 0 7日违规 0 操作区 新建账号 下载模板 批量导入 打开系统配置 模板前三列必填：账号、姓名、角色。其余字段按角色选填。 当前页面 用户管理 其他后台入口已收口至管理后台首页，避免在业务页里分散入口。 账号视图 账号列表 按角色、姓名、账号或学号"
+    },
+    {
+      "id": "admin-users-functional-modals",
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: '改密' }).first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" class=\"admin-console-button px-3 py-1.5 text-xs\">改密</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"admin-console-overlay\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"admin-console-overlay\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    58 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"admin-console-overlay\">…</div> intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+    },
+    {
+      "id": "admin-config-add-model-empty-desktop",
+      "flow": "admin-config",
+      "role": "admin",
+      "viewport": "desktop",
+      "action": "click add model with empty fields",
+      "health": "validation or no-op state captured",
+      "finalUrl": "http://localhost:3100/admin/config",
+      "screenshot": "artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/screenshots/36-function-state-flows/admin-config-add-model-empty-desktop.png",
+      "textHead": "返回管理后台 平台参数 系统配置 管理平台基础参数、AI 供应商、模型目录与响应测试。 当前登录：admin 角色：管理员 重置为默认 保存配置 A admin admin 管理员后台 用户管理 系统使用量统计 数据治理 系统配置 模型 ID 不能为空 基础设置 平台名称 默认密码 批量创建账号时使用的默认密码 每班最大学生数 维护模式 开启后仅管理员可访问 首页动态模型渲染 关闭后首页仅显示静态图片，仿真页保持不变 数据中心演示来源标签 仅控制普通数据中心可见标签，治理审计来源保持可用 AI 供应商与模型 保存后，业务 AI route 会按当前选择调用 当前供应商 SiliconFlow 当前模型 Qwen3.6 35B A3B"
+    },
+    {
+      "id": "admin-users-password-modal-desktop",
+      "flow": "admin-users",
+      "role": "admin",
+      "viewport": "desktop",
+      "action": "open password reset modal from filtered demo row",
+      "health": "modal state captured",
+      "finalUrl": "http://localhost:3100/admin/users",
+      "screenshot": "artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/screenshots/36-function-state-flows/admin-users-password-modal-desktop.png",
+      "textHead": "返回管理后台 账号体系 用户管理 账号资产、角色权限、密码重置和批量导入统一放在这里处理。页面颜色由全局后台样式控制，浅色模式不再回退到深色填充。 当前登录：admin 2026年6月20日 11:34 刷新数据 A admin admin 管理员后台 用户管理 系统使用量统计 数据治理 系统配置 用户资产总览 294 学生 289 · 教师 4 活跃会话 0 近7天新增 0 伦理风险 0 7日违规 0 操作区 新建账号 下载模板 批量导入 打开系统配置 模板前三列必填：账号、姓名、角色。其余字段按角色选填。 当前页面 用户管理 其他后台入口已收口至管理后台首页，避免在业务页里分散入口。 账号视图 账号列表 按角色、姓名、账号或学号"
+    },
+    {
+      "id": "admin-users-delete-confirm-desktop",
+      "flow": "admin-users",
+      "role": "admin",
+      "viewport": "desktop",
+      "action": "open delete confirmation from filtered demo row",
+      "health": "native confirm dialog detected and dismissed; screenshot cannot show browser-native dialog",
+      "finalUrl": "http://localhost:3100/admin/users",
+      "screenshot": "artifacts/product-design-audits/full-system-page-function-audit-2026-06-20/screenshots/36-function-state-flows/admin-users-delete-confirm-desktop.png",
+      "textHead": "返回管理后台 账号体系 用户管理 账号资产、角色权限、密码重置和批量导入统一放在这里处理。页面颜色由全局后台样式控制，浅色模式不再回退到深色填充。 当前登录：admin 2026年6月20日 11:34 刷新数据 A admin admin 管理员后台 用户管理 系统使用量统计 数据治理 系统配置 用户资产总览 294 学生 289 · 教师 4 活跃会话 0 近7天新增 0 伦理风险 0 7日违规 0 操作区 新建账号 下载模板 批量导入 打开系统配置 模板前三列必填：账号、姓名、角色。其余字段按角色选填。 当前页面 用户管理 其他后台入口已收口至管理后台首页，避免在业务页里分散入口。 账号视图 账号列表 按角色、姓名、账号或学号",
+      "dialog": {
+        "type": "confirm",
+        "message": "确认删除账号 demo？",
+        "dismissed": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,641 @@
+{
+  "generatedAt": "2026-06-20T10:57:40.290Z",
+  "baseUrl": "http://localhost:3100",
+  "batch": "function-state-flows-batch29",
+  "scope": "task workspace zones, control workbench mobile safe area, and ended classroom read-only state",
+  "workbenchRoute": "/interactive-learning/control-workbench?preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+  "endedSessionId": "cmqm6s1s1001f1wyf4ggkifs5",
+  "routeResponses": [
+    {
+      "route": "/interactive-learning/control-workbench?preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+      "status": 200,
+      "url": "http://localhost:3100/interactive-learning/control-workbench?preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid"
+    },
+    {
+      "route": "/interactive-learning/control-workbench?preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+      "status": 200,
+      "url": "http://localhost:3100/interactive-learning/control-workbench?preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid"
+    },
+    {
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqm6s1s1001f1wyf4ggkifs5",
+      "status": 200,
+      "url": "http://localhost:3100/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqm6s1s1001f1wyf4ggkifs5"
+    },
+    {
+      "route": "/classroom/teacher/cmqm6s1s1001f1wyf4ggkifs5/review",
+      "status": 200,
+      "url": "http://localhost:3100/classroom/teacher/cmqm6s1s1001f1wyf4ggkifs5/review"
+    },
+    {
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqm6s1s1001f1wyf4ggkifs5",
+      "status": 200,
+      "url": "http://localhost:3100/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqm6s1s1001f1wyf4ggkifs5"
+    }
+  ],
+  "results": [
+    {
+      "step": 1,
+      "label": "control workbench official desktop",
+      "route": "/interactive-learning/control-workbench?preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+      "screenshot": "screenshots/64-function-state-flows-batch29/01-control-workbench-official-desktop.png",
+      "screenshotBytes": 604124,
+      "a11y": "screenshots/64-function-state-flows-batch29/01-control-workbench-official-desktop.a11y.json",
+      "notes": {
+        "expected": "desktop workbench should expose context, primary instrument, command/evidence/support zones, and official Arena context"
+      },
+      "auditSummary": {
+        "h1": [
+          "控制工作台",
+          "二阶对象快速稳定挑战"
+        ],
+        "alerts": [],
+        "missingZones": [
+          "bottom-tools"
+        ],
+        "zoneCount": 6,
+        "dockCount": 1,
+        "unnamedButtons": 1,
+        "hits": {
+          "controlWorkbench": true,
+          "arenaOfficial": true,
+          "contextHeader": true,
+          "instrumentArea": true,
+          "bottomTools": false,
+          "floatingDockSafeArea": true,
+          "endedCopy": false,
+          "liveTeachingCopy": false,
+          "reviewAction": true,
+          "liveStatus": false
+        },
+        "zoneRects": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": "",
+            "rect": {
+              "x": 96,
+              "y": 109,
+              "width": 1320,
+              "height": 157,
+              "bottom": 266,
+              "right": 1416,
+              "visible": true
+            }
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": "",
+            "rect": {
+              "x": 128,
+              "y": 286,
+              "width": 1256,
+              "height": 2384,
+              "bottom": 2670,
+              "right": 1384,
+              "visible": true
+            }
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": "",
+            "rect": {
+              "x": 128,
+              "y": 3040,
+              "width": 1256,
+              "height": 58,
+              "bottom": 3098,
+              "right": 1384,
+              "visible": false
+            }
+          },
+          {
+            "commercialZone": "evidence-rail",
+            "taskZone": "",
+            "rect": {
+              "x": 128,
+              "y": 3110,
+              "width": 1256,
+              "height": 134,
+              "bottom": 3244,
+              "right": 1384,
+              "visible": false
+            }
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": "",
+            "rect": {
+              "x": 128,
+              "y": 3256,
+              "width": 1256,
+              "height": 58,
+              "bottom": 3314,
+              "right": 1384,
+              "visible": false
+            }
+          },
+          {
+            "commercialZone": "",
+            "taskZone": "floating-dock-safe-area",
+            "rect": {
+              "x": 127,
+              "y": 285,
+              "width": 1,
+              "height": 1,
+              "bottom": 286,
+              "right": 128,
+              "visible": true
+            }
+          }
+        ],
+        "dockRects": [
+          {
+            "x": 1326,
+            "y": 1044,
+            "width": 90,
+            "height": 40,
+            "bottom": 1084,
+            "right": 1416,
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "step": 2,
+      "label": "control workbench official mobile top",
+      "route": "/interactive-learning/control-workbench?preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+      "screenshot": "screenshots/64-function-state-flows-batch29/02-control-workbench-official-mobile-top.png",
+      "screenshotBytes": 568722,
+      "a11y": "screenshots/64-function-state-flows-batch29/02-control-workbench-official-mobile-top.a11y.json",
+      "notes": {
+        "expected": "mobile workbench top should keep current context and next action visible without floating dock collision"
+      },
+      "auditSummary": {
+        "h1": [
+          "控制工作台",
+          "二阶对象快速稳定挑战"
+        ],
+        "alerts": [],
+        "missingZones": [
+          "bottom-tools"
+        ],
+        "zoneCount": 6,
+        "dockCount": 1,
+        "unnamedButtons": 1,
+        "hits": {
+          "controlWorkbench": true,
+          "arenaOfficial": true,
+          "contextHeader": true,
+          "instrumentArea": true,
+          "bottomTools": false,
+          "floatingDockSafeArea": true,
+          "endedCopy": false,
+          "liveTeachingCopy": false,
+          "reviewAction": true,
+          "liveStatus": false
+        },
+        "zoneRects": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": "",
+            "rect": {
+              "x": 16,
+              "y": 166,
+              "width": 358,
+              "height": 229,
+              "bottom": 395,
+              "right": 374,
+              "visible": true
+            }
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": "",
+            "rect": {
+              "x": 32,
+              "y": 415,
+              "width": 326,
+              "height": 5670,
+              "bottom": 6085,
+              "right": 358,
+              "visible": true
+            }
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": "",
+            "rect": {
+              "x": 32,
+              "y": 7261,
+              "width": 326,
+              "height": 58,
+              "bottom": 7319,
+              "right": 358,
+              "visible": false
+            }
+          },
+          {
+            "commercialZone": "evidence-rail",
+            "taskZone": "",
+            "rect": {
+              "x": 32,
+              "y": 7331,
+              "width": 326,
+              "height": 246,
+              "bottom": 7577,
+              "right": 358,
+              "visible": false
+            }
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": "",
+            "rect": {
+              "x": 32,
+              "y": 7589,
+              "width": 326,
+              "height": 58,
+              "bottom": 7647,
+              "right": 358,
+              "visible": false
+            }
+          },
+          {
+            "commercialZone": "",
+            "taskZone": "floating-dock-safe-area",
+            "rect": {
+              "x": 31,
+              "y": 414,
+              "width": 1,
+              "height": 1,
+              "bottom": 415,
+              "right": 32,
+              "visible": true
+            }
+          }
+        ],
+        "dockRects": [
+          {
+            "x": 276,
+            "y": 788,
+            "width": 90,
+            "height": 40,
+            "bottom": 828,
+            "right": 366,
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "step": 3,
+      "label": "control workbench official mobile bottom",
+      "route": "/interactive-learning/control-workbench?preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+      "screenshot": "screenshots/64-function-state-flows-batch29/03-control-workbench-official-mobile-bottom.png",
+      "screenshotBytes": 569265,
+      "a11y": "screenshots/64-function-state-flows-batch29/03-control-workbench-official-mobile-bottom.a11y.json",
+      "notes": {
+        "expected": "mobile workbench bottom should preserve command/evidence/support actions and floating-dock safe area"
+      },
+      "auditSummary": {
+        "h1": [
+          "控制工作台",
+          "二阶对象快速稳定挑战"
+        ],
+        "alerts": [],
+        "missingZones": [
+          "bottom-tools"
+        ],
+        "zoneCount": 6,
+        "dockCount": 1,
+        "unnamedButtons": 1,
+        "hits": {
+          "controlWorkbench": true,
+          "arenaOfficial": true,
+          "contextHeader": true,
+          "instrumentArea": true,
+          "bottomTools": false,
+          "floatingDockSafeArea": true,
+          "endedCopy": false,
+          "liveTeachingCopy": false,
+          "reviewAction": true,
+          "liveStatus": false
+        },
+        "zoneRects": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": "",
+            "rect": {
+              "x": 16,
+              "y": -6805,
+              "width": 358,
+              "height": 229,
+              "bottom": -6576,
+              "right": 374,
+              "visible": false
+            }
+          },
+          {
+            "commercialZone": "instrument-area",
+            "taskZone": "",
+            "rect": {
+              "x": 32,
+              "y": -6556,
+              "width": 326,
+              "height": 5670,
+              "bottom": -886,
+              "right": 358,
+              "visible": false
+            }
+          },
+          {
+            "commercialZone": "command-bar",
+            "taskZone": "",
+            "rect": {
+              "x": 32,
+              "y": 290,
+              "width": 326,
+              "height": 58,
+              "bottom": 348,
+              "right": 358,
+              "visible": true
+            }
+          },
+          {
+            "commercialZone": "evidence-rail",
+            "taskZone": "",
+            "rect": {
+              "x": 32,
+              "y": 360,
+              "width": 326,
+              "height": 246,
+              "bottom": 606,
+              "right": 358,
+              "visible": true
+            }
+          },
+          {
+            "commercialZone": "support-drawer",
+            "taskZone": "",
+            "rect": {
+              "x": 32,
+              "y": 618,
+              "width": 326,
+              "height": 58,
+              "bottom": 676,
+              "right": 358,
+              "visible": true
+            }
+          },
+          {
+            "commercialZone": "",
+            "taskZone": "floating-dock-safe-area",
+            "rect": {
+              "x": 31,
+              "y": -6557,
+              "width": 1,
+              "height": 1,
+              "bottom": -6556,
+              "right": 32,
+              "visible": false
+            }
+          }
+        ],
+        "dockRects": [
+          {
+            "x": 276,
+            "y": 788,
+            "width": 90,
+            "height": 40,
+            "bottom": 828,
+            "right": 366,
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "step": 4,
+      "label": "ended teacher runtime desktop",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqm6s1s1001f1wyf4ggkifs5",
+      "screenshot": "screenshots/64-function-state-flows-batch29/04-ended-teacher-runtime-desktop.png",
+      "screenshotBytes": 293079,
+      "a11y": "screenshots/64-function-state-flows-batch29/04-ended-teacher-runtime-desktop.a11y.json",
+      "notes": {
+        "expected": "direct access to an ended teacher runtime should show read-only status and post-class actions, not live teaching controls",
+        "endedSessionId": "cmqm6s1s1001f1wyf4ggkifs5"
+      },
+      "auditSummary": {
+        "h1": [
+          "4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        ],
+        "alerts": [],
+        "missingZones": [
+          "instrument-area",
+          "command-bar",
+          "evidence-rail",
+          "support-drawer",
+          "floating-dock-safe-area",
+          "bottom-tools"
+        ],
+        "zoneCount": 1,
+        "dockCount": 1,
+        "unnamedButtons": 1,
+        "hits": {
+          "controlWorkbench": false,
+          "arenaOfficial": false,
+          "contextHeader": true,
+          "instrumentArea": false,
+          "bottomTools": false,
+          "floatingDockSafeArea": false,
+          "endedCopy": false,
+          "liveTeachingCopy": true,
+          "reviewAction": false,
+          "liveStatus": false
+        },
+        "zoneRects": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": "",
+            "rect": {
+              "x": 96,
+              "y": 219,
+              "width": 1024,
+              "height": 134,
+              "bottom": 353,
+              "right": 1120,
+              "visible": true
+            }
+          }
+        ],
+        "dockRects": [
+          {
+            "x": 1326,
+            "y": 1044,
+            "width": 90,
+            "height": 40,
+            "bottom": 1084,
+            "right": 1416,
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "step": 5,
+      "label": "ended teacher review desktop",
+      "route": "/classroom/teacher/cmqm6s1s1001f1wyf4ggkifs5/review",
+      "screenshot": "screenshots/64-function-state-flows-batch29/05-ended-teacher-review-desktop.png",
+      "screenshotBytes": 213023,
+      "a11y": "screenshots/64-function-state-flows-batch29/05-ended-teacher-review-desktop.a11y.json",
+      "notes": {
+        "expected": "ended class review should be the primary continuation path and should connect to report delivery",
+        "endedSessionId": "cmqm6s1s1001f1wyf4ggkifs5"
+      },
+      "auditSummary": {
+        "h1": [
+          "《4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本)》课堂复盘"
+        ],
+        "alerts": [],
+        "missingZones": [
+          "context-strip",
+          "instrument-area",
+          "command-bar",
+          "evidence-rail",
+          "support-drawer",
+          "floating-dock-safe-area",
+          "bottom-tools"
+        ],
+        "zoneCount": 0,
+        "dockCount": 1,
+        "unnamedButtons": 1,
+        "hits": {
+          "controlWorkbench": false,
+          "arenaOfficial": false,
+          "contextHeader": false,
+          "instrumentArea": false,
+          "bottomTools": false,
+          "floatingDockSafeArea": false,
+          "endedCopy": true,
+          "liveTeachingCopy": false,
+          "reviewAction": true,
+          "liveStatus": false
+        },
+        "zoneRects": [],
+        "dockRects": [
+          {
+            "x": 1326,
+            "y": 1044,
+            "width": 90,
+            "height": 40,
+            "bottom": 1084,
+            "right": 1416,
+            "visible": true
+          }
+        ]
+      }
+    },
+    {
+      "step": 6,
+      "label": "ended teacher runtime mobile",
+      "route": "/interactive-learning/courses/unit-4-1-design-task-expression/teacher/cmqm6s1s1001f1wyf4ggkifs5",
+      "screenshot": "screenshots/64-function-state-flows-batch29/06-ended-teacher-runtime-mobile.png",
+      "screenshotBytes": 271210,
+      "a11y": "screenshots/64-function-state-flows-batch29/06-ended-teacher-runtime-mobile.a11y.json",
+      "notes": {
+        "expected": "mobile direct access to ended teacher runtime should be read-only and expose review/report navigation",
+        "endedSessionId": "cmqm6s1s1001f1wyf4ggkifs5"
+      },
+      "auditSummary": {
+        "h1": [
+          "4-1：设计起点：性能指标体系、工程约束与可行域表达"
+        ],
+        "alerts": [],
+        "missingZones": [
+          "instrument-area",
+          "command-bar",
+          "evidence-rail",
+          "support-drawer",
+          "floating-dock-safe-area",
+          "bottom-tools"
+        ],
+        "zoneCount": 1,
+        "dockCount": 1,
+        "unnamedButtons": 1,
+        "hits": {
+          "controlWorkbench": true,
+          "arenaOfficial": false,
+          "contextHeader": true,
+          "instrumentArea": false,
+          "bottomTools": false,
+          "floatingDockSafeArea": false,
+          "endedCopy": false,
+          "liveTeachingCopy": true,
+          "reviewAction": false,
+          "liveStatus": false
+        },
+        "zoneRects": [
+          {
+            "commercialZone": "context-strip",
+            "taskZone": "",
+            "rect": {
+              "x": 16,
+              "y": 418,
+              "width": 376,
+              "height": 214,
+              "bottom": 632,
+              "right": 392,
+              "visible": true
+            }
+          }
+        ],
+        "dockRects": [
+          {
+            "x": 276,
+            "y": 788,
+            "width": 90,
+            "height": 40,
+            "bottom": 828,
+            "right": 366,
+            "visible": true
+          }
+        ]
+      }
+    }
+  ],
+  "apiChecks": [
+    {
+      "label": "student arena task submissions",
+      "route": "/api/arena/submissions?taskId=task-second-order-lead-pid",
+      "status": 200,
+      "ok": true,
+      "accepted": true,
+      "contentType": "application/json",
+      "summary": "{\"submissions\":[{\"id\":\"cmpf7ggfk0ngxhjkdtlvlqqls\",\"taskId\":\"task-second-order-lead-pid\",\"userId\":\"cmm77n4n30010w9h8w45bl4ah\",\"isLate\":false,\"studentLabel\":\"周兆康\",\"studentNumber\":\"20230010102608\",\"artifactHash\":\"artifact-33281857288ef7728f3ca97e7c0fc578f5dd676962ce525b2b2f89ee822701dc\",\"artifact\":{\"id\":\"artifact-task-second-order-lead-pid-pid-1779350685936\",\"method\":\"pid\",\"params\":{\"kd\":0.08,\"ki\":0.2,\"kp\":1},\"taskId\":\"task-second-order-lead-pid\",\"createdAt\":\"2026-05-21T08:04:45.936Z\"},\"evaluation\":{\"taskId\":\"task-second-order-lead-pid\",\"artifact\":{\"id\":\"artifact-task-second-order-lead-pid-pid-1779350685936\",\"method\":\"pid\",\"params\":{\"kd\":0.08,\"ki\":0.2,\"kp\":1},\"taskId\":\"task-second-order-lead-pid\",\"createdAt\":\"2026-05-21T08:04:45.936Z\"},\"valid\":true,\"score\":0,\"metrics\":{\"itae\":16.869,\"bandwidth\":6.012,\"overshoot\":0,\"phaseMargin\":68.4,\"settlingTime\":10.938,\"controlEnergy\":0.668,\"steadyStateError\":0.15},\"satisfaction\":{\"itae\":0,\"overshoot\":1,\"settlingTime\":0,\"steadyStateError\":0},\"hardConstraintResults\":[{\"id\":\"closed_loop_stable\",\"label\":\"闭环稳定\",\"passed\":true},{\"id\":\"finite_response\",\"label\":\"响应有限\",\"passed\":true},{\"id\":\"controller_causal\",\"label\":\"控制器因果\",\"passed\":true},{\"id\":\"control_not_saturated\",\"label\":\"控制量未严重饱和\",\"passed\":true}],\"penalties\":[],\"explanation\":[\"硬约束全部通过，提交进入正式排名。\",\"基础分 0.0，惩罚 0.0，最终分 0.0。\",\"ControlAnalysisResult metrics are used for official white-box evaluation.\",\"controlEnergy is derived from step response shape, not direct actuator energy.\"],\"metadata\":{}},\"evaluationProtocolVersion\":\"analysis-whitebox-v1\",\"submittedAt\":\"2026-05-21T08:04:46.076Z\",\"reusedEvaluation\":false},{\"id\":\"cmqg30r0s000z9fyf9obkinz0\",\"taskId\":\"task-second-order-lead-pid\",\"userId\":\"cmm77n46f0008w9h881wag95m\",\"isLate\":false,\"studentLabel\":\"蔡丽雯\",\"studentNumber\":\"20230010102601\",\"artifac"
+    },
+    {
+      "label": "ended session metadata",
+      "route": "/api/session/cmqm6s1s1001f1wyf4ggkifs5",
+      "status": 200,
+      "ok": true,
+      "accepted": true,
+      "contentType": "application/json",
+      "summary": "{\"id\":\"cmqm6s1s1001f1wyf4ggkifs5\",\"joinCode\":\"113718\",\"status\":\"FINISHED\",\"classId\":\"cmma7g0590004g9q2nl2jyzdf\",\"currentItemId\":\"step-03\",\"currentStage\":\"PRE_ASSESSMENT\",\"updatedAt\":\"2026-06-20T10:02:11.222Z\",\"plan\":{\"title\":\"4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本)\"},\"planTitle\":\"4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本)\"}"
+    },
+    {
+      "label": "ended session teacher-view state",
+      "route": "/api/session/cmqm6s1s1001f1wyf4ggkifs5/state?scope=teacher-view",
+      "status": 200,
+      "ok": true,
+      "accepted": true,
+      "contentType": "application/json",
+      "summary": "{\"states\":[{\"id\":\"cmqm6srmq001j1wyfzs4u0t11\",\"sessionId\":\"cmqm6s1s1001f1wyf4ggkifs5\",\"userId\":\"cmma7hcpl000dg9q2dtsk3ksl\",\"stateKey\":\"course\",\"lessonKey\":\"unit-4-1-design-task-expression-v1\",\"itemId\":\"student:unit41:state\",\"data\":{\"kind\":\"unit41_student_state\",\"version\":1,\"responses\":{\"step-03\":{\"stepId\":\"step-03\",\"answers\":{\"pretest-q1\":\"A\"},\"submittedAt\":1781949713698}},\"updatedAt\":1781949713700,\"studentName\":\"王旭东\",\"viewedStepIds\":[\"step-03\"],\"controlParameterSnapshots\":{}},\"submittedAt\":\"2026-06-20T10:01:53.719Z\",\"lastClientEventAt\":\"2026-06-20T10:01:53.703Z\",\"user\":{\"id\":\"cmma7hcpl000dg9q2dtsk3ksl\",\"name\":\"王旭东\",\"email\":null}},{\"id\":\"cmqm6shz7001h1wyf0hwcobcz\",\"sessionId\":\"cmqm6s1s1001f1wyf4ggkifs5\",\"userId\":\"cmma7hck90005g9q21xy31um8\",\"stateKey\":\"course\",\"lessonKey\":\"unit-4-1-design-task-expression-v1\",\"itemId\":\"student:unit41:state\",\"data\":{\"kind\":\"unit41_student_state\",\"version\":1,\"responses\":{\"step-03\":{\"stepId\":\"step-03\",\"answers\":{\"pretest-q1\":\"A\"},\"submittedAt\":1781949675388}},\"updatedAt\":1781949675391,\"studentName\":\"左乔生\",\"viewedStepIds\":[\"step-03\"],\"controlParameterSnapshots\":{}},\"submittedAt\":\"2026-06-20T10:01:15.406Z\",\"lastClientEventAt\":\"2026-06-20T10:01:15.393Z\",\"user\":{\"id\":\"cmma7hck90005g9q21xy31um8\",\"name\":\"左乔生\",\"email\":null}}],\"courseStates\":[{\"id\":\"cmqm6srmq001j1wyfzs4u0t11\",\"sessionId\":\"cmqm6s1s1001f1wyf4ggkifs5\",\"userId\":\"cmma7hcpl000dg9q2dtsk3ksl\",\"stateKey\":\"course\",\"lessonKey\":\"unit-4-1-design-task-expression-v1\",\"itemId\":\"student:unit41:state\",\"data\":{\"kind\":\"unit41_student_state\",\"version\":1,\"responses\":{\"step-03\":{\"stepId\":\"step-03\",\"answers\":{\"pretest-q1\":\"A\"},\"submittedAt\":1781949713698}},\"updatedAt\":1781949713700,\"studentName\":\"王旭东\",\"viewedStepIds\":[\"step-03\"],\"controlParameterSnapshots\":{}},\"submittedAt\":\"2026-06-20T10:01:53.719Z\",\"lastCl"
+    }
+  ],
+  "dialogs": [],
+  "downloads": [],
+  "errors": [],
+  "ignoredErrors": [],
+  "pngCount": 6,
+  "jsonCount": 6
+}

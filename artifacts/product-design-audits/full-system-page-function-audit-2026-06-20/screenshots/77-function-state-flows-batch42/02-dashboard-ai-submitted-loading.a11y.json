@@ -1,0 +1,318 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/dashboard",
+    "h1": [
+      "学习者驾驶舱"
+    ],
+    "h2": [
+      "当前路径与下一步",
+      "欢迎回来，demo！",
+      "学习入口地图",
+      "快速开始",
+      "控灵"
+    ],
+    "activeElement": {
+      "tag": "body",
+      "role": "",
+      "type": "",
+      "name": "学生驾驶舱 个人中心 学生 学习者驾驶舱 学习路径、证据状态与下一步行动 D demo demo@example.com 学习者记录 当前路径与下一步 系统优先依据课堂任务、仿真记录、Arena 结果和自适应练习生成学习路径；缺少来源时先补证据，再推荐下一步。 当前路径 任务推进中 证据置信 已形成画像 缺失来源 Arena/自适应证据按实际接入显示 复盘入口 5 个任务 继续自适应练习 查看证据时间线 欢迎回来，demo！ 继续你的船舶控制系统学习之旅，掌握 PID 控制理论与实践 完成任务 5 仿真次数 6 技术分 76.0 伦理分 94 加入课堂 / 班级 输入课堂码或班级加入码 学习入口地图 资源地图 学习 · 知识资源 课程、知识图谱与互动学习入口。 进入 互动课程 学习 · 互动学习 课程、知识图谱与互动学习入口。 进入 个性化 练习 · 学习路径 自适应学习路径、诊断与补强建议。 进入 官方评测 挑战 · 竞技场 竞技场挑战、榜单与正式评价。 进入 实时仿真 实验 · 虚拟仿真 仿真对象、控制工作台与参数探索。 进入 控制实验 实验 · 控制工作台 仿真对象、控制工作台与参数探索。 进入 能力画像 复盘 · 个人中心 个人证据、成长轨迹与学习报告。 进入 能力画像 账号与画像 · 个人中心 登录、账号、个人中心与回调目标。 进入 快速开始 开始仿真 进入船舶与海工对象仿真任务，观察控制响应和指标变化。 进入挑战 进入挑战详情、公开实验、正式提交和榜单比较。 打开路径中心 生成、比较并执行个性化学习路径。 控灵 当前: dashboard 请根据当前页面说明我下一步应该先做什么。 【控灵证据提示】本次流式回答尚未完成最终引用核验。缺少证据类型：content、learner-state、path-execution、evidence。低置信原因：missing-content；missing-learner-state；missing-path-execution；missing-evidence；missing-grounding:knowledge-or-resource；assistant-required-citation-owner-missing:answer；answer-intent-content-citation-missing:fact-explanation；assistant-citations-unverified-stream。 同学你好！👋 我注意到当前页面是 Dashboard，但系统暂时无法获取具体的学习路径节点 控灵正在思考... 停止 按 Enter 发送，ESC 关闭面板 工具",
+      "inAiSidebar": false,
+      "inFloating": false
+    },
+    "controls": [
+      {
+        "tag": "a",
+        "role": "",
+        "name": "学生驾驶舱",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "个人中心",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "切换到深色模式",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "D demo demo@example.com",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "学生驾驶舱",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "个人中心",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "继续自适应练习",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "查看证据时间线",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "加入课堂 / 班级 输入课堂码或班级加入码",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "资源地图 学习 · 知识资源 课程、知识图谱与互动学习入口。 进入",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "互动课程 学习 · 互动学习 课程、知识图谱与互动学习入口。 进入",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "个性化 练习 · 学习路径 自适应学习路径、诊断与补强建议。 进入",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "官方评测 挑战 · 竞技场 竞技场挑战、榜单与正式评价。 进入",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "实时仿真 实验 · 虚拟仿真 仿真对象、控制工作台与参数探索。 进入",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "控制实验 实验 · 控制工作台 仿真对象、控制工作台与参数探索。 进入",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "能力画像 复盘 · 个人中心 个人证据、成长轨迹与学习报告。 进入",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "能力画像 账号与画像 · 个人中心 登录、账号、个人中心与回调目标。 进入",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "开始仿真 进入船舶与海工对象仿真任务，观察控制响应和指标变化。",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "进入挑战 进入挑战详情、公开实验、正式提交和榜单比较。",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "name": "打开路径中心 生成、比较并执行个性化学习路径。",
+        "type": "",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "div",
+        "role": "button",
+        "name": "关闭 AI 侧栏",
+        "type": "",
+        "disabled": false,
+        "hidden": true,
+        "inAiSidebar": false,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "清空对话",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": true,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "关闭 (ESC)",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": true,
+        "inFloating": false
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "name": "全局 AI 问题输入框",
+        "type": "text",
+        "disabled": true,
+        "hidden": false,
+        "inAiSidebar": true,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "停止",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": true,
+        "inFloating": false
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "name": "打开工具与页面工具菜单",
+        "type": "button",
+        "disabled": false,
+        "hidden": false,
+        "inAiSidebar": false,
+        "inFloating": true
+      }
+    ],
+    "alerts": [],
+    "ai": {
+      "state": "open",
+      "role": "",
+      "surface": "global-sidebar",
+      "avoidance": "inactive",
+      "knowledgePolicy": "",
+      "text": "控灵 当前: dashboard 请根据当前页面说明我下一步应该先做什么。 【控灵证据提示】本次流式回答尚未完成最终引用核验。缺少证据类型：content、learner-state、path-execution、evidence。低置信原因：missing-content；missing-learner-state；missing-path-execution；missing-evidence；missing-grounding:knowledge-or-resource；assistant-required-citation-owner-missing:answer；answer-intent-content-citation-missing:fact-explanation；assistant-citations-unverified-stream。 同学你好！👋 我注意到当前页面是 Dashboard，但系统暂时无法获取具体的学习路径节点 控灵正在思考... 停止 按 Enter 发送，ESC 关闭面板",
+      "hasWelcome": false,
+      "hasKnowledgeContext": false,
+      "knowledgeContextState": "",
+      "hasError": false,
+      "hasRetry": false,
+      "hasLoading": true,
+      "messageCount": 2,
+      "messages": [
+        "请根据当前页面说明我下一步应该先做什么。",
+        "【控灵证据提示】本次流式回答尚未完成最终引用核验。缺少证据类型：content、learner-state、path-execution、evidence。低置信原因：missing-content；missing-learner-state；missing-path-execution；missing-evidence；missing-grounding:knowledge-or-resource；assistant-required-citation-owner-missing:answer；answer-intent-content-citation-missing:fact-explanation；assistant-citations-unverified-stream。 同学你好！👋 我注意到当前页面是 Dashboard，但系统暂时无法获取具体的学习路径节点"
+      ],
+      "quickQuestions": [],
+      "sendButtonName": "",
+      "sendButtonDisabled": false,
+      "stopButtonName": "停止",
+      "clearButtonName": "清空对话",
+      "inputDisabled": true
+    },
+    "routeMarkers": {
+      "routeFrame": "learning-atlas",
+      "floatingBehavior": "enabled",
+      "mobileNavigation": "role-route-tabs"
+    }
+  }
+}

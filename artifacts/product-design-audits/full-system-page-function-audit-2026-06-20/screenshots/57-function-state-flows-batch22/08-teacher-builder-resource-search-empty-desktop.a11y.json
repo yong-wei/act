@@ -1,0 +1,658 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/teacher/lesson-plans/cmqeakmuy0024cnyf1z2ttquo/edit?returnTo=%2Fteacher%2Flesson-plans",
+    "h1": [
+      "教师工作台"
+    ],
+    "activeElement": {
+      "tag": "input",
+      "type": "text",
+      "name": "搜索资源或知识卡片...",
+      "placeholder": "搜索资源或知识卡片..."
+    },
+    "alerts": [],
+    "buttons": [
+      {
+        "tag": "a",
+        "name": "返回首页",
+        "href": "/",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "张 张永韡 个人中心",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "教师总览",
+        "href": "/teacher",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "班级",
+        "href": "/teacher/classes",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "教案",
+        "href": "/teacher/lesson-plans",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "资源",
+        "href": "/teacher/resources",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课前包",
+        "href": "/teacher/prep-packs",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "课堂历史",
+        "href": "/teacher/history",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "班级分析",
+        "href": "/teacher/classes",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "a",
+        "name": "返回教案列表",
+        "href": "/teacher/lesson-plans",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "全部",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "系统建模",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "时域分析",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "根轨迹分析",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "频域分析",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "系统校正",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "非线性",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "课堂组件",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "保存教案",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "div",
+        "name": "",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "div",
+        "name": "",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "div",
+        "name": "",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "div",
+        "name": "",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "div",
+        "name": "",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "div",
+        "name": "",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "div",
+        "name": "",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "div",
+        "name": "",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "div",
+        "name": "",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "div",
+        "name": "",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "div",
+        "name": "",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "div",
+        "name": "",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "div",
+        "name": "",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "编辑",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "删除",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "关闭 (ESC)",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "",
+        "href": "",
+        "disabled": true,
+        "selected": "",
+        "pressed": ""
+      },
+      {
+        "tag": "button",
+        "name": "打开控灵与页面工具菜单",
+        "href": "",
+        "disabled": false,
+        "selected": "",
+        "pressed": ""
+      }
+    ],
+    "inputs": [
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "placeholder": "搜索资源或知识卡片...",
+        "ariaLabel": "搜索资源或知识卡片...",
+        "value": "zzzz-no-resource",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "",
+        "placeholder": "输入教案标题...",
+        "ariaLabel": "输入教案标题...",
+        "value": "4-1：设计起点：性能指标体系、工程约束与可行域表达 (副本)",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "编排资源搜索",
+        "value": "4",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "编排资源搜索",
+        "value": "4",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "编排资源搜索",
+        "value": "6",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "编排资源搜索",
+        "value": "9",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "编排资源搜索",
+        "value": "8",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "编排资源搜索",
+        "value": "7",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "编排资源搜索",
+        "value": "7",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "编排资源搜索",
+        "value": "7",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "编排资源搜索",
+        "value": "10",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "编排资源搜索",
+        "value": "6",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "编排资源搜索",
+        "value": "6",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "编排资源搜索",
+        "value": "6",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "number",
+        "name": "",
+        "placeholder": "",
+        "ariaLabel": "编排资源搜索",
+        "value": "4",
+        "hidden": false
+      },
+      {
+        "tag": "input",
+        "type": "text",
+        "name": "global-ai-sidebar-input",
+        "placeholder": "请输入你的问题...",
+        "ariaLabel": "全局 AI 问题输入框",
+        "value": "",
+        "hidden": false
+      }
+    ],
+    "tables": [],
+    "unnamedButtons": 14,
+    "graphicsCount": 50,
+    "unnamedGraphics": 0,
+    "bodyText": "返回首页 教师工作台 课程编排、班级管理、证据审核与课堂报告 张 张永韡 个人中心 教师总览 班级 教案 资源 课前包 课堂历史 班级分析 返回教案列表 资源库 全部 系统建模 时域分析 根轨迹分析 频域分析 系统校正 非线性 课堂组件 保存教案 B - 导入 (Bridge-in) 1 items 1 任务表达入口：从跨域证据写出设计任务 已自定义标题 INTERACTIVE_COMP 时长: min O - 目标 (Objective) 1 items 1 本次课程目标 已自定义标题 INTERACTIVE_COMP 时长: min P - 前测 (Pre-assessment) 1 items 1 同图异读预判：为什么同一套证据会写出两张任务书 已自定义标题 INTERACTIVE_COMP 时长: min P - 参与式学习 (Participatory) 8 items 1 主场景 A：客船航向控制先保什么 已自定义标题 INTERACTIVE_COMP 时长: min 2 对照案例 B：稳定平台为什么把速度排得更前 已自定义标题 INTERACTIVE_COMP 时长: min 3 双案例对照：排序变化来自哪里 已自定义标题 INTERACTIVE_COMP 时长: min 4 指标角色重组：时域、频域、积分误差各自回答什么 已自定义标题 INTERACTIVE_COMP 时长: min 5 任务分类：硬约束、软目标、观察指标 已自定义标题 INTERACTIVE_COMP 时长: min 6 任务表达卡工作区：把后续设计输入写全 已自定义标题 INTERACTIVE_COMP 时长: min 7 区域分层：可行域、满意域、最优域不是一步 已自定义标题 INTERACTIVE_COMP 时长: min 8 误判检查：稳定不等于完成，可行不等于最优 已自定义标题 INTERACTIVE_COMP 时长: min P - 后测 (Post-assessment) 1 items 1 后测：先写任务，再谈方法 已自定义标题 INTERACTIVE_COMP 时长: min S - 总结 (Summary) 1 items 1 总结：任务表达卡成为后续设计输入 已自定义标题 INTERACTIVE_COMP 时长: min 控灵 当前: edit 你好，我是控灵。今天我们将探索「edit」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵"
+  }
+}

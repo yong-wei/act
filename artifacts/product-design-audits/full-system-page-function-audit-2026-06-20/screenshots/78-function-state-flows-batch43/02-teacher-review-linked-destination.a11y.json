@@ -1,0 +1,240 @@
+{
+  "accessibilitySnapshotUnavailable": true,
+  "audit": {
+    "title": "AI-OBE船舶控制平台",
+    "url": "http://localhost:3100/review/extracurricular-showcase",
+    "h1": [
+      "课外展示聚合入口",
+      "课外教学展示聚合入口"
+    ],
+    "h2": [
+      "教师端班级展示分析（P-06~P-12）",
+      "知识图谱（P-01~P-04）",
+      "BOPPPS课堂入口（P-10）",
+      "控制奥德赛（P-13）",
+      "重点学生镜头账号",
+      "建议截图顺序",
+      "控灵"
+    ],
+    "activeElement": {
+      "tag": "body",
+      "role": "",
+      "type": "",
+      "name": "返回评审入口 课外展示聚合入口 课外教学展示聚合入口 覆盖脚本关键镜头：P-05 ~ P-13。展示班级：2023启航班（CGK7XQ） 学生数 30 答题日志 11513 提示-设计相关 r = 0.842 教师端班级展示分析（P-06~P-12） 推荐流程、A/B差异题单、班级热力图、前后测追踪、补强路径、相关性散点图。 知识图谱（P-01~P-04） 全局视图、关系筛选、节点聚焦与跨域关联高亮。 BOPPPS课堂入口（P-10） 个性化目标生成入口（Step 2 Objective）。 控制奥德赛（P-13） 关卡总览、失败后AI建议、积分/解锁逻辑。 重点学生镜头账号 学生A：20230010102608（课前极点-时域薄弱，课后跨域明显提升，频域仍短板） 学生B：20230010102605（频域稳定判读薄弱，重点推荐Bode题组） 杨帆（20230010102605） 弱项：频域稳定判读 · 结构分 72 · 设计分 69.2 根轨迹在靠近虚轴时，若希望降低超调，应优先如何调整极点分布？ 在“速度-稳定-能耗”三目标冲突下，最合理的设计动作是？ 周兆康（20230010102608） 弱项：频域稳定判读 · 结构分 79 · 设计分 74.1 当闭环主导极点向虚轴方向靠近时，系统超调量通常会出现什么变化？ 根轨迹在靠近虚轴时，若希望降低超调，应优先如何调整极点分布？ 建议截图顺序 知识图谱全局 + 关系筛选 + 阻尼比节点聚焦 + 跨域映射 教师端班级分析：推荐流程图 → A/B题单 → 热力图 教师端班级分析：课前/课后平均能力对比 + 相关性散点 学生个人中心：补强路径卡片（任选一个重点账号登录） 控制奥德赛：关卡总览 + 对应重点账号AI建议 控灵 当前: extracurricular... 你好，我是控灵。今天我们将探索「extracurricular showcase」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵"
+    },
+    "controls": [
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "name": "返回评审入口",
+        "href": "/review",
+        "disabled": false,
+        "hidden": false,
+        "inFloating": false,
+        "reportSurface": ""
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "name": "教师端班级展示分析（P-06~P-12） 推荐流程、A/B差异题单、班级热力图、前后测追踪、补强路径、相关性散点图。",
+        "href": "/teacher/classes/cmjth78rq00012zmj1cwnxrc1/analytics",
+        "disabled": false,
+        "hidden": false,
+        "inFloating": false,
+        "reportSurface": ""
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "name": "知识图谱（P-01~P-04） 全局视图、关系筛选、节点聚焦与跨域关联高亮。",
+        "href": "/knowledge",
+        "disabled": false,
+        "hidden": false,
+        "inFloating": false,
+        "reportSurface": ""
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "name": "BOPPPS课堂入口（P-10） 个性化目标生成入口（Step 2 Objective）。",
+        "href": "/interactive-learning/courses/cruise-comfort-boppps",
+        "disabled": false,
+        "hidden": false,
+        "inFloating": false,
+        "reportSurface": ""
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "name": "控制奥德赛（P-13） 关卡总览、失败后AI建议、积分/解锁逻辑。",
+        "href": "/interactive-learning/control-odyssey",
+        "disabled": false,
+        "hidden": false,
+        "inFloating": false,
+        "reportSurface": ""
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "关闭 (ESC)",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inFloating": false,
+        "reportSurface": ""
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "type": "text",
+        "name": "全局 AI 问题输入框",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inFloating": false,
+        "reportSurface": ""
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "submit",
+        "name": "",
+        "href": "",
+        "disabled": true,
+        "hidden": false,
+        "inFloating": false,
+        "reportSurface": ""
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "打开控灵与页面工具菜单",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inFloating": true,
+        "reportSurface": ""
+      }
+    ],
+    "visibleControls": [
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "name": "返回评审入口",
+        "href": "/review",
+        "disabled": false,
+        "hidden": false,
+        "inFloating": false,
+        "reportSurface": ""
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "name": "教师端班级展示分析（P-06~P-12） 推荐流程、A/B差异题单、班级热力图、前后测追踪、补强路径、相关性散点图。",
+        "href": "/teacher/classes/cmjth78rq00012zmj1cwnxrc1/analytics",
+        "disabled": false,
+        "hidden": false,
+        "inFloating": false,
+        "reportSurface": ""
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "name": "知识图谱（P-01~P-04） 全局视图、关系筛选、节点聚焦与跨域关联高亮。",
+        "href": "/knowledge",
+        "disabled": false,
+        "hidden": false,
+        "inFloating": false,
+        "reportSurface": ""
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "name": "BOPPPS课堂入口（P-10） 个性化目标生成入口（Step 2 Objective）。",
+        "href": "/interactive-learning/courses/cruise-comfort-boppps",
+        "disabled": false,
+        "hidden": false,
+        "inFloating": false,
+        "reportSurface": ""
+      },
+      {
+        "tag": "a",
+        "role": "",
+        "type": "",
+        "name": "控制奥德赛（P-13） 关卡总览、失败后AI建议、积分/解锁逻辑。",
+        "href": "/interactive-learning/control-odyssey",
+        "disabled": false,
+        "hidden": false,
+        "inFloating": false,
+        "reportSurface": ""
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "关闭 (ESC)",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inFloating": false,
+        "reportSurface": ""
+      },
+      {
+        "tag": "input",
+        "role": "",
+        "type": "text",
+        "name": "全局 AI 问题输入框",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inFloating": false,
+        "reportSurface": ""
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "submit",
+        "name": "",
+        "href": "",
+        "disabled": true,
+        "hidden": false,
+        "inFloating": false,
+        "reportSurface": ""
+      },
+      {
+        "tag": "button",
+        "role": "",
+        "type": "button",
+        "name": "打开控灵与页面工具菜单",
+        "href": "",
+        "disabled": false,
+        "hidden": false,
+        "inFloating": true,
+        "reportSurface": ""
+      }
+    ],
+    "alerts": [],
+    "reportSurfaces": [],
+    "tables": [],
+    "graphicsCount": 11,
+    "unnamedGraphics": 0,
+    "bodyText": "返回评审入口 课外展示聚合入口 课外教学展示聚合入口 覆盖脚本关键镜头：P-05 ~ P-13。展示班级：2023启航班（CGK7XQ） 学生数 30 答题日志 11513 提示-设计相关 r = 0.842 教师端班级展示分析（P-06~P-12） 推荐流程、A/B差异题单、班级热力图、前后测追踪、补强路径、相关性散点图。 知识图谱（P-01~P-04） 全局视图、关系筛选、节点聚焦与跨域关联高亮。 BOPPPS课堂入口（P-10） 个性化目标生成入口（Step 2 Objective）。 控制奥德赛（P-13） 关卡总览、失败后AI建议、积分/解锁逻辑。 重点学生镜头账号 学生A：20230010102608（课前极点-时域薄弱，课后跨域明显提升，频域仍短板） 学生B：20230010102605（频域稳定判读薄弱，重点推荐Bode题组） 杨帆（20230010102605） 弱项：频域稳定判读 · 结构分 72 · 设计分 69.2 根轨迹在靠近虚轴时，若希望降低超调，应优先如何调整极点分布？ 在“速度-稳定-能耗”三目标冲突下，最合理的设计动作是？ 周兆康（20230010102608） 弱项：频域稳定判读 · 结构分 79 · 设计分 74.1 当闭环主导极点向虚轴方向靠近时，系统超调量通常会出现什么变化？ 根轨迹在靠近虚轴时，若希望降低超调，应优先如何调整极点分布？ 建议截图顺序 知识图谱全局 + 关系筛选 + 阻尼比节点聚焦 + 跨域映射 教师端班级分析：推荐流程图 → A/B题单 → 热力图 教师端班级分析：课前/课后平均能力对比 + 相关性散点 学生个人中心：补强路径卡片（任选一个重点账号登录） 控制奥德赛：关卡总览 + 对应重点账号AI建议 控灵 当前: extracurricular... 你好，我是控灵。今天我们将探索「extracurricular showcase」，有任何问题随时问我。 你可以问我: 按 Enter 发送，ESC 关闭面板 控灵",
+    "scroll": {
+      "width": 1440,
+      "height": 1121,
+      "viewportWidth": 1440,
+      "viewportHeight": 1100
+    }
+  }
+}

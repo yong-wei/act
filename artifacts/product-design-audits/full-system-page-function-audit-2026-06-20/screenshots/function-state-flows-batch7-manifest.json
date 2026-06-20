@@ -1,0 +1,142 @@
+{
+  "generatedAt": "2026-06-20T04:29:01.041Z",
+  "baseUrl": "http://localhost:3100",
+  "publicationId": "cmqluwvqo0001pmyf34og34jy",
+  "screenshots": [
+    {
+      "file": "screenshots/42-function-state-flows-batch7/admin-users-create-teacher-filled-modal-desktop.png",
+      "url": "http://localhost:3100/admin/users",
+      "title": "AI-OBE船舶控制平台",
+      "capturedAt": "2026-06-20T04:27:05.946Z",
+      "role": "admin",
+      "route": "/admin/users",
+      "viewport": "desktop",
+      "state": "create-teacher-modal-filled",
+      "fixture": {
+        "employeeNumber": "audit_teacher_20260620042705",
+        "teacherName": "审计删除教师2705"
+      }
+    },
+    {
+      "file": "screenshots/42-function-state-flows-batch7/admin-users-create-teacher-result-desktop.png",
+      "url": "http://localhost:3100/admin/users",
+      "title": "AI-OBE船舶控制平台",
+      "capturedAt": "2026-06-20T04:27:08.232Z",
+      "role": "admin",
+      "route": "/admin/users",
+      "viewport": "desktop",
+      "state": "create-teacher-result-search",
+      "fixture": {
+        "employeeNumber": "audit_teacher_20260620042705",
+        "teacherName": "审计删除教师2705"
+      }
+    },
+    {
+      "file": "screenshots/42-function-state-flows-batch7/admin-users-delete-created-teacher-result-desktop.png",
+      "url": "http://localhost:3100/admin/users",
+      "title": "AI-OBE船舶控制平台",
+      "capturedAt": "2026-06-20T04:27:10.429Z",
+      "role": "admin",
+      "route": "/admin/users",
+      "viewport": "desktop",
+      "state": "delete-created-teacher-result",
+      "fixture": {
+        "employeeNumber": "audit_teacher_20260620042705",
+        "teacherName": "审计删除教师2705"
+      },
+      "dialogs": [
+        {
+          "type": "confirm",
+          "message": "确认删除账号 审计删除教师2705？"
+        }
+      ]
+    },
+    {
+      "file": "screenshots/42-function-state-flows-batch7/teacher-arena-real-publish-result-desktop.png",
+      "url": "http://localhost:3100/teacher/arena",
+      "title": "AI-OBE船舶控制平台",
+      "capturedAt": "2026-06-20T04:27:44.802Z",
+      "role": "teacher",
+      "route": "/teacher/arena",
+      "viewport": "desktop",
+      "state": "real-publication-created-via-ui",
+      "fixture": {
+        "classId": "cmma7g0590004g9q2nl2jyzdf"
+      },
+      "publication": {
+        "id": "cmqluwvqo0001pmyf34og34jy",
+        "taskId": "task-second-order-lead-pid",
+        "classId": "cmma7g0590004g9q2nl2jyzdf",
+        "teacherId": "cmjtgw3ov00008f1njzx4bg7l",
+        "studentVisibility": "course",
+        "visibility": "course",
+        "deadline": "2026-12-31T15:59:00.000Z",
+        "leaderboardPolicyId": "leaderboard-whitebox-default",
+        "homeworkBinding": false,
+        "templateId": "template-serial-compensation-basic",
+        "targetSignal": "单位阶跃参考输入",
+        "disturbance": "无外加扰动，仅评估参考跟踪",
+        "initialCondition": "零初始状态",
+        "allowedMethods": [
+          "serial-compensator"
+        ],
+        "hardConstraints": [
+          "closed_loop_stable",
+          "finite_response",
+          "controller_causal"
+        ],
+        "scoringMetricWeights": {
+          "itae": 0.2,
+          "overshoot": 0.25,
+          "settlingTime": 0.3,
+          "steadyStateError": 0.25
+        },
+        "paretoEnabled": false,
+        "hiddenTestEnabled": false,
+        "gradeBinding": false,
+        "publicLeaderboard": false,
+        "telemetryLevel": "L0",
+        "status": "active",
+        "gradingPolicy": {
+          "allowLateSubmissions": false,
+          "hideFullLeaderboardBeforeDeadline": false
+        },
+        "createdAt": "2026-06-20T04:27:43.152Z",
+        "updatedAt": "2026-06-20T04:27:43.152Z"
+      }
+    },
+    {
+      "file": "screenshots/42-function-state-flows-batch7/student-real-publication-challenge-mobile.png",
+      "url": "http://localhost:3100/arena/challenges/task-second-order-lead-pid?publicationId=cmqluwvqo0001pmyf34og34jy",
+      "title": "AI-OBE船舶控制平台",
+      "capturedAt": "2026-06-20T04:27:48.720Z",
+      "role": "student",
+      "route": "/arena/challenges/task-second-order-lead-pid?publicationId=cmqluwvqo0001pmyf34og34jy",
+      "viewport": "mobile",
+      "state": "real-publication-challenge-detail-mobile",
+      "publicationId": "cmqluwvqo0001pmyf34og34jy"
+    },
+    {
+      "file": "screenshots/42-function-state-flows-batch7/student-real-publication-official-submit-mobile.png",
+      "url": "http://localhost:3100/interactive-learning/control-workbench?publicationId=cmqluwvqo0001pmyf34og34jy&preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+      "title": "AI-OBE船舶控制平台",
+      "capturedAt": "2026-06-20T04:27:53.431Z",
+      "role": "student",
+      "route": "/interactive-learning/control-workbench?publicationId=cmqluwvqo0001pmyf34og34jy&preset=multi-representation-linkage&arenaTask=task-second-order-lead-pid",
+      "viewport": "mobile",
+      "state": "real-publication-official-submit-mobile",
+      "publicationId": "cmqluwvqo0001pmyf34og34jy"
+    },
+    {
+      "file": "screenshots/42-function-state-flows-batch7/teacher-arena-real-publication-report-after-submit-desktop.png",
+      "url": "http://localhost:3100/teacher/arena/publications/cmqluwvqo0001pmyf34og34jy",
+      "title": "AI-OBE船舶控制平台",
+      "capturedAt": "2026-06-20T04:27:57.003Z",
+      "role": "teacher",
+      "route": "/teacher/arena/publications/cmqluwvqo0001pmyf34og34jy",
+      "viewport": "desktop",
+      "state": "real-publication-report-after-student-submit",
+      "publicationId": "cmqluwvqo0001pmyf34og34jy"
+    }
+  ]
+}
