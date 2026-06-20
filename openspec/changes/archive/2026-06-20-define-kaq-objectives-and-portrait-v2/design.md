@@ -8,7 +8,7 @@ This change establishes a semantic contract before any graph-center UI work. Obj
 - `capability`: observable mastery expectations over knowledge nodes, including Bloom-style level, behavior verb, task context, and success criteria.
 - `quality`: engineering disposition and responsibility objectives, expressed through scenario, observable behavior, rubric levels, and evidence sources.
 
-Each objective has an id, domain, level, optional parent id, title, description, course module, portrait dimensions, evidence policy, graph binding policy, and status.
+Each objective has an id, domain, level, explicit parent id or null, title, description, course module, portrait dimensions, evidence policy, graph binding policy, and status.
 
 ## Portrait v2
 
