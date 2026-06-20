@@ -122,6 +122,7 @@ export type KaqGraphValidationIssueCode =
   | 'invalid-node-domain'
   | 'invalid-node-status'
   | 'invalid-knowledge-kind'
+  | 'invalid-knowledge-refs'
   | 'duplicate-node-id'
   | 'invalid-edge-shape'
   | 'missing-edge-id'
@@ -292,6 +293,12 @@ function validateCommonNode(
   ) {
     issues.push(issue('invalid-knowledge-kind', 'Knowledge graph node kind is invalid.', { nodeId: safeId(node.id) }));
   }
+  if (
+    (node.domain === 'knowledge' || Object.hasOwn(nodeRecord, 'knowledgeRefs')) &&
+    !hasOnlyNonEmptyStrings((node as Partial<KaqKnowledgeGraphNode>).knowledgeRefs)
+  ) {
+    issues.push(issue('invalid-knowledge-refs', 'Knowledge graph node must declare at least one knowledge ref.', { nodeId: safeId(node.id) }));
+  }
 
   if (!Array.isArray(node.objectiveIds) || node.objectiveIds.length === 0) {
     issues.push(issue('unknown-objective-id', 'Graph node must reference at least one known objective id.', { nodeId: safeId(node.id) }));
@@ -436,6 +443,10 @@ function isNonEmptyString(value: unknown): value is string {
 
 function hasNonEmptyString(values: unknown): values is string[] {
   return Array.isArray(values) && values.some((value) => isNonEmptyString(value));
+}
+
+function hasOnlyNonEmptyStrings(values: unknown): values is string[] {
+  return Array.isArray(values) && values.length > 0 && values.every((value) => isNonEmptyString(value));
 }
 
 function isCatalogShape(value: unknown): value is KaqGraphCatalog {

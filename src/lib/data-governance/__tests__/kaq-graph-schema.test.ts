@@ -209,6 +209,47 @@ describe('kaq graph schema', () => {
     expect(result.issues.map((issue) => issue.code)).toContain('objective-domain-mismatch');
   });
 
+  it('rejects knowledge nodes without concrete knowledge refs', () => {
+    const invalidCatalog: KaqGraphCatalog = {
+      nodes: [
+        {
+          ...validCatalog.nodes[0],
+          knowledgeRefs: [],
+        } as unknown as KaqGraphCatalog['nodes'][number],
+        {
+          ...validCatalog.nodes[1],
+          knowledgeRefs: [''],
+        } as unknown as KaqGraphCatalog['nodes'][number],
+        {
+          ...validCatalog.nodes[0],
+          id: 'kn:missing-refs',
+          knowledgeRefs: undefined,
+        } as unknown as KaqGraphCatalog['nodes'][number],
+        {
+          ...validCatalog.nodes[0],
+          id: 'kn:non-array-refs',
+          knowledgeRefs: 'control-correction:time-domain-targets',
+        } as unknown as KaqGraphCatalog['nodes'][number],
+        {
+          ...validCatalog.nodes[0],
+          id: 'kn:mixed-empty-refs',
+          knowledgeRefs: ['control-correction:time-domain-targets', ''],
+        } as unknown as KaqGraphCatalog['nodes'][number],
+        {
+          ...validCatalog.nodes[0],
+          id: 'kn:mixed-non-string-refs',
+          knowledgeRefs: ['control-correction:time-domain-targets', 123],
+        } as unknown as KaqGraphCatalog['nodes'][number],
+      ],
+      edges: [],
+    };
+
+    const result = validateKaqGraphCatalog(invalidCatalog, objectives);
+
+    expect(result.valid).toBe(false);
+    expect(result.issues.filter((issue) => issue.code === 'invalid-knowledge-refs')).toHaveLength(6);
+  });
+
   it('rejects every invalid capability knowledge binding, not only empty binding lists', () => {
     const invalidCatalog: KaqGraphCatalog = {
       nodes: [
