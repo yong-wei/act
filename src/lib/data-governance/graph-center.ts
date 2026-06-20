@@ -110,7 +110,7 @@ export function buildGraphCenterPayload(input: GraphCenterPayloadInput = {}): Gr
   const domainNodes = AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes.filter((node) => node.domain === activeDomain);
   const objectiveId = resolveObjectiveId(input.objectiveId, activeDomain);
   const objective = objectiveId ? OBJECTIVE_BY_ID.get(objectiveId) ?? null : null;
-  const portraitDimension = resolvePortraitDimension(input.portraitDimension);
+  const portraitDimension = resolvePortraitDimension(input.portraitDimension, domainNodes);
   const filteredNodes = domainNodes.filter((node) => (
     (!objective || nodeMatchesObjective(node, objective)) &&
     (!portraitDimension || node.portraitDimensions.includes(portraitDimension))
@@ -166,9 +166,13 @@ function resolveObjectiveId(objectiveId: GraphCenterPayloadInput['objectiveId'],
   return OBJECTIVE_BY_ID.get(objectiveId)?.domain === domain ? objectiveId : null;
 }
 
-function resolvePortraitDimension(dimension: GraphCenterPayloadInput['portraitDimension']): PortraitV2DimensionId | null {
+function resolvePortraitDimension(
+  dimension: GraphCenterPayloadInput['portraitDimension'],
+  domainNodes: KaqGraphNode[],
+): PortraitV2DimensionId | null {
   if (!dimension) return null;
-  return PORTRAIT_V2_DIMENSIONS.some((definition) => definition.id === dimension) ? dimension : null;
+  if (!PORTRAIT_V2_DIMENSIONS.some((definition) => definition.id === dimension)) return null;
+  return domainNodes.some((node) => node.portraitDimensions.includes(dimension)) ? dimension : null;
 }
 
 function selectNode(nodes: KaqGraphNode[], requestedNodeId?: string | null): KaqGraphNode | null {

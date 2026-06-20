@@ -84,6 +84,19 @@ describe('graph center payload service', () => {
     expect(payload.graph.nodes.every((node) => node.domain === 'quality')).toBe(true);
   });
 
+  it('drops portrait dimensions that are valid globally but unavailable in the active domain', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'quality',
+      portraitDimension: 'controllerDesignSynthesis',
+    });
+
+    expect(payload.activeDomain).toBe('quality');
+    expect(payload.portraitDimension).toBeNull();
+    expect(payload.graph.nodes.length).toBeGreaterThan(0);
+    expect(payload.portraitDimensions.every((dimension) => dimension.id !== 'controllerDesignSynthesis')).toBe(true);
+    expect(payload.graph.nodes.every((node) => node.domain === 'quality')).toBe(true);
+  });
+
   it('surfaces seed-coverage limitations and keeps overlay placeholders separate from graph body nodes', () => {
     const payload = buildGraphCenterPayload({
       domain: 'knowledge',
