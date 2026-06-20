@@ -443,16 +443,21 @@ describe('kaq graph schema', () => {
         {
           ...validCatalog.nodes[2],
           bloomLevel: 'bad-level' as KaqGraphCatalog['nodes'][number]['domain'],
+          successCriteria: ['Translate one target.', null] as unknown as string[],
+          observableEvidenceTypes: ['simulation-run', ''] as string[],
+          evaluationMethods: ['governed simulation replay', 123] as unknown as string[],
         },
         {
           ...validCatalog.nodes[3],
+          observableBehaviors: ['States evidence.', ''] as string[],
+          evidenceSources: ['reflection', 123] as unknown as string[],
           rubricLevels: [
             null,
             'bad-rubric',
             {
               id: '',
               label: '',
-              criteria: [],
+              criteria: ['Uses governed evidence.', null] as unknown as string[],
             },
           ],
         },
@@ -465,7 +470,10 @@ describe('kaq graph schema', () => {
     expect(result.valid).toBe(false);
     expect(result.issues.map((issue) => issue.code)).toEqual(expect.arrayContaining([
       'invalid-capability-bloom-level',
+      'capability-missing-observable-evidence',
       'invalid-quality-rubric-level',
+      'quality-missing-observable-behavior',
+      'quality-missing-evidence-sources',
     ]));
   });
 

@@ -361,9 +361,9 @@ function validateCapabilityNode(
   const hasObservableEvidence =
     isNonEmptyString(node.behaviorVerb) &&
     isNonEmptyString(node.taskContext) &&
-    hasNonEmptyString(node.successCriteria) &&
-    hasNonEmptyString(node.observableEvidenceTypes) &&
-    hasNonEmptyString(node.evaluationMethods);
+    hasOnlyNonEmptyStrings(node.successCriteria) &&
+    hasOnlyNonEmptyStrings(node.observableEvidenceTypes) &&
+    hasOnlyNonEmptyStrings(node.evaluationMethods);
 
   if (node.status === 'active' && !hasObservableEvidence) {
     issues.push(issue('capability-missing-observable-evidence', 'Active capability node must declare observable evidence semantics.', { nodeId: safeId(node.id) }));
@@ -379,7 +379,7 @@ function validateQualityNode(
   if (!isNonEmptyString(node.scenario)) {
     issues.push(issue('quality-missing-scenario', 'Active quality node must declare a scenario.', { nodeId: safeId(node.id) }));
   }
-  if (!hasNonEmptyString(node.observableBehaviors)) {
+  if (!hasOnlyNonEmptyStrings(node.observableBehaviors)) {
     issues.push(issue('quality-missing-observable-behavior', 'Active quality node must declare observable behaviors.', { nodeId: safeId(node.id) }));
   }
   if (!Array.isArray(node.rubricLevels) || node.rubricLevels.length === 0) {
@@ -390,13 +390,13 @@ function validateQualityNode(
         !isRecord(rubricLevel) ||
         !isNonEmptyString(rubricLevel.id) ||
         !isNonEmptyString(rubricLevel.label) ||
-        !hasNonEmptyString(rubricLevel.criteria)
+        !hasOnlyNonEmptyStrings(rubricLevel.criteria)
       ) {
         issues.push(issue('invalid-quality-rubric-level', 'Quality rubric level must declare id, label, and criteria.', { nodeId: safeId(node.id) }));
       }
     }
   }
-  if (!hasNonEmptyString(node.evidenceSources)) {
+  if (!hasOnlyNonEmptyStrings(node.evidenceSources)) {
     issues.push(issue('quality-missing-evidence-sources', 'Active quality node must declare evidence sources.', { nodeId: safeId(node.id) }));
   }
 }
@@ -439,10 +439,6 @@ function issue(
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
-}
-
-function hasNonEmptyString(values: unknown): values is string[] {
-  return Array.isArray(values) && values.some((value) => isNonEmptyString(value));
 }
 
 function hasOnlyNonEmptyStrings(values: unknown): values is string[] {
