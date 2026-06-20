@@ -424,6 +424,47 @@ describe('resource node registry', () => {
         reasons: expect.arrayContaining(['unavailable-resource']),
       },
     });
+    expect(registry.nodes.find((node) => node.id === 'registry:arena-challenge-workbench')).toMatchObject({
+      planningMetadata: {
+        readiness: {
+          requiredCompletedNodeIds: ['registry:lesson09-summary-card'],
+          requiredOutcomeRefs: ['simulation_run:lesson09-time-domain-synthesis'],
+        },
+      },
+    });
+    expect(registry.nodes.find((node) => node.id === 'registry:lesson09-time-domain-synthesis')).toMatchObject({
+      type: 'lesson_step',
+      planningMetadata: {
+        evidenceInstrumentation: expect.arrayContaining(['simulation_trace_verified']),
+      },
+      eligibility: { pathEligible: true },
+    });
+
+    const activeRegisteredNodes = registry.nodes.filter((node) =>
+      node.sourceKind === 'resource_registry' &&
+      node.planningMetadata.availability !== 'archived' &&
+      node.planningMetadata.teacherPolicy !== 'blocked' &&
+      node.planningMetadata.teacherPolicy !== 'teacher-only'
+    );
+    const incompleteActiveNodes = activeRegisteredNodes
+      .filter((node) =>
+        node.planningMetadata.knowledgeCoverage.length === 0 ||
+        node.planningMetadata.evidenceInstrumentation.length === 0 ||
+        Object.keys(node.planningMetadata.abilityImpact).length === 0 ||
+        typeof node.planningMetadata.estimatedTimeMinutes !== 'number' ||
+        node.eligibility.auditIssues.length > 0
+      )
+      .map((node) => ({
+        id: node.id,
+        auditIssues: node.eligibility.auditIssues.map((issue) => issue.code),
+      }));
+    const unlockedSimulations = activeRegisteredNodes
+      .filter((node) => node.type === 'simulation' && !node.planningMetadata.readiness)
+      .map((node) => node.id);
+
+    expect(activeRegisteredNodes).toHaveLength(119);
+    expect(incompleteActiveNodes).toEqual([]);
+    expect(unlockedSimulations).toEqual([]);
   });
 
   it('registers textbook sections as path-plannable resources without turning textbook containers into path nodes', () => {

@@ -1,10 +1,11 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   readAdaptiveLearnerState: vi.fn(),
+  loadAllTextbookRuntimeResourceCatalogEntries: vi.fn(),
+  loadAllTextbookRuntimeSearchDocuments: vi.fn(),
 }));
 
 vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
@@ -17,82 +18,10 @@ vi.mock('@/lib/data-governance/adaptive-learner-state-service', async () => {
   };
 });
 
-function createTextbookRuntimeFixture() {
-  const root = mkdtempSync(join(tmpdir(), 'textbook-runtime-'));
-  const bookRoot = join(root, 'dorf-modern-control-systems');
-  mkdirSync(bookRoot, { recursive: true });
-  writeFileSync(join(bookRoot, 'manifest.json'), JSON.stringify({
-    bookId: 'dorf-modern-control-systems',
-    title: 'Modern Control Systems',
-  }), 'utf-8');
-  const documents = [
-    {
-      id: 'ch10-sec01__chunk-001',
-      kind: 'chunk',
-      title: 'Modern Control Systems 第 10 章 10.1 节',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md#chunk-001',
-      text: 'Root-locus compensation links desired transient response to controller zero and pole placement.',
-      contentHash: 'hash-textbook-section',
-      resourceProjection: {
-        segmentRef: 'ch10-sec01',
-        citationTargetRef: 'ch10-sec01__chunk-001',
-        knowledgeNodeRefs: ['kn-phase-margin'],
-        capabilityTargetRefs: ['parameterDesign'],
-        contentHash: 'hash-textbook-section',
-      },
-      citationAddress: {
-        kind: 'text',
-        sourceRefId: 'ch10-sec01__chunk-001',
-        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md#chunk-001',
-        locator: 'chunk-001',
-        contentHash: 'hash-textbook-section',
-      },
-      metadata: {
-        bookId: 'dorf-modern-control-systems',
-        sectionId: 'ch10-sec01',
-        chapterId: 'chapter-10',
-        chapterNumber: 10,
-      },
-    },
-    {
-      id: 'fig-10-03__figure',
-      kind: 'figure',
-      title: '图 10-3 根轨迹校正示意',
-      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md#fig-10-03',
-      text: 'Figure 10-3 shows a root-locus compensation sketch.',
-      contentHash: 'hash-figure-description',
-      resourceProjection: {
-        segmentRef: 'ch10-sec01',
-        citationTargetRef: 'fig-10-03',
-        knowledgeNodeRefs: ['kn-phase-margin'],
-        capabilityTargetRefs: ['parameterDesign'],
-        contentHash: 'hash-figure-description',
-      },
-      citationAddress: {
-        kind: 'image',
-        sourceRefId: 'fig-10-03',
-        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md#fig-10-03',
-        locator: 'fig-10-03',
-        contentHash: 'hash-figure-description',
-      },
-      metadata: {
-        bookId: 'dorf-modern-control-systems',
-        sectionId: 'ch10-sec01',
-        chapterId: 'chapter-10',
-        chapterNumber: 10,
-      },
-    },
-  ];
-  writeFileSync(
-    join(bookRoot, 'search-documents.jsonl'),
-    documents.map((document) => JSON.stringify(document)).join('\n') + '\n',
-    'utf-8',
-  );
-  return {
-    root,
-    cleanup: () => rmSync(root, { recursive: true, force: true }),
-  };
-}
+vi.mock('@/lib/textbook-runtime-resources', () => ({
+  loadAllTextbookRuntimeResourceCatalogEntries: mocks.loadAllTextbookRuntimeResourceCatalogEntries,
+  loadAllTextbookRuntimeSearchDocuments: mocks.loadAllTextbookRuntimeSearchDocuments,
+}));
 
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
 import {
@@ -228,9 +157,92 @@ function createRuntimeContext(overrides: Partial<KonlingRuntimeContext> = {}): K
   };
 }
 
+function textbookRuntimeCatalogFixture() {
+  return [{
+    textbook: {
+      bookId: 'dorf-modern-control-systems',
+      title: 'Modern Control Systems',
+    },
+    sections: [
+      {
+        bookId: 'dorf-modern-control-systems',
+        sectionId: 'ch08-example-0801',
+        title: 'Bode 图频域响应示例',
+        citationHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md',
+        knowledgeNodeIds: ['Bode图_1_1', '频域响应_1_1', '正弦稳态响应_5_b6dc1100'],
+        capabilityTargetIds: ['controlModeling', 'parameterDesign'],
+        estimatedTimeMinutes: 8,
+      },
+    ],
+  }];
+}
+
+function textbookRuntimeSearchDocumentFixture() {
+  return [
+    {
+      id: 'ch08-example-0801__chunk-001',
+      kind: 'chunk',
+      title: 'Bode 图频域响应示例',
+      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md#chunk-001',
+      text: 'Bode 图用于观察频域响应。',
+      contentHash: 'sha-textbook-chunk',
+      resourceProjection: {
+        resourceId: 'textbook-section:dorf-modern-control-systems:ch08-example-0801',
+        segmentRef: 'ch08-example-0801',
+        citationTargetRef: 'ch08-example-0801',
+        knowledgeNodeRefs: ['Bode图_1_1', '频域响应_1_1'],
+        capabilityTargetRefs: ['controlModeling'],
+      },
+      citationAddress: {
+        kind: 'text',
+        sourceRefId: 'ch08-example-0801__chunk-001',
+        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md#chunk-001',
+        locator: 'chunk-001',
+        contentHash: 'sha-textbook-chunk',
+      },
+      metadata: {
+        bookId: 'dorf-modern-control-systems',
+        sectionId: 'ch08-example-0801',
+        chapterId: 'ch08',
+        chapterNumber: 8,
+      },
+    },
+    {
+      id: 'fig-08-01__figure',
+      kind: 'figure',
+      title: 'Bode 图示意图',
+      href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md#fig-08-01',
+      text: '图像描述：幅频与相频曲线。',
+      contentHash: 'sha-textbook-figure',
+      resourceProjection: {
+        resourceId: 'textbook-section:dorf-modern-control-systems:ch08-example-0801',
+        segmentRef: 'ch08-example-0801',
+        citationTargetRef: 'fig-08-01',
+        knowledgeNodeRefs: ['Bode图_1_1'],
+        capabilityTargetRefs: ['controlModeling'],
+      },
+      citationAddress: {
+        kind: 'image',
+        sourceRefId: 'fig-08-01',
+        href: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md#fig-08-01',
+        locator: 'fig-08-01',
+        contentHash: 'sha-textbook-figure',
+      },
+      metadata: {
+        bookId: 'dorf-modern-control-systems',
+        sectionId: 'ch08-example-0801',
+        chapterId: 'ch08',
+        chapterNumber: 8,
+      },
+    },
+  ];
+}
+
 describe('konling agent runtime', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.loadAllTextbookRuntimeResourceCatalogEntries.mockResolvedValue(textbookRuntimeCatalogFixture());
+    mocks.loadAllTextbookRuntimeSearchDocuments.mockResolvedValue(textbookRuntimeSearchDocumentFixture());
     process.env.ADAPTIVE_LEARNER_STATE_SERVICE_ENABLED = 'true';
     delete process.env.KONLING_SEMANTIC_MEMORY_ENABLED;
     delete process.env.KONLING_STRATEGY_MEMORY_ENABLED;
@@ -2407,10 +2419,6 @@ describe('konling agent runtime', () => {
   });
 
   it('builds Konling content citations from real textbook runtime search documents', async () => {
-    const fixture = createTextbookRuntimeFixture();
-    const previousRoot = process.env.ACT_TEXTBOOK_RUNTIME_ROOT;
-    process.env.ACT_TEXTBOOK_RUNTIME_ROOT = fixture.root;
-    try {
     const runtime = await buildKonlingRuntimeContext({}, {
       authenticatedUserId: 'student-1',
       authenticatedUserName: '张三',
@@ -2454,14 +2462,6 @@ describe('konling agent runtime', () => {
     });
     expect(textbookCitations.every((citation) => !citation.id.includes('content:textbook:dorf-modern-control-systems:')))
       .toBe(true);
-    } finally {
-      if (previousRoot === undefined) {
-        delete process.env.ACT_TEXTBOOK_RUNTIME_ROOT;
-      } else {
-        process.env.ACT_TEXTBOOK_RUNTIME_ROOT = previousRoot;
-      }
-      fixture.cleanup();
-    }
   });
 
   it('verifies Konling answers against textbook, figure, video timestamp, and slides citations', () => {
@@ -5002,7 +5002,7 @@ describe('konling agent runtime', () => {
     const result = await runtime.generateLearningPath({
       idempotencyKey: 'path-gen-1',
       goalId: 'control-correction',
-      timeBudgetMinutes: 45,
+      timeBudgetMinutes: 90,
       difficultyRhythm: 'steady',
       naturalLanguageIntent: '我想先补相位裕度，再做仿真验证。',
     }) as { pathOptions: Array<Record<string, unknown>> };
@@ -5042,6 +5042,15 @@ describe('konling agent runtime', () => {
       ]),
       limitations: expect.any(Array),
     }));
+    const nodeIds = (result.pathOptions[0].nodeSummaries as Array<{ nodeId: string }>).map((node) => node.nodeId);
+    expect(nodeIds).toEqual(expect.arrayContaining([
+      'registry:lesson09-correction-precheck',
+      'registry:lesson09-summary-card',
+      'registry:arena-challenge-workbench',
+    ]));
+    expect(nodeIds[0]).toBe('registry:lesson09-correction-precheck');
+    expect(nodeIds).not.toContain('knowledge-card:control-correction-time-domain-targets');
+    expect(nodeIds.at(-1)).toBe('registry:arena-challenge-workbench');
     expect(JSON.stringify(result)).not.toMatch(/missing-|low-evidence|no-path|stage-1-rules-graph|policyFamily/);
     expect(JSON.stringify(result)).not.toMatch(/low-confidence-learner-state|adaptive-learner-state|knowledgeMastery/);
     expect(JSON.stringify(db.agentToolRun.create.mock.calls)).not.toContain('我想先补相位裕度');
@@ -6494,10 +6503,12 @@ describe('konling agent runtime', () => {
       context: createRuntimeContext({ permittedTools: ['generate_learning_path'] }),
     });
 
-    await expect(runtime.generateLearningPath({
+    const result = await runtime.generateLearningPath({
       idempotencyKey: 'frequency-path-gen',
       goalId: 'frequency-response-foundations',
-    })).resolves.toMatchObject({
+      resourcePreference: ['textbook_section'],
+    });
+    expect(result).toMatchObject({
       operation: 'generated',
       scope: expect.objectContaining({
         goalId: 'frequency-response-foundations',
@@ -6508,10 +6519,16 @@ describe('konling agent runtime', () => {
         }),
       ]),
     });
+    expect(JSON.stringify(result.pathOptions)).toContain('textbook-section:dorf-modern-control-systems:ch08-example-0801');
     expect(db.agentToolRun.create).toHaveBeenCalled();
     expect(db.learningPath.upsert).toHaveBeenCalledWith(expect.objectContaining({
       create: expect.objectContaining({
         goalId: 'frequency-response-foundations',
+        inputSnapshot: expect.objectContaining({
+          request: expect.objectContaining({
+            resourcePreference: ['textbook_section'],
+          }),
+        }),
       }),
     }));
     expect(db.agentToolRun.create.mock.invocationCallOrder[0]).toBeLessThan(

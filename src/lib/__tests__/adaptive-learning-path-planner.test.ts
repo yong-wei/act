@@ -163,6 +163,29 @@ function plannerInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {})
   };
 }
 
+function textbookRuntimeFixtureSections() {
+  return [
+    {
+      bookId: 'dorf-modern-control-systems',
+      sectionId: 'ch08-example-0801',
+      title: 'Bode 图频域响应示例',
+      citationHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md',
+      knowledgeNodeIds: ['Bode图_1_1', '频域响应_1_1', '正弦稳态响应_5_b6dc1100'],
+      capabilityTargetIds: ['controlModeling', 'parameterDesign'],
+      estimatedTimeMinutes: 8,
+    },
+    {
+      bookId: 'dorf-modern-control-systems',
+      sectionId: 'ch10-sec01',
+      title: '串联校正与频域整定',
+      citationHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md',
+      knowledgeNodeIds: ['串联校正_6_fede5751', '频域PD与超前整定_4_42011'],
+      capabilityTargetIds: ['parameterDesign', 'engineeringDecision'],
+      estimatedTimeMinutes: 12,
+    },
+  ];
+}
+
 function policyFixtureInput(overrides: Partial<AdaptiveLearningPathPlannerInput> = {}): AdaptiveLearningPathPlannerInput {
   const registry = buildResourceNodeRegistry({
     registeredResources: [
@@ -1189,15 +1212,303 @@ describe('adaptive learning path planner', () => {
     }));
 
     expect(plan.explanations.fallbackReasons).not.toContain('terminal-validation-resource-missing');
-    expect(plan.mainPath.at(-1)).toMatchObject({
+    const terminalNode = plan.mainPath.at(-1);
+    expect(terminalNode).toMatchObject({
       type: 'arena_task',
       target: '/arena/challenges/task-second-order-lead-pid',
       terminalConstraints: expect.arrayContaining(['terminal-validation']),
     });
+    expect(terminalNode?.readiness).toMatchObject({
+      state: 'locked',
+      reasonCodes: expect.arrayContaining(['readiness-required-completion', 'readiness-required-outcome']),
+      missingCompletedNodeIds: ['registry:lesson09-summary-card'],
+      missingOutcomeRefs: ['simulation_run:lesson09-time-domain-synthesis'],
+    });
     expect(plan.mainPath.at(-1)?.target).not.toBe('/interactive-learning/resources/arena-challenge-workbench');
     expect(plan.mainPath.map((node) => node.nodeId)).toEqual(expect.arrayContaining([
+      'registry:lesson09-correction-precheck',
+      'registry:lesson09-summary-card',
       'registry:arena-challenge-workbench',
     ]));
+    expect(plan.mainPath[0]?.nodeId).toBe('registry:lesson09-correction-precheck');
+    expect(plan.mainPath.length).toBeGreaterThanOrEqual(3);
+    expect(plan.mainPath.slice(0, -1).some((node) =>
+      node.nodeId.startsWith('registry:lesson09-') &&
+      node.terminalConstraints.length === 0
+    )).toBe(true);
+    expect(plan.mainPath.find((node) => node.nodeId === 'registry:lesson09-summary-card')).toMatchObject({
+      pathNodeType: 'knowledge_card',
+    });
+    expect(terminalNode).toMatchObject({
+      knowledgeCoverage: ['control-correction:arena-transfer'],
+    });
+
+    const unlockedPlan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+        completedNodeIds: [
+          'registry:lesson09-correction-precheck',
+          'registry:lesson09-time-domain-synthesis',
+          'registry:lesson09-summary-card',
+        ],
+        availableOutcomeRefs: ['simulation_run:lesson09-time-domain-synthesis'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.3, confidence: 0.7, evidenceCount: 2 },
+            'control-correction:root-locus-design': { posteriorMastery: 0.25, confidence: 0.65, evidenceCount: 2 },
+            'control-correction:simulation-validation': { posteriorMastery: 0.2, confidence: 0.6, evidenceCount: 1 },
+            'control-correction:arena-transfer': { posteriorMastery: 0.1, confidence: 0.5, evidenceCount: 0 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            controlModeling: { score: 0.6, confidence: 0.7, evidenceCount: 4 },
+            parameterDesign: { score: 0.35, confidence: 0.7, evidenceCount: 4 },
+            engineeringDecision: { score: 0.42, confidence: 0.6, evidenceCount: 3 },
+            crossDomainTransfer: { score: 0.28, confidence: 0.5, evidenceCount: 2 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.68,
+            evidenceCount: 8,
+            sourceCompleteness: 0.7,
+          },
+          sourceCoverage: {
+            LearningFact: 'available',
+            ArenaSubmission: 'partial',
+          },
+        },
+      },
+    }));
+    expect(unlockedPlan.mainPath.find((node) => node.nodeId === 'registry:lesson09-time-domain-synthesis')).toMatchObject({
+      type: 'lesson_step',
+      readiness: { state: 'ready' },
+    });
+    expect(unlockedPlan.mainPath.at(-1)).toMatchObject({
+      nodeId: 'registry:arena-challenge-workbench',
+      readiness: {
+        state: 'ready',
+        missingOutcomeRefs: [],
+      },
+    });
+  });
+
+  it('keeps central control-correction policy options scoped to control-correction resources', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: getAllRegisteredResourceMetadata(),
+      textbookSections: [{
+        bookId: 'dorf-modern-control-systems',
+        sectionId: 'ch01-example-0103',
+        title: '跨章能力匹配示例',
+        citationHref: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch01-example-0103.md',
+        knowledgeNodeIds: ['control-design:examples'],
+        capabilityTargetIds: ['engineeringDecision'],
+        estimatedTimeMinutes: 8,
+      }],
+    });
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'control-correction:time-domain-targets': { posteriorMastery: 0.18, confidence: 0.7, evidenceCount: 1 },
+            'control-correction:root-locus-design': { posteriorMastery: 0.18, confidence: 0.65, evidenceCount: 1 },
+            'control-correction:simulation-validation': { posteriorMastery: 0.16, confidence: 0.6, evidenceCount: 0 },
+            'control-correction:arena-transfer': { posteriorMastery: 0.1, confidence: 0.5, evidenceCount: 0 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            parameterDesign: { score: 0.25, confidence: 0.7, evidenceCount: 1 },
+            engineeringDecision: { score: 0.22, confidence: 0.6, evidenceCount: 1 },
+            crossDomainTransfer: { score: 0.18, confidence: 0.5, evidenceCount: 0 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'low',
+            score: 0.4,
+            evidenceCount: 1,
+            sourceCompleteness: 0.4,
+          },
+        },
+      },
+    }));
+
+    const policyNodeIds = plan.policyBundle?.paths.flatMap((path) => path.nodeIds) ?? [];
+    const allowedControlCorrectionKnowledge = new Set([
+      ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal.knowledgeTargets,
+      ...Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].knowledgeTargetAliases ?? {}).flat(),
+    ]);
+    expect(policyNodeIds.length).toBeGreaterThan(0);
+    expect(policyNodeIds).not.toContain('registry:lesson14-three-band-studio');
+    expect(policyNodeIds).not.toContain('textbook-section:dorf-modern-control-systems:ch01-example-0103');
+    for (const nodeId of policyNodeIds) {
+      const node = registry.nodes.find((item) => item.id === nodeId);
+      expect(node?.planningMetadata.knowledgeCoverage.some((target) =>
+        allowedControlCorrectionKnowledge.has(target)
+      )).toBe(true);
+    }
+  });
+
+  it('registers runtime textbook sections with control-correction knowledge aliases', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: getAllRegisteredResourceMetadata(),
+      textbooks: [{
+        bookId: 'dorf-modern-control-systems',
+        title: 'Modern Control Systems',
+      }],
+      textbookSections: textbookRuntimeFixtureSections(),
+    });
+
+    const controlCorrectionAliases = new Set(
+      Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].knowledgeTargetAliases ?? {}).flat()
+    );
+    const visibleTextbookSection = registry.nodes.find((node) =>
+      node.type === 'textbook_section' &&
+      node.id.startsWith('textbook-section:dorf-modern-control-systems:') &&
+      node.planningMetadata.knowledgeCoverage.some((target) => controlCorrectionAliases.has(target))
+    );
+    expect(visibleTextbookSection).toMatchObject({
+      id: expect.stringMatching(/^textbook-section:dorf-modern-control-systems:/),
+      type: 'textbook_section',
+    });
+    expect(visibleTextbookSection?.planningMetadata.knowledgeCoverage.some((target) =>
+      target.startsWith('control-correction:')
+    )).toBe(false);
+    expect(Object.keys(visibleTextbookSection?.planningMetadata.abilityImpact ?? {})).not.toHaveLength(0);
+  });
+
+  it('counts runtime textbook sections as covering frequency-response registered goal aliases', () => {
+    const registry = buildResourceNodeRegistry({
+      textbooks: [{
+        bookId: 'dorf-modern-control-systems',
+        title: 'Modern Control Systems',
+      }],
+      textbookSections: textbookRuntimeFixtureSections(),
+    });
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
+      policyFamily: 'foundation-remediation',
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-bode': { posteriorMastery: 0.16, confidence: 0.7, evidenceCount: 1 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.62,
+            evidenceCount: 2,
+            sourceCompleteness: 0.6,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+        timelineWindowDays: 7,
+      },
+    }));
+
+    const selectedTextbookSection = plan.mainPath.find((node) => node.type === 'textbook_section');
+    expect(selectedTextbookSection).toMatchObject({
+      nodeId: expect.stringMatching(/^textbook-section:dorf-modern-control-systems:/),
+      pathNodeType: 'textbook_section',
+      evidenceBehavior: 'explicit_access',
+      target: expect.stringContaining('/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/'),
+    });
+    expect(selectedTextbookSection?.knowledgeCoverage).not.toContain('kn-bode');
+    expect(selectedTextbookSection?.knowledgeCoverage.some((target) =>
+      (ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].knowledgeTargetAliases?.['kn-bode'] ?? []).includes(target)
+    )).toBe(true);
+    expect(plan.status).toBe('ready');
+  });
+
+  it('does not admit unrelated resources by competency when a knowledge target is declared', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'target-lesson-card',
+          label: '目标知识资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/target-lesson-card',
+          knowledgeNodeIds: ['kn-target'],
+          planningOverride: {
+            estimatedTimeMinutes: 8,
+            evidenceInstrumentation: ['card_complete'],
+            abilityImpact: { controlModeling: 0.2 },
+          },
+        },
+        {
+          id: 'unrelated-same-ability',
+          label: '同能力无关资源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/unrelated-same-ability',
+          knowledgeNodeIds: ['kn-unrelated'],
+          planningOverride: {
+            estimatedTimeMinutes: 8,
+            evidenceInstrumentation: ['card_complete'],
+            abilityImpact: { controlModeling: 0.8 },
+          },
+        },
+      ],
+    });
+    const plan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry,
+      goal: {
+        id: 'temporary-knowledge-goal',
+        title: '临时知识目标',
+        knowledgeTargets: ['kn-target'],
+        competencyTargets: ['controlModeling'],
+      },
+      learnerState: {
+        knowledgeMastery: {
+          tags: {
+            'kn-target': { posteriorMastery: 0.2, confidence: 0.7, evidenceCount: 1 },
+          },
+        },
+        primaryCompetencies: {
+          vector: {
+            controlModeling: { score: 0.25, confidence: 0.7, evidenceCount: 1 },
+          },
+        },
+        evidence: {
+          confidence: {
+            level: 'medium',
+            score: 0.7,
+            evidenceCount: 2,
+            sourceCompleteness: 0.7,
+          },
+        },
+      },
+      constraints: {
+        timeBudgetMinutes: 30,
+        privacyScopes: ['student-visible'],
+      },
+    }));
+
+    expect(plan.mainPath.map((node) => node.nodeId)).toContain('registry:target-lesson-card');
+    expect(plan.mainPath.map((node) => node.nodeId)).not.toContain('registry:unrelated-same-ability');
   });
 
   it('falls back when a control-correction path lacks terminal validation evidence', () => {
@@ -2983,7 +3294,7 @@ describe('adaptive learning path planner', () => {
           id: 'support-sim',
           title: '缺 readiness 的偏好仿真',
           launchTarget: '/simulations/support',
-          knowledgeNodeIds: ['kn-support'],
+          knowledgeNodeIds: ['kn-foundation', 'kn-support'],
         },
       ],
       knowledgeNodes: [

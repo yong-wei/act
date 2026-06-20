@@ -1,6 +1,7 @@
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 import {
   LEARNING_EVIDENCE_CORPUS_RETENTION_POLICY,
@@ -32,6 +33,7 @@ function createTextbookRuntimeFixture() {
       text: 'Root-locus compensation links desired transient response to controller zero and pole placement.',
       contentHash: 'hash-textbook-section',
       resourceProjection: {
+        resourceId: 'textbook-section:dorf-modern-control-systems:ch10-sec01',
         segmentRef: 'ch10-sec01',
         citationTargetRef: 'ch10-sec01__chunk-001',
         knowledgeNodeRefs: ['kn-phase-margin'],
@@ -60,6 +62,7 @@ function createTextbookRuntimeFixture() {
       text: 'Figure 10-3 shows a root-locus compensation sketch.',
       contentHash: 'hash-figure-description',
       resourceProjection: {
+        resourceId: 'textbook-section:dorf-modern-control-systems:ch10-sec01',
         segmentRef: 'ch10-sec01',
         citationTargetRef: 'fig-10-03',
         knowledgeNodeRefs: ['kn-phase-margin'],
@@ -380,66 +383,66 @@ describe('learning evidence RAG corpus contract', () => {
       const textbookDocuments = await loadAllTextbookRuntimeSearchDocuments(fixture.root);
       const textbookChunk = textbookDocuments.find((document) => document.kind === 'chunk');
       const textbookFigure = textbookDocuments.find((document) => document.kind === 'figure');
-    expect(textbookChunk).toBeDefined();
-    expect(textbookFigure).toBeDefined();
+      expect(textbookChunk).toBeDefined();
+      expect(textbookFigure).toBeDefined();
 
-    const textbookAndMedia = [
-      chunk({
-        id: textbookChunk?.id,
-        family: 'course-content',
-        sourceType: 'course-content',
-        sourceRef: {
+      const textbookAndMedia = [
+        chunk({
           id: textbookChunk?.id,
-          goalId: 'root-locus-correction',
-          resourceId: textbookChunk?.resourceProjection.resourceId,
-        },
-        spanRef: { kind: 'text-range', start: 0, end: textbookChunk?.text?.length ?? 0, locator: textbookChunk?.citationAddress?.locator },
-        display: {
-          title: textbookChunk?.title ?? 'Modern Control Systems 教材段落',
-          href: textbookChunk?.href ?? null,
-          capsule: textbookChunk?.text?.slice(0, 120) ?? 'Modern Control Systems 教材段落。',
-        },
-        citationAddress: textbookChunk?.citationAddress,
-        content: {
-          text: textbookChunk?.text ?? null,
-          redactedSummary: textbookChunk?.text?.slice(0, 160) ?? null,
-          hash: textbookChunk?.contentHash ?? 'hash-textbook-section',
-        },
-        resourceProjection: textbookChunk?.resourceProjection,
-        retrieval: {
-          tags: ['textbook-section'],
-          goals: ['root-locus-correction'],
-          useCases: ['konling', 'recommendation'],
-        },
-      }),
-      chunk({
-        id: textbookFigure?.id,
-        family: 'course-content',
-        sourceType: 'course-content',
-        sourceRef: {
+          family: 'course-content',
+          sourceType: 'course-content',
+          sourceRef: {
+            id: textbookChunk?.id,
+            goalId: 'root-locus-correction',
+            resourceId: textbookChunk?.resourceProjection.resourceId,
+          },
+          spanRef: { kind: 'text-range', start: 0, end: textbookChunk?.text?.length ?? 0, locator: textbookChunk?.citationAddress?.locator },
+          display: {
+            title: textbookChunk?.title ?? 'Modern Control Systems 教材段落',
+            href: textbookChunk?.href ?? null,
+            capsule: textbookChunk?.text?.slice(0, 120) ?? 'Modern Control Systems 教材段落。',
+          },
+          citationAddress: textbookChunk?.citationAddress,
+          content: {
+            text: textbookChunk?.text ?? null,
+            redactedSummary: textbookChunk?.text?.slice(0, 160) ?? null,
+            hash: textbookChunk?.contentHash ?? 'hash-textbook-section',
+          },
+          resourceProjection: textbookChunk?.resourceProjection,
+          retrieval: {
+            tags: ['textbook-section'],
+            goals: ['root-locus-correction'],
+            useCases: ['konling', 'recommendation'],
+          },
+        }),
+        chunk({
           id: textbookFigure?.id,
-          goalId: 'root-locus-correction',
-          resourceId: textbookFigure?.resourceProjection.resourceId,
-        },
-        spanRef: { kind: 'node', locator: textbookFigure?.citationAddress?.locator },
-        display: {
-          title: textbookFigure?.title ?? 'Modern Control Systems 教材图片',
-          href: textbookFigure?.href ?? null,
-          capsule: textbookFigure?.text?.slice(0, 120) ?? 'Modern Control Systems 教材图片描述。',
-        },
-        citationAddress: textbookFigure?.citationAddress,
-        content: {
-          text: textbookFigure?.text ?? null,
-          redactedSummary: textbookFigure?.text?.slice(0, 160) ?? null,
-          hash: textbookFigure?.contentHash ?? 'hash-figure-description',
-        },
-        resourceProjection: textbookFigure?.resourceProjection,
-        retrieval: {
-          tags: ['figure-description'],
-          goals: ['root-locus-correction'],
-          useCases: ['konling'],
-        },
-      }),
+          family: 'course-content',
+          sourceType: 'course-content',
+          sourceRef: {
+            id: textbookFigure?.id,
+            goalId: 'root-locus-correction',
+            resourceId: textbookFigure?.resourceProjection.resourceId,
+          },
+          spanRef: { kind: 'node', locator: textbookFigure?.citationAddress?.locator },
+          display: {
+            title: textbookFigure?.title ?? 'Modern Control Systems 教材图片',
+            href: textbookFigure?.href ?? null,
+            capsule: textbookFigure?.text?.slice(0, 120) ?? 'Modern Control Systems 教材图片描述。',
+          },
+          citationAddress: textbookFigure?.citationAddress,
+          content: {
+            text: textbookFigure?.text ?? null,
+            redactedSummary: textbookFigure?.text?.slice(0, 160) ?? null,
+            hash: textbookFigure?.contentHash ?? 'hash-figure-description',
+          },
+          resourceProjection: textbookFigure?.resourceProjection,
+          retrieval: {
+            tags: ['figure-description'],
+            goals: ['root-locus-correction'],
+            useCases: ['konling'],
+          },
+        }),
       chunk({
         id: 'chunk-video-transcript',
         family: 'course-content',
@@ -525,59 +528,59 @@ describe('learning evidence RAG corpus contract', () => {
       }),
     ];
 
-    const scope = {
-      role: 'student' as const,
-      userId: 'student-1',
-      targetUserId: 'student-1',
-      goalId: 'root-locus-correction',
-      useCase: 'konling' as const,
-    };
-    const retrieved = retrieveLearningEvidenceCorpus(textbookAndMedia, scope, {
-      tags: ['textbook-section', 'figure-description', 'video-transcript', 'slides'],
-      knowledgeNodeRefs: [
-        ...(textbookChunk?.resourceProjection.knowledgeNodeRefs ?? []),
-        ...(textbookFigure?.resourceProjection.knowledgeNodeRefs ?? []),
-        'kn-phase-margin',
-      ],
-      capabilityTargetRefs: [
-        ...(textbookChunk?.resourceProjection.capabilityTargetRefs ?? []),
-        ...(textbookFigure?.resourceProjection.capabilityTargetRefs ?? []),
-        'parameterDesign',
-      ],
-      limit: 8,
-    });
-    const verification = verifyLearningEvidenceCitations(textbookAndMedia, scope, retrieved.map((item) => ({
-      chunkId: item.id,
-      sourceType: item.sourceType,
-      useCase: 'konling',
-      addressKind: item.citationAddress?.kind,
-      spanRef: item.spanRef,
-    })));
-
-    expect(retrieved.map((item) => item.id)).toEqual(expect.arrayContaining([
-      textbookChunk?.id,
-      textbookFigure?.id,
-      'chunk-video-transcript',
-      'chunk-slides-anchor',
-    ]));
-    expect(textbookChunk?.resourceProjection.resourceId).toMatch(/^textbook-section:dorf-modern-control-systems:/);
-    expect(textbookFigure?.resourceProjection.resourceId).toMatch(/^textbook-section:dorf-modern-control-systems:/);
-    expect(textbookChunk?.href).toContain('/course-runtime/resources/textbooks/dorf-modern-control-systems/');
-    expect(textbookFigure?.href).toContain('/course-runtime/resources/textbooks/dorf-modern-control-systems/');
-    expect(verification.status).toBe('verified');
-    expect(verification.limitations).toEqual([]);
-    expect(new Set(verification.verifiedRefs.map((ref) => ref.addressKind))).toEqual(new Set([
-      'text',
-      'image',
-      'video',
-      'slides',
-    ]));
-    expect(verification.verifiedRefs.find((ref) => ref.chunkId === 'chunk-video-transcript')?.citationAddress)
-      .toMatchObject({
-        mediaStartSeconds: 180,
-        mediaEndSeconds: 222,
+      const scope = {
+        role: 'student' as const,
+        userId: 'student-1',
+        targetUserId: 'student-1',
+        goalId: 'root-locus-correction',
+        useCase: 'konling' as const,
+      };
+      const retrieved = retrieveLearningEvidenceCorpus(textbookAndMedia, scope, {
+        tags: ['textbook-section', 'figure-description', 'video-transcript', 'slides'],
+        knowledgeNodeRefs: [
+          ...(textbookChunk?.resourceProjection.knowledgeNodeRefs ?? []),
+          ...(textbookFigure?.resourceProjection.knowledgeNodeRefs ?? []),
+          'kn-phase-margin',
+        ],
+        capabilityTargetRefs: [
+          ...(textbookChunk?.resourceProjection.capabilityTargetRefs ?? []),
+          ...(textbookFigure?.resourceProjection.capabilityTargetRefs ?? []),
+          'parameterDesign',
+        ],
+        limit: 8,
       });
-    expect(verification.verifiedRefs.every((ref) => ref.displayHref?.startsWith('/'))).toBe(true);
+      const verification = verifyLearningEvidenceCitations(textbookAndMedia, scope, retrieved.map((item) => ({
+        chunkId: item.id,
+        sourceType: item.sourceType,
+        useCase: 'konling',
+        addressKind: item.citationAddress?.kind,
+        spanRef: item.spanRef,
+      })));
+
+      expect(retrieved.map((item) => item.id)).toEqual(expect.arrayContaining([
+        textbookChunk?.id,
+        textbookFigure?.id,
+        'chunk-video-transcript',
+        'chunk-slides-anchor',
+      ]));
+      expect(textbookChunk?.resourceProjection.resourceId).toMatch(/^textbook-section:dorf-modern-control-systems:/);
+      expect(textbookFigure?.resourceProjection.resourceId).toMatch(/^textbook-section:dorf-modern-control-systems:/);
+      expect(textbookChunk?.href).toContain('/course-runtime/resources/textbooks/dorf-modern-control-systems/');
+      expect(textbookFigure?.href).toContain('/course-runtime/resources/textbooks/dorf-modern-control-systems/');
+      expect(verification.status).toBe('verified');
+      expect(verification.limitations).toEqual([]);
+      expect(new Set(verification.verifiedRefs.map((ref) => ref.addressKind))).toEqual(new Set([
+        'text',
+        'image',
+        'video',
+        'slides',
+      ]));
+      expect(verification.verifiedRefs.find((ref) => ref.chunkId === 'chunk-video-transcript')?.citationAddress)
+        .toMatchObject({
+          mediaStartSeconds: 180,
+          mediaEndSeconds: 222,
+        });
+      expect(verification.verifiedRefs.every((ref) => ref.displayHref?.startsWith('/'))).toBe(true);
     } finally {
       fixture.cleanup();
     }

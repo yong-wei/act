@@ -342,6 +342,7 @@ export function validateLearningPathPlanForPersistence(plan: AdaptiveLearningPat
         'lesson_step',
         'knowledge_node',
         'knowledge_card',
+        'textbook_section',
         'video',
         'audio',
         'slides',
@@ -469,6 +470,7 @@ export function validateControlCorrectionPathPlanForPersistence(plan: AdaptiveLe
       seen.has(node.nodeId) ||
       ![
         'knowledge_card',
+        'textbook_section',
         'quiz',
         'adaptive_quiz',
         'control_workbench',

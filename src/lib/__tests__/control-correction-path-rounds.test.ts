@@ -764,6 +764,24 @@ describe('control-correction path rounds', () => {
       1,
       0,
       {
+        nodeId: 'textbook-section:dorf-modern-control-systems:ch10-sec01',
+        title: '串联校正与频域整定',
+        type: 'textbook_section',
+        ...pathNodeSemantics('textbook_section'),
+        sourceKind: 'textbook_section',
+        sourceRef: 'dorf-modern-control-systems:ch10-sec01',
+        target: '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch10-sec01.md',
+        estimatedTimeMinutes: 12,
+        prerequisiteNodeIds: ['knowledge-card:control-correction-time-domain-targets'],
+        knowledgeCoverage: ['串联校正_6_fede5751', '频域PD与超前整定_4_42011'],
+        teacherPolicy: 'allowed',
+        privacyLevel: 'student-visible',
+        terminalConstraints: [],
+        score: 0.75,
+        reasonCodes: ['matches-knowledge-deficit'],
+        status: 'next',
+      },
+      {
         nodeId: 'adaptive-quiz:control-correction-targets',
         title: '校正指标自适应测验',
         type: 'adaptive_quiz',
@@ -843,6 +861,7 @@ describe('control-correction path rounds', () => {
       create: expect.objectContaining({
         pathPayload: expect.objectContaining({
           mainPathNodeIds: expect.arrayContaining([
+            'textbook-section:dorf-modern-control-systems:ch10-sec01',
             'adaptive-quiz:control-correction-targets',
             'control-workbench:control-correction-lead',
             'checkpoint:control-correction-design-review',

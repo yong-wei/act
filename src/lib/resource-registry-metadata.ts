@@ -12,6 +12,8 @@ export interface RegisteredResourceMetadata {
     defaultConfig?: Record<string, unknown>;
 }
 
+type RegisteredResourceMetadataPatch = Partial<RegisteredResourceMetadata>;
+
 const registeredResourceMetadata: Record<string, RegisteredResourceMetadata> = {
     'sim-pid-v1': {
         id: 'sim-pid-v1',
@@ -761,6 +763,27 @@ const registeredResourceMetadata: Record<string, RegisteredResourceMetadata> = {
     }
 };
 
+const registeredResourceProgressionMetadata = buildRegisteredResourceProgressionMetadata();
+const registeredResourceOperationalMetadata: Record<string, RegisteredResourceMetadataPatch> = {
+    'sim-pid-v1': simulationReadiness('registry:lesson15-lag-lead-workshop', '先完成滞后-超前流程拼图，再进入 PID 参数整定仿真。'),
+    'sim-scene-cruise': simulationReadiness('registry:lesson13-iso2631-mapping', '先完成 ISO 2631 舒适度映射，再进入邮轮横摇控制仿真。'),
+    'sim-scene-destroyer': simulationReadiness('registry:lesson13-physics-builder-simple', '先完成阻尼调节实验，再进入驱逐舰航向控制仿真。'),
+    'sim-scene-dredger': simulationReadiness('registry:lesson13-physics-builder-simple', '先完成阻尼调节实验，再进入挖泥船动力定位仿真。'),
+    'sim-scene-drilling': simulationReadiness('registry:lesson13-physics-builder-simple', '先完成阻尼调节实验，再进入钻井平台定位仿真。'),
+    'sim-scene-icebreaker': simulationReadiness('registry:lesson13-physics-builder-simple', '先完成阻尼调节实验，再进入破冰船航行控制仿真。'),
+    'sim-scene-lng': simulationReadiness('registry:lesson13-physics-builder-simple', '先完成阻尼调节实验，再进入 LNG 船晃荡抑制仿真。'),
+    'sim-scene-container': simulationReadiness('registry:lesson13-physics-builder-simple', '先完成阻尼调节实验，再进入集装箱船航迹保持仿真。'),
+    'lesson13-cruise-typhoon-sim': simulationReadiness('registry:lesson13-iso2631-mapping', '先完成 ISO 2631 舒适度映射，再进入香槟塔保卫战。'),
+    'classroom-video': readyResource(),
+    'classroom-poll': readyResource(),
+    'classroom-objective': readyResource(),
+    'classroom-assessment': readyResource(),
+    'classroom-ethical-trigger': readyResource(),
+    'classroom-ai-report': readyResource(),
+    'ten-drops-game-v1': readyResource(),
+    'control-odyssey-v1': readyResource(),
+};
+
 const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResourceMetadata>> = {
     'lesson01-feedback-bridge-v1': {
         knowledgeNodeIds: ['反馈控制系统_1_98dc667a', '自动控制系统_1_9678f418'],
@@ -1409,12 +1432,8 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
         }
     },
     'arena-challenge-workbench': {
-        knowledgeNodeIds: [
-            'control-correction:time-domain-targets',
-            'control-correction:root-locus-design',
-            'control-correction:simulation-validation',
-            'control-correction:arena-transfer'
-        ],
+        knowledgeNodeIds: ['control-correction:arena-transfer'],
+        prerequisiteNodeIds: ['registry:lesson09-summary-card'],
         planningOverride: {
             estimatedTimeMinutes: 22,
             cognitiveLoad: 'high',
@@ -1423,16 +1442,16 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
             readiness: {
                 minimumCompetency: { parameterDesign: 0.3, engineeringDecision: 0.3 },
                 minimumEvidenceCount: 2,
-                requiredCompletedNodeIds: [],
-                requiredOutcomeRefs: [],
+                requiredCompletedNodeIds: ['registry:lesson09-summary-card'],
+                requiredOutcomeRefs: ['simulation_run:lesson09-time-domain-synthesis'],
                 unlockMessage: '先完成至少一次可复核的仿真验证，再进入 Arena 终点校验。',
-                fallbackNodeIds: []
+                fallbackNodeIds: ['registry:lesson09-summary-card']
             },
             abilityImpact: { crossDomainTransfer: 0.3, engineeringDecision: 0.24, parameterDesign: 0.18 }
         }
     },
     'arena-cruise-blackbox-workbench': {
-        knowledgeNodeIds: ['对象化三域验证_3_56cb3a4e', 'control-correction:arena-transfer', '船舶航向控制对象_2_21004'],
+        knowledgeNodeIds: ['对象化三域验证_3_56cb3a4e', '船舶航向控制对象_2_21004'],
         planningOverride: {
             estimatedTimeMinutes: 24,
             cognitiveLoad: 'high',
@@ -1459,14 +1478,24 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
     },
     'lesson09-correction-strategy': {
         knowledgeNodeIds: ['control-correction:time-domain-targets', 'control-correction:root-locus-design'],
+        prerequisiteNodeIds: ['registry:lesson09-correction-precheck'],
         planningOverride: {
             estimatedTimeMinutes: 14,
             evidenceInstrumentation: ['strategy_card_view', 'interaction_complete'],
-            abilityImpact: { parameterDesign: 0.26, engineeringDecision: 0.16 }
+            abilityImpact: { parameterDesign: 0.26, engineeringDecision: 0.16 },
+            readiness: {
+                minimumCompetency: {},
+                minimumEvidenceCount: 0,
+                requiredCompletedNodeIds: ['registry:lesson09-correction-precheck'],
+                requiredOutcomeRefs: [],
+                unlockMessage: '先完成控制校正目标前测，再进入校正手段速览。',
+                fallbackNodeIds: ['registry:lesson09-correction-precheck']
+            }
         }
     },
     'lesson09-time-domain-synthesis': {
         knowledgeNodeIds: ['control-correction:time-domain-targets', 'control-correction:simulation-validation'],
+        prerequisiteNodeIds: ['registry:lesson09-correction-precheck'],
         planningOverride: {
             estimatedTimeMinutes: 18,
             cognitiveLoad: 'high',
@@ -1484,10 +1513,19 @@ const registeredResourceSemanticMetadata: Record<string, Partial<RegisteredResou
     },
     'lesson09-summary-card': {
         knowledgeNodeIds: ['control-correction:root-locus-design', 'control-correction:simulation-validation'],
+        prerequisiteNodeIds: ['registry:lesson09-time-domain-synthesis'],
         planningOverride: {
             estimatedTimeMinutes: 6,
             evidenceInstrumentation: ['summary_card_view'],
-            abilityImpact: { inquiryReflection: 0.12, selfDirectedLearning: 0.12 }
+            abilityImpact: { inquiryReflection: 0.12, selfDirectedLearning: 0.12 },
+            readiness: {
+                minimumCompetency: {},
+                minimumEvidenceCount: 0,
+                requiredCompletedNodeIds: ['registry:lesson09-time-domain-synthesis'],
+                requiredOutcomeRefs: [],
+                unlockMessage: '先完成时域综合流程，再回顾课程总结卡。',
+                fallbackNodeIds: ['registry:lesson09-time-domain-synthesis']
+            }
         }
     },
     'lesson10-root-locus-workshop': {
@@ -1942,10 +1980,285 @@ export function getAllRegisteredResourceMetadata() {
 }
 
 function withDefaultResourceTarget(metadata: RegisteredResourceMetadata): RegisteredResourceMetadata {
+    const progressionMetadata = registeredResourceProgressionMetadata[metadata.id] ?? {};
+    const operationalMetadata = registeredResourceOperationalMetadata[metadata.id] ?? {};
     const semanticMetadata = registeredResourceSemanticMetadata[metadata.id] ?? {};
+    const planningOverride = mergePlanningOverrides(
+        metadata.planningOverride,
+        progressionMetadata.planningOverride,
+        operationalMetadata.planningOverride,
+        semanticMetadata.planningOverride
+    );
     return {
         ...metadata,
+        ...progressionMetadata,
+        ...operationalMetadata,
         ...semanticMetadata,
+        prerequisiteNodeIds: semanticMetadata.prerequisiteNodeIds ??
+            operationalMetadata.prerequisiteNodeIds ??
+            progressionMetadata.prerequisiteNodeIds ??
+            metadata.prerequisiteNodeIds,
+        planningOverride,
         renderTarget: metadata.renderTarget ?? `/interactive-learning/resources/${metadata.id}`
     };
+}
+
+function buildRegisteredResourceProgressionMetadata(): Record<string, RegisteredResourceMetadataPatch> {
+    const progressions: Array<{ ids: string[]; intro?: string }> = [
+        {
+            ids: [
+                'lesson01-feedback-bridge-v1',
+                'lesson01-feedback-objective-v1',
+                'lesson01-feedback-precheck-v1',
+                'lesson01-feedback-knowledge-deck-v1',
+                'lesson01-component-role-match-v1',
+                'lesson01-loop-scenario-lab-v1',
+                'lesson01-feedback-exit-quiz-v1',
+                'lesson01-feedback-summary-v1',
+            ],
+        },
+        {
+            ids: [
+                'lesson02-laplace-bridge-v1',
+                'lesson02-laplace-objective-v1',
+                'lesson02-laplace-precheck-v1',
+                'lesson02-laplace-knowledge-deck-v1',
+                'lesson02-laplace-property-match-v1',
+                'lesson02-laplace-inverse-lab-v1',
+                'lesson02-laplace-exit-quiz-v1',
+                'lesson02-laplace-summary-v1',
+            ],
+        },
+        {
+            ids: [
+                'physics-modeling-intro-v1',
+                'physics-modeling-mechanical-v1',
+                'physics-modeling-electrical-v1',
+                'physics-modeling-analogy-v1',
+                'physics-modeling-practice-v1',
+            ],
+        },
+        {
+            ids: [
+                'lesson03-diff-precheck',
+                'lesson03-diff-knowledge-deck',
+                'lesson03-modeling-scenario-lab',
+                'lesson03-modeling-workflow-puzzle',
+                'lesson03-diff-exit-quiz',
+                'lesson03-summary-card',
+            ],
+        },
+        {
+            ids: [
+                'lesson04-transfer-precheck',
+                'lesson04-transfer-knowledge-deck',
+                'lesson04-transfer-derivation-lab',
+                'lesson04-transfer-element-workshop',
+                'lesson04-transfer-exit-quiz',
+                'lesson04-summary-card',
+            ],
+        },
+        {
+            ids: [
+                'lesson05-block-diagram-precheck',
+                'lesson05-structure-knowledge-deck',
+                'lesson05-block-diagram-workshop',
+                'lesson05-signal-flow-lab',
+                'lesson05-mason-loop-challenge',
+                'lesson05-structure-exit-quiz',
+                'lesson05-summary-card',
+            ],
+        },
+        {
+            ids: [
+                'lesson06-metric-quick-check',
+                'lesson06-metric-handbook',
+                'lesson06-judge-bench',
+            ],
+        },
+        {
+            ids: [
+                'lesson07-damping-quick-check',
+                'lesson07-second-order-theory',
+                'lesson07-pole-manipulator',
+                'lesson07-response-explorer',
+                'lesson07-parameter-challenge',
+                'lesson07-summary-card',
+            ],
+        },
+        {
+            ids: [
+                'lesson08-stability-precheck',
+                'lesson08-routh-guide',
+                'lesson08-routh-practice',
+                'lesson08-steady-error-deck',
+                'lesson08-post-quiz',
+                'lesson08-summary-card',
+            ],
+        },
+        {
+            ids: [
+                'lesson09-correction-precheck',
+                'lesson09-correction-strategy',
+                'lesson09-time-domain-synthesis',
+                'lesson09-summary-card',
+            ],
+        },
+        {
+            ids: [
+                'lesson10-root-locus-workshop',
+                'lesson11-parameter-root-locus-deck',
+                'lesson11-graphical-thinking-workshop',
+                'lesson11-summary-card',
+            ],
+        },
+        {
+            ids: [
+                'lesson12-frequency-precheck',
+                'lesson12-bode-step-sorter',
+                'lesson12-bode-slope-puzzle',
+                'lesson12-bode-plot-recognition',
+                'lesson12-bode-post-quiz',
+                'lesson12-summary-card',
+            ],
+        },
+        {
+            ids: [
+                'lesson13-cruise-bridge',
+                'lesson13-physics-builder-simple',
+                'lesson13-iso2631-mapping',
+                'lesson13-cruise-typhoon-sim',
+                'lesson13-phase-concept-quiz',
+                'lesson13-phase-knowledge-deck',
+                'lesson13-nyquist-stability-scenario',
+                'lesson13-phase-stability-exit-quiz',
+                'lesson13-summary-card',
+            ],
+        },
+        {
+            ids: [
+                'lesson14-margin-quick-check',
+                'lesson14-margin-knowledge-deck',
+                'lesson14-margin-tradeoff-lab',
+                'lesson14-three-band-studio',
+                'lesson14-margin-exit-quiz',
+                'lesson14-summary-card',
+            ],
+        },
+        {
+            ids: [
+                'lesson15-series-precheck',
+                'lesson15-series-knowledge-deck',
+                'lesson15-series-strategy-lab',
+                'lesson15-lag-lead-workshop',
+                'lesson15-series-exit-quiz',
+                'lesson15-summary-card',
+            ],
+        },
+        {
+            ids: [
+                'lesson16-nonlinear-precheck',
+                'lesson16-nonlinear-knowledge-deck',
+                'lesson16-nonlinear-feature-match',
+                'lesson16-harmonic-linearization-guide',
+                'lesson16-nonlinear-exit-quiz',
+                'lesson16-summary-card',
+            ],
+        },
+        {
+            ids: [
+                'lesson17-df-precheck',
+                'lesson17-df-knowledge-deck',
+                'lesson17-negative-inverse-workshop',
+                'lesson17-limit-cycle-lab',
+                'lesson17-df-exit-quiz',
+                'lesson17-summary-card',
+            ],
+        },
+    ];
+    const result: Record<string, RegisteredResourceMetadataPatch> = {};
+    for (const progression of progressions) {
+        progression.ids.forEach((id, index) => {
+            const prerequisiteId = index === 0 ? null : `registry:${progression.ids[index - 1]}`;
+            result[id] = prerequisiteId
+                ? resourceReadiness(prerequisiteId, buildUnlockMessage(prerequisiteId, id))
+                : { planningOverride: { readiness: readyImmediately() } };
+        });
+    }
+    return result;
+}
+
+function resourceReadiness(
+    prerequisiteNodeId: string,
+    unlockMessage: string,
+): RegisteredResourceMetadataPatch {
+    return {
+        prerequisiteNodeIds: [prerequisiteNodeId],
+        planningOverride: {
+            readiness: {
+                minimumCompetency: {},
+                minimumEvidenceCount: 0,
+                requiredCompletedNodeIds: [prerequisiteNodeId],
+                requiredOutcomeRefs: [],
+                unlockMessage,
+                fallbackNodeIds: [prerequisiteNodeId],
+            },
+        },
+    };
+}
+
+function simulationReadiness(
+    prerequisiteNodeId: string,
+    unlockMessage: string,
+): RegisteredResourceMetadataPatch {
+    return {
+        prerequisiteNodeIds: [prerequisiteNodeId],
+        planningOverride: {
+            readiness: {
+                minimumCompetency: { controlModeling: 0.3 },
+                minimumEvidenceCount: 1,
+                requiredCompletedNodeIds: [prerequisiteNodeId],
+                requiredOutcomeRefs: [],
+                unlockMessage,
+                fallbackNodeIds: [prerequisiteNodeId],
+            },
+        },
+    };
+}
+
+function readyImmediately(): NonNullable<ResourceNodePlanningOverride['readiness']> {
+    return {
+        minimumCompetency: {},
+        minimumEvidenceCount: 0,
+        requiredCompletedNodeIds: [],
+        requiredOutcomeRefs: [],
+        unlockMessage: '',
+        fallbackNodeIds: [],
+    };
+}
+
+function readyResource(): RegisteredResourceMetadataPatch {
+    return {
+        planningOverride: {
+            readiness: readyImmediately(),
+        },
+    };
+}
+
+function buildUnlockMessage(prerequisiteNodeId: string, resourceId: string): string {
+    const prerequisite = registeredResourceMetadata[prerequisiteNodeId.replace(/^registry:/, '')];
+    const resource = registeredResourceMetadata[resourceId];
+    return `先完成${prerequisite?.label ?? '前置资源'}，再进入${resource?.label ?? '后续资源'}。`;
+}
+
+function mergePlanningOverrides(
+    ...overrides: Array<ResourceNodePlanningOverride | undefined>
+): ResourceNodePlanningOverride | undefined {
+    const defined = overrides.filter((item): item is ResourceNodePlanningOverride => Boolean(item));
+    if (defined.length === 0) return undefined;
+    return defined.reduce<ResourceNodePlanningOverride>((merged, override) => ({
+        ...merged,
+        ...override,
+        readiness: override.readiness ?? merged.readiness,
+    }), {});
 }

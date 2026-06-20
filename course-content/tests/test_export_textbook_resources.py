@@ -188,6 +188,20 @@ def test_export_writes_sections_chunks_citation_map_and_search_documents(tmp_pat
     assert section_by_id['ch01-example-0101']['pathPlanning']['pathEligible'] is True
     assert section_by_id['ch01-preview-001']['pathPlanning']['pathEligible'] is False
     assert section_by_id['ch01-skills-check-004']['pathPlanning']['pathEligible'] is False
+    assert section_by_id['ch01-sec01']['pathPlanning']['knowledgeNodeIds'] == [
+        '反馈控制系统_1_98dc667a',
+        '自动控制系统_1_9678f418',
+        '课程总图_1_1',
+    ]
+    assert section_by_id['ch01-sec01']['pathPlanning']['capabilityTargetRefs'] == [
+        'engineeringDecision',
+        'selfDirectedLearning',
+    ]
+    assert section_by_id['ch01-example-0101']['pathPlanning']['capabilityTargetRefs'] == [
+        'engineeringDecision',
+        'parameterDesign',
+        'selfDirectedLearning',
+    ]
 
     citation_map = json.loads((output_dir / 'citation-map.json').read_text(encoding='utf-8'))
     assert citation_map['targets']['ch01-sec01']['href'].endswith('/sections/ch01-sec01.md')
@@ -202,10 +216,24 @@ def test_export_writes_sections_chunks_citation_map_and_search_documents(tmp_pat
     search_documents = read_jsonl(output_dir / 'search-documents.jsonl')
     chunk_document = next(document for document in search_documents if document['id'] == 'ch01-sec01__chunk-001')
     assert chunk_document['sourceType'] == 'textbook-content'
+    assert chunk_document['resourceProjection']['resourceId'] == 'textbook-section:dorf-modern-control-systems:ch01-sec01'
     assert chunk_document['resourceProjection']['segmentRef'] == 'ch01-sec01'
+    assert chunk_document['resourceProjection']['knowledgeNodeRefs'] == [
+        '反馈控制系统_1_98dc667a',
+        '自动控制系统_1_9678f418',
+        '课程总图_1_1',
+    ]
+    assert chunk_document['resourceProjection']['capabilityTargetRefs'] == [
+        'engineeringDecision',
+        'selfDirectedLearning',
+    ]
+    assert chunk_document['citationAddress']['kind'] == 'text'
     assert chunk_document['citationAddress']['sourceRefId'] == 'ch01-sec01__chunk-001'
     figure_document = next(document for document in search_documents if document['id'] == 'fig-01-01__figure')
+    assert figure_document['resourceProjection']['resourceId'] == 'textbook-section:dorf-modern-control-systems:ch01-sec01'
+    assert figure_document['resourceProjection']['citationTargetRef'] == 'fig-01-01'
     assert figure_document['citationAddress']['kind'] == 'image'
+    assert figure_document['citationAddress']['sourceRefId'] == 'fig-01-01'
     captionless_figure_document = next(document for document in search_documents if document['id'] == 'fig-01-02__figure')
     assert captionless_figure_document['title'] == 'Automated vehicles figure fig-01-02'
     assert captionless_figure_document['metadata']['captionMissing'] is True

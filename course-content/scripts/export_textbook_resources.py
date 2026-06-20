@@ -33,7 +33,78 @@ NON_PATH_SECTION_TITLES = {
     'computer problems',
     'answers to skills check',
     'terms and concepts',
+    'references',
 }
+
+CHAPTER_SEMANTICS: dict[int, dict[str, list[str]]] = {
+    1: {
+        'knowledgeNodeIds': ['自动控制系统_1_9678f418', '反馈控制系统_1_98dc667a', '课程总图_1_1'],
+        'capabilityTargetRefs': ['selfDirectedLearning', 'engineeringDecision'],
+    },
+    2: {
+        'knowledgeNodeIds': ['动态数学模型_2_b7f98344', '传递函数_2_2c5e2589', '结构图_2_3f312ccc', '信号流图_2_372d4084'],
+        'capabilityTargetRefs': ['controlModeling'],
+    },
+    3: {
+        'knowledgeNodeIds': ['动态数学模型_2_b7f98344', '模型结构相似性_1_2', '二状态冷链热模型_5_56002'],
+        'capabilityTargetRefs': ['controlModeling'],
+    },
+    4: {
+        'knowledgeNodeIds': ['反馈_1_1', '误差_1_1', '给定-扰动双通道误差分析_3_37001', '稳态误差双路径判断_3_37002'],
+        'capabilityTargetRefs': ['controlModeling', 'engineeringDecision'],
+    },
+    5: {
+        'knowledgeNodeIds': ['性能指标_1_1', '动态性能指标_3_a10733c1', '超调量_3_fc3f5b17', '调节时间_10_fcbccf4e'],
+        'capabilityTargetRefs': ['controlModeling', 'diagnosticAssessment'],
+    },
+    6: {
+        'knowledgeNodeIds': ['稳定性_1_1', '稳定性_3_72d04fbd', '劳斯判据_4_05ba60cd', '稳定可行域_3_7eed0929'],
+        'capabilityTargetRefs': ['controlModeling', 'diagnosticAssessment'],
+    },
+    7: {
+        'knowledgeNodeIds': ['根轨迹_1_1', '根轨迹完整法则_3_0f2e7b11', '根轨迹绘制规则_3_2f9e8cb3', '根轨迹增益换算_3_4b1d9e6c'],
+        'capabilityTargetRefs': ['controlModeling', 'parameterDesign'],
+    },
+    8: {
+        'knowledgeNodeIds': ['频域响应_1_1', 'Bode图_1_1', '正弦稳态响应_5_b6dc1100', '频域分析_2_2e257d89'],
+        'capabilityTargetRefs': ['controlModeling', 'parameterDesign'],
+    },
+    9: {
+        'knowledgeNodeIds': ['奈奎斯特稳定判据_5_a1b34560', '奈奎斯特与Bode统一判稳链_3_38002', '稳定裕度_5_bfd54f1c'],
+        'capabilityTargetRefs': ['controlModeling', 'engineeringDecision'],
+    },
+    10: {
+        'knowledgeNodeIds': ['串联校正_6_fede5751', '频域PD与超前整定_4_42011', '频域PI与滞后整定_4_42010', '控制器频域特性矩阵_4_42008'],
+        'capabilityTargetRefs': ['parameterDesign', 'engineeringDecision'],
+    },
+    11: {
+        'knowledgeNodeIds': ['二状态冷链热模型_5_56002', '分段辨识模型组合_4_47002', '跨模型验证比较_4_47006'],
+        'capabilityTargetRefs': ['controlModeling', 'parameterDesign'],
+    },
+    12: {
+        'knowledgeNodeIds': ['模型依赖松动_5_54001', '跨模型验证比较_4_47006', '扰动噪声设计边界_4_47007'],
+        'capabilityTargetRefs': ['engineeringDecision', 'crossDomainTransfer'],
+    },
+    13: {
+        'knowledgeNodeIds': ['在线辨识与模型更新_5_54006', '模型数据责任分配_5_54007', '传统设计四联图校正_4_47004'],
+        'capabilityTargetRefs': ['controlModeling', 'crossDomainTransfer'],
+    },
+}
+
+SECTION_SEMANTIC_HINTS: list[tuple[re.Pattern[str], dict[str, list[str]]]] = [
+    (re.compile(r'skills check|exercises|problems', re.IGNORECASE), {
+        'knowledgeNodeIds': [],
+        'capabilityTargetRefs': ['diagnosticAssessment'],
+    }),
+    (re.compile(r'example|design|computer', re.IGNORECASE), {
+        'knowledgeNodeIds': [],
+        'capabilityTargetRefs': ['engineeringDecision', 'parameterDesign'],
+    }),
+    (re.compile(r'summary|terms and concepts|preview|desired outcomes|references', re.IGNORECASE), {
+        'knowledgeNodeIds': [],
+        'capabilityTargetRefs': ['selfDirectedLearning'],
+    }),
+]
 
 
 @dataclass
@@ -359,6 +430,29 @@ def section_display_title(section: TextbookSection) -> str:
     return title.strip() or section.title
 
 
+def section_semantics(section: TextbookSection) -> dict[str, list[str]]:
+    chapter_semantics = CHAPTER_SEMANTICS.get(section.chapter_number, {
+        'knowledgeNodeIds': [],
+        'capabilityTargetRefs': ['selfDirectedLearning'],
+    })
+    knowledge_node_ids = list(chapter_semantics.get('knowledgeNodeIds', []))
+    capability_target_refs = list(chapter_semantics.get('capabilityTargetRefs', []))
+    for pattern, override in SECTION_SEMANTIC_HINTS:
+        if pattern.search(section.title):
+            if override.get('knowledgeNodeIds'):
+                knowledge_node_ids.extend(override['knowledgeNodeIds'])
+            capability_target_refs.extend(override.get('capabilityTargetRefs', []))
+            break
+    return {
+        'knowledgeNodeIds': unique_sorted(knowledge_node_ids),
+        'capabilityTargetRefs': unique_sorted(capability_target_refs),
+    }
+
+
+def unique_sorted(values: list[str]) -> list[str]:
+    return sorted({value for value in values if value})
+
+
 def rewrite_image_paths(markdown: str, book_id: str, section: TextbookSection) -> str:
     pieces: list[str] = []
     last = 0
@@ -429,6 +523,7 @@ def build_records(
     for section in sections:
         href = f'/course-runtime/resources/textbooks/{book_id}/sections/{section.id}.md'
         path_eligible = section.kind in PATH_ELIGIBLE_SECTION_KINDS
+        semantics = section_semantics(section)
         record = {
             'id': section.id,
             'bookId': book_id,
@@ -440,8 +535,8 @@ def build_records(
                 'nodeType': 'textbook_section',
                 'pathEligible': path_eligible,
                 'estimatedTimeMinutes': estimate_minutes(section.markdown),
-                'knowledgeNodeIds': [],
-                'capabilityTargetRefs': [],
+                'knowledgeNodeIds': semantics['knowledgeNodeIds'],
+                'capabilityTargetRefs': semantics['capabilityTargetRefs'],
             },
             'sourceSpan': {'startLine': section.start_line, 'endLine': section.end_line},
             'contentHash': sha256_text(section.markdown),
@@ -493,6 +588,7 @@ def build_records(
                 href=image_href,
                 content_hash=str(metadata.get('sha256') or sha256_text(figure_title)),
                 citation_target_ref=image.figure_id,
+                semantics=semantics,
                 metadata={'captionMissing': not bool(figure_record['caption'])},
             ))
 
@@ -521,6 +617,7 @@ def build_records(
             href=href,
             content_hash=chunk_record['contentHash'],
             citation_target_ref=chunk.id,
+            semantics=section_semantics(section),
         ))
 
     citation_map = {
@@ -542,6 +639,7 @@ def build_search_document(
     href: str,
     content_hash: str,
     citation_target_ref: str,
+    semantics: dict[str, list[str]],
     metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     base_metadata = {
@@ -563,11 +661,11 @@ def build_search_document(
         'searchText': f'{title}\n{text}'.strip(),
         'contentHash': content_hash,
         'resourceProjection': {
-            'resourceId': f'textbook:{book_id}',
+            'resourceId': f'textbook-section:{book_id}:{section.id}',
             'segmentRef': section.id,
             'citationTargetRef': citation_target_ref,
-            'knowledgeNodeRefs': [],
-            'capabilityTargetRefs': [],
+            'knowledgeNodeRefs': semantics['knowledgeNodeIds'],
+            'capabilityTargetRefs': semantics['capabilityTargetRefs'],
         },
         'citationAddress': {
             'kind': 'text' if kind == 'chunk' else 'image',

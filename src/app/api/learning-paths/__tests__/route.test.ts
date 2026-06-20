@@ -1206,6 +1206,123 @@ describe('learning path round API routes', () => {
     }));
   });
 
+  it('derives governed simulation outcome refs from instrumented lesson-step completion', async () => {
+    configureSingleNodePath(
+      'registry:lesson09-time-domain-synthesis',
+      'lesson_step',
+      '/interactive-learning/resources/lesson09-time-domain-synthesis',
+      {
+        goalId: 'control-correction',
+        planNode: {
+          knowledgeCoverage: ['control-correction:simulation-validation'],
+        },
+      }
+    );
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:lesson09-time-domain-synthesis',
+      resourceType: 'lesson_step',
+      status: 'completed',
+      idempotencyKey: 'time-domain-synthesis-complete',
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionSource: 'interactive-resource',
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      evidenceRefs: expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'SimulationRun',
+          ref: 'simulation_run:lesson09-time-domain-synthesis',
+          provenance: 'official',
+          status: 'completed',
+        }),
+      ]),
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        lastExecutionMetadata: expect.objectContaining({
+          availableOutcomeRefs: expect.arrayContaining(['simulation_run:lesson09-time-domain-synthesis']),
+        }),
+      }),
+    }));
+  });
+
+  it('accepts textbook section completion events for generated learning paths', async () => {
+    configureSingleNodePath(
+      'textbook-section:dorf-modern-control-systems:ch08-example-0801',
+      'textbook_section',
+      '/course-runtime/resources/textbooks/dorf-modern-control-systems/sections/ch08-example-0801.md',
+      {
+        goalId: 'frequency-response-foundations',
+        planNode: {
+          knowledgeCoverage: ['Bode图_1_1', '频域响应_1_1'],
+        },
+      },
+    );
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'textbook-section:dorf-modern-control-systems:ch08-example-0801',
+      resourceType: 'textbook_section',
+      status: 'completed',
+      idempotencyKey: 'textbook-section-complete',
+      evidenceRefs: ['citation:textbook-section:dorf-modern-control-systems:ch08-example-0801#chunk-001'],
+      liftMetadata: {
+        pathActivityKind: 'continued-interaction',
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      nodeId: 'textbook-section:dorf-modern-control-systems:ch08-example-0801',
+      resourceType: 'textbook_section',
+      status: 'completed',
+      evidenceRefs: ['citation:textbook-section:dorf-modern-control-systems:ch08-example-0801#chunk-001'],
+      liftMetadata: expect.objectContaining({
+        pathActivityKind: 'continued-interaction',
+      }),
+    }));
+  });
+
+  it('does not derive simulation outcome refs from unrelated lesson-step completions', async () => {
+    configureSingleNodePath(
+      'registry:lesson09-time-domain-synthesis',
+      'lesson_step',
+      '/interactive-learning/resources/lesson09-time-domain-synthesis',
+      {
+        goalId: 'control-correction',
+        planNode: {
+          knowledgeCoverage: ['control-correction:time-domain-targets'],
+        },
+      }
+    );
+
+    const response = await executePath(post('http://localhost/api/learning-paths/path-1/execute', {
+      nodeId: 'registry:lesson09-time-domain-synthesis',
+      resourceType: 'lesson_step',
+      status: 'completed',
+      idempotencyKey: 'time-domain-synthesis-without-simulation-validation',
+      liftMetadata: {
+        pathActivityKind: 'initial-completion',
+        completionSource: 'interactive-resource',
+      },
+    }), params);
+
+    expect(response.status).toBe(200);
+    expect(mocks.recordPathNodeExecution).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      evidenceRefs: [],
+    }));
+    expect(mocks.prisma.learningPath.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        lastExecutionMetadata: expect.objectContaining({
+          availableOutcomeRefs: [],
+        }),
+      }),
+    }));
+  });
+
   it('rejects server-owned simulation runs from a different path simulation node', async () => {
     mocks.prisma.learningPath.findUnique.mockResolvedValue({
       id: 'path-1',

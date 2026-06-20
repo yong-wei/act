@@ -1624,6 +1624,9 @@ function inferRegisteredNodeType(value: string): ResourceNodeType {
   const lower = value.toLowerCase();
   if (lower.includes('arena')) return 'arena_task';
   if (lower.includes('slides') || lower.includes('slide-deck') || lower.includes('courseware')) return 'slides';
+  if (lower.includes('knowledge-deck') || lower.includes('knowledge-card') || lower.includes('summary-card')) {
+    return 'knowledge_card';
+  }
   if (lower.includes('quiz') || lower.includes('precheck') || lower.includes('posttest') || lower.includes('assessment')) {
     return 'quiz';
   }

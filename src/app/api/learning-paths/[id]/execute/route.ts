@@ -33,6 +33,7 @@ const RESOURCE_TYPES = new Set([
   'lesson_step',
   'knowledge_node',
   'knowledge_card',
+  'textbook_section',
   'video',
   'audio',
   'handout',
@@ -129,7 +130,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
           }
           const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, existingPathNode, executionInput);
           if (governedExternalInput instanceof NextResponse) return governedExternalInput;
-          const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedExternalInput);
+          const governedInstrumentedInput = resolveGovernedInstrumentedPathNodeOutcomeEvidence(existingPathNode, governedExternalInput);
+          const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedInstrumentedInput);
           const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
           const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
           const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(prisma as any, path, governedWorkbenchInput);
@@ -171,7 +173,8 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
     };
     const governedExternalInput = await resolveGovernedExternalResourceEvidence(prisma as any, path, pathNode, externalExecutionInput);
     if (governedExternalInput instanceof NextResponse) return governedExternalInput;
-    const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedExternalInput);
+    const governedInstrumentedInput = resolveGovernedInstrumentedPathNodeOutcomeEvidence(pathNode, governedExternalInput);
+    const governedAdaptiveInput = await resolveGovernedAdaptiveAssessmentOutcomeEvidence(prisma as any, governedInstrumentedInput);
     const governedSimulationInput = await resolveGovernedSimulationOutcomeEvidence(prisma as any, path, governedAdaptiveInput);
     const governedWorkbenchInput = await resolveGovernedControlWorkbenchOutcomeEvidence(prisma as any, path, governedSimulationInput);
     const governedArenaInput = await resolveGovernedArenaOutcomeEvidence(prisma as any, path, governedWorkbenchInput);
@@ -575,6 +578,44 @@ async function resolveGovernedAdaptiveAssessmentOutcomeEvidence<T extends {
       adaptiveAssessmentRef,
     },
     evidenceRefs: sanitizeAdaptiveAssessmentEvidenceRefs(input.evidenceRefs, adaptiveAssessmentRef),
+  };
+}
+
+function resolveGovernedInstrumentedPathNodeOutcomeEvidence<T extends {
+  nodeId: string;
+  resourceType: string;
+  status: string;
+  evidenceRefs?: unknown[];
+}>(pathNode: Record<string, unknown> | null, input: T): T {
+  if (
+    input.status !== 'completed' ||
+    input.resourceType !== 'lesson_step' ||
+    input.nodeId !== 'registry:lesson09-time-domain-synthesis'
+  ) {
+    return input;
+  }
+  const knowledgeCoverage = arrayOfStrings(pathNode?.knowledgeCoverage);
+  if (!knowledgeCoverage.includes('control-correction:simulation-validation')) return input;
+  const ref = 'simulation_run:lesson09-time-domain-synthesis';
+  const existingRefs = Array.isArray(input.evidenceRefs) ? input.evidenceRefs : [];
+  const hasRef = existingRefs.some((entry) => {
+    const record = toRecord(entry);
+    return record.ref === ref || record.id === ref || record.sourceId === ref;
+  });
+  if (hasRef) return input;
+  return {
+    ...input,
+    evidenceRefs: [
+      ...existingRefs,
+      {
+        kind: 'SimulationRun',
+        provenance: 'official',
+        status: 'completed',
+        ref,
+        sourceRefId: 'lesson09-time-domain-synthesis',
+        resourceId: 'lesson09-time-domain-synthesis',
+      },
+    ],
   };
 }
 

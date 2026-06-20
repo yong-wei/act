@@ -71,6 +71,7 @@ export interface AdaptiveLearningCapabilityTarget {
 export interface AdaptiveLearningPathRegisteredGoalDefinition {
   goal: AdaptiveLearningPathGoal;
   displayName: string;
+  knowledgeTargetAliases?: Record<string, string[]>;
   allowedResourceMix: ResourceNode['type'][];
   starterPathPolicy: {
     policyFamilies: AdaptiveLearningPathPolicyFamily[];
@@ -650,7 +651,37 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       capabilityTargets: CONTROL_CORRECTION_CAPABILITY_TARGETS,
     },
     displayName: '控制系统校正设计',
+    knowledgeTargetAliases: {
+      'control-correction:time-domain-targets': [
+        '性能指标_1_1',
+        '动态性能指标_3_a10733c1',
+        '稳态误差双路径判断_3_37002',
+        '给定-扰动双通道误差分析_3_37001',
+      ],
+      'control-correction:root-locus-design': [
+        '根轨迹_1_1',
+        '根轨迹_4_c19f8854',
+        '根轨迹完整法则_3_0f2e7b11',
+        '根轨迹绘制规则_3_2f9e8cb3',
+        '根轨迹增益换算_3_4b1d9e6c',
+        '零点引入与根轨迹重排_3_35001',
+        '串联校正_6_fede5751',
+        '频域PD与超前整定_4_42011',
+        '频域PI与滞后整定_4_42010',
+        '控制器频域特性矩阵_4_42008',
+      ],
+      'control-correction:simulation-validation': [
+        '传统设计四联图校正_4_47004',
+        '跨模型验证比较_4_47006',
+        '工程指标代价函数翻译_4_47003',
+      ],
+      'control-correction:arena-transfer': [
+        '跨模型验证比较_4_47006',
+        '传统设计四联图校正_4_47004',
+      ],
+    },
     allowedResourceMix: [
+      'lesson_step',
       'knowledge_card',
       'textbook_section',
       'quiz',
@@ -669,7 +700,7 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       minOptions: 2,
       difficultyRhythm: 'steady',
       allowExternalResources: false,
-      preferredResourceTypes: ['knowledge_card', 'textbook_section', 'control_workbench', 'simulation', 'arena_task'],
+      preferredResourceTypes: ['knowledge_card', 'textbook_section', 'lesson_step', 'control_workbench', 'simulation', 'arena_task'],
     },
     checkpointPolicy: {
       minCheckpoints: 1,
@@ -691,6 +722,15 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       competencyTargets: [],
     },
     displayName: '频率响应基础',
+    knowledgeTargetAliases: {
+      'kn-bode': [
+        'Bode图_1_1',
+        'Bode首轮骨架_5_1e07d9da',
+        '频域响应_1_1',
+        '频域分析_2_2e257d89',
+        '正弦稳态响应_5_b6dc1100',
+      ],
+    },
     allowedResourceMix: [
       'knowledge_card',
       'textbook_section',
@@ -1172,12 +1212,47 @@ function nodeMatchesGoal(
 ): boolean {
   const planningUnit = planningUnitForNode(node);
   if (!planningUnit) return false;
-  const targets = new Set([
+  const registeredGoal = getRegisteredAdaptiveLearningPathGoal(goal.id);
+  const knowledgeTargets = new Set([
     ...goal.knowledgeTargets,
-    ...deficits.map((deficit) => deficit.targetId),
+    ...deficits.filter((deficit) => deficit.kind === 'knowledge').map((deficit) => deficit.targetId),
+    ...expandedRegisteredKnowledgeTargets(goal, deficits, registeredGoal),
   ]);
-  return planningUnit.knowledgeCoverage.some((tag) => targets.has(tag)) ||
-    Object.keys(planningUnit.abilityImpact).some((key) => (goal.competencyTargets ?? []).includes(key));
+  const coversKnowledgeTarget = planningUnit.knowledgeCoverage.some((tag) => knowledgeTargets.has(tag));
+  if (knowledgeTargets.size > 0) {
+    return coversKnowledgeTarget;
+  }
+  if (registeredGoal) {
+    return coversKnowledgeTarget;
+  }
+  return Object.keys(planningUnit.abilityImpact).some((key) => (goal.competencyTargets ?? []).includes(key));
+}
+
+function expandedRegisteredKnowledgeTargets(
+  goal: AdaptiveLearningPathGoal,
+  deficits: AdaptiveLearningPathDeficit[],
+  registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
+): string[] {
+  if (!registeredGoal?.knowledgeTargetAliases) return [];
+  const declaredTargets = unique([
+    ...goal.knowledgeTargets,
+    ...deficits.filter((deficit) => deficit.kind === 'knowledge').map((deficit) => deficit.targetId),
+  ]);
+  return unique(declaredTargets.flatMap((target) => registeredGoal.knowledgeTargetAliases?.[target] ?? []));
+}
+
+function knowledgeTargetCoverageRefs(goal: AdaptiveLearningPathGoal, target: string): string[] {
+  const aliases = getRegisteredAdaptiveLearningPathGoal(goal.id)?.knowledgeTargetAliases?.[target] ?? [];
+  return unique([target, ...aliases]);
+}
+
+function planningUnitCoversKnowledgeTarget(
+  planningUnit: PlanningUnit,
+  goal: AdaptiveLearningPathGoal,
+  target: string,
+): boolean {
+  const coverageRefs = new Set(knowledgeTargetCoverageRefs(goal, target));
+  return planningUnit.knowledgeCoverage.some((tag) => coverageRefs.has(tag));
 }
 
 function scoreNode(
@@ -1544,7 +1619,7 @@ function uniqueScoredEntries(entries: ScoredNode[]): ScoredNode[] {
 function nodeCoversGoalTarget(node: ResourceNode, goal: AdaptiveLearningPathGoal): boolean {
   const planningUnit = planningUnitForNode(node);
   if (!planningUnit) return false;
-  return planningUnit.knowledgeCoverage.some((tag) => goal.knowledgeTargets.includes(tag)) ||
+  return goal.knowledgeTargets.some((target) => planningUnitCoversKnowledgeTarget(planningUnit, goal, target)) ||
     Object.keys(planningUnit.abilityImpact).some((dimension) =>
       (goal.competencyTargets ?? []).includes(dimension)
     );
@@ -1556,7 +1631,7 @@ function goalTargetsCoveredByNodes(nodes: ResourceNode[], goal: AdaptiveLearning
     const planningUnit = planningUnitForNode(node);
     if (!planningUnit) continue;
     for (const target of goal.knowledgeTargets) {
-      if (planningUnit.knowledgeCoverage.includes(target)) {
+      if (planningUnitCoversKnowledgeTarget(planningUnit, goal, target)) {
         covered.add(target);
       }
     }
@@ -1613,7 +1688,9 @@ function uncoveredGoalTargets(nodes: ResourceNode[], goal: AdaptiveLearningPathG
   const coveredKnowledge = new Set(planningUnits.flatMap((unit) => unit.knowledgeCoverage));
   const coveredCompetencies = new Set(planningUnits.flatMap((unit) => Object.keys(unit.abilityImpact)));
   return [
-    ...goal.knowledgeTargets.filter((target) => !coveredKnowledge.has(target)),
+    ...goal.knowledgeTargets.filter((target) =>
+      knowledgeTargetCoverageRefs(goal, target).every((ref) => !coveredKnowledge.has(ref))
+    ),
     ...(goal.competencyTargets ?? []).filter((target) => !coveredCompetencies.has(target)),
   ];
 }

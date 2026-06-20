@@ -29,6 +29,7 @@ import {
   recordPathIntervention,
 } from '@/lib/control-correction-path-rounds';
 import {
+  loadAllTextbookRuntimeResourceCatalogEntries,
   loadAllTextbookRuntimeSearchDocuments,
   type TextbookRuntimeSearchDocument,
 } from '@/lib/textbook-runtime-resources';
@@ -40,8 +41,9 @@ import {
   type AdaptiveLearningPathPlan,
   type AdaptiveLearningPathPlanNode,
 } from '@/lib/adaptive-learning-path-planner';
-import { buildControlCorrectionResourceNodeRegistry } from '@/lib/control-correction-resource-seed';
-import { buildFrequencyResponseFoundationsResourceNodeRegistry } from '@/lib/frequency-response-resource-seed';
+import { buildResourceNodeRegistry } from '@/lib/resource-node-registry';
+import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
+import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/frequency-response-resource-seed';
 import type { PageContext, UserProfile, AbilityVector } from '@/types/ai-context';
 import type { InterventionDecision, StudentState } from '@/features/ai/companion/intervention-engine';
 import { generateIntervention, shouldIntervene } from '@/features/ai/companion/intervention-engine';
@@ -1674,7 +1676,7 @@ async function buildAdaptivePathToolOutput(
   if (!registeredGoal) {
     throw new KonlingRuntimeScopeError(404, '当前页面目标没有可生成的学习路径。');
   }
-  const registry = resolveAdaptivePathGenerationRegistry(goalId);
+  const registry = await resolveAdaptivePathGenerationRegistry(goalId);
   const timeBudget = resolveAdaptivePathTimeBudget(registeredGoal, args.timeBudgetMinutes);
   const resourcePreferences = normalizeAdaptivePathResourcePreferences(args.resourcePreference)
     ?? registeredGoal.starterPathPolicy.preferredResourceTypes;
@@ -1890,6 +1892,7 @@ function normalizeAdaptivePathResourcePreferences(value: string[] | undefined): 
     'lesson_step',
     'knowledge_node',
     'knowledge_card',
+    'textbook_section',
     'video',
     'audio',
     'handout',
@@ -2084,12 +2087,28 @@ function resolveScopedAdaptivePathGoalId(input: KonlingToolRuntimeInput, request
   return goalId;
 }
 
-function resolveAdaptivePathGenerationRegistry(goalId: string) {
+async function resolveAdaptivePathGenerationRegistry(goalId: string) {
+  const runtimeTextbooks = await loadAllTextbookRuntimeResourceCatalogEntries().catch(() => []);
+  const runtimeTextbookInput = {
+    textbooks: runtimeTextbooks.map((entry) => entry.textbook),
+    textbookSections: runtimeTextbooks.flatMap((entry) =>
+      entry.sections.map((section) => ({
+        ...section,
+        bookId: entry.textbook.bookId,
+      }))
+    ),
+  };
   if (goalId === CONTROL_CORRECTION_PATH_ROUND_GOAL_ID) {
-    return buildControlCorrectionResourceNodeRegistry();
+    return buildResourceNodeRegistry({
+      registeredResources: getAllRegisteredResourceMetadata(),
+      ...runtimeTextbookInput,
+    });
   }
   if (goalId === 'frequency-response-foundations') {
-    return buildFrequencyResponseFoundationsResourceNodeRegistry();
+    return buildResourceNodeRegistry({
+      ...buildFrequencyResponseFoundationsResourceSeedInput(),
+      ...runtimeTextbookInput,
+    });
   }
   throw new KonlingRuntimeScopeError(403, '当前学习目标还没有可生成的路径资源注册表。');
 }
@@ -2694,14 +2713,14 @@ async function validateKonlingToolPreflight(
   if (toolName === 'generate_learning_path') {
     const parsed = generateLearningPathParameters.parse(toolInput);
     const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    resolveAdaptivePathGenerationRegistry(goalId);
+    await resolveAdaptivePathGenerationRegistry(goalId);
     await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: false, requireExisting: false });
     return;
   }
   if (toolName === 'revise_learning_path_options') {
     const parsed = reviseLearningPathOptionsParameters.parse(toolInput);
     const goalId = resolveScopedAdaptivePathGoalId(runtimeInput, parsed.goalId);
-    resolveAdaptivePathGenerationRegistry(goalId);
+    await resolveAdaptivePathGenerationRegistry(goalId);
     const path = await assertScopedAdaptivePathToolPath(runtimeInput, parsed.pathId, { goalId, requirePath: true, requireExisting: true });
     assertAdaptivePathOptionIds(path, parsed.selectedStyleId, parsed.rejectedStyleIds ?? [], { allowPolicyFallback: true });
     return;
