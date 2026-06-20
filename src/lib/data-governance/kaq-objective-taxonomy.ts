@@ -75,6 +75,7 @@ export interface KaqObjectiveSeedCatalog {
 export type KaqObjectiveValidationIssueCode =
   | 'duplicate-id'
   | 'missing-id'
+  | 'invalid-id'
   | 'missing-title'
   | 'missing-description'
   | 'missing-parent-id'
@@ -218,6 +219,10 @@ export function validateKaqObjectiveCatalog(
   for (const objective of objectives) {
     if (!objective.id) {
       issues.push(issue('missing-id', null, 'Objective id is required.'));
+      continue;
+    }
+    if (!isNonEmptyString(objective.id)) {
+      issues.push(issue('invalid-id', null, 'Objective id must be a non-empty string.'));
       continue;
     }
     if (seen.has(objective.id)) {
@@ -384,6 +389,10 @@ function issue(
   message: string,
 ): KaqObjectiveValidationIssue {
   return { code, objectiveId, message };
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
 }
 
 function mapping(

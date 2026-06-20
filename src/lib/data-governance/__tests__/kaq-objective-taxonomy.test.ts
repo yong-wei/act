@@ -150,6 +150,20 @@ describe('kaq objective taxonomy', () => {
     ]));
   });
 
+  it('rejects non-string objective ids from untyped catalogs', () => {
+    const result = validateKaqObjectiveCatalog([
+      objective({
+        id: 123 as unknown as string,
+      }),
+      objective({
+        id: {} as unknown as string,
+      }),
+    ]);
+
+    expect(result.valid).toBe(false);
+    expect(result.issues.filter((issue) => issue.code === 'invalid-id')).toHaveLength(2);
+  });
+
   it('rejects an overall objective with a non-null parent id', () => {
     const result = validateKaqObjectiveCatalog([
       objective({
