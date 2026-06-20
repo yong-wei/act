@@ -134,9 +134,11 @@ export type KaqGraphValidationIssueCode =
   | 'invalid-edge-reference'
   | 'edge-domain-mismatch'
   | 'unknown-objective-id'
+  | 'objective-domain-mismatch'
   | 'invalid-portrait-dimension'
   | 'graph-body-contains-overlay-data'
   | 'capability-missing-knowledge-binding'
+  | 'capability-invalid-knowledge-binding'
   | 'capability-missing-observable-evidence'
   | 'invalid-capability-bloom-level'
   | 'quality-missing-scenario'
@@ -204,7 +206,8 @@ export function validateKaqGraphCatalog(
   const objectives = Array.isArray(objectivesInput)
     ? objectivesInput
     : [...objectivesInput.knowledge, ...objectivesInput.capability, ...objectivesInput.quality];
-  const objectiveIds = new Set(objectives.map((objective) => objective.id));
+  const objectivesById = new Map(objectives.map((objective) => [objective.id, objective]));
+  const objectiveIds = new Set(objectivesById.keys());
   const nodesById = new Map<string, KaqGraphNode>();
   const seenNodeIds = new Set<string>();
   const seenEdgeIds = new Set<string>();
@@ -216,7 +219,7 @@ export function validateKaqGraphCatalog(
     }
     const node = nodeValue as KaqGraphNode;
     validateGraphBodyBoundary(node, issues);
-    validateCommonNode(node, objectiveIds, issues);
+    validateCommonNode(node, objectivesById, objectiveIds, issues);
 
     if (!node.id) {
       issues.push(issue('missing-node-id', 'Graph node id is required.', { nodeId: null }));
@@ -266,6 +269,7 @@ export function validateKaqGraphCatalog(
 
 function validateCommonNode(
   node: KaqGraphNode,
+  objectivesById: Map<string, KaqObjective>,
   objectiveIds: Set<string>,
   issues: KaqGraphValidationIssue[],
 ): void {
@@ -295,6 +299,11 @@ function validateCommonNode(
     for (const objectiveId of node.objectiveIds) {
       if (!objectiveIds.has(objectiveId)) {
         issues.push(issue('unknown-objective-id', `Unknown objective id: ${objectiveId}.`, { nodeId: safeId(node.id) }));
+        continue;
+      }
+      const objective = objectivesById.get(objectiveId);
+      if (objective && objective.domain !== node.domain) {
+        issues.push(issue('objective-domain-mismatch', 'Graph node objective id must belong to the same K/A/Q domain.', { nodeId: safeId(node.id) }));
       }
     }
   }
@@ -329,11 +338,16 @@ function validateCapabilityNode(
   issues: KaqGraphValidationIssue[],
 ): void {
   const knowledgeNodeIds = Array.isArray(node.knowledgeNodeIds) ? node.knowledgeNodeIds : [];
-  const hasKnowledgeBinding = knowledgeNodeIds.some((nodeId) => nodesById.get(nodeId)?.domain === 'knowledge');
+  const validKnowledgeBindings = knowledgeNodeIds.filter((nodeId) => nodesById.get(nodeId)?.domain === 'knowledge');
   if (!BLOOM_LEVEL_SET.has(node.bloomLevel)) {
     issues.push(issue('invalid-capability-bloom-level', 'Capability node Bloom level is invalid.', { nodeId: safeId(node.id) }));
   }
-  if (node.status === 'active' && !hasKnowledgeBinding) {
+  for (const knowledgeNodeId of knowledgeNodeIds) {
+    if (nodesById.get(knowledgeNodeId)?.domain !== 'knowledge') {
+      issues.push(issue('capability-invalid-knowledge-binding', `Capability knowledge binding is not a knowledge node: ${knowledgeNodeId}.`, { nodeId: safeId(node.id) }));
+    }
+  }
+  if (node.status === 'active' && validKnowledgeBindings.length === 0) {
     issues.push(issue('capability-missing-knowledge-binding', 'Active capability node must bind to at least one knowledge node.', { nodeId: safeId(node.id) }));
   }
 

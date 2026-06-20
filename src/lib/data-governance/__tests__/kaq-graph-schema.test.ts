@@ -192,6 +192,42 @@ describe('kaq graph schema', () => {
     ]));
   });
 
+  it('rejects objective bindings from a different K/A/Q domain', () => {
+    const invalidCatalog: KaqGraphCatalog = {
+      nodes: [
+        {
+          ...validCatalog.nodes[2],
+          objectiveIds: ['knowledge:time-domain'],
+        },
+      ],
+      edges: [],
+    };
+
+    const result = validateKaqGraphCatalog(invalidCatalog, objectives);
+
+    expect(result.valid).toBe(false);
+    expect(result.issues.map((issue) => issue.code)).toContain('objective-domain-mismatch');
+  });
+
+  it('rejects every invalid capability knowledge binding, not only empty binding lists', () => {
+    const invalidCatalog: KaqGraphCatalog = {
+      nodes: [
+        validCatalog.nodes[0],
+        validCatalog.nodes[3],
+        {
+          ...validCatalog.nodes[2],
+          knowledgeNodeIds: ['kn:time-domain-targets', 'qual:evidence-integrity', 'missing-knowledge-node'],
+        } as unknown as KaqGraphCatalog['nodes'][number],
+      ],
+      edges: [],
+    };
+
+    const result = validateKaqGraphCatalog(invalidCatalog, objectives);
+
+    expect(result.valid).toBe(false);
+    expect(result.issues.filter((issue) => issue.code === 'capability-invalid-knowledge-binding')).toHaveLength(2);
+  });
+
   it('rejects active capability and quality nodes without observable teaching semantics', () => {
     const invalidCatalog: KaqGraphCatalog = {
       nodes: [
