@@ -109,14 +109,15 @@ function graphBinding(nodeKinds: string[], bindingRefs: string[]): KaqGraphBindi
 function knowledgeObjective(input: KaqObjectiveBaseInput & {
   knowledgeNodeRefs?: string[];
 }): KaqKnowledgeObjective {
+  const { bindingRefs, ...objective } = input;
   return {
-    ...input,
+    ...objective,
     domain: 'knowledge',
     status: 'active',
-    moduleId: input.moduleId ?? MODULE_ID,
+    moduleId: objective.moduleId ?? MODULE_ID,
     evidencePolicy: evidencePolicy(['knowledge-check', 'teacher-review']),
-    graphBinding: graphBinding(['knowledge'], input.bindingRefs),
-    knowledgeNodeRefs: input.knowledgeNodeRefs,
+    graphBinding: graphBinding(['knowledge'], bindingRefs),
+    knowledgeNodeRefs: objective.knowledgeNodeRefs,
   };
 }
 
@@ -124,29 +125,31 @@ function capabilityObjective(input: KaqObjectiveBaseInput & {
   behaviorVerb: string;
   successCriteria: string[];
 }): KaqCapabilityObjective {
+  const { bindingRefs, ...objective } = input;
   return {
-    ...input,
+    ...objective,
     domain: 'capability',
     status: 'active',
-    moduleId: input.moduleId ?? MODULE_ID,
+    moduleId: objective.moduleId ?? MODULE_ID,
     evidencePolicy: evidencePolicy(['performance-task', 'simulation-run', 'teacher-review']),
-    graphBinding: graphBinding(['capability'], input.bindingRefs),
-    behaviorVerb: input.behaviorVerb,
-    successCriteria: input.successCriteria,
+    graphBinding: graphBinding(['capability'], bindingRefs),
+    behaviorVerb: objective.behaviorVerb,
+    successCriteria: objective.successCriteria,
   };
 }
 
 function qualityObjective(input: KaqObjectiveBaseInput & {
   qualityMarker: string;
 }): KaqQualityObjective {
+  const { bindingRefs, ...objective } = input;
   return {
-    ...input,
+    ...objective,
     domain: 'quality',
     status: 'active',
-    moduleId: input.moduleId ?? MODULE_ID,
+    moduleId: objective.moduleId ?? MODULE_ID,
     evidencePolicy: evidencePolicy(['reflection', 'rubric-review', 'governed-evidence']),
-    graphBinding: graphBinding(['quality'], input.bindingRefs),
-    qualityMarker: input.qualityMarker,
+    graphBinding: graphBinding(['quality'], bindingRefs),
+    qualityMarker: objective.qualityMarker,
   };
 }
 
@@ -673,15 +676,16 @@ function rubric(id: string, label: string, criteria: string[]) {
 function qualityNode(input: Omit<KaqQualityGraphNode, 'domain' | 'moduleId' | 'status' | 'rubricLevels'> & {
   rubricCriteria: [string, string, string];
 }): KaqQualityGraphNode {
+  const { rubricCriteria, ...node } = input;
   return {
-    ...input,
+    ...node,
     domain: 'quality',
     moduleId: MODULE_ID,
     status: 'active',
     rubricLevels: [
-      rubric('emerging', 'Emerging', [input.rubricCriteria[0]]),
-      rubric('proficient', 'Proficient', [input.rubricCriteria[1]]),
-      rubric('advanced', 'Advanced', [input.rubricCriteria[2]]),
+      rubric('emerging', 'Emerging', [rubricCriteria[0]]),
+      rubric('proficient', 'Proficient', [rubricCriteria[1]]),
+      rubric('advanced', 'Advanced', [rubricCriteria[2]]),
     ],
   };
 }

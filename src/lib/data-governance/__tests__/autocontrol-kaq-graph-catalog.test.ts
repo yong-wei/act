@@ -179,4 +179,9 @@ describe('autocontrol K/A/Q graph catalog', () => {
       }
     }
   });
+
+  it('does not leak constructor-only fields into exported objective or graph payloads', () => {
+    expect(objectives().some((objective) => Object.hasOwn(objective, 'bindingRefs'))).toBe(false);
+    expect(qualityNodes.some((node) => Object.hasOwn(node, 'rubricCriteria'))).toBe(false);
+  });
 });
