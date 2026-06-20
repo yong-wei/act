@@ -149,6 +149,31 @@ describe('autocontrol K/A/Q graph catalog', () => {
     expect(objectiveIds).toContain('quality:autocontrol:system-tradeoff');
   });
 
+  it('keeps prerequisite and assessment edge directions source-to-target consistent', () => {
+    const edgeById = new Map(AUTOCONTROL_KAQ_GRAPH_CATALOG.edges.map((edge) => [edge.id, edge]));
+
+    expect(edgeById.get('edge:kn:time-domain-supports-root-locus')).toMatchObject({
+      sourceNodeId: 'kn:autocontrol:time-domain-performance',
+      targetNodeId: 'kn:autocontrol:root-locus',
+      relation: 'supports',
+    });
+    expect(edgeById.get('edge:kn:correction-depends-on-root-locus')).toMatchObject({
+      sourceNodeId: 'kn:autocontrol:controller-correction',
+      targetNodeId: 'kn:autocontrol:root-locus',
+      relation: 'depends-on',
+    });
+    expect(edgeById.get('edge:kn:validation-assesses-correction')).toMatchObject({
+      sourceNodeId: 'kn:autocontrol:simulation-validation',
+      targetNodeId: 'kn:autocontrol:controller-correction',
+      relation: 'assesses',
+    });
+    expect(edgeById.get('edge:cap:validation-assesses-synthesis')).toMatchObject({
+      sourceNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+      targetNodeId: 'cap:autocontrol:synthesize-controller-correction',
+      relation: 'assesses',
+    });
+  });
+
   it('keeps objective graph bindings synchronized with graph node objective ids', () => {
     const graphNodeById = new Map<string, KaqGraphNode>(
       AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes.map((node) => [node.id, node]),
