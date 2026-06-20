@@ -35,6 +35,7 @@ export * from './learning-evidence-rag-corpus';
 
 // K/A/Q graph catalogs
 export * from './autocontrol-kaq-graph-catalog';
+export * from './graph-center';
 
 // Role-based learning diagnosis
 export * from './control-correction-diagnosis-profile';
