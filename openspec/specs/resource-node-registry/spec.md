@@ -36,6 +36,7 @@ The system SHALL expose graph edges and metadata needed by downstream adaptive p
 #### Scenario: Planner reads upgraded ResourceNode graph profile
 - **WHEN** the planner reads ResourceNodes for a graph-driven LearningGoal
 - **THEN** it SHALL be able to access graph node refs, scene availability, citation readiness, evidence capability, prerequisites, estimated time, cognitive load, availability, teacher policy, privacy level, terminal constraints, readiness, and governance limitations
+- **AND** it SHALL continue to expose planner-readable `knowledgeCoverage`, `abilityImpact`, `cost`, and remedial, extension, alternative, and related edge semantics used by path scoring and PathNode conversion.
 - **AND** these fields SHALL come from audited ResourceNode or ResourceSemanticProjection metadata rather than raw source content.
 
 ### Requirement: Registry audits protect path quality
@@ -45,6 +46,11 @@ The system SHALL audit path-eligible resources.
 - **WHEN** a resource segment or retrieval chunk has graph binding or citation readiness but lacks ResourceNode path audit approval
 - **THEN** the audit SHALL keep it out of path generation
 - **AND** diagnostics SHALL distinguish retrieval readiness from path eligibility.
+
+#### Scenario: ResourceNode is incomplete
+- **WHEN** a ResourceNode lacks a verified render or launch target, knowledge mapping, valid prerequisite references, availability, privacy policy, or evidence instrumentation required for path execution
+- **THEN** the audit SHALL mark the node as not path-eligible
+- **AND** diagnostics SHALL identify the missing governance field rather than treating segment or chunk readiness as a substitute for ResourceNode path audit approval.
 
 ### Requirement: Registry provides an audited control-correction seed graph
 The system SHALL provide a versioned ResourceNode seed graph for the `control-correction` goal.
@@ -110,4 +116,3 @@ ResourceNodes that can appear in adaptive learning paths SHALL expose readiness 
 - **WHEN** a high-complexity ResourceNode lacks audited readiness metadata
 - **THEN** the planner SHALL treat the node as not immediately executable
 - **AND** the node MAY appear only as a locked future milestone with a student-facing preparation message.
-

@@ -1,3 +1,5 @@
+import { buildKaqArtifactVersionRefs, type KaqArtifactVersionRefs } from './kaq-artifact-versioning';
+
 export const RESOURCE_NODE_TYPES = [
   'lesson_step',
   'knowledge_node',
@@ -486,6 +488,7 @@ export interface ResourceSegmentAnchor {
 }
 
 export interface ResourceNodeGraphProfile {
+  versionRefs: KaqArtifactVersionRefs;
   graphNodeRefs: ResourceGraphNodeRefs;
   sceneAvailability: ResourceSceneAvailabilityMap;
   stableSegmentRefs: string[];
@@ -1002,6 +1005,7 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
     knowledgeNodeIds: node.planningMetadata.knowledgeCoverage,
     capabilityTargetIds: Object.keys(node.planningMetadata.abilityImpact).sort((left, right) => left.localeCompare(right)),
     graphProfile: {
+      versionRefs: buildKaqArtifactVersionRefs(),
       graphNodeRefs,
       sceneAvailability,
       stableSegmentRefs: [segmentId],

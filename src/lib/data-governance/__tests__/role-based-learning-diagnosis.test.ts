@@ -208,6 +208,39 @@ describe('role-based learning diagnosis materialization', () => {
     expect(validateRoleBasedLearningDiagnosis(diagnosis)).toEqual([]);
   });
 
+  it('propagates resource projection version limitations into diagnosis citation chips', () => {
+    const projectedEvidence = evidence({
+      resourceProjection: {
+        resourceId: 'path-summary:path-1',
+        segmentRef: 'path-1#terminal-validation',
+        citationTargetRef: 'path-1#summary',
+        knowledgeNodeRefs: ['knowledge:control-correction'],
+        capabilityTargetRefs: ['capability:simulation-validation'],
+        authorityLevel: 'learner-evidence',
+        privacyScope: 'student-visible',
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: 'hash-path-1',
+      },
+    });
+
+    const diagnosis = materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      evidenceCorpus: [projectedEvidence],
+    });
+
+    expect(diagnosis.claims[0].evidenceRefs[0].citationChip).toEqual(expect.objectContaining({
+      chunkId: 'chunk-path-1',
+      sourceVersionRefs: undefined,
+      limitationState: 'missing-version-ref',
+      sourceVersionLimitations: [expect.objectContaining({
+        code: 'legacy-artifact-unversioned',
+        ref: 'resourceProjectionVersion',
+        severity: 'warning',
+      })],
+    }));
+  });
+
   it('materializes a teacher class diagnosis with clusters, denominators, intervention priority, and scoped drilldowns', () => {
     const diagnosis = materializeRoleBasedLearningDiagnosis({
       ...baseInput,
@@ -259,6 +292,97 @@ describe('role-based learning diagnosis materialization', () => {
       'low-confidence',
       'no-active-path',
     ]));
+    expect(validateRoleBasedLearningDiagnosis(diagnosis)).toEqual([]);
+  });
+
+  it('downgrades unsafe citation evidence instead of failing diagnosis materialization', () => {
+    const diagnosis = materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      evidenceCorpus: [evidence({
+        display: {
+          title: '不安全引用地址',
+          href: 'javascript:alert(1)',
+          capsule: '引用地址不应进入诊断视图。',
+        },
+      })],
+    });
+
+    expect(diagnosis.claims[0].evidenceRefs).toEqual([]);
+    expect(diagnosis.claims[0].confidence.state).toBe('none');
+    expect(diagnosis.claims[0].limitations.map((item) => item.reason)).toContain('missing-citation');
+    expect(diagnosis.claims[0].limitations.map((item) => item.reason)).toContain('low-confidence');
+    expect(validateRoleBasedLearningDiagnosis(diagnosis)).toEqual([]);
+
+    const withoutFallbackWindow = materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      learnerState: null,
+      featureCache: null,
+      evidenceCorpus: [evidence({
+        display: {
+          title: '不安全引用地址',
+          href: 'javascript:alert(1)',
+          capsule: '引用地址不应进入诊断视图。',
+        },
+      })],
+    });
+
+    expect(withoutFallbackWindow.claims[0].evidenceWindow.sourceLastUpdatedAt).toBeNull();
+  });
+
+  it('uses resolved safe citation addresses for diagnosis evidence hrefs', () => {
+    const diagnosis = materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      evidenceCorpus: [evidence({
+        display: {
+          title: '原始显示地址不安全',
+          href: 'javascript:alert(1)',
+          capsule: '引用地址应使用已解析地址。',
+        },
+        citationAddress: {
+          kind: 'text',
+          sourceRefId: 'path-1',
+          href: '/profile/path/safe',
+          locator: 'path.execution.allTime',
+          contentHash: 'hash-path-1',
+        },
+      })],
+    });
+
+    expect(diagnosis.claims[0].evidenceRefs).toEqual([
+      expect.objectContaining({
+        displayHref: '/profile/path/safe',
+        citationChip: expect.objectContaining({
+          displayHref: '/profile/path/safe',
+        }),
+      }),
+    ]);
+    expect(JSON.stringify(diagnosis.claims[0].evidenceRefs)).not.toContain('javascript:');
+  });
+
+  it('keeps authorized redacted citation metadata when retrieved evidence has no redacted summary', () => {
+    const diagnosis = materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      evidenceCorpus: [evidence({
+        content: {
+          text: 'legal raw learner evidence without redacted summary',
+          redactedSummary: null,
+          hash: 'hash-path-raw-only',
+        },
+      })],
+    });
+
+    expect(diagnosis.claims[0].evidenceRefs).toEqual([
+      expect.objectContaining({
+        chunkId: 'chunk-path-1',
+        citationChip: expect.objectContaining({
+          chunkId: 'chunk-path-1',
+          displayHref: '/profile/path/path-1',
+          limitationState: null,
+        }),
+      }),
+    ]);
+    expect(diagnosis.claims[0].limitations.map((item) => item.reason)).not.toContain('missing-citation');
+    expect(JSON.stringify(diagnosis)).not.toContain('legal raw learner evidence');
     expect(validateRoleBasedLearningDiagnosis(diagnosis)).toEqual([]);
   });
 
@@ -585,6 +709,8 @@ describe('role-based learning diagnosis materialization', () => {
     ['raw query key in href', { title: 'safe title', href: '/profile/path?raw=true', capsule: 'safe capsule' }, 'raw=true'],
     ['rawTracePayload query key in href', { title: 'safe title', href: '/profile/path?rawTracePayload=secret', capsule: 'safe capsule' }, 'rawTracePayload'],
     ['privateKonlingMemory query key in href', { title: 'safe title', href: '/profile/path?privateKonlingMemory=secret', capsule: 'safe capsule' }, 'privateKonlingMemory'],
+    ['unsafe javascript href', { title: 'safe title', href: 'javascript:alert(1)', capsule: 'safe capsule' }, 'javascript:'],
+    ['protocol-relative external href', { title: 'safe title', href: '//evil.example/path', capsule: 'safe capsule' }, '//evil.example'],
     ['private Konling memory in capsule', { title: 'safe title', href: '/profile/path/safe', capsule: 'private Konling memory raw dialogue' }, 'private Konling memory'],
   ])('redacts sensitive diagnosis snapshot evidence reference display text: %s', (_caseName, evidenceRef, forbiddenText) => {
     const snapshot = materializeControlCorrectionDiagnosisReport({

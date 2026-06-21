@@ -2,6 +2,12 @@ import {
   AUTOCONTROL_KAQ_GRAPH_CATALOG,
   AUTOCONTROL_KAQ_GRAPH_VERSION,
 } from '../data-governance/autocontrol-kaq-graph-catalog';
+import {
+  buildKaqArtifactVersionRefs,
+  GRAPH_CENTER_OVERLAY_VERSION,
+  KONLING_GRAPH_GROUNDING_VERSION,
+  type KaqArtifactVersionRefs,
+} from '../kaq-artifact-versioning';
 import type {
   KaqGraphCatalog,
   KaqGraphDomain,
@@ -85,6 +91,7 @@ export interface GoalSubgraphPlannerFixture {
 export interface GoalSubgraphKonlingContextFixture {
   learningGoalId: string;
   graphVersion: string;
+  versionRefs: KaqArtifactVersionRefs;
   groundingNodeIds: string[];
   prerequisitePolicySummaries: string[];
   limitations: GoalSubgraphLimitation[];
@@ -93,6 +100,7 @@ export interface GoalSubgraphKonlingContextFixture {
 export interface GoalSubgraphGraphCenterDrillDownPayload {
   learningGoalId: string;
   graphVersion: string;
+  versionRefs: KaqArtifactVersionRefs;
   domains: Array<{
     domain: KaqGraphDomain;
     nodeIds: string[];
@@ -204,7 +212,7 @@ export function expandLearningGoalPackageSubgraph(
     prerequisitePolicy: policy,
     remediationCandidates: uniqueSorted(policy
       .filter((entry) => entry.semantics === 'hard_prerequisite' || entry.semantics === 'soft_prerequisite')
-      .map((entry) => entry.sourceNodeId)
+      .map(prerequisiteCandidateNodeId)
       .filter((nodeId) => !targetNodeIds.has(nodeId))),
     extensionCandidates: uniqueSorted(policy
       .filter((entry) => entry.semantics === 'extension')
@@ -307,12 +315,14 @@ function semanticsForRelation(
   edge: KaqGraphEdge,
   direction: GoalSubgraphPolicyEntry['direction'],
 ): GoalSubgraphPrerequisitePolicySemantics | null {
+  if (edge.relation === 'depends-on') {
+    return direction === 'outgoing' || direction === 'internal' ? 'hard_prerequisite' : null;
+  }
   if (direction === 'outgoing') {
     if (edge.relation === 'extends') return 'extension';
     if (edge.relation === 'transfers-to') return 'transfer_to';
     return null;
   }
-  if (edge.relation === 'depends-on') return 'hard_prerequisite';
   if (edge.relation === 'supports') return edge.strength === 'strong' ? 'hard_prerequisite' : 'soft_prerequisite';
   if (edge.relation === 'applies') return 'co_requisite';
   if (edge.relation === 'assesses') return 'evidence_for';
@@ -320,6 +330,13 @@ function semanticsForRelation(
   if (edge.relation === 'transfers-to') return 'transfer_to';
   if (edge.relation === 'constrains') return 'co_requisite';
   return null;
+}
+
+function prerequisiteCandidateNodeId(entry: GoalSubgraphPolicyEntry): string {
+  if (entry.relation === 'depends-on' && entry.direction === 'outgoing') {
+    return entry.targetNodeId;
+  }
+  return entry.sourceNodeId;
 }
 
 function groupNodeIdsByDomain(nodes: KaqGraphNode[]): Record<KaqGraphDomain, string[]> {
@@ -386,6 +403,12 @@ function buildFixtures(
     ...expansion.graphNodeIds.capability,
     ...expansion.graphNodeIds.quality,
   ];
+  const versionRefs = buildKaqArtifactVersionRefs({
+    learningGoalPackageVersion: expansion.learningGoalVersion === 'unknown' ? null : expansion.learningGoalVersion,
+    graphCatalogVersion: expansion.graphVersion,
+    groundingVersion: KONLING_GRAPH_GROUNDING_VERSION,
+    overlayVersion: GRAPH_CENTER_OVERLAY_VERSION,
+  });
   return {
     planner: {
       learningGoalId: expansion.learningGoalId,
@@ -399,6 +422,7 @@ function buildFixtures(
     konling: {
       learningGoalId: expansion.learningGoalId,
       graphVersion: expansion.graphVersion,
+      versionRefs,
       groundingNodeIds: targetGraphNodeIds,
       prerequisitePolicySummaries: expansion.prerequisitePolicy.map((entry) =>
         `${entry.semantics}:${entry.sourceNodeId}->${entry.targetNodeId}`
@@ -408,6 +432,7 @@ function buildFixtures(
     graphCenter: {
       learningGoalId: expansion.learningGoalId,
       graphVersion: expansion.graphVersion,
+      versionRefs,
       domains: (['knowledge', 'capability', 'quality'] satisfies KaqGraphDomain[]).map((domain) => ({
         domain,
         nodeIds: targetNodes.filter((node) => node.domain === domain).map((node) => node.id).sort((left, right) => left.localeCompare(right)),

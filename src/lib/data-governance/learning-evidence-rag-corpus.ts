@@ -1,3 +1,10 @@
+import {
+  detectKaqArtifactStaleness,
+  validateKaqArtifactVersionRefs,
+  type KaqArtifactVersionLimitation,
+  type KaqArtifactVersionRefs,
+} from '../kaq-artifact-versioning';
+
 export const LEARNING_EVIDENCE_RAG_CORPUS_VERSION = 'learning-evidence-rag-corpus.v1';
 
 export type LearningEvidenceCorpusSourceType =
@@ -112,6 +119,8 @@ export interface LearningEvidenceResourceProjectionMetadata {
   citationReadiness?: LearningEvidenceResourceProjectionCitationReadiness;
   authorityLevel?: LearningEvidenceAuthorityLevel;
   privacyScope?: LearningEvidenceCorpusPrivacyClass;
+  versionRefs?: KaqArtifactVersionRefs;
+  versionLimitations?: KaqArtifactVersionLimitation[];
   pathEligibility?: {
     eligible: boolean;
     reason: string | null;
@@ -226,6 +235,8 @@ export interface LearningEvidenceCitationVerificationResult {
     authorityLevel: LearningEvidenceAuthorityLevel;
     freshnessBucket: LearningEvidenceFreshnessBucket;
     privacyVisibility: 'public' | 'redacted' | 'privileged';
+    sourceVersionRefs?: KaqArtifactVersionRefs;
+    sourceVersionLimitations?: KaqArtifactVersionLimitation[];
   }>;
   limitations: Array<{
     chunkId: string;
@@ -246,7 +257,8 @@ export interface LearningEvidenceCitationVerificationResult {
       | 'expired-source'
       | 'unresolved-address'
       | 'unsafe-address'
-      | 'address-kind-mismatch';
+      | 'address-kind-mismatch'
+      | 'missing-version-ref';
   }>;
 }
 
@@ -262,6 +274,8 @@ export interface LearningEvidenceCitationChipPayload {
   freshnessBucket: LearningEvidenceFreshnessBucket;
   privacyVisibility: 'public' | 'redacted' | 'privileged';
   limitationState: LearningEvidenceCitationVerificationResult['limitations'][number]['reason'] | null;
+  sourceVersionRefs?: KaqArtifactVersionRefs;
+  sourceVersionLimitations?: KaqArtifactVersionLimitation[];
 }
 
 export interface LearningEvidenceCitationAuditPayload {
@@ -454,6 +468,10 @@ export function verifyLearningEvidenceCitations(
       limitations.push({ chunkId: citation.chunkId, reason: 'unsupported-source-type' });
       continue;
     }
+    if (!matchesResourceProjectionSceneAvailability(chunk, citation.useCase)) {
+      limitations.push({ chunkId: citation.chunkId, reason: 'inaccessible-source' });
+      continue;
+    }
     if (citation.sourceType && citation.sourceType !== chunk.sourceType) {
       limitations.push({ chunkId: citation.chunkId, reason: 'source-type-mismatch' });
       continue;
@@ -489,6 +507,7 @@ export function verifyLearningEvidenceCitations(
     if (resolvedAddress.address.contentHash && resolvedAddress.address.contentHash !== chunk.content.hash) {
       limitations.push({ chunkId: chunk.id, reason: 'stale-source' });
     }
+    const sourceVersionLimitations = citationVersionLimitations(chunk);
     verifiedRefs.push({
       chunkId: chunk.id,
       sourceType: chunk.sourceType,
@@ -501,7 +520,15 @@ export function verifyLearningEvidenceCitations(
       authorityLevel: chunk.authority.level,
       freshnessBucket: chunk.authority.freshnessBucket,
       privacyVisibility: privacyVisibilityFor(chunk, scope),
+      sourceVersionRefs: chunk.resourceProjection?.versionRefs,
+      sourceVersionLimitations,
     });
+    for (const versionLimitation of sourceVersionLimitations) {
+      limitations.push({
+        chunkId: chunk.id,
+        reason: citationVersionLimitationReason(versionLimitation),
+      });
+    }
     if (
       policy.minimumAuthority &&
       authorityRank(chunk.authority.level) < authorityRank(policy.minimumAuthority)
@@ -550,7 +577,8 @@ export function verifyLearningEvidenceCitations(
     item.reason === 'conflicting-source' ||
     item.reason === 'stale-source' ||
     item.reason === 'expired-source' ||
-    item.reason === 'unresolved-address'
+    item.reason === 'unresolved-address' ||
+    item.reason === 'missing-version-ref'
   );
   const hasRedaction = limitations.some((item) => item.reason === 'privacy-redacted');
   const hasLowConfidence = verifiedRefs.some((ref) => ref.confidence === 'none' || ref.confidence === 'low');
@@ -592,6 +620,8 @@ export function buildLearningEvidenceCitationChips(
       freshnessBucket: ref.freshnessBucket,
       privacyVisibility: ref.privacyVisibility,
       limitationState: primaryCitationReason(ref, limitationsByChunk.get(ref.chunkId) ?? []),
+      sourceVersionRefs: ref.sourceVersionRefs,
+      sourceVersionLimitations: ref.sourceVersionLimitations,
     };
   });
 }
@@ -609,6 +639,35 @@ export function resolveLearningEvidenceCitationAddress(
     },
     freshnessState: chunk.authority.freshnessBucket,
   };
+}
+
+export function citationVersionLimitations(chunk: LearningEvidenceCorpusChunk): KaqArtifactVersionLimitation[] {
+  if (!chunk.resourceProjection) return [];
+  if (!chunk.resourceProjection.versionRefs) {
+    return [{
+      code: 'legacy-artifact-unversioned',
+      ref: 'resourceProjectionVersion',
+      severity: 'warning',
+      message: 'Resource projection citation is missing artifact version refs.',
+    }];
+  }
+  return [
+    ...validateKaqArtifactVersionRefs(chunk.resourceProjection.versionRefs, [
+      'graphCatalogVersion',
+      'resourceProjectionVersion',
+    ]),
+    ...detectKaqArtifactStaleness(chunk.resourceProjection.versionRefs),
+    ...(chunk.resourceProjection.versionLimitations ?? []),
+  ];
+}
+
+export function citationVersionLimitationReason(
+  limitation: KaqArtifactVersionLimitation,
+): LearningEvidenceCitationVerificationResult['limitations'][number]['reason'] {
+  if (limitation.code === 'missing-version-ref' || limitation.code === 'legacy-artifact-unversioned') {
+    return 'missing-version-ref';
+  }
+  return 'stale-source';
 }
 
 function deriveCitationAddressFromChunk(
@@ -642,7 +701,7 @@ function defaultCitationAddressKind(sourceType: LearningEvidenceCorpusSourceType
   return 'text';
 }
 
-function isSafeCitationAddress(address: LearningEvidenceCitationAddress): boolean {
+export function isSafeCitationAddress(address: LearningEvidenceCitationAddress): boolean {
   if (address.kind === 'external') {
     return isSafeHttpUrl(address.href) && (!address.externalUrl || isSafeHttpUrl(address.externalUrl));
   }
@@ -741,7 +800,8 @@ function outcomeForCitationReason(
     reason === 'low-confidence-source' ||
     reason === 'stale-source' ||
     reason === 'expired-source' ||
-    reason === 'unresolved-address'
+    reason === 'unresolved-address' ||
+    reason === 'missing-version-ref'
   ) return 'downgraded';
   return 'rejected';
 }
@@ -772,7 +832,8 @@ function citationReasonPriority(reason: LearningEvidenceCitationVerificationResu
     reason === 'low-confidence-source' ||
     reason === 'stale-source' ||
     reason === 'expired-source' ||
-    reason === 'unresolved-address'
+    reason === 'unresolved-address' ||
+    reason === 'missing-version-ref'
   ) return 1;
   if (reason === 'privacy-redacted') return 2;
   return 3;
@@ -875,7 +936,7 @@ function isChunkVisible(chunk: LearningEvidenceCorpusChunk, scope: LearningEvide
   return chunk.privacyClass === 'public';
 }
 
-function privacyVisibilityFor(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRetrievalScope): 'public' | 'redacted' | 'privileged' {
+export function privacyVisibilityFor(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRetrievalScope): 'public' | 'redacted' | 'privileged' {
   if (chunk.privacyClass === 'public') return 'public';
   if (scope.role === 'service' && scope.includePrivateText) return 'privileged';
   return 'redacted';
@@ -1133,10 +1194,40 @@ function isResourceProjectionMetadata(value: unknown): value is LearningEvidence
     isOptionalResourceProjectionCitationReadiness(record.citationReadiness) &&
     (record.authorityLevel === undefined || isAuthorityLevel(record.authorityLevel)) &&
     (record.privacyScope === undefined || isPrivacyClass(record.privacyScope)) &&
+    isOptionalKaqArtifactVersionRefs(record.versionRefs) &&
+    isOptionalKaqArtifactVersionLimitations(record.versionLimitations) &&
     isOptionalResourceProjectionPathEligibility(record.pathEligibility) &&
     hasValidMediaTimeRange &&
     isNullableString(record.exerciseAnchor) &&
     isNullableString(record.contentHash);
+}
+
+function isOptionalKaqArtifactVersionRefs(value: unknown): value is KaqArtifactVersionRefs | undefined {
+  if (value === undefined) return true;
+  const record = readRecord(value);
+  return typeof record.artifactVersioningVersion === 'string' &&
+    (record.learningGoalPackageVersion === undefined || isNullableString(record.learningGoalPackageVersion)) &&
+    (record.objectiveCatalogVersion === undefined || isNullableString(record.objectiveCatalogVersion)) &&
+    (record.graphCatalogVersion === undefined || isNullableString(record.graphCatalogVersion)) &&
+    (record.resourceRegistryVersion === undefined || isNullableString(record.resourceRegistryVersion)) &&
+    (record.resourceProjectionVersion === undefined || isNullableString(record.resourceProjectionVersion)) &&
+    (record.overlayVersion === undefined || isNullableString(record.overlayVersion)) &&
+    (record.plannerVersion === undefined || isNullableString(record.plannerVersion)) &&
+    (record.groundingVersion === undefined || isNullableString(record.groundingVersion)) &&
+    (record.citationVersion === undefined || isNullableString(record.citationVersion));
+}
+
+function isOptionalKaqArtifactVersionLimitations(
+  value: unknown,
+): value is KaqArtifactVersionLimitation[] | undefined {
+  if (value === undefined) return true;
+  return Array.isArray(value) && value.every((item) => {
+    const record = readRecord(item);
+    return typeof record.code === 'string' &&
+      typeof record.ref === 'string' &&
+      (record.severity === 'blocking' || record.severity === 'warning') &&
+      typeof record.message === 'string';
+  });
 }
 
 function hasUnsupportedResourceProjectionPathEligibility(value: unknown): boolean {
@@ -1172,6 +1263,7 @@ function resourceProjectionSceneForUseCase(
   if (useCase === 'diagnosis') return 'diagnosis';
   if (useCase === 'grading') return 'grading';
   if (useCase === 'konling') return 'konling';
+  if (useCase === 'recommendation') return 'path';
   if (useCase === 'prep-pack') return 'prep-pack';
   if (useCase === 'teacher-report') return 'report';
   return null;

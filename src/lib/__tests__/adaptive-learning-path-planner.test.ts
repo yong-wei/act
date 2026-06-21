@@ -561,7 +561,35 @@ describe('adaptive learning path planner', () => {
       qualityObjectiveIds: expect.arrayContaining(['quality:autocontrol:evidence-integrity']),
       targetGraphNodeIds: expect.arrayContaining(['cap:autocontrol:validate-with-simulation-evidence']),
     });
-    expect(serializeLearningPathPlan(controlCorrectionPlan).payload.learningGoalPackage?.id).toBe('control-correction');
+    const serializedControlCorrectionPlan = serializeLearningPathPlan(controlCorrectionPlan);
+    expect(serializedControlCorrectionPlan.payload.learningGoalPackage?.id).toBe('control-correction');
+    expect(serializedControlCorrectionPlan.payload.artifactVersioning).toMatchObject({
+      artifactKind: 'path-artifact',
+      artifactId: controlCorrectionPlan.id,
+      versionRefs: {
+        learningGoalPackageVersion: controlCorrectionPlan.goal.learningGoalPackage?.version,
+        graphCatalogVersion: 'autocontrol-kaq-graph.v1',
+        resourceProjectionVersion: 'resource-semantic-projection.v1',
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+      },
+      limitations: [],
+    });
+    const serializedRegisteredGoalPlan = serializeLearningPathPlan({
+      ...controlCorrectionPlan,
+      goal: {
+        id: 'control-correction',
+        title: '控制系统校正设计',
+        knowledgeTargets: ['control-correction:root-locus-design'],
+        competencyTargets: ['parameterDesign'],
+      },
+    });
+    expect(serializedRegisteredGoalPlan.payload.learningGoalPackage?.version).toBe(controlCorrectionPlan.goal.learningGoalPackage?.version);
+    expect(serializedRegisteredGoalPlan.payload.artifactVersioning).toMatchObject({
+      versionRefs: {
+        learningGoalPackageVersion: controlCorrectionPlan.goal.learningGoalPackage?.version,
+      },
+      limitations: [],
+    });
     expect(frequencyResponsePlan.goal.learningGoalPackage).toMatchObject({
       id: 'frequency-response-foundations',
       knowledgeObjectiveIds: ['knowledge:autocontrol:frequency-response'],
