@@ -17,9 +17,9 @@ import type {
   KaqGraphRelation,
 } from '../data-governance/kaq-graph-schema';
 import {
-  getLearningGoalPackage,
+  getLearningGoal,
   type AdaptiveLearningPathEvidenceType,
-  type LearningGoalPackageDefinition,
+  type LearningGoalDefinition,
 } from '../adaptive-learning-path-planner';
 
 export const GOAL_SUBGRAPH_EXPANSION_VERSION = 'goal-subgraph-expansion.v1';
@@ -36,13 +36,13 @@ export type GoalSubgraphPrerequisitePolicySemantics =
 
 export interface GoalSubgraphLimitation {
   code:
-    | 'missing-package'
+    | 'missing-learning-goal'
     | 'missing-graph-node'
     | 'inactive-graph-node'
   | 'weak-relation-evidence'
   | 'unsupported-relation'
   | 'outgoing-relation-not-prerequisite'
-  | 'package-limitation'
+  | 'learning-goal-limitation'
   | 'quality-evidence-limitation';
   graphNodeId?: string | null;
   edgeId?: string | null;
@@ -141,35 +141,35 @@ export function expandLearningGoalSubgraph(
   learningGoalId: string,
   options: GoalSubgraphExpansionOptions = {},
 ): ExpandedGoalSubgraph {
-  const learningGoalPackage = getLearningGoalPackage(learningGoalId);
-  if (!learningGoalPackage) {
+  const learningGoal = getLearningGoal(learningGoalId);
+  if (!learningGoal) {
     return buildRejectedExpansion(learningGoalId, options, [{
-      code: 'missing-package',
+      code: 'missing-learning-goal',
       severity: 'blocking',
-      message: `LearningGoal package not found: ${learningGoalId}.`,
+      message: `LearningGoal not found: ${learningGoalId}.`,
     }]);
   }
-  return expandLearningGoalPackageSubgraph(learningGoalPackage, options);
+  return expandLearningGoalDefinitionSubgraph(learningGoal, options);
 }
 
-export function expandLearningGoalPackageSubgraph(
-  learningGoalPackage: LearningGoalPackageDefinition,
+export function expandLearningGoalDefinitionSubgraph(
+  learningGoal: LearningGoalDefinition,
   options: GoalSubgraphExpansionOptions = {},
 ): ExpandedGoalSubgraph {
   const catalog = options.catalog ?? AUTOCONTROL_KAQ_GRAPH_CATALOG;
   const graphVersion = options.graphVersion ?? AUTOCONTROL_KAQ_GRAPH_VERSION;
   const nodesById = new Map(catalog.nodes.map((node) => [node.id, node]));
-  const limitations = buildPackageLimitations(learningGoalPackage);
+  const limitations = buildLearningGoalLimitations(learningGoal);
   const targetNodes: KaqGraphNode[] = [];
 
-  for (const nodeId of uniqueSorted(learningGoalPackage.targetGraphNodeIds)) {
+  for (const nodeId of uniqueSorted(learningGoal.targetGraphNodeIds)) {
     const node = nodesById.get(nodeId);
     if (!node) {
       limitations.push({
         code: 'missing-graph-node',
         graphNodeId: nodeId,
-        severity: learningGoalPackage.status === 'path-ready' || learningGoalPackage.status === 'fully-governed' ? 'blocking' : 'warning',
-        message: `LearningGoal package references missing graph node: ${nodeId}.`,
+        severity: learningGoal.status === 'path-ready' || learningGoal.status === 'fully-governed' ? 'blocking' : 'warning',
+        message: `LearningGoal references missing graph node: ${nodeId}.`,
       });
       continue;
     }
@@ -177,8 +177,8 @@ export function expandLearningGoalPackageSubgraph(
       limitations.push({
         code: 'inactive-graph-node',
         graphNodeId: nodeId,
-        severity: learningGoalPackage.status === 'fully-governed' ? 'blocking' : 'warning',
-        message: `LearningGoal package references inactive graph node: ${nodeId}.`,
+        severity: learningGoal.status === 'fully-governed' ? 'blocking' : 'warning',
+        message: `LearningGoal references inactive graph node: ${nodeId}.`,
       });
     }
     targetNodes.push(node);
@@ -198,13 +198,13 @@ export function expandLearningGoalPackageSubgraph(
       ? 'degraded'
       : 'expanded';
   const graphNodeIds = groupNodeIdsByDomain(targetNodes);
-  const terminalValidationCandidates = buildTerminalValidationCandidates(learningGoalPackage, targetNodes);
-  const checkpointSuggestions = buildCheckpointSuggestions(learningGoalPackage, targetNodes);
+  const terminalValidationCandidates = buildTerminalValidationCandidates(learningGoal, targetNodes);
+  const checkpointSuggestions = buildCheckpointSuggestions(learningGoal, targetNodes);
   const expansion: Omit<ExpandedGoalSubgraph, 'fixtures'> = {
     expansionVersion: GOAL_SUBGRAPH_EXPANSION_VERSION,
     status,
-    learningGoalId: learningGoalPackage.id,
-    learningGoalVersion: learningGoalPackage.version,
+    learningGoalId: learningGoal.id,
+    learningGoalVersion: learningGoal.version,
     graphVersion,
     graphNodeIds,
     requiredEdges,
@@ -229,6 +229,13 @@ export function expandLearningGoalPackageSubgraph(
     ...expansion,
     fixtures: buildFixtures(expansion, targetNodes),
   };
+}
+
+export function expandLearningGoalPackageSubgraph(
+  learningGoal: LearningGoalDefinition,
+  options: GoalSubgraphExpansionOptions = {},
+): ExpandedGoalSubgraph {
+  return expandLearningGoalSubgraph(learningGoal.id, options);
 }
 
 function buildRejectedExpansion(
@@ -347,14 +354,14 @@ function groupNodeIdsByDomain(nodes: KaqGraphNode[]): Record<KaqGraphDomain, str
   };
 }
 
-function buildPackageLimitations(learningGoalPackage: LearningGoalPackageDefinition): GoalSubgraphLimitation[] {
+function buildLearningGoalLimitations(learningGoal: LearningGoalDefinition): GoalSubgraphLimitation[] {
   return [
-    ...learningGoalPackage.limitations.map((message) => ({
-      code: 'package-limitation' as const,
+    ...learningGoal.limitations.map((message) => ({
+      code: 'learning-goal-limitation' as const,
       severity: 'warning' as const,
       message,
     })),
-    ...learningGoalPackage.evidencePolicy.limitations.map((message) => ({
+    ...learningGoal.evidencePolicy.limitations.map((message) => ({
       code: 'quality-evidence-limitation' as const,
       severity: 'warning' as const,
       message,
@@ -363,32 +370,32 @@ function buildPackageLimitations(learningGoalPackage: LearningGoalPackageDefinit
 }
 
 function buildTerminalValidationCandidates(
-  learningGoalPackage: LearningGoalPackageDefinition,
+  learningGoal: LearningGoalDefinition,
   targetNodes: KaqGraphNode[],
 ): GoalSubgraphTerminalValidationCandidate[] {
-  if (!learningGoalPackage.terminalValidationPolicy.acceptedEvidenceTypes.length) return [];
+  if (!learningGoal.terminalValidationPolicy.acceptedEvidenceTypes.length) return [];
   return targetNodes
     .filter((node) => node.domain === 'capability' || node.domain === 'quality')
     .map((node) => ({
-      id: `terminal:${learningGoalPackage.id}:${node.id}`,
+      id: `terminal:${learningGoal.id}:${node.id}`,
       graphNodeId: node.id,
-      acceptedEvidenceTypes: learningGoalPackage.terminalValidationPolicy.acceptedEvidenceTypes,
-      required: learningGoalPackage.terminalValidationPolicy.required,
-      summary: learningGoalPackage.terminalValidationPolicy.summary,
+      acceptedEvidenceTypes: learningGoal.terminalValidationPolicy.acceptedEvidenceTypes,
+      required: learningGoal.terminalValidationPolicy.required,
+      summary: learningGoal.terminalValidationPolicy.summary,
     }))
     .sort((left, right) => left.id.localeCompare(right.id));
 }
 
 function buildCheckpointSuggestions(
-  learningGoalPackage: LearningGoalPackageDefinition,
+  learningGoal: LearningGoalDefinition,
   targetNodes: KaqGraphNode[],
 ): GoalSubgraphCheckpointSuggestion[] {
   return targetNodes
     .filter((node) => node.domain !== 'knowledge')
     .map((node) => ({
-      id: `checkpoint:${learningGoalPackage.id}:${node.id}`,
+      id: `checkpoint:${learningGoal.id}:${node.id}`,
       graphNodeId: node.id,
-      evidenceTypes: learningGoalPackage.evidencePolicy.requiredEvidenceTypes,
+      evidenceTypes: learningGoal.evidencePolicy.requiredEvidenceTypes,
       reason: `Checkpoint suggestion for ${node.title}.`,
     }))
     .sort((left, right) => left.id.localeCompare(right.id));

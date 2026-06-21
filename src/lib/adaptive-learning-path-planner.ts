@@ -51,8 +51,8 @@ export type AdaptiveLearningPathEvidenceType =
   | 'arena-official-evaluation'
   | 'reflection'
   | 'agent-interaction';
-export type LearningGoalPackageStatus = 'draft' | 'path-ready' | 'fully-governed';
-export type LearningGoalPackageIntentType =
+export type LearningGoalStatus = 'draft' | 'path-ready' | 'fully-governed';
+export type LearningGoalIntentType =
   | 'concept-understanding'
   | 'modeling'
   | 'analysis'
@@ -60,20 +60,20 @@ export type LearningGoalPackageIntentType =
   | 'simulation-validation'
   | 'transfer-application'
   | 'reflective-improvement';
-export type LearningGoalPackageRecommendedPhase =
+export type LearningGoalRecommendedPhase =
   | 'foundation'
   | 'diagnosis'
   | 'practice'
   | 'validation'
   | 'transfer';
 
-export interface LearningGoalPackageResourceMix {
+export interface LearningGoalResourceMix {
   required: ResourceNode['type'][];
   preferred: ResourceNode['type'][];
   optional: ResourceNode['type'][];
 }
 
-export interface LearningGoalPackageEvidencePolicy {
+export interface LearningGoalEvidencePolicy {
   requiredEvidenceTypes: AdaptiveLearningPathEvidenceType[];
   minimumEvidenceCount: number;
   confidenceFloor: number;
@@ -81,37 +81,37 @@ export interface LearningGoalPackageEvidencePolicy {
   limitations: string[];
 }
 
-export interface LearningGoalPackageTerminalValidationPolicy {
+export interface LearningGoalTerminalValidationPolicy {
   required: boolean;
   acceptedEvidenceTypes: AdaptiveLearningPathEvidenceType[];
   terminalNodeTypes: ResourceNode['type'][];
   summary: string;
 }
 
-export interface LearningGoalPackageDefinition {
+export interface LearningGoalDefinition {
   id: string;
   title: string;
   description: string;
   completionMeaning: string;
-  intentType: LearningGoalPackageIntentType;
-  recommendedPhase: LearningGoalPackageRecommendedPhase;
+  intentType: LearningGoalIntentType;
+  recommendedPhase: LearningGoalRecommendedPhase;
   knowledgeObjectiveIds: string[];
   capabilityObjectiveIds: string[];
   qualityObjectiveIds: string[];
   targetGraphNodeIds: string[];
   goalSliceId: string;
-  resourceMix: LearningGoalPackageResourceMix;
-  evidencePolicy: LearningGoalPackageEvidencePolicy;
-  terminalValidationPolicy: LearningGoalPackageTerminalValidationPolicy;
+  resourceMix: LearningGoalResourceMix;
+  evidencePolicy: LearningGoalEvidencePolicy;
+  terminalValidationPolicy: LearningGoalTerminalValidationPolicy;
   pathPolicyFamily: AdaptiveLearningPathPolicyFamily;
-  status: LearningGoalPackageStatus;
+  status: LearningGoalStatus;
   version: string;
   limitations: string[];
 }
 
-export type LearningGoalPackageValidationIssueCode =
-  | 'missing-package'
-  | 'duplicate-package-id'
+export type LearningGoalValidationIssueCode =
+  | 'missing-learning-goal'
+  | 'duplicate-learning-goal-id'
   | 'missing-student-facing-text'
   | 'missing-objective-binding'
   | 'missing-graph-binding'
@@ -126,11 +126,11 @@ export type LearningGoalPackageValidationIssueCode =
   | 'unknown-goal-slice-id'
   | 'minimum-path-ready-coverage'
   | 'missing-domain-coverage'
-  | 'package-not-registered';
+  | 'learning-goal-not-registered';
 
-export interface LearningGoalPackageValidationIssue {
-  code: LearningGoalPackageValidationIssueCode;
-  packageId: string | null;
+export interface LearningGoalValidationIssue {
+  code: LearningGoalValidationIssueCode;
+  learningGoalId: string | null;
   message: string;
 }
 
@@ -140,7 +140,8 @@ export interface AdaptiveLearningPathGoal {
   knowledgeTargets: string[];
   competencyTargets?: string[];
   capabilityTargets?: AdaptiveLearningCapabilityTarget[];
-  learningGoalPackage?: LearningGoalPackageDefinition;
+  learningGoal?: LearningGoalDefinition;
+  learningGoalPackage?: LearningGoalDefinition;
 }
 
 export type AdaptiveLearningCapabilityLevel = 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate' | 'create';
@@ -162,7 +163,7 @@ export interface AdaptiveLearningCapabilityTarget {
 export interface AdaptiveLearningPathRegisteredGoalDefinition {
   goal: AdaptiveLearningPathGoal;
   displayName: string;
-  learningGoalPackage?: LearningGoalPackageDefinition;
+  learningGoal?: LearningGoalDefinition;
   knowledgeTargetAliases?: Record<string, string[]>;
   allowedResourceMix: ResourceNode['type'][];
   starterPathPolicy: {
@@ -560,7 +561,8 @@ export interface AdaptiveLearningPathPersistenceRecord {
   isAiGenerated: boolean;
   payload: {
     status: AdaptiveLearningPathStatus;
-    learningGoalPackage?: LearningGoalPackageDefinition;
+    learningGoal?: LearningGoalDefinition;
+    learningGoalPackage?: LearningGoalDefinition;
     policyFamily: AdaptiveLearningPathPolicyFamily;
     policyMetadata: AdaptiveLearningPathPolicyDefinition;
     policyBundle?: AdaptiveLearningPathPolicyBundle;
@@ -730,13 +732,13 @@ export const CONTROL_CORRECTION_CAPABILITY_TARGETS: AdaptiveLearningCapabilityTa
   },
 ];
 
-const LEARNING_GOAL_PACKAGE_VERSION = 'learning-goal-package/v1';
+const LEARNING_GOAL_VERSION = 'learning-goal-package/v1';
 const QUALITY_EVIDENCE_LIMITATION = 'quality-rubric-evidence-not-fully-governed';
-const PATH_READY_LEARNING_GOAL_PACKAGE_SLICE_IDS = ['control-correction'] as const;
-const LEARNING_GOAL_PACKAGE_OBJECTIVE_IDS = new Set(AUTOCONTROL_KAQ_OBJECTIVES.map((objective) => objective.id));
-const LEARNING_GOAL_PACKAGE_OBJECTIVE_DOMAIN_BY_ID = new Map(AUTOCONTROL_KAQ_OBJECTIVES.map((objective) => [objective.id, objective.domain]));
-const LEARNING_GOAL_PACKAGE_GRAPH_NODE_IDS = new Set(AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes.map((node) => node.id));
-const LEARNING_GOAL_PACKAGE_SLICE_ID_SET = new Set<string>(PATH_READY_LEARNING_GOAL_PACKAGE_SLICE_IDS);
+const PATH_READY_LEARNING_GOAL_SLICE_IDS = ['control-correction'] as const;
+const LEARNING_GOAL_OBJECTIVE_IDS = new Set(AUTOCONTROL_KAQ_OBJECTIVES.map((objective) => objective.id));
+const LEARNING_GOAL_OBJECTIVE_DOMAIN_BY_ID = new Map(AUTOCONTROL_KAQ_OBJECTIVES.map((objective) => [objective.id, objective.domain]));
+const LEARNING_GOAL_GRAPH_NODE_IDS = new Set(AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes.map((node) => node.id));
+const LEARNING_GOAL_SLICE_ID_SET = new Set<string>(PATH_READY_LEARNING_GOAL_SLICE_IDS);
 
 const AUTOCONTROL_RESOURCE_MIX: ResourceNode['type'][] = [
   'lesson_step',
@@ -769,14 +771,14 @@ function packageResourceMix(
   required: ResourceNode['type'][],
   preferred: ResourceNode['type'][],
   optional: ResourceNode['type'][] = ['reflection', 'checkpoint', 'konling'],
-): LearningGoalPackageResourceMix {
+): LearningGoalResourceMix {
   return { required, preferred, optional };
 }
 
 function packageEvidencePolicy(
   requiredEvidenceTypes: AdaptiveLearningPathEvidenceType[],
   qualityEvidenceGoverned = false,
-): LearningGoalPackageEvidencePolicy {
+): LearningGoalEvidencePolicy {
   return {
     requiredEvidenceTypes,
     minimumEvidenceCount: 2,
@@ -791,24 +793,24 @@ function terminalValidationPolicy(
   acceptedEvidenceTypes: AdaptiveLearningPathEvidenceType[],
   terminalNodeTypes: ResourceNode['type'][],
   summary: string,
-): LearningGoalPackageTerminalValidationPolicy {
+): LearningGoalTerminalValidationPolicy {
   return { required, acceptedEvidenceTypes, terminalNodeTypes, summary };
 }
 
-function defineLearningGoalPackage(
-  input: Omit<LearningGoalPackageDefinition, 'status' | 'version'> & {
-    status?: LearningGoalPackageStatus;
+function defineLearningGoal(
+  input: Omit<LearningGoalDefinition, 'status' | 'version'> & {
+    status?: LearningGoalStatus;
     version?: string;
   },
-): LearningGoalPackageDefinition {
+): LearningGoalDefinition {
   return {
     ...input,
     status: input.status ?? 'path-ready',
-    version: input.version ?? LEARNING_GOAL_PACKAGE_VERSION,
+    version: input.version ?? LEARNING_GOAL_VERSION,
   };
 }
 
-const CONTROL_CORRECTION_PACKAGE = defineLearningGoalPackage({
+const CONTROL_CORRECTION_LEARNING_GOAL = defineLearningGoal({
   id: 'control-correction',
   title: '控制系统校正设计',
   description: '把时域目标、根轨迹或频域校正、仿真验证和 Arena 迁移组织为一条可执行设计路径。',
@@ -851,7 +853,7 @@ const CONTROL_CORRECTION_PACKAGE = defineLearningGoalPackage({
   limitations: [QUALITY_EVIDENCE_LIMITATION],
 });
 
-const FREQUENCY_RESPONSE_FOUNDATIONS_PACKAGE = defineLearningGoalPackage({
+const FREQUENCY_RESPONSE_FOUNDATIONS_LEARNING_GOAL = defineLearningGoal({
   id: 'frequency-response-foundations',
   title: '频率响应基础',
   description: '建立 Bode、Nyquist、频域响应和稳定裕度的基础判读能力。',
@@ -880,7 +882,7 @@ const FREQUENCY_RESPONSE_FOUNDATIONS_PACKAGE = defineLearningGoalPackage({
   limitations: [QUALITY_EVIDENCE_LIMITATION],
 });
 
-const FEEDBACK_LOOP_CONCEPT_PACKAGE = defineLearningGoalPackage({
+const FEEDBACK_LOOP_CONCEPT_LEARNING_GOAL = defineLearningGoal({
   id: 'feedback-loop-concept-foundations',
   title: '反馈与闭环结构基础',
   description: '理解反馈、误差、闭环结构和控制作用的基本关系。',
@@ -903,7 +905,7 @@ const FEEDBACK_LOOP_CONCEPT_PACKAGE = defineLearningGoalPackage({
   limitations: [QUALITY_EVIDENCE_LIMITATION],
 });
 
-const TRANSFER_FUNCTION_MODELING_PACKAGE = defineLearningGoalPackage({
+const TRANSFER_FUNCTION_MODELING_LEARNING_GOAL = defineLearningGoal({
   id: 'transfer-function-modeling-foundations',
   title: '传递函数建模基础',
   description: '从对象、输入输出和误差信号建立可分析的传递函数模型。',
@@ -926,7 +928,7 @@ const TRANSFER_FUNCTION_MODELING_PACKAGE = defineLearningGoalPackage({
   limitations: [QUALITY_EVIDENCE_LIMITATION],
 });
 
-const TIME_DOMAIN_RESPONSE_ANALYSIS_PACKAGE = defineLearningGoalPackage({
+const TIME_DOMAIN_RESPONSE_ANALYSIS_LEARNING_GOAL = defineLearningGoal({
   id: 'time-domain-response-analysis',
   title: '时域响应与性能指标分析',
   description: '把响应曲线、超调、调节时间和稳态误差转化为可验证指标。',
@@ -949,7 +951,7 @@ const TIME_DOMAIN_RESPONSE_ANALYSIS_PACKAGE = defineLearningGoalPackage({
   limitations: [QUALITY_EVIDENCE_LIMITATION],
 });
 
-const ROOT_LOCUS_ANALYSIS_PACKAGE = defineLearningGoalPackage({
+const ROOT_LOCUS_ANALYSIS_LEARNING_GOAL = defineLearningGoal({
   id: 'root-locus-analysis-foundations',
   title: '根轨迹分析基础',
   description: '用根轨迹解释极点迁移、零点引入和动态性能变化。',
@@ -972,7 +974,7 @@ const ROOT_LOCUS_ANALYSIS_PACKAGE = defineLearningGoalPackage({
   limitations: [QUALITY_EVIDENCE_LIMITATION],
 });
 
-const STABILITY_MARGIN_FREQUENCY_PACKAGE = defineLearningGoalPackage({
+const STABILITY_MARGIN_FREQUENCY_LEARNING_GOAL = defineLearningGoal({
   id: 'stability-margin-frequency-analysis',
   title: '稳定裕度与频域安全边界',
   description: '用幅值裕度、相角裕度和穿越频率表达鲁棒性风险。',
@@ -997,7 +999,7 @@ const STABILITY_MARGIN_FREQUENCY_PACKAGE = defineLearningGoalPackage({
   limitations: [QUALITY_EVIDENCE_LIMITATION],
 });
 
-const SIMULATION_VALIDATION_PRACTICE_PACKAGE = defineLearningGoalPackage({
+const SIMULATION_VALIDATION_PRACTICE_LEARNING_GOAL = defineLearningGoal({
   id: 'simulation-validation-practice',
   title: '仿真验证实践',
   description: '用可复现仿真记录验证控制方案是否满足目标和约束。',
@@ -1020,7 +1022,7 @@ const SIMULATION_VALIDATION_PRACTICE_PACKAGE = defineLearningGoalPackage({
   limitations: [QUALITY_EVIDENCE_LIMITATION],
 });
 
-const SHIP_OCEAN_TRANSFER_PACKAGE = defineLearningGoalPackage({
+const SHIP_OCEAN_TRANSFER_LEARNING_GOAL = defineLearningGoal({
   id: 'ship-ocean-transfer-application',
   title: '船海场景迁移应用',
   description: '把自动控制方法迁移到船舶、MASS 或跨模型任务，并识别失配风险。',
@@ -1045,16 +1047,9 @@ const SHIP_OCEAN_TRANSFER_PACKAGE = defineLearningGoalPackage({
   limitations: [QUALITY_EVIDENCE_LIMITATION],
 });
 
-function packageGoal(
-  goal: Omit<AdaptiveLearningPathGoal, 'learningGoalPackage'>,
-  learningGoalPackage: LearningGoalPackageDefinition,
-): AdaptiveLearningPathGoal {
-  return { ...goal, learningGoalPackage };
-}
-
 export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearningPathRegisteredGoalDefinition> = {
   'control-correction': {
-    goal: packageGoal({
+    goal: {
       id: 'control-correction',
       title: '控制系统校正设计',
       knowledgeTargets: [
@@ -1065,9 +1060,9 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       ],
       competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
       capabilityTargets: CONTROL_CORRECTION_CAPABILITY_TARGETS,
-    }, CONTROL_CORRECTION_PACKAGE),
+    },
     displayName: '控制系统校正设计',
-    learningGoalPackage: CONTROL_CORRECTION_PACKAGE,
+    learningGoal: CONTROL_CORRECTION_LEARNING_GOAL,
     knowledgeTargetAliases: {
       'control-correction:time-domain-targets': [
         '性能指标_1_1',
@@ -1132,14 +1127,14 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     },
   },
   'frequency-response-foundations': {
-    goal: packageGoal({
+    goal: {
       id: 'frequency-response-foundations',
       title: '频率响应基础',
       knowledgeTargets: ['kn-bode'],
       competencyTargets: [],
-    }, FREQUENCY_RESPONSE_FOUNDATIONS_PACKAGE),
+    },
     displayName: '频率响应基础',
-    learningGoalPackage: FREQUENCY_RESPONSE_FOUNDATIONS_PACKAGE,
+    learningGoal: FREQUENCY_RESPONSE_FOUNDATIONS_LEARNING_GOAL,
     knowledgeTargetAliases: {
       'kn-bode': [
         'Bode图_1_1',
@@ -1183,14 +1178,14 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     },
   },
   'feedback-loop-concept-foundations': {
-    goal: packageGoal({
+    goal: {
       id: 'feedback-loop-concept-foundations',
       title: '反馈与闭环结构基础',
       knowledgeTargets: ['反馈_1_1'],
       competencyTargets: ['controlModeling'],
-    }, FEEDBACK_LOOP_CONCEPT_PACKAGE),
+    },
     displayName: '反馈与闭环结构基础',
-    learningGoalPackage: FEEDBACK_LOOP_CONCEPT_PACKAGE,
+    learningGoal: FEEDBACK_LOOP_CONCEPT_LEARNING_GOAL,
     knowledgeTargetAliases: {
       '反馈_1_1': ['负反馈_1_0cffeeab', '闭环控制系统_1_10003'],
     },
@@ -1215,14 +1210,14 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     },
   },
   'transfer-function-modeling-foundations': {
-    goal: packageGoal({
+    goal: {
       id: 'transfer-function-modeling-foundations',
       title: '传递函数建模基础',
       knowledgeTargets: ['传递函数_2_2c5e2589'],
       competencyTargets: ['controlModeling'],
-    }, TRANSFER_FUNCTION_MODELING_PACKAGE),
+    },
     displayName: '传递函数建模基础',
-    learningGoalPackage: TRANSFER_FUNCTION_MODELING_PACKAGE,
+    learningGoal: TRANSFER_FUNCTION_MODELING_LEARNING_GOAL,
     knowledgeTargetAliases: {
       '传递函数_2_2c5e2589': ['建模_1_2', '零初值传递函数_2_21001'],
     },
@@ -1247,14 +1242,14 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     },
   },
   'time-domain-response-analysis': {
-    goal: packageGoal({
+    goal: {
       id: 'time-domain-response-analysis',
       title: '时域响应与性能指标分析',
       knowledgeTargets: ['动态性能指标_3_a10733c1'],
       competencyTargets: ['controlModeling', 'engineeringDecision'],
-    }, TIME_DOMAIN_RESPONSE_ANALYSIS_PACKAGE),
+    },
     displayName: '时域响应与性能指标分析',
-    learningGoalPackage: TIME_DOMAIN_RESPONSE_ANALYSIS_PACKAGE,
+    learningGoal: TIME_DOMAIN_RESPONSE_ANALYSIS_LEARNING_GOAL,
     knowledgeTargetAliases: {
       '动态性能指标_3_a10733c1': ['时域分析法_3_0f0489e0', '稳态误差双路径判断_3_37002', '终值定理_3_be8fe1ad'],
     },
@@ -1279,14 +1274,14 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     },
   },
   'root-locus-analysis-foundations': {
-    goal: packageGoal({
+    goal: {
       id: 'root-locus-analysis-foundations',
       title: '根轨迹分析基础',
       knowledgeTargets: ['根轨迹完整法则_3_0f2e7b11'],
       competencyTargets: ['controlModeling', 'parameterDesign'],
-    }, ROOT_LOCUS_ANALYSIS_PACKAGE),
+    },
     displayName: '根轨迹分析基础',
-    learningGoalPackage: ROOT_LOCUS_ANALYSIS_PACKAGE,
+    learningGoal: ROOT_LOCUS_ANALYSIS_LEARNING_GOAL,
     knowledgeTargetAliases: {
       '根轨迹完整法则_3_0f2e7b11': ['根轨迹法_2_e3f6c0c1', '时域指标到目标极点区域_3_36001'],
     },
@@ -1311,14 +1306,14 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     },
   },
   'stability-margin-frequency-analysis': {
-    goal: packageGoal({
+    goal: {
       id: 'stability-margin-frequency-analysis',
       title: '稳定裕度与频域安全边界',
       knowledgeTargets: ['相角裕度_5_5a74b451'],
       competencyTargets: ['engineeringDecision'],
-    }, STABILITY_MARGIN_FREQUENCY_PACKAGE),
+    },
     displayName: '稳定裕度与频域安全边界',
-    learningGoalPackage: STABILITY_MARGIN_FREQUENCY_PACKAGE,
+    learningGoal: STABILITY_MARGIN_FREQUENCY_LEARNING_GOAL,
     knowledgeTargetAliases: {
       '相角裕度_5_5a74b451': ['幅值裕度_5_73af26a5', '频率特性_5_404adfdd', '截止频率_5_c7d09ff7', '穿越频率_5_c4c2b93c'],
     },
@@ -1343,14 +1338,14 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     },
   },
   'simulation-validation-practice': {
-    goal: packageGoal({
+    goal: {
       id: 'simulation-validation-practice',
       title: '仿真验证实践',
       knowledgeTargets: ['跨模型验证比较_4_47006'],
       competencyTargets: ['engineeringDecision'],
-    }, SIMULATION_VALIDATION_PRACTICE_PACKAGE),
+    },
     displayName: '仿真验证实践',
-    learningGoalPackage: SIMULATION_VALIDATION_PRACTICE_PACKAGE,
+    learningGoal: SIMULATION_VALIDATION_PRACTICE_LEARNING_GOAL,
     knowledgeTargetAliases: {
       '跨模型验证比较_4_47006': ['数据驱动控制_5_54003', '传统设计四联图校正_4_47004'],
     },
@@ -1375,14 +1370,14 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     },
   },
   'ship-ocean-transfer-application': {
-    goal: packageGoal({
+    goal: {
       id: 'ship-ocean-transfer-application',
       title: '船海场景迁移应用',
       knowledgeTargets: ['船舶航向控制对象_2_21004'],
       competencyTargets: ['crossDomainTransfer', 'engineeringDecision'],
-    }, SHIP_OCEAN_TRANSFER_PACKAGE),
+    },
     displayName: '船海场景迁移应用',
-    learningGoalPackage: SHIP_OCEAN_TRANSFER_PACKAGE,
+    learningGoal: SHIP_OCEAN_TRANSFER_LEARNING_GOAL,
     knowledgeTargetAliases: {
       '船舶航向控制对象_2_21004': ['MASS自动化等级责任边界_5_53008', '现代控制理论_9_0b54b9a0', '鲁棒控制_3_a7fa1491'],
     },
@@ -1418,145 +1413,166 @@ export function isRegisteredAdaptiveLearningPathGoal(goalId: string): boolean {
   return Boolean(getRegisteredAdaptiveLearningPathGoal(goalId));
 }
 
-export function getLearningGoalPackage(goalId: string): LearningGoalPackageDefinition | null {
-  return getRegisteredAdaptiveLearningPathGoal(goalId)?.learningGoalPackage ?? null;
+export function getLearningGoal(goalId: string): LearningGoalDefinition | null {
+  return getRegisteredAdaptiveLearningPathGoal(goalId)?.learningGoal ?? null;
 }
 
-export function listLearningGoalPackages(): LearningGoalPackageDefinition[] {
+export function listLearningGoals(): LearningGoalDefinition[] {
   return Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS)
-    .map((definition) => definition.learningGoalPackage)
-    .filter((item): item is LearningGoalPackageDefinition => Boolean(item));
+    .map((definition) => definition.learningGoal)
+    .filter((item): item is LearningGoalDefinition => Boolean(item));
+}
+
+export function validateLearningGoal(
+  learningGoal: LearningGoalDefinition | null | undefined,
+): LearningGoalValidationIssue[] {
+  if (!learningGoal) {
+    return [learningGoalIssue('missing-learning-goal', null, 'LearningGoal metadata is required.')];
+  }
+
+  const issues: LearningGoalValidationIssue[] = [];
+  const learningGoalId = learningGoal.id || null;
+  if (!learningGoal.title || !learningGoal.description || !learningGoal.completionMeaning) {
+    issues.push(learningGoalIssue('missing-student-facing-text', learningGoalId, 'LearningGoal requires title, description, and completion meaning.'));
+  }
+  if (
+    learningGoal.status === 'path-ready' &&
+    (
+      learningGoal.knowledgeObjectiveIds.length === 0 ||
+      learningGoal.capabilityObjectiveIds.length === 0 ||
+      learningGoal.qualityObjectiveIds.length === 0
+    )
+  ) {
+    issues.push(learningGoalIssue('missing-objective-binding', learningGoalId, 'Path-ready LearningGoal must bind at least one K/A/Q objective id in each domain.'));
+  }
+  issues.push(...validateLearningGoalObjectiveIds(learningGoal, learningGoalId));
+  if (learningGoal.targetGraphNodeIds.length === 0) {
+    issues.push(learningGoalIssue('missing-graph-binding', learningGoalId, 'LearningGoal must expose target graph node ids.'));
+  }
+  for (const graphNodeId of learningGoal.targetGraphNodeIds) {
+    if (!LEARNING_GOAL_GRAPH_NODE_IDS.has(graphNodeId)) {
+      issues.push(learningGoalIssue('unknown-graph-node-id', learningGoalId, `Unknown K/A/Q graph node id: ${graphNodeId}.`));
+    }
+  }
+  if (!LEARNING_GOAL_SLICE_ID_SET.has(learningGoal.goalSliceId)) {
+    issues.push(learningGoalIssue('unknown-goal-slice-id', learningGoalId, `Unknown adaptive goal slice id: ${learningGoal.goalSliceId}.`));
+  }
+  if (
+    learningGoal.resourceMix.required.length === 0 ||
+    learningGoal.resourceMix.preferred.length === 0
+  ) {
+    issues.push(learningGoalIssue('missing-resource-mix', learningGoalId, 'LearningGoal must declare required and preferred resource mix.'));
+  }
+  if (
+    learningGoal.evidencePolicy.requiredEvidenceTypes.length === 0 ||
+    learningGoal.evidencePolicy.minimumEvidenceCount < 1 ||
+    learningGoal.evidencePolicy.confidenceFloor <= 0
+  ) {
+    issues.push(learningGoalIssue('missing-evidence-policy', learningGoalId, 'LearningGoal must declare governed evidence requirements.'));
+  }
+  if (
+    learningGoal.terminalValidationPolicy.acceptedEvidenceTypes.length === 0 ||
+    learningGoal.terminalValidationPolicy.terminalNodeTypes.length === 0 ||
+    !learningGoal.terminalValidationPolicy.summary
+  ) {
+    issues.push(learningGoalIssue('missing-terminal-validation-policy', learningGoalId, 'LearningGoal must declare terminal validation policy.'));
+  }
+  if (
+    learningGoal.qualityObjectiveIds.length > 0 &&
+    !learningGoal.evidencePolicy.qualityEvidenceGoverned &&
+    learningGoal.evidencePolicy.limitations.length === 0 &&
+    learningGoal.limitations.length === 0
+  ) {
+    issues.push(learningGoalIssue('missing-quality-limitation', learningGoalId, 'LearningGoal with non-governed quality evidence must expose a limitation.'));
+  }
+  if (!ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES[learningGoal.pathPolicyFamily]) {
+    issues.push(learningGoalIssue('missing-path-policy', learningGoalId, 'LearningGoal must use a known path policy family.'));
+  }
+  return issues;
+}
+
+export function validateLearningGoalCatalog(): LearningGoalValidationIssue[] {
+  const issues = Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS).flatMap((definition) =>
+    validateLearningGoal(definition.learningGoal)
+  );
+  const learningGoals = listLearningGoals();
+  const learningGoalIds = new Set<string>();
+  for (const learningGoal of learningGoals) {
+    if (learningGoalIds.has(learningGoal.id)) {
+      issues.push(learningGoalIssue('duplicate-learning-goal-id', learningGoal.id, 'LearningGoal ids must be unique.'));
+    }
+    learningGoalIds.add(learningGoal.id);
+    if (!ADAPTIVE_LEARNING_GOAL_DEFINITIONS[learningGoal.id]) {
+      issues.push(learningGoalIssue('learning-goal-not-registered', learningGoal.id, 'LearningGoal must be registered as an adaptive path goal id.'));
+    }
+  }
+  const pathReadyLearningGoals = learningGoals.filter((item) => item.status === 'path-ready');
+  if (pathReadyLearningGoals.length < 8) {
+    issues.push(learningGoalIssue('minimum-path-ready-coverage', null, 'At least eight automatic-control LearningGoals must be path-ready.'));
+  }
+  const coveredIntents = new Set(pathReadyLearningGoals.map((item) => item.intentType));
+  for (const requiredIntent of ['concept-understanding', 'modeling', 'analysis', 'controller-design', 'simulation-validation', 'transfer-application'] satisfies LearningGoalIntentType[]) {
+    if (!coveredIntents.has(requiredIntent)) {
+      issues.push(learningGoalIssue('missing-domain-coverage', null, `Path-ready LearningGoal catalog must cover ${requiredIntent}.`));
+    }
+  }
+  return issues;
+}
+
+export type LearningGoalPackageDefinition = LearningGoalDefinition;
+export type LearningGoalPackageValidationIssue = LearningGoalValidationIssue;
+
+export function getLearningGoalPackage(goalId: string): LearningGoalDefinition | null {
+  return getLearningGoal(goalId);
+}
+
+export function listLearningGoalPackages(): LearningGoalDefinition[] {
+  return listLearningGoals();
 }
 
 export function validateLearningGoalPackage(
-  learningGoalPackage: LearningGoalPackageDefinition | null | undefined,
-): LearningGoalPackageValidationIssue[] {
-  if (!learningGoalPackage) {
-    return [learningGoalPackageIssue('missing-package', null, 'LearningGoal package metadata is required.')];
-  }
-
-  const issues: LearningGoalPackageValidationIssue[] = [];
-  const packageId = learningGoalPackage.id || null;
-  if (!learningGoalPackage.title || !learningGoalPackage.description || !learningGoalPackage.completionMeaning) {
-    issues.push(learningGoalPackageIssue('missing-student-facing-text', packageId, 'LearningGoal package requires title, description, and completion meaning.'));
-  }
-  if (
-    learningGoalPackage.status === 'path-ready' &&
-    (
-      learningGoalPackage.knowledgeObjectiveIds.length === 0 ||
-      learningGoalPackage.capabilityObjectiveIds.length === 0 ||
-      learningGoalPackage.qualityObjectiveIds.length === 0
-    )
-  ) {
-    issues.push(learningGoalPackageIssue('missing-objective-binding', packageId, 'Path-ready package must bind at least one K/A/Q objective id in each domain.'));
-  }
-  issues.push(...validateLearningGoalPackageObjectiveIds(learningGoalPackage, packageId));
-  if (learningGoalPackage.targetGraphNodeIds.length === 0) {
-    issues.push(learningGoalPackageIssue('missing-graph-binding', packageId, 'LearningGoal package must expose target graph node ids.'));
-  }
-  for (const graphNodeId of learningGoalPackage.targetGraphNodeIds) {
-    if (!LEARNING_GOAL_PACKAGE_GRAPH_NODE_IDS.has(graphNodeId)) {
-      issues.push(learningGoalPackageIssue('unknown-graph-node-id', packageId, `Unknown K/A/Q graph node id: ${graphNodeId}.`));
-    }
-  }
-  if (!LEARNING_GOAL_PACKAGE_SLICE_ID_SET.has(learningGoalPackage.goalSliceId)) {
-    issues.push(learningGoalPackageIssue('unknown-goal-slice-id', packageId, `Unknown adaptive goal slice id: ${learningGoalPackage.goalSliceId}.`));
-  }
-  if (
-    learningGoalPackage.resourceMix.required.length === 0 ||
-    learningGoalPackage.resourceMix.preferred.length === 0
-  ) {
-    issues.push(learningGoalPackageIssue('missing-resource-mix', packageId, 'LearningGoal package must declare required and preferred resource mix.'));
-  }
-  if (
-    learningGoalPackage.evidencePolicy.requiredEvidenceTypes.length === 0 ||
-    learningGoalPackage.evidencePolicy.minimumEvidenceCount < 1 ||
-    learningGoalPackage.evidencePolicy.confidenceFloor <= 0
-  ) {
-    issues.push(learningGoalPackageIssue('missing-evidence-policy', packageId, 'LearningGoal package must declare governed evidence requirements.'));
-  }
-  if (
-    learningGoalPackage.terminalValidationPolicy.acceptedEvidenceTypes.length === 0 ||
-    learningGoalPackage.terminalValidationPolicy.terminalNodeTypes.length === 0 ||
-    !learningGoalPackage.terminalValidationPolicy.summary
-  ) {
-    issues.push(learningGoalPackageIssue('missing-terminal-validation-policy', packageId, 'LearningGoal package must declare terminal validation policy.'));
-  }
-  if (
-    learningGoalPackage.qualityObjectiveIds.length > 0 &&
-    !learningGoalPackage.evidencePolicy.qualityEvidenceGoverned &&
-    learningGoalPackage.evidencePolicy.limitations.length === 0 &&
-    learningGoalPackage.limitations.length === 0
-  ) {
-    issues.push(learningGoalPackageIssue('missing-quality-limitation', packageId, 'Package with non-governed quality evidence must expose a limitation.'));
-  }
-  if (!ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES[learningGoalPackage.pathPolicyFamily]) {
-    issues.push(learningGoalPackageIssue('missing-path-policy', packageId, 'LearningGoal package must use a known path policy family.'));
-  }
-  return issues;
+  learningGoal: LearningGoalDefinition | null | undefined,
+): LearningGoalValidationIssue[] {
+  return validateLearningGoal(learningGoal);
 }
 
-export function validateLearningGoalPackageCatalog(): LearningGoalPackageValidationIssue[] {
-  const issues = Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS).flatMap((definition) =>
-    validateLearningGoalPackage(definition.learningGoalPackage)
-  );
-  const packages = listLearningGoalPackages();
-  const packageIds = new Set<string>();
-  for (const learningGoalPackage of packages) {
-    if (packageIds.has(learningGoalPackage.id)) {
-      issues.push(learningGoalPackageIssue('duplicate-package-id', learningGoalPackage.id, 'LearningGoal package ids must be unique.'));
-    }
-    packageIds.add(learningGoalPackage.id);
-    if (!ADAPTIVE_LEARNING_GOAL_DEFINITIONS[learningGoalPackage.id]) {
-      issues.push(learningGoalPackageIssue('package-not-registered', learningGoalPackage.id, 'LearningGoal package must extend an existing registered goal id.'));
-    }
-  }
-  const pathReadyPackages = packages.filter((item) => item.status === 'path-ready');
-  if (pathReadyPackages.length < 8) {
-    issues.push(learningGoalPackageIssue('minimum-path-ready-coverage', null, 'At least eight automatic-control LearningGoal packages must be path-ready.'));
-  }
-  const coveredIntents = new Set(pathReadyPackages.map((item) => item.intentType));
-  for (const requiredIntent of ['concept-understanding', 'modeling', 'analysis', 'controller-design', 'simulation-validation', 'transfer-application'] satisfies LearningGoalPackageIntentType[]) {
-    if (!coveredIntents.has(requiredIntent)) {
-      issues.push(learningGoalPackageIssue('missing-domain-coverage', null, `Path-ready package catalog must cover ${requiredIntent}.`));
-    }
-  }
-  return issues;
+export function validateLearningGoalPackageCatalog(): LearningGoalValidationIssue[] {
+  return validateLearningGoalCatalog();
 }
 
-function learningGoalPackageIssue(
-  code: LearningGoalPackageValidationIssueCode,
-  packageId: string | null,
+function learningGoalIssue(
+  code: LearningGoalValidationIssueCode,
+  learningGoalId: string | null,
   message: string,
-): LearningGoalPackageValidationIssue {
-  return { code, packageId, message };
+): LearningGoalValidationIssue {
+  return { code, learningGoalId, message };
 }
 
-function validateLearningGoalPackageObjectiveIds(
-  learningGoalPackage: LearningGoalPackageDefinition,
-  packageId: string | null,
-): LearningGoalPackageValidationIssue[] {
+function validateLearningGoalObjectiveIds(
+  learningGoal: LearningGoalDefinition,
+  learningGoalId: string | null,
+): LearningGoalValidationIssue[] {
   return [
-    ...validateLearningGoalPackageObjectiveDomain(learningGoalPackage.knowledgeObjectiveIds, 'knowledge', packageId),
-    ...validateLearningGoalPackageObjectiveDomain(learningGoalPackage.capabilityObjectiveIds, 'capability', packageId),
-    ...validateLearningGoalPackageObjectiveDomain(learningGoalPackage.qualityObjectiveIds, 'quality', packageId),
+    ...validateLearningGoalObjectiveDomain(learningGoal.knowledgeObjectiveIds, 'knowledge', learningGoalId),
+    ...validateLearningGoalObjectiveDomain(learningGoal.capabilityObjectiveIds, 'capability', learningGoalId),
+    ...validateLearningGoalObjectiveDomain(learningGoal.qualityObjectiveIds, 'quality', learningGoalId),
   ];
 }
 
-function validateLearningGoalPackageObjectiveDomain(
+function validateLearningGoalObjectiveDomain(
   objectiveIds: string[],
   expectedDomain: 'knowledge' | 'capability' | 'quality',
-  packageId: string | null,
-): LearningGoalPackageValidationIssue[] {
-  const issues: LearningGoalPackageValidationIssue[] = [];
+  learningGoalId: string | null,
+): LearningGoalValidationIssue[] {
+  const issues: LearningGoalValidationIssue[] = [];
   for (const objectiveId of objectiveIds) {
-    if (!LEARNING_GOAL_PACKAGE_OBJECTIVE_IDS.has(objectiveId)) {
-      issues.push(learningGoalPackageIssue('unknown-objective-id', packageId, `Unknown K/A/Q objective id: ${objectiveId}.`));
+    if (!LEARNING_GOAL_OBJECTIVE_IDS.has(objectiveId)) {
+      issues.push(learningGoalIssue('unknown-objective-id', learningGoalId, `Unknown K/A/Q objective id: ${objectiveId}.`));
       continue;
     }
-    const actualDomain = LEARNING_GOAL_PACKAGE_OBJECTIVE_DOMAIN_BY_ID.get(objectiveId);
+    const actualDomain = LEARNING_GOAL_OBJECTIVE_DOMAIN_BY_ID.get(objectiveId);
     if (actualDomain !== expectedDomain) {
-      issues.push(learningGoalPackageIssue('objective-domain-mismatch', packageId, `Expected ${expectedDomain} objective id, received ${objectiveId}.`));
+      issues.push(learningGoalIssue('objective-domain-mismatch', learningGoalId, `Expected ${expectedDomain} objective id, received ${objectiveId}.`));
     }
   }
   return issues;
@@ -1660,7 +1676,7 @@ function buildAdaptiveLearningPathPlanInternal(
   };
   const policyBundleRequest = resolvePolicyBundleRequest(input, confidence, registeredGoal);
   const capabilityTargets = resolveCapabilityTargets(input.goal, registeredGoal);
-  const goal = attachLearningGoalPackage(input.goal, registeredGoal);
+  const goal = attachLearningGoal(input.goal, registeredGoal);
 
   return {
     id: `adaptive-path:${input.studentId}:${input.goal.id}`,
@@ -1807,7 +1823,7 @@ export function recordLearningPathFeedback(
 export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): AdaptiveLearningPathPersistenceRecord {
   const studentFacing = buildStudentFacingPathExplanation(plan);
   const registeredGoal = getRegisteredAdaptiveLearningPathGoal(plan.goal.id);
-  const learningGoalPackage = plan.goal.learningGoalPackage ?? registeredGoal?.goal.learningGoalPackage;
+  const learningGoal = plan.goal.learningGoal ?? registeredGoal?.learningGoal;
   return {
     id: plan.id,
     userId: plan.userId,
@@ -1818,7 +1834,7 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
     isAiGenerated: false,
     payload: {
       status: plan.status,
-      learningGoalPackage,
+      learningGoal,
       policyFamily: plan.policyFamily,
       policyMetadata: plan.policyMetadata,
       policyBundle: plan.policyBundle,
@@ -1838,7 +1854,7 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
         artifactKind: 'path-artifact',
         generatedAt: plan.executionStatus.updatedAt,
         versionRefs: {
-          learningGoalPackageVersion: learningGoalPackage?.version ?? null,
+          learningGoalPackageVersion: learningGoal?.version ?? null,
         },
         requiredRefs: [
           'learningGoalPackageVersion',
@@ -1851,6 +1867,15 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
       studentFacing,
     },
   };
+}
+
+export function normalizeLearningPathPayloadLearningGoal(
+  payload: AdaptiveLearningPathPersistenceRecord['payload'] | null | undefined,
+  goalId?: string | null,
+): LearningGoalDefinition | null {
+  const registeredLearningGoal = goalId ? getLearningGoal(goalId) : null;
+  if (registeredLearningGoal) return registeredLearningGoal;
+  return payload?.learningGoal ?? payload?.learningGoalPackage ?? null;
 }
 
 function inferDeficits(
@@ -1898,12 +1923,13 @@ function resolveCapabilityTargets(
   return goal.capabilityTargets ?? registeredGoal?.goal.capabilityTargets ?? [];
 }
 
-function attachLearningGoalPackage(
+function attachLearningGoal(
   goal: AdaptiveLearningPathGoal,
   registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
 ): AdaptiveLearningPathGoal {
-  const learningGoalPackage = registeredGoal?.learningGoalPackage;
-  return learningGoalPackage ? { ...goal, learningGoalPackage } : goal;
+  const { learningGoal: _clientLearningGoal, learningGoalPackage: _legacyLearningGoalPackage, ...safeGoal } = goal;
+  const learningGoal = registeredGoal?.learningGoal;
+  return learningGoal ? { ...safeGoal, learningGoal } : safeGoal;
 }
 
 function buildCapabilityEvidence(
