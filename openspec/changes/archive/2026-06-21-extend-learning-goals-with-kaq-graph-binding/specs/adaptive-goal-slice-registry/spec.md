@@ -1,6 +1,6 @@
 ## MODIFIED Requirements
 
-### Requirement: Goal slices preserve canonical adaptive-learning scope
+### Requirement: Adaptive goals are registered before use
 Goal slices SHALL remain the canonical scope bridge for adaptive learning features and SHALL be compatible with LearningGoal packages.
 
 #### Scenario: LearningGoal package references a goal slice

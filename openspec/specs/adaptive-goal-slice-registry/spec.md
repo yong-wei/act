@@ -4,16 +4,12 @@
 Define the governed registry that adaptive learner-state consumers use to resolve goal-specific slices before personalization, path planning, reporting, grading writeback, or Konling runtime consumption.
 ## Requirements
 ### Requirement: Adaptive goals are registered before use
-The system SHALL provide a registry for adaptive goal slices used by learner state, path planning, diagnosis, reports, grading writeback, and Konling modes.
+Goal slices SHALL remain the canonical scope bridge for adaptive learning features and SHALL be compatible with LearningGoal packages.
 
-#### Scenario: Registered goal is requested
-- **WHEN** a consumer requests a registered adaptive goal
-- **THEN** the registry SHALL expose goal id, display labels, dimensions, target levels, evidence source families, privacy classes, confidence policy, path eligibility, report eligibility, and validation fixtures.
-
-#### Scenario: Unregistered goal is requested
-- **WHEN** a consumer requests an adaptive goal that is not registered
-- **THEN** the system SHALL return an explicit unsupported-goal or unavailable state
-- **AND** it SHALL NOT silently reinterpret the request as general learner state.
+#### Scenario: LearningGoal package references a goal slice
+- **WHEN** a LearningGoal package declares a goal slice id
+- **THEN** the goal slice registry SHALL resolve the slice and expose its canonical scope metadata
+- **AND** package validation SHALL fail or mark the package as not `path-ready` when the referenced slice is missing or inactive.
 
 ### Requirement: Goal slices declare field contracts
 Every adaptive goal slice SHALL declare machine-readable contracts for its dimension fields.
@@ -38,3 +34,4 @@ Registered adaptive goals SHALL be able to declare capability targets on knowled
 - **WHEN** a capability target references prerequisite knowledge relations
 - **THEN** those relations SHALL be treated as disciplinary prerequisites
 - **AND** path strategy edges such as remedial, alternative, extension, or fallback SHALL remain separate planning metadata.
+
