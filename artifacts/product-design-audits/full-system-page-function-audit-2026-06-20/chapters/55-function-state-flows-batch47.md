@@ -85,6 +85,8 @@ Prompt 评价页填写动作命中全局 AI 问题输入框，而不是页面自
 
 建议：页面主任务输入应具有明确 label、placeholder 和焦点顺序；全局 AI 输入不能在此类任务页抢占第一个文本输入。
 
+整改记录：`audit-remediation-ai-task-boundaries` 已为 Prompt 评价页主输入补充 `name`、`aria-label`、`data-primary-task-input` 和任务状态面板，全局 AI 输入不再作为该页面任务合同；证据见 `../remediation/audit-remediation-ai-task-boundaries/evidence.md`。
+
 ### 300. P1：学生证据后续动作仍停留在列表过滤
 
 证据页点击后续动作后进入 lessonId 过滤态，但没有打开题目级证据详情、复盘解释或补练生成。学生看不到下一步如何从证据进入学习行动。

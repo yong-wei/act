@@ -61,11 +61,15 @@ API 关键结果：
 
 建议：Prompt 评价应把演示结果、真实历史、保存状态和趋势数据来源显式分开，避免 UI 完成态与 API 空历史并存。
 
+整改记录：`audit-remediation-ai-task-boundaries` 已在 Prompt 评价页展示当前模式、输出目标、写回行为和 live 状态，补停止、重试、清空动作，并将 autodemo 隔离为页面本地演示 fixture；证据见 `../remediation/audit-remediation-ai-task-boundaries/evidence.md`。
+
 ### 385. P1：AI 工坊任务动作没有形成学习任务状态
 
 AI 工坊显示学习任务、日志和实验档案，动作探测后焦点落在“查看日志 2”等控件；没有任务启动、完成记录、作品集写回或路径更新状态。
 
 建议：AI 工坊的任务卡应进入可执行学习任务，显示开始/进行中/完成/写回/失败状态，并和作品集、学习路径或证据页形成稳定回流。
+
+整改记录：`audit-remediation-ai-task-boundaries` 已将 `/ai?task=report-feedback` 转为报告反馈练习任务候选区，提供采用、丢弃和标记待写回状态；当前不声明已持久化写回，证据见 `../remediation/audit-remediation-ai-task-boundaries/evidence.md`。
 
 ### 386. P1：Copilot evidence 上下文仍暴露内部对象
 
@@ -73,11 +77,15 @@ AI 工坊显示学习任务、日志和实验档案，动作探测后焦点落�
 
 建议：Copilot 应把证据上下文翻译成学生可理解的问题、证据来源和下一步建议，隐藏内部 JSON/null 字段，并收敛全局 AI 与页面 AI 的焦点竞争。
 
+整改记录：`audit-remediation-ai-task-boundaries` 已为 `context=evidence` 显示学生可读证据边界，AI 消息和工具结果均隐藏内部 JSON/null 诊断；证据见 `../remediation/audit-remediation-ai-task-boundaries/evidence.md`。
+
 ### 387. P1：作品集 reflection query 与默认空态不一致
 
 `category=reflection` 默认仍显示“暂无课堂作品”，动作后才切到“暂无AI协作反思”；页面没有说明当前分类、反思来源、创建入口或从 Copilot/AI 工坊写回的路径。
 
 建议：作品集分类 query 应直接落到对应空态，并提供创建反思、导入 AI 对话、关联课堂证据和返回作品集总览的动作。
+
+整改记录：`audit-remediation-ai-task-boundaries` 已让 `category=reflection` 直接进入反思页签，并为 `intent=create` 显示作品集反思草稿候选；证据见 `../remediation/audit-remediation-ai-task-boundaries/evidence.md`。
 
 ### 388. P1：教师 report-ledger surface 仍落到泛化班级分析
 

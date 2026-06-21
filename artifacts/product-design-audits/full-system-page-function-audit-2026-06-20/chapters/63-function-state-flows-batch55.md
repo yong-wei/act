@@ -75,11 +75,15 @@ API 关键结果：
 
 建议：Prompt 页应提供页面自有输入、版本保存、评价完成和历史空态；全局 AI 侧栏不能替代任务表单。
 
+整改记录：`audit-remediation-ai-task-boundaries` 已为 Prompt 页建立页面自有输入和状态合同，包含主输入标识、任务模式、评价状态、停止/重试和结果清空动作；证据见 `../remediation/audit-remediation-ai-task-boundaries/evidence.md`。
+
 ### 399. P1：AI 报告任务不能生成练习任务或写回报告反馈
 
 `/ai?task=report-feedback` 动作仍填入全局 AI 输入框，页面没有生成三条练习任务、引用报告反馈、采用/丢弃或写回学习证据。
 
 建议：AI 工坊任务模式应把 task 参数转成结构化任务卡，生成结果必须有采用、编辑、保存和回写动作。
+
+整改记录：`audit-remediation-ai-task-boundaries` 已将 `/ai?task=report-feedback` 的 task 参数转成结构化任务候选，并提供采用、丢弃和标记待写回状态；当前不声明已持久化写回，证据见 `../remediation/audit-remediation-ai-task-boundaries/evidence.md`。
 
 ### 400. P1：Copilot 反思上下文不生成作品集草稿
 
@@ -87,11 +91,15 @@ API 关键结果：
 
 建议：反思上下文下 Copilot 的输出应直接进入作品集草稿，带来源、编辑、保存和撤销状态。
 
+整改记录：`audit-remediation-ai-task-boundaries` 已为 `context=portfolio-reflection` 生成作品集反思草稿候选，并提供进入作品集候选预览路径；证据见 `../remediation/audit-remediation-ai-task-boundaries/evidence.md`。
+
 ### 401. P1：作品集反思 create 意图不创建对象
 
 `/profile/portfolio?category=reflection&intent=create` 动作后仍停留同一路由，没有草稿、表单、保存状态或 AI 协作记录。
 
 建议：create intent 应进入明确的创建工作流，至少显示草稿标题、正文、来源证据、保存/取消和完成状态。
+
+整改记录：`audit-remediation-ai-task-boundaries` 已让作品集 `category=reflection&intent=create` 显示反思草稿候选、来源和候选状态，并提供返回反思页/重新生成候选路径；当前不声明已保存到学习档案，证据见 `../remediation/audit-remediation-ai-task-boundaries/evidence.md`。
 
 ### 402. P1：教师报告参数化深链仍是同一长分析页且动作跳首页
 

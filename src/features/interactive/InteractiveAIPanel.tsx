@@ -164,7 +164,7 @@ function MessageBubble({ message }: { message: AIMessage }) {
             : 'bg-slate-800 text-slate-200'
         }`}
       >
-        <AIMessageContent content={message.content} />
+        <AIMessageContent content={message.content} sanitizeContent={!isUser} />
       </div>
     </div>
   );

@@ -339,7 +339,7 @@ function MessageBubble({
           ))}
           {/* 文本消息 */}
           {message.content && (
-            <AIMessageContent content={message.content} />
+            <AIMessageContent content={message.content} sanitizeContent={!isUser} />
           )}
         </div>
       </div>

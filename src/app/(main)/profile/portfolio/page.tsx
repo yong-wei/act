@@ -8,9 +8,11 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { UserMenu } from '@/components/shared/user-menu';
+import { ActionStatusPanel } from '@/components/platform/action-status';
+import { buildAiAuditTaskState, buildPortfolioReflectionDraft } from '@/lib/ai-task-boundary-contracts';
 
 interface PortfolioData {
   // Representative works from classroom sessions
@@ -57,6 +59,7 @@ interface PortfolioData {
 
 export default function PortfolioPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const sessionData = useSession();
   const session = sessionData?.data;
   const status = sessionData?.status ?? 'loading';
@@ -65,6 +68,10 @@ export default function PortfolioPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'works' | 'prompts' | 'simulations' | 'ethics' | 'reflections'>('works');
+  const reflectionIntent = searchParams.get('category') === 'reflection' ? searchParams.get('intent') : null;
+  const reflectionDraft = reflectionIntent === 'create'
+    ? buildPortfolioReflectionDraft(searchParams.get('source') ?? 'portfolio')
+    : null;
 
   const fetchPortfolio = useCallback(async () => {
     try {
@@ -127,6 +134,12 @@ export default function PortfolioPage() {
       void fetchPortfolio();
     }
   }, [status, session, router, fetchPortfolio]);
+
+  useEffect(() => {
+    if (searchParams.get('category') === 'reflection') {
+      setActiveTab('reflections');
+    }
+  }, [searchParams]);
 
   if (status === 'loading' || loading) {
     return (
@@ -232,7 +245,7 @@ export default function PortfolioPage() {
           {activeTab === 'prompts' && <PromptDesignsTab designs={portfolio?.promptDesigns || []} />}
           {activeTab === 'simulations' && <SimulationDesignsTab designs={portfolio?.simulationDesigns || []} />}
           {activeTab === 'ethics' && <EthicsCasesTab cases={portfolio?.ethicsCases || []} />}
-          {activeTab === 'reflections' && <ReflectionsTab reflections={portfolio?.reflections || []} />}
+          {activeTab === 'reflections' && <ReflectionsTab reflections={portfolio?.reflections || []} draft={reflectionDraft} />}
         </div>
       </main>
     </div>
@@ -417,14 +430,52 @@ function EthicsCasesTab({ cases }: { cases: PortfolioData['ethicsCases'] }) {
   );
 }
 
-function ReflectionsTab({ reflections }: { reflections: PortfolioData['reflections'] }) {
+function ReflectionsTab({
+  reflections,
+  draft,
+}: {
+  reflections: PortfolioData['reflections'];
+  draft?: ReturnType<typeof buildPortfolioReflectionDraft> | null;
+}) {
+  if (draft) {
+    const state = buildAiAuditTaskState({
+      taskType: 'portfolio-reflection',
+      status: 'pending',
+      message: '作品集反思草稿候选已创建，本页尚未保存到学习档案。',
+      nextAction: '返回反思页继续整理或丢弃候选',
+      targetId: draft.id,
+    });
+    return (
+      <div className="space-y-4">
+        <ActionStatusPanel state={state} />
+        <div className="surface-card-soft p-5" data-ai-task-boundary="portfolio-reflection-draft">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="rounded bg-violet-500/20 px-2 py-0.5 text-xs text-violet-500">
+              {draft.status}
+            </span>
+            <span className="text-xs text-subtle">来源：{draft.source}</span>
+          </div>
+          <h3 className="mt-3 font-medium text-foreground">{draft.title}</h3>
+          <p className="mt-2 text-sm text-subtle">{draft.detail}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link href="/profile/portfolio?category=reflection" className="btn-ghost-themed rounded px-4 py-2 text-sm">
+              返回反思页
+            </Link>
+            <Link href="/ai/copilot?context=portfolio-reflection&source=portfolio" className="btn-ghost-themed rounded px-4 py-2 text-sm">
+              重新生成候选
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
   if (reflections.length === 0) {
     return (
       <EmptyState
         icon="🤔"
         title="暂无AI协作反思"
         description="记录你与AI助手的协作反思，持续优化使用策略"
-        action={{ label: '开始反思', href: '/ai/copilot' }}
+        action={{ label: '开始反思', href: '/ai/copilot?context=portfolio-reflection&source=portfolio' }}
       />
     );
   }
