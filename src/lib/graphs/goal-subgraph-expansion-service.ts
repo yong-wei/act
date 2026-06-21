@@ -315,12 +315,14 @@ function semanticsForRelation(
   edge: KaqGraphEdge,
   direction: GoalSubgraphPolicyEntry['direction'],
 ): GoalSubgraphPrerequisitePolicySemantics | null {
+  if (edge.relation === 'depends-on') {
+    return direction === 'outgoing' || direction === 'internal' ? 'hard_prerequisite' : null;
+  }
   if (direction === 'outgoing') {
     if (edge.relation === 'extends') return 'extension';
     if (edge.relation === 'transfers-to') return 'transfer_to';
     return null;
   }
-  if (edge.relation === 'depends-on') return 'hard_prerequisite';
   if (edge.relation === 'supports') return edge.strength === 'strong' ? 'hard_prerequisite' : 'soft_prerequisite';
   if (edge.relation === 'applies') return 'co_requisite';
   if (edge.relation === 'assesses') return 'evidence_for';

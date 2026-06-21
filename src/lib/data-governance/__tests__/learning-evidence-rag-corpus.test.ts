@@ -830,6 +830,15 @@ describe('learning evidence RAG corpus contract', () => {
 
     expect(konlingResults.map((item) => item.id)).toEqual(['resource-handout-segment']);
     expect(gradingResults).toEqual([]);
+    expect(verifyLearningEvidenceCitations([projectedHandout], {
+      role: 'teacher',
+      userId: 'teacher-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+    }, [{ chunkId: 'resource-handout-segment', useCase: 'grading' }])).toMatchObject({
+      status: 'rejected',
+      limitations: [{ chunkId: 'resource-handout-segment', reason: 'inaccessible-source' }],
+    });
 
     const verification = verifyLearningEvidenceCitations([projectedHandout], {
       role: 'student',
@@ -948,6 +957,32 @@ describe('learning evidence RAG corpus contract', () => {
       severity: 'blocking',
     })]);
     expect(partialVersionChip.limitationState).toBe('missing-version-ref');
+
+    const recommendationBlockedProjection = chunk({
+      id: 'recommendation-path-blocked-segment',
+      retrieval: { tags: ['steady-state-error'], goals: ['control-correction'], useCases: ['recommendation'] },
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-4-1',
+        segmentRef: 'unit-4-1#path-blocked',
+        citationTargetRef: 'path-blocked#p1',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        sceneAvailability: {
+          path: { allowed: false, limitation: 'resource-node-planning-audit-required' },
+        },
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: 'hash-course-1',
+      },
+    });
+    expect(retrieveLearningEvidenceCorpus([recommendationBlockedProjection], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'recommendation',
+    }, { capabilityTargetRefs: ['capability:steady-state-error-analysis'] })).toEqual([]);
   });
 
   it('keeps exact lexical resource matches eligible when semantic scores are weak', () => {

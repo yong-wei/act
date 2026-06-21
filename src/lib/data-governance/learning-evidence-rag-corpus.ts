@@ -467,6 +467,10 @@ export function verifyLearningEvidenceCitations(
       limitations.push({ chunkId: citation.chunkId, reason: 'unsupported-source-type' });
       continue;
     }
+    if (!matchesResourceProjectionSceneAvailability(chunk, citation.useCase)) {
+      limitations.push({ chunkId: citation.chunkId, reason: 'inaccessible-source' });
+      continue;
+    }
     if (citation.sourceType && citation.sourceType !== chunk.sourceType) {
       limitations.push({ chunkId: citation.chunkId, reason: 'source-type-mismatch' });
       continue;
@@ -1257,6 +1261,7 @@ function resourceProjectionSceneForUseCase(
   if (useCase === 'diagnosis') return 'diagnosis';
   if (useCase === 'grading') return 'grading';
   if (useCase === 'konling') return 'konling';
+  if (useCase === 'recommendation') return 'path';
   if (useCase === 'prep-pack') return 'prep-pack';
   if (useCase === 'teacher-report') return 'report';
   return null;

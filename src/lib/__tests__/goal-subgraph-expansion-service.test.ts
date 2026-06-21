@@ -203,6 +203,28 @@ describe('goal subgraph expansion service', () => {
     ]));
   });
 
+  it('does not invert depends-on edges into reverse prerequisites', () => {
+    const expansion = expandLearningGoalSubgraph('root-locus-analysis-foundations');
+
+    expect(expansion.fixtures.planner.targetGraphNodeIds).toContain('kn:autocontrol:root-locus');
+    expect(expansion.fixtures.planner.targetGraphNodeIds).not.toContain('kn:autocontrol:controller-correction');
+    expect(expansion.requiredEdges).not.toContainEqual(expect.objectContaining({
+      edgeId: 'edge:kn:correction-depends-on-root-locus',
+      semantics: 'hard_prerequisite',
+      sourceNodeId: 'kn:autocontrol:controller-correction',
+    }));
+    expect(expansion.prerequisitePolicy).not.toContainEqual(expect.objectContaining({
+      edgeId: 'edge:kn:correction-depends-on-root-locus',
+      semantics: 'hard_prerequisite',
+    }));
+    expect(expansion.limitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'unsupported-relation',
+        edgeId: 'edge:kn:correction-depends-on-root-locus',
+      }),
+    ]));
+  });
+
   it('provides planner, Konling, and GraphCenter fixtures without creating paths or selecting resources', () => {
     const expansion = expandLearningGoalSubgraph('simulation-validation-practice');
 
