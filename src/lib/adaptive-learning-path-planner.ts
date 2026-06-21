@@ -1,4 +1,8 @@
 import {
+  AUTOCONTROL_KAQ_GRAPH_CATALOG,
+  AUTOCONTROL_KAQ_OBJECTIVES,
+} from './data-governance/autocontrol-kaq-graph-catalog';
+import {
   buildResourceNodeHighConfidencePlanningAudit,
   buildResourceSemanticProjection,
   type PlanningUnit,
@@ -43,6 +47,88 @@ export type AdaptiveLearningPathEvidenceType =
   | 'arena-official-evaluation'
   | 'reflection'
   | 'agent-interaction';
+export type LearningGoalPackageStatus = 'draft' | 'path-ready' | 'fully-governed';
+export type LearningGoalPackageIntentType =
+  | 'concept-understanding'
+  | 'modeling'
+  | 'analysis'
+  | 'controller-design'
+  | 'simulation-validation'
+  | 'transfer-application'
+  | 'reflective-improvement';
+export type LearningGoalPackageRecommendedPhase =
+  | 'foundation'
+  | 'diagnosis'
+  | 'practice'
+  | 'validation'
+  | 'transfer';
+
+export interface LearningGoalPackageResourceMix {
+  required: ResourceNode['type'][];
+  preferred: ResourceNode['type'][];
+  optional: ResourceNode['type'][];
+}
+
+export interface LearningGoalPackageEvidencePolicy {
+  requiredEvidenceTypes: AdaptiveLearningPathEvidenceType[];
+  minimumEvidenceCount: number;
+  confidenceFloor: number;
+  qualityEvidenceGoverned: boolean;
+  limitations: string[];
+}
+
+export interface LearningGoalPackageTerminalValidationPolicy {
+  required: boolean;
+  acceptedEvidenceTypes: AdaptiveLearningPathEvidenceType[];
+  terminalNodeTypes: ResourceNode['type'][];
+  summary: string;
+}
+
+export interface LearningGoalPackageDefinition {
+  id: string;
+  title: string;
+  description: string;
+  completionMeaning: string;
+  intentType: LearningGoalPackageIntentType;
+  recommendedPhase: LearningGoalPackageRecommendedPhase;
+  knowledgeObjectiveIds: string[];
+  capabilityObjectiveIds: string[];
+  qualityObjectiveIds: string[];
+  targetGraphNodeIds: string[];
+  goalSliceId: string;
+  resourceMix: LearningGoalPackageResourceMix;
+  evidencePolicy: LearningGoalPackageEvidencePolicy;
+  terminalValidationPolicy: LearningGoalPackageTerminalValidationPolicy;
+  pathPolicyFamily: AdaptiveLearningPathPolicyFamily;
+  status: LearningGoalPackageStatus;
+  version: string;
+  limitations: string[];
+}
+
+export type LearningGoalPackageValidationIssueCode =
+  | 'missing-package'
+  | 'duplicate-package-id'
+  | 'missing-student-facing-text'
+  | 'missing-objective-binding'
+  | 'missing-graph-binding'
+  | 'missing-resource-mix'
+  | 'missing-evidence-policy'
+  | 'missing-terminal-validation-policy'
+  | 'missing-quality-limitation'
+  | 'missing-path-policy'
+  | 'unknown-objective-id'
+  | 'objective-domain-mismatch'
+  | 'unknown-graph-node-id'
+  | 'unknown-goal-slice-id'
+  | 'minimum-path-ready-coverage'
+  | 'missing-domain-coverage'
+  | 'package-not-registered';
+
+export interface LearningGoalPackageValidationIssue {
+  code: LearningGoalPackageValidationIssueCode;
+  packageId: string | null;
+  message: string;
+}
 
 export interface AdaptiveLearningPathGoal {
   id: string;
@@ -50,6 +136,7 @@ export interface AdaptiveLearningPathGoal {
   knowledgeTargets: string[];
   competencyTargets?: string[];
   capabilityTargets?: AdaptiveLearningCapabilityTarget[];
+  learningGoalPackage?: LearningGoalPackageDefinition;
 }
 
 export type AdaptiveLearningCapabilityLevel = 'remember' | 'understand' | 'apply' | 'analyze' | 'evaluate' | 'create';
@@ -71,6 +158,7 @@ export interface AdaptiveLearningCapabilityTarget {
 export interface AdaptiveLearningPathRegisteredGoalDefinition {
   goal: AdaptiveLearningPathGoal;
   displayName: string;
+  learningGoalPackage?: LearningGoalPackageDefinition;
   knowledgeTargetAliases?: Record<string, string[]>;
   allowedResourceMix: ResourceNode['type'][];
   starterPathPolicy: {
@@ -468,6 +556,7 @@ export interface AdaptiveLearningPathPersistenceRecord {
   isAiGenerated: boolean;
   payload: {
     status: AdaptiveLearningPathStatus;
+    learningGoalPackage?: LearningGoalPackageDefinition;
     policyFamily: AdaptiveLearningPathPolicyFamily;
     policyMetadata: AdaptiveLearningPathPolicyDefinition;
     policyBundle?: AdaptiveLearningPathPolicyBundle;
@@ -636,9 +725,331 @@ export const CONTROL_CORRECTION_CAPABILITY_TARGETS: AdaptiveLearningCapabilityTa
   },
 ];
 
+const LEARNING_GOAL_PACKAGE_VERSION = 'learning-goal-package/v1';
+const QUALITY_EVIDENCE_LIMITATION = 'quality-rubric-evidence-not-fully-governed';
+const PATH_READY_LEARNING_GOAL_PACKAGE_SLICE_IDS = ['control-correction'] as const;
+const LEARNING_GOAL_PACKAGE_OBJECTIVE_IDS = new Set(AUTOCONTROL_KAQ_OBJECTIVES.map((objective) => objective.id));
+const LEARNING_GOAL_PACKAGE_OBJECTIVE_DOMAIN_BY_ID = new Map(AUTOCONTROL_KAQ_OBJECTIVES.map((objective) => [objective.id, objective.domain]));
+const LEARNING_GOAL_PACKAGE_GRAPH_NODE_IDS = new Set(AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes.map((node) => node.id));
+const LEARNING_GOAL_PACKAGE_SLICE_ID_SET = new Set<string>(PATH_READY_LEARNING_GOAL_PACKAGE_SLICE_IDS);
+
+const AUTOCONTROL_RESOURCE_MIX: ResourceNode['type'][] = [
+  'lesson_step',
+  'knowledge_card',
+  'textbook_section',
+  'quiz',
+  'adaptive_quiz',
+  'control_workbench',
+  'simulation',
+  'arena_task',
+  'reflection',
+  'checkpoint',
+  'ai_intervention',
+  'konling',
+];
+
+const FOUNDATION_RESOURCE_MIX: ResourceNode['type'][] = [
+  'knowledge_card',
+  'textbook_section',
+  'lesson_step',
+  'quiz',
+  'adaptive_quiz',
+  'simulation',
+  'checkpoint',
+  'reflection',
+  'konling',
+];
+
+function packageResourceMix(
+  required: ResourceNode['type'][],
+  preferred: ResourceNode['type'][],
+  optional: ResourceNode['type'][] = ['reflection', 'checkpoint', 'konling'],
+): LearningGoalPackageResourceMix {
+  return { required, preferred, optional };
+}
+
+function packageEvidencePolicy(
+  requiredEvidenceTypes: AdaptiveLearningPathEvidenceType[],
+  qualityEvidenceGoverned = false,
+): LearningGoalPackageEvidencePolicy {
+  return {
+    requiredEvidenceTypes,
+    minimumEvidenceCount: 2,
+    confidenceFloor: 0.55,
+    qualityEvidenceGoverned,
+    limitations: qualityEvidenceGoverned ? [] : [QUALITY_EVIDENCE_LIMITATION],
+  };
+}
+
+function terminalValidationPolicy(
+  required: boolean,
+  acceptedEvidenceTypes: AdaptiveLearningPathEvidenceType[],
+  terminalNodeTypes: ResourceNode['type'][],
+  summary: string,
+): LearningGoalPackageTerminalValidationPolicy {
+  return { required, acceptedEvidenceTypes, terminalNodeTypes, summary };
+}
+
+function defineLearningGoalPackage(
+  input: Omit<LearningGoalPackageDefinition, 'status' | 'version'> & {
+    status?: LearningGoalPackageStatus;
+    version?: string;
+  },
+): LearningGoalPackageDefinition {
+  return {
+    ...input,
+    status: input.status ?? 'path-ready',
+    version: input.version ?? LEARNING_GOAL_PACKAGE_VERSION,
+  };
+}
+
+const CONTROL_CORRECTION_PACKAGE = defineLearningGoalPackage({
+  id: 'control-correction',
+  title: '控制系统校正设计',
+  description: '把时域目标、根轨迹或频域校正、仿真验证和 Arena 迁移组织为一条可执行设计路径。',
+  completionMeaning: '学生能够给出有指标依据、仿真证据和迁移边界的校正方案。',
+  intentType: 'controller-design',
+  recommendedPhase: 'practice',
+  knowledgeObjectiveIds: [
+    'knowledge:autocontrol:time-domain-performance',
+    'knowledge:autocontrol:root-locus',
+    'knowledge:autocontrol:controller-correction',
+    'knowledge:autocontrol:simulation-validation',
+  ],
+  capabilityObjectiveIds: [
+    'capability:autocontrol:synthesize-controller-correction',
+    'capability:autocontrol:validate-with-simulation-evidence',
+    'capability:autocontrol:transfer-to-ship-ocean-mission',
+  ],
+  qualityObjectiveIds: ['quality:autocontrol:evidence-integrity', 'quality:autocontrol:system-tradeoff'],
+  targetGraphNodeIds: [
+    'kn:autocontrol:time-domain-performance',
+    'kn:autocontrol:root-locus',
+    'kn:autocontrol:controller-correction',
+    'kn:autocontrol:simulation-validation',
+    'cap:autocontrol:synthesize-controller-correction',
+    'cap:autocontrol:validate-with-simulation-evidence',
+    'cap:autocontrol:transfer-to-ship-ocean-mission',
+    'qual:autocontrol:evidence-integrity',
+    'qual:autocontrol:system-tradeoff',
+  ],
+  goalSliceId: 'control-correction',
+  resourceMix: packageResourceMix(['simulation', 'arena_task'], ['control_workbench', 'simulation', 'arena_task', 'checkpoint']),
+  evidencePolicy: packageEvidencePolicy(['question', 'simulation-run', 'arena-official-evaluation', 'reflection']),
+  terminalValidationPolicy: terminalValidationPolicy(
+    true,
+    ['simulation-run', 'arena-official-evaluation'],
+    ['simulation', 'arena_task'],
+    '以仿真回放或官方 Arena 评测作为路径终点，验证校正方案是否满足目标。',
+  ),
+  pathPolicyFamily: 'simulation-driven',
+  limitations: [QUALITY_EVIDENCE_LIMITATION],
+});
+
+const FREQUENCY_RESPONSE_FOUNDATIONS_PACKAGE = defineLearningGoalPackage({
+  id: 'frequency-response-foundations',
+  title: '频率响应基础',
+  description: '建立 Bode、Nyquist、频域响应和稳定裕度的基础判读能力。',
+  completionMeaning: '学生能够用频域图线和裕度指标解释系统性能风险。',
+  intentType: 'analysis',
+  recommendedPhase: 'foundation',
+  knowledgeObjectiveIds: ['knowledge:autocontrol:frequency-response'],
+  capabilityObjectiveIds: ['capability:autocontrol:interpret-time-frequency-response'],
+  qualityObjectiveIds: ['quality:autocontrol:system-tradeoff'],
+  targetGraphNodeIds: [
+    'kn:autocontrol:frequency-response',
+    'kn:autocontrol:stability-margin',
+    'cap:autocontrol:interpret-time-frequency-response',
+    'qual:autocontrol:system-tradeoff',
+  ],
+  goalSliceId: 'control-correction',
+  resourceMix: packageResourceMix(['knowledge_card'], ['knowledge_card', 'textbook_section', 'simulation', 'quiz', 'adaptive_quiz']),
+  evidencePolicy: packageEvidencePolicy(['question', 'simulation-run', 'reflection']),
+  terminalValidationPolicy: terminalValidationPolicy(
+    false,
+    ['question', 'simulation-run'],
+    ['quiz', 'adaptive_quiz', 'simulation', 'checkpoint'],
+    '以短测、仿真观察或检查点确认频域判读，不强制 Arena 终点。',
+  ),
+  pathPolicyFamily: 'foundation-remediation',
+  limitations: [QUALITY_EVIDENCE_LIMITATION],
+});
+
+const FEEDBACK_LOOP_CONCEPT_PACKAGE = defineLearningGoalPackage({
+  id: 'feedback-loop-concept-foundations',
+  title: '反馈与闭环结构基础',
+  description: '理解反馈、误差、闭环结构和控制作用的基本关系。',
+  completionMeaning: '学生能够画出闭环关系并解释反馈对误差和稳定性的作用。',
+  intentType: 'concept-understanding',
+  recommendedPhase: 'foundation',
+  knowledgeObjectiveIds: ['knowledge:autocontrol:feedback-loop'],
+  capabilityObjectiveIds: ['capability:autocontrol:model-feedback-system'],
+  qualityObjectiveIds: ['quality:autocontrol:model-boundary-awareness'],
+  targetGraphNodeIds: [
+    'kn:autocontrol:feedback-loop',
+    'cap:autocontrol:model-feedback-system',
+    'qual:autocontrol:model-boundary-awareness',
+  ],
+  goalSliceId: 'control-correction',
+  resourceMix: packageResourceMix(['knowledge_card'], ['knowledge_card', 'textbook_section', 'lesson_step', 'quiz']),
+  evidencePolicy: packageEvidencePolicy(['question', 'reflection']),
+  terminalValidationPolicy: terminalValidationPolicy(false, ['question'], ['quiz', 'adaptive_quiz', 'checkpoint'], '以概念题和结构解释确认闭环基础。'),
+  pathPolicyFamily: 'foundation-remediation',
+  limitations: [QUALITY_EVIDENCE_LIMITATION],
+});
+
+const TRANSFER_FUNCTION_MODELING_PACKAGE = defineLearningGoalPackage({
+  id: 'transfer-function-modeling-foundations',
+  title: '传递函数建模基础',
+  description: '从对象、输入输出和误差信号建立可分析的传递函数模型。',
+  completionMeaning: '学生能够写出关键传递函数并说明模型假设。',
+  intentType: 'modeling',
+  recommendedPhase: 'foundation',
+  knowledgeObjectiveIds: ['knowledge:autocontrol:transfer-function-model'],
+  capabilityObjectiveIds: ['capability:autocontrol:model-feedback-system'],
+  qualityObjectiveIds: ['quality:autocontrol:model-boundary-awareness'],
+  targetGraphNodeIds: [
+    'kn:autocontrol:transfer-function-model',
+    'cap:autocontrol:model-feedback-system',
+    'qual:autocontrol:model-boundary-awareness',
+  ],
+  goalSliceId: 'control-correction',
+  resourceMix: packageResourceMix(['textbook_section'], ['textbook_section', 'knowledge_card', 'quiz', 'control_workbench']),
+  evidencePolicy: packageEvidencePolicy(['question', 'reflection']),
+  terminalValidationPolicy: terminalValidationPolicy(false, ['question'], ['quiz', 'adaptive_quiz', 'checkpoint'], '以模型表达题和假设说明确认建模基础。'),
+  pathPolicyFamily: 'foundation-remediation',
+  limitations: [QUALITY_EVIDENCE_LIMITATION],
+});
+
+const TIME_DOMAIN_RESPONSE_ANALYSIS_PACKAGE = defineLearningGoalPackage({
+  id: 'time-domain-response-analysis',
+  title: '时域响应与性能指标分析',
+  description: '把响应曲线、超调、调节时间和稳态误差转化为可验证指标。',
+  completionMeaning: '学生能够从时域响应判断性能缺口并提出验证要求。',
+  intentType: 'analysis',
+  recommendedPhase: 'diagnosis',
+  knowledgeObjectiveIds: ['knowledge:autocontrol:time-domain-performance'],
+  capabilityObjectiveIds: ['capability:autocontrol:interpret-time-frequency-response'],
+  qualityObjectiveIds: ['quality:autocontrol:evidence-integrity'],
+  targetGraphNodeIds: [
+    'kn:autocontrol:time-domain-performance',
+    'cap:autocontrol:interpret-time-frequency-response',
+    'qual:autocontrol:evidence-integrity',
+  ],
+  goalSliceId: 'control-correction',
+  resourceMix: packageResourceMix(['simulation'], ['simulation', 'knowledge_card', 'quiz', 'checkpoint']),
+  evidencePolicy: packageEvidencePolicy(['question', 'simulation-run', 'reflection']),
+  terminalValidationPolicy: terminalValidationPolicy(false, ['question', 'simulation-run'], ['simulation', 'quiz', 'checkpoint'], '以响应判读题或仿真记录确认指标理解。'),
+  pathPolicyFamily: 'simulation-driven',
+  limitations: [QUALITY_EVIDENCE_LIMITATION],
+});
+
+const ROOT_LOCUS_ANALYSIS_PACKAGE = defineLearningGoalPackage({
+  id: 'root-locus-analysis-foundations',
+  title: '根轨迹分析基础',
+  description: '用根轨迹解释极点迁移、零点引入和动态性能变化。',
+  completionMeaning: '学生能够把根轨迹变化和校正方向联系起来。',
+  intentType: 'analysis',
+  recommendedPhase: 'diagnosis',
+  knowledgeObjectiveIds: ['knowledge:autocontrol:root-locus'],
+  capabilityObjectiveIds: ['capability:autocontrol:interpret-time-frequency-response'],
+  qualityObjectiveIds: ['quality:autocontrol:system-tradeoff'],
+  targetGraphNodeIds: [
+    'kn:autocontrol:root-locus',
+    'cap:autocontrol:interpret-time-frequency-response',
+    'qual:autocontrol:system-tradeoff',
+  ],
+  goalSliceId: 'control-correction',
+  resourceMix: packageResourceMix(['knowledge_card'], ['knowledge_card', 'textbook_section', 'control_workbench', 'quiz']),
+  evidencePolicy: packageEvidencePolicy(['question', 'reflection']),
+  terminalValidationPolicy: terminalValidationPolicy(false, ['question'], ['quiz', 'adaptive_quiz', 'checkpoint'], '以根轨迹判读题确认分析基础。'),
+  pathPolicyFamily: 'foundation-remediation',
+  limitations: [QUALITY_EVIDENCE_LIMITATION],
+});
+
+const STABILITY_MARGIN_FREQUENCY_PACKAGE = defineLearningGoalPackage({
+  id: 'stability-margin-frequency-analysis',
+  title: '稳定裕度与频域安全边界',
+  description: '用幅值裕度、相角裕度和穿越频率表达鲁棒性风险。',
+  completionMeaning: '学生能够说明频域性能提升和稳定裕度之间的工程取舍。',
+  intentType: 'analysis',
+  recommendedPhase: 'diagnosis',
+  knowledgeObjectiveIds: ['knowledge:autocontrol:frequency-response'],
+  capabilityObjectiveIds: ['capability:autocontrol:trade-off-engineering-constraints'],
+  qualityObjectiveIds: ['quality:autocontrol:safety-responsibility', 'quality:autocontrol:system-tradeoff'],
+  targetGraphNodeIds: [
+    'kn:autocontrol:frequency-response',
+    'kn:autocontrol:stability-margin',
+    'cap:autocontrol:trade-off-engineering-constraints',
+    'qual:autocontrol:safety-responsibility',
+    'qual:autocontrol:system-tradeoff',
+  ],
+  goalSliceId: 'control-correction',
+  resourceMix: packageResourceMix(['simulation'], ['simulation', 'textbook_section', 'quiz', 'reflection', 'checkpoint']),
+  evidencePolicy: packageEvidencePolicy(['question', 'simulation-run', 'reflection']),
+  terminalValidationPolicy: terminalValidationPolicy(false, ['question', 'simulation-run'], ['simulation', 'quiz', 'checkpoint'], '以裕度判读和约束说明确认安全边界。'),
+  pathPolicyFamily: 'simulation-driven',
+  limitations: [QUALITY_EVIDENCE_LIMITATION],
+});
+
+const SIMULATION_VALIDATION_PRACTICE_PACKAGE = defineLearningGoalPackage({
+  id: 'simulation-validation-practice',
+  title: '仿真验证实践',
+  description: '用可复现仿真记录验证控制方案是否满足目标和约束。',
+  completionMeaning: '学生能够提交仿真证据并逐项对应原始控制目标。',
+  intentType: 'simulation-validation',
+  recommendedPhase: 'validation',
+  knowledgeObjectiveIds: ['knowledge:autocontrol:simulation-validation'],
+  capabilityObjectiveIds: ['capability:autocontrol:validate-with-simulation-evidence'],
+  qualityObjectiveIds: ['quality:autocontrol:evidence-integrity'],
+  targetGraphNodeIds: [
+    'kn:autocontrol:simulation-validation',
+    'cap:autocontrol:validate-with-simulation-evidence',
+    'qual:autocontrol:evidence-integrity',
+  ],
+  goalSliceId: 'control-correction',
+  resourceMix: packageResourceMix(['simulation'], ['simulation', 'control_workbench', 'checkpoint', 'reflection']),
+  evidencePolicy: packageEvidencePolicy(['simulation-run', 'reflection']),
+  terminalValidationPolicy: terminalValidationPolicy(true, ['simulation-run'], ['simulation', 'checkpoint'], '以受治理仿真记录作为路径终点。'),
+  pathPolicyFamily: 'simulation-driven',
+  limitations: [QUALITY_EVIDENCE_LIMITATION],
+});
+
+const SHIP_OCEAN_TRANSFER_PACKAGE = defineLearningGoalPackage({
+  id: 'ship-ocean-transfer-application',
+  title: '船海场景迁移应用',
+  description: '把自动控制方法迁移到船舶、MASS 或跨模型任务，并识别失配风险。',
+  completionMeaning: '学生能够说明源模型和船海任务条件的共同结构、差异和补充验证需求。',
+  intentType: 'transfer-application',
+  recommendedPhase: 'transfer',
+  knowledgeObjectiveIds: ['knowledge:autocontrol:modern-transfer', 'knowledge:autocontrol:simulation-validation'],
+  capabilityObjectiveIds: ['capability:autocontrol:transfer-to-ship-ocean-mission'],
+  qualityObjectiveIds: ['quality:autocontrol:ship-ocean-mission', 'quality:autocontrol:model-boundary-awareness'],
+  targetGraphNodeIds: [
+    'kn:autocontrol:modern-transfer',
+    'kn:autocontrol:simulation-validation',
+    'cap:autocontrol:transfer-to-ship-ocean-mission',
+    'qual:autocontrol:ship-ocean-mission',
+    'qual:autocontrol:model-boundary-awareness',
+  ],
+  goalSliceId: 'control-correction',
+  resourceMix: packageResourceMix(['arena_task'], ['arena_task', 'simulation', 'reflection', 'ai_intervention']),
+  evidencePolicy: packageEvidencePolicy(['arena-official-evaluation', 'simulation-run', 'reflection', 'agent-interaction']),
+  terminalValidationPolicy: terminalValidationPolicy(true, ['arena-official-evaluation', 'simulation-run'], ['arena_task', 'simulation'], '以跨模型任务、Arena 或仿真迁移验证作为路径终点。'),
+  pathPolicyFamily: 'simulation-driven',
+  limitations: [QUALITY_EVIDENCE_LIMITATION],
+});
+
+function packageGoal(
+  goal: Omit<AdaptiveLearningPathGoal, 'learningGoalPackage'>,
+  learningGoalPackage: LearningGoalPackageDefinition,
+): AdaptiveLearningPathGoal {
+  return { ...goal, learningGoalPackage };
+}
+
 export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearningPathRegisteredGoalDefinition> = {
   'control-correction': {
-    goal: {
+    goal: packageGoal({
       id: 'control-correction',
       title: '控制系统校正设计',
       knowledgeTargets: [
@@ -649,8 +1060,9 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       ],
       competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
       capabilityTargets: CONTROL_CORRECTION_CAPABILITY_TARGETS,
-    },
+    }, CONTROL_CORRECTION_PACKAGE),
     displayName: '控制系统校正设计',
+    learningGoalPackage: CONTROL_CORRECTION_PACKAGE,
     knowledgeTargetAliases: {
       'control-correction:time-domain-targets': [
         '性能指标_1_1',
@@ -715,13 +1127,14 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
     },
   },
   'frequency-response-foundations': {
-    goal: {
+    goal: packageGoal({
       id: 'frequency-response-foundations',
       title: '频率响应基础',
       knowledgeTargets: ['kn-bode'],
       competencyTargets: [],
-    },
+    }, FREQUENCY_RESPONSE_FOUNDATIONS_PACKAGE),
     displayName: '频率响应基础',
+    learningGoalPackage: FREQUENCY_RESPONSE_FOUNDATIONS_PACKAGE,
     knowledgeTargetAliases: {
       'kn-bode': [
         'Bode图_1_1',
@@ -764,6 +1177,230 @@ export const ADAPTIVE_LEARNING_GOAL_DEFINITIONS: Record<string, AdaptiveLearning
       fallback: '当前可用资源不足，请先完成基础材料并补充学习证据。',
     },
   },
+  'feedback-loop-concept-foundations': {
+    goal: packageGoal({
+      id: 'feedback-loop-concept-foundations',
+      title: '反馈与闭环结构基础',
+      knowledgeTargets: ['反馈_1_1'],
+      competencyTargets: ['controlModeling'],
+    }, FEEDBACK_LOOP_CONCEPT_PACKAGE),
+    displayName: '反馈与闭环结构基础',
+    learningGoalPackage: FEEDBACK_LOOP_CONCEPT_PACKAGE,
+    knowledgeTargetAliases: {
+      '反馈_1_1': ['负反馈_1_0cffeeab', '闭环控制系统_1_10003'],
+    },
+    allowedResourceMix: FOUNDATION_RESOURCE_MIX,
+    starterPathPolicy: {
+      policyFamilies: ['foundation-remediation', 'preference-matched'],
+      minOptions: 2,
+      difficultyRhythm: 'gentle',
+      allowExternalResources: false,
+      preferredResourceTypes: ['knowledge_card', 'textbook_section', 'lesson_step', 'quiz'],
+    },
+    checkpointPolicy: {
+      minCheckpoints: 1,
+      checkpointResourceTypes: ['checkpoint', 'quiz', 'adaptive_quiz', 'knowledge_card'],
+      requiresTerminalValidation: false,
+    },
+    explanationTemplates: {
+      ready: '已根据当前证据生成反馈与闭环结构学习路径。',
+      coldStart: '证据还少，先从闭环结构基础开始。',
+      lowConfidence: '当前证据不足，先完成反馈概念与结构判断。',
+      fallback: '当前可用资源不足，请先完成反馈概念材料并补充学习证据。',
+    },
+  },
+  'transfer-function-modeling-foundations': {
+    goal: packageGoal({
+      id: 'transfer-function-modeling-foundations',
+      title: '传递函数建模基础',
+      knowledgeTargets: ['传递函数_2_2c5e2589'],
+      competencyTargets: ['controlModeling'],
+    }, TRANSFER_FUNCTION_MODELING_PACKAGE),
+    displayName: '传递函数建模基础',
+    learningGoalPackage: TRANSFER_FUNCTION_MODELING_PACKAGE,
+    knowledgeTargetAliases: {
+      '传递函数_2_2c5e2589': ['建模_1_2', '零初值传递函数_2_21001'],
+    },
+    allowedResourceMix: FOUNDATION_RESOURCE_MIX,
+    starterPathPolicy: {
+      policyFamilies: ['foundation-remediation', 'preference-matched'],
+      minOptions: 2,
+      difficultyRhythm: 'gentle',
+      allowExternalResources: false,
+      preferredResourceTypes: ['textbook_section', 'knowledge_card', 'quiz', 'control_workbench'],
+    },
+    checkpointPolicy: {
+      minCheckpoints: 1,
+      checkpointResourceTypes: ['checkpoint', 'quiz', 'adaptive_quiz', 'knowledge_card'],
+      requiresTerminalValidation: false,
+    },
+    explanationTemplates: {
+      ready: '已根据当前证据生成传递函数建模学习路径。',
+      coldStart: '证据还少，先从模型假设和传递函数表达开始。',
+      lowConfidence: '当前证据不足，先完成建模基础路径。',
+      fallback: '当前可用资源不足，请先完成传递函数材料并补充学习证据。',
+    },
+  },
+  'time-domain-response-analysis': {
+    goal: packageGoal({
+      id: 'time-domain-response-analysis',
+      title: '时域响应与性能指标分析',
+      knowledgeTargets: ['动态性能指标_3_a10733c1'],
+      competencyTargets: ['controlModeling', 'engineeringDecision'],
+    }, TIME_DOMAIN_RESPONSE_ANALYSIS_PACKAGE),
+    displayName: '时域响应与性能指标分析',
+    learningGoalPackage: TIME_DOMAIN_RESPONSE_ANALYSIS_PACKAGE,
+    knowledgeTargetAliases: {
+      '动态性能指标_3_a10733c1': ['时域分析法_3_0f0489e0', '稳态误差双路径判断_3_37002', '终值定理_3_be8fe1ad'],
+    },
+    allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
+    starterPathPolicy: {
+      policyFamilies: ['simulation-driven', 'foundation-remediation', 'preference-matched'],
+      minOptions: 2,
+      difficultyRhythm: 'steady',
+      allowExternalResources: false,
+      preferredResourceTypes: ['simulation', 'knowledge_card', 'quiz', 'checkpoint'],
+    },
+    checkpointPolicy: {
+      minCheckpoints: 1,
+      checkpointResourceTypes: ['checkpoint', 'simulation', 'quiz', 'adaptive_quiz'],
+      requiresTerminalValidation: false,
+    },
+    explanationTemplates: {
+      ready: '已根据当前证据生成时域响应分析学习路径。',
+      coldStart: '证据还少，先从时域指标和响应曲线开始。',
+      lowConfidence: '当前证据不足，先完成时域指标基础路径。',
+      fallback: '当前可用资源不足，请先完成时域响应材料并补充学习证据。',
+    },
+  },
+  'root-locus-analysis-foundations': {
+    goal: packageGoal({
+      id: 'root-locus-analysis-foundations',
+      title: '根轨迹分析基础',
+      knowledgeTargets: ['根轨迹完整法则_3_0f2e7b11'],
+      competencyTargets: ['controlModeling', 'parameterDesign'],
+    }, ROOT_LOCUS_ANALYSIS_PACKAGE),
+    displayName: '根轨迹分析基础',
+    learningGoalPackage: ROOT_LOCUS_ANALYSIS_PACKAGE,
+    knowledgeTargetAliases: {
+      '根轨迹完整法则_3_0f2e7b11': ['根轨迹法_2_e3f6c0c1', '时域指标到目标极点区域_3_36001'],
+    },
+    allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
+    starterPathPolicy: {
+      policyFamilies: ['foundation-remediation', 'simulation-driven', 'preference-matched'],
+      minOptions: 2,
+      difficultyRhythm: 'steady',
+      allowExternalResources: false,
+      preferredResourceTypes: ['knowledge_card', 'textbook_section', 'control_workbench', 'quiz'],
+    },
+    checkpointPolicy: {
+      minCheckpoints: 1,
+      checkpointResourceTypes: ['checkpoint', 'quiz', 'adaptive_quiz', 'simulation'],
+      requiresTerminalValidation: false,
+    },
+    explanationTemplates: {
+      ready: '已根据当前证据生成根轨迹分析学习路径。',
+      coldStart: '证据还少，先从根轨迹基础法则开始。',
+      lowConfidence: '当前证据不足，先完成根轨迹判读基础路径。',
+      fallback: '当前可用资源不足，请先完成根轨迹材料并补充学习证据。',
+    },
+  },
+  'stability-margin-frequency-analysis': {
+    goal: packageGoal({
+      id: 'stability-margin-frequency-analysis',
+      title: '稳定裕度与频域安全边界',
+      knowledgeTargets: ['相角裕度_5_5a74b451'],
+      competencyTargets: ['engineeringDecision'],
+    }, STABILITY_MARGIN_FREQUENCY_PACKAGE),
+    displayName: '稳定裕度与频域安全边界',
+    learningGoalPackage: STABILITY_MARGIN_FREQUENCY_PACKAGE,
+    knowledgeTargetAliases: {
+      '相角裕度_5_5a74b451': ['幅值裕度_5_73af26a5', '频率特性_5_404adfdd', '截止频率_5_c7d09ff7', '穿越频率_5_c4c2b93c'],
+    },
+    allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
+    starterPathPolicy: {
+      policyFamilies: ['simulation-driven', 'foundation-remediation', 'preference-matched'],
+      minOptions: 2,
+      difficultyRhythm: 'steady',
+      allowExternalResources: false,
+      preferredResourceTypes: ['simulation', 'textbook_section', 'quiz', 'reflection', 'checkpoint'],
+    },
+    checkpointPolicy: {
+      minCheckpoints: 1,
+      checkpointResourceTypes: ['checkpoint', 'simulation', 'quiz', 'adaptive_quiz', 'reflection'],
+      requiresTerminalValidation: false,
+    },
+    explanationTemplates: {
+      ready: '已根据当前证据生成稳定裕度学习路径。',
+      coldStart: '证据还少，先从裕度概念和频域判读开始。',
+      lowConfidence: '当前证据不足，先完成频域安全边界基础路径。',
+      fallback: '当前可用资源不足，请先完成稳定裕度材料并补充学习证据。',
+    },
+  },
+  'simulation-validation-practice': {
+    goal: packageGoal({
+      id: 'simulation-validation-practice',
+      title: '仿真验证实践',
+      knowledgeTargets: ['跨模型验证比较_4_47006'],
+      competencyTargets: ['engineeringDecision'],
+    }, SIMULATION_VALIDATION_PRACTICE_PACKAGE),
+    displayName: '仿真验证实践',
+    learningGoalPackage: SIMULATION_VALIDATION_PRACTICE_PACKAGE,
+    knowledgeTargetAliases: {
+      '跨模型验证比较_4_47006': ['数据驱动控制_5_54003', '传统设计四联图校正_4_47004'],
+    },
+    allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
+    starterPathPolicy: {
+      policyFamilies: ['simulation-driven', 'preference-matched'],
+      minOptions: 2,
+      difficultyRhythm: 'challenge',
+      allowExternalResources: false,
+      preferredResourceTypes: ['simulation', 'control_workbench', 'checkpoint', 'reflection'],
+    },
+    checkpointPolicy: {
+      minCheckpoints: 1,
+      checkpointResourceTypes: ['checkpoint', 'simulation'],
+      requiresTerminalValidation: true,
+    },
+    explanationTemplates: {
+      ready: '已根据当前证据生成仿真验证学习路径。',
+      coldStart: '证据还少，先从可复现仿真记录开始。',
+      lowConfidence: '当前证据不足，先完成仿真证据采集路径。',
+      fallback: '当前可用资源不足，请先完成仿真验证材料并补充学习证据。',
+    },
+  },
+  'ship-ocean-transfer-application': {
+    goal: packageGoal({
+      id: 'ship-ocean-transfer-application',
+      title: '船海场景迁移应用',
+      knowledgeTargets: ['船舶航向控制对象_2_21004'],
+      competencyTargets: ['crossDomainTransfer', 'engineeringDecision'],
+    }, SHIP_OCEAN_TRANSFER_PACKAGE),
+    displayName: '船海场景迁移应用',
+    learningGoalPackage: SHIP_OCEAN_TRANSFER_PACKAGE,
+    knowledgeTargetAliases: {
+      '船舶航向控制对象_2_21004': ['MASS自动化等级责任边界_5_53008', '现代控制理论_9_0b54b9a0', '鲁棒控制_3_a7fa1491'],
+    },
+    allowedResourceMix: AUTOCONTROL_RESOURCE_MIX,
+    starterPathPolicy: {
+      policyFamilies: ['simulation-driven', 'preference-matched', 'teacher-assigned'],
+      minOptions: 2,
+      difficultyRhythm: 'challenge',
+      allowExternalResources: false,
+      preferredResourceTypes: ['arena_task', 'simulation', 'reflection', 'ai_intervention'],
+    },
+    checkpointPolicy: {
+      minCheckpoints: 1,
+      checkpointResourceTypes: ['checkpoint', 'simulation', 'arena_task', 'reflection'],
+      requiresTerminalValidation: true,
+    },
+    explanationTemplates: {
+      ready: '已根据当前证据生成船海迁移应用学习路径。',
+      coldStart: '证据还少，先从船海任务条件和模型差异开始。',
+      lowConfidence: '当前证据不足，先完成迁移边界识别路径。',
+      fallback: '当前可用资源不足，请先完成船海迁移材料并补充学习证据。',
+    },
+  },
 };
 
 export function getRegisteredAdaptiveLearningPathGoal(
@@ -774,6 +1411,150 @@ export function getRegisteredAdaptiveLearningPathGoal(
 
 export function isRegisteredAdaptiveLearningPathGoal(goalId: string): boolean {
   return Boolean(getRegisteredAdaptiveLearningPathGoal(goalId));
+}
+
+export function getLearningGoalPackage(goalId: string): LearningGoalPackageDefinition | null {
+  return getRegisteredAdaptiveLearningPathGoal(goalId)?.learningGoalPackage ?? null;
+}
+
+export function listLearningGoalPackages(): LearningGoalPackageDefinition[] {
+  return Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS)
+    .map((definition) => definition.learningGoalPackage)
+    .filter((item): item is LearningGoalPackageDefinition => Boolean(item));
+}
+
+export function validateLearningGoalPackage(
+  learningGoalPackage: LearningGoalPackageDefinition | null | undefined,
+): LearningGoalPackageValidationIssue[] {
+  if (!learningGoalPackage) {
+    return [learningGoalPackageIssue('missing-package', null, 'LearningGoal package metadata is required.')];
+  }
+
+  const issues: LearningGoalPackageValidationIssue[] = [];
+  const packageId = learningGoalPackage.id || null;
+  if (!learningGoalPackage.title || !learningGoalPackage.description || !learningGoalPackage.completionMeaning) {
+    issues.push(learningGoalPackageIssue('missing-student-facing-text', packageId, 'LearningGoal package requires title, description, and completion meaning.'));
+  }
+  if (
+    learningGoalPackage.status === 'path-ready' &&
+    (
+      learningGoalPackage.knowledgeObjectiveIds.length === 0 ||
+      learningGoalPackage.capabilityObjectiveIds.length === 0 ||
+      learningGoalPackage.qualityObjectiveIds.length === 0
+    )
+  ) {
+    issues.push(learningGoalPackageIssue('missing-objective-binding', packageId, 'Path-ready package must bind at least one K/A/Q objective id in each domain.'));
+  }
+  issues.push(...validateLearningGoalPackageObjectiveIds(learningGoalPackage, packageId));
+  if (learningGoalPackage.targetGraphNodeIds.length === 0) {
+    issues.push(learningGoalPackageIssue('missing-graph-binding', packageId, 'LearningGoal package must expose target graph node ids.'));
+  }
+  for (const graphNodeId of learningGoalPackage.targetGraphNodeIds) {
+    if (!LEARNING_GOAL_PACKAGE_GRAPH_NODE_IDS.has(graphNodeId)) {
+      issues.push(learningGoalPackageIssue('unknown-graph-node-id', packageId, `Unknown K/A/Q graph node id: ${graphNodeId}.`));
+    }
+  }
+  if (!LEARNING_GOAL_PACKAGE_SLICE_ID_SET.has(learningGoalPackage.goalSliceId)) {
+    issues.push(learningGoalPackageIssue('unknown-goal-slice-id', packageId, `Unknown adaptive goal slice id: ${learningGoalPackage.goalSliceId}.`));
+  }
+  if (
+    learningGoalPackage.resourceMix.required.length === 0 ||
+    learningGoalPackage.resourceMix.preferred.length === 0
+  ) {
+    issues.push(learningGoalPackageIssue('missing-resource-mix', packageId, 'LearningGoal package must declare required and preferred resource mix.'));
+  }
+  if (
+    learningGoalPackage.evidencePolicy.requiredEvidenceTypes.length === 0 ||
+    learningGoalPackage.evidencePolicy.minimumEvidenceCount < 1 ||
+    learningGoalPackage.evidencePolicy.confidenceFloor <= 0
+  ) {
+    issues.push(learningGoalPackageIssue('missing-evidence-policy', packageId, 'LearningGoal package must declare governed evidence requirements.'));
+  }
+  if (
+    learningGoalPackage.terminalValidationPolicy.acceptedEvidenceTypes.length === 0 ||
+    learningGoalPackage.terminalValidationPolicy.terminalNodeTypes.length === 0 ||
+    !learningGoalPackage.terminalValidationPolicy.summary
+  ) {
+    issues.push(learningGoalPackageIssue('missing-terminal-validation-policy', packageId, 'LearningGoal package must declare terminal validation policy.'));
+  }
+  if (
+    learningGoalPackage.qualityObjectiveIds.length > 0 &&
+    !learningGoalPackage.evidencePolicy.qualityEvidenceGoverned &&
+    learningGoalPackage.evidencePolicy.limitations.length === 0 &&
+    learningGoalPackage.limitations.length === 0
+  ) {
+    issues.push(learningGoalPackageIssue('missing-quality-limitation', packageId, 'Package with non-governed quality evidence must expose a limitation.'));
+  }
+  if (!ADAPTIVE_LEARNING_PATH_POLICY_FAMILIES[learningGoalPackage.pathPolicyFamily]) {
+    issues.push(learningGoalPackageIssue('missing-path-policy', packageId, 'LearningGoal package must use a known path policy family.'));
+  }
+  return issues;
+}
+
+export function validateLearningGoalPackageCatalog(): LearningGoalPackageValidationIssue[] {
+  const issues = Object.values(ADAPTIVE_LEARNING_GOAL_DEFINITIONS).flatMap((definition) =>
+    validateLearningGoalPackage(definition.learningGoalPackage)
+  );
+  const packages = listLearningGoalPackages();
+  const packageIds = new Set<string>();
+  for (const learningGoalPackage of packages) {
+    if (packageIds.has(learningGoalPackage.id)) {
+      issues.push(learningGoalPackageIssue('duplicate-package-id', learningGoalPackage.id, 'LearningGoal package ids must be unique.'));
+    }
+    packageIds.add(learningGoalPackage.id);
+    if (!ADAPTIVE_LEARNING_GOAL_DEFINITIONS[learningGoalPackage.id]) {
+      issues.push(learningGoalPackageIssue('package-not-registered', learningGoalPackage.id, 'LearningGoal package must extend an existing registered goal id.'));
+    }
+  }
+  const pathReadyPackages = packages.filter((item) => item.status === 'path-ready');
+  if (pathReadyPackages.length < 8) {
+    issues.push(learningGoalPackageIssue('minimum-path-ready-coverage', null, 'At least eight automatic-control LearningGoal packages must be path-ready.'));
+  }
+  const coveredIntents = new Set(pathReadyPackages.map((item) => item.intentType));
+  for (const requiredIntent of ['concept-understanding', 'modeling', 'analysis', 'controller-design', 'simulation-validation', 'transfer-application'] satisfies LearningGoalPackageIntentType[]) {
+    if (!coveredIntents.has(requiredIntent)) {
+      issues.push(learningGoalPackageIssue('missing-domain-coverage', null, `Path-ready package catalog must cover ${requiredIntent}.`));
+    }
+  }
+  return issues;
+}
+
+function learningGoalPackageIssue(
+  code: LearningGoalPackageValidationIssueCode,
+  packageId: string | null,
+  message: string,
+): LearningGoalPackageValidationIssue {
+  return { code, packageId, message };
+}
+
+function validateLearningGoalPackageObjectiveIds(
+  learningGoalPackage: LearningGoalPackageDefinition,
+  packageId: string | null,
+): LearningGoalPackageValidationIssue[] {
+  return [
+    ...validateLearningGoalPackageObjectiveDomain(learningGoalPackage.knowledgeObjectiveIds, 'knowledge', packageId),
+    ...validateLearningGoalPackageObjectiveDomain(learningGoalPackage.capabilityObjectiveIds, 'capability', packageId),
+    ...validateLearningGoalPackageObjectiveDomain(learningGoalPackage.qualityObjectiveIds, 'quality', packageId),
+  ];
+}
+
+function validateLearningGoalPackageObjectiveDomain(
+  objectiveIds: string[],
+  expectedDomain: 'knowledge' | 'capability' | 'quality',
+  packageId: string | null,
+): LearningGoalPackageValidationIssue[] {
+  const issues: LearningGoalPackageValidationIssue[] = [];
+  for (const objectiveId of objectiveIds) {
+    if (!LEARNING_GOAL_PACKAGE_OBJECTIVE_IDS.has(objectiveId)) {
+      issues.push(learningGoalPackageIssue('unknown-objective-id', packageId, `Unknown K/A/Q objective id: ${objectiveId}.`));
+      continue;
+    }
+    const actualDomain = LEARNING_GOAL_PACKAGE_OBJECTIVE_DOMAIN_BY_ID.get(objectiveId);
+    if (actualDomain !== expectedDomain) {
+      issues.push(learningGoalPackageIssue('objective-domain-mismatch', packageId, `Expected ${expectedDomain} objective id, received ${objectiveId}.`));
+    }
+  }
+  return issues;
 }
 
 export function buildAdaptiveLearningPathPlan(input: AdaptiveLearningPathPlannerInput): AdaptiveLearningPathPlan {
@@ -874,11 +1655,12 @@ function buildAdaptiveLearningPathPlanInternal(
   };
   const policyBundleRequest = resolvePolicyBundleRequest(input, confidence, registeredGoal);
   const capabilityTargets = resolveCapabilityTargets(input.goal, registeredGoal);
+  const goal = attachLearningGoalPackage(input.goal, registeredGoal);
 
   return {
     id: `adaptive-path:${input.studentId}:${input.goal.id}`,
     userId: input.studentId,
-    goal: input.goal,
+    goal,
     stage: 'stage-1-rules-graph',
     policyFamily,
     policyMetadata,
@@ -1029,6 +1811,7 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
     isAiGenerated: false,
     payload: {
       status: plan.status,
+      learningGoalPackage: plan.goal.learningGoalPackage,
       policyFamily: plan.policyFamily,
       policyMetadata: plan.policyMetadata,
       policyBundle: plan.policyBundle,
@@ -1091,6 +1874,14 @@ function resolveCapabilityTargets(
   registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
 ): AdaptiveLearningCapabilityTarget[] {
   return goal.capabilityTargets ?? registeredGoal?.goal.capabilityTargets ?? [];
+}
+
+function attachLearningGoalPackage(
+  goal: AdaptiveLearningPathGoal,
+  registeredGoal: AdaptiveLearningPathRegisteredGoalDefinition | null,
+): AdaptiveLearningPathGoal {
+  const learningGoalPackage = registeredGoal?.learningGoalPackage;
+  return learningGoalPackage ? { ...goal, learningGoalPackage } : goal;
 }
 
 function buildCapabilityEvidence(

@@ -4,11 +4,20 @@ import {
   ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
   buildAdaptiveLearningPathPlan,
   buildControlCorrectionThreeStylePathBundle,
+  getLearningGoalPackage,
+  isRegisteredAdaptiveLearningPathGoal,
+  listLearningGoalPackages,
   recordLearningPathFeedback,
   serializeLearningPathPlan,
+  validateLearningGoalPackage,
+  validateLearningGoalPackageCatalog,
   type AdaptiveLearningPathPlannerInput,
 } from '../adaptive-learning-path-planner';
 import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
+import {
+  AUTOCONTROL_KAQ_GRAPH_CATALOG,
+  AUTOCONTROL_KAQ_OBJECTIVES,
+} from '../data-governance/autocontrol-kaq-graph-catalog';
 import { buildResourceNodeRegistry, buildResourceSemanticProjection } from '../resource-node-registry';
 import { getAllRegisteredResourceMetadata } from '../resource-registry-metadata';
 
@@ -478,6 +487,126 @@ describe('adaptive learning path planner', () => {
     expect(plan.executionStatus.updatedAt).toBe('2026-05-27T08:00:00.000Z');
     expect(plan.visualization.timeline.generatedAt).toBe('2026-05-27T08:00:00.000Z');
     expect(JSON.stringify(plan)).not.toContain('2035-01-01T00:00:00.000Z');
+  });
+
+  it('registers path-ready LearningGoal packages with governed K/A/Q graph bindings', () => {
+    expect(validateLearningGoalPackageCatalog()).toEqual([]);
+    const objectiveIds = new Set(AUTOCONTROL_KAQ_OBJECTIVES.map((objective) => objective.id));
+    const graphNodeIds = new Set(AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes.map((node) => node.id));
+    const packages = listLearningGoalPackages();
+    const pathReadyPackages = packages.filter((learningGoalPackage) => learningGoalPackage.status === 'path-ready');
+
+    expect(pathReadyPackages.length).toBeGreaterThanOrEqual(8);
+    expect(pathReadyPackages.map((learningGoalPackage) => learningGoalPackage.intentType)).toEqual(expect.arrayContaining([
+      'concept-understanding',
+      'modeling',
+      'analysis',
+      'controller-design',
+      'simulation-validation',
+      'transfer-application',
+    ]));
+    for (const learningGoalPackage of pathReadyPackages) {
+      expect(learningGoalPackage.knowledgeObjectiveIds.every((id) => id.startsWith('knowledge:') && objectiveIds.has(id))).toBe(true);
+      expect(learningGoalPackage.capabilityObjectiveIds.every((id) => id.startsWith('capability:') && objectiveIds.has(id))).toBe(true);
+      expect(learningGoalPackage.qualityObjectiveIds.every((id) => id.startsWith('quality:') && objectiveIds.has(id))).toBe(true);
+      expect(learningGoalPackage.targetGraphNodeIds.every((id) => graphNodeIds.has(id))).toBe(true);
+      expect(learningGoalPackage.goalSliceId).toBe('control-correction');
+      expect(learningGoalPackage.resourceMix.required.length).toBeGreaterThan(0);
+      expect(learningGoalPackage.resourceMix.preferred.length).toBeGreaterThan(0);
+      expect(learningGoalPackage.evidencePolicy.requiredEvidenceTypes.length).toBeGreaterThan(0);
+      expect(learningGoalPackage.terminalValidationPolicy.acceptedEvidenceTypes.length).toBeGreaterThan(0);
+      if (!learningGoalPackage.evidencePolicy.qualityEvidenceGoverned) {
+        expect([
+          ...learningGoalPackage.evidencePolicy.limitations,
+          ...learningGoalPackage.limitations,
+        ]).toContain('quality-rubric-evidence-not-fully-governed');
+      }
+    }
+  });
+
+  it('preserves registered goal path calls while exposing LearningGoal package metadata', () => {
+    const legacyControlCorrectionGoal = {
+      id: 'control-correction',
+      title: '控制系统校正设计',
+      knowledgeTargets: [
+        'control-correction:time-domain-targets',
+        'control-correction:root-locus-design',
+        'control-correction:simulation-validation',
+        'control-correction:arena-transfer',
+      ],
+      competencyTargets: ['parameterDesign', 'engineeringDecision', 'crossDomainTransfer'],
+    };
+    const controlCorrectionPlan = buildAdaptiveLearningPathPlan(plannerInput({
+      registry: buildControlCorrectionResourceNodeRegistry(),
+      goal: legacyControlCorrectionGoal,
+      learnerState: null,
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+      },
+    }));
+    const frequencyResponsePlan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: ADAPTIVE_LEARNING_GOAL_DEFINITIONS['frequency-response-foundations'].goal,
+      learnerState: null,
+      constraints: {
+        timeBudgetMinutes: 45,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+      },
+    }));
+
+    expect(controlCorrectionPlan.goal.learningGoalPackage).toMatchObject({
+      id: 'control-correction',
+      qualityObjectiveIds: expect.arrayContaining(['quality:autocontrol:evidence-integrity']),
+      targetGraphNodeIds: expect.arrayContaining(['cap:autocontrol:validate-with-simulation-evidence']),
+    });
+    expect(serializeLearningPathPlan(controlCorrectionPlan).payload.learningGoalPackage?.id).toBe('control-correction');
+    expect(frequencyResponsePlan.goal.learningGoalPackage).toMatchObject({
+      id: 'frequency-response-foundations',
+      knowledgeObjectiveIds: ['knowledge:autocontrol:frequency-response'],
+    });
+  });
+
+  it('keeps unknown LearningGoal package ids on the existing registered-goal rejection path', () => {
+    const canonicalPackage = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal.learningGoalPackage!;
+    const forgedPlan = buildAdaptiveLearningPathPlan(plannerInput({
+      goal: {
+        ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
+        learningGoalPackage: {
+          ...canonicalPackage,
+          id: 'unknown-learning-goal-package',
+          knowledgeObjectiveIds: ['knowledge:fake'],
+          capabilityObjectiveIds: ['capability:fake'],
+          qualityObjectiveIds: ['quality:fake'],
+          targetGraphNodeIds: ['kn:fake'],
+        },
+      },
+      registry: buildControlCorrectionResourceNodeRegistry(),
+      learnerState: null,
+      constraints: {
+        timeBudgetMinutes: 90,
+        privacyScopes: ['student-visible'],
+        device: 'desktop',
+      },
+    }));
+
+    expect(getLearningGoalPackage('unknown-learning-goal-package')).toBeNull();
+    expect(isRegisteredAdaptiveLearningPathGoal('unknown-learning-goal-package')).toBe(false);
+    expect(listLearningGoalPackages().some((learningGoalPackage) =>
+      learningGoalPackage.id === 'unknown-learning-goal-package'
+    )).toBe(false);
+    expect(forgedPlan.goal.learningGoalPackage?.id).toBe('control-correction');
+    expect(forgedPlan.goal.learningGoalPackage?.knowledgeObjectiveIds).not.toContain('knowledge:fake');
+    expect(serializeLearningPathPlan(forgedPlan).payload.learningGoalPackage?.id).toBe('control-correction');
+    expect(validateLearningGoalPackage({
+      ...canonicalPackage,
+      knowledgeObjectiveIds: ['capability:autocontrol:synthesize-controller-correction'],
+    }).map((issue) => issue.code)).toContain('objective-domain-mismatch');
+    expect(validateLearningGoalPackage({
+      ...canonicalPackage,
+      goalSliceId: 'unknown-learning-goal-slice',
+    }).map((issue) => issue.code)).toContain('unknown-goal-slice-id');
   });
 
   it('applies requested resource, difficulty, and checkpoint preferences to path scoring', () => {
