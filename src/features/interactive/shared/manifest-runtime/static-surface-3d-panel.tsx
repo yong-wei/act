@@ -112,18 +112,18 @@ export function StaticSurface3DPanel({
   return (
     <section
       data-static-surface-3d-panel={moduleId}
-      className="space-y-4 rounded-lg border border-platform-border bg-platform-panel p-4 shadow-sm"
+      className="premium-lesson-panel interactive-courseware-panel"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
-          <h3 className="premium-lesson-title text-lg font-semibold leading-7">{title}</h3>
-          {caption ? <p className="premium-lesson-muted text-sm leading-6">{caption}</p> : null}
+          <h3 className="interactive-courseware-title-level-3">{title}</h3>
+          {caption ? <p className="interactive-courseware-body">{caption}</p> : null}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             data-static-surface-view-action="default"
-            className="inline-flex h-9 items-center justify-center rounded-md border border-platform-border bg-platform-panel px-3 text-sm font-medium text-platform-strong transition hover:bg-platform-panel-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-focus"
+            className="inline-flex h-9 items-center justify-center rounded-md border border-platform-border bg-platform-panel px-3 interactive-courseware-control text-platform-strong transition hover:bg-platform-panel-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-focus"
             onClick={() => {
               setViewMode('default');
               setResetSignal((value) => value + 1);
@@ -134,7 +134,7 @@ export function StaticSurface3DPanel({
           <button
             type="button"
             data-static-surface-view-action="top"
-            className="inline-flex h-9 items-center justify-center rounded-md border border-platform-border bg-platform-panel px-3 text-sm font-medium text-platform-strong transition hover:bg-platform-panel-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-focus"
+            className="inline-flex h-9 items-center justify-center rounded-md border border-platform-border bg-platform-panel px-3 interactive-courseware-control text-platform-strong transition hover:bg-platform-panel-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-focus"
             onClick={() => {
               setViewMode('top');
               setResetSignal((value) => value + 1);
@@ -145,7 +145,7 @@ export function StaticSurface3DPanel({
         </div>
       </div>
 
-      <div className="grid gap-3 text-xs text-platform-muted sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 interactive-courseware-caption sm:grid-cols-2 lg:grid-cols-4">
         {axisLabels.map((label) => (
           <div key={label} className="rounded-md border border-platform-border bg-platform-panel-muted px-3 py-2">
             {label}
@@ -174,7 +174,7 @@ export function StaticSurface3DPanel({
           <StaticSurfaceFallback fallback={fallback} reason={unavailableReason} />
         )}
       </div>
-      <p className="premium-lesson-muted text-xs leading-5">
+      <p className="interactive-courseware-caption">
         {fallback.note ?? '如果浏览器无法启用 WebGL，本面板保留静态图作为同一教学对象的备用证据。'}
       </p>
     </section>
@@ -191,7 +191,7 @@ function StaticSurfaceFallback({
   return (
     <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 p-4 text-center">
       {reason ? (
-        <p className="premium-lesson-title text-sm font-semibold leading-6">
+        <p className="interactive-courseware-body font-semibold">
           {reason === 'webgl' ? '当前浏览器无法启用 WebGL，已切换为静态证据。' : '曲面数据暂不可用，已切换为静态证据。'}
         </p>
       ) : null}
@@ -202,7 +202,7 @@ function StaticSurfaceFallback({
         height={520}
         className="max-h-[280px] w-full max-w-[760px] rounded-md object-contain"
       />
-      <p className="premium-lesson-muted text-sm leading-6">{fallback.alt}</p>
+      <p className="interactive-courseware-body">{fallback.alt}</p>
     </div>
   );
 }

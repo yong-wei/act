@@ -44,10 +44,13 @@ type CodeToken = { value: string; kind: CodeTokenKind };
 type InteractiveFigureKind = 'drag_pole_s_plane' | 'three_ships_case';
 type VisualStageAspectRatio = '16:9' | '4:3' | 'fluid';
 type VisualStageLayerKind = 'diagram' | 'formula' | 'annotation' | 'media' | 'activity' | 'control';
+type VisualStageLayerAppearance = 'card' | 'flowNode' | 'note' | 'objective';
+type VisualStageAnchor = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW' | 'C';
 type VisualStageRegion = { x: number; y: number; width: number; height: number };
 type VisualStageLayer = {
   id: string;
   kind: VisualStageLayerKind;
+  appearance: VisualStageLayerAppearance;
   title: string;
   body: string;
   region: VisualStageRegion;
@@ -55,12 +58,21 @@ type VisualStageLayer = {
   revealState?: string;
   activityAnchor?: string;
 };
+type VisualStageConnection = {
+  id: string;
+  from: string;
+  to: string;
+  fromAnchor: VisualStageAnchor;
+  toAnchor: VisualStageAnchor;
+  revealState?: string;
+};
 type VisualStagePayload = {
   stageId: string;
   aspectRatio: VisualStageAspectRatio;
   releaseState: string;
   activeRevealState: string;
   layers: VisualStageLayer[];
+  connections: VisualStageConnection[];
 };
 type DerivationFormulaBlockColorRole = 'known' | 'transform' | 'cancel' | 'target' | 'risk' | 'result';
 type DerivationStageRegion = VisualStageRegion;
@@ -68,6 +80,7 @@ type DerivationFormulaBlock = {
   id: string;
   latex: string;
   title: string;
+  region?: DerivationStageRegion;
   colorRole?: DerivationFormulaBlockColorRole;
 };
 type DerivationFormula = {
@@ -88,6 +101,8 @@ type DerivationConnector = {
   kind: string;
   from: string;
   to: string;
+  fromAnchor: VisualStageAnchor;
+  toAnchor: VisualStageAnchor;
   revealStepIds: string[];
 };
 type DerivationRevealStep = {
@@ -101,6 +116,7 @@ type DerivationStagePayload = {
   aspectRatio: VisualStageAspectRatio;
   releaseState: string;
   activeRevealStepId: string;
+  subtitle?: string;
   formulas: DerivationFormula[];
   textBlocks: DerivationTextBlock[];
   connectors: DerivationConnector[];
@@ -127,6 +143,21 @@ const STRUCTURE_DIAGRAM_SIGNAL_SELECTED_HALO_STROKE = 4;
 const STRUCTURE_DIAGRAM_ARROWHEAD_WIDTH = 13.5;
 const STRUCTURE_DIAGRAM_ARROWHEAD_HEIGHT = 9;
 const STRUCTURE_DIAGRAM_ARROWHEAD_PATH = `M0,0 L${STRUCTURE_DIAGRAM_ARROWHEAD_WIDTH},${STRUCTURE_DIAGRAM_ARROWHEAD_HEIGHT / 2} L0,${STRUCTURE_DIAGRAM_ARROWHEAD_HEIGHT} z`;
+const STRUCTURE_DIAGRAM_EDGE_LABEL_OFFSET_Y = 5;
+const SIGNAL_FLOW_NODE_SIZE_PX = 12;
+const SIGNAL_FLOW_NODE_HIT_SIZE_PX = 28;
+const SIGNAL_FLOW_BRANCH_LABEL_OFFSET = 4;
+const SIGNAL_FLOW_AUTO_BEZIER_MIN_CURVE = 0.045;
+const SIGNAL_FLOW_AUTO_BEZIER_MAX_CURVE = 0.12;
+const SIGNAL_FLOW_AUTO_BEZIER_CURVE_FACTOR = 0.24;
+const STRUCTURE_DIAGRAM_REFERENCE_CANVAS_HEIGHT_PX = 420;
+const STRUCTURE_DIAGRAM_TRIMMED_CANVAS_HEIGHT_PX = 340;
+const STRUCTURE_DIAGRAM_CANVAS_CLASS =
+  'relative min-h-[300px] overflow-hidden bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)] md:h-[340px] md:min-h-0';
+const BLOCK_DIAGRAM_Y_TARGET_SPAN = 0.66;
+const BLOCK_DIAGRAM_Y_TARGET_CENTER = 0.46;
+const SIGNAL_FLOW_Y_TARGET_SPAN = 0.7;
+const SIGNAL_FLOW_Y_TARGET_CENTER = 0.42;
 type BlockDiagramNodeType = 'block' | 'sum' | 'branch' | 'input' | 'output' | 'disturbance' | 'sensor';
 type BlockDiagramNode = {
   id: string;
@@ -147,6 +178,7 @@ type BlockDiagramEdge = {
   waypoints: StructureDiagramPoint[];
   route: string;
   label: string;
+  labelPlacement: string;
 };
 type BlockDiagramPayload = {
   graphId: string;
@@ -165,12 +197,15 @@ type BlockDiagramCanvasMetrics = {
 type SignalFlowNode = {
   id: string;
   labelLatex: string;
+  labelPosition: string;
   position: StructureDiagramPoint;
 };
 type SignalFlowBranch = {
   id: string;
   from: string;
   to: string;
+  fromPort: string;
+  toPort: string;
   route: string;
   gainLatex: string;
 };
@@ -189,6 +224,8 @@ type SignalFlowPayload = {
   layout: StructureDiagramLayout;
   mode: string;
   activeRevealState: string;
+  showPathSets: boolean;
+  showMasonMap: boolean;
   nodes: SignalFlowNode[];
   branches: SignalFlowBranch[];
   forwardPaths: SignalFlowPathSet[];
@@ -354,7 +391,7 @@ function renderFormulaContent(formula: string) {
     return <BlockMath math={normalizeMath(value)} />;
   }
 
-  return <p className="premium-lesson-title text-sm leading-7">{renderInlineContent(value)}</p>;
+  return <p className="interactive-courseware-body">{renderInlineContent(value)}</p>;
 }
 
 const MODULE_KIND_TITLE: Record<string, string> = {
@@ -503,6 +540,19 @@ function stringFromFields(source: ContentRecord, fields: string[], fallback = ''
   return fallback;
 }
 
+function booleanFromFields(source: ContentRecord, fields: string[], fallback = false) {
+  for (const field of fields) {
+    const value = source[field];
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'string' && value.trim()) {
+      const normalized = value.trim().toLowerCase();
+      if (normalized === 'true') return true;
+      if (normalized === 'false') return false;
+    }
+  }
+  return fallback;
+}
+
 function visualStageAspectRatio(value: unknown): VisualStageAspectRatio {
   return value === '4:3' || value === 'fluid' ? value : '16:9';
 }
@@ -516,6 +566,18 @@ function visualStageOptionalString(value: unknown) {
   if (typeof value !== 'string') return undefined;
   const trimmed = value.trim();
   return trimmed || undefined;
+}
+
+function visualStageLayerAppearance(value: unknown): VisualStageLayerAppearance {
+  return ['card', 'flowNode', 'note', 'objective'].includes(String(value))
+    ? String(value) as VisualStageLayerAppearance
+    : 'card';
+}
+
+function visualStageAnchor(value: unknown, fallback: VisualStageAnchor): VisualStageAnchor {
+  return ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'C'].includes(String(value))
+    ? String(value) as VisualStageAnchor
+    : fallback;
 }
 
 function visualStageRegion(value: unknown): VisualStageRegion {
@@ -541,6 +603,7 @@ function visualStageLayers(value: unknown): VisualStageLayer[] {
       return {
         id,
         kind,
+        appearance: visualStageLayerAppearance(layer.appearance ?? layer.variant),
         title: String(layer.title ?? layer.label ?? `Layer ${index + 1}`),
         body: String(layer.body ?? layer.text ?? layer.description ?? ''),
         region: visualStageRegion(layer.region),
@@ -557,6 +620,27 @@ function visualStageLayers(value: unknown): VisualStageLayer[] {
     .sort((left, right) => left.zIndex - right.zIndex);
 }
 
+function visualStageConnections(value: unknown): VisualStageConnection[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item): VisualStageConnection | null => {
+      const connection = asRecord(item);
+      const id = String(connection.id ?? '').trim();
+      const from = String(connection.from ?? connection.fromId ?? connection.from_id ?? '').trim();
+      const to = String(connection.to ?? connection.toId ?? connection.to_id ?? '').trim();
+      if (!id || !from || !to) return null;
+      return {
+        id,
+        from,
+        to,
+        fromAnchor: visualStageAnchor(connection.fromAnchor ?? connection.from_anchor, 'S'),
+        toAnchor: visualStageAnchor(connection.toAnchor ?? connection.to_anchor, 'N'),
+        revealState: visualStageOptionalString(connection.revealState ?? connection.reveal_state),
+      };
+    })
+    .filter((item): item is VisualStageConnection => Boolean(item));
+}
+
 function visualStagePayload(module: InteractiveRuntimeModuleManifest): VisualStagePayload {
   const payload = module.payload;
   return {
@@ -565,6 +649,7 @@ function visualStagePayload(module: InteractiveRuntimeModuleManifest): VisualSta
     releaseState: visualStageString(payload.releaseState ?? payload.release_state, 'released'),
     activeRevealState: visualStageString(payload.activeRevealState ?? payload.active_reveal_state, 'all'),
     layers: visualStageLayers(payload.layers),
+    connections: visualStageConnections(payload.connections ?? payload.edges),
   };
 }
 
@@ -606,6 +691,7 @@ function derivationFormulaBlocks(value: unknown, fallbackLatex: string): Derivat
         id,
         latex: visualStageString(block.latex ?? block.latexSource ?? block.latex_source, fallbackLatex),
         title: String(block.title ?? block.label ?? `公式块 ${index + 1}`),
+        region: block.region ? visualStageRegion(block.region) : undefined,
         colorRole: derivationColorRole(block.colorRole ?? block.color_role),
       };
     })
@@ -662,6 +748,8 @@ function derivationConnectors(value: unknown): DerivationConnector[] {
         from,
         to,
         kind: String(connector.kind ?? `connector-${index + 1}`),
+        fromAnchor: visualStageAnchor(connector.fromAnchor ?? connector.from_anchor, 'E'),
+        toAnchor: visualStageAnchor(connector.toAnchor ?? connector.to_anchor, 'W'),
         revealStepIds: asStringArray(connector.revealStepIds ?? connector.reveal_step_ids),
       };
     })
@@ -699,6 +787,7 @@ function derivationStagePayload(module: InteractiveRuntimeModuleManifest): Deriv
     aspectRatio: visualStageAspectRatio(payload.aspectRatio ?? payload.aspect_ratio),
     releaseState: visualStageString(payload.releaseState ?? payload.release_state, 'released'),
     activeRevealStepId,
+    subtitle: visualStageOptionalString(payload.subtitle ?? payload.lead ?? payload.description),
     formulas: derivationFormulas(payload.formulas),
     textBlocks: derivationTextBlocks(payload.textBlocks ?? payload.text_blocks),
     connectors: derivationConnectors(payload.connectors),
@@ -708,11 +797,11 @@ function derivationStagePayload(module: InteractiveRuntimeModuleManifest): Deriv
   };
 }
 
-function derivationStageReleaseLabel(releaseState: string) {
+function derivationStageReleaseLabel(releaseState: string, fallback?: string) {
   if (releaseState === 'unavailable') return '当前推导暂不可用。';
   if (releaseState === 'unreleased') return '等待教师发放后查看推导。';
   if (releaseState === 'revealed') return '教师已展开当前推导位置。';
-  return '按显影步骤观察公式、说明和关联线。';
+  return fallback ?? '按显影步骤观察公式、说明和关联线。';
 }
 
 function derivationStageVisibleTargetIds(stage: DerivationStagePayload) {
@@ -742,7 +831,7 @@ function derivationTargetRegionMap(stage: DerivationStagePayload) {
     entries.set(formula.id, formula.region);
     const blockHeight = formula.region.height / Math.max(formula.blocks.length, 1);
     formula.blocks.forEach((block, index) => {
-      entries.set(block.id, {
+      entries.set(block.id, block.region ?? {
         x: formula.region.x,
         y: formula.region.y + (blockHeight * index),
         width: formula.region.width,
@@ -756,11 +845,60 @@ function derivationTargetRegionMap(stage: DerivationStagePayload) {
   return entries;
 }
 
-function derivationConnectorEndpoint(region: DerivationStageRegion | undefined, fallback: { x: number; y: number }) {
+function derivationConnectorEndpoint(
+  region: DerivationStageRegion | undefined,
+  anchor: VisualStageAnchor,
+  fallback: { x: number; y: number },
+) {
   if (!region) return fallback;
+  const { x, y, width, height } = region;
+  const anchorPoints: Record<VisualStageAnchor, { x: number; y: number }> = {
+    N: { x: x + width / 2, y },
+    NE: { x: x + width, y },
+    E: { x: x + width, y: y + height / 2 },
+    SE: { x: x + width, y: y + height },
+    S: { x: x + width / 2, y: y + height },
+    SW: { x, y: y + height },
+    W: { x, y: y + height / 2 },
+    NW: { x, y },
+    C: { x: x + width / 2, y: y + height / 2 },
+  };
+  const point = anchorPoints[anchor];
   return {
-    x: (region.x + region.width / 2) * 100,
-    y: (region.y + region.height / 2) * 100,
+    x: point.x * 100,
+    y: point.y * 100,
+  };
+}
+
+function derivationFixedArrowStyle(
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  metrics: { width: number; height: number } | undefined,
+) {
+  if (!metrics) {
+    return {
+      left: `${from.x}%`,
+      top: `${from.y}%`,
+      width: '0px',
+      height: '1.5em',
+      visibility: 'hidden',
+    };
+  }
+  const startX = (from.x / 100) * metrics.width;
+  const startY = (from.y / 100) * metrics.height;
+  const endX = (to.x / 100) * metrics.width;
+  const endY = (to.y / 100) * metrics.height;
+  const dx = endX - startX;
+  const dy = endY - startY;
+  const length = Math.max(Math.hypot(dx, dy), 24);
+  const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+  return {
+    left: `${startX}px`,
+    top: `${startY}px`,
+    width: `${length}px`,
+    height: '1.5em',
+    transform: `translateY(-50%) rotate(${angle}deg)`,
+    transformOrigin: '0 50%',
   };
 }
 
@@ -878,6 +1016,7 @@ function blockDiagramEdges(value: unknown): BlockDiagramEdge[] {
         waypoints,
         route: stringFromFields(edge, ['route', 'path'], '--'),
         label: stringFromFields(edge, ['labelLatex', 'label_latex', 'label']),
+        labelPlacement: stringFromFields(edge, ['labelPlacement', 'label_placement', 'labelPosition', 'label_position']),
       };
     })
     .filter((item): item is BlockDiagramEdge => Boolean(item));
@@ -938,12 +1077,15 @@ function signalFlowPayload(module: InteractiveRuntimeModuleManifest): SignalFlow
   const interaction = asRecord(payload.interactions ?? payload.interaction);
   const pathSets = asRecord(payload.pathSets ?? payload.path_sets);
   const layout = structureLayout(payload.layout);
+  const nodes = centerSignalFlowNodes(signalFlowNodes(payload.nodes, layout));
   return {
     graphId: String(payload.graphId ?? payload.graph_id ?? module.id),
     layout,
     mode: visualStageString(interaction.mode ?? payload.mode, 'read'),
     activeRevealState: visualStageString(payload.activeRevealState ?? payload.active_reveal_state, 'all'),
-    nodes: signalFlowNodes(payload.nodes, layout),
+    showPathSets: booleanFromFields(payload, ['showPathSets', 'show_path_sets'], true),
+    showMasonMap: booleanFromFields(payload, ['showMasonMap', 'show_mason_map'], true),
+    nodes,
     branches: signalFlowBranches(payload.branches),
     forwardPaths: signalFlowPathSets(pathSets.forwardPaths ?? pathSets.forward_paths, 'forward-path', '前向路径'),
     loops: signalFlowPathSets(pathSets.loops, 'feedback-loop', '反馈环路'),
@@ -951,6 +1093,42 @@ function signalFlowPayload(module: InteractiveRuntimeModuleManifest): SignalFlow
     revealPlan: signalFlowRevealPlan(payload.revealPlan ?? payload.reveal_plan),
     masonTerms: masonTerms(payload.masonTerms ?? payload.mason_terms),
   };
+}
+
+function centerSignalFlowNodes(nodes: SignalFlowNode[]) {
+  if (!nodes.length) return nodes;
+  const minX = Math.min(...nodes.map((node) => node.position.x));
+  const maxX = Math.max(...nodes.map((node) => node.position.x));
+  const shiftX = 0.5 - (minX + maxX) / 2;
+  if (Math.abs(shiftX) < 0.001) return nodes;
+  return nodes.map((node) => ({
+    ...node,
+    position: {
+      ...node.position,
+      x: clamp(node.position.x + shiftX, 0.08, 0.92),
+    },
+  }));
+}
+
+function compactStructureDiagramNodeY<T extends { position: StructureDiagramPoint }>(
+  nodes: readonly T[],
+  targetSpan = 0.34,
+  targetCenter = 0.5,
+) {
+  if (nodes.length < 2) return nodes;
+  const minY = Math.min(...nodes.map((node) => node.position.y));
+  const maxY = Math.max(...nodes.map((node) => node.position.y));
+  const span = maxY - minY;
+  if (span < 0.02 || span >= targetSpan) return nodes;
+  const scale = Math.min(targetSpan / span, 4);
+  const sourceCenter = (minY + maxY) / 2;
+  return nodes.map((node) => ({
+    ...node,
+    position: {
+      ...node.position,
+      y: clamp(targetCenter + (node.position.y - sourceCenter) * scale, 0.12, 0.88),
+    },
+  }));
 }
 
 function signalFlowNodes(value: unknown, layout: StructureDiagramLayout): SignalFlowNode[] {
@@ -964,6 +1142,7 @@ function signalFlowNodes(value: unknown, layout: StructureDiagramLayout): Signal
       const result = {
         id,
         labelLatex: stringFromFields(node, ['labelLatex', 'label_latex', 'label'], id),
+        labelPosition: stringFromFields(node, ['labelPosition', 'label_position'], 'below') === 'above' ? 'above' : 'below',
         position: relativeNodePosition(node, resolved, layout, index),
       };
       resolved.set(id, result.position);
@@ -978,13 +1157,17 @@ function signalFlowBranches(value: unknown): SignalFlowBranch[] {
     .map((item): SignalFlowBranch | null => {
       const branch = asRecord(item);
       const id = String(branch.id ?? '').trim();
-      const from = String(branch.from ?? branch.fromId ?? branch.from_id ?? '').trim();
-      const to = String(branch.to ?? branch.toId ?? branch.to_id ?? '').trim();
+      const fromRef = blockEndpointRef(branch.from ?? branch.fromId ?? branch.from_id, branch.fromPort ?? branch.from_port);
+      const toRef = blockEndpointRef(branch.to ?? branch.toId ?? branch.to_id, branch.toPort ?? branch.to_port);
+      const from = fromRef.nodeId;
+      const to = toRef.nodeId;
       if (!id || !from || !to) return null;
       return {
         id,
         from,
         to,
+        fromPort: fromRef.port,
+        toPort: toRef.port,
         route: stringFromFields(branch, ['route', 'path'], ''),
         gainLatex: stringFromFields(branch, ['gainLatex', 'gain_latex', 'labelLatex', 'label_latex'], '1'),
       };
@@ -1241,6 +1424,17 @@ function blockDiagramNodeUsesEdgeInset(visualKind: string) {
   return visualKind === 'block' || visualKind === 'sum';
 }
 
+function blockDiagramNodeSizeForCanvas(node: BlockDiagramNode, metrics?: BlockDiagramCanvasMetrics) {
+  const visualKind = blockDiagramNodeVisualKind(node);
+  if (visualKind !== 'block') return node.size;
+  const canvasHeight = metrics?.height && metrics.height > 0 ? metrics.height : STRUCTURE_DIAGRAM_TRIMMED_CANVAS_HEIGHT_PX;
+  const heightScale = STRUCTURE_DIAGRAM_REFERENCE_CANVAS_HEIGHT_PX / canvasHeight;
+  return {
+    ...node.size,
+    height: clamp(node.size.height * heightScale, node.size.height, 0.25),
+  };
+}
+
 function blockDiagramSumPortRadius(node: BlockDiagramNode, metrics?: BlockDiagramCanvasMetrics): StructureDiagramPoint {
   if (metrics && metrics.width > 0 && metrics.height > 0) {
     return {
@@ -1255,8 +1449,9 @@ function blockDiagramSumPortRadius(node: BlockDiagramNode, metrics?: BlockDiagra
 function blockDiagramNodePortPoint(node: BlockDiagramNode, port: string, metrics?: BlockDiagramCanvasMetrics): StructureDiagramPoint {
   const visualKind = blockDiagramNodeVisualKind(node);
   if (visualKind === 'branch' || visualKind === 'takeoff') return node.position;
-  const halfWidth = node.size.width / 2;
-  const halfHeight = node.size.height / 2;
+  const renderedSize = blockDiagramNodeSizeForCanvas(node, metrics);
+  const halfWidth = renderedSize.width / 2;
+  const halfHeight = renderedSize.height / 2;
   if (visualKind === 'sum') {
     const radius = blockDiagramSumPortRadius(node, metrics);
     const diagonal = { x: radius.x / Math.SQRT2, y: radius.y / Math.SQRT2 };
@@ -1359,7 +1554,7 @@ function blockEdgePath(nodes: readonly BlockDiagramNode[], edge: BlockDiagramEdg
       arrow: structureArrowhead(points, metrics),
       label: {
         x: ((longestSegment.from.x + longestSegment.to.x) / 2) * 100,
-        y: ((longestSegment.from.y + longestSegment.to.y) / 2) * 100 - 3,
+        y: ((longestSegment.from.y + longestSegment.to.y) / 2) * 100 - STRUCTURE_DIAGRAM_EDGE_LABEL_OFFSET_Y,
       },
     };
   }
@@ -1376,7 +1571,7 @@ function blockEdgePath(nodes: readonly BlockDiagramNode[], edge: BlockDiagramEdg
       arrow: structureArrowhead(points, metrics),
       label: {
         x: ((longestSegment.from.x + longestSegment.to.x) / 2) * 100,
-        y: ((longestSegment.from.y + longestSegment.to.y) / 2) * 100 - 3,
+        y: ((longestSegment.from.y + longestSegment.to.y) / 2) * 100 - STRUCTURE_DIAGRAM_EDGE_LABEL_OFFSET_Y,
       },
     };
   }
@@ -1387,14 +1582,31 @@ function blockEdgePath(nodes: readonly BlockDiagramNode[], edge: BlockDiagramEdg
     return {
       d: `M ${structureSvgPoint(from)} L ${structureSvgValue(from.x * 100)} ${structureSvgValue(midY * 100)} L ${structureSvgValue(to.x * 100)} ${structureSvgValue(midY * 100)} L ${structureSvgPoint(to)}`,
       arrow: structureArrowhead([from, { x: from.x, y: midY }, { x: to.x, y: midY }, to], metrics),
-      label: { x: ((from.x + to.x) / 2) * 100, y: (midY * 100) - 2 },
+      label: { x: ((from.x + to.x) / 2) * 100, y: (midY * 100) - STRUCTURE_DIAGRAM_EDGE_LABEL_OFFSET_Y },
     };
   }
   return {
     d: `M ${structureSvgPoint(from)} L ${structureSvgPoint(to)}`,
     arrow: structureArrowhead([from, to], metrics),
-    label: { x: ((from.x + to.x) / 2) * 100, y: ((from.y + to.y) / 2) * 100 - 3 },
+    label: { x: ((from.x + to.x) / 2) * 100, y: ((from.y + to.y) / 2) * 100 - STRUCTURE_DIAGRAM_EDGE_LABEL_OFFSET_Y },
   };
+}
+
+function blockEdgeLabelPosition(
+  nodes: readonly BlockDiagramNode[],
+  edge: BlockDiagramEdge,
+  fallback: StructureDiagramPoint,
+  metrics?: BlockDiagramCanvasMetrics,
+) {
+  const fromNode = structureNodeForId(nodes, edge.from);
+  if (edge.labelPlacement === 'source-left' && fromNode) {
+    const size = blockDiagramNodeSizeForCanvas(fromNode, metrics);
+    return {
+      x: clamp((fromNode.position.x - size.width / 2) * 100 - 5, 0, 100),
+      y: clamp(fromNode.position.y * 100 - STRUCTURE_DIAGRAM_EDGE_LABEL_OFFSET_Y, 0, 100),
+    };
+  }
+  return fallback;
 }
 
 function blockEdgeTerminalSignPosition(nodes: readonly BlockDiagramNode[], edge: BlockDiagramEdge, metrics?: BlockDiagramCanvasMetrics) {
@@ -1417,7 +1629,7 @@ function blockEdgeTerminalSignPosition(nodes: readonly BlockDiagramNode[], edge:
   };
 }
 
-function blockNodeBounds(node: BlockDiagramNode) {
+function blockNodeBounds(node: BlockDiagramNode, metrics?: BlockDiagramCanvasMetrics) {
   const visualKind = blockDiagramNodeVisualKind(node);
   if (visualKind === 'sum') {
     return {
@@ -1455,11 +1667,12 @@ function blockNodeBounds(node: BlockDiagramNode) {
       transform: 'translate(-50%, -50%)',
     };
   }
+  const renderedSize = blockDiagramNodeSizeForCanvas(node, metrics);
   return {
-    left: `${(node.position.x - node.size.width / 2) * 100}%`,
-    top: `${(node.position.y - node.size.height / 2) * 100}%`,
-    width: `${node.size.width * 100}%`,
-    height: `${node.size.height * 100}%`,
+    left: `${(node.position.x - renderedSize.width / 2) * 100}%`,
+    top: `${(node.position.y - renderedSize.height / 2) * 100}%`,
+    width: `${renderedSize.width * 100}%`,
+    height: `${renderedSize.height * 100}%`,
     transform: undefined,
   };
 }
@@ -1547,43 +1760,119 @@ function blockDiagramNodeAnchors(node: BlockDiagramNode) {
   return 'E W C';
 }
 
+function signalFlowNodePortRadius(metrics?: BlockDiagramCanvasMetrics): StructureDiagramPoint {
+  if (metrics && metrics.width > 0 && metrics.height > 0) {
+    return {
+      x: (SIGNAL_FLOW_NODE_SIZE_PX / 2) / metrics.width,
+      y: (SIGNAL_FLOW_NODE_SIZE_PX / 2) / metrics.height,
+    };
+  }
+  return { x: 0.006, y: 0.011 };
+}
+
+function signalFlowNodePortPoint(node: SignalFlowNode, port: string, metrics?: BlockDiagramCanvasMetrics): StructureDiagramPoint {
+  const radius = signalFlowNodePortRadius(metrics);
+  const diagonal = { x: radius.x / Math.SQRT2, y: radius.y / Math.SQRT2 };
+  if (port === 'left') return { x: node.position.x - radius.x, y: node.position.y };
+  if (port === 'right') return { x: node.position.x + radius.x, y: node.position.y };
+  if (port === 'top') return { x: node.position.x, y: node.position.y - radius.y };
+  if (port === 'bottom') return { x: node.position.x, y: node.position.y + radius.y };
+  if (port === 'top-right') return { x: node.position.x + diagonal.x, y: node.position.y - diagonal.y };
+  if (port === 'bottom-right') return { x: node.position.x + diagonal.x, y: node.position.y + diagonal.y };
+  if (port === 'bottom-left') return { x: node.position.x - diagonal.x, y: node.position.y + diagonal.y };
+  if (port === 'top-left') return { x: node.position.x - diagonal.x, y: node.position.y - diagonal.y };
+  return node.position;
+}
+
+function signalFlowAutoPorts(from: SignalFlowNode, to: SignalFlowNode, routeKind: string) {
+  if (routeKind === 'straight') {
+    return { fromPort: 'right', toPort: 'left' };
+  }
+  const dx = to.position.x - from.position.x;
+  const dy = to.position.y - from.position.y;
+  if (Math.abs(dy) <= 0.03) {
+    return dx < 0
+      ? { fromPort: 'bottom-left', toPort: 'bottom-right' }
+      : { fromPort: 'top-right', toPort: 'top-left' };
+  }
+  if (dy > 0) {
+    return dx >= 0
+      ? { fromPort: 'bottom-right', toPort: 'top-left' }
+      : { fromPort: 'bottom-left', toPort: 'top-right' };
+  }
+  return dx >= 0
+    ? { fromPort: 'top-right', toPort: 'bottom-left' }
+    : { fromPort: 'top-left', toPort: 'bottom-right' };
+}
+
+function signalFlowBranchRouteKind(from: SignalFlowNode, to: SignalFlowNode, branch: SignalFlowBranch) {
+  if (branch.route) return branch.route === 'straight' ? 'straight' : 'auto-bezier';
+  return Math.abs(from.position.y - to.position.y) < 0.03 && to.position.x > from.position.x ? 'straight' : 'auto-bezier';
+}
+
+function signalFlowNodeForId(nodes: readonly SignalFlowNode[], id: string) {
+  return nodes.find((node) => node.id === id);
+}
+
+function signalFlowBezierPoint(
+  start: StructureDiagramPoint,
+  control1: StructureDiagramPoint,
+  control2: StructureDiagramPoint,
+  end: StructureDiagramPoint,
+  t: number,
+) {
+  const mt = 1 - t;
+  return {
+    x: mt ** 3 * start.x + 3 * mt ** 2 * t * control1.x + 3 * mt * t ** 2 * control2.x + t ** 3 * end.x,
+    y: mt ** 3 * start.y + 3 * mt ** 2 * t * control1.y + 3 * mt * t ** 2 * control2.y + t ** 3 * end.y,
+  };
+}
+
 function signalBranchPath(nodes: readonly SignalFlowNode[], branch: SignalFlowBranch, metrics?: BlockDiagramCanvasMetrics) {
-  const from = structurePointForId(nodes, branch.from);
-  const to = structurePointForId(nodes, branch.to);
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const length = Math.max(0.001, Math.hypot(dx, dy));
-  const nodeRadius = 0.035;
-  const start = { x: from.x + (dx / length) * nodeRadius, y: from.y + (dy / length) * nodeRadius };
-  const end = { x: to.x - (dx / length) * nodeRadius, y: to.y - (dy / length) * nodeRadius };
-  const routeKind = branch.route || (Math.abs(start.y - end.y) < 0.03 && end.x > start.x ? 'straight' : 'auto-bezier');
+  const fromNode = signalFlowNodeForId(nodes, branch.from);
+  const toNode = signalFlowNodeForId(nodes, branch.to);
+  const fallbackFrom = structurePointForId(nodes, branch.from);
+  const fallbackTo = structurePointForId(nodes, branch.to);
+  const routeKind = fromNode && toNode ? signalFlowBranchRouteKind(fromNode, toNode, branch) : 'straight';
+  const autoPorts = fromNode && toNode ? signalFlowAutoPorts(fromNode, toNode, routeKind) : { fromPort: 'right', toPort: 'left' };
+  const fromPort = branch.fromPort || autoPorts.fromPort;
+  const toPort = branch.toPort || autoPorts.toPort;
+  const start = fromNode ? signalFlowNodePortPoint(fromNode, fromPort, metrics) : fallbackFrom;
+  const end = toNode ? signalFlowNodePortPoint(toNode, toPort, metrics) : fallbackTo;
   if (routeKind === 'straight') {
     return {
       d: `M ${structureSvgPoint(start)} L ${structureSvgPoint(end)}`,
       arrow: structureArrowhead([start, end], metrics),
-      label: { x: ((start.x + end.x) / 2) * 100, y: ((start.y + end.y) / 2) * 100 - 4 },
+      label: { x: ((start.x + end.x) / 2) * 100, y: ((start.y + end.y) / 2) * 100 - SIGNAL_FLOW_BRANCH_LABEL_OFFSET },
       routeKind,
+      fromPort,
+      toPort,
     };
   }
-  if (to.x < from.x || Math.abs(to.y - from.y) > 0.12) {
-    const verticalDirection = start.y <= end.y ? 1 : -1;
-    const controlY = (verticalDirection > 0 ? Math.max(start.y, end.y) : Math.min(start.y, end.y)) + verticalDirection * 0.16;
-    const control2 = { x: end.x, y: controlY };
-    return {
-      d: `M ${structureSvgPoint(start)} C ${structureSvgValue(start.x * 100)} ${structureSvgValue(controlY * 100)}, ${structureSvgValue(control2.x * 100)} ${structureSvgValue(control2.y * 100)}, ${structureSvgPoint(end)}`,
-      arrow: structureArrowheadFromSegment(control2, end, metrics),
-      label: { x: ((start.x + end.x) / 2) * 100, y: controlY * 100 + 4 },
-      routeKind: 'auto-bezier',
-    };
-  }
-  const controlX = ((start.x + end.x) / 2) * 100;
-  const controlY = (((start.y + end.y) / 2) - 0.06) * 100;
-  const controlPoint = { x: controlX / 100, y: controlY / 100 };
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const normalLength = Math.max(0.001, Math.hypot(dx, dy));
+  const midpoint = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+  const isLowerArc = fromPort.includes('bottom') || toPort.includes('bottom');
+  const normalDirection = isLowerArc ? -1 : 1;
+  const curveHeight = Math.min(
+    SIGNAL_FLOW_AUTO_BEZIER_MAX_CURVE,
+    Math.max(SIGNAL_FLOW_AUTO_BEZIER_MIN_CURVE, normalLength * SIGNAL_FLOW_AUTO_BEZIER_CURVE_FACTOR),
+  );
+  const controlPoint = {
+    x: midpoint.x + (-dy / normalLength) * curveHeight * normalDirection,
+    y: midpoint.y + (dx / normalLength) * curveHeight * normalDirection,
+  };
+  const control1 = controlPoint;
+  const control2 = controlPoint;
+  const labelPoint = signalFlowBezierPoint(start, control1, control2, end, 0.5);
   return {
-    d: `M ${structureSvgPoint(start)} C ${structureSvgValue(controlX)} ${structureSvgValue(controlY)}, ${structureSvgValue(controlX)} ${structureSvgValue(controlY)}, ${structureSvgPoint(end)}`,
-    arrow: structureArrowheadFromSegment(controlPoint, end, metrics),
-    label: { x: ((start.x + end.x) / 2) * 100, y: controlY - 3 },
+    d: `M ${structureSvgPoint(start)} C ${structureSvgPoint(control1)}, ${structureSvgPoint(control2)}, ${structureSvgPoint(end)}`,
+    arrow: structureArrowheadFromSegment(control2, end, metrics),
+    label: { x: labelPoint.x * 100, y: labelPoint.y * 100 - SIGNAL_FLOW_BRANCH_LABEL_OFFSET },
     routeKind: 'auto-bezier',
+    fromPort,
+    toPort,
   };
 }
 
@@ -1641,9 +1930,17 @@ function textFieldsFromPayload(payload: ContentRecord, fields: string[]) {
 
 function ManifestContentTitle({ children }: { children: ReactNode }) {
   return (
-    <div className="premium-lesson-title text-base font-semibold leading-7 tracking-normal">
+    <h2 className="interactive-courseware-title-level-2">
       {typeof children === 'string' ? renderInlineContent(children) : children}
-    </div>
+    </h2>
+  );
+}
+
+function ManifestSubsectionTitle({ children }: { children: ReactNode }) {
+  return (
+    <h3 className="interactive-courseware-title-level-3">
+      {typeof children === 'string' ? renderInlineContent(children) : children}
+    </h3>
   );
 }
 
@@ -2196,18 +2493,18 @@ function PoleResponseComputePanel({
   };
 
   return (
-    <section className="premium-lesson-panel space-y-4" data-interactive-figure-panel="drag_pole_s_plane" data-module-id={module.id}>
+    <section className="premium-lesson-panel interactive-courseware-panel" data-interactive-figure-panel="drag_pole_s_plane" data-module-id={module.id}>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="premium-lesson-kicker">极点行为地图</div>
-          <h3 className="premium-lesson-title mt-1 text-lg font-semibold">拖动极点看响应</h3>
-          <p className="premium-lesson-muted mt-1 text-sm leading-6">左侧记录极点坐标，右侧实时显示对应的响应走势。</p>
+          <h3 className="interactive-courseware-title-level-3">拖动极点看响应</h3>
+          <p className="interactive-courseware-body">左侧记录极点坐标，右侧实时显示对应的响应走势。</p>
         </div>
         <button
           type="button"
           onClick={submitCurrent}
           disabled={!onPanelSubmit}
-          className="premium-lesson-action-primary px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+          className="premium-lesson-action-primary interactive-courseware-control px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {onPanelSubmit ? '提交当前参数' : '等待教师发放'}
         </button>
@@ -2239,29 +2536,29 @@ function PoleResponseComputePanel({
       </div>
 
       <div className="grid gap-3 lg:grid-cols-4">
-        <label className="premium-lesson-control flex flex-col gap-2 px-3 py-2 text-sm">
+        <label className="premium-lesson-control flex flex-col gap-2 px-3 py-2 interactive-courseware-control">
           <span>σ（实部）</span>
           <input className="accent-[hsl(var(--platform-action-primary))]" type="range" min="-5" max="2" step="0.1" value={sigma} onChange={(event) => setSigma(Number(event.target.value))} />
           <span className="premium-lesson-caption">{sigma.toFixed(1)}</span>
         </label>
-        <label className="premium-lesson-control flex flex-col gap-2 px-3 py-2 text-sm">
+        <label className="premium-lesson-control flex flex-col gap-2 px-3 py-2 interactive-courseware-control">
           <span>ω（虚部）</span>
           <input className="accent-[hsl(var(--platform-action-primary))]" type="range" min="0" max="5" step="0.1" value={omega} disabled={mode === 'single_real'} onChange={(event) => setOmega(Number(event.target.value))} />
           <span className="premium-lesson-caption">{mode === 'single_real' ? '0.0' : omega.toFixed(1)}</span>
         </label>
-        <label className="premium-lesson-control flex flex-col gap-2 px-3 py-2 text-sm">
+        <label className="premium-lesson-control flex flex-col gap-2 px-3 py-2 interactive-courseware-control">
           <span>极点模式</span>
           <select className="premium-lesson-select" value={mode} onChange={(event) => setMode(event.target.value as typeof mode)}>
             <option value="conjugate_pair">共轭极点</option>
             <option value="single_real">单实极点</option>
           </select>
         </label>
-        <button type="button" className="premium-lesson-action-tone premium-tone-slate self-end px-4 py-2 text-sm" onClick={() => { setSigma(-1); setOmega(2); setMode('conjugate_pair'); }}>
+        <button type="button" className="premium-lesson-action-tone interactive-courseware-control premium-tone-slate self-end px-4 py-2" onClick={() => { setSigma(-1); setOmega(2); setMode('conjugate_pair'); }}>
           复位
         </button>
       </div>
 
-      <label className="premium-lesson-control block px-3 py-2 text-sm">
+      <label className="premium-lesson-control block px-3 py-2 interactive-courseware-control">
         <span className="premium-lesson-title font-medium">行为特征</span>
         <textarea value={observationText} onChange={(event) => setObservationText(event.target.value)} className="premium-lesson-input mt-2 min-h-[76px] w-full" />
       </label>
@@ -2314,18 +2611,18 @@ function ThreeShipsCaseComputePanel({
   };
 
   return (
-    <section className="premium-lesson-panel space-y-4" data-interactive-figure-panel="three_ships_case" data-module-id={module.id}>
+    <section className="premium-lesson-panel interactive-courseware-panel" data-interactive-figure-panel="three_ships_case" data-module-id={module.id}>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="premium-lesson-kicker">三艘船响应仿真</div>
-          <h3 className="premium-lesson-title mt-1 text-lg font-semibold">同样指令下的三种极点行为</h3>
-          <p className="premium-lesson-muted mt-1 text-sm leading-6">切换船型，观察“边摆边收、单调收敛、摆动发散”与极点位置的对应关系。</p>
+          <h3 className="interactive-courseware-title-level-3">同样指令下的三种极点行为</h3>
+          <p className="interactive-courseware-body">切换船型，观察“边摆边收、单调收敛、摆动发散”与极点位置的对应关系。</p>
         </div>
         <button
           type="button"
           onClick={submitSimulationRecord}
           disabled={!onPanelSubmit}
-          className="premium-lesson-action-primary px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+          className="premium-lesson-action-primary interactive-courseware-control px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {onPanelSubmit ? '记录比较' : '等待教师发放'}
         </button>
@@ -2364,13 +2661,13 @@ function ThreeShipsCaseComputePanel({
               key={ship}
               type="button"
               onClick={() => updateSelectedShip(ship)}
-              className={`premium-lesson-action-tone ${selectedShip === ship ? 'premium-tone-cyan' : 'premium-tone-slate'}`}
+              className={`premium-lesson-action-tone interactive-courseware-control ${selectedShip === ship ? 'premium-tone-cyan' : 'premium-tone-slate'}`}
             >
               {ship === 'all' ? '全部' : `船 ${ship}`}
             </button>
           ))}
         </div>
-        <label className="premium-lesson-control flex flex-col gap-2 px-3 py-2 text-sm">
+        <label className="premium-lesson-control flex flex-col gap-2 px-3 py-2 interactive-courseware-control">
           <span>时间轴缩放</span>
           <input className="accent-[hsl(var(--platform-action-primary))]" type="range" min="1" max="5" step="0.5" value={timeScale} onChange={(event) => updateTimeScale(Number(event.target.value))} />
         </label>
@@ -2450,7 +2747,7 @@ function SharedControlWorkbenchComputePanel({
 
   return (
     <section
-      className="premium-lesson-panel space-y-4"
+      className="premium-lesson-panel interactive-courseware-panel"
       data-control-workbench-capability={capabilityRef}
       data-control-workbench-module-id={module.id}
       data-control-workbench-release-state={releaseState}
@@ -2472,7 +2769,7 @@ function SharedControlWorkbenchComputePanel({
           {submissionFields.length > 0 ? (
             <div className="premium-lesson-panel-soft grid gap-3 p-4 sm:grid-cols-2">
               {submissionFields.map((field) => (
-                <label key={field.key} className="space-y-1 text-sm">
+                <label key={field.key} className="grid gap-1 interactive-courseware-control">
                   <span className="premium-lesson-muted block">{field.label}</span>
                   {field.input === 'select' || field.input === 'toggle' ? (
                     <select
@@ -2520,7 +2817,7 @@ function SharedControlWorkbenchComputePanel({
             type="button"
             onClick={submitCurrent}
             disabled={!onPanelSubmit}
-            className="premium-lesson-action-primary px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+            className="premium-lesson-action-primary interactive-courseware-control px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {onPanelSubmit ? '提交当前观察' : '等待教师发放'}
           </button>
@@ -2802,15 +3099,15 @@ function learningStatItems(step: InteractiveRuntimeStepManifest, module: Interac
 function FormulaSymbolList({ symbols }: { symbols: FormulaSymbol[] }) {
   if (!symbols.length) return null;
   return (
-    <div className="mt-3 rounded-md border border-slate-200 bg-slate-50/70 p-3 text-sm leading-7">
-      <div className="premium-lesson-title font-semibold">符号说明</div>
+    <div className="mt-3 rounded-md border border-platform-border bg-platform-surface p-3 interactive-courseware-body">
+      <h3 className="interactive-courseware-title-level-3">符号说明</h3>
       <dl className="mt-2 grid gap-2 md:grid-cols-2">
         {symbols.map((item) => (
           <div key={`${item.symbol}-${item.meaning}`} className="flex gap-2">
             <dt className="shrink-0">
               <InlineMath math={normalizeMath(item.symbol)} />
             </dt>
-            {item.meaning ? <dd className="premium-lesson-muted">{renderInlineContent(item.meaning)}</dd> : null}
+            {item.meaning ? <dd className="interactive-courseware-body">{renderInlineContent(item.meaning)}</dd> : null}
           </div>
         ))}
       </dl>
@@ -2831,7 +3128,7 @@ function FormulaCard({
 }) {
   if (!formulas.length) return null;
   const noteBlock = notes?.length ? (
-    <div className="premium-lesson-muted mt-2 space-y-2 text-sm leading-7">
+    <div className="interactive-courseware-section interactive-courseware-body">
       {notes.map((note) => (
         <p key={note}>{renderInlineContent(note)}</p>
       ))}
@@ -2845,7 +3142,7 @@ function FormulaCard({
     </div>
   );
   return (
-    <div className="premium-lesson-panel">
+    <div className="premium-lesson-panel interactive-courseware-panel">
       <ManifestContentTitle>{title}</ManifestContentTitle>
       {symbols.length ? formulaBlock : noteBlock}
       {symbols.length ? <FormulaSymbolList symbols={symbols} /> : null}
@@ -2854,16 +3151,54 @@ function FormulaCard({
   );
 }
 
+function visualStageLayerAnchorPoint(layer: VisualStageLayer, anchor: VisualStageAnchor) {
+  const { x, y, width, height } = layer.region;
+  const anchorPoints: Record<VisualStageAnchor, { x: number; y: number }> = {
+    N: { x: x + width / 2, y },
+    NE: { x: x + width, y },
+    E: { x: x + width, y: y + height / 2 },
+    SE: { x: x + width, y: y + height },
+    S: { x: x + width / 2, y: y + height },
+    SW: { x, y: y + height },
+    W: { x, y: y + height / 2 },
+    NW: { x, y },
+    C: { x: x + width / 2, y: y + height / 2 },
+  };
+  return anchorPoints[anchor];
+}
+
+function visualStageConnectionLine(connection: VisualStageConnection, layersById: Map<string, VisualStageLayer>) {
+  const fromLayer = layersById.get(connection.from);
+  const toLayer = layersById.get(connection.to);
+  if (!fromLayer || !toLayer) return null;
+  const from = visualStageLayerAnchorPoint(fromLayer, connection.fromAnchor);
+  const to = visualStageLayerAnchorPoint(toLayer, connection.toAnchor);
+  return {
+    x1: from.x * 100,
+    y1: from.y * 100,
+    x2: to.x * 100,
+    y2: to.y * 100,
+  };
+}
+
 function VisualStagePanel({
   module,
 }: {
   module: InteractiveRuntimeModuleManifest;
 }) {
   const stage = visualStagePayload(module);
+  const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const visibleLayers = stage.layers.filter((layer) => (
     stage.releaseState !== 'unavailable'
     && stage.releaseState !== 'unreleased'
     && (!layer.revealState || layer.revealState === stage.activeRevealState || stage.activeRevealState === 'all')
+  ));
+  const visibleLayerIds = new Set(visibleLayers.map((layer) => layer.id));
+  const visibleLayersById = new Map(visibleLayers.map((layer) => [layer.id, layer]));
+  const visibleConnections = stage.connections.filter((connection) => (
+    visibleLayerIds.has(connection.from)
+    && visibleLayerIds.has(connection.to)
+    && (!connection.revealState || connection.revealState === stage.activeRevealState || stage.activeRevealState === 'all')
   ));
   const aspectClass = stage.aspectRatio === '4:3'
     ? 'min-h-[420px] md:aspect-[4/3] md:min-h-0'
@@ -2873,28 +3208,29 @@ function VisualStagePanel({
 
   return (
     <section
-      className="premium-lesson-panel grid gap-4"
+      className="premium-lesson-panel interactive-courseware-panel grid gap-4"
       data-visual-stage-id={stage.stageId}
       data-visual-stage-release-state={stage.releaseState}
       data-visual-stage-active-reveal-state={stage.activeRevealState}
       data-visual-stage-layer-count={stage.layers.length}
       data-visual-stage-visible-layer-ids={visibleLayers.map((layer) => layer.id).join(' ')}
+      data-visual-stage-connection-count={stage.connections.length}
+      data-visual-stage-panel-chrome="title-panel"
+      data-visual-stage-canvas-chrome="none"
+      data-visual-stage-layer-kind-labels="hidden"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <ManifestContentTitle>{titleFromModule(module)}</ManifestContentTitle>
-          <p className="premium-lesson-muted text-sm leading-6">
+          <p className="interactive-courseware-body">
             {visualStageReleaseLabel(stage.releaseState)}
           </p>
         </div>
-        <span className="premium-lesson-badge" data-visual-stage-layer-summary>
-          {visibleLayers.length}/{stage.layers.length}
-        </span>
       </div>
       <div
         className={[
-          'relative w-full overflow-hidden rounded-2xl border border-[var(--platform-border)] bg-[var(--platform-surface)]',
-          'shadow-[var(--platform-shadow-sm)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]',
+          'relative w-full overflow-hidden bg-transparent',
+          'outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]',
           aspectClass,
         ].join(' ')}
         tabIndex={0}
@@ -2903,19 +3239,82 @@ function VisualStagePanel({
         data-visual-stage-canvas="normalized"
         data-visual-stage-layout="freeform"
       >
+        <svg
+          className="pointer-events-none absolute inset-0 z-20 h-full w-full overflow-visible"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          style={{ color: 'var(--platform-body)' }}
+          aria-hidden="true"
+          data-visual-stage-connections="normalized"
+        >
+          <defs>
+            <marker
+              id={`${stage.stageId}-arrow`}
+              markerWidth="8"
+              markerHeight="8"
+              refX="7"
+              refY="4"
+              orient="auto"
+              markerUnits="strokeWidth"
+            >
+              <path d="M 0 0 L 8 4 L 0 8 z" fill="currentColor" />
+            </marker>
+          </defs>
+          {visibleConnections.map((connection) => {
+            const line = visualStageConnectionLine(connection, visibleLayersById);
+            if (!line) return null;
+            return (
+              <line
+                key={connection.id}
+                x1={line.x1}
+                y1={line.y1}
+                x2={line.x2}
+                y2={line.y2}
+                stroke="currentColor"
+                strokeWidth="3"
+                vectorEffect="non-scaling-stroke"
+                markerEnd={`url(#${stage.stageId}-arrow)`}
+                data-visual-stage-connection-id={connection.id}
+                data-visual-stage-connection-from={connection.from}
+                data-visual-stage-connection-to={connection.to}
+              />
+            );
+          })}
+        </svg>
         {stage.releaseState === 'unavailable' || stage.releaseState === 'unreleased' ? (
           <div className="absolute inset-0 grid place-items-center px-6 text-center">
-            <p className="premium-lesson-body text-sm">{visualStageReleaseLabel(stage.releaseState)}</p>
+            <p className="interactive-courseware-body">{visualStageReleaseLabel(stage.releaseState)}</p>
           </div>
         ) : null}
-        {visibleLayers.map((layer) => (
+        {visibleLayers.map((layer) => {
+          const selected = selectedLayerId === layer.id;
+          return (
           <article
             key={layer.id}
             className={[
-              'absolute overflow-hidden rounded-xl border border-[var(--platform-border)]',
-              'bg-[var(--platform-panel)]/95 p-3 shadow-[var(--platform-shadow-xs)]',
+              'absolute z-10 overflow-hidden text-left outline-none transition',
+              'focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]',
+              layer.appearance === 'flowNode'
+                ? 'grid place-items-center rounded-sm border-[3px] border-[hsl(var(--platform-action-primary))] bg-[var(--platform-panel)] px-3 py-2 text-center shadow-[var(--platform-shadow-xs)]'
+                : '',
+              layer.appearance === 'note'
+                ? 'grid place-items-center bg-transparent text-center'
+                : '',
+              layer.appearance === 'objective'
+                ? 'grid place-items-center bg-transparent text-center'
+                : '',
+              layer.appearance === 'card'
+                ? 'rounded-xl border bg-[var(--platform-panel)]/95 p-3 shadow-[var(--platform-shadow-xs)]'
+                : '',
+              selected
+                ? 'border-[hsl(var(--platform-brand-evidence))] ring-2 ring-[hsl(var(--platform-brand-evidence))] ring-offset-2 ring-offset-[hsl(var(--platform-surface))]'
+                : layer.appearance === 'card'
+                  ? 'border-[var(--platform-border)]'
+                  : '',
               layer.kind === 'formula' ? 'premium-lesson-formula-surface' : '',
             ].join(' ')}
+            role="button"
+            tabIndex={0}
             style={{
               left: `${layer.region.x * 100}%`,
               top: `${layer.region.y * 100}%`,
@@ -2927,12 +3326,32 @@ function VisualStagePanel({
             data-visual-stage-layer-kind={layer.kind}
             data-visual-stage-layer-reveal-state={layer.revealState ?? 'always'}
             data-visual-stage-activity-anchor={layer.activityAnchor ?? undefined}
+            data-visual-stage-layer-selected={selected ? 'true' : 'false'}
+            onClick={() => setSelectedLayerId(layer.id)}
+            onKeyDown={(event) => {
+              if (event.key !== 'Enter' && event.key !== ' ') return;
+              event.preventDefault();
+              setSelectedLayerId(layer.id);
+            }}
           >
-            <div className="premium-lesson-caption">{visualStageLayerKindLabel(layer.kind)}</div>
-            <h3 className="premium-lesson-title text-sm">{layer.title}</h3>
-            <p className="premium-lesson-body mt-2 text-sm leading-6">{renderInlineContent(layer.body)}</p>
+            {layer.appearance === 'flowNode' ? (
+              <h3 className="interactive-courseware-title-level-3 font-bold">{layer.title}</h3>
+            ) : layer.appearance === 'objective' ? (
+              <h3 className="interactive-courseware-title-level-3 font-bold">{renderInlineContent(layer.body || layer.title)}</h3>
+            ) : layer.appearance === 'note' ? (
+              <div className="interactive-courseware-body whitespace-pre-line">
+                <div>{layer.title}</div>
+                {layer.body ? <div>{renderInlineContent(layer.body)}</div> : null}
+              </div>
+            ) : (
+              <>
+                <h3 className="interactive-courseware-title-level-3">{layer.title}</h3>
+                <p className="interactive-courseware-body">{renderInlineContent(layer.body)}</p>
+              </>
+            )}
           </article>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
@@ -2944,6 +3363,7 @@ function DerivationStagePanel({
   module: InteractiveRuntimeModuleManifest;
 }) {
   const stage = derivationStagePayload(module);
+  const { ref: canvasRef, metrics: canvasMetrics } = useBlockDiagramCanvasMetrics();
   const initialRevealStepId = stage.activeRevealStepId === 'all'
     ? (stage.revealSteps.at(-1)?.id ?? 'all')
     : stage.activeRevealStepId;
@@ -2969,37 +3389,44 @@ function DerivationStagePanel({
     visibleTargetIds.has(connector.from) && visibleTargetIds.has(connector.to)
     && connector.revealStepIds.some((stepId) => visibleRevealStepIds.has(stepId))
   ));
+  const activeRevealStep = activeRevealIndex >= 0 ? stage.revealSteps[activeRevealIndex] : stage.revealSteps[0];
   const aspectClass = stage.aspectRatio === '4:3'
     ? 'min-h-0 md:aspect-[4/3] md:min-h-0'
     : stage.aspectRatio === 'fluid'
       ? 'min-h-0 md:min-h-[520px]'
       : 'min-h-0 md:aspect-video md:min-h-0';
+  const visibleConnectorLines = visibleConnectors.map((connector) => {
+    const from = derivationConnectorEndpoint(targetRegions.get(connector.from), connector.fromAnchor, { x: 12, y: 18 });
+    const to = derivationConnectorEndpoint(targetRegions.get(connector.to), connector.toAnchor, { x: 88, y: 72 });
+    return { connector, from, to };
+  });
 
   return (
     <section
-      className="premium-lesson-panel grid gap-4"
+      className="premium-lesson-panel interactive-courseware-panel grid gap-4"
       data-derivation-stage-id={stage.stageId}
       data-derivation-stage-release-state={stage.releaseState}
       data-derivation-stage-active-reveal-step={activeRevealStepId}
       data-derivation-stage-visible-target-ids={[...visibleTargetIds].join(' ')}
       data-derivation-stage-answer-visible={stage.answerVisible ? 'true' : 'false'}
+      data-derivation-stage-panel-chrome="title-panel"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <ManifestContentTitle>{titleFromModule(module)}</ManifestContentTitle>
-          <p className="premium-lesson-muted text-sm leading-6">
-            {derivationStageReleaseLabel(stage.releaseState)}
+          <p className="interactive-courseware-body">
+            {derivationStageReleaseLabel(stage.releaseState, stage.subtitle ?? activeRevealStep?.reasoning)}
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
           {stage.revealSteps.length > 0 ? (
             <span className="premium-lesson-badge" data-derivation-stage-step-progress="visible">
-              第 {activeStepNumber} / {stage.revealSteps.length} 步
+              {activeRevealStep?.title ?? '显影'} · {activeStepNumber}/{stage.revealSteps.length}
             </span>
           ) : null}
           <button
             type="button"
-            className="premium-lesson-action-tone premium-tone-slate px-3 py-1 text-xs"
+            className="premium-lesson-action-tone interactive-courseware-control premium-tone-slate px-3 py-1"
             data-derivation-stage-control-button="previous"
             data-derivation-stage-teacher-control="previous"
             onClick={() => goToRevealOffset(-1)}
@@ -3009,7 +3436,7 @@ function DerivationStagePanel({
           </button>
           <button
             type="button"
-            className="premium-lesson-action-tone premium-tone-cyan px-3 py-1 text-xs"
+            className="premium-lesson-action-tone interactive-courseware-control premium-tone-cyan px-3 py-1"
             data-derivation-stage-control-button="next"
             data-derivation-stage-teacher-control="next"
             onClick={() => goToRevealOffset(1)}
@@ -3020,57 +3447,94 @@ function DerivationStagePanel({
         </div>
       </div>
       <div
+        ref={canvasRef}
         className={[
-          'relative flex w-full flex-col gap-4 overflow-hidden rounded-2xl border border-[var(--platform-border)] bg-[var(--platform-surface)] p-4 pr-16 md:block md:p-0',
-          'shadow-[var(--platform-shadow-sm)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]',
+          'relative flex w-full flex-col gap-4 overflow-hidden bg-transparent p-2 md:block md:p-0',
+          'outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]',
           aspectClass,
         ].join(' ')}
         tabIndex={0}
         role="group"
         aria-label={`${stage.stageId} 推导舞台`}
         data-derivation-stage-canvas="normalized"
+        data-derivation-stage-canvas-chrome="none"
         data-derivation-stage-layout="freeform"
         data-katex-rendered="true"
       >
         {stage.releaseState === 'unavailable' || stage.releaseState === 'unreleased' ? (
           <div className="absolute inset-0 grid place-items-center px-6 text-center">
-            <p className="premium-lesson-body text-sm">{derivationStageReleaseLabel(stage.releaseState)}</p>
+            <p className="interactive-courseware-body">{derivationStageReleaseLabel(stage.releaseState)}</p>
           </div>
         ) : null}
-        <svg
-          className="pointer-events-none absolute inset-0 hidden h-full w-full md:block"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
+        <div
+          className="pointer-events-none absolute inset-0 hidden text-base md:block"
           aria-hidden="true"
           data-derivation-stage-connectors="visible"
+          data-derivation-stage-connector-renderer="fixed-css-arrow"
+          data-derivation-stage-connector-fixed-shape="true"
         >
-          {visibleConnectors.map((connector) => {
-            const from = derivationConnectorEndpoint(targetRegions.get(connector.from), { x: 12, y: 18 });
-            const to = derivationConnectorEndpoint(targetRegions.get(connector.to), { x: 88, y: 72 });
+          {visibleConnectorLines.map(({ connector, from, to }) => {
             return (
-              <line
+              <span
                 key={connector.id}
-                x1={from.x}
-                y1={from.y}
-                x2={to.x}
-                y2={to.y}
-                stroke="hsl(var(--platform-action-primary))"
-                strokeWidth="0.4"
-                strokeDasharray={connector.kind === 'reference' || connector.kind === 'dependency' ? '2 2' : undefined}
+                className="interactive-courseware-flow-arrow absolute block opacity-90"
+                style={derivationFixedArrowStyle(from, to, canvasMetrics)}
                 data-derivation-stage-connector-id={connector.id}
                 data-derivation-stage-connector-kind={connector.kind}
                 data-derivation-stage-connector-from={connector.from}
                 data-derivation-stage-connector-to={connector.to}
+                data-derivation-stage-connector-from-anchor={connector.fromAnchor}
+                data-derivation-stage-connector-to-anchor={connector.toAnchor}
+                data-derivation-stage-connector-gradient="tail-to-head"
+                data-derivation-stage-connector-arrow-style="fixed-gradient-wide"
+                data-derivation-stage-connector-arrow-width="1.5em"
+                data-derivation-stage-connector-arrowhead="css-clip"
+                data-derivation-stage-connector-shape-stability="rotation-only"
               />
             );
           })}
-        </svg>
+        </div>
         {visibleFormulas.map((formula) => {
           const visibleBlocks = formula.blocks.filter((block) => visibleTargetIds.has(block.id));
           const renderFullFormula = visibleBlocks.length === 0;
           const visibleStandaloneBlocks = renderFullFormula
             ? visibleBlocks.filter((block) => normalizeMath(block.latex) !== normalizeMath(formula.latex))
             : visibleBlocks;
+          if (!renderFullFormula) {
+            return (
+              <Fragment key={formula.id}>
+                {visibleStandaloneBlocks.map((block) => {
+                  const blockRegion = targetRegions.get(block.id) ?? formula.region;
+                  return (
+                    <article
+                      key={block.id}
+                      className="relative w-full overflow-visible p-0 md:absolute md:left-[var(--derivation-left)] md:top-[var(--derivation-top)] md:w-[var(--derivation-width)]"
+                      style={{
+                        ['--derivation-left' as string]: `${blockRegion.x * 100}%`,
+                        ['--derivation-top' as string]: `${blockRegion.y * 100}%`,
+                        ['--derivation-width' as string]: `${blockRegion.width * 100}%`,
+                      }}
+                      data-derivation-stage-formula-id={formula.id}
+                      data-derivation-stage-formula-frame="freeform"
+                      data-derivation-stage-formula-block-id={block.id}
+                      data-derivation-stage-formula-block-frame="freeform"
+                      data-derivation-stage-color-role={block.colorRole ?? 'none'}
+                      data-derivation-stage-block-latex-source={block.latex}
+                    >
+                      <div
+                        className={[
+                          'interactive-courseware-body inline-block border-b-2 px-1.5 py-0.5',
+                          derivationInlineFormulaClass(block.colorRole),
+                        ].join(' ')}
+                      >
+                        <InlineMath math={normalizeMath(block.latex)} />
+                      </div>
+                    </article>
+                  );
+                })}
+              </Fragment>
+            );
+          }
           return (
             <article
               key={formula.id}
@@ -3085,29 +3549,12 @@ function DerivationStagePanel({
             >
               {renderFullFormula ? (
                 <div
-                  className="inline-block bg-[var(--platform-panel)]/35 px-2 py-1"
+                  className="interactive-courseware-body inline-block bg-transparent px-1 py-0.5"
                   data-derivation-stage-formula-latex-source={formula.latex}
                 >
-                  <BlockMath math={normalizeMath(formula.latex)} />
+                  <InlineMath math={normalizeMath(formula.latex)} />
                 </div>
               ) : null}
-              <div className="mt-2 flex flex-wrap gap-2">
-                {visibleStandaloneBlocks.map((block) => (
-                  <div
-                    key={block.id}
-                    className={[
-                      'inline-block border-b-2 px-1.5 py-0.5',
-                      derivationInlineFormulaClass(block.colorRole),
-                    ].join(' ')}
-                    data-derivation-stage-formula-block-id={block.id}
-                    data-derivation-stage-formula-block-frame="inline"
-                    data-derivation-stage-color-role={block.colorRole ?? 'none'}
-                    data-derivation-stage-block-latex-source={block.latex}
-                  >
-                    <BlockMath math={normalizeMath(block.latex)} />
-                  </div>
-                ))}
-              </div>
             </article>
           );
         })}
@@ -3123,8 +3570,8 @@ function DerivationStagePanel({
             data-derivation-stage-text-block-id={block.id}
             data-derivation-stage-text-frame="freeform"
           >
-            <h3 className="premium-lesson-title text-sm">{block.title}</h3>
-            <p className="premium-lesson-body mt-1 text-sm leading-6">{renderInlineContent(block.body)}</p>
+            <h3 className="interactive-courseware-title-level-3">{block.title}</h3>
+            <p className="interactive-courseware-body">{renderInlineContent(block.body)}</p>
           </article>
         ))}
       </div>
@@ -3145,10 +3592,14 @@ function DerivationStagePanel({
 
 function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureDiagramPanelProps) {
   const graph = blockDiagramPayload(module);
-  const visibleTargets = visibleStructureTargets(graph.activeRevealState, graph.revealPlan);
+  const renderGraph = {
+    ...graph,
+    nodes: compactStructureDiagramNodeY(graph.nodes, BLOCK_DIAGRAM_Y_TARGET_SPAN, BLOCK_DIAGRAM_Y_TARGET_CENTER),
+  };
+  const visibleTargets = visibleStructureTargets(renderGraph.activeRevealState, renderGraph.revealPlan);
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
   const { ref: canvasRef, metrics: canvasMetrics } = useBlockDiagramCanvasMetrics();
-  const selectedTargets = selectedStructureTargets(selectedTargetId, graph.revealPlan);
+  const selectedTargets = selectedStructureTargets(selectedTargetId, renderGraph.revealPlan);
   const highlighted = (id: string) => visibleTargets.has(id) || selectedTargets.has(id);
   const selected = (id: string) => selectedTargets.has(id);
   const selectEdgeFromKeyboard = (event: KeyboardEvent<SVGPathElement>, edgeId: string) => {
@@ -3159,7 +3610,7 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
   const submitCurrent = () => {
     if (!onPanelSubmit) return;
     const submittedAt = Date.now();
-    const selectedReveal = graph.revealPlan.find((item) => item.id === selectedTargetId);
+    const selectedReveal = renderGraph.revealPlan.find((item) => item.id === selectedTargetId);
     const draft = buildStructureDiagramClientEvidenceDraft({
       eventType: 'graph_submit',
       clientEventId: `${step.id}:${module.id}:${graph.graphId}:${submittedAt}`,
@@ -3173,15 +3624,15 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
       clientEventAt: new Date(submittedAt).toISOString(),
       theme: structureEvidenceTheme(),
       viewport: structureEvidenceViewport(),
-      graphId: graph.graphId,
-      activeRevealState: graph.activeRevealState,
-      selectedNodeIds: graph.nodes.some((node) => node.id === selectedTargetId) && selectedTargetId ? [selectedTargetId] : [],
+      graphId: renderGraph.graphId,
+      activeRevealState: renderGraph.activeRevealState,
+      selectedNodeIds: renderGraph.nodes.some((node) => node.id === selectedTargetId) && selectedTargetId ? [selectedTargetId] : [],
       selectedPathIds: selectedReveal && selectedReveal.id.includes('path') ? [selectedReveal.id] : [],
       selectedLoopIds: selectedReveal && selectedReveal.id.includes('loop') ? [selectedReveal.id] : [],
-      constructedPositions: graph.nodes.map((node) => ({ nodeId: node.id, x: node.position.x, y: node.position.y })),
-      constructedConnections: graph.edges.map((edge) => ({ from: edge.from, to: edge.to, branchId: edge.id, gainLabel: edge.label })),
+      constructedPositions: renderGraph.nodes.map((node) => ({ nodeId: node.id, x: node.position.x, y: node.position.y })),
+      constructedConnections: renderGraph.edges.map((edge) => ({ from: edge.from, to: edge.to, branchId: edge.id, gainLabel: edge.label })),
       connectionDifferences: [],
-      teachingLabels: blockDiagramTeachingLabels(graph),
+      teachingLabels: blockDiagramTeachingLabels(renderGraph),
     });
     onPanelSubmit({
       stepId: step.id,
@@ -3193,37 +3644,39 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
   };
   return (
     <section
-      className="premium-lesson-panel grid gap-4"
+      className="premium-lesson-panel interactive-courseware-panel grid gap-4"
       data-structure-diagram-kind="visual.blockDiagram"
-      data-structure-diagram-id={graph.graphId}
-      data-structure-diagram-layout-mode={graph.layout.mode}
-      data-structure-diagram-layout-spacing-x={graph.layout.spacing.x}
-      data-structure-diagram-layout-spacing-y={graph.layout.spacing.y}
-      data-structure-diagram-text-scale={graph.layout.textScale}
-      data-structure-diagram-mode={graph.mode}
-      data-structure-diagram-active-reveal={graph.activeRevealState}
+      data-structure-diagram-id={renderGraph.graphId}
+      data-structure-diagram-layout-mode={renderGraph.layout.mode}
+      data-structure-diagram-layout-spacing-x={renderGraph.layout.spacing.x}
+      data-structure-diagram-layout-spacing-y={renderGraph.layout.spacing.y}
+      data-structure-diagram-text-scale={renderGraph.layout.textScale}
+      data-structure-diagram-mode={renderGraph.mode}
+      data-structure-diagram-active-reveal={renderGraph.activeRevealState}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <ManifestContentTitle>{titleFromModule(module)}</ManifestContentTitle>
-          <p className="premium-lesson-muted text-sm leading-6">用结构节点、信号线和反馈回路表达控制系统关系。</p>
+          <p className="interactive-courseware-body">用结构节点、信号线和反馈回路表达控制系统关系。</p>
         </div>
-        {graph.mode === 'construct' ? (
-          <span className="premium-lesson-badge" data-structure-diagram-mode-label="visual">{structureModeLabel(graph.mode)}</span>
+        {renderGraph.mode === 'construct' ? (
+          <span className="premium-lesson-badge" data-structure-diagram-mode-label="visual">{structureModeLabel(renderGraph.mode)}</span>
         ) : null}
       </div>
       <div
         ref={canvasRef}
-        className="relative min-h-[420px] overflow-hidden bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)] md:aspect-video md:min-h-0"
+        className={STRUCTURE_DIAGRAM_CANVAS_CLASS}
         tabIndex={0}
         role="group"
-        aria-label={`${graph.graphId} 方框图`}
+        aria-label={`${renderGraph.graphId} 方框图`}
         data-structure-diagram-canvas="normalized"
+        data-structure-diagram-canvas-vertical-fit="content-trimmed"
+        data-structure-diagram-y-target-span={BLOCK_DIAGRAM_Y_TARGET_SPAN}
       >
         <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" data-structure-diagram-svg="block">
-          {graph.edges.map((edge) => {
-            const path = blockEdgePath(graph.nodes, edge, canvasMetrics);
-            const endpoints = blockEdgeEndpoints(graph.nodes, edge, canvasMetrics);
+          {renderGraph.edges.map((edge) => {
+            const path = blockEdgePath(renderGraph.nodes, edge, canvasMetrics);
+            const endpoints = blockEdgeEndpoints(renderGraph.nodes, edge, canvasMetrics);
             return (
               <g
                 key={edge.id}
@@ -3280,8 +3733,8 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
             );
           })}
         </svg>
-        {graph.edges.map((edge) => {
-          const path = blockEdgePath(graph.nodes, edge, canvasMetrics);
+        {renderGraph.edges.map((edge) => {
+          const path = blockEdgePath(renderGraph.nodes, edge, canvasMetrics);
           return (
             <StructureDiagramArrowhead
               key={`${edge.id}-arrowhead`}
@@ -3293,9 +3746,9 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
             />
           );
         })}
-        {graph.edges.map((edge) => {
+        {renderGraph.edges.map((edge) => {
           if (!edge.terminalSign) return null;
-          const signPosition = blockEdgeTerminalSignPosition(graph.nodes, edge, canvasMetrics);
+          const signPosition = blockEdgeTerminalSignPosition(renderGraph.nodes, edge, canvasMetrics);
           return (
             <button
               key={`${edge.id}-terminal-sign`}
@@ -3310,23 +3763,25 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
             </button>
           );
         })}
-        {graph.edges.map((edge) => {
+        {renderGraph.edges.map((edge) => {
           if (!edge.label) return null;
-          const path = blockEdgePath(graph.nodes, edge, canvasMetrics);
+          const path = blockEdgePath(renderGraph.nodes, edge, canvasMetrics);
+          const labelPosition = blockEdgeLabelPosition(renderGraph.nodes, edge, path.label, canvasMetrics);
           return (
             <div
               key={`${edge.id}-label`}
               className={`pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 premium-lesson-title bg-[var(--platform-surface)]/80 px-1.5 py-0.5 ${STRUCTURE_DIAGRAM_DEFAULT_LABEL_CLASS} leading-none`}
-              style={{ left: `${path.label.x}%`, top: `${path.label.y}%` }}
+              style={{ left: `${labelPosition.x}%`, top: `${labelPosition.y}%` }}
               data-structure-diagram-edge-label-id={edge.id}
+              data-structure-diagram-edge-label-placement={edge.labelPlacement || 'auto'}
               data-structure-diagram-label-chrome="plain"
-              data-structure-diagram-text-scale={graph.layout.textScale}
+              data-structure-diagram-text-scale={renderGraph.layout.textScale}
             >
               {isMathLabel(edge.label) ? <InlineMath math={normalizeMath(edge.label)} /> : edge.label}
             </div>
           );
         })}
-        {graph.nodes.map((node) => (
+        {renderGraph.nodes.map((node) => (
           <button
             type="button"
             key={node.id}
@@ -3345,12 +3800,12 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
                 : '',
               selectedTargetId === node.id && blockDiagramNodeVisualKind(node) !== 'sum' ? 'ring-2 ring-[hsl(var(--platform-brand-evidence))] ring-offset-2 ring-offset-[hsl(var(--platform-surface))]' : '',
             ].join(' ')}
-            style={blockNodeBounds(node)}
+            style={blockNodeBounds(node, canvasMetrics)}
             data-structure-diagram-node-id={node.id}
             data-structure-diagram-node-type={node.type}
             data-structure-diagram-node-visual-kind={blockDiagramNodeVisualKind(node)}
             data-structure-diagram-node-anchors={blockDiagramNodeAnchors(node)}
-            data-structure-diagram-text-scale={graph.layout.textScale}
+            data-structure-diagram-text-scale={renderGraph.layout.textScale}
             data-structure-diagram-node-label-rendering={isMathLabel(node.label) ? 'latex' : 'text'}
             data-structure-diagram-node-symbol-size={
               blockDiagramNodeVisualKind(node) === 'branch'
@@ -3361,6 +3816,7 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
                     ? 'junction'
                     : 'label'
             }
+            data-structure-diagram-node-rendered-height={blockDiagramNodeSizeForCanvas(node, canvasMetrics).height}
             data-structure-diagram-output-label-position={
               blockDiagramNodeVisualKind(node) === 'output' && node.display !== 'anchor' ? 'above-line' : undefined
             }
@@ -3400,7 +3856,7 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
         ))}
       </div>
       <div className="hidden" data-structure-diagram-reveal-plan="metadata" aria-hidden="true">
-        {graph.revealPlan.map((item) => (
+        {renderGraph.revealPlan.map((item) => (
           <span
             key={item.id}
             data-structure-diagram-reveal-id={item.id}
@@ -3409,11 +3865,11 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
           />
         ))}
       </div>
-      {graph.mode === 'construct' ? (
+      {renderGraph.mode === 'construct' ? (
         <button
           type="button"
-          className="premium-lesson-action-tone premium-tone-cyan justify-self-start"
-          data-structure-diagram-submit={graph.graphId}
+          className="premium-lesson-action-tone interactive-courseware-control premium-tone-cyan justify-self-start"
+          data-structure-diagram-submit={renderGraph.graphId}
           onClick={submitCurrent}
           disabled={!onPanelSubmit}
         >
@@ -3426,12 +3882,21 @@ function BlockDiagramPanel({ manifest, step, module, onPanelSubmit }: StructureD
 
 function SignalFlowGraphPanel({ manifest, step, module, onPanelSubmit }: StructureDiagramPanelProps) {
   const graph = signalFlowPayload(module);
-  const visibleTargets = visibleStructureTargets(graph.activeRevealState, graph.revealPlan);
+  const renderGraph = {
+    ...graph,
+    nodes: compactStructureDiagramNodeY(graph.nodes, SIGNAL_FLOW_Y_TARGET_SPAN, SIGNAL_FLOW_Y_TARGET_CENTER),
+  };
+  const visibleTargets = visibleStructureTargets(renderGraph.activeRevealState, renderGraph.revealPlan);
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
   const { ref: canvasRef, metrics: canvasMetrics } = useBlockDiagramCanvasMetrics();
-  const selectedTargets = selectedSignalFlowTargets(selectedTargetId, graph);
+  const selectedTargets = selectedSignalFlowTargets(selectedTargetId, renderGraph);
   const highlighted = (id: string) => visibleTargets.has(id) || selectedTargets.has(id);
   const selected = (id: string) => selectedTargets.has(id);
+  const selectBranchFromKeyboard = (event: KeyboardEvent<SVGPathElement>, branchId: string) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    setSelectedTargetId(branchId);
+  };
   const submitCurrent = () => {
     if (!onPanelSubmit) return;
     const submittedAt = Date.now();
@@ -3448,15 +3913,15 @@ function SignalFlowGraphPanel({ manifest, step, module, onPanelSubmit }: Structu
       clientEventAt: new Date(submittedAt).toISOString(),
       theme: structureEvidenceTheme(),
       viewport: structureEvidenceViewport(),
-      graphId: graph.graphId,
-      activeRevealState: graph.activeRevealState,
-      selectedNodeIds: graph.nodes.some((node) => node.id === selectedTargetId) && selectedTargetId ? [selectedTargetId] : [],
-      selectedPathIds: graph.forwardPaths.some((path) => path.id === selectedTargetId) && selectedTargetId ? [selectedTargetId] : [],
-      selectedLoopIds: graph.loops.some((loop) => loop.id === selectedTargetId) && selectedTargetId ? [selectedTargetId] : [],
-      constructedPositions: graph.nodes.map((node) => ({ nodeId: node.id, x: node.position.x, y: node.position.y })),
-      constructedConnections: graph.branches.map((branch) => ({ from: branch.from, to: branch.to, branchId: branch.id, gainLabel: branch.gainLatex })),
+      graphId: renderGraph.graphId,
+      activeRevealState: renderGraph.activeRevealState,
+      selectedNodeIds: renderGraph.nodes.some((node) => node.id === selectedTargetId) && selectedTargetId ? [selectedTargetId] : [],
+      selectedPathIds: renderGraph.forwardPaths.some((path) => path.id === selectedTargetId) && selectedTargetId ? [selectedTargetId] : [],
+      selectedLoopIds: renderGraph.loops.some((loop) => loop.id === selectedTargetId) && selectedTargetId ? [selectedTargetId] : [],
+      constructedPositions: renderGraph.nodes.map((node) => ({ nodeId: node.id, x: node.position.x, y: node.position.y })),
+      constructedConnections: renderGraph.branches.map((branch) => ({ from: branch.from, to: branch.to, branchId: branch.id, gainLabel: branch.gainLatex })),
       connectionDifferences: [],
-      teachingLabels: signalFlowTeachingLabels(graph),
+      teachingLabels: signalFlowTeachingLabels(renderGraph),
     });
     onPanelSubmit({
       stepId: step.id,
@@ -3468,42 +3933,60 @@ function SignalFlowGraphPanel({ manifest, step, module, onPanelSubmit }: Structu
   };
   return (
     <section
-      className="premium-lesson-panel grid gap-4"
+      className="premium-lesson-panel interactive-courseware-panel grid gap-4"
       data-structure-diagram-kind="visual.signalFlowGraph"
-      data-structure-diagram-id={graph.graphId}
-      data-structure-diagram-layout-mode={graph.layout.mode}
-      data-structure-diagram-layout-spacing-x={graph.layout.spacing.x}
-      data-structure-diagram-layout-spacing-y={graph.layout.spacing.y}
-      data-structure-diagram-text-scale={graph.layout.textScale}
-      data-structure-diagram-mode={graph.mode}
-      data-structure-diagram-active-reveal={graph.activeRevealState}
+      data-structure-diagram-id={renderGraph.graphId}
+      data-structure-diagram-layout-mode={renderGraph.layout.mode}
+      data-structure-diagram-layout-spacing-x={renderGraph.layout.spacing.x}
+      data-structure-diagram-layout-spacing-y={renderGraph.layout.spacing.y}
+      data-structure-diagram-text-scale={renderGraph.layout.textScale}
+      data-structure-diagram-mode={renderGraph.mode}
+      data-structure-diagram-active-reveal={renderGraph.activeRevealState}
+      data-structure-diagram-path-sets-enabled={renderGraph.showPathSets ? 'true' : 'false'}
+      data-structure-diagram-mason-map-enabled={renderGraph.showMasonMap ? 'true' : 'false'}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <ManifestContentTitle>{titleFromModule(module)}</ManifestContentTitle>
-          <p className="premium-lesson-muted text-sm leading-6">把 Mason 公式中的路径与回路直接映射到图中支路。</p>
+          <p className="interactive-courseware-body">用信号节点、支路增益和回路表达变量间的因果关系。</p>
         </div>
-        <span className="premium-lesson-badge" data-structure-diagram-mode-label="visual">{structureModeLabel(graph.mode)}</span>
       </div>
       <div
         ref={canvasRef}
-        className="relative min-h-[420px] overflow-hidden rounded-2xl border border-[var(--platform-border)] bg-[var(--platform-surface)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)] md:aspect-video md:min-h-0"
+        className={STRUCTURE_DIAGRAM_CANVAS_CLASS}
         tabIndex={0}
         role="group"
-        aria-label={`${graph.graphId} 信号流图`}
+        aria-label={`${renderGraph.graphId} 信号流图`}
         data-structure-diagram-canvas="normalized"
+        data-structure-diagram-canvas-vertical-fit="content-trimmed"
+        data-structure-diagram-y-target-span={SIGNAL_FLOW_Y_TARGET_SPAN}
       >
         <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none" data-structure-diagram-svg="signal-flow">
-          {graph.branches.map((branch) => {
-            const path = signalBranchPath(graph.nodes, branch, canvasMetrics);
+          {renderGraph.branches.map((branch) => {
+            const path = signalBranchPath(renderGraph.nodes, branch, canvasMetrics);
             return (
               <g
                 key={branch.id}
                 data-structure-diagram-branch-id={branch.id}
                 data-structure-diagram-branch-route-kind={path.routeKind}
+                data-structure-diagram-branch-from-port={path.fromPort}
+                data-structure-diagram-branch-to-port={path.toPort}
                 data-structure-diagram-branch-highlighted={highlighted(branch.id) ? 'true' : 'false'}
                 data-structure-diagram-branch-selected={selected(branch.id) ? 'true' : 'false'}
               >
+                {highlighted(branch.id) || selected(branch.id) ? (
+                  <path
+                    d={path.d}
+                    fill="none"
+                    stroke={blockDiagramSelectionColor()}
+                    strokeWidth={selected(branch.id) ? STRUCTURE_DIAGRAM_SIGNAL_SELECTED_HALO_STROKE : STRUCTURE_DIAGRAM_SIGNAL_HALO_STROKE}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    opacity={selected(branch.id) ? 0.62 : 0.28}
+                    vectorEffect="non-scaling-stroke"
+                    data-structure-diagram-branch-halo={selected(branch.id) ? 'selected' : 'highlighted'}
+                  />
+                ) : null}
                 <path
                   d={path.d}
                   fill="none"
@@ -3512,13 +3995,32 @@ function SignalFlowGraphPanel({ manifest, step, module, onPanelSubmit }: Structu
                   strokeLinecap="butt"
                   strokeLinejoin="round"
                   vectorEffect="non-scaling-stroke"
+                  data-structure-diagram-branch-main-line="true"
+                />
+                <path
+                  d={path.d}
+                  fill="none"
+                  stroke="transparent"
+                  strokeWidth={8}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="cursor-pointer outline-none focus-visible:stroke-[hsl(var(--platform-brand-evidence))]"
+                  pointerEvents="stroke"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`选择支路 ${branch.gainLatex}`}
+                  vectorEffect="non-scaling-stroke"
+                  onClick={() => setSelectedTargetId(branch.id)}
+                  onKeyDown={(event) => selectBranchFromKeyboard(event, branch.id)}
+                  data-structure-diagram-branch-hit-target={branch.id}
+                  data-structure-diagram-branch-keyboard-selectable="true"
                 />
               </g>
             );
           })}
         </svg>
-        {graph.branches.map((branch) => {
-          const path = signalBranchPath(graph.nodes, branch, canvasMetrics);
+        {renderGraph.branches.map((branch) => {
+          const path = signalBranchPath(renderGraph.nodes, branch, canvasMetrics);
           return (
             <StructureDiagramArrowhead
               key={`${branch.id}-arrowhead`}
@@ -3530,8 +4032,8 @@ function SignalFlowGraphPanel({ manifest, step, module, onPanelSubmit }: Structu
             />
           );
         })}
-        {graph.branches.map((branch) => {
-          const path = signalBranchPath(graph.nodes, branch, canvasMetrics);
+        {renderGraph.branches.map((branch) => {
+          const path = signalBranchPath(renderGraph.nodes, branch, canvasMetrics);
           return (
             <div
               key={`${branch.id}-label`}
@@ -3539,29 +4041,61 @@ function SignalFlowGraphPanel({ manifest, step, module, onPanelSubmit }: Structu
               style={{ left: `${path.label.x}%`, top: `${path.label.y}%` }}
               data-structure-diagram-branch-label-id={branch.id}
               data-structure-diagram-label-chrome="plain"
-              data-structure-diagram-text-scale={graph.layout.textScale}
+              data-structure-diagram-text-scale={renderGraph.layout.textScale}
             >
               <InlineMath math={normalizeMath(branch.gainLatex)} />
             </div>
           );
         })}
-        {graph.nodes.map((node) => (
-          <button
-            type="button"
+        {renderGraph.nodes.map((node) => (
+          <div
             key={node.id}
-            className={`absolute grid h-10 w-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-platform-action-primary bg-platform-panel ${STRUCTURE_DIAGRAM_DEFAULT_LABEL_CLASS} shadow-[var(--platform-shadow-xs)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)] md:h-11 md:w-11`}
             style={{ left: `${node.position.x * 100}%`, top: `${node.position.y * 100}%` }}
+            className="absolute -translate-x-1/2 -translate-y-1/2"
             data-structure-diagram-node-id={node.id}
-            data-structure-diagram-node-anchors="E W C"
-            data-structure-diagram-text-scale={graph.layout.textScale}
+            data-structure-diagram-node-anchors="N NE E SE S SW W NW C"
+            data-structure-diagram-node-visual-kind="signal-node"
+            data-structure-diagram-node-label-position={node.labelPosition}
+            data-structure-diagram-text-scale={renderGraph.layout.textScale}
             data-structure-diagram-node-selected={selectedTargetId === node.id ? 'true' : 'false'}
-            onClick={() => setSelectedTargetId(node.id)}
           >
-            <InlineMath math={normalizeMath(node.labelLatex)} />
-          </button>
+            <button
+              type="button"
+              className="absolute grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-transparent bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
+              style={{
+                width: `${SIGNAL_FLOW_NODE_HIT_SIZE_PX}px`,
+                height: `${SIGNAL_FLOW_NODE_HIT_SIZE_PX}px`,
+              }}
+              data-structure-diagram-node-hit-target={node.id}
+              onClick={() => setSelectedTargetId(node.id)}
+            >
+              <span
+                className={[
+                  'rounded-full border-2',
+                  highlighted(node.id) || selected(node.id)
+                    ? 'border-[hsl(var(--platform-brand-evidence))] bg-[hsl(var(--platform-brand-evidence))]/20'
+                    : 'border-[hsl(var(--platform-action-primary))] bg-platform-panel',
+                ].join(' ')}
+                style={{ width: `${SIGNAL_FLOW_NODE_SIZE_PX}px`, height: `${SIGNAL_FLOW_NODE_SIZE_PX}px` }}
+                data-structure-diagram-node-dot={node.id}
+              />
+              <span className="sr-only">{node.labelLatex}</span>
+            </button>
+            <div
+              className={[
+                'pointer-events-none absolute left-1/2 -translate-x-1/2 whitespace-nowrap premium-lesson-title',
+                node.labelPosition === 'above' ? 'bottom-4' : 'top-4',
+                STRUCTURE_DIAGRAM_DEFAULT_LABEL_CLASS,
+                highlighted(node.id) || selected(node.id) ? 'text-[hsl(var(--platform-brand-evidence))]' : '',
+              ].join(' ')}
+              data-structure-diagram-node-label-id={node.id}
+            >
+              <InlineMath math={normalizeMath(node.labelLatex)} />
+            </div>
+          </div>
         ))}
-        {graph.branches.map((branch) => {
-          const { label } = signalBranchPath(graph.nodes, branch, canvasMetrics);
+        {renderGraph.branches.map((branch) => {
+          const { label } = signalBranchPath(renderGraph.nodes, branch, canvasMetrics);
           return (
             <button
               key={`${branch.id}-target`}
@@ -3576,71 +4110,95 @@ function SignalFlowGraphPanel({ manifest, step, module, onPanelSubmit }: Structu
           );
         })}
       </div>
-      <div className="grid gap-2 md:grid-cols-3" data-structure-diagram-path-sets="visible">
-        {graph.forwardPaths.map((path) => (
+      <div className="flex flex-wrap gap-2" data-structure-diagram-keyword-toolbar="visible">
+        {renderGraph.revealPlan.map((item) => (
           <button
-            key={path.id}
+            key={item.id}
             type="button"
-            className="premium-lesson-card text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
-            data-structure-diagram-forward-path={path.branchIds.join(' ')}
-            data-structure-diagram-path-id={path.id}
-            data-structure-diagram-path-selected={selectedTargetId === path.id ? 'true' : 'false'}
-            onClick={() => setSelectedTargetId(path.id)}
+            className={[
+              'rounded-full border px-3 py-1.5 text-sm font-semibold transition outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]',
+              selectedTargetId === item.id
+                ? 'border-[hsl(var(--platform-brand-evidence))] bg-[hsl(var(--platform-brand-evidence))]/15 text-[hsl(var(--platform-brand-evidence))]'
+                : 'border-[hsl(var(--platform-action-primary))]/55 bg-platform-panel text-[var(--platform-text-primary)] hover:bg-[hsl(var(--platform-action-primary))]/10',
+            ].join(' ')}
+            data-structure-diagram-keyword-id={item.id}
+            data-structure-diagram-keyword-targets={item.targetIds.join(' ')}
+            data-structure-diagram-keyword-selected={selectedTargetId === item.id ? 'true' : 'false'}
+            onClick={() => setSelectedTargetId(item.id)}
           >
-            <span className="premium-lesson-caption">前向通路</span>
-            <span className="premium-lesson-title block text-sm">{path.label}</span>
-          </button>
-        ))}
-        {graph.loops.map((loop) => (
-          <button
-            key={loop.id}
-            type="button"
-            className="premium-lesson-card text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
-            data-structure-diagram-loop={loop.branchIds.join(' ')}
-            data-structure-diagram-loop-id={loop.id}
-            data-structure-diagram-loop-selected={selectedTargetId === loop.id ? 'true' : 'false'}
-            onClick={() => setSelectedTargetId(loop.id)}
-          >
-            <span className="premium-lesson-caption">反馈回路</span>
-            <span className="premium-lesson-title block text-sm">{loop.label}</span>
-          </button>
-        ))}
-        {graph.nonTouchingLoopGroups.filter((group) => graph.loops.length > 1 && group.loopIds.length > 1).map((group) => (
-          <button
-            key={group.id}
-            type="button"
-            className="premium-lesson-card text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
-            data-structure-diagram-non-touching-loop-group={group.loopIds.join(' ')}
-            data-structure-diagram-loop-group-id={group.id}
-            data-structure-diagram-loop-group-selected={selectedTargetId === group.id ? 'true' : 'false'}
-            onClick={() => setSelectedTargetId(group.id)}
-          >
-            <span className="premium-lesson-caption">不接触回路组</span>
-            <span className="premium-lesson-title block text-sm">{group.label}</span>
+            {item.label}
           </button>
         ))}
       </div>
-      <div className="grid gap-2 md:grid-cols-3" data-structure-diagram-mason-map="visible">
-        {graph.masonTerms.map((term) => (
-          <button
-            key={term.id}
-            type="button"
-            className="premium-lesson-card text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
-            data-structure-diagram-mason-term-id={term.id}
-            data-structure-diagram-related-ids={term.relatedIds.join(' ')}
-            data-structure-diagram-mason-term-selected={selectedTargetId === term.id ? 'true' : 'false'}
-            onClick={() => setSelectedTargetId(term.id)}
-          >
-            <p className="premium-lesson-caption">Mason 公式项</p>
-            <BlockMath math={normalizeMath(term.latex)} />
-          </button>
-        ))}
-      </div>
-      {graph.mode === 'construct' ? (
+      {renderGraph.showPathSets ? (
+        <div className="grid gap-2 md:grid-cols-3" data-structure-diagram-path-sets="visible">
+          {renderGraph.forwardPaths.map((path) => (
+            <button
+              key={path.id}
+              type="button"
+              className="premium-lesson-card text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
+              data-structure-diagram-forward-path={path.branchIds.join(' ')}
+              data-structure-diagram-path-id={path.id}
+              data-structure-diagram-path-selected={selectedTargetId === path.id ? 'true' : 'false'}
+              onClick={() => setSelectedTargetId(path.id)}
+            >
+              <span className="premium-lesson-caption">前向通路</span>
+              <span className="interactive-courseware-body block">{path.label}</span>
+            </button>
+          ))}
+          {renderGraph.loops.map((loop) => (
+            <button
+              key={loop.id}
+              type="button"
+              className="premium-lesson-card text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
+              data-structure-diagram-loop={loop.branchIds.join(' ')}
+              data-structure-diagram-loop-id={loop.id}
+              data-structure-diagram-loop-selected={selectedTargetId === loop.id ? 'true' : 'false'}
+              onClick={() => setSelectedTargetId(loop.id)}
+            >
+              <span className="premium-lesson-caption">反馈回路</span>
+              <span className="interactive-courseware-body block">{loop.label}</span>
+            </button>
+          ))}
+          {renderGraph.nonTouchingLoopGroups.filter((group) => renderGraph.loops.length > 1 && group.loopIds.length > 1).map((group) => (
+            <button
+              key={group.id}
+              type="button"
+              className="premium-lesson-card text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
+              data-structure-diagram-non-touching-loop-group={group.loopIds.join(' ')}
+              data-structure-diagram-loop-group-id={group.id}
+              data-structure-diagram-loop-group-selected={selectedTargetId === group.id ? 'true' : 'false'}
+              onClick={() => setSelectedTargetId(group.id)}
+            >
+              <span className="premium-lesson-caption">不接触回路组</span>
+              <span className="interactive-courseware-body block">{group.label}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {renderGraph.showMasonMap && renderGraph.masonTerms.length > 0 ? (
+        <div className="grid gap-2 md:grid-cols-3" data-structure-diagram-mason-map="visible">
+          {renderGraph.masonTerms.map((term) => (
+            <button
+              key={term.id}
+              type="button"
+              className="premium-lesson-card text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]"
+              data-structure-diagram-mason-term-id={term.id}
+              data-structure-diagram-related-ids={term.relatedIds.join(' ')}
+              data-structure-diagram-mason-term-selected={selectedTargetId === term.id ? 'true' : 'false'}
+              onClick={() => setSelectedTargetId(term.id)}
+            >
+              <p className="premium-lesson-caption">Mason 公式项</p>
+              <BlockMath math={normalizeMath(term.latex)} />
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {renderGraph.mode === 'construct' ? (
         <button
           type="button"
-          className="premium-lesson-action-tone premium-tone-cyan justify-self-start"
-          data-structure-diagram-submit={graph.graphId}
+          className="premium-lesson-action-tone interactive-courseware-control premium-tone-cyan justify-self-start"
+          data-structure-diagram-submit={renderGraph.graphId}
           onClick={submitCurrent}
           disabled={!onPanelSubmit}
         >
@@ -3786,7 +4344,7 @@ function AnnotatedMediaPanel({ manifest, step, module, onPanelSubmit, interactio
 
   return (
     <section
-      className="premium-lesson-panel grid gap-4"
+      className="premium-lesson-panel interactive-courseware-panel grid gap-4"
       data-annotated-media-kind="visual.annotatedMedia"
       data-annotated-media-id={graph.mediaId}
       data-annotated-media-active-reveal={graph.activeRevealState}
@@ -3796,7 +4354,7 @@ function AnnotatedMediaPanel({ manifest, step, module, onPanelSubmit, interactio
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <ManifestContentTitle>{titleFromModule(module)}</ManifestContentTitle>
-          <p className="premium-lesson-muted text-sm leading-6">在图中选择输入、输出、结构、参数、风险和结果证据。</p>
+          <p className="interactive-courseware-body">在图中选择输入、输出、结构、参数、风险和结果证据。</p>
         </div>
         <span className="premium-lesson-badge">{selectedAnnotationIds.length} 项证据</span>
       </div>
@@ -3854,14 +4412,14 @@ function AnnotatedMediaPanel({ manifest, step, module, onPanelSubmit, interactio
         {graph.revealPlan.map((item) => (
           <div key={item.id} className="premium-lesson-card" data-annotated-media-reveal-id={item.id}>
             <p className="premium-lesson-caption">{item.id}</p>
-            <p className="premium-lesson-title text-sm">{item.label}</p>
+            <p className="interactive-courseware-body">{item.label}</p>
           </div>
         ))}
       </div>
       {graph.activeRevealState === 'answer-reveal' ? (
         <div className="premium-lesson-card border-platform-action-primary" data-annotated-media-answer-reveal="visible">
           <p className="premium-lesson-caption">答案显影</p>
-          <p className="premium-lesson-body text-sm">
+          <p className="interactive-courseware-body">
             {graph.annotations
               .filter((annotation) => annotation.required)
               .map((annotation) => annotation.label)
@@ -3871,7 +4429,7 @@ function AnnotatedMediaPanel({ manifest, step, module, onPanelSubmit, interactio
       ) : null}
       <button
         type="button"
-        className="premium-lesson-action-tone premium-tone-cyan justify-self-start"
+        className="premium-lesson-action-tone interactive-courseware-control premium-tone-cyan justify-self-start"
         data-annotated-media-submit={graph.mediaId}
         onClick={submitCurrent}
         disabled={!canInteract}
@@ -3918,7 +4476,7 @@ function EmbeddedActivityPanel({ manifest, step, module, onPanelSubmit, interact
 
   return (
     <section
-      className="premium-lesson-panel grid gap-4"
+      className="premium-lesson-panel interactive-courseware-panel grid gap-4"
       data-embedded-activity-kind="visual.embedded-activity"
       data-embedded-activity-id={activity.activityId}
       data-embedded-activity-anchor={activity.anchorId}
@@ -3926,7 +4484,7 @@ function EmbeddedActivityPanel({ manifest, step, module, onPanelSubmit, interact
     >
       <div>
         <ManifestContentTitle>{titleFromModule(module)}</ManifestContentTitle>
-        <p className="premium-lesson-muted text-sm leading-6">{activity.prompt}</p>
+        <p className="interactive-courseware-body">{activity.prompt}</p>
       </div>
       <div className="grid gap-2 md:grid-cols-3" data-embedded-activity-options="visible" role="radiogroup" aria-label={activity.prompt}>
         {activity.answerOptions.map((option) => (
@@ -3948,13 +4506,13 @@ function EmbeddedActivityPanel({ manifest, step, module, onPanelSubmit, interact
               setSelectedAnswerId(option.id);
             }}
           >
-            <span className="premium-lesson-title text-sm">{option.label}</span>
+            <span className="interactive-courseware-body">{option.label}</span>
           </button>
         ))}
       </div>
       <button
         type="button"
-        className="premium-lesson-action-tone premium-tone-cyan justify-self-start"
+        className="premium-lesson-action-tone interactive-courseware-control premium-tone-cyan justify-self-start"
         data-embedded-activity-submit={activity.activityId}
         onClick={submitCurrent}
         disabled={!canInteract}
@@ -3981,7 +4539,7 @@ export function ManifestCodeBlock({
   const languageLabel = normalizedLanguage === 'matlab' ? 'MATLAB / Octave' : normalizedLanguage.toUpperCase();
 
   return (
-    <div className="premium-lesson-panel" data-module-kind="content.code">
+    <div className="premium-lesson-panel interactive-courseware-panel" data-module-kind="content.code">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <ManifestContentTitle>{title}</ManifestContentTitle>
         <span className="premium-lesson-chip">{languageLabel}</span>
@@ -3989,7 +4547,7 @@ export function ManifestCodeBlock({
       <pre className="premium-code-block mt-3" data-code-language={normalizedLanguage}>
         <code>{renderHighlightedCode(code, normalizedLanguage)}</code>
       </pre>
-      {note ? <p className="premium-lesson-muted mt-3 text-sm leading-7">{renderInlineContent(note)}</p> : null}
+      {note ? <p className="interactive-courseware-body">{renderInlineContent(note)}</p> : null}
     </div>
   );
 }
@@ -3997,11 +4555,11 @@ export function ManifestCodeBlock({
 function SummaryCard({ title, text, bullets }: { title: string; text?: string; bullets?: string[] }) {
   if (!text && !bullets?.length) return null;
   return (
-    <div className="premium-lesson-panel">
+    <div className="premium-lesson-panel interactive-courseware-panel">
       <ManifestContentTitle>{title}</ManifestContentTitle>
-      {text ? <p className="premium-lesson-title mt-2 text-sm leading-7">{renderInlineContent(text)}</p> : null}
+      {text ? <p className="interactive-courseware-body">{renderInlineContent(text)}</p> : null}
       {bullets?.length ? (
-        <ul className="premium-lesson-muted mt-3 space-y-2 text-sm leading-7">
+        <ul className="interactive-courseware-section interactive-courseware-body">
           {bullets.map((bullet) => (
             <li key={bullet} className="ml-5 list-disc">{renderInlineContent(bullet)}</li>
           ))}
@@ -4014,11 +4572,11 @@ function SummaryCard({ title, text, bullets }: { title: string; text?: string; b
 function CardGrid({ title, items, columns = 'md:grid-cols-2' }: { title: string; items: string[]; columns?: string }) {
   if (!items.length) return null;
   return (
-    <div className="premium-lesson-panel">
+    <div className="premium-lesson-panel interactive-courseware-panel">
       <ManifestContentTitle>{title}</ManifestContentTitle>
       <div className={`mt-3 grid gap-3 ${columns}`}>
         {items.map((item) => (
-          <div key={item} className="premium-lesson-surface-elevated rounded-2xl px-4 py-3 text-sm leading-7">
+          <div key={item} className="premium-lesson-surface-elevated rounded-2xl px-4 py-3 interactive-courseware-body">
             {renderInlineContent(item)}
           </div>
         ))}
@@ -4030,7 +4588,7 @@ function CardGrid({ title, items, columns = 'md:grid-cols-2' }: { title: string;
 function CourseObjectiveList({ items }: { items: string[] }) {
   if (!items.length) return null;
   return (
-    <div className="premium-lesson-panel">
+    <div className="premium-lesson-panel interactive-courseware-panel">
       <ManifestContentTitle>完成本次课程后，学习者能够</ManifestContentTitle>
       <ol className="premium-lesson-muted mt-3 space-y-3">
         {items.map((item, index) => (
@@ -4081,24 +4639,24 @@ function stageMapItemsFrom(value: unknown): PathStageMapItem[] {
 
 function PathStageMap({ title, lead, items }: { title: string; lead?: string; items: PathStageMapItem[] }) {
   return (
-    <div className="premium-lesson-panel">
+    <div className="premium-lesson-panel interactive-courseware-panel">
       <ManifestContentTitle>{title}</ManifestContentTitle>
       {items.length ? (
         <div className="mt-3 grid gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-stretch">
           {items.map((item, index) => (
             <Fragment key={item.key}>
-              <div className="premium-lesson-surface-elevated rounded-2xl px-4 py-3 text-center text-sm font-semibold">
+              <div className="premium-lesson-surface-elevated rounded-2xl px-4 py-3 text-center interactive-courseware-body font-semibold">
                 {renderInlineContent(item.label)}
                 {item.status === 'current' ? (
                   <div className="premium-lesson-caption mt-2">当前</div>
                 ) : null}
               </div>
-              {index < items.length - 1 ? <div className="hidden items-center text-slate-500 md:flex">→</div> : null}
+              {index < items.length - 1 ? <div className="premium-lesson-muted hidden items-center md:flex">→</div> : null}
             </Fragment>
           ))}
         </div>
       ) : null}
-      {lead ? <p className="premium-lesson-muted mt-3 text-sm leading-7">{renderInlineContent(lead)}</p> : null}
+      {lead ? <p className="interactive-courseware-body">{renderInlineContent(lead)}</p> : null}
     </div>
   );
 }
@@ -4115,24 +4673,24 @@ function ProblemStatement({ title, block }: { title: string; block: ContentRecor
   if (!formulas.length && !notes.length && !goals.length) return null;
 
   return (
-    <div className="premium-lesson-panel">
+    <div className="premium-lesson-panel interactive-courseware-panel">
       <ManifestContentTitle>{title}</ManifestContentTitle>
       {formulas.length ? (
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           {formulas.map((formula) => (
-            <div key={formula} className="overflow-x-auto rounded-2xl border border-slate-200 bg-white px-3 py-2">
+            <div key={formula} className="overflow-x-auto rounded-2xl border border-platform-border bg-platform-surface px-3 py-2">
               <BlockMath math={normalizeMath(formula)} />
             </div>
           ))}
         </div>
       ) : null}
       {notes.map((note) => (
-        <p key={note} className="premium-lesson-muted mt-3 text-sm leading-7">{renderInlineContent(note)}</p>
+        <p key={note} className="interactive-courseware-body">{renderInlineContent(note)}</p>
       ))}
       {goals.length ? (
         <div className="mt-3 grid gap-3 md:grid-cols-3">
           {goals.map((goal) => (
-            <div key={goal} className="premium-lesson-surface-elevated rounded-2xl px-4 py-3 text-sm leading-7">
+            <div key={goal} className="premium-lesson-surface-elevated rounded-2xl px-4 py-3 interactive-courseware-body">
               {renderInlineContent(goal)}
             </div>
           ))}
@@ -4154,19 +4712,19 @@ function NativeTable({
   notes?: string[];
 }) {
   return (
-    <div className="premium-lesson-panel overflow-hidden">
+    <div className="premium-lesson-panel interactive-courseware-panel overflow-hidden">
       <ManifestContentTitle>{title}</ManifestContentTitle>
       {notes?.length ? (
-        <div className="premium-lesson-muted mt-2 space-y-2 text-sm leading-7">
+        <div className="interactive-courseware-section interactive-courseware-body">
           {notes.map((note) => (
             <p key={note}>{renderInlineContent(note)}</p>
           ))}
         </div>
       ) : null}
       <div className="mt-3 overflow-x-auto">
-        <table className="min-w-full text-left text-sm">
+        <table className="min-w-full text-left interactive-courseware-body">
           <thead>
-            <tr className="border-b border-slate-200 text-slate-700">
+            <tr className="border-b border-platform-border">
               {columns.map((column) => (
                 <th key={column} className="px-3 py-2 font-semibold">{renderInlineContent(column)}</th>
               ))}
@@ -4174,7 +4732,7 @@ function NativeTable({
           </thead>
           <tbody>
             {rows.map((row, index) => (
-              <tr key={`${row[0]}-${index}`} className="border-b border-slate-100">
+              <tr key={`${row[0]}-${index}`} className="border-b border-platform-border-soft">
                 {row.map((cell, cellIndex) => (
                   <td key={`${row[0]}-${cellIndex}`} className="px-3 py-3 align-top leading-7">
                     {renderTableCell(cell)}
@@ -4213,12 +4771,12 @@ function figureKind(step: InteractiveRuntimeStepManifest, module: InteractiveRun
 }
 
 function ModelingPathsComparisonFigure({ title }: { title: string }) {
-  const nodeClass = 'rounded-xl border border-slate-200 bg-white px-4 py-3 text-center shadow-sm';
-  const arrowClass = 'text-slate-400';
+  const nodeClass = 'premium-lesson-surface-elevated rounded-xl px-4 py-3 text-center';
+  const arrowClass = 'premium-lesson-muted';
   return (
-    <div className="premium-lesson-panel" data-local-modeling-paths-figure="true">
+    <div className="premium-lesson-panel interactive-courseware-panel" data-local-modeling-paths-figure="true">
       <ManifestContentTitle>{title}</ManifestContentTitle>
-      <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <div className="mt-3 rounded-2xl border border-platform-border bg-platform-surface p-4">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <div className="space-y-3">
             <div className="premium-lesson-kicker">机理建模路径</div>
@@ -4228,8 +4786,8 @@ function ModelingPathsComparisonFigure({ title }: { title: string }) {
             <div className={arrowClass}>↓</div>
             <div className={nodeClass}>微分方程</div>
             <div className={arrowClass}>↓</div>
-            <div className="rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-3 text-center text-cyan-950 shadow-sm">传递函数</div>
-            <p className="premium-lesson-muted text-sm leading-6">优势：结构清楚、物理含义明确；边界：对象过复杂时建方程成本高。</p>
+            <div className="rounded-xl border border-platform-action-primary/55 bg-platform-action-primary/10 px-4 py-3 text-center shadow-sm">传递函数</div>
+            <p className="interactive-courseware-body">优势：结构清楚、物理含义明确；边界：对象过复杂时建方程成本高。</p>
           </div>
           <div className="space-y-3">
             <div className="premium-lesson-kicker">数据驱动路径</div>
@@ -4239,8 +4797,8 @@ function ModelingPathsComparisonFigure({ title }: { title: string }) {
             <div className={arrowClass}>↓</div>
             <div className={nodeClass}>算法学习映射</div>
             <div className={arrowClass}>↓</div>
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-emerald-950 shadow-sm">预测模型</div>
-            <p className="premium-lesson-muted text-sm leading-6">优势：先验要求低；边界：解释性弱，训练范围外可靠性下降。</p>
+            <div className="rounded-xl border border-platform-evidence-eligible/55 bg-platform-evidence-eligible/10 px-4 py-3 text-center shadow-sm">预测模型</div>
+            <p className="interactive-courseware-body">优势：先验要求低；边界：解释性弱，训练范围外可靠性下降。</p>
           </div>
         </div>
       </div>
@@ -4250,13 +4808,13 @@ function ModelingPathsComparisonFigure({ title }: { title: string }) {
 
 function ImagePanel({ title, src, notes, displayMode = 'default' }: { title: string; src: string; notes: string[]; displayMode?: ImageDisplayMode }) {
   return (
-    <div className="premium-lesson-panel">
+    <div className="premium-lesson-panel interactive-courseware-panel">
       <ManifestContentTitle>{title}</ManifestContentTitle>
-      <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      <div className="mt-3 overflow-hidden" data-image-panel-frame="none">
         <Image src={src} alt={title} width={1600} height={960} className={imageClassFor(displayMode)} unoptimized />
       </div>
       {notes.length ? (
-        <ul className="premium-lesson-muted mt-3 space-y-2 text-sm leading-7">
+        <ul className="interactive-courseware-section interactive-courseware-body">
           {notes.map((note) => (
             <li key={note} className="ml-5 list-disc">{renderInlineContent(note)}</li>
           ))}
@@ -4269,14 +4827,14 @@ function ImagePanel({ title, src, notes, displayMode = 'default' }: { title: str
 function ImageGallery({ title, items }: { title: string; items: Array<{ src: string; caption: string }> }) {
   if (!items.length) return null;
   return (
-    <div className="premium-lesson-panel">
+    <div className="premium-lesson-panel interactive-courseware-panel">
       <ManifestContentTitle>{title}</ManifestContentTitle>
       <div className="mt-3 grid gap-4 md:grid-cols-2">
         {items.map((item) => (
-          <div key={item.src} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          <div key={item.src} className="overflow-hidden rounded-2xl border border-platform-border bg-platform-surface">
             <Image src={item.src} alt={item.caption || title} width={1600} height={960} className="h-auto w-full" unoptimized />
             {item.caption ? (
-              <p className="premium-lesson-muted border-t border-slate-100 px-3 py-2 text-sm leading-6">
+              <p className="premium-lesson-muted border-t border-platform-border-soft px-3 py-2 interactive-courseware-body">
                 {renderInlineContent(item.caption)}
               </p>
             ) : null}
@@ -4308,7 +4866,7 @@ function StepReveal({
     : Math.min(items.length, Math.max(teacherVisibleCount, localVisibleCount));
 
   return (
-    <div className="premium-lesson-panel">
+    <div className="premium-lesson-panel interactive-courseware-panel">
       <ManifestContentTitle>{title}</ManifestContentTitle>
       <div className="mt-3 space-y-3" data-progressive-reveal="step_click_reveal">
         {items.slice(0, visibleCount).map((item, index) => {
@@ -4323,16 +4881,16 @@ function StepReveal({
           };
           const key = `${item.title ?? ''}:${item.body}:${item.formula ?? ''}`;
           const cardClassName = `block w-full rounded-2xl border px-4 py-3 text-left ${
-            canExpand ? 'cursor-pointer border-cyan-200 bg-cyan-50 hover:border-cyan-300' : 'border-slate-200 bg-slate-50'
+            canExpand ? 'cursor-pointer border-platform-action-primary bg-platform-action-primary/10 hover:border-platform-action-primary' : 'border-platform-border bg-platform-surface'
           }`;
           const cardContent = (
             <>
-              {item.title ? <ManifestContentTitle>{item.title}</ManifestContentTitle> : null}
+              {item.title ? <ManifestSubsectionTitle>{item.title}</ManifestSubsectionTitle> : null}
               {item.body ? (
-                <p className="premium-lesson-title text-sm leading-7">{renderInlineContent(item.body)}</p>
+                <p className="interactive-courseware-body">{renderInlineContent(item.body)}</p>
               ) : null}
               {item.formula ? <div className="mt-2 overflow-x-auto">{renderFormulaContent(item.formula)}</div> : null}
-              {canExpand ? <p className="premium-lesson-muted mt-2 text-xs">点击当前最下方步骤继续显示下一层。</p> : null}
+              {canExpand ? <p className="interactive-courseware-caption">点击当前最下方步骤继续显示下一层。</p> : null}
             </>
           );
           if (canExpand) {

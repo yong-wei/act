@@ -8,7 +8,14 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
 import { ThemeProvider } from '@/components/providers/theme-provider';
+import {
+  createManifestStudentActivityRegistry,
+  createManifestTeacherActivityRegistry,
+  renderStudentInteractiveActivity,
+  renderTeacherInteractiveActivity,
+} from '@/features/interactive/shared/manifest-runtime/activity-renderers';
 import { createManifestContentModuleRegistry } from '@/features/interactive/shared/manifest-runtime/content-renderers';
+import { renderInteractiveManifestStep } from '@/features/interactive/shared/manifest-runtime/layout-renderer';
 import {
   evaluateInteractiveCoursePrivateControlPanelSourceGate,
   evaluateInteractiveModuleRegistryGate,
@@ -22,6 +29,7 @@ import {
   INTERACTIVE_MODULE_RESPONSE_KIND_DEFINITIONS,
 } from '@/features/interactive/shared/manifest-runtime/module-taxonomy';
 import {
+  INTERACTIVE_COURSEWARE_STYLE_MODULE_INVENTORY,
   INTERACTIVE_MODULE_VISUAL_STANDARDS,
   resolveInteractiveModuleVisualStandard,
 } from '@/features/interactive/shared/manifest-runtime/module-visual-standards';
@@ -89,6 +97,21 @@ describe('interactive module registry gate', () => {
     }
   });
 
+  it('keeps a manifest-first courseware style inventory for every canonical module class', () => {
+    expect(Object.keys(INTERACTIVE_COURSEWARE_STYLE_MODULE_INVENTORY).sort()).toEqual([...INTERACTIVE_MODULE_CANONICAL_CLASSES].sort());
+
+    for (const canonicalClass of INTERACTIVE_MODULE_CANONICAL_CLASSES) {
+      expect(INTERACTIVE_COURSEWARE_STYLE_MODULE_INVENTORY[canonicalClass]).toMatchObject({
+        canonicalClass,
+        panelExterior: 'title-panel',
+        chromeRole: 'metadata-only',
+        spacingOwner: 'manifest-runtime-layout',
+        titleLevel: 'module-level-2',
+        bodyToken: 'interactive-courseware-body',
+      });
+    }
+  });
+
   it('registers response kinds with scoring support metadata', () => {
     expect(INTERACTIVE_MODULE_RESPONSE_KIND_DEFINITIONS['choice.single']).toMatchObject({
       responseKind: 'choice.single',
@@ -123,6 +146,183 @@ describe('interactive module registry gate', () => {
     expect(registry['layout.support']).toBeTypeOf('function');
   });
 
+  it('renders manifest-first courseware with semantic heading and shared typography primitives', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 1,
+      allowInlineReveal: true,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'courseware-reveal',
+        kind: 'content.reveal',
+        title: '模块标题',
+        mustBeVisible: true,
+        payload: { block_key: 'courseware_reveal' },
+      },
+    });
+    manifest.steps[0].contentBlocks.courseware_reveal = {
+      items: [
+        {
+          title: '子模块标题',
+          body: '正文说明使用统一字号。',
+          formula: '$G(s)=Y(s)/R(s)$',
+        },
+      ],
+    };
+
+    const html = renderToStaticMarkup(
+      createElement(ThemeProvider, null,
+        renderInteractiveManifestStep({
+          manifest,
+          step: manifest.steps[0],
+          moduleRegistry: registry,
+          extra: { revealProgress: 1, allowInlineReveal: true },
+        }),
+      ),
+    );
+
+    expect(html).toContain('<h1 class="interactive-courseware-title-level-1">Step 01</h1>');
+    expect(html).toContain('<h2 class="interactive-courseware-title-level-2">模块标题</h2>');
+    expect(html).toContain('<h3 class="interactive-courseware-title-level-3">子模块标题</h3>');
+    expect(html).toContain('class="interactive-courseware-body"');
+    expect(html).toContain('data-interactive-module-chrome-role="metadata-only"');
+    expect(html).toContain('premium-lesson-panel interactive-courseware-panel');
+    expect(html).not.toContain('class="space-y-4"');
+    expect(html).not.toContain('premium-lesson-title text-base');
+  });
+
+  it('renders activity panels with shared courseware headings, body and controls', () => {
+    const manifest = manifestFixture({
+      interactionKind: 'single_choice',
+      activityCards: [
+        {
+          id: 'activity-card',
+          title: '选择模型证据',
+          prompt: '哪一项最能作为模型结构证据？',
+          responseKind: 'choice.single',
+          responseCategory: 'objective',
+          responseScoringMode: 'objective',
+          submitScope: 'per_card',
+          layoutSpan: 'full',
+          options: [
+            { id: 'structure', label: '结构关系' },
+            { id: 'color', label: '颜色偏好' },
+          ],
+          referenceAnswer: '结构关系能支撑建模判断。',
+        },
+      ],
+    });
+    const step = manifest.steps[0];
+    const html = renderToStaticMarkup(
+      createElement(ThemeProvider, null,
+        renderStudentInteractiveActivity({
+          registry: createManifestStudentActivityRegistry(),
+          step: {},
+          stepManifest: step,
+          savedResponse: undefined,
+          released: true,
+          browseEnabled: true,
+          answerVisible: true,
+          revealProgress: 0,
+          readOnly: false,
+          onSubmit: () => undefined,
+        }),
+      ),
+    );
+
+    expect(html).toContain('premium-lesson-panel interactive-courseware-panel');
+    expect(html).toContain('<h2 class="interactive-courseware-title-level-2">');
+    expect(html).toContain('interactive-courseware-body');
+    expect(html).toContain('premium-lesson-action-primary interactive-courseware-control');
+    expect(html).not.toContain('premium-lesson-title text-base');
+  });
+
+  it('renders teacher activity controls with shared courseware controls', () => {
+    const manifest = manifestFixture({
+      interactionKind: 'single_choice',
+      activityCards: [
+        {
+          id: 'activity-card',
+          title: '选择模型证据',
+          prompt: '哪一项最能作为模型结构证据？',
+          responseKind: 'choice.single',
+          responseCategory: 'objective',
+          responseScoringMode: 'objective',
+          submitScope: 'per_card',
+          layoutSpan: 'full',
+          options: [{ id: 'structure', label: '结构关系' }],
+          referenceAnswer: '结构关系能支撑建模判断。',
+        },
+      ],
+    });
+    const step = {
+      ...manifest.steps[0],
+      teacherControls: {
+        releaseActivity: 'manual',
+        openBrowse: 'manual',
+        teacherStepReveal: 'manual',
+        revealReferenceAnswer: 'manual',
+      },
+    };
+    const html = renderToStaticMarkup(
+      createElement(ThemeProvider, null,
+        renderTeacherInteractiveActivity({
+          registry: createManifestTeacherActivityRegistry(),
+          step: {},
+          stepManifest: step,
+          responses: [],
+          released: false,
+          browseEnabled: false,
+          answerVisible: false,
+          revealProgress: 0,
+          onToggleRelease: () => undefined,
+          onToggleBrowse: () => undefined,
+          onToggleAnswerVisible: () => undefined,
+          onAdvanceReveal: () => undefined,
+          onResetReveal: () => undefined,
+        }),
+      ),
+    );
+
+    expect(html).toContain('premium-lesson-panel interactive-courseware-panel');
+    expect(html).toContain('<h2 class="interactive-courseware-title-level-2">教师控制</h2>');
+    expect(html).toContain('premium-lesson-action-tone interactive-courseware-control');
+    expect(html).toContain('interactive-courseware-body');
+  });
+
+  it('renders compute.panel fallback with the shared shell and typography contract', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'compute-summary',
+        kind: 'compute.panel',
+        title: '计算面板',
+        mustBeVisible: true,
+        payload: { text: '计算结果说明。', bullets: ['保持统一外壳。'] },
+      },
+    });
+    const step = manifest.steps[0];
+    const html = renderToStaticMarkup(
+      createElement(ThemeProvider, null,
+        renderInteractiveManifestStep({
+          manifest,
+          step,
+          moduleRegistry: registry,
+          extra: { revealProgress: 0, allowInlineReveal: false },
+        }),
+      ),
+    );
+
+    expect(html).toContain('data-commercial-module-chrome="compute.panel"');
+    expect(html).toContain('data-interactive-module-chrome-role="metadata-only"');
+    expect(html).toContain('premium-lesson-panel interactive-courseware-panel');
+    expect(html).toContain('<h2 class="interactive-courseware-title-level-2">计算面板</h2>');
+    expect(html).toContain('interactive-courseware-body');
+  });
+
   it('renders visual.stage as a normalized freeform stage instead of a vertical card list', () => {
     const registry = createManifestContentModuleRegistry({
       revealProgress: 1,
@@ -151,6 +351,18 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-visual-stage-layer-id="plant-diagram"');
     expect(html).toContain('data-visual-stage-layer-id="activity-anchor-layer"');
     expect(html).toContain('data-visual-stage-activity-anchor="stability-observation"');
+    expect(html).toContain('data-visual-stage-panel-chrome="title-panel"');
+    expect(html).toContain('data-visual-stage-canvas-chrome="none"');
+    expect(html).toContain('data-visual-stage-layer-kind-labels="hidden"');
+    expect(html).toContain('data-visual-stage-layer-selected="false"');
+    expect(html).toContain('data-visual-stage-connection-id="plant-to-anchor"');
+    expect(html).toContain('data-visual-stage-connection-from="plant-diagram"');
+    expect(html).toContain('data-visual-stage-connection-to="activity-anchor-layer"');
+    expect(html).toContain('role="button"');
+    expect(html).not.toContain('data-visual-stage-layer-summary');
+    expect(html).not.toContain('>关系图<');
+    expect(html).not.toContain('>标注<');
+    expect(html).not.toContain('rounded-2xl border border-[var(--platform-border)]');
     expect(html).not.toContain('space-y-4');
   });
 
@@ -235,6 +447,7 @@ describe('interactive module registry gate', () => {
         payload: {
           ...visualStagePayloadFixture(),
           activeRevealState: 'intro',
+          connections: [],
           layers: [
             {
               id: 'trimmed-layer',
@@ -305,27 +518,40 @@ describe('interactive module registry gate', () => {
     expect(result.passed).toBe(true);
     expect(html).toContain('data-derivation-stage-id="nonlinear-derivation-stage"');
     expect(html).toContain('data-derivation-stage-canvas="normalized"');
+    expect(html).toContain('data-derivation-stage-canvas-chrome="none"');
     expect(html).toContain('data-derivation-stage-layout="freeform"');
+    expect(html).toContain('data-derivation-stage-panel-chrome="title-panel"');
     expect(html).toContain('data-katex-rendered="true"');
     expect(html).toContain('data-derivation-stage-formula-id="definition-formula"');
     expect(html).toContain('data-derivation-stage-formula-frame="freeform"');
     expect(html).not.toContain('data-derivation-stage-formula-frame="card"');
     expect(html).not.toContain('<h3 class="premium-lesson-caption mb-1">');
     expect(html).toContain('data-derivation-stage-formula-block-id="cancel-term"');
-    expect(html).toContain('data-derivation-stage-formula-block-frame="inline"');
+    expect(html).toContain('data-derivation-stage-formula-block-frame="freeform"');
     expect(html).toContain('data-derivation-stage-color-role="cancel"');
     expect(html).toContain('data-derivation-stage-formula-block-id="result-block"');
     expect(html).toContain('data-derivation-stage-color-role="result"');
     expect(html).toContain('data-derivation-stage-connector-id="definition-to-target"');
     expect(html).toContain('data-derivation-stage-connector-from="known-g"');
     expect(html).toContain('data-derivation-stage-connector-to="result-block"');
-    expect(html).toContain('x1="26"');
-    expect(html).toContain('x2="71"');
+    expect(html).toContain('data-derivation-stage-connector-from-anchor="E"');
+    expect(html).toContain('data-derivation-stage-connector-to-anchor="W"');
+    expect(html).toContain('data-derivation-stage-connector-renderer="fixed-css-arrow"');
+    expect(html).toContain('data-derivation-stage-connector-fixed-shape="true"');
+    expect(html).toContain('data-derivation-stage-connector-gradient="tail-to-head"');
+    expect(html).toContain('data-derivation-stage-connector-arrowhead="css-clip"');
+    expect(html).toContain('data-derivation-stage-connector-arrow-style="fixed-gradient-wide"');
+    expect(html).toContain('data-derivation-stage-connector-arrow-width="1.5em"');
+    expect(html).toContain('data-derivation-stage-connector-shape-stability="rotation-only"');
+    expect(html).not.toContain('marker-end=');
+    expect(html).not.toContain('stroke-width="1.5em"');
+    expect(html).toContain('interactive-courseware-body');
+    expect(html).not.toContain('text-2xl');
     expect(html).toContain('data-derivation-stage-reveal-step-id="step-lower-left"');
     expect(html).toContain('data-derivation-stage-reveal-step-id="step-upper-right"');
     expect(html).toContain('data-derivation-stage-control-button="previous"');
     expect(html).toContain('data-derivation-stage-control-button="next"');
-    expect(html).toContain('第 3 / 3 步');
+    expect(html).toContain('目标表达 · 3/3');
     expect(html).toContain('data-derivation-stage-reveal-steps="metadata"');
     expect(html).not.toContain('data-derivation-stage-reveal-steps="visible"');
     expect(html).not.toContain('LaTeX 公式');
@@ -431,9 +657,14 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-structure-diagram-id="closed-loop-block-diagram"');
     expect(html).toContain('data-structure-diagram-layout-mode="relative"');
     expect(html).toContain('data-structure-diagram-layout-spacing-x="0.12"');
+    expect(html).toContain('data-structure-diagram-canvas-vertical-fit="content-trimmed"');
+    expect(html).toContain('data-structure-diagram-y-target-span="0.66"');
+    expect(html).toContain('min-h-[300px]');
+    expect(html).toContain('md:h-[340px]');
     expect(html).toContain('data-structure-diagram-node-id="plant"');
     expect(html).toContain('data-structure-diagram-node-type="block"');
     expect(html).toContain('data-structure-diagram-node-visual-kind="block"');
+    expect(html).toContain('data-structure-diagram-node-rendered-height="0.12352941176470589"');
     expect(html).toContain('data-structure-diagram-node-anchors="N E S W"');
     expect(html).toContain('data-structure-diagram-node-id="reference"');
     expect(html).toContain('data-structure-diagram-node-visual-kind="input"');
@@ -550,6 +781,8 @@ describe('interactive module registry gate', () => {
     expect(blockHtml).toContain('data-structure-diagram-layout-spacing-x="0.24"');
     expect(blockHtml).toContain('data-structure-diagram-layout-spacing-y="0.14"');
     expect(blockHtml).toContain('width:12%');
+    expect(blockHtml).toContain('height:12.352941176470589%');
+    expect(blockHtml).toContain('data-structure-diagram-node-rendered-height="0.12352941176470589"');
     expect(blockHtml).toContain('border-[3px] bg-platform-panel');
     expect(blockHtml).toContain('rounded-full border-[3px] bg-platform-panel');
     expect(blockHtml).toContain('border-[hsl(var(--platform-action-primary))]');
@@ -563,8 +796,17 @@ describe('interactive module registry gate', () => {
     expect(blockHtml).toContain('text-[19.5px]');
     expect(blockHtml).toContain('data-structure-diagram-terminal-sign="−"');
     expect(signalHtml).toContain('data-structure-diagram-layout-spacing-x="0.24"');
+    expect(signalHtml).toContain('premium-lesson-panel interactive-courseware-panel grid gap-4');
+    expect(signalHtml).toContain('data-structure-diagram-path-sets-enabled="true"');
+    expect(signalHtml).toContain('data-structure-diagram-mason-map-enabled="true"');
     expect(signalHtml).toContain('data-structure-diagram-layout-spacing-y="0.14"');
     expect(signalHtml).toContain('stroke-width="1.6"');
+    expect(signalHtml).toContain('data-structure-diagram-node-visual-kind="signal-node"');
+    expect(signalHtml).toContain('data-structure-diagram-node-label-position="below"');
+    expect(signalHtml).toContain('data-structure-diagram-node-dot="r"');
+    expect(signalHtml).toContain('data-structure-diagram-node-anchors="N NE E SE S SW W NW C"');
+    expect(signalHtml).toContain('data-structure-diagram-branch-from-port="right"');
+    expect(signalHtml).toContain('data-structure-diagram-branch-to-port="left"');
     expect(signalHtml).toContain('data-structure-diagram-arrowhead-id="r-y"');
     expect(signalHtml).toContain('vector-effect="non-scaling-stroke"');
     expect(signalHtml).toContain('data-structure-diagram-arrow-style="fixed-pixel"');
@@ -617,7 +859,7 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-structure-diagram-edge-hit-target="sum-diagonal"');
     expect(html).toContain('data-structure-diagram-edge-main-line="true"');
     expect(html).toContain('vector-effect="non-scaling-stroke"');
-    expect(html).toContain('d="M 62.828 47.172 L 35 55"');
+    expect(html).toContain('d="M 62.828 47.172 L 35 56.176"');
   });
 
   it('renders visual.signalFlowGraph with branch labels, path sets, and Mason formula traceability', () => {
@@ -648,14 +890,38 @@ describe('interactive module registry gate', () => {
     expect(result.passed).toBe(true);
     expect(html).toContain('data-structure-diagram-kind="visual.signalFlowGraph"');
     expect(html).toContain('data-structure-diagram-id="closed-loop-signal-flow"');
+    expect(html).toContain('premium-lesson-panel interactive-courseware-panel grid gap-4');
     expect(html).toContain('data-structure-diagram-layout-mode="relative"');
+    expect(html).toContain('data-structure-diagram-path-sets-enabled="true"');
+    expect(html).toContain('data-structure-diagram-mason-map-enabled="true"');
+    expect(html).toContain('data-structure-diagram-canvas-vertical-fit="content-trimmed"');
+    expect(html).toContain('data-structure-diagram-y-target-span="0.7"');
+    expect(html).toContain('min-h-[300px]');
+    expect(html).toContain('md:h-[340px]');
     expect(html).toContain('data-structure-diagram-node-id="theta"');
-    expect(html).toContain('data-structure-diagram-node-anchors="E W C"');
+    expect(html).toContain('data-structure-diagram-node-anchors="N NE E SE S SW W NW C"');
+    expect(html).toContain('data-structure-diagram-node-visual-kind="signal-node"');
+    expect(html).toContain('data-structure-diagram-node-label-position="below"');
+    expect(html).toContain('data-structure-diagram-node-label-position="above"');
+    expect(html).toContain('data-structure-diagram-node-dot="theta"');
     expect(html).toContain('data-structure-diagram-text-scale="uniform"');
     expect(html).toContain('data-structure-diagram-branch-id="g-forward"');
     expect(html).toContain('data-structure-diagram-branch-route-kind="straight"');
     expect(html).toContain('data-structure-diagram-branch-route-kind="auto-bezier"');
+    expect(html).toContain('data-structure-diagram-branch-from-port="right"');
+    expect(html).toContain('data-structure-diagram-branch-to-port="left"');
+    expect(html).toContain('data-structure-diagram-branch-from-port="bottom-left"');
+    expect(html).toContain('data-structure-diagram-branch-to-port="bottom-right"');
     expect(html).toContain('data-structure-diagram-branch-selected="false"');
+    expect(html).toContain('data-structure-diagram-branch-hit-target="h-feedback"');
+    expect(html).toContain('data-structure-diagram-branch-keyboard-selectable="true"');
+    expect(html).toContain('data-structure-diagram-branch-main-line="true"');
+    expect(html).toContain('data-structure-diagram-branch-halo="highlighted"');
+    expect(html).toContain('data-structure-diagram-keyword-toolbar="visible"');
+    expect(html).toContain('data-structure-diagram-keyword-id="path-reveal"');
+    expect(html).toContain('data-structure-diagram-keyword-targets="g-forward unity-forward"');
+    expect(html).toContain('data-structure-diagram-keyword-selected="false"');
+    expect(html).toContain('rounded-full border px-3 py-1.5 text-sm font-semibold');
     expect(html).toContain(' C ');
     expect(html).toContain('data-structure-diagram-branch-label-id="g-forward"');
     expect(html).toContain('data-structure-diagram-label-chrome="plain"');
@@ -666,7 +932,7 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-structure-diagram-mason-term-id="delta-term"');
     expect(html).toContain('data-structure-diagram-related-ids="forward-path-1 feedback-loop-1"');
     expect(html).not.toContain('data-structure-diagram-submit="closed-loop-signal-flow"');
-    expect(html).toContain('data-structure-diagram-mode-label="visual"');
+    expect(html).not.toContain('data-structure-diagram-mode-label="visual"');
     expect(html).not.toContain('<span class="premium-lesson-badge">diagnose</span>');
   });
 
@@ -2920,6 +3186,7 @@ function visualStagePayloadFixture(): Record<string, unknown> {
       {
         id: 'plant-diagram',
         kind: 'diagram',
+        appearance: 'flowNode',
         title: '对象关系',
         body: '把开环对象、闭环反馈和观察量放在同一坐标中。',
         region: { x: 0.04, y: 0.08, width: 0.58, height: 0.5 },
@@ -2929,6 +3196,7 @@ function visualStagePayloadFixture(): Record<string, unknown> {
       {
         id: 'formula-callout',
         kind: 'formula',
+        appearance: 'note',
         title: '闭环式',
         body: '$T(s)=\\frac{G(s)}{1+G(s)H(s)}$',
         region: { x: 0.64, y: 0.1, width: 0.3, height: 0.22 },
@@ -2938,12 +3206,23 @@ function visualStagePayloadFixture(): Record<string, unknown> {
       {
         id: 'activity-anchor-layer',
         kind: 'activity',
+        appearance: 'card',
         title: '判断锚点',
         body: '记录稳定性观察。',
         region: { x: 0.58, y: 0.62, width: 0.36, height: 0.24 },
         zIndex: 3,
         revealState: 'intro',
         activityAnchor: 'stability-observation',
+      },
+    ],
+    connections: [
+      {
+        id: 'plant-to-anchor',
+        from: 'plant-diagram',
+        to: 'activity-anchor-layer',
+        fromAnchor: 'SE',
+        toAnchor: 'NW',
+        revealState: 'intro',
       },
     ],
   };
@@ -2985,7 +3264,15 @@ function derivationStagePayloadFixture(): Record<string, unknown> {
       },
     ],
     connectors: [
-      { id: 'definition-to-target', kind: 'arrow', from: 'known-g', to: 'result-block', revealStepIds: ['step-middle-block'] },
+      {
+        id: 'definition-to-target',
+        kind: 'arrow',
+        from: 'known-g',
+        to: 'result-block',
+        fromAnchor: 'E',
+        toAnchor: 'W',
+        revealStepIds: ['step-middle-block'],
+      },
     ],
     revealSteps: [
       {
@@ -3002,7 +3289,7 @@ function derivationStagePayloadFixture(): Record<string, unknown> {
       },
       {
         id: 'step-middle-block',
-        title: '中部公式块',
+        title: '目标表达',
         targetIds: ['cancel-term', 'result-formula', 'result-block'],
         reasoning: '最后显影变形和结论。',
       },
@@ -3071,7 +3358,7 @@ function signalFlowGraphPayloadFixture(): Record<string, unknown> {
     nodes: [
       { id: 'input', labelLatex: 'R', grid: { column: 0, row: 0 } },
       { id: 'theta', labelLatex: '\\\\Theta', relativeTo: 'input', placement: 'right' },
-      { id: 'output', labelLatex: 'Y', relativeTo: 'theta', placement: 'right' },
+      { id: 'output', labelLatex: 'Y', labelPosition: 'above', relativeTo: 'theta', placement: 'right' },
     ],
     branches: [
       { id: 'g-forward', from: 'input', to: 'theta', gainLatex: 'G(s)' },

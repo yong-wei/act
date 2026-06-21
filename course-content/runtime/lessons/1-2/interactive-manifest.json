@@ -429,92 +429,206 @@
             "activeRevealState": "all",
             "revealStates": [
               "mechanism-path",
-              "data-path",
-              "course-position"
+              "data-path"
             ],
             "layers": [
               {
                 "id": "real-object",
-                "kind": "media",
+                "kind": "diagram",
+                "appearance": "flowNode",
                 "title": "真实对象",
-                "body": "船舶航向修正是两条建模路径的共同起点。",
+                "body": "",
                 "region": {
-                  "x": 0.38,
-                  "y": 0.08,
-                  "width": 0.24,
-                  "height": 0.16
+                  "x": 0.39,
+                  "y": 0.04,
+                  "width": 0.22,
+                  "height": 0.14
                 },
                 "zIndex": 1
               },
               {
-                "id": "mechanism-path",
+                "id": "physical-law",
                 "kind": "diagram",
-                "title": "机理建模",
-                "body": "物理定律 → 微分方程 → 传递函数；每一项保留可解释物理含义。",
+                "appearance": "flowNode",
+                "title": "物理定律",
+                "body": "",
                 "region": {
-                  "x": 0.06,
-                  "y": 0.34,
-                  "width": 0.38,
-                  "height": 0.22
+                  "x": 0.17,
+                  "y": 0.29,
+                  "width": 0.21,
+                  "height": 0.13
                 },
                 "zIndex": 2,
                 "revealState": "mechanism-path"
               },
               {
-                "id": "data-path",
+                "id": "differential-equation",
                 "kind": "diagram",
-                "title": "数据驱动建模",
-                "body": "输入输出记录 → 数据集 → 算法学习 → 预测模型；依赖数据覆盖范围。",
+                "appearance": "flowNode",
+                "title": "微分方程",
+                "body": "",
                 "region": {
-                  "x": 0.56,
-                  "y": 0.34,
-                  "width": 0.38,
-                  "height": 0.22
+                  "x": 0.17,
+                  "y": 0.48,
+                  "width": 0.21,
+                  "height": 0.13
                 },
                 "zIndex": 3,
-                "revealState": "data-path"
+                "revealState": "mechanism-path"
               },
               {
-                "id": "mechanism-boundary",
-                "kind": "annotation",
-                "title": "机理建模边界",
-                "body": "优势是结构清楚、含义明确；对象复杂时建方程成本高。",
+                "id": "transfer-function",
+                "kind": "diagram",
+                "appearance": "flowNode",
+                "title": "传递函数",
+                "body": "",
                 "region": {
-                  "x": 0.07,
-                  "y": 0.66,
-                  "width": 0.34,
-                  "height": 0.18
+                  "x": 0.17,
+                  "y": 0.67,
+                  "width": 0.21,
+                  "height": 0.13
                 },
                 "zIndex": 4,
                 "revealState": "mechanism-path"
               },
               {
-                "id": "data-boundary",
-                "kind": "annotation",
-                "title": "数据驱动边界",
-                "body": "优势是不依赖完整机理；超出数据覆盖范围时预测可能失效。",
+                "id": "input-output-data",
+                "kind": "diagram",
+                "appearance": "flowNode",
+                "title": "输入输出数据",
+                "body": "",
                 "region": {
-                  "x": 0.59,
-                  "y": 0.66,
-                  "width": 0.34,
-                  "height": 0.18
+                  "x": 0.62,
+                  "y": 0.29,
+                  "width": 0.21,
+                  "height": 0.13
                 },
                 "zIndex": 5,
                 "revealState": "data-path"
               },
               {
-                "id": "course-position",
-                "kind": "annotation",
-                "title": "本课定位",
-                "body": "本课以机理建模为主线，数据驱动在模块 5 再展开。",
+                "id": "algorithm-learning",
+                "kind": "diagram",
+                "appearance": "flowNode",
+                "title": "算法学习",
+                "body": "",
                 "region": {
-                  "x": 0.32,
-                  "y": 0.84,
-                  "width": 0.36,
-                  "height": 0.1
+                  "x": 0.62,
+                  "y": 0.48,
+                  "width": 0.21,
+                  "height": 0.13
                 },
                 "zIndex": 6,
-                "revealState": "course-position"
+                "revealState": "data-path"
+              },
+              {
+                "id": "prediction-model",
+                "kind": "diagram",
+                "appearance": "flowNode",
+                "title": "预测模型",
+                "body": "",
+                "region": {
+                  "x": 0.62,
+                  "y": 0.67,
+                  "width": 0.21,
+                  "height": 0.13
+                },
+                "zIndex": 7,
+                "revealState": "data-path"
+              },
+              {
+                "id": "mechanism-boundary",
+                "kind": "annotation",
+                "appearance": "note",
+                "title": "机理建模",
+                "body": "可解释\n依赖机理",
+                "region": {
+                  "x": 0.02,
+                  "y": 0.45,
+                  "width": 0.12,
+                  "height": 0.2
+                },
+                "zIndex": 8,
+                "revealState": "mechanism-path"
+              },
+              {
+                "id": "data-boundary",
+                "kind": "annotation",
+                "appearance": "note",
+                "title": "数据驱动建模",
+                "body": "易接入\n依赖数据覆盖",
+                "region": {
+                  "x": 0.86,
+                  "y": 0.45,
+                  "width": 0.12,
+                  "height": 0.2
+                },
+                "zIndex": 9,
+                "revealState": "data-path"
+              },
+              {
+                "id": "modeling-goal",
+                "kind": "annotation",
+                "appearance": "objective",
+                "title": "建模目标",
+                "body": "目标：把对象变成可以分析、比较和设计的模型",
+                "region": {
+                  "x": 0.22,
+                  "y": 0.86,
+                  "width": 0.56,
+                  "height": 0.08
+                },
+                "zIndex": 10
+              }
+            ],
+            "connections": [
+              {
+                "id": "object-to-law",
+                "from": "real-object",
+                "to": "physical-law",
+                "fromAnchor": "SW",
+                "toAnchor": "N",
+                "revealState": "mechanism-path"
+              },
+              {
+                "id": "law-to-equation",
+                "from": "physical-law",
+                "to": "differential-equation",
+                "fromAnchor": "S",
+                "toAnchor": "N",
+                "revealState": "mechanism-path"
+              },
+              {
+                "id": "equation-to-transfer-function",
+                "from": "differential-equation",
+                "to": "transfer-function",
+                "fromAnchor": "S",
+                "toAnchor": "N",
+                "revealState": "mechanism-path"
+              },
+              {
+                "id": "object-to-data",
+                "from": "real-object",
+                "to": "input-output-data",
+                "fromAnchor": "SE",
+                "toAnchor": "N",
+                "revealState": "data-path"
+              },
+              {
+                "id": "data-to-learning",
+                "from": "input-output-data",
+                "to": "algorithm-learning",
+                "fromAnchor": "S",
+                "toAnchor": "N",
+                "revealState": "data-path"
+              },
+              {
+                "id": "learning-to-prediction",
+                "from": "algorithm-learning",
+                "to": "prediction-model",
+                "fromAnchor": "S",
+                "toAnchor": "N",
+                "revealState": "data-path"
               }
             ]
           }
@@ -594,7 +708,7 @@
           "path comparison must remain spatial: mechanism path and data path appear as two coordinated routes from the same real object",
           "derivation blocks preserve LaTeX source, formula chunk ids, semantic roles, and non-linear reveal targets",
           "block diagram nodes, summing junctions, ports, and feedback edges remain visually distinct on all themes",
-          "forward paths, loops, non-touching loops, and Mason terms remain visually cross-referenced",
+          "forward paths and feedback loops remain visually cross-referenced",
           "annotated media hotspots remain keyboard/focus reachable and visible after teacher release",
           "long formulas reveal by semantic chunk and color roles without clipping in mobile width",
           "summary map preserves the five conceptual landmarks as a spatial map, not a blank analytics placeholder"
@@ -629,40 +743,59 @@
           "region": "main",
           "kind": "visual.derivationStage",
           "must_be_visible": true,
-          "title": "船舶航向微分方程推导舞台",
+          "title": "微分方程如何给出一次具体响应",
           "payload": {
             "stageId": "ship-equation-derivation",
             "aspectRatio": "16:9",
             "releaseState": "released",
             "activeRevealStepId": "physical-terms",
+            "subtitle": "从舵角产生力矩，到航向角响应，逐步看直接求解的成本。",
             "formulas": [
               {
                 "id": "ship-equation",
                 "title": "船舶航向方程",
                 "latex": "J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)",
                 "region": {
-                  "x": 0.38,
-                  "y": 0.08,
-                  "width": 0.34,
-                  "height": 0.2
+                  "x": 0.5,
+                  "y": 0.1,
+                  "width": 0.38,
+                  "height": 0.18
                 },
                 "blocks": [
                   {
                     "id": "inertia-term",
                     "latex": "J\\ddot{\\theta}(t)",
                     "title": "惯性项",
+                    "region": {
+                      "x": 0.5,
+                      "y": 0.12,
+                      "width": 0.12,
+                      "height": 0.12
+                    },
                     "colorRole": "known"
                   },
                   {
                     "id": "damping-term",
                     "latex": "B\\dot{\\theta}(t)",
                     "title": "阻尼项",
+                    "region": {
+                      "x": 0.63,
+                      "y": 0.12,
+                      "width": 0.12,
+                      "height": 0.12
+                    },
                     "colorRole": "known"
                   },
                   {
                     "id": "input-term",
                     "latex": "Ku(t)",
                     "title": "控制输入项",
+                    "region": {
+                      "x": 0.76,
+                      "y": 0.12,
+                      "width": 0.12,
+                      "height": 0.12
+                    },
                     "colorRole": "target"
                   }
                 ]
@@ -672,9 +805,9 @@
                 "title": "齐次解",
                 "latex": "r^2+2r=0\\Rightarrow\\theta_h(t)=C_1+C_2e^{-2t}",
                 "region": {
-                  "x": 0.55,
-                  "y": 0.38,
-                  "width": 0.38,
+                  "x": 0.5,
+                  "y": 0.34,
+                  "width": 0.44,
                   "height": 0.16
                 },
                 "blocks": [
@@ -682,12 +815,24 @@
                     "id": "characteristic-equation",
                     "latex": "r^2+2r=0",
                     "title": "特征方程",
+                    "region": {
+                      "x": 0.5,
+                      "y": 0.35,
+                      "width": 0.27,
+                      "height": 0.12
+                    },
                     "colorRole": "transform"
                   },
                   {
                     "id": "theta-h",
                     "latex": "\\theta_h(t)=C_1+C_2e^{-2t}",
                     "title": "齐次解",
+                    "region": {
+                      "x": 0.5,
+                      "y": 0.51,
+                      "width": 0.32,
+                      "height": 0.12
+                    },
                     "colorRole": "result"
                   }
                 ]
@@ -697,16 +842,22 @@
                 "title": "特解",
                 "latex": "\\theta_p(t)=\\frac{5}{2}t",
                 "region": {
-                  "x": 0.55,
-                  "y": 0.57,
-                  "width": 0.26,
-                  "height": 0.13
+                  "x": 0.5,
+                  "y": 0.55,
+                  "width": 0.34,
+                  "height": 0.12
                 },
                 "blocks": [
                   {
                     "id": "theta-p",
                     "latex": "\\theta_p(t)=\\frac{5}{2}t",
                     "title": "特解",
+                    "region": {
+                      "x": 0.82,
+                      "y": 0.51,
+                      "width": 0.16,
+                      "height": 0.11
+                    },
                     "colorRole": "result"
                   }
                 ]
@@ -716,9 +867,9 @@
                 "title": "完整响应",
                 "latex": "\\theta(t)=\\frac{5}{2}t-\\frac{5}{4}+\\frac{5}{4}e^{-2t}",
                 "region": {
-                  "x": 0.43,
+                  "x": 0.5,
                   "y": 0.73,
-                  "width": 0.42,
+                  "width": 0.44,
                   "height": 0.13
                 },
                 "blocks": [
@@ -726,6 +877,12 @@
                     "id": "theta-complete",
                     "latex": "\\theta(t)=\\frac{5}{2}t-\\frac{5}{4}+\\frac{5}{4}e^{-2t}",
                     "title": "零初值响应",
+                    "region": {
+                      "x": 0.55,
+                      "y": 0.76,
+                      "width": 0.43,
+                      "height": 0.12
+                    },
                     "colorRole": "risk"
                   }
                 ]
@@ -734,34 +891,34 @@
             "textBlocks": [
               {
                 "id": "physical-object",
-                "title": "物理对象",
-                "body": "舵角产生力矩，惯性与阻尼共同约束航向角变化。",
+                "title": "真实对象进入方程",
+                "body": "舵角产生力矩，惯性与阻尼共同约束航向角 $\\theta(t)$ 的变化。",
                 "region": {
-                  "x": 0.05,
-                  "y": 0.1,
-                  "width": 0.25,
-                  "height": 0.22
+                  "x": 0.06,
+                  "y": 0.11,
+                  "width": 0.34,
+                  "height": 0.17
                 }
               },
               {
                 "id": "symbols",
-                "title": "符号说明",
-                "body": "θ(t) 为航向角，u(t) 为舵机控制作用，J 为转动惯量，B 为阻尼系数，K 为控制力矩系数。",
+                "title": "这些符号承载物理含义",
+                "body": "$\\theta(t)$ 为航向角，$u(t)$ 为舵机控制作用，$J$ 为转动惯量，$B$ 为阻尼系数，$K$ 为控制力矩系数。",
                 "region": {
-                  "x": 0.05,
+                  "x": 0.06,
                   "y": 0.37,
-                  "width": 0.3,
-                  "height": 0.22
+                  "width": 0.36,
+                  "height": 0.19
                 }
               },
               {
                 "id": "solve-cost",
-                "title": "直接求解代价",
+                "title": "直接求解只回答这一次输入",
                 "body": "换输入要重来，多环节串联要联立求解，不易识别跨对象动态结构，天然停留在时间轴。",
                 "region": {
-                  "x": 0.08,
+                  "x": 0.06,
                   "y": 0.68,
-                  "width": 0.28,
+                  "width": 0.38,
                   "height": 0.2
                 }
               }
@@ -771,7 +928,9 @@
                 "id": "object-to-equation",
                 "kind": "arrow",
                 "from": "physical-object",
-                "to": "ship-equation",
+                "to": "inertia-term",
+                "fromAnchor": "E",
+                "toAnchor": "W",
                 "revealStepIds": [
                   "physical-terms"
                 ]
@@ -779,10 +938,23 @@
               {
                 "id": "equation-to-homogeneous",
                 "kind": "arrow",
-                "from": "ship-equation",
+                "from": "damping-term",
                 "to": "characteristic-equation",
+                "fromAnchor": "S",
+                "toAnchor": "N",
                 "revealStepIds": [
                   "homogeneous"
+                ]
+              },
+              {
+                "id": "homogeneous-to-complete",
+                "kind": "therefore",
+                "from": "theta-h",
+                "to": "theta-complete",
+                "fromAnchor": "S",
+                "toAnchor": "NW",
+                "revealStepIds": [
+                  "complete-response"
                 ]
               },
               {
@@ -790,6 +962,8 @@
                 "kind": "therefore",
                 "from": "theta-p",
                 "to": "theta-complete",
+                "fromAnchor": "S",
+                "toAnchor": "N",
                 "revealStepIds": [
                   "complete-response"
                 ]
@@ -798,7 +972,7 @@
             "revealSteps": [
               {
                 "id": "physical-terms",
-                "title": "物理项定位",
+                "title": "物理作用写进方程",
                 "targetIds": [
                   "physical-object",
                   "ship-equation",
@@ -807,40 +981,40 @@
                   "input-term",
                   "symbols"
                 ],
-                "reasoning": "先把真实对象中的惯性、阻尼和输入对应到方程项。"
+                "reasoning": "舵角产生力矩，惯性、阻尼和输入分别对应方程中的三类项。"
               },
               {
                 "id": "homogeneous",
-                "title": "齐次解",
+                "title": "先看系统自身模态",
                 "targetIds": [
                   "characteristic-equation",
                   "theta-h"
                 ],
-                "reasoning": "从无输入部分得到系统自身模态。"
+                "reasoning": "无输入部分给出齐次解，说明对象自己会留下怎样的动态痕迹。"
               },
               {
                 "id": "particular",
-                "title": "特解",
+                "title": "再看阶跃输入贡献",
                 "targetIds": [
                   "theta-p"
                 ],
-                "reasoning": "单位阶跃输入导致线性增长特解。"
+                "reasoning": "单位阶跃输入带来线性增长项，这是当前输入造成的响应部分。"
               },
               {
                 "id": "complete-response",
-                "title": "定系数与响应",
+                "title": "合成零初值响应",
                 "targetIds": [
                   "theta-complete"
                 ],
-                "reasoning": "零初值条件给出完整响应，显示直接求解成本。"
+                "reasoning": "齐次解和特解合在一起，得到这一次输入下的完整时间响应。"
               },
               {
                 "id": "solve-cost",
-                "title": "四个不便",
+                "title": "直接求解的代价",
                 "targetIds": [
                   "solve-cost"
                 ],
-                "reasoning": "用求解代价引出传递函数需求。"
+                "reasoning": "每换对象、输入或连接方式都要重新求解，因此需要传递函数。"
               }
             ],
             "teacherControls": {
@@ -1055,7 +1229,7 @@
           "path comparison must remain spatial: mechanism path and data path appear as two coordinated routes from the same real object",
           "derivation blocks preserve LaTeX source, formula chunk ids, semantic roles, and non-linear reveal targets",
           "block diagram nodes, summing junctions, ports, and feedback edges remain visually distinct on all themes",
-          "forward paths, loops, non-touching loops, and Mason terms remain visually cross-referenced",
+          "forward paths and feedback loops remain visually cross-referenced",
           "annotated media hotspots remain keyboard/focus reachable and visible after teacher release",
           "long formulas reveal by semantic chunk and color roles without clipping in mobile width",
           "summary map preserves the five conceptual landmarks as a spatial map, not a blank analytics placeholder"
@@ -1715,6 +1889,7 @@
                 "to": "sum.S",
                 "route": "-|",
                 "labelLatex": "Y_m(s)",
+                "labelPlacement": "source-left",
                 "terminalSign": "−"
               }
             ],
@@ -1917,7 +2092,7 @@
           "path comparison must remain spatial: mechanism path and data path appear as two coordinated routes from the same real object",
           "derivation blocks preserve LaTeX source, formula chunk ids, semantic roles, and non-linear reveal targets",
           "block diagram nodes, summing junctions, ports, and feedback edges remain visually distinct on all themes",
-          "forward paths, loops, non-touching loops, and Mason terms remain visually cross-referenced",
+          "forward paths and feedback loops remain visually cross-referenced",
           "annotated media hotspots remain keyboard/focus reachable and visible after teacher release",
           "long formulas reveal by semantic chunk and color roles without clipping in mobile width",
           "summary map preserves the five conceptual landmarks as a spatial map, not a blank analytics placeholder"
@@ -1998,6 +2173,8 @@
               "mode": "diagnose"
             },
             "activeRevealState": "all",
+            "showPathSets": false,
+            "showMasonMap": false,
             "nodes": [
               {
                 "id": "R",
@@ -2010,6 +2187,7 @@
               {
                 "id": "E",
                 "labelLatex": "E(s)",
+                "labelPosition": "above",
                 "relativeTo": "R",
                 "placement": "right",
                 "distance": 0.9
@@ -2023,6 +2201,7 @@
               {
                 "id": "Y",
                 "labelLatex": "Y(s)",
+                "labelPosition": "above",
                 "relativeTo": "U",
                 "placement": "right",
                 "distance": 1.1
@@ -2129,43 +2308,6 @@
                   "b-y-ym"
                 ],
                 "emphasis": "path"
-              },
-              {
-                "id": "forward-path",
-                "label": "输入到输出的前向通路",
-                "targetIds": [
-                  "b-r-e",
-                  "b-e-u",
-                  "b-u-y"
-                ],
-                "emphasis": "path"
-              },
-              {
-                "id": "feedback-loop",
-                "label": "反馈回路",
-                "targetIds": [
-                  "b-e-u",
-                  "b-u-y",
-                  "b-y-ym",
-                  "b-ym-e"
-                ],
-                "emphasis": "loop"
-              }
-            ],
-            "masonTerms": [
-              {
-                "id": "P1-term",
-                "latex": "P_1=G_c(s)G_p(s)",
-                "relatedIds": [
-                  "P1"
-                ]
-              },
-              {
-                "id": "L1-term",
-                "latex": "L_1=-G_c(s)G_p(s)H(s)",
-                "relatedIds": [
-                  "L1"
-                ]
               }
             ]
           }
@@ -2271,7 +2413,6 @@
           "与方框图的三种对应"
         ],
         "forbidden_scope": [
-          "梅森公式",
           "复杂回路枚举"
         ]
       },
@@ -2314,7 +2455,7 @@
           "path comparison must remain spatial: mechanism path and data path appear as two coordinated routes from the same real object",
           "derivation blocks preserve LaTeX source, formula chunk ids, semantic roles, and non-linear reveal targets",
           "block diagram nodes, summing junctions, ports, and feedback edges remain visually distinct on all themes",
-          "forward paths, loops, non-touching loops, and Mason terms remain visually cross-referenced",
+          "forward paths and feedback loops remain visually cross-referenced",
           "annotated media hotspots remain keyboard/focus reachable and visible after teacher release",
           "long formulas reveal by semantic chunk and color roles without clipping in mobile width",
           "summary map preserves the five conceptual landmarks as a spatial map, not a blank analytics placeholder"
@@ -4130,7 +4271,7 @@
           "path comparison must remain spatial: mechanism path and data path appear as two coordinated routes from the same real object",
           "derivation blocks preserve LaTeX source, formula chunk ids, semantic roles, and non-linear reveal targets",
           "block diagram nodes, summing junctions, ports, and feedback edges remain visually distinct on all themes",
-          "forward paths, loops, non-touching loops, and Mason terms remain visually cross-referenced",
+          "forward paths and feedback loops remain visually cross-referenced",
           "annotated media hotspots remain keyboard/focus reachable and visible after teacher release",
           "long formulas reveal by semantic chunk and color roles without clipping in mobile width",
           "summary map preserves the five conceptual landmarks as a spatial map, not a blank analytics placeholder"
@@ -4569,7 +4710,7 @@
           "path comparison must remain spatial: mechanism path and data path appear as two coordinated routes from the same real object",
           "derivation blocks preserve LaTeX source, formula chunk ids, semantic roles, and non-linear reveal targets",
           "block diagram nodes, summing junctions, ports, and feedback edges remain visually distinct on all themes",
-          "forward paths, loops, non-touching loops, and Mason terms remain visually cross-referenced",
+          "forward paths and feedback loops remain visually cross-referenced",
           "annotated media hotspots remain keyboard/focus reachable and visible after teacher release",
           "long formulas reveal by semantic chunk and color roles without clipping in mobile width",
           "summary map preserves the five conceptual landmarks as a spatial map, not a blank analytics placeholder"

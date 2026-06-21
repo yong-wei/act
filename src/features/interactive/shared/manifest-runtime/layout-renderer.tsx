@@ -72,7 +72,7 @@ function renderStackedTemplate({
 
   return createElement(
     'div',
-    { 'data-template': step.layout.template, className: 'space-y-4' },
+    { 'data-template': step.layout.template, className: 'interactive-courseware-stack' },
     orderedRegions.map(({ region, nodes }) =>
       createElement(
         'section',
@@ -80,7 +80,7 @@ function renderStackedTemplate({
           key: region.id,
           'data-region': region.id,
           'data-width': region.width,
-          className: 'space-y-4',
+          className: 'interactive-courseware-region',
         },
         nodes.map((item) => createElement(Fragment, { key: item.moduleId }, item.node)),
       ),
@@ -141,6 +141,7 @@ function renderCommercialModuleChrome({
       'data-interactive-module-geometry': standard?.geometry ?? 'stable-panel',
       'data-interactive-module-teacher-controls': standard?.teacherControlAttachment ?? 'none',
       'data-interactive-module-control-scope': teacherControlScope,
+      'data-interactive-module-chrome-role': 'metadata-only',
       'data-commercial-module-state': module.mustBeVisible ? 'required' : 'available',
       'data-commercial-workspace-zone': 'instrument-area',
       'data-task-workspace-zone': 'instrument-area',
@@ -236,13 +237,14 @@ function renderStepTitleModule({
       'data-manifest-step-title': step.id,
       'data-commercial-workspace': 'interactive-learning',
       'data-commercial-workspace-zone': 'context-strip',
-      className: 'premium-lesson-panel',
+      'data-courseware-panel-exterior': 'title-panel',
+      className: 'premium-lesson-panel interactive-courseware-panel',
     },
     [
       createElement('div', { key: 'kicker', className: 'premium-lesson-kicker' }, pageLabel),
-      createElement('h2', { key: 'title', className: 'premium-lesson-title mt-2 text-2xl font-semibold' }, renderLayoutInlineContent(step.title)),
+      createElement('h1', { key: 'title', className: 'interactive-courseware-title-level-1' }, renderLayoutInlineContent(step.title)),
       getStepDescription(step)
-        ? createElement('p', { key: 'description', className: 'premium-lesson-muted mt-2 text-sm leading-7' }, renderLayoutInlineContent(getStepDescription(step)))
+        ? createElement('p', { key: 'description', className: 'interactive-courseware-body' }, renderLayoutInlineContent(getStepDescription(step)))
         : null,
     ],
   );
