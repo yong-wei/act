@@ -5,6 +5,7 @@ import {
   buildGraphCenterPayload,
   type GraphCenterDomain,
 } from '@/lib/data-governance/graph-center';
+import { buildGraphCenterCoverageSources } from '@/lib/data-governance/graph-center-sources';
 import type { PortraitV2DimensionId } from '@/lib/data-governance/kaq-objective-taxonomy';
 import { getServerAuthSession } from '@/lib/auth';
 
@@ -31,12 +32,32 @@ export default async function GraphCenterPage({ searchParams }: GraphCenterPageP
     getServerAuthSession(),
     searchParams,
   ]);
+  const coverageSources = await buildGraphCenterCoverageSources({
+    viewerRole: session?.user?.role,
+    viewerUserId: session?.user?.id,
+  });
   const payload = buildGraphCenterPayload({
     domain: params?.domain as GraphCenterDomain | undefined,
     objectiveId: params?.objectiveId ?? null,
     portraitDimension: params?.portraitDimension as PortraitV2DimensionId | undefined,
     selectedNodeId: params?.nodeId ?? null,
+    ...coverageSources,
   });
+  const rootPayload = buildGraphCenterPayload({
+    domain: payload.activeDomain,
+    ...coverageSources,
+  });
+  const rootPayloads = {
+    knowledge: payload.activeDomain === 'knowledge'
+      ? rootPayload
+      : buildGraphCenterPayload({ domain: 'knowledge', ...coverageSources }),
+    capability: payload.activeDomain === 'capability'
+      ? rootPayload
+      : buildGraphCenterPayload({ domain: 'capability', ...coverageSources }),
+    quality: payload.activeDomain === 'quality'
+      ? rootPayload
+      : buildGraphCenterPayload({ domain: 'quality', ...coverageSources }),
+  };
 
   return (
     <AppShell
@@ -47,7 +68,7 @@ export default async function GraphCenterPage({ searchParams }: GraphCenterPageP
       sidebarMode="collapsible"
       className="surface-page"
     >
-      <GraphCenterClient initialPayload={payload} />
+      <GraphCenterClient initialPayload={payload} rootPayloads={rootPayloads} />
     </AppShell>
   );
 }
