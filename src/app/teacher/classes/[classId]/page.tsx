@@ -105,6 +105,8 @@ export default function ClassDetailPage() {
   const [showStartModal, setShowStartModal] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
   const lessonPlanSelectId = useId();
+  const startDialogErrorId = useId();
+  const [startDialogError, setStartDialogError] = useState('');
   const [starting, setStarting] = useState(false);
   const [regeneratingJoinCode, setRegeneratingJoinCode] = useState(false);
   const [endingSessionId, setEndingSessionId] = useState<string | null>(null);
@@ -196,10 +198,12 @@ export default function ClassDetailPage() {
   const openStartDialog = useCallback(() => {
     const activeElement = document.activeElement;
     startDialogOpenerRef.current = activeElement instanceof HTMLElement ? activeElement : null;
+    setStartDialogError('');
     setShowStartModal(true);
   }, []);
 
   const closeStartDialog = useCallback(() => {
+    setStartDialogError('');
     setShowStartModal(false);
     window.requestAnimationFrame(() => {
       const opener = startDialogOpenerRef.current;
@@ -263,8 +267,11 @@ export default function ClassDetailPage() {
 
   // 开始上课
   const handleStartClass = async () => {
+    setStartDialogError('');
     if (!selectedPlanId) {
-      setAnnouncement('请选择教案后再开始上课。');
+      const message = '请选择教案后再开始上课。';
+      setStartDialogError(message);
+      setAnnouncement(message);
       return;
     }
 
@@ -293,7 +300,9 @@ export default function ClassDetailPage() {
       router.push(`/classroom/teacher/${session.id}`);
     } catch (error) {
       console.error('开始课堂失败:', error);
-      setAnnouncement(error instanceof Error ? error.message : '开始课堂失败');
+      const message = error instanceof Error ? error.message : '开始课堂失败';
+      setStartDialogError(message);
+      setAnnouncement(message);
     } finally {
       setStarting(false);
     }
@@ -968,7 +977,7 @@ export default function ClassDetailPage() {
       {/* 开始上课模态框 */}
       {showStartModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div ref={startDialogRef} className="surface-card mx-4 w-full max-w-md p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="teacher-start-class-title" tabIndex={-1}>
+          <div ref={startDialogRef} className="surface-card mx-4 w-full max-w-md p-6 shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="teacher-start-class-title" aria-describedby={startDialogError ? startDialogErrorId : undefined} tabIndex={-1}>
             <div className="mb-6 flex items-center justify-between">
               <h3 id="teacher-start-class-title" className="text-xl font-bold text-foreground">开始上课</h3>
               <button type="button"
@@ -999,7 +1008,10 @@ export default function ClassDetailPage() {
                 <select
                   id={lessonPlanSelectId}
                   value={selectedPlanId}
-                  onChange={e => setSelectedPlanId(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedPlanId(e.target.value);
+                    setStartDialogError('');
+                  }}
                   className="w-full rounded-lg border border-border/70 bg-background/70 px-4 py-3 text-foreground focus:border-primary focus:outline-none"
                 >
                   <option value="">请选择教案...</option>
@@ -1011,6 +1023,12 @@ export default function ClassDetailPage() {
                 </select>
               )}
             </div>
+
+            {startDialogError && (
+              <p id={startDialogErrorId} role="alert" className="mb-4 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-100">
+                {startDialogError}
+              </p>
+            )}
 
             <div className="flex gap-3">
               <button type="button"

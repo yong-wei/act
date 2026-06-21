@@ -156,6 +156,9 @@ describe('teacher-insights helpers', () => {
     expect(classDetailSource).toContain(`event.key === 'Escape'`);
     expect(classDetailSource).toContain('document.activeElement === dialog');
     expect(classDetailSource).toContain('getStartDialogFocusableElements(dialog)[0]?.focus() ?? dialog.focus()');
+    expect(classDetailSource).toContain('const [startDialogError, setStartDialogError] = useState');
+    expect(classDetailSource).toContain('role="alert"');
+    expect(classDetailSource).toContain('aria-describedby={startDialogError ? startDialogErrorId : undefined}');
     expect(classDetailSource).toContain('data-label="证据状态"');
     expect(globalsSource).toContain('table[data-teacher-mobile-cards="true"]');
     expect(globalsSource).toContain('content: attr(data-label)');
