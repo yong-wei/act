@@ -158,6 +158,72 @@ function createRuntimeContext(overrides: Partial<KonlingRuntimeContext> = {}): K
   };
 }
 
+function createGraphLearnerState(
+  userId: string,
+  score = 0.72,
+): NonNullable<KonlingRuntimeContext['learnerState']> {
+  const evidenceRef = {
+    sourceType: 'LearningPathExecution',
+    sourceId: `exec-${userId}`,
+    evidenceAt: '2026-06-21T00:00:00.000Z',
+    confidence: 'verified',
+    privacyLevel: 'teacher-scoped',
+  };
+
+  return {
+    userId,
+    authority: 'server-owned',
+    generatedAt: '2026-06-21T00:00:00.000Z',
+    roleScope: {
+      role: 'student',
+      classId: 'class-1',
+      privacyScopes: ['teacher-scoped'],
+    },
+    primaryCompetencies: {
+      vector: {},
+    },
+    risks: {
+      activeFlags: [],
+    },
+    knowledgeMastery: {
+      tags: {
+        'kn:autocontrol:controller-correction': {
+          posteriorMastery: score,
+          confidence: 0.8,
+          evidenceCount: 1,
+          lastUpdatedAt: '2026-06-21T00:00:00.000Z',
+          supportingEvidenceRefs: [evidenceRef],
+          sourceCoverage: null,
+          limitations: [],
+        },
+      },
+    },
+    masteryTraceability: {
+      capabilityTargets: {
+        'cap:autocontrol:synthesize-controller-correction': {
+          masteryLevel: score,
+          confidence: 0.84,
+          supportingEvidenceRefs: [evidenceRef],
+          freshness: 'fresh',
+          sourceCoverage: null,
+          limitations: [],
+        },
+      },
+      knowledgeTargets: {},
+    },
+    pathContext: {
+      activeControlCorrectionPath: {
+        state: 'none',
+        pathId: null,
+        status: null,
+        currentNodeId: null,
+        terminalValidationState: null,
+        lowConfidenceMarkers: [],
+      },
+    },
+  } as NonNullable<KonlingRuntimeContext['learnerState']>;
+}
+
 function textbookRuntimeCatalogFixture() {
   return [{
     textbook: {
@@ -952,6 +1018,79 @@ describe('konling agent runtime', () => {
     expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       userId: 'student-1',
       role: 'student',
+      classId: 'class-1',
+      goal: 'control-correction',
+    }));
+  });
+
+  it('assembles class overlay for teacher graph-aware class contexts', async () => {
+    const classLearnerIds = ['student-1', 'student-2', 'student-3', 'student-4', 'student-5'];
+    mocks.readAdaptiveLearnerState.mockImplementation((_db, args) => {
+      if (classLearnerIds.includes(args.userId)) {
+        return Promise.resolve(createGraphLearnerState(args.userId, 0.62 + classLearnerIds.indexOf(args.userId) * 0.05));
+      }
+      return Promise.resolve(null);
+    });
+
+    const runtime = await buildKonlingRuntimeContext({
+      class: {
+        findUnique: vi.fn().mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' }),
+      },
+      studentProfile: {
+        findMany: vi.fn().mockResolvedValue(classLearnerIds.map((userId) => ({ userId }))),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'teacher-1',
+      authenticatedUserName: '王老师',
+      role: 'TEACHER',
+      targetUserId: 'teacher-1',
+      classId: 'class-1',
+      courseId: 'control-correction',
+      pageId: 'teacher-class-report',
+      pageContextHint: {
+        courseId: 'control-correction',
+        stepId: 'teacher-class-report',
+        pageType: 'teacher-class-report',
+        topic: '班级控制系统校正诊断',
+      },
+      trustedContentContext: true,
+    });
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'class-summarizer',
+      runtimeContext: runtime,
+      scope: createScope({
+        authenticatedUserId: 'teacher-1',
+        targetUserId: 'teacher-1',
+        role: 'teacher',
+        classId: 'class-1',
+        courseId: 'control-correction',
+        pageId: 'teacher-class-report',
+        privacyScopes: ['teacher-scoped'],
+      }),
+      serverModeContext: {
+        'class-report': true,
+        'diagnosis-view': true,
+        'evidence-citations': true,
+      },
+    });
+
+    expect(runtime.graphContext?.classOverlay?.status).toBe('available');
+    expect(runtime.graphContext?.classOverlay?.classId).toBe('class-1');
+    expect(runtime.graphContext?.classOverlay?.items['cap:autocontrol:synthesize-controller-correction']).toMatchObject({
+      denominator: 5,
+      suppressionReason: 'none',
+    });
+    expect(contract.graphContext?.classOverlay?.status).toBe('available');
+    expect(contract.degradedReasons).not.toContain('missing-graph-grounding:overlay');
+    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      userId: 'student-1',
+      role: 'teacher',
       classId: 'class-1',
       goal: 'control-correction',
     }));

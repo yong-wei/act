@@ -48,6 +48,7 @@ import {
   resolveKonlingGraphContextLearningGoalId,
   type KonlingKaqGraphContext,
 } from '@/lib/konling-kaq-graph-context';
+import type { GraphCenterClassOverlayInput } from '@/lib/data-governance/graph-center';
 import { buildResourceNodeRegistry } from '@/lib/resource-node-registry';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/frequency-response-resource-seed';
@@ -1130,6 +1131,7 @@ interface KonlingToolRunFailInput {
 export interface KonlingRuntimeDb {
   studentProfile?: {
     findFirst?: (args: any) => Promise<unknown | null>;
+    findMany?: (args: any) => Promise<unknown[]>;
   };
   class?: {
     findUnique?: (args: any) => Promise<unknown | null>;
@@ -1480,6 +1482,46 @@ function hasGraphCenterLearnerOverlayShape(state: AdaptiveLearnerState | null): 
   );
 }
 
+async function buildKonlingRuntimeClassOverlayInput(
+  db: KonlingRuntimeDb,
+  input: {
+    scope: KonlingRuntimeScope;
+    learnerStateGoal: string | null;
+    pageContextHint?: Partial<PageContext> | null;
+    now?: Date;
+  },
+): Promise<GraphCenterClassOverlayInput | null> {
+  if (input.scope.role !== 'teacher' || !input.scope.classId || !db.studentProfile?.findMany) {
+    return null;
+  }
+
+  const studentProfiles = await db.studentProfile.findMany({
+    where: { classId: input.scope.classId },
+    select: { userId: true },
+  }).catch(() => null);
+  if (!studentProfiles) return null;
+
+  const learnerStates = await Promise.all(studentProfiles.map(async (student) => {
+    const userId = getString(student, 'userId');
+    if (!userId) return null;
+    return readAdaptiveLearnerState(db, {
+      userId,
+      role: input.scope.role,
+      classId: input.scope.classId,
+      goal: input.learnerStateGoal,
+      clientHints: input.pageContextHint ? { pageContext: input.pageContextHint } : undefined,
+      now: input.now,
+    }).catch(() => null);
+  }));
+
+  return {
+    classId: input.scope.classId,
+    viewerRole: input.scope.role,
+    authorized: true,
+    learnerStates: learnerStates.filter(hasGraphCenterLearnerOverlayShape),
+  };
+}
+
 export async function buildKonlingRuntimeContext(
   db: KonlingRuntimeDb,
   input: KonlingRuntimeInput,
@@ -1503,7 +1545,7 @@ export async function buildKonlingRuntimeContext(
       }).catch(() => null)
     : null;
 
-  const [planContext, memory, knowledgeWorkspace] = await Promise.all([
+  const [planContext, memory, knowledgeWorkspace, classOverlayInput] = await Promise.all([
     readPlanContext(db, scope),
     searchKonlingMemory(db, {
       scope,
@@ -1511,6 +1553,14 @@ export async function buildKonlingRuntimeContext(
       limit: 6,
     }),
     buildKnowledgeWorkspaceContext(db, scope, input.knowledgeWorkspaceHint),
+    learnerStateEnabled
+      ? buildKonlingRuntimeClassOverlayInput(db, {
+          scope,
+          learnerStateGoal,
+          pageContextHint: input.pageContextHint,
+          now: input.now,
+        })
+      : Promise.resolve(null),
   ]);
   const pageContext = buildServerOwnedPageContext(scope, input.pageContextHint);
   const userProfile = buildServerOwnedUserProfile({
@@ -1546,6 +1596,7 @@ export async function buildKonlingRuntimeContext(
   const graphContext = buildKonlingRuntimeGraphContext({
     scope,
     runtimeContext: baseRuntimeContext,
+    classOverlayInput,
     clientHints: input.pageContextHint ? { pageContext: input.pageContextHint } : null,
   });
   baseRuntimeContext.graphContext = graphContext;
@@ -1578,6 +1629,7 @@ export async function buildKonlingRuntimeContext(
 export function buildKonlingRuntimeGraphContext(input: {
   scope: KonlingRuntimeScope;
   runtimeContext: KonlingRuntimeContext;
+  classOverlayInput?: GraphCenterClassOverlayInput | null;
   clientHints?: Record<string, unknown> | null;
 }): KonlingKaqGraphContext {
   return buildKonlingKaqGraphContext({
@@ -1594,6 +1646,7 @@ export function buildKonlingRuntimeGraphContext(input: {
           authorized: true,
         }
       : null,
+    classOverlayInput: input.classOverlayInput ?? null,
     planContext: input.runtimeContext.planContext,
     citationContext: input.runtimeContext.citationContext,
     clientHints: input.clientHints,
