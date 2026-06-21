@@ -132,6 +132,88 @@ function readRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
 
+function readFirstQuestionCardId(payload: Record<string, unknown>): string | null {
+  const summaries = payload.questionSummaries;
+  if (!Array.isArray(summaries)) return null;
+  for (const summary of summaries) {
+    const record = readRecord(summary);
+    const cardId = readPayloadString(record, 'cardId')
+      ?? readPayloadString(record, 'questionId')
+      ?? readPayloadString(record, 'id');
+    if (cardId) return cardId;
+  }
+  return null;
+}
+
+function resolveSubmissionIdentity(payload: Record<string, unknown>, attemptKey: string | null | undefined): string | null {
+  return attemptKey
+    ?? readPayloadString(payload, 'submissionIdentity')
+    ?? readPayloadString(payload, 'submissionId')
+    ?? readPayloadString(payload, 'attemptId');
+}
+
+function buildClassroomSubmissionDedupeKey(input: {
+  userId: string;
+  sessionId: string | null | undefined;
+  lessonKey: string | null | undefined;
+  stepId: string | null | undefined;
+  attemptKey: string | null | undefined;
+  payload: Record<string, unknown>;
+}): string | null {
+  if (!input.sessionId || !input.stepId) return null;
+  const submissionIdentity = resolveSubmissionIdentity(input.payload, input.attemptKey);
+  if (!submissionIdentity) return null;
+  const cardId = readPayloadString(input.payload, 'cardId')
+    ?? readPayloadString(input.payload, 'questionId')
+    ?? readFirstQuestionCardId(input.payload)
+    ?? 'step';
+  return [
+    input.userId,
+    input.sessionId,
+    input.lessonKey ?? '',
+    input.stepId,
+    cardId,
+    submissionIdentity,
+  ].join('|');
+}
+
+function buildClassroomSubmissionDedupeKeyForEvent(eventData: NormalizedInteractionEvent, userId: string): string | null {
+  const payload =
+    eventData.event.data && typeof eventData.event.data === 'object'
+      ? eventData.event.data
+      : {};
+  const canonicalEventType = resolveCanonicalEventType(eventData.event.type, payload);
+  if (canonicalEventType !== 'lesson_submit' && canonicalEventType !== 'lesson_resubmit') {
+    return null;
+  }
+  return buildClassroomSubmissionDedupeKey({
+    userId,
+    sessionId: eventData.sessionId,
+    lessonKey: eventData.event.lessonKey ?? null,
+    stepId: eventData.event.stepId ?? readPayloadString(payload, 'stepId'),
+    attemptKey: eventData.event.attemptKey ?? readPayloadString(payload, 'attemptKey'),
+    payload,
+  });
+}
+
+function buildClassroomSubmissionDedupeKeyForResponse(response: {
+  userId: string;
+  sessionId: string;
+  lessonKey: string | null;
+  stepId: string;
+  attemptKey: string | null;
+  responseData: Prisma.JsonValue;
+}): string | null {
+  return buildClassroomSubmissionDedupeKey({
+    userId: response.userId,
+    sessionId: response.sessionId,
+    lessonKey: response.lessonKey,
+    stepId: response.stepId,
+    attemptKey: response.attemptKey,
+    payload: readRecord(response.responseData),
+  });
+}
+
 function withSubmissionEvidenceQuality(
   payload: Record<string, unknown>,
   canonicalEventType: string,
@@ -145,6 +227,59 @@ function withSubmissionEvidenceQuality(
     evidenceQualityReason: summary.reason,
     evidenceSourceState: summary.sourceState,
   };
+}
+
+async function dedupeClassroomSubmissionEvents(
+  events: NormalizedInteractionEvent[],
+  userId: string,
+): Promise<{ events: NormalizedInteractionEvent[]; duplicateSubmissionEvents: number }> {
+  const candidateKeys = events
+    .map((event) => buildClassroomSubmissionDedupeKeyForEvent(event, userId))
+    .filter((key): key is string => Boolean(key));
+  if (candidateKeys.length === 0) {
+    return { events, duplicateSubmissionEvents: 0 };
+  }
+
+  const sessionIds = Array.from(new Set(events.map((event) => event.sessionId).filter((value): value is string => Boolean(value))));
+  const stepIds = Array.from(new Set(events.map((event) => (
+    event.event.stepId ?? readPayloadString(readRecord(event.event.data), 'stepId')
+  )).filter((value): value is string => Boolean(value))));
+  const existingResponses = sessionIds.length > 0 && stepIds.length > 0
+    ? await prisma.studentStepResponse.findMany({
+      where: {
+        userId,
+        sessionId: { in: sessionIds },
+        stepId: { in: stepIds },
+      },
+      select: {
+        userId: true,
+        sessionId: true,
+        lessonKey: true,
+        stepId: true,
+        attemptKey: true,
+        responseData: true,
+      },
+    })
+    : [];
+  const seenKeys = new Set(
+    existingResponses
+      .map(buildClassroomSubmissionDedupeKeyForResponse)
+      .filter((key): key is string => Boolean(key)),
+  );
+  const dedupedEvents: NormalizedInteractionEvent[] = [];
+  let duplicateSubmissionEvents = 0;
+
+  for (const event of events) {
+    const key = buildClassroomSubmissionDedupeKeyForEvent(event, userId);
+    if (key && seenKeys.has(key)) {
+      duplicateSubmissionEvents += 1;
+      continue;
+    }
+    if (key) seenKeys.add(key);
+    dedupedEvents.push(event);
+  }
+
+  return { events: dedupedEvents, duplicateSubmissionEvents };
 }
 
 function buildStudentStepResponseRows(
@@ -367,9 +502,14 @@ export async function POST(request: NextRequest) {
       return true;
     });
 
+    const {
+      events: evidenceDedupedEvents,
+      duplicateSubmissionEvents,
+    } = await dedupeClassroomSubmissionEvents(dedupedEvents, session.user.id);
+
     // Persist valid events before materializing facts so governance facts can
     // retain a direct InteractionLog sourceLogId.
-    const interactionLogEvents = dedupedEvents.map((item) => {
+    const interactionLogEvents = evidenceDedupedEvents.map((item) => {
       const { sourceLogId: _untrustedSourceLogId, ...eventData } = item.event.data ?? {};
       const canonicalEventType = resolveCanonicalEventType(item.event.type, eventData);
       const normalizedEventData = withSubmissionEvidenceQuality(eventData, canonicalEventType);
@@ -419,7 +559,7 @@ export async function POST(request: NextRequest) {
       : [];
 
     const sourceLinkedEvents = attachSourceLogIds(
-      dedupedEvents,
+      evidenceDedupedEvents,
       persistedLogs.map((log) => ({
         id: log.id,
         clientEventId: log.clientEventId ?? readJsonString(log.eventData, 'clientEventId'),
@@ -508,9 +648,10 @@ export async function POST(request: NextRequest) {
     // Update response
     return NextResponse.json({
       success: true,
-      count: dedupedEvents.length,
+      count: evidenceDedupedEvents.length,
       degraded: degradedEvents.length,
-      duplicates: duplicateEvents,
+      duplicates: duplicateEvents + duplicateSubmissionEvents,
+      submissionDuplicates: duplicateSubmissionEvents,
       routing: routingResults.reduce((acc, r) => {
         acc[r.destination] = (acc[r.destination] || 0) + 1;
         return acc;

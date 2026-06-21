@@ -1,5 +1,6 @@
 import type { ControllerMethod, LeaderboardType, MetricDefinition } from '../types';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
+import { isArenaSubmissionEffectiveForRanking } from '../submissions/ranking-policy';
 import { getArenaChallengeTask, getArenaLeaderboardPolicy, getArenaMetricProfile } from '../data/seed-challenges';
 
 export interface ArenaLeaderboardOptions {
@@ -200,7 +201,7 @@ export function buildArenaLeaderboard(
   const tieBreakers = policy?.tieBreakers ?? ['hardConstraintPass', 'score', 'submittedAt'];
   const metricId = options.type === 'metric' ? options.metricId : undefined;
   const eligibleSubmissions = filterByLeaderboardScope(submissions, options)
-    .filter((submission) => submission.evaluation.valid);
+    .filter(isArenaSubmissionEffectiveForRanking);
   const sorted = sortSubmissionsForLeaderboard(eligibleSubmissions, options, tieBreakers);
   const seen = new Set<string>();
   const ranked = sorted.filter((submission) => {

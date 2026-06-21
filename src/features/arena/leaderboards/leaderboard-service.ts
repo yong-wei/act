@@ -1,5 +1,6 @@
 import type { ControllerMethod, LeaderboardType, MetricDefinition } from '../types';
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
+import { isArenaSubmissionEffectiveForRanking } from '../submissions/ranking-policy';
 import { getArenaChallengeTask, getArenaLeaderboardPolicy, getArenaMetricProfile } from '../data/seed-challenges';
 import {
   ARENA_STUDENT_LEADERBOARD_TYPES,
@@ -103,7 +104,7 @@ export function getLeaderboardViewModel(
   options?: Partial<ArenaLeaderboardOptions>,
 ): LeaderboardViewModel {
   const taskSubmissions = submissions.filter((s) => s.taskId === taskId);
-  const validSubmissions = taskSubmissions.filter((s) => s.evaluation.valid);
+  const rankableSubmissions = taskSubmissions.filter(isArenaSubmissionEffectiveForRanking);
   const allMethods = Array.from(new Set(taskSubmissions.map((s) => s.artifact.method)));
 
   const { taskId: _optsTaskId, type: _optsType, ...safeOptions } = options ?? {};
@@ -119,7 +120,7 @@ export function getLeaderboardViewModel(
     typeLabel: TYPE_LABELS[currentType] ?? currentType,
     entries: leaderboard.entries,
     isEmpty: taskSubmissions.length === 0,
-    hasNoValidSubmissions: taskSubmissions.length > 0 && validSubmissions.length === 0,
+    hasNoValidSubmissions: taskSubmissions.length > 0 && rankableSubmissions.length === 0,
     totalSubmissions: taskSubmissions.length,
     totalParticipants: new Set(taskSubmissions.map((s) => s.userId ?? s.studentLabel)).size,
     availableTypes,

@@ -3,6 +3,8 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import { buildEvidenceTimelineBrowserUrl } from '@/features/data-governance/evidence-timeline-browser';
+
 const repoRoot = process.cwd();
 
 function readSource(path: string): string {
@@ -80,6 +82,17 @@ describe('evidence browser entry points', () => {
     expect(browserSource).toContain('initialLessonId?: string');
     expect(browserSource).toContain("useState(initialLessonId ?? '')");
     expect(browserSource).toContain("setLessonId(initialLessonId ?? '')");
+  });
+
+  it('passes sessionId filters through to the student evidence API URL', () => {
+    const pageSource = readSource('src/app/(main)/profile/evidence/page.tsx');
+
+    expect(pageSource).toContain('initialSessionId={initialSessionId}');
+    expect(buildEvidenceTimelineBrowserUrl('/api/student/evidence', {
+      lessonId: 'unit-4-1',
+      sessionId: 'session-123',
+      cursor: 'cursor-1',
+    })).toBe('/api/student/evidence?limit=20&lessonId=unit-4-1&sessionId=session-123&cursor=cursor-1');
   });
 
   it('clears stale first-page evidence before refetching while preserving loaded pages on pagination failures', () => {

@@ -14,6 +14,11 @@ interface SessionJoinInfo {
   plan: { title: string };
   teacher: { name: string };
   class?: { name: string };
+  joinState?: {
+    state: string;
+    recoveryAction: string;
+    evidenceWriteback: string;
+  };
 }
 
 interface ClassJoinInfo {
@@ -94,7 +99,8 @@ function JoinClassroomContent() {
       }
 
       if (!res.ok) {
-        setError(data.error || '查询失败');
+        const recoveryAction = typeof data.joinState?.recoveryAction === 'string' ? data.joinState.recoveryAction : null;
+        setError([data.error || '查询失败', recoveryAction].filter(Boolean).join('。'));
         return;
       }
 
@@ -278,7 +284,12 @@ function JoinClassroomShell({
           </div>
 
           {error && (
-            <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
+            <div
+              className="mb-4 flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400"
+              role="alert"
+              aria-live="polite"
+              data-classroom-join-state="recoverable-error"
+            >
               <AlertCircle className="h-4 w-4 flex-shrink-0" />
               {error}
             </div>
@@ -294,6 +305,11 @@ function JoinClassroomShell({
                   <div>班级: {sessionInfo.class.name}</div>
                 )}
               </div>
+              {sessionInfo.joinState?.evidenceWriteback ? (
+                <div className="mt-3 rounded-lg border border-cyan-500/20 bg-slate-950/50 px-3 py-2 text-xs leading-5 text-cyan-100/80">
+                  {sessionInfo.joinState.evidenceWriteback}
+                </div>
+              ) : null}
             </div>
           )}
 

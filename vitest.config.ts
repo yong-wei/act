@@ -26,6 +26,7 @@ export default defineConfig({
       'src/features/control-workbench/__tests__/**/*.test.ts',
       'src/features/data-center/__tests__/**/*.test.ts',
       'src/app/api/classes/**/__tests__/**/*.test.ts',
+      'src/app/api/session/**/__tests__/**/*.test.ts',
       'src/app/api/arena/**/__tests__/**/*.test.ts',
       'src/app/api/admin/**/__tests__/**/*.test.ts',
       'src/app/api/interactive/**/__tests__/**/*.test.ts',

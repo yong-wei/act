@@ -94,6 +94,14 @@ describe('/api/session/[sessionId]/state auth', () => {
       totalStudents: 1,
       latestUpdate: submittedAt.toISOString(),
     });
+    expect(body.evidenceWriteback).toMatchObject({
+      mode: 'live-state-and-event-materialization',
+    });
+    expect(body.evidenceWriteback.dedupeRule).toContain('sessionId');
+    expect(body.evidenceWriteback.dedupeRule).toContain('cardId');
+    expect(body.evidenceWriteback.dedupeRule).toContain('提交身份');
+    expect(body.evidenceWriteback.dedupeRule).toContain('应用层串行');
+    expect(body.evidenceWriteback.dedupeRule).toContain('数据库级并发幂等仍未关闭');
     expect(mocks.findMany).toHaveBeenCalledTimes(2);
   });
 });

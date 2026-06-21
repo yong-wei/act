@@ -27,8 +27,29 @@ interface EvidenceTimelineBrowserProps {
   emptyBackLabel?: string;
   contextBadges?: string[];
   initialLessonId?: string;
+  initialSessionId?: string;
   title: string;
   subtitle?: string;
+}
+
+export interface EvidenceTimelineBrowserUrlFilters {
+  dimension?: string;
+  lessonId?: string;
+  sessionId?: string;
+  factType?: string;
+  outcome?: string;
+  cursor?: string | null;
+}
+
+export function buildEvidenceTimelineBrowserUrl(apiPath: string, filters: EvidenceTimelineBrowserUrlFilters): string {
+  const params = new URLSearchParams({ limit: '20' });
+  if (filters.dimension) params.set('dimension', filters.dimension);
+  if (filters.lessonId?.trim()) params.set('lessonId', filters.lessonId.trim());
+  if (filters.sessionId?.trim()) params.set('sessionId', filters.sessionId.trim());
+  if (filters.factType) params.set('factType', filters.factType);
+  if (filters.outcome) params.set('outcome', filters.outcome);
+  if (filters.cursor) params.set('cursor', filters.cursor);
+  return `${apiPath}?${params.toString()}`;
 }
 
 export function EvidenceTimelineBrowser({
@@ -38,6 +59,7 @@ export function EvidenceTimelineBrowser({
   emptyBackLabel = '返回成长中心',
   contextBadges = [],
   initialLessonId,
+  initialSessionId,
   title,
   subtitle,
 }: EvidenceTimelineBrowserProps) {
@@ -45,6 +67,7 @@ export function EvidenceTimelineBrowser({
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [dimension, setDimension] = useState('');
   const [lessonId, setLessonId] = useState(initialLessonId ?? '');
+  const [sessionId, setSessionId] = useState(initialSessionId ?? '');
   const [factType, setFactType] = useState('');
   const [outcome, setOutcome] = useState('');
   const [studentLabel, setStudentLabel] = useState<string | null>(null);
@@ -53,19 +76,20 @@ export function EvidenceTimelineBrowser({
   const requestSequenceRef = useRef(0);
 
   const filterKey = useMemo(
-    () => JSON.stringify({ dimension, lessonId, factType, outcome }),
-    [dimension, lessonId, factType, outcome]
+    () => JSON.stringify({ dimension, lessonId, sessionId, factType, outcome }),
+    [dimension, lessonId, sessionId, factType, outcome]
   );
 
   const buildUrl = useCallback((cursor?: string | null) => {
-    const params = new URLSearchParams({ limit: '20' });
-    if (dimension) params.set('dimension', dimension);
-    if (lessonId.trim()) params.set('lessonId', lessonId.trim());
-    if (factType) params.set('factType', factType);
-    if (outcome) params.set('outcome', outcome);
-    if (cursor) params.set('cursor', cursor);
-    return `${apiPath}?${params.toString()}`;
-  }, [apiPath, dimension, factType, lessonId, outcome]);
+    return buildEvidenceTimelineBrowserUrl(apiPath, {
+      dimension,
+      lessonId,
+      sessionId,
+      factType,
+      outcome,
+      cursor,
+    });
+  }, [apiPath, dimension, factType, lessonId, outcome, sessionId]);
 
   const loadPage = useCallback(async (cursor?: string | null) => {
     const requestId = requestSequenceRef.current + 1;
@@ -115,9 +139,14 @@ export function EvidenceTimelineBrowser({
     setLessonId(initialLessonId ?? '');
   }, [initialLessonId]);
 
+  useEffect(() => {
+    setSessionId(initialSessionId ?? '');
+  }, [initialSessionId]);
+
   const resetFilters = () => {
     setDimension('');
     setLessonId('');
+    setSessionId('');
     setFactType('');
     setOutcome('');
   };
