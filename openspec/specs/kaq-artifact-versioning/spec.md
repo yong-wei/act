@@ -1,14 +1,14 @@
 # kaq-artifact-versioning Specification
 
 ## Purpose
-Defines shared version-reference metadata for K/A/Q goal packages, graph catalogs, resource projections, path artifacts, overlays, grounding payloads, and citation chips so stale, migrated, or unversioned artifacts remain auditable.
+Defines shared version-reference metadata for K/A/Q LearningGoals, graph catalogs, resource projections, path artifacts, overlays, grounding payloads, and citation chips so stale, migrated, or unversioned artifacts remain auditable.
 ## Requirements
 ### Requirement: Graph-driven artifacts carry version references
 The system SHALL attach version references to persisted graph-driven artifacts.
 
 #### Scenario: Path artifact is persisted
 - **WHEN** a graph-driven path artifact or path round is created
-- **THEN** it SHALL include LearningGoal package version, graph catalog version, resource registry or projection version, overlay version where used, planner version, generatedAt, and limitations
+- **THEN** it SHALL include LearningGoal version, graph catalog version, resource registry or projection version, overlay version where used, planner version, generatedAt, and limitations
 - **AND** the artifact SHALL remain explainable after later graph or resource changes.
 
 #### Scenario: Overlay artifact is materialized

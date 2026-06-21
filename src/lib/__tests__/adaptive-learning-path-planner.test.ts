@@ -4,13 +4,14 @@ import {
   ADAPTIVE_LEARNING_GOAL_DEFINITIONS,
   buildAdaptiveLearningPathPlan,
   buildControlCorrectionThreeStylePathBundle,
-  getLearningGoalPackage,
+  getLearningGoal,
   isRegisteredAdaptiveLearningPathGoal,
-  listLearningGoalPackages,
+  listLearningGoals,
+  normalizeLearningPathPayloadLearningGoal,
   recordLearningPathFeedback,
   serializeLearningPathPlan,
-  validateLearningGoalPackage,
-  validateLearningGoalPackageCatalog,
+  validateLearningGoal,
+  validateLearningGoalCatalog,
   type AdaptiveLearningPathPlannerInput,
 } from '../adaptive-learning-path-planner';
 import { buildControlCorrectionResourceNodeRegistry } from '../control-correction-resource-seed';
@@ -489,15 +490,15 @@ describe('adaptive learning path planner', () => {
     expect(JSON.stringify(plan)).not.toContain('2035-01-01T00:00:00.000Z');
   });
 
-  it('registers path-ready LearningGoal packages with governed K/A/Q graph bindings', () => {
-    expect(validateLearningGoalPackageCatalog()).toEqual([]);
+  it('registers path-ready LearningGoals with governed K/A/Q graph bindings', () => {
+    expect(validateLearningGoalCatalog()).toEqual([]);
     const objectiveIds = new Set(AUTOCONTROL_KAQ_OBJECTIVES.map((objective) => objective.id));
     const graphNodeIds = new Set(AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes.map((node) => node.id));
-    const packages = listLearningGoalPackages();
-    const pathReadyPackages = packages.filter((learningGoalPackage) => learningGoalPackage.status === 'path-ready');
+    const learningGoals = listLearningGoals();
+    const pathReadyLearningGoals = learningGoals.filter((learningGoal) => learningGoal.status === 'path-ready');
 
-    expect(pathReadyPackages.length).toBeGreaterThanOrEqual(8);
-    expect(pathReadyPackages.map((learningGoalPackage) => learningGoalPackage.intentType)).toEqual(expect.arrayContaining([
+    expect(pathReadyLearningGoals.length).toBeGreaterThanOrEqual(8);
+    expect(pathReadyLearningGoals.map((learningGoal) => learningGoal.intentType)).toEqual(expect.arrayContaining([
       'concept-understanding',
       'modeling',
       'analysis',
@@ -505,26 +506,26 @@ describe('adaptive learning path planner', () => {
       'simulation-validation',
       'transfer-application',
     ]));
-    for (const learningGoalPackage of pathReadyPackages) {
-      expect(learningGoalPackage.knowledgeObjectiveIds.every((id) => id.startsWith('knowledge:') && objectiveIds.has(id))).toBe(true);
-      expect(learningGoalPackage.capabilityObjectiveIds.every((id) => id.startsWith('capability:') && objectiveIds.has(id))).toBe(true);
-      expect(learningGoalPackage.qualityObjectiveIds.every((id) => id.startsWith('quality:') && objectiveIds.has(id))).toBe(true);
-      expect(learningGoalPackage.targetGraphNodeIds.every((id) => graphNodeIds.has(id))).toBe(true);
-      expect(learningGoalPackage.goalSliceId).toBe('control-correction');
-      expect(learningGoalPackage.resourceMix.required.length).toBeGreaterThan(0);
-      expect(learningGoalPackage.resourceMix.preferred.length).toBeGreaterThan(0);
-      expect(learningGoalPackage.evidencePolicy.requiredEvidenceTypes.length).toBeGreaterThan(0);
-      expect(learningGoalPackage.terminalValidationPolicy.acceptedEvidenceTypes.length).toBeGreaterThan(0);
-      if (!learningGoalPackage.evidencePolicy.qualityEvidenceGoverned) {
+    for (const learningGoal of pathReadyLearningGoals) {
+      expect(learningGoal.knowledgeObjectiveIds.every((id) => id.startsWith('knowledge:') && objectiveIds.has(id))).toBe(true);
+      expect(learningGoal.capabilityObjectiveIds.every((id) => id.startsWith('capability:') && objectiveIds.has(id))).toBe(true);
+      expect(learningGoal.qualityObjectiveIds.every((id) => id.startsWith('quality:') && objectiveIds.has(id))).toBe(true);
+      expect(learningGoal.targetGraphNodeIds.every((id) => graphNodeIds.has(id))).toBe(true);
+      expect(learningGoal.goalSliceId).toBe('control-correction');
+      expect(learningGoal.resourceMix.required.length).toBeGreaterThan(0);
+      expect(learningGoal.resourceMix.preferred.length).toBeGreaterThan(0);
+      expect(learningGoal.evidencePolicy.requiredEvidenceTypes.length).toBeGreaterThan(0);
+      expect(learningGoal.terminalValidationPolicy.acceptedEvidenceTypes.length).toBeGreaterThan(0);
+      if (!learningGoal.evidencePolicy.qualityEvidenceGoverned) {
         expect([
-          ...learningGoalPackage.evidencePolicy.limitations,
-          ...learningGoalPackage.limitations,
+          ...learningGoal.evidencePolicy.limitations,
+          ...learningGoal.limitations,
         ]).toContain('quality-rubric-evidence-not-fully-governed');
       }
     }
   });
 
-  it('preserves registered goal path calls while exposing LearningGoal package metadata', () => {
+  it('preserves registered goal path calls while exposing LearningGoal metadata', () => {
     const legacyControlCorrectionGoal = {
       id: 'control-correction',
       title: '控制系统校正设计',
@@ -556,18 +557,20 @@ describe('adaptive learning path planner', () => {
       },
     }));
 
-    expect(controlCorrectionPlan.goal.learningGoalPackage).toMatchObject({
+    expect(controlCorrectionPlan.goal.learningGoal).toMatchObject({
       id: 'control-correction',
       qualityObjectiveIds: expect.arrayContaining(['quality:autocontrol:evidence-integrity']),
       targetGraphNodeIds: expect.arrayContaining(['cap:autocontrol:validate-with-simulation-evidence']),
     });
+    expect(controlCorrectionPlan.goal).not.toHaveProperty('learningGoalPackage');
     const serializedControlCorrectionPlan = serializeLearningPathPlan(controlCorrectionPlan);
-    expect(serializedControlCorrectionPlan.payload.learningGoalPackage?.id).toBe('control-correction');
+    expect(serializedControlCorrectionPlan.payload.learningGoal?.id).toBe('control-correction');
+    expect(serializedControlCorrectionPlan.payload).not.toHaveProperty('learningGoalPackage');
     expect(serializedControlCorrectionPlan.payload.artifactVersioning).toMatchObject({
       artifactKind: 'path-artifact',
       artifactId: controlCorrectionPlan.id,
       versionRefs: {
-        learningGoalPackageVersion: controlCorrectionPlan.goal.learningGoalPackage?.version,
+        learningGoalPackageVersion: controlCorrectionPlan.goal.learningGoal?.version,
         graphCatalogVersion: 'autocontrol-kaq-graph.v1',
         resourceProjectionVersion: 'resource-semantic-projection.v1',
         plannerVersion: 'adaptive-learning-path-planner.v1',
@@ -583,27 +586,34 @@ describe('adaptive learning path planner', () => {
         competencyTargets: ['parameterDesign'],
       },
     });
-    expect(serializedRegisteredGoalPlan.payload.learningGoalPackage?.version).toBe(controlCorrectionPlan.goal.learningGoalPackage?.version);
+    expect(serializedRegisteredGoalPlan.payload.learningGoal?.version).toBe(controlCorrectionPlan.goal.learningGoal?.version);
+    expect(serializedRegisteredGoalPlan.payload).not.toHaveProperty('learningGoalPackage');
     expect(serializedRegisteredGoalPlan.payload.artifactVersioning).toMatchObject({
       versionRefs: {
-        learningGoalPackageVersion: controlCorrectionPlan.goal.learningGoalPackage?.version,
+        learningGoalPackageVersion: controlCorrectionPlan.goal.learningGoal?.version,
       },
       limitations: [],
     });
-    expect(frequencyResponsePlan.goal.learningGoalPackage).toMatchObject({
+    expect(frequencyResponsePlan.goal.learningGoal).toMatchObject({
       id: 'frequency-response-foundations',
       knowledgeObjectiveIds: ['knowledge:autocontrol:frequency-response'],
     });
+
+    expect(normalizeLearningPathPayloadLearningGoal({
+      ...serializedControlCorrectionPlan.payload,
+      learningGoal: undefined,
+      learningGoalPackage: controlCorrectionPlan.goal.learningGoal,
+    }, 'control-correction')?.id).toBe('control-correction');
   });
 
-  it('keeps unknown LearningGoal package ids on the existing registered-goal rejection path', () => {
-    const canonicalPackage = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal.learningGoalPackage!;
+  it('keeps unknown LearningGoal ids on the existing registered-goal rejection path', () => {
+    const canonicalLearningGoal = ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].learningGoal!;
     const forgedPlan = buildAdaptiveLearningPathPlan(plannerInput({
       goal: {
         ...ADAPTIVE_LEARNING_GOAL_DEFINITIONS['control-correction'].goal,
-        learningGoalPackage: {
-          ...canonicalPackage,
-          id: 'unknown-learning-goal-package',
+        learningGoal: {
+          ...canonicalLearningGoal,
+          id: 'unknown-learning-goal',
           knowledgeObjectiveIds: ['knowledge:fake'],
           capabilityObjectiveIds: ['capability:fake'],
           qualityObjectiveIds: ['quality:fake'],
@@ -619,20 +629,20 @@ describe('adaptive learning path planner', () => {
       },
     }));
 
-    expect(getLearningGoalPackage('unknown-learning-goal-package')).toBeNull();
-    expect(isRegisteredAdaptiveLearningPathGoal('unknown-learning-goal-package')).toBe(false);
-    expect(listLearningGoalPackages().some((learningGoalPackage) =>
-      learningGoalPackage.id === 'unknown-learning-goal-package'
+    expect(getLearningGoal('unknown-learning-goal')).toBeNull();
+    expect(isRegisteredAdaptiveLearningPathGoal('unknown-learning-goal')).toBe(false);
+    expect(listLearningGoals().some((learningGoal) =>
+      learningGoal.id === 'unknown-learning-goal'
     )).toBe(false);
-    expect(forgedPlan.goal.learningGoalPackage?.id).toBe('control-correction');
-    expect(forgedPlan.goal.learningGoalPackage?.knowledgeObjectiveIds).not.toContain('knowledge:fake');
-    expect(serializeLearningPathPlan(forgedPlan).payload.learningGoalPackage?.id).toBe('control-correction');
-    expect(validateLearningGoalPackage({
-      ...canonicalPackage,
+    expect(forgedPlan.goal.learningGoal?.id).toBe('control-correction');
+    expect(forgedPlan.goal.learningGoal?.knowledgeObjectiveIds).not.toContain('knowledge:fake');
+    expect(serializeLearningPathPlan(forgedPlan).payload.learningGoal?.id).toBe('control-correction');
+    expect(validateLearningGoal({
+      ...canonicalLearningGoal,
       knowledgeObjectiveIds: ['capability:autocontrol:synthesize-controller-correction'],
     }).map((issue) => issue.code)).toContain('objective-domain-mismatch');
-    expect(validateLearningGoalPackage({
-      ...canonicalPackage,
+    expect(validateLearningGoal({
+      ...canonicalLearningGoal,
       goalSliceId: 'unknown-learning-goal-slice',
     }).map((issue) => issue.code)).toContain('unknown-goal-slice-id');
   });

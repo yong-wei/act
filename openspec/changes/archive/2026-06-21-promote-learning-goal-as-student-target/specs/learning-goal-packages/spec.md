@@ -1,4 +1,4 @@
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: LearningGoals bind K/A/Q objectives to student-facing goals
 The system SHALL define LearningGoals as governed student-facing goal records that bind K/A/Q objectives to path planning inputs.
@@ -38,3 +38,20 @@ The system SHALL provide enough path-ready LearningGoals to support path diversi
 - **WHEN** the initial automatic-control LearningGoal catalog is validated
 - **THEN** it SHALL include at least eight `path-ready` LearningGoals
 - **AND** the LearningGoals SHALL cover multiple learning intents including concept understanding, modeling, analysis, controller design, simulation validation, and transfer/application.
+
+## REMOVED Requirements
+
+### Requirement: LearningGoal packages bind K/A/Q objectives to student-facing goals
+**Reason**: LearningGoals are the student-facing target truth, so package terminology should not remain the primary contract.
+
+**Migration**: Use canonical LearningGoal records for K/A/Q bindings and treat old package payloads as read compatibility input only.
+
+### Requirement: LearningGoal packages extend existing registered goals
+**Reason**: The registered goal truth is now a first-class LearningGoal, not a nested LearningGoal package.
+
+**Migration**: Existing registered goals should expose LearningGoal metadata directly while preserving governed unknown-goal rejection.
+
+### Requirement: LearningGoal package coverage expands path-ready goals
+**Reason**: Path-ready coverage is measured by LearningGoals, not packages.
+
+**Migration**: Audit the LearningGoal catalog for path-ready coverage and intent diversity.

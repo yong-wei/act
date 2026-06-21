@@ -195,17 +195,22 @@ Displayed path bundles SHALL expose why options differ and what tradeoffs they m
 - **AND** the context SHALL expose evidence basis and terminal validation references without private raw traces or hidden prompt payloads.
 
 ### Requirement: Planner supports registered learning goals
-The adaptive path planner SHALL generate learning paths for registered learning goals and LearningGoal packages rather than only for fixed demonstration goals.
+The adaptive path planner SHALL generate learning paths for registered LearningGoals rather than for nested LearningGoal packages or fixed demonstration goals.
 
-#### Scenario: Registered LearningGoal package is requested
-- **WHEN** a student requests a path for a `path-ready` LearningGoal package
-- **THEN** the planner SHALL load the package's K/A/Q objective bindings, allowed resource mix, evidence policy, checkpoint policy, terminal validation policy, and explanation templates
+#### Scenario: Registered LearningGoal is requested
+- **WHEN** a student requests a path for a `path-ready` LearningGoal
+- **THEN** the planner SHALL load the LearningGoal's K/A/Q objective bindings, allowed resource mix, evidence policy, checkpoint policy, terminal validation policy, and explanation templates
 - **AND** it SHALL return executable path options with current node, alternatives, estimated time, evidence limits, and student-facing rationale.
 
 #### Scenario: Legacy registered goal is requested
-- **WHEN** a caller requests an existing registered goal id that has been upgraded to a LearningGoal package
+- **WHEN** a caller requests an existing registered goal id that is now represented as a LearningGoal
 - **THEN** the planner SHALL preserve existing compatible output fields
-- **AND** it SHALL include package metadata for downstream graph expansion when available.
+- **AND** it SHALL include canonical LearningGoal metadata for downstream graph expansion when available.
+
+#### Scenario: Client supplies nested package metadata
+- **WHEN** a client request includes nested `learningGoalPackage` metadata under the requested goal
+- **THEN** the planner SHALL ignore client-supplied nested package fields and resolve the server-owned LearningGoal by id
+- **AND** forged objective ids, graph node ids, resource policies, or evidence policies SHALL NOT override the registered LearningGoal.
 
 ### Requirement: Cold-start learners receive executable starter paths
 The planner SHALL treat cold start as a supported generation state, not as a no-path failure.
@@ -229,7 +234,7 @@ The system SHALL persist learning path rounds across registered goals with versi
 - **AND** the activity SHALL be available to future recommendations without counting selection alone as mastery.
 
 #### Scenario: Graph-driven path round is created
-- **WHEN** a generated path option is created or selected from a LearningGoal package
+- **WHEN** a generated path option is created or selected from a LearningGoal
 - **THEN** the persisted path SHALL include owner user, goal id, goal version, graph version, resource registry or projection version, planner version, status, selected option, current node, path payload, explanation payload, alternative payload, and evidence window references
 - **AND** it SHALL be resumable without recomputing the original graph/resource basis.
 

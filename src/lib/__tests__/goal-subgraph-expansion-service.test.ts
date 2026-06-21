@@ -6,14 +6,15 @@ import {
 } from '../data-governance/autocontrol-kaq-graph-catalog';
 import type { KaqGraphCatalog } from '../data-governance/kaq-graph-schema';
 import {
+  expandLearningGoalDefinitionSubgraph,
   expandLearningGoalPackageSubgraph,
   expandLearningGoalSubgraph,
   GOAL_SUBGRAPH_EXPANSION_VERSION,
 } from '../graphs/goal-subgraph-expansion-service';
-import { getLearningGoalPackage, type LearningGoalPackageDefinition } from '../adaptive-learning-path-planner';
+import { getLearningGoal, type LearningGoalDefinition } from '../adaptive-learning-path-planner';
 
 describe('goal subgraph expansion service', () => {
-  it('expands a path-ready LearningGoal package into deterministic K/A/Q graph payloads', () => {
+  it('expands a path-ready LearningGoal into deterministic K/A/Q graph payloads', () => {
     const first = expandLearningGoalSubgraph('control-correction');
     const second = expandLearningGoalSubgraph('control-correction');
 
@@ -62,20 +63,20 @@ describe('goal subgraph expansion service', () => {
     expect(first.terminalValidationCandidates.length).toBeGreaterThan(0);
     expect(first.checkpointSuggestions.length).toBeGreaterThan(0);
     expect(first.limitations).toEqual(expect.arrayContaining([
-      expect.objectContaining({ code: 'package-limitation' }),
+      expect.objectContaining({ code: 'learning-goal-limitation' }),
     ]));
   });
 
-  it('rejects path-ready packages with missing graph bindings without fabricating nodes', () => {
+  it('rejects path-ready LearningGoals with missing graph bindings without fabricating nodes', () => {
     const packageDefinition = {
-      ...getLearningGoalPackage('control-correction')!,
+      ...getLearningGoal('control-correction')!,
       targetGraphNodeIds: [
         'kn:autocontrol:controller-correction',
         'kn:autocontrol:missing-node',
       ],
-    } satisfies LearningGoalPackageDefinition;
+    } satisfies LearningGoalDefinition;
 
-    const expansion = expandLearningGoalPackageSubgraph(packageDefinition);
+    const expansion = expandLearningGoalDefinitionSubgraph(packageDefinition);
 
     expect(expansion.status).toBe('rejected');
     expect(expansion.graphNodeIds.knowledge).toEqual(['kn:autocontrol:controller-correction']);
@@ -89,8 +90,34 @@ describe('goal subgraph expansion service', () => {
     ]));
   });
 
+  it('normalizes legacy LearningGoal package input through the canonical LearningGoal registry', () => {
+    const canonicalLearningGoal = getLearningGoal('control-correction')!;
+    const forgedLegacyPackage = {
+      ...canonicalLearningGoal,
+      version: 'forged-version',
+      targetGraphNodeIds: ['kn:autocontrol:missing-node'],
+    } satisfies LearningGoalDefinition;
+
+    const expansion = expandLearningGoalPackageSubgraph(forgedLegacyPackage);
+
+    expect(expansion.status).toBe('degraded');
+    expect(expansion.learningGoalId).toBe(canonicalLearningGoal.id);
+    expect(expansion.learningGoalVersion).toBe(canonicalLearningGoal.version);
+    expect(expansion.graphNodeIds.knowledge).toEqual(expect.arrayContaining([
+      'kn:autocontrol:controller-correction',
+      'kn:autocontrol:root-locus',
+    ]));
+    expect(expansion.fixtures.planner.targetGraphNodeIds).not.toContain('kn:autocontrol:missing-node');
+    expect(expansion.limitations).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'missing-graph-node',
+        graphNodeId: 'kn:autocontrol:missing-node',
+      }),
+    ]));
+  });
+
   it('surfaces inactive graph bindings as governed limitations', () => {
-    const packageDefinition = getLearningGoalPackage('frequency-response-foundations')!;
+    const packageDefinition = getLearningGoal('frequency-response-foundations')!;
     const catalog: KaqGraphCatalog = {
       nodes: AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes.map((node) =>
         node.id === 'kn:autocontrol:frequency-response'
@@ -100,7 +127,7 @@ describe('goal subgraph expansion service', () => {
       edges: AUTOCONTROL_KAQ_GRAPH_CATALOG.edges,
     };
 
-    const expansion = expandLearningGoalPackageSubgraph(packageDefinition, { catalog });
+    const expansion = expandLearningGoalDefinitionSubgraph(packageDefinition, { catalog });
 
     expect(expansion.status).toBe('degraded');
     expect(expansion.limitations).toEqual(expect.arrayContaining([
@@ -113,8 +140,8 @@ describe('goal subgraph expansion service', () => {
   });
 
   it('rejects fully-governed packages when a bound graph node is inactive', () => {
-    const packageDefinition: LearningGoalPackageDefinition = {
-      ...getLearningGoalPackage('frequency-response-foundations')!,
+    const packageDefinition: LearningGoalDefinition = {
+      ...getLearningGoal('frequency-response-foundations')!,
       status: 'fully-governed',
     };
     const catalog: KaqGraphCatalog = {
@@ -126,7 +153,7 @@ describe('goal subgraph expansion service', () => {
       edges: AUTOCONTROL_KAQ_GRAPH_CATALOG.edges,
     };
 
-    const expansion = expandLearningGoalPackageSubgraph(packageDefinition, { catalog });
+    const expansion = expandLearningGoalDefinitionSubgraph(packageDefinition, { catalog });
 
     expect(expansion.status).toBe('rejected');
     expect(expansion.limitations).toEqual(expect.arrayContaining([
@@ -139,7 +166,7 @@ describe('goal subgraph expansion service', () => {
   });
 
   it('exposes weak or unsupported relation semantics as limitations', () => {
-    const packageDefinition = getLearningGoalPackage('frequency-response-foundations')!;
+    const packageDefinition = getLearningGoal('frequency-response-foundations')!;
     const catalog: KaqGraphCatalog = {
       nodes: AUTOCONTROL_KAQ_GRAPH_CATALOG.nodes,
       edges: [
@@ -164,7 +191,7 @@ describe('goal subgraph expansion service', () => {
       ],
     };
 
-    const expansion = expandLearningGoalPackageSubgraph(packageDefinition, { catalog });
+    const expansion = expandLearningGoalDefinitionSubgraph(packageDefinition, { catalog });
 
     expect(expansion.prerequisitePolicy).toContainEqual(expect.objectContaining({
       edgeId: 'edge:test:weak-support',
@@ -226,12 +253,12 @@ describe('goal subgraph expansion service', () => {
   });
 
   it('keeps outgoing depends-on dependencies as remediation candidates', () => {
-    const packageDefinition: LearningGoalPackageDefinition = {
-      ...getLearningGoalPackage('control-correction')!,
+    const packageDefinition: LearningGoalDefinition = {
+      ...getLearningGoal('control-correction')!,
       targetGraphNodeIds: ['kn:autocontrol:controller-correction'],
     };
 
-    const expansion = expandLearningGoalPackageSubgraph(packageDefinition);
+    const expansion = expandLearningGoalDefinitionSubgraph(packageDefinition);
 
     expect(expansion.fixtures.planner.targetGraphNodeIds).toEqual(['kn:autocontrol:controller-correction']);
     expect(expansion.prerequisitePolicy).toContainEqual(expect.objectContaining({
@@ -281,7 +308,7 @@ describe('goal subgraph expansion service', () => {
     expect(expansion.status).toBe('rejected');
     expect(expansion.graphNodeIds).toEqual({ knowledge: [], capability: [], quality: [] });
     expect(expansion.limitations).toEqual([
-      expect.objectContaining({ code: 'missing-package', severity: 'blocking' }),
+      expect.objectContaining({ code: 'missing-learning-goal', severity: 'blocking' }),
     ]);
   });
 });
