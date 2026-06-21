@@ -1,0 +1,16 @@
+{
+  "route": "/graph-center",
+  "change": "add-learner-class-graph-overlays",
+  "capturedAt": "2026-06-21T12:18:00+08:00",
+  "viewport": {
+    "width": 1440,
+    "navigationState": "desktop-collapsed"
+  },
+  "verification": {
+    "command": "PLAYWRIGHT_PORT=3311 npx playwright test tests/graph-center.spec.ts",
+    "result": "passed"
+  },
+  "notes": [
+    "Separate artifact fingerprint for the collapsed AppShell navigation state required by commercial UI governance."
+  ]
+}
