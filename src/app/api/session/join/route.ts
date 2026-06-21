@@ -8,6 +8,24 @@ import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
 
 export const dynamic = 'force-dynamic';
 
+type ClassroomJoinState =
+  | 'invalid-code'
+  | 'not-found'
+  | 'finished'
+  | 'forbidden'
+  | 'ready-to-enter';
+
+function buildJoinState(state: ClassroomJoinState, recoveryAction: string) {
+  return {
+    state,
+    recoveryAction,
+    evidenceWriteback:
+      state === 'ready-to-enter'
+        ? '课堂状态由 session state 保存；课堂提交由互动事件入口写入提交记录，并按会话、步骤、卡片和提交身份做应用层串行去重，重复提交不保留 raw InteractionLog，结束后进入教师复盘和学生证据页。数据库级并发幂等仍未关闭。'
+        : '未进入课堂时不会写入课堂作答证据。',
+  };
+}
+
 /**
  * 根据入会码查找课堂会话
  * GET /api/session/join?code=123456
@@ -26,7 +44,10 @@ export async function GET(request: Request) {
 
     if (!joinCode || !/^\d{6}$/.test(joinCode)) {
       return NextResponse.json(
-        { error: '请输入有效的6位入会码' },
+        {
+          error: '请输入有效的6位入会码',
+          joinState: buildJoinState('invalid-code', '请核对教师投屏或二维码中的 6 位数字课堂码。'),
+        },
         { status: 400 }
       );
     }
@@ -61,14 +82,21 @@ export async function GET(request: Request) {
 
     if (!classSession) {
       return NextResponse.json(
-        { error: '未找到该入会码对应的课堂' },
+        {
+          error: '未找到该入会码对应的课堂',
+          joinState: buildJoinState('not-found', '请确认课堂码仍在当前课堂中使用，或返回学习首页等待教师重新发放。'),
+        },
         { status: 404 }
       );
     }
 
     if (classSession.status === 'FINISHED') {
       return NextResponse.json(
-        { error: '该课堂已结束' },
+        {
+          error: '该课堂已结束',
+          joinState: buildJoinState('finished', '请进入个人证据页查看本次课堂记录，或加入新的课堂。'),
+          reviewHref: '/profile/evidence',
+        },
         { status: 410 }
       );
     }
@@ -77,7 +105,10 @@ export async function GET(request: Request) {
     if (classSession.classId) {
       // 教师和管理员可以直接进入
       if (userSession.user.role === 'TEACHER' || userSession.user.role === 'ADMIN') {
-        return NextResponse.json(classSession);
+        return NextResponse.json({
+          ...classSession,
+          joinState: buildJoinState('ready-to-enter', '教师或管理员可直接进入课堂或复盘入口。'),
+        });
       }
 
       // 学生必须属于该班级
@@ -90,7 +121,8 @@ export async function GET(request: Request) {
         return NextResponse.json(
           {
             error: '您不是该班级的学生，无法加入此课堂',
-            className: classSession.class?.name
+            className: classSession.class?.name,
+            joinState: buildJoinState('forbidden', '请确认当前登录账号属于该班级，或联系教师更新班级绑定。'),
           },
           { status: 403 }
         );
@@ -101,6 +133,7 @@ export async function GET(request: Request) {
 
     const response = {
       ...classSession,
+      joinState: buildJoinState('ready-to-enter', '可进入课堂；提交后会在课堂状态、教师复盘和学生证据页中串联。'),
       routeSegment: routeInfo.routeSegment,
       studentHref: buildSessionParticipantHref({
         role: 'student',

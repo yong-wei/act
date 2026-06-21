@@ -258,6 +258,121 @@ describe('POST /api/interactive/events', () => {
     });
   });
 
+  it('deduplicates repeated classroom submissions by session step and attempt identity before writing evidence', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.interactionLog.createManyAndReturn.mockResolvedValue([
+      { id: 'log-submit-a', clientEventId: 'client-submit-a', eventData: { clientEventId: 'client-submit-a' } },
+    ]);
+    mocks.persistCoreLearningFact.mockResolvedValue({ created: 1, actionType: 'lesson_submit' });
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          id: 'client-submit-a',
+          type: 'submit',
+          timestamp: Date.parse('2026-05-12T01:46:42.900Z'),
+          resourceKey: 'unit-4-4-fixed-structure-optimization-modeling',
+          lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+          stepId: 'step-08',
+          attemptKey: 'step-08:response:1778550421493',
+          data: {
+            eventType: 'lesson_submit',
+            cardId: 'weight-preference',
+            score: 100,
+          },
+        },
+        {
+          id: 'client-submit-b',
+          type: 'submit',
+          timestamp: Date.parse('2026-05-12T01:46:43.900Z'),
+          resourceKey: 'unit-4-4-fixed-structure-optimization-modeling',
+          lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+          stepId: 'step-08',
+          attemptKey: 'step-08:response:1778550421493',
+          data: {
+            eventType: 'lesson_submit',
+            cardId: 'weight-preference',
+            score: 100,
+          },
+        },
+      ],
+    }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      count: 1,
+      duplicates: 1,
+      submissionDuplicates: 1,
+    });
+    expect(mocks.prisma.interactionLog.createManyAndReturn).toHaveBeenCalledWith(expect.objectContaining({
+      data: [
+        expect.objectContaining({ clientEventId: 'client-submit-a' }),
+      ],
+    }));
+    expect(mocks.prisma.studentStepResponse.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: [
+        expect.objectContaining({
+          clientEventId: 'client-submit-a',
+          attemptKey: 'step-08:response:1778550421493',
+        }),
+      ],
+    }));
+    expect(mocks.routeEvent).toHaveBeenCalledTimes(1);
+    expect(mocks.persistCoreLearningFact).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips new classroom evidence when the same session step and attempt identity already exists', async () => {
+    mocks.prisma.interactionLog.findMany.mockResolvedValue([]);
+    mocks.prisma.studentStepResponse.findMany.mockResolvedValue([
+      {
+        userId: 'student-1',
+        sessionId: 'cmoxloe52000uq5bcojma7r78',
+        lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
+        stepId: 'step-08',
+        attemptKey: 'step-08:response:1778550421493',
+        responseData: {
+          eventType: 'lesson_submit',
+          cardId: 'weight-preference',
+        },
+      },
+    ]);
+
+    const response = await POST(createPostRequest({
+      events: [
+        {
+          id: 'client-submit-later',
+          type: 'submit',
+          timestamp: Date.parse('2026-05-12T01:46:44.900Z'),
+          resourceKey: 'unit-4-4-fixed-structure-optimization-modeling',
+          lessonKey: 'unit-4-4-fixed-structure-optimization-modeling-v1',
+          sessionId: 'cmoxloe52000uq5bcojma7r78',
+          stepId: 'step-08',
+          attemptKey: 'step-08:response:1778550421493',
+          data: {
+            eventType: 'lesson_submit',
+            cardId: 'weight-preference',
+            score: 100,
+          },
+        },
+      ],
+    }));
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toMatchObject({
+      count: 0,
+      duplicates: 1,
+      submissionDuplicates: 1,
+    });
+    expect(mocks.prisma.interactionLog.createManyAndReturn).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentStepResponse.createMany).not.toHaveBeenCalled();
+    expect(mocks.routeEvent).not.toHaveBeenCalled();
+    expect(mocks.persistCoreLearningFact).not.toHaveBeenCalled();
+  });
+
   it('does not block fact materialization when immutable step response persistence fails', async () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     mocks.prisma.interactionLog.findMany.mockResolvedValue([]);

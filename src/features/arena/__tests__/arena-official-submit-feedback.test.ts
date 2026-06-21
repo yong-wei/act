@@ -65,7 +65,7 @@ function evaluation(overrides: Partial<ArenaEvaluationResult> = {}): ArenaEvalua
     ],
     penalties: [],
     explanation: [
-      '硬约束全部通过，提交进入正式排名。',
+      '硬约束全部通过，但排名分为 0，提交保留为诊断证据，未进入正式排名。',
       'template-whitebox-v1 uses deterministic template metrics.',
     ],
     ...overrides,
@@ -147,13 +147,31 @@ describe('arena official submission feedback view model', () => {
         steadyStateError: 1,
       },
       penalties: [{ id: 'control_energy_high', label: '控制能量偏高', value: 95 }],
-      explanation: ['硬约束全部通过，提交进入正式排名。'],
+      explanation: ['硬约束全部通过，但排名分为 0，提交保留为诊断证据，未进入正式排名。'],
     });
     const explanation = sanitizeOfficialEvaluationExplanation(result, rankingMetrics, ['settlingTime', 'overshoot']);
     const text = explanation.join('\n');
 
     expect(text).toContain('惩罚');
     expect(text).not.toContain('存在达标度为 0 的排名指标');
+  });
+
+  it('explains late positive submissions as review evidence instead of ranked results', () => {
+    const result = evaluation({
+      score: 88,
+      explanation: ['硬约束全部通过，提交进入正式排名。'],
+    });
+    const explanation = sanitizeOfficialEvaluationExplanation(
+      result,
+      rankingMetrics,
+      ['settlingTime', 'overshoot'],
+      true,
+    );
+    const text = explanation.join('\n');
+
+    expect(text).toContain('已超过截止时间');
+    expect(text).toContain('未进入正式排名');
+    expect(text).not.toContain('提交进入正式排名');
   });
 
   it('passes current preview metrics into the official submit panel', () => {

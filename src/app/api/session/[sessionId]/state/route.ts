@@ -37,6 +37,15 @@ function isTeacherOrAdminRole(role: unknown) {
   return ['TEACHER', 'ADMIN', '教师', '管理员'].includes(String(role ?? '').toUpperCase());
 }
 
+function buildClassroomEvidenceWriteback() {
+  return {
+    mode: 'live-state-and-event-materialization',
+    explanation:
+      '本接口保存课堂运行态 StudentState；互动提交由 /api/interactive/events 写入 InteractionLog、StudentStepResponse 并实时物化 LearningFact，课堂结束后的 finalization 刷新教师复盘与学生证据页。',
+    dedupeRule: '具备 attemptKey、submissionIdentity、submissionId 或 attemptId 的课堂提交，会在互动事件入口按 userId、sessionId、lessonKey、stepId、cardId 和提交身份做应用层串行归并；cardId 是去重键的一部分，不能单独作为提交身份。重复提交不保留 raw InteractionLog，数据库级并发幂等仍未关闭。',
+  };
+}
+
 /**
  * POST: 学生提交状态数据
  * GET: 教师获取所有学生状态（用于数据大屏）
@@ -170,6 +179,7 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
         states: courseStates,
         courseStates,
         teacherStates,
+        evidenceWriteback: buildClassroomEvidenceWriteback(),
         summary: {
           totalStudents: courseStates.length,
           latestUpdate,
@@ -201,6 +211,7 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
         states: state ? [state] : [],
         courseStates: state ? [state] : [],
         teacherStates: [],
+        evidenceWriteback: buildClassroomEvidenceWriteback(),
         summary: {
           totalStudents: state ? 1 : 0,
           latestUpdate: state?.submittedAt || null,
@@ -259,6 +270,7 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
         states,
         courseStates: selfState ? [selfState] : [],
         teacherStates: teacherSyncState ? [teacherSyncState] : [],
+        evidenceWriteback: buildClassroomEvidenceWriteback(),
         summary: {
           totalStudents,
           latestUpdate: teacherSyncState?.submittedAt || selfState?.submittedAt || null,
@@ -312,7 +324,13 @@ export async function GET(request: Request, props: { params: Promise<{ sessionId
       latestUpdate: states[0]?.submittedAt || teacherStates[0]?.submittedAt || null
     };
 
-    return NextResponse.json({ states, courseStates: states, teacherStates, summary });
+    return NextResponse.json({
+      states,
+      courseStates: states,
+      teacherStates,
+      evidenceWriteback: buildClassroomEvidenceWriteback(),
+      summary,
+    });
   } catch (error) {
     rethrowIfNextDynamicError(error);
     console.error('Error fetching student states:', error);

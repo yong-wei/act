@@ -35,6 +35,7 @@ function submission(input: {
   params?: Record<string, number | string | boolean>;
   metadata?: Record<string, unknown>;
   evaluationProtocolVersion?: string;
+  isLate?: boolean;
 }): ArenaSubmissionRecord {
   const currentArtifact = artifact({ id: `artifact-${input.id}`, method: input.method, params: input.params });
 
@@ -70,6 +71,7 @@ function submission(input: {
       metadata: input.metadata,
     },
     evaluationProtocolVersion: input.evaluationProtocolVersion,
+    isLate: input.isLate,
     submittedAt: input.submittedAt,
     reusedEvaluation: false,
   };
@@ -111,6 +113,43 @@ describe('arena student diagnostic feedback rules', () => {
     expect(feedback.nextStepSuggestion).toContain('先让闭环稳定达标');
   });
 
+  it('does not mark zero-score or late submissions as ranked', () => {
+    const previousEffective = submission({
+      id: 'previous-effective',
+      score: 70,
+      valid: true,
+      submittedAt: '2026-05-16T08:00:00.000Z',
+    });
+    const zeroScore = buildArenaSubmissionFeedback({
+      latest: submission({ id: 'zero-score', score: 0, valid: true, submittedAt: '2026-05-16T08:20:00.000Z' }),
+      previousSubmissions: [previousEffective],
+      mode: 'white-box',
+    });
+    const late = buildArenaSubmissionFeedback({
+      latest: submission({ id: 'late', score: 92, valid: true, isLate: true, submittedAt: '2026-05-16T08:21:00.000Z' }),
+      previousSubmissions: [previousEffective],
+      mode: 'white-box',
+    });
+    const invalid = buildArenaSubmissionFeedback({
+      latest: submission({ id: 'invalid-latest', score: 95, valid: false, submittedAt: '2026-05-16T08:22:00.000Z' }),
+      previousSubmissions: [previousEffective],
+      mode: 'white-box',
+    });
+
+    expect(zeroScore.rankingStatus).toBe('not_ranked');
+    expect(zeroScore.title).toContain('未进入正式排名');
+    expect(zeroScore.personalBestComparison).toEqual({ state: 'none', delta: 0 });
+    expect(zeroScore.summary).toBe('本次官方评测得分 0 分。');
+    expect(late.rankingStatus).toBe('not_ranked');
+    expect(late.title).toContain('未进入正式排名');
+    expect(late.personalBestComparison).toEqual({ state: 'none', delta: 0 });
+    expect(late.summary).toBe('本次官方评测得分 92 分。');
+    expect(invalid.rankingStatus).toBe('not_ranked');
+    expect(invalid.title).toContain('未进入正式排名');
+    expect(invalid.personalBestComparison).toEqual({ state: 'none', delta: 0 });
+    expect(invalid.summary).toBe('本次官方评测得分 95 分。');
+  });
+
   it('compares the latest submission with the previous personal best', () => {
     const previousBest = submission({
       id: 'previous-best',
@@ -140,6 +179,44 @@ describe('arena student diagnostic feedback rules', () => {
     expect(improved.summary).toContain('提升 13.5 分');
     expect(regressed.personalBestComparison).toEqual({ state: 'regressed', delta: -9, previousBestScore: 70 });
     expect(regressed.nextStepSuggestion).toContain('超调量');
+  });
+
+  it('ignores previous late and zero-score attempts when comparing personal best', () => {
+    const previousEffective = submission({
+      id: 'previous-effective',
+      score: 70,
+      valid: true,
+      submittedAt: '2026-05-16T08:00:00.000Z',
+      satisfaction: { settlingTime: 0.7, overshoot: 0.7, steadyStateError: 0.8, controlEnergy: 0.75 },
+    });
+    const previousLateHighScore = submission({
+      id: 'previous-late',
+      score: 95,
+      valid: true,
+      isLate: true,
+      submittedAt: '2026-05-16T08:10:00.000Z',
+      satisfaction: { settlingTime: 0.95, overshoot: 0.95, steadyStateError: 0.95, controlEnergy: 0.95 },
+    });
+    const previousZero = submission({
+      id: 'previous-zero',
+      score: 0,
+      valid: true,
+      submittedAt: '2026-05-16T08:15:00.000Z',
+    });
+
+    const feedback = buildArenaSubmissionFeedback({
+      latest: submission({
+        id: 'latest-effective',
+        score: 82,
+        valid: true,
+        submittedAt: '2026-05-16T08:30:00.000Z',
+      }),
+      previousSubmissions: [previousLateHighScore, previousZero, previousEffective],
+      mode: 'white-box',
+    });
+
+    expect(feedback.personalBestComparison).toEqual({ state: 'improved', delta: 12, previousBestScore: 70 });
+    expect(feedback.summary).toContain('提升 12 分');
   });
 
   it('keeps personal-best regression metric scoped to the same student', () => {

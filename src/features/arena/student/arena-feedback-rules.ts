@@ -1,4 +1,5 @@
 import type { ArenaSubmissionRecord } from '../submissions/submission-service';
+import { isArenaSubmissionEffectiveForRanking } from '../submissions/ranking-policy';
 import { formatArenaMetric } from '../display-labels';
 
 export type ArenaFeedbackMode = 'white-box' | 'black-box';
@@ -108,11 +109,16 @@ function hardConstraintFailures(guidance: ArenaHardConstraintGuidance[]): string
 }
 
 function comparePersonalBest(input: BuildArenaSubmissionFeedbackInput): ArenaPersonalBestComparison {
+  if (!isArenaSubmissionEffectiveForRanking(input.latest)) {
+    return { state: 'none', delta: 0 };
+  }
+
   const previous = (input.previousSubmissions ?? [])
     .filter((submission) => (
       submission.taskId === input.latest.taskId
       && (input.latest.userId ? submission.userId === input.latest.userId : submission.studentLabel === input.latest.studentLabel)
       && submission.id !== input.latest.id
+      && isArenaSubmissionEffectiveForRanking(submission)
     ));
   if (previous.length === 0) {
     return { state: 'none', delta: 0 };
@@ -138,6 +144,7 @@ function metricWithLargestRegression(
       submission.taskId === latest.taskId
       && (latest.userId ? submission.userId === latest.userId : submission.studentLabel === latest.studentLabel)
       && submission.id !== latest.id
+      && isArenaSubmissionEffectiveForRanking(submission)
     ))
     .sort((left, right) => right.evaluation.score - left.evaluation.score)[0];
   if (!previousBest) return undefined;
@@ -271,7 +278,7 @@ export function buildArenaSubmissionFeedback(input: BuildArenaSubmissionFeedback
   const scoreComposition = metricSignals(input.latest, officialOnlyMetricIds);
   const hardConstraintGuidanceItems = hardConstraintGuidance(input.latest);
   const failures = hardConstraintFailures(hardConstraintGuidanceItems);
-  const rankingStatus: ArenaFeedbackRankingStatus = input.latest.evaluation.valid && failures.length === 0
+  const rankingStatus: ArenaFeedbackRankingStatus = isArenaSubmissionEffectiveForRanking(input.latest) && failures.length === 0
     ? 'ranked'
     : 'not_ranked';
   const strongest = strongestMetric(input.latest, officialOnlyMetricIds);

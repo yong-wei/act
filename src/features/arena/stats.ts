@@ -1,4 +1,5 @@
 import type { ArenaSubmissionRecord } from './submissions/submission-service';
+import { isArenaSubmissionEffectiveForRanking } from './submissions/ranking-policy';
 import type { ArenaTaskStats } from './types';
 
 export interface ArenaStatsPublicationContext {
@@ -78,7 +79,7 @@ export function buildArenaTaskStats(
     const taskSubmissions = submissions.filter((submission) => submission.taskId === taskId);
     const participantKeys = new Set(taskSubmissions.map((submission) => submission.userId ?? submission.studentLabel));
     const validScores = taskSubmissions
-      .filter((submission) => submission.evaluation.valid)
+      .filter(isArenaSubmissionEffectiveForRanking)
       .map((submission) => submission.evaluation.score);
 
     stats[taskId] = {

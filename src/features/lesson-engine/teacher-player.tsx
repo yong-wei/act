@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight, Users, QrCode, LayoutDashboard, X } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, ChevronRight, Users, QrCode, LayoutDashboard, X } from 'lucide-react';
 import { ResourceRenderer } from './resource-renderer';
 import { DataDashboard } from './data-dashboard';
 
@@ -20,8 +20,19 @@ export function TeacherPlayer({ session, initialItems }: TeacherPlayerProps) {
   });
   const [studentCount, setStudentCount] = useState(0);
   const [showDashboard, setShowDashboard] = useState(false);
+  const [endStatus, setEndStatus] = useState<'idle' | 'confirming' | 'ending' | 'failed'>('idle');
+  const [endError, setEndError] = useState<string | null>(null);
 
   const currentItem = initialItems[currentIndex];
+  const reviewHref = `/classroom/teacher/${session.id}/review`;
+  const classroomStateSteps = [
+    { label: '加入', value: studentCount > 0 ? `${studentCount} 在线` : '等待学生' },
+    { label: '发放', value: currentItem ? '当前环节已发放' : '未发放' },
+    { label: '提交', value: '数据大屏汇总' },
+    { label: '汇总', value: '复盘页生成' },
+    { label: '结束', value: endStatus === 'ending' ? '结束中' : '可结束' },
+    { label: '课后复盘', value: '结束后进入' },
+  ];
 
   // 获取学生在线人数
   const fetchStudentCount = useCallback(async () => {
@@ -73,33 +84,32 @@ export function TeacherPlayer({ session, initialItems }: TeacherPlayerProps) {
       }
   };
 
-  const handleEndClass = async () => {
-      if (confirm('确定要结束课堂吗？结束后学生将无法继续参与互动。')) {
-          try {
-              // 调用 API 更新课堂状态为已结束
-              const res = await fetch(`/api/session/${session.id}`, {
-                  method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ status: 'FINISHED' })
-              });
+  const handleEndClass = () => {
+    setEndError(null);
+    setEndStatus('confirming');
+  };
 
-              if (!res.ok) {
-                  const error = await res.json();
-                  throw new Error(error.error || '结束课堂失败');
-              }
+  const confirmEndClass = async () => {
+    try {
+      setEndStatus('ending');
+      // 调用 API 更新课堂状态为已结束
+      const res = await fetch(`/api/session/${session.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'FINISHED' })
+      });
 
-              // 教师返回班级详情页（如果有classId），否则返回教案列表
-              const returnPath = session.classId
-                  ? `/teacher/classes/${session.classId}`
-                  : (window.location.pathname.includes('/classroom/teacher')
-                      ? '/teacher/lesson-plans'
-                      : '/admin/lesson-plans');
-              router.push(returnPath);
-          } catch (error) {
-              console.error('结束课堂失败:', error);
-              alert(error instanceof Error ? error.message : '结束课堂失败，请重试');
-          }
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || '结束课堂失败');
       }
+
+      router.push(reviewHref);
+    } catch (error) {
+      console.error('结束课堂失败:', error);
+      setEndError(error instanceof Error ? error.message : '结束课堂失败，请重试');
+      setEndStatus('failed');
+    }
   };
 
   if (initialItems.length === 0) {
@@ -120,6 +130,14 @@ export function TeacherPlayer({ session, initialItems }: TeacherPlayerProps) {
             </p>
           </section>
         </main>
+        <EndClassDialog
+          open={endStatus === 'confirming' || endStatus === 'ending' || endStatus === 'failed'}
+          status={endStatus}
+          error={endError}
+          reviewHref={reviewHref}
+          onCancel={() => setEndStatus('idle')}
+          onConfirm={confirmEndClass}
+        />
       </div>
     );
   }
@@ -131,6 +149,13 @@ export function TeacherPlayer({ session, initialItems }: TeacherPlayerProps) {
             <div className="flex items-center gap-4">
                 <span className="font-bold text-lg text-white">{session.plan.title}</span>
                 <span className="bg-blue-600 px-2 py-0.5 rounded text-xs font-mono">{currentItem?.stage}</span>
+                <div className="hidden items-center gap-1 xl:flex" data-classroom-state-flow="join-release-submit-summary-end-review">
+                  {classroomStateSteps.map((step) => (
+                    <span key={step.label} className="rounded-full border border-slate-700 bg-slate-800/60 px-2 py-0.5 text-[11px] text-slate-300">
+                      {step.label}: {step.value}
+                    </span>
+                  ))}
+                </div>
             </div>
 
             <div className="flex items-center gap-6">
@@ -220,6 +245,72 @@ export function TeacherPlayer({ session, initialItems }: TeacherPlayerProps) {
             onClose={() => setShowDashboard(false)}
           />
         )}
+        <EndClassDialog
+          open={endStatus === 'confirming' || endStatus === 'ending' || endStatus === 'failed'}
+          status={endStatus}
+          error={endError}
+          reviewHref={reviewHref}
+          onCancel={() => setEndStatus('idle')}
+          onConfirm={confirmEndClass}
+        />
+    </div>
+  );
+}
+
+function EndClassDialog({
+  open,
+  status,
+  error,
+  reviewHref,
+  onCancel,
+  onConfirm,
+}: {
+  open: boolean;
+  status: 'idle' | 'confirming' | 'ending' | 'failed';
+  error: string | null;
+  reviewHref: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4" data-classroom-end-state={status}>
+      <section className="w-full max-w-md rounded-xl border border-slate-700 bg-slate-950 p-6 text-slate-100 shadow-2xl">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="mt-0.5 h-5 w-5 text-amber-300" />
+          <div>
+            <h2 className="text-lg font-semibold text-white">结束课堂并生成复盘</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-300">
+              结束后学生进入课堂结束态，课堂状态、提交记录和互动日志会进入证据物化队列；教师将进入本次会话复盘页。
+            </p>
+            <p className="mt-2 text-xs text-slate-500">复盘路径：{reviewHref}</p>
+          </div>
+        </div>
+        {error ? (
+          <div className="mt-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200" role="alert">
+            {error}
+          </div>
+        ) : null}
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={status === 'ending'}
+            className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:bg-slate-900 disabled:opacity-50"
+          >
+            取消
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={status === 'ending'}
+            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50"
+          >
+            {status === 'ending' ? '结束中...' : '确认结束'}
+          </button>
+        </div>
+      </section>
     </div>
   );
 }

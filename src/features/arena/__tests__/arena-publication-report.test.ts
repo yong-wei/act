@@ -32,6 +32,7 @@ function submission(input: {
   method?: ControllerMethod;
   publicationId?: string;
   classId?: string | null;
+  isLate?: boolean;
   satisfaction?: Record<string, number>;
   metrics?: Record<string, number>;
   hardConstraintResults?: Array<{ id: string; label: string; passed: boolean; value?: number; threshold?: number }>;
@@ -44,6 +45,7 @@ function submission(input: {
     userId: input.userId,
     classId: input.classId === null ? undefined : input.classId ?? 'class-a',
     publicationId: input.publicationId ?? 'publication-a',
+    isLate: input.isLate,
     studentLabel: input.studentLabel,
     artifactHash: `hash-${input.id}`,
     artifact: currentArtifact,
@@ -160,8 +162,8 @@ describe('arena publication report analytics', () => {
       validSubmissionRate: 2 / 3,
     });
     expect(report.scores).toMatchObject({
-      average: 76.67,
-      median: 84,
+      average: 88,
+      median: 88,
       highest: 92,
     });
     expect(report.hardConstraintFailures).toEqual([
@@ -304,7 +306,7 @@ describe('arena publication report analytics', () => {
       validSubmissionCount: 2,
       invalidSubmissionCount: 1,
     });
-    expect(report.scores).toEqual({ average: 80, median: 80, highest: 90 });
+    expect(report.scores).toEqual({ average: 85, median: 85, highest: 90 });
     expect(report.personalBests.map((best) => best.userId)).toEqual(['student-b', 'student-a', 'student-c']);
   });
 
@@ -403,7 +405,7 @@ describe('arena publication report analytics', () => {
       'controlEnergy',
     ]));
     expect(report.classroomReview.methodPatterns).toEqual([
-      { method: 'pid', count: 1, validCount: 0, averageScore: 42 },
+      { method: 'pid', count: 1, validCount: 0, averageScore: null },
       { method: 'serial-compensator', count: 1, validCount: 1, averageScore: 94 },
     ]);
     expect(report.classroomReview.showcaseCandidates).toEqual([
@@ -420,6 +422,87 @@ describe('arena publication report analytics', () => {
     expect(reviewText).not.toContain('"ki"');
     expect(reviewText).toContain('不展示原始控制器参数');
     expect(reviewText).toContain('排行榜名次只作为比较反馈');
+  });
+
+  it('explains effective attempts and excludes late or zero-score submissions from excellent solutions', () => {
+    const report = buildArenaPublicationReport({
+      publication: {
+        id: 'publication-a',
+        taskId: 'task-report',
+        classId: 'class-a',
+        deadline: '2026-06-01T08:00:00.000Z',
+        visibility: 'class',
+        leaderboardPolicyId: 'leaderboard-class-homework',
+        gradingPolicy: { hideFullLeaderboardBeforeDeadline: true },
+      },
+      submissions: [
+        submission({
+          id: 'a-zero',
+          userId: 'student-a',
+          studentLabel: '学生甲',
+          score: 0,
+          valid: true,
+          submittedAt: '2026-05-16T08:00:00.000Z',
+        }),
+        submission({
+          id: 'a-effective',
+          userId: 'student-a',
+          studentLabel: '学生甲',
+          score: 72,
+          valid: true,
+          submittedAt: '2026-05-16T08:10:00.000Z',
+        }),
+        submission({
+          id: 'b-late-high',
+          userId: 'student-b',
+          studentLabel: '学生乙',
+          score: 98,
+          valid: true,
+          isLate: true,
+          submittedAt: '2026-06-02T08:00:00.000Z',
+        }),
+        submission({
+          id: 'c-invalid-high',
+          userId: 'student-c',
+          studentLabel: '学生丙',
+          score: 95,
+          valid: false,
+          submittedAt: '2026-05-16T08:20:00.000Z',
+        }),
+      ],
+      excellentSolutionLimit: 5,
+    });
+
+    expect(report.attemptPolicy).toMatchObject({
+      rankingSource: 'best-effective-attempt',
+      effectiveSubmissionCount: 1,
+      lateSubmissionCount: 1,
+      zeroScoreSubmissionCount: 1,
+      invalidSubmissionCount: 1,
+      multipleSubmitterCount: 1,
+    });
+    expect(report.scores).toMatchObject({
+      average: 72,
+      median: 72,
+      highest: 72,
+    });
+    expect(report.classroomReview.methodPatterns).toEqual([
+      expect.objectContaining({ count: 4, validCount: 1, averageScore: 72 }),
+    ]);
+    expect(report.excellentSolutions).toEqual([
+      expect.objectContaining({ submissionId: 'a-effective', score: 72 }),
+    ]);
+    expect(report.personalBests.find((best) => best.userId === 'student-a')).toMatchObject({
+      submissionId: 'a-effective',
+      attemptStatus: 'effective',
+      effectiveForRanking: true,
+    });
+    expect(report.personalBests.find((best) => best.userId === 'student-b')).toMatchObject({
+      submissionId: 'b-late-high',
+      attemptStatus: 'late',
+      effectiveForRanking: false,
+    });
+    expect(report.classroomReview.leaderboardVisibilityMessage).toContain('有效尝试');
   });
 });
 
@@ -604,7 +687,9 @@ describe('arena publication report route', () => {
     expect(pageSource).toContain('ArenaPublicationPermissionError');
     expect(pageSource).toContain('notFound()');
     expect(pageSource).toContain('参与情况');
-    expect(pageSource).toContain('有效提交率');
+    expect(pageSource).toContain('提交口径');
+    expect(pageSource).toContain('有效尝试');
+    expect(pageSource).toContain('data-arena-attempt-policy="visible"');
     expect(pageSource).toContain('硬约束失败');
     expect(pageSource).toContain('薄弱指标');
     expect(pageSource).toContain('个人最佳');

@@ -120,6 +120,8 @@
 - 发布任务模式下，移动端顶部应固定展示“教师发布任务 / 截止时间 / 提交状态”。
 - 提交结果顶部提供明确状态：已提交、得分、是否计入报告、是否需要重新提交。
 
+整改记录：`audit-remediation-arena-classroom-evidence` 已在学生挑战详情补充官方提交口径，并将共享榜单、荣誉展示和学生提交反馈统一为“通过硬约束、未迟交且得分大于 0”的最佳有效尝试；迟交、零分和无效提交保留为复盘证据。证据见 `../remediation/audit-remediation-arena-classroom-evidence/evidence.md`。
+
 ## 6. 教师提交后发布报告
 
 证据：
@@ -145,6 +147,8 @@
 - 报告标题使用任务中文名，并把 taskId 放到次级元数据。
 - 对 0 分有效提交增加解释：硬约束、指标未达标、是否计入排名、建议讲评点。
 - 报告应提供“导出 / 复制讲评摘要 / 返回发布列表”。
+
+整改记录：`audit-remediation-arena-classroom-evidence` 已在报告服务和教师报告页新增 `attemptPolicy` 与“提交口径”区块，零分和迟交提交不再进入共享榜单、荣誉展示或优秀方案候选，并展示有效尝试、迟交、零分和多次提交计数。报告标题和导出/复制讲评摘要仍未在本变更关闭。证据见 `../remediation/audit-remediation-arena-classroom-evidence/evidence.md`。
 
 ## 7. 本轮结论
 

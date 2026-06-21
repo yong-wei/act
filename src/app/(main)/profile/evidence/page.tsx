@@ -5,7 +5,7 @@ import { buildLearnerDataRouteShell } from '@/features/adaptive/adaptive-learnin
 const learnerDataShell = buildLearnerDataRouteShell('/profile/evidence');
 
 interface StudentEvidencePageProps {
-  searchParams?: Promise<{ lessonId?: string | string[] }>;
+  searchParams?: Promise<{ lessonId?: string | string[]; sessionId?: string | string[] }>;
 }
 
 function readSingleSearchParam(value: string | string[] | undefined): string | undefined {
@@ -16,6 +16,7 @@ function readSingleSearchParam(value: string | string[] | undefined): string | u
 export default async function StudentEvidencePage({ searchParams }: StudentEvidencePageProps) {
   const params = await searchParams;
   const initialLessonId = readSingleSearchParam(params?.lessonId);
+  const initialSessionId = readSingleSearchParam(params?.sessionId);
 
   return (
     <AppShell
@@ -40,6 +41,7 @@ export default async function StudentEvidencePage({ searchParams }: StudentEvide
           backHref="/profile/growth"
           chrome="embedded"
           initialLessonId={initialLessonId}
+          initialSessionId={initialSessionId}
           title="学习证据"
           subtitle="按时间查看课堂作答、仿真和学习事实"
         />

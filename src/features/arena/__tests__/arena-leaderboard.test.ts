@@ -71,6 +71,10 @@ describe('arena submissions and leaderboards', () => {
       submittedAt: '2026-05-10T10:03:00.000Z',
       existingSubmissions: [good],
     });
+    good.evaluation.valid = true;
+    good.evaluation.score = 90;
+    weaker.evaluation.valid = true;
+    weaker.evaluation.score = 70;
 
     const main = buildArenaLeaderboard([weaker, good], { taskId: 'task-second-order-lead-pid', type: 'main' });
     const method = buildArenaLeaderboard([weaker, good], { taskId: 'task-second-order-lead-pid', type: 'method', method: 'pid' });
@@ -149,6 +153,12 @@ describe('arena submissions and leaderboards', () => {
       submittedAt: '2026-05-10T10:03:00.000Z',
       existingSubmissions: [first, improved],
     });
+    first.evaluation.valid = true;
+    first.evaluation.score = 55;
+    improved.evaluation.valid = true;
+    improved.evaluation.score = 88;
+    other.evaluation.valid = true;
+    other.evaluation.score = 72;
 
     const leaderboard = buildArenaLeaderboard([
       { ...first, userId: 'student-a' },
@@ -219,6 +229,7 @@ describe('arena submissions and leaderboards', () => {
       existingSubmissions: [valid],
     });
     valid.evaluation.valid = true;
+    valid.evaluation.score = 80;
     valid.evaluation.metrics.controlEnergy = 8;
     invalid.evaluation.valid = false;
     invalid.evaluation.metrics.controlEnergy = 0.1;
@@ -230,6 +241,52 @@ describe('arena submissions and leaderboards', () => {
     } as any);
 
     expect(leaderboard.entries.map((entry) => entry.studentLabel)).toEqual(['有效方案']);
+  });
+
+  it('excludes late and zero-score submissions from official leaderboards', async () => {
+    const effective = await createArenaSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: pidArtifact,
+      studentLabel: '有效排名方案',
+      submittedAt: '2026-05-10T10:01:00.000Z',
+      existingSubmissions: [],
+    });
+    const zeroScore = await createArenaSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: {
+        ...pidArtifact,
+        id: 'artifact-zero-score',
+        params: { kp: 0.8, ki: 0.1, kd: 0 },
+      },
+      studentLabel: '零分有效方案',
+      submittedAt: '2026-05-10T10:02:00.000Z',
+      existingSubmissions: [effective],
+    });
+    const lateHighScore = await createArenaSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: {
+        ...pidArtifact,
+        id: 'artifact-late-high-score',
+        params: { kp: 3.1, ki: 1.1, kd: 0.5 },
+      },
+      studentLabel: '迟交高分方案',
+      submittedAt: '2026-05-10T10:03:00.000Z',
+      existingSubmissions: [effective, zeroScore],
+    });
+    effective.evaluation.valid = true;
+    effective.evaluation.score = 82;
+    zeroScore.evaluation.valid = true;
+    zeroScore.evaluation.score = 0;
+    lateHighScore.evaluation.valid = true;
+    lateHighScore.evaluation.score = 99;
+    lateHighScore.isLate = true;
+
+    const leaderboard = buildArenaLeaderboard([lateHighScore, zeroScore, effective], {
+      taskId: 'task-second-order-lead-pid',
+      type: 'main',
+    });
+
+    expect(leaderboard.entries.map((entry) => entry.studentLabel)).toEqual(['有效排名方案']);
   });
 
   it('classifies Pareto front entries and records dominance evidence', async () => {
@@ -275,6 +332,8 @@ describe('arena submissions and leaderboards', () => {
     fast.evaluation.valid = true;
     efficient.evaluation.valid = true;
     dominated.evaluation.valid = true;
+    fast.evaluation.score = 92;
+    efficient.evaluation.score = 90;
     dominated.evaluation.score = 99;
 
     const leaderboard = buildArenaLeaderboard([dominated, fast, efficient], {
@@ -335,6 +394,10 @@ describe('arena submissions and leaderboards', () => {
       studentLabel: '旧赛季学生',
       seasonId: 'winter-2025',
     };
+    classA.evaluation.valid = true;
+    classA.evaluation.score = 82;
+    classB.evaluation.valid = true;
+    classB.evaluation.score = 78;
 
     expect(buildArenaLeaderboard([classA, classB, otherSeason], {
       taskId: 'task-integrator-low-frequency-balance',
@@ -405,6 +468,12 @@ describe('arena submissions and leaderboards', () => {
       submittedAt: '2026-05-10T10:03:00.000Z',
       existingSubmissions: [],
     });
+    pid.evaluation.valid = true;
+    pid.evaluation.score = 80;
+    serial.evaluation.valid = true;
+    serial.evaluation.score = 76;
+    composite.evaluation.valid = true;
+    composite.evaluation.score = 84;
 
     expect(buildArenaLeaderboard([pid, serial], {
       taskId: 'task-second-order-lead-pid',
@@ -620,7 +689,7 @@ describe('arena submissions and leaderboards', () => {
     expect(seasonView.current.entries.map((entry) => entry.studentName)).toEqual(['春季学生']);
   });
 
-  it('derives honors only from official valid submission evidence', async () => {
+  it('derives honors only from official effective submission evidence', async () => {
     const firstPass = await createArenaSubmission({
       taskId: 'task-second-order-lead-pid',
       artifact: pidArtifact,
@@ -649,12 +718,36 @@ describe('arena submissions and leaderboards', () => {
         metrics: { ...lowEnergy.evaluation.metrics, controlEnergy: 0.1, settlingTime: 1.2 },
       },
     };
+    const late = {
+      ...lowEnergy,
+      id: 'submission-late-low-energy',
+      studentLabel: '迟交低能耗',
+      isLate: true,
+      evaluation: {
+        ...lowEnergy.evaluation,
+        score: 99,
+        metrics: { ...lowEnergy.evaluation.metrics, controlEnergy: 0.05, settlingTime: 1.1 },
+      },
+    };
+    const zero = {
+      ...lowEnergy,
+      id: 'submission-zero-fast',
+      studentLabel: '零分快响应',
+      evaluation: {
+        ...lowEnergy.evaluation,
+        valid: true,
+        score: 0,
+        metrics: { ...lowEnergy.evaluation.metrics, controlEnergy: 0.2, settlingTime: 0.9 },
+      },
+    };
     firstPass.evaluation.metrics.controlEnergy = 8;
     firstPass.evaluation.metrics.settlingTime = 4.5;
+    firstPass.evaluation.score = 82;
     lowEnergy.evaluation.metrics.controlEnergy = 2.4;
     lowEnergy.evaluation.metrics.settlingTime = 3.2;
+    lowEnergy.evaluation.score = 88;
 
-    const honors = buildArenaLeaderboardHonors([draft, lowEnergy, firstPass], {
+    const honors = buildArenaLeaderboardHonors([draft, late, zero, lowEnergy, firstPass], {
       taskId: 'task-second-order-lead-pid',
     });
 
@@ -668,6 +761,8 @@ describe('arena submissions and leaderboards', () => {
       evidenceValue: 2.4,
     });
     expect(honors.map((honor) => honor.studentLabel)).not.toContain('草稿低能耗');
+    expect(honors.map((honor) => honor.studentLabel)).not.toContain('迟交低能耗');
+    expect(honors.map((honor) => honor.studentLabel)).not.toContain('零分快响应');
   });
 
   it('builds excellent-solution showcase summaries without private controller payloads by default', async () => {
@@ -834,6 +929,10 @@ describe('arena submissions and leaderboards', () => {
       submittedAt: '2026-05-10T10:02:00.000Z',
       existingSubmissions: [first],
     });
+    first.evaluation.valid = true;
+    first.evaluation.score = 81;
+    second.evaluation.valid = true;
+    second.evaluation.score = 73;
 
     const stats = buildArenaTaskStats([first, second], [
       'task-second-order-lead-pid',
@@ -849,6 +948,45 @@ describe('arena submissions and leaderboards', () => {
       participantCount: 0,
       submissionCount: 0,
       topScore: null,
+    });
+  });
+
+  it('builds task top score from effective ranking submissions only', async () => {
+    const effective = await createArenaSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: pidArtifact,
+      studentLabel: '有效方案',
+      submittedAt: '2026-05-10T10:01:00.000Z',
+      existingSubmissions: [],
+    });
+    const lateHighScore = await createArenaSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: { ...pidArtifact, id: 'artifact-stats-late', params: { kp: 3.5, ki: 1.2, kd: 0.6 } },
+      studentLabel: '迟交高分',
+      submittedAt: '2026-05-10T10:02:00.000Z',
+      existingSubmissions: [effective],
+    });
+    const zeroScore = await createArenaSubmission({
+      taskId: 'task-second-order-lead-pid',
+      artifact: { ...pidArtifact, id: 'artifact-stats-zero', params: { kp: 0.7, ki: 0.1, kd: 0 } },
+      studentLabel: '零分有效',
+      submittedAt: '2026-05-10T10:03:00.000Z',
+      existingSubmissions: [effective, lateHighScore],
+    });
+    effective.evaluation.valid = true;
+    effective.evaluation.score = 76;
+    lateHighScore.evaluation.valid = true;
+    lateHighScore.evaluation.score = 99;
+    lateHighScore.isLate = true;
+    zeroScore.evaluation.valid = true;
+    zeroScore.evaluation.score = 0;
+
+    const stats = buildArenaTaskStats([lateHighScore, zeroScore, effective], ['task-second-order-lead-pid']);
+
+    expect(stats['task-second-order-lead-pid']).toMatchObject({
+      participantCount: 3,
+      submissionCount: 3,
+      topScore: 76,
     });
   });
 

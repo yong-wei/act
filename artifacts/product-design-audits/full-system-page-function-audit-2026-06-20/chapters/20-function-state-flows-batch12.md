@@ -56,6 +56,8 @@
 - 提交列表和统计卡应拆分“有效且截止前提交 / 逾期提交 / 无效提交”。
 - “优秀方案”应改名为“高分有效方案”或“可展示方案”，并过滤或标注 0 分和逾期提交。
 
+整改记录：`audit-remediation-arena-classroom-evidence` 已在教师 Arena 报告中展示有效尝试、迟交、零分和无效提交口径；迟交和零分提交不会进入共享榜单、荣誉展示或优秀方案候选。已截止状态徽标和报告标题任务中文名仍未在本变更关闭。证据见 `../remediation/audit-remediation-arena-classroom-evidence/evidence.md`。
+
 ## 3. 管理员统计页：图表完整，但替代语义不完整
 
 证据：

@@ -155,6 +155,8 @@ Manifest：`screenshots/function-state-flows-batch24-manifest.json`
 - 教师复盘页加入导出 PDF/CSV、发送给学生、生成补强路径、复制课堂摘要和异常同步详情。
 - 结束课堂模态展示本次课堂数据影响，并在确认后给出成功态和复盘入口。
 
+整改记录：`audit-remediation-arena-classroom-evidence` 已补充学生课堂结束态和本次课堂证据入口，教师结束课堂改为页面内确认并在确认后进入本会话复盘页；课堂 state API 显示 StudentState、互动提交事件、实时 LearningFact 物化和结束后复盘刷新的分层写回说明，互动事件入口按 session/step/card/submission identity 对课堂提交去重。教师复盘页导出、发送、复制摘要和发布补强路径仍未在本变更关闭。证据见 `../remediation/audit-remediation-arena-classroom-evidence/evidence.md`。
+
 ## 6. 本批新增优先问题
 
 88. P1：班级详情页“开始上课”没有完整发起流程。
@@ -178,8 +180,12 @@ Manifest：`screenshots/function-state-flows-batch24-manifest.json`
 94. P1：学生结束后回到课程入口，课堂记录承接不足。
     课堂结束后学生刷新落到课程入口，而不是本次课堂结束态或本次证据入口。
 
+    整改记录：`audit-remediation-arena-classroom-evidence` 已在 `StudentPlayer` 的 FINISHED 状态提供 `查看课堂证据` 入口并标记 `data-classroom-student-state="finished-review"`。
+
 95. P1：真实课堂提交能生成学习证据，但存在重复证据风险。
     学生证据页能看到 `4-1 前测` 记录，但同类记录重复出现；本批数据库也显示 2 名学生在 `step-03` 产生 4 条 step response。
+
+    整改记录：`audit-remediation-arena-classroom-evidence` 已在课堂 state API 公开分层证据写回说明，并通过 `/api/interactive/events` 行为测试验证同一 user/session/lesson/step/card/submission identity 的串行重复课堂提交和已存在同身份提交不会重复写入 InteractionLog、StudentStepResponse 或 LearningFact；历史物化测试继续覆盖 InteractionLog / StudentStepResponse canonical source 去重。数据库级并发幂等仍保留为未关闭范围。
 
 96. P1：教师复盘页缺少报告交付动作。
     复盘页能展示班级、提交、学习事实和学生短板，但缺少导出、发送、复制摘要和发布补强路径。

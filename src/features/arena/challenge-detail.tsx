@@ -271,7 +271,7 @@ export function ChallengeDetail({
                 ))}
               </div>
               <div className="mt-5 rounded-lg bg-primary/10 p-3 text-sm text-primary">
-                提交后通过真实指标验证的数据会自动进入已开放的榜单视图。
+                官方提交通过硬约束且得分大于 0 时，按个人最佳有效尝试进入已开放榜单；最新提交和全部尝试保留在提交记录，迟交、零分和无效提交只作为复盘证据，不标记为优秀方案。
               </div>
               <ArenaWorkspaceLink
                 href={workspaceHref}
