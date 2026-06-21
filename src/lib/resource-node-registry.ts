@@ -408,6 +408,7 @@ export interface Resource {
   contentHash: string | null;
   knowledgeNodeIds: string[];
   capabilityTargetIds: string[];
+  graphProfile: ResourceNodeGraphProfile;
   sourceOfRecord: ResourceSemanticSourceOfRecord;
   projectionStatus: {
     retrieval: ResourceSemanticProjectionStatus;
@@ -421,11 +422,120 @@ export interface Resource {
   };
 }
 
+export const RESOURCE_SEGMENT_SCENES = [
+  'path',
+  'konling',
+  'diagnosis',
+  'grading',
+  'prep-pack',
+  'report',
+] as const;
+
+export type ResourceSegmentScene = typeof RESOURCE_SEGMENT_SCENES[number];
+export type ResourceSegmentKind =
+  | 'primary'
+  | 'step'
+  | 'media'
+  | 'checkpoint'
+  | 'textbook_section'
+  | 'handout'
+  | 'video'
+  | 'audio'
+  | 'image'
+  | 'slides'
+  | 'exercise'
+  | 'simulation'
+  | 'arena';
+
+export interface ResourceGraphNodeRefs {
+  knowledge: string[];
+  capability: string[];
+  quality: string[];
+}
+
+export interface ResourceSceneAvailability {
+  allowed: boolean;
+  reason: string | null;
+}
+
+export type ResourceSceneAvailabilityMap = Record<ResourceSegmentScene, ResourceSceneAvailability>;
+
+export interface ResourceCitationReadiness {
+  status: 'verified' | 'resolvable' | 'unverified-anchor' | 'missing-target' | 'missing-transcript-or-anchor';
+  verified: boolean;
+  limitations: string[];
+}
+
+export interface ResourceEvidenceCapability {
+  instrumentationRefs: string[];
+  terminalValidationRole: 'terminal' | 'supporting' | 'none';
+}
+
+export interface ResourceGovernanceLimitation {
+  code: string;
+  message: string;
+  scenes: ResourceSegmentScene[];
+}
+
+export interface ResourceSegmentAnchor {
+  kind: 'resource' | 'step' | 'media' | 'page' | 'exercise' | 'simulation-task' | 'arena-task';
+  ref: string;
+  startSeconds?: number | null;
+  endSeconds?: number | null;
+  page?: number | null;
+}
+
+export interface ResourceNodeGraphProfile {
+  graphNodeRefs: ResourceGraphNodeRefs;
+  sceneAvailability: ResourceSceneAvailabilityMap;
+  stableSegmentRefs: string[];
+  citationReadiness: ResourceCitationReadiness;
+  evidenceCapability: ResourceEvidenceCapability;
+  pathProfile: {
+    estimatedTimeMinutes: number;
+    cognitiveLoad: ResourceNodeCognitiveLoad;
+    effort: ResourceNodePlanningMetadata['cost']['effort'];
+    readiness: ResourceNodeReadinessMetadata | null;
+  };
+  governanceLimitations: ResourceGovernanceLimitation[];
+}
+
+export interface ResourceMediaManifestSegment {
+  id: string;
+  anchorRef?: string | null;
+  startSeconds?: number | null;
+  endSeconds?: number | null;
+  graphNodeRefs: ResourceGraphNodeRefs;
+  sceneAvailability: Partial<ResourceSceneAvailabilityMap>;
+  citationPolicy?: 'verified-citation-required' | 'source-reference-only' | null;
+  aiUsePermission?: 'allowed' | 'restricted' | 'blocked' | null;
+}
+
+export interface ResourceMediaSourceManifest {
+  sourceId: string;
+  sourcePath: string;
+  mediaType: 'video' | 'audio' | 'image' | 'slides';
+  transcriptRef?: string | null;
+  chapterRef?: string | null;
+  segments: ResourceMediaManifestSegment[];
+}
+
+export interface ResourceMediaSourceManifestValidation {
+  verifiedCitationReady: boolean;
+  issues: string[];
+}
+
 export interface ResourceSegment {
   id: string;
   resourceId: string;
   sourceRef: ResourceSemanticSourceReference;
-  kind: 'primary' | 'step' | 'media' | 'checkpoint';
+  kind: ResourceSegmentKind;
+  anchor: ResourceSegmentAnchor;
+  graphNodeRefs: ResourceGraphNodeRefs;
+  sceneAvailability: ResourceSceneAvailabilityMap;
+  citationReadiness: ResourceCitationReadiness;
+  evidenceCapability: ResourceEvidenceCapability;
+  governanceLimitations: ResourceGovernanceLimitation[];
   contentHash: string | null;
 }
 
@@ -436,6 +546,7 @@ export interface CitationTarget {
   sourceRef: ResourceSemanticSourceReference;
   target: string | null;
   status: 'resolvable' | 'missing-target';
+  readiness: ResourceCitationReadiness;
 }
 
 export interface RetrievalChunk {
@@ -445,6 +556,13 @@ export interface RetrievalChunk {
   citationTargetId: string | null;
   textHash: string | null;
   projectionStatus: ResourceSemanticProjectionStatus;
+  graphNodeRefs: ResourceGraphNodeRefs;
+  sceneAvailability: ResourceSceneAvailabilityMap;
+  citationReadiness: ResourceCitationReadiness;
+  pathEligibility: {
+    eligible: false;
+    reason: 'resource-node-planning-audit-required';
+  };
 }
 
 export interface PlanningUnit {
@@ -470,6 +588,12 @@ export interface PlanningUnit {
   privacyLevel: ResourceNodePrivacyLevel;
   teacherPolicy: ResourceNodeTeacherPolicy;
   readiness: ResourceNodeReadinessMetadata | null;
+  graphNodeRefs: ResourceGraphNodeRefs;
+  sceneAvailability: ResourceSceneAvailabilityMap;
+  citationReadiness: ResourceCitationReadiness;
+  evidenceCapability: ResourceEvidenceCapability;
+  pathProfile: ResourceNodeGraphProfile['pathProfile'];
+  governanceLimitations: ResourceGovernanceLimitation[];
 }
 
 export interface ResourceSemanticProjection {
@@ -861,6 +985,12 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
   const target = node.launchTarget ?? node.renderTarget;
   const citationTargetId = `citation-target:${node.id}:primary`;
   const auditIssueCodes = buildProjectionAuditIssueCodes(node);
+  const graphNodeRefs = buildResourceGraphNodeRefs(node);
+  const sceneAvailability = buildResourceSceneAvailability(node, target);
+  const citationReadiness = buildCitationReadiness(node, target);
+  const evidenceCapability = buildEvidenceCapability(node);
+  const governanceLimitations = buildGovernanceLimitations(node, target, auditIssueCodes, sceneAvailability);
+  const pathProfile = buildResourcePathProfile(node);
   const resource: Resource = {
     id: resourceId,
     resourceNodeId: node.id,
@@ -871,6 +1001,15 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
     contentHash: null,
     knowledgeNodeIds: node.planningMetadata.knowledgeCoverage,
     capabilityTargetIds: Object.keys(node.planningMetadata.abilityImpact).sort((left, right) => left.localeCompare(right)),
+    graphProfile: {
+      graphNodeRefs,
+      sceneAvailability,
+      stableSegmentRefs: [segmentId],
+      citationReadiness,
+      evidenceCapability,
+      pathProfile,
+      governanceLimitations,
+    },
     sourceOfRecord: node.sourceOfRecord,
     projectionStatus: {
       retrieval: target ? 'mapped' : 'blocked',
@@ -888,6 +1027,12 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
     resourceId,
     sourceRef: primarySourceRef,
     kind: segmentKindForNode(node),
+    anchor: buildSegmentAnchor(node, target),
+    graphNodeRefs,
+    sceneAvailability,
+    citationReadiness,
+    evidenceCapability,
+    governanceLimitations,
     contentHash: null,
   }];
   const citationTargets: CitationTarget[] = [{
@@ -897,6 +1042,7 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
     sourceRef: primarySourceRef,
     target,
     status: target ? 'resolvable' : 'missing-target',
+    readiness: citationReadiness,
   }];
   const retrievalChunks: RetrievalChunk[] = [{
     id: `retrieval-chunk:${node.id}:primary`,
@@ -905,6 +1051,13 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
     citationTargetId,
     textHash: null,
     projectionStatus: target ? 'not-indexed' : 'blocked',
+    graphNodeRefs,
+    sceneAvailability,
+    citationReadiness,
+    pathEligibility: {
+      eligible: false,
+      reason: 'resource-node-planning-audit-required',
+    },
   }];
   return {
     resource,
@@ -912,6 +1065,42 @@ export function buildResourceSemanticProjection(node: ResourceNode): ResourceSem
     citationTargets,
     retrievalChunks,
     planningUnit: buildPlanningUnit(node, resourceId, target),
+  };
+}
+
+export function validateResourceMediaSourceManifest(
+  manifest: ResourceMediaSourceManifest,
+): ResourceMediaSourceManifestValidation {
+  const issues: string[] = [];
+  if (!manifest.sourceId) issues.push('missing-source-id');
+  if (!manifest.sourcePath) issues.push('missing-source-path');
+  if (!['video', 'audio', 'image', 'slides'].includes(manifest.mediaType)) issues.push('invalid-media-type');
+  if (!Array.isArray(manifest.segments) || manifest.segments.length === 0) {
+    issues.push('missing-segments');
+    return { verifiedCitationReady: false, issues };
+  }
+
+  manifest.segments.forEach((segment, index) => {
+    const prefix = `segments.${index}`;
+    if (!segment.id) issues.push(`${prefix}.missing-id`);
+    if (!segment.anchorRef && segment.startSeconds === undefined) issues.push(`${prefix}.missing-anchor`);
+    if (!hasAnyGraphRef(segment.graphNodeRefs)) issues.push(`${prefix}.missing-graph-bindings`);
+    if (!hasAnySceneAvailability(segment.sceneAvailability)) issues.push(`${prefix}.missing-scene-availability`);
+    if (!segment.citationPolicy) issues.push(`${prefix}.missing-citation-policy`);
+    if (!segment.aiUsePermission) issues.push(`${prefix}.missing-ai-use-permission`);
+    if (
+      (manifest.mediaType === 'video' || manifest.mediaType === 'audio') &&
+      !manifest.transcriptRef &&
+      !manifest.chapterRef &&
+      segment.startSeconds === undefined
+    ) {
+      issues.push(`${prefix}.missing-transcript-or-timecode-anchor`);
+    }
+  });
+
+  return {
+    verifiedCitationReady: issues.length === 0,
+    issues,
   };
 }
 
@@ -1659,14 +1848,17 @@ export function getPathNodeSemanticsForResourceType(type: ResourceNodeType): Res
   return pathSemanticsForResourceType(type);
 }
 
-function segmentKindForNode(node: ResourceNode): ResourceSegment['kind'] {
+function segmentKindForNode(node: ResourceNode): ResourceSegmentKind {
   if (node.sourceKind === 'runtime_lesson_step') return 'step';
-  if (
-    node.sourceKind === 'runtime_lesson_media' ||
-    node.type === 'video' ||
-    node.type === 'audio' ||
-    node.type === 'slides'
-  ) return 'media';
+  if (node.type === 'video') return 'video';
+  if (node.type === 'audio') return 'audio';
+  if (node.type === 'slides') return 'slides';
+  if (node.type === 'handout') return 'handout';
+  if (node.type === 'textbook_section' || node.sourceKind === 'textbook_section') return 'textbook_section';
+  if (node.type === 'quiz' || node.type === 'adaptive_quiz') return 'exercise';
+  if (node.type === 'simulation') return 'simulation';
+  if (node.type === 'arena_task') return 'arena';
+  if (node.sourceKind === 'runtime_lesson_media') return 'media';
   if (node.type === 'checkpoint') return 'checkpoint';
   return 'primary';
 }
@@ -1712,6 +1904,17 @@ function buildProjectionAuditIssueCodes(node: ResourceNode): string[] {
 
 function buildPlanningUnit(node: ResourceNode, resourceId: string, target: string | null): PlanningUnit | null {
   if (!isPlanningUnitEligible(node, target)) return null;
+  const graphNodeRefs = buildResourceGraphNodeRefs(node);
+  const sceneAvailability = buildResourceSceneAvailability(node, target);
+  const citationReadiness = buildCitationReadiness(node, target);
+  const evidenceCapability = buildEvidenceCapability(node);
+  const governanceLimitations = buildGovernanceLimitations(
+    node,
+    target,
+    buildProjectionAuditIssueCodes(node),
+    sceneAvailability,
+  );
+  const pathProfile = buildResourcePathProfile(node);
   return {
     id: `planning-unit:${node.id}`,
     resourceId,
@@ -1735,12 +1938,175 @@ function buildPlanningUnit(node: ResourceNode, resourceId: string, target: strin
     privacyLevel: node.planningMetadata.privacyLevel,
     teacherPolicy: node.planningMetadata.teacherPolicy,
     readiness: node.planningMetadata.readiness,
+    graphNodeRefs,
+    sceneAvailability,
+    citationReadiness,
+    evidenceCapability,
+    pathProfile,
+    governanceLimitations,
   };
 }
 
 function isPlanningUnitEligible(node: ResourceNode, target: string | null): target is string {
   if (!target || !buildResourceNodeHighConfidencePlanningAudit(node).pathEligible) return false;
   return true;
+}
+
+function buildResourceGraphNodeRefs(node: ResourceNode): ResourceGraphNodeRefs {
+  return {
+    knowledge: node.planningMetadata.knowledgeCoverage,
+    capability: Object.keys(node.planningMetadata.abilityImpact).sort((left, right) => left.localeCompare(right)),
+    quality: [],
+  };
+}
+
+function buildResourcePathProfile(node: ResourceNode): ResourceNodeGraphProfile['pathProfile'] {
+  return {
+    estimatedTimeMinutes: node.planningMetadata.estimatedTimeMinutes ?? defaultEstimatedTime(node.type),
+    cognitiveLoad: node.planningMetadata.cognitiveLoad,
+    effort: node.planningMetadata.cost.effort,
+    readiness: node.planningMetadata.readiness,
+  };
+}
+
+function buildResourceSceneAvailability(node: ResourceNode, target: string | null): ResourceSceneAvailabilityMap {
+  const hasTarget = Boolean(target);
+  const pathEligible = isPlanningUnitEligible(node, target);
+  const notAdminScoped = node.planningMetadata.privacyLevel !== 'admin-scoped';
+  const konlingAllowed = hasTarget && notAdminScoped;
+  const diagnosisAllowed = hasTarget && notAdminScoped;
+  const gradingAllowed = hasTarget && notAdminScoped && isGradingSceneResource(node);
+  const prepPackAllowed = hasTarget && notAdminScoped && node.planningMetadata.teacherPolicy !== 'blocked';
+  const reportAllowed = hasTarget && notAdminScoped;
+  return {
+    path: {
+      allowed: pathEligible,
+      reason: pathEligible ? null : hasTarget ? 'not-path-audited' : 'missing-target',
+    },
+    konling: {
+      allowed: konlingAllowed,
+      reason: konlingAllowed ? null : hasTarget ? 'admin-scoped-resource' : 'missing-target',
+    },
+    diagnosis: {
+      allowed: diagnosisAllowed,
+      reason: diagnosisAllowed ? null : hasTarget ? 'admin-scoped-resource' : 'missing-target',
+    },
+    grading: {
+      allowed: gradingAllowed,
+      reason: gradingAllowed
+        ? null
+        : hasTarget
+          ? notAdminScoped ? 'not-assessment-segment' : 'admin-scoped-resource'
+          : 'missing-target',
+    },
+    'prep-pack': {
+      allowed: prepPackAllowed,
+      reason: prepPackAllowed
+        ? null
+        : hasTarget
+          ? notAdminScoped ? 'teacher-policy-blocked' : 'admin-scoped-resource'
+          : 'missing-target',
+    },
+    report: {
+      allowed: reportAllowed,
+      reason: reportAllowed ? null : hasTarget ? 'admin-scoped-resource' : 'missing-target',
+    },
+  };
+}
+
+function isGradingSceneResource(node: ResourceNode): boolean {
+  return node.type === 'quiz' ||
+    node.type === 'adaptive_quiz' ||
+    node.type === 'checkpoint' ||
+    node.type === 'arena_task' ||
+    node.sourceKind === 'checkpoint';
+}
+
+function buildCitationReadiness(node: ResourceNode, target: string | null): ResourceCitationReadiness {
+  if (!target) {
+    return {
+      status: 'missing-target',
+      verified: false,
+      limitations: ['missing-target'],
+    };
+  }
+  if (node.type === 'video' || node.type === 'audio') {
+    return {
+      status: 'missing-transcript-or-anchor',
+      verified: false,
+      limitations: ['transcript-or-timecode-anchor-required-for-verified-citation'],
+    };
+  }
+  return {
+    status: 'resolvable',
+    verified: false,
+    limitations: ['citation-target-not-verified'],
+  };
+}
+
+function buildEvidenceCapability(node: ResourceNode): ResourceEvidenceCapability {
+  const instrumentationRefs = node.planningMetadata.evidenceInstrumentation;
+  const hasTerminalValidationConstraint = node.planningMetadata.terminalConstraints.some((constraint) =>
+    constraint === 'terminal-node' || constraint === 'terminal-validation'
+  );
+  return {
+    instrumentationRefs,
+    terminalValidationRole: hasTerminalValidationConstraint
+      ? 'terminal'
+      : instrumentationRefs.length > 0
+        ? 'supporting'
+        : 'none',
+  };
+}
+
+function buildGovernanceLimitations(
+  node: ResourceNode,
+  target: string | null,
+  auditIssueCodes: string[],
+  sceneAvailability: ResourceSceneAvailabilityMap,
+): ResourceGovernanceLimitation[] {
+  const limitations = auditIssueCodes.map((code) => ({
+    code,
+    message: `ResourceNode audit issue: ${code}.`,
+    scenes: ['path'] as ResourceSegmentScene[],
+  }));
+  if (!target) {
+    limitations.push({
+      code: 'missing-target',
+      message: 'Segment has no render or launch target for retrieval, citation, or path use.',
+      scenes: [...RESOURCE_SEGMENT_SCENES],
+    });
+  }
+  for (const scene of RESOURCE_SEGMENT_SCENES) {
+    const availability = sceneAvailability[scene];
+    if (!availability.allowed && availability.reason) {
+      limitations.push({
+        code: `scene:${scene}:${availability.reason}`,
+        message: `Segment is not available for ${scene}: ${availability.reason}.`,
+        scenes: [scene],
+      });
+    }
+  }
+  return limitations;
+}
+
+function buildSegmentAnchor(node: ResourceNode, target: string | null): ResourceSegmentAnchor {
+  const ref = target ?? node.sourceRef;
+  if (node.type === 'arena_task') return { kind: 'arena-task', ref };
+  if (node.type === 'simulation') return { kind: 'simulation-task', ref };
+  if (node.type === 'quiz' || node.type === 'adaptive_quiz') return { kind: 'exercise', ref };
+  if (node.sourceKind === 'runtime_lesson_step') return { kind: 'step', ref };
+  if (node.type === 'video' || node.type === 'audio') return { kind: 'media', ref };
+  if (node.type === 'slides' || node.type === 'textbook_section') return { kind: 'page', ref, page: null };
+  return { kind: 'resource', ref };
+}
+
+function hasAnyGraphRef(refs: ResourceGraphNodeRefs | undefined): boolean {
+  return Boolean(refs?.knowledge.length || refs?.capability.length || refs?.quality.length);
+}
+
+function hasAnySceneAvailability(sceneAvailability: Partial<ResourceSceneAvailabilityMap> | undefined): boolean {
+  return Boolean(sceneAvailability && RESOURCE_SEGMENT_SCENES.some((scene) => sceneAvailability[scene]?.allowed !== undefined));
 }
 
 function collectForbiddenProjectionFields(value: unknown, forbiddenFields: Set<string>, path = ''): string[] {

@@ -78,12 +78,44 @@ export interface LearningEvidenceCitationAddress {
   externalUrl?: string | null;
 }
 
+export type LearningEvidenceResourceProjectionScene = 'path' | 'konling' | 'diagnosis' | 'grading' | 'prep-pack' | 'report';
+
+export interface LearningEvidenceResourceProjectionGraphRefs {
+  knowledge: string[];
+  capability: string[];
+  quality: string[];
+}
+
+export interface LearningEvidenceResourceProjectionSceneAvailability {
+  allowed: boolean;
+  limitation?: string | null;
+}
+
+export type LearningEvidenceResourceProjectionSceneAvailabilityMap = Partial<
+  Record<LearningEvidenceResourceProjectionScene, LearningEvidenceResourceProjectionSceneAvailability>
+>;
+
+export interface LearningEvidenceResourceProjectionCitationReadiness {
+  status: 'verified' | 'resolvable' | 'unverified-anchor' | 'missing-target' | 'missing-transcript-or-anchor';
+  verified: boolean;
+  limitations: string[];
+}
+
 export interface LearningEvidenceResourceProjectionMetadata {
   resourceId?: string | null;
   segmentRef: string;
   citationTargetRef?: string | null;
   knowledgeNodeRefs: string[];
   capabilityTargetRefs: string[];
+  graphNodeRefs?: LearningEvidenceResourceProjectionGraphRefs;
+  sceneAvailability?: LearningEvidenceResourceProjectionSceneAvailabilityMap;
+  citationReadiness?: LearningEvidenceResourceProjectionCitationReadiness;
+  authorityLevel?: LearningEvidenceAuthorityLevel;
+  privacyScope?: LearningEvidenceCorpusPrivacyClass;
+  pathEligibility?: {
+    eligible: boolean;
+    reason: string | null;
+  };
   mediaTimeRange?: {
     startSeconds: number;
     endSeconds?: number | null;
@@ -360,7 +392,12 @@ export function validateLearningEvidenceCorpusChunk(chunk: LearningEvidenceCorpu
     family && sourceType && LEARNING_EVIDENCE_CORPUS_FAMILY_SOURCE_TYPES[family]?.includes(sourceType) ? null : 'family-source-type-mismatch',
     record.citationAddress === undefined || isCitationAddress(record.citationAddress) ? null : 'invalid-citation-address',
     record.resourceProjection === undefined || isResourceProjectionMetadata(record.resourceProjection) ? null : 'invalid-resource-projection',
+    hasResourceProjectionAuthorityMismatch(record.resourceProjection, authority.level) ? 'resource-projection-authority-mismatch' : null,
+    hasResourceProjectionPrivacyMismatch(record.resourceProjection, record.privacyClass) ? 'resource-projection-privacy-mismatch' : null,
   ];
+  if (hasUnsupportedResourceProjectionPathEligibility(record.resourceProjection)) {
+    errors.push('resource-projection-path-eligibility-unsupported');
+  }
   if (!content.text && !content.redactedSummary) errors.push('missing-retrievable-text');
   return errors.filter((item): item is string => Boolean(item));
 }
@@ -749,6 +786,7 @@ function matchesRetrievalScope(chunk: LearningEvidenceCorpusChunk, scope: Learni
     (!scope.allowedSourceTypes || scope.allowedSourceTypes.includes(chunk.sourceType)) &&
     (!scope.useCase || chunk.retrieval.useCases.includes(scope.useCase)) &&
     (!scope.useCase || isUseCaseSourceCompatible(scope.useCase, chunk.sourceType)) &&
+    matchesResourceProjectionSceneAvailability(chunk, scope.useCase) &&
     isChunkVisible(chunk, scope);
 }
 
@@ -1090,9 +1128,112 @@ function isResourceProjectionMetadata(value: unknown): value is LearningEvidence
     isNullableString(record.citationTargetRef) &&
     isStringArray(record.knowledgeNodeRefs) &&
     isStringArray(record.capabilityTargetRefs) &&
+    isOptionalResourceProjectionGraphRefs(record.graphNodeRefs) &&
+    isOptionalResourceProjectionSceneAvailability(record.sceneAvailability) &&
+    isOptionalResourceProjectionCitationReadiness(record.citationReadiness) &&
+    (record.authorityLevel === undefined || isAuthorityLevel(record.authorityLevel)) &&
+    (record.privacyScope === undefined || isPrivacyClass(record.privacyScope)) &&
+    isOptionalResourceProjectionPathEligibility(record.pathEligibility) &&
     hasValidMediaTimeRange &&
     isNullableString(record.exerciseAnchor) &&
     isNullableString(record.contentHash);
+}
+
+function hasUnsupportedResourceProjectionPathEligibility(value: unknown): boolean {
+  const record = readRecord(value);
+  const pathEligibility = readRecord(record.pathEligibility);
+  return pathEligibility.eligible === true;
+}
+
+function hasResourceProjectionAuthorityMismatch(value: unknown, authorityLevel: unknown): boolean {
+  const record = readRecord(value);
+  return record.authorityLevel !== undefined && record.authorityLevel !== authorityLevel;
+}
+
+function hasResourceProjectionPrivacyMismatch(value: unknown, privacyClass: unknown): boolean {
+  const record = readRecord(value);
+  return record.privacyScope !== undefined && record.privacyScope !== privacyClass;
+}
+
+function matchesResourceProjectionSceneAvailability(
+  chunk: LearningEvidenceCorpusChunk,
+  useCase: LearningEvidenceCitationUseCase | undefined,
+): boolean {
+  if (!useCase) return true;
+  const scene = resourceProjectionSceneForUseCase(useCase);
+  if (!scene) return true;
+  const availability = chunk.resourceProjection?.sceneAvailability?.[scene];
+  return availability?.allowed !== false;
+}
+
+function resourceProjectionSceneForUseCase(
+  useCase: LearningEvidenceCitationUseCase,
+): LearningEvidenceResourceProjectionScene | null {
+  if (useCase === 'diagnosis') return 'diagnosis';
+  if (useCase === 'grading') return 'grading';
+  if (useCase === 'konling') return 'konling';
+  if (useCase === 'prep-pack') return 'prep-pack';
+  if (useCase === 'teacher-report') return 'report';
+  return null;
+}
+
+function isOptionalResourceProjectionGraphRefs(value: unknown): value is LearningEvidenceResourceProjectionGraphRefs | undefined {
+  if (value === undefined) return true;
+  const record = readRecord(value);
+  return isStringArray(record.knowledge) &&
+    isStringArray(record.capability) &&
+    isStringArray(record.quality);
+}
+
+function isOptionalResourceProjectionSceneAvailability(
+  value: unknown,
+): value is LearningEvidenceResourceProjectionSceneAvailabilityMap | undefined {
+  if (value === undefined) return true;
+  const record = readRecord(value);
+  return Object.entries(record).every(([scene, availability]) => (
+    isResourceProjectionScene(scene) &&
+    isResourceProjectionSceneAvailability(availability)
+  ));
+}
+
+function isResourceProjectionScene(value: string): value is LearningEvidenceResourceProjectionScene {
+  return value === 'path' ||
+    value === 'konling' ||
+    value === 'diagnosis' ||
+    value === 'grading' ||
+    value === 'prep-pack' ||
+    value === 'report';
+}
+
+function isResourceProjectionSceneAvailability(value: unknown): value is LearningEvidenceResourceProjectionSceneAvailability {
+  const record = readRecord(value);
+  return typeof record.allowed === 'boolean' && isNullableString(record.limitation);
+}
+
+function isOptionalResourceProjectionCitationReadiness(
+  value: unknown,
+): value is LearningEvidenceResourceProjectionCitationReadiness | undefined {
+  if (value === undefined) return true;
+  const record = readRecord(value);
+  return isResourceProjectionCitationReadinessStatus(record.status) &&
+    typeof record.verified === 'boolean' &&
+    isStringArray(record.limitations);
+}
+
+function isResourceProjectionCitationReadinessStatus(value: unknown): value is LearningEvidenceResourceProjectionCitationReadiness['status'] {
+  return value === 'verified' ||
+    value === 'resolvable' ||
+    value === 'unverified-anchor' ||
+    value === 'missing-target' ||
+    value === 'missing-transcript-or-anchor';
+}
+
+function isOptionalResourceProjectionPathEligibility(
+  value: unknown,
+): value is LearningEvidenceResourceProjectionMetadata['pathEligibility'] | undefined {
+  if (value === undefined) return true;
+  const record = readRecord(value);
+  return typeof record.eligible === 'boolean' && isNullableString(record.reason);
 }
 
 function semanticScoreFor(chunk: LearningEvidenceCorpusChunk, query: LearningEvidenceRetrievalQuery) {

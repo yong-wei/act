@@ -9,6 +9,7 @@ import {
   auditResourceNode,
   buildResourceSemanticProjection,
   buildResourceNodeRegistry,
+  validateResourceMediaSourceManifest,
   validateResourceSemanticProjection,
   RESOURCE_SEMANTIC_SOURCE_OWNERSHIP,
   type Resource,
@@ -804,11 +805,15 @@ describe('resource node registry', () => {
   it('projects unified resource semantics without taking ownership of source content or catalog metadata', () => {
     const registry = sampleRegistry();
     const teachingQuiz = registry.nodes.find((node) => node.id === 'teaching-resource:tr-quiz') as ResourceNode;
+    const textbookContainer = registry.nodes.find((node) =>
+      node.id === 'textbook:dorf-modern-control-systems'
+    ) as ResourceNode;
     const runtimeVideo = registry.nodes.find((node) =>
       node.id === 'runtime-media:unit-2-3-frequency-response-bode-intro:intro-video'
     ) as ResourceNode;
 
     const teachingQuizProjection = buildResourceSemanticProjection(teachingQuiz);
+    const textbookContainerProjection = buildResourceSemanticProjection(textbookContainer);
     const projection = buildResourceSemanticProjection(runtimeVideo);
 
     expect(RESOURCE_SEMANTIC_SOURCE_OWNERSHIP.runtime_lesson_media).toMatchObject({
@@ -887,6 +892,50 @@ describe('resource node registry', () => {
     ]));
     expect(teachingQuizProjection.segments[0].sourceRef).toEqual({ kind: 'teaching_resource', ref: 'tr-quiz' });
     expect(teachingQuizProjection.citationTargets[0].sourceRef).toEqual({ kind: 'teaching_resource', ref: 'tr-quiz' });
+    expect(projection.resource.graphProfile).toMatchObject({
+      graphNodeRefs: {
+        knowledge: ['kn-bode'],
+        capability: expect.any(Array),
+        quality: [],
+      },
+      stableSegmentRefs: ['resource-segment:runtime-media:unit-2-3-frequency-response-bode-intro:intro-video:primary'],
+      sceneAvailability: {
+        path: { allowed: true, reason: null },
+        konling: { allowed: true, reason: null },
+        diagnosis: { allowed: true, reason: null },
+      },
+      citationReadiness: {
+        status: 'missing-transcript-or-anchor',
+        verified: false,
+      },
+      evidenceCapability: {
+        terminalValidationRole: 'supporting',
+      },
+    });
+    expect(projection.segments[0]).toMatchObject({
+      kind: 'video',
+      anchor: {
+        kind: 'media',
+      },
+      graphNodeRefs: {
+        knowledge: ['kn-bode'],
+      },
+      sceneAvailability: {
+        konling: { allowed: true, reason: null },
+      },
+      citationReadiness: {
+        status: 'missing-transcript-or-anchor',
+        verified: false,
+      },
+      evidenceCapability: {
+        terminalValidationRole: 'supporting',
+      },
+    });
+    expect(textbookContainer.planningMetadata.terminalConstraints).toContain('container-resource');
+    expect(textbookContainerProjection.resource.graphProfile.evidenceCapability).toMatchObject({
+      instrumentationRefs: [],
+      terminalValidationRole: 'none',
+    });
     expect(validateResourceSemanticProjection({
       ...teachingQuizProjection,
       resource: {
@@ -910,6 +959,38 @@ describe('resource node registry', () => {
       contentHash: null,
       knowledgeNodeIds: ['kn-bode'],
       capabilityTargetIds: ['inquiryReflection'],
+      graphProfile: {
+        graphNodeRefs: {
+          knowledge: ['kn-bode'],
+          capability: ['inquiryReflection'],
+          quality: [],
+        },
+        sceneAvailability: {
+          path: { allowed: false, reason: 'not-path-audited' },
+          konling: { allowed: false, reason: 'missing-target' },
+          diagnosis: { allowed: false, reason: 'missing-target' },
+          grading: { allowed: false, reason: 'missing-target' },
+          'prep-pack': { allowed: false, reason: 'missing-target' },
+          report: { allowed: false, reason: 'missing-target' },
+        },
+        stableSegmentRefs: [],
+        citationReadiness: {
+          status: 'missing-target',
+          verified: false,
+          limitations: ['missing-target'],
+        },
+        evidenceCapability: {
+          instrumentationRefs: [],
+          terminalValidationRole: 'none',
+        },
+        pathProfile: {
+          estimatedTimeMinutes: 0,
+          cognitiveLoad: 'low',
+          effort: 'low',
+          readiness: null,
+        },
+        governanceLimitations: [],
+      },
       sourceOfRecord: {
         content: 'grading',
         catalogMetadata: 'grading',
@@ -1020,6 +1101,24 @@ describe('resource node registry', () => {
       },
       privacyLevel: 'student-visible',
       teacherPolicy: 'allowed',
+      graphNodeRefs: {
+        knowledge: ['kn-bode'],
+        capability: ['crossDomainTransfer', 'engineeringDecision', 'parameterDesign'],
+        quality: [],
+      },
+      sceneAvailability: {
+        path: { allowed: true, reason: null },
+        grading: { allowed: true, reason: null },
+      },
+      evidenceCapability: {
+        instrumentationRefs: ['arena_evaluation_complete'],
+        terminalValidationRole: 'supporting',
+      },
+      pathProfile: {
+        estimatedTimeMinutes: 25,
+        cognitiveLoad: 'high',
+        effort: 'high',
+      },
       pathSemantics: {
         type: 'arena_task',
         evidenceBehavior: 'judged_submission',
@@ -1036,6 +1135,10 @@ describe('resource node registry', () => {
       resourceSegmentId: 'resource-segment:arena-task:roll-control:primary',
       citationTargetId: 'citation-target:arena-task:roll-control:primary',
       projectionStatus: 'not-indexed',
+      pathEligibility: {
+        eligible: false,
+        reason: 'resource-node-planning-audit-required',
+      },
     }));
     expect(brokenProjection.planningUnit).toBeNull();
     expect(brokenProjection.citationTargets).toContainEqual(expect.objectContaining({
@@ -1070,6 +1173,14 @@ describe('resource node registry', () => {
         retrieval: 'mapped',
         planning: 'blocked',
       },
+      graphProfile: {
+        sceneAvailability: {
+          path: { allowed: false, reason: 'not-path-audited' },
+        },
+        governanceLimitations: expect.arrayContaining([
+          expect.objectContaining({ code: 'missing-capability-mapping' }),
+        ]),
+      },
       governance: {
         auditIssueCodes: ['missing-capability-mapping'],
       },
@@ -1080,6 +1191,14 @@ describe('resource node registry', () => {
       projectionStatus: {
         retrieval: 'mapped',
         planning: 'blocked',
+      },
+      graphProfile: {
+        sceneAvailability: {
+          path: { allowed: false, reason: 'not-path-audited' },
+        },
+        governanceLimitations: expect.arrayContaining([
+          expect.objectContaining({ code: 'missing-evidence-instrumentation' }),
+        ]),
       },
       governance: {
         auditIssueCodes: ['missing-evidence-instrumentation'],
@@ -1095,6 +1214,100 @@ describe('resource node registry', () => {
         id: 'registry:audit-blocked-evidence-resource',
         reasons: ['missing-evidence-instrumentation'],
       }),
+    ]));
+  });
+
+  it('validates bounded media source manifests separately from citation verification', () => {
+    expect(validateResourceMediaSourceManifest({
+      sourceId: 'yong-wei/videos:bode-intro',
+      sourcePath: 'yong-wei/videos/bode-intro.mp4',
+      mediaType: 'video',
+      transcriptRef: 'transcripts/bode-intro.vtt',
+      segments: [
+        {
+          id: 'intro-120-180',
+          anchorRef: 'bode-intro@120-180',
+          startSeconds: 120,
+          endSeconds: 180,
+          graphNodeRefs: {
+            knowledge: ['kn-bode'],
+            capability: ['frequencyResponseAnalysis'],
+            quality: [],
+          },
+          sceneAvailability: {
+            konling: { allowed: true, reason: null },
+            report: { allowed: true, reason: null },
+          },
+          citationPolicy: 'verified-citation-required',
+          aiUsePermission: 'allowed',
+        },
+      ],
+    })).toEqual({
+      verifiedCitationReady: true,
+      issues: [],
+    });
+
+    expect(validateResourceMediaSourceManifest({
+      sourceId: 'yong-wei/videos:bode-intro',
+      sourcePath: 'yong-wei/videos/bode-intro.mp4',
+      mediaType: 'video',
+      segments: [
+        {
+          id: 'intro',
+          graphNodeRefs: {
+            knowledge: ['kn-bode'],
+            capability: [],
+            quality: [],
+          },
+          sceneAvailability: {
+            konling: { allowed: true, reason: null },
+          },
+          aiUsePermission: 'restricted',
+        },
+      ],
+    })).toMatchObject({
+      verifiedCitationReady: false,
+      issues: expect.arrayContaining([
+        'segments.0.missing-anchor',
+        'segments.0.missing-citation-policy',
+        'segments.0.missing-transcript-or-timecode-anchor',
+      ]),
+    });
+  });
+
+  it('blocks admin-scoped resources from learner-facing resource segment scenes', () => {
+    const registry = buildResourceNodeRegistry({
+      registeredResources: [
+        {
+          id: 'admin-only-diagnostic-source',
+          label: '管理范围诊断源',
+          type: 'INTERACTIVE_COMP',
+          renderTarget: '/interactive-learning/resources/admin-only-diagnostic-source',
+          knowledgeNodeIds: ['kn-bode'],
+          planningOverride: {
+            privacyLevel: 'admin-scoped',
+          },
+        },
+      ],
+      knowledgeNodes: [
+        { id: 'kn-bode', name: '伯德图' },
+      ],
+    });
+    const adminScopedResource = registry.nodes.find((node) =>
+      node.id === 'registry:admin-only-diagnostic-source'
+    ) as ResourceNode;
+    const projection = buildResourceSemanticProjection(adminScopedResource);
+
+    expect(projection.resource.graphProfile.sceneAvailability).toMatchObject({
+      konling: { allowed: false, reason: 'admin-scoped-resource' },
+      diagnosis: { allowed: false, reason: 'admin-scoped-resource' },
+      grading: { allowed: false, reason: 'admin-scoped-resource' },
+      'prep-pack': { allowed: false, reason: 'admin-scoped-resource' },
+      report: { allowed: false, reason: 'admin-scoped-resource' },
+    });
+    expect(projection.resource.graphProfile.governanceLimitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'scene:diagnosis:admin-scoped-resource' }),
+      expect.objectContaining({ code: 'scene:prep-pack:admin-scoped-resource' }),
     ]));
   });
 

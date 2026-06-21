@@ -661,6 +661,28 @@ describe('learning evidence RAG corpus contract', () => {
         citationTargetRef: 'handout#p1',
         knowledgeNodeRefs: ['knowledge:steady-state-error'],
         capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        graphNodeRefs: {
+          knowledge: ['knowledge:steady-state-error'],
+          capability: ['capability:steady-state-error-analysis'],
+          quality: [],
+        },
+        sceneAvailability: {
+          konling: { allowed: true, limitation: null },
+          diagnosis: { allowed: true, limitation: null },
+          grading: { allowed: false, limitation: 'not-assessment-segment' },
+          path: { allowed: false, limitation: 'resource-node-planning-audit-required' },
+        },
+        citationReadiness: {
+          status: 'resolvable',
+          verified: false,
+          limitations: ['citation-target-not-verified'],
+        },
+        authorityLevel: 'canonical',
+        privacyScope: 'public',
+        pathEligibility: {
+          eligible: false,
+          reason: 'resource-node-planning-audit-required',
+        },
         mediaTimeRange: null,
         exerciseAnchor: null,
         contentHash: 'hash-course-1',
@@ -702,10 +724,97 @@ describe('learning evidence RAG corpus contract', () => {
         contentHash: 'hash-course-1',
       } as unknown as LearningEvidenceCorpusChunk['resourceProjection'],
     });
+    const forgedPathEligibleProjection = chunk({
+      id: 'forged-path-eligible-projection',
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-4-1',
+        segmentRef: 'unit-4-1#section-steady-state-error',
+        citationTargetRef: 'handout#p1',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        graphNodeRefs: {
+          knowledge: ['knowledge:steady-state-error'],
+          capability: ['capability:steady-state-error-analysis'],
+          quality: [],
+        },
+        sceneAvailability: {
+          konling: { allowed: true, limitation: null },
+          path: { allowed: true, limitation: null },
+        },
+        pathEligibility: {
+          eligible: true,
+          reason: null,
+        },
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: 'hash-course-1',
+      },
+    });
+    const forgedPathSceneOnlyProjection = chunk({
+      id: 'forged-path-scene-only-projection',
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-4-1',
+        segmentRef: 'unit-4-1#section-steady-state-error',
+        citationTargetRef: 'handout#p1',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        sceneAvailability: {
+          path: { allowed: true, limitation: null },
+        },
+        pathEligibility: {
+          eligible: false,
+          reason: 'resource-node-planning-audit-required',
+        },
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: 'hash-course-1',
+      },
+    });
+    const mismatchedAuthorityProjection = chunk({
+      id: 'mismatched-authority-projection',
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-4-1',
+        segmentRef: 'unit-4-1#section-steady-state-error',
+        citationTargetRef: 'handout#p1',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        authorityLevel: 'learner-evidence',
+        privacyScope: 'teacher-visible',
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: 'hash-course-1',
+      },
+    });
 
     expect(validateLearningEvidenceCorpusChunk(projectedHandout)).toEqual([]);
     expect(validateLearningEvidenceCorpusChunk(projectedVideo)).toEqual([]);
     expect(validateLearningEvidenceCorpusChunk(malformedProjection)).toContain('invalid-resource-projection');
+    expect(validateLearningEvidenceCorpusChunk(forgedPathEligibleProjection))
+      .toContain('resource-projection-path-eligibility-unsupported');
+    expect(validateLearningEvidenceCorpusChunk(forgedPathSceneOnlyProjection)).toEqual([]);
+    expect(validateLearningEvidenceCorpusChunk(mismatchedAuthorityProjection)).toEqual(expect.arrayContaining([
+      'resource-projection-authority-mismatch',
+      'resource-projection-privacy-mismatch',
+    ]));
+
+    const konlingResults = retrieveLearningEvidenceCorpus([projectedHandout], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, { knowledgeNodeRefs: ['knowledge:steady-state-error'] });
+    const gradingResults = retrieveLearningEvidenceCorpus([projectedHandout], {
+      role: 'teacher',
+      userId: 'teacher-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'grading',
+    }, { knowledgeNodeRefs: ['knowledge:steady-state-error'] });
+
+    expect(konlingResults.map((item) => item.id)).toEqual(['resource-handout-segment']);
+    expect(gradingResults).toEqual([]);
   });
 
   it('keeps exact lexical resource matches eligible when semantic scores are weak', () => {
