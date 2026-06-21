@@ -2,10 +2,18 @@ import type {
   StudentGradingFeedbackView,
   TeacherGradingWorkbenchView,
 } from '@/lib/data-governance/document-rubric-grading-workbench';
+import type { AuditedActionState } from '@/lib/action-status-contract';
+import { ActionStatusPanel } from '@/components/platform/action-status';
 import { KonlingEntryPointButton } from '@/components/ai/konling-entry-point-button';
 import { DocumentGradingApprovalButton } from './document-rubric-grading-actions';
 
-export function TeacherDocumentGradingWorkbench({ view }: { view: TeacherGradingWorkbenchView }) {
+export function TeacherDocumentGradingWorkbench({
+  view,
+  routeState,
+}: {
+  view: TeacherGradingWorkbenchView;
+  routeState?: AuditedActionState | null;
+}) {
   return (
     <main
       className="surface-page"
@@ -35,6 +43,7 @@ export function TeacherDocumentGradingWorkbench({ view }: { view: TeacherGrading
             <span className="rounded border border-border px-2 py-1">状态图例：草稿需人工审批</span>
             <span className="rounded border border-border px-2 py-1">导出：受限脱敏</span>
           </div>
+          {routeState ? <ActionStatusPanel state={routeState} /> : null}
         </header>
 
         <section className="grid min-w-0 gap-5 lg:grid-cols-[1.15fr_0.85fr]">
@@ -136,7 +145,11 @@ export function TeacherDocumentGradingWorkbench({ view }: { view: TeacherGrading
   );
 }
 
-export function TeacherDocumentGradingEmptyState() {
+export function TeacherDocumentGradingEmptyState({
+  routeState,
+}: {
+  routeState?: AuditedActionState | null;
+} = {}) {
   return (
     <main
       className="surface-page"
@@ -158,6 +171,7 @@ export function TeacherDocumentGradingEmptyState() {
             <span className="rounded border border-border px-2 py-1">状态图例：等待选择</span>
             <span className="rounded border border-border px-2 py-1">导出：受限脱敏</span>
           </div>
+          {routeState ? <ActionStatusPanel state={routeState} className="mt-4" /> : null}
         </header>
         <section className="rounded border border-border bg-card/75 p-6 text-muted-foreground">
           请选择已转换的学生提交，或通过评分草稿标识进入审批工作台。

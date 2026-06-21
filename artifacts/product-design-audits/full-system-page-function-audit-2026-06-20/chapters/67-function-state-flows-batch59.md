@@ -60,17 +60,23 @@
 
 建议：教师长报告移动端应提供固定交付动作区，并把 API 的 report/export 结果转为可下载、可发送、可复制摘要和可回到学生证据链的明确状态。
 
+整改记录：`audit-remediation-teacher-report-grading` 已在班级分析页增加顶部报告交付区和底部固定动作区，并接入控制校正报告导出、摘要复制、缺失学生发送和锁定状态；证据见 `../remediation/audit-remediation-teacher-report-grading/evidence.md`。
+
 ### 446. P1：评分审批在移动端仍停留草稿页，方法边界没有产品化
 
 评分工作台显示 draft 与评分证据，但点击审批/写回类动作后没有状态变化。关联 API GET 返回 405，页面没有解释“此处需 POST、缺字段、缺评分运行或暂不支持”。
 
 建议：评分工作台应把草稿、审批、退回、写回、学生可见和失败恢复作为一组显式状态，并把方法不支持转成教师可理解的错误。
 
+整改记录：`audit-remediation-teacher-report-grading` 已把 `status=draft`、`action=approve/writeback`、`method=get` 和缺失 `gradingRunId` 映射为评分工作台可见状态；证据见 `../remediation/audit-remediation-teacher-report-grading/evidence.md`。
+
 ### 447. P1：教师学生证据 deep link 会丢失评分上下文
 
 `/teacher/students/demo/evidence?returnTo=/teacher/grading-workbench` 最终落到 `/teacher/classes`。这意味着从评分工作台进入学生证据链时，教师无法保留当前报告、学生、评分 run 或 returnTo。
 
 建议：教师学生证据页应支持稳定 deep link；无法解析学生时应留在教师上下文并显示缺失对象，而不是静默改到班级列表。
+
+整改记录：`audit-remediation-teacher-report-grading` 已在班级学生证据页保留 `returnTo`、`gradingRunId`、`reportId` 和 `source` 上下文，并限制返回路径留在教师域；证据见 `../remediation/audit-remediation-teacher-report-grading/evidence.md`。
 
 ### 448. P1：管理员移动用户 no-match 仍返回真实用户并横向溢出
 
@@ -95,6 +101,8 @@
 本批 26 个 DOM/a11y JSON 的 `alerts` 全部为 0。报告反馈、任务启动、写回目标、长报告导出、评分审批、用户筛选导出、治理处置、配置测试和统计导出都没有可读状态播报。
 
 建议：后续修复阶段不应逐页补零散提示，而应建立跨角色 status/live 合同，覆盖提交、筛选、导出、下载、写回、审批、配置测试和治理处置。
+
+整改记录：教师长报告导出、发送和评分审批已接入统一动作状态面板；学生反馈、任务启动、管理员导出、治理处置、配置测试和统计导出仍由后续垂直变更关闭。
 
 ## 5. 收口结论
 

@@ -64,17 +64,23 @@
 
 建议：报告下载应有明确文件格式、范围、版本、下载事件、失败状态和审计记录。
 
+整改记录：`audit-remediation-teacher-report-grading` 已在 `analytics-v2` 接入控制校正报告导出 API，提供 JSON 下载、文件名、成功/失败状态和固定交付动作区；证据见 `../remediation/audit-remediation-teacher-report-grading/evidence.md`。
+
 ### 436. P1：教师报告发送缺失学生时会跳公开首页
 
 `action=send&studentId=missing-batch58` 不显示学生不存在或权限说明；点击发送/交付类动作后跳到公开首页 `/`，教师上下文丢失。
 
 建议：发送报告前必须校验学生对象，缺失时留在教师工作区并提供返回报告、选择学生和查看权限的恢复路径。
 
+整改记录：`audit-remediation-teacher-report-grading` 已将缺失学生交付映射为教师工作区内的 `blocked` / `404` 状态，并限制 `returnTo` 留在 `/teacher` 范围；证据见 `../remediation/audit-remediation-teacher-report-grading/evidence.md`。
+
 ### 437. P1：评分审批缺失 run 的 UI、GET 和 POST 边界都不成立
 
 评分工作台带 `gradingRunId=missing-batch58&action=approve` 仍显示空态，审批动作后跳公开首页；submissions GET 返回 405，writeback POST 返回 404 HTML。UI 没有说明评分运行不存在、方法不支持或审批需要的字段。
 
 建议：评分审批应把缺失 run、未支持方法和无效写回分别产品化，并保留教师上下文。
+
+整改记录：`audit-remediation-teacher-report-grading` 已在评分工作台空态、demo 态和真实工作台中渲染缺失 run、GET 方法边界、审批/写回缺字段和草稿等待状态；证据见 `../remediation/audit-remediation-teacher-report-grading/evidence.md`。
 
 ### 438. P1：教师班级学生直达页 404，但 API no-match 返回真实学生
 
@@ -105,6 +111,8 @@
 33 个 DOM/a11y JSON 均没有捕获到 `alert`。采用、写回、任务查询、作品集收录、下载、发送、审批、重置、导出、分派和模型测试都没有可读状态播报。
 
 建议：把所有动作闭环接入统一 status/live 合同，尤其是下载、发送、审批、筛选和配置测试。
+
+整改记录：`audit-remediation-action-status-contract` 已建立统一状态面板；`audit-remediation-teacher-report-grading` 已把教师报告下载/发送和评分审批接入该面板。学生反馈、作品集、管理员治理和配置测试仍由后续垂直变更关闭。
 
 ## 5. 下一批输入
 

@@ -25,6 +25,7 @@ interface EvidenceTimelineBrowserProps {
   backHref: string;
   chrome?: 'standalone' | 'embedded';
   emptyBackLabel?: string;
+  contextBadges?: string[];
   initialLessonId?: string;
   title: string;
   subtitle?: string;
@@ -35,6 +36,7 @@ export function EvidenceTimelineBrowser({
   backHref,
   chrome = 'standalone',
   emptyBackLabel = '返回成长中心',
+  contextBadges = [],
   initialLessonId,
   title,
   subtitle,
@@ -132,6 +134,15 @@ export function EvidenceTimelineBrowser({
             <div>
               <h1 className="text-xl font-bold text-foreground">{title}</h1>
               <p className="text-sm text-subtle">{studentLabel || subtitle || '按时间查看学习事实和作答摘要'}</p>
+              {contextBadges.length > 0 ? (
+                <div className="mt-2 flex flex-wrap gap-2 text-xs text-subtle">
+                  {contextBadges.map((item) => (
+                    <span key={item} className="rounded border border-border px-2 py-1">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
             </div>
           </div>
           <button
