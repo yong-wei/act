@@ -24,6 +24,13 @@ import type { KaqGraphEdge, KaqGraphNode } from './kaq-graph-schema';
 import { getAllRegisteredResourceMetadata } from '../resource-registry-metadata';
 import { CONTROL_CORRECTION_CAPABILITY_TARGETS } from '../adaptive-learning-path-planner';
 import { buildResourceNodeRegistry, type ResourceNode, type ResourceNodeRegistry } from '../resource-node-registry';
+import {
+  summarizeResourceFieldCompletionCoverageSummaries,
+  summarizeResourceFieldCompletionForCoverage,
+  type ResourceFieldCompletionAuditSummary,
+  type ResourceFieldCompletionCoverageSummary,
+} from '../resource-field-completion-audit';
+import type { GraphCenterViewerRole } from './graph-center-source-scope';
 
 export type GraphCenterDomain = KaqObjectiveDomain;
 export type GraphCenterOverlayStatus = 'available' | 'unavailable' | 'empty' | 'low-confidence' | 'suppressed' | 'unauthorized';
@@ -74,6 +81,8 @@ export interface GraphCenterPayloadInput {
   evidenceCorpus?: LearningEvidenceCorpusChunk[];
   learnerOverlay?: GraphCenterLearnerOverlayInput;
   classOverlay?: GraphCenterClassOverlayInput;
+  viewerRole?: GraphCenterViewerRole;
+  resourceFieldCompletionSummary?: ResourceFieldCompletionGraphSummary;
 }
 
 export interface GraphCenterDomainOption {
@@ -121,7 +130,10 @@ export interface GraphCenterResourceCoverage {
   missingCoverageTypes: GraphCenterResourceCoverageMissingType[];
   linkedResourceIds: string[];
   pathEligibleResourceIds: string[];
+  fieldCompletion?: ResourceFieldCompletionCoverageSummary;
 }
+
+export type ResourceFieldCompletionGraphSummary = Pick<ResourceFieldCompletionAuditSummary, 'graphCoverageDiagnostics'>;
 
 export interface GraphCenterEvidenceWindow {
   from: string | null;
@@ -329,7 +341,10 @@ export function buildGraphCenterPayload(input: GraphCenterPayloadInput = {}): Gr
     filteredNodeIds.has(edge.targetNodeId)
   ));
   const selectedNode = selectNode(filteredNodes, input.selectedNodeId);
-  const resourceCoverage = buildResourceCoverageByNode(filteredNodes, resourceRegistry, evidenceCorpus);
+  const resourceCoverage = buildResourceCoverageByNode(filteredNodes, resourceRegistry, evidenceCorpus, {
+    exposeFieldCompletion: input.viewerRole === 'TEACHER' || input.viewerRole === 'ADMIN',
+    resourceFieldCompletionSummary: input.resourceFieldCompletionSummary,
+  });
   const baseLimitations = buildLimitations(filteredNodes, resourceCoverage);
   const learnerOverlay = buildLearnerGraphOverlay(filteredNodes, resourceCoverage, input.learnerOverlay);
   const classOverlay = buildClassGraphOverlay(filteredNodes, resourceCoverage, input.classOverlay);
@@ -1066,11 +1081,12 @@ function buildResourceCoverageByNode(
   nodes: KaqGraphNode[],
   registry: ResourceNodeRegistry,
   evidenceCorpus: LearningEvidenceCorpusChunk[],
+  options: ResourceCoverageBuildOptions,
 ): Record<string, GraphCenterResourceCoverage> {
   return Object.fromEntries(
     nodes.map((node) => [
       node.id,
-      buildResourceCoverage(node, registry.nodes, evidenceCorpus),
+      buildResourceCoverage(node, registry.nodes, evidenceCorpus, options),
     ]),
   );
 }
@@ -1079,10 +1095,11 @@ function buildResourceCoverage(
   node: KaqGraphNode,
   resourceNodes: ResourceNode[],
   evidenceCorpus: LearningEvidenceCorpusChunk[],
+  options: ResourceCoverageBuildOptions,
 ): GraphCenterResourceCoverage {
   const coverageRefs = buildCoverageRefs(node);
   if (coverageRefs.length === 0) {
-    return emptyResourceCoverage(node, 'not-audited', []);
+    return emptyResourceCoverage(node, 'not-audited', [], options);
   }
 
   const coverageRefSet = new Set(coverageRefs);
@@ -1100,6 +1117,11 @@ function buildResourceCoverage(
   });
   const linkedResourceIds = uniqueSorted(linkedResources.map((resource) => resource.id));
   const pathEligibleResourceIds = uniqueSorted(pathEligibleResources.map((resource) => resource.id));
+  const fieldCompletion = summarizeFieldCompletionForGraphCoverage(
+    coverageRefSet,
+    linkedResources,
+    options.resourceFieldCompletionSummary,
+  );
 
   return {
     domain: node.domain,
@@ -1118,6 +1140,7 @@ function buildResourceCoverage(
     missingCoverageTypes,
     linkedResourceIds,
     pathEligibleResourceIds,
+    ...(options.exposeFieldCompletion ? { fieldCompletion } : {}),
   };
 }
 
@@ -1125,6 +1148,7 @@ function emptyResourceCoverage(
   node: KaqGraphNode,
   coverageState: GraphCenterResourceCoverageState,
   missingCoverageTypes: GraphCenterResourceCoverageMissingType[],
+  options: ResourceCoverageBuildOptions,
 ): GraphCenterResourceCoverage {
   return {
     domain: node.domain,
@@ -1143,7 +1167,34 @@ function emptyResourceCoverage(
     missingCoverageTypes,
     linkedResourceIds: [],
     pathEligibleResourceIds: [],
+    ...(options.exposeFieldCompletion ? { fieldCompletion: summarizeResourceFieldCompletionForCoverage([]) } : {}),
   };
+}
+
+interface ResourceCoverageBuildOptions {
+  exposeFieldCompletion: boolean;
+  resourceFieldCompletionSummary?: ResourceFieldCompletionGraphSummary;
+}
+
+function summarizeFieldCompletionForGraphCoverage(
+  coverageRefs: Set<string>,
+  linkedResources: ResourceNode[],
+  auditSummary?: ResourceFieldCompletionGraphSummary,
+): ResourceFieldCompletionCoverageSummary {
+  const auditSummaries = auditSummary
+    ? Object.entries(auditSummary.graphCoverageDiagnostics)
+      .filter(([denominatorKey]) => denominatorKeyMatchesCoverageRefs(denominatorKey, coverageRefs))
+      .map(([, summary]) => summary)
+    : [];
+  if (auditSummaries.length > 0) {
+    return summarizeResourceFieldCompletionCoverageSummaries(auditSummaries);
+  }
+
+  return summarizeResourceFieldCompletionForCoverage(linkedResources);
+}
+
+function denominatorKeyMatchesCoverageRefs(denominatorKey: string, coverageRefs: Set<string>): boolean {
+  return denominatorKey.split('|').some((ref) => coverageRefs.has(ref));
 }
 
 function buildCoverageRefs(node: KaqGraphNode): string[] {

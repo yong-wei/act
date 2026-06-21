@@ -5,6 +5,7 @@ import type {
   TextbookResourceNodeInput,
   TextbookSectionResourceNodeInput,
 } from './resource-node-registry';
+import type { KaqArtifactVersionRefs } from './kaq-artifact-versioning';
 
 export interface TextbookRuntimeResourceCatalogEntry {
   textbook: TextbookResourceNodeInput;
@@ -25,6 +26,7 @@ export interface TextbookRuntimeSearchDocument {
     knowledgeNodeRefs: string[];
     capabilityTargetRefs: string[];
     contentHash?: string | null;
+    versionRefs?: KaqArtifactVersionRefs;
   };
   citationAddress?: {
     kind: 'text' | 'image' | 'audio' | 'video' | 'slides' | 'interactive' | 'simulation' | 'arena' | 'external';
@@ -73,6 +75,7 @@ interface RuntimeTextbookSearchDocumentLine {
     knowledgeNodeRefs?: string[];
     capabilityTargetRefs?: string[];
     contentHash?: string | null;
+    versionRefs?: KaqArtifactVersionRefs;
   };
   citationAddress?: TextbookRuntimeSearchDocument['citationAddress'];
   metadata?: {
@@ -258,6 +261,7 @@ async function loadTextbookRuntimeSearchDocuments(bookDir: string): Promise<Text
         knowledgeNodeRefs,
         capabilityTargetRefs,
         contentHash: projection.contentHash ?? line.contentHash ?? null,
+        versionRefs: projection.versionRefs,
       },
       citationAddress: line.citationAddress,
       metadata: {

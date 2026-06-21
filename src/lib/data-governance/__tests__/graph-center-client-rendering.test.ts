@@ -13,6 +13,7 @@ import {
 } from '../learning-evidence-rag-corpus';
 import type { AdaptiveLearnerState } from '../adaptive-learner-state-service';
 import { buildResourceNodeRegistry } from '../../resource-node-registry';
+import { buildKaqArtifactVersionRefs } from '../../kaq-artifact-versioning';
 
 describe('graph center client surface', () => {
   it('renders domain switching, filters, list fallback, and selected-node detail', () => {
@@ -304,6 +305,7 @@ function verifiedChunk(input: {
       knowledgeNodeRefs: [knowledgeNodeRef],
       capabilityTargetRefs: [],
       contentHash: 'hash-controller-correction',
+      versionRefs: buildKaqArtifactVersionRefs(),
     },
     privacyClass: 'public',
     confidence: 'high',

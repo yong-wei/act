@@ -45,22 +45,24 @@ export default async function GraphCenterPage({ searchParams }: GraphCenterPageP
     objectiveId: params?.objectiveId ?? null,
     portraitDimension: params?.portraitDimension as PortraitV2DimensionId | undefined,
     selectedNodeId: params?.nodeId ?? null,
+    viewerRole: session?.user?.role,
     ...coverageSources,
   });
   const rootPayload = buildGraphCenterPayload({
     domain: payload.activeDomain,
+    viewerRole: session?.user?.role,
     ...coverageSources,
   });
   const rootPayloads = {
     knowledge: payload.activeDomain === 'knowledge'
       ? rootPayload
-      : buildGraphCenterPayload({ domain: 'knowledge', ...coverageSources }),
+      : buildGraphCenterPayload({ domain: 'knowledge', viewerRole: session?.user?.role, ...coverageSources }),
     capability: payload.activeDomain === 'capability'
       ? rootPayload
-      : buildGraphCenterPayload({ domain: 'capability', ...coverageSources }),
+      : buildGraphCenterPayload({ domain: 'capability', viewerRole: session?.user?.role, ...coverageSources }),
     quality: payload.activeDomain === 'quality'
       ? rootPayload
-      : buildGraphCenterPayload({ domain: 'quality', ...coverageSources }),
+      : buildGraphCenterPayload({ domain: 'quality', viewerRole: session?.user?.role, ...coverageSources }),
   };
 
   return (

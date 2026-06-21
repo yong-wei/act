@@ -10,6 +10,7 @@ import {
   verifyLearningEvidenceCitations,
   type LearningEvidenceCorpusChunk,
 } from '../learning-evidence-rag-corpus';
+import { buildKaqArtifactVersionRefs } from '../../kaq-artifact-versioning';
 import { textbookSearchDocumentsToLearningEvidenceCorpus } from '../graph-center-evidence';
 import { teachingResourceWhereForGraphCenter } from '../graph-center-source-scope';
 import { buildResourceNodeRegistry } from '../../resource-node-registry';
@@ -331,7 +332,11 @@ describe('graph center payload service', () => {
     expect(chunk.content.text).toBeNull();
     expect(chunk.display.capsule).toBe('Modern Control Systems 第 10 章 10.1 节');
     expect(chunk.resourceProjection?.knowledgeNodeRefs).toEqual(['PID控制器_6_656b8b52']);
-    expect(verification.status).toBe('verified');
+    expect(chunk.resourceProjection?.versionRefs).toBeUndefined();
+    expect(verification.status).toBe('downgraded');
+    expect(verification.limitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ chunkId: chunk.id, reason: 'missing-version-ref' }),
+    ]));
   });
 
   it('scopes graph-center DB teaching resources by viewer role', () => {
@@ -879,6 +884,7 @@ function ragChunk(input: {
       knowledgeNodeRefs: input.knowledgeNodeRefs,
       capabilityTargetRefs: [],
       contentHash,
+      versionRefs: buildKaqArtifactVersionRefs(),
     },
     privacyClass: 'public',
     confidence: 'high',
