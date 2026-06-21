@@ -1,4 +1,5 @@
 import {
+  detectKaqArtifactStaleness,
   validateKaqArtifactVersionRefs,
   type KaqArtifactVersionLimitation,
   type KaqArtifactVersionRefs,
@@ -655,6 +656,7 @@ export function citationVersionLimitations(chunk: LearningEvidenceCorpusChunk): 
       'graphCatalogVersion',
       'resourceProjectionVersion',
     ]),
+    ...detectKaqArtifactStaleness(chunk.resourceProjection.versionRefs),
     ...(chunk.resourceProjection.versionLimitations ?? []),
   ];
 }

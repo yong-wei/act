@@ -865,6 +865,45 @@ describe('learning evidence RAG corpus contract', () => {
       expect.objectContaining({ code: 'stale-version-ref', ref: 'resourceProjectionVersion' }),
     ]));
 
+    const staleVersionProjection = chunk({
+      id: 'stale-resource-handout-segment',
+      resourceProjection: {
+        ...projectedHandout.resourceProjection!,
+        versionRefs: buildKaqArtifactVersionRefs({
+          graphCatalogVersion: 'autocontrol-kaq-graph.v0',
+          resourceProjectionVersion: 'resource-semantic-projection.v0',
+        }),
+        versionLimitations: [],
+      },
+    });
+    const staleVersionVerification = verifyLearningEvidenceCitations([staleVersionProjection], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, [{ chunkId: 'stale-resource-handout-segment', useCase: 'konling' }]);
+    expect(staleVersionVerification).toEqual(expect.objectContaining({
+      status: 'downgraded',
+      limitations: expect.arrayContaining([
+        expect.objectContaining({ chunkId: 'stale-resource-handout-segment', reason: 'stale-source' }),
+      ]),
+    }));
+    const [staleVersionChip] = buildLearningEvidenceCitationChips(staleVersionVerification, {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    });
+    expect(staleVersionChip.sourceVersionLimitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'stale-version-ref', ref: 'graphCatalogVersion' }),
+      expect.objectContaining({ code: 'stale-version-ref', ref: 'resourceProjectionVersion' }),
+    ]));
+    expect(staleVersionChip.limitationState).toBe('stale-source');
+
     const missingVersionProjection = chunk({
       id: 'legacy-resource-handout-segment',
       resourceProjection: {
