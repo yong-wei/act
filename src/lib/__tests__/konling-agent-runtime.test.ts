@@ -24,6 +24,7 @@ vi.mock('@/lib/textbook-runtime-resources', () => ({
 }));
 
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
+import { buildKonlingKaqGraphContext } from '@/lib/konling-kaq-graph-context';
 import {
   applyKonlingCitationFallback,
   buildKonlingCitationGuard,
@@ -155,6 +156,72 @@ function createRuntimeContext(overrides: Partial<KonlingRuntimeContext> = {}): K
     },
     ...overrides,
   };
+}
+
+function createGraphLearnerState(
+  userId: string,
+  score = 0.72,
+): NonNullable<KonlingRuntimeContext['learnerState']> {
+  const evidenceRef = {
+    sourceType: 'LearningPathExecution',
+    sourceId: `exec-${userId}`,
+    evidenceAt: '2026-06-21T00:00:00.000Z',
+    confidence: 'verified',
+    privacyLevel: 'teacher-scoped',
+  };
+
+  return {
+    userId,
+    authority: 'server-owned',
+    generatedAt: '2026-06-21T00:00:00.000Z',
+    roleScope: {
+      role: 'student',
+      classId: 'class-1',
+      privacyScopes: ['teacher-scoped'],
+    },
+    primaryCompetencies: {
+      vector: {},
+    },
+    risks: {
+      activeFlags: [],
+    },
+    knowledgeMastery: {
+      tags: {
+        'kn:autocontrol:controller-correction': {
+          posteriorMastery: score,
+          confidence: 0.8,
+          evidenceCount: 1,
+          lastUpdatedAt: '2026-06-21T00:00:00.000Z',
+          supportingEvidenceRefs: [evidenceRef],
+          sourceCoverage: null,
+          limitations: [],
+        },
+      },
+    },
+    masteryTraceability: {
+      capabilityTargets: {
+        'cap:autocontrol:synthesize-controller-correction': {
+          masteryLevel: score,
+          confidence: 0.84,
+          supportingEvidenceRefs: [evidenceRef],
+          freshness: 'fresh',
+          sourceCoverage: null,
+          limitations: [],
+        },
+      },
+      knowledgeTargets: {},
+    },
+    pathContext: {
+      activeControlCorrectionPath: {
+        state: 'none',
+        pathId: null,
+        status: null,
+        currentNodeId: null,
+        terminalValidationState: null,
+        lowConfidenceMarkers: [],
+      },
+    },
+  } as NonNullable<KonlingRuntimeContext['learnerState']>;
 }
 
 function textbookRuntimeCatalogFixture() {
@@ -532,7 +599,7 @@ describe('konling agent runtime', () => {
       serverModeContext: { 'student-path-center': true },
     });
 
-    expect(contract.status).toBe('ready');
+    expect(contract.status).toBe('degraded');
     expect(contract.answerIntent).toBe('path-advice');
     expect(contract.groundingContext.capabilityTargetRefs).toContain('capability:root-locus-design');
     expect(contract.groundingContext.missingContext).not.toContain('capability-target-context-missing');
@@ -591,6 +658,228 @@ describe('konling agent runtime', () => {
     expect(pageContextOutput.knowledgeCapabilityContext.citationRefs).not.toContain('learner:student-1');
   });
 
+  it('exposes Konling graph context to contracts, prompts, and page-context tools', async () => {
+    const scope = createScope({
+      courseId: 'control-correction',
+      pageId: 'adaptive-path-center',
+      classId: null,
+    });
+    const planContext: KonlingRuntimeContext['planContext'] = {
+      currentPathId: 'path-1',
+      activeNodeId: 'node-1',
+      nextNodeIds: ['node-2'],
+      recentPathIds: [],
+      completedNodeIds: [],
+      status: 'available',
+    };
+    const citationContext: KonlingCitationContext = {
+      required: true,
+      contentCitations: [{
+        id: 'content:control-correction',
+        sourceType: 'content',
+        displayTitle: '校正设计说明',
+        href: null,
+        confidence: 'high',
+        evidenceBasis: 'course-ai-context',
+        owner: 'answer',
+      }],
+      evidenceCitations: [{
+        id: 'learner:student-1',
+        sourceType: 'learner-state',
+        displayTitle: '学习者状态',
+        href: null,
+        confidence: 'medium',
+        evidenceBasis: 'AdaptiveLearnerState',
+        owner: 'recommendation',
+      }],
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      responseProtocol: {
+        requiredOwners: ['answer', 'recommendation'],
+        minimum: { content: 1, evidenceWhenAvailable: 1 },
+        fallbackWhenMissing: 'low-confidence',
+      },
+    };
+    const graphContext = buildKonlingKaqGraphContext({
+      scope,
+      selectedGraphNodeIds: ['cap:autocontrol:synthesize-controller-correction'],
+      planContext,
+      citationContext,
+    });
+    const runtime = createRuntimeContext({
+      pageContext: {
+        ...createRuntimeContext().pageContext,
+        courseId: 'control-correction',
+        stepId: 'adaptive-path-center',
+      },
+      learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],
+      planContext,
+      citationContext,
+      graphContext,
+      permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
+    });
+
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'path-advisor',
+      runtimeContext: runtime,
+      scope,
+      serverModeContext: { 'student-path-center': true },
+      clientContextHints: { selectedGraphNodeIds: ['kn:autocontrol:forged-node'] },
+    });
+
+    expect(contract.status).toBe('degraded');
+    expect(contract.graphContext?.learningGoal?.id).toBe('control-correction');
+    expect(contract.graphContext?.selectedGraphNodeIds).toEqual(['cap:autocontrol:synthesize-controller-correction']);
+    expect(contract.graphContext?.clientHintsAccepted).toEqual([]);
+    expect(contract.degradedReasons).toContain('missing-graph-grounding:overlay');
+
+    const prompt = buildKonlingSystemPrompt({
+      page: runtime.pageContext,
+      user: runtime.userProfile,
+      adaptiveRuntime: {
+        ...runtime,
+        teachingAssistantMode: contract,
+      },
+    });
+    expect(prompt).toContain('K/A/Q 图谱 grounding');
+    expect(prompt).toContain('LearningGoal: control-correction');
+    expect(prompt).toContain('引用锚点: content:1, learner-state:1');
+    expect(prompt).toContain('证据锚点: learner-state:1');
+    expect(prompt).not.toContain('content:control-correction');
+    expect(prompt).not.toContain('learner:student-1');
+    expect(prompt).toContain('graph grounding 限制: overlay:learner-or-class-overlay-missing');
+
+    const pageContextOutput = await buildKonlingToolRuntime({
+      db: {},
+      scope,
+      context: { ...runtime, permittedTools: contract.permittedTools },
+    }).getPageContext();
+
+    expect(pageContextOutput.graphContext).toMatchObject({
+      source: 'server-owned',
+      learningGoal: { id: 'control-correction' },
+      selectedGraphNodeIds: ['cap:autocontrol:synthesize-controller-correction'],
+      clientHintsAccepted: [],
+    });
+    expect(pageContextOutput.graphContext?.selectedGraphNodeIds).not.toContain('kn:autocontrol:forged-node');
+    expect(pageContextOutput.graphContext?.classOverlay).toMatchObject({
+      status: 'unauthorized',
+      classId: null,
+      items: {},
+    });
+  });
+
+  it('degrades graph-aware contracts when runtime graph context is absent', () => {
+    const runtime = createRuntimeContext({
+      learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],
+      permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:path',
+          sourceType: 'content',
+          displayTitle: '路径内容',
+          href: null,
+          confidence: 'high',
+          evidenceBasis: 'course-ai-context',
+          owner: 'answer',
+        }],
+        evidenceCitations: [{
+          id: 'learner:student-1',
+          sourceType: 'learner-state',
+          displayTitle: '学习状态摘要',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'AdaptiveLearnerState',
+          owner: 'recommendation',
+        }],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer', 'recommendation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    });
+
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'path-advisor',
+      runtimeContext: runtime,
+      scope: createScope({ role: 'student', courseId: 'unknown-course', pageId: 'adaptive-path-center' }),
+      serverModeContext: { 'student-path-center': true },
+    });
+
+    expect(contract.status).toBe('degraded');
+    expect(contract.graphContext?.status).toBe('missing');
+    expect(contract.degradedReasons).toEqual(expect.arrayContaining([
+      'missing-graph-grounding:learning-goal',
+      'missing-graph-grounding:graph',
+    ]));
+  });
+
+  it('degrades resource-coach when graph resource grounding is missing', () => {
+    const runtime = createRuntimeContext({
+      learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],
+      permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:resource',
+          sourceType: 'content',
+          displayTitle: '资源说明',
+          href: null,
+          confidence: 'high',
+          evidenceBasis: 'course-ai-context',
+          owner: 'answer',
+        }],
+        evidenceCitations: [{
+          id: 'path:path-1',
+          sourceType: 'path-execution',
+          displayTitle: '路径记录',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'LearningPath',
+          owner: 'recommendation',
+        }, {
+          id: 'learner:student-1',
+          sourceType: 'learner-state',
+          displayTitle: '学习状态摘要',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'AdaptiveLearnerState',
+          owner: 'recommendation',
+        }],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer', 'recommendation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    });
+
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'resource-coach',
+      runtimeContext: runtime,
+      scope: createScope({ role: 'student', courseId: 'unknown-course', pageId: 'resource-node-launch', resourceId: 'resource-1' }),
+      serverModeContext: {
+        'resource-node': true,
+        'path-execution-context': true,
+        'evidence-citations': true,
+      },
+    });
+
+    expect(contract.status).toBe('degraded');
+    expect(contract.answerIntent).toBe('fact-explanation');
+    expect(contract.degradedReasons).toEqual(expect.arrayContaining([
+      'missing-graph-grounding:learning-goal',
+      'missing-graph-grounding:graph',
+      'missing-graph-grounding:resource',
+    ]));
+  });
+
   it('keeps path-advisor generation available when a student has no existing path yet', () => {
     const runtime = createRuntimeContext({
       learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],
@@ -640,7 +929,7 @@ describe('konling agent runtime', () => {
       serverModeContext: { 'student-path-center': true },
     });
 
-    expect(contract.status).toBe('ready');
+    expect(contract.status).toBe('degraded');
     expect(contract.unavailableReasons).toEqual([]);
     expect(contract.permittedTools).toContain('generate_learning_path');
   });
@@ -738,6 +1027,161 @@ describe('konling agent runtime', () => {
     }));
   });
 
+  it('assembles class overlay for teacher graph-aware class contexts', async () => {
+    const classLearnerIds = ['student-1', 'student-2', 'student-3', 'student-4', 'student-5'];
+    mocks.readAdaptiveLearnerState.mockImplementation((_db, args) => {
+      if (classLearnerIds.includes(args.userId)) {
+        return Promise.resolve(createGraphLearnerState(args.userId, 0.62 + classLearnerIds.indexOf(args.userId) * 0.05));
+      }
+      return Promise.resolve(null);
+    });
+
+    const runtime = await buildKonlingRuntimeContext({
+      class: {
+        findUnique: vi.fn().mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' }),
+      },
+      studentProfile: {
+        findMany: vi.fn().mockResolvedValue(classLearnerIds.map((userId) => ({ userId }))),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'teacher-1',
+      authenticatedUserName: '王老师',
+      role: 'TEACHER',
+      targetUserId: 'teacher-1',
+      classId: 'class-1',
+      courseId: 'control-correction',
+      pageId: 'teacher-class-report',
+      pageContextHint: {
+        courseId: 'control-correction',
+        stepId: 'teacher-class-report',
+        pageType: 'teacher-class-report',
+        topic: '班级控制系统校正诊断',
+      },
+      trustedContentContext: true,
+    });
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'class-summarizer',
+      runtimeContext: runtime,
+      scope: createScope({
+        authenticatedUserId: 'teacher-1',
+        targetUserId: 'teacher-1',
+        role: 'teacher',
+        classId: 'class-1',
+        courseId: 'control-correction',
+        pageId: 'teacher-class-report',
+        privacyScopes: ['teacher-scoped'],
+      }),
+      serverModeContext: {
+        'class-report': true,
+        'diagnosis-view': true,
+        'evidence-citations': true,
+      },
+    });
+
+    expect(runtime.graphContext?.classOverlay?.status).toBe('available');
+    expect(runtime.graphContext?.classOverlay?.classId).toBe('class-1');
+    expect(runtime.graphContext?.classOverlay?.items['cap:autocontrol:synthesize-controller-correction']).toMatchObject({
+      denominator: 5,
+      suppressionReason: 'none',
+    });
+    expect(contract.graphContext?.classOverlay?.status).toBe('available');
+    expect(contract.degradedReasons).not.toContain('missing-graph-grounding:overlay');
+    expect(mocks.readAdaptiveLearnerState).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      userId: 'student-1',
+      role: 'teacher',
+      classId: 'class-1',
+      goal: 'control-correction',
+    }));
+  });
+
+  it('does not build class overlay outside teacher graph-aware class surfaces', async () => {
+    const findMany = vi.fn().mockResolvedValue([{ userId: 'student-1' }]);
+    await buildKonlingRuntimeContext({
+      class: {
+        findUnique: vi.fn().mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' }),
+      },
+      studentProfile: {
+        findMany,
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'teacher-1',
+      authenticatedUserName: '王老师',
+      role: 'TEACHER',
+      targetUserId: 'teacher-1',
+      classId: 'class-1',
+      courseId: 'control-correction',
+      pageId: 'teacher-dashboard',
+      pageContextHint: {
+        courseId: 'control-correction',
+        stepId: 'teacher-dashboard',
+        pageType: 'teacher-dashboard',
+      },
+    });
+
+    expect(findMany).not.toHaveBeenCalled();
+  });
+
+  it('caps teacher class overlay learner state reads for large classes', async () => {
+    const classLearnerIds = Array.from({ length: 35 }, (_, index) => `student-${index + 1}`);
+    mocks.readAdaptiveLearnerState.mockImplementation((_db, args) => {
+      if (classLearnerIds.includes(args.userId)) {
+        return Promise.resolve(createGraphLearnerState(args.userId, 0.62));
+      }
+      return Promise.resolve(null);
+    });
+
+    const runtime = await buildKonlingRuntimeContext({
+      class: {
+        findUnique: vi.fn().mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' }),
+      },
+      studentProfile: {
+        findMany: vi.fn().mockResolvedValue(classLearnerIds.map((userId) => ({ userId }))),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'teacher-1',
+      authenticatedUserName: '王老师',
+      role: 'TEACHER',
+      targetUserId: 'teacher-1',
+      classId: 'class-1',
+      courseId: 'control-correction',
+      pageId: 'teacher-prep-pack',
+      pageContextHint: {
+        courseId: 'control-correction',
+        stepId: 'teacher-prep-pack',
+        pageType: 'teacher-prep-pack',
+      },
+    });
+
+    const studentStateReadCalls = mocks.readAdaptiveLearnerState.mock.calls
+      .map(([, args]) => args.userId)
+      .filter((userId) => classLearnerIds.includes(userId));
+    expect(studentStateReadCalls).toHaveLength(30);
+    expect(studentStateReadCalls).not.toContain('student-31');
+    expect(runtime.graphContext?.classOverlay?.items['cap:autocontrol:synthesize-controller-correction']).toMatchObject({
+      denominator: 30,
+      excludedPopulation: 5,
+      suppressionReason: 'none',
+    });
+  });
+
   it('does not expose path-advisor write tools from forged page ids without server context', () => {
     const runtime = createRuntimeContext({
       learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],
@@ -786,7 +1230,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ role: 'student', pageId: '/assessment/adaptive-practice', pathNodeId: null }),
     });
 
-    expect(contract.status).toBe('ready');
+    expect(contract.status).toBe('degraded');
     expect(contract.permittedTools).not.toEqual(expect.arrayContaining([
       'generate_learning_path',
       'revise_learning_path_options',
@@ -851,7 +1295,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ role: 'student', pageId: 'adaptive-path-center', pathNodeId: null }),
     });
 
-    expect(contract.status).toBe('ready');
+    expect(contract.status).toBe('degraded');
     expect(contract.permittedTools).not.toEqual(expect.arrayContaining([
       'generate_learning_path',
       'revise_learning_path_options',
@@ -1127,8 +1571,12 @@ describe('konling agent runtime', () => {
       scope: createScope({ resourceId: 'resource-1' }),
       serverModeContext: { 'resource-node': true },
     });
-    expect(withServerContext.status).toBe('ready');
+    expect(withServerContext.status).toBe('degraded');
     expect(withServerContext.answerIntent).toBe('fact-explanation');
+    expect(withServerContext.degradedReasons).toEqual(expect.arrayContaining([
+      'missing-graph-grounding:learning-goal',
+      'missing-graph-grounding:graph',
+    ]));
     expect(withServerContext.permittedTools).toContain('analyze_attempt');
 
     const withMediaServerContext = buildKonlingTeachingAssistantRuntimeContract({
@@ -1138,7 +1586,7 @@ describe('konling agent runtime', () => {
       serverModeContext: { 'resource-node': true, 'media-resource': true },
       clientContextHints: { resourceId: 'plain-client-id' },
     });
-    expect(withMediaServerContext.status).toBe('ready');
+    expect(withMediaServerContext.status).toBe('degraded');
     expect(withMediaServerContext.answerIntent).toBe('media-guidance');
     expect(withMediaServerContext.groundingContext.resourceRefs).toEqual(['resource:opaque-resource-id']);
     expect(withMediaServerContext.groundingContext.missingContext).not.toContain('resource-context-missing');
@@ -1155,7 +1603,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ resourceId: 'ordinary-resource' }),
       serverModeContext: { 'resource-node': true },
     });
-    expect(nonMediaResourceWithMediaPageType.status).toBe('ready');
+    expect(nonMediaResourceWithMediaPageType.status).toBe('degraded');
     expect(nonMediaResourceWithMediaPageType.answerIntent).toBe('fact-explanation');
 
     const withSelectedKnowledgeNode = buildKonlingTeachingAssistantRuntimeContract({
@@ -1190,7 +1638,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ pageId: '/knowledge', resourceId: null }),
       clientContextHints: { targetUserId: 'other-student' },
     });
-    expect(withSelectedKnowledgeNode.status).toBe('ready');
+    expect(withSelectedKnowledgeNode.status).toBe('degraded');
     expect(withSelectedKnowledgeNode.answerIntent).toBe('fact-explanation');
     expect(withSelectedKnowledgeNode.groundingContext).toMatchObject({
       source: 'server-owned',

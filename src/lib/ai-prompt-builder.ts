@@ -51,6 +51,28 @@ interface KonlingPromptRuntimeContext {
     citationRefs?: string[];
     missingContext?: string[];
   };
+  graphContext?: {
+    status?: string;
+    learningGoal?: {
+      id?: string;
+      title?: string;
+      version?: string;
+    } | null;
+    selectedGraphNodeIds?: string[];
+    expandedSubgraph?: {
+      graphVersion?: string;
+      graphNodeIds?: Record<string, string[]>;
+    } | null;
+    citationRefs?: string[];
+    evidenceRefs?: string[];
+    versionRefs?: Record<string, string | null | undefined> | null;
+    confidence?: string;
+    missingGrounding?: Array<{
+      class?: string;
+      reason?: string;
+      severity?: string;
+    }>;
+  } | null;
   citationContext?: {
     required?: boolean;
     contentCitations?: Array<{
@@ -191,6 +213,41 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
       lines.push(`  - grounding 限制: ${grounding.missingContext.join(', ')}`);
     }
   }
+  if (runtime.graphContext) {
+    const graph = runtime.graphContext;
+    lines.push('- K/A/Q 图谱 grounding:');
+    lines.push(`  - 状态: ${graph.status ?? 'unknown'}；置信度: ${graph.confidence ?? 'unknown'}`);
+    if (graph.learningGoal?.id) {
+      lines.push(`  - LearningGoal: ${graph.learningGoal.id} / ${graph.learningGoal.title ?? 'untitled'} / ${graph.learningGoal.version ?? 'unknown-version'}`);
+    }
+    const graphNodeIds = [
+      ...(graph.expandedSubgraph?.graphNodeIds?.knowledge ?? []),
+      ...(graph.expandedSubgraph?.graphNodeIds?.capability ?? []),
+      ...(graph.expandedSubgraph?.graphNodeIds?.quality ?? []),
+    ];
+    if (graph.selectedGraphNodeIds?.length) {
+      lines.push(`  - 当前图谱节点: ${graph.selectedGraphNodeIds.slice(0, 6).join(', ')}`);
+    } else if (graphNodeIds.length) {
+      lines.push(`  - 可 grounding 图谱节点: ${graphNodeIds.slice(0, 6).join(', ')}`);
+    }
+    const graphCitationAnchors = anonymizeGraphRefs(graph.citationRefs ?? []);
+    if (graphCitationAnchors.length) {
+      lines.push(`  - 引用锚点: ${graphCitationAnchors.slice(0, 6).join(', ')}`);
+    }
+    const graphEvidenceAnchors = anonymizeGraphRefs(graph.evidenceRefs ?? []);
+    if (graphEvidenceAnchors.length) {
+      lines.push(`  - 证据锚点: ${graphEvidenceAnchors.slice(0, 6).join(', ')}`);
+    }
+    if (graph.versionRefs) {
+      const versionKeys = Object.entries(graph.versionRefs)
+        .filter(([, value]) => Boolean(value))
+        .map(([key, value]) => `${key}=${value}`);
+      if (versionKeys.length) lines.push(`  - 版本 refs: ${versionKeys.slice(0, 5).join(', ')}`);
+    }
+    if (graph.missingGrounding?.length) {
+      lines.push(`  - graph grounding 限制: ${graph.missingGrounding.map((item) => `${item.class}:${item.reason}`).join(', ')}`);
+    }
+  }
   if (runtime.citationContext?.required) {
     lines.push('- 引用协议: 概念解释、个性化建议、仿真/Arena 失败分析、路径纠偏和报告解释必须至少使用 1 个内容引用；有学习者、路径、仿真、Arena 或干预证据时还必须使用 1 个证据引用。');
     lines.push('- 学生可见引用元数据必须包含 sourceType、displayTitle、href、confidence、evidenceBasis；不得暴露 hiddenEvaluation、原始高频轨迹或私有记忆正文。');
@@ -242,6 +299,26 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
   }
   lines.push('- 不得采用客户端传入的学生画像覆盖服务端学习状态。');
   return lines.join('\n');
+}
+
+function anonymizeGraphRefs(refs: string[]): string[] {
+  const counts: Record<string, number> = {};
+  return refs
+    .map((ref) => {
+      const type = normalizeGraphRefType(ref);
+      if (!type) return null;
+      counts[type] = (counts[type] ?? 0) + 1;
+      return `${type}:${counts[type]}`;
+    })
+    .filter((ref): ref is string => Boolean(ref));
+}
+
+function normalizeGraphRefType(ref: string): string | null {
+  const rawType = typeof ref === 'string' ? ref.split(':')[0]?.trim().toLowerCase() : '';
+  if (!rawType) return null;
+  if (rawType === 'learner') return 'learner-state';
+  if (rawType === 'path') return 'path-execution';
+  return rawType.replace(/[^a-z0-9_-]/g, '') || null;
 }
 
 function formatCitationHint(citation: {

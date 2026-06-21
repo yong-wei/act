@@ -3,9 +3,12 @@ import { NextResponse } from 'next/server';
 import { getServerAuthSession } from '@/lib/auth';
 import {
   buildKonlingRuntimeContext,
+  buildKonlingRuntimeGraphContext,
   buildKonlingTeachingAssistantRuntimeContract,
   buildKonlingToolRuntime,
   getOrCreateKonlingAgentSession,
+  type KonlingCitationContext,
+  type KonlingCitation,
   type KonlingPlanContext,
   KonlingRuntimeScopeError,
   verifyKonlingRuntimeScope,
@@ -88,7 +91,25 @@ export async function POST(request: Request) {
       trustedContentContext: true,
     });
     const runtimeContext = pathPlanContext
-      ? { ...baseRuntimeContext, planContext: pathPlanContext }
+      ? (() => {
+          const pathAwareCitationContext = buildPathAwareCitationContext(
+            baseRuntimeContext.citationContext,
+            pathPlanContext,
+          );
+          const graphRuntimeContext = {
+            ...baseRuntimeContext,
+            planContext: pathPlanContext,
+            citationContext: pathAwareCitationContext,
+          };
+          return {
+            ...graphRuntimeContext,
+            graphContext: buildKonlingRuntimeGraphContext({
+              scope: scopeResult.scope,
+              runtimeContext: graphRuntimeContext,
+              clientHints: { modeContextToken, goalId },
+            }),
+          };
+        })()
       : baseRuntimeContext;
     const clientContextHints = {
       modeContextToken,
@@ -153,6 +174,38 @@ export async function POST(request: Request) {
     console.error('[AdaptivePathAdvisorTool] Error:', error);
     return NextResponse.json({ error: '学习路径生成失败' }, { status: 500 });
   }
+}
+
+function buildPathAwareCitationContext(
+  citationContext: KonlingCitationContext,
+  planContext: KonlingPlanContext,
+): KonlingCitationContext {
+  if (!planContext.currentPathId) return citationContext;
+  const pathCitationId = `path:${planContext.currentPathId}`;
+  const evidenceCitations = citationContext.evidenceCitations.some((citation) => citation.id === pathCitationId)
+    ? citationContext.evidenceCitations
+    : [
+        ...citationContext.evidenceCitations,
+        buildPathExecutionCitation(pathCitationId),
+      ];
+  return {
+    ...citationContext,
+    evidenceCitations,
+    missingCitationClasses: citationContext.missingCitationClasses.filter((item) => item !== 'path-execution'),
+    lowConfidenceReasons: citationContext.lowConfidenceReasons.filter((item) => item !== 'missing-path-execution'),
+  };
+}
+
+function buildPathExecutionCitation(id: string): KonlingCitation {
+  return {
+    id,
+    sourceType: 'path-execution',
+    displayTitle: '当前控制校正学习路径',
+    href: null,
+    confidence: 'medium',
+    evidenceBasis: 'LearningPath',
+    owner: 'recommendation',
+  };
 }
 
 async function buildPathAdvisorToolInput(body: Record<string, unknown>, goalId: string, userId: string) {
