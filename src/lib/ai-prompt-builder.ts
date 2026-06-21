@@ -230,11 +230,13 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
     } else if (graphNodeIds.length) {
       lines.push(`  - 可 grounding 图谱节点: ${graphNodeIds.slice(0, 6).join(', ')}`);
     }
-    if (graph.citationRefs?.length) {
-      lines.push(`  - 引用 refs: ${graph.citationRefs.slice(0, 6).join(', ')}`);
+    const graphCitationAnchors = anonymizeGraphRefs(graph.citationRefs ?? []);
+    if (graphCitationAnchors.length) {
+      lines.push(`  - 引用锚点: ${graphCitationAnchors.slice(0, 6).join(', ')}`);
     }
-    if (graph.evidenceRefs?.length) {
-      lines.push(`  - 证据 refs: ${graph.evidenceRefs.slice(0, 6).join(', ')}`);
+    const graphEvidenceAnchors = anonymizeGraphRefs(graph.evidenceRefs ?? []);
+    if (graphEvidenceAnchors.length) {
+      lines.push(`  - 证据锚点: ${graphEvidenceAnchors.slice(0, 6).join(', ')}`);
     }
     if (graph.versionRefs) {
       const versionKeys = Object.entries(graph.versionRefs)
@@ -297,6 +299,26 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
   }
   lines.push('- 不得采用客户端传入的学生画像覆盖服务端学习状态。');
   return lines.join('\n');
+}
+
+function anonymizeGraphRefs(refs: string[]): string[] {
+  const counts: Record<string, number> = {};
+  return refs
+    .map((ref) => {
+      const type = normalizeGraphRefType(ref);
+      if (!type) return null;
+      counts[type] = (counts[type] ?? 0) + 1;
+      return `${type}:${counts[type]}`;
+    })
+    .filter((ref): ref is string => Boolean(ref));
+}
+
+function normalizeGraphRefType(ref: string): string | null {
+  const rawType = typeof ref === 'string' ? ref.split(':')[0]?.trim().toLowerCase() : '';
+  if (!rawType) return null;
+  if (rawType === 'learner') return 'learner-state';
+  if (rawType === 'path') return 'path-execution';
+  return rawType.replace(/[^a-z0-9_-]/g, '') || null;
 }
 
 function formatCitationHint(citation: {

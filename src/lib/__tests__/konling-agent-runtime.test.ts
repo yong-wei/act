@@ -743,6 +743,10 @@ describe('konling agent runtime', () => {
     });
     expect(prompt).toContain('K/A/Q 图谱 grounding');
     expect(prompt).toContain('LearningGoal: control-correction');
+    expect(prompt).toContain('引用锚点: content:1, learner-state:1');
+    expect(prompt).toContain('证据锚点: learner-state:1');
+    expect(prompt).not.toContain('content:control-correction');
+    expect(prompt).not.toContain('learner:student-1');
     expect(prompt).toContain('graph grounding 限制: overlay:learner-or-class-overlay-missing');
 
     const pageContextOutput = await buildKonlingToolRuntime({
