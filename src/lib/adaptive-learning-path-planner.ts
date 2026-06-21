@@ -14,6 +14,10 @@ import {
   type ResourceNodeRegistry,
   type ResourceNodeReadinessMetadata,
 } from './resource-node-registry';
+import {
+  buildKaqVersionedArtifactMetadata,
+  type KaqVersionedArtifactMetadata,
+} from './kaq-artifact-versioning';
 
 export type AdaptiveLearningPathStatus = 'ready' | 'fallback';
 export type AdaptiveLearningPathPolicyFamily =
@@ -571,6 +575,7 @@ export interface AdaptiveLearningPathPersistenceRecord {
     corrections: AdaptiveLearningPathCorrection[];
     feedbackEvents: AdaptiveLearningPathFeedbackEvent[];
     visualization: AdaptiveLearningPathVisualization;
+    artifactVersioning: KaqVersionedArtifactMetadata;
     studentFacing: {
       summary: string;
       nextAction: string;
@@ -1826,6 +1831,21 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
       corrections: plan.corrections,
       feedbackEvents: plan.feedbackEvents,
       visualization: plan.visualization,
+      artifactVersioning: buildKaqVersionedArtifactMetadata({
+        artifactId: plan.id,
+        artifactKind: 'path-artifact',
+        generatedAt: plan.executionStatus.updatedAt,
+        versionRefs: {
+          learningGoalPackageVersion: plan.goal.learningGoalPackage?.version ?? null,
+        },
+        requiredRefs: [
+          'learningGoalPackageVersion',
+          'graphCatalogVersion',
+          'resourceRegistryVersion',
+          'resourceProjectionVersion',
+          'plannerVersion',
+        ],
+      }),
       studentFacing,
     },
   };

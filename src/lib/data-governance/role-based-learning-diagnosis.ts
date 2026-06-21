@@ -1,6 +1,7 @@
 import {
   buildLearningEvidenceCitationChips,
   retrieveLearningEvidenceCorpus,
+  verifyLearningEvidenceCitations,
   type LearningEvidenceCitationUseCase,
   type LearningEvidenceCitationChipPayload,
   type LearningEvidenceConfidence,
@@ -501,25 +502,15 @@ function fallbackDimension(goalId: string) {
 }
 
 function toEvidenceRef(chunk: LearningEvidenceCorpusChunk, scope: ReturnType<typeof retrievalScopeFor>): RoleBasedLearningDiagnosisEvidenceRef {
-  const citationChip = buildLearningEvidenceCitationChips({
-    status: 'verified',
-    verifiedRefs: [{
-      chunkId: chunk.id,
-      sourceType: chunk.sourceType,
-      displayTitle: chunk.display.title,
-      displayHref: chunk.display.href,
-      confidence: chunk.confidence,
-      capsule: chunk.display.capsule,
-      authorityLevel: chunk.authority.level,
-      freshnessBucket: chunk.authority.freshnessBucket,
-      privacyVisibility: chunk.privacyClass === 'public'
-        ? 'public'
-        : scope.role === 'service' && scope.includePrivateText
-          ? 'privileged'
-          : 'redacted',
-    }],
-    limitations: [],
-  }, scope)[0];
+  const verification = verifyLearningEvidenceCitations([chunk], scope, [{
+    chunkId: chunk.id,
+    sourceType: chunk.sourceType,
+    useCase: scope.useCase,
+  }]);
+  const citationChip = buildLearningEvidenceCitationChips(verification, scope)[0];
+  if (!citationChip) {
+    throw new Error(`Unable to build diagnosis citation chip for evidence chunk: ${chunk.id}`);
+  }
   return {
     chunkId: chunk.id,
     sourceType: chunk.sourceType,

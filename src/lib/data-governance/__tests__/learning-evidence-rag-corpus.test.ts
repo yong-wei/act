@@ -15,6 +15,7 @@ import {
   type LearningEvidenceCorpusChunk,
 } from '../learning-evidence-rag-corpus';
 import { loadAllTextbookRuntimeSearchDocuments } from '../../textbook-runtime-resources';
+import { buildKaqArtifactVersionRefs } from '../../kaq-artifact-versioning';
 
 function createTextbookRuntimeFixture() {
   const root = mkdtempSync(join(tmpdir(), 'textbook-runtime-'));
@@ -567,8 +568,11 @@ describe('learning evidence RAG corpus contract', () => {
       expect(textbookFigure?.resourceProjection.resourceId).toMatch(/^textbook-section:dorf-modern-control-systems:/);
       expect(textbookChunk?.href).toContain('/course-runtime/resources/textbooks/dorf-modern-control-systems/');
       expect(textbookFigure?.href).toContain('/course-runtime/resources/textbooks/dorf-modern-control-systems/');
-      expect(verification.status).toBe('verified');
-      expect(verification.limitations).toEqual([]);
+      expect(verification.status).toBe('downgraded');
+      expect(verification.limitations).toEqual(expect.arrayContaining([
+        expect.objectContaining({ chunkId: textbookChunk?.id, reason: 'missing-version-ref' }),
+        expect.objectContaining({ chunkId: textbookFigure?.id, reason: 'missing-version-ref' }),
+      ]));
       expect(new Set(verification.verifiedRefs.map((ref) => ref.addressKind))).toEqual(new Set([
         'text',
         'image',
@@ -679,6 +683,17 @@ describe('learning evidence RAG corpus contract', () => {
         },
         authorityLevel: 'canonical',
         privacyScope: 'public',
+        versionRefs: buildKaqArtifactVersionRefs({
+          learningGoalPackageVersion: 'learning-goal-package.v1',
+        }),
+        versionLimitations: [
+          {
+            code: 'stale-version-ref',
+            ref: 'resourceProjectionVersion',
+            severity: 'warning',
+            message: 'Resource projection was generated before the latest projection version.',
+          },
+        ],
         pathEligibility: {
           eligible: false,
           reason: 'resource-node-planning-audit-required',
@@ -815,6 +830,124 @@ describe('learning evidence RAG corpus contract', () => {
 
     expect(konlingResults.map((item) => item.id)).toEqual(['resource-handout-segment']);
     expect(gradingResults).toEqual([]);
+
+    const verification = verifyLearningEvidenceCitations([projectedHandout], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, [{ chunkId: 'resource-handout-segment', useCase: 'konling' }]);
+    const [chip] = buildLearningEvidenceCitationChips(verification, {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    });
+    expect(chip.sourceVersionRefs).toMatchObject({
+      learningGoalPackageVersion: 'learning-goal-package.v1',
+      graphCatalogVersion: 'autocontrol-kaq-graph.v1',
+      resourceProjectionVersion: 'resource-semantic-projection.v1',
+    });
+    expect(chip.sourceVersionLimitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'stale-version-ref', ref: 'resourceProjectionVersion' }),
+    ]));
+
+    const missingVersionProjection = chunk({
+      id: 'legacy-resource-handout-segment',
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-4-1',
+        segmentRef: 'unit-4-1#legacy',
+        citationTargetRef: 'legacy-handout#p1',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        authorityLevel: 'canonical',
+        privacyScope: 'public',
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: 'hash-course-1',
+      },
+    });
+    const missingVersionVerification = verifyLearningEvidenceCitations([missingVersionProjection], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, [{ chunkId: 'legacy-resource-handout-segment', useCase: 'konling' }]);
+    const [missingVersionChip] = buildLearningEvidenceCitationChips(missingVersionVerification, {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    });
+    expect(missingVersionVerification.status).toBe('downgraded');
+    expect(missingVersionChip.sourceVersionRefs).toBeUndefined();
+    expect(missingVersionChip.sourceVersionLimitations).toEqual([expect.objectContaining({
+      code: 'legacy-artifact-unversioned',
+      ref: 'resourceProjectionVersion',
+      severity: 'warning',
+    })]);
+    expect(missingVersionChip.limitationState).toBe('missing-version-ref');
+    expect(buildLearningEvidenceCitationAuditPayloads(missingVersionVerification, {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    })).toEqual([expect.objectContaining({
+      chunkId: 'legacy-resource-handout-segment',
+      outcome: 'downgraded',
+      reason: 'missing-version-ref',
+      citationChip: expect.objectContaining({ limitationState: 'missing-version-ref' }),
+    })]);
+
+    const partialVersionProjection = chunk({
+      id: 'partial-version-resource-handout-segment',
+      resourceProjection: {
+        resourceId: 'course-content/runtime/unit-4-1',
+        segmentRef: 'unit-4-1#partial-version',
+        citationTargetRef: 'partial-version-handout#p1',
+        knowledgeNodeRefs: ['knowledge:steady-state-error'],
+        capabilityTargetRefs: ['capability:steady-state-error-analysis'],
+        authorityLevel: 'canonical',
+        privacyScope: 'public',
+        versionRefs: buildKaqArtifactVersionRefs({ resourceProjectionVersion: null }),
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: 'hash-course-1',
+      },
+    });
+    const partialVersionVerification = verifyLearningEvidenceCitations([partialVersionProjection], {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    }, [{ chunkId: 'partial-version-resource-handout-segment', useCase: 'konling' }]);
+    const [partialVersionChip] = buildLearningEvidenceCitationChips(partialVersionVerification, {
+      role: 'student',
+      userId: 'student-1',
+      targetUserId: 'student-1',
+      classIds: ['class-1'],
+      goalId: 'control-correction',
+      useCase: 'konling',
+    });
+    expect(partialVersionVerification.status).toBe('downgraded');
+    expect(partialVersionChip.sourceVersionLimitations).toEqual([expect.objectContaining({
+      code: 'missing-version-ref',
+      ref: 'resourceProjectionVersion',
+      severity: 'blocking',
+    })]);
+    expect(partialVersionChip.limitationState).toBe('missing-version-ref');
   });
 
   it('keeps exact lexical resource matches eligible when semantic scores are weak', () => {

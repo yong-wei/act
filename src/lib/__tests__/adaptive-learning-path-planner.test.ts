@@ -561,7 +561,19 @@ describe('adaptive learning path planner', () => {
       qualityObjectiveIds: expect.arrayContaining(['quality:autocontrol:evidence-integrity']),
       targetGraphNodeIds: expect.arrayContaining(['cap:autocontrol:validate-with-simulation-evidence']),
     });
-    expect(serializeLearningPathPlan(controlCorrectionPlan).payload.learningGoalPackage?.id).toBe('control-correction');
+    const serializedControlCorrectionPlan = serializeLearningPathPlan(controlCorrectionPlan);
+    expect(serializedControlCorrectionPlan.payload.learningGoalPackage?.id).toBe('control-correction');
+    expect(serializedControlCorrectionPlan.payload.artifactVersioning).toMatchObject({
+      artifactKind: 'path-artifact',
+      artifactId: controlCorrectionPlan.id,
+      versionRefs: {
+        learningGoalPackageVersion: controlCorrectionPlan.goal.learningGoalPackage?.version,
+        graphCatalogVersion: 'autocontrol-kaq-graph.v1',
+        resourceProjectionVersion: 'resource-semantic-projection.v1',
+        plannerVersion: 'adaptive-learning-path-planner.v1',
+      },
+      limitations: [],
+    });
     expect(frequencyResponsePlan.goal.learningGoalPackage).toMatchObject({
       id: 'frequency-response-foundations',
       knowledgeObjectiveIds: ['knowledge:autocontrol:frequency-response'],

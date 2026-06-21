@@ -387,6 +387,15 @@ describe('control-correction path rounds', () => {
             'knowledge-card:control-correction-time-domain-targets',
             'arena-task:task-second-order-lead-pid',
           ],
+          artifactVersioning: expect.objectContaining({
+            artifactKind: 'path-artifact',
+            versionRefs: expect.objectContaining({
+              graphCatalogVersion: 'autocontrol-kaq-graph.v1',
+              resourceProjectionVersion: 'resource-semantic-projection.v1',
+              plannerVersion: 'adaptive-learning-path-planner.v1',
+            }),
+            limitations: expect.any(Array),
+          }),
           policyBundle: expect.objectContaining({
             paths: [
               expect.objectContaining({

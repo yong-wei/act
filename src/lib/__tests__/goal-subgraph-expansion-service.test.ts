@@ -215,9 +215,17 @@ describe('goal subgraph expansion service', () => {
       ]),
     });
     expect(expansion.fixtures.konling.groundingNodeIds).toEqual(expansion.fixtures.planner.targetGraphNodeIds);
+    expect(expansion.fixtures.konling.versionRefs).toMatchObject({
+      graphCatalogVersion: AUTOCONTROL_KAQ_GRAPH_VERSION,
+      groundingVersion: 'konling-graph-grounding.v1',
+    });
     expect(expansion.fixtures.graphCenter).toMatchObject({
       learningGoalId: 'simulation-validation-practice',
       actionable: false,
+      versionRefs: {
+        graphCatalogVersion: AUTOCONTROL_KAQ_GRAPH_VERSION,
+        overlayVersion: 'graph-center-overlay.v1',
+      },
     });
     expect(JSON.stringify(expansion)).not.toContain('resourceNodeIds');
     expect(JSON.stringify(expansion)).not.toContain('rankedResources');

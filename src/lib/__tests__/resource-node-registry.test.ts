@@ -20,6 +20,7 @@ import {
   CONTROL_CORRECTION_RESOURCE_GRAPH_VERSION,
   buildControlCorrectionResourceNodeRegistry,
 } from '../control-correction-resource-seed';
+import { buildKaqArtifactVersionRefs } from '../kaq-artifact-versioning';
 
 function isResolvableSeedTarget(target: string): boolean {
   if (/^https?:\/\//.test(target)) return true;
@@ -893,6 +894,11 @@ describe('resource node registry', () => {
     expect(teachingQuizProjection.segments[0].sourceRef).toEqual({ kind: 'teaching_resource', ref: 'tr-quiz' });
     expect(teachingQuizProjection.citationTargets[0].sourceRef).toEqual({ kind: 'teaching_resource', ref: 'tr-quiz' });
     expect(projection.resource.graphProfile).toMatchObject({
+      versionRefs: {
+        graphCatalogVersion: 'autocontrol-kaq-graph.v1',
+        resourceRegistryVersion: 'resource-node-registry.v1',
+        resourceProjectionVersion: 'resource-semantic-projection.v1',
+      },
       graphNodeRefs: {
         knowledge: ['kn-bode'],
         capability: expect.any(Array),
@@ -960,6 +966,7 @@ describe('resource node registry', () => {
       knowledgeNodeIds: ['kn-bode'],
       capabilityTargetIds: ['inquiryReflection'],
       graphProfile: {
+        versionRefs: buildKaqArtifactVersionRefs(),
         graphNodeRefs: {
           knowledge: ['kn-bode'],
           capability: ['inquiryReflection'],

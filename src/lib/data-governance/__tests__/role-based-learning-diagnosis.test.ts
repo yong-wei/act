@@ -208,6 +208,39 @@ describe('role-based learning diagnosis materialization', () => {
     expect(validateRoleBasedLearningDiagnosis(diagnosis)).toEqual([]);
   });
 
+  it('propagates resource projection version limitations into diagnosis citation chips', () => {
+    const projectedEvidence = evidence({
+      resourceProjection: {
+        resourceId: 'path-summary:path-1',
+        segmentRef: 'path-1#terminal-validation',
+        citationTargetRef: 'path-1#summary',
+        knowledgeNodeRefs: ['knowledge:control-correction'],
+        capabilityTargetRefs: ['capability:simulation-validation'],
+        authorityLevel: 'learner-evidence',
+        privacyScope: 'student-visible',
+        mediaTimeRange: null,
+        exerciseAnchor: null,
+        contentHash: 'hash-path-1',
+      },
+    });
+
+    const diagnosis = materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      evidenceCorpus: [projectedEvidence],
+    });
+
+    expect(diagnosis.claims[0].evidenceRefs[0].citationChip).toEqual(expect.objectContaining({
+      chunkId: 'chunk-path-1',
+      sourceVersionRefs: undefined,
+      limitationState: 'missing-version-ref',
+      sourceVersionLimitations: [expect.objectContaining({
+        code: 'legacy-artifact-unversioned',
+        ref: 'resourceProjectionVersion',
+        severity: 'warning',
+      })],
+    }));
+  });
+
   it('materializes a teacher class diagnosis with clusters, denominators, intervention priority, and scoped drilldowns', () => {
     const diagnosis = materializeRoleBasedLearningDiagnosis({
       ...baseInput,
