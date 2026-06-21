@@ -1,35 +1,50 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle,
   Database,
+  Download,
   RefreshCw,
   ShieldAlert,
   Workflow,
 } from 'lucide-react';
 
+import { ActionStatusPanel } from '@/components/platform/action-status';
+import { createAuditedActionState, type AuditedActionState } from '@/lib/action-status-contract';
 import {
   buildGovernanceOverview,
   type GovernanceStatusPayload,
 } from '@/features/admin/data-governance-overview';
+import {
+  buildGovernanceActionContract,
+  type GovernanceActionQuery,
+  type GovernanceActionAuditRecord,
+} from '@/features/admin/admin-governance-action-contract';
 import { AdminConsoleHeader } from './admin-console-header';
 import type { AdminConsoleUser } from './admin-console-config';
 
 type DataGovernanceDashboardProps = {
   currentUser: AdminConsoleUser;
+  initialActionQuery?: GovernanceActionQuery | null;
 };
 
-export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboardProps) {
+export function DataGovernanceDashboard({ currentUser, initialActionQuery }: DataGovernanceDashboardProps) {
   const [status, setStatus] = useState<GovernanceStatusPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'sessions' | 'sources' | 'cache'>('overview');
+  const [executedActionState, setExecutedActionState] = useState<AuditedActionState | null>(null);
+  const [executedAuditRecord, setExecutedAuditRecord] = useState<GovernanceActionAuditRecord | null>(null);
 
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/data-governance/status', {
+      const params = new URLSearchParams();
+      if (initialActionQuery?.riskId?.trim()) {
+        params.set('riskId', initialActionQuery.riskId.trim());
+      }
+      const response = await fetch(`/api/admin/data-governance/status${params.size ? `?${params}` : ''}`, {
         cache: 'no-store',
       });
       if (!response.ok) {
@@ -43,13 +58,13 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
     } finally {
       setLoading(false);
     }
-  };
+  }, [initialActionQuery?.riskId]);
 
   useEffect(() => {
     fetchStatus();
     const interval = setInterval(fetchStatus, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchStatus]);
 
   const overview = useMemo(() => {
     if (!status) {
@@ -57,6 +72,102 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
     }
     return buildGovernanceOverview(status);
   }, [status]);
+
+  const actionContract = useMemo(() => {
+    if (!status) return { state: null, auditRecord: null };
+    const actionRisks = status.targetRiskFlag
+      ? [status.targetRiskFlag, ...status.recentRiskFlags.filter((risk) => risk.id !== status.targetRiskFlag?.id)]
+      : status.recentRiskFlags;
+    return buildGovernanceActionContract({
+      query: initialActionQuery,
+      risks: actionRisks,
+      actorId: currentUser.id,
+      now: new Date(status.timestamp),
+    });
+  }, [currentUser.id, initialActionQuery, status]);
+
+  const visibleActionState = executedActionState ?? actionContract.state;
+  const visibleAuditRecord = executedAuditRecord ?? actionContract.auditRecord;
+  const routeRiskAction = initialActionQuery?.action === 'resolve' || initialActionQuery?.action === 'assign'
+    ? initialActionQuery.action
+    : null;
+  const routeRiskActionTarget = routeRiskAction
+    && visibleActionState?.status === 'pending'
+    && status
+    ? resolveGovernanceRouteRiskActionTarget(status, initialActionQuery?.riskId)
+    : null;
+  const exportFormat = initialActionQuery?.format === 'csv' || initialActionQuery?.format === 'xlsx'
+    ? initialActionQuery.format
+    : 'json';
+  const riskExportHref = visibleActionState?.downloadFilename
+    ? `/api/admin/data-governance/export?format=${encodeURIComponent(exportFormat)}`
+    : null;
+
+  const executeGovernanceAction = async (input: {
+    action: 'resolve' | 'assign';
+    riskId: string;
+    assignee?: string | null;
+  }) => {
+    setExecutedActionState(createAuditedActionState({
+      identity: {
+        id: `admin-governance-${input.action}:${input.riskId}`,
+        category: input.action === 'assign' ? 'governance-assign' : 'governance-resolve',
+        label: input.action === 'assign' ? '治理分派' : '治理处置',
+        sourceRoute: '/admin/data-governance',
+        targetId: input.riskId,
+        requestedAction: input.action,
+      },
+      status: 'pending',
+      message: '治理动作正在提交。',
+    }));
+    try {
+      const response = await fetch(`/api/admin/data-governance/risks/${encodeURIComponent(input.riskId)}/actions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: input.action,
+          assignee: input.assignee ?? null,
+        }),
+      });
+      const payload = await response.json().catch(() => null) as {
+        auditRecord?: GovernanceActionAuditRecord;
+        error?: string;
+      } | null;
+      if (!response.ok) {
+        throw new Error(payload?.error || '治理动作失败');
+      }
+      setExecutedAuditRecord(payload?.auditRecord ?? null);
+      setExecutedActionState(createAuditedActionState({
+        identity: {
+          id: `admin-governance-${input.action}:${input.riskId}`,
+          category: input.action === 'assign' ? 'governance-assign' : 'governance-resolve',
+          label: input.action === 'assign' ? '治理分派' : '治理处置',
+          sourceRoute: '/admin/data-governance',
+          targetId: input.riskId,
+          requestedAction: input.action,
+        },
+        status: 'succeeded',
+        message: input.action === 'assign' ? '治理风险已保存分派审计记录。' : '治理风险已标记处理并保存审计记录。',
+        nextAction: '刷新治理列表并复核风险状态',
+      }));
+      fetchStatus();
+    } catch (err) {
+      setExecutedActionState(createAuditedActionState({
+        identity: {
+          id: `admin-governance-${input.action}:${input.riskId}`,
+          category: input.action === 'assign' ? 'governance-assign' : 'governance-resolve',
+          label: input.action === 'assign' ? '治理分派' : '治理处置',
+          sourceRoute: '/admin/data-governance',
+          targetId: input.riskId,
+          requestedAction: input.action,
+        },
+        status: 'failed',
+        message: err instanceof Error ? err.message : '治理动作失败',
+        recoveryAction: '刷新治理列表后重试',
+        httpStatus: 500,
+      }));
+    }
+  };
 
   if (loading && !status) {
     return (
@@ -166,6 +277,48 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
             {error}
           </div>
         )}
+
+        {visibleActionState ? (
+          <ActionStatusPanel
+            state={visibleActionState}
+            action={riskExportHref ? (
+              <a
+                href={riskExportHref}
+                download={visibleActionState.downloadFilename}
+                className="admin-console-button px-3 py-1.5"
+              >
+                <Download className="h-4 w-4" />
+                下载风险文件
+              </a>
+            ) : routeRiskAction && routeRiskActionTarget ? (
+              <button
+                type="button"
+                onClick={() => executeGovernanceAction({
+                  action: routeRiskAction,
+                  riskId: routeRiskActionTarget.id,
+                  assignee: routeRiskAction === 'assign' ? initialActionQuery?.assignee?.trim() || currentUser.id : null,
+                })}
+                className="admin-console-button px-3 py-1.5"
+              >
+                {routeRiskAction === 'assign' ? '提交分派' : '提交处置'}
+              </button>
+            ) : null}
+          />
+        ) : null}
+
+        {visibleAuditRecord ? (
+          <section className="admin-console-surface-soft text-sm">
+            <span className="admin-console-kicker">动作审计</span>
+            <div className="mt-3 grid gap-2 md:grid-cols-3">
+              <div>操作者：{visibleAuditRecord.actorId}</div>
+              <div>动作：{visibleAuditRecord.action}</div>
+              <div>结果：{visibleAuditRecord.outcome}</div>
+              <div>风险：{visibleAuditRecord.riskId ?? '-'}</div>
+              <div>负责人：{visibleAuditRecord.assignee ?? '-'}</div>
+              <div>回滚可用：{visibleAuditRecord.undoAvailable ? '是' : '否'}</div>
+            </div>
+          </section>
+        ) : null}
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {overview.summaryCards.map((card) => (
@@ -558,12 +711,13 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
                     <th className="px-4 py-3">级别</th>
                     <th className="px-4 py-3">触发时间</th>
                     <th className="px-4 py-3">说明</th>
+                    <th className="px-4 py-3 text-right">操作</th>
                   </tr>
                 </thead>
                 <tbody>
                   {overview.riskPanel.rows.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center admin-console-table-subtle">
+                      <td colSpan={6} className="px-4 py-8 text-center admin-console-table-subtle">
                         当前没有未解决风险。
                       </td>
                     </tr>
@@ -582,6 +736,24 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
                           {new Date(risk.triggeredAt).toLocaleString('zh-CN')}
                         </td>
                         <td className="px-4 py-3 admin-console-table-subtle">{risk.description}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => executeGovernanceAction({ action: 'resolve', riskId: risk.id })}
+                              className="admin-console-button px-3 py-1.5 text-xs"
+                            >
+                              处置
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => executeGovernanceAction({ action: 'assign', riskId: risk.id, assignee: currentUser.id })}
+                              className="admin-console-button px-3 py-1.5 text-xs"
+                            >
+                              分派
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -658,4 +830,16 @@ export function DataGovernanceDashboard({ currentUser }: DataGovernanceDashboard
       </main>
     </div>
   );
+}
+
+export function resolveGovernanceRouteRiskActionTarget(
+  status: Pick<GovernanceStatusPayload, 'recentRiskFlags' | 'targetRiskFlag'>,
+  riskId: string | null | undefined,
+) {
+  const targetId = riskId?.trim();
+  if (!targetId) return null;
+  if (status.targetRiskFlag?.id === targetId) {
+    return status.targetRiskFlag;
+  }
+  return status.recentRiskFlags.find((risk) => risk.id === targetId) ?? null;
 }

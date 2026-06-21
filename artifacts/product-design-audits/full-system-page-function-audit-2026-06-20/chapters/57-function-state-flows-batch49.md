@@ -179,3 +179,9 @@
 - 管理员侧继续追踪风险处置、数据中心导出和治理入口命中层级。
 - 学生侧继续追踪真实学习路径为空时的产品状态、demo 作答写回和个人中心推荐动作上下文。
 - 移动端继续以 390px 与 320px 同时验证治理页、教师分析页和自适应路径页的宽度、首屏任务和状态播报。
+
+## #614 管理员治理整改记录（2026-06-21）
+
+整改变更：`audit-remediation-admin-governance-workflows`。证据：`../remediation/audit-remediation-admin-governance-workflows/evidence.md`。
+
+- 329 已关闭：治理风险不再只是只读行；风险行提供处置/分派入口，缺失或有效 riskId 均生成可读动作状态和审计记录。

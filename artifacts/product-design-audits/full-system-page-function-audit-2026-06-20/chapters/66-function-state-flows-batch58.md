@@ -117,3 +117,11 @@
 ## 5. 下一批输入
 
 下一批应继续补两条线：一是对教师/管理员长列表和报表的移动端可操作性做更细采样，包括卡片替代表格、分页、导出和错误恢复；二是对学生反馈任务的真实可执行入口做纵向追踪，覆盖任务创建、完成、证据回写、作品集收录和教师可见状态。
+
+## #614 管理员治理整改记录（2026-06-21）
+
+整改变更：`audit-remediation-admin-governance-workflows`。证据：`../remediation/audit-remediation-admin-governance-workflows/evidence.md`。
+
+- 439 已关闭：用户重置/导出深链不再忽略筛选；导出按钮使用当前 `q/role` 过滤并通过服务端导出完整筛选集 CSV。
+- 440 已关闭：治理分派校验缺失 risk/assignee，真实分派写入风险审计；治理导出提供 JSON/CSV/XLSX 文件名、下载入口和审计摘要。
+- 441 已关闭：已知 provider 下缺失 model 显示 blocked 模型测试状态和恢复动作。

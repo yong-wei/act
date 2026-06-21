@@ -217,6 +217,7 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const file = formData.get('file');
+  const mode = formData.get('mode') === 'preview' ? 'preview' : 'commit';
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: '请上传 Excel 文件' }, { status: 400 });
@@ -260,6 +261,8 @@ export async function POST(request: Request) {
   let updated = 0;
   let skippedEmpty = 0;
   const errors: ImportError[] = [];
+  const batchId = `admin-user-import-${Date.now().toString(36)}`;
+  const seenAccounts = new Map<string, number>();
 
   for (let i = 1; i < rows.length; i += 1) {
     const row = rows[i] ?? [];
@@ -299,6 +302,18 @@ export async function POST(request: Request) {
       });
       continue;
     }
+
+    const accountKey = importRow.account.trim().toLowerCase();
+    const firstSeenRow = seenAccounts.get(accountKey);
+    if (firstSeenRow) {
+      errors.push({
+        row: rowNumber,
+        account: importRow.account,
+        reason: `同批次重复账号，已在第 ${firstSeenRow} 行出现`,
+      });
+      continue;
+    }
+    seenAccounts.set(accountKey, rowNumber);
 
     try {
       const matchedUsers = await prisma.user.findMany({
@@ -342,17 +357,21 @@ export async function POST(request: Request) {
 
       const existing = matchedUsers[0];
       if (!existing) {
-        await createUserFromImport(importRow, role);
+        if (mode === 'commit') {
+          await createUserFromImport(importRow, role);
+        }
         created += 1;
         continue;
       }
 
-      await updateUserByAccount(
-        existing.id,
-        Boolean(existing.profile),
-        importRow,
-        role
-      );
+      if (mode === 'commit') {
+        await updateUserByAccount(
+          existing.id,
+          Boolean(existing.profile),
+          importRow,
+          role
+        );
+      }
       updated += 1;
     } catch (error) {
       errors.push({
@@ -364,11 +383,26 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({
+    batchId,
+    mode,
+    preview: mode === 'preview',
     created,
     updated,
     failed: errors.length,
     skippedEmpty,
     totalRows: Math.max(rows.length - 1, 0),
     errors,
+    auditRecord: {
+      actorId: session.user.id,
+      action: 'admin-users-import',
+      batchId,
+      mode,
+      outcome: errors.length > 0 ? 'completed-with-errors' : 'completed',
+      created,
+      updated,
+      failed: errors.length,
+      rollbackAvailable: false,
+      recordedAt: new Date().toISOString(),
+    },
   });
 }

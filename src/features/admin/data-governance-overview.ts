@@ -100,6 +100,16 @@ export type GovernanceStatusPayload = {
     triggeredAt: string;
     isResolved: boolean;
   }>;
+  targetRiskFlag?: {
+    id: string;
+    userId: string;
+    userName: string;
+    flagType: string;
+    severity: string;
+    description: string;
+    triggeredAt: string;
+    isResolved: boolean;
+  } | null;
   recentSnapshots: Array<{
     userId: string;
     userName: string;

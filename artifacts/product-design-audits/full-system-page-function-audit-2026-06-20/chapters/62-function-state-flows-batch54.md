@@ -132,3 +132,10 @@ AI 工坊显示学习任务、日志和实验档案，动作探测后焦点落�
 ## 5. 下一批输入
 
 下一批应继续围绕交付闭环做回归：文档反馈修订提交、Prompt 历史保存、AI 工坊任务启动写回、Copilot 证据摘要产品化、作品集反思写入、报告账本交付、评分草稿打开、数据中心 returnTo、治理分派保存、配置审计 diff，以及移动端固定主动作与 alert/live 播报。
+
+## #614 管理员治理整改记录（2026-06-21）
+
+整改变更：`audit-remediation-admin-governance-workflows`。证据：`../remediation/audit-remediation-admin-governance-workflows/evidence.md`。
+
+- 391 已关闭：治理 `assign` 深链校验 risk 与 assignee，缺失时显示 blocked 恢复状态。
+- 392 已关闭：系统配置测试和审计反馈通过统一 `ActionStatusPanel` 展示，缺失 provider/model 不再被通用配置页吞掉。

@@ -140,3 +140,10 @@ API 关键结果：
 ## 5. 下一批输入
 
 下一批应继续追踪 API 与 UI 语义不一致的目标页：学习证据 API 404、管理员用户 no-match API 回归到 `total=298`、document grading GET/工作台方法边界、教师分析动作跳首页、治理 loading 与风险对象参数，以及这些状态在移动端的固定主动作区。
+
+## #614 管理员治理整改记录（2026-06-21）
+
+整改变更：`audit-remediation-admin-governance-workflows`。证据：`../remediation/audit-remediation-admin-governance-workflows/evidence.md`。
+
+- 404 已关闭：治理 `riskId`、`assign/resolve/export` 均进入对象化动作状态；export 提供文件名与下载入口。
+- 405 已关闭：配置 `audit/model-test` 参数由模型测试状态面板承接，缺失 provider/model 有明确恢复路径。

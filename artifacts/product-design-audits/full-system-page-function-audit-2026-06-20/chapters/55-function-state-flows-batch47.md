@@ -140,3 +140,10 @@ Prompt 评价页填写动作命中全局 AI 问题输入框，而不是页面自
 - 学生端继续补真实题目提交、Prompt 评价结果写回、证据详情和补练生成链路。
 - 教师端继续补报告交付、报告账本、班级短板到课前包/补强路径的闭环。
 - 管理员端继续补风险行级处置、导出、撤销、审计日志和移动端治理卡片布局。
+
+## #614 管理员治理整改记录（2026-06-21）
+
+整改变更：`audit-remediation-admin-governance-workflows`。证据：`../remediation/audit-remediation-admin-governance-workflows/evidence.md`。
+
+- 304 非本变更关闭范围：数据中心导出被浮层阻断属于 `/data-center` 导出交互，保留给数据中心垂直修复。
+- 305 已关闭：管理员治理风险列表增加行级处置/分派入口，并通过 `action/riskId/assignee` 深链生成对象化状态和审计摘要。

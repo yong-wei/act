@@ -1,7 +1,9 @@
-## ADDED Requirements
+## Purpose
 
+Administrator governance remediation records the operational contracts added from the full-system product-design audit for data-governance risk actions, user imports, exports, configuration tests, and audit-report closeout.
+## Requirements
 ### Requirement: Governance risks must support object-level actions
-The system SHALL let administrators inspect, assign, resolve, export, undo, and audit individual governance risks.
+The system SHALL let administrators inspect, assign, resolve, export, and audit individual governance risks while reporting rollback availability explicitly.
 
 #### Scenario: Resolve risk with missing object
 - **WHEN** a governance URL references a missing risk id
@@ -9,10 +11,10 @@ The system SHALL let administrators inspect, assign, resolve, export, undo, and 
 
 #### Scenario: Resolve risk records audit trail
 - **WHEN** an administrator resolves a valid risk
-- **THEN** the system records actor, risk id, action, timestamp, outcome, and available undo or follow-up
+- **THEN** the system records actor, risk id, action, timestamp, outcome, and available follow-up or rollback status
 
 ### Requirement: User import must be batch-governed
-The system SHALL expose user import preview, success count, failed rows, duplicate updates, notifications, rollback, and batch audit states.
+The system SHALL expose user import preview, success count, failed rows, duplicate updates, notifications, batch audit states, and an explicit state when automatic rollback is unavailable.
 
 #### Scenario: Mixed import result is inspectable
 - **WHEN** an import contains valid rows and failed rows
@@ -35,3 +37,4 @@ The system SHALL mark administrator audit findings remediated only after object-
 #### Scenario: Governance finding is closed
 - **WHEN** a governance or import finding is fixed
 - **THEN** the audit report links the old finding and new evidence for the exact route/action
+

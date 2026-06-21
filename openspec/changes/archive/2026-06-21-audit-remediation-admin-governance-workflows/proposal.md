@@ -5,7 +5,7 @@ Administrator audit findings show that data governance, user import, configurati
 ## What Changes
 
 - Turn data governance risks into resolvable, assignable, exportable, auditable objects.
-- Add import batch preview, mixed-result handling, failure-row export, rollback/undo, notification, and batch audit.
+- Add import batch preview, mixed-result handling, failure-row export, notification, batch audit, and explicit rollback-unavailable status until persistent import-batch rollback storage is added.
 - Align admin user search/role/page/reset/export with API filters and mobile states.
 - Add configuration model/provider test and statistics export states.
 - Mark audit findings fixed only after object-level governance evidence is captured.

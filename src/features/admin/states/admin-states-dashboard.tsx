@@ -15,6 +15,7 @@ import {
   ToggleRight,
   RefreshCw,
   AlertCircle,
+  Download,
 } from 'lucide-react';
 import {
   Area,
@@ -34,6 +35,8 @@ import {
   YAxis,
 } from 'recharts';
 import { useTheme } from '@/components/providers/theme-provider';
+import { ActionStatusPanel } from '@/components/platform/action-status';
+import { createAuditedActionState } from '@/lib/action-status-contract';
 import { AdminConsoleHeader } from '../admin-console-header';
 import { adminStatesMockData } from './stats-data';
 import type { SystemUsageData } from './system-usage-data';
@@ -48,6 +51,11 @@ type AdminStatesDashboardProps = {
     email?: string | null;
     role: 'ADMIN';
   };
+  initialExportQuery?: {
+    action?: string | null;
+    focus?: string | null;
+    format?: string | null;
+  } | null;
 };
 
 const numberFormatter = new Intl.NumberFormat('zh-CN');
@@ -59,7 +67,7 @@ function formatNumber(value: number) {
   return numberFormatter.format(value);
 }
 
-export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps) {
+export function AdminStatesDashboard({ currentUser, initialExportQuery }: AdminStatesDashboardProps) {
   const { mounted, theme } = useTheme();
   const isDark = mounted ? theme === 'dark' : true;
   const axisColor = isDark ? '#94a3b8' : '#334155';
@@ -158,6 +166,43 @@ export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps)
     odysseyTotal:
       data.userScale.students * data.estimatedPerStudent.controlOdysseyVisits,
   };
+  const routeExportRequested = initialExportQuery?.action === 'export'
+    || initialExportQuery?.focus === 'usage-export';
+  const exportFilename = `admin-system-usage-${new Date().toISOString().slice(0, 10)}.json`;
+  const exportState = routeExportRequested
+    ? createAuditedActionState({
+        identity: {
+          id: 'admin-states-usage-export',
+          category: 'export',
+          label: '系统使用量导出',
+          sourceRoute: '/admin/states',
+          requestedAction: initialExportQuery?.action ?? initialExportQuery?.focus ?? 'export',
+        },
+        status: error ? 'failed' : 'succeeded',
+        message: error
+          ? `系统使用量真实数据获取失败，导出已阻断：${error}`
+          : demoMode
+          ? '系统使用量导出已生成演示数据文件，文件明确标记为 demo。'
+          : '系统使用量导出已按当前真实数据生成。',
+        recoveryAction: error ? '恢复真实数据接口后重试导出' : undefined,
+        nextAction: error ? undefined : '下载文件并归档审计记录',
+        downloadFilename: error ? undefined : exportFilename,
+      })
+    : null;
+  const exportHref = routeExportRequested && !error
+    ? `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify({
+        generatedAt: new Date().toISOString(),
+        actorId: currentUser.id,
+        source: demoMode ? 'demo' : 'real',
+        data,
+        auditRecord: {
+          action: 'admin-states-export',
+          outcome: 'export-ready',
+          filename: exportFilename,
+          format: initialExportQuery?.format ?? 'json',
+        },
+      }, null, 2))}`
+    : null;
 
   return (
     <div
@@ -206,6 +251,19 @@ export function AdminStatesDashboard({ currentUser }: AdminStatesDashboardProps)
             </div>
           </div>
         )}
+
+        {exportState ? (
+          <ActionStatusPanel
+            state={exportState}
+            className="mb-6"
+            action={exportHref ? (
+              <a href={exportHref} download={exportFilename} className="admin-console-button px-3 py-1.5">
+                <Download className="h-4 w-4" />
+                下载统计文件
+              </a>
+            ) : null}
+          />
+        ) : null}
 
         {/* 加载遮罩 */}
         {loading && (

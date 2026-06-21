@@ -1,0 +1,215 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const mocks = vi.hoisted(() => ({
+  requireAdminSession: vi.fn(),
+  prisma: {
+    $transaction: vi.fn(),
+    studentRiskFlag: {
+      findUnique: vi.fn(),
+      update: vi.fn(),
+    },
+    user: {
+      findUnique: vi.fn(),
+    },
+  },
+}));
+
+vi.mock('@/lib/admin', () => ({
+  requireAdminSession: mocks.requireAdminSession,
+}));
+
+vi.mock('@/lib/prisma', () => ({
+  prisma: mocks.prisma,
+}));
+
+import { POST } from '../route';
+
+function postRequest(body: unknown) {
+  return new Request('http://localhost/api/admin/data-governance/risks/risk-1/actions', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+describe('POST /api/admin/data-governance/risks/[riskId]/actions', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.requireAdminSession.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
+    mocks.prisma.$transaction.mockImplementation(async (callback: (tx: typeof mocks.prisma) => Promise<unknown>) => callback(mocks.prisma));
+    mocks.prisma.studentRiskFlag.findUnique.mockResolvedValue({
+      id: 'risk-1',
+      userId: 'student-1',
+      isResolved: false,
+      evidenceJson: { source: 'risk-detector' },
+    });
+    mocks.prisma.studentRiskFlag.update.mockResolvedValue({
+      id: 'risk-1',
+      userId: 'student-1',
+      isResolved: true,
+      resolvedAt: new Date('2026-06-21T10:00:00.000Z'),
+      resolutionNote: '管理员从数据治理工作台标记处理',
+      evidenceJson: {},
+    });
+    mocks.prisma.user.findUnique.mockResolvedValue({ id: 'admin-1' });
+  });
+
+  it('resolves a risk and persists governance audit into evidenceJson', async () => {
+    const response = await POST(postRequest({ action: 'resolve' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.$transaction).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({ isolationLevel: 'Serializable' }),
+    );
+    expect(payload.auditRecord).toMatchObject({
+      actorId: 'admin-1',
+      action: 'resolve',
+      riskId: 'risk-1',
+      outcome: 'resolved',
+      undoAvailable: false,
+    });
+    expect(mocks.prisma.studentRiskFlag.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'risk-1' },
+      data: expect.objectContaining({
+        isResolved: true,
+        resolvedAt: expect.any(Date),
+        evidenceJson: expect.objectContaining({
+          source: 'risk-detector',
+          adminGovernance: expect.objectContaining({
+            auditLog: expect.arrayContaining([
+              expect.objectContaining({ action: 'resolve', outcome: 'resolved' }),
+            ]),
+          }),
+        }),
+      }),
+    }));
+  });
+
+  it('assigns a risk only when the assignee exists', async () => {
+    const response = await POST(postRequest({ action: 'assign', assignee: 'admin-1' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.$transaction).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({ isolationLevel: 'Serializable' }),
+    );
+    expect(mocks.prisma.user.findUnique).toHaveBeenCalledWith({
+      where: { id: 'admin-1' },
+      select: { id: true },
+    });
+    expect(mocks.prisma.studentRiskFlag.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        evidenceJson: expect.objectContaining({
+          adminGovernance: expect.objectContaining({
+            currentAssignee: 'admin-1',
+            auditLog: expect.arrayContaining([
+              expect.objectContaining({ action: 'assign', outcome: 'assigned' }),
+            ]),
+          }),
+        }),
+      }),
+    }));
+  });
+
+  it('retries serializable governance audit conflicts before returning success', async () => {
+    mocks.prisma.studentRiskFlag.findUnique
+      .mockResolvedValueOnce({
+        id: 'risk-1',
+        userId: 'student-1',
+        isResolved: false,
+        evidenceJson: { source: 'risk-detector' },
+      })
+      .mockResolvedValueOnce({
+        evidenceJson: {
+          source: 'risk-detector',
+          adminGovernance: {
+            auditLog: [{ action: 'assign', outcome: 'assigned', recordedAt: '2026-06-21T09:00:00.000Z' }],
+          },
+        },
+      });
+    mocks.prisma.$transaction
+      .mockRejectedValueOnce({ code: 'P2034' })
+      .mockImplementationOnce(async (callback: (tx: typeof mocks.prisma) => Promise<unknown>) => callback(mocks.prisma));
+
+    const response = await POST(postRequest({ action: 'resolve' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.$transaction).toHaveBeenCalledTimes(2);
+    expect(mocks.prisma.studentRiskFlag.findUnique).toHaveBeenCalledTimes(2);
+    expect(mocks.prisma.studentRiskFlag.update).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        evidenceJson: expect.objectContaining({
+          adminGovernance: expect.objectContaining({
+            auditLog: [
+              expect.objectContaining({ action: 'assign', outcome: 'assigned' }),
+              expect.objectContaining({ action: 'resolve', outcome: 'resolved' }),
+            ],
+          }),
+        }),
+      }),
+    }));
+  });
+
+  it('rejects already resolved risks before mutating data', async () => {
+    mocks.prisma.studentRiskFlag.findUnique.mockResolvedValueOnce({
+      id: 'risk-1',
+      userId: 'student-1',
+      isResolved: true,
+      evidenceJson: { source: 'risk-detector' },
+    });
+
+    const response = await POST(postRequest({ action: 'assign', assignee: 'admin-1' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toEqual({ error: '治理风险已解决，不能继续提交治理动作' });
+    expect(mocks.prisma.$transaction).not.toHaveBeenCalled();
+    expect(mocks.prisma.studentRiskFlag.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects stale governance actions when the risk resolves before the transaction update', async () => {
+    mocks.prisma.studentRiskFlag.findUnique
+      .mockResolvedValueOnce({
+        id: 'risk-1',
+        userId: 'student-1',
+        isResolved: false,
+        evidenceJson: { source: 'risk-detector' },
+      })
+      .mockResolvedValueOnce({
+        isResolved: true,
+        evidenceJson: { source: 'risk-detector' },
+      });
+
+    const response = await POST(postRequest({ action: 'assign', assignee: 'admin-1' }), {
+      params: Promise.resolve({ riskId: 'risk-1' }),
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(payload).toEqual({ error: '治理风险已解决，不能继续提交治理动作' });
+    expect(mocks.prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(mocks.prisma.studentRiskFlag.update).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 for missing risks before mutating data', async () => {
+    mocks.prisma.studentRiskFlag.findUnique.mockResolvedValue(null);
+
+    const response = await POST(postRequest({ action: 'resolve' }), {
+      params: Promise.resolve({ riskId: 'missing-risk' }),
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(payload).toEqual({ error: '治理风险不存在' });
+    expect(mocks.prisma.studentRiskFlag.update).not.toHaveBeenCalled();
+  });
+});
