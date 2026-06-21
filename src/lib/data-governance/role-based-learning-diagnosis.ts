@@ -1,9 +1,14 @@
 import {
   buildLearningEvidenceCitationChips,
+  citationVersionLimitationReason,
+  citationVersionLimitations,
+  isSafeCitationAddress,
+  privacyVisibilityFor,
   retrieveLearningEvidenceCorpus,
-  verifyLearningEvidenceCitations,
+  resolveLearningEvidenceCitationAddress,
   type LearningEvidenceCitationUseCase,
   type LearningEvidenceCitationChipPayload,
+  type LearningEvidenceCitationVerificationResult,
   type LearningEvidenceConfidence,
   type LearningEvidenceCorpusChunk,
   type LearningEvidenceCorpusPrivacyClass,
@@ -504,12 +509,7 @@ function fallbackDimension(goalId: string) {
 }
 
 function toEvidenceRef(chunk: LearningEvidenceCorpusChunk, scope: ReturnType<typeof retrievalScopeFor>): RoleBasedLearningDiagnosisEvidenceRef | null {
-  const verification = verifyLearningEvidenceCitations([chunk], scope, [{
-    chunkId: chunk.id,
-    sourceType: chunk.sourceType,
-    useCase: scope.useCase,
-  }]);
-  const citationChip = buildLearningEvidenceCitationChips(verification, scope)[0];
+  const citationChip = buildRetrievedEvidenceCitationChip(chunk, scope);
   if (!citationChip) {
     return null;
   }
@@ -522,6 +522,40 @@ function toEvidenceRef(chunk: LearningEvidenceCorpusChunk, scope: ReturnType<typ
     capsule: chunk.display.capsule,
     citationChip,
   };
+}
+
+function buildRetrievedEvidenceCitationChip(
+  chunk: LearningEvidenceCorpusChunk,
+  scope: ReturnType<typeof retrievalScopeFor>,
+): LearningEvidenceCitationChipPayload | null {
+  const resolvedAddress = resolveLearningEvidenceCitationAddress(chunk);
+  if (!isSafeCitationAddress(resolvedAddress.address)) {
+    return null;
+  }
+  const sourceVersionLimitations = citationVersionLimitations(chunk);
+  const verification: LearningEvidenceCitationVerificationResult = {
+    status: sourceVersionLimitations.length > 0 ? 'downgraded' : 'verified',
+    verifiedRefs: [{
+      chunkId: chunk.id,
+      sourceType: chunk.sourceType,
+      displayTitle: chunk.display.title,
+      displayHref: resolvedAddress.address.href,
+      addressKind: resolvedAddress.address.kind,
+      citationAddress: resolvedAddress.address,
+      confidence: chunk.confidence,
+      capsule: chunk.display.capsule,
+      authorityLevel: chunk.authority.level,
+      freshnessBucket: chunk.authority.freshnessBucket,
+      privacyVisibility: privacyVisibilityFor(chunk, scope),
+      sourceVersionRefs: chunk.resourceProjection?.versionRefs,
+      sourceVersionLimitations,
+    }],
+    limitations: sourceVersionLimitations.map((limitation) => ({
+      chunkId: chunk.id,
+      reason: citationVersionLimitationReason(limitation),
+    })),
+  };
+  return buildLearningEvidenceCitationChips(verification, scope)[0] ?? null;
 }
 
 function sourceCoverageFor(dimension: Record<string, any>) {

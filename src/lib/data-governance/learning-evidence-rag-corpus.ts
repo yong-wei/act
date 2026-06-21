@@ -640,7 +640,7 @@ export function resolveLearningEvidenceCitationAddress(
   };
 }
 
-function citationVersionLimitations(chunk: LearningEvidenceCorpusChunk): KaqArtifactVersionLimitation[] {
+export function citationVersionLimitations(chunk: LearningEvidenceCorpusChunk): KaqArtifactVersionLimitation[] {
   if (!chunk.resourceProjection) return [];
   if (!chunk.resourceProjection.versionRefs) {
     return [{
@@ -659,7 +659,7 @@ function citationVersionLimitations(chunk: LearningEvidenceCorpusChunk): KaqArti
   ];
 }
 
-function citationVersionLimitationReason(
+export function citationVersionLimitationReason(
   limitation: KaqArtifactVersionLimitation,
 ): LearningEvidenceCitationVerificationResult['limitations'][number]['reason'] {
   if (limitation.code === 'missing-version-ref' || limitation.code === 'legacy-artifact-unversioned') {
@@ -699,7 +699,7 @@ function defaultCitationAddressKind(sourceType: LearningEvidenceCorpusSourceType
   return 'text';
 }
 
-function isSafeCitationAddress(address: LearningEvidenceCitationAddress): boolean {
+export function isSafeCitationAddress(address: LearningEvidenceCitationAddress): boolean {
   if (address.kind === 'external') {
     return isSafeHttpUrl(address.href) && (!address.externalUrl || isSafeHttpUrl(address.externalUrl));
   }
@@ -934,7 +934,7 @@ function isChunkVisible(chunk: LearningEvidenceCorpusChunk, scope: LearningEvide
   return chunk.privacyClass === 'public';
 }
 
-function privacyVisibilityFor(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRetrievalScope): 'public' | 'redacted' | 'privileged' {
+export function privacyVisibilityFor(chunk: LearningEvidenceCorpusChunk, scope: LearningEvidenceRetrievalScope): 'public' | 'redacted' | 'privileged' {
   if (chunk.privacyClass === 'public') return 'public';
   if (scope.role === 'service' && scope.includePrivateText) return 'privileged';
   return 'redacted';

@@ -312,6 +312,33 @@ describe('role-based learning diagnosis materialization', () => {
     expect(validateRoleBasedLearningDiagnosis(diagnosis)).toEqual([]);
   });
 
+  it('keeps authorized redacted citation metadata when retrieved evidence has no redacted summary', () => {
+    const diagnosis = materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      evidenceCorpus: [evidence({
+        content: {
+          text: 'legal raw learner evidence without redacted summary',
+          redactedSummary: null,
+          hash: 'hash-path-raw-only',
+        },
+      })],
+    });
+
+    expect(diagnosis.claims[0].evidenceRefs).toEqual([
+      expect.objectContaining({
+        chunkId: 'chunk-path-1',
+        citationChip: expect.objectContaining({
+          chunkId: 'chunk-path-1',
+          displayHref: '/profile/path/path-1',
+          limitationState: null,
+        }),
+      }),
+    ]);
+    expect(diagnosis.claims[0].limitations.map((item) => item.reason)).not.toContain('missing-citation');
+    expect(JSON.stringify(diagnosis)).not.toContain('legal raw learner evidence');
+    expect(validateRoleBasedLearningDiagnosis(diagnosis)).toEqual([]);
+  });
+
   it('keeps service diagnostics auditable while ordinary views omit raw private payloads', () => {
     const serviceOnly = evidence({
       id: 'chunk-service-1',
