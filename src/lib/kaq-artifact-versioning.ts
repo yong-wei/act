@@ -60,7 +60,9 @@ export const DEFAULT_KAQ_ARTIFACT_VERSION_REFS: KaqArtifactVersionRefs = {
   graphCatalogVersion: AUTOCONTROL_KAQ_GRAPH_VERSION,
   resourceRegistryVersion: RESOURCE_NODE_REGISTRY_VERSION,
   resourceProjectionVersion: RESOURCE_SEMANTIC_PROJECTION_VERSION,
+  overlayVersion: GRAPH_CENTER_OVERLAY_VERSION,
   plannerVersion: ADAPTIVE_LEARNING_PATH_PLANNER_VERSION,
+  groundingVersion: KONLING_GRAPH_GROUNDING_VERSION,
 };
 
 export function buildKaqArtifactVersionRefs(

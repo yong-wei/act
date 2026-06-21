@@ -57,12 +57,16 @@ describe('K/A/Q artifact versioning', () => {
       learningGoalPackageVersion: 'learning-goal-package/v0',
       graphCatalogVersion: 'autocontrol-kaq-graph.v0',
       resourceProjectionVersion: 'resource-semantic-projection.v0',
+      overlayVersion: 'graph-center-overlay.v0',
+      groundingVersion: 'konling-graph-grounding.v0',
     });
 
     expect(detectKaqArtifactStaleness(staleRefs)).toEqual(expect.arrayContaining([
       expect.objectContaining({ code: 'stale-version-ref', ref: 'learningGoalPackageVersion' }),
       expect.objectContaining({ code: 'stale-version-ref', ref: 'graphCatalogVersion' }),
       expect.objectContaining({ code: 'stale-version-ref', ref: 'resourceProjectionVersion' }),
+      expect.objectContaining({ code: 'stale-version-ref', ref: 'overlayVersion' }),
+      expect.objectContaining({ code: 'stale-version-ref', ref: 'groundingVersion' }),
     ]));
 
     const metadata = buildKaqVersionedArtifactMetadata({

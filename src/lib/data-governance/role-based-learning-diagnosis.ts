@@ -178,11 +178,13 @@ export function materializeRoleBasedLearningDiagnosis(input: RoleBasedLearningDi
   const evidenceRefs = evidence
     .map((chunk) => toEvidenceRef(chunk, evidenceScope))
     .filter((ref): ref is RoleBasedLearningDiagnosisEvidenceRef => Boolean(ref));
+  const citationSafeChunkIds = new Set(evidenceRefs.map((ref) => ref.chunkId));
+  const citationSafeEvidence = evidence.filter((chunk) => citationSafeChunkIds.has(chunk.id));
   const globalLimitations = globalLimitationsFor(safeInput);
   const claims = (dimensions.length > 0 ? dimensions : [fallbackDimension(input.goalId)]).map((dimension) =>
     buildClaim({
       dimension,
-      evidence,
+      evidence: citationSafeEvidence,
       evidenceRefs,
       input: safeInput,
       generatedAt,
@@ -367,7 +369,13 @@ function sanitizeDiagnosisEvidenceText(value: string | undefined | null): string
 
 function sanitizeDiagnosisEvidenceHref(value: string | undefined | null): string | null {
   if (!value || containsSensitiveEvidenceText(value)) return null;
-  return value;
+  if (value.startsWith('/') && !value.startsWith('//')) return value;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:' ? value : null;
+  } catch {
+    return null;
+  }
 }
 
 function containsSensitiveEvidenceText(value: string): boolean {
@@ -517,7 +525,7 @@ function toEvidenceRef(chunk: LearningEvidenceCorpusChunk, scope: ReturnType<typ
     chunkId: chunk.id,
     sourceType: chunk.sourceType,
     displayTitle: chunk.display.title,
-    displayHref: chunk.display.href,
+    displayHref: citationChip.displayHref,
     confidence: chunk.confidence,
     capsule: chunk.display.capsule,
     citationChip,

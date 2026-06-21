@@ -308,8 +308,55 @@ describe('role-based learning diagnosis materialization', () => {
     });
 
     expect(diagnosis.claims[0].evidenceRefs).toEqual([]);
+    expect(diagnosis.claims[0].confidence.state).toBe('none');
     expect(diagnosis.claims[0].limitations.map((item) => item.reason)).toContain('missing-citation');
+    expect(diagnosis.claims[0].limitations.map((item) => item.reason)).toContain('low-confidence');
     expect(validateRoleBasedLearningDiagnosis(diagnosis)).toEqual([]);
+
+    const withoutFallbackWindow = materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      learnerState: null,
+      featureCache: null,
+      evidenceCorpus: [evidence({
+        display: {
+          title: '不安全引用地址',
+          href: 'javascript:alert(1)',
+          capsule: '引用地址不应进入诊断视图。',
+        },
+      })],
+    });
+
+    expect(withoutFallbackWindow.claims[0].evidenceWindow.sourceLastUpdatedAt).toBeNull();
+  });
+
+  it('uses resolved safe citation addresses for diagnosis evidence hrefs', () => {
+    const diagnosis = materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      evidenceCorpus: [evidence({
+        display: {
+          title: '原始显示地址不安全',
+          href: 'javascript:alert(1)',
+          capsule: '引用地址应使用已解析地址。',
+        },
+        citationAddress: {
+          kind: 'text',
+          sourceRefId: 'path-1',
+          href: '/profile/path/safe',
+          locator: 'path.execution.allTime',
+          contentHash: 'hash-path-1',
+        },
+      })],
+    });
+
+    expect(diagnosis.claims[0].evidenceRefs).toEqual([
+      expect.objectContaining({
+        displayHref: '/profile/path/safe',
+        citationChip: expect.objectContaining({
+          displayHref: '/profile/path/safe',
+        }),
+      }),
+    ]);
+    expect(JSON.stringify(diagnosis.claims[0].evidenceRefs)).not.toContain('javascript:');
   });
 
   it('keeps authorized redacted citation metadata when retrieved evidence has no redacted summary', () => {
@@ -662,6 +709,8 @@ describe('role-based learning diagnosis materialization', () => {
     ['raw query key in href', { title: 'safe title', href: '/profile/path?raw=true', capsule: 'safe capsule' }, 'raw=true'],
     ['rawTracePayload query key in href', { title: 'safe title', href: '/profile/path?rawTracePayload=secret', capsule: 'safe capsule' }, 'rawTracePayload'],
     ['privateKonlingMemory query key in href', { title: 'safe title', href: '/profile/path?privateKonlingMemory=secret', capsule: 'safe capsule' }, 'privateKonlingMemory'],
+    ['unsafe javascript href', { title: 'safe title', href: 'javascript:alert(1)', capsule: 'safe capsule' }, 'javascript:'],
+    ['protocol-relative external href', { title: 'safe title', href: '//evil.example/path', capsule: 'safe capsule' }, '//evil.example'],
     ['private Konling memory in capsule', { title: 'safe title', href: '/profile/path/safe', capsule: 'private Konling memory raw dialogue' }, 'private Konling memory'],
   ])('redacts sensitive diagnosis snapshot evidence reference display text: %s', (_caseName, evidenceRef, forbiddenText) => {
     const snapshot = materializeControlCorrectionDiagnosisReport({
