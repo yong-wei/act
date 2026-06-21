@@ -1806,6 +1806,8 @@ export function recordLearningPathFeedback(
 
 export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): AdaptiveLearningPathPersistenceRecord {
   const studentFacing = buildStudentFacingPathExplanation(plan);
+  const registeredGoal = getRegisteredAdaptiveLearningPathGoal(plan.goal.id);
+  const learningGoalPackage = plan.goal.learningGoalPackage ?? registeredGoal?.goal.learningGoalPackage;
   return {
     id: plan.id,
     userId: plan.userId,
@@ -1816,7 +1818,7 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
     isAiGenerated: false,
     payload: {
       status: plan.status,
-      learningGoalPackage: plan.goal.learningGoalPackage,
+      learningGoalPackage,
       policyFamily: plan.policyFamily,
       policyMetadata: plan.policyMetadata,
       policyBundle: plan.policyBundle,
@@ -1836,7 +1838,7 @@ export function serializeLearningPathPlan(plan: AdaptiveLearningPathPlan): Adapt
         artifactKind: 'path-artifact',
         generatedAt: plan.executionStatus.updatedAt,
         versionRefs: {
-          learningGoalPackageVersion: plan.goal.learningGoalPackage?.version ?? null,
+          learningGoalPackageVersion: learningGoalPackage?.version ?? null,
         },
         requiredRefs: [
           'learningGoalPackageVersion',

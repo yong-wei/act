@@ -574,6 +574,22 @@ describe('adaptive learning path planner', () => {
       },
       limitations: [],
     });
+    const serializedRegisteredGoalPlan = serializeLearningPathPlan({
+      ...controlCorrectionPlan,
+      goal: {
+        id: 'control-correction',
+        title: '控制系统校正设计',
+        knowledgeTargets: ['control-correction:root-locus-design'],
+        competencyTargets: ['parameterDesign'],
+      },
+    });
+    expect(serializedRegisteredGoalPlan.payload.learningGoalPackage?.version).toBe(controlCorrectionPlan.goal.learningGoalPackage?.version);
+    expect(serializedRegisteredGoalPlan.payload.artifactVersioning).toMatchObject({
+      versionRefs: {
+        learningGoalPackageVersion: controlCorrectionPlan.goal.learningGoalPackage?.version,
+      },
+      limitations: [],
+    });
     expect(frequencyResponsePlan.goal.learningGoalPackage).toMatchObject({
       id: 'frequency-response-foundations',
       knowledgeObjectiveIds: ['knowledge:autocontrol:frequency-response'],
