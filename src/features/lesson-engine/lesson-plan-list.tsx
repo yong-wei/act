@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { EMPTY_LESSON_PLAN_MESSAGE } from '@/lib/lesson-plan-readiness';
 
 interface LessonPlanListProps {
   plans: any[];
@@ -55,14 +56,17 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
         body: JSON.stringify({ planId })
       });
 
-      if (!res.ok) throw new Error('Failed to start session');
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to start session');
+      }
 
       const session = await res.json();
       // Redirect to Teacher Player
       router.push(`/classroom/teacher/${session.id}`);
     } catch (e) {
       console.error(e);
-      alert('无法开始上课');
+      alert(e instanceof Error ? e.message : '无法开始上课');
       setLoadingId(null);
     }
   };
@@ -97,6 +101,8 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
         const isPreset = Boolean(plan.isPreset);
         const canEdit = !isPreset && (!currentUserId || plan.authorId === currentUserId);
         const editHref = `${basePath}/${plan.id}/edit${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`;
+        const itemCount = Number(plan._count?.items ?? 0);
+        const canStart = itemCount > 0;
         return (
         <div
           key={plan.id}
@@ -154,8 +160,13 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
 
           <div className="mt-auto pt-4 border-t border-slate-800/50 flex items-center justify-between">
              <div className="text-xs font-mono text-slate-400 bg-slate-800 px-2 py-1 rounded">
-                {plan._count.items} 个环节
+                {itemCount} 个环节
              </div>
+             {!canStart ? (
+               <p className="max-w-[12rem] text-xs leading-5 text-amber-300">
+                 {EMPTY_LESSON_PLAN_MESSAGE}
+               </p>
+             ) : null}
 
              <div className="flex gap-2">
                 {canEdit && (
@@ -168,9 +179,10 @@ export function LessonPlanList({ plans, basePath = '/admin/lesson-plans', curren
                   </button>
                 )}
                 <button type="button"
-                    onClick={() => startSession(plan.id)}
-                    disabled={!!loadingId}
+                    onClick={() => canStart ? startSession(plan.id) : alert(EMPTY_LESSON_PLAN_MESSAGE)}
+                    disabled={!!loadingId || !canStart}
                     className="flex items-center gap-1 bg-cyan-600 hover:bg-cyan-500 text-white text-xs px-3 py-1.5 rounded transition-all disabled:opacity-50"
+                    title={!canStart ? EMPTY_LESSON_PLAN_MESSAGE : undefined}
                 >
                     {loadingId === plan.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
                     开始上课

@@ -139,6 +139,8 @@
 
 `/teacher/prep-packs?classId=cmma7g0590004g9q2nl2jyzdf` 在桌面和移动都返回 500，只剩 Next 错误页和 Reload。
 
+整改状态（2026-06-21，`audit-remediation-p0-stability`）：已修复。class-scoped 路由进入课前包复核空态/恢复态，不返回 500；证据见 `../remediation/audit-remediation-p0-stability/evidence.md`。
+
 建议：先修复服务端异常；若课前包功能未启用，应显示产品化 feature-gated 状态和返回教师工作台路径。
 
 ### 329. P1：管理员治理风险仍不可处置

@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { generateUniqueJoinCode } from '@/lib/join-code';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { EMPTY_LESSON_PLAN_MESSAGE } from '@/lib/lesson-plan-readiness';
 import { loadSessionLessonSnapshot } from '@/lib/session-lesson-snapshot';
 
 export const dynamic = 'force-dynamic';
@@ -60,11 +61,17 @@ export async function POST(request: Request) {
     const joinCode = await generateUniqueJoinCode(prisma);
     const plan = await prisma.lessonPlan.findUnique({
       where: { id: planId },
-      select: { title: true },
+      select: {
+        title: true,
+        _count: { select: { items: true } },
+      },
     });
 
     if (!plan) {
       return NextResponse.json({ error: '教案不存在' }, { status: 404 });
+    }
+    if (plan._count.items === 0) {
+      return NextResponse.json({ error: EMPTY_LESSON_PLAN_MESSAGE }, { status: 400 });
     }
 
     const lessonSnapshot = loadSessionLessonSnapshot(plan.title);

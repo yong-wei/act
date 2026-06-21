@@ -78,4 +78,25 @@ describe('TeacherPrepPacksPage', () => {
       props: { pack: null },
     });
   });
+
+  it('renders a recovery state instead of throwing when the prep-pack table is missing', async () => {
+    mocks.findFirstCourseEnhancementPack.mockRejectedValue({
+      code: 'P2021',
+      message: 'The table `CourseEnhancementPack` does not exist',
+    });
+
+    const element = await TeacherPrepPacksPage({
+      searchParams: Promise.resolve({ classId: 'class-1' } as never),
+    });
+
+    expect(element).toMatchObject({
+      props: {
+        pack: null,
+        recovery: expect.objectContaining({
+          reason: 'storage-missing',
+        }),
+      },
+    });
+    expect(mocks.loadCourseEnhancementPack).not.toHaveBeenCalled();
+  });
 });

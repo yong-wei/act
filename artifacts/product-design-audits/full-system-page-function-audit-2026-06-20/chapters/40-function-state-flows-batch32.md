@@ -146,6 +146,7 @@ API 证据：
 
 145. P0：注册短密码仍触发运行时错误页。
      普通密码校验错误被渲染成 React child object，页面显示 Next Runtime Error，而不是字段级错误。
+     整改状态（2026-06-21，`audit-remediation-p0-stability`）：已修复。注册错误已规整为字符串；证据见 `../remediation/audit-remediation-p0-stability/evidence.md`。
 
 146. P1：课堂码错误缺少可访问播报。
      `/classroom/join?code=999999` 显示“未找到该入会码对应的课堂”，但没有 `role=alert`、`aria-live` 或 `role=status`。

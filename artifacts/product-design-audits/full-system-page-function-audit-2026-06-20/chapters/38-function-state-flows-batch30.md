@@ -100,6 +100,7 @@ API 证据：
 问题：
 
 - P0：教师课前包复核页被数据库表缺失阻断。该页面是 route inventory 中的教师端页面，当前无法审计实际复核体验。
+  - 整改状态（2026-06-21，`audit-remediation-p0-stability`）：已修复。缺表、无候选包和 cluster/class 深链进入受控恢复/空态，不返回 500；证据见 `../remediation/audit-remediation-p0-stability/evidence.md`。
 - P1：错误状态不面向教师。教师看到的是开发错误层，而不是“课前包功能未初始化/数据库迁移缺失/请联系管理员”的产品说明。
 - P1：cluster 深链无法降级为安全空态。即使没有对应课前包，也应展示“当前诊断簇暂无课前包”或“先生成候选包”，而不是 500。
 
@@ -113,9 +114,11 @@ API 证据：
 
 132. P0：教师课前包复核页当前返回 500。
      `/teacher/prep-packs` 桌面和移动端均返回 500，页面只显示 Next 错误层。
+     整改状态（2026-06-21，`audit-remediation-p0-stability`）：已修复入口 500 阻断，证据见 `../remediation/audit-remediation-p0-stability/evidence.md`。
 
 133. P0：`CourseEnhancementPack` 表缺失阻断复核页。
      manifest 记录 `prisma.courseEnhancementPack.findFirst()` 失败，错误为 `The table public.CourseEnhancementPack does not exist in the current database.`
+     整改状态（2026-06-21，`audit-remediation-p0-stability`）：已修复为受控恢复态，证据见 `../remediation/audit-remediation-p0-stability/evidence.md`。
 
 134. P1：教师工作台课前包入口通向阻断页。
      桌面和移动端都有 `/teacher/prep-packs` 入口，但点击后无法进入复核体验。

@@ -35,6 +35,7 @@ import { KnowledgeCardDialog } from '@/features/knowledge/knowledge-card';
 import type { KnowledgeNodeData } from '@/features/knowledge/knowledge-graph-system';
 import { ResourceRenderer } from './resource-renderer';
 import { LessonItemEditDialog, LessonItemOverrideConfig } from './lesson-item-edit-dialog';
+import { EMPTY_LESSON_PLAN_MESSAGE, hasLaunchableLessonItems } from '@/lib/lesson-plan-readiness';
 
 // @dnd-kit imports
 import {
@@ -453,6 +454,11 @@ function OrchestratorBuilderContent({
                   overrideConfig: item.overrideConfig || {}
               });
           });
+      }
+      if (!hasLaunchableLessonItems(itemsToSave)) {
+        alert(EMPTY_LESSON_PLAN_MESSAGE);
+        setIsSaving(false);
+        return;
       }
 
       try {

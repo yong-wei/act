@@ -75,6 +75,7 @@
 问题：
 
 - P0：`/teacher/prep-packs` 桌面和移动均返回 500。开发日志显示 `CourseEnhancementPack` 表不存在，`src/app/teacher/prep-packs/page.tsx:44` 的 `prisma.courseEnhancementPack.findFirst()` 触发 Prisma `P2021`。这是教师备课包核心入口不可达，不应归为普通视觉缺陷。
+  - 整改状态（2026-06-21，`audit-remediation-p0-stability`）：已修复。缺表或无候选包时进入课前包复核空态/恢复态，不返回 500；证据见 `../remediation/audit-remediation-p0-stability/evidence.md`。
 - P1：教师移动端顶部导航横向堆叠，`/teacher/resources/resource-nodes` 首屏已经压到筛选区域；底部控灵浮层还会覆盖筛选控件。
 - P2：教师首页的“当前课堂”“备课动作”“证据与学生”方向正确，但卡片间的下一步优先级仍不够强，教师不容易判断当前最紧急动作。
 - P2：`/teacher/lesson-plans` 列表中重复的 1-2 副本占据首屏，缺少去重、状态分组或最近使用标记。
@@ -122,6 +123,7 @@
 
 1. P0：教师课前包入口不可达。
    这是本轮最严重问题，直接阻断教师备课包工作流。
+   整改状态（2026-06-21，`audit-remediation-p0-stability`）：已修复入口 500 阻断，证据见 `../remediation/audit-remediation-p0-stability/evidence.md`。
 
 2. P1：移动端浮动层问题从公开页扩展到认证态。
    学生、教师、管理员页面均能看到底部控灵/工具入口覆盖首屏内容或操作控件。

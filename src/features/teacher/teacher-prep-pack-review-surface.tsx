@@ -23,8 +23,10 @@ const LIFECYCLE_ACTIONS = [
 
 export function TeacherPrepPackReviewSurface({
   pack,
+  recovery,
 }: {
   pack?: CourseEnhancementPack | null;
+  recovery?: { reason: 'storage-missing' } | null;
 }) {
   const actionContext = pack ? {
     packId: pack.id,
@@ -114,10 +116,21 @@ export function TeacherPrepPackReviewSurface({
             </article>
           )) : (
             <section className="surface-card p-6" data-prep-pack-empty-state>
-              <p className="text-sm font-medium text-foreground">暂无可复核课前包</p>
-              <p className="mt-2 text-sm leading-6 text-subtle">
-                当前教师账号还没有可加载的 CourseEnhancementPack。请先从班级诊断或教师备课增强包生成流程创建候选包。
-              </p>
+              {recovery?.reason === 'storage-missing' ? (
+                <>
+                  <p className="text-sm font-medium text-foreground">课前包存储尚未就绪</p>
+                  <p className="mt-2 text-sm leading-6 text-subtle">
+                    当前环境缺少 CourseEnhancementPack 存储表。请先完成数据库迁移或联系管理员初始化课前包存储，再返回复核。
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-foreground">暂无可复核课前包</p>
+                  <p className="mt-2 text-sm leading-6 text-subtle">
+                    当前教师账号还没有可加载的 CourseEnhancementPack。请先从班级诊断或教师备课增强包生成流程创建候选包。
+                  </p>
+                </>
+              )}
             </section>
           )}
         </div>

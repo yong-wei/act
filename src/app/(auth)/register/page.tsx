@@ -8,6 +8,7 @@ import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { normalizeRegistrationError } from '@/lib/register-error';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -31,7 +32,7 @@ export default function RegisterPage() {
     if (!response.ok) {
       const data = await response.json();
       setIsSubmitting(false);
-      setError(data?.error?.formErrors?.fieldErrors?.email?.[0] ?? data?.error ?? 'Registration failed.');
+      setError(normalizeRegistrationError(data?.error));
       return;
     }
 
