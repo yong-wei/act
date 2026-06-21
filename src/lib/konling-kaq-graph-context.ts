@@ -199,20 +199,43 @@ export function projectKonlingGraphContextForRole(
   role: KonlingRuntimeScope['role'],
 ): KonlingKaqGraphContext {
   if (role !== 'student') return context;
+  const projectedClassOverlay = context.classOverlay
+    ? {
+        status: 'unauthorized' as const,
+        classId: null,
+        items: {},
+        limitations: [{
+          code: 'class-overlay-unauthorized' as const,
+          message: 'Class overlay is not part of the student-visible Konling graph projection.',
+        }],
+      }
+    : null;
+  const missingGrounding = hasUsableOverlay(context.learnerOverlay)
+    ? context.missingGrounding
+    : addMissingGrounding(context.missingGrounding, {
+        class: 'overlay',
+        severity: 'warning',
+        reason: context.classOverlay
+          ? 'class-overlay-removed-from-student-projection'
+          : 'learner-or-class-overlay-missing',
+      });
   return {
     ...context,
-    classOverlay: context.classOverlay
-      ? {
-          status: 'unauthorized',
-          classId: null,
-          items: {},
-          limitations: [{
-            code: 'class-overlay-unauthorized',
-            message: 'Class overlay is not part of the student-visible Konling graph projection.',
-          }],
-        }
-      : null,
+    status: context.status === 'missing' ? 'missing' : missingGrounding.length > 0 ? 'degraded' : 'complete',
+    confidence: buildGraphContextConfidence(missingGrounding),
+    missingGrounding,
+    classOverlay: projectedClassOverlay,
   };
+}
+
+function addMissingGrounding(
+  existing: KonlingGraphMissingGrounding[],
+  next: KonlingGraphMissingGrounding,
+): KonlingGraphMissingGrounding[] {
+  if (existing.some((item) => item.class === next.class && item.reason === next.reason)) {
+    return existing;
+  }
+  return [...existing, next];
 }
 
 export function buildKonlingGraphGroundingDegradedReasons(

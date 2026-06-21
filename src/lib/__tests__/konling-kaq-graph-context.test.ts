@@ -275,6 +275,65 @@ describe('Konling K/A/Q graph context', () => {
       classId: null,
       items: {},
     });
+    expect(studentProjection.status).toBe('complete');
+    expect(studentProjection.confidence).toBe('high');
+    expect(studentProjection.missingGrounding).toEqual([]);
+  });
+
+  it('degrades student projection when class overlay was the only usable overlay', () => {
+    const context = buildKonlingKaqGraphContext({
+      scope: {
+        courseId: 'control-correction',
+        role: 'teacher',
+        targetUserId: 'teacher-1',
+        classId: 'class-1',
+      },
+      classOverlay: {
+        status: 'available',
+        classId: 'class-1',
+        items: {
+          'cap:autocontrol:synthesize-controller-correction': {
+            domain: 'capability',
+            nodeId: 'cap:autocontrol:synthesize-controller-correction',
+            classId: 'class-1',
+            distribution: {
+              mastered: 1,
+              developing: 2,
+              weak: 1,
+              'not-started': 0,
+              'evidence-needed': 0,
+            },
+            averageScore: 0.68,
+            confidence: 0.7,
+            commonIssueCodes: ['targeted-practice'],
+            denominator: 4,
+            includedPopulation: 4,
+            excludedPopulation: 0,
+            suppressionReason: 'none',
+            roundingPolicy: { minimumDenominator: 3, increment: 1 },
+          },
+        },
+        limitations: [],
+      } as never,
+      planContext: planContext(),
+      citationContext: citationContext(),
+    });
+
+    expect(context.status).toBe('complete');
+    const studentProjection = projectKonlingGraphContextForRole(context, 'student');
+    expect(studentProjection.classOverlay).toMatchObject({
+      status: 'unauthorized',
+      classId: null,
+      items: {},
+    });
+    expect(studentProjection.status).toBe('degraded');
+    expect(studentProjection.confidence).toBe('medium');
+    expect(studentProjection.missingGrounding).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        class: 'overlay',
+        reason: 'class-overlay-removed-from-student-projection',
+      }),
+    ]));
   });
 
   it('does not mark class overlay available when filtered target items are suppressed', () => {
