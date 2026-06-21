@@ -981,6 +981,8 @@ const edges: KaqGraphEdge[] = [
   },
 ];
 
+export const AUTOCONTROL_KAQ_GRAPH_VERSION = 'autocontrol-kaq-graph.v1';
+
 export const AUTOCONTROL_KAQ_GRAPH_CATALOG: KaqGraphCatalog = {
   nodes: [...knowledgeNodes, ...capabilityNodes, ...qualityNodes],
   edges,
