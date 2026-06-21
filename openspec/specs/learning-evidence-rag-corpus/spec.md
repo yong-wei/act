@@ -27,7 +27,7 @@ The system SHALL verify citations independently from model generation before dis
 - **AND** it SHALL expose the citation limitation to the caller.
 
 ### Requirement: Corpus chunks declare authority and scope
-Every RAG corpus chunk SHALL declare authority and retrieval scope metadata in addition to provenance, privacy, confidence, and freshness.
+Every RAG corpus chunk SHALL declare authority, retrieval scope, and source version or freshness metadata in addition to provenance, privacy, confidence, and freshness.
 
 #### Scenario: Chunk is indexed
 - **WHEN** a corpus chunk is created for teaching knowledge or learner evidence
@@ -38,6 +38,11 @@ Every RAG corpus chunk SHALL declare authority and retrieval scope metadata in a
 - **WHEN** a chunk references private learner evidence, teacher-only summaries, grading anchors, or service-only traces
 - **THEN** its scope rule SHALL prevent ordinary retrieval outside the authorized student, teacher, admin, or service scope
 - **AND** redacted summaries SHALL be used when raw text is not visible.
+
+#### Scenario: Versioned source chunk is indexed
+- **WHEN** a corpus chunk is created from a graph-bound resource projection
+- **THEN** it SHALL include source version or freshness limitation metadata where available
+- **AND** citation verification SHALL preserve that metadata in CitationChip payloads when relevant.
 
 ### Requirement: Retrieval separates teaching knowledge and learner evidence
 The retrieval layer SHALL distinguish high-authority teaching knowledge from personalized learner evidence.
@@ -116,4 +121,3 @@ The RAG retrieval layer SHALL combine governed scope filtering with lexical, sem
 - **WHEN** the caller provides a knowledge node or capability target context
 - **THEN** retrieval SHALL use those refs to filter or rerank candidates
 - **AND** candidates outside permitted privacy scope SHALL remain inaccessible.
-
