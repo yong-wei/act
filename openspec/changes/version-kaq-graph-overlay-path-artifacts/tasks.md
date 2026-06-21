@@ -6,7 +6,7 @@
 
 ## 2. Artifact Integration
 
-- [ ] 2.1 Add version refs to new LearningGoal package artifacts.
+- [ ] 2.1 Add version refs to new LearningGoal artifacts.
 - [ ] 2.2 Add version refs to resource graph profiles and projection metadata.
 - [ ] 2.3 Add version refs to overlay payloads where materialized.
 - [ ] 2.4 Add version refs to graph-driven path artifacts and path rounds.

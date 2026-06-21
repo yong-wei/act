@@ -4,7 +4,7 @@ Graph-driven planning will persist LearningGoal, resource, overlay, and path art
 
 ## What Changes
 
-- Add versioning requirements for LearningGoal packages, graph catalogs, resource registries, resource projections, overlays, path artifacts, and Konling grounding context.
+- Add versioning requirements for LearningGoals, graph catalogs, resource registries, resource projections, overlays, path artifacts, and Konling grounding context.
 - Require persisted path and overlay artifacts to record the versions they used.
 - Require version limitations when an artifact references stale, missing, or migrated graph/resource data.
 - Keep this as an early prerequisite for graph-driven planning rather than a late reporting enhancement.

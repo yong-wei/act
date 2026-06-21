@@ -6,7 +6,7 @@ This change turns graph-driven planning from a set of upstream contracts into pl
 
 The planner should accept or resolve:
 
-- LearningGoal package id and version;
+- LearningGoal id, version, and K/A/Q objective boundary;
 - ExpandedGoalSubgraph;
 - ResourceNode graph profile fields;
 - ResourceCoverage overlay where available;
@@ -34,4 +34,4 @@ This change does not implement multi-objective ranker modules, CP-SAT repair, co
 
 ## Validation
 
-Tests should include at least one cold-start learner, one low-resource fallback, one readiness-locked heavy node, and one path-ready LearningGoal package using graph input.
+Tests should include at least one cold-start learner, one low-resource fallback, one readiness-locked heavy node, and one path-ready LearningGoal using graph input.

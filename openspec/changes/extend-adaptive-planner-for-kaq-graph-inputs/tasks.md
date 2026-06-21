@@ -1,6 +1,6 @@
 ## 1. Planner Input Contract
 
-- [ ] 1.1 Extend planner input types for LearningGoal package id/version and ExpandedGoalSubgraph.
+- [ ] 1.1 Extend planner input types for LearningGoal id/version, K/A/Q objective boundary, and ExpandedGoalSubgraph.
 - [ ] 1.2 Add ResourceNode graph profile consumption to planner candidate filtering.
 - [ ] 1.3 Add ResourceCoverage and Learner/Class overlay input handling with limitations.
 - [ ] 1.4 Add version refs to generated path artifacts.

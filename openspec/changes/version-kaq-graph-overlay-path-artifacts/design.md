@@ -6,7 +6,7 @@ Versioning is the audit backbone for graph-driven planning. Any persisted artifa
 
 The first implementation should define version refs for:
 
-- LearningGoal package catalog;
+- LearningGoal catalog;
 - K/A/Q objective catalog;
 - K/A/Q graph catalog;
 - ResourceNode registry;

@@ -1,11 +1,11 @@
 ## MODIFIED Requirements
 
 ### Requirement: Planner supports registered learning goals
-The adaptive path planner SHALL generate learning paths for registered learning goals and graph-driven LearningGoal packages.
+The adaptive path planner SHALL generate learning paths for registered LearningGoals with graph-driven context.
 
-#### Scenario: Graph-driven LearningGoal package is requested
-- **WHEN** a student requests a path for a `path-ready` LearningGoal package with an ExpandedGoalSubgraph
-- **THEN** the planner SHALL consume the package id, package version, K/A/Q graph targets, prerequisite policy, allowed resource mix, evidence policy, checkpoint policy, terminal validation policy, and version refs
+#### Scenario: Graph-driven LearningGoal is requested
+- **WHEN** a student requests a path for a `path-ready` LearningGoal with an ExpandedGoalSubgraph
+- **THEN** the planner SHALL consume the LearningGoal id, LearningGoal version, K/A/Q objective boundary, K/A/Q graph targets, prerequisite policy, allowed resource mix, evidence policy, checkpoint policy, terminal validation policy, and version refs
 - **AND** it SHALL return executable path options with current node, alternatives, estimated time, evidence limits, graph/resource limitations, and student-facing rationale.
 
 ### Requirement: Generated paths use governed resource nodes
@@ -21,7 +21,7 @@ The planner SHALL treat cold start as a supported generation state, not as a no-
 
 #### Scenario: Cold-start learner requests a graph-driven path
 - **WHEN** a learner with no usable evidence requests a graph-driven LearningGoal path
-- **THEN** the planner SHALL use the package policy, resource coverage, ResourceNode readiness, and graph prerequisites to return executable starter options where resources are available
+- **THEN** the planner SHALL use the LearningGoal policy, resource coverage, ResourceNode readiness, and graph prerequisites to return executable starter options where resources are available
 - **AND** low evidence SHALL be exposed as a limitation rather than clearing the path.
 
 ### Requirement: Generic path rounds are persisted

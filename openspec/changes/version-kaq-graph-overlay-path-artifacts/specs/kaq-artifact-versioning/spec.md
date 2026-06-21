@@ -5,7 +5,7 @@ The system SHALL attach version references to persisted graph-driven artifacts.
 
 #### Scenario: Path artifact is persisted
 - **WHEN** a graph-driven path artifact or path round is created
-- **THEN** it SHALL include LearningGoal package version, graph catalog version, resource registry or projection version, overlay version where used, planner version, generatedAt, and limitations
+- **THEN** it SHALL include LearningGoal id, LearningGoal version, graph catalog version, resource registry or projection version, overlay version where used, planner version, generatedAt, and limitations
 - **AND** the artifact SHALL remain explainable after later graph or resource changes.
 
 #### Scenario: Overlay artifact is materialized
