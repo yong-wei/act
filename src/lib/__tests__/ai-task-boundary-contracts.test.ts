@@ -1,0 +1,289 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+  buildAiAuditTaskState,
+  buildPortfolioReflectionDraft,
+  buildReportFeedbackTaskCandidates,
+  getAiAuditTaskContract,
+  sanitizeAiVisibleContent,
+  summarizeAiToolResult,
+} from '../ai-task-boundary-contracts';
+
+describe('ai task boundary contracts', () => {
+  it('sanitizes internal context diagnostics from visible AI content', () => {
+    const content = [
+      'pageContext: {"courseId":"knowledge"}',
+      'currentPathId: null',
+      '这是给学生看的解释。',
+      '```json',
+      '{"knowledgeCapabilityContext":{"activeNodeId":null}}',
+      '```',
+    ].join('\n');
+
+    const sanitized = sanitizeAiVisibleContent(content);
+
+    expect(sanitized).toContain('这是给学生看的解释。');
+    expect(sanitized).toContain('已隐藏内部上下文诊断');
+    expect(sanitized).not.toContain('pageContext');
+    expect(sanitized).not.toContain('currentPathId');
+    expect(sanitized).not.toContain('knowledgeCapabilityContext');
+  });
+
+  it('does not leak repeated internal fields after earlier pattern matches', () => {
+    const content = [
+      'pageContext visible',
+      'pageContext: {"courseId":"knowledge"}',
+      'provider: first',
+      'provider: second',
+      'serverContext: {"role":"student"}',
+      'currentPathId: null',
+      'activeNodeId: []',
+      '学生可见结论。',
+      '```json',
+      '{"provider":"internal","serverContext":{"pageContext":true}}',
+      '```',
+    ].join('\n');
+
+    const sanitized = sanitizeAiVisibleContent(content);
+
+    expect(sanitized).toContain('学生可见结论。');
+    expect(sanitized).not.toContain('pageContext');
+    expect(sanitized).not.toContain('provider');
+    expect(sanitized).not.toContain('serverContext');
+    expect(sanitized).not.toContain('currentPathId');
+    expect(sanitized).not.toContain('activeNodeId');
+  });
+
+  it('preserves normal JSON and array examples that do not contain internal fields', () => {
+    const content = [
+      '下面是可见参数示例：',
+      '```json',
+      '{"kp":1.2,"ki":0.1,"kd":0.5}',
+      '```',
+      '[1, 2, 3]',
+    ].join('\n');
+
+    const sanitized = sanitizeAiVisibleContent(content);
+
+    expect(sanitized).toContain('{"kp":1.2,"ki":0.1,"kd":0.5}');
+    expect(sanitized).toContain('[1, 2, 3]');
+    expect(sanitized).not.toContain('已隐藏内部上下文诊断');
+  });
+
+  it('hides unlabeled fenced diagnostic blocks as a whole', () => {
+    const content = [
+      '```',
+      'konlingCitationGuard:',
+      '  status: low-confidence',
+      '  missingCitationClasses: evidence',
+      '  lowConfidenceReasons: missing-source',
+      '```',
+      '学生可见说明。',
+    ].join('\n');
+
+    const sanitized = sanitizeAiVisibleContent(content);
+
+    expect(sanitized).toContain('已隐藏内部上下文诊断');
+    expect(sanitized).toContain('学生可见说明。');
+    expect(sanitized).not.toContain('missingCitationClasses');
+    expect(sanitized).not.toContain('lowConfidenceReasons');
+  });
+
+  it('hides unfenced pretty-printed diagnostic JSON blocks as a whole', () => {
+    const content = [
+      '内部诊断如下：',
+      '{',
+      '  "pageContext": {',
+      '    "courseId": "course-001",',
+      '    "resourceId": "resource-002",',
+      '    "pathNodeId": "node-003"',
+      '  }',
+      '}',
+      '',
+      '学生可见说明。',
+    ].join('\n');
+
+    const sanitized = sanitizeAiVisibleContent(content);
+
+    expect(sanitized).toContain('已隐藏内部上下文诊断');
+    expect(sanitized).toContain('学生可见说明。');
+    expect(sanitized).not.toContain('course-001');
+    expect(sanitized).not.toContain('resource-002');
+    expect(sanitized).not.toContain('pathNodeId');
+  });
+
+  it('does not end unfenced diagnostic JSON blocks on bracket characters inside strings', () => {
+    const content = [
+      '{',
+      '  "pageContext": {',
+      '    "summary": "控制器输出包含 ] 和 } 字符",',
+      '    "resourceId": "resource-002",',
+      '    "citation": "internal-citation"',
+      '  }',
+      '}',
+      '学生可见说明。',
+    ].join('\n');
+
+    const sanitized = sanitizeAiVisibleContent(content);
+
+    expect(sanitized).toContain('已隐藏内部上下文诊断');
+    expect(sanitized).toContain('学生可见说明。');
+    expect(sanitized).not.toContain('resource-002');
+    expect(sanitized).not.toContain('internal-citation');
+  });
+
+  it('hides unfenced YAML-style diagnostic blocks as a whole', () => {
+    const content = [
+      'konlingCitationGuard:',
+      '  status: low-confidence',
+      '  citations:',
+      '    - resourceId: evidence-001',
+      '      source: internal',
+      '学生可见结论。',
+    ].join('\n');
+
+    const sanitized = sanitizeAiVisibleContent(content);
+
+    expect(sanitized).toContain('已隐藏内部上下文诊断');
+    expect(sanitized).toContain('学生可见结论。');
+    expect(sanitized).not.toContain('evidence-001');
+    expect(sanitized).not.toContain('source: internal');
+  });
+
+  it('hides same-level YAML diagnostic fields after an internal context field', () => {
+    const content = [
+      'pageContext:',
+      '  courseId: course-001',
+      'resourceId: resource-002',
+      'citation: internal-citation',
+      '学生可见说明。',
+    ].join('\n');
+
+    const sanitized = sanitizeAiVisibleContent(content);
+
+    expect(sanitized).toContain('已隐藏内部上下文诊断');
+    expect(sanitized).toContain('学生可见说明。');
+    expect(sanitized).not.toContain('course-001');
+    expect(sanitized).not.toContain('resource-002');
+    expect(sanitized).not.toContain('internal-citation');
+  });
+
+  it('hides standalone server context JSON diagnostics', () => {
+    const content = [
+      '{',
+      '  "resourceId": "resource-standalone",',
+      '  "courseId": "course-standalone",',
+      '  "pageId": "page-standalone",',
+      '  "pathNodeId": "node-standalone",',
+      '  "classId": "class-standalone",',
+      '  "targetUserId": "student-standalone",',
+      '  "agentSessionId": "agent-session-standalone",',
+      '  "gradingRunId": "grading-run-standalone",',
+      '  "assetId": "asset-standalone",',
+      '  "rubricId": "rubric-standalone",',
+      '  "assignmentId": "assignment-standalone",',
+      '  "classReportId": "class-report-standalone",',
+      '  "prepPackId": "prep-pack-standalone",',
+      '  "citation": "internal-citation"',
+      '}',
+      '学生可见说明。',
+    ].join('\n');
+
+    const sanitized = sanitizeAiVisibleContent(content);
+
+    expect(sanitized).toContain('已隐藏内部上下文诊断');
+    expect(sanitized).toContain('学生可见说明。');
+    expect(sanitized).not.toContain('resource-standalone');
+    expect(sanitized).not.toContain('course-standalone');
+    expect(sanitized).not.toContain('page-standalone');
+    expect(sanitized).not.toContain('node-standalone');
+    expect(sanitized).not.toContain('class-standalone');
+    expect(sanitized).not.toContain('student-standalone');
+    expect(sanitized).not.toContain('agent-session-standalone');
+    expect(sanitized).not.toContain('grading-run-standalone');
+    expect(sanitized).not.toContain('asset-standalone');
+    expect(sanitized).not.toContain('rubric-standalone');
+    expect(sanitized).not.toContain('assignment-standalone');
+    expect(sanitized).not.toContain('class-report-standalone');
+    expect(sanitized).not.toContain('prep-pack-standalone');
+    expect(sanitized).not.toContain('internal-citation');
+  });
+
+  it('hides standalone server context YAML diagnostics', () => {
+    const content = [
+      'resourceId: resource-standalone',
+      'courseId: course-standalone',
+      'pageId: page-standalone',
+      'pathNodeId: node-standalone',
+      'classId: class-standalone',
+      'targetUserId: student-standalone',
+      'agentSessionId: agent-session-standalone',
+      'gradingRunId: grading-run-standalone',
+      'assetId: asset-standalone',
+      'rubricId: rubric-standalone',
+      'assignmentId: assignment-standalone',
+      'classReportId: class-report-standalone',
+      'prepPackId: prep-pack-standalone',
+      'citation: internal-citation',
+      '学生可见说明。',
+    ].join('\n');
+
+    const sanitized = sanitizeAiVisibleContent(content);
+
+    expect(sanitized).toContain('已隐藏内部上下文诊断');
+    expect(sanitized).toContain('学生可见说明。');
+    expect(sanitized).not.toContain('resource-standalone');
+    expect(sanitized).not.toContain('course-standalone');
+    expect(sanitized).not.toContain('page-standalone');
+    expect(sanitized).not.toContain('node-standalone');
+    expect(sanitized).not.toContain('class-standalone');
+    expect(sanitized).not.toContain('student-standalone');
+    expect(sanitized).not.toContain('agent-session-standalone');
+    expect(sanitized).not.toContain('grading-run-standalone');
+    expect(sanitized).not.toContain('asset-standalone');
+    expect(sanitized).not.toContain('rubric-standalone');
+    expect(sanitized).not.toContain('assignment-standalone');
+    expect(sanitized).not.toContain('class-report-standalone');
+    expect(sanitized).not.toContain('prep-pack-standalone');
+    expect(sanitized).not.toContain('internal-citation');
+  });
+
+  it('declares output targets for prompt, report feedback, and reflection tasks', () => {
+    expect(getAiAuditTaskContract('prompt-evaluation')).toMatchObject({
+      outputTarget: 'prompt-history',
+      writebackBehavior: 'explicit-save',
+    });
+    expect(getAiAuditTaskContract('report-feedback')).toMatchObject({
+      outputTarget: 'practice-candidate',
+      writebackBehavior: 'candidate',
+    });
+    expect(getAiAuditTaskContract('portfolio-reflection')).toMatchObject({
+      outputTarget: 'portfolio-draft',
+      writebackBehavior: 'draft',
+    });
+  });
+
+  it('creates scoped task candidates and audited status states', () => {
+    expect(buildReportFeedbackTaskCandidates()).toHaveLength(3);
+    expect(buildPortfolioReflectionDraft('copilot')).toMatchObject({
+      id: 'portfolio-reflection-copilot',
+      status: 'draft',
+    });
+    expect(buildAiAuditTaskState({
+      taskType: 'report-feedback',
+      status: 'pending',
+      message: '候选已生成。',
+    })).toMatchObject({
+      status: 'pending',
+      identity: {
+        category: 'save',
+        sourceRoute: '/ai?task=report-feedback',
+      },
+    });
+  });
+
+  it('summarizes tool results instead of exposing raw JSON', () => {
+    expect(summarizeAiToolResult('get_workspace_status')).toContain('工作区状态已读取');
+    expect(summarizeAiToolResult('unknown_tool')).toContain('内部诊断已隐藏');
+  });
+});

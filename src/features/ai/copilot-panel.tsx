@@ -245,7 +245,7 @@ function MessageBubble({ message }: { message: Message }) {
         {/* 普通文本消息 */}
         {message.content && (
           <div className="text-sm leading-relaxed">
-            <AIMessageContent content={message.content} />
+            <AIMessageContent content={message.content} sanitizeContent={!isUser} />
           </div>
         )}
       </div>

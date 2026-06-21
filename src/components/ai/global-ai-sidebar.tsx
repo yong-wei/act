@@ -16,6 +16,7 @@ import { useAIThemeStyles, TRANSITION_CLASSES } from '@/lib/ai-theme-styles';
 import { useGlobalAI } from '@/components/providers/global-ai-provider';
 import { Button } from '@/components/ui/button';
 import { KONLING_BRAND, getQuickQuestions } from '@/lib/ai-branding';
+import { summarizeAiToolResult } from '@/lib/ai-task-boundary-contracts';
 
 export function GlobalAISidebar() {
   const styles = useAIThemeStyles();
@@ -26,6 +27,7 @@ export function GlobalAISidebar() {
   const [mounted, setMounted] = useState(false);
   const [sessionId] = useState(() => `global-${Date.now()}`);
   const [knowledgeInspectorAvoidanceActive, setKnowledgeInspectorAvoidanceActive] = useState(false);
+  const [actionStatus, setActionStatus] = useState('AI 侧栏已就绪。');
 
   const {
     pageContext,
@@ -170,6 +172,7 @@ export function GlobalAISidebar() {
   // 清空对话
   const handleClear = useCallback(() => {
     setMessages([]);
+    setActionStatus('对话已清空。');
   }, [setMessages]);
 
   // 构建欢迎消息
@@ -255,6 +258,11 @@ export function GlobalAISidebar() {
         `}
         data-global-ai-sidebar={isOpen ? 'open' : 'closed'}
         data-konling-assistant-surface="global-sidebar"
+        role={isOpen ? 'dialog' : undefined}
+        aria-modal={isOpen ? 'true' : undefined}
+        aria-hidden={isOpen ? undefined : 'true'}
+        inert={!isOpen}
+        aria-label="控灵全局 AI 侧栏"
         data-konling-inspector-avoidance={knowledgeInspectorAvoidanceActive ? 'active' : 'inactive'}
         data-knowledge-mobile-inspector-policy={
           pageContext?.courseId === 'knowledge' || pageContext?.stepId === '/knowledge'
@@ -281,6 +289,7 @@ export function GlobalAISidebar() {
             {messages.length > 0 && (
               <button type="button"
                 onClick={handleClear}
+                aria-label="清空 AI 对话"
                 className={`rounded p-2 transition-colors ${styles.text.muted} hover:bg-slate-700/30`}
                 title="清空对话"
               >
@@ -299,6 +308,9 @@ export function GlobalAISidebar() {
 
         {/* 消息列表 */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="sr-only" role="status" aria-live="polite" data-ai-task-status="global-sidebar">
+            {isLoading ? '控灵正在思考。' : error ? `AI 对话失败：${error.message}` : actionStatus}
+          </div>
           {messages.length === 0 ? (
             <div className="space-y-6">
               {/* 欢迎信息 */}
@@ -418,6 +430,7 @@ export function GlobalAISidebar() {
                 size="icon"
                 className={`h-10 w-10 ${styles.button}`}
               >
+                <span className="sr-only">发送 AI 问题</span>
                 <Send className="h-4 w-4" />
               </Button>
             )}
@@ -464,16 +477,16 @@ function MessageBubble({
                 {tool.toolName === 'analyze_design' && '🔍 设计分析'}
                 {tool.toolName === 'get_hints' && '💡 提示'}
               </div>
-              {tool.state === 'result' && (
-                <pre className={`overflow-x-auto text-xs ${styles.text.muted}`}>
-                  {JSON.stringify(tool.result, null, 2)}
-                </pre>
-              )}
+              {tool.state === 'result' ? (
+                <p className={`text-xs ${styles.text.muted}`}>
+                  {summarizeAiToolResult(tool.toolName)}
+                </p>
+              ) : null}
             </div>
           ))}
           {/* 文本消息 */}
           {message.content && (
-            <AIMessageContent content={message.content} />
+            <AIMessageContent content={message.content} sanitizeContent={!isUser} />
           )}
         </div>
       </div>

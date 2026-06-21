@@ -43,11 +43,15 @@
 
 建议：把上下文对象严格限定为模型输入或调试日志，禁止进入 assistant 可见文本；必要时只以产品化摘要展示“当前节点未解析”“缺少路径证据”等状态。
 
+整改记录：`audit-remediation-ai-task-boundaries` 已在 AI 消息渲染层加入学生可见内容脱敏，过滤 `pageContext`、`knowledgeWorkspace`、`knowledgeCapabilityContext`、路径字段和诊断 JSON；证据见 `../remediation/audit-remediation-ai-task-boundaries/evidence.md`。
+
 ### 245. P1：引用核验低置信提示作为回答首段直接展示
 
 Dashboard、知识图谱、管理员治理和移动 Dashboard 的回答均先展示“控灵证据提示”，并列出缺少引用类别和低置信原因。普通学习者看到的是内部核验诊断，而不是可操作反馈；移动端首屏尤其明显。
 
 建议：把 citation guard 转成 UI 状态层，例如“证据不足，建议先补充仿真/路径记录”，并把内部缺失类别隐藏到开发诊断或管理员可展开详情中。
+
+整改记录：`audit-remediation-ai-task-boundaries` 已将内部引用/上下文诊断从回答正文脱敏；证据见 `../remediation/audit-remediation-ai-task-boundaries/evidence.md`。
 
 ### 246. P1：自适应路径页 AI 入口被阻塞且无原因说明
 
@@ -61,11 +65,15 @@ Dashboard、知识图谱、管理员治理和移动 Dashboard 的回答均先展
 
 建议：为发送按钮补 `aria-label="发送问题"` 或等价 sr-only 文本，并在禁用时通过 `aria-describedby` 关联“请输入问题后发送”等提示。
 
+整改记录：`audit-remediation-ai-task-boundaries` 已为 Global AI 发送按钮补充 sr-only 名称；证据见 `../remediation/audit-remediation-ai-task-boundaries/evidence.md`。
+
 ### 248. P2：AI 加载、完成和降级状态没有 live/status 播报
 
 本批 12 个截图 `alerts=0`。发送问题、进入 loading、完成回答、知识节点降级、管理员超时、清空失败和入口被阻塞都没有读屏可感知状态。
 
 建议：Global AI 应有统一 `role=status` 或 `aria-live=polite` 区域，覆盖发送中、已完成、低置信、节点未解析、清空失败和长时间等待。
+
+整改记录：`audit-remediation-ai-task-boundaries` 已为 Global AI 增加 `role=status` / `aria-live=polite` 状态播报，并将清空结果写入状态；证据见 `../remediation/audit-remediation-ai-task-boundaries/evidence.md`。
 
 ### 249. P2：“清空对话”动作可见但不能完成
 
@@ -73,11 +81,15 @@ Dashboard 完成态出现“清空对话”，脚本按按钮 title 点击后超
 
 建议：修复清空按钮命中层级，点击后同步清空消息、恢复欢迎态，并播报“对话已清空”；若需要确认，应使用应用内 dialog 而不是静默失败。
 
+整改记录：`audit-remediation-ai-task-boundaries` 已为清空按钮补充可访问名称和完成播报；证据见 `../remediation/audit-remediation-ai-task-boundaries/evidence.md`。
+
 ### 250. P2：AI 面板焦点仍会泄漏到页面正文和浮动工具
 
 桌面和移动初始状态的焦点轨迹均显示：关闭按钮、AI 输入框之后进入浮动工具、body、导航或主题按钮。第 41 批已确认侧栏缺焦点 containment，本批在真实对话状态再次复现。
 
 建议：移动端按 modal dialog 限定焦点；桌面端若作为 complementary 区域，应明确焦点进入/离开路径，并避免打开后立即落入浮动工具。
+
+整改记录：`audit-remediation-ai-task-boundaries` 已将 Global AI 面板声明为 dialog/modal 并保留打开/关闭焦点回路；更强焦点 trap 可在移动壳层专项中继续验证。
 
 ### 251. P2：快捷问题标题存在但问题列表为空
 
@@ -91,11 +103,15 @@ Dashboard、知识图谱和移动状态都显示“你可以问我:”，但 `qu
 
 建议：为管理员 AI 增加长请求 timeout/重试/取消状态，loading 中不要提前展示未整理的上下文；治理页回答应优先围绕风险、数量、影响范围和处置入口。
 
+整改记录：`audit-remediation-ai-task-boundaries` 已隐藏 AI 工具和上下文诊断原文；管理员治理处置/超时工作流仍由管理员治理变更关闭。
+
 ### 253. P2：移动端 AI 首屏被内部警告占据，任务层级不清
 
 `11-mobile-dashboard-ai-response-or-error.png` 中，首屏主要是引用核验警告，页面正文仍在下方可见，AI 面板与页面任务的层级关系不明确。用户需要先越过内部警告才能看到真正建议。
 
 建议：移动端 AI 应把回答正文作为首要内容，低置信状态转为紧凑 banner 或状态行，并在打开时明确遮罩/安全区，避免与页面正文混读。
+
+整改记录：`audit-remediation-ai-task-boundaries` 已将内部低置信/上下文诊断从回答正文移除，并补 Global AI 状态播报；移动壳层遮罩和焦点细节仍由移动/a11y 专项验证。
 
 ## 5. 后续审计输入
 

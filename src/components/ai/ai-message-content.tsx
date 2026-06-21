@@ -14,10 +14,12 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
+import { sanitizeAiVisibleContent } from '@/lib/ai-task-boundary-contracts';
 
 interface AIMessageContentProps {
   content: string;
   className?: string;
+  sanitizeContent?: boolean;
 }
 
 /**
@@ -29,8 +31,9 @@ interface AIMessageContentProps {
  * - LaTeX 公式（行内 $...$ 和块级 $$...$$）
  * - 代码块（带语法高亮）
  */
-export function AIMessageContent({ content, className = '' }: AIMessageContentProps) {
+export function AIMessageContent({ content, className = '', sanitizeContent = true }: AIMessageContentProps) {
   if (!content) return null;
+  const visibleContent = sanitizeContent ? sanitizeAiVisibleContent(content) : content;
 
   return (
     <div className={`ai-message-content ${className}`}>
@@ -139,7 +142,7 @@ export function AIMessageContent({ content, className = '' }: AIMessageContentPr
           },
         }}
       >
-        {content}
+        {visibleContent}
       </ReactMarkdown>
     </div>
   );
