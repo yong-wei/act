@@ -1,0 +1,19 @@
+{
+  "label": "admin-users-dialog-keyboard",
+  "viewportWidth": 320,
+  "createDialog": [
+    "initial focus inside",
+    "forward Tab wraps",
+    "container Shift+Tab wraps",
+    "Escape closes",
+    "opener restored"
+  ],
+  "resetDialog": [
+    "initial focus inside",
+    "forward Tab wraps",
+    "container Shift+Tab wraps",
+    "Escape closes",
+    "opener restored"
+  ],
+  "capturedAt": "2026-06-21T16:29:56.412Z"
+}

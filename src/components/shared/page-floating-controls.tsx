@@ -102,13 +102,17 @@ function PageFloatingControls({
   const panelRef = useRef<HTMLDivElement>(null);
   const { mounted, theme, toggleTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [announcement, setAnnouncement] = useState('页面工具菜单已就绪。');
   const menu = buildFloatingControlMenu(registrations);
   const isDark = theme === 'dark';
   const primaryControl = menu.find((item) => item.id !== 'theme');
   const triggerLabel = primaryControl?.label.includes('控灵') ? '控灵' : primaryControl ? '工具' : '工具';
+  const panelId = 'page-floating-controls-panel';
+  const panelTitleId = 'page-floating-controls-title';
 
   useEffect(() => {
     if (!isMenuOpen) return;
+    setAnnouncement('页面工具菜单已打开。');
     window.requestAnimationFrame(() => {
       panelRef.current?.querySelector<HTMLButtonElement>('button:not([disabled])')?.focus();
     });
@@ -121,6 +125,7 @@ function PageFloatingControls({
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsMenuOpen(false);
+        setAnnouncement('页面工具菜单已关闭。');
         window.requestAnimationFrame(() => {
           triggerRef.current?.focus();
         });
@@ -152,11 +157,13 @@ function PageFloatingControls({
     if (item.id === 'theme') {
       toggleTheme();
       setIsMenuOpen(false);
+      setAnnouncement(`主题已切换为${isDark ? '浅色' : '深色'}模式。`);
       return;
     }
 
     item.onSelect?.();
     setIsMenuOpen(false);
+    setAnnouncement(`${item.label}已打开。`);
   };
 
   return (
@@ -170,9 +177,15 @@ function PageFloatingControls({
       {isMenuOpen ? (
         <div
           ref={panelRef}
+          id={panelId}
           className="mb-3 max-h-[min(70vh,28rem)] w-56 overflow-y-auto rounded-2xl border border-border/70 bg-background/95 p-2 text-sm text-foreground shadow-2xl backdrop-blur"
           data-platform-floating-dock-expanded-panel
+          role="region"
+          aria-labelledby={panelTitleId}
         >
+          <div id={panelTitleId} className="sr-only">
+            页面工具菜单
+          </div>
           {menu.map((item) => (
             <button
               key={item.id}
@@ -200,6 +213,7 @@ function PageFloatingControls({
         variant="ghost"
         onClick={() => setIsMenuOpen((prev) => !prev)}
         aria-expanded={isMenuOpen}
+        aria-controls={isMenuOpen ? panelId : undefined}
         aria-label={`打开${triggerLabel}与页面工具菜单`}
         className="btn-ghost-themed h-10 w-auto gap-2 rounded-full border px-3 text-xs font-semibold shadow-lg"
         data-platform-floating-dock-trigger-label={triggerLabel}
@@ -207,6 +221,9 @@ function PageFloatingControls({
         {primaryControl ? renderItemIcon(primaryControl) : <Settings className="h-4 w-4" />}
         <span>{triggerLabel}</span>
       </Button>
+      <span className="sr-only" role="status" aria-live="polite" data-platform-floating-dock-status>
+        {announcement}
+      </span>
     </div>
   );
 }

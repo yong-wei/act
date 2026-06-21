@@ -177,3 +177,10 @@ API 同时确认：`/api/learning-paths/latest?goal=control-correction` 返回 `
 - 341 已关闭：治理页保留加载/失败状态，并对 action 深链提供对象缺失恢复。
 - 342 已关闭：风险清单增加行级处置/分派入口与动作审计摘要。
 - 343 非本变更关闭范围：数据中心 returnTo 与导出属于数据中心垂直修复；治理交接部分已由本变更关闭。
+
+## #617 移动与可访问性整改记录（2026-06-21）
+
+整改变更：`audit-remediation-mobile-a11y-shell`。证据：`../remediation/audit-remediation-mobile-a11y-shell/evidence.md`。
+
+- 344 部分关闭：管理员治理页通过 320px/390px DOM width 与截图验收；教师分析报告页保留移动固定报告交付动作区，并通过 320px/390px DOM width 与截图验收。风险处置、报告发送/补强的业务闭环仍由管理员治理和教师报告垂直变更关闭。
+- 345 部分关闭：本变更补齐代表页面的 `status/live`、移动固定动作和弹窗/AI 键盘证据；路径生成、数据中心导出、风险处置和评分来源等业务状态仍保留。

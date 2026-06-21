@@ -17,6 +17,10 @@ const adminDashboardSource = readFileSync(
   join(process.cwd(), 'src/features/admin/admin-dashboard.tsx'),
   'utf8',
 );
+const globalsSource = readFileSync(
+  join(process.cwd(), 'src/app/globals.css'),
+  'utf8',
+);
 
 describe('AdminDashboard API/UI query contract states', () => {
   it('renders the no-match message from the initial URL search and role filters', () => {
@@ -132,5 +136,39 @@ describe('AdminDashboard API/UI query contract states', () => {
 
     expect(downloadFailedRowsSource).toContain('toCsv(csv)');
     expect(downloadFailedRowsSource).not.toContain('replace(/"/g');
+  });
+
+  it('keeps the admin users table mobile-carded and announces list state changes', () => {
+    const html = renderToStaticMarkup(createElement(AdminDashboard, {
+      currentUser,
+      initialUsersQuery: {
+        search: '',
+        role: 'ALL',
+        page: 1,
+        pageSize: 12,
+        action: null,
+        targetId: null,
+        source: {
+          searchParam: null,
+          roleSupported: true,
+          pageValid: true,
+          pageSizeValid: true,
+        },
+      },
+    }));
+
+    expect(html).toContain('data-admin-mobile-cards="true"');
+    expect(html).toContain('data-admin-users-list-status');
+    expect(html).toContain('role="status"');
+    expect(adminDashboardSource).toContain('data-label="账号信息"');
+    expect(adminDashboardSource).toContain('aria-label={`删除账号 ${user.name || user.email || user.id}`}');
+    expect(adminDashboardSource).toContain('aria-label="按角色筛选账号"');
+    expect(adminDashboardSource).toContain('ref={createDialogRef}');
+    expect(adminDashboardSource).toContain('ref={resetDialogRef}');
+    expect(adminDashboardSource).toContain(`event.key === 'Escape'`);
+    expect(adminDashboardSource).toContain('document.activeElement === dialog');
+    expect(adminDashboardSource).toContain('getDialogFocusableElements(dialog)[0]?.focus() ?? dialog.focus()');
+    expect(globalsSource).toContain('.admin-console-table[data-admin-mobile-cards="true"]');
+    expect(globalsSource).toContain('content: attr(data-label)');
   });
 });

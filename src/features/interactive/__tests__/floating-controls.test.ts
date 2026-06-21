@@ -49,6 +49,34 @@ describe('page floating controls', () => {
     expect(source).not.toContain('fixed bottom-4 right-4');
     expect(source).not.toContain('data-lesson-floating-tools');
   });
+
+  it('gives the shared floating dock a named panel and live status updates', () => {
+    const source = readFileSync(
+      join(repoRoot, 'src/components/shared/page-floating-controls.tsx'),
+      'utf8',
+    );
+
+    expect(source).toContain('role="region"');
+    expect(source).toContain('aria-labelledby={panelTitleId}');
+    expect(source).toContain('aria-controls={isMenuOpen ? panelId : undefined}');
+    expect(source).toContain('data-platform-floating-dock-status');
+    expect(source).toContain('主题已切换为');
+  });
+
+  it('keeps the global AI sidebar named and focus contained while open', () => {
+    const source = readFileSync(
+      join(repoRoot, 'src/components/ai/global-ai-sidebar.tsx'),
+      'utf8',
+    );
+
+    expect(source).toContain(`role={isOpen ? 'dialog' : undefined}`);
+    expect(source).toContain(`aria-modal={isOpen ? 'true' : undefined}`);
+    expect(source).toContain('inert={!isOpen}');
+    expect(source).toContain(`panel.addEventListener('keydown', handleTab)`);
+    expect(source).toContain('document.activeElement === panel');
+    expect(source).toContain('getFocusableElements(panel)[0]?.focus() ?? panel.focus()');
+    expect(source).toContain('aria-label="关闭 AI 侧栏"');
+  });
 });
 
 describe('teacher classroom QR join link', () => {

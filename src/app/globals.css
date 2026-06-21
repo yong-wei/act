@@ -468,6 +468,62 @@
     @apply rounded-xl border border-border/60 bg-card/75 px-3 py-3 text-sm;
   }
 
+  @media (max-width: 640px) {
+    table[data-teacher-mobile-cards="true"] {
+      min-width: 0;
+    }
+
+    table[data-teacher-mobile-cards="true"] thead {
+      @apply sr-only;
+    }
+
+    table[data-teacher-mobile-cards="true"],
+    table[data-teacher-mobile-cards="true"] tbody,
+    table[data-teacher-mobile-cards="true"] tr,
+    table[data-teacher-mobile-cards="true"] td {
+      display: block;
+      width: 100%;
+    }
+
+    table[data-teacher-mobile-cards="true"] tbody {
+      @apply space-y-3 p-3;
+    }
+
+    table[data-teacher-mobile-cards="true"] tr {
+      @apply rounded-2xl border border-border/60 bg-card/60;
+    }
+
+    table[data-teacher-mobile-cards="true"] td:not([colspan]) {
+      @apply flex items-start justify-between gap-4 px-4 py-3 text-right;
+      border-top: 1px solid hsl(var(--border) / 0.55);
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    table[data-teacher-mobile-cards="true"] td:first-child {
+      border-top: 0;
+    }
+
+    table[data-teacher-mobile-cards="true"] td:not([colspan])::before {
+      @apply shrink-0 text-left text-xs font-semibold uppercase;
+      content: attr(data-label);
+      color: hsl(var(--muted-foreground));
+      letter-spacing: 0;
+    }
+
+    table[data-teacher-mobile-cards="true"] td[data-label="操作"] {
+      @apply block text-left;
+    }
+
+    table[data-teacher-mobile-cards="true"] td[data-label="操作"]::before {
+      @apply mb-2 block;
+    }
+
+    table[data-teacher-mobile-cards="true"] td[data-label="操作"] > div {
+      @apply justify-start;
+    }
+  }
+
   .teacher-insight-timeline {
     @apply relative pl-6;
   }
@@ -850,6 +906,62 @@
 
     .admin-console-table {
       min-width: 640px;
+    }
+
+    .admin-console-table[data-admin-mobile-cards="true"] {
+      min-width: 0;
+    }
+
+    .admin-console-table[data-admin-mobile-cards="true"] thead {
+      @apply sr-only;
+    }
+
+    .admin-console-table[data-admin-mobile-cards="true"],
+    .admin-console-table[data-admin-mobile-cards="true"] tbody,
+    .admin-console-table[data-admin-mobile-cards="true"] tr,
+    .admin-console-table[data-admin-mobile-cards="true"] td {
+      display: block;
+      width: 100%;
+    }
+
+    .admin-console-table[data-admin-mobile-cards="true"] tbody {
+      @apply space-y-3 p-3;
+    }
+
+    .admin-console-table[data-admin-mobile-cards="true"] tbody tr {
+      @apply rounded-2xl border;
+      border-color: hsl(var(--admin-console-border-soft) / 0.86);
+      background: hsl(var(--admin-console-surface-soft) / 0.88);
+    }
+
+    .admin-console-table[data-admin-mobile-cards="true"] tbody td:not([colspan]) {
+      @apply flex items-start justify-between gap-4 px-4 py-3 text-right;
+      border-top: 1px solid hsl(var(--admin-console-border-soft) / 0.56);
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .admin-console-table[data-admin-mobile-cards="true"] tbody td:first-child {
+      border-top: 0;
+    }
+
+    .admin-console-table[data-admin-mobile-cards="true"] tbody td:not([colspan])::before {
+      @apply shrink-0 text-left text-xs font-semibold uppercase;
+      content: attr(data-label);
+      color: hsl(var(--admin-console-muted));
+      letter-spacing: 0;
+    }
+
+    .admin-console-table[data-admin-mobile-cards="true"] tbody td[data-label="操作"] {
+      @apply block text-left;
+    }
+
+    .admin-console-table[data-admin-mobile-cards="true"] tbody td[data-label="操作"]::before {
+      @apply mb-2 block;
+    }
+
+    .admin-console-table[data-admin-mobile-cards="true"] tbody td[data-label="操作"] > div {
+      @apply justify-start;
     }
   }
 

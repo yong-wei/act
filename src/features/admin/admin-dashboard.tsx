@@ -12,7 +12,7 @@ import {
   UploadCloud,
   Users,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react';
 
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { createAuditedActionState } from '@/lib/action-status-contract';
@@ -115,8 +115,19 @@ const ROLE_STYLES: Record<UserRole, string> = {
   STUDENT: 'admin-console-pill admin-console-pill-student',
 };
 
+const DIALOG_FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function getDialogFocusableElements(dialog: HTMLElement) {
+  return Array.from(dialog.querySelectorAll<HTMLElement>(DIALOG_FOCUSABLE_SELECTOR))
+    .filter((item) => !item.hasAttribute('disabled') && item.offsetParent !== null);
+}
+
 export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const createDialogRef = useRef<HTMLDivElement>(null);
+  const resetDialogRef = useRef<HTMLDivElement>(null);
+  const createDialogOpenerRef = useRef<HTMLElement | null>(null);
+  const resetDialogOpenerRef = useRef<HTMLElement | null>(null);
   const [overview, setOverview] = useState<OverviewResponse | null>(null);
   const [users, setUsers] = useState<UserItem[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
@@ -254,10 +265,50 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
     });
   }, [initialUsersQuery, usersQueryTouched]);
 
+  const usersListStatus = useMemo(() => {
+    if (invalidQueryState) return '账号筛选参数无效，账号列表已暂停更新。';
+    if (loadingUsers) return '正在加载账号列表。';
+    if (users.length === 0) {
+      return search.trim() || roleFilter !== 'ALL'
+        ? '当前筛选条件下没有匹配账号。'
+        : '账号列表暂无数据。';
+    }
+    return `账号列表已更新，共 ${totalUsers} 条，当前第 ${page} 页显示 ${users.length} 条。`;
+  }, [invalidQueryState, loadingUsers, page, roleFilter, search, totalUsers, users.length]);
+
   const showNotice = useCallback((type: 'success' | 'error', message: string) => {
     setNotice({ type, message });
     setTimeout(() => setNotice(null), 4000);
   }, []);
+
+  const rememberDialogOpener = useCallback((targetRef: MutableRefObject<HTMLElement | null>) => {
+    const activeElement = document.activeElement;
+    targetRef.current = activeElement instanceof HTMLElement ? activeElement : null;
+  }, []);
+
+  const restoreDialogOpener = useCallback((targetRef: MutableRefObject<HTMLElement | null>) => {
+    window.requestAnimationFrame(() => {
+      const opener = targetRef.current;
+      if (opener?.isConnected && opener.offsetParent !== null) {
+        opener.focus();
+      }
+    });
+  }, []);
+
+  const openCreateDialog = useCallback(() => {
+    rememberDialogOpener(createDialogOpenerRef);
+    setCreateOpen(true);
+  }, [rememberDialogOpener]);
+
+  const closeCreateDialog = useCallback(() => {
+    setCreateOpen(false);
+    restoreDialogOpener(createDialogOpenerRef);
+  }, [restoreDialogOpener]);
+
+  const closeResetDialog = useCallback(() => {
+    setResetOpen(false);
+    restoreDialogOpener(resetDialogOpenerRef);
+  }, [restoreDialogOpener]);
 
   const fetchOverview = useCallback(async () => {
     setLoadingOverview(true);
@@ -335,7 +386,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
         throw new Error(error?.error?.formErrors?.[0] || error?.error || '创建账号失败');
       }
 
-      setCreateOpen(false);
+      closeCreateDialog();
       setCreateForm({
         name: '',
         email: '',
@@ -389,6 +440,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
   };
 
   const openReset = (user: UserItem) => {
+    rememberDialogOpener(resetDialogOpenerRef);
     setResetTarget(user);
     setResetToDefault(true);
     setResetPassword('');
@@ -413,12 +465,98 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
         throw new Error(error?.error || '修改密码失败');
       }
 
-      setResetOpen(false);
+      closeResetDialog();
       showNotice('success', '密码已更新');
     } catch (error) {
       showNotice('error', error instanceof Error ? error.message : '修改密码失败');
     }
   };
+
+  useEffect(() => {
+    if (!createOpen) return;
+    const dialog = createDialogRef.current;
+    if (!dialog) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeCreateDialog();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusable = getDialogFocusableElements(dialog);
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!dialog.contains(document.activeElement) || document.activeElement === dialog) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+        return;
+      }
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+        return;
+      }
+      if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.requestAnimationFrame(() => {
+      getDialogFocusableElements(dialog)[0]?.focus() ?? dialog.focus();
+    });
+    dialog.addEventListener('keydown', handleKeyDown);
+    return () => dialog.removeEventListener('keydown', handleKeyDown);
+  }, [closeCreateDialog, createOpen]);
+
+  useEffect(() => {
+    if (!resetOpen) return;
+    const dialog = resetDialogRef.current;
+    if (!dialog) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeResetDialog();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const focusable = getDialogFocusableElements(dialog);
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!dialog.contains(document.activeElement) || document.activeElement === dialog) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+        return;
+      }
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+        return;
+      }
+      if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.requestAnimationFrame(() => {
+      getDialogFocusableElements(dialog)[0]?.focus() ?? dialog.focus();
+    });
+    dialog.addEventListener('keydown', handleKeyDown);
+    return () => dialog.removeEventListener('keydown', handleKeyDown);
+  }, [closeResetDialog, resetOpen]);
 
   const handleDownloadTemplate = async () => {
     try {
@@ -613,7 +751,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
           </>
         }
         actions={
-          <button type="button" onClick={handleRefresh} className="admin-console-button">
+          <button type="button" onClick={handleRefresh} className="admin-console-button" aria-label="刷新用户管理数据">
             <RefreshCcw className="h-4 w-4" />
             刷新数据
           </button>
@@ -648,7 +786,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
             <span className="admin-console-kicker">操作区</span>
             <div className="mt-4 space-y-3">
               <button type="button"
-                onClick={() => setCreateOpen(true)}
+                onClick={openCreateDialog}
                 className="admin-console-button-primary w-full justify-between"
               >
                 新建账号
@@ -657,6 +795,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
               <button type="button"
                 onClick={handleDownloadTemplate}
                 className="admin-console-button w-full justify-between"
+                aria-label="下载用户批量导入模板"
               >
                 下载模板
                 <Download className="h-4 w-4" />
@@ -664,6 +803,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
               <button type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="admin-console-button w-full justify-between"
+                aria-label="选择用户 Excel 文件并预览批量导入"
               >
                 批量导入
                 <UploadCloud className="h-4 w-4" />
@@ -672,6 +812,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
                 onClick={handleExportUsers}
                 disabled={exportingUsers || Boolean(invalidQueryState)}
                 className="admin-console-button w-full justify-between disabled:opacity-50"
+                aria-label="导出当前账号筛选结果"
               >
                 {exportingUsers ? '正在导出' : '导出当前筛选'}
                 <Download className="h-4 w-4" />
@@ -760,6 +901,8 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
         <section className="space-y-6">
           {notice && (
             <div
+              role={notice.type === 'error' ? 'alert' : 'status'}
+              aria-live={notice.type === 'error' ? 'assertive' : 'polite'}
               className={`admin-console-notice ${
                 notice.type === 'success'
                   ? 'admin-console-notice-success'
@@ -794,6 +937,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
                   />
                 </div>
                 <select
+                  aria-label="按角色筛选账号"
                   value={roleFilter}
                   onChange={(event) => {
                     setUsersQueryTouched(true);
@@ -808,8 +952,9 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
                   <option value="STUDENT">学生</option>
                 </select>
                 <button type="button"
-                  onClick={() => setCreateOpen(true)}
+                  onClick={openCreateDialog}
                   className="admin-console-button-primary"
+                  aria-label="新建用户账号"
                 >
                   <Plus className="h-4 w-4" />
                   新建账号
@@ -827,8 +972,17 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
               <ActionStatusPanel state={usersExportState} className="mt-4" />
             ) : null}
 
+            <div
+              className="sr-only"
+              role="status"
+              aria-live="polite"
+              data-admin-users-list-status
+            >
+              {usersListStatus}
+            </div>
+
             <div className="admin-console-table-shell mt-6">
-              <table className="admin-console-table">
+              <table className="admin-console-table" data-admin-mobile-cards="true" aria-label="账号列表">
                 <thead>
                   <tr>
                     <th className="px-4 py-3">账号信息</th>
@@ -862,41 +1016,44 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
                   ) : (
                     users.map((user) => (
                       <tr key={user.id}>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3" data-label="账号信息">
                           <div className="admin-console-title font-medium">{user.name || '未命名'}</div>
                           <div className="admin-console-table-subtle mt-1 text-xs">
                             {user.email || user.employeeNumber || user.profile?.studentNumber || '未绑定账号'}
                           </div>
                         </td>
-                        <td className="px-4 py-3 admin-console-table-subtle">
+                        <td className="px-4 py-3 admin-console-table-subtle" data-label="学号/工号">
                           {user.profile?.studentNumber || user.employeeNumber || '-'}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3" data-label="角色">
                           <span className={ROLE_STYLES[user.role]}>{ROLE_LABELS[user.role]}</span>
                         </td>
-                        <td className="px-4 py-3 admin-console-table-subtle">
+                        <td className="px-4 py-3 admin-console-table-subtle" data-label="创建时间">
                           {new Intl.DateTimeFormat('zh-CN', {
                             dateStyle: 'medium',
                             timeStyle: 'short',
                           }).format(new Date(user.createdAt))}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3" data-label="操作">
                           <div className="flex justify-end gap-2">
                             <button type="button"
                               onClick={() => setSelectedUser(user)}
                               className="admin-console-button px-3 py-1.5 text-xs"
+                              aria-label={`查看账号 ${user.name || user.email || user.id}`}
                             >
                               查看
                             </button>
                             <button type="button"
                               onClick={() => openReset(user)}
                               className="admin-console-button px-3 py-1.5 text-xs"
+                              aria-label={`修改账号 ${user.name || user.email || user.id} 的密码`}
                             >
                               改密
                             </button>
                             <button type="button"
                               onClick={() => handleDelete(user)}
                               className="admin-console-button admin-console-tone-danger px-3 py-1.5 text-xs"
+                              aria-label={`删除账号 ${user.name || user.email || user.id}`}
                             >
                               删除
                             </button>
@@ -921,6 +1078,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
                     setPage((prev) => Math.max(1, prev - 1));
                   }}
                   className="admin-console-button px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-40"
+                  aria-label="查看上一页账号"
                 >
                   上一页
                 </button>
@@ -931,6 +1089,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
                     setPage((prev) => Math.min(totalPages, prev + 1));
                   }}
                   className="admin-console-button px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-40"
+                  aria-label="查看下一页账号"
                 >
                   下一页
                 </button>
@@ -1028,15 +1187,16 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
 
       {createOpen && (
         <div className="admin-console-overlay">
-          <div className="admin-console-modal admin-console-modal-lg">
+          <div ref={createDialogRef} className="admin-console-modal admin-console-modal-lg" role="dialog" aria-modal="true" aria-labelledby="admin-create-user-title" tabIndex={-1}>
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="admin-console-title text-xl font-semibold">新建账号</p>
+                <p id="admin-create-user-title" className="admin-console-title text-xl font-semibold">新建账号</p>
                 <p className="admin-console-muted mt-1 text-sm">支持创建学生、教师、管理员账号</p>
               </div>
               <button type="button"
-                onClick={() => setCreateOpen(false)}
+                onClick={closeCreateDialog}
                 className="admin-console-button px-3 py-1.5 text-xs"
+                aria-label="关闭新建账号对话框"
               >
                 关闭
               </button>
@@ -1053,6 +1213,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
               />
               <div className="grid gap-3 md:grid-cols-2">
                 <select
+                  aria-label="选择账号角色"
                   value={createForm.role}
                   onChange={(event) =>
                     setCreateForm((prev) => ({
@@ -1126,7 +1287,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
             </div>
 
             <div className="mt-6 flex items-center justify-end gap-3">
-              <button type="button" onClick={() => setCreateOpen(false)} className="admin-console-button">
+              <button type="button" onClick={closeCreateDialog} className="admin-console-button">
                 取消
               </button>
               <button type="button"
@@ -1144,17 +1305,18 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
 
       {resetOpen && (
         <div className="admin-console-overlay">
-          <div className="admin-console-modal admin-console-modal-sm">
+          <div ref={resetDialogRef} className="admin-console-modal admin-console-modal-sm" role="dialog" aria-modal="true" aria-labelledby="admin-reset-password-title" tabIndex={-1}>
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="admin-console-title text-xl font-semibold">修改密码</p>
+                <p id="admin-reset-password-title" className="admin-console-title text-xl font-semibold">修改密码</p>
                 <p className="admin-console-muted mt-1 text-sm">
                   {resetTarget?.name || '账号'} · {resetTarget?.email || resetTarget?.profile?.studentNumber || ''}
                 </p>
               </div>
               <button type="button"
-                onClick={() => setResetOpen(false)}
+                onClick={closeResetDialog}
                 className="admin-console-button px-3 py-1.5 text-xs"
+                aria-label="关闭修改密码对话框"
               >
                 关闭
               </button>
@@ -1182,7 +1344,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
             </div>
 
             <div className="mt-6 flex items-center justify-end gap-3">
-              <button type="button" onClick={() => setResetOpen(false)} className="admin-console-button">
+              <button type="button" onClick={closeResetDialog} className="admin-console-button">
                 取消
               </button>
               <button type="button" onClick={handleResetPassword} className="admin-console-button-primary">
@@ -1195,7 +1357,7 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
 
       {importing && (
         <div className="admin-console-overlay">
-          <div className="admin-console-surface admin-console-title text-sm font-medium">
+          <div className="admin-console-surface admin-console-title text-sm font-medium" role="status" aria-live="polite">
             正在导入，请稍候…
           </div>
         </div>
