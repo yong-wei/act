@@ -41,6 +41,13 @@ import {
   type AdaptiveLearningPathPlan,
   type AdaptiveLearningPathPlanNode,
 } from '@/lib/adaptive-learning-path-planner';
+import {
+  buildKonlingGraphGroundingDegradedReasons,
+  buildKonlingKaqGraphContext,
+  projectKonlingGraphContextForRole,
+  resolveKonlingGraphContextLearningGoalId,
+  type KonlingKaqGraphContext,
+} from '@/lib/konling-kaq-graph-context';
 import { buildResourceNodeRegistry } from '@/lib/resource-node-registry';
 import { getAllRegisteredResourceMetadata } from '@/lib/resource-registry-metadata';
 import { buildFrequencyResponseFoundationsResourceSeedInput } from '@/lib/frequency-response-resource-seed';
@@ -190,6 +197,7 @@ export interface KonlingTeachingAssistantRuntimeContract {
   unavailableReasons: string[];
   degradedReasons: string[];
   groundingContext: KonlingKnowledgeCapabilityContext;
+  graphContext: KonlingKaqGraphContext | null;
   scope: Pick<KonlingRuntimeScope, 'authenticatedUserId' | 'targetUserId' | 'role' | 'classId' | 'courseId' | 'pageId' | 'resourceId' | 'pathNodeId' | 'privacyScopes'>;
   permittedTools: KonlingToolName[];
   citationRequirements: {
@@ -232,6 +240,7 @@ export interface KonlingRuntimeContext {
   memory: KonlingMemoryView[];
   knowledgeWorkspace?: KonlingKnowledgeWorkspaceContext | null;
   knowledgeCapabilityContext?: KonlingKnowledgeCapabilityContext;
+  graphContext?: KonlingKaqGraphContext | null;
   citationContext?: KonlingCitationContext;
   permittedTools: KonlingToolName[];
   missingContext: string[];
@@ -541,14 +550,25 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
         ? []
         : [`missing-citation:${citationClass}`]
     );
+  const effectiveGraphContext = input.runtimeContext.graphContext
+    ?? buildKonlingKaqGraphContext({
+      scope: input.scope,
+      clientHints: input.clientContextHints,
+    });
   const unavailableReasons = [
     ...unknownModeReasons,
     ...(roleSupported ? [] : [`unsupported-role:${input.scope.role}`]),
     ...missingRequiredContext,
     ...missingCitationClasses,
   ];
+  const graphGroundingDegradedReasons = isKonlingGraphAwareAnswerIntent(answerIntent)
+    ? buildKonlingGraphGroundingDegradedReasons(effectiveGraphContext)
+    : [];
   const degradedReasons = unavailableReasons.length === 0
-    ? input.runtimeContext.citationContext?.lowConfidenceReasons ?? []
+    ? [
+        ...(input.runtimeContext.citationContext?.lowConfidenceReasons ?? []),
+        ...graphGroundingDegradedReasons,
+      ]
     : [];
   const status: KonlingTeachingAssistantStatus = unknownModeReasons.length > 0
     ? 'unavailable'
@@ -577,6 +597,7 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
     unavailableReasons,
     degradedReasons,
     groundingContext,
+    graphContext: projectKonlingGraphContextForRole(effectiveGraphContext, input.scope.role),
     scope: {
       authenticatedUserId: input.scope.authenticatedUserId,
       targetUserId: input.scope.targetUserId,
@@ -600,6 +621,10 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
     clientHintsAccepted: [],
     clientHintsRejected,
   };
+}
+
+function isKonlingGraphAwareAnswerIntent(answerIntent: KonlingAnswerIntent): boolean {
+  return answerIntent === 'path-advice' || answerIntent === 'personalized-diagnosis';
 }
 
 function classifyKonlingAnswerIntent(
@@ -1436,6 +1461,17 @@ function resolveAdaptiveLearnerStateGoal(...candidates: Array<string | null | un
   return null;
 }
 
+function hasGraphCenterLearnerOverlayShape(state: AdaptiveLearnerState | null): state is AdaptiveLearnerState {
+  if (!state || typeof state !== 'object') return false;
+  const knowledgeMastery = (state as { knowledgeMastery?: unknown }).knowledgeMastery;
+  return Boolean(
+    knowledgeMastery
+    && typeof knowledgeMastery === 'object'
+    && (knowledgeMastery as { tags?: unknown }).tags
+    && typeof (knowledgeMastery as { tags?: unknown }).tags === 'object'
+  );
+}
+
 export async function buildKonlingRuntimeContext(
   db: KonlingRuntimeDb,
   input: KonlingRuntimeInput,
@@ -1483,6 +1519,24 @@ export async function buildKonlingRuntimeContext(
     knowledgeWorkspace,
     trustedContentContext: input.trustedContentContext === true,
   });
+  const graphContext = buildKonlingKaqGraphContext({
+    scope,
+    learningGoalId: resolveKonlingGraphContextLearningGoalId(scope.courseId),
+    selectedGraphNodeIds: knowledgeWorkspace?.selected_node?.id
+      ? [knowledgeWorkspace.selected_node.id]
+      : [],
+    learnerOverlayInput: hasGraphCenterLearnerOverlayShape(learnerState)
+      ? {
+          state: learnerState,
+          requestedLearnerId: scope.targetUserId,
+          viewerRole: scope.role,
+          authorized: true,
+        }
+      : null,
+    planContext,
+    citationContext,
+    clientHints: input.pageContextHint ? { pageContext: input.pageContextHint } : null,
+  });
   const baseRuntimeContext: KonlingRuntimeContext = {
     pageContext,
     userProfile,
@@ -1490,6 +1544,7 @@ export async function buildKonlingRuntimeContext(
     planContext,
     memory,
     knowledgeWorkspace,
+    graphContext,
     citationContext,
     permittedTools: DEFAULT_TOOLS,
     missingContext: [],
@@ -1513,9 +1568,10 @@ export async function buildKonlingRuntimeContext(
     memory,
     knowledgeWorkspace,
     knowledgeCapabilityContext,
+    graphContext,
     citationContext,
     permittedTools: DEFAULT_TOOLS,
-    missingContext: buildMissingContext({ learnerStateEnabled, learnerState, planContext, memory, citationContext, pageContext, knowledgeWorkspace }),
+    missingContext: buildMissingContext({ learnerStateEnabled, learnerState, planContext, memory, citationContext, pageContext, knowledgeWorkspace, graphContext }),
     featureFlags: {
       learnerState: learnerStateEnabled,
       semanticMemory: process.env.KONLING_SEMANTIC_MEMORY_ENABLED === 'true',
@@ -1530,6 +1586,9 @@ export function buildKonlingToolRuntime(input: KonlingToolRuntimeInput) {
     getPageContext: async () => runKonlingRuntimeTool(input, 'get_page_context', {}, async () => ({
       pageContext: input.context.pageContext,
       knowledgeWorkspace: input.context.knowledgeWorkspace ?? null,
+      graphContext: input.context.graphContext
+        ? projectKonlingGraphContextForRole(input.context.graphContext, input.scope.role)
+        : null,
       knowledgeCapabilityContext: buildKonlingKnowledgeCapabilityToolContext(
         input.context.knowledgeCapabilityContext
         ?? buildKonlingKnowledgeCapabilityContext({
@@ -5466,6 +5525,7 @@ function buildMissingContext(input: {
   citationContext: KonlingCitationContext;
   pageContext: PageContext;
   knowledgeWorkspace?: KonlingKnowledgeWorkspaceContext | null;
+  graphContext?: KonlingKaqGraphContext | null;
 }): string[] {
   return [
     !input.learnerStateEnabled ? ADAPTIVE_LEARNER_STATE_FEATURE_FLAG : null,
@@ -5478,6 +5538,7 @@ function buildMissingContext(input: {
     ...input.citationContext.missingCitationClasses.map((item) => `citation-${item}-missing`),
     ...input.citationContext.lowConfidenceReasons,
     ...(input.knowledgeWorkspace?.missing_context ?? []),
+    ...(input.graphContext?.missingGrounding.map((item) => `graph-${item.class}-missing`) ?? []),
   ].filter((item): item is string => Boolean(item));
 }
 

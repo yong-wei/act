@@ -51,6 +51,28 @@ interface KonlingPromptRuntimeContext {
     citationRefs?: string[];
     missingContext?: string[];
   };
+  graphContext?: {
+    status?: string;
+    learningGoal?: {
+      id?: string;
+      title?: string;
+      version?: string;
+    } | null;
+    selectedGraphNodeIds?: string[];
+    expandedSubgraph?: {
+      graphVersion?: string;
+      graphNodeIds?: Record<string, string[]>;
+    } | null;
+    citationRefs?: string[];
+    evidenceRefs?: string[];
+    versionRefs?: Record<string, string | null | undefined> | null;
+    confidence?: string;
+    missingGrounding?: Array<{
+      class?: string;
+      reason?: string;
+      severity?: string;
+    }>;
+  } | null;
   citationContext?: {
     required?: boolean;
     contentCitations?: Array<{
@@ -189,6 +211,39 @@ function buildAdaptiveRuntimeSection(runtime: KonlingPromptRuntimeContext): stri
     }
     if (grounding.missingContext?.length) {
       lines.push(`  - grounding 限制: ${grounding.missingContext.join(', ')}`);
+    }
+  }
+  if (runtime.graphContext) {
+    const graph = runtime.graphContext;
+    lines.push('- K/A/Q 图谱 grounding:');
+    lines.push(`  - 状态: ${graph.status ?? 'unknown'}；置信度: ${graph.confidence ?? 'unknown'}`);
+    if (graph.learningGoal?.id) {
+      lines.push(`  - LearningGoal: ${graph.learningGoal.id} / ${graph.learningGoal.title ?? 'untitled'} / ${graph.learningGoal.version ?? 'unknown-version'}`);
+    }
+    const graphNodeIds = [
+      ...(graph.expandedSubgraph?.graphNodeIds?.knowledge ?? []),
+      ...(graph.expandedSubgraph?.graphNodeIds?.capability ?? []),
+      ...(graph.expandedSubgraph?.graphNodeIds?.quality ?? []),
+    ];
+    if (graph.selectedGraphNodeIds?.length) {
+      lines.push(`  - 当前图谱节点: ${graph.selectedGraphNodeIds.slice(0, 6).join(', ')}`);
+    } else if (graphNodeIds.length) {
+      lines.push(`  - 可 grounding 图谱节点: ${graphNodeIds.slice(0, 6).join(', ')}`);
+    }
+    if (graph.citationRefs?.length) {
+      lines.push(`  - 引用 refs: ${graph.citationRefs.slice(0, 6).join(', ')}`);
+    }
+    if (graph.evidenceRefs?.length) {
+      lines.push(`  - 证据 refs: ${graph.evidenceRefs.slice(0, 6).join(', ')}`);
+    }
+    if (graph.versionRefs) {
+      const versionKeys = Object.entries(graph.versionRefs)
+        .filter(([, value]) => Boolean(value))
+        .map(([key, value]) => `${key}=${value}`);
+      if (versionKeys.length) lines.push(`  - 版本 refs: ${versionKeys.slice(0, 5).join(', ')}`);
+    }
+    if (graph.missingGrounding?.length) {
+      lines.push(`  - graph grounding 限制: ${graph.missingGrounding.map((item) => `${item.class}:${item.reason}`).join(', ')}`);
     }
   }
   if (runtime.citationContext?.required) {

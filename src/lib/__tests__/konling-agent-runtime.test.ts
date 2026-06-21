@@ -24,6 +24,7 @@ vi.mock('@/lib/textbook-runtime-resources', () => ({
 }));
 
 import { buildKonlingSystemPrompt } from '@/lib/ai-prompt-builder';
+import { buildKonlingKaqGraphContext } from '@/lib/konling-kaq-graph-context';
 import {
   applyKonlingCitationFallback,
   buildKonlingCitationGuard,
@@ -532,7 +533,7 @@ describe('konling agent runtime', () => {
       serverModeContext: { 'student-path-center': true },
     });
 
-    expect(contract.status).toBe('ready');
+    expect(contract.status).toBe('degraded');
     expect(contract.answerIntent).toBe('path-advice');
     expect(contract.groundingContext.capabilityTargetRefs).toContain('capability:root-locus-design');
     expect(contract.groundingContext.missingContext).not.toContain('capability-target-context-missing');
@@ -591,6 +592,162 @@ describe('konling agent runtime', () => {
     expect(pageContextOutput.knowledgeCapabilityContext.citationRefs).not.toContain('learner:student-1');
   });
 
+  it('exposes Konling graph context to contracts, prompts, and page-context tools', async () => {
+    const scope = createScope({
+      courseId: 'control-correction',
+      pageId: 'adaptive-path-center',
+      classId: null,
+    });
+    const planContext: KonlingRuntimeContext['planContext'] = {
+      currentPathId: 'path-1',
+      activeNodeId: 'node-1',
+      nextNodeIds: ['node-2'],
+      recentPathIds: [],
+      completedNodeIds: [],
+      status: 'available',
+    };
+    const citationContext: KonlingCitationContext = {
+      required: true,
+      contentCitations: [{
+        id: 'content:control-correction',
+        sourceType: 'content',
+        displayTitle: '校正设计说明',
+        href: null,
+        confidence: 'high',
+        evidenceBasis: 'course-ai-context',
+        owner: 'answer',
+      }],
+      evidenceCitations: [{
+        id: 'learner:student-1',
+        sourceType: 'learner-state',
+        displayTitle: '学习者状态',
+        href: null,
+        confidence: 'medium',
+        evidenceBasis: 'AdaptiveLearnerState',
+        owner: 'recommendation',
+      }],
+      missingCitationClasses: [],
+      lowConfidenceReasons: [],
+      responseProtocol: {
+        requiredOwners: ['answer', 'recommendation'],
+        minimum: { content: 1, evidenceWhenAvailable: 1 },
+        fallbackWhenMissing: 'low-confidence',
+      },
+    };
+    const graphContext = buildKonlingKaqGraphContext({
+      scope,
+      selectedGraphNodeIds: ['cap:autocontrol:synthesize-controller-correction'],
+      planContext,
+      citationContext,
+    });
+    const runtime = createRuntimeContext({
+      pageContext: {
+        ...createRuntimeContext().pageContext,
+        courseId: 'control-correction',
+        stepId: 'adaptive-path-center',
+      },
+      learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],
+      planContext,
+      citationContext,
+      graphContext,
+      permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
+    });
+
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'path-advisor',
+      runtimeContext: runtime,
+      scope,
+      serverModeContext: { 'student-path-center': true },
+      clientContextHints: { selectedGraphNodeIds: ['kn:autocontrol:forged-node'] },
+    });
+
+    expect(contract.status).toBe('degraded');
+    expect(contract.graphContext?.learningGoal?.id).toBe('control-correction');
+    expect(contract.graphContext?.selectedGraphNodeIds).toEqual(['cap:autocontrol:synthesize-controller-correction']);
+    expect(contract.graphContext?.clientHintsAccepted).toEqual([]);
+    expect(contract.degradedReasons).toContain('missing-graph-grounding:overlay');
+
+    const prompt = buildKonlingSystemPrompt({
+      page: runtime.pageContext,
+      user: runtime.userProfile,
+      adaptiveRuntime: {
+        ...runtime,
+        teachingAssistantMode: contract,
+      },
+    });
+    expect(prompt).toContain('K/A/Q 图谱 grounding');
+    expect(prompt).toContain('LearningGoal: control-correction');
+    expect(prompt).toContain('graph grounding 限制: overlay:learner-or-class-overlay-missing');
+
+    const pageContextOutput = await buildKonlingToolRuntime({
+      db: {},
+      scope,
+      context: { ...runtime, permittedTools: contract.permittedTools },
+    }).getPageContext();
+
+    expect(pageContextOutput.graphContext).toMatchObject({
+      source: 'server-owned',
+      learningGoal: { id: 'control-correction' },
+      selectedGraphNodeIds: ['cap:autocontrol:synthesize-controller-correction'],
+      clientHintsAccepted: [],
+    });
+    expect(pageContextOutput.graphContext?.selectedGraphNodeIds).not.toContain('kn:autocontrol:forged-node');
+    expect(pageContextOutput.graphContext?.classOverlay).toMatchObject({
+      status: 'unauthorized',
+      classId: null,
+      items: {},
+    });
+  });
+
+  it('degrades graph-aware contracts when runtime graph context is absent', () => {
+    const runtime = createRuntimeContext({
+      learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],
+      permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:path',
+          sourceType: 'content',
+          displayTitle: '路径内容',
+          href: null,
+          confidence: 'high',
+          evidenceBasis: 'course-ai-context',
+          owner: 'answer',
+        }],
+        evidenceCitations: [{
+          id: 'learner:student-1',
+          sourceType: 'learner-state',
+          displayTitle: '学习状态摘要',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'AdaptiveLearnerState',
+          owner: 'recommendation',
+        }],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer', 'recommendation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    });
+
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'path-advisor',
+      runtimeContext: runtime,
+      scope: createScope({ role: 'student', courseId: 'unknown-course', pageId: 'adaptive-path-center' }),
+      serverModeContext: { 'student-path-center': true },
+    });
+
+    expect(contract.status).toBe('degraded');
+    expect(contract.graphContext?.status).toBe('missing');
+    expect(contract.degradedReasons).toEqual(expect.arrayContaining([
+      'missing-graph-grounding:learning-goal',
+      'missing-graph-grounding:graph',
+    ]));
+  });
+
   it('keeps path-advisor generation available when a student has no existing path yet', () => {
     const runtime = createRuntimeContext({
       learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],
@@ -640,7 +797,7 @@ describe('konling agent runtime', () => {
       serverModeContext: { 'student-path-center': true },
     });
 
-    expect(contract.status).toBe('ready');
+    expect(contract.status).toBe('degraded');
     expect(contract.unavailableReasons).toEqual([]);
     expect(contract.permittedTools).toContain('generate_learning_path');
   });
@@ -786,7 +943,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ role: 'student', pageId: '/assessment/adaptive-practice', pathNodeId: null }),
     });
 
-    expect(contract.status).toBe('ready');
+    expect(contract.status).toBe('degraded');
     expect(contract.permittedTools).not.toEqual(expect.arrayContaining([
       'generate_learning_path',
       'revise_learning_path_options',
@@ -851,7 +1008,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ role: 'student', pageId: 'adaptive-path-center', pathNodeId: null }),
     });
 
-    expect(contract.status).toBe('ready');
+    expect(contract.status).toBe('degraded');
     expect(contract.permittedTools).not.toEqual(expect.arrayContaining([
       'generate_learning_path',
       'revise_learning_path_options',

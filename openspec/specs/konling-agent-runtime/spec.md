@@ -3,12 +3,12 @@
 Define the state-aware Konling runtime that loads server-owned adaptive context, exposes scoped learning tools, persists governed memory, and records corrective or remedial intervention outcomes.
 ## Requirements
 ### Requirement: Konling reads server-owned adaptive context
-Konling SHALL build runtime context from server-owned page context, learner state, plan context, and scoped memory rather than default or client-provided profile values.
+Konling SHALL build runtime context from server-owned page context, learner state, plan context, graph context, and scoped memory rather than default or client-provided profile values.
 
-#### Scenario: Konling context is loaded
-- **WHEN** Konling starts or receives a message on a supported page
-- **THEN** it SHALL load page context, learner state, current plan context, recent evidence, relevant memory summaries, and permitted tools
-- **AND** missing or low-confidence context SHALL be visible to prompt construction and response rationale.
+#### Scenario: Graph-aware Konling context is loaded
+- **WHEN** Konling starts or receives a message on a graph-aware path, graph-center, diagnosis, or prep-pack surface
+- **THEN** it SHALL load the available Konling graph context in addition to page context, learner state, current plan context, recent evidence, memory summaries, and permitted tools
+- **AND** missing graph context classes SHALL be visible to prompt construction, tool input preparation, and response rationale.
 
 ### Requirement: Konling exposes adaptive-learning tools
 Konling SHALL expose tools for page, learner, plan, memory, knowledge graph, next action, simulation status, intervention, attempt analysis, and adaptive path generation.
@@ -143,29 +143,12 @@ Konling SHALL separate controller patch proposal from controller patch applicati
 - **AND** it SHALL apply the patch only after approval and only within the owner user's scoped controller draft.
 
 ### Requirement: Konling coaching is path-aware and citation-enforced
-Konling SHALL provide control-correction coaching from server-owned path context, consume path comparison, selection history, and terminal validation context, and attach required citations to coaching claims.
+Konling SHALL provide graph-aware path coaching from server-owned path and graph context, consume path comparison, selection history, terminal validation context, and graph grounding, and attach required citations to coaching claims.
 
-#### Scenario: Control-correction coaching starts
-- **WHEN** Konling handles a message in a control-correction learning path context
-- **THEN** it SHALL load server-owned page context, learner-state slice, active path round, current node, recent evidence, memory summaries, permitted tools, and citation requirements
-- **AND** client-provided page hints SHALL NOT expand user, class, resource, path, or privacy scope.
-
-#### Scenario: Personalized recommendation is generated
-- **WHEN** a student asks why a path is recommended or selected
-- **THEN** Konling SHALL ground the answer in diagnosis, path option context, selection history, and evidence citations
-- **AND** the response SHALL include at least one content citation and at least one learner, path, execution, simulation, Arena, or intervention evidence citation where available
-- **AND** missing or low-confidence evidence SHALL be disclosed as a limitation
-- **AND** it SHALL distinguish preference evidence from mastery evidence.
-
-#### Scenario: Simulation or Arena failure is analyzed
-- **WHEN** Konling analyzes a simulation failure or Arena submission issue
-- **THEN** it SHALL cite the relevant run, summary, replay, official submission, or governed evidence reference plus an instructional content reference
-- **AND** it SHALL NOT expose hidden official evaluation internals, raw high-frequency traces, or private memory payloads by default.
-
-#### Scenario: Intervention outcome is captured
-- **WHEN** a student accepts, ignores, rejects, or partially accepts a Konling control-correction intervention
-- **THEN** the runtime SHALL persist the outcome with path id, node id, evidence references, privacy-safe summary, and confidence state
-- **AND** the outcome SHALL be available to governed evidence or feature-cache refresh.
+#### Scenario: Personalized graph path explanation is generated
+- **WHEN** a student asks why a graph-driven path or node was recommended
+- **THEN** Konling SHALL ground the answer in LearningGoal metadata, ExpandedGoalSubgraph, authorized learner or class overlay, ResourceCoverage, path option context, selection history, and verified citations where available
+- **AND** it SHALL disclose missing or low-confidence goal, graph, resource, overlay, path, version, or citation context as a limitation.
 
 ### Requirement: Konling corrects failed validation from governed evidence
 Konling SHALL use governed simulation and Arena validation summaries when coaching a student after failed control-correction terminal validation.
