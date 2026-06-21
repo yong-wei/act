@@ -1,7 +1,7 @@
 {
   "change": "govern-knowledge-workspace-product-qa",
   "issue": 489,
-  "capturedAt": "2026-06-16T01:29:32.367Z",
+  "capturedAt": "2026-06-21T05:22:16.837Z",
   "baseUrl": "http://127.0.0.1:3002",
   "selectedNodeId": "z反变换_7_7959c077",
   "designSourceOfTruth": {
@@ -41,10 +41,10 @@
     "src/components/providers/global-ai-provider.tsx": "5b7703d37cc6be9fbae080cec062d12c27ccd0381976045031b0400095fa42e8",
     "src/components/platform/app-shell.tsx": "40059baa242f29147dafb3f80fcc1115b587e69b9e2f473e18f47dfec5ceccb0",
     "src/components/shared/page-floating-controls.tsx": "23265ac682a76b275ce2b6a4981ff7ff6de72d86eee608a01b39cad4258e80e9",
-    "src/app/globals.css": "93368fd406d78e8ffb6bfcc24d9f74542ca1b5eb9b793cbb8580baa8e67f87d9",
+    "src/app/globals.css": "1b915ddb00c5842d138701e2f1f033b1e1cc50a74934786c9767f95761ad6d44",
     "src/lib/konling-agent-runtime.ts": "7db225f75036bbb21b75fb7d9f6a2d7c6d1fb6da0776415d56808df03d466b64",
     "scripts/tests/capture-knowledge-workspace-product-qa.ts": "69d45018e2377f8dbe17012ea6f7d991ff175426bd79cd4e92bdf9098e86e2a3",
-    "scripts/tests/test-commercial-ui-governance.ts": "d84c9c00abed8dab13a71b1bc3c01f511b2101955b9f1182fa4203443703c201"
+    "scripts/tests/test-commercial-ui-governance.ts": "e7389e58ae65329c85790859b43ef8a2a58e17973431a2045bb349d2c80a5d26"
   },
   "stateMatrix": [
     {
@@ -1461,10 +1461,10 @@
       "src/components/providers/global-ai-provider.tsx": "5b7703d37cc6be9fbae080cec062d12c27ccd0381976045031b0400095fa42e8",
       "src/components/platform/app-shell.tsx": "40059baa242f29147dafb3f80fcc1115b587e69b9e2f473e18f47dfec5ceccb0",
       "src/components/shared/page-floating-controls.tsx": "23265ac682a76b275ce2b6a4981ff7ff6de72d86eee608a01b39cad4258e80e9",
-      "src/app/globals.css": "93368fd406d78e8ffb6bfcc24d9f74542ca1b5eb9b793cbb8580baa8e67f87d9",
+      "src/app/globals.css": "1b915ddb00c5842d138701e2f1f033b1e1cc50a74934786c9767f95761ad6d44",
       "src/lib/konling-agent-runtime.ts": "7db225f75036bbb21b75fb7d9f6a2d7c6d1fb6da0776415d56808df03d466b64",
       "scripts/tests/capture-knowledge-workspace-product-qa.ts": "69d45018e2377f8dbe17012ea6f7d991ff175426bd79cd4e92bdf9098e86e2a3",
-      "scripts/tests/test-commercial-ui-governance.ts": "d84c9c00abed8dab13a71b1bc3c01f511b2101955b9f1182fa4203443703c201"
+      "scripts/tests/test-commercial-ui-governance.ts": "e7389e58ae65329c85790859b43ef8a2a58e17973431a2045bb349d2c80a5d26"
     }
   },
   "temporaryExceptions": []

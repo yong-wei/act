@@ -324,15 +324,48 @@
   }
 
   .commercial-module-chrome--visual-block-diagram,
-  .commercial-module-chrome--visual-signal-flow-graph {
+  .commercial-module-chrome--visual-derivation-stage,
+  .commercial-module-chrome--visual-stage,
+  .commercial-module-chrome--visual-signal-flow-graph,
+  .commercial-module-chrome--media,
+  .commercial-module-chrome--card-set,
+  .commercial-module-chrome--content,
+  .commercial-module-chrome--formula,
+  .commercial-module-chrome--stage-map,
+  .commercial-module-chrome--interaction,
+  .commercial-module-chrome--workspace,
+  .commercial-module-chrome--compute,
+  .commercial-module-chrome--table,
+  .commercial-module-chrome--code,
+  .commercial-module-chrome--reveal,
+  .commercial-module-chrome--teacher-summary,
+  .commercial-module-chrome--visual-annotated-media,
+  .commercial-module-chrome--visual-embedded-activity {
     @apply border-0 bg-transparent p-0 shadow-none;
+    display: contents;
     background: transparent;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
 
   .commercial-module-chrome--visual-block-diagram[data-interactive-module-teacher-controls="module"],
-  .commercial-module-chrome--visual-signal-flow-graph[data-interactive-module-teacher-controls="module"] {
+  .commercial-module-chrome--visual-derivation-stage[data-interactive-module-teacher-controls="module"],
+  .commercial-module-chrome--visual-stage[data-interactive-module-teacher-controls="module"],
+  .commercial-module-chrome--visual-signal-flow-graph[data-interactive-module-teacher-controls="module"],
+  .commercial-module-chrome--media[data-interactive-module-teacher-controls="module"],
+  .commercial-module-chrome--card-set[data-interactive-module-teacher-controls="module"],
+  .commercial-module-chrome--content[data-interactive-module-teacher-controls="module"],
+  .commercial-module-chrome--formula[data-interactive-module-teacher-controls="module"],
+  .commercial-module-chrome--stage-map[data-interactive-module-teacher-controls="module"],
+  .commercial-module-chrome--interaction[data-interactive-module-teacher-controls="module"],
+  .commercial-module-chrome--workspace[data-interactive-module-teacher-controls="module"],
+  .commercial-module-chrome--compute[data-interactive-module-teacher-controls="module"],
+  .commercial-module-chrome--table[data-interactive-module-teacher-controls="module"],
+  .commercial-module-chrome--code[data-interactive-module-teacher-controls="module"],
+  .commercial-module-chrome--reveal[data-interactive-module-teacher-controls="module"],
+  .commercial-module-chrome--teacher-summary[data-interactive-module-teacher-controls="module"],
+  .commercial-module-chrome--visual-annotated-media[data-interactive-module-teacher-controls="module"],
+  .commercial-module-chrome--visual-embedded-activity[data-interactive-module-teacher-controls="module"] {
     @apply border-l-0;
   }
 
@@ -1018,6 +1051,73 @@
 
   .premium-lesson-main {
     @apply mx-auto max-w-[1080px] space-y-3 px-3 py-3 sm:space-y-4 sm:px-4 sm:py-4;
+  }
+
+  .interactive-courseware-stack {
+    @apply space-y-4;
+  }
+
+  .interactive-courseware-region {
+    @apply space-y-4;
+  }
+
+  .interactive-courseware-panel {
+    @apply grid gap-4;
+  }
+
+  .interactive-courseware-section {
+    @apply grid gap-3;
+  }
+
+  .interactive-courseware-toolbar {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .interactive-courseware-title-level-1 {
+    @apply text-2xl font-semibold leading-9 tracking-normal;
+    color: hsl(var(--premium-lesson-foreground-strong));
+  }
+
+  .interactive-courseware-title-level-2 {
+    @apply text-[22px] font-semibold leading-8 tracking-normal;
+    color: hsl(var(--premium-lesson-foreground-strong));
+  }
+
+  .interactive-courseware-title-level-3 {
+    @apply text-xl font-semibold leading-[30px] tracking-normal;
+    color: hsl(var(--premium-lesson-foreground-strong));
+  }
+
+  .interactive-courseware-body {
+    @apply text-base leading-7 md:text-lg md:leading-8;
+    color: hsl(var(--premium-lesson-foreground));
+  }
+
+  .interactive-courseware-caption {
+    @apply text-sm leading-6;
+    color: hsl(var(--premium-lesson-muted));
+  }
+
+  .interactive-courseware-control {
+    @apply text-sm font-medium leading-6;
+  }
+
+  .interactive-courseware-flow-arrow {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--platform-action-primary) / 0) 0%,
+      hsl(var(--platform-action-primary) / 0.22) 34%,
+      hsl(var(--platform-action-primary) / 0.92) 100%
+    );
+    clip-path: polygon(
+      0 34%,
+      calc(100% - 1.5em) 34%,
+      calc(100% - 1.5em) 0,
+      100% 50%,
+      calc(100% - 1.5em) 100%,
+      calc(100% - 1.5em) 66%,
+      0 66%
+    );
   }
 
   .premium-lesson-panel {

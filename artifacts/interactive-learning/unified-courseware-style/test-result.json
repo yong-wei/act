@@ -1,0 +1,27 @@
+{
+  "changeId": "unify-interactive-lesson-component-style",
+  "generatedAt": "2026-06-21T05:32:43.828Z",
+  "status": "pass",
+  "commands": [
+    {
+      "command": "rtk npm run test:unit -- src/features/interactive/__tests__/interactive-commercial-module-chrome.test.tsx src/features/interactive/__tests__/interactive-module-registry-gate.test.ts src/features/interactive/__tests__/unit-1-2-course.test.ts",
+      "previousResult": "pass: 3 files, 102 tests; includes shared runtime raw palette source scan"
+    },
+    {
+      "command": "rtk openspec validate unify-interactive-lesson-component-style --strict",
+      "previousResult": "pass"
+    },
+    {
+      "command": "rtk python3 .agents/skills/interactive-design/scripts/audit_interactive_manifest.py --lesson 1-2",
+      "previousResult": "pass: 14 steps, 43 modules, 0 issues"
+    },
+    {
+      "command": "rtk python3 course-content/scripts/review_lesson_content.py --lesson 1-2 --skip-export --strict-implementation-contract",
+      "previousResult": "pass"
+    },
+    {
+      "command": "rtk npm run test:commercial-ui-governance",
+      "previousResult": "pass: 86 changed files scanned"
+    }
+  ]
+}

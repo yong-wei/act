@@ -1,0 +1,42 @@
+{
+  "path": "artifacts/interactive-learning/unified-courseware-style/evidence-sample.json",
+  "eventType": "courseware_style_panel_view",
+  "clientEventId": "client-unified-courseware-style-001",
+  "attemptKey": "unit-1-2:style-audit:attempt-1",
+  "sourceLogId": "trusted-unified-courseware-style-log-001",
+  "lessonKey": "unit-1-2-modeling-from-object-to-system-v1",
+  "stepId": "step-01",
+  "moduleId": "intro-comic",
+  "componentKind": "visual.stage",
+  "componentId": "unified-courseware-panel-system",
+  "actorRole": "student",
+  "clientEventAt": "2026-06-21T05:20:00.000Z",
+  "theme": "light",
+  "viewport": "desktop",
+  "schemaVersion": "unified-courseware-style-v1",
+  "serverRecordedAt": "2026-06-21T05:20:01.000Z",
+  "classification": [
+    "InteractionLog",
+    "StudentStepResponse",
+    "LearningFact"
+  ],
+  "affectsTeacherDiagnostics": true,
+  "affectsAbilitySnapshots": false,
+  "affectsRecommendationInputs": false,
+  "payload": {
+    "lessonId": "1-2",
+    "inspectedComponents": [
+      "title-panel",
+      "content.figure",
+      "derivation",
+      "block-diagram",
+      "signal-flow",
+      "activity",
+      "table-rich",
+      "compute"
+    ],
+    "visibleChromeShells": 0,
+    "titleLevelContract": "h1 page title, h2 module title, h3 submodule title",
+    "bodyToken": "interactive-courseware-body"
+  }
+}

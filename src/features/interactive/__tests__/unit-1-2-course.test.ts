@@ -193,26 +193,58 @@ describe('unit 1-2 modeling from object to system course', () => {
     if (!step04) throw new Error('step-04 missing');
     const html = renderUnit12StepHtml(3);
     const stagePayload = step04.modules.find((module) => module.id === 'modeling-path-stage')?.payload as {
-      layers?: Array<{ id: string; title: string; body: string }>;
+      layers?: Array<{ id: string; title: string; body: string; appearance?: string }>;
+      connections?: Array<{ id: string; from: string; to: string }>;
     };
 
     expect(step04.modules.map((module) => module.id)).not.toContain('course-positioning');
     expect(step04.modules.map((module) => module.kind)).toContain('visual.stage');
-    expect(stagePayload.layers?.map((layer) => layer.id)).toEqual(expect.arrayContaining([
+    expect(stagePayload.layers?.map((layer) => layer.id)).toEqual([
       'real-object',
-      'mechanism-path',
-      'data-path',
+      'physical-law',
+      'differential-equation',
+      'transfer-function',
+      'input-output-data',
+      'algorithm-learning',
+      'prediction-model',
       'mechanism-boundary',
       'data-boundary',
-      'course-position',
-    ]));
+      'modeling-goal',
+    ]);
+    expect(stagePayload.layers?.filter((layer) => layer.appearance === 'flowNode').map((layer) => layer.title)).toEqual([
+      '真实对象',
+      '物理定律',
+      '微分方程',
+      '传递函数',
+      '输入输出数据',
+      '算法学习',
+      '预测模型',
+    ]);
+    expect(stagePayload.connections?.map((connection) => connection.id)).toEqual([
+      'object-to-law',
+      'law-to-equation',
+      'equation-to-transfer-function',
+      'object-to-data',
+      'data-to-learning',
+      'learning-to-prediction',
+    ]);
     expect(JSON.stringify(stagePayload)).toContain('机理建模');
     expect(JSON.stringify(stagePayload)).toContain('数据驱动建模');
-    expect(JSON.stringify(stagePayload)).toContain('本课以机理建模为主线');
+    expect(JSON.stringify(stagePayload)).not.toContain('本课以机理建模为主线');
     expect(html).toContain('data-visual-stage-id="modeling-paths"');
-    expect(html).toContain('data-visual-stage-layer-id="mechanism-path"');
-    expect(html).toContain('data-visual-stage-layer-id="data-path"');
-    expect(html).toContain('data-visual-stage-layer-id="course-position"');
+    expect(html).toContain('data-visual-stage-panel-chrome="title-panel"');
+    expect(html).toContain('data-visual-stage-canvas-chrome="none"');
+    expect(html).toContain('data-visual-stage-layer-kind-labels="hidden"');
+    expect(html).toContain('data-visual-stage-layer-selected="false"');
+    expect(html).toContain('data-visual-stage-layer-id="physical-law"');
+    expect(html).toContain('data-visual-stage-layer-id="input-output-data"');
+    expect(html).toContain('data-visual-stage-connection-id="object-to-law"');
+    expect(html).toContain('data-visual-stage-connection-id="object-to-data"');
+    expect(html).not.toContain('data-visual-stage-layer-summary');
+    expect(html).not.toContain('data-visual-stage-layer-id="course-position"');
+    expect(html).not.toContain('>关系图<');
+    expect(html).not.toContain('>标注<');
+    expect(html).not.toContain('rounded-2xl border border-[var(--platform-border)]');
     expect(html).not.toContain('course-positioning');
     expect(html).not.toContain('svg-comparison');
   });
@@ -234,8 +266,48 @@ describe('unit 1-2 modeling from object to system course', () => {
     const step05Stage = step05.modules.find((module) => module.id === 'ship-equation-stage')?.payload as {
       revealSteps?: unknown[];
       formulas?: unknown[];
+      connectors?: Array<{
+        id?: string;
+        from?: string;
+        to?: string;
+        fromAnchor?: string;
+        toAnchor?: string;
+        revealStepIds?: string[];
+      }>;
     };
     expect(step05Stage.revealSteps).toHaveLength(5);
+    expect(step05Stage.connectors).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'object-to-equation',
+        from: 'physical-object',
+        to: 'inertia-term',
+        fromAnchor: 'E',
+        toAnchor: 'W',
+      }),
+      expect.objectContaining({
+        id: 'equation-to-homogeneous',
+        from: 'damping-term',
+        to: 'characteristic-equation',
+        fromAnchor: 'S',
+        toAnchor: 'N',
+      }),
+      expect.objectContaining({
+        id: 'homogeneous-to-complete',
+        from: 'theta-h',
+        to: 'theta-complete',
+        fromAnchor: 'S',
+        toAnchor: 'NW',
+        revealStepIds: ['complete-response'],
+      }),
+      expect.objectContaining({
+        id: 'particular-to-complete',
+        from: 'theta-p',
+        to: 'theta-complete',
+        fromAnchor: 'S',
+        toAnchor: 'N',
+        revealStepIds: ['complete-response'],
+      }),
+    ]));
     expect(step05.modules.map((module) => module.id)).toEqual(expect.arrayContaining([
       'ship-physics-img',
       'direct-response-img',
@@ -260,10 +332,18 @@ describe('unit 1-2 modeling from object to system course', () => {
       branches?: unknown[];
       pathSets?: unknown[];
       masonTerms?: unknown[];
+      revealPlan?: Array<{ id: string }>;
+      nodes?: Array<{ id: string; labelPosition?: string }>;
+      showPathSets?: boolean;
+      showMasonMap?: boolean;
     };
     expect(step08Graph.branches?.length).toBeGreaterThanOrEqual(5);
     expect(JSON.stringify(step08Graph.pathSets)).toContain('forward');
-    expect(JSON.stringify(step08Graph.masonTerms)).toContain('P_1');
+    expect(step08Graph.masonTerms ?? []).toEqual([]);
+    expect(step08Graph.showPathSets).toBe(false);
+    expect(step08Graph.showMasonMap).toBe(false);
+    expect(step08Graph.revealPlan?.map((item) => item.id)).toEqual(['nodes', 'branches']);
+    expect(step08Graph.nodes?.filter((node) => node.labelPosition === 'above').map((node) => node.id)).toEqual(['E', 'Y']);
     expect(step08.contentBlocks['sfg-concepts']).toBeDefined();
 
     const step12Stage = step12.modules.find((module) => module.id === 'example-derivation-stage')?.payload as {
@@ -297,6 +377,22 @@ describe('unit 1-2 modeling from object to system course', () => {
       'poles-plane',
       'behavior',
     ]));
+  });
+
+  it('renders step 05 derivation, figures and cards with teaching semantics and title-panel chrome', () => {
+    const html = renderUnit12StepHtml(4);
+
+    expect(html).toContain('微分方程如何给出一次具体响应');
+    expect(html).toContain('从舵角产生力矩，到航向角响应，逐步看直接求解的成本。');
+    expect(html).toContain('data-derivation-stage-panel-chrome="title-panel"');
+    expect(html).toContain('data-derivation-stage-canvas-chrome="none"');
+    expect(html).toContain('data-derivation-stage-connector-from-anchor="E"');
+    expect(html).toContain('data-derivation-stage-connector-to-anchor="W"');
+    expect(html).toContain('data-image-panel-frame="none"');
+    expect(html).toContain('katex');
+    expect(html).not.toContain('船舶航向微分方程推导舞台');
+    expect(html).not.toContain('按显影步骤观察公式、说明和关联线');
+    expect(html).not.toContain('rounded-2xl border border-[var(--platform-border)]');
   });
 
   it('does not render activity manifest modules as duplicate content title blocks', () => {
@@ -349,10 +445,45 @@ describe('unit 1-2 modeling from object to system course', () => {
     expect(signalFlowModule?.kind).toBe('visual.signalFlowGraph');
     const signalFlowHtml = renderUnit12StepHtml(7);
     expect(signalFlowHtml).toContain('data-structure-diagram-id="closed-loop-signal-flow"');
+    expect(signalFlowHtml).toContain('premium-lesson-panel interactive-courseware-panel grid gap-4');
     expect(signalFlowHtml).toContain('data-structure-diagram-layout-mode="relative"');
     expect(signalFlowHtml).toContain('data-structure-diagram-text-scale="uniform"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-path-sets-enabled="false"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-mason-map-enabled="false"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-canvas-vertical-fit="content-trimmed"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-y-target-span="0.7"');
+    expect(signalFlowHtml).toContain('min-h-[300px]');
+    expect(signalFlowHtml).toContain('md:h-[340px]');
     expect(signalFlowHtml).toContain('data-structure-diagram-branch-route-kind="straight"');
     expect(signalFlowHtml).toContain('data-structure-diagram-branch-route-kind="auto-bezier"');
+    expect(signalFlowHtml).not.toContain('data-structure-diagram-mode-label="visual"');
+    expect(signalFlowHtml).not.toContain('梅森公式');
+    expect(signalFlowHtml).not.toContain('Mason');
+    expect(signalFlowHtml).not.toContain('data-structure-diagram-mason-map="visible"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-keyword-toolbar="visible"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-keyword-id="nodes"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-keyword-id="branches"');
+    expect(signalFlowHtml).not.toContain('data-structure-diagram-keyword-id="forward-path"');
+    expect(signalFlowHtml).not.toContain('data-structure-diagram-keyword-id="feedback-loop"');
+    expect(signalFlowHtml).not.toContain('data-structure-diagram-path-sets="visible"');
+    expect(signalFlowHtml).not.toContain('data-structure-diagram-path-id="P1"');
+    expect(signalFlowHtml).not.toContain('data-structure-diagram-loop-id="L1"');
+    expect(signalFlowHtml).toContain('rounded-full border px-3 py-1.5 text-sm font-semibold');
+    expect(signalFlowHtml).toContain('data-structure-diagram-node-visual-kind="signal-node"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-node-label-position="below"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-node-id="E"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-node-id="Y"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-node-label-position="above"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-node-anchors="N NE E SE S SW W NW C"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-node-dot="R"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-branch-id="b-r-e"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-branch-from-port="right"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-branch-to-port="left"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-branch-id="b-ym-e"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-branch-from-port="top-left"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-branch-to-port="bottom-right"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-branch-hit-target="b-ym-e"');
+    expect(signalFlowHtml).toContain('data-structure-diagram-branch-keyboard-selectable="true"');
   });
 
   it('renders step 12 as a nonlinear derivation stage instead of a blank reveal module', () => {
@@ -381,6 +512,10 @@ describe('unit 1-2 modeling from object to system course', () => {
     expect(html).toContain('data-structure-diagram-layout-mode="relative"');
     expect(html).toContain('data-structure-diagram-layout-spacing-x="0.15"');
     expect(html).toContain('data-structure-diagram-layout-spacing-y="0.15"');
+    expect(html).toContain('data-structure-diagram-canvas-vertical-fit="content-trimmed"');
+    expect(html).toContain('data-structure-diagram-y-target-span="0.66"');
+    expect(html).toContain('min-h-[300px]');
+    expect(html).toContain('md:h-[340px]');
     expect(html).toContain('data-structure-diagram-text-scale="uniform"');
     expect(html).toContain('data-structure-diagram-node-anchors="N E S W"');
     expect(html).toContain('data-structure-diagram-node-visual-kind="input"');
@@ -389,7 +524,10 @@ describe('unit 1-2 modeling from object to system course', () => {
     expect(html).toContain('data-structure-diagram-node-visual-kind="takeoff"');
     expect(html).toContain('data-structure-diagram-node-selected="false"');
     expect(html).toContain('data-structure-diagram-node-symbol-size="takeoff-dot"');
+    expect(html).toContain('data-structure-diagram-node-rendered-height="0.12352941176470589"');
     expect(html).toContain('data-structure-diagram-edge-id="sensor-to-sum"');
+    expect(html).toContain('data-structure-diagram-edge-label-id="sensor-to-sum"');
+    expect(html).toContain('data-structure-diagram-edge-label-placement="source-left"');
     expect(html).toContain('data-structure-diagram-edge-hit-target="sensor-to-sum"');
     expect(html).toContain('data-structure-diagram-edge-main-line="true"');
     expect(html).toContain('vector-effect="non-scaling-stroke"');
@@ -436,10 +574,12 @@ describe('unit 1-2 modeling from object to system course', () => {
 
   it('keeps visual component chrome instructional and hides contract identifiers on steps 05, 07, 08, and 12', () => {
     const rendered = [4, 6, 7, 11].map(renderUnit12StepHtml).join('\n');
+    const step08Html = renderUnit12StepHtml(7);
 
     expect(rendered).toContain('data-derivation-stage-control-button="next"');
     expect(rendered).toContain('data-derivation-stage-control-button="previous"');
-    expect(rendered).toContain('data-structure-diagram-mode-label="visual"');
+    expect(step08Html).not.toContain('data-structure-diagram-mode-label="visual"');
+    expect(step08Html).toContain('data-structure-diagram-keyword-toolbar="visible"');
     for (const forbidden of [
       'LaTeX 公式',
       '公式块',

@@ -768,10 +768,13 @@ function missingControlWorkbenchPayloadFields(payload: Record<string, unknown>):
 
 const VISUAL_STAGE_ASPECT_RATIOS = new Set(['16:9', '4:3', 'fluid']);
 const VISUAL_STAGE_LAYER_KINDS = new Set(['diagram', 'formula', 'annotation', 'media', 'activity', 'control']);
+const VISUAL_STAGE_LAYER_APPEARANCES = new Set(['card', 'flowNode', 'note', 'objective']);
+const VISUAL_STAGE_ANCHORS = new Set(['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'C']);
 const VISUAL_STAGE_RELEASE_STATES = new Set(['unavailable', 'unreleased', 'released', 'revealed']);
 const VISUAL_STAGE_BUILT_IN_REVEAL_STATES = new Set(['all', 'released', 'revealed']);
 const DERIVATION_STAGE_BLOCK_COLOR_ROLES = new Set(['known', 'transform', 'cancel', 'target', 'risk', 'result']);
 const DERIVATION_STAGE_CONNECTOR_KINDS = new Set(['arrow', 'brace', 'equals', 'therefore', 'reference', 'highlight-line', 'dependency']);
+const DERIVATION_STAGE_CONNECTOR_ANCHORS = new Set(['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'C']);
 const DERIVATION_STAGE_LOAD_EXCEPTION_VALUES = new Set(['teacher-paced', 'worked-example', 'review-only']);
 const BLOCK_DIAGRAM_NODE_TYPES = new Set(['block', 'sum', 'branch', 'input', 'output', 'disturbance', 'sensor']);
 const BLOCK_DIAGRAM_PORTS = new Set([
@@ -829,6 +832,10 @@ function invalidVisualStagePayloadFields(payload: Record<string, unknown>): stri
     }
     const kind = stringValue(layer.kind);
     if (!kind || !VISUAL_STAGE_LAYER_KINDS.has(kind)) missing.push(`stage=${stageLabel}.layers[${layerLabel}].kind`);
+    const appearance = stringValue(layer.appearance ?? layer.variant);
+    if (appearance && !VISUAL_STAGE_LAYER_APPEARANCES.has(appearance)) {
+      missing.push(`stage=${stageLabel}.layers[${layerLabel}].appearance`);
+    }
     const revealState = stringValue(layer.revealState ?? layer.reveal_state);
     if (revealState && !allowedRevealStates.has(revealState)) {
       missing.push(`stage=${stageLabel}.layers[${layerLabel}].revealState`);
@@ -847,6 +854,33 @@ function invalidVisualStagePayloadFields(payload: Record<string, unknown>): stri
     const zIndex = layer.zIndex ?? layer.z_index;
     if (zIndex !== undefined && (!Number.isInteger(Number(zIndex)) || Number(zIndex) < 0)) {
       missing.push(`stage=${stageLabel}.layers[${layerLabel}].zIndex`);
+    }
+  }
+  const rawConnections = payload.connections ?? payload.edges;
+  const connections = Array.isArray(rawConnections) ? rawConnections : [];
+  const seenConnectionIds = new Set<string>();
+  for (const [index, rawConnection] of connections.entries()) {
+    const connection = recordValue(rawConnection);
+    const id = stringValue(connection.id);
+    const connectionLabel = `${index}:${id ?? '(missing)'}`;
+    if (!id) {
+      missing.push(`stage=${stageLabel}.connections[${connectionLabel}].id`);
+    } else if (seenConnectionIds.has(id)) {
+      missing.push(`stage=${stageLabel}.connections[${connectionLabel}].id:duplicate`);
+    } else {
+      seenConnectionIds.add(id);
+    }
+    const from = stringValue(connection.from ?? connection.fromId ?? connection.from_id);
+    const to = stringValue(connection.to ?? connection.toId ?? connection.to_id);
+    if (!from || !seenIds.has(from)) missing.push(`stage=${stageLabel}.connections[${connectionLabel}].from`);
+    if (!to || !seenIds.has(to)) missing.push(`stage=${stageLabel}.connections[${connectionLabel}].to`);
+    const fromAnchor = stringValue(connection.fromAnchor ?? connection.from_anchor);
+    const toAnchor = stringValue(connection.toAnchor ?? connection.to_anchor);
+    if (fromAnchor && !VISUAL_STAGE_ANCHORS.has(fromAnchor)) missing.push(`stage=${stageLabel}.connections[${connectionLabel}].fromAnchor`);
+    if (toAnchor && !VISUAL_STAGE_ANCHORS.has(toAnchor)) missing.push(`stage=${stageLabel}.connections[${connectionLabel}].toAnchor`);
+    const revealState = stringValue(connection.revealState ?? connection.reveal_state);
+    if (revealState && !allowedRevealStates.has(revealState)) {
+      missing.push(`stage=${stageLabel}.connections[${connectionLabel}].revealState`);
     }
   }
   return missing;
@@ -895,6 +929,7 @@ function invalidDerivationStagePayloadFields(payload: Record<string, unknown>): 
       }
       const blockLatex = stringValue(block.latex ?? block.latexSource ?? block.latex_source ?? latex);
       if (!blockLatex || !looksLikeLatexSource(blockLatex)) missing.push(`stage=${stageLabel}.${blockLabel}.latex`);
+      if (block.region) validateDerivationRegion(stageLabel, `${blockLabel}.region`, block.region, missing);
       const colorRole = stringValue(block.colorRole ?? block.color_role);
       if (colorRole && !DERIVATION_STAGE_BLOCK_COLOR_ROLES.has(colorRole)) missing.push(`stage=${stageLabel}.${blockLabel}.colorRole`);
     }
@@ -985,6 +1020,10 @@ function invalidDerivationStagePayloadFields(payload: Record<string, unknown>): 
     const to = stringValue(connector.to ?? connector.toId ?? connector.to_id);
     if (!from || !allTargetIds.has(from)) missing.push(`stage=${stageLabel}.connectors[${connectorLabel}].from`);
     if (!to || !allTargetIds.has(to)) missing.push(`stage=${stageLabel}.connectors[${connectorLabel}].to`);
+    const fromAnchor = stringValue(connector.fromAnchor ?? connector.from_anchor);
+    const toAnchor = stringValue(connector.toAnchor ?? connector.to_anchor);
+    if (fromAnchor && !DERIVATION_STAGE_CONNECTOR_ANCHORS.has(fromAnchor)) missing.push(`stage=${stageLabel}.connectors[${connectorLabel}].fromAnchor`);
+    if (toAnchor && !DERIVATION_STAGE_CONNECTOR_ANCHORS.has(toAnchor)) missing.push(`stage=${stageLabel}.connectors[${connectorLabel}].toAnchor`);
     const connectorRevealStepIds = stringArrayValue(connector.revealStepIds ?? connector.reveal_step_ids);
     if (connectorRevealStepIds.length === 0) missing.push(`stage=${stageLabel}.connectors[${connectorLabel}].revealStepIds`);
     for (const revealStepId of connectorRevealStepIds) {
@@ -1242,7 +1281,6 @@ function invalidSignalFlowGraphPayloadFields(payload: Record<string, unknown>): 
   }
   const rawMasonTerms = payload.masonTerms ?? payload.mason_terms;
   const masonTerms: unknown[] = Array.isArray(rawMasonTerms) ? rawMasonTerms : [];
-  if (masonTerms.length === 0) missing.push(`graph=${graphLabel}.masonTerms`);
   for (const [index, rawTerm] of masonTerms.entries()) {
     const term = recordValue(rawTerm);
     const termId = stringValue(term.id);

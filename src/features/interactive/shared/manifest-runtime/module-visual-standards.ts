@@ -48,6 +48,15 @@ export interface InteractiveModuleVisualStandard {
   viewportStates: readonly InteractiveModuleViewportState[];
 }
 
+export interface InteractiveCoursewareStyleInventoryItem {
+  canonicalClass: InteractiveModuleCanonicalClass;
+  panelExterior: 'title-panel';
+  chromeRole: 'metadata-only';
+  spacingOwner: 'manifest-runtime-layout';
+  titleLevel: 'module-level-2';
+  bodyToken: 'interactive-courseware-body';
+}
+
 const SHARED_STATES = {
   projectionSafe: true,
   projectionTypography: 'projection-readable',
@@ -79,6 +88,23 @@ export const INTERACTIVE_MODULE_VISUAL_STANDARDS: Record<InteractiveModuleCanoni
   'layout.support': standard('layout.support', 'layout', 'commercial-module-chrome--support', 'none'),
   'legacy.adapter': standard('legacy.adapter', 'fallback', 'commercial-module-chrome--fallback', 'none'),
 };
+
+export const INTERACTIVE_COURSEWARE_STYLE_MODULE_INVENTORY: Record<
+  InteractiveModuleCanonicalClass,
+  InteractiveCoursewareStyleInventoryItem
+> = Object.fromEntries(
+  Object.keys(INTERACTIVE_MODULE_VISUAL_STANDARDS).map((canonicalClass) => [
+    canonicalClass,
+    {
+      canonicalClass,
+      panelExterior: 'title-panel',
+      chromeRole: 'metadata-only',
+      spacingOwner: 'manifest-runtime-layout',
+      titleLevel: 'module-level-2',
+      bodyToken: 'interactive-courseware-body',
+    },
+  ]),
+) as Record<InteractiveModuleCanonicalClass, InteractiveCoursewareStyleInventoryItem>;
 
 function standard(
   canonicalClass: InteractiveModuleCanonicalClass,
