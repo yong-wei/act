@@ -9,6 +9,8 @@
 
 本次刷新新增 `mobile-320-inspector-konling-stress-dark` 必检状态：在 320px 下先打开选中节点检查器，再展开 Konling。截图和机器标记均显示移动端知识检查器被 `data-knowledge-mobile-inspector-policy="suspend"` 暂停显示，Konling 侧栏可用，且不与检查器、移动工具或 dock 触发器形成可见重叠。
 
+2026-06-21 复核结论：当前仅存在与知识工作区视觉合同无关的源码哈希漂移，Konling 共享侧栏、检查器避让与 320px inspector/Konling 压力态合同仍成立，可接受仅刷新 source hash 而不重拍截图。复核代理：ui-flow-reviewer:019ee86c-36bc-74c3-b01c-e78e4c73ae41。
+
 ## 维度结论
 
 - handoffAlignment: PASS。实现保留共享 AppShell、局部图谱工具、稳定检查器和共享 Konling dock，并补充移动端 inspector-to-Konling 压力态。

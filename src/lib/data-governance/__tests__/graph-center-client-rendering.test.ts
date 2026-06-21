@@ -11,6 +11,7 @@ import {
   createLearningEvidenceCorpusChunk,
   type LearningEvidenceCorpusChunk,
 } from '../learning-evidence-rag-corpus';
+import type { AdaptiveLearnerState } from '../adaptive-learner-state-service';
 import { buildResourceNodeRegistry } from '../../resource-node-registry';
 
 describe('graph center client surface', () => {
@@ -52,12 +53,64 @@ describe('graph center client surface', () => {
     const html = renderToStaticMarkup(createElement(GraphCenterClient, { initialPayload: payload }));
 
     expect(html).toContain('data-graph-center-limitations="true"');
-    expect(html).toContain('学习者掌握度 overlay 尚未接入');
+    expect(html).toContain('学习者</span><span class="text-xs text-platform-fg-muted">未接入');
     expect(html).toContain('Runtime content');
     expect(html).toContain('部分覆盖');
     expect(html).toContain('覆盖缺口');
     expect(html).toContain('缺少 RAG 索引');
     expect(html).not.toContain('coveredResourceIds');
+  });
+
+  it('renders learner overlay mode with text labels and recommendation evidence', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      resourceRegistry: buildFullCoverageRegistry(),
+      evidenceCorpus: [verifiedChunk()],
+      learnerOverlay: {
+        state: learnerState('learner-1', 0.84, 0.72, 3),
+        requestedLearnerId: 'learner-1',
+        viewerRole: 'student',
+        authorized: true,
+        verifiedCitationRefs: {
+          'kn:autocontrol:controller-correction': ['chunk-controller-correction-verified'],
+        },
+      },
+    });
+    const html = renderToStaticMarkup(createElement(GraphCenterClient, {
+      initialPayload: payload,
+      initialDisplayMode: 'learner',
+    }));
+
+    expect(html).toContain('学习者</span><span class="text-xs text-platform-fg-muted">可用');
+    expect(html).toContain('已掌握');
+    expect(html).toContain('学习者 overlay');
+    expect(html).toContain('进入下一目标');
+    expect(html).toContain('已校验引用 1');
+  });
+
+  it('renders class heat mode with suppression and denominator labels', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      classOverlay: {
+        classId: 'class-1',
+        viewerRole: 'teacher',
+        authorized: true,
+        minimumDenominator: 3,
+        learnerStates: [learnerState('learner-1', 0.84, 0.72, 3)],
+      },
+    });
+    const html = renderToStaticMarkup(createElement(GraphCenterClient, {
+      initialPayload: payload,
+      initialDisplayMode: 'class',
+    }));
+
+    expect(html).toContain('班级</span><span class="text-xs text-platform-fg-muted">已抑制');
+    expect(html).toContain('小样本抑制');
+    expect(html).toContain('班级 overlay');
+    expect(html).toContain('分母 1');
+    expect(html).toContain('最小分母 5');
   });
 
   it('preserves server-provided verified resource coverage in the initial render', () => {
@@ -148,6 +201,62 @@ describe('graph center client surface', () => {
 
     expect(filteredPayload.graph.nodes.length).toBe(rootPayload.domains.find((domain) => domain.id === 'knowledge')?.nodeCount);
     expect(filteredPayload.selectedNode?.node.id).toBe(rootPayload.graph.nodes[0].id);
+  });
+
+  it('filters server-provided learner and class overlay items with the graph nodes', () => {
+    const rootPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      learnerOverlay: {
+        state: learnerState('learner-1', 0.84, 0.72, 3),
+        requestedLearnerId: 'learner-1',
+        viewerRole: 'student',
+        authorized: true,
+      },
+      classOverlay: {
+        classId: 'class-1',
+        viewerRole: 'teacher',
+        authorized: true,
+        learnerStates: [
+          learnerState('learner-1', 0.84, 0.72, 3),
+          learnerState('learner-2', 0.74, 0.72, 3),
+          learnerState('learner-3', 0.64, 0.72, 3),
+          learnerState('learner-4', 0.54, 0.72, 3),
+          learnerState('learner-5', 0.44, 0.72, 3),
+        ],
+      },
+    });
+    const filteredPayload = filterGraphCenterPayload(rootPayload, {
+      objectiveId: 'knowledge:autocontrol:controller-correction',
+      portraitDimension: null,
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+    });
+
+    expect(Object.keys(filteredPayload.learnerOverlay.items)).toEqual(['kn:autocontrol:controller-correction']);
+    expect(Object.keys(filteredPayload.classOverlay.items)).toEqual(['kn:autocontrol:controller-correction']);
+    expect(filteredPayload.overlays.learner).toBe('available');
+    expect(filteredPayload.overlays.class).toBe('available');
+    expect(filteredPayload.selectedNode?.node.id).toBe('kn:autocontrol:controller-correction');
+    expect(filteredPayload.limitations.map((limitation) => limitation.code)).not.toContain(
+      'class-overlay-suppressed',
+    );
+
+    const lowConfidencePayload = filterGraphCenterPayload(rootPayload, {
+      objectiveId: 'knowledge:autocontrol:feedback-loop',
+      portraitDimension: null,
+      selectedNodeId: 'kn:autocontrol:feedback-loop',
+    });
+
+    expect(Object.keys(lowConfidencePayload.learnerOverlay.items)).toEqual(['kn:autocontrol:feedback-loop']);
+    expect(lowConfidencePayload.overlays.learner).toBe('low-confidence');
+    expect(lowConfidencePayload.learnerOverlay.limitations.map((limitation) => limitation.code)).toContain(
+      'learner-overlay-low-confidence',
+    );
+    expect(lowConfidencePayload.limitations.map((limitation) => limitation.code)).toContain(
+      'learner-overlay-low-confidence',
+    );
+    expect(lowConfidencePayload.limitations.filter((limitation) => (
+      limitation.code === 'learner-overlay-low-confidence'
+    ))).toHaveLength(1);
   });
 });
 
@@ -277,4 +386,65 @@ function buildFullCoverageRegistry() {
       },
     ],
   });
+}
+
+function learnerState(
+  userId: string,
+  score: number | null,
+  confidence: number,
+  evidenceCount: number,
+): AdaptiveLearnerState {
+  return {
+    userId,
+    roleScope: {
+      role: 'student',
+      classId: 'class-1',
+      privacyScopes: ['student-visible'],
+    },
+    generatedAt: '2026-06-21T00:00:00.000Z',
+    authority: 'server-owned',
+    knowledgeMastery: {
+      coverage: evidenceCount > 0 ? 'available' : 'missing',
+      tags: {},
+    },
+    masteryTraceability: {
+      knowledgeTargets: {
+        'kn:autocontrol:controller-correction': {
+          targetId: 'kn:autocontrol:controller-correction',
+          targetKind: 'knowledge',
+          masteryLevel: score,
+          confidence,
+          freshness: evidenceCount > 0 ? 'current' : 'missing',
+          supportingEvidenceRefs: evidenceCount > 0
+            ? [{
+                sourceType: 'LearningFact',
+                sourceId: `${userId}:fact`,
+                evidenceAt: '2026-06-20T00:00:00.000Z',
+                privacyLevel: 'student-visible',
+                confidence: 'high',
+              }]
+            : [],
+          sourceCoverage: {
+            AdaptiveMasteryUpdate: evidenceCount > 0 ? 'available' : 'missing',
+            LearningFact: evidenceCount > 0 ? 'available' : 'missing',
+            ArenaSubmission: 'missing',
+            AgentToolRun: 'missing',
+            StudentEvidenceFeatureCache: evidenceCount > 0 ? 'available' : 'missing',
+          },
+          limitations: [],
+        },
+      },
+      capabilityTargets: {},
+    },
+    pathContext: {
+      activeControlCorrectionPath: {
+        state: 'none',
+        pathId: null,
+        status: null,
+        currentNodeId: null,
+        terminalValidationState: null,
+        lowConfidenceMarkers: [],
+      },
+    },
+  } as unknown as AdaptiveLearnerState;
 }

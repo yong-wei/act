@@ -1,21 +1,28 @@
 'use client';
 
 import { useMemo, useState, type ReactNode } from 'react';
-import { AlertTriangle, Filter, Network, PanelRightOpen } from 'lucide-react';
+import { AlertTriangle, Filter, Network, PanelRightOpen, UserRound, UsersRound } from 'lucide-react';
 import {
   buildGraphCenterPayload,
   type GraphCenterDomain,
+  type GraphCenterLearnerOverlayReasonCode,
+  type GraphCenterLearnerOverlayState,
+  type GraphCenterOverlayStatus,
   type GraphCenterPayload,
   type GraphCenterResourceCoverageMissingType,
   type GraphCenterResourceCoverageState,
 } from '@/lib/data-governance/graph-center';
 
+type GraphCenterDisplayMode = 'resourceCoverage' | 'learner' | 'class';
+
 interface GraphCenterClientProps {
   initialPayload: GraphCenterPayload;
   rootPayloads?: Partial<Record<GraphCenterDomain, GraphCenterPayload>>;
+  initialDisplayMode?: GraphCenterDisplayMode;
 }
 
-export function GraphCenterClient({ initialPayload, rootPayloads }: GraphCenterClientProps) {
+export function GraphCenterClient({ initialPayload, rootPayloads, initialDisplayMode }: GraphCenterClientProps) {
+  const [displayMode, setDisplayMode] = useState<GraphCenterDisplayMode>(initialDisplayMode ?? 'resourceCoverage');
   const [domain, setDomain] = useState<GraphCenterDomain>(initialPayload.activeDomain);
   const [objectiveId, setObjectiveId] = useState<string | null>(initialPayload.objectiveId);
   const [portraitDimension, setPortraitDimension] = useState<GraphCenterPayload['portraitDimension']>(
@@ -88,6 +95,30 @@ export function GraphCenterClient({ initialPayload, rootPayloads }: GraphCenterC
         >
           知识图谱
         </a>
+      </div>
+
+      <div className="flex flex-wrap gap-2" role="tablist" aria-label="图谱覆盖模式">
+        <OverlayModeButton
+          active={displayMode === 'resourceCoverage'}
+          icon={<Network className="h-4 w-4" aria-hidden="true" />}
+          label="资源"
+          status={payload.overlays.resourceCoverage}
+          onClick={() => setDisplayMode('resourceCoverage')}
+        />
+        <OverlayModeButton
+          active={displayMode === 'learner'}
+          icon={<UserRound className="h-4 w-4" aria-hidden="true" />}
+          label="学习者"
+          status={payload.overlays.learner}
+          onClick={() => setDisplayMode('learner')}
+        />
+        <OverlayModeButton
+          active={displayMode === 'class'}
+          icon={<UsersRound className="h-4 w-4" aria-hidden="true" />}
+          label="班级"
+          status={payload.overlays.class}
+          onClick={() => setDisplayMode('class')}
+        />
       </div>
 
       <div className="grid gap-3 lg:grid-cols-[minmax(16rem,20rem)_minmax(0,1fr)_minmax(18rem,24rem)]">
@@ -181,6 +212,16 @@ export function GraphCenterClient({ initialPayload, rootPayloads }: GraphCenterC
                   <span className="rounded-sm bg-platform-canvas px-1.5 py-0.5 text-[11px] text-platform-fg-muted">
                     {coverageStateLabel(payload.resourceCoverage[node.id].coverageState)}
                   </span>
+                  {displayMode === 'learner' && payload.learnerOverlay.items[node.id] && (
+                    <span className="rounded-sm bg-platform-canvas px-1.5 py-0.5 text-[11px] text-platform-fg-muted">
+                      {learnerStateLabel(payload.learnerOverlay.items[node.id].state)}
+                    </span>
+                  )}
+                  {displayMode === 'class' && payload.classOverlay.items[node.id] && (
+                    <span className="rounded-sm bg-platform-canvas px-1.5 py-0.5 text-[11px] text-platform-fg-muted">
+                      {classHeatLabel(payload.classOverlay.items[node.id].suppressionReason)}
+                    </span>
+                  )}
                 </span>
               </button>
             ))}
@@ -239,6 +280,12 @@ export function GraphCenterClient({ initialPayload, rootPayloads }: GraphCenterC
                   ))}
                 </DetailGroup>
               )}
+              {displayMode === 'learner' && (
+                <LearnerOverlayDetail payload={payload} nodeId={payload.selectedNode.node.id} />
+              )}
+              {displayMode === 'class' && (
+                <ClassOverlayDetail payload={payload} nodeId={payload.selectedNode.node.id} />
+              )}
               <DetailGroup label="校验">
                 <span>{payload.validation.objectiveValidation.valid && payload.validation.graphValidation.valid ? '通过' : '存在问题'}</span>
               </DetailGroup>
@@ -258,6 +305,106 @@ export function GraphCenterClient({ initialPayload, rootPayloads }: GraphCenterC
         </aside>
       </div>
     </section>
+  );
+}
+
+function OverlayModeButton({
+  active,
+  icon,
+  label,
+  status,
+  onClick,
+}: {
+  active: boolean;
+  icon: ReactNode;
+  label: string;
+  status: GraphCenterOverlayStatus;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={[
+        'inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition',
+        active
+          ? 'border-platform-action-primary bg-platform-action-subtle text-platform-fg-primary'
+          : 'border-platform-border bg-platform-canvas text-platform-fg-muted hover:text-platform-fg-primary',
+      ].join(' ')}
+    >
+      {icon}
+      <span>{label}</span>
+      <span className="text-xs text-platform-fg-muted">{overlayStatusLabel(status)}</span>
+    </button>
+  );
+}
+
+function LearnerOverlayDetail({ payload, nodeId }: { payload: GraphCenterPayload; nodeId: string }) {
+  const item = payload.learnerOverlay.items[nodeId];
+  if (!item) {
+    return (
+      <DetailGroup label="学习者 overlay">
+        <span>{overlayStatusLabel(payload.learnerOverlay.status)}</span>
+      </DetailGroup>
+    );
+  }
+
+  return (
+    <>
+      <DetailGroup label="学习者 overlay">
+        <span>{learnerStateLabel(item.state)}</span>
+        <span>分数 {item.score === null ? '无' : `${Math.round(item.score * 100)}%`}</span>
+        <span>置信度 {Math.round(item.confidence * 100)}%</span>
+        <span>证据 {item.evidenceCount}</span>
+      </DetailGroup>
+      <DetailGroup label="建议依据">
+        <span>{reasonCodeLabel(item.reasonCode)}</span>
+        <span>{item.recommendation.rationale.observedMastery}</span>
+        <span>{item.recommendation.rationale.resourceCoverage}</span>
+      </DetailGroup>
+      <DetailGroup label="证据窗口">
+        <span>{item.evidenceWindow.freshness}</span>
+        <span>{item.evidenceWindow.from ?? '无起点'} - {item.evidenceWindow.to ?? '无终点'}</span>
+        <span>已校验引用 {item.verifiedCitationRefs.length}</span>
+      </DetailGroup>
+    </>
+  );
+}
+
+function ClassOverlayDetail({ payload, nodeId }: { payload: GraphCenterPayload; nodeId: string }) {
+  const item = payload.classOverlay.items[nodeId];
+  if (!item) {
+    return (
+      <DetailGroup label="班级 overlay">
+        <span>{overlayStatusLabel(payload.classOverlay.status)}</span>
+      </DetailGroup>
+    );
+  }
+
+  return (
+    <>
+      <DetailGroup label="班级 overlay">
+        <span>{classHeatLabel(item.suppressionReason)}</span>
+        <span>分母 {item.denominator}</span>
+        <span>纳入 {item.includedPopulation}</span>
+        <span>排除 {item.excludedPopulation}</span>
+      </DetailGroup>
+      <DetailGroup label="班级分布">
+        <span>掌握 {item.distribution.mastered}</span>
+        <span>发展中 {item.distribution.developing}</span>
+        <span>薄弱 {item.distribution.weak}</span>
+        <span>未开始 {item.distribution['not-started']}</span>
+        <span>需补证 {item.distribution['evidence-needed']}</span>
+      </DetailGroup>
+      <DetailGroup label="班级规则">
+        <span>平均 {item.averageScore === null ? '无' : `${Math.round(item.averageScore * 100)}%`}</span>
+        <span>置信度 {Math.round(item.confidence * 100)}%</span>
+        <span>最小分母 {item.roundingPolicy.minimumDenominator}</span>
+        <span>取整 {item.roundingPolicy.increment}</span>
+      </DetailGroup>
+    </>
   );
 }
 
@@ -315,6 +462,8 @@ export function filterGraphCenterPayload(
     filteredNodeIds.has(edge.sourceNodeId) &&
     filteredNodeIds.has(edge.targetNodeId)
   ));
+  const learnerOverlay = filterLearnerOverlay(payload, filteredNodes, filteredNodeIds);
+  const classOverlay = filterClassOverlay(payload, filteredNodes, filteredNodeIds);
   const filteredPayload: GraphCenterPayload = {
     ...payload,
     objectiveId,
@@ -334,6 +483,13 @@ export function filterGraphCenterPayload(
     resourceCoverage: Object.fromEntries(
       filteredNodes.map((node) => [node.id, payload.resourceCoverage[node.id]]),
     ),
+    learnerOverlay,
+    classOverlay,
+    overlays: {
+      ...payload.overlays,
+      learner: learnerOverlay.status,
+      class: classOverlay.status,
+    },
     nodeDetails: Object.fromEntries(
       filteredNodes.flatMap((node) => {
         const detail = payload.nodeDetails[node.id];
@@ -346,12 +502,119 @@ export function filterGraphCenterPayload(
           : [];
       }),
     ),
-    limitations: payload.limitations.filter((limitation) => (
-      !limitation.nodeId || filteredNodeIds.has(limitation.nodeId)
-    )),
+    limitations: uniqueLimitations([
+      ...payload.limitations.filter((limitation) => (
+        (!limitation.nodeId || filteredNodeIds.has(limitation.nodeId)) &&
+        !isOverlayLimitation(limitation.code)
+      )),
+      ...learnerOverlay.limitations,
+      ...classOverlay.limitations,
+    ]),
     selectedNode: null,
   };
   return selectGraphCenterPayloadNode(filteredPayload, filters.selectedNodeId);
+}
+
+function isOverlayLimitation(code: string): boolean {
+  return code.startsWith('learner-overlay-') || code.startsWith('class-overlay-');
+}
+
+function uniqueLimitations(limitations: GraphCenterPayload['limitations']): GraphCenterPayload['limitations'] {
+  const seen = new Set<string>();
+  return limitations.filter((limitation) => {
+    const key = `${limitation.code}:${limitation.nodeId ?? 'global'}:${limitation.message}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function filterLearnerOverlay(
+  payload: GraphCenterPayload,
+  filteredNodes: GraphCenterPayload['graph']['nodes'],
+  filteredNodeIds: Set<string>,
+): GraphCenterPayload['learnerOverlay'] {
+  const items = Object.fromEntries(
+    filteredNodes.flatMap((node) => {
+      const item = payload.learnerOverlay.items[node.id];
+      return item ? [[node.id, item]] : [];
+    }),
+  );
+  if (payload.learnerOverlay.status === 'unavailable' || payload.learnerOverlay.status === 'unauthorized') {
+    return {
+      ...payload.learnerOverlay,
+      items,
+      limitations: payload.learnerOverlay.limitations.filter((limitation) => (
+        !limitation.nodeId || filteredNodeIds.has(limitation.nodeId)
+      )),
+    };
+  }
+  const itemValues = Object.values(items);
+  const status: GraphCenterOverlayStatus = itemValues.length === 0
+    ? 'empty'
+    : itemValues.every((item) => item.confidence < 0.35 || item.state === 'evidence-needed')
+      ? 'low-confidence'
+      : 'available';
+  return {
+    ...payload.learnerOverlay,
+    status,
+    items,
+    limitations: status === 'empty'
+      ? [{
+          code: 'learner-overlay-empty',
+          message: '当前筛选条件下没有可展示的学习者图谱 overlay。',
+        }]
+      : status === 'low-confidence'
+        ? [{
+            code: 'learner-overlay-low-confidence',
+            message: '当前学习者图谱 overlay 证据不足，仅可作为补证提示。',
+          }]
+        : [],
+  };
+}
+
+function filterClassOverlay(
+  payload: GraphCenterPayload,
+  filteredNodes: GraphCenterPayload['graph']['nodes'],
+  filteredNodeIds: Set<string>,
+): GraphCenterPayload['classOverlay'] {
+  const items = Object.fromEntries(
+    filteredNodes.flatMap((node) => {
+      const item = payload.classOverlay.items[node.id];
+      return item ? [[node.id, item]] : [];
+    }),
+  );
+  if (payload.classOverlay.status === 'unavailable' || payload.classOverlay.status === 'unauthorized') {
+    return {
+      ...payload.classOverlay,
+      items,
+      limitations: payload.classOverlay.limitations.filter((limitation) => (
+        !limitation.nodeId || filteredNodeIds.has(limitation.nodeId)
+      )),
+    };
+  }
+  const itemValues = Object.values(items);
+  const status: GraphCenterOverlayStatus = itemValues.length === 0
+    ? 'empty'
+    : itemValues.every((item) => item.suppressionReason !== 'none')
+      ? 'suppressed'
+      : 'available';
+  return {
+    ...payload.classOverlay,
+    status,
+    items,
+    limitations: status === 'empty'
+      ? [{
+          code: 'class-overlay-empty',
+          message: '当前筛选条件下没有可展示的班级图谱 overlay。',
+        }]
+      : status === 'suppressed'
+        ? [{
+            code: 'class-overlay-suppressed',
+            message: '当前筛选条件下的班级图谱热力因样本量过低已抑制。',
+          }]
+        : [],
+  };
 }
 
 function coverageStateLabel(state: GraphCenterResourceCoverageState): string {
@@ -378,4 +641,49 @@ function missingCoverageLabel(type: GraphCenterResourceCoverageMissingType): str
     'terminal-validation-capable-resource': '缺少终端验证能力',
   };
   return labels[type];
+}
+
+function overlayStatusLabel(status: GraphCenterOverlayStatus): string {
+  const labels: Record<GraphCenterOverlayStatus, string> = {
+    available: '可用',
+    unavailable: '未接入',
+    empty: '无数据',
+    'low-confidence': '低置信',
+    suppressed: '已抑制',
+    unauthorized: '无权限',
+  };
+  return labels[status];
+}
+
+function learnerStateLabel(state: GraphCenterLearnerOverlayState): string {
+  const labels: Record<GraphCenterLearnerOverlayState, string> = {
+    mastered: '已掌握',
+    developing: '发展中',
+    weak: '薄弱',
+    'not-started': '未开始',
+    locked: '路径锁定',
+    'evidence-needed': '需补证',
+  };
+  return labels[state];
+}
+
+function reasonCodeLabel(reasonCode: GraphCenterLearnerOverlayReasonCode): string {
+  const labels: Record<GraphCenterLearnerOverlayReasonCode, string> = {
+    advance: '进入下一目标',
+    'targeted-practice': '针对练习',
+    'confirm-with-evidence': '补充证据确认',
+    'collect-evidence': '采集证据',
+    'resource-coverage-needed': '补齐资源覆盖',
+    'locked-path': '路径锁定',
+  };
+  return labels[reasonCode];
+}
+
+function classHeatLabel(suppressionReason: 'low-denominator' | 'empty-class' | 'none'): string {
+  const labels: Record<'low-denominator' | 'empty-class' | 'none', string> = {
+    'low-denominator': '小样本抑制',
+    'empty-class': '班级无数据',
+    none: '热力可用',
+  };
+  return labels[suppressionReason];
 }

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { buildGraphCenterPayload } from '../graph-center';
+import {
+  buildGraphCenterPayload,
+  canReadGraphCenterClassOverlay,
+  canReadGraphCenterLearnerOverlay,
+} from '../graph-center';
+import type { AdaptiveLearnerState, MasteryEvidenceReference } from '../adaptive-learner-state-service';
 import {
   createLearningEvidenceCorpusChunk,
   verifyLearningEvidenceCitations,
@@ -336,6 +341,503 @@ describe('graph center payload service', () => {
     expect(teachingResourceWhereForGraphCenter('TEACHER', 'teacher-1')).toEqual({ authorId: 'teacher-1' });
     expect(teachingResourceWhereForGraphCenter('ADMIN', 'admin-1')).toEqual({});
   });
+
+  it('maps server-owned learner state to privacy-safe graph overlay items', () => {
+    const authorized = canReadGraphCenterLearnerOverlay({
+      viewerRole: 'student',
+      viewerUserId: 'learner-1',
+      requestedLearnerId: 'learner-1',
+    });
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      resourceRegistry: fullCoverageRegistry(),
+      evidenceCorpus: [
+        ragChunk({
+          id: 'chunk-controller-correction-verified',
+          knowledgeNodeRefs: ['PID控制器_6_656b8b52'],
+          citationAddress: {
+            kind: 'text',
+            sourceRefId: 'lesson15-series-knowledge-deck',
+            href: '/interactive-learning/resources/lesson15-series-knowledge-deck',
+            locator: 'section#pid',
+            contentHash: 'hash-controller-correction',
+          },
+          contentHash: 'hash-controller-correction',
+        }),
+      ],
+      learnerOverlay: {
+        state: learnerState({
+          userId: 'learner-1',
+          targetId: 'kn:autocontrol:controller-correction',
+          score: 0.86,
+          confidence: 0.72,
+          evidenceCount: 3,
+          evidenceRefs: [
+            evidenceRef('LearningFact', 'fact-public', 'student-visible'),
+          ],
+        }),
+        requestedLearnerId: 'learner-1',
+        viewerRole: 'student',
+        authorized,
+        evidenceWindow: {
+          from: '2026-06-01T00:00:00.000Z',
+          to: '2026-06-21T00:00:00.000Z',
+          freshness: 'current',
+        },
+        verifiedCitationRefs: {
+          'kn:autocontrol:controller-correction': ['chunk-controller-correction-verified'],
+        },
+      },
+    });
+    const item = payload.learnerOverlay.items['kn:autocontrol:controller-correction'];
+
+    expect(payload.overlays.learner).toBe('available');
+    expect(item.state).toBe('mastered');
+    expect(item.score).toBe(0.86);
+    expect(item.confidence).toBe(0.72);
+    expect(item.evidenceRefs.map((ref) => ref.sourceId)).toEqual(['fact-public']);
+    expect(item.evidenceCount).toBe(1);
+    expect(item.lastEvidenceAt).toBe('2026-06-20T00:00:00.000Z');
+    expect(item.verifiedCitationRefs).toEqual(['chunk-controller-correction-verified']);
+    expect(item.reasonCode).toBe('advance');
+    expect(item.recommendation.rationale.observedMastery).toContain('86%');
+    expect(item.recommendation.rationale.resourceCoverage).toContain('已校验引用 1');
+    expect(item.recommendation.evidenceWindow).toEqual({
+      from: '2026-06-01T00:00:00.000Z',
+      to: '2026-06-21T00:00:00.000Z',
+      freshness: 'current',
+    });
+    expect(Object.hasOwn(payload.graph.nodes[0], 'learnerOverlay')).toBe(false);
+  });
+
+  it('rejects unauthorized learner overlays without leaking inferred state', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      learnerOverlay: {
+        state: learnerState({
+          userId: 'learner-2',
+          targetId: 'kn:autocontrol:controller-correction',
+          score: 0.2,
+          confidence: 0.9,
+          evidenceCount: 8,
+        }),
+        requestedLearnerId: 'learner-2',
+        viewerRole: 'student',
+        authorized: canReadGraphCenterLearnerOverlay({
+          viewerRole: 'student',
+          viewerUserId: 'learner-1',
+          requestedLearnerId: 'learner-2',
+        }),
+      },
+    });
+
+    expect(payload.overlays.learner).toBe('unauthorized');
+    expect(payload.learnerOverlay.items).toEqual({});
+    expect(payload.limitations.map((limitation) => limitation.code)).toContain('learner-overlay-unauthorized');
+  });
+
+  it('does not derive student-visible mastery from hidden evidence refs', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      resourceRegistry: fullCoverageRegistry(),
+      learnerOverlay: {
+        state: learnerState({
+          userId: 'learner-hidden',
+          targetId: 'kn:autocontrol:controller-correction',
+          score: 0.92,
+          confidence: 0.95,
+          evidenceCount: 1,
+          evidenceRefs: [
+            evidenceRef('AgentToolRun', 'audit-hidden', 'audit-only'),
+          ],
+        }),
+        requestedLearnerId: 'learner-hidden',
+        viewerRole: 'student',
+        authorized: true,
+      },
+    });
+    const item = payload.learnerOverlay.items['kn:autocontrol:controller-correction'];
+
+    expect(item.evidenceRefs).toEqual([]);
+    expect(item.evidenceCount).toBe(0);
+    expect(item.lastEvidenceAt).toBeNull();
+    expect(item.score).toBeNull();
+    expect(item.confidence).toBe(0);
+    expect(item.sourceCoverage).toBeNull();
+    expect(item.state).toBe('not-started');
+    expect(item.limitations).toContain('hidden-evidence-redacted');
+  });
+
+  it('hides teacher-scoped evidence from student overlay counts', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      resourceRegistry: fullCoverageRegistry(),
+      learnerOverlay: {
+        state: learnerState({
+          userId: 'learner-teacher-scoped',
+          targetId: 'kn:autocontrol:controller-correction',
+          score: 0.82,
+          confidence: 0.8,
+          evidenceCount: 1,
+          evidenceRefs: [
+            evidenceRef('LearningFact', 'teacher-hidden', 'teacher-scoped'),
+          ],
+        }),
+        requestedLearnerId: 'learner-teacher-scoped',
+        viewerRole: 'student',
+        authorized: true,
+      },
+    });
+    const item = payload.learnerOverlay.items['kn:autocontrol:controller-correction'];
+
+    expect(item.evidenceRefs).toEqual([]);
+    expect(item.evidenceCount).toBe(0);
+    expect(item.score).toBeNull();
+    expect(item.sourceCoverage).toBeNull();
+  });
+
+  it('matches capability overlays through control-correction goal-slice target ids', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'capability',
+      selectedNodeId: 'cap:autocontrol:validate-with-simulation-evidence',
+      learnerOverlay: {
+        state: learnerState({
+          userId: 'learner-capability',
+          targetId: 'control-correction:simulation-validation:evaluate',
+          targetKind: 'capability',
+          score: 0.88,
+          confidence: 0.76,
+          evidenceCount: 2,
+        }),
+        requestedLearnerId: 'learner-capability',
+        viewerRole: 'student',
+        authorized: true,
+      },
+      classOverlay: {
+        classId: 'class-1',
+        viewerRole: 'teacher',
+        authorized: true,
+        learnerStates: [
+          learnerState({
+            userId: 'learner-capability-1',
+            targetId: 'control-correction:simulation-validation:evaluate',
+            targetKind: 'capability',
+            score: 0.88,
+            confidence: 0.76,
+            evidenceCount: 2,
+            classId: 'class-1',
+          }),
+          learnerState({
+            userId: 'learner-capability-2',
+            targetId: 'control-correction:simulation-validation:evaluate',
+            targetKind: 'capability',
+            score: 0.8,
+            confidence: 0.72,
+            evidenceCount: 2,
+            classId: 'class-1',
+          }),
+          learnerState({
+            userId: 'learner-capability-3',
+            targetId: 'control-correction:simulation-validation:evaluate',
+            targetKind: 'capability',
+            score: 0.7,
+            confidence: 0.7,
+            evidenceCount: 2,
+            classId: 'class-1',
+          }),
+          learnerState({
+            userId: 'learner-capability-4',
+            targetId: 'control-correction:simulation-validation:evaluate',
+            targetKind: 'capability',
+            score: 0.6,
+            confidence: 0.68,
+            evidenceCount: 2,
+            classId: 'class-1',
+          }),
+          learnerState({
+            userId: 'learner-capability-5',
+            targetId: 'control-correction:simulation-validation:evaluate',
+            targetKind: 'capability',
+            score: 0.56,
+            confidence: 0.66,
+            evidenceCount: 2,
+            classId: 'class-1',
+          }),
+        ],
+      },
+    });
+    const learnerItem = payload.learnerOverlay.items['cap:autocontrol:validate-with-simulation-evidence'];
+    const classItem = payload.classOverlay.items['cap:autocontrol:validate-with-simulation-evidence'];
+
+    expect(learnerItem.score).toBe(0.88);
+    expect(learnerItem.state).toBe('mastered');
+    expect(learnerItem.evidenceCount).toBe(1);
+    expect(classItem.suppressionReason).toBe('none');
+    expect(classItem.distribution.mastered).toBe(2);
+    expect(classItem.distribution.developing).toBe(3);
+  });
+
+  it('does not apply simulation-validation capability evidence to engineering-constraint nodes', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'capability',
+      selectedNodeId: 'cap:autocontrol:trade-off-engineering-constraints',
+      learnerOverlay: {
+        state: learnerState({
+          userId: 'learner-capability-negative',
+          targetId: 'control-correction:simulation-validation:evaluate',
+          targetKind: 'capability',
+          score: 0.88,
+          confidence: 0.76,
+          evidenceCount: 2,
+        }),
+        requestedLearnerId: 'learner-capability-negative',
+        viewerRole: 'student',
+        authorized: true,
+      },
+    });
+    const item = payload.learnerOverlay.items['cap:autocontrol:trade-off-engineering-constraints'];
+
+    expect(item.score).toBeNull();
+    expect(item.confidence).toBe(0);
+    expect(item.evidenceCount).toBe(0);
+    expect(item.state).toBe('not-started');
+    expect(item.reasonCode).toBe('collect-evidence');
+  });
+
+  it('maps time-domain and root-locus goal-slice targets to their graph capability nodes', () => {
+    const analysisPayload = buildGraphCenterPayload({
+      domain: 'capability',
+      selectedNodeId: 'cap:autocontrol:interpret-time-frequency-response',
+      learnerOverlay: {
+        state: learnerState({
+          userId: 'learner-analysis',
+          targetId: 'control-correction:time-domain-targets:apply',
+          targetKind: 'capability',
+          score: 0.7,
+          confidence: 0.7,
+          evidenceCount: 2,
+        }),
+        requestedLearnerId: 'learner-analysis',
+        viewerRole: 'student',
+        authorized: true,
+      },
+    });
+    const synthesisPayload = buildGraphCenterPayload({
+      domain: 'capability',
+      selectedNodeId: 'cap:autocontrol:synthesize-controller-correction',
+      learnerOverlay: {
+        state: learnerState({
+          userId: 'learner-synthesis',
+          targetId: 'control-correction:root-locus-design:analyze',
+          targetKind: 'capability',
+          score: 0.68,
+          confidence: 0.7,
+          evidenceCount: 2,
+        }),
+        requestedLearnerId: 'learner-synthesis',
+        viewerRole: 'student',
+        authorized: true,
+      },
+    });
+
+    expect(analysisPayload.learnerOverlay.items['cap:autocontrol:interpret-time-frequency-response'].score).toBe(0.7);
+    expect(analysisPayload.learnerOverlay.items['cap:autocontrol:interpret-time-frequency-response'].state).toBe('developing');
+    expect(synthesisPayload.learnerOverlay.items['cap:autocontrol:synthesize-controller-correction'].score).toBe(0.68);
+    expect(synthesisPayload.learnerOverlay.items['cap:autocontrol:synthesize-controller-correction'].state).toBe('developing');
+  });
+
+  it('marks learner overlays empty or low-confidence without fabricating mastery', () => {
+    const emptyPayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      learnerOverlay: {
+        state: null,
+        requestedLearnerId: 'learner-empty',
+        viewerRole: 'student',
+        authorized: true,
+      },
+    });
+    const lowConfidencePayload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      learnerOverlay: {
+        state: learnerState({
+          userId: 'learner-low',
+          targetId: 'kn:autocontrol:controller-correction',
+          score: 0.7,
+          confidence: 0.2,
+          evidenceCount: 2,
+        }),
+        requestedLearnerId: 'learner-low',
+        viewerRole: 'student',
+        authorized: true,
+      },
+    });
+
+    expect(emptyPayload.overlays.learner).toBe('empty');
+    expect(emptyPayload.learnerOverlay.items).toEqual({});
+    expect(lowConfidencePayload.overlays.learner).toBe('low-confidence');
+    expect(lowConfidencePayload.learnerOverlay.items['kn:autocontrol:controller-correction'].state).toBe('evidence-needed');
+    expect(lowConfidencePayload.limitations.map((limitation) => limitation.code)).toContain(
+      'learner-overlay-low-confidence',
+    );
+  });
+
+  it('aggregates authorized class graph overlays with denominator and issue metadata', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      resourceRegistry: fullCoverageRegistry(),
+      classOverlay: {
+        classId: 'class-1',
+        viewerRole: 'teacher',
+        authorized: canReadGraphCenterClassOverlay({
+          viewerRole: 'teacher',
+          requestedClassId: 'class-1',
+          teacherClassIds: ['class-1'],
+        }),
+        minimumDenominator: 3,
+        roundingIncrement: 1,
+        learnerStates: [
+          learnerState({ userId: 'learner-1', targetId: 'kn:autocontrol:controller-correction', score: 0.9, confidence: 0.8, evidenceCount: 4, classId: 'class-1' }),
+          learnerState({ userId: 'learner-2', targetId: 'kn:autocontrol:controller-correction', score: 0.64, confidence: 0.7, evidenceCount: 3, classId: 'class-1' }),
+          learnerState({ userId: 'learner-3', targetId: 'kn:autocontrol:controller-correction', score: 0.32, confidence: 0.74, evidenceCount: 3, classId: 'class-1' }),
+          learnerState({ userId: 'learner-4', targetId: 'kn:autocontrol:controller-correction', score: null, confidence: 0, evidenceCount: 0, classId: 'class-1' }),
+          learnerState({ userId: 'learner-5', targetId: 'kn:autocontrol:controller-correction', score: 0.58, confidence: 0.62, evidenceCount: 2, classId: 'class-1' }),
+          learnerState({ userId: 'learner-6', targetId: 'kn:autocontrol:controller-correction', score: 0.74, confidence: 0.68, evidenceCount: 2, classId: 'class-1' }),
+          learnerState({ userId: 'learner-x', targetId: 'kn:autocontrol:controller-correction', score: 0.1, confidence: 0.9, evidenceCount: 5, classId: 'class-2' }),
+        ],
+      },
+    });
+    const item = payload.classOverlay.items['kn:autocontrol:controller-correction'];
+
+    expect(payload.overlays.class).toBe('available');
+    expect(item.denominator).toBe(6);
+    expect(item.includedPopulation).toBe(6);
+    expect(item.excludedPopulation).toBe(1);
+    expect(item.suppressionReason).toBe('none');
+    expect(item.distribution).toEqual({
+      mastered: 1,
+      developing: 3,
+      weak: 1,
+      'not-started': 1,
+      'evidence-needed': 0,
+    });
+    expect(item.averageScore).toBe(0.6);
+    expect(item.commonIssueCodes).toContain('targeted-practice');
+  });
+
+  it('keeps rounded class distribution totals within the visible denominator', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      resourceRegistry: fullCoverageRegistry(),
+      classOverlay: {
+        classId: 'class-1',
+        viewerRole: 'teacher',
+        authorized: true,
+        minimumDenominator: 5,
+        roundingIncrement: 5,
+        learnerStates: [
+          learnerState({ userId: 'learner-1', targetId: 'kn:autocontrol:controller-correction', score: 0.9, confidence: 0.8, evidenceCount: 4, classId: 'class-1' }),
+          learnerState({ userId: 'learner-2', targetId: 'kn:autocontrol:controller-correction', score: 0.85, confidence: 0.8, evidenceCount: 4, classId: 'class-1' }),
+          learnerState({ userId: 'learner-3', targetId: 'kn:autocontrol:controller-correction', score: 0.8, confidence: 0.8, evidenceCount: 4, classId: 'class-1' }),
+          learnerState({ userId: 'learner-4', targetId: 'kn:autocontrol:controller-correction', score: 0.7, confidence: 0.8, evidenceCount: 4, classId: 'class-1' }),
+          learnerState({ userId: 'learner-5', targetId: 'kn:autocontrol:controller-correction', score: 0.68, confidence: 0.8, evidenceCount: 4, classId: 'class-1' }),
+          learnerState({ userId: 'learner-6', targetId: 'kn:autocontrol:controller-correction', score: 0.65, confidence: 0.8, evidenceCount: 4, classId: 'class-1' }),
+          learnerState({ userId: 'learner-7', targetId: 'kn:autocontrol:controller-correction', score: 0.3, confidence: 0.8, evidenceCount: 4, classId: 'class-1' }),
+          learnerState({ userId: 'learner-8', targetId: 'kn:autocontrol:controller-correction', score: 0.25, confidence: 0.8, evidenceCount: 4, classId: 'class-1' }),
+          learnerState({ userId: 'learner-9', targetId: 'kn:autocontrol:controller-correction', score: 0.2, confidence: 0.8, evidenceCount: 4, classId: 'class-1' }),
+          learnerState({ userId: 'learner-10', targetId: 'kn:autocontrol:controller-correction', score: 0.1, confidence: 0.8, evidenceCount: 4, classId: 'class-1' }),
+        ],
+      },
+    });
+    const item = payload.classOverlay.items['kn:autocontrol:controller-correction'];
+    const roundedTotal = Object.values(item.distribution).reduce((sum, value) => sum + value, 0);
+
+    expect(item.denominator).toBe(10);
+    expect(roundedTotal).toBeLessThanOrEqual(item.denominator);
+    expect(roundedTotal).toBe(10);
+    expect(item.distribution).toEqual({
+      mastered: 5,
+      developing: 0,
+      weak: 5,
+      'not-started': 0,
+      'evidence-needed': 0,
+    });
+  });
+
+  it('suppresses class overlay distributions when scoped denominator is too low', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      classOverlay: {
+        classId: 'class-small',
+        viewerRole: 'teacher',
+        authorized: true,
+        minimumDenominator: 3,
+        learnerStates: [
+          learnerState({ userId: 'learner-1', targetId: 'kn:autocontrol:controller-correction', score: 0.9, confidence: 0.8, evidenceCount: 4, classId: 'class-small' }),
+          learnerState({ userId: 'learner-2', targetId: 'kn:autocontrol:controller-correction', score: 0.2, confidence: 0.8, evidenceCount: 4, classId: 'other-class' }),
+        ],
+      },
+    });
+    const item = payload.classOverlay.items['kn:autocontrol:controller-correction'];
+
+    expect(payload.overlays.class).toBe('suppressed');
+    expect(item.suppressionReason).toBe('low-denominator');
+    expect(item.denominator).toBe(1);
+    expect(item.includedPopulation).toBe(0);
+    expect(item.excludedPopulation).toBe(2);
+    expect(item.distribution).toEqual({
+      mastered: 0,
+      developing: 0,
+      weak: 0,
+      'not-started': 0,
+      'evidence-needed': 0,
+    });
+    expect(payload.limitations.map((limitation) => limitation.code)).toContain('class-overlay-suppressed');
+  });
+
+  it('suppresses class distributions when node-visible evidence count is below the minimum denominator', () => {
+    const payload = buildGraphCenterPayload({
+      domain: 'knowledge',
+      selectedNodeId: 'kn:autocontrol:controller-correction',
+      resourceRegistry: fullCoverageRegistry(),
+      classOverlay: {
+        classId: 'class-1',
+        viewerRole: 'teacher',
+        authorized: true,
+        learnerStates: [
+          learnerState({ userId: 'learner-1', targetId: 'kn:autocontrol:controller-correction', score: 0.9, confidence: 0.8, evidenceCount: 4, classId: 'class-1' }),
+          learnerState({ userId: 'learner-2', targetId: 'kn:autocontrol:controller-correction', score: null, confidence: 0, evidenceCount: 0, classId: 'class-1' }),
+          learnerState({ userId: 'learner-3', targetId: 'kn:autocontrol:controller-correction', score: null, confidence: 0, evidenceCount: 0, classId: 'class-1' }),
+          learnerState({ userId: 'learner-4', targetId: 'kn:autocontrol:controller-correction', score: null, confidence: 0, evidenceCount: 0, classId: 'class-1' }),
+          learnerState({ userId: 'learner-5', targetId: 'kn:autocontrol:controller-correction', score: null, confidence: 0, evidenceCount: 0, classId: 'class-1' }),
+        ],
+      },
+    });
+    const item = payload.classOverlay.items['kn:autocontrol:controller-correction'];
+
+    expect(payload.overlays.class).toBe('suppressed');
+    expect(item.denominator).toBe(5);
+    expect(item.includedPopulation).toBe(1);
+    expect(item.excludedPopulation).toBe(4);
+    expect(item.suppressionReason).toBe('low-denominator');
+    expect(item.distribution).toEqual({
+      mastered: 0,
+      developing: 0,
+      weak: 0,
+      'not-started': 0,
+      'evidence-needed': 0,
+    });
+    expect(item.averageScore).toBeNull();
+    expect(item.commonIssueCodes).toEqual([]);
+  });
 });
 
 function ragChunk(input: {
@@ -459,6 +961,108 @@ function fullCoverageRegistry() {
       },
     ],
   });
+}
+
+function evidenceRef(
+  sourceType: MasteryEvidenceReference['sourceType'],
+  sourceId: string,
+  privacyLevel: MasteryEvidenceReference['privacyLevel'],
+): MasteryEvidenceReference {
+  return {
+    sourceType,
+    sourceId,
+    evidenceAt: '2026-06-20T00:00:00.000Z',
+    privacyLevel,
+    confidence: 'high',
+  };
+}
+
+function learnerState(input: {
+  userId: string;
+  targetId: string;
+  score: number | null;
+  confidence: number;
+  evidenceCount: number;
+  evidenceRefs?: MasteryEvidenceReference[];
+  classId?: string;
+  targetKind?: 'knowledge' | 'capability';
+}): AdaptiveLearnerState {
+  const supportingEvidenceRefs = input.evidenceRefs ?? (
+    input.evidenceCount > 0 ? [evidenceRef('LearningFact', `${input.userId}:fact`, 'student-visible')] : []
+  );
+  return {
+    userId: input.userId,
+    roleScope: {
+      role: 'student',
+      classId: input.classId ?? 'class-1',
+      privacyScopes: ['student-visible'],
+    },
+    generatedAt: '2026-06-21T00:00:00.000Z',
+    authority: 'server-owned',
+    knowledgeMastery: {
+      coverage: input.evidenceCount > 0 ? 'available' : 'missing',
+      tags: input.targetKind === 'capability' ? {} : {
+        [input.targetId]: {
+          posteriorMastery: input.score ?? 0,
+          confidence: input.confidence,
+          evidenceCount: input.evidenceCount,
+          source: 'adaptive-assessment',
+          algorithmVersion: 'test',
+          lastUpdatedAt: '2026-06-20T00:00:00.000Z',
+          supportingEvidenceRefs,
+          sourceCoverage: sourceCoverage(input.evidenceCount > 0 ? 'available' : 'missing'),
+        },
+      },
+    },
+    masteryTraceability: {
+      knowledgeTargets: input.targetKind === 'capability' ? {} : {
+        [input.targetId]: {
+          targetId: input.targetId,
+          targetKind: 'knowledge',
+          masteryLevel: input.score,
+          confidence: input.confidence,
+          freshness: input.evidenceCount > 0 ? 'current' : 'missing',
+          supportingEvidenceRefs,
+          sourceCoverage: sourceCoverage(input.evidenceCount > 0 ? 'available' : 'missing'),
+          limitations: input.confidence < 0.35 ? ['low-confidence'] : [],
+        },
+      },
+      capabilityTargets: input.targetKind === 'capability'
+        ? {
+            [input.targetId]: {
+              targetId: input.targetId,
+              targetKind: 'capability',
+              masteryLevel: input.score,
+              confidence: input.confidence,
+              freshness: input.evidenceCount > 0 ? 'current' : 'missing',
+              supportingEvidenceRefs,
+              sourceCoverage: sourceCoverage(input.evidenceCount > 0 ? 'available' : 'missing'),
+              limitations: input.confidence < 0.35 ? ['low-confidence'] : [],
+            },
+          }
+        : {},
+    },
+    pathContext: {
+      activeControlCorrectionPath: {
+        state: 'none',
+        pathId: null,
+        status: null,
+        currentNodeId: null,
+        terminalValidationState: null,
+        lowConfidenceMarkers: [],
+      },
+    },
+  } as unknown as AdaptiveLearnerState;
+}
+
+function sourceCoverage(state: 'available' | 'partial' | 'missing') {
+  return {
+    AdaptiveMasteryUpdate: state,
+    LearningFact: state,
+    ArenaSubmission: 'missing',
+    AgentToolRun: 'missing',
+    StudentEvidenceFeatureCache: state,
+  };
 }
 
 function textbookDocument(input: {

@@ -17,6 +17,8 @@ interface GraphCenterPageProps {
     objectiveId?: string;
     portraitDimension?: string;
     nodeId?: string;
+    learnerId?: string;
+    classId?: string;
   }>;
 }
 
@@ -35,6 +37,8 @@ export default async function GraphCenterPage({ searchParams }: GraphCenterPageP
   const coverageSources = await buildGraphCenterCoverageSources({
     viewerRole: session?.user?.role,
     viewerUserId: session?.user?.id,
+    requestedLearnerId: params?.learnerId,
+    requestedClassId: params?.classId,
   });
   const payload = buildGraphCenterPayload({
     domain: params?.domain as GraphCenterDomain | undefined,
