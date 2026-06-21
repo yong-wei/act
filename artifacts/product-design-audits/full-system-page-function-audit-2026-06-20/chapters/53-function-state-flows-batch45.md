@@ -143,3 +143,10 @@
 整改变更：`audit-remediation-admin-governance-workflows`。证据：`../remediation/audit-remediation-admin-governance-workflows/evidence.md`。
 
 - 277 已关闭：`/admin/users` 页面查询与 `/api/admin/users` 共享 `q/search`、`role`、`page/pageSize` 合同；no-match 导出按当前筛选集生成空 CSV，不导出无关用户。
+
+## #617 移动与可访问性整改记录（2026-06-21）
+
+整改变更：`audit-remediation-mobile-a11y-shell`。证据：`../remediation/audit-remediation-mobile-a11y-shell/evidence.md`。
+
+- 285 已关闭：管理员用户表格在移动端改为卡片化行，页面主体在 320px/390px 验收中不再被表格撑宽。
+- 286 部分关闭：管理员用户列表增加 `role=status` 播报；其他业务列表的动作状态播报归属各自垂直变更。

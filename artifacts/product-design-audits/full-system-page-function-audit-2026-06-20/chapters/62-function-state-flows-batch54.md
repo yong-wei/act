@@ -139,3 +139,10 @@ AI 工坊显示学习任务、日志和实验档案，动作探测后焦点落�
 
 - 391 已关闭：治理 `assign` 深链校验 risk 与 assignee，缺失时显示 blocked 恢复状态。
 - 392 已关闭：系统配置测试和审计反馈通过统一 `ActionStatusPanel` 展示，缺失 provider/model 不再被通用配置页吞掉。
+
+## #617 移动与可访问性整改记录（2026-06-21）
+
+整改变更：`audit-remediation-mobile-a11y-shell`。证据：`../remediation/audit-remediation-mobile-a11y-shell/evidence.md`。
+
+- 393 部分关闭：教师报告页提供移动固定主动作区并通过 320px/390px DOM width 与截图验收；Global AI 侧栏通过共享浮动 dock 打开、焦点循环、Escape 关闭和入口焦点恢复的 320px 键盘证据。评分草稿、治理分派、配置审计和报告反馈业务状态仍保留。
+- 394 部分关闭：本变更拥有的 AI 侧栏、浮动工具、教师报告和管理员治理代表页已补 `status/live` 或键盘 a11y；报告反馈、评分写回、配置审计等 30 个状态的业务播报仍由后续垂直变更关闭。

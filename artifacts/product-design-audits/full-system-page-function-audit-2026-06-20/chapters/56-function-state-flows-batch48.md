@@ -148,3 +148,9 @@ API 同时确认：`/api/teacher/document-grading/writeback-preview` 返回 404�
 
 - 316 已关闭：批量导入入口使用命名文件输入，导入先预览再确认提交，并展示批次、成功/失败统计、失败行下载和审计记录。
 - 318 已关闭：用户页初始查询与 API 过滤合同一致；搜索、角色、分页和导出均复用当前筛选集。
+
+## #617 移动与可访问性整改记录（2026-06-21）
+
+整改变更：`audit-remediation-mobile-a11y-shell`。证据：`../remediation/audit-remediation-mobile-a11y-shell/evidence.md`。
+
+- 319 部分关闭：管理员用户页账号表在 640px 以下卡片化，长邮箱/长学号允许换行，并通过 320px/390px DOM width 与截图验收；批量导入批次治理已由 #614 覆盖，任务大厅、作品集、评分动作等其他 24 个状态仍归属垂直变更。

@@ -185,3 +185,11 @@
 整改变更：`audit-remediation-admin-governance-workflows`。证据：`../remediation/audit-remediation-admin-governance-workflows/evidence.md`。
 
 - 329 已关闭：治理风险不再只是只读行；风险行提供处置/分派入口，缺失或有效 riskId 均生成可读动作状态和审计记录。
+
+## #617 移动与可访问性整改记录（2026-06-21）
+
+整改变更：`audit-remediation-mobile-a11y-shell`。证据：`../remediation/audit-remediation-mobile-a11y-shell/evidence.md`。
+
+- 331 已部分关闭：教师分析页已有移动固定报告交付动作区，本变更补充状态播报和按钮名称；自适应路径等业务页仍由对应变更关闭。
+- 332 已关闭：管理员治理页移动表格卡片化，并通过 320px/390px 验收。
+- 333 部分关闭：本变更拥有的浮动工具、AI 侧栏、管理员用户/治理、教师报告/班级详情页面已接入 `status/live`，其他业务动作状态机不在本变更中关闭。

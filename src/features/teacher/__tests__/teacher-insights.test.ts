@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -9,6 +12,19 @@ import {
   summarizeGovernanceState,
   type TeacherStudentInsightSummary,
 } from '../teacher-insights';
+
+const classDetailSource = readFileSync(
+  join(process.cwd(), 'src/app/teacher/classes/[classId]/page.tsx'),
+  'utf8',
+);
+const classAnalyticsSource = readFileSync(
+  join(process.cwd(), 'src/app/teacher/classes/[classId]/analytics-v2/page.tsx'),
+  'utf8',
+);
+const globalsSource = readFileSync(
+  join(process.cwd(), 'src/app/globals.css'),
+  'utf8',
+);
 
 describe('teacher-insights helpers', () => {
   it('builds the class insights route with class context', () => {
@@ -125,5 +141,23 @@ describe('teacher-insights helpers', () => {
       email: null,
       fallbackId: 'abcdef123456',
     })).toBe('abcdef12');
+  });
+
+  it('keeps teacher mobile report and class detail actions announced and named', () => {
+    expect(classAnalyticsSource).toContain('data-teacher-report-delivery-status');
+    expect(classAnalyticsSource).toContain('data-teacher-report-delivery="mobile-fixed-actions"');
+    expect(classAnalyticsSource).toContain('aria-label="导出教师报告 JSON 文件"');
+    expect(classAnalyticsSource).toContain('aria-pressed={heatmapView === view.key}');
+    expect(classDetailSource).toContain('data-teacher-class-detail-status');
+    expect(classDetailSource).toContain('data-teacher-class-visible-status');
+    expect(classDetailSource).toContain('data-teacher-mobile-cards="true"');
+    expect(classDetailSource).toContain('role="dialog" aria-modal="true"');
+    expect(classDetailSource).toContain('ref={startDialogRef}');
+    expect(classDetailSource).toContain(`event.key === 'Escape'`);
+    expect(classDetailSource).toContain('document.activeElement === dialog');
+    expect(classDetailSource).toContain('getStartDialogFocusableElements(dialog)[0]?.focus() ?? dialog.focus()');
+    expect(classDetailSource).toContain('data-label="证据状态"');
+    expect(globalsSource).toContain('table[data-teacher-mobile-cards="true"]');
+    expect(globalsSource).toContain('content: attr(data-label)');
   });
 });

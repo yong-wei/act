@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -18,6 +21,11 @@ const risks: GovernanceRiskSummary[] = [
     isResolved: false,
   },
 ];
+
+const dataGovernanceDashboardSource = readFileSync(
+  join(process.cwd(), 'src/features/admin/data-governance-dashboard.tsx'),
+  'utf8',
+);
 
 describe('admin governance action contract', () => {
   it('blocks missing risk resolve with an auditable recovery state', () => {
@@ -122,5 +130,14 @@ describe('admin governance action contract', () => {
       targetRiskFlag: null,
       recentRiskFlags: risks,
     }, 'missing-risk')).toBeNull();
+  });
+
+  it('keeps governance dashboard tabs, status updates, and risk tables accessible on mobile', () => {
+    expect(dataGovernanceDashboardSource).toContain('data-admin-governance-status');
+    expect(dataGovernanceDashboardSource).toContain('aria-pressed={activeTab === tab.id}');
+    expect(dataGovernanceDashboardSource).toContain(`aria-current={activeTab === tab.id ? 'page' : undefined}`);
+    expect(dataGovernanceDashboardSource).toContain('data-admin-mobile-cards="true"');
+    expect(dataGovernanceDashboardSource).toContain('aria-label={`处置治理风险 ${risk.flagLabel} ${risk.userName}`}');
+    expect(dataGovernanceDashboardSource).toContain('aria-label="刷新数据治理状态"');
   });
 });

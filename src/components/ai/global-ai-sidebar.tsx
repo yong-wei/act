@@ -18,6 +18,13 @@ import { Button } from '@/components/ui/button';
 import { KONLING_BRAND, getQuickQuestions } from '@/lib/ai-branding';
 import { summarizeAiToolResult } from '@/lib/ai-task-boundary-contracts';
 
+const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+function getFocusableElements(container: HTMLElement) {
+  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR))
+    .filter((item) => !item.hasAttribute('disabled') && item.offsetParent !== null);
+}
+
 export function GlobalAISidebar() {
   const styles = useAIThemeStyles();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -108,6 +115,40 @@ export function GlobalAISidebar() {
   }, [isOpen, closeSidebar]);
 
   useEffect(() => {
+    if (!isOpen) return;
+    const panel = panelRef.current;
+    if (!panel) return;
+
+    const handleTab = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+      const focusable = getFocusableElements(panel);
+      if (focusable.length === 0) {
+        event.preventDefault();
+        panel.focus();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!panel.contains(document.activeElement) || document.activeElement === panel) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+        return;
+      }
+      if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      }
+    };
+
+    panel.addEventListener('keydown', handleTab);
+    return () => panel.removeEventListener('keydown', handleTab);
+  }, [isOpen]);
+
+  useEffect(() => {
     if (isOpen) {
       const activeElement = document.activeElement;
       if (activeElement instanceof HTMLElement && activeElement !== document.body) {
@@ -115,7 +156,9 @@ export function GlobalAISidebar() {
       }
       wasOpenRef.current = true;
       window.requestAnimationFrame(() => {
-        panelRef.current?.focus();
+        const panel = panelRef.current;
+        if (!panel) return;
+        getFocusableElements(panel)[0]?.focus() ?? panel.focus();
       });
       return;
     }
@@ -298,6 +341,7 @@ export function GlobalAISidebar() {
             )}
             <button type="button"
               onClick={closeSidebar}
+              aria-label="关闭 AI 侧栏"
               className={`rounded p-2 transition-colors ${styles.text.muted} hover:bg-slate-700/30`}
               title="关闭 (ESC)"
             >

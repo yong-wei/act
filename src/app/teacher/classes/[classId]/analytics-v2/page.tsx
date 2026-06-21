@@ -283,7 +283,7 @@ export default function ClassAnalyticsV2Page() {
       <header className="surface-topbar px-6 py-4">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Link href={`/teacher/classes/${classId}`} className="text-subtle transition hover:text-foreground">
+            <Link href={`/teacher/classes/${classId}`} className="text-subtle transition hover:text-foreground" aria-label="返回班级详情">
               <ArrowLeft className="h-6 w-6" />
             </Link>
             <div>
@@ -296,7 +296,7 @@ export default function ClassAnalyticsV2Page() {
               </p>
             </div>
           </div>
-          <button type="button" onClick={fetchData} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm">
+          <button type="button" onClick={fetchData} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm" aria-label="刷新班级学情总览数据">
             <RefreshCw className="h-4 w-4" />
             刷新数据
           </button>
@@ -310,6 +310,9 @@ export default function ClassAnalyticsV2Page() {
           onDownload={handleReportDownload}
           onCopySummary={handleCopySummary}
         />
+        <div className="sr-only" role="status" aria-live="polite" data-teacher-report-delivery-status>
+          {activeDeliveryState?.announcement ?? activeDeliveryState?.message ?? '教师报告交付动作已就绪。'}
+        </div>
         <section className="teacher-insight-hero mb-8">
           <div className="grid gap-4 xl:grid-cols-[1.3fr,0.7fr]">
             <div className="space-y-4">
@@ -428,6 +431,7 @@ export default function ClassAnalyticsV2Page() {
                   key={view.key}
                   type="button"
                   onClick={() => setHeatmapView(view.key as HeatmapView)}
+                  aria-pressed={heatmapView === view.key}
                   className={`rounded-full px-4 py-2 text-sm transition ${
                     heatmapView === view.key
                       ? 'bg-primary text-primary-foreground'
@@ -620,11 +624,11 @@ function ReportDeliveryActions({
 }) {
   return (
     <div className="flex flex-wrap gap-2">
-      <button type="button" onClick={onDownload} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm">
+      <button type="button" onClick={onDownload} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm" aria-label="导出教师报告 JSON 文件">
         <Download className="h-4 w-4" />
         导出 JSON
       </button>
-      <button type="button" onClick={onCopySummary} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm">
+      <button type="button" onClick={onCopySummary} className="btn-ghost-themed inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm" aria-label="复制教师报告摘要">
         <Clipboard className="h-4 w-4" />
         复制摘要
       </button>

@@ -102,6 +102,12 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
   const riskExportHref = visibleActionState?.downloadFilename
     ? `/api/admin/data-governance/export?format=${encodeURIComponent(exportFormat)}`
     : null;
+  const governanceStatusAnnouncement = useMemo(() => {
+    if (loading) return '正在刷新数据治理看板。';
+    if (error) return `数据治理看板出现错误：${error}`;
+    if (!status || !overview) return '数据治理看板暂无可展示数据。';
+    return `数据治理看板已更新，当前状态为 ${status.status}，当前标签为 ${overview.tabs.find((tab) => tab.id === activeTab)?.label ?? '概览'}。`;
+  }, [activeTab, error, loading, overview, status]);
 
   const executeGovernanceAction = async (input: {
     action: 'resolve' | 'assign';
@@ -220,7 +226,7 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
           description="这里不只展示总量，而是直接展开风险、事实与快照的下层内容，帮助管理员判断治理链路到底卡在队列、快照还是风险处置。"
         />
         <main className="admin-console-container py-8">
-          <div className="admin-console-notice admin-console-notice-danger flex items-start gap-3">
+          <div className="admin-console-notice admin-console-notice-danger flex items-start gap-3" role="alert">
             <AlertTriangle className="mt-0.5 h-5 w-5" />
             <div>
               <p className="font-medium">数据治理看板加载失败</p>
@@ -264,6 +270,7 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
             onClick={fetchStatus}
             className="admin-console-button-primary"
             disabled={loading}
+            aria-label="刷新数据治理状态"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             刷新状态
@@ -273,10 +280,18 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
 
       <main className="admin-console-container space-y-6 py-8">
         {error && (
-          <div className="admin-console-notice admin-console-notice-danger">
+          <div className="admin-console-notice admin-console-notice-danger" role="alert">
             {error}
           </div>
         )}
+        <div
+          className="sr-only"
+          role="status"
+          aria-live="polite"
+          data-admin-governance-status
+        >
+          {governanceStatusAnnouncement}
+        </div>
 
         {visibleActionState ? (
           <ActionStatusPanel
@@ -286,6 +301,7 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
                 href={riskExportHref}
                 download={visibleActionState.downloadFilename}
                 className="admin-console-button px-3 py-1.5"
+                aria-label="下载数据治理风险文件"
               >
                 <Download className="h-4 w-4" />
                 下载风险文件
@@ -299,6 +315,7 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
                   assignee: routeRiskAction === 'assign' ? initialActionQuery?.assignee?.trim() || currentUser.id : null,
                 })}
                 className="admin-console-button px-3 py-1.5"
+                aria-label={routeRiskAction === 'assign' ? '提交治理风险分派' : '提交治理风险处置'}
               >
                 {routeRiskAction === 'assign' ? '提交分派' : '提交处置'}
               </button>
@@ -345,12 +362,14 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
           ))}
         </section>
 
-        <nav className="admin-console-surface flex flex-wrap gap-2 p-2">
+        <nav className="admin-console-surface flex flex-wrap gap-2 p-2" aria-label="数据治理视图">
           {overview.tabs.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
+              aria-pressed={activeTab === tab.id}
+              aria-current={activeTab === tab.id ? 'page' : undefined}
               className={`rounded-md px-4 py-2 text-sm font-medium transition ${
                 activeTab === tab.id
                   ? 'bg-cyan-500 text-slate-950'
@@ -511,7 +530,7 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
               </div>
             )}
             <div className="admin-console-table-shell p-0">
-              <table className="admin-console-table">
+              <table className="admin-console-table" data-admin-mobile-cards="true" aria-label="数据源治理目录">
                 <thead>
                   <tr>
                     <th className="px-4 py-3">来源</th>
@@ -526,15 +545,15 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
                 <tbody>
                   {overview.sourceCatalogPanel.sources.map((source) => (
                     <tr key={source.id}>
-                      <td className="px-4 py-3 admin-console-title font-medium">{source.id}</td>
-                      <td className="px-4 py-3">{source.learningScope}</td>
-                      <td className="px-4 py-3">{source.valueLevel}</td>
-                      <td className="px-4 py-3">{source.eligibility}</td>
-                      <td className="px-4 py-3">{source.materializationReadiness}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 admin-console-title font-medium" data-label="来源">{source.id}</td>
+                      <td className="px-4 py-3" data-label="范围">{source.learningScope}</td>
+                      <td className="px-4 py-3" data-label="价值">{source.valueLevel}</td>
+                      <td className="px-4 py-3" data-label="资格">{source.eligibility}</td>
+                      <td className="px-4 py-3" data-label="物化">{source.materializationReadiness}</td>
+                      <td className="px-4 py-3" data-label="行数">
                         {(source.totalRows ?? 0).toLocaleString()}
                       </td>
-                      <td className="px-4 py-3 admin-console-table-subtle">
+                      <td className="px-4 py-3 admin-console-table-subtle" data-label="排除原因">
                         {source.exclusionReasons && source.exclusionReasons.length > 0
                           ? source.exclusionReasons.join(' / ')
                           : '-'}
@@ -594,7 +613,7 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
               ))}
             </div>
             <div className="admin-console-table-shell p-0">
-              <table className="admin-console-table">
+              <table className="admin-console-table" data-admin-mobile-cards="true" aria-label="课堂质量报告">
                 <thead>
                   <tr>
                     <th className="px-4 py-3">课堂</th>
@@ -613,17 +632,17 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
                   ) : (
                     overview.sessionQualityPanel.rows.map((report) => (
                       <tr key={report.sessionId}>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3" data-label="课堂">
                           <div className="admin-console-title font-medium">{report.lessonKey ?? report.sessionId}</div>
                           <div className="admin-console-table-subtle text-xs">{report.summary ?? report.sessionId}</div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3" data-label="质量">
                           <span className="admin-console-chip">{report.qualityStatus}</span>
                         </td>
-                        <td className="px-4 py-3 admin-console-table-subtle">
+                        <td className="px-4 py-3 admin-console-table-subtle" data-label="原因">
                           {report.qualityReasons.length > 0 ? report.qualityReasons.join(' / ') : '-'}
                         </td>
-                        <td className="px-4 py-3 admin-console-table-subtle">
+                        <td className="px-4 py-3 admin-console-table-subtle" data-label="更新时间">
                           {new Date(report.updatedAt).toLocaleString('zh-CN')}
                         </td>
                       </tr>
@@ -689,7 +708,7 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
         )}
 
         {activeTab === 'overview' && (
-        <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+          <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
           <div className="admin-console-surface space-y-4">
             <div className="flex items-center gap-3">
               <span className="admin-console-icon-badge">
@@ -703,7 +722,7 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
               </div>
             </div>
             <div className="admin-console-table-shell p-0">
-              <table className="admin-console-table">
+              <table className="admin-console-table" data-admin-mobile-cards="true" aria-label="未解决治理风险">
                 <thead>
                   <tr>
                     <th className="px-4 py-3">学生</th>
@@ -724,24 +743,25 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
                   ) : (
                     overview.riskPanel.rows.map((risk) => (
                       <tr key={risk.id}>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3" data-label="学生">
                           <div className="admin-console-title font-medium">{risk.userName}</div>
                           <div className="admin-console-table-subtle text-xs">{risk.userId}</div>
                         </td>
-                        <td className="px-4 py-3">{risk.flagLabel}</td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3" data-label="风险类型">{risk.flagLabel}</td>
+                        <td className="px-4 py-3" data-label="级别">
                           <span className="admin-console-chip">{risk.severityLabel}</span>
                         </td>
-                        <td className="px-4 py-3 admin-console-table-subtle">
+                        <td className="px-4 py-3 admin-console-table-subtle" data-label="触发时间">
                           {new Date(risk.triggeredAt).toLocaleString('zh-CN')}
                         </td>
-                        <td className="px-4 py-3 admin-console-table-subtle">{risk.description}</td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3 admin-console-table-subtle" data-label="说明">{risk.description}</td>
+                        <td className="px-4 py-3" data-label="操作">
                           <div className="flex flex-wrap justify-end gap-2">
                             <button
                               type="button"
                               onClick={() => executeGovernanceAction({ action: 'resolve', riskId: risk.id })}
                               className="admin-console-button px-3 py-1.5 text-xs"
+                              aria-label={`处置治理风险 ${risk.flagLabel} ${risk.userName}`}
                             >
                               处置
                             </button>
@@ -749,6 +769,7 @@ export function DataGovernanceDashboard({ currentUser, initialActionQuery }: Dat
                               type="button"
                               onClick={() => executeGovernanceAction({ action: 'assign', riskId: risk.id, assignee: currentUser.id })}
                               className="admin-console-button px-3 py-1.5 text-xs"
+                              aria-label={`分派治理风险 ${risk.flagLabel} ${risk.userName}`}
                             >
                               分派
                             </button>
