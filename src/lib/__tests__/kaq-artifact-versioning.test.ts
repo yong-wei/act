@@ -6,6 +6,7 @@ import {
   buildKaqVersionedArtifactMetadata,
   detectKaqArtifactStaleness,
   KAQ_ARTIFACT_VERSIONING_VERSION,
+  LEARNING_GOAL_PACKAGE_VERSION,
   RESOURCE_SEMANTIC_PROJECTION_VERSION,
   validateKaqArtifactVersionRefs,
 } from '../kaq-artifact-versioning';
@@ -16,7 +17,7 @@ describe('K/A/Q artifact versioning', () => {
       artifactId: 'path:control-correction:student-1',
       artifactKind: 'path-artifact',
       generatedAt: '2026-06-21T00:00:00.000Z',
-      versionRefs: { learningGoalPackageVersion: 'learning-goal-package.v1' },
+      versionRefs: { learningGoalPackageVersion: LEARNING_GOAL_PACKAGE_VERSION },
       requiredRefs: [
         'learningGoalPackageVersion',
         'graphCatalogVersion',
@@ -27,10 +28,11 @@ describe('K/A/Q artifact versioning', () => {
 
     expect(metadata.versionRefs).toMatchObject({
       artifactVersioningVersion: KAQ_ARTIFACT_VERSIONING_VERSION,
-      learningGoalPackageVersion: 'learning-goal-package.v1',
+      learningGoalPackageVersion: LEARNING_GOAL_PACKAGE_VERSION,
       resourceProjectionVersion: RESOURCE_SEMANTIC_PROJECTION_VERSION,
       plannerVersion: ADAPTIVE_LEARNING_PATH_PLANNER_VERSION,
     });
+    expect(metadata.versionRefs.learningGoalPackageVersion).toBe(LEARNING_GOAL_PACKAGE_VERSION);
     expect(metadata.limitations).toEqual([]);
   });
 
@@ -52,11 +54,13 @@ describe('K/A/Q artifact versioning', () => {
 
   it('marks stale artifact refs as limitations without rewriting history', () => {
     const staleRefs = buildKaqArtifactVersionRefs({
+      learningGoalPackageVersion: 'learning-goal-package/v0',
       graphCatalogVersion: 'autocontrol-kaq-graph.v0',
       resourceProjectionVersion: 'resource-semantic-projection.v0',
     });
 
     expect(detectKaqArtifactStaleness(staleRefs)).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'stale-version-ref', ref: 'learningGoalPackageVersion' }),
       expect.objectContaining({ code: 'stale-version-ref', ref: 'graphCatalogVersion' }),
       expect.objectContaining({ code: 'stale-version-ref', ref: 'resourceProjectionVersion' }),
     ]));
@@ -66,7 +70,7 @@ describe('K/A/Q artifact versioning', () => {
       artifactKind: 'path-artifact',
       generatedAt: '2026-06-21T00:00:00.000Z',
       versionRefs: {
-        learningGoalPackageVersion: 'learning-goal-package.v1',
+        learningGoalPackageVersion: 'learning-goal-package/v0',
         resourceProjectionVersion: 'resource-semantic-projection.v0',
       },
       requiredRefs: [
@@ -77,6 +81,7 @@ describe('K/A/Q artifact versioning', () => {
       ],
     });
     expect(metadata.limitations).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'stale-version-ref', ref: 'learningGoalPackageVersion' }),
       expect.objectContaining({ code: 'stale-version-ref', ref: 'resourceProjectionVersion' }),
     ]));
   });

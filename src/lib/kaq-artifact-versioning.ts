@@ -1,6 +1,7 @@
 import { AUTOCONTROL_KAQ_GRAPH_VERSION } from './data-governance/autocontrol-kaq-graph-catalog';
 
 export const KAQ_ARTIFACT_VERSIONING_VERSION = 'kaq-artifact-versioning.v1';
+export const LEARNING_GOAL_PACKAGE_VERSION = 'learning-goal-package/v1';
 export const KAQ_OBJECTIVE_CATALOG_VERSION = 'autocontrol-kaq-objectives.v1';
 export const RESOURCE_NODE_REGISTRY_VERSION = 'resource-node-registry.v1';
 export const RESOURCE_SEMANTIC_PROJECTION_VERSION = 'resource-semantic-projection.v1';
@@ -54,6 +55,7 @@ export interface KaqVersionedArtifactMetadata {
 
 export const DEFAULT_KAQ_ARTIFACT_VERSION_REFS: KaqArtifactVersionRefs = {
   artifactVersioningVersion: KAQ_ARTIFACT_VERSIONING_VERSION,
+  learningGoalPackageVersion: LEARNING_GOAL_PACKAGE_VERSION,
   objectiveCatalogVersion: KAQ_OBJECTIVE_CATALOG_VERSION,
   graphCatalogVersion: AUTOCONTROL_KAQ_GRAPH_VERSION,
   resourceRegistryVersion: RESOURCE_NODE_REGISTRY_VERSION,
@@ -88,6 +90,7 @@ export function detectKaqArtifactStaleness(
   currentRefs: KaqArtifactVersionRefs = DEFAULT_KAQ_ARTIFACT_VERSION_REFS,
 ): KaqArtifactVersionLimitation[] {
   return ([
+    'learningGoalPackageVersion',
     'objectiveCatalogVersion',
     'graphCatalogVersion',
     'resourceRegistryVersion',

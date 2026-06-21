@@ -170,7 +170,9 @@ export function materializeRoleBasedLearningDiagnosis(input: RoleBasedLearningDi
       limit: input.view === 'service' ? 16 : 8,
     })
     : [];
-  const evidenceRefs = evidence.map((chunk) => toEvidenceRef(chunk, evidenceScope));
+  const evidenceRefs = evidence
+    .map((chunk) => toEvidenceRef(chunk, evidenceScope))
+    .filter((ref): ref is RoleBasedLearningDiagnosisEvidenceRef => Boolean(ref));
   const globalLimitations = globalLimitationsFor(safeInput);
   const claims = (dimensions.length > 0 ? dimensions : [fallbackDimension(input.goalId)]).map((dimension) =>
     buildClaim({
@@ -435,7 +437,7 @@ function buildClaim(input: {
   generatedAt: string;
 }): RoleBasedLearningDiagnosisClaim {
   const confidence = confidenceFor(input.dimension, input.evidence);
-  const limitations = limitationsForClaim(input.dimension, input.evidence, input.input, confidence.state);
+  const limitations = limitationsForClaim(input.dimension, input.evidence, input.input, confidence.state, input.evidenceRefs.length);
   const judgment = judgmentFor(input.dimension, limitations);
   const dimensionId = String(input.dimension.id ?? input.input.goalId);
   const explanation = explanationFor(input.input.view, dimensionId, judgment, input.dimension);
@@ -501,7 +503,7 @@ function fallbackDimension(goalId: string) {
   };
 }
 
-function toEvidenceRef(chunk: LearningEvidenceCorpusChunk, scope: ReturnType<typeof retrievalScopeFor>): RoleBasedLearningDiagnosisEvidenceRef {
+function toEvidenceRef(chunk: LearningEvidenceCorpusChunk, scope: ReturnType<typeof retrievalScopeFor>): RoleBasedLearningDiagnosisEvidenceRef | null {
   const verification = verifyLearningEvidenceCitations([chunk], scope, [{
     chunkId: chunk.id,
     sourceType: chunk.sourceType,
@@ -509,7 +511,7 @@ function toEvidenceRef(chunk: LearningEvidenceCorpusChunk, scope: ReturnType<typ
   }]);
   const citationChip = buildLearningEvidenceCitationChips(verification, scope)[0];
   if (!citationChip) {
-    throw new Error(`Unable to build diagnosis citation chip for evidence chunk: ${chunk.id}`);
+    return null;
   }
   return {
     chunkId: chunk.id,
@@ -590,12 +592,13 @@ function limitationsForClaim(
   evidence: LearningEvidenceCorpusChunk[],
   input: RoleBasedLearningDiagnosisInput,
   confidence: LearningEvidenceConfidence,
+  verifiedCitationCount = evidence.length,
 ): RoleBasedLearningDiagnosisLimitation[] {
   const limitations: RoleBasedLearningDiagnosisLimitation[] = [];
   if (!input.goalSlice) limitations.push(limitation('missing-goal-slice', 'No registered adaptive goal slice was supplied.'));
   if (input.view === 'teacher-student' && !input.targetUserId) limitations.push(limitation('missing-target-student', 'Teacher student diagnosis requires an explicit target student.'));
   if (Number(dimension.evidenceCount ?? 0) === 0) limitations.push(limitation('missing-dimension-evidence', 'The goal dimension has no governed evidence count.'));
-  if (evidence.length === 0) limitations.push(limitation('missing-citation', 'No accessible governed citation was found for this diagnosis.'));
+  if (verifiedCitationCount === 0) limitations.push(limitation('missing-citation', 'No accessible governed citation was found for this diagnosis.'));
   if (hasStaleEvidence(input, evidence, dimension)) limitations.push(limitation('stale-evidence', 'One or more evidence sources are stale.'));
   if (confidence === 'none' || confidence === 'low') limitations.push(limitation('low-confidence', 'The claim is downgraded because confidence is low.'));
   if (!input.pathOutcomeSummary) limitations.push(limitation('no-active-path', 'No active path outcome summary is available.'));

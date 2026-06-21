@@ -295,6 +295,23 @@ describe('role-based learning diagnosis materialization', () => {
     expect(validateRoleBasedLearningDiagnosis(diagnosis)).toEqual([]);
   });
 
+  it('downgrades unsafe citation evidence instead of failing diagnosis materialization', () => {
+    const diagnosis = materializeRoleBasedLearningDiagnosis({
+      ...baseInput,
+      evidenceCorpus: [evidence({
+        display: {
+          title: '不安全引用地址',
+          href: 'javascript:alert(1)',
+          capsule: '引用地址不应进入诊断视图。',
+        },
+      })],
+    });
+
+    expect(diagnosis.claims[0].evidenceRefs).toEqual([]);
+    expect(diagnosis.claims[0].limitations.map((item) => item.reason)).toContain('missing-citation');
+    expect(validateRoleBasedLearningDiagnosis(diagnosis)).toEqual([]);
+  });
+
   it('keeps service diagnostics auditable while ordinary views omit raw private payloads', () => {
     const serviceOnly = evidence({
       id: 'chunk-service-1',
