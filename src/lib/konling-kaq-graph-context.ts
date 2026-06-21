@@ -450,7 +450,12 @@ function buildMissingGrounding(input: {
   if (!input.pathArtifact || input.pathArtifact.status === 'missing') {
     missing.push({ class: 'path', severity: 'warning', reason: 'path-artifact-missing' });
   }
-  if (!input.citationContext || input.citationContext.contentCitations.length + input.citationContext.evidenceCitations.length === 0) {
+  if (
+    !input.citationContext
+    || input.citationContext.contentCitations.length + input.citationContext.evidenceCitations.length === 0
+    || (input.citationContext.required === true && input.citationContext.missingCitationClasses.length > 0)
+    || input.citationContext.lowConfidenceReasons.length > 0
+  ) {
     missing.push({ class: 'citation', severity: 'warning', reason: 'citation-refs-missing' });
   }
   if (!input.versionRefs || !input.versionRefs.graphCatalogVersion || !input.versionRefs.groundingVersion) {

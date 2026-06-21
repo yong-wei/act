@@ -177,6 +177,31 @@ describe('Konling K/A/Q graph context', () => {
     ]));
   });
 
+  it('marks citation grounding missing when required citation classes are absent', () => {
+    const context = buildKonlingKaqGraphContext({
+      scope: {
+        courseId: 'control-correction',
+        role: 'student',
+        targetUserId: 'student-1',
+        classId: null,
+      },
+      learnerOverlay: learnerOverlay() as never,
+      planContext: planContext(),
+      citationContext: {
+        ...citationContext(),
+        missingCitationClasses: ['path-execution'],
+      },
+    });
+
+    expect(context.citationRefs).toContain('content:control-correction');
+    expect(context.missingGrounding).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        class: 'citation',
+        reason: 'citation-refs-missing',
+      }),
+    ]));
+  });
+
   it('does not let client hints expand graph node or resource scope', () => {
     const context = buildKonlingKaqGraphContext({
       scope: {

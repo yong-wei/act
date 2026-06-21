@@ -561,7 +561,7 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
     ...missingRequiredContext,
     ...missingCitationClasses,
   ];
-  const graphGroundingDegradedReasons = isKonlingGraphAwareAnswerIntent(answerIntent)
+  const graphGroundingDegradedReasons = isKonlingGraphAwareMode(mode, answerIntent)
     ? buildKonlingGraphGroundingDegradedReasons(effectiveGraphContext)
     : [];
   const degradedReasons = unavailableReasons.length === 0
@@ -623,8 +623,16 @@ export function buildKonlingTeachingAssistantRuntimeContract(input: {
   };
 }
 
-function isKonlingGraphAwareAnswerIntent(answerIntent: KonlingAnswerIntent): boolean {
-  return answerIntent === 'path-advice' || answerIntent === 'personalized-diagnosis';
+function isKonlingGraphAwareMode(
+  mode: KonlingTeachingAssistantModeContract,
+  answerIntent: KonlingAnswerIntent,
+): boolean {
+  return (
+    answerIntent === 'path-advice'
+    || answerIntent === 'personalized-diagnosis'
+    || mode.id === 'resource-coach'
+    || mode.id === 'prep-coauthor'
+  );
 }
 
 function classifyKonlingAnswerIntent(

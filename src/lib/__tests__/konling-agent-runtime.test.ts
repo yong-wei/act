@@ -748,6 +748,68 @@ describe('konling agent runtime', () => {
     ]));
   });
 
+  it('degrades resource-coach when graph resource grounding is missing', () => {
+    const runtime = createRuntimeContext({
+      learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],
+      permittedTools: ['get_page_context', 'get_learner_state', 'get_plan_context', 'search_knowledge_graph', 'recommend_next_action'],
+      citationContext: {
+        required: true,
+        contentCitations: [{
+          id: 'content:resource',
+          sourceType: 'content',
+          displayTitle: '资源说明',
+          href: null,
+          confidence: 'high',
+          evidenceBasis: 'course-ai-context',
+          owner: 'answer',
+        }],
+        evidenceCitations: [{
+          id: 'path:path-1',
+          sourceType: 'path-execution',
+          displayTitle: '路径记录',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'LearningPath',
+          owner: 'recommendation',
+        }, {
+          id: 'learner:student-1',
+          sourceType: 'learner-state',
+          displayTitle: '学习状态摘要',
+          href: null,
+          confidence: 'medium',
+          evidenceBasis: 'AdaptiveLearnerState',
+          owner: 'recommendation',
+        }],
+        missingCitationClasses: [],
+        lowConfidenceReasons: [],
+        responseProtocol: {
+          requiredOwners: ['answer', 'recommendation'],
+          minimum: { content: 1, evidenceWhenAvailable: 1 },
+          fallbackWhenMissing: 'low-confidence',
+        },
+      },
+    });
+
+    const contract = buildKonlingTeachingAssistantRuntimeContract({
+      modeId: 'resource-coach',
+      runtimeContext: runtime,
+      scope: createScope({ role: 'student', courseId: 'unknown-course', pageId: 'resource-node-launch', resourceId: 'resource-1' }),
+      serverModeContext: {
+        'resource-node': true,
+        'path-execution-context': true,
+        'evidence-citations': true,
+      },
+    });
+
+    expect(contract.status).toBe('degraded');
+    expect(contract.answerIntent).toBe('fact-explanation');
+    expect(contract.degradedReasons).toEqual(expect.arrayContaining([
+      'missing-graph-grounding:learning-goal',
+      'missing-graph-grounding:graph',
+      'missing-graph-grounding:resource',
+    ]));
+  });
+
   it('keeps path-advisor generation available when a student has no existing path yet', () => {
     const runtime = createRuntimeContext({
       learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],
@@ -1284,8 +1346,12 @@ describe('konling agent runtime', () => {
       scope: createScope({ resourceId: 'resource-1' }),
       serverModeContext: { 'resource-node': true },
     });
-    expect(withServerContext.status).toBe('ready');
+    expect(withServerContext.status).toBe('degraded');
     expect(withServerContext.answerIntent).toBe('fact-explanation');
+    expect(withServerContext.degradedReasons).toEqual(expect.arrayContaining([
+      'missing-graph-grounding:learning-goal',
+      'missing-graph-grounding:graph',
+    ]));
     expect(withServerContext.permittedTools).toContain('analyze_attempt');
 
     const withMediaServerContext = buildKonlingTeachingAssistantRuntimeContract({
@@ -1295,7 +1361,7 @@ describe('konling agent runtime', () => {
       serverModeContext: { 'resource-node': true, 'media-resource': true },
       clientContextHints: { resourceId: 'plain-client-id' },
     });
-    expect(withMediaServerContext.status).toBe('ready');
+    expect(withMediaServerContext.status).toBe('degraded');
     expect(withMediaServerContext.answerIntent).toBe('media-guidance');
     expect(withMediaServerContext.groundingContext.resourceRefs).toEqual(['resource:opaque-resource-id']);
     expect(withMediaServerContext.groundingContext.missingContext).not.toContain('resource-context-missing');
@@ -1312,7 +1378,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ resourceId: 'ordinary-resource' }),
       serverModeContext: { 'resource-node': true },
     });
-    expect(nonMediaResourceWithMediaPageType.status).toBe('ready');
+    expect(nonMediaResourceWithMediaPageType.status).toBe('degraded');
     expect(nonMediaResourceWithMediaPageType.answerIntent).toBe('fact-explanation');
 
     const withSelectedKnowledgeNode = buildKonlingTeachingAssistantRuntimeContract({
@@ -1347,7 +1413,7 @@ describe('konling agent runtime', () => {
       scope: createScope({ pageId: '/knowledge', resourceId: null }),
       clientContextHints: { targetUserId: 'other-student' },
     });
-    expect(withSelectedKnowledgeNode.status).toBe('ready');
+    expect(withSelectedKnowledgeNode.status).toBe('degraded');
     expect(withSelectedKnowledgeNode.answerIntent).toBe('fact-explanation');
     expect(withSelectedKnowledgeNode.groundingContext).toMatchObject({
       source: 'server-owned',
