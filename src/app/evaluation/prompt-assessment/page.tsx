@@ -277,7 +277,7 @@ export default function PromptAssessmentPage() {
           sessionId: DEMO_SESSION_ID,
           promptContent: compiledPrompt,
           assessment: demoAssessment,
-          consistency,
+          consistency: consistency ?? undefined,
           version,
           createdAt: Date.now(),
         },

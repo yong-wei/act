@@ -201,12 +201,13 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
   }, [initialUsersQuery]);
 
   const invalidQueryState = useMemo(() => {
-    if (!shouldBlockInvalidAdminUsersQuery(initialUsersQuery, usersQueryTouched)) return null;
+    const query = initialUsersQuery;
+    if (!query || !shouldBlockInvalidAdminUsersQuery(query, usersQueryTouched)) return null;
     const invalidParts = [
-      initialUsersQuery.source.roleSupported ? null : '角色筛选',
-      initialUsersQuery.source.pageValid ? null : '分页参数',
-      initialUsersQuery.source.pageSizeValid ? null : '分页大小',
-    ].filter(Boolean);
+      query.source.roleSupported ? null : '角色筛选',
+      query.source.pageValid ? null : '分页参数',
+      query.source.pageSizeValid ? null : '分页大小',
+    ].filter((part): part is string => Boolean(part));
     if (invalidParts.length === 0) return null;
     return createAuditedActionState({
       identity: {

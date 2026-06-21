@@ -1,4 +1,4 @@
-import { createAuditedActionState, type AuditedActionState } from '@/lib/action-status-contract';
+import { createAuditedActionState, type AuditedActionIdentity, type AuditedActionState } from '@/lib/action-status-contract';
 import { resolveScopedReturnTarget, type ReturnTargetParam } from '@/lib/navigation-return-target';
 
 export type TeacherReportDeliveryAction =
@@ -70,7 +70,7 @@ export function normalizeTeacherReportDeliveryQuery(input: {
 
 export function buildTeacherReportDeliveryState(query: TeacherReportDeliveryQuery): AuditedActionState | null {
   if (!query.action) return null;
-  const identity = {
+  const identity: AuditedActionIdentity = {
     id: `teacher-report:${query.action}:${query.reportId}`,
     category: getReportDeliveryCategory(query.action),
     label: '教师报告交付',
@@ -144,7 +144,7 @@ export function normalizeTeacherGradingRouteQuery(input: {
 export function buildTeacherGradingRouteState(query: TeacherGradingRouteQuery): AuditedActionState | null {
   const requestedAction = query.action ?? query.method ?? query.status;
   if (!requestedAction && !query.gradingRunId && !query.assignment) return null;
-  const identity = {
+  const identity: AuditedActionIdentity = {
     id: `teacher-grading:${query.gradingRunId ?? query.assignment ?? requestedAction ?? 'empty'}`,
     category: getGradingActionCategory(requestedAction),
     label: '报告评分工作台',

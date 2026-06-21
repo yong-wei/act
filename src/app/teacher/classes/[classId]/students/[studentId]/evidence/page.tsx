@@ -17,7 +17,7 @@ export default async function TeacherClassStudentEvidencePage(
     searchParams?.gradingRunId ? `评分运行 ${searchParams.gradingRunId}` : null,
     searchParams?.reportId ? `报告 ${searchParams.reportId}` : null,
     searchParams?.source ? `来源 ${searchParams.source}` : null,
-  ].filter(Boolean);
+  ].filter((part): part is string => Boolean(part));
   const backHref = mergeTeacherEvidenceContext(safeBackHref, {
     gradingRunId: searchParams?.gradingRunId,
     reportId: searchParams?.reportId,
