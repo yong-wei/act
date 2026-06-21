@@ -398,10 +398,10 @@ function mergeLearnerOverlayStatus(
   statuses: GraphCenterOverlayStatus[],
 ): GraphCenterOverlayStatus {
   const items = Object.values(overlay.items);
+  if (items.length > 0 && statuses.includes('low-confidence')) return 'low-confidence';
   if (items.some((item) => item.evidenceCount > 0 && item.confidence > 0 && item.limitations.length === 0)) {
     return 'available';
   }
-  if (items.length > 0 && statuses.includes('low-confidence')) return 'low-confidence';
   if (statuses.every((status) => status === 'empty')) return 'empty';
   if (statuses.includes('unauthorized')) return 'unauthorized';
   if (statuses.includes('suppressed')) return 'suppressed';

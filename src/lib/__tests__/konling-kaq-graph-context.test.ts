@@ -115,6 +115,26 @@ function learnerOverlay() {
   } as const;
 }
 
+function lowConfidenceLearnerOverlay() {
+  const overlay = learnerOverlay();
+  return {
+    ...overlay,
+    status: 'low-confidence',
+    items: Object.fromEntries(Object.entries(overlay.items).map(([nodeId, item]) => [
+      nodeId,
+      {
+        ...item,
+        confidence: 0.2,
+        limitations: [],
+      },
+    ])),
+    limitations: [{
+      code: 'learner-overlay-low-confidence',
+      message: '当前学习者图谱 overlay 证据不足，仅可作为补证提示。',
+    }],
+  } as const;
+}
+
 describe('Konling K/A/Q graph context', () => {
   it('assembles complete server-owned graph context from canonical LearningGoal sources', () => {
     const context = buildKonlingKaqGraphContext({
@@ -198,6 +218,31 @@ describe('Konling K/A/Q graph context', () => {
       expect.objectContaining({
         class: 'citation',
         reason: 'citation-refs-missing',
+      }),
+    ]));
+  });
+
+  it('preserves low-confidence learner overlay degradation', () => {
+    const context = buildKonlingKaqGraphContext({
+      scope: {
+        courseId: 'control-correction',
+        role: 'student',
+        targetUserId: 'student-1',
+        classId: null,
+      },
+      selectedGraphNodeIds: ['cap:autocontrol:synthesize-controller-correction'],
+      learnerOverlay: lowConfidenceLearnerOverlay() as never,
+      planContext: planContext(),
+      citationContext: citationContext(),
+    });
+
+    expect(context.learnerOverlay?.status).toBe('low-confidence');
+    expect(context.status).toBe('degraded');
+    expect(context.confidence).toBe('medium');
+    expect(context.missingGrounding).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        class: 'overlay',
+        reason: 'learner-or-class-overlay-missing',
       }),
     ]));
   });
