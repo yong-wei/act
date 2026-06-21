@@ -100,11 +100,15 @@ describe('action status contract', () => {
     });
   });
 
-  it('maps validation, permission, missing target, unsupported method, and server failures', () => {
+  it('maps validation, auth, permission, missing target, unsupported method, and server failures', () => {
     expect(mapHttpStatusToActionFailure(400, { error: '标题不能为空' })).toMatchObject({
       status: 'failed',
       message: '标题不能为空',
       recoveryAction: '检查输入后重试',
+    });
+    expect(mapHttpStatusToActionFailure(401)).toMatchObject({
+      status: 'blocked',
+      recoveryAction: '登录后回到当前页面重试',
     });
     expect(mapHttpStatusToActionFailure(403)).toMatchObject({
       status: 'blocked',

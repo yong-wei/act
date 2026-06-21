@@ -205,6 +205,13 @@ export function mapHttpStatusToActionFailure(
       recoveryAction: '检查输入后重试',
     };
   }
+  if (status === 401) {
+    return {
+      status: 'blocked',
+      message: detail ?? '登录状态已失效或尚未登录。',
+      recoveryAction: '登录后回到当前页面重试',
+    };
+  }
   if (status === 403) {
     return {
       status: 'blocked',
