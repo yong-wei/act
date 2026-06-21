@@ -1096,6 +1096,88 @@ describe('konling agent runtime', () => {
     }));
   });
 
+  it('does not build class overlay outside teacher graph-aware class surfaces', async () => {
+    const findMany = vi.fn().mockResolvedValue([{ userId: 'student-1' }]);
+    await buildKonlingRuntimeContext({
+      class: {
+        findUnique: vi.fn().mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' }),
+      },
+      studentProfile: {
+        findMany,
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'teacher-1',
+      authenticatedUserName: '王老师',
+      role: 'TEACHER',
+      targetUserId: 'teacher-1',
+      classId: 'class-1',
+      courseId: 'control-correction',
+      pageId: 'teacher-dashboard',
+      pageContextHint: {
+        courseId: 'control-correction',
+        stepId: 'teacher-dashboard',
+        pageType: 'teacher-dashboard',
+      },
+    });
+
+    expect(findMany).not.toHaveBeenCalled();
+  });
+
+  it('caps teacher class overlay learner state reads for large classes', async () => {
+    const classLearnerIds = Array.from({ length: 35 }, (_, index) => `student-${index + 1}`);
+    mocks.readAdaptiveLearnerState.mockImplementation((_db, args) => {
+      if (classLearnerIds.includes(args.userId)) {
+        return Promise.resolve(createGraphLearnerState(args.userId, 0.62));
+      }
+      return Promise.resolve(null);
+    });
+
+    const runtime = await buildKonlingRuntimeContext({
+      class: {
+        findUnique: vi.fn().mockResolvedValue({ id: 'class-1', teacherId: 'teacher-1' }),
+      },
+      studentProfile: {
+        findMany: vi.fn().mockResolvedValue(classLearnerIds.map((userId) => ({ userId }))),
+      },
+      learningPath: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      konlingMemory: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    }, {
+      authenticatedUserId: 'teacher-1',
+      authenticatedUserName: '王老师',
+      role: 'TEACHER',
+      targetUserId: 'teacher-1',
+      classId: 'class-1',
+      courseId: 'control-correction',
+      pageId: 'teacher-prep-pack',
+      pageContextHint: {
+        courseId: 'control-correction',
+        stepId: 'teacher-prep-pack',
+        pageType: 'teacher-prep-pack',
+      },
+    });
+
+    const studentStateReadCalls = mocks.readAdaptiveLearnerState.mock.calls
+      .map(([, args]) => args.userId)
+      .filter((userId) => classLearnerIds.includes(userId));
+    expect(studentStateReadCalls).toHaveLength(30);
+    expect(studentStateReadCalls).not.toContain('student-31');
+    expect(runtime.graphContext?.classOverlay?.items['cap:autocontrol:synthesize-controller-correction']).toMatchObject({
+      denominator: 30,
+      excludedPopulation: 5,
+      suppressionReason: 'none',
+    });
+  });
+
   it('does not expose path-advisor write tools from forged page ids without server context', () => {
     const runtime = createRuntimeContext({
       learnerState: { authority: 'server-owned' } as KonlingRuntimeContext['learnerState'],

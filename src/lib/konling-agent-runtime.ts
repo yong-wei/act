@@ -1292,6 +1292,9 @@ const KONLING_ADAPTIVE_PATH_WRITE_TOOLS = new Set<KonlingToolName>([
   'record_path_adjustment_outcome',
 ]);
 
+const KONLING_CLASS_OVERLAY_MAX_LEARNERS = 30;
+const KONLING_CLASS_OVERLAY_READ_CONCURRENCY = 4;
+
 const simulationTaskSpecParameters = z.object({
   sceneId: z.string().min(1),
   scenarioId: z.string().min(1),
@@ -1491,17 +1494,24 @@ async function buildKonlingRuntimeClassOverlayInput(
     now?: Date;
   },
 ): Promise<GraphCenterClassOverlayInput | null> {
-  if (input.scope.role !== 'teacher' || !input.scope.classId || !db.studentProfile?.findMany) {
+  if (
+    input.scope.role !== 'teacher'
+    || !input.scope.classId
+    || !db.studentProfile?.findMany
+    || !shouldBuildKonlingRuntimeClassOverlay(input.scope, input.pageContextHint)
+  ) {
     return null;
   }
 
   const studentProfiles = await db.studentProfile.findMany({
     where: { classId: input.scope.classId },
     select: { userId: true },
+    orderBy: { userId: 'asc' },
   }).catch(() => null);
   if (!studentProfiles) return null;
 
-  const learnerStates = await Promise.all(studentProfiles.map(async (student) => {
+  const sampledProfiles = studentProfiles.slice(0, KONLING_CLASS_OVERLAY_MAX_LEARNERS);
+  const learnerStates = await mapWithConcurrency(sampledProfiles, KONLING_CLASS_OVERLAY_READ_CONCURRENCY, async (student) => {
     const userId = getString(student, 'userId');
     if (!userId) return null;
     return readAdaptiveLearnerState(db, {
@@ -1512,14 +1522,53 @@ async function buildKonlingRuntimeClassOverlayInput(
       clientHints: input.pageContextHint ? { pageContext: input.pageContextHint } : undefined,
       now: input.now,
     }).catch(() => null);
-  }));
+  });
+  const usableLearnerStates = learnerStates.filter(hasGraphCenterLearnerOverlayShape);
 
   return {
     classId: input.scope.classId,
     viewerRole: input.scope.role,
     authorized: true,
-    learnerStates: learnerStates.filter(hasGraphCenterLearnerOverlayShape),
+    learnerStates: usableLearnerStates,
+    excludedPopulation: Math.max(studentProfiles.length - usableLearnerStates.length, 0),
   };
+}
+
+function shouldBuildKonlingRuntimeClassOverlay(
+  scope: KonlingRuntimeScope,
+  pageContextHint?: Partial<PageContext> | null,
+): boolean {
+  const markers = [
+    scope.pageId,
+    pageContextHint?.stepId,
+    pageContextHint?.pageType,
+  ]
+    .filter((value): value is string => typeof value === 'string' && value.length > 0)
+    .map((value) => value.toLowerCase());
+  return markers.some((value) =>
+    value.includes('class-report')
+    || value.includes('prep-pack')
+    || value.includes('teacher-class-report')
+    || value.includes('teacher-prep-pack')
+  );
+}
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.min(Math.max(1, concurrency), items.length);
+  await Promise.all(Array.from({ length: workerCount }, async () => {
+    while (nextIndex < items.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      results[index] = await mapper(items[index], index);
+    }
+  }));
+  return results;
 }
 
 export async function buildKonlingRuntimeContext(
