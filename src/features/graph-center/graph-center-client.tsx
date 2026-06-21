@@ -6,25 +6,45 @@ import {
   buildGraphCenterPayload,
   type GraphCenterDomain,
   type GraphCenterPayload,
+  type GraphCenterResourceCoverageMissingType,
+  type GraphCenterResourceCoverageState,
 } from '@/lib/data-governance/graph-center';
 
 interface GraphCenterClientProps {
   initialPayload: GraphCenterPayload;
+  rootPayloads?: Partial<Record<GraphCenterDomain, GraphCenterPayload>>;
 }
 
-export function GraphCenterClient({ initialPayload }: GraphCenterClientProps) {
+export function GraphCenterClient({ initialPayload, rootPayloads }: GraphCenterClientProps) {
   const [domain, setDomain] = useState<GraphCenterDomain>(initialPayload.activeDomain);
   const [objectiveId, setObjectiveId] = useState<string | null>(initialPayload.objectiveId);
   const [portraitDimension, setPortraitDimension] = useState<GraphCenterPayload['portraitDimension']>(
     initialPayload.portraitDimension,
   );
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(initialPayload.selectedNode?.node.id ?? null);
-  const payload = useMemo(() => buildGraphCenterPayload({
-    domain,
-    objectiveId,
-    portraitDimension,
-    selectedNodeId,
-  }), [domain, objectiveId, portraitDimension, selectedNodeId]);
+  const payload = useMemo(() => {
+    const rootPayload = rootPayloads?.[domain] ?? (
+      domain === initialPayload.activeDomain ? initialPayload : null
+    );
+    const canReuseInitialPayload = domain === initialPayload.activeDomain &&
+      objectiveId === initialPayload.objectiveId &&
+      portraitDimension === initialPayload.portraitDimension;
+    const initialSelectedNodeId = initialPayload.selectedNode?.node.id ?? null;
+    if (canReuseInitialPayload && selectedNodeId === initialSelectedNodeId) return initialPayload;
+    if (rootPayload) {
+      return filterGraphCenterPayload(rootPayload, {
+        objectiveId,
+        portraitDimension,
+        selectedNodeId,
+      });
+    }
+    return buildGraphCenterPayload({
+      domain,
+      objectiveId,
+      portraitDimension,
+      selectedNodeId,
+    });
+  }, [domain, initialPayload, objectiveId, portraitDimension, rootPayloads, selectedNodeId]);
 
   const handleDomainChange = (nextDomain: GraphCenterDomain) => {
     setDomain(nextDomain);
@@ -158,6 +178,9 @@ export function GraphCenterClient({ initialPayload }: GraphCenterClientProps) {
                       {dimension}
                     </span>
                   ))}
+                  <span className="rounded-sm bg-platform-canvas px-1.5 py-0.5 text-[11px] text-platform-fg-muted">
+                    {coverageStateLabel(payload.resourceCoverage[node.id].coverageState)}
+                  </span>
                 </span>
               </button>
             ))}
@@ -194,6 +217,28 @@ export function GraphCenterClient({ initialPayload }: GraphCenterClientProps) {
                   ? payload.selectedNode.boundResourceRefs.map((ref) => <span key={ref}>{ref}</span>)
                   : <span>未绑定运行态资源</span>}
               </DetailGroup>
+              <DetailGroup label="资源覆盖">
+                <span>{coverageStateLabel(payload.selectedNode.resourceCoverage.coverageState)}</span>
+                <span>关联 {payload.selectedNode.resourceCoverage.linkedResourceCount}</span>
+                <span>路径可用 {payload.selectedNode.resourceCoverage.pathEligibleResourceCount}</span>
+                <span>RAG 索引 {payload.selectedNode.resourceCoverage.ragIndexedCount}</span>
+                <span>可引用 {payload.selectedNode.resourceCoverage.citationReadyCount}</span>
+                <span>已校验引用 {payload.selectedNode.resourceCoverage.verifiedCitationCount}</span>
+              </DetailGroup>
+              <DetailGroup label="资源类型">
+                <span>测评 {payload.selectedNode.resourceCoverage.assessmentResourceCount}</span>
+                <span>仿真 {payload.selectedNode.resourceCoverage.simulationResourceCount}</span>
+                <span>Arena 预览 {payload.selectedNode.resourceCoverage.arenaPreviewResourceCount}</span>
+                <span>Arena 官方 {payload.selectedNode.resourceCoverage.arenaOfficialResourceCount}</span>
+                <span>终端验证 {payload.selectedNode.resourceCoverage.terminalValidationCapableResourceCount}</span>
+              </DetailGroup>
+              {payload.selectedNode.resourceCoverage.missingCoverageTypes.length > 0 && (
+                <DetailGroup label="覆盖缺口">
+                  {payload.selectedNode.resourceCoverage.missingCoverageTypes.map((type) => (
+                    <span key={type}>{missingCoverageLabel(type)}</span>
+                  ))}
+                </DetailGroup>
+              )}
               <DetailGroup label="校验">
                 <span>{payload.validation.objectiveValidation.valid && payload.validation.graphValidation.valid ? '通过' : '存在问题'}</span>
               </DetailGroup>
@@ -225,4 +270,112 @@ function DetailGroup({ label, children }: { label: string; children: ReactNode }
       </div>
     </div>
   );
+}
+
+export function selectGraphCenterPayloadNode(
+  payload: GraphCenterPayload,
+  selectedNodeId: string | null,
+  options: { preserveEmptySelection?: boolean } = {},
+): GraphCenterPayload {
+  const selectedNode = selectedNodeId
+    ? payload.graph.nodes.find((node) => node.id === selectedNodeId) ?? null
+    : options.preserveEmptySelection
+      ? null
+      : payload.graph.nodes[0] ?? null;
+
+  return {
+    ...payload,
+    selectedNode: selectedNode ? payload.nodeDetails[selectedNode.id] ?? null : null,
+  };
+}
+
+export function filterGraphCenterPayload(
+  payload: GraphCenterPayload,
+  filters: {
+    objectiveId: string | null;
+    portraitDimension: GraphCenterPayload['portraitDimension'];
+    selectedNodeId: string | null;
+  },
+): GraphCenterPayload {
+  const objectiveId = payload.objectives.some((objective) => objective.id === filters.objectiveId)
+    ? filters.objectiveId
+    : null;
+  const objectiveNodeIds = new Set(
+    payload.objectives.find((objective) => objective.id === objectiveId)?.nodeIds ?? [],
+  );
+  const portraitDimension = payload.portraitDimensions.some((dimension) => dimension.id === filters.portraitDimension)
+    ? filters.portraitDimension
+    : null;
+  const filteredNodes = payload.graph.nodes.filter((node) => (
+    (!objectiveId || objectiveNodeIds.has(node.id)) &&
+    (!portraitDimension || node.portraitDimensions.includes(portraitDimension))
+  ));
+  const filteredNodeIds = new Set(filteredNodes.map((node) => node.id));
+  const filteredEdges = payload.graph.edges.filter((edge) => (
+    filteredNodeIds.has(edge.sourceNodeId) &&
+    filteredNodeIds.has(edge.targetNodeId)
+  ));
+  const filteredPayload: GraphCenterPayload = {
+    ...payload,
+    objectiveId,
+    portraitDimension,
+    objectives: payload.objectives.map((objective) => ({
+      ...objective,
+      nodeCount: objective.nodeIds.length,
+    })),
+    portraitDimensions: payload.portraitDimensions.map((dimension) => ({
+      ...dimension,
+      nodeCount: payload.graph.nodes.filter((node) => node.portraitDimensions.includes(dimension.id)).length,
+    })),
+    graph: {
+      nodes: filteredNodes,
+      edges: filteredEdges,
+    },
+    resourceCoverage: Object.fromEntries(
+      filteredNodes.map((node) => [node.id, payload.resourceCoverage[node.id]]),
+    ),
+    nodeDetails: Object.fromEntries(
+      filteredNodes.flatMap((node) => {
+        const detail = payload.nodeDetails[node.id];
+        return detail
+          ? [[node.id, {
+              ...detail,
+              incomingEdges: filteredEdges.filter((edge) => edge.targetNodeId === node.id),
+              outgoingEdges: filteredEdges.filter((edge) => edge.sourceNodeId === node.id),
+            }]]
+          : [];
+      }),
+    ),
+    limitations: payload.limitations.filter((limitation) => (
+      !limitation.nodeId || filteredNodeIds.has(limitation.nodeId)
+    )),
+    selectedNode: null,
+  };
+  return selectGraphCenterPayloadNode(filteredPayload, filters.selectedNodeId);
+}
+
+function coverageStateLabel(state: GraphCenterResourceCoverageState): string {
+  const labels: Record<GraphCenterResourceCoverageState, string> = {
+    sufficient: '覆盖充分',
+    partial: '部分覆盖',
+    missing: '缺少资源',
+    'not-audited': '未审计',
+  };
+  return labels[state];
+}
+
+function missingCoverageLabel(type: GraphCenterResourceCoverageMissingType): string {
+  const labels: Record<GraphCenterResourceCoverageMissingType, string> = {
+    'linked-resource': '缺少关联资源',
+    'path-eligible-resource': '缺少路径可用资源',
+    'rag-indexed-resource': '缺少 RAG 索引',
+    'citation-ready-resource': '缺少可引用目标',
+    'verified-citation-resource': '缺少已校验引用',
+    'assessment-resource': '缺少测评资源',
+    'simulation-resource': '缺少仿真资源',
+    'arena-preview-resource': '缺少 Arena 预览',
+    'arena-official-resource': '缺少 Arena 官方验证',
+    'terminal-validation-capable-resource': '缺少终端验证能力',
+  };
+  return labels[type];
 }
