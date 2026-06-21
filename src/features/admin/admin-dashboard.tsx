@@ -14,6 +14,10 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { ActionStatusPanel } from '@/components/platform/action-status';
+import { createAuditedActionState } from '@/lib/action-status-contract';
+import type { AdminUsersQueryContract } from '@/lib/api-ui-contracts';
+
 import { AdminConsoleHeader } from './admin-console-header';
 
 type UserRole = 'STUDENT' | 'TEACHER' | 'ADMIN';
@@ -69,6 +73,7 @@ type AdminDashboardProps = {
     email?: string | null;
     role: 'ADMIN';
   };
+  initialUsersQuery?: AdminUsersQueryContract;
 };
 
 type ImportErrorItem = {
@@ -98,14 +103,14 @@ const ROLE_STYLES: Record<UserRole, string> = {
   STUDENT: 'admin-console-pill admin-console-pill-student',
 };
 
-export function AdminDashboard({ currentUser }: AdminDashboardProps) {
+export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboardProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [overview, setOverview] = useState<OverviewResponse | null>(null);
   const [users, setUsers] = useState<UserItem[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState<'ALL' | UserRole>('ALL');
+  const [page, setPage] = useState(initialUsersQuery?.page ?? 1);
+  const [search, setSearch] = useState(initialUsersQuery?.search ?? '');
+  const [roleFilter, setRoleFilter] = useState<'ALL' | UserRole>(initialUsersQuery?.role ?? 'ALL');
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingOverview, setLoadingOverview] = useState(false);
   const [notice, setNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(
@@ -120,6 +125,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [creating, setCreating] = useState(false);
+  const [usersQueryTouched, setUsersQueryTouched] = useState(false);
   const [createForm, setCreateForm] = useState({
     name: '',
     email: '',
@@ -130,11 +136,11 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
     password: '',
   });
 
-  const pageSize = 12;
+  const pageSize = initialUsersQuery?.pageSize ?? 12;
 
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(totalUsers / pageSize)),
-    [totalUsers]
+    [pageSize, totalUsers]
   );
 
   const formattedNow = useMemo(
@@ -145,6 +151,76 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
       }).format(new Date()),
     []
   );
+
+  const routeActionState = useMemo(() => {
+    const action = initialUsersQuery?.action;
+    if (!action) return null;
+    if (action === 'export') {
+      return createAuditedActionState({
+        identity: {
+          id: 'admin-users-route-action:export',
+          category: 'export',
+          label: '账号导出',
+          sourceRoute: '/admin/users',
+          targetId: initialUsersQuery.targetId,
+          requestedAction: action,
+        },
+        status: 'unsupported',
+        message: '账号导出深链不会自动执行。当前筛选条件已保留，请在页面内触发可审计的导出动作。',
+        recoveryAction: '确认筛选结果后从账号列表执行导出',
+      });
+    }
+    if (action === 'reset') {
+      return createAuditedActionState({
+        identity: {
+          id: 'admin-users-route-action:reset',
+          category: 'unsupported-action',
+          label: '账号重置',
+          sourceRoute: '/admin/users',
+          targetId: initialUsersQuery.targetId,
+          requestedAction: action,
+        },
+        status: 'unsupported',
+        message: '账号重置不能通过 URL 参数直接执行。',
+        recoveryAction: '在目标账号行内打开改密确认流程',
+      });
+    }
+    return createAuditedActionState({
+      identity: {
+        id: `admin-users-route-action:${action}`,
+        category: 'unsupported-action',
+        label: '账号路由动作',
+        sourceRoute: '/admin/users',
+        targetId: initialUsersQuery.targetId,
+        requestedAction: action,
+      },
+      status: 'unsupported',
+      message: `账号管理不支持动作参数 ${action}。`,
+      recoveryAction: '返回账号列表默认状态',
+    });
+  }, [initialUsersQuery]);
+
+  const invalidQueryState = useMemo(() => {
+    if (!shouldBlockInvalidAdminUsersQuery(initialUsersQuery, usersQueryTouched)) return null;
+    const invalidParts = [
+      initialUsersQuery.source.roleSupported ? null : '角色筛选',
+      initialUsersQuery.source.pageValid ? null : '分页参数',
+      initialUsersQuery.source.pageSizeValid ? null : '分页大小',
+    ].filter(Boolean);
+    if (invalidParts.length === 0) return null;
+    return createAuditedActionState({
+      identity: {
+        id: 'admin-users-query:invalid',
+        category: 'filter',
+        label: '账号筛选参数',
+        sourceRoute: '/admin/users',
+      },
+      status: 'blocked',
+      message: `账号筛选参数无效：${invalidParts.join('、')}。`,
+      recoveryAction: '清空无效参数后重新筛选',
+      httpStatus: 400,
+    });
+  }, [initialUsersQuery, usersQueryTouched]);
 
   const showNotice = useCallback((type: 'success' | 'error', message: string) => {
     setNotice({ type, message });
@@ -168,6 +244,11 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
   }, [showNotice]);
 
   const fetchUsers = useCallback(async () => {
+    if (invalidQueryState) {
+      setUsers([]);
+      setTotalUsers(0);
+      return;
+    }
     setLoadingUsers(true);
     try {
       const params = new URLSearchParams();
@@ -193,7 +274,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
     } finally {
       setLoadingUsers(false);
     }
-  }, [page, roleFilter, search, showNotice]);
+  }, [invalidQueryState, page, pageSize, roleFilter, search, showNotice]);
 
   useEffect(() => {
     fetchOverview();
@@ -543,6 +624,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                   <input aria-label="搜索姓名/账号/学号"
                     value={search}
                     onChange={(event) => {
+                      setUsersQueryTouched(true);
                       setSearch(event.target.value);
                       setPage(1);
                     }}
@@ -553,6 +635,7 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                 <select
                   value={roleFilter}
                   onChange={(event) => {
+                    setUsersQueryTouched(true);
                     setRoleFilter(event.target.value as UserRole | 'ALL');
                     setPage(1);
                   }}
@@ -573,6 +656,13 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
               </div>
             </div>
 
+            {routeActionState ? (
+              <ActionStatusPanel state={routeActionState} className="mt-4" />
+            ) : null}
+            {invalidQueryState ? (
+              <ActionStatusPanel state={invalidQueryState} className="mt-4" />
+            ) : null}
+
             <div className="admin-console-table-shell mt-6">
               <table className="admin-console-table">
                 <thead>
@@ -591,10 +681,18 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
                         正在加载账号列表…
                       </td>
                     </tr>
+                  ) : invalidQueryState ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center admin-console-table-subtle">
+                        账号筛选参数无效，请清空无效参数后重新筛选。
+                      </td>
+                    </tr>
                   ) : users.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-4 py-8 text-center admin-console-table-subtle">
-                        暂无账号数据
+                        {search.trim() || roleFilter !== 'ALL'
+                          ? `没有找到匹配的账号。当前条件：${search.trim() || '全部关键词'} / ${roleFilter === 'ALL' ? '全部角色' : ROLE_LABELS[roleFilter]}。`
+                          : '暂无账号数据'}
                       </td>
                     </tr>
                   ) : (
@@ -654,14 +752,20 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
               <div className="flex gap-2">
                 <button type="button"
                   disabled={page <= 1}
-                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  onClick={() => {
+                    setUsersQueryTouched(true);
+                    setPage((prev) => Math.max(1, prev - 1));
+                  }}
                   className="admin-console-button px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   上一页
                 </button>
                 <button type="button"
                   disabled={page >= totalPages}
-                  onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                  onClick={() => {
+                    setUsersQueryTouched(true);
+                    setPage((prev) => Math.min(totalPages, prev + 1));
+                  }}
                   className="admin-console-button px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   下一页
@@ -934,4 +1038,14 @@ export function AdminDashboard({ currentUser }: AdminDashboardProps) {
       )}
     </div>
   );
+}
+
+export function shouldBlockInvalidAdminUsersQuery(
+  initialUsersQuery: AdminUsersQueryContract | undefined,
+  usersQueryTouched: boolean,
+) {
+  if (!initialUsersQuery || usersQueryTouched) return false;
+  return !initialUsersQuery.source.roleSupported
+    || !initialUsersQuery.source.pageValid
+    || !initialUsersQuery.source.pageSizeValid;
 }
