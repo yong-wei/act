@@ -1,0 +1,13 @@
+schema: spec-driven
+created: 2026-06-21
+series: graph-path-first-batch
+coupling_group: graph-path-first-batch
+execution_mode: stacked
+base_branch: integration
+openspec_path: openspec/changes/learning-goal-resource-baseline-completion
+depends_on:
+  - resource-field-completion-audit
+  - runtime-resource-projection-contract
+  - promote-learning-goal-as-student-target
+  - extend-adaptive-planner-for-kaq-graph-inputs
+  - version-kaq-graph-overlay-path-artifacts

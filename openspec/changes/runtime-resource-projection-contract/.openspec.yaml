@@ -1,0 +1,9 @@
+schema: spec-driven
+created: 2026-06-21
+series: graph-path-first-batch
+coupling_group: graph-path-first-batch
+execution_mode: stacked
+base_branch: integration
+openspec_path: openspec/changes/runtime-resource-projection-contract
+depends_on:
+  - resource-field-completion-audit

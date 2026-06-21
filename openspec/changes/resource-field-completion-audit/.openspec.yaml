@@ -1,0 +1,8 @@
+schema: spec-driven
+created: 2026-06-21
+series: graph-path-first-batch
+coupling_group: graph-path-first-batch
+execution_mode: isolated
+base_branch: integration
+openspec_path: openspec/changes/resource-field-completion-audit
+depends_on: []
