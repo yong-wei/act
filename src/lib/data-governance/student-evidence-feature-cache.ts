@@ -147,6 +147,7 @@ export interface StudentPathEvidenceSourceReference {
   sourceType: StudentPathEvidenceSourceType;
   sourceId: string;
   pathId: string;
+  goalId?: string;
   nodeId: string | null;
   occurredAt: string;
   privacyLevel: 'student-visible' | 'teacher-scoped';
@@ -944,6 +945,7 @@ function pathExecutionToEvent(row: Record<string, any>): PathEvidenceEvent | nul
       sourceType: 'LearningPathExecution',
       sourceId: id,
       pathId,
+      goalId: readPathEvidenceGoalId(row),
       nodeId,
       occurredAt: occurredAt.toISOString(),
       privacyLevel: 'student-visible',
@@ -971,6 +973,11 @@ function pathExecutionToEvent(row: Record<string, any>): PathEvidenceEvent | nul
       terminalValidationLowConfidenceMarkers.length > 0
     ),
   };
+}
+
+function readPathEvidenceGoalId(row: Record<string, any>): string | undefined {
+  const path = isObject(row.path) ? row.path : {};
+  return stringValue(path.goalId) ?? undefined;
 }
 
 const NON_COMPLETION_PATH_ACTIVITY_KINDS = new Set([
@@ -1018,6 +1025,7 @@ function pathDeviationToEvent(row: Record<string, any>): PathEvidenceEvent | nul
       sourceType: 'LearningPathDeviation',
       sourceId: id,
       pathId,
+      goalId: readPathEvidenceGoalId(row),
       nodeId: stringValue(row.priorNodeId),
       occurredAt: occurredAt.toISOString(),
       privacyLevel: 'student-visible',
@@ -1054,6 +1062,7 @@ function pathInterventionToEvent(row: Record<string, any>): PathEvidenceEvent | 
       sourceType: 'LearningPathIntervention',
       sourceId: id,
       pathId,
+      goalId: readPathEvidenceGoalId(row),
       nodeId,
       occurredAt: occurredAt.toISOString(),
       privacyLevel: 'teacher-scoped',
@@ -2020,6 +2029,7 @@ function hasPathEvidenceSourceReferenceSchema(value: unknown): boolean {
   ) &&
     typeof value.sourceId === 'string' &&
     typeof value.pathId === 'string' &&
+    (value.goalId === undefined || typeof value.goalId === 'string') &&
     (value.nodeId === null || typeof value.nodeId === 'string') &&
     typeof value.occurredAt === 'string' &&
     (value.privacyLevel === 'student-visible' || value.privacyLevel === 'teacher-scoped');

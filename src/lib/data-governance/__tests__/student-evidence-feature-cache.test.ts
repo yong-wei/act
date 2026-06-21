@@ -142,6 +142,7 @@ describe('buildStudentEvidenceFeaturePayload', () => {
         sourceType: 'LearningPathExecution',
         sourceId: 'exec-start',
         pathId: 'path-1',
+        goalId: 'control-correction',
         nodeId: 'node-1',
         privacyLevel: 'student-visible',
       }),
@@ -159,6 +160,7 @@ describe('buildStudentEvidenceFeaturePayload', () => {
       expect.objectContaining({
         sourceType: 'LearningPathExecution',
         sourceId: 'exec-complete',
+        goalId: 'control-correction',
         nodeId: 'terminal-node',
       }),
     ]);

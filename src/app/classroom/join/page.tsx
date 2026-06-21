@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { CheckCircle2, LogIn, Users, Loader2, AlertCircle } from 'lucide-react';
 
 import { buildLoginRedirectForPath } from '@/lib/auth-redirect';
@@ -25,6 +26,11 @@ interface ClassJoinInfo {
   id: string;
   name: string;
   teacherName: string;
+}
+
+interface JoinRecoveryLink {
+  href: string;
+  label: string;
 }
 
 export default function JoinClassroomPage() {
@@ -59,12 +65,14 @@ function JoinClassroomContent() {
   const [joinCode, setJoinCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recoveryLink, setRecoveryLink] = useState<JoinRecoveryLink | null>(null);
   const [sessionInfo, setSessionInfo] = useState<SessionJoinInfo | null>(null);
   const [classInfo, setClassInfo] = useState<ClassJoinInfo | null>(null);
   const autoLookupKeyRef = useRef<string | null>(null);
 
   const resetResult = () => {
     setError(null);
+    setRecoveryLink(null);
     setSessionInfo(null);
     setClassInfo(null);
   };
@@ -88,6 +96,7 @@ function JoinClassroomContent() {
 
     setIsLoading(true);
     setError(null);
+    setRecoveryLink(null);
 
     try {
       const res = await fetch(`/api/session/join?code=${code}`);
@@ -100,7 +109,9 @@ function JoinClassroomContent() {
 
       if (!res.ok) {
         const recoveryAction = typeof data.joinState?.recoveryAction === 'string' ? data.joinState.recoveryAction : null;
+        const reviewHref = typeof data.reviewHref === 'string' ? data.reviewHref : null;
         setError([data.error || '查询失败', recoveryAction].filter(Boolean).join('。'));
+        setRecoveryLink(reviewHref ? { href: reviewHref, label: '查看个人课堂证据' } : null);
         return;
       }
 
@@ -120,6 +131,7 @@ function JoinClassroomContent() {
 
     setIsLoading(true);
     setError(null);
+    setRecoveryLink(null);
 
     try {
       const res = await fetch('/api/classes/join', {
@@ -136,6 +148,7 @@ function JoinClassroomContent() {
 
       if (!res.ok) {
         setError(data.error || '加入班级失败');
+        setRecoveryLink(null);
         return;
       }
 
@@ -186,6 +199,7 @@ function JoinClassroomContent() {
       joinCode={joinCode}
       isLoading={isLoading}
       error={error}
+      recoveryLink={recoveryLink}
       sessionInfo={sessionInfo}
       classInfo={classInfo}
       onModeChange={handleModeChange}
@@ -209,6 +223,7 @@ function JoinClassroomShell({
   joinCode = '',
   isLoading = false,
   error = null,
+  recoveryLink = null,
   sessionInfo = null,
   classInfo = null,
   onModeChange,
@@ -221,6 +236,7 @@ function JoinClassroomShell({
   joinCode?: string;
   isLoading?: boolean;
   error?: string | null;
+  recoveryLink?: JoinRecoveryLink | null;
   sessionInfo?: SessionJoinInfo | null;
   classInfo?: ClassJoinInfo | null;
   onModeChange?: (mode: JoinMode) => void;
@@ -285,13 +301,24 @@ function JoinClassroomShell({
 
           {error && (
             <div
-              className="mb-4 flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400"
+              className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400"
               role="alert"
               aria-live="polite"
               data-classroom-join-state="recoverable-error"
             >
-              <AlertCircle className="h-4 w-4 flex-shrink-0" />
-              {error}
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+              {recoveryLink ? (
+                <Link
+                  href={recoveryLink.href}
+                  className="mt-3 inline-flex h-9 items-center justify-center rounded-lg border border-red-400/40 px-3 text-xs font-semibold text-red-100 transition hover:border-red-300 hover:bg-red-400/10"
+                  data-classroom-join-recovery-link="review-evidence"
+                >
+                  {recoveryLink.label}
+                </Link>
+              ) : null}
             </div>
           )}
 

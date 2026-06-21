@@ -36,6 +36,8 @@ describe('classroom join entry', () => {
 
     expect(pageSource).toContain('role="alert"');
     expect(pageSource).toContain('data-classroom-join-state="recoverable-error"');
+    expect(pageSource).toContain('data-classroom-join-recovery-link="review-evidence"');
+    expect(pageSource).toContain('setRecoveryLink(reviewHref ?');
     expect(pageSource).toContain('sessionInfo.joinState?.evidenceWriteback');
     expect(routeSource).toContain('type ClassroomJoinState');
     expect(routeSource).toContain("buildJoinState('finished'");
