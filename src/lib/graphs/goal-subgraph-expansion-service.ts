@@ -212,7 +212,7 @@ export function expandLearningGoalPackageSubgraph(
     prerequisitePolicy: policy,
     remediationCandidates: uniqueSorted(policy
       .filter((entry) => entry.semantics === 'hard_prerequisite' || entry.semantics === 'soft_prerequisite')
-      .map((entry) => entry.sourceNodeId)
+      .map(prerequisiteCandidateNodeId)
       .filter((nodeId) => !targetNodeIds.has(nodeId))),
     extensionCandidates: uniqueSorted(policy
       .filter((entry) => entry.semantics === 'extension')
@@ -330,6 +330,13 @@ function semanticsForRelation(
   if (edge.relation === 'transfers-to') return 'transfer_to';
   if (edge.relation === 'constrains') return 'co_requisite';
   return null;
+}
+
+function prerequisiteCandidateNodeId(entry: GoalSubgraphPolicyEntry): string {
+  if (entry.relation === 'depends-on' && entry.direction === 'outgoing') {
+    return entry.targetNodeId;
+  }
+  return entry.sourceNodeId;
 }
 
 function groupNodeIdsByDomain(nodes: KaqGraphNode[]): Record<KaqGraphDomain, string[]> {

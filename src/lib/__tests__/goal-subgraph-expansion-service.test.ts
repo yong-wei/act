@@ -225,6 +225,27 @@ describe('goal subgraph expansion service', () => {
     ]));
   });
 
+  it('keeps outgoing depends-on dependencies as remediation candidates', () => {
+    const packageDefinition: LearningGoalPackageDefinition = {
+      ...getLearningGoalPackage('control-correction')!,
+      targetGraphNodeIds: ['kn:autocontrol:controller-correction'],
+    };
+
+    const expansion = expandLearningGoalPackageSubgraph(packageDefinition);
+
+    expect(expansion.fixtures.planner.targetGraphNodeIds).toEqual(['kn:autocontrol:controller-correction']);
+    expect(expansion.prerequisitePolicy).toContainEqual(expect.objectContaining({
+      edgeId: 'edge:kn:correction-depends-on-root-locus',
+      sourceNodeId: 'kn:autocontrol:controller-correction',
+      targetNodeId: 'kn:autocontrol:root-locus',
+      semantics: 'hard_prerequisite',
+      direction: 'outgoing',
+      required: false,
+    }));
+    expect(expansion.remediationCandidates).toContain('kn:autocontrol:root-locus');
+    expect(expansion.remediationCandidates).not.toContain('kn:autocontrol:controller-correction');
+  });
+
   it('provides planner, Konling, and GraphCenter fixtures without creating paths or selecting resources', () => {
     const expansion = expandLearningGoalSubgraph('simulation-validation-practice');
 
