@@ -13,13 +13,28 @@ import {
   parsePersistedDocumentRubricGradingDraft,
   validateDocumentRubricGradingDraftInvariants,
 } from '@/lib/data-governance/document-rubric-grading-workbench';
+import {
+  buildTeacherGradingMissingRunState,
+  buildTeacherGradingRouteState,
+  normalizeTeacherGradingRouteQuery,
+} from '@/lib/teacher-report-grading-contracts';
 
 export const dynamic = 'force-dynamic';
 
 export default async function TeacherGradingWorkbenchPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ gradingRunId?: string; demo?: string }>;
+  searchParams?: Promise<{
+    gradingRunId?: string;
+    demo?: string;
+    action?: string;
+    method?: string;
+    status?: string;
+    classId?: string;
+    studentId?: string;
+    assignment?: string;
+    returnTo?: string;
+  }>;
 }) {
   const session = await getServerAuthSession();
   if (!session?.user?.id) {
@@ -30,12 +45,14 @@ export default async function TeacherGradingWorkbenchPage({
   }
 
   const params = await searchParams;
+  const routeQuery = normalizeTeacherGradingRouteQuery(params ?? {});
+  const routeState = buildTeacherGradingRouteState(routeQuery);
   if (params?.demo === '1') {
     const { teacherView } = await buildDocumentRubricDemoViews();
-    return <TeacherDocumentGradingWorkbench view={{ ...teacherView, gradingRunId: null }} />;
+    return <TeacherDocumentGradingWorkbench view={{ ...teacherView, gradingRunId: null }} routeState={routeState} />;
   }
   if (!params?.gradingRunId) {
-    return <TeacherDocumentGradingEmptyState />;
+    return <TeacherDocumentGradingEmptyState routeState={routeState} />;
   }
 
   const draft = await prisma.learningEvidenceDraft.findFirst({
@@ -45,16 +62,16 @@ export default async function TeacherGradingWorkbenchPage({
     },
   });
   if (!draft) {
-    return <TeacherDocumentGradingEmptyState />;
+    return <TeacherDocumentGradingEmptyState routeState={buildTeacherGradingMissingRunState(routeQuery)} />;
   }
 
   const parsed = parsePersistedDocumentRubricGradingDraft(draft);
   if (!parsed) {
-    return <TeacherDocumentGradingEmptyState />;
+    return <TeacherDocumentGradingEmptyState routeState={routeState} />;
   }
   const invariants = validateDocumentRubricGradingDraftInvariants({ draft, parsed });
   if (!invariants.valid) {
-    return <TeacherDocumentGradingEmptyState />;
+    return <TeacherDocumentGradingEmptyState routeState={routeState} />;
   }
 
   const classData = await prisma.class.findUnique({
@@ -73,7 +90,7 @@ export default async function TeacherGradingWorkbenchPage({
     select: { id: true },
   });
   if (!studentProfile) {
-    return <TeacherDocumentGradingEmptyState />;
+    return <TeacherDocumentGradingEmptyState routeState={routeState} />;
   }
 
   const teacherView = buildTeacherGradingWorkbenchView({
@@ -82,5 +99,5 @@ export default async function TeacherGradingWorkbenchPage({
     rubric: parsed.rubric,
     run: parsed.run,
   });
-  return <TeacherDocumentGradingWorkbench view={teacherView} />;
+  return <TeacherDocumentGradingWorkbench view={teacherView} routeState={routeState} />;
 }

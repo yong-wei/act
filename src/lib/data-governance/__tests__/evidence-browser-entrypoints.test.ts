@@ -35,7 +35,12 @@ describe('evidence browser entry points', () => {
   it('redirects the legacy teacher evidence page to the class-scoped evidence browser', () => {
     const source = readSource('src/app/(main)/teacher/students/[studentId]/evidence/page.tsx');
 
-    expect(source).toContain('redirect(`/teacher/classes/${encodeURIComponent(studentProfile.classId)}/students/${encodeURIComponent(studentId)}/evidence`)');
+    expect(source).toContain('redirect(`/teacher/classes/${encodeURIComponent(studentProfile.classId)}/students/${encodeURIComponent(studentId)}/evidence${suffix}`)');
+    expect(source).toContain("query.set('returnTo', resolveTeacherReturnTo(searchParams?.returnTo, '/teacher/classes'))");
+    expect(source).toContain("appendSearchParam(query, 'gradingRunId', searchParams?.gradingRunId)");
+    expect(source).toContain("appendSearchParam(query, 'reportId', searchParams?.reportId)");
+    expect(source).toContain("appendSearchParam(query, 'source', searchParams?.source)");
+    expect(source).toContain('学生 ${studentId} 不存在，或不在当前教师可见范围。');
     expect(source).not.toContain('EvidenceTimelineBrowser');
     expect(source).not.toContain('/teacher/students/${params.studentId}/diagnosis');
   });
@@ -44,6 +49,19 @@ describe('evidence browser entry points', () => {
     expect(existsSync(join(repoRoot, 'src/app/(main)/profile/evidence/page.tsx'))).toBe(true);
     expect(existsSync(join(repoRoot, 'src/app/teacher/classes/[classId]/students/[studentId]/evidence/page.tsx'))).toBe(true);
     expect(existsSync(join(repoRoot, 'src/app/(main)/teacher/students/[studentId]/evidence/page.tsx'))).toBe(true);
+  });
+
+  it('preserves teacher grading context on class-scoped evidence pages', () => {
+    const source = readSource('src/app/teacher/classes/[classId]/students/[studentId]/evidence/page.tsx');
+    const browserSource = readSource('src/features/data-governance/evidence-timeline-browser.tsx');
+
+    expect(source).toContain('contextBadges={contextParts}');
+    expect(source).toContain('mergeTeacherEvidenceContext');
+    expect(source).toContain("url.searchParams.set('gradingRunId', context.gradingRunId)");
+    expect(source).toContain("url.searchParams.set('reportId', context.reportId)");
+    expect(source).toContain("url.searchParams.set('source', context.source)");
+    expect(browserSource).toContain('contextBadges?: string[]');
+    expect(browserSource).toContain('contextBadges.map');
   });
 
   it('guards evidence browser state updates from stale filter requests', () => {
