@@ -1,0 +1,290 @@
+{
+  "id": "chapter-10",
+  "number": 10,
+  "title": "动态系统的最优控制方法",
+  "pipeline": "mathpixplus",
+  "textbookPath": "textbook.md",
+  "assetsPath": "assets/",
+  "sourceMarkdown": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/chapter-10.md",
+  "sourceQa": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/chapter-10.qa.json",
+  "sourcePageStart": 361,
+  "sourcePageEnd": 395,
+  "sourcePageCount": 35,
+  "imageCount": 27,
+  "figureDescriptionCount": 27,
+  "markdownSha256": "7da9cca7bf85bd047fb1ab733890ceae900a233999d86f69902e065c088b3da9",
+  "sourceImageManifest": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/chapter-10.local.md.images.json",
+  "sourceImageManifestCount": 27,
+  "images": [
+    {
+      "index": 1,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0364-01-300dpi.png",
+      "exportPath": "assets/fig-10-08-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0364-01-300dpi.png",
+      "caption": "> Image description: This image is a MATLAB-generated plot showing the function $u^*(t)$ over time $t$. The graph features a Cartesian coordinate system with two axes: the horizontal axis represents time $t$, ranging from 0 to 3, and the vertical axis represents the variable $u^*(t)$, ranging from -2 to 1.5. The plot displays a single, solid straight line starting at the point $(0, -2)$ and ending at approximately $(3, 1.3)$. The linear relationship indicates that $u^*(t)$ increases at a constant rate as time progresses. Grid lines are present across the plotting area to facilitate reading specific values. According to the caption \"图 10－8－1 题 10－8 的 $u^{*}(t)$（MATLAB）\", this figure illustrates the optimal control signal or system output for problem 10-8 in a technical context, likely related to control theory or engineering mathematics. 图 10－8－1 题 10－8 的 $u^{*}(t)$（MATLAB） 图 10－8－2 所示。",
+      "sourcePdfPage": 364,
+      "sha256": "8ea8ed59a44fd4928e8ea4fbdca3c500acac3cb2f6530f7f66b524c46b2d635c",
+      "bytes": 146389
+    },
+    {
+      "index": 2,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0365-01-300dpi.png",
+      "exportPath": "assets/fig-10-08-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0365-01-300dpi.png",
+      "caption": "图 10－8－2 题 10－8 的最优控制与最优轨线（MATLAB）",
+      "sourcePdfPage": 365,
+      "sha256": "a03bf3ac179d9507fd122f1c9c273d20b1322b7feeb3e8a6531d3731603e8d9d",
+      "bytes": 418642
+    },
+    {
+      "index": 3,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0366-01-300dpi.png",
+      "exportPath": "assets/fig-10-09-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0366-01-300dpi.png",
+      "caption": "图 10－9－1 题 10－9 的 $u^{*}(t)$（MATLAB）",
+      "sourcePdfPage": 366,
+      "sha256": "381bd42717e0a31904ea74958847d235c19ab9a43ca0ee4846d5000b84bc8e98",
+      "bytes": 214249
+    },
+    {
+      "index": 4,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0366-02-300dpi.png",
+      "exportPath": "assets/fig-10-09-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0366-02-300dpi.png",
+      "caption": "图 10－9－2 题 10－9 的 $x^{*}(t)$ 响应曲线（MATLAB）",
+      "sourcePdfPage": 366,
+      "sha256": "8eec3b59147a7016864a2b5989940cc7ec667eaeffb529d532af3e8b594943f7",
+      "bytes": 227843
+    },
+    {
+      "index": 5,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0374-01-300dpi.png",
+      "exportPath": "assets/fig-10-17-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0374-01-300dpi.png",
+      "caption": "图 10－17－1 题 10－17 的最优解曲线（MATLAB）",
+      "sourcePdfPage": 374,
+      "sha256": "5fd29afa7b17bdfffddf536a8052150da38102224caf786ef929718c183a346c",
+      "bytes": 330346
+    },
+    {
+      "index": 6,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0376-01-300dpi.png",
+      "exportPath": "assets/fig-10-19-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0376-01-300dpi.png",
+      "caption": "图 10－19－1 题 10－19 开关曲线图（MATLAB）",
+      "sourcePdfPage": 376,
+      "sha256": "5655056ab8f8bee0520684204045e1c5adc6dadccf0efc233922934a57d190fd",
+      "bytes": 182863
+    },
+    {
+      "index": 7,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0378-01-300dpi.png",
+      "exportPath": "assets/fig-10-21-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0378-01-300dpi.png",
+      "caption": "> Image description: A line graph showing the approximate optimal solution for Problem 10-21, as indicated by the Chinese caption \"图 10－21－1 题 10－21 的近似最优解\". The plot features a vertical y-axis labeled $u^*(t)$ and a horizontal x-axis labeled $t/\\text{s}$, representing time in seconds. Both axes are marked with numerical increments: the y-axis ranges from $0$ to $0.8$ in steps of $0.1$, and the x-axis ranges from $0$ to $10$ in steps of $1$. The graph displays a single, smooth curve that begins at approximately $(0, 0.75)$ on the y-axis. The curve exhibits an exponential decay pattern, dropping sharply between $t=0$ and $t=2$, and then asymptotically approaching zero as time increases toward $10$ seconds. In an engineering context, this represents a control signal or state variable that diminishes over time to reach a steady state of zero. 图 10－21－1 题 10－21 的近似最优解",
+      "sourcePdfPage": 378,
+      "sha256": "147a7dcc7c072ce654da445e3e11699783c2d3404dea2e915713dd18091f39fb",
+      "bytes": 178284
+    },
+    {
+      "index": 8,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0378-02-300dpi.png",
+      "exportPath": "assets/fig-10-21-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0378-02-300dpi.png",
+      "caption": "> Image description: A line graph showing the approximate optimal solution for problem 10-21, as indicated by the Chinese caption \"图 10－21－1 题 10－21 的近似最优解\". The horizontal axis is labeled $t/\\text{s}$, representing time in seconds, with a scale ranging from 0 to 10. The vertical axis is labeled $u^*(t)$, representing the optimal control variable or state value, with a scale ranging from 0 to 0.8. The plot displays a single smooth curve that starts at an initial value of approximately 0.75 at $t = 0$. The curve exhibits a rapid exponential-like decay as time increases, crossing the 0.2 mark around $t = 1.5\\text{s}$ and asymptotically approaching zero. By approximately $t = 6\\text{s}$, the value of $u^*(t)$ becomes nearly indistinguishable from the horizontal axis. The graph uses a grid for precise value retrieval. 图 10－21－2 题 10－21 的准确最优解",
+      "sourcePdfPage": 378,
+      "sha256": "82e3ad110d8f1671055f0f2b71ce99f224f9dab8a056f85a78bf032ef65bcd83",
+      "bytes": 163331
+    },
+    {
+      "index": 9,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0378-03-300dpi.png",
+      "exportPath": "assets/fig-10-21-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0378-03-300dpi.png",
+      "caption": "> Image description: This image shows a control system block diagram labeled as \"图 10－21－2 题 10－21 的准确最优解.\" The signal flow begins with an input variable $R(s)$ entering a block labeled $G_p(s)$. The output of this block enters a summing junction where it is compared with a feedback loop from the final output $Y(s)$, resulting in an error signal $E(s)$. The signal $E(s)$ then passes through a controller block $G_c(s)$, producing an output $U(s)$. This signal $U(s)$ enters a second summing junction, where it is added to an external disturbance or noise input $N(s)$. The combined signal then flows into the plant block $G_0(s)$, which produces the final system output $Y(s)$. A feedback path connects $Y(s)$ back to the first summing junction. Arrows indicate a unidirectional flow from left to right, with one return loop, representing a standard closed-loop control architecture. 图 10－13 带有期望输人 $R(s)$ 和扰动输入 $N(s)$ 的反馈控制系统结构图",
+      "sourcePdfPage": 378,
+      "sha256": "a6ae9595e3be7410a3ee091d9cfe6bf607c87fbfb43bb0d45a126cc8580d201e",
+      "bytes": 57645
+    },
+    {
+      "index": 10,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0380-01-300dpi.png",
+      "exportPath": "assets/fig-10-22-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0380-01-300dpi.png",
+      "caption": "图 10－22－1 原系统时间响应（MATLAB）",
+      "sourcePdfPage": 380,
+      "sha256": "f4dc12fcfe57879bae4f78ce126ed3d9d8998fb1b9717815f17d0f300d7bf936",
+      "bytes": 283749
+    },
+    {
+      "index": 11,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0381-01-300dpi.png",
+      "exportPath": "assets/fig-10-22-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0381-01-300dpi.png",
+      "caption": "> Image description: The image contains two side-by-side time-domain plots illustrating the response of a PID control system, as indicated by the caption \"图 10－22－2 PID 控制系统时间响应（MATLAB）\". Both graphs feature a horizontal x-axis labeled \"Time/sec\" ranging from 0 to 1 and a vertical y-axis labeled \"Amplitude.\" The left plot shows the output variable $y(t)$. The signal rises sharply from 0, overshoots the steady-state value of 1.0 reaching approximately 1.25 at around 0.2 seconds, and then oscillates slightly before stabilizing at 1.0. The right plot shows the error or noise signal $n(t)$. It starts at 0, peaks at approximately 0.24 near 0.2 seconds, drops below zero to about -0.02 around 0.5 seconds, and eventually converges toward 0 as time increases. Together, these plots demonstrate the transient response and stability of a controlled system. 图 10－22－2 PID 控制系统时间响应（MATLAB）",
+      "sourcePdfPage": 381,
+      "sha256": "118b9df380060b64d44461d0e4bbf67085165fc0c183aa2d8a328049ecda9d9b",
+      "bytes": 239655
+    },
+    {
+      "index": 12,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0381-02-300dpi.png",
+      "exportPath": "assets/fig-10-22-02-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0381-02-300dpi.png",
+      "caption": "> Image description: The image contains two side-by-side plots showing the time response of a PID control system generated in MATLAB, as indicated by the caption \"图 10－22－2 PID 控制系统时间响应（MATLAB）\". The left plot displays the output variable $y(t)$ on the vertical axis (Amplitude) against Time in seconds on the horizontal axis. The curve shows a typical underdamped step response, starting at 0 and rising to overshoot slightly above an amplitude of 1 before stabilizing at a steady-state value of 1. The right plot displays the error signal $n(t)$ on the vertical axis (Amplitude) against Time in seconds on the horizontal axis. The curve starts at 0, peaks at approximately 0.24 around 0.25 seconds, and then oscillates slightly before converging to zero as time reaches 1 second. Both plots use dashed grid lines for measurement. 图10－22－3 PID＋$G_{p}(s)$ 控制系统时间响应（MATLAB）",
+      "sourcePdfPage": 381,
+      "sha256": "b7e0a8c9be67d40bd9f255dc8213b11f29a92fd087a8f6d7bbc3eb1dd006458e",
+      "bytes": 225859
+    },
+    {
+      "index": 13,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0382-01-300dpi.png",
+      "exportPath": "assets/fig-10-23-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0382-01-300dpi.png",
+      "caption": "图 10－23－1 ITAE 最优系统的单位阶跃响应（MATLAB）",
+      "sourcePdfPage": 382,
+      "sha256": "c1f7056f821dc2e02a8418e79f55565e23aa5ab1ca0a30cabe3ef68e0fd3553b",
+      "bytes": 203695
+    },
+    {
+      "index": 14,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0383-01-300dpi.png",
+      "exportPath": "assets/fig-10-22.png",
+      "originalRelativePath": "assets/mathpix-source-page-0383-01-300dpi.png",
+      "caption": "图 10－22 GRID 设备的指向控制系统",
+      "sourcePdfPage": 383,
+      "sha256": "6096609899a00374e0b4ab17ed43ff600ee18ed486d4c08439f30d4bd098c865",
+      "bytes": 275431
+    },
+    {
+      "index": 15,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0384-01-300dpi.png",
+      "exportPath": "assets/fig-10-24-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0384-01-300dpi.png",
+      "caption": "> Image description: The image shows a MATLAB-generated plot illustrating the time response of a \"GRID pointing control system,\" as indicated by the caption (图 10－24－1). The graph features a Cartesian coordinate system with two axes: the vertical y-axis is labeled \"Amplitude\" and ranges from 0 to over 1, while the horizontal x-axis is labeled \"Time/sec\" and spans from 0 to 1.8 seconds. The plot displays a single continuous curve representing a step response. The signal starts at zero, remains flat until approximately 0.1 seconds, and then rises steeply in an S-curve shape. It reaches its first peak slightly above the value of 1 around 0.7 seconds, followed by minor damped oscillations before stabilizing asymptotically at an amplitude of 1. This behavior is characteristic of a second-order underdamped control system reaching a steady state. The plot includes a dashed grid for precise value reading. 图 10－24－1 GRID 指向控制系统时间响应（MATLAB） 图 10－23 的模型描述了人类站立时的平衡调节机制。对于丧失自主站立能力的下身残疾的伤残人士，需要安装图 10－23 所示的站立和腿关节人工控制系统。设计要求：",
+      "sourcePdfPage": 384,
+      "sha256": "04c65ba594c6084dfcdc6d83676c2acc4fe2dbc6b9501ecf48285905cb1da974",
+      "bytes": 195273
+    },
+    {
+      "index": 16,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0384-02-300dpi.png",
+      "exportPath": "assets/fig-10-23.png",
+      "originalRelativePath": "assets/mathpix-source-page-0384-02-300dpi.png",
+      "caption": "图 10－23 站立和腿关节的人工控制系统结构图",
+      "sourcePdfPage": 384,
+      "sha256": "29a1c2cf207553cf4ee6c097b62418caa92abffae0ff3f67e52ac791c982a1aa",
+      "bytes": 139749
+    },
+    {
+      "index": 17,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0386-01-300dpi.png",
+      "exportPath": "assets/fig-10-25-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0386-01-300dpi.png",
+      "caption": "> Image description: The image shows a MATLAB-generated plot representing the unit step response of a nominal joint control system, as indicated by the caption \"图 10－25－1 关节控制（标称）系统的单位阶跃响应（MATLAB）\". The graph features two axes: the vertical y-axis is labeled \"Amplitude\" with values ranging from 0 to 1 in increments of 0.2, and the horizontal x-axis is labeled \"Time/sec\" with values ranging from 0 to 1.8 seconds. A solid black curve represents the system's response over time. The curve starts at (0,0), rises steeply, and reaches a peak amplitude slightly above 1.0 around 0.7 seconds. It then exhibits a slight oscillation before stabilizing and converging asymptotically to a steady-state value of 1.0 after approximately 1.4 seconds. A faint dashed horizontal line is also visible at the amplitude level of 1.0, serving as the reference for the unit step input. 图 10－25－1 关节控制（标称）系统的单位阶跃响应（MATLAB）",
+      "sourcePdfPage": 386,
+      "sha256": "1b964e67d65a6807c372b0a9ba44ae4589fe98b125416d06a73910d0bcdd5fb8",
+      "bytes": 172541
+    },
+    {
+      "index": 18,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0386-02-300dpi.png",
+      "exportPath": "assets/fig-10-25-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0386-02-300dpi.png",
+      "caption": "> Image description: The image shows a plot of the unit step response for a joint control perturbation system (non-nominal), generated via MATLAB, as indicated by the caption \"图 10－25－2 关节控制摄动（非标称）系统的单位阶跃响应（MATLAB）\". The graph features two axes: the vertical y-axis is labeled \"Amplitude\" and ranges from 0 to slightly above 1, while the horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 2 seconds. The plot displays a single continuous curve starting at the origin (0,0). The response exhibits an underdamped behavior characterized by oscillations; it first peaks near 0.4 seconds at an amplitude of approximately 0.9, dips slightly around 0.6 seconds, and reaches a second peak just above 1.0 at approximately 1 second. The signal eventually stabilizes and converges toward a steady-state value of 1 as time approaches 2 seconds. 图 10－25－2 关节控制摄动（非标称）系统的单位阶跃响应（MATLAB） 10－26 空间机器人的机械臂及其控制框图如图 10－24 所示。已知电机与机械臂构成的手臂传递函数为",
+      "sourcePdfPage": 386,
+      "sha256": "d859ab3f8c63162535386814cff72534c4369a9809c6065008669954e9f6b0df",
+      "bytes": 195850
+    },
+    {
+      "index": 19,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0387-01-300dpi.png",
+      "exportPath": "assets/fig-10-24.png",
+      "originalRelativePath": "assets/mathpix-source-page-0387-01-300dpi.png",
+      "caption": "图 10－24 空间机器人的机械臂控制系统",
+      "sourcePdfPage": 387,
+      "sha256": "947081405f5b9e7ece9b3e81cb4908581118966d00884ef8c8bd7ed5b46e9f58",
+      "bytes": 216116
+    },
+    {
+      "index": 20,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0392-01-300dpi.png",
+      "exportPath": "assets/fig-10-26-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0392-01-300dpi.png",
+      "caption": "图 10－26－1 增益控制下系统单位阶跃输入响应曲线（MATLAB）",
+      "sourcePdfPage": 392,
+      "sha256": "78b4fe7839926d49c16287125f9afff6bfc8855e286f9bfdfd016efab8b0598f",
+      "bytes": 159865
+    },
+    {
+      "index": 21,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0392-02-300dpi.png",
+      "exportPath": "assets/fig-10-26-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0392-02-300dpi.png",
+      "caption": "图10－26－2 增益控制下系统单位阶跃扰动响应曲线（MATLAB）",
+      "sourcePdfPage": 392,
+      "sha256": "bacc3eb3221ad4a04d1eb182316f19692a50d6ec9f3903ad202750a2b6f534f6",
+      "bytes": 143973
+    },
+    {
+      "index": 22,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0393-01-300dpi.png",
+      "exportPath": "assets/fig-10-26-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0393-01-300dpi.png",
+      "caption": "图 10－26－3 PD 优化控制下系统单位阶跃输人响应曲线（MATLAB）",
+      "sourcePdfPage": 393,
+      "sha256": "48026b2f2d588456d53833235c9a9252e060a4c4d0b1cfcd8e1346ceba89aca2",
+      "bytes": 169103
+    },
+    {
+      "index": 23,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0393-02-300dpi.png",
+      "exportPath": "assets/fig-10-26-03-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0393-02-300dpi.png",
+      "caption": "> Image description: This image shows a MATLAB-generated \"Step Response\" plot for a system under optimized PD control, as indicated by the Chinese caption (图 10－26－3). The graph plots Amplitude on the y-axis (ranging from 0 to 0.12) against Time in seconds on the x-axis (ranging from 0 to 0.8). The response curve starts at the origin and rises smoothly, exhibiting a slight overshoot before stabilizing. Two data callout boxes provide specific performance metrics: one identifies the peak amplitude as $1.05$ with an overshoot of $4.59\\%$ occurring at $0.442$ seconds; the other indicates a final steady-state value of $0.1$. A dashed horizontal line marks the target value of $0.1$, and a vertical dashed line connects the peak point to the x-axis. In engineering terms, this figure illustrates the transient and steady-state behavior of a control system responding to a unit step input. 图 10－26－4 PD 优化控制下系统单位阶跃扰动的响应曲线（MATLAB）",
+      "sourcePdfPage": 393,
+      "sha256": "66567456d40c9f4060cec631bb9ba79f20f01a6cee4d90c7f69c554082627907",
+      "bytes": 152002
+    },
+    {
+      "index": 24,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0394-01-300dpi.png",
+      "exportPath": "assets/fig-10-26-05.png",
+      "originalRelativePath": "assets/mathpix-source-page-0394-01-300dpi.png",
+      "caption": "图10－26－5 PI 优化控制下系统单位阶跃输入响应曲线（MATLAB）",
+      "sourcePdfPage": 394,
+      "sha256": "dfaff79373ba5bbfe4a480bf51fdfd4f86278f458e30774239b098fc25e2dd5c",
+      "bytes": 175465
+    },
+    {
+      "index": 25,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0394-02-300dpi.png",
+      "exportPath": "assets/fig-10-26-06.png",
+      "originalRelativePath": "assets/mathpix-source-page-0394-02-300dpi.png",
+      "caption": "图10－26－6 PI 优化控制下系统单位阶跃扰动的响应曲线（MATLAB）",
+      "sourcePdfPage": 394,
+      "sha256": "f558b5d4b21c8fde3a40f3b54b99bbfed926fdd6710f8120a171199810491dd4",
+      "bytes": 176859
+    },
+    {
+      "index": 26,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0395-01-300dpi.png",
+      "exportPath": "assets/fig-10-26-07.png",
+      "originalRelativePath": "assets/mathpix-source-page-0395-01-300dpi.png",
+      "caption": "> Image description: This image shows a MATLAB-generated \"Step Response\" plot for a system under optimized PID control, as indicated by the caption (图 10－26－7). The graph plots Amplitude on the y-axis (ranging from 0 to 1.4) against Time in seconds on the x-axis (ranging from 0 to 0.8). A single smooth curve represents the system's response to a unit step input, starting at (0,0) and asymptotically approaching a final value of 1. Several data callouts provide specific performance metrics: * **Peak amplitude:** 1.02, occurring at 0.468 seconds, with an overshoot of 1.97%. * **Final Value:** 1. * **Settling Time:** 0.754 seconds, marked by a vertical dash-dot line. Horizontal lines indicate the final value and the overshoot boundary. The figure illustrates the system's stability and transient response characteristics, specifically showing minimal overshoot and a fast settling time. 图 10－26－7 PID 优化控制下系统单位阶跃输人响应曲线（MATLAB）",
+      "sourcePdfPage": 395,
+      "sha256": "39a30b5784331b6ea356bd0e89d17e23a85dbef3bfea29f894d458169a2bff15",
+      "bytes": 192579
+    },
+    {
+      "index": 27,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-10-mathpix/assets/mathpix-source-page-0395-02-300dpi.png",
+      "exportPath": "assets/fig-10-26-08.png",
+      "originalRelativePath": "assets/mathpix-source-page-0395-02-300dpi.png",
+      "caption": "图 10－26－8 PID 优化控制下系统单位阶跃扰动的响应曲线（MATLAB）",
+      "sourcePdfPage": 395,
+      "sha256": "6188eafe7204984230d782c969724aef9644956ad200b9ba09996a5db6984081",
+      "bytes": 193274
+    }
+  ]
+}

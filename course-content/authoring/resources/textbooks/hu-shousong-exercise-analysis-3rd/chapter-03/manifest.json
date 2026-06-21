@@ -1,0 +1,600 @@
+{
+  "id": "chapter-03",
+  "number": 3,
+  "title": "线性系统的时域分析法",
+  "pipeline": "mathpixplus",
+  "textbookPath": "textbook.md",
+  "assetsPath": "assets/",
+  "sourceMarkdown": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/chapter-03.md",
+  "sourceQa": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/chapter-03.qa.json",
+  "sourcePageStart": 43,
+  "sourcePageEnd": 87,
+  "sourcePageCount": 45,
+  "imageCount": 58,
+  "figureDescriptionCount": 57,
+  "markdownSha256": "979d806ddb1df23a795409c0ff0c34d9efb90c2f2af824ec8f39499246d85482",
+  "sourceImageManifest": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/chapter-03.local.md.images.json",
+  "sourceImageManifestCount": 58,
+  "images": [
+    {
+      "index": 1,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0045-01-300dpi.png",
+      "exportPath": "assets/fig-03-02-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0045-01-300dpi.png",
+      "caption": "图3－2－1 系统（2）的单位脉冲响应曲线（MATLAB）",
+      "sourcePdfPage": 45,
+      "sha256": "4aadf8fbb8fb0853dd3be10bd6f72288b46bd88cfff7eed21ca25bfd9ab56cfc",
+      "bytes": 208230
+    },
+    {
+      "index": 2,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0045-02-300dpi.png",
+      "exportPath": "assets/fig-03-02-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0045-02-300dpi.png",
+      "caption": "图3－2－2 系统（2）的单位阶跃响应曲线（MATLAB）",
+      "sourcePdfPage": 45,
+      "sha256": "dccfe40cdee4d8f0dd2f8986b45a6b57fa37085f2c155c654f48ba86bbd3355e",
+      "bytes": 196024
+    },
+    {
+      "index": 3,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0046-01-300dpi.png",
+      "exportPath": "assets/fig-03-04-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0046-01-300dpi.png",
+      "caption": "图3－4－1 系统的单位阶跃响应曲线（MATLAB） 从图3－4－1可以看出：峰值时间 $t_{p}=1.96 \\mathrm{~s}$ ，超调量 $\\sigma \\%=9.48 \\%$ ，调节时间 $t_{s}=2.97 \\mathrm{~s}$ 。",
+      "sourcePdfPage": 46,
+      "sha256": "d20710eb4edfcca1d4ba0fc951aaba98be841ff94550bc21bd9cf98c518b019a",
+      "bytes": 227499
+    },
+    {
+      "index": 4,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0047-01-300dpi.png",
+      "exportPath": "assets/fig-03-05-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0047-01-300dpi.png",
+      "caption": "图 3－5－1 系统单位阶跃响应曲线（MATLAB）",
+      "sourcePdfPage": 47,
+      "sha256": "965a2531abb28509d9e92f3664b5e2ea16efc0c6a8423f8a2801e8e24d30b5cb",
+      "bytes": 157708
+    },
+    {
+      "index": 5,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0048-01-300dpi.png",
+      "exportPath": "assets/fig-03-59.png",
+      "originalRelativePath": "assets/mathpix-source-page-0048-01-300dpi.png",
+      "caption": "图3－59 飞行控制系统结构图",
+      "sourcePdfPage": 48,
+      "sha256": "23464cc53b115d8e69a0b4479cec61b7a3681c386b35e1e65636b7a28f773ca2",
+      "bytes": 59455
+    },
+    {
+      "index": 6,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0048-02-300dpi.png",
+      "exportPath": "assets/fig-03-60.png",
+      "originalRelativePath": "assets/mathpix-source-page-0048-02-300dpi.png",
+      "caption": "图3－60 控制系统结构图 （1）图3－60（a）系统。根据图3－60（a）可得系统闭环传递函数为",
+      "sourcePdfPage": 48,
+      "sha256": "d5089ea6c28fab64132d4f2a04015d19832d87e8a93e4f4b5d56d9a66346be19",
+      "bytes": 109630
+    },
+    {
+      "index": 7,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0050-01-300dpi.png",
+      "exportPath": "assets/fig-03-08-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0050-01-300dpi.png",
+      "caption": "图3－8－1 系统（a）时间响应（MATLAB）",
+      "sourcePdfPage": 50,
+      "sha256": "9f9f74202f602412c7c8ef2cdb717a3055fe5a55f9107b6aaac7f3631c5a04c8",
+      "bytes": 291050
+    },
+    {
+      "index": 8,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0050-02-300dpi.png",
+      "exportPath": "assets/fig-03-08-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0050-02-300dpi.png",
+      "caption": "> Image description: A line graph titled \"Step Response\" illustrates the time-domain behavior of a system. The horizontal x-axis is labeled \"Time/sec,\" ranging from 0 to 20 seconds with increments of 2. The vertical y-axis is labeled \"Amplitude,\" ranging from 0 to 1.4 with increments of 0.2. The plot shows a single continuous curve starting at the origin (0,0). The amplitude rises sharply, peaking at approximately 1.3 around 2 seconds. It then oscillates downward, reaching a minimum slightly below 1.0 near 6 seconds, before stabilizing and converging asymptotically to a steady-state value of 1.0 as time progresses toward 20 seconds. From an engineering perspective, this figure represents the step response of an underdamped second-order system, characterized by visible overshoot and decaying oscillations before reaching equilibrium. The caption identifies it as \"图3－8－1 系统（a）时间响应（MATLAB）,\" indicating a MATLAB simulation of system (a)'s time response. 图3－8－2 系统（b）时间响应（MATLAB）",
+      "sourcePdfPage": 50,
+      "sha256": "3296148caec6df7c83d809d9f5cd73147459fe7886bfc1df4c4ece425d2a14b7",
+      "bytes": 220798
+    },
+    {
+      "index": 9,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0050-03-300dpi.png",
+      "exportPath": "assets/fig-03-08-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0050-03-300dpi.png",
+      "caption": "> Image description: The image shows a MATLAB-generated plot titled \"Step Response,\" depicting the time response of system (b) as indicated by the caption \"图3－8－2 系统（b）时间响应（MATLAB）.\" The graph features a Cartesian coordinate system where the horizontal x-axis is labeled \"Time /sec\" and ranges from 0 to 20 seconds. The vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 1.4. A single continuous curve starts at the origin (0,0), rises sharply, and reaches a peak amplitude of approximately 1.15 around 4 seconds. Following this overshoot, the signal exhibits damped oscillations before stabilizing and converging to a steady-state value of 1.0 starting around 10 seconds. This represents a typical underdamped second-order system response to a step input, illustrating key engineering characteristics such as rise time, peak overshoot, and settling time. 图3－8－3 系统（c）时间响应（MATLAB） 3－9 设控制系统如图3－61所示。要求：",
+      "sourcePdfPage": 50,
+      "sha256": "8f1b1588a09006346ab7abaac17b6bc405b8a394e9c3de44f5bfbe9bb8175719",
+      "bytes": 246311
+    },
+    {
+      "index": 10,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0050-04-300dpi.png",
+      "exportPath": "assets/fig-03-61.png",
+      "originalRelativePath": "assets/mathpix-source-page-0050-04-300dpi.png",
+      "caption": "图3－61 控制系统结构图",
+      "sourcePdfPage": 50,
+      "sha256": "c005d4af933895d39ae430569a37ca98f83d78f9a8bacd2a435c49e1918e9674",
+      "bytes": 54037
+    },
+    {
+      "index": 11,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0052-01-300dpi.png",
+      "exportPath": "assets/fig-03-09-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0052-01-300dpi.png",
+      "caption": "图3－9－1 系统（1）时间响应（MATLAB）",
+      "sourcePdfPage": 52,
+      "sha256": "8bb3a97a5ebbe68eb4bc5a9f5dc146934b540d9459b036cea77578d6a90f5360",
+      "bytes": 197844
+    },
+    {
+      "index": 12,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0052-02-300dpi.png",
+      "exportPath": "assets/fig-03-09-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0052-02-300dpi.png",
+      "caption": "图3－9－2 系统（2）时间响应（MATLAB） 3－10 图3－62所示控制系统有（a）和（b）两种不同的结构方案，其中 $T>0$ 不可变。要求：",
+      "sourcePdfPage": 52,
+      "sha256": "f9578e48a08b87a6e19e061c2b7f3bcb83d108fff908e409f9c6c1f5f4a9dac1",
+      "bytes": 200645
+    },
+    {
+      "index": 13,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0052-03-300dpi.png",
+      "exportPath": "assets/fig-03-62.png",
+      "originalRelativePath": "assets/mathpix-source-page-0052-03-300dpi.png",
+      "caption": "图3－62 控制系统结构图",
+      "sourcePdfPage": 52,
+      "sha256": "1d69ae481f9943eab6374b08e603b2fe430f281766b15c1f3b7858cbe2b52dc0",
+      "bytes": 112731
+    },
+    {
+      "index": 14,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0054-01-300dpi.png",
+      "exportPath": "assets/fig-03-10-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0054-01-300dpi.png",
+      "caption": "> Image description: A line graph titled \"Step Response\" illustrates the time-domain behavior of a system's output following a unit step input. The vertical y-axis is labeled \"Amplitude,\" ranging from 0 to 1.5, while the horizontal x-axis is labeled \"Time/sec,\" ranging from 0 to 15. The plot shows an underdamped response characterized by a series of decaying oscillations. Starting at the origin (0,0), the curve rises sharply to a first peak amplitude of approximately 1.5 at around 2 seconds. It then oscillates above and below a steady-state value of 1.0 with decreasing magnitude over time. By approximately 10 seconds, the signal stabilizes and converges to the final value of 1.0. In engineering terms, this figure depicts key performance metrics such as overshoot, settling time, and steady-state error for the original system described in the caption \"图3－10－1 原系统单位阶跃响应曲线.\" 图3－10－1 原系统单位阶跃响应曲线",
+      "sourcePdfPage": 54,
+      "sha256": "3faa3ed1c70d4d0fbf3a77c5cbeb6bcbab094a976cfba4d34fa05bd5c1052f90",
+      "bytes": 125653
+    },
+    {
+      "index": 15,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0054-02-300dpi.png",
+      "exportPath": "assets/fig-03-10-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0054-02-300dpi.png",
+      "caption": "图3－10－2 测速反馈系统单位阶跃响应曲线 （ $K_{1}=1, K_{2}=5, K_{3}=0.2$ ．MATLAB） 方案（b）比例－微分控制系统：比例－微分控制可以增大系统的阻尼比，使超调量下降，调节时间缩短，且不影响系统的自然频率和常值稳态误差。由于采用微分控制后，允许选取较高的开环增益，因此在保证一定的动态性能条件下，可以减小稳态误差。然而，增加 $K_{1}$ 又会导致阻尼比下降，从而超调量加大，此时应考虑增加 $K_{2}$ 。下面利用 MATLAB 软件包，形象地说明比例－微分控制系统参数调整的措施，如图3－10－5～图3－10－8所示。",
+      "sourcePdfPage": 54,
+      "sha256": "a0ae4ff45fb65a99ae712ad68c439afe85dfbabc8bc206a81580c482a8f47639",
+      "bytes": 148156
+    },
+    {
+      "index": 16,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0055-01-300dpi.png",
+      "exportPath": "assets/fig-03-10-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0055-01-300dpi.png",
+      "caption": "图3－10－3 增加 $K_{1}$ 时测速反馈系统单位阶跃响应曲线（ $K_{1}=2, K_{2}=5, K_{3}=0.2$ ．MATLAB）",
+      "sourcePdfPage": 55,
+      "sha256": "43778144a579a994562690c7886d935cf404eb73fc314e1af00f790cc7cba017",
+      "bytes": 139699
+    },
+    {
+      "index": 17,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0055-02-300dpi.png",
+      "exportPath": "assets/fig-03-10-04.png",
+      "originalRelativePath": "assets/mathpix-source-page-0055-02-300dpi.png",
+      "caption": "图3－10－4 增加 $K_{2}$ 时测速反馈系统单位阶跃响应曲线（ $K_{1}=1, K_{2}=15, K_{3}=0.2$ ．MATLAB）",
+      "sourcePdfPage": 55,
+      "sha256": "2d2787e051bf90ce25bc75ef21f4c214767f82f3a9c0107013019e07049fc327",
+      "bytes": 132148
+    },
+    {
+      "index": 18,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0056-01-300dpi.png",
+      "exportPath": "assets/fig-03-10-05.png",
+      "originalRelativePath": "assets/mathpix-source-page-0056-01-300dpi.png",
+      "caption": "图 3－10－5 原系统单位阶跃响应曲线 （ $K_{1}=1, K_{2}=5, K_{3}=0.2$ ．MATLAB）",
+      "sourcePdfPage": 56,
+      "sha256": "dc4ee94e37027ed758dfa5e002b5c3669f1827c4e446cce11b42ee14295174a0",
+      "bytes": 126157
+    },
+    {
+      "index": 19,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0056-02-300dpi.png",
+      "exportPath": "assets/fig-03-10-05-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0056-02-300dpi.png",
+      "caption": "> Image description: This image shows a plot titled \"Step Response,\" representing the unit step response curve of an original system as indicated by the caption (图 3－10－5). The graph features a vertical y-axis labeled \"Amplitude\" ranging from 0 to 1.4 and a horizontal x-axis labeled \"Time/sec\" ranging from 0 to 15. The plot displays a single continuous curve that starts at the origin (0,0) and rises sharply, exhibiting an underdamped behavior. The signal overshoots the steady-state value of 1.0, reaching a peak amplitude of approximately 1.38 around $t=1$ second. It then oscillates with decreasing magnitude before settling and converging to a final amplitude of 1.0 after approximately 5 seconds. According to the caption, this response was generated using MATLAB with specific parameters: $K_1=1$, $K_2=5$, and $K_3=0.2$. 图3－10－7 增加 $K_{1}$ 时比例－微分系统单位阶跃响应曲线（ $K_{1}=2, K_{2}=5, K_{3}=0.2$ ．MATLAB）",
+      "sourcePdfPage": 56,
+      "sha256": "a4f585b222166067138f9fbcf35c3142689299499efd16dde451c44b0b0d0f04",
+      "bytes": 150907
+    },
+    {
+      "index": 20,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0056-03-300dpi.png",
+      "exportPath": "assets/fig-03-10-06.png",
+      "originalRelativePath": "assets/mathpix-source-page-0056-03-300dpi.png",
+      "caption": "图3－10－6 比例－微分控制系统单位阶跃响应曲线 （ $K_{1}=1, K_{2}=5, K_{3}=0.2$ ．MATLAB）",
+      "sourcePdfPage": 56,
+      "sha256": "5dd4719bc10f65087ebc8104fb3383d66d80f69ac6b31213aa7538e0443a2cd0",
+      "bytes": 144435
+    },
+    {
+      "index": 21,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0056-04-300dpi.png",
+      "exportPath": "assets/fig-03-10-08.png",
+      "originalRelativePath": "assets/mathpix-source-page-0056-04-300dpi.png",
+      "caption": "图 3－10－8 增加 $K_{2}$ 时比例－微分系统单位阶跃响应曲线（ $K_{1}=1, K_{2}=15, K_{3}=0.2$ ．MATLAB）",
+      "sourcePdfPage": 56,
+      "sha256": "bc9fd8e5dadb65de3e83e0ada39164da9544007059108e4fb7d4a6a1c8c41b4a",
+      "bytes": 149008
+    },
+    {
+      "index": 22,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0058-01-300dpi.png",
+      "exportPath": "assets/img-chapter-03-022.png",
+      "originalRelativePath": "assets/mathpix-source-page-0058-01-300dpi.png",
+      "caption": null,
+      "sourcePdfPage": 58,
+      "sha256": "492396d99ab13119965490a55e5b118cfd24597c16fb66d1008e3d8ca7c61cce",
+      "bytes": 120303
+    },
+    {
+      "index": 23,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0059-01-300dpi.png",
+      "exportPath": "assets/fig-03-13-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0059-01-300dpi.png",
+      "caption": "图 3－13－1 $K=0.2$ 时系统的单位阶跃响应 （MATLAB）",
+      "sourcePdfPage": 59,
+      "sha256": "7f67dc1863a58f936ff6b3bc61ca7aaec7e549f3699041efaff29b5636469d4e",
+      "bytes": 187424
+    },
+    {
+      "index": 24,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0059-02-300dpi.png",
+      "exportPath": "assets/fig-03-13-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0059-02-300dpi.png",
+      "caption": "图 3－13－3 $K=1.2$ 时系统的单位阶跃响应 （MATLAB）",
+      "sourcePdfPage": 59,
+      "sha256": "851208721003cd86a5ed7bf7a88effef505b6ae1340d3d7346822b945de5bb0c",
+      "bytes": 226147
+    },
+    {
+      "index": 25,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0059-03-300dpi.png",
+      "exportPath": "assets/fig-03-13-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0059-03-300dpi.png",
+      "caption": "图3－13－2 $K=0.7$ 时系统的单位阶跃响应 （MATLAB）",
+      "sourcePdfPage": 59,
+      "sha256": "98226ee08a95620ed6bdee54e9fa80d6b559b88bfff83979ebac6ac362eb392e",
+      "bytes": 180828
+    },
+    {
+      "index": 26,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0059-04-300dpi.png",
+      "exportPath": "assets/fig-03-13-02-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0059-04-300dpi.png",
+      "caption": "> Image description: The image shows a MATLAB-generated plot titled \"Step Response,\" illustrating the unit step response of a system where $K=0.7$. The graph features a vertical y-axis labeled \"Amplitude\" ranging from 0 to 2 and a horizontal x-axis labeled \"Time/sec\" ranging from 0 to 40. The plotted signal is a sustained, undamped sinusoidal oscillation starting at the origin (0,0). The waveform oscillates between a minimum amplitude of approximately 0.1 and a maximum peak of roughly 1.85. The oscillations are periodic and constant in magnitude over time, indicating a marginally stable system or an oscillator. A dashed grid is overlaid on the plot to assist in reading specific values. According to the Chinese caption (图3－13－2), this figure specifically represents the unit step response of the system under the condition $K=0.7$. 图 3－13－4 $K=1.7$ 时系统的单位阶跃响应 （MATLAB）",
+      "sourcePdfPage": 59,
+      "sha256": "6be2a2e08a7ef9e6acfbb22804e71d1ba4a27363c549c24a0d74534a1a9099cb",
+      "bytes": 285569
+    },
+    {
+      "index": 27,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0060-01-300dpi.png",
+      "exportPath": "assets/fig-03-63.png",
+      "originalRelativePath": "assets/mathpix-source-page-0060-01-300dpi.png",
+      "caption": "> Image description: This image is a control system block diagram labeled \"图3－63 控制系统结构图.\" The system features a forward path and two feedback loops. The input signal $R(s)$ enters from the left into a summing junction. The resulting error signal passes through an integrator block denoted by $1 + \\frac{1}{s}$, then into a second summing junction. This signal then flows through a plant block with the transfer function $\\frac{10}{s(s+1)}$, leading to the output variable $C(s)$. There are two feedback paths returning from $C(s)$: an inner loop passing through a derivative-like block labeled $\\tau s$ that feeds back negatively into the second summing junction, and an outer unity feedback loop that returns directly to the first summing junction with a negative sign. Arrows indicate the unidirectional flow of signals between blocks and junctions, representing a closed-loop control architecture. 图3－63 控制系统结构图 由图3－63可求得系统的闭环传递函",
+      "sourcePdfPage": 60,
+      "sha256": "57beed41045f926a0c5166035d26c51a90fe6b1fdba921e8d3f87e09c396f2aa",
+      "bytes": 45027
+    },
+    {
+      "index": 28,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0061-01-300dpi.png",
+      "exportPath": "assets/fig-03-14-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0061-01-300dpi.png",
+      "caption": "> Image description: A line graph titled \"Step Response\" illustrates the time-domain behavior of a system. The horizontal x-axis is labeled \"Time/sec,\" ranging from 0 to 10 seconds with increments of 1 second. The vertical y-axis is labeled \"Amplitude,\" ranging from 0 to 2 in increments of 0.2. The plot displays a continuous, undamped sinusoidal oscillation starting at the origin (0,0). The waveform reaches periodic peaks of 2 and troughs of 0. Specifically, peaks occur at $t = 1, 3, 5, 7,$ and $9$ seconds, while troughs occur at $t = 0, 2, 4, 6, 8,$ and $10$ seconds. The constant amplitude indicates a system with no decay over time. According to the caption \"图3－14－1 $\\tau=0$ 时系统单位阶跃响应（MATLAB）,\" this represents a unit step response of a system where the time constant $\\tau = 0$, generated using MATLAB. 图3－14－1 $\\tau=0$ 时系统单位阶跃响应（MATLAB）",
+      "sourcePdfPage": 61,
+      "sha256": "a343c00923e698135af2c8921e208ac7b83886a4f518171adcc9d27e4995fd1f",
+      "bytes": 293647
+    },
+    {
+      "index": 29,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0061-02-300dpi.png",
+      "exportPath": "assets/fig-03-14-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0061-02-300dpi.png",
+      "caption": "> Image description: A line graph titled \"Step Response\" illustrates the time-domain behavior of a system's unit step response, as indicated by the caption \"图3－14－1 $\\tau=0$ 时系统单位阶跃响应（MATLAB）\". The vertical y-axis is labeled \"Amplitude,\" with numerical markings from 0 to 1.4 in increments of 0.2. The horizontal x-axis is labeled \"Time/sec,\" ranging from 0 to 30 seconds with major grid lines every 5 seconds. The plotted curve starts at the origin (0,0), rises sharply to a peak amplitude of approximately 1.35 around 2.5 seconds, and then oscillates. It dips to a minimum near 6 seconds before stabilizing and converging toward a steady-state value of 1.0 as time increases beyond 15 seconds. This characteristic waveform represents an underdamped system response, showing overshoot and settling time typical in control engineering analysis. 图 3－14－2 $\\tau=1$ 时系统单位阶跃响应（MATLAB）",
+      "sourcePdfPage": 61,
+      "sha256": "c14c331f78c4459e9c42f8fcb82f45cd53418e07b65d57f7628634e19b63954e",
+      "bytes": 158804
+    },
+    {
+      "index": 30,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0061-03-300dpi.png",
+      "exportPath": "assets/fig-03-14-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0061-03-300dpi.png",
+      "caption": "> Image description: A line graph titled \"Step Response\" illustrates the unit step response of a system where $\\tau=1$, as indicated by the caption \"图 3－14－2 $\\tau=1$ 时系统单位阶跃响应（MATLAB）\". The horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 80 seconds. The vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 1.6. The plot shows a damped oscillatory signal starting at the origin (0,0). It reaches a first peak amplitude of approximately 1.5 around 5 seconds, followed by subsequent oscillations with decreasing magnitude. The signal eventually stabilizes and converges to a steady-state value of 1.0 as time increases beyond 50 seconds. This behavior is characteristic of an underdamped second-order system in control engineering, demonstrating overshoot and settling time before reaching equilibrium. 图 3－14－3 $\\tau=5$ 时系统单位阶跃响应（MATLAB）",
+      "sourcePdfPage": 61,
+      "sha256": "0f68fb38f2f743711f74a5745dee049cd4cfec05fa2ede023430124ea385c519",
+      "bytes": 187494
+    },
+    {
+      "index": 31,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0065-01-300dpi.png",
+      "exportPath": "assets/fig-03-64.png",
+      "originalRelativePath": "assets/mathpix-source-page-0065-01-300dpi.png",
+      "caption": "> Image description: This image is a control system block diagram labeled \"图3-64 控制系统结构图.\" The signal flow begins with an input variable $R(s)$ entering a summing junction, where it is compared with a feedback loop to produce the error signal $E(s)$. This signal passes through a functional block $G(s)$, after which another summing junction introduces a disturbance signal $N_1(s)$. The resulting output then enters a second functional block $F(s)$. Following this block, a third summing junction incorporates a second disturbance signal $N_2(s)$ to produce the final system output $C(s)$. A feedback path connects the output $C(s)$ back to the initial summing junction with a negative sign, indicating a closed-loop negative feedback configuration. The diagram uses standard engineering notation to represent the relationship between transfer functions and external noise or disturbances within a linear time-invariant system in the s-domain. 图3－64 控制系统结构图",
+      "sourcePdfPage": 65,
+      "sha256": "310971553dce9a3f463be10070879577afbdbcf8b6d7c67f090768c6977caaeb",
+      "bytes": 49565
+    },
+    {
+      "index": 32,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0067-01-300dpi.png",
+      "exportPath": "assets/fig-03-20-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0067-01-300dpi.png",
+      "caption": "图 3－20－1 系统结构图",
+      "sourcePdfPage": 67,
+      "sha256": "8b19b634c44bac4349fd520e3d7ceba723dbb5cc04c39ac679fbb5df549922f1",
+      "bytes": 46410
+    },
+    {
+      "index": 33,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0068-01-300dpi.png",
+      "exportPath": "assets/fig-03-65.png",
+      "originalRelativePath": "assets/mathpix-source-page-0068-01-300dpi.png",
+      "caption": "图3－65 机器人关节指向控制系统结构图",
+      "sourcePdfPage": 68,
+      "sha256": "6ffade1aafa01d48717b5aefa68ecfc719891967c4e3df3c0a4424bf5698c84e",
+      "bytes": 90362
+    },
+    {
+      "index": 34,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0070-01-300dpi.png",
+      "exportPath": "assets/fig-03-66.png",
+      "originalRelativePath": "assets/mathpix-source-page-0070-01-300dpi.png",
+      "caption": "图3－66 卷纸张力控制系统原理图",
+      "sourcePdfPage": 70,
+      "sha256": "89ef4f022bcf1bf919dabecaf3b71f643944057cc8f1725c4558725eaff7f04d",
+      "bytes": 176098
+    },
+    {
+      "index": 35,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0070-02-300dpi.png",
+      "exportPath": "assets/fig-03-22-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0070-02-300dpi.png",
+      "caption": "图3－22－1 张力控制系统结构图",
+      "sourcePdfPage": 70,
+      "sha256": "5613801ae0ba8a001f05437493ca2799a6aa207638a2f7dfcf3472d95864fb12",
+      "bytes": 91793
+    },
+    {
+      "index": 36,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0071-01-300dpi.png",
+      "exportPath": "assets/fig-03-67.png",
+      "originalRelativePath": "assets/mathpix-source-page-0071-01-300dpi.png",
+      "caption": "图3－67 船舶航向控制系统结构图",
+      "sourcePdfPage": 71,
+      "sha256": "cd3a049f0ab7553ac7e0d7eb0ebac7e47bfa4439888bfd72758c23968d32e77b",
+      "bytes": 78948
+    },
+    {
+      "index": 37,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0072-01-300dpi.png",
+      "exportPath": "assets/fig-03-68.png",
+      "originalRelativePath": "assets/mathpix-source-page-0072-01-300dpi.png",
+      "caption": "图3－68 机器人手爪控制系统 解 本题属系统时域分析法的综合应用。确定系统的单位阶跃响应，需要确定系统的 $\\zeta$ 和 $\\omega_{n}$ ，因此需要先求闭环系统传递函数，算出 $\\zeta$ 和 $\\omega_{n}$ 的具体数值；而确定负载对系统的影响，是指扰动负载在输出端是否会产生稳态误差，从结构图3－68（c）可见，阶跃扰动对系统输出是有影响的。",
+      "sourcePdfPage": 72,
+      "sha256": "0e062904bc1a49810d41737aef73961028b6aeac9499c24ccd73e4574a562a2d",
+      "bytes": 400360
+    },
+    {
+      "index": 38,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0074-01-300dpi.png",
+      "exportPath": "assets/fig-03-24-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0074-01-300dpi.png",
+      "caption": "图3－24－1 机器人控制系统单位阶跃响应曲线 （MATLAB）",
+      "sourcePdfPage": 74,
+      "sha256": "73efd6366b818d174a52b08fb778eacaaeaefa337f2532979698f3b403d763f0",
+      "bytes": 233066
+    },
+    {
+      "index": 39,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0074-02-300dpi.png",
+      "exportPath": "assets/fig-03-24-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0074-02-300dpi.png",
+      "caption": "> Image description: This image displays a plot titled \"Linear Simulation Results,\" which represents the unit step response curve of a robot control system generated in MATLAB, as indicated by the Chinese caption (图3-24-1). The graph features two axes: the horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 0.6 seconds. The vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 0.7. A grid of dashed lines overlays the plot area for precise reading. The figure shows two closely overlapping curves starting at the origin (0,0) and increasing linearly over time. Both curves exhibit a slight initial oscillation or ripple before stabilizing into a steady linear ramp, reaching an amplitude of approximately 0.6 at 0.6 seconds. In engineering terms, this plot evaluates the system's transient response and tracking performance in reaction to a step input. 图3－24－2 机器人控制系统单位斜坡响应曲线 （MATLAB）",
+      "sourcePdfPage": 74,
+      "sha256": "badb2a09adbe1131c52842836d711728a8a3a605efe14b5167d10d05828e8347",
+      "bytes": 203871
+    },
+    {
+      "index": 40,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0074-03-300dpi.png",
+      "exportPath": "assets/fig-03-24-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0074-03-300dpi.png",
+      "caption": "图 3－24－3 机器人控制系统单位阶跃扰动响应曲线（MATLAB）",
+      "sourcePdfPage": 74,
+      "sha256": "b44afb42e83823d9416771035dcec380105aedc26f57036e32257519daa5e01e",
+      "bytes": 217815
+    },
+    {
+      "index": 41,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0075-01-300dpi.png",
+      "exportPath": "assets/fig-03-69.png",
+      "originalRelativePath": "assets/mathpix-source-page-0075-01-300dpi.png",
+      "caption": "图3－69 宇航员机动控制系统 （1）确定 $K_{3}$ 值。由图3－69（b）可知，内回路传递函数",
+      "sourcePdfPage": 75,
+      "sha256": "356f53103c116e96dfb832bda5fa3f54db7b53e0e22d7765b11ebcafba69f953",
+      "bytes": 394744
+    },
+    {
+      "index": 42,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0076-01-300dpi.png",
+      "exportPath": "assets/fig-03-25-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0076-01-300dpi.png",
+      "caption": "图3－25－1 宇航员控制系统单位阶跃响应曲线 （MATLAB）",
+      "sourcePdfPage": 76,
+      "sha256": "9634a65384cd0ae347ac393472246dc32aaa9d000e576206368040b277896a14",
+      "bytes": 134499
+    },
+    {
+      "index": 43,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0076-02-300dpi.png",
+      "exportPath": "assets/fig-03-25-01-2.png",
+      "originalRelativePath": "assets/mathpix-source-page-0076-02-300dpi.png",
+      "caption": "> Image description: The image shows a plot titled \"Linear Simulation Results,\" which represents the unit step response curve of an astronaut control system, as indicated by the Chinese caption (图3-25-1). The graph features a two-dimensional coordinate system. The horizontal x-axis is labeled \"Time/sec\" and ranges from 0 to 1 in increments of 0.1. The vertical y-axis is labeled \"Amplitude\" and ranges from 0 to 1 in increments of 0.1. A single, solid diagonal line starts at the origin (0,0) and extends linearly to the point (1,1). A dashed grid overlays the plot area for precise value reading. In engineering terms, this linear relationship indicates a constant rate of change over time, where the amplitude increases proportionally with time until it reaches its final value of 1 at one second. 图3－25－2 宇航员控制系统单位斜坡响应曲钱 （MATLAB）",
+      "sourcePdfPage": 76,
+      "sha256": "5c3e091db457ff402032cbce504e78bea801fcde79667b7b9af0529958e6d4bf",
+      "bytes": 208180
+    },
+    {
+      "index": 44,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0077-01-300dpi.png",
+      "exportPath": "assets/fig-03-70.png",
+      "originalRelativePath": "assets/mathpix-source-page-0077-01-300dpi.png",
+      "caption": "> Image description: A control system block diagram titled \"Figure 3-70 Aircraft Roll Angle Control System Structure Diagram\" (图 3－70 飞机滚转角控制系统结构图) is shown. The system is a closed-loop feedback loop starting with an input variable $\\Theta_d(s)$. This input enters a summing junction, where it is compared with a feedback signal. The forward path consists of two sequential blocks: the \"Aileron Actuator\" (副翼执行机构) with a transfer function $K_1 / (s+10)$, followed by the \"Aircraft Dynamic Model\" (飞机动力学模型) with a transfer function $11.4 / [s(s+1.4)]$. The output of this path is the controlled roll angle $\\Theta_c(s)$ (滚转角). A feedback loop connects the output $\\Theta_c(s)$ back to the summing junction through a block labeled \"Gyroscope\" (陀螺仪) with a gain $K_g=1$. Arrows indicate the signal flow from left to right in the forward path and right to left in the feedback path. 图 3－70 飞机滚转角控制系统结构图",
+      "sourcePdfPage": 77,
+      "sha256": "774ed5bc4c869251205d5a6e8d1083b9c6045d7ae2412e65094db50d43c62d6e",
+      "bytes": 91721
+    },
+    {
+      "index": 45,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0078-01-300dpi.png",
+      "exportPath": "assets/fig-03-26-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0078-01-300dpi.png",
+      "caption": "> Image description: A line graph titled \"Step Response\" illustrates the unit step response curves of an aircraft roll system (as indicated by the caption \"图 3－26－1 飞机横滚系统单位阶跃响应曲线\"). The horizontal x-axis is labeled \"Time/sec,\" ranging from 0 to 15 seconds with major ticks every 5 units. The vertical y-axis is labeled \"Amplitude,\" scaling from 0 to 1.4 with increments of 0.2. The plot displays two closely aligned curves starting at the origin (0,0). Both curves rise steeply and converge toward a steady-state value of 1. One curve reaches the target amplitude slightly faster than the other. After reaching the peak around 5 seconds, there is a very slight overshoot followed by stabilization as the lines flatten out horizontally at an amplitude of 1. The graph uses dashed grid lines to facilitate reading specific values across the time and amplitude axes. 图 3－26－1 飞机横滚系统单位阶跃响应曲线",
+      "sourcePdfPage": 78,
+      "sha256": "f54619cdd9e3dcee8857379d7e2e5561bb6cd9a71f6e60fddd95797086b82db8",
+      "bytes": 149827
+    },
+    {
+      "index": 46,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0078-02-300dpi.png",
+      "exportPath": "assets/fig-03-26-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0078-02-300dpi.png",
+      "caption": "图3－26－2 飞机横滚系统单位阶跃响应曲线 （ $K_{1}=3$ ，MATLAB）",
+      "sourcePdfPage": 78,
+      "sha256": "325a3afce6f80d2300d8e160dde07915baf304c30623d8a26adf647faf109c0e",
+      "bytes": 167792
+    },
+    {
+      "index": 47,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0078-03-300dpi.png",
+      "exportPath": "assets/fig-03-26-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0078-03-300dpi.png",
+      "caption": "图 3－26－3 飞机横滚系统单位阶跃响应曲线 （ $K_{1}=6$ ，MATLAB）",
+      "sourcePdfPage": 78,
+      "sha256": "a35217236b09c13293fe72bc76de26a9f00e97f276f0cc8bc7edb3e36c4debf2",
+      "bytes": 200978
+    },
+    {
+      "index": 48,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0079-01-300dpi.png",
+      "exportPath": "assets/fig-03-71.png",
+      "originalRelativePath": "assets/mathpix-source-page-0079-01-300dpi.png",
+      "caption": "图 3－71 打磨机器人结构图",
+      "sourcePdfPage": 79,
+      "sha256": "a2af316fb893864fac990299d2093e3fc13412c8f8d08de7dafd995341e9acc7",
+      "bytes": 107817
+    },
+    {
+      "index": 49,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0080-01-300dpi.png",
+      "exportPath": "assets/fig-03-72.png",
+      "originalRelativePath": "assets/mathpix-source-page-0080-01-300dpi.png",
+      "caption": "图3－72 电动轮椅控制系统结构图",
+      "sourcePdfPage": 80,
+      "sha256": "6610bc3763a994ba800962b0d49271908c655cdbfb257f14ee89c6f821bba682",
+      "bytes": 104932
+    },
+    {
+      "index": 50,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0081-01-300dpi.png",
+      "exportPath": "assets/fig-03-28-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0081-01-300dpi.png",
+      "caption": "图3－28－1 轮椅控制系统的单位阶跃响应曲线 （MATLAB）",
+      "sourcePdfPage": 81,
+      "sha256": "4d23a518852e81cdd5165291712735edb2f5ceb424778dcbcc2c49e2cee74c74",
+      "bytes": 232203
+    },
+    {
+      "index": 51,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0081-02-300dpi.png",
+      "exportPath": "assets/fig-03-73.png",
+      "originalRelativePath": "assets/mathpix-source-page-0081-02-300dpi.png",
+      "caption": "图 3－73 垂直起飞飞机高度控制系统",
+      "sourcePdfPage": 81,
+      "sha256": "1d3ead25be0bbf2635e904104faf4cc79c7475b477eae6baa631c25c6188dd1d",
+      "bytes": 444557
+    },
+    {
+      "index": 52,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0082-01-300dpi.png",
+      "exportPath": "assets/fig-03-29-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0082-01-300dpi.png",
+      "caption": "图 3－29－1 垂直起飞高度控制系统的单位阶跃响应（ $K_{1}=0.7$ ，MATLAB）",
+      "sourcePdfPage": 82,
+      "sha256": "d1d1e67bb61527f6c5672cd8c8784db13a33a049e62addc6241160e8a89065cf",
+      "bytes": 205586
+    },
+    {
+      "index": 53,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0083-01-300dpi.png",
+      "exportPath": "assets/fig-03-29-02.png",
+      "originalRelativePath": "assets/mathpix-source-page-0083-01-300dpi.png",
+      "caption": "图3－29－2 垂直起飞高度控制系统的单位阶跃响应（ $K_{1}=0.5$ ，MATLAB）",
+      "sourcePdfPage": 83,
+      "sha256": "32bedb8f0e4d00a8e489f2d043660fd9bae40fa555c5d4e85a1cba40da158187",
+      "bytes": 248800
+    },
+    {
+      "index": 54,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0083-02-300dpi.png",
+      "exportPath": "assets/fig-03-29-03.png",
+      "originalRelativePath": "assets/mathpix-source-page-0083-02-300dpi.png",
+      "caption": "图 3－29－3 垂直起飞高度控制系统的单位阶跃响应（ $K_{1}=1$ ，MATLAB）",
+      "sourcePdfPage": 83,
+      "sha256": "5cdaa4557e9dd514a1ee4d972db7b295e297221b86f75504f3cce0f7686ad130",
+      "bytes": 279056
+    },
+    {
+      "index": 55,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0083-03-300dpi.png",
+      "exportPath": "assets/fig-03-74.png",
+      "originalRelativePath": "assets/mathpix-source-page-0083-03-300dpi.png",
+      "caption": "图 3－74 火星漫游车导向控制系统结构图",
+      "sourcePdfPage": 83,
+      "sha256": "2a843d4f5f80e722ad8e31bb293dad6bce933a2e500f3d824c0e1961171af0d2",
+      "bytes": 58680
+    },
+    {
+      "index": 56,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0085-01-300dpi.png",
+      "exportPath": "assets/fig-03-30-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0085-01-300dpi.png",
+      "caption": "> Image description: A line graph titled \"Step Response\" illustrates the unit step response curve of a rover's steering system, as indicated by the Chinese caption (图 3－30－1). The vertical y-axis is labeled \"Amplitude,\" with numerical markings from 0 to 1.2 in increments of 0.2. The horizontal x-axis is labeled \"Time/sec,\" showing a range from 0 to 25 seconds with major ticks every 5 seconds. The plot displays a smooth, monotonically increasing curve starting at the origin (0,0). The amplitude rises sharply initially and then gradually levels off, asymptotically approaching a steady-state value of 1.0. A dashed grid is overlaid on the graph for precise reading. In engineering terms, this figure represents the transient and steady-state behavior of the steering system's output in response to a unit step input, demonstrating its stability and convergence time. 图 3－30－1 漫游车导向系统单位阶跃响应曲线（MATLAB）",
+      "sourcePdfPage": 85,
+      "sha256": "c345c21fc4893d5326a3a4fcc0ec4bb73c5f3946102b7f34d20381aee0bf8297",
+      "bytes": 163449
+    },
+    {
+      "index": 57,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0085-02-300dpi.png",
+      "exportPath": "assets/fig-03-75.png",
+      "originalRelativePath": "assets/mathpix-source-page-0085-02-300dpi.png",
+      "caption": "图3－75 磁悬浮列车控制系统",
+      "sourcePdfPage": 85,
+      "sha256": "a78d065404e8ce8793c2df38521fe7518bac48a80ec6615caec817804b4aaace",
+      "bytes": 365239
+    },
+    {
+      "index": 58,
+      "sourcePath": "20260620-opendataloader-pdf-eval/rag-output/hu-shousong-exercise-analysis-3rd/chapter-03-mathpix/assets/mathpix-source-page-0087-01-300dpi.png",
+      "exportPath": "assets/fig-03-31-01.png",
+      "originalRelativePath": "assets/mathpix-source-page-0087-01-300dpi.png",
+      "caption": "> Image description: A line graph titled \"Step Response\" illustrates the time-domain response of a magnetic levitation system (as indicated by the caption \"图 3－31－1 磁悬浮系统单位阶跃响应\"). The horizontal x-axis is labeled \"Time/sec,\" ranging from 0 to 10 seconds. The vertical y-axis is labeled \"Amplitude,\" with values ranging from -0.5 to 0.2. The plot shows a single continuous curve starting at approximately 0.07 at $t=0$. The amplitude rapidly decreases, crossing the zero line shortly after the start and descending steeply between 1 and 3 seconds. The response then levels off asymptotically, reaching a steady-state value of -0.5 by approximately 5 seconds and remaining constant through 10 seconds. This represents the system's stability and final value under a unit step input with a gain $K_a=2$, as specified in the caption. 图 3－31－1 磁悬浮系统单位阶跃响应 （ $K_{a}=2$ ．MATLAB）",
+      "sourcePdfPage": 87,
+      "sha256": "96913cadda66c960d7c6f28d389feab60e4f9ea721d8580c95f2a3e63185e125",
+      "bytes": 219758
+    }
+  ]
+}
