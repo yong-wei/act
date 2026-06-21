@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { BopppsStage, LessonItemType } from '@prisma/client';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { EMPTY_LESSON_PLAN_MESSAGE, hasLaunchableLessonItems } from '@/lib/lesson-plan-readiness';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,6 +63,10 @@ export async function POST(request: Request) {
     }
 
     const rawItems = Array.isArray(items) ? items : [];
+    if (!hasLaunchableLessonItems(rawItems)) {
+      return NextResponse.json({ error: EMPTY_LESSON_PLAN_MESSAGE }, { status: 400 });
+    }
+
     for (const item of rawItems) {
       const inferredType = item.knowledgeNodeId ? LessonItemType.KNOWLEDGE_NODE : LessonItemType.RESOURCE;
       const itemType = (item.itemType as LessonItemType | undefined) ?? inferredType;

@@ -75,6 +75,34 @@ describe('useTeacherLessonSession', () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
+  it('keeps teacher demo sessions local and never posts state to persisted session APIs', async () => {
+    let session: TeacherLessonSessionResult<TeacherSyncState, TeacherSyncInput> | null = null;
+
+    function Harness() {
+      session = useTeacherLessonSession({
+        sessionId: 'demo',
+        steps: [{ id: 'step-04' }, { id: 'step-05' }],
+        adapter,
+      });
+      return null;
+    }
+
+    renderToString(<Harness />);
+
+    const teacherSession = session as unknown as TeacherLessonSessionResult<TeacherSyncState, TeacherSyncInput> | null;
+    if (!teacherSession) throw new Error('Expected teacher lesson session');
+
+    expect(teacherSession.loadingSession).toBe(false);
+
+    await teacherSession.postTeacherSyncState({
+      activeStepId: 'step-04',
+      revealedAnswers: { 'step-04': true },
+      updatedAt: 1_776_307_900_000,
+    });
+
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it('tags state sync failures with the current lesson step', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(
       JSON.stringify({ error: 'state write failed' }),

@@ -53,6 +53,7 @@ export function useInteractiveTracking(
     configuredResourceKey: resourceKey,
   });
   const resolvedResourceKey = configuredResourceIdentity.resourceKey;
+  const isDemoSession = sessionId === 'demo';
   const storageKey = `${STORAGE_KEY_PREFIX}${resolvedResourceKey}:${sessionId ?? 'no-session'}:${userId ?? 'no-user'}`;
 
   // 从 localStorage 恢复事件
@@ -89,7 +90,7 @@ export function useInteractiveTracking(
     if (events.length === 0) return;
 
     // Skip server sync in demo mode (no sessionId)
-    if (!sessionId && (!persistWithoutSession || !userId)) {
+    if (isDemoSession || (!sessionId && (!persistWithoutSession || !userId))) {
       // Just clear events from memory after saving to storage
       saveToStorage();
       return;
@@ -120,7 +121,7 @@ export function useInteractiveTracking(
         console.error('[InteractiveTracking] API sync failed:', e);
       }
     }
-  }, [onSync, persistWithoutSession, saveToStorage, sessionId, userId]);
+  }, [isDemoSession, onSync, persistWithoutSession, saveToStorage, sessionId, userId]);
 
   // 设置定时同步
   useEffect(() => {

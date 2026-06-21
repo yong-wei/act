@@ -62,6 +62,7 @@
 问题：
 
 - P0：空教案不仅可保存，还能发起课堂。教师会进入无教学内容的正式课堂界面，学生加入后也无法获得明确任务。
+  - 整改状态（2026-06-21，`audit-remediation-p0-stability`）：已修复。保存、列表发课和直接 API 发课均阻断 0 环节教案，既有异常课堂显示恢复状态；证据见 `../remediation/audit-remediation-p0-stability/evidence.md`。
 - P1：`1 / 0` 是明显异常状态，说明分页状态没有处理空内容边界。
 - P1：主体 `Waiting for content...` 使用英文，不符合当前教师端中文工作流。
 

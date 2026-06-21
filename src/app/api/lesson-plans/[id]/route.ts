@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { BopppsStage, LessonItemType, Prisma } from '@prisma/client';
 import { rethrowIfNextDynamicError } from '@/lib/nextjs-dynamic-error';
+import { EMPTY_LESSON_PLAN_MESSAGE, hasLaunchableLessonItems } from '@/lib/lesson-plan-readiness';
 import {
   buildLessonPlanDeleteConflictMessage,
   canDeleteLessonPlan,
@@ -67,6 +68,9 @@ export async function PATCH(request: Request, props: { params: Promise<{ id: str
     const body = await request.json();
     const { title, items } = body;
     const rawItems = Array.isArray(items) ? items : [];
+    if (!hasLaunchableLessonItems(rawItems)) {
+      return NextResponse.json({ error: EMPTY_LESSON_PLAN_MESSAGE }, { status: 400 });
+    }
 
     for (const item of rawItems) {
       const inferredType = item.knowledgeNodeId

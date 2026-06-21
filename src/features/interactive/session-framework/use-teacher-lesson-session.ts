@@ -36,6 +36,7 @@ export function useTeacherLessonSession<
   adapter,
   pollIntervalMs,
 }: UseTeacherLessonSessionOptions<StudentState, TeacherSyncState, TeacherSyncInput>): TeacherLessonSessionResult<TeacherSyncState, TeacherSyncInput> {
+  const isDemo = sessionId === 'demo';
   const {
     sessionInfo,
     activeIndex,
@@ -49,6 +50,7 @@ export function useTeacherLessonSession<
   } = useSessionProgressChannel({
     sessionId,
     stepIds: steps.map((step) => step.id),
+    isDemo,
     followTeacher: false,
     pollIntervalMs,
   });
@@ -61,6 +63,7 @@ export function useTeacherLessonSession<
     postState,
   } = useSessionStateChannel({
     sessionId,
+    isDemo,
     currentStepId: steps[teacherIndex]?.id ?? steps[activeIndex]?.id ?? null,
   });
   const [error, setError] = useState<string | null>(null);

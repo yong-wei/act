@@ -76,6 +76,7 @@
 问题：
 
 - P0：27/29 门教师投影运行态在桌面和移动均出现 `Not found` 文本块。它位于投影内容主体上方，教师投屏时会直接暴露给学生。
+  - 整改状态（2026-06-21，`audit-remediation-p0-stability`）：已修复 29 个教师投影 demo 路由的裸 `Not found` 和 demo 持久同步错误；证据见 `../remediation/audit-remediation-p0-stability/evidence.md`。
 - P1：移动端教师投影页中 `Not found` 显示为红色告警块，并伴随左下 `1 Issue` 浮层，破坏授课可信度。
 - P1：课堂码仍显示 `------`，当前在线学生为 0；如果 demo 会话不能代表真实课堂，页面需要明示状态边界。
 - P1：教师 demo 运行态仍会向 `/api/session/demo/state` 和 `/api/interactive/events` 写入；日志显示前者触发 `StudentState_sessionId_fkey` 外键错误，后者因 `\u0000 cannot be converted to text` 写入失败。页面返回 200 不代表课堂同步健康。

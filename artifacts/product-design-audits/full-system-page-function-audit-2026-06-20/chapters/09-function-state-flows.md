@@ -40,6 +40,7 @@
 问题：
 
 - P0：注册短密码触发 runtime error。截图显示 `Objects are not valid as a React child (found: object with keys {formErrors, fieldErrors})`，用户从普通校验错误进入开发错误页。
+  - 整改状态（2026-06-21，`audit-remediation-p0-stability`）：已修复。注册错误已规整为字符串；证据见 `../remediation/audit-remediation-p0-stability/evidence.md`。
 - P2：登录错误文案可见，但没有“找回账号/联系教师/返回入口”的恢复路径。
 
 建议：

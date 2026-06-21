@@ -102,6 +102,28 @@ export function TeacherPlayer({ session, initialItems }: TeacherPlayerProps) {
       }
   };
 
+  if (initialItems.length === 0) {
+    return (
+      <div className="flex h-screen flex-col bg-black text-slate-100">
+        <div className="h-14 border-b border-slate-800 bg-slate-900 px-6 flex items-center justify-between">
+          <span className="font-bold text-lg text-white">{session.plan.title}</span>
+          <button type="button" onClick={handleEndClass} className="text-red-400 hover:text-red-300 flex items-center gap-1 text-sm">
+            <X className="h-4 w-4" />
+            结束
+          </button>
+        </div>
+        <main className="flex flex-1 items-center justify-center px-6 text-center">
+          <section className="max-w-xl rounded-2xl border border-amber-500/30 bg-amber-500/10 p-8">
+            <p className="text-lg font-semibold text-amber-100">该教案暂无可授课环节</p>
+            <p className="mt-3 text-sm leading-6 text-amber-100/80">
+              请返回教案编辑页，至少添加 1 个资源或知识节点后再开始上课。
+            </p>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen bg-black text-slate-100 overflow-hidden">
         {/* Top Bar */}
