@@ -8,6 +8,23 @@
 
 本次目标是按用户真实使用顺序审计系统每个页面与每个主要功能，并形成分功能区块、分步骤的详实报告。
 
+### 1.1 OpenSpec 整改系列索引
+
+本报告从本次审计完成后作为系统运行的总质量文档维护。后续新增业务功能应在相关页面族或功能流上做增量审计，不再默认重复全量设计审计。以下 OpenSpec 变更系列负责把本报告中的缺陷清单转成可执行整改；每个变更完成并通过验收后，必须回写本报告或对应章节的整改状态、证据路径、日期和 change id。
+
+| Change | 范围 | 主要审计证据 | 当前状态 |
+| --- | --- | --- | --- |
+| `audit-remediation-p0-stability` | 注册、空教案发课、教师投影、课前包 500 | `chapters/09-function-state-flows.md`、`chapters/10-function-state-flows-batch2.md`、`chapters/06-course-teacher-waiting-runtime-demo-all.md`、`chapters/02-authenticated-role-flows.md`、`chapters/38-function-state-flows-batch30.md`、`chapters/57-function-state-flows-batch49.md` | proposed |
+| `audit-remediation-action-status-contract` | 全站动作状态、下载/导出、提交/审批/写回、`alert/live` | `chapters/49-function-state-flows-batch41.md`、`chapters/50-function-state-flows-batch42.md`、`chapters/51-function-state-flows-batch43.md`、`chapters/54-function-state-flows-batch46.md`、`chapters/63-function-state-flows-batch55.md` 至 `chapters/67-function-state-flows-batch59.md` | proposed |
+| `audit-remediation-api-ui-contracts` | URL 参数、搜索筛选、分页、坏 ID、API/UI 口径 | `chapters/52-function-state-flows-batch44.md`、`chapters/53-function-state-flows-batch45.md`、`chapters/63-function-state-flows-batch55.md` 至 `chapters/67-function-state-flows-batch59.md` | proposed |
+| `audit-remediation-student-learning-closure` | 学生报告反馈、任务、自适应练习、证据、成长、作品集写回 | `chapters/55-function-state-flows-batch47.md`、`chapters/56-function-state-flows-batch48.md`、`chapters/63-function-state-flows-batch55.md` 至 `chapters/67-function-state-flows-batch59.md` | proposed |
+| `audit-remediation-teacher-report-grading` | 教师报告交付、评分审批、学生证据 deep link、移动长报告主动作 | `chapters/51-function-state-flows-batch43.md`、`chapters/55-function-state-flows-batch47.md`、`chapters/56-function-state-flows-batch48.md`、`chapters/63-function-state-flows-batch55.md` 至 `chapters/67-function-state-flows-batch59.md` | proposed |
+| `audit-remediation-admin-governance-workflows` | 管理员治理、用户导入、用户筛选导出、配置测试、统计导出 | `chapters/51-function-state-flows-batch43.md`、`chapters/53-function-state-flows-batch45.md`、`chapters/54-function-state-flows-batch46.md`、`chapters/56-function-state-flows-batch48.md` 至 `chapters/67-function-state-flows-batch59.md` | proposed |
+| `audit-remediation-mobile-a11y-shell` | 320px/390px 移动布局、横向溢出、浮动工具避让、焦点与命名 | `chapters/49-function-state-flows-batch41.md`、`chapters/53-function-state-flows-batch45.md`、`chapters/54-function-state-flows-batch46.md`、`chapters/57-function-state-flows-batch49.md` 至 `chapters/67-function-state-flows-batch59.md` | proposed |
+| `audit-remediation-ai-task-boundaries` | AI、Prompt、Copilot 任务边界、上下文脱敏、持久输出 | `chapters/50-function-state-flows-batch42.md`、`chapters/55-function-state-flows-batch47.md`、`chapters/62-function-state-flows-batch54.md`、`chapters/63-function-state-flows-batch55.md` | proposed |
+| `audit-remediation-arena-classroom-evidence` | Arena 结果解释、多次/逾期/0 分、课堂状态、证据回流 | `chapters/10-function-state-flows-batch2.md`、`chapters/34-function-state-flows-batch26.md`、`chapters/54-function-state-flows-batch46.md` 及课堂/Arena 相关批次 | proposed |
+| `audit-remediation-authoring-resource-flows` | 教案、ResourceNode、播放列表、课程流、知识节点与作者态治理 | `chapters/60-function-state-flows-batch52.md`、`chapters/61-function-state-flows-batch53.md` 及本报告资源/作者态问题项 | proposed |
+
 审计对象以当前 App Router 页面为准：
 
 - App Router 页面文件总数：205。
