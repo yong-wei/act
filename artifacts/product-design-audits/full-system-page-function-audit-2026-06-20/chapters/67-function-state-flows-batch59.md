@@ -109,3 +109,11 @@
 至本批为止，`route-inventory.md` 中 205 个 App Router 页面模板已全部纳入截图证据，功能状态流已从 Batch1 延伸到 Batch59，覆盖学生、教师、管理员、公开入口、课程运行态、Arena、仿真、AI、学习路径、报告反馈、评分、作品集、数据中心和治理后台的关键正常态、空态、错误态、移动态、动作后状态与 API/UI 合同。
 
 本批没有再提出“下一批输入”。剩余内容已经不是审计覆盖缺口，而是可进入设计治理和实现修复的产品缺陷清单：动作状态机、API/UI 过滤合同、移动长列表布局、下载/导出事件、报告交付、评分写回、作品集收录、治理处置和全站 status/live 语义。
+
+## #614 管理员治理整改记录（2026-06-21）
+
+整改变更：`audit-remediation-admin-governance-workflows`。证据：`../remediation/audit-remediation-admin-governance-workflows/evidence.md`。
+
+- 448 已关闭：用户页导出按当前 no-match 筛选集生成空 CSV；移动端表格限制在表格容器内滚动，页面主体不再由表格撑宽。
+- 449 已关闭：治理 risk resolve 深链进入对象化状态；缺失 risk 显示恢复动作和审计记录。
+- 450 已关闭：配置测试缺失 provider/model 与统计导出均显示明确状态；统计页提供使用量 JSON 下载和审计摘要。

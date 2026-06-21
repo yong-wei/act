@@ -17,4 +17,12 @@ describe('system config dashboard AI provider settings', () => {
     expect(dashboardSource).toContain('providerKind: event.target.value as AIProviderKind');
     expect(dashboardSource).toContain('citationNormalization');
   });
+
+  it('renders explicit route model-test states for missing provider and model deep links', () => {
+    expect(dashboardSource).toContain('initialTestQuery?: ConfigModelTestQuery | null');
+    expect(dashboardSource).toContain('admin-config-model-test:provider');
+    expect(dashboardSource).toContain('供应商 ${providerId} 不存在或当前配置不可见。');
+    expect(dashboardSource).toContain('供应商 ${provider.name} 下不存在模型 ${modelId}。');
+    expect(dashboardSource).toContain('<ActionStatusPanel state={routeModelTestState} className="mb-6" />');
+  });
 });

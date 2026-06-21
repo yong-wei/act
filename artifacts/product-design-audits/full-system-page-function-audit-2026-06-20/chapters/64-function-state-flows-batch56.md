@@ -117,3 +117,10 @@ no-match URL 初始页仍显示用户管理长页；可见搜索后页面高度�
 ## 5. 下一批输入
 
 下一批应继续从用户可执行闭环角度追踪：学习证据目标页修复后的空态/高亮/写回、用户搜索 API 和 UI 统一后的分页/角色筛选、评分工作台 POST/草稿创建路径、治理导出下载和缺失 riskId 恢复，以及移动端 320px 宽度治理。
+
+## #614 管理员治理整改记录（2026-06-21）
+
+整改变更：`audit-remediation-admin-governance-workflows`。证据：`../remediation/audit-remediation-admin-governance-workflows/evidence.md`。
+
+- 416 已关闭：治理导出提供服务端 JSON/CSV/XLSX 下载、文件名、成功状态和审计摘要；格式、扩展名和内容类型保持一致。
+- 417 已关闭：配置缺失 provider 测试显示 blocked 状态与恢复动作。

@@ -4,7 +4,16 @@ import { UserRole } from '@prisma/client';
 import { DataGovernanceDashboard } from '@/features/admin/data-governance-dashboard';
 import { getServerAuthSession } from '@/lib/auth';
 
-export default async function AdminDataGovernancePage() {
+export default async function AdminDataGovernancePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{
+    action?: string;
+    riskId?: string;
+    assignee?: string;
+    format?: string;
+  }>;
+}) {
   const session = await getServerAuthSession();
 
   if (!session?.user) {
@@ -15,8 +24,11 @@ export default async function AdminDataGovernancePage() {
     redirect('/');
   }
 
+  const params = await searchParams;
+
   return (
     <DataGovernanceDashboard
+      initialActionQuery={params ?? null}
       currentUser={{
         id: session.user.id,
         name: session.user.name,

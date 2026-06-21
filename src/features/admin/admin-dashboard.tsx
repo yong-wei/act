@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActionStatusPanel } from '@/components/platform/action-status';
 import { createAuditedActionState } from '@/lib/action-status-contract';
 import type { AdminUsersQueryContract } from '@/lib/api-ui-contracts';
+import { toCsv } from '@/lib/csv-export';
 
 import { AdminConsoleHeader } from './admin-console-header';
 
@@ -83,12 +84,23 @@ type ImportErrorItem = {
 };
 
 type ImportResult = {
+  batchId?: string;
+  mode?: 'preview' | 'commit';
+  preview?: boolean;
   created: number;
   updated: number;
   failed: number;
   skippedEmpty?: number;
   totalRows?: number;
   errors?: ImportErrorItem[];
+  auditRecord?: {
+    actorId: string;
+    action: string;
+    batchId: string;
+    outcome: string;
+    rollbackAvailable: boolean;
+    recordedAt: string;
+  };
 };
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -124,6 +136,9 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
   const [resetPassword, setResetPassword] = useState('');
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
+  const [exportingUsers, setExportingUsers] = useState(false);
+  const [usersExportState, setUsersExportState] = useState<ReturnType<typeof createAuditedActionState> | null>(null);
   const [creating, setCreating] = useState(false);
   const [usersQueryTouched, setUsersQueryTouched] = useState(false);
   const [createForm, setCreateForm] = useState({
@@ -156,6 +171,22 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
     const action = initialUsersQuery?.action;
     if (!action) return null;
     if (action === 'export') {
+      if (!initialUsersQuery.source.roleSupported) {
+        return createAuditedActionState({
+          identity: {
+            id: 'admin-users-route-action:export',
+            category: 'export',
+            label: '账号导出',
+            sourceRoute: '/admin/users',
+            targetId: initialUsersQuery.targetId,
+            requestedAction: action,
+          },
+          status: 'blocked',
+          message: '账号导出参数包含无效角色筛选，已阻止生成文件。',
+          recoveryAction: '清空无效角色参数后重新导出',
+          httpStatus: 400,
+        });
+      }
       return createAuditedActionState({
         identity: {
           id: 'admin-users-route-action:export',
@@ -165,9 +196,9 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
           targetId: initialUsersQuery.targetId,
           requestedAction: action,
         },
-        status: 'unsupported',
-        message: '账号导出深链不会自动执行。当前筛选条件已保留，请在页面内触发可审计的导出动作。',
-        recoveryAction: '确认筛选结果后从账号列表执行导出',
+        status: 'pending',
+        message: '账号导出深链已保留当前筛选条件，请使用页面内导出按钮生成文件。',
+        nextAction: '按当前筛选集导出账号清单',
       });
     }
     if (action === 'reset') {
@@ -407,12 +438,106 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
     }
   };
 
-  const handleImport = async (file: File) => {
+  const handleExportUsers = async () => {
+    if (invalidQueryState) {
+      setUsersExportState(createAuditedActionState({
+        identity: {
+          id: 'admin-users-filtered-export',
+          category: 'export',
+          label: '账号筛选导出',
+          sourceRoute: '/admin/users',
+          requestedAction: 'export',
+        },
+        status: 'blocked',
+        message: '当前账号筛选参数无效，已阻止导出。',
+        recoveryAction: '清空无效参数后重新筛选',
+        httpStatus: 400,
+      }));
+      return;
+    }
+    setExportingUsers(true);
+    const params = new URLSearchParams();
+    if (search.trim()) {
+      params.set('q', search.trim());
+    }
+    if (roleFilter !== 'ALL') {
+      params.set('role', roleFilter);
+    }
+    try {
+      const res = await fetch(`/api/admin/users/export?${params.toString()}`, { cache: 'no-store' });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null) as { error?: string } | null;
+        throw new Error(payload?.error || '导出账号失败');
+      }
+      const blob = await res.blob();
+      const filename = res.headers.get('x-export-filename')
+        ?? `admin-users-${roleFilter.toLowerCase()}-${new Date().toISOString().slice(0, 10)}.csv`;
+      const exportCount = Number(res.headers.get('x-export-count') ?? 0);
+      const exportTotal = Number(res.headers.get('x-export-total') ?? exportCount);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      window.URL.revokeObjectURL(url);
+      setUsersExportState(createAuditedActionState({
+        identity: {
+          id: 'admin-users-filtered-export',
+          category: 'export',
+          label: '账号筛选导出',
+          sourceRoute: '/admin/users',
+          requestedAction: 'export',
+        },
+        status: 'succeeded',
+        message: `已按当前筛选条件导出 ${exportCount} 条账号，筛选总数 ${exportTotal}。`,
+        nextAction: exportCount === 0 ? '调整筛选条件后重新导出' : '检查下载文件',
+        downloadFilename: filename,
+      }));
+    } catch (error) {
+      setUsersExportState(createAuditedActionState({
+        identity: {
+          id: 'admin-users-filtered-export',
+          category: 'export',
+          label: '账号筛选导出',
+          sourceRoute: '/admin/users',
+          requestedAction: 'export',
+        },
+        status: 'failed',
+        message: error instanceof Error ? error.message : '导出账号失败',
+        recoveryAction: '刷新账号列表后重试',
+        httpStatus: 500,
+      }));
+    } finally {
+      setExportingUsers(false);
+    }
+  };
+
+  const downloadFailedImportRows = () => {
+    const errors = importResult?.errors ?? [];
+    const csv = [
+      ['row', 'account', 'reason'],
+      ...errors.map((item) => [item.row, item.account ?? '', item.reason]),
+    ];
+    const filename = `${importResult?.batchId ?? 'admin-user-import'}-failed-rows.csv`;
+    const blob = new Blob([toCsv(csv)], { type: 'text/csv;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleImport = async (file: File, mode: 'preview' | 'commit' = 'preview') => {
     setImporting(true);
-    setImportResult(null);
+    if (mode === 'preview') {
+      setPendingImportFile(file);
+      setImportResult(null);
+    }
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('mode', mode);
       const res = await fetch('/api/admin/users/import', {
         method: 'POST',
         body: formData,
@@ -425,10 +550,15 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
       setImportResult(result);
       showNotice(
         'success',
-        `导入完成：新增 ${result.created ?? 0}，更新 ${result.updated ?? 0}，失败 ${result.failed ?? 0}`
+        mode === 'preview'
+          ? `导入预览完成：预计新增 ${result.created ?? 0}，更新 ${result.updated ?? 0}，失败 ${result.failed ?? 0}`
+          : `导入完成：新增 ${result.created ?? 0}，更新 ${result.updated ?? 0}，失败 ${result.failed ?? 0}`
       );
-      fetchUsers();
-      fetchOverview();
+      if (mode === 'commit') {
+        setPendingImportFile(null);
+        fetchUsers();
+        fetchOverview();
+      }
     } catch (error) {
       showNotice('error', error instanceof Error ? error.message : '导入失败');
     } finally {
@@ -538,11 +668,19 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
                 批量导入
                 <UploadCloud className="h-4 w-4" />
               </button>
+              <button type="button"
+                onClick={handleExportUsers}
+                disabled={exportingUsers || Boolean(invalidQueryState)}
+                className="admin-console-button w-full justify-between disabled:opacity-50"
+              >
+                {exportingUsers ? '正在导出' : '导出当前筛选'}
+                <Download className="h-4 w-4" />
+              </button>
               <Link href="/admin/config" className="admin-console-nav-item">
                 <Settings className="h-4 w-4" />
                 打开系统配置
               </Link>
-              <input aria-label="搜索管理员功能"
+              <input aria-label="批量导入用户 Excel 文件"
                 ref={fileInputRef}
                 type="file"
                 accept=".xlsx"
@@ -565,7 +703,9 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
             <div className="admin-console-surface-soft">
               <span className="admin-console-kicker">导入结果</span>
               <div className="admin-console-muted mt-3 space-y-2 text-sm">
+                {importResult.batchId && <p>批次：{importResult.batchId}</p>}
                 <p>
+                  {importResult.preview ? '预计' : ''}
                   新增 {importResult.created ?? 0}，更新 {importResult.updated ?? 0}，失败 {importResult.failed ?? 0}
                 </p>
                 {typeof importResult.totalRows === 'number' && (
@@ -581,6 +721,26 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
                       </p>
                     ))}
                   </div>
+                )}
+                {(importResult.errors?.length ?? 0) > 0 && (
+                  <button type="button" onClick={downloadFailedImportRows} className="admin-console-button mt-2 px-3 py-1.5 text-xs">
+                    下载失败行
+                  </button>
+                )}
+                {importResult.preview && pendingImportFile && (importResult.errors?.length ?? 0) === 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handleImport(pendingImportFile, 'commit')}
+                    className="admin-console-button-primary mt-2 px-3 py-1.5 text-xs"
+                  >
+                    确认导入
+                  </button>
+                )}
+                {importResult.auditRecord && (
+                  <p className="text-xs">
+                    审计：{importResult.auditRecord.outcome} · 模式 {importResult.mode ?? 'commit'} · 操作者 {importResult.auditRecord.actorId} ·
+                    {importResult.auditRecord.rollbackAvailable ? ' 可按批次自动回滚' : ' 自动回滚未启用'}
+                  </p>
                 )}
               </div>
             </div>
@@ -662,6 +822,9 @@ export function AdminDashboard({ currentUser, initialUsersQuery }: AdminDashboar
             ) : null}
             {invalidQueryState ? (
               <ActionStatusPanel state={invalidQueryState} className="mt-4" />
+            ) : null}
+            {usersExportState ? (
+              <ActionStatusPanel state={usersExportState} className="mt-4" />
             ) : null}
 
             <div className="admin-console-table-shell mt-6">

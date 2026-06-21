@@ -128,3 +128,10 @@ Arena 发布报告正文和状态可读，但没有导出、发送给学生、�
 - 报告交付修复后，优先回归教师复盘、班级分析、教师首页账本和 Arena 发布报告。
 - 数据中心与管理员治理修复后，单独复核导出、风险处置、下载完成、失败恢复和 live/status 播报。
 - 管理员用户移动页修复后，必须同时复核截图真实宽度、批量导入状态机和模板下载完成提示。
+
+## #614 管理员治理整改记录（2026-06-21）
+
+整改变更：`audit-remediation-admin-governance-workflows`。证据：`../remediation/audit-remediation-admin-governance-workflows/evidence.md`。
+
+- 257 已关闭：`/admin/data-governance` 增加对象化 `resolve/assign/export` 状态、缺失风险恢复、行级处置/分派入口、服务端导出文件与持久动作审计。
+- 258 部分关闭：`/admin/users` 已补导入预览、确认提交、`batchId`、审计记录和失败行下载；自动回滚延期到持久 import-batch 存储。

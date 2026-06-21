@@ -117,3 +117,11 @@ STUDENT no-match API 返回 `total:293`，ADMIN no-match 返回 `total:1`，TEAC
 ## 5. 下一批输入
 
 下一批应继续补两类证据：一是修复后回归路径，包括报告反馈目标解析、学习证据 API、用户 q 过滤、评分草稿来源、治理导出与配置模型测试；二是更深的可访问性状态，包括 status/live、焦点恢复、移动表格替代布局和下载/错误状态的读屏语义。
+
+## #614 管理员治理整改记录（2026-06-21）
+
+整改变更：`audit-remediation-admin-governance-workflows`。证据：`../remediation/audit-remediation-admin-governance-workflows/evidence.md`。
+
+- 428 已关闭：治理 `resolve` 缺失 riskId/不存在 risk 显示 blocked 恢复状态和审计记录。
+- 429 已关闭：治理导出提供可下载文件、文件名和 export-ready 审计记录。
+- 430 已关闭：配置缺失 provider/model 测试显示明确对象不存在状态。

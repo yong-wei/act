@@ -15,6 +15,8 @@ import {
   X,
 } from 'lucide-react';
 
+import { ActionStatusPanel } from '@/components/platform/action-status';
+import { createAuditedActionState } from '@/lib/action-status-contract';
 import { AdminConsoleHeader } from './admin-console-header';
 import type { AdminConsoleUser } from './admin-console-config';
 
@@ -79,6 +81,12 @@ interface ModelTestResult {
   error?: string;
 }
 
+type ConfigModelTestQuery = {
+  provider?: string | null;
+  model?: string | null;
+  action?: string | null;
+};
+
 const DEFAULT_AI_SETTINGS: AIProviderSettings = {
   activeProvider: 'siliconflow',
   providers: [
@@ -136,9 +144,10 @@ function defaultSecretRef(providerId: string): string {
 
 type SystemConfigDashboardProps = {
   currentUser: AdminConsoleUser;
+  initialTestQuery?: ConfigModelTestQuery | null;
 };
 
-export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProps) {
+export function SystemConfigDashboard({ currentUser, initialTestQuery }: SystemConfigDashboardProps) {
   const [config, setConfig] = useState<SystemConfig>({
     siteName: 'AI-OBE 船舶智控平台',
     maintenanceMode: false,
@@ -507,6 +516,106 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
     showNotice('success', '已重置为默认配置');
   };
 
+  const routeModelTestState = (() => {
+    if (initialTestQuery?.action !== 'test') return null;
+    const providerId = initialTestQuery.provider?.trim();
+    const modelId = initialTestQuery.model?.trim();
+    const provider = providerId
+      ? aiSettings.providers.find((item) => item.id === providerId || item.name === providerId)
+      : null;
+    const model = provider && modelId
+      ? provider.models.find((item) => item.model === modelId || item.id === modelId)
+      : null;
+
+    if (!providerId) {
+      return createAuditedActionState({
+        identity: {
+          id: 'admin-config-model-test:missing-provider-param',
+          category: 'model-test',
+          label: '模型测试',
+          sourceRoute: '/admin/config',
+          requestedAction: 'test',
+        },
+        status: 'blocked',
+        message: '模型测试缺少 provider 参数，不能定位供应商。',
+        recoveryAction: '选择供应商后从模型列表重新测试',
+        httpStatus: 400,
+      });
+    }
+
+    if (!provider) {
+      return createAuditedActionState({
+        identity: {
+          id: `admin-config-model-test:provider:${providerId}`,
+          category: 'model-test',
+          label: '模型测试',
+          sourceRoute: '/admin/config',
+          targetId: providerId,
+          requestedAction: 'test',
+        },
+        status: 'blocked',
+        message: `供应商 ${providerId} 不存在或当前配置不可见。`,
+        recoveryAction: '返回供应商列表并刷新配置',
+        httpStatus: 404,
+      });
+    }
+
+    if (!modelId) {
+      return createAuditedActionState({
+        identity: {
+          id: `admin-config-model-test:model-missing:${provider.id}`,
+          category: 'model-test',
+          label: '模型测试',
+          sourceRoute: '/admin/config',
+          targetId: provider.id,
+          requestedAction: 'test',
+        },
+        status: 'blocked',
+        message: `供应商 ${provider.name} 缺少 model 参数，不能执行模型测试。`,
+        recoveryAction: '选择模型后重新测试',
+        httpStatus: 400,
+      });
+    }
+
+    if (!model) {
+      return createAuditedActionState({
+        identity: {
+          id: `admin-config-model-test:${provider.id}:${modelId}`,
+          category: 'model-test',
+          label: '模型测试',
+          sourceRoute: '/admin/config',
+          targetId: modelId,
+          requestedAction: 'test',
+        },
+        status: 'blocked',
+        message: `供应商 ${provider.name} 下不存在模型 ${modelId}。`,
+        recoveryAction: '检查模型目录或新增模型后重试',
+        httpStatus: 404,
+      });
+    }
+
+    const result = testResults[`${provider.id}:${model.model}`];
+    return createAuditedActionState({
+      identity: {
+        id: `admin-config-model-test:${provider.id}:${model.model}`,
+        category: 'model-test',
+        label: '模型测试',
+        sourceRoute: '/admin/config',
+        targetId: model.model,
+        requestedAction: 'test',
+      },
+      status: result?.status === 'success' ? 'succeeded' : result?.status === 'error' ? 'failed' : 'pending',
+      message: result?.status === 'success'
+        ? `模型 ${model.model} 测试成功，用时 ${result.elapsedMs ?? 0}ms。`
+        : result?.status === 'error'
+          ? result.error ?? '模型测试失败。'
+          : `模型 ${model.model} 已定位，可从模型列表执行测试。`,
+      nextAction: result?.status === 'success' ? '保存供应商配置' : undefined,
+      recoveryAction: result?.status === 'error' ? '检查密钥、模型 ID 和供应商能力后重试' : undefined,
+      httpStatus: result?.status === 'error' ? 500 : undefined,
+    });
+  })();
+
   if (loading) {
     return (
       <div
@@ -569,6 +678,10 @@ export function SystemConfigDashboard({ currentUser }: SystemConfigDashboardProp
       />
 
       <main className="admin-console-container py-8">
+        {routeModelTestState ? (
+          <ActionStatusPanel state={routeModelTestState} className="mb-6" />
+        ) : null}
+
         {notice && (
           <div
             className={`mb-6 rounded-xl border px-4 py-3 text-sm ${

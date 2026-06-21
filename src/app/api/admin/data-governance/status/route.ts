@@ -428,6 +428,7 @@ export async function GET(request: NextRequest) {
     if (!session?.user?.id || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    const requestedRiskId = request.nextUrl.searchParams.get('riskId')?.trim() || null;
 
     // Get queue stats from Redis
     const redis = redisClient.getClient();
@@ -538,6 +539,26 @@ export async function GET(request: NextRequest) {
       }),
       collectEvidenceSourceCoverageReport(),
     ]);
+    const targetRiskFlag = requestedRiskId && !recentRiskFlags.some((risk) => risk.id === requestedRiskId)
+      ? await prisma.studentRiskFlag.findUnique({
+          where: { id: requestedRiskId, isResolved: false },
+          select: {
+            id: true,
+            userId: true,
+            flagType: true,
+            severity: true,
+            description: true,
+            triggeredAt: true,
+            isResolved: true,
+            user: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+          },
+        })
+      : null;
 
     // Get Redis buffer stats
     const today = new Date().toISOString().split('T')[0];
@@ -638,6 +659,18 @@ export async function GET(request: NextRequest) {
         triggeredAt: risk.triggeredAt.toISOString(),
         isResolved: risk.isResolved,
       })),
+      targetRiskFlag: targetRiskFlag
+        ? {
+            id: targetRiskFlag.id,
+            userId: targetRiskFlag.userId,
+            userName: targetRiskFlag.user.name || targetRiskFlag.user.email || targetRiskFlag.userId.slice(0, 8),
+            flagType: targetRiskFlag.flagType,
+            severity: targetRiskFlag.severity,
+            description: targetRiskFlag.description,
+            triggeredAt: targetRiskFlag.triggeredAt.toISOString(),
+            isResolved: targetRiskFlag.isResolved,
+          }
+        : null,
       factTypeDistribution: summarizeLearningFactTypes(learningFacts),
       sessionQuality: summarizeSessionQuality(recentSessionQualityReports),
       featureCache,

@@ -137,3 +137,9 @@
 - 管理员用户搜索修复后，应同时复核 API、总览统计、表格、分页、角色筛选、移动宽度和状态播报。
 - 教师/管理员教案列表补搜索分页后，应回归教案定位、删除确认、发起课堂和编辑回跳。
 - 学生任务与证据补搜索后，应回归任务启动上下文、证据复盘、补练生成和无匹配恢复路径。
+
+## #614 管理员治理整改记录（2026-06-21）
+
+整改变更：`audit-remediation-admin-governance-workflows`。证据：`../remediation/audit-remediation-admin-governance-workflows/evidence.md`。
+
+- 277 已关闭：`/admin/users` 页面查询与 `/api/admin/users` 共享 `q/search`、`role`、`page/pageSize` 合同；no-match 导出按当前筛选集生成空 CSV，不导出无关用户。

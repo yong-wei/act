@@ -141,3 +141,10 @@ API 同时确认：`/api/teacher/document-grading/writeback-preview` 返回 404�
 - 继续补采自适应练习 demo 完成态、Prompt 自动演示页和学生画像下一步动作，避免与本批任务大厅/作品集证据混淆。
 - 继续补教师控制校正报告 UI 交付入口、助手效果报告生成条件和评分草稿来源列表。
 - 继续补管理员导入向导真实 file chooser、失败行预览、通知/撤销和移动账号治理卡片布局。
+
+## #614 管理员治理整改记录（2026-06-21）
+
+整改变更：`audit-remediation-admin-governance-workflows`。证据：`../remediation/audit-remediation-admin-governance-workflows/evidence.md`。
+
+- 316 已关闭：批量导入入口使用命名文件输入，导入先预览再确认提交，并展示批次、成功/失败统计、失败行下载和审计记录。
+- 318 已关闭：用户页初始查询与 API 过滤合同一致；搜索、角色、分页和导出均复用当前筛选集。

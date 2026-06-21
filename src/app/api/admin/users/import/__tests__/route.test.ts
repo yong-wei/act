@@ -45,9 +45,12 @@ async function buildWorkbookFile(rows: Array<Array<WorkbookCell>>, name = 'users
   });
 }
 
-function buildImportRequest(file: File) {
+function buildImportRequest(file: File, mode?: 'preview' | 'commit') {
   const formData = new FormData();
   formData.set('file', file);
+  if (mode) {
+    formData.set('mode', mode);
+  }
   return new Request('http://localhost/api/admin/users/import', {
     method: 'POST',
     body: formData,
@@ -79,11 +82,23 @@ describe('POST /api/admin/users/import', () => {
 
     expect(response.status).toBe(200);
     expect(payload).toMatchObject({
+      batchId: expect.stringMatching(/^admin-user-import-/),
       created: 1,
       updated: 0,
       failed: 0,
       skippedEmpty: 0,
       totalRows: 1,
+      auditRecord: {
+        actorId: 'admin-1',
+        action: 'admin-users-import',
+        batchId: expect.stringMatching(/^admin-user-import-/),
+        outcome: 'completed',
+        created: 1,
+        updated: 0,
+        failed: 0,
+        rollbackAvailable: false,
+        recordedAt: expect.any(String),
+      },
     });
     expect(mocks.prisma.user.create).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
@@ -144,6 +159,60 @@ describe('POST /api/admin/users/import', () => {
     }));
   });
 
+  it('previews a valid workbook without mutating users', async () => {
+    const file = await buildWorkbookFile([
+      ['账号', '姓名', '角色', '邮箱', '班级', '专业', '年级', '初始密码'],
+      ['20240005', '预览学生', '学生', 'preview@example.com', '自动化2401', '自动化', '2024', 'secret'],
+    ]);
+
+    const response = await POST(buildImportRequest(file, 'preview'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({
+      mode: 'preview',
+      preview: true,
+      created: 1,
+      updated: 0,
+      failed: 0,
+      auditRecord: {
+        mode: 'preview',
+        rollbackAvailable: false,
+      },
+    });
+    expect(mocks.prisma.user.create).not.toHaveBeenCalled();
+    expect(mocks.prisma.user.update).not.toHaveBeenCalled();
+    expect(mocks.initializeUserProgress).not.toHaveBeenCalled();
+  });
+
+  it('reports duplicate accounts inside the same preview batch before claiming created rows', async () => {
+    const file = await buildWorkbookFile([
+      ['账号', '姓名', '角色', '邮箱', '班级', '专业', '年级', '初始密码'],
+      ['20240006', '预览学生 A', '学生', 'preview-a@example.com', '自动化2401', '自动化', '2024', 'secret'],
+      ['20240006', '预览学生 B', '学生', 'preview-b@example.com', '自动化2402', '自动化', '2024', 'secret'],
+    ]);
+
+    const response = await POST(buildImportRequest(file, 'preview'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({
+      mode: 'preview',
+      preview: true,
+      created: 1,
+      updated: 0,
+      failed: 1,
+      errors: [{
+        row: 3,
+        account: '20240006',
+        reason: '同批次重复账号，已在第 2 行出现',
+      }],
+    });
+    expect(mocks.prisma.user.findMany).toHaveBeenCalledTimes(1);
+    expect(mocks.prisma.user.create).not.toHaveBeenCalled();
+    expect(mocks.prisma.user.update).not.toHaveBeenCalled();
+  });
+
   it('returns a controlled validation error when required headers are missing', async () => {
     const file = await buildWorkbookFile([
       ['邮箱', '班级'],
@@ -179,6 +248,10 @@ describe('POST /api/admin/users/import', () => {
       created: 0,
       updated: 0,
       failed: 1,
+      auditRecord: {
+        outcome: 'completed-with-errors',
+        rollbackAvailable: false,
+      },
       errors: [{
         row: 2,
         account: '20240004',

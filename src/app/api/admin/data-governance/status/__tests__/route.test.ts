@@ -69,6 +69,7 @@ const mocks = vi.hoisted(() => ({
     studentRiskFlag: {
       count: vi.fn(),
       findMany: vi.fn(),
+      findUnique: vi.fn(),
     },
     user: {
       findMany: vi.fn(),
@@ -99,8 +100,8 @@ vi.mock('@/lib/nextjs-dynamic-error', () => ({
 
 import { GET } from '../route';
 
-function createRequest() {
-  return new NextRequest('http://localhost/api/admin/data-governance/status');
+function createRequest(query = '') {
+  return new NextRequest(`http://localhost/api/admin/data-governance/status${query}`);
 }
 
 describe('GET /api/admin/data-governance/status', () => {
@@ -134,6 +135,7 @@ describe('GET /api/admin/data-governance/status', () => {
         },
       ]);
     mocks.prisma.studentRiskFlag.findMany.mockResolvedValue([]);
+    mocks.prisma.studentRiskFlag.findUnique.mockResolvedValue(null);
     mocks.prisma.learningFact.findMany
       .mockResolvedValueOnce([
         { factType: 'question' },
@@ -412,6 +414,33 @@ describe('GET /api/admin/data-governance/status', () => {
           qualityReasons: ['low_fact_coverage'],
         }),
       ],
+    });
+  });
+
+  it('returns a requested risk outside the recent risk window for deep links', async () => {
+    mocks.prisma.studentRiskFlag.findUnique.mockResolvedValue({
+      id: 'risk-older',
+      userId: 'student-1',
+      flagType: 'participation',
+      severity: 'high',
+      description: '较早待处理风险',
+      triggeredAt: new Date('2026-05-18T08:00:00.000Z'),
+      isResolved: false,
+      user: { name: '张三', email: 'student@example.test' },
+    });
+
+    const response = await GET(createRequest('?riskId=risk-older'));
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(mocks.prisma.studentRiskFlag.findUnique).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'risk-older', isResolved: false },
+    }));
+    expect(payload.targetRiskFlag).toMatchObject({
+      id: 'risk-older',
+      userId: 'student-1',
+      userName: '张三',
+      isResolved: false,
     });
   });
 

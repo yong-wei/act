@@ -169,3 +169,11 @@ API 同时确认：`/api/learning-paths/latest?goal=control-correction` 返回 `
 - 继续追踪教师报告账本：报告 surface、评分工作台 class/source、学生证据返回上下文和助手效果报告真实生成条件。
 - 继续追踪管理员治理：风险行处置、导出、returnTo 交接和加载完成状态。
 - 移动端继续把 320px 管理员治理横向溢出和 390px 教师分析超长页作为回归重点。
+
+## #614 管理员治理整改记录（2026-06-21）
+
+整改变更：`audit-remediation-admin-governance-workflows`。证据：`../remediation/audit-remediation-admin-governance-workflows/evidence.md`。
+
+- 341 已关闭：治理页保留加载/失败状态，并对 action 深链提供对象缺失恢复。
+- 342 已关闭：风险清单增加行级处置/分派入口与动作审计摘要。
+- 343 非本变更关闭范围：数据中心 returnTo 与导出属于数据中心垂直修复；治理交接部分已由本变更关闭。
