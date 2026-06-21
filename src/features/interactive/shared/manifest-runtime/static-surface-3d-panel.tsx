@@ -64,6 +64,7 @@ type WebGLSurfaceComponent = ComponentType<{
   colorScale: StaticSurface3DPanelProps['colorScale'];
   defaultCamera: StaticSurfaceCameraConfig;
   viewMode: StaticSurfaceViewMode;
+  autoRotate: boolean;
   markers: StaticSurfaceMarkerConfig[];
   resetSignal: number;
   onDataLoadFailed: () => void;
@@ -86,6 +87,7 @@ export function StaticSurface3DPanel({
 }: StaticSurface3DPanelProps) {
   const [resetSignal, setResetSignal] = useState(0);
   const [viewMode, setViewMode] = useState<StaticSurfaceViewMode>('default');
+  const [autoRotate, setAutoRotate] = useState(false);
   const [WebGLSurface, setWebGLSurface] = useState<WebGLSurfaceComponent | null>(null);
   const [unavailableReason, setUnavailableReason] = useState<StaticSurfaceUnavailableReason | null>(null);
   const axisLabels = useMemo(() => [axes.x.label, axes.y.label, axes.z.label].filter(Boolean), [axes]);
@@ -126,6 +128,7 @@ export function StaticSurface3DPanel({
             className="inline-flex h-9 items-center justify-center rounded-md border border-platform-border bg-platform-panel px-3 interactive-courseware-control text-platform-strong transition hover:bg-platform-panel-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-focus"
             onClick={() => {
               setViewMode('default');
+              setAutoRotate(false);
               setResetSignal((value) => value + 1);
             }}
           >
@@ -137,10 +140,23 @@ export function StaticSurface3DPanel({
             className="inline-flex h-9 items-center justify-center rounded-md border border-platform-border bg-platform-panel px-3 interactive-courseware-control text-platform-strong transition hover:bg-platform-panel-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-focus"
             onClick={() => {
               setViewMode('top');
+              setAutoRotate(false);
               setResetSignal((value) => value + 1);
             }}
           >
             俯视极点
+          </button>
+          <button
+            type="button"
+            data-static-surface-view-action="auto-rotate"
+            aria-pressed={autoRotate ? 'true' : 'false'}
+            className="inline-flex h-9 items-center justify-center rounded-md border border-platform-border bg-platform-panel px-3 interactive-courseware-control text-platform-strong transition hover:bg-platform-panel-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-platform-focus"
+            onClick={() => {
+              setViewMode('default');
+              setAutoRotate((value) => !value);
+            }}
+          >
+            {autoRotate ? '停止旋转' : '自动旋转'}
           </button>
         </div>
       </div>
@@ -156,7 +172,10 @@ export function StaticSurface3DPanel({
         </div>
       </div>
 
-      <div className="relative min-h-[320px] overflow-hidden rounded-lg border border-platform-border bg-platform-canvas">
+      <div
+        className="relative aspect-[1672/1264] min-h-[420px] overflow-hidden rounded-lg border border-platform-border bg-platform-canvas md:min-h-[620px]"
+        data-static-surface-viewport="matlab-figure"
+      >
         {WebGLSurface && !unavailableReason ? (
           <WebGLSurface
             key={`surface-${resetSignal}-${viewMode}`}
@@ -166,6 +185,7 @@ export function StaticSurface3DPanel({
             colorScale={colorScale}
             defaultCamera={defaultCamera}
             viewMode={viewMode}
+            autoRotate={autoRotate}
             markers={markers}
             resetSignal={resetSignal}
             onDataLoadFailed={handleDataLoadFailed}
@@ -189,7 +209,7 @@ function StaticSurfaceFallback({
   reason?: StaticSurfaceUnavailableReason | null;
 }) {
   return (
-    <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 p-4 text-center">
+    <div className="flex h-full min-h-[420px] flex-col items-center justify-center gap-3 p-4 text-center md:min-h-[620px]">
       {reason ? (
         <p className="interactive-courseware-body font-semibold">
           {reason === 'webgl' ? '当前浏览器无法启用 WebGL，已切换为静态证据。' : '曲面数据暂不可用，已切换为静态证据。'}
@@ -200,7 +220,7 @@ function StaticSurfaceFallback({
         alt={fallback.alt}
         width={900}
         height={520}
-        className="max-h-[280px] w-full max-w-[760px] rounded-md object-contain"
+        className="max-h-full w-full max-w-[900px] rounded-md object-contain"
       />
       <p className="interactive-courseware-body">{fallback.alt}</p>
     </div>

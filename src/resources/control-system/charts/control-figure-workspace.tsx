@@ -87,7 +87,11 @@ function controlWorkbenchPanelsForIds(
   const uniquePanelIds = Array.from(new Set(allowedPanelIds.map(normalizeControlWorkbenchPanelId).filter(Boolean)));
   return uniquePanelIds.map((panelId) => {
     if (panelId === 'performance') {
-      return <div key={panelId} data-control-workbench-panel={panelId}><ControlPerformanceBar result={result} /></div>;
+      return (
+        <div key={panelId} className="xl:col-span-2" data-control-workbench-panel={panelId}>
+          <ControlPerformanceBar result={result} />
+        </div>
+      );
     }
     if (panelId === 'time-domain') {
       return <div key={panelId} data-control-workbench-panel={panelId}><TimeDomainPanel result={result} caseId={caseId} /></div>;

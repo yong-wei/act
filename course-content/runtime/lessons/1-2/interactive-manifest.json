@@ -1296,10 +1296,10 @@
                 "title": "时域方程",
                 "latex": "J\\ddot{\\theta}(t)+B\\dot{\\theta}(t)=Ku(t)",
                 "region": {
-                  "x": 0.05,
-                  "y": 0.14,
+                  "x": 0.06,
+                  "y": 0.18,
                   "width": 0.28,
-                  "height": 0.18
+                  "height": 0.12
                 },
                 "blocks": [
                   {
@@ -1315,10 +1315,10 @@
                 "title": "变换规则",
                 "latex": "\\mathcal{L}\\{\\ddot{\\theta}\\}=s^2\\Theta(s),\\quad \\mathcal{L}\\{\\dot{\\theta}\\}=s\\Theta(s),\\quad \\mathcal{L}\\{u(t)\\}=U(s)",
                 "region": {
-                  "x": 0.36,
-                  "y": 0.08,
-                  "width": 0.36,
-                  "height": 0.22
+                  "x": 0.38,
+                  "y": 0.12,
+                  "width": 0.35,
+                  "height": 0.26
                 },
                 "blocks": [
                   {
@@ -1346,10 +1346,10 @@
                 "title": "代数方程",
                 "latex": "Js^2\\Theta(s)+Bs\\Theta(s)=KU(s)",
                 "region": {
-                  "x": 0.39,
-                  "y": 0.38,
-                  "width": 0.34,
-                  "height": 0.14
+                  "x": 0.38,
+                  "y": 0.45,
+                  "width": 0.36,
+                  "height": 0.12
                 },
                 "blocks": [
                   {
@@ -1365,9 +1365,9 @@
                 "title": "传递函数",
                 "latex": "G(s)=\\frac{\\Theta(s)}{U(s)}=\\frac{K}{Js^2+Bs}=\\frac{K/J}{s(s+B/J)}",
                 "region": {
-                  "x": 0.55,
-                  "y": 0.62,
-                  "width": 0.39,
+                  "x": 0.5,
+                  "y": 0.68,
+                  "width": 0.22,
                   "height": 0.2
                 },
                 "blocks": [
@@ -1393,9 +1393,9 @@
                 "body": "$G(s)$ 与输入无关，分母结构暴露积分效应和阻尼衰减因素。",
                 "region": {
                   "x": 0.08,
-                  "y": 0.66,
-                  "width": 0.34,
-                  "height": 0.17
+                  "y": 0.63,
+                  "width": 0.32,
+                  "height": 0.19
                 }
               }
             ],
@@ -1404,7 +1404,9 @@
                 "id": "de-to-rules",
                 "kind": "arrow",
                 "from": "time-de",
-                "to": "ddot-rule",
+                "to": "laplace-rules-used",
+                "fromAnchor": "E",
+                "toAnchor": "W",
                 "revealStepIds": [
                   "derivative-to-multiply"
                 ]
@@ -1412,8 +1414,10 @@
               {
                 "id": "rules-to-algebra",
                 "kind": "therefore",
-                "from": "ddot-rule",
+                "from": "laplace-rules-used",
                 "to": "algebra-equation",
+                "fromAnchor": "S",
+                "toAnchor": "N",
                 "revealStepIds": [
                   "equation-to-algebra"
                 ]
@@ -1423,17 +1427,10 @@
                 "kind": "therefore",
                 "from": "algebra-equation",
                 "to": "io-ratio",
+                "fromAnchor": "S",
+                "toAnchor": "N",
                 "revealStepIds": [
                   "input-output-ratio"
-                ]
-              },
-              {
-                "id": "ratio-to-denominator",
-                "kind": "highlight-line",
-                "from": "io-ratio",
-                "to": "tf-denominator",
-                "revealStepIds": [
-                  "denominator-structure"
                 ]
               }
             ],
@@ -2529,26 +2526,26 @@
                 "label": "虚部 jω"
               },
               "z": {
-                "label": "20log₁₀|G(s)|"
+                "label": "幅值 dB"
               }
             },
             "colorScale": {
-              "label": "幅值 dB",
+              "label": "颜色映射",
               "min": -12,
               "max": 48
             },
             "defaultCamera": {
               "position": [
-                3.7,
-                -5.5,
-                3.4
+                4.8,
+                -5.6,
+                3.7
               ],
               "target": [
-                -1,
+                -0.8,
                 0,
-                0.75
+                0.58
               ],
-              "zoom": 1.05
+              "zoom": 0.95
             },
             "fallback": {
               "image": "1-2-fig-08-magnitude-surface.png",
@@ -2606,9 +2603,10 @@
           "description": "船舶 G(s) 对数幅值曲面 20log₁₀|G(s)| 在 s 平面上的三维图。s 平面为底（横 σ，纵 jω），高度=对数幅值(dB)。s=0 和 s=−B/J 处高峰（截顶处理）。",
           "default_view": "MATLAB 默认视角（方位角约 -37.5°、俯仰角约 30°），可看到两根极柱",
           "controls": [
-            "水平拖拽旋转",
+            "水平拖拽绕垂直幅值轴旋转",
             "滚轮缩放",
-            "俯视按钮（切换顶视图，查看极点红色标记与标签）"
+            "俯视按钮（切换顶视图，查看极点红色标记与标签）",
+            "自动旋转按钮（动态展示曲面与两根极柱的空间关系）"
           ],
           "reading_instruction": "找最高两根柱 → 切换俯视 → 看到两个 × 的坐标：s=0（原点，虚轴上），s=−B/J（左半平面实轴上）",
           "default_params": {
@@ -3510,19 +3508,21 @@
           "payload": {
             "mediaId": "three-ships-response-evidence",
             "title": "三艘船响应证据热点",
-            "media": {
-              "src": "1-2-fig-11-poles-responses.png",
-              "alt": "三艘船航向响应对比"
-            },
+              "media": {
+                "src": "1-2-fig-11-poles-responses.png",
+                "alt": "三艘船航向响应对比",
+                "aspectRatio": "2406 / 1264"
+              },
+            "instruction": "从四个候选框中选择能解释 B 慢衰减的证据。图上编号只框住对应内容，图下候选清单说明每一项含义；可以选错，提交后用于判断是否抓住主导极点。",
             "activeRevealState": "all",
             "annotations": [
               {
                 "id": "ship-a-overshoot",
                 "region": {
-                  "x": 0.12,
-                  "y": 0.18,
-                  "width": 0.2,
-                  "height": 0.22
+                  "x": 0.346,
+                  "y": 0.558,
+                  "width": 0.138,
+                  "height": 0.335
                 },
                 "label": "A 的超调与衰减",
                 "body": "曲线越过目标后逐步回落，说明左半平面共轭极点带来边摆边收。",
@@ -3530,15 +3530,15 @@
                 "revealStepIds": [
                   "ship-a"
                 ],
-                "required": true
+                "required": false
               },
               {
                 "id": "ship-b-tail",
                 "region": {
-                  "x": 0.38,
-                  "y": 0.48,
-                  "width": 0.22,
-                  "height": 0.2
+                  "x": 0.135,
+                  "y": 0.559,
+                  "width": 0.139,
+                  "height": 0.335
                 },
                 "label": "B 的慢尾部",
                 "body": "靠近虚轴的 -0.8 极点主导慢衰减。",
@@ -3551,10 +3551,10 @@
               {
                 "id": "ship-c-growth",
                 "region": {
-                  "x": 0.67,
-                  "y": 0.2,
-                  "width": 0.22,
-                  "height": 0.26
+                  "x": 0.768,
+                  "y": 0.559,
+                  "width": 0.139,
+                  "height": 0.334
                 },
                 "label": "C 的发散包络",
                 "body": "实部为正的共轭极点使幅度随时间放大。",
@@ -3562,15 +3562,15 @@
                 "revealStepIds": [
                   "ship-c"
                 ],
-                "required": true
+                "required": false
               },
               {
                 "id": "ship-b-near-axis",
                 "region": {
-                  "x": 0.43,
-                  "y": 0.7,
-                  "width": 0.18,
-                  "height": 0.18
+                  "x": 0.135,
+                  "y": 0.12,
+                  "width": 0.139,
+                  "height": 0.262
                 },
                 "label": "B 的近虚轴极点",
                 "body": "-0.8 比 -3.0 更接近虚轴，因此决定主要拖尾。",
@@ -3600,25 +3600,11 @@
             "requireEvidenceSelection": true,
             "revealPlan": [
               {
-                "id": "ship-a",
-                "label": "A 边摆边收证据",
-                "annotationIds": [
-                  "ship-a-overshoot"
-                ]
-              },
-              {
-                "id": "ship-b",
-                "label": "B 主导极点证据",
+                "id": "ship-b-dominant-pole",
+                "label": "B 的慢衰减判断目标",
                 "annotationIds": [
                   "ship-b-tail",
                   "ship-b-near-axis"
-                ]
-              },
-              {
-                "id": "ship-c",
-                "label": "C 发散证据",
-                "annotationIds": [
-                  "ship-c-growth"
                 ]
               }
             ],
@@ -3904,9 +3890,9 @@
                 "latex": "\\ddot{y}+2\\dot{y}+5y=5r",
                 "region": {
                   "x": 0.05,
-                  "y": 0.1,
-                  "width": 0.32,
-                  "height": 0.16
+                  "y": 0.12,
+                  "width": 0.3,
+                  "height": 0.12
                 },
                 "blocks": [
                   {
@@ -3922,10 +3908,10 @@
                 "title": "特征方程",
                 "latex": "s^2+2s+5=0",
                 "region": {
-                  "x": 0.45,
-                  "y": 0.1,
-                  "width": 0.28,
-                  "height": 0.13
+                  "x": 0.43,
+                  "y": 0.12,
+                  "width": 0.26,
+                  "height": 0.12
                 },
                 "blocks": [
                   {
@@ -3941,10 +3927,10 @@
                 "title": "求根",
                 "latex": "\\Delta=4-20=-16,\\quad s_{1,2}=\\frac{-2\\pm4j}{2}=-1\\pm2j",
                 "region": {
-                  "x": 0.45,
-                  "y": 0.32,
-                  "width": 0.42,
-                  "height": 0.18
+                  "x": 0.43,
+                  "y": 0.31,
+                  "width": 0.36,
+                  "height": 0.22
                 },
                 "blocks": [
                   {
@@ -3974,9 +3960,9 @@
                 "title": "复平面读图",
                 "body": "σ=-1 在左半平面，说明包络衰减；ω=±2 不为零，说明响应会摆动。",
                 "region": {
-                  "x": 0.08,
-                  "y": 0.52,
-                  "width": 0.34,
+                  "x": 0.36,
+                  "y": 0.62,
+                  "width": 0.28,
                   "height": 0.2
                 }
               },
@@ -3985,9 +3971,9 @@
                 "title": "行为结论",
                 "body": "系统边摆动边收敛。位置先越过目标，再边摆边收回。",
                 "region": {
-                  "x": 0.55,
+                  "x": 0.69,
                   "y": 0.62,
-                  "width": 0.34,
+                  "width": 0.27,
                   "height": 0.18
                 }
               },
@@ -3997,7 +3983,7 @@
                 "body": "基础辨认、反向读图、迁移应用分别检查极点区域与行为语言的互译。",
                 "region": {
                   "x": 0.12,
-                  "y": 0.78,
+                  "y": 0.84,
                   "width": 0.5,
                   "height": 0.12
                 }
@@ -4009,6 +3995,8 @@
                 "kind": "arrow",
                 "from": "problem-model",
                 "to": "char-eq",
+                "fromAnchor": "E",
+                "toAnchor": "W",
                 "revealStepIds": [
                   "characteristic"
                 ]
@@ -4017,7 +4005,9 @@
                 "id": "char-to-root",
                 "kind": "therefore",
                 "from": "char-eq",
-                "to": "delta",
+                "to": "root-solving",
+                "fromAnchor": "S",
+                "toAnchor": "N",
                 "revealStepIds": [
                   "solve-roots"
                 ]
@@ -4027,6 +4017,8 @@
                 "kind": "reference",
                 "from": "final-poles",
                 "to": "s-plane-reading",
+                "fromAnchor": "S",
+                "toAnchor": "N",
                 "revealStepIds": [
                   "s-plane"
                 ]
@@ -4036,6 +4028,8 @@
                 "kind": "therefore",
                 "from": "s-plane-reading",
                 "to": "behavior-conclusion",
+                "fromAnchor": "E",
+                "toAnchor": "W",
                 "revealStepIds": [
                   "behavior"
                 ]

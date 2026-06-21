@@ -799,6 +799,16 @@ describe('control chart shared presets and themes', () => {
     expect(panelSource).toContain('rootLocus.currentGain');
   });
 
+  it('lets explicit performance panels span the two-column control workbench grid', () => {
+    const workspaceSource = readFileSync(
+      join(repoRoot, 'src/resources/control-system/charts/control-figure-workspace.tsx'),
+      'utf8',
+    );
+
+    expect(workspaceSource).toContain('data-control-workbench-panel={panelId}');
+    expect(workspaceSource).toContain('xl:col-span-2');
+  });
+
   it('lets Nyquist options reuse a preserved viewport instead of resetting to the preset', () => {
     const option = buildNyquistOption(MARGIN_RESULT, 'ship_heading', {
       x: [-1.25, 0.35],

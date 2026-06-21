@@ -1,7 +1,7 @@
 'use client';
 
 import { OrbitControls } from '@react-three/drei';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useState } from 'react';
 import * as THREE from 'three';
 
@@ -21,6 +21,7 @@ interface StaticSurface3DWebGLProps {
   colorScale: StaticSurface3DPanelProps['colorScale'];
   defaultCamera: StaticSurfaceCameraConfig;
   viewMode: 'default' | 'top';
+  autoRotate: boolean;
   markers: StaticSurfaceMarkerConfig[];
   resetSignal: number;
   onDataLoadFailed: () => void;
@@ -39,6 +40,9 @@ const SURFACE_WIREFRAME_COLOR = 0x1f2937;
 const SURFACE_MARKER_COLOR = 0xdc2626;
 const TEXT_SPRITE_FOREGROUND = [15, 23, 42] as const;
 const TEXT_SPRITE_BACKGROUND = [255, 255, 255] as const;
+const AXIS_TICK_LENGTH = 0.18;
+const AXIS_LABEL_OUTSET = 0.94;
+const AXIS_TICK_LABEL_OUTSET = 0.46;
 const SURFACE_DATASET_CACHE = new Map<string, Promise<StaticSurfaceDataset>>();
 
 export function StaticSurface3DWebGL({
@@ -48,6 +52,7 @@ export function StaticSurface3DWebGL({
   colorScale,
   defaultCamera,
   viewMode,
+  autoRotate,
   markers,
   onDataLoadFailed,
 }: StaticSurface3DWebGLProps) {
@@ -85,7 +90,11 @@ export function StaticSurface3DWebGL({
     : defaultCamera;
 
   return (
-    <div className="h-[320px] w-full" data-static-surface-webgl="loaded">
+    <div
+      className="h-full min-h-[420px] w-full md:min-h-[620px]"
+      data-static-surface-webgl="loaded"
+      data-static-surface-drag-behavior="z-up-orbit"
+    >
       <Canvas
         dpr={[1, 1.5]}
         camera={{
@@ -97,9 +106,11 @@ export function StaticSurface3DWebGL({
         <color attach="background" args={[SURFACE_CANVAS_BACKGROUND]} />
         <ambientLight intensity={0.72} />
         <directionalLight position={[4, 6, 5]} intensity={0.9} />
+        <ZUpCameraFrame />
         <SurfaceReferenceFrame bounds={bounds} />
         <SurfaceMesh dataset={dataset} colorScale={colorScale} />
         <AxesLabels axes={axes} bounds={bounds} />
+        <AxisTicks bounds={bounds} />
         {markerList.map((marker) => (
           <PoleMarker key={`${marker.label}-${marker.position.join(',')}`} marker={marker} />
         ))}
@@ -107,12 +118,27 @@ export function StaticSurface3DWebGL({
           makeDefault
           target={cameraConfig.target}
           enablePan={false}
+          enableDamping
+          dampingFactor={0.08}
+          rotateSpeed={0.75}
+          autoRotate={autoRotate}
+          autoRotateSpeed={0.65}
           minDistance={2}
           maxDistance={10}
         />
       </Canvas>
     </div>
   );
+}
+
+function ZUpCameraFrame() {
+  const { camera } = useThree();
+
+  useEffect(() => {
+    camera.up.set(0, 0, 1);
+  }, [camera]);
+
+  return null;
 }
 
 function loadStaticSurfaceDataset(dataUrl: string): Promise<StaticSurfaceDataset> {
@@ -196,17 +222,64 @@ function SurfaceReferenceFrame({ bounds }: { bounds: SurfaceBounds }) {
 
 function AxesLabels({ axes, bounds }: { axes: StaticSurface3DPanelProps['axes']; bounds: SurfaceBounds }) {
   const floor = bounds.z[0];
-  const xLabelPosition: StaticSurfacePoint = [bounds.x[1] + 0.35, bounds.y[0], floor];
-  const yLabelPosition: StaticSurfacePoint = [bounds.x[0], bounds.y[1] + 0.35, floor];
-  const zLabelPosition: StaticSurfacePoint = [bounds.x[0], bounds.y[0], bounds.z[1] + 0.35];
+  const [centerX, centerY] = boundsCenter(bounds);
+  const zCenter = (bounds.z[0] + bounds.z[1]) / 2;
+  const xLabelPosition: StaticSurfacePoint = [centerX, bounds.y[0] - AXIS_LABEL_OUTSET, floor + 0.2];
+  const yLabelPosition: StaticSurfacePoint = [bounds.x[0] - 1.6, centerY, floor + 0.42];
+  const zLabelPosition: StaticSurfacePoint = [bounds.x[0] + 3.6, bounds.y[0] - AXIS_LABEL_OUTSET, zCenter];
   return (
     <group>
       <AxisLine start={[bounds.x[0], bounds.y[0], floor]} end={[bounds.x[1], bounds.y[0], floor]} />
       <AxisLine start={[bounds.x[0], bounds.y[0], floor]} end={[bounds.x[0], bounds.y[1], floor]} />
       <AxisLine start={[bounds.x[0], bounds.y[0], floor]} end={[bounds.x[0], bounds.y[0], bounds.z[1]]} />
-      <TextSprite text={axes.x.label} position={xLabelPosition} />
-      <TextSprite text={axes.y.label} position={yLabelPosition} />
-      <TextSprite text={axes.z.label} position={zLabelPosition} />
+      <TextSprite text={axes.x.label} position={xLabelPosition} scale={[1.18, 0.38, 1]} variant="axis" />
+      <TextSprite text={axes.y.label} position={yLabelPosition} scale={[1.18, 0.38, 1]} variant="axis" />
+      <TextSprite text={axes.z.label} position={zLabelPosition} scale={[1.45, 0.42, 1]} variant="axis" />
+    </group>
+  );
+}
+
+function AxisTicks({ bounds }: { bounds: SurfaceBounds }) {
+  const floor = bounds.z[0];
+  const xTicks = useMemo(() => niceTickValues(bounds.x, 4), [bounds]);
+  const yTicks = useMemo(() => niceTickValues(bounds.y, 4), [bounds]);
+  const zTicks = useMemo(() => niceTickValues(bounds.z, 4), [bounds]);
+
+  return (
+    <group>
+      {xTicks.map((value) => (
+        <group key={`x-${value}`}>
+          <AxisLine start={[value, bounds.y[0], floor]} end={[value, bounds.y[0] - AXIS_TICK_LENGTH, floor]} />
+          <TextSprite
+            text={formatTickLabel(value)}
+            position={[value, bounds.y[0] - AXIS_TICK_LABEL_OUTSET, floor + 0.08]}
+            scale={[0.48, 0.24, 1]}
+            variant="tick"
+          />
+        </group>
+      ))}
+      {yTicks.map((value) => (
+        <group key={`y-${value}`}>
+          <AxisLine start={[bounds.x[0], value, floor]} end={[bounds.x[0] - AXIS_TICK_LENGTH, value, floor]} />
+          <TextSprite
+            text={formatTickLabel(value)}
+            position={[bounds.x[0] - AXIS_TICK_LABEL_OUTSET, value, floor + 0.08]}
+            scale={[0.48, 0.24, 1]}
+            variant="tick"
+          />
+        </group>
+      ))}
+      {zTicks.map((value) => (
+        <group key={`z-${value}`}>
+          <AxisLine start={[bounds.x[0], bounds.y[0], value]} end={[bounds.x[0] - AXIS_TICK_LENGTH, bounds.y[0], value]} />
+          <TextSprite
+            text={formatTickLabel(value)}
+            position={[bounds.x[0] - AXIS_TICK_LABEL_OUTSET, bounds.y[0] - 0.08, value]}
+            scale={[0.52, 0.26, 1]}
+            variant="tick"
+          />
+        </group>
+      ))}
     </group>
   );
 }
@@ -228,16 +301,26 @@ function PoleMarker({ marker }: { marker: StaticSurfaceMarkerConfig }) {
         <sphereGeometry args={[0.065, 16, 16]} />
         <meshStandardMaterial color={SURFACE_MARKER_COLOR} />
       </mesh>
-      <TextSprite text={marker.label} position={[0.16, 0.16, 0.16]} />
+      <TextSprite text={marker.label} position={[0.16, 0.16, 0.16]} scale={[1.0, 0.31, 1]} variant="marker" />
     </group>
   );
 }
 
-function TextSprite({ text, position }: { text: string; position: StaticSurfacePoint }) {
-  const texture = useMemo(() => createTextTexture(text), [text]);
+function TextSprite({
+  text,
+  position,
+  scale,
+  variant,
+}: {
+  text: string;
+  position: StaticSurfacePoint;
+  scale: StaticSurfacePoint;
+  variant: 'axis' | 'marker' | 'tick';
+}) {
+  const texture = useMemo(() => createTextTexture(text, variant), [text, variant]);
   return (
-    <sprite position={position} scale={[0.72, 0.22, 1]}>
-      <spriteMaterial map={texture} depthTest={false} />
+    <sprite position={position} scale={scale}>
+      <spriteMaterial map={texture} depthTest={false} depthWrite={false} />
     </sprite>
   );
 }
@@ -273,6 +356,37 @@ function boundsCenter(bounds: SurfaceBounds): [number, number] {
     (bounds.x[0] + bounds.x[1]) / 2,
     (bounds.y[0] + bounds.y[1]) / 2,
   ];
+}
+
+function niceTickValues(range: [number, number], maxTicks: number): number[] {
+  const [min, max] = range;
+  const span = max - min;
+  if (!Number.isFinite(span) || span <= 0) return [min];
+
+  const step = niceTickStep(span / Math.max(1, maxTicks - 1));
+  const start = Math.ceil(min / step) * step;
+  const values: number[] = [];
+  for (let value = start; value <= max + step * 0.25; value += step) {
+    values.push(roundTickValue(value));
+  }
+  return values;
+}
+
+function niceTickStep(rawStep: number): number {
+  const exponent = Math.floor(Math.log10(rawStep));
+  const scale = 10 ** exponent;
+  const fraction = rawStep / scale;
+  const niceFraction = fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 5 ? 5 : 10;
+  return niceFraction * scale;
+}
+
+function roundTickValue(value: number): number {
+  return Number(value.toFixed(6));
+}
+
+function formatTickLabel(value: number): string {
+  if (Math.abs(value) < 1e-6) return '0';
+  return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
 
 function normalizeDataset(dataset: StaticSurfaceDataset): {
@@ -375,18 +489,25 @@ function numericTuple3(value: unknown): value is StaticSurfacePoint {
     && value.every((item) => typeof item === 'number' && Number.isFinite(item));
 }
 
-function createTextTexture(text: string) {
+function createTextTexture(text: string, variant: 'axis' | 'marker' | 'tick') {
   const canvas = document.createElement('canvas');
-  canvas.width = 320;
-  canvas.height = 96;
+  canvas.width = variant === 'tick' ? 192 : 512;
+  canvas.height = variant === 'tick' ? 96 : 160;
   const context = canvas.getContext('2d');
   if (context) {
-    context.fillStyle = `rgba(${TEXT_SPRITE_BACKGROUND.join(',')},0.88)`;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = `rgb(${TEXT_SPRITE_FOREGROUND.join(',')})`;
-    context.font = '28px sans-serif';
+    const fontSize = variant === 'axis' ? 58 : variant === 'marker' ? 46 : 64;
+    context.font = `700 ${fontSize}px sans-serif`;
     context.textAlign = 'center';
     context.textBaseline = 'middle';
+    if (variant === 'marker') {
+      context.fillStyle = `rgba(${TEXT_SPRITE_BACKGROUND.join(',')},0.94)`;
+      context.fillRect(0, 0, canvas.width, canvas.height);
+    } else {
+      context.lineWidth = variant === 'axis' ? 7 : 5;
+      context.strokeStyle = 'rgba(255,255,255,0.92)';
+      context.strokeText(text, canvas.width / 2, canvas.height / 2);
+    }
+    context.fillStyle = `rgb(${TEXT_SPRITE_FOREGROUND.join(',')})`;
     context.fillText(text, canvas.width / 2, canvas.height / 2);
   }
   const texture = new THREE.CanvasTexture(canvas);

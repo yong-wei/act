@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Fragment, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
 import { BlockMath, InlineMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
@@ -185,9 +185,9 @@ type BlockDiagramPayload = {
   layout: StructureDiagramLayout;
   mode: string;
   activeRevealState: string;
-  nodes: BlockDiagramNode[];
-  edges: BlockDiagramEdge[];
-  revealPlan: Array<{ id: string; targetIds: string[]; label: string }>;
+  nodes: readonly BlockDiagramNode[];
+  edges: readonly BlockDiagramEdge[];
+  revealPlan: ReadonlyArray<{ id: string; targetIds: string[]; label: string }>;
 };
 type BlockDiagramCanvasMetrics = {
   width: number;
@@ -226,13 +226,13 @@ type SignalFlowPayload = {
   activeRevealState: string;
   showPathSets: boolean;
   showMasonMap: boolean;
-  nodes: SignalFlowNode[];
-  branches: SignalFlowBranch[];
-  forwardPaths: SignalFlowPathSet[];
-  loops: SignalFlowPathSet[];
-  nonTouchingLoopGroups: SignalFlowLoopGroup[];
-  revealPlan: Array<{ id: string; targetIds: string[]; emphasis: string; label: string }>;
-  masonTerms: Array<{ id: string; latex: string; relatedIds: string[] }>;
+  nodes: readonly SignalFlowNode[];
+  branches: readonly SignalFlowBranch[];
+  forwardPaths: readonly SignalFlowPathSet[];
+  loops: readonly SignalFlowPathSet[];
+  nonTouchingLoopGroups: readonly SignalFlowLoopGroup[];
+  revealPlan: ReadonlyArray<{ id: string; targetIds: string[]; emphasis: string; label: string }>;
+  masonTerms: ReadonlyArray<{ id: string; latex: string; relatedIds: string[] }>;
 };
 type AnnotatedMediaEvidenceRole = 'input' | 'output' | 'structure' | 'parameter' | 'risk' | 'result';
 type AnnotatedMediaRegion = { x: number; y: number; width: number; height: number };
@@ -247,7 +247,8 @@ type AnnotatedMediaAnnotation = {
 };
 type AnnotatedMediaPayload = {
   mediaId: string;
-  media: { src: string; alt: string };
+  media: { src: string; alt: string; aspectRatio: string };
+  instruction: string;
   activeRevealState: string;
   annotations: AnnotatedMediaAnnotation[];
   initialSelectedAnnotationIds: string[];
@@ -874,7 +875,7 @@ function derivationFixedArrowStyle(
   from: { x: number; y: number },
   to: { x: number; y: number },
   metrics: { width: number; height: number } | undefined,
-) {
+): CSSProperties {
   if (!metrics) {
     return {
       left: `${from.x}%`,
@@ -1271,7 +1272,9 @@ function annotatedMediaPayload(module: InteractiveRuntimeModuleManifest): Annota
     media: {
       src: stringFromFields(media, ['src', 'url', 'path'], '/assets/lesson-05/structure-intro.svg'),
       alt: stringFromFields(media, ['alt', 'label'], '控制系统结构示意图'),
+      aspectRatio: stringFromFields(media, ['aspectRatio', 'aspect_ratio'], stringFromFields(payload, ['aspectRatio', 'aspect_ratio'], '16 / 9')),
     },
+    instruction: stringFromFields(payload, ['instruction', 'task', 'prompt'], '在图中选择能支持当前判断的证据。'),
     activeRevealState: visualStageString(payload.activeRevealState ?? payload.active_reveal_state, 'all'),
     annotations: annotatedMediaAnnotations(payload.annotations),
     initialSelectedAnnotationIds: asStringArray(payload.initialSelectedAnnotationIds ?? payload.initial_selected_annotation_ids),
@@ -1370,7 +1373,7 @@ function annotatedMediaTeachingLabels(graph: AnnotatedMediaPayload) {
   ]);
 }
 
-function visibleStructureTargets(activeRevealState: string, revealPlan: Array<{ id: string; targetIds: string[] }>) {
+function visibleStructureTargets(activeRevealState: string, revealPlan: ReadonlyArray<{ id: string; targetIds: string[] }>) {
   if (activeRevealState === 'all' || revealPlan.length === 0) return new Set<string>();
   const activeIndex = revealPlan.findIndex((item) => item.id === activeRevealState);
   const visible = activeIndex >= 0 ? revealPlan.slice(0, activeIndex + 1) : revealPlan.slice(0, 1);
@@ -1379,7 +1382,7 @@ function visibleStructureTargets(activeRevealState: string, revealPlan: Array<{ 
 
 function selectedStructureTargets(
   selectedTargetId: string | null,
-  revealPlan: Array<{ id: string; targetIds: string[] }>,
+  revealPlan: ReadonlyArray<{ id: string; targetIds: string[] }>,
 ) {
   if (!selectedTargetId) return new Set<string>();
   const selectedReveal = revealPlan.find((item) => item.id === selectedTargetId);
@@ -2718,6 +2721,10 @@ function SharedControlWorkbenchComputePanel({
   const [submissionValues, setSubmissionValues] = useState<Record<string, string | number | boolean>>(() =>
     initialControlWorkbenchSubmissionValues(module.payload, request),
   );
+  const dynamicRequest = useMemo(
+    () => buildControlWorkbenchRequestForSubmission(module.payload, submissionValues),
+    [module.payload, submissionValues],
+  );
   const content = summaryContent(step, module);
   const bullets = [
     visiblePanelIds.length ? '课程已声明本页需要的分析视图。' : '分析视图由课程配置选择。',
@@ -2758,10 +2765,10 @@ function SharedControlWorkbenchComputePanel({
         text={content.text || '本页使用控制分析工具观察参数变化、曲线响应和设计判断。'}
         bullets={bullets}
       />
-      {request ? (
+      {dynamicRequest ? (
         <>
           <ControlFigureWorkspace
-            request={request}
+            request={dynamicRequest}
             fallbackResult={fallbackResult}
             layout={layout}
             allowedPanelIds={visiblePanelIds}
@@ -2776,7 +2783,8 @@ function SharedControlWorkbenchComputePanel({
                       className="premium-lesson-select w-full"
                       value={String(submissionValues[field.key] ?? '')}
                       onChange={(event) => {
-                        setSubmissionValues((prev) => ({ ...prev, [field.key]: event.currentTarget.value }));
+                        const nextValue = event.currentTarget.value;
+                        setSubmissionValues((prev) => ({ ...prev, [field.key]: nextValue }));
                       }}
                     >
                       {(field.options ?? []).map((option) => (
@@ -2792,7 +2800,8 @@ function SharedControlWorkbenchComputePanel({
                       step={field.step ?? 0.1}
                       value={Number(submissionValues[field.key] ?? field.defaultValue ?? field.min ?? 0)}
                       onChange={(event) => {
-                        setSubmissionValues((prev) => ({ ...prev, [field.key]: Number(event.currentTarget.value) }));
+                        const nextValue = Number(event.currentTarget.value);
+                        setSubmissionValues((prev) => ({ ...prev, [field.key]: nextValue }));
                       }}
                     />
                   ) : (
@@ -2804,7 +2813,8 @@ function SharedControlWorkbenchComputePanel({
                       step={field.step}
                       value={String(submissionValues[field.key] ?? '')}
                       onChange={(event) => {
-                        const value = field.input === 'number' ? Number(event.currentTarget.value) : event.currentTarget.value;
+                        const rawValue = event.currentTarget.value;
+                        const value = field.input === 'number' ? Number(rawValue) : rawValue;
                         setSubmissionValues((prev) => ({ ...prev, [field.key]: value }));
                       }}
                     />
@@ -3181,6 +3191,18 @@ function visualStageConnectionLine(connection: VisualStageConnection, layersById
   };
 }
 
+function visualStageConnectionArrowAngle(
+  line: NonNullable<ReturnType<typeof visualStageConnectionLine>>,
+  aspectRatio: VisualStagePayload['aspectRatio'],
+) {
+  const ratio = aspectRatio === '4:3'
+    ? { x: 4, y: 3 }
+    : aspectRatio === '16:9'
+      ? { x: 16, y: 9 }
+      : { x: 1, y: 1 };
+  return Math.atan2((line.y2 - line.y1) * ratio.y, (line.x2 - line.x1) * ratio.x) * 180 / Math.PI;
+}
+
 function VisualStagePanel({
   module,
 }: {
@@ -3247,19 +3269,6 @@ function VisualStagePanel({
           aria-hidden="true"
           data-visual-stage-connections="normalized"
         >
-          <defs>
-            <marker
-              id={`${stage.stageId}-arrow`}
-              markerWidth="8"
-              markerHeight="8"
-              refX="7"
-              refY="4"
-              orient="auto"
-              markerUnits="strokeWidth"
-            >
-              <path d="M 0 0 L 8 4 L 0 8 z" fill="currentColor" />
-            </marker>
-          </defs>
           {visibleConnections.map((connection) => {
             const line = visualStageConnectionLine(connection, visibleLayersById);
             if (!line) return null;
@@ -3273,7 +3282,7 @@ function VisualStagePanel({
                 stroke="currentColor"
                 strokeWidth="3"
                 vectorEffect="non-scaling-stroke"
-                markerEnd={`url(#${stage.stageId}-arrow)`}
+                data-visual-stage-connection-line-id={connection.id}
                 data-visual-stage-connection-id={connection.id}
                 data-visual-stage-connection-from={connection.from}
                 data-visual-stage-connection-to={connection.to}
@@ -3281,6 +3290,30 @@ function VisualStagePanel({
             );
           })}
         </svg>
+        {visibleConnections.map((connection) => {
+          const line = visualStageConnectionLine(connection, visibleLayersById);
+          if (!line) return null;
+          const angle = visualStageConnectionArrowAngle(line, stage.aspectRatio);
+          return (
+            <span
+              key={`${connection.id}-arrowhead`}
+              className="pointer-events-none absolute z-20 block h-[8px] w-[16px] [clip-path:polygon(0_0,100%_50%,0_100%)]"
+              style={{
+                left: `${line.x2}%`,
+                top: `${line.y2}%`,
+                backgroundColor: 'currentColor',
+                transform: `translate(-100%, -50%) rotate(${angle}deg)`,
+                transformOrigin: '100% 50%',
+              }}
+              aria-hidden="true"
+              data-visual-stage-arrowhead-id={connection.id}
+              data-visual-stage-arrow-style="independent-fixed-shape"
+              data-visual-stage-arrow-width-ratio="0.5"
+              data-visual-stage-arrow-shape-stability="rotation-only"
+              data-visual-stage-arrow-angle={angle}
+            />
+          );
+        })}
         {stage.releaseState === 'unavailable' || stage.releaseState === 'unreleased' ? (
           <div className="absolute inset-0 grid place-items-center px-6 text-center">
             <p className="interactive-courseware-body">{visualStageReleaseLabel(stage.releaseState)}</p>
@@ -4298,6 +4331,7 @@ function buildAnnotatedMediaSubmissionDraft({
 
 function AnnotatedMediaPanel({ manifest, step, module, onPanelSubmit, interactionMode = 'active', annotatedMediaSharedState }: StructureDiagramPanelProps) {
   const graph = annotatedMediaPayload(module);
+  const mediaSrc = runtimeMediaPath(manifest, graph.media.src);
   const embeddedActivity = embeddedActivityForVisualModule(step, module.id);
   const sharedState = annotatedMediaStateFor(
     annotatedMediaSharedState,
@@ -4354,44 +4388,58 @@ function AnnotatedMediaPanel({ manifest, step, module, onPanelSubmit, interactio
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <ManifestContentTitle>{titleFromModule(module)}</ManifestContentTitle>
-          <p className="interactive-courseware-body">在图中选择输入、输出、结构、参数、风险和结果证据。</p>
+          <p className="interactive-courseware-body">{graph.instruction}</p>
         </div>
         <span className="premium-lesson-badge">{selectedAnnotationIds.length} 项证据</span>
       </div>
       <div
-        className="relative min-h-[420px] overflow-hidden rounded-2xl border border-[var(--platform-border)] bg-[var(--platform-surface)] md:aspect-video md:min-h-0"
+        className="relative min-h-[420px] overflow-hidden rounded-2xl border border-[var(--platform-border)] bg-[var(--platform-surface)] md:min-h-0"
+        style={{ aspectRatio: graph.media.aspectRatio }}
         data-annotated-media-canvas="normalized"
       >
-        <Image src={graph.media.src} alt={graph.media.alt} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" unoptimized />
+        <Image src={mediaSrc} alt={graph.media.alt} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" unoptimized />
         <div className="absolute inset-0 bg-platform-surface-muted/35" data-annotated-media-mask="visible" />
-        {graph.annotations.map((annotation) => {
+        {graph.annotations.map((annotation, index) => {
           const visible = visibleAnnotations.has(annotation.id);
+          const isSelectable = selectable.has(annotation.id);
+          const isSelected = selectedSet.has(annotation.id);
+          const markerIndex = index + 1;
           return (
             <button
               key={annotation.id}
               type="button"
               className={[
-                'absolute rounded-xl border px-2 py-1 text-left text-xs font-semibold shadow-[var(--platform-shadow-xs)] outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]',
-                selectedSet.has(annotation.id) ? 'border-platform-action-primary bg-platform-action-primary text-accent-foreground' : 'border-platform-border bg-platform-panel/90 text-[var(--platform-text-primary)]',
+                'absolute rounded-lg border-2 bg-transparent text-left outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--platform-focus-ring)]',
+                isSelected
+                  ? 'border-[hsl(var(--platform-brand-evidence))] bg-[hsl(var(--platform-brand-evidence)/0.14)] shadow-[0_0_0_6px_hsl(var(--platform-brand-evidence)/0.24),0_18px_42px_rgba(8,145,178,0.18)]'
+                  : 'border-transparent shadow-none hover:border-platform-action-primary/70',
                 visible ? 'opacity-100' : 'opacity-45',
+                isSelectable ? 'cursor-pointer' : 'cursor-default',
               ].join(' ')}
               style={{
                 left: `${annotation.region.x * 100}%`,
                 top: `${annotation.region.y * 100}%`,
                 width: `${annotation.region.width * 100}%`,
-                minHeight: `${annotation.region.height * 100}%`,
+                height: `${annotation.region.height * 100}%`,
+                ...(isSelected ? {
+                  borderColor: blockDiagramSelectionColor(),
+                  backgroundColor: 'hsl(var(--platform-brand-evidence) / 0.16)',
+                  boxShadow: '0 0 0 6px hsl(var(--platform-brand-evidence) / 0.28), 0 18px 42px rgba(8, 145, 178, 0.18)',
+                } : {}),
               }}
               data-annotated-media-annotation-id={annotation.id}
               data-annotated-media-evidence-role={annotation.evidenceRole}
-              data-annotated-media-selected={selectedSet.has(annotation.id) ? 'true' : 'false'}
+              data-annotated-media-hotspot-frame="true"
+              data-annotated-media-frame-visibility={isSelected ? 'selected' : 'hidden-until-selected'}
+              data-annotated-media-frame-selected-style={isSelected ? 'structure-diagram-evidence-halo' : 'none'}
+              data-annotated-media-selectable={isSelectable ? 'true' : 'false'}
+              data-annotated-media-selected={isSelected ? 'true' : 'false'}
               data-annotated-media-required={annotation.required ? 'true' : 'false'}
-              aria-pressed={selectedSet.has(annotation.id)}
-              disabled={!canInteract}
+              aria-label={`证据 ${markerIndex}：${annotation.label}`}
+              aria-pressed={isSelected}
+              disabled={!canInteract || !isSelectable}
               onClick={() => toggleAnnotation(annotation.id)}
-            >
-              <span className="block">{annotation.label}</span>
-              {annotation.body ? <span className="block text-[11px] font-normal opacity-85">{annotation.body}</span> : null}
-            </button>
+            />
           );
         })}
         {embeddedActivity ? (
@@ -4408,10 +4456,44 @@ function AnnotatedMediaPanel({ manifest, step, module, onPanelSubmit, interactio
           </div>
         ) : null}
       </div>
+      <div className="grid gap-2 md:grid-cols-2" data-annotated-media-candidate-list="visible">
+        {graph.annotations.map((annotation, index) => {
+          const isSelectable = selectable.has(annotation.id);
+          const isSelected = selectedSet.has(annotation.id);
+          return (
+            <button
+              key={annotation.id}
+              type="button"
+              className={[
+                'premium-lesson-card text-left transition',
+                isSelected
+                  ? 'border-[hsl(var(--platform-brand-evidence))] bg-[hsl(var(--platform-brand-evidence)/0.18)] shadow-[0_0_0_3px_hsl(var(--platform-brand-evidence)/0.18),0_18px_42px_rgba(8,145,178,0.16)]'
+                  : '',
+                isSelectable ? 'interactive-courseware-control cursor-pointer' : 'cursor-default opacity-75',
+              ].join(' ')}
+              data-annotated-media-candidate-id={annotation.id}
+              data-annotated-media-candidate-selectable={isSelectable ? 'true' : 'false'}
+              data-annotated-media-candidate-selected={isSelected ? 'true' : 'false'}
+              data-annotated-media-candidate-selected-style={isSelected ? 'structure-diagram-evidence-halo' : 'none'}
+              style={isSelected ? {
+                borderColor: blockDiagramSelectionColor(),
+                backgroundColor: 'hsl(var(--platform-brand-evidence) / 0.18)',
+                boxShadow: '0 0 0 4px hsl(var(--platform-brand-evidence) / 0.22), 0 18px 42px rgba(8, 145, 178, 0.16)',
+              } : undefined}
+              onClick={() => toggleAnnotation(annotation.id)}
+              disabled={!canInteract || !isSelectable}
+            >
+              <p className="premium-lesson-caption">候选证据 {index + 1}</p>
+              <p className="premium-lesson-title text-sm font-semibold">{annotation.label}</p>
+              <p className="interactive-courseware-body mt-1">{annotation.body}</p>
+            </button>
+          );
+        })}
+      </div>
       <div className="grid gap-2 md:grid-cols-3" data-annotated-media-reveal-plan="visible">
         {graph.revealPlan.map((item) => (
           <div key={item.id} className="premium-lesson-card" data-annotated-media-reveal-id={item.id}>
-            <p className="premium-lesson-caption">{item.id}</p>
+            <p className="premium-lesson-caption">判断任务</p>
             <p className="interactive-courseware-body">{item.label}</p>
           </div>
         ))}
@@ -5507,6 +5589,161 @@ function initialControlWorkbenchSubmissionValues(
     if ((field.input === 'select' || field.input === 'toggle') && field.options?.[0]) return [field.key, field.options[0]];
     return [field.key, ''];
   }));
+}
+
+export function buildControlWorkbenchRequestForSubmission(
+  payload: Record<string, unknown>,
+  values?: Record<string, string | number | boolean>,
+): ControlAnalysisRequest | undefined {
+  const contentPayload = payload as ContentRecord;
+  const request = controlAnalysisRequestFromPayload(contentPayload);
+  if (!request) return undefined;
+  const currentValues = values ?? initialControlWorkbenchSubmissionValues(contentPayload, request);
+  return poleControlWorkbenchRequest(contentPayload, request, currentValues)
+    ?? shipComparisonControlWorkbenchRequest(contentPayload, request, currentValues)
+    ?? parameterizedControlWorkbenchRequest(contentPayload, request, currentValues);
+}
+
+function poleControlWorkbenchRequest(
+  payload: ContentRecord,
+  request: ControlAnalysisRequest,
+  values: Record<string, string | number | boolean>,
+): ControlAnalysisRequest | undefined {
+  const fieldKeys = new Set(controlWorkbenchSubmissionFieldsFromPayload(payload).map((field) => field.key));
+  if (!fieldKeys.has('sigma') || !fieldKeys.has('omega')) return undefined;
+
+  const sigma = finiteSubmissionNumber(values.sigma, -1);
+  const poleMode = String(values.pole_mode ?? values.mode ?? '');
+  const isSingleRealPole = poleMode.includes('单') || poleMode.toLowerCase().includes('single');
+  const omega = isSingleRealPole ? 0 : Math.abs(finiteSubmissionNumber(values.omega, 2));
+  const numerator = isSingleRealPole
+    ? [Math.abs(sigma) < 0.001 ? 0.001 : -sigma]
+    : [roundControlRequestNumber(Math.max(0.0001, sigma * sigma + omega * omega))];
+  const denominator = isSingleRealPole
+    ? [1, 0]
+    : [1, roundControlRequestNumber(-2 * sigma), 0];
+
+  return {
+    ...request,
+    caseId: `${request.caseId ?? 'control-workbench'}:sigma-${sigma.toFixed(2)}:omega-${omega.toFixed(2)}`,
+    plant: {
+      ...request.plant,
+      numerator,
+      denominator,
+    },
+    structures: request.structures.length > 0
+      ? request.structures.map((structure, index) => index === 0
+        ? { ...structure, kind: 'gain', enabled: true, params: { ...structure.params, k: 1 }, label: structure.label ?? 'K' }
+        : structure)
+      : [{ kind: 'gain', enabled: true, params: { k: 1 }, label: 'K' }],
+    rootLocus: {
+      ...request.rootLocus,
+      currentGain: 1,
+    },
+  };
+}
+
+function parameterizedControlWorkbenchRequest(
+  payload: ContentRecord,
+  request: ControlAnalysisRequest,
+  values: Record<string, string | number | boolean>,
+): ControlAnalysisRequest {
+  const numericFieldKeys = new Set(
+    controlWorkbenchSubmissionFieldsFromPayload(payload)
+      .filter((field) => field.input === 'slider' || field.input === 'number')
+      .map((field) => field.key),
+  );
+  if (numericFieldKeys.size === 0) return request;
+  let changed = false;
+  const structures = request.structures.map((structure) => {
+    const params = Object.fromEntries(Object.entries(structure.params).map(([key, value]) => {
+      if (!numericFieldKeys.has(key)) return [key, value];
+      const nextValue = finiteSubmissionNumber(values[key], value);
+      if (nextValue !== value) changed = true;
+      return [key, nextValue];
+    }));
+    return changed ? { ...structure, params } : structure;
+  });
+  return changed ? { ...request, structures } : request;
+}
+
+function shipComparisonControlWorkbenchRequest(
+  payload: ContentRecord,
+  request: ControlAnalysisRequest,
+  values: Record<string, string | number | boolean>,
+): ControlAnalysisRequest | undefined {
+  const fieldKeys = new Set(controlWorkbenchSubmissionFieldsFromPayload(payload).map((field) => field.key));
+  if (!fieldKeys.has('selected_ship') || !fieldKeys.has('time_scale')) return undefined;
+
+  const selectedShip = normalizeSelectedShip(values.selected_ship);
+  const timeScale = clamp(finiteSubmissionNumber(values.time_scale, 1), 1, 5);
+  const baseTimeEnd = request.timeRange.end > request.timeRange.start ? request.timeRange.end : 12;
+  const scaledTimeRange = {
+    ...request.timeRange,
+    end: roundControlRequestNumber(Math.max(request.timeRange.start + 1, baseTimeEnd / timeScale)),
+  };
+  if (selectedShip === 'all') {
+    return {
+      ...request,
+      caseId: `${request.caseId ?? 'control-workbench'}:ship-all:time-${timeScale.toFixed(1)}`,
+      timeRange: scaledTimeRange,
+    };
+  }
+
+  const pole = shipPolePreset(selectedShip);
+  if (!pole) return {
+    ...request,
+    timeRange: scaledTimeRange,
+  };
+
+  const numerator = pole.omega === 0
+    ? [roundControlRequestNumber(Math.max(0.0001, -pole.sigma))]
+    : [roundControlRequestNumber(Math.max(0.0001, pole.sigma * pole.sigma + pole.omega * pole.omega))];
+  const denominator = pole.omega === 0
+    ? [1, 0]
+    : [1, roundControlRequestNumber(-2 * pole.sigma), 0];
+
+  return {
+    ...request,
+    caseId: `${request.caseId ?? 'control-workbench'}:ship-${selectedShip}:time-${timeScale.toFixed(1)}`,
+    plant: {
+      ...request.plant,
+      numerator,
+      denominator,
+      label: `船 ${selectedShip}`,
+    },
+    structures: request.structures.length > 0
+      ? request.structures.map((structure, index) => index === 0
+        ? { ...structure, kind: 'gain', enabled: true, params: { ...structure.params, k: 1 }, label: structure.label ?? 'K' }
+        : structure)
+      : [{ kind: 'gain', enabled: true, params: { k: 1 }, label: 'K' }],
+    timeRange: scaledTimeRange,
+    rootLocus: {
+      ...request.rootLocus,
+      currentGain: 1,
+    },
+  };
+}
+
+function normalizeSelectedShip(value: string | number | boolean | undefined): 'A' | 'B' | 'C' | 'all' {
+  const normalized = String(value ?? '全部').trim().toUpperCase();
+  if (normalized === 'A' || normalized === 'B' || normalized === 'C') return normalized;
+  return 'all';
+}
+
+function shipPolePreset(ship: 'A' | 'B' | 'C') {
+  if (ship === 'A') return { sigma: -1.5, omega: 2.2 };
+  if (ship === 'B') return { sigma: -0.8, omega: 0 };
+  return { sigma: 0.3, omega: 1.4 };
+}
+
+function finiteSubmissionNumber(value: string | number | boolean | undefined, fallback: number) {
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? numericValue : fallback;
+}
+
+function roundControlRequestNumber(value: number) {
+  return Math.round(value * 1_000_000) / 1_000_000;
 }
 
 function parameterSnapshotFromSubmissionValues(

@@ -8,7 +8,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { COURSE_RESPONSE_PRODUCING_LESSON_INVENTORY } from '@/features/interactive/course-submission-gate-inventory';
 import { FEATURED_LESSONS, INTERACTIVE_COURSE_MODULES, PREMIUM_LESSONS } from '@/features/interactive/learning-catalog';
-import { buildSharedControlWorkbenchEvidenceDraft } from '@/features/interactive/shared/manifest-runtime/content-renderers';
+import {
+  buildControlWorkbenchRequestForSubmission,
+  buildSharedControlWorkbenchEvidenceDraft,
+} from '@/features/interactive/shared/manifest-runtime/content-renderers';
 import { buildManifestSubmissionTelemetry } from '@/features/interactive/shared/manifest-runtime/submission-telemetry';
 import { UNIT_1_2StepContentPanel } from '@/features/interactive/unit-1-2-modeling-from-object-to-system/step-panels';
 import { ALL_PRESETS } from '@/features/teacher/preset-lessons/presets';
@@ -349,6 +352,14 @@ describe('unit 1-2 modeling from object to system course', () => {
     const step12Stage = step12.modules.find((module) => module.id === 'example-derivation-stage')?.payload as {
       revealSteps?: Array<{ id: string }>;
       formulas?: unknown[];
+      textBlocks?: Array<{ id?: string; region?: { x: number; y: number; width: number; height: number } }>;
+      connectors?: Array<{
+        id?: string;
+        from?: string;
+        to?: string;
+        fromAnchor?: string;
+        toAnchor?: string;
+      }>;
     };
     expect(step12Stage.revealSteps?.map((item) => item.id)).toEqual(expect.arrayContaining([
       'problem',
@@ -358,6 +369,40 @@ describe('unit 1-2 modeling from object to system course', () => {
       'behavior',
     ]));
     expect(JSON.stringify(step12Stage.formulas)).toContain('s^2+2s+5=0');
+    expect(step12Stage.connectors).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'problem-to-char',
+        from: 'problem-model',
+        to: 'char-eq',
+        fromAnchor: 'E',
+        toAnchor: 'W',
+      }),
+      expect.objectContaining({
+        id: 'char-to-root',
+        from: 'char-eq',
+        to: 'root-solving',
+        fromAnchor: 'S',
+        toAnchor: 'N',
+      }),
+      expect.objectContaining({
+        id: 'root-to-reading',
+        from: 'final-poles',
+        to: 's-plane-reading',
+        fromAnchor: 'S',
+        toAnchor: 'N',
+      }),
+      expect.objectContaining({
+        id: 'reading-to-behavior',
+        from: 's-plane-reading',
+        to: 'behavior-conclusion',
+        fromAnchor: 'E',
+        toAnchor: 'W',
+      }),
+    ]));
+    const readingRegion = step12Stage.textBlocks?.find((block) => block.id === 's-plane-reading')?.region;
+    const behaviorRegion = step12Stage.textBlocks?.find((block) => block.id === 'behavior-conclusion')?.region;
+    expect(readingRegion?.x).toBeGreaterThanOrEqual(0.34);
+    expect(behaviorRegion?.x).toBeGreaterThanOrEqual(0.65);
 
     const step14Stage = step14.modules.find((module) => module.id === 'modeling-summary-stage')?.payload as {
       layers?: Array<{ id: string }>;
@@ -393,6 +438,50 @@ describe('unit 1-2 modeling from object to system course', () => {
     expect(html).not.toContain('船舶航向微分方程推导舞台');
     expect(html).not.toContain('按显影步骤观察公式、说明和关联线');
     expect(html).not.toContain('rounded-2xl border border-[var(--platform-border)]');
+  });
+
+  it('keeps step 06 derivation arrows aligned with the semantic transformation chain', () => {
+    const manifest = readManifest();
+    const step06 = manifest.steps.find((step) => step.id === 'step-06');
+    const stage = step06?.modules.find((module) => module.id === 'tf-derivation-stage')?.payload as {
+      formulas?: Array<{ id?: string; region?: { x: number; y: number; width: number; height: number } }>;
+      connectors?: Array<{
+        id?: string;
+        from?: string;
+        to?: string;
+        fromAnchor?: string;
+        toAnchor?: string;
+      }>;
+    };
+
+    expect(stage.connectors).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'de-to-rules',
+        from: 'time-de',
+        to: 'laplace-rules-used',
+        fromAnchor: 'E',
+        toAnchor: 'W',
+      }),
+      expect.objectContaining({
+        id: 'rules-to-algebra',
+        from: 'laplace-rules-used',
+        to: 'algebra-equation',
+        fromAnchor: 'S',
+        toAnchor: 'N',
+      }),
+      expect.objectContaining({
+        id: 'algebra-to-ratio',
+        from: 'algebra-equation',
+        to: 'io-ratio',
+        fromAnchor: 'S',
+        toAnchor: 'N',
+      }),
+    ]));
+    expect(stage.connectors?.map((connector) => connector.id)).not.toContain('ratio-to-denominator');
+
+    const transferRegion = stage.formulas?.find((formula) => formula.id === 'transfer-function')?.region;
+    expect(transferRegion?.x).toBeGreaterThanOrEqual(0.42);
+    expect(transferRegion?.y).toBeGreaterThanOrEqual(0.66);
   });
 
   it('does not render activity manifest modules as duplicate content title blocks', () => {
@@ -655,8 +744,48 @@ describe('unit 1-2 modeling from object to system course', () => {
     expect(lockedStep11Html).toContain('B 的近虚轴极点');
     const annotations = (step11.modules.find((module) => module.id === 'ship-response-hotspots')?.payload as {
       annotations?: unknown[];
+      interactions?: { selectableAnnotations?: string[] };
     }).annotations;
     expect(annotations).toHaveLength(4);
+    expect((step11.modules.find((module) => module.id === 'ship-response-hotspots')?.payload as {
+      instruction?: string;
+      interactions?: { selectableAnnotations?: string[] };
+    }).instruction).toContain('从四个候选框中选择');
+    expect((step11.modules.find((module) => module.id === 'ship-response-hotspots')?.payload as {
+      interactions?: { selectableAnnotations?: string[] };
+    }).interactions?.selectableAnnotations).toEqual([
+      'ship-a-overshoot',
+      'ship-b-tail',
+      'ship-c-growth',
+      'ship-b-near-axis',
+    ]);
+    const annotationRegions = Object.fromEntries((annotations as Array<{
+      id?: string;
+      region?: { x: number; y: number; width: number; height: number };
+    }>).map((annotation) => [annotation.id, annotation.region]));
+    expect(annotationRegions).toMatchObject({
+      'ship-a-overshoot': { x: 0.346, y: 0.558, width: 0.138, height: 0.335 },
+      'ship-b-tail': { x: 0.135, y: 0.559, width: 0.139, height: 0.335 },
+      'ship-c-growth': { x: 0.768, y: 0.559, width: 0.139, height: 0.334 },
+      'ship-b-near-axis': { x: 0.135, y: 0.12, width: 0.139, height: 0.262 },
+    });
+    const hotspotPayload = step11.modules.find((module) => module.id === 'ship-response-hotspots')?.payload as {
+      media?: { aspectRatio?: string };
+    };
+    expect(hotspotPayload.media?.aspectRatio).toBe('2406 / 1264');
+    const requiredAnnotations = (annotations as Array<{ id?: string; required?: boolean }>)
+      .filter((annotation) => annotation.required)
+      .map((annotation) => annotation.id);
+    expect(requiredAnnotations).toEqual(['ship-b-tail', 'ship-b-near-axis']);
+    expect((step11.modules.find((module) => module.id === 'ship-response-hotspots')?.payload as {
+      revealPlan?: Array<{ id?: string; annotationIds?: string[] }>;
+    }).revealPlan).toEqual([
+      {
+        id: 'ship-b-dominant-pole',
+        label: 'B 的慢衰减判断目标',
+        annotationIds: ['ship-b-tail', 'ship-b-near-axis'],
+      },
+    ]);
     expect(`${lockedStep10Html}\n${lockedStep11Html}`).not.toContain('data-interactive-figure-panel');
     expect(releasedStep11Html).toContain('提交当前观察');
   });
@@ -717,6 +846,51 @@ describe('unit 1-2 modeling from object to system course', () => {
       simulation_interaction_count: 4,
     });
     expect(step11Draft?.payload.parameterSnapshot).not.toHaveProperty('gain.k');
+  });
+
+  it('maps step 10 pole controls into a reactive shared control workbench request', () => {
+    const manifest = readManifest();
+    const step10 = manifest.steps.find((step) => step.id === 'step-10');
+    const step10Module = step10?.modules.find((module) => module.id === 'drag-pole-panel');
+    if (!step10Module) throw new Error('step-10 shared workbench module missing');
+
+    const request = buildControlWorkbenchRequestForSubmission(step10Module.payload, {
+      sigma: -1.2,
+      omega: 2.4,
+      pole_mode: '共轭极点',
+    });
+
+    expect(request?.plant.numerator).toEqual([7.2]);
+    expect(request?.plant.denominator).toEqual([1, 2.4, 0]);
+    expect(request?.structures).toEqual([{ kind: 'gain', enabled: true, params: { k: 1 }, label: 'K' }]);
+    expect(request?.rootLocus.currentGain).toBe(1);
+  });
+
+  it('maps step 11 ship comparison controls into reactive shared control workbench requests', () => {
+    const manifest = readManifest();
+    const step11 = manifest.steps.find((step) => step.id === 'step-11');
+    const step11Module = step11?.modules.find((module) => module.id === 'ship-simulation');
+    if (!step11Module) throw new Error('step-11 shared workbench module missing');
+
+    const shipBRequest = buildControlWorkbenchRequestForSubmission(step11Module.payload, {
+      selected_ship: 'B',
+      time_scale: 3,
+      simulation_interaction_count: 2,
+    });
+    expect(shipBRequest?.plant.numerator).toEqual([0.8]);
+    expect(shipBRequest?.plant.denominator).toEqual([1, 0]);
+    expect(shipBRequest?.timeRange.end).toBe(4);
+    expect(shipBRequest?.caseId).toContain('ship-B');
+
+    const shipCRequest = buildControlWorkbenchRequestForSubmission(step11Module.payload, {
+      selected_ship: 'C',
+      time_scale: 1,
+      simulation_interaction_count: 3,
+    });
+    expect(shipCRequest?.plant.numerator).toEqual([2.05]);
+    expect(shipCRequest?.plant.denominator).toEqual([1, -0.6, 0]);
+    expect(shipCRequest?.rootLocus.currentGain).toBe(1);
+    expect(shipCRequest?.caseId).toContain('ship-C');
   });
 
   it('records step 10 pole parameters as data-governance parameter snapshots', () => {

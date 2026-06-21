@@ -178,6 +178,9 @@ describe('interactive runtime manifest', () => {
     expect(html).toContain('拖拽旋转，滚轮缩放。');
     expect(html).toContain('重置视角');
     expect(html).toContain('1-2-fig-08-magnitude-surface.png');
+    expect(html).toContain('data-static-surface-viewport="matlab-figure"');
+    expect(html).toContain('data-static-surface-view-action="auto-rotate"');
+    expect(html).toContain('自动旋转');
   });
 
   it('passes inline regular-grid surface data through the shared static 3D renderer', () => {
@@ -317,11 +320,49 @@ describe('interactive runtime manifest', () => {
       payload: expect.objectContaining({
         capabilityRef: 'static-surface-3d',
         spec_key: 'pole_magnitude_3d',
+        defaultCamera: expect.objectContaining({
+          position: expect.any(Array),
+          target: expect.any(Array),
+          zoom: expect.any(Number),
+        }),
         fallback: expect.objectContaining({
           image: expect.stringContaining('1-2-fig-08-magnitude-surface.png'),
         }),
       }),
     });
+  });
+
+  it('keeps static 3D surface controls z-up, Matlab-like, and readable', () => {
+    const panelSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/static-surface-3d-panel.tsx'),
+      'utf8',
+    );
+    const webglSource = readFileSync(
+      join(repoRoot, 'src/features/interactive/shared/manifest-runtime/static-surface-3d-webgl.tsx'),
+      'utf8',
+    );
+
+    expect(panelSource).toContain("data-static-surface-viewport=\"matlab-figure\"");
+    expect(panelSource).toContain("data-static-surface-view-action=\"auto-rotate\"");
+    expect(webglSource).toContain('camera.up.set(0, 0, 1)');
+    expect(webglSource).toContain('data-static-surface-drag-behavior="z-up-orbit"');
+    expect(webglSource).toContain('autoRotate={autoRotate}');
+    expect(webglSource).toContain('autoRotateSpeed={0.65}');
+    expect(webglSource).toContain('const AXIS_LABEL_OUTSET = 0.94');
+    expect(webglSource).toContain('const AXIS_TICK_LABEL_OUTSET = 0.46');
+    expect(webglSource).toContain("const fontSize = variant === 'axis' ? 58 : variant === 'marker' ? 46 : 64");
+    expect(webglSource).toContain('scale={[1.18, 0.38, 1]} variant="axis"');
+    expect(webglSource).toContain('scale={[1.0, 0.31, 1]} variant="marker"');
+    expect(webglSource).toContain('<AxisTicks bounds={bounds} />');
+    expect(webglSource).toContain('function AxisTicks');
+    expect(webglSource).toContain('variant="tick"');
+    expect(webglSource).toContain('const [centerX, centerY] = boundsCenter(bounds)');
+    expect(webglSource).toContain('bounds.y[0] - AXIS_LABEL_OUTSET');
+    expect(webglSource).toContain('bounds.x[0] - 1.6');
+    expect(webglSource).toContain('(bounds.z[0] + bounds.z[1]) / 2');
+    expect(webglSource).toContain('bounds.y[0] - AXIS_TICK_LABEL_OUTSET');
+    expect(webglSource).toContain('bounds.x[0] - AXIS_TICK_LABEL_OUTSET');
+    expect(webglSource).toContain('function niceTickValues');
   });
 
   it('renders formula-card and native-table payload descriptions from the shared content registry', () => {
@@ -1435,7 +1476,7 @@ describe('interactive runtime manifest', () => {
       ),
     );
 
-    expect(html).toContain('border-cyan-300/60');
+    expect(html).toContain('border-platform-action-primary/60');
     expect(html).toContain('饱和');
     expect(html).toContain('拖入对应备选项');
     expect(html).toContain('border-border/60');

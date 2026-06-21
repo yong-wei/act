@@ -358,7 +358,15 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('data-visual-stage-connection-id="plant-to-anchor"');
     expect(html).toContain('data-visual-stage-connection-from="plant-diagram"');
     expect(html).toContain('data-visual-stage-connection-to="activity-anchor-layer"');
+    expect(html).toContain('data-visual-stage-connection-line-id="plant-to-anchor"');
+    expect(html).toContain('data-visual-stage-arrowhead-id="plant-to-anchor"');
+    expect(html).toContain('data-visual-stage-arrow-style="independent-fixed-shape"');
+    expect(html).toContain('data-visual-stage-arrow-width-ratio="0.5"');
+    expect(html).toContain('data-visual-stage-arrow-shape-stability="rotation-only"');
+    expect(html).toContain('background-color:currentColor');
     expect(html).toContain('role="button"');
+    expect(html).not.toContain('<marker');
+    expect(html).not.toContain('marker-end=');
     expect(html).not.toContain('data-visual-stage-layer-summary');
     expect(html).not.toContain('>关系图<');
     expect(html).not.toContain('>标注<');
@@ -1110,6 +1118,18 @@ describe('interactive module registry gate', () => {
     expect(html).toContain('提交会保存当前参数、图形状态和判断');
   });
 
+  it('captures shared control workbench input values before state update callbacks', () => {
+    const source = readFileSync(
+      join(process.cwd(), 'src/features/interactive/shared/manifest-runtime/content-renderers.tsx'),
+      'utf8',
+    );
+
+    expect(source).toContain('const nextValue = event.currentTarget.value;');
+    expect(source).toContain('const nextValue = Number(event.currentTarget.value);');
+    expect(source).not.toContain('setSubmissionValues((prev) => ({ ...prev, [field.key]: event.currentTarget.value }))');
+    expect(source).not.toContain('setSubmissionValues((prev) => ({ ...prev, [field.key]: Number(event.currentTarget.value) }))');
+  });
+
   it('renders MATLAB code with the canonical content.code module renderer', () => {
     const registry = createManifestContentModuleRegistry({
       revealProgress: 0,
@@ -1223,6 +1243,92 @@ describe('interactive module registry gate', () => {
     }) as ReactElement<{ src?: string }>;
 
     expect(node.props.src).toBe('/course-runtime/lessons/fixture-lesson/media/diagram.png');
+  });
+
+  it('resolves relative annotated media image sources through the lesson runtime media path', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'annotated-media',
+        kind: 'visual.annotatedMedia',
+        mustBeVisible: true,
+        payload: {
+          mediaId: 'annotated-media-canvas',
+          title: '证据图',
+          media: {
+            src: 'diagram.png',
+            alt: '证据图',
+          },
+          annotations: [
+            {
+              id: 'annotation-1',
+              label: '证据点',
+              region: { x: 0.1, y: 0.1, width: 0.2, height: 0.2 },
+              evidenceRole: 'result',
+            },
+          ],
+        },
+      },
+    });
+    const step = manifest.steps[0];
+    const node = registry['visual.annotatedMedia']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 0, allowInlineReveal: false },
+    }) as ReactElement;
+    const html = renderToStaticMarkup(createElement(ThemeProvider, null, node));
+
+    expect(html).toContain('/course-runtime/lessons/fixture-lesson/media/diagram.png');
+    expect(html).not.toContain('src="diagram.png"');
+  });
+
+  it('renders annotated media with a course-facing selection task and highlighted selected candidates only', () => {
+    const registry = createManifestContentModuleRegistry({
+      revealProgress: 0,
+      allowInlineReveal: false,
+    });
+    const manifest = manifestFixture({
+      module: {
+        id: 'annotated-media-task',
+        kind: 'visual.annotatedMedia',
+        mustBeVisible: true,
+        payload: {
+          ...annotatedMediaPayloadFixture(),
+          instruction: '只选择能说明主导极点的证据。',
+          initialSelectedAnnotationIds: ['output-hotspot'],
+        },
+      },
+    });
+    const step = manifest.steps[0];
+    const node = registry['visual.annotatedMedia']({
+      manifest,
+      step,
+      module: step.modules[0],
+      extra: { revealProgress: 0, allowInlineReveal: false },
+    }) as ReactElement;
+    const html = renderToStaticMarkup(createElement(ThemeProvider, null, node));
+
+    expect(html).toContain('只选择能说明主导极点的证据。');
+    expect(html).toContain('data-annotated-media-candidate-list="visible"');
+    expect(html).toContain('data-annotated-media-candidate-id="output-hotspot"');
+    expect(html).toContain('data-annotated-media-candidate-selected="true"');
+    expect(html).toContain('data-annotated-media-hotspot-frame="true"');
+    expect(html).toContain('data-annotated-media-frame-visibility="selected"');
+    expect(html).toContain('data-annotated-media-frame-selected-style="structure-diagram-evidence-halo"');
+    expect(html).toContain('data-annotated-media-candidate-selected-style="structure-diagram-evidence-halo"');
+    expect(html).toContain('border-[hsl(var(--platform-brand-evidence))]');
+    expect(html).not.toContain('data-annotated-media-marker-index=');
+    expect(html).toContain('aria-label="证据 2：输出响应"');
+    expect(html).toContain('输出响应');
+    expect(html).toContain('系统被控结果。');
+    expect(html).not.toContain('data-annotated-media-selected-explanation="visible"');
+    expect(html).not.toContain('已选证据');
+    expect(html).not.toContain('evidence-reveal</p>');
+    expect(html).not.toContain('diagnostic-reveal</p>');
   });
 
   it('renders single image payload assets for canonical figure modules', () => {
